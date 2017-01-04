@@ -1,0 +1,11 @@
+{
+  "name": "brush",
+  "version": "0.0.0",
+  "description": "Haiku CLI",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Zack Brown <zack@haiku.ai>",
+  "license": "UNLICENSED"
+}
