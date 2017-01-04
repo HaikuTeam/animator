@@ -1,5 +1,5 @@
 {
-  "name": "brush",
+  "name": "cli",
   "version": "0.0.0",
   "description": "Haiku CLI",
   "main": "lib/index.js",
@@ -7,5 +7,20 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Zack Brown <zack@haiku.ai>",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "dependencies": {
+    "cli-color": "^1.1.0",
+    "inquirer": "^2.0.0",
+    "lodash": "^4.17.4",
+    "request": "^2.79.0",
+    "yargs": "^6.6.0"
+  },
+  "devDependencies": {
+    "@types/cli-color": "^0.3.29",
+    "@types/inquirer": "0.0.32",
+    "@types/lodash": "^4.14.45",
+    "@types/node": "^6.0.56",
+    "@types/request": "0.0.39",
+    "@types/yargs": "^6.5.0"
+  }
 }
