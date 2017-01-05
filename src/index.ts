@@ -7,7 +7,7 @@ import { argv } from 'yargs'
 import * as request from 'request'
 import * as chalk from 'chalk'
 
-import { inkstone } from './sdk.js'
+import { inkstone, client } from './sdk.js'
 
 let dedent = require('dedent')
 
@@ -86,11 +86,12 @@ function login() {
     username = answers['username']
     password = answers['password']
 
-    inkstone.user.authenticate(username, password, function (err, data) {
+    inkstone.user.authenticate(username, password, function (err, authResponse) {
       if (err != undefined) {
         console.log(chalk.bold.red('Username or password incorrect.'))
       } else {
         //TODO: write auth token from response to ~/.haiku/auth
+        client.config.setAuthToken(authResponse.auth_token)
         console.log(chalk.bold.green(`Welcome ${username}!`))
       }
     })
