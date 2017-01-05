@@ -55,8 +55,8 @@ switch (subcommand) {
     login()
     break
   case 'logout':
-    console.warn('unimplemented')
-    //TODO:  delete auth file from ~/.haiku
+  case 'logoff':
+    logout()
     break
   case 'help':
     help()
@@ -96,4 +96,8 @@ function login() {
       }
     })
   });
+}
+
+function logout(){
+  client.config.setAuthToken("")
 }
