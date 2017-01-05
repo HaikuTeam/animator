@@ -1,10 +1,15 @@
+
 import * as clc from 'cli-color'
+import * as path from 'path'
+import * as inquirer from 'inquirer'
 import { clone, merge } from 'lodash'
 import { argv } from 'yargs'
 import * as request from 'request'
 
-const banner = `
-  Haiku CLI (version 0.0.0.0)
+let dedent = require('dedent')
+
+const banner = dedent`
+  Haiku CLI (version 0.0.0)
 
   Usage:
     haiku <command> [flags]
@@ -22,25 +27,13 @@ const flags = clone(argv)
 delete flags._
 delete flags.$0
 
-
-function finish(){
-    process.exit(1)
+function finish() {
+  process.exit(1)
 }
 
-
-let folder = flags.folder || args.shift()
-if (!folder) folder = process.cwd()
-else if (path.resolve(folder) !== folder) folder = path.join(process.cwd(), folder || '.')
-console.log('Project folder:', folder, '\n')
-
-if (subcommand === 'develop-internal') flags.devtool = true
-const forwarded = JSON.stringify(merge(flags, { folder }))
-process.env.HALCYON_OPTIONS = forwarded
-
-process.stdin.resume()
+// process.stdin.resume()
 function exitwrap(maybeException) {
   if (maybeException) console.log(maybeException)
-  if (exitwrap.handler) exitwrap.handler()
   process.exit()
 }
 process.on('exit', exitwrap)
@@ -54,81 +47,58 @@ function help() {
   finish()
 }
 
-function spawnElectron(args) {
-  const electronProcess = proc.spawn(electron, [main].concat(args))
-  exitwrap.handler = () => {
-    electronProcess.stdin.pause()
-    electronProcess.kill()
-  }
-  electronProcess.stdout.on('data', (data) => {
-    process.stdout.write(data)
-  })
-  electronProcess.stderr.on('data', (error) => {
-    process.stderr.write(error)
-  })
-  return electronProcess
-}
-
-
-
 //TODO:  abstract out paths, env/config (env var?)
 var LOGIN_ENDPOINT = "http://localhost:8080/v0/user/auth"
-var LOGIN_SCHEMA = {
-  properties: {
-    username: {
-      required: true
-    },
-    password: {
-      hidden: true
-    }
-  }
-}
-function performLogin(username, password, cb) {
+function performLogin(username, password, cb: request.RequestCallback) {
   var formData = {
     username: username,
     password: password
   }
-  request.post({url: LOGIN_ENDPOINT, formData, formData}, cb)
+
+  var options: request.UrlOptions & request.CoreOptions = {
+    url: LOGIN_ENDPOINT,
+    json: formData,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }
+
+  request.post(options, cb)
 }
 
 switch (subcommand) {
-  case 'develop-internal':
-    let debugBrk = ''
-    let debugPort = ''
-    if (flags['debug-brk']) debugBrk = '--debug-brk=' + flags['debug-brk']
-    if (flags['remote-debugging-port']) debugPort = '--remote-debugging-port=' + flags['remote-debugging-port']
-    console.log('launching: ', electron + ' ' + [main, debugBrk, debugPort].join(' '))
-    spawnElectron(electron, [debugBrk, debugPort])
-    break
   case 'login':
     var username = ''
     var password = ''
 
-    //TODO:  `prompt` doesn't seem to play nicely
-    //       with stdin when running halcyon-bin 
-    //       (will skip the prompt and fill vars with empty strings.)
-    //       Will we be able to support runtime text input?
-
-    prompt.start()
-    prompt.get(LOGIN_SCHEMA, function (err, result) {
-      if(err){
-        console.warn('error parsing username or password')
-        process.exit(1)
+    inquirer.prompt([
+      {
+        type: 'input',
+        name: 'username',
+        message: 'Username:',
+      },
+      {
+        type: 'password',
+        name: 'password',
+        message: 'Password:',
       }
-      username = result.username
-      password = result.password
-    })
+    ]).then(function (answers: inquirer.Answers) {
+      username = answers['username']
+      password = answers['password']
 
-    performLogin(username, password, function(err, httpResponse, body){
-      if(err){
-        console.log('username or password incorrect', err)
-      }else{
-        console.log('success', httpResponse)
-      }
-    })
+      performLogin(username, password, function (err, httpResponse, body) {
+        if (httpResponse.statusCode != 200) {
+          console.log(clc.red('username or password incorrect'))
+        } else {
+          //TODO: write auth token in response to ~/.haiku/auth
+          console.log(clc.magenta(`Welcome ${username}! You're now logged in.`))
+        }
+      })
+    });
     break
   case 'logout':
     console.warn('unimplemented')
+    //TODO:  delete auth file from ~/.haiku
     break
   case 'help':
     help()
@@ -137,7 +107,3 @@ switch (subcommand) {
     help()
     break
 }
-
-
-
-console.log("hello world")

@@ -10,6 +10,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "cli-color": "^1.1.0",
+    "dedent": "^0.6.0",
     "inquirer": "^2.0.0",
     "lodash": "^4.17.4",
     "request": "^2.79.0",
