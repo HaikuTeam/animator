@@ -5,6 +5,9 @@ import * as inquirer from 'inquirer'
 import { clone, merge } from 'lodash'
 import { argv } from 'yargs'
 import * as request from 'request'
+import * as chalk from 'chalk'
+
+import { inkstone } from './sdk.js'
 
 let dedent = require('dedent')
 
@@ -27,8 +30,8 @@ const flags = clone(argv)
 delete flags._
 delete flags.$0
 
-function finish() {
-  process.exit(1)
+function finish(code?: number) {
+  process.exit(code)
 }
 
 // process.stdin.resume()
@@ -47,54 +50,9 @@ function help() {
   finish()
 }
 
-//TODO:  abstract out paths, env/config (env var?)
-var LOGIN_ENDPOINT = "http://localhost:8080/v0/user/auth"
-function performLogin(username, password, cb: request.RequestCallback) {
-  var formData = {
-    username: username,
-    password: password
-  }
-
-  var options: request.UrlOptions & request.CoreOptions = {
-    url: LOGIN_ENDPOINT,
-    json: formData,
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  }
-
-  request.post(options, cb)
-}
-
 switch (subcommand) {
   case 'login':
-    var username = ''
-    var password = ''
-
-    inquirer.prompt([
-      {
-        type: 'input',
-        name: 'username',
-        message: 'Username:',
-      },
-      {
-        type: 'password',
-        name: 'password',
-        message: 'Password:',
-      }
-    ]).then(function (answers: inquirer.Answers) {
-      username = answers['username']
-      password = answers['password']
-
-      performLogin(username, password, function (err, httpResponse, body) {
-        if (httpResponse.statusCode != 200) {
-          console.log(clc.red('username or password incorrect'))
-        } else {
-          //TODO: write auth token in response to ~/.haiku/auth
-          console.log(clc.magenta(`Welcome ${username}! You're now logged in.`))
-        }
-      })
-    });
+    login()
     break
   case 'logout':
     console.warn('unimplemented')
@@ -106,4 +64,35 @@ switch (subcommand) {
   default:
     help()
     break
+}
+
+function login() {
+  console.log(chalk.underline('Logging into Haiku'))
+  var username = ''
+  var password = ''
+
+  inquirer.prompt([
+    {
+      type: 'input',
+      name: 'username',
+      message: 'Username:',
+    },
+    {
+      type: 'password',
+      name: 'password',
+      message: 'Password:',
+    }
+  ]).then(function (answers: inquirer.Answers) {
+    username = answers['username']
+    password = answers['password']
+
+    inkstone.user.authenticate(username, password, function (err, data) {
+      if (err != undefined) {
+        console.log(chalk.bold.red('Username or password incorrect.'))
+      } else {
+        //TODO: write auth token from response to ~/.haiku/auth
+        console.log(chalk.bold.green(`Welcome ${username}!`))
+      }
+    })
+  });
 }
