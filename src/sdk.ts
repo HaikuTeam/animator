@@ -6,6 +6,7 @@ import * as mkdirp from "mkdirp"
 //TODO:  abstract out paths, env/config (env var?)
 //TODO:  make file paths cross-platform friendly
 var LOGIN_ENDPOINT = "http://localhost:8080/v0/user/auth"
+var PROJECT_LIST_ENDPOINT = "http://localhost:8080/v0/project"
 
 export namespace inkstone {
 
@@ -41,6 +42,35 @@ export namespace inkstone {
         }
       })
 
+    }
+  }
+
+  export namespace project {
+    export interface Project {
+      name: string
+      git_remote_url: string
+      git_remote_name: string
+      git_remote_arn: string
+    }
+
+    export function list(authToken:string, cb: inkstone.Callback<Project[]>){
+
+      var options: request.UrlOptions & request.CoreOptions = {
+        url: PROJECT_LIST_ENDPOINT,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `INKSTONE auth_token="${authToken}"`
+        }
+      }
+
+      request.get(options, function (err, httpResponse, body) {
+        if (httpResponse.statusCode === 200) {
+          var projects = body as Project[]
+          cb(undefined, projects)
+        } else {
+          cb("uncategorized error", undefined)
+        }
+      })
     }
   }
 }
