@@ -2,7 +2,7 @@
 import * as clc from 'cli-color'
 import * as path from 'path'
 import * as inquirer from 'inquirer'
-import { clone, merge } from 'lodash'
+import * as _ from 'lodash'
 import { argv } from 'yargs'
 import * as request from 'request'
 import * as chalk from 'chalk'
@@ -28,7 +28,7 @@ const args = argv._
 
 const subcommand = args.shift()
 
-const flags = clone(argv)
+const flags = _.clone(argv)
 delete flags._
 delete flags.$0
 
@@ -99,7 +99,15 @@ switch (subcommand) {
 function doList() {
   ensureAuth((token: string) => {
     inkstone.project.list(token, (err, projects) => {
-      console.log("projects", projects)
+      if (projects == undefined || projects.length == 0) {
+        console.log("No existing projects.  Use " + chalk.bold("haiku generate") + " to make a new one!")
+      } else {
+        console.log(chalk.cyan("Your team's Haiku projects:"))
+        console.log("(To work with one, call " + chalk.bold("haiku import project_name"))
+        _.forEach(projects, (project) => {
+          console.log("  " + project.Name)
+        })
+      }
     })
   })
 }

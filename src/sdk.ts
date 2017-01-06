@@ -47,10 +47,10 @@ export namespace inkstone {
 
   export namespace project {
     export interface Project {
-      name: string
-      git_remote_url: string
-      git_remote_name: string
-      git_remote_arn: string
+      Name: string
+      GitRemoteUrl: string
+      GitRemoteName: string
+      GitRemoteArn: string
     }
 
     export function list(authToken:string, cb: inkstone.Callback<Project[]>){
@@ -65,7 +65,7 @@ export namespace inkstone {
 
       request.get(options, function (err, httpResponse, body) {
         if (httpResponse.statusCode === 200) {
-          var projects = body as Project[]
+          var projects = JSON.parse(body) as Project[]
           cb(undefined, projects)
         } else {
           cb("uncategorized error", undefined)
