@@ -82,7 +82,7 @@ switch (subcommand) {
     doLogout()
     break
   case 'import':
-    // doImport()
+    doImport()
     break
   case 'help':
     help()
@@ -95,6 +95,10 @@ switch (subcommand) {
     break
 }
 
+
+function doGenerate() {
+  console.warn("Unimplemented.  For now, new projects must be initialized using the Haiku desktop app.")
+}
 
 function doList() {
   ensureAuth((token: string) => {
@@ -112,9 +116,8 @@ function doList() {
   })
 }
 
-
 function doLogin(cb?: Function) {
-  console.log(chalk.underline('Logging into Haiku'))
+  console.log('Enter your Haiku credentials.')
   var username = ''
   var password = ''
 
@@ -122,7 +125,7 @@ function doLogin(cb?: Function) {
     {
       type: 'input',
       name: 'username',
-      message: 'Username:',
+      message: 'Email:',
     },
     {
       type: 'password',
@@ -138,7 +141,7 @@ function doLogin(cb?: Function) {
         console.log(chalk.bold.red('Username or password incorrect.'))
       } else {
         //TODO: write auth token from response to ~/.haiku/auth
-        client.config.setAuthToken(authResponse.auth_token)
+        client.config.setAuthToken(authResponse.Token)
         console.log(chalk.bold.green(`Welcome ${username}!`))
       }
       if (cb) {
@@ -157,20 +160,39 @@ function doSync() {
   console.warn("Unimplemented")
 }
 
+
+//TODO:  try out submodules instead of subtrees
+
+//TODO:  haiku sync
+//       haiku sync --watch
+
+
 //USAGE:  haiku import design-test dest/
 //        clone git repo 'someendpoint/design-test' as a submodule into the dest/design-test folder
 //TODO:  update with url to our public infra (codecommit or similar)
 //TODO:  figure out auth (or do all public for now. +1 to hosting on our own infra)
 var GIT_CMD_BASE = "git@github.com:HaikuTeam/${1}.git"
-function doImport(projectName, destination) {
-  //TODO:  handle numerous edge cases (e.g. dest path does/not already have contents; remote not found)
-  if (destination.charAt(destination.length - 1) !== "/") destination += '/'
-  mkdirp.sync(destination)
-  destination += projectName
+function doImport() {
+  var projectName = args[0]
+  //TODO:  handle destination arg, if provided
 
-  var gitEndpoint = GIT_CMD_BASE.replace('${1}', projectName)
-  execSync(`git remote add ${projectName} ${gitEndpoint}`)
-  execSync(`git subtree add --prefix ${destination} ${projectName} master`)
+
+  ensureAuth(function (token) {
+    inkstone.project.getByName(token, projectName, function (err, project) {
+      console.log("Project here", project)
+    })
+  })
+
+
+  console.log('args', args);
+  // //TODO:  handle numerous edge cases (e.g. dest path does/not already have contents; remote not found)
+  // if (destination.charAt(destination.length - 1) !== "/") destination += '/'
+  // mkdirp.sync(destination)
+  // destination += projectName
+
+  // var gitEndpoint = GIT_CMD_BASE.replace('${1}', projectName)
+  // execSync(`git remote add ${projectName} ${gitEndpoint}`)
+  // execSync(`git subtree add --prefix ${destination} ${projectName} master`)
 
 }
 

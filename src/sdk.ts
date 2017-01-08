@@ -7,6 +7,7 @@ import * as mkdirp from "mkdirp"
 //TODO:  make file paths cross-platform friendly
 var LOGIN_ENDPOINT = "http://localhost:8080/v0/user/auth"
 var PROJECT_LIST_ENDPOINT = "http://localhost:8080/v0/project"
+var PROJECT_GET_BY_NAME_ENDPOINT = "http://localhost:8080/v0/project/:NAME"
 
 export namespace inkstone {
 
@@ -15,8 +16,8 @@ export namespace inkstone {
   export namespace user {
 
     export interface Authentication {
-      expiration: string
-      auth_token: string
+      Expiration: string
+      Token: string
     }
 
     export function authenticate(username, password, cb: inkstone.Callback<Authentication>) {
@@ -72,6 +73,28 @@ export namespace inkstone {
         }
       })
     }
+
+
+    export function getByName(authToken:string, name:string, cb: inkstone.Callback<Project>){
+
+      var options: request.UrlOptions & request.CoreOptions = {
+        url: PROJECT_GET_BY_NAME_ENDPOINT.replace(":NAME", encodeURIComponent(name)),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `INKSTONE auth_token="${authToken}"`
+        }
+      }
+
+      request.get(options, function (err, httpResponse, body) {
+        if (httpResponse.statusCode === 200) {
+          var project = JSON.parse(body) as Project
+          cb(undefined, project)
+        } else {
+          cb("uncategorized error", undefined)
+        }
+      })
+    }
+
   }
 }
 
