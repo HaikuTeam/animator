@@ -84,6 +84,9 @@ switch (subcommand) {
   case 'import':
     doImport()
     break
+  case 'open':
+    doOpen()
+    break
   case 'help':
     help()
     break
@@ -161,6 +164,18 @@ function doSync() {
 }
 
 
+
+
+function doOpen() {
+  var projectName = args[0]
+
+  ensureAuth(function (token) {
+    inkstone.project.getByName(token, projectName, function (err, project) {
+      console.log("TODO:  launch an instance of Creator with this project open:", project)
+    })
+  })
+}
+
 //TODO:  try out submodules instead of subtrees
 
 //TODO:  haiku sync
@@ -174,21 +189,28 @@ function doSync() {
 var GIT_CMD_BASE = "git@github.com:HaikuTeam/${1}.git"
 function doImport() {
   var projectName = args[0]
-  //TODO:  handle destination arg, if provided
-
+  var destination = args[1] || projectName
+  if (destination.charAt(destination.length - 1) !== "/") destination += '/'
 
   ensureAuth(function (token) {
-    inkstone.project.getByName(token, projectName, function (err, project) {
-      console.log("Project here", project)
+    inkstone.project.getByName(token, projectName, function (err, projectAndCredentials) {
+
+      if (err) {
+        console.log(chalk.bold(`Project ${projectName} not found.`))
+      } else {
+        mkdirp.sync(destination)
+        destination += projectName
+        var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
+        //TODO:  store credentials more securely than this
+        gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
+        //TODO:  handle case where git remote is already added
+        execSync(`git remote add ${projectName} ${gitEndpoint}`)   
+        execSync(`git subtree add --prefix ${destination} ${projectName} master`)
+        console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
+      }
+
     })
   })
-
-
-  console.log('args', args);
-  // //TODO:  handle numerous edge cases (e.g. dest path does/not already have contents; remote not found)
-  // if (destination.charAt(destination.length - 1) !== "/") destination += '/'
-  // mkdirp.sync(destination)
-  // destination += projectName
 
   // var gitEndpoint = GIT_CMD_BASE.replace('${1}', projectName)
   // execSync(`git remote add ${projectName} ${gitEndpoint}`)

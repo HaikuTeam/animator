@@ -53,6 +53,17 @@ export namespace inkstone {
       GitRemoteName: string
       GitRemoteArn: string
     }
+    export interface Credentials {
+      Username: string
+      // AccessKeyId: string
+      // SecretAccessKey: string
+      CodeCommitHttpsUsername: string
+      CodeCommitHttpsPassword: string
+    }
+    export interface ProjectAndCredentials {
+      Project: Project
+      Credentials: Credentials
+    }
 
     export function list(authToken:string, cb: inkstone.Callback<Project[]>){
 
@@ -75,7 +86,7 @@ export namespace inkstone {
     }
 
 
-    export function getByName(authToken:string, name:string, cb: inkstone.Callback<Project>){
+    export function getByName(authToken:string, name:string, cb: inkstone.Callback<ProjectAndCredentials>){
 
       var options: request.UrlOptions & request.CoreOptions = {
         url: PROJECT_GET_BY_NAME_ENDPOINT.replace(":NAME", encodeURIComponent(name)),
@@ -87,7 +98,7 @@ export namespace inkstone {
 
       request.get(options, function (err, httpResponse, body) {
         if (httpResponse.statusCode === 200) {
-          var project = JSON.parse(body) as Project
+          var project = JSON.parse(body) as ProjectAndCredentials
           cb(undefined, project)
         } else {
           cb("uncategorized error", undefined)
