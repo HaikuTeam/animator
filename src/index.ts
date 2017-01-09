@@ -54,11 +54,11 @@ function help() {
 
 function ensureAuth(cb) {
   var token = client.config.getAuthToken()
-  if (token == "") {
+  if (!token || token == "") {
     console.log("You must be authenticated to do that.")
     doLogin(function () {
       token = client.config.getAuthToken()
-      if (token == "") {
+      if (!token || token == "") {
         console.log("Hm, that didn't work.  Let's try again.")
         ensureAuth(cb)
       } else {
@@ -194,18 +194,18 @@ function doImport() {
 
   ensureAuth(function (token) {
     inkstone.project.getByName(token, projectName, function (err, projectAndCredentials) {
-
       if (err) {
         console.log(chalk.bold(`Project ${projectName} not found.`))
       } else {
-        mkdirp.sync(destination)
-        destination += projectName
+        //TODO:  mkdirp all folders excluding the prefix directory itself (git subtree add doesn't want the folder to exist yet)
+        // mkdirp.sync(destination)
+        // destination += projectName
         var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
         //TODO:  store credentials more securely than this
         gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
         //TODO:  handle case where git remote is already added
         execSync(`git remote add ${projectName} ${gitEndpoint}`)   
-        execSync(`git subtree add --prefix ${destination} ${projectName} master`)
+        execSync(`git subtree add --prefix=${destination} ${projectName} master`)
         console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
       }
 
