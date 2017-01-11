@@ -9,7 +9,7 @@ import * as chalk from 'chalk'
 import * as mkdirp from "mkdirp"
 import { execSync } from 'child_process'
 
-import { inkstone, client } from 'sdk'
+import { inkstone, client } from 'haiku-sdk'
 
 let dedent = require('dedent')
 
