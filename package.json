@@ -9,6 +9,7 @@
   "author": "Zack Brown <zack@haiku.ai>",
   "license": "UNLICENSED",
   "dependencies": {
+    "sdk": "git@github.com:HaikuTeam/sdk.git#5c6921bf15d406577444228e3a1d9416d8d9de1c",
     "chalk": "^1.1.3",
     "cli-color": "^1.1.0",
     "dedent": "^0.6.0",

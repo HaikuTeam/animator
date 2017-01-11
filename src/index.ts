@@ -9,7 +9,7 @@ import * as chalk from 'chalk'
 import * as mkdirp from "mkdirp"
 import { execSync } from 'child_process'
 
-import { inkstone, client } from './sdk.js'
+import { inkstone, client } from 'sdk'
 
 let dedent = require('dedent')
 
@@ -176,14 +176,14 @@ function doOpen() {
   })
 }
 
-//TODO:  try out submodules instead of subtrees
+
+//TODO:  custom/granular git subtree logic, supporting importing a bare repo
 
 //TODO:  haiku sync
 //       haiku sync --watch
 
-
 //USAGE:  haiku import design-test dest/
-//        clone git repo 'someendpoint/design-test' as a submodule into the dest/design-test folder
+//        clone git repo 'someendpoint/design-test' as a subtree into the dest/design-test folder
 //TODO:  update with url to our public infra (codecommit or similar)
 //TODO:  figure out auth (or do all public for now. +1 to hosting on our own infra)
 var GIT_CMD_BASE = "git@github.com:HaikuTeam/${1}.git"
@@ -198,6 +198,7 @@ function doImport() {
         console.log(chalk.bold(`Project ${projectName} not found.`))
       } else {
         //TODO:  mkdirp all folders excluding the prefix directory itself (git subtree add doesn't want the folder to exist yet)
+        //TODO:  maybe not worry about that with our own custom subtree logic
         // mkdirp.sync(destination)
         // destination += projectName
         var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
