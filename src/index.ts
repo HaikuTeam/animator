@@ -81,6 +81,12 @@ switch (subcommand) {
   case 'logoff':
     doLogout()
     break
+  case 'new':
+  case 'generate':
+  case 'create':
+    //Not intended for user consumption yet
+    doCreate()
+    break
   case 'import':
     doImport()
     break
@@ -98,9 +104,27 @@ switch (subcommand) {
     break
 }
 
-
-function doGenerate() {
-  console.warn("Unimplemented.  For now, new projects must be initialized using the Haiku desktop app.")
+function doCreate() {
+  ensureAuth((token: string) => {
+    //TODO:  pull this from args if provided
+    //TODO:  
+    inquirer.prompt([
+      {
+        type: 'input',
+        name: 'name',
+        message: 'Project Name:',
+      }
+    ]).then(function (answers: inquirer.Answers) {
+      var projectName = answers['name']
+      inkstone.project.create(token, {Name: projectName}, (err, project)=>{
+        if(err){
+          console.log("Error creating project.  Does this project with this name already exist?")
+        }else{
+          console.log("Project created!", project)
+        }
+      })
+    })
+  })
 }
 
 function doList() {
@@ -118,6 +142,8 @@ function doList() {
     })
   })
 }
+
+
 
 function doLogin(cb?: Function) {
   console.log('Enter your Haiku credentials.')
@@ -151,7 +177,7 @@ function doLogin(cb?: Function) {
         cb()
       }
     })
-  });
+  })
 }
 
 function doLogout() {
@@ -205,7 +231,7 @@ function doImport() {
         //TODO:  store credentials more securely than this
         gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
         //TODO:  handle case where git remote is already added
-        execSync(`git remote add ${projectName} ${gitEndpoint}`)   
+        execSync(`git remote add ${projectName} ${gitEndpoint}`)
         execSync(`git subtree add --prefix=${destination} ${projectName} master`)
         console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
       }
