@@ -107,7 +107,7 @@ switch (subcommand) {
 function doCreate() {
   ensureAuth((token: string) => {
     //TODO:  pull this from args if provided
-    //TODO:  
+    //TODO:  support 'cloning' project directly into fs (i.e. autoimport)
     inquirer.prompt([
       {
         type: 'input',
@@ -116,11 +116,12 @@ function doCreate() {
       }
     ]).then(function (answers: inquirer.Answers) {
       var projectName = answers['name']
+      console.log("Creating project...")
       inkstone.project.create(token, {Name: projectName}, (err, project)=>{
         if(err){
           console.log("Error creating project.  Does this project with this name already exist?")
         }else{
-          console.log("Project created!", project)
+          console.log("Project created!")
         }
       })
     })
