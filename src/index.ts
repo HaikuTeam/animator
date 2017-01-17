@@ -70,6 +70,14 @@ function ensureAuth(cb) {
   }
 }
 
+inkstone.setConfig({
+  baseUrl: flags.api || "https://inkstone.haiku.ai/"
+});
+
+if(flags.verbose){
+  console.log("Flags: ", flags)
+}
+
 switch (subcommand) {
   case 'list':
     doList()
@@ -117,7 +125,7 @@ function doCreate() {
     ]).then(function (answers: inquirer.Answers) {
       var projectName = answers['name']
       console.log("Creating project...")
-      inkstone.project.create(token, {Name: projectName}, (err, project)=>{
+      inkstone.project.create({Name: projectName}, (err, project)=>{
         if(err){
           console.log("Error creating project.  Does this project with this name already exist?")
         }else{
@@ -128,9 +136,53 @@ function doCreate() {
   })
 }
 
+//TODO:  not extensively tested, needs to handle edge-cases
+//USAGE:  haiku deport design-test dest/design-test
+//        removes subtree at dest/design-test
+//TODO:  still seems to be polluting git history. may need to follow additional steps re: reflog, see link
+//Could also explore submodules as a less history-intermingling solution (defeats part of the collaborative connection)
+function performDeport(projectName, location) {
+  //command from http://stackoverflow.com/questions/26107798/how-to-remove-previously-added-git-subtree-and-its-history
+  var cmd = `git filter-branch --index-filter \'git rm --cached --ignore-unmatch -rf ${location}\' --prune-empty -f HEAD`
+  execSync(cmd)
+}
+
+
+//TODO:  custom/granular git subtree logic, supporting importing a bare repo
+
+//USAGE:  haiku import design-test dest/
+//        clone git repo 'someendpoint/design-test' as a subtree into the dest/design-test folder
+function doImport() {
+  var projectName = args[0]
+  var destination = args[1] || projectName
+  if (destination.charAt(destination.length - 1) !== "/") destination += '/'
+
+  ensureAuth(function (token) {
+    inkstone.project.getByName(projectName, function (err, projectAndCredentials) {
+      if (err) {
+        console.log(chalk.bold(`Project ${projectName} not found.`))
+      } else {
+        //TODO:  mkdirp all folders excluding the prefix directory itself (git subtree add doesn't want the folder to exist yet)
+        //TODO:  maybe not worry about that with our own custom subtree logic
+        // mkdirp.sync(destination)
+        // destination += projectName
+        var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
+        //TODO:  store credentials more securely than this
+        gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
+        //TODO:  handle case where git remote is already added
+        execSync(`git remote add ${projectName} ${gitEndpoint}`)
+        execSync(`git subtree add --prefix=${destination} ${projectName} master`)
+        console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
+      }
+
+    })
+  })
+}
+
+
 function doList() {
   ensureAuth((token: string) => {
-    inkstone.project.list(token, (err, projects) => {
+    inkstone.project.list((err, projects) => {
       if (projects == undefined || projects.length == 0) {
         console.log("No existing projects.  Use " + chalk.bold("haiku generate") + " to make a new one!")
       } else {
@@ -143,7 +195,6 @@ function doList() {
     })
   })
 }
-
 
 
 function doLogin(cb?: Function) {
@@ -169,9 +220,10 @@ function doLogin(cb?: Function) {
     inkstone.user.authenticate(username, password, function (err, authResponse) {
       if (err != undefined) {
         console.log(chalk.bold.red('Username or password incorrect.'))
+        if(flags.verbose){
+          console.log(err)
+        }
       } else {
-        //TODO: write auth token from response to ~/.haiku/auth
-        client.config.setAuthToken(authResponse.Token)
         console.log(chalk.bold.green(`Welcome ${username}!`))
       }
       if (cb) {
@@ -185,75 +237,22 @@ function doLogout() {
   client.config.setAuthToken("")
 }
 
-//TODO:  realtime sync
+function doOpen() {
+  var projectName = args[0]
+
+  ensureAuth(function (token) {
+    inkstone.project.getByName(projectName, function (err, project) {
+      console.log("TODO:  launch an instance of Creator with this project open:", project)
+    })
+  })
+}
+
+//TODO:  realtime sync on a branch
 function doSync() {
   console.warn("Unimplemented")
 }
 
 
 
-
-function doOpen() {
-  var projectName = args[0]
-
-  ensureAuth(function (token) {
-    inkstone.project.getByName(token, projectName, function (err, project) {
-      console.log("TODO:  launch an instance of Creator with this project open:", project)
-    })
-  })
-}
-
-
-//TODO:  custom/granular git subtree logic, supporting importing a bare repo
-
-//TODO:  haiku sync
-//       haiku sync --watch
-
-//USAGE:  haiku import design-test dest/
-//        clone git repo 'someendpoint/design-test' as a subtree into the dest/design-test folder
-//TODO:  update with url to our public infra (codecommit or similar)
-//TODO:  figure out auth (or do all public for now. +1 to hosting on our own infra)
-var GIT_CMD_BASE = "git@github.com:HaikuTeam/${1}.git"
-function doImport() {
-  var projectName = args[0]
-  var destination = args[1] || projectName
-  if (destination.charAt(destination.length - 1) !== "/") destination += '/'
-
-  ensureAuth(function (token) {
-    inkstone.project.getByName(token, projectName, function (err, projectAndCredentials) {
-      if (err) {
-        console.log(chalk.bold(`Project ${projectName} not found.`))
-      } else {
-        //TODO:  mkdirp all folders excluding the prefix directory itself (git subtree add doesn't want the folder to exist yet)
-        //TODO:  maybe not worry about that with our own custom subtree logic
-        // mkdirp.sync(destination)
-        // destination += projectName
-        var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
-        //TODO:  store credentials more securely than this
-        gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
-        //TODO:  handle case where git remote is already added
-        execSync(`git remote add ${projectName} ${gitEndpoint}`)
-        execSync(`git subtree add --prefix=${destination} ${projectName} master`)
-        console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
-      }
-
-    })
-  })
-
-  // var gitEndpoint = GIT_CMD_BASE.replace('${1}', projectName)
-  // execSync(`git remote add ${projectName} ${gitEndpoint}`)
-  // execSync(`git subtree add --prefix ${destination} ${projectName} master`)
-
-}
-
-//USAGE:  haiku deport design-test dest/design-test
-//        removes subtree at dest/design-test
-//TODO:  still seems to be polluting git history. may need to follow additional steps re: reflog, see link
-//Could also explore submodules as a less history-intermingling solution (defeats part of the collaborative connection)
-function performDeport(projectName, location) {
-  //command from http://stackoverflow.com/questions/26107798/how-to-remove-previously-added-git-subtree-and-its-history
-  var cmd = `git filter-branch --index-filter \'git rm --cached --ignore-unmatch -rf ${location}\' --prune-empty -f HEAD`
-  execSync(cmd)
-}
 
 
