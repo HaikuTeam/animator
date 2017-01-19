@@ -7,6 +7,7 @@ import { argv } from 'yargs'
 import * as request from 'request'
 import * as chalk from 'chalk'
 import * as mkdirp from "mkdirp"
+import * as fs from "fs"
 import { execSync } from 'child_process'
 
 import { inkstone, client } from 'haiku-sdk'
@@ -46,7 +47,7 @@ process.on('uncaughtException', exitwrap)
 
 const main = path.join(__dirname, '..', 'creator', 'electron-main.js')
 
-function handleError(err){
+function handleError(err) {
   //TODO: figure out error categories, allow individual CLI commands to handle categories as needed
 }
 
@@ -80,7 +81,8 @@ inkstone.setConfig({
   baseUrl: flags.api || "https://inkstone.haiku.ai/"
 });
 
-if(flags.verbose){
+if (flags.verbose) {
+  client.setConfig({ verbose: true })
   console.log("Flags: ", flags)
 }
 
@@ -131,10 +133,10 @@ function doCreate() {
     ]).then(function (answers: inquirer.Answers) {
       var projectName = answers['name']
       console.log("Creating project...")
-      inkstone.project.create({Name: projectName}, (err, project)=>{
-        if(err){
+      inkstone.project.create({ Name: projectName }, (err, project) => {
+        if (err) {
           console.log("Error creating project.  Does this project with this name already exist?")
-        }else{
+        } else {
           console.log("Project created!")
         }
       })
@@ -168,19 +170,42 @@ function doImport() {
       if (err) {
         console.log(chalk.bold(`Project ${projectName} not found.`))
       } else {
-        
+
+        var actuallyDoImport = function () {
+          var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
+          //TODO:  store credentials more securely than this
+          gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
+          //TODO:  handle case where git remote is already added
+
+          client.git.ensureRemoteIsInitialized(projectName, gitEndpoint, () => {
+            client.git.forciblyCloneSubrepo(projectName, destination, () => {
+              console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
+            })
+          })
+
+
+        }
+
         //TODO:  check if directory exists and is non-empty
         //       if it does, prompt user that it exists & has stuff in it
         //       ask whether it should be overwritten
+        var alreadyExists = fs.existsSync(path.resolve(destination))
+        if (alreadyExists) {
+          inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'confirmed',
+              message: `The destination directory ${destination} already exists.  Do you want to overwrite it?`,
+            }
+          ]).then(function (answers: inquirer.Answers) {
+            if (answers["confirmed"]) {
+              actuallyDoImport()
+            }
+          })
+        } else {
+          actuallyDoImport()
+        }
 
-        var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
-        //TODO:  store credentials more securely than this
-        gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
-        //TODO:  handle case where git remote is already added
-        client.git.ensureRemoteIsInitialized(projectName, gitEndpoint)
-        client.git.cloneSubrepo(projectName, destination)
-        
-        console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
       }
 
     })
@@ -228,7 +253,7 @@ function doLogin(cb?: Function) {
     inkstone.user.authenticate(username, password, function (err, authResponse) {
       if (err != undefined) {
         console.log(chalk.bold.red('Username or password incorrect.'))
-        if(flags.verbose){
+        if (flags.verbose) {
           console.log(err)
         }
       } else {
