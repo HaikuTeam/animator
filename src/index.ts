@@ -21,7 +21,6 @@ const banner = dedent`
 
   Commands:
     help - Display this message
-    develop - Start dev server
 `
 
 const args = argv._
@@ -47,6 +46,12 @@ process.on('uncaughtException', exitwrap)
 
 const main = path.join(__dirname, '..', 'creator', 'electron-main.js')
 
+function handleError(err){
+  //TODO: figure out error categories, allow individual CLI commands to handle categories as needed
+}
+
+
+
 function help() {
   console.log(banner)
   finish()
@@ -69,6 +74,7 @@ function ensureAuth(cb) {
     cb(token)
   }
 }
+
 
 inkstone.setConfig({
   baseUrl: flags.api || "https://inkstone.haiku.ai/"
@@ -162,16 +168,18 @@ function doImport() {
       if (err) {
         console.log(chalk.bold(`Project ${projectName} not found.`))
       } else {
-        //TODO:  mkdirp all folders excluding the prefix directory itself (git subtree add doesn't want the folder to exist yet)
-        //TODO:  maybe not worry about that with our own custom subtree logic
-        // mkdirp.sync(destination)
-        // destination += projectName
+        
+        //TODO:  check if directory exists and is non-empty
+        //       if it does, prompt user that it exists & has stuff in it
+        //       ask whether it should be overwritten
+
         var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
         //TODO:  store credentials more securely than this
         gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
         //TODO:  handle case where git remote is already added
-        execSync(`git remote add ${projectName} ${gitEndpoint}`)
-        execSync(`git subtree add --prefix=${destination} ${projectName} master`)
+        client.git.ensureRemoteIsInitialized(projectName, gitEndpoint)
+        client.git.cloneSubrepo(projectName, destination)
+        
         console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
       }
 
