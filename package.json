@@ -4,7 +4,10 @@
   "description": "Haiku CLI",
   "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "develop": "tsc --watch",
+    "build": "nexe -i ./lib/index.js -o ./lib/bin/haiku",
+    "install": "cp lib/bin/haiku /usr/local/bin/haiku"
   },
   "author": "Zack Brown <zack@haiku.ai>",
   "license": "UNLICENSED",
@@ -27,6 +30,7 @@
     "@types/mkdirp": "^0.3.29",
     "@types/node": "^6.0.56",
     "@types/request": "0.0.39",
-    "@types/yargs": "^6.5.0"
+    "@types/yargs": "^6.5.0",
+    "nexe": "^1.1.2"
   }
 }
