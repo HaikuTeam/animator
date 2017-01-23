@@ -6,8 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "develop": "tsc --watch",
-    "build": "nexe -i ./lib/index.js -o ./lib/bin/haiku",
-    "install": "cp lib/bin/haiku /usr/local/bin/haiku"
+    "build": "nexe -i ./lib/index.js -o ./lib/bin/haiku"
   },
   "author": "Zack Brown <zack@haiku.ai>",
   "license": "UNLICENSED",
