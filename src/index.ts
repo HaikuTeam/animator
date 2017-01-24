@@ -50,8 +50,6 @@ function handleError(err) {
   //TODO: figure out error categories, allow individual CLI commands to handle categories as needed
 }
 
-
-
 function help() {
   console.log(banner)
   finish()
@@ -122,7 +120,7 @@ switch (subcommand) {
 function doCreate() {
   ensureAuth((token: string) => {
     //TODO:  pull this from args if provided
-    //TODO:  support 'cloning' project directly into fs (i.e. autoimport)
+    //TODO:  support 'cloning' project directly into fs after creation (i.e. autoimport)
     inquirer.prompt([
       {
         type: 'input',
@@ -143,7 +141,6 @@ function doCreate() {
   })
 }
 
-
 //USAGE:  haiku import design-test dest/
 //        clone git repo 'someendpoint/design-test' as a subtree into the dest/design-test folder
 function doImport() {
@@ -161,20 +158,17 @@ function doImport() {
           var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
           //TODO:  store credentials more securely than this
           gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
-          //TODO:  handle case where git remote is already added
 
           client.git.ensureRemoteIsInitialized(projectName, gitEndpoint, () => {
             client.git.forciblyCloneSubrepo(projectName, destination, () => {
               console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
             })
           })
-
-
         }
 
-        //TODO:  check if directory exists and is non-empty
-        //       if it does, prompt user that it exists & has stuff in it
-        //       ask whether it should be overwritten
+        //check if directory exists and is non-empty
+        //if it does, prompt user that it exists & has stuff in it
+        //ask whether it should be overwritten
         var alreadyExists = fs.existsSync(path.resolve(destination))
         if (alreadyExists) {
           inquirer.prompt([
@@ -198,7 +192,6 @@ function doImport() {
   })
 }
 
-
 function doList() {
   ensureAuth((token: string) => {
     inkstone.project.list((err, projects) => {
@@ -214,7 +207,6 @@ function doList() {
     })
   })
 }
-
 
 function doLogin(cb?: Function) {
   console.log('Enter your Haiku credentials.')
