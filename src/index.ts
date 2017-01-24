@@ -8,7 +8,6 @@ import * as request from 'request'
 import * as chalk from 'chalk'
 import * as mkdirp from "mkdirp"
 import * as fs from "fs"
-import { execSync } from 'child_process'
 
 import { inkstone, client } from 'haiku-sdk'
 
@@ -144,19 +143,6 @@ function doCreate() {
   })
 }
 
-//TODO:  not extensively tested, needs to handle edge-cases
-//USAGE:  haiku deport design-test dest/design-test
-//        removes subtree at dest/design-test
-//TODO:  still seems to be polluting git history. may need to follow additional steps re: reflog, see link
-//Could also explore submodules as a less history-intermingling solution (defeats part of the collaborative connection)
-function performDeport(projectName, location) {
-  //command from http://stackoverflow.com/questions/26107798/how-to-remove-previously-added-git-subtree-and-its-history
-  var cmd = `git filter-branch --index-filter \'git rm --cached --ignore-unmatch -rf ${location}\' --prune-empty -f HEAD`
-  execSync(cmd)
-}
-
-
-//TODO:  custom/granular git subtree logic, supporting importing a bare repo
 
 //USAGE:  haiku import design-test dest/
 //        clone git repo 'someendpoint/design-test' as a subtree into the dest/design-test folder
