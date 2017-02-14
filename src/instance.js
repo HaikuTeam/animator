@@ -1,4 +1,4 @@
-var Emitter = require('./Emitter')
+var Emitter = require('./emitter')
 
 function Instance () {
   Emitter.create(this)
