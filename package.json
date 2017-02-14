@@ -1,0 +1,24 @@
+{
+  "name": "haiku-interpreter",
+  "version": "1.0.0",
+  "description": "Haiku bytecode interpreter (a.k.a. the player)",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape \"test/**/*.test.js\" | tap-spec",
+    "lint": "standard src/**/*.js --fix --verbose | snazzy"
+  },
+  "author": "Matthew Trost <matthew@haiku.ai>",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "jsdom": "9.11.0",
+    "snazzy": "6.0.0",
+    "standard": "8.6.0",
+    "tap-spec": "4.1.1",
+    "tape": "4.6.3"
+  },
+  "dependencies": {
+    "raf": "3.3.0",
+    "react": "15.4.2",
+    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode.git#02590892d627e8bc3772e68fb2ce81ebdc30844e"
+  }
+}
