@@ -1,17 +1,17 @@
 
-import * as clc from 'cli-color'
-import * as path from 'path'
-import * as inquirer from 'inquirer'
-import * as _ from 'lodash'
-import { argv } from 'yargs'
-import * as request from 'request'
-import * as chalk from 'chalk'
+import * as clc from "cli-color"
+import * as path from "path"
+import * as inquirer from "inquirer"
+import * as _ from "lodash"
+import { argv } from "yargs"
+import * as request from "request"
+import * as chalk from "chalk"
 import * as mkdirp from "mkdirp"
 import * as fs from "fs"
 
-import { inkstone, client } from 'haiku-sdk'
+import { inkstone, client } from "haiku-sdk"
 
-let dedent = require('dedent')
+let dedent = require("dedent")
 
 const banner = dedent`
   Haiku CLI (version 0.0.0)
@@ -40,11 +40,11 @@ function exitwrap(maybeException) {
   if (maybeException) console.log(maybeException)
   process.exit()
 }
-process.on('exit', exitwrap)
-process.on('SIGINT', exitwrap)
-process.on('uncaughtException', exitwrap)
+process.on("exit", exitwrap)
+process.on("SIGINT", exitwrap)
+process.on("uncaughtException", exitwrap)
 
-const main = path.join(__dirname, '..', 'creator', 'electron-main.js')
+const main = path.join(__dirname, "..", "creator", "electron-main.js")
 
 function handleError(err) {
   //TODO: figure out error categories, allow individual CLI commands to handle categories as needed
@@ -84,33 +84,33 @@ if (flags.verbose) {
 }
 
 switch (subcommand) {
-  case 'list':
+  case "clone":
+
+    break
+  case "list":
     doList()
     break
-  case 'login':
+  case "login":
     doLogin()
     break
-  case 'logout':
-  case 'logoff':
+  case "logout":
+  case "logoff":
     doLogout()
     break
-  case 'new':
-  case 'generate':
-  case 'create':
+  case "new":
+  case "generate":
+  case "create":
     //Not intended for user consumption yet
     doCreate()
     break
-  case 'import':
+  case "import":
     doImport()
     break
-  case 'open':
+  case "open":
     doOpen()
     break
-  case 'help':
+  case "help":
     help()
-    break
-  case 'sync':
-    doSync()
     break
   default:
     help()
@@ -120,15 +120,15 @@ switch (subcommand) {
 function doCreate() {
   ensureAuth((token: string) => {
     //TODO:  pull this from args if provided
-    //TODO:  support 'cloning' project directly into fs after creation (i.e. autoimport)
+    //TODO:  support "cloning" project directly into fs after creation (i.e. autoimport)
     inquirer.prompt([
       {
-        type: 'input',
-        name: 'name',
-        message: 'Project Name:',
+        type: "input",
+        name: "name",
+        message: "Project Name:",
       }
     ]).then(function (answers: inquirer.Answers) {
-      var projectName = answers['name']
+      var projectName = answers["name"]
       console.log("Creating project...")
       inkstone.project.create({ Name: projectName }, (err, project) => {
         if (err) {
@@ -142,11 +142,11 @@ function doCreate() {
 }
 
 //USAGE:  haiku import design-test dest/
-//        clone git repo 'someendpoint/design-test' as a subtree into the dest/design-test folder
+//        clone git repo "someendpoint/design-test" as a subtree into the dest/design-test folder
 function doImport() {
   var projectName = args[0]
   var destination = args[1] || projectName
-  if (destination.charAt(destination.length - 1) !== "/") destination += '/'
+  if (destination.charAt(destination.length - 1) !== "/") destination += "/"
 
   ensureAuth(function (token) {
     inkstone.project.getByName(projectName, function (err, projectAndCredentials) {
@@ -173,8 +173,8 @@ function doImport() {
         if (alreadyExists) {
           inquirer.prompt([
             {
-              type: 'confirm',
-              name: 'confirmed',
+              type: "confirm",
+              name: "confirmed",
               message: `The destination directory ${destination} already exists.  Do you want to overwrite it?`,
             }
           ]).then(function (answers: inquirer.Answers) {
@@ -199,7 +199,7 @@ function doList() {
         console.log("No existing projects.  Use " + chalk.bold("haiku generate") + " to make a new one!")
       } else {
         console.log(chalk.cyan("Your team's Haiku projects:"))
-        console.log("(To work with one, call " + chalk.bold("haiku import project_name"))
+        console.log("(To work with one, call " + chalk.bold("haiku open project_name") + " or " + chalk.bold("haiku install project_name"))
         _.forEach(projects, (project) => {
           console.log("  " + project.Name)
         })
@@ -209,28 +209,28 @@ function doList() {
 }
 
 function doLogin(cb?: Function) {
-  console.log('Enter your Haiku credentials.')
-  var username = ''
-  var password = ''
+  console.log("Enter your Haiku credentials.")
+  var username = ""
+  var password = ""
 
   inquirer.prompt([
     {
-      type: 'input',
-      name: 'username',
-      message: 'Email:',
+      type: "input",
+      name: "username",
+      message: "Email:",
     },
     {
-      type: 'password',
-      name: 'password',
-      message: 'Password:',
+      type: "password",
+      name: "password",
+      message: "Password:",
     }
   ]).then(function (answers: inquirer.Answers) {
-    username = answers['username']
-    password = answers['password']
+    username = answers["username"]
+    password = answers["password"]
 
     inkstone.user.authenticate(username, password, function (err, authResponse) {
       if (err != undefined) {
-        console.log(chalk.bold.red('Username or password incorrect.'))
+        console.log(chalk.bold.red("Username or password incorrect."))
         if (flags.verbose) {
           console.log(err)
         }
@@ -253,15 +253,11 @@ function doOpen() {
 
   ensureAuth(function (token) {
     inkstone.project.getByName(projectName, function (err, project) {
-      console.log("TODO:  launch an instance of Creator with this project open:", project)
+      console.log("TODO:  launch an instance of Haiku with this project open:", project)
     })
   })
 }
 
-//TODO:  realtime sync on a branch
-function doSync() {
-  console.warn("Unimplemented")
-}
 
 
 

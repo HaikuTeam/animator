@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# this script ensures that the @haiku npm scope is set up
+# on this user's machine.  intended to be injected as a 
+# prepublish script, so that the scope is automatically
+# set up before a new user `npm install`s, a la:
+# package.json
+# scripts: {
+#   "prepublish": "./.haiku/scripts/prepublish"
+# }
+
+# if the scope is not set up before new users install, 
+# npm install will fail.
+
+touch ~/.npmrc
+chmod 0600 ~/.npmrc
+if [[ -z $(grep "@haiku" ~/.npmrc) ]] ; then
+    echo '//localhost:8888/:_authToken=""' >> ~/.npmrc
+    echo '@haiku:registry=http://localhost:8888/' >> ~/.npmrc
+fi
+
+# if gitignore doesn't exist, or it DOES exist but doesn't contain the !.haiku rule, inject it
+grep -q "!.haiku" ./.gitignore
+if  [ $? -eq 1 ] || ( ! [ -e ./.gitignore ] ) ; then
+    echo "#[!IMPORTANT] if the .haiku folder is ignored, other team members" >> ./.gitignore
+    echo "#    ||       will be unable to perform npm install.  The !.haiku rule" >> ./.gitignore
+    echo "#    \/       is included here as a reminder not to ignore it." >> ./.gitignore 
+    echo "!.haiku" >> ./.gitignore
+fi
