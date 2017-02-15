@@ -23,9 +23,24 @@ Bytecode.prototype.eachTimeline = function _eachTimeline (iteratee, binding) {
   return eachTimeline(this.bytecode, iteratee, binding)
 }
 
+Bytecode.prototype.bindEventHandlers = function _bindEventHandlers (instance) {
+  return this.eachEventHandler(function (handler, selector, eventname, descriptor) {
+    descriptor.handler = handler.bind(instance)
+  }, this)
+}
+
 function typecheckInput (type, name, value) {
+  if (type === 'any' || type === '*') {
+    return void (0)
+  }
+  if (type === 'event' || type === 'listener') {
+    if (typeof value !== 'function' && value !== null && value !== undefined) {
+      throw new Error('Property value `' + name + '` must be an event listener function')
+    }
+    return void (0)
+  }
   if (typeof value !== type) {
-    throw new Error('Property `' + name + '` must be a `' + type + '`')
+    throw new Error('Property value `' + name + '` must be a `' + type + '`')
   }
 }
 
@@ -46,7 +61,7 @@ Bytecode.prototype.defineInputs = function defineInputs (storage, instance) {
       set: function set (input) {
         typecheckInput(type, name, input)
         if (setter) {
-          storage[name] = setter(input)
+          storage[name] = setter.call(instance, input)
         } else {
           storage[name] = input
         }

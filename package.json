@@ -11,6 +11,7 @@
   "license": "UNLICENSED",
   "devDependencies": {
     "jsdom": "9.11.0",
+    "react-dom": "15.4.2",
     "snazzy": "6.0.0",
     "standard": "8.6.0",
     "tap-spec": "4.1.1",
@@ -19,6 +20,6 @@
   "dependencies": {
     "raf": "3.3.0",
     "react": "15.4.2",
-    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode.git#02590892d627e8bc3772e68fb2ce81ebdc30844e"
+    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode.git#dd36518270616f0070427db5d38a726a9076f2ff"
   }
 }

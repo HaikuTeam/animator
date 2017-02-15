@@ -22,8 +22,9 @@ function assignAttributes (domElement, attributes) {
       continue
     }
 
-    if (key[0] === 'o' && key[1] === 'n' && typeof newValue === FUNCTION) {
-      assignEvent(domElement, key, newValue)
+    var lower = key.toLowerCase()
+    if (lower[0] === 'o' && lower[1] === 'n' && typeof newValue === FUNCTION) {
+      assignEvent(domElement, lower, newValue)
       continue
     }
 

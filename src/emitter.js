@@ -1,5 +1,6 @@
 function create (instance) {
   var registry = {}
+  var eavesdroppers = []
 
   instance.on = function on (key, fn) {
     if (!registry[key]) registry[key] = []
@@ -19,9 +20,17 @@ function create (instance) {
 
   instance.emit = function emit (key, msg) {
     var listeners = registry[key]
-    if (!listeners || listeners.length < 1) return this
-    for (var i = 0; i < listeners.length; i++) listeners[i](msg)
+    if (listeners && listeners.length > 0) {
+      for (var i = 0; i < listeners.length; i++) listeners[i](msg)
+    }
+    if (eavesdroppers.length > 0) {
+      for (var j = 0; j < eavesdroppers.length; j++) eavesdroppers[j](key, msg)
+    }
     return this
+  }
+
+  instance.hear = function hear (fn) {
+    eavesdroppers.push(fn)
   }
 
   return registry

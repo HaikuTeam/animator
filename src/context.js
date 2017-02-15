@@ -11,9 +11,10 @@ function Context (bytecode) {
   this.bytecode = new Bytecode(bytecode)
   this.clock = new Clock([this])
   this.template = new Template(this.bytecode.getTemplate())
-  this.instance = new Instance()
+  this.instance = new Instance(this)
   this.inputs = this.store.set('inputs', {})
   this.bytecode.defineInputs(this.inputs, this.instance)
+  this.bytecode.bindEventHandlers(this.instance)
   Emitter.create(this)
   this.startTimeline(Timeline.DEFAULT_NAME)
 }
@@ -50,11 +51,22 @@ Context.prototype.stopAllTimelines = function stopAllTimelines () {
   })
 }
 
+Context.prototype.startAllTimelines = function startAllTimelines () {
+  var timelines = this.store.get('timelines') || {}
+  for (var timelineName in timelines) this.startTimeline(timelineName)
+}
+
 Context.prototype.startTimeline = function startTimeline (timelineName) {
   var time = this.clock.getTime()
   var existing = this.store.get('timelines')[timelineName]
   if (existing) existing.start(time)
   else this.store.get('timelines')[timelineName] = new Timeline(time)
+}
+
+Context.prototype.stopTimeline = function startTimeline (timelineName) {
+  var time = this.clock.getTime()
+  var existing = this.store.get('timelines')[timelineName]
+  if (existing) existing.stop(time)
 }
 
 module.exports = Context

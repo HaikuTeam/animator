@@ -1,13 +1,16 @@
-function assignEvent (domElement, name, listenerFunction) {
+var attachEventListener = require('./attachEventListener')
+
+function assignEvent (domElement, lowerCaseName, listenerFunction) {
   if (!domElement.listeners) domElement.listeners = {}
-  if (!domElement.listeners[name]) domElement.listeners[name] = []
+  if (!domElement.listeners[lowerCaseName]) domElement.listeners[lowerCaseName] = []
   var already = false
-  for (var i = 0; i < domElement.listeners[name].length; i++) {
-    var existing = domElement.listeners[name][i]
+  for (var i = 0; i < domElement.listeners[lowerCaseName].length; i++) {
+    var existing = domElement.listeners[lowerCaseName][i]
     if (existing === listenerFunction) already = true
   }
   if (!already) {
-    domElement.listeners[name].push(listenerFunction)
+    domElement.listeners[lowerCaseName].push(listenerFunction)
+    attachEventListener(domElement, lowerCaseName, listenerFunction)
   }
 }
 
