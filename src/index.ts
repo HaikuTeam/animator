@@ -85,7 +85,7 @@ if (flags.verbose) {
 
 switch (subcommand) {
   case "clone":
-
+    doClone()
     break
   case "list":
     doList()
@@ -117,9 +117,35 @@ switch (subcommand) {
     break
 }
 
+function doClone() {
+  var projectName = args[0]
+  var destination = args[1] || projectName
+  if (destination.charAt(destination.length - 1) !== "/") destination += "/"
+
+  ensureAuth(function (token) {
+    inkstone.project.getByName(projectName, function (err, projectAndCredentials) {
+      if (err) {
+        console.log(chalk.bold(`Project ${projectName} not found.`))
+      } else {
+        var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
+        //TODO:  store credentials more securely than this
+        gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
+
+        client.git.cloneRepo(gitEndpoint, destination, (err) => {
+          if(err != undefined){
+            console.log(chalk.red("Error cloning project.  Use the --verbose flag for more information."))
+          }else{
+            console.log(`Project ${chalk.bold(projectName)} cloned to ${chalk.bold(destination)}`)
+          }
+        })
+      }
+    })
+  })
+}
+
+
 function doCreate() {
   ensureAuth((token: string) => {
-    //TODO:  pull this from args if provided
     //TODO:  support "cloning" project directly into fs after creation (i.e. autoimport)
     inquirer.prompt([
       {
