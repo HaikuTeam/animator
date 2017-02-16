@@ -18,8 +18,9 @@
     "tape": "4.6.3"
   },
   "dependencies": {
+    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode.git#dd36518270616f0070427db5d38a726a9076f2ff",
     "raf": "3.3.0",
     "react": "15.4.2",
-    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode.git#dd36518270616f0070427db5d38a726a9076f2ff"
+    "react-dom": "15.4.2"
   }
 }

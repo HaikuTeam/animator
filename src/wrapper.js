@@ -1,4 +1,5 @@
 var Context = require('./context')
+var Component = require('./component')
 var registry = require('./registry')
 
 var LOCATOR_PREFIX = '' // 0. ?
@@ -16,7 +17,8 @@ function wrapper (renderer, bytecode, platform) {
     throw new Error('Bytecode `template` is required')
   }
 
-  var context = new Context(bytecode)
+  var component = new Component(bytecode)
+  var context = new Context(component)
 
   function start () {
     context.clock.loop()
@@ -32,10 +34,12 @@ function wrapper (renderer, bytecode, platform) {
     var hash = {}
     var root = LOCATOR_PREFIX + index
 
-    context.on('update', function update () {
-      var tree = context.expandTree()
-      var container = renderer.createContainer(mount)
-      renderer.render(mount, container, tree, root, hash)
+    context.clock.tickables.push({
+      performTick: function _tick () {
+        var tree = context.component.render()
+        var container = renderer.createContainer(mount)
+        renderer.render(mount, container, tree, root, hash)
+      }
     })
 
     if (!options) start()
@@ -43,7 +47,7 @@ function wrapper (renderer, bytecode, platform) {
       if (options.autostart !== false) start()
     }
 
-    return context.instance
+    return context
   }
 
   // Exposed for the Haiku Creator runtime controller

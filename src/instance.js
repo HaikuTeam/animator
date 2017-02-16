@@ -1,27 +1,27 @@
 var Emitter = require('./emitter')
 
-function Instance (context) {
+function Instance (component) {
   Emitter.create(this)
 
   this.timelines = {
     play: function _play () {
       if (arguments.length < 1) {
-        context.startAllTimelines()
+        component.startAllTimelines()
       } else {
         for (var i = 0; i < arguments.length; i++) {
           var timelineName = arguments[i]
-          context.startTimeline(timelineName)
+          component.startTimeline(timelineName)
         }
       }
     },
 
     pause: function _pause () {
       if (arguments.length < 1) {
-        context.stopAllTimelines()
+        component.stopAllTimelines()
       } else {
         for (var i = 0; i < arguments.length; i++) {
           var timelineName = arguments[i]
-          context.stopTimeline(timelineName)
+          component.stopTimeline(timelineName)
         }
       }
     }

@@ -1,21 +1,21 @@
 var React = require('react')
 
-function applyInputs (creationInstance, props) {
+function applyInputs (componentInstance, props) {
   for (var key in props) {
     var value = props[key]
-    creationInstance[key] = value
+    componentInstance.instance[key] = value
   }
 }
 
-function applyProps (creationInstance, props) {
-  if (!creationInstance) return null
+function applyProps (componentInstance, props) {
+  if (!componentInstance) return null
   if (!props) return null
-  applyInputs(creationInstance, props)
+  applyInputs(componentInstance, props)
 }
 
-function createInstance (reactInstance, creationClass) {
-  reactInstance.creationInstance = creationClass(reactInstance.refs.div)
-  reactInstance.creationInstance.hear(function (name, payload) {
+function createContext (reactInstance, creationClass) {
+  reactInstance.creationContext = creationClass(reactInstance.refs.div)
+  reactInstance.creationContext.component.instance.hear(function (name, payload) {
     if (reactInstance.props && reactInstance.props.events && reactInstance.props.events[name]) {
       reactInstance.props.events[name](payload)
     }
@@ -31,12 +31,12 @@ function adapt (creationClass) {
     },
 
     componentWillReceiveProps: function (nextProps) {
-      applyProps(this.creationInstance, nextProps)
+      applyProps(this.creationContext.component, nextProps)
     },
 
     componentDidMount: function () {
-      createInstance(this, creationClass)
-      applyProps(this.creationInstance, this.props)
+      createContext(this, creationClass)
+      applyProps(this.creationContext.component, this.props)
     },
 
     render: function () {

@@ -81,7 +81,7 @@ test('react', function(t) {
       },
       events: {
         wawa: function(msg) {
-          t.equal(msg, 'coffee')
+          t.equal(msg, 'coffee', 'got emitted event')
         }
       }
     })

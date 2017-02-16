@@ -3,7 +3,11 @@ var eachProperty = require('haiku-bytecode/src/eachProperty')
 var eachEventHandler = require('haiku-bytecode/src/eachEventHandler')
 var eachTimeline = require('haiku-bytecode/src/eachTimeline')
 
+var STRING_TYPE = 'string'
+var OBJECT_TYPE = 'object'
+
 function Bytecode (bytecode) {
+  if (!bytecode) throw new Error('Empty bytecode not allowed')
   this.bytecode = bytecode
 }
 
@@ -12,7 +16,15 @@ Bytecode.prototype.getObject = function getObject () {
 }
 
 Bytecode.prototype.getTemplate = function getTemplate () {
-  return xmlToMana(this.bytecode.template)
+  if (!this.bytecode.template) throw new Error('Empty bytecode template not allowed')
+  if (typeof this.bytecode.template === OBJECT_TYPE) {
+    if (!this.bytecode.template.elementName) console.warn('Warning: Saw unexpected bytecode format')
+    return this.bytecode.template
+  }
+  if (typeof this.bytecode.template === STRING_TYPE) {
+    return xmlToMana(this.bytecode.template)
+  }
+  throw new Error('Unknown bytecode template format')
 }
 
 Bytecode.prototype.eachEventHandler = function _eachEventHandler (iteratee, binding) {
