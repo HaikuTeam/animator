@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Haiku Interpreter Demos</title>
+  <style>html, body, #mount { width: 100%; height: 100%; padding: 0; margin: 0; outline: none; }</style>
+</head>
+<body>
+  <div>
+    <h1>Demos</h1>
+    <ul>
+      {{#each list}}
+        <li>
+          <a href="{{this.url}}">{{this.name}}</a>
+        </li>
+      {{/each}}
+    </ul>
+  </div>
+</body>
+</html>
