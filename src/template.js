@@ -85,6 +85,7 @@ function shallowClone (element) {
   var clone = {}
   clone.__instance = element.__instance // Hack: Important to cache instance
   clone.__handlers = element.__handlers // Hack: Important to transfer event handlers
+  clone.layout = element.layout
   clone.elementName = element.elementName
   clone.attributes = {}
   for (var key in element.attributes) clone.attributes[key] = element.attributes[key]
