@@ -59,4 +59,6 @@ function wrapper (renderer, bytecode, platform) {
   return runner
 }
 
+wrapper.registry = registry
+
 module.exports = wrapper
