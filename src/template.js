@@ -127,6 +127,7 @@ function applyContextChanges (component, inputs, template) {
     if (!matches || matches.length < 1) continue
     for (var i = 0; i < matches.length; i++) {
       var match = matches[i]
+      fixAttributes(match)
       var group = results[selector]
       for (var name in group) {
         var value = group[name]
@@ -150,7 +151,6 @@ function fixAttributes (element) {
 }
 
 function applyPropertyToElement (element, name, value) {
-  fixAttributes(element)
   if (vanityHandlers[element.elementName] && vanityHandlers[element.elementName][name]) {
     vanityHandlers[element.elementName][name](name, element, value)
   } else {
