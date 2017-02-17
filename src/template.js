@@ -38,7 +38,10 @@ function expandElement (element, context) {
       for (var key in element.__handlers) {
         var handler = element.__handlers[key]
         if (!handler.__subscribed) {
-          element.__instance.instance.on(key, handler)
+          // We might have a component from a system that doesn't adhere to our own internal API
+          if (element.__instance.instance) {
+            element.__instance.instance.on(key, handler)
+          }
           handler.__subscribed = true
         }
       }
@@ -48,7 +51,10 @@ function expandElement (element, context) {
     for (var name in element.attributes) {
       if (element.previous[name] === element.attributes[name]) continue
       element.previous[name] = element.attributes[name]
-      element.__instance.instance[name] = element.attributes[name] // Apply top-down behavior
+      // We might have a component from a system that doesn't adhere to our own internal API
+      if (element.__instance.instance) {
+        element.__instance.instance[name] = element.attributes[name] // Apply top-down behavior
+      }
     }
     var interior = element.__instance.render()
     return expandElement(interior, context)
