@@ -4,6 +4,10 @@ function create (instance) {
 
   instance.on = function on (key, fn) {
     if (!registry[key]) registry[key] = []
+    // Check for dupes and ignore if this is one
+    for (var i = 0; i < registry[key].length; i++) {
+      if (registry[key][i] === fn) return this
+    }
     registry[key].push(fn)
     return this
   }

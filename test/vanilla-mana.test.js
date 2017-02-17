@@ -4,30 +4,67 @@ var helpers = require('./helpers')
 var Creation = require('./../src/creation/dom')
 
 test('vanilla-mana', function(t) {
-  t.plan(2)
+  t.plan(4)
   return helpers.createDOM(function(err, window) {
     var ctor = function() {
       t.ok(true, 'ctor called')
       return {
-        render: function() {
-          return {
-            elementName: 'svg',
-            attributes: { foo: 123, baz: this.props.moo }
+        properties: [{
+          name: 'sauce',
+          type: 'string',
+          value: '',
+          setter: function(sauce) {
+            t.equal(sauce, 'wonka')
+            this.emit('wow', 'YOWZA')
+            return sauce
           }
+        }],
+        timelines: {
+          Default: {
+            '#svg': {
+              baz: {
+                0: {
+                  value: function() {
+                    return this.props.moo
+                  }
+                }
+              }
+            }
+          }
+        },
+        template: {
+          elementName: 'svg',
+          attributes: { foo: 123, id: 'svg' }
         }
       }
     }
     var bytecode = {
       properties: [],
-      eventHandlers: [],
-      timelines: {},
+      eventHandlers: [{
+        name: 'wow',
+        selector: '#subel',
+        handler: function(msg) {
+          t.equal(msg, 'YOWZA')
+        }
+      }],
+      timelines: {
+        'Default': {
+          '#subel': {
+            'sauce': {
+              0: {
+                value: 'wonka'
+              }
+            }
+          }
+        }
+      },
       template: {
         elementName: 'div',
         attributes: { yay: 'abc' },
         children: [
           {
             elementName: ctor,
-            attributes: { moo: 'cow' },
+            attributes: { id: 'subel', moo: 'cow' },
             children: []
           }
         ]
@@ -37,7 +74,7 @@ test('vanilla-mana', function(t) {
     var mount = window.document.getElementById('mount')
     var context = creation(mount)
     setTimeout(function() {
-      t.equal(mount.innerHTML, '<div yay="abc"><svg foo="123" baz="cow"></svg></div>')
+      t.equal(mount.innerHTML, '<div yay="abc"><svg foo="123" id="svg" baz="cow"></svg></div>')
       context.clock.cancelRaf()
     }, 16)
   })

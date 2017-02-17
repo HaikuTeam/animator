@@ -28,6 +28,6 @@ test('vanilla', function(t) {
     setTimeout(function() {
       t.equal(mount.innerHTML, '<div><p id="p" hello="ALOHA"></p></div>')
       context.clock.cancelRaf()
-    })
+    }, 16)
   })
 })
