@@ -36,6 +36,7 @@ function renderTree (domElement, virtualElement, virtualChildren, locator, hash)
       modifyChild(domChild, virtualChild, domElement, virtualElement, sublocator, hash)
     }
   }
+
   return domElement
 }
 

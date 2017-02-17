@@ -18,7 +18,10 @@ function updateElement (domElement, virtualElement, parentNode, parentVirtualEle
   applyLayout(domElement, virtualElement, parentNode, parentVirtualElement)
 
   if (attrs && typeof attrs === OBJECT) assignAttributes(domElement, attrs)
-  if (Array.isArray(virtualChildren)) renderTree(domElement, virtualElement, virtualChildren, locator, hash)
+
+  if (Array.isArray(virtualChildren)) {
+    renderTree(domElement, virtualElement, virtualChildren, locator, hash)
+  }
 
   return domElement
 }
