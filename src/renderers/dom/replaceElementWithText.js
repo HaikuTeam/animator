@@ -3,8 +3,8 @@ var createTextNode = require('./createTextNode')
 function replaceElementWithText (domElement, textContent) {
   if (domElement) {
     if (domElement.textContent !== textContent) {
-      const parentNode = domElement.parentNode
-      const textNode = createTextNode(domElement, textContent)
+      var parentNode = domElement.parentNode
+      var textNode = createTextNode(domElement, textContent)
       parentNode.replaceChild(textNode, domElement)
     }
   }

@@ -6,21 +6,24 @@
   "scripts": {
     "test": "tape \"test/**/*.test.js\" | tap-spec",
     "lint": "standard src/**/*.js --fix --verbose | snazzy",
-    "demo": "node ./server.js"
+    "demo": "node ./server.js",
+    "dist:dom": "browserify ./src/creation/dom/index.js -o dom.bundle.js && uglifyjs dom.bundle.js -o dom.bundle.js",
+    "dist:react": "browserify ./src/adapters/react/index.js -o react.bundle.js && uglifyjs react.bundle.js -o react.bundle.js"
   },
   "author": "Matthew Trost <matthew@haiku.ai>",
   "license": "UNLICENSED",
   "devDependencies": {
-    "browserify": "^14.1.0",
-    "express": "^4.14.1",
-    "fs-extra": "^2.0.0",
-    "handlebars": "^4.0.6",
+    "browserify": "14.1.0",
+    "express": "4.14.1",
+    "fs-extra": "2.0.0",
+    "handlebars": "4.0.6",
     "jsdom": "9.11.0",
     "react-dom": "15.4.2",
     "snazzy": "6.0.0",
     "standard": "8.6.0",
     "tap-spec": "4.1.1",
-    "tape": "4.6.3"
+    "tape": "4.6.3",
+    "uglify-js": "2.7.5"
   },
   "dependencies": {
     "haiku-bytecode": "git@github.com:HaikuTeam/bytecode.git#dd36518270616f0070427db5d38a726a9076f2ff",

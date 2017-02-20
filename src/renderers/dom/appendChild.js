@@ -4,7 +4,7 @@ var applyLayout = require('./applyLayout')
 var isTextNode = require('./isTextNode')
 
 function appendChild (domElement, virtualElement, parentVirtualElement, locator, hash) {
-  let domElementToInsert
+  var domElementToInsert
   if (isTextNode(virtualElement)) domElementToInsert = createTextNode(domElement, virtualElement)
   else domElementToInsert = createTagNode(domElement, virtualElement, parentVirtualElement, locator, hash)
 

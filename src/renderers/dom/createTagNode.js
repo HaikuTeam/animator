@@ -5,8 +5,8 @@ var updateElement = require('./updateElement')
 var getTypeAsString = require('./getTypeAsString')
 
 function createTagNode (domElement, virtualElement, parentVirtualElement, locator, hash) {
-  const tagName = normalizeName(getTypeAsString(virtualElement))
-  let newDomElement
+  var tagName = normalizeName(getTypeAsString(virtualElement))
+  var newDomElement
   if (isSvgElementName(tagName)) {
     // SVG
     newDomElement = createSvgElement(domElement, tagName)

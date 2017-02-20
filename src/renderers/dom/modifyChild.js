@@ -12,9 +12,9 @@ function modifyChild (domElement, virtualElement, parentDomNode, parentVirtualEl
     return virtualElement
   }
 
-  const domTagName = domElement.tagName.toLowerCase().trim()
-  const elName = normalizeName(getTypeAsString(virtualElement))
-  const virtualElementTagName = elName.toLowerCase().trim()
+  var domTagName = domElement.tagName.toLowerCase().trim()
+  var elName = normalizeName(getTypeAsString(virtualElement))
+  var virtualElementTagName = elName.toLowerCase().trim()
 
   if (domTagName !== virtualElementTagName) {
     return replaceElement(domElement, virtualElement, parentDomNode, parentVirtualElement, locator, hash)

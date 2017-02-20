@@ -1,6 +1,6 @@
 function domInjectStylesheet (doc, css) {
   if (doc.createStyleSheet) {
-    const sheet = doc.createStyleSheet()
+    var sheet = doc.createStyleSheet()
     sheet.cssText = css
   } else {
     var head = doc.getElementsByTagName('head')[0]

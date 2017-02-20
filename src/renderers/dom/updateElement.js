@@ -6,9 +6,9 @@ var getTypeAsString = require('./getTypeAsString')
 var OBJECT = 'object'
 
 function updateElement (domElement, virtualElement, parentNode, parentVirtualElement, locator, hash) {
-  const name = getTypeAsString(virtualElement)
-  const attrs = virtualElement.attributes
-  const virtualChildren = virtualElement.children
+  var name = getTypeAsString(virtualElement)
+  var attrs = virtualElement.attributes
+  var virtualChildren = virtualElement.children
 
   if (isSvgElementName(name)) {
     updateSvgElement(domElement, name, attrs, virtualChildren, virtualElement, parentNode, parentVirtualElement, locator, hash)
