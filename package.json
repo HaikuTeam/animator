@@ -7,8 +7,8 @@
     "test": "tape \"test/**/*.test.js\" | tap-spec",
     "lint": "standard src/**/*.js --fix --verbose | snazzy",
     "demo": "node ./server.js",
-    "dist:dom": "browserify ./src/creation/dom/index.js | derequire > dom.bundle.js && uglifyjs dom.bundle.js -o dom.bundle.js",
-    "dist:react": "browserify ./src/adapters/react/index.js | derequire > react.bundle.js && uglifyjs react.bundle.js -o react.bundle.js"
+    "dist:dom": "browserify ./src/creation/dom/index.js --standalone HaikuDOMPlayer | derequire > dom.bundle.js && uglifyjs dom.bundle.js -o dom.bundle.js",
+    "dist:react": "browserify ./src/adapters/react/index.js --standalone HaikuReactAdapter | derequire > react.bundle.js && uglifyjs react.bundle.js -o react.bundle.js"
   },
   "author": "Matthew Trost <matthew@haiku.ai>",
   "license": "UNLICENSED",
