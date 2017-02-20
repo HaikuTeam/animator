@@ -7,13 +7,14 @@
     "test": "tape \"test/**/*.test.js\" | tap-spec",
     "lint": "standard src/**/*.js --fix --verbose | snazzy",
     "demo": "node ./server.js",
-    "dist:dom": "browserify ./src/creation/dom/index.js -o dom.bundle.js && uglifyjs dom.bundle.js -o dom.bundle.js",
-    "dist:react": "browserify ./src/adapters/react/index.js -o react.bundle.js && uglifyjs react.bundle.js -o react.bundle.js"
+    "dist:dom": "browserify ./src/creation/dom/index.js | derequire > dom.bundle.js && uglifyjs dom.bundle.js -o dom.bundle.js",
+    "dist:react": "browserify ./src/adapters/react/index.js | derequire > react.bundle.js && uglifyjs react.bundle.js -o react.bundle.js"
   },
   "author": "Matthew Trost <matthew@haiku.ai>",
   "license": "UNLICENSED",
   "devDependencies": {
     "browserify": "14.1.0",
+    "derequire": "2.0.6",
     "express": "4.14.1",
     "fs-extra": "2.0.0",
     "handlebars": "4.0.6",
