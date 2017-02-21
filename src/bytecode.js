@@ -2,6 +2,7 @@ var xmlToMana = require('haiku-bytecode/src/xmlToMana')
 var eachProperty = require('haiku-bytecode/src/eachProperty')
 var eachEventHandler = require('haiku-bytecode/src/eachEventHandler')
 var eachTimeline = require('haiku-bytecode/src/eachTimeline')
+var eachTimelineOutputCluster = require('haiku-bytecode/src/eachTimelineOutputCluster')
 
 var STRING_TYPE = 'string'
 var OBJECT_TYPE = 'object'
@@ -33,6 +34,10 @@ Bytecode.prototype.eachEventHandler = function _eachEventHandler (iteratee, bind
 
 Bytecode.prototype.eachTimeline = function _eachTimeline (iteratee, binding) {
   return eachTimeline(this.bytecode, iteratee, binding)
+}
+
+Bytecode.prototype.eachTimelineOutputCluster = function _eachTimelineOutputCluster (iteratee, binding) {
+  return eachTimelineOutputCluster(this.bytecode, iteratee, binding)
 }
 
 Bytecode.prototype.bindEventHandlers = function _bindEventHandlers (instance) {

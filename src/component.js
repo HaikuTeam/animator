@@ -36,7 +36,17 @@ Component.prototype.eachEventHandler = function eachEventHandler (iteratee) {
 
 Component.prototype.eachActiveTimeline = function eachActiveTimeline (iteratee) {
   var timelines = this.store.get('timelines')
-  this.bytecode.eachTimeline(function _eachTimeline (timelinename, cluster, selector, outputname) {
+  this.bytecode.eachTimeline(function _eachTimeline (timelinename, timelineobj) {
+    var timeline = timelines[timelinename]
+    if (timeline && timeline.isActive()) {
+      iteratee(timeline, timelinename, timeline.local)
+    }
+  })
+}
+
+Component.prototype.eachActiveTimelineOutputCluster = function eachTimelineOutputCluster (iteratee) {
+  var timelines = this.store.get('timelines')
+  this.bytecode.eachTimelineOutputCluster(function _eachTimeline (timelinename, cluster, selector, outputname) {
     var timeline = timelines[timelinename]
     if (timeline && timeline.isActive()) {
       iteratee(timeline, timelinename, cluster, timeline.local, selector, outputname)

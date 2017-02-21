@@ -114,7 +114,7 @@ function applyContextChanges (component, inputs, template) {
     results[selector][eventname] = handler
   })
 
-  component.eachActiveTimeline(function _eachActiveTimeline (timeline, timelinename, cluster, now, selector, outputname) {
+  component.eachActiveTimelineOutputCluster(function _eachActiveTimelineOutputCluster (timeline, timelinename, cluster, now, selector, outputname) {
     if (!results[selector]) results[selector] = {}
     var finalValue = Transitions.calculateValue(cluster, now, component, inputs)
     if (Utils.isEmpty(finalValue)) return
