@@ -57,6 +57,10 @@ Do a `git add && git commit` in all the packages. (Quietly fails for no changes.
 
 Push all the packages to the origin repo. (Quietly fails if nothing to push.)
 
+**$ npm run mono:gitpull**
+
+Pull from origin in all the packages.
+
 ## Notes / troubleshooting
 
 * I initially tried to get `lerna` set up for this, but I kept hitting issue after issue. It ultimately proved faster to just write some scripts myself than to spelunk through the lerna source code to try to figure out why just about every core command they provide was failing.
