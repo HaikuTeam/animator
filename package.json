@@ -1,5 +1,5 @@
 {
-  "name": "mono",
+  "name": "haiku-mono",
   "private": true,
   "version": "1.0.0",
   "description": "Haiku monorepo",
@@ -13,6 +13,8 @@
     "mono:npminstall": "node ./scripts/npminstall.js",
     "mono:npmlink": "node ./scripts/npmlink.js",
     "mono:npmunlink": "node ./scripts/npmunlink.js",
+    "mono:gitac": "node ./scripts/gitac.js",
+    "mono:gitpush": "node ./scripts/gitpush.js",
     "mono:dev": "node ./scripts/dev.js"
   },
   "devDependencies": {
