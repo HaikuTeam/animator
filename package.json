@@ -17,6 +17,7 @@
     "mono:gitac": "node ./scripts/gitac.js",
     "mono:gitpush": "node ./scripts/gitpush.js",
     "mono:gitpull": "node ./scripts/gitpull.js",
+    "mono:gitstatus": "node ./scripts/gitstatus.js",
     "mono:dev": "node ./scripts/dev.js"
   },
   "devDependencies": {
