@@ -16,6 +16,7 @@
     "mono:npmunlink": "node ./scripts/npmunlink.js",
     "mono:gitac": "node ./scripts/gitac.js",
     "mono:gitpush": "node ./scripts/gitpush.js",
+    "mono:gitpull": "node ./scripts/gitpull.js",
     "mono:dev": "node ./scripts/dev.js"
   },
   "devDependencies": {
