@@ -8,7 +8,7 @@ var DEFAULT_MESSAGE = 'auto: Via haiku-mono'
 var message = argv.message || DEFAULT_MESSAGE
 
 async.eachSeries(allPackages, function (pack, next) {
-  log.log('git adding & committing in ' + pack.name)
+  log.log('git adding & committing in ' + pack.name + ' (message: ' + message + ')')
   try {
     cp.execSync('git add --all .', { cwd: pack.abspath })
     cp.execSync('git commit -m "' + message + '"', { cwd: pack.abspath })

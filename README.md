@@ -65,6 +65,36 @@ Pull from origin in all packages.
 
 Run `git checkout -- .` in all packages.
 
+## Example workflow
+
+    # Start the dev server:
+    $ npm start
+
+    # Make some changes to the timeline (inside packages/haiku-timeline)
+    # ...
+
+    # Make some changes to the plumbing (inside packages/haiku-plumbing-interface)
+    # ...
+
+    # Make some changes to creator (inside packages/haiku-creator)
+    # ...
+
+    # Do one command to add and commit for all these changes:
+    $ npm run mono:gitac -- --message="feat: Build the feature"
+
+    # Bump all SHAs based on these latest commits:
+    $ npm run mono:shanorm
+
+    # Make new commits for all SHA updates:
+    $ npm run mono:gitac -- --message="chore: Bump SHA"
+
+    # Push changes to all remotes:
+    $ npm run mono:gitpush
+
+    # Commit and push submodule updates (within 'mono'):
+    $ git add . && git commit -m "chore: Updated projects"
+    $ git push origin master
+
 ## Notes / troubleshooting
 
 * I initially tried to get `lerna` set up for this, but I kept hitting issue after issue. It ultimately proved faster to just write some scripts myself than to spelunk through the lerna source code to try to figure out why just about every core command they provide was failing.
