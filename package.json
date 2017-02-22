@@ -7,18 +7,21 @@
   "author": "Matthew Trost <matthew@trost.co>",
   "license": "UNLICENSED",
   "scripts": {
+    "start": "npm run mono:dev",
     "mono:cmd": "node ./scripts/cmd.js",
-    "mono:install": "node ./scripts/install.js",
-    "mono:shanorm": "node ./scripts/shanorm.js"
+    "mono:shanorm": "node ./scripts/shanorm.js",
+    "mono:npminstall": "node ./scripts/npminstall.js",
+    "mono:npmlink": "node ./scripts/npmlink.js",
+    "mono:npmunlink": "node ./scripts/npmunlink.js",
+    "mono:dev": "node ./scripts/dev.js"
   },
   "devDependencies": {
-    "async": "^2.1.5",
-    "cli-color": "^1.2.0",
-    "fs-extra": "^2.0.0",
-    "lerna": "2.0.0-beta.37",
-    "lodash": "^4.17.4",
-    "moment": "^2.17.1",
-    "semver": "^5.3.0",
-    "yargs": "^6.6.0"
+    "async": "2.1.5",
+    "cli-color": "1.2.0",
+    "fs-extra": "2.0.0",
+    "lodash": "4.17.4",
+    "moment": "2.17.1",
+    "semver": "5.3.0",
+    "yargs": "6.6.0"
   }
 }
