@@ -18,7 +18,7 @@ async.eachSeries(allPackages, function (pack, next) {
   }
 
   next()
-}, function() {
+}, function () {
   async.eachSeries(allPackages, function (pack, next) {
     log.log('npm unlinking ' + pack.name)
     cp.execSync('npm unlink', { cwd: pack.abspath })

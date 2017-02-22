@@ -11,7 +11,7 @@ var testProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/tes
 
 var instructions = [
   ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
-  ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + testProject, '--repl'], null, 5000],
+  ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder="' + testProject + '"', '--repl'], null, 5000],
   ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024, FOLDER: testProject }]
 ]
 
@@ -26,13 +26,13 @@ async.eachSeries(instructions, function (instruction, next) {
 
   var child = cp.spawn(cmd, args, { cwd: pack.abspath, env: lodash.assign(process.env, env) })
   child.stdout.setEncoding('utf8')
-  child.stdout.on('data', function(data) {
+  child.stdout.on('data', function (data) {
     log.log(data)
   })
-  child.stderr.on('data', function(data) {
+  child.stderr.on('data', function (data) {
     log.err(data)
   })
-  child.on('close', function(code) {
+  child.on('close', function (code) {
     log.log('closed!')
   })
 

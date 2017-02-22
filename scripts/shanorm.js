@@ -1,7 +1,6 @@
 var async = require('async')
 var fse = require('fs-extra')
 var path = require('path')
-var cp = require('child_process')
 var log = require('./helpers/log')
 var allPackages = require('./helpers/allPackages')()
 

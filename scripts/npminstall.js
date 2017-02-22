@@ -12,7 +12,6 @@ async.eachSeries(allPackages, function (pack, next) {
     }
     log.log(out)
 
-
     // special snowflake...
     if (pack.name === 'haiku-plumbing') {
       log.log('updating git submodules for ' + pack.name)
@@ -33,7 +32,6 @@ async.eachSeries(allPackages, function (pack, next) {
         })
       })
     }
-
 
     return next()
   })
