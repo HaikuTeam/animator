@@ -22,6 +22,7 @@ module.exports = function allPackages () {
     var pkg = req(path.join(abspath, 'package.json')) || {}
     var version = pkg.version
     var sha = cp.execSync('git rev-parse HEAD', { cwd: abspath }).toString().trim()
+    var remote = cp.execSync('git config --get remote.origin.url', { cwd: abspath }).toString().trim()
     return {
       name: name,
       abspath: abspath,
@@ -29,7 +30,8 @@ module.exports = function allPackages () {
       shortname: name.replace('haiku-', ''),
       pkg: pkg,
       version: version,
-      sha: sha
+      sha: sha,
+      remote: remote
     }
   })
   return packages

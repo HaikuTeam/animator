@@ -7,7 +7,9 @@
   "author": "Matthew Trost <matthew@trost.co>",
   "license": "UNLICENSED",
   "scripts": {
-    "mono:cmd": "node ./scripts/cmd.js"
+    "mono:cmd": "node ./scripts/cmd.js",
+    "mono:install": "node ./scripts/install.js",
+    "mono:shanorm": "node ./scripts/shanorm.js"
   },
   "devDependencies": {
     "async": "^2.1.5",
