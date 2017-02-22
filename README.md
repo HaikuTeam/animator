@@ -51,15 +51,19 @@ Set all `haiku-` dependency SHAs to the local `HEAD` commit ref in all packages.
 
 **$ npm run mono:gitac --message="something"**
 
-Do a `git add && git commit` in all the packages. (Quietly fails for no changes.)
+Do a `git add && git commit` in all packages. (Quietly fails for no changes.)
 
 **$ npm run mono:gitpush**
 
-Push all the packages to the origin repo. (Quietly fails if nothing to push.)
+Push all  packages to the origin repo. (Quietly fails if nothing to push.)
 
 **$ npm run mono:gitpull**
 
-Pull from origin in all the packages.
+Pull from origin in all packages.
+
+**$ npm run mono:gitcoall**
+
+Run `git checkout -- .` in all packages.
 
 ## Notes / troubleshooting
 
