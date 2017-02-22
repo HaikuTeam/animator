@@ -25,10 +25,12 @@ function setActiveComponent (component, node) {
 }
 
 function getActiveComponent () {
+  if (!__registry__.activeComponent) return null
   return __registry__.activeComponent.component
 }
 
 function getSelectedNode () {
+  if (!__registry__.selectedComponent) return null
   return __registry__.selectedComponent.node
 }
 
