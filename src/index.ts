@@ -103,8 +103,11 @@ switch (subcommand) {
     //Not intended for user consumption yet
     doCreate()
     break
-  case "import":
-    doImport()
+  // case "import":
+  //   doImport()
+  //   break
+  case "install":
+    doInstall()
     break
   case "open":
     doOpen()
@@ -218,19 +221,41 @@ function doImport() {
   })
 }
 
+
+function doInstall() {
+  ensureAuth(function (token) {
+    //
+  })
+}
+
 function doList() {
   ensureAuth((token: string) => {
-    inkstone.project.list((err, projects) => {
-      if (projects == undefined || projects.length == 0) {
-        console.log("No existing projects.  Use " + chalk.bold("haiku generate") + " to make a new one!")
-      } else {
-        console.log(chalk.cyan("Your team's Haiku projects:"))
-        console.log("(To work with one, call " + chalk.bold("haiku open project_name") + " or " + chalk.bold("haiku install project_name"))
-        _.forEach(projects, (project) => {
-          console.log("  " + project.Name)
-        })
-      }
-    })
+
+    if(flags && flags.organizations) {
+      inkstone.organization.list((err, organizations) => {
+        if (organizations == undefined || organizations.length == 0) {
+          console.log("You are not a member of any organizations.")
+        } else {
+          console.log(chalk.cyan("Your Organizations:"))
+          _.forEach(organizations, (org) => {
+            console.log("  " + org.Name)
+          })
+        }
+      })
+    }else{
+
+      inkstone.project.list((err, projects) => {
+        if (projects == undefined || projects.length == 0) {
+          console.log("No existing projects.  Use " + chalk.bold("haiku generate") + " to make a new one!")
+        } else {
+          console.log(chalk.cyan("Your team's Haiku projects:"))
+          console.log("(To work with one, call " + chalk.bold("haiku clone project_name") + " or " + chalk.bold("haiku install project_name"))
+          _.forEach(projects, (project) => {
+            console.log("  " + project.Name)
+          })
+        }
+      })
+    }
   })
 }
 
