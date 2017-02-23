@@ -1,5 +1,6 @@
 var async = require('async')
 var lodash = require('lodash')
+var fse = require('fs-extra')
 var cp = require('child_process')
 var path = require('path')
 var log = require('./helpers/log')
@@ -39,6 +40,7 @@ async.eachSeries(instructions, function (instruction, next) {
   child.on('close', function (code) {
     cancelled = true
     log.log('closed!')
+    process.exit(1)
   })
 
   return setTimeout(next, wait)

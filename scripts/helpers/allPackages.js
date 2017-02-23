@@ -15,6 +15,8 @@ module.exports = function allPackages () {
   var names = fse.readdirSync(path.join(ROOT, 'packages'))
   names = names.filter(function (name) {
     if (name[0] === '.') return false
+    var abspath = path.join(ROOT, 'packages', name)
+    if (!fse.lstatSync(abspath).isDirectory()) return false
     return true
   })
   var packages = names.map(function (name) {
