@@ -65,9 +65,13 @@ Pull from origin in all packages.
 
 Run `git checkout -- .` in all packages.
 
-**$ npm run mono:public-npm-bundle --publish**
+**$ npm run mono:public-npm-bundle**
 
-Bundle the `haiku.ai` package, update its semver, and (optionally) publish to npm.
+Bundle the `haiku.ai` package, update its semver, and publish to npm.
+
+**$ npm run mono:creator-bundle**
+
+Rebundle creator, make a commit, and push.
 
 ## Example workflow
 

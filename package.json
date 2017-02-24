@@ -20,6 +20,7 @@
     "mono:git-status": "node ./scripts/git-status.js",
     "mono:git-co-all": "node ./scripts/git-coall.js",
     "mono:public-npm-bundle": "node ./scripts/public-npm-bundle.js",
+    "mono:creator-bundle": "node ./scripts/creator-bundle.js",
     "mono:dev": "node ./scripts/dev.js"
   },
   "devDependencies": {

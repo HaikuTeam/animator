@@ -37,11 +37,11 @@ log.log('committing haiku.ai semver bump')
 log.log(cp.execSync('git add .', { cwd: haikuNpmPath }))
 log.log(cp.execSync('git commit -m "auto: Bump haiku.ai version"', { cwd: haikuNpmPath }))
 
-if (argv.publish) {
-  log.log('publishing haiku.ai')
-  log.log(cp.execSync('npm publish', { cwd: haikuNpmPath }))
-} else {
+if (argv['noPublish']) {
   log.log('skipping publish step')
+} else {
+  log.log('publishing haiku.ai')
+  log.log(cp.execSync('npm publish', { cwd: haikuNpmPath }))  
 }
 
 var plumbingPackageJsonPath = path.join(plumbingPath, 'package.json')
