@@ -8,6 +8,8 @@ import * as request from "request"
 import * as chalk from "chalk"
 import * as mkdirp from "mkdirp"
 import * as fs from "fs"
+import * as hasbin from "hasbin"
+import { execSync } from 'child_process'
 
 import { inkstone, client } from "haiku-sdk"
 
@@ -87,6 +89,9 @@ switch (subcommand) {
   case "clone":
     doClone()
     break
+  case "heal":
+    doHeal()
+    break
   case "list":
     doList()
     break
@@ -135,9 +140,9 @@ function doClone() {
         gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
 
         client.git.cloneRepo(gitEndpoint, destination, (err) => {
-          if(err != undefined){
+          if (err != undefined) {
             console.log(chalk.red("Error cloning project.  Use the --verbose flag for more information."))
-          }else{
+          } else {
             console.log(`Project ${chalk.bold(projectName)} cloned to ${chalk.bold(destination)}`)
           }
         })
@@ -222,16 +227,85 @@ function doImport() {
 }
 
 
+//TODO:  copy .haiku scripts
+//       ensure that packages are legit & pointed at latest & updated
+//       ensure that prepublish script is injected
+//       message that .haiku folder needs to be added to git
+//       ensure that ssh keys are generated and registered with server
+function doHeal() {
+  console.log("Unimplemented.  But please contact support@haiku.ai and we'll help you out!")
+}
+
 function doInstall() {
+  var projectName = args[0]  
+  if(!projectName || projectName == ""){
+    console.log(chalk.red("Please provide a project name: ") + chalk.bold("haiku install projectname"))
+    process.exit(1)
+  }
   ensureAuth(function (token) {
-    //
+    //ensure that npm is installed
+    hasbin('npm', function (result) {
+      if (result) {
+        //ensure that there's a package.json in this directory
+        if (fs.existsSync(process.cwd() + "/package.json")) {
+
+          //load the package.json blob into memory, mutate it, then write it back to disk
+          var packageJson = client.npm.readPackageJson()
+
+          if (!packageJson.dependencies) {
+            packageJson.dependencies = {}
+          }
+
+          //construct project string: @haiku/org-project#latest          
+          var projectString = "@haiku/"
+          inkstone.organization.list((err, orgs) => {
+            if(err !== undefined){
+              console.log(chalk.red("There was an error retrieving your account information.") +"  Please ensure that you have internet access.  If this problem persists, please contact support@haiku.ai and tell us that you don't have an organization associated with your account.")
+              process.exit(1)
+            }
+            projectString += orgs[0].Name.toLowerCase() + "-"
+
+            inkstone.project.getByName(projectName, (err, projectAndCredentials)=>{
+              if(err != undefined){
+                console.log(chalk.red("That project wasn't found.")+"  Please ensure that you have the correct project name, that you're logged into the correct account and that you have internet access.")
+                process.exit(1)
+              }
+
+              projectString += projectAndCredentials.Project.Name.toLowerCase() + "@latest"
+
+              //now projectString should be @haiku/org-project@latest
+              
+              //TODO:  don't use shelled npm install, mutate packagejson & run npm i instead
+              execSync("npm install --save " + projectString)
+
+              //TODO:  inject .haiku script into prepublish
+              //TODO:  copy .haiku scripts
+              //TODO:  inject into dependencies, then shell npm install
+            })
+
+          })
+
+          packageJson.dependencies
+
+
+        } else {
+          console.log(chalk.red("haiku install can only be used at the root of a project with a package.json."))
+          console.log("You can use " + chalk.bold("haiku clone ProjectName [/Optional/Destination]") + " to clone the project's git repo directly.")
+          process.exit(1)
+        }
+      } else {
+        console.log(chalk.red("npm was not found on this machine. ") + " We recommend installing it with nvm: https://github.com/creationix/nvm")
+        process.exit(1)
+      }
+    })
+
   })
 }
 
 function doList() {
   ensureAuth((token: string) => {
 
-    if(flags && flags.organizations) {
+    if (flags && flags.organizations) {
       inkstone.organization.list((err, organizations) => {
         if (organizations == undefined || organizations.length == 0) {
           console.log("You are not a member of any organizations.")
@@ -242,7 +316,7 @@ function doList() {
           })
         }
       })
-    }else{
+    } else {
 
       inkstone.project.list((err, projects) => {
         if (projects == undefined || projects.length == 0) {
@@ -296,6 +370,7 @@ function doLogin(cb?: Function) {
 }
 
 function doLogout() {
+  //TODO:  expire auth token on inkstone?
   client.config.setAuthToken("")
 }
 
