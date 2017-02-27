@@ -117,6 +117,10 @@ switch (subcommand) {
   case "open":
     doOpen()
     break
+  case "update":
+  case "upgrade":
+    doUpdate()
+    break
   case "help":
     help()
     break
@@ -425,7 +429,23 @@ function doOpen() {
   })
 }
 
-
+//TODO:  update only @haiku packages, instead of all updatable packages in package.json
+function doUpdate() {
+  hasbin('npm', function (result) {
+    if (result) {
+      try {
+        execSync("npm update")
+        console.log(chalk.green("Haiku packages updated successfully."))
+        process.exit(0)
+      } catch (e) {
+        console.log(chalk.red("npm update failed.") + " This may be a configuration issue with npm.  Try running npm install and then running haiku update again.")
+        process.exit(1)
+      }
+    }else{
+      console.log(chalk.red("npm was not found on this machine. ") + " We recommend installing it with nvm: https://github.com/creationix/nvm")
+      process.exit(1)
+    }
+}
 
 
 
