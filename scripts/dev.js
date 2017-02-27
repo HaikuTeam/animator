@@ -12,7 +12,9 @@ var testProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/tes
 var instructions = [
   ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
   ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless'], null, 5000],
-  ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024 }]
+  ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024 }],
+  ['haiku-cli', ['npm', 'run', 'develop']],
+  ['haiku-sdk', ['npm', 'run', 'develop']]
 ]
 
 var cancelled = false
