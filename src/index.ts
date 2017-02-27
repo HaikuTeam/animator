@@ -237,8 +237,8 @@ function doHeal() {
 }
 
 function doInstall() {
-  var projectName = args[0]  
-  if(!projectName || projectName == ""){
+  var projectName = args[0]
+  if (!projectName || projectName == "") {
     console.log(chalk.red("Please provide a project name: ") + chalk.bold("haiku install projectname"))
     process.exit(1)
   }
@@ -248,8 +248,6 @@ function doInstall() {
       if (result) {
         //ensure that there's a package.json in this directory
         if (fs.existsSync(process.cwd() + "/package.json")) {
-
-          //load the package.json blob into memory, mutate it, then write it back to disk
           var packageJson = client.npm.readPackageJson()
 
           if (!packageJson.dependencies) {
@@ -259,34 +257,77 @@ function doInstall() {
           //construct project string: @haiku/org-project#latest          
           var projectString = "@haiku/"
           inkstone.organization.list((err, orgs) => {
-            if(err !== undefined){
-              console.log(chalk.red("There was an error retrieving your account information.") +"  Please ensure that you have internet access.  If this problem persists, please contact support@haiku.ai and tell us that you don't have an organization associated with your account.")
+            if (err !== undefined) {
+              console.log(chalk.red("There was an error retrieving your account information.") + "  Please ensure that you have internet access.  If this problem persists, please contact support@haiku.ai and tell us that you don't have an organization associated with your account.")
               process.exit(1)
             }
             projectString += orgs[0].Name.toLowerCase() + "-"
 
-            inkstone.project.getByName(projectName, (err, projectAndCredentials)=>{
-              if(err != undefined){
-                console.log(chalk.red("That project wasn't found.")+"  Please ensure that you have the correct project name, that you're logged into the correct account and that you have internet access.")
+            inkstone.project.getByName(projectName, (err, projectAndCredentials) => {
+              if (err != undefined) {
+                console.log(chalk.red("That project wasn't found.") + "  Please ensure that you have the correct project name, that you're logged into the correct account and that you have internet access.")
                 process.exit(1)
               }
 
-              projectString += projectAndCredentials.Project.Name.toLowerCase() + "@latest"
+              projectString += projectAndCredentials.Project.Name.toLowerCase()
 
-              //now projectString should be @haiku/org-project@latest
-              
-              //TODO:  don't use shelled npm install, mutate packagejson & run npm i instead
-              execSync("npm install --save " + projectString)
+              //now projectString should be @haiku/org-project
+              packageJson.dependencies[projectString] = "latest"
 
-              //TODO:  inject .haiku script into prepublish
-              //TODO:  copy .haiku scripts
-              //TODO:  inject into dependencies, then shell npm install
+              //inject .haiku script call into prepublish
+              if (!packageJson.scripts) packageJson.scripts = {}
+              if (!packageJson.scripts.prepublish) packageJson.scripts.prepublish = ""
+
+              if (packageJson.scripts.prepublish.indexOf('./.haiku/scripts/prepublish') === -1) {
+                packageJson.scripts.prepublish = './.haiku/scripts/prepublish; ' + packageJson.scripts.prepublish
+              }
+
+              //write scripts to ./.haiku
+              //TODO:  rewrite in node for Windows portability (i.e. for Windows users who use a project that has a @haiku dep)
+              //TODO:  make more robust and reusable—either pull latest .haiku scripts from a tarball or embed in Resources folder of distro
+              var prepublish = dedent`
+                #!/bin/bash
+
+                # this script ensures that the @haiku npm scope is set up
+                # on this user's machine.  intended to be injected as a
+                # prepublish script, so that the scope is automatically
+                # set up before a new user npm installs
+
+                # if the scope is not set up before new users install,
+                # npm install will fail.
+
+                touch ~/.npmrc
+                chmod 0600 ~/.npmrc
+                if [[ -z $(grep "@haiku" ~/.npmrc) ]] ; then
+                    echo '//reservoir.haiku.ai:8910/:_authToken=""' >> ~/.npmrc
+                    echo '@haiku:registry=https://reservoir.haiku.ai:8910/' >> ~/.npmrc
+                fi
+
+                # if gitignore doesn't exist, or it DOES exist but doesn't contain the !.haiku rule, inject it
+                grep -q "!.haiku" ./.gitignore
+                if  [ $? -eq 1 ] || ( ! [ -e ./.gitignore ] ) ; then
+                    echo "#[!IMPORTANT] if the .haiku folder is ignored, other team members" >> ./.gitignore
+                    echo "#    ||       will be unable to perform npm install.  The !.haiku rule" >> ./.gitignore
+                    echo "#    \/       is included here as a reminder not to ignore it." >> ./.gitignore
+                    echo "!.haiku" >> ./.gitignore
+                fi
+              `
+              mkdirp.sync(process.cwd() + '/.haiku/scripts')
+              fs.writeFileSync(process.cwd() + '/.haiku/scripts/prepublish', prepublish, {mode: 0o777, flag: 'w'})
+
+              client.npm.writePackageJson(packageJson)
+              try {
+                execSync("npm install")
+              } catch (e) {
+                console.log(chalk.red("npm install failed.") + " Your Haiku packages have been injected into package.json, but npm install failed.  Please try again.")
+                process.exit(1)
+              }
+
+              console.log(chalk.green("Haiku project installed successfully."))
+              process.exit(0)
             })
 
           })
-
-          packageJson.dependencies
-
 
         } else {
           console.log(chalk.red("haiku install can only be used at the root of a project with a package.json."))
