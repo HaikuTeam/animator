@@ -4,6 +4,16 @@ var log = require('./helpers/log')
 var allPackages = require('./helpers/allPackages')()
 
 async.eachSeries(allPackages, function (pack, next) {
+  if (pack.name === 'haiku-creator') {
+    log.log('SKIPPPING npm install for haiku-creator due to maxBuffer issue #FIXME\n')
+    return next()
+  }
+
+  if (pack.name === 'haiku-plumbing') {
+    log.log('SKIPPPING npm install for haiku-plumbing due to maxBuffer issue #FIXME\n')
+    return next()
+  }
+
   log.log('npm install for ' + pack.name)
   cp.exec('npm install', { cwd: pack.abspath }, function (err, out) {
     if (err) {
