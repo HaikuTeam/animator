@@ -1,4 +1,3 @@
-var async = require('async')
 var cp = require('child_process')
 var lodash = require('lodash')
 var argv = require('yargs').argv
