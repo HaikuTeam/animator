@@ -123,6 +123,9 @@ function applyContextChanges (component, inputs, template) {
     else results[selector][outputname] = Utils.mergeValue(results[selector][outputname], finalValue)
   })
 
+  // Gotta do this here because handlers depend on these being set
+  fixTreeAttributes(template)
+
   for (var selector in results) {
     var matches = findMatchingElements(selector, template)
     if (!matches || matches.length < 1) continue
@@ -133,7 +136,6 @@ function applyContextChanges (component, inputs, template) {
       if (group.transform) {
         match.__transformed = true
       }
-      fixAttributes(match)
       for (var name in group) {
         var value = group[name]
         if (value.__handler) applyHandlerToElement(match, name, value)
@@ -147,6 +149,14 @@ function applyContextChanges (component, inputs, template) {
 
 function findMatchingElements (selector, template) {
   return queryTree([], template, selector, CSS_QUERY_MAPPING)
+}
+
+function fixTreeAttributes (tree) {
+  if (!tree || typeof tree === 'string') return
+  fixAttributes(tree)
+  if (!tree.children) return
+  if (tree.children.length < 1) return
+  for (var i = 0; i < tree.children.length; i++) fixTreeAttributes(tree.children[i])
 }
 
 function fixAttributes (element) {

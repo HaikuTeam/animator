@@ -11,8 +11,6 @@ function applyLayout (domElement, virtualElement, parentDomNode, parentVirtualEl
   if (virtualElement.layout) {
     var devicePixelRatio = options && options.devicePixelRatio || DEFAULT_PIXEL_RATIO
 
-    // console.log(domElement, parentVirtualElement)
-
     if (!parentVirtualElement.layout || !parentVirtualElement.layout.computed) {
       _warnOnce('Cannot compute layout without parent computed size (child: <' + virtualElement.elementName + '>; parent: <' + parentVirtualElement.elementName + '>)')
       return domElement
