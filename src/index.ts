@@ -317,7 +317,7 @@ function doInstall() {
                 fi
               `
               mkdirp.sync(process.cwd() + '/.haiku/scripts')
-              fs.writeFileSync(process.cwd() + '/.haiku/scripts/prepublish', prepublish, {mode: 0o777, flag: 'w'})
+              fs.writeFileSync(process.cwd() + '/.haiku/scripts/prepublish', prepublish, { mode: 0o777, flag: 'w' })
 
               client.npm.writePackageJson(packageJson)
               try {
@@ -441,10 +441,11 @@ function doUpdate() {
         console.log(chalk.red("npm update failed.") + " This may be a configuration issue with npm.  Try running npm install and then running haiku update again.")
         process.exit(1)
       }
-    }else{
+    } else {
       console.log(chalk.red("npm was not found on this machine. ") + " We recommend installing it with nvm: https://github.com/creationix/nvm")
       process.exit(1)
     }
+  })
 }
 
 
