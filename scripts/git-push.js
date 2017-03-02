@@ -10,7 +10,7 @@ var origin = argv.origin || DEFAULT_ORIGIN
 async.eachSeries(allPackages, function (pack, next) {
   log.log('git pushing ' + pack.name)
   try {
-    cp.execSync('git push origin ' + origin, { cwd: pack.abspath })
+    cp.execSync('git push origin HEAD:' + origin, { cwd: pack.abspath })
   } catch (exception) {
     log.log(exception.message)
   }
