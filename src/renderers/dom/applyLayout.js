@@ -29,7 +29,7 @@ function applyLayout (domElement, virtualElement, parentDomNode, parentVirtualEl
       if (domElement.style.display !== 'none') domElement.style.display = 'none'
     } else {
       if (domElement.style.display !== 'block') domElement.style.display = 'block'
-      applyCssLayout(domElement, virtualElement.layout, computedLayout, devicePixelRatio)
+      applyCssLayout(domElement, virtualElement, virtualElement.layout, computedLayout, devicePixelRatio)
     }
   }
 

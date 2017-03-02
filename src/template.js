@@ -85,6 +85,7 @@ function shallowClone (element) {
   var clone = {}
   clone.__instance = element.__instance // Hack: Important to cache instance
   clone.__handlers = element.__handlers // Hack: Important to transfer event handlers
+  clone.__transformed = element.__transformed // ditto
   clone.layout = element.layout
   clone.elementName = element.elementName
   clone.attributes = {}
@@ -127,8 +128,12 @@ function applyContextChanges (component, inputs, template) {
     if (!matches || matches.length < 1) continue
     for (var i = 0; i < matches.length; i++) {
       var match = matches[i]
-      fixAttributes(match)
       var group = results[selector]
+      // Make note if the element has its own transform so the renderer doesn't clobber its own step
+      if (group.transform) {
+        match.__transformed = true
+      }
+      fixAttributes(match)
       for (var name in group) {
         var value = group[name]
         if (value.__handler) applyHandlerToElement(match, name, value)
