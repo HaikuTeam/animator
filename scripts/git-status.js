@@ -5,7 +5,8 @@ var allPackages = require('./helpers/allPackages')()
 
 async.eachSeries(allPackages, function (pack, next) {
   try {
-    log.log(cp.execSync('git status', { cwd: pack.abspath }))
+    log.log('\ngit status for ' + pack.name)
+    cp.execSync('git status', { cwd: pack.abspath, stdio: 'inherit' })
   } catch (exception) {
     log.log(exception.message)
   }
