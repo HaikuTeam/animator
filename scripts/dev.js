@@ -58,6 +58,7 @@ if (!instructions) {
 }
 
 var cancelled = false
+var children = []
 
 async.eachSeries(instructions, function (instruction, next) {
   if (cancelled) return next()
@@ -74,6 +75,7 @@ async.eachSeries(instructions, function (instruction, next) {
 
   log.log('running ' + cmd + ' ' + JSON.stringify(args) + ' in ' + pack.abspath)
   var child = cp.spawn(cmd, args, { cwd: pack.abspath, env: lodash.assign(process.env, env) })
+  children.push(child)
   child.stdout.setEncoding('utf8')
   child.stdout.on('data', function (data) {
     log.log(data)
@@ -85,6 +87,9 @@ async.eachSeries(instructions, function (instruction, next) {
     if (!ignoreClose) {
       cancelled = true
       log.log(cmd + ' closed, exiting all!')
+      children.forEach((child) => {
+        child.kill()
+      })
       process.exit(1)
     } else {
       log.log(cmd + ' closed')
