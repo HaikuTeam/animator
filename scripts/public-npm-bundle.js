@@ -41,7 +41,7 @@ if (argv['noPublish']) {
   log.log('skipping publish step')
 } else {
   log.log('publishing haiku.ai')
-  log.log(cp.execSync('npm publish', { cwd: haikuNpmPath }))
+  log.log(cp.execSync('npm publish', { cwd: path.join(haikuNpmPath, 'haiku.ai') }))
 }
 
 var plumbingPackageJsonPath = path.join(plumbingPath, 'package.json')
