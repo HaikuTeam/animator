@@ -109,19 +109,40 @@ function instantiateElement (element, context) {
 function applyContextChanges (component, inputs, template) {
   var results = {}
 
-  component.eachEventHandler(function _eachEventHandler (handler, selector, eventname) {
-    if (!results[selector]) results[selector] = {}
-    handler.__handler = true
-    results[selector][eventname] = handler
-  })
+  var bytecode = component.bytecode.bytecode
 
-  component.eachActiveTimelineOutputCluster(function _eachActiveTimelineOutputCluster (timeline, timelinename, cluster, now, selector, outputname) {
-    if (!results[selector]) results[selector] = {}
-    var finalValue = Transitions.calculateValue(cluster, now, component, inputs)
-    if (Utils.isEmpty(finalValue)) return
-    if (Utils.isEmpty(results[selector][outputname])) results[selector][outputname] = finalValue
-    else results[selector][outputname] = Utils.mergeValue(results[selector][outputname], finalValue)
-  })
+  if (bytecode.eventHandlers) {
+    for (var j = 0; j < bytecode.eventHandlers.length; j++) {
+      var eventHandler = bytecode.eventHandlers[j]
+      var eventSelector = eventHandler.selector
+      var eventName = eventHandler.name
+      var handler = eventHandler.handler
+      if (!results[eventSelector]) results[eventSelector] = {}
+      handler.__handler = true
+      results[eventSelector][eventName] = handler
+    }
+  }
+
+  if (bytecode.timelines) {
+    for (var timelineName in bytecode.timelines) {
+      var timeline = component.store.get('timelines')[timelineName]
+      if (!timeline) continue
+      if (!timeline.isActive()) continue
+      var now = timeline.local
+      var outputs = bytecode.timelines[timelineName]
+      for (var tlSelector in outputs) {
+        var tlGroup = outputs[tlSelector]
+        for (var outputname in tlGroup) {
+          var cluster = tlGroup[outputname]
+          if (!results[tlSelector]) results[tlSelector] = {}
+          var finalValue = Transitions.calculateValue(cluster, now, component, inputs)
+          if (Utils.isEmpty(finalValue)) return
+          if (Utils.isEmpty(results[tlSelector][outputname])) results[tlSelector][outputname] = finalValue
+          else results[tlSelector][outputname] = Utils.mergeValue(results[tlSelector][outputname], finalValue)
+        }
+      }
+    }
+  }
 
   // Gotta do this here because handlers depend on these being set
   fixTreeAttributes(template)

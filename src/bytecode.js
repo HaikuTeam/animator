@@ -1,8 +1,5 @@
 var xmlToMana = require('haiku-bytecode/src/xmlToMana')
 var eachProperty = require('haiku-bytecode/src/eachProperty')
-var eachEventHandler = require('haiku-bytecode/src/eachEventHandler')
-var eachTimeline = require('haiku-bytecode/src/eachTimeline')
-var eachTimelineOutputCluster = require('haiku-bytecode/src/eachTimelineOutputCluster')
 
 var STRING_TYPE = 'string'
 var OBJECT_TYPE = 'object'
@@ -28,22 +25,12 @@ Bytecode.prototype.getTemplate = function getTemplate () {
   throw new Error('Unknown bytecode template format')
 }
 
-Bytecode.prototype.eachEventHandler = function _eachEventHandler (iteratee, binding) {
-  return eachEventHandler(this.bytecode, iteratee, binding)
-}
-
-Bytecode.prototype.eachTimeline = function _eachTimeline (iteratee, binding) {
-  return eachTimeline(this.bytecode, iteratee, binding)
-}
-
-Bytecode.prototype.eachTimelineOutputCluster = function _eachTimelineOutputCluster (iteratee, binding) {
-  return eachTimelineOutputCluster(this.bytecode, iteratee, binding)
-}
-
 Bytecode.prototype.bindEventHandlers = function _bindEventHandlers (instance) {
-  return this.eachEventHandler(function (handler, selector, eventname, descriptor) {
-    descriptor.handler = handler.bind(instance)
-  }, this)
+  if (!this.bytecode.eventHandlers) return void (0)
+  for (var i = 0; i < this.bytecode.eventHandlers.length; i++) {
+    var descriptor = this.bytecode.eventHandlers[i]
+    descriptor.handler = descriptor.handler.bind(instance)
+  }
 }
 
 function typecheckInput (type, name, value) {

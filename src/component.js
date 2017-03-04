@@ -33,38 +33,15 @@ Component.prototype.render = function render () {
     var timeline = timelines[timelineName]
     if (timeline.isActive()) timeline.performUpdate(time)
   }
-
   return this.template.expand(this.context, this, this.inputs)
 }
 
-Component.prototype.eachEventHandler = function eachEventHandler (iteratee) {
-  this.bytecode.eachEventHandler(iteratee)
-}
-
-Component.prototype.eachActiveTimeline = function eachActiveTimeline (iteratee) {
-  var timelines = this.store.get('timelines')
-  this.bytecode.eachTimeline(function _eachTimeline (timelinename, timelineobj) {
-    var timeline = timelines[timelinename]
-    if (timeline && timeline.isActive()) {
-      iteratee(timeline, timelinename, timeline.local)
-    }
-  })
-}
-
-Component.prototype.eachActiveTimelineOutputCluster = function eachTimelineOutputCluster (iteratee) {
-  var timelines = this.store.get('timelines')
-  this.bytecode.eachTimelineOutputCluster(function _eachTimeline (timelinename, cluster, selector, outputname) {
-    var timeline = timelines[timelinename]
-    if (timeline && timeline.isActive()) {
-      iteratee(timeline, timelinename, cluster, timeline.local, selector, outputname)
-    }
-  })
-}
-
 Component.prototype.stopAllTimelines = function stopAllTimelines () {
-  this.eachActiveTimeline(function _eachActiveTimeline (timeline) {
+  var timelines = this.store.get('timelines')
+  for (var timelineName in timelines) {
+    var timeline = timelines[timelineName]
     timeline.stop()
-  })
+  }
 }
 
 Component.prototype.startAllTimelines = function startAllTimelines () {
