@@ -74,15 +74,8 @@ async.eachSeries(instructions, function (instruction, next) {
   var args = exec.slice(1)
 
   log.log('running ' + cmd + ' ' + JSON.stringify(args) + ' in ' + pack.abspath)
-  var child = cp.spawn(cmd, args, { cwd: pack.abspath, env: lodash.assign(process.env, env) })
+  var child = cp.spawn(cmd, args, { cwd: pack.abspath, env: lodash.assign(process.env, env), stdio: 'inherit' })
   children.push(child)
-  child.stdout.setEncoding('utf8')
-  child.stdout.on('data', function (data) {
-    log.log(data)
-  })
-  child.stderr.on('data', function (data) {
-    log.err(data)
-  })
   child.on('close', function (code) {
     if (!ignoreClose) {
       cancelled = true
@@ -98,3 +91,14 @@ async.eachSeries(instructions, function (instruction, next) {
 
   return setTimeout(next, wait)
 })
+
+process.on('exit', exit)
+process.on('SIGINT', exit)
+process.on('uncaughtException', exit)
+
+function exit() {
+  log.log('exiting; telling children to interrupt')
+  children.forEach(function (child) {
+    child.kill('SIGINT')
+  })
+}
