@@ -26,7 +26,8 @@ test('vanilla', function(t) {
     var mount = window.document.getElementById('mount')
     var context = creation(mount)
     setTimeout(function() {
-      t.equal(mount.innerHTML, '<div><p id="p" hello="ALOHA"></p></div>')
+      // display: none because jsdom context has no size
+      t.equal(mount.innerHTML, '<div style="display: none;"><p style="display: none;" id="p" hello="ALOHA"></p></div>')
       context.clock.cancelRaf()
     }, 16)
   })

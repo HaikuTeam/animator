@@ -74,7 +74,8 @@ test('vanilla-mana', function(t) {
     var mount = window.document.getElementById('mount')
     var context = creation(mount)
     setTimeout(function() {
-      t.equal(mount.innerHTML, '<div yay="abc"><svg foo="123" id="svg" baz="cow"></svg></div>')
+      // display: none because jsdom context has no size
+      t.equal(mount.innerHTML, '<div style="display: none;" yay="abc"><svg style="display: none;" foo="123" id="svg" baz="cow"></svg></div>')
       context.clock.cancelRaf()
     }, 16)
   })
