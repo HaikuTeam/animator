@@ -31,7 +31,9 @@ Component.prototype.render = function render () {
   var timelines = this.store.get('timelines')
   for (var timelineName in timelines) {
     var timeline = timelines[timelineName]
-    if (timeline.isActive()) timeline.performUpdate(time)
+    if (timeline.isActive()) {
+      timeline.performUpdate(time)
+    }
   }
   return this.template.expand(this.context, this, this.inputs)
 }
