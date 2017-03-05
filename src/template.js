@@ -19,6 +19,8 @@ var STRING_TYPE = 'string'
 
 function Template (template) {
   this.template = template
+  this._changes = {}
+  this._matches = {}
 }
 
 Template.prototype.getTree = function getTree () {
@@ -26,9 +28,26 @@ Template.prototype.getTree = function getTree () {
 }
 
 Template.prototype.expand = function _expand (context, component, inputs) {
-  applyContextChanges(component, inputs, this.template)
+  applyContextChanges(component, inputs, this.template, this)
   var tree = expandElement(this.template, context)
   return tree
+}
+
+Template.prototype.didChangeValue = function _didChangeValue (timelineName, selector, outputName, outputValue) {
+  var answer = false
+  if (!this._changes[timelineName]) {
+    this._changes[timelineName] = {}
+    answer = true
+  }
+  if (!this._changes[timelineName][selector]) {
+    this._changes[timelineName][selector] = {}
+    answer = true
+  }
+  if (this._changes[timelineName][selector][outputName] === undefined || this._changes[timelineName][selector][outputName] !== outputValue) {
+    this._changes[timelineName][selector][outputName] = outputValue
+    answer = true
+  }
+  return answer
 }
 
 function expandElement (element, context) {
@@ -107,7 +126,7 @@ function instantiateElement (element, context) {
   return instance
 }
 
-function applyContextChanges (component, inputs, template) {
+function applyContextChanges (component, inputs, template, me) {
   var results = {}
 
   var bytecode = component.bytecode.bytecode
@@ -144,29 +163,31 @@ function applyContextChanges (component, inputs, template) {
         var tlGroup = outputs[tlSelector]
         for (var outputname in tlGroup) {
           var cluster = tlGroup[outputname]
-          if (!results[tlSelector]) results[tlSelector] = {}
           var finalValue = Transitions.calculateValue(cluster, now, component, inputs)
-          if (Utils.isEmpty(finalValue)) return
-          if (Utils.isEmpty(results[tlSelector][outputname])) results[tlSelector][outputname] = finalValue
-          else results[tlSelector][outputname] = Utils.mergeValue(results[tlSelector][outputname], finalValue)
+          if (finalValue === undefined) return
+          if (me.didChangeValue(timelineName, tlSelector, outputname, finalValue)) {
+            // Set this here inside this condition to save iterations below
+            // console.log(timelineName, tlSelector, outputname, finalValue) // <~ log me for fun
+            if (!results[tlSelector]) results[tlSelector] = {}
+            if (results[tlSelector][outputname] === undefined) results[tlSelector][outputname] = finalValue
+            else results[tlSelector][outputname] = Utils.mergeValue(results[tlSelector][outputname], finalValue)
+          }
         }
       }
     }
   }
 
-  // Gotta do this here because handlers depend on these being set
+  // Gotta do this here because handlers/vanities depend on these being set
+  // TODO: Find a way to only do this once, or only by necessity instead of every frame
   fixTreeAttributes(template)
 
   for (var selector in results) {
-    var matches = findMatchingElements(selector, template)
+    var matches = findMatchingElements(selector, template, me._matches)
     if (!matches || matches.length < 1) continue
+    var group = results[selector]
     for (var i = 0; i < matches.length; i++) {
       var match = matches[i]
-      var group = results[selector]
-      // Make note if the element has its own transform so the renderer doesn't clobber its own step
-      if (group.transform) {
-        match.__transformed = true
-      }
+      if (group.transform) match.__transformed = true // Make note if the element has its own transform so the renderer doesn't clobber its own step
       for (var name in group) {
         var value = group[name]
         if (value.__handler) applyHandlerToElement(match, name, value)
@@ -178,8 +199,11 @@ function applyContextChanges (component, inputs, template) {
   return template
 }
 
-function findMatchingElements (selector, template) {
-  return queryTree([], template, selector, CSS_QUERY_MAPPING)
+function findMatchingElements (selector, template, cache) {
+  if (cache[selector]) return cache[selector]
+  var matches = queryTree([], template, selector, CSS_QUERY_MAPPING)
+  cache[selector] = matches
+  return matches
 }
 
 function fixTreeAttributes (tree) {
