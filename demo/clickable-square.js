@@ -14,6 +14,7 @@ module.exports = creation({
     name: 'click',
     selector: '#box',
     handler: function() {
+      this.timelines.play('Move')
       this.clicks = this.clicks + 1
     }
   }],
@@ -40,6 +41,24 @@ module.exports = creation({
         'style.backgroundColor': {
           0: {
             value: 'red'
+          }
+        }
+      }
+    },
+    Move: {
+      '#box': {
+        'rotation.z': {
+          0: {
+            value: function (inputs) {
+              var n = (inputs.clicks < 1) ? 0 : (inputs.clicks - 1)
+              return n * Math.PI / 2
+            },
+            curve: 'easeInOutBounce'
+          },
+          2500: {
+            value: function (inputs) {
+              return inputs.clicks * Math.PI / 2
+            }
           }
         }
       }
