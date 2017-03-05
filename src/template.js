@@ -6,6 +6,7 @@ var Transitions = require('haiku-bytecode/src/Transitions')
 var Utils = require('haiku-bytecode/src/Utils')
 var Component = require('./component')
 var Timeline = require('./timeline')
+var Constants = require('./constants')
 
 var CSS_QUERY_MAPPING = {
   name: 'elementName',
@@ -127,7 +128,16 @@ function applyContextChanges (component, inputs, template) {
     for (var timelineName in bytecode.timelines) {
       var timeline = component.store.get('timelines')[timelineName]
       if (!timeline) continue
+      // No need to run properties on timelines that aren't active
       if (!timeline.isActive()) continue
+      if (timeline.isFinished()) {
+        // For any timeline other than the default, shut it down if it has gone past
+        // its final keyframe. The default timeline is a special case which provides
+        // fallbacks/behavior that is essentially true throughout the lifespan of the component
+        if (timelineName !== Timeline.DEFAULT_NAME) {
+          continue
+        }
+      }
       var now = timeline.local
       var outputs = bytecode.timelines[timelineName]
       for (var tlSelector in outputs) {

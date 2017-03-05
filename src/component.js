@@ -53,15 +53,17 @@ Component.prototype.startAllTimelines = function startAllTimelines () {
 
 Component.prototype.startTimeline = function startTimeline (timelineName) {
   var time = this.context.clock.getTime()
+  var descriptor = this.bytecode.bytecode.timelines[timelineName]
   var existing = this.store.get('timelines')[timelineName]
-  if (existing) existing.start(time)
-  else this.store.get('timelines')[timelineName] = new Timeline(time)
+  if (existing) existing.start(time, descriptor)
+  else this.store.get('timelines')[timelineName] = new Timeline(time, descriptor)
 }
 
 Component.prototype.stopTimeline = function startTimeline (timelineName) {
   var time = this.context.clock.getTime()
+  var descriptor = this.bytecode.bytecode.timelines[timelineName]
   var existing = this.store.get('timelines')[timelineName]
-  if (existing) existing.stop(time)
+  if (existing) existing.stop(time, descriptor)
 }
 
 module.exports = Component
