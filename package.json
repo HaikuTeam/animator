@@ -27,7 +27,7 @@
     "uglify-js": "2.7.5"
   },
   "dependencies": {
-    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#3e7466268be08453d0e26454be7369a8a3eb9d67",
+    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#998c7773a3cb1101c5572c58d760f11e17557b99",
     "raf": "3.3.0",
     "react": "15.4.2",
     "react-dom": "15.4.2"
