@@ -33,19 +33,29 @@ function wrapper (renderer, bytecode, platform) {
     var index = registry.insertContext(context)
     var hash = {}
     var root = LOCATOR_PREFIX + index
+    // var num = Math.random()
+
+    // Outsiders can use this to decide whether to force a tick
+    function tick () {
+      var tree = context.component.render()
+      var container = renderer.createContainer(mount)
+      renderer.render(mount, container, tree, root, hash)
+    }
 
     context.clock.tickables.push({
-      performTick: function _tick () {
-        var tree = context.component.render()
-        var container = renderer.createContainer(mount)
-        renderer.render(mount, container, tree, root, hash)
-      }
+      performTick: tick
     })
 
-    if (!options) start()
-    else {
-      if (options.autostart !== false) start()
+    if (!options) {
+      start()
+    } else {
+      if (options.autostart !== false) {
+        start()
+      }
     }
+
+    // Exposed for the Haiku Creator runtime controller
+    runner.tick = tick
 
     return context
   }

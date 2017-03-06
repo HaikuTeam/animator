@@ -6,7 +6,6 @@ function Timeline (time, descriptor) {
   this.control = null
   this.global = time || 0
   this.local = 0
-  this.cache = {}
   this.active = true
   this.max = _getMaxTime(descriptor)
 }
