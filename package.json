@@ -19,7 +19,7 @@
     "mono:git-pull": "node ./scripts/git-pull.js",
     "mono:git-status": "node ./scripts/git-status.js",
     "mono:git-diff": "node ./scripts/git-diff.js",
-    "mono:git-co-all": "node ./scripts/git-coall.js",
+    "mono:git-co-all": "node ./scripts/git-co-all.js",
     "mono:public-npm-bundle": "node ./scripts/public-npm-bundle.js",
     "mono:creator-bundle": "node ./scripts/creator-bundle.js",
     "mono:dev": "node ./scripts/dev.js"
