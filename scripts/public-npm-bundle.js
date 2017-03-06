@@ -51,3 +51,5 @@ plumbingPackage.dependencies['haiku.ai'] = bumpedHaikuAiVersion
 
 log.log('bumping plumbing\'s haiku.ai dep version (' + previousDepVersion + ' -> ' + bumpedHaikuAiVersion + ')')
 fse.outputFileSync(plumbingPackageJsonPath, JSON.stringify(plumbingPackage, null, 2) + '\n')
+log.log(cp.execSync('git add package.json', { cwd: plumbingPath }))
+log.log(cp.execSync('git commit -m "auto: Bump haiku.ai version"', { cwd: plumbingPath }))

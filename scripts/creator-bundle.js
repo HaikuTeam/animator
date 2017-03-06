@@ -14,5 +14,5 @@ log.log(cp.execSync('npm run build', { cwd: creatorPack.abspath }))
 log.log(cp.execSync('git add public', { cwd: creatorPack.abspath }))
 log.log(cp.execSync('git commit -m "auto: Rebundle"', { cwd: creatorPack.abspath }))
 
-log.log('git pushing creator')
-cp.execSync('git push origin ' + origin, { cwd: creatorPack.abspath })
+// log.log('git pushing creator')
+// cp.execSync('git push origin ' + origin, { cwd: creatorPack.abspath })
