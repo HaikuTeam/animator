@@ -9,6 +9,21 @@ var FUNCTION = 'function'
 var CLASS = 'class'
 var CLASS_NAME = 'className'
 
+var SVG_XMLNS = 'http://www.w3.org/2000/svg'
+
+function setAttr (el, key, val) {
+  if (key.slice(0, 5) === 'xlink') {
+    if (!el.getAttribute('xmlns:xlink')) {
+      console.log(1)
+    }
+    var p0 = el.getAttributeNS(SVG_XMLNS, key)
+    if (p0 !== val) el.setAttributeNS(SVG_XMLNS, key, val)
+  } else {
+    var p1 = el.getAttribute(key)
+    if (p1 !== val) el.setAttribute(key, val)
+  }
+}
+
 function assignAttributes (domElement, attributes) {
   for (var key in attributes) {
     var newValue = attributes[key]
@@ -35,8 +50,7 @@ function assignAttributes (domElement, attributes) {
       continue
     }
 
-    var previousValue = domElement.getAttribute(key)
-    if (previousValue !== newValue) domElement.setAttribute(key, newValue)
+    setAttr(domElement, key, newValue)
   }
   return domElement
 }
