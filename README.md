@@ -49,7 +49,7 @@ Cross-`npm link` all `haiku-` npm dependencies in all packages.
 
 Set all `haiku-` dependency SHAs to the local `HEAD` commit ref in all packages.
 
-**$ npm run mono:git-ac --message="something"**
+**npm run mono:git-ac -- --message="foo"**
 
 Do a `git add && git commit` in all packages. (Quietly fails for no changes.)
 
