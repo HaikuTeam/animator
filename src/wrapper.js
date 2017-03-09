@@ -1,17 +1,16 @@
 var Context = require('./context')
 var Component = require('./component')
-var registry = require('./registry')
 
-var LOCATOR_PREFIX = '' // 0. ?
+var ADDRESS_PREFIX = ''
+var __contexts__ = []
 
 function wrapper (renderer, bytecode, platform) {
   if (!platform) {
     throw new Error('A runtime `platform` is required')
   }
 
-  // Exposed for the Haiku Creator runtime controller
+  // Hot editing hook
   if (!platform.haiku) platform.haiku = {}
-  if (!platform.haiku.registry) platform.haiku.registry = registry
 
   if (!bytecode.template) {
     throw new Error('Bytecode `template` is required')
@@ -19,6 +18,8 @@ function wrapper (renderer, bytecode, platform) {
 
   var component = new Component(bytecode)
   var context = new Context(component)
+  var index = __contexts__.push(context) - 1
+  var address = ADDRESS_PREFIX + index
 
   function start () {
     context.clock.loop()
@@ -26,20 +27,14 @@ function wrapper (renderer, bytecode, platform) {
   }
 
   function runner (mount, options) {
-    // Exposed for the Haiku Creator runtime controller
+    // Hot editing hook
     if (!mount.haiku) mount.haiku = {}
     mount.haiku.context = context
 
-    var index = registry.insertContext(context)
-    var hash = {}
-    var root = LOCATOR_PREFIX + index
-    // var num = Math.random()
-
-    // Outsiders can use this to decide whether to force a tick
     function tick () {
       var tree = context.component.render()
       var container = renderer.createContainer(mount)
-      renderer.render(mount, container, tree, root, hash)
+      renderer.render(mount, container, tree, address, {})
     }
 
     context.clock.tickables.push({
@@ -54,21 +49,19 @@ function wrapper (renderer, bytecode, platform) {
       }
     }
 
-    // Exposed for the Haiku Creator runtime controller
+    // Hot editing hook
     runner.tick = tick
 
     return context
   }
 
-  // Exposed for the Haiku Creator runtime controller
+  // Hot editing hooks
   runner.context = context
+  runner.component = component
   runner.bytecode = bytecode
   runner.renderer = renderer
-  runner.registry = registry
 
   return runner
 }
-
-wrapper.registry = registry
 
 module.exports = wrapper
