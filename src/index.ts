@@ -89,6 +89,9 @@ switch (subcommand) {
   case "clone":
     doClone()
     break
+  case "delete":
+    doDelete()
+    break
   case "heal":
     doHeal()
     break
@@ -170,9 +173,33 @@ function doCreate() {
       console.log("Creating project...")
       inkstone.project.create({ Name: projectName }, (err, project) => {
         if (err) {
-          console.log("Error creating project.  Does this project with this name already exist?")
+          console.log(chalk.red("Error creating project.  Does this project with this name already exist?"))
         } else {
-          console.log("Project created!")
+          console.log(chalk.green("Project created!"))
+        }
+      })
+    })
+  })
+}
+
+function doDelete() {
+  ensureAuth((token: string) => {
+    console.log(chalk.bold("Please note that deleting this project will delete it for your entire team."))
+    console.log(chalk.red("Deleting a project cannot be undone!"))
+    inquirer.prompt([
+      {
+        type: "input",
+        name: "name",
+        message: "Project Name:",
+      }
+    ]).then(function (answers: inquirer.Answers) {
+      var projectName = answers["name"]
+      console.log("Deleting project...")
+      inkstone.project.deleteByName(projectName, (err, project) => {
+        if (err) {
+          console.log(chalk.red("Error deleting project.  Does this project exist?"))
+        } else {
+          console.log(chalk.green("Project deleted!"))
         }
       })
     })
