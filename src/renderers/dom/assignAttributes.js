@@ -9,15 +9,15 @@ var FUNCTION = 'function'
 var CLASS = 'class'
 var CLASS_NAME = 'className'
 
-var SVG_XMLNS = 'http://www.w3.org/2000/svg'
+var XLINK_XMLNS = 'http://www.w3.org/1999/xlink'
 
 function setAttr (el, key, val) {
   if (key.slice(0, 5) === 'xlink') {
     if (!el.getAttribute('xmlns:xlink')) {
       console.log(1)
     }
-    var p0 = el.getAttributeNS(SVG_XMLNS, key)
-    if (p0 !== val) el.setAttributeNS(SVG_XMLNS, key, val)
+    var p0 = el.getAttributeNS(XLINK_XMLNS, key)
+    if (p0 !== val) el.setAttributeNS(XLINK_XMLNS, key, val)
   } else {
     var p1 = el.getAttribute(key)
     if (p1 !== val) el.setAttribute(key, val)
