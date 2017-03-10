@@ -16,12 +16,19 @@ import { inkstone, client } from "haiku-sdk"
 let dedent = require("dedent")
 
 const banner = dedent`
-  Haiku CLI (version 0.0.0)
+  Haiku CLI (version 0.1.0)
 
   Usage:
     haiku <command> [flags]
 
   Commands:
+    clone <project_name> - Clone a Haiku project to your filesystem, passing through to git clone
+    delete - Delete a Haiku project by name (interactive)
+    list - List your team's Haiku projects
+    login - Log in to Haiku (interactive)
+    logout - Log out of Haiku
+    install <project_name> - Install a Haiku project as an npm module, requires a package.json
+    update - Updates all Haiku-installed packages, passing through to npm update
     help - Display this message
 `
 

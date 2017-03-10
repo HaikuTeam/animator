@@ -1,6 +1,6 @@
 {
   "name": "haiku-cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Haiku CLI",
   "main": "lib/index.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "chalk": "^1.1.3",
     "cli-color": "^1.1.0",
     "dedent": "^0.6.0",
-    "haiku-sdk": "git@github.com:HaikuTeam/sdk#6ff1851e6cadcd69dbcabfbf905f4a5655bb1c45",
+    "haiku-sdk": "git@github.com:HaikuTeam/sdk#9c027945d8dc0d2352470593fe4bc68b5a43180c",
     "hasbin": "^1.2.3",
     "inquirer": "^2.0.0",
     "lodash": "^4.17.4",
