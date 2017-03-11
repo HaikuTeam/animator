@@ -9,8 +9,10 @@ var allPackages = require('./helpers/allPackages')()
 var groups = lodash.keyBy(allPackages, 'name')
 
 var plumbingPackage = groups['haiku-plumbing']
+var glassPackage = groups['haiku-glass']
 
 var blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
+var primitivesProject = path.join(glassPackage.abspath, 'test/projects/primitives/')
 
 // By default every time we run this file we'll clean the 'blank' project to actually make it blank.
 if (!argv.noClean) {
@@ -27,21 +29,17 @@ var instructionSets = {
     ['haiku-cli', ['npm', 'run', 'develop']],
     ['haiku-sdk', ['npm', 'run', 'develop']]
   ],
-  // Start up the plumbing+creator in 'folder mode' specifically loading the blank test project
+
   blank: [
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + blankProject], null, 5000],
-    ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024, FOLDER: blankProject }],
-    ['haiku-cli', ['npm', 'run', 'develop']],
-    ['haiku-sdk', ['npm', 'run', 'develop']]
+    ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024, FOLDER: blankProject }]
   ],
-  // Don't launch creator, instead launch the user's app directly inside of an Electron-served webview.
-  // Very useful if you want to debug the control harness stuff that runs in the webview in isolation.
-  'blank-funtron': [
+
+  primitives: [
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
-    ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + blankProject, '--funtron'], null, 5000],
-    ['haiku-cli', ['npm', 'run', 'develop']],
-    ['haiku-sdk', ['npm', 'run', 'develop']]
+    ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + primitivesProject], null, 5000],
+    ['haiku-creator', ['npm', 'run', 'develop'], { VIBRANCY_OFF: '1', HAIKU_PLUMBING_PORT: 1024, FOLDER: primitivesProject }]
   ]
 }
 

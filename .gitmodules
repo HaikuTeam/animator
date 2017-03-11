@@ -34,3 +34,6 @@
 [submodule "packages/haiku-websockets"]
 	path = packages/haiku-websockets
 	url = git@github.com:HaikuTeam/websockets
+[submodule "packages/haiku-glass"]
+	path = packages/haiku-glass
+	url = git@github.com:HaikuTeam/glass.git
