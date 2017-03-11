@@ -190,6 +190,10 @@ function applyContextChanges (component, inputs, template, me) {
       if (group.transform) match.__transformed = true // Make note if the element has its own transform so the renderer doesn't clobber its own step
       for (var name in group) {
         var value = group[name]
+        if (!value) {
+          _warnOnce('Applied property value ' + name + ' was blank; object expected')
+          continue
+        }
         if (value.__handler) applyHandlerToElement(match, name, value)
         else applyPropertyToElement(match, name, value)
       }
@@ -232,6 +236,13 @@ function applyHandlerToElement (match, name, fn) {
   if (!match.__handlers) match.__handlers = {}
   match.__handlers[name] = fn
   return match
+}
+
+var warnings = {}
+function _warnOnce (warning) {
+  if (warnings[warning]) return void (0)
+  warnings[warning] = true
+  console.warn(warning)
 }
 
 module.exports = Template
