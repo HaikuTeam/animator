@@ -13,9 +13,6 @@ var XLINK_XMLNS = 'http://www.w3.org/1999/xlink'
 
 function setAttr (el, key, val) {
   if (key.slice(0, 5) === 'xlink') {
-    if (!el.getAttribute('xmlns:xlink')) {
-      console.log(1)
-    }
     var p0 = el.getAttributeNS(XLINK_XMLNS, key)
     if (p0 !== val) el.setAttributeNS(XLINK_XMLNS, key, val)
   } else {
