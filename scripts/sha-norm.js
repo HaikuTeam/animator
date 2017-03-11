@@ -61,7 +61,7 @@ order.forEach(function (name) {
     fse.writeFileSync(path.join(pack.abspath, 'package.json'), packJson)
     log.log(cp.execSync('git add package.json', { cwd: pack.abspath }))
     log.log(cp.execSync('git commit -m "' + commitMsg + '"', { cwd: pack.abspath }))
-    log.log(cp.execSync('git push origin HEAD', { cwd: pack.abspath }))
+    log.log(cp.execSync('git push origin HEAD:master', { cwd: pack.abspath }))
 
     pack.sha = cp.execSync('git rev-parse HEAD', { cwd: pack.abspath }).toString().trim()
     log.log('sha of ' + pack.name + ' is now ' + pack.sha)
