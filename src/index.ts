@@ -148,6 +148,7 @@ function doClone() {
     inkstone.project.getByName(projectName, function (err, projectAndCredentials) {
       if (err) {
         console.log(chalk.bold(`Project ${projectName} not found.`))
+        process.exit(1)
       } else {
         var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
         //TODO:  store credentials more securely than this
@@ -156,8 +157,10 @@ function doClone() {
         client.git.cloneRepo(gitEndpoint, destination, (err) => {
           if (err != undefined) {
             console.log(chalk.red("Error cloning project.  Use the --verbose flag for more information."))
+            process.exit(1)
           } else {
             console.log(`Project ${chalk.bold(projectName)} cloned to ${chalk.bold(destination)}`)
+            process.exit(0)
           }
         })
       }
@@ -181,8 +184,10 @@ function doCreate() {
       inkstone.project.create({ Name: projectName }, (err, project) => {
         if (err) {
           console.log(chalk.red("Error creating project.  Does this project with this name already exist?"))
+          process.exit(1)
         } else {
           console.log(chalk.green("Project created!"))
+          process.exit(0)
         }
       })
     })
@@ -205,8 +210,10 @@ function doDelete() {
       inkstone.project.deleteByName(projectName, (err, project) => {
         if (err) {
           console.log(chalk.red("Error deleting project.  Does this project exist?"))
+          process.exit(1)
         } else {
           console.log(chalk.green("Project deleted!"))
+          process.exit(0)
         }
       })
     })
@@ -272,6 +279,7 @@ function doImport() {
 //       ensure that ssh keys are generated and registered with server
 function doHeal() {
   console.log("Unimplemented.  But please contact support@haiku.ai and we'll help you out!")
+  process.exit(0)
 }
 
 function doInstall() {
@@ -395,17 +403,20 @@ function doList() {
           })
         }
       })
+      process.exit(0)
     } else {
 
       inkstone.project.list((err, projects) => {
         if (projects == undefined || projects.length == 0) {
           console.log("No existing projects.  Use " + chalk.bold("haiku generate") + " to make a new one!")
+          process.exit(0)
         } else {
           console.log(chalk.cyan("Your team's Haiku projects:"))
           console.log("(To work with one, call " + chalk.bold("haiku clone project_name") + " or " + chalk.bold("haiku install project_name"))
           _.forEach(projects, (project) => {
             console.log("  " + project.Name)
           })
+          process.exit(0)
         }
       })
     }
@@ -443,6 +454,8 @@ function doLogin(cb?: Function) {
       }
       if (cb) {
         cb()
+      } else {
+        process.exit(0)
       }
     })
   })
@@ -451,6 +464,7 @@ function doLogin(cb?: Function) {
 function doLogout() {
   //TODO:  expire auth token on inkstone?
   client.config.setAuthToken("")
+  process.exit(0)
 }
 
 function doOpen() {
@@ -459,6 +473,7 @@ function doOpen() {
   ensureAuth(function (token) {
     inkstone.project.getByName(projectName, function (err, project) {
       console.log("TODO:  launch an instance of Haiku with this project open:", project)
+      process.exit(0)
     })
   })
 }
