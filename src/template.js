@@ -191,7 +191,7 @@ function applyContextChanges (component, inputs, template, me) {
       for (var name in group) {
         var value = group[name]
         if (!value) {
-          _warnOnce('Applied property value ' + name + ' was blank; object expected')
+          // _warnOnce('Applied property value ' + name + ' was blank; object expected')
           continue
         }
         if (value.__handler) applyHandlerToElement(match, name, value)
