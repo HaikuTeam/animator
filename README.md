@@ -19,10 +19,15 @@ Clone this repo. Then:
     $ git submodule update --init --recursive
     $ npm i
     $ npm run mono:npm-install
+    $ npm run mono:npm-link
 
 ## Development
 
-Please see the [Mono Workflows doc on Quip](https://haiku.quip.com/wwDEAZnZotvA).
+Assuming you've done the initial setup:
+
+    $ npm start
+
+For more, see the [Mono Workflows doc on Quip](https://haiku.quip.com/wwDEAZnZotvA).
 
 ## Scripts
 
