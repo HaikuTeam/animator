@@ -21,9 +21,8 @@
     "mono:git-diff": "node ./scripts/git-diff.js",
     "mono:git-co-all": "node ./scripts/git-co-all.js",
     "mono:public-npm-bundle": "node ./scripts/public-npm-bundle.js",
-    "mono:creator-bundle": "node ./scripts/creator-bundle.js",
     "mono:dev": "node ./scripts/dev.js",
-    "mono:finish": "npm run mono:git-pull && npm run mono:public-npm-bundle && npm run mono:creator-bundle && npm run mono:sha-norm && npm run mono:git-push && git add . && git commit -m \"update\" && git push origin master"
+    "mono:finish": "npm run mono:git-pull && npm run mono:public-npm-bundle && npm run mono:sha-norm && npm run mono:git-push && git add . && git commit -m \"update\" && git push origin master"
   },
   "devDependencies": {
     "async": "2.1.5",
