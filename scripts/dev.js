@@ -33,13 +33,23 @@ var instructionSets = {
   blank: [
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + blankProject], null, 5000],
-    ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024, FOLDER: blankProject }]
+    ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: blankProject }]
   ],
 
   primitives: [
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + primitivesProject], null, 5000],
-    ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024, FOLDER: primitivesProject }]
+    ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: primitivesProject }]
+  ],
+
+  zack: [
+    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
+    ['haiku-plumbing', ['npm', 'run', 'zack'], null, 5000],
+    // ['haiku-timeline', ['npm', 'run', 'zack']], // You can run this piecemeal *instead of creator*
+    // ['haiku-glass', ['npm', 'run', 'zack']], // You can run this piecemeal *instead of creator*
+    ['haiku-creator', ['npm', 'run', 'zack']],
+    ['haiku-cli', ['npm', 'run', 'develop']],
+    ['haiku-sdk', ['npm', 'run', 'develop']]
   ],
 
   matthew: [
