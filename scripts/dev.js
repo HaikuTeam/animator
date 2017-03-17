@@ -39,7 +39,15 @@ var instructionSets = {
   primitives: [
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + primitivesProject], null, 5000],
-    ['haiku-creator', ['npm', 'run', 'develop'], { VIBRANCY_OFF: '1', HAIKU_PLUMBING_PORT: 1024, FOLDER: primitivesProject }]
+    ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024, FOLDER: primitivesProject }]
+  ],
+
+  matthew: [
+    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
+    ['haiku-plumbing', ['npm', 'run', 'matthew'], null, 5000],
+    // ['haiku-timeline', ['npm', 'run', 'matthew']],
+    // ['haiku-glass', ['npm', 'run', 'matthew']],
+    ['haiku-creator', ['npm', 'run', 'matthew']]
   ]
 }
 
