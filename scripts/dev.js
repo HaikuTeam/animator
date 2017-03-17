@@ -25,7 +25,7 @@ var instructionSets = {
   default: [
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless'], null, 5000],
-    ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024 }],
+    ['haiku-creator', ['npm', 'start'], { HAIKU_PLUMBING_PORT: 1024 }],
     ['haiku-cli', ['npm', 'run', 'develop']],
     ['haiku-sdk', ['npm', 'run', 'develop']]
   ],
@@ -33,13 +33,13 @@ var instructionSets = {
   blank: [
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + blankProject], null, 5000],
-    ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: blankProject }]
+    ['haiku-creator', ['npm', 'start'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: blankProject }]
   ],
 
   primitives: [
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + primitivesProject], null, 5000],
-    ['haiku-creator', ['npm', 'run', 'develop'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: primitivesProject }]
+    ['haiku-creator', ['npm', 'start'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: primitivesProject }]
   ],
 
   zack: [
