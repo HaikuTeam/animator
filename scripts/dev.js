@@ -45,8 +45,10 @@ var instructionSets = {
   matthew: [
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['npm', 'run', 'matthew'], null, 5000],
+    // You can run these individually:
     // ['haiku-timeline', ['npm', 'run', 'matthew']],
     // ['haiku-glass', ['npm', 'run', 'matthew']],
+    // Or all together within creator:
     ['haiku-creator', ['npm', 'run', 'matthew']]
   ]
 }
@@ -89,7 +91,7 @@ async.eachSeries(instructions, function (instruction, next) {
       children.forEach((child) => {
         child.kill()
       })
-      process.exit(1)
+      process.exit(0)
     } else {
       log.log(cmd + ' closed')
     }
