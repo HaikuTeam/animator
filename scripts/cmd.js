@@ -8,7 +8,7 @@ var args = argv._
 var cmd = args[0]
 
 async.eachSeries(allPackages, function (pack, next) {
-  log('running command ' + cmd + ' in ' + pack.abspath)
+  log.log('running command ' + cmd + ' in ' + pack.abspath)
   cp.exec(cmd, { cwd: pack.abspath }, function (err, out) {
     if (err) {
       log.err(err)
