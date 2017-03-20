@@ -8,10 +8,10 @@ function getType (virtualElement) {
 }
 
 function thingToTagName (thing) {
-  if (!thing) return '__void__' // TODO: What should happen here?
-  if (typeof thing === STRING) return thing
+  if (typeof thing === STRING && thing.length > 0) return thing
   if (typeof thing === FUNCTION) return fnToTagName(thing)
-  return '__void__'
+  _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
+  return 'div'
 }
 
 function fnToTagName (fn) {
@@ -26,10 +26,16 @@ function fnToTagName (fn) {
 
 function getTypeAsString (virtualElement) {
   var typeValue = getType(virtualElement)
-  if (!typeValue) throw new Error('Cannot get node name from blank object')
   typeValue = thingToTagName(typeValue)
   if (!typeValue) throw new Error('Node has no discernable name')
   return typeValue
+}
+
+var warnings = {}
+function _warnOnce (warning) {
+  if (warnings[warning]) return void (0)
+  warnings[warning] = true
+  console.warn(warning)
 }
 
 module.exports = getTypeAsString
