@@ -16,7 +16,10 @@ Bytecode.prototype.getObject = function getObject () {
 Bytecode.prototype.getTemplate = function getTemplate () {
   if (!this.bytecode.template) throw new Error('Empty bytecode template not allowed')
   if (typeof this.bytecode.template === OBJECT_TYPE) {
-    if (!this.bytecode.template.elementName) console.warn('Warning: Saw unexpected bytecode format')
+    if (!this.bytecode.template.elementName) {
+      console.warn('Warning: Saw unexpected bytecode template format')
+      console.log('Template:', this.bytecode.template)
+    }
     return this.bytecode.template
   }
   if (typeof this.bytecode.template === STRING_TYPE) {
