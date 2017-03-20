@@ -10,6 +10,7 @@
     "start": "npm run mono:dev",
     "lint": "standard \"./scripts/**/*.js\" --fix --verbose | snazzy",
     "mono:cmd": "node ./scripts/cmd.js",
+    "mono:reset-links": "npm run mono:cmd \"rm -rf node_modules\" && npm run mono:npm-install && npm run mono:npm-link",
     "mono:sha-norm": "node ./scripts/sha-norm.js",
     "mono:npm-install": "node ./scripts/npm-install.js",
     "mono:npm-link": "node ./scripts/npm-link.js",

@@ -55,11 +55,9 @@ var instructionSets = {
   matthew: [
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['npm', 'run', 'matthew'], null, 5000],
-    // You can run these individually:
-    // ['haiku-timeline', ['npm', 'run', 'matthew']],
-    // ['haiku-glass', ['npm', 'run', 'matthew']],
-    // Or all together within creator:
-    ['haiku-creator', ['npm', 'run', 'matthew']]
+    // ['haiku-timeline', ['npm', 'run', 'matthew']], // You can run these individually
+    // ['haiku-glass', ['npm', 'run', 'matthew']], // You can run these individually
+    ['haiku-creator', ['npm', 'run', 'matthew']] // Or all together within creator
   ]
 }
 
