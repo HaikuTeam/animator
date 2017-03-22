@@ -1,6 +1,4 @@
-var creation = require('./../src/creation/dom')
-
-module.exports = creation({
+module.exports = {
   properties: [],
   eventHandlers: [],
   timelines: {
@@ -246,4 +244,4 @@ module.exports = creation({
       }]
     }]
   }
-})
+}

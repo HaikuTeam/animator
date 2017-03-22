@@ -1,6 +1,4 @@
-var creation = require('./../src/creation/dom')
-
-module.exports = creation({
+module.exports = {
   properties: [{
     name: 'clicks',
     type: 'number',
@@ -65,4 +63,4 @@ module.exports = creation({
     }
   },
   template: '<div id="box"></div>'
-})
+}

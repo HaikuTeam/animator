@@ -1,8 +1,6 @@
-var creation = require('./../src/creation/dom')
-
-module.exports = creation({
+module.exports = {
   timelines: {},
   eventHandlers: [],
   properties: [],
   template: '<div>Hello World!</div>'
-})
+}
