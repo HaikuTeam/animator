@@ -14,6 +14,7 @@ var glassPackage = groups['haiku-glass']
 var blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
 var primitivesProject = path.join(glassPackage.abspath, 'test/projects/primitives/')
 var puzzleProject = path.join(glassPackage.abspath, 'test/projects/puzzle/')
+var rotatorProject = path.join(glassPackage.abspath, 'test/projects/rotator/')
 
 // By default every time we run this file we'll clean the 'blank' project to actually make it blank.
 if (!argv.noClean) {
@@ -57,6 +58,12 @@ var instructionSets = {
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + puzzleProject], null, 5000],
     ['haiku-creator', ['npm', 'start'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: puzzleProject }]
+  ],
+
+  rotator: [
+    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
+    ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + rotatorProject], null, 5000],
+    ['haiku-creator', ['npm', 'start'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: rotatorProject }]
   ],
 
   matthew: [
