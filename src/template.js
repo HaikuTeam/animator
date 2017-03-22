@@ -6,7 +6,6 @@ var Transitions = require('haiku-bytecode/src/Transitions')
 var Utils = require('haiku-bytecode/src/Utils')
 var Component = require('./component')
 var Timeline = require('./timeline')
-var Constants = require('./constants')
 
 var CSS_QUERY_MAPPING = {
   name: 'elementName',
@@ -232,13 +231,6 @@ function applyHandlerToElement (match, name, fn) {
   if (!match.__handlers) match.__handlers = {}
   match.__handlers[name] = fn
   return match
-}
-
-var warnings = {}
-function _warnOnce (warning) {
-  if (warnings[warning]) return void (0)
-  warnings[warning] = true
-  console.warn(warning)
 }
 
 module.exports = Template
