@@ -190,10 +190,6 @@ function applyContextChanges (component, inputs, template, me) {
       if (group.transform) match.__transformed = true // Make note if the element has its own transform so the renderer doesn't clobber its own step
       for (var name in group) {
         var value = group[name]
-        if (isNaN(value)) {
-          _warnOnce('Applied property value ' + name + ' was NaN; object expected')
-          continue
-        }
         if (value.__handler) applyHandlerToElement(match, name, value)
         else applyPropertyToElement(match, name, value)
       }
