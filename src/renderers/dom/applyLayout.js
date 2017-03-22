@@ -17,6 +17,7 @@ function applyLayout (domElement, virtualElement, parentDomNode, parentVirtualEl
     }
 
     var parentSize = parentVirtualElement.layout.computed.size
+
     var computedLayout = Layout3D.computeLayout({}, virtualElement.layout, virtualElement.layout.matrix, IDENTITY_MATRIX, parentSize)
 
     // Need to pass some size to children, so if this element doesn't have one, use the parent's
