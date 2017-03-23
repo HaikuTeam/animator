@@ -66,6 +66,11 @@ var instructionSets = {
     ['haiku-creator', ['npm', 'start'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: rotatorProject }]
   ],
 
+  production: [
+    ['haiku-plumbing', ['npm', 'run', 'compile'], null, 10000, true],
+    ['haiku-plumbing', ['node', './HaikuHelper.js'], { HAIKU_SKIP_AUTOUPDATE: 1, DEV: 1, NODE_ENV: 'production' }],
+  ],
+
   matthew: [
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['npm', 'run', 'matthew'], null, 5000],
