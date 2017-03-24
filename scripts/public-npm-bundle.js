@@ -20,9 +20,14 @@ log.log('moving contents into haiku.ai')
 fse.copySync(path.join(interpreterPath, 'dom.bundle.js'), path.join(haikuNpmPath, 'haiku.ai', 'player', 'dom', 'index.js'))
 fse.copySync(path.join(interpreterPath, 'react.bundle.js'), path.join(haikuNpmPath, 'haiku.ai', 'player', 'dom', 'react.js'))
 
-log.log('committing bundle changes')
-log.log(cp.execSync('git add .', { cwd: haikuNpmPath }))
-log.log(cp.execSync('git commit -m "auto: Rebuild haiku.ai bundles"', { cwd: haikuNpmPath }))
+try {
+  log.log('committing bundle changes')
+  log.log(cp.execSync('git add .', { cwd: haikuNpmPath }))
+  log.log(cp.execSync('git commit -m "auto: Rebuild haiku.ai bundles"', { cwd: haikuNpmPath }))
+} catch (exception) {
+  log.log(exception)
+  log.log('continuing...')
+}
 
 var haikuAiPackageJsonPath = path.join(haikuNpmPath, 'haiku.ai', 'package.json')
 var haikuAiPackage = require(haikuAiPackageJsonPath)
