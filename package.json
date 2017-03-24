@@ -7,6 +7,7 @@
     "test": "tape \"test/**/*.test.js\" | tap-spec",
     "lint": "standard src/**/*.js --fix --verbose | snazzy",
     "demo": "node ./server.js",
+    "pretty": "prettier",
     "dist:dom": "browserify ./src/creation/dom/index.js --standalone HaikuDOMPlayer | derequire > dom.bundle.js && uglifyjs dom.bundle.js -o dom.bundle.js",
     "dist:react": "cp ./src/adapters/react/index.js react.bundle.js"
   },
@@ -19,6 +20,7 @@
     "fs-extra": "2.0.0",
     "handlebars": "4.0.6",
     "jsdom": "9.11.0",
+    "prettier": "^0.22.0",
     "react-dom": "15.4.2",
     "snazzy": "6.0.0",
     "standard": "8.6.0",
