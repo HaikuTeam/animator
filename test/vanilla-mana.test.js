@@ -70,7 +70,7 @@ test('vanilla-mana', function(t) {
         ]
       }
     }
-    var creation = Creation(bytecode, window)
+    var creation = Creation(bytecode, {}, window)
     var mount = window.document.getElementById('mount')
     var context = creation(mount)
     setTimeout(function() {

@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#1f640c09d278d9167a64a778c71fc2ee77baa2d0",
+    "lodash.merge": "^4.6.0",
     "raf": "3.3.0",
     "react": "15.4.2",
     "react-dom": "15.4.2"

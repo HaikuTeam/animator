@@ -22,11 +22,11 @@ test('react', function(t) {
       },
       template: '<div id="div">Hello</div>'
     }
-    var creationClass = Creation(bytecode, window)
+    var creationClass = Creation(bytecode, {}, window)
     var reactClass = reactAdapt(creationClass)
     t.ok(reactClass.haikuClass, 'haiku class was set')
     var controller = Emitter.create({})
-    controller.on('contextDidInitialize', function (instance) {
+    controller.on('componentDidInitialize', function (instance) {
       instance.start()
       instance.events.listen('#div', 'click', function (event) {
         t.ok(event, 'it should click')

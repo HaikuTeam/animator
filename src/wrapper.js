@@ -1,11 +1,12 @@
 var Context = require('./context')
 var Component = require('./component')
 var Emitter = require('./emitter')
+var merge = require('lodash.merge')
 
 var ADDRESS_PREFIX = ''
 var __contexts__ = []
 
-function wrapper (renderer, bytecode, platform) {
+function wrapper (renderer, bytecode, wrapperOptions, platform) {
   if (!platform) {
     throw new Error('A runtime `platform` is required')
   }
@@ -22,14 +23,16 @@ function wrapper (renderer, bytecode, platform) {
   var index = __contexts__.push(context) - 1
   var address = ADDRESS_PREFIX + index
 
-  function runner (mount, options) {
+  function runner (mount, runnerOptions) {
     // Hot editing hook
     if (!mount.haiku) mount.haiku = {}
     mount.haiku.context = context
 
+    var options = merge(wrapperOptions, runnerOptions)
+
     var controller = options && options.controller || Emitter.create({})
     runner.controller = controller
-    controller.emit('contextWillInitialize', component.instance)
+    controller.emit('componentWillInitialize', component.instance)
 
     var mounted = false
 
@@ -58,7 +61,7 @@ function wrapper (renderer, bytecode, platform) {
     // Hot editing hook
     runner.tick = tick
 
-    controller.emit('contextDidInitialize', component.instance)
+    controller.emit('componentDidInitialize', component.instance)
 
     return context
   }

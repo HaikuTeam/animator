@@ -70,7 +70,7 @@ test('react', function(t) {
       },
       template: '<svg id="svg"></svg>'
     }
-    var creationClass = Creation(bytecode, window)
+    var creationClass = Creation(bytecode, {}, window)
     var reactClass = reactAdapt(creationClass)
     t.ok(reactClass.haikuClass, 'haiku class was set')
     var reactElement = React.createElement(reactClass, {

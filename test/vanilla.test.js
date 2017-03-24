@@ -22,7 +22,7 @@ test('vanilla', function(t) {
       },
       template: '<div><p id="p"></p></div>'
     }
-    var creation = Creation(bytecode, window)
+    var creation = Creation(bytecode, {}, window)
     var mount = window.document.getElementById('mount')
     var context = creation(mount)
     setTimeout(function() {
