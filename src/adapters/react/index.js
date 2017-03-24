@@ -13,8 +13,8 @@ function applyProps (componentInstance, props) {
   applyInputs(componentInstance, props)
 }
 
-function createContext (reactInstance, creationClass) {
-  reactInstance.creationContext = creationClass(reactInstance.refs.div)
+function createContext (reactInstance, creationClass, reactProps) {
+  reactInstance.creationContext = creationClass(reactInstance.refs.div, reactProps)
   reactInstance.creationContext.component.instance.hear(function (name, payload) {
     if (reactInstance.props && reactInstance.props.events && reactInstance.props.events[name]) {
       reactInstance.props.events[name](payload)
@@ -31,11 +31,21 @@ function adapt (creationClass) {
     },
 
     componentWillReceiveProps: function (nextProps) {
+      if (this.props.controller) this.props.controller.emit('react:componentWillReceiveProps', this, nextProps)
       applyProps(this.creationContext.component, nextProps)
     },
 
+    componentWillMount: function () {
+      if (this.props.controller) this.props.controller.emit('react:componentWillMount', this)
+    },
+
+    componentWillUnmount: function () {
+      if (this.props.controller) this.props.controller.emit('react:componentWillUnMount', this)
+    },
+
     componentDidMount: function () {
-      createContext(this, creationClass)
+      createContext(this, creationClass, this.props)
+      if (this.props.controller) this.props.controller.emit('react:componentDidMount', this, this.refs.div)
       applyProps(this.creationContext.component, this.props)
     },
 

@@ -37,7 +37,10 @@ function create (instance) {
     eavesdroppers.push(fn)
   }
 
-  return registry
+  instance._registry = registry
+  instance._eavesdroppers = eavesdroppers
+
+  return instance
 }
 
 module.exports = {

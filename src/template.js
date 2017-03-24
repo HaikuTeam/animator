@@ -20,6 +20,7 @@ function Template (template) {
   this.template = template
   this._changes = {}
   this._matches = {}
+  this._handles = []
 }
 
 Template.prototype.getTree = function getTree () {
@@ -139,6 +140,14 @@ function applyContextChanges (component, inputs, template, me) {
       if (!results[eventSelector]) results[eventSelector] = {}
       handler.__handler = true
       results[eventSelector][eventName] = handler
+    }
+  }
+
+  if (me._handles && me._handles.length > 0) {
+    for (var l = 0; l < me._handles.length; l++) {
+      var customHandler = me._handles[l]
+      if (!results[customHandler.selector]) results[customHandler.selector] = {}
+      results[customHandler.selector][customHandler.event] = customHandler.handler
     }
   }
 
