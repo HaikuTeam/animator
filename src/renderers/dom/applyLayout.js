@@ -1,10 +1,8 @@
 var applyCssLayout = require('haiku-bytecode/src/applyCssLayout')
-var Layout3D = require('haiku-bytecode/src/Layout3D')
 var isTextNode = require('./isTextNode')
 var scopeIs = require('./scopeIs')
 
 var DEFAULT_PIXEL_RATIO = 1.0
-var IDENTITY_MATRIX = Layout3D.createMatrix()
 var SVG = 'svg'
 var SVG_RENDERABLES = {
   a: true,
@@ -48,11 +46,7 @@ function applyLayout (domElement, virtualElement, parentDomNode, parentVirtualEl
     }
 
     var devicePixelRatio = options && options.devicePixelRatio || DEFAULT_PIXEL_RATIO
-    var parentSize = parentVirtualElement.layout.computed.size
-    var computedLayout = Layout3D.computeLayout({}, virtualElement.layout, virtualElement.layout.matrix, IDENTITY_MATRIX, parentSize)
-
-    // Need to pass some size to children, so if this element doesn't have one, use the parent's
-    virtualElement.layout.computed = computedLayout || { size: parentSize }
+    var computedLayout = virtualElement.layout.computed
 
     // No computed layout means the el is not shown
     if (!computedLayout) {
