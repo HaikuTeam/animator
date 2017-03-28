@@ -7,6 +7,10 @@ var OBJECT_TYPE = 'object'
 function Bytecode (bytecode) {
   if (!bytecode) throw new Error('Empty bytecode not allowed')
   this.bytecode = bytecode
+  this._anyEventChange = false
+  this._eventsFired = {}
+  this._anyInputChange = false
+  this._inputChanges = {}
 }
 
 Bytecode.prototype.getObject = function getObject () {
@@ -30,9 +34,16 @@ Bytecode.prototype.getTemplate = function getTemplate () {
 
 Bytecode.prototype.bindEventHandlers = function _bindEventHandlers (instance) {
   if (!this.bytecode.eventHandlers) return void (0)
+  var self = this
   for (var i = 0; i < this.bytecode.eventHandlers.length; i++) {
     var descriptor = this.bytecode.eventHandlers[i]
-    descriptor.handler = descriptor.handler.bind(instance)
+    var handler = descriptor.handler
+    descriptor.handler = function (event, a, b, c, d, e, f, g, h, i, j, k) {
+      self._anyEventChange = true
+      if (!self._eventsFired[descriptor.selector]) self._eventsFired[descriptor.selector] = {}
+      self._eventsFired[descriptor.selector][descriptor.name] = event || true
+      handler.call(instance, event, a, b, c, d, e, f, g, h, i, j, k)
+    }
   }
 }
 
@@ -51,7 +62,26 @@ function typecheckInput (type, name, value) {
   }
 }
 
+Bytecode.prototype.getEventsFired = function getEventsFired () {
+  return this._anyEventChange && this._eventsFired
+}
+
+Bytecode.prototype.getInputsChanged = function getInputsChanged () {
+  return this._anyInputChange && this._inputChanges
+}
+
+Bytecode.prototype.clearDetectedEventsFired = function clearDetectedEventsFired () {
+  this._anyEventChange = false
+  this._eventsFired = {}
+}
+
+Bytecode.prototype.clearDetectedInputChanges = function clearDetectedInputChanges () {
+  this._anyInputChange = false
+  this._inputChanges = {}
+}
+
 Bytecode.prototype.defineInputs = function defineInputs (storage, instance) {
+  var self = this
   eachProperty(this.bytecode, function _eachProperty (type, name, defval, privacy, setter) {
     if (defval === undefined) throw new Error('Property `' + name + '` cannot be undefined; use null for empty properties')
     if (instance[name] !== undefined) throw new Error('Property `' + name + '` is a reserved keyword')
@@ -67,6 +97,8 @@ Bytecode.prototype.defineInputs = function defineInputs (storage, instance) {
 
       set: function set (input) {
         typecheckInput(type, name, input)
+        self._inputChanges[name] = input
+        self._anyInputChange = true
         if (setter) {
           storage[name] = setter.call(instance, input)
         } else {
