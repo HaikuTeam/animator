@@ -17,6 +17,9 @@ function Component (bytecode) {
   Emitter.create(this)
   this.context = void (0) // <~ Hack: This must get assigned by someone
   this._scopes = {}
+  this._needsFullFlush = false
+  this._lastTemplateExpansion = null
+  this._lastDeltaPatches = null
 }
 
 Component.isBytecode = function isBytecode (something) {
@@ -27,7 +30,32 @@ Component.isComponent = function isComponent (something) {
   return something && typeof something.render === FUNCTION_TYPE
 }
 
-Component.prototype.render = function render () {
+Component.prototype.shouldPerformFullFlush = function shouldPerformFullFlush () {
+  return this._needsFullFlush
+}
+
+Component.prototype.patch = function patch (container) {
+  var time = this.context.clock.getTime()
+  var timelinesRunning = []
+  var timelineInstances = this.store.get('timelines')
+  for (var timelineName in timelineInstances) {
+    var timeline = timelineInstances[timelineName]
+    if (timeline.isActive()) {
+      timeline.performUpdate(time)
+      if (timelineName === 'Default' || !timeline.isFinished()) {
+        timelinesRunning.push(timeline)
+      }
+    }
+  }
+  var eventsFired = this.bytecode.getEventsFired()
+  var inputsChanged = this.bytecode.getInputsChanged()
+  this._lastDeltaPatches = this.template.deltas(this.context, this, container, this.inputs, timelinesRunning, eventsFired, inputsChanged)
+  this.bytecode.clearDetectedEventsFired()
+  this.bytecode.clearDetectedInputChanges()
+  return this._lastDeltaPatches
+}
+
+Component.prototype.render = function render (container) {
   var time = this.context.clock.getTime()
   var timelines = this.store.get('timelines')
   for (var timelineName in timelines) {
@@ -36,7 +64,8 @@ Component.prototype.render = function render () {
       timeline.performUpdate(time)
     }
   }
-  return this.template.expand(this.context, this, this.inputs)
+  this._lastTemplateExpansion = this.template.expand(this.context, this, container, this.inputs)
+  return this._lastTemplateExpansion
 }
 
 Component.prototype.stopAllTimelines = function stopAllTimelines () {
@@ -57,7 +86,7 @@ Component.prototype.startTimeline = function startTimeline (timelineName) {
   var descriptor = this.bytecode.bytecode.timelines[timelineName]
   var existing = this.store.get('timelines')[timelineName]
   if (existing) existing.start(time, descriptor)
-  else this.store.get('timelines')[timelineName] = new Timeline(time, descriptor)
+  else this.store.get('timelines')[timelineName] = new Timeline(time, descriptor, timelineName)
 }
 
 Component.prototype.stopTimeline = function startTimeline (timelineName) {

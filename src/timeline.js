@@ -2,7 +2,8 @@ var Constants = require('./constants')
 
 var NUMBER = 'number'
 
-function Timeline (time, descriptor) {
+function Timeline (time, descriptor, name) {
+  this.name = name
   this.control = null
   this.global = time || 0
   this.local = 0

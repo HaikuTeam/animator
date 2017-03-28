@@ -37,9 +37,16 @@ module.exports = {
           }
         },
         'style.backgroundColor': {
-          0: {
-            value: 'red'
-          }
+          0: { value: 'red' },
+          500: { value: 'blue' },
+          1000: { value: 'green' },
+          1500: { value: 'black' },
+          2000: { value: 'brown' },
+          2500: { value: 'yellow' },
+          3000: { value: 'cyan' },
+          3500: { value: 'orange' },
+          4000: { value: 'gray' },
+          4500: { value: 'red' }
         },
         'translation.x': {
           0: {

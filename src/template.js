@@ -1,23 +1,24 @@
 var vanityHandlers = require('haiku-bytecode/src/properties/dom/vanities')
-var ensureStyleProps = require('haiku-bytecode/src/properties/dom/ensureStyleProps')
-var ensureLayoutProps = require('haiku-bytecode/src/properties/dom/ensureLayoutProps')
 var queryTree = require('haiku-bytecode/src/cssQueryTree')
 var Transitions = require('haiku-bytecode/src/Transitions')
 var Utils = require('haiku-bytecode/src/Utils')
+var Layout3D = require('haiku-bytecode/src/Layout3D')
 var Component = require('./component')
 var Timeline = require('./timeline')
 
+var IDENTITY_MATRIX = Layout3D.createMatrix()
+var HAIKU_ID_ATTRIBUTE = 'haiku-id'
 var CSS_QUERY_MAPPING = {
   name: 'elementName',
   attributes: 'attributes',
   children: 'children'
 }
-
 var FUNCTION_TYPE = 'function'
 var STRING_TYPE = 'string'
 
-function Template (template) {
+function Template (template, component) {
   this.template = template
+  this.component = component
   this._changes = {}
   this._matches = {}
   this._handles = []
@@ -27,10 +28,65 @@ Template.prototype.getTree = function getTree () {
   return this.template
 }
 
-Template.prototype.expand = function _expand (context, component, inputs) {
-  applyContextChanges(component, inputs, this.template, this)
+Template.prototype.expand = function _expand (context, component, container, inputs) {
+  applyContextChanges(component, inputs, this.template, container, this)
   var tree = expandElement(this.template, context)
   return tree
+}
+
+Template.prototype.deltas = function _deltas (context, component, container, inputs, timelinesRunning, eventsFired, inputsChanged) {
+  var deltas = gatherDeltas(this, this.template, container, context, component, inputs, timelinesRunning, eventsFired, inputsChanged)
+  return deltas
+}
+
+function gatherDeltas (me, template, container, context, component, inputs, timelinesRunning, eventsFired, inputsChanged) {
+  var deltas = {}
+  var bytecode = component.bytecode.bytecode
+  if (!bytecode) return deltas
+  if (!bytecode.timelines) return deltas
+  var results = {}
+  for (var i = 0; i < timelinesRunning.length; i++) {
+    var timeline = timelinesRunning[i]
+    var now = timeline.local
+    var outputs = bytecode.timelines[timeline.name]
+    for (var tlSelector in outputs) {
+      var tlGroup = outputs[tlSelector]
+      for (var outputname in tlGroup) {
+        var cluster = tlGroup[outputname]
+        var finalValue = Transitions.calculateValueAndReturnUndefinedIfNotWorthwhile(cluster, now, component, inputs, eventsFired, inputsChanged)
+        if (finalValue === undefined) continue
+        if (me.didChangeValue(timeline.name, tlSelector, outputname, finalValue)) {
+          if (!results[tlSelector]) results[tlSelector] = {}
+          if (results[tlSelector][outputname] === undefined) results[tlSelector][outputname] = finalValue
+          else results[tlSelector][outputname] = Utils.mergeValue(results[tlSelector][outputname], finalValue)
+        }
+      }
+    }
+  }
+  for (var selector in results) {
+    var matches = findMatchingElements(selector, template, me._matches)
+    if (!matches || matches.length < 1) continue
+    var group = results[selector]
+    for (var j = 0; j < matches.length; j++) {
+      var match = matches[j]
+      var domId = match && match.attributes && match.attributes.id
+      var haikuId = match && match.attributes && match.attributes[HAIKU_ID_ATTRIBUTE]
+      var flexibleId = haikuId || domId
+      if (flexibleId) {
+        deltas[flexibleId] = match
+        for (var key in group) {
+          var value = group[key]
+          if (value.__handler) applyHandlerToElement(match, key, value)
+          else applyPropertyToElement(match, key, value)
+        }
+      }
+    }
+  }
+  for (var flexId in deltas) {
+    var changedNode = deltas[flexId]
+    calculateTreeLayouts(changedNode, changedNode.__parent)
+  }
+  return deltas
 }
 
 Template.prototype.didChangeValue = function _didChangeValue (timelineName, selector, outputName, outputValue) {
@@ -79,7 +135,6 @@ function expandElement (element, context) {
     var interior = element.__instance.render()
     return expandElement(interior, context)
   } else if (typeof element.elementName === STRING_TYPE) {
-    var copy = shallowClone(element)
     // Handlers attach first since they may want to respond to an immediate property setter
     if (element.__handlers) {
       for (var nativekey in element.__handlers) {
@@ -90,6 +145,7 @@ function expandElement (element, context) {
         }
       }
     }
+    var copy = shallowClone(element)
     if (element.children && element.children.length > 0) {
       for (var i = 0; i < element.children.length; i++) {
         var child = element.children[i]
@@ -126,7 +182,7 @@ function instantiateElement (element, context) {
   return instance
 }
 
-function applyContextChanges (component, inputs, template, me) {
+function applyContextChanges (component, inputs, template, container, me) {
   var results = {}
 
   var bytecode = component.bytecode.bytecode
@@ -172,9 +228,8 @@ function applyContextChanges (component, inputs, template, me) {
         for (var outputname in tlGroup) {
           var cluster = tlGroup[outputname]
           var finalValue = Transitions.calculateValue(cluster, now, component, inputs)
-          if (finalValue === undefined) return
+          if (finalValue === undefined) continue
           if (me.didChangeValue(timelineName, tlSelector, outputname, finalValue)) {
-            // Set this here inside this condition to save iterations below
             // console.log(timelineName, tlSelector, outputname, finalValue) // <~ log me for fun
             if (!results[tlSelector]) results[tlSelector] = {}
             if (results[tlSelector][outputname] === undefined) results[tlSelector][outputname] = finalValue
@@ -187,7 +242,7 @@ function applyContextChanges (component, inputs, template, me) {
 
   // Gotta do this here because handlers/vanities depend on these being set
   // TODO: Find a way to only do this once, or only by necessity instead of every frame
-  fixTreeAttributes(template)
+  initializeTreeAttributes(template, container)
 
   for (var selector in results) {
     var matches = findMatchingElements(selector, template, me._matches)
@@ -198,11 +253,16 @@ function applyContextChanges (component, inputs, template, me) {
       if (group.transform) match.__transformed = true // Make note if the element has its own transform so the renderer doesn't clobber its own step
       for (var name in group) {
         var value = group[name]
-        if (value.__handler) applyHandlerToElement(match, name, value)
-        else applyPropertyToElement(match, name, value)
+        if (value.__handler) {
+          applyHandlerToElement(match, name, value)
+        } else {
+          applyPropertyToElement(match, name, value)
+        }
       }
     }
   }
+
+  calculateTreeLayouts(template, container)
 
   return template
 }
@@ -214,17 +274,61 @@ function findMatchingElements (selector, template, cache) {
   return matches
 }
 
-function fixTreeAttributes (tree) {
+function initializeTreeAttributes (tree, container) {
   if (!tree || typeof tree === 'string') return
-  fixAttributes(tree)
+  initializeNodeAttributes(tree, container)
+  tree.__parent = container
   if (!tree.children) return
   if (tree.children.length < 1) return
-  for (var i = 0; i < tree.children.length; i++) fixTreeAttributes(tree.children[i])
+  for (var i = 0; i < tree.children.length; i++) initializeTreeAttributes(tree.children[i], tree)
 }
 
-function fixAttributes (element) {
-  ensureStyleProps(element)
-  ensureLayoutProps(element)
+function calculateTreeLayouts (tree, container) {
+  if (!tree || typeof tree === 'string') return
+  calculateNodeLayout(tree, container)
+  if (!tree.children) return
+  if (tree.children.length < 1) return
+  for (var i = 0; i < tree.children.length; i++) calculateTreeLayouts(tree.children[i], tree)
+}
+
+function calculateNodeLayout (element, parent) {
+  if (parent) {
+    var parentSize = parent.layout.computed.size
+    var computedLayout = Layout3D.computeLayout({}, element.layout, element.layout.matrix, IDENTITY_MATRIX, parentSize)
+    element.layout.computed = computedLayout || { size: parentSize } // Need to pass some size to children, so if this element doesn't have one, use the parent's
+  }
+}
+
+var ELEMENTS_2D = {
+  circle: true,
+  ellipse: true,
+  foreignObject: true,
+  g: true,
+  image: true,
+  line: true,
+  mesh: true,
+  path: true,
+  polygon: true,
+  polyline: true,
+  rect: true,
+  svg: true,
+  switch: true,
+  symbol: true,
+  text: true,
+  textPath: true,
+  tspan: true,
+  unknown: true,
+  use: true
+}
+
+function initializeNodeAttributes (element, parent) {
+  if (!element.attributes) element.attributes = {}
+  if (!element.attributes.style) element.attributes.style = {}
+  if (!element.layout) {
+    element.layout = Layout3D.createLayoutSpec()
+    element.layout.matrix = Layout3D.createMatrix()
+    element.layout.format = (ELEMENTS_2D[element.elementName]) ? Layout3D.FORMATS.TWO : Layout3D.FORMATS.THREE
+  }
   return element
 }
 

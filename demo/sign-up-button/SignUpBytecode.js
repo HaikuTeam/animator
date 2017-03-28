@@ -5,7 +5,9 @@ module.exports = {
     Default: {
       "haiku:518e0609ba78": {
         "sizeAbsolute.x": { "0": { value: 274, edited: true } },
-        "sizeAbsolute.y": { "0": { value: 80, edited: true } }
+        "sizeAbsolute.y": { "0": { value: 80, edited: true } },
+        "translation.x": { "0": { value: 200, edited: true } },
+        "translation.y": { "0": { value: 200, edited: true } }
       },
       "haiku:cc42b90c9465": {
         opacity: {
