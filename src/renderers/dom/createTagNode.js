@@ -4,17 +4,17 @@ var createSvgElement = require('./createSvgElement')
 var updateElement = require('./updateElement')
 var getTypeAsString = require('./getTypeAsString')
 
-function createTagNode (domElement, virtualElement, parentVirtualElement, locator, hash) {
+function createTagNode (domElement, virtualElement, parentVirtualElement, locator, hash, options, scopes) {
   var tagName = normalizeName(getTypeAsString(virtualElement))
   var newDomElement
-  if (isSvgElementName(tagName)) {
+  if (isSvgElementName(tagName, scopes)) {
     // SVG
-    newDomElement = createSvgElement(domElement, tagName)
+    newDomElement = createSvgElement(domElement, tagName, options, scopes)
   } else {
     // Normal DOM
     newDomElement = domElement.ownerDocument.createElement(tagName)
   }
-  updateElement(newDomElement, virtualElement, domElement, parentVirtualElement, locator, hash)
+  updateElement(newDomElement, virtualElement, domElement, parentVirtualElement, locator, hash, options, scopes)
   return newDomElement
 }
 

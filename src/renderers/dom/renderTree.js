@@ -1,12 +1,15 @@
 var isBlankString = require('./isBlankString')
 var removeElement = require('./removeElement')
 var locatorBump = require('./locatorBump')
+var scopeAdjust = require('./scopeAdjust')
 
-function renderTree (domElement, virtualElement, virtualChildren, locator, hash) {
+function renderTree (domElement, virtualElement, virtualChildren, locator, hash, options, scopes) {
   hash[locator] = domElement
 
   if (!domElement.haiku) domElement.haiku = {}
   domElement.haiku.locator = locator
+
+  scopeAdjust(virtualElement, domElement, options, scopes)
 
   if (!Array.isArray(virtualChildren)) {
     return domElement
@@ -27,13 +30,13 @@ function renderTree (domElement, virtualElement, virtualChildren, locator, hash)
     if (!virtualChild && !domChild) {
       continue
     } else if (!virtualChild && domChild) {
-      removeElement(domChild)
+      removeElement(domChild, hash, options, scopes)
       delete hash[sublocator]
     } else if (virtualChild && !domChild) {
-      var insertedElement = appendChild(domElement, virtualChild, virtualElement, sublocator, hash)
+      var insertedElement = appendChild(null, virtualChild, domElement, virtualElement, sublocator, hash, options, scopes)
       hash[sublocator] = insertedElement
     } else {
-      modifyChild(domChild, virtualChild, domElement, virtualElement, sublocator, hash)
+      modifyChild(domChild, virtualChild, domElement, virtualElement, sublocator, hash, options, scopes)
     }
   }
 

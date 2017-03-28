@@ -1,6 +1,6 @@
 var svgElementNames = require('haiku-bytecode/src/allSvgElementNames')
 
-function isSvgElementName (tagName) {
+function isSvgElementName (tagName, scopes) {
   return svgElementNames.indexOf(tagName) !== -1
 }
 

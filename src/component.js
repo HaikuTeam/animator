@@ -16,6 +16,7 @@ function Component (bytecode) {
   this.bytecode.bindEventHandlers(this.instance)
   Emitter.create(this)
   this.context = void (0) // <~ Hack: This must get assigned by someone
+  this._scopes = {}
 }
 
 Component.isBytecode = function isBytecode (something) {

@@ -1,4 +1,4 @@
-function removeElement (domElement) {
+function removeElement (domElement, hash, options, scopes) {
   domElement.parentNode.removeChild(domElement)
   return domElement
 }

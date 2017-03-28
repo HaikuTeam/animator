@@ -1,4 +1,4 @@
-function assignClass (domElement, className) {
+function assignClass (domElement, className, options, scopes) {
   if (domElement.className !== className) {
     domElement.className = className
   }

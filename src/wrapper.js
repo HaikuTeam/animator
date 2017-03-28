@@ -39,7 +39,8 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
     function tick () {
       var tree = context.component.render()
       var container = renderer.createContainer(mount)
-      renderer.render(mount, container, tree, address, {})
+      var hash = {} // For quick lookups
+      renderer.render(mount, container, tree, address, hash, options, component._scopes)
       if (!mounted) {
         controller.emit('componentDidMount', component.instance)
         mounted = true

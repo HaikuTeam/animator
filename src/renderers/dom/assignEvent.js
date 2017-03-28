@@ -1,6 +1,6 @@
 var attachEventListener = require('./attachEventListener')
 
-function assignEvent (domElement, lowerCaseName, listenerFunction) {
+function assignEvent (domElement, lowerCaseName, listenerFunction, options, scopes) {
   if (!domElement.listeners) domElement.listeners = {}
   if (!domElement.listeners[lowerCaseName]) domElement.listeners[lowerCaseName] = []
   var already = false
@@ -10,7 +10,7 @@ function assignEvent (domElement, lowerCaseName, listenerFunction) {
   }
   if (!already) {
     domElement.listeners[lowerCaseName].push(listenerFunction)
-    attachEventListener(domElement, lowerCaseName, listenerFunction)
+    attachEventListener(domElement, lowerCaseName, listenerFunction, options, scopes)
   }
 }
 

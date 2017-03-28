@@ -1,4 +1,4 @@
-function isTextNode (virtualElement) {
+function isTextNode (virtualElement, scopes) {
   return typeof virtualElement === 'string'
 }
 

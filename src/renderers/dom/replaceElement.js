@@ -3,12 +3,12 @@ var createTagNode = require('./createTagNode')
 var applyLayout = require('./applyLayout')
 var isTextNode = require('./isTextNode')
 
-function replaceElement (domElement, virtualElement, parentDomNode, parentVirtualElement, locator, hash) {
+function replaceElement (domElement, virtualElement, parentDomNode, parentVirtualElement, locator, hash, options, scopes) {
   var newElement
-  if (isTextNode(virtualElement)) newElement = createTextNode(domElement, virtualElement)
-  else newElement = createTagNode(domElement, virtualElement, parentVirtualElement, locator, hash)
+  if (isTextNode(virtualElement)) newElement = createTextNode(domElement, virtualElement, options, scopes)
+  else newElement = createTagNode(domElement, virtualElement, parentVirtualElement, locator, hash, options, scopes)
 
-  applyLayout(newElement, virtualElement, parentDomNode, parentVirtualElement)
+  applyLayout(newElement, virtualElement, parentDomNode, parentVirtualElement, options, scopes)
 
   parentDomNode.replaceChild(newElement, domElement)
   return newElement

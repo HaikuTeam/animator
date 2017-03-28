@@ -5,22 +5,22 @@ var getTypeAsString = require('./getTypeAsString')
 
 var OBJECT = 'object'
 
-function updateElement (domElement, virtualElement, parentNode, parentVirtualElement, locator, hash) {
+function updateElement (domElement, virtualElement, parentNode, parentVirtualElement, locator, hash, options, scopes) {
   var name = getTypeAsString(virtualElement)
   var attrs = virtualElement.attributes
   var virtualChildren = virtualElement.children
 
-  if (isSvgElementName(name)) {
-    updateSvgElement(domElement, name, attrs, virtualChildren, virtualElement, parentNode, parentVirtualElement, locator, hash)
+  if (isSvgElementName(name, scopes)) {
+    updateSvgElement(domElement, name, attrs, virtualChildren, virtualElement, parentNode, parentVirtualElement, locator, hash, options, scopes)
     return domElement
   }
 
-  applyLayout(domElement, virtualElement, parentNode, parentVirtualElement)
+  applyLayout(domElement, virtualElement, parentNode, parentVirtualElement, options, scopes)
 
-  if (attrs && typeof attrs === OBJECT) assignAttributes(domElement, attrs)
+  if (attrs && typeof attrs === OBJECT) assignAttributes(domElement, attrs, options, scopes)
 
   if (Array.isArray(virtualChildren)) {
-    renderTree(domElement, virtualElement, virtualChildren, locator, hash)
+    renderTree(domElement, virtualElement, virtualChildren, locator, hash, options, scopes)
   }
 
   return domElement

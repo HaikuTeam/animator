@@ -1,4 +1,4 @@
-function createTextNode (domElement, textContent) {
+function createTextNode (domElement, textContent, options, scopes) {
   return domElement.ownerDocument.createTextNode(textContent)
 }
 
