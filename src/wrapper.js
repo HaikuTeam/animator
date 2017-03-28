@@ -34,17 +34,24 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
     runner.controller = controller
     controller.emit('componentWillInitialize', component.instance)
 
-    var mounted = false
+    var ticks = 0
+    var hash = {} // Dictionary of ids-to-elements, for quick lookups
 
     function tick () {
-      var tree = context.component.render()
-      var container = renderer.createContainer(mount)
-      var hash = {} // For quick lookups
-      renderer.render(mount, container, tree, address, hash, options, component._scopes)
-      if (!mounted) {
-        controller.emit('componentDidMount', component.instance)
-        mounted = true
+      var container = renderer.createContainer(mount) // Stores context size, must recalc for window resizes
+      // After we've hydrated the tree the first time, we can proceed with patches,
+      // unless the component needs to perform a full flush for some reason
+      if (context.component.shouldPerformFullFlush() || ticks < 1) {
+        var tree = context.component.render(container)
+        renderer.render(mount, container, tree, address, hash, options, component._scopes)
+      } else {
+        var patches = context.component.patch(container)
+        renderer.patch(mount, container, patches, address, hash, options, component._scopes)
       }
+      if (ticks < 1) {
+        controller.emit('componentDidMount', component.instance)
+      }
+      ticks++
     }
 
     context.clock.tickables.push({
