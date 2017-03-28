@@ -40,6 +40,16 @@ module.exports = {
           0: {
             value: 'red'
           }
+        },
+        'translation.x': {
+          0: {
+            value: 78
+          }
+        },
+        'translation.y': {
+          0: {
+            value: 60
+          }
         }
       }
     },
