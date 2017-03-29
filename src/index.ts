@@ -3,6 +3,8 @@ import * as clc from "cli-color"
 import * as path from "path"
 import * as inquirer from "inquirer"
 import * as _ from "lodash"
+import * as os from "os"
+import * as tail from "tail"
 import { argv } from "yargs"
 import * as request from "request"
 import * as chalk from "chalk"
@@ -24,6 +26,7 @@ const banner = dedent`
   Commands:
     clone <project_name> - Clone a Haiku project to your filesystem, passing through to git clone
     delete - Delete a Haiku project by name (interactive)
+    diff-tail - See a live stream of code diffs that are being written by Haiku
     list - List your team's Haiku projects
     login - Log in to Haiku (interactive)
     logout - Log out of Haiku
@@ -98,6 +101,9 @@ switch (subcommand) {
     break
   case "delete":
     doDelete()
+    break
+  case "diff-tail":
+    doDiffTail()
     break
   case "heal":
     doHeal()
@@ -218,6 +224,17 @@ function doDelete() {
       })
     })
   })
+}
+
+function doDiffTail() {
+  try {
+    var tailer = new tail.Tail(os.homedir() + "/.haiku/logs/haiku-diffs.log")
+    tailer.on("line", function(data) {
+      console.log(data)
+    })
+  } catch (e) {
+    console.log(chalk.red("You need to edit a project at least once with Haiku in order to use diff-tail."))
+  }
 }
 
 //USAGE:  haiku import design-test dest/

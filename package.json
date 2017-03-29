@@ -21,6 +21,7 @@
     "lodash": "^4.17.4",
     "mkdirp": "^0.5.1",
     "request": "^2.79.0",
+    "tail": "^1.2.1",
     "yargs": "^6.6.0"
   },
   "devDependencies": {
