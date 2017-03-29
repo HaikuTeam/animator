@@ -65,6 +65,7 @@ Component.prototype.render = function render (container) {
     }
   }
   this._lastTemplateExpansion = this.template.expand(this.context, this, container, this.inputs)
+  this._needsFullFlush = false
   return this._lastTemplateExpansion
 }
 
