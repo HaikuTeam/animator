@@ -1,8 +1,8 @@
 var vanityHandlers = require('haiku-bytecode/src/properties/dom/vanities')
 var queryTree = require('haiku-bytecode/src/cssQueryTree')
-var Transitions = require('haiku-bytecode/src/Transitions')
-var Utils = require('haiku-bytecode/src/Utils')
 var Layout3D = require('haiku-bytecode/src/Layout3D')
+var ValueBuilder = require('haiku-bytecode/src/ValueBuilder')
+
 var Component = require('./component')
 var Timeline = require('./timeline')
 
@@ -19,7 +19,7 @@ var STRING_TYPE = 'string'
 function Template (template, component) {
   this.template = template
   this.component = component
-  this._changes = {}
+  this.builder = new ValueBuilder(component, template)
   this._matches = {}
   this._handles = []
 }
@@ -47,21 +47,7 @@ function gatherDeltas (me, template, container, context, component, inputs, time
   var results = {}
   for (var i = 0; i < timelinesRunning.length; i++) {
     var timeline = timelinesRunning[i]
-    var now = timeline.local
-    var outputs = bytecode.timelines[timeline.name]
-    for (var tlSelector in outputs) {
-      var tlGroup = outputs[tlSelector]
-      for (var outputname in tlGroup) {
-        var cluster = tlGroup[outputname]
-        var finalValue = Transitions.calculateValueAndReturnUndefinedIfNotWorthwhile(cluster, now, component, inputs, eventsFired, inputsChanged)
-        if (finalValue === undefined) continue
-        if (me.didChangeValue(timeline.name, tlSelector, outputname, finalValue)) {
-          if (!results[tlSelector]) results[tlSelector] = {}
-          if (results[tlSelector][outputname] === undefined) results[tlSelector][outputname] = finalValue
-          else results[tlSelector][outputname] = Utils.mergeValue(results[tlSelector][outputname], finalValue)
-        }
-      }
-    }
+    me.builder.build(results, timeline.name, timeline.local, bytecode.timelines, true, inputs, eventsFired, inputsChanged)
   }
   for (var selector in results) {
     var matches = findMatchingElements(selector, template, me._matches)
@@ -87,23 +73,6 @@ function gatherDeltas (me, template, container, context, component, inputs, time
     calculateTreeLayouts(changedNode, changedNode.__parent)
   }
   return deltas
-}
-
-Template.prototype.didChangeValue = function _didChangeValue (timelineName, selector, outputName, outputValue) {
-  var answer = false
-  if (!this._changes[timelineName]) {
-    this._changes[timelineName] = {}
-    answer = true
-  }
-  if (!this._changes[timelineName][selector]) {
-    this._changes[timelineName][selector] = {}
-    answer = true
-  }
-  if (this._changes[timelineName][selector][outputName] === undefined || this._changes[timelineName][selector][outputName] !== outputValue) {
-    this._changes[timelineName][selector][outputName] = outputValue
-    answer = true
-  }
-  return answer
 }
 
 function expandElement (element, context) {
@@ -221,22 +190,7 @@ function applyContextChanges (component, inputs, template, container, me) {
           continue
         }
       }
-      var now = timeline.local
-      var outputs = bytecode.timelines[timelineName]
-      for (var tlSelector in outputs) {
-        var tlGroup = outputs[tlSelector]
-        for (var outputname in tlGroup) {
-          var cluster = tlGroup[outputname]
-          var finalValue = Transitions.calculateValue(cluster, now, component, inputs)
-          if (finalValue === undefined) continue
-          if (me.didChangeValue(timelineName, tlSelector, outputname, finalValue)) {
-            // console.log(timelineName, tlSelector, outputname, finalValue) // <~ log me for fun
-            if (!results[tlSelector]) results[tlSelector] = {}
-            if (results[tlSelector][outputname] === undefined) results[tlSelector][outputname] = finalValue
-            else results[tlSelector][outputname] = Utils.mergeValue(results[tlSelector][outputname], finalValue)
-          }
-        }
-      }
+      me.builder.build(results, timelineName, timeline.local, bytecode.timelines, false, inputs)
     }
   }
 

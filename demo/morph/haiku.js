@@ -1,5 +1,5 @@
 module.exports = {
-  name: 'primitives2',
+  name: 'morph',
   interpreter: 'interpreter.js',
   bytecode: 'bytecode.js'
 }

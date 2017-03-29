@@ -762,11 +762,11 @@ module.exports = {
         y2: { "0": { value: "100%" } }
       },
       "haiku:1e2c8826a244": {
-        "stop-color": { "0": { value: "#CD3172" } },
+        "stop-color": { "0": { value: "#CD3172", curve: 'linear' }, "1000": { value: "#AA3102" } },
         offset: { "0": { value: "0%" } }
       },
       "haiku:1a5849be7cf2": {
-        "stop-color": { "0": { value: "#FF2270" } },
+        "stop-color": { "0": { value: "#FF2270", curve: 'linear' }, "1000": { value: "#3322F0" } },
         offset: { "0": { value: "100%" } }
       },
       "haiku:c0778dd6c5d7": {
