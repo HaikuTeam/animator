@@ -6,7 +6,7 @@ var Creation = require('./../src/creation/dom')
 var reactAdapt = require('./../src/adapters/react')
 var Emitter = require('./../src/emitter')
 
-test('react', function(t) {
+test('react-api', function(t) {
   t.plan(7)
   return helpers.createDOM(function(err, window) {
     t.error(err, 'no create dom err')
@@ -27,7 +27,6 @@ test('react', function(t) {
     t.ok(reactClass.haikuClass, 'haiku class was set')
     var controller = Emitter.create({})
     controller.on('componentDidMount', function (instance) {
-      instance.play()
       instance.events.listen('#div', 'click', function (event) {
         t.ok(event, 'it should click')
         setTimeout(function () {

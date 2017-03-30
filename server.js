@@ -8,6 +8,7 @@ var DEMOS_PATH = path.join(__dirname, 'demo')
 var app = express()
 app.get('/', function(req, res) {
   return fse.readFile(path.join(DEMOS_PATH, 'index.html.handlebars'), function(err, htmlbuf) {
+    console.log('[haiku-interpreter] request /index.html')
     if (err) return res.status(500).send('Server error!')
     var raw = htmlbuf.toString()
     var tpl = handlebars.compile(raw)
@@ -18,15 +19,20 @@ app.get('/', function(req, res) {
       })
       var list = jss.map(function(js) {
         var basename = path.basename(js)
-        return { name: basename, url: '/demos/' + basename }
+        return {
+          name: basename,
+          vanillaUrl: '/demos/' + basename + '/vanilla',
+          reactDomUrl: '/demos/' + basename + '/react-dom'
+        }
       })
       var html = tpl({ list: list })
       return res.send(html)
     })
   })
 })
-app.get('/demos/:demo', function(req, res) {
+app.get('/demos/:demo/vanilla', function(req, res) {
   var demo = req.params.demo
+  console.log('[haiku-interpreter] request /demos/' + demo + '/vanilla')
   var folderAbspath = path.join(DEMOS_PATH, demo)
   var haikujsAbspath = path.join(DEMOS_PATH, demo, 'haiku.js')
   var haikuConfig
@@ -44,6 +50,37 @@ app.get('/demos/:demo', function(req, res) {
       var raw = htmlbuf.toString()
       var tpl = handlebars.compile(raw)
       var br = browserify(interpreterAbspath, { standalone: 'bundle' })
+      br.on('error', function (err) {
+        return res.status(500).send('Server error! (' + err + ')')
+      })
+      return br.bundle(function(err, jsbuf) {
+        if (err) return res.status(500).send('Server error! (' + err + ')')
+        var js = jsbuf.toString()
+        var html = tpl({ demo: demo, bundle: js })
+        return res.send(html)
+      })
+    })
+  })
+})
+app.get('/demos/:demo/react-dom', function(req, res) {
+  var demo = req.params.demo
+  console.log('[haiku-interpreter] request /demos/' + demo + '/react-dom')
+  var folderAbspath = path.join(DEMOS_PATH, demo)
+  var haikujsAbspath = path.join(DEMOS_PATH, demo, 'haiku.js')
+  var haikuConfig
+  try {
+    haikuConfig = require(haikujsAbspath)
+  } catch (exception) {
+    return res.status(404).send('React DOM demo not found! (' + exception + ')')
+  }
+  var reactAbspath = path.join(DEMOS_PATH, demo, 'react-dom.js')
+  return fse.exists(reactAbspath, function(answer) {
+    if (!answer) return res.status(404).send('React DOM demo not found!')
+    return fse.readFile(path.join(DEMOS_PATH, 'react-dom.html.handlebars'), function(err, htmlbuf) {
+      if (err) return res.status(500).send('Server error! (' + err + ')')
+      var raw = htmlbuf.toString()
+      var tpl = handlebars.compile(raw)
+      var br = browserify(reactAbspath, { standalone: 'bundle' })
       br.on('error', function (err) {
         return res.status(500).send('Server error! (' + err + ')')
       })

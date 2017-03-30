@@ -12,7 +12,9 @@
     <ul>
       {{#each list}}
         <li>
-          <a href="{{this.url}}">{{this.name}}</a>
+          {{this.name}} - 
+            <a href="{{this.vanillaUrl}}">vanilla</a> /
+            <a href="{{this.reactDomUrl}}">react-dom</a>
         </li>
       {{/each}}
     </ul>

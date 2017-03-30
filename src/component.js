@@ -8,7 +8,7 @@ var FUNCTION_TYPE = 'function'
 function Component (bytecode) {
   this.store = new Store().allocate(Math.random() + '')
   this.bytecode = new Bytecode(bytecode)
-  this.template = new Template(this.bytecode.getTemplate())
+  this.template = new Template(this.bytecode.getTemplate(), this)
   this.instance = new Instance(this)
   this.inputs = this.store.set('inputs', {})
   this.bytecode.defineInputs(this.inputs, this.instance)
