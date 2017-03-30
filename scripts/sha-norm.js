@@ -2,13 +2,14 @@ var fse = require('fs-extra')
 var path = require('path')
 var lodash = require('lodash')
 var cp = require('child_process')
-var argv = require('yargs')
+var argv = require('yargs').argv
 var DepGraph = require('dependency-graph').DepGraph
 var log = require('./helpers/log')
 var allPackages = require('./helpers/allPackages')()
 
 var groups = lodash.keyBy(allPackages, 'name')
 var graph = new DepGraph()
+var origin = argv.origin || 'master'
 
 allPackages.forEach(function (pack) {
   graph.addNode(pack.name, pack)
@@ -75,7 +76,7 @@ order.forEach(function (name) {
 
     // Skip push with npm run mono:sha-norm -- --noPush
     if (!argv.noPush) {
-      log.log(cp.execSync('git push origin HEAD:master', { cwd: pack.abspath }))
+      log.log(cp.execSync('git push origin HEAD:' + origin, { cwd: pack.abspath }))
     }
 
     pack.sha = cp.execSync('git rev-parse HEAD', { cwd: pack.abspath }).toString().trim()
