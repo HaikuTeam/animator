@@ -22,6 +22,7 @@
     "mono:git-diff": "node ./scripts/git-diff.js",
     "mono:git-co-all": "node ./scripts/git-co-all.js",
     "mono:git-checkout-b": "node ./scripts/git-checkout-b.js",
+    "mono:git-checkout": "node ./scripts/git-checkout.js",
     "mono:public-npm-bundle": "node ./scripts/public-npm-bundle.js",
     "mono:dev": "node ./scripts/dev.js",
     "mono:finish": "npm run mono:git-pull && npm run mono:public-npm-bundle && npm run mono:sha-norm && npm run mono:git-push && git add . && git commit -m \"update\" && git push origin master"
