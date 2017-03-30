@@ -9,7 +9,7 @@ var __contexts__ = []
 var DEFAULTS = {
   automount: true,
   autoplay: true,
-  loop: true,
+  loop: false,
   frame: null, // Function to run on every frame
   clock: {} // See clock.js for options
 }
@@ -29,7 +29,7 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
   // Options can be passed at the wrapper level
   var options = assign({}, DEFAULTS, wrapperOptions)
 
-  var component = new Component(bytecode)
+  var component = new Component(bytecode, options)
   var context = new Context(component, options)
   var index = __contexts__.push(context) - 1
   var address = ADDRESS_PREFIX + index

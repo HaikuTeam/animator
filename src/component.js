@@ -1,11 +1,16 @@
 var Bytecode = require('./bytecode')
 var Store = require('./store')
 var Instance = require('./instance')
+var assign = require('lodash.assign')
 
 var OBJECT_TYPE = 'object'
 var FUNCTION_TYPE = 'function'
+var DEFAULTS = {}
+var METAS = {}
 
-function Component (bytecode) {
+function Component (bytecode, options, metas) {
+  this.options = assign({}, DEFAULTS, options)
+  this.metas = assign({}, METAS, metas)
   this.store = new Store().allocate(Math.random() + '')
   this.bytecode = new Bytecode(bytecode)
   this.template = new Template(this.bytecode.getTemplate(), this)
@@ -91,7 +96,7 @@ Component.prototype.startTimeline = function startTimeline (timelineName) {
   var descriptor = this.bytecode.bytecode.timelines[timelineName]
   var existing = this.store.get('timelines')[timelineName]
   if (existing) existing.start(time, descriptor)
-  else this.store.get('timelines')[timelineName] = new Timeline(time, descriptor, timelineName)
+  else this.store.get('timelines')[timelineName] = new Timeline(time, descriptor, timelineName, this.options)
 }
 
 Component.prototype.stopTimeline = function startTimeline (timelineName) {

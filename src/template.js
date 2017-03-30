@@ -210,7 +210,7 @@ function shallowClone (element) {
 function instantiateElement (element, context) {
   var something = element.elementName(element.attributes, element.children, context)
   var instance
-  if (Component.isBytecode(something)) instance = new Component(something)
+  if (Component.isBytecode(something)) instance = new Component(something, context.component.options, { internal: true })
   if (Component.isComponent(something)) instance = something
   instance.attributes = instance.props = element.attributes
   instance.children = instance.surrogates = element.children
