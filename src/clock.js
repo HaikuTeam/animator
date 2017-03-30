@@ -1,8 +1,16 @@
 var raf = require('raf')
+var assign = require('lodash.assign')
 
 var NUMBER = 'number'
+var DEFAULTS = {
+  cycle: 16.6,
+  speed: 16.6,
+  margin: 1.0
+}
 
-function Clock (tickables) {
+function Clock (tickables, options) {
+  this.options = assign({}, DEFAULTS, options)
+
   this.running = false
   this.control = null
 
@@ -13,9 +21,9 @@ function Clock (tickables) {
   this.delta = 0 // Time elapsed since last step (ms)
 
   // These values configure the clock behavior:
-  this.cycle = 16.6 // Time to elapse per frame (ms)
-  this.speed = 16.6 // How fast to step (ms)
-  this.margin = 1.0 // Margin of error
+  this.cycle = this.options.cycle // Time to elapse per frame (ms)
+  this.speed = this.options.speed // How fast to step (ms)
+  this.margin = this.options.margin // Margin of error
 
   // Avoid detachment when called by raf
   this.loop = this.loop.bind(this)

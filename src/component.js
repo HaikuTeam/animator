@@ -1,5 +1,4 @@
 var Bytecode = require('./bytecode')
-var Emitter = require('./emitter')
 var Store = require('./store')
 var Instance = require('./instance')
 
@@ -14,12 +13,12 @@ function Component (bytecode) {
   this.inputs = this.store.set('inputs', {})
   this.bytecode.defineInputs(this.inputs, this.instance)
   this.bytecode.bindEventHandlers(this.instance)
-  Emitter.create(this)
   this.context = void (0) // <~ Hack: This must get assigned by someone
   this._scopes = {}
   this._needsFullFlush = false
   this._lastTemplateExpansion = null
   this._lastDeltaPatches = null
+  this._lastEventListenerPatches = null
 }
 
 Component.isBytecode = function isBytecode (something) {
@@ -32,6 +31,11 @@ Component.isComponent = function isComponent (something) {
 
 Component.prototype.shouldPerformFullFlush = function shouldPerformFullFlush () {
   return this._needsFullFlush
+}
+
+Component.prototype.patchEventListeners = function patchEventListeners (container) {
+  this._lastEventListenerPatches = this.template.eventListenerDeltas(this.context, this, container, this.inputs, [], null, null)
+  return this._lastEventListenerPatches
 }
 
 Component.prototype.patch = function patch (container) {

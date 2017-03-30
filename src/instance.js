@@ -3,19 +3,30 @@ var Emitter = require('./emitter')
 function Instance (component) {
   Emitter.create(this)
 
+  var self = this
+
   this.component = component
 
-  this.start = function _start () {
-    component.context.clock.loop()
-    component.context.clock.start()
+  this.play = function _play () {
+    this.timelines.play('Default')
   }
 
-  this.stop = function _stop () {
-    component.context.clock.stop()
+  this.clock = {
+    start: function _start () {
+      component.context.clock.start()
+    },
+
+    stop: function _stop () {
+      component.context.clock.stop()
+    }
   }
 
   this.timelines = {
-    play: function _play () {
+    play: function _tlplay () {
+      // Assume that if we are playing a timeline, we also need the clock to be running
+      if (!component.context.clock.running) {
+        component.context.clock.start()
+      }
       if (arguments.length < 1) {
         component.startAllTimelines()
       } else {
@@ -26,7 +37,7 @@ function Instance (component) {
       }
     },
 
-    pause: function _pause () {
+    pause: function _tlpause () {
       if (arguments.length < 1) {
         component.stopAllTimelines()
       } else {
@@ -37,20 +48,25 @@ function Instance (component) {
       }
     },
 
-    control: function _lock (name, time) {
+    control: function _tlcontrol (name, time) {
       var timelines = component.store.get('timelines')
       if (!timelines[name]) return console.warn('Warning: No such timeline ' + name)
+      // Assume that if we are controlling time, we also need the clock to be running
+      if (!component.context.clock.running) {
+        component.context.clock.start()
+      }
       timelines[name].controlTime(time)
     }
   }
 
   this.events = {
     listen: function _listen (selector, event, handler) {
-      component.template._handles.push({
+      component.template._controllerEventHandlers.push({
         selector: selector,
         event: event,
         handler: handler
       })
+      self.emit('flushEventListeners')
     }
   }
 }

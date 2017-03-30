@@ -21,7 +21,7 @@ function Template (template, component) {
   this.component = component
   this.builder = new ValueBuilder(component, template)
   this._matches = {}
-  this._handles = []
+  this._controllerEventHandlers = []
 }
 
 Template.prototype.getTree = function getTree () {
@@ -34,21 +34,42 @@ Template.prototype.expand = function _expand (context, component, container, inp
   return tree
 }
 
+Template.prototype.eventListenerDeltas = function _eventListenerDeltas (context, component, container, inputs, timelinesRunning, eventsFired, inputsChanged) {
+  var deltas = gatherEventListenerDeltas(this, this.template, container, context, component, inputs, timelinesRunning, eventsFired, inputsChanged)
+  return deltas
+}
+
 Template.prototype.deltas = function _deltas (context, component, container, inputs, timelinesRunning, eventsFired, inputsChanged) {
   var deltas = gatherDeltas(this, this.template, container, context, component, inputs, timelinesRunning, eventsFired, inputsChanged)
   return deltas
 }
 
-function gatherDeltas (me, template, container, context, component, inputs, timelinesRunning, eventsFired, inputsChanged) {
-  var deltas = {}
+function accumulateEventHandlers (out, component) {
   var bytecode = component.bytecode.bytecode
-  if (!bytecode) return deltas
-  if (!bytecode.timelines) return deltas
-  var results = {}
-  for (var i = 0; i < timelinesRunning.length; i++) {
-    var timeline = timelinesRunning[i]
-    me.builder.build(results, timeline.name, timeline.local, bytecode.timelines, true, inputs, eventsFired, inputsChanged)
+  if (bytecode.eventHandlers) {
+    for (var j = 0; j < bytecode.eventHandlers.length; j++) {
+      var eventHandler = bytecode.eventHandlers[j]
+      var eventSelector = eventHandler.selector
+      var eventName = eventHandler.name
+      var handler = eventHandler.handler
+      if (!out[eventSelector]) out[eventSelector] = {}
+      handler.__handler = true
+      out[eventSelector][eventName] = handler
+    }
   }
+}
+
+function accumulateControllerEventListeners (out, me) {
+  if (me._controllerEventHandlers && me._controllerEventHandlers.length > 0) {
+    for (var l = 0; l < me._controllerEventHandlers.length; l++) {
+      var customHandler = me._controllerEventHandlers[l]
+      if (!out[customHandler.selector]) out[customHandler.selector] = {}
+      out[customHandler.selector][customHandler.event] = customHandler.handler
+    }
+  }
+}
+
+function applyAccumulatedResults (results, deltas, me, template) {
   for (var selector in results) {
     var matches = findMatchingElements(selector, template, me._matches)
     if (!matches || matches.length < 1) continue
@@ -58,21 +79,68 @@ function gatherDeltas (me, template, container, context, component, inputs, time
       var domId = match && match.attributes && match.attributes.id
       var haikuId = match && match.attributes && match.attributes[HAIKU_ID_ATTRIBUTE]
       var flexibleId = haikuId || domId
-      if (flexibleId) {
-        deltas[flexibleId] = match
-        for (var key in group) {
-          var value = group[key]
-          if (value.__handler) applyHandlerToElement(match, key, value)
-          else applyPropertyToElement(match, key, value)
-        }
+      if (deltas && flexibleId) deltas[flexibleId] = match
+      if (group.transform) match.__transformed = true
+      for (var key in group) {
+        var value = group[key]
+        if (value.__handler) applyHandlerToElement(match, key, value)
+        else applyPropertyToElement(match, key, value)
       }
     }
   }
+}
+
+function gatherEventListenerDeltas (me, template, container, context, component, inputs, timelinesRunning, eventsFired, inputsChanged) {
+  var deltas = {}
+  var results = {}
+  accumulateEventHandlers(results, component)
+  accumulateControllerEventListeners(results, me)
+  applyAccumulatedResults(results, deltas, me, template)
+  return deltas
+}
+
+function gatherDeltas (me, template, container, context, component, inputs, timelinesRunning, eventsFired, inputsChanged) {
+  var deltas = {}
+  var results = {}
+  var bytecode = component.bytecode.bytecode
+  for (var i = 0; i < timelinesRunning.length; i++) {
+    var timeline = timelinesRunning[i]
+    me.builder.build(results, timeline.name, timeline.local, bytecode.timelines, true, inputs, eventsFired, inputsChanged)
+  }
+  applyAccumulatedResults(results, deltas, me, template)
   for (var flexId in deltas) {
     var changedNode = deltas[flexId]
     calculateTreeLayouts(changedNode, changedNode.__parent)
   }
   return deltas
+}
+
+function applyContextChanges (component, inputs, template, container, me) {
+  var results = {}
+  accumulateEventHandlers(results, component)
+  accumulateControllerEventListeners(results, me)
+  var bytecode = component.bytecode.bytecode
+  if (bytecode.timelines) {
+    for (var timelineName in bytecode.timelines) {
+      var timeline = component.store.get('timelines')[timelineName]
+      if (!timeline) continue
+      // No need to run properties on timelines that aren't active
+      if (!timeline.isActive()) continue
+      if (timeline.isFinished()) {
+        // For any timeline other than the default, shut it down if it has gone past
+        // its final keyframe. The default timeline is a special case which provides
+        // fallbacks/behavior that is essentially true throughout the lifespan of the component
+        if (timelineName !== Timeline.DEFAULT_NAME) {
+          continue
+        }
+      }
+      me.builder.build(results, timelineName, timeline.local, bytecode.timelines, false, inputs)
+    }
+  }
+  initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
+  applyAccumulatedResults(results, null, me, template)
+  calculateTreeLayouts(template, container)
+  return template
 }
 
 function expandElement (element, context) {
@@ -149,76 +217,6 @@ function instantiateElement (element, context) {
   instance.context = context // Hack: Important
   instance.startTimeline(Timeline.DEFAULT_NAME) // Ensure we cue up timelines
   return instance
-}
-
-function applyContextChanges (component, inputs, template, container, me) {
-  var results = {}
-
-  var bytecode = component.bytecode.bytecode
-
-  if (bytecode.eventHandlers) {
-    for (var j = 0; j < bytecode.eventHandlers.length; j++) {
-      var eventHandler = bytecode.eventHandlers[j]
-      var eventSelector = eventHandler.selector
-      var eventName = eventHandler.name
-      var handler = eventHandler.handler
-      if (!results[eventSelector]) results[eventSelector] = {}
-      handler.__handler = true
-      results[eventSelector][eventName] = handler
-    }
-  }
-
-  if (me._handles && me._handles.length > 0) {
-    for (var l = 0; l < me._handles.length; l++) {
-      var customHandler = me._handles[l]
-      if (!results[customHandler.selector]) results[customHandler.selector] = {}
-      results[customHandler.selector][customHandler.event] = customHandler.handler
-    }
-  }
-
-  if (bytecode.timelines) {
-    for (var timelineName in bytecode.timelines) {
-      var timeline = component.store.get('timelines')[timelineName]
-      if (!timeline) continue
-      // No need to run properties on timelines that aren't active
-      if (!timeline.isActive()) continue
-      if (timeline.isFinished()) {
-        // For any timeline other than the default, shut it down if it has gone past
-        // its final keyframe. The default timeline is a special case which provides
-        // fallbacks/behavior that is essentially true throughout the lifespan of the component
-        if (timelineName !== Timeline.DEFAULT_NAME) {
-          continue
-        }
-      }
-      me.builder.build(results, timelineName, timeline.local, bytecode.timelines, false, inputs)
-    }
-  }
-
-  // Gotta do this here because handlers/vanities depend on these being set
-  // TODO: Find a way to only do this once, or only by necessity instead of every frame
-  initializeTreeAttributes(template, container)
-
-  for (var selector in results) {
-    var matches = findMatchingElements(selector, template, me._matches)
-    if (!matches || matches.length < 1) continue
-    var group = results[selector]
-    for (var i = 0; i < matches.length; i++) {
-      var match = matches[i]
-      if (group.transform) match.__transformed = true // Make note if the element has its own transform so the renderer doesn't clobber its own step
-      for (var name in group) {
-        var value = group[name]
-        if (value.__handler) {
-          applyHandlerToElement(match, name, value)
-        } else {
-          applyPropertyToElement(match, name, value)
-        }
-      }
-    }
-  }
-
-  calculateTreeLayouts(template, container)
-
-  return template
 }
 
 function findMatchingElements (selector, template, cache) {

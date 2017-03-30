@@ -26,8 +26,8 @@ test('react', function(t) {
     var reactClass = reactAdapt(creationClass)
     t.ok(reactClass.haikuClass, 'haiku class was set')
     var controller = Emitter.create({})
-    controller.on('componentDidInitialize', function (instance) {
-      instance.start()
+    controller.on('componentDidMount', function (instance) {
+      instance.play()
       instance.events.listen('#div', 'click', function (event) {
         t.ok(event, 'it should click')
         setTimeout(function () {
@@ -39,11 +39,8 @@ test('react', function(t) {
         }, 250)
       })
     })
-    controller.on('componentDidMount', function (instance) {
-      instance.stop()
-    })
     var reactElement = React.createElement(reactClass, {
-      autostart: false,
+      autoplay: false,
       controller: controller
     })
     var domElement = window.document.getElementById('mount')

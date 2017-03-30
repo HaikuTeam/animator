@@ -1,10 +1,18 @@
 var Context = require('./context')
 var Component = require('./component')
 var Emitter = require('./emitter')
-var merge = require('lodash.merge')
+var assign = require('lodash.assign')
 
 var ADDRESS_PREFIX = ''
 var __contexts__ = []
+
+var DEFAULTS = {
+  automount: true,
+  autoplay: true,
+  loop: true,
+  frame: null, // Function to run on every frame
+  clock: {} // See clock.js for options
+}
 
 function wrapper (renderer, bytecode, wrapperOptions, platform) {
   if (!platform) {
@@ -18,8 +26,11 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
     throw new Error('Bytecode `template` is required')
   }
 
+  // Options can be passed at the wrapper level
+  var options = assign({}, DEFAULTS, wrapperOptions)
+
   var component = new Component(bytecode)
-  var context = new Context(component)
+  var context = new Context(component, options)
   var index = __contexts__.push(context) - 1
   var address = ADDRESS_PREFIX + index
 
@@ -28,48 +39,72 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
     if (!mount.haiku) mount.haiku = {}
     mount.haiku.context = context
 
-    var options = merge(wrapperOptions, runnerOptions)
+    // Options can also be passed at the execution level
+    options = assign(options, runnerOptions) // Already merged with DEFAULTS
 
-    var controller = options && options.controller || Emitter.create({})
+    var controller
+    if (options && options.controller) {
+      controller = options.controller
+    } else {
+      controller = Emitter.create({})
+    }
+
     runner.controller = controller
-    controller.emit('componentWillInitialize', component.instance)
 
     var ticks = 0
     var hash = {} // Dictionary of ids-to-elements, for quick lookups
 
+    function performFullFlush () {
+      var container = renderer.createContainer(mount)
+      var tree = context.component.render(container)
+      renderer.render(mount, container, tree, address, hash, options, component._scopes)
+    }
+
+    function performPatch () {
+      var container = renderer.createContainer(mount)
+      var patches = context.component.patch(container)
+      renderer.patch(mount, container, patches, address, hash, options, component._scopes)
+    }
+
+    function performEventsOnlyFlush () {
+      var container = renderer.createContainer(mount)
+      var eventListenerPatches = context.component.patchEventListeners(container)
+      renderer.patch(mount, container, eventListenerPatches, address, hash, options, component._scopes)
+    }
+
     function tick () {
-      var container = renderer.createContainer(mount) // Stores context size, must recalc for window resizes
       // After we've hydrated the tree the first time, we can proceed with patches,
       // unless the component needs to perform a full flush for some reason
       if (context.component.shouldPerformFullFlush() || ticks < 1) {
-        var tree = context.component.render(container)
-        renderer.render(mount, container, tree, address, hash, options, component._scopes)
+        performFullFlush()
       } else {
-        var patches = context.component.patch(container)
-        renderer.patch(mount, container, patches, address, hash, options, component._scopes)
+        performPatch()
       }
       if (ticks < 1) {
+        // Handle component mount
+        if (!options.autoplay) {
+          // If no autoplay, stop the clock immediately after we've mounted
+          component.instance.clock.stop()
+        }
         controller.emit('componentDidMount', component.instance)
       }
       ticks++
     }
 
+    component.instance.on('flushEventListeners', performEventsOnlyFlush)
+
     context.clock.tickables.push({
       performTick: tick
     })
 
-    if (!options) {
-      component.instance.start()
-    } else {
-      if (options.autostart !== false) {
-        component.instance.start()
-      }
+    // Handle component initialization
+    if (options.automount) {
+      // Starting the clock has the effect of doing a render at time 0, a.k.a. mount
+      component.instance.clock.start()
     }
 
     // Hot editing hook
     runner.tick = tick
-
-    controller.emit('componentDidInitialize', component.instance)
 
     return context
   }

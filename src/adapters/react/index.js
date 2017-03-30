@@ -1,4 +1,5 @@
 var React = require('react')
+var merge = require('lodash.merge')
 
 function applyInputs (componentInstance, props) {
   for (var key in props) {
@@ -31,26 +32,34 @@ function adapt (creationClass) {
     },
 
     componentWillReceiveProps: function (nextProps) {
-      if (this.props.controller) this.props.controller.emit('react:componentWillReceiveProps', this, nextProps)
+      if (this.props.controller) {
+        this.props.controller.emit('react:componentWillReceiveProps', this, nextProps)
+      }
       applyProps(this.creationContext.component, nextProps)
     },
 
     componentWillMount: function () {
-      if (this.props.controller) this.props.controller.emit('react:componentWillMount', this)
+      if (this.props.controller) {
+        this.props.controller.emit('react:componentWillMount', this)
+      }
     },
 
     componentWillUnmount: function () {
-      if (this.props.controller) this.props.controller.emit('react:componentWillUnMount', this)
+      if (this.props.controller) {
+        this.props.controller.emit('react:componentWillUnMount', this)
+      }
     },
 
     componentDidMount: function () {
       createContext(this, creationClass, this.props)
-      if (this.props.controller) this.props.controller.emit('react:componentDidMount', this, this.refs.div)
+      if (this.props.controller) {
+        this.props.controller.emit('react:componentDidMount', this, this.refs.div)
+      }
       applyProps(this.creationContext.component, this.props)
     },
 
     render: function () {
-      return React.createElement('div', {
+      return React.createElement('div', merge({
         ref: 'div',
         style: {
           position: 'relative',
@@ -60,7 +69,7 @@ function adapt (creationClass) {
           width: '100%',
           height: '100%'
         }
-      })
+      }, this.props))
     }
   })
 
