@@ -32,6 +32,11 @@ Timeline.prototype.performUpdate = function performUpdate (time) {
   return this
 }
 
+Timeline.prototype.getDomainTime = function getDomainTime () {
+  if (this.local > this.max) return this.max
+  return this.local
+}
+
 Timeline.prototype.isTimeControlled = function isTimeControlled () {
   return typeof this.control === NUMBER
 }

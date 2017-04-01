@@ -105,7 +105,7 @@ function gatherDeltas (me, template, container, context, component, inputs, time
   var bytecode = component.bytecode.bytecode
   for (var i = 0; i < timelinesRunning.length; i++) {
     var timeline = timelinesRunning[i]
-    me.builder.build(results, timeline.name, timeline.local, bytecode.timelines, true, inputs, eventsFired, inputsChanged)
+    me.builder.build(results, timeline.name, timeline.getDomainTime(), bytecode.timelines, true, inputs, eventsFired, inputsChanged)
   }
   applyAccumulatedResults(results, deltas, me, template)
   for (var flexId in deltas) {
@@ -134,7 +134,7 @@ function applyContextChanges (component, inputs, template, container, me) {
           continue
         }
       }
-      me.builder.build(results, timelineName, timeline.local, bytecode.timelines, false, inputs)
+      me.builder.build(results, timelineName, timeline.getDomainTime(), bytecode.timelines, false, inputs)
     }
   }
   initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
