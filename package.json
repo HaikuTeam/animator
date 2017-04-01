@@ -22,6 +22,8 @@
     "mono:git-diff": "node ./scripts/git-diff.js",
     "mono:git-co-all": "node ./scripts/git-co-all.js",
     "mono:git-checkout-b": "node ./scripts/git-checkout-b.js",
+    "mono:git-checkout-branch": "node ./scripts/git-checkout-branch.js",
+    "mono:git-merge-branch": "node ./scripts/git-merge-branch.js",
     "mono:git-checkout": "node ./scripts/git-checkout.js",
     "mono:public-npm-bundle": "node ./scripts/public-npm-bundle.js",
     "mono:dev": "node ./scripts/dev.js",
