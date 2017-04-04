@@ -14,6 +14,7 @@
   "author": "Matthew Trost <matthew@haiku.ai>",
   "license": "UNLICENSED",
   "devDependencies": {
+    "async": "^2.3.0",
     "browserify": "14.1.0",
     "derequire": "2.0.6",
     "express": "4.14.1",
