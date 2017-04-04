@@ -1,6 +1,9 @@
 var React = require('react')
 var merge = require('lodash.merge')
 var ValidProps = require('./ValidProps')
+var reactToMana = require('haiku-bytecode/src/reactToMana')
+var ReactTestRenderer = require('react-test-renderer')
+var initializeTreeAttributes = require('./../../helpers/initializeTreeAttributes')
 
 function applyInputs (componentInstance, props) {
   for (var key in props) {
@@ -16,7 +19,19 @@ function applyProps (componentInstance, props) {
 }
 
 function createContext (reactInstance, creationClass, reactProps) {
-  reactInstance.creationContext = creationClass(reactInstance.refs.container, reactProps)
+  var fullProps = merge({}, reactProps, {
+    ref: reactInstance.refs.container,
+    vanities: {
+      'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity (element, child) {
+        var renderer = ReactTestRenderer.create(child)
+        var json = renderer.toJSON()
+        var mana = reactToMana(json)
+        initializeTreeAttributes(mana, element)
+        element.children = [mana]
+      }
+    }
+  })
+  reactInstance.creationContext = creationClass(reactInstance.refs.container, fullProps)
   reactInstance.creationContext.component.instance.hear(function (name, payload) {
     if (reactInstance.props && reactInstance.props.events && reactInstance.props.events[name]) {
       reactInstance.props.events[name](payload)

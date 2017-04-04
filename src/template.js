@@ -2,6 +2,7 @@ var vanityHandlers = require('haiku-bytecode/src/properties/dom/vanities')
 var queryTree = require('haiku-bytecode/src/cssQueryTree')
 var Layout3D = require('haiku-bytecode/src/Layout3D')
 var ValueBuilder = require('haiku-bytecode/src/ValueBuilder')
+var initializeTreeAttributes = require('./helpers/initializeTreeAttributes')
 
 var Component = require('./component')
 var Timeline = require('./timeline')
@@ -29,7 +30,7 @@ Template.prototype.getTree = function getTree () {
 }
 
 Template.prototype.expand = function _expand (context, component, container, inputs) {
-  applyContextChanges(component, inputs, this.template, container, this)
+  applyContextChanges(component, inputs, this.template, container, this, context)
   var tree = expandElement(this.template, context)
   return tree
 }
@@ -69,7 +70,7 @@ function accumulateControllerEventListeners (out, me) {
   }
 }
 
-function applyAccumulatedResults (results, deltas, me, template) {
+function applyAccumulatedResults (results, deltas, me, template, context, component) {
   for (var selector in results) {
     var matches = findMatchingElements(selector, template, me._matches)
     if (!matches || matches.length < 1) continue
@@ -83,8 +84,8 @@ function applyAccumulatedResults (results, deltas, me, template) {
       if (group.transform) match.__transformed = true
       for (var key in group) {
         var value = group[key]
-        if (value.__handler) applyHandlerToElement(match, key, value)
-        else applyPropertyToElement(match, key, value)
+        if (value && value.__handler) applyHandlerToElement(match, key, value, context, component)
+        else applyPropertyToElement(match, key, value, context, component)
       }
     }
   }
@@ -95,7 +96,7 @@ function gatherEventListenerDeltas (me, template, container, context, component,
   var results = {}
   accumulateEventHandlers(results, component)
   accumulateControllerEventListeners(results, me)
-  applyAccumulatedResults(results, deltas, me, template)
+  applyAccumulatedResults(results, deltas, me, template, context, component)
   return deltas
 }
 
@@ -108,7 +109,7 @@ function gatherDeltas (me, template, container, context, component, inputs, time
     var time = timeline.getDomainTime()
     me.builder.build(results, timeline.name, time, bytecode.timelines, true, inputs, eventsFired, inputsChanged)
   }
-  applyAccumulatedResults(results, deltas, me, template)
+  applyAccumulatedResults(results, deltas, me, template, context, component)
   for (var flexId in deltas) {
     var changedNode = deltas[flexId]
     calculateTreeLayouts(changedNode, changedNode.__parent)
@@ -116,7 +117,7 @@ function gatherDeltas (me, template, container, context, component, inputs, time
   return deltas
 }
 
-function applyContextChanges (component, inputs, template, container, me) {
+function applyContextChanges (component, inputs, template, container, me, context) {
   var results = {}
   accumulateEventHandlers(results, component)
   accumulateControllerEventListeners(results, me)
@@ -140,7 +141,7 @@ function applyContextChanges (component, inputs, template, container, me) {
     }
   }
   initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
-  applyAccumulatedResults(results, null, me, template)
+  applyAccumulatedResults(results, null, me, template, context, component)
   calculateTreeLayouts(template, container)
   return template
 }
@@ -228,15 +229,6 @@ function findMatchingElements (selector, template, cache) {
   return matches
 }
 
-function initializeTreeAttributes (tree, container) {
-  if (!tree || typeof tree === 'string') return
-  initializeNodeAttributes(tree, container)
-  tree.__parent = container
-  if (!tree.children) return
-  if (tree.children.length < 1) return
-  for (var i = 0; i < tree.children.length; i++) initializeTreeAttributes(tree.children[i], tree)
-}
-
 function calculateTreeLayouts (tree, container) {
   if (!tree || typeof tree === 'string') return
   calculateNodeLayout(tree, container)
@@ -253,48 +245,15 @@ function calculateNodeLayout (element, parent) {
   }
 }
 
-var ELEMENTS_2D = {
-  circle: true,
-  ellipse: true,
-  foreignObject: true,
-  g: true,
-  image: true,
-  line: true,
-  mesh: true,
-  path: true,
-  polygon: true,
-  polyline: true,
-  rect: true,
-  svg: true,
-  switch: true,
-  symbol: true,
-  text: true,
-  textPath: true,
-  tspan: true,
-  unknown: true,
-  use: true
-}
-
-function initializeNodeAttributes (element, parent) {
-  if (!element.attributes) element.attributes = {}
-  if (!element.attributes.style) element.attributes.style = {}
-  if (!element.layout) {
-    element.layout = Layout3D.createLayoutSpec()
-    element.layout.matrix = Layout3D.createMatrix()
-    element.layout.format = (ELEMENTS_2D[element.elementName]) ? Layout3D.FORMATS.TWO : Layout3D.FORMATS.THREE
-  }
-  return element
-}
-
-function applyPropertyToElement (element, name, value) {
+function applyPropertyToElement (element, name, value, context, component) {
   if (vanityHandlers[element.elementName] && vanityHandlers[element.elementName][name]) {
-    vanityHandlers[element.elementName][name](name, element, value)
+    vanityHandlers[element.elementName][name](name, element, value, context, component)
   } else {
     element.attributes[name] = value
   }
 }
 
-function applyHandlerToElement (match, name, fn) {
+function applyHandlerToElement (match, name, fn, context, component) {
   if (!match.__handlers) match.__handlers = {}
   match.__handlers[name] = fn
   return match

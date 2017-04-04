@@ -41,6 +41,7 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
 
     // Options can also be passed at the execution level
     options = assign(options, runnerOptions) // Already merged with DEFAULTS
+    assign(context.options, options) // Make sure new props are available on the context
 
     var controller
     if (options && options.controller) {
