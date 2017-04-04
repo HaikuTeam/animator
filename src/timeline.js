@@ -8,7 +8,7 @@ function Timeline (time, descriptor, name, options) {
   this.global = time || 0
   this.local = 0
   this.active = true
-  this.max = _getMaxTime(descriptor)
+  this.max = _getMaxTimeFromDescriptor(descriptor)
   this.loop = !!(options && options.loop)
 }
 
@@ -32,8 +32,12 @@ Timeline.prototype.performUpdate = function performUpdate (time) {
   return this
 }
 
+Timeline.prototype.resetMax = function resetMax (descriptor) {
+  this.max = _getMaxTimeFromDescriptor(descriptor)
+  return this
+}
+
 Timeline.prototype.getDomainTime = function getDomainTime () {
-  if (this.isTimeControlled()) return this.local
   if (this.local > this.max) return this.max
   return this.local
 }
@@ -56,13 +60,13 @@ Timeline.prototype.start = function start (time, descriptor) {
   this.local = 0
   this.active = true
   this.global = time || 0
-  this.max = _getMaxTime(descriptor)
+  this.max = _getMaxTimeFromDescriptor(descriptor)
   return this
 }
 
 Timeline.prototype.stop = function stop (time, descriptor) {
   this.active = false
-  this.max = _getMaxTime(descriptor)
+  this.max = _getMaxTimeFromDescriptor(descriptor)
   return this
 }
 
@@ -70,7 +74,7 @@ Timeline.prototype.isActive = function isActive () {
   return !!this.active
 }
 
-function _getMaxTime (descriptor) {
+function _getMaxTimeFromDescriptor (descriptor) {
   var max = 0
   for (var selector in descriptor) {
     var group = descriptor[selector]
