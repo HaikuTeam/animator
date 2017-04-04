@@ -76,7 +76,7 @@ var instructionSets = {
 
   production: [
     ['haiku-plumbing', ['npm', 'run', 'compile'], null, 10000, true],
-    ['haiku-plumbing', ['node', './HaikuHelper.js'], { HAIKU_SKIP_AUTOUPDATE: 1, DEV: 1, NODE_ENV: 'production' }],
+    ['haiku-plumbing', ['node', './HaikuHelper.js'], { HAIKU_SKIP_AUTOUPDATE: 1, NODE_ENV: 'production' }],
   ],
 
   matthew: [
