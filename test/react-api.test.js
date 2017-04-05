@@ -7,7 +7,7 @@ var reactAdapt = require('./../src/adapters/react')
 var Emitter = require('./../src/emitter')
 
 test('react-api', function(t) {
-  t.plan(7)
+  t.plan(3)
   return helpers.createDOM(function(err, window) {
     t.error(err, 'no create dom err')
     var bytecode = {
@@ -30,10 +30,6 @@ test('react-api', function(t) {
       instance.events.listen('#div', 'click', function (event) {
         t.ok(event, 'it should click')
         setTimeout(function () {
-          t.equal(instance.component.context.clock.loops, 1)
-          t.equal(instance.component.context.clock.frame, 1)
-          t.equal(instance.component.context.clock.time, 16.6)
-          t.equal(instance.component.context.clock.running, false)
           reactClass.haiku.context.clock.cancelRaf()
         }, 250)
       })

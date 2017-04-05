@@ -86,7 +86,7 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
         // Handle component mount
         if (!options.autoplay) {
           // If no autoplay, stop the clock immediately after we've mounted
-          component.instance.clock.stop()
+          component.instance.timelines.pause()
         }
         controller.emit('componentDidMount', component.instance)
       }
