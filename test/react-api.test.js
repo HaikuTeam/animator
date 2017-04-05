@@ -24,7 +24,7 @@ test('react-api', function(t) {
     }
     var creationClass = Creation(bytecode, {}, window)
     var reactClass = reactAdapt(creationClass)
-    t.ok(reactClass.haikuClass, 'haiku class was set')
+    t.ok(reactClass.haiku, 'haiku was set')
     var controller = Emitter.create({})
     controller.on('componentDidMount', function (instance) {
       instance.events.listen('#div', 'click', function (event) {
@@ -34,13 +34,14 @@ test('react-api', function(t) {
           t.equal(instance.component.context.clock.frame, 1)
           t.equal(instance.component.context.clock.time, 16.6)
           t.equal(instance.component.context.clock.running, false)
-          reactClass.haikuClass.context.clock.cancelRaf()
+          reactClass.haiku.context.clock.cancelRaf()
         }, 250)
       })
     })
     var reactElement = React.createElement(reactClass, {
       autoplay: false,
-      controller: controller
+      controller: controller,
+      // NOTE! onClick etc doesn't work properly in JSDOM context
     })
     var domElement = window.document.getElementById('mount')
     ReactDOM.render(reactElement, domElement)

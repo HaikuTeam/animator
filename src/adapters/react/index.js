@@ -2,6 +2,7 @@ var React = require('react')
 var ReactTestRenderer = require('react-test-renderer')
 var merge = require('lodash.merge')
 var ValidProps = require('./ValidProps')
+var EventsDict = require('./EventsDict')
 var reactToMana = require('haiku-bytecode/src/reactToMana')
 var initializeTreeAttributes = require('./../../helpers/initializeTreeAttributes')
 
@@ -77,8 +78,13 @@ function adapt (creationClass) {
     render: function () {
       var passthroughProps = {}
       for (var key in this.props) {
+        var propEntry = this.props[key]
         if (ValidProps[key]) {
-          passthroughProps[key] = this.props[key]
+          if (EventsDict[key]) {
+            passthroughProps[key] = createEventPropWrapper(this, propEntry)
+          } else {
+            passthroughProps[key] = propEntry
+          }
         }
       }
 
@@ -96,7 +102,13 @@ function adapt (creationClass) {
     }
   })
 
-  reactClass.haikuClass = creationClass
+  function createEventPropWrapper (reactInstance, eventListener) {
+    return function _eventPropWrapper (proxy, event) {
+      return eventListener.call(this, proxy, event, creationClass.component.instance)
+    }.bind(reactInstance)
+  }
+
+  reactClass.haiku = creationClass // Aliases
 
   reactClass.propTypes = {
     tagName: React.PropTypes.string

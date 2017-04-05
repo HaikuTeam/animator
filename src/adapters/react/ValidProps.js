@@ -1,3 +1,5 @@
+var EventsDict = require('./EventsDict')
+
 var validPropsDict = {
   id: 'string',
   className: 'string',
@@ -6,80 +8,8 @@ var validPropsDict = {
   height: 'string'
 }
 
-var eventsList = [
-  'onAbort',
-  'onAnimationEnd',
-  'onAnimationIteration',
-  'onAnimationStart',
-  'onBlur',
-  'onCanPlay',
-  'onCanPlayThrough',
-  'onChange',
-  'onClick',
-  'onCompositionEnd',
-  'onCompositionStart',
-  'onCompositionUpdate',
-  'onContextMenu',
-  'onCopy',
-  'onCut',
-  'onDoubleClick',
-  'onDrag',
-  'onDragEnd',
-  'onDragEnter',
-  'onDragExit',
-  'onDragLeave',
-  'onDragOver',
-  'onDragStart',
-  'onDrop',
-  'onDurationChange',
-  'onEmptied',
-  'onEncrypted',
-  'onEnded',
-  'onError',
-  'onFocus',
-  'onInput',
-  'onKeyDown',
-  'onKeyPress',
-  'onKeyUp',
-  'onLoad',
-  'onLoadedData',
-  'onLoadedMetadata',
-  'onLoadStart',
-  'onMouseDown',
-  'onMouseEnter',
-  'onMouseLeave',
-  'onMouseMove',
-  'onMouseOut',
-  'onMouseOver',
-  'onMouseUp',
-  'onPaste',
-  'onPause',
-  'onPlay',
-  'onPlaying',
-  'onProgress',
-  'onRateChange',
-  'onScroll',
-  'onSeeked',
-  'onSeeking',
-  'onSelect',
-  'onStalled',
-  'onSubmit',
-  'onSuspend',
-  'onTimeUpdate',
-  'onTouchCancel',
-  'onTouchEnd',
-  'onTouchMove',
-  'onTouchStart',
-  'onTransitionEnd',
-  'onVolumeChange',
-  'onWaiting',
-  'onWheel'
-]
-
-for (var i = 0; i < eventsList.length; i++) {
-  var name = eventsList[i]
-  validPropsDict[name] = 'func'
-  validPropsDict[name + 'Capture'] = 'func'
+for (var key in EventsDict) {
+  validPropsDict[key] = EventsDict[key]
 }
 
 module.exports = validPropsDict

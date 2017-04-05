@@ -72,7 +72,7 @@ test('react', function(t) {
     }
     var creationClass = Creation(bytecode, {}, window)
     var reactClass = reactAdapt(creationClass)
-    t.ok(reactClass.haikuClass, 'haiku class was set')
+    t.ok(reactClass.haiku, 'haiku was set')
     var reactElement = React.createElement(reactClass, {
       cows: 123,
       notHere: 'abc', // ignored
@@ -94,7 +94,7 @@ test('react', function(t) {
       setTimeout(function() {
         var svgElementReloaded = document.getElementById('svg')
         t.equal(svgElementReloaded.getAttribute('cation'), 'blarify-aloha', 'attribute was set')
-        reactClass.haikuClass.context.clock.cancelRaf()
+        reactClass.haiku.context.clock.cancelRaf()
       }, 32)
     }, 32)
   })
