@@ -43,7 +43,7 @@ Component.prototype.patchEventListeners = function patchEventListeners (containe
   return this._lastEventListenerPatches
 }
 
-Component.prototype.patch = function patch (container) {
+Component.prototype.patch = function patch (container, options) {
   var time = this.context.clock.getTime()
   var timelinesRunning = []
   var timelineInstances = this.store.get('timelines')
@@ -58,13 +58,13 @@ Component.prototype.patch = function patch (container) {
   }
   var eventsFired = this.bytecode.getEventsFired()
   var inputsChanged = this.bytecode.getInputsChanged()
-  this._lastDeltaPatches = this.template.deltas(this.context, this, container, this.inputs, timelinesRunning, eventsFired, inputsChanged)
+  this._lastDeltaPatches = this.template.deltas(this.context, this, container, this.inputs, timelinesRunning, eventsFired, inputsChanged, options)
   this.bytecode.clearDetectedEventsFired()
   this.bytecode.clearDetectedInputChanges()
   return this._lastDeltaPatches
 }
 
-Component.prototype.render = function render (container) {
+Component.prototype.render = function render (container, options) {
   var time = this.context.clock.getTime()
   var timelines = this.store.get('timelines')
   for (var timelineName in timelines) {
@@ -73,7 +73,7 @@ Component.prototype.render = function render (container) {
       timeline.performUpdate(time)
     }
   }
-  this._lastTemplateExpansion = this.template.expand(this.context, this, container, this.inputs)
+  this._lastTemplateExpansion = this.template.expand(this.context, this, container, this.inputs, options)
   this._needsFullFlush = false
   return this._lastTemplateExpansion
 }

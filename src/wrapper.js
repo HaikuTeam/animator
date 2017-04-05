@@ -11,7 +11,8 @@ var DEFAULTS = {
   autoplay: true,
   loop: false,
   frame: null, // Function to run on every frame
-  clock: {} // See clock.js for options
+  clock: {}, // See clock.js for options
+  stretch: false // Size topmost element to fit container
 }
 
 function wrapper (renderer, bytecode, wrapperOptions, platform) {
@@ -57,13 +58,13 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
 
     function performFullFlush () {
       var container = renderer.createContainer(mount)
-      var tree = context.component.render(container)
+      var tree = context.component.render(container, options)
       renderer.render(mount, container, tree, address, hash, options, component._scopes)
     }
 
     function performPatch () {
       var container = renderer.createContainer(mount)
-      var patches = context.component.patch(container)
+      var patches = context.component.patch(container, options)
       renderer.patch(mount, container, patches, address, hash, options, component._scopes)
     }
 

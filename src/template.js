@@ -29,8 +29,8 @@ Template.prototype.getTree = function getTree () {
   return this.template
 }
 
-Template.prototype.expand = function _expand (context, component, container, inputs) {
-  applyContextChanges(component, inputs, this.template, container, this, context)
+Template.prototype.expand = function _expand (context, component, container, inputs, options) {
+  applyContextChanges(component, inputs, this.template, container, this, context, options || {})
   var tree = expandElement(this.template, context)
   return tree
 }
@@ -40,8 +40,8 @@ Template.prototype.eventListenerDeltas = function _eventListenerDeltas (context,
   return deltas
 }
 
-Template.prototype.deltas = function _deltas (context, component, container, inputs, timelinesRunning, eventsFired, inputsChanged) {
-  var deltas = gatherDeltas(this, this.template, container, context, component, inputs, timelinesRunning, eventsFired, inputsChanged)
+Template.prototype.deltas = function _deltas (context, component, container, inputs, timelinesRunning, eventsFired, inputsChanged, options) {
+  var deltas = gatherDeltas(this, this.template, container, context, component, inputs, timelinesRunning, eventsFired, inputsChanged, options || {})
   return deltas
 }
 
@@ -100,7 +100,7 @@ function gatherEventListenerDeltas (me, template, container, context, component,
   return deltas
 }
 
-function gatherDeltas (me, template, container, context, component, inputs, timelinesRunning, eventsFired, inputsChanged) {
+function gatherDeltas (me, template, container, context, component, inputs, timelinesRunning, eventsFired, inputsChanged, options) {
   var deltas = {}
   var results = {}
   var bytecode = component.bytecode.bytecode
@@ -110,6 +110,8 @@ function gatherDeltas (me, template, container, context, component, inputs, time
     me.builder.build(results, timeline.name, time, bytecode.timelines, true, inputs, eventsFired, inputsChanged)
   }
   applyAccumulatedResults(results, deltas, me, template, context, component)
+  if (options.stretch) _doStretch(template, container)
+  else if (options.fill) _doFill(template, container)
   for (var flexId in deltas) {
     var changedNode = deltas[flexId]
     calculateTreeLayouts(changedNode, changedNode.__parent)
@@ -117,7 +119,7 @@ function gatherDeltas (me, template, container, context, component, inputs, time
   return deltas
 }
 
-function applyContextChanges (component, inputs, template, container, me, context) {
+function applyContextChanges (component, inputs, template, container, me, context, options) {
   var results = {}
   accumulateEventHandlers(results, component)
   accumulateControllerEventListeners(results, me)
@@ -142,8 +144,18 @@ function applyContextChanges (component, inputs, template, container, me, contex
   }
   initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
   applyAccumulatedResults(results, null, me, template, context, component)
-  calculateTreeLayouts(template, container)
+  if (options.stretch) _doStretch(template, container)
+  else if (options.fill) _doFill(template, container)
+  calculateTreeLayouts(template, container, options)
   return template
+}
+
+function _doFill (element, container) {
+  // todo
+}
+
+function _doStretch (element, container) {
+  // todo
 }
 
 function expandElement (element, context) {
@@ -242,6 +254,9 @@ function calculateNodeLayout (element, parent) {
     var parentSize = parent.layout.computed.size
     var computedLayout = Layout3D.computeLayout({}, element.layout, element.layout.matrix, IDENTITY_MATRIX, parentSize)
     element.layout.computed = computedLayout || { size: parentSize } // Need to pass some size to children, so if this element doesn't have one, use the parent's
+    if (element.attributes['haiku-id'] === '0dccfaa10fc2') {
+      console.log(element.layout.computed.size)
+    }
   }
 }
 
