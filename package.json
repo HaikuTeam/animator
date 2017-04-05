@@ -1,7 +1,7 @@
 {
   "name": "haiku-mono",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "Haiku monorepo",
   "main": "index.js",
   "author": "Matthew Trost <matthew@trost.co>",
@@ -9,6 +9,8 @@
   "scripts": {
     "start": "npm run mono:dev",
     "lint": "standard \"./scripts/**/*.js\" --fix --verbose | snazzy",
+    "mono:dev": "node ./scripts/dev.js",
+    "mono:finalize": "node ./scripts/finalize.js",
     "mono:cmd": "node ./scripts/cmd.js",
     "mono:reset-links": "npm run mono:cmd \"rm -rf node_modules\" && npm run mono:npm-install && npm run mono:npm-link",
     "mono:sha-norm": "node ./scripts/sha-norm.js",
@@ -17,6 +19,7 @@
     "mono:npm-unlink": "node ./scripts/npm-unlink.js",
     "mono:npm-semver-set": "node ./scripts/npm-semver-set.js",
     "mono:npm-semver-inc": "node ./scripts/npm-semver-inc.js",
+    "mono:npm-semver-top": "node ./scripts/npm-semver-top.js",
     "mono:git-ac": "node ./scripts/git-ac.js",
     "mono:git-push": "node ./scripts/git-push.js",
     "mono:git-pull": "node ./scripts/git-pull.js",
@@ -26,10 +29,7 @@
     "mono:git-checkout-b": "node ./scripts/git-checkout-b.js",
     "mono:git-checkout-branch": "node ./scripts/git-checkout-branch.js",
     "mono:git-merge-branch": "node ./scripts/git-merge-branch.js",
-    "mono:git-checkout": "node ./scripts/git-checkout.js",
-    "mono:public-npm-bundle": "node ./scripts/public-npm-bundle.js",
-    "mono:dev": "node ./scripts/dev.js",
-    "mono:finish": "npm run mono:git-pull && npm run mono:public-npm-bundle && npm run mono:sha-norm && npm run mono:git-push && git add . && git commit -m \"update\" && git push origin master"
+    "mono:git-checkout": "node ./scripts/git-checkout.js"
   },
   "devDependencies": {
     "async": "2.1.5",

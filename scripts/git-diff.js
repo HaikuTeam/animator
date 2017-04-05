@@ -5,7 +5,7 @@ var allPackages = require('./helpers/allPackages')()
 
 async.eachSeries(allPackages, function (pack, next) {
   try {
-    cp.execSync('git diff', { cwd: pack.abspath, stdio: 'inherit' })
+    cp.execSync('git --no-pager diff', { cwd: pack.abspath, stdio: 'inherit' })
   } catch (exception) {
     log.log(exception.message)
   }
