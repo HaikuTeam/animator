@@ -9,7 +9,7 @@
     "demo": "node ./server.js",
     "pretty": "prettier",
     "dist:dom": "browserify ./src/creation/dom/index.js --standalone HaikuDOMPlayer | derequire > dom.bundle.js",
-    "dist:react": "browserify ./src/adapters/react/index.js --external react --external react-test-renderer --external lodash.merge | derequire > react.bundle.js && sed -i '' -E -e \"s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g\" react.bundle.js"
+    "dist:react": "browserify ./src/adapters/react/index.js --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > react.bundle.js && sed -i '' -E -e \"s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g\" react.bundle.js"
   },
   "author": "Matthew Trost <matthew@haiku.ai>",
   "license": "UNLICENSED",
