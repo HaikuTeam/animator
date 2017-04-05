@@ -1,6 +1,7 @@
 var Context = require('./context')
 var Component = require('./component')
 var Emitter = require('./emitter')
+var isIE = require('./renderers/dom/isIE')
 var assign = require('lodash.assign')
 
 var ADDRESS_PREFIX = ''
@@ -12,7 +13,8 @@ var DEFAULTS = {
   loop: false,
   frame: null, // Function to run on every frame
   clock: {}, // See clock.js for options
-  stretch: false // Size topmost element to fit container
+  sizing: null, // Sizing mode (string: normal|stretch|cover)
+  preserve3d: 'auto'
 }
 
 function wrapper (renderer, bytecode, wrapperOptions, platform) {
@@ -29,6 +31,7 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
 
   // Options can be passed at the wrapper level
   var options = assign({}, DEFAULTS, wrapperOptions)
+  if (isIE(platform)) options.preserve3d = 'multiply'
 
   var component = new Component(bytecode, options)
   var context = new Context(component, options)
