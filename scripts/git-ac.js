@@ -15,7 +15,7 @@ async.eachSeries(allPackages, function (pack, next) {
   log.log('git adding & committing in ' + pack.name + ' (message: ' + message + ')')
   try {
     cp.execSync('git add --all .', { cwd: pack.abspath })
-    cp.execSync('git commit -m "' + message + '"', { cwd: pack.abspath })
+    cp.execSync('git commit -m ' + message, { cwd: pack.abspath })
   } catch (exception) {
     log.log(exception.message)
   }
