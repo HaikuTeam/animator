@@ -1,8 +1,8 @@
 var React = require('react')
+var ReactTestRenderer = require('react-test-renderer')
 var merge = require('lodash.merge')
 var ValidProps = require('./ValidProps')
 var reactToMana = require('haiku-bytecode/src/reactToMana')
-var ReactTestRenderer = require('react-test-renderer')
 var initializeTreeAttributes = require('./../../helpers/initializeTreeAttributes')
 
 function applyInputs (componentInstance, props) {
