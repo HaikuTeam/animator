@@ -1,7 +1,7 @@
 {
   "name": "haiku-mono",
   "private": true,
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Haiku monorepo",
   "main": "index.js",
   "author": "Matthew Trost <matthew@trost.co>",
@@ -15,6 +15,8 @@
     "mono:npm-install": "node ./scripts/npm-install.js",
     "mono:npm-link": "node ./scripts/npm-link.js",
     "mono:npm-unlink": "node ./scripts/npm-unlink.js",
+    "mono:npm-semver-set": "node ./scripts/npm-semver-set.js",
+    "mono:npm-semver-inc": "node ./scripts/npm-semver-inc.js",
     "mono:git-ac": "node ./scripts/git-ac.js",
     "mono:git-push": "node ./scripts/git-push.js",
     "mono:git-pull": "node ./scripts/git-pull.js",
