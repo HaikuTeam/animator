@@ -1,6 +1,6 @@
 {
   "name": "haiku-interpreter",
-  "version": "2.0.0",
+  "version": "2.0.3",
   "description": "Haiku bytecode interpreter (a.k.a. the player)",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
     "uglify-js": "2.7.5"
   },
   "dependencies": {
-    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#60e5125923c5697d788246e578f1e2f90c7a2cc2",
+    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#ea6d5dbce2d3011461d441b9bd4fe9b6380167da",
     "lodash.assign": "^4.2.0",
     "lodash.merge": "^4.6.0",
     "raf": "3.3.0",
