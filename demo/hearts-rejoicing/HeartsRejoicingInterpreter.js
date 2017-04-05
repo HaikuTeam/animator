@@ -7,5 +7,6 @@ controller.on('componentDidMount', function (instance) {
 })
 module.exports = creation(require('./HeartsRejoicingBytecode'), {
   autoplay: false,
-  controller: controller
+  controller: controller,
+  sizing: 'cover'
 })

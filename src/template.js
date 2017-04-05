@@ -110,8 +110,7 @@ function gatherDeltas (me, template, container, context, component, inputs, time
     me.builder.build(results, timeline.name, time, bytecode.timelines, true, inputs, eventsFired, inputsChanged)
   }
   applyAccumulatedResults(results, deltas, me, template, context, component)
-  if (options.stretch) _doStretch(template, container)
-  else if (options.fill) _doFill(template, container)
+  if (options.sizing) _doSizing(template, container, options.sizing, deltas)
   for (var flexId in deltas) {
     var changedNode = deltas[flexId]
     calculateTreeLayouts(changedNode, changedNode.__parent)
@@ -144,18 +143,40 @@ function applyContextChanges (component, inputs, template, container, me, contex
   }
   initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
   applyAccumulatedResults(results, null, me, template, context, component)
-  if (options.stretch) _doStretch(template, container)
-  else if (options.fill) _doFill(template, container)
+  if (options.sizing) _doSizing(template, container, options.sizing)
   calculateTreeLayouts(template, container, options)
   return template
 }
 
-function _doFill (element, container) {
-  // todo
-}
-
-function _doStretch (element, container) {
-  // todo
+function _doSizing (element, container, mode, deltas) {
+  if (mode === true) mode = 'cover'
+  var lx = element.layout.sizeAbsolute.x
+  var ly = element.layout.sizeAbsolute.y
+  var cx = container.layout.computed.size.x
+  var cy = container.layout.computed.size.y
+  if (!element.attributes.style['transform-origin']) element.attributes.style['transform-origin'] = 'top left'
+  var changed = false
+  switch (mode) {
+    case 'normal':
+      if (element.layout.scale.x !== 1.0) { changed = true; element.layout.scale.x = 1.0 }
+      if (element.layout.scale.y !== 1.0) { changed = true; element.layout.scale.y = 1.0 }
+      break
+    case 'stretch':
+      var sx1 = cx / lx
+      var sy1 = cy / ly
+      if (sx1 !== element.layout.scale.x) { changed = true; element.layout.scale.x = sx1 }
+      if (sy1 !== element.layout.scale.y) { changed = true; element.layout.scale.y = sy1 }
+      break
+    case 'cover':
+      var sx2 = cx / lx
+      var sy2 = cy / ly
+      var sf = (sx2 > sy2) ? sy2 : sx2
+      if (sf !== element.layout.scale.x) { changed = true; element.layout.scale.x = sf }
+      if (sf !== element.layout.scale.y) { changed = true; element.layout.scale.y = sf }
+  }
+  if (changed && deltas) {
+    deltas[element.attributes[HAIKU_ID_ATTRIBUTE]] = element
+  }
 }
 
 function expandElement (element, context) {
@@ -254,9 +275,6 @@ function calculateNodeLayout (element, parent) {
     var parentSize = parent.layout.computed.size
     var computedLayout = Layout3D.computeLayout({}, element.layout, element.layout.matrix, IDENTITY_MATRIX, parentSize)
     element.layout.computed = computedLayout || { size: parentSize } // Need to pass some size to children, so if this element doesn't have one, use the parent's
-    if (element.attributes['haiku-id'] === '0dccfaa10fc2') {
-      console.log(element.layout.computed.size)
-    }
   }
 }
 
