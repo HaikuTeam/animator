@@ -9,7 +9,7 @@ var _window = typeof window !== 'undefined' && window
 var PLATFORM_INFO = {
   hasWindow: !!_window,
   isMobile: isMobile(_window), // Dumb navigator check
-  isIE: true,//isIE(_window), // Dumb navigator check - use feature detection instead?
+  isIE: isIE(_window), // Dumb navigator check - use feature detection instead?
   hasPreserve3d: hasPreserve3d(_window) // I dunno if we actually need this
 }
 
