@@ -26,6 +26,11 @@ module.exports = {
             }
           }
         },
+        'style.WebkitTapHighlightColor': {
+          0: {
+            value: 'rgba(0, 0, 0, 0)'
+          }
+        },
         'style.width': {
           0: {
             value: '300px'
