@@ -1,6 +1,19 @@
 var applyCssLayout = require('haiku-bytecode/src/applyCssLayout')
 var isTextNode = require('./isTextNode')
 var scopeIs = require('./scopeIs')
+var isIE = require('./isIE')
+var isMobile = require('./isMobile')
+var hasPreserve3d = require('./hasPreserve3d')
+
+var _window = typeof window !== 'undefined' && window
+var PLATFORM_INFO = {
+  hasWindow: !!_window,
+  isMobile: isMobile(_window), // Dumb navigator check
+  isIE: true,//isIE(_window), // Dumb navigator check - use feature detection instead?
+  hasPreserve3d: hasPreserve3d(_window) // I dunno if we actually need this
+}
+
+console.info('[haiku]:', JSON.stringify(PLATFORM_INFO))
 
 var DEFAULT_PIXEL_RATIO = 1.0
 var SVG = 'svg'
@@ -53,6 +66,7 @@ function applyLayout (domElement, virtualElement, parentDomNode, parentVirtualEl
       if (domElement.style.display !== 'none') domElement.style.display = 'none'
     } else {
       if (domElement.style.display !== 'block') domElement.style.display = 'block'
+      options.platform = PLATFORM_INFO
       applyCssLayout(domElement, virtualElement, virtualElement.layout, computedLayout, devicePixelRatio, options, scopes)
     }
   }
