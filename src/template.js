@@ -111,9 +111,11 @@ function gatherDeltas (me, template, container, context, component, inputs, time
   }
   applyAccumulatedResults(results, deltas, me, template, context, component)
   if (options.sizing) _doSizing(template, container, options.sizing, deltas)
+  // TODO: Calculating the tree layout should be skipped for already visited node
+  // that we have already calculated among the descendants of the changed one
   for (var flexId in deltas) {
     var changedNode = deltas[flexId]
-    calculateTreeLayouts(changedNode, changedNode.__parent)
+    calculateTreeLayouts(changedNode, changedNode.__parent, options)
   }
   return deltas
 }
@@ -262,15 +264,15 @@ function findMatchingElements (selector, template, cache) {
   return matches
 }
 
-function calculateTreeLayouts (tree, container) {
+function calculateTreeLayouts (tree, container, options) {
   if (!tree || typeof tree === 'string') return
-  calculateNodeLayout(tree, container)
+  calculateNodeLayout(tree, container, options)
   if (!tree.children) return
   if (tree.children.length < 1) return
-  for (var i = 0; i < tree.children.length; i++) calculateTreeLayouts(tree.children[i], tree)
+  for (var i = 0; i < tree.children.length; i++) calculateTreeLayouts(tree.children[i], tree, options)
 }
 
-function calculateNodeLayout (element, parent) {
+function calculateNodeLayout (element, parent, options) {
   if (parent) {
     var parentSize = parent.layout.computed.size
     var computedLayout = Layout3D.computeLayout({}, element.layout, element.layout.matrix, IDENTITY_MATRIX, parentSize)
