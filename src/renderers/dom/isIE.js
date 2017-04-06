@@ -1,3 +1,6 @@
 module.exports = function isIE (window) {
-  return new RegExp('MSIE ([0-9]{1,}[.0-9]{0,})').exec(window && window.navigator && window.navigator.userAgent) !== null ? parseFloat(RegExp.$1) : false
+  if (!window) return false
+  if (!window.navigator) return false
+  if (!window.navigator.userAgent) return false
+  return window.navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident') > 0
 }
