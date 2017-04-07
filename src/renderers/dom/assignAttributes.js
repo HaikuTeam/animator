@@ -1,7 +1,6 @@
 var assignStyle = require('./assignStyle')
 var assignClass = require('./assignClass')
 var assignEvent = require('./assignEvent')
-var eventNames = require('./eventNames')
 
 var STYLE = 'style'
 var OBJECT = 'object'
@@ -40,11 +39,6 @@ function assignAttributes (domElement, attributes, options, scopes) {
     // 'onclick', etc
     if (lower[0] === 'o' && lower[1] === 'n' && typeof newValue === FUNCTION) {
       assignEvent(domElement, lower, newValue, options, scopes)
-      continue
-    }
-    // fix 'click' to be 'onclick' per a known event mapping
-    if (eventNames[lower]) {
-      assignEvent(domElement, 'on' + lower, newValue, options, scopes)
       continue
     }
 

@@ -9,7 +9,7 @@ module.exports = {
     value: 0
   }],
   eventHandlers: [{
-    name: 'click',
+    name: 'onclick',
     selector: '#box',
     handler: function() {
       this.timelines.play('Move')

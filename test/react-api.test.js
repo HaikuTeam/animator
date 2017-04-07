@@ -27,7 +27,7 @@ test('react-api', function(t) {
     t.ok(reactClass.haiku, 'haiku was set')
     var controller = Emitter.create({})
     controller.on('haikuComponentDidMount', function (instance) {
-      instance.events.listen('#div', 'click', function (event) {
+      instance.events.listen('#div', 'onclick', function (event) {
         t.ok(event, 'it should click')
         setTimeout(function () {
           reactClass.haiku.context.clock.cancelRaf()
