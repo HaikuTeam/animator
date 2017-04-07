@@ -1,5 +1,4 @@
 var updateElement = require('./updateElement')
-var scopeAdjust = require('./scopeAdjust')
 
 function getElementByFlexId (topLevelDomElement, flexId, scopes) {
   if (!scopes.elementCache) scopes.elementCache = {}
@@ -23,7 +22,6 @@ function patch (topLevelDomElement, virtualContainer, patchesDict, locator, hash
     var virtualElement = patchesDict[flexId]
     var domElement = getElementByFlexId(topLevelDomElement, flexId, scopes)
     if (domElement) {
-      scopeAdjust(virtualElement, domElement, options, scopes)
       updateElement(domElement, virtualElement, domElement.parentNode, virtualElement.__parent, domElement.haiku.locator, hash, options, scopes)
     }
   }

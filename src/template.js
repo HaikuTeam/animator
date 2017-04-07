@@ -2,6 +2,7 @@ var vanityHandlers = require('haiku-bytecode/src/properties/dom/vanities')
 var queryTree = require('haiku-bytecode/src/cssQueryTree')
 var Layout3D = require('haiku-bytecode/src/Layout3D')
 var ValueBuilder = require('haiku-bytecode/src/ValueBuilder')
+var scopifyElements = require('haiku-bytecode/src/scopifyElements')
 var initializeTreeAttributes = require('./helpers/initializeTreeAttributes')
 
 var Component = require('./component')
@@ -144,6 +145,7 @@ function applyContextChanges (component, inputs, template, container, me, contex
     }
   }
   initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
+  scopifyElements(template) // I think this only needs to happen once when we build the full tree
   applyAccumulatedResults(results, null, me, template, context, component)
   if (options.sizing) _doSizing(template, container, options.sizing)
   calculateTreeLayouts(template, container, options)
@@ -237,6 +239,8 @@ function shallowClone (element) {
   clone.__instance = element.__instance // Hack: Important to cache instance
   clone.__handlers = element.__handlers // Hack: Important to transfer event handlers
   clone.__transformed = element.__transformed // ditto
+  clone.__parent = element.__parent
+  clone.__scope = element.__scope
   clone.layout = element.layout
   clone.elementName = element.elementName
   clone.attributes = {}

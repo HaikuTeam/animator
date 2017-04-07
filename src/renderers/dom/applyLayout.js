@@ -1,6 +1,6 @@
 var applyCssLayout = require('haiku-bytecode/src/applyCssLayout')
+var scopeOfElement = require('haiku-bytecode/src/scopeOfElement')
 var isTextNode = require('./isTextNode')
-var scopeIs = require('./scopeIs')
 var isIE = require('./isIE')
 var isMobile = require('./isMobile')
 var hasPreserve3d = require('./hasPreserve3d')
@@ -49,7 +49,8 @@ function applyLayout (domElement, virtualElement, parentDomNode, parentVirtualEl
 
   if (virtualElement.layout) {
     // Don't assign layout to things that never need it like <desc>, <title>, etc.
-    if (scopeIs(scopes, SVG) && !SVG_RENDERABLES[virtualElement.elementName]) {
+    // Check if we're inside an <svg> context *and* one of the actually renderable svg-type els
+    if (scopeOfElement(virtualElement) === SVG && !SVG_RENDERABLES[virtualElement.elementName]) {
       return domElement
     }
 

@@ -1,15 +1,12 @@
 var isBlankString = require('./isBlankString')
 var removeElement = require('./removeElement')
 var locatorBump = require('./locatorBump')
-var scopeAdjust = require('./scopeAdjust')
 
 function renderTree (domElement, virtualElement, virtualChildren, locator, hash, options, scopes) {
   hash[locator] = domElement
 
   if (!domElement.haiku) domElement.haiku = {}
   domElement.haiku.locator = locator
-
-  scopeAdjust(virtualElement, domElement, options, scopes)
 
   if (!Array.isArray(virtualChildren)) {
     return domElement
