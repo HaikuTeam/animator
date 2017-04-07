@@ -5,7 +5,10 @@ var validPropsDict = {
   className: 'string',
   style: 'object',
   width: 'string',
-  height: 'string'
+  height: 'string',
+  onComponentWillMount: 'func',
+  onComponentWillUnmount: 'func',
+  onComponentDidMount: 'func'
 }
 
 for (var key in EventsDict) {

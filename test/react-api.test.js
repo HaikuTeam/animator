@@ -26,7 +26,7 @@ test('react-api', function(t) {
     var reactClass = reactAdapt(creationClass)
     t.ok(reactClass.haiku, 'haiku was set')
     var controller = Emitter.create({})
-    controller.on('componentDidMount', function (instance) {
+    controller.on('haikuComponentDidMount', function (instance) {
       instance.events.listen('#div', 'click', function (event) {
         t.ok(event, 'it should click')
         setTimeout(function () {

@@ -45,6 +45,8 @@ function adapt (creationClass) {
     displayName: 'HaikuCreation',
 
     getInitialState: function () {
+      // In case someone ones to do this.refs.whatever.haiku...
+      this.haiku = creationClass
       return {}
     },
 
@@ -59,11 +61,17 @@ function adapt (creationClass) {
       if (this.props.controller) {
         this.props.controller.emit('react:componentWillMount', this)
       }
+      if (this.props.onComponentWillMount) {
+        this.props.onComponentWillMount(this)
+      }
     },
 
     componentWillUnmount: function () {
       if (this.props.controller) {
-        this.props.controller.emit('react:componentWillUnMount', this)
+        this.props.controller.emit('react:componentWillUnmount', this)
+      }
+      if (this.props.onComponentWillUnmount) {
+        this.props.onComponentWillUnmount(this)
       }
     },
 
@@ -71,6 +79,9 @@ function adapt (creationClass) {
       createContext(this, creationClass, this.props)
       if (this.props.controller) {
         this.props.controller.emit('react:componentDidMount', this, this.refs.container)
+      }
+      if (this.props.onComponentDidMount) {
+        this.props.onComponentDidMount(this, this.refs.container)
       }
       applyProps(this.creationContext.component, this.props)
     },

@@ -52,6 +52,9 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
       controller = Emitter.create({})
     }
 
+    controller.emit('haikuComponentWillInitialize', component.instance)
+    if (options.onHaikuComponentWillInitialize) options.onHaikuComponentWillInitialize(component.instance)
+
     runner.controller = controller
 
     var ticks = 0
@@ -89,7 +92,8 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
           // If no autoplay, stop the clock immediately after we've mounted
           component.instance.timelines.pause()
         }
-        controller.emit('componentDidMount', component.instance)
+        controller.emit('haikuComponentDidMount', component.instance)
+        if (options.onHaikuComponentDidMount) options.onHaikuComponentDidMount(component.instance)
       }
       ticks++
     }
@@ -108,6 +112,9 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
 
     // Hot editing hook
     runner.tick = tick
+
+    controller.emit('haikuComponentDidInitialize', component.instance)
+    if (options.onHaikuComponentDidInitialize) options.onHaikuComponentDidInitialize(component.instance)
 
     return context
   }
