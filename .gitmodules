@@ -16,9 +16,6 @@
 [submodule "packages/haiku-plumbing"]
 	path = packages/haiku-plumbing
 	url = git@github.com:HaikuTeam/plumbing
-[submodule "packages/haiku-plumbing-interface"]
-	path = packages/haiku-plumbing-interface
-	url = git@github.com:HaikuTeam/plumbing-interface
 [submodule "packages/haiku-sdk"]
 	path = packages/haiku-sdk
 	url = git@github.com:HaikuTeam/sdk
