@@ -291,7 +291,7 @@ function doImport() {
 
 //TODO:  copy .haiku scripts
 //       ensure that packages are legit & pointed at latest & updated
-//       ensure that prepublish script is injected
+//       ensure that prepare script is injected
 //       message that .haiku folder needs to be added to git
 //       ensure that ssh keys are generated and registered with server
 function doHeal() {
@@ -337,23 +337,28 @@ function doInstall() {
               //now projectString should be @haiku/org-project
               packageJson.dependencies[projectString] = "latest"
 
-              //inject .haiku script call into prepublish
+              //inject .haiku script call into prepare
               if (!packageJson.scripts) packageJson.scripts = {}
-              if (!packageJson.scripts.prepublish) packageJson.scripts.prepublish = ""
+              if (!packageJson.scripts.prepare) packageJson.scripts.prepare = ""
 
-              if (packageJson.scripts.prepublish.indexOf('./.haiku/scripts/prepublish') === -1) {
-                packageJson.scripts.prepublish = './.haiku/scripts/prepublish; ' + packageJson.scripts.prepublish
+              if (packageJson.scripts.prepare.indexOf('./.haiku/scripts/prepare') === -1) {
+                packageJson.scripts.prepare = './.haiku/scripts/prepare; ' + packageJson.scripts.prepare
               }
 
               //write scripts to ./.haiku
               //TODO:  rewrite in node for Windows portability (i.e. for Windows users who use a project that has a @haiku dep)
               //TODO:  make more robust and reusable—either pull latest .haiku scripts from a tarball or embed in Resources folder of distro
-              var prepublish = dedent`
+              
+              //TODO:  npm hooks appear unreliable, and npm creator says "npm's configuration should be considered immutable for the duration of an install or lifecycle script execution."  he doesn't want to expose a hook for pre-`npm install` logic.
+              //       Instead of this hook script, let's just create (or prepend) a project-local .npmrc w/ the haiku scope config and make sure it's not git-ignored
+              //       see this on-going thread:  https://github.com/npm/npm/issues/10379
+              
+              var prepare = dedent`
                 #!/bin/bash
 
                 # this script ensures that the @haiku npm scope is set up
                 # on this user's machine.  intended to be injected as a
-                # prepublish script, so that the scope is automatically
+                # prepare script, so that the scope is automatically
                 # set up before a new user npm installs
 
                 # if the scope is not set up before new users install,
@@ -362,8 +367,8 @@ function doInstall() {
                 touch ~/.npmrc
                 chmod 0600 ~/.npmrc
                 if [[ -z $(grep "@haiku" ~/.npmrc) ]] ; then
-                    echo '//reservoir.haiku.ai:8910/:_authToken=""' >> ~/.npmrc
-                    echo '@haiku:registry=https://reservoir.haiku.ai:8910/' >> ~/.npmrc
+                    #prepend haiku registry info to npmrc
+                    echo '//reservoir.haiku.ai:8910/:_authToken=""\n@haiku:registry=https://reservoir.haiku.ai:8910/\n' | cat - ~/.npmrc > /tmp/tempnpmrc && mv /tmp/tempnpmrc ~/.npmrc
                 fi
 
                 # if gitignore doesn't exist, or it DOES exist but doesn't contain the !.haiku rule, inject it
@@ -376,10 +381,11 @@ function doInstall() {
                 fi
               `
               mkdirp.sync(process.cwd() + '/.haiku/scripts')
-              fs.writeFileSync(process.cwd() + '/.haiku/scripts/prepublish', prepublish, { mode: 0o777, flag: 'w' })
+              fs.writeFileSync(process.cwd() + '/.haiku/scripts/prepare', prepare, { mode: 0o777, flag: 'w' })
 
               client.npm.writePackageJson(packageJson)
               try {
+                execSync("./.haiku/scripts/prepare")
                 execSync("npm install")
               } catch (e) {
                 console.log(chalk.red("npm install failed.") + " Your Haiku packages have been injected into package.json, but npm install failed.  Please try again.")
