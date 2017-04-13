@@ -30,7 +30,7 @@
     "uglify-js": "2.7.5"
   },
   "dependencies": {
-    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#cb1898dbadc192297a94d9d8ba4da9816a1edd43",
+    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#74fe9451527db470f4e3e66a3c18c5ca3323e2c1",
     "lodash.assign": "4.2.0",
     "lodash.merge": "4.6.0",
     "raf": "3.3.0",
