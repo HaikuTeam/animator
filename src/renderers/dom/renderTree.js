@@ -55,3 +55,4 @@ module.exports = renderTree
 
 var appendChild = require('./appendChild')
 var modifyChild = require('./modifyChild')
+var replaceElement = require('./replaceElement')
