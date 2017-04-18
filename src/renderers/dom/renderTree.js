@@ -7,6 +7,7 @@ function renderTree (domElement, virtualElement, virtualChildren, locator, hash,
 
   if (!domElement.haiku) domElement.haiku = {}
   domElement.haiku.locator = locator
+  domElement.haiku.element = virtualElement
 
   if (!Array.isArray(virtualChildren)) {
     return domElement
@@ -40,6 +41,9 @@ function renderTree (domElement, virtualElement, virtualChildren, locator, hash,
       var insertedElement = appendChild(null, virtualChild, domElement, virtualElement, sublocator, hash, options, scopes)
       hash[sublocator] = insertedElement
     } else {
+      if (!domChild.haiku) domChild.haiku = {}
+      domChild.haiku.locator = sublocator
+      if (!domChild.haiku.element) domChild.haiku.element = virtualChild
       modifyChild(domChild, virtualChild, domElement, virtualElement, sublocator, hash, options, scopes)
     }
   }
