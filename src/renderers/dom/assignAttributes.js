@@ -22,6 +22,19 @@ function setAttribute (el, key, val, options, scopes) {
 }
 
 function assignAttributes (domElement, attributes, options, scopes) {
+  // Remove any attributes from the previous run that aren't present this time around
+  if (domElement.haiku && domElement.haiku.element) {
+    for (var oldKey in domElement.haiku.element.attributes) {
+      var oldValue = domElement.haiku.element.attributes[oldKey]
+      var newValue = attributes[oldKey]
+      if (oldKey !== STYLE) { // Removal of old styles is handled downstream; see assignStyle()
+        if (newValue === null || newValue === undefined || oldValue !== newValue) {
+          domElement.removeAttribute(oldKey)
+        }
+      }
+    }
+  }
+
   for (var key in attributes) {
     var newValue = attributes[key]
 
