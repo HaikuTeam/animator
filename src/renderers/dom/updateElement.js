@@ -21,6 +21,9 @@ function updateElement (domElement, virtualElement, parentNode, parentVirtualEle
 
   if (Array.isArray(virtualChildren)) {
     renderTree(domElement, virtualElement, virtualChildren, locator, hash, options, scopes)
+  } else if (!virtualChildren) {
+    // In case of falsy virtual children, we still need to remove elements that were already there
+    renderTree(domElement, virtualElement, [], locator, hash, options, scopes)
   }
 
   return domElement
