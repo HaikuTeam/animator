@@ -24,6 +24,13 @@ function renderTree (domElement, virtualElement, virtualChildren, locator, hash,
     var domChild = domElement.childNodes[i]
     var sublocator = locatorBump(locator, i)
 
+    if (virtualChild && options.modifier) {
+      var virtualReplacement = options.modifier(virtualChild)
+      if (virtualReplacement !== undefined) {
+        virtualChild = virtualReplacement
+      }
+    }
+
     if (!virtualChild && !domChild) {
       continue
     } else if (!virtualChild && domChild) {
