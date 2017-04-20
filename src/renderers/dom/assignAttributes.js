@@ -22,40 +22,42 @@ function setAttribute (el, key, val, options, scopes) {
 }
 
 function assignAttributes (domElement, attributes, options, scopes) {
-  // Remove any attributes from the previous run that aren't present this time around
-  if (domElement.haiku && domElement.haiku.element) {
-    for (var oldKey in domElement.haiku.element.attributes) {
-      var oldValue = domElement.haiku.element.attributes[oldKey]
-      var newValue = attributes[oldKey]
-      if (oldKey !== STYLE) { // Removal of old styles is handled downstream; see assignStyle()
-        if (newValue === null || newValue === undefined || oldValue !== newValue) {
-          domElement.removeAttribute(oldKey)
+  if (!options._patch) {
+    // Remove any attributes from the previous run that aren't present this time around
+    if (domElement.haiku && domElement.haiku.element) {
+      for (var oldKey in domElement.haiku.element.attributes) {
+        var oldValue = domElement.haiku.element.attributes[oldKey]
+        var newValue = attributes[oldKey]
+        if (oldKey !== STYLE) { // Removal of old styles is handled downstream; see assignStyle()
+          if (newValue === null || newValue === undefined || oldValue !== newValue) {
+            domElement.removeAttribute(oldKey)
+          }
         }
       }
     }
   }
 
   for (var key in attributes) {
-    var newValue = attributes[key]
+    var anotherNewValue = attributes[key]
 
-    if (key === STYLE && newValue && typeof newValue === OBJECT) {
-      assignStyle(domElement, newValue, options, scopes)
+    if (key === STYLE && anotherNewValue && typeof anotherNewValue === OBJECT) {
+      assignStyle(domElement, anotherNewValue, options, scopes)
       continue
     }
 
-    if ((key === CLASS || key === CLASS_NAME) && newValue) {
-      assignClass(domElement, newValue, options, scopes)
+    if ((key === CLASS || key === CLASS_NAME) && anotherNewValue) {
+      assignClass(domElement, anotherNewValue, options, scopes)
       continue
     }
 
     var lower = key.toLowerCase()
     // 'onclick', etc
-    if (lower[0] === 'o' && lower[1] === 'n' && typeof newValue === FUNCTION) {
-      assignEvent(domElement, lower, newValue, options, scopes)
+    if (lower[0] === 'o' && lower[1] === 'n' && typeof anotherNewValue === FUNCTION) {
+      assignEvent(domElement, lower, anotherNewValue, options, scopes)
       continue
     }
 
-    setAttribute(domElement, key, newValue, options, scopes)
+    setAttribute(domElement, key, anotherNewValue, options, scopes)
   }
   return domElement
 }
