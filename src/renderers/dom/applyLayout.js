@@ -44,7 +44,7 @@ var SVG_RENDERABLES = {
   video: true
 }
 
-function applyLayout (domElement, virtualElement, parentDomNode, parentVirtualElement, options, scopes) {
+function applyLayout (domElement, virtualElement, parentDomNode, parentVirtualElement, options, scopes, isPatchOperation, isKeyDifferent) {
   if (isTextNode(virtualElement)) return domElement
 
   if (virtualElement.layout) {

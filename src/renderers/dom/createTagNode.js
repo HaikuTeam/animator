@@ -1,7 +1,5 @@
 var normalizeName = require('./normalizeName')
 var isSvgElementName = require('./isSvgElementName')
-var createSvgElement = require('./createSvgElement')
-var updateElement = require('./updateElement')
 var getTypeAsString = require('./getTypeAsString')
 
 function createTagNode (domElement, virtualElement, parentVirtualElement, locator, hash, options, scopes) {
@@ -14,8 +12,17 @@ function createTagNode (domElement, virtualElement, parentVirtualElement, locato
     // Normal DOM
     newDomElement = domElement.ownerDocument.createElement(tagName)
   }
+
+  newDomElement.haiku = {}
+
+  var incomingKey = virtualElement.key || virtualElement.attributes && virtualElement.attributes.key
+  if (incomingKey !== undefined && incomingKey !== null) newDomElement.haiku.key = incomingKey
+
   updateElement(newDomElement, virtualElement, domElement, parentVirtualElement, locator, hash, options, scopes)
   return newDomElement
 }
 
 module.exports = createTagNode
+
+var createSvgElement = require('./createSvgElement')
+var updateElement = require('./updateElement')

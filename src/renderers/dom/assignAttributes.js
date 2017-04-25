@@ -21,8 +21,8 @@ function setAttribute (el, key, val, options, scopes) {
   }
 }
 
-function assignAttributes (domElement, attributes, options, scopes) {
-  if (!options._patch) {
+function assignAttributes (domElement, attributes, options, scopes, isPatchOperation, isKeyDifferent) {
+  if (!isPatchOperation) {
     // Remove any attributes from the previous run that aren't present this time around
     if (domElement.haiku && domElement.haiku.element) {
       for (var oldKey in domElement.haiku.element.attributes) {
@@ -41,7 +41,7 @@ function assignAttributes (domElement, attributes, options, scopes) {
     var anotherNewValue = attributes[key]
 
     if (key === STYLE && anotherNewValue && typeof anotherNewValue === OBJECT) {
-      assignStyle(domElement, anotherNewValue, options, scopes)
+      assignStyle(domElement, anotherNewValue, options, scopes, isPatchOperation)
       continue
     }
 

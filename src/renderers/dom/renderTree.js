@@ -2,7 +2,7 @@ var isBlankString = require('./isBlankString')
 var removeElement = require('./removeElement')
 var locatorBump = require('./locatorBump')
 
-function renderTree (domElement, virtualElement, virtualChildren, locator, hash, options, scopes) {
+function renderTree (domElement, virtualElement, virtualChildren, locator, hash, options, scopes, isPatchOperation) {
   hash[locator] = domElement
 
   if (!domElement.haiku) domElement.haiku = {}
@@ -44,7 +44,7 @@ function renderTree (domElement, virtualElement, virtualChildren, locator, hash,
       if (!domChild.haiku) domChild.haiku = {}
       domChild.haiku.locator = sublocator
       if (!domChild.haiku.element) domChild.haiku.element = virtualChild
-      modifyChild(domChild, virtualChild, domElement, virtualElement, sublocator, hash, options, scopes)
+      updateElement(domChild, virtualChild, domElement, virtualElement, sublocator, hash, options, scopes, isPatchOperation)
     }
   }
 
@@ -54,5 +54,5 @@ function renderTree (domElement, virtualElement, virtualChildren, locator, hash,
 module.exports = renderTree
 
 var appendChild = require('./appendChild')
-var modifyChild = require('./modifyChild')
 var replaceElement = require('./replaceElement')
+var updateElement = require('./updateElement')

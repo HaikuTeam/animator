@@ -1,4 +1,5 @@
 var Constants = require('./constants')
+var _getMaxTimeFromDescriptor = require('haiku-bytecode/src/getTimelineMaxTime')
 
 var NUMBER = 'number'
 
@@ -72,22 +73,6 @@ Timeline.prototype.stop = function stop (time, descriptor) {
 
 Timeline.prototype.isActive = function isActive () {
   return !!this.active
-}
-
-function _getMaxTimeFromDescriptor (descriptor) {
-  var max = 0
-  for (var selector in descriptor) {
-    var group = descriptor[selector]
-    for (var output in group) {
-      var keyframes = group[output]
-      var keys = Object.keys(keyframes)
-      for (var i = 0; i < keys.length; i++) {
-        var key = parseInt(keys[i], 10)
-        if (key > max) max = key
-      }
-    }
-  }
-  return max
 }
 
 module.exports = Timeline

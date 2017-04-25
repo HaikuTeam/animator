@@ -1,5 +1,3 @@
-var createTextNode = require('./createTextNode')
-var createTagNode = require('./createTagNode')
 var applyLayout = require('./applyLayout')
 var isTextNode = require('./isTextNode')
 
@@ -15,3 +13,6 @@ function replaceElement (domElement, virtualElement, parentDomNode, parentVirtua
 }
 
 module.exports = replaceElement
+
+var createTextNode = require('./createTextNode')
+var createTagNode = require('./createTagNode')
