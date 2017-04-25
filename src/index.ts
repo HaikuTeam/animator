@@ -467,7 +467,7 @@ function doLogin(cb?: Function) {
     password = answers["password"]
 
     inkstone.user.authenticate(username, password, function (err, authResponse) {
-      if (err != undefined) {
+      if (err !== undefined) {
         console.log(chalk.bold.red("Username or password incorrect."))
         if (flags.verbose) {
           console.log(err)
