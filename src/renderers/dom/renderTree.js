@@ -54,5 +54,4 @@ function renderTree (domElement, virtualElement, virtualChildren, locator, hash,
 module.exports = renderTree
 
 var appendChild = require('./appendChild')
-var replaceElement = require('./replaceElement')
 var updateElement = require('./updateElement')

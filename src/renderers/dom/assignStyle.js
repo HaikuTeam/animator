@@ -5,7 +5,6 @@ function assignStyle (domElement, style, options, scopes, isPatchOperation) {
     // If we have an element from a previous run, remove any old styles that aren't part of the new one
     if (domElement.haiku && domElement.haiku.element && domElement.haiku.element.attributes && domElement.haiku.element.attributes.style) {
       for (var oldStyleKey in domElement.haiku.element.attributes.style) {
-        var oldStyleValue = domElement.haiku.element.attributes.style[oldStyleKey]
         var newStyleValue = style[oldStyleKey]
         if (newStyleValue === null || newStyleValue === undefined) {
           domElement.style[oldStyleKey] = null
