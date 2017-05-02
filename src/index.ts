@@ -87,7 +87,8 @@ function ensureAuth(cb) {
 
 
 inkstone.setConfig({
-  baseUrl: flags.api || "https://inkstone.haiku.ai/"
+  baseUrl: flags.api || "https://inkstone.haiku.ai/",
+  baseShareUrl: flags.share || "https://share.haiku.ai/"
 });
 
 if (flags.verbose) {
@@ -96,6 +97,10 @@ if (flags.verbose) {
 }
 
 switch (subcommand) {
+  case "await-share":
+    //undocumented; used for SDK development
+    doAwaitShare()
+    break
   case "clone":
     doClone()
     break
@@ -144,6 +149,18 @@ switch (subcommand) {
     help()
     break
 }
+
+function doAwaitShare() {
+  var id = args[0]
+  inkstone.snapshot.awaitSnapshotLink(id, (err, str) => {
+    if(err !== undefined){
+      console.log(chalk.red(err))
+    }else{
+      console.log(chalk.green("Share link: " + str))
+    }
+  })
+}
+
 
 function doClone() {
   var projectName = args[0]
