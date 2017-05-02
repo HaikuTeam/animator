@@ -110,6 +110,7 @@ function gatherDeltas (me, template, container, context, component, inputs, time
     var time = timeline.getDomainTime()
     me.builder.build(results, timeline.name, time, bytecode.timelines, true, inputs, eventsFired, inputsChanged)
   }
+  initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
   applyAccumulatedResults(results, deltas, me, template, context, component)
   if (options.sizing) _doSizing(template, container, options.sizing, deltas)
   // TODO: Calculating the tree layout should be skipped for already visited node
