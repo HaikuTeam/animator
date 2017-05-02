@@ -63,7 +63,7 @@ function applyLayout (domElement, virtualElement, parentDomNode, parentVirtualEl
     var computedLayout = virtualElement.layout.computed
 
     // No computed layout means the el is not shown
-    if (!computedLayout) {
+    if (!computedLayout || computedLayout.invisible) {
       if (domElement.style.display !== 'none') domElement.style.display = 'none'
     } else {
       if (domElement.style.display !== 'block') domElement.style.display = 'block'

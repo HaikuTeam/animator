@@ -281,7 +281,11 @@ function calculateNodeLayout (element, parent, options) {
   if (parent) {
     var parentSize = parent.layout.computed.size
     var computedLayout = Layout3D.computeLayout({}, element.layout, element.layout.matrix, IDENTITY_MATRIX, parentSize)
-    element.layout.computed = computedLayout || { size: parentSize } // Need to pass some size to children, so if this element doesn't have one, use the parent's
+    if (computedLayout === false) { // False indicates 'don't show
+      element.layout.computed = { invisible: true }
+    } else {
+      element.layout.computed = computedLayout || { size: parentSize } // Need to pass some size to children, so if this element doesn't have one, use the parent's
+    }
   }
 }
 
