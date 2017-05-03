@@ -35,8 +35,8 @@ function updateElement (domElement, virtualElement, parentNode, parentVirtualEle
     return domElement
   }
 
-  applyLayout(domElement, virtualElement, parentNode, parentVirtualElement, options, scopes, isPatchOperation, isKeyDifferent)
   if (virtualElement.attributes && typeof virtualElement.attributes === OBJECT) assignAttributes(domElement, virtualElement.attributes, options, scopes, isPatchOperation, isKeyDifferent)
+  applyLayout(domElement, virtualElement, parentNode, parentVirtualElement, options, scopes, isPatchOperation, isKeyDifferent)
   if (incomingKey !== undefined && incomingKey !== null) domElement.haiku.key = incomingKey
 
   if (Array.isArray(virtualElement.children)) {
