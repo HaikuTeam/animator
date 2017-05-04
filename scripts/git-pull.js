@@ -10,6 +10,7 @@ var remote = argv.remote || 'origin'
 async.eachSeries(allPackages, function (pack, next) {
   log.log('git pulling ' + pack.name + ' (' + remote + ' ' + branch + ')')
   try {
+    cp.execSync('git checkout ' + branch, { cwd: pack.abspath })
     cp.execSync('git pull ' + remote + ' ' + branch, { cwd: pack.abspath })
   } catch (exception) {
     log.log(exception.message)
