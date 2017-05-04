@@ -4,7 +4,7 @@ var log = require('./helpers/log')
 var allPackages = require('./helpers/allPackages')()
 
 var EXEC_OPTIONS = {
-  maxBuffer: 1024 * 1024 //bytes
+  maxBuffer: 1024 * 1024 // bytes
 }
 
 lodash.forEach(allPackages, function (pack) {

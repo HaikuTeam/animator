@@ -1,16 +1,10 @@
 var lodash = require('lodash')
 var fse = require('fs-extra')
-var cp = require('child_process')
 var path = require('path')
-var argv = require('yargs').argv
 var semver = require('semver')
 var log = require('./helpers/log')
 var runScript = require('./helpers/runScript')
 var allPackages = require('./helpers/allPackages')()
-var groups = lodash.keyBy(allPackages, 'name')
-var interpreterPath = groups['haiku-interpreter'].abspath
-var haikuNpmPath = groups['haiku-npm'].abspath
-var plumbingPath = groups['haiku-plumbing'].abspath
 
 /**
  * Find the highest semver in all the projects, and set all

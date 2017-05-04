@@ -1,6 +1,5 @@
 var lodash = require('lodash')
 var fse = require('fs-extra')
-var cp = require('child_process')
 var path = require('path')
 var argv = require('yargs').argv
 var semver = require('semver')
@@ -22,7 +21,7 @@ if (!level) throw new Error('Level required (patch, minor, major)')
 if (!VALID_LEVELS[level]) throw new Error('Invalid level')
 
 // First make sure all the packages are normalized to the topmost semver
-return runScript('npm-semver-top', [], function (err) {
+runScript('npm-semver-top', [], function (err) {
   if (err) throw err
 
   // Then go ahead and increment all of them from that normalized semver

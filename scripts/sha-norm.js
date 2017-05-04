@@ -63,9 +63,9 @@ order.forEach(function (name) {
     fse.writeFileSync(path.join(pack.abspath, 'package.json'), packJson)
     log.log(cp.execSync('git add package.json', { cwd: pack.abspath }))
 
-    //build and commit haiku-sdk, since it will be affected by dep changes
-    //should fix phantom SDK changes issue
-    //should work?  but untested, so leaving commented for now - ZB
+    // build and commit haiku-sdk, since it will be affected by dep changes
+    // should fix phantom SDK changes issue
+    // should work?  but untested, so leaving commented for now - ZB
     // if(pack.name === 'haiku-sdk'){
     //   log.log(cp.execSync('npm i', { cwd: pack.abspath }))
     //   log.log(cp.execSync('npm run compile', { cwd: pack.abspath }))

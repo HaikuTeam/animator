@@ -76,7 +76,7 @@ var instructionSets = {
 
   production: [
     ['haiku-plumbing', ['npm', 'run', 'compile'], null, 10000, true],
-    ['haiku-plumbing', ['node', './HaikuHelper.js'], { HAIKU_SKIP_AUTOUPDATE: 1, NODE_ENV: 'production' }],
+    ['haiku-plumbing', ['node', './HaikuHelper.js'], { HAIKU_SKIP_AUTOUPDATE: 1, NODE_ENV: 'production' }]
   ],
 
   matthew: [
@@ -139,7 +139,7 @@ process.on('exit', exit)
 process.on('SIGINT', exit)
 process.on('uncaughtException', exit)
 
-function exit() {
+function exit () {
   log.log('exiting; telling children to interrupt')
   children.forEach(function (child) {
     child.kill('SIGINT')

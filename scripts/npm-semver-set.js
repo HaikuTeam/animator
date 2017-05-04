@@ -1,6 +1,5 @@
 var lodash = require('lodash')
 var fse = require('fs-extra')
-var cp = require('child_process')
 var path = require('path')
 var argv = require('yargs').argv
 var semver = require('semver')

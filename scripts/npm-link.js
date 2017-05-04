@@ -1,12 +1,9 @@
 var async = require('async')
-var lodash = require('lodash')
 var cp = require('child_process')
 var fs = require('fs')
 var _ = require('lodash')
 var log = require('./helpers/log')
 var allPackages = require('./helpers/allPackages')()
-
-var groups = lodash.keyBy(allPackages, 'name')
 
 async.eachSeries(allPackages, function (pack, next) {
   log.log('npm linking ' + pack.name)
