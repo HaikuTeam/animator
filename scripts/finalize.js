@@ -54,7 +54,7 @@ async.series([
   function (cb) {
     cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
     cp.execSync('git commit -m "auto: Housekeeping"', { cwd: ROOT, stdio: 'inherit' })
-    cp.execSync('git pull origin HEAD:master', { cwd: ROOT, stdio: 'inherit' })
+    cp.execSync('git pull', { cwd: ROOT, stdio: 'inherit' })
     cp.execSync('git push origin HEAD:master', { cwd: ROOT, stdio: 'inherit' })
     cb()
   }
