@@ -3,8 +3,9 @@ module.exports = creation(require('./HeartsRejoicingBytecode'), {
   autoplay: false,
   sizing: 'cover',
   onHaikuComponentDidMount: function (instance) {
-    instance.events.listen('#Heart', 'onclick', function (event) {
-      instance.play()
+    var el = document.querySelector('#Heart')
+    el.addEventListener('click', function (event) {
+      instance.getDefaultTimeline().play()
     })
   }
 })

@@ -3,8 +3,8 @@ var assign = require('lodash.assign')
 
 var NUMBER = 'number'
 var DEFAULTS = {
-  cycle: 16.6,
-  speed: 16.6,
+  cycle: 16.666,
+  speed: 16.666,
   margin: 1.0
 }
 

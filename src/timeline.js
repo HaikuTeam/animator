@@ -39,8 +39,10 @@ Timeline.prototype.resetMax = function resetMax (descriptor) {
 }
 
 Timeline.prototype.getDomainTime = function getDomainTime () {
-  if (this.local > this.max) return this.max
-  return this.local
+  var dt
+  if (this.local > this.max) dt = this.max
+  else dt = this.local
+  return dt
 }
 
 Timeline.prototype.isTimeControlled = function isTimeControlled () {

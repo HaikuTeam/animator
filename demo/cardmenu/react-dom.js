@@ -5,7 +5,7 @@ if (CardMenuComponent.default) CardMenuComponent = CardMenuComponent.default
 module.exports = function _react_dom_wrapper (element, props) {
   props = {
     onClick: function onClick (proxy, event, instance) {
-      instance.timelines.play()
+      instance.getDefaultTimeline().play()
     }
   }
   ReactDOM.render(React.createElement(CardMenuComponent, props, [

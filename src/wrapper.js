@@ -72,11 +72,11 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
       renderer.patch(mount, container, patches, address, hash, options, component._scopes)
     }
 
-    function performEventsOnlyFlush () {
-      var container = renderer.createContainer(mount)
-      var eventListenerPatches = context.component.patchEventListeners(container)
-      renderer.patch(mount, container, eventListenerPatches, address, hash, options, component._scopes)
-    }
+    // function performEventsOnlyFlush () {
+    //   var container = renderer.createContainer(mount)
+    //   var eventListenerPatches = context.component.patchEventListeners(container)
+    //   renderer.patch(mount, container, eventListenerPatches, address, hash, options, component._scopes)
+    // }
 
     function tick () {
       // After we've hydrated the tree the first time, we can proceed with patches,
@@ -90,15 +90,17 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
         // Handle component mount
         if (!options.autoplay) {
           // If no autoplay, stop the clock immediately after we've mounted
-          component.instance.timelines.pause()
+          var timelineInstances = component.instance.getTimelines()
+          for (var timelineName in timelineInstances) {
+            var timelineInstance = timelineInstances[timelineName]
+            timelineInstance.pause()
+          }
         }
         controller.emit('haikuComponentDidMount', component.instance)
         if (options.onHaikuComponentDidMount) options.onHaikuComponentDidMount(component.instance)
       }
       ticks++
     }
-
-    component.instance.on('flushEventListeners', performEventsOnlyFlush)
 
     context.clock.tickables.push({
       performTick: tick
@@ -107,7 +109,7 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
     // Handle component initialization
     if (options.automount) {
       // Starting the clock has the effect of doing a render at time 0, a.k.a. mount
-      component.instance.clock.start()
+      component.instance.getClock().start()
     }
 
     // Hot editing hook
@@ -116,7 +118,8 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
     controller.emit('haikuComponentDidInitialize', component.instance)
     if (options.onHaikuComponentDidInitialize) options.onHaikuComponentDidInitialize(component.instance)
 
-    return context
+    // Expose public API to end user for programmatic control
+    return component.instance
   }
 
   // Hot editing hooks

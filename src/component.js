@@ -91,6 +91,22 @@ Component.prototype.startAllTimelines = function startAllTimelines () {
   for (var timelineName in timelines) this.startTimeline(timelineName)
 }
 
+Component.prototype.fetchAllTimelineStores = function fetchAllTimelineStores () {
+  var time = this.context.clock.getTime()
+  var names = Object.keys(this.bytecode.bytecode.timelines)
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i]
+    if (name) {
+      var descriptor = this.bytecode.bytecode.timelines[name]
+      var existing = this.store.get('timelines')[name]
+      if (!existing) {
+        this.store.get('timelines')[name] = new Timeline(time, descriptor, name, this.options)
+      }
+    }
+  }
+  return this.store.get('timelines')
+}
+
 Component.prototype.startTimeline = function startTimeline (timelineName) {
   var time = this.context.clock.getTime()
   var descriptor = this.bytecode.bytecode.timelines[timelineName]
