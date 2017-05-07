@@ -97,6 +97,7 @@ Bytecode.prototype.defineInputs = function defineInputs (storage, instance) {
 
       set: function set (input) {
         typecheckInput(type, name, input)
+
         self._inputChanges[name] = input
         self._anyInputChange = true
         if (setter) {
@@ -104,6 +105,7 @@ Bytecode.prototype.defineInputs = function defineInputs (storage, instance) {
         } else {
           storage[name] = input
         }
+
         return storage[name]
       }
     })

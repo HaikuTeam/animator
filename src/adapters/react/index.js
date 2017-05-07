@@ -6,34 +6,41 @@ var EventsDict = require('./EventsDict')
 var reactToMana = require('haiku-bytecode/src/reactToMana')
 var initializeTreeAttributes = require('./../../helpers/initializeTreeAttributes')
 
-function applyInputs (componentInstance, props) {
+function applyInputs (haikuPlayer, props) {
   for (var key in props) {
     var value = props[key]
-    componentInstance.instance[key] = value
+    haikuPlayer[key] = value
   }
 }
 
-function applyProps (componentInstance, props) {
-  if (!componentInstance) return null
+function applyProps (haikuPlayer, props) {
+  if (!haikuPlayer) return null
   if (!props) return null
-  applyInputs(componentInstance, props)
+  applyInputs(haikuPlayer, props)
 }
 
 function createContext (reactInstance, creationClass, reactProps) {
   var fullProps = merge({}, reactProps, {
     ref: reactInstance.refs.container,
     vanities: {
-      'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity (element, child) {
-        var renderer = ReactTestRenderer.create(child)
+      'controlFlow.insert': function _controlFlowInsertReactVanity (element, insertable, context, component, implementation) {
+        var renderer = ReactTestRenderer.create(insertable)
         var json = renderer.toJSON()
         var mana = reactToMana(json)
         initializeTreeAttributes(mana, element)
-        element.children = [mana]
+        implementation(element, mana, context, component)
+      },
+      'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity (element, surrogate, context, component, implementation) {
+        var renderer = ReactTestRenderer.create(surrogate)
+        var json = renderer.toJSON()
+        var mana = reactToMana(json)
+        initializeTreeAttributes(mana, element)
+        implementation(element, mana, context, component)
       }
     }
   })
-  reactInstance.creationContext = creationClass(reactInstance.refs.container, fullProps)
-  reactInstance.creationContext.component.instance.hear(function (name, payload) {
+  reactInstance.haikuPlayer = creationClass(reactInstance.refs.container, fullProps)
+  reactInstance.haikuPlayer.hear(function (name, payload) {
     if (reactInstance.props && reactInstance.props.events && reactInstance.props.events[name]) {
       reactInstance.props.events[name](payload)
     }
@@ -54,7 +61,7 @@ function adapt (creationClass) {
       if (this.props.controller) {
         this.props.controller.emit('react:componentWillReceiveProps', this, nextProps)
       }
-      applyProps(this.creationContext.component, nextProps)
+      applyProps(this.haikuPlayer, nextProps)
     },
 
     componentWillMount: function () {
@@ -83,7 +90,7 @@ function adapt (creationClass) {
       if (this.props.onComponentDidMount) {
         this.props.onComponentDidMount(this, this.refs.container)
       }
-      applyProps(this.creationContext.component, this.props)
+      applyProps(this.haikuPlayer, this.props)
     },
 
     render: function () {
