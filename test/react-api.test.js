@@ -27,12 +27,9 @@ test('react-api', function(t) {
     t.ok(reactClass.haiku, 'haiku was set')
     var controller = Emitter.create({})
     controller.on('haikuComponentDidMount', function (instance) {
-      instance.events.listen('#div', 'onclick', function (event) {
-        t.ok(event, 'it should click')
-        setTimeout(function () {
-          reactClass.haiku.context.clock.cancelRaf()
-        }, 250)
-      })
+      t.ok(instance, 'mounted')
+      creationClass.component.context.clock.cancelRaf()
+      t.end()
     })
     var reactElement = React.createElement(reactClass, {
       autoplay: false,
@@ -41,9 +38,5 @@ test('react-api', function(t) {
     })
     var domElement = window.document.getElementById('mount')
     ReactDOM.render(reactElement, domElement)
-    setTimeout(function() {
-      var el = document.getElementById('div')
-      helpers.simulateEvent(el, 'click')
-    }, 32)
   })
 })
