@@ -7,6 +7,7 @@ function HaikuPlayer (_component) {
   if (!(this instanceof HaikuPlayer)) return new HaikuPlayer(_component)
   Emitter.create(this)
   this._component = _component
+  this.VERSION = require('./../../package.json').version
 }
 
 HaikuPlayer.prototype.getClock = function getClock () {

@@ -13,7 +13,8 @@ var DEFAULTS = {
   frame: null, // Function to run on every frame
   clock: {}, // See clock.js for options
   sizing: null, // Sizing mode (string: normal|stretch|cover)
-  preserve3d: 'auto'
+  preserve3d: 'auto',
+  contextMenu: 'enabled'
 }
 
 function wrapper (renderer, bytecode, wrapperOptions, platform) {
@@ -40,10 +41,15 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
     // Hot editing hook
     if (!mount.haiku) mount.haiku = {}
     mount.haiku.context = context
+    mount.haiku.player = component.instance // For debugging convenience and/or public usage
 
     // Options can also be passed at the execution level
     options = assign(options, runnerOptions) // Already merged with DEFAULTS
     assign(context.options, options) // Make sure new props are available on the context
+
+    if (renderer.menuize && options.contextMenu !== 'disabled') {
+      renderer.menuize(mount, component.instance)
+    }
 
     var controller
     if (options && options.controller) {
