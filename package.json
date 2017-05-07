@@ -15,7 +15,7 @@
     "chalk": "^1.1.3",
     "cli-color": "^1.1.0",
     "dedent": "^0.6.0",
-    "haiku-sdk": "git@github.com:HaikuTeam/sdk#f896fd4645ec679259bc42739d66fa0bece24f41",
+    "haiku-sdk": "git@github.com:HaikuTeam/sdk#8e354d0090784d88a944826eee0e0965824b2945",
     "hasbin": "^1.2.3",
     "inquirer": "^2.0.0",
     "lodash": "^4.17.4",
