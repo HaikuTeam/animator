@@ -198,8 +198,7 @@ module.exports = {
       },
       "haiku:22f10f874415": {
         x: { "0": { value: "340" } },
-        y: { "0": { value: "165" } },
-        "controlFlow.placeholder": { "0": { value: 1 } }
+        y: { "0": { value: "165" } }
       },
       "haiku:aa3c203d7c8c": {
         "translation.x": { "0": { value: 343, edited: true } },

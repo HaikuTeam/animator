@@ -9,8 +9,6 @@ module.exports = function _react_dom_wrapper (element, props) {
     }
   }
   ReactDOM.render(React.createElement(CardMenuComponent, props, [
-    // React.createElement('g', { key: 1 }, [
-      React.createElement('text', { color: 'black', style: { fontFamily: 'arial', fontSize: '20px' }, key: 1 }, 'Meow meow'),
-    // ])
+    React.createElement('span', { style: { fontFamily: 'arial', fontSize: '20px' }, key: 1 }, 'Meow meow'),
   ]), element)
 }

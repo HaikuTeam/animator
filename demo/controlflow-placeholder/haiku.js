@@ -1,5 +1,5 @@
 module.exports = {
-  name: 'placeholder',
+  name: 'controlflow-placeholder',
   interpreter: 'interpreter.js',
   bytecode: 'bytecode.js'
 }
