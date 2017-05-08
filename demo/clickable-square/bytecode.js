@@ -1,4 +1,10 @@
 module.exports = {
+  metadata: {
+    // uuid: 'HAIKU_SHARE_UUID'
+    uuid: '228dbd29-2878-4a1f-bb46-21ac896273e2',
+    // project: 'Clickable Square ASDFASF OMG OMASDFASDFSD',
+    // organization: 'Haiku LLC Yaya FOOBAR hey'
+  },
   properties: [{
     name: 'clicks',
     type: 'number',

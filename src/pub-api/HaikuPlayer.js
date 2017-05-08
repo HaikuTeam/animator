@@ -7,6 +7,7 @@ function HaikuPlayer (_component) {
   if (!(this instanceof HaikuPlayer)) return new HaikuPlayer(_component)
   Emitter.create(this)
   this._component = _component
+  this._bytecode = _component.bytecode.bytecode
   this.VERSION = require('./../../package.json').version
 }
 
