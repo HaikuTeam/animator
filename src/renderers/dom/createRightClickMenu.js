@@ -67,10 +67,8 @@ module.exports = function createRightClickMenu (domElement, playerInstance) {
   var escaper = doc.createElement('textarea')
   function escapeHTML (html) {
     escaper.textContent = html
-    return escaper.innerHTML.replace(/[><,\{\}\[\]"']/gi,'')
+    return escaper.innerHTML.replace(/[><,{}[\]"']/gi, '')
   }
-
-  revealMenu(100,100)
 
   function revealMenu (mx, my) {
     var lines = []
@@ -79,14 +77,14 @@ module.exports = function createRightClickMenu (domElement, playerInstance) {
       var byline = '<span style="font-style:italic">' + escapeHTML(truncate(metadata.project, 30)) + '</span>'
       lines.push('<p style="margin:0;margin-bottom:10px;padding:0;line-height:12px;color:#999">' + byline + '</p>')
       if (metadata.organization) {
-        var org  = escapeHTML(truncate(metadata.organization, 28))
+        var org = escapeHTML(truncate(metadata.organization, 28))
         lines.push('<p style="margin:0;margin-bottom:10px;padding:0;line-height:12px;color:#999">By ' + org + '</p>')
       }
     }
     if (metadata && metadata.uuid && metadata.uuid !== SUBSTITUTION_STRING) {
-      lines.push('<p style="margin:0;margin-bottom:10px;padding:0;line-height:12px"><a style="color:black;text-decoration:none;" href="https://share.haiku.ai/' + metadata.uuid + '" target="_blank">About This Component</a></p>')
+      lines.push('<p style="margin:0;margin-bottom:10px;padding:0;line-height:12px"><a style="color:black;text-decoration:none;" href="https://share.haiku.ai/' + escapeHTML(metadata.uuid) + '" target="_blank">About This Component</a></p>')
     }
-    lines.push('<p style="margin:0;padding:0;line-height:12px"><a style="color:black;text-decoration:none;" href="https://www.haiku.ai" target="_blank">About Haiku Player ' + playerInstance.VERSION + '...</a></p>')
+    lines.push('<p style="margin:0;padding:0;line-height:12px"><a style="color:black;text-decoration:none;" href="https://www.haiku.ai" target="_blank">About Haiku Player ' + escapeHTML(playerInstance.VERSION) + '...</a></p>')
     if (lines.length < 1) return void ('')
 
     menu.style.width = px(WIDTH)
