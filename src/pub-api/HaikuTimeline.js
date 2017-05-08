@@ -14,6 +14,17 @@ HaikuTimeline.prototype._ensureClockIsRunning = function _ensureClockIsRunning (
   return this
 }
 
+HaikuTimeline.prototype.getTime = function getTime () {
+  return this._store.getDomainTime()
+}
+
+HaikuTimeline.prototype.getFrame = function getFrame () {
+  var time = this.getTime()
+  var clock = this._player.getClock()
+  var timeStep = clock.cycle || 16.666 // weird name, sorry
+  return Math.round(time / timeStep)
+}
+
 HaikuTimeline.prototype.duration = function duration () {
   return this._store.max || 0
 }
