@@ -34,15 +34,7 @@ app.get('/demos/:demo/vanilla', function(req, res) {
   var demo = req.params.demo
   console.log('[haiku-interpreter] request /demos/' + demo + '/vanilla')
   var folderAbspath = path.join(DEMOS_PATH, demo)
-  var haikujsAbspath = path.join(DEMOS_PATH, demo, 'haiku.js')
-  var haikuConfig
-  try {
-    haikuConfig = require(haikujsAbspath)
-  } catch (exception) {
-    return res.status(404).send('Demo not found! (' + exception + ')')
-  }
-  if (!haikuConfig.interpreter) return res.status(500).send('Demo interpreter not defined!')
-  var interpreterAbspath = path.join(DEMOS_PATH, demo, haikuConfig.interpreter)
+  var interpreterAbspath = path.join(DEMOS_PATH, demo, 'interpreter.js')
   return fse.exists(interpreterAbspath, function(answer) {
     if (!answer) return res.status(404).send('Demo not found!')
     return fse.readFile(path.join(DEMOS_PATH, 'demo.html.handlebars'), function(err, htmlbuf) {
@@ -66,13 +58,6 @@ app.get('/demos/:demo/react-dom', function(req, res) {
   var demo = req.params.demo
   console.log('[haiku-interpreter] request /demos/' + demo + '/react-dom')
   var folderAbspath = path.join(DEMOS_PATH, demo)
-  var haikujsAbspath = path.join(DEMOS_PATH, demo, 'haiku.js')
-  var haikuConfig
-  try {
-    haikuConfig = require(haikujsAbspath)
-  } catch (exception) {
-    return res.status(404).send('React DOM demo not found! (' + exception + ')')
-  }
   var reactAbspath = path.join(DEMOS_PATH, demo, 'react-dom.js')
   return fse.exists(reactAbspath, function(answer) {
     if (!answer) return res.status(404).send('React DOM demo not found!')

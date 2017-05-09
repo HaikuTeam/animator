@@ -1,5 +1,5 @@
 var creation = require('./../../src/creation/dom')
-module.exports = creation(require('./HeartsRejoicingBytecode'), {
+module.exports = creation(require('./bytecode'), {
   autoplay: false,
   sizing: 'cover',
   onHaikuComponentDidMount: function (instance) {

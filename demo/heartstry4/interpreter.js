@@ -1,5 +1,5 @@
 var HaikuCreation = require('./../../src/creation/dom')
-module.exports = HaikuCreation(require('./heartstry4Bytecode.js'), {
+module.exports = HaikuCreation(require('./bytecode.js'), {
   autoplay: false,
   onHaikuComponentDidMount: function (instance) {
     var tl = instance.getDefaultTimeline()
