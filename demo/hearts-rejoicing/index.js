@@ -1,1 +1,1 @@
-module.exports = require('./HeartsRejoicingInterpreter.js')
+module.exports = require('./interpreter.js')

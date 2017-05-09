@@ -1,1 +1,1 @@
-module.exports = require('./CardMenuInterpreter.js')
+module.exports = require('./interpreter.js')
