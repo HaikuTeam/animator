@@ -70,21 +70,23 @@ module.exports = function createRightClickMenu (domElement, playerInstance) {
     return escaper.innerHTML.replace(/[><,{}[\]"']/gi, '')
   }
 
+  // revealMenu(100,100) // Uncomment me to render the menu while testing
+
   function revealMenu (mx, my) {
     var lines = []
     var metadata = playerInstance._bytecode && playerInstance._bytecode.metadata
     if (metadata && metadata.project) {
-      var byline = '<span style="font-style:italic">' + escapeHTML(truncate(metadata.project, 30)) + '</span>'
-      lines.push('<p style="margin:0;margin-bottom:10px;padding:0;line-height:12px;color:#999">' + byline + '</p>')
+      var who = metadata.project
       if (metadata.organization) {
-        var org = escapeHTML(truncate(metadata.organization, 28))
-        lines.push('<p style="margin:0;margin-bottom:10px;padding:0;line-height:12px;color:#999">By ' + org + '</p>')
+        who = who + ' by ' + metadata.organization
       }
+      var byline = escapeHTML(truncate(who, 35))
+      lines.push('<p style="margin:0;margin-bottom:10px;padding:0;line-height:12px;color:#b9a">' + byline + '</p>')
     }
     if (metadata && metadata.uuid && metadata.uuid !== SUBSTITUTION_STRING) {
-      lines.push('<p style="margin:0;margin-bottom:10px;padding:0;line-height:12px"><a style="color:black;text-decoration:none;" href="https://share.haiku.ai/' + escapeHTML(metadata.uuid) + '" target="_blank">About This Component</a></p>')
+      lines.push('<p style="margin:0;margin-bottom:10px;padding:0;line-height:12px"><a style="color:black;text-decoration:none;" href="https://share.haiku.ai/' + escapeHTML(metadata.uuid) + '" target="_blank">View Component</a></p>')
     }
-    lines.push('<p style="margin:0;padding:0;line-height:12px"><a style="color:black;text-decoration:none;" href="https://www.haiku.ai" target="_blank">About Haiku Player ' + escapeHTML(playerInstance.VERSION) + '...</a></p>')
+    lines.push('<p style="margin:0;padding:0;line-height:12px"><a style="color:black;text-decoration:none;" href="https://www.haiku.ai" target="_blank">Crafted in Haiku</a></p>')
     if (lines.length < 1) return void ('')
 
     menu.style.width = px(WIDTH)
