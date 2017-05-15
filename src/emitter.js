@@ -22,13 +22,13 @@ function create (instance) {
     return this
   }
 
-  instance.emit = function emit (key, msg) {
+  instance.emit = function emit (key, msg, a, b, c, d, e, f, g, h, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) {
     var listeners = registry[key]
     if (listeners && listeners.length > 0) {
-      for (var i = 0; i < listeners.length; i++) listeners[i](msg)
+      for (var i = 0; i < listeners.length; i++) listeners[i](msg, a, b, c, d, e, f, g, h, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z)
     }
     if (eavesdroppers.length > 0) {
-      for (var j = 0; j < eavesdroppers.length; j++) eavesdroppers[j](key, msg)
+      for (var j = 0; j < eavesdroppers.length; j++) eavesdroppers[j](key, msg, a, b, c, d, e, f, g, h, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z)
     }
     return this
   }

@@ -6,6 +6,13 @@ function HaikuTimeline (_name, _player, _store) {
   this._name = _name
   this._player = _player
   this._store = _store
+
+  this._store.on('update', function _update () {
+    var frame = this.getFrame()
+    var time = Math.round(this.getTime())
+    if (this.isActive() && this.isPlaying()) this.emit('tick', frame, time)
+    this.emit('update', frame, time)
+  }.bind(this))
 }
 
 HaikuTimeline.prototype._ensureClockIsRunning = function _ensureClockIsRunning () {
@@ -31,6 +38,10 @@ HaikuTimeline.prototype.duration = function duration () {
 
 HaikuTimeline.prototype.isActive = function isActive () {
   return !!this._store.active
+}
+
+HaikuTimeline.prototype.isPlaying = function isPlaying () {
+  return !!this._store.isPlaying
 }
 
 HaikuTimeline.prototype.setRepeat = function setRepeat (bool) {
