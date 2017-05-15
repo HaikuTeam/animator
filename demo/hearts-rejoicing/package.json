@@ -17,6 +17,6 @@
     "electron": "1.7.0"
   },
   "dependencies": {
-    "haiku.ai": "0.16.0"
+    "@haiku/player": "0.16.0"
   }
 }
