@@ -76,11 +76,11 @@ module.exports = function createRightClickMenu (domElement, playerInstance) {
     var lines = []
     var metadata = playerInstance._bytecode && playerInstance._bytecode.metadata
     if (metadata && metadata.project) {
-      var who = metadata.project
+      var who = escapeHTML(metadata.project)
       if (metadata.organization) {
-        who = who + ' by ' + metadata.organization
+        who = '"' + who + '" by ' + escapeHTML(metadata.organization)
       }
-      var byline = escapeHTML(truncate(who, 35))
+      var byline = truncate(who, 35)
       lines.push('<p style="margin:0;margin-bottom:10px;padding:0;line-height:12px;color:#b9a">' + byline + '</p>')
     }
     if (metadata && metadata.uuid && metadata.uuid !== SUBSTITUTION_STRING) {
@@ -109,8 +109,9 @@ module.exports = function createRightClickMenu (domElement, playerInstance) {
 
   domElement.addEventListener('contextmenu', function (contextmenuEvent) {
     contextmenuEvent.preventDefault()
-    var mx = contextmenuEvent.clientX
-    var my = contextmenuEvent.clientY
+    
+    var mx = contextmenuEvent.pageX
+    var my = contextmenuEvent.pageY
     revealMenu(mx, my)
   })
 
