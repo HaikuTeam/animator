@@ -15,7 +15,7 @@ if (!semver.valid(version)) throw new Error('Invalid semver version')
 
 lodash.forEach(allPackages, function (pack) {
   var packageJsonPath = (pack.name === 'haiku-npm')
-    ? path.join(pack.abspath, 'haiku.ai', 'package.json')
+    ? path.join(pack.abspath, 'at-haiku-player', 'package.json')
     : path.join(pack.abspath, 'package.json')
   var packageJson = fse.readJsonSync(packageJsonPath)
   log.log('setting ' + pack.name + ' to ' + version + ' (was ' + packageJson.version + ')')
@@ -23,12 +23,12 @@ lodash.forEach(allPackages, function (pack) {
   fse.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
 })
 
-log.log('setting plumbing\'s haiku.ai dependency version')
+log.log('setting plumbing\'s at-haiku-player dependency version')
 var plumbingPackageJsonPath = path.join(plumbingPath, 'package.json')
 var plumbingPackageJson = fse.readJsonSync(plumbingPackageJsonPath)
-var haikuaiPackageJsonPath = path.join(haikuNpmPath, 'haiku.ai', 'package.json')
+var haikuaiPackageJsonPath = path.join(haikuNpmPath, 'at-haiku-player', 'package.json')
 var haikuaiPackageJson = fse.readJsonSync(haikuaiPackageJsonPath)
-plumbingPackageJson.dependencies['haiku.ai'] = haikuaiPackageJson.version
+plumbingPackageJson.dependencies['@haiku/player'] = haikuaiPackageJson.version
 fse.outputFileSync(plumbingPackageJsonPath, JSON.stringify(plumbingPackageJson, null, 2) + '\n')
 
 var monoJsonPath = path.join(__dirname, '..', 'package.json')

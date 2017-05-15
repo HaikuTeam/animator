@@ -49,4 +49,4 @@ Pull from origin in all packages.
 
 **$ npm run mono:public-npm-bundle**
 
-Bundle the `haiku.ai` package, update its semver, and publish to npm.
+Bundle the `@haiku/player` package, update its semver, and publish to npm.

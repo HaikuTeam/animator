@@ -14,7 +14,7 @@ var allPackages = require('./helpers/allPackages')()
 var top
 lodash.forEach(allPackages, function (pack) {
   var packageJsonPath = (pack.name === 'haiku-npm')
-    ? path.join(pack.abspath, 'haiku.ai', 'package.json')
+    ? path.join(pack.abspath, 'at-haiku-player', 'package.json')
     : path.join(pack.abspath, 'package.json')
   var packageJson = fse.readJsonSync(packageJsonPath)
   if (!top) top = packageJson.version

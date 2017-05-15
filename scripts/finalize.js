@@ -30,9 +30,9 @@ async.series([
     log.log('creating public framework builds')
     cp.execSync('npm run dist:dom', { cwd: interpreterPath, stdio: 'inherit' })
     cp.execSync('npm run dist:react', { cwd: interpreterPath, stdio: 'inherit' })
-    log.log('moving public framework builds into haiku.ai')
-    fse.copySync(path.join(interpreterPath, 'dom.bundle.js'), path.join(haikuNpmPath, 'haiku.ai', 'player', 'dom', 'index.js'))
-    fse.copySync(path.join(interpreterPath, 'react.bundle.js'), path.join(haikuNpmPath, 'haiku.ai', 'player', 'dom', 'react.js'))
+    log.log('moving public framework builds into at-haiku-player')
+    fse.copySync(path.join(interpreterPath, 'dom.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'index.js'))
+    fse.copySync(path.join(interpreterPath, 'react.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'react.js'))
     cb()
   },
   function (cb) {
@@ -45,8 +45,8 @@ async.series([
     return runScript('git-push', [], cb)
   },
   function (cb) {
-    log.log('publishing haiku.ai to the npm registry')
-    cp.execSync('npm publish', { cwd: path.join(haikuNpmPath, 'haiku.ai'), stdio: 'inherit' })
+    log.log('publishing @haiku/player to the npm registry')
+    cp.execSync('npm publish --access public', { cwd: path.join(haikuNpmPath, 'at-haiku-player'), stdio: 'inherit' })
     cb()
   },
   function (cb) {

@@ -27,7 +27,7 @@ runScript('npm-semver-top', [], function (err) {
   // Then go ahead and increment all of them from that normalized semver
   lodash.forEach(allPackages, function (pack) {
     var packageJsonPath = (pack.name === 'haiku-npm')
-      ? path.join(pack.abspath, 'haiku.ai', 'package.json')
+      ? path.join(pack.abspath, 'at-haiku-player', 'player', 'package.json')
       : path.join(pack.abspath, 'package.json')
     var packageJson = fse.readJsonSync(packageJsonPath)
     var version = semver.inc(packageJson.version, level)
@@ -36,12 +36,12 @@ runScript('npm-semver-top', [], function (err) {
     fse.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
   })
 
-  log.log('setting plumbing\'s haiku.ai dependency version')
+  log.log('setting plumbing\'s at-haiku-player dependency version')
   var plumbingPackageJsonPath = path.join(plumbingPath, 'package.json')
   var plumbingPackageJson = fse.readJsonSync(plumbingPackageJsonPath)
-  var haikuaiPackageJsonPath = path.join(haikuNpmPath, 'haiku.ai', 'package.json')
+  var haikuaiPackageJsonPath = path.join(haikuNpmPath, 'at-haiku-player', 'package.json')
   var haikuaiPackageJson = fse.readJsonSync(haikuaiPackageJsonPath)
-  plumbingPackageJson.dependencies['haiku.ai'] = haikuaiPackageJson.version
+  plumbingPackageJson.dependencies['@haiku/player'] = haikuaiPackageJson.version
   fse.outputFileSync(plumbingPackageJsonPath, JSON.stringify(plumbingPackageJson, null, 2) + '\n')
 
   var monoJsonPath = path.join(__dirname, '..', 'package.json')
