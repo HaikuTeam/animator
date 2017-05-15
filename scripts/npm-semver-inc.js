@@ -27,7 +27,7 @@ runScript('npm-semver-top', [], function (err) {
   // Then go ahead and increment all of them from that normalized semver
   lodash.forEach(allPackages, function (pack) {
     var packageJsonPath = (pack.name === 'haiku-npm')
-      ? path.join(pack.abspath, 'at-haiku-player', 'player', 'package.json')
+      ? path.join(pack.abspath, 'at-haiku-player', 'package.json')
       : path.join(pack.abspath, 'package.json')
     var packageJson = fse.readJsonSync(packageJsonPath)
     var version = semver.inc(packageJson.version, level)
