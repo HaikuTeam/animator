@@ -1,12 +1,13 @@
 {
   "name": "haiku-cli",
-  "version": "2.0.69",
+  "version": "2.0.70",
   "description": "Haiku CLI",
   "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "develop": "tsc --watch",
     "transpile": "tsc",
+    "tsc": "tsc",
     "build": "nexe -i ./lib/index.js -o ./lib/bin/haiku"
   },
   "author": "Zack Brown <zack@haiku.ai>",
@@ -35,6 +36,7 @@
     "@types/request": "0.0.39",
     "@types/yargs": "^6.5.0",
     "nexe": "^1.1.2",
-    "try-thread-sleep": "^1.0.0"
+    "try-thread-sleep": "^1.0.0",
+    "typescript": "^2.3.2"
   }
 }
