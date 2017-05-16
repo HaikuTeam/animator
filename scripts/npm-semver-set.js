@@ -27,7 +27,11 @@ lodash.forEach(allPackages, function (pack) {
 
 log.log('injecting version into CLI help banner') 
 execSync(`sed -i '' -E "s/(Haiku CLI \\(version )([0-9]+\\.[0-9]+\\.[0-9]+)/\\1${version.toString()}/" ${path.join(cliPath, 'src', 'index.ts')}`) //note this sed syntax is macOS-specific
-execSync('npm run tsc', { cwd: cliPath, stdio: 'inherit' })
+try {
+  execSync('npm run tsc', { cwd: cliPath, stdio: 'inherit' })
+} catch (exception) {
+  log.log('Failed to run tsc')
+}
 
 log.log('setting plumbing\'s at-haiku-player dependency version')
 var plumbingPackageJsonPath = path.join(plumbingPath, 'package.json')
