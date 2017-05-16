@@ -1,6 +1,7 @@
 
 import * as clc from "cli-color"
 import * as path from "path"
+import * as prependFile from "prepend-file"
 import * as inquirer from "inquirer"
 import * as _ from "lodash"
 import * as os from "os"
@@ -153,9 +154,9 @@ switch (subcommand) {
 function doAwaitShare() {
   var id = args[0]
   inkstone.snapshot.awaitSnapshotLink(id, (err, str) => {
-    if(err !== undefined){
+    if (err !== undefined) {
       console.log(chalk.red(err))
-    }else{
+    } else {
       console.log(chalk.green("Share link: " + str))
     }
   })
@@ -246,7 +247,7 @@ function doDelete() {
 function doDiffTail() {
   try {
     var tailer = new tail.Tail(os.homedir() + "/.haiku/logs/haiku-diffs.log")
-    tailer.on("line", function(data) {
+    tailer.on("line", function (data) {
       console.log(data)
     })
   } catch (e) {
@@ -354,55 +355,27 @@ function doInstall() {
               //now projectString should be @haiku/org-project
               packageJson.dependencies[projectString] = "latest"
 
-              //inject .haiku script call into prepare
-              if (!packageJson.scripts) packageJson.scripts = {}
-              if (!packageJson.scripts.prepare) packageJson.scripts.prepare = ""
-
-              if (packageJson.scripts.prepare.indexOf('./.haiku/scripts/prepare') === -1) {
-                packageJson.scripts.prepare = './.haiku/scripts/prepare; ' + packageJson.scripts.prepare
+              //Set up @haiku scope for this project if it doesn't exist
+              var npmrc = ""
+              try {
+                npmrc = fs.readFileSync(".npmrc").toString()
+              } catch (err) {
+                if (err.code === 'ENOENT') {
+                  //file not found, this is fine
+                } else {
+                  //different error, should throw
+                  throw (err)
+                }
               }
-
-              //write scripts to ./.haiku
-              //TODO:  rewrite in node for Windows portability (i.e. for Windows users who use a project that has a @haiku dep)
-              //TODO:  make more robust and reusable—either pull latest .haiku scripts from a tarball or embed in Resources folder of distro
-              
-              //TODO:  npm hooks appear unreliable, and npm creator says "npm's configuration should be considered immutable for the duration of an install or lifecycle script execution."  he doesn't want to expose a hook for pre-`npm install` logic.
-              //       Instead of this hook script, let's just create (or prepend) a project-local .npmrc w/ the haiku scope config and make sure it's not git-ignored
-              //       see this on-going thread:  https://github.com/npm/npm/issues/10379
-              
-              var prepare = dedent`
-                #!/bin/bash
-
-                # this script ensures that the @haiku npm scope is set up
-                # on this user's machine.  intended to be injected as a
-                # prepare script, so that the scope is automatically
-                # set up before a new user npm installs
-
-                # if the scope is not set up before new users install,
-                # npm install will fail.
-
-                touch ~/.npmrc
-                chmod 0600 ~/.npmrc
-                if [[ -z $(grep "@haiku" ~/.npmrc) ]] ; then
-                    #prepend haiku registry info to npmrc
-                    echo '//reservoir.haiku.ai:8910/:_authToken=""\n@haiku:registry=https://reservoir.haiku.ai:8910/\n' | cat - ~/.npmrc > /tmp/tempnpmrc && mv /tmp/tempnpmrc ~/.npmrc
-                fi
-
-                # if gitignore doesn't exist, or it DOES exist but doesn't contain the !.haiku rule, inject it
-                grep -q "!.haiku" ./.gitignore
-                if  [ $? -eq 1 ] || ( ! [ -e ./.gitignore ] ) ; then
-                    echo "#[!IMPORTANT] if the .haiku folder is ignored, other team members" >> ./.gitignore
-                    echo "#    ||       will be unable to perform npm install.  The !.haiku rule" >> ./.gitignore
-                    echo "#    \/       is included here as a reminder not to ignore it." >> ./.gitignore
-                    echo "!.haiku" >> ./.gitignore
-                fi
-              `
-              mkdirp.sync(process.cwd() + '/.haiku/scripts')
-              fs.writeFileSync(process.cwd() + '/.haiku/scripts/prepare', prepare, { mode: 0o777, flag: 'w' })
+              if (npmrc.indexOf("@haiku") === -1) {
+                prependFile.sync(".npmrc", dedent`
+                  //reservoir.haiku.ai:8910/:_authToken=
+                  @haiku:registry=https://reservoir.haiku.ai:8910/
+                `)
+              }
 
               client.npm.writePackageJson(packageJson)
               try {
-                execSync("./.haiku/scripts/prepare")
                 execSync("npm install")
               } catch (e) {
                 console.log(chalk.red("npm install failed.") + " Your Haiku packages have been injected into package.json, but npm install failed.  Please try again.")
