@@ -4,10 +4,12 @@ var path = require('path')
 var argv = require('yargs').argv
 var semver = require('semver')
 var log = require('./helpers/log')
+var execSync = require('child_process').execSync
 var allPackages = require('./helpers/allPackages')()
 var groups = lodash.keyBy(allPackages, 'name')
 var haikuNpmPath = groups['haiku-npm'].abspath
 var plumbingPath = groups['haiku-plumbing'].abspath
+var cliPath = groups['haiku-cli'].abspath
 
 var version = argv.version
 if (!version) throw new Error('Version required')
@@ -22,6 +24,10 @@ lodash.forEach(allPackages, function (pack) {
   packageJson.version = version
   fse.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
 })
+
+log.log('injecting version into CLI help banner') 
+execSync(`sed -i '' -E "s/(Haiku CLI \\(version )([0-9]+\\.[0-9]+\\.[0-9]+)/\\1${version.toString()}/" ${path.join(cliPath, 'src', 'index.ts')}`) //note this sed syntax is macOS-specific
+execSync('npm run tsc', { cwd: cliPath, stdio: 'inherit' })
 
 log.log('setting plumbing\'s at-haiku-player dependency version')
 var plumbingPackageJsonPath = path.join(plumbingPath, 'package.json')
