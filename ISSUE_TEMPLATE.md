@@ -1,24 +1,9 @@
-**Important information:**
+Summary:
 
-  - Release version:
-  - Git sha (if using mono):
-  - Username/password:
-  - Organization/project:
+Steps to reproduce:
 
-**What were you trying to do? What happened instead?**
+Screenshots, logs, etc:
 
+Release version, system info, etc:
 
-**Steps to reproduce the problem:**
-
-  1.
-  1.
-  1.
-
-**Screenshots of the issue in action:**
-
-
-**Logs and other useful info:**
-
-```
-// paste logs here
-```
+Account, project info, etc:
