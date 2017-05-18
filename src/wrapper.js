@@ -14,7 +14,10 @@ var DEFAULTS = {
   clock: {}, // See clock.js for options
   sizing: null, // Sizing mode (string: normal|stretch|cover)
   preserve3d: 'auto',
-  contextMenu: 'enabled'
+  contextMenu: 'enabled',
+  position: 'relative',
+  overflowX: null,
+  overflowY: null
 }
 
 function wrapper (renderer, bytecode, wrapperOptions, platform) {
@@ -80,6 +83,29 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
       renderer.patch(mount, container, patches, address, hash, options, component._scopes)
     }
 
+    function updateRootStyles () {
+      var _root = mount && mount.children[0]
+      if (_root) {
+        if (options.position) {
+          if (_root.style.position !== options.position) {
+            _root.style.position = options.position
+          }
+        }
+
+        if (options.overflowX) {
+          if (_root.style.overflowX !== options.overflowX) {
+            _root.style.overflowX = options.overflowX
+          }
+        }
+
+        if (options.overflowY) {
+          if (_root.style.overflowY !== options.overflowY) {
+            _root.style.overflowY = options.overflowY
+          }
+        }
+      }
+    }
+
     // function performEventsOnlyFlush () {
     //   var container = renderer.createContainer(mount)
     //   var eventListenerPatches = context.component.patchEventListeners(container)
@@ -87,6 +113,8 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
     // }
 
     function tick () {
+      updateRootStyles()
+
       // After we've hydrated the tree the first time, we can proceed with patches,
       // unless the component needs to perform a full flush for some reason
       if (context.component.shouldPerformFullFlush() || ticks < 1) {
