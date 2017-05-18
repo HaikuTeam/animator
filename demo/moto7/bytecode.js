@@ -18,6 +18,9 @@ module.exports = {
       "haiku:cc9a7f1a63bb": {
         "style.WebkitTapHighlightColor": { "0": { value: "rgba(0,0,0,0)" } },
         "style.margin": { "0": { value: "0 auto" } },
+        "style.position": { "0": { value: "relative" } },
+        "style.overflowX": { "0": { value: "hidden" } },
+        "style.overflowY": { "0": { value: "hidden" } },
         "sizeAbsolute.x": {
           "0": { value: 664, edited: true },
           "17": { value: 664, edited: true }
