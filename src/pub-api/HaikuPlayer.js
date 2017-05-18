@@ -2,6 +2,7 @@ var Emitter = require('./../emitter')
 var Constants = require('./../constants')
 var HaikuTimeline = require('./HaikuTimeline')
 var HaikuClock = require('./HaikuClock')
+var HaikuBytecode = require('./HaikuBytecode')
 
 function HaikuPlayer (_component) {
   if (!(this instanceof HaikuPlayer)) return new HaikuPlayer(_component)
@@ -11,8 +12,31 @@ function HaikuPlayer (_component) {
   this.VERSION = require('./../../package.json').version
 }
 
+HaikuPlayer.prototype.setOption = function setOption (key, value) {
+  this.getOptions()[key] = value
+  return this
+}
+
+HaikuPlayer.prototype.getOption = function getOption (key) {
+  return this.getOptions()[key]
+}
+
+HaikuPlayer.prototype.getOptions = function getOptions () {
+  return this._component.options
+}
+
+HaikuPlayer.prototype.setOptions = function setOptions (incoming) {
+  var options = this.getOptions()
+  for (var key in incoming) options[key] = incoming[key]
+  return this
+}
+
 HaikuPlayer.prototype.getClock = function getClock () {
   return new HaikuClock(this)
+}
+
+HaikuPlayer.prototype.getBytecode = function getBytecode () {
+  return new HaikuBytecode(this)
 }
 
 HaikuPlayer.prototype.getTimelines = function getTimelines () {

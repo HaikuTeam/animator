@@ -46,6 +46,7 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
     // Options can also be passed at the execution level
     options = assign(options, runnerOptions) // Already merged with DEFAULTS
     assign(context.options, options) // Make sure new props are available on the context
+    assign(component.options, options) // Make sure new props are available on the component
 
     if (renderer.menuize && options.contextMenu !== 'disabled') {
       renderer.menuize(mount, component.instance)
@@ -59,6 +60,7 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
     }
 
     controller.emit('haikuComponentWillInitialize', component.instance)
+    component.instance.emit('haikuComponentWillInitialize', component.instance)
     if (options.onHaikuComponentWillInitialize) options.onHaikuComponentWillInitialize(component.instance)
 
     runner.controller = controller
@@ -103,6 +105,7 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
           }
         }
         controller.emit('haikuComponentDidMount', component.instance)
+        component.instance.emit('haikuComponentDidMount', component.instance)
         if (options.onHaikuComponentDidMount) options.onHaikuComponentDidMount(component.instance)
       }
       ticks++
@@ -122,6 +125,7 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
     runner.tick = tick
 
     controller.emit('haikuComponentDidInitialize', component.instance)
+    component.instance.emit('haikuComponentDidInitialize', component.instance)
     if (options.onHaikuComponentDidInitialize) options.onHaikuComponentDidInitialize(component.instance)
 
     // Expose public API to end user for programmatic control
