@@ -5,7 +5,7 @@ var assign = require('lodash.assign')
 function Context (component, options) {
   var tickables = []
 
-  this.options = assign({}, options)
+  this.assignOptions(options)
 
   if (this.options.frame) {
     tickables.push({ performTick: this.options.frame })
@@ -20,6 +20,15 @@ function Context (component, options) {
   this.component.startTimeline(Timeline.DEFAULT_NAME)
 }
 
-Context.prototype.getChildren
+Context.prototype.assignOptions = function assignOptions (options) {
+  this.options = assign({}, options)
+
+  // HACK: We run this before the clock is initialized sometimes so have to check
+  if (this.clock) {
+    this.clock.assignOptions(this.options.clock)
+  }
+
+  return this
+}
 
 module.exports = Context

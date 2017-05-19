@@ -48,8 +48,8 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
 
     // Options can also be passed at the execution level
     options = assign(options, runnerOptions) // Already merged with DEFAULTS
-    assign(context.options, options) // Make sure new props are available on the context
-    assign(component.options, options) // Make sure new props are available on the component
+    context.assignOptions(options)
+    component.assignOptions(options)
 
     if (renderer.menuize && options.contextMenu !== 'disabled') {
       renderer.menuize(mount, component.instance)

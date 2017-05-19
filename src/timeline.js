@@ -6,6 +6,9 @@ var NUMBER = 'number'
 
 function Timeline (time, descriptor, name, options) {
   Emitter.create(this)
+
+  this.assignOptions(options)
+
   this.name = name
   this.control = null
   this.global = time || 0
@@ -13,10 +16,13 @@ function Timeline (time, descriptor, name, options) {
   this.active = true
   this.isPlaying = true
   this.max = _getMaxTimeFromDescriptor(descriptor)
-  this.loop = !!(options && options.loop)
 }
 
 Timeline.DEFAULT_NAME = Constants.DEFAULT_TIMELINE_NAME
+
+Timeline.prototype.assignOptions = function assignOptions (options) {
+  this.loop = !!(options && options.loop)
+}
 
 Timeline.prototype.performUpdate = function performUpdate (time) {
   var previous = this.global

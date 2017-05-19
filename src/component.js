@@ -9,9 +9,12 @@ var DEFAULTS = {}
 var METAS = {}
 
 function Component (bytecode, options, metas) {
-  this.options = assign({}, DEFAULTS, options)
   this.metas = assign({}, METAS, metas)
   this.store = new Store().allocate(Math.random() + '')
+
+  // The store must be initialized before we do this
+  this.assignOptions(options)
+
   this.bytecode = new Bytecode(bytecode)
   this.template = new Template(this.bytecode.getTemplate(), this)
   this.instance = new Instance(this)
@@ -32,6 +35,16 @@ Component.isBytecode = function isBytecode (something) {
 
 Component.isComponent = function isComponent (something) {
   return something && typeof something.render === FUNCTION_TYPE
+}
+
+Component.prototype.assignOptions = function assignOptions (options) {
+  this.options = assign({}, DEFAULTS, options)
+  var timelines = this.store.get('timelines')
+  for (var timelineName in timelines) {
+    var timeline = timelines[timelineName]
+    timeline.assignOptions(this.options)
+  }
+  return this
 }
 
 Component.prototype.shouldPerformFullFlush = function shouldPerformFullFlush () {

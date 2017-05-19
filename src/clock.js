@@ -9,7 +9,7 @@ var DEFAULTS = {
 }
 
 function Clock (tickables, options) {
-  this.options = assign({}, DEFAULTS, options)
+  this.assignOptions(options)
 
   this.running = false
   this.control = null
@@ -20,15 +20,18 @@ function Clock (tickables, options) {
   this.time = 0 // Calculated time value (ms)
   this.delta = 0 // Time elapsed since last step (ms)
 
-  // These values configure the clock behavior:
-  this.cycle = this.options.cycle // Time to elapse per frame (ms)
-  this.speed = this.options.speed // How fast to step (ms)
-  this.margin = this.options.margin // Margin of error
-
   // Avoid detachment when called by raf
   this.loop = this.loop.bind(this)
   this.tickables = tickables || []
   this.raf = null
+}
+
+Clock.prototype.assignOptions = function assignOptions (options) {
+  this.options = assign({}, DEFAULTS, options)
+  // These values configure the clock behavior:
+  this.cycle = this.options.cycle // Time to elapse per frame (ms)
+  this.speed = this.options.speed // How fast to step (ms)
+  this.margin = this.options.margin // Margin of error
 }
 
 Clock.prototype.isTimeControlled = function isTimeControlled () {
