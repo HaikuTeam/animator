@@ -5,7 +5,7 @@ module.exports = creation(require('./bytecode'), {
   onHaikuComponentDidMount: function (instance) {
     var el = document.querySelector('#Heart')
     el.addEventListener('click', function (event) {
-      instance.getDefaultTimeline().play()
+      instance.getDefaultTimeline().gotoAndPlay(0)
     })
   }
 })

@@ -109,7 +109,7 @@ module.exports = function createRightClickMenu (domElement, playerInstance) {
 
   domElement.addEventListener('contextmenu', function (contextmenuEvent) {
     contextmenuEvent.preventDefault()
-    
+
     var mx = contextmenuEvent.pageX
     var my = contextmenuEvent.pageY
     revealMenu(mx, my)
