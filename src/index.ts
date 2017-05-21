@@ -213,7 +213,7 @@ function doClaimInvite() {
       if (valid) console.log(chalk.green("Invite successfully claimed. Welcome to Haiku!"))
       else console.log(chalk.red(err))
     })
-  }
+  })
 }
 
 
