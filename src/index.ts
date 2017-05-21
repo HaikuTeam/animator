@@ -223,7 +223,7 @@ function doClone() {
   if (destination.charAt(destination.length - 1) !== "/") destination += "/"
 
   ensureAuth(function (token) {
-    inkstone.project.getByName(projectName, function (err, projectAndCredentials) {
+    inkstone.project.getByName(token, projectName, function (err, projectAndCredentials) {
       if (err) {
         console.log(chalk.bold(`Project ${projectName} not found.`))
         process.exit(1)
@@ -259,7 +259,8 @@ function doCreate() {
     ]).then(function (answers: inquirer.Answers) {
       var projectName = answers["name"]
       console.log("Creating project...")
-      inkstone.project.create({ Name: projectName }, (err, project) => {
+      
+      inkstone.project.create(token, { Name: projectName }, (err, project) => {
         if (err) {
           console.log(chalk.red("Error creating project.  Does this project with this name already exist?"))
           process.exit(1)
@@ -285,7 +286,7 @@ function doDelete() {
     ]).then(function (answers: inquirer.Answers) {
       var projectName = answers["name"]
       console.log("Deleting project...")
-      inkstone.project.deleteByName(projectName, (err, project) => {
+      inkstone.project.deleteByName(token, projectName, (err, project) => {
         if (err) {
           console.log(chalk.red("Error deleting project.  Does this project exist?"))
           process.exit(1)
@@ -317,7 +318,7 @@ function doImport() {
   if (destination.charAt(destination.length - 1) !== "/") destination += "/"
 
   ensureAuth(function (token) {
-    inkstone.project.getByName(projectName, function (err, projectAndCredentials) {
+    inkstone.project.getByName(token, projectName, function (err, projectAndCredentials) {
       if (err) {
         console.log(chalk.bold(`Project ${projectName} not found.`))
       } else {
@@ -391,14 +392,14 @@ function doInstall() {
 
           //construct project string: @haiku/org-project#latest          
           var projectString = "@haiku/"
-          inkstone.organization.list((err, orgs) => {
+          inkstone.organization.list(token, (err, orgs) => {
             if (err !== undefined) {
               console.log(chalk.red("There was an error retrieving your account information.") + "  Please ensure that you have internet access.  If this problem persists, please contact support@haiku.ai and tell us that you don't have an organization associated with your account.")
               process.exit(1)
             }
             projectString += orgs[0].Name.toLowerCase() + "-"
 
-            inkstone.project.getByName(projectName, (err, projectAndCredentials) => {
+            inkstone.project.getByName(token, projectName, (err, projectAndCredentials) => {
               if (err != undefined) {
                 console.log(chalk.red("That project wasn't found.") + "  Please ensure that you have the correct project name, that you're logged into the correct account and that you have internet access.")
                 process.exit(1)
@@ -460,7 +461,7 @@ function doList() {
   ensureAuth((token: string) => {
 
     if (flags && flags.organizations) {
-      inkstone.organization.list((err, organizations) => {
+      inkstone.organization.list(token, (err, organizations) => {
         if (organizations == undefined || organizations.length == 0) {
           console.log("You are not a member of any organizations.")
         } else {
@@ -473,7 +474,7 @@ function doList() {
       process.exit(0)
     } else {
 
-      inkstone.project.list((err, projects) => {
+      inkstone.project.list(token, (err, projects) => {
         if (projects == undefined || projects.length == 0) {
           console.log("No existing projects.  Use " + chalk.bold("haiku generate") + " to make a new one!")
           process.exit(0)
@@ -517,6 +518,7 @@ function doLogin(cb?: Function) {
           console.log(err)
         }
       } else {
+        client.config.setAuthToken(authResponse.Token)
         console.log(chalk.bold.green(`Welcome ${username}!`))
       }
       if (cb) {
@@ -538,7 +540,7 @@ function doOpen() {
   var projectName = args[0]
 
   ensureAuth(function (token) {
-    inkstone.project.getByName(projectName, function (err, project) {
+    inkstone.project.getByName(token, projectName, function (err, project) {
       console.log("TODO:  launch an instance of Haiku with this project open:", project)
       process.exit(0)
     })
