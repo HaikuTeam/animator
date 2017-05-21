@@ -102,6 +102,10 @@ switch (subcommand) {
     //undocumented; used for SDK development
     doAwaitShare()
     break
+  case "check-invite":
+    //undocumented: used for SDK development
+    doCheckInvite()
+    break
   case "clone":
     doClone()
     break
@@ -159,6 +163,14 @@ function doAwaitShare() {
     } else {
       console.log(chalk.green("Share link: " + str))
     }
+  })
+}
+
+function doCheckInvite() {
+  var code = args[0]
+  inkstone.invite.checkValidity(code, (err, valid) => {
+    if(valid) console.log(chalk.green("invite is valid"))
+    else console.log(chalk.red(err))
   })
 }
 
