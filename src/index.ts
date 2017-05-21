@@ -106,6 +106,10 @@ switch (subcommand) {
     //undocumented: used for SDK development
     doCheckInvite()
     break
+  case "claim-invite":
+    //undocumented: used for SDK development
+    doClaimInvite()
+    break
   case "clone":
     doClone()
     break
@@ -169,9 +173,47 @@ function doAwaitShare() {
 function doCheckInvite() {
   var code = args[0]
   inkstone.invite.checkValidity(code, (err, valid) => {
-    if(valid) console.log(chalk.green("invite is valid"))
+    if (valid) console.log(chalk.green("invite is valid"))
     else console.log(chalk.red(err))
   })
+}
+
+function doClaimInvite() {
+  inquirer.prompt([
+    {
+      type: "input",
+      name: "code",
+      message: "Invite Code:",
+    },
+    {
+      type: "input",
+      name: "email",
+      message: "Email Address:",
+    },
+    {
+      type: "password",
+      name: "password",
+      message: "Password:",
+    },
+    {
+      type: "input",
+      name: "organizationName",
+      message: "Organization Name (only needed if org invite):",
+    }
+  ]).then(function (answers: inquirer.Answers) {
+    var projectName = answers["name"]
+    var claim: inkstone.invite.InviteClaim = {
+      Code: answers["code"],
+      Email: answers["email"],
+      OrganizationName: answers["organizationName"],
+      Password: answers["password"]
+    }
+
+    inkstone.invite.claimInvite(claim, (err, valid) => {
+      if (valid) console.log(chalk.green("Invite successfully claimed. Welcome to Haiku!"))
+      else console.log(chalk.red(err))
+    })
+  }
 }
 
 
