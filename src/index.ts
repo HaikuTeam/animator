@@ -79,6 +79,12 @@ export namespace inkstone {
       Code: string
     }
 
+    export interface InvitePresetDetails {
+      Valid?: Validity,
+      Email?: string,
+      OrganizationName?: string,
+    }
+
     export interface InviteClaim {
       Code: string
       Email: string
@@ -86,7 +92,14 @@ export namespace inkstone {
       OrganizationName?: string
     }
 
-    export function checkValidity(code: string, cb: inkstone.Callback<boolean>) {
+    export enum Validity {
+      VALID = 0,
+      INVALID = 1,
+      ALREADY_CLAIMED = 2,
+      ERROR = 3
+    }
+
+    export function checkValidity(code: string, cb: inkstone.Callback<InvitePresetDetails>) {
       var options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: _inkstoneConfig.baseUrl + ENDPOINTS.INVITE_CHECK.replace(":CODE", code),
         headers: {
@@ -96,14 +109,16 @@ export namespace inkstone {
 
       request.get(options, function (err, httpResponse, body) {
         if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, true, httpResponse)
+          var invitePreset = JSON.parse(body) as InvitePresetDetails
+          invitePreset.Valid = Validity.VALID
+          cb(undefined, invitePreset, httpResponse)
         } else {
           if (httpResponse.statusCode === 404) {
-            cb("invalid code", false, httpResponse)
+            cb("invalid code", { Valid: Validity.INVALID }, httpResponse)
           } else if (httpResponse.statusCode === 410) {
-            cb("code already claimed", false, httpResponse)
+            cb("code already claimed", { Valid: Validity.ALREADY_CLAIMED }, httpResponse)
           } else {
-            cb("uncategorized error", false, httpResponse)
+            cb("uncategorized error", { Valid: Validity.ERROR }, httpResponse)
           }
         }
       })
@@ -260,7 +275,7 @@ export namespace inkstone {
       })
     }
 
-    export function list(authToken : string, cb: inkstone.Callback<Project[]>) {
+    export function list(authToken: string, cb: inkstone.Callback<Project[]>) {
 
       var options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: _inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_LIST,
@@ -302,7 +317,7 @@ export namespace inkstone {
 
 
     export function deleteByName(authToken: string, name: string, cb: inkstone.Callback<boolean>) {
-      
+
       var options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: _inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_DELETE_BY_NAME.replace(":NAME", encodeURIComponent(name)),
         headers: {

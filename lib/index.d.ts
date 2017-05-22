@@ -19,13 +19,24 @@ export declare namespace inkstone {
         interface Invite {
             Code: string;
         }
+        interface InvitePresetDetails {
+            Valid?: Validity;
+            Email?: string;
+            OrganizationName?: string;
+        }
         interface InviteClaim {
             Code: string;
             Email: string;
             Password: string;
             OrganizationName?: string;
         }
-        function checkValidity(code: string, cb: inkstone.Callback<boolean>): void;
+        enum Validity {
+            VALID = 0,
+            INVALID = 1,
+            ALREADY_CLAIMED = 2,
+            ERROR = 3,
+        }
+        function checkValidity(code: string, cb: inkstone.Callback<InvitePresetDetails>): void;
         function claimInvite(claim: InviteClaim, cb: inkstone.Callback<boolean>): void;
     }
     namespace organization {
