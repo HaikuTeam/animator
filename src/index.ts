@@ -14,7 +14,8 @@ import * as fs from "fs"
 import * as hasbin from "hasbin"
 import { execSync } from 'child_process'
 
-import { inkstone, client } from "haiku-sdk"
+import { inkstone } from "haiku-sdk-inkstone"
+import { client } from "haiku-sdk-client"
 
 let dedent = require("dedent")
 
