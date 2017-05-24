@@ -16,9 +16,6 @@
 [submodule "packages/haiku-plumbing"]
 	path = packages/haiku-plumbing
 	url = git@github.com:HaikuTeam/plumbing
-[submodule "packages/haiku-sdk"]
-	path = packages/haiku-sdk
-	url = git@github.com:HaikuTeam/sdk
 [submodule "packages/haiku-serialization"]
 	path = packages/haiku-serialization
 	url = git@github.com:HaikuTeam/serialization
@@ -34,3 +31,9 @@
 [submodule "packages/haiku-glass"]
 	path = packages/haiku-glass
 	url = git@github.com:HaikuTeam/glass.git
+[submodule "packages/haiku-sdk-inkstone"]
+	path = packages/haiku-sdk-inkstone
+	url = git@github.com:HaikuTeam/sdk-inkstone.git
+[submodule "packages/haiku-sdk-client"]
+	path = packages/haiku-sdk-client
+	url = git@github.com:HaikuTeam/sdk-client.git

@@ -53,7 +53,8 @@ var instructionSets = {
     // ['haiku-glass', ['npm', 'run', 'zack']], // You can run this piecemeal *instead of creator*
     ['haiku-creator', ['npm', 'run', 'zack']],
     ['haiku-cli', ['npm', 'run', 'develop']],
-    ['haiku-sdk', ['npm', 'run', 'develop']]
+    ['haiku-sdk-client', ['npm', 'run', 'develop']],
+    ['haiku-sdk-inkstone', ['npm', 'run', 'develop']]
   ],
 
   puzzle: [
