@@ -3,6 +3,7 @@ var fse = require('fs-extra')
 var cp = require('child_process')
 var path = require('path')
 var async = require('async')
+var argv = require('yargs').argv
 var log = require('./helpers/log')
 var runScript = require('./helpers/runScript')
 var allPackages = require('./helpers/allPackages')()
@@ -10,6 +11,12 @@ var groups = lodash.keyBy(allPackages, 'name')
 var interpreterPath = groups['haiku-interpreter'].abspath
 var haikuNpmPath = groups['haiku-npm'].abspath
 var ROOT = path.join(__dirname, '..')
+
+var branch = argv.branch
+if (!branch) throw new Error('Provide a branch (e.g. "master"), please!')
+
+var remote = argv.remote
+if (!branch) throw new Error('Provide a remote (e.g. "origin"), please!')
 
 /**
  * Run this script when you're done making changes and want to push your code.
@@ -21,7 +28,7 @@ log.log('finalizing changes')
 
 async.series([
   function (cb) {
-    return runScript('git-pull', [], cb)
+    return runScript('git-pull', [`--branch=${branch}`, `--remote=${remote}`], cb)
   },
   function (cb) {
     return runScript('npm-semver-inc', ['--level=patch'], cb)
@@ -39,10 +46,10 @@ async.series([
     return runScript('git-ac', ['--message="auto: Housekeeping"'], cb)
   },
   function (cb) {
-    return runScript('sha-norm', [], cb)
+    return runScript('sha-norm', [`--branch=${branch}`, `--remote=${remote}`], cb)
   },
   function (cb) {
-    return runScript('git-push', [], cb)
+    return runScript('git-push', [`--branch=${branch}`, `--remote=${remote}`], cb)
   },
   function (cb) {
     log.log('publishing @haiku/player to the npm registry')
@@ -52,8 +59,8 @@ async.series([
   function (cb) {
     cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
     cp.execSync('git commit -m "auto: Housekeeping"', { cwd: ROOT, stdio: 'inherit' })
-    cp.execSync('git pull', { cwd: ROOT, stdio: 'inherit' })
-    cp.execSync('git push origin HEAD:master', { cwd: ROOT, stdio: 'inherit' })
+    cp.execSync('git pull ' + remote + ' ' + branch, { cwd: ROOT, stdio: 'inherit' })
+    cp.execSync('git push ' + remote + ' HEAD:' + branch, { cwd: ROOT, stdio: 'inherit' })
     cb()
   }
 ], function (err) {

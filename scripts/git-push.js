@@ -4,15 +4,16 @@ var argv = require('yargs').argv
 var log = require('./helpers/log')
 var allPackages = require('./helpers/allPackages')()
 
-var DEFAULT_ORIGIN = 'master'
-var origin = argv.origin || DEFAULT_ORIGIN
+var branch = argv.branch || 'master'
+var remote = argv.remote || 'origin'
+console.log(remote, branch)
 
-async.eachSeries(allPackages, function (pack, next) {
-  log.log('git pushing ' + pack.name)
-  try {
-    cp.execSync('git push origin HEAD:' + origin, { cwd: pack.abspath })
-  } catch (exception) {
-    log.log(exception.message)
-  }
-  return next()
-})
+// async.eachSeries(allPackages, function (pack, next) {
+//   log.log('git pushing ' + pack.name)
+//   try {
+//     cp.execSync('git push ' + remote + ' HEAD:' + branch, { cwd: pack.abspath })
+//   } catch (exception) {
+//     log.log(exception.message)
+//   }
+//   return next()
+// })
