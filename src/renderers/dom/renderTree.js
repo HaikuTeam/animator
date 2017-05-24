@@ -2,12 +2,29 @@ var isBlankString = require('./isBlankString')
 var removeElement = require('./removeElement')
 var locatorBump = require('./locatorBump')
 
+function _cloneVirtualElement (virtualElement) {
+  return {
+    elementName: virtualElement.elementName,
+    attributes: _cloneAttributes(virtualElement.attributes),
+    children: virtualElement.children
+  }
+}
+
+function _cloneAttributes (attributes) {
+  if (!attributes) return {}
+  var clone = {}
+  for (var key in attributes) clone[key] = attributes[key]
+  return clone
+}
+
 function renderTree (domElement, virtualElement, virtualChildren, locator, hash, options, scopes, isPatchOperation) {
   hash[locator] = domElement
 
   if (!domElement.haiku) domElement.haiku = {}
   domElement.haiku.locator = locator
-  domElement.haiku.element = virtualElement
+
+  // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
+  domElement.haiku.element = _cloneVirtualElement(virtualElement)
 
   if (!Array.isArray(virtualChildren)) {
     return domElement
@@ -43,7 +60,12 @@ function renderTree (domElement, virtualElement, virtualChildren, locator, hash,
     } else {
       if (!domChild.haiku) domChild.haiku = {}
       domChild.haiku.locator = sublocator
-      if (!domChild.haiku.element) domChild.haiku.element = virtualChild
+
+      if (!domChild.haiku.element) {
+         // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
+        domChild.haiku.element = _cloneVirtualElement(virtualChild)
+      }
+
       updateElement(domChild, virtualChild, domElement, virtualElement, sublocator, hash, options, scopes, isPatchOperation)
     }
   }

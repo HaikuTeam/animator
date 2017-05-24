@@ -17,7 +17,10 @@ function getElementByFlexId (topLevelDomElement, flexId, scopes) {
 }
 
 function patch (topLevelDomElement, virtualContainer, patchesDict, locator, hash, options, scopes) {
-  if (Object.keys(patchesDict) < 1) return topLevelDomElement
+  if (Object.keys(patchesDict) < 1) {
+    return topLevelDomElement
+  }
+
   for (var flexId in patchesDict) {
     var virtualElement = patchesDict[flexId]
 
