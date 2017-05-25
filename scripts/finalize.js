@@ -114,10 +114,10 @@ async.series([
     cb()
   },
   function (cb) {
-    return runScript('sha-norm', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
+    return runScript('git-ac', [`--message=${JSON.stringify(inputs.commitMessage)}`], cb)
   },
   function (cb) {
-    return runScript('git-ac', [`--message=${JSON.stringify(inputs.commitMessage)}`], cb)
+    return runScript('sha-norm', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
   function (cb) {
     return runScript('git-push', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)

@@ -8,10 +8,6 @@ Basically, all Haiku projects are git submodules installed under `packages/`.
 
 A suite of command-line tools is provided here to make cross-project management simpler.
 
-If you find piecemeal development across our many repos too annoying (hint: it is!), use this.
-
-_Feel free to add scripts/tasks that improve this repo!_
-
 ## Setup
 
 Clone this repo. Then:
@@ -23,30 +19,18 @@ Clone this repo. Then:
 
 ## Development
 
-Assuming you've done the initial setup:
+Assuming you've done the initial setup, you can start all the dev servers with:
 
     $ npm start
 
+Once you're done developing, you probably want to run:
+
+    $ npm run mono:finalize
+
+This will prompt you for some settings, then synchronize all the repos for you.
+
 For more, see the [Mono Workflows doc on Quip](https://haiku.quip.com/wwDEAZnZotvA).
 
-## Scripts
+## Contributing
 
-**$ npm run mono:npm-install**
-
-Run `npm install` (plus some add'l tasks) in all packages.
-
-**$ npm run mono:sha-norm**
-
-Set all `haiku-` dependency SHAs to the local `HEAD` commit ref in all packages.
-
-**$ npm run mono:git-push**
-
-Push all  packages to the origin repo. (Quietly fails if nothing to push.)
-
-**$ npm run mono:git-pull**
-
-Pull from origin in all packages.
-
-**$ npm run mono:public-npm-bundle**
-
-Bundle the `@haiku/player` package, update its semver, and publish to npm.
+Script improvements are welcomed.
