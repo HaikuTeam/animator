@@ -25,8 +25,8 @@ lodash.forEach(allPackages, function (pack) {
   fse.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
 })
 
-log.log('injecting version into CLI help banner') 
-execSync(`sed -i '' -E "s/(Haiku CLI \\(version )([0-9]+\\.[0-9]+\\.[0-9]+)/\\1${version.toString()}/" ${path.join(cliPath, 'src', 'index.ts')}`) //note this sed syntax is macOS-specific
+log.log('injecting version into CLI help banner')
+execSync(`sed -i '' -E "s/(Haiku CLI \\(version )([0-9]+\\.[0-9]+\\.[0-9]+)/\\1${version.toString()}/" ${path.join(cliPath, 'src', 'index.ts')}`) // note this sed syntax is macOS-specific
 try {
   execSync('npm run tsc', { cwd: cliPath, stdio: 'inherit' })
 } catch (exception) {
