@@ -98,9 +98,9 @@ async.series([
       })
     })
   },
-  // function (cb) {
-  //   return runScript('git-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
-  // },
+  function (cb) {
+    return runScript('git-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
+  },
   function (cb) {
     return runScript('npm-semver-inc', [`--level=${inputs.semverBumpLevel}`], cb)
   },
