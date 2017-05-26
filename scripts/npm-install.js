@@ -9,6 +9,7 @@ var EXEC_OPTIONS = {
 
 lodash.forEach(allPackages, function (pack) {
   log.log('npm install for ' + pack.name)
+
   cp.execSync('npm install', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath }))
 
   // special snowflake...
