@@ -74,8 +74,14 @@ async.series([
       {
         type: 'input',
         name: 'commitMessage',
-        message: 'Commit message:',
+        message: 'Commit message (for the packages):',
         default: inputs.commitMessage || 'auto: Housekeeping'
+      },
+      {
+        type: 'input',
+        name: 'finalUberCommitMessage',
+        message: 'Final uber-commit message (for mono itself):',
+        default: inputs.finalUberCommitMessage || 'auto: Housekeeping'
       }
     ]).then(function (answers) {
       lodash.assign(inputs, answers)
@@ -136,7 +142,7 @@ async.series([
     log.log('finishing up git cleanup in mono itself')
     try {
       cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
-      cp.execSync('git commit -m "auto: Housekeeping"', { cwd: ROOT, stdio: 'inherit' })
+      cp.execSync('git commit -m ' + JSON.stringify(inputs/finalUberCommitMessage), { cwd: ROOT, stdio: 'inherit' })
       cp.execSync('git pull ' + inputs.remote + ' ' + inputs.branch, { cwd: ROOT, stdio: 'inherit' })
       cp.execSync('git push ' + inputs.remote + ' HEAD:' + inputs.branch, { cwd: ROOT, stdio: 'inherit' })
       return cb()
