@@ -224,6 +224,7 @@ function doClone() {
   if (destination.charAt(destination.length - 1) !== "/") destination += "/"
 
   ensureAuth(function (token) {
+    console.log("Cloning project...")
     inkstone.project.getByName(token, projectName, function (err, projectAndCredentials) {
       if (err) {
         console.log(chalk.bold(`Project ${projectName} not found.`))
@@ -302,6 +303,7 @@ function doDelete() {
 
 function doDiffTail() {
   try {
+    console.log("Waiting for diffs...")
     var tailer = new tail.Tail(os.homedir() + "/.haiku/logs/haiku-diffs.log")
     tailer.on("line", function (data) {
       console.log(data)
@@ -385,6 +387,9 @@ function doInstall() {
       if (result) {
         //ensure that there's a package.json in this directory
         if (fs.existsSync(process.cwd() + "/package.json")) {
+          console.log("Installing " + projectName + "...")
+
+
           var packageJson = client.npm.readPackageJson()
 
           if (!packageJson.dependencies) {
@@ -398,11 +403,13 @@ function doInstall() {
               console.log(chalk.red("There was an error retrieving your account information.") + "  Please ensure that you have internet access.  If this problem persists, please contact support@haiku.ai and tell us that you don't have an organization associated with your account.")
               process.exit(1)
             }
+
+            //TODO: for multi-org support, get the org name more intelligently than this
             projectString += orgs[0].Name.toLowerCase() + "-"
 
             inkstone.project.getByName(token, projectName, (err, projectAndCredentials) => {
               if (err != undefined) {
-                console.log(chalk.red("That project wasn't found.") + "  Please ensure that you have the correct project name, that you're logged into the correct account and that you have internet access.")
+                console.log(chalk.red("That project wasn't found.") + "  Note that project names are CaseSensitive.  Please ensure that you have the correct project name, that you're logged into the correct account and that you have internet access.")
                 process.exit(1)
               }
 
@@ -553,6 +560,7 @@ function doUpdate() {
   hasbin('npm', function (result) {
     if (result) {
       try {
+        console.log("Updating packages...")
         execSync("npm update")
         console.log(chalk.green("Haiku packages updated successfully."))
         process.exit(0)
