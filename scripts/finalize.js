@@ -142,12 +142,12 @@ async.series([
     log.log('finishing up git cleanup in mono itself')
     try {
       cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
-      cp.execSync('git commit -m ' + JSON.stringify(inputs/finalUberCommitMessage), { cwd: ROOT, stdio: 'inherit' })
+      cp.execSync('git commit -m ' + JSON.stringify(inputs.finalUberCommitMessage), { cwd: ROOT, stdio: 'inherit' })
       cp.execSync('git pull ' + inputs.remote + ' ' + inputs.branch, { cwd: ROOT, stdio: 'inherit' })
       cp.execSync('git push ' + inputs.remote + ' HEAD:' + inputs.branch, { cwd: ROOT, stdio: 'inherit' })
       return cb()
     } catch (exception) {
-      log.log('there was error doing git cleanup in mono itself. please fix conflicts, commit, and push mono manually')
+      log.log('there was error doing git cleanup in mono itself. please fix issues, commit, and push mono manually')
       return cb()
     }
   }
