@@ -3,14 +3,22 @@ var renderer = require('./../../renderers/dom')
 
 function creation (bytecode, options, _window) {
   if (!options) options = {}
-  var platform = _window || window
 
-  if (options.useWebkitPrefix === undefined) {
-    var isWebKit = 'WebkitAppearance' in platform.document.documentElement.style
-    options.useWebkitPrefix = !!isWebKit
+  if (!_window) {
+    if (typeof window !== 'undefined') {
+      _window = window
+    }
   }
 
-  return wrapper(renderer, bytecode, options, platform)
+  if (options.useWebkitPrefix === undefined) {
+    // Allow headless mode, e.g. in server-side rendering or Node.js unit tests
+    if (_window && _window.document) {
+      var isWebKit = 'WebkitAppearance' in _window.document.documentElement.style
+      options.useWebkitPrefix = !!isWebKit
+    }
+  }
+
+  return wrapper(renderer, bytecode, options, _window)
 }
 
 module.exports = creation

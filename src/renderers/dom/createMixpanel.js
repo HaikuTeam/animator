@@ -1,7 +1,8 @@
-var mixpanel = require('mixpanel-browser')
 var assign = require('lodash.assign')
 
 module.exports = function createMixpanel (domElement, mixpanelToken, playerInstance) {
+  var mixpanel = require('mixpanel-browser')
+
   mixpanel.init(mixpanelToken)
 
   // Why not expose this so others, e.g. the share page, can hook into it?
