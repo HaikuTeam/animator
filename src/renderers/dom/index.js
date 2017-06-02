@@ -1,5 +1,6 @@
 var getElementSize = require('./getElementSize')
 var createRightClickMenu = require('./createRightClickMenu')
+var createMixpanel = require('./createMixpanel')
 var _render = require('./render')
 var _patch = require('./patch')
 
@@ -13,6 +14,10 @@ function patch (domElement, virtualContainer, patchesDict, locator, hash, option
 
 function menuize (domElement, playerInstance) {
   createRightClickMenu(domElement, playerInstance)
+}
+
+function mixpanel (domElement, mixpanelToken, playerInstance) {
+  createMixpanel(domElement, mixpanelToken, playerInstance)
 }
 
 function createContainer (domElement) {
@@ -30,5 +35,6 @@ module.exports = {
   render: render,
   patch: patch,
   menuize: menuize,
+  mixpanel: mixpanel,
   createContainer: createContainer
 }

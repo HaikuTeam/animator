@@ -17,7 +17,8 @@ var DEFAULTS = {
   contextMenu: 'enabled',
   position: 'relative',
   overflowX: null,
-  overflowY: null
+  overflowY: null,
+  mixpanel: '6f31d4f99cf71024ce27c3e404a79a61' // Haiku's token for live (production) components. Can be overridden.
 }
 
 function wrapper (renderer, bytecode, wrapperOptions, platform) {
@@ -53,6 +54,10 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
 
     if (renderer.menuize && options.contextMenu !== 'disabled') {
       renderer.menuize(mount, component.instance)
+    }
+
+    if (renderer.mixpanel && options.mixpanel) {
+      renderer.mixpanel(mount, options.mixpanel, component.instance)
     }
 
     var controller

@@ -34,6 +34,7 @@
     "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#ad5c4a66cd2d82f62d7f871819e8acab2d109496",
     "lodash.assign": "4.2.0",
     "lodash.merge": "4.6.0",
+    "mixpanel-browser": "^2.11.1",
     "raf": "^3.3.0",
     "react": "15.4.2",
     "react-dom": "15.4.2",
