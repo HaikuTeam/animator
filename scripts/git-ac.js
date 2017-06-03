@@ -14,10 +14,16 @@ if (!message) {
 async.eachSeries(allPackages, function (pack, next) {
   log.log('git adding & committing in ' + pack.name + ' (message: ' + message + ')')
   try {
-    cp.execSync('git add --all .', { cwd: pack.abspath })
-    cp.execSync('git commit -m ' + message, { cwd: pack.abspath })
+    cp.execSync('git add --all .', { cwd: pack.abspath, stdio: 'inherit' })
+    var status = cp.execSync('git status', { cwd: pack.abspath }).toString()
+    if (status.match(/nothing to commit/)) {
+      log.log('nothing to commit in ' + pack.name + '; continuing...')
+    } else {
+      cp.execSync('git commit -m ' + JSON.stringify(message), { cwd: pack.abspath, stdio: 'inherit' })
+    }
   } catch (exception) {
-    log.log(exception.message)
+    log.err(exception.message)
+    return next(exception)
   }
   return next()
 })

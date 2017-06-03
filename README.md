@@ -1,12 +1,6 @@
 # mono
 
-Haiku monorepo.
-
-This consolidates maintenance of shared/distributed code under a single roof.
-
-Basically, all Haiku projects are git submodules installed under `packages/`.
-
-A suite of command-line tools is provided here to make cross-project management simpler.
+Haiku monorepo. Plus command-line tools to make cross-project scripting simpler.
 
 ## Setup
 
@@ -29,8 +23,6 @@ Once you're done developing, you probably want to run:
 
 This will prompt you for some settings, then synchronize all the repos for you.
 
-For more, see the [Mono Workflows doc on Quip](https://haiku.quip.com/wwDEAZnZotvA).
-
 ## Contributing
 
-Script improvements are welcomed.
+Script improvements are welcomed. The scripts are located in `scripts/`.

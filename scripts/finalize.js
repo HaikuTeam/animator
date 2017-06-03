@@ -28,21 +28,24 @@ if (!inputs.branch) {
   inputs.branch = _branch
 }
 
-var _status = cp.execSync('git status').toString().trim()
-
-if (_status.match(/untracked content/ig)) {
-  log.log('you have untracked content. add and commit (or discard) those changes first, then try this again.\n')
-  log.log(`git status fyi:\n\n${_status}\n`)
-  process.exit()
-} else if (_status.match(/modified content/ig)) {
-  log.log('you\'ve modified content but not committed it. commit (or discard) those changes first, then try this again.\n')
-  log.log(`git status fyi:\n\n${_status}\n`)
-  process.exit()
-} else if (_status.match(/unmerged paths/ig)) {
-  log.log('you have merge conflicts. fix those conflicts first, then try this again.\n')
-  log.log(`git status fyi:\n\n${_status}\n`)
-  process.exit()
+function assertGitStatus () {
+  var _status = cp.execSync('git status').toString().trim()
+  if (_status.match(/untracked content/ig)) {
+    log.err('you have untracked content. add and commit (or discard) those changes first, then try this again.\n')
+    log.log(`git status fyi:\n\n${_status}\n`)
+    process.exit()
+  } else if (_status.match(/modified content/ig)) {
+    log.err('you\'ve modified content but not committed it. commit (or discard) those changes first, then try this again.\n')
+    log.log(`git status fyi:\n\n${_status}\n`)
+    process.exit()
+  } else if (_status.match(/unmerged paths/ig)) {
+    log.err('you have merge conflicts. fix those conflicts first, then try this again.\n')
+    log.log(`git status fyi:\n\n${_status}\n`)
+    process.exit()
+  }
 }
+
+assertGitStatus()
 
 async.series([
   function (cb) {
@@ -90,7 +93,7 @@ async.series([
         {
           type: 'confirm',
           name: 'doProceed',
-          message: 'Ok to proceed?',
+          message: 'OK to proceed?',
           default: true
         }
       ]).then(function (answers) {
@@ -105,32 +108,41 @@ async.series([
     })
   },
   function (cb) {
+    log.hat('fetching & merging git repos for all the packages')
     return runScript('git-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
   function (cb) {
+    assertGitStatus()
+    log.hat('npm installing in all the packages')
+    return runScript('npm-install', [], cb)
+  },
+  function (cb) {
+    log.hat('normalizing & bumping the version number for all packages')
     return runScript('npm-semver-inc', [`--level=${inputs.semverBumpLevel}`], cb)
   },
   function (cb) {
-    log.log('creating public framework builds')
+    log.hat('creating distribution builds of our player and adapters')
     cp.execSync('npm run dist:dom', { cwd: interpreterPath, stdio: 'inherit' })
     cp.execSync('npm run dist:react', { cwd: interpreterPath, stdio: 'inherit' })
-    log.log('moving public framework builds into at-haiku-player')
     fse.copySync(path.join(interpreterPath, 'dom.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'index.js'))
     fse.copySync(path.join(interpreterPath, 'react.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'react.js'))
     cb()
   },
   function (cb) {
+    log.hat('adding and committing all changes in all the packages')
     return runScript('git-ac', [`--message=${JSON.stringify(inputs.commitMessage)}`], cb)
   },
   function (cb) {
+    log.hat('normalizing the npm version number (git sha) for all internal dependencies')
     return runScript('sha-norm', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
   function (cb) {
+    log.hat('pushing changes to the git repos for all packages')
     return runScript('git-push', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
   function (cb) {
     if (inputs.doPushToNpmRegistry) {
-      log.log('publishing @haiku/player to the npm registry')
+      log.hat('publishing @haiku/player to the npm registry')
       cp.execSync('npm publish --access public', { cwd: path.join(haikuNpmPath, 'at-haiku-player'), stdio: 'inherit' })
       return cb()
     } else {
@@ -139,7 +151,7 @@ async.series([
     }
   },
   function (cb) {
-    log.log('finishing up git cleanup in mono itself')
+    log.hat('finishing up by doing some git cleanup inside mono itself')
     try {
       cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
       cp.execSync('git commit -m ' + JSON.stringify(inputs.finalUberCommitMessage), { cwd: ROOT, stdio: 'inherit' })
@@ -147,11 +159,11 @@ async.series([
       cp.execSync('git push ' + inputs.remote + ' HEAD:' + inputs.branch, { cwd: ROOT, stdio: 'inherit' })
       return cb()
     } catch (exception) {
-      log.log('there was error doing git cleanup in mono itself. please fix issues, commit, and push mono manually')
+      log.log('there was error doing git cleanup inside mono itself. please fix issues, commit, and push mono manually')
       return cb()
     }
   }
 ], function (err) {
   if (err) throw err
-  log.log('finalized!')
+  log.hat('finished!', 'green')
 })
