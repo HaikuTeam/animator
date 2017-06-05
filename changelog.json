@@ -1850,5 +1850,6 @@
       "label": "feat",
       "message": "Testing that changelog generation works"
     }
-  }
+  },
+  "2.0.102": {}
 }
