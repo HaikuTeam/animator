@@ -1851,5 +1851,12 @@
       "message": "Testing that changelog generation works"
     }
   },
-  "2.0.102": {}
+  "2.0.102": {},
+  "2.0.103": {
+    "ad8659db1d3467e56b0af9c85e6f63655dceda23": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "rounding error when resizing from edge"
+    }
+  }
 }
