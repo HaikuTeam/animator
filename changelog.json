@@ -1844,6 +1844,11 @@
       "project": "haiku-websockets",
       "label": "feat",
       "message": "Enhancements and a test"
+    },
+    "99158130c72037e17d2835359afa866609f7e71d": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "Testing that changelog generation works"
     }
   }
 }
