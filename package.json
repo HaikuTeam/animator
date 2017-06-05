@@ -32,7 +32,7 @@
     "uglify-js": "2.7.5"
   },
   "dependencies": {
-    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#4117c0e7bb819c178d1158019a181f69ee85e0da",
+    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#6bb5d5ad54127118b410e5552648b2550e0340ab",
     "lodash.assign": "4.2.0",
     "lodash.merge": "4.6.0",
     "mixpanel-browser": "^2.11.1",
