@@ -1858,5 +1858,12 @@
       "label": "fix",
       "message": "rounding error when resizing from edge"
     }
+  },
+  "2.0.104": {
+    "717a8d811dbb0aaa66543c57b1b98888e39b7ddc": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "resize from edge when element is rotated"
+    }
   }
 }
