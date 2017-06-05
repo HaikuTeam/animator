@@ -113,8 +113,10 @@ async.series([
   },
   function (cb) {
     assertGitStatus()
-    log.hat('npm installing in all the packages')
-    return runScript('npm-install', [], cb)
+    return cb()
+    // TODO: Add this when we figure out how to fix the npm link issues
+    // log.hat('npm installing in all the packages')
+    // return runScript('npm-install', [], cb)
   },
   function (cb) {
     log.hat('normalizing & bumping the version number for all packages')
