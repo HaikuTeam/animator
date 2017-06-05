@@ -168,6 +168,9 @@ async.series([
     }
   },
   function (cb) {
+    return runScript('changelog', [], cb)
+  },
+  function (cb) {
     log.hat('finishing up by doing some git cleanup inside mono itself')
     try {
       cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })

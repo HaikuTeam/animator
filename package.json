@@ -9,6 +9,7 @@
   "scripts": {
     "start": "npm run mono:dev",
     "lint": "standard \"./scripts/**/*.js\" --fix --verbose | snazzy",
+    "mono:changelog": "node ./scripts/changelog.js",
     "mono:dev": "node ./scripts/dev.js",
     "mono:safety": "node ./scripts/safety.js",
     "mono:lint-all": "node ./scripts/lint-all.js",
