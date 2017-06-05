@@ -22,6 +22,7 @@
     "fs-extra": "2.0.0",
     "handlebars": "4.0.6",
     "jsdom": "9.11.0",
+    "leaked-handles": "^5.2.0",
     "prettier": "0.22.0",
     "react-dom": "15.4.2",
     "snazzy": "6.0.0",
