@@ -27,5 +27,5 @@ async.eachSeries(allPackages, function (pack, next) {
   var monoStatus = gitStatusInfo(ROOT)
   delete monoStatus.output
   var statStr = JSON.stringify(monoStatus, null, 2)
-  log.hat(`Here's what things look like in mono now:\n${statStr}`)
+  log.hat(`Here's what things look like in mono now:\n${statStr}\n(This is just FYI. An empty object is ok too.)`)
 })
