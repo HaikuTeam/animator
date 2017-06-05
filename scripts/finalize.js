@@ -209,7 +209,10 @@ async.series([
     try {
       cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
       cp.execSync('git commit -m ' + JSON.stringify(inputs.finalUberCommitMessage), { cwd: ROOT, stdio: 'inherit' })
-      cp.execSync('git pull ' + inputs.remote + ' ' + inputs.branch + ' -s recursive -X ours', { cwd: ROOT, stdio: 'inherit' })
+
+      // QUESTION: It seems like we probably want to use these strategies but I'm not sure...
+      cp.execSync('git pull -s recursive -X ours ' + inputs.remote + ' ' + inputs.branch, { cwd: ROOT, stdio: 'inherit' })
+
       cp.execSync('git push ' + inputs.remote + ' HEAD:' + inputs.branch, { cwd: ROOT, stdio: 'inherit' })
       return cb()
     } catch (exception) {
