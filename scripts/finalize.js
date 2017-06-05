@@ -63,13 +63,31 @@ async.series([
       {
         type: 'input',
         name: 'semverBumpLevel',
-        message: 'Semver bump level:',
+        message: 'Semver bump level (i.e., which number do you want to bump in the `major.minor.patch` string):',
         default: inputs.semverBumpLevel || 'patch'
       },
       {
         type: 'confirm',
+        name: 'doLintPackages',
+        message: 'Run the linter in all the packages? (warning: this auto-formats code so you may end up with unsaved changes)',
+        default: true
+      },
+      {
+        type: 'confirm',
+        name: 'doTestPackages',
+        message: 'Run automated tests in all the packages? (note: failed tests will _not_ stop this script)',
+        default: true
+      },
+      {
+        type: 'confirm',
         name: 'doPushToNpmRegistry',
-        message: 'Push to npm registry?',
+        message: 'Push to npm registry? (you almost certainly want to say "Y", otherwise npm installs might break)',
+        default: true
+      },
+      {
+        type: 'confirm',
+        name: 'doUpdateChangelog',
+        message: 'Update the changelog? (i.e., do you want to put your commits into the changelog (probably yes))',
         default: true
       },
       {
@@ -106,12 +124,22 @@ async.series([
     })
   },
   function (cb) {
-    log.hat('linting all the packages')
-    return runScript('lint-all', [], cb)
+    if (inputs.doLintPackages) {
+      log.hat('linting all the packages')
+      return runScript('lint-all', [], cb)
+    } else {
+      log.log('skipping linting because you said so')
+      return cb()
+    }
   },
   function (cb) {
-    log.hat('running tests in all the packages')
-    return runScript('test-all', [], cb)
+    if (inputs.doTestPackages) {
+      log.hat('running tests in all the packages')
+      return runScript('test-all', [], cb)
+    } else {
+      log.log('skipping tests because you said so')
+      return cb()
+    }
   },
   function (cb) {
     // Need to check that linting/testing didn't create any changes that need to be fixed by a human
@@ -128,7 +156,8 @@ async.series([
     return cb()
   },
   function (cb) {
-    // TODO: Add this when we figure out how to fix the npm link issues
+    // TODO: Add this when we figure out how to fix the npm link issues.
+    // This is probably required in the case that somebody installed a new dependency in one of the packages.
     // log.hat('npm installing in all the packages')
     // return runScript('npm-install', [], cb)
     return cb()
@@ -168,7 +197,12 @@ async.series([
     }
   },
   function (cb) {
-    return runScript('changelog', [], cb)
+    if (inputs.doUpdateChangelog) {
+      return runScript('changelog', [], cb)
+    } else {
+      log.log('skipping changelog update because you said so')
+      return cb()
+    }
   },
   function (cb) {
     log.hat('finishing up by doing some git cleanup inside mono itself')
