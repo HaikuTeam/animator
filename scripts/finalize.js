@@ -114,7 +114,7 @@ async.series([
     return runScript('test-all', [], cb)
   },
   function (cb) {
-    // Need to check that linting/testing didn't create any changes that need to be fixed
+    // Need to check that linting/testing didn't create any changes that need to be fixed by a human
     assertGitStatus()
     return cb()
   },
@@ -123,6 +123,7 @@ async.series([
     return runScript('git-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
   function (cb) {
+    // If pulling created merge conflicts or other issues, we need to bail and let a human fix it
     assertGitStatus()
     return cb()
   },
