@@ -6,6 +6,7 @@ var async = require('async')
 var argv = require('yargs').argv
 var inquirer = require('inquirer')
 var log = require('./helpers/log')
+var gitStatusInfo = require('./helpers/gitStatusInfo')
 var runScript = require('./helpers/runScript')
 var allPackages = require('./helpers/allPackages')()
 var groups = lodash.keyBy(allPackages, 'name')
@@ -29,19 +30,16 @@ if (!inputs.branch) {
 }
 
 function assertGitStatus () {
-  var _status = cp.execSync('git status').toString().trim()
-  if (_status.match(/untracked content/ig)) {
+  var _statusInfo = gitStatusInfo(ROOT)
+  if (_statusInfo.submoduleHasUntrackedContent) {
     log.err('you have untracked content. add and commit (or discard) those changes first, then try this again.\n')
-    log.log(`git status fyi:\n\n${_status}\n`)
-    process.exit()
-  } else if (_status.match(/modified content/ig)) {
+    process.exit(1)
+  } else if (_statusInfo.submoduleHasModifiedContent) {
     log.err('you\'ve modified content but not committed it. commit (or discard) those changes first, then try this again.\n')
-    log.log(`git status fyi:\n\n${_status}\n`)
-    process.exit()
-  } else if (_status.match(/unmerged paths/ig)) {
+    process.exit(1)
+  } else if (_statusInfo.submoduleHasUnmergedPaths) {
     log.err('you have merge conflicts. fix those conflicts first, then try this again.\n')
-    log.log(`git status fyi:\n\n${_status}\n`)
-    process.exit()
+    process.exit(1)
   }
 }
 
@@ -108,15 +106,31 @@ async.series([
     })
   },
   function (cb) {
+    log.hat('linting all the packages')
+    return runScript('lint-all', [], cb)
+  },
+  function (cb) {
+    log.hat('running tests in all the packages')
+    return runScript('test-all', [], cb)
+  },
+  function (cb) {
+    // Need to check that linting/testing didn't create any changes that need to be fixed
+    assertGitStatus()
+    return cb()
+  },
+  function (cb) {
     log.hat('fetching & merging git repos for all the packages')
     return runScript('git-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
   function (cb) {
     assertGitStatus()
     return cb()
+  },
+  function (cb) {
     // TODO: Add this when we figure out how to fix the npm link issues
     // log.hat('npm installing in all the packages')
     // return runScript('npm-install', [], cb)
+    return cb()
   },
   function (cb) {
     log.hat('normalizing & bumping the version number for all packages')

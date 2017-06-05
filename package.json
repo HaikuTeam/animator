@@ -11,6 +11,8 @@
     "lint": "standard \"./scripts/**/*.js\" --fix --verbose | snazzy",
     "mono:dev": "node ./scripts/dev.js",
     "mono:safety": "node ./scripts/safety.js",
+    "mono:lint-all": "node ./scripts/lint-all.js",
+    "mono:test-all": "node ./scripts/test-all.js",
     "mono:finalize": "node ./scripts/finalize.js",
     "mono:finish": "node ./scripts/finish.js",
     "mono:cmd": "node ./scripts/cmd.js",
