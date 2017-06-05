@@ -4,8 +4,8 @@
   "description": "Haiku bytecode interpreter (a.k.a. the player)",
   "main": "index.js",
   "scripts": {
-    "test": "tape \"test/**/*.test.js\" | tap-spec",
-    "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy",
+    "test": "tape \"test/**/*.test.js\" | tap-spec || true",
+    "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true",
     "demo": "node ./server.js",
     "pretty": "prettier",
     "build-and-copy": "npm run dist:dom && npm run dist:react && cp dom.bundle.js `pwd`/../haiku-npm/at-haiku-player/dom/index.js && cp react.bundle.js `pwd`/../haiku-npm/at-haiku-player/dom/react.js",
