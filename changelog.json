@@ -1872,5 +1872,12 @@
       "label": "fix",
       "message": "Fix on-stage transform perf regression"
     }
+  },
+  "2.0.106": {
+    "5b9d21be8ea2e0b6253c533853008713c729c886": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "don't use browser bounding box for scale calculations; refactor accordingly; make resize work as expected for various axes"
+    }
   }
 }
