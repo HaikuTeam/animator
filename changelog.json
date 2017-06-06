@@ -1865,5 +1865,12 @@
       "label": "fix",
       "message": "resize from edge when element is rotated"
     }
+  },
+  "2.0.105": {
+    "02670312d9e052ba4df5f9f851f86fef840f3d4f": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Fix on-stage transform perf regression"
+    }
   }
 }
