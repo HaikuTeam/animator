@@ -1879,5 +1879,17 @@
       "label": "fix",
       "message": "don't use browser bounding box for scale calculations; refactor accordingly; make resize work as expected for various axes"
     }
+  },
+  "2.0.108": {
+    "83a0d41305d66d68526b531713bba8cda0046cae": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "allow shift, alt, cmd, ctrl to be toggled partway through a transform"
+    },
+    "1e986f3781e02058278db9380af02458b245874b": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "snap rotation to increments of pi/12 (15deg) when shift key is held"
+    }
   }
 }
