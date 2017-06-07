@@ -1891,5 +1891,12 @@
       "label": "feat",
       "message": "snap rotation to increments of pi/12 (15deg) when shift key is held"
     }
+  },
+  "2.0.109": {
+    "54c17c74a1a0b116cd99a2b5be92f529e3c21a92": {
+      "project": "haiku-interpreter",
+      "label": "fix",
+      "message": "clipping on context menu"
+    }
   }
 }
