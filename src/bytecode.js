@@ -80,19 +80,20 @@ Bytecode.prototype.clearDetectedInputChanges = function clearDetectedInputChange
   this._inputChanges = {}
 }
 
-Bytecode.prototype.defineInputs = function defineInputs (storage, instance) {
+Bytecode.prototype.defineInputs = function defineInputs (storageObject, playerInstance) {
   var self = this
+
   eachProperty(this.bytecode, function _eachProperty (type, name, defval, privacy, setter) {
     if (defval === undefined) throw new Error('Property `' + name + '` cannot be undefined; use null for empty properties')
-    if (instance[name] !== undefined) throw new Error('Property `' + name + '` is a reserved keyword')
-    if (storage[name] !== undefined) throw new Error('Property `' + name + '` was already declared')
+    if (playerInstance[name] !== undefined) throw new Error('Property `' + name + '` is a reserved keyword')
+    if (storageObject[name] !== undefined) throw new Error('Property `' + name + '` was already declared')
 
     typecheckInput(type, name, defval)
-    storage[name] = defval
+    storageObject[name] = defval
 
-    Object.defineProperty(instance, name, {
+    Object.defineProperty(playerInstance, name, {
       get: function get () {
-        return storage[name]
+        return storageObject[name]
       },
 
       set: function set (input) {
@@ -101,12 +102,12 @@ Bytecode.prototype.defineInputs = function defineInputs (storage, instance) {
         self._inputChanges[name] = input
         self._anyInputChange = true
         if (setter) {
-          storage[name] = setter.call(instance, input)
+          storageObject[name] = setter.call(playerInstance, input)
         } else {
-          storage[name] = input
+          storageObject[name] = input
         }
 
-        return storage[name]
+        return storageObject[name]
       }
     })
   })
