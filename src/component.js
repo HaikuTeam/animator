@@ -60,7 +60,7 @@ Component.prototype.patchEventListeners = function patchEventListeners (containe
 }
 
 Component.prototype.patch = function patch (container, options) {
-  var time = this.context.clock.getTime()
+  var time = this.context.clock.getExplicitTime()
   var timelinesRunning = []
   var timelineInstances = this.store.get('timelines')
   for (var timelineName in timelineInstances) {
@@ -81,7 +81,7 @@ Component.prototype.patch = function patch (container, options) {
 }
 
 Component.prototype.render = function render (container, options) {
-  var time = this.context.clock.getTime()
+  var time = this.context.clock.getExplicitTime()
   var timelines = this.store.get('timelines')
   for (var timelineName in timelines) {
     var timeline = timelines[timelineName]
@@ -108,7 +108,7 @@ Component.prototype.startAllTimelines = function startAllTimelines () {
 }
 
 Component.prototype.fetchAllTimelineStores = function fetchAllTimelineStores () {
-  var time = this.context.clock.getTime()
+  var time = this.context.clock.getExplicitTime()
   var names = Object.keys(this.bytecode.bytecode.timelines)
   for (var i = 0; i < names.length; i++) {
     var name = names[i]
@@ -124,7 +124,7 @@ Component.prototype.fetchAllTimelineStores = function fetchAllTimelineStores () 
 }
 
 Component.prototype.startTimeline = function startTimeline (timelineName) {
-  var time = this.context.clock.getTime()
+  var time = this.context.clock.getExplicitTime()
   var descriptor = this.bytecode.bytecode.timelines[timelineName]
   var existing = this.store.get('timelines')[timelineName]
   if (existing) existing.start(time, descriptor)
@@ -132,7 +132,7 @@ Component.prototype.startTimeline = function startTimeline (timelineName) {
 }
 
 Component.prototype.stopTimeline = function startTimeline (timelineName) {
-  var time = this.context.clock.getTime()
+  var time = this.context.clock.getExplicitTime()
   var descriptor = this.bytecode.bytecode.timelines[timelineName]
   var existing = this.store.get('timelines')[timelineName]
   if (existing) existing.stop(time, descriptor)

@@ -74,8 +74,32 @@ Clock.prototype.cancelRaf = function cancelRaf () {
   return this
 }
 
-Clock.prototype.getTime = function getTime () {
-  if (this.isTimeControlled()) return this.control
+/**
+ * @method getExplicitTime
+ * @description Return either the running time or the controlled time, depending on whether this
+ * clock is in control mode or not.
+ */
+Clock.prototype.getExplicitTime = function getExplicitTime () {
+  if (this.isTimeControlled()) {
+    return this.getControlledTime()
+  }
+  return this.getRunningTime()
+}
+
+/**
+ * @method getControlledTime
+ * @description Return the value of time that has been explicitly controlled.
+ */
+Clock.prototype.getControlledTime = function getControlledTime () {
+  return this.control
+}
+
+/**
+ * @method getRunningTime
+ * @description Return the running time, which is the value of time that has elapsed whether or
+ * not time has been 'controlled' in control mode.
+ */
+Clock.prototype.getRunningTime = function getRunningTime () {
   return this.time
 }
 

@@ -11,12 +11,24 @@ HaikuClock.prototype.getFrameDuration = function getFrameDuration () {
 }
 
 HaikuClock.prototype.getTime = function getTime () {
-  return this._player._component.context.clock.getTime()
+  return this.getExplicitTime()
 }
 
 HaikuClock.prototype.setTime = function setTime (t) {
   this._player._component.context.clock.controlTime(t)
   return this
+}
+
+HaikuClock.prototype.getExplicitTime = function getExplicitTime () {
+  return this._player._component.context.clock.getExplicitTime()
+}
+
+HaikuClock.prototype.getControlledTime = function getControlledTime () {
+  return this._player._component.context.clock.getControlledTime()
+}
+
+HaikuClock.prototype.getRunningTime = function getRunningTime () {
+  return this._player._component.context.clock.getRunningTime()
 }
 
 HaikuClock.prototype.isRunning = function isRunning () {

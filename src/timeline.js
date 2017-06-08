@@ -14,7 +14,7 @@ function Timeline (time, descriptor, name, options) {
   this.global = time || 0
   this.local = 0
   this.active = true
-  this.isPlaying = true
+  this._isPlaying = true
   this.max = _getMaxTimeFromDescriptor(descriptor)
 }
 
@@ -22,6 +22,57 @@ Timeline.DEFAULT_NAME = Constants.DEFAULT_TIMELINE_NAME
 
 Timeline.prototype.assignOptions = function assignOptions (options) {
   this.loop = !!(options && options.loop)
+}
+
+/**
+ * @method getMaxTime
+ * @description Return the maximum time that this timeline will reach, in ms.
+ */
+Timeline.prototype.getMaxTime = function getMaxTime () {
+  return this.max
+}
+
+/**
+ * @method getClockTime
+ * @description Return the global clock time that this timeline is at, in ms,
+ * whether or not our local time matches it or it has exceede dour max.
+ 8 This value is ultimately managed by the clock and passed in.
+ */
+Timeline.prototype.getClockTime = function getClockTime () {
+  return this.global
+}
+
+/**
+ * @method getElapsedTime
+ * @description Return the amount of time that has elapsed on this timeline since
+ * it started updating, up to the most recent time update it received from the clock.
+ * Note that for inactive timelines, this value will cease increasing as of the last update.
+ */
+Timeline.prototype.getElapsedTime = function getElapsedTime () {
+  return this.local
+}
+
+/**
+ * @method getControlledTime
+ * @description If time has been explicitly set here via time control, this value will
+ * be the number of that setting.
+ */
+Timeline.prototype.getControlledTime = function getControlledTime () {
+  return this.control
+}
+
+/**
+ * @method getBoundedTime
+ * @description Return the locally elapsed time, or the maximum time of this timeline,
+ * whichever is smaller. Useful if you want to know what the "effective" time of this
+ * timeline is, not necessarily how much has elapsed in an absolute sense. This is used
+ * in the renderer to determine what value to calculate "now" deterministically.
+ */
+Timeline.prototype.getBoundedTime = function getBoundedTime () {
+  var max = this.getMaxTime()
+  var local = this.getElapsedTime()
+  if (local > max) return max
+  return local
 }
 
 Timeline.prototype._updateInternalProperties = function _updateInternalProperties (time) {
@@ -40,7 +91,7 @@ Timeline.prototype._updateInternalProperties = function _updateInternalPropertie
   }
 
   if (this.isFinished()) {
-    this.isPlaying = false
+    this._isPlaying = false
   }
 }
 
@@ -55,23 +106,13 @@ Timeline.prototype.resetMax = function resetMax (descriptor) {
   return this
 }
 
-Timeline.prototype.getDomainTime = function getDomainTime () {
-  var dt
-  if (this.local > this.max) {
-    dt = this.max
-  } else {
-    dt = this.local
-  }
-  return dt
+Timeline.prototype.isFinished = function () {
+  if (this.loop) return false
+  return ~~this.getElapsedTime() > this.getMaxTime()
 }
 
 Timeline.prototype.isTimeControlled = function isTimeControlled () {
-  return typeof this.control === NUMBER
-}
-
-Timeline.prototype.isFinished = function () {
-  if (this.loop) return false
-  return ~~this.local > this.max
+  return typeof this.getControlledTime() === NUMBER
 }
 
 Timeline.prototype.controlTime = function (time) {
@@ -84,7 +125,7 @@ Timeline.prototype.controlTime = function (time) {
 Timeline.prototype.start = function start (time, descriptor) {
   this.local = 0
   this.active = true
-  this.isPlaying = true
+  this._isPlaying = true
   this.global = time || 0
   this.max = _getMaxTimeFromDescriptor(descriptor)
   return this
@@ -92,9 +133,13 @@ Timeline.prototype.start = function start (time, descriptor) {
 
 Timeline.prototype.stop = function stop (time, descriptor) {
   this.active = false
-  this.isPlaying = false
+  this._isPlaying = false
   this.max = _getMaxTimeFromDescriptor(descriptor)
   return this
+}
+
+Timeline.prototype.isPlaying = function isPlaying () {
+  return !!this._isPlaying
 }
 
 Timeline.prototype.isActive = function isActive () {

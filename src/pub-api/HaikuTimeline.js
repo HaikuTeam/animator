@@ -21,26 +21,102 @@ HaikuTimeline.prototype._ensureClockIsRunning = function _ensureClockIsRunning (
   return this
 }
 
-HaikuTimeline.prototype.getTime = function getTime () {
-  return this._store.getDomainTime()
+/**
+ * @method getMaxTime
+ * @description Return the maximum time that this timeline will reach, in ms.
+ */
+HaikuTimeline.prototype.getMaxTime = function getMaxTime () {
+  return this._store.getMaxTime()
 }
 
-HaikuTimeline.prototype.getFrame = function getFrame () {
-  var time = this.getTime()
+/**
+ * @method getClockTime
+ * @description Return the global clock time that this timeline is at, in ms,
+ * whether or not our local time matches it or it has exceede dour max.
+ 8 This value is ultimately managed by the clock and passed in.
+ */
+HaikuTimeline.prototype.getClockTime = function getClockTime () {
+  return this._store.getClockTime()
+}
+
+/**
+ * @method getElapsedTime
+ * @description Return the amount of time that has elapsed on this timeline since
+ * it started updating, up to the most recent time update it received from the clock.
+ * Note that for inactive timelines, this value will cease increasing as of the last update.
+ */
+HaikuTimeline.prototype.getElapsedTime = function getElapsedTime () {
+  return this._store.getElapsedTime()
+}
+
+/**
+ * @method getControlledTime
+ * @description If time has been explicitly set here via time control, this value will
+ * be the number of that setting.
+ */
+HaikuTimeline.prototype.getControlledTime = function getControlledTime () {
+  return this._store.getControlledTime()
+}
+
+/**
+ * @method getBoundedTime
+ * @description Return the locally elapsed time, or the maximum time of this timeline,
+ * whichever is smaller. Useful if you want to know what the "effective" time of this
+ * timeline is, not necessarily how much has elapsed in an absolute sense. This is used
+ * in the renderer to determine what value to calculate "now" deterministically.
+ */
+HaikuTimeline.prototype.getBoundedTime = function getBoundedTime () {
+  return this._store.getBoundedTime()
+}
+
+/**
+ * @method getTime
+ * @description Convenience wrapper. Currently returns the bounded time. There's an argument
+ * that this should return the elapsed time, though. #TODO
+ */
+HaikuTimeline.prototype.getTime = function getTime () {
+  return this.getBoundedTime()
+}
+
+/**
+ * @method getBoundedFrame
+ * @description Return the current frame up to the maximum frame available for this timeline's duration.
+ */
+HaikuTimeline.prototype.getBoundedFrame = function getBoundedFrame () {
+  var time = this.getBoundedTime()
   var timeStep = this._player.getClock().getFrameDuration()
   return Math.round(time / timeStep)
 }
 
+/**
+ * @method getUnboundedFrame
+ * @description Return the current frame, even if it is above the maximum frame.
+ */
+HaikuTimeline.prototype.getUnboundedFrame = function getUnboundedFrame () {
+  var time = this.getElapsedTime() // The elapsed time can go larger than the max time; see timeline.js
+  var timeStep = this._player.getClock().getFrameDuration()
+  return Math.round(time / timeStep)
+}
+
+/**
+ * @method getFrame
+ * @description Return the bounded frame.
+ * There's an argument that this should return the absolute frame. #TODO
+ */
+HaikuTimeline.prototype.getFrame = function getFrame () {
+  return this.getBoundedFrame()
+}
+
 HaikuTimeline.prototype.duration = function duration () {
-  return this._store.max || 0
+  return this.getMaxTime() || 0
 }
 
 HaikuTimeline.prototype.isActive = function isActive () {
-  return !!this._store.active
+  return this._store.isActive()
 }
 
 HaikuTimeline.prototype.isPlaying = function isPlaying () {
-  return !!this._store.isPlaying
+  return this._store.isPlaying()
 }
 
 HaikuTimeline.prototype.setRepeat = function setRepeat (bool) {

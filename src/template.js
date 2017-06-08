@@ -107,7 +107,7 @@ function gatherDeltas (me, template, container, context, component, inputs, time
   var bytecode = component.bytecode.bytecode
   for (var i = 0; i < timelinesRunning.length; i++) {
     var timeline = timelinesRunning[i]
-    var time = timeline.getDomainTime()
+    var time = timeline.getBoundedTime()
     me.builder.build(results, timeline.name, time, bytecode.timelines, true, inputs, eventsFired, inputsChanged)
   }
   initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
@@ -141,7 +141,7 @@ function applyContextChanges (component, inputs, template, container, me, contex
           continue
         }
       }
-      var time = timeline.getDomainTime()
+      var time = timeline.getBoundedTime()
       me.builder.build(results, timelineName, time, bytecode.timelines, false, inputs)
     }
   }
