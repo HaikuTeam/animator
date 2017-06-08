@@ -1,6 +1,6 @@
 var MENU_GLOBAL_ID = 'haiku-right-click-menu'
 var WIDTH = 167
-var HEIGHT = 24
+var HEIGHT = 44
 
 var haikuIcon = '' +
       '<svg style="transform:translateY(3px);margin-right:3px;" width="13px" height="13px" viewBox="0 0 9 9" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
@@ -92,6 +92,7 @@ module.exports = function createRightClickMenu (domElement, playerInstance) {
 
   function revealMenu (mx, my) {
     var lines = []
+    var titleLine = null
 
     var metadata = playerInstance._bytecode && playerInstance._bytecode.metadata
 
@@ -112,13 +113,16 @@ module.exports = function createRightClickMenu (domElement, playerInstance) {
 
     if (lines.length < 1) return void ('')
 
+    HEIGHT = lines.length > 1 ? 88 : 61
+    HEIGHT = titleLine ? HEIGHT : 22
+
     menu.style.width = px(WIDTH)
-    menu.style.height = px(HEIGHT * lines.length + (20 * lines.length))
+    menu.style.height = px(HEIGHT)
     menu.style.top = px(my)
     menu.style.left = px(mx)
     menu.style.pointerEvents = 'auto'
     menu.style.display = 'block'
-    menu.innerHTML = titleLine + lines.join('\n')
+    menu.innerHTML = titleLine ? titleLine + lines.join('\n') : lines.join('\n')
   }
 
   function hideMenu () {
