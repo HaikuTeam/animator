@@ -27,8 +27,7 @@ HaikuTimeline.prototype.getTime = function getTime () {
 
 HaikuTimeline.prototype.getFrame = function getFrame () {
   var time = this.getTime()
-  var clock = this._player.getClock()
-  var timeStep = clock.cycle || 16.666 // weird name, sorry
+  var timeStep = this._player.getClock().getFrameDuration()
   return Math.round(time / timeStep)
 }
 

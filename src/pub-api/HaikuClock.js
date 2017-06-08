@@ -6,6 +6,10 @@ function HaikuClock (_player) {
   this._player = _player
 }
 
+HaikuClock.prototype.getFrameDuration = function getFrameDuration () {
+  return this._player._component.context.clock.cycle // weird name, sorry
+}
+
 HaikuClock.prototype.getTime = function getTime () {
   return this._player._component.context.clock.getTime()
 }
