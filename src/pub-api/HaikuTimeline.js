@@ -153,10 +153,10 @@ HaikuTimeline.prototype.play = function play () {
 
 HaikuTimeline.prototype.seek = function seek (ms) {
   this._ensureClockIsRunning()
-  this._store.controlTime(ms)
-  var time = this._player.getClock().getTime()
+  var clockTime = this._player.getClock().getTime()
+  this._store.controlTime(ms, clockTime)
   var descriptor = this._player._component.bytecode.bytecode.timelines[this._name]
-  this._store.start(time, descriptor)
+  this._store.start(clockTime, descriptor)
   this._player._component._needsFullFlush = true
   return this
 }

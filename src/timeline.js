@@ -75,10 +75,10 @@ Timeline.prototype.getBoundedTime = function getBoundedTime () {
   return local
 }
 
-Timeline.prototype._updateInternalProperties = function _updateInternalProperties (time) {
+Timeline.prototype._updateInternalProperties = function _updateInternalProperties (clockTime) {
   var previous = this.global
-  var delta = time - previous
-  this.global = time
+  var delta = clockTime - previous
+  this.global = clockTime
 
   if (this.isTimeControlled()) {
     this.local = this.control
@@ -95,8 +95,8 @@ Timeline.prototype._updateInternalProperties = function _updateInternalPropertie
   }
 }
 
-Timeline.prototype.performUpdate = function performUpdate (time) {
-  this._updateInternalProperties(time)
+Timeline.prototype.performUpdate = function performUpdate (clockTime) {
+  this._updateInternalProperties(clockTime)
   this.emit('update')
   return this
 }
@@ -115,10 +115,10 @@ Timeline.prototype.isTimeControlled = function isTimeControlled () {
   return typeof this.getControlledTime() === NUMBER
 }
 
-Timeline.prototype.controlTime = function (time) {
-  this.control = parseInt(time || 0, 10)
+Timeline.prototype.controlTime = function (controlledTimeToSet, clockTimeForRecalc) {
+  this.control = parseInt(controlledTimeToSet || 0, 10)
   // Need to update the properties so that accessors like .getFrame() work.
-  this._updateInternalProperties(time)
+  this._updateInternalProperties(clockTimeForRecalc)
   return this
 }
 
