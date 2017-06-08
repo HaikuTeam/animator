@@ -104,7 +104,7 @@ module.exports = function createRightClickMenu (domElement, playerInstance) {
         who = '"' + who + '" <span style="font-weight:normal;">by</span> ' + org
       }
       var byline = who
-      var titleLine = '<p style="margin:0;margin-bottom:4px;padding:12px 0 7px;line-height:12px;text-align:center;border-bottom:1px solid rgba(140,140,140,.14);">' + byline + '</p>'
+      titleLine = '<p style="margin:0;margin-bottom:4px;padding:12px 0 7px;line-height:12px;text-align:center;border-bottom:1px solid rgba(140,140,140,.14);">' + byline + '</p>'
     }
     if (metadata && metadata.uuid && metadata.uuid !== SUBSTITUTION_STRING) {
       lines.push('<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://share.haiku.ai/' + escapeHTML(metadata.uuid) + '" target="_blank">' + sharePageIcon + '  View Component</a>')
