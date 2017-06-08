@@ -1,7 +1,7 @@
 var Bytecode = require('./bytecode')
 var Store = require('./store')
 var Instance = require('./instance')
-var assign = require('lodash.assign')
+var assign = require('./utils/assign')
 
 var OBJECT_TYPE = 'object'
 var FUNCTION_TYPE = 'function'

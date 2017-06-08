@@ -1,5 +1,5 @@
-var Constants = require('./constants')
 var _getMaxTimeFromDescriptor = require('haiku-bytecode/src/getTimelineMaxTime')
+var Constants = require('./constants')
 var Emitter = require('./emitter')
 
 var NUMBER = 'number'

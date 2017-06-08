@@ -1,4 +1,4 @@
-var assign = require('lodash.assign')
+var assign = require('./../../utils/assign')
 
 module.exports = function createMixpanel (domElement, mixpanelToken, playerInstance) {
   var mixpanel = require('mixpanel-browser')

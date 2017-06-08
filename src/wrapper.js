@@ -1,4 +1,4 @@
-var assign = require('lodash.assign')
+var assign = require('./utils/assign')
 var Context = require('./context')
 var Component = require('./component')
 var Emitter = require('./emitter')

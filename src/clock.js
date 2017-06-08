@@ -1,5 +1,5 @@
 var raf = require('raf')
-var assign = require('lodash.assign')
+var assign = require('./utils/assign')
 
 var NUMBER = 'number'
 var DEFAULTS = {

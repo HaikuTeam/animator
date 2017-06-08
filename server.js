@@ -2,6 +2,7 @@ var path = require('path')
 var express = require('express')
 var browserify = require('browserify')
 var handlebars = require('handlebars')
+var filesize = require('filesize')
 var fse = require('fs-extra')
 var PORT = process.env.PORT || 3000
 var DEMOS_PATH = path.join(__dirname, 'demo')
@@ -48,6 +49,8 @@ app.get('/demos/:demo/vanilla', function(req, res) {
       return br.bundle(function(err, jsbuf) {
         if (err) return res.status(500).send('Server error! (' + err + ')')
         var js = jsbuf.toString()
+        var fsize = filesize(Buffer.byteLength(js, 'utf8'))
+        console.log(`[haiku-interpreter] ${demo} vanilla bundle size: ${fsize}`)
         var html = tpl({ demo: demo, bundle: js })
         return res.send(html)
       })

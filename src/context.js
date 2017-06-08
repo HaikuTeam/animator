@@ -1,6 +1,6 @@
 var Clock = require('./clock')
 var Timeline = require('./timeline')
-var assign = require('lodash.assign')
+var assign = require('./utils/assign')
 
 function Context (component, options) {
   var tickables = []
