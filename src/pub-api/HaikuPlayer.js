@@ -42,21 +42,24 @@ HaikuPlayer.prototype.setOptions = function setOptions (incoming) {
 }
 
 HaikuPlayer.prototype.getClock = function getClock () {
-  return new HaikuClock(this)
+  if (!this._clockInstance) this._clockInstance = new HaikuClock(this)
+  return this._clockInstance
 }
 
 HaikuPlayer.prototype.getBytecode = function getBytecode () {
-  return new HaikuBytecode(this)
+  if (!this._bytecodeInstance) this._bytecodeInstance = new HaikuBytecode(this)
+  return this._bytecodeInstance
 }
 
 HaikuPlayer.prototype.getTimelines = function getTimelines () {
-  var timelines = {}
+  if (!this._timelineInstances) this._timelineInstances = {}
   var timelineStores = this._component.fetchAllTimelineStores()
   for (var timelineName in timelineStores) {
-    var timelineStore = timelineStores[timelineName]
-    timelines[timelineName] = new HaikuTimeline(timelineName, this, timelineStore)
+    if (!this._timelineInstances[timelineName]) {
+      this._timelineInstances[timelineName] = new HaikuTimeline(timelineName, this, timelineStores[timelineName])
+    }
   }
-  return timelines
+  return this._timelineInstances
 }
 
 HaikuPlayer.prototype.getDefaultTimeline = function getDefaultTimeline () {
