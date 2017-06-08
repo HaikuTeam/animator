@@ -24,7 +24,7 @@ Timeline.prototype.assignOptions = function assignOptions (options) {
   this.loop = !!(options && options.loop)
 }
 
-Timeline.prototype.performUpdate = function performUpdate (time) {
+Timeline.prototype._updateInternalProperties = function _updateInternalProperties (time) {
   var previous = this.global
   var delta = time - previous
   this.global = time
@@ -42,9 +42,11 @@ Timeline.prototype.performUpdate = function performUpdate (time) {
   if (this.isFinished()) {
     this.isPlaying = false
   }
+}
 
+Timeline.prototype.performUpdate = function performUpdate (time) {
+  this._updateInternalProperties(time)
   this.emit('update')
-
   return this
 }
 
@@ -74,6 +76,8 @@ Timeline.prototype.isFinished = function () {
 
 Timeline.prototype.controlTime = function (time) {
   this.control = parseInt(time || 0, 10)
+  // Need to update the properties so that accessors like .getFrame() work.
+  this._updateInternalProperties(time)
   return this
 }
 
