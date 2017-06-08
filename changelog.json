@@ -1879,5 +1879,57 @@
       "label": "fix",
       "message": "don't use browser bounding box for scale calculations; refactor accordingly; make resize work as expected for various axes"
     }
+  },
+  "2.0.110": {
+    "83a0d41305d66d68526b531713bba8cda0046cae": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "allow shift, alt, cmd, ctrl to be toggled partway through a transform"
+    },
+    "fe94fdd4bd7f0cc40015acb32d98188541e02eba": {
+      "project": "haiku-interpreter",
+      "label": "fix",
+      "message": "Address memory leak from POC code on the player public API"
+    },
+    "54c17c74a1a0b116cd99a2b5be92f529e3c21a92": {
+      "project": "haiku-interpreter",
+      "label": "fix",
+      "message": "clipping on context menu"
+    },
+    "4181c27100cc48dd7dd7cf0023deea63149a2d70": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Pass in the clock time for correct calc, and format comment on guard condition"
+    },
+    "1e986f3781e02058278db9380af02458b245874b": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "snap rotation to increments of pi/12 (15deg) when shift key is held"
+    },
+    "e1f25bcd409eb7bd02d35d7066a1290ee20a75fb": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "Allow code expressions to be written inside timeline property input fields"
+    },
+    "8633cfc46378a5c911e24accaad3461660a3d8f3": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "better add-frames control"
+    },
+    "c52252eecfdac1bfd97e835c29a952aaaed0a1b0": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "duration trim overdrag protections"
+    },
+    "19bb944cb72a73362d579bb853f97492b1eefebc": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "trim duration dragged pixels"
+    },
+    "680703112914a8df5f714a8a5e70749e0b49470c": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "prototype timeline duration adjustor (warning bugs)"
+    }
   }
 }
