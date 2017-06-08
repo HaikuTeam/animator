@@ -80,5 +80,5 @@ app.get('/demos/:demo/react-dom', function(req, res) {
 })
 app.listen(PORT, function() {
   console.log('[haiku-interpreter] demo server listening @ port ' + PORT)
-  console.log('[haiku-interpreter] visit http://0.0.0.0:' + PORT + '/demos/:name')
+  console.log('[haiku-interpreter] visit http://0.0.0.0:' + PORT)
 })
