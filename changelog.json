@@ -1931,5 +1931,12 @@
       "label": "feat",
       "message": "prototype timeline duration adjustor (warning bugs)"
     }
+  },
+  "2.0.111": {
+    "d19aee1cb9fdece334620c32325d81cd4a1c0da3": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "add frame grid"
+    }
   }
 }
