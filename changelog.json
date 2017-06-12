@@ -1931,5 +1931,17 @@
       "label": "feat",
       "message": "prototype timeline duration adjustor (warning bugs)"
     }
+  },
+  "2.0.113": {
+    "aa74bd1816ba6a64800c2ae118d95d8409a53555": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Callback needed to be fired here or the queue wouldn't finish in plumbing"
+    },
+    "d19aee1cb9fdece334620c32325d81cd4a1c0da3": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "add frame grid"
+    }
   }
 }
