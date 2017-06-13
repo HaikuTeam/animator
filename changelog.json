@@ -1950,5 +1950,12 @@
       "label": "fix",
       "message": "dragging for keyframe segment ends"
     }
+  },
+  "2.0.116": {
+    "ef9c6e34ba4aac7d053b1f599a094d9c6ef604a8": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "don't apply margin 0 auto to root element of new projects by default (breaks sizing logic)"
+    }
   }
 }
