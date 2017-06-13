@@ -1943,5 +1943,12 @@
       "label": "feat",
       "message": "add frame grid"
     }
+  },
+  "2.0.115": {
+    "c2217cc003f22ed165d4bdc9543ed7212a61f403": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "dragging for keyframe segment ends"
+    }
   }
 }
