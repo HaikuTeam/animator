@@ -109,6 +109,11 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
           }
         }
       }
+      if (mount && options.sizing === 'cover') {
+        if (mount.style.overflow !== 'hidden') {
+          mount.style.overflow = 'hidden'
+        }
+      }
     }
 
     // function performEventsOnlyFlush () {
