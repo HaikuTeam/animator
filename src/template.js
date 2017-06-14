@@ -154,7 +154,7 @@ function applyContextChanges (component, inputs, template, container, me, contex
 }
 
 function _doSizing (element, container, mode, deltas) {
-  if (mode === true) mode = 'cover'
+  if (mode === true) mode = 'contain'
   var lx = element.layout.sizeAbsolute.x
   var ly = element.layout.sizeAbsolute.y
   var cx = container.layout.computed.size.x
@@ -172,10 +172,35 @@ function _doSizing (element, container, mode, deltas) {
       if (sx1 !== element.layout.scale.x) { changed = true; element.layout.scale.x = sx1 }
       if (sy1 !== element.layout.scale.y) { changed = true; element.layout.scale.y = sy1 }
       break
+    case 'contain':
+      var sx2 = cx / lx
+      var sy2 = cy / ly
+      if (sx2 > sy2) {
+        sf = sy2
+        offset = (sy2 * lx) - cx
+        element.layout.translation.x = - offset / 2
+      } else {
+        sf = sx2
+        offset = (sx2 * ly) - cy
+        element.layout.translation.y = - offset / 2
+      }
+      if (sf !== element.layout.scale.x) {changed = true; element.layout.scale.x = sf }
+      if (sf !== element.layout.scale.y) {changed = true; element.layout.scale.y = sf }
+      break
     case 'cover':
       var sx2 = cx / lx
       var sy2 = cy / ly
-      var sf = (sx2 > sy2) ? sy2 : sx2
+      var sf = undefined
+      var offset = undefined
+      if (sx2 < sy2) {
+        sf = sy2
+        offset = (sy2 * lx) - cx
+        element.layout.translation.x = - offset / 2
+      } else {
+        sf = sx2
+        offset = (sx2 * ly) - cy
+        element.layout.translation.y = - offset / 2
+      }
       if (sf !== element.layout.scale.x) { changed = true; element.layout.scale.x = sf }
       if (sf !== element.layout.scale.y) { changed = true; element.layout.scale.y = sf }
   }
