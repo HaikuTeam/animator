@@ -1957,5 +1957,32 @@
       "label": "fix",
       "message": "don't apply margin 0 auto to root element of new projects by default (breaks sizing logic)"
     }
+  },
+  "2.0.117": {
+    "6e0a2a723b62b3dbd0f8cbdf8e8ae54e6d16388e": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "instantiate elements where expected when zoomed"
+    },
+    "b365f073e8a1643d4a1a9a1a5ce34fd8515fed17": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "dragging elements should only go as far as mouse cursor when zoomed"
+    },
+    "445dc5a3236e67cc15bf7dcdbd11dce8a9241b76": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "keep control points and lines same size across zoom levels"
+    },
+    "d8478ba590f9a919b96ae0f66c5ba24218024cf6": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "instantiate elements where expected when zoomed"
+    },
+    "3dd982ce374d71084c38df9ceb95d5b2dfe875cd": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "scale objects as expected when zoomed"
+    }
   }
 }
