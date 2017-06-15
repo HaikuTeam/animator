@@ -1984,5 +1984,12 @@
       "label": "fix",
       "message": "scale objects as expected when zoomed"
     }
+  },
+  "2.0.118": {
+    "3c85a00178570f96c649273ff91fb4daaa5542ce": {
+      "project": "haiku-interpreter",
+      "label": "feat",
+      "message": "add sizing cover support and center sizing contain"
+    }
   }
 }
