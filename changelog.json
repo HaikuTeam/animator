@@ -1987,5 +1987,12 @@
       "label": "fix",
       "message": "don't apply margin 0 auto to root element of new projects by default (breaks sizing logic)"
     }
+  },
+  "2.0.120": {
+    "38a3b621cb20b346fb79218fbd71567ee5870423": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Fix perf regression and use clipboard module instead of element"
+    }
   }
 }
