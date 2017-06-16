@@ -178,28 +178,28 @@ function _doSizing (element, container, mode, deltas) {
       if (sx2 > sy2) {
         sf = sy2
         offset = (sy2 * lx) - cx
-        element.layout.translation.x = - offset / 2
+        element.layout.translation.x = -offset / 2
       } else {
         sf = sx2
         offset = (sx2 * ly) - cy
-        element.layout.translation.y = - offset / 2
+        element.layout.translation.y = -offset / 2
       }
-      if (sf !== element.layout.scale.x) {changed = true; element.layout.scale.x = sf }
-      if (sf !== element.layout.scale.y) {changed = true; element.layout.scale.y = sf }
+      if (sf !== element.layout.scale.x) { changed = true; element.layout.scale.x = sf }
+      if (sf !== element.layout.scale.y) { changed = true; element.layout.scale.y = sf }
       break
     case 'cover':
-      var sx2 = cx / lx
-      var sy2 = cy / ly
-      var sf = undefined
-      var offset = undefined
-      if (sx2 < sy2) {
-        sf = sy2
-        offset = (sy2 * lx) - cx
-        element.layout.translation.x = - offset / 2
+      var sx3 = cx / lx
+      var sy3 = cy / ly
+      var sf
+      var offset
+      if (sx3 < sy3) {
+        sf = sy3
+        offset = (sy3 * lx) - cx
+        element.layout.translation.x = -offset / 2
       } else {
-        sf = sx2
-        offset = (sx2 * ly) - cy
-        element.layout.translation.y = - offset / 2
+        sf = sx3
+        offset = (sx3 * ly) - cy
+        element.layout.translation.y = -offset / 2
       }
       if (sf !== element.layout.scale.x) { changed = true; element.layout.scale.x = sf }
       if (sf !== element.layout.scale.y) { changed = true; element.layout.scale.y = sf }
