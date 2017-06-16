@@ -1995,5 +1995,6 @@
       "message": "Fix perf regression and use clipboard module instead of element"
     }
   },
-  "2.0.121": {}
+  "2.0.121": {},
+  "2.0.122": {}
 }
