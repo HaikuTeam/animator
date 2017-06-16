@@ -1,6 +1,6 @@
 {
   "name": "haiku-interpreter",
-  "version": "2.0.121",
+  "version": "2.0.122",
   "description": "Haiku bytecode interpreter (a.k.a. the player)",
   "main": "index.js",
   "scripts": {
