@@ -7,10 +7,7 @@
     "test": "tape \"test/**/*.test.js\" | tap-spec || true",
     "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true",
     "demo": "node ./server.js",
-    "pretty": "prettier",
-    "build-and-copy": "npm run dist:dom && npm run dist:react && cp dom.bundle.js `pwd`/../haiku-npm/at-haiku-player/dom/index.js && cp react.bundle.js `pwd`/../haiku-npm/at-haiku-player/dom/react.js",
-    "dist:dom": "browserify ./src/creation/dom/index.js --standalone HaikuDOMPlayer | derequire > dom.bundle.js",
-    "dist:react": "browserify ./src/adapters/react/index.js --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > react.bundle.js && sed -i '' -E -e \"s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g\" react.bundle.js"
+    "pretty": "prettier"
   },
   "author": "Matthew Trost <matthew@haiku.ai>",
   "license": "UNLICENSED",
@@ -30,7 +27,8 @@
     "standard": "8.6.0",
     "tap-spec": "4.1.1",
     "tape": "4.6.3",
-    "uglify-js": "2.7.5"
+    "uglify-js": "2.7.5",
+    "yargs": "^8.0.2"
   },
   "dependencies": {
     "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#fb38e1bbd1826d001c5ae7b3099ba20854d10b87",
