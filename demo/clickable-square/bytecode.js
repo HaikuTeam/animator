@@ -18,7 +18,7 @@ module.exports = {
     name: 'onclick',
     selector: '#box',
     handler: function() {
-      this.getTimelines()['Move'].play()
+      this.getTimelines()['Move'].gotoAndPlay(0)
       this.clicks = this.clicks + 1
     }
   }],

@@ -1,10 +1,8 @@
 var vanityHandlers = require('haiku-bytecode/src/properties/dom/vanities')
 var queryTree = require('haiku-bytecode/src/cssQueryTree')
 var Layout3D = require('haiku-bytecode/src/Layout3D')
-var ValueBuilder = require('haiku-bytecode/src/ValueBuilder')
 var scopifyElements = require('haiku-bytecode/src/scopifyElements')
 var initializeTreeAttributes = require('./helpers/initializeTreeAttributes')
-
 var Component = require('./component')
 var Timeline = require('./timeline')
 
@@ -21,7 +19,6 @@ var STRING_TYPE = 'string'
 function Template (template, component) {
   this.template = template
   this.component = component
-  this.builder = new ValueBuilder(component, template)
   this._matches = {}
   this._controllerEventHandlers = []
 }
@@ -108,7 +105,7 @@ function gatherDeltas (me, template, container, context, component, inputs, time
   for (var i = 0; i < timelinesRunning.length; i++) {
     var timeline = timelinesRunning[i]
     var time = timeline.getBoundedTime()
-    me.builder.build(results, timeline.name, time, bytecode.timelines, true, inputs, eventsFired, inputsChanged)
+    me.component.instance.builder.build(results, timeline.name, time, bytecode.timelines, true, inputs, eventsFired, inputsChanged)
   }
   initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
   applyAccumulatedResults(results, deltas, me, template, context, component)
@@ -142,7 +139,7 @@ function applyContextChanges (component, inputs, template, container, me, contex
         }
       }
       var time = timeline.getBoundedTime()
-      me.builder.build(results, timelineName, time, bytecode.timelines, false, inputs)
+      me.component.instance.builder.build(results, timelineName, time, bytecode.timelines, false, inputs)
     }
   }
   initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing

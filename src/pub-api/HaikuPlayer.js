@@ -3,6 +3,7 @@ var Constants = require('./../constants')
 var HaikuTimeline = require('./HaikuTimeline')
 var HaikuClock = require('./HaikuClock')
 var HaikuBytecode = require('./HaikuBytecode')
+var ValueBuilder = require('haiku-bytecode/src/ValueBuilder')
 
 function HaikuPlayer (_component) {
   if (!(this instanceof HaikuPlayer)) return new HaikuPlayer(_component)
@@ -11,6 +12,7 @@ function HaikuPlayer (_component) {
   this._bytecode = _component.bytecode.bytecode
   this.VERSION = require('./../../package.json').version
   this.inputs = this._component.bytecode
+  this.builder = new ValueBuilder(this)
 }
 
 HaikuPlayer.prototype.getProperty = function get (key) {

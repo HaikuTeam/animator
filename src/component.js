@@ -127,8 +127,14 @@ Component.prototype.startTimeline = function startTimeline (timelineName) {
   var time = this.context.clock.getExplicitTime()
   var descriptor = this.bytecode.bytecode.timelines[timelineName]
   var existing = this.store.get('timelines')[timelineName]
-  if (existing) existing.start(time, descriptor)
-  else this.store.get('timelines')[timelineName] = new Timeline(time, descriptor, timelineName, this.options)
+  if (existing) {
+    existing.start(time, descriptor)
+  }
+  else {
+    var fresh = new Timeline(time, descriptor, timelineName, this.options)
+    fresh.start(time, descriptor) // Initialization alone doesn't start the timeline, so we start it explicitly
+    this.store.get('timelines')[timelineName] = fresh
+  }
 }
 
 Component.prototype.stopTimeline = function startTimeline (timelineName) {

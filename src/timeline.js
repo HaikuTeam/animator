@@ -13,12 +13,24 @@ function Timeline (time, descriptor, name, options) {
   this.control = null
   this.global = time || 0
   this.local = 0
-  this.active = true
-  this._isPlaying = true
+
+  this.active = false
+  this._isPlaying = false
+
   this.max = _getMaxTimeFromDescriptor(descriptor)
 }
 
 Timeline.DEFAULT_NAME = Constants.DEFAULT_TIMELINE_NAME
+
+// /**
+//  * @method initializeTimeline
+//  * @description Allow a timeline to be instantiated without starting it
+//  */
+// Timeline.prototype.initializeTimeline = function initializeTimeline () {
+//   this.active = true
+//   this._isPlaying = true
+//   return this
+// }
 
 Timeline.prototype.assignOptions = function assignOptions (options) {
   this.loop = !!(options && options.loop)
