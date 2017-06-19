@@ -1,0 +1,28 @@
+/**
+* SQUIRREL SETUP INFO:
+* var env = { HAIKU_RELEASE_ENVIRONMENT HAIKU_RELEASE_BRANCH HAIKU_PLUMBING_VERSION }
+* const opts = { environment: process.env.HAIKU_RELEASE_ENVIRONMENT, branch: process.env.HAIKU_RELEASE_BRANCH, platform: process.env.HAIKU_RELEASE_PLATFORM, }
+* SQUIRREL CHECK URL:
+* ${opts.server}/updates/latest?environment=${opts.environment}&branch=${opts.branch}&platform=${opts.platform}&version=${opts.version}
+* RELEASE UPLOAD URL:
+* https://s3.amazonaws.com/${bucket}/releases/${environment}/${branch}/${platform}/${countdown}/${version}/Haiku-${version}-${platform}.zip
+*/
+
+var env = {
+  HAIKU_RELEASE_VERSION: require('./package.json').version,
+  HAIKU_RELEASE_PLATFORM: 'mac',
+  HAIKU_RELEASE_ENVIRONMENT: '{{environment}}', // just a tag, really - use to push to a url that won't trigger an update to users on the mainline
+  HAIKU_RELEASE_BRANCH: '{{branch}}', // just a tag, really
+  HAIKU_PLUMBING_VERSION: '{{branch}}', // plumbing branch we want to pull down
+  HAIKU_SKIP_AUTOUPDATE: null, // '1' to skip the auto-update hook
+  HAIKU_AUTOUPDATE_SERVER: 'http://squirrel.haiku.ai:3002'
+}
+
+for (var key in env) {
+  var value = env[key]
+  if (!value) continue
+  process.env[key] = value // important: sets values in child processes
+  if (process.env.HAIKU_APP_SKIP_LOG !== '1') {
+    console.log(key + '=' + JSON.stringify(value)) // important: provides values to shell scripts (hack!)
+  }
+}

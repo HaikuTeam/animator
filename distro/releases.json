@@ -1,0 +1,298 @@
+[
+  {
+    "branch": "master",
+    "version": "0.0.0",
+    "environment": "staging",
+    "started": "20170618110454",
+    "uglified": true,
+    "uploaded": null,
+    "finished": null,
+    "success": null
+  },
+  {
+    "branch": "master",
+    "version": "0.0.0.",
+    "environment": "staging",
+    "started": "20170618110340",
+    "uglified": true,
+    "uploaded": null,
+    "finished": null,
+    "success": null
+  },
+  {
+    "branch": "master",
+    "version": "0.0.0",
+    "environment": "staging",
+    "started": "20170618110303",
+    "uglified": true,
+    "uploaded": null,
+    "finished": null,
+    "success": null
+  },
+  {
+    "branch": "master",
+    "version": "0.0.0",
+    "environment": "staging",
+    "started": "20170618110217",
+    "uglified": true,
+    "uploaded": null,
+    "finished": null,
+    "success": null
+  },
+  {
+    "branch": "master",
+    "version": "0.0.0",
+    "environment": "staging",
+    "started": "20170618105904",
+    "uglified": true,
+    "uploaded": null,
+    "finished": null,
+    "success": null
+  },
+  {
+    "branch": "master",
+    "version": "0.0.0",
+    "environment": "staging",
+    "started": "20170618105730",
+    "uglified": true,
+    "uploaded": null,
+    "finished": null,
+    "success": null
+  },
+  {
+    "branch": "master",
+    "version": "0.0.0",
+    "environment": "staging",
+    "started": "20170618105620",
+    "uglified": true,
+    "uploaded": null,
+    "finished": null,
+    "success": null
+  },
+  {
+    "branch": "master",
+    "version": "2.0.124",
+    "environment": "staging",
+    "started": "20170617124350",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170617125830",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.122",
+    "environment": "staging",
+    "started": "20170616104246",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170616105736",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.121",
+    "environment": "staging",
+    "started": "20170615151606",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170615153636",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.119",
+    "environment": "staging",
+    "started": "20170615113823",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170615115251",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.115",
+    "environment": "staging",
+    "started": "20170613145903",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170613151333",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.113",
+    "environment": "staging",
+    "started": "20170612183940",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170612185408",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.110",
+    "environment": "staging",
+    "started": "20170608133530",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170608134951",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.107",
+    "environment": "production",
+    "started": "20170606182956",
+    "uglified": true,
+    "uploaded": true,
+    "finished": "20170606184402",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.107",
+    "environment": "staging",
+    "started": "20170606180358",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170606181744",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.105",
+    "environment": "staging",
+    "started": "20170606133631",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170606135045",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.104",
+    "environment": "production",
+    "started": "20170605175603",
+    "uglified": true,
+    "uploaded": true,
+    "finished": "20170605182322",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.104",
+    "environment": "staging",
+    "started": "20170605152018",
+    "uglified": true,
+    "uploaded": true,
+    "finished": "20170605153437",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.103",
+    "environment": "staging",
+    "started": "20170605113638",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170605115104",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.102",
+    "environment": "staging",
+    "started": "20170605103355",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170605104844",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.98",
+    "environment": "staging",
+    "started": "20170602132011",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170602133539",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.95",
+    "environment": "production",
+    "started": "20170530170248",
+    "uglified": true,
+    "uploaded": true,
+    "finished": "20170530171721",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.95",
+    "environment": "production",
+    "channel": "production",
+    "started": "20170528095840",
+    "uglified": true,
+    "uploaded": true,
+    "finished": "20170528101343",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.95",
+    "environment": "staging",
+    "channel": "staging",
+    "started": "20170526141821",
+    "uglified": true,
+    "uploaded": true,
+    "finished": "20170526143318",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.95",
+    "environment": "development",
+    "channel": "development",
+    "started": "20170526140142",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170526141611",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.94",
+    "environment": "development",
+    "channel": "development",
+    "started": "20170526135713",
+    "uglified": false,
+    "uploaded": null,
+    "finished": null,
+    "success": null
+  },
+  {
+    "branch": "master",
+    "version": "2.0.94",
+    "environment": "development",
+    "channel": "development",
+    "started": "20170526134607",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170526134959",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.94",
+    "environment": "staging",
+    "channel": "staging",
+    "started": "20170526132843",
+    "uglified": true,
+    "uploaded": true,
+    "finished": "20170526133524",
+    "success": true
+  }
+]

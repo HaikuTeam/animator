@@ -38,8 +38,10 @@
   },
   "devDependencies": {
     "async": "2.1.5",
+    "browserify": "^14.4.0",
     "cli-color": "1.2.0",
     "dependency-graph": "^0.5.0",
+    "derequire": "^2.0.6",
     "fs-extra": "2.0.0",
     "inquirer": "^3.0.6",
     "lodash": "4.17.4",
@@ -47,6 +49,7 @@
     "semver": "5.3.0",
     "snazzy": "6.0.0",
     "standard": "8.6.0",
+    "uglify-js": "^3.0.18",
     "yargs": "6.6.0"
   },
   "standard": {

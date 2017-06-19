@@ -101,6 +101,12 @@ async.series([
         name: 'finalUberCommitMessage',
         message: 'Final uber-commit message (for mono itself):',
         default: inputs.finalUberCommitMessage || 'auto: Housekeeping'
+      },
+      {
+        type: 'confirm',
+        name: 'doDistro',
+        message: 'Build distro (build Haiku.app, push to release channel etc.)?:',
+        default: true
       }
     ]).then(function (answers) {
       lodash.assign(inputs, answers)
@@ -167,11 +173,21 @@ async.series([
     return runScript('npm-semver-inc', [`--level=${inputs.semverBumpLevel}`], cb)
   },
   function (cb) {
+    // This is used in subsequent steps to create correct file paths, etc
+    var nowVersion = fse.readJsonSync(path.join(ROOT, 'package.json')).version
+    inputs.nowVersion = nowVersion
+    log.hat(`note that the current version is ${inputs.nowVersion}`)
+    return cb()
+  },
+  function (cb) {
     log.hat('creating distribution builds of our player and adapters')
-    cp.execSync('npm run dist:dom', { cwd: interpreterPath, stdio: 'inherit' })
-    cp.execSync('npm run dist:react', { cwd: interpreterPath, stdio: 'inherit' })
+
+    cp.execSync(`browserify ${interpreterPath}/src/creation/dom/index.js --standalone HaikuDOMPlayer | derequire > ${interpreterPath}/dom.bundle.js`, { stdio: 'inherit' })
+    cp.execSync(`browserify ${interpreterPath}/src/adapters/react/index.js --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > ${interpreterPath}/react.bundle.js && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${interpreterPath}/react.bundle.js`, { stdio: 'inherit' })
+
     fse.copySync(path.join(interpreterPath, 'dom.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'index.js'))
     fse.copySync(path.join(interpreterPath, 'react.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'react.js'))
+
     cb()
   },
   function (cb) {
@@ -219,8 +235,36 @@ async.series([
       log.log('there was error doing git cleanup inside mono itself. please fix issues, commit, and push mono manually')
       return cb()
     }
+  },
+  function (cb) {
+    if (inputs.doDistro) {
+      log.hat('starting interactive distro build process')
+      return runScript('distro', [`--version=${inputs.nowVersion}`], (err) => {
+        if (err) return cb(err)
+        cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
+        cp.execSync(`git commit -m "auto: Built release"`, { cwd: ROOT, stdio: 'inherit' })
+        return cb()
+      })
+    }
+    log.log('skipping distro because you said so')
+    return cb()
   }
 ], function (err) {
   if (err) throw err
   log.hat('finished!', 'green')
 })
+
+// var initializeAWSService = require('./../distro/scripts/initializeAWSService')
+// var uploadObjectToS3 = require('./../distro/scripts/uploadObjectToS3')
+// var DEPLOY_CONFIGS = require('./../distro/deploy').deployer
+// // environment, branch, version,
+// // var local = path.join(interpreterPath, 'dom.bundle.js')
+// function uploadFileStream (sourcepath, destpath, region, env, bucket, acl, cb) {
+//   var config = DEPLOY_CONFIGS[env]
+//   var accessKeyId = config.key
+//   var secretAccessKey = config.secret
+//   var s3 = initializeAWSService('S3', region, accessKeyId, secretAccessKey)
+//   var stream = fs.createReadStream(sourcepath)
+//   console.log('uploading ' + sourcepath + ' as ' + destpath + ' to ' + bucket + '...')
+//   return uploadObjectToS3(s3, destpath, stream, bucket, acl, cb)
+// }

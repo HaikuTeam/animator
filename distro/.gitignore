@@ -1,0 +1,7 @@
+.DS_Store
+*.log
+node_modules
+dist/*
+libs/*
+out/*
+config.js
