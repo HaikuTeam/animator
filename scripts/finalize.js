@@ -251,7 +251,7 @@ async.series([
   }
 ], function (err) {
   if (err) throw err
-  log.hat('finished!', 'green')
+  log.hat(`finished! current version is ${inputs.nowVersion}`, 'green')
 })
 
 // var initializeAWSService = require('./../distro/scripts/initializeAWSService')
