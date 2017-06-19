@@ -129,8 +129,7 @@ Component.prototype.startTimeline = function startTimeline (timelineName) {
   var existing = this.store.get('timelines')[timelineName]
   if (existing) {
     existing.start(time, descriptor)
-  }
-  else {
+  } else {
     var fresh = new Timeline(time, descriptor, timelineName, this.options)
     fresh.start(time, descriptor) // Initialization alone doesn't start the timeline, so we start it explicitly
     this.store.get('timelines')[timelineName] = fresh
