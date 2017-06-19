@@ -1,6 +1,17 @@
 [
   {
     "branch": "master",
+    "version": "2.0.125",
+    "environment": "staging",
+    "started": "20170619102244",
+    "uglified": false,
+    "uploaded": null,
+    "finished": null,
+    "success": false,
+    "error": "Command failed: /Users/matthew/Code/HaikuTeam/_scratch/mono/distro/scripts/bash/build.sh"
+  },
+  {
+    "branch": "master",
     "version": "0.0.0",
     "environment": "staging",
     "started": "20170618110454",
