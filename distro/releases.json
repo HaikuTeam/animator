@@ -3,6 +3,27 @@
     "branch": "master",
     "version": "2.0.125",
     "environment": "staging",
+    "started": "20170619111903",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170619113303",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.0.125",
+    "environment": "staging",
+    "started": "20170619105210",
+    "uglified": false,
+    "uploaded": null,
+    "finished": null,
+    "success": false,
+    "error": "Command failed: /Users/matthew/Code/HaikuTeam/_scratch/mono/distro/scripts/bash/electron-rebuild.sh"
+  },
+  {
+    "branch": "master",
+    "version": "2.0.125",
+    "environment": "staging",
     "started": "20170619102244",
     "uglified": false,
     "uploaded": null,

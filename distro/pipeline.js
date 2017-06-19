@@ -151,14 +151,22 @@ function runit () {
 
       console.log(`clearing out old libs ${libsDir}`)
       cp.execSync(`rm -rf ${libsDir}`, { stdio: 'inherit' })
+      cp.execSync(`mkdir -p ${libsDir}`, { stdio: 'inherit' })
 
-      console.log(`creating new content dir ${libsPlumbingDir}`)
-      cp.execSync(`mkdir -p ${libsPlumbingDir}`, { stdio: 'inherit' })
+      console.log(`cloning fresh version of plumbing`)
+      cp.execSync(`git clone git@github.com:HaikuTeam/plumbing.git`, { stdio: 'inherit', cwd: libsDir })
+      cp.execSync('git submodule update --init --recursive', { stdio: 'inherit', cwd: libsPlumbingDir })
+      cp.execSync(`git checkout ${inputs.branch}`, { stdio: 'inherit', cwd: libsPlumbingDir })
+      cp.execSync(`git submodule update --init --recursive`, { stdio: 'inherit', cwd: libsPlumbingDir })
 
-      console.log(`copying plumbing contents to ${libsPlumbingDir} (this takes a while)`)
-      cp.execSync(`cp -r ${plumbingDir}/ ${libsPlumbingDir}`, { stdio: 'inherit' })
+      console.log(`installing plumbing packages`)
+      // IMPORTANT: only=production is to avoid any errors such as: "bundle format is ambiguous"
+      // it also makes sure we don't put our dev dependencies inside the user's app
+      cp.execSync('npm install --only=production', { stdio: 'inherit', cwd: libsPlumbingDir })
+      cp.execSync('npm install gulp gulp-watch babel-cli', { stdio: 'inherit', cwd: libsPlumbingDir })
 
       // Build the libraries and packages
+      console.log('building libraries and packages')
       cp.execSync(path.join(__dirname, 'scripts', 'bash', 'electron-rebuild.sh'), { stdio: 'inherit' })
       cp.execSync(path.join(__dirname, 'scripts', 'bash', 'compile.sh'), { stdio: 'inherit' })
 
