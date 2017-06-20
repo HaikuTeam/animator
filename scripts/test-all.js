@@ -7,11 +7,6 @@ var allPackages = require('./helpers/allPackages')()
 var ROOT = path.join(__dirname, '..')
 
 async.eachSeries(allPackages, function (pack, next) {
-  if (pack.name === 'haiku-interpreter') {
-    // This one's tests has a leaked handle issue (never finishes); remove this when resolved
-    return next()
-  }
-
   if (pack.pkg.scripts && pack.pkg.scripts.test) {
     if (pack.pkg.scripts.test !== `echo "Error: no test specified" && exit 1`) {
       try {
