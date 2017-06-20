@@ -1,5 +1,6 @@
 var lodash = require('lodash')
 var fse = require('fs-extra')
+var fs = require('fs')
 var cp = require('child_process')
 var path = require('path')
 var async = require('async')
@@ -14,6 +15,10 @@ var interpreterPath = groups['haiku-interpreter'].abspath
 var haikuNpmPath = groups['haiku-npm'].abspath
 var ROOT = path.join(__dirname, '..')
 
+var initializeAWSService = require('./../distro/scripts/initializeAWSService')
+var uploadObjectToS3 = require('./../distro/scripts/uploadObjectToS3')
+var DEPLOY_CONFIGS = require('./../distro/deploy')
+
 /**
  * Run this script when you're done making changes and want to push your code.
  */
@@ -27,6 +32,24 @@ log.log(`fyi, your current mono branch is ${JSON.stringify(_branch)}\n`)
 
 if (!inputs.branch) {
   inputs.branch = _branch
+}
+
+function uploadFileStream (sourcepath, destpath, region, deployer, env, bucket, acl, cb) {
+  var config = DEPLOY_CONFIGS[deployer][env]
+
+  if (!config) {
+    throw new Error(`No config for ${deployer} / ${env}`)
+  }
+
+  var accessKeyId = config.key
+  var secretAccessKey = config.secret
+
+  var s3 = initializeAWSService('S3', region, accessKeyId, secretAccessKey)
+  var stream = fs.createReadStream(sourcepath)
+
+  console.log('uploading ' + sourcepath + ' as ' + destpath + ' to ' + bucket + '...')
+
+  return uploadObjectToS3(s3, destpath, stream, bucket, acl, cb)
 }
 
 function assertGitStatus () {
@@ -182,13 +205,33 @@ async.series([
   function (cb) {
     log.hat('creating distribution builds of our player and adapters')
 
-    cp.execSync(`browserify ${interpreterPath}/src/creation/dom/index.js --standalone HaikuDOMPlayer | derequire > ${interpreterPath}/dom.bundle.js`, { stdio: 'inherit' })
-    cp.execSync(`browserify ${interpreterPath}/src/adapters/react/index.js --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > ${interpreterPath}/react.bundle.js && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${interpreterPath}/react.bundle.js`, { stdio: 'inherit' })
+    log.log('browserifying player packages and adapters')
+    cp.execSync(`browserify ${JSON.stringify(path.join(interpreterPath, 'src', 'creation', 'dom', 'index.js'))} --standalone HaikuDOMPlayer | derequire > ${JSON.stringify(path.join(interpreterPath, 'dom.bundle.js'))}`, { stdio: 'inherit' })
+    cp.execSync(`browserify ${JSON.stringify(path.join(interpreterPath, 'src', 'adapters', 'react', 'index.js'))} --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > ${JSON.stringify(path.join(interpreterPath, 'react.bundle.js'))} && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${JSON.stringify(path.join(interpreterPath, 'react.bundle.js'))}`, { stdio: 'inherit' })
 
+    log.log('moving bundles into npm module')
     fse.copySync(path.join(interpreterPath, 'dom.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'index.js'))
     fse.copySync(path.join(interpreterPath, 'react.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'react.js'))
 
-    cb()
+    log.log('creating minified bundles for the cdn')
+    cp.execSync(`uglifyjs ${JSON.stringify(path.join(interpreterPath, 'dom.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(interpreterPath, 'dom.bundle.min.js'))}`)
+    cp.execSync(`uglifyjs ${JSON.stringify(path.join(interpreterPath, 'react.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(interpreterPath, 'react.bundle.min.js'))}`)
+
+    // Note: These are hosted via the haiku-internal AWS account
+    // http://code.haiku.ai/scripts/player/HaikuPlayer.${vers}.js
+    // http://code.haiku.ai/scripts/player/HaikuPlayer.${vers}.min.js
+    log.log('uploading bundles to the cdn')
+    return async.series([
+      function (cb) {
+        // Note that the object keys should NOT begin with a slash, or the S3 path will get weird
+        log.log('uploading dom bundle to code.haiku.ai')
+        return uploadFileStream(path.join(interpreterPath, 'dom.bundle.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+      },
+      function (cb) {
+        log.log('uploading dom bundle to code.haiku.ai')
+        return uploadFileStream(path.join(interpreterPath, 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+      }
+    ], cb)
   },
   function (cb) {
     log.hat('adding and committing all changes in all the packages')
@@ -253,18 +296,3 @@ async.series([
   if (err) throw err
   log.hat(`finished! current version is ${inputs.nowVersion}`, 'green')
 })
-
-// var initializeAWSService = require('./../distro/scripts/initializeAWSService')
-// var uploadObjectToS3 = require('./../distro/scripts/uploadObjectToS3')
-// var DEPLOY_CONFIGS = require('./../distro/deploy').deployer
-// // environment, branch, version,
-// // var local = path.join(interpreterPath, 'dom.bundle.js')
-// function uploadFileStream (sourcepath, destpath, region, env, bucket, acl, cb) {
-//   var config = DEPLOY_CONFIGS[env]
-//   var accessKeyId = config.key
-//   var secretAccessKey = config.secret
-//   var s3 = initializeAWSService('S3', region, accessKeyId, secretAccessKey)
-//   var stream = fs.createReadStream(sourcepath)
-//   console.log('uploading ' + sourcepath + ' as ' + destpath + ' to ' + bucket + '...')
-//   return uploadObjectToS3(s3, destpath, stream, bucket, acl, cb)
-// }
