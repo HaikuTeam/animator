@@ -230,6 +230,14 @@ async.series([
       function (cb) {
         log.log('uploading dom bundle to code.haiku.ai')
         return uploadFileStream(path.join(interpreterPath, 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+      },
+      function (cb) {
+        log.hat(`
+          our provided 3rd-party scripts:
+          http://code.haiku.ai/scripts/player/HaikuPlayer.${inputs.nowVersion}.js
+          http://code.haiku.ai/scripts/player/HaikuPlayer.${inputs.nowVersion}.min.js
+        `)
+        return cb()
       }
     ], cb)
   },
