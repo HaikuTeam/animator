@@ -34,6 +34,13 @@ module.exports = {
       secret: 'X30A7gD8Lecf0b5lHjDZ4ieDC6V6a24OlpjQ9qnF',
     },
   },
+  'code.haiku.ai': {
+    production: {
+      user: 'haiku-s3-deployer',
+      key: 'AKIAIH7B7VTCOY2IXGCQ',
+      secret: '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'
+    }
+  },
   marketing: {
     production: {
       user: 'haiku-s3-deployer',
