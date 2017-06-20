@@ -2004,5 +2004,12 @@
       "label": "fix",
       "message": "Don't start timeline when initialized, and modify API via changes to transition/machine handling"
     }
+  },
+  "2.0.126": {
+    "687ad666fcc4cb504dd5ab6f53d37106f7264047": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Make sure org name gets set and fix package names we detect to be wrong"
+    }
   }
 }
