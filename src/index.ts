@@ -467,10 +467,9 @@ function doInstall() {
 
 function doList() {
   ensureAuth((token: string) => {
-
     if (flags && flags.organizations) {
-      inkstone.organization.list(token, (err, organizations) => {
-        if (organizations == undefined || organizations.length == 0) {
+      inkstone.organization.list(token, (err, organizations, resp) => {
+        if (organizations === undefined || organizations.length === 0) {
           console.log("You are not a member of any organizations.")
         } else {
           console.log(chalk.cyan("Your Organizations:"))
@@ -478,8 +477,8 @@ function doList() {
             console.log("  " + org.Name)
           })
         }
+        process.exit(0)
       })
-      process.exit(0)
     } else {
 
       inkstone.project.list(token, (err, projects) => {
