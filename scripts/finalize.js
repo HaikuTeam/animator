@@ -129,7 +129,7 @@ async.series([
         type: 'confirm',
         name: 'doDistro',
         message: 'Build distro (build Haiku.app, push to release channel etc.)?:',
-        default: true
+        default: false // More often than not, we just want to push code, not release
       }
     ]).then(function (answers) {
       lodash.assign(inputs, answers)
