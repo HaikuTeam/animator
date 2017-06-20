@@ -143,9 +143,6 @@ function runit () {
   shout(`Distro build started (${tuple})`, () => {
     try {
       // Reset the repository contents
-      var monoDir = path.join(__dirname, '..')
-      var packagesDir = path.join(monoDir, 'packages')
-      var plumbingDir = path.join(packagesDir, 'haiku-plumbing')
       var libsDir = path.join(__dirname, 'libs')
       var libsPlumbingDir = path.join(libsDir, 'plumbing')
 

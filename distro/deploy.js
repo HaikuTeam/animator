@@ -41,6 +41,12 @@ module.exports = {
       secret: 'Pc8Ow1t6KK2zMWIkNHKaGKcWuLIy7M2iLJwxX5Gh'
     }
   },
+  cloudfront: {
+    production: {
+      distributionId: 'E1FUJARDP1LMEC',
+      profile: 'haiku'
+    }
+  },
   marketing: {
     production: {
       user: 'haiku-s3-deployer',
