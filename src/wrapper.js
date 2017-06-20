@@ -26,9 +26,6 @@ function wrapper (renderer, bytecode, wrapperOptions, platform) {
     throw new Error('A runtime `platform` is required')
   }
 
-  // Hot editing hook
-  if (!platform.haiku) platform.haiku = {}
-
   if (!bytecode.template) {
     throw new Error('Bytecode `template` is required')
   }
