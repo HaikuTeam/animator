@@ -75,15 +75,15 @@ module.exports = {
       '#box': {
         'rotation.z': {
           0: {
-            value: function (inputs) {
-              var n = (inputs.clicks < 1) ? 0 : (inputs.clicks - 1)
+            value: function ({ clicks }) {
+              var n = (clicks < 1) ? 0 : (clicks - 1)
               return n * Math.PI / 2
             },
             curve: 'easeInOutBounce'
           },
           2500: {
-            value: function (inputs) {
-              return inputs.clicks * Math.PI / 2
+            value: function ({ clicks }) {
+              return clicks * Math.PI / 2
             }
           }
         }
