@@ -220,6 +220,11 @@ async.series([
     // Note: These are hosted via the haiku-internal AWS account
     // http://code.haiku.ai/scripts/player/HaikuPlayer.${vers}.js
     // http://code.haiku.ai/scripts/player/HaikuPlayer.${vers}.min.js
+    //
+    // I was asking myself if we wanted to include a string like `staging` in these paths to differentiate
+    // builds we do from staging from prod, but my current thought is that that isn't necessary since
+    // the version we push will always be _ahead_ of the version userland is on, and someone would have
+    // to manually change the snippet to get an advance/untested version
     log.log('uploading bundles to the cdn')
     return async.series([
       function (cb) {
