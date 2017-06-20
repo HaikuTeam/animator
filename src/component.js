@@ -19,7 +19,9 @@ function Component (bytecode, options, metas) {
   this.template = new Template(this.bytecode.getTemplate(), this)
 
   this.instance = new Instance(this) // ::HaikuPlayer
+
   this.inputs = this.store.set('inputs', {}) // This is just an object, but we create setters for it on the HaikuPlayer instance
+
   this.bytecode.defineInputs(this.inputs, this.instance)
 
   this.bytecode.bindEventHandlers(this.instance)

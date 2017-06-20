@@ -11,17 +11,7 @@ function HaikuPlayer (_component) {
   this._component = _component
   this._bytecode = _component.bytecode.bytecode
   this.VERSION = require('./../../package.json').version
-  this.inputs = this._component.bytecode
   this.builder = new ValueBuilder(this)
-}
-
-HaikuPlayer.prototype.getProperty = function get (key) {
-  return this._component.inputs[key]
-}
-
-HaikuPlayer.prototype.setProperty = function get (key, value) {
-  this._component.inputs[key] = value
-  return this
 }
 
 HaikuPlayer.prototype.setOption = function setOption (key, value) {
@@ -62,6 +52,10 @@ HaikuPlayer.prototype.getTimelines = function getTimelines () {
     }
   }
   return this._timelineInstances
+}
+
+HaikuPlayer.prototype.getTimeline = function getTimeline (name) {
+  return this.getTimelines()[name]
 }
 
 HaikuPlayer.prototype.getDefaultTimeline = function getDefaultTimeline () {

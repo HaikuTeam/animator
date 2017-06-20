@@ -48,7 +48,7 @@ Bytecode.prototype.bindEventHandlers = function _bindEventHandlers (instance) {
 }
 
 function typecheckInput (type, name, value) {
-  if (type === 'any' || type === '*') {
+  if (type === 'any' || type === '*' || type === undefined || type === null) {
     return void (0)
   }
   if (type === 'event' || type === 'listener') {
@@ -84,11 +84,24 @@ Bytecode.prototype.defineInputs = function defineInputs (storageObject, playerIn
   var self = this
 
   eachProperty(this.bytecode, function _eachProperty (type, name, defval, privacy, setter) {
-    if (defval === undefined) throw new Error('Property `' + name + '` cannot be undefined; use null for empty properties')
-    if (playerInstance[name] !== undefined) throw new Error('Property `' + name + '` is a reserved keyword')
-    if (storageObject[name] !== undefined) throw new Error('Property `' + name + '` was already declared')
+    // 'null' is the signal for an empty prop, not undefined.
+    if (defval === undefined) {
+      throw new Error('Property `' + name + '` cannot be undefined; use null for empty properties')
+    }
+
+    // Don't allow the player's own API to be clobbered; TODO: How to handle this gracefully?
+    // Note that the properties aren't actually stored on the player itself, but we still prevent the naming collision
+    if (playerInstance[name] !== undefined) {
+      throw new Error('Property `' + name + '` is a reserved keyword')
+    }
+
+    // Don't allow duplicate properties to be declared (the property is an array so we have to check)
+    if (storageObject[name] !== undefined) {
+      throw new Error('Property `' + name + '` was already declared')
+    }
 
     typecheckInput(type, name, defval)
+
     storageObject[name] = defval
 
     Object.defineProperty(playerInstance, name, {
@@ -101,6 +114,7 @@ Bytecode.prototype.defineInputs = function defineInputs (storageObject, playerIn
 
         self._inputChanges[name] = input
         self._anyInputChange = true
+
         if (setter) {
           storageObject[name] = setter.call(playerInstance, input)
         } else {
