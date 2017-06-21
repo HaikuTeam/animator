@@ -2018,5 +2018,6 @@
       "label": "fix",
       "message": "Ensure sizing='contain' and sizing='cover' modes work correctly when the element is resized"
     }
-  }
+  },
+  "2.0.128": {}
 }
