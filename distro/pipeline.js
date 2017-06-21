@@ -38,8 +38,8 @@ inquirer.prompt([
   {
     type: 'confirm',
     name: 'uglify',
-    message: 'Obfuscate source code in release bundle (should be yes unless this is for internal testing only)?:',
-    default: true
+    message: 'Obfuscate source code in release bundle ("yes" is *required* for production)?:',
+    default: false
   },
   {
     type: 'confirm',

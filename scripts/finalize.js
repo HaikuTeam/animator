@@ -92,14 +92,14 @@ async.series([
       {
         type: 'confirm',
         name: 'doLintPackages',
-        message: 'Run the linter in all the packages? (warning: this auto-formats code so you may end up with unsaved changes)',
-        default: true
+        message: 'Run the linter in all the packages? (warning: this may auto-format your code, resulting in unsaved changes)',
+        default: false
       },
       {
         type: 'confirm',
         name: 'doTestPackages',
-        message: 'Run automated tests in all the packages? (note: failed tests will _not_ stop this script)',
-        default: true
+        message: 'Run automated tests in all the packages? (note: failed tests will _not_ block the rest of the steps)',
+        default: false
       },
       {
         type: 'confirm',
