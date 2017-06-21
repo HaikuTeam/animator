@@ -2011,5 +2011,12 @@
       "label": "fix",
       "message": "Make sure org name gets set and fix package names we detect to be wrong"
     }
+  },
+  "2.0.127": {
+    "ed3366bd2ca071691b60aa3a449ec9b5ec048fcc": {
+      "project": "haiku-interpreter",
+      "label": "fix",
+      "message": "Ensure sizing='contain' and sizing='cover' modes work correctly when the element is resized"
+    }
   }
 }
