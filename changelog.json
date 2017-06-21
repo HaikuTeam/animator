@@ -2018,5 +2018,12 @@
       "label": "fix",
       "message": "Ensure sizing='contain' and sizing='cover' modes work correctly when the element is resized"
     }
+  },
+  "2.0.129": {
+    "28f110f1d955306ede0bc09a47d71150342baa30": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Clear cache after creating keyframe so timeline edits to existing keyframes update on the first time"
+    }
   }
 }
