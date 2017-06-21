@@ -21,8 +21,8 @@ Bytecode.prototype.getTemplate = function getTemplate () {
   if (!this.bytecode.template) throw new Error('Empty bytecode template not allowed')
   if (typeof this.bytecode.template === OBJECT_TYPE) {
     if (!this.bytecode.template.elementName) {
-      console.warn('Warning: Saw unexpected bytecode template format')
-      console.log('Template:', this.bytecode.template)
+      console.warn('[haiku player] warning: saw unexpected bytecode template format')
+      console.log('[haiku player] template:', this.bytecode.template)
     }
     return this.bytecode.template
   }

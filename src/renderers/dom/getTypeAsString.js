@@ -35,7 +35,7 @@ var warnings = {}
 function _warnOnce (warning) {
   if (warnings[warning]) return void (0)
   warnings[warning] = true
-  console.warn(warning)
+  console.warn('[haiku player] warning:', warning)
 }
 
 module.exports = getTypeAsString

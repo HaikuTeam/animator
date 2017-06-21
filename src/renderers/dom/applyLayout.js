@@ -13,7 +13,7 @@ var PLATFORM_INFO = {
   hasPreserve3d: hasPreserve3d(_window) // I dunno if we actually need this
 }
 
-console.info('[haiku]:', JSON.stringify(PLATFORM_INFO))
+console.info('[haiku player] platform info:', JSON.stringify(PLATFORM_INFO))
 
 var DEFAULT_PIXEL_RATIO = 1.0
 var SVG = 'svg'
@@ -80,7 +80,7 @@ var warnings = {}
 function _warnOnce (warning) {
   if (warnings[warning]) return void (0)
   warnings[warning] = true
-  console.warn(warning)
+  console.warn('[haiku player] warning:', warning)
 }
 
 module.exports = applyLayout
