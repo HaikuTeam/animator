@@ -152,56 +152,134 @@ function applyContextChanges (component, inputs, template, container, me, contex
 
 function _doSizing (element, container, mode, deltas) {
   if (mode === true) mode = 'contain'
-  var lx = element.layout.sizeAbsolute.x
-  var ly = element.layout.sizeAbsolute.y
-  var cx = container.layout.computed.size.x
-  var cy = container.layout.computed.size.y
-  if (!element.attributes.style['transform-origin']) element.attributes.style['transform-origin'] = 'top left'
-  var changed = false
-  switch (mode) {
-    case 'normal':
-      if (element.layout.scale.x !== 1.0) { changed = true; element.layout.scale.x = 1.0 }
-      if (element.layout.scale.y !== 1.0) { changed = true; element.layout.scale.y = 1.0 }
-      break
-    case 'stretch':
-      var sx1 = cx / lx
-      var sy1 = cy / ly
-      if (sx1 !== element.layout.scale.x) { changed = true; element.layout.scale.x = sx1 }
-      if (sy1 !== element.layout.scale.y) { changed = true; element.layout.scale.y = sy1 }
-      break
-    case 'contain':
-      var sx2 = cx / lx
-      var sy2 = cy / ly
-      if (sx2 > sy2) {
-        sf = sy2
-        offset = (sy2 * lx) - cx
-        element.layout.translation.x = -offset / 2
-      } else {
-        sf = sx2
-        offset = (sx2 * ly) - cy
-        element.layout.translation.y = -offset / 2
-      }
-      if (sf !== element.layout.scale.x) { changed = true; element.layout.scale.x = sf }
-      if (sf !== element.layout.scale.y) { changed = true; element.layout.scale.y = sf }
-      break
-    case 'cover':
-      var sx3 = cx / lx
-      var sy3 = cy / ly
-      var sf
-      var offset
-      if (sx3 < sy3) {
-        sf = sy3
-        offset = (sy3 * lx) - cx
-        element.layout.translation.x = -offset / 2
-      } else {
-        sf = sx3
-        offset = (sx3 * ly) - cy
-        element.layout.translation.y = -offset / 2
-      }
-      if (sf !== element.layout.scale.x) { changed = true; element.layout.scale.x = sf }
-      if (sf !== element.layout.scale.y) { changed = true; element.layout.scale.y = sf }
+
+  var elementWidth = element.layout.sizeAbsolute.x
+  var elementHeight = element.layout.sizeAbsolute.y
+
+  var containerWidth = container.layout.computed.size.x
+  var containerHeight = container.layout.computed.size.y
+
+  // I.e., the amount by which we'd have to multiply the element's scale to make it
+  // exactly the same size as its container (without going above it)
+  var scaleDiffX = containerWidth / elementWidth
+  var scaleDiffY = containerHeight / elementHeight
+
+  // This makes sure that the sizing occurs with respect to a correct and consistent origin point,
+  // but only if the user didn't happen to explicitly set this value (we allow their override).
+  if (!element.attributes.style['transform-origin']) {
+    element.attributes.style['transform-origin'] = 'top left'
   }
+
+  // IMPORTANT: If any value has been changed on the element, you must set this to true.
+  // Otherwise the changed object won't go into the deltas dictionary, and the element won't update.
+  var changed = false
+
+  switch (mode) {
+    // Make the base element its default scale, which is just a multiplier of one. This is the default.
+    case 'normal':
+      if (element.layout.scale.x !== 1.0) {
+        changed = true
+        element.layout.scale.x = 1.0
+      }
+      if (element.layout.scale.y !== 1.0) {
+        changed = true
+        element.layout.scale.y = 1.0
+      }
+      break
+
+    // Stretch the element to fit the container on both x and y dimensions (distortion allowed)
+    case 'stretch':
+      if (scaleDiffX !== element.layout.scale.x) {
+        changed = true
+        element.layout.scale.x = scaleDiffX
+      }
+      if (scaleDiffY !== element.layout.scale.y) {
+        changed = true
+        element.layout.scale.y = scaleDiffY
+      }
+      break
+
+    // CONTAIN algorithm
+    // see https://developer.mozilla.org/en-US/docs/Web/CSS/background-size?v=example
+    // A keyword that scales the image as large as possible and maintains image aspect ratio
+    // (image doesn't get squished). Image is letterboxed within the container.
+    // When the image and container have different dimensions, the empty areas (either top/bottom of left/right)
+    // are filled with the background-color.
+    case 'contain':
+      var containScaleToUse = null
+
+      // We're looking for the larger of the two scales that still allows both dimensions to fit in the box
+      // The rounding is necessary to avoid precision issues, where we end up comparing e.g. 2.0000000000001 to 2
+      if (~~(scaleDiffX * elementWidth) <= containerWidth && ~~(scaleDiffX * elementHeight) <= containerHeight) {
+        containScaleToUse = scaleDiffX
+      }
+      if (~~(scaleDiffY * elementWidth) <= containerWidth && ~~(scaleDiffY * elementHeight) <= containerHeight) {
+        if (containScaleToUse === null) {
+          containScaleToUse = scaleDiffY
+        } else {
+          if (scaleDiffY >= containScaleToUse) {
+            containScaleToUse = scaleDiffY
+          }
+        }
+      }
+
+      // We shouldn't ever be null here, but in case of a defect, show this warning
+      if (containScaleToUse === null) {
+        console.warn('[haiku player] unable to compute scale for contain sizing algorithm')
+        return void (0)
+      }
+
+      changed = true // HACK: Unless we assume we changed, there seems to be an off-by-a-frame issue
+
+      element.layout.scale.x = containScaleToUse
+      element.layout.scale.y = containScaleToUse
+
+      // Offset the translation so that the element remains centered within the letterboxing
+      element.layout.translation.x = -((containScaleToUse * elementWidth) - containerWidth) / 2
+      element.layout.translation.y = -((containScaleToUse * elementHeight) - containerHeight) / 2
+
+      break
+
+    // COVER algorithm (inverse of CONTAIN)
+    // see https://developer.mozilla.org/en-US/docs/Web/CSS/background-size?v=example
+    // A keyword that is the inverse of contain. Scales the image as large as possible and maintains
+    // image aspect ratio (image doesn't get squished). The image "covers" the entire width or height
+    // of the container. When the image and container have different dimensions, the image is clipped
+    // either left/right or top/bottom.
+    case 'cover':
+      var coverScaleToUse = null
+
+      // We're looking for the smaller of two scales that ensures the entire box is covered.
+      // The rounding is necessary to avoid precision issues, where we end up comparing e.g. 2.0000000000001 to 2
+      if (~~(scaleDiffX * elementWidth) >= containerWidth && ~~(scaleDiffX * elementHeight) >= containerHeight) {
+        coverScaleToUse = scaleDiffX
+      }
+      if (~~(scaleDiffY * elementWidth) >= containerWidth && ~~(scaleDiffY * elementHeight) >= containerHeight) {
+        if (coverScaleToUse === null) {
+          coverScaleToUse = scaleDiffY
+        } else {
+          if (scaleDiffY <= coverScaleToUse) {
+            coverScaleToUse = scaleDiffY
+          }
+        }
+      }
+
+      changed = true // HACK: Unless we assume we changed, there seems to be an off-by-a-frame issue
+
+      element.layout.scale.x = coverScaleToUse
+      element.layout.scale.y = coverScaleToUse
+
+      // Offset the translation so that the element remains centered within the letterboxing
+      element.layout.translation.x = -((coverScaleToUse * elementWidth) - containerWidth) / 2
+      element.layout.translation.y = -((coverScaleToUse * elementHeight) - containerHeight) / 2
+
+      break
+  }
+
   if (changed && deltas) {
+    // Part of the render/update system involves populating a dictionary of per-element updates,
+    // which explains why instead of returning a value here, we assign the updated element.
+    // The 'deltas' dictionary is passed to us from the render functions upstream of here.
     deltas[element.attributes[HAIKU_ID_ATTRIBUTE]] = element
   }
 }
