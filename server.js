@@ -51,7 +51,12 @@ app.get('/demos/:demo/vanilla', function(req, res) {
         var js = jsbuf.toString()
         var fsize = filesize(Buffer.byteLength(js, 'utf8'))
         console.log(`[haiku-interpreter] ${demo} vanilla bundle size: ${fsize}`)
-        var html = tpl({ demo: demo, bundle: js })
+        var html = tpl({
+          mountStyle: getMountStyle(demo),
+          wrapperStyle: getWrapperStyle(demo),
+          demo: demo,
+          bundle: js
+        })
         return res.send(html)
       })
     })
@@ -75,12 +80,25 @@ app.get('/demos/:demo/react-dom', function(req, res) {
       return br.bundle(function(err, jsbuf) {
         if (err) return res.status(500).send('Server error! (' + err + ')')
         var js = jsbuf.toString()
-        var html = tpl({ demo: demo, bundle: js })
+        var html = tpl({
+          mountStyle: getMountStyle(demo),
+          wrapperStyle: getWrapperStyle(demo),
+          demo: demo,
+          bundle: js
+        })
         return res.send(html)
       })
     })
   })
 })
+function getMountStyle (demo) {
+  if (demo === 'el-resizing-contain' || demo === 'el-resizing-cover') return "background-color: white; width: 50%; height: 50%; max-width: 600px; margin: 0 auto;"
+  return ''
+}
+function getWrapperStyle (demo) {
+  if (demo === 'el-resizing-contain' || demo === 'el-resizing-cover') return "background-color: gray;"
+  return ''
+}
 app.listen(PORT, function() {
   console.log('[haiku-interpreter] demo server listening @ port ' + PORT)
   console.log('[haiku-interpreter] visit http://0.0.0.0:' + PORT)

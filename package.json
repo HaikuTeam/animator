@@ -6,7 +6,8 @@
   "scripts": {
     "test": "tape \"test/**/*.test.js\" | tap-spec || true",
     "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true",
-    "demo": "node ./server.js",
+    "demo": "nodemon ./server.js",
+    "start": "npm run demo",
     "pretty": "prettier"
   },
   "author": "Matthew Trost <matthew@haiku.ai>",
@@ -21,6 +22,7 @@
     "handlebars": "4.0.6",
     "jsdom": "9.11.0",
     "leaked-handles": "^5.2.0",
+    "nodemon": "^1.11.0",
     "prettier": "0.22.0",
     "react-dom": "15.4.2",
     "snazzy": "6.0.0",
