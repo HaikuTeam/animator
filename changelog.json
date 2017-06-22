@@ -2025,5 +2025,12 @@
       "label": "fix",
       "message": "Clear cache after creating keyframe so timeline edits to existing keyframes update on the first time"
     }
+  },
+  "2.0.131": {
+    "4e00cc35de152ced1e9f39b46b120c73c6818dfa": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "When component rows are expanded, select the respective elements on stage"
+    }
   }
 }
