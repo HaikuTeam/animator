@@ -20,7 +20,7 @@ import { client } from "haiku-sdk-client"
 let dedent = require("dedent")
 
 const banner = dedent`
-  Haiku CLI (version 2.0.130)
+  Haiku CLI (version 2.0.131)
 
   Usage:
     haiku <command> [flags]
