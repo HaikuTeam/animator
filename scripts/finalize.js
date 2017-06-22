@@ -218,8 +218,8 @@ async.series([
     cp.execSync(`uglifyjs ${JSON.stringify(path.join(interpreterPath, 'react.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(interpreterPath, 'react.bundle.min.js'))}`)
 
     // Note: These are hosted via the haiku-internal AWS account
-    // http://code.haiku.ai/scripts/player/HaikuPlayer.${vers}.js
-    // http://code.haiku.ai/scripts/player/HaikuPlayer.${vers}.min.js
+    // https://code.haiku.ai/scripts/player/HaikuPlayer.${vers}.js
+    // https://code.haiku.ai/scripts/player/HaikuPlayer.${vers}.min.js
     //
     // I was asking myself if we wanted to include a string like `staging` in these paths to differentiate
     // builds we do from staging from prod, but my current thought is that that isn't necessary since
@@ -233,14 +233,26 @@ async.series([
         return uploadFileStream(path.join(interpreterPath, 'dom.bundle.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
       },
       function (cb) {
-        log.log('uploading dom bundle to code.haiku.ai')
+        log.log('uploading dom bundle to code.haiku.ai (as "latest")')
+        return uploadFileStream(path.join(interpreterPath, 'dom.bundle.js'), `scripts/player/HaikuPlayer.latest.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+      },
+      function (cb) {
+        log.log('uploading dom bundle to code.haiku.ai (minified)')
         return uploadFileStream(path.join(interpreterPath, 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+      },
+      function (cb) {
+        log.log('uploading dom bundle to code.haiku.ai (minified, as "lasest")')
+        return uploadFileStream(path.join(interpreterPath, 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.latest.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
       },
       function (cb) {
         log.hat(`
           our provided 3rd-party scripts:
-          http://code.haiku.ai/scripts/player/HaikuPlayer.${inputs.nowVersion}.js
-          http://code.haiku.ai/scripts/player/HaikuPlayer.${inputs.nowVersion}.min.js
+          https://code.haiku.ai/scripts/player/HaikuPlayer.${inputs.nowVersion}.js
+          https://code.haiku.ai/scripts/player/HaikuPlayer.${inputs.nowVersion}.min.js
+
+          and for convenience:
+          https://code.haiku.ai/scripts/player/HaikuPlayer.latest.js
+          https://code.haiku.ai/scripts/player/HaikuPlayer.latest.min.js
         `)
         return cb()
       }
