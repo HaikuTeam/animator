@@ -2032,5 +2032,6 @@
       "label": "feat",
       "message": "When component rows are expanded, select the respective elements on stage"
     }
-  }
+  },
+  "2.0.132": {}
 }
