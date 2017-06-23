@@ -78,9 +78,8 @@ function HaikuComponent (bytecode, context, options) {
   // As a performance optimization, keep track of elements we've located as key/value (selector/element) pairs
   this._matchedElementCache = {}
 
-  // this._scopes = {}
-
-  // this._lastEventListenerPatches = null
+  // A sort of cache with a mapping of elements to the scope in which they belong (div, svg, etc)
+  this._renderScopes = {}
 }
 
 HaikuComponent.prototype.assignOptions = function assignOptions (options) {
@@ -206,6 +205,10 @@ HaikuComponent.prototype.getBytecode = function getBytecode () {
   return this._bytecode
 }
 
+HaikuComponent.prototype._getRenderScopes = function _getRenderScopes () {
+  return this._renderScopes
+}
+
 /**
  * TODO:
  * Implement the methods commented out below
@@ -258,8 +261,8 @@ function _bindEventHandlers (component) {
     return void (0)
   }
 
-  for (var i = 0; i < component.bytecode.eventHandlers.length; i++) {
-    var eventHandlerDescriptor = component.bytecode.eventHandlers[i]
+  for (var i = 0; i < component._bytecode.eventHandlers.length; i++) {
+    var eventHandlerDescriptor = component._bytecode.eventHandlers[i]
     var originalHandlerFn = eventHandlerDescriptor.handler
 
     eventHandlerDescriptor.handler = function _wrappedEventHandler (event, a, b, c, d, e, f, g, h, i, j, k) {

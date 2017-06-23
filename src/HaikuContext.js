@@ -226,14 +226,14 @@ HaikuContext.createComponentFactory = function createComponentFactory (renderer,
     function performFullFlushRender () {
       var container = renderer.createContainer(mount)
       var tree = component.render(container, options)
-      renderer.render(mount, container, tree, address, hash, options, component.getScopes())
+      renderer.render(mount, container, tree, address, hash, options, component._getRenderScopes())
     }
 
     // Call to update elements of the component tree - but only those that we detect have changed
     function performPatchRender () {
       var container = renderer.createContainer(mount)
       var patches = component.patch(container, options)
-      renderer.patch(mount, container, patches, address, hash, options, component.getScopes())
+      renderer.patch(mount, container, patches, address, hash, options, component._getRenderScopes())
     }
 
     // Called on every frame, this function updates the mount+root elements to ensure their style settings are in accordance
