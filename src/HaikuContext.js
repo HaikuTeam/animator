@@ -1,7 +1,7 @@
+var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
+var assign = require('./helpers/assign')
 var HaikuClock = require('./HaikuClock')
 var HaikuComponent = require('./HaikuComponent')
-var SimpleEventEmitter = require('./SimpleEventEmitter')
-var assign = require('./helpers/assign')
 
 // Starting prefix to use for element locators, e.g. 0.1.2.3.4
 var COMPONENT_GRAPH_ADDRESS_PREFIX = ''
@@ -95,7 +95,7 @@ function HaikuContext (bytecode, options) {
   this.clock = new HaikuClock(this._tickables, this.options.clock || {})
 
   // We need to start the loop even if we aren't autoplaying, because we still need time to be calculated even if we don't 'tick'.
-  this.clock.startAnimationLoop()
+  this.clock.run()
 
   this.component = new HaikuComponent(bytecode, this, options)
   this.component.startTimeline(DEFAULT_TIMELINE_NAME)

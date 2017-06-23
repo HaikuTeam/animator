@@ -9,7 +9,7 @@ var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
 var initializeTreeAttributes = require('./helpers/initializeTreeAttributes')
 var HaikuTimeline = require('./HaikuTimeline')
 
-var PLAYER_VERSION = require('./../../package.json').version
+var PLAYER_VERSION = require('./../package.json').version
 
 var FUNCTION_TYPE = 'function'
 var STRING_TYPE = 'string'

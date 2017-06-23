@@ -1,4 +1,4 @@
-var assign = require('./../../utils/assign')
+var assign = require('./../../helpers/assign')
 
 module.exports = function createMixpanel (domElement, mixpanelToken, component) {
   var mixpanel = require('mixpanel-browser')

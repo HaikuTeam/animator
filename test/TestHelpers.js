@@ -1,5 +1,5 @@
 var jsdom = require('jsdom')
-var HaikuCreation = require('./../src/creation/dom')
+var HaikuDOMAdapter = require('./../src/adapters/dom')
 
 var TestHelpers = {}
 
@@ -20,18 +20,18 @@ function createDOM (cb) {
 function createComponent (bytecode, options, cb) {
   return createDOM(function _createDOM (err, window) {
     if (err) throw err
-    var runner = HaikuCreation(bytecode, options, window)
+    var runner = HaikuDOMAdapter(bytecode, options, window)
     var mount = window.document.createElement('div')
     mount.style.width = '800px'
     mount.style.height = '600px'
     window.document.body.appendChild(mount)
-    var player = runner(mount, options)
+    var component = runner(mount, options)
     // If rafs and timers aren't cancelled, the tests never finish due to leaked handles
     function teardown () {
-      player._context.clock.cancelRaf()
+      component._context.clock._cancelRaf()
       return void (0)
     }
-    return cb(player, teardown)
+    return cb(component, teardown)
   })
 }
 
