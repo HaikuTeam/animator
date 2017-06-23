@@ -4,7 +4,8 @@
   "description": "Haiku bytecode interpreter (a.k.a. the player)",
   "main": "index.js",
   "scripts": {
-    "test": "tape \"test/**/*.test.js\" | tap-spec || true",
+    "test": "npm run test:unit",
+    "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
     "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true",
     "demo": "nodemon ./server.js",
     "start": "npm run demo",
