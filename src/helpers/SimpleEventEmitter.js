@@ -1,3 +1,5 @@
+var SimpleEventEmitter = {}
+
 function create (instance) {
   var registry = {}
   var eavesdroppers = []
@@ -43,6 +45,6 @@ function create (instance) {
   return instance
 }
 
-module.exports = {
-  create: create
-}
+SimpleEventEmitter.create = create
+
+module.exports = SimpleEventEmitter

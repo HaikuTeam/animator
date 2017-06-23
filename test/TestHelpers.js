@@ -28,7 +28,7 @@ function createComponent (bytecode, options, cb) {
     var player = runner(mount, options)
     // If rafs and timers aren't cancelled, the tests never finish due to leaked handles
     function teardown () {
-      player._component.context.clock.cancelRaf()
+      player._context.clock.cancelRaf()
       return void (0)
     }
     return cb(player, teardown)

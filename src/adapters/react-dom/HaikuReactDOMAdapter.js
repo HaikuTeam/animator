@@ -19,7 +19,7 @@ function applyProps (haikuPlayer, props) {
   applyInputs(haikuPlayer, props)
 }
 
-function createContext (reactInstance, creationClass, reactProps) {
+function createContext (reactInstance, HaikuComponentClass, reactProps) {
   var fullProps = merge({}, reactProps, {
     ref: reactInstance.refs.container,
     vanities: {
@@ -39,7 +39,9 @@ function createContext (reactInstance, creationClass, reactProps) {
       }
     }
   })
-  reactInstance.haikuPlayer = creationClass(reactInstance.refs.container, fullProps)
+
+  reactInstance.haikuPlayer = HaikuComponentClass(reactInstance.refs.container, fullProps) // eslint-disable-line
+
   reactInstance.haikuPlayer.hear(function (name, payload) {
     if (reactInstance.props && reactInstance.props.events && reactInstance.props.events[name]) {
       reactInstance.props.events[name](payload)
@@ -47,13 +49,12 @@ function createContext (reactInstance, creationClass, reactProps) {
   })
 }
 
-function adapt (creationClass) {
+function HaikuReactDOMAdapter (HaikuComponentClass) {
   var reactClass = React.createClass({
     displayName: 'HaikuCreation',
 
     getInitialState: function () {
-      // In case someone ones to do this.refs.whatever.haiku...
-      this.haiku = creationClass
+      this.haiku = HaikuComponentClass // In case someone wants to call `this.refs.*.haiku` for whatever reason
       return {}
     },
 
@@ -83,7 +84,7 @@ function adapt (creationClass) {
     },
 
     componentDidMount: function () {
-      createContext(this, creationClass, this.props)
+      createContext(this, HaikuComponentClass, this.props)
       if (this.props.controller) {
         this.props.controller.emit('react:componentDidMount', this, this.refs.container)
       }
@@ -122,11 +123,11 @@ function adapt (creationClass) {
 
   function createEventPropWrapper (reactInstance, eventListener) {
     return function _eventPropWrapper (proxy, event) {
-      return eventListener.call(this, proxy, event, creationClass.component.instance)
+      return eventListener.call(this, proxy, event, HaikuComponentClass.component.instance)
     }.bind(reactInstance)
   }
 
-  reactClass.haiku = creationClass // Aliases
+  reactClass.haiku = HaikuComponentClass // Aliases for convenience
 
   reactClass.propTypes = {
     tagName: React.PropTypes.string
@@ -140,4 +141,4 @@ function adapt (creationClass) {
   return reactClass
 }
 
-module.exports = adapt
+module.exports = HaikuReactDOMAdapter

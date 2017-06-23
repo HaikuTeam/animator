@@ -1,6 +1,6 @@
-var wrapper = require('./../../wrapper')
-var renderer = require('./../../renderers/dom')
-var VERSION = require('./../../../package.json').version
+var HaikuContext = require('./../../HaikuContext')
+var HaikuDOMRenderer = require('./../../renderers/dom')
+var PLAYER_VERSION = require('./../../../package.json').version
 
 /**
  * Example ways this gets invoked:
@@ -15,7 +15,11 @@ var VERSION = require('./../../../package.json').version
 
 var IS_WINDOW_DEFINED = typeof window !== 'undefined'
 
-function creation (bytecode, options, _window) {
+/**
+ * @function HaikuDOMAdapter
+ * @description Given a bytecode object, return a factory function which can create a DOM-playable component.
+ */
+function HaikuDOMAdapter (bytecode, options, _window) {
   if (!options) options = {}
 
   if (!_window) {
@@ -25,14 +29,14 @@ function creation (bytecode, options, _window) {
   }
 
   if (options.useWebkitPrefix === undefined) {
-    // Allow headless mode, e.g. in server-side rendering or Node.js unit tests
+    // Allow headless mode, e.g. in server-side rendering or in Node.js unit tests
     if (_window && _window.document) {
       var isWebKit = 'WebkitAppearance' in _window.document.documentElement.style
       options.useWebkitPrefix = !!isWebKit
     }
   }
 
-  return wrapper(renderer, bytecode, options, _window)
+  return HaikuContext.createComponentFactory(HaikuDOMRenderer, bytecode, options, _window)
 }
 
 // Allow multiple players of different versions to exist on the same page
@@ -41,7 +45,7 @@ if (IS_WINDOW_DEFINED) {
     window.HaikuPlayer = {}
   }
 
-  window.HaikuPlayer[VERSION] = creation
+  window.HaikuPlayer[PLAYER_VERSION] = HaikuDOMAdapter
 }
 
-module.exports = creation
+module.exports = HaikuDOMAdapter
