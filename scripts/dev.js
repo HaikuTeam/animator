@@ -10,13 +10,13 @@ var groups = lodash.keyBy(allPackages, 'name')
 
 var plumbingPackage = groups['haiku-plumbing']
 var glassPackage = groups['haiku-glass']
-var interpreterPackage = groups['haiku-interpreter']
+var playerPackage = groups['haiku-player']
 
 var blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
 var primitivesProject = path.join(glassPackage.abspath, 'test/projects/primitives/')
 var puzzleProject = path.join(glassPackage.abspath, 'test/projects/puzzle/')
 var rotatorProject = path.join(glassPackage.abspath, 'test/projects/rotator/')
-var heartsProject = path.join(interpreterPackage.abspath, 'demo/hearts-rejoicing/')
+var heartsProject = path.join(playerPackage.abspath, 'demo/hearts-rejoicing/')
 
 // By default every time we run this file we'll clean the 'blank' project to actually make it blank.
 if (!argv.noClean) {

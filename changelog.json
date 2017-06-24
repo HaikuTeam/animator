@@ -916,252 +916,252 @@
       "message": "Access the property by the key, not the property named 'key'"
     },
     "5807a454698e8f6ef56b3971430df422d39d7849": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "docs",
       "message": "Quick instructions on running the player repo"
     },
     "5546f3c6c919f81024be7a554690e0e3100620ec": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Clone element so new versions can be correctly compared (for removals especially)"
     },
     "f4b40884aa554dda3e34c9980f0ed5c74c9e8c4a": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Allow options to be assigned later; fix 'shown' handling in layout"
     },
     "660ca634e48821e79abc802d7c0b85d92e61574d": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Ability to forcibly override the position and overflow settings of the root (note"
     },
     "af3a9efd3adb7cdc74153045f482aa1cba0d0a2a": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Add overflow settings"
     },
     "efc5a7eea72e1e494a0437f08fab42e142f81545": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "context menu position when target is on a larger-than-one-screen-size page"
     },
     "654daefdc9eb79c5130e05033db3ba033f9bb0b1": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Public API for isPlaying and getting events re"
     },
     "a6f27baaf4b2ea69f3139c3804497c25ca76ac2e": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Indicate invisible but still return a size"
     },
     "e9faa67eb3b39e4971cbdf77552033b3f91174c5": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Tweaks to rc menu"
     },
     "29c5ca2937870271901955319a88759029d4cfce": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Timeline time methods"
     },
     "730630852e02de3a07ee7b60fe16d95bc44e8aaa": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Share link stuff in right-click menu"
     },
     "a408c498c9f385755278674efd89653edc4be45f": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Modification for more correct (?) placeholder feature"
     },
     "0acc23fbcf1ad14011a99f94b433feb6401b24d7": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Timeline API MVP"
     },
     "42fb1ff774e0d3975e7f3cebdab21dc178120356": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Apply layout after attribute updates so cleared values get re-et"
     },
     "6b2b2181f3cffdc8643bb57cd2e827a32b504473": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "If computed layout isn't there, that signals invisible"
     },
     "0aab7e928583857cbb7986f1eb9e54c196732c58": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Initialize tree before patches too, otherwise deep access may fail"
     },
     "83627500338ea2eec381179b34e6472007eec53b": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Don't clear on patch (hack)"
     },
     "ea09322412ecfa4f67807dd72cc10429d80baa70": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Why can't I have no kids and three money"
     },
     "f844b8984802d2ee3be0effc1dcac96d32cd8e07": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Remove old attrs/values on each run"
     },
     "5903eaa26e4e849a2e379c787f71d8ff5084323f": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Put replaceElement here to avoid cyclic deps issues"
     },
     "1efd71e53f94d1a6bbe5e13cf10ebb5063e9ac2c": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Allow a modifier function to replace elements on the fly"
     },
     "da7dd36c558d3468cf071d9ca42148686dba9edf": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Allow a modifier function to replace elements on the fly"
     },
     "827c688c39e752cd641cdf40828a679a52d88de2": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Assuming/autoconverting event names leads to bad props passing thru"
     },
     "c4c9f2ea10cc3d45042b63b965175e4b2a86a55d": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Add demo of gradients and masks (frag ident issue)"
     },
     "52d86035285068d6802e311317b49eb7bb88d33b": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Some lifecycle events for the programmatic api"
     },
     "2843f682b1e5264fa2295601b878e2c8239a5274": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Use better scope method to fix IE issue"
     },
     "2ab355c6ac9ff499a67ac2ed905f12edb672daba": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Use method for assignment to current scope el"
     },
     "850a72eac6c358c5387af499da24ab9b2687153c": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Pass platform info thru to the layout applyer"
     },
     "5af165f69358ee5cc34cbdd8899fc00c95dc17e7": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "A few platform/device check methods"
     },
     "f668729952737e170f3617eeea5af6a659a4abc2": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Instead of stopping the clock for autoplay, pause timelines - allows top-level layout to be dynamic without recalcing the whole tree"
     },
     "d0f9711bff805c70bde56886986d20331162efcf": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "In patch mode, we have to change the 'scope' on a per-patch basis"
     },
     "ef81c530f27900b25c541872131744d406b91d75": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Sizing mode from programmatic api"
     },
     "98dc670406d1f505f9d35563e62c2a580c7bf29c": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "React bundle needs to be standalone"
     },
     "11eb0666239b9ab9dd6c4700ad6df890e924b462": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Whack a mole"
     },
     "08a7085491817a0da110fb9e0ead92c65657e23f": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "If time is in control mode, use that value no matter what"
     },
     "46254b13391ec9b9d0d0c255eb4926b9125d74d4": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Jumping outside timeline's domain should use the bookend frame's calcs, not the last visited frame"
     },
     "468db48f6974936d7ee0cc7e425cd2ed8bba6738": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Looping"
     },
     "93068448fb0aca81b95c7f0d3c4d1c6b36688b48": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Refactor some random things and fix Firefox rendering"
     },
     "3d9fb3d5c1e2372eb00d42502ab5e4941682be7e": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Fixes and example showing programmatic control of default timeline"
     },
     "b4b6e8d826068716421a2d2b27fc6417f31dc547": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Programmatic api"
     },
     "4c20ec5dcb8033a15a42901095ea5f1424acd6d4": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "On second thought, this warning doesn't make sense until we can inspect the schema"
     },
     "9ec757ce0ea1cd67b78166853c766f762f0d2af9": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Check for NaN, not falsy"
     },
     "297be7eab7401deb7870d84fd6becd4fe9fd34c7": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Remove log"
     },
     "3d16e609a4df70d2ee8382dfd00ee27f3a93ec8e": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "xlink inline image"
     },
     "d5c386c351fcf36aa2238a8e311bbd5a66c01ac6": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Registry isn't needed in here"
     },
     "d2b001396eb36d31d2e27660d8480422180e6541": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Caching and some teensy optimizations"
     },
     "a37830d02bb6743243c3d77cfd465d726b907171": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "Stop timeline (except Default) when time reaches end"
     },
     "a803d724e8fa62df87bd1e78b15ba87da08626ee": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Ensure layout prop for all elements, not just those we happen to match via CSS selection"
     },
     "6dcf3b67401e9a51a5c10a9d4e8284c357f188a8": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Check for null before accessing node property"
     },
     "dcde8bb4341b504cc007e3ddd5aa55fc34bff7a0": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Lost timeline time update during refactor"
     },
@@ -1887,12 +1887,12 @@
       "message": "allow shift, alt, cmd, ctrl to be toggled partway through a transform"
     },
     "fe94fdd4bd7f0cc40015acb32d98188541e02eba": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Address memory leak from POC code on the player public API"
     },
     "54c17c74a1a0b116cd99a2b5be92f529e3c21a92": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "clipping on context menu"
     },
@@ -1968,7 +1968,7 @@
       "message": "keep control points and lines same size across zoom levels"
     },
     "3c85a00178570f96c649273ff91fb4daaa5542ce": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "feat",
       "message": "add sizing cover support and center sizing contain"
     },
@@ -2000,7 +2000,7 @@
   "2.0.124": {},
   "2.0.125": {
     "a0cc4ac3b33181865d9ea2e43957075f2b61750d": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Don't start timeline when initialized, and modify API via changes to transition/machine handling"
     }
@@ -2014,7 +2014,7 @@
   },
   "2.0.127": {
     "ed3366bd2ca071691b60aa3a449ec9b5ec048fcc": {
-      "project": "haiku-interpreter",
+      "project": "haiku-player",
       "label": "fix",
       "message": "Ensure sizing='contain' and sizing='cover' modes work correctly when the element is resized"
     }

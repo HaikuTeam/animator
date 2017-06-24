@@ -28,10 +28,10 @@ glob([
   'libs/plumbing/node_modules/haiku-glass/react/**/*.js',
   'libs/plumbing/node_modules/haiku-glass/test/**/*.js',
 
-  // glass
-  'libs/plumbing/node_modules/haiku-interpreter/demo/**/*.js',
-  'libs/plumbing/node_modules/haiku-interpreter/src/**/*.js',
-  'libs/plumbing/node_modules/haiku-interpreter/test/**/*.js',
+  // player
+  'libs/plumbing/node_modules/haiku-player/demo/**/*.js',
+  'libs/plumbing/node_modules/haiku-player/src/**/*.js',
+  'libs/plumbing/node_modules/haiku-player/test/**/*.js',
 
   // sdk
   'libs/plumbing/node_modules/haiku-sdk/lib/**/*.js',

@@ -11,7 +11,7 @@ var gitStatusInfo = require('./helpers/gitStatusInfo')
 var runScript = require('./helpers/runScript')
 var allPackages = require('./helpers/allPackages')()
 var groups = lodash.keyBy(allPackages, 'name')
-var interpreterPath = groups['haiku-interpreter'].abspath
+var playerPath = groups['haiku-player'].abspath
 var haikuNpmPath = groups['haiku-npm'].abspath
 var ROOT = path.join(__dirname, '..')
 
@@ -206,16 +206,16 @@ async.series([
     log.hat('creating distribution builds of our player and adapters')
 
     log.log('browserifying player packages and adapters')
-    cp.execSync(`browserify ${JSON.stringify(path.join(interpreterPath, 'src', 'adapters', 'dom', 'index.js'))} --standalone HaikuDOMPlayer | derequire > ${JSON.stringify(path.join(interpreterPath, 'dom.bundle.js'))}`, { stdio: 'inherit' })
-    cp.execSync(`browserify ${JSON.stringify(path.join(interpreterPath, 'src', 'adapters', 'react-dom', 'index.js'))} --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > ${JSON.stringify(path.join(interpreterPath, 'react-dom.bundle.js'))} && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${JSON.stringify(path.join(interpreterPath, 'react-dom.bundle.js'))}`, { stdio: 'inherit' })
+    cp.execSync(`browserify ${JSON.stringify(path.join(playerPath, 'src', 'adapters', 'dom', 'index.js'))} --standalone HaikuDOMPlayer | derequire > ${JSON.stringify(path.join(playerPath, 'dom.bundle.js'))}`, { stdio: 'inherit' })
+    cp.execSync(`browserify ${JSON.stringify(path.join(playerPath, 'src', 'adapters', 'react-dom', 'index.js'))} --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > ${JSON.stringify(path.join(playerPath, 'react-dom.bundle.js'))} && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${JSON.stringify(path.join(playerPath, 'react-dom.bundle.js'))}`, { stdio: 'inherit' })
 
     log.log('moving bundles into npm module')
-    fse.copySync(path.join(interpreterPath, 'dom.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'index.js'))
-    fse.copySync(path.join(interpreterPath, 'react-dom.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'react-dom.js'))
+    fse.copySync(path.join(playerPath, 'dom.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'index.js'))
+    fse.copySync(path.join(playerPath, 'react-dom.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'react-dom.js'))
 
     log.log('creating minified bundles for the cdn')
-    cp.execSync(`uglifyjs ${JSON.stringify(path.join(interpreterPath, 'dom.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(interpreterPath, 'dom.bundle.min.js'))}`)
-    cp.execSync(`uglifyjs ${JSON.stringify(path.join(interpreterPath, 'react-dom.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(interpreterPath, 'react-dom.bundle.min.js'))}`)
+    cp.execSync(`uglifyjs ${JSON.stringify(path.join(playerPath, 'dom.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(playerPath, 'dom.bundle.min.js'))}`)
+    cp.execSync(`uglifyjs ${JSON.stringify(path.join(playerPath, 'react-dom.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(playerPath, 'react-dom.bundle.min.js'))}`)
 
     // Note: These are hosted via the haiku-internal AWS account
     // https://code.haiku.ai/scripts/player/HaikuPlayer.${vers}.js
@@ -230,19 +230,19 @@ async.series([
       function (cb) {
         // Note that the object keys should NOT begin with a slash, or the S3 path will get weird
         log.log('uploading dom bundle to code.haiku.ai')
-        return uploadFileStream(path.join(interpreterPath, 'dom.bundle.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+        return uploadFileStream(path.join(playerPath, 'dom.bundle.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
       },
       function (cb) {
         log.log('uploading dom bundle to code.haiku.ai (as "latest")')
-        return uploadFileStream(path.join(interpreterPath, 'dom.bundle.js'), `scripts/player/HaikuPlayer.latest.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+        return uploadFileStream(path.join(playerPath, 'dom.bundle.js'), `scripts/player/HaikuPlayer.latest.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
       },
       function (cb) {
         log.log('uploading dom bundle to code.haiku.ai (minified)')
-        return uploadFileStream(path.join(interpreterPath, 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+        return uploadFileStream(path.join(playerPath, 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
       },
       function (cb) {
         log.log('uploading dom bundle to code.haiku.ai (minified, as "lasest")')
-        return uploadFileStream(path.join(interpreterPath, 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.latest.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+        return uploadFileStream(path.join(playerPath, 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.latest.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
       },
       function (cb) {
         log.hat(`
