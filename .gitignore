@@ -1,6 +1,5 @@
 .DS_Store
 node_modules
 *.log
-*.bundle.js
-*.bundle.min.js
+*.*log
 build

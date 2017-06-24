@@ -1,4 +1,4 @@
-var Layout3D = require('haiku-bytecode/src/Layout3D')
+var Layout3D = require('./../Layout3D')
 
 var ELEMENTS_2D = {
   circle: true,

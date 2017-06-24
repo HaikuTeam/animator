@@ -1,4 +1,4 @@
-var _getMaxTimeFromDescriptor = require('haiku-bytecode/src/getTimelineMaxTime')
+var _getMaxTimeFromDescriptor = require('./helpers/getTimelineMaxTime')
 var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
 var assign = require('./helpers/assign')
 

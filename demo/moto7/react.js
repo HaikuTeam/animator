@@ -1,2 +1,2 @@
-var HaikuReactAdapter = require('@haiku/player/dom/react')
+var HaikuReactAdapter = require('./../../src/adapters/react-dom')
 module.exports = HaikuReactAdapter(require('./interpreter.js'))

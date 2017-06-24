@@ -5,7 +5,7 @@ var handlebars = require('handlebars')
 var filesize = require('filesize')
 var fse = require('fs-extra')
 var PORT = process.env.PORT || 3000
-var DEMOS_PATH = path.join(__dirname, 'demo')
+var DEMOS_PATH = path.join(__dirname)
 var app = express()
 app.get('/', function(req, res) {
   return fse.readFile(path.join(DEMOS_PATH, 'index.html.handlebars'), function(err, htmlbuf) {

@@ -1,5 +1,5 @@
-var applyCssLayout = require('haiku-bytecode/src/applyCssLayout')
-var scopeOfElement = require('haiku-bytecode/src/scopeOfElement')
+var applyCssLayout = require('./helpers/applyCssLayout')
+var scopeOfElement = require('./helpers/scopeOfElement')
 var isTextNode = require('./isTextNode')
 var isIE = require('./isIE')
 var isMobile = require('./isMobile')

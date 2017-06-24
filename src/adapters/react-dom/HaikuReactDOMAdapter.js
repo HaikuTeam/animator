@@ -3,7 +3,7 @@ var ReactTestRenderer = require('react-test-renderer')
 var merge = require('lodash.merge')
 var ValidProps = require('./ValidProps')
 var EventsDict = require('./EventsDict')
-var reactToMana = require('haiku-bytecode/src/reactToMana')
+var reactToMana = require('./helpers/reactToMana')
 var initializeTreeAttributes = require('./../../helpers/initializeTreeAttributes')
 
 function applyInputs (haikuPlayer, props) {
