@@ -312,7 +312,6 @@ HaikuContext.createComponentFactory = function createComponentFactory (renderer,
     // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
     HaikuComponentFactory.controller = controller
     HaikuComponentFactory.mount = mount
-    HaikuComponentFactory.component = component
     HaikuComponentFactory.tick = tick
 
     // Finally, return the HaikuComponent instance which can also be used for programmatic behavior
@@ -321,6 +320,7 @@ HaikuContext.createComponentFactory = function createComponentFactory (renderer,
 
   // These properties are added for convenience as hot editing hooks inside Haiku Desktop (and elsewhere?).
   // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
+  HaikuComponentFactory.component = component
   HaikuComponentFactory.context = context
   HaikuComponentFactory.bytecode = bytecode
   HaikuComponentFactory.renderer = renderer

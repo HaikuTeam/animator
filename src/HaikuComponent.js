@@ -54,7 +54,7 @@ function HaikuComponent (bytecode, context, options) {
   // The full version of the template gets mutated in-place by the rendering algorithm
   this._template = _fetchTemplate(this._bytecode.template)
 
-  this._inputValues = {}
+  this._inputValues = {} // Storage for getter/setter actions in userland logic
   this._inputChanges = {}
   this._anyInputChange = false
   _defineInputs(this._inputValues, this)
@@ -80,6 +80,23 @@ function HaikuComponent (bytecode, context, options) {
 
   // A sort of cache with a mapping of elements to the scope in which they belong (div, svg, etc)
   this._renderScopes = {}
+}
+
+HaikuComponent.prototype._clearCaches = function _clearCaches () {
+  this._inputValues = {}
+  this._inputChanges = {}
+  this._anyInputChange = false
+  this._eventsFired = {}
+  this._anyEventChange = false
+  this._needsFullFlush = false
+  this._controllerEventHandlers = []
+  this._lastTemplateExpansion = null
+  this._lastDeltaPatches = null
+  this._matchedElementCache = {}
+  this._renderScopes = {}
+  this._clearDetectedEventsFired()
+  this._clearDetectedInputChanges()
+  this._builder._clearCaches()
 }
 
 HaikuComponent.prototype.assignOptions = function assignOptions (options) {
