@@ -11,23 +11,29 @@ async.eachSeries(allPackages, function (pack, next) {
   next()
 }, function () {
   async.eachSeries(allPackages, function (pack, next) {
-    if (!pack.pkg) return next()
-    if (!pack.pkg.dependencies) return next()
-
-    var pkgJsonPath = pack.abspath + '/package.json'
-
-    var pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'))
-
-    if (pkgJson.dependencies) {
-      _.forOwn(pkgJson.dependencies, (version, dep) => {
-        _.forEach(allPackages, (innerPack) => {
-          if (dep === innerPack.name) {
-            log.log('npm linking ' + dep + ' into project ' + pack.name)
-            cp.execSync('npm link ' + dep, { cwd: pack.abspath })
-          }
-        })
-      })
+    if (!pack.pkg) {
+      return next()
     }
+
+    var depTypes = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']
+    depTypes.forEach((depType) => {
+      if (!pack.pkg[depType]) return
+
+      var pkgJsonPath = pack.abspath + '/package.json'
+
+      var pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'))
+
+      if (pkgJson[depType]) {
+        _.forOwn(pkgJson[depType], (version, dep) => {
+          _.forEach(allPackages, (innerPack) => {
+            if (dep === innerPack.name) {
+              log.log('npm linking ' + dep + ' into project ' + pack.name)
+              cp.execSync('npm link ' + dep, { cwd: pack.abspath })
+            }
+          })
+        })
+      }
+    })
 
     next()
   })

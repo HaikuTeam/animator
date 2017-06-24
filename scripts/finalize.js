@@ -12,7 +12,6 @@ var runScript = require('./helpers/runScript')
 var allPackages = require('./helpers/allPackages')()
 var groups = lodash.keyBy(allPackages, 'name')
 var playerPath = groups['haiku-player'].abspath
-var haikuNpmPath = groups['haiku-npm'].abspath
 var ROOT = path.join(__dirname, '..')
 
 var initializeAWSService = require('./../distro/scripts/initializeAWSService')
@@ -66,7 +65,7 @@ function assertGitStatus () {
   }
 }
 
-// assertGitStatus()
+assertGitStatus()
 
 async.series([
   function (cb) {
@@ -152,49 +151,49 @@ async.series([
       })
     })
   },
-  // function (cb) {
-  //   if (inputs.doLintPackages) {
-  //     log.hat('linting all the packages')
-  //     return runScript('lint-all', [], cb)
-  //   } else {
-  //     log.log('skipping linting because you said so')
-  //     return cb()
-  //   }
-  // },
-  // function (cb) {
-  //   if (inputs.doTestPackages) {
-  //     log.hat('running tests in all the packages')
-  //     return runScript('test-all', [], cb)
-  //   } else {
-  //     log.log('skipping tests because you said so')
-  //     return cb()
-  //   }
-  // },
-  // function (cb) {
-  //   // Need to check that linting/testing didn't create any changes that need to be fixed by a human
-  //   assertGitStatus()
-  //   return cb()
-  // },
-  // function (cb) {
-  //   log.hat('fetching & merging git repos for all the packages')
-  //   return runScript('git-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
-  // },
-  // function (cb) {
-  //   // If pulling created merge conflicts or other issues, we need to bail and let a human fix it
-  //   assertGitStatus()
-  //   return cb()
-  // },
-  // function (cb) {
-  //   // TODO: Add this when we figure out how to fix the npm link issues.
-  //   // This is probably required in the case that somebody installed a new dependency in one of the packages.
-  //   // log.hat('npm installing in all the packages')
-  //   // return runScript('npm-install', [], cb)
-  //   return cb()
-  // },
-  // function (cb) {
-  //   log.hat('normalizing & bumping the version number for all packages')
-  //   return runScript('npm-semver-inc', [`--level=${inputs.semverBumpLevel}`], cb)
-  // },
+  function (cb) {
+    if (inputs.doLintPackages) {
+      log.hat('linting all the packages')
+      return runScript('lint-all', [], cb)
+    } else {
+      log.log('skipping linting because you said so')
+      return cb()
+    }
+  },
+  function (cb) {
+    if (inputs.doTestPackages) {
+      log.hat('running tests in all the packages')
+      return runScript('test-all', [], cb)
+    } else {
+      log.log('skipping tests because you said so')
+      return cb()
+    }
+  },
+  function (cb) {
+    // Need to check that linting/testing didn't create any changes that need to be fixed by a human
+    assertGitStatus()
+    return cb()
+  },
+  function (cb) {
+    log.hat('fetching & merging git repos for all the packages')
+    return runScript('git-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
+  },
+  function (cb) {
+    // If pulling created merge conflicts or other issues, we need to bail and let a human fix it
+    assertGitStatus()
+    return cb()
+  },
+  function (cb) {
+    // TODO: Add this when we figure out how to fix the npm link issues.
+    // This is probably required in the case that somebody installed a new dependency in one of the packages.
+    // log.hat('npm installing in all the packages')
+    // return runScript('npm-install', [], cb)
+    return cb()
+  },
+  function (cb) {
+    log.hat('normalizing & bumping the version number for all packages')
+    return runScript('npm-semver-inc', [`--level=${inputs.semverBumpLevel}`], cb)
+  },
   function (cb) {
     // This is used in subsequent steps to create correct file paths, etc
     var nowVersion = fse.readJsonSync(path.join(ROOT, 'package.json')).version
@@ -205,17 +204,17 @@ async.series([
   function (cb) {
     log.hat('creating distribution builds of our player and adapters')
 
-    log.log('browserifying player packages and adapters')
-    cp.execSync(`browserify ${JSON.stringify(path.join(playerPath, 'src', 'adapters', 'dom', 'index.js'))} --standalone HaikuDOMPlayer | derequire > ${JSON.stringify(path.join(playerPath, 'dom.bundle.js'))}`, { stdio: 'inherit' })
-    cp.execSync(`browserify ${JSON.stringify(path.join(playerPath, 'src', 'adapters', 'react-dom', 'index.js'))} --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > ${JSON.stringify(path.join(playerPath, 'react-dom.bundle.js'))} && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${JSON.stringify(path.join(playerPath, 'react-dom.bundle.js'))}`, { stdio: 'inherit' })
+    // Clear out the dist folder
+    fse.remove(path.join(playerPath, 'dist'))
+    fse.mkdirpSync(path.join(playerPath, 'dist'))
 
-    log.log('moving bundles into npm module')
-    fse.copySync(path.join(playerPath, 'dom.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'index.js'))
-    fse.copySync(path.join(playerPath, 'react-dom.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'react-dom.js'))
+    log.log('browserifying player packages and adapters')
+    cp.execSync(`browserify ${JSON.stringify(path.join(playerPath, 'src', 'adapters', 'dom', 'index.js'))} --standalone HaikuDOMPlayer | derequire > ${JSON.stringify(path.join(playerPath, 'dist', 'dom.bundle.js'))}`, { stdio: 'inherit' })
+    cp.execSync(`browserify ${JSON.stringify(path.join(playerPath, 'src', 'adapters', 'react-dom', 'index.js'))} --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > ${JSON.stringify(path.join(playerPath, 'dist', 'react-dom.bundle.js'))} && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${JSON.stringify(path.join(playerPath, 'dist', 'react-dom.bundle.js'))}`, { stdio: 'inherit' })
 
     log.log('creating minified bundles for the cdn')
-    cp.execSync(`uglifyjs ${JSON.stringify(path.join(playerPath, 'dom.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(playerPath, 'dom.bundle.min.js'))}`)
-    cp.execSync(`uglifyjs ${JSON.stringify(path.join(playerPath, 'react-dom.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(playerPath, 'react-dom.bundle.min.js'))}`)
+    cp.execSync(`uglifyjs ${JSON.stringify(path.join(playerPath, 'dist', 'dom.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(playerPath, 'dist', 'dom.bundle.min.js'))}`)
+    cp.execSync(`uglifyjs ${JSON.stringify(path.join(playerPath, 'dist', 'react-dom.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(playerPath, 'dist', 'react-dom.bundle.min.js'))}`)
 
     // Note: These are hosted via the haiku-internal AWS account
     // https://code.haiku.ai/scripts/player/HaikuPlayer.${vers}.js
@@ -230,19 +229,19 @@ async.series([
       function (cb) {
         // Note that the object keys should NOT begin with a slash, or the S3 path will get weird
         log.log('uploading dom bundle to code.haiku.ai')
-        return uploadFileStream(path.join(playerPath, 'dom.bundle.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+        return uploadFileStream(path.join(playerPath, 'dist', 'dom.bundle.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
       },
       function (cb) {
         log.log('uploading dom bundle to code.haiku.ai (as "latest")')
-        return uploadFileStream(path.join(playerPath, 'dom.bundle.js'), `scripts/player/HaikuPlayer.latest.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+        return uploadFileStream(path.join(playerPath, 'dist', 'dom.bundle.js'), `scripts/player/HaikuPlayer.latest.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
       },
       function (cb) {
         log.log('uploading dom bundle to code.haiku.ai (minified)')
-        return uploadFileStream(path.join(playerPath, 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+        return uploadFileStream(path.join(playerPath, 'dist', 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.${inputs.nowVersion}.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
       },
       function (cb) {
         log.log('uploading dom bundle to code.haiku.ai (minified, as "lasest")')
-        return uploadFileStream(path.join(playerPath, 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.latest.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
+        return uploadFileStream(path.join(playerPath, 'dist', 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.latest.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
       },
       function (cb) {
         log.hat(`
@@ -263,7 +262,7 @@ async.series([
     return runScript('git-ac', [`--message=${JSON.stringify(inputs.commitMessage)}`], cb)
   },
   function (cb) {
-    log.hat('normalizing the npm version number (git sha) for all internal dependencies')
+    log.hat('normalizing the npm version number (git sha) for all internal deps')
     return runScript('sha-norm', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
   function (cb) {
@@ -273,7 +272,7 @@ async.series([
   function (cb) {
     if (inputs.doPushToNpmRegistry) {
       log.hat('publishing @haiku/player to the npm registry')
-      cp.execSync('npm publish --access public', { cwd: path.join(haikuNpmPath, 'at-haiku-player'), stdio: 'inherit' })
+      cp.execSync('npm publish --access public', { cwd: path.join(playerPath), stdio: 'inherit' })
       return cb()
     } else {
       log.log('skipping npm publish step because you said so')

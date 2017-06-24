@@ -7,7 +7,7 @@ var log = require('./helpers/log')
 var runScript = require('./helpers/runScript')
 var allPackages = require('./helpers/allPackages')()
 var groups = lodash.keyBy(allPackages, 'name')
-var haikuNpmPath = groups['haiku-npm'].abspath
+var haikuPlayerPath = groups['haiku-player'].abspath
 var plumbingPath = groups['haiku-plumbing'].abspath
 
 var VALID_LEVELS = {
@@ -26,9 +26,8 @@ runScript('npm-semver-top', [], function (err) {
 
   // Then go ahead and increment all of them from that normalized semver
   lodash.forEach(allPackages, function (pack) {
-    var packageJsonPath = (pack.name === 'haiku-npm')
-      ? path.join(pack.abspath, 'at-haiku-player', 'package.json')
-      : path.join(pack.abspath, 'package.json')
+    var packageJsonPath = path.join(pack.abspath, 'package.json')
+
     var packageJson = fse.readJsonSync(packageJsonPath)
     var version = semver.inc(packageJson.version, level)
     log.log('bumping ' + pack.name + ' from ' + packageJson.version + ' to ' + version)
@@ -39,14 +38,18 @@ runScript('npm-semver-top', [], function (err) {
   log.log('setting plumbing\'s at-haiku-player dependency version')
   var plumbingPackageJsonPath = path.join(plumbingPath, 'package.json')
   var plumbingPackageJson = fse.readJsonSync(plumbingPackageJsonPath)
-  var haikuaiPackageJsonPath = path.join(haikuNpmPath, 'at-haiku-player', 'package.json')
-  var haikuaiPackageJson = fse.readJsonSync(haikuaiPackageJsonPath)
-  plumbingPackageJson.dependencies['@haiku/player'] = haikuaiPackageJson.version
+
+  var haikuPlayerPackageJsonPath = path.join(haikuPlayerPath, 'package.json')
+  var haikuPlayerPackageJson = fse.readJsonSync(haikuPlayerPackageJsonPath)
+
+  plumbingPackageJson.dependencies['@haiku/player'] = haikuPlayerPackageJson.version
   fse.outputFileSync(plumbingPackageJsonPath, JSON.stringify(plumbingPackageJson, null, 2) + '\n')
 
   var monoJsonPath = path.join(__dirname, '..', 'package.json')
   var monoJson = fse.readJsonSync(monoJsonPath)
+
   var version = semver.inc(monoJson.version, level)
+
   log.log('bumping mono from ' + monoJson.version + ' to ' + version)
   monoJson.version = version
   fse.writeFileSync(monoJsonPath, JSON.stringify(monoJson, null, 2) + '\n')

@@ -18,15 +18,21 @@ allPackages.forEach(function (pack) {
 
 allPackages.forEach(function (pack) {
   if (!pack.pkg) return void (0)
-  if (!pack.pkg.dependencies) return void (0)
-  for (var depName in pack.pkg.dependencies) {
-    // A few hacks...
-    if (depName.slice(0, 6) !== 'haiku-') continue
-    if (depName === 'haiku-fs-extra') continue
-    if (depName === 'haiku-creator-electron') depName = 'haiku-creator'
 
-    graph.addDependency(pack.name, depName)
-  }
+  var depTypes = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']
+
+  depTypes.forEach((depType) => {
+    if (pack.pkg[depType]) {
+      for (var depName in pack.pkg[depType]) {
+        // A few hacks...
+        if (depName.slice(0, 6) !== 'haiku-') continue
+        if (depName === 'haiku-fs-extra') continue
+        if (depName === 'haiku-creator-electron') depName = 'haiku-creator'
+
+        graph.addDependency(pack.name, depName)
+      }
+    }
+  })
 })
 
 var order = graph.overallOrder()
@@ -47,12 +53,17 @@ order.forEach(function (name) {
     if (depName === 'haiku-creator') depName = 'haiku-creator-electron'
     var depUrl = depRemote + '#' + depSha
 
-    if (pack.pkg.dependencies[depName] !== depUrl) {
-      pack.pkg.dependencies[depName] = depUrl
-      log.log(pack.name + ' gets ' + depUrl)
-      changedDeps.push(depName)
-      didAnythingChange = true
-    }
+    var depTypes = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']
+    depTypes.forEach((depType) => {
+      if (pack.pkg[depType]) {
+        if (pack.pkg[depType][depName] !== depUrl) {
+          pack.pkg[depType][depName] = depUrl
+          log.log(pack.name + ' gets ' + depUrl)
+          changedDeps.push(depName)
+          didAnythingChange = true
+        }
+      }
+    })
   }
 
   if (didAnythingChange) {
