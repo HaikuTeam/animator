@@ -34,7 +34,7 @@
     "yargs": "^8.0.2"
   },
   "dependencies": {
-    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#a521fa9610d85023ae8d5b774c55f09397c781f1",
+    "haiku-bytecode": "git@github.com:HaikuTeam/bytecode#4e6fccd81821cc67f7610babaefe89431b64c591",
     "lodash.assign": "4.2.0",
     "lodash.merge": "4.6.0",
     "mixpanel-browser": "^2.11.1",
