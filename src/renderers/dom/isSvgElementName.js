@@ -1,4 +1,4 @@
-var svgElementNames = require('./helpers/allSvgElementNames')
+var svgElementNames = require('./../../helpers/allSvgElementNames')
 
 function isSvgElementName (tagName, scopes) {
   return svgElementNames.indexOf(tagName) !== -1

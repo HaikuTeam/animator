@@ -1,5 +1,5 @@
-var ValueBuilder = require('/ValueBuilder')
-var vanityHandlers = require('/properties/dom/vanities')
+var ValueBuilder = require('./ValueBuilder')
+var vanityHandlers = require('./properties/dom/vanities')
 var queryTree = require('./helpers/cssQueryTree')
 var Layout3D = require('./Layout3D')
 var scopifyElements = require('./helpers/scopifyElements')

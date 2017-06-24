@@ -1,5 +1,5 @@
-var applyCssLayout = require('./helpers/applyCssLayout')
-var scopeOfElement = require('./helpers/scopeOfElement')
+var applyCssLayout = require('./../../helpers/applyCssLayout')
+var scopeOfElement = require('./../../helpers/scopeOfElement')
 var isTextNode = require('./isTextNode')
 var isIE = require('./isIE')
 var isMobile = require('./isMobile')
