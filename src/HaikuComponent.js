@@ -265,17 +265,21 @@ function _bindEventHandlers (component) {
     var eventHandlerDescriptor = component._bytecode.eventHandlers[i]
     var originalHandlerFn = eventHandlerDescriptor.handler
 
-    eventHandlerDescriptor.handler = function _wrappedEventHandler (event, a, b, c, d, e, f, g, h, i, j, k) {
-      component._anyEventChange = true
+    _bindEventHandler(component, eventHandlerDescriptor, originalHandlerFn)
+  }
+}
 
-      if (!component._eventsFired[eventHandlerDescriptor.selector]) {
-        component._eventsFired[eventHandlerDescriptor.selector] = {}
-      }
+function _bindEventHandler (component, eventHandlerDescriptor, originalHandlerFn) {
+  eventHandlerDescriptor.handler = function _wrappedEventHandler (event, a, b, c, d, e, f, g, h, i, j, k) {
+    component._anyEventChange = true
 
-      component._eventsFired[eventHandlerDescriptor.selector][eventHandlerDescriptor.name] = event || true
-
-      originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
+    if (!component._eventsFired[eventHandlerDescriptor.selector]) {
+      component._eventsFired[eventHandlerDescriptor.selector] = {}
     }
+
+    component._eventsFired[eventHandlerDescriptor.selector][eventHandlerDescriptor.name] = event || true
+
+    originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
   }
 }
 
@@ -324,28 +328,32 @@ function _defineInputs (inputValuesObject, component) {
 
     inputValuesObject[property.name] = property.value
 
-    // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in inputValuesObject
-    Object.defineProperty(component, property.name, {
-      get: function get () {
-        return inputValuesObject[property.name]
-      },
-
-      set: function set (inputValue) {
-        // For optimization downstream, we track whether & which input values changed since a previous setter call
-        component._inputChanges[property.name] = inputValue
-        component._anyInputChange = true
-
-        if (property.setter) {
-          // Important: We call the setter with a binding of the component, so it can access methods on `this`
-          inputValuesObject[property.name] = property.setter.call(component, inputValue)
-        } else {
-          inputValuesObject[property.name] = inputValue
-        }
-
-        return inputValuesObject[property.name]
-      }
-    })
+    _defineInput(component, inputValuesObject, property)
   }
+}
+
+function _defineInput (component, inputValuesObject, property) {
+  // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in inputValuesObject
+  Object.defineProperty(component, property.name, {
+    get: function get () {
+      return inputValuesObject[property.name]
+    },
+
+    set: function set (inputValue) {
+      // For optimization downstream, we track whether & which input values changed since a previous setter call
+      component._inputChanges[property.name] = inputValue
+      component._anyInputChange = true
+
+      if (property.setter) {
+        // Important: We call the setter with a binding of the component, so it can access methods on `this`
+        inputValuesObject[property.name] = property.setter.call(component, inputValue)
+      } else {
+        inputValuesObject[property.name] = inputValue
+      }
+
+      return inputValuesObject[property.name]
+    }
+  })
 }
 
 HaikuComponent.prototype._markForFullFlush = function _markForFullFlush (doMark) {
@@ -491,7 +499,7 @@ function _applyAccumulatedResults (results, deltas, component, template, context
   }
 }
 
-function _gatherDeltaPatches (component, template, container, context, inputs, timelinesRunning, eventsFired, inputsChanged, patchOptions) {
+function _gatherDeltaPatches (component, template, container, context, inputValues, timelinesRunning, eventsFired, inputsChanged, patchOptions) {
   var deltas = {} // This is what we're going to return - a dictionary of ids to elements
 
   var results = {} // This is where we'll accumulate changes - to apply to elements before returning the dictionary
@@ -502,7 +510,7 @@ function _gatherDeltaPatches (component, template, container, context, inputs, t
     var timeline = timelinesRunning[i]
     var time = timeline.getBoundedTime()
 
-    component._builder.build(results, timeline.name, time, bytecode.timelines, true, inputs, eventsFired, inputsChanged)
+    component._builder.build(results, timeline.getName(), time, bytecode.timelines, true, inputValues, eventsFired, inputsChanged)
   }
 
   initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing in the first place

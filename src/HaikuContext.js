@@ -199,9 +199,13 @@ HaikuContext.createComponentFactory = function createComponentFactory (renderer,
       renderer.menuize(mount, component)
     }
 
-    // If configured, initialize Mixpanel with the given API token
-    if (renderer.mixpanel && options.mixpanel) {
-      renderer.mixpanel(mount, options.mixpanel, component)
+    // Don't set up mixpanel if we're running on localhost since we don't want test data to be tracked
+    // TODO: What other heuristics should we use to decide whether to use mixpanel or not?
+    if (platform.location && platform.location.hostname !== 'localhost' && platform.location.hostname !== '0.0.0.0') {
+      // If configured, initialize Mixpanel with the given API token
+      if (renderer.mixpanel && options.mixpanel) {
+        renderer.mixpanel(mount, options.mixpanel, component)
+      }
     }
 
     // The 'controller' is one possible programmatic interface into the player; the only law is that it

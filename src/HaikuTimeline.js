@@ -23,7 +23,7 @@ function HaikuTimeline (component, name, descriptor, options) {
 
   this._globalClockTime = 0
   this._localElapsedTime = 0
-  this._localExplicitlySetTime = 0
+  this._localExplicitlySetTime = null // Only set this to a number if time is 'controlled'
   this._maxExplicitlyDefinedTime = _getMaxTimeFromDescriptor(descriptor)
 
   this._isActive = false
@@ -91,6 +91,14 @@ HaikuTimeline.prototype._controlTime = function _controlTime (controlledTimeToSe
   // Need to update the properties so that accessors like .getFrame() work after this update.
   this._updateInternalProperties(updatedGlobalClockTime)
   return this
+}
+
+/**
+ * @method getName
+ * @description Return the name of this timeline
+ */
+HaikuTimeline.prototype.getName = function getName () {
+  return this._name
 }
 
 /**
