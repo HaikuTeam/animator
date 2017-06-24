@@ -2033,5 +2033,12 @@
       "message": "When component rows are expanded, select the respective elements on stage"
     }
   },
-  "2.0.132": {}
+  "2.0.132": {},
+  "2.1.0": {
+    "4bf1f08b3b8dffff743d21dead511d70285af5a3": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Fix bug where undo/redo would never become available"
+    }
+  }
 }

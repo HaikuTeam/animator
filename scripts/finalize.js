@@ -66,7 +66,7 @@ function assertGitStatus () {
   }
 }
 
-assertGitStatus()
+// assertGitStatus()
 
 async.series([
   function (cb) {
@@ -152,49 +152,49 @@ async.series([
       })
     })
   },
-  function (cb) {
-    if (inputs.doLintPackages) {
-      log.hat('linting all the packages')
-      return runScript('lint-all', [], cb)
-    } else {
-      log.log('skipping linting because you said so')
-      return cb()
-    }
-  },
-  function (cb) {
-    if (inputs.doTestPackages) {
-      log.hat('running tests in all the packages')
-      return runScript('test-all', [], cb)
-    } else {
-      log.log('skipping tests because you said so')
-      return cb()
-    }
-  },
-  function (cb) {
-    // Need to check that linting/testing didn't create any changes that need to be fixed by a human
-    assertGitStatus()
-    return cb()
-  },
-  function (cb) {
-    log.hat('fetching & merging git repos for all the packages')
-    return runScript('git-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
-  },
-  function (cb) {
-    // If pulling created merge conflicts or other issues, we need to bail and let a human fix it
-    assertGitStatus()
-    return cb()
-  },
-  function (cb) {
-    // TODO: Add this when we figure out how to fix the npm link issues.
-    // This is probably required in the case that somebody installed a new dependency in one of the packages.
-    // log.hat('npm installing in all the packages')
-    // return runScript('npm-install', [], cb)
-    return cb()
-  },
-  function (cb) {
-    log.hat('normalizing & bumping the version number for all packages')
-    return runScript('npm-semver-inc', [`--level=${inputs.semverBumpLevel}`], cb)
-  },
+  // function (cb) {
+  //   if (inputs.doLintPackages) {
+  //     log.hat('linting all the packages')
+  //     return runScript('lint-all', [], cb)
+  //   } else {
+  //     log.log('skipping linting because you said so')
+  //     return cb()
+  //   }
+  // },
+  // function (cb) {
+  //   if (inputs.doTestPackages) {
+  //     log.hat('running tests in all the packages')
+  //     return runScript('test-all', [], cb)
+  //   } else {
+  //     log.log('skipping tests because you said so')
+  //     return cb()
+  //   }
+  // },
+  // function (cb) {
+  //   // Need to check that linting/testing didn't create any changes that need to be fixed by a human
+  //   assertGitStatus()
+  //   return cb()
+  // },
+  // function (cb) {
+  //   log.hat('fetching & merging git repos for all the packages')
+  //   return runScript('git-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
+  // },
+  // function (cb) {
+  //   // If pulling created merge conflicts or other issues, we need to bail and let a human fix it
+  //   assertGitStatus()
+  //   return cb()
+  // },
+  // function (cb) {
+  //   // TODO: Add this when we figure out how to fix the npm link issues.
+  //   // This is probably required in the case that somebody installed a new dependency in one of the packages.
+  //   // log.hat('npm installing in all the packages')
+  //   // return runScript('npm-install', [], cb)
+  //   return cb()
+  // },
+  // function (cb) {
+  //   log.hat('normalizing & bumping the version number for all packages')
+  //   return runScript('npm-semver-inc', [`--level=${inputs.semverBumpLevel}`], cb)
+  // },
   function (cb) {
     // This is used in subsequent steps to create correct file paths, etc
     var nowVersion = fse.readJsonSync(path.join(ROOT, 'package.json')).version
@@ -206,16 +206,16 @@ async.series([
     log.hat('creating distribution builds of our player and adapters')
 
     log.log('browserifying player packages and adapters')
-    cp.execSync(`browserify ${JSON.stringify(path.join(interpreterPath, 'src', 'creation', 'dom', 'index.js'))} --standalone HaikuDOMPlayer | derequire > ${JSON.stringify(path.join(interpreterPath, 'dom.bundle.js'))}`, { stdio: 'inherit' })
-    cp.execSync(`browserify ${JSON.stringify(path.join(interpreterPath, 'src', 'adapters', 'react', 'index.js'))} --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > ${JSON.stringify(path.join(interpreterPath, 'react.bundle.js'))} && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${JSON.stringify(path.join(interpreterPath, 'react.bundle.js'))}`, { stdio: 'inherit' })
+    cp.execSync(`browserify ${JSON.stringify(path.join(interpreterPath, 'src', 'adapters', 'dom', 'index.js'))} --standalone HaikuDOMPlayer | derequire > ${JSON.stringify(path.join(interpreterPath, 'dom.bundle.js'))}`, { stdio: 'inherit' })
+    cp.execSync(`browserify ${JSON.stringify(path.join(interpreterPath, 'src', 'adapters', 'react-dom', 'index.js'))} --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > ${JSON.stringify(path.join(interpreterPath, 'react-dom.bundle.js'))} && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${JSON.stringify(path.join(interpreterPath, 'react-dom.bundle.js'))}`, { stdio: 'inherit' })
 
     log.log('moving bundles into npm module')
     fse.copySync(path.join(interpreterPath, 'dom.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'index.js'))
-    fse.copySync(path.join(interpreterPath, 'react.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'react.js'))
+    fse.copySync(path.join(interpreterPath, 'react-dom.bundle.js'), path.join(haikuNpmPath, 'at-haiku-player', 'dom', 'react-dom.js'))
 
     log.log('creating minified bundles for the cdn')
     cp.execSync(`uglifyjs ${JSON.stringify(path.join(interpreterPath, 'dom.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(interpreterPath, 'dom.bundle.min.js'))}`)
-    cp.execSync(`uglifyjs ${JSON.stringify(path.join(interpreterPath, 'react.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(interpreterPath, 'react.bundle.min.js'))}`)
+    cp.execSync(`uglifyjs ${JSON.stringify(path.join(interpreterPath, 'react-dom.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(interpreterPath, 'react-dom.bundle.min.js'))}`)
 
     // Note: These are hosted via the haiku-internal AWS account
     // https://code.haiku.ai/scripts/player/HaikuPlayer.${vers}.js
