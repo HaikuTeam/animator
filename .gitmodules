@@ -7,9 +7,6 @@
 [submodule "packages/haiku-creator"]
 	path = packages/haiku-creator
 	url = git@github.com:HaikuTeam/creator
-[submodule "packages/haiku-interpreter"]
-	path = packages/haiku-interpreter
-	url = git@github.com:HaikuTeam/interpreter
 [submodule "packages/haiku-npm"]
 	path = packages/haiku-npm
 	url = git@github.com:HaikuTeam/haiku-npm
