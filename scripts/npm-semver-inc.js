@@ -35,7 +35,7 @@ runScript('npm-semver-top', [], function (err) {
     fse.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
   })
 
-  log.log('setting plumbing\'s at-haiku-player dependency version')
+  log.log('setting plumbing\'s @haiku/player dependency version')
   var plumbingPackageJsonPath = path.join(plumbingPath, 'package.json')
   var plumbingPackageJson = fse.readJsonSync(plumbingPackageJsonPath)
 
