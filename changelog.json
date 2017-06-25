@@ -2062,5 +2062,6 @@
       "label": "feat",
       "message": "add sdk method to change password"
     }
-  }
+  },
+  "2.1.5": {}
 }
