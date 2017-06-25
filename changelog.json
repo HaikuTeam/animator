@@ -2040,5 +2040,27 @@
       "label": "fix",
       "message": "Fix bug where undo/redo would never become available"
     }
+  },
+  "2.1.3": {
+    "e7fd7c4b50c6ede48469709e231738dc267c5d4a": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add cli command to change password"
+    },
+    "d2e9bb66709c1c8eceb0e472a9bf28f9a5684cab": {
+      "project": "haiku-cli",
+      "label": "fix",
+      "message": "misplaced process.exit"
+    },
+    "bd804152aee17a8a935e670f5b84aa948706a911": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "Rename 'haiku-interpreter' to 'haiku-player'"
+    },
+    "be961e0f089c4ee602bea31af73a2698bdc2a55d": {
+      "project": "haiku-sdk-inkstone",
+      "label": "feat",
+      "message": "add sdk method to change password"
+    }
   }
 }
