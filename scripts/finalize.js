@@ -261,6 +261,7 @@ async.series([
           and for convenience:
           https://code.haiku.ai/scripts/player/HaikuPlayer.latest.js
           https://code.haiku.ai/scripts/player/HaikuPlayer.latest.min.js
+          ^^ you probably need to invalidate cloudfront for the "latest" files to update ^^
         `)
         return cb()
       }
