@@ -643,7 +643,6 @@ function reactChildrenToMana (children) {
 
 module.exports = reactChildrenToMana
 
-
 },{"./reactToMana":8}],8:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
