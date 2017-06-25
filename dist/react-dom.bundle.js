@@ -1,4 +1,8 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.HaikuReactAdapter = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 // Coordinate (0, 0, 0) is the top left of the screen
 
 var SIZE_PROPORTIONAL = 0 // A percentage of the parent
@@ -307,6 +311,10 @@ module.exports = {
 }
 
 },{}],2:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var EventsDict = {}
 
 var eventsList = [
@@ -388,6 +396,10 @@ for (var i = 0; i < eventsList.length; i++) {
 module.exports = EventsDict
 
 },{}],3:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var React = require('react')
 var ReactTestRenderer = require('react-test-renderer')
 var merge = require('lodash.merge')
@@ -534,6 +546,10 @@ function HaikuReactDOMAdapter (HaikuComponentClass) {
 module.exports = HaikuReactDOMAdapter
 
 },{"./../../helpers/initializeTreeAttributes":6,"./../../helpers/reactToMana":8,"./EventsDict":2,"./ValidProps":4,"lodash.merge":"lodash.merge","react":"react","react-test-renderer":"react-test-renderer"}],4:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var EventsDict = _dereq_('./EventsDict')
 
 var validPropsDict = {
@@ -554,9 +570,17 @@ for (var key in EventsDict) {
 module.exports = validPropsDict
 
 },{"./EventsDict":2}],5:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 module.exports = _dereq_('./HaikuReactDOMAdapter')
 
 },{"./HaikuReactDOMAdapter":3}],6:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var Layout3D = _dereq_('./../Layout3D')
 
 var ELEMENTS_2D = {
@@ -602,6 +626,10 @@ module.exports = function initializeTreeAttributes (tree, container) {
 }
 
 },{"./../Layout3D":1}],7:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var reactToMana = _dereq_('./reactToMana')
 
 function reactChildrenToMana (children) {
@@ -617,6 +645,10 @@ module.exports = reactChildrenToMana
 
 
 },{"./reactToMana":8}],8:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var STRING_TYPE = 'string'
 
 function reactToMana (react) {

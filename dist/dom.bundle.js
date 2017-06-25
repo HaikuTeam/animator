@@ -36992,8 +36992,19 @@ function parse(xml) {
 },{"debug":155}],435:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.2",
-  "description": "Haiku Player",
+  "version": "2.1.3",
+  "description": "Haiku Player is a JavaScript library for building user interfaces",
+  "homepage": "https://haiku.ai",
+  "keywords": [
+    "animation",
+    "motion",
+    "component",
+    "web",
+    "browser",
+    "svg",
+    "rendering",
+    "engine"
+  ],
   "repository": "https://github.com/HaikuTeam/player",
   "main": "index.js",
   "scripts": {
@@ -37004,7 +37015,11 @@ module.exports={
     "demo": "nodemon ./demo/server.js",
     "start": "npm run demo"
   },
-  "author": "Matthew Trost <matthew@haiku.ai>",
+  "authors": [
+    "Matthew Trost <matthew@haiku.ai>",
+    "Zack Brown <zack@haiku.ai>",
+    "Taylor Poe <taylor@haiku.ai>"
+  ],
   "license": "LicenseRef-LICENSE",
   "devDependencies": {
     "browserify": "14.1.0",
@@ -37046,6 +37061,10 @@ module.exports={
 }
 
 },{}],436:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var raf = _dereq_('raf')
 var assign = _dereq_('./helpers/assign')
 var SimpleEventEmitter = _dereq_('./helpers/SimpleEventEmitter')
@@ -37213,6 +37232,10 @@ HaikuClock.prototype.getFrameDuration = function getFrameDuration () {
 module.exports = HaikuClock
 
 },{"./helpers/SimpleEventEmitter":448,"./helpers/assign":451,"raf":397}],437:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var ValueBuilder = _dereq_('./ValueBuilder')
 var vanityHandlers = _dereq_('./properties/dom/vanities')
 var queryTree = _dereq_('./helpers/cssQueryTree')
@@ -38122,6 +38145,10 @@ function _isComponent (thing) {
 module.exports = HaikuComponent
 
 },{"./../package.json":435,"./HaikuTimeline":439,"./Layout3D":440,"./ValueBuilder":442,"./helpers/SimpleEventEmitter":448,"./helpers/assign":451,"./helpers/cssQueryTree":461,"./helpers/initializeTreeAttributes":464,"./helpers/scopifyElements":471,"./helpers/xmlToMana":473,"./properties/dom/vanities":474}],438:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var SimpleEventEmitter = _dereq_('./helpers/SimpleEventEmitter')
 var assign = _dereq_('./helpers/assign')
 var HaikuClock = _dereq_('./HaikuClock')
@@ -38455,6 +38482,10 @@ HaikuContext.createComponentFactory = function createComponentFactory (renderer,
 module.exports = HaikuContext
 
 },{"./HaikuClock":436,"./HaikuComponent":437,"./helpers/SimpleEventEmitter":448,"./helpers/assign":451}],439:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var _getMaxTimeFromDescriptor = _dereq_('./helpers/getTimelineMaxTime')
 var SimpleEventEmitter = _dereq_('./helpers/SimpleEventEmitter')
 var assign = _dereq_('./helpers/assign')
@@ -38795,6 +38826,10 @@ HaikuTimeline.prototype.gotoAndStop = function gotoAndStop (ms) {
 module.exports = HaikuTimeline
 
 },{"./helpers/SimpleEventEmitter":448,"./helpers/assign":451,"./helpers/getTimelineMaxTime":463}],440:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 // Coordinate (0, 0, 0) is the top left of the screen
 
 var SIZE_PROPORTIONAL = 0 // A percentage of the parent
@@ -39103,6 +39138,10 @@ module.exports = {
 }
 
 },{}],441:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var Curves = _dereq_('just-curves')
 
 var CENT = 1.0
@@ -39266,6 +39305,10 @@ module.exports = {
 }
 
 },{"just-curves":211}],442:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var Transitions = _dereq_('./Transitions')
 var BasicUtils = _dereq_('./helpers/BasicUtils')
 var ColorUtils = _dereq_('./helpers/ColorUtils')
@@ -39702,6 +39745,10 @@ ValueBuilder.prototype.grabValue = function _grabValue (timelineName, selector, 
 module.exports = ValueBuilder
 
 },{"./Transitions":441,"./helpers/BasicUtils":445,"./helpers/ColorUtils":446,"./helpers/SVGPoints":447,"./reflection/functionToRFO":475}],443:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var HaikuContext = _dereq_('./../../HaikuContext')
 var HaikuDOMRenderer = _dereq_('./../../renderers/dom')
 var PLAYER_VERSION = _dereq_('./../../../package.json').version
@@ -39755,9 +39802,17 @@ if (IS_WINDOW_DEFINED) {
 module.exports = HaikuDOMAdapter
 
 },{"./../../../package.json":435,"./../../HaikuContext":438,"./../../renderers/dom":492}],444:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 module.exports = _dereq_('./HaikuDOMAdapter')
 
 },{"./HaikuDOMAdapter":443}],445:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var OBJECT = 'object'
 var FUNCTION = 'function'
 
@@ -39807,6 +39862,10 @@ module.exports = {
 }
 
 },{}],446:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var cs = _dereq_('color-string')
 
 var STRING = 'string'
@@ -39833,6 +39892,10 @@ module.exports = {
 }
 
 },{"color-string":57}],447:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var svgPoints = _dereq_('svg-points')
 var parseCssValueString = _dereq_('./parseCssValueString')
 
@@ -39949,6 +40012,10 @@ module.exports = {
 }
 
 },{"./parseCssValueString":468,"svg-points":411}],448:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var SimpleEventEmitter = {}
 
 function create (instance) {
@@ -40001,6 +40068,10 @@ SimpleEventEmitter.create = create
 module.exports = SimpleEventEmitter
 
 },{}],449:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var allSvgElementNames = [
   'a',
   'altGlyph',
@@ -40088,6 +40159,10 @@ var allSvgElementNames = [
 module.exports = allSvgElementNames
 
 },{}],450:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var setStyleMatrix = _dereq_('./setStyleMatrix')
 var roundToPrecision = _dereq_('./roundToPrecision')
 var formatTransform = _dereq_('./formatTransform')
@@ -40182,6 +40257,10 @@ function applyCssLayout (domElement, virtualElement, nodeLayout, computedLayout,
 module.exports = applyCssLayout
 
 },{"./formatTransform":462,"./isEqualTransformString":465,"./roundToPrecision":469,"./scopeOfElement":470,"./setStyleMatrix":472}],451:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 module.exports = function assign (t) {
   for (var s, i = 1, n = arguments.length; i < n; i++) {
     s = arguments[i]
@@ -40195,6 +40274,10 @@ module.exports = function assign (t) {
 }
 
 },{}],452:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var ATTR_EXEC_RE = /\[([a-zA-Z0-9]+)([$|^~])?(=)?"?(.+?)?"?( i)?]/
 
 function attrSelectorParser (selector) {
@@ -40211,6 +40294,10 @@ function attrSelectorParser (selector) {
 module.exports = attrSelectorParser
 
 },{}],453:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var C1 = ', '
 var C2 = ','
 
@@ -40221,6 +40308,10 @@ function compactTransform (t1) {
 module.exports = compactTransform
 
 },{}],454:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var objectPath = _dereq_('./objectPath')
 
 function matchByAttribute (node, attrKeyToMatch, attrOperator, attrValueToMatch, options) {
@@ -40247,6 +40338,10 @@ function matchByAttribute (node, attrKeyToMatch, attrOperator, attrValueToMatch,
 module.exports = matchByAttribute
 
 },{"./objectPath":467}],455:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var objectPath = _dereq_('./objectPath')
 
 var CLASS_NAME_ATTR = 'class'
@@ -40270,6 +40365,10 @@ function matchByClass (node, className, options) {
 module.exports = matchByClass
 
 },{"./objectPath":467}],456:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var objectPath = _dereq_('./objectPath')
 
 var HAIKU_ID_ATTRIBUTE = 'haiku-id'
@@ -40284,6 +40383,10 @@ function matchByHaiku (node, haikuString, options) {
 module.exports = matchByHaiku
 
 },{"./objectPath":467}],457:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var objectPath = _dereq_('./objectPath')
 
 function matchById (node, id, options) {
@@ -40298,6 +40401,10 @@ function matchById (node, id, options) {
 module.exports = matchById
 
 },{"./objectPath":467}],458:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var objectPath = _dereq_('./objectPath')
 
 var STRING = 'string'
@@ -40340,6 +40447,10 @@ function matchByTagName (node, tagName, options) {
 module.exports = matchByTagName
 
 },{"./objectPath":467}],459:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var matchById = _dereq_('./cssMatchById')
 var matchByClass = _dereq_('./cssMatchByClass')
 var matchByTagName = _dereq_('./cssMatchByTagName')
@@ -40377,6 +40488,10 @@ function matchOne (node, piece, options) {
 module.exports = matchOne
 
 },{"./attrSelectorParser":452,"./cssMatchByAttribute":454,"./cssMatchByClass":455,"./cssMatchByHaiku":456,"./cssMatchById":457,"./cssMatchByTagName":458}],460:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var matchOne = _dereq_('./cssMatchOne')
 
 var PIECE_SEPARATOR = ','
@@ -40400,6 +40515,10 @@ function queryList (matches, list, query, options) {
 module.exports = queryList
 
 },{"./cssMatchOne":459}],461:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var uniq = _dereq_('lodash.uniq')
 var flattenTree = _dereq_('./manaFlattenTree')
 var queryList = _dereq_('./cssQueryList')
@@ -40416,6 +40535,10 @@ function queryTree (matches, node, query, options) {
 module.exports = queryTree
 
 },{"./cssQueryList":460,"./manaFlattenTree":466,"lodash.uniq":213}],462:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var TRANSFORM_SUFFIX = ')'
 var TRANSFORM_ZERO = '0'
 var TRANSFORM_COMMA = ','
@@ -40451,6 +40574,10 @@ function formatTransform (transform, format, devicePixelRatio) {
 module.exports = formatTransform
 
 },{}],463:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function getTimelineMaxTime (descriptor) {
   var max = 0
   for (var selector in descriptor) {
@@ -40470,6 +40597,10 @@ function getTimelineMaxTime (descriptor) {
 module.exports = getTimelineMaxTime
 
 },{}],464:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var Layout3D = _dereq_('./../Layout3D')
 
 var ELEMENTS_2D = {
@@ -40515,6 +40646,10 @@ module.exports = function initializeTreeAttributes (tree, container) {
 }
 
 },{"./../Layout3D":440}],465:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var compactTransform = _dereq_('./compactTransform')
 
 // var CIDENT = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)'
@@ -40532,6 +40667,10 @@ function isEqualTransformString (t1, t2) {
 module.exports = isEqualTransformString
 
 },{"./compactTransform":453}],466:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var objectPath = _dereq_('./objectPath')
 
 function flattenTree (list, node, options, depth, index) {
@@ -40565,6 +40704,10 @@ function flattenTree (list, node, options, depth, index) {
 module.exports = flattenTree
 
 },{"./objectPath":467}],467:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var STRING = 'string'
 
 function objectPath (obj, key) {
@@ -40580,6 +40723,10 @@ function objectPath (obj, key) {
 module.exports = objectPath
 
 },{}],468:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function parseCssValueString (str, optionalPropertyHint) {
   if (typeof str === 'number') {
     return {
@@ -40621,6 +40768,10 @@ function parseCssValueString (str, optionalPropertyHint) {
 module.exports = parseCssValueString
 
 },{}],469:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var NUMERIC_PRECISION = 2
 
 function roundToPrecision (num, precision) {
@@ -40630,6 +40781,10 @@ function roundToPrecision (num, precision) {
 module.exports = roundToPrecision
 
 },{}],470:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 module.exports = function scopeOfElement (mana) {
   if (mana.__scope) return mana.__scope
 
@@ -40641,6 +40796,10 @@ module.exports = function scopeOfElement (mana) {
 }
 
 },{}],471:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var DEFAULT_SCOPE = 'div'
 
 var SCOPE_STRATA = {
@@ -40699,6 +40858,10 @@ function setStyleMatrix (styleObject, format, matrix, usePrefix, devicePixelRati
 module.exports = setStyleMatrix
 
 },{"./formatTransform":462,"./isEqualTransformString":465}],473:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var parse = _dereq_('xml-parser')
 var styleStringToObject = _dereq_('to-style').object
 
@@ -40736,6 +40899,10 @@ function xmlToMana (xml) {
 module.exports = xmlToMana
 
 },{"to-style":416,"xml-parser":434}],474:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var clone = _dereq_('lodash.clone')
 var Layout3D = _dereq_('./../../Layout3D')
 
@@ -41700,6 +41867,10 @@ module.exports = {
 }
 
 },{"./../../Layout3D":440,"lodash.clone":212}],475:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var babylon = _dereq_('babylon')
 var generate = _dereq_('babel-generator').default
 
@@ -41811,6 +41982,10 @@ function functionToRFO (fn) {
 module.exports = functionToRFO
 
 },{"babel-generator":16,"babylon":55}],476:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var getElementSize = _dereq_('./getElementSize')
 var createRightClickMenu = _dereq_('./createRightClickMenu')
 var createMixpanel = _dereq_('./createMixpanel')
@@ -41855,6 +42030,10 @@ HaikuDOMRenderer.createContainer = createContainer
 module.exports = HaikuDOMRenderer
 
 },{"./createMixpanel":484,"./createRightClickMenu":485,"./getElementSize":489,"./patch":500,"./render":502}],477:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var createTextNode = _dereq_('./createTextNode')
 var createTagNode = _dereq_('./createTagNode')
 var applyLayout = _dereq_('./applyLayout')
@@ -41874,6 +42053,10 @@ function appendChild (alreadyChildElement, virtualElement, parentDomElement, par
 module.exports = appendChild
 
 },{"./applyLayout":478,"./createTagNode":487,"./createTextNode":488,"./isTextNode":497}],478:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var applyCssLayout = _dereq_('./../../helpers/applyCssLayout')
 var scopeOfElement = _dereq_('./../../helpers/scopeOfElement')
 var isTextNode = _dereq_('./isTextNode')
@@ -41962,6 +42145,10 @@ function _warnOnce (warning) {
 module.exports = applyLayout
 
 },{"./../../helpers/applyCssLayout":450,"./../../helpers/scopeOfElement":470,"./hasPreserve3d":491,"./isIE":494,"./isMobile":495,"./isTextNode":497}],479:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var assignStyle = _dereq_('./assignStyle')
 var assignClass = _dereq_('./assignClass')
 var assignEvent = _dereq_('./assignEvent')
@@ -42029,6 +42216,10 @@ function assignAttributes (domElement, attributes, options, scopes, isPatchOpera
 module.exports = assignAttributes
 
 },{"./assignClass":480,"./assignEvent":481,"./assignStyle":482}],480:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function assignClass (domElement, className, options, scopes) {
   if (domElement.className !== className) {
     domElement.className = className
@@ -42039,6 +42230,10 @@ function assignClass (domElement, className, options, scopes) {
 module.exports = assignClass
 
 },{}],481:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var attachEventListener = _dereq_('./attachEventListener')
 
 function assignEvent (domElement, lowerCaseName, listenerFunction, options, scopes) {
@@ -42071,6 +42266,10 @@ function assignEvent (domElement, lowerCaseName, listenerFunction, options, scop
 module.exports = assignEvent
 
 },{"./attachEventListener":483}],482:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function assignStyle (domElement, style, options, scopes, isPatchOperation) {
   if (!domElement.__haikuExplicitStyles) domElement.__haikuExplicitStyles = {}
 
@@ -42100,6 +42299,10 @@ function assignStyle (domElement, style, options, scopes, isPatchOperation) {
 module.exports = assignStyle
 
 },{}],483:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 module.exports = function attachEventListener (domElement, lowercaseName, listener, options, scopes) {
   var eventName = lowercaseName.slice(2) // Assumes 'on*' prefix
 
@@ -42110,6 +42313,10 @@ module.exports = function attachEventListener (domElement, lowercaseName, listen
 }
 
 },{}],484:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var assign = _dereq_('./../../helpers/assign')
 
 module.exports = function createMixpanel (domElement, mixpanelToken, component) {
@@ -42134,6 +42341,10 @@ module.exports = function createMixpanel (domElement, mixpanelToken, component) 
 }
 
 },{"./../../helpers/assign":451,"mixpanel-browser":393}],485:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var MENU_GLOBAL_ID = 'haiku-right-click-menu'
 var WIDTH = 167
 var HEIGHT = 44
@@ -42287,6 +42498,10 @@ module.exports = function createRightClickMenu (domElement, component) {
 }
 
 },{}],486:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 
 function createSvgElement (domElement, tagName, options, scopes) {
@@ -42296,6 +42511,10 @@ function createSvgElement (domElement, tagName, options, scopes) {
 module.exports = createSvgElement
 
 },{}],487:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var normalizeName = _dereq_('./normalizeName')
 var isSvgElementName = _dereq_('./isSvgElementName')
 var getTypeAsString = _dereq_('./getTypeAsString')
@@ -42326,6 +42545,10 @@ var createSvgElement = _dereq_('./createSvgElement')
 var updateElement = _dereq_('./updateElement')
 
 },{"./createSvgElement":486,"./getTypeAsString":490,"./isSvgElementName":496,"./normalizeName":499,"./updateElement":506}],488:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function createTextNode (domElement, textContent, options, scopes) {
   return domElement.ownerDocument.createTextNode(textContent)
 }
@@ -42333,6 +42556,10 @@ function createTextNode (domElement, textContent, options, scopes) {
 module.exports = createTextNode
 
 },{}],489:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function getElementSize (domElement) {
   var x
   var y
@@ -42353,6 +42580,10 @@ function getElementSize (domElement) {
 module.exports = getElementSize
 
 },{}],490:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var STRING = 'string'
 var FUNCTION = 'function'
 
@@ -42396,6 +42627,10 @@ function _warnOnce (warning) {
 module.exports = getTypeAsString
 
 },{}],491:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 module.exports = function hasPreserve3d (window) {
   if (!window) return false
   if (!window.document) return false
@@ -42419,9 +42654,17 @@ module.exports = function hasPreserve3d (window) {
 }
 
 },{}],492:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 module.exports = _dereq_('./HaikuDOMRenderer')
 
 },{"./HaikuDOMRenderer":476}],493:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function isBlankString (thing) {
   return thing === ''
 }
@@ -42429,6 +42672,10 @@ function isBlankString (thing) {
 module.exports = isBlankString
 
 },{}],494:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 module.exports = function isIE (window) {
   if (!window) return false
   if (!window.navigator) return false
@@ -42437,6 +42684,10 @@ module.exports = function isIE (window) {
 }
 
 },{}],495:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 module.exports = function isMobile (window) {
   if (!window) return false
   if (!window.navigator) return false
@@ -42445,6 +42696,10 @@ module.exports = function isMobile (window) {
 }
 
 },{}],496:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var svgElementNames = _dereq_('./../../helpers/allSvgElementNames')
 
 function isSvgElementName (tagName, scopes) {
@@ -42454,6 +42709,10 @@ function isSvgElementName (tagName, scopes) {
 module.exports = isSvgElementName
 
 },{"./../../helpers/allSvgElementNames":449}],497:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function isTextNode (virtualElement, scopes) {
   return typeof virtualElement === 'string'
 }
@@ -42461,6 +42720,10 @@ function isTextNode (virtualElement, scopes) {
 module.exports = isTextNode
 
 },{}],498:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function locatorBump (locator, index) {
   return locator + '.' + index
 }
@@ -42468,6 +42731,10 @@ function locatorBump (locator, index) {
 module.exports = locatorBump
 
 },{}],499:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function normalizeName (tagName) {
   if (tagName[0] === tagName[0].toUpperCase()) tagName = tagName + '-component'
   return tagName
@@ -42476,6 +42743,10 @@ function normalizeName (tagName) {
 module.exports = normalizeName
 
 },{}],500:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var updateElement = _dereq_('./updateElement')
 
 function getElementByFlexId (topLevelDomElement, flexId, scopes) {
@@ -42519,6 +42790,10 @@ function patch (topLevelDomElement, virtualContainer, patchesDict, locator, hash
 module.exports = patch
 
 },{"./updateElement":506}],501:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function removeElement (domElement, hash, options, scopes) {
   domElement.parentNode.removeChild(domElement)
   return domElement
@@ -42527,6 +42802,10 @@ function removeElement (domElement, hash, options, scopes) {
 module.exports = removeElement
 
 },{}],502:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var renderTree = _dereq_('./renderTree')
 
 function render (domElement, virtualContainer, virtualTree, locator, hash, options, scopes) {
@@ -42536,6 +42815,10 @@ function render (domElement, virtualContainer, virtualTree, locator, hash, optio
 module.exports = render
 
 },{"./renderTree":503}],503:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var isBlankString = _dereq_('./isBlankString')
 var removeElement = _dereq_('./removeElement')
 var locatorBump = _dereq_('./locatorBump')
@@ -42617,6 +42900,10 @@ var appendChild = _dereq_('./appendChild')
 var updateElement = _dereq_('./updateElement')
 
 },{"./appendChild":477,"./isBlankString":493,"./locatorBump":498,"./removeElement":501,"./updateElement":506}],504:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var applyLayout = _dereq_('./applyLayout')
 var isTextNode = _dereq_('./isTextNode')
 
@@ -42637,6 +42924,10 @@ var createTextNode = _dereq_('./createTextNode')
 var createTagNode = _dereq_('./createTagNode')
 
 },{"./applyLayout":478,"./createTagNode":487,"./createTextNode":488,"./isTextNode":497}],505:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var createTextNode = _dereq_('./createTextNode')
 
 function replaceElementWithText (domElement, textContent, options, scopes) {
@@ -42653,6 +42944,10 @@ function replaceElementWithText (domElement, textContent, options, scopes) {
 module.exports = replaceElementWithText
 
 },{"./createTextNode":488}],506:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var applyLayout = _dereq_('./applyLayout')
 var assignAttributes = _dereq_('./assignAttributes')
 var isSvgElementName = _dereq_('./isSvgElementName')
@@ -42714,6 +43009,10 @@ var normalizeName = _dereq_('./normalizeName')
 var isTextNode = _dereq_('./isTextNode')
 
 },{"./applyLayout":478,"./assignAttributes":479,"./getTypeAsString":490,"./isSvgElementName":496,"./isTextNode":497,"./normalizeName":499,"./renderTree":503,"./replaceElement":504,"./replaceElementWithText":505,"./updateSvgElement":507}],507:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var applyLayout = _dereq_('./applyLayout')
 var assignAttributes = _dereq_('./assignAttributes')
 
