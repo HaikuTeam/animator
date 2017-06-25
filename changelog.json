@@ -2063,5 +2063,12 @@
       "message": "add sdk method to change password"
     }
   },
-  "2.1.5": {}
+  "2.1.5": {},
+  "2.1.6": {
+    "4c83a74190becd88d35c6a7362951e7c0c045bda": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "My npmignore didn't re-include a necessary package"
+    }
+  }
 }
