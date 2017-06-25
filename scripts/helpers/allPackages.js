@@ -31,6 +31,7 @@ module.exports = function allPackages () {
       relpath: path.join('packages', name),
       shortname: name.replace('haiku-', ''),
       pkg: pkg,
+      pkgname: pkg.name,
       version: version,
       sha: sha,
       remote: remote
