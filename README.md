@@ -8,8 +8,7 @@ Clone this repo. Then:
 
     $ git submodule update --init --recursive
     $ npm i
-    $ npm run mono:npm-install
-    $ npm run mono:npm-link
+    $ npm run mono:npm-clean
 
 ## Development
 
@@ -19,7 +18,7 @@ Assuming you've done the initial setup, you can start all the dev servers with:
 
 Once you're done developing, you probably want to run:
 
-    $ npm run mono:finalize
+    $ npm run mono:finish
 
 This will prompt you for some settings, then synchronize all the repos for you.
 
