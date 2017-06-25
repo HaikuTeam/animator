@@ -103,6 +103,10 @@ switch (subcommand) {
     //undocumented; used for SDK development
     doAwaitShare()
     break
+  case "change-password":
+    //undocumented: used for SDK development
+    doChangePassword()
+    break
   case "check-invite":
     //undocumented: used for SDK development
     doCheckInvite()
@@ -168,6 +172,47 @@ function doAwaitShare() {
     } else {
       console.log(chalk.green("Share link: " + str))
     }
+  })
+}
+
+function doChangePassword() {
+  ensureAuth(function (token) {
+    inquirer.prompt([
+      {
+        type: "password",
+        name: "OldPassword",
+        message: "Old Password:",
+      },
+      {
+        type: "password",
+        name: "NewPassword",
+        message: "New Password:",
+      },
+      {
+        type: "password",
+        name: "NewPassword2",
+        message: "New Password (confirm):",
+      }
+    ]).then(function (answers: inquirer.Answers) {
+      if(answers["NewPassword"] !== answers["NewPassword2"]){
+        console.log(chalk.red("New passwords do not match."))
+        process.exit(1)
+      }
+
+      var params: inkstone.user.ChangePasswordParams = {
+        OldPassword: answers["OldPassword"],
+        NewPassword: answers["NewPassword"]
+      }
+
+      inkstone.user.changePassword(token, params, function (err, responseBody, response) {
+        if (err) {
+          console.log(chalk.bold(`Unabled to change password: `) + err)
+          process.exit(1)
+        } else {
+          console.log(chalk.green("Password updated."))
+        }
+      })
+    })
   })
 }
 
@@ -261,7 +306,7 @@ function doCreate() {
     ]).then(function (answers: inquirer.Answers) {
       var projectName = answers["name"]
       console.log("Creating project...")
-      
+
       inkstone.project.create(token, { Name: projectName }, (err, project) => {
         if (err) {
           console.log(chalk.red("Error creating project.  Does this project with this name already exist?"))
@@ -467,10 +512,9 @@ function doInstall() {
 
 function doList() {
   ensureAuth((token: string) => {
-
     if (flags && flags.organizations) {
-      inkstone.organization.list(token, (err, organizations) => {
-        if (organizations == undefined || organizations.length == 0) {
+      inkstone.organization.list(token, (err, organizations, resp) => {
+        if (organizations === undefined || organizations.length === 0) {
           console.log("You are not a member of any organizations.")
         } else {
           console.log(chalk.cyan("Your Organizations:"))
@@ -478,8 +522,8 @@ function doList() {
             console.log("  " + org.Name)
           })
         }
+        process.exit(0)
       })
-      process.exit(0)
     } else {
 
       inkstone.project.list(token, (err, projects) => {
