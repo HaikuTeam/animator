@@ -7,3 +7,4 @@ src/adapters/*
 src/helpers/*
 !src/helpers/initializeTreeAttributes.js
 !src/helpers/reactToMana.js
+!src/helpers/reactChildrenToMana.js

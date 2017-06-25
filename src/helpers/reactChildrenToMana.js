@@ -14,4 +14,3 @@ function reactChildrenToMana (children) {
 }
 
 module.exports = reactChildrenToMana
-
