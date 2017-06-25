@@ -1,3 +1,9 @@
-/test
-/demo
-/src
+test/*
+demo/*
+src/*
+!src/Layout3D.js
+src/adapters/*
+!src/adapters/react-dom
+src/helpers/*
+!src/helpers/initializeTreeAttributes.js
+!src/helpers/reactToMana.js
