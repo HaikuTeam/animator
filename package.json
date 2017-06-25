@@ -8,7 +8,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "npm run mono:dev",
-    "lint": "standard \"./scripts/**/*.js\" --fix --verbose | snazzy",
+    "finish": "npm run mono:finish",
     "mono:changelog": "node ./scripts/changelog.js",
     "mono:dev": "node ./scripts/dev.js",
     "mono:safety": "node ./scripts/safety.js",
@@ -34,7 +34,8 @@
     "mono:git-checkout-b": "node ./scripts/git-checkout-b.js",
     "mono:git-checkout-branch": "node ./scripts/git-checkout-branch.js",
     "mono:git-merge-branch": "node ./scripts/git-merge-branch.js",
-    "mono:git-checkout": "node ./scripts/git-checkout.js"
+    "mono:git-checkout": "node ./scripts/git-checkout.js",
+    "lint": "standard \"./scripts/**/*.js\" --fix --verbose | snazzy"
   },
   "devDependencies": {
     "async": "2.1.5",
