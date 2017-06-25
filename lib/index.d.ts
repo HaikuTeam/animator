@@ -13,7 +13,12 @@ export declare namespace inkstone {
             Expiration: string;
             Token: string;
         }
+        interface ChangePasswordParams {
+            OldPassword: string;
+            NewPassword: string;
+        }
         function authenticate(username: any, password: any, cb: inkstone.Callback<Authentication>): void;
+        function changePassword(authToken: string, params: ChangePasswordParams, cb: inkstone.Callback<string>): void;
     }
     namespace invite {
         interface Invite {

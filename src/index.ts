@@ -7,6 +7,7 @@ import * as _ from "lodash"
 var ENDPOINTS = {
   PROJECT_CREATE: "v0/project",
   LOGIN: "v0/user/auth",
+  CHANGE_PASSWORD: "v0/user/password",
   ORGANIZATION_LIST: "v0/organization",
   PROJECT_LIST: "v0/project",
   INVITE_CHECK: "v0/invite/:CODE",
@@ -49,6 +50,11 @@ export namespace inkstone {
       Token: string
     }
 
+    export interface ChangePasswordParams {
+      OldPassword: string,
+      NewPassword: string,
+    }
+
     export function authenticate(username, password, cb: inkstone.Callback<Authentication>) {
       var formData = {
         username: username,
@@ -69,6 +75,28 @@ export namespace inkstone {
           cb(undefined, auth, httpResponse)
         } else {
           cb(err, undefined, httpResponse)
+        }
+      })
+    }
+
+    export function changePassword(authToken: string, params: ChangePasswordParams, cb: inkstone.Callback<string>) {
+      var options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        strictSSL: false,
+        url: _inkstoneConfig.baseUrl + ENDPOINTS.CHANGE_PASSWORD,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `INKSTONE auth_token="${authToken}"`
+        },
+        json: params
+      }
+
+      request.post(options, function (err, httpResponse, body) {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          var response = body as string
+          cb(undefined, response, httpResponse)
+        } else {
+          var response = body as string
+          cb(response, undefined, httpResponse)
         }
       })
     }
