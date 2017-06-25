@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
 var assign = require('./helpers/assign')
 var HaikuClock = require('./HaikuClock')

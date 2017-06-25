@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var applyCssLayout = require('./../../helpers/applyCssLayout')
 var scopeOfElement = require('./../../helpers/scopeOfElement')
 var isTextNode = require('./isTextNode')

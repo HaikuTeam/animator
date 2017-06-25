@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var MENU_GLOBAL_ID = 'haiku-right-click-menu'
 var WIDTH = 167
 var HEIGHT = 44

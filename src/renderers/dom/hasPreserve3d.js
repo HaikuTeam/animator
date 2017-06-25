@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 module.exports = function hasPreserve3d (window) {
   if (!window) return false
   if (!window.document) return false

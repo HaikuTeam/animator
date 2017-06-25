@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var Layout3D = require('./../../Layout3D')
 
 // A dictionary that maps HTML+SVG element names (camelCase)

@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function objectToRO (obj, options) {
   var out = {}
   for (var key in obj) {

@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var createTextNode = require('./createTextNode')
 var createTagNode = require('./createTagNode')
 var applyLayout = require('./applyLayout')

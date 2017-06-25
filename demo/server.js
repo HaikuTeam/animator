@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var path = require('path')
 var express = require('express')
 var browserify = require('browserify')

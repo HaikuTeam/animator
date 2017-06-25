@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var DEFAULT_SCOPE = 'div'
 
 var SCOPE_STRATA = {

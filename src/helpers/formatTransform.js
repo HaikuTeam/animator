@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var TRANSFORM_SUFFIX = ')'
 var TRANSFORM_ZERO = '0'
 var TRANSFORM_COMMA = ','

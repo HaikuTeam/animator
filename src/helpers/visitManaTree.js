@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function visitManaTree (locator, mana, visitor, parent, index) {
   if (!mana) return null
   visitor(mana.elementName, mana.attributes, mana.children, mana, locator, parent, index)

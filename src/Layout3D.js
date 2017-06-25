@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 // Coordinate (0, 0, 0) is the top left of the screen
 
 var SIZE_PROPORTIONAL = 0 // A percentage of the parent

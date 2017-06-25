@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var Transitions = require('./Transitions')
 var BasicUtils = require('./helpers/BasicUtils')
 var ColorUtils = require('./helpers/ColorUtils')

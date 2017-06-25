@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var objectPath = require('./objectPath')
 
 var CLASS_NAME_ATTR = 'class'

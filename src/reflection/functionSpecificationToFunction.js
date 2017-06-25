@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var __baddies__ = 0
 
 function arrayParamToString (param) {

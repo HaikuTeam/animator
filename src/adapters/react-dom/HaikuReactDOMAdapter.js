@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var React = require('react')
 var ReactTestRenderer = require('react-test-renderer')
 var merge = require('lodash.merge')

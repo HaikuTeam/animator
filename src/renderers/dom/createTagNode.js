@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var normalizeName = require('./normalizeName')
 var isSvgElementName = require('./isSvgElementName')
 var getTypeAsString = require('./getTypeAsString')

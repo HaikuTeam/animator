@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var getElementSize = require('./getElementSize')
 var createRightClickMenu = require('./createRightClickMenu')
 var createMixpanel = require('./createMixpanel')

@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var clone = require('lodash.clone')
 var Layout3D = require('./../../Layout3D')
 

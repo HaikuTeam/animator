@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function assignStyle (domElement, style, options, scopes, isPatchOperation) {
   if (!domElement.__haikuExplicitStyles) domElement.__haikuExplicitStyles = {}
 

@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var assign = require('./../../helpers/assign')
 
 module.exports = function createMixpanel (domElement, mixpanelToken, component) {

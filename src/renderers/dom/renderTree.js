@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var isBlankString = require('./isBlankString')
 var removeElement = require('./removeElement')
 var locatorBump = require('./locatorBump')

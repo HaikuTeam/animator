@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var HaikuContext = require('./../../HaikuContext')
 var HaikuDOMRenderer = require('./../../renderers/dom')
 var PLAYER_VERSION = require('./../../../package.json').version

@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function domInjectStylesheet (doc, css) {
   if (doc.createStyleSheet) {
     var sheet = doc.createStyleSheet()

@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 function degreesToRadians (d) {
   return d * Math.PI / 180
 }

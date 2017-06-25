@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 module.exports = function isMobile (window) {
   if (!window) return false
   if (!window.navigator) return false

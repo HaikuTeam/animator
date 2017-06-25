@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 module.exports = function attachEventListener (domElement, lowercaseName, listener, options, scopes) {
   var eventName = lowercaseName.slice(2) // Assumes 'on*' prefix
 

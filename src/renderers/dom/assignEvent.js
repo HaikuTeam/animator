@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var attachEventListener = require('./attachEventListener')
 
 function assignEvent (domElement, lowerCaseName, listenerFunction, options, scopes) {

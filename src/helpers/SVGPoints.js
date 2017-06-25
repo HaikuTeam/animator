@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var svgPoints = require('svg-points')
 var parseCssValueString = require('./parseCssValueString')
 

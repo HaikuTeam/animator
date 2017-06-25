@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var uniq = require('lodash.uniq')
 var flattenTree = require('./manaFlattenTree')
 var queryList = require('./cssQueryList')

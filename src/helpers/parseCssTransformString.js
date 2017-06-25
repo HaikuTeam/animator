@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var mat4decompose = require('mat4-decompose')
 var mat4compose = require('css-mat4')
 var MathUtils = require('./MathUtils')

@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var assignStyle = require('./assignStyle')
 var assignClass = require('./assignClass')
 var assignEvent = require('./assignEvent')

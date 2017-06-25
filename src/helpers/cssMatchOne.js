@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var matchById = require('./cssMatchById')
 var matchByClass = require('./cssMatchByClass')
 var matchByTagName = require('./cssMatchByTagName')

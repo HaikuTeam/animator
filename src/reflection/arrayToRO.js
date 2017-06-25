@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 var expressionToRO = require('./expressionToRO')
 
 function arrayToRO (arr) {
