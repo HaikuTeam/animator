@@ -25,8 +25,14 @@ allPackages.forEach(function (pack) {
     if (pack.pkg[depType]) {
       for (var depName in pack.pkg[depType]) {
         // A few hacks...
-        if (depName.slice(0, 6) !== 'haiku-') continue
+        if (depName.slice(0, 6) !== 'haiku-' || depName.slice(0, 6) !== '@haiku') {
+          continue
+        }
+
+        // special snowflake #1
         if (depName === 'haiku-fs-extra') continue
+
+        // special snowflake #2
         if (depName === 'haiku-creator-electron') depName = 'haiku-creator'
 
         graph.addDependency(pack.name, depName)
@@ -86,10 +92,11 @@ order.forEach(function (name) {
 
     log.log(cp.execSync('git commit -m "' + commitMsg + '"', { cwd: pack.abspath }))
 
-    // Skip push with npm run mono:sha-norm -- --noPush
-    if (!argv.noPush) {
-      log.log(cp.execSync('git push ' + remote + ' HEAD:' + branch, { cwd: pack.abspath }))
-    }
+    // Maybe it doesn't make sense to push on this step?
+    // // Skip push with npm run mono:sha-norm -- --noPush
+    // if (!argv.noPush) {
+    //   log.log(cp.execSync('git push ' + remote + ' HEAD:' + branch, { cwd: pack.abspath }))
+    // }
 
     pack.sha = cp.execSync('git rev-parse HEAD', { cwd: pack.abspath }).toString().trim()
     log.log('sha of ' + pack.name + ' is now ' + pack.sha)

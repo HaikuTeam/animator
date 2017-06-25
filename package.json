@@ -1,7 +1,7 @@
 {
   "name": "haiku-mono",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.1.2",
   "description": "Haiku monorepo",
   "main": "index.js",
   "author": "Matthew Trost <matthew@trost.co>",

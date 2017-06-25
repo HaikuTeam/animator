@@ -65,8 +65,6 @@ function assertGitStatus () {
   }
 }
 
-assertGitStatus()
-
 async.series([
   function (cb) {
     inquirer.prompt([
@@ -151,6 +149,7 @@ async.series([
       })
     })
   },
+
   function (cb) {
     if (inputs.doLintPackages) {
       log.hat('linting all the packages')
@@ -160,6 +159,7 @@ async.series([
       return cb()
     }
   },
+
   function (cb) {
     if (inputs.doTestPackages) {
       log.hat('running tests in all the packages')
@@ -169,20 +169,24 @@ async.series([
       return cb()
     }
   },
+
   function (cb) {
     // Need to check that linting/testing didn't create any changes that need to be fixed by a human
     assertGitStatus()
     return cb()
   },
+
   function (cb) {
     log.hat('fetching & merging git repos for all the packages')
     return runScript('git-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
+
   function (cb) {
     // If pulling created merge conflicts or other issues, we need to bail and let a human fix it
     assertGitStatus()
     return cb()
   },
+
   function (cb) {
     // TODO: Add this when we figure out how to fix the npm link issues.
     // This is probably required in the case that somebody installed a new dependency in one of the packages.
@@ -190,10 +194,12 @@ async.series([
     // return runScript('npm-install', [], cb)
     return cb()
   },
+
   function (cb) {
     log.hat('normalizing & bumping the version number for all packages')
     return runScript('npm-semver-inc', [`--level=${inputs.semverBumpLevel}`], cb)
   },
+
   function (cb) {
     // This is used in subsequent steps to create correct file paths, etc
     var nowVersion = fse.readJsonSync(path.join(ROOT, 'package.json')).version
@@ -201,6 +207,7 @@ async.series([
     log.hat(`note that the current version is ${inputs.nowVersion}`)
     return cb()
   },
+
   function (cb) {
     log.hat('creating distribution builds of our player and adapters')
 
@@ -224,7 +231,9 @@ async.series([
     // builds we do from staging from prod, but my current thought is that that isn't necessary since
     // the version we push will always be _ahead_ of the version userland is on, and someone would have
     // to manually change the snippet to get an advance/untested version
+
     log.log('uploading bundles to the cdn')
+
     return async.series([
       function (cb) {
         // Note that the object keys should NOT begin with a slash, or the S3 path will get weird
@@ -257,18 +266,22 @@ async.series([
       }
     ], cb)
   },
+
   function (cb) {
     log.hat('adding and committing all changes in all the packages')
     return runScript('git-ac', [`--message=${JSON.stringify(inputs.commitMessage)}`], cb)
   },
+
   function (cb) {
     log.hat('normalizing the npm version number (git sha) for all internal deps')
     return runScript('sha-norm', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
+
   function (cb) {
     log.hat('pushing changes to the git repos for all packages')
     return runScript('git-push', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
+
   function (cb) {
     if (inputs.doPushToNpmRegistry) {
       log.hat('publishing @haiku/player to the npm registry')
@@ -279,6 +292,7 @@ async.series([
       return cb()
     }
   },
+
   function (cb) {
     if (inputs.doUpdateChangelog) {
       return runScript('changelog', [], cb)
@@ -287,6 +301,7 @@ async.series([
       return cb()
     }
   },
+
   function (cb) {
     log.hat('finishing up by doing some git cleanup inside mono itself')
     try {
@@ -303,6 +318,7 @@ async.series([
       return cb()
     }
   },
+
   function (cb) {
     if (inputs.doDistro) {
       log.hat('starting interactive distro build process')
