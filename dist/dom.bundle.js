@@ -36992,7 +36992,7 @@ function parse(xml) {
 },{"debug":155}],435:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
