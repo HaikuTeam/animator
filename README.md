@@ -59,6 +59,12 @@ Coming soon.
 
 Coming soon.
 
+## FAQ
+
+**Why are `babylon` and `babel-generator` listed as "dependencies"?**
+
+These are used internally by the component parsing engine for reflecting on dependency injection expressions. (They are not `"devDependencies"`.) We'll likely remove these in the future as they contribute significantly to footprint size.
+
 ## Contributing
 
 Although contributions are always encouraged via [pull request](https://github.com/HaikuTeam/player/pulls), know that we may need to decline pull requests that we deem to be in conflict with our future plans for [Haiku](https://haiku.ai), which is always our top priority. Feel free to open a [GitHub Issue](https://github.com/HaikuTeam/player/issues) if you'd like to ask for our thoughts about adding a feature before you start.

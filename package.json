@@ -1,7 +1,18 @@
 {
   "name": "@haiku/player",
   "version": "2.1.2",
-  "description": "Haiku Player",
+  "description": "Haiku Player is a JavaScript library for building user interfaces",
+  "homepage": "https://haiku.ai",
+  "keywords": [
+    "animation",
+    "motion",
+    "component",
+    "web",
+    "browser",
+    "svg",
+    "rendering",
+    "engine"
+  ],
   "repository": "https://github.com/HaikuTeam/player",
   "main": "index.js",
   "scripts": {
@@ -12,7 +23,11 @@
     "demo": "nodemon ./demo/server.js",
     "start": "npm run demo"
   },
-  "author": "Matthew Trost <matthew@haiku.ai>",
+  "authors": [
+    "Matthew Trost <matthew@haiku.ai>",
+    "Zack Brown <zack@haiku.ai>",
+    "Taylor Poe <taylor@haiku.ai>"
+  ],
   "license": "LicenseRef-LICENSE",
   "devDependencies": {
     "browserify": "14.1.0",
