@@ -28,8 +28,9 @@
       "libs/plumbing/node_modules/haiku-timeline/index.html",
       "libs/plumbing/node_modules/haiku-timeline/public/**/*",
       "libs/plumbing/node_modules/haiku-timeline/src/**/*",
-      "libs/plumbing/node_modules/haiku-player/src/*",
-      "libs/plumbing/node_modules/haiku-player/src/**/*"
+      "libs/plumbing/node_modules/@haiku/player/package.json",
+      "libs/plumbing/node_modules/@haiku/player/src/*",
+      "libs/plumbing/node_modules/@haiku/player/src/**/*"
     ],
     "mac": {
       "category": "public.app-category.developer-tools"
