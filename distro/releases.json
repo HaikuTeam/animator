@@ -58,7 +58,7 @@
     "uploaded": null,
     "finished": null,
     "success": false,
-    "error": "Command failed: /Users/matthew/Code/HaikuTeam/_scratch/mono/distro/scripts/bash/electron-rebuild.sh"
+    "error": "Command failed: /Users/matthew/Code/HaikuTeam/mono/distro/scripts/bash/electron-rebuild.sh"
   },
   {
     "branch": "master",
@@ -69,7 +69,7 @@
     "uploaded": null,
     "finished": null,
     "success": false,
-    "error": "Command failed: /Users/matthew/Code/HaikuTeam/_scratch/mono/distro/scripts/bash/build.sh"
+    "error": "Command failed: /Users/matthew/Code/HaikuTeam/mono/distro/scripts/bash/build.sh"
   },
   {
     "branch": "master",
