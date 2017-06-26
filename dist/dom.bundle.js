@@ -36992,7 +36992,7 @@ function parse(xml) {
 },{"debug":155}],435:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.6",
+  "version": "2.1.7",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -37051,12 +37051,14 @@ module.exports={
     "mat4-decompose": "1.0.4",
     "mixpanel-browser": "2.11.1",
     "raf": "3.3.0",
-    "react": "15.4.2",
-    "react-dom": "15.4.2",
     "react-test-renderer": "15.4.2",
     "svg-points": "5.0.0",
     "to-style": "1.3.3",
     "xml-parser": "1.2.1"
+  },
+  "peerDependencies": {
+    "react": "15.4.2",
+    "react-dom": "15.4.2"
   }
 }
 
