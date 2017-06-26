@@ -80,12 +80,16 @@ app.get('/demos/:demo/vanilla', function(req, res) {
         var js = jsbuf.toString()
         var fsize = filesize(Buffer.byteLength(js, 'utf8'))
         console.log(`[haiku-interpreter] ${demo} vanilla bundle size: ${fsize}`)
-        var html = tpl({
+        var locals = {
           mountStyle: getMountStyle(demo),
           wrapperStyle: getWrapperStyle(demo),
           demo: demo,
           bundle: js
-        })
+        }
+        if (fse.existsSync(path.join(DEMOS_PATH, demo, 'note.txt'))) {
+          locals.note = fse.readFileSync(path.join(DEMOS_PATH, demo, 'note.txt'))
+        }
+        var html = tpl(locals)
         return res.send(html)
       })
     })
@@ -115,12 +119,16 @@ app.get('/demos/:demo/react-dom', function(req, res) {
       return br.bundle(function(err, jsbuf) {
         if (err) return res.status(500).send('Server error! (' + err + ')')
         var js = jsbuf.toString()
-        var html = tpl({
+        var locals = {
           mountStyle: getMountStyle(demo),
           wrapperStyle: getWrapperStyle(demo),
           demo: demo,
           bundle: js
-        })
+        }
+        if (fse.existsSync(path.join(DEMOS_PATH, demo, 'note.txt'))) {
+          locals.note = fse.readFileSync(path.join(DEMOS_PATH, demo, 'note.txt'))
+        }
+        var html = tpl(locals)
         return res.send(html)
       })
     })

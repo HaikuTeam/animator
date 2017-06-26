@@ -20,7 +20,7 @@
     "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
     "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true",
     "pretty": "prettier",
-    "demo": "nodemon ./demo/server.js",
+    "demo": "nodemon ./test/demo/server.js",
     "start": "npm run demo"
   },
   "authors": [
@@ -31,6 +31,7 @@
   "license": "LicenseRef-LICENSE",
   "devDependencies": {
     "browserify": "14.1.0",
+    "browserify-transform-tools": "^1.7.0",
     "express": "4.14.1",
     "filesize": "3.5.10",
     "fs-extra": "2.0.0",
