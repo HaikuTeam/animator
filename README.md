@@ -1,10 +1,10 @@
 # Haiku Player
 
-Haiku Player is a JavaScript library for building user interfaces. Inspired by some great ideas from [React](https://facebook.github.io/react/), [Famous](https://github.com/famous/famous/), and [Angular](https://angular.io), it rolls a handful of powerful concepts and techniques from modern UI development into one fast, efficient, and flexible system.
+Haiku Player is a fast, flexible, and declarative JavaScript framework for building user interfaces. Inspired by some great ideas from [React](https://facebook.github.io/react/), [Famous](https://github.com/famous/famous/), and [Angular](https://angular.io), it rolls a handful of powerful concepts and techniques from modern UI development into one fast, efficient, and flexible system.
 
 * Component architecture: Haiku Player sees UIs as hierarchies of stateful components. Components can be built in isolation, then snapped together. Our declarative [component](#components) format makes it easy to craft and reason about UI behavior.
 
-* 3D layout engine + scene graph: Haiku Player follows game engines' lead and organizes your component hierarchy into a scene graph. Every element on stage, from menus to forms to primitives like lines and text, may be independently [transformed](#layout) and animated in space.
+* 2.5D layout engine + scene graph: Haiku Player follows game engines' lead and organizes your component hierarchy into a scene graph. Every element on stage, from menus to forms to primitives like lines and text, may be independently [transformed](#layout) and animated in space.
 
 * Built for motion: Animation can turn an average user experience into a delightful one. So we made animation the heart of Haiku Player. Every transition is grouped into a [timeline](#timelines), allowing behavior across multiple elements and properties to be orchestrated using a clean, easy-to-grok syntax.
 
