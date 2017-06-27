@@ -3,10 +3,16 @@
  */
 
 var assign = require('./../../vendor/assign')
-var mixpanel = require('./../../vendor/mixpanel-browser/tiny')
+var Mixpanel = require('./../../vendor/mixpanel-browser/tiny')
 
 module.exports = function createMixpanel (domElement, mixpanelToken, component) {
-  mixpanel.init(mixpanelToken)
+  var mixpanel = Mixpanel()
+
+  if (!mixpanel) {
+    console.warn('[haiku player] mixpanel could not be initialized')
+  }
+
+  mixpanel.init(mixpanelToken, domElement)
 
   // Why not expose this so others, e.g. the share page, can hook into it?
   component.mixpanel = {

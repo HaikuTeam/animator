@@ -13,7 +13,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"FunctionExpression","name":"_foobar","params":["a","b","c"],"body":"  return 123;"}}`
+    `{"__function":{"type":"FunctionExpression","name":"_foobar","params":["a","b","c"],"body":"return 123"}}`
   )
 
   rfo = functionToRFO(function _foobar (a, b, c) {
@@ -21,7 +21,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"FunctionExpression","name":"_foobar","params":["a","b","c"],"body":"  return 123;"}}`
+    `{"__function":{"type":"FunctionExpression","name":"_foobar","params":["a","b","c"],"body":"return 123"}}`
   )
 
   rfo = functionToRFO(function _foobar (a, b, c) {
@@ -29,7 +29,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"FunctionExpression","name":"_foobar","params":["a","b","c"],"body":"  return 123;"}}`
+    `{"__function":{"type":"FunctionExpression","name":"_foobar","params":["a","b","c"],"body":"return 123"}}`
   )
 
   rfo = functionToRFO(function _foobar (a, b, c) {
@@ -41,7 +41,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"FunctionExpression","name":"_foobar","params":["a","b","c"],"body":"  /** hyasdf\\n  yaya\\n  */return 123; // thingy"}}`
+    `{"__function":{"type":"FunctionExpression","name":"_foobar","params":["a","b","c"],"body":"/** hyasdf\\n    yaya\\n    */\\n    return 123\\n    // thingy"}}`
   )
 
   // anonymous standard function
@@ -51,7 +51,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"FunctionExpression","name":null,"params":["a","b","c"],"body":"  return 123;"}}`
+    `{"__function":{"type":"FunctionExpression","name":null,"params":["a","b","c"],"body":"return 123"}}`
   )
 
   rfo = functionToRFO(function (a, b, c) {
@@ -59,7 +59,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"FunctionExpression","name":null,"params":["a","b","c"],"body":"  return 123;"}}`
+    `{"__function":{"type":"FunctionExpression","name":null,"params":["a","b","c"],"body":"return 123"}}`
   )
 
   rfo = functionToRFO(function (a, b, c) {
@@ -67,7 +67,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"FunctionExpression","name":null,"params":["a","b","c"],"body":"  return 123;"}}`
+    `{"__function":{"type":"FunctionExpression","name":null,"params":["a","b","c"],"body":"return 123"}}`
   )
 
   rfo = functionToRFO(function (a, b, c) {
@@ -79,7 +79,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"FunctionExpression","name":null,"params":["a","b","c"],"body":"  /** hyasdf\\n  yaya\\n  */return 123; // thingy"}}`
+    `{"__function":{"type":"FunctionExpression","name":null,"params":["a","b","c"],"body":"/** hyasdf\\n    yaya\\n    */\\n    return 123\\n    // thingy"}}`
   )
 
   // anonymous arrow function with braced body
@@ -89,7 +89,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"  return 123;"}}`
+    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"return 123"}}`
   )
 
   rfo = functionToRFO((a, b, c) => {
@@ -97,7 +97,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"  return 123;"}}`
+    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"return 123"}}`
   )
 
   rfo = functionToRFO((a, b, c) => {
@@ -105,7 +105,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"  return 123;"}}`
+    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"return 123"}}`
   )
 
   rfo = functionToRFO((a, b, c) => {
@@ -117,7 +117,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"  /** hyasdf\\n  yaya\\n  */return 123; // thingy"}}`
+    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"/** hyasdf\\n    yaya\\n    */\\n    return 123\\n    // thingy"}}`
   )
 
   // standard with argument object destructuring
@@ -127,7 +127,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"FunctionExpression","name":null,"params":[{"a":"a","b":"b","c":"c"}],"body":"  return 123;"}}`
+    `{"__function":{"type":"FunctionExpression","name":null,"params":[{"a":"a","b":"b","c":"c"}],"body":"return 123"}}`
   )
 
   rfo = functionToRFO(function ({ a, b, c: { d, e } }) {
@@ -135,7 +135,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"FunctionExpression","name":null,"params":[{"a":"a","b":"b","c":{"d":"d","e":"e"}}],"body":"  return 123;"}}`
+    `{"__function":{"type":"FunctionExpression","name":null,"params":[{"a":"a","b":"b","c":{"d":"d","e":"e"}}],"body":"return 123"}}`
   )
 
   rfo = functionToRFO(function ({ a, b, c: [d, e] }) {
@@ -143,7 +143,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"FunctionExpression","name":null,"params":[{"a":"a","b":"b","c":["d","e"]}],"body":"  return 123;"}}`
+    `{"__function":{"type":"FunctionExpression","name":null,"params":[{"a":"a","b":"b","c":["d","e"]}],"body":"return 123"}}`
   )
 
   rfo = functionToRFO(function (
@@ -155,7 +155,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"FunctionExpression","name":null,"params":[{"a":"a","b":"b","c":["d","e"]},{"f":"f","z":["g","h"],"i":"i","j":"j","k":{"l":"l","m":{"n":"n","o":"o"}}},{"__rest":"args"}],"body":"  return 123;"}}`
+    `{"__function":{"type":"FunctionExpression","name":null,"params":[{"a":"a","b":"b","c":["d","e"]},{"f":"f","z":["g","h"],"i":"i","j":"j","k":{"l":"l","m":{"n":"n","o":"o"}}},{"__rest":"args"}],"body":"return 123"}}`
   )
 
   // arrow with argument object destructuring
@@ -165,7 +165,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":[{"a":"a","b":"b","c":"c"}],"body":"  return 123;"}}`
+    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":[{"a":"a","b":"b","c":"c"}],"body":"return 123"}}`
   )
 
   rfo = functionToRFO(({ a, b, c: { d, e } }) => {
@@ -173,7 +173,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":[{"a":"a","b":"b","c":{"d":"d","e":"e"}}],"body":"  return 123;"}}`
+    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":[{"a":"a","b":"b","c":{"d":"d","e":"e"}}],"body":"return 123"}}`
   )
 
   rfo = functionToRFO(({ a, b, c: [d, e] }) => {
@@ -181,7 +181,7 @@ test('reflection.functionToRFO', function (t) {
   })
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":[{"a":"a","b":"b","c":["d","e"]}],"body":"  return 123;"}}`
+    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":[{"a":"a","b":"b","c":["d","e"]}],"body":"return 123"}}`
   )
 
   rfo = functionToRFO(
@@ -195,17 +195,17 @@ test('reflection.functionToRFO', function (t) {
   )
   t.equal(
     JSON.stringify(rfo),
-    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":[{"a":"a","b":"b","c":["d","e"]},{"f":"f","z":["g","h"],"i":"i","j":"j","k":{"l":"l","m":{"n":"n","o":"o"}}},{"__rest":"args"}],"body":"  return 123;"}}`
+    `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":[{"a":"a","b":"b","c":["d","e"]},{"f":"f","z":["g","h"],"i":"i","j":"j","k":{"l":"l","m":{"n":"n","o":"o"}}},{"__rest":"args"}],"body":"return 123"}}`
   )
 })
 
 // anonymous arrow function with unbraced body
 // TODO: test this once the test harness itself can support this style
 // rfo = functionToRFO((a, b, c) => return 123)
-// t.equal(JSON.stringify(rfo), `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"  return 123;"}}`)
+// t.equal(JSON.stringify(rfo), `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"return 123"}}`)
 // rfo = functionToRFO((a,b,c)=>return 123)
-// t.equal(JSON.stringify(rfo), `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"  return 123;"}}`)
+// t.equal(JSON.stringify(rfo), `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"return 123"}}`)
 // rfo = functionToRFO((a,b,c)=>return 123 + 456 * (foo - bar) + {'run':'far'})
-// t.equal(JSON.stringify(rfo), `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"  return 123;"}}`)
+// t.equal(JSON.stringify(rfo), `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"return 123"}}`)
 // rfo = functionToRFO((a,b,c)          =>      return 123 + 456 * (foo - bar) + {'run':'far'}                  )
 // t.equal(JSON.stringify(rfo), `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"  /** hyasdf\\n  yaya\\n  */return 123; // thingy"}}`)

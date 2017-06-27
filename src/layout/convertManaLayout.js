@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var parseCssTransformString = require('./parseCssTransformString')
+var parseCssTransformString = require('./../helpers/parseCssTransformString')
 var visitManaTree = require('./../helpers/visitManaTree')
 var parseCssValue = require('./../vendor/css-value')
 
