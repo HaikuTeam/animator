@@ -448,27 +448,28 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
     this._parsees[timelineName][selector][outputName] = {}
   }
 
+  var parsee = this._parsees[timelineName][selector][outputName]
+
   for (var ms in cluster) {
     var descriptor = cluster[ms]
 
     // Important: The ActiveComponent depends on the ability to be able to get fresh values via this option
     if (skipCache) {
       // Easiest way to skip the cache is just to make the destination object falsy
-      this._parsees[timelineName][selector][outputName][ms] = null
+      parsee[ms] = null
     }
 
     // In case of a function, we can't cache - we have to recalc, and thus re-parse also
     if (isFunction(descriptor.value)) {
       // We have to recreate this cache object every time due to the need for function recalc
-      this._parsees[timelineName][selector][outputName][ms] = {}
+      parsee[ms] = {}
       if (descriptor.curve) {
-        this._parsees[timelineName][selector][outputName][ms].curve =
-          descriptor.curve
+        parsee[ms].curve = descriptor.curve
       }
 
       // Indicate to the downstream transition cache that this value came from a function and cannot be cached there.
       // See Transitions.js for info on how this gets handled
-      this._parsees[timelineName][selector][outputName][ms].machine = true
+      parsee[ms].machine = true
 
       // Note that evaluate doesn't necessarily call the function - it may itself return a cached value
       var functionReturnValue = this.evaluate(
@@ -486,40 +487,33 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
 
       // The function's return value is expected to be in the *raw* format - we parse to allow for interpolation
       if (PARSERS[outputName]) {
-        this._parsees[timelineName][selector][outputName][ms].value = PARSERS[
-          outputName
-        ](functionReturnValue)
+        var parser = PARSERS[outputName]
+        parsee[ms].value = parser(functionReturnValue)
       } else {
-        this._parsees[timelineName][selector][outputName][
-          ms
-        ].value = functionReturnValue
+        parsee[ms].value = functionReturnValue
       }
     } else {
       // In case of static values, we can cache - no need to re-parse static values if we already parsed them
-      if (this._parsees[timelineName][selector][outputName][ms]) {
+      if (parsee[ms]) {
         continue
       }
 
       // If nothing in the cache, create the base cache object...
-      this._parsees[timelineName][selector][outputName][ms] = {}
+      parsee[ms] = {}
       if (descriptor.curve) {
-        this._parsees[timelineName][selector][outputName][ms].curve =
-          descriptor.curve
+        parsee[ms].curve = descriptor.curve
       }
 
       if (PARSERS[outputName]) {
-        this._parsees[timelineName][selector][outputName][ms].value = PARSERS[
-          outputName
-        ](descriptor.value)
+        parsee[ms].value = PARSERS[outputName](descriptor.value)
       } else {
-        this._parsees[timelineName][selector][outputName][ms].value =
-          descriptor.value
+        parsee[ms].value = descriptor.value
       }
     }
   }
 
   // Return the entire cached object - interpolation is done downstream
-  return this._parsees[timelineName][selector][outputName]
+  return parsee
 }
 
 ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFinalValueFromParsedValue (

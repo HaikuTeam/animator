@@ -321,14 +321,13 @@ function _bindEventHandler (
     k
   ) {
     component._anyEventChange = true
+    var selector = eventHandlerDescriptor.selector
 
-    if (!component._eventsFired[eventHandlerDescriptor.selector]) {
-      component._eventsFired[eventHandlerDescriptor.selector] = {}
+    if (!component._eventsFired[selector]) {
+      component._eventsFired[selector] = {}
     }
 
-    component._eventsFired[eventHandlerDescriptor.selector][
-      eventHandlerDescriptor.name
-    ] =
+    component._eventsFired[selector][eventHandlerDescriptor.name] =
       event || true
 
     originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
