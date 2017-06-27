@@ -18,7 +18,7 @@
   "scripts": {
     "test": "npm run test:unit",
     "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
-    "lint": "npm run prettify && standard \"src/**/*.js\" --fix --verbose | snazzy || true",
+    "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true",
     "prettify": "prettier-standard \"{,!(node_modules|dist)/**/}*.js\"",
     "footprint": "./footprint.sh",
     "demo": "nodemon ./test/demo/server.js",
