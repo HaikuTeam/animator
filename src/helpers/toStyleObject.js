@@ -6,7 +6,6 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var prefixInfo = require('./prefixInfo')
 var cssPrefixFn = require('./cssPrefix')
 
 var HYPHENATE = require('./stringUtils/hyphenate')
@@ -29,7 +28,7 @@ var toObject = function (str) {
   str.forEach(function (item) {
     var split = item.split(':')
 
-    if (split.length == 2) {
+    if (split.length === 2) {
       result[split[0].trim()] = split[1].trim()
     }
   })
@@ -39,6 +38,10 @@ var toObject = function (str) {
 
 var CONFIG = {
   cssUnitless: require('./cssUnitless')
+}
+
+function _notUndef (thing) {
+  return thing !== null && thing !== undefined
 }
 
 /**
@@ -67,29 +70,28 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
 
   result = result || {}
 
-  var scope = config.scope || {},
-    // configs
-    addUnits = config.addUnits != null
-      ? config.addUnits
-      : scope && scope.addUnits != null ? scope.addUnits : true,
-    cssUnitless = (config.cssUnitless != null
-      ? config.cssUnitless
-      : scope ? scope.cssUnitless : null) || {},
-    cssUnit = (config.cssUnit || scope ? scope.cssUnit : null) || 'px',
-    prefixProperties = config.prefixProperties ||
-    (scope ? scope.prefixProperties : null) || {},
-    camelize = config.camelize,
-    normalizeFn = camelize ? CAMELIZE : HYPHENATE
+  var scope = config.scope || {}
 
-  // Object.keys(cssUnitless).forEach(function(key){
-  //     cssUnitless[normalizeFn(key)] = 1
-  // })
+  var addUnits = _notUndef(config.addUnits)
+      ? config.addUnits
+      : scope && _notUndef(scope.addUnits) ? scope.addUnits : true
+
+  var cssUnitless = (_notUndef(config.cssUnitless)
+      ? config.cssUnitless
+      : scope ? scope.cssUnitless : null) || {}
+
+  var cssUnit = (config.cssUnit || scope ? scope.cssUnit : null) || 'px'
+
+  var prefixProperties = config.prefixProperties || (scope ? scope.prefixProperties : null) || {}
+
+  var camelize = config.camelize
+
+  var normalizeFn = camelize ? CAMELIZE : HYPHENATE
 
   var processed,
     styleName,
     propName,
     propValue,
-    propCssUnit,
     propType,
     propIsNumber,
     fnPropValue,
@@ -128,18 +130,18 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
       }
 
       propType = typeof propValue
-      propIsNumber = propType == 'number' ||
-        (propType == 'string' && propValue != '' && propValue * 1 == propValue)
+      propIsNumber = propType === 'number' ||
+        (propType === 'string' && propValue !== '' && propValue * 1 === propValue)
 
-      if (propValue == null || styleName == null || styleName === '') {
+      if (propValue === null || propValue === undefined || styleName === null || styleName === undefined || styleName === '') {
         continue
       }
 
-      if (propIsNumber || propType == 'string') {
+      if (propIsNumber || propType === 'string') {
         processed = true
       }
 
-      if (!processed && propValue.value != null && propValue.prefix) {
+      if (!processed && _notUndef(propValue.value) && propValue.prefix) {
         processed = true
         prefix = propValue.prefix
         propValue = propValue.value
@@ -158,7 +160,7 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
 
         // special border treatment
         if (
-          (styleName == 'border' ||
+          (styleName === 'border' ||
             (!styleName.indexOf('border') &&
               !~styleName.indexOf('radius') &&
               !~styleName.indexOf('width'))) &&

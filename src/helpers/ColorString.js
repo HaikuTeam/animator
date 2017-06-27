@@ -53,8 +53,8 @@ cs.get.rgb = function (string) {
 
   var abbr = /^#([a-f0-9]{3,4})$/i
   var hex = /^#([a-f0-9]{6})([a-f0-9]{2})?$/i
-  var rgba = /^rgba?\(\s*([+-]?\d+)\s*,\s*([+-]?\d+)\s*,\s*([+-]?\d+)\s*(?:,\s*([+-]?[\d\.]+)\s*)?\)$/
-  var per = /^rgba?\(\s*([+-]?[\d\.]+)\%\s*,\s*([+-]?[\d\.]+)\%\s*,\s*([+-]?[\d\.]+)\%\s*(?:,\s*([+-]?[\d\.]+)\s*)?\)$/
+  var rgba = /^rgba?\(\s*([+-]?\d+)\s*,\s*([+-]?\d+)\s*,\s*([+-]?\d+)\s*(?:,\s*([+-]?[\d.]+)\s*)?\)$/
+  var per = /^rgba?\(\s*([+-]?[\d.]+)%\s*,\s*([+-]?[\d.]+)%\s*,\s*([+-]?[\d.]+)%\s*(?:,\s*([+-]?[\d.]+)\s*)?\)$/
   var keyword = /(\D+)/
 
   var rgb = [0, 0, 0, 1]
@@ -62,7 +62,14 @@ cs.get.rgb = function (string) {
   var i
   var hexAlpha
 
-  if (match = string.match(hex)) {
+  var hexMatch = string.match(hex)
+  var abbrMatch = string.match(abbr)
+  var rgbaMatch = string.match(rgba)
+  var perMatch = string.match(per)
+  var keywordMatch = string.match(keyword)
+
+  if (hexMatch) {
+    match = hexMatch
     hexAlpha = match[2]
     match = match[1]
 
@@ -75,7 +82,8 @@ cs.get.rgb = function (string) {
     if (hexAlpha) {
       rgb[3] = Math.round(parseInt(hexAlpha, 16) / 255 * 100) / 100
     }
-  } else if (match = string.match(abbr)) {
+  } else if (abbrMatch) {
+    match = abbrMatch
     match = match[1]
     hexAlpha = match[3]
 
@@ -86,7 +94,8 @@ cs.get.rgb = function (string) {
     if (hexAlpha) {
       rgb[3] = Math.round(parseInt(hexAlpha + hexAlpha, 16) / 255 * 100) / 100
     }
-  } else if (match = string.match(rgba)) {
+  } else if (rgbaMatch) {
+    match = rgbaMatch
     for (i = 0; i < 3; i++) {
       rgb[i] = parseInt(match[i + 1], 0)
     }
@@ -94,7 +103,8 @@ cs.get.rgb = function (string) {
     if (match[4]) {
       rgb[3] = parseFloat(match[4])
     }
-  } else if (match = string.match(per)) {
+  } else if (perMatch) {
+    match = perMatch
     for (i = 0; i < 3; i++) {
       rgb[i] = Math.round(parseFloat(match[i + 1]) * 2.55)
     }
@@ -102,7 +112,8 @@ cs.get.rgb = function (string) {
     if (match[4]) {
       rgb[3] = parseFloat(match[4])
     }
-  } else if (match = string.match(keyword)) {
+  } else if (keywordMatch) {
+    match = keywordMatch
     if (match[1] === 'transparent') {
       return [0, 0, 0, 0]
     }
@@ -133,7 +144,7 @@ cs.get.hsl = function (string) {
     return null
   }
 
-  var hsl = /^hsla?\(\s*([+-]?\d*[\.]?\d+)(?:deg)?\s*,\s*([+-]?[\d\.]+)%\s*,\s*([+-]?[\d\.]+)%\s*(?:,\s*([+-]?[\d\.]+)\s*)?\)$/
+  var hsl = /^hsla?\(\s*([+-]?\d*[.]?\d+)(?:deg)?\s*,\s*([+-]?[\d.]+)%\s*,\s*([+-]?[\d.]+)%\s*(?:,\s*([+-]?[\d.]+)\s*)?\)$/
   var match = string.match(hsl)
 
   if (match) {
@@ -154,7 +165,7 @@ cs.get.hwb = function (string) {
     return null
   }
 
-  var hwb = /^hwb\(\s*([+-]?\d*[\.]?\d+)(?:deg)?\s*,\s*([+-]?[\d\.]+)%\s*,\s*([+-]?[\d\.]+)%\s*(?:,\s*([+-]?[\d\.]+)\s*)?\)$/
+  var hwb = /^hwb\(\s*([+-]?\d*[.]?\d+)(?:deg)?\s*,\s*([+-]?[\d.]+)%\s*,\s*([+-]?[\d.]+)%\s*(?:,\s*([+-]?[\d.]+)\s*)?\)$/
   var match = string.match(hwb)
 
   if (match) {

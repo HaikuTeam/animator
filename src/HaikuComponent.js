@@ -324,9 +324,7 @@ function _bindEventHandler (
       component._eventsFired[eventHandlerDescriptor.selector] = {}
     }
 
-    component._eventsFired[eventHandlerDescriptor.selector][
-      eventHandlerDescriptor.name
-    ] = event || true
+    component._eventsFired[eventHandlerDescriptor.selector][eventHandlerDescriptor.name] = event || true
 
     originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
   }

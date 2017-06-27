@@ -1,1 +1,1 @@
-svg - points
+module.exports = {}

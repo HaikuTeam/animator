@@ -93,7 +93,7 @@ function functionToRFO (fn) {
 
   // Signal null to indicate we don't know how to handle this
   if (!expressionAST) {
-    console.warn('[bytecode] reflection got unparseable expression ' + expr)
+    console.warn('[bytecode] reflection got unparseable expression')
     return null
   }
 

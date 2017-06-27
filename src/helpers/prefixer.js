@@ -22,12 +22,13 @@ module.exports = function (asStylePrefix) {
   return function (name, config) {
     config = config || {}
 
-    var styleName = toLowerFirst(camelize(name)),
-      cssName = hyphenate(name),
-      theName = asStylePrefix ? styleName : cssName,
-      thePrefix = prefixInfo.style
-        ? asStylePrefix ? prefixInfo.style : prefixInfo.css
-        : ''
+    var styleName = toLowerFirst(camelize(name))
+
+    var cssName = hyphenate(name)
+
+    var theName = asStylePrefix ? styleName : cssName
+
+    var thePrefix = prefixInfo.style ? asStylePrefix ? prefixInfo.style : prefixInfo.css : ''
 
     if (styleName in docStyle) {
       return config.asString ? theName : [theName]
@@ -35,9 +36,9 @@ module.exports = function (asStylePrefix) {
 
     // not a valid style name, so we'll return the value with a prefix
 
-    var upperCased = theName,
-      prefixProperty = prefixProperties[cssName],
-      result = []
+    var upperCased = theName
+    var prefixProperty = prefixProperties[cssName]
+    var result = []
 
     if (asStylePrefix) {
       upperCased = toUpperFirst(theName)
@@ -66,7 +67,7 @@ module.exports = function (asStylePrefix) {
 
     result.push(theName)
 
-    if (config.asString || result.length == 1) {
+    if (config.asString || result.length === 1) {
       return result[0]
     }
 

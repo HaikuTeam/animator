@@ -55,8 +55,8 @@ function functionSpecificationToFunction (name, params, body, type) {
   if (!type) type = 'FunctionExpression'
 
   if (type === 'ArrowFunctionExpression') {
-    return new Function(
-      '\n' + // eslint-disable-line
+    return new Function( // eslint-disable-line
+      '\n' +
         'return ' +
         (name || '') +
         '(' +
@@ -69,8 +69,8 @@ function functionSpecificationToFunction (name, params, body, type) {
     )()
   }
 
-  return new Function(
-    '\n' + // eslint-disable-line
+  return new Function( // eslint-disable-line
+    '\n' +
       'return function ' +
       (name || '') +
       '(' +

@@ -93,9 +93,10 @@ function parse (xml) {
     node.content = content()
 
     // children
-    var child
-    while (child = tag()) {
+    var child = tag()
+    while (child) {
       node.children.push(child)
+      child = tag()
     }
 
     // closing
@@ -148,7 +149,7 @@ function parse (xml) {
    */
 
   function eos () {
-    return xml.length == 0
+    return xml.length === 0
   }
 
   /**
@@ -156,6 +157,6 @@ function parse (xml) {
    */
 
   function is (prefix) {
-    return xml.indexOf(prefix) == 0
+    return xml.indexOf(prefix) === 0
   }
 }
