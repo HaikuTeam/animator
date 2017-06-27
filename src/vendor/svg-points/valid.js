@@ -3,11 +3,11 @@
 'use strict'
 
 exports.__esModule = true
-var getErrors = function (shape) {
+var getErrors = function(shape) {
   var rules = getRules(shape)
   var errors = []
 
-  rules.map(function (_ref) {
+  rules.map(function(_ref) {
     var match = _ref.match,
       prop = _ref.prop,
       required = _ref.required,
@@ -41,7 +41,7 @@ var getErrors = function (shape) {
   })
 
   if (shape.type === 'g' && Array.isArray(shape.shapes)) {
-    var childErrors = shape.shapes.map(function (s) {
+    var childErrors = shape.shapes.map(function(s) {
       return getErrors(s)
     })
     return [].concat.apply(errors, childErrors)
@@ -50,7 +50,7 @@ var getErrors = function (shape) {
   return errors
 }
 
-var getRules = function (shape) {
+var getRules = function(shape) {
   var rules = [
     {
       match: [
@@ -116,7 +116,7 @@ var getRules = function (shape) {
   return rules
 }
 
-var valid = function (shape) {
+var valid = function(shape) {
   var errors = getErrors(shape)
 
   return {

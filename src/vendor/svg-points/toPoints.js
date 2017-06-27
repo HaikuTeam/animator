@@ -6,7 +6,7 @@ exports.__esModule = true
 
 var _extends =
   Object.assign ||
-  function (target) {
+  function(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i]
       for (var key in source) {
@@ -18,7 +18,7 @@ var _extends =
     return target
   }
 
-function _objectWithoutProperties (obj, keys) {
+function _objectWithoutProperties(obj, keys) {
   var target = {}
   for (var i in obj) {
     if (keys.indexOf(i) >= 0) continue
@@ -28,7 +28,7 @@ function _objectWithoutProperties (obj, keys) {
   return target
 }
 
-var toPoints = function (_ref) {
+var toPoints = function(_ref) {
   var type = _ref.type,
     props = _objectWithoutProperties(_ref, ['type'])
 
@@ -54,7 +54,7 @@ var toPoints = function (_ref) {
   }
 }
 
-var getPointsFromCircle = function (_ref2) {
+var getPointsFromCircle = function(_ref2) {
   var cx = _ref2.cx,
     cy = _ref2.cy,
     r = _ref2.r
@@ -66,7 +66,7 @@ var getPointsFromCircle = function (_ref2) {
   ]
 }
 
-var getPointsFromEllipse = function (_ref3) {
+var getPointsFromEllipse = function(_ref3) {
   var cx = _ref3.cx,
     cy = _ref3.cy,
     rx = _ref3.rx,
@@ -79,7 +79,7 @@ var getPointsFromEllipse = function (_ref3) {
   ]
 }
 
-var getPointsFromLine = function (_ref4) {
+var getPointsFromLine = function(_ref4) {
   var x1 = _ref4.x1,
     x2 = _ref4.x2,
     y1 = _ref4.y1,
@@ -105,43 +105,43 @@ var commandLengths = {
 
 var relativeCommands = ['a', 'c', 'h', 'l', 'm', 'q', 's', 't', 'v']
 
-var isRelative = function (command) {
+var isRelative = function(command) {
   return relativeCommands.indexOf(command) !== -1
 }
 
 var optionalArcKeys = ['xAxisRotation', 'largeArcFlag', 'sweepFlag']
 
-var getCommands = function (d) {
+var getCommands = function(d) {
   return d.match(validCommands)
 }
 
-var getParams = function (d) {
+var getParams = function(d) {
   return d
     .split(validCommands)
-    .map(function (v) {
-      return v.replace(/[0-9]+-/g, function (m) {
+    .map(function(v) {
+      return v.replace(/[0-9]+-/g, function(m) {
         return m.slice(0, -1) + ' -'
       })
     })
-    .map(function (v) {
-      return v.replace(/\.[0-9]+/g, function (m) {
+    .map(function(v) {
+      return v.replace(/\.[0-9]+/g, function(m) {
         return m + ' '
       })
     })
-    .map(function (v) {
+    .map(function(v) {
       return v.trim()
     })
-    .filter(function (v) {
+    .filter(function(v) {
       return v.length > 0
     })
-    .map(function (v) {
-      return v.split(/[ ,]+/).map(parseFloat).filter(function (n) {
+    .map(function(v) {
+      return v.split(/[ ,]+/).map(parseFloat).filter(function(n) {
         return !isNaN(n)
       })
     })
 }
 
-var getPointsFromPath = function (_ref5) {
+var getPointsFromPath = function(_ref5) {
   var d = _ref5.d
 
   var commands = getCommands(d)
@@ -348,27 +348,27 @@ var getPointsFromPath = function (_ref5) {
   return points
 }
 
-var getPointsFromPolygon = function (_ref7) {
+var getPointsFromPolygon = function(_ref7) {
   var points = _ref7.points
 
   return getPointsFromPoints({ closed: true, points: points })
 }
 
-var getPointsFromPolyline = function (_ref8) {
+var getPointsFromPolyline = function(_ref8) {
   var points = _ref8.points
 
   return getPointsFromPoints({ closed: false, points: points })
 }
 
-var getPointsFromPoints = function (_ref9) {
+var getPointsFromPoints = function(_ref9) {
   var closed = _ref9.closed,
     points = _ref9.points
 
-  var numbers = points.split(/[\s,]+/).map(function (n) {
+  var numbers = points.split(/[\s,]+/).map(function(n) {
     return parseFloat(n)
   })
 
-  var p = numbers.reduce(function (arr, point, i) {
+  var p = numbers.reduce(function(arr, point, i) {
     if (i % 2 === 0) {
       arr.push({ x: point })
     } else {
@@ -387,7 +387,7 @@ var getPointsFromPoints = function (_ref9) {
   return p
 }
 
-var getPointsFromRect = function (_ref10) {
+var getPointsFromRect = function(_ref10) {
   var height = _ref10.height,
     rx = _ref10.rx,
     ry = _ref10.ry,
@@ -409,7 +409,7 @@ var getPointsFromRect = function (_ref10) {
   return getPointsFromBasicRect({ height: height, width: width, x: x, y: y })
 }
 
-var getPointsFromBasicRect = function (_ref11) {
+var getPointsFromBasicRect = function(_ref11) {
   var height = _ref11.height,
     width = _ref11.width,
     x = _ref11.x,
@@ -424,7 +424,7 @@ var getPointsFromBasicRect = function (_ref11) {
   ]
 }
 
-var getPointsFromRectWithCornerRadius = function (_ref12) {
+var getPointsFromRectWithCornerRadius = function(_ref12) {
   var height = _ref12.height,
     rx = _ref12.rx,
     ry = _ref12.ry,
@@ -447,9 +447,9 @@ var getPointsFromRectWithCornerRadius = function (_ref12) {
   ]
 }
 
-var getPointsFromG = function (_ref13) {
+var getPointsFromG = function(_ref13) {
   var shapes = _ref13.shapes
-  return shapes.map(function (s) {
+  return shapes.map(function(s) {
     return toPoints(s)
   })
 }

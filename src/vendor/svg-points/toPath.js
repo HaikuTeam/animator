@@ -8,11 +8,11 @@ var _toPoints = require('./toPoints')
 
 var _toPoints2 = _interopRequireDefault(_toPoints)
 
-function _interopRequireDefault (obj) {
+function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { default: obj }
 }
 
-var pointsToD = function (p) {
+var pointsToD = function(p) {
   var d = ''
   var i = 0
   var firstPoint = void 0
@@ -125,19 +125,19 @@ var pointsToD = function (p) {
   return d
 }
 
-var toPath = function (s) {
+var toPath = function(s) {
   var isPoints = Array.isArray(s)
   var isGroup = isPoints ? Array.isArray(s[0]) : s.type === 'g'
   var points = isPoints
     ? s
     : isGroup
-      ? s.shapes.map(function (shp) {
-        return (0, _toPoints2.default)(shp)
-      })
+      ? s.shapes.map(function(shp) {
+          return (0, _toPoints2.default)(shp)
+        })
       : (0, _toPoints2.default)(s)
 
   if (isGroup) {
-    return points.map(function (p) {
+    return points.map(function(p) {
       return pointsToD(p)
     })
   }

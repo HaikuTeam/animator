@@ -4,9 +4,9 @@
 
 var React = require('react')
 var ReactTestRenderer = require('react-test-renderer')
-var merge = require('lodash.merge')
 var ValidProps = require('./ValidProps')
 var EventsDict = require('./EventsDict')
+var merge = require('lodash.merge')
 var reactToMana = require('./../../helpers/reactToMana')
 var Layout3D = require('./../../Layout3D')
 

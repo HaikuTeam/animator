@@ -22,12 +22,12 @@ if (!raf || !caf) {
     queue = [],
     frameDuration = 1000 / 60
 
-  raf = function (callback) {
+  raf = function(callback) {
     if (queue.length === 0) {
       var _now = now(),
         next = Math.max(0, frameDuration - (_now - last))
       last = next + _now
-      setTimeout(function () {
+      setTimeout(function() {
         var cp = queue.slice(0)
         // Clear queue here to prevent
         // callbacks from appending listeners
@@ -38,7 +38,7 @@ if (!raf || !caf) {
             try {
               cp[i].callback(last)
             } catch (e) {
-              setTimeout(function () {
+              setTimeout(function() {
                 throw e
               }, 0)
             }
@@ -54,7 +54,7 @@ if (!raf || !caf) {
     return id
   }
 
-  caf = function (handle) {
+  caf = function(handle) {
     for (var i = 0; i < queue.length; i++) {
       if (queue[i].handle === handle) {
         queue[i].cancelled = true
@@ -63,16 +63,16 @@ if (!raf || !caf) {
   }
 }
 
-module.exports = function (fn) {
+module.exports = function(fn) {
   // Wrap in a new function to prevent
   // `cancel` potentially being assigned
   // to the native rAF function
   return raf.call(root, fn)
 }
-module.exports.cancel = function () {
+module.exports.cancel = function() {
   caf.apply(root, arguments)
 }
-module.exports.polyfill = function () {
+module.exports.polyfill = function() {
   root.requestAnimationFrame = raf
   root.cancelAnimationFrame = caf
 }
