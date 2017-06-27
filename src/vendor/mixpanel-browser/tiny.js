@@ -1,14 +1,14 @@
 /* eslint-disable */
 
-module.exports = function _mixpanelTiny () {
+module.exports = function _mixpanelTiny() {
   if (typeof window === 'undefined') {
     return null
   }
-  if (typeof document === 'undefined'){
+  if (typeof document === 'undefined') {
     return null
   }
 
-  function setup (e, a) {
+  function setup(e, a) {
     if (!a.__SV) {
       var b = window
       try {

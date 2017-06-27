@@ -2,33 +2,13 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-// It'd be ideal to simply use one of the standard parsers out there, e.g. babylon, but unfortunately
-// those are massive and roughly triple the footprint size of the player, so we have our own "second rate"
-// parser here
-
-// {
-//   type: String, // FunctionExpression / ArrowFunctionExpression
-//   id: {
-//     name: String, // 'fooBar'
-//   },
-//   params: [
-//     {
-//       type: String, // Identifier, ObjectPattern, ArrayPattern, RestElement
-//       properties: maybe array
-//       elements: maybe array
-//       argument: maybe node
-//     }
-//   ],
-//   bodyString: String
-// }
-
 // Order matters
 var REGEXPS = [
   { type: 'whitespace', re: /^[\s]+/ },
   { type: 'paren_open', re: /^\(/ },
   { type: 'paren_close', re: /^\)/ },
   { type: 'square_open', re: /^\[/ },
-  { type: 'square_close', re: /^\]/ },
+  { type: 'square_close', re: /^]/ },
   { type: 'curly_open', re: /^\{/ },
   { type: 'curly_close', re: /^\}/ },
   { type: 'rest', re: /^\.\.\./ },
@@ -90,9 +70,15 @@ function tokensToParams (tokens) {
 
   while (token) {
     switch (token.type) {
-      case 'whitespace': frag = ' '; break
-      case 'comma': frag = ','; break
-      case 'colon': frag = ':'; break
+      case 'whitespace':
+        frag = ' '
+        break
+      case 'comma':
+        frag = ','
+        break
+      case 'colon':
+        frag = ':'
+        break
 
       // Treat parens as an 'array' scope, e.g. at top level of function signature arguments
       case 'paren_open':
@@ -130,19 +116,25 @@ function tokensToParams (tokens) {
       case 'identifier':
         frag = '"' + token.value + '"'
         // If the next token is a comma, we are a self-referential property
-        if (tokens[0] && (tokens[0].type === 'comma' || tokens[0].type === 'square_close' || tokens[0].type === 'curly_close')) {
+        if (
+          tokens[0] &&
+          (tokens[0].type === 'comma' ||
+            tokens[0].type === 'square_close' ||
+            tokens[0].type === 'curly_close')
+        ) {
           // Handle differently inside array vs object, e.g.:
           // { a: a, b: b } vs [ a, b, c ]
           var scope = scopes[scopes.length - 1]
           if (scope === 'square') {
             frag += ''
           } else {
-            frag += (':"' + token.value + '"')
+            frag += ':"' + token.value + '"'
           }
         }
         break
 
-      default: frag = ''
+      default:
+        frag = ''
     }
 
     json += frag
@@ -180,7 +172,9 @@ function functionToRFO (fn) {
   var signature = str.slice(pidx1, pidx2 + 1)
   var suffix = str.slice(pidx2 + 1, str.length)
   var body = suffix.slice(suffix.indexOf('{') + 1, suffix.length - 1).trim() // Don't include braces or padding
-  var type = (suffix.match(/^\s*=>\s*{/)) ? 'ArrowFunctionExpression' : 'FunctionExpression'
+  var type = suffix.match(/^\s*=>\s*{/)
+    ? 'ArrowFunctionExpression'
+    : 'FunctionExpression'
   var name = nth(2, 'identifier', tokenize(prefix)).value
   var params = signatureToParams(signature)
 
