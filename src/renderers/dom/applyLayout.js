@@ -2,12 +2,12 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var applyCssLayout = require('./../../helpers/applyCssLayout')
-var scopeOfElement = require('./../../helpers/scopeOfElement')
 var isTextNode = require('./isTextNode')
 var isIE = require('./isIE')
 var isMobile = require('./isMobile')
-var hasPreserve3d = require('./hasPreserve3d')
+var applyCssLayout = require('./../../layout/applyCssLayout')
+var scopeOfElement = require('./../../layout/scopeOfElement')
+var hasPreserve3d = require('./../../vendor/modernizr').hasPreserve3d
 
 var _window = typeof window !== 'undefined' && window
 var PLATFORM_INFO = {

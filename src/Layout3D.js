@@ -2,9 +2,31 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var computeMatrix = require('./helpers/computeMatrix')
-var computeRotationFlexibly = require('./helpers/computeRotationFlexibly')
-var computeSize = require('./helpers/computeSize')
+var computeMatrix = require('./layout/computeMatrix')
+var computeRotationFlexibly = require('./layout/computeRotationFlexibly')
+var computeSize = require('./layout/computeSize')
+
+var ELEMENTS_2D = {
+  circle: true,
+  ellipse: true,
+  foreignObject: true,
+  g: true,
+  image: true,
+  line: true,
+  mesh: true,
+  path: true,
+  polygon: true,
+  polyline: true,
+  rect: true,
+  svg: true,
+  switch: true,
+  symbol: true,
+  text: true,
+  textPath: true,
+  tspan: true,
+  unknown: true,
+  use: true
+}
 
 // Coordinate (0, 0, 0) is the top left of the screen
 
@@ -17,6 +39,30 @@ var IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
 var FORMATS = {
   THREE: 3,
   TWO: 2
+}
+
+function initializeNodeAttributes (element, parent) {
+  if (!element.attributes) element.attributes = {}
+  if (!element.attributes.style) element.attributes.style = {}
+  if (!element.layout) {
+    element.layout = createLayoutSpec()
+    element.layout.matrix = createMatrix()
+    element.layout.format = ELEMENTS_2D[element.elementName]
+      ? FORMATS.TWO
+      : FORMATS.THREE
+  }
+  return element
+}
+
+function initializeTreeAttributes (tree, container) {
+  if (!tree || typeof tree === 'string') return
+  initializeNodeAttributes(tree, container)
+  tree.__parent = container
+  if (!tree.children) return
+  if (tree.children.length < 1) return
+  for (var i = 0; i < tree.children.length; i++) {
+    initializeTreeAttributes(tree.children[i], tree)
+  }
 }
 
 // The layout specification naming in createLayoutSpec is derived in part from https://github.com/Famous/engine/blob/master/core/Transform.js which is MIT licensed.
@@ -187,5 +233,7 @@ module.exports = {
   multiplyMatrices: multiplyMatrices,
   transposeMatrix: transposeMatrix,
   copyMatrix: copyMatrix,
+  initializeTreeAttributes: initializeTreeAttributes,
+  initializeNodeAttributes: initializeNodeAttributes,
   isZero: isZero
 }

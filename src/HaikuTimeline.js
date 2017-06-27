@@ -4,7 +4,7 @@
 
 var _getMaxTimeFromDescriptor = require('./helpers/getTimelineMaxTime')
 var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
-var assign = require('./helpers/assign')
+var assign = require('./vendor/assign')
 
 var NUMBER = 'number'
 

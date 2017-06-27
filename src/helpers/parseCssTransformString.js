@@ -2,13 +2,12 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var mat4decompose = require('mat4-decompose')
-var mat4compose = require('css-mat4')
 var MathUtils = require('./MathUtils')
-var roundToPrecision = require('./roundToPrecision')
 var parseCssValueString = require('./parseCssValueString')
-var _getEulerAngles = require('./getEulerAngles')
 var Layout3D = require('./../Layout3D')
+var getEulerAngles = require('./../vendor/math3d').getEulerAngles
+var mat4decompose = require('./../vendor/mat4-decompose')
+var mat4compose = require('./../vendor/css-mat4')
 
 function separate (str) {
   var bits = str.split('(')
@@ -150,7 +149,7 @@ function parseCssTransformString (str) {
     components.quaternion
   )
 
-  components.rotation = _getEulerAngles(
+  components.rotation = getEulerAngles(
     components.quaternion[0],
     components.quaternion[1],
     components.quaternion[2],
@@ -162,7 +161,7 @@ function parseCssTransformString (str) {
 
   for (var subkey in components) {
     for (var idx in components[subkey]) {
-      components[subkey][idx] = roundToPrecision(components[subkey][idx])
+      components[subkey][idx] = parseFloat(components[subkey][idx].toFixed(2))
     }
   }
 

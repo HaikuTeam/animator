@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var svgPoints = require('./SVGPointUtils')
+var SVGPoints = require('./../vendor/svg-points')
 var parseCssValueString = require('./parseCssValueString')
 
 var SVG_TYPES = {
@@ -69,11 +69,11 @@ function pointsToPolyString (points) {
 
 function pathToPoints (pathString) {
   var shape = { type: 'path', d: pathString }
-  return svgPoints.toPoints(shape)
+  return SVGPoints.toPoints(shape)
 }
 
 function pointsToPath (pointsArray) {
-  return svgPoints.toPath(pointsArray)
+  return SVGPoints.toPath(pointsArray)
 }
 
 function manaToPoints (mana) {
@@ -96,7 +96,7 @@ function manaToPoints (mana) {
         }
       }
     }
-    return svgPoints.toPoints(shape)
+    return SVGPoints.toPoints(shape)
   } else {
     // div, rect, svg ...
     var width = parseCssValueString(
@@ -137,7 +137,7 @@ function manaToPoints (mana) {
         mana.attributes.y ||
         0
     ).value
-    return svgPoints.toPoints({
+    return SVGPoints.toPoints({
       type: 'rect',
       width: width,
       height: height,

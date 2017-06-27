@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var raf = require('raf')
-var assign = require('./helpers/assign')
+var raf = require('./vendor/raf')
+var assign = require('./vendor/assign')
 var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
 
 var NUMBER = 'number'

@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var parseXmlNonCompliantly = require('./parseXmlNonCompliantly')
-var styleStringToObject = require('./toStyleObject')
+var parseXmlNonCompliantly = require('./../vendor/xml-parser')
+var styleStringToObject = require('./../vendor/to-style').object
 
 function fixChildren (kids) {
   if (Array.isArray(kids)) return kids.map(fixNode)

@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var uniq = require('./uniq')
+var uniq = require('./../vendor/array-unique').immutable
 
 var OBJECT = 'object'
 var FUNCTION = 'function'
@@ -50,5 +50,5 @@ module.exports = {
   isEmpty: isEmpty,
   mergeIncoming: mergeIncoming,
   mergeValue: mergeValue,
-  uniq: uniq.immutable
+  uniq: uniq
 }

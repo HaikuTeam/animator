@@ -2,11 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var assign = require('./../../helpers/assign')
+var assign = require('./../../vendor/assign')
+var mixpanel = require('./../../vendor/mixpanel-browser')
 
 module.exports = function createMixpanel (domElement, mixpanelToken, component) {
-  var mixpanel = require('mixpanel-browser')
-
   mixpanel.init(mixpanelToken)
 
   // Why not expose this so others, e.g. the share page, can hook into it?

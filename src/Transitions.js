@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var Curves = require('just-curves')
+var Curves = require('./vendor/just-curves')
 
 var CENT = 1.0
 var OBJECT = 'object'

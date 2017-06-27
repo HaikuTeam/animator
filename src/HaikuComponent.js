@@ -8,9 +8,8 @@ var queryTree = require('./helpers/cssQueryTree')
 var Layout3D = require('./Layout3D')
 var scopifyElements = require('./helpers/scopifyElements')
 var xmlToMana = require('./helpers/xmlToMana')
-var assign = require('./helpers/assign')
+var assign = require('./vendor/assign')
 var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
-var initializeTreeAttributes = require('./helpers/initializeTreeAttributes')
 var HaikuTimeline = require('./HaikuTimeline')
 
 var PLAYER_VERSION = require('./../package.json').version
@@ -649,7 +648,7 @@ function _gatherDeltaPatches (
     )
   }
 
-  initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing in the first place
+  Layout3D.initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing in the first place
 
   _applyAccumulatedResults(results, deltas, component, template, context)
 
@@ -717,7 +716,7 @@ function _applyContextChanges (
     }
   }
 
-  initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
+  Layout3D.initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
 
   scopifyElements(template) // I think this only needs to happen once when we build the full tree
 

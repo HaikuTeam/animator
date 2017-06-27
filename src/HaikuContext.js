@@ -3,7 +3,7 @@
  */
 
 var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
-var assign = require('./helpers/assign')
+var assign = require('./vendor/assign')
 var HaikuClock = require('./HaikuClock')
 var HaikuComponent = require('./HaikuComponent')
 
