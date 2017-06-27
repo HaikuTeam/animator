@@ -5,30 +5,30 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var SIZING_COMPONENTS = ['x', 'y', 'z'];
+var SIZING_COMPONENTS = ['x', 'y', 'z']
 
-function computeSize(
+function computeSize (
   outputSize,
   layoutSpec,
   sizeModeArray,
   parentsizeAbsolute
 ) {
   for (var i = 0; i < SIZING_COMPONENTS.length; i++) {
-    var component = SIZING_COMPONENTS[i];
+    var component = SIZING_COMPONENTS[i]
     switch (sizeModeArray[component]) {
       case SIZE_PROPORTIONAL:
-        var sizeProportional = layoutSpec.sizeProportional[component];
-        var sizeDifferential = layoutSpec.sizeDifferential[component];
+        var sizeProportional = layoutSpec.sizeProportional[component]
+        var sizeDifferential = layoutSpec.sizeDifferential[component]
         outputSize[component] = parentsizeAbsolute[component] *
           sizeProportional +
-          sizeDifferential;
-        break;
+          sizeDifferential
+        break
       case SIZE_ABSOLUTE:
-        outputSize[component] = layoutSpec.sizeAbsolute[component];
-        break;
+        outputSize[component] = layoutSpec.sizeAbsolute[component]
+        break
     }
   }
-  return outputSize;
+  return outputSize
 }
 
-module.exports = computeSize;
+module.exports = computeSize

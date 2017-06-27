@@ -1,1 +1,1 @@
-svg - points;
+svg - points

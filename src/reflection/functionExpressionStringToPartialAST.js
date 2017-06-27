@@ -14,4 +14,4 @@
 //   bodyString: String
 // }
 
-module.exports = function parseFunctionExpressionString(str) {};
+module.exports = function parseFunctionExpressionString (str) {}

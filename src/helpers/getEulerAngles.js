@@ -5,18 +5,20 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-function doublesEqual(d1, d2) {
-  var preciseness = 1e-13;
-  return Math.abs(d1 - d2) < preciseness;
+function doublesEqual (d1, d2) {
+  var preciseness = 1e-13
+  return Math.abs(d1 - d2) < preciseness
 }
 
-function normalizeRad(rad) {
-  var angle = rad * (180.0 / Math.PI);
-  while (angle > 360)
-    angle -= 360;
-  while (angle < 0)
-    angle += 360;
-  return angle;
+function normalizeRad (rad) {
+  var angle = rad * (180.0 / Math.PI)
+  while (angle > 360) {
+    angle -= 360
+  }
+  while (angle < 0) {
+    angle += 360
+  }
+  return angle
 }
 
 /**
@@ -25,18 +27,18 @@ function normalizeRad(rad) {
  * @param {Quternion} quaternion
  * @returns {Object} eulerAngles: [x,y,z]
  */
-function _getEulerAngles(x, y, z, w) {
-  var poleSum = x * w - y * z;
+function _getEulerAngles (x, y, z, w) {
+  var poleSum = x * w - y * z
 
-  if (doublesEqual(poleSum, 0.5)) return [90, 0, 0];
-  else if (doublesEqual(poleSum, -0.5)) return [-90, 0, 0];
+  if (doublesEqual(poleSum, 0.5)) return [90, 0, 0]
+  else if (doublesEqual(poleSum, -0.5)) return [-90, 0, 0]
 
-  var _x = Math.asin(2 * x * w - 2 * y * z);
-  var _y = Math.atan2(2 * x * z + 2 * y * w, 1 - 2 * (y * y) - 2 * (x * x));
+  var _x = Math.asin(2 * x * w - 2 * y * z)
+  var _y = Math.atan2(2 * x * z + 2 * y * w, 1 - 2 * (y * y) - 2 * (x * x))
   var _z = Math.PI -
-    Math.atan2(2 * x * y + 2 * z * w, 1 - 2 * (y * y) - 2 * (w * w));
+    Math.atan2(2 * x * y + 2 * z * w, 1 - 2 * (y * y) - 2 * (w * w))
 
-  return [normalizeRad(_x), normalizeRad(_y), normalizeRad(_z)];
+  return [normalizeRad(_x), normalizeRad(_y), normalizeRad(_z)]
 }
 
-module.exports = _getEulerAngles;
+module.exports = _getEulerAngles

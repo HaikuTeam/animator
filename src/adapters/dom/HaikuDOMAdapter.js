@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var HaikuContext = require('./../../HaikuContext');
-var HaikuDOMRenderer = require('./../../renderers/dom');
-var PLAYER_VERSION = require('./../../../package.json').version;
+var HaikuContext = require('./../../HaikuContext')
+var HaikuDOMRenderer = require('./../../renderers/dom')
+var PLAYER_VERSION = require('./../../../package.json').version
 
 /**
  * Example ways this gets invoked:
@@ -17,18 +17,18 @@ var PLAYER_VERSION = require('./../../../package.json').version;
  * module.exports = HaikuCreation(require('./bytecode.js'))
  */
 
-var IS_WINDOW_DEFINED = typeof window !== 'undefined';
+var IS_WINDOW_DEFINED = typeof window !== 'undefined'
 
 /**
  * @function HaikuDOMAdapter
  * @description Given a bytecode object, return a factory function which can create a DOM-playable component.
  */
-function HaikuDOMAdapter(bytecode, options, _window) {
-  if (!options) options = {};
+function HaikuDOMAdapter (bytecode, options, _window) {
+  if (!options) options = {}
 
   if (!_window) {
     if (IS_WINDOW_DEFINED) {
-      _window = window;
+      _window = window
     }
   }
 
@@ -36,8 +36,8 @@ function HaikuDOMAdapter(bytecode, options, _window) {
     // Allow headless mode, e.g. in server-side rendering or in Node.js unit tests
     if (_window && _window.document) {
       var isWebKit = 'WebkitAppearance' in
-        _window.document.documentElement.style;
-      options.useWebkitPrefix = !!isWebKit;
+        _window.document.documentElement.style
+      options.useWebkitPrefix = !!isWebKit
     }
   }
 
@@ -46,16 +46,16 @@ function HaikuDOMAdapter(bytecode, options, _window) {
     bytecode,
     options,
     _window
-  );
+  )
 }
 
 // Allow multiple players of different versions to exist on the same page
 if (IS_WINDOW_DEFINED) {
   if (!window.HaikuPlayer) {
-    window.HaikuPlayer = {};
+    window.HaikuPlayer = {}
   }
 
-  window.HaikuPlayer[PLAYER_VERSION] = HaikuDOMAdapter;
+  window.HaikuPlayer[PLAYER_VERSION] = HaikuDOMAdapter
 }
 
-module.exports = HaikuDOMAdapter;
+module.exports = HaikuDOMAdapter

@@ -1,8 +1,8 @@
-var test = require('tape');
-var Layout3D = require('./../../src/Layout3D');
+var test = require('tape')
+var Layout3D = require('./../../src/Layout3D')
 
-test('Layout3D.computeLayout', function(t) {
-  t.plan(1);
+test('Layout3D.computeLayout', function (t) {
+  t.plan(1)
 
   var args1 = [
     {
@@ -28,10 +28,10 @@ test('Layout3D.computeLayout', function(t) {
     [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
     { x: 852, y: 839, z: 0 }
-  ];
-  var output1 = Layout3D.computeLayout.apply(null, args1);
+  ]
+  var output1 = Layout3D.computeLayout.apply(null, args1)
   t.equal(
     JSON.stringify(output1),
     `{"size":{"x":426,"y":839,"z":0},"matrix":[1,0,0,0,0,1,0,0,0,0,1,0,33,0,0,1],"shown":true,"opacity":1,"align":{"x":0,"y":0,"z":0},"mount":{"x":0,"y":0,"z":0},"origin":{"x":0,"y":0,"z":0},"offset":{"x":33,"y":0,"z":0}}`
-  );
-});
+  )
+})

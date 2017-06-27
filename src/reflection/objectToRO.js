@@ -2,15 +2,15 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function objectToRO(obj, options) {
-  var out = {};
+function objectToRO (obj, options) {
+  var out = {}
   for (var key in obj) {
-    if (options && options.ignore && options.ignore.test(key)) continue;
-    out[key] = expressionToRO(obj[key], options);
+    if (options && options.ignore && options.ignore.test(key)) continue
+    out[key] = expressionToRO(obj[key], options)
   }
-  return out;
+  return out
 }
 
-module.exports = objectToRO;
+module.exports = objectToRO
 
-var expressionToRO = require('./expressionToRO');
+var expressionToRO = require('./expressionToRO')

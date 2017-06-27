@@ -2,46 +2,46 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var uniq = require('./uniq');
+var uniq = require('./uniq')
 
-var OBJECT = 'object';
-var FUNCTION = 'function';
+var OBJECT = 'object'
+var FUNCTION = 'function'
 
-function isObject(value) {
-  return value !== null && typeof value === OBJECT && !Array.isArray(value);
+function isObject (value) {
+  return value !== null && typeof value === OBJECT && !Array.isArray(value)
 }
 
-function isFunction(value) {
-  return typeof value === FUNCTION;
+function isFunction (value) {
+  return typeof value === FUNCTION
 }
 
-function isEmpty(value) {
-  return value === undefined;
+function isEmpty (value) {
+  return value === undefined
 }
 
-function mergeIncoming(previous, incoming) {
+function mergeIncoming (previous, incoming) {
   for (var key in incoming) {
     // Skip if there's no incoming property
-    if (isEmpty(incoming[key])) continue;
+    if (isEmpty(incoming[key])) continue
     // Deep merge if we have two objects
     if (isObject(previous[key]) && isObject(incoming[key])) {
-      previous[key] = mergeIncoming(previous[key], incoming[key]);
-      continue;
+      previous[key] = mergeIncoming(previous[key], incoming[key])
+      continue
     }
     // In the default case, we just overwrite
-    previous[key] = incoming[key];
+    previous[key] = incoming[key]
   }
-  return previous;
+  return previous
 }
 
-function mergeValue(previous, incoming) {
+function mergeValue (previous, incoming) {
   if (isFunction(previous) || isFunction(incoming)) {
-    return incoming;
+    return incoming
   }
   if (isObject(previous) && isObject(incoming)) {
-    return mergeIncoming(previous, incoming);
+    return mergeIncoming(previous, incoming)
   }
-  return incoming;
+  return incoming
 }
 
 module.exports = {
@@ -51,4 +51,4 @@ module.exports = {
   mergeIncoming: mergeIncoming,
   mergeValue: mergeValue,
   uniq: uniq.immutable
-};
+}

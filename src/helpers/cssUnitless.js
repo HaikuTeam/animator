@@ -23,4 +23,4 @@ module.exports = {
   'box-align': 1,
   colspan: 1,
   rowspan: 1
-};
+}

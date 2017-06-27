@@ -5,20 +5,20 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var TRANSFORM_SUFFIX = ')';
-var TRANSFORM_ZERO = '0';
-var TRANSFORM_COMMA = ',';
-var TRANSFORM_ZILCH = TRANSFORM_ZERO + TRANSFORM_COMMA;
-var TWO = 2;
-var THREE = 3;
+var TRANSFORM_SUFFIX = ')'
+var TRANSFORM_ZERO = '0'
+var TRANSFORM_COMMA = ','
+var TRANSFORM_ZILCH = TRANSFORM_ZERO + TRANSFORM_COMMA
+var TWO = 2
+var THREE = 3
 
-function formatTransform(transform, format, devicePixelRatio) {
+function formatTransform (transform, format, devicePixelRatio) {
   transform[12] = Math.round(transform[12] * devicePixelRatio) /
-    devicePixelRatio;
+    devicePixelRatio
   transform[13] = Math.round(transform[13] * devicePixelRatio) /
-    devicePixelRatio;
-  var prefix;
-  var last;
+    devicePixelRatio
+  var prefix
+  var last
   if (format === TWO) {
     // Example: matrix(1,0,0,0,0,1)
     // 2d matrix is: matrix(scaleX(),skewY(),skewX(),scaleY(),translateX(),translateY())
@@ -30,22 +30,22 @@ function formatTransform(transform, format, devicePixelRatio) {
       transform[5],
       transform[12],
       transform[13]
-    ];
-    transform = two;
-    prefix = 'matrix(';
-    last = 5;
+    ]
+    transform = two
+    prefix = 'matrix('
+    last = 5
   } else if (format === THREE) {
     // Example: matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,716,243,0,1)
-    prefix = 'matrix3d(';
-    last = 15;
+    prefix = 'matrix3d('
+    last = 15
   }
   for (var i = 0; i < last; i++) {
     prefix += transform[i] < 0.000001 && transform[i] > -0.000001
       ? TRANSFORM_ZILCH
-      : transform[i] + TRANSFORM_COMMA;
+      : transform[i] + TRANSFORM_COMMA
   }
-  prefix += transform[last] + TRANSFORM_SUFFIX;
-  return prefix;
+  prefix += transform[last] + TRANSFORM_SUFFIX
+  return prefix
 }
 
-module.exports = formatTransform;
+module.exports = formatTransform

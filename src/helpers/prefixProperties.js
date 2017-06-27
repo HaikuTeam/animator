@@ -14,8 +14,8 @@ module.exports = {
   'border-bottom-right-radius': 1,
   'box-shadow': 1,
   order: 1,
-  flex: function(name, prefix) {
-    return [prefix + 'box-flex'];
+  flex: function (name, prefix) {
+    return [prefix + 'box-flex']
   },
   'box-flex': 1,
   'box-align': 1,
@@ -30,4 +30,4 @@ module.exports = {
   'backface-visibility': 1,
   perspective: 1,
   'box-pack': 1
-};
+}

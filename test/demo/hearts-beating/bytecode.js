@@ -16,7 +16,7 @@ module.exports = {
         },
         'scale.x': {
           '0': {
-            value: function() {
+            value: function () {
               return [
                 1,
                 1,
@@ -58,13 +58,13 @@ module.exports = {
                 1,
                 1,
                 1
-              ][this.getDefaultTimeline().getUnboundedFrame() % 40];
+              ][this.getDefaultTimeline().getUnboundedFrame() % 40]
             }
           }
         },
         'scale.y': {
           '0': {
-            value: function() {
+            value: function () {
               return [
                 1,
                 1,
@@ -106,7 +106,7 @@ module.exports = {
                 1,
                 1,
                 1
-              ][this.getDefaultTimeline().getUnboundedFrame() % 40];
+              ][this.getDefaultTimeline().getUnboundedFrame() % 40]
             }
           }
         },
@@ -213,4 +213,4 @@ module.exports = {
     elementName: 'div',
     attributes: { 'haiku-title': 'HeartsRejoicing', 'haiku-id': 'f465d66829fe' }
   }
-};
+}

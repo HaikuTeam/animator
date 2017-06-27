@@ -5,30 +5,30 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-function uniq(arr) {
-  var len = arr.length;
-  var i = -1;
+function uniq (arr) {
+  var len = arr.length
+  var i = -1
   while (i++ < len) {
-    var j = i + 1;
+    var j = i + 1
     for (; j < arr.length; ++j) {
       if (arr[i] === arr[j]) {
-        arr.splice(j--, 1);
+        arr.splice((j--), 1)
       }
     }
   }
-  return arr;
+  return arr
 }
 
-function immutable(arr) {
-  var arrayLength = arr.length;
-  var newArray = new Array(arrayLength);
+function immutable (arr) {
+  var arrayLength = arr.length
+  var newArray = new Array(arrayLength)
   for (var i = 0; i < arrayLength; i++) {
-    newArray[i] = arr[i];
+    newArray[i] = arr[i]
   }
-  return uniq(newArray);
+  return uniq(newArray)
 }
 
 module.exports = {
   uniq: uniq,
   immutable: immutable
-};
+}

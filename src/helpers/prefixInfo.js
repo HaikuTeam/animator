@@ -6,48 +6,49 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var toUpperFirst = require('./stringUtils/toUpperFirst');
+var toUpperFirst = require('./stringUtils/toUpperFirst')
 
-var re = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/;
+var re = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/
 
-var docStyle = typeof document == 'undefined'
+var docStyle = typeof document === 'undefined'
   ? {}
-  : document.documentElement.style;
+  : document.documentElement.style
 
-var prefixInfo = (function() {
-  var prefix = (function() {
-    for (var prop in docStyle) {
-      if (re.test(prop)) {
+var prefixInfo = (function () {
+  var prefix = (function () {
+      for (var prop in docStyle) {
+        if (re.test(prop)) {
         // test is faster than match, so it's better to perform
         // that on the lot and match only when necessary
-        return prop.match(re)[0];
+          return prop.match(re)[0]
+        }
       }
-    }
 
     // Nothing found so far? Webkit does not enumerate over the CSS properties of the style object.
     // However (prop in style) returns the correct value, so we'll have to test for
     // the precence of a specific property
-    if ('WebkitOpacity' in docStyle) {
-      return 'Webkit';
-    }
+      if ('WebkitOpacity' in docStyle) {
+        return 'Webkit'
+      }
 
-    if ('KhtmlOpacity' in docStyle) {
-      return 'Khtml';
-    }
+      if ('KhtmlOpacity' in docStyle) {
+        return 'Khtml'
+      }
 
-    return '';
-  })(),
-    lower = prefix.toLowerCase();
+      return ''
+    })(),
+    lower = prefix.toLowerCase()
 
   return {
     style: prefix,
     css: '-' + lower + '-',
-    dom: {
+    dom: ({
       Webkit: 'WebKit',
       ms: 'MS',
       o: 'WebKit'
-    }[prefix] || toUpperFirst(prefix)
-  };
-})();
+    })[prefix] ||
+      toUpperFirst(prefix)
+  }
+})()
 
-module.exports = prefixInfo;
+module.exports = prefixInfo

@@ -21,9 +21,9 @@ module.exports = {
     {
       name: 'onclick',
       selector: '#box',
-      handler: function() {
-        this.getTimelines()['Move'].gotoAndPlay(0);
-        this.clicks = this.clicks + 1;
+      handler: function () {
+        this.getTimelines()['Move'].gotoAndPlay(0)
+        this.clicks = this.clicks + 1
       }
     }
   ],
@@ -32,8 +32,8 @@ module.exports = {
       '#box': {
         content: {
           0: {
-            value: function(inputs) {
-              return inputs.clicks + '';
+            value: function (inputs) {
+              return inputs.clicks + ''
             }
           }
         },
@@ -80,15 +80,15 @@ module.exports = {
       '#box': {
         'rotation.z': {
           0: {
-            value: function({ clicks }) {
-              var n = clicks < 1 ? 0 : clicks - 1;
-              return n * Math.PI / 2;
+            value: function ({ clicks }) {
+              var n = clicks < 1 ? 0 : clicks - 1
+              return n * Math.PI / 2
             },
             curve: 'easeInOutBounce'
           },
           2500: {
-            value: function({ clicks }) {
-              return clicks * Math.PI / 2;
+            value: function ({ clicks }) {
+              return clicks * Math.PI / 2
             }
           }
         }
@@ -96,4 +96,4 @@ module.exports = {
     }
   },
   template: '<div id="box"></div>'
-};
+}

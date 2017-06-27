@@ -2,12 +2,12 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var applyLayout = require('./applyLayout');
-var assignAttributes = require('./assignAttributes');
+var applyLayout = require('./applyLayout')
+var assignAttributes = require('./assignAttributes')
 
-var OBJECT = 'object';
+var OBJECT = 'object'
 
-function updateSvgElement(
+function updateSvgElement (
   svgDomElement,
   elementName,
   attributes,
@@ -22,7 +22,7 @@ function updateSvgElement(
   isPatchOperation,
   isKeyDifferent
 ) {
-  if (attributes && typeof attributes === OBJECT)
+  if (attributes && typeof attributes === OBJECT) {
     assignAttributes(
       svgDomElement,
       attributes,
@@ -30,7 +30,8 @@ function updateSvgElement(
       scopes,
       isPatchOperation,
       isKeyDifferent
-    );
+    )
+  }
   applyLayout(
     svgDomElement,
     virtualElement,
@@ -40,8 +41,8 @@ function updateSvgElement(
     scopes,
     isPatchOperation,
     isKeyDifferent
-  );
-  if (Array.isArray(virtualChildren))
+  )
+  if (Array.isArray(virtualChildren)) {
     renderTree(
       svgDomElement,
       virtualElement,
@@ -51,9 +52,10 @@ function updateSvgElement(
       options,
       scopes,
       isPatchOperation
-    );
+    )
+  }
 }
 
-module.exports = updateSvgElement;
+module.exports = updateSvgElement
 
-var renderTree = require('./renderTree');
+var renderTree = require('./renderTree')

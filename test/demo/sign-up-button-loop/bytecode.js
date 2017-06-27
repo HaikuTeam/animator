@@ -1347,4 +1347,4 @@ module.exports = {
       }
     ]
   }
-};
+}

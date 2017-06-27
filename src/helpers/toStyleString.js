@@ -6,8 +6,8 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var toStyleObject = require('./toStyleObject');
-var hasOwn = require('./hasOwn');
+var toStyleObject = require('./toStyleObject')
+var hasOwn = require('./hasOwn')
 
 /**
  * @ignore
@@ -23,16 +23,17 @@ var hasOwn = require('./hasOwn');
  *
  * @return {Object} The object, normalized with css style names
  */
-module.exports = function(styles, config) {
-  styles = toStyleObject(styles, config);
+module.exports = function (styles, config) {
+  styles = toStyleObject(styles, config)
 
-  var result = [];
-  var prop;
+  var result = []
+  var prop
 
-  for (prop in styles)
+  for (prop in styles) {
     if (hasOwn(styles, prop)) {
-      result.push(prop + ': ' + styles[prop]);
+      result.push(prop + ': ' + styles[prop])
     }
+  }
 
-  return result.join('; ');
-};
+  return result.join('; ')
+}

@@ -2,33 +2,33 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var SimpleEventEmitter = {};
+var SimpleEventEmitter = {}
 
-function create(instance) {
-  var registry = {};
-  var eavesdroppers = [];
+function create (instance) {
+  var registry = {}
+  var eavesdroppers = []
 
-  instance.on = function on(key, fn) {
-    if (!registry[key]) registry[key] = [];
+  instance.on = function on (key, fn) {
+    if (!registry[key]) registry[key] = []
     // Check for dupes and ignore if this is one
     for (var i = 0; i < registry[key].length; i++) {
-      if (registry[key][i] === fn) return this;
+      if (registry[key][i] === fn) return this
     }
-    registry[key].push(fn);
-    return this;
-  };
+    registry[key].push(fn)
+    return this
+  }
 
-  instance.off = function off(key, fn) {
-    var listeners = registry[key];
-    if (!listeners || listeners.length < 1) return this;
+  instance.off = function off (key, fn) {
+    var listeners = registry[key]
+    if (!listeners || listeners.length < 1) return this
     for (var i = 0; i < listeners.length; i++) {
-      if (fn && listeners[i] === fn) listeners.splice(i, 1);
-      else listeners.splice(i, 1);
+      if (fn && listeners[i] === fn) listeners.splice(i, 1)
+      else listeners.splice(i, 1)
     }
-    return this;
-  };
+    return this
+  }
 
-  instance.emit = function emit(
+  instance.emit = function emit (
     key,
     msg,
     a,
@@ -56,9 +56,9 @@ function create(instance) {
     y,
     z
   ) {
-    var listeners = registry[key];
+    var listeners = registry[key]
     if (listeners && listeners.length > 0) {
-      for (var i = 0; i < listeners.length; i++)
+      for (var i = 0; i < listeners.length; i++) {
         listeners[i](
           msg,
           a,
@@ -85,10 +85,11 @@ function create(instance) {
           x,
           y,
           z
-        );
+        )
+      }
     }
     if (eavesdroppers.length > 0) {
-      for (var j = 0; j < eavesdroppers.length; j++)
+      for (var j = 0; j < eavesdroppers.length; j++) {
         eavesdroppers[j](
           key,
           msg,
@@ -116,21 +117,22 @@ function create(instance) {
           x,
           y,
           z
-        );
+        )
+      }
     }
-    return this;
-  };
+    return this
+  }
 
-  instance.hear = function hear(fn) {
-    eavesdroppers.push(fn);
-  };
+  instance.hear = function hear (fn) {
+    eavesdroppers.push(fn)
+  }
 
-  instance._registry = registry;
-  instance._eavesdroppers = eavesdroppers;
+  instance._registry = registry
+  instance._eavesdroppers = eavesdroppers
 
-  return instance;
+  return instance
 }
 
-SimpleEventEmitter.create = create;
+SimpleEventEmitter.create = create
 
-module.exports = SimpleEventEmitter;
+module.exports = SimpleEventEmitter

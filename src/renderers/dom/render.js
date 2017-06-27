@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var renderTree = require('./renderTree');
+var renderTree = require('./renderTree')
 
-function render(
+function render (
   domElement,
   virtualContainer,
   virtualTree,
@@ -21,7 +21,7 @@ function render(
     hash,
     options,
     scopes
-  );
+  )
 }
 
-module.exports = render;
+module.exports = render

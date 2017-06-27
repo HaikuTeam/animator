@@ -35,7 +35,7 @@ module.exports = {
                 },
                 null,
                 2
-              );
+              )
             }
           },
           10000: {
@@ -50,8 +50,8 @@ module.exports = {
       selector: '#hello',
       name: 'onclick',
       type: 'number',
-      handler: function() {
-        this.clicks = this.clicks + 1;
+      handler: function () {
+        this.clicks = this.clicks + 1
       }
     }
   ],
@@ -62,4 +62,4 @@ module.exports = {
     }
   ],
   template: '<pre><code id="hello">Hello World!</code></div>'
-};
+}

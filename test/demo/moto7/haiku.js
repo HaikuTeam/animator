@@ -7,4 +7,4 @@ module.exports = {
   react: {
     component: 'moto7Component'
   }
-};
+}

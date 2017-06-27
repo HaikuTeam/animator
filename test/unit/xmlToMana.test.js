@@ -1,9 +1,9 @@
-var test = require('tape');
-var xmlToMana = require('./../../src/helpers/xmlToMana');
+var test = require('tape')
+var xmlToMana = require('./../../src/helpers/xmlToMana')
 
-test('xmlToMana', function(t) {
-  t.plan(1);
-  var mana = xmlToMana('<div id="foo" style="color: red"><span /></div>');
+test('xmlToMana', function (t) {
+  t.plan(1)
+  var mana = xmlToMana('<div id="foo" style="color: red"><span /></div>')
   t.equal(
     JSON.stringify(mana),
     JSON.stringify({
@@ -12,5 +12,5 @@ test('xmlToMana', function(t) {
       children: [{ elementName: 'span', attributes: {}, children: [] }]
     }),
     'mana ok'
-  );
-});
+  )
+})

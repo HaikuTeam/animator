@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var normalizeName = require('./normalizeName');
-var isSvgElementName = require('./isSvgElementName');
-var getTypeAsString = require('./getTypeAsString');
+var normalizeName = require('./normalizeName')
+var isSvgElementName = require('./isSvgElementName')
+var getTypeAsString = require('./getTypeAsString')
 
-function createTagNode(
+function createTagNode (
   domElement,
   virtualElement,
   parentVirtualElement,
@@ -15,22 +15,23 @@ function createTagNode(
   options,
   scopes
 ) {
-  var tagName = normalizeName(getTypeAsString(virtualElement));
-  var newDomElement;
+  var tagName = normalizeName(getTypeAsString(virtualElement))
+  var newDomElement
   if (isSvgElementName(tagName, scopes)) {
     // SVG
-    newDomElement = createSvgElement(domElement, tagName, options, scopes);
+    newDomElement = createSvgElement(domElement, tagName, options, scopes)
   } else {
     // Normal DOM
-    newDomElement = domElement.ownerDocument.createElement(tagName);
+    newDomElement = domElement.ownerDocument.createElement(tagName)
   }
 
-  newDomElement.haiku = {};
+  newDomElement.haiku = {}
 
   var incomingKey = virtualElement.key ||
-    (virtualElement.attributes && virtualElement.attributes.key);
-  if (incomingKey !== undefined && incomingKey !== null)
-    newDomElement.haiku.key = incomingKey;
+    (virtualElement.attributes && virtualElement.attributes.key)
+  if (incomingKey !== undefined && incomingKey !== null) {
+    newDomElement.haiku.key = incomingKey
+  }
 
   updateElement(
     newDomElement,
@@ -41,11 +42,11 @@ function createTagNode(
     hash,
     options,
     scopes
-  );
-  return newDomElement;
+  )
+  return newDomElement
 }
 
-module.exports = createTagNode;
+module.exports = createTagNode
 
-var createSvgElement = require('./createSvgElement');
-var updateElement = require('./updateElement');
+var createSvgElement = require('./createSvgElement')
+var updateElement = require('./updateElement')

@@ -255,4 +255,4 @@ module.exports = {
       }
     ]
   }
-};
+}

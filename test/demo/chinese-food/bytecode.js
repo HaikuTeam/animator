@@ -6428,4 +6428,4 @@ module.exports = {
       }
     ]
   }
-};
+}

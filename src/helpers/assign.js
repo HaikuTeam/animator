@@ -4,14 +4,14 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module.exports = function assign(t) {
+module.exports = function assign (t) {
   for (var s, i = 1, n = arguments.length; i < n; i++) {
-    s = arguments[i];
+    s = arguments[i]
     for (var p in s) {
       if (Object.prototype.hasOwnProperty.call(s, p)) {
-        t[p] = s[p];
+        t[p] = s[p]
       }
     }
   }
-  return t;
-};
+  return t
+}

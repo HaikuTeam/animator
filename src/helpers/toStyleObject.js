@@ -6,40 +6,40 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var prefixInfo = require('./prefixInfo');
-var cssPrefixFn = require('./cssPrefix');
+var prefixInfo = require('./prefixInfo')
+var cssPrefixFn = require('./cssPrefix')
 
-var HYPHENATE = require('./stringUtils/hyphenate');
-var CAMELIZE = require('./stringUtils/camelize');
-var HAS_OWN = require('./hasOwn');
-var IS_OBJECT = require('./isObject');
-var IS_FUNCTION = require('./isFunction');
+var HYPHENATE = require('./stringUtils/hyphenate')
+var CAMELIZE = require('./stringUtils/camelize')
+var HAS_OWN = require('./hasOwn')
+var IS_OBJECT = require('./isObject')
+var IS_FUNCTION = require('./isFunction')
 
-var applyPrefix = function(target, property, value, normalizeFn) {
-  cssPrefixFn(property).forEach(function(p) {
-    target[normalizeFn ? normalizeFn(p) : p] = value;
-  });
-};
+var applyPrefix = function (target, property, value, normalizeFn) {
+  cssPrefixFn(property).forEach(function (p) {
+    target[normalizeFn ? normalizeFn(p) : p] = value
+  })
+}
 
-var toObject = function(str) {
-  str = (str || '').split(';');
+var toObject = function (str) {
+  str = (str || '').split(';')
 
-  var result = {};
+  var result = {}
 
-  str.forEach(function(item) {
-    var split = item.split(':');
+  str.forEach(function (item) {
+    var split = item.split(':')
 
     if (split.length == 2) {
-      result[split[0].trim()] = split[1].trim();
+      result[split[0].trim()] = split[1].trim()
     }
-  });
+  })
 
-  return result;
-};
+  return result
+}
 
 var CONFIG = {
   cssUnitless: require('./cssUnitless')
-};
+}
 
 /**
  * @ignore
@@ -56,19 +56,19 @@ var CONFIG = {
  *
  * @return {Object} The object, normalized with css style names
  */
-var TO_STYLE_OBJECT = function(styles, config, prepend, result) {
-  if (typeof styles == 'string') {
-    styles = toObject(styles);
+var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
+  if (typeof styles === 'string') {
+    styles = toObject(styles)
   }
 
-  config = config || CONFIG;
+  config = config || CONFIG
 
-  config.cssUnitless = config.cssUnitless || CONFIG.cssUnitless;
+  config.cssUnitless = config.cssUnitless || CONFIG.cssUnitless
 
-  result = result || {};
+  result = result || {}
 
   var scope = config.scope || {},
-    //configs
+    // configs
     addUnits = config.addUnits != null
       ? config.addUnits
       : scope && scope.addUnits != null ? scope.addUnits : true,
@@ -79,7 +79,7 @@ var TO_STYLE_OBJECT = function(styles, config, prepend, result) {
     prefixProperties = config.prefixProperties ||
     (scope ? scope.prefixProperties : null) || {},
     camelize = config.camelize,
-    normalizeFn = camelize ? CAMELIZE : HYPHENATE;
+    normalizeFn = camelize ? CAMELIZE : HYPHENATE
 
   // Object.keys(cssUnitless).forEach(function(key){
   //     cssUnitless[normalizeFn(key)] = 1
@@ -93,70 +93,70 @@ var TO_STYLE_OBJECT = function(styles, config, prepend, result) {
     propType,
     propIsNumber,
     fnPropValue,
-    prefix;
+    prefix
 
-  for (propName in styles)
+  for (propName in styles) {
     if (HAS_OWN(styles, propName)) {
-      propValue = styles[propName];
+      propValue = styles[propName]
 
-      //the hyphenated style name (css property name)
-      styleName = HYPHENATE(prepend ? prepend + propName : propName);
+      // the hyphenated style name (css property name)
+      styleName = HYPHENATE(prepend ? prepend + propName : propName)
 
-      processed = false;
-      prefix = false;
+      processed = false
+      prefix = false
 
       if (IS_FUNCTION(propValue)) {
-        //a function can either return a css value
-        //or an object with { value, prefix, name }
+        // a function can either return a css value
+        // or an object with { value, prefix, name }
         fnPropValue = propValue.call(
           scope || styles,
           propValue,
           propName,
           styleName,
           styles
-        );
+        )
 
         if (IS_OBJECT(fnPropValue) && fnPropValue.value != null) {
-          propValue = fnPropValue.value;
-          prefix = fnPropValue.prefix;
+          propValue = fnPropValue.value
+          prefix = fnPropValue.prefix
           styleName = fnPropValue.name
             ? HYPHENATE(fnPropValue.name)
-            : styleName;
+            : styleName
         } else {
-          propValue = fnPropValue;
+          propValue = fnPropValue
         }
       }
 
-      propType = typeof propValue;
+      propType = typeof propValue
       propIsNumber = propType == 'number' ||
-        (propType == 'string' && propValue != '' && propValue * 1 == propValue);
+        (propType == 'string' && propValue != '' && propValue * 1 == propValue)
 
       if (propValue == null || styleName == null || styleName === '') {
-        continue;
+        continue
       }
 
       if (propIsNumber || propType == 'string') {
-        processed = true;
+        processed = true
       }
 
       if (!processed && propValue.value != null && propValue.prefix) {
-        processed = true;
-        prefix = propValue.prefix;
-        propValue = propValue.value;
+        processed = true
+        prefix = propValue.prefix
+        propValue = propValue.value
       }
 
       // hyphenStyleName = camelize? HYPHENATE(styleName): styleName
 
       if (processed) {
-        prefix = prefix || !!prefixProperties[styleName];
+        prefix = prefix || !!prefixProperties[styleName]
 
         if (propIsNumber) {
           propValue = addUnits && !(styleName in cssUnitless)
             ? propValue + cssUnit
-            : propValue + ''; //change it to a string, so that jquery does not append px or other units
+            : propValue + '' // change it to a string, so that jquery does not append px or other units
         }
 
-        //special border treatment
+        // special border treatment
         if (
           (styleName == 'border' ||
             (!styleName.indexOf('border') &&
@@ -164,58 +164,60 @@ var TO_STYLE_OBJECT = function(styles, config, prepend, result) {
               !~styleName.indexOf('width'))) &&
           propIsNumber
         ) {
-          styleName = styleName + '-width';
+          styleName = styleName + '-width'
         }
 
-        //special border radius treatment
+        // special border radius treatment
         if (!styleName.indexOf('border-radius-')) {
-          styleName.replace(
-            /border(-radius)(-(.*))/,
-            function(str, radius, theRest) {
-              var positions = {
-                '-top': ['-top-left', '-top-right'],
-                '-left': ['-top-left', '-bottom-left'],
-                '-right': ['-top-right', '-bottom-right'],
-                '-bottom': ['-bottom-left', '-bottom-right']
-              };
-
-              if (theRest in positions) {
-                styleName = [];
-
-                positions[theRest].forEach(function(pos) {
-                  styleName.push('border' + pos + radius);
-                });
-              } else {
-                styleName = 'border' + theRest + radius;
-              }
+          styleName.replace(/border(-radius)(-(.*))/, function (
+            str,
+            radius,
+            theRest
+          ) {
+            var positions = {
+              '-top': ['-top-left', '-top-right'],
+              '-left': ['-top-left', '-bottom-left'],
+              '-right': ['-top-right', '-bottom-right'],
+              '-bottom': ['-bottom-left', '-bottom-right']
             }
-          );
+
+            if (theRest in positions) {
+              styleName = []
+
+              positions[theRest].forEach(function (pos) {
+                styleName.push('border' + pos + radius)
+              })
+            } else {
+              styleName = 'border' + theRest + radius
+            }
+          })
 
           if (Array.isArray(styleName)) {
-            styleName.forEach(function(styleName) {
+            styleName.forEach(function (styleName) {
               if (prefix) {
-                applyPrefix(result, styleName, propValue, normalizeFn);
+                applyPrefix(result, styleName, propValue, normalizeFn)
               } else {
-                result[normalizeFn(styleName)] = propValue;
+                result[normalizeFn(styleName)] = propValue
               }
-            });
+            })
 
-            continue;
+            continue
           }
         }
 
         if (prefix) {
-          applyPrefix(result, styleName, propValue, normalizeFn);
+          applyPrefix(result, styleName, propValue, normalizeFn)
         } else {
-          result[normalizeFn(styleName)] = propValue;
+          result[normalizeFn(styleName)] = propValue
         }
       } else {
-        //the propValue must be an object, so go down the hierarchy
-        TO_STYLE_OBJECT(propValue, config, styleName + '-', result);
+        // the propValue must be an object, so go down the hierarchy
+        TO_STYLE_OBJECT(propValue, config, styleName + '-', result)
       }
     }
+  }
 
-  return result;
-};
+  return result
+}
 
-module.exports = TO_STYLE_OBJECT;
+module.exports = TO_STYLE_OBJECT

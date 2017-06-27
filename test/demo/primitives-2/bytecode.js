@@ -645,4 +645,4 @@ module.exports = {
     elementName: 'div',
     attributes: { 'haiku-title': 'Primitives', 'haiku-id': 'f203a65f49c0' }
   }
-};
+}

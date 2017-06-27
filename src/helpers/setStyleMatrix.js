@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var formatTransform = require('./formatTransform');
-var isEqualTransformString = require('./isEqualTransformString');
+var formatTransform = require('./formatTransform')
+var isEqualTransformString = require('./isEqualTransformString')
 
-function setStyleMatrix(
+function setStyleMatrix (
   styleObject,
   format,
   matrix,
@@ -13,17 +13,17 @@ function setStyleMatrix(
   devicePixelRatio,
   rendererScopes
 ) {
-  var matrixString = formatTransform(matrix, format, devicePixelRatio);
+  var matrixString = formatTransform(matrix, format, devicePixelRatio)
   if (usePrefix) {
     if (!isEqualTransformString(styleObject.webkitTransform, matrixString)) {
-      styleObject.webkitTransform = matrixString;
+      styleObject.webkitTransform = matrixString
     }
   } else {
     if (!isEqualTransformString(styleObject.transform, matrixString)) {
-      styleObject.transform = matrixString;
+      styleObject.transform = matrixString
     }
   }
-  return styleObject;
+  return styleObject
 }
 
-module.exports = setStyleMatrix;
+module.exports = setStyleMatrix

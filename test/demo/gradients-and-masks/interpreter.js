@@ -1,2 +1,2 @@
-var HaikuCreation = require('@haiku/player/dom');
-module.exports = HaikuCreation(require('./bytecode.js'));
+var HaikuCreation = require('@haiku/player/dom')
+module.exports = HaikuCreation(require('./bytecode.js'))

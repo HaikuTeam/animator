@@ -1,7 +1,7 @@
-var test = require('tape');
-var reifyRFO = require('./../../src/reflection/reifyRFO');
+var test = require('tape')
+var reifyRFO = require('./../../src/reflection/reifyRFO')
 
-test('reflection.reifyRFO', function(t) {
+test('reflection.reifyRFO', function (t) {
   var specs = [
     // named standard function
     [
@@ -317,14 +317,14 @@ test('reflection.reifyRFO', function(t) {
       },
       '({ a, b, c: [ d, e ] }, { f, z: [ g, h ], i, j, k: { l, m: { n, o } } }, ...args) => {\n    return 123;\n}'
     ]
-  ];
+  ]
 
-  t.plan(specs.length);
+  t.plan(specs.length)
 
   specs.forEach(spec => {
-    var object = spec[0].__function;
-    var expected = spec[1];
-    var result = reifyRFO(object);
-    t.equal(JSON.stringify(result.toString()), JSON.stringify(expected));
-  });
-});
+    var object = spec[0].__function
+    var expected = spec[1]
+    var result = reifyRFO(object)
+    t.equal(JSON.stringify(result.toString()), JSON.stringify(expected))
+  })
+})

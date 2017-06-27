@@ -1,4 +1,4 @@
-var N = null;
+var N = null
 module.exports = {
   properties: [],
   eventHandlers: [],
@@ -64,4 +64,4 @@ module.exports = {
       </span>
     </div>
   `
-};
+}

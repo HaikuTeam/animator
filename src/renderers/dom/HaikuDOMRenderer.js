@@ -2,15 +2,15 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var getElementSize = require('./getElementSize');
-var createRightClickMenu = require('./createRightClickMenu');
-var createMixpanel = require('./createMixpanel');
-var _render = require('./render');
-var _patch = require('./patch');
+var getElementSize = require('./getElementSize')
+var createRightClickMenu = require('./createRightClickMenu')
+var createMixpanel = require('./createMixpanel')
+var _render = require('./render')
+var _patch = require('./patch')
 
-var HaikuDOMRenderer = {};
+var HaikuDOMRenderer = {}
 
-function render(
+function render (
   domElement,
   virtualContainer,
   virtualTree,
@@ -27,10 +27,10 @@ function render(
     hash,
     options,
     scopes
-  );
+  )
 }
 
-function patch(
+function patch (
   domElement,
   virtualContainer,
   patchesDict,
@@ -47,18 +47,18 @@ function patch(
     hash,
     options,
     scopes
-  );
+  )
 }
 
-function menuize(domElement, playerInstance) {
-  createRightClickMenu(domElement, playerInstance);
+function menuize (domElement, playerInstance) {
+  createRightClickMenu(domElement, playerInstance)
 }
 
-function mixpanel(domElement, mixpanelToken, playerInstance) {
-  createMixpanel(domElement, mixpanelToken, playerInstance);
+function mixpanel (domElement, mixpanelToken, playerInstance) {
+  createMixpanel(domElement, mixpanelToken, playerInstance)
 }
 
-function createContainer(domElement) {
+function createContainer (domElement) {
   return {
     isContainer: true,
     layout: {
@@ -66,13 +66,13 @@ function createContainer(domElement) {
         size: getElementSize(domElement)
       }
     }
-  };
+  }
 }
 
-HaikuDOMRenderer.render = render;
-HaikuDOMRenderer.patch = patch;
-HaikuDOMRenderer.menuize = menuize;
-HaikuDOMRenderer.mixpanel = mixpanel;
-HaikuDOMRenderer.createContainer = createContainer;
+HaikuDOMRenderer.render = render
+HaikuDOMRenderer.patch = patch
+HaikuDOMRenderer.menuize = menuize
+HaikuDOMRenderer.mixpanel = mixpanel
+HaikuDOMRenderer.createContainer = createContainer
 
-module.exports = HaikuDOMRenderer;
+module.exports = HaikuDOMRenderer

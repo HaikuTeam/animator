@@ -84,6 +84,6 @@ var allSvgElementNames = [
   'use',
   'view',
   'vkern'
-];
+]
 
-module.exports = allSvgElementNames;
+module.exports = allSvgElementNames

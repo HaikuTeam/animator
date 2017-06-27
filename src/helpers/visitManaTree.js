@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function visitManaTree(locator, mana, visitor, parent, index) {
-  if (!mana) return null;
+function visitManaTree (locator, mana, visitor, parent, index) {
+  if (!mana) return null
   visitor(
     mana.elementName,
     mana.attributes,
@@ -12,12 +12,12 @@ function visitManaTree(locator, mana, visitor, parent, index) {
     locator,
     parent,
     index
-  );
-  if (!mana.children) return null;
+  )
+  if (!mana.children) return null
   for (var i = 0; i < mana.children.length; i++) {
-    var child = mana.children[i];
-    visitManaTree(locator + '.' + i, child, visitor, mana, i);
+    var child = mana.children[i]
+    visitManaTree(locator + '.' + i, child, visitor, mana, i)
   }
 }
 
-module.exports = visitManaTree;
+module.exports = visitManaTree

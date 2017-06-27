@@ -1001,4 +1001,4 @@ module.exports = {
       }
     ]
   }
-};
+}

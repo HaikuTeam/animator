@@ -1,8 +1,8 @@
-var test = require('tape');
-var convertManaLayout = require('./../../src/helpers/convertManaLayout');
-var xmlToMana = require('./../../src/helpers/xmlToMana');
+var test = require('tape')
+var convertManaLayout = require('./../../src/helpers/convertManaLayout')
+var xmlToMana = require('./../../src/helpers/xmlToMana')
 
-test('layout.convertManaLayout', function(t) {
+test('layout.convertManaLayout', function (t) {
   var data = [
     [
       {
@@ -555,13 +555,13 @@ test('layout.convertManaLayout', function(t) {
         ]
       }
     ]
-  ];
+  ]
 
-  t.plan(data.length);
+  t.plan(data.length)
 
   data.forEach(datum => {
-    var a = JSON.stringify(convertManaLayout(datum[0]));
-    var b = JSON.stringify(datum[1]);
-    t.equal(a, b);
-  });
-});
+    var a = JSON.stringify(convertManaLayout(datum[0]))
+    var b = JSON.stringify(datum[1])
+    t.equal(a, b)
+  })
+})

@@ -2,15 +2,15 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var STRING = 'string';
-var NUMBER = 'number';
-var BOOLEAN = 'boolean';
+var STRING = 'string'
+var NUMBER = 'number'
+var BOOLEAN = 'boolean'
 
-function isSerializableScalar(value) {
+function isSerializableScalar (value) {
   return value === null ||
     typeof value === NUMBER ||
     typeof value === STRING ||
-    typeof value === BOOLEAN;
+    typeof value === BOOLEAN
 }
 
-module.exports = isSerializableScalar;
+module.exports = isSerializableScalar

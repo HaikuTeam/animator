@@ -117,4 +117,4 @@ module.exports = {
     elementName: 'div',
     attributes: { 'haiku-title': 'HeartsRejoicing', 'haiku-id': 'f465d66829fe' }
   }
-};
+}

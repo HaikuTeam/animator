@@ -21,4 +21,4 @@ module.exports = {
   eventHandlers: [],
   properties: [],
   template: '<div id="div">Hello World!</div>'
-};
+}

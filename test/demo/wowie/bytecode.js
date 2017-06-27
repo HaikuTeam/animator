@@ -165,4 +165,4 @@ module.exports = {
       }
     ]
   }
-};
+}

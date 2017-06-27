@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var Layout3D = require('./../../Layout3D');
+var Layout3D = require('./../../Layout3D')
 
 // A dictionary that maps HTML+SVG element names (camelCase)
 // to addressable properties. This acts as a whitelist of properties that
@@ -14,25 +14,25 @@ var Layout3D = require('./../../Layout3D');
 // }
 
 // Just a utility for populating these objects
-function has() {
-  var obj = {};
+function has () {
+  var obj = {}
   for (var i = 0; i < arguments.length; i++) {
-    var arg = arguments[i];
+    var arg = arguments[i]
     for (var name in arg) {
-      var fn = arg[name];
-      obj[name] = fn;
+      var fn = arg[name]
+      obj[name] = fn
     }
   }
   return {
     addressableProperties: obj
-  };
+  }
 }
 
 var TEXT_CONTENT_SCHEMA = {
   content: { typedef: 'string', fallback: null }
-};
+}
 
-var LAYOUT_DEFAULTS = Layout3D.createLayoutSpec();
+var LAYOUT_DEFAULTS = Layout3D.createLayoutSpec()
 
 var LAYOUT_3D_SCHEMA = {
   shown: {
@@ -163,7 +163,7 @@ var LAYOUT_3D_SCHEMA = {
     typedef: 'number',
     fallback: LAYOUT_DEFAULTS.sizeMode.z
   }
-};
+}
 
 var LAYOUT_2D_SCHEMA = {
   shown: {
@@ -262,7 +262,7 @@ var LAYOUT_2D_SCHEMA = {
     typedef: 'number',
     fallback: LAYOUT_DEFAULTS.sizeMode.y
   }
-};
+}
 
 var PRESENTATION_SCHEMA = {
   alignmentBaseline: { typedef: 'string', fallback: '' },
@@ -326,7 +326,7 @@ var PRESENTATION_SCHEMA = {
   visibility: { typedef: 'string', fallback: '' },
   wordSpacing: { typedef: 'string', fallback: '' },
   writingMode: { typedef: 'string', fallback: '' }
-};
+}
 
 var STYLE_SCHEMA = {
   'style.alignmentBaseline': { typedef: 'string', fallback: '' },
@@ -455,11 +455,11 @@ var STYLE_SCHEMA = {
     typedef: 'string',
     fallback: 'rgba(0,0,0,0)'
   }
-};
+}
 
 var HTML_STYLE_SHORTHAND_SCHEMA = {
   backgroundColor: { typedef: 'string', fallback: '' }
-};
+}
 
 var CONTROL_FLOW_SCHEMA = {
   // 'controlFlow.if': { typedef: 'any', fallback: null },
@@ -467,7 +467,7 @@ var CONTROL_FLOW_SCHEMA = {
   // 'controlFlow.yield': { typedef: 'any', fallback: null },
   'controlFlow.insert': { typedef: 'any', fallback: null },
   'controlFlow.placeholder': { typedef: 'any', fallback: null }
-};
+}
 
 module.exports = {
   'missing-glyph': has(
@@ -1198,4 +1198,4 @@ module.exports = {
   view: has(),
   vker: has(),
   wb: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA)
-};
+}
