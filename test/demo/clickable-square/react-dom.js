@@ -7,8 +7,8 @@ module.exports = function _react_dom_wrapper (element, props) {
   props = assign(
     {
       onClick: function () {
-        document.body.style.backgroundColor = document.body.style.backgroundColor ===
-          'black'
+        document.body.style.backgroundColor = document.body.style
+          .backgroundColor === 'black'
           ? 'white'
           : 'black'
       }

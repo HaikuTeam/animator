@@ -27,7 +27,8 @@ function createTagNode (
 
   newDomElement.haiku = {}
 
-  var incomingKey = virtualElement.key ||
+  var incomingKey =
+    virtualElement.key ||
     (virtualElement.attributes && virtualElement.attributes.key)
   if (incomingKey !== undefined && incomingKey !== null) {
     newDomElement.haiku.key = incomingKey

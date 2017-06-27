@@ -4,21 +4,19 @@ module.exports = {
       '#hello': {
         content: {
           0: {
-            value: (
-              {
-                clicks,
-                $timeline_name,
-                $property_name,
-                $selector,
-                $keyframe,
-                $frame,
-                $frame_unbounded,
-                $time,
-                $time_elapsed,
-                $time_clock,
-                $time_max
-              }
-            ) => {
+            value: ({
+              clicks,
+              $timeline_name,
+              $property_name,
+              $selector,
+              $keyframe,
+              $frame,
+              $frame_unbounded,
+              $time,
+              $time_elapsed,
+              $time_clock,
+              $time_max
+            }) => {
               return JSON.stringify(
                 {
                   clicks,

@@ -16,9 +16,9 @@ for (var name in colorNames) {
   }
 }
 
-var cs = module.exports = {
+var cs = (module.exports = {
   to: {}
-}
+})
 
 cs.get = function (string) {
   var prefix = string.substring(0, 3).toLowerCase()
@@ -181,11 +181,13 @@ cs.get.hwb = function (string) {
 }
 
 cs.to.hex = function (rgba) {
-  return '#' +
+  return (
+    '#' +
     hexDouble(rgba[0]) +
     hexDouble(rgba[1]) +
     hexDouble(rgba[2]) +
     (rgba[3] < 1 ? hexDouble(Math.round(rgba[3] * 255)) : '')
+  )
 }
 
 cs.to.rgb = function (rgba) {

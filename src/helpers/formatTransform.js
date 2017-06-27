@@ -13,10 +13,10 @@ var TWO = 2
 var THREE = 3
 
 function formatTransform (transform, format, devicePixelRatio) {
-  transform[12] = Math.round(transform[12] * devicePixelRatio) /
-    devicePixelRatio
-  transform[13] = Math.round(transform[13] * devicePixelRatio) /
-    devicePixelRatio
+  transform[12] =
+    Math.round(transform[12] * devicePixelRatio) / devicePixelRatio
+  transform[13] =
+    Math.round(transform[13] * devicePixelRatio) / devicePixelRatio
   var prefix
   var last
   if (format === TWO) {

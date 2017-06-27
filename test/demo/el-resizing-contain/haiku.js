@@ -1,10 +1,12 @@
 module.exports = {
   type: 'haiku',
-  name: 'UsersMatthewCodeHaikuTeamScratchMonoPackagesHaikuPlumbingTestFixturesProjectsBlankProject',
+  name:
+    'UsersMatthewCodeHaikuTeamScratchMonoPackagesHaikuPlumbingTestFixturesProjectsBlankProject',
   player: 'player.js',
   interpreter: '',
   bytecode: '',
   react: {
-    component: 'UsersMatthewCodeHaikuTeamScratchMonoPackagesHaikuPlumbingTestFixturesProjectsBlankProjectComponent'
+    component:
+      'UsersMatthewCodeHaikuTeamScratchMonoPackagesHaikuPlumbingTestFixturesProjectsBlankProjectComponent'
   }
 }

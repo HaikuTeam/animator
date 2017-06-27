@@ -168,7 +168,9 @@ function parseCssTransformString (str) {
 
   // The reason for the conditional test is we don't want to bother assigning the attribute if it's the default/fallback
   // (keeps the bytecode less noisy if we only include what is really an override)
-  if (components.translation[0] !== 0) { out['translation.x'] = components.translation[0] }
+  if (components.translation[0] !== 0) {
+    out['translation.x'] = components.translation[0]
+  }
   if (components.translation[1] !== 0) {
     out['translation.y'] = components.translation[1]
   }

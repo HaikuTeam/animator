@@ -35,8 +35,8 @@ function _getEulerAngles (x, y, z, w) {
 
   var _x = Math.asin(2 * x * w - 2 * y * z)
   var _y = Math.atan2(2 * x * z + 2 * y * w, 1 - 2 * (y * y) - 2 * (x * x))
-  var _z = Math.PI -
-    Math.atan2(2 * x * y + 2 * z * w, 1 - 2 * (y * y) - 2 * (w * w))
+  var _z =
+    Math.PI - Math.atan2(2 * x * y + 2 * z * w, 1 - 2 * (y * y) - 2 * (w * w))
 
   return [normalizeRad(_x), normalizeRad(_y), normalizeRad(_z)]
 }

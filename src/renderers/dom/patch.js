@@ -8,9 +8,7 @@ function getElementByFlexId (topLevelDomElement, flexId, scopes) {
   if (!scopes.elementCache) scopes.elementCache = {}
   if (scopes.elementCache[flexId]) return scopes.elementCache[flexId]
   var attrSelector = '[haiku-id="' + flexId + '"]'
-  var elByHaikuId = topLevelDomElement.ownerDocument.querySelector(
-    attrSelector
-  )
+  var elByHaikuId = topLevelDomElement.ownerDocument.querySelector(attrSelector)
   if (elByHaikuId) {
     scopes.elementCache[flexId] = elByHaikuId
     return scopes.elementCache[flexId]

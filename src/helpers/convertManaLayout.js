@@ -96,7 +96,8 @@ module.exports = function convertManaLayout (mana) {
     if (attributes.style && typeof attributes.style === 'object') {
       // Convert the style.width attribute to a layout-friendly size property
       if (
-        attributes.style.width !== undefined && attributes.style.width !== null
+        attributes.style.width !== undefined &&
+        attributes.style.width !== null
       ) {
         var widthStyleProp = determineSizingProp('x', attributes.style.width)
         if (widthStyleProp) {

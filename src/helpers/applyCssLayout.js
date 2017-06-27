@@ -25,7 +25,13 @@ function applyCssLayout (
   rendererScopes
 ) {
   // No point continuing if there's no computedLayout contents
-  if (!computedLayout.opacity && !computedLayout.size && !computedLayout.matrix) { return }
+  if (
+    !computedLayout.opacity &&
+    !computedLayout.size &&
+    !computedLayout.matrix
+  ) {
+    return
+  }
 
   var elementScope = scopeOfElement(virtualElement)
 

@@ -18,8 +18,8 @@
   "scripts": {
     "test": "npm run test:unit",
     "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
-    "lint": "standard \"src/**/*.js\" --verbose | snazzy || true",
-    "prettify": "prettier-standard-formatter \"{,!(node_modules|dist)/**/}*.js\"",
+    "lint": "npm run prettify && standard \"src/**/*.js\" --fix --verbose | snazzy || true",
+    "prettify": "prettier-standard \"{,!(node_modules|dist)/**/}*.js\"",
     "footprint": "browserify index.js | uglifyjs --compress --mangle > footprint.ignore.min.js && wc -c < footprint.ignore.min.js && rm footprint.ignore.min.js",
     "demo": "nodemon ./test/demo/server.js",
     "start": "npm run demo"
@@ -39,9 +39,7 @@
     "handlebars": "4.0.6",
     "jsdom": "9.11.0",
     "nodemon": "1.11.0",
-    "prettier": "0.22.0",
     "prettier-standard": "^5.1.0",
-    "prettier-standard-formatter": "^0.222222222222222.333333333333333",
     "react-dom": "15.4.2",
     "snazzy": "6.0.0",
     "standard": "8.6.0",

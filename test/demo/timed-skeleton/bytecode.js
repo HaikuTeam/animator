@@ -176,7 +176,8 @@ module.exports = {
         r: { '0': { value: '55.0707711%' } },
         gradientTransform: {
           '0': {
-            value: 'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
+            value:
+              'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
           }
         }
       },
@@ -235,7 +236,8 @@ module.exports = {
         r: { '0': { value: '55.0707711%' } },
         gradientTransform: {
           '0': {
-            value: 'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
+            value:
+              'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
           }
         }
       },
@@ -294,7 +296,8 @@ module.exports = {
         r: { '0': { value: '55.0707711%' } },
         gradientTransform: {
           '0': {
-            value: 'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
+            value:
+              'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
           }
         }
       },
@@ -353,7 +356,8 @@ module.exports = {
         r: { '0': { value: '55.0707711%' } },
         gradientTransform: {
           '0': {
-            value: 'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
+            value:
+              'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
           }
         }
       },
@@ -413,7 +417,8 @@ module.exports = {
         r: { '0': { value: '55.0707711%' } },
         gradientTransform: {
           '0': {
-            value: 'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
+            value:
+              'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
           }
         }
       },
@@ -469,7 +474,8 @@ module.exports = {
         r: { '0': { value: '55.0707711%' } },
         gradientTransform: {
           '0': {
-            value: 'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
+            value:
+              'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
           }
         }
       },
@@ -525,7 +531,8 @@ module.exports = {
         r: { '0': { value: '55.0707711%' } },
         gradientTransform: {
           '0': {
-            value: 'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
+            value:
+              'translate(0.500000,0.500000),rotate(90.000000),scale(1.000000,0.990480),translate(-0.500000,-0.500000)'
           }
         }
       },
@@ -660,7 +667,8 @@ module.exports = {
           version: '1.1',
           xmlns: 'http://www.w3.org/2000/svg',
           'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-          source: 'designs/Skeleton States.sketch.contents/slices/Rectangle 2.svg',
+          source:
+            'designs/Skeleton States.sketch.contents/slices/Rectangle 2.svg',
           'haiku-title': 'Rectangle 2',
           'haiku-id': '12457a34ab2b'
         },
@@ -699,7 +707,8 @@ module.exports = {
           version: '1.1',
           xmlns: 'http://www.w3.org/2000/svg',
           'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-          source: 'designs/Skeleton States.sketch.contents/slices/highlight.svg',
+          source:
+            'designs/Skeleton States.sketch.contents/slices/highlight.svg',
           'haiku-title': 'highlight',
           'haiku-id': '830e7cc89529'
         },
@@ -758,7 +767,8 @@ module.exports = {
           version: '1.1',
           xmlns: 'http://www.w3.org/2000/svg',
           'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-          source: 'designs/Skeleton States.sketch.contents/slices/highlight.svg',
+          source:
+            'designs/Skeleton States.sketch.contents/slices/highlight.svg',
           'haiku-title': 'highlight',
           'haiku-id': '82ce28a67461'
         },
@@ -817,7 +827,8 @@ module.exports = {
           version: '1.1',
           xmlns: 'http://www.w3.org/2000/svg',
           'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-          source: 'designs/Skeleton States.sketch.contents/slices/highlight.svg',
+          source:
+            'designs/Skeleton States.sketch.contents/slices/highlight.svg',
           'haiku-title': 'highlight',
           'haiku-id': 'c699d9b22dd3'
         },
@@ -876,7 +887,8 @@ module.exports = {
           version: '1.1',
           xmlns: 'http://www.w3.org/2000/svg',
           'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-          source: 'designs/Skeleton States.sketch.contents/slices/highlight.svg',
+          source:
+            'designs/Skeleton States.sketch.contents/slices/highlight.svg',
           'haiku-title': 'highlight',
           'haiku-id': 'afc58d7db81b'
         },
@@ -935,7 +947,8 @@ module.exports = {
           version: '1.1',
           xmlns: 'http://www.w3.org/2000/svg',
           'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-          source: 'designs/Skeleton States.sketch.contents/slices/highlight.svg',
+          source:
+            'designs/Skeleton States.sketch.contents/slices/highlight.svg',
           'haiku-title': 'highlight',
           'haiku-id': '5bd44773c73e'
         },
@@ -994,7 +1007,8 @@ module.exports = {
           version: '1.1',
           xmlns: 'http://www.w3.org/2000/svg',
           'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-          source: 'designs/Skeleton States.sketch.contents/slices/highlight.svg',
+          source:
+            'designs/Skeleton States.sketch.contents/slices/highlight.svg',
           'haiku-title': 'highlight',
           'haiku-id': 'c8bfbc249f11'
         },
@@ -1053,7 +1067,8 @@ module.exports = {
           version: '1.1',
           xmlns: 'http://www.w3.org/2000/svg',
           'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-          source: 'designs/Skeleton States.sketch.contents/slices/highlight.svg',
+          source:
+            'designs/Skeleton States.sketch.contents/slices/highlight.svg',
           'haiku-title': 'highlight',
           'haiku-id': '9b9db5e4bd50'
         },

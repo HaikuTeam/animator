@@ -22,9 +22,8 @@ function computeSize (
       case SIZE_PROPORTIONAL:
         var sizeProportional = layoutSpec.sizeProportional[component]
         var sizeDifferential = layoutSpec.sizeDifferential[component]
-        outputSize[component] = parentsizeAbsolute[component] *
-          sizeProportional +
-          sizeDifferential
+        outputSize[component] =
+          parentsizeAbsolute[component] * sizeProportional + sizeDifferential
         break
       case SIZE_ABSOLUTE:
         outputSize[component] = layoutSpec.sizeAbsolute[component]

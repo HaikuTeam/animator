@@ -73,16 +73,18 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
   var scope = config.scope || {}
 
   var addUnits = _notUndef(config.addUnits)
-      ? config.addUnits
-      : scope && _notUndef(scope.addUnits) ? scope.addUnits : true
+    ? config.addUnits
+    : scope && _notUndef(scope.addUnits) ? scope.addUnits : true
 
-  var cssUnitless = (_notUndef(config.cssUnitless)
+  var cssUnitless =
+    (_notUndef(config.cssUnitless)
       ? config.cssUnitless
       : scope ? scope.cssUnitless : null) || {}
 
   var cssUnit = (config.cssUnit || scope ? scope.cssUnit : null) || 'px'
 
-  var prefixProperties = config.prefixProperties || (scope ? scope.prefixProperties : null) || {}
+  var prefixProperties =
+    config.prefixProperties || (scope ? scope.prefixProperties : null) || {}
 
   var camelize = config.camelize
 
@@ -121,19 +123,26 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
         if (IS_OBJECT(fnPropValue) && fnPropValue.value != null) {
           propValue = fnPropValue.value
           prefix = fnPropValue.prefix
-          styleName = fnPropValue.name
-            ? HYPHENATE(fnPropValue.name)
-            : styleName
+          styleName = fnPropValue.name ? HYPHENATE(fnPropValue.name) : styleName
         } else {
           propValue = fnPropValue
         }
       }
 
       propType = typeof propValue
-      propIsNumber = propType === 'number' ||
-        (propType === 'string' && propValue !== '' && propValue * 1 === propValue)
+      propIsNumber =
+        propType === 'number' ||
+        (propType === 'string' &&
+          propValue !== '' &&
+          propValue * 1 === propValue)
 
-      if (propValue === null || propValue === undefined || styleName === null || styleName === undefined || styleName === '') {
+      if (
+        propValue === null ||
+        propValue === undefined ||
+        styleName === null ||
+        styleName === undefined ||
+        styleName === ''
+      ) {
         continue
       }
 

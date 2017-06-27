@@ -29,13 +29,13 @@ function computeRotationFlexibly (x, y, z, w, quat) {
   // case that any of the other values was omitted, which we will interpret
   // to mean we want to use the value given by the passed quaternion
   if (x == null || y == null || z == null) {
-    var sp = (-2) * (quat.y * quat.z - quat.w * quat.x)
+    var sp = -2 * (quat.y * quat.z - quat.w * quat.x)
 
     if (Math.abs(sp) > 0.99999) {
       y = y == null ? Math.PI * 0.5 * sp : y
       x = x == null
         ? Math.atan2(
-            (-quat.x) * quat.z + quat.w * quat.y,
+            -quat.x * quat.z + quat.w * quat.y,
             0.5 - quat.y * quat.y - quat.z * quat.z
           )
         : x

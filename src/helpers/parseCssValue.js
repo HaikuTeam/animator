@@ -108,9 +108,7 @@ Parser.prototype.parse = function () {
   while (this.str.length) {
     var obj = this.value()
     if (!obj) {
-      throw new Error(
-        'failed to parse near `' + this.str.slice(0, 10) + '...`'
-      )
+      throw new Error('failed to parse near `' + this.str.slice(0, 10) + '...`')
     }
     vals.push(obj)
   }

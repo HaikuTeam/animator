@@ -31,10 +31,12 @@ function updateElement (
   var domTagName = domElement.tagName.toLowerCase().trim()
   var elName = normalizeName(getTypeAsString(virtualElement))
   var virtualElementTagName = elName.toLowerCase().trim()
-  var incomingKey = virtualElement.key ||
+  var incomingKey =
+    virtualElement.key ||
     (virtualElement.attributes && virtualElement.attributes.key)
   var existingKey = domElement.haiku && domElement.haiku.key
-  var isKeyDifferent = incomingKey !== null &&
+  var isKeyDifferent =
+    incomingKey !== null &&
     incomingKey !== undefined &&
     incomingKey !== existingKey
 
@@ -80,11 +82,16 @@ function updateElement (
       isPatchOperation,
       isKeyDifferent
     )
-    if (incomingKey !== undefined && incomingKey !== null) { domElement.haiku.key = incomingKey }
+    if (incomingKey !== undefined && incomingKey !== null) {
+      domElement.haiku.key = incomingKey
+    }
     return domElement
   }
 
-  if (virtualElement.attributes && typeof virtualElement.attributes === OBJECT) {
+  if (
+    virtualElement.attributes &&
+    typeof virtualElement.attributes === OBJECT
+  ) {
     assignAttributes(
       domElement,
       virtualElement.attributes,

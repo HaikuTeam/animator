@@ -8,9 +8,7 @@ var merge = require('lodash.merge')
 var ValidProps = require('./ValidProps')
 var EventsDict = require('./EventsDict')
 var reactToMana = require('./../../helpers/reactToMana')
-var initializeTreeAttributes = require(
-  './../../helpers/initializeTreeAttributes'
-)
+var initializeTreeAttributes = require('./../../helpers/initializeTreeAttributes')
 
 function applyInputs (haikuPlayer, props) {
   for (var key in props) {
@@ -61,7 +59,7 @@ function createContext (reactInstance, HaikuComponentClass, reactProps) {
   reactInstance.haikuPlayer = HaikuComponentClass(
     reactInstance.refs.container,
     fullProps
-  ); // eslint-disable-line
+  ) // eslint-disable-line
 
   reactInstance.haikuPlayer.hear(function (name, payload) {
     if (

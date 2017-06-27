@@ -12,7 +12,7 @@ function uniq (arr) {
     var j = i + 1
     for (; j < arr.length; ++j) {
       if (arr[i] === arr[j]) {
-        arr.splice((j--), 1)
+        arr.splice(j--, 1)
       }
     }
   }

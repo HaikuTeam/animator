@@ -158,8 +158,8 @@ SUMMONABLES['$frame'] = {
     inputValues,
     eventsFired
   ) {
-    var timeline = hostInstance.getTimeline &&
-      hostInstance.getTimeline(timelineName)
+    var timeline =
+      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
     if (!timeline) return void 0 // No frame available if no timeline
     return ~~timeline.getBoundedFrame()
   }
@@ -175,8 +175,8 @@ SUMMONABLES['$frame_unbounded'] = {
     inputValues,
     eventsFired
   ) {
-    var timeline = hostInstance.getTimeline &&
-      hostInstance.getTimeline(timelineName)
+    var timeline =
+      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
     if (!timeline) return void 0 // No frame available if no timeline
     return ~~timeline.getUnboundedFrame()
   }
@@ -192,8 +192,8 @@ SUMMONABLES['$time'] = {
     inputValues,
     eventsFired
   ) {
-    var timeline = hostInstance.getTimeline &&
-      hostInstance.getTimeline(timelineName)
+    var timeline =
+      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
     if (!timeline) return void 0 // No frame available if no timeline
     return ~~timeline.getTime()
   }
@@ -209,8 +209,8 @@ SUMMONABLES['$time_elapsed'] = {
     inputValues,
     eventsFired
   ) {
-    var timeline = hostInstance.getTimeline &&
-      hostInstance.getTimeline(timelineName)
+    var timeline =
+      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
     if (!timeline) return void 0 // No frame available if no timeline
     return ~~timeline.getElapsedTime()
   }
@@ -226,8 +226,8 @@ SUMMONABLES['$time_clock'] = {
     inputValues,
     eventsFired
   ) {
-    var timeline = hostInstance.getTimeline &&
-      hostInstance.getTimeline(timelineName)
+    var timeline =
+      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
     if (!timeline) return void 0 // No frame available if no timeline
     return ~~timeline.getClockTime()
   }
@@ -243,8 +243,8 @@ SUMMONABLES['$time_max'] = {
     inputValues,
     eventsFired
   ) {
-    var timeline = hostInstance.getTimeline &&
-      hostInstance.getTimeline(timelineName)
+    var timeline =
+      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
     if (!timeline) return void 0 // No frame available if no timeline
     return ~~timeline.getMaxTime()
   }
@@ -441,7 +441,9 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
 ) {
   // Establish the cache objects for this properties group within this timeline
   if (!this._parsees[timelineName]) this._parsees[timelineName] = {}
-  if (!this._parsees[timelineName][selector]) { this._parsees[timelineName][selector] = {} }
+  if (!this._parsees[timelineName][selector]) {
+    this._parsees[timelineName][selector] = {}
+  }
   if (!this._parsees[timelineName][selector][outputName]) {
     this._parsees[timelineName][selector][outputName] = {}
   }
@@ -460,7 +462,8 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
       // We have to recreate this cache object every time due to the need for function recalc
       this._parsees[timelineName][selector][outputName][ms] = {}
       if (descriptor.curve) {
-        this._parsees[timelineName][selector][outputName][ms].curve = descriptor.curve
+        this._parsees[timelineName][selector][outputName][ms].curve =
+          descriptor.curve
       }
 
       // Indicate to the downstream transition cache that this value came from a function and cannot be cached there.
@@ -483,9 +486,13 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
 
       // The function's return value is expected to be in the *raw* format - we parse to allow for interpolation
       if (PARSERS[outputName]) {
-        this._parsees[timelineName][selector][outputName][ms].value = PARSERS[outputName](functionReturnValue)
+        this._parsees[timelineName][selector][outputName][ms].value = PARSERS[
+          outputName
+        ](functionReturnValue)
       } else {
-        this._parsees[timelineName][selector][outputName][ms].value = functionReturnValue
+        this._parsees[timelineName][selector][outputName][
+          ms
+        ].value = functionReturnValue
       }
     } else {
       // In case of static values, we can cache - no need to re-parse static values if we already parsed them
@@ -496,13 +503,17 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
       // If nothing in the cache, create the base cache object...
       this._parsees[timelineName][selector][outputName][ms] = {}
       if (descriptor.curve) {
-        this._parsees[timelineName][selector][outputName][ms].curve = descriptor.curve
+        this._parsees[timelineName][selector][outputName][ms].curve =
+          descriptor.curve
       }
 
       if (PARSERS[outputName]) {
-        this._parsees[timelineName][selector][outputName][ms].value = PARSERS[outputName](descriptor.value)
+        this._parsees[timelineName][selector][outputName][ms].value = PARSERS[
+          outputName
+        ](descriptor.value)
       } else {
-        this._parsees[timelineName][selector][outputName][ms].value = descriptor.value
+        this._parsees[timelineName][selector][outputName][ms].value =
+          descriptor.value
       }
     }
   }
@@ -596,7 +607,9 @@ ValueBuilder.prototype.build = function _build (
         this.didChangeValue(timelineName, selector, propertyName, finalValue)
       ) {
         if (!out[selector]) out[selector] = {}
-        if (out[selector][propertyName] === undefined) { out[selector][propertyName] = finalValue } else {
+        if (out[selector][propertyName] === undefined) {
+          out[selector][propertyName] = finalValue
+        } else {
           out[selector][propertyName] = BasicUtils.mergeValue(
             out[selector][propertyName],
             finalValue

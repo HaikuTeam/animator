@@ -35,8 +35,8 @@ function HaikuDOMAdapter (bytecode, options, _window) {
   if (options.useWebkitPrefix === undefined) {
     // Allow headless mode, e.g. in server-side rendering or in Node.js unit tests
     if (_window && _window.document) {
-      var isWebKit = 'WebkitAppearance' in
-        _window.document.documentElement.style
+      var isWebKit =
+        'WebkitAppearance' in _window.document.documentElement.style
       options.useWebkitPrefix = !!isWebKit
     }
   }

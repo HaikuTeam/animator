@@ -91,9 +91,7 @@ app.get('/demos/:demo/vanilla', function (req, res) {
         if (err) return res.status(500).send('Server error! (' + err + ')')
         var js = jsbuf.toString()
         var fsize = filesize(Buffer.byteLength(js, 'utf8'))
-        console.log(
-          `[haiku-interpreter] ${demo} vanilla bundle size: ${fsize}`
-        )
+        console.log(`[haiku-interpreter] ${demo} vanilla bundle size: ${fsize}`)
         var locals = {
           mountStyle: getMountStyle(demo),
           wrapperStyle: getWrapperStyle(demo),

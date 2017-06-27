@@ -148,13 +148,7 @@ test('reflection.functionToRFO', function (t) {
 
   rfo = functionToRFO(function (
     { a, b, c: [d, e] },
-    {
-      f,
-      z: [g, h],
-      i,
-      j,
-      k: { l, m: { n, o } }
-    },
+    { f, z: [g, h], i, j, k: { l, m: { n, o } } },
     ...args
   ) {
     return 123
@@ -190,19 +184,15 @@ test('reflection.functionToRFO', function (t) {
     `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":[{"a":"a","b":"b","c":["d","e"]}],"body":"  return 123;"}}`
   )
 
-  rfo = functionToRFO((
-    { a, b, c: [d, e] },
-    {
-      f,
-      z: [g, h],
-      i,
-      j,
-      k: { l, m: { n, o } }
-    },
-    ...args
-  ) => {
-    return 123
-  })
+  rfo = functionToRFO(
+    (
+      { a, b, c: [d, e] },
+      { f, z: [g, h], i, j, k: { l, m: { n, o } } },
+      ...args
+    ) => {
+      return 123
+    }
+  )
   t.equal(
     JSON.stringify(rfo),
     `{"__function":{"type":"ArrowFunctionExpression","name":null,"params":[{"a":"a","b":"b","c":["d","e"]},{"f":"f","z":["g","h"],"i":"i","j":"j","k":{"l":"l","m":{"n":"n","o":"o"}}},{"__rest":"args"}],"body":"  return 123;"}}`

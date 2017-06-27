@@ -1,4 +1,5 @@
 module.exports = {
   type: 'haiku',
-  name: 'UsersMatthewCodeHaikuTeamMonoPackagesHaikuPlumbingTestFixturesProjectsBlankProject'
+  name:
+    'UsersMatthewCodeHaikuTeamMonoPackagesHaikuPlumbingTestFixturesProjectsBlankProject'
 }

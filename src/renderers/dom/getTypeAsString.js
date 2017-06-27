@@ -14,9 +14,7 @@ function getType (virtualElement) {
 function thingToTagName (thing) {
   if (typeof thing === STRING && thing.length > 0) return thing
   if (typeof thing === FUNCTION) return fnToTagName(thing)
-  _warnOnce(
-    'Got blank/malformed virtual element object; falling back to <div>'
-  )
+  _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
   return 'div'
 }
 

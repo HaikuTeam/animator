@@ -6,7 +6,8 @@ var MENU_GLOBAL_ID = 'haiku-right-click-menu'
 var WIDTH = 167
 var HEIGHT = 44
 
-var haikuIcon = '' +
+var haikuIcon =
+  '' +
   '<svg style="transform:translateY(3px);margin-right:3px;" width="13px" height="13px" viewBox="0 0 9 9" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
   '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">' +
   '        <g id="menu" transform="translate(-9.000000, -50.000000)" fill-rule="nonzero" fill="#899497">' +
@@ -17,7 +18,8 @@ var haikuIcon = '' +
   '    </g>' +
   '</svg>'
 
-var sharePageIcon = '' +
+var sharePageIcon =
+  '' +
   '<svg style="transform:translate(-1px, 3px);margin-right:3px;" width="14px" height="14px" viewBox="0 0 11 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
   '  <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">' +
   '      <g id="menu" transform="translate(-8.000000, -32.000000)">' +
@@ -105,13 +107,11 @@ module.exports = function createRightClickMenu (domElement, component) {
       var org = ''
       if (metadata.organization) {
         org = truncate(escapeHTML(metadata.organization), 11)
-        who = '"' +
-          who +
-          '" <span style="font-weight:normal;">by</span> ' +
-          org
+        who = '"' + who + '" <span style="font-weight:normal;">by</span> ' + org
       }
       var byline = who
-      titleLine = '<p style="margin:0;margin-bottom:4px;padding:12px 0 7px;line-height:12px;text-align:center;border-bottom:1px solid rgba(140,140,140,.14);">' +
+      titleLine =
+        '<p style="margin:0;margin-bottom:4px;padding:12px 0 7px;line-height:12px;text-align:center;border-bottom:1px solid rgba(140,140,140,.14);">' +
         byline +
         '</p>'
     }
@@ -141,9 +141,7 @@ module.exports = function createRightClickMenu (domElement, component) {
     menu.style.left = px(mx)
     menu.style.pointerEvents = 'auto'
     menu.style.display = 'block'
-    menu.innerHTML = titleLine
-      ? titleLine + lines.join('\n')
-      : lines.join('\n')
+    menu.innerHTML = titleLine ? titleLine + lines.join('\n') : lines.join('\n')
   }
 
   function hideMenu () {

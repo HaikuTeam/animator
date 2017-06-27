@@ -14,7 +14,7 @@ function domInjectStylesheet (doc, css) {
     } else {
       style.appendChild(doc.createTextNode(css))
     }
-    (head || doc.documentElement).appendChild(style)
+    ;(head || doc.documentElement).appendChild(style)
   }
 }
 

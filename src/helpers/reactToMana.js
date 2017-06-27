@@ -14,7 +14,9 @@ function reactToMana (react) {
 
   var givenChildren = react.props.children || react.children
   var processedChildren
-  if (Array.isArray(givenChildren)) { processedChildren = reactChildrenToMana(givenChildren) } else if (givenChildren && givenChildren.type) {
+  if (Array.isArray(givenChildren)) {
+    processedChildren = reactChildrenToMana(givenChildren)
+  } else if (givenChildren && givenChildren.type) {
     processedChildren = [reactToMana(givenChildren)]
   } else if (typeof givenChildren === STRING_TYPE) {
     processedChildren = [givenChildren]

@@ -281,18 +281,22 @@ HaikuContext.createComponentFactory = function createComponentFactory (
           mountRoot.style.position = options.position
         }
         if (
-          options.overflowX && mountRoot.style.overflowX !== options.overflowX
+          options.overflowX &&
+          mountRoot.style.overflowX !== options.overflowX
         ) {
           mountRoot.style.overflowX = options.overflowX
         }
         if (
-          options.overflowY && mountRoot.style.overflowY !== options.overflowY
+          options.overflowY &&
+          mountRoot.style.overflowY !== options.overflowY
         ) {
           mountRoot.style.overflowY = options.overflowY
         }
       }
       if (
-        mount && options.sizing === 'cover' && mount.style.overflow !== 'hidden'
+        mount &&
+        options.sizing === 'cover' &&
+        mount.style.overflow !== 'hidden'
       ) {
         mount.style.overflow = 'hidden'
       }

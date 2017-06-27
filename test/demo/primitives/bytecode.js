@@ -246,7 +246,8 @@ module.exports = {
       'haiku:b87b39ae808f': {
         points: {
           '0': {
-            value: '86 137.5 33.6871125 165.002512 43.677985 106.751256 1.35597005 65.4974875 59.8435563 56.9987438 86 4 112.156444 56.9987438 170.64403 65.4974875 128.322015 106.751256 138.312887 165.002512'
+            value:
+              '86 137.5 33.6871125 165.002512 43.677985 106.751256 1.35597005 65.4974875 59.8435563 56.9987438 86 4 112.156444 56.9987438 170.64403 65.4974875 128.322015 106.751256 138.312887 165.002512'
           }
         }
       },
@@ -699,7 +700,8 @@ module.exports = {
   template: {
     elementName: 'div',
     attributes: {
-      'haiku-title': 'UsersMatthewCodeHaikuTeamMonoPackagesHaikuPlumbingTestFixturesProjectsBlankProject',
+      'haiku-title':
+        'UsersMatthewCodeHaikuTeamMonoPackagesHaikuPlumbingTestFixturesProjectsBlankProject',
       'haiku-id': '365ef0d044a7'
     },
     children: [

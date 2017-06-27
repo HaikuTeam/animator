@@ -28,7 +28,9 @@ var DEFAULT_TIMELINE_NAME = 'Default'
 var DEFAULT_OPTIONS = {}
 
 function HaikuComponent (bytecode, context, options) {
-  if (!(this instanceof HaikuComponent)) { return new HaikuComponent(bytecode, context, options) }
+  if (!(this instanceof HaikuComponent)) {
+    return new HaikuComponent(bytecode, context, options)
+  }
 
   if (!bytecode) {
     throw new Error('Empty bytecode not allowed')
@@ -324,7 +326,10 @@ function _bindEventHandler (
       component._eventsFired[eventHandlerDescriptor.selector] = {}
     }
 
-    component._eventsFired[eventHandlerDescriptor.selector][eventHandlerDescriptor.name] = event || true
+    component._eventsFired[eventHandlerDescriptor.selector][
+      eventHandlerDescriptor.name
+    ] =
+      event || true
 
     originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
   }
@@ -586,9 +591,8 @@ function _applyAccumulatedResults (
       var match = matches[j]
 
       var domId = match && match.attributes && match.attributes.id
-      var haikuId = match &&
-        match.attributes &&
-        match.attributes[HAIKU_ID_ATTRIBUTE]
+      var haikuId =
+        match && match.attributes && match.attributes[HAIKU_ID_ATTRIBUTE]
       var flexibleId = haikuId || domId
 
       if (deltas && flexibleId) {
@@ -663,11 +667,7 @@ function _gatherDeltaPatches (
   // that we have already calculated among the descendants of the changed one
   for (var flexId in deltas) {
     var changedNode = deltas[flexId]
-    _computeAndApplyTreeLayouts(
-      changedNode,
-      changedNode.__parent,
-      patchOptions
-    )
+    _computeAndApplyTreeLayouts(changedNode, changedNode.__parent, patchOptions)
   }
 
   return deltas
@@ -1023,10 +1023,10 @@ function _computeAndApplyPresetSizing (element, container, mode, deltas) {
       element.layout.scale.y = containScaleToUse
 
       // Offset the translation so that the element remains centered within the letterboxing
-      element.layout.translation.x = (-(containScaleToUse * elementWidth -
-        containerWidth)) / 2
-      element.layout.translation.y = (-(containScaleToUse * elementHeight -
-        containerHeight)) / 2
+      element.layout.translation.x =
+        -(containScaleToUse * elementWidth - containerWidth) / 2
+      element.layout.translation.y =
+        -(containScaleToUse * elementHeight - containerHeight) / 2
 
       break
 
@@ -1066,10 +1066,10 @@ function _computeAndApplyPresetSizing (element, container, mode, deltas) {
       element.layout.scale.y = coverScaleToUse
 
       // Offset the translation so that the element remains centered within the letterboxing
-      element.layout.translation.x = (-(coverScaleToUse * elementWidth -
-        containerWidth)) / 2
-      element.layout.translation.y = (-(coverScaleToUse * elementHeight -
-        containerHeight)) / 2
+      element.layout.translation.x =
+        -(coverScaleToUse * elementWidth - containerWidth) / 2
+      element.layout.translation.y =
+        -(coverScaleToUse * elementHeight - containerHeight) / 2
 
       break
   }

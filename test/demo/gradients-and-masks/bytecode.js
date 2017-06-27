@@ -473,7 +473,8 @@ module.exports = {
   template: {
     elementName: 'div',
     attributes: {
-      'haiku-title': 'UsersMatthewCodeHaikuTeamMonoPackagesHaikuPlumbingTestFixturesProjectsBlankProject',
+      'haiku-title':
+        'UsersMatthewCodeHaikuTeamMonoPackagesHaikuPlumbingTestFixturesProjectsBlankProject',
       'haiku-id': '365ef0d044a7'
     },
     children: [

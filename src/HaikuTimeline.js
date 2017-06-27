@@ -63,9 +63,8 @@ HaikuTimeline.prototype._updateInternalProperties = function _updateInternalProp
       this.options.loop &&
       this._localElapsedTime > this._maxExplicitlyDefinedTime
     ) {
-      this._localElapsedTime = 0 +
-        this._maxExplicitlyDefinedTime -
-        this._localElapsedTime
+      this._localElapsedTime =
+        0 + this._maxExplicitlyDefinedTime - this._localElapsedTime
     }
     this._localElapsedTime += deltaGlobalClockTime
   }

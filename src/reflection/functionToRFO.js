@@ -2,9 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var functionExpressionStringToPartialAST = require(
-  './functionExpressionStringToPartialAST'
-)
+var functionExpressionStringToPartialAST = require('./functionExpressionStringToPartialAST')
 
 function wrap (str) {
   // Parentheses are required for parsing an expression

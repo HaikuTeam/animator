@@ -81,8 +81,8 @@ function applyLayout (
       return domElement
     }
 
-    var devicePixelRatio = (options && options.devicePixelRatio) ||
-      DEFAULT_PIXEL_RATIO
+    var devicePixelRatio =
+      (options && options.devicePixelRatio) || DEFAULT_PIXEL_RATIO
     var computedLayout = virtualElement.layout.computed
 
     // No computed layout means the el is not shown

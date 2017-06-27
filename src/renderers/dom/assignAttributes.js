@@ -42,7 +42,9 @@ function assignAttributes (
         if (oldKey !== STYLE) {
           // Removal of old styles is handled downstream; see assignStyle()
           if (
-            newValue === null || newValue === undefined || oldValue !== newValue
+            newValue === null ||
+            newValue === undefined ||
+            oldValue !== newValue
           ) {
             domElement.removeAttribute(oldKey)
           }

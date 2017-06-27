@@ -203,7 +203,9 @@ var LAYOUT_3D_VANITIES = {
 
 function _clone (obj) {
   var out = {}
-  for (var key in obj) { out[key] = obj[key] }
+  for (var key in obj) {
+    out[key] = obj[key]
+  }
   return out
 }
 

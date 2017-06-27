@@ -28,7 +28,9 @@ module.exports = function (asStylePrefix) {
 
     var theName = asStylePrefix ? styleName : cssName
 
-    var thePrefix = prefixInfo.style ? asStylePrefix ? prefixInfo.style : prefixInfo.css : ''
+    var thePrefix = prefixInfo.style
+      ? asStylePrefix ? prefixInfo.style : prefixInfo.css
+      : ''
 
     if (styleName in docStyle) {
       return config.asString ? theName : [theName]

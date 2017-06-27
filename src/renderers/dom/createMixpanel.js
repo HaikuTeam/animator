@@ -13,8 +13,7 @@ module.exports = function createMixpanel (domElement, mixpanelToken, component) 
   component.mixpanel = {
     // A little wrapper that makes sure the bytecode's metadata passes through with whatever else we passed
     track: function track (eventName, eventProperties) {
-      var metadata = (component._bytecode && component._bytecode.metadata) || {
-      }
+      var metadata = (component._bytecode && component._bytecode.metadata) || {}
       mixpanel.track(
         eventName,
         assign(
