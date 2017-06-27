@@ -40,7 +40,7 @@ app.get('/', function(req, res) {
       var jss = entries.filter(function(entry) {
         return fse.lstatSync(path.join(DEMOS_PATH, entry)).isDirectory()
       })
-      var list = jss.map(function(js) {
+      var demoList = jss.map(function(js) {
         var basename = path.basename(js)
         var output = { name: basename }
         output.vanillaUrl = '/demos/' + basename + '/vanilla'
@@ -49,7 +49,9 @@ app.get('/', function(req, res) {
         }
         return output
       })
-      var html = tpl({ list: list })
+      var html = tpl({
+        demoList: demoList
+      })
       return res.send(html)
     })
   })
