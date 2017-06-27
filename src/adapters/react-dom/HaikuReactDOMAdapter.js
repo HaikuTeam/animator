@@ -2,147 +2,185 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var React = require('react')
-var ReactTestRenderer = require('react-test-renderer')
-var merge = require('lodash.merge')
-var ValidProps = require('./ValidProps')
-var EventsDict = require('./EventsDict')
-var reactToMana = require('./../../helpers/reactToMana')
-var initializeTreeAttributes = require('./../../helpers/initializeTreeAttributes')
+var React = require('react');
+var ReactTestRenderer = require('react-test-renderer');
+var merge = require('lodash.merge');
+var ValidProps = require('./ValidProps');
+var EventsDict = require('./EventsDict');
+var reactToMana = require('./../../helpers/reactToMana');
+var initializeTreeAttributes = require('./../../helpers/initializeTreeAttributes');
 
-function applyInputs (haikuPlayer, props) {
+function applyInputs(haikuPlayer, props) {
   for (var key in props) {
-    var value = props[key]
-    haikuPlayer[key] = value
+    var value = props[key];
+    haikuPlayer[key] = value;
   }
 }
 
-function applyProps (haikuPlayer, props) {
-  if (!haikuPlayer) return null
-  if (!props) return null
-  applyInputs(haikuPlayer, props)
+function applyProps(haikuPlayer, props) {
+  if (!haikuPlayer) return null;
+  if (!props) return null;
+  applyInputs(haikuPlayer, props);
 }
 
-function createContext (reactInstance, HaikuComponentClass, reactProps) {
+function createContext(reactInstance, HaikuComponentClass, reactProps) {
   var fullProps = merge({}, reactProps, {
     ref: reactInstance.refs.container,
     vanities: {
-      'controlFlow.insert': function _controlFlowInsertReactVanity (element, insertable, context, component, implementation) {
-        var renderer = ReactTestRenderer.create(insertable)
-        var json = renderer.toJSON()
-        var mana = reactToMana(json)
-        initializeTreeAttributes(mana, element)
-        implementation(element, mana, context, component)
+      'controlFlow.insert': function _controlFlowInsertReactVanity(
+        element,
+        insertable,
+        context,
+        component,
+        implementation
+      ) {
+        var renderer = ReactTestRenderer.create(insertable);
+        var json = renderer.toJSON();
+        var mana = reactToMana(json);
+        initializeTreeAttributes(mana, element);
+        implementation(element, mana, context, component);
       },
-      'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity (element, surrogate, context, component, implementation) {
-        var renderer = ReactTestRenderer.create(surrogate)
-        var json = renderer.toJSON()
-        var mana = reactToMana(json)
-        initializeTreeAttributes(mana, element)
-        implementation(element, mana, context, component)
+      'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity(
+        element,
+        surrogate,
+        context,
+        component,
+        implementation
+      ) {
+        var renderer = ReactTestRenderer.create(surrogate);
+        var json = renderer.toJSON();
+        var mana = reactToMana(json);
+        initializeTreeAttributes(mana, element);
+        implementation(element, mana, context, component);
       }
     }
-  })
+  });
 
-  reactInstance.haikuPlayer = HaikuComponentClass(reactInstance.refs.container, fullProps) // eslint-disable-line
+  reactInstance.haikuPlayer = HaikuComponentClass(
+    reactInstance.refs.container,
+    fullProps
+  ); // eslint-disable-line
 
-  reactInstance.haikuPlayer.hear(function (name, payload) {
-    if (reactInstance.props && reactInstance.props.events && reactInstance.props.events[name]) {
-      reactInstance.props.events[name](payload)
+  reactInstance.haikuPlayer.hear(function(name, payload) {
+    if (
+      reactInstance.props &&
+      reactInstance.props.events &&
+      reactInstance.props.events[name]
+    ) {
+      reactInstance.props.events[name](payload);
     }
-  })
+  });
 }
 
-function HaikuReactDOMAdapter (HaikuComponentClass) {
+function HaikuReactDOMAdapter(HaikuComponentClass) {
   var reactClass = React.createClass({
     displayName: 'HaikuCreation',
 
-    getInitialState: function () {
-      this.haiku = HaikuComponentClass // In case someone wants to call `this.refs.*.haiku` for whatever reason
-      return {}
+    getInitialState: function() {
+      this.haiku = HaikuComponentClass; // In case someone wants to call `this.refs.*.haiku` for whatever reason
+      return {};
     },
 
-    componentWillReceiveProps: function (nextProps) {
+    componentWillReceiveProps: function(nextProps) {
       if (this.props.controller) {
-        this.props.controller.emit('react:componentWillReceiveProps', this, nextProps)
+        this.props.controller.emit(
+          'react:componentWillReceiveProps',
+          this,
+          nextProps
+        );
       }
-      applyProps(this.haikuPlayer, nextProps)
+      applyProps(this.haikuPlayer, nextProps);
     },
 
-    componentWillMount: function () {
+    componentWillMount: function() {
       if (this.props.controller) {
-        this.props.controller.emit('react:componentWillMount', this)
+        this.props.controller.emit('react:componentWillMount', this);
       }
       if (this.props.onComponentWillMount) {
-        this.props.onComponentWillMount(this)
+        this.props.onComponentWillMount(this);
       }
     },
 
-    componentWillUnmount: function () {
+    componentWillUnmount: function() {
       if (this.props.controller) {
-        this.props.controller.emit('react:componentWillUnmount', this)
+        this.props.controller.emit('react:componentWillUnmount', this);
       }
       if (this.props.onComponentWillUnmount) {
-        this.props.onComponentWillUnmount(this)
+        this.props.onComponentWillUnmount(this);
       }
     },
 
-    componentDidMount: function () {
-      createContext(this, HaikuComponentClass, this.props)
+    componentDidMount: function() {
+      createContext(this, HaikuComponentClass, this.props);
       if (this.props.controller) {
-        this.props.controller.emit('react:componentDidMount', this, this.refs.container)
+        this.props.controller.emit(
+          'react:componentDidMount',
+          this,
+          this.refs.container
+        );
       }
       if (this.props.onComponentDidMount) {
-        this.props.onComponentDidMount(this, this.refs.container)
+        this.props.onComponentDidMount(this, this.refs.container);
       }
-      applyProps(this.haikuPlayer, this.props)
+      applyProps(this.haikuPlayer, this.props);
     },
 
-    render: function () {
-      var passthroughProps = {}
+    render: function() {
+      var passthroughProps = {};
       for (var key in this.props) {
-        var propEntry = this.props[key]
+        var propEntry = this.props[key];
         if (ValidProps[key]) {
           if (EventsDict[key]) {
-            passthroughProps[key] = createEventPropWrapper(this, propEntry)
+            passthroughProps[key] = createEventPropWrapper(this, propEntry);
           } else {
-            passthroughProps[key] = propEntry
+            passthroughProps[key] = propEntry;
           }
         }
       }
 
-      return React.createElement(this.props.tagName || 'div', merge({
-        ref: 'container',
-        style: {
-          position: 'relative',
-          margin: 0,
-          padding: 0,
-          border: 0,
-          width: '100%',
-          height: '100%'
-        }
-      }, passthroughProps))
+      return React.createElement(
+        this.props.tagName || 'div',
+        merge(
+          {
+            ref: 'container',
+            style: {
+              position: 'relative',
+              margin: 0,
+              padding: 0,
+              border: 0,
+              width: '100%',
+              height: '100%'
+            }
+          },
+          passthroughProps
+        )
+      );
     }
-  })
+  });
 
-  function createEventPropWrapper (reactInstance, eventListener) {
-    return function _eventPropWrapper (proxy, event) {
-      return eventListener.call(this, proxy, event, HaikuComponentClass.component.instance)
-    }.bind(reactInstance)
+  function createEventPropWrapper(reactInstance, eventListener) {
+    return function _eventPropWrapper(proxy, event) {
+      return eventListener.call(
+        this,
+        proxy,
+        event,
+        HaikuComponentClass.component.instance
+      );
+    }.bind(reactInstance);
   }
 
-  reactClass.haiku = HaikuComponentClass // Aliases for convenience
+  reactClass.haiku = HaikuComponentClass; // Aliases for convenience
 
   reactClass.propTypes = {
     tagName: React.PropTypes.string
-  }
+  };
 
   for (var propName in ValidProps) {
-    var propType = ValidProps[propName]
-    reactClass.propTypes[propName] = React.PropTypes[propType]
+    var propType = ValidProps[propName];
+    reactClass.propTypes[propName] = React.PropTypes[propType];
   }
 
-  return reactClass
+  return reactClass;
 }
 
-module.exports = HaikuReactDOMAdapter
+module.exports = HaikuReactDOMAdapter;

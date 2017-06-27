@@ -2,7 +2,7 @@ module.exports = {
   timelines: {
     Default: {
       '#div': {
-        'shown': {
+        shown: {
           '0': { value: true },
           '100': { value: false },
           '200': { value: true },
@@ -21,4 +21,4 @@ module.exports = {
   eventHandlers: [],
   properties: [],
   template: '<div id="div">Hello World!</div>'
-}
+};

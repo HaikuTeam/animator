@@ -3,4 +3,4 @@ module.exports = {
   eventHandlers: [],
   properties: [],
   template: '<div>Hello World!</div>'
-}
+};

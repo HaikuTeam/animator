@@ -1,5 +1,5 @@
-var creation = require('@haiku/player/dom')
+var creation = require('@haiku/player/dom');
 module.exports = creation(require('./bytecode'), {
-  contextMenu: 'disabled',
+  contextMenu: 'disabled'
   // autoplay: false
-})
+});

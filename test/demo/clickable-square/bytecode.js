@@ -5,30 +5,35 @@ module.exports = {
     project: 'Clickable Square',
     organization: 'Haiku'
   },
-  properties: [{
-    name: 'clicks',
-    type: 'number',
-    value: 0
-  },{
-    name: 'rotation',
-    type: 'number',
-    value: 0
-  }],
-  eventHandlers: [{
-    name: 'onclick',
-    selector: '#box',
-    handler: function() {
-      this.getTimelines()['Move'].gotoAndPlay(0)
-      this.clicks = this.clicks + 1
+  properties: [
+    {
+      name: 'clicks',
+      type: 'number',
+      value: 0
+    },
+    {
+      name: 'rotation',
+      type: 'number',
+      value: 0
     }
-  }],
+  ],
+  eventHandlers: [
+    {
+      name: 'onclick',
+      selector: '#box',
+      handler: function() {
+        this.getTimelines()['Move'].gotoAndPlay(0);
+        this.clicks = this.clicks + 1;
+      }
+    }
+  ],
   timelines: {
     Default: {
       '#box': {
         content: {
           0: {
-            value: function (inputs) {
-              return inputs.clicks + ''
+            value: function(inputs) {
+              return inputs.clicks + '';
             }
           }
         },
@@ -75,15 +80,15 @@ module.exports = {
       '#box': {
         'rotation.z': {
           0: {
-            value: function ({ clicks }) {
-              var n = (clicks < 1) ? 0 : (clicks - 1)
-              return n * Math.PI / 2
+            value: function({ clicks }) {
+              var n = clicks < 1 ? 0 : clicks - 1;
+              return n * Math.PI / 2;
             },
             curve: 'easeInOutBounce'
           },
           2500: {
-            value: function ({ clicks }) {
-              return clicks * Math.PI / 2
+            value: function({ clicks }) {
+              return clicks * Math.PI / 2;
             }
           }
         }
@@ -91,4 +96,4 @@ module.exports = {
     }
   },
   template: '<div id="box"></div>'
-}
+};

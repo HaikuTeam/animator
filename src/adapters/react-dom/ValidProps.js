@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var EventsDict = require('./EventsDict')
+var EventsDict = require('./EventsDict');
 
 var validPropsDict = {
   id: 'string',
@@ -13,10 +13,10 @@ var validPropsDict = {
   onComponentWillMount: 'func',
   onComponentWillUnmount: 'func',
   onComponentDidMount: 'func'
-}
+};
 
 for (var key in EventsDict) {
-  validPropsDict[key] = EventsDict[key]
+  validPropsDict[key] = EventsDict[key];
 }
 
-module.exports = validPropsDict
+module.exports = validPropsDict;

@@ -1,1 +1,1 @@
-module.exports = require('./interpreter.js')
+module.exports = require('./interpreter.js');

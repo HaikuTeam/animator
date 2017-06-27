@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var EventsDict = {}
+var EventsDict = {};
 
 var eventsList = [
   'onAbort',
@@ -72,12 +72,12 @@ var eventsList = [
   'onVolumeChange',
   'onWaiting',
   'onWheel'
-]
+];
 
 for (var i = 0; i < eventsList.length; i++) {
-  var name = eventsList[i]
-  EventsDict[name] = 'func'
-  EventsDict[name + 'Capture'] = 'func'
+  var name = eventsList[i];
+  EventsDict[name] = 'func';
+  EventsDict[name + 'Capture'] = 'func';
 }
 
-module.exports = EventsDict
+module.exports = EventsDict;
