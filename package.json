@@ -18,7 +18,7 @@
   "scripts": {
     "test": "npm run test:unit",
     "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
-    "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true",
+    "lint": "standard \"src/**/*.js\" --verbose | snazzy || true",
     "prettify": "prettier --write --list-different --single-quote \"{,!(node_modules|dist)/**/}*.js\"",
     "footprint": "browserify index.js | uglifyjs --compress --mangle > footprint.ignore.min.js && wc -c < footprint.ignore.min.js && rm footprint.ignore.min.js",
     "demo": "nodemon ./test/demo/server.js",
