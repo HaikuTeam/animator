@@ -131,7 +131,9 @@ app.get('/demos/:demo/react-dom', function (req, res) {
           return res.status(500).send('Server error! (' + err + ')')
         })
         return br.bundle(function (err, jsbuf) {
-          if (err) return res.status(500).send('Server error! (' + err + ')')
+          if (err) {
+            return res.status(500).send('Server error! (' + err + ')')
+          }
           var js = jsbuf.toString()
           var locals = {
             mountStyle: getMountStyle(demo),
