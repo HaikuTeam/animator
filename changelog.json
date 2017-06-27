@@ -2071,5 +2071,17 @@
       "message": "My npmignore didn't re-include a necessary package"
     }
   },
-  "2.1.7": {}
+  "2.1.7": {},
+  "2.1.8": {
+    "8aa6b7230b9b92373f0d231bd9e670a0d8ed846d": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "special handle opacity inputs"
+    },
+    "2c5315572b3039f6909fe7fda89a4003ee0b000b": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "mouseout state of const segs"
+    }
+  }
 }
