@@ -1,5 +1,5 @@
 var test = require('tape')
-var convertManaLayout = require('./../../src/helpers/convertManaLayout')
+var convertManaLayout = require('./../../src/layout/convertManaLayout')
 var xmlToMana = require('./../../src/helpers/xmlToMana')
 
 test('layout.convertManaLayout', function (t) {

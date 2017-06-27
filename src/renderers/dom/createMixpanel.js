@@ -3,7 +3,7 @@
  */
 
 var assign = require('./../../vendor/assign')
-var mixpanel = require('./../../vendor/mixpanel-browser')
+var mixpanel = require('./../../vendor/mixpanel-browser/tiny')
 
 module.exports = function createMixpanel (domElement, mixpanelToken, component) {
   mixpanel.init(mixpanelToken)
