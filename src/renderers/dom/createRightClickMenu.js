@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var MENU_GLOBAL_ID = 'haiku-right-click-menu'
-var WIDTH = 167
-var HEIGHT = 44
+var MENU_GLOBAL_ID = 'haiku-right-click-menu';
+var WIDTH = 167;
+var HEIGHT = 44;
 
 var haikuIcon = '' +
   '<svg style="transform:translateY(3px);margin-right:3px;" width="13px" height="13px" viewBox="0 0 9 9" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
@@ -15,7 +15,7 @@ var haikuIcon = '' +
   '            </g>' +
   '        </g>' +
   '    </g>' +
-  '</svg>'
+  '</svg>';
 
 var sharePageIcon = '' +
   '<svg style="transform:translate(-1px, 3px);margin-right:3px;" width="14px" height="14px" viewBox="0 0 11 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
@@ -33,123 +33,140 @@ var sharePageIcon = '' +
   '          </g>' +
   '      </g>' +
   '  </g>' +
-  '</svg>'
+  '</svg>';
 
 // Haiku servers will substitute the _actual_ full string in any js file,
 // so it's split into pieces here to avoid that build step
-var SUBSTITUTION_STRING = 'HAIKU' + '_' + 'SHARE' + '_' + 'UUID'
+var SUBSTITUTION_STRING = 'HAIKU' + '_' + 'SHARE' + '_' + 'UUID';
 
-function setBoxShadow (el, color) {
-  el.style['-webkit-box-shadow'] = '0 1px 4px 0 ' + color
-  el.style['-moz-box-shadow'] = '0 1px 4px 0 ' + color
-  el.style['box-shadow'] = '0 1px 4px 0 ' + color
+function setBoxShadow(el, color) {
+  el.style['-webkit-box-shadow'] = '0 1px 4px 0 ' + color;
+  el.style['-moz-box-shadow'] = '0 1px 4px 0 ' + color;
+  el.style['box-shadow'] = '0 1px 4px 0 ' + color;
 }
 
-function px (num) {
-  return num + 'px'
+function px(num) {
+  return num + 'px';
 }
 
-function findOrCreateMenuElement (doc) {
-  var menu = doc.getElementById(MENU_GLOBAL_ID)
-  if (menu) return menu
-  menu = doc.createElement('div')
-  menu.setAttribute('id', MENU_GLOBAL_ID)
-  menu.style.position = 'absolute'
-  menu.style.zIndex = 2147483647
-  setBoxShadow(menu, 'rgba(10,2,21,0.25)')
-  menu.style.borderRadius = px(3)
-  menu.style.display = 'none'
-  menu.style.backgroundColor = 'rgba(255,255,255,0.95)'
-  menu.style.overflow = 'hidden'
-  menu.style.cursor = 'default'
-  menu.style.fontFamily = 'Helvetica, Arial, sans-serif'
-  menu.style.fontWeight = 'Bold'
-  menu.style.fontSize = px(10)
-  menu.style.padding = '0 0 7px'
-  menu.style.color = 'black'
-  menu.style.margin = '0'
-  menu.style.boxSizing = 'content-box'
-  menu.style.textDecoration = 'none'
-  menu.style.fontStyle = 'none'
-  doc.body.appendChild(menu)
-  return menu
+function findOrCreateMenuElement(doc) {
+  var menu = doc.getElementById(MENU_GLOBAL_ID);
+  if (menu) return menu;
+  menu = doc.createElement('div');
+  menu.setAttribute('id', MENU_GLOBAL_ID);
+  menu.style.position = 'absolute';
+  menu.style.zIndex = 2147483647;
+  setBoxShadow(menu, 'rgba(10,2,21,0.25)');
+  menu.style.borderRadius = px(3);
+  menu.style.display = 'none';
+  menu.style.backgroundColor = 'rgba(255,255,255,0.95)';
+  menu.style.overflow = 'hidden';
+  menu.style.cursor = 'default';
+  menu.style.fontFamily = 'Helvetica, Arial, sans-serif';
+  menu.style.fontWeight = 'Bold';
+  menu.style.fontSize = px(10);
+  menu.style.padding = '0 0 7px';
+  menu.style.color = 'black';
+  menu.style.margin = '0';
+  menu.style.boxSizing = 'content-box';
+  menu.style.textDecoration = 'none';
+  menu.style.fontStyle = 'none';
+  doc.body.appendChild(menu);
+  return menu;
 }
 
-function truncate (str, len) {
+function truncate(str, len) {
   if (str.length > len) {
-    return str.slice(0, len - 3) + '...'
+    return str.slice(0, len - 3) + '...';
   }
-  return str
+  return str;
 }
 
-module.exports = function createRightClickMenu (domElement, component) {
-  var doc = domElement.ownerDocument
-  var menu = findOrCreateMenuElement(doc)
+module.exports = function createRightClickMenu(domElement, component) {
+  var doc = domElement.ownerDocument;
+  var menu = findOrCreateMenuElement(doc);
 
-  var escaper = doc.createElement('textarea')
-  function escapeHTML (html) {
-    escaper.textContent = html
-    return escaper.innerHTML.replace(/[><,{}[\]"']/gi, '')
+  var escaper = doc.createElement('textarea');
+  function escapeHTML(html) {
+    escaper.textContent = html;
+    return escaper.innerHTML.replace(/[><,{}[\]"']/gi, '');
   }
 
   // revealMenu(100,100) // Uncomment me to render the menu while testing
 
-  function revealMenu (mx, my) {
-    var lines = []
-    var titleLine = null
+  function revealMenu(mx, my) {
+    var lines = [];
+    var titleLine = null;
 
-    var metadata = component._bytecode && component._bytecode.metadata
+    var metadata = component._bytecode && component._bytecode.metadata;
 
     if (metadata && metadata.project) {
-      var who = truncate(escapeHTML(metadata.project), 25)
-      var org = ''
+      var who = truncate(escapeHTML(metadata.project), 25);
+      var org = '';
       if (metadata.organization) {
-        org = truncate(escapeHTML(metadata.organization), 11)
-        who = '"' + who + '" <span style="font-weight:normal;">by</span> ' + org
+        org = truncate(escapeHTML(metadata.organization), 11);
+        who = '"' +
+          who +
+          '" <span style="font-weight:normal;">by</span> ' +
+          org;
       }
-      var byline = who
-      titleLine = '<p style="margin:0;margin-bottom:4px;padding:12px 0 7px;line-height:12px;text-align:center;border-bottom:1px solid rgba(140,140,140,.14);">' + byline + '</p>'
+      var byline = who;
+      titleLine = '<p style="margin:0;margin-bottom:4px;padding:12px 0 7px;line-height:12px;text-align:center;border-bottom:1px solid rgba(140,140,140,.14);">' +
+        byline +
+        '</p>';
     }
     if (metadata && metadata.uuid && metadata.uuid !== SUBSTITUTION_STRING) {
-      lines.push('<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://share.haiku.ai/' + escapeHTML(metadata.uuid) + '" target="_blank">' + sharePageIcon + '  View Component</a>')
+      lines.push(
+        '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://share.haiku.ai/' +
+          escapeHTML(metadata.uuid) +
+          '" target="_blank">' +
+          sharePageIcon +
+          '  View Component</a>'
+      );
     }
-    lines.push('<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://www.haiku.ai" target="_blank">' + haikuIcon + '  Crafted in Haiku</a>')
+    lines.push(
+      '<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://www.haiku.ai" target="_blank">' +
+        haikuIcon +
+        '  Crafted in Haiku</a>'
+    );
 
-    if (lines.length < 1) return void ('')
+    if (lines.length < 1) return void '';
 
-    HEIGHT = lines.length > 1 ? 88 : 61
-    HEIGHT = titleLine ? HEIGHT : 22
+    HEIGHT = lines.length > 1 ? 88 : 61;
+    HEIGHT = titleLine ? HEIGHT : 22;
 
-    menu.style.width = px(WIDTH)
-    menu.style.height = px(HEIGHT)
-    menu.style.top = px(my)
-    menu.style.left = px(mx)
-    menu.style.pointerEvents = 'auto'
-    menu.style.display = 'block'
-    menu.innerHTML = titleLine ? titleLine + lines.join('\n') : lines.join('\n')
+    menu.style.width = px(WIDTH);
+    menu.style.height = px(HEIGHT);
+    menu.style.top = px(my);
+    menu.style.left = px(mx);
+    menu.style.pointerEvents = 'auto';
+    menu.style.display = 'block';
+    menu.innerHTML = titleLine
+      ? titleLine + lines.join('\n')
+      : lines.join('\n');
   }
 
-  function hideMenu () {
-    menu.style.width = px(0)
-    menu.style.height = px(0)
-    menu.style.top = px(0)
-    menu.style.left = px(0)
-    menu.style.pointerEvents = 'none'
-    menu.style.display = 'none'
+  function hideMenu() {
+    menu.style.width = px(0);
+    menu.style.height = px(0);
+    menu.style.top = px(0);
+    menu.style.left = px(0);
+    menu.style.pointerEvents = 'none';
+    menu.style.display = 'none';
   }
 
-  domElement.addEventListener('contextmenu', function (contextmenuEvent) {
-    contextmenuEvent.preventDefault()
+  domElement.addEventListener('contextmenu', function(contextmenuEvent) {
+    contextmenuEvent.preventDefault();
 
-    var mx = contextmenuEvent.pageX
-    var my = contextmenuEvent.pageY
+    var mx = contextmenuEvent.pageX;
+    var my = contextmenuEvent.pageY;
 
     if (component.mixpanel) {
-      component.mixpanel.track('component:contextmenu')
+      component.mixpanel.track('component:contextmenu');
     }
 
-    revealMenu(mx, my)
-  })
+    revealMenu(mx, my);
+  });
 
-  doc.addEventListener('click', hideMenu)
-}
+  doc.addEventListener('click', hideMenu);
+};

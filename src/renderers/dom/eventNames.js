@@ -155,4 +155,4 @@ module.exports = {
   vrdisplaypresentchange: true,
   waiting: true,
   wheel: true
-}
+};

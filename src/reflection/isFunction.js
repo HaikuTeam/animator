@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var FUNCTION = 'function'
+var FUNCTION = 'function';
 
-function isFunction (value) {
-  return typeof value === FUNCTION
+function isFunction(value) {
+  return typeof value === FUNCTION;
 }
 
-module.exports = isFunction
+module.exports = isFunction;
