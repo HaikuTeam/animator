@@ -1007,24 +1007,26 @@ function _computeAndApplyPresetSizing (element, container, mode, deltas) {
         }
       }
 
-      // We shouldn't ever be null here, but in case of a defect, show this warning
-      if (containScaleToUse === null) {
-        console.warn(
-          '[haiku player] unable to compute scale for contain sizing algorithm'
-        )
-        return void 0
+      if (element.layout.scale.x !== containScaleToUse) {
+        changed = true
+        element.layout.scale.x = containScaleToUse
+      }
+      if (element.layout.scale.y !== containScaleToUse) {
+        changed = true
+        element.layout.scale.y = containScaleToUse
       }
 
-      changed = true // HACK: Unless we assume we changed, there seems to be an off-by-a-frame issue
-
-      element.layout.scale.x = containScaleToUse
-      element.layout.scale.y = containScaleToUse
-
       // Offset the translation so that the element remains centered within the letterboxing
-      element.layout.translation.x =
-        -(containScaleToUse * elementWidth - containerWidth) / 2
-      element.layout.translation.y =
-        -(containScaleToUse * elementHeight - containerHeight) / 2
+      var containTranslationOffsetX = -(containScaleToUse * elementWidth - containerWidth) / 2
+      var containTranslationOffsetY = -(containScaleToUse * elementHeight - containerHeight) / 2
+      if (element.layout.translation.x !== containTranslationOffsetX) {
+        changed = true
+        element.layout.translation.x = containTranslationOffsetX
+      }
+      if (element.layout.translation.y !== containTranslationOffsetY) {
+        changed = true
+        element.layout.translation.y = containTranslationOffsetY
+      }
 
       break
 
@@ -1058,16 +1060,26 @@ function _computeAndApplyPresetSizing (element, container, mode, deltas) {
         }
       }
 
-      changed = true // HACK: Unless we assume we changed, there seems to be an off-by-a-frame issue
+      if (element.layout.scale.x !== coverScaleToUse) {
+        changed = true
+        element.layout.scale.x = coverScaleToUse
+      }
+      if (element.layout.scale.y !== coverScaleToUse) {
+        changed = true
+        element.layout.scale.y = coverScaleToUse
+      }
 
-      element.layout.scale.x = coverScaleToUse
-      element.layout.scale.y = coverScaleToUse
-
-      // Offset the translation so that the element remains centered within the letterboxing
-      element.layout.translation.x =
-        -(coverScaleToUse * elementWidth - containerWidth) / 2
-      element.layout.translation.y =
-        -(coverScaleToUse * elementHeight - containerHeight) / 2
+      // Offset the translation so that the element remains centered despite clipping
+      var coverTranslationOffsetX = -(coverScaleToUse * elementWidth - containerWidth) / 2
+      var coverTranslationOffsetY = -(coverScaleToUse * elementHeight - containerHeight) / 2
+      if (element.layout.translation.x !== coverTranslationOffsetX) {
+        changed = true
+        element.layout.translation.x = coverTranslationOffsetX
+      }
+      if (element.layout.translation.y !== coverTranslationOffsetY) {
+        changed = true
+        element.layout.translation.y = coverTranslationOffsetY
+      }
 
       break
   }
