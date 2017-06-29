@@ -7,6 +7,7 @@
   "author": "Matthew Trost <matthew@trost.co>",
   "license": "UNLICENSED",
   "scripts": {
+    "play": "cd packages/haiku-player && npm start & sleep 5 && open http://localhost:3000",
     "start": "npm run mono:dev",
     "finish": "npm run mono:finish",
     "mono:changelog": "node ./scripts/changelog.js",
