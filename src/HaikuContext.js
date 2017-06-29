@@ -239,6 +239,24 @@ HaikuContext.createComponentFactory = function createComponentFactory (
       options.onHaikuComponentWillInitialize(component)
     }
 
+    // If the component needs to remount itself for some reason, make sure we fire the right events
+    component.callRemount = function _callRemount (incomingOptions) {
+      if (incomingOptions) {
+        component.assignContextOptions(incomingOptions)
+      }
+      controller.emit('haikuComponentDidMount', component)
+      component.emit('haikuComponentDidMount', component)
+      if (options.onHaikuComponentDidMount) {
+        options.onHaikuComponentDidMount(component)
+      }
+    }
+
+    // Hack, but we may need to allow the user to override options in this scope instead of the component's
+    component.assignContextOptions = function _assignContextOptions (incoming) {
+      options = assign(options, incoming)
+      context.assignOptions(options) // Don't forget to update the ones the context has!
+    }
+
     var hash = {} // Dictionary of ids-to-elements, for quick lookups (#UNUSED?)
 
     // Call to completely update the entire component tree - as though it were the first time
@@ -330,11 +348,7 @@ HaikuContext.createComponentFactory = function createComponentFactory (
         }
 
         // If this is the 0th (first) tick, notify anybody listening that we've mounted
-        controller.emit('haikuComponentDidMount', component)
-        component.emit('haikuComponentDidMount', component)
-        if (options.onHaikuComponentDidMount) {
-          options.onHaikuComponentDidMount(component)
-        }
+        component.callRemount()
       }
 
       ticks++
@@ -349,6 +363,8 @@ HaikuContext.createComponentFactory = function createComponentFactory (
       // Starting the clock has the effect of doing a render at time 0, a.k.a., mounting!
       component.getClock().start()
     }
+
+    console.log()
 
     // Notify anybody who cares that we've completed the initialization sequence
     controller.emit('haikuComponentDidInitialize', component)

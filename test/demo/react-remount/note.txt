@@ -1,0 +1,2 @@
+The node should disappear and reappear (mount, remount) successfully.
+This should ensure we work well in React Router-type scenarios.
