@@ -33,15 +33,19 @@ function HaikuClock (tickables, component, options) {
   this.assignOptions(options)
 
   this._isRunning = false
+  this._reinitialize()
 
+  this._raf = null // We'll create our raf function on our first run of our loop
+  this.run = this.run.bind(this) // Bind to avoid `this`-detachment when called by raf
+}
+
+HaikuClock.prototype._reinitialize = function _reinitialize () {
   this._numLoopsRun = 0
   this._localFramesElapsed = 0
   this._localTimeElapsed = 0
   this._deltaSinceLastTick = 0
   this._localExplicitlySetTime = null
-
-  this._raf = null // We'll create our raf function on our first run of our loop
-  this.run = this.run.bind(this) // Bind to avoid `this`-detachment when called by raf
+  return this
 }
 
 HaikuClock.prototype.addTickable = function addTickable (tickable) {

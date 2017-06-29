@@ -45,6 +45,10 @@ var DEFAULT_OPTIONS = {
   // Optional lifecycle event hook (see below)
   onHaikuComponentDidInitialize: null,
 
+  // onHaikuComponentWillUnMount: Function|null
+  // Optional lifecycle event hook (see below)
+  onHaikuComponentWillUnmount: null,
+
   // clock: Object|null
   // Configuration options that will be passed to the HaikuClock instance. See HaikuClock.js for info.
   clock: {},
@@ -240,14 +244,58 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     }
 
     // If the component needs to remount itself for some reason, make sure we fire the right events
-    component.callRemount = function _callRemount (incomingOptions) {
+    component.callRemount = function _callRemount (incomingOptions, skipMarkForFullFlush) {
       if (incomingOptions) {
         component.assignContextOptions(incomingOptions)
       }
+
+      if (!skipMarkForFullFlush) {
+        component._markForFullFlush(true)
+      }
+
+      component._clearCaches()
+
+      // If autoplay is not wanted, stop the all timelines immediately after we've mounted
+      // (We have to mount first so that the component displays, but then pause it at that state.)
+      // If you don't want the component to show up at all, use options.automount=false.
+      var timelineInstances = component.getTimelines()
+      for (var timelineName in timelineInstances) {
+        var timelineInstance = timelineInstances[timelineName]
+        if (options.autoplay) {
+          if (timelineName === DEFAULT_TIMELINE_NAME) {
+            // Assume we want to start the timeline from the beginning upon remount
+            timelineInstance.play()
+          }
+        } else {
+          timelineInstance.pause()
+        }
+      }
+
       controller.emit('haikuComponentDidMount', component)
       component.emit('haikuComponentDidMount', component)
       if (options.onHaikuComponentDidMount) {
         options.onHaikuComponentDidMount(component)
+      }
+    }
+
+    // If the component needs to unmount itself for some reason, make sure we fire the right events
+    // This is primarily used in the React Adapter, but there might be other uses for it?
+    component.callUnmount = function _callUnmount (incomingOptions) {
+      if (incomingOptions) {
+        component.assignContextOptions(incomingOptions)
+      }
+
+      // Since we're unmounting, pause all animations to avoid unnecessary calc while detached
+      var timelineInstances = component.getTimelines()
+      for (var timelineName in timelineInstances) {
+        var timelineInstance = timelineInstances[timelineName]
+        timelineInstance.pause()
+      }
+
+      controller.emit('haikuComponentWillUnmount', component)
+      component.emit('haikuComponentWillUnmount', component)
+      if (options.onHaikuComponentWillUnmount) {
+        options.onHaikuComponentWillUnmount(component)
       }
     }
 
@@ -326,29 +374,22 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     function tick () {
       updateMountRootStyles()
 
+      var flushed = false
+
       // After we've hydrated the tree the first time, we can proceed with patches --
       // unless the component indicates it wants a full flush per its internal settings.
       if (component._shouldPerformFullFlush() || ticks < 1) {
         performFullFlushRender()
+        flushed = true
       } else {
         performPatchRender()
       }
 
       // Do any initialization that may need to occur if we happen to be on the very first tick
       if (ticks < 1) {
-        // If autoplay is not wanted, stop the all timelines immediately after we've mounted
-        // (We have to mount first so that the component displays, but then pause it at that state.)
-        // If you don't want the component to show up at all, use options.automount=false.
-        if (!options.autoplay) {
-          var timelineInstances = component.getTimelines()
-          for (var timelineName in timelineInstances) {
-            var timelineInstance = timelineInstances[timelineName]
-            timelineInstance.pause()
-          }
-        }
-
         // If this is the 0th (first) tick, notify anybody listening that we've mounted
-        component.callRemount()
+        // If we've already flushed, _don't_ request to trigger a re-flush (second arg)
+        component.callRemount(null, flushed)
       }
 
       ticks++
@@ -363,8 +404,6 @@ HaikuContext.createComponentFactory = function createComponentFactory (
       // Starting the clock has the effect of doing a render at time 0, a.k.a., mounting!
       component.getClock().start()
     }
-
-    console.log()
 
     // Notify anybody who cares that we've completed the initialization sequence
     controller.emit('haikuComponentDidInitialize', component)

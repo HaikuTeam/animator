@@ -41,6 +41,7 @@
     "nodemon": "1.11.0",
     "prettier-standard": "^5.1.0",
     "react-dom": "15.4.2",
+    "react-router-dom": "^4.1.1",
     "rollup": "^0.43.0",
     "snazzy": "6.0.0",
     "standard": "8.6.0",

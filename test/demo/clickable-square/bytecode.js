@@ -32,8 +32,8 @@ module.exports = {
       '#box': {
         content: {
           0: {
-            value: function (inputs) {
-              return inputs.clicks + ''
+            value: function ({ clicks }) {
+              return clicks + ''
             }
           }
         },

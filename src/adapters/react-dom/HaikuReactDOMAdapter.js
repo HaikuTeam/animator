@@ -45,6 +45,9 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
       if (this.props.onComponentWillUnmount) {
         this.props.onComponentWillUnmount(this)
       }
+      if (this.haiku) {
+        this.haiku.callUnmount()
+      }
     },
 
     componentDidMount: function () {
