@@ -180,8 +180,9 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     throw new Error('A runtime `bytecode` object is required')
   }
 
+  // Only warn on this in case we're running in headless/server/test mode
   if (!platform) {
-    throw new Error('A runtime `platform` object is required')
+    console.warn('[haiku player] no runtime `platform` object was provided')
   }
 
   // Note that options may be passed at this level, or below at the factory invocation level.
@@ -217,6 +218,7 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     // Don't set up mixpanel if we're running on localhost since we don't want test data to be tracked
     // TODO: What other heuristics should we use to decide whether to use mixpanel or not?
     if (
+      platform &&
       platform.location &&
       platform.location.hostname !== 'localhost' &&
       platform.location.hostname !== '0.0.0.0'
