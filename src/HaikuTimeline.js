@@ -77,7 +77,11 @@ HaikuTimeline.prototype._updateInternalProperties = function _updateInternalProp
 HaikuTimeline.prototype._doUpdateWithGlobalClockTime = function _doUpdateWithGlobalClockTime (
   globalClockTime
 ) {
-  this._updateInternalProperties(globalClockTime)
+  if (this.isFrozen()) {
+    this._updateInternalProperties(this._globalClockTime)
+  } else {
+    this._updateInternalProperties(globalClockTime)
+  }
 
   var frame = this.getFrame()
   var time = Math.round(this.getTime())
@@ -218,11 +222,19 @@ HaikuTimeline.prototype.isPlaying = function isPlaying () {
 }
 
 /**
- * @method isPlaying
+ * @method isActive
  * @description Returns T/F if the timeline is active
  */
 HaikuTimeline.prototype.isActive = function isActive () {
   return !!this._isActive
+}
+
+/**
+ * @method isFrozen
+ * @description Returns T/F if the timeline is frozen
+ */
+HaikuTimeline.prototype.isFrozen = function isFrozen () {
+  return !!this.options.freeze
 }
 
 /**
@@ -250,6 +262,16 @@ HaikuTimeline.prototype.setRepeat = function setRepeat (bool) {
 
 HaikuTimeline.prototype.getRepeat = function getRepeat () {
   return !!this.options.loop
+}
+
+HaikuTimeline.prototype.freeze = function freeze () {
+  this.options.freeze = true
+  return this
+}
+
+HaikuTimeline.prototype.unfreeze = function freeze () {
+  this.options.freeze = false
+  return this
 }
 
 HaikuTimeline.prototype.start = function start (

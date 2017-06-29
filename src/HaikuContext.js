@@ -21,6 +21,14 @@ var DEFAULT_OPTIONS = {
   // Whether we should begin playing the context's animation automatically
   autoplay: true,
 
+  // forceFlush: Boolean
+  // Whether to fully flush the component on every single frame (warning: this can severely deoptimize animation)
+  forceFlush: false,
+
+  // freeze: Boolean
+  // Whether we should freeze timelines and not update per global timeline; useful in headless
+  freeze: false,
+
   // loop: Boolean
   // Whether we should loop the animation, i.e. restart from the first frame after reaching the last
   loop: false,
@@ -380,7 +388,7 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
       // After we've hydrated the tree the first time, we can proceed with patches --
       // unless the component indicates it wants a full flush per its internal settings.
-      if (component._shouldPerformFullFlush() || ticks < 1) {
+      if (component._shouldPerformFullFlush() || options.forceFlush || ticks < 1) {
         performFullFlushRender()
         flushed = true
       } else {
