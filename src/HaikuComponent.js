@@ -43,6 +43,10 @@ function HaikuComponent (bytecode, context, options) {
     throw new Error('Bytecode must define template')
   }
 
+  if (!options.seed) {
+    throw new Error('Seed value must be provided')
+  }
+
   this.PLAYER_VERSION = PLAYER_VERSION
 
   SimpleEventEmitter.create(this)

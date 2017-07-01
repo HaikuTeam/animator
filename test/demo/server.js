@@ -19,11 +19,11 @@ var swapPlayerRequirePath = tools.makeStringTransform(
       return done(null, content)
     }
 
-    content = content.split(`'@haiku/player/dom'`).join(`'./../../../src/adapters/dom'`)
+    content = content.split(`'@haiku/player/dom'`).join(`'./../../../../../src/adapters/dom'`)
 
     content = content
       .split(`'@haiku/player/dom/react'`)
-      .join(`'./../../../src/adapters/react-dom'`)
+      .join(`'./../../../../../src/adapters/react-dom'`)
 
     return done(null, content)
   }
@@ -41,135 +41,90 @@ app.get('/', function (req, res) {
     err,
     htmlbuf
   ) {
-    console.log('[haiku-interpreter] request /index.html')
+    console.log('[haiku player demo server] request /index.html')
     if (err) return res.status(500).send('Server error!')
+
     var raw = htmlbuf.toString()
     var tpl = handlebars.compile(raw)
+
     return fse.readdir(DEMOS_PATH, function (err, entries) {
       if (err) return res.status(500).send('Server error!')
+
       var jss = entries.filter(function (entry) {
         return fse.lstatSync(path.join(DEMOS_PATH, entry)).isDirectory()
       })
+
       var demoList = jss.map(function (js) {
         var basename = path.basename(js)
         var output = { name: basename }
-        output.vanillaUrl = '/demos/' + basename + '/vanilla'
-        if (fse.existsSync(path.join(DEMOS_PATH, basename, 'react-dom.js'))) {
-          output.reactDomUrl = '/demos/' + basename + '/react-dom'
-        }
+        output.vanillaUrl = '/demos/' + basename
         return output
       })
+
       var html = tpl({
         demoList: demoList
       })
+
       return res.send(html)
     })
   })
 })
 
-app.get('/demos/:demo/vanilla', function (req, res) {
+app.get('/demos/:demo', function (req, res) {
   var demo = req.params.demo
-  console.log('[haiku-interpreter] request /demos/' + demo + '/vanilla')
+
+  console.log('[haiku player demo server] request /demos/' + demo + '/vanilla')
+
   var folderAbspath = path.join(DEMOS_PATH, demo)
-  var interpreterAbspath = path.join(DEMOS_PATH, demo, 'interpreter.js')
-  return fse.exists(interpreterAbspath, function (answer) {
+  var domAbspath = path.join(DEMOS_PATH, demo, 'code', 'main', 'dom.js')
+  var reactAbspath = path.join(DEMOS_PATH, demo, 'code', 'main', 'react-dom.js')
+
+  return fse.exists(domAbspath, function (answer) {
     if (!answer) return res.status(404).send('Demo not found!')
     return fse.readFile(path.join(DEMOS_PATH, 'demo.html.handlebars'), function (
       err,
       htmlbuf
     ) {
       if (err) return res.status(500).send('Server error! (' + err + ')')
+
       var raw = htmlbuf.toString()
       var tpl = handlebars.compile(raw)
-      var br = browserify(interpreterAbspath, {
-        standalone: 'bundle',
-        transform: [swapPlayerRequirePath]
-      })
-      br.on('error', function (err) {
-        return res.status(500).send('Server error! (' + err + ')')
-      })
-      return br.bundle(function (err, jsbuf) {
-        if (err) return res.status(500).send('Server error! (' + err + ')')
-        var js = jsbuf.toString()
-        var fsize = filesize(Buffer.byteLength(js, 'utf8'))
-        console.log(`[haiku-interpreter] ${demo} vanilla bundle size: ${fsize}`)
-        var locals = {
-          mountStyle: getMountStyle(demo),
-          wrapperStyle: getWrapperStyle(demo),
-          demo: demo,
-          bundle: js
-        }
-        if (fse.existsSync(path.join(DEMOS_PATH, demo, 'note.txt'))) {
-          locals.note = fse.readFileSync(
-            path.join(DEMOS_PATH, demo, 'note.txt')
-          )
-        }
-        var html = tpl(locals)
-        return res.send(html)
-      })
-    })
-  })
-})
 
-app.get('/demos/:demo/react-dom', function (req, res) {
-  var demo = req.params.demo
-  console.log('[haiku-interpreter] request /demos/' + demo + '/react-dom')
-  var folderAbspath = path.join(DEMOS_PATH, demo)
-  var reactAbspath = path.join(DEMOS_PATH, demo, 'react-dom.js')
-  return fse.exists(reactAbspath, function (answer) {
-    if (!answer) return res.status(404).send('React DOM demo not found!')
-    return fse.readFile(
-      path.join(DEMOS_PATH, 'react-dom.html.handlebars'),
-      function (err, htmlbuf) {
+      var vanillabr = browserify(domAbspath, { standalone: 'vanilla', transform: [swapPlayerRequirePath] })
+      vanillabr.on('error', function (err) { return res.status(500).send('Server error! (' + err + ')') })
+      return vanillabr.bundle(function (err, vanillabuf) {
         if (err) return res.status(500).send('Server error! (' + err + ')')
-        var raw = htmlbuf.toString()
-        var tpl = handlebars.compile(raw)
-        var br = browserify(reactAbspath, {
-          standalone: 'bundle',
-          transform: [swapPlayerRequirePath]
-        })
-        br.on('error', function (err) {
-          return res.status(500).send('Server error! (' + err + ')')
-        })
-        return br.bundle(function (err, jsbuf) {
-          if (err) {
-            return res.status(500).send('Server error! (' + err + ')')
-          }
-          var js = jsbuf.toString()
+        var vanillajs = vanillabuf.toString()
+
+        console.log(`[haiku player demo server] ${demo} bundle size: ${filesize(Buffer.byteLength(vanillajs, 'utf8'))} (unminified)`)
+
+        var reactbr = browserify(reactAbspath, { standalone: 'react', transform: [swapPlayerRequirePath] })
+        reactbr.on('error', function (err) { return res.status(500).send('Server error! (' + err + ')') })
+        return reactbr.bundle(function (err, reactbuf) {
+          if (err) return res.status(500).send('Server error! (' + err + ')')
+          var reactjs = reactbuf.toString()
+
           var locals = {
-            mountStyle: getMountStyle(demo),
-            wrapperStyle: getWrapperStyle(demo),
             demo: demo,
-            bundle: js
+            vanilla: vanillajs,
+            react: reactjs
           }
+
           if (fse.existsSync(path.join(DEMOS_PATH, demo, 'note.txt'))) {
             locals.note = fse.readFileSync(
               path.join(DEMOS_PATH, demo, 'note.txt')
             )
           }
+
           var html = tpl(locals)
           return res.send(html)
         })
-      }
-    )
+      })
+    })
   })
 })
 
-function getMountStyle (demo) {
-  if (demo === 'el-resizing-contain' || demo === 'el-resizing-cover') {
-    return 'background-color: white; width: 50%; height: 50%; max-width: 600px; margin: 0 auto;'
-  }
-  return ''
-}
-
-function getWrapperStyle (demo) {
-  if (demo === 'el-resizing-contain' || demo === 'el-resizing-cover') {
-    return 'background-color: gray;'
-  }
-  return ''
-}
-
 app.listen(PORT, function () {
-  console.log('[haiku-interpreter] demo server listening @ port ' + PORT)
-  console.log('[haiku-interpreter] visit http://0.0.0.0:' + PORT)
+  console.log('[haiku player demo server] demo server listening @ port ' + PORT)
+  console.log('[haiku player demo server] visit http://0.0.0.0:' + PORT)
 })

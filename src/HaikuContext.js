@@ -13,6 +13,10 @@ var COMPONENT_GRAPH_ADDRESS_PREFIX = ''
 var DEFAULT_TIMELINE_NAME = 'Default'
 
 var DEFAULT_OPTIONS = {
+  // seed: String
+  // Random seed used for producing deterministic randomness and namespacing CSS selector behavior
+  seed: null,
+
   // automount: Boolean
   // Whether we should mount the given context to the mount element automatically
   automount: true,
@@ -169,6 +173,10 @@ HaikuContext.prototype.assignOptions = function assignOptions (options) {
   return this
 }
 
+function _makeRandomSeed () {
+  return Math.random().toString(36).slice(2)
+}
+
 /**
  * @function createComponentFactory
  * @description Returns a factory function that can create a HaikuComponent and run it upon a mount.
@@ -194,7 +202,9 @@ HaikuContext.createComponentFactory = function createComponentFactory (
   }
 
   // Note that options may be passed at this level, or below at the factory invocation level.
-  var options = assign({}, DEFAULT_OPTIONS, optionsA)
+  // The exception is the seed value, which should remain constant from here on, because it is used
+  // in a variety of places that are sensitive to it changing
+  var options = assign({}, DEFAULT_OPTIONS, { seed: _makeRandomSeed() }, optionsA)
 
   var context = new HaikuContext(bytecode, options)
   var index = HaikuContext.contexts.push(context) - 1
@@ -315,7 +325,14 @@ HaikuContext.createComponentFactory = function createComponentFactory (
       context.assignOptions(options) // Don't forget to update the ones the context has!
     }
 
-    var hash = {} // Dictionary of ids-to-elements, for quick lookups (#UNUSED?)
+    // Dictionary of ids-to-elements, for quick lookups.
+    // We hydrate this with elements as we render so we don't have to query the DOM
+    // to quickly load elements for patch-style rendering
+    var hash = {
+      // Elements are stored in _arrays_ as opposed to singletons, since there could be more than one
+      // in case of edge cases or possibly for future implementation details around $repeat
+      // "abcde": [el, el]
+    }
 
     // Call to completely update the entire component tree - as though it were the first time
     function performFullFlushRender () {

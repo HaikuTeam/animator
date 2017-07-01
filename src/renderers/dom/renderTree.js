@@ -5,6 +5,7 @@
 var isBlankString = require('./isBlankString')
 var removeElement = require('./removeElement')
 var locatorBump = require('./locatorBump')
+var addToHashTable = require('./addToHashTable')
 
 function _cloneVirtualElement (virtualElement) {
   return {
@@ -33,7 +34,7 @@ function renderTree (
   scopes,
   isPatchOperation
 ) {
-  hash[locator] = domElement
+  addToHashTable(hash, domElement, virtualElement)
 
   if (!domElement.haiku) domElement.haiku = {}
   domElement.haiku.locator = locator
@@ -68,7 +69,6 @@ function renderTree (
       continue
     } else if (!virtualChild && domChild) {
       removeElement(domChild, hash, options, scopes)
-      delete hash[sublocator]
     } else if (virtualChild && !domChild) {
       var insertedElement = appendChild(
         null,
@@ -80,7 +80,7 @@ function renderTree (
         options,
         scopes
       )
-      hash[sublocator] = insertedElement
+      addToHashTable(hash, insertedElement, virtualChild)
     } else {
       if (!domChild.haiku) domChild.haiku = {}
       domChild.haiku.locator = sublocator

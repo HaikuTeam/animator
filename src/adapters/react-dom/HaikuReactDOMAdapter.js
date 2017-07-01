@@ -3,6 +3,7 @@
  */
 
 var React = require('react')
+var ReactDOM = require('react-dom')
 var ReactTestRenderer = require('react-test-renderer')
 var ValidProps = require('./ValidProps')
 var EventsDict = require('./EventsDict')
@@ -191,7 +192,13 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
     reactClass.propTypes[propName] = React.PropTypes[propType]
   }
 
+  reactClass.React = React // Used for testing and debugging
+  reactClass.ReactDOM = ReactDOM // Used for testing and debugging
+
   return reactClass
 }
+
+HaikuReactDOMAdapter.React = React // Used for testing and debugging
+HaikuReactDOMAdapter.ReactDOM = ReactDOM // Used for testing and debugging
 
 module.exports = HaikuReactDOMAdapter
