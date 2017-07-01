@@ -7,14 +7,14 @@ var HaikuDOMRenderer = require('./../../renderers/dom')
 var PLAYER_VERSION = require('./../../../package.json').version
 
 /**
- * Example ways this gets invoked:
+ * Example ways in which the export of this module is invoked:
  *
  * // via embed snippet
- * window.HaikuPlayer['2.0.125'](require('./bytecode.js'))
+ * window.HaikuPlayer['2.0.125'](require('./code/main/code.js'))
  *
  * // via module require
- * var HaikuCreation = require('@haiku/player/dom')
- * module.exports = HaikuCreation(require('./bytecode.js'))
+ * var HaikuDOMAdapter = require('@haiku/player/dom')
+ * module.exports = HaikuDOMAdapter(require('./code/main/code.js'))
  */
 
 var IS_WINDOW_DEFINED = typeof window !== 'undefined'
