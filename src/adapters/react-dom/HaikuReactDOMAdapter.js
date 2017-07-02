@@ -120,10 +120,11 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
             this.props.events[name](payload)
           }
         })
-      } else {
-        // If the component already exists, update its options
-        this.haiku.callRemount(fullProps)
       }
+
+      // If the component already exists, update its options and make sure it remounts.
+      // This action is important if we are in e.g. React Router
+      this.haiku.callRemount(fullProps)
     },
 
     applyInputs: function (props) {
@@ -192,13 +193,13 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
     reactClass.propTypes[propName] = React.PropTypes[propType]
   }
 
-  reactClass.React = React // Used for testing and debugging
-  reactClass.ReactDOM = ReactDOM // Used for testing and debugging
+  reactClass.React = React // Used by Haiku for testing and debugging
+  reactClass.ReactDOM = ReactDOM // Used by Haiku for testing and debugging
 
   return reactClass
 }
 
-HaikuReactDOMAdapter.React = React // Used for testing and debugging
-HaikuReactDOMAdapter.ReactDOM = ReactDOM // Used for testing and debugging
+HaikuReactDOMAdapter.React = React // Used by Haiku for testing and debugging
+HaikuReactDOMAdapter.ReactDOM = ReactDOM // Used by Haiku for testing and debugging
 
 module.exports = HaikuReactDOMAdapter

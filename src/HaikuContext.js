@@ -146,9 +146,32 @@ HaikuContext.prototype.getClock = function getClock () {
 /**
  * @method addTickable
  * @description Add a tickable object to the list of those that will be called on every clock tick.
+ * This only adds if the given object isn't already present in the list.
  */
 HaikuContext.prototype.addTickable = function addTickable (tickable) {
-  this._tickables.push(tickable)
+  var alreadyAdded = false
+  for (var i = 0; i < this._tickables.length; i++) {
+    if (tickable === this._tickables[i]) {
+      alreadyAdded = true
+      break
+    }
+  }
+  if (!alreadyAdded) {
+    this._tickables.push(tickable)
+  }
+  return this
+}
+
+/**
+ * @method removeTickable
+ * @description Remove a tickable object to the list of those that will be called on every clock tick.
+ */
+HaikuContext.prototype.removeTickable = function removeTickable (tickable) {
+  for (var i = (this._tickables.length - 1); i >= 0; i--) {
+    if (tickable === this._tickables[i]) {
+      this._tickables.splice(i, 1)
+    }
+  }
   return this
 }
 
@@ -263,6 +286,8 @@ HaikuContext.createComponentFactory = function createComponentFactory (
       options.onHaikuComponentWillInitialize(component)
     }
 
+    var tickable = { performTick: tick }
+
     // If the component needs to remount itself for some reason, make sure we fire the right events
     component.callRemount = function _callRemount (incomingOptions, skipMarkForFullFlush) {
       if (incomingOptions) {
@@ -291,6 +316,8 @@ HaikuContext.createComponentFactory = function createComponentFactory (
         }
       }
 
+      context.addTickable(tickable)
+
       controller.emit('haikuComponentDidMount', component)
       component.emit('haikuComponentDidMount', component)
       if (options.onHaikuComponentDidMount) {
@@ -311,6 +338,8 @@ HaikuContext.createComponentFactory = function createComponentFactory (
         var timelineInstance = timelineInstances[timelineName]
         timelineInstance.pause()
       }
+
+      context.removeTickable(tickable)
 
       controller.emit('haikuComponentWillUnmount', component)
       component.emit('haikuComponentWillUnmount', component)
@@ -422,9 +451,7 @@ HaikuContext.createComponentFactory = function createComponentFactory (
       ticks++
     }
 
-    context.addTickable({
-      performTick: tick
-    })
+    context.addTickable(tickable)
 
     // Assuming the user wants the app to mount immediately (the default), let's do the mount.
     if (options.automount) {
