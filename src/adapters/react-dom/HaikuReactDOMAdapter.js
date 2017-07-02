@@ -120,11 +120,14 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
             this.props.events[name](payload)
           }
         })
+      } else {
+        // If the component already exists, update its options and make sure it remounts.
+        // This action is important if we are in e.g. React Router.
+        //
+        // Important: Note that we should NOT call remount if we just initialized the instance (i.e. stanza above)
+        // because we'll end up pausing the timelines before the first mount, resulting in a blank context.
+        this.haiku.callRemount(fullProps)
       }
-
-      // If the component already exists, update its options and make sure it remounts.
-      // This action is important if we are in e.g. React Router
-      this.haiku.callRemount(fullProps)
     },
 
     applyInputs: function (props) {
