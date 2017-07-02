@@ -16,6 +16,10 @@ var inputs = lodash.assign({}, argv)
 delete inputs.$0
 delete inputs._
 
+if (!inputs.version) {
+  inputs.version = fse.readJsonSync(path.join(__dirname, '..', 'package.json')).version
+}
+
 inquirer.prompt([
   {
     type: 'input',
@@ -161,6 +165,13 @@ function runit () {
       // it also makes sure we don't put our dev dependencies inside the user's app
       cp.execSync('npm install --only=production', { stdio: 'inherit', cwd: libsPlumbingDir })
       cp.execSync('npm install gulp gulp-watch babel-cli', { stdio: 'inherit', cwd: libsPlumbingDir })
+
+      console.log('copying player contents missing from public npm package')
+      // Since npm install respects .npmignore _even if installing from a git url_, the player
+      // project will be missing necessary modules. So we just copy those over.
+      var playerSourceDir = path.join(__dirname, '..', 'packages', 'haiku-player', 'src')
+      var playerDestDir = path.join(libsPlumbingDir, 'node_modules', '@haiku', 'player', 'src')
+      cp.execSync(`rsync -r --delete ${playerSourceDir}/ ${playerDestDir}`, { stdio: 'inherit' })
 
       // Build the libraries and packages
       console.log('building libraries and packages')

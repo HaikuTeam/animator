@@ -2093,5 +2093,27 @@
       "label": "fix",
       "message": "mouseout state of const segs"
     }
+  },
+  "2.1.10": {
+    "dc7bdd7b163c7e2b31b4206af9c7d6f2638a4078": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure React-adapted components don't pause prior to mounting the first time"
+    },
+    "e4ae788afcdf3b2d8d5d23d316b03fb3dc9634e8": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Make sure React-adapted components behave properly when un/re-mounted"
+    },
+    "02db0fe47acadaaf8fbb439c407b5c93ec6a789f": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Files were missing from the npmignore"
+    },
+    "1f189fb441ba5375e5bb9bbd1b3becfcf295e00d": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Fix problem causing failed updates when teammate's work has gone ahead by multiple tags"
+    }
   }
 }
