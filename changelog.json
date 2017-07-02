@@ -2115,5 +2115,12 @@
       "label": "fix",
       "message": "Fix problem causing failed updates when teammate's work has gone ahead by multiple tags"
     }
+  },
+  "2.1.11": {
+    "a9eb123a423d3681bd74045829bd7c637dad6ee7": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Fix issue with bundling when loading a legacy-constructed project"
+    }
   }
 }
