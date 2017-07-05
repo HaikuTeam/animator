@@ -9,14 +9,8 @@ var allPackages = require('./helpers/allPackages')()
 var groups = lodash.keyBy(allPackages, 'name')
 
 var plumbingPackage = groups['haiku-plumbing']
-var glassPackage = groups['haiku-glass']
-var playerPackage = groups['haiku-player']
 
 var blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
-var primitivesProject = path.join(glassPackage.abspath, 'test/projects/primitives/')
-var puzzleProject = path.join(glassPackage.abspath, 'test/projects/puzzle/')
-var rotatorProject = path.join(glassPackage.abspath, 'test/projects/rotator/')
-var heartsProject = path.join(playerPackage.abspath, 'demo/hearts-rejoicing/')
 
 // By default every time we run this file we'll clean the 'blank' project to actually make it blank.
 if (!argv.noClean) {
@@ -25,25 +19,17 @@ if (!argv.noClean) {
   fse.outputFileSync(path.join(blankProject, '.keep'), '')
 }
 
+process.env.NODE_ENV = 'development'
+
 var instructionSets = {
   default: [
     ['haiku-plumbing', ['npm', 'run', 'watch'], null, 20000],
-    ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless'], null, 5000],
-    ['haiku-creator', ['npm', 'start'], { HAIKU_PLUMBING_PORT: 1024 }]
-    // ['haiku-cli', ['npm', 'run', 'develop']],
-    // ['haiku-sdk', ['npm', 'run', 'develop']]
+    ['haiku-plumbing', ['node', './HaikuHelper.js'], { HAIKU_SKIP_AUTOUPDATE: 1 }, 5000]
   ],
 
   blank: [
-    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
-    ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + blankProject], null, 5000],
-    ['haiku-creator', ['npm', 'start'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: blankProject }]
-  ],
-
-  primitives: [
-    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
-    ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + primitivesProject], null, 5000],
-    ['haiku-creator', ['npm', 'start'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: primitivesProject }]
+    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 20000],
+    ['haiku-plumbing', ['node', './HaikuHelper.js', '--folder=' + blankProject], { HAIKU_SKIP_AUTOUPDATE: 1 }, 5000]
   ],
 
   zack: [
@@ -55,37 +41,6 @@ var instructionSets = {
     ['haiku-cli', ['npm', 'run', 'develop']],
     ['haiku-sdk-client', ['npm', 'run', 'develop']],
     ['haiku-sdk-inkstone', ['npm', 'run', 'develop']]
-  ],
-
-  puzzle: [
-    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
-    ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + puzzleProject], null, 5000],
-    ['haiku-creator', ['npm', 'start'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: puzzleProject }]
-  ],
-
-  rotator: [
-    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
-    ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + rotatorProject], null, 5000],
-    ['haiku-creator', ['npm', 'start'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: rotatorProject }]
-  ],
-
-  hearts: [
-    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
-    ['haiku-plumbing', ['node', './HaikuHelper.js', '--mode=headless', '--folder=' + heartsProject], null, 5000],
-    ['haiku-creator', ['npm', 'start'], { HAIKU_PLUMBING_PORT: 1024, HAIKU_PROJECT_FOLDER: heartsProject }]
-  ],
-
-  production: [
-    ['haiku-plumbing', ['npm', 'run', 'compile'], null, 10000, true],
-    ['haiku-plumbing', ['node', './HaikuHelper.js'], { HAIKU_SKIP_AUTOUPDATE: 1, NODE_ENV: 'production' }]
-  ],
-
-  matthew: [
-    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
-    ['haiku-plumbing', ['npm', 'run', 'matthew'], null, 5000],
-    // ['haiku-timeline', ['npm', 'run', 'matthew']], // You can run these individually
-    // ['haiku-glass', ['npm', 'run', 'matthew']], // You can run these individually
-    ['haiku-creator', ['npm', 'run', 'matthew']] // Or all together within creator
   ]
 }
 
