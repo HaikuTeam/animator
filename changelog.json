@@ -2122,5 +2122,12 @@
       "label": "fix",
       "message": "Fix issue with bundling when loading a legacy-constructed project"
     }
+  },
+  "2.1.12": {
+    "a5f66d66648ffaab17595791e72a9353013e02bc": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Plumbing now correctly locates an open port"
+    }
   }
 }
