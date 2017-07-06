@@ -1,14 +1,2 @@
 test/*
 demo/*
-src/*
-!src/Layout3D.js
-src/adapters/*
-!src/adapters/react-dom
-src/helpers/*
-!src/helpers/initializeTreeAttributes.js
-!src/helpers/reactToMana.js
-!src/helpers/reactChildrenToMana.js
-src/layout/*
-!src/layout/computeMatrix.js
-!src/layout/computeRotationFlexibly.js
-!src/layout/computeSize.js
