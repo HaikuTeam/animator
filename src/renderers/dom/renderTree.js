@@ -37,10 +37,13 @@ function renderTree (
   addToHashTable(hash, domElement, virtualElement)
 
   if (!domElement.haiku) domElement.haiku = {}
-  domElement.haiku.locator = locator
 
-  // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-  domElement.haiku.element = _cloneVirtualElement(virtualElement)
+  // 'hashtab', 'locator', and 'virtual' are more for debugging convenience than anything else.
+  // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
+  domElement.haiku.hashtab = hash
+  domElement.haiku.locator = locator
+  domElement.haiku.virtual = virtualElement
+  domElement.haiku.element = _cloneVirtualElement(virtualElement) // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
 
   if (!Array.isArray(virtualChildren)) {
     return domElement
