@@ -229,19 +229,21 @@ HaikuContext.createComponentFactory = function createComponentFactory (
   // in a variety of places that are sensitive to it changing
   var options = assign({}, DEFAULT_OPTIONS, { seed: _makeRandomSeed() }, optionsA)
 
-  var context = new HaikuContext(bytecode, options)
-  var index = HaikuContext.contexts.push(context) - 1
-  var address = COMPONENT_GRAPH_ADDRESS_PREFIX + index
-
-  // The HaikuComponent is really the linchpin of the user's application, handling all the interesting stuff.
-  var component = context.getRootComponent()
-
   /**
    * @function HaikuComponentFactory
    * @description Creates a new HaikuComponent instance.
    * The (renderer, bytecode) pair are bootstrapped into the given mount element, and played.
    */
   function HaikuComponentFactory (mount, optionsB) {
+    // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
+    // an initialization/mounting issue when running in React.
+    var context = new HaikuContext(bytecode, options)
+    var index = HaikuContext.contexts.push(context) - 1
+    var address = COMPONENT_GRAPH_ADDRESS_PREFIX + index
+
+    // The HaikuComponent is really the linchpin of the user's application, handling all the interesting stuff.
+    var component = context.getRootComponent()
+
     // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
     if (!mount.haiku) mount.haiku = { context: context }
 
@@ -471,17 +473,14 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     HaikuComponentFactory.controller = controller
     HaikuComponentFactory.mount = mount
     HaikuComponentFactory.tick = tick
+    HaikuComponentFactory.component = component
+    HaikuComponentFactory.context = context
+    HaikuComponentFactory.bytecode = bytecode
+    HaikuComponentFactory.renderer = renderer
 
     // Finally, return the HaikuComponent instance which can also be used for programmatic behavior
     return component
   }
-
-  // These properties are added for convenience as hot editing hooks inside Haiku Desktop (and elsewhere?).
-  // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
-  HaikuComponentFactory.component = component
-  HaikuComponentFactory.context = context
-  HaikuComponentFactory.bytecode = bytecode
-  HaikuComponentFactory.renderer = renderer
 
   return HaikuComponentFactory
 }
