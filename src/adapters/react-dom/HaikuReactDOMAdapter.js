@@ -17,7 +17,6 @@ var HAIKU_FORWARDED_PROPS = {
   haikuStates: 'states',
   haikuEventHandlers: 'eventHandlers',
   haikuTimelines: 'timelines',
-  haikuController: 'controller',
   haikuVanities: 'vanities'
 }
 
@@ -36,7 +35,11 @@ var VALID_PROPS = {
   onHaikuComponentWillInitialize: 'func',
   onHaikuComponentDidMount: 'func',
   onHaikuComponentDidInitialize: 'func',
-  onHaikuComponentWillUnmount: 'func'
+  onHaikuComponentWillUnmount: 'func',
+
+  // Allow a haiku player to be (optionally) passed in
+  haikuAdapter: 'func',
+  haikuCode: 'object'
 }
 
 for (var eventKey in EventsDict) {
@@ -47,7 +50,7 @@ for (var fwdPropKey in HAIKU_FORWARDED_PROPS) {
   VALID_PROPS[fwdPropKey] = 'object'
 }
 
-function HaikuReactDOMAdapter (HaikuComponentFactory) {
+function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
   var reactClass = React.createClass({
     displayName: 'HaikuComponent',
 
@@ -56,14 +59,6 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
     },
 
     componentWillReceiveProps: function (nextPropsRaw) {
-      if (this.props.haikuController) {
-        this.props.haikuController.emit(
-          'react:componentWillReceiveProps',
-          this,
-          nextPropsRaw
-        )
-      }
-
       if (this.haiku) {
         var haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(nextPropsRaw)
         this.haiku.assignConfig(haikuConfig)
@@ -71,18 +66,12 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
     },
 
     componentWillMount: function () {
-      if (this.props.haikuController) {
-        this.props.haikuController.emit('react:componentWillMount', this)
-      }
       if (this.props.onComponentWillMount) {
         this.props.onComponentWillMount(this)
       }
     },
 
     componentWillUnmount: function () {
-      if (this.props.haikuController) {
-        this.props.haikuController.emit('react:componentWillUnmount', this)
-      }
       if (this.props.onComponentWillUnmount) {
         this.props.onComponentWillUnmount(this)
       }
@@ -96,13 +85,6 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
       if (this.mount) {
         this.createContext(this.props)
 
-        if (this.props.haikuController) {
-          this.props.haikuController.emit(
-            'react:componentDidMount',
-            this,
-            this.mount
-          )
-        }
         if (this.props.onComponentDidMount) {
           this.props.onComponentDidMount(this, this.mount)
         }
@@ -164,9 +146,28 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
     createContext: function (rawProps) {
       var haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(rawProps)
 
+      var haikuAdapter
+
+      if (rawProps.haikuAdapter) {
+        if (rawProps.haikuCode) {
+          haikuAdapter = rawProps.haikuAdapter(rawProps.haikuCode)
+        } else if (optionalRawBytecode) {
+          haikuAdapter = rawProps.haikuAdapter(optionalRawBytecode)
+        } else {
+          throw new Error('A Haiku code object is required if you supply a Haiku adapter')
+        }
+      } else {
+        // Otherwise default to the adapter which was initialized in the wrapper module
+        haikuAdapter = HaikuComponentFactory
+      }
+
+      if (!haikuAdapter) {
+        throw new Error('A Haiku adapter is required')
+      }
+
       // Reuse existing mounted component if one exists
       if (!this.haiku) {
-        this.haiku = HaikuComponentFactory( // eslint-disable-line
+        this.haiku = haikuAdapter( // eslint-disable-line
           this.mount,
           haikuConfig
         )
@@ -203,7 +204,9 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
           if (EventsDict[key]) {
             propsForHostElement[key] = this.createEventPropWrapper(rawProps[key])
           } else if (!HAIKU_FORWARDED_PROPS[key]) {
-            propsForHostElement[key] = rawProps[key]
+            if (key !== 'haikuAdapter' && key !== 'haikuCode') {
+              propsForHostElement[key] = rawProps[key]
+            }
           }
         }
       }
