@@ -18,7 +18,7 @@ module.exports = {
       }
     }
   },
-  eventHandlers: [],
-  properties: [],
+  eventHandlers: {},
+  states: {},
   template: '<div id="div">Hello World!</div>'
 }

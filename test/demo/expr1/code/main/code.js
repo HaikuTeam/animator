@@ -17,7 +17,7 @@ module.exports = {
     type: 'number',
     value: 0 
   }],
-  eventHandlers: [],
+  eventHandlers: {},
   timelines: {
     Default: {
       "haiku:93374b1e3f07": {

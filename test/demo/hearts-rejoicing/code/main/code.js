@@ -49,8 +49,8 @@ module.exports = {
     }
   },
 
-  eventHandlers: [],
-  properties: [],
+  eventHandlers: {},
+  states: {},
   template: {
     children: [
       {

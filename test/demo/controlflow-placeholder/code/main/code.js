@@ -1,7 +1,7 @@
 var N = null
 module.exports = {
-  properties: [],
-  eventHandlers: [],
+  states: {},
+  eventHandlers: {},
   timelines: {
     Default: {
       '#title': {

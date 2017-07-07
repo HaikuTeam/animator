@@ -7,9 +7,9 @@ var vanityHandlers = require('./properties/dom/vanities')
 var queryTree = require('./helpers/cssQueryTree')
 var Layout3D = require('./Layout3D')
 var scopifyElements = require('./helpers/scopifyElements')
-var xmlToMana = require('./helpers/xmlToMana')
 var assign = require('./vendor/assign')
 var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
+var upgradeBytecodeInPlace = require('./helpers/upgradeBytecodeInPlace')
 var HaikuTimeline = require('./HaikuTimeline')
 var Config = require('./Config')
 
@@ -64,7 +64,7 @@ function HaikuComponent (bytecode, context, config) {
   this._bytecode = bytecode
 
   // If the bytecode we got happens to be in an outdated format, we automatically updated it to ours
-  this.upgradeBytecodeInPlace()
+  upgradeBytecodeInPlace(this._bytecode)
 
   this._context = context
   this._builder = new ValueBuilder(this)
@@ -113,55 +113,6 @@ function HaikuComponent (bytecode, context, config) {
 }
 
 HaikuComponent.PLAYER_VERSION = PLAYER_VERSION
-
-/**
- * @method upgradeBytecodeInPlace
- * @description Mechanism to modify our bytecode from legacy format to the current format.
- * Think of this like a migration that always runs in production components just in case we
- * get something that happens to be legacy.
- */
-HaikuComponent.prototype.upgradeBytecodeInPlace = function _upgradeBytecodeInPlace () {
-  if (!this._bytecode.states) {
-    this._bytecode.states = {}
-  }
-
-  // Convert the properties array to the states dictionary
-  if (this._bytecode.properties) {
-    console.info('[haiku player] auto-upgrading code properties array to states object (2.1.14+)')
-    var properties = this._bytecode.properties
-    delete this._bytecode.properties
-    for (var i = 0; i < properties.length; i++) {
-      var propertySpec = properties[i]
-      var updatedSpec = {}
-      if (propertySpec.value !== undefined) updatedSpec.value = propertySpec.value
-      if (propertySpec.type !== undefined) updatedSpec.type = propertySpec.type
-      if (propertySpec.setter !== undefined) updatedSpec.setter = propertySpec.setter
-      this._bytecode.states[propertySpec.name] = updatedSpec
-    }
-  }
-
-  // Convert the eventHandlers array into a dictionary
-  // [{selector:'foo',name:'onclick',handler:function}] => {'foo':{'onclick':{handler:function}}}
-  if (Array.isArray(this._bytecode.eventHandlers)) {
-    console.info('[haiku player] auto-upgrading code event handlers to object format (2.1.14+)')
-    var eventHandlers = this._bytecode.eventHandlers
-    delete this._bytecode.eventHandlers
-    this._bytecode.eventHandlers = {}
-    for (var j = 0; j < eventHandlers.length; j++) {
-      var eventHandlerSpec = eventHandlers[j]
-      if (!this._bytecode.eventHandlers[eventHandlerSpec.selector]) this._bytecode.eventHandlers[eventHandlerSpec.selector] = {}
-      this._bytecode.eventHandlers[eventHandlerSpec.selector][eventHandlerSpec.name] = {
-        handler: eventHandlerSpec.handler
-      }
-    }
-  }
-
-  // Convert a string template into our internal object format
-  if (typeof this._bytecode.template === STRING_TYPE) {
-    console.info('[haiku player] auto-upgrading template string to object format (2.0.0+)')
-    this._bytecode.template = xmlToMana(this._bytecode.template)
-  }
-}
 
 // If the component needs to remount itself for some reason, make sure we fire the right events
 HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, skipMarkForFullFlush) {

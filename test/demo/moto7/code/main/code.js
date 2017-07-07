@@ -11,8 +11,8 @@ module.exports = {
   },
 
   options: {},
-  properties: [],
-  eventHandlers: [],
+  states: {},
+  eventHandlers: {},
   timelines: {
     Default: {
       'haiku:cc9a7f1a63bb': {

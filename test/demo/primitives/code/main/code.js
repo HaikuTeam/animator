@@ -1,6 +1,6 @@
 module.exports = {
-  properties: [],
-  eventHandlers: [],
+  states: {},
+  eventHandlers: {},
   timelines: {
     Default: {
       'haiku:365ef0d044a7': {

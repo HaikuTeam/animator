@@ -8,8 +8,8 @@ module.exports = {
   },
 
   options: {},
-  properties: [],
-  eventHandlers: [],
+  states: {},
+  eventHandlers: {},
   timelines: {
     Default: {
       'haiku:d0d263a2f0be': {

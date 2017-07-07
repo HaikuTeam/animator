@@ -1,6 +1,6 @@
 module.exports = {
   timelines: {},
-  eventHandlers: [],
-  properties: [],
+  eventHandlers: {},
+  states: {},
   template: '<div>Hello World!</div>'
 }
