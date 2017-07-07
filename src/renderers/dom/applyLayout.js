@@ -17,8 +17,6 @@ var PLATFORM_INFO = {
   hasPreserve3d: hasPreserve3d(_window) // I dunno if we actually need this
 }
 
-console.info('[haiku player] platform info:', JSON.stringify(PLATFORM_INFO))
-
 var DEFAULT_PIXEL_RATIO = 1.0
 var SVG = 'svg'
 var SVG_RENDERABLES = {

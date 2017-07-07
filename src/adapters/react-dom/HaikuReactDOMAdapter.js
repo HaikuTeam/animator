@@ -237,6 +237,8 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
     }
   })
 
+  reactClass.propTypes = {}
+
   for (var propName in VALID_PROPS) {
     var propType = VALID_PROPS[propName]
     reactClass.propTypes[propName] = React.PropTypes[propType]

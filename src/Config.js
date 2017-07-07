@@ -19,10 +19,6 @@ var DEFAULTS = {
   // Optional lifecycle event hook (see below)
   onHaikuComponentWillUnmount: null,
 
-  // controller: EventEmitter|null
-  // Optional hook into events and programmatic interface into the player's internals, for developer usage
-  controller: null,
-
   // Object of configurable options
   options: {
     // seed: String
@@ -83,7 +79,11 @@ var DEFAULTS = {
 
     // mixpanel: String|null
     // If provided, a Mixpanel tracking instance will be created using this string as the API token. The default token is Haiku's production token.
-    mixpanel: '6f31d4f99cf71024ce27c3e404a79a61'
+    mixpanel: '6f31d4f99cf71024ce27c3e404a79a61',
+
+    // useWebkitPrefix: boolean
+    // Whether to prepend a webkit prefix to transform properties
+    useWebkitPrefix: void (0)
   },
 
   // states: Object|null
@@ -123,9 +123,18 @@ function _build () {
     if (!incoming) continue
     if (typeof incoming !== 'object') continue
 
-    for (var key in incoming) {
-      config[key] = assign(incoming[key])
-    }
+    if (incoming.onHaikuComponentWillInitialize) config.onHaikuComponentWillInitialize = incoming.onHaikuComponentWillInitialize
+    if (incoming.onHaikuComponentDidMount) config.onHaikuComponentDidMount = incoming.onHaikuComponentDidMount
+    if (incoming.onHaikuComponentDidInitialize) config.onHaikuComponentDidInitialize = incoming.onHaikuComponentDidInitialize
+    if (incoming.onHaikuComponentWillUnmount) config.onHaikuComponentWillUnmount = incoming.onHaikuComponentWillUnmount
+
+    if (incoming.options) config.options = assign({}, config.options, incoming.options)
+    if (incoming.states) config.states = assign({}, config.states, incoming.states)
+    if (incoming.eventHandlers) config.eventHandlers = assign({}, config.eventHandlers, incoming.eventHandlers)
+    if (incoming.timelines) config.timelines = assign({}, config.timelines, incoming.timelines)
+    if (incoming.vanities) config.vanities = assign({}, config.vanities, incoming.vanities)
+
+    if (incoming.children) config.children = incoming.children
   }
 
   return config

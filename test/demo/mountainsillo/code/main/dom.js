@@ -1,7 +1,9 @@
 var creation = require('@haiku/player/dom')
 module.exports = creation(require('./code'), {
-  sizing: 'cover',
-  autoplay: false,
+  options: {
+    autoplay: false,
+    sizing: 'contain'
+  },
   onHaikuComponentDidMount: function (instance) {
     console.log(instance)
   }

@@ -183,7 +183,9 @@ HaikuContext.createComponentFactory = function createComponentFactory (
       }
     },
     // The bytecode itself may contain configuration for playback, etc., but is lower precedence than config passed in
-    bytecode && bytecode.options,
+    {
+      options: bytecode && bytecode.options
+    },
     haikuConfigFromFactoryCreator
   )
 

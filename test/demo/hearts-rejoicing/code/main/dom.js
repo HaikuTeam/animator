@@ -1,7 +1,9 @@
 var creation = require('@haiku/player/dom')
 module.exports = creation(require('./code'), {
-  autoplay: false,
-  sizing: 'cover',
+  options: {
+    autoplay: false,
+    sizing: 'cover'
+  },
   onHaikuComponentDidMount: function (instance) {
     console.info('ok if both hearts beat on click since i registered it intentionally in a weird way')
     var el = document.querySelector('#Heart')

@@ -1,6 +1,8 @@
 var HaikuCreation = require('@haiku/player/dom')
 module.exports = HaikuCreation(require('./code.js'), {
-  autoplay: false,
+  options: {
+    autoplay: false,
+  },
   onHaikuComponentDidMount: function (instance) {
     var tl = instance.getDefaultTimeline()
     console.log(tl.duration())

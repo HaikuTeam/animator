@@ -1,2 +1,2 @@
 var HaikuCreation = require('@haiku/player/dom')
-module.exports = HaikuCreation(require('./code.js'), { loop: true })
+module.exports = HaikuCreation(require('./code.js'), { options: { loop: true }})

@@ -99,7 +99,7 @@ SUMMONABLES['$timeline_name'] = {
     keyframeMs,
     keyframeCluster,
     hostInstance,
-    inputValues,
+    states,
     eventsFired
   ) {
     return timelineName
@@ -113,7 +113,7 @@ SUMMONABLES['$property_name'] = {
     keyframeMs,
     keyframeCluster,
     hostInstance,
-    inputValues,
+    states,
     eventsFired
   ) {
     return propertyName
@@ -127,7 +127,7 @@ SUMMONABLES['$selector'] = {
     keyframeMs,
     keyframeCluster,
     hostInstance,
-    inputValues,
+    states,
     eventsFired
   ) {
     return selector
@@ -141,7 +141,7 @@ SUMMONABLES['$keyframe'] = {
     keyframeMs,
     keyframeCluster,
     hostInstance,
-    inputValues,
+    states,
     eventsFired
   ) {
     return parseInt(keyframeMs, 10)
@@ -155,7 +155,7 @@ SUMMONABLES['$frame'] = {
     keyframeMs,
     keyframeCluster,
     hostInstance,
-    inputValues,
+    states,
     eventsFired
   ) {
     var timeline =
@@ -172,7 +172,7 @@ SUMMONABLES['$frame_unbounded'] = {
     keyframeMs,
     keyframeCluster,
     hostInstance,
-    inputValues,
+    states,
     eventsFired
   ) {
     var timeline =
@@ -189,7 +189,7 @@ SUMMONABLES['$time'] = {
     keyframeMs,
     keyframeCluster,
     hostInstance,
-    inputValues,
+    states,
     eventsFired
   ) {
     var timeline =
@@ -206,7 +206,7 @@ SUMMONABLES['$time_elapsed'] = {
     keyframeMs,
     keyframeCluster,
     hostInstance,
-    inputValues,
+    states,
     eventsFired
   ) {
     var timeline =
@@ -223,7 +223,7 @@ SUMMONABLES['$time_clock'] = {
     keyframeMs,
     keyframeCluster,
     hostInstance,
-    inputValues,
+    states,
     eventsFired
   ) {
     var timeline =
@@ -240,7 +240,7 @@ SUMMONABLES['$time_max'] = {
     keyframeMs,
     keyframeCluster,
     hostInstance,
-    inputValues,
+    states,
     eventsFired
   ) {
     var timeline =
@@ -278,7 +278,7 @@ ValueBuilder.prototype.evaluate = function _evaluate (
   keyframeMs,
   keyframeCluster,
   hostInstance,
-  inputValues,
+  states,
   eventsFired,
   inputsChanged
 ) {
@@ -298,19 +298,19 @@ ValueBuilder.prototype.evaluate = function _evaluate (
 
   if (fn.specification === true) {
     // This function is of an unknown kind, so just evaluate it normally without magic dependency injection
-    evaluation = fn.call(hostInstance, inputValues)
+    evaluation = fn.call(hostInstance, states)
   } else if (!Array.isArray(fn.specification.params)) {
     // If for some reason we got a non-array params, just evaluate
-    evaluation = fn.call(hostInstance, inputValues)
+    evaluation = fn.call(hostInstance, states)
   } else if (fn.specification.params.length < 1) {
     // If for some reason we got 0 params, just evaluate it
-    evaluation = fn.call(hostInstance, inputValues)
+    evaluation = fn.call(hostInstance, states)
   } else {
     var summons = fn.specification.params[0] // For now, ignore all subsequent arguments
 
     if (!summons || typeof summons !== 'object') {
       // If the summon isn't in the destructured object format, just evaluate it
-      evaluation = fn.call(hostInstance, inputValues)
+      evaluation = fn.call(hostInstance, states)
     } else {
       var summonees = this.summonSummonables(
         summons,
@@ -320,7 +320,7 @@ ValueBuilder.prototype.evaluate = function _evaluate (
         keyframeMs,
         keyframeCluster,
         hostInstance,
-        inputValues,
+        states,
         eventsFired,
         inputsChanged
       )
@@ -352,7 +352,7 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
   keyframeMs,
   keyframeCluster,
   hostInstance,
-  inputValues,
+  states,
   eventsFired,
   inputsChanged
 ) {
@@ -373,7 +373,7 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
         keyframeMs,
         keyframeCluster,
         hostInstance,
-        inputValues,
+        states,
         eventsFired,
         inputsChanged
       )
@@ -433,7 +433,7 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
   outputName,
   cluster,
   hostInstance,
-  inputValues,
+  states,
   eventsFired,
   inputsChanged,
   isPatchOperation,
@@ -480,7 +480,7 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
         ms,
         cluster,
         hostInstance,
-        inputValues,
+        states,
         eventsFired,
         inputsChanged
       )
@@ -564,7 +564,7 @@ ValueBuilder.prototype.build = function _build (
   timelineTime,
   timelinesObject,
   isPatchOperation,
-  inputValues,
+  states,
   eventsFired,
   inputsChanged
 ) {
@@ -582,7 +582,7 @@ ValueBuilder.prototype.build = function _build (
         propertiesGroup,
         timelineTime,
         haikuComponent,
-        inputValues,
+        states,
         eventsFired,
         inputsChanged,
         isPatchOperation
@@ -627,7 +627,7 @@ ValueBuilder.prototype.build = function _build (
  * @param propertiesGroup {Object} The full timeline properties group, e.g. { position.x: ..., position.y: ... }
  * @param timelineTime {Number} The current time (in ms) that the given timeline is at
  * @param haikuPlayer {Object} Instance of HaikuPlayer
- * @param inputValues {Object} Input values stored by the player instance
+ * @param states {Object} Input values stored by the player instance
  * @param eventsFired {Array} Events fired within the tick
  * @param inputsChanged {Object} List of inputs detected to have changed since last input
  */
@@ -638,7 +638,7 @@ ValueBuilder.prototype.grabValue = function _grabValue (
   propertiesGroup,
   timelineTime,
   haikuPlayer,
-  inputValues,
+  states,
   eventsFired,
   inputsChanged,
   isPatchOperation,
@@ -650,7 +650,7 @@ ValueBuilder.prototype.grabValue = function _grabValue (
     propertyName,
     propertiesGroup[propertyName],
     haikuPlayer,
-    inputValues,
+    states,
     eventsFired,
     inputsChanged,
     isPatchOperation,

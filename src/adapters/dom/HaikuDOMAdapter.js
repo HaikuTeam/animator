@@ -23,8 +23,9 @@ var IS_WINDOW_DEFINED = typeof window !== 'undefined'
  * @function HaikuDOMAdapter
  * @description Given a bytecode object, return a factory function which can create a DOM-playable component.
  */
-function HaikuDOMAdapter (bytecode, options, _window) {
-  if (!options) options = {}
+function HaikuDOMAdapter (bytecode, config, _window) {
+  if (!config) config = {}
+  if (!config.options) config.options = {}
 
   if (!_window) {
     if (IS_WINDOW_DEFINED) {
@@ -32,19 +33,19 @@ function HaikuDOMAdapter (bytecode, options, _window) {
     }
   }
 
-  if (options.useWebkitPrefix === undefined) {
+  if (config.options.useWebkitPrefix === undefined) {
     // Allow headless mode, e.g. in server-side rendering or in Node.js unit tests
     if (_window && _window.document) {
       var isWebKit =
         'WebkitAppearance' in _window.document.documentElement.style
-      options.useWebkitPrefix = !!isWebKit
+      config.options.useWebkitPrefix = !!isWebKit
     }
   }
 
   return HaikuContext.createComponentFactory(
     HaikuDOMRenderer,
     bytecode,
-    options,
+    config, // Note: Full config object, of which options is one property!
     _window
   )
 }

@@ -230,7 +230,12 @@ HaikuComponent.prototype.assignConfig = function _assignConfig (incomingConfig) 
   this.config = Config.build(this.config || {}, incomingConfig || {})
   // Don't forget to update the ones the context has!
   // Skip component assignment so we don't end up in an infinite loop :P
-  this.context.assignConfig(this.config, { skipComponentAssign: true })
+  this._context.assignConfig(this.config, { skipComponentAssign: true })
+
+  for (var timelineName in this._timelineInstances) {
+    var timelineInstance = this._timelineInstances[timelineName]
+    timelineInstance.assignOptions(this.config.options)
+  }
 
   // STATES
   _bindStates(this._states, this, this.config.states)
@@ -258,17 +263,6 @@ HaikuComponent.prototype._clearCaches = function _clearCaches () {
   this._clearDetectedEventsFired()
   this._clearDetectedInputChanges()
   this._builder._clearCaches()
-}
-
-HaikuComponent.prototype.assignConfig = function assignConfig (incomingConfig) {
-  this.config = Config.build(this.config || {}, incomingConfig || {})
-
-  for (var timelineName in this._timelineInstances) {
-    var timelineInstance = this._timelineInstances[timelineName]
-    timelineInstance.assignOptions(this.config.options)
-  }
-
-  return this
 }
 
 HaikuComponent.prototype.getClock = function getClock () {
@@ -729,7 +723,7 @@ function _gatherDeltaPatches (
   template,
   container,
   context,
-  inputValues,
+  states,
   timelinesRunning,
   eventsFired,
   inputsChanged,
@@ -751,7 +745,7 @@ function _gatherDeltaPatches (
       time,
       bytecode.timelines,
       true,
-      inputValues,
+      states,
       eventsFired,
       inputsChanged
     )
