@@ -11,6 +11,7 @@ var xmlToMana = require('./helpers/xmlToMana')
 var assign = require('./vendor/assign')
 var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
 var HaikuTimeline = require('./HaikuTimeline')
+var Config = require('./Config')
 
 var PLAYER_VERSION = require('./../package.json').version
 
@@ -24,11 +25,9 @@ var HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
 var DEFAULT_TIMELINE_NAME = 'Default'
 
-var DEFAULT_OPTIONS = {}
-
-function HaikuComponent (bytecode, context, options) {
+function HaikuComponent (bytecode, context, config) {
   if (!(this instanceof HaikuComponent)) {
-    return new HaikuComponent(bytecode, context, options)
+    return new HaikuComponent(bytecode, context, config)
   }
 
   if (!bytecode) {
@@ -43,38 +42,56 @@ function HaikuComponent (bytecode, context, options) {
     throw new Error('Bytecode must define template')
   }
 
-  if (!options.seed) {
+  if (!config.options) {
+    throw new Error('Config options required')
+  }
+
+  if (!config.options.seed) {
     throw new Error('Seed value must be provided')
   }
 
-  this.PLAYER_VERSION = PLAYER_VERSION
-
   SimpleEventEmitter.create(this)
 
-  this.assignOptions(options)
+  this.PLAYER_VERSION = PLAYER_VERSION
 
+  // Notify anybody who cares that we've successfully initialized their component in memory (but not rendered yet)
+  this.emit('haikuComponentWillInitialize', this)
+  if (config.onHaikuComponentWillInitialize) {
+    config.onHaikuComponentWillInitialize(this)
+  }
+
+  // First we assign the bytecode, because config assignment (see below) might effect the way it is set up!
   this._bytecode = bytecode
+
+  // If the bytecode we got happens to be in an outdated format, we automatically updated it to ours
+  this.upgradeBytecodeInPlace()
+
   this._context = context
-  this._timelines = {}
   this._builder = new ValueBuilder(this)
 
+  // STATES
+  this._states = {} // Storage for getter/setter actions in userland logic
+  this._stateChanges = {}
+  this._anyStateChange = false
+
+  // EVENT HANDLERS
+  this._eventsFired = {}
+  this._anyEventChange = false
+
+  // OPTIONS
+  // Note that assignConfig calls _bindStates and _bindEventHandlers, because our incoming config, which
+  // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
+  this.assignConfig(config)
+
+  // TIMELINES
+  this._timelineInstances = {}
+
+  // TEMPLATE
   // The full version of the template gets mutated in-place by the rendering algorithm
   this._template = _fetchTemplate(this._bytecode.template)
 
-  this._inputValues = {} // Storage for getter/setter actions in userland logic
-  this._inputChanges = {}
-  this._anyInputChange = false
-  _defineInputs(this._inputValues, this)
-
-  this._eventsFired = {}
-  this._anyEventChange = false
-  _bindEventHandlers(this)
-
   // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
   this._needsFullFlush = false
-
-  // A list of any event handlers assigned to us via the optional controller instance that may have been used [#LEGACY?]
-  this._controllerEventHandlers = []
 
   // The last output of a full re-render - I don't think this is important any more, except maybe for debugging [#LEGACY?]
   this._lastTemplateExpansion = null
@@ -87,16 +104,153 @@ function HaikuComponent (bytecode, context, options) {
 
   // A sort of cache with a mapping of elements to the scope in which they belong (div, svg, etc)
   this._renderScopes = {}
+
+  // Notify anybody who cares that we've successfully initialized their component in memory
+  this.emit('haikuComponentDidInitialize', this)
+  if (config.onHaikuComponentDidInitialize) {
+    config.onHaikuComponentDidInitialize(this)
+  }
+}
+
+HaikuComponent.PLAYER_VERSION = PLAYER_VERSION
+
+/**
+ * @method upgradeBytecodeInPlace
+ * @description Mechanism to modify our bytecode from legacy format to the current format.
+ * Think of this like a migration that always runs in production components just in case we
+ * get something that happens to be legacy.
+ */
+HaikuComponent.prototype.upgradeBytecodeInPlace = function _upgradeBytecodeInPlace () {
+  if (!this._bytecode.states) {
+    this._bytecode.states = {}
+  }
+
+  // Convert the properties array to the states dictionary
+  if (this._bytecode.properties) {
+    console.info('[haiku player] auto-upgrading code properties array to states object (2.1.14+)')
+    var properties = this._bytecode.properties
+    delete this._bytecode.properties
+    for (var i = 0; i < properties.length; i++) {
+      var propertySpec = properties[i]
+      var updatedSpec = {}
+      if (propertySpec.value !== undefined) updatedSpec.value = propertySpec.value
+      if (propertySpec.type !== undefined) updatedSpec.type = propertySpec.type
+      if (propertySpec.setter !== undefined) updatedSpec.setter = propertySpec.setter
+      this._bytecode.states[propertySpec.name] = updatedSpec
+    }
+  }
+
+  // Convert the eventHandlers array into a dictionary
+  // [{selector:'foo',name:'onclick',handler:function}] => {'foo':{'onclick':{handler:function}}}
+  if (Array.isArray(this._bytecode.eventHandlers)) {
+    console.info('[haiku player] auto-upgrading code event handlers to object format (2.1.14+)')
+    var eventHandlers = this._bytecode.eventHandlers
+    delete this._bytecode.eventHandlers
+    this._bytecode.eventHandlers = {}
+    for (var j = 0; j < eventHandlers.length; j++) {
+      var eventHandlerSpec = eventHandlers[j]
+      if (!this._bytecode.eventHandlers[eventHandlerSpec.selector]) this._bytecode.eventHandlers[eventHandlerSpec.selector] = {}
+      this._bytecode.eventHandlers[eventHandlerSpec.selector][eventHandlerSpec.name] = {
+        handler: eventHandlerSpec.handler
+      }
+    }
+  }
+
+  // Convert a string template into our internal object format
+  if (typeof this._bytecode.template === STRING_TYPE) {
+    console.info('[haiku player] auto-upgrading template string to object format (2.0.0+)')
+    this._bytecode.template = xmlToMana(this._bytecode.template)
+  }
+}
+
+// If the component needs to remount itself for some reason, make sure we fire the right events
+HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, skipMarkForFullFlush) {
+  // Note!: Only update config if we actually got incoming options!
+  if (incomingConfig) {
+    this.assignConfig(incomingConfig)
+  }
+
+  if (!skipMarkForFullFlush) {
+    this._markForFullFlush(true)
+  }
+
+  this._clearCaches()
+
+  // If autoplay is not wanted, stop the all timelines immediately after we've mounted
+  // (We have to mount first so that the component displays, but then pause it at that state.)
+  // If you don't want the component to show up at all, use options.automount=false.
+  var timelineInstances = this.getTimelines()
+  for (var timelineName in timelineInstances) {
+    var timelineInstance = timelineInstances[timelineName]
+    if (this.config.options.autoplay) {
+      if (timelineName === DEFAULT_TIMELINE_NAME) {
+        // Assume we want to start the timeline from the beginning upon remount
+        timelineInstance.play()
+      }
+    } else {
+      timelineInstance.pause()
+    }
+  }
+
+  this._context.contextMount()
+
+  this.emit('haikuComponentDidMount', this)
+  if (this.config.onHaikuComponentDidMount) {
+    this.config.onHaikuComponentDidMount(this)
+  }
+}
+
+// If the component needs to unmount itself for some reason, make sure we fire the right events
+// This is primarily used in the React Adapter, but there might be other uses for it?
+HaikuComponent.prototype.callUnmount = function _callUnmount (incomingConfig) {
+  if (incomingConfig) {
+    this.assignConfig(incomingConfig)
+  }
+
+  // Since we're unmounting, pause all animations to avoid unnecessary calc while detached
+  var timelineInstances = this.getTimelines()
+  for (var timelineName in timelineInstances) {
+    var timelineInstance = timelineInstances[timelineName]
+    timelineInstance.pause()
+  }
+
+  this._context.contextUnmount()
+
+  this.emit('haikuComponentWillUnmount', this)
+  if (this.config.onHaikuComponentWillUnmount) {
+    this.config.onHaikuComponentWillUnmount(this)
+  }
+}
+
+HaikuComponent.prototype.assignConfig = function _assignConfig (incomingConfig) {
+  // - OPTIONS
+  // - VANITIES
+  // - CONTROLLER
+  // - lifecycle listeners
+  this.config = Config.build(this.config || {}, incomingConfig || {})
+  // Don't forget to update the ones the context has!
+  // Skip component assignment so we don't end up in an infinite loop :P
+  this.context.assignConfig(this.config, { skipComponentAssign: true })
+
+  // STATES
+  _bindStates(this._states, this, this.config.states)
+
+  // EVENT HANDLERS
+  _bindEventHandlers(this, this.config.eventHandlers)
+
+  // TIMELINES
+  assign(this._bytecode.timelines, this.config.timelines)
+
+  return this
 }
 
 HaikuComponent.prototype._clearCaches = function _clearCaches () {
-  this._inputValues = {}
-  this._inputChanges = {}
-  this._anyInputChange = false
+  this._states = {}
+  this._stateChanges = {}
+  this._anyStateChange = false
   this._eventsFired = {}
   this._anyEventChange = false
   this._needsFullFlush = false
-  this._controllerEventHandlers = []
   this._lastTemplateExpansion = null
   this._lastDeltaPatches = null
   this._matchedElementCache = {}
@@ -106,35 +260,14 @@ HaikuComponent.prototype._clearCaches = function _clearCaches () {
   this._builder._clearCaches()
 }
 
-HaikuComponent.prototype.assignOptions = function assignOptions (options) {
-  this.options = assign(this.options || {}, DEFAULT_OPTIONS, options || {})
+HaikuComponent.prototype.assignConfig = function assignConfig (incomingConfig) {
+  this.config = Config.build(this.config || {}, incomingConfig || {})
 
-  for (var timelineName in this._timelines) {
-    var timelineInstance = this._timelines[timelineName]
-    timelineInstance.assignOptions(this.options)
+  for (var timelineName in this._timelineInstances) {
+    var timelineInstance = this._timelineInstances[timelineName]
+    timelineInstance.assignOptions(this.config.options)
   }
 
-  return this
-}
-
-HaikuComponent.prototype.setOption = function setOption (key, value) {
-  this.getOptions()[key] = value
-  return this
-}
-
-HaikuComponent.prototype.getOption = function getOption (key) {
-  return this.getOptions()[key]
-}
-
-HaikuComponent.prototype.getOptions = function getOptions () {
-  return this.options
-}
-
-HaikuComponent.prototype.setOptions = function setOptions (incoming) {
-  var options = this.getOptions()
-  for (var key in incoming) {
-    options[key] = incoming[key]
-  }
   return this
 }
 
@@ -154,19 +287,19 @@ HaikuComponent.prototype._fetchTimelines = function _fetchTimelines () {
     if (!name) continue
 
     var descriptor = this._getTimelineDescriptor(name)
-    var existing = this._timelines[name]
+    var existing = this._timelineInstances[name]
 
     if (!existing) {
-      this._timelines[name] = new HaikuTimeline(
+      this._timelineInstances[name] = new HaikuTimeline(
         this,
         name,
         descriptor,
-        this.options
+        this.config.options
       )
     }
   }
 
-  return this._timelines
+  return this._timelineInstances
 }
 
 HaikuComponent.prototype.getTimeline = function getTimeline (name) {
@@ -194,13 +327,13 @@ HaikuComponent.prototype.getActiveTimelines = function getActiveTimelines () {
 }
 
 HaikuComponent.prototype.stopAllTimelines = function stopAllTimelines () {
-  for (var timelineName in this._timelines) {
+  for (var timelineName in this._timelineInstances) {
     this.stopTimeline(timelineName)
   }
 }
 
 HaikuComponent.prototype.startAllTimelines = function startAllTimelines () {
-  for (var timelineName in this._timelines) {
+  for (var timelineName in this._timelineInstances) {
     this.startTimeline(timelineName)
   }
 }
@@ -208,21 +341,21 @@ HaikuComponent.prototype.startAllTimelines = function startAllTimelines () {
 HaikuComponent.prototype.startTimeline = function startTimeline (timelineName) {
   var time = this._context.clock.getExplicitTime()
   var descriptor = this._getTimelineDescriptor(timelineName)
-  var existing = this._timelines[timelineName]
+  var existing = this._timelineInstances[timelineName]
   if (existing) {
     existing.start(time, descriptor)
   } else {
     // As a convenience we auto-initialize timeline if the user is trying to start one that hasn't initialized yet
-    var fresh = new HaikuTimeline(this, timelineName, descriptor, this.options)
+    var fresh = new HaikuTimeline(this, timelineName, descriptor, this.config.options)
     fresh.start(time, descriptor) // Initialization alone doesn't start the timeline, so we start it explicitly
-    this._timelines[timelineName] = fresh // Don't forget to add it to our collection
+    this._timelineInstances[timelineName] = fresh // Don't forget to add it to our collection
   }
 }
 
 HaikuComponent.prototype.stopTimeline = function startTimeline (timelineName) {
   var time = this._context.clock.getExplicitTime()
   var descriptor = this._getTimelineDescriptor(timelineName)
-  var existing = this._timelines[timelineName]
+  var existing = this._timelineInstances[timelineName]
   if (existing) {
     existing.stop(time, descriptor)
   }
@@ -284,29 +417,27 @@ function _fetchTemplate (template) {
     return template
   }
 
-  if (typeof template === STRING_TYPE) {
-    return xmlToMana(template)
-  }
-
   throw new Error('Unknown bytecode template format')
 }
 
-function _bindEventHandlers (component) {
-  if (!component._bytecode.eventHandlers) {
-    return void 0
-  }
+function _bindEventHandlers (component, extraEventHandlers) {
+  var allEventHandlers = assign({}, component._bytecode.eventHandlers, extraEventHandlers)
 
-  for (var i = 0; i < component._bytecode.eventHandlers.length; i++) {
-    var eventHandlerDescriptor = component._bytecode.eventHandlers[i]
-    var originalHandlerFn = eventHandlerDescriptor.handler
-
-    _bindEventHandler(component, eventHandlerDescriptor, originalHandlerFn)
+  for (var selector in allEventHandlers) {
+    var handlerGroup = allEventHandlers[selector]
+    for (var eventName in handlerGroup) {
+      var eventHandlerDescriptor = handlerGroup[eventName]
+      var originalHandlerFn = eventHandlerDescriptor.handler
+      _bindEventHandler(component, eventHandlerDescriptor, selector, eventName, originalHandlerFn)
+    }
   }
 }
 
 function _bindEventHandler (
   component,
   eventHandlerDescriptor,
+  selector,
+  eventName,
   originalHandlerFn
 ) {
   eventHandlerDescriptor.handler = function _wrappedEventHandler (
@@ -324,118 +455,106 @@ function _bindEventHandler (
     k
   ) {
     component._anyEventChange = true
-    var selector = eventHandlerDescriptor.selector
 
     if (!component._eventsFired[selector]) {
       component._eventsFired[selector] = {}
     }
 
-    component._eventsFired[selector][eventHandlerDescriptor.name] =
+    component._eventsFired[selector][eventName] =
       event || true
 
     originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
   }
 }
 
-function _typecheckInputProperty (property) {
+function _typecheckStateSpec (stateSpec, stateSpecName) {
   if (
-    property.type === 'any' ||
-    property.type === '*' ||
-    property.type === undefined ||
-    property.type === null
+    stateSpec.type === 'any' ||
+    stateSpec.type === '*' ||
+    stateSpec.type === undefined ||
+    stateSpec.type === null
   ) {
     return void 0
   }
 
-  if (property.type === 'event' || property.type === 'listener') {
+  if (stateSpec.type === 'event' || stateSpec.type === 'listener') {
     if (
-      typeof property.value !== 'function' &&
-      property.value !== null &&
-      property.value !== undefined
+      typeof stateSpec.value !== 'function' &&
+      stateSpec.value !== null &&
+      stateSpec.value !== undefined
     ) {
       throw new Error(
         'Property value `' +
-          property.name +
+          stateSpecName +
           '` must be an event listener function'
       )
     }
     return void 0
   }
 
-  if (typeof property.value !== property.type) {
+  if (typeof stateSpec.value !== stateSpec.type) {
     throw new Error(
-      'Property value `' + property.name + '` must be a `' + property.type + '`'
+      'Property value `' + stateSpecName + '` must be a `' + stateSpec.type + '`'
     )
   }
 }
 
-function _defineInputs (inputValuesObject, component) {
-  if (!component._bytecode.properties) {
-    return void 0
-  }
+function _bindStates (statesTargetObject, component, extraStates) {
+  var allStates = assign({}, component._bytecode.states, extraStates)
 
-  for (var i = 0; i < component._bytecode.properties.length; i++) {
-    var property = component._bytecode.properties[i]
+  for (var stateSpecName in allStates) {
+    var stateSpec = allStates[stateSpecName]
 
     // 'null' is the signal for an empty prop, not undefined.
-    if (property.value === undefined) {
+    if (stateSpec.value === undefined) {
       throw new Error(
         'Property `' +
-          property.name +
-          '` cannot be undefined; use null for empty properties'
+          stateSpecName +
+          '` cannot be undefined; use null for empty states'
       )
     }
 
     // Don't allow the player's own API to be clobbered; TODO: How to handle this gracefully?
-    // Note that the properties aren't actually stored on the player itself, but we still prevent the naming collision
-    if (component[property.name] !== undefined) {
+    // Note that the states aren't actually stored on the player itself, but we still prevent the naming collision
+    if (component[stateSpecName] !== undefined) {
       throw new Error(
         'Property `' +
-          property.name +
-          '` is a keyword or property reserved by the component instance'
+          stateSpecName +
+          '` is a keyword reserved by the component instance'
       )
     }
 
-    // Don't allow duplicate properties to be declared (the property is an array so we have to check)
-    if (inputValuesObject[property.name] !== undefined) {
-      throw new Error(
-        'Property `' +
-          property.name +
-          '` was already declared in the input values object'
-      )
-    }
+    _typecheckStateSpec(stateSpec, stateSpecName)
 
-    _typecheckInputProperty(property)
+    statesTargetObject[stateSpecName] = stateSpec.value
 
-    inputValuesObject[property.name] = property.value
-
-    _defineInput(component, inputValuesObject, property)
+    _defineSettableState(component, statesTargetObject, stateSpec, stateSpecName)
   }
 }
 
-function _defineInput (component, inputValuesObject, property) {
-  // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in inputValuesObject
-  Object.defineProperty(component, property.name, {
+function _defineSettableState (component, statesTargetObject, stateSpec, stateSpecName) {
+  // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in statesTargetObject
+  Object.defineProperty(component, stateSpecName, {
     get: function get () {
-      return inputValuesObject[property.name]
+      return statesTargetObject[stateSpecName]
     },
 
     set: function set (inputValue) {
       // For optimization downstream, we track whether & which input values changed since a previous setter call
-      component._inputChanges[property.name] = inputValue
-      component._anyInputChange = true
+      component._stateChanges[stateSpecName] = inputValue
+      component._anyStateChange = true
 
-      if (property.setter) {
+      if (stateSpec.setter) {
         // Important: We call the setter with a binding of the component, so it can access methods on `this`
-        inputValuesObject[property.name] = property.setter.call(
+        statesTargetObject[stateSpecName] = stateSpec.setter.call(
           component,
           inputValue
         )
       } else {
-        inputValuesObject[property.name] = inputValue
+        statesTargetObject[stateSpecName] = inputValue
       }
 
-      return inputValuesObject[property.name]
+      return statesTargetObject[stateSpecName]
     }
   })
 }
@@ -456,7 +575,7 @@ HaikuComponent.prototype._getEventsFired = function _getEventsFired () {
 }
 
 HaikuComponent.prototype._getInputsChanged = function _getInputsChanged () {
-  return this._anyInputChange && this._inputChanges
+  return this._anyStateChange && this._stateChanges
 }
 
 HaikuComponent.prototype._clearDetectedEventsFired = function _clearDetectedEventsFired () {
@@ -466,8 +585,8 @@ HaikuComponent.prototype._clearDetectedEventsFired = function _clearDetectedEven
 }
 
 HaikuComponent.prototype._clearDetectedInputChanges = function _clearDetectedInputChanges () {
-  this._anyInputChange = false
-  this._inputChanges = {}
+  this._anyStateChange = false
+  this._stateChanges = {}
   return this
 }
 
@@ -475,8 +594,8 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
   var time = this._context.clock.getExplicitTime()
 
   var timelinesRunning = []
-  for (var timelineName in this._timelines) {
-    var timeline = this._timelines[timelineName]
+  for (var timelineName in this._timelineInstances) {
+    var timeline = this._timelineInstances[timelineName]
     if (timeline.isActive()) {
       timeline._doUpdateWithGlobalClockTime(time)
 
@@ -495,7 +614,7 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
     this._template,
     container,
     this._context,
-    this._inputValues,
+    this._states,
     timelinesRunning,
     eventsFired,
     inputsChanged,
@@ -511,8 +630,8 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
 HaikuComponent.prototype.render = function render (container, renderOptions) {
   var time = this._context.clock.getExplicitTime()
 
-  for (var timelineName in this._timelines) {
-    var timeline = this._timelines[timelineName]
+  for (var timelineName in this._timelineInstances) {
+    var timeline = this._timelineInstances[timelineName]
 
     // QUESTION: What differentiates an active timeline from a playing one?
     if (timeline.isActive()) {
@@ -523,7 +642,7 @@ HaikuComponent.prototype.render = function render (container, renderOptions) {
   // 1. Update the tree in place using all of the applied values we got from the timelines
   _applyContextChanges(
     this,
-    this._inputValues,
+    this._states,
     this._template,
     container,
     this._context,
@@ -543,28 +662,14 @@ HaikuComponent.prototype.render = function render (container, renderOptions) {
 
 function _accumulateEventHandlers (out, component) {
   if (component._bytecode.eventHandlers) {
-    for (var j = 0; j < component._bytecode.eventHandlers.length; j++) {
-      var eventHandler = component._bytecode.eventHandlers[j]
-      var eventSelector = eventHandler.selector
-      var eventName = eventHandler.name
-
-      if (!out[eventSelector]) out[eventSelector] = {}
-
-      eventHandler.handler.__handler = true
-      out[eventSelector][eventName] = eventHandler.handler
-    }
-  }
-}
-
-function _accumulateControllerEventListeners (out, component) {
-  if (
-    component._controllerEventHandlers &&
-    component._controllerEventHandlers.length > 0
-  ) {
-    for (var l = 0; l < component._controllerEventHandlers.length; l++) {
-      var customHandler = component._controllerEventHandlers[l]
-      if (!out[customHandler.selector]) out[customHandler.selector] = {}
-      out[customHandler.selector][customHandler.event] = customHandler.handler
+    for (var eventSelector in component._bytecode.eventHandlers) {
+      var eventHandlerGroup = component._bytecode.eventHandlers[eventSelector]
+      for (var eventName in eventHandlerGroup) {
+        var eventHandlerSpec = eventHandlerGroup[eventName]
+        eventHandlerSpec.handler.__handler = true
+        if (!out[eventSelector]) out[eventSelector] = {}
+        out[eventSelector][eventName] = eventHandlerSpec.handler
+      }
     }
   }
 }
@@ -686,7 +791,6 @@ function _applyContextChanges (
   var results = {} // We'll accumulate changes in this object and apply them to the tree
 
   _accumulateEventHandlers(results, component)
-  _accumulateControllerEventListeners(results, component)
 
   var bytecode = component._bytecode
 
@@ -695,7 +799,7 @@ function _applyContextChanges (
       var timeline = component.getTimeline(timelineName)
       if (!timeline) continue
 
-      // No need to run properties on timelines that aren't active
+      // No need to execute behaviors on timelines that aren't active
       if (!timeline.isActive()) continue
 
       if (timeline.isFinished()) {
@@ -822,7 +926,10 @@ function _instantiateElement (element, context) {
   // The thing returned can either be raw bytecode, or a component instance.
   // We do our best to detect this, and proceed with a HaikuComponent instance.
   if (_isBytecode(something)) {
-    instance = new HaikuComponent(something, context, context.options)
+    instance = new HaikuComponent(something, context, {
+      // Exclude states, etc. (everythign except 'options') since those should override *only* on the root element being instantiated
+      options: context.config.options
+    })
   } else if (_isComponent(something)) {
     instance = something
   }

@@ -5,11 +5,47 @@
 var React = require('react')
 var ReactDOM = require('react-dom')
 var ReactTestRenderer = require('react-test-renderer')
-var ValidProps = require('./ValidProps')
 var EventsDict = require('./EventsDict')
 var merge = require('lodash.merge')
 var reactToMana = require('./../../helpers/reactToMana')
 var Layout3D = require('./../../Layout3D')
+
+var DEFAULT_HOST_ELEMENT_TAG_NAME = 'div'
+
+var HAIKU_FORWARDED_PROPS = {
+  haikuOptions: 'options',
+  haikuStates: 'states',
+  haikuEventHandlers: 'eventHandlers',
+  haikuTimelines: 'timelines',
+  haikuController: 'controller',
+  haikuVanities: 'vanities'
+}
+
+var VALID_PROPS = {
+  tagName: 'string',
+  id: 'string',
+  className: 'string',
+  style: 'object',
+  width: 'string',
+  height: 'string',
+  onComponentWillMount: 'func',
+  onComponentWillUnmount: 'func',
+  onComponentDidMount: 'func',
+
+  // We allow these to be passed at the root level since that feels more natural
+  onHaikuComponentWillInitialize: 'func',
+  onHaikuComponentDidMount: 'func',
+  onHaikuComponentDidInitialize: 'func',
+  onHaikuComponentWillUnmount: 'func'
+}
+
+for (var eventKey in EventsDict) {
+  VALID_PROPS[eventKey] = EventsDict[eventKey]
+}
+
+for (var fwdPropKey in HAIKU_FORWARDED_PROPS) {
+  VALID_PROPS[fwdPropKey] = 'object'
+}
 
 function HaikuReactDOMAdapter (HaikuComponentFactory) {
   var reactClass = React.createClass({
@@ -19,20 +55,24 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
       return {}
     },
 
-    componentWillReceiveProps: function (nextProps) {
-      if (this.props.controller) {
-        this.props.controller.emit(
+    componentWillReceiveProps: function (nextPropsRaw) {
+      if (this.props.haikuController) {
+        this.props.haikuController.emit(
           'react:componentWillReceiveProps',
           this,
-          nextProps
+          nextPropsRaw
         )
       }
-      this.applyInputs(nextProps)
+
+      if (this.haiku) {
+        var haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(nextPropsRaw)
+        this.haiku.assignConfig(haikuConfig)
+      }
     },
 
     componentWillMount: function () {
-      if (this.props.controller) {
-        this.props.controller.emit('react:componentWillMount', this)
+      if (this.props.haikuController) {
+        this.props.haikuController.emit('react:componentWillMount', this)
       }
       if (this.props.onComponentWillMount) {
         this.props.onComponentWillMount(this)
@@ -40,8 +80,8 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
     },
 
     componentWillUnmount: function () {
-      if (this.props.controller) {
-        this.props.controller.emit('react:componentWillUnmount', this)
+      if (this.props.haikuController) {
+        this.props.haikuController.emit('react:componentWillUnmount', this)
       }
       if (this.props.onComponentWillUnmount) {
         this.props.onComponentWillUnmount(this)
@@ -56,8 +96,8 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
       if (this.mount) {
         this.createContext(this.props)
 
-        if (this.props.controller) {
-          this.props.controller.emit(
+        if (this.props.haikuController) {
+          this.props.haikuController.emit(
             'react:componentDidMount',
             this,
             this.mount
@@ -66,13 +106,11 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
         if (this.props.onComponentDidMount) {
           this.props.onComponentDidMount(this, this.mount)
         }
-
-        this.applyInputs(this.props)
       }
     },
 
-    createContext: function (props) {
-      var fullProps = merge({}, props, {
+    buildHaikuCompatibleConfigFromRawProps: function (rawProps) {
+      var haikuConfig = {
         ref: this.mount,
         vanities: {
           'controlFlow.insert': function _controlFlowInsertReactVanity (
@@ -102,41 +140,43 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
             implementation(element, mana, context, component)
           }
         }
-      })
+      }
+
+      // It's assumed that anything the user wants to pass into the Haiku engine should be
+      // assigned among the whitelisted properties
+      if (rawProps) {
+        for (var verboseKeyName in rawProps) {
+          var haikuConfigFinalKey = HAIKU_FORWARDED_PROPS[verboseKeyName]
+          if (haikuConfigFinalKey) {
+            haikuConfig[haikuConfigFinalKey] = rawProps[verboseKeyName]
+          } else {
+            // We have to include the other extra properties, for example, we also want to pass:
+            //   - children (aka surrogates for controlFlow.inject or controFlow.placeholder)
+            // TODO: Whitelist these as well?
+            haikuConfig[verboseKeyName] = rawProps[verboseKeyName]
+          }
+        }
+      }
+
+      return haikuConfig
+    },
+
+    createContext: function (rawProps) {
+      var haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(rawProps)
 
       // Reuse existing mounted component if one exists
       if (!this.haiku) {
-        this.haiku = HaikuComponentFactory(
+        this.haiku = HaikuComponentFactory( // eslint-disable-line
           this.mount,
-          fullProps
-        ) // eslint-disable-line
-
-        this.haiku.hear(function (name, payload) {
-          if (
-            this.props &&
-            this.props.events &&
-            this.props.events[name]
-          ) {
-            this.props.events[name](payload)
-          }
-        })
+          haikuConfig
+        )
       } else {
         // If the component already exists, update its options and make sure it remounts.
         // This action is important if we are in e.g. React Router.
         //
         // Important: Note that we should NOT call remount if we just initialized the instance (i.e. stanza above)
         // because we'll end up pausing the timelines before the first mount, resulting in a blank context.
-        this.haiku.callRemount(fullProps)
-      }
-    },
-
-    applyInputs: function (props) {
-      if (!props) return null
-      if (!this.haiku) return null
-      for (var key in props) {
-        var value = props[key]
-        // Note: This calls any user-defined 'setters' on the component
-        this.haiku[key] = value
+        this.haiku.callRemount(haikuConfig)
       }
     },
 
@@ -146,53 +186,59 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
           this,
           proxy,
           event,
-          HaikuComponentFactory.component
+          this.haiku
         )
       }.bind(this)
     },
 
-    render: function () {
-      var passthroughProps = {}
+    buildHostElementPropsFromRawProps: function (rawProps) {
+      var propsForHostElement = {}
 
-      for (var key in this.props) {
-        var propEntry = this.props[key]
-        if (ValidProps[key]) {
+      // Build a basic props object which includes:
+      //    - Standard DOM event listeners
+      // But which excludes:
+      //    - Haiku special forwarded props (those belong to Haiku only)
+      for (var key in rawProps) {
+        if (VALID_PROPS[key]) {
           if (EventsDict[key]) {
-            passthroughProps[key] = this.createEventPropWrapper(propEntry)
-          } else {
-            passthroughProps[key] = propEntry
+            propsForHostElement[key] = this.createEventPropWrapper(rawProps[key])
+          } else if (!HAIKU_FORWARDED_PROPS[key]) {
+            propsForHostElement[key] = rawProps[key]
           }
         }
       }
 
+      // Merge our basic host props with some defaults we want to assign
+      return merge({
+        style: {
+          position: 'relative',
+          margin: 0,
+          padding: 0,
+          border: 0,
+          width: '100%',
+          height: '100%'
+        }
+      }, propsForHostElement)
+    },
+
+    render: function () {
+      var hostElementProps = this.buildHostElementPropsFromRawProps(this.props)
+
+      // Having this ref assigned like this is critical to the adapter working,
+      // so we override it despite what the host element props might say
+      hostElementProps.ref = function _ref (element) {
+        this.mount = element
+      }.bind(this)
+
       return React.createElement(
-        this.props.tagName || 'div',
-        merge(
-          {
-            ref: function (element) {
-              this.mount = element
-            }.bind(this),
-            style: {
-              position: 'relative',
-              margin: 0,
-              padding: 0,
-              border: 0,
-              width: '100%',
-              height: '100%'
-            }
-          },
-          passthroughProps
-        )
+        hostElementProps.tagName || DEFAULT_HOST_ELEMENT_TAG_NAME,
+        hostElementProps
       )
     }
   })
 
-  reactClass.propTypes = {
-    tagName: React.PropTypes.string
-  }
-
-  for (var propName in ValidProps) {
-    var propType = ValidProps[propName]
+  for (var propName in VALID_PROPS) {
+    var propType = VALID_PROPS[propName]
     reactClass.propTypes[propName] = React.PropTypes[propType]
   }
 

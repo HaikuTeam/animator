@@ -2,97 +2,17 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
 var assign = require('./vendor/assign')
 var HaikuClock = require('./HaikuClock')
 var HaikuComponent = require('./HaikuComponent')
+var Config = require('./Config')
+
+var PLAYER_VERSION = require('./../package.json').version
 
 // Starting prefix to use for element locators, e.g. 0.1.2.3.4
 var COMPONENT_GRAPH_ADDRESS_PREFIX = ''
 
 var DEFAULT_TIMELINE_NAME = 'Default'
-
-var DEFAULT_OPTIONS = {
-  // seed: String
-  // Random seed used for producing deterministic randomness and namespacing CSS selector behavior
-  seed: null,
-
-  // automount: Boolean
-  // Whether we should mount the given context to the mount element automatically
-  automount: true,
-
-  // autoplay: Boolean
-  // Whether we should begin playing the context's animation automatically
-  autoplay: true,
-
-  // forceFlush: Boolean
-  // Whether to fully flush the component on every single frame (warning: this can severely deoptimize animation)
-  forceFlush: false,
-
-  // freeze: Boolean
-  // Whether we should freeze timelines and not update per global timeline; useful in headless
-  freeze: false,
-
-  // loop: Boolean
-  // Whether we should loop the animation, i.e. restart from the first frame after reaching the last
-  loop: false,
-
-  // frame: Function|null
-  // Optional function that we will call on every frame, provided for developer convenience
-  frame: null,
-
-  // controller: EventEmitter|null
-  // Optional hook into events and programmatic interface into the player's internals, for developer usage
-  controller: null,
-
-  // onHaikuComponentWillInitialize: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentWillInitialize: null,
-
-  // onHaikuComponentDidMount: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentDidMount: null,
-
-  // onHaikuComponentDidInitialize: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentDidInitialize: null,
-
-  // onHaikuComponentWillUnMount: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentWillUnmount: null,
-
-  // clock: Object|null
-  // Configuration options that will be passed to the HaikuClock instance. See HaikuClock.js for info.
-  clock: {},
-
-  // sizing: String|null
-  // Configures the sizing mode of the component; may be 'normal', 'stretch', 'contain', or 'cover'. See HaikuComponent.js for info.
-  sizing: null,
-
-  // preserve3d: String
-  // Placeholder for an option to control whether to enable preserve-3d mode in DOM environments. [UNUSED]
-  preserve3d: 'auto',
-
-  // contextMenu: String
-  // Whether or not the Haiku context menu should display when the component is right-clicked; may be 'enabled' or 'disabled'.
-  contextMenu: 'enabled',
-
-  // position: String
-  // CSS position setting for the root of the component in DOM; recommended to keep as 'relative'.
-  position: 'relative',
-
-  // overflowX: String|null
-  // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without needing a wrapper element.
-  overflowX: null,
-
-  // overflowY: String|null
-  // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without needing a wrapper element.
-  overflowY: null,
-
-  // mixpanel: String|null
-  // If provided, a Mixpanel tracking instance will be created using this string as the API token. The default token is Haiku's production token.
-  mixpanel: '6f31d4f99cf71024ce27c3e404a79a61'
-}
 
 /**
  * @class HaikuContext
@@ -100,32 +20,41 @@ var DEFAULT_OPTIONS = {
  * A Haiku component tree may contain many components, but there is only one context.
  * The context is where information shared by all components in the tree should go, e.g. clock time.
  */
-function HaikuContext (bytecode, options) {
+function HaikuContext (bytecode, config, tickable) {
   if (!(this instanceof HaikuContext)) {
-    return new HaikuContext(bytecode, options)
+    return new HaikuContext(bytecode, config)
   }
 
-  this.assignOptions(options || {})
+  this.PLAYER_VERSION = PLAYER_VERSION
+
+  this.assignConfig(config || {})
 
   // List of tickable objects managed by this context. These are invoked on every clock tick.
+  // These are removed when context unmounts and re-added in case of re-mount
   this._tickables = []
-
-  if (this.options.frame) {
-    this._tickables.push({ performTick: this.options.frame })
+  if (tickable) {
+    this._tickables.push(tickable)
+  }
+  if (this.config.options.frame) {
+    this._tickables.push({ performTick: this.config.options.frame })
   }
 
-  this.clock = new HaikuClock(this._tickables, this.options.clock || {})
+  this.clock = new HaikuClock(this._tickables, this.config.options.clock || {})
 
   // We need to start the loop even if we aren't autoplaying, because we still need time to be calculated even if we don't 'tick'.
   this.clock.run()
 
-  this.component = new HaikuComponent(bytecode, this, options)
+  this.component = new HaikuComponent(bytecode, this, this.config)
+
   this.component.startTimeline(DEFAULT_TIMELINE_NAME)
 }
 
 // Keep track of all instantiated contexts; this is mainly exposed for convenience when debugging the engine,
 // as well as to help provide a unique root graph address prefix for subtrees (e.g. 0.2.3.4.5)
 HaikuContext.contexts = []
+
+// Also expose so we can programatically choose a player on the page
+HaikuContext.PLAYER_VERSION = PLAYER_VERSION
 
 /**
  * @method getRootComponent
@@ -141,6 +70,28 @@ HaikuContext.prototype.getRootComponent = function getRootComponent () {
  */
 HaikuContext.prototype.getClock = function getClock () {
   return this.clock
+}
+
+/**
+ * @method contextMount
+ */
+HaikuContext.prototype.contextMount = function _contextMount () {
+  if (this._unmountedTickables) {
+    // Gotta remember to _remove_ the tickables so we don't end up with dupes if we re-mount later
+    var unmounted = this._unmountedTickables.splice(0)
+    for (var i = 0; i < unmounted.length; i++) {
+      this.addTickable(unmounted[i])
+    }
+  }
+  return this
+}
+
+/**
+ * @method contextUnmount
+ */
+HaikuContext.prototype.contextUnmount = function _contextUnmount () {
+  this._unmountedTickables = this._tickables.splice(0)
+  return this
 }
 
 /**
@@ -176,28 +127,27 @@ HaikuContext.prototype.removeTickable = function removeTickable (tickable) {
 }
 
 /**
- * @method assignOptions
- * @description Update our internal options settings with those passed in, using the assign algorithm.
+ * @method assignConfig
+ * @description Update our internal settings with those passed in, using the assign algorithm.
  * This also updates the internal options for the clock instance and root component instance.
  */
-HaikuContext.prototype.assignOptions = function assignOptions (options) {
-  this.options = assign({}, options)
+HaikuContext.prototype.assignConfig = function assignConfig (config, options) {
+  this.config = assign({}, config) // QUESTION: Why do we assign here?
 
   // HACK: Since we run this method before the clock is initialized sometimes, we have to check whether the clock exists before assigning sub-options to it.
   if (this.clock) {
-    this.clock.assignOptions(this.options.clock)
+    this.clock.assignOptions(this.config.options.clock)
   }
 
   // HACK: Since we run this method before the component is initialized sometimes, we have to check whether the component exists before assigning options to it.
   if (this.component) {
-    this.component.assignOptions(options)
+    // This step can optionally be skipped since this.component might be updating _us_, and we don't want to create an infinite loop
+    if (!options || !options.skipComponentAssign) {
+      this.component.assignConfig(this.config)
+    }
   }
 
   return this
-}
-
-function _makeRandomSeed () {
-  return Math.random().toString(36).slice(2)
 }
 
 /**
@@ -208,7 +158,7 @@ function _makeRandomSeed () {
 HaikuContext.createComponentFactory = function createComponentFactory (
   renderer,
   bytecode,
-  optionsA,
+  haikuConfigFromFactoryCreator,
   platform
 ) {
   if (!renderer) {
@@ -224,20 +174,31 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     console.warn('[haiku player] no runtime `platform` object was provided')
   }
 
-  // Note that options may be passed at this level, or below at the factory invocation level.
-  // The exception is the seed value, which should remain constant from here on, because it is used
-  // in a variety of places that are sensitive to it changing
-  var options = assign({}, DEFAULT_OPTIONS, { seed: _makeRandomSeed() }, optionsA)
+  // Note that haiku Config may be passed at this level, or below at the factory invocation level.
+  var haikuConfig = Config.build(
+    {
+      options: {
+        // The seed value should remain constant from here on, because it is used for PRNG
+        seed: Config.seed()
+      }
+    },
+    // The bytecode itself may contain configuration for playback, etc., but is lower precedence than config passed in
+    bytecode && bytecode.options,
+    haikuConfigFromFactoryCreator
+  )
 
   /**
    * @function HaikuComponentFactory
    * @description Creates a new HaikuComponent instance.
    * The (renderer, bytecode) pair are bootstrapped into the given mount element, and played.
    */
-  function HaikuComponentFactory (mount, optionsB) {
+  function HaikuComponentFactory (mount, haikuConfigFromFactory) {
+    // Note that options may be passed at this leve, or above at the factory creation level.
+    haikuConfig = Config.build(haikuConfig, haikuConfigFromFactory)
+
     // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
     // an initialization/mounting issue when running in React.
-    var context = new HaikuContext(bytecode, options)
+    var context = new HaikuContext(bytecode, haikuConfig, { performTick: tick })
     var index = HaikuContext.contexts.push(context) - 1
     var address = COMPONENT_GRAPH_ADDRESS_PREFIX + index
 
@@ -247,14 +208,8 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
     if (!mount.haiku) mount.haiku = { context: context }
 
-    // Note that options may be passed at this leve, or above at the factory creation level.
-    options = assign(options, optionsB)
-
-    // Reassign options on the context since they may have changed when this function was run.
-    context.assignOptions(options)
-
     // If configured, bootstrap the Haiku right-click context menu
-    if (renderer.menuize && options.contextMenu !== 'disabled') {
+    if (renderer.menuize && haikuConfig.options.contextMenu !== 'disabled') {
       renderer.menuize(mount, component)
     }
 
@@ -267,93 +222,9 @@ HaikuContext.createComponentFactory = function createComponentFactory (
       platform.location.hostname !== '0.0.0.0'
     ) {
       // If configured, initialize Mixpanel with the given API token
-      if (renderer.mixpanel && options.mixpanel) {
-        renderer.mixpanel(mount, options.mixpanel, component)
+      if (renderer.mixpanel && haikuConfig.options.mixpanel) {
+        renderer.mixpanel(mount, haikuConfig.options.mixpanel, component)
       }
-    }
-
-    // The 'controller' is one possible programmatic interface into the player; the only law is that it
-    // should conform to basic EventEmitter spec, e.g. .on, .emit. If none is provided, we make a fake one.
-    var controller
-    if (options && options.controller) {
-      controller = options.controller
-    } else {
-      controller = SimpleEventEmitter.create({})
-    }
-
-    // Notify anybody who cares that we've successfully initialized their component in memory (but not rendered yet)
-    controller.emit('haikuComponentWillInitialize', component)
-    component.emit('haikuComponentWillInitialize', component)
-    if (options.onHaikuComponentWillInitialize) {
-      options.onHaikuComponentWillInitialize(component)
-    }
-
-    var tickable = { performTick: tick }
-
-    // If the component needs to remount itself for some reason, make sure we fire the right events
-    component.callRemount = function _callRemount (incomingOptions, skipMarkForFullFlush) {
-      if (incomingOptions) {
-        component.assignContextOptions(incomingOptions)
-      }
-
-      if (!skipMarkForFullFlush) {
-        component._markForFullFlush(true)
-      }
-
-      component._clearCaches()
-
-      // If autoplay is not wanted, stop the all timelines immediately after we've mounted
-      // (We have to mount first so that the component displays, but then pause it at that state.)
-      // If you don't want the component to show up at all, use options.automount=false.
-      var timelineInstances = component.getTimelines()
-      for (var timelineName in timelineInstances) {
-        var timelineInstance = timelineInstances[timelineName]
-        if (options.autoplay) {
-          if (timelineName === DEFAULT_TIMELINE_NAME) {
-            // Assume we want to start the timeline from the beginning upon remount
-            timelineInstance.play()
-          }
-        } else {
-          timelineInstance.pause()
-        }
-      }
-
-      context.addTickable(tickable)
-
-      controller.emit('haikuComponentDidMount', component)
-      component.emit('haikuComponentDidMount', component)
-      if (options.onHaikuComponentDidMount) {
-        options.onHaikuComponentDidMount(component)
-      }
-    }
-
-    // If the component needs to unmount itself for some reason, make sure we fire the right events
-    // This is primarily used in the React Adapter, but there might be other uses for it?
-    component.callUnmount = function _callUnmount (incomingOptions) {
-      if (incomingOptions) {
-        component.assignContextOptions(incomingOptions)
-      }
-
-      // Since we're unmounting, pause all animations to avoid unnecessary calc while detached
-      var timelineInstances = component.getTimelines()
-      for (var timelineName in timelineInstances) {
-        var timelineInstance = timelineInstances[timelineName]
-        timelineInstance.pause()
-      }
-
-      context.removeTickable(tickable)
-
-      controller.emit('haikuComponentWillUnmount', component)
-      component.emit('haikuComponentWillUnmount', component)
-      if (options.onHaikuComponentWillUnmount) {
-        options.onHaikuComponentWillUnmount(component)
-      }
-    }
-
-    // Hack, but we may need to allow the user to override options in this scope instead of the component's
-    component.assignContextOptions = function _assignContextOptions (incoming) {
-      options = assign(options, incoming)
-      context.assignOptions(options) // Don't forget to update the ones the context has!
     }
 
     // Dictionary of ids-to-elements, for quick lookups.
@@ -368,14 +239,14 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     // Call to completely update the entire component tree - as though it were the first time
     function performFullFlushRender () {
       var container = renderer.createContainer(mount)
-      var tree = component.render(container, options)
+      var tree = component.render(container, haikuConfig.options)
       renderer.render(
         mount,
         container,
         tree,
         address,
         hash,
-        options,
+        haikuConfig.options,
         component._getRenderScopes()
       )
     }
@@ -383,43 +254,43 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     // Call to update elements of the component tree - but only those that we detect have changed
     function performPatchRender () {
       var container = renderer.createContainer(mount)
-      var patches = component.patch(container, options)
+      var patches = component.patch(container, haikuConfig.options)
       renderer.patch(
         mount,
         container,
         patches,
         address,
         hash,
-        options,
+        haikuConfig.options,
         component._getRenderScopes()
       )
     }
 
     // Called on every frame, this function updates the mount+root elements to ensure their style settings are in accordance
-    // with any passed-in options that may affect it, e.g. CSS overflow or positioning settings
+    // with any passed-in haikuConfig.options that may affect it, e.g. CSS overflow or positioning settings
     function updateMountRootStyles () {
       // We can assume the mount has only one child since we only mount one component into it (#?)
       var mountRoot = mount && mount.children[0]
       if (mountRoot) {
-        if (options.position && mountRoot.style.position !== options.position) {
-          mountRoot.style.position = options.position
+        if (haikuConfig.options.position && mountRoot.style.position !== haikuConfig.options.position) {
+          mountRoot.style.position = haikuConfig.options.position
         }
         if (
-          options.overflowX &&
-          mountRoot.style.overflowX !== options.overflowX
+          haikuConfig.options.overflowX &&
+          mountRoot.style.overflowX !== haikuConfig.options.overflowX
         ) {
-          mountRoot.style.overflowX = options.overflowX
+          mountRoot.style.overflowX = haikuConfig.options.overflowX
         }
         if (
-          options.overflowY &&
-          mountRoot.style.overflowY !== options.overflowY
+          haikuConfig.options.overflowY &&
+          mountRoot.style.overflowY !== haikuConfig.options.overflowY
         ) {
-          mountRoot.style.overflowY = options.overflowY
+          mountRoot.style.overflowY = haikuConfig.options.overflowY
         }
       }
       if (
         mount &&
-        options.sizing === 'cover' &&
+        haikuConfig.options.sizing === 'cover' &&
         mount.style.overflow !== 'hidden'
       ) {
         mount.style.overflow = 'hidden'
@@ -436,7 +307,7 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
       // After we've hydrated the tree the first time, we can proceed with patches --
       // unless the component indicates it wants a full flush per its internal settings.
-      if (component._shouldPerformFullFlush() || options.forceFlush || ticks < 1) {
+      if (component._shouldPerformFullFlush() || haikuConfig.options.forceFlush || ticks < 1) {
         performFullFlushRender()
         flushed = true
       } else {
@@ -453,24 +324,14 @@ HaikuContext.createComponentFactory = function createComponentFactory (
       ticks++
     }
 
-    context.addTickable(tickable)
-
     // Assuming the user wants the app to mount immediately (the default), let's do the mount.
-    if (options.automount) {
+    if (haikuConfig.options.automount) {
       // Starting the clock has the effect of doing a render at time 0, a.k.a., mounting!
       component.getClock().start()
     }
 
-    // Notify anybody who cares that we've completed the initialization sequence
-    controller.emit('haikuComponentDidInitialize', component)
-    component.emit('haikuComponentDidInitialize', component)
-    if (options.onHaikuComponentDidInitialize) {
-      options.onHaikuComponentDidInitialize(component)
-    }
-
     // These properties are added for convenience as hot editing hooks inside Haiku Desktop (and elsewhere?).
     // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
-    HaikuComponentFactory.controller = controller
     HaikuComponentFactory.mount = mount
     HaikuComponentFactory.tick = tick
     HaikuComponentFactory.component = component

@@ -37,37 +37,9 @@ Here is a "Hello World" for playing a component in a web page:
 
 More detailed examples coming soon.
 
-## Usage
+## Usage / API Docs
 
-### Components
-
-Coming soon.
-
-### Layout
-
-Coming soon.
-
-### Timelines
-
-Coming soon.
-
-### Integrations
-
-Coming soon.
-
-### Programmatic API
-
-Coming soon.
-
-### API docs
-
-Coming soon.
-
-## FAQ
-
-**Why are `babylon` and `babel-generator` listed as "dependencies"?**
-
-These are used internally by the component parsing engine for reflecting on dependency injection expressions. (They are not `"devDependencies"`.) We'll likely remove these in the future as they contribute significantly to footprint size.
+Please see [docs.haiku.ai](https://docs.haiku.ai).
 
 ## Contributing
 

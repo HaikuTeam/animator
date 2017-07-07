@@ -761,16 +761,16 @@ var CONTROL_FLOW_VANITIES = {
     if (typeof value !== 'number') {
       throw new Error('controlFlow.insert expects null or number')
     }
-    if (!context.options.children) return void 0
-    var children = Array.isArray(context.options.children)
-      ? context.options.children
-      : [context.options.children]
+    if (!context.config.children) return void 0
+    var children = Array.isArray(context.config.children)
+      ? context.config.children
+      : [context.config.children]
     var surrogate = children[value]
     if (surrogate === null || surrogate === undefined) return void 0
     // If we are running via a framework adapter, allow that framework to provide its own insert mechanism.
     // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
-    if (context.options.vanities['controlFlow.insert']) {
-      context.options.vanities['controlFlow.insert'](
+    if (context.config.vanities['controlFlow.insert']) {
+      context.config.vanities['controlFlow.insert'](
         element,
         surrogate,
         context,
@@ -792,16 +792,16 @@ var CONTROL_FLOW_VANITIES = {
     if (typeof value !== 'number') {
       throw new Error('controlFlow.placeholder expects null or number')
     }
-    if (!context.options.children) return void 0
-    var children = Array.isArray(context.options.children)
-      ? context.options.children
-      : [context.options.children]
+    if (!context.config.children) return void 0
+    var children = Array.isArray(context.config.children)
+      ? context.config.children
+      : [context.config.children]
     var surrogate = children[value]
     if (surrogate === null || surrogate === undefined) return void 0
     // If we are running via a framework adapter, allow that framework to provide its own placeholder mechanism.
     // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
-    if (context.options.vanities['controlFlow.placeholder']) {
-      context.options.vanities['controlFlow.placeholder'](
+    if (context.config.vanities['controlFlow.placeholder']) {
+      context.config.vanities['controlFlow.placeholder'](
         element,
         surrogate,
         context,
