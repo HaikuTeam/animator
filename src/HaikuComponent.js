@@ -459,16 +459,6 @@ function _bindStates (statesTargetObject, component, extraStates) {
       )
     }
 
-    // Don't allow the player's own API to be clobbered; TODO: How to handle this gracefully?
-    // Note that the states aren't actually stored on the player itself, but we still prevent the naming collision
-    if (component[stateSpecName] !== undefined) {
-      throw new Error(
-        'Property `' +
-          stateSpecName +
-          '` is a keyword reserved by the component instance'
-      )
-    }
-
     _typecheckStateSpec(stateSpec, stateSpecName)
 
     statesTargetObject[stateSpecName] = stateSpec.value
@@ -480,6 +470,8 @@ function _bindStates (statesTargetObject, component, extraStates) {
 function _defineSettableState (component, statesTargetObject, stateSpec, stateSpecName) {
   // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in statesTargetObject
   Object.defineProperty(component, stateSpecName, {
+    configurable: true,
+
     get: function get () {
       return statesTargetObject[stateSpecName]
     },
