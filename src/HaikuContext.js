@@ -207,17 +207,26 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     // The HaikuComponent is really the linchpin of the user's application, handling all the interesting stuff.
     var component = context.getRootComponent()
 
+    if (!mount) {
+      console.info('[haiku player] mount not provided so running in headless mode')
+    }
+
     // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
-    if (!mount.haiku) mount.haiku = { context: context }
+    if (mount && !mount.haiku) {
+      mount.haiku = {
+        context: context
+      }
+    }
 
     // If configured, bootstrap the Haiku right-click context menu
-    if (renderer.menuize && haikuConfig.options.contextMenu !== 'disabled') {
+    if (mount && renderer.menuize && haikuConfig.options.contextMenu !== 'disabled') {
       renderer.menuize(mount, component)
     }
 
     // Don't set up mixpanel if we're running on localhost since we don't want test data to be tracked
     // TODO: What other heuristics should we use to decide whether to use mixpanel or not?
     if (
+      mount &&
       platform &&
       platform.location &&
       platform.location.hostname !== 'localhost' &&
@@ -240,6 +249,9 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
     // Call to completely update the entire component tree - as though it were the first time
     function performFullFlushRender () {
+      if (!mount) {
+        return void (0)
+      }
       var container = renderer.createContainer(mount)
       var tree = component.render(container, haikuConfig.options)
       renderer.render(
@@ -255,6 +267,9 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
     // Call to update elements of the component tree - but only those that we detect have changed
     function performPatchRender () {
+      if (!mount) {
+        return void (0)
+      }
       var container = renderer.createContainer(mount)
       var patches = component.patch(container, haikuConfig.options)
       renderer.patch(
@@ -271,6 +286,9 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     // Called on every frame, this function updates the mount+root elements to ensure their style settings are in accordance
     // with any passed-in haikuConfig.options that may affect it, e.g. CSS overflow or positioning settings
     function updateMountRootStyles () {
+      if (!mount) {
+        return void (0)
+      }
       // We can assume the mount has only one child since we only mount one component into it (#?)
       var mountRoot = mount && mount.children[0]
       if (mountRoot) {
@@ -326,6 +344,9 @@ HaikuContext.createComponentFactory = function createComponentFactory (
       ticks++
     }
 
+    // Give ActiveComponent a means to trigger an immediate rerender easily
+    context.tick = tick
+
     // Assuming the user wants the app to mount immediately (the default), let's do the mount.
     if (haikuConfig.options.automount) {
       // Starting the clock has the effect of doing a render at time 0, a.k.a., mounting!
@@ -334,10 +355,6 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
     // These properties are added for convenience as hot editing hooks inside Haiku Desktop (and elsewhere?).
     // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
-    HaikuComponentFactory.mount = mount
-    HaikuComponentFactory.tick = tick
-    HaikuComponentFactory.component = component
-    HaikuComponentFactory.context = context
     HaikuComponentFactory.bytecode = bytecode
     HaikuComponentFactory.renderer = renderer
 
