@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.13",
+  "version": "2.1.14",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -247,6 +247,155 @@ module.exports={
 }
 
 },{}],3:[function(_dereq_,module,exports){
+var assign = _dereq_('./vendor/assign')
+
+var Config = {}
+
+var DEFAULTS = {
+  // onHaikuComponentWillInitialize: Function|null
+  // Optional lifecycle event hook (see below)
+  onHaikuComponentWillInitialize: null,
+
+  // onHaikuComponentDidMount: Function|null
+  // Optional lifecycle event hook (see below)
+  onHaikuComponentDidMount: null,
+
+  // onHaikuComponentDidInitialize: Function|null
+  // Optional lifecycle event hook (see below)
+  onHaikuComponentDidInitialize: null,
+
+  // onHaikuComponentWillUnMount: Function|null
+  // Optional lifecycle event hook (see below)
+  onHaikuComponentWillUnmount: null,
+
+  // Object of configurable options
+  options: {
+    // seed: String
+    // Random seed used for producing deterministic randomness and namespacing CSS selector behavior
+    seed: null,
+
+    // automount: Boolean
+    // Whether we should mount the given context to the mount element automatically
+    automount: true,
+
+    // autoplay: Boolean
+    // Whether we should begin playing the context's animation automatically
+    autoplay: true,
+
+    // forceFlush: Boolean
+    // Whether to fully flush the component on every single frame (warning: this can severely deoptimize animation)
+    forceFlush: false,
+
+    // freeze: Boolean
+    // Whether we should freeze timelines and not update per global timeline; useful in headless
+    freeze: false,
+
+    // loop: Boolean
+    // Whether we should loop the animation, i.e. restart from the first frame after reaching the last
+    loop: false,
+
+    // frame: Function|null
+    // Optional function that we will call on every frame, provided for developer convenience
+    frame: null,
+
+    // clock: Object|null
+    // Configuration options that will be passed to the HaikuClock instance. See HaikuClock.js for info.
+    clock: {},
+
+    // sizing: String|null
+    // Configures the sizing mode of the component; may be 'normal', 'stretch', 'contain', or 'cover'. See HaikuComponent.js for info.
+    sizing: null,
+
+    // preserve3d: String
+    // Placeholder for an option to control whether to enable preserve-3d mode in DOM environments. [UNUSED]
+    preserve3d: 'auto',
+
+    // contextMenu: String
+    // Whether or not the Haiku context menu should display when the component is right-clicked; may be 'enabled' or 'disabled'.
+    contextMenu: 'enabled',
+
+    // position: String
+    // CSS position setting for the root of the component in DOM; recommended to keep as 'relative'.
+    position: 'relative',
+
+    // overflowX: String|null
+    // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without needing a wrapper element.
+    overflowX: null,
+
+    // overflowY: String|null
+    // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without needing a wrapper element.
+    overflowY: null,
+
+    // mixpanel: String|null
+    // If provided, a Mixpanel tracking instance will be created using this string as the API token. The default token is Haiku's production token.
+    mixpanel: '6f31d4f99cf71024ce27c3e404a79a61',
+
+    // useWebkitPrefix: boolean
+    // Whether to prepend a webkit prefix to transform properties
+    useWebkitPrefix: void (0)
+  },
+
+  // states: Object|null
+  // Allow states to be passed in at runtime (ASSIGNED)
+  states: null,
+
+  // eventHandlers: Object|null
+  // Allow custom event handlers to be passed in at runtime (ASSIGNED)
+  eventHandlers: null,
+
+  // timelines: Object|null
+  // Allow timelines to be passed in at runtime (ASSIGNED)
+  timelines: null,
+
+  // vanities: Object|null
+  // Allow vanities to be passed in at runtime (ASSIGNED)
+  vanities: null,
+
+  // children: Array|null
+  // Children may be passed in, typically via the React adapter
+  children: null
+}
+
+function _seed () {
+  return Math.random().toString(36).slice(2)
+}
+
+function _build () {
+  var config = {}
+
+  var args = []
+  for (var i = 0; i < arguments.length; i++) args[i] = arguments[i]
+  args.unshift(DEFAULTS)
+
+  for (var j = 0; j < args.length; j++) {
+    var incoming = args[j]
+    if (!incoming) continue
+    if (typeof incoming !== 'object') continue
+
+    if (incoming.onHaikuComponentWillInitialize) config.onHaikuComponentWillInitialize = incoming.onHaikuComponentWillInitialize
+    if (incoming.onHaikuComponentDidMount) config.onHaikuComponentDidMount = incoming.onHaikuComponentDidMount
+    if (incoming.onHaikuComponentDidInitialize) config.onHaikuComponentDidInitialize = incoming.onHaikuComponentDidInitialize
+    if (incoming.onHaikuComponentWillUnmount) config.onHaikuComponentWillUnmount = incoming.onHaikuComponentWillUnmount
+
+    if (incoming.options) config.options = assign({}, config.options, incoming.options)
+    if (incoming.states) config.states = assign({}, config.states, incoming.states)
+    if (incoming.eventHandlers) config.eventHandlers = assign({}, config.eventHandlers, incoming.eventHandlers)
+    if (incoming.timelines) config.timelines = assign({}, config.timelines, incoming.timelines)
+    if (incoming.vanities) config.vanities = assign({}, config.vanities, incoming.vanities)
+
+    if (incoming.children) config.children = incoming.children
+  }
+
+  return config
+}
+
+Config.DEFAULTS = DEFAULTS
+Config.build = _build
+Config.seed = _seed
+
+module.exports = Config
+
+},{"./vendor/assign":78}],4:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -424,7 +573,7 @@ HaikuClock.prototype.getFrameDuration = function getFrameDuration () {
 
 module.exports = HaikuClock
 
-},{"./helpers/SimpleEventEmitter":15,"./vendor/assign":76,"./vendor/raf":129}],4:[function(_dereq_,module,exports){
+},{"./helpers/SimpleEventEmitter":16,"./vendor/assign":78,"./vendor/raf":131}],5:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -434,10 +583,11 @@ var vanityHandlers = _dereq_('./properties/dom/vanities')
 var queryTree = _dereq_('./helpers/cssQueryTree')
 var Layout3D = _dereq_('./Layout3D')
 var scopifyElements = _dereq_('./helpers/scopifyElements')
-var xmlToMana = _dereq_('./helpers/xmlToMana')
 var assign = _dereq_('./vendor/assign')
 var SimpleEventEmitter = _dereq_('./helpers/SimpleEventEmitter')
+var upgradeBytecodeInPlace = _dereq_('./helpers/upgradeBytecodeInPlace')
 var HaikuTimeline = _dereq_('./HaikuTimeline')
+var Config = _dereq_('./Config')
 
 var PLAYER_VERSION = _dereq_('./../package.json').version
 
@@ -451,11 +601,9 @@ var HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
 var DEFAULT_TIMELINE_NAME = 'Default'
 
-var DEFAULT_OPTIONS = {}
-
-function HaikuComponent (bytecode, context, options) {
+function HaikuComponent (bytecode, context, config) {
   if (!(this instanceof HaikuComponent)) {
-    return new HaikuComponent(bytecode, context, options)
+    return new HaikuComponent(bytecode, context, config)
   }
 
   if (!bytecode) {
@@ -470,38 +618,56 @@ function HaikuComponent (bytecode, context, options) {
     throw new Error('Bytecode must define template')
   }
 
-  if (!options.seed) {
+  if (!config.options) {
+    throw new Error('Config options required')
+  }
+
+  if (!config.options.seed) {
     throw new Error('Seed value must be provided')
   }
 
-  this.PLAYER_VERSION = PLAYER_VERSION
-
   SimpleEventEmitter.create(this)
 
-  this.assignOptions(options)
+  this.PLAYER_VERSION = PLAYER_VERSION
 
+  // Notify anybody who cares that we've successfully initialized their component in memory (but not rendered yet)
+  this.emit('haikuComponentWillInitialize', this)
+  if (config.onHaikuComponentWillInitialize) {
+    config.onHaikuComponentWillInitialize(this)
+  }
+
+  // First we assign the bytecode, because config assignment (see below) might effect the way it is set up!
   this._bytecode = bytecode
+
+  // If the bytecode we got happens to be in an outdated format, we automatically updated it to ours
+  upgradeBytecodeInPlace(this._bytecode)
+
   this._context = context
-  this._timelines = {}
   this._builder = new ValueBuilder(this)
 
+  // STATES
+  this._states = {} // Storage for getter/setter actions in userland logic
+  this._stateChanges = {}
+  this._anyStateChange = false
+
+  // EVENT HANDLERS
+  this._eventsFired = {}
+  this._anyEventChange = false
+
+  // OPTIONS
+  // Note that assignConfig calls _bindStates and _bindEventHandlers, because our incoming config, which
+  // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
+  this.assignConfig(config)
+
+  // TIMELINES
+  this._timelineInstances = {}
+
+  // TEMPLATE
   // The full version of the template gets mutated in-place by the rendering algorithm
   this._template = _fetchTemplate(this._bytecode.template)
 
-  this._inputValues = {} // Storage for getter/setter actions in userland logic
-  this._inputChanges = {}
-  this._anyInputChange = false
-  _defineInputs(this._inputValues, this)
-
-  this._eventsFired = {}
-  this._anyEventChange = false
-  _bindEventHandlers(this)
-
   // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
   this._needsFullFlush = false
-
-  // A list of any event handlers assigned to us via the optional controller instance that may have been used [#LEGACY?]
-  this._controllerEventHandlers = []
 
   // The last output of a full re-render - I don't think this is important any more, except maybe for debugging [#LEGACY?]
   this._lastTemplateExpansion = null
@@ -514,16 +680,109 @@ function HaikuComponent (bytecode, context, options) {
 
   // A sort of cache with a mapping of elements to the scope in which they belong (div, svg, etc)
   this._renderScopes = {}
+
+  // Notify anybody who cares that we've successfully initialized their component in memory
+  this.emit('haikuComponentDidInitialize', this)
+  if (config.onHaikuComponentDidInitialize) {
+    config.onHaikuComponentDidInitialize(this)
+  }
+}
+
+HaikuComponent.PLAYER_VERSION = PLAYER_VERSION
+
+// If the component needs to remount itself for some reason, make sure we fire the right events
+HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, skipMarkForFullFlush) {
+  // Note!: Only update config if we actually got incoming options!
+  if (incomingConfig) {
+    this.assignConfig(incomingConfig)
+  }
+
+  if (!skipMarkForFullFlush) {
+    this._markForFullFlush(true)
+  }
+
+  this._clearCaches()
+
+  // If autoplay is not wanted, stop the all timelines immediately after we've mounted
+  // (We have to mount first so that the component displays, but then pause it at that state.)
+  // If you don't want the component to show up at all, use options.automount=false.
+  var timelineInstances = this.getTimelines()
+  for (var timelineName in timelineInstances) {
+    var timelineInstance = timelineInstances[timelineName]
+    if (this.config.options.autoplay) {
+      if (timelineName === DEFAULT_TIMELINE_NAME) {
+        // Assume we want to start the timeline from the beginning upon remount
+        timelineInstance.play()
+      }
+    } else {
+      timelineInstance.pause()
+    }
+  }
+
+  this._context.contextMount()
+
+  this.emit('haikuComponentDidMount', this)
+  if (this.config.onHaikuComponentDidMount) {
+    this.config.onHaikuComponentDidMount(this)
+  }
+}
+
+// If the component needs to unmount itself for some reason, make sure we fire the right events
+// This is primarily used in the React Adapter, but there might be other uses for it?
+HaikuComponent.prototype.callUnmount = function _callUnmount (incomingConfig) {
+  if (incomingConfig) {
+    this.assignConfig(incomingConfig)
+  }
+
+  // Since we're unmounting, pause all animations to avoid unnecessary calc while detached
+  var timelineInstances = this.getTimelines()
+  for (var timelineName in timelineInstances) {
+    var timelineInstance = timelineInstances[timelineName]
+    timelineInstance.pause()
+  }
+
+  this._context.contextUnmount()
+
+  this.emit('haikuComponentWillUnmount', this)
+  if (this.config.onHaikuComponentWillUnmount) {
+    this.config.onHaikuComponentWillUnmount(this)
+  }
+}
+
+HaikuComponent.prototype.assignConfig = function _assignConfig (incomingConfig) {
+  // - OPTIONS
+  // - VANITIES
+  // - CONTROLLER
+  // - lifecycle listeners
+  this.config = Config.build(this.config || {}, incomingConfig || {})
+  // Don't forget to update the ones the context has!
+  // Skip component assignment so we don't end up in an infinite loop :P
+  this._context.assignConfig(this.config, { skipComponentAssign: true })
+
+  for (var timelineName in this._timelineInstances) {
+    var timelineInstance = this._timelineInstances[timelineName]
+    timelineInstance.assignOptions(this.config.options)
+  }
+
+  // STATES
+  _bindStates(this._states, this, this.config.states)
+
+  // EVENT HANDLERS
+  _bindEventHandlers(this, this.config.eventHandlers)
+
+  // TIMELINES
+  assign(this._bytecode.timelines, this.config.timelines)
+
+  return this
 }
 
 HaikuComponent.prototype._clearCaches = function _clearCaches () {
-  this._inputValues = {}
-  this._inputChanges = {}
-  this._anyInputChange = false
+  this._states = {}
+  this._stateChanges = {}
+  this._anyStateChange = false
   this._eventsFired = {}
   this._anyEventChange = false
   this._needsFullFlush = false
-  this._controllerEventHandlers = []
   this._lastTemplateExpansion = null
   this._lastDeltaPatches = null
   this._matchedElementCache = {}
@@ -531,38 +790,6 @@ HaikuComponent.prototype._clearCaches = function _clearCaches () {
   this._clearDetectedEventsFired()
   this._clearDetectedInputChanges()
   this._builder._clearCaches()
-}
-
-HaikuComponent.prototype.assignOptions = function assignOptions (options) {
-  this.options = assign(this.options || {}, DEFAULT_OPTIONS, options || {})
-
-  for (var timelineName in this._timelines) {
-    var timelineInstance = this._timelines[timelineName]
-    timelineInstance.assignOptions(this.options)
-  }
-
-  return this
-}
-
-HaikuComponent.prototype.setOption = function setOption (key, value) {
-  this.getOptions()[key] = value
-  return this
-}
-
-HaikuComponent.prototype.getOption = function getOption (key) {
-  return this.getOptions()[key]
-}
-
-HaikuComponent.prototype.getOptions = function getOptions () {
-  return this.options
-}
-
-HaikuComponent.prototype.setOptions = function setOptions (incoming) {
-  var options = this.getOptions()
-  for (var key in incoming) {
-    options[key] = incoming[key]
-  }
-  return this
 }
 
 HaikuComponent.prototype.getClock = function getClock () {
@@ -581,19 +808,19 @@ HaikuComponent.prototype._fetchTimelines = function _fetchTimelines () {
     if (!name) continue
 
     var descriptor = this._getTimelineDescriptor(name)
-    var existing = this._timelines[name]
+    var existing = this._timelineInstances[name]
 
     if (!existing) {
-      this._timelines[name] = new HaikuTimeline(
+      this._timelineInstances[name] = new HaikuTimeline(
         this,
         name,
         descriptor,
-        this.options
+        this.config.options
       )
     }
   }
 
-  return this._timelines
+  return this._timelineInstances
 }
 
 HaikuComponent.prototype.getTimeline = function getTimeline (name) {
@@ -621,13 +848,13 @@ HaikuComponent.prototype.getActiveTimelines = function getActiveTimelines () {
 }
 
 HaikuComponent.prototype.stopAllTimelines = function stopAllTimelines () {
-  for (var timelineName in this._timelines) {
+  for (var timelineName in this._timelineInstances) {
     this.stopTimeline(timelineName)
   }
 }
 
 HaikuComponent.prototype.startAllTimelines = function startAllTimelines () {
-  for (var timelineName in this._timelines) {
+  for (var timelineName in this._timelineInstances) {
     this.startTimeline(timelineName)
   }
 }
@@ -635,21 +862,21 @@ HaikuComponent.prototype.startAllTimelines = function startAllTimelines () {
 HaikuComponent.prototype.startTimeline = function startTimeline (timelineName) {
   var time = this._context.clock.getExplicitTime()
   var descriptor = this._getTimelineDescriptor(timelineName)
-  var existing = this._timelines[timelineName]
+  var existing = this._timelineInstances[timelineName]
   if (existing) {
     existing.start(time, descriptor)
   } else {
     // As a convenience we auto-initialize timeline if the user is trying to start one that hasn't initialized yet
-    var fresh = new HaikuTimeline(this, timelineName, descriptor, this.options)
+    var fresh = new HaikuTimeline(this, timelineName, descriptor, this.config.options)
     fresh.start(time, descriptor) // Initialization alone doesn't start the timeline, so we start it explicitly
-    this._timelines[timelineName] = fresh // Don't forget to add it to our collection
+    this._timelineInstances[timelineName] = fresh // Don't forget to add it to our collection
   }
 }
 
 HaikuComponent.prototype.stopTimeline = function startTimeline (timelineName) {
   var time = this._context.clock.getExplicitTime()
   var descriptor = this._getTimelineDescriptor(timelineName)
-  var existing = this._timelines[timelineName]
+  var existing = this._timelineInstances[timelineName]
   if (existing) {
     existing.stop(time, descriptor)
   }
@@ -711,29 +938,27 @@ function _fetchTemplate (template) {
     return template
   }
 
-  if (typeof template === STRING_TYPE) {
-    return xmlToMana(template)
-  }
-
   throw new Error('Unknown bytecode template format')
 }
 
-function _bindEventHandlers (component) {
-  if (!component._bytecode.eventHandlers) {
-    return void 0
-  }
+function _bindEventHandlers (component, extraEventHandlers) {
+  var allEventHandlers = assign({}, component._bytecode.eventHandlers, extraEventHandlers)
 
-  for (var i = 0; i < component._bytecode.eventHandlers.length; i++) {
-    var eventHandlerDescriptor = component._bytecode.eventHandlers[i]
-    var originalHandlerFn = eventHandlerDescriptor.handler
-
-    _bindEventHandler(component, eventHandlerDescriptor, originalHandlerFn)
+  for (var selector in allEventHandlers) {
+    var handlerGroup = allEventHandlers[selector]
+    for (var eventName in handlerGroup) {
+      var eventHandlerDescriptor = handlerGroup[eventName]
+      var originalHandlerFn = eventHandlerDescriptor.handler
+      _bindEventHandler(component, eventHandlerDescriptor, selector, eventName, originalHandlerFn)
+    }
   }
 }
 
 function _bindEventHandler (
   component,
   eventHandlerDescriptor,
+  selector,
+  eventName,
   originalHandlerFn
 ) {
   eventHandlerDescriptor.handler = function _wrappedEventHandler (
@@ -751,118 +976,98 @@ function _bindEventHandler (
     k
   ) {
     component._anyEventChange = true
-    var selector = eventHandlerDescriptor.selector
 
     if (!component._eventsFired[selector]) {
       component._eventsFired[selector] = {}
     }
 
-    component._eventsFired[selector][eventHandlerDescriptor.name] =
+    component._eventsFired[selector][eventName] =
       event || true
 
     originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
   }
 }
 
-function _typecheckInputProperty (property) {
+function _typecheckStateSpec (stateSpec, stateSpecName) {
   if (
-    property.type === 'any' ||
-    property.type === '*' ||
-    property.type === undefined ||
-    property.type === null
+    stateSpec.type === 'any' ||
+    stateSpec.type === '*' ||
+    stateSpec.type === undefined ||
+    stateSpec.type === null
   ) {
     return void 0
   }
 
-  if (property.type === 'event' || property.type === 'listener') {
+  if (stateSpec.type === 'event' || stateSpec.type === 'listener') {
     if (
-      typeof property.value !== 'function' &&
-      property.value !== null &&
-      property.value !== undefined
+      typeof stateSpec.value !== 'function' &&
+      stateSpec.value !== null &&
+      stateSpec.value !== undefined
     ) {
       throw new Error(
         'Property value `' +
-          property.name +
+          stateSpecName +
           '` must be an event listener function'
       )
     }
     return void 0
   }
 
-  if (typeof property.value !== property.type) {
+  if (typeof stateSpec.value !== stateSpec.type) {
     throw new Error(
-      'Property value `' + property.name + '` must be a `' + property.type + '`'
+      'Property value `' + stateSpecName + '` must be a `' + stateSpec.type + '`'
     )
   }
 }
 
-function _defineInputs (inputValuesObject, component) {
-  if (!component._bytecode.properties) {
-    return void 0
-  }
+function _bindStates (statesTargetObject, component, extraStates) {
+  var allStates = assign({}, component._bytecode.states, extraStates)
 
-  for (var i = 0; i < component._bytecode.properties.length; i++) {
-    var property = component._bytecode.properties[i]
+  for (var stateSpecName in allStates) {
+    var stateSpec = allStates[stateSpecName]
 
     // 'null' is the signal for an empty prop, not undefined.
-    if (property.value === undefined) {
+    if (stateSpec.value === undefined) {
       throw new Error(
         'Property `' +
-          property.name +
-          '` cannot be undefined; use null for empty properties'
+          stateSpecName +
+          '` cannot be undefined; use null for empty states'
       )
     }
 
-    // Don't allow the player's own API to be clobbered; TODO: How to handle this gracefully?
-    // Note that the properties aren't actually stored on the player itself, but we still prevent the naming collision
-    if (component[property.name] !== undefined) {
-      throw new Error(
-        'Property `' +
-          property.name +
-          '` is a keyword or property reserved by the component instance'
-      )
-    }
+    _typecheckStateSpec(stateSpec, stateSpecName)
 
-    // Don't allow duplicate properties to be declared (the property is an array so we have to check)
-    if (inputValuesObject[property.name] !== undefined) {
-      throw new Error(
-        'Property `' +
-          property.name +
-          '` was already declared in the input values object'
-      )
-    }
+    statesTargetObject[stateSpecName] = stateSpec.value
 
-    _typecheckInputProperty(property)
-
-    inputValuesObject[property.name] = property.value
-
-    _defineInput(component, inputValuesObject, property)
+    _defineSettableState(component, statesTargetObject, stateSpec, stateSpecName)
   }
 }
 
-function _defineInput (component, inputValuesObject, property) {
-  // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in inputValuesObject
-  Object.defineProperty(component, property.name, {
+function _defineSettableState (component, statesTargetObject, stateSpec, stateSpecName) {
+  // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in statesTargetObject
+  Object.defineProperty(component, stateSpecName, {
+    configurable: true,
+
     get: function get () {
-      return inputValuesObject[property.name]
+      return statesTargetObject[stateSpecName]
     },
 
     set: function set (inputValue) {
       // For optimization downstream, we track whether & which input values changed since a previous setter call
-      component._inputChanges[property.name] = inputValue
-      component._anyInputChange = true
+      component._stateChanges[stateSpecName] = inputValue
+      component._anyStateChange = true
 
-      if (property.setter) {
+      if (stateSpec.setter) {
         // Important: We call the setter with a binding of the component, so it can access methods on `this`
-        inputValuesObject[property.name] = property.setter.call(
+        statesTargetObject[stateSpecName] = stateSpec.setter.call(
           component,
           inputValue
         )
       } else {
-        inputValuesObject[property.name] = inputValue
+        statesTargetObject[stateSpecName] = inputValue
       }
 
-      return inputValuesObject[property.name]
+      return statesTargetObject[stateSpecName]
     }
   })
 }
@@ -883,7 +1088,7 @@ HaikuComponent.prototype._getEventsFired = function _getEventsFired () {
 }
 
 HaikuComponent.prototype._getInputsChanged = function _getInputsChanged () {
-  return this._anyInputChange && this._inputChanges
+  return this._anyStateChange && this._stateChanges
 }
 
 HaikuComponent.prototype._clearDetectedEventsFired = function _clearDetectedEventsFired () {
@@ -893,8 +1098,8 @@ HaikuComponent.prototype._clearDetectedEventsFired = function _clearDetectedEven
 }
 
 HaikuComponent.prototype._clearDetectedInputChanges = function _clearDetectedInputChanges () {
-  this._anyInputChange = false
-  this._inputChanges = {}
+  this._anyStateChange = false
+  this._stateChanges = {}
   return this
 }
 
@@ -902,8 +1107,8 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
   var time = this._context.clock.getExplicitTime()
 
   var timelinesRunning = []
-  for (var timelineName in this._timelines) {
-    var timeline = this._timelines[timelineName]
+  for (var timelineName in this._timelineInstances) {
+    var timeline = this._timelineInstances[timelineName]
     if (timeline.isActive()) {
       timeline._doUpdateWithGlobalClockTime(time)
 
@@ -922,7 +1127,7 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
     this._template,
     container,
     this._context,
-    this._inputValues,
+    this._states,
     timelinesRunning,
     eventsFired,
     inputsChanged,
@@ -938,8 +1143,8 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
 HaikuComponent.prototype.render = function render (container, renderOptions) {
   var time = this._context.clock.getExplicitTime()
 
-  for (var timelineName in this._timelines) {
-    var timeline = this._timelines[timelineName]
+  for (var timelineName in this._timelineInstances) {
+    var timeline = this._timelineInstances[timelineName]
 
     // QUESTION: What differentiates an active timeline from a playing one?
     if (timeline.isActive()) {
@@ -950,7 +1155,7 @@ HaikuComponent.prototype.render = function render (container, renderOptions) {
   // 1. Update the tree in place using all of the applied values we got from the timelines
   _applyContextChanges(
     this,
-    this._inputValues,
+    this._states,
     this._template,
     container,
     this._context,
@@ -970,28 +1175,14 @@ HaikuComponent.prototype.render = function render (container, renderOptions) {
 
 function _accumulateEventHandlers (out, component) {
   if (component._bytecode.eventHandlers) {
-    for (var j = 0; j < component._bytecode.eventHandlers.length; j++) {
-      var eventHandler = component._bytecode.eventHandlers[j]
-      var eventSelector = eventHandler.selector
-      var eventName = eventHandler.name
-
-      if (!out[eventSelector]) out[eventSelector] = {}
-
-      eventHandler.handler.__handler = true
-      out[eventSelector][eventName] = eventHandler.handler
-    }
-  }
-}
-
-function _accumulateControllerEventListeners (out, component) {
-  if (
-    component._controllerEventHandlers &&
-    component._controllerEventHandlers.length > 0
-  ) {
-    for (var l = 0; l < component._controllerEventHandlers.length; l++) {
-      var customHandler = component._controllerEventHandlers[l]
-      if (!out[customHandler.selector]) out[customHandler.selector] = {}
-      out[customHandler.selector][customHandler.event] = customHandler.handler
+    for (var eventSelector in component._bytecode.eventHandlers) {
+      var eventHandlerGroup = component._bytecode.eventHandlers[eventSelector]
+      for (var eventName in eventHandlerGroup) {
+        var eventHandlerSpec = eventHandlerGroup[eventName]
+        eventHandlerSpec.handler.__handler = true
+        if (!out[eventSelector]) out[eventSelector] = {}
+        out[eventSelector][eventName] = eventHandlerSpec.handler
+      }
     }
   }
 }
@@ -1051,7 +1242,7 @@ function _gatherDeltaPatches (
   template,
   container,
   context,
-  inputValues,
+  states,
   timelinesRunning,
   eventsFired,
   inputsChanged,
@@ -1073,7 +1264,7 @@ function _gatherDeltaPatches (
       time,
       bytecode.timelines,
       true,
-      inputValues,
+      states,
       eventsFired,
       inputsChanged
     )
@@ -1113,7 +1304,6 @@ function _applyContextChanges (
   var results = {} // We'll accumulate changes in this object and apply them to the tree
 
   _accumulateEventHandlers(results, component)
-  _accumulateControllerEventListeners(results, component)
 
   var bytecode = component._bytecode
 
@@ -1122,7 +1312,7 @@ function _applyContextChanges (
       var timeline = component.getTimeline(timelineName)
       if (!timeline) continue
 
-      // No need to run properties on timelines that aren't active
+      // No need to execute behaviors on timelines that aren't active
       if (!timeline.isActive()) continue
 
       if (timeline.isFinished()) {
@@ -1249,7 +1439,10 @@ function _instantiateElement (element, context) {
   // The thing returned can either be raw bytecode, or a component instance.
   // We do our best to detect this, and proceed with a HaikuComponent instance.
   if (_isBytecode(something)) {
-    instance = new HaikuComponent(something, context, context.options)
+    instance = new HaikuComponent(something, context, {
+      // Exclude states, etc. (everythign except 'options') since those should override *only* on the root element being instantiated
+      options: context.config.options
+    })
   } else if (_isComponent(something)) {
     instance = something
   }
@@ -1533,102 +1726,22 @@ function _isComponent (thing) {
 
 module.exports = HaikuComponent
 
-},{"./../package.json":2,"./HaikuTimeline":6,"./Layout3D":7,"./ValueBuilder":9,"./helpers/SimpleEventEmitter":15,"./helpers/cssQueryTree":25,"./helpers/scopifyElements":30,"./helpers/xmlToMana":31,"./properties/dom/vanities":41,"./vendor/assign":76}],5:[function(_dereq_,module,exports){
+},{"./../package.json":2,"./Config":3,"./HaikuTimeline":7,"./Layout3D":8,"./ValueBuilder":10,"./helpers/SimpleEventEmitter":16,"./helpers/cssQueryTree":26,"./helpers/scopifyElements":31,"./helpers/upgradeBytecodeInPlace":32,"./properties/dom/vanities":43,"./vendor/assign":78}],6:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var SimpleEventEmitter = _dereq_('./helpers/SimpleEventEmitter')
 var assign = _dereq_('./vendor/assign')
 var HaikuClock = _dereq_('./HaikuClock')
 var HaikuComponent = _dereq_('./HaikuComponent')
+var Config = _dereq_('./Config')
+
+var PLAYER_VERSION = _dereq_('./../package.json').version
 
 // Starting prefix to use for element locators, e.g. 0.1.2.3.4
 var COMPONENT_GRAPH_ADDRESS_PREFIX = ''
 
 var DEFAULT_TIMELINE_NAME = 'Default'
-
-var DEFAULT_OPTIONS = {
-  // seed: String
-  // Random seed used for producing deterministic randomness and namespacing CSS selector behavior
-  seed: null,
-
-  // automount: Boolean
-  // Whether we should mount the given context to the mount element automatically
-  automount: true,
-
-  // autoplay: Boolean
-  // Whether we should begin playing the context's animation automatically
-  autoplay: true,
-
-  // forceFlush: Boolean
-  // Whether to fully flush the component on every single frame (warning: this can severely deoptimize animation)
-  forceFlush: false,
-
-  // freeze: Boolean
-  // Whether we should freeze timelines and not update per global timeline; useful in headless
-  freeze: false,
-
-  // loop: Boolean
-  // Whether we should loop the animation, i.e. restart from the first frame after reaching the last
-  loop: false,
-
-  // frame: Function|null
-  // Optional function that we will call on every frame, provided for developer convenience
-  frame: null,
-
-  // controller: EventEmitter|null
-  // Optional hook into events and programmatic interface into the player's internals, for developer usage
-  controller: null,
-
-  // onHaikuComponentWillInitialize: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentWillInitialize: null,
-
-  // onHaikuComponentDidMount: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentDidMount: null,
-
-  // onHaikuComponentDidInitialize: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentDidInitialize: null,
-
-  // onHaikuComponentWillUnMount: Function|null
-  // Optional lifecycle event hook (see below)
-  onHaikuComponentWillUnmount: null,
-
-  // clock: Object|null
-  // Configuration options that will be passed to the HaikuClock instance. See HaikuClock.js for info.
-  clock: {},
-
-  // sizing: String|null
-  // Configures the sizing mode of the component; may be 'normal', 'stretch', 'contain', or 'cover'. See HaikuComponent.js for info.
-  sizing: null,
-
-  // preserve3d: String
-  // Placeholder for an option to control whether to enable preserve-3d mode in DOM environments. [UNUSED]
-  preserve3d: 'auto',
-
-  // contextMenu: String
-  // Whether or not the Haiku context menu should display when the component is right-clicked; may be 'enabled' or 'disabled'.
-  contextMenu: 'enabled',
-
-  // position: String
-  // CSS position setting for the root of the component in DOM; recommended to keep as 'relative'.
-  position: 'relative',
-
-  // overflowX: String|null
-  // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without needing a wrapper element.
-  overflowX: null,
-
-  // overflowY: String|null
-  // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without needing a wrapper element.
-  overflowY: null,
-
-  // mixpanel: String|null
-  // If provided, a Mixpanel tracking instance will be created using this string as the API token. The default token is Haiku's production token.
-  mixpanel: '6f31d4f99cf71024ce27c3e404a79a61'
-}
 
 /**
  * @class HaikuContext
@@ -1636,32 +1749,41 @@ var DEFAULT_OPTIONS = {
  * A Haiku component tree may contain many components, but there is only one context.
  * The context is where information shared by all components in the tree should go, e.g. clock time.
  */
-function HaikuContext (bytecode, options) {
+function HaikuContext (bytecode, config, tickable) {
   if (!(this instanceof HaikuContext)) {
-    return new HaikuContext(bytecode, options)
+    return new HaikuContext(bytecode, config)
   }
 
-  this.assignOptions(options || {})
+  this.PLAYER_VERSION = PLAYER_VERSION
+
+  this.assignConfig(config || {})
 
   // List of tickable objects managed by this context. These are invoked on every clock tick.
+  // These are removed when context unmounts and re-added in case of re-mount
   this._tickables = []
-
-  if (this.options.frame) {
-    this._tickables.push({ performTick: this.options.frame })
+  if (tickable) {
+    this._tickables.push(tickable)
+  }
+  if (this.config.options.frame) {
+    this._tickables.push({ performTick: this.config.options.frame })
   }
 
-  this.clock = new HaikuClock(this._tickables, this.options.clock || {})
+  this.clock = new HaikuClock(this._tickables, this.config.options.clock || {})
 
   // We need to start the loop even if we aren't autoplaying, because we still need time to be calculated even if we don't 'tick'.
   this.clock.run()
 
-  this.component = new HaikuComponent(bytecode, this, options)
+  this.component = new HaikuComponent(bytecode, this, this.config)
+
   this.component.startTimeline(DEFAULT_TIMELINE_NAME)
 }
 
 // Keep track of all instantiated contexts; this is mainly exposed for convenience when debugging the engine,
 // as well as to help provide a unique root graph address prefix for subtrees (e.g. 0.2.3.4.5)
 HaikuContext.contexts = []
+
+// Also expose so we can programatically choose a player on the page
+HaikuContext.PLAYER_VERSION = PLAYER_VERSION
 
 /**
  * @method getRootComponent
@@ -1677,6 +1799,28 @@ HaikuContext.prototype.getRootComponent = function getRootComponent () {
  */
 HaikuContext.prototype.getClock = function getClock () {
   return this.clock
+}
+
+/**
+ * @method contextMount
+ */
+HaikuContext.prototype.contextMount = function _contextMount () {
+  if (this._unmountedTickables) {
+    // Gotta remember to _remove_ the tickables so we don't end up with dupes if we re-mount later
+    var unmounted = this._unmountedTickables.splice(0)
+    for (var i = 0; i < unmounted.length; i++) {
+      this.addTickable(unmounted[i])
+    }
+  }
+  return this
+}
+
+/**
+ * @method contextUnmount
+ */
+HaikuContext.prototype.contextUnmount = function _contextUnmount () {
+  this._unmountedTickables = this._tickables.splice(0)
+  return this
 }
 
 /**
@@ -1712,28 +1856,27 @@ HaikuContext.prototype.removeTickable = function removeTickable (tickable) {
 }
 
 /**
- * @method assignOptions
- * @description Update our internal options settings with those passed in, using the assign algorithm.
+ * @method assignConfig
+ * @description Update our internal settings with those passed in, using the assign algorithm.
  * This also updates the internal options for the clock instance and root component instance.
  */
-HaikuContext.prototype.assignOptions = function assignOptions (options) {
-  this.options = assign({}, options)
+HaikuContext.prototype.assignConfig = function assignConfig (config, options) {
+  this.config = assign({}, config) // QUESTION: Why do we assign here?
 
   // HACK: Since we run this method before the clock is initialized sometimes, we have to check whether the clock exists before assigning sub-options to it.
   if (this.clock) {
-    this.clock.assignOptions(this.options.clock)
+    this.clock.assignOptions(this.config.options.clock)
   }
 
   // HACK: Since we run this method before the component is initialized sometimes, we have to check whether the component exists before assigning options to it.
   if (this.component) {
-    this.component.assignOptions(options)
+    // This step can optionally be skipped since this.component might be updating _us_, and we don't want to create an infinite loop
+    if (!options || !options.skipComponentAssign) {
+      this.component.assignConfig(this.config)
+    }
   }
 
   return this
-}
-
-function _makeRandomSeed () {
-  return Math.random().toString(36).slice(2)
 }
 
 /**
@@ -1744,7 +1887,7 @@ function _makeRandomSeed () {
 HaikuContext.createComponentFactory = function createComponentFactory (
   renderer,
   bytecode,
-  optionsA,
+  haikuConfigFromFactoryCreator,
   platform
 ) {
   if (!renderer) {
@@ -1760,134 +1903,68 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     console.warn('[haiku player] no runtime `platform` object was provided')
   }
 
-  // Note that options may be passed at this level, or below at the factory invocation level.
-  // The exception is the seed value, which should remain constant from here on, because it is used
-  // in a variety of places that are sensitive to it changing
-  var options = assign({}, DEFAULT_OPTIONS, { seed: _makeRandomSeed() }, optionsA)
-
-  var context = new HaikuContext(bytecode, options)
-  var index = HaikuContext.contexts.push(context) - 1
-  var address = COMPONENT_GRAPH_ADDRESS_PREFIX + index
-
-  // The HaikuComponent is really the linchpin of the user's application, handling all the interesting stuff.
-  var component = context.getRootComponent()
+  // Note that haiku Config may be passed at this level, or below at the factory invocation level.
+  var haikuConfig = Config.build(
+    {
+      options: {
+        // The seed value should remain constant from here on, because it is used for PRNG
+        seed: Config.seed()
+      }
+    },
+    // The bytecode itself may contain configuration for playback, etc., but is lower precedence than config passed in
+    {
+      options: bytecode && bytecode.options
+    },
+    haikuConfigFromFactoryCreator
+  )
 
   /**
    * @function HaikuComponentFactory
    * @description Creates a new HaikuComponent instance.
    * The (renderer, bytecode) pair are bootstrapped into the given mount element, and played.
    */
-  function HaikuComponentFactory (mount, optionsB) {
-    // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
-    if (!mount.haiku) mount.haiku = { context: context }
-
+  function HaikuComponentFactory (mount, haikuConfigFromFactory) {
     // Note that options may be passed at this leve, or above at the factory creation level.
-    options = assign(options, optionsB)
+    haikuConfig = Config.build(haikuConfig, haikuConfigFromFactory)
 
-    // Reassign options on the context since they may have changed when this function was run.
-    context.assignOptions(options)
+    // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
+    // an initialization/mounting issue when running in React.
+    var context = new HaikuContext(bytecode, haikuConfig, { performTick: tick })
+    var index = HaikuContext.contexts.push(context) - 1
+    var address = COMPONENT_GRAPH_ADDRESS_PREFIX + index
+
+    // The HaikuComponent is really the linchpin of the user's application, handling all the interesting stuff.
+    var component = context.getRootComponent()
+
+    if (!mount) {
+      console.info('[haiku player] mount not provided so running in headless mode')
+    }
+
+    // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
+    if (mount && !mount.haiku) {
+      mount.haiku = {
+        context: context
+      }
+    }
 
     // If configured, bootstrap the Haiku right-click context menu
-    if (renderer.menuize && options.contextMenu !== 'disabled') {
+    if (mount && renderer.menuize && haikuConfig.options.contextMenu !== 'disabled') {
       renderer.menuize(mount, component)
     }
 
     // Don't set up mixpanel if we're running on localhost since we don't want test data to be tracked
     // TODO: What other heuristics should we use to decide whether to use mixpanel or not?
     if (
+      mount &&
       platform &&
       platform.location &&
       platform.location.hostname !== 'localhost' &&
       platform.location.hostname !== '0.0.0.0'
     ) {
       // If configured, initialize Mixpanel with the given API token
-      if (renderer.mixpanel && options.mixpanel) {
-        renderer.mixpanel(mount, options.mixpanel, component)
+      if (renderer.mixpanel && haikuConfig.options.mixpanel) {
+        renderer.mixpanel(mount, haikuConfig.options.mixpanel, component)
       }
-    }
-
-    // The 'controller' is one possible programmatic interface into the player; the only law is that it
-    // should conform to basic EventEmitter spec, e.g. .on, .emit. If none is provided, we make a fake one.
-    var controller
-    if (options && options.controller) {
-      controller = options.controller
-    } else {
-      controller = SimpleEventEmitter.create({})
-    }
-
-    // Notify anybody who cares that we've successfully initialized their component in memory (but not rendered yet)
-    controller.emit('haikuComponentWillInitialize', component)
-    component.emit('haikuComponentWillInitialize', component)
-    if (options.onHaikuComponentWillInitialize) {
-      options.onHaikuComponentWillInitialize(component)
-    }
-
-    var tickable = { performTick: tick }
-
-    // If the component needs to remount itself for some reason, make sure we fire the right events
-    component.callRemount = function _callRemount (incomingOptions, skipMarkForFullFlush) {
-      if (incomingOptions) {
-        component.assignContextOptions(incomingOptions)
-      }
-
-      if (!skipMarkForFullFlush) {
-        component._markForFullFlush(true)
-      }
-
-      component._clearCaches()
-
-      // If autoplay is not wanted, stop the all timelines immediately after we've mounted
-      // (We have to mount first so that the component displays, but then pause it at that state.)
-      // If you don't want the component to show up at all, use options.automount=false.
-      var timelineInstances = component.getTimelines()
-      for (var timelineName in timelineInstances) {
-        var timelineInstance = timelineInstances[timelineName]
-        if (options.autoplay) {
-          if (timelineName === DEFAULT_TIMELINE_NAME) {
-            // Assume we want to start the timeline from the beginning upon remount
-            timelineInstance.play()
-          }
-        } else {
-          timelineInstance.pause()
-        }
-      }
-
-      context.addTickable(tickable)
-
-      controller.emit('haikuComponentDidMount', component)
-      component.emit('haikuComponentDidMount', component)
-      if (options.onHaikuComponentDidMount) {
-        options.onHaikuComponentDidMount(component)
-      }
-    }
-
-    // If the component needs to unmount itself for some reason, make sure we fire the right events
-    // This is primarily used in the React Adapter, but there might be other uses for it?
-    component.callUnmount = function _callUnmount (incomingOptions) {
-      if (incomingOptions) {
-        component.assignContextOptions(incomingOptions)
-      }
-
-      // Since we're unmounting, pause all animations to avoid unnecessary calc while detached
-      var timelineInstances = component.getTimelines()
-      for (var timelineName in timelineInstances) {
-        var timelineInstance = timelineInstances[timelineName]
-        timelineInstance.pause()
-      }
-
-      context.removeTickable(tickable)
-
-      controller.emit('haikuComponentWillUnmount', component)
-      component.emit('haikuComponentWillUnmount', component)
-      if (options.onHaikuComponentWillUnmount) {
-        options.onHaikuComponentWillUnmount(component)
-      }
-    }
-
-    // Hack, but we may need to allow the user to override options in this scope instead of the component's
-    component.assignContextOptions = function _assignContextOptions (incoming) {
-      options = assign(options, incoming)
-      context.assignOptions(options) // Don't forget to update the ones the context has!
     }
 
     // Dictionary of ids-to-elements, for quick lookups.
@@ -1901,59 +1978,68 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
     // Call to completely update the entire component tree - as though it were the first time
     function performFullFlushRender () {
+      if (!mount) {
+        return void (0)
+      }
       var container = renderer.createContainer(mount)
-      var tree = component.render(container, options)
+      var tree = component.render(container, haikuConfig.options)
       renderer.render(
         mount,
         container,
         tree,
         address,
         hash,
-        options,
+        haikuConfig.options,
         component._getRenderScopes()
       )
     }
 
     // Call to update elements of the component tree - but only those that we detect have changed
     function performPatchRender () {
+      if (!mount) {
+        return void (0)
+      }
       var container = renderer.createContainer(mount)
-      var patches = component.patch(container, options)
+      var patches = component.patch(container, haikuConfig.options)
       renderer.patch(
         mount,
         container,
         patches,
         address,
         hash,
-        options,
+        haikuConfig.options,
         component._getRenderScopes()
       )
     }
 
     // Called on every frame, this function updates the mount+root elements to ensure their style settings are in accordance
-    // with any passed-in options that may affect it, e.g. CSS overflow or positioning settings
+    // with any passed-in haikuConfig.options that may affect it, e.g. CSS overflow or positioning settings
     function updateMountRootStyles () {
+      if (!mount) {
+        return void (0)
+      }
       // We can assume the mount has only one child since we only mount one component into it (#?)
       var mountRoot = mount && mount.children[0]
       if (mountRoot) {
-        if (options.position && mountRoot.style.position !== options.position) {
-          mountRoot.style.position = options.position
+        if (haikuConfig.options.position && mountRoot.style.position !== haikuConfig.options.position) {
+          mountRoot.style.position = haikuConfig.options.position
         }
         if (
-          options.overflowX &&
-          mountRoot.style.overflowX !== options.overflowX
+          haikuConfig.options.overflowX &&
+          mountRoot.style.overflowX !== haikuConfig.options.overflowX
         ) {
-          mountRoot.style.overflowX = options.overflowX
+          mountRoot.style.overflowX = haikuConfig.options.overflowX
         }
         if (
-          options.overflowY &&
-          mountRoot.style.overflowY !== options.overflowY
+          haikuConfig.options.overflowY &&
+          mountRoot.style.overflowY !== haikuConfig.options.overflowY
         ) {
-          mountRoot.style.overflowY = options.overflowY
+          mountRoot.style.overflowY = haikuConfig.options.overflowY
         }
       }
       if (
         mount &&
-        options.sizing === 'cover' &&
+        haikuConfig.options.sizing === 'cover' &&
         mount.style.overflow !== 'hidden'
       ) {
         mount.style.overflow = 'hidden'
@@ -1970,7 +2056,7 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
       // After we've hydrated the tree the first time, we can proceed with patches --
       // unless the component indicates it wants a full flush per its internal settings.
-      if (component._shouldPerformFullFlush() || options.forceFlush || ticks < 1) {
+      if (component._shouldPerformFullFlush() || haikuConfig.options.forceFlush || ticks < 1) {
         performFullFlushRender()
         flushed = true
       } else {
@@ -1987,44 +2073,30 @@ HaikuContext.createComponentFactory = function createComponentFactory (
       ticks++
     }
 
-    context.addTickable(tickable)
+    // Give ActiveComponent a means to trigger an immediate rerender easily
+    context.tick = tick
 
     // Assuming the user wants the app to mount immediately (the default), let's do the mount.
-    if (options.automount) {
+    if (haikuConfig.options.automount) {
       // Starting the clock has the effect of doing a render at time 0, a.k.a., mounting!
       component.getClock().start()
     }
 
-    // Notify anybody who cares that we've completed the initialization sequence
-    controller.emit('haikuComponentDidInitialize', component)
-    component.emit('haikuComponentDidInitialize', component)
-    if (options.onHaikuComponentDidInitialize) {
-      options.onHaikuComponentDidInitialize(component)
-    }
-
     // These properties are added for convenience as hot editing hooks inside Haiku Desktop (and elsewhere?).
     // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
-    HaikuComponentFactory.controller = controller
-    HaikuComponentFactory.mount = mount
-    HaikuComponentFactory.tick = tick
+    HaikuComponentFactory.bytecode = bytecode
+    HaikuComponentFactory.renderer = renderer
 
     // Finally, return the HaikuComponent instance which can also be used for programmatic behavior
     return component
   }
-
-  // These properties are added for convenience as hot editing hooks inside Haiku Desktop (and elsewhere?).
-  // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
-  HaikuComponentFactory.component = component
-  HaikuComponentFactory.context = context
-  HaikuComponentFactory.bytecode = bytecode
-  HaikuComponentFactory.renderer = renderer
 
   return HaikuComponentFactory
 }
 
 module.exports = HaikuContext
 
-},{"./HaikuClock":3,"./HaikuComponent":4,"./helpers/SimpleEventEmitter":15,"./vendor/assign":76}],6:[function(_dereq_,module,exports){
+},{"./../package.json":2,"./Config":3,"./HaikuClock":4,"./HaikuComponent":5,"./vendor/assign":78}],7:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -2408,7 +2480,7 @@ HaikuTimeline.prototype.gotoAndStop = function gotoAndStop (ms) {
 
 module.exports = HaikuTimeline
 
-},{"./helpers/SimpleEventEmitter":15,"./helpers/getTimelineMaxTime":26,"./vendor/assign":76}],7:[function(_dereq_,module,exports){
+},{"./helpers/SimpleEventEmitter":16,"./helpers/getTimelineMaxTime":27,"./vendor/assign":78}],8:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -2649,7 +2721,7 @@ module.exports = {
   isZero: isZero
 }
 
-},{"./layout/computeMatrix":34,"./layout/computeRotationFlexibly":35,"./layout/computeSize":36}],8:[function(_dereq_,module,exports){
+},{"./layout/computeMatrix":36,"./layout/computeRotationFlexibly":37,"./layout/computeSize":38}],9:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -2873,7 +2945,8 @@ module.exports = {
   calculateValueAndReturnUndefinedIfNotWorthwhile: calculateValueAndReturnUndefinedIfNotWorthwhile
 }
 
-},{"./vendor/just-curves":117}],9:[function(_dereq_,module,exports){
+},{"./vendor/just-curves":119}],10:[function(_dereq_,module,exports){
+(function (process,global,__filename,__argument0,__argument1,__argument2,__argument3,__dirname){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -2966,165 +3039,296 @@ GENERATORS['points'] = function _genPoints (value) {
   return SVGPoints.pointsToPolyString(value)
 }
 
-var SUMMONABLES = {}
-SUMMONABLES['$timeline_name'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    inputValues,
-    eventsFired
-  ) {
-    return timelineName
+var INJECTABLES = {}
+
+if (typeof window !== 'undefined') {
+  // * **$window** ($global if running in node)
+  //   * width
+  //   * height
+  //   * device ?
+  //   * screen
+  //     * orientation
+  //   * navigator
+  //   * document
+  //   * location
+  // [Watered down, helperified, deterministic versions]
+  INJECTABLES['$window'] = {
+    summon: function (summonSpec) {
+      var out = {}
+
+      out.width = window.innerWidth
+      out.height = window.innerHeight
+
+      // TODO: What goes here?
+      out.device = {}
+
+      if (window.screen) {
+        out.screen = {
+          availHeight: window.screen.availHeight,
+          availLeft: window.screen.availLeft,
+          availWidth: window.screen.availWidth,
+          colorDepth: window.screen.colorDepth,
+          height: window.screen.height,
+          pixelDepth: window.screen.pixelDepth,
+          width: window.screen.width
+        }
+        if (window.screen.orientation) {
+          out.screen.orientation = {
+            angle: window.screen.orientation.angle,
+            type: window.screen.orientation.type
+          }
+        }
+      }
+
+      if (typeof navigator !== 'undefined') {
+        out.device.userAgent = navigator.userAgent
+        out.device.appCodeName = navigator.appCodeName
+        out.device.appName = navigator.appName
+        out.device.appVersion = navigator.appVersion
+        out.device.cookieEnabled = navigator.cookieEnabled
+        out.device.doNotTrack = navigator.doNotTrack
+        out.device.language = navigator.language
+        out.device.maxTouchPoints = navigator.maxTouchPoints
+        out.device.onLine = navigator.onLine
+        out.device.platform = navigator.platform
+        out.device.product = navigator.product
+        out.device.userAgent = navigator.userAgent
+        out.device.vendor = navigator.vendor
+      }
+
+      if (window.document) {
+        out.document = {
+          charset: window.document.charset,
+          compatMode: window.document.compatMode,
+          contenttype: window.document.contentType,
+          cookie: window.document.cookie,
+          documentURI: window.document.documentURI,
+          fullscreen: window.document.fullscreen,
+          readyState: window.document.readyState,
+          referrer: window.document.referrer,
+          title: window.document.title
+        }
+      }
+
+      if (window.location) {
+        out.location = {
+          hash: window.location.hash,
+          host: window.location.host,
+          hostname: window.location.hostname,
+          href: window.location.href,
+          pathname: window.location.pathname,
+          protocol: window.location.protocol,
+          search: window.location.search
+        }
+      }
+
+      return out
+    }
   }
 }
-SUMMONABLES['$property_name'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    inputValues,
-    eventsFired
-  ) {
-    return propertyName
+
+if (typeof global !== 'undefined') {
+  // * **$global** ($window if running in browser)
+  //   * __filename
+  //   * __dirname
+  //   * processs
+  //     * env
+  INJECTABLES['$global'] = {
+    summon: function (summonSpec) {
+      var out = {}
+
+      if (typeof __filename !== 'undefined') {
+        summonSpec.__filename = __filename
+      }
+
+      if (typeof __dirname !== 'undefined') {
+        summonSpec.__dirname = __dirname
+      }
+
+      if (typeof process !== 'undefined') {
+        out.process = {}
+        out.process.pid = process.pid
+        out.process.arch = process.arch
+        out.process.platform = process.platform
+        out.process.argv = process.argv
+        out.process.title = process.title
+        out.process.version = process.version
+        out.process.env = process.env
+      }
+
+      return out
+    }
   }
 }
-SUMMONABLES['$selector'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    inputValues,
-    eventsFired
-  ) {
-    return selector
+
+// **$player** Things having to do with the current player execution context
+//   * version
+//   * options
+//   * timeline
+//     * time
+//     * frame
+//   * clock
+//     * time
+INJECTABLES['$player'] = {
+  summon: function (summonSpec, hostInstance, eventsFired, timelineName) {
+    var out = {}
+
+    out.version = hostInstance._context.PLAYER_VERSION
+
+    var options = hostInstance._context.config.options
+    if (options) {
+      out.options = {
+        seed: options.seed,
+        loop: options.loop,
+        sizing: options.sizing,
+        preserve3d: options.preserve3d,
+        position: options.position,
+        overflowX: options.overflowX,
+        overflowY: options.overflowY
+      }
+    }
+
+    var timelineInstance = hostInstance.getTimeline(timelineName)
+    if (timelineInstance) {
+      out.timeline = {
+        name: timelineName,
+        duration: timelineInstance.getDuration(),
+        repeat: timelineInstance.getRepeat(),
+        time: {
+          apparent: timelineInstance.getTime(),
+          elapsed: timelineInstance.getElapsedTime(),
+          max: timelineInstance.getMaxTime()
+        },
+        frame: {
+          apparent: timelineInstance.getFrame(),
+          elapsed: timelineInstance.getUnboundedFrame()
+        }
+      }
+    }
+
+    var clockInstance = hostInstance.getClock()
+    if (clockInstance) {
+      out.clock = {
+        frameDuration: clockInstance.options.frameDuration,
+        frameDelay: clockInstance.options.frameDelay,
+        time: {
+          apparent: clockInstance.getExplicitTime(),
+          elapsed: clockInstance.getRunningTime()
+        }
+      }
+    }
+
+    return out
   }
 }
-SUMMONABLES['$keyframe'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    inputValues,
-    eventsFired
-  ) {
-    return parseInt(keyframeMs, 10)
-  }
-}
-SUMMONABLES['$frame'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    inputValues,
-    eventsFired
-  ) {
-    var timeline =
-      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
-    if (!timeline) return void 0 // No frame available if no timeline
-    return ~~timeline.getBoundedFrame()
-  }
-}
-SUMMONABLES['$frame_unbounded'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    inputValues,
-    eventsFired
-  ) {
-    var timeline =
-      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
-    if (!timeline) return void 0 // No frame available if no timeline
-    return ~~timeline.getUnboundedFrame()
-  }
-}
-SUMMONABLES['$time'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    inputValues,
-    eventsFired
-  ) {
-    var timeline =
-      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
-    if (!timeline) return void 0 // No frame available if no timeline
-    return ~~timeline.getTime()
-  }
-}
-SUMMONABLES['$time_elapsed'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    inputValues,
-    eventsFired
-  ) {
-    var timeline =
-      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
-    if (!timeline) return void 0 // No frame available if no timeline
-    return ~~timeline.getElapsedTime()
-  }
-}
-SUMMONABLES['$time_clock'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    inputValues,
-    eventsFired
-  ) {
-    var timeline =
-      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
-    if (!timeline) return void 0 // No frame available if no timeline
-    return ~~timeline.getClockTime()
-  }
-}
-SUMMONABLES['$time_max'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    inputValues,
-    eventsFired
-  ) {
-    var timeline =
-      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
-    if (!timeline) return void 0 // No frame available if no timeline
-    return ~~timeline.getMaxTime()
-  }
-}
+
+// * $component (top-level Element of a given component, (i.e. tranverse tree upward past groups but stop at first component definition))
+//     * properties ($host is the same type as $element)
+// INJECTABLES['$component'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
+
+// * **$root **
+//     * NOTE:  absolute root of component tree (but does not traverse host codebase DOM,) i.e. if Haiku components are nested.  Until we support nested components, $root will be the same as $component
+// INJECTABLES['$root'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
+
+// * **$tree** (all of these are the same type, Element)
+//     * **parent**
+//     * children
+//     * siblings
+//     * component
+//     * root (root at runtime)
+//     * element (same as $element)
+// INJECTABLES['$tree'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
+
+// * **$element** (of type Element, this current element)
+//     * **properties**
+//         * **$opacity**
+//         * **$scale**
+//             * x
+//             * y
+//             * z
+//         * **$position**
+//             * **x**
+//             * **y**
+//             * **z**
+//         * **$rotation**
+//             * **x**
+//             * **y**
+//             * **z**
+//         * [any custom properties]
+//     * bbox
+//         * x
+//         * y
+//         * width
+//         * height
+//     * mouse (position relative to element)
+//         * x
+//         * y
+//     * touches (position relative to element)
+//         * [0]
+//             * x
+//             * y
+//         * [1]...
+// INJECTABLES['$element'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
+
+// * **$helpers**
+//     * _ (side-effect-free lodash subset)
+//     * **random** (can init/config w/ seed)
+//     * **time** (alias date, alias datetime — probably use momentjs or similar for API niceness)
+//         * now
+//         * today
+//     * [FUTURE:  'registerHelper” from lifecycle events]
+// INJECTABLES['$helpers'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
+
+// * **$flow**
+//     * **repeat**
+//         * **index**
+//         * **value** (alias “data” alias “payload”)
+//     * if ?
+//         * value (alias “data” alias “payload”)
+//     * yield? (alias “placeholder”)
+//         * value (alias “data” alias “payload”)
+// INJECTABLES['$flow'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
+
+// * **$user**
+//     * **mouse**
+//     * **touches**
+//         * [0]...
+//     * **mouches **(wraps both touch & mouse, w/ array interface like touches)
+//         * [0]...
+//     * **key**
+//     * accelerometer
+//     * compass
+//     * mic
+//     * camera
+// INJECTABLES['$user'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
 
 function ValueBuilder (component) {
   this._component = component // ::HaikuComponent
@@ -3154,7 +3358,7 @@ ValueBuilder.prototype.evaluate = function _evaluate (
   keyframeMs,
   keyframeCluster,
   hostInstance,
-  inputValues,
+  states,
   eventsFired,
   inputsChanged
 ) {
@@ -3174,19 +3378,19 @@ ValueBuilder.prototype.evaluate = function _evaluate (
 
   if (fn.specification === true) {
     // This function is of an unknown kind, so just evaluate it normally without magic dependency injection
-    evaluation = fn.call(hostInstance, inputValues)
+    evaluation = fn.call(hostInstance, states)
   } else if (!Array.isArray(fn.specification.params)) {
     // If for some reason we got a non-array params, just evaluate
-    evaluation = fn.call(hostInstance, inputValues)
+    evaluation = fn.call(hostInstance, states)
   } else if (fn.specification.params.length < 1) {
     // If for some reason we got 0 params, just evaluate it
-    evaluation = fn.call(hostInstance, inputValues)
+    evaluation = fn.call(hostInstance, states)
   } else {
     var summons = fn.specification.params[0] // For now, ignore all subsequent arguments
 
     if (!summons || typeof summons !== 'object') {
       // If the summon isn't in the destructured object format, just evaluate it
-      evaluation = fn.call(hostInstance, inputValues)
+      evaluation = fn.call(hostInstance, states)
     } else {
       var summonees = this.summonSummonables(
         summons,
@@ -3196,7 +3400,7 @@ ValueBuilder.prototype.evaluate = function _evaluate (
         keyframeMs,
         keyframeCluster,
         hostInstance,
-        inputValues,
+        states,
         eventsFired,
         inputsChanged
       )
@@ -3228,7 +3432,7 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
   keyframeMs,
   keyframeCluster,
   hostInstance,
-  inputValues,
+  states,
   eventsFired,
   inputsChanged
 ) {
@@ -3240,18 +3444,13 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
 
     // If a special summonable has been defined, then call its summoner function
     // Note the lower-case - allow lo-coders to comfortably call say $FRAME and $frame and get the same thing back
-    if (SUMMONABLES[key.toLowerCase()]) {
+    if (INJECTABLES[key.toLowerCase()]) {
       // But don't lowercase the assignment - otherwise the object destructuring won't work!!
-      summonables[key] = SUMMONABLES[key].summon(
-        timelineName,
-        selector,
-        propertyName,
-        keyframeMs,
-        keyframeCluster,
+      summonables[key] = INJECTABLES[key].summon(
+        summons[key],
         hostInstance,
-        inputValues,
         eventsFired,
-        inputsChanged
+        timelineName
       )
       continue
     }
@@ -3309,7 +3508,7 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
   outputName,
   cluster,
   hostInstance,
-  inputValues,
+  states,
   eventsFired,
   inputsChanged,
   isPatchOperation,
@@ -3356,7 +3555,7 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
         ms,
         cluster,
         hostInstance,
-        inputValues,
+        states,
         eventsFired,
         inputsChanged
       )
@@ -3440,7 +3639,7 @@ ValueBuilder.prototype.build = function _build (
   timelineTime,
   timelinesObject,
   isPatchOperation,
-  inputValues,
+  states,
   eventsFired,
   inputsChanged
 ) {
@@ -3458,7 +3657,7 @@ ValueBuilder.prototype.build = function _build (
         propertiesGroup,
         timelineTime,
         haikuComponent,
-        inputValues,
+        states,
         eventsFired,
         inputsChanged,
         isPatchOperation
@@ -3503,7 +3702,7 @@ ValueBuilder.prototype.build = function _build (
  * @param propertiesGroup {Object} The full timeline properties group, e.g. { position.x: ..., position.y: ... }
  * @param timelineTime {Number} The current time (in ms) that the given timeline is at
  * @param haikuPlayer {Object} Instance of HaikuPlayer
- * @param inputValues {Object} Input values stored by the player instance
+ * @param states {Object} Input values stored by the player instance
  * @param eventsFired {Array} Events fired within the tick
  * @param inputsChanged {Object} List of inputs detected to have changed since last input
  */
@@ -3514,7 +3713,7 @@ ValueBuilder.prototype.grabValue = function _grabValue (
   propertiesGroup,
   timelineTime,
   haikuPlayer,
-  inputValues,
+  states,
   eventsFired,
   inputsChanged,
   isPatchOperation,
@@ -3526,7 +3725,7 @@ ValueBuilder.prototype.grabValue = function _grabValue (
     propertyName,
     propertiesGroup[propertyName],
     haikuPlayer,
-    inputValues,
+    states,
     eventsFired,
     inputsChanged,
     isPatchOperation,
@@ -3570,7 +3769,8 @@ ValueBuilder.prototype.grabValue = function _grabValue (
 
 module.exports = ValueBuilder
 
-},{"./Transitions":8,"./helpers/BasicUtils":12,"./helpers/ColorUtils":13,"./helpers/SVGPoints":14,"./reflection/functionToRFO":42}],10:[function(_dereq_,module,exports){
+}).call(this,_dereq_('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},"/packages/haiku-player/src/ValueBuilder.js",arguments[3],arguments[4],arguments[5],arguments[6],"/packages/haiku-player/src")
+},{"./Transitions":9,"./helpers/BasicUtils":13,"./helpers/ColorUtils":14,"./helpers/SVGPoints":15,"./reflection/functionToRFO":44,"_process":1}],11:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -3596,8 +3796,9 @@ var IS_WINDOW_DEFINED = typeof window !== 'undefined'
  * @function HaikuDOMAdapter
  * @description Given a bytecode object, return a factory function which can create a DOM-playable component.
  */
-function HaikuDOMAdapter (bytecode, options, _window) {
-  if (!options) options = {}
+function HaikuDOMAdapter (bytecode, config, _window) {
+  if (!config) config = {}
+  if (!config.options) config.options = {}
 
   if (!_window) {
     if (IS_WINDOW_DEFINED) {
@@ -3605,19 +3806,19 @@ function HaikuDOMAdapter (bytecode, options, _window) {
     }
   }
 
-  if (options.useWebkitPrefix === undefined) {
+  if (config.options.useWebkitPrefix === undefined) {
     // Allow headless mode, e.g. in server-side rendering or in Node.js unit tests
     if (_window && _window.document) {
       var isWebKit =
         'WebkitAppearance' in _window.document.documentElement.style
-      options.useWebkitPrefix = !!isWebKit
+      config.options.useWebkitPrefix = !!isWebKit
     }
   }
 
   return HaikuContext.createComponentFactory(
     HaikuDOMRenderer,
     bytecode,
-    options,
+    config, // Note: Full config object, of which options is one property!
     _window
   )
 }
@@ -3633,14 +3834,14 @@ if (IS_WINDOW_DEFINED) {
 
 module.exports = HaikuDOMAdapter
 
-},{"./../../../package.json":2,"./../../HaikuContext":5,"./../../renderers/dom":59}],11:[function(_dereq_,module,exports){
+},{"./../../../package.json":2,"./../../HaikuContext":6,"./../../renderers/dom":61}],12:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 module.exports = _dereq_('./HaikuDOMAdapter')
 
-},{"./HaikuDOMAdapter":10}],12:[function(_dereq_,module,exports){
+},{"./HaikuDOMAdapter":11}],13:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -3696,7 +3897,7 @@ module.exports = {
   uniq: uniq
 }
 
-},{"./../vendor/array-unique":75}],13:[function(_dereq_,module,exports){
+},{"./../vendor/array-unique":77}],14:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -3726,7 +3927,7 @@ module.exports = {
   generateString: generateString
 }
 
-},{"./../vendor/color-string":78}],14:[function(_dereq_,module,exports){
+},{"./../vendor/color-string":80}],15:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -3884,7 +4085,7 @@ module.exports = {
   manaToPoints: manaToPoints
 }
 
-},{"./../vendor/svg-points":130,"./parseCssValueString":29}],15:[function(_dereq_,module,exports){
+},{"./../vendor/svg-points":132,"./parseCssValueString":30}],16:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4024,7 +4225,7 @@ SimpleEventEmitter.create = create
 
 module.exports = SimpleEventEmitter
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4115,7 +4316,7 @@ var allSvgElementNames = [
 
 module.exports = allSvgElementNames
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4135,7 +4336,7 @@ function attrSelectorParser (selector) {
 
 module.exports = attrSelectorParser
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4171,7 +4372,7 @@ function matchByAttribute (
 
 module.exports = matchByAttribute
 
-},{"./objectPath":28}],19:[function(_dereq_,module,exports){
+},{"./objectPath":29}],20:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4198,7 +4399,7 @@ function matchByClass (node, className, options) {
 
 module.exports = matchByClass
 
-},{"./objectPath":28}],20:[function(_dereq_,module,exports){
+},{"./objectPath":29}],21:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4216,7 +4417,7 @@ function matchByHaiku (node, haikuString, options) {
 
 module.exports = matchByHaiku
 
-},{"./objectPath":28}],21:[function(_dereq_,module,exports){
+},{"./objectPath":29}],22:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4234,7 +4435,7 @@ function matchById (node, id, options) {
 
 module.exports = matchById
 
-},{"./objectPath":28}],22:[function(_dereq_,module,exports){
+},{"./objectPath":29}],23:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4280,7 +4481,7 @@ function matchByTagName (node, tagName, options) {
 
 module.exports = matchByTagName
 
-},{"./objectPath":28}],23:[function(_dereq_,module,exports){
+},{"./objectPath":29}],24:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4327,7 +4528,7 @@ function matchOne (node, piece, options) {
 
 module.exports = matchOne
 
-},{"./attrSelectorParser":17,"./cssMatchByAttribute":18,"./cssMatchByClass":19,"./cssMatchByHaiku":20,"./cssMatchById":21,"./cssMatchByTagName":22}],24:[function(_dereq_,module,exports){
+},{"./attrSelectorParser":18,"./cssMatchByAttribute":19,"./cssMatchByClass":20,"./cssMatchByHaiku":21,"./cssMatchById":22,"./cssMatchByTagName":23}],25:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4356,7 +4557,7 @@ function queryList (matches, list, query, options) {
 
 module.exports = queryList
 
-},{"./cssMatchOne":23}],25:[function(_dereq_,module,exports){
+},{"./cssMatchOne":24}],26:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4376,7 +4577,7 @@ function queryTree (matches, node, query, options) {
 
 module.exports = queryTree
 
-},{"./BasicUtils":12,"./cssQueryList":24,"./manaFlattenTree":27}],26:[function(_dereq_,module,exports){
+},{"./BasicUtils":13,"./cssQueryList":25,"./manaFlattenTree":28}],27:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4399,7 +4600,7 @@ function getTimelineMaxTime (descriptor) {
 
 module.exports = getTimelineMaxTime
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4436,7 +4637,7 @@ function flattenTree (list, node, options, depth, index) {
 
 module.exports = flattenTree
 
-},{"./objectPath":28}],28:[function(_dereq_,module,exports){
+},{"./objectPath":29}],29:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4455,7 +4656,7 @@ function objectPath (obj, key) {
 
 module.exports = objectPath
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4500,7 +4701,7 @@ function parseCssValueString (str, optionalPropertyHint) {
 
 module.exports = parseCssValueString
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4542,7 +4743,63 @@ function scopifyElements (mana, parent, scope) {
 
 module.exports = scopifyElements
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
+var xmlToMana = _dereq_('./xmlToMana')
+
+var STRING_TYPE = 'string'
+
+/**
+ * @method upgradeBytecodeInPlace
+ * @description Mechanism to modify our bytecode from legacy format to the current format.
+ * Think of this like a migration that always runs in production components just in case we
+ * get something that happens to be legacy.
+ */
+function upgradeBytecodeInPlace (_bytecode) {
+  if (!_bytecode.states) {
+    _bytecode.states = {}
+  }
+
+  // Convert the properties array to the states dictionary
+  if (_bytecode.properties) {
+    console.info('[haiku player] auto-upgrading code properties array to states object (2.1.14+)')
+    var properties = _bytecode.properties
+    delete _bytecode.properties
+    for (var i = 0; i < properties.length; i++) {
+      var propertySpec = properties[i]
+      var updatedSpec = {}
+      if (propertySpec.value !== undefined) updatedSpec.value = propertySpec.value
+      if (propertySpec.type !== undefined) updatedSpec.type = propertySpec.type
+      if (propertySpec.setter !== undefined) updatedSpec.setter = propertySpec.setter
+      _bytecode.states[propertySpec.name] = updatedSpec
+    }
+  }
+
+  // Convert the eventHandlers array into a dictionary
+  // [{selector:'foo',name:'onclick',handler:function}] => {'foo':{'onclick':{handler:function}}}
+  if (Array.isArray(_bytecode.eventHandlers)) {
+    console.info('[haiku player] auto-upgrading code event handlers to object format (2.1.14+)')
+    var eventHandlers = _bytecode.eventHandlers
+    delete _bytecode.eventHandlers
+    _bytecode.eventHandlers = {}
+    for (var j = 0; j < eventHandlers.length; j++) {
+      var eventHandlerSpec = eventHandlers[j]
+      if (!_bytecode.eventHandlers[eventHandlerSpec.selector]) _bytecode.eventHandlers[eventHandlerSpec.selector] = {}
+      _bytecode.eventHandlers[eventHandlerSpec.selector][eventHandlerSpec.name] = {
+        handler: eventHandlerSpec.handler
+      }
+    }
+  }
+
+  // Convert a string template into our internal object format
+  if (typeof _bytecode.template === STRING_TYPE) {
+    console.info('[haiku player] auto-upgrading template string to object format (2.0.0+)')
+    _bytecode.template = xmlToMana(_bytecode.template)
+  }
+}
+
+module.exports = upgradeBytecodeInPlace
+
+},{"./xmlToMana":33}],33:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4583,7 +4840,7 @@ function xmlToMana (xml) {
 
 module.exports = xmlToMana
 
-},{"./../vendor/to-style":137,"./../vendor/xml-parser":150}],32:[function(_dereq_,module,exports){
+},{"./../vendor/to-style":139,"./../vendor/xml-parser":152}],34:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4728,7 +4985,7 @@ function applyCssLayout (
 
 module.exports = applyCssLayout
 
-},{"./formatTransform":37,"./isEqualTransformString":38,"./scopeOfElement":39,"./setStyleMatrix":40}],33:[function(_dereq_,module,exports){
+},{"./formatTransform":39,"./isEqualTransformString":40,"./scopeOfElement":41,"./setStyleMatrix":42}],35:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4742,7 +4999,7 @@ function compactTransform (t1) {
 
 module.exports = compactTransform
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -4878,7 +5135,7 @@ function computeMatrix (
 
 module.exports = computeMatrix
 
-},{}],35:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -4985,7 +5242,7 @@ function computeRotationFlexibly (x, y, z, w, quat) {
 
 module.exports = computeRotationFlexibly
 
-},{}],36:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -5044,7 +5301,7 @@ function computeSize (
 
 module.exports = computeSize
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -5118,7 +5375,7 @@ function formatTransform (transform, format, devicePixelRatio) {
 
 module.exports = formatTransform
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5139,7 +5396,7 @@ function isEqualTransformString (t1, t2) {
 
 module.exports = isEqualTransformString
 
-},{"./compactTransform":33}],39:[function(_dereq_,module,exports){
+},{"./compactTransform":35}],41:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5154,7 +5411,7 @@ module.exports = function scopeOfElement (mana) {
   return null
 }
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5185,7 +5442,7 @@ function setStyleMatrix (
 
 module.exports = setStyleMatrix
 
-},{"./formatTransform":37,"./isEqualTransformString":38}],41:[function(_dereq_,module,exports){
+},{"./formatTransform":39,"./isEqualTransformString":40}],43:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5949,16 +6206,16 @@ var CONTROL_FLOW_VANITIES = {
     if (typeof value !== 'number') {
       throw new Error('controlFlow.insert expects null or number')
     }
-    if (!context.options.children) return void 0
-    var children = Array.isArray(context.options.children)
-      ? context.options.children
-      : [context.options.children]
+    if (!context.config.children) return void 0
+    var children = Array.isArray(context.config.children)
+      ? context.config.children
+      : [context.config.children]
     var surrogate = children[value]
     if (surrogate === null || surrogate === undefined) return void 0
     // If we are running via a framework adapter, allow that framework to provide its own insert mechanism.
     // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
-    if (context.options.vanities['controlFlow.insert']) {
-      context.options.vanities['controlFlow.insert'](
+    if (context.config.vanities['controlFlow.insert']) {
+      context.config.vanities['controlFlow.insert'](
         element,
         surrogate,
         context,
@@ -5980,16 +6237,16 @@ var CONTROL_FLOW_VANITIES = {
     if (typeof value !== 'number') {
       throw new Error('controlFlow.placeholder expects null or number')
     }
-    if (!context.options.children) return void 0
-    var children = Array.isArray(context.options.children)
-      ? context.options.children
-      : [context.options.children]
+    if (!context.config.children) return void 0
+    var children = Array.isArray(context.config.children)
+      ? context.config.children
+      : [context.config.children]
     var surrogate = children[value]
     if (surrogate === null || surrogate === undefined) return void 0
     // If we are running via a framework adapter, allow that framework to provide its own placeholder mechanism.
     // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
-    if (context.options.vanities['controlFlow.placeholder']) {
-      context.options.vanities['controlFlow.placeholder'](
+    if (context.config.vanities['controlFlow.placeholder']) {
+      context.config.vanities['controlFlow.placeholder'](
         element,
         surrogate,
         context,
@@ -6818,7 +7075,7 @@ module.exports = {
   wb: has(CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES)
 }
 
-},{"./../../Layout3D":7}],42:[function(_dereq_,module,exports){
+},{"./../../Layout3D":8}],44:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7013,7 +7270,7 @@ function functionToRFO (fn) {
 
 module.exports = functionToRFO
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7093,7 +7350,7 @@ HaikuDOMRenderer.createContainer = createContainer
 
 module.exports = HaikuDOMRenderer
 
-},{"./createMixpanel":52,"./createRightClickMenu":53,"./getElementSize":57,"./patch":67,"./render":69}],44:[function(_dereq_,module,exports){
+},{"./createMixpanel":54,"./createRightClickMenu":55,"./getElementSize":59,"./patch":69,"./render":71}],46:[function(_dereq_,module,exports){
 module.exports = function addToHashTable (hash, domElement, virtualElement) {
   if (virtualElement && virtualElement.attributes) {
     var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
@@ -7113,7 +7370,7 @@ module.exports = function addToHashTable (hash, domElement, virtualElement) {
   }
 }
 
-},{}],45:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7168,7 +7425,7 @@ function appendChild (
 
 module.exports = appendChild
 
-},{"./applyLayout":46,"./createTagNode":55,"./createTextNode":56,"./isTextNode":64}],46:[function(_dereq_,module,exports){
+},{"./applyLayout":48,"./createTagNode":57,"./createTextNode":58,"./isTextNode":66}],48:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7187,8 +7444,6 @@ var PLATFORM_INFO = {
   isIE: isIE(_window), // Dumb navigator check - use feature detection instead?
   hasPreserve3d: hasPreserve3d(_window) // I dunno if we actually need this
 }
-
-console.info('[haiku player] platform info:', JSON.stringify(PLATFORM_INFO))
 
 var DEFAULT_PIXEL_RATIO = 1.0
 var SVG = 'svg'
@@ -7291,7 +7546,7 @@ function _warnOnce (warning) {
 
 module.exports = applyLayout
 
-},{"./../../layout/applyCssLayout":32,"./../../layout/scopeOfElement":39,"./../../vendor/modernizr":127,"./isIE":61,"./isMobile":62,"./isTextNode":64}],47:[function(_dereq_,module,exports){
+},{"./../../layout/applyCssLayout":34,"./../../layout/scopeOfElement":41,"./../../vendor/modernizr":129,"./isIE":63,"./isMobile":64,"./isTextNode":66}],49:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7384,7 +7639,7 @@ function assignAttributes (
 
 module.exports = assignAttributes
 
-},{"./assignClass":48,"./assignEvent":49,"./assignStyle":50}],48:[function(_dereq_,module,exports){
+},{"./assignClass":50,"./assignEvent":51,"./assignStyle":52}],50:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7398,7 +7653,7 @@ function assignClass (domElement, className, options, scopes) {
 
 module.exports = assignClass
 
-},{}],49:[function(_dereq_,module,exports){
+},{}],51:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7446,7 +7701,7 @@ function assignEvent (
 
 module.exports = assignEvent
 
-},{"./attachEventListener":51}],50:[function(_dereq_,module,exports){
+},{"./attachEventListener":53}],52:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7484,7 +7739,7 @@ function assignStyle (domElement, style, options, scopes, isPatchOperation) {
 
 module.exports = assignStyle
 
-},{}],51:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7504,7 +7759,7 @@ module.exports = function attachEventListener (
   }
 }
 
-},{}],52:[function(_dereq_,module,exports){
+},{}],54:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7544,7 +7799,7 @@ module.exports = function createMixpanel (domElement, mixpanelToken, component) 
   })
 }
 
-},{"./../../vendor/assign":76,"./../../vendor/mixpanel-browser/tiny":126}],53:[function(_dereq_,module,exports){
+},{"./../../vendor/assign":78,"./../../vendor/mixpanel-browser/tiny":128}],55:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7716,7 +7971,7 @@ module.exports = function createRightClickMenu (domElement, component) {
   doc.addEventListener('click', hideMenu)
 }
 
-},{}],54:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7729,7 +7984,7 @@ function createSvgElement (domElement, tagName, options, scopes) {
 
 module.exports = createSvgElement
 
-},{}],55:[function(_dereq_,module,exports){
+},{}],57:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7784,7 +8039,7 @@ module.exports = createTagNode
 var createSvgElement = _dereq_('./createSvgElement')
 var updateElement = _dereq_('./updateElement')
 
-},{"./createSvgElement":54,"./getTypeAsString":58,"./isSvgElementName":63,"./normalizeName":66,"./updateElement":73}],56:[function(_dereq_,module,exports){
+},{"./createSvgElement":56,"./getTypeAsString":60,"./isSvgElementName":65,"./normalizeName":68,"./updateElement":75}],58:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7795,7 +8050,7 @@ function createTextNode (domElement, textContent, options, scopes) {
 
 module.exports = createTextNode
 
-},{}],57:[function(_dereq_,module,exports){
+},{}],59:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7819,7 +8074,7 @@ function getElementSize (domElement) {
 
 module.exports = getElementSize
 
-},{}],58:[function(_dereq_,module,exports){
+},{}],60:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7866,14 +8121,14 @@ function _warnOnce (warning) {
 
 module.exports = getTypeAsString
 
-},{}],59:[function(_dereq_,module,exports){
+},{}],61:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 module.exports = _dereq_('./HaikuDOMRenderer')
 
-},{"./HaikuDOMRenderer":43}],60:[function(_dereq_,module,exports){
+},{"./HaikuDOMRenderer":45}],62:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7884,7 +8139,7 @@ function isBlankString (thing) {
 
 module.exports = isBlankString
 
-},{}],61:[function(_dereq_,module,exports){
+},{}],63:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7899,7 +8154,7 @@ module.exports = function isIE (window) {
   )
 }
 
-},{}],62:[function(_dereq_,module,exports){
+},{}],64:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7911,7 +8166,7 @@ module.exports = function isMobile (window) {
   return /iPhone|iPad|iPod|Android/i.test(window.navigator.userAgent)
 }
 
-},{}],63:[function(_dereq_,module,exports){
+},{}],65:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7924,7 +8179,7 @@ function isSvgElementName (tagName, scopes) {
 
 module.exports = isSvgElementName
 
-},{"./../../helpers/allSvgElementNames":16}],64:[function(_dereq_,module,exports){
+},{"./../../helpers/allSvgElementNames":17}],66:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7935,7 +8190,7 @@ function isTextNode (virtualElement, scopes) {
 
 module.exports = isTextNode
 
-},{}],65:[function(_dereq_,module,exports){
+},{}],67:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7946,7 +8201,7 @@ function locatorBump (locator, index) {
 
 module.exports = locatorBump
 
-},{}],66:[function(_dereq_,module,exports){
+},{}],68:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7958,7 +8213,7 @@ function normalizeName (tagName) {
 
 module.exports = normalizeName
 
-},{}],67:[function(_dereq_,module,exports){
+},{}],69:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8009,7 +8264,7 @@ function patch (
 
 module.exports = patch
 
-},{"./updateElement":73}],68:[function(_dereq_,module,exports){
+},{"./updateElement":75}],70:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8021,7 +8276,7 @@ function removeElement (domElement, hash, options, scopes) {
 
 module.exports = removeElement
 
-},{}],69:[function(_dereq_,module,exports){
+},{}],71:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8050,7 +8305,7 @@ function render (
 
 module.exports = render
 
-},{"./renderTree":70}],70:[function(_dereq_,module,exports){
+},{"./renderTree":72}],72:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8090,10 +8345,13 @@ function renderTree (
   addToHashTable(hash, domElement, virtualElement)
 
   if (!domElement.haiku) domElement.haiku = {}
-  domElement.haiku.locator = locator
 
-  // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-  domElement.haiku.element = _cloneVirtualElement(virtualElement)
+  // 'hashtab', 'locator', and 'virtual' are more for debugging convenience than anything else.
+  // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
+  domElement.haiku.hashtab = hash
+  domElement.haiku.locator = locator
+  domElement.haiku.virtual = virtualElement
+  domElement.haiku.element = _cloneVirtualElement(virtualElement) // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
 
   if (!Array.isArray(virtualChildren)) {
     return domElement
@@ -8165,7 +8423,7 @@ module.exports = renderTree
 var appendChild = _dereq_('./appendChild')
 var updateElement = _dereq_('./updateElement')
 
-},{"./addToHashTable":44,"./appendChild":45,"./isBlankString":60,"./locatorBump":65,"./removeElement":68,"./updateElement":73}],71:[function(_dereq_,module,exports){
+},{"./addToHashTable":46,"./appendChild":47,"./isBlankString":62,"./locatorBump":67,"./removeElement":70,"./updateElement":75}],73:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8216,7 +8474,7 @@ module.exports = replaceElement
 var createTextNode = _dereq_('./createTextNode')
 var createTagNode = _dereq_('./createTagNode')
 
-},{"./applyLayout":46,"./createTagNode":55,"./createTextNode":56,"./isTextNode":64}],72:[function(_dereq_,module,exports){
+},{"./applyLayout":48,"./createTagNode":57,"./createTextNode":58,"./isTextNode":66}],74:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8236,7 +8494,7 @@ function replaceElementWithText (domElement, textContent, options, scopes) {
 
 module.exports = replaceElementWithText
 
-},{"./createTextNode":56}],73:[function(_dereq_,module,exports){
+},{"./createTextNode":58}],75:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8391,7 +8649,7 @@ var replaceElement = _dereq_('./replaceElement')
 var normalizeName = _dereq_('./normalizeName')
 var isTextNode = _dereq_('./isTextNode')
 
-},{"./applyLayout":46,"./assignAttributes":47,"./getTypeAsString":58,"./isSvgElementName":63,"./isTextNode":64,"./normalizeName":66,"./renderTree":70,"./replaceElement":71,"./replaceElementWithText":72,"./updateSvgElement":74}],74:[function(_dereq_,module,exports){
+},{"./applyLayout":48,"./assignAttributes":49,"./getTypeAsString":60,"./isSvgElementName":65,"./isTextNode":66,"./normalizeName":68,"./renderTree":72,"./replaceElement":73,"./replaceElementWithText":74,"./updateSvgElement":76}],76:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8454,7 +8712,7 @@ module.exports = updateSvgElement
 
 var renderTree = _dereq_('./renderTree')
 
-},{"./applyLayout":46,"./assignAttributes":47,"./renderTree":70}],75:[function(_dereq_,module,exports){
+},{"./applyLayout":48,"./assignAttributes":49,"./renderTree":72}],77:[function(_dereq_,module,exports){
 function uniq (arr) {
   var len = arr.length
   var i = -1
@@ -8483,7 +8741,7 @@ module.exports = {
   immutable: immutable
 }
 
-},{}],76:[function(_dereq_,module,exports){
+},{}],78:[function(_dereq_,module,exports){
 module.exports = function assign (t) {
   for (var s, i = 1, n = arguments.length; i < n; i++) {
     s = arguments[i]
@@ -8496,7 +8754,7 @@ module.exports = function assign (t) {
   return t
 }
 
-},{}],77:[function(_dereq_,module,exports){
+},{}],79:[function(_dereq_,module,exports){
 module.exports = {
   aliceblue: [240, 248, 255],
   antiquewhite: [250, 235, 215],
@@ -8648,7 +8906,7 @@ module.exports = {
   yellowgreen: [154, 205, 50]
 }
 
-},{}],78:[function(_dereq_,module,exports){
+},{}],80:[function(_dereq_,module,exports){
 var ColorNames = _dereq_('./../color-names')
 
 var reverseNames = {}
@@ -8903,38 +9161,38 @@ function hexDouble (num) {
   return str.length < 2 ? '0' + str : str
 }
 
-},{"./../color-names":77}],79:[function(_dereq_,module,exports){
+},{"./../color-names":79}],81:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.ease = internal1.cubicBezier(0.25, 0.1, 0.25, 0.1)
 
-},{"../internal":123}],80:[function(_dereq_,module,exports){
+},{"../internal":125}],82:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeIn = internal1.cubicBezier(0.42, 0, 1, 1)
 
-},{"../internal":123}],81:[function(_dereq_,module,exports){
+},{"../internal":125}],83:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInBack = function (x) {
   return internal1.c3 * x * x * x - internal1.c1 * x * x
 }
 
-},{"../internal":123}],82:[function(_dereq_,module,exports){
+},{"../internal":125}],84:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 exports.easeInBounce = function (x) {
   return 1 - index1.easeOutBounce(1 - x)
 }
 
-},{"./index":113}],83:[function(_dereq_,module,exports){
+},{"./index":115}],85:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInCirc = function (x) {
   return 1 - internal1.sqrt(1 - x * x)
 }
 
-},{"../internal":123}],84:[function(_dereq_,module,exports){
+},{"../internal":125}],86:[function(_dereq_,module,exports){
 exports.easeInCubic = function (x) {
   return x * x * x
 }
 
-},{}],85:[function(_dereq_,module,exports){
+},{}],87:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInElastic = function (n) {
   return !n || n === 1
@@ -8944,17 +9202,17 @@ exports.easeInElastic = function (n) {
         internal1.pow(2, 10 * (n - 1))
 }
 
-},{"../internal":123}],86:[function(_dereq_,module,exports){
+},{"../internal":125}],88:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInExpo = function (x) {
   return x === 0 ? 0 : internal1.pow(2, 10 * x - 10)
 }
 
-},{"../internal":123}],87:[function(_dereq_,module,exports){
+},{"../internal":125}],89:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOut = internal1.cubicBezier(0.42, 0, 0.58, 1)
 
-},{"../internal":123}],88:[function(_dereq_,module,exports){
+},{"../internal":125}],90:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutBack = function (x) {
   return x < 0.5
@@ -8965,7 +9223,7 @@ exports.easeInOutBack = function (x) {
         2
 }
 
-},{"../internal":123}],89:[function(_dereq_,module,exports){
+},{"../internal":125}],91:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 exports.easeInOutBounce = function (x) {
   return x < 0.5
@@ -8973,7 +9231,7 @@ exports.easeInOutBounce = function (x) {
     : (1 + index1.easeOutBounce(2 * x - 1)) / 2
 }
 
-},{"./index":113}],90:[function(_dereq_,module,exports){
+},{"./index":115}],92:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutCirc = function (x) {
   return x < 0.5
@@ -8981,13 +9239,13 @@ exports.easeInOutCirc = function (x) {
     : (internal1.sqrt(1 - internal1.pow(-2 * x + 2, 2)) + 1) / 2
 }
 
-},{"../internal":123}],91:[function(_dereq_,module,exports){
+},{"../internal":125}],93:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutCubic = function (x) {
   return x < 0.5 ? 4 * x * x * x : 1 - internal1.pow(-2 * x + 2, 3) / 2
 }
 
-},{"../internal":123}],92:[function(_dereq_,module,exports){
+},{"../internal":125}],94:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutElastic = function (n) {
   if (!n || n === 1) return n
@@ -9007,7 +9265,7 @@ exports.easeInOutElastic = function (n) {
   )
 }
 
-},{"../internal":123}],93:[function(_dereq_,module,exports){
+},{"../internal":125}],95:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutExpo = function (x) {
   return x === 0
@@ -9019,56 +9277,56 @@ exports.easeInOutExpo = function (x) {
         : (2 - internal1.pow(2, -20 * x + 10)) / 2
 }
 
-},{"../internal":123}],94:[function(_dereq_,module,exports){
+},{"../internal":125}],96:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuad = function (x) {
   return x < 0.5 ? 2 * x * x : 1 - internal1.pow(-2 * x + 2, 2) / 2
 }
 
-},{"../internal":123}],95:[function(_dereq_,module,exports){
+},{"../internal":125}],97:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuart = function (x) {
   return x < 0.5 ? 8 * x * x * x * x : 1 - internal1.pow(-2 * x + 2, 4) / 2
 }
 
-},{"../internal":123}],96:[function(_dereq_,module,exports){
+},{"../internal":125}],98:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuint = function (x) {
   return x < 0.5 ? 16 * x * x * x * x * x : 1 - internal1.pow(-2 * x + 2, 5) / 2
 }
 
-},{"../internal":123}],97:[function(_dereq_,module,exports){
+},{"../internal":125}],99:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutSine = function (x) {
   return -(internal1.cos(internal1.pi * x) - 1) / 2
 }
 
-},{"../internal":123}],98:[function(_dereq_,module,exports){
+},{"../internal":125}],100:[function(_dereq_,module,exports){
 exports.easeInQuad = function (x) {
   return x * x
 }
 
-},{}],99:[function(_dereq_,module,exports){
+},{}],101:[function(_dereq_,module,exports){
 exports.easeInQuart = function (x) {
   return x * x * x * x
 }
 
-},{}],100:[function(_dereq_,module,exports){
+},{}],102:[function(_dereq_,module,exports){
 exports.easeInQuint = function (x) {
   return x * x * x * x * x
 }
 
-},{}],101:[function(_dereq_,module,exports){
+},{}],103:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInSine = function (x) {
   return 1 - internal1.cos(x * internal1.pi / 2)
 }
 
-},{"../internal":123}],102:[function(_dereq_,module,exports){
+},{"../internal":125}],104:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOut = internal1.cubicBezier(0, 0, 0.58, 1)
 
-},{"../internal":123}],103:[function(_dereq_,module,exports){
+},{"../internal":125}],105:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutBack = function (x) {
   return (
@@ -9078,7 +9336,7 @@ exports.easeOutBack = function (x) {
   )
 }
 
-},{"../internal":123}],104:[function(_dereq_,module,exports){
+},{"../internal":125}],106:[function(_dereq_,module,exports){
 exports.easeOutBounce = function (x) {
   var n1 = 7.5625
   var d1 = 2.75
@@ -9091,19 +9349,19 @@ exports.easeOutBounce = function (x) {
         : n1 * (x -= 2.625 / d1) * x + 0.984375
 }
 
-},{}],105:[function(_dereq_,module,exports){
+},{}],107:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutCirc = function (x) {
   return internal1.sqrt(1 - (x - 1) * (x - 1))
 }
 
-},{"../internal":123}],106:[function(_dereq_,module,exports){
+},{"../internal":125}],108:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutCubic = function (x) {
   return 1 - internal1.pow(1 - x, 3)
 }
 
-},{"../internal":123}],107:[function(_dereq_,module,exports){
+},{"../internal":125}],109:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutElastic = function (n) {
   if (!n || n === 1) return n
@@ -9120,36 +9378,36 @@ exports.easeOutElastic = function (n) {
   )
 }
 
-},{"../internal":123}],108:[function(_dereq_,module,exports){
+},{"../internal":125}],110:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutExpo = function (x) {
   return x === 1 ? 1 : 1 - internal1.pow(2, -10 * x)
 }
 
-},{"../internal":123}],109:[function(_dereq_,module,exports){
+},{"../internal":125}],111:[function(_dereq_,module,exports){
 exports.easeOutQuad = function (x) {
   return 1 - (1 - x) * (1 - x)
 }
 
-},{}],110:[function(_dereq_,module,exports){
+},{}],112:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutQuart = function (x) {
   return 1 - internal1.pow(1 - x, 4)
 }
 
-},{"../internal":123}],111:[function(_dereq_,module,exports){
+},{"../internal":125}],113:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutQuint = function (x) {
   return 1 - internal1.pow(1 - x, 5)
 }
 
-},{"../internal":123}],112:[function(_dereq_,module,exports){
+},{"../internal":125}],114:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutSine = function (x) {
   return internal1.sin(x * internal1.pi / 2)
 }
 
-},{"../internal":123}],113:[function(_dereq_,module,exports){
+},{"../internal":125}],115:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -9191,20 +9449,20 @@ __export(_dereq_('./linear'))
 __export(_dereq_('./stepEnd'))
 __export(_dereq_('./stepStart'))
 
-},{"./ease":79,"./easeIn":80,"./easeInBack":81,"./easeInBounce":82,"./easeInCirc":83,"./easeInCubic":84,"./easeInElastic":85,"./easeInExpo":86,"./easeInOut":87,"./easeInOutBack":88,"./easeInOutBounce":89,"./easeInOutCirc":90,"./easeInOutCubic":91,"./easeInOutElastic":92,"./easeInOutExpo":93,"./easeInOutQuad":94,"./easeInOutQuart":95,"./easeInOutQuint":96,"./easeInOutSine":97,"./easeInQuad":98,"./easeInQuart":99,"./easeInQuint":100,"./easeInSine":101,"./easeOut":102,"./easeOutBack":103,"./easeOutBounce":104,"./easeOutCirc":105,"./easeOutCubic":106,"./easeOutElastic":107,"./easeOutExpo":108,"./easeOutQuad":109,"./easeOutQuart":110,"./easeOutQuint":111,"./easeOutSine":112,"./linear":114,"./stepEnd":115,"./stepStart":116}],114:[function(_dereq_,module,exports){
+},{"./ease":81,"./easeIn":82,"./easeInBack":83,"./easeInBounce":84,"./easeInCirc":85,"./easeInCubic":86,"./easeInElastic":87,"./easeInExpo":88,"./easeInOut":89,"./easeInOutBack":90,"./easeInOutBounce":91,"./easeInOutCirc":92,"./easeInOutCubic":93,"./easeInOutElastic":94,"./easeInOutExpo":95,"./easeInOutQuad":96,"./easeInOutQuart":97,"./easeInOutQuint":98,"./easeInOutSine":99,"./easeInQuad":100,"./easeInQuart":101,"./easeInQuint":102,"./easeInSine":103,"./easeOut":104,"./easeOutBack":105,"./easeOutBounce":106,"./easeOutCirc":107,"./easeOutCubic":108,"./easeOutElastic":109,"./easeOutExpo":110,"./easeOutQuad":111,"./easeOutQuart":112,"./easeOutQuint":113,"./easeOutSine":114,"./linear":116,"./stepEnd":117,"./stepStart":118}],116:[function(_dereq_,module,exports){
 exports.linear = function (x) {
   return x
 }
 
-},{}],115:[function(_dereq_,module,exports){
+},{}],117:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.stepEnd = internal1.steps(1, 0)
 
-},{"../internal":123}],116:[function(_dereq_,module,exports){
+},{"../internal":125}],118:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.stepStart = internal1.steps(1, 1)
 
-},{"../internal":123}],117:[function(_dereq_,module,exports){
+},{"../internal":125}],119:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -9217,7 +9475,7 @@ __export(_dereq_('./curves'))
 var css = _dereq_('./internal/cssEasings')
 exports.css = css
 
-},{"./curves":113,"./internal":123,"./internal/cssEasings":119}],118:[function(_dereq_,module,exports){
+},{"./curves":115,"./internal":125,"./internal/cssEasings":121}],120:[function(_dereq_,module,exports){
 exports.pi = Math.PI
 exports.tau = 2 * exports.pi
 exports.epsilon = 0.0001
@@ -9227,7 +9485,7 @@ exports.c3 = exports.c1 + 1
 exports.c4 = exports.tau / 3
 exports.c5 = exports.tau / 4.5
 
-},{}],119:[function(_dereq_,module,exports){
+},{}],121:[function(_dereq_,module,exports){
 var c = 'cubic-bezier'
 var s = 'steps'
 exports.ease = c + '(.25,.1,.25,1)'
@@ -9263,7 +9521,7 @@ exports.linear = c + '(0,0,1,1)'
 exports.stepEnd = s + '(1,0)'
 exports.stepStart = s + '(1,1)'
 
-},{}],120:[function(_dereq_,module,exports){
+},{}],122:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 var camelCaseRegex = /([a-z])[- ]([a-z])/gi
 var cssFunctionRegex = /^([a-z-]+)\(([^)]+)\)$/i
@@ -9309,7 +9567,7 @@ exports.cssFunction = function (easingString) {
   throw new Error('unknown css function')
 }
 
-},{"./index":123}],121:[function(_dereq_,module,exports){
+},{"./index":125}],123:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 var bezier = function (n1, n2, t) {
   return 3 * n1 * (1 - t) * (1 - t) * t + 3 * n2 * (1 - t) * t * t + t * t * t
@@ -9344,7 +9602,7 @@ exports.cubicBezier = function (p0, p1, p2, p3) {
   }
 }
 
-},{"./index":123}],122:[function(_dereq_,module,exports){
+},{"./index":125}],124:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.frames = function (n) {
   var q = 1 / (n - 1)
@@ -9354,7 +9612,7 @@ exports.frames = function (n) {
   }
 }
 
-},{"../internal":123}],123:[function(_dereq_,module,exports){
+},{"../internal":125}],125:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -9366,7 +9624,7 @@ __export(_dereq_('./frames'))
 __export(_dereq_('./math'))
 __export(_dereq_('./steps'))
 
-},{"./constants":118,"./cssEasings":119,"./cssFunction":120,"./cubicBezier":121,"./frames":122,"./math":124,"./steps":125}],124:[function(_dereq_,module,exports){
+},{"./constants":120,"./cssEasings":121,"./cssFunction":122,"./cubicBezier":123,"./frames":124,"./math":126,"./steps":127}],126:[function(_dereq_,module,exports){
 exports.abs = Math.abs
 exports.asin = Math.asin
 exports.floor = Math.floor
@@ -9375,7 +9633,7 @@ exports.pow = Math.pow
 exports.sin = Math.sin
 exports.sqrt = Math.sqrt
 
-},{}],125:[function(_dereq_,module,exports){
+},{}],127:[function(_dereq_,module,exports){
 exports.steps = function (count, pos) {
   var q = count / 1
   var p = pos === 'end' ? 0 : pos === 'start' ? 1 : pos || 0
@@ -9384,7 +9642,7 @@ exports.steps = function (count, pos) {
   }
 }
 
-},{}],126:[function(_dereq_,module,exports){
+},{}],128:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 module.exports = function _mixpanelTiny() {
@@ -9471,7 +9729,7 @@ module.exports = function _mixpanelTiny() {
   return setup(document, window.mixpanel || [])
 }
 
-},{}],127:[function(_dereq_,module,exports){
+},{}],129:[function(_dereq_,module,exports){
 function hasPreserve3d (window) {
   if (!window) return false
   if (!window.document) return false
@@ -9500,7 +9758,7 @@ module.exports = {
   hasPreserve3d: hasPreserve3d
 }
 
-},{}],128:[function(_dereq_,module,exports){
+},{}],130:[function(_dereq_,module,exports){
 (function (process){
 /* eslint-disable */
 // Generated by CoffeeScript 1.7.1
@@ -9544,7 +9802,7 @@ module.exports = {
 }.call(this))
 
 }).call(this,_dereq_('_process'))
-},{"_process":1}],129:[function(_dereq_,module,exports){
+},{"_process":1}],131:[function(_dereq_,module,exports){
 (function (global){
 /* eslint-disable */
 
@@ -9626,7 +9884,7 @@ module.exports.polyfill = function() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../performance-now":128}],130:[function(_dereq_,module,exports){
+},{"./../performance-now":130}],132:[function(_dereq_,module,exports){
 'use strict'
 
 exports.__esModule = true
@@ -9652,7 +9910,7 @@ exports.toPath = _toPath2.default
 exports.toPoints = _toPoints2.default
 exports.valid = _valid2.default
 
-},{"./toPath":131,"./toPoints":132,"./valid":133}],131:[function(_dereq_,module,exports){
+},{"./toPath":133,"./toPoints":134,"./valid":135}],133:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -9802,7 +10060,7 @@ var toPath = function(s) {
 
 exports.default = toPath
 
-},{"./toPoints":132}],132:[function(_dereq_,module,exports){
+},{"./toPoints":134}],134:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -10261,7 +10519,7 @@ var getPointsFromG = function(_ref13) {
 
 exports.default = toPoints
 
-},{}],133:[function(_dereq_,module,exports){
+},{}],135:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -10391,10 +10649,10 @@ var valid = function(shape) {
 
 exports.default = valid
 
-},{}],134:[function(_dereq_,module,exports){
+},{}],136:[function(_dereq_,module,exports){
 module.exports = _dereq_('./prefixer')()
 
-},{"./prefixer":142}],135:[function(_dereq_,module,exports){
+},{"./prefixer":144}],137:[function(_dereq_,module,exports){
 module.exports = {
   animation: 1,
   'column-count': 1,
@@ -10414,33 +10672,33 @@ module.exports = {
   rowspan: 1
 }
 
-},{}],136:[function(_dereq_,module,exports){
+},{}],138:[function(_dereq_,module,exports){
 var objectHasOwn = Object.prototype.hasOwnProperty
 
 module.exports = function (object, propertyName) {
   return objectHasOwn.call(object, propertyName)
 }
 
-},{}],137:[function(_dereq_,module,exports){
+},{}],139:[function(_dereq_,module,exports){
 module.exports = {
   object: _dereq_('./toStyleObject')
 }
 
-},{"./toStyleObject":149}],138:[function(_dereq_,module,exports){
+},{"./toStyleObject":151}],140:[function(_dereq_,module,exports){
 var objectToString = Object.prototype.toString
 
 module.exports = function (v) {
   return objectToString.apply(v) === '[object Function]'
 }
 
-},{}],139:[function(_dereq_,module,exports){
+},{}],141:[function(_dereq_,module,exports){
 var objectToString = Object.prototype.toString
 
 module.exports = function (v) {
   return !!v && objectToString.call(v) === '[object Object]'
 }
 
-},{}],140:[function(_dereq_,module,exports){
+},{}],142:[function(_dereq_,module,exports){
 var toUpperFirst = _dereq_('./stringUtils/toUpperFirst')
 
 var re = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/
@@ -10489,7 +10747,7 @@ var prefixInfo = (function () {
 
 module.exports = prefixInfo
 
-},{"./stringUtils/toUpperFirst":148}],141:[function(_dereq_,module,exports){
+},{"./stringUtils/toUpperFirst":150}],143:[function(_dereq_,module,exports){
 module.exports = {
   'border-radius': 1,
   'border-top-left-radius': 1,
@@ -10516,7 +10774,7 @@ module.exports = {
   'box-pack': 1
 }
 
-},{}],142:[function(_dereq_,module,exports){
+},{}],144:[function(_dereq_,module,exports){
 var camelize = _dereq_('./stringUtils/camelize')
 var hyphenate = _dereq_('./stringUtils/hyphenate')
 var toLowerFirst = _dereq_('./stringUtils/toLowerFirst')
@@ -10588,7 +10846,7 @@ module.exports = function (asStylePrefix) {
   }
 }
 
-},{"./prefixInfo":140,"./prefixProperties":141,"./stringUtils/camelize":143,"./stringUtils/hyphenate":145,"./stringUtils/toLowerFirst":147,"./stringUtils/toUpperFirst":148}],143:[function(_dereq_,module,exports){
+},{"./prefixInfo":142,"./prefixProperties":143,"./stringUtils/camelize":145,"./stringUtils/hyphenate":147,"./stringUtils/toLowerFirst":149,"./stringUtils/toUpperFirst":150}],145:[function(_dereq_,module,exports){
 var toCamelFn = function (str, letter) {
   return letter ? letter.toUpperCase() : ''
 }
@@ -10599,17 +10857,17 @@ module.exports = function (str) {
   return str ? str.replace(hyphenRe, toCamelFn) : ''
 }
 
-},{"./hyphenRe":144}],144:[function(_dereq_,module,exports){
+},{"./hyphenRe":146}],146:[function(_dereq_,module,exports){
 module.exports = /[-\s]+(.)?/g
 
-},{}],145:[function(_dereq_,module,exports){
+},{}],147:[function(_dereq_,module,exports){
 var separate = _dereq_('./separate')
 
 module.exports = function (name) {
   return separate(name).toLowerCase()
 }
 
-},{"./separate":146}],146:[function(_dereq_,module,exports){
+},{"./separate":148}],148:[function(_dereq_,module,exports){
 var doubleColonRe = /::/g
 var upperToLowerRe = /([A-Z]+)([A-Z][a-z])/g
 var lowerToUpperRe = /([a-z\d])([A-Z])/g
@@ -10625,21 +10883,21 @@ module.exports = function (name, separator) {
     : ''
 }
 
-},{}],147:[function(_dereq_,module,exports){
+},{}],149:[function(_dereq_,module,exports){
 module.exports = function (value) {
   return value.length
     ? value.charAt(0).toLowerCase() + value.substring(1)
     : value
 }
 
-},{}],148:[function(_dereq_,module,exports){
+},{}],150:[function(_dereq_,module,exports){
 module.exports = function (value) {
   return value.length
     ? value.charAt(0).toUpperCase() + value.substring(1)
     : value
 }
 
-},{}],149:[function(_dereq_,module,exports){
+},{}],151:[function(_dereq_,module,exports){
 var cssPrefixFn = _dereq_('./cssPrefix')
 
 var HYPHENATE = _dereq_('./stringUtils/hyphenate')
@@ -10865,7 +11123,7 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
 
 module.exports = TO_STYLE_OBJECT
 
-},{"./cssPrefix":134,"./cssUnitless":135,"./hasOwn":136,"./isFunction":138,"./isObject":139,"./stringUtils/camelize":143,"./stringUtils/hyphenate":145}],150:[function(_dereq_,module,exports){
+},{"./cssPrefix":136,"./cssUnitless":137,"./hasOwn":138,"./isFunction":140,"./isObject":141,"./stringUtils/camelize":145,"./stringUtils/hyphenate":147}],152:[function(_dereq_,module,exports){
 module.exports = parse
 
 /**
@@ -11021,5 +11279,5 @@ function parse (xml) {
   }
 }
 
-},{}]},{},[11])(11)
+},{}]},{},[12])(12)
 });

@@ -20732,7 +20732,7 @@ module.exports = {
   isZero: isZero
 }
 
-},{"./layout/computeMatrix":184,"./layout/computeRotationFlexibly":185,"./layout/computeSize":186}],178:[function(_dereq_,module,exports){
+},{"./layout/computeMatrix":183,"./layout/computeRotationFlexibly":184,"./layout/computeSize":185}],178:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -20825,13 +20825,52 @@ module.exports = EventsDict
 var React = require('react')
 var ReactDOM = _dereq_('react-dom')
 var ReactTestRenderer = require('react-test-renderer')
-var ValidProps = _dereq_('./ValidProps')
 var EventsDict = _dereq_('./EventsDict')
 var merge = require('lodash.merge')
 var reactToMana = _dereq_('./../../helpers/reactToMana')
 var Layout3D = _dereq_('./../../Layout3D')
 
-function HaikuReactDOMAdapter (HaikuComponentFactory) {
+var DEFAULT_HOST_ELEMENT_TAG_NAME = 'div'
+
+var HAIKU_FORWARDED_PROPS = {
+  haikuOptions: 'options',
+  haikuStates: 'states',
+  haikuEventHandlers: 'eventHandlers',
+  haikuTimelines: 'timelines',
+  haikuVanities: 'vanities'
+}
+
+var VALID_PROPS = {
+  tagName: 'string',
+  id: 'string',
+  className: 'string',
+  style: 'object',
+  width: 'string',
+  height: 'string',
+  onComponentWillMount: 'func',
+  onComponentWillUnmount: 'func',
+  onComponentDidMount: 'func',
+
+  // We allow these to be passed at the root level since that feels more natural
+  onHaikuComponentWillInitialize: 'func',
+  onHaikuComponentDidMount: 'func',
+  onHaikuComponentDidInitialize: 'func',
+  onHaikuComponentWillUnmount: 'func',
+
+  // Allow a haiku player to be (optionally) passed in
+  haikuAdapter: 'func',
+  haikuCode: 'object'
+}
+
+for (var eventKey in EventsDict) {
+  VALID_PROPS[eventKey] = EventsDict[eventKey]
+}
+
+for (var fwdPropKey in HAIKU_FORWARDED_PROPS) {
+  VALID_PROPS[fwdPropKey] = 'object'
+}
+
+function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
   var reactClass = React.createClass({
     displayName: 'HaikuComponent',
 
@@ -20839,30 +20878,20 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
       return {}
     },
 
-    componentWillReceiveProps: function (nextProps) {
-      if (this.props.controller) {
-        this.props.controller.emit(
-          'react:componentWillReceiveProps',
-          this,
-          nextProps
-        )
+    componentWillReceiveProps: function (nextPropsRaw) {
+      if (this.haiku) {
+        var haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(nextPropsRaw)
+        this.haiku.assignConfig(haikuConfig)
       }
-      this.applyInputs(nextProps)
     },
 
     componentWillMount: function () {
-      if (this.props.controller) {
-        this.props.controller.emit('react:componentWillMount', this)
-      }
       if (this.props.onComponentWillMount) {
         this.props.onComponentWillMount(this)
       }
     },
 
     componentWillUnmount: function () {
-      if (this.props.controller) {
-        this.props.controller.emit('react:componentWillUnmount', this)
-      }
       if (this.props.onComponentWillUnmount) {
         this.props.onComponentWillUnmount(this)
       }
@@ -20876,23 +20905,14 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
       if (this.mount) {
         this.createContext(this.props)
 
-        if (this.props.controller) {
-          this.props.controller.emit(
-            'react:componentDidMount',
-            this,
-            this.mount
-          )
-        }
         if (this.props.onComponentDidMount) {
           this.props.onComponentDidMount(this, this.mount)
         }
-
-        this.applyInputs(this.props)
       }
     },
 
-    createContext: function (props) {
-      var fullProps = merge({}, props, {
+    buildHaikuCompatibleConfigFromRawProps: function (rawProps) {
+      var haikuConfig = {
         ref: this.mount,
         vanities: {
           'controlFlow.insert': function _controlFlowInsertReactVanity (
@@ -20922,41 +20942,62 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
             implementation(element, mana, context, component)
           }
         }
-      })
+      }
+
+      // It's assumed that anything the user wants to pass into the Haiku engine should be
+      // assigned among the whitelisted properties
+      if (rawProps) {
+        for (var verboseKeyName in rawProps) {
+          var haikuConfigFinalKey = HAIKU_FORWARDED_PROPS[verboseKeyName]
+          if (haikuConfigFinalKey) {
+            haikuConfig[haikuConfigFinalKey] = rawProps[verboseKeyName]
+          } else {
+            // We have to include the other extra properties, for example, we also want to pass:
+            //   - children (aka surrogates for controlFlow.inject or controFlow.placeholder)
+            // TODO: Whitelist these as well?
+            haikuConfig[verboseKeyName] = rawProps[verboseKeyName]
+          }
+        }
+      }
+
+      return haikuConfig
+    },
+
+    createContext: function (rawProps) {
+      var haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(rawProps)
+
+      var haikuAdapter
+
+      if (rawProps.haikuAdapter) {
+        if (rawProps.haikuCode) {
+          haikuAdapter = rawProps.haikuAdapter(rawProps.haikuCode)
+        } else if (optionalRawBytecode) {
+          haikuAdapter = rawProps.haikuAdapter(optionalRawBytecode)
+        } else {
+          throw new Error('A Haiku code object is required if you supply a Haiku adapter')
+        }
+      } else {
+        // Otherwise default to the adapter which was initialized in the wrapper module
+        haikuAdapter = HaikuComponentFactory
+      }
+
+      if (!haikuAdapter) {
+        throw new Error('A Haiku adapter is required')
+      }
 
       // Reuse existing mounted component if one exists
       if (!this.haiku) {
-        this.haiku = HaikuComponentFactory(
+        this.haiku = haikuAdapter( // eslint-disable-line
           this.mount,
-          fullProps
-        ) // eslint-disable-line
-
-        this.haiku.hear(function (name, payload) {
-          if (
-            this.props &&
-            this.props.events &&
-            this.props.events[name]
-          ) {
-            this.props.events[name](payload)
-          }
-        })
+          haikuConfig
+        )
       } else {
         // If the component already exists, update its options and make sure it remounts.
         // This action is important if we are in e.g. React Router.
         //
         // Important: Note that we should NOT call remount if we just initialized the instance (i.e. stanza above)
         // because we'll end up pausing the timelines before the first mount, resulting in a blank context.
-        this.haiku.callRemount(fullProps)
-      }
-    },
-
-    applyInputs: function (props) {
-      if (!props) return null
-      if (!this.haiku) return null
-      for (var key in props) {
-        var value = props[key]
-        // Note: This calls any user-defined 'setters' on the component
-        this.haiku[key] = value
+        this.haiku.callRemount(haikuConfig)
       }
     },
 
@@ -20966,53 +21007,63 @@ function HaikuReactDOMAdapter (HaikuComponentFactory) {
           this,
           proxy,
           event,
-          HaikuComponentFactory.component
+          this.haiku
         )
       }.bind(this)
     },
 
-    render: function () {
-      var passthroughProps = {}
+    buildHostElementPropsFromRawProps: function (rawProps) {
+      var propsForHostElement = {}
 
-      for (var key in this.props) {
-        var propEntry = this.props[key]
-        if (ValidProps[key]) {
+      // Build a basic props object which includes:
+      //    - Standard DOM event listeners
+      // But which excludes:
+      //    - Haiku special forwarded props (those belong to Haiku only)
+      for (var key in rawProps) {
+        if (VALID_PROPS[key]) {
           if (EventsDict[key]) {
-            passthroughProps[key] = this.createEventPropWrapper(propEntry)
-          } else {
-            passthroughProps[key] = propEntry
+            propsForHostElement[key] = this.createEventPropWrapper(rawProps[key])
+          } else if (!HAIKU_FORWARDED_PROPS[key]) {
+            if (key !== 'haikuAdapter' && key !== 'haikuCode') {
+              propsForHostElement[key] = rawProps[key]
+            }
           }
         }
       }
 
+      // Merge our basic host props with some defaults we want to assign
+      return merge({
+        style: {
+          position: 'relative',
+          margin: 0,
+          padding: 0,
+          border: 0,
+          width: '100%',
+          height: '100%'
+        }
+      }, propsForHostElement)
+    },
+
+    render: function () {
+      var hostElementProps = this.buildHostElementPropsFromRawProps(this.props)
+
+      // Having this ref assigned like this is critical to the adapter working,
+      // so we override it despite what the host element props might say
+      hostElementProps.ref = function _ref (element) {
+        this.mount = element
+      }.bind(this)
+
       return React.createElement(
-        this.props.tagName || 'div',
-        merge(
-          {
-            ref: function (element) {
-              this.mount = element
-            }.bind(this),
-            style: {
-              position: 'relative',
-              margin: 0,
-              padding: 0,
-              border: 0,
-              width: '100%',
-              height: '100%'
-            }
-          },
-          passthroughProps
-        )
+        hostElementProps.tagName || DEFAULT_HOST_ELEMENT_TAG_NAME,
+        hostElementProps
       )
     }
   })
 
-  reactClass.propTypes = {
-    tagName: React.PropTypes.string
-  }
+  reactClass.propTypes = {}
 
-  for (var propName in ValidProps) {
-    var propType = ValidProps[propName]
+  for (var propName in VALID_PROPS) {
+    var propType = VALID_PROPS[propName]
     reactClass.propTypes[propName] = React.PropTypes[propType]
   }
 
@@ -21027,38 +21078,14 @@ HaikuReactDOMAdapter.ReactDOM = ReactDOM // Used by Haiku for testing and debugg
 
 module.exports = HaikuReactDOMAdapter
 
-},{"./../../Layout3D":177,"./../../helpers/reactToMana":183,"./EventsDict":178,"./ValidProps":180,"lodash.merge":"lodash.merge","react":"react","react-dom":26,"react-test-renderer":"react-test-renderer"}],180:[function(_dereq_,module,exports){
-/**
- * Copyright (c) Haiku 2016-2017. All rights reserved.
- */
-
-var EventsDict = _dereq_('./EventsDict')
-
-var validPropsDict = {
-  id: 'string',
-  className: 'string',
-  style: 'object',
-  width: 'string',
-  height: 'string',
-  onComponentWillMount: 'func',
-  onComponentWillUnmount: 'func',
-  onComponentDidMount: 'func'
-}
-
-for (var key in EventsDict) {
-  validPropsDict[key] = EventsDict[key]
-}
-
-module.exports = validPropsDict
-
-},{"./EventsDict":178}],181:[function(_dereq_,module,exports){
+},{"./../../Layout3D":177,"./../../helpers/reactToMana":182,"./EventsDict":178,"lodash.merge":"lodash.merge","react":"react","react-dom":26,"react-test-renderer":"react-test-renderer"}],180:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 module.exports = _dereq_('./HaikuReactDOMAdapter')
 
-},{"./HaikuReactDOMAdapter":179}],182:[function(_dereq_,module,exports){
+},{"./HaikuReactDOMAdapter":179}],181:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -21076,7 +21103,7 @@ function reactChildrenToMana (children) {
 
 module.exports = reactChildrenToMana
 
-},{"./reactToMana":183}],183:[function(_dereq_,module,exports){
+},{"./reactToMana":182}],182:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -21112,7 +21139,7 @@ module.exports = reactToMana
 
 var reactChildrenToMana = _dereq_('./reactChildrenToMana')
 
-},{"./reactChildrenToMana":182}],184:[function(_dereq_,module,exports){
+},{"./reactChildrenToMana":181}],183:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -21248,7 +21275,7 @@ function computeMatrix (
 
 module.exports = computeMatrix
 
-},{}],185:[function(_dereq_,module,exports){
+},{}],184:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -21355,7 +21382,7 @@ function computeRotationFlexibly (x, y, z, w, quat) {
 
 module.exports = computeRotationFlexibly
 
-},{}],186:[function(_dereq_,module,exports){
+},{}],185:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -21414,5 +21441,5 @@ function computeSize (
 
 module.exports = computeSize
 
-},{}]},{},[181])(181)
+},{}]},{},[180])(180)
 });
