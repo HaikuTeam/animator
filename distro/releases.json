@@ -1,6 +1,16 @@
 [
   {
     "branch": "master",
+    "version": "2.1.14",
+    "environment": "staging",
+    "started": "20170710110812",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170710112216",
+    "success": true
+  },
+  {
+    "branch": "master",
     "version": "2.1.13",
     "environment": "production",
     "started": "20170705154914",
