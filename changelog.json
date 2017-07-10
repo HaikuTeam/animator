@@ -2130,5 +2130,22 @@
       "message": "Plumbing now correctly locates an open port"
     }
   },
-  "2.1.13": {}
+  "2.1.13": {},
+  "2.1.14": {
+    "b6f99a13b45d99f9a3f6ff27490504b9b8a3d08f": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Fix bug preventing states from being reassigned during react render"
+    },
+    "2ffa7b9fd52c86516b7847cae712bda604aaf367": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Fix problems re-/mounting React-adapted Haiku components when new elements are fed in"
+    },
+    "47e1af400e96a6bf1f0f0b8bab4faca45420f23f": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Load orig source to prevent webpack complaints and 3rd-party bundling issues"
+    }
+  }
 }

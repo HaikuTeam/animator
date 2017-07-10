@@ -1,6 +1,66 @@
 [
   {
     "branch": "master",
+    "version": "2.1.13",
+    "environment": "production",
+    "started": "20170705154914",
+    "uglified": true,
+    "uploaded": true,
+    "finished": "20170705160701",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.1.13",
+    "environment": "staging",
+    "started": "20170705100334",
+    "uglified": false,
+    "uploaded": true,
+    "finished": "20170705102620",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.1.13",
+    "environment": "staging",
+    "started": "20170705095703",
+    "uglified": false,
+    "uploaded": null,
+    "finished": null,
+    "success": null
+  },
+  {
+    "branch": "master",
+    "version": "2.1.13",
+    "environment": "staging",
+    "started": "20170705095607",
+    "uglified": false,
+    "uploaded": null,
+    "finished": null,
+    "success": null
+  },
+  {
+    "branch": "master",
+    "version": "2.1.13",
+    "environment": "staging",
+    "started": "20170705095356",
+    "uglified": false,
+    "uploaded": null,
+    "finished": null,
+    "success": null
+  },
+  {
+    "branch": "master",
+    "version": "2.1.13",
+    "environment": "staging",
+    "started": "20170705095107",
+    "uglified": false,
+    "uploaded": null,
+    "finished": null,
+    "success": null
+  },
+  {
+    "branch": "master",
     "version": "2.1.9",
     "environment": "staging",
     "started": "20170630082837",

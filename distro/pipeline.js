@@ -160,10 +160,11 @@ function runit () {
       cp.execSync(`git checkout ${inputs.branch}`, { stdio: 'inherit', cwd: libsPlumbingDir })
       cp.execSync(`git submodule update --init --recursive`, { stdio: 'inherit', cwd: libsPlumbingDir })
 
-      console.log(`installing plumbing packages`)
+      console.log(`installing plumbing production packages`)
       // IMPORTANT: only=production is to avoid any errors such as: "bundle format is ambiguous"
       // it also makes sure we don't put our dev dependencies inside the user's app
       cp.execSync('npm install --only=production', { stdio: 'inherit', cwd: libsPlumbingDir })
+      console.log(`installing plumbing compilation packages`)
       cp.execSync('npm install gulp gulp-watch babel-cli', { stdio: 'inherit', cwd: libsPlumbingDir })
 
       console.log('copying player contents missing from public npm package')
