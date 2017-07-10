@@ -6,30 +6,14 @@ module.exports = {
           0: {
             value: ({
               clicks,
-              $timeline_name,
-              $property_name,
-              $selector,
-              $keyframe,
-              $frame,
-              $frame_unbounded,
-              $time,
-              $time_elapsed,
-              $time_clock,
-              $time_max
+              $window: { width },
+              $player
             }) => {
               return JSON.stringify(
                 {
+                  width,
                   clicks,
-                  $timeline_name,
-                  $property_name,
-                  $selector,
-                  $keyframe,
-                  $frame,
-                  $frame_unbounded,
-                  $time,
-                  $time_elapsed,
-                  $time_clock,
-                  $time_max
+                  time: $player.clock.time.apparent
                 },
                 null,
                 2

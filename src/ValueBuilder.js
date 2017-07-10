@@ -90,165 +90,296 @@ GENERATORS['points'] = function _genPoints (value) {
   return SVGPoints.pointsToPolyString(value)
 }
 
-var SUMMONABLES = {}
-SUMMONABLES['$timeline_name'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    states,
-    eventsFired
-  ) {
-    return timelineName
+var INJECTABLES = {}
+
+if (typeof window !== 'undefined') {
+  // * **$window** ($global if running in node)
+  //   * width
+  //   * height
+  //   * device ?
+  //   * screen
+  //     * orientation
+  //   * navigator
+  //   * document
+  //   * location
+  // [Watered down, helperified, deterministic versions]
+  INJECTABLES['$window'] = {
+    summon: function (summonSpec) {
+      var out = {}
+
+      out.width = window.innerWidth
+      out.height = window.innerHeight
+
+      // TODO: What goes here?
+      out.device = {}
+
+      if (window.screen) {
+        out.screen = {
+          availHeight: window.screen.availHeight,
+          availLeft: window.screen.availLeft,
+          availWidth: window.screen.availWidth,
+          colorDepth: window.screen.colorDepth,
+          height: window.screen.height,
+          pixelDepth: window.screen.pixelDepth,
+          width: window.screen.width
+        }
+        if (window.screen.orientation) {
+          out.screen.orientation = {
+            angle: window.screen.orientation.angle,
+            type: window.screen.orientation.type
+          }
+        }
+      }
+
+      if (typeof navigator !== 'undefined') {
+        out.device.userAgent = navigator.userAgent
+        out.device.appCodeName = navigator.appCodeName
+        out.device.appName = navigator.appName
+        out.device.appVersion = navigator.appVersion
+        out.device.cookieEnabled = navigator.cookieEnabled
+        out.device.doNotTrack = navigator.doNotTrack
+        out.device.language = navigator.language
+        out.device.maxTouchPoints = navigator.maxTouchPoints
+        out.device.onLine = navigator.onLine
+        out.device.platform = navigator.platform
+        out.device.product = navigator.product
+        out.device.userAgent = navigator.userAgent
+        out.device.vendor = navigator.vendor
+      }
+
+      if (window.document) {
+        out.document = {
+          charset: window.document.charset,
+          compatMode: window.document.compatMode,
+          contenttype: window.document.contentType,
+          cookie: window.document.cookie,
+          documentURI: window.document.documentURI,
+          fullscreen: window.document.fullscreen,
+          readyState: window.document.readyState,
+          referrer: window.document.referrer,
+          title: window.document.title
+        }
+      }
+
+      if (window.location) {
+        out.location = {
+          hash: window.location.hash,
+          host: window.location.host,
+          hostname: window.location.hostname,
+          href: window.location.href,
+          pathname: window.location.pathname,
+          protocol: window.location.protocol,
+          search: window.location.search
+        }
+      }
+
+      return out
+    }
   }
 }
-SUMMONABLES['$property_name'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    states,
-    eventsFired
-  ) {
-    return propertyName
+
+if (typeof global !== 'undefined') {
+  // * **$global** ($window if running in browser)
+  //   * __filename
+  //   * __dirname
+  //   * processs
+  //     * env
+  INJECTABLES['$global'] = {
+    summon: function (summonSpec) {
+      var out = {}
+
+      if (typeof __filename !== 'undefined') {
+        summonSpec.__filename = __filename
+      }
+
+      if (typeof __dirname !== 'undefined') {
+        summonSpec.__dirname = __dirname
+      }
+
+      if (typeof process !== 'undefined') {
+        out.process = {}
+        out.process.pid = process.pid
+        out.process.arch = process.arch
+        out.process.platform = process.platform
+        out.process.argv = process.argv
+        out.process.title = process.title
+        out.process.version = process.version
+        out.process.env = process.env
+      }
+
+      return out
+    }
   }
 }
-SUMMONABLES['$selector'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    states,
-    eventsFired
-  ) {
-    return selector
+
+// **$player** Things having to do with the current player execution context
+//   * version
+//   * options
+//   * timeline
+//     * time
+//     * frame
+//   * clock
+//     * time
+INJECTABLES['$player'] = {
+  summon: function (summonSpec, hostInstance, eventsFired, timelineName) {
+    var out = {}
+
+    out.version = hostInstance._context.PLAYER_VERSION
+
+    var options = hostInstance._context.config.options
+    if (options) {
+      out.options = {
+        seed: options.seed,
+        loop: options.loop,
+        sizing: options.sizing,
+        preserve3d: options.preserve3d,
+        position: options.position,
+        overflowX: options.overflowX,
+        overflowY: options.overflowY
+      }
+    }
+
+    var timelineInstance = hostInstance.getTimeline(timelineName)
+    if (timelineInstance) {
+      out.timeline = {
+        name: timelineName,
+        duration: timelineInstance.getDuration(),
+        repeat: timelineInstance.getRepeat(),
+        time: {
+          apparent: timelineInstance.getTime(),
+          elapsed: timelineInstance.getElapsedTime(),
+          max: timelineInstance.getMaxTime()
+        },
+        frame: {
+          apparent: timelineInstance.getFrame(),
+          elapsed: timelineInstance.getUnboundedFrame()
+        }
+      }
+    }
+
+    var clockInstance = hostInstance.getClock()
+    if (clockInstance) {
+      out.clock = {
+        frameDuration: clockInstance.options.frameDuration,
+        frameDelay: clockInstance.options.frameDelay,
+        time: {
+          apparent: clockInstance.getExplicitTime(),
+          elapsed: clockInstance.getRunningTime()
+        }
+      }
+    }
+
+    return out
   }
 }
-SUMMONABLES['$keyframe'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    states,
-    eventsFired
-  ) {
-    return parseInt(keyframeMs, 10)
-  }
-}
-SUMMONABLES['$frame'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    states,
-    eventsFired
-  ) {
-    var timeline =
-      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
-    if (!timeline) return void 0 // No frame available if no timeline
-    return ~~timeline.getBoundedFrame()
-  }
-}
-SUMMONABLES['$frame_unbounded'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    states,
-    eventsFired
-  ) {
-    var timeline =
-      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
-    if (!timeline) return void 0 // No frame available if no timeline
-    return ~~timeline.getUnboundedFrame()
-  }
-}
-SUMMONABLES['$time'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    states,
-    eventsFired
-  ) {
-    var timeline =
-      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
-    if (!timeline) return void 0 // No frame available if no timeline
-    return ~~timeline.getTime()
-  }
-}
-SUMMONABLES['$time_elapsed'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    states,
-    eventsFired
-  ) {
-    var timeline =
-      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
-    if (!timeline) return void 0 // No frame available if no timeline
-    return ~~timeline.getElapsedTime()
-  }
-}
-SUMMONABLES['$time_clock'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    states,
-    eventsFired
-  ) {
-    var timeline =
-      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
-    if (!timeline) return void 0 // No frame available if no timeline
-    return ~~timeline.getClockTime()
-  }
-}
-SUMMONABLES['$time_max'] = {
-  summon: function (
-    timelineName,
-    selector,
-    propertyName,
-    keyframeMs,
-    keyframeCluster,
-    hostInstance,
-    states,
-    eventsFired
-  ) {
-    var timeline =
-      hostInstance.getTimeline && hostInstance.getTimeline(timelineName)
-    if (!timeline) return void 0 // No frame available if no timeline
-    return ~~timeline.getMaxTime()
-  }
-}
+
+// * $component (top-level Element of a given component, (i.e. tranverse tree upward past groups but stop at first component definition))
+//     * properties ($host is the same type as $element)
+// INJECTABLES['$component'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
+
+// * **$root **
+//     * NOTE:  absolute root of component tree (but does not traverse host codebase DOM,) i.e. if Haiku components are nested.  Until we support nested components, $root will be the same as $component
+// INJECTABLES['$root'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
+
+// * **$tree** (all of these are the same type, Element)
+//     * **parent**
+//     * children
+//     * siblings
+//     * component
+//     * root (root at runtime)
+//     * element (same as $element)
+// INJECTABLES['$tree'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
+
+// * **$element** (of type Element, this current element)
+//     * **properties**
+//         * **$opacity**
+//         * **$scale**
+//             * x
+//             * y
+//             * z
+//         * **$position**
+//             * **x**
+//             * **y**
+//             * **z**
+//         * **$rotation**
+//             * **x**
+//             * **y**
+//             * **z**
+//         * [any custom properties]
+//     * bbox
+//         * x
+//         * y
+//         * width
+//         * height
+//     * mouse (position relative to element)
+//         * x
+//         * y
+//     * touches (position relative to element)
+//         * [0]
+//             * x
+//             * y
+//         * [1]...
+// INJECTABLES['$element'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
+
+// * **$helpers**
+//     * _ (side-effect-free lodash subset)
+//     * **random** (can init/config w/ seed)
+//     * **time** (alias date, alias datetime — probably use momentjs or similar for API niceness)
+//         * now
+//         * today
+//     * [FUTURE:  'registerHelper” from lifecycle events]
+// INJECTABLES['$helpers'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
+
+// * **$flow**
+//     * **repeat**
+//         * **index**
+//         * **value** (alias “data” alias “payload”)
+//     * if ?
+//         * value (alias “data” alias “payload”)
+//     * yield? (alias “placeholder”)
+//         * value (alias “data” alias “payload”)
+// INJECTABLES['$flow'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
+
+// * **$user**
+//     * **mouse**
+//     * **touches**
+//         * [0]...
+//     * **mouches **(wraps both touch & mouse, w/ array interface like touches)
+//         * [0]...
+//     * **key**
+//     * accelerometer
+//     * compass
+//     * mic
+//     * camera
+// INJECTABLES['$user'] = {
+//   summon: function (summonSpec, hostInstance, eventsFired) {
+
+//   }
+// }
 
 function ValueBuilder (component) {
   this._component = component // ::HaikuComponent
@@ -364,18 +495,13 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
 
     // If a special summonable has been defined, then call its summoner function
     // Note the lower-case - allow lo-coders to comfortably call say $FRAME and $frame and get the same thing back
-    if (SUMMONABLES[key.toLowerCase()]) {
+    if (INJECTABLES[key.toLowerCase()]) {
       // But don't lowercase the assignment - otherwise the object destructuring won't work!!
-      summonables[key] = SUMMONABLES[key].summon(
-        timelineName,
-        selector,
-        propertyName,
-        keyframeMs,
-        keyframeCluster,
+      summonables[key] = INJECTABLES[key].summon(
+        summons[key],
         hostInstance,
-        states,
         eventsFired,
-        inputsChanged
+        timelineName
       )
       continue
     }
