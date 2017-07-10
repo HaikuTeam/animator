@@ -20847,6 +20847,8 @@ var VALID_PROPS = {
   style: 'object',
   width: 'string',
   height: 'string',
+
+  // Convenience
   onComponentWillMount: 'func',
   onComponentWillUnmount: 'func',
   onComponentDidMount: 'func',
@@ -20860,6 +20862,18 @@ var VALID_PROPS = {
   // Allow a haiku player to be (optionally) passed in
   haikuAdapter: 'func',
   haikuCode: 'object'
+}
+
+var REACT_ELEMENT_PROPS_TO_OMIT = {
+  onComponentWillMount: true,
+  onComponentWillUnmount: true,
+  onComponentDidMount: true,
+  onHaikuComponentWillInitialize: true,
+  onHaikuComponentDidMount: true,
+  onHaikuComponentDidInitialize: true,
+  onHaikuComponentWillUnmount: true,
+  haikuAdapter: true,
+  haikuCode: true
 }
 
 for (var eventKey in EventsDict) {
@@ -21024,7 +21038,8 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
           if (EventsDict[key]) {
             propsForHostElement[key] = this.createEventPropWrapper(rawProps[key])
           } else if (!HAIKU_FORWARDED_PROPS[key]) {
-            if (key !== 'haikuAdapter' && key !== 'haikuCode') {
+            // Don't put props that React will complain about into the tree
+            if (!REACT_ELEMENT_PROPS_TO_OMIT[key]) {
               propsForHostElement[key] = rawProps[key]
             }
           }

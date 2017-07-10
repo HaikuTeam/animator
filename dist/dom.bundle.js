@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.14",
+  "version": "2.1.15",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -2090,6 +2090,8 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     // Finally, return the HaikuComponent instance which can also be used for programmatic behavior
     return component
   }
+
+  HaikuComponentFactory.PLAYER_VERSION = PLAYER_VERSION
 
   return HaikuComponentFactory
 }
