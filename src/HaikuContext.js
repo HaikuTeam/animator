@@ -362,6 +362,8 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     return component
   }
 
+  HaikuComponentFactory.PLAYER_VERSION = PLAYER_VERSION
+
   return HaikuComponentFactory
 }
 
