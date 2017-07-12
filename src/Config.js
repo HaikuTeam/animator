@@ -129,7 +129,22 @@ function _build () {
     if (incoming.onHaikuComponentWillUnmount) config.onHaikuComponentWillUnmount = incoming.onHaikuComponentWillUnmount
 
     if (incoming.options) config.options = assign({}, config.options, incoming.options)
+
+    // Hoist any 'options' that might have been passed at the root level up into 'options'
+    // e.g. { loop: true } -> { options: { loop: true } }
+    for (var key in incoming) {
+      if (incoming[key] !== undefined && DEFAULTS.options.hasOwnProperty(key)) {
+        config.options[key] = incoming[key]
+      }
+    }
+
     if (incoming.states) config.states = assign({}, config.states, incoming.states)
+
+    // For semantic purposes, also allow 'initialStates' to be passed in
+    if (incoming.initialStates && typeof incoming.initialStates === 'object') {
+      assign(config.states, incoming.initialStates)
+    }
+
     if (incoming.eventHandlers) config.eventHandlers = assign({}, config.eventHandlers, incoming.eventHandlers)
     if (incoming.timelines) config.timelines = assign({}, config.timelines, incoming.timelines)
     if (incoming.vanities) config.vanities = assign({}, config.vanities, incoming.vanities)

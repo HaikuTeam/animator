@@ -15,6 +15,7 @@ var DEFAULT_HOST_ELEMENT_TAG_NAME = 'div'
 var HAIKU_FORWARDED_PROPS = {
   haikuOptions: 'options',
   haikuStates: 'states',
+  haikuInitialStates: 'states',
   haikuEventHandlers: 'eventHandlers',
   haikuTimelines: 'timelines',
   haikuVanities: 'vanities'
