@@ -3,8 +3,9 @@
  */
 
 var normalizeName = require('./normalizeName')
-var isSvgElementName = require('./isSvgElementName')
 var getTypeAsString = require('./getTypeAsString')
+
+var SVG_EL_NAMES = require('./../../helpers/allSvgElementNames')
 
 function createTagNode (
   domElement,
@@ -17,7 +18,7 @@ function createTagNode (
 ) {
   var tagName = normalizeName(getTypeAsString(virtualElement))
   var newDomElement
-  if (isSvgElementName(tagName, scopes)) {
+  if (SVG_EL_NAMES[tagName]) {
     // SVG
     newDomElement = createSvgElement(domElement, tagName, options, scopes)
   } else {

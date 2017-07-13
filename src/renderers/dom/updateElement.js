@@ -4,8 +4,9 @@
 
 var applyLayout = require('./applyLayout')
 var assignAttributes = require('./assignAttributes')
-var isSvgElementName = require('./isSvgElementName')
 var getTypeAsString = require('./getTypeAsString')
+
+var SVG_EL_NAMES = require('./../../helpers/allSvgElementNames')
 
 var OBJECT = 'object'
 
@@ -66,7 +67,7 @@ function updateElement (
     )
   }
 
-  if (isSvgElementName(elName, scopes)) {
+  if (SVG_EL_NAMES[elName]) {
     updateSvgElement(
       domElement,
       elName,

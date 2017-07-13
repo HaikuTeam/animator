@@ -13,9 +13,14 @@ var CLASS = 'class'
 var CLASS_NAME = 'className'
 
 var XLINK_XMLNS = 'http://www.w3.org/1999/xlink'
+var X = 'x'
+var L = 'l'
+var I = 'i'
+var N = 'n'
+var K = 'k'
 
 function setAttribute (el, key, val, options, scopes) {
-  if (key.slice(0, 5) === 'xlink') {
+  if (key[0] === X && key[1] === L && key[2] === I && key[3] === N && key[4] === K) {
     var ns = XLINK_XMLNS
     var p0 = el.getAttributeNS(ns, key)
     if (p0 !== val) el.setAttributeNS(ns, key, val)

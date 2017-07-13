@@ -83,9 +83,17 @@ function numberize (n) {
 }
 
 function sortedKeyframes (keyframeGroup) {
+  // Cache the output of this on the object since this is very hot
+  if (keyframeGroup.__sorted) {
+    return keyframeGroup.__sorted
+  }
+
   var keys = Object.keys(keyframeGroup)
   var sorted = keys.sort(ascendingSort).map(numberize)
-  return sorted
+
+  // Cache the sorted keys
+  keyframeGroup.__sorted = sorted
+  return keyframeGroup.__sorted
 }
 
 // 0:    { value: { ... } }
