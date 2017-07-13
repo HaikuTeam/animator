@@ -135,8 +135,13 @@ HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, sk
     var timelineInstance = timelineInstances[timelineName]
     if (this.config.options.autoplay) {
       if (timelineName === DEFAULT_TIMELINE_NAME) {
-        // Assume we want to start the timeline from the beginning upon remount
-        timelineInstance.play()
+        // Assume we want to start the timeline from the beginning upon remount.
+        // NOTE:
+        // timeline.play() will normally trigger _markForFullFlush because it assumes we need to render
+        // from the get-go. However, in case of a callRemount, we might not want to do that since it can be kind of
+        // like running the first frame twice. So we pass the option into play so it can conditionally skip the
+        // _markForFullFlush step.
+        timelineInstance.play({ skipMarkForFullFlush: skipMarkForFullFlush })
       }
     } else {
       timelineInstance.pause()

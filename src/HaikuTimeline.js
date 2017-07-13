@@ -300,7 +300,9 @@ HaikuTimeline.prototype.pause = function pause () {
   return this
 }
 
-HaikuTimeline.prototype.play = function play () {
+HaikuTimeline.prototype.play = function play (options) {
+  if (!options) options = {}
+
   this._ensureClockIsRunning()
 
   var time = this._component.getClock().getTime()
@@ -316,7 +318,9 @@ HaikuTimeline.prototype.play = function play () {
     this._localElapsedTime = local
   }
 
-  this._component._markForFullFlush(true)
+  if (!options.skipMarkForFullFlush) {
+    this._component._markForFullFlush(true)
+  }
 
   return this
 }
