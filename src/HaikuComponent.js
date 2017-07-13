@@ -320,6 +320,21 @@ HaikuComponent.prototype._getRenderScopes = function _getRenderScopes () {
   return this._renderScopes
 }
 
+HaikuComponent.prototype._getInjectables = function _getInjectables (element) {
+  var injectables = {}
+
+  assign(injectables, this._builder._getSummonablesSchema(element))
+
+  // Local states get precedence over global summonables, so assign them last
+  for (var key in this._states) {
+    var type = this._states[key].type
+    if (!type) type = typeof this._states[key]
+    injectables[key] = type
+  }
+
+  return injectables
+}
+
 /**
  * TODO:
  * Implement the methods commented out below
@@ -597,64 +612,97 @@ HaikuComponent.prototype.render = function render (container, renderOptions) {
   return this._lastTemplateExpansion
 }
 
-function _accumulateEventHandlers (out, component) {
-  if (component._bytecode.eventHandlers) {
-    for (var eventSelector in component._bytecode.eventHandlers) {
-      var eventHandlerGroup = component._bytecode.eventHandlers[eventSelector]
-      for (var eventName in eventHandlerGroup) {
-        var eventHandlerSpec = eventHandlerGroup[eventName]
-        eventHandlerSpec.handler.__handler = true
-        if (!out[eventSelector]) out[eventSelector] = {}
-        out[eventSelector][eventName] = eventHandlerSpec.handler
-      }
-    }
-  }
-}
-
-function _applyAccumulatedResults (
-  results,
+function _applyBehaviors (
+  timelinesRunning,
   deltas,
   component,
   template,
-  context
+  context,
+  isPatchOperation
 ) {
-  for (var selector in results) {
-    var matches = _findMatchingElementsByCssSelector(
-      selector,
-      template,
-      component._matchedElementCache
-    )
+  // We shouldn't need to add event handlers for patch operations since theoretically that same listener
+  // would remain a constant throughout the lifetime of the component
+  if (!isPatchOperation) {
+    // Associate any event handlers with the elements matched
+    if (component._bytecode.eventHandlers) {
+      for (var eventSelector in component._bytecode.eventHandlers) {
+        var matchingElementsForEvents = _findMatchingElementsByCssSelector(
+          eventSelector,
+          template,
+          component._matchedElementCache
+        )
 
-    if (!matches || matches.length < 1) {
-      continue
+        if (!matchingElementsForEvents || matchingElementsForEvents.length < 1) {
+          continue
+        }
+
+        var eventHandlerGroup = component._bytecode.eventHandlers[eventSelector]
+
+        for (var k = 0; k < matchingElementsForEvents.length; k++) {
+          for (var eventName in eventHandlerGroup) {
+            var eventHandlerSpec = eventHandlerGroup[eventName]
+            _applyHandlerToElement(matchingElementsForEvents[k], eventName, eventHandlerSpec.handler, context, component)
+          }
+        }
+      }
     }
+  }
 
-    var group = results[selector]
+  // 2. Apply any behaviors to the element
+  for (var i = 0; i < timelinesRunning.length; i++) {
+    var timelineInstance = timelinesRunning[i]
+    var timelineName = timelineInstance.getName()
+    var timelineTime = timelineInstance.getBoundedTime()
+    var timelineDescriptor = component._bytecode.timelines[timelineName]
 
-    for (var j = 0; j < matches.length; j++) {
-      var match = matches[j]
+    for (var behaviorSelector in timelineDescriptor) {
+      var propertiesGroup = timelineDescriptor[behaviorSelector]
 
-      var domId = match && match.attributes && match.attributes.id
-      var haikuId =
-        match && match.attributes && match.attributes[HAIKU_ID_ATTRIBUTE]
-      var flexibleId = haikuId || domId
-
-      if (deltas && flexibleId) {
-        deltas[flexibleId] = match
+      if (!propertiesGroup) {
+        continue
       }
 
-      // [#LEGACY?]
-      if (group.transform) {
-        match.__transformed = true
+      var matchingElementsForBehavior = _findMatchingElementsByCssSelector(
+        behaviorSelector,
+        template,
+        component._matchedElementCache
+      )
+
+      if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
+        continue
       }
 
-      for (var key in group) {
-        var value = group[key]
-        // The value may either be a handler (event handler) function, or just a normal value
-        if (value && value.__handler) {
-          _applyHandlerToElement(match, key, value, context, component)
-        } else {
-          _applyPropertyToElement(match, key, value, context, component)
+      for (var j = 0; j < matchingElementsForBehavior.length; j++) {
+        var matchingElement = matchingElementsForBehavior[j]
+        var domId = matchingElement && matchingElement.attributes && matchingElement.attributes.id
+        var haikuId = matchingElement && matchingElement.attributes && matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
+        var flexId = haikuId || domId
+
+        var assembledOutputs = component._builder.build(
+          {}, // We provide an object onto which outputs are placed
+          timelineName,
+          timelineTime,
+          flexId,
+          matchingElement,
+          propertiesGroup,
+          isPatchOperation,
+          component
+        )
+
+        // [#LEGACY?]
+        if (assembledOutputs && assembledOutputs.transform) {
+          matchingElement.__transformed = true
+        }
+
+        if (assembledOutputs && deltas && flexId) {
+          deltas[flexId] = matchingElement
+        }
+
+        if (assembledOutputs) {
+          for (var behaviorKey in assembledOutputs) {
+            var behaviorValue = assembledOutputs[behaviorKey]
+            _applyPropertyToElement(matchingElement, behaviorKey, behaviorValue, context, component)
+          }
         }
       }
     }
@@ -672,31 +720,18 @@ function _gatherDeltaPatches (
   inputsChanged,
   patchOptions
 ) {
-  var deltas = {} // This is what we're going to return - a dictionary of ids to elements
-
-  var results = {} // This is where we'll accumulate changes - to apply to elements before returning the dictionary
-
-  var bytecode = component._bytecode
-
-  for (var i = 0; i < timelinesRunning.length; i++) {
-    var timeline = timelinesRunning[i]
-    var time = timeline.getBoundedTime()
-
-    component._builder.build(
-      results,
-      timeline.getName(),
-      time,
-      bytecode.timelines,
-      true,
-      states,
-      eventsFired,
-      inputsChanged
-    )
-  }
-
   Layout3D.initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing in the first place
 
-  _applyAccumulatedResults(results, deltas, component, template, context)
+  var deltas = {} // This is what we're going to return - a dictionary of ids to elements
+
+  _applyBehaviors(
+    timelinesRunning,
+    deltas,
+    component,
+    template,
+    context,
+    true // isPatchOperation
+  )
 
   if (patchOptions.sizing) {
     _computeAndApplyPresetSizing(
@@ -725,20 +760,15 @@ function _applyContextChanges (
   context,
   renderOptions
 ) {
-  var results = {} // We'll accumulate changes in this object and apply them to the tree
-
-  _accumulateEventHandlers(results, component)
-
-  var bytecode = component._bytecode
-
-  if (bytecode.timelines) {
-    for (var timelineName in bytecode.timelines) {
+  var timelinesRunning = []
+  if (component._bytecode.timelines) {
+    for (var timelineName in component._bytecode.timelines) {
       var timeline = component.getTimeline(timelineName)
       if (!timeline) continue
-
       // No need to execute behaviors on timelines that aren't active
-      if (!timeline.isActive()) continue
-
+      if (!timeline.isActive()) {
+        continue
+      }
       if (timeline.isFinished()) {
         // For any timeline other than the default, shut it down if it has gone past
         // its final keyframe. The default timeline is a special case which provides
@@ -747,17 +777,7 @@ function _applyContextChanges (
           continue
         }
       }
-
-      var time = timeline.getBoundedTime()
-
-      component._builder.build(
-        results,
-        timelineName,
-        time,
-        bytecode.timelines,
-        false,
-        inputs
-      )
+      timelinesRunning.push(timeline)
     }
   }
 
@@ -765,13 +785,13 @@ function _applyContextChanges (
 
   scopifyElements(template) // I think this only needs to happen once when we build the full tree
 
-  _applyAccumulatedResults(
-    results,
+  _applyBehaviors(
+    timelinesRunning,
     null,
     component,
     template,
     context,
-    component
+    false // isPatchOperation
   )
 
   if (renderOptions.sizing) {
