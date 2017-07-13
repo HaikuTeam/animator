@@ -45,14 +45,14 @@ function simulateEvent (element, name) {
 }
 
 function timeBracket (steps, cb) {
+  var delta = 0
   return async.eachOfSeries(steps, function (step, key, next) {
     var start = Date.now()
     return step(function () {
       var end = Date.now()
-      var delta = end - start
-      console.log('[haiku player test] step ' + key + ' took ' + delta + ' ms')
+      delta = end - start
       return next()
-    })
+    }, delta)
   }, cb)
 }
 
