@@ -219,6 +219,12 @@ HaikuComponent.prototype._clearCaches = function _clearCaches () {
   this._clearDetectedEventsFired()
   this._clearDetectedInputChanges()
   this._builder._clearCaches()
+
+  // TODO: Do we _need_ to reach in and clear the caches of context?
+  this._context.config.options.caches = {}
+  this.config.options.caches = {}
+
+  return this
 }
 
 HaikuComponent.prototype.getClock = function getClock () {

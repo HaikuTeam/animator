@@ -26,7 +26,12 @@ function createTagNode (
     newDomElement = domElement.ownerDocument.createElement(tagName)
   }
 
-  newDomElement.haiku = {}
+  // This doesn't happen in renderTree because the element doesn't exist yet.
+  if (!newDomElement.haiku) newDomElement.haiku = {}
+  newDomElement.haiku.locator = locator
+  if (!options.cache[newDomElement.haiku.locator]) {
+    options.cache[newDomElement.haiku.locator] = {}
+  }
 
   var incomingKey =
     virtualElement.key ||
@@ -35,6 +40,7 @@ function createTagNode (
     newDomElement.haiku.key = incomingKey
   }
 
+  // epdateElement recurses down into setAttributes, etc.
   updateElement(
     newDomElement,
     virtualElement,

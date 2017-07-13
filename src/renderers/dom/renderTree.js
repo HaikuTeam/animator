@@ -44,6 +44,9 @@ function renderTree (
   domElement.haiku.locator = locator
   domElement.haiku.virtual = virtualElement
   domElement.haiku.element = _cloneVirtualElement(virtualElement) // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
+  if (!options.cache[domElement.haiku.locator]) {
+    options.cache[domElement.haiku.locator] = {}
+  }
 
   if (!Array.isArray(virtualChildren)) {
     return domElement
@@ -83,10 +86,14 @@ function renderTree (
         options,
         scopes
       )
+
       addToHashTable(hash, insertedElement, virtualChild)
     } else {
       if (!domChild.haiku) domChild.haiku = {}
       domChild.haiku.locator = sublocator
+      if (!options.cache[domChild.haiku.locator]) {
+        options.cache[domChild.haiku.locator] = {}
+      }
 
       if (!domChild.haiku.element) {
         // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals

@@ -83,7 +83,11 @@ var DEFAULTS = {
 
     // useWebkitPrefix: boolean
     // Whether to prepend a webkit prefix to transform properties
-    useWebkitPrefix: void (0)
+    useWebkitPrefix: void (0),
+
+    // cache: object
+    // General purpose cache to use in rendering
+    cache: {}
   },
 
   // states: Object|null
