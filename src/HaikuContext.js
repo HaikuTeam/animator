@@ -224,6 +224,7 @@ HaikuContext.prototype.performFullFlushRender = function performFullFlushRender 
     this.config.options,
     this.component._getRenderScopes()
   )
+  return this
 }
 
 // Call to update elements of the this.component tree - but only those that we detect have changed
@@ -242,6 +243,7 @@ HaikuContext.prototype.performPatchRender = function performPatchRender () {
     this.config.options,
     this.component._getRenderScopes()
   )
+  return this
 }
 
 // Called on every frame, this function updates the mount+root elements to ensure their style settings are in accordance
@@ -279,6 +281,8 @@ HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles ()
   ) {
     this._mount.style.overflow = 'hidden'
   }
+
+  return this
 }
 
 HaikuContext.prototype.tick = function tick () {
@@ -304,6 +308,8 @@ HaikuContext.prototype.tick = function tick () {
   }
 
   this._ticks++
+
+  return this
 }
 
 /**

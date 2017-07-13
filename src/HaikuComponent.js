@@ -653,7 +653,7 @@ function _applyBehaviors (
     }
   }
 
-  // 2. Apply any behaviors to the element
+  // Apply any behaviors to the element
   for (var i = 0; i < timelinesRunning.length; i++) {
     var timelineInstance = timelinesRunning[i]
     var timelineName = timelineInstance.getName()
@@ -683,6 +683,7 @@ function _applyBehaviors (
         var haikuId = matchingElement && matchingElement.attributes && matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
         var flexId = haikuId || domId
 
+        // If assembledOutputs is undefined that's supposed to mean that there is nothing changed
         var assembledOutputs = component._builder.build(
           {}, // We provide an object onto which outputs are placed
           timelineName,
@@ -699,6 +700,7 @@ function _applyBehaviors (
           matchingElement.__transformed = true
         }
 
+        // If assembledOutputs is empty, that is a signal that nothing changed
         if (assembledOutputs && deltas && flexId) {
           deltas[flexId] = matchingElement
         }
