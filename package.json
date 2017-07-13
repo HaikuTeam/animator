@@ -16,7 +16,8 @@
   "repository": "https://github.com/HaikuTeam/player",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test:unit",
+    "test": "npm run test:unit && npm run test:api",
+    "test:api": "tape \"test/api/**/*.test.js\" | tap-spec || true",
     "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
     "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true",
     "prettify": "prettier-standard \"{,!(node_modules|dist)/**/}*.js\"",
