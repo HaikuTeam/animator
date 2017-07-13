@@ -772,6 +772,7 @@ ValueBuilder.prototype.didChangeValue = function _didChangeValue (
 /**
  * @method build
  * @description Given an 'out' object, accumulate values into that object based on the current timeline, time, and instance state.
+ * If we didn't make any changes, we return undefined here. The caller should account for this.
  */
 ValueBuilder.prototype.build = function _build (
   out,
@@ -783,6 +784,8 @@ ValueBuilder.prototype.build = function _build (
   isPatchOperation,
   haikuComponent
 ) {
+  var isAnythingWorthUpdating = false
+
   for (var propertyName in propertiesGroup) {
     var finalValue = this.grabValue(
       timelineName,
@@ -815,10 +818,16 @@ ValueBuilder.prototype.build = function _build (
           finalValue
         )
       }
+
+      isAnythingWorthUpdating = true
     }
   }
 
-  return out
+  if (isAnythingWorthUpdating) {
+    return out
+  } else {
+    return undefined
+  }
 }
 
 /**
