@@ -66,6 +66,6 @@ test('component._getInjectables', function (t) {
     t.ok(injectables.$flow)
     t.ok(injectables.$user)
 
-    component._context.clock._cancelRaf()
+    component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
   })
 })

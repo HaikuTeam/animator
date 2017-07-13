@@ -40,6 +40,6 @@ test('exposedProperties', function (t) {
 
     t.equal(component.PLAYER_VERSION, PACKAGE.version, 'version is present on component')
 
-    component._context.clock._cancelRaf()
+    component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
   })
 })

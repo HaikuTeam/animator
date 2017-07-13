@@ -22,8 +22,44 @@ var DEFAULT_OPTIONS = {
   marginOfErrorForDelta: 1.0
 }
 
+// We need a global harness so we can have a single rAF loop even if we've got multiple Haiku Contexts on the same page
+var MAIN
+if (typeof window !== 'undefined') { // Window gets highest precedence since most likely we're running in DOM
+  MAIN = window
+} else if (typeof global !== 'undefined') {
+  MAIN = global
+} else {
+  // On the off-chance there is no real global, just use the clock class, even though that may mean we have multiple loops
+  MAIN = HaikuClock
+}
+
+// The global animation harness is a *singleton* so we don't want to create new ones even if this is reloaded
+if (!MAIN.HaikuGlobalAnimationHarness) {
+  MAIN.HaikuGlobalAnimationHarness = {}
+  MAIN.HaikuGlobalAnimationHarness.queue = [] // Just an array of functions to call on every rAF tick
+  // The main frame function, loops through all those who need an animation tick and calls them
+  MAIN.HaikuGlobalAnimationHarness.frame = function HaikuGlobalAnimationHarnessFrame () {
+    var queue = MAIN.HaikuGlobalAnimationHarness.queue
+    var length = queue.length
+    for (var i = 0; i < length; i++) {
+      queue[i]()
+    }
+    MAIN.HaikuGlobalAnimationHarness.raf = raf(MAIN.HaikuGlobalAnimationHarness.frame)
+  }
+  // Need a mechanism to cancel the rAF loop otherwise some contexts (e.g. tests) will have leaked handles
+  MAIN.HaikuGlobalAnimationHarness.cancel = function HaikuGlobalAnimationHarnessCancel () {
+    if (MAIN.HaikuGlobalAnimationHarness.raf) {
+      raf.cancel(MAIN.HaikuGlobalAnimationHarness.raf)
+    }
+  }
+  // Trigger the loop to start; we'll push frame functions into its queue later
+  MAIN.HaikuGlobalAnimationHarness.frame()
+}
+
 function HaikuClock (tickables, component, options) {
-  if (!(this instanceof HaikuClock)) return new HaikuClock(component)
+  if (!(this instanceof HaikuClock)) {
+    return new HaikuClock(tickables, component, options)
+  }
 
   SimpleEventEmitter.create(this)
 
@@ -35,8 +71,11 @@ function HaikuClock (tickables, component, options) {
   this._isRunning = false
   this._reinitialize()
 
-  this._raf = null // We'll create our raf function on our first run of our loop
-  this.run = this.run.bind(this) // Bind to avoid `this`-detachment when called by raf
+   // Bind to avoid `this`-detachment when called by raf
+  MAIN.HaikuGlobalAnimationHarness.queue.push(this.run.bind(this))
+
+  // Tests and others may need this to cancel the rAF loop, to avoid leaked handles
+  this.GLOBAL_ANIMATION_HARNESS = MAIN.HaikuGlobalAnimationHarness
 }
 
 HaikuClock.prototype._reinitialize = function _reinitialize () {
@@ -87,13 +126,6 @@ HaikuClock.prototype.run = function run () {
     }
   }
 
-  // Queue up the next animation frame loop
-  this._raf = raf(this.run)
-  return this
-}
-
-HaikuClock.prototype._cancelRaf = function _cancelRaf () {
-  if (this._raf) raf.cancel(this._raf)
   return this
 }
 

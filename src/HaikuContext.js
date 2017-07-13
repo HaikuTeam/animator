@@ -20,21 +20,41 @@ var DEFAULT_TIMELINE_NAME = 'Default'
  * A Haiku component tree may contain many components, but there is only one context.
  * The context is where information shared by all components in the tree should go, e.g. clock time.
  */
-function HaikuContext (bytecode, config, tickable) {
+function HaikuContext (mount, renderer, platform, bytecode, config) {
   if (!(this instanceof HaikuContext)) {
-    return new HaikuContext(bytecode, config)
+    return new HaikuContext(mount, renderer, platform, bytecode, config)
   }
 
   this.PLAYER_VERSION = PLAYER_VERSION
 
   this.assignConfig(config || {})
 
+  this._mount = mount
+
+  if (!this._mount) {
+    console.info('[haiku player] mount not provided so running in headless mode')
+  }
+
+  // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
+  if (this._mount && !this._mount.haiku) {
+    this._mount.haiku = {
+      context: this
+    }
+  }
+
+  this._renderer = renderer
+  this._platform = platform
+
+  this._index = HaikuContext.contexts.push(this) - 1
+  this._address = COMPONENT_GRAPH_ADDRESS_PREFIX + this._index
+
   // List of tickable objects managed by this context. These are invoked on every clock tick.
   // These are removed when context unmounts and re-added in case of re-mount
   this._tickables = []
-  if (tickable) {
-    this._tickables.push(tickable)
-  }
+
+  // Our own tick method is the main driver for animation inside of this context
+  this._tickables.push({ performTick: this.tick.bind(this) })
+
   if (this.config.options.frame) {
     this._tickables.push({ performTick: this.config.options.frame })
   }
@@ -47,6 +67,44 @@ function HaikuContext (bytecode, config, tickable) {
   this.component = new HaikuComponent(bytecode, this, this.config)
 
   this.component.startTimeline(DEFAULT_TIMELINE_NAME)
+
+  // If configured, bootstrap the Haiku right-click context menu
+  if (this._mount && this._renderer.menuize && this.config.options.contextMenu !== 'disabled') {
+    this._renderer.menuize(this._mount, this.component)
+  }
+
+  // Don't set up mixpanel if we're running on localhost since we don't want test data to be tracked
+  // TODO: What other heuristics should we use to decide whether to use mixpanel or not?
+  if (
+    this._mount &&
+    this._platform &&
+    this._platform.location &&
+    this._platform.location.hostname !== 'localhost' &&
+    this._platform.location.hostname !== '0.0.0.0'
+  ) {
+    // If configured, initialize Mixpanel with the given API token
+    if (this._renderer.mixpanel && this.config.options.mixpanel) {
+      this._renderer.mixpanel(this._mount, this.config.options.mixpanel, this.component)
+    }
+  }
+
+  // Dictionary of ids-to-elements, for quick lookups.
+  // We hydrate this with elements as we render so we don't have to query the DOM
+  // to quickly load elements for patch-style rendering
+  this._hash = {
+    // Elements are stored in _arrays_ as opposed to singletons, since there could be more than one
+    // in case of edge cases or possibly for future implementation details around $repeat
+    // "abcde": [el, el]
+  }
+
+  // Just a counter for the number of clock ticks that have occurred; used to determine first-frame for mounting
+  this._ticks = 0
+
+  // Assuming the user wants the app to mount immediately (the default), let's do the mount.
+  if (this.config.options.automount) {
+    // Starting the clock has the effect of doing a render at time 0, a.k.a., mounting!
+    this.component.getClock().start()
+  }
 }
 
 // Keep track of all instantiated contexts; this is mainly exposed for convenience when debugging the engine,
@@ -150,6 +208,104 @@ HaikuContext.prototype.assignConfig = function assignConfig (config, options) {
   return this
 }
 
+// Call to completely update the entire component tree - as though it were the first time
+HaikuContext.prototype.performFullFlushRender = function performFullFlushRender () {
+  if (!this._mount) {
+    return void (0)
+  }
+  var container = this._renderer.createContainer(this._mount)
+  var tree = this.component.render(container, this.config.options)
+  this._renderer.render(
+    this._mount,
+    container,
+    tree,
+    this._address,
+    this._hash,
+    this.config.options,
+    this.component._getRenderScopes()
+  )
+}
+
+// Call to update elements of the this.component tree - but only those that we detect have changed
+HaikuContext.prototype.performPatchRender = function performPatchRender () {
+  if (!this._mount) {
+    return void (0)
+  }
+  var container = this._renderer.createContainer(this._mount)
+  var patches = this.component.patch(container, this.config.options)
+  this._renderer.patch(
+    this._mount,
+    container,
+    patches,
+    this._address,
+    this._hash,
+    this.config.options,
+    this.component._getRenderScopes()
+  )
+}
+
+// Called on every frame, this function updates the mount+root elements to ensure their style settings are in accordance
+// with any passed-in haikuConfig.options that may affect it, e.g. CSS overflow or positioning settings
+HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles () {
+  if (!this._mount) {
+    return void (0)
+  }
+
+  // We can assume the mount has only one child since we only mount one component into it (#?)
+  var root = this._mount && this._mount.children[0]
+
+  if (root) {
+    if (this.config.options.position && root.style.position !== this.config.options.position) {
+      root.style.position = this.config.options.position
+    }
+    if (
+      this.config.options.overflowX &&
+      root.style.overflowX !== this.config.options.overflowX
+    ) {
+      root.style.overflowX = this.config.options.overflowX
+    }
+    if (
+      this.config.options.overflowY &&
+      root.style.overflowY !== this.config.options.overflowY
+    ) {
+      root.style.overflowY = this.config.options.overflowY
+    }
+  }
+
+  if (
+    this._mount &&
+    this.config.options.sizing === 'cover' &&
+    this._mount.style.overflow !== 'hidden'
+  ) {
+    this._mount.style.overflow = 'hidden'
+  }
+}
+
+HaikuContext.prototype.tick = function tick () {
+  this.updateMountRootStyles()
+
+  var flushed = false
+
+  // After we've hydrated the tree the first time, we can proceed with patches --
+  // unless the component indicates it wants a full flush per its internal settings.
+  if (this.component._shouldPerformFullFlush() || this.config.options.forceFlush || this._ticks < 1) {
+    this.performFullFlushRender()
+
+    flushed = true
+  } else {
+    this.performPatchRender()
+  }
+
+  // Do any initialization that may need to occur if we happen to be on the very first tick
+  if (this._ticks < 1) {
+    // If this is the 0th (first) tick, notify anybody listening that we've mounted
+    // If we've already flushed, _don't_ request to trigger a re-flush (second arg)
+    this.component.callRemount(null, flushed)
+  }
+
+  this._ticks++
+}
+
 /**
  * @function createComponentFactory
  * @description Returns a factory function that can create a HaikuComponent and run it upon a mount.
@@ -175,7 +331,7 @@ HaikuContext.createComponentFactory = function createComponentFactory (
   }
 
   // Note that haiku Config may be passed at this level, or below at the factory invocation level.
-  var haikuConfig = Config.build(
+  var haikuConfigFromTop = Config.build(
     {
       options: {
         // The seed value should remain constant from here on, because it is used for PRNG
@@ -195,168 +351,22 @@ HaikuContext.createComponentFactory = function createComponentFactory (
    * The (renderer, bytecode) pair are bootstrapped into the given mount element, and played.
    */
   function HaikuComponentFactory (mount, haikuConfigFromFactory) {
-    // Note that options may be passed at this leve, or above at the factory creation level.
-    haikuConfig = Config.build(haikuConfig, haikuConfigFromFactory)
+    // Merge any config received "late" with the config we might have already gotten during bootstrapping
+    var haikuConfigMerged = Config.build(haikuConfigFromTop, haikuConfigFromFactory)
 
     // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
     // an initialization/mounting issue when running in React.
-    var context = new HaikuContext(bytecode, haikuConfig, { performTick: tick })
-    var index = HaikuContext.contexts.push(context) - 1
-    var address = COMPONENT_GRAPH_ADDRESS_PREFIX + index
-
-    // The HaikuComponent is really the linchpin of the user's application, handling all the interesting stuff.
+    var context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged)
     var component = context.getRootComponent()
-
-    if (!mount) {
-      console.info('[haiku player] mount not provided so running in headless mode')
-    }
-
-    // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
-    if (mount && !mount.haiku) {
-      mount.haiku = {
-        context: context
-      }
-    }
-
-    // If configured, bootstrap the Haiku right-click context menu
-    if (mount && renderer.menuize && haikuConfig.options.contextMenu !== 'disabled') {
-      renderer.menuize(mount, component)
-    }
-
-    // Don't set up mixpanel if we're running on localhost since we don't want test data to be tracked
-    // TODO: What other heuristics should we use to decide whether to use mixpanel or not?
-    if (
-      mount &&
-      platform &&
-      platform.location &&
-      platform.location.hostname !== 'localhost' &&
-      platform.location.hostname !== '0.0.0.0'
-    ) {
-      // If configured, initialize Mixpanel with the given API token
-      if (renderer.mixpanel && haikuConfig.options.mixpanel) {
-        renderer.mixpanel(mount, haikuConfig.options.mixpanel, component)
-      }
-    }
-
-    // Dictionary of ids-to-elements, for quick lookups.
-    // We hydrate this with elements as we render so we don't have to query the DOM
-    // to quickly load elements for patch-style rendering
-    var hash = {
-      // Elements are stored in _arrays_ as opposed to singletons, since there could be more than one
-      // in case of edge cases or possibly for future implementation details around $repeat
-      // "abcde": [el, el]
-    }
-
-    // Call to completely update the entire component tree - as though it were the first time
-    function performFullFlushRender () {
-      if (!mount) {
-        return void (0)
-      }
-      var container = renderer.createContainer(mount)
-      var tree = component.render(container, haikuConfig.options)
-      renderer.render(
-        mount,
-        container,
-        tree,
-        address,
-        hash,
-        haikuConfig.options,
-        component._getRenderScopes()
-      )
-    }
-
-    // Call to update elements of the component tree - but only those that we detect have changed
-    function performPatchRender () {
-      if (!mount) {
-        return void (0)
-      }
-      var container = renderer.createContainer(mount)
-      var patches = component.patch(container, haikuConfig.options)
-      renderer.patch(
-        mount,
-        container,
-        patches,
-        address,
-        hash,
-        haikuConfig.options,
-        component._getRenderScopes()
-      )
-    }
-
-    // Called on every frame, this function updates the mount+root elements to ensure their style settings are in accordance
-    // with any passed-in haikuConfig.options that may affect it, e.g. CSS overflow or positioning settings
-    function updateMountRootStyles () {
-      if (!mount) {
-        return void (0)
-      }
-      // We can assume the mount has only one child since we only mount one component into it (#?)
-      var mountRoot = mount && mount.children[0]
-      if (mountRoot) {
-        if (haikuConfig.options.position && mountRoot.style.position !== haikuConfig.options.position) {
-          mountRoot.style.position = haikuConfig.options.position
-        }
-        if (
-          haikuConfig.options.overflowX &&
-          mountRoot.style.overflowX !== haikuConfig.options.overflowX
-        ) {
-          mountRoot.style.overflowX = haikuConfig.options.overflowX
-        }
-        if (
-          haikuConfig.options.overflowY &&
-          mountRoot.style.overflowY !== haikuConfig.options.overflowY
-        ) {
-          mountRoot.style.overflowY = haikuConfig.options.overflowY
-        }
-      }
-      if (
-        mount &&
-        haikuConfig.options.sizing === 'cover' &&
-        mount.style.overflow !== 'hidden'
-      ) {
-        mount.style.overflow = 'hidden'
-      }
-    }
-
-    // Just a counter for the number of clock ticks that have occurred; used to determine first-frame for mounting
-    var ticks = 0
-
-    function tick () {
-      updateMountRootStyles()
-
-      var flushed = false
-
-      // After we've hydrated the tree the first time, we can proceed with patches --
-      // unless the component indicates it wants a full flush per its internal settings.
-      if (component._shouldPerformFullFlush() || haikuConfig.options.forceFlush || ticks < 1) {
-        performFullFlushRender()
-        flushed = true
-      } else {
-        performPatchRender()
-      }
-
-      // Do any initialization that may need to occur if we happen to be on the very first tick
-      if (ticks < 1) {
-        // If this is the 0th (first) tick, notify anybody listening that we've mounted
-        // If we've already flushed, _don't_ request to trigger a re-flush (second arg)
-        component.callRemount(null, flushed)
-      }
-
-      ticks++
-    }
-
-    // Give ActiveComponent a means to trigger an immediate rerender easily
-    context.tick = tick
-
-    // Assuming the user wants the app to mount immediately (the default), let's do the mount.
-    if (haikuConfig.options.automount) {
-      // Starting the clock has the effect of doing a render at time 0, a.k.a., mounting!
-      component.getClock().start()
-    }
 
     // These properties are added for convenience as hot editing hooks inside Haiku Desktop (and elsewhere?).
     // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
     HaikuComponentFactory.bytecode = bytecode
     HaikuComponentFactory.renderer = renderer
+    // Note that these ones could theoretically change if this factory was called more than once; use with care
+    HaikuComponentFactory.mount = mount
+    HaikuComponentFactory.context = context
+    HaikuComponentFactory.component = component
 
     // Finally, return the HaikuComponent instance which can also be used for programmatic behavior
     return component

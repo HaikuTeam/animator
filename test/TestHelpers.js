@@ -1,4 +1,5 @@
 var jsdom = require('jsdom')
+var async = require('async')
 var HaikuDOMAdapter = require('./../src/adapters/dom')
 
 var TestHelpers = {}
@@ -28,10 +29,10 @@ function createComponent (bytecode, options, cb) {
     var component = runner(mount, options)
     // If rafs and timers aren't cancelled, the tests never finish due to leaked handles
     function teardown () {
-      component._context.clock._cancelRaf()
+      component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
       return void 0
     }
-    return cb(component, teardown)
+    return cb(component, teardown, mount)
   })
 }
 
@@ -43,8 +44,21 @@ function simulateEvent (element, name) {
   return event
 }
 
+function timeBracket (steps, cb) {
+  return async.eachOfSeries(steps, function (step, key, next) {
+    var start = Date.now()
+    return step(function () {
+      var end = Date.now()
+      var delta = end - start
+      console.log('[haiku player test] step ' + key + ' took ' + delta + ' ms')
+      return next()
+    })
+  }, cb)
+}
+
 TestHelpers.createDOM = createDOM
 TestHelpers.createComponent = createComponent
 TestHelpers.simulateEvent = simulateEvent
+TestHelpers.timeBracket = timeBracket
 
 module.exports = TestHelpers

@@ -16,7 +16,8 @@
   "repository": "https://github.com/HaikuTeam/player",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test:unit && npm run test:api",
+    "test": "npm run test:unit && npm run test:api && npm run test:perf",
+    "test:perf": "tape \"test/perf/**/*.test.js\" | tap-spec || true",
     "test:api": "tape \"test/api/**/*.test.js\" | tap-spec || true",
     "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
     "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true",
@@ -32,6 +33,7 @@
   ],
   "license": "LicenseRef-LICENSE",
   "devDependencies": {
+    "async": "^2.5.0",
     "browserify": "^14.1.0",
     "browserify-transform-tools": "^1.7.0",
     "express": "4.14.1",
