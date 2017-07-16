@@ -2155,5 +2155,12 @@
       "label": "fix",
       "message": "show the bottom of the timeline without clipping"
     }
+  },
+  "2.1.17": {
+    "2f88eff4001db834bfa15152c6e94848dc96ae6a": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "re-enable visibility of elements off stage"
+    }
   }
 }
