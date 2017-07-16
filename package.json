@@ -1,7 +1,7 @@
 {
   "name": "haiku-mono",
   "private": true,
-  "version": "2.1.15",
+  "version": "2.1.16",
   "description": "Haiku monorepo",
   "main": "index.js",
   "author": "Matthew Trost <matthew@trost.co>",
@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "async": "2.1.5",
+    "aws-sdk": "^2.85.0",
     "browserify": "^14.4.0",
     "cli-color": "1.2.0",
     "dependency-graph": "^0.5.0",
@@ -47,6 +48,7 @@
     "fs-extra": "2.0.0",
     "inquirer": "^3.0.6",
     "lodash": "4.17.4",
+    "mime-types": "^2.1.15",
     "moment": "2.17.1",
     "semver": "5.3.0",
     "snazzy": "6.0.0",
