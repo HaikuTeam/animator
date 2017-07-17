@@ -3,7 +3,7 @@ var PACKAGE = require('./../../package.json')
 var TestHelpers = require('./../TestHelpers')
 var HaikuDOMAdapter = require('./../../src/adapters/dom')
 test('component._getInjectables', function (t) {
-  t.plan(13)
+  t.plan(16)
 
   var bytecode = {
     // Checking that the bytecode itself can define options
@@ -65,6 +65,10 @@ test('component._getInjectables', function (t) {
     t.ok(injectables.$tree)
     t.ok(injectables.$flow)
     t.ok(injectables.$user)
+
+    t.ok(injectables.$helpers)
+    t.equal(injectables.$helpers.rand, 'function') // We loaded the _schema_ not the helpers
+    t.equal(injectables.$helpers.now, 'function')
 
     component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
   })

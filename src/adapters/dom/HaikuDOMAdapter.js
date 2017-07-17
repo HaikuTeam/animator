@@ -3,7 +3,7 @@
  */
 
 var HaikuContext = require('./../../HaikuContext')
-var HaikuDOMRenderer = require('./../../renderers/dom')
+var HaikuDOMRendererClass = require('./../../renderers/dom')
 var PLAYER_VERSION = require('./../../../package.json').version
 
 /**
@@ -43,7 +43,7 @@ function HaikuDOMAdapter (bytecode, config, _window) {
   }
 
   return HaikuContext.createComponentFactory(
-    HaikuDOMRenderer,
+    HaikuDOMRendererClass,
     bytecode,
     config, // Note: Full config object, of which options is one property!
     _window

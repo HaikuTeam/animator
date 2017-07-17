@@ -299,6 +299,11 @@ limitations under the License.
 * MIT
 * Copyright (c) 2017 Chris Dickinson
 
+### seedrandom
+
+* MIT
+* Copyright (c) 2015 David Bau
+
 ### svg-points
 
 * ISC

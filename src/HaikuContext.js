@@ -6,6 +6,7 @@ var assign = require('./vendor/assign')
 var HaikuClock = require('./HaikuClock')
 var HaikuComponent = require('./HaikuComponent')
 var Config = require('./Config')
+var PRNG = require('./helpers/PRNG')
 
 var PLAYER_VERSION = require('./../package.json').version
 
@@ -25,8 +26,21 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
     return new HaikuContext(mount, renderer, platform, bytecode, config)
   }
 
+  if (!renderer) {
+    throw new Error('Context requires a renderer')
+  }
+
+  if (!platform) {
+    throw new Error('Context requires a platform')
+  }
+
+  if (!bytecode) {
+    throw new Error('Context requires bytecode')
+  }
+
   this.PLAYER_VERSION = PLAYER_VERSION
 
+  this._prng = null // Instantiated as part of the assignConfig step
   this.assignConfig(config || {})
 
   this._mount = mount
@@ -43,6 +57,11 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
   }
 
   this._renderer = renderer
+
+  if (this._renderer.initialize) {
+    this._renderer.initialize(this._mount)
+  }
+
   this._platform = platform
 
   this._index = HaikuContext.contexts.push(this) - 1
@@ -205,6 +224,9 @@ HaikuContext.prototype.assignConfig = function assignConfig (config, options) {
     }
   }
 
+  // We assign this in the configuration step since if the seed changes we need a new prng.
+  this._prng = new PRNG(this.config.options.seed)
+
   return this
 }
 
@@ -313,18 +335,42 @@ HaikuContext.prototype.tick = function tick () {
 }
 
 /**
+ * @method getDeterministicRand
+ * @description Return a random number in the range [0,1].
+ * Unlike Math.random() this is deterministic, based on our seed number.
+ */
+HaikuContext.prototype.getDeterministicRand = function getDeterministicRand () {
+  return this._prng.random()
+}
+
+/**
+ * @method getDeterministicTime
+ * @description Return the current timestamp (Unicode) but based on our initial seeded value for 'timestamp'
+ * Ultimately this is exposed as the helper 'now'
+ */
+HaikuContext.prototype.getDeterministicTime = function getDeterministicTime () {
+  var runningTime = this.getClock().getRunningTime() // ms
+  var seededTime = this.config.options.timestamp
+  return seededTime + runningTime
+}
+
+HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState () {
+  return this._renderer && this._renderer.user && this._renderer.user()
+}
+
+/**
  * @function createComponentFactory
  * @description Returns a factory function that can create a HaikuComponent and run it upon a mount.
  * The created player runs using the passed-in renderer, bytecode, options, and platform.
  */
 HaikuContext.createComponentFactory = function createComponentFactory (
-  renderer,
+  RendererClass,
   bytecode,
   haikuConfigFromFactoryCreator,
   platform
 ) {
-  if (!renderer) {
-    throw new Error('A runtime `renderer` object is required')
+  if (!RendererClass) {
+    throw new Error('A runtime renderer class object is required')
   }
 
   if (!bytecode) {
@@ -341,7 +387,10 @@ HaikuContext.createComponentFactory = function createComponentFactory (
     {
       options: {
         // The seed value should remain constant from here on, because it is used for PRNG
-        seed: Config.seed()
+        seed: Config.seed(),
+
+        // The now value is used to compute a current date with respect to the current time
+        timestamp: Date.now()
       }
     },
     // The bytecode itself may contain configuration for playback, etc., but is lower precedence than config passed in
@@ -362,6 +411,7 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
     // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
     // an initialization/mounting issue when running in React.
+    var renderer = new RendererClass()
     var context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged)
     var component = context.getRootComponent()
 

@@ -2,16 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var Layout3D = require('./../../Layout3D')
-
 // A dictionary that maps HTML+SVG element names (camelCase)
 // to addressable properties. This acts as a whitelist of properties that
 // _can_ be applied, and special logic for applying them.
-// div: {
-//   addressableProperties: {
-//     style: {...}
-//   }
-// }
 
 // Just a utility for populating these objects
 function has () {
@@ -23,450 +16,275 @@ function has () {
       obj[name] = fn
     }
   }
-  return {
-    addressableProperties: obj
-  }
+  return obj
 }
 
 var TEXT_CONTENT_SCHEMA = {
-  content: { typedef: 'string', fallback: null }
+  content: 'string'
 }
 
-var LAYOUT_DEFAULTS = Layout3D.createLayoutSpec()
-
 var LAYOUT_3D_SCHEMA = {
-  shown: {
-    typedef: 'boolean',
-    fallback: LAYOUT_DEFAULTS.shown
-  },
-  opacity: {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.opacity
-  },
-  'mount.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.mount.x
-  },
-  'mount.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.mount.y
-  },
-  'mount.z': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.mount.z
-  },
-  'align.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.align.x
-  },
-  'align.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.align.y
-  },
-  'align.z': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.align.z
-  },
-  'origin.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.origin.x
-  },
-  'origin.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.origin.y
-  },
-  'origin.z': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.origin.z
-  },
-  'translation.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.translation.x
-  },
-  'translation.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.translation.y
-  },
-  'translation.z': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.translation.z
-  },
-  'rotation.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.rotation.x
-  },
-  'rotation.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.rotation.y
-  },
-  'rotation.z': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.rotation.z
-  },
-  'scale.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.scale.x
-  },
-  'scale.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.scale.y
-  },
-  'scale.z': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.scale.z
-  },
-  'sizeAbsolute.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeAbsolute.x
-  },
-  'sizeAbsolute.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeAbsolute.y
-  },
-  'sizeAbsolute.z': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeAbsolute.z
-  },
-  'sizeProportional.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeProportional.x
-  },
-  'sizeProportional.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeProportional.y
-  },
-  'sizeProportional.z': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeProportional.z
-  },
-  'sizeDifferential.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeDifferential.x
-  },
-  'sizeDifferential.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeDifferential.y
-  },
-  'sizeDifferential.z': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeDifferential.z
-  },
-  'sizeMode.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeMode.x
-  },
-  'sizeMode.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeMode.y
-  },
-  'sizeMode.z': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeMode.z
-  }
+  shown: 'boolean',
+  opacity: 'number',
+  'mount.x': 'number',
+  'mount.y': 'number',
+  'mount.z': 'number',
+  'align.x': 'number',
+  'align.y': 'number',
+  'align.z': 'number',
+  'origin.x': 'number',
+  'origin.y': 'number',
+  'origin.z': 'number',
+  'translation.x': 'number',
+  'translation.y': 'number',
+  'translation.z': 'number',
+  'rotation.x': 'number',
+  'rotation.y': 'number',
+  'rotation.z': 'number',
+  'scale.x': 'number',
+  'scale.y': 'number',
+  'scale.z': 'number',
+  'sizeAbsolute.x': 'number',
+  'sizeAbsolute.y': 'number',
+  'sizeAbsolute.z': 'number',
+  'sizeProportional.x': 'number',
+  'sizeProportional.y': 'number',
+  'sizeProportional.z': 'number',
+  'sizeDifferential.x': 'number',
+  'sizeDifferential.y': 'number',
+  'sizeDifferential.z': 'number',
+  'sizeMode.x': 'number',
+  'sizeMode.y': 'number',
+  'sizeMode.z': 'number'
 }
 
 var LAYOUT_2D_SCHEMA = {
-  shown: {
-    typedef: 'boolean',
-    fallback: LAYOUT_DEFAULTS.shown
-  },
-  opacity: {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.opacity
-  },
-  'mount.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.mount.x
-  },
-  'mount.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.mount.y
-  },
-  'align.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.align.x
-  },
-  'align.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.align.y
-  },
-  'origin.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.origin.x
-  },
-  'origin.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.origin.y
-  },
-  'translation.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.translation.x
-  },
-  'translation.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.translation.y
-  },
-  'translation.z': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.translation.z
-  },
-  'rotation.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.rotation.x
-  },
-  'rotation.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.rotation.y
-  },
-  'rotation.z': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.rotation.z
-  },
-  'scale.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.scale.x
-  },
-  'scale.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.scale.y
-  },
-  'sizeAbsolute.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeAbsolute.x
-  },
-  'sizeAbsolute.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeAbsolute.y
-  },
-  'sizeProportional.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeProportional.x
-  },
-  'sizeProportional.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeProportional.y
-  },
-  'sizeDifferential.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeDifferential.x
-  },
-  'sizeDifferential.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeDifferential.y
-  },
-  'sizeMode.x': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeMode.x
-  },
-  'sizeMode.y': {
-    typedef: 'number',
-    fallback: LAYOUT_DEFAULTS.sizeMode.y
-  }
+  shown: 'boolean',
+  opacity: 'number',
+  'mount.x': 'number',
+  'mount.y': 'number',
+  'align.x': 'number',
+  'align.y': 'number',
+  'origin.x': 'number',
+  'origin.y': 'number',
+  'translation.x': 'number',
+  'translation.y': 'number',
+  'translation.z': 'number',
+  'rotation.x': 'number',
+  'rotation.y': 'number',
+  'rotation.z': 'number',
+  'scale.x': 'number',
+  'scale.y': 'number',
+  'sizeAbsolute.x': 'number',
+  'sizeAbsolute.y': 'number',
+  'sizeProportional.x': 'number',
+  'sizeProportional.y': 'number',
+  'sizeDifferential.x': 'number',
+  'sizeDifferential.y': 'number',
+  'sizeMode.x': 'number',
+  'sizeMode.y': 'number'
 }
 
 var PRESENTATION_SCHEMA = {
-  alignmentBaseline: { typedef: 'string', fallback: '' },
-  baselineShift: { typedef: 'string', fallback: '' },
-  clipPath: { typedef: 'string', fallback: '' },
-  clipRule: { typedef: 'string', fallback: '' },
-  clip: { typedef: 'string', fallback: '' },
-  colorInterpolationFilters: { typedef: 'string', fallback: '' },
-  colorInterpolation: { typedef: 'string', fallback: '' },
-  colorProfile: { typedef: 'string', fallback: '' },
-  colorRendering: { typedef: 'string', fallback: '' },
-  color: { typedef: 'string', fallback: '' },
-  cursor: { typedef: 'string', fallback: '' },
-  direction: { typedef: 'string', fallback: '' },
-  display: { typedef: 'string', fallback: '' },
-  dominantBaseline: { typedef: 'string', fallback: '' },
-  enableBackground: { typedef: 'string', fallback: '' },
-  fillOpacity: { typedef: 'string', fallback: '' },
-  fillRule: { typedef: 'string', fallback: '' },
-  fill: { typedef: 'string', fallback: '' },
-  filter: { typedef: 'string', fallback: '' },
-  floodColor: { typedef: 'string', fallback: '' },
-  floodOpacity: { typedef: 'string', fallback: '' },
-  fontFamily: { typedef: 'string', fallback: '' },
-  fontSizeAdjust: { typedef: 'string', fallback: '' },
-  fontSize: { typedef: 'string', fallback: '' },
-  fontStretch: { typedef: 'string', fallback: '' },
-  fontStyle: { typedef: 'string', fallback: '' },
-  fontVariant: { typedef: 'string', fallback: '' },
-  fontWeight: { typedef: 'string', fallback: '' },
-  glyphOrientationHorizontal: { typedef: 'string', fallback: '' },
-  glyphOrientationVertical: { typedef: 'string', fallback: '' },
-  imageRendering: { typedef: 'string', fallback: '' },
-  kerning: { typedef: 'string', fallback: '' },
-  letterSpacing: { typedef: 'string', fallback: '' },
-  lightingColor: { typedef: 'string', fallback: '' },
-  markerEnd: { typedef: 'string', fallback: '' },
-  markerMid: { typedef: 'string', fallback: '' },
-  markerStart: { typedef: 'string', fallback: '' },
-  mask: { typedef: 'string', fallback: '' },
+  alignmentBaseline: 'string',
+  baselineShift: 'string',
+  clipPath: 'string',
+  clipRule: 'string',
+  clip: 'string',
+  colorInterpolationFilters: 'string',
+  colorInterpolation: 'string',
+  colorProfile: 'string',
+  colorRendering: 'string',
+  color: 'string',
+  cursor: 'string',
+  direction: 'string',
+  display: 'string',
+  dominantBaseline: 'string',
+  enableBackground: 'string',
+  fillOpacity: 'string',
+  fillRule: 'string',
+  fill: 'string',
+  filter: 'string',
+  floodColor: 'string',
+  floodOpacity: 'string',
+  fontFamily: 'string',
+  fontSizeAdjust: 'string',
+  fontSize: 'string',
+  fontStretch: 'string',
+  fontStyle: 'string',
+  fontVariant: 'string',
+  fontWeight: 'string',
+  glyphOrientationHorizontal: 'string',
+  glyphOrientationVertical: 'string',
+  imageRendering: 'string',
+  kerning: 'string',
+  letterSpacing: 'string',
+  lightingColor: 'string',
+  markerEnd: 'string',
+  markerMid: 'string',
+  markerStart: 'string',
+  mask: 'string',
   // opacity omitted - is part of layout algorithm
-  overflow: { typedef: 'string', fallback: '' },
-  overflowX: { typedef: 'string', fallback: '' },
-  overflowY: { typedef: 'string', fallback: '' },
-  pointerEvents: { typedef: 'string', fallback: '' },
-  shapeRendering: { typedef: 'string', fallback: '' },
-  stopColor: { typedef: 'string', fallback: '' },
-  stopOpacity: { typedef: 'string', fallback: '' },
-  strokeDasharray: { typedef: 'string', fallback: '' },
-  strokeDashoffset: { typedef: 'string', fallback: '' },
-  strokeLinecap: { typedef: 'string', fallback: '' },
-  strokeLinejoin: { typedef: 'string', fallback: '' },
-  strokeMiterlimit: { typedef: 'string', fallback: '' },
-  strokeOpacity: { typedef: 'string', fallback: '' },
-  strokeWidth: { typedef: 'string', fallback: '' },
-  stroke: { typedef: 'string', fallback: '' },
-  textAnchor: { typedef: 'string', fallback: '' },
-  textDecoration: { typedef: 'string', fallback: '' },
-  textRendering: { typedef: 'string', fallback: '' },
-  unicodeBidi: { typedef: 'string', fallback: '' },
-  visibility: { typedef: 'string', fallback: '' },
-  wordSpacing: { typedef: 'string', fallback: '' },
-  writingMode: { typedef: 'string', fallback: '' }
+  overflow: 'string',
+  overflowX: 'string',
+  overflowY: 'string',
+  pointerEvents: 'string',
+  shapeRendering: 'string',
+  stopColor: 'string',
+  stopOpacity: 'string',
+  strokeDasharray: 'string',
+  strokeDashoffset: 'string',
+  strokeLinecap: 'string',
+  strokeLinejoin: 'string',
+  strokeMiterlimit: 'string',
+  strokeOpacity: 'string',
+  strokeWidth: 'string',
+  stroke: 'string',
+  textAnchor: 'string',
+  textDecoration: 'string',
+  textRendering: 'string',
+  unicodeBidi: 'string',
+  visibility: 'string',
+  wordSpacing: 'string',
+  writingMode: 'string'
 }
 
 var STYLE_SCHEMA = {
-  'style.alignmentBaseline': { typedef: 'string', fallback: '' },
-  'style.background': { typedef: 'string', fallback: '' },
-  'style.backgroundAttachment': { typedef: 'string', fallback: '' },
-  'style.backgroundColor': { typedef: 'string', fallback: '' },
-  'style.backgroundImage': { typedef: 'string', fallback: '' },
-  'style.backgroundPosition': { typedef: 'string', fallback: '' },
-  'style.backgroundRepeat': { typedef: 'string', fallback: '' },
-  'style.baselineShift': { typedef: 'string', fallback: '' },
-  'style.border': { typedef: 'string', fallback: '' },
-  'style.borderBottom': { typedef: 'string', fallback: '' },
-  'style.borderBottomColor': { typedef: 'string', fallback: '' },
-  'style.borderBottomStyle': { typedef: 'string', fallback: '' },
-  'style.borderBottomWidth': { typedef: 'string', fallback: '' },
-  'style.borderColor': { typedef: 'string', fallback: '' },
-  'style.borderLeft': { typedef: 'string', fallback: '' },
-  'style.borderLeftColor': { typedef: 'string', fallback: '' },
-  'style.borderLeftStyle': { typedef: 'string', fallback: '' },
-  'style.borderLeftWidth': { typedef: 'string', fallback: '' },
-  'style.borderRight': { typedef: 'string', fallback: '' },
-  'style.borderRightColor': { typedef: 'string', fallback: '' },
-  'style.borderRightStyle': { typedef: 'string', fallback: '' },
-  'style.borderRightWidth': { typedef: 'string', fallback: '' },
-  'style.borderStyle': { typedef: 'string', fallback: '' },
-  'style.borderTop': { typedef: 'string', fallback: '' },
-  'style.borderTopColor': { typedef: 'string', fallback: '' },
-  'style.borderTopStyle': { typedef: 'string', fallback: '' },
-  'style.borderTopWidth': { typedef: 'string', fallback: '' },
-  'style.borderWidth': { typedef: 'string', fallback: '' },
-  'style.clear': { typedef: 'string', fallback: '' },
-  'style.clip': { typedef: 'string', fallback: '' },
-  'style.clipPath': { typedef: 'string', fallback: '' },
-  'style.clipRule': { typedef: 'string', fallback: '' },
-  'style.color': { typedef: 'string', fallback: '' },
-  'style.colorInterpolation': { typedef: 'string', fallback: '' },
-  'style.colorInterpolationFilters': { typedef: 'string', fallback: '' },
-  'style.colorProfile': { typedef: 'string', fallback: '' },
-  'style.colorRendering': { typedef: 'string', fallback: '' },
-  'style.cssFloat': { typedef: 'string', fallback: '' },
-  'style.cursor': { typedef: 'string', fallback: '' },
-  'style.direction': { typedef: 'string', fallback: '' },
-  'style.display': { typedef: 'string', fallback: '' },
-  'style.dominantBaseline': { typedef: 'string', fallback: '' },
-  'style.enableBackground': { typedef: 'string', fallback: '' },
-  'style.fill': { typedef: 'string', fallback: '' },
-  'style.fillOpacity': { typedef: 'string', fallback: '' },
-  'style.fillRule': { typedef: 'string', fallback: '' },
-  'style.filter': { typedef: 'string', fallback: '' },
-  'style.floodColor': { typedef: 'string', fallback: '' },
-  'style.floodOpacity': { typedef: 'string', fallback: '' },
-  'style.font': { typedef: 'string', fallback: '' },
-  'style.fontFamily': { typedef: 'string', fallback: '' },
-  'style.fontSize': { typedef: 'string', fallback: '' },
-  'style.fontSizeAdjust': { typedef: 'string', fallback: '' },
-  'style.fontStretch': { typedef: 'string', fallback: '' },
-  'style.fontStyle': { typedef: 'string', fallback: '' },
-  'style.fontVariant': { typedef: 'string', fallback: '' },
-  'style.fontWeight': { typedef: 'string', fallback: '' },
-  'style.glyphOrientationHorizontal': { typedef: 'string', fallback: '' },
-  'style.glyphOrientationVertical': { typedef: 'string', fallback: '' },
-  'style.height': { typedef: 'string', fallback: '' },
-  'style.imageRendering': { typedef: 'string', fallback: '' },
-  'style.kerning': { typedef: 'string', fallback: '' },
-  'style.left': { typedef: 'string', fallback: '' },
-  'style.letterSpacing': { typedef: 'string', fallback: '' },
-  'style.lightingColor': { typedef: 'string', fallback: '' },
-  'style.lineHeight': { typedef: 'string', fallback: '' },
-  'style.listStyle': { typedef: 'string', fallback: '' },
-  'style.listStyleImage': { typedef: 'string', fallback: '' },
-  'style.listStylePosition': { typedef: 'string', fallback: '' },
-  'style.listStyleType': { typedef: 'string', fallback: '' },
-  'style.margin': { typedef: 'string', fallback: '' },
-  'style.marginBottom': { typedef: 'string', fallback: '' },
-  'style.marginLeft': { typedef: 'string', fallback: '' },
-  'style.marginRight': { typedef: 'string', fallback: '' },
-  'style.marginTop': { typedef: 'string', fallback: '' },
-  'style.markerEnd': { typedef: 'string', fallback: '' },
-  'style.markerMid': { typedef: 'string', fallback: '' },
-  'style.markerStart': { typedef: 'string', fallback: '' },
-  'style.mask': { typedef: 'string', fallback: '' },
-  'style.opacity': { typedef: 'string', fallback: '' },
-  'style.overflow': { typedef: 'string', fallback: '' },
-  'style.overflowX': { typedef: 'string', fallback: 'hidden' },
-  'style.overflowY': { typedef: 'string', fallback: 'hidden' },
-  'style.padding': { typedef: 'string', fallback: '' },
-  'style.paddingBottom': { typedef: 'string', fallback: '' },
-  'style.paddingLeft': { typedef: 'string', fallback: '' },
-  'style.paddingRight': { typedef: 'string', fallback: '' },
-  'style.paddingTop': { typedef: 'string', fallback: '' },
-  'style.pageBreakAfter': { typedef: 'string', fallback: '' },
-  'style.pageBreakBefore': { typedef: 'string', fallback: '' },
-  'style.pointerEvents': { typedef: 'string', fallback: '' },
-  'style.position': { typedef: 'string', fallback: '' },
-  'style.shapeRendering': { typedef: 'string', fallback: '' },
-  'style.stopColor': { typedef: 'string', fallback: '' },
-  'style.stopOpacity': { typedef: 'string', fallback: '' },
-  'style.stroke': { typedef: 'string', fallback: '' },
-  'style.strokeDasharray': { typedef: 'string', fallback: '' },
-  'style.strokeDashoffset': { typedef: 'string', fallback: '' },
-  'style.strokeLinecap': { typedef: 'string', fallback: '' },
-  'style.strokeLinejoin': { typedef: 'string', fallback: '' },
-  'style.strokeMiterlimit': { typedef: 'string', fallback: '' },
-  'style.strokeOpacity': { typedef: 'string', fallback: '' },
-  'style.strokeWidth': { typedef: 'string', fallback: '' },
-  'style.textAlign': { typedef: 'string', fallback: '' },
-  'style.textAnchor': { typedef: 'string', fallback: '' },
-  'style.textDecoration': { typedef: 'string', fallback: '' },
-  'style.textDecorationBlink': { typedef: 'string', fallback: '' },
-  'style.textDecorationLineThrough': { typedef: 'string', fallback: '' },
-  'style.textDecorationNone': { typedef: 'string', fallback: '' },
-  'style.textDecorationOverline': { typedef: 'string', fallback: '' },
-  'style.textDecorationUnderline': { typedef: 'string', fallback: '' },
-  'style.textIndent': { typedef: 'string', fallback: '' },
-  'style.textRendering': { typedef: 'string', fallback: '' },
-  'style.textTransform': { typedef: 'string', fallback: '' },
-  'style.top': { typedef: 'string', fallback: '' },
-  'style.unicodeBidi': { typedef: 'string', fallback: '' },
-  'style.verticalAlign': { typedef: 'string', fallback: '' },
-  'style.visibility': { typedef: 'string', fallback: '' },
-  'style.width': { typedef: 'string', fallback: '' },
-  'style.wordSpacing': { typedef: 'string', fallback: '' },
-  'style.writingMode': { typedef: 'string', fallback: '' },
-  'style.zIndex': { typedef: 'number', fallback: 1 },
-  'style.WebkitTapHighlightColor': {
-    typedef: 'string',
-    fallback: 'rgba(0,0,0,0)'
-  }
+  'style.alignmentBaseline': 'string',
+  'style.background': 'string',
+  'style.backgroundAttachment': 'string',
+  'style.backgroundColor': 'string',
+  'style.backgroundImage': 'string',
+  'style.backgroundPosition': 'string',
+  'style.backgroundRepeat': 'string',
+  'style.baselineShift': 'string',
+  'style.border': 'string',
+  'style.borderBottom': 'string',
+  'style.borderBottomColor': 'string',
+  'style.borderBottomStyle': 'string',
+  'style.borderBottomWidth': 'string',
+  'style.borderColor': 'string',
+  'style.borderLeft': 'string',
+  'style.borderLeftColor': 'string',
+  'style.borderLeftStyle': 'string',
+  'style.borderLeftWidth': 'string',
+  'style.borderRight': 'string',
+  'style.borderRightColor': 'string',
+  'style.borderRightStyle': 'string',
+  'style.borderRightWidth': 'string',
+  'style.borderStyle': 'string',
+  'style.borderTop': 'string',
+  'style.borderTopColor': 'string',
+  'style.borderTopStyle': 'string',
+  'style.borderTopWidth': 'string',
+  'style.borderWidth': 'string',
+  'style.clear': 'string',
+  'style.clip': 'string',
+  'style.clipPath': 'string',
+  'style.clipRule': 'string',
+  'style.color': 'string',
+  'style.colorInterpolation': 'string',
+  'style.colorInterpolationFilters': 'string',
+  'style.colorProfile': 'string',
+  'style.colorRendering': 'string',
+  'style.cssFloat': 'string',
+  'style.cursor': 'string',
+  'style.direction': 'string',
+  'style.display': 'string',
+  'style.dominantBaseline': 'string',
+  'style.enableBackground': 'string',
+  'style.fill': 'string',
+  'style.fillOpacity': 'string',
+  'style.fillRule': 'string',
+  'style.filter': 'string',
+  'style.floodColor': 'string',
+  'style.floodOpacity': 'string',
+  'style.font': 'string',
+  'style.fontFamily': 'string',
+  'style.fontSize': 'string',
+  'style.fontSizeAdjust': 'string',
+  'style.fontStretch': 'string',
+  'style.fontStyle': 'string',
+  'style.fontVariant': 'string',
+  'style.fontWeight': 'string',
+  'style.glyphOrientationHorizontal': 'string',
+  'style.glyphOrientationVertical': 'string',
+  'style.height': 'string',
+  'style.imageRendering': 'string',
+  'style.kerning': 'string',
+  'style.left': 'string',
+  'style.letterSpacing': 'string',
+  'style.lightingColor': 'string',
+  'style.lineHeight': 'string',
+  'style.listStyle': 'string',
+  'style.listStyleImage': 'string',
+  'style.listStylePosition': 'string',
+  'style.listStyleType': 'string',
+  'style.margin': 'string',
+  'style.marginBottom': 'string',
+  'style.marginLeft': 'string',
+  'style.marginRight': 'string',
+  'style.marginTop': 'string',
+  'style.markerEnd': 'string',
+  'style.markerMid': 'string',
+  'style.markerStart': 'string',
+  'style.mask': 'string',
+  'style.opacity': 'string',
+  'style.overflow': 'string',
+  'style.overflowX': 'string',
+  'style.overflowY': 'string',
+  'style.padding': 'string',
+  'style.paddingBottom': 'string',
+  'style.paddingLeft': 'string',
+  'style.paddingRight': 'string',
+  'style.paddingTop': 'string',
+  'style.pageBreakAfter': 'string',
+  'style.pageBreakBefore': 'string',
+  'style.pointerEvents': 'string',
+  'style.position': 'string',
+  'style.shapeRendering': 'string',
+  'style.stopColor': 'string',
+  'style.stopOpacity': 'string',
+  'style.stroke': 'string',
+  'style.strokeDasharray': 'string',
+  'style.strokeDashoffset': 'string',
+  'style.strokeLinecap': 'string',
+  'style.strokeLinejoin': 'string',
+  'style.strokeMiterlimit': 'string',
+  'style.strokeOpacity': 'string',
+  'style.strokeWidth': 'string',
+  'style.textAlign': 'string',
+  'style.textAnchor': 'string',
+  'style.textDecoration': 'string',
+  'style.textDecorationBlink': 'string',
+  'style.textDecorationLineThrough': 'string',
+  'style.textDecorationNone': 'string',
+  'style.textDecorationOverline': 'string',
+  'style.textDecorationUnderline': 'string',
+  'style.textIndent': 'string',
+  'style.textRendering': 'string',
+  'style.textTransform': 'string',
+  'style.top': 'string',
+  'style.unicodeBidi': 'string',
+  'style.verticalAlign': 'string',
+  'style.visibility': 'string',
+  'style.width': 'string',
+  'style.wordSpacing': 'string',
+  'style.writingMode': 'string',
+  'style.zIndex': 'number',
+  'style.WebkitTapHighlightColor': 'string'
 }
 
 var HTML_STYLE_SHORTHAND_SCHEMA = {
-  backgroundColor: { typedef: 'string', fallback: '' }
+  backgroundColor: 'string'
 }
 
 var CONTROL_FLOW_SCHEMA = {
-  // 'controlFlow.if': { typedef: 'any', fallback: null },
-  // 'controlFlow.repeat': { typedef: 'any', fallback: null },
-  // 'controlFlow.yield': { typedef: 'any', fallback: null },
-  'controlFlow.insert': { typedef: 'any', fallback: null },
-  'controlFlow.placeholder': { typedef: 'any', fallback: null }
+  // 'controlFlow.if': 'any',
+  // 'controlFlow.repeat': 'any',
+  // 'controlFlow.yield': 'any',
+  'controlFlow.insert': 'any',
+  'controlFlow.placeholder': 'any'
 }
 
 module.exports = {

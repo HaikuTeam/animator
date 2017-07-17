@@ -7,7 +7,9 @@ var BasicUtils = require('./helpers/BasicUtils')
 var ColorUtils = require('./helpers/ColorUtils')
 var SVGPoints = require('./helpers/SVGPoints')
 var functionToRFO = require('./reflection/functionToRFO')
-var DOMProperties = require('./properties/dom/properties')
+var DOMSchema = require('./properties/dom/schema')
+var DOMFallbacks = require('./properties/dom/fallbacks')
+var HaikuHelpers = require('./HaikuHelpers')
 var assign = require('./vendor/assign')
 
 var FUNCTION = 'function'
@@ -147,7 +149,10 @@ if (typeof window !== 'undefined') {
         search: 'string'
       }
     },
-    summon: function (out, summonSpec) {
+    summon: function (injectees, summonSpec) {
+      if (!injectees.$window) injectees.$window = {}
+      var out = injectees.$window
+
       out.width = window.innerWidth
       out.height = window.innerHeight
       if (window.screen) {
@@ -220,7 +225,10 @@ if (typeof global !== 'undefined') {
         env: {} // Worth explicitly numerating these? #QUESTION
       }
     },
-    summon: function (out, summonSpec) {
+    summon: function (injectees, summonSpec) {
+      if (!injectees.$global) injectees.$global = {}
+      var out = injectees.$global
+
       if (typeof process !== 'undefined') {
         if (!out.process) out.process = {}
         out.process.pid = process.pid
@@ -270,7 +278,10 @@ INJECTABLES['$player'] = {
       }
     }
   },
-  summon: function (out, summonSpec, hostInstance, matchingElement, timelineName) {
+  summon: function (injectees, summonSpec, hostInstance, matchingElement, timelineName) {
+    if (!injectees.$player) injectees.$player = {}
+    var out = injectees.$player
+
     out.version = hostInstance._context.PLAYER_VERSION
     var options = hostInstance._context.config.options
     if (options) {
@@ -290,9 +301,9 @@ INJECTABLES['$player'] = {
       out.timeline.duration = timelineInstance.getDuration()
       out.timeline.repeat = timelineInstance.getRepeat()
       if (!out.timeline.time) out.timeline.time = {}
-      out.timeline.apparent = timelineInstance.getTime()
-      out.timeline.elapsed = timelineInstance.getElapsedTime()
-      out.timeline.max = timelineInstance.getMaxTime()
+      out.timeline.time.apparent = timelineInstance.getTime()
+      out.timeline.time.elapsed = timelineInstance.getElapsedTime()
+      out.timeline.time.max = timelineInstance.getMaxTime()
       if (!out.timeline.frame) out.timeline.frame = {}
       out.timeline.frame.apparent = timelineInstance.getFrame()
       out.timeline.frame.elapsed = timelineInstance.getUnboundedFrame()
@@ -337,47 +348,144 @@ var EVENT_SCHEMA = {
 var ELEMENT_SCHEMA = {
   // A function in the schema indicates that schema is dynamic, dependent on some external information
   properties: function (element) {
-    var defined = DOMProperties[element.elementName]
+    var defined = DOMSchema[element.elementName]
     if (!defined) {
-      console.warn('[haiku player] element ' + element.elementName + ' has no properties defined')
+      console.warn('[haiku player] element ' + element.elementName + ' has no schema defined')
       return {}
     }
-    if (!defined.addressableProperties) {
-      console.warn('[haiku player] element ' + element.elementName + ' has no addressable properties defined')
-      return {}
+    return defined
+  }
+
+  // TODO
+  // bbox: {
+  //   x: 'number',
+  //   y: 'number',
+  //   width: 'number',
+  //   height: 'number'
+  // },
+
+  // TODO
+  // events: EVENT_SCHEMA
+}
+
+function assignElementInjectables (obj, key, summonSpec, hostInstance, element) {
+  // If for some reason no element, nothing to do
+  if (!element) {
+    return {}
+  }
+
+  obj[key] = {}
+  var out = obj[key]
+
+  var fallbacks = DOMFallbacks[element.elementName]
+  if (!fallbacks) {
+    console.warn('[haiku player] element ' + element.elementName + ' has no fallbacks defined')
+    return {}
+  }
+
+  out.properties = {}
+
+  out.properties.name = element.elementName
+  out.properties.attributes = element.attributes
+
+  if (element.layout.computed) {
+    out.properties.matrix = element.layout.computed.matrix
+    out.properties.size = element.layout.computed.size
+  }
+
+  out.properties.align = element.layout.align
+  out.properties.mount = element.layout.mount
+  out.properties.opacity = element.layout.opacity
+  out.properties.origin = element.layout.origin
+  out.properties.rotation = element.layout.rotation
+  out.properties.scale = element.layout.scale
+  out.properties.shown = element.layout.shown
+  out.properties.sizeAbsolute = element.layout.sizeAbsolute
+  out.properties.sizeDifferential = element.layout.sizeDifferential
+  out.properties.sizeMode = element.layout.sizeMode
+  out.properties.sizeProportional = element.layout.sizeProportional
+  out.properties.translation = element.layout.translation
+
+  // TODO
+  // out.bbox = hostInstance._context.getElementBBox(element)
+
+  // TODO
+  // out.events = hostInstance._context.getElementEvents(element)
+}
+
+INJECTABLES['$tree'] = {
+  schema: {
+    // Unique to $tree
+    parent: ELEMENT_SCHEMA,
+    children: [ELEMENT_SCHEMA],
+    siblings: [ELEMENT_SCHEMA],
+    // Aliases for convenience
+    component: ELEMENT_SCHEMA,
+    root: ELEMENT_SCHEMA, // root at runtime
+    element: ELEMENT_SCHEMA // same as $element
+  },
+  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+    if (!injectees.$tree) injectees.$tree = {}
+
+    injectees.$tree.siblings = [] // Provide an array even if no siblings in case user tries to access
+
+    injectees.$tree.parent = null
+
+    if (matchingElement.__parent) {
+      assignElementInjectables(injectees.$tree, 'parent', summonSpec.$tree && summonSpec.$tree.parent, hostInstance, matchingElement.__parent)
+
+      for (var i = 0; i < matchingElement.__parent.children.length; i++) {
+        var sibling = matchingElement.__parent.children[i]
+        var subspec1 = summonSpec.$tree && summonSpec.$tree.siblings && summonSpec.$tree.siblings[j]
+        assignElementInjectables(injectees.$tree.siblings, i, subspec1, hostInstance, sibling)
+      }
     }
-    var addressables = defined.addressableProperties
-    var properties = {}
-    for (var key in addressables) {
-      // Right now the addressable.typedefs known in the addressables file are either number, string, or any.
-      // I.e. No 'object' or 'array' types but we may find them in the future and need to conver them into [], {}
-      properties[key] = addressables[key].typedef
+
+    injectees.$tree.children = [] // Provide an array even if no children in case user tries to access
+
+    if (matchingElement.children) {
+      for (var j = 0; j < matchingElement.children.length; j++) {
+        var child = matchingElement.children[j]
+        var subspec2 = summonSpec.$tree && summonSpec.$tree.children && summonSpec.$tree.children[j]
+        assignElementInjectables(injectees.$tree.children, j, subspec2, hostInstance, child)
+      }
     }
-    return properties
-  },
-  bbox: {
-    x: 'number',
-    y: 'number',
-    width: 'number',
-    height: 'number'
-  },
-  rect: {
-    left: 'number',
-    right: 'number',
-    top: 'number',
-    bottom: 'number',
-    width: 'number',
-    height: 'number'
-  },
-  events: EVENT_SCHEMA
+
+    // May as well make use of the implementation we have for the aliases,
+    // and avoid recalc if it's already been added:
+
+    if (!injectees.$component) {
+      INJECTABLES['$component'].summon(injectees, summonSpec, hostInstance, matchingElement)
+    }
+
+    injectees.$tree.component = injectees.$component
+
+    if (!injectees.$root) {
+      INJECTABLES['$root'].summon(injectees, summonSpec, hostInstance, matchingElement)
+    }
+
+    injectees.$tree.root = injectees.$root
+
+    if (!injectees.$element) {
+      INJECTABLES['$element'].summon(injectees, summonSpec, hostInstance, matchingElement)
+    }
+
+    injectees.$tree.element = injectees.$element
+  }
 }
 
 // (top-level Element of a given component, (i.e. tranverse tree upward past groups but
 // stop at first component definition))
 INJECTABLES['$component'] = {
   schema: ELEMENT_SCHEMA,
-  summon: function (out, summonSpec, hostInstance, matchingElement) {
-
+  summon: function (injectees, summonSpec, hostInstance) {
+    // Don't double-recalc this if it's already shown to be present in $tree
+    if (injectees.$tree && injectees.$tree.component) {
+      injectees.$component = injectees.$tree.component
+    } else {
+      // Remove this short-circuit condition when we rupport $root as its own thing
+      assignElementInjectables(injectees, '$component', summonSpec.$component || summonSpec.$root, hostInstance, hostInstance._getTopLevelElement())
+    }
   }
 }
 
@@ -386,29 +494,40 @@ INJECTABLES['$component'] = {
 // $root will be the same as $component
 INJECTABLES['$root'] = {
   schema: ELEMENT_SCHEMA,
-  summon: function (out, summonSpec, hostInstance, matchingElement) {
-
-  }
-}
-
-INJECTABLES['$tree'] = {
-  schema: {
-    parent: ELEMENT_SCHEMA,
-    children: [ELEMENT_SCHEMA],
-    siblings: [ELEMENT_SCHEMA],
-    component: ELEMENT_SCHEMA,
-    root: ELEMENT_SCHEMA, // root at runtime
-    element: ELEMENT_SCHEMA // same as $element
-  },
-  summon: function (out, summonSpec, hostInstance, matchingElement) {
-
+  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+    // Don't double-recalc this if it's already shown to be present in $tree
+    if (injectees.$tree && injectees.$tree.root) {
+      injectees.$root = injectees.$tree.root
+    } else {
+      // Until we support nested components, $root resolves to $component
+      INJECTABLES['$component'].summon(injectees, summonSpec, hostInstance, matchingElement)
+    }
   }
 }
 
 INJECTABLES['$element'] = {
   schema: ELEMENT_SCHEMA,
-  summon: function (out, summonSpec, hostInstance, matchingElement) {
+  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+    // Don't double-recalc this if it's already shown to be present in $tree
+    if (injectees.$tree && injectees.$tree.element) {
+      injectees.$element = injectees.$tree.element
+    } else {
+      assignElementInjectables(injectees, '$element', summonSpec.$element, hostInstance, matchingElement)
+    }
+  }
+}
 
+INJECTABLES['$user'] = {
+  schema: assign({}, EVENT_SCHEMA, {
+    idle: 'number' // time without any new event
+  }),
+  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+    if (!injectees.$user) injectees.$user = {}
+    var out = injectees.$user
+    var user = hostInstance._context._getGlobalUserState()
+    for (var key in user) {
+      out[key] = user[key]
+    }
   }
 }
 
@@ -438,37 +557,32 @@ INJECTABLES['$flow'] = {
       node: 'any' // The injected element?
     }
   },
-  summon: function (out, summonSpec, hostInstance, matchingElement) {
-
+  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+    // if (!injectees.$flow) injectees.$flow = {}
+    // var out = injectees.$flow
   }
 }
 
-INJECTABLES['$user'] = {
-  schema: assign({}, EVENT_SCHEMA, {
-    idle: 'number' // time without any new event
-  }),
-  summon: function (out, summonSpec, hostInstance, matchingElement) {
-
+INJECTABLES['$helpers'] = {
+  schema: HaikuHelpers.schema,
+  summon: function (injectees) {
+    injectees.$helpers = HaikuHelpers.helpers
   }
 }
-
-// * **$helpers**
-//     * _ (side-effect-free lodash subset)
-//     * **random** (can init/config w/ seed)
-//     * **time** (alias date, alias datetime — probably use momentjs or similar for API niceness)
-//         * now
-//         * today
-//     * [FUTURE:  'registerHelper” from lifecycle events]
-// INJECTABLES['$helpers'] = {
-//   summon: function (out, summonSpec, hostInstance, matchingElement) {
-
-//   }
-// }
 
 function ValueBuilder (component) {
   this._component = component // ::HaikuComponent
   this._parsees = {}
   this._changes = {}
+
+  HaikuHelpers.register('now', function _helperNow () {
+    return this._component._context.getDeterministicTime()
+  }.bind(this))
+
+  HaikuHelpers.register('rand', function _helperRand () {
+    // prng seeded at the HaikuContext level
+    return this._component._context.getDeterministicRand()
+  }.bind(this))
 }
 
 ValueBuilder.prototype._clearCaches = function _clearCaches () {
@@ -574,12 +688,9 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
     // If a special summonable has been defined, then call its summoner function
     // Note the lower-case - allow lo-coders to comfortably call say $FRAME and $frame and get the same thing back
     if (INJECTABLES[key.toLowerCase()]) {
-      // We'll create the object to be populated. This is to make a future optimization easier for avoiding garbage.
-      if (!summonables[key]) summonables[key] = {}
-
       // But don't lowercase the assignment - otherwise the object destructuring won't work!!!
       INJECTABLES[key].summon(
-        summonables[key], // <~ This arg is populated with the data; it is the var 'out' in the summon function
+        summonables, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they key must be added
         summons[key],
         hostInstance,
         matchingElement,

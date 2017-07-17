@@ -42,6 +42,10 @@ function HaikuComponent (bytecode, context, config) {
     throw new Error('Bytecode must define template')
   }
 
+  if (!context) {
+    throw new Error('Component requires a context')
+  }
+
   if (!config.options) {
     throw new Error('Config options required')
   }
@@ -346,6 +350,10 @@ HaikuComponent.prototype._getInjectables = function _getInjectables (element) {
   return injectables
 }
 
+HaikuComponent.prototype._getTopLevelElement = function _getTopLevelElement () {
+  return this._template
+}
+
 /**
  * TODO:
  * Implement the methods commented out below
@@ -621,6 +629,10 @@ HaikuComponent.prototype.render = function render (container, renderOptions) {
   this._needsFullFlush = false
 
   return this._lastTemplateExpansion
+}
+
+HaikuComponent.prototype._findElementsByHaikuId = function _findElementsByHaikuId (componentId) {
+  return _findMatchingElementsByCssSelector('haiku:' + componentId, this._template, this._matchedElementCache)
 }
 
 function _applyBehaviors (

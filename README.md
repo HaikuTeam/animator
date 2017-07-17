@@ -29,8 +29,8 @@ Warning: Haiku Player is in beta. Expect breaking changes to occur frequently an
 Here is a "Hello World" for playing a component in a web page:
 
     var HaikuContext = require('@haiku/player')
-    var HaikuDOMRenderer = require('@haiku/player/renderers/dom')
-    var HaikuComponentFactory = HaikuContext.createComponentFactory(HaikuDOMRenderer, {
+    var HaikuDOMRendererClass = require('@haiku/player/renderers/dom')
+    var HaikuComponentFactory = HaikuContext.createComponentFactory(HaikuDOMRendererClass, {
       template: { elementName: 'div', attributes: {}, children: ["Hello World"] }
     })
     var component = HaikuComponentFactory(document.getElementById('mount'))
