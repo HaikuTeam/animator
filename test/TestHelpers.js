@@ -10,7 +10,7 @@ function createDOM (cb) {
   var win = doc.defaultView
   global.document = doc
   global.window = win
-  for (let key in win) {
+  for (var key in win) {
     if (!win.hasOwnProperty(key)) continue
     if (key in global) continue
     global[key] = window[key]
