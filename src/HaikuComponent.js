@@ -225,8 +225,8 @@ HaikuComponent.prototype._clearCaches = function _clearCaches () {
   this._builder._clearCaches()
 
   // TODO: Do we _need_ to reach in and clear the caches of context?
-  this._context.config.options.caches = {}
-  this.config.options.caches = {}
+  this._context.config.options.cache = {}
+  this.config.options.cache = {}
 
   return this
 }
