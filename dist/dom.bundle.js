@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.18",
+  "version": "2.1.19",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -9770,8 +9770,8 @@ module.exports = createTextNode
 
 },{}],61:[function(_dereq_,module,exports){
 function getDomEventPosition (event, doc) {
-  let x = -1
-  let y = -1
+  var x = -1
+  var y = -1
   if (event.pageX || event.pageY) {
     x = event.pageX
     y = event.pageY
