@@ -596,9 +596,9 @@ ValueBuilder.prototype._clearCaches = function _clearCaches () {
 
 ValueBuilder.prototype._clearCachedClusters = function _clearCachedClusters (
   timelineName,
-  flexId
+  componentId
 ) {
-  if (this._parsees[timelineName]) this._parsees[timelineName][flexId] = {}
+  if (this._parsees[timelineName]) this._parsees[timelineName][componentId] = {}
   return this
 }
 
@@ -968,7 +968,8 @@ ValueBuilder.prototype.grabValue = function _grabValue (
   timelineTime,
   haikuComponent,
   isPatchOperation,
-  skipCache
+  skipCache,
+  clearSortedKeyframesCache
 ) {
   var parsedValueCluster = this.fetchParsedValueCluster(
     timelineName,
@@ -985,6 +986,10 @@ ValueBuilder.prototype.grabValue = function _grabValue (
   // since it expects to receive a populated cluster object
   if (!parsedValueCluster) {
     return undefined
+  }
+
+  if (clearSortedKeyframesCache) {
+    delete parsedValueCluster.__sorted
   }
 
   var computedValueForTime
