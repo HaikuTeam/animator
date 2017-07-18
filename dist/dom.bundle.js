@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.17",
+  "version": "2.1.18",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -203,7 +203,9 @@ module.exports={
   "repository": "https://github.com/HaikuTeam/player",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test:unit",
+    "test": "npm run test:unit && npm run test:api && npm run test:perf",
+    "test:perf": "tape \"test/perf/**/*.test.js\" | tap-spec || true",
+    "test:api": "tape \"test/api/**/*.test.js\" | tap-spec || true",
     "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
     "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true",
     "prettify": "prettier-standard \"{,!(node_modules|dist)/**/}*.js\"",
@@ -218,6 +220,7 @@ module.exports={
   ],
   "license": "LicenseRef-LICENSE",
   "devDependencies": {
+    "async": "^2.5.0",
     "browserify": "^14.1.0",
     "browserify-transform-tools": "^1.7.0",
     "express": "4.14.1",
@@ -332,7 +335,11 @@ var DEFAULTS = {
 
     // useWebkitPrefix: boolean
     // Whether to prepend a webkit prefix to transform properties
-    useWebkitPrefix: void (0)
+    useWebkitPrefix: void (0),
+
+    // cache: object
+    // General purpose cache to use in rendering
+    cache: {}
   },
 
   // states: Object|null
@@ -378,7 +385,22 @@ function _build () {
     if (incoming.onHaikuComponentWillUnmount) config.onHaikuComponentWillUnmount = incoming.onHaikuComponentWillUnmount
 
     if (incoming.options) config.options = assign({}, config.options, incoming.options)
+
+    // Hoist any 'options' that might have been passed at the root level up into 'options'
+    // e.g. { loop: true } -> { options: { loop: true } }
+    for (var key in incoming) {
+      if (incoming[key] !== undefined && DEFAULTS.options.hasOwnProperty(key)) {
+        config.options[key] = incoming[key]
+      }
+    }
+
     if (incoming.states) config.states = assign({}, config.states, incoming.states)
+
+    // For semantic purposes, also allow 'initialStates' to be passed in
+    if (incoming.initialStates && typeof incoming.initialStates === 'object') {
+      assign(config.states, incoming.initialStates)
+    }
+
     if (incoming.eventHandlers) config.eventHandlers = assign({}, config.eventHandlers, incoming.eventHandlers)
     if (incoming.timelines) config.timelines = assign({}, config.timelines, incoming.timelines)
     if (incoming.vanities) config.vanities = assign({}, config.vanities, incoming.vanities)
@@ -395,7 +417,8 @@ Config.seed = _seed
 
 module.exports = Config
 
-},{"./vendor/assign":78}],4:[function(_dereq_,module,exports){
+},{"./vendor/assign":81}],4:[function(_dereq_,module,exports){
+(function (global){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -420,8 +443,44 @@ var DEFAULT_OPTIONS = {
   marginOfErrorForDelta: 1.0
 }
 
+// We need a global harness so we can have a single rAF loop even if we've got multiple Haiku Contexts on the same page
+var MAIN
+if (typeof window !== 'undefined') { // Window gets highest precedence since most likely we're running in DOM
+  MAIN = window
+} else if (typeof global !== 'undefined') {
+  MAIN = global
+} else {
+  // On the off-chance there is no real global, just use the clock class, even though that may mean we have multiple loops
+  MAIN = HaikuClock
+}
+
+// The global animation harness is a *singleton* so we don't want to create new ones even if this is reloaded
+if (!MAIN.HaikuGlobalAnimationHarness) {
+  MAIN.HaikuGlobalAnimationHarness = {}
+  MAIN.HaikuGlobalAnimationHarness.queue = [] // Just an array of functions to call on every rAF tick
+  // The main frame function, loops through all those who need an animation tick and calls them
+  MAIN.HaikuGlobalAnimationHarness.frame = function HaikuGlobalAnimationHarnessFrame () {
+    var queue = MAIN.HaikuGlobalAnimationHarness.queue
+    var length = queue.length
+    for (var i = 0; i < length; i++) {
+      queue[i]()
+    }
+    MAIN.HaikuGlobalAnimationHarness.raf = raf(MAIN.HaikuGlobalAnimationHarness.frame)
+  }
+  // Need a mechanism to cancel the rAF loop otherwise some contexts (e.g. tests) will have leaked handles
+  MAIN.HaikuGlobalAnimationHarness.cancel = function HaikuGlobalAnimationHarnessCancel () {
+    if (MAIN.HaikuGlobalAnimationHarness.raf) {
+      raf.cancel(MAIN.HaikuGlobalAnimationHarness.raf)
+    }
+  }
+  // Trigger the loop to start; we'll push frame functions into its queue later
+  MAIN.HaikuGlobalAnimationHarness.frame()
+}
+
 function HaikuClock (tickables, component, options) {
-  if (!(this instanceof HaikuClock)) return new HaikuClock(component)
+  if (!(this instanceof HaikuClock)) {
+    return new HaikuClock(tickables, component, options)
+  }
 
   SimpleEventEmitter.create(this)
 
@@ -433,8 +492,11 @@ function HaikuClock (tickables, component, options) {
   this._isRunning = false
   this._reinitialize()
 
-  this._raf = null // We'll create our raf function on our first run of our loop
-  this.run = this.run.bind(this) // Bind to avoid `this`-detachment when called by raf
+   // Bind to avoid `this`-detachment when called by raf
+  MAIN.HaikuGlobalAnimationHarness.queue.push(this.run.bind(this))
+
+  // Tests and others may need this to cancel the rAF loop, to avoid leaked handles
+  this.GLOBAL_ANIMATION_HARNESS = MAIN.HaikuGlobalAnimationHarness
 }
 
 HaikuClock.prototype._reinitialize = function _reinitialize () {
@@ -485,13 +547,6 @@ HaikuClock.prototype.run = function run () {
     }
   }
 
-  // Queue up the next animation frame loop
-  this._raf = raf(this.run)
-  return this
-}
-
-HaikuClock.prototype._cancelRaf = function _cancelRaf () {
-  if (this._raf) raf.cancel(this._raf)
   return this
 }
 
@@ -573,7 +628,8 @@ HaikuClock.prototype.getFrameDuration = function getFrameDuration () {
 
 module.exports = HaikuClock
 
-},{"./helpers/SimpleEventEmitter":16,"./vendor/assign":78,"./vendor/raf":131}],5:[function(_dereq_,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./helpers/SimpleEventEmitter":18,"./vendor/assign":81,"./vendor/raf":134}],5:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -616,6 +672,10 @@ function HaikuComponent (bytecode, context, config) {
 
   if (!bytecode.template) {
     throw new Error('Bytecode must define template')
+  }
+
+  if (!context) {
+    throw new Error('Component requires a context')
   }
 
   if (!config.options) {
@@ -711,8 +771,13 @@ HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, sk
     var timelineInstance = timelineInstances[timelineName]
     if (this.config.options.autoplay) {
       if (timelineName === DEFAULT_TIMELINE_NAME) {
-        // Assume we want to start the timeline from the beginning upon remount
-        timelineInstance.play()
+        // Assume we want to start the timeline from the beginning upon remount.
+        // NOTE:
+        // timeline.play() will normally trigger _markForFullFlush because it assumes we need to render
+        // from the get-go. However, in case of a callRemount, we might not want to do that since it can be kind of
+        // like running the first frame twice. So we pass the option into play so it can conditionally skip the
+        // _markForFullFlush step.
+        timelineInstance.play({ skipMarkForFullFlush: skipMarkForFullFlush })
       }
     } else {
       timelineInstance.pause()
@@ -790,6 +855,12 @@ HaikuComponent.prototype._clearCaches = function _clearCaches () {
   this._clearDetectedEventsFired()
   this._clearDetectedInputChanges()
   this._builder._clearCaches()
+
+  // TODO: Do we _need_ to reach in and clear the caches of context?
+  this._context.config.options.cache = {}
+  this.config.options.cache = {}
+
+  return this
 }
 
 HaikuComponent.prototype.getClock = function getClock () {
@@ -894,6 +965,25 @@ HaikuComponent.prototype.getBytecode = function getBytecode () {
 
 HaikuComponent.prototype._getRenderScopes = function _getRenderScopes () {
   return this._renderScopes
+}
+
+HaikuComponent.prototype._getInjectables = function _getInjectables (element) {
+  var injectables = {}
+
+  assign(injectables, this._builder._getSummonablesSchema(element))
+
+  // Local states get precedence over global summonables, so assign them last
+  for (var key in this._states) {
+    var type = this._states[key].type
+    if (!type) type = typeof this._states[key]
+    injectables[key] = type
+  }
+
+  return injectables
+}
+
+HaikuComponent.prototype._getTopLevelElement = function _getTopLevelElement () {
+  return this._template
 }
 
 /**
@@ -1173,64 +1263,103 @@ HaikuComponent.prototype.render = function render (container, renderOptions) {
   return this._lastTemplateExpansion
 }
 
-function _accumulateEventHandlers (out, component) {
-  if (component._bytecode.eventHandlers) {
-    for (var eventSelector in component._bytecode.eventHandlers) {
-      var eventHandlerGroup = component._bytecode.eventHandlers[eventSelector]
-      for (var eventName in eventHandlerGroup) {
-        var eventHandlerSpec = eventHandlerGroup[eventName]
-        eventHandlerSpec.handler.__handler = true
-        if (!out[eventSelector]) out[eventSelector] = {}
-        out[eventSelector][eventName] = eventHandlerSpec.handler
-      }
-    }
-  }
+HaikuComponent.prototype._findElementsByHaikuId = function _findElementsByHaikuId (componentId) {
+  return _findMatchingElementsByCssSelector('haiku:' + componentId, this._template, this._matchedElementCache)
 }
 
-function _applyAccumulatedResults (
-  results,
+function _applyBehaviors (
+  timelinesRunning,
   deltas,
   component,
   template,
-  context
+  context,
+  isPatchOperation
 ) {
-  for (var selector in results) {
-    var matches = _findMatchingElementsByCssSelector(
-      selector,
-      template,
-      component._matchedElementCache
-    )
+  // We shouldn't need to add event handlers for patch operations since theoretically that same listener
+  // would remain a constant throughout the lifetime of the component
+  if (!isPatchOperation) {
+    // Associate any event handlers with the elements matched
+    if (component._bytecode.eventHandlers) {
+      for (var eventSelector in component._bytecode.eventHandlers) {
+        var matchingElementsForEvents = _findMatchingElementsByCssSelector(
+          eventSelector,
+          template,
+          component._matchedElementCache
+        )
 
-    if (!matches || matches.length < 1) {
-      continue
+        if (!matchingElementsForEvents || matchingElementsForEvents.length < 1) {
+          continue
+        }
+
+        var eventHandlerGroup = component._bytecode.eventHandlers[eventSelector]
+
+        for (var k = 0; k < matchingElementsForEvents.length; k++) {
+          for (var eventName in eventHandlerGroup) {
+            var eventHandlerSpec = eventHandlerGroup[eventName]
+            _applyHandlerToElement(matchingElementsForEvents[k], eventName, eventHandlerSpec.handler, context, component)
+          }
+        }
+      }
     }
+  }
 
-    var group = results[selector]
+  // Apply any behaviors to the element
+  for (var i = 0; i < timelinesRunning.length; i++) {
+    var timelineInstance = timelinesRunning[i]
+    var timelineName = timelineInstance.getName()
+    var timelineTime = timelineInstance.getBoundedTime()
+    var timelineDescriptor = component._bytecode.timelines[timelineName]
 
-    for (var j = 0; j < matches.length; j++) {
-      var match = matches[j]
+    for (var behaviorSelector in timelineDescriptor) {
+      var propertiesGroup = timelineDescriptor[behaviorSelector]
 
-      var domId = match && match.attributes && match.attributes.id
-      var haikuId =
-        match && match.attributes && match.attributes[HAIKU_ID_ATTRIBUTE]
-      var flexibleId = haikuId || domId
-
-      if (deltas && flexibleId) {
-        deltas[flexibleId] = match
+      if (!propertiesGroup) {
+        continue
       }
 
-      // [#LEGACY?]
-      if (group.transform) {
-        match.__transformed = true
+      var matchingElementsForBehavior = _findMatchingElementsByCssSelector(
+        behaviorSelector,
+        template,
+        component._matchedElementCache
+      )
+
+      if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
+        continue
       }
 
-      for (var key in group) {
-        var value = group[key]
-        // The value may either be a handler (event handler) function, or just a normal value
-        if (value && value.__handler) {
-          _applyHandlerToElement(match, key, value, context, component)
-        } else {
-          _applyPropertyToElement(match, key, value, context, component)
+      for (var j = 0; j < matchingElementsForBehavior.length; j++) {
+        var matchingElement = matchingElementsForBehavior[j]
+        var domId = matchingElement && matchingElement.attributes && matchingElement.attributes.id
+        var haikuId = matchingElement && matchingElement.attributes && matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
+        var flexId = haikuId || domId
+
+        // If assembledOutputs is undefined that's supposed to mean that there is nothing changed
+        var assembledOutputs = component._builder.build(
+          {}, // We provide an object onto which outputs are placed
+          timelineName,
+          timelineTime,
+          flexId,
+          matchingElement,
+          propertiesGroup,
+          isPatchOperation,
+          component
+        )
+
+        // [#LEGACY?]
+        if (assembledOutputs && assembledOutputs.transform) {
+          matchingElement.__transformed = true
+        }
+
+        // If assembledOutputs is empty, that is a signal that nothing changed
+        if (assembledOutputs && deltas && flexId) {
+          deltas[flexId] = matchingElement
+        }
+
+        if (assembledOutputs) {
+          for (var behaviorKey in assembledOutputs) {
+            var behaviorValue = assembledOutputs[behaviorKey]
+            _applyPropertyToElement(matchingElement, behaviorKey, behaviorValue, context, component)
+          }
         }
       }
     }
@@ -1248,31 +1377,18 @@ function _gatherDeltaPatches (
   inputsChanged,
   patchOptions
 ) {
-  var deltas = {} // This is what we're going to return - a dictionary of ids to elements
-
-  var results = {} // This is where we'll accumulate changes - to apply to elements before returning the dictionary
-
-  var bytecode = component._bytecode
-
-  for (var i = 0; i < timelinesRunning.length; i++) {
-    var timeline = timelinesRunning[i]
-    var time = timeline.getBoundedTime()
-
-    component._builder.build(
-      results,
-      timeline.getName(),
-      time,
-      bytecode.timelines,
-      true,
-      states,
-      eventsFired,
-      inputsChanged
-    )
-  }
-
   Layout3D.initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing in the first place
 
-  _applyAccumulatedResults(results, deltas, component, template, context)
+  var deltas = {} // This is what we're going to return - a dictionary of ids to elements
+
+  _applyBehaviors(
+    timelinesRunning,
+    deltas,
+    component,
+    template,
+    context,
+    true // isPatchOperation
+  )
 
   if (patchOptions.sizing) {
     _computeAndApplyPresetSizing(
@@ -1301,20 +1417,15 @@ function _applyContextChanges (
   context,
   renderOptions
 ) {
-  var results = {} // We'll accumulate changes in this object and apply them to the tree
-
-  _accumulateEventHandlers(results, component)
-
-  var bytecode = component._bytecode
-
-  if (bytecode.timelines) {
-    for (var timelineName in bytecode.timelines) {
+  var timelinesRunning = []
+  if (component._bytecode.timelines) {
+    for (var timelineName in component._bytecode.timelines) {
       var timeline = component.getTimeline(timelineName)
       if (!timeline) continue
-
       // No need to execute behaviors on timelines that aren't active
-      if (!timeline.isActive()) continue
-
+      if (!timeline.isActive()) {
+        continue
+      }
       if (timeline.isFinished()) {
         // For any timeline other than the default, shut it down if it has gone past
         // its final keyframe. The default timeline is a special case which provides
@@ -1323,17 +1434,7 @@ function _applyContextChanges (
           continue
         }
       }
-
-      var time = timeline.getBoundedTime()
-
-      component._builder.build(
-        results,
-        timelineName,
-        time,
-        bytecode.timelines,
-        false,
-        inputs
-      )
+      timelinesRunning.push(timeline)
     }
   }
 
@@ -1341,13 +1442,13 @@ function _applyContextChanges (
 
   scopifyElements(template) // I think this only needs to happen once when we build the full tree
 
-  _applyAccumulatedResults(
-    results,
+  _applyBehaviors(
+    timelinesRunning,
     null,
     component,
     template,
     context,
-    component
+    false // isPatchOperation
   )
 
   if (renderOptions.sizing) {
@@ -1726,7 +1827,7 @@ function _isComponent (thing) {
 
 module.exports = HaikuComponent
 
-},{"./../package.json":2,"./Config":3,"./HaikuTimeline":7,"./Layout3D":8,"./ValueBuilder":10,"./helpers/SimpleEventEmitter":16,"./helpers/cssQueryTree":26,"./helpers/scopifyElements":31,"./helpers/upgradeBytecodeInPlace":32,"./properties/dom/vanities":43,"./vendor/assign":78}],6:[function(_dereq_,module,exports){
+},{"./../package.json":2,"./Config":3,"./HaikuTimeline":8,"./Layout3D":9,"./ValueBuilder":11,"./helpers/SimpleEventEmitter":18,"./helpers/cssQueryTree":28,"./helpers/scopifyElements":33,"./helpers/upgradeBytecodeInPlace":34,"./properties/dom/vanities":45,"./vendor/assign":81}],6:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -1735,6 +1836,7 @@ var assign = _dereq_('./vendor/assign')
 var HaikuClock = _dereq_('./HaikuClock')
 var HaikuComponent = _dereq_('./HaikuComponent')
 var Config = _dereq_('./Config')
+var PRNG = _dereq_('./helpers/PRNG')
 
 var PLAYER_VERSION = _dereq_('./../package.json').version
 
@@ -1749,21 +1851,60 @@ var DEFAULT_TIMELINE_NAME = 'Default'
  * A Haiku component tree may contain many components, but there is only one context.
  * The context is where information shared by all components in the tree should go, e.g. clock time.
  */
-function HaikuContext (bytecode, config, tickable) {
+function HaikuContext (mount, renderer, platform, bytecode, config) {
   if (!(this instanceof HaikuContext)) {
-    return new HaikuContext(bytecode, config)
+    return new HaikuContext(mount, renderer, platform, bytecode, config)
+  }
+
+  if (!renderer) {
+    throw new Error('Context requires a renderer')
+  }
+
+  if (!bytecode) {
+    throw new Error('Context requires bytecode')
   }
 
   this.PLAYER_VERSION = PLAYER_VERSION
 
+  this._prng = null // Instantiated as part of the assignConfig step
   this.assignConfig(config || {})
+
+  this._mount = mount
+
+  if (!this._mount) {
+    console.info('[haiku player] mount not provided so running in headless mode')
+  }
+
+  // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
+  if (this._mount && !this._mount.haiku) {
+    this._mount.haiku = {
+      context: this
+    }
+  }
+
+  this._renderer = renderer
+
+  // Initialize sets up top-level dom listeners so we don't run it if we don't have a mount
+  if (this._mount && this._renderer.initialize) {
+    this._renderer.initialize(this._mount)
+  }
+
+  this._platform = platform
+
+  if (!this._platform) {
+    console.warn('[haiku player] no platform (e.g. window) provided; some features may be unavailable')
+  }
+
+  this._index = HaikuContext.contexts.push(this) - 1
+  this._address = COMPONENT_GRAPH_ADDRESS_PREFIX + this._index
 
   // List of tickable objects managed by this context. These are invoked on every clock tick.
   // These are removed when context unmounts and re-added in case of re-mount
   this._tickables = []
-  if (tickable) {
-    this._tickables.push(tickable)
-  }
+
+  // Our own tick method is the main driver for animation inside of this context
+  this._tickables.push({ performTick: this.tick.bind(this) })
+
   if (this.config.options.frame) {
     this._tickables.push({ performTick: this.config.options.frame })
   }
@@ -1776,6 +1917,44 @@ function HaikuContext (bytecode, config, tickable) {
   this.component = new HaikuComponent(bytecode, this, this.config)
 
   this.component.startTimeline(DEFAULT_TIMELINE_NAME)
+
+  // If configured, bootstrap the Haiku right-click context menu
+  if (this._mount && this._renderer.menuize && this.config.options.contextMenu !== 'disabled') {
+    this._renderer.menuize(this._mount, this.component)
+  }
+
+  // Don't set up mixpanel if we're running on localhost since we don't want test data to be tracked
+  // TODO: What other heuristics should we use to decide whether to use mixpanel or not?
+  if (
+    this._mount &&
+    this._platform &&
+    this._platform.location &&
+    this._platform.location.hostname !== 'localhost' &&
+    this._platform.location.hostname !== '0.0.0.0'
+  ) {
+    // If configured, initialize Mixpanel with the given API token
+    if (this._renderer.mixpanel && this.config.options.mixpanel) {
+      this._renderer.mixpanel(this._mount, this.config.options.mixpanel, this.component)
+    }
+  }
+
+  // Dictionary of ids-to-elements, for quick lookups.
+  // We hydrate this with elements as we render so we don't have to query the DOM
+  // to quickly load elements for patch-style rendering
+  this._hash = {
+    // Elements are stored in _arrays_ as opposed to singletons, since there could be more than one
+    // in case of edge cases or possibly for future implementation details around $repeat
+    // "abcde": [el, el]
+  }
+
+  // Just a counter for the number of clock ticks that have occurred; used to determine first-frame for mounting
+  this._ticks = 0
+
+  // Assuming the user wants the app to mount immediately (the default), let's do the mount.
+  if (this.config.options.automount) {
+    // Starting the clock has the effect of doing a render at time 0, a.k.a., mounting!
+    this.component.getClock().start()
+  }
 }
 
 // Keep track of all instantiated contexts; this is mainly exposed for convenience when debugging the engine,
@@ -1876,7 +2055,138 @@ HaikuContext.prototype.assignConfig = function assignConfig (config, options) {
     }
   }
 
+  // We assign this in the configuration step since if the seed changes we need a new prng.
+  this._prng = new PRNG(this.config.options.seed)
+
   return this
+}
+
+// Call to completely update the entire component tree - as though it were the first time
+HaikuContext.prototype.performFullFlushRender = function performFullFlushRender () {
+  if (!this._mount) {
+    return void (0)
+  }
+  var container = this._renderer.createContainer(this._mount)
+  var tree = this.component.render(container, this.config.options)
+  this._renderer.render(
+    this._mount,
+    container,
+    tree,
+    this._address,
+    this._hash,
+    this.config.options,
+    this.component._getRenderScopes()
+  )
+  return this
+}
+
+// Call to update elements of the this.component tree - but only those that we detect have changed
+HaikuContext.prototype.performPatchRender = function performPatchRender () {
+  if (!this._mount) {
+    return void (0)
+  }
+  var container = this._renderer.createContainer(this._mount)
+  var patches = this.component.patch(container, this.config.options)
+  this._renderer.patch(
+    this._mount,
+    container,
+    patches,
+    this._address,
+    this._hash,
+    this.config.options,
+    this.component._getRenderScopes()
+  )
+  return this
+}
+
+// Called on every frame, this function updates the mount+root elements to ensure their style settings are in accordance
+// with any passed-in haikuConfig.options that may affect it, e.g. CSS overflow or positioning settings
+HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles () {
+  if (!this._mount) {
+    return void (0)
+  }
+
+  // We can assume the mount has only one child since we only mount one component into it (#?)
+  var root = this._mount && this._mount.children[0]
+
+  if (root) {
+    if (this.config.options.position && root.style.position !== this.config.options.position) {
+      root.style.position = this.config.options.position
+    }
+    if (
+      this.config.options.overflowX &&
+      root.style.overflowX !== this.config.options.overflowX
+    ) {
+      root.style.overflowX = this.config.options.overflowX
+    }
+    if (
+      this.config.options.overflowY &&
+      root.style.overflowY !== this.config.options.overflowY
+    ) {
+      root.style.overflowY = this.config.options.overflowY
+    }
+  }
+
+  if (
+    this._mount &&
+    this.config.options.sizing === 'cover' &&
+    this._mount.style.overflow !== 'hidden'
+  ) {
+    this._mount.style.overflow = 'hidden'
+  }
+
+  return this
+}
+
+HaikuContext.prototype.tick = function tick () {
+  this.updateMountRootStyles()
+
+  var flushed = false
+
+  // After we've hydrated the tree the first time, we can proceed with patches --
+  // unless the component indicates it wants a full flush per its internal settings.
+  if (this.component._shouldPerformFullFlush() || this.config.options.forceFlush || this._ticks < 1) {
+    this.performFullFlushRender()
+
+    flushed = true
+  } else {
+    this.performPatchRender()
+  }
+
+  // Do any initialization that may need to occur if we happen to be on the very first tick
+  if (this._ticks < 1) {
+    // If this is the 0th (first) tick, notify anybody listening that we've mounted
+    // If we've already flushed, _don't_ request to trigger a re-flush (second arg)
+    this.component.callRemount(null, flushed)
+  }
+
+  this._ticks++
+
+  return this
+}
+
+/**
+ * @method getDeterministicRand
+ * @description Return a random number in the range [0,1].
+ * Unlike Math.random() this is deterministic, based on our seed number.
+ */
+HaikuContext.prototype.getDeterministicRand = function getDeterministicRand () {
+  return this._prng.random()
+}
+
+/**
+ * @method getDeterministicTime
+ * @description Return the current timestamp (Unicode) but based on our initial seeded value for 'timestamp'
+ * Ultimately this is exposed as the helper 'now'
+ */
+HaikuContext.prototype.getDeterministicTime = function getDeterministicTime () {
+  var runningTime = this.getClock().getRunningTime() // ms
+  var seededTime = this.config.options.timestamp
+  return seededTime + runningTime
+}
+
+HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState () {
+  return this._renderer && this._renderer.getUser && this._renderer.getUser()
 }
 
 /**
@@ -1885,13 +2195,13 @@ HaikuContext.prototype.assignConfig = function assignConfig (config, options) {
  * The created player runs using the passed-in renderer, bytecode, options, and platform.
  */
 HaikuContext.createComponentFactory = function createComponentFactory (
-  renderer,
+  RendererClass,
   bytecode,
   haikuConfigFromFactoryCreator,
   platform
 ) {
-  if (!renderer) {
-    throw new Error('A runtime `renderer` object is required')
+  if (!RendererClass) {
+    throw new Error('A runtime renderer class object is required')
   }
 
   if (!bytecode) {
@@ -1904,11 +2214,14 @@ HaikuContext.createComponentFactory = function createComponentFactory (
   }
 
   // Note that haiku Config may be passed at this level, or below at the factory invocation level.
-  var haikuConfig = Config.build(
+  var haikuConfigFromTop = Config.build(
     {
       options: {
         // The seed value should remain constant from here on, because it is used for PRNG
-        seed: Config.seed()
+        seed: Config.seed(),
+
+        // The now value is used to compute a current date with respect to the current time
+        timestamp: Date.now()
       }
     },
     // The bytecode itself may contain configuration for playback, etc., but is lower precedence than config passed in
@@ -1924,168 +2237,23 @@ HaikuContext.createComponentFactory = function createComponentFactory (
    * The (renderer, bytecode) pair are bootstrapped into the given mount element, and played.
    */
   function HaikuComponentFactory (mount, haikuConfigFromFactory) {
-    // Note that options may be passed at this leve, or above at the factory creation level.
-    haikuConfig = Config.build(haikuConfig, haikuConfigFromFactory)
+    // Merge any config received "late" with the config we might have already gotten during bootstrapping
+    var haikuConfigMerged = Config.build(haikuConfigFromTop, haikuConfigFromFactory)
 
     // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
     // an initialization/mounting issue when running in React.
-    var context = new HaikuContext(bytecode, haikuConfig, { performTick: tick })
-    var index = HaikuContext.contexts.push(context) - 1
-    var address = COMPONENT_GRAPH_ADDRESS_PREFIX + index
-
-    // The HaikuComponent is really the linchpin of the user's application, handling all the interesting stuff.
+    var renderer = new RendererClass()
+    var context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged)
     var component = context.getRootComponent()
-
-    if (!mount) {
-      console.info('[haiku player] mount not provided so running in headless mode')
-    }
-
-    // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
-    if (mount && !mount.haiku) {
-      mount.haiku = {
-        context: context
-      }
-    }
-
-    // If configured, bootstrap the Haiku right-click context menu
-    if (mount && renderer.menuize && haikuConfig.options.contextMenu !== 'disabled') {
-      renderer.menuize(mount, component)
-    }
-
-    // Don't set up mixpanel if we're running on localhost since we don't want test data to be tracked
-    // TODO: What other heuristics should we use to decide whether to use mixpanel or not?
-    if (
-      mount &&
-      platform &&
-      platform.location &&
-      platform.location.hostname !== 'localhost' &&
-      platform.location.hostname !== '0.0.0.0'
-    ) {
-      // If configured, initialize Mixpanel with the given API token
-      if (renderer.mixpanel && haikuConfig.options.mixpanel) {
-        renderer.mixpanel(mount, haikuConfig.options.mixpanel, component)
-      }
-    }
-
-    // Dictionary of ids-to-elements, for quick lookups.
-    // We hydrate this with elements as we render so we don't have to query the DOM
-    // to quickly load elements for patch-style rendering
-    var hash = {
-      // Elements are stored in _arrays_ as opposed to singletons, since there could be more than one
-      // in case of edge cases or possibly for future implementation details around $repeat
-      // "abcde": [el, el]
-    }
-
-    // Call to completely update the entire component tree - as though it were the first time
-    function performFullFlushRender () {
-      if (!mount) {
-        return void (0)
-      }
-      var container = renderer.createContainer(mount)
-      var tree = component.render(container, haikuConfig.options)
-      renderer.render(
-        mount,
-        container,
-        tree,
-        address,
-        hash,
-        haikuConfig.options,
-        component._getRenderScopes()
-      )
-    }
-
-    // Call to update elements of the component tree - but only those that we detect have changed
-    function performPatchRender () {
-      if (!mount) {
-        return void (0)
-      }
-      var container = renderer.createContainer(mount)
-      var patches = component.patch(container, haikuConfig.options)
-      renderer.patch(
-        mount,
-        container,
-        patches,
-        address,
-        hash,
-        haikuConfig.options,
-        component._getRenderScopes()
-      )
-    }
-
-    // Called on every frame, this function updates the mount+root elements to ensure their style settings are in accordance
-    // with any passed-in haikuConfig.options that may affect it, e.g. CSS overflow or positioning settings
-    function updateMountRootStyles () {
-      if (!mount) {
-        return void (0)
-      }
-      // We can assume the mount has only one child since we only mount one component into it (#?)
-      var mountRoot = mount && mount.children[0]
-      if (mountRoot) {
-        if (haikuConfig.options.position && mountRoot.style.position !== haikuConfig.options.position) {
-          mountRoot.style.position = haikuConfig.options.position
-        }
-        if (
-          haikuConfig.options.overflowX &&
-          mountRoot.style.overflowX !== haikuConfig.options.overflowX
-        ) {
-          mountRoot.style.overflowX = haikuConfig.options.overflowX
-        }
-        if (
-          haikuConfig.options.overflowY &&
-          mountRoot.style.overflowY !== haikuConfig.options.overflowY
-        ) {
-          mountRoot.style.overflowY = haikuConfig.options.overflowY
-        }
-      }
-      if (
-        mount &&
-        haikuConfig.options.sizing === 'cover' &&
-        mount.style.overflow !== 'hidden'
-      ) {
-        mount.style.overflow = 'hidden'
-      }
-    }
-
-    // Just a counter for the number of clock ticks that have occurred; used to determine first-frame for mounting
-    var ticks = 0
-
-    function tick () {
-      updateMountRootStyles()
-
-      var flushed = false
-
-      // After we've hydrated the tree the first time, we can proceed with patches --
-      // unless the component indicates it wants a full flush per its internal settings.
-      if (component._shouldPerformFullFlush() || haikuConfig.options.forceFlush || ticks < 1) {
-        performFullFlushRender()
-        flushed = true
-      } else {
-        performPatchRender()
-      }
-
-      // Do any initialization that may need to occur if we happen to be on the very first tick
-      if (ticks < 1) {
-        // If this is the 0th (first) tick, notify anybody listening that we've mounted
-        // If we've already flushed, _don't_ request to trigger a re-flush (second arg)
-        component.callRemount(null, flushed)
-      }
-
-      ticks++
-    }
-
-    // Give ActiveComponent a means to trigger an immediate rerender easily
-    context.tick = tick
-
-    // Assuming the user wants the app to mount immediately (the default), let's do the mount.
-    if (haikuConfig.options.automount) {
-      // Starting the clock has the effect of doing a render at time 0, a.k.a., mounting!
-      component.getClock().start()
-    }
 
     // These properties are added for convenience as hot editing hooks inside Haiku Desktop (and elsewhere?).
     // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
     HaikuComponentFactory.bytecode = bytecode
     HaikuComponentFactory.renderer = renderer
+    // Note that these ones could theoretically change if this factory was called more than once; use with care
+    HaikuComponentFactory.mount = mount
+    HaikuComponentFactory.context = context
+    HaikuComponentFactory.component = component
 
     // Finally, return the HaikuComponent instance which can also be used for programmatic behavior
     return component
@@ -2098,7 +2266,45 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
 module.exports = HaikuContext
 
-},{"./../package.json":2,"./Config":3,"./HaikuClock":4,"./HaikuComponent":5,"./vendor/assign":78}],7:[function(_dereq_,module,exports){
+},{"./../package.json":2,"./Config":3,"./HaikuClock":4,"./HaikuComponent":5,"./helpers/PRNG":16,"./vendor/assign":81}],7:[function(_dereq_,module,exports){
+(function (global){
+var VERSION = _dereq_('./../package.json').version
+
+// We need a global harness so we can attach helpers
+var MAIN
+if (typeof window !== 'undefined') { // Window gets highest precedence since most likely we're running in DOM
+  MAIN = window
+} else if (typeof global !== 'undefined') {
+  MAIN = global
+} else {
+  // Forget it; don't bother trying to share between Haiku threads
+  MAIN = {}
+}
+
+if (!MAIN.HaikuHelpers) {
+  MAIN.HaikuHelpers = {}
+}
+
+// Different versions may have different helpers, so keep that in mind...
+if (!MAIN.HaikuHelpers[VERSION]) {
+  MAIN.HaikuHelpers[VERSION] = {
+    helpers: {},
+    schema: {}
+  }
+}
+
+var exp = MAIN.HaikuHelpers[VERSION]
+
+exp.register = function register (name, method) {
+  exp.helpers[name] = method
+  exp.schema[name] = 'function'
+  return exp
+}
+
+module.exports = exp
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./../package.json":2}],8:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -2401,7 +2607,9 @@ HaikuTimeline.prototype.pause = function pause () {
   return this
 }
 
-HaikuTimeline.prototype.play = function play () {
+HaikuTimeline.prototype.play = function play (options) {
+  if (!options) options = {}
+
   this._ensureClockIsRunning()
 
   var time = this._component.getClock().getTime()
@@ -2417,7 +2625,9 @@ HaikuTimeline.prototype.play = function play () {
     this._localElapsedTime = local
   }
 
-  this._component._markForFullFlush(true)
+  if (!options.skipMarkForFullFlush) {
+    this._component._markForFullFlush(true)
+  }
 
   return this
 }
@@ -2482,7 +2692,7 @@ HaikuTimeline.prototype.gotoAndStop = function gotoAndStop (ms) {
 
 module.exports = HaikuTimeline
 
-},{"./helpers/SimpleEventEmitter":16,"./helpers/getTimelineMaxTime":27,"./vendor/assign":78}],8:[function(_dereq_,module,exports){
+},{"./helpers/SimpleEventEmitter":18,"./helpers/getTimelineMaxTime":29,"./vendor/assign":81}],9:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -2723,7 +2933,7 @@ module.exports = {
   isZero: isZero
 }
 
-},{"./layout/computeMatrix":36,"./layout/computeRotationFlexibly":37,"./layout/computeSize":38}],9:[function(_dereq_,module,exports){
+},{"./layout/computeMatrix":37,"./layout/computeRotationFlexibly":38,"./layout/computeSize":39}],10:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -2809,9 +3019,17 @@ function numberize (n) {
 }
 
 function sortedKeyframes (keyframeGroup) {
+  // Cache the output of this on the object since this is very hot
+  if (keyframeGroup.__sorted) {
+    return keyframeGroup.__sorted
+  }
+
   var keys = Object.keys(keyframeGroup)
   var sorted = keys.sort(ascendingSort).map(numberize)
-  return sorted
+
+  // Cache the sorted keys
+  keyframeGroup.__sorted = sorted
+  return keyframeGroup.__sorted
 }
 
 // 0:    { value: { ... } }
@@ -2947,8 +3165,8 @@ module.exports = {
   calculateValueAndReturnUndefinedIfNotWorthwhile: calculateValueAndReturnUndefinedIfNotWorthwhile
 }
 
-},{"./vendor/just-curves":119}],10:[function(_dereq_,module,exports){
-(function (process,global,__filename,__argument0,__argument1,__argument2,__argument3,__dirname){
+},{"./vendor/just-curves":122}],11:[function(_dereq_,module,exports){
+(function (process,global){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -2958,6 +3176,10 @@ var BasicUtils = _dereq_('./helpers/BasicUtils')
 var ColorUtils = _dereq_('./helpers/ColorUtils')
 var SVGPoints = _dereq_('./helpers/SVGPoints')
 var functionToRFO = _dereq_('./reflection/functionToRFO')
+var DOMSchema = _dereq_('./properties/dom/schema')
+// var DOMFallbacks = require('./properties/dom/fallbacks')
+var HaikuHelpers = _dereq_('./HaikuHelpers')
+var assign = _dereq_('./vendor/assign')
 
 var FUNCTION = 'function'
 var OBJECT = 'object'
@@ -3044,111 +3266,140 @@ GENERATORS['points'] = function _genPoints (value) {
 var INJECTABLES = {}
 
 if (typeof window !== 'undefined') {
-  // * **$window** ($global if running in node)
-  //   * width
-  //   * height
-  //   * device ?
-  //   * screen
-  //     * orientation
-  //   * navigator
-  //   * document
-  //   * location
-  // [Watered down, helperified, deterministic versions]
   INJECTABLES['$window'] = {
-    summon: function (summonSpec) {
-      var out = {}
+    schema: {
+      width: 'number',
+      height: 'number',
+      screen: {
+        availHeight: 'number',
+        availLeft: 'number',
+        availWidth: 'number',
+        colorDepth: 'number',
+        height: 'number',
+        pixelDepth: 'number',
+        width: 'number',
+        orientation: {
+          angle: 'number',
+          type: 'string'
+        }
+      },
+      navigator: {
+        userAgent: 'string',
+        appCodeName: 'string',
+        appName: 'string',
+        appVersion: 'string',
+        cookieEnabled: 'boolean',
+        doNotTrack: 'boolean',
+        language: 'string',
+        maxTouchPoints: 'number',
+        onLine: 'boolean',
+        platform: 'string',
+        product: 'string',
+        vendor: 'string'
+      },
+      document: {
+        charset: 'string',
+        compatMode: 'string',
+        contentType: 'string',
+        cookie: 'string',
+        documentURI: 'string',
+        fullscreen: 'boolean',
+        readyState: 'number',
+        referrer: 'string',
+        title: 'string'
+      },
+      location: {
+        hash: 'string',
+        host: 'string',
+        hostname: 'string',
+        href: 'string',
+        pathname: 'string',
+        protocol: 'string',
+        search: 'string'
+      }
+    },
+    summon: function (injectees, summonSpec) {
+      if (!injectees.$window) injectees.$window = {}
+      var out = injectees.$window
 
       out.width = window.innerWidth
       out.height = window.innerHeight
-
-      // TODO: What goes here?
-      out.device = {}
-
       if (window.screen) {
-        out.screen = {
-          availHeight: window.screen.availHeight,
-          availLeft: window.screen.availLeft,
-          availWidth: window.screen.availWidth,
-          colorDepth: window.screen.colorDepth,
-          height: window.screen.height,
-          pixelDepth: window.screen.pixelDepth,
-          width: window.screen.width
-        }
+        if (!out.screen) out.screen = {}
+        out.screen.availHeight = window.screen.availHeight
+        out.screen.availLeft = window.screen.availLeft
+        out.screen.availWidth = window.screen.availWidth
+        out.screen.colorDepth = window.screen.colorDepth
+        out.screen.height = window.screen.height
+        out.screen.pixelDepth = window.screen.pixelDepth
+        out.screen.width = window.screen.width
         if (window.screen.orientation) {
-          out.screen.orientation = {
-            angle: window.screen.orientation.angle,
-            type: window.screen.orientation.type
-          }
+          if (!out.screen.orientation) out.screen.orientation = {}
+          out.screen.orientation.angle = window.screen.orientation.angle
+          out.screen.orientation.type = window.screen.orientation.type
         }
       }
-
       if (typeof navigator !== 'undefined') {
-        out.device.userAgent = navigator.userAgent
-        out.device.appCodeName = navigator.appCodeName
-        out.device.appName = navigator.appName
-        out.device.appVersion = navigator.appVersion
-        out.device.cookieEnabled = navigator.cookieEnabled
-        out.device.doNotTrack = navigator.doNotTrack
-        out.device.language = navigator.language
-        out.device.maxTouchPoints = navigator.maxTouchPoints
-        out.device.onLine = navigator.onLine
-        out.device.platform = navigator.platform
-        out.device.product = navigator.product
-        out.device.userAgent = navigator.userAgent
-        out.device.vendor = navigator.vendor
+        if (!out.navigator) out.navigator = {}
+        out.navigator.userAgent = navigator.userAgent
+        out.navigator.appCodeName = navigator.appCodeName
+        out.navigator.appName = navigator.appName
+        out.navigator.appVersion = navigator.appVersion
+        out.navigator.cookieEnabled = navigator.cookieEnabled
+        out.navigator.doNotTrack = navigator.doNotTrack
+        out.navigator.language = navigator.language
+        out.navigator.maxTouchPoints = navigator.maxTouchPoints
+        out.navigator.onLine = navigator.onLine
+        out.navigator.platform = navigator.platform
+        out.navigator.product = navigator.product
+        out.navigator.userAgent = navigator.userAgent
+        out.navigator.vendor = navigator.vendor
       }
-
       if (window.document) {
-        out.document = {
-          charset: window.document.charset,
-          compatMode: window.document.compatMode,
-          contenttype: window.document.contentType,
-          cookie: window.document.cookie,
-          documentURI: window.document.documentURI,
-          fullscreen: window.document.fullscreen,
-          readyState: window.document.readyState,
-          referrer: window.document.referrer,
-          title: window.document.title
-        }
+        if (!out.document) out.document = {}
+        out.document.charset = window.document.charset
+        out.document.compatMode = window.document.compatMode
+        out.document.contenttype = window.document.contentType
+        out.document.cookie = window.document.cookie
+        out.document.documentURI = window.document.documentURI
+        out.document.fullscreen = window.document.fullscreen
+        out.document.readyState = window.document.readyState
+        out.document.referrer = window.document.referrer
+        out.document.title = window.document.title
       }
-
       if (window.location) {
-        out.location = {
-          hash: window.location.hash,
-          host: window.location.host,
-          hostname: window.location.hostname,
-          href: window.location.href,
-          pathname: window.location.pathname,
-          protocol: window.location.protocol,
-          search: window.location.search
-        }
+        if (!out.location) out.location = {}
+        out.location.hash = window.location.hash
+        out.location.host = window.location.host
+        out.location.hostname = window.location.hostname
+        out.location.href = window.location.href
+        out.location.pathname = window.location.pathname
+        out.location.protocol = window.location.protocol
+        out.location.search = window.location.search
       }
-
-      return out
     }
   }
 }
 
 if (typeof global !== 'undefined') {
-  // * **$global** ($window if running in browser)
-  //   * __filename
-  //   * __dirname
-  //   * processs
-  //     * env
   INJECTABLES['$global'] = {
-    summon: function (summonSpec) {
-      var out = {}
-
-      if (typeof __filename !== 'undefined') {
-        summonSpec.__filename = __filename
+    schema: {
+      process: {
+        pid: 'number',
+        arch: 'string',
+        platform: 'string',
+        argv: ['string'],
+        title: 'string',
+        version: 'string',
+        env: {} // Worth explicitly numerating these? #QUESTION
       }
-
-      if (typeof __dirname !== 'undefined') {
-        summonSpec.__dirname = __dirname
-      }
+    },
+    summon: function (injectees, summonSpec) {
+      if (!injectees.$global) injectees.$global = {}
+      var out = injectees.$global
 
       if (typeof process !== 'undefined') {
-        out.process = {}
+        if (!out.process) out.process = {}
         out.process.pid = process.pid
         out.process.arch = process.arch
         out.process.platform = process.platform
@@ -3157,185 +3408,353 @@ if (typeof global !== 'undefined') {
         out.process.version = process.version
         out.process.env = process.env
       }
-
-      return out
     }
   }
 }
 
-// **$player** Things having to do with the current player execution context
-//   * version
-//   * options
-//   * timeline
-//     * time
-//     * frame
-//   * clock
-//     * time
 INJECTABLES['$player'] = {
-  summon: function (summonSpec, hostInstance, eventsFired, timelineName) {
-    var out = {}
+  schema: {
+    version: 'string',
+    options: {
+      seed: 'string',
+      loop: 'boolean',
+      sizing: 'string',
+      preserve3d: 'boolean',
+      position: 'string',
+      overflowX: 'string',
+      overflowY: 'string'
+    },
+    timeline: {
+      name: 'string',
+      duration: 'number',
+      repeat: 'boolean',
+      time: {
+        apparent: 'number',
+        elapsed: 'number',
+        max: 'number'
+      },
+      frame: {
+        apparent: 'number',
+        elapsed: 'number'
+      }
+    },
+    clock: {
+      frameDuration: 'number',
+      frameDelay: 'number',
+      time: {
+        apparent: 'number',
+        elapsed: 'number'
+      }
+    }
+  },
+  summon: function (injectees, summonSpec, hostInstance, matchingElement, timelineName) {
+    if (!injectees.$player) injectees.$player = {}
+    var out = injectees.$player
 
     out.version = hostInstance._context.PLAYER_VERSION
-
     var options = hostInstance._context.config.options
     if (options) {
-      out.options = {
-        seed: options.seed,
-        loop: options.loop,
-        sizing: options.sizing,
-        preserve3d: options.preserve3d,
-        position: options.position,
-        overflowX: options.overflowX,
-        overflowY: options.overflowY
-      }
+      if (!out.options) out.options = {}
+      out.options.seed = options.seed
+      out.options.loop = options.loop
+      out.options.sizing = options.sizing
+      out.options.preserve3d = options.preserve3d
+      out.options.position = options.position
+      out.options.overflowX = options.overflowX
+      out.options.overflowY = options.overflowY
     }
-
     var timelineInstance = hostInstance.getTimeline(timelineName)
     if (timelineInstance) {
-      out.timeline = {
-        name: timelineName,
-        duration: timelineInstance.getDuration(),
-        repeat: timelineInstance.getRepeat(),
-        time: {
-          apparent: timelineInstance.getTime(),
-          elapsed: timelineInstance.getElapsedTime(),
-          max: timelineInstance.getMaxTime()
-        },
-        frame: {
-          apparent: timelineInstance.getFrame(),
-          elapsed: timelineInstance.getUnboundedFrame()
-        }
-      }
+      if (!out.timeline) out.timeline = {}
+      out.timeline.name = timelineName
+      out.timeline.duration = timelineInstance.getDuration()
+      out.timeline.repeat = timelineInstance.getRepeat()
+      if (!out.timeline.time) out.timeline.time = {}
+      out.timeline.time.apparent = timelineInstance.getTime()
+      out.timeline.time.elapsed = timelineInstance.getElapsedTime()
+      out.timeline.time.max = timelineInstance.getMaxTime()
+      if (!out.timeline.frame) out.timeline.frame = {}
+      out.timeline.frame.apparent = timelineInstance.getFrame()
+      out.timeline.frame.elapsed = timelineInstance.getUnboundedFrame()
     }
-
     var clockInstance = hostInstance.getClock()
     if (clockInstance) {
-      out.clock = {
-        frameDuration: clockInstance.options.frameDuration,
-        frameDelay: clockInstance.options.frameDelay,
-        time: {
-          apparent: clockInstance.getExplicitTime(),
-          elapsed: clockInstance.getRunningTime()
-        }
-      }
+      if (!out.clock) out.clock = {}
+      out.clock.frameDuration = clockInstance.options.frameDuration
+      out.clock.frameDelay = clockInstance.options.frameDelay
+      if (!out.clock.time) out.clock.time = {}
+      out.clock.time.apparent = clockInstance.getExplicitTime()
+      out.clock.time.elapsed = clockInstance.getRunningTime()
     }
-
-    return out
   }
 }
 
-// * $component (top-level Element of a given component, (i.e. tranverse tree upward past groups but stop at first component definition))
-//     * properties ($host is the same type as $element)
-// INJECTABLES['$component'] = {
-//   summon: function (summonSpec, hostInstance, eventsFired) {
+var EVENT_SCHEMA = {
+  mouse: {
+    x: 'number',
+    y: 'number',
+    isDown: 'boolean'
+  },
+  touches: [{
+    x: 'number',
+    y: 'number'
+  }],
+  mouches: [{
+    x: 'number',
+    y: 'number'
+  }],
+  keys: [{
+    which: 'number',
+    code: 'number' // alias for 'which'
+  }]
+  // TODO:
+  // accelerometer
+  // compass
+  // mic
+  // camera
+}
 
-//   }
-// }
+var ELEMENT_SCHEMA = {
+  // A function in the schema indicates that schema is dynamic, dependent on some external information
+  properties: function (element) {
+    var defined = DOMSchema[element.elementName]
+    if (!defined) {
+      console.warn('[haiku player] element ' + element.elementName + ' has no schema defined')
+      return {}
+    }
+    return defined
+  }
 
-// * **$root **
-//     * NOTE:  absolute root of component tree (but does not traverse host codebase DOM,) i.e. if Haiku components are nested.  Until we support nested components, $root will be the same as $component
-// INJECTABLES['$root'] = {
-//   summon: function (summonSpec, hostInstance, eventsFired) {
+  // TODO
+  // bbox: {
+  //   x: 'number',
+  //   y: 'number',
+  //   width: 'number',
+  //   height: 'number'
+  // },
 
-//   }
-// }
+  // TODO
+  // events: EVENT_SCHEMA
+}
 
-// * **$tree** (all of these are the same type, Element)
-//     * **parent**
-//     * children
-//     * siblings
-//     * component
-//     * root (root at runtime)
-//     * element (same as $element)
-// INJECTABLES['$tree'] = {
-//   summon: function (summonSpec, hostInstance, eventsFired) {
+function assignElementInjectables (obj, key, summonSpec, hostInstance, element) {
+  // If for some reason no element, nothing to do
+  if (!element) {
+    return {}
+  }
 
-//   }
-// }
+  // For some reason we get string elements here #FIXME
+  if (typeof element === 'string') {
+    return {}
+  }
 
-// * **$element** (of type Element, this current element)
-//     * **properties**
-//         * **$opacity**
-//         * **$scale**
-//             * x
-//             * y
-//             * z
-//         * **$position**
-//             * **x**
-//             * **y**
-//             * **z**
-//         * **$rotation**
-//             * **x**
-//             * **y**
-//             * **z**
-//         * [any custom properties]
-//     * bbox
-//         * x
-//         * y
-//         * width
-//         * height
-//     * mouse (position relative to element)
-//         * x
-//         * y
-//     * touches (position relative to element)
-//         * [0]
-//             * x
-//             * y
-//         * [1]...
-// INJECTABLES['$element'] = {
-//   summon: function (summonSpec, hostInstance, eventsFired) {
+  obj[key] = {}
+  var out = obj[key]
 
-//   }
-// }
+  // It's not clear yet when we need fallbacks
+  // var fallbacks = DOMFallbacks[element.elementName]
+  // if (!fallbacks) {
+  //   console.warn('[haiku player] element ' + element.elementName + ' has no fallbacks defined')
+  //   return {}
+  // }
 
-// * **$helpers**
-//     * _ (side-effect-free lodash subset)
-//     * **random** (can init/config w/ seed)
-//     * **time** (alias date, alias datetime — probably use momentjs or similar for API niceness)
-//         * now
-//         * today
-//     * [FUTURE:  'registerHelper” from lifecycle events]
-// INJECTABLES['$helpers'] = {
-//   summon: function (summonSpec, hostInstance, eventsFired) {
+  out.properties = {}
 
-//   }
-// }
+  out.properties.name = element.elementName
+  out.properties.attributes = element.attributes
 
-// * **$flow**
-//     * **repeat**
-//         * **index**
-//         * **value** (alias “data” alias “payload”)
-//     * if ?
-//         * value (alias “data” alias “payload”)
-//     * yield? (alias “placeholder”)
-//         * value (alias “data” alias “payload”)
-// INJECTABLES['$flow'] = {
-//   summon: function (summonSpec, hostInstance, eventsFired) {
+  if (element.layout.computed) {
+    out.properties.matrix = element.layout.computed.matrix
+    out.properties.size = element.layout.computed.size
+  }
 
-//   }
-// }
+  out.properties.align = element.layout.align
+  out.properties.mount = element.layout.mount
+  out.properties.opacity = element.layout.opacity
+  out.properties.origin = element.layout.origin
+  out.properties.rotation = element.layout.rotation
+  out.properties.scale = element.layout.scale
+  out.properties.shown = element.layout.shown
+  out.properties.sizeAbsolute = element.layout.sizeAbsolute
+  out.properties.sizeDifferential = element.layout.sizeDifferential
+  out.properties.sizeMode = element.layout.sizeMode
+  out.properties.sizeProportional = element.layout.sizeProportional
+  out.properties.translation = element.layout.translation
 
-// * **$user**
-//     * **mouse**
-//     * **touches**
-//         * [0]...
-//     * **mouches **(wraps both touch & mouse, w/ array interface like touches)
-//         * [0]...
-//     * **key**
-//     * accelerometer
-//     * compass
-//     * mic
-//     * camera
-// INJECTABLES['$user'] = {
-//   summon: function (summonSpec, hostInstance, eventsFired) {
+  // TODO
+  // defineProperty so that the calc happens lazily
+  // Object.defineProperty(out, 'bbox', {
+  //   get: function _get () {
+  //     return hostInstance._context._getElementBBox(element)
+  //   }
+  // })
 
-//   }
-// }
+  // TODO
+  // out.events = hostInstance._context.getElementEvents(element)
+}
+
+INJECTABLES['$tree'] = {
+  schema: {
+    // Unique to $tree
+    parent: ELEMENT_SCHEMA,
+    children: [ELEMENT_SCHEMA],
+    siblings: [ELEMENT_SCHEMA],
+    // Aliases for convenience
+    component: ELEMENT_SCHEMA,
+    root: ELEMENT_SCHEMA, // root at runtime
+    element: ELEMENT_SCHEMA // same as $element
+  },
+  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+    if (!injectees.$tree) injectees.$tree = {}
+
+    injectees.$tree.siblings = [] // Provide an array even if no siblings in case user tries to access
+
+    injectees.$tree.parent = null
+
+    if (matchingElement.__parent) {
+      assignElementInjectables(injectees.$tree, 'parent', summonSpec.$tree && summonSpec.$tree.parent, hostInstance, matchingElement.__parent)
+
+      for (var i = 0; i < matchingElement.__parent.children.length; i++) {
+        var sibling = matchingElement.__parent.children[i]
+        var subspec1 = summonSpec.$tree && summonSpec.$tree.siblings && summonSpec.$tree.siblings[j]
+        assignElementInjectables(injectees.$tree.siblings, i, subspec1, hostInstance, sibling)
+      }
+    }
+
+    injectees.$tree.children = [] // Provide an array even if no children in case user tries to access
+
+    if (matchingElement.children) {
+      for (var j = 0; j < matchingElement.children.length; j++) {
+        var child = matchingElement.children[j]
+        var subspec2 = summonSpec.$tree && summonSpec.$tree.children && summonSpec.$tree.children[j]
+        assignElementInjectables(injectees.$tree.children, j, subspec2, hostInstance, child)
+      }
+    }
+
+    // May as well make use of the implementation we have for the aliases,
+    // and avoid recalc if it's already been added:
+
+    if (!injectees.$component) {
+      INJECTABLES['$component'].summon(injectees, summonSpec, hostInstance, matchingElement)
+    }
+
+    injectees.$tree.component = injectees.$component
+
+    if (!injectees.$root) {
+      INJECTABLES['$root'].summon(injectees, summonSpec, hostInstance, matchingElement)
+    }
+
+    injectees.$tree.root = injectees.$root
+
+    if (!injectees.$element) {
+      INJECTABLES['$element'].summon(injectees, summonSpec, hostInstance, matchingElement)
+    }
+
+    injectees.$tree.element = injectees.$element
+  }
+}
+
+// (top-level Element of a given component, (i.e. tranverse tree upward past groups but
+// stop at first component definition))
+INJECTABLES['$component'] = {
+  schema: ELEMENT_SCHEMA,
+  summon: function (injectees, summonSpec, hostInstance) {
+    // Don't double-recalc this if it's already shown to be present in $tree
+    if (injectees.$tree && injectees.$tree.component) {
+      injectees.$component = injectees.$tree.component
+    } else {
+      assignElementInjectables(injectees, '$component', summonSpec.$component, hostInstance, hostInstance._getTopLevelElement())
+    }
+  }
+}
+
+// absolute root of component tree (but does not traverse host codebase DOM)
+// i.e. if Haiku components are nested. Until we support nested components,
+// $root will be the same as $component
+INJECTABLES['$root'] = {
+  schema: ELEMENT_SCHEMA,
+  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+    // Don't double-recalc this if it's already shown to be present in $tree
+    if (injectees.$tree && injectees.$tree.root) {
+      injectees.$root = injectees.$tree.root
+    } else {
+      // Until we support nested components, $root resolves to $component
+      assignElementInjectables(injectees, '$root', summonSpec.$root, hostInstance, hostInstance._getTopLevelElement())
+    }
+  }
+}
+
+INJECTABLES['$element'] = {
+  schema: ELEMENT_SCHEMA,
+  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+    // Don't double-recalc this if it's already shown to be present in $tree
+    if (injectees.$tree && injectees.$tree.element) {
+      injectees.$element = injectees.$tree.element
+    } else {
+      assignElementInjectables(injectees, '$element', summonSpec.$element, hostInstance, matchingElement)
+    }
+  }
+}
+
+INJECTABLES['$user'] = {
+  schema: assign({}, EVENT_SCHEMA),
+  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+    injectees.$user = hostInstance._context._getGlobalUserState()
+  }
+}
+
+INJECTABLES['$flow'] = {
+  schema: {
+    repeat: {
+      list: ['any'],
+      index: 'number',
+      value: 'any',
+      data: 'any', // alias for value
+      payload: 'any' // alias for payload
+    },
+    'if': {
+      value: 'any',
+      data: 'any', // alias for value
+      payload: 'any' // alias for payload
+    },
+    'yield': {
+      value: 'any',
+      data: 'any', // alias for value
+      payload: 'any' // alias for payload
+    },
+    placeholder: {
+      node: 'any' // The injected element?
+    },
+    insert: {
+      node: 'any' // The injected element?
+    }
+  },
+  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+    // if (!injectees.$flow) injectees.$flow = {}
+    // var out = injectees.$flow
+  }
+}
+
+INJECTABLES['$helpers'] = {
+  schema: HaikuHelpers.schema,
+  summon: function (injectees) {
+    injectees.$helpers = HaikuHelpers.helpers
+  }
+}
 
 function ValueBuilder (component) {
   this._component = component // ::HaikuComponent
   this._parsees = {}
   this._changes = {}
+
+  HaikuHelpers.register('now', function _helperNow () {
+    return this._component._context.getDeterministicTime()
+  }.bind(this))
+
+  HaikuHelpers.register('rand', function _helperRand () {
+    // prng seeded at the HaikuContext level
+    return this._component._context.getDeterministicRand()
+  }.bind(this))
 }
 
 ValueBuilder.prototype._clearCaches = function _clearCaches () {
@@ -3346,23 +3765,21 @@ ValueBuilder.prototype._clearCaches = function _clearCaches () {
 
 ValueBuilder.prototype._clearCachedClusters = function _clearCachedClusters (
   timelineName,
-  selector
+  componentId
 ) {
-  if (this._parsees[timelineName]) this._parsees[timelineName][selector] = {}
+  if (this._parsees[timelineName]) this._parsees[timelineName][componentId] = {}
   return this
 }
 
 ValueBuilder.prototype.evaluate = function _evaluate (
   fn,
   timelineName,
-  selector,
+  flexId,
+  matchingElement,
   propertyName,
   keyframeMs,
   keyframeCluster,
-  hostInstance,
-  states,
-  eventsFired,
-  inputsChanged
+  hostInstance
 ) {
   if (!fn.specification) {
     var rfo = functionToRFO(fn)
@@ -3380,31 +3797,29 @@ ValueBuilder.prototype.evaluate = function _evaluate (
 
   if (fn.specification === true) {
     // This function is of an unknown kind, so just evaluate it normally without magic dependency injection
-    evaluation = fn.call(hostInstance, states)
+    evaluation = fn.call(hostInstance, hostInstance._states)
   } else if (!Array.isArray(fn.specification.params)) {
     // If for some reason we got a non-array params, just evaluate
-    evaluation = fn.call(hostInstance, states)
+    evaluation = fn.call(hostInstance, hostInstance._states)
   } else if (fn.specification.params.length < 1) {
     // If for some reason we got 0 params, just evaluate it
-    evaluation = fn.call(hostInstance, states)
+    evaluation = fn.call(hostInstance, hostInstance._states)
   } else {
     var summons = fn.specification.params[0] // For now, ignore all subsequent arguments
 
     if (!summons || typeof summons !== 'object') {
       // If the summon isn't in the destructured object format, just evaluate it
-      evaluation = fn.call(hostInstance, states)
+      evaluation = fn.call(hostInstance, hostInstance._states)
     } else {
       var summonees = this.summonSummonables(
         summons,
         timelineName,
-        selector,
+        flexId,
+        matchingElement,
         propertyName,
         keyframeMs,
         keyframeCluster,
-        hostInstance,
-        states,
-        eventsFired,
-        inputsChanged
+        hostInstance
       )
 
       if (_areSummoneesDifferent(fn.specification.summonees, summonees)) {
@@ -3429,14 +3844,12 @@ ValueBuilder.prototype.evaluate = function _evaluate (
 ValueBuilder.prototype.summonSummonables = function _summonSummonables (
   summons,
   timelineName,
-  selector,
+  flexId,
+  matchingElement,
   propertyName,
   keyframeMs,
   keyframeCluster,
-  hostInstance,
-  states,
-  eventsFired,
-  inputsChanged
+  hostInstance
 ) {
   var summonables = {}
 
@@ -3447,13 +3860,15 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
     // If a special summonable has been defined, then call its summoner function
     // Note the lower-case - allow lo-coders to comfortably call say $FRAME and $frame and get the same thing back
     if (INJECTABLES[key.toLowerCase()]) {
-      // But don't lowercase the assignment - otherwise the object destructuring won't work!!
-      summonables[key] = INJECTABLES[key].summon(
+      // But don't lowercase the assignment - otherwise the object destructuring won't work!!!
+      INJECTABLES[key].summon(
+        summonables, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they key must be added
         summons[key],
         hostInstance,
-        eventsFired,
+        matchingElement,
         timelineName
       )
+
       continue
     }
 
@@ -3465,6 +3880,14 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
   }
 
   return summonables
+}
+
+ValueBuilder.prototype._getSummonablesSchema = function _getSummonablesSchema () {
+  var schema = {}
+  for (var key in INJECTABLES) {
+    schema[key] = INJECTABLES[key].schema
+  }
+  return schema
 }
 
 function _areSummoneesDifferent (previous, incoming) {
@@ -3487,7 +3910,6 @@ function _areSummoneesDifferent (previous, incoming) {
     // Sub-objects detected; recurse and ask the same question
     if (previous !== null && incoming !== null) {
       for (var key in incoming) {
-        // console.log(key, previous[key], incoming[key])
         if (_areSummoneesDifferent(previous[key], incoming[key])) {
           return true
         }
@@ -3506,26 +3928,24 @@ function _areSummoneesDifferent (previous, incoming) {
 
 ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueCluster (
   timelineName,
-  selector,
+  flexId,
+  matchingElement,
   outputName,
   cluster,
   hostInstance,
-  states,
-  eventsFired,
-  inputsChanged,
   isPatchOperation,
   skipCache
 ) {
   // Establish the cache objects for this properties group within this timeline
   if (!this._parsees[timelineName]) this._parsees[timelineName] = {}
-  if (!this._parsees[timelineName][selector]) {
-    this._parsees[timelineName][selector] = {}
+  if (!this._parsees[timelineName][flexId]) {
+    this._parsees[timelineName][flexId] = {}
   }
-  if (!this._parsees[timelineName][selector][outputName]) {
-    this._parsees[timelineName][selector][outputName] = {}
+  if (!this._parsees[timelineName][flexId][outputName]) {
+    this._parsees[timelineName][flexId][outputName] = {}
   }
 
-  var parsee = this._parsees[timelineName][selector][outputName]
+  var parsee = this._parsees[timelineName][flexId][outputName]
 
   for (var ms in cluster) {
     var descriptor = cluster[ms]
@@ -3552,14 +3972,12 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
       var functionReturnValue = this.evaluate(
         descriptor.value,
         timelineName,
-        selector,
+        flexId,
+        matchingElement,
         outputName,
         ms,
         cluster,
-        hostInstance,
-        states,
-        eventsFired,
-        inputsChanged
+        hostInstance
       )
 
       // The function's return value is expected to be in the *raw* format - we parse to allow for interpolation
@@ -3595,7 +4013,8 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
 
 ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFinalValueFromParsedValue (
   timelineName,
-  selector,
+  flexId,
+  matchingElement,
   outputName,
   computedValue
 ) {
@@ -3608,7 +4027,8 @@ ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFin
 
 ValueBuilder.prototype.didChangeValue = function _didChangeValue (
   timelineName,
-  selector,
+  flexId,
+  matchingElement,
   outputName,
   outputValue
 ) {
@@ -3617,15 +4037,15 @@ ValueBuilder.prototype.didChangeValue = function _didChangeValue (
     this._changes[timelineName] = {}
     answer = true
   }
-  if (!this._changes[timelineName][selector]) {
-    this._changes[timelineName][selector] = {}
+  if (!this._changes[timelineName][flexId]) {
+    this._changes[timelineName][flexId] = {}
     answer = true
   }
   if (
-    this._changes[timelineName][selector][outputName] === undefined ||
-    this._changes[timelineName][selector][outputName] !== outputValue
+    this._changes[timelineName][flexId][outputName] === undefined ||
+    this._changes[timelineName][flexId][outputName] !== outputValue
   ) {
-    this._changes[timelineName][selector][outputName] = outputValue
+    this._changes[timelineName][flexId][outputName] = outputValue
     answer = true
   }
   return answer
@@ -3634,62 +4054,62 @@ ValueBuilder.prototype.didChangeValue = function _didChangeValue (
 /**
  * @method build
  * @description Given an 'out' object, accumulate values into that object based on the current timeline, time, and instance state.
+ * If we didn't make any changes, we return undefined here. The caller should account for this.
  */
 ValueBuilder.prototype.build = function _build (
   out,
   timelineName,
   timelineTime,
-  timelinesObject,
+  flexId,
+  matchingElement,
+  propertiesGroup,
   isPatchOperation,
-  states,
-  eventsFired,
-  inputsChanged
+  haikuComponent
 ) {
-  var overrides = timelinesObject[timelineName]
+  var isAnythingWorthUpdating = false
 
-  for (var selector in overrides) {
-    var propertiesGroup = overrides[selector]
-    for (var propertyName in propertiesGroup) {
-      var haikuComponent = this._component // ::HaikuPlayer
+  for (var propertyName in propertiesGroup) {
+    var finalValue = this.grabValue(
+      timelineName,
+      flexId,
+      matchingElement,
+      propertyName,
+      propertiesGroup,
+      timelineTime,
+      haikuComponent,
+      isPatchOperation
+    )
 
-      var finalValue = this.grabValue(
-        timelineName,
-        selector,
-        propertyName,
-        propertiesGroup,
-        timelineTime,
-        haikuComponent,
-        states,
-        eventsFired,
-        inputsChanged,
-        isPatchOperation
-      )
+    // We use undefined as a signal that it's not worthwhile to put this value in the list of updates.
+    // null should be used in the case that we want to explicitly set an empty value
+    if (finalValue === undefined) {
+      continue
+    }
 
-      // We use undefined as a signal that it's not worthwhile to put this value in the list of updates.
-      // null should be used in the case that we want to explicitly set an empty value
-      if (finalValue === undefined) {
-        continue
+    // If this is _not_ a patch operation, we have to set the value because downstream, the player will strip
+    // off old attributes present on the dom nodes.
+    if (
+      !isPatchOperation ||
+      this.didChangeValue(timelineName, flexId, matchingElement, propertyName, finalValue)
+    ) {
+      if (out[propertyName] === undefined) {
+        out[propertyName] = finalValue
+      } else {
+        out[propertyName] = BasicUtils.mergeValue(
+          out[propertyName],
+          finalValue
+        )
       }
 
-      // If this is _not_ a patch operation, we have to set the value because downstream, the player will strip
-      // off old attributes present on the dom nodes.
-      if (
-        !isPatchOperation ||
-        this.didChangeValue(timelineName, selector, propertyName, finalValue)
-      ) {
-        if (!out[selector]) out[selector] = {}
-        if (out[selector][propertyName] === undefined) {
-          out[selector][propertyName] = finalValue
-        } else {
-          out[selector][propertyName] = BasicUtils.mergeValue(
-            out[selector][propertyName],
-            finalValue
-          )
-        }
-      }
+      isAnythingWorthUpdating = true
     }
   }
-  return out
+
+  if (isAnythingWorthUpdating) {
+    return out
+  } else {
+    return undefined
+  }
 }
 
 /**
@@ -3699,37 +4119,34 @@ ValueBuilder.prototype.build = function _build (
  * NOTE: The 'build' method above interprets a return value of 'undefined' to mean "no change" so bear that in mind...
  *
  * @param timelineName {String} Name of the timeline we're using
- * @param selector {String} CSS selector within the timeline
+ * @param flexId {String} Identifier of the matching element
+ * @param matchingElement {Object} The matching element
  * @param propertyName {String} Name of the property being grabbed, e.g. position.x
  * @param propertiesGroup {Object} The full timeline properties group, e.g. { position.x: ..., position.y: ... }
  * @param timelineTime {Number} The current time (in ms) that the given timeline is at
- * @param haikuPlayer {Object} Instance of HaikuPlayer
- * @param states {Object} Input values stored by the player instance
- * @param eventsFired {Array} Events fired within the tick
- * @param inputsChanged {Object} List of inputs detected to have changed since last input
+ * @param haikuComponent {Object} Instance of HaikuPlayer
+ * @param isPatchOperation {Boolean} Is this a patch?
+ * @param skipCache {Boolean} Skip caching?
  */
 ValueBuilder.prototype.grabValue = function _grabValue (
   timelineName,
-  selector,
+  flexId,
+  matchingElement,
   propertyName,
   propertiesGroup,
   timelineTime,
-  haikuPlayer,
-  states,
-  eventsFired,
-  inputsChanged,
+  haikuComponent,
   isPatchOperation,
-  skipCache
+  skipCache,
+  clearSortedKeyframesCache
 ) {
   var parsedValueCluster = this.fetchParsedValueCluster(
     timelineName,
-    selector,
+    flexId,
+    matchingElement,
     propertyName,
     propertiesGroup[propertyName],
-    haikuPlayer,
-    states,
-    eventsFired,
-    inputsChanged,
+    haikuComponent,
     isPatchOperation,
     skipCache
   )
@@ -3738,6 +4155,10 @@ ValueBuilder.prototype.grabValue = function _grabValue (
   // since it expects to receive a populated cluster object
   if (!parsedValueCluster) {
     return undefined
+  }
+
+  if (clearSortedKeyframesCache) {
+    delete parsedValueCluster.__sorted
   }
 
   var computedValueForTime
@@ -3761,7 +4182,8 @@ ValueBuilder.prototype.grabValue = function _grabValue (
 
   var finalValue = this.generateFinalValueFromParsedValue(
     timelineName,
-    selector,
+    flexId,
+    matchingElement,
     propertyName,
     computedValueForTime
   )
@@ -3769,16 +4191,20 @@ ValueBuilder.prototype.grabValue = function _grabValue (
   return finalValue
 }
 
+ValueBuilder.INJECTABLES = INJECTABLES
+ValueBuilder.PARSERS = PARSERS
+ValueBuilder.GENERATORS = GENERATORS
+
 module.exports = ValueBuilder
 
-}).call(this,_dereq_('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},"/packages/haiku-player/src/ValueBuilder.js",arguments[3],arguments[4],arguments[5],arguments[6],"/packages/haiku-player/src")
-},{"./Transitions":9,"./helpers/BasicUtils":13,"./helpers/ColorUtils":14,"./helpers/SVGPoints":15,"./reflection/functionToRFO":44,"_process":1}],11:[function(_dereq_,module,exports){
+}).call(this,_dereq_('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./HaikuHelpers":7,"./Transitions":10,"./helpers/BasicUtils":14,"./helpers/ColorUtils":15,"./helpers/SVGPoints":17,"./properties/dom/schema":44,"./reflection/functionToRFO":46,"./vendor/assign":81,"_process":1}],12:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 var HaikuContext = _dereq_('./../../HaikuContext')
-var HaikuDOMRenderer = _dereq_('./../../renderers/dom')
+var HaikuDOMRendererClass = _dereq_('./../../renderers/dom')
 var PLAYER_VERSION = _dereq_('./../../../package.json').version
 
 /**
@@ -3818,7 +4244,7 @@ function HaikuDOMAdapter (bytecode, config, _window) {
   }
 
   return HaikuContext.createComponentFactory(
-    HaikuDOMRenderer,
+    HaikuDOMRendererClass,
     bytecode,
     config, // Note: Full config object, of which options is one property!
     _window
@@ -3836,14 +4262,14 @@ if (IS_WINDOW_DEFINED) {
 
 module.exports = HaikuDOMAdapter
 
-},{"./../../../package.json":2,"./../../HaikuContext":6,"./../../renderers/dom":61}],12:[function(_dereq_,module,exports){
+},{"./../../../package.json":2,"./../../HaikuContext":6,"./../../renderers/dom":65}],13:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 module.exports = _dereq_('./HaikuDOMAdapter')
 
-},{"./HaikuDOMAdapter":11}],13:[function(_dereq_,module,exports){
+},{"./HaikuDOMAdapter":12}],14:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -3899,7 +4325,7 @@ module.exports = {
   uniq: uniq
 }
 
-},{"./../vendor/array-unique":77}],14:[function(_dereq_,module,exports){
+},{"./../vendor/array-unique":80}],15:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -3929,7 +4355,20 @@ module.exports = {
   generateString: generateString
 }
 
-},{"./../vendor/color-string":80}],15:[function(_dereq_,module,exports){
+},{"./../vendor/color-string":83}],16:[function(_dereq_,module,exports){
+var seedrandom = _dereq_('./../vendor/seedrandom')
+
+function PRNG (seed) {
+  this._prng = seedrandom(seed)
+}
+
+PRNG.prototype.random = function random () {
+  return this._prng()
+}
+
+module.exports = PRNG
+
+},{"./../vendor/seedrandom":135}],17:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4087,7 +4526,7 @@ module.exports = {
   manaToPoints: manaToPoints
 }
 
-},{"./../vendor/svg-points":132,"./parseCssValueString":30}],16:[function(_dereq_,module,exports){
+},{"./../vendor/svg-points":137,"./parseCssValueString":32}],18:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4227,98 +4666,98 @@ SimpleEventEmitter.create = create
 
 module.exports = SimpleEventEmitter
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var allSvgElementNames = [
-  'a',
-  'altGlyph',
-  'altGlyphDef',
-  'altGlyphItem',
-  'animate',
-  'animateColor',
-  'animateMotion',
-  'animateTransform',
-  'circle',
-  'clipPath',
-  'color-profile',
-  'cursor',
-  'defs',
-  'desc',
-  'discard',
-  'ellipse',
-  'feBlend',
-  'feColorMatrix',
-  'feComponentTransfer',
-  'feComposite',
-  'feConvolveMatrix',
-  'feDiffuseLighting',
-  'feDisplacementMap',
-  'feDistantLight',
-  'feFlood',
-  'feFuncA',
-  'feFuncB',
-  'feFuncG',
-  'feFuncR',
-  'feGaussianBlur',
-  'feImage',
-  'feMerge',
-  'feMergeNode',
-  'feMorphology',
-  'feOffset',
-  'fePointLight',
-  'feSpecularLighting',
-  'feSpotLight',
-  'feTile',
-  'feTurbulence',
-  'filter',
-  'font',
-  'font-face',
-  'font-face-format',
-  'font-face-name',
-  'font-face-src',
-  'font-face-uri',
-  'foreignObject',
-  'g',
-  'glyph',
-  'glyphRef',
-  'hkern',
-  'image',
-  'line',
-  'linearGradient',
-  'marker',
-  'mask',
-  'metadata',
-  'missing-glyph',
-  'mpath',
-  'path',
-  'pattern',
-  'polygon',
-  'polyline',
-  'radialGradient',
-  'rect',
-  'script',
-  'set',
-  'stop',
-  'style',
-  'svg',
-  'switch',
-  'symbol',
-  'text',
-  'textPath',
-  'title',
-  'tref',
-  'tspan',
-  'use',
-  'view',
-  'vkern'
-]
+var allSvgElementNames = {
+  'a': true,
+  'altGlyph': true,
+  'altGlyphDef': true,
+  'altGlyphItem': true,
+  'animate': true,
+  'animateColor': true,
+  'animateMotion': true,
+  'animateTransform': true,
+  'circle': true,
+  'clipPath': true,
+  'color-profile': true,
+  'cursor': true,
+  'defs': true,
+  'desc': true,
+  'discard': true,
+  'ellipse': true,
+  'feBlend': true,
+  'feColorMatrix': true,
+  'feComponentTransfer': true,
+  'feComposite': true,
+  'feConvolveMatrix': true,
+  'feDiffuseLighting': true,
+  'feDisplacementMap': true,
+  'feDistantLight': true,
+  'feFlood': true,
+  'feFuncA': true,
+  'feFuncB': true,
+  'feFuncG': true,
+  'feFuncR': true,
+  'feGaussianBlur': true,
+  'feImage': true,
+  'feMerge': true,
+  'feMergeNode': true,
+  'feMorphology': true,
+  'feOffset': true,
+  'fePointLight': true,
+  'feSpecularLighting': true,
+  'feSpotLight': true,
+  'feTile': true,
+  'feTurbulence': true,
+  'filter': true,
+  'font': true,
+  'font-face': true,
+  'font-face-format': true,
+  'font-face-name': true,
+  'font-face-src': true,
+  'font-face-uri': true,
+  'foreignObject': true,
+  'g': true,
+  'glyph': true,
+  'glyphRef': true,
+  'hkern': true,
+  'image': true,
+  'line': true,
+  'linearGradient': true,
+  'marker': true,
+  'mask': true,
+  'metadata': true,
+  'missing-glyph': true,
+  'mpath': true,
+  'path': true,
+  'pattern': true,
+  'polygon': true,
+  'polyline': true,
+  'radialGradient': true,
+  'rect': true,
+  'script': true,
+  'set': true,
+  'stop': true,
+  'style': true,
+  'svg': true,
+  'switch': true,
+  'symbol': true,
+  'text': true,
+  'textPath': true,
+  'title': true,
+  'tref': true,
+  'tspan': true,
+  'use': true,
+  'view': true,
+  'vkern': true
+}
 
 module.exports = allSvgElementNames
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4338,7 +4777,7 @@ function attrSelectorParser (selector) {
 
 module.exports = attrSelectorParser
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4374,7 +4813,7 @@ function matchByAttribute (
 
 module.exports = matchByAttribute
 
-},{"./objectPath":29}],20:[function(_dereq_,module,exports){
+},{"./objectPath":31}],22:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4401,7 +4840,7 @@ function matchByClass (node, className, options) {
 
 module.exports = matchByClass
 
-},{"./objectPath":29}],21:[function(_dereq_,module,exports){
+},{"./objectPath":31}],23:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4419,7 +4858,7 @@ function matchByHaiku (node, haikuString, options) {
 
 module.exports = matchByHaiku
 
-},{"./objectPath":29}],22:[function(_dereq_,module,exports){
+},{"./objectPath":31}],24:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4437,7 +4876,7 @@ function matchById (node, id, options) {
 
 module.exports = matchById
 
-},{"./objectPath":29}],23:[function(_dereq_,module,exports){
+},{"./objectPath":31}],25:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4483,7 +4922,7 @@ function matchByTagName (node, tagName, options) {
 
 module.exports = matchByTagName
 
-},{"./objectPath":29}],24:[function(_dereq_,module,exports){
+},{"./objectPath":31}],26:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4530,7 +4969,7 @@ function matchOne (node, piece, options) {
 
 module.exports = matchOne
 
-},{"./attrSelectorParser":18,"./cssMatchByAttribute":19,"./cssMatchByClass":20,"./cssMatchByHaiku":21,"./cssMatchById":22,"./cssMatchByTagName":23}],25:[function(_dereq_,module,exports){
+},{"./attrSelectorParser":20,"./cssMatchByAttribute":21,"./cssMatchByClass":22,"./cssMatchByHaiku":23,"./cssMatchById":24,"./cssMatchByTagName":25}],27:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4559,7 +4998,7 @@ function queryList (matches, list, query, options) {
 
 module.exports = queryList
 
-},{"./cssMatchOne":24}],26:[function(_dereq_,module,exports){
+},{"./cssMatchOne":26}],28:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4579,7 +5018,7 @@ function queryTree (matches, node, query, options) {
 
 module.exports = queryTree
 
-},{"./BasicUtils":13,"./cssQueryList":25,"./manaFlattenTree":28}],27:[function(_dereq_,module,exports){
+},{"./BasicUtils":14,"./cssQueryList":27,"./manaFlattenTree":30}],29:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4602,7 +5041,7 @@ function getTimelineMaxTime (descriptor) {
 
 module.exports = getTimelineMaxTime
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4639,7 +5078,7 @@ function flattenTree (list, node, options, depth, index) {
 
 module.exports = flattenTree
 
-},{"./objectPath":29}],29:[function(_dereq_,module,exports){
+},{"./objectPath":31}],31:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4658,7 +5097,7 @@ function objectPath (obj, key) {
 
 module.exports = objectPath
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4703,7 +5142,7 @@ function parseCssValueString (str, optionalPropertyHint) {
 
 module.exports = parseCssValueString
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4745,7 +5184,7 @@ function scopifyElements (mana, parent, scope) {
 
 module.exports = scopifyElements
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 var xmlToMana = _dereq_('./xmlToMana')
 
 var STRING_TYPE = 'string'
@@ -4801,7 +5240,7 @@ function upgradeBytecodeInPlace (_bytecode) {
 
 module.exports = upgradeBytecodeInPlace
 
-},{"./xmlToMana":33}],33:[function(_dereq_,module,exports){
+},{"./xmlToMana":35}],35:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4842,7 +5281,7 @@ function xmlToMana (xml) {
 
 module.exports = xmlToMana
 
-},{"./../vendor/to-style":139,"./../vendor/xml-parser":152}],34:[function(_dereq_,module,exports){
+},{"./../vendor/to-style":144,"./../vendor/xml-parser":157}],36:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4987,21 +5426,7 @@ function applyCssLayout (
 
 module.exports = applyCssLayout
 
-},{"./formatTransform":39,"./isEqualTransformString":40,"./scopeOfElement":41,"./setStyleMatrix":42}],35:[function(_dereq_,module,exports){
-/**
- * Copyright (c) Haiku 2016-2017. All rights reserved.
- */
-
-var C1 = ', '
-var C2 = ','
-
-function compactTransform (t1) {
-  return t1.split(C1).join(C2)
-}
-
-module.exports = compactTransform
-
-},{}],36:[function(_dereq_,module,exports){
+},{"./formatTransform":40,"./isEqualTransformString":41,"./scopeOfElement":42,"./setStyleMatrix":43}],37:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -5137,7 +5562,7 @@ function computeMatrix (
 
 module.exports = computeMatrix
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -5244,7 +5669,7 @@ function computeRotationFlexibly (x, y, z, w, quat) {
 
 module.exports = computeRotationFlexibly
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -5303,7 +5728,7 @@ function computeSize (
 
 module.exports = computeSize
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -5344,6 +5769,7 @@ function formatTransform (transform, format, devicePixelRatio) {
     Math.round(transform[12] * devicePixelRatio) / devicePixelRatio
   transform[13] =
     Math.round(transform[13] * devicePixelRatio) / devicePixelRatio
+
   var prefix
   var last
   if (format === TWO) {
@@ -5358,7 +5784,10 @@ function formatTransform (transform, format, devicePixelRatio) {
       transform[12],
       transform[13]
     ]
+
+    // Note how we set the transform far to two here!
     transform = two
+
     prefix = 'matrix('
     last = 5
   } else if (format === THREE) {
@@ -5366,39 +5795,72 @@ function formatTransform (transform, format, devicePixelRatio) {
     prefix = 'matrix3d('
     last = 15
   }
-  for (var i = 0; i < last; i++) {
-    prefix += transform[i] < 0.000001 && transform[i] > -0.000001
-      ? TRANSFORM_ZILCH
-      : transform[i] + TRANSFORM_COMMA
+
+  prefix += (transform[0] < 0.000001 && transform[0] > -0.000001) ? TRANSFORM_ZILCH : transform[0] + TRANSFORM_COMMA
+  prefix += (transform[1] < 0.000001 && transform[1] > -0.000001) ? TRANSFORM_ZILCH : transform[1] + TRANSFORM_COMMA
+  prefix += (transform[2] < 0.000001 && transform[2] > -0.000001) ? TRANSFORM_ZILCH : transform[2] + TRANSFORM_COMMA
+  prefix += (transform[3] < 0.000001 && transform[3] > -0.000001) ? TRANSFORM_ZILCH : transform[3] + TRANSFORM_COMMA
+  prefix += (transform[4] < 0.000001 && transform[4] > -0.000001) ? TRANSFORM_ZILCH : transform[4] + TRANSFORM_COMMA
+  if (last > 5) {
+    prefix += (transform[5] < 0.000001 && transform[5] > -0.000001) ? TRANSFORM_ZILCH : transform[5] + TRANSFORM_COMMA
+    prefix += (transform[6] < 0.000001 && transform[6] > -0.000001) ? TRANSFORM_ZILCH : transform[6] + TRANSFORM_COMMA
+    prefix += (transform[7] < 0.000001 && transform[7] > -0.000001) ? TRANSFORM_ZILCH : transform[7] + TRANSFORM_COMMA
+    prefix += (transform[8] < 0.000001 && transform[8] > -0.000001) ? TRANSFORM_ZILCH : transform[8] + TRANSFORM_COMMA
+    prefix += (transform[9] < 0.000001 && transform[9] > -0.000001) ? TRANSFORM_ZILCH : transform[9] + TRANSFORM_COMMA
+    prefix += (transform[10] < 0.000001 && transform[10] > -0.000001) ? TRANSFORM_ZILCH : transform[10] + TRANSFORM_COMMA
+    prefix += (transform[11] < 0.000001 && transform[11] > -0.000001) ? TRANSFORM_ZILCH : transform[11] + TRANSFORM_COMMA
+    prefix += (transform[12] < 0.000001 && transform[12] > -0.000001) ? TRANSFORM_ZILCH : transform[12] + TRANSFORM_COMMA
+    prefix += (transform[13] < 0.000001 && transform[13] > -0.000001) ? TRANSFORM_ZILCH : transform[13] + TRANSFORM_COMMA
+    prefix += (transform[14] < 0.000001 && transform[14] > -0.000001) ? TRANSFORM_ZILCH : transform[14] + TRANSFORM_COMMA
   }
+
   prefix += transform[last] + TRANSFORM_SUFFIX
+
   return prefix
 }
 
 module.exports = formatTransform
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var compactTransform = _dereq_('./compactTransform')
-
 // var CIDENT = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)'
+
+var C1 = ', '
 
 function isEqualTransformString (t1, t2) {
   if (t1 === t2) return true
+
   if (!t1) return false
-  var c1 = compactTransform(t1)
-  var c2 = compactTransform(t2)
-  if (c1 === c2) return true
-  // if (t2 === CIDENT) return true // Historic hack that causes module replacement update issues as of Dec 7 2016
-  return false
+
+  var cs1 = t1.split(C1)
+  var cs2 = t2.split(C1)
+
+  if (cs1[0] !== cs2[0]) return false
+  if (cs1[1] !== cs2[1]) return false
+  if (cs1[2] !== cs2[2]) return false
+  if (cs1[3] !== cs2[3]) return false
+  if (cs1[4] !== cs2[4]) return false
+  if (cs1[5] !== cs2[5]) return false
+  if (cs1[6] !== cs2[6]) return false
+  if (cs1[7] !== cs2[7]) return false
+  if (cs1[8] !== cs2[8]) return false
+  if (cs1[9] !== cs2[9]) return false
+  if (cs1[10] !== cs2[10]) return false
+  if (cs1[11] !== cs2[11]) return false
+  if (cs1[12] !== cs2[12]) return false
+  if (cs1[13] !== cs2[13]) return false
+  if (cs1[14] !== cs2[14]) return false
+  if (cs1[15] !== cs2[15]) return false
+
+  return true
 }
 
 module.exports = isEqualTransformString
 
-},{"./compactTransform":35}],41:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5413,7 +5875,7 @@ module.exports = function scopeOfElement (mana) {
   return null
 }
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5444,7 +5906,1028 @@ function setStyleMatrix (
 
 module.exports = setStyleMatrix
 
-},{"./formatTransform":39,"./isEqualTransformString":40}],43:[function(_dereq_,module,exports){
+},{"./formatTransform":40,"./isEqualTransformString":41}],44:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
+// A dictionary that maps HTML+SVG element names (camelCase)
+// to addressable properties. This acts as a whitelist of properties that
+// _can_ be applied, and special logic for applying them.
+
+// Just a utility for populating these objects
+function has () {
+  var obj = {}
+  for (var i = 0; i < arguments.length; i++) {
+    var arg = arguments[i]
+    for (var name in arg) {
+      var fn = arg[name]
+      obj[name] = fn
+    }
+  }
+  return obj
+}
+
+var TEXT_CONTENT_SCHEMA = {
+  content: 'string'
+}
+
+var LAYOUT_3D_SCHEMA = {
+  shown: 'boolean',
+  opacity: 'number',
+  'mount.x': 'number',
+  'mount.y': 'number',
+  'mount.z': 'number',
+  'align.x': 'number',
+  'align.y': 'number',
+  'align.z': 'number',
+  'origin.x': 'number',
+  'origin.y': 'number',
+  'origin.z': 'number',
+  'translation.x': 'number',
+  'translation.y': 'number',
+  'translation.z': 'number',
+  'rotation.x': 'number',
+  'rotation.y': 'number',
+  'rotation.z': 'number',
+  'scale.x': 'number',
+  'scale.y': 'number',
+  'scale.z': 'number',
+  'sizeAbsolute.x': 'number',
+  'sizeAbsolute.y': 'number',
+  'sizeAbsolute.z': 'number',
+  'sizeProportional.x': 'number',
+  'sizeProportional.y': 'number',
+  'sizeProportional.z': 'number',
+  'sizeDifferential.x': 'number',
+  'sizeDifferential.y': 'number',
+  'sizeDifferential.z': 'number',
+  'sizeMode.x': 'number',
+  'sizeMode.y': 'number',
+  'sizeMode.z': 'number'
+}
+
+var LAYOUT_2D_SCHEMA = {
+  shown: 'boolean',
+  opacity: 'number',
+  'mount.x': 'number',
+  'mount.y': 'number',
+  'align.x': 'number',
+  'align.y': 'number',
+  'origin.x': 'number',
+  'origin.y': 'number',
+  'translation.x': 'number',
+  'translation.y': 'number',
+  'translation.z': 'number',
+  'rotation.x': 'number',
+  'rotation.y': 'number',
+  'rotation.z': 'number',
+  'scale.x': 'number',
+  'scale.y': 'number',
+  'sizeAbsolute.x': 'number',
+  'sizeAbsolute.y': 'number',
+  'sizeProportional.x': 'number',
+  'sizeProportional.y': 'number',
+  'sizeDifferential.x': 'number',
+  'sizeDifferential.y': 'number',
+  'sizeMode.x': 'number',
+  'sizeMode.y': 'number'
+}
+
+var PRESENTATION_SCHEMA = {
+  alignmentBaseline: 'string',
+  baselineShift: 'string',
+  clipPath: 'string',
+  clipRule: 'string',
+  clip: 'string',
+  colorInterpolationFilters: 'string',
+  colorInterpolation: 'string',
+  colorProfile: 'string',
+  colorRendering: 'string',
+  color: 'string',
+  cursor: 'string',
+  direction: 'string',
+  display: 'string',
+  dominantBaseline: 'string',
+  enableBackground: 'string',
+  fillOpacity: 'string',
+  fillRule: 'string',
+  fill: 'string',
+  filter: 'string',
+  floodColor: 'string',
+  floodOpacity: 'string',
+  fontFamily: 'string',
+  fontSizeAdjust: 'string',
+  fontSize: 'string',
+  fontStretch: 'string',
+  fontStyle: 'string',
+  fontVariant: 'string',
+  fontWeight: 'string',
+  glyphOrientationHorizontal: 'string',
+  glyphOrientationVertical: 'string',
+  imageRendering: 'string',
+  kerning: 'string',
+  letterSpacing: 'string',
+  lightingColor: 'string',
+  markerEnd: 'string',
+  markerMid: 'string',
+  markerStart: 'string',
+  mask: 'string',
+  // opacity omitted - is part of layout algorithm
+  overflow: 'string',
+  overflowX: 'string',
+  overflowY: 'string',
+  pointerEvents: 'string',
+  shapeRendering: 'string',
+  stopColor: 'string',
+  stopOpacity: 'string',
+  strokeDasharray: 'string',
+  strokeDashoffset: 'string',
+  strokeLinecap: 'string',
+  strokeLinejoin: 'string',
+  strokeMiterlimit: 'string',
+  strokeOpacity: 'string',
+  strokeWidth: 'string',
+  stroke: 'string',
+  textAnchor: 'string',
+  textDecoration: 'string',
+  textRendering: 'string',
+  unicodeBidi: 'string',
+  visibility: 'string',
+  wordSpacing: 'string',
+  writingMode: 'string'
+}
+
+var STYLE_SCHEMA = {
+  'style.alignmentBaseline': 'string',
+  'style.background': 'string',
+  'style.backgroundAttachment': 'string',
+  'style.backgroundColor': 'string',
+  'style.backgroundImage': 'string',
+  'style.backgroundPosition': 'string',
+  'style.backgroundRepeat': 'string',
+  'style.baselineShift': 'string',
+  'style.border': 'string',
+  'style.borderBottom': 'string',
+  'style.borderBottomColor': 'string',
+  'style.borderBottomStyle': 'string',
+  'style.borderBottomWidth': 'string',
+  'style.borderColor': 'string',
+  'style.borderLeft': 'string',
+  'style.borderLeftColor': 'string',
+  'style.borderLeftStyle': 'string',
+  'style.borderLeftWidth': 'string',
+  'style.borderRight': 'string',
+  'style.borderRightColor': 'string',
+  'style.borderRightStyle': 'string',
+  'style.borderRightWidth': 'string',
+  'style.borderStyle': 'string',
+  'style.borderTop': 'string',
+  'style.borderTopColor': 'string',
+  'style.borderTopStyle': 'string',
+  'style.borderTopWidth': 'string',
+  'style.borderWidth': 'string',
+  'style.clear': 'string',
+  'style.clip': 'string',
+  'style.clipPath': 'string',
+  'style.clipRule': 'string',
+  'style.color': 'string',
+  'style.colorInterpolation': 'string',
+  'style.colorInterpolationFilters': 'string',
+  'style.colorProfile': 'string',
+  'style.colorRendering': 'string',
+  'style.cssFloat': 'string',
+  'style.cursor': 'string',
+  'style.direction': 'string',
+  'style.display': 'string',
+  'style.dominantBaseline': 'string',
+  'style.enableBackground': 'string',
+  'style.fill': 'string',
+  'style.fillOpacity': 'string',
+  'style.fillRule': 'string',
+  'style.filter': 'string',
+  'style.floodColor': 'string',
+  'style.floodOpacity': 'string',
+  'style.font': 'string',
+  'style.fontFamily': 'string',
+  'style.fontSize': 'string',
+  'style.fontSizeAdjust': 'string',
+  'style.fontStretch': 'string',
+  'style.fontStyle': 'string',
+  'style.fontVariant': 'string',
+  'style.fontWeight': 'string',
+  'style.glyphOrientationHorizontal': 'string',
+  'style.glyphOrientationVertical': 'string',
+  'style.height': 'string',
+  'style.imageRendering': 'string',
+  'style.kerning': 'string',
+  'style.left': 'string',
+  'style.letterSpacing': 'string',
+  'style.lightingColor': 'string',
+  'style.lineHeight': 'string',
+  'style.listStyle': 'string',
+  'style.listStyleImage': 'string',
+  'style.listStylePosition': 'string',
+  'style.listStyleType': 'string',
+  'style.margin': 'string',
+  'style.marginBottom': 'string',
+  'style.marginLeft': 'string',
+  'style.marginRight': 'string',
+  'style.marginTop': 'string',
+  'style.markerEnd': 'string',
+  'style.markerMid': 'string',
+  'style.markerStart': 'string',
+  'style.mask': 'string',
+  'style.opacity': 'string',
+  'style.overflow': 'string',
+  'style.overflowX': 'string',
+  'style.overflowY': 'string',
+  'style.padding': 'string',
+  'style.paddingBottom': 'string',
+  'style.paddingLeft': 'string',
+  'style.paddingRight': 'string',
+  'style.paddingTop': 'string',
+  'style.pageBreakAfter': 'string',
+  'style.pageBreakBefore': 'string',
+  'style.pointerEvents': 'string',
+  'style.position': 'string',
+  'style.shapeRendering': 'string',
+  'style.stopColor': 'string',
+  'style.stopOpacity': 'string',
+  'style.stroke': 'string',
+  'style.strokeDasharray': 'string',
+  'style.strokeDashoffset': 'string',
+  'style.strokeLinecap': 'string',
+  'style.strokeLinejoin': 'string',
+  'style.strokeMiterlimit': 'string',
+  'style.strokeOpacity': 'string',
+  'style.strokeWidth': 'string',
+  'style.textAlign': 'string',
+  'style.textAnchor': 'string',
+  'style.textDecoration': 'string',
+  'style.textDecorationBlink': 'string',
+  'style.textDecorationLineThrough': 'string',
+  'style.textDecorationNone': 'string',
+  'style.textDecorationOverline': 'string',
+  'style.textDecorationUnderline': 'string',
+  'style.textIndent': 'string',
+  'style.textRendering': 'string',
+  'style.textTransform': 'string',
+  'style.top': 'string',
+  'style.unicodeBidi': 'string',
+  'style.verticalAlign': 'string',
+  'style.visibility': 'string',
+  'style.width': 'string',
+  'style.wordSpacing': 'string',
+  'style.writingMode': 'string',
+  'style.zIndex': 'number',
+  'style.WebkitTapHighlightColor': 'string'
+}
+
+var HTML_STYLE_SHORTHAND_SCHEMA = {
+  backgroundColor: 'string'
+}
+
+var CONTROL_FLOW_SCHEMA = {
+  // 'controlFlow.if': 'any',
+  // 'controlFlow.repeat': 'any',
+  // 'controlFlow.yield': 'any',
+  'controlFlow.insert': 'any',
+  'controlFlow.placeholder': 'any'
+}
+
+module.exports = {
+  'missing-glyph': has(
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  a: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    PRESENTATION_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  abbr: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  acronym: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  address: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  altGlyph: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  altGlyphDef: has(),
+  altGlyphItem: has(),
+  animate: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  animateColor: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  animateMotion: has(),
+  animateTransform: has(),
+  applet: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  area: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  article: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  aside: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  audio: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  b: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  base: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  basefont: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  bdi: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  bdo: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  big: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  blockquote: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  body: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  br: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  button: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  canvas: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  caption: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  center: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  circle: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  cite: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  clipPath: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  code: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  col: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  colgroup: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  'color-profile': has(),
+  command: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  cursor: has(),
+  datalist: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  dd: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  defs: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  del: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  desc: has(),
+  details: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  dfn: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  dir: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  discard: has(),
+  div: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  dl: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  dt: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  ellipse: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  em: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  embed: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  feBlend: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  feColorMatrix: has(
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  feComponentTransfer: has(
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  feComposite: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  feConvolveMatrix: has(
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  feDiffuseLighting: has(
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  feDisplacementMap: has(
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  feDistantLight: has(),
+  feDropShadow: has(),
+  feFlood: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  feFuncA: has(),
+  feFuncB: has(),
+  feFuncG: has(),
+  feFuncR: has(),
+  feGaussianBlur: has(
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  feImage: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  feMerge: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  feMergeNode: has(),
+  feMorphology: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  feOffset: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  fePointLight: has(),
+  feSpecularLighting: has(
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  feTile: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  feTurbulence: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  fieldset: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  figcaption: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  figure: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  filter: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  'font-face': has(),
+  'font-face-format': has(),
+  'font-face-name': has(),
+  'font-face-src': has(),
+  'font-face-uri': has(),
+  font: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    PRESENTATION_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  footer: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  foreignObject: has(
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_2D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  form: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  frame: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  frameset: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  g: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  glyph: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  glyphRef: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  h1: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  h2: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  h3: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  h4: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  h5: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  h6: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  hatch: has(),
+  hatchpath: has(),
+  head: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  header: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  hgroup: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  hkern: has(),
+  hr: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  html: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  i: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  iframe: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  image: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  img: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  input: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  ins: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  kbd: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  keygen: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  label: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  legend: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  li: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  line: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  linearGradient: has(
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  link: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  map: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  mark: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  marker: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  mask: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  menu: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  mesh: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA),
+  meshgradient: has(),
+  meshpatch: has(),
+  meshrow: has(),
+  meta: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  metadata: has(),
+  meter: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  mpath: has(),
+  nav: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  noframes: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  noscript: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  object: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  ol: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  optgroup: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  option: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  output: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  p: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  param: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  path: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  pattern: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  polygon: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  polyline: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  pre: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  progress: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  q: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  radialGradient: has(
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  rect: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  rp: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  rt: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  ruby: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  s: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  samp: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  script: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  section: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  select: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  set: has(),
+  small: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  solidcolor: has(),
+  source: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  span: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  stop: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  strike: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  strong: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  style: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  sub: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  summary: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  sup: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  svg: has(
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_2D_SCHEMA,
+    PRESENTATION_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  switch: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  symbol: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  table: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  tbody: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  td: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  text: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_2D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  textarea: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  textPath: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_2D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  tfoot: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  th: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  thead: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  time: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  title: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  tr: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  track: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  tref: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  tspan: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_2D_SCHEMA,
+    PRESENTATION_SCHEMA
+  ),
+  tt: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  u: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    TEXT_CONTENT_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  ul: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  unknown: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA),
+  us: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  use: has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA),
+  var: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+  video: has(
+    HTML_STYLE_SHORTHAND_SCHEMA,
+    CONTROL_FLOW_SCHEMA,
+    LAYOUT_3D_SCHEMA,
+    STYLE_SCHEMA
+  ),
+  view: has(),
+  vker: has(),
+  wb: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA)
+}
+
+},{}],45:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7077,7 +8560,7 @@ module.exports = {
   wb: has(CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES)
 }
 
-},{"./../../Layout3D":8}],44:[function(_dereq_,module,exports){
+},{"./../../Layout3D":9}],46:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7272,20 +8755,38 @@ function functionToRFO (fn) {
 
 module.exports = functionToRFO
 
-},{}],45:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 var getElementSize = _dereq_('./getElementSize')
+var _getLocalDomEventPosition = _dereq_('./getLocalDomEventPosition')
 var createRightClickMenu = _dereq_('./createRightClickMenu')
 var createMixpanel = _dereq_('./createMixpanel')
 var _render = _dereq_('./render')
 var _patch = _dereq_('./patch')
 
-var HaikuDOMRenderer = {}
+function HaikuDOMRenderer () {
+  // TODO: Pass in the mount element here instead of through the methods each time?
+  if (!(this instanceof HaikuDOMRenderer)) {
+    return new HaikuDOMRenderer()
+  }
 
-function render (
+  this._user = {
+    mouse: {
+      x: 0,
+      y: 0,
+      down: 0,
+      buttons: [0, 0, 0] // Assume most mouses have 3 buttons?
+    },
+    keys: {},
+    touches: [], // [{ x: 'number', y: 'number' }]
+    mouches: [] // [{ x: 'number', y: 'number' }] - Both touches and mouse cursor info
+  }
+}
+
+HaikuDOMRenderer.prototype.render = function render (
   domElement,
   virtualContainer,
   virtualTree,
@@ -7305,7 +8806,7 @@ function render (
   )
 }
 
-function patch (
+HaikuDOMRenderer.prototype.patch = function patch (
   domElement,
   virtualContainer,
   patchesDict,
@@ -7325,15 +8826,15 @@ function patch (
   )
 }
 
-function menuize (domElement, playerInstance) {
-  createRightClickMenu(domElement, playerInstance)
+HaikuDOMRenderer.prototype.menuize = function menuize (domElement, playerInstance) {
+  return createRightClickMenu(domElement, playerInstance)
 }
 
-function mixpanel (domElement, mixpanelToken, playerInstance) {
-  createMixpanel(domElement, mixpanelToken, playerInstance)
+HaikuDOMRenderer.prototype.mixpanel = function mixpanel (domElement, mixpanelToken, playerInstance) {
+  return createMixpanel(domElement, mixpanelToken, playerInstance)
 }
 
-function createContainer (domElement) {
+HaikuDOMRenderer.prototype.createContainer = function createContainer (domElement) {
   return {
     isContainer: true,
     layout: {
@@ -7344,15 +8845,180 @@ function createContainer (domElement) {
   }
 }
 
-HaikuDOMRenderer.render = render
-HaikuDOMRenderer.patch = patch
-HaikuDOMRenderer.menuize = menuize
-HaikuDOMRenderer.mixpanel = mixpanel
-HaikuDOMRenderer.createContainer = createContainer
+HaikuDOMRenderer.prototype.initialize = function initialize (domElement) {
+  var user = this._user
+
+  function setMouse (mouseEvent) {
+    var pos = _getLocalDomEventPosition(mouseEvent, domElement)
+    user.mouse.x = pos.x
+    user.mouse.y = pos.y
+  }
+
+  function setTouches (touchEvent) {
+    user.touches.splice(0)
+    for (var i = 0; i < touchEvent.touches.length; i++) {
+      var touch = touchEvent.touches[i]
+      var pos = _getLocalDomEventPosition(touch, domElement)
+      user.touches.push(pos)
+    }
+  }
+
+  function setMouches () {
+    user.mouches.splice(0)
+    // Only treat a mouse like a touch if it is down.
+    if (user.mouse.down) {
+      user.mouches.push(user.mouse)
+    }
+    user.mouches.push.apply(user.mouches, user.touches)
+  }
+
+  function clearKey () {
+    for (var which in user.keys) user.keys[which] = 0
+  }
+
+  function clearMouse () {
+    user.mouse.down = 0
+    user.touches.splice(0)
+    for (var i = 0; i < user.mouse.buttons.length; i++) {
+      user.mouse.buttons[i] = 0
+    }
+  }
+
+  function clearMouch () {
+    user.mouches.splice(0)
+  }
+
+  function clearTouch () {
+    user.touches.splice(0)
+  }
+
+  // MOUSE
+  // -----
+
+  domElement.addEventListener('mousedown', function _mousedownandler (mouseEvent) {
+    ++user.mouse.down
+    ++user.mouse.buttons[mouseEvent.button]
+    setMouse(mouseEvent)
+    setMouches()
+  })
+
+  domElement.addEventListener('mouseup', function _mouseupHandler (mouseEvent) {
+    clearMouse()
+    clearMouch()
+    setMouches()
+  })
+
+  domElement.addEventListener('mousemove', function _mousemoveHandler (mouseEvent) {
+    setMouse(mouseEvent)
+    setMouches()
+  })
+
+  domElement.addEventListener('mouseenter', function _mouseenterHandler (mouseEvent) {
+    clearMouse()
+    clearMouch()
+  })
+
+  domElement.addEventListener('mouseleave', function _mouseenterHandler (mouseEvent) {
+    clearMouse()
+    clearMouch()
+  })
+
+  var doc = domElement.ownerDocument
+  var win = doc.defaultView || doc.parentWindow
+
+  // KEYS
+  // ----
+
+  doc.addEventListener('keydown', function _keydownHandler (keyEvent) {
+    if (user.keys[keyEvent.which] === undefined) user.keys[keyEvent.which] = 0
+    ++user.keys[keyEvent.which]
+  })
+
+  doc.addEventListener('keyup', function _keyupHandler (keyEvent) {
+    if (user.keys[keyEvent.which] === undefined) user.keys[keyEvent.which] = 0
+
+    // Known Mac "feature" where keyup never fires while meta key (91) is down
+    // When right-click menu is toggled we don't get all mouseup events
+    if (keyEvent.which === 91 || keyEvent.which === 17) {
+      clearKey()
+    }
+
+    user.keys[keyEvent.which] = 0
+  })
+
+  // WINDOW
+
+  win.addEventListener('blur', function _blurHandlers (blurEvent) {
+    clearKey()
+    clearMouse()
+    clearTouch()
+    clearMouch()
+  })
+
+  win.addEventListener('focus', function _blurHandlers (blurEvent) {
+    clearKey()
+    clearMouse()
+    clearTouch()
+    clearMouch()
+  })
+
+  // TOUCHES
+  // -------
+  domElement.addEventListener('touchstart', function _touchstartHandler (touchEvent) {
+    setTouches(touchEvent)
+    setMouches()
+  })
+
+  domElement.addEventListener('touchend', function _touchsendHandler (touchEvent) {
+    clearTouch()
+    clearMouch()
+  })
+
+  domElement.addEventListener('touchmove', function _touchmoveHandler (touchEvent) {
+    setTouches(touchEvent)
+    setMouches()
+  })
+
+  domElement.addEventListener('touchenter', function _touchenterHandler (touchEvent) {
+    clearTouch()
+    clearMouch()
+  })
+
+  domElement.addEventListener('touchleave', function _touchleaveHandler (touchEvent) {
+    clearTouch()
+    clearMouch()
+  })
+}
+
+function _copy (a) {
+  var b = []
+  for (var i = 0; i < a.length; i++) b[i] = a[i]
+  return b
+}
+
+function _clone (a) {
+  var b = {}
+  for (var key in a) b[key] = a[key]
+  return b
+}
+
+HaikuDOMRenderer.prototype.getUser = function getUser () {
+  return {
+    mouse: {
+      x: this._user.mouse.x,
+      y: this._user.mouse.y,
+      down: this._user.mouse.down,
+      buttons: _copy(this._user.mouse.buttons)
+    },
+    keys: _clone(this._user.keys),
+    touches: _copy(this._user.touches),
+    mouches: _copy(this._user.mouches)
+  }
+}
 
 module.exports = HaikuDOMRenderer
 
-},{"./createMixpanel":54,"./createRightClickMenu":55,"./getElementSize":59,"./patch":69,"./render":71}],46:[function(_dereq_,module,exports){
+},{"./createMixpanel":56,"./createRightClickMenu":57,"./getElementSize":62,"./getLocalDomEventPosition":63,"./patch":72,"./render":74}],48:[function(_dereq_,module,exports){
 module.exports = function addToHashTable (hash, domElement, virtualElement) {
   if (virtualElement && virtualElement.attributes) {
     var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
@@ -7372,7 +9038,7 @@ module.exports = function addToHashTable (hash, domElement, virtualElement) {
   }
 }
 
-},{}],47:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7427,7 +9093,7 @@ function appendChild (
 
 module.exports = appendChild
 
-},{"./applyLayout":48,"./createTagNode":57,"./createTextNode":58,"./isTextNode":66}],48:[function(_dereq_,module,exports){
+},{"./applyLayout":50,"./createTagNode":59,"./createTextNode":60,"./isTextNode":69}],50:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7548,7 +9214,7 @@ function _warnOnce (warning) {
 
 module.exports = applyLayout
 
-},{"./../../layout/applyCssLayout":34,"./../../layout/scopeOfElement":41,"./../../vendor/modernizr":129,"./isIE":63,"./isMobile":64,"./isTextNode":66}],49:[function(_dereq_,module,exports){
+},{"./../../layout/applyCssLayout":36,"./../../layout/scopeOfElement":42,"./../../vendor/modernizr":132,"./isIE":67,"./isMobile":68,"./isTextNode":69}],51:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7564,15 +9230,58 @@ var CLASS = 'class'
 var CLASS_NAME = 'className'
 
 var XLINK_XMLNS = 'http://www.w3.org/1999/xlink'
+var X = 'x'
+var L = 'l'
+var I = 'i'
+var N = 'n'
+var K = 'k'
 
-function setAttribute (el, key, val, options, scopes) {
-  if (key.slice(0, 5) === 'xlink') {
+// data:image/png;base64 etc
+var D = 'd'
+var A = 'a'
+var T = 't'
+var COLON = ':'
+var M = 'm'
+var G = 'g'
+var E = 'e'
+var FSLASH = '/'
+
+function setAttribute (el, key, val, options, scopes, cache) {
+  // If key === xlink:href we are dealing with a reference and need to use a namepsace
+  if (key[0] === X && key[1] === L && key[2] === I && key[3] === N && key[4] === K) {
     var ns = XLINK_XMLNS
-    var p0 = el.getAttributeNS(ns, key)
-    if (p0 !== val) el.setAttributeNS(ns, key, val)
+
+    // If the value is data:image/, treat that as a special case magic string
+    if (val[0] === D && val[1] === A && val[2] === T && val[3] === A && val[4] === COLON && val[5] === I && val[6] === M && val[7] === A && val[8] === G && val[9] === E && val[10] === FSLASH) {
+      // In case of a huge image string, we don't even diff it, we just write it once and only once
+      if (!cache.base64image) {
+        el.setAttributeNS(ns, key, val)
+        cache.base64image = true
+      }
+    } else {
+      var p0 = el.getAttributeNS(ns, key)
+      if (p0 !== val) {
+        el.setAttributeNS(ns, key, val)
+      }
+    }
   } else {
-    var p1 = el.getAttribute(key)
-    if (p1 !== val) el.setAttribute(key, val)
+    // Fast path several attributes for which it's expensive to compare/read from DOM
+    if (key === 'd') {
+      if (val !== cache.d) {
+        el.setAttribute(key, val)
+        cache.d = val
+      }
+    } else if (key === 'points') {
+      if (val !== cache.points) {
+        el.setAttribute(key, val)
+        cache.points = val
+      }
+    } else {
+      var p1 = el.getAttribute(key)
+      if (p1 !== val) {
+        el.setAttribute(key, val)
+      }
+    }
   }
 }
 
@@ -7634,14 +9343,14 @@ function assignAttributes (
       continue
     }
 
-    setAttribute(domElement, key, anotherNewValue, options, scopes)
+    setAttribute(domElement, key, anotherNewValue, options, scopes, options.cache[domElement.haiku.locator])
   }
   return domElement
 }
 
 module.exports = assignAttributes
 
-},{"./assignClass":50,"./assignEvent":51,"./assignStyle":52}],50:[function(_dereq_,module,exports){
+},{"./assignClass":52,"./assignEvent":53,"./assignStyle":54}],52:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7655,7 +9364,7 @@ function assignClass (domElement, className, options, scopes) {
 
 module.exports = assignClass
 
-},{}],51:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7703,7 +9412,7 @@ function assignEvent (
 
 module.exports = assignEvent
 
-},{"./attachEventListener":53}],52:[function(_dereq_,module,exports){
+},{"./attachEventListener":55}],54:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7741,7 +9450,7 @@ function assignStyle (domElement, style, options, scopes, isPatchOperation) {
 
 module.exports = assignStyle
 
-},{}],53:[function(_dereq_,module,exports){
+},{}],55:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7761,7 +9470,7 @@ module.exports = function attachEventListener (
   }
 }
 
-},{}],54:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7801,7 +9510,7 @@ module.exports = function createMixpanel (domElement, mixpanelToken, component) 
   })
 }
 
-},{"./../../vendor/assign":78,"./../../vendor/mixpanel-browser/tiny":128}],55:[function(_dereq_,module,exports){
+},{"./../../vendor/assign":81,"./../../vendor/mixpanel-browser/tiny":131}],57:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7973,7 +9682,7 @@ module.exports = function createRightClickMenu (domElement, component) {
   doc.addEventListener('click', hideMenu)
 }
 
-},{}],56:[function(_dereq_,module,exports){
+},{}],58:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -7986,14 +9695,15 @@ function createSvgElement (domElement, tagName, options, scopes) {
 
 module.exports = createSvgElement
 
-},{}],57:[function(_dereq_,module,exports){
+},{}],59:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 var normalizeName = _dereq_('./normalizeName')
-var isSvgElementName = _dereq_('./isSvgElementName')
 var getTypeAsString = _dereq_('./getTypeAsString')
+
+var SVG_EL_NAMES = _dereq_('./../../helpers/allSvgElementNames')
 
 function createTagNode (
   domElement,
@@ -8006,7 +9716,7 @@ function createTagNode (
 ) {
   var tagName = normalizeName(getTypeAsString(virtualElement))
   var newDomElement
-  if (isSvgElementName(tagName, scopes)) {
+  if (SVG_EL_NAMES[tagName]) {
     // SVG
     newDomElement = createSvgElement(domElement, tagName, options, scopes)
   } else {
@@ -8014,7 +9724,12 @@ function createTagNode (
     newDomElement = domElement.ownerDocument.createElement(tagName)
   }
 
-  newDomElement.haiku = {}
+  // This doesn't happen in renderTree because the element doesn't exist yet.
+  if (!newDomElement.haiku) newDomElement.haiku = {}
+  newDomElement.haiku.locator = locator
+  if (!options.cache[newDomElement.haiku.locator]) {
+    options.cache[newDomElement.haiku.locator] = {}
+  }
 
   var incomingKey =
     virtualElement.key ||
@@ -8023,6 +9738,7 @@ function createTagNode (
     newDomElement.haiku.key = incomingKey
   }
 
+  // epdateElement recurses down into setAttributes, etc.
   updateElement(
     newDomElement,
     virtualElement,
@@ -8041,7 +9757,7 @@ module.exports = createTagNode
 var createSvgElement = _dereq_('./createSvgElement')
 var updateElement = _dereq_('./updateElement')
 
-},{"./createSvgElement":56,"./getTypeAsString":60,"./isSvgElementName":65,"./normalizeName":68,"./updateElement":75}],58:[function(_dereq_,module,exports){
+},{"./../../helpers/allSvgElementNames":19,"./createSvgElement":58,"./getTypeAsString":64,"./normalizeName":71,"./updateElement":78}],60:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8052,7 +9768,26 @@ function createTextNode (domElement, textContent, options, scopes) {
 
 module.exports = createTextNode
 
-},{}],59:[function(_dereq_,module,exports){
+},{}],61:[function(_dereq_,module,exports){
+function getDomEventPosition (event, doc) {
+  let x = -1
+  let y = -1
+  if (event.pageX || event.pageY) {
+    x = event.pageX
+    y = event.pageY
+  } else if (event.clientX || event.clientY) {
+    x = event.clientX + doc.body.scrollLeft + doc.documentElement.scrollLeft
+    y = event.clientY + doc.body.scrollTop + doc.documentElement.scrollTop
+  }
+  return {
+    x: ~~x,
+    y: ~~y
+  }
+}
+
+module.exports = getDomEventPosition
+
+},{}],62:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8076,7 +9811,26 @@ function getElementSize (domElement) {
 
 module.exports = getElementSize
 
-},{}],60:[function(_dereq_,module,exports){
+},{}],63:[function(_dereq_,module,exports){
+var getDomEventPosition = _dereq_('./getDomEventPosition')
+
+function getLocalDomEventPosition (event, element) {
+  const doc = element.ownerDocument
+  const viewPosition = getDomEventPosition(event, doc)
+  const elementRect = element.getBoundingClientRect()
+  const x = viewPosition.x - elementRect.left
+  const y = viewPosition.y - elementRect.top
+  return {
+    x: ~~x,
+    y: ~~y,
+    pageX: viewPosition.x,
+    pageY: viewPosition.y
+  }
+}
+
+module.exports = getLocalDomEventPosition
+
+},{"./getDomEventPosition":61}],64:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8123,14 +9877,14 @@ function _warnOnce (warning) {
 
 module.exports = getTypeAsString
 
-},{}],61:[function(_dereq_,module,exports){
+},{}],65:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 module.exports = _dereq_('./HaikuDOMRenderer')
 
-},{"./HaikuDOMRenderer":45}],62:[function(_dereq_,module,exports){
+},{"./HaikuDOMRenderer":47}],66:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8141,7 +9895,7 @@ function isBlankString (thing) {
 
 module.exports = isBlankString
 
-},{}],63:[function(_dereq_,module,exports){
+},{}],67:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8156,7 +9910,7 @@ module.exports = function isIE (window) {
   )
 }
 
-},{}],64:[function(_dereq_,module,exports){
+},{}],68:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8168,20 +9922,7 @@ module.exports = function isMobile (window) {
   return /iPhone|iPad|iPod|Android/i.test(window.navigator.userAgent)
 }
 
-},{}],65:[function(_dereq_,module,exports){
-/**
- * Copyright (c) Haiku 2016-2017. All rights reserved.
- */
-
-var svgElementNames = _dereq_('./../../helpers/allSvgElementNames')
-
-function isSvgElementName (tagName, scopes) {
-  return svgElementNames.indexOf(tagName) !== -1
-}
-
-module.exports = isSvgElementName
-
-},{"./../../helpers/allSvgElementNames":17}],66:[function(_dereq_,module,exports){
+},{}],69:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8192,7 +9933,7 @@ function isTextNode (virtualElement, scopes) {
 
 module.exports = isTextNode
 
-},{}],67:[function(_dereq_,module,exports){
+},{}],70:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8203,7 +9944,7 @@ function locatorBump (locator, index) {
 
 module.exports = locatorBump
 
-},{}],68:[function(_dereq_,module,exports){
+},{}],71:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8215,7 +9956,7 @@ function normalizeName (tagName) {
 
 module.exports = normalizeName
 
-},{}],69:[function(_dereq_,module,exports){
+},{}],72:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8266,7 +10007,7 @@ function patch (
 
 module.exports = patch
 
-},{"./updateElement":75}],70:[function(_dereq_,module,exports){
+},{"./updateElement":78}],73:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8278,7 +10019,7 @@ function removeElement (domElement, hash, options, scopes) {
 
 module.exports = removeElement
 
-},{}],71:[function(_dereq_,module,exports){
+},{}],74:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8307,7 +10048,7 @@ function render (
 
 module.exports = render
 
-},{"./renderTree":72}],72:[function(_dereq_,module,exports){
+},{"./renderTree":75}],75:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8354,6 +10095,9 @@ function renderTree (
   domElement.haiku.locator = locator
   domElement.haiku.virtual = virtualElement
   domElement.haiku.element = _cloneVirtualElement(virtualElement) // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
+  if (!options.cache[domElement.haiku.locator]) {
+    options.cache[domElement.haiku.locator] = {}
+  }
 
   if (!Array.isArray(virtualChildren)) {
     return domElement
@@ -8393,10 +10137,14 @@ function renderTree (
         options,
         scopes
       )
+
       addToHashTable(hash, insertedElement, virtualChild)
     } else {
       if (!domChild.haiku) domChild.haiku = {}
       domChild.haiku.locator = sublocator
+      if (!options.cache[domChild.haiku.locator]) {
+        options.cache[domChild.haiku.locator] = {}
+      }
 
       if (!domChild.haiku.element) {
         // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
@@ -8425,7 +10173,7 @@ module.exports = renderTree
 var appendChild = _dereq_('./appendChild')
 var updateElement = _dereq_('./updateElement')
 
-},{"./addToHashTable":46,"./appendChild":47,"./isBlankString":62,"./locatorBump":67,"./removeElement":70,"./updateElement":75}],73:[function(_dereq_,module,exports){
+},{"./addToHashTable":48,"./appendChild":49,"./isBlankString":66,"./locatorBump":70,"./removeElement":73,"./updateElement":78}],76:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8476,7 +10224,7 @@ module.exports = replaceElement
 var createTextNode = _dereq_('./createTextNode')
 var createTagNode = _dereq_('./createTagNode')
 
-},{"./applyLayout":48,"./createTagNode":57,"./createTextNode":58,"./isTextNode":66}],74:[function(_dereq_,module,exports){
+},{"./applyLayout":50,"./createTagNode":59,"./createTextNode":60,"./isTextNode":69}],77:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8496,15 +10244,16 @@ function replaceElementWithText (domElement, textContent, options, scopes) {
 
 module.exports = replaceElementWithText
 
-},{"./createTextNode":58}],75:[function(_dereq_,module,exports){
+},{"./createTextNode":60}],78:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 var applyLayout = _dereq_('./applyLayout')
 var assignAttributes = _dereq_('./assignAttributes')
-var isSvgElementName = _dereq_('./isSvgElementName')
 var getTypeAsString = _dereq_('./getTypeAsString')
+
+var SVG_EL_NAMES = _dereq_('./../../helpers/allSvgElementNames')
 
 var OBJECT = 'object'
 
@@ -8565,7 +10314,7 @@ function updateElement (
     )
   }
 
-  if (isSvgElementName(elName, scopes)) {
+  if (SVG_EL_NAMES[elName]) {
     updateSvgElement(
       domElement,
       elName,
@@ -8651,7 +10400,7 @@ var replaceElement = _dereq_('./replaceElement')
 var normalizeName = _dereq_('./normalizeName')
 var isTextNode = _dereq_('./isTextNode')
 
-},{"./applyLayout":48,"./assignAttributes":49,"./getTypeAsString":60,"./isSvgElementName":65,"./isTextNode":66,"./normalizeName":68,"./renderTree":72,"./replaceElement":73,"./replaceElementWithText":74,"./updateSvgElement":76}],76:[function(_dereq_,module,exports){
+},{"./../../helpers/allSvgElementNames":19,"./applyLayout":50,"./assignAttributes":51,"./getTypeAsString":64,"./isTextNode":69,"./normalizeName":71,"./renderTree":75,"./replaceElement":76,"./replaceElementWithText":77,"./updateSvgElement":79}],79:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8714,7 +10463,7 @@ module.exports = updateSvgElement
 
 var renderTree = _dereq_('./renderTree')
 
-},{"./applyLayout":48,"./assignAttributes":49,"./renderTree":72}],77:[function(_dereq_,module,exports){
+},{"./applyLayout":50,"./assignAttributes":51,"./renderTree":75}],80:[function(_dereq_,module,exports){
 function uniq (arr) {
   var len = arr.length
   var i = -1
@@ -8743,7 +10492,7 @@ module.exports = {
   immutable: immutable
 }
 
-},{}],78:[function(_dereq_,module,exports){
+},{}],81:[function(_dereq_,module,exports){
 module.exports = function assign (t) {
   for (var s, i = 1, n = arguments.length; i < n; i++) {
     s = arguments[i]
@@ -8756,7 +10505,7 @@ module.exports = function assign (t) {
   return t
 }
 
-},{}],79:[function(_dereq_,module,exports){
+},{}],82:[function(_dereq_,module,exports){
 module.exports = {
   aliceblue: [240, 248, 255],
   antiquewhite: [250, 235, 215],
@@ -8908,7 +10657,7 @@ module.exports = {
   yellowgreen: [154, 205, 50]
 }
 
-},{}],80:[function(_dereq_,module,exports){
+},{}],83:[function(_dereq_,module,exports){
 var ColorNames = _dereq_('./../color-names')
 
 var reverseNames = {}
@@ -9163,38 +10912,38 @@ function hexDouble (num) {
   return str.length < 2 ? '0' + str : str
 }
 
-},{"./../color-names":79}],81:[function(_dereq_,module,exports){
+},{"./../color-names":82}],84:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.ease = internal1.cubicBezier(0.25, 0.1, 0.25, 0.1)
 
-},{"../internal":125}],82:[function(_dereq_,module,exports){
+},{"../internal":128}],85:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeIn = internal1.cubicBezier(0.42, 0, 1, 1)
 
-},{"../internal":125}],83:[function(_dereq_,module,exports){
+},{"../internal":128}],86:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInBack = function (x) {
   return internal1.c3 * x * x * x - internal1.c1 * x * x
 }
 
-},{"../internal":125}],84:[function(_dereq_,module,exports){
+},{"../internal":128}],87:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 exports.easeInBounce = function (x) {
   return 1 - index1.easeOutBounce(1 - x)
 }
 
-},{"./index":115}],85:[function(_dereq_,module,exports){
+},{"./index":118}],88:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInCirc = function (x) {
   return 1 - internal1.sqrt(1 - x * x)
 }
 
-},{"../internal":125}],86:[function(_dereq_,module,exports){
+},{"../internal":128}],89:[function(_dereq_,module,exports){
 exports.easeInCubic = function (x) {
   return x * x * x
 }
 
-},{}],87:[function(_dereq_,module,exports){
+},{}],90:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInElastic = function (n) {
   return !n || n === 1
@@ -9204,17 +10953,17 @@ exports.easeInElastic = function (n) {
         internal1.pow(2, 10 * (n - 1))
 }
 
-},{"../internal":125}],88:[function(_dereq_,module,exports){
+},{"../internal":128}],91:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInExpo = function (x) {
   return x === 0 ? 0 : internal1.pow(2, 10 * x - 10)
 }
 
-},{"../internal":125}],89:[function(_dereq_,module,exports){
+},{"../internal":128}],92:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOut = internal1.cubicBezier(0.42, 0, 0.58, 1)
 
-},{"../internal":125}],90:[function(_dereq_,module,exports){
+},{"../internal":128}],93:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutBack = function (x) {
   return x < 0.5
@@ -9225,7 +10974,7 @@ exports.easeInOutBack = function (x) {
         2
 }
 
-},{"../internal":125}],91:[function(_dereq_,module,exports){
+},{"../internal":128}],94:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 exports.easeInOutBounce = function (x) {
   return x < 0.5
@@ -9233,7 +10982,7 @@ exports.easeInOutBounce = function (x) {
     : (1 + index1.easeOutBounce(2 * x - 1)) / 2
 }
 
-},{"./index":115}],92:[function(_dereq_,module,exports){
+},{"./index":118}],95:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutCirc = function (x) {
   return x < 0.5
@@ -9241,13 +10990,13 @@ exports.easeInOutCirc = function (x) {
     : (internal1.sqrt(1 - internal1.pow(-2 * x + 2, 2)) + 1) / 2
 }
 
-},{"../internal":125}],93:[function(_dereq_,module,exports){
+},{"../internal":128}],96:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutCubic = function (x) {
   return x < 0.5 ? 4 * x * x * x : 1 - internal1.pow(-2 * x + 2, 3) / 2
 }
 
-},{"../internal":125}],94:[function(_dereq_,module,exports){
+},{"../internal":128}],97:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutElastic = function (n) {
   if (!n || n === 1) return n
@@ -9267,7 +11016,7 @@ exports.easeInOutElastic = function (n) {
   )
 }
 
-},{"../internal":125}],95:[function(_dereq_,module,exports){
+},{"../internal":128}],98:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutExpo = function (x) {
   return x === 0
@@ -9279,56 +11028,56 @@ exports.easeInOutExpo = function (x) {
         : (2 - internal1.pow(2, -20 * x + 10)) / 2
 }
 
-},{"../internal":125}],96:[function(_dereq_,module,exports){
+},{"../internal":128}],99:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuad = function (x) {
   return x < 0.5 ? 2 * x * x : 1 - internal1.pow(-2 * x + 2, 2) / 2
 }
 
-},{"../internal":125}],97:[function(_dereq_,module,exports){
+},{"../internal":128}],100:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuart = function (x) {
   return x < 0.5 ? 8 * x * x * x * x : 1 - internal1.pow(-2 * x + 2, 4) / 2
 }
 
-},{"../internal":125}],98:[function(_dereq_,module,exports){
+},{"../internal":128}],101:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuint = function (x) {
   return x < 0.5 ? 16 * x * x * x * x * x : 1 - internal1.pow(-2 * x + 2, 5) / 2
 }
 
-},{"../internal":125}],99:[function(_dereq_,module,exports){
+},{"../internal":128}],102:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutSine = function (x) {
   return -(internal1.cos(internal1.pi * x) - 1) / 2
 }
 
-},{"../internal":125}],100:[function(_dereq_,module,exports){
+},{"../internal":128}],103:[function(_dereq_,module,exports){
 exports.easeInQuad = function (x) {
   return x * x
 }
 
-},{}],101:[function(_dereq_,module,exports){
+},{}],104:[function(_dereq_,module,exports){
 exports.easeInQuart = function (x) {
   return x * x * x * x
 }
 
-},{}],102:[function(_dereq_,module,exports){
+},{}],105:[function(_dereq_,module,exports){
 exports.easeInQuint = function (x) {
   return x * x * x * x * x
 }
 
-},{}],103:[function(_dereq_,module,exports){
+},{}],106:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInSine = function (x) {
   return 1 - internal1.cos(x * internal1.pi / 2)
 }
 
-},{"../internal":125}],104:[function(_dereq_,module,exports){
+},{"../internal":128}],107:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOut = internal1.cubicBezier(0, 0, 0.58, 1)
 
-},{"../internal":125}],105:[function(_dereq_,module,exports){
+},{"../internal":128}],108:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutBack = function (x) {
   return (
@@ -9338,7 +11087,7 @@ exports.easeOutBack = function (x) {
   )
 }
 
-},{"../internal":125}],106:[function(_dereq_,module,exports){
+},{"../internal":128}],109:[function(_dereq_,module,exports){
 exports.easeOutBounce = function (x) {
   var n1 = 7.5625
   var d1 = 2.75
@@ -9351,19 +11100,19 @@ exports.easeOutBounce = function (x) {
         : n1 * (x -= 2.625 / d1) * x + 0.984375
 }
 
-},{}],107:[function(_dereq_,module,exports){
+},{}],110:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutCirc = function (x) {
   return internal1.sqrt(1 - (x - 1) * (x - 1))
 }
 
-},{"../internal":125}],108:[function(_dereq_,module,exports){
+},{"../internal":128}],111:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutCubic = function (x) {
   return 1 - internal1.pow(1 - x, 3)
 }
 
-},{"../internal":125}],109:[function(_dereq_,module,exports){
+},{"../internal":128}],112:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutElastic = function (n) {
   if (!n || n === 1) return n
@@ -9380,36 +11129,36 @@ exports.easeOutElastic = function (n) {
   )
 }
 
-},{"../internal":125}],110:[function(_dereq_,module,exports){
+},{"../internal":128}],113:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutExpo = function (x) {
   return x === 1 ? 1 : 1 - internal1.pow(2, -10 * x)
 }
 
-},{"../internal":125}],111:[function(_dereq_,module,exports){
+},{"../internal":128}],114:[function(_dereq_,module,exports){
 exports.easeOutQuad = function (x) {
   return 1 - (1 - x) * (1 - x)
 }
 
-},{}],112:[function(_dereq_,module,exports){
+},{}],115:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutQuart = function (x) {
   return 1 - internal1.pow(1 - x, 4)
 }
 
-},{"../internal":125}],113:[function(_dereq_,module,exports){
+},{"../internal":128}],116:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutQuint = function (x) {
   return 1 - internal1.pow(1 - x, 5)
 }
 
-},{"../internal":125}],114:[function(_dereq_,module,exports){
+},{"../internal":128}],117:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutSine = function (x) {
   return internal1.sin(x * internal1.pi / 2)
 }
 
-},{"../internal":125}],115:[function(_dereq_,module,exports){
+},{"../internal":128}],118:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -9451,20 +11200,20 @@ __export(_dereq_('./linear'))
 __export(_dereq_('./stepEnd'))
 __export(_dereq_('./stepStart'))
 
-},{"./ease":81,"./easeIn":82,"./easeInBack":83,"./easeInBounce":84,"./easeInCirc":85,"./easeInCubic":86,"./easeInElastic":87,"./easeInExpo":88,"./easeInOut":89,"./easeInOutBack":90,"./easeInOutBounce":91,"./easeInOutCirc":92,"./easeInOutCubic":93,"./easeInOutElastic":94,"./easeInOutExpo":95,"./easeInOutQuad":96,"./easeInOutQuart":97,"./easeInOutQuint":98,"./easeInOutSine":99,"./easeInQuad":100,"./easeInQuart":101,"./easeInQuint":102,"./easeInSine":103,"./easeOut":104,"./easeOutBack":105,"./easeOutBounce":106,"./easeOutCirc":107,"./easeOutCubic":108,"./easeOutElastic":109,"./easeOutExpo":110,"./easeOutQuad":111,"./easeOutQuart":112,"./easeOutQuint":113,"./easeOutSine":114,"./linear":116,"./stepEnd":117,"./stepStart":118}],116:[function(_dereq_,module,exports){
+},{"./ease":84,"./easeIn":85,"./easeInBack":86,"./easeInBounce":87,"./easeInCirc":88,"./easeInCubic":89,"./easeInElastic":90,"./easeInExpo":91,"./easeInOut":92,"./easeInOutBack":93,"./easeInOutBounce":94,"./easeInOutCirc":95,"./easeInOutCubic":96,"./easeInOutElastic":97,"./easeInOutExpo":98,"./easeInOutQuad":99,"./easeInOutQuart":100,"./easeInOutQuint":101,"./easeInOutSine":102,"./easeInQuad":103,"./easeInQuart":104,"./easeInQuint":105,"./easeInSine":106,"./easeOut":107,"./easeOutBack":108,"./easeOutBounce":109,"./easeOutCirc":110,"./easeOutCubic":111,"./easeOutElastic":112,"./easeOutExpo":113,"./easeOutQuad":114,"./easeOutQuart":115,"./easeOutQuint":116,"./easeOutSine":117,"./linear":119,"./stepEnd":120,"./stepStart":121}],119:[function(_dereq_,module,exports){
 exports.linear = function (x) {
   return x
 }
 
-},{}],117:[function(_dereq_,module,exports){
+},{}],120:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.stepEnd = internal1.steps(1, 0)
 
-},{"../internal":125}],118:[function(_dereq_,module,exports){
+},{"../internal":128}],121:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.stepStart = internal1.steps(1, 1)
 
-},{"../internal":125}],119:[function(_dereq_,module,exports){
+},{"../internal":128}],122:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -9477,7 +11226,7 @@ __export(_dereq_('./curves'))
 var css = _dereq_('./internal/cssEasings')
 exports.css = css
 
-},{"./curves":115,"./internal":125,"./internal/cssEasings":121}],120:[function(_dereq_,module,exports){
+},{"./curves":118,"./internal":128,"./internal/cssEasings":124}],123:[function(_dereq_,module,exports){
 exports.pi = Math.PI
 exports.tau = 2 * exports.pi
 exports.epsilon = 0.0001
@@ -9487,7 +11236,7 @@ exports.c3 = exports.c1 + 1
 exports.c4 = exports.tau / 3
 exports.c5 = exports.tau / 4.5
 
-},{}],121:[function(_dereq_,module,exports){
+},{}],124:[function(_dereq_,module,exports){
 var c = 'cubic-bezier'
 var s = 'steps'
 exports.ease = c + '(.25,.1,.25,1)'
@@ -9523,7 +11272,7 @@ exports.linear = c + '(0,0,1,1)'
 exports.stepEnd = s + '(1,0)'
 exports.stepStart = s + '(1,1)'
 
-},{}],122:[function(_dereq_,module,exports){
+},{}],125:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 var camelCaseRegex = /([a-z])[- ]([a-z])/gi
 var cssFunctionRegex = /^([a-z-]+)\(([^)]+)\)$/i
@@ -9569,7 +11318,7 @@ exports.cssFunction = function (easingString) {
   throw new Error('unknown css function')
 }
 
-},{"./index":125}],123:[function(_dereq_,module,exports){
+},{"./index":128}],126:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 var bezier = function (n1, n2, t) {
   return 3 * n1 * (1 - t) * (1 - t) * t + 3 * n2 * (1 - t) * t * t + t * t * t
@@ -9604,7 +11353,7 @@ exports.cubicBezier = function (p0, p1, p2, p3) {
   }
 }
 
-},{"./index":125}],124:[function(_dereq_,module,exports){
+},{"./index":128}],127:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.frames = function (n) {
   var q = 1 / (n - 1)
@@ -9614,7 +11363,7 @@ exports.frames = function (n) {
   }
 }
 
-},{"../internal":125}],125:[function(_dereq_,module,exports){
+},{"../internal":128}],128:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -9626,7 +11375,7 @@ __export(_dereq_('./frames'))
 __export(_dereq_('./math'))
 __export(_dereq_('./steps'))
 
-},{"./constants":120,"./cssEasings":121,"./cssFunction":122,"./cubicBezier":123,"./frames":124,"./math":126,"./steps":127}],126:[function(_dereq_,module,exports){
+},{"./constants":123,"./cssEasings":124,"./cssFunction":125,"./cubicBezier":126,"./frames":127,"./math":129,"./steps":130}],129:[function(_dereq_,module,exports){
 exports.abs = Math.abs
 exports.asin = Math.asin
 exports.floor = Math.floor
@@ -9635,7 +11384,7 @@ exports.pow = Math.pow
 exports.sin = Math.sin
 exports.sqrt = Math.sqrt
 
-},{}],127:[function(_dereq_,module,exports){
+},{}],130:[function(_dereq_,module,exports){
 exports.steps = function (count, pos) {
   var q = count / 1
   var p = pos === 'end' ? 0 : pos === 'start' ? 1 : pos || 0
@@ -9644,7 +11393,7 @@ exports.steps = function (count, pos) {
   }
 }
 
-},{}],128:[function(_dereq_,module,exports){
+},{}],131:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 module.exports = function _mixpanelTiny() {
@@ -9731,7 +11480,7 @@ module.exports = function _mixpanelTiny() {
   return setup(document, window.mixpanel || [])
 }
 
-},{}],129:[function(_dereq_,module,exports){
+},{}],132:[function(_dereq_,module,exports){
 function hasPreserve3d (window) {
   if (!window) return false
   if (!window.document) return false
@@ -9760,7 +11509,7 @@ module.exports = {
   hasPreserve3d: hasPreserve3d
 }
 
-},{}],130:[function(_dereq_,module,exports){
+},{}],133:[function(_dereq_,module,exports){
 (function (process){
 /* eslint-disable */
 // Generated by CoffeeScript 1.7.1
@@ -9804,7 +11553,7 @@ module.exports = {
 }.call(this))
 
 }).call(this,_dereq_('_process'))
-},{"_process":1}],131:[function(_dereq_,module,exports){
+},{"_process":1}],134:[function(_dereq_,module,exports){
 (function (global){
 /* eslint-disable */
 
@@ -9886,7 +11635,140 @@ module.exports.polyfill = function() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../performance-now":130}],132:[function(_dereq_,module,exports){
+},{"./../performance-now":133}],135:[function(_dereq_,module,exports){
+// The original ARC4-based prng included in this library.
+// Period: ~2^1600
+module.exports = _dereq_('./seedrandom')
+
+},{"./seedrandom":136}],136:[function(_dereq_,module,exports){
+var width = 256        // each RC4 output is 0 <= x < 256
+var chunks = 6         // at least six RC4 outputs for each double
+var digits = 52        // there are 52 significant digits in a double
+var startdenom = Math.pow(width, chunks)
+var significance = Math.pow(2, digits)
+var overflow = significance * 2
+var mask = width - 1
+var pool = []
+
+//
+// seedrandom()
+// This is the seedrandom function described above.
+//
+function seedrandom (seed, options, callback) {
+  var key = []
+
+  // Use the seed to initialize an ARC4 generator.
+  var arc4 = new ARC4(key)
+
+  // This function returns a random double in [0, 1) that contains
+  // randomness in every bit of the mantissa of the IEEE 754 value.
+  function prng () {
+    var n = arc4.g(chunks)             // Start with a numerator n < 2 ^ 48
+    var d = startdenom                 //   and denominator d = 2 ^ 48.
+    var x = 0                          //   and no 'extra last byte'.
+
+    while (n < significance) {          // Fill up all significant digits by
+      n = (n + x) * width              //   shifting numerator and
+      d *= width                       //   denominator and generating a
+      x = arc4.g(1)                    //   new least-significant-byte.
+    }
+    while (n >= overflow) {             // To avoid rounding up, before adding
+      n /= 2                           //   last byte, shift everything
+      d /= 2                           //   right using integer math until
+      x >>>= 1                         //   we have exactly the desired bits.
+    }
+    return (n + x) / d                 // Form the number within [0, 1).
+  }
+
+  prng.double = prng
+
+  // Mix the randomness into accumulated entropy.
+  mixkey(tostring(arc4.S), pool)
+
+  return prng
+}
+
+// ARC4
+//
+// An ARC4 implementation.  The constructor takes a key in the form of
+// an array of at most (width) integers that should be 0 <= x < (width).
+//
+// The g(count) method returns a pseudorandom integer that concatenates
+// the next (count) outputs from ARC4.  Its return value is a number x
+// that is in the range 0 <= x < (width ^ count).
+function ARC4 (key) {
+  var t
+  var keylen = key.length
+  var me = this
+  var i = 0
+  var j = me.i = me.j = 0
+  var s = me.S = []
+
+  // The empty key [] is treated as [0].
+  if (!keylen) {
+    key = [keylen++]
+  }
+
+  // Set up S using the standard key scheduling algorithm.
+  while (i < width) {
+    s[i] = i++
+  }
+
+  for (i = 0; i < width; i++) {
+    s[i] = s[j = mask & (j + key[i % keylen] + (t = s[i]))]
+    s[j] = t
+  }
+
+  // The "g" method returns the next (count) outputs as one number.
+  (me.g = function g (count) {
+    // Using instance members instead of closure state nearly doubles speed.
+    var t
+    var r = 0
+    var i = me.i
+    var j = me.j
+    var s = me.S
+
+    while (count--) {
+      t = s[i = mask & (i + 1)]
+      r = r * width + s[mask & ((s[i] = s[j = mask & (j + t)]) + (s[j] = t))]
+    }
+
+    me.i = i
+    me.j = j
+
+    return r
+
+    // For robust unpredictability, the function call below automatically
+    // discards an initial batch of values.  This is called RC4-drop[256].
+    // See http://google.com/search?q=rsa+fluhrer+response&btnI
+  })(width)
+}
+
+// mixkey()
+// Mixes a string seed into a key that is an array of integers, and
+// returns a shortened string seed that is equivalent to the result key.
+function mixkey (seed, key) {
+  var stringseed = seed + ''
+  var smear
+  var j = 0
+
+  while (j < stringseed.length) {
+    key[mask & j] =
+      mask & ((smear ^= key[mask & j] * 19) + stringseed.charCodeAt(j++))
+  }
+
+  return tostring(key)
+}
+
+// tostring()
+// Converts an array of charcodes to a string
+function tostring (a) {
+  return String.fromCharCode.apply(0, a)
+}
+
+module.exports = seedrandom
+
+},{}],137:[function(_dereq_,module,exports){
 'use strict'
 
 exports.__esModule = true
@@ -9912,7 +11794,7 @@ exports.toPath = _toPath2.default
 exports.toPoints = _toPoints2.default
 exports.valid = _valid2.default
 
-},{"./toPath":133,"./toPoints":134,"./valid":135}],133:[function(_dereq_,module,exports){
+},{"./toPath":138,"./toPoints":139,"./valid":140}],138:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -10062,7 +11944,7 @@ var toPath = function(s) {
 
 exports.default = toPath
 
-},{"./toPoints":134}],134:[function(_dereq_,module,exports){
+},{"./toPoints":139}],139:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -10521,7 +12403,7 @@ var getPointsFromG = function(_ref13) {
 
 exports.default = toPoints
 
-},{}],135:[function(_dereq_,module,exports){
+},{}],140:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -10651,10 +12533,10 @@ var valid = function(shape) {
 
 exports.default = valid
 
-},{}],136:[function(_dereq_,module,exports){
+},{}],141:[function(_dereq_,module,exports){
 module.exports = _dereq_('./prefixer')()
 
-},{"./prefixer":144}],137:[function(_dereq_,module,exports){
+},{"./prefixer":149}],142:[function(_dereq_,module,exports){
 module.exports = {
   animation: 1,
   'column-count': 1,
@@ -10674,33 +12556,33 @@ module.exports = {
   rowspan: 1
 }
 
-},{}],138:[function(_dereq_,module,exports){
+},{}],143:[function(_dereq_,module,exports){
 var objectHasOwn = Object.prototype.hasOwnProperty
 
 module.exports = function (object, propertyName) {
   return objectHasOwn.call(object, propertyName)
 }
 
-},{}],139:[function(_dereq_,module,exports){
+},{}],144:[function(_dereq_,module,exports){
 module.exports = {
   object: _dereq_('./toStyleObject')
 }
 
-},{"./toStyleObject":151}],140:[function(_dereq_,module,exports){
+},{"./toStyleObject":156}],145:[function(_dereq_,module,exports){
 var objectToString = Object.prototype.toString
 
 module.exports = function (v) {
   return objectToString.apply(v) === '[object Function]'
 }
 
-},{}],141:[function(_dereq_,module,exports){
+},{}],146:[function(_dereq_,module,exports){
 var objectToString = Object.prototype.toString
 
 module.exports = function (v) {
   return !!v && objectToString.call(v) === '[object Object]'
 }
 
-},{}],142:[function(_dereq_,module,exports){
+},{}],147:[function(_dereq_,module,exports){
 var toUpperFirst = _dereq_('./stringUtils/toUpperFirst')
 
 var re = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/
@@ -10749,7 +12631,7 @@ var prefixInfo = (function () {
 
 module.exports = prefixInfo
 
-},{"./stringUtils/toUpperFirst":150}],143:[function(_dereq_,module,exports){
+},{"./stringUtils/toUpperFirst":155}],148:[function(_dereq_,module,exports){
 module.exports = {
   'border-radius': 1,
   'border-top-left-radius': 1,
@@ -10776,7 +12658,7 @@ module.exports = {
   'box-pack': 1
 }
 
-},{}],144:[function(_dereq_,module,exports){
+},{}],149:[function(_dereq_,module,exports){
 var camelize = _dereq_('./stringUtils/camelize')
 var hyphenate = _dereq_('./stringUtils/hyphenate')
 var toLowerFirst = _dereq_('./stringUtils/toLowerFirst')
@@ -10848,7 +12730,7 @@ module.exports = function (asStylePrefix) {
   }
 }
 
-},{"./prefixInfo":142,"./prefixProperties":143,"./stringUtils/camelize":145,"./stringUtils/hyphenate":147,"./stringUtils/toLowerFirst":149,"./stringUtils/toUpperFirst":150}],145:[function(_dereq_,module,exports){
+},{"./prefixInfo":147,"./prefixProperties":148,"./stringUtils/camelize":150,"./stringUtils/hyphenate":152,"./stringUtils/toLowerFirst":154,"./stringUtils/toUpperFirst":155}],150:[function(_dereq_,module,exports){
 var toCamelFn = function (str, letter) {
   return letter ? letter.toUpperCase() : ''
 }
@@ -10859,17 +12741,17 @@ module.exports = function (str) {
   return str ? str.replace(hyphenRe, toCamelFn) : ''
 }
 
-},{"./hyphenRe":146}],146:[function(_dereq_,module,exports){
+},{"./hyphenRe":151}],151:[function(_dereq_,module,exports){
 module.exports = /[-\s]+(.)?/g
 
-},{}],147:[function(_dereq_,module,exports){
+},{}],152:[function(_dereq_,module,exports){
 var separate = _dereq_('./separate')
 
 module.exports = function (name) {
   return separate(name).toLowerCase()
 }
 
-},{"./separate":148}],148:[function(_dereq_,module,exports){
+},{"./separate":153}],153:[function(_dereq_,module,exports){
 var doubleColonRe = /::/g
 var upperToLowerRe = /([A-Z]+)([A-Z][a-z])/g
 var lowerToUpperRe = /([a-z\d])([A-Z])/g
@@ -10885,21 +12767,21 @@ module.exports = function (name, separator) {
     : ''
 }
 
-},{}],149:[function(_dereq_,module,exports){
+},{}],154:[function(_dereq_,module,exports){
 module.exports = function (value) {
   return value.length
     ? value.charAt(0).toLowerCase() + value.substring(1)
     : value
 }
 
-},{}],150:[function(_dereq_,module,exports){
+},{}],155:[function(_dereq_,module,exports){
 module.exports = function (value) {
   return value.length
     ? value.charAt(0).toUpperCase() + value.substring(1)
     : value
 }
 
-},{}],151:[function(_dereq_,module,exports){
+},{}],156:[function(_dereq_,module,exports){
 var cssPrefixFn = _dereq_('./cssPrefix')
 
 var HYPHENATE = _dereq_('./stringUtils/hyphenate')
@@ -11125,7 +13007,7 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
 
 module.exports = TO_STYLE_OBJECT
 
-},{"./cssPrefix":136,"./cssUnitless":137,"./hasOwn":138,"./isFunction":140,"./isObject":141,"./stringUtils/camelize":145,"./stringUtils/hyphenate":147}],152:[function(_dereq_,module,exports){
+},{"./cssPrefix":141,"./cssUnitless":142,"./hasOwn":143,"./isFunction":145,"./isObject":146,"./stringUtils/camelize":150,"./stringUtils/hyphenate":152}],157:[function(_dereq_,module,exports){
 module.exports = parse
 
 /**
@@ -11281,5 +13163,5 @@ function parse (xml) {
   }
 }
 
-},{}]},{},[12])(12)
+},{}]},{},[13])(13)
 });
