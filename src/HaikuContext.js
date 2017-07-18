@@ -355,7 +355,7 @@ HaikuContext.prototype.getDeterministicTime = function getDeterministicTime () {
 }
 
 HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState () {
-  return this._renderer && this._renderer.user && this._renderer.user()
+  return this._renderer && this._renderer.getUser && this._renderer.getUser()
 }
 
 /**

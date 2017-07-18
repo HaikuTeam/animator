@@ -5,15 +5,11 @@ module.exports = {
         content: {
           0: {
             value: ({
-              clicks,
-              $window: { width },
-              $player
+              clicks
             }) => {
               return JSON.stringify(
                 {
-                  width,
-                  clicks,
-                  time: $player.clock.time.apparent
+                  clicks
                 },
                 null,
                 2

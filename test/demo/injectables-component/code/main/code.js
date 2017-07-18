@@ -3,13 +3,23 @@ module.exports = {
     Default: {
       '.span': {
         'sizeMode.x': { '0': { value: 1 }},
-        'sizeMode.y': { '0': { value: 1 }}
+        'sizeMode.y': { '0': { value: 1 }},
+        'style.fontFamily': { '0': { value: 'monospace' }},
+        'style.whiteSpace': { '0': { value: 'pre' }},
       },
-      '#d': {
-        'style.color': {
+      '#h': {
+        'content': {
           '0': {
-            value: ({ $tree, $player: { timeline: { time }} }) => {
-              return 'red'
+            value: ({
+              $component
+            }) => {
+              return JSON.stringify(
+                {
+                  $component
+                },
+                null,
+                2
+              )
             }
           }
         }

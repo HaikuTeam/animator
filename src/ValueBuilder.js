@@ -8,7 +8,7 @@ var ColorUtils = require('./helpers/ColorUtils')
 var SVGPoints = require('./helpers/SVGPoints')
 var functionToRFO = require('./reflection/functionToRFO')
 var DOMSchema = require('./properties/dom/schema')
-var DOMFallbacks = require('./properties/dom/fallbacks')
+// var DOMFallbacks = require('./properties/dom/fallbacks')
 var HaikuHelpers = require('./HaikuHelpers')
 var assign = require('./vendor/assign')
 
@@ -374,14 +374,20 @@ function assignElementInjectables (obj, key, summonSpec, hostInstance, element) 
     return {}
   }
 
+  // For some reason we get string elements here #FIXME
+  if (typeof element === 'string') {
+    return {}
+  }
+
   obj[key] = {}
   var out = obj[key]
 
-  var fallbacks = DOMFallbacks[element.elementName]
-  if (!fallbacks) {
-    console.warn('[haiku player] element ' + element.elementName + ' has no fallbacks defined')
-    return {}
-  }
+  // It's not clear yet when we need fallbacks
+  // var fallbacks = DOMFallbacks[element.elementName]
+  // if (!fallbacks) {
+  //   console.warn('[haiku player] element ' + element.elementName + ' has no fallbacks defined')
+  //   return {}
+  // }
 
   out.properties = {}
 
@@ -407,7 +413,12 @@ function assignElementInjectables (obj, key, summonSpec, hostInstance, element) 
   out.properties.translation = element.layout.translation
 
   // TODO
-  // out.bbox = hostInstance._context.getElementBBox(element)
+  // defineProperty so that the calc happens lazily
+  // Object.defineProperty(out, 'bbox', {
+  //   get: function _get () {
+  //     return hostInstance._context._getElementBBox(element)
+  //   }
+  // })
 
   // TODO
   // out.events = hostInstance._context.getElementEvents(element)
@@ -483,8 +494,7 @@ INJECTABLES['$component'] = {
     if (injectees.$tree && injectees.$tree.component) {
       injectees.$component = injectees.$tree.component
     } else {
-      // Remove this short-circuit condition when we rupport $root as its own thing
-      assignElementInjectables(injectees, '$component', summonSpec.$component || summonSpec.$root, hostInstance, hostInstance._getTopLevelElement())
+      assignElementInjectables(injectees, '$component', summonSpec.$component, hostInstance, hostInstance._getTopLevelElement())
     }
   }
 }
@@ -500,7 +510,7 @@ INJECTABLES['$root'] = {
       injectees.$root = injectees.$tree.root
     } else {
       // Until we support nested components, $root resolves to $component
-      INJECTABLES['$component'].summon(injectees, summonSpec, hostInstance, matchingElement)
+      assignElementInjectables(injectees, '$root', summonSpec.$root, hostInstance, hostInstance._getTopLevelElement())
     }
   }
 }
@@ -518,16 +528,9 @@ INJECTABLES['$element'] = {
 }
 
 INJECTABLES['$user'] = {
-  schema: assign({}, EVENT_SCHEMA, {
-    idle: 'number' // time without any new event
-  }),
+  schema: assign({}, EVENT_SCHEMA),
   summon: function (injectees, summonSpec, hostInstance, matchingElement) {
-    if (!injectees.$user) injectees.$user = {}
-    var out = injectees.$user
-    var user = hostInstance._context._getGlobalUserState()
-    for (var key in user) {
-      out[key] = user[key]
-    }
+    injectees.$user = hostInstance._context._getGlobalUserState()
   }
 }
 
@@ -738,7 +741,6 @@ function _areSummoneesDifferent (previous, incoming) {
     // Sub-objects detected; recurse and ask the same question
     if (previous !== null && incoming !== null) {
       for (var key in incoming) {
-        // console.log(key, previous[key], incoming[key])
         if (_areSummoneesDifferent(previous[key], incoming[key])) {
           return true
         }

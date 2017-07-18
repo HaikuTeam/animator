@@ -16,8 +16,13 @@ function HaikuDOMRenderer () {
   }
 
   this._user = {
-    mouse: { x: 0, y: 0, isDown: false },
-    keys: [], // { which: 'number' }
+    mouse: {
+      x: 0,
+      y: 0,
+      down: 0,
+      buttons: [0, 0, 0] // Assume most mouses have 3 buttons?
+    },
+    keys: {},
     touches: [], // [{ x: 'number', y: 'number' }]
     mouches: [] // [{ x: 'number', y: 'number' }] - Both touches and mouse cursor info
   }
@@ -83,19 +88,7 @@ HaikuDOMRenderer.prototype.createContainer = function createContainer (domElemen
 }
 
 HaikuDOMRenderer.prototype.initialize = function initialize (domElement) {
-  var user = this.getUser()
-
-  var keysDown = {}
-
-  function setKeys () {
-    user.keys.splice(0)
-    for (var code in keysDown) {
-      // keysDown[code] is a KeyEvent if one is present for that key
-      if (keysDown[code]) {
-        user.keys.push(keysDown[code])
-      }
-    }
-  }
+  var user = this._user
 
   function setMouse (mouseEvent) {
     var pos = _getLocalDomEventPosition(mouseEvent, domElement)
@@ -115,34 +108,45 @@ HaikuDOMRenderer.prototype.initialize = function initialize (domElement) {
   function setMouches () {
     user.mouches.splice(0)
     // Only treat a mouse like a touch if it is down.
-    if (user.mouse.isDown) {
+    if (user.mouse.down) {
       user.mouches.push(user.mouse)
     }
     user.mouches.push.apply(user.mouches, user.touches)
   }
 
+  function clearKey () {
+    for (var which in user.keys) user.keys[which] = 0
+  }
+
+  function clearMouse () {
+    user.mouse.down = 0
+    user.touches.splice(0)
+    for (var i = 0; i < user.mouse.buttons.length; i++) {
+      user.mouse.buttons[i] = 0
+    }
+  }
+
+  function clearMouch () {
+    user.mouches.splice(0)
+  }
+
+  function clearTouch () {
+    user.touches.splice(0)
+  }
+
   // MOUSE
   // -----
 
-  domElement.addEventListener('mouseenter', function _mouseenterHandler (mouseEvent) {
-    setMouse(mouseEvent)
-    setMouches()
-  })
-
-  domElement.addEventListener('mouseleave', function _mouseleaveHandler (mouseEvent) {
-    setMouse(mouseEvent)
-    setMouches()
-  })
-
   domElement.addEventListener('mousedown', function _mousedownandler (mouseEvent) {
-    user.mouse.isDown = true
+    ++user.mouse.down
+    ++user.mouse.buttons[mouseEvent.button]
     setMouse(mouseEvent)
     setMouches()
   })
 
   domElement.addEventListener('mouseup', function _mouseupHandler (mouseEvent) {
-    user.mouse.isDown = false
-    setMouse(mouseEvent)
+    clearMouse()
+    clearMouch()
     setMouches()
   })
 
@@ -151,17 +155,53 @@ HaikuDOMRenderer.prototype.initialize = function initialize (domElement) {
     setMouches()
   })
 
+  domElement.addEventListener('mouseenter', function _mouseenterHandler (mouseEvent) {
+    clearMouse()
+    clearMouch()
+  })
+
+  domElement.addEventListener('mouseleave', function _mouseenterHandler (mouseEvent) {
+    clearMouse()
+    clearMouch()
+  })
+
+  var doc = domElement.ownerDocument
+  var win = doc.defaultView || doc.parentWindow
+
   // KEYS
   // ----
 
-  domElement.addEventListener('keydown', function _keydownHandler (keyEvent) {
-    keysDown[keyEvent.which] = keyEvent
-    setKeys()
+  doc.addEventListener('keydown', function _keydownHandler (keyEvent) {
+    if (user.keys[keyEvent.which] === undefined) user.keys[keyEvent.which] = 0
+    ++user.keys[keyEvent.which]
   })
 
-  domElement.addEventListener('keyup', function _keyupHandler (keyEvent) {
-    keysDown[keyEvent.which] = false
-    setKeys()
+  doc.addEventListener('keyup', function _keyupHandler (keyEvent) {
+    if (user.keys[keyEvent.which] === undefined) user.keys[keyEvent.which] = 0
+
+    // Known Mac "feature" where keyup never fires while meta key (91) is down
+    // When right-click menu is toggled we don't get all mouseup events
+    if (keyEvent.which === 91 || keyEvent.which === 17) {
+      clearKey()
+    }
+
+    user.keys[keyEvent.which] = 0
+  })
+
+  // WINDOW
+
+  win.addEventListener('blur', function _blurHandlers (blurEvent) {
+    clearKey()
+    clearMouse()
+    clearTouch()
+    clearMouch()
+  })
+
+  win.addEventListener('focus', function _blurHandlers (blurEvent) {
+    clearKey()
+    clearMouse()
+    clearTouch()
+    clearMouch()
   })
 
   // TOUCHES
@@ -172,18 +212,50 @@ HaikuDOMRenderer.prototype.initialize = function initialize (domElement) {
   })
 
   domElement.addEventListener('touchend', function _touchsendHandler (touchEvent) {
-    setTouches({ touches: [] }) // No more touches once it ends; using a fake TouchEvent interface
-    setMouches()
+    clearTouch()
+    clearMouch()
   })
 
   domElement.addEventListener('touchmove', function _touchmoveHandler (touchEvent) {
     setTouches(touchEvent)
     setMouches()
   })
+
+  domElement.addEventListener('touchenter', function _touchenterHandler (touchEvent) {
+    clearTouch()
+    clearMouch()
+  })
+
+  domElement.addEventListener('touchleave', function _touchleaveHandler (touchEvent) {
+    clearTouch()
+    clearMouch()
+  })
+}
+
+function _copy (a) {
+  var b = []
+  for (var i = 0; i < a.length; i++) b[i] = a[i]
+  return b
+}
+
+function _clone (a) {
+  var b = {}
+  for (var key in a) b[key] = a[key]
+  return b
 }
 
 HaikuDOMRenderer.prototype.getUser = function getUser () {
-  return this._user
+  return {
+    mouse: {
+      x: this._user.mouse.x,
+      y: this._user.mouse.y,
+      down: this._user.mouse.down,
+      buttons: _copy(this._user.mouse.buttons)
+    },
+    keys: _clone(this._user.keys),
+    touches: _copy(this._user.touches),
+    mouches: _copy(this._user.mouches)
+  }
 }
 
 module.exports = HaikuDOMRenderer
