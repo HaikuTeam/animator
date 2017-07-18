@@ -30,10 +30,6 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
     throw new Error('Context requires a renderer')
   }
 
-  if (!platform) {
-    throw new Error('Context requires a platform')
-  }
-
   if (!bytecode) {
     throw new Error('Context requires bytecode')
   }
@@ -58,11 +54,16 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
 
   this._renderer = renderer
 
-  if (this._renderer.initialize) {
+  // Initialize sets up top-level dom listeners so we don't run it if we don't have a mount
+  if (this._mount && this._renderer.initialize) {
     this._renderer.initialize(this._mount)
   }
 
   this._platform = platform
+
+  if (!this._platform) {
+    console.warn('[haiku player] no platform (e.g. window) provided; some features may be unavailable')
+  }
 
   this._index = HaikuContext.contexts.push(this) - 1
   this._address = COMPONENT_GRAPH_ADDRESS_PREFIX + this._index
