@@ -16,7 +16,9 @@ export declare namespace client {
     function setConfig(newVals: ClientConfig): void;
     class config {
         static getAuthToken(): string;
+        static getUserId(): string;
         static isAuthenticated(): boolean;
         static setAuthToken(newToken: string): void;
+        static setUserId(newUserId: string): void;
     }
 }

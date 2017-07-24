@@ -20,6 +20,6 @@
     "@types/lodash": "^4.14.45",
     "@types/mkdirp": "^0.3.29",
     "@types/node": "^6.0.56",
-    "@types/request": "0.0.39"
+    "@types/request": "^2.0.0"
   }
 }

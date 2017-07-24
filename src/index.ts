@@ -9,7 +9,8 @@ import { execSync } from 'child_process'
 const HAIKU_ALMOST_EMPTY = "https://github.com/HaikuTeam/almost-empty.git"
 
 const FILE_PATHS = {
-  AUTH_TOKEN: os.homedir() + "/.haiku/auth"
+  AUTH_TOKEN: os.homedir() + "/.haiku/auth",
+  USER_ID: os.homedir() + "/.haiku/userid"
 }
 
 function _ensureHomeFolder() {
@@ -137,17 +138,32 @@ export namespace client {
       }
     }
 
+    static getUserId(): string {
+      if (fs.existsSync(FILE_PATHS.USER_ID)) {
+        var userId = fs.readFileSync(FILE_PATHS.USER_ID).toString();
+        return userId
+      } else {
+        return undefined
+      }
+    }
+
     static isAuthenticated(): boolean {
       var token = config.getAuthToken()
+      var userId = config.getUserId()
       //TODO: can check for token expiration here
       //      may also want to add a check with server at some point
       //      for whether a token is valid
-      return token !== undefined && token !== ""
+      return token !== undefined && token !== "" && userId !== undefined && userId !== ""
     }
 
     static setAuthToken(newToken: string) {
       _ensureHomeFolder()
       fs.writeFileSync(FILE_PATHS.AUTH_TOKEN, newToken)
+    }
+
+    static setUserId(newUserId: string) {
+      _ensureHomeFolder()
+      fs.writeFileSync(FILE_PATHS.USER_ID, newUserId)
     }
   }
 }
