@@ -34,7 +34,7 @@
     "@types/lodash": "^4.14.45",
     "@types/mkdirp": "^0.3.29",
     "@types/node": "^6.0.56",
-    "@types/request": "0.0.39",
+    "@types/request": "^2.0.0",
     "@types/yargs": "^6.5.0",
     "nexe": "^1.1.2",
     "try-thread-sleep": "^1.0.0",

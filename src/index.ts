@@ -571,6 +571,7 @@ function doLogin(cb?: Function) {
         }
       } else {
         client.config.setAuthToken(authResponse.Token)
+        client.config.setUserId(username)
         console.log(chalk.bold.green(`Welcome ${username}!`))
       }
       if (cb) {
