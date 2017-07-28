@@ -211,6 +211,10 @@ HaikuComponent.prototype.assignConfig = function _assignConfig (incomingConfig) 
 
 HaikuComponent.prototype._clearCaches = function _clearCaches () {
   this._states = {}
+  // Don't forget to repopulate the states with originals when we cc otherwise folks
+  // who depend on initial states being set will be SAD!
+  _bindStates(this._states, this, this.config.states)
+
   this._stateChanges = {}
   this._anyStateChange = false
   this._eventsFired = {}
