@@ -234,7 +234,7 @@ test('reflection.reifyRFO', function (t) {
         __function: {
           type: 'FunctionExpression',
           name: null,
-          params: [{ a: 'a', b: 'b', c: ['d', 'e'] }],
+          params: [{ a: 'a', b: {}, c: ['d', 'e'] }],
           body: '  return 123;'
         }
       },
@@ -246,13 +246,13 @@ test('reflection.reifyRFO', function (t) {
           type: 'FunctionExpression',
           name: null,
           params: [
-            { a: 'a', b: 'b', c: ['d', 'e'] },
+            { a: 'a', b: {}, c: ['d', 'e'] },
             {
               f: 'f',
               z: ['g', 'h'],
               i: 'i',
               j: 'j',
-              k: { l: 'l', m: { n: 'n', o: 'o' } }
+              k: { l: 'l', m: { n: {}, o: [] } }
             },
             { __rest: 'args' }
           ],
@@ -268,7 +268,7 @@ test('reflection.reifyRFO', function (t) {
         __function: {
           type: 'ArrowFunctionExpression',
           name: null,
-          params: [{ a: 'a', b: 'b', c: 'c' }],
+          params: [{ a: 'a', b: {}, c: 'c' }],
           body: '  return 123;'
         }
       },
@@ -279,7 +279,7 @@ test('reflection.reifyRFO', function (t) {
         __function: {
           type: 'ArrowFunctionExpression',
           name: null,
-          params: [{ a: 'a', b: 'b', c: { d: 'd', e: 'e' } }],
+          params: [{ a: 'a', b: 'b', c: { d: {}, e: 'e' } }],
           body: '  return 123;'
         }
       },
