@@ -7,6 +7,8 @@ var isSerializableScalar = require('./isSerializableScalar')
 
 var OBJECT = 'object'
 
+// The inverse of this function is 'expressionToRO'
+
 function reifyRO (robj, referenceEvaluator, skipFunctions) {
   if (robj === undefined) {
     return undefined
