@@ -2160,5 +2160,87 @@
       "label": "fix",
       "message": "show the bottom of the timeline without clipping"
     }
+  },
+  "2.1.21": {
+    "a76aa03056103bf050c4e98866c7f20ebae42267": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "hook into sdk-client's setUserId when logging in from CLI"
+    },
+    "fde882e58e8d919cd685e16d46dd0668fb9ea6cd": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "v0 State Inpector"
+    },
+    "3754e5d47b6c1b28d558de82c9c4b71e25c29d6d": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "switch library preview to inline; remove replaced code"
+    },
+    "784319263344b334bdb71a59807f380b3b662f70": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Reifying a reference object needs to handle already-reified functions"
+    },
+    "4c541e4f08a22f39aafb42b0437e00c1fe436b59": {
+      "project": "haiku-sdk-client",
+      "label": "feat",
+      "message": "update auth logic and include userid getter/setter + fs persist"
+    },
+    "e722d85f8103da7b65aa98f14906878cd5b24fc4": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "Move parseExpression logic in here for easier integration and unit testing"
+    },
+    "ebde07cf67c0dc28a960f14f1d311d4d738b2375": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Naive check for 'is this an expr' should be a bit less naive"
+    },
+    "6b25362cf27eee40f5f533e71a5a76f152a99721": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "show both keyframes active on pill drag"
+    },
+    "21c7007008fd1af05706d1e8bd08f091e820286f": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "color blade with gradient on side of keyframe active"
+    },
+    "9ea8740f9dbc1ad7fabe462bea38210d269c98ea": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "highlight keyframe being dragged"
+    },
+    "7f5ea1f416326b753271df7d18a97b6e35922150": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "finish tree pruning"
+    },
+    "b09acb79c786154b37d09b387cfb190467d5f8f3": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "less broken treeline"
+    },
+    "780651a419b9f8d7a59c6f24277b546a5197fce1": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Component name truncation"
+    },
+    "398dc414d1c9580684f77ac5fe3418059e4b12b0": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "starfield bug"
+    },
+    "d8317002804802cb7b17741a243e1de36f16636b": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "collapse property carrot"
+    },
+    "da3d0a65e0df8995bbf506ee646bcdaee97e0357": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "better blades"
+    }
   }
 }
