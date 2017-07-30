@@ -2,16 +2,22 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var reifyRFO = require('./reifyRFO')
-var isSerializableScalar = require('./isSerializableScalar')
-
 var OBJECT = 'object'
+var FUNCTION = 'function'
 
 // The inverse of this function is 'expressionToRO'
 
 function reifyRO (robj, referenceEvaluator, skipFunctions) {
   if (robj === undefined) {
     return undefined
+  }
+
+  if (typeof robj === FUNCTION) {
+    // More or less, clone the function and strip off any properties that may have been
+    // applied to it at runtime for e.g. caching, which we don't want hanging around the new copy.
+    // Note that we *cannot* just call fn.bind({}) here because then newfn.toString() would
+    // return a string like "function () { [native code] }" which we can then not parse!
+    return reifyRO(expressionToRO(robj))
   }
 
   if (isSerializableScalar(robj)) {
@@ -53,3 +59,7 @@ function reifyRO (robj, referenceEvaluator, skipFunctions) {
 }
 
 module.exports = reifyRO
+
+var expressionToRO = require('./expressionToRO')
+var reifyRFO = require('./reifyRFO')
+var isSerializableScalar = require('./isSerializableScalar')
