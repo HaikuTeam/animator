@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.20",
+  "version": "2.1.21",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -843,6 +843,10 @@ HaikuComponent.prototype.assignConfig = function _assignConfig (incomingConfig) 
 
 HaikuComponent.prototype._clearCaches = function _clearCaches () {
   this._states = {}
+  // Don't forget to repopulate the states with originals when we cc otherwise folks
+  // who depend on initial states being set will be SAD!
+  _bindStates(this._states, this, this.config.states)
+
   this._stateChanges = {}
   this._anyStateChange = false
   this._eventsFired = {}
