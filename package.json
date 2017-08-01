@@ -36,6 +36,7 @@
     "async": "^2.5.0",
     "browserify": "^14.1.0",
     "browserify-transform-tools": "^1.7.0",
+    "bundle-collapser": "^1.2.1",
     "express": "4.14.1",
     "filesize": "3.5.10",
     "fs-extra": "2.0.0",
