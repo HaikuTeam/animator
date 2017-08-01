@@ -2243,5 +2243,12 @@
       "message": "better blades"
     }
   },
-  "2.1.22": {}
+  "2.1.22": {},
+  "2.1.23": {
+    "664e1a023be22242e68c4c5ff053ad5b0420003a": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Fulfill design merge request before reinitializing in-mem bytecode in master"
+    }
+  }
 }
