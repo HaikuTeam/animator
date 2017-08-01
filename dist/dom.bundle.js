@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.21",
+  "version": "2.1.22",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -223,6 +223,7 @@ module.exports={
     "async": "^2.5.0",
     "browserify": "^14.1.0",
     "browserify-transform-tools": "^1.7.0",
+    "bundle-collapser": "^1.2.1",
     "express": "4.14.1",
     "filesize": "3.5.10",
     "fs-extra": "2.0.0",
@@ -5214,7 +5215,10 @@ function upgradeBytecodeInPlace (_bytecode) {
       var updatedSpec = {}
       if (propertySpec.value !== undefined) updatedSpec.value = propertySpec.value
       if (propertySpec.type !== undefined) updatedSpec.type = propertySpec.type
-      if (propertySpec.setter !== undefined) updatedSpec.setter = propertySpec.setter
+      if (propertySpec.setter !== undefined) updatedSpec.set = propertySpec.setter
+      if (propertySpec.getter !== undefined) updatedSpec.get = propertySpec.getter
+      if (propertySpec.set !== undefined) updatedSpec.set = propertySpec.set
+      if (propertySpec.get !== undefined) updatedSpec.get = propertySpec.get
       _bytecode.states[propertySpec.name] = updatedSpec
     }
   }
