@@ -215,6 +215,10 @@ async.series([
     fse.removeSync(path.join(playerPath, 'dist'))
     fse.mkdirpSync(path.join(playerPath, 'dist'))
 
+    var playerPackageJson = require('./../packages/haiku-player/package.json')
+    var reactVersion = playerPackageJson.peerDependencies.react
+    cp.execSync(`npm i react@${reactVersion}`, { cwd: playerPath, stdio: 'inherit' })
+
     log.log('browserifying player packages and adapters')
     cp.execSync(`browserify ${JSON.stringify(path.join(playerPath, 'src', 'adapters', 'dom', 'index.js'))} --standalone HaikuDOMPlayer | derequire > ${JSON.stringify(path.join(playerPath, 'dist', 'dom.bundle.js'))}`, { stdio: 'inherit' })
     cp.execSync(`browserify ${JSON.stringify(path.join(playerPath, 'src', 'adapters', 'react-dom', 'index.js'))} --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > ${JSON.stringify(path.join(playerPath, 'dist', 'react-dom.bundle.js'))} && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${JSON.stringify(path.join(playerPath, 'dist', 'react-dom.bundle.js'))}`, { stdio: 'inherit' })
