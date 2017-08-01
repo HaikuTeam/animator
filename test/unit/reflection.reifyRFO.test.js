@@ -227,7 +227,7 @@ test('reflection.reifyRFO', function (t) {
           body: '  return 123;'
         }
       },
-      'function ({ a, b, c: { d, e } }) {\n    return 123;\n}'
+      'function ({ a, b, c, c: { d, e } }) {\n    return 123;\n}'
     ],
     [
       {
@@ -238,7 +238,7 @@ test('reflection.reifyRFO', function (t) {
           body: '  return 123;'
         }
       },
-      'function ({ a, b, c: [ d, e ] }) {\n    return 123;\n}'
+      'function ({ a, b, c, c: [ d, e ] }) {\n    return 123;\n}'
     ],
     [
       {
@@ -259,7 +259,7 @@ test('reflection.reifyRFO', function (t) {
           body: '  return 123;'
         }
       },
-      'function ({ a, b, c: [ d, e ] }, { f, z: [ g, h ], i, j, k: { l, m: { n, o } } }, ...args) {\n    return 123;\n}'
+      'function ({ a, b, c, c: [ d, e ] }, { f, z, z: [ g, h ], i, j, k, k: { l, m, m: { n, o } } }, ...args) {\n    return 123;\n}'
     ],
 
     // // arrow with argument object destructuring
@@ -283,7 +283,7 @@ test('reflection.reifyRFO', function (t) {
           body: '  return 123;'
         }
       },
-      '({ a, b, c: { d, e } }) => {\n    return 123;\n}'
+      '({ a, b, c, c: { d, e } }) => {\n    return 123;\n}'
     ],
     [
       {
@@ -294,7 +294,7 @@ test('reflection.reifyRFO', function (t) {
           body: '  return 123;'
         }
       },
-      '({ a, b, c: [ d, e ] }) => {\n    return 123;\n}'
+      '({ a, b, c, c: [ d, e ] }) => {\n    return 123;\n}'
     ],
     [
       {
@@ -315,7 +315,7 @@ test('reflection.reifyRFO', function (t) {
           body: '  return 123;'
         }
       },
-      '({ a, b, c: [ d, e ] }, { f, z: [ g, h ], i, j, k: { l, m: { n, o } } }, ...args) => {\n    return 123;\n}'
+      '({ a, b, c, c: [ d, e ] }, { f, z, z: [ g, h ], i, j, k, k: { l, m, m: { n, o } } }, ...args) => {\n    return 123;\n}'
     ]
   ]
 

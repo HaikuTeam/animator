@@ -5,11 +5,13 @@ module.exports = {
         content: {
           0: {
             value: ({
-              $user
+              $user,
+              $user: { mouse: { x } }
             }) => {
               return JSON.stringify(
                 {
-                  $user
+                  $user,
+                  x
                 },
                 null,
                 2

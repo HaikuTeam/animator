@@ -138,7 +138,7 @@ test('reflection.functionToRFO', function (t) {
     `{"__function":{"type":"FunctionExpression","name":null,"params":[{"a":"a","b":"b","c":{"d":"d","e":"e"}}],"body":"return 123"}}`
   )
 
-  rfo = functionToRFO(function ({ a, b, c: [d, e] }) {
+  rfo = functionToRFO(function ({ a, b, c, c: [d, e] }) {
     return 123
   })
   t.equal(
@@ -148,7 +148,7 @@ test('reflection.functionToRFO', function (t) {
 
   rfo = functionToRFO(function (
     { a, b, c: [d, e] },
-    { f, z: [g, h], i, j, k: { l, m: { n, o } } },
+    { f, z: [g, h], i, j, k: { l, m, m: { n, o } } },
     ...args
   ) {
     return 123
@@ -186,8 +186,8 @@ test('reflection.functionToRFO', function (t) {
 
   rfo = functionToRFO(
     (
-      { a, b, c: [d, e] },
-      { f, z: [g, h], i, j, k: { l, m: { n, o } } },
+      { a, b, c, c: [d, e] },
+      { f, z, z: [g, h], i, j, k: { l, m, m: { n, o } } },
       ...args
     ) => {
       return 123

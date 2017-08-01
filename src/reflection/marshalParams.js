@@ -37,7 +37,8 @@ function stringifyParam (param, key) {
     }
 
     if (key) {
-      return key + ': ' + arrayParamToString(param)
+      // e.g.: a, a: [...] <~ To allow reference to the destructure root
+      return key + ', ' + key + ': ' + arrayParamToString(param)
     }
 
     return arrayParamToString(param)
@@ -50,7 +51,8 @@ function stringifyParam (param, key) {
     }
 
     if (key) {
-      return key + ': ' + objectParamToString(param)
+      // e.g. a, a: { ... } <~ To allow reference to the destructure root
+      return key + ', ' + key + ': ' + objectParamToString(param)
     }
 
     return objectParamToString(param)
