@@ -17,7 +17,7 @@ function reifyRO (robj, referenceEvaluator, skipFunctions) {
     // applied to it at runtime for e.g. caching, which we don't want hanging around the new copy.
     // Note that we *cannot* just call fn.bind({}) here because then newfn.toString() would
     // return a string like "function () { [native code] }" which we can then not parse!
-    return reifyRO(expressionToRO(robj))
+    return reifyRO(expressionToRO(robj), referenceEvaluator, skipFunctions)
   }
 
   if (isSerializableScalar(robj)) {

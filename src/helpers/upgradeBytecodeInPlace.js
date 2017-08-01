@@ -23,7 +23,10 @@ function upgradeBytecodeInPlace (_bytecode) {
       var updatedSpec = {}
       if (propertySpec.value !== undefined) updatedSpec.value = propertySpec.value
       if (propertySpec.type !== undefined) updatedSpec.type = propertySpec.type
-      if (propertySpec.setter !== undefined) updatedSpec.setter = propertySpec.setter
+      if (propertySpec.setter !== undefined) updatedSpec.set = propertySpec.setter
+      if (propertySpec.getter !== undefined) updatedSpec.get = propertySpec.getter
+      if (propertySpec.set !== undefined) updatedSpec.set = propertySpec.set
+      if (propertySpec.get !== undefined) updatedSpec.get = propertySpec.get
       _bytecode.states[propertySpec.name] = updatedSpec
     }
   }
