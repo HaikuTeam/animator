@@ -2250,5 +2250,6 @@
       "label": "fix",
       "message": "Fulfill design merge request before reinitializing in-mem bytecode in master"
     }
-  }
+  },
+  "2.1.24": {}
 }
