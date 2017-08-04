@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.23",
+  "version": "2.1.24",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -3747,6 +3747,181 @@ INJECTABLES['$helpers'] = {
   }
 }
 
+// List of JavaScript global built-in objects that we want to provide as an injectable.
+// In the future, we might end up passing in modified versions of these objects/functions.
+var BUILTIN_INJECTABLES = {
+  'Infinity': Infinity,
+  'NaN': NaN,
+  'undefined': void (0),
+  'Object': Object,
+  'Boolean': Boolean,
+  'Math': Math,
+  'Date': Date,
+  'JSON': JSON,
+  'Number': Number,
+  'String': String,
+  'RegExp': RegExp,
+  'Array': Array,
+  'isFinite': isFinite,
+  'isNaN': isNaN,
+  'parseFloat': parseFloat,
+  'parseInt': parseInt,
+  'decodeURI': decodeURI,
+  'decodeURIComponent': decodeURIComponent,
+  'encodeURI': encodeURI,
+  'encodeURIComponent': encodeURIComponent,
+  'escape': escape,
+  'unescape': unescape,
+  'Error': Error,
+  'ReferenceError': ReferenceError,
+  'SyntaxError': SyntaxError,
+  'TypeError': TypeError
+  // TODO: Determine which of the following to include. Need to test each for support.
+  // 'Int8Array': Int8Array,
+  // 'Uint8Array': Uint8Array,
+  // 'Uint8ClampedArray': Uint8ClampedArray,
+  // 'Int16Array': Int16Array,
+  // 'Uint16Array': Uint16Array,
+  // 'Int32Array': Int32Array,
+  // 'Uint32Array': Uint32Array,
+  // 'Float32Array': Float32Array,
+  // 'Float64Array': Float64Array,
+  // 'ArrayBuffer': ArrayBuffer,
+  // 'URIError': URIError
+  // 'RangeError': RangeError,
+  // 'InternalError': InternalError,
+  // 'Map': Map,
+  // 'Set': Set,
+  // 'WeakMap': WeakMap,
+  // 'WeakSet': WeakSet,
+  // 'SIMD ': SIMD,
+  // 'SharedArrayBuffer ': SharedArrayBuffer,
+  // 'Atomics ': Atomics ,
+  // 'DataView': DataView,
+  // 'Promise': Promise,
+  // 'Generator': Generator,
+  // 'GeneratorFunction': GeneratorFunction,
+  // 'AsyncFunction': AsyncFunction,
+  // 'Reflection': Reflection,
+  // 'Reflect': Reflect,
+  // 'Proxy': Proxy,
+  // 'Intl': Intl,
+  // 'WebAssembly': WebAssembly,
+  // 'Iterator ': Iterator,
+  // 'ParallelArray ': ParallelArray,
+  // 'StopIteration': StopIteration
+}
+
+for (var builtinInjectableKey in BUILTIN_INJECTABLES) {
+  INJECTABLES[builtinInjectableKey] = {
+    builtin: true,
+    schema: '*',
+    summon: function (injectees) {
+      injectees[builtinInjectableKey] = BUILTIN_INJECTABLES[builtinInjectableKey]
+    }
+  }
+}
+
+// When editing a component, any of these appearing inside an expression will trigger a warning.
+// This is kept in the player so it's easier to compare these to the built-in injectables and
+// other special treatment for JavaScript globals. "single source of truth" etc.
+var FORBIDDEN_EXPRESSION_TOKENS = {
+  // Keywords
+  'new': true,
+  'this': true,
+  'with': true,
+  'delete': true,
+  'export': true,
+  'extends': true,
+  'super': true,
+  'class': true,
+  'abstract': true,
+  'interface': true,
+  'static': true,
+  'label': true,
+  'goto': true,
+  'private': true,
+  'import': true,
+  'public': true,
+
+  // Future keywords
+  'do': true,
+  'native': true,
+  'package': true,
+  'transient': true,
+  'implements': true,
+  'protected': true,
+  'throws': true,
+  'synchronized': true,
+  'final': true,
+
+  // Common globals
+  'window': true,
+  'document': true,
+  'global': true,
+
+  // Danger
+  'eval': true,
+  'uneval': true,
+  'Function': true,
+  'EvalError': true,
+
+  // Module stuff to forbid
+  'require': true,
+  'module': true,
+  'exports': true,
+  'Module': true,
+
+  // Sandbox
+  'arguments': true,
+  'callee': true,
+
+  // Identifiers on built-in global objects
+  'prototpye': true, // Object.
+  '__proto__': true, // Object.
+  'freeze': true, // Object.
+  'setPrototypeOf': true, // Object.
+  'constructor': true, // Object.
+  'defineProperties': true, // Object.
+  'defineProperty': true // Object.
+}
+
+// Just to be completionist/in case we want to whitelist instead, here is a list of keywords that we would allow.
+// var ALLOWED_EXPRESSION_KEYWORDS = {
+//   'in': true,
+//   'try': true,
+//   'var': true,
+//   'catch': true,
+//   'finally': true,
+//   'return': true,
+//   'void': true,
+//   'continue': true,
+//   'for': true,
+//   'switch': true,
+//   'while': true,
+//   'debugger': true,
+//   'function': true,
+//   'default': true,
+//   'if': true,
+//   'throw': true,
+//   'break': true,
+//   'instanceof': true,
+//   'typeof': true,
+//   'case': true,
+//   'else': true,
+//   'boolean': true,
+//   'long': true,
+//   'byte': true,
+//   'char': true,
+//   'float': true,
+//   'const': true,
+//   'volatile': true,
+//   'double': true,
+//   'enum': true,
+//   'int': true,
+//   'short': true,
+// }
+
 function ValueBuilder (component) {
   this._component = component // ::HaikuComponent
   this._parsees = {}
@@ -4199,6 +4374,7 @@ ValueBuilder.prototype.grabValue = function _grabValue (
 ValueBuilder.INJECTABLES = INJECTABLES
 ValueBuilder.PARSERS = PARSERS
 ValueBuilder.GENERATORS = GENERATORS
+ValueBuilder.FORBIDDEN_EXPRESSION_TOKENS = FORBIDDEN_EXPRESSION_TOKENS
 
 module.exports = ValueBuilder
 
