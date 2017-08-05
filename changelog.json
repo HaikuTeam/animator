@@ -2251,5 +2251,12 @@
       "message": "Fulfill design merge request before reinitializing in-mem bytecode in master"
     }
   },
-  "2.1.24": {}
+  "2.1.24": {},
+  "2.1.25": {
+    "9269a9382db29b0aca1962607fadd105b8e558de": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "This fixes the drop shadow issue"
+    }
+  }
 }
