@@ -25,6 +25,7 @@ var SVG_RENDERABLES = {
   canvas: true,
   circle: true,
   ellipse: true,
+  filter: true,
   foreignObject: true,
   g: true,
   iframe: true,
