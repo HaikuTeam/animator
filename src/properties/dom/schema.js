@@ -149,6 +149,16 @@ var PRESENTATION_SCHEMA = {
   writingMode: 'string'
 }
 
+var FILTER_SCHEMA = {
+  'x': 'string',
+  'y': 'string',
+  'width': 'string',
+  'height': 'string',
+  'filterRes': 'string',
+  'filterUnits': 'string',
+  'primitiveUnits': 'string'
+}
+
 var STYLE_SCHEMA = {
   'style.alignmentBaseline': 'string',
   'style.background': 'string',
@@ -554,7 +564,7 @@ module.exports = {
     LAYOUT_3D_SCHEMA,
     STYLE_SCHEMA
   ),
-  filter: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  filter: has(LAYOUT_3D_SCHEMA, FILTER_SCHEMA),
   'font-face': has(),
   'font-face-format': has(),
   'font-face-name': has(),

@@ -275,6 +275,16 @@ var STYLE_SCHEMA = {
   'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)'
 }
 
+var FILTER_SCHEMA = {
+  'x': '',
+  'y': '',
+  'width': '',
+  'height': '',
+  'filterRes': '',
+  'filterUnits': '',
+  'primitiveUnits': ''
+}
+
 var HTML_STYLE_SHORTHAND_SCHEMA = {
   backgroundColor: ''
 }
@@ -554,7 +564,7 @@ module.exports = {
     LAYOUT_3D_SCHEMA,
     STYLE_SCHEMA
   ),
-  filter: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  filter: has(LAYOUT_3D_SCHEMA, FILTER_SCHEMA),
   'font-face': has(),
   'font-face-format': has(),
   'font-face-name': has(),

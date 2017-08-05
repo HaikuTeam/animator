@@ -737,6 +737,16 @@ var PRESENTATION_VANITIES = {
   writingMode: attributeSetter('writingMode')
 }
 
+var FILTER_VANITIES = {
+  'x': attributeSetter('x'),
+  'y': attributeSetter('y'),
+  'width': attributeSetter('width'),
+  'height': attributeSetter('height'),
+  'filterRes': attributeSetter('filterRes'),
+  'filterUnits': attributeSetter('filterUnits'),
+  'primitiveUnits': attributeSetter('primitiveUnits')
+}
+
 var HTML_STYLE_SHORTHAND_VANITIES = {
   backgroundColor: function (name, element, value) {
     element.attributes.style.backgroundColor = value
@@ -1149,7 +1159,7 @@ module.exports = {
     LAYOUT_3D_VANITIES,
     STYLE_VANITIES
   ),
-  filter: has(CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+  filter: has(LAYOUT_3D_VANITIES, FILTER_VANITIES),
   'font-face': has(),
   'font-face-format': has(),
   'font-face-name': has(),
