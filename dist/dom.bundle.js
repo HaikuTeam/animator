@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.24",
+  "version": "2.1.25",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -6242,6 +6242,16 @@ var PRESENTATION_SCHEMA = {
   writingMode: 'string'
 }
 
+var FILTER_SCHEMA = {
+  'x': 'string',
+  'y': 'string',
+  'width': 'string',
+  'height': 'string',
+  'filterRes': 'string',
+  'filterUnits': 'string',
+  'primitiveUnits': 'string'
+}
+
 var STYLE_SCHEMA = {
   'style.alignmentBaseline': 'string',
   'style.background': 'string',
@@ -6647,7 +6657,7 @@ module.exports = {
     LAYOUT_3D_SCHEMA,
     STYLE_SCHEMA
   ),
-  filter: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  filter: has(LAYOUT_3D_SCHEMA, FILTER_SCHEMA),
   'font-face': has(),
   'font-face-format': has(),
   'font-face-name': has(),
@@ -7851,6 +7861,16 @@ var PRESENTATION_VANITIES = {
   writingMode: attributeSetter('writingMode')
 }
 
+var FILTER_VANITIES = {
+  'x': attributeSetter('x'),
+  'y': attributeSetter('y'),
+  'width': attributeSetter('width'),
+  'height': attributeSetter('height'),
+  'filterRes': attributeSetter('filterRes'),
+  'filterUnits': attributeSetter('filterUnits'),
+  'primitiveUnits': attributeSetter('primitiveUnits')
+}
+
 var HTML_STYLE_SHORTHAND_VANITIES = {
   backgroundColor: function (name, element, value) {
     element.attributes.style.backgroundColor = value
@@ -8263,7 +8283,7 @@ module.exports = {
     LAYOUT_3D_VANITIES,
     STYLE_VANITIES
   ),
-  filter: has(CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+  filter: has(LAYOUT_3D_VANITIES, FILTER_VANITIES),
   'font-face': has(),
   'font-face-format': has(),
   'font-face-name': has(),
@@ -9305,6 +9325,7 @@ var SVG_RENDERABLES = {
   canvas: true,
   circle: true,
   ellipse: true,
+  filter: true,
   foreignObject: true,
   g: true,
   iframe: true,
