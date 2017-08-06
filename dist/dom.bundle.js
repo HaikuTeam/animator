@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.25",
+  "version": "2.1.26",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -725,7 +725,7 @@ function HaikuComponent (bytecode, context, config) {
 
   // TEMPLATE
   // The full version of the template gets mutated in-place by the rendering algorithm
-  this._template = _fetchTemplate(this._bytecode.template)
+  this._template = _fetchAndCloneTemplate(this._bytecode.template)
 
   // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
   this._needsFullFlush = false
@@ -1018,7 +1018,39 @@ HaikuComponent.prototype._getTopLevelElement = function _getTopLevelElement () {
  **
  **/
 
-function _fetchTemplate (template) {
+function _cloneTemplate (mana) {
+  if (!mana) {
+    return mana
+  }
+
+  if (typeof mana === STRING_TYPE) {
+    return mana
+  }
+
+  var out = {
+    elementName: mana.elementName
+  }
+
+  if (mana.attributes) {
+    out.attributes = {}
+
+    for (var key in mana.attributes) {
+      out.attributes[key] = mana.attributes[key]
+    }
+  }
+
+  if (mana.children) {
+    out.children = []
+
+    for (var i = 0; i < mana.children.length; i++) {
+      out.children[i] = _cloneTemplate(mana.children[i])
+    }
+  }
+
+  return out
+}
+
+function _fetchAndCloneTemplate (template) {
   if (!template) {
     throw new Error('Empty template not allowed')
   }
@@ -1030,7 +1062,7 @@ function _fetchTemplate (template) {
       )
       console.log('[haiku player] template:', template)
     }
-    return template
+    return _cloneTemplate(template)
   }
 
   throw new Error('Unknown bytecode template format')
@@ -3926,6 +3958,8 @@ function ValueBuilder (component) {
   this._component = component // ::HaikuComponent
   this._parsees = {}
   this._changes = {}
+  this._summonees = {}
+  this._evaluations = {}
 
   HaikuHelpers.register('now', function _helperNow () {
     return this._component._context.getDeterministicTime()
@@ -3940,6 +3974,8 @@ function ValueBuilder (component) {
 ValueBuilder.prototype._clearCaches = function _clearCaches () {
   this._parsees = {}
   this._changes = {}
+  this._summonees = {}
+  this._evaluations = {}
   return this
 }
 
@@ -4002,22 +4038,57 @@ ValueBuilder.prototype.evaluate = function _evaluate (
         hostInstance
       )
 
-      if (_areSummoneesDifferent(fn.specification.summonees, summonees)) {
-        // If the summonees are different, evaluate it and cache the newcomers
-        fn.specification.summonees = summonees
+      var previousSummonees = this._getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs)
+
+      if (_areSummoneesDifferent(previousSummonees, summonees)) {
+        this._cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summonees)
+
         evaluation = fn.call(hostInstance, summonees)
       } else {
         // Since nothing is different, return the previous evaluation
-        evaluation = fn.specification.evaluation
+        evaluation = this._getPreviousEvaluation(timelineName, flexId, propertyName, keyframeMs)
+        // if (flexId === '16301b9a3241' && propertyName === 'rotation.z') {
+        //   console.log(evaluation)
+        // }
       }
     }
   }
 
   // Store the result so we can return it on the next run without re-eval
   if (fn.specification && fn.specification !== true) {
-    fn.specification.evaluation = evaluation
+    this._cacheEvaluation(timelineName, flexId, propertyName, keyframeMs, evaluation)
   }
 
+  return evaluation
+}
+
+ValueBuilder.prototype._getPreviousSummonees = function _getPreviousSummonees (timelineName, flexId, propertyName, keyframeMs) {
+  if (!this._summonees[timelineName]) return void (0)
+  if (!this._summonees[timelineName][flexId]) return void (0)
+  if (!this._summonees[timelineName][flexId][propertyName]) return void (0)
+  return this._summonees[timelineName][flexId][propertyName][keyframeMs]
+}
+
+ValueBuilder.prototype._cacheSummonees = function _cacheSummonees (timelineName, flexId, propertyName, keyframeMs, summonees) {
+  if (!this._summonees[timelineName]) this._summonees[timelineName] = {}
+  if (!this._summonees[timelineName][flexId]) this._summonees[timelineName][flexId] = {}
+  if (!this._summonees[timelineName][flexId][propertyName]) this._summonees[timelineName][flexId][propertyName] = {}
+  this._summonees[timelineName][flexId][propertyName][keyframeMs] = summonees
+  return summonees
+}
+
+ValueBuilder.prototype._getPreviousEvaluation = function _getPreviousEvaluation (timelineName, flexId, propertyName, keyframeMs) {
+  if (!this._evaluations[timelineName]) return void (0)
+  if (!this._evaluations[timelineName][flexId]) return void (0)
+  if (!this._evaluations[timelineName][flexId][propertyName]) return void (0)
+  return this._evaluations[timelineName][flexId][propertyName][keyframeMs]
+}
+
+ValueBuilder.prototype._cacheEvaluation = function _cacheEvaluation (timelineName, flexId, propertyName, keyframeMs, evaluation) {
+  if (!this._evaluations[timelineName]) this._evaluations[timelineName] = {}
+  if (!this._evaluations[timelineName][flexId]) this._evaluations[timelineName][flexId] = {}
+  if (!this._evaluations[timelineName][flexId][propertyName]) this._evaluations[timelineName][flexId][propertyName] = {}
+  this._evaluations[timelineName][flexId][propertyName][keyframeMs] = evaluation
   return evaluation
 }
 
