@@ -1,0 +1,4 @@
+With this demo we need to verify that when you click the cards, the needle moves to
+ the center of the gauge. There is a bug where it seems like the state of other components
+ on the stage seems to get involved, and the needle moves to where the previous gauge was
+ first. Quickest way to repro is to click the second element, then click the first.
