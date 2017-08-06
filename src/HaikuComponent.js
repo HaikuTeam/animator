@@ -92,7 +92,7 @@ function HaikuComponent (bytecode, context, config) {
 
   // TEMPLATE
   // The full version of the template gets mutated in-place by the rendering algorithm
-  this._template = _fetchTemplate(this._bytecode.template)
+  this._template = _fetchAndCloneTemplate(this._bytecode.template)
 
   // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
   this._needsFullFlush = false
@@ -385,7 +385,39 @@ HaikuComponent.prototype._getTopLevelElement = function _getTopLevelElement () {
  **
  **/
 
-function _fetchTemplate (template) {
+function _cloneTemplate (mana) {
+  if (!mana) {
+    return mana
+  }
+
+  if (typeof mana === STRING_TYPE) {
+    return mana
+  }
+
+  var out = {
+    elementName: mana.elementName
+  }
+
+  if (mana.attributes) {
+    out.attributes = {}
+
+    for (var key in mana.attributes) {
+      out.attributes[key] = mana.attributes[key]
+    }
+  }
+
+  if (mana.children) {
+    out.children = []
+
+    for (var i = 0; i < mana.children.length; i++) {
+      out.children[i] = _cloneTemplate(mana.children[i])
+    }
+  }
+
+  return out
+}
+
+function _fetchAndCloneTemplate (template) {
   if (!template) {
     throw new Error('Empty template not allowed')
   }
@@ -397,7 +429,7 @@ function _fetchTemplate (template) {
       )
       console.log('[haiku player] template:', template)
     }
-    return template
+    return _cloneTemplate(template)
   }
 
   throw new Error('Unknown bytecode template format')
