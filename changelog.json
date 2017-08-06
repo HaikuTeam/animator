@@ -2258,5 +2258,17 @@
       "label": "fix",
       "message": "This fixes the drop shadow issue"
     }
+  },
+  "2.1.26": {
+    "7eeb0f3b983e6950a067cdf235e896da30d848cb": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Don't cache on the function which is shared"
+    },
+    "f3ad66bb9e99024be284ab4d93ec57cff379d885": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Dumb bug because of shared template object"
+    }
   }
 }
