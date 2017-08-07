@@ -1,4 +1,5 @@
 var xmlToMana = require('./xmlToMana')
+var visitManaTree = require('./visitManaTree')
 
 var STRING_TYPE = 'string'
 
@@ -8,7 +9,7 @@ var STRING_TYPE = 'string'
  * Think of this like a migration that always runs in production components just in case we
  * get something that happens to be legacy.
  */
-function upgradeBytecodeInPlace (_bytecode) {
+function upgradeBytecodeInPlace (_bytecode, options) {
   if (!_bytecode.states) {
     _bytecode.states = {}
   }
@@ -52,6 +53,47 @@ function upgradeBytecodeInPlace (_bytecode) {
     console.info('[haiku player] auto-upgrading template string to object format (2.0.0+)')
     _bytecode.template = xmlToMana(_bytecode.template)
   }
+
+  // If specified, make sure that internal URL references, e.g. url(#my-filter), are unique
+  // per each component instance, otherwise we will get filter collisions and weirdness on the page
+  if (options && options.referenceUniqueness) {
+    var referencesToUpdate = {}
+    var alreadyUpdatedReferences = {}
+    if (_bytecode.template) {
+      visitManaTree('0', _bytecode.template, function _visitor (elementName, attributes, children, node) {
+        if (elementName === 'filter') {
+          if (attributes.id && !alreadyUpdatedReferences[attributes.id]) {
+            var prev = attributes.id
+            var next = prev + '-' + options.referenceUniqueness
+            attributes.id = next
+            referencesToUpdate['url(#' + prev + ')'] = 'url(#' + next + ')'
+            alreadyUpdatedReferences[attributes.id] = true
+          }
+        }
+      }, null, 0)
+    }
+    if (_bytecode.timelines) {
+      for (var timelineName in _bytecode.timelines) {
+        for (var selector in _bytecode.timelines[timelineName]) {
+          for (var propertyName in _bytecode.timelines[timelineName][selector]) {
+            // Don't proceed if we aren't dealing with a filter attribute
+            if (propertyName !== 'filter') {
+              continue
+            }
+            for (var keyframeMs in _bytecode.timelines[timelineName][selector][propertyName]) {
+              var keyframeDesc = _bytecode.timelines[timelineName][selector][propertyName][keyframeMs]
+              if (keyframeDesc && referencesToUpdate[keyframeDesc.value]) {
+                console.info('[haiku player] changing filter url reference ' + keyframeDesc.value + ' to ' + referencesToUpdate[keyframeDesc.value])
+                keyframeDesc.value = referencesToUpdate[keyframeDesc.value]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // What else?
 }
 
 module.exports = upgradeBytecodeInPlace

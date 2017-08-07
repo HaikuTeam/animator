@@ -65,10 +65,12 @@ function HaikuComponent (bytecode, context, config) {
   }
 
   // First we assign the bytecode, because config assignment (see below) might effect the way it is set up!
-  this._bytecode = bytecode
+  this._bytecode = _clone(bytecode)
 
   // If the bytecode we got happens to be in an outdated format, we automatically updated it to ours
-  upgradeBytecodeInPlace(this._bytecode)
+  upgradeBytecodeInPlace(this._bytecode, {
+    referenceUniqueness: Math.random().toString(36).slice(2) // Random seed for addding instance uniqueness to ids at runtime
+  })
 
   this._context = context
   this._builder = new ValueBuilder(this)
@@ -117,6 +119,24 @@ function HaikuComponent (bytecode, context, config) {
 }
 
 HaikuComponent.PLAYER_VERSION = PLAYER_VERSION
+
+function _clone (thing) {
+  if (Array.isArray(thing)) {
+    var arr = []
+    for (var i = 0; i < thing.length; i++) {
+      arr[i] = _clone(thing[i])
+    }
+    return arr
+  } else if (thing && typeof thing === 'object') {
+    var obj = {}
+    for (var key in thing) {
+      obj[key] = _clone(thing[key])
+    }
+    return obj
+  } else {
+    return thing
+  }
+}
 
 // If the component needs to remount itself for some reason, make sure we fire the right events
 HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, skipMarkForFullFlush) {
