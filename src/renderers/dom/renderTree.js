@@ -89,6 +89,25 @@ function renderTree (
 
       addToHashTable(hash, insertedElement, virtualChild)
     } else {
+      var oldId = domChild.getAttribute && domChild.getAttribute('id')
+      var newId = virtualChild.attributes && virtualChild.attributes.id
+      if (oldId && newId && oldId !== newId) {
+        // If we now have an element that has a different id, we need to trigger a full re-render
+        // of itself and all of its children, because url(#...) references will retain pointers to
+        // old elements and this is the only way to clear the DOM to get a correct render
+        replaceElement(
+          domChild,
+          virtualChild,
+          domElement,
+          virtualElement,
+          locator,
+          hash,
+          options,
+          scopes
+        )
+        continue
+      }
+
       if (!domChild.haiku) domChild.haiku = {}
       domChild.haiku.locator = sublocator
       if (!options.cache[domChild.haiku.locator]) {
@@ -121,3 +140,4 @@ module.exports = renderTree
 
 var appendChild = require('./appendChild')
 var updateElement = require('./updateElement')
+var replaceElement = require('./replaceElement')
