@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.27",
+  "version": "2.1.28",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -3865,13 +3865,15 @@ var BUILTIN_INJECTABLES = {
 }
 
 for (var builtinInjectableKey in BUILTIN_INJECTABLES) {
-  INJECTABLES[builtinInjectableKey] = {
-    builtin: true,
-    schema: '*',
-    summon: function (injectees) {
-      injectees[builtinInjectableKey] = BUILTIN_INJECTABLES[builtinInjectableKey]
+  (function (key, value) {
+    INJECTABLES[key] = {
+      builtin: true,
+      schema: '*',
+      summon: function (injectees) {
+        injectees[key] = value
+      }
     }
-  }
+  }(builtinInjectableKey, BUILTIN_INJECTABLES[builtinInjectableKey]))
 }
 
 // When editing a component, any of these appearing inside an expression will trigger a warning.
@@ -4130,7 +4132,7 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
 
     // If a special summonable has been defined, then call its summoner function
     // Note the lower-case - allow lo-coders to comfortably call say $FRAME and $frame and get the same thing back
-    if (INJECTABLES[key.toLowerCase()]) {
+    if (INJECTABLES[key]) {
       // But don't lowercase the assignment - otherwise the object destructuring won't work!!!
       INJECTABLES[key].summon(
         summonables, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they key must be added
@@ -10503,6 +10505,25 @@ function renderTree (
 
       addToHashTable(hash, insertedElement, virtualChild)
     } else {
+      var oldId = domChild.getAttribute && domChild.getAttribute('id')
+      var newId = virtualChild.attributes && virtualChild.attributes.id
+      if (oldId && newId && oldId !== newId) {
+        // If we now have an element that has a different id, we need to trigger a full re-render
+        // of itself and all of its children, because url(#...) references will retain pointers to
+        // old elements and this is the only way to clear the DOM to get a correct render
+        replaceElement(
+          domChild,
+          virtualChild,
+          domElement,
+          virtualElement,
+          locator,
+          hash,
+          options,
+          scopes
+        )
+        continue
+      }
+
       if (!domChild.haiku) domChild.haiku = {}
       domChild.haiku.locator = sublocator
       if (!options.cache[domChild.haiku.locator]) {
@@ -10535,8 +10556,9 @@ module.exports = renderTree
 
 var appendChild = _dereq_('./appendChild')
 var updateElement = _dereq_('./updateElement')
+var replaceElement = _dereq_('./replaceElement')
 
-},{"./addToHashTable":49,"./appendChild":50,"./isBlankString":67,"./locatorBump":71,"./removeElement":74,"./updateElement":79}],77:[function(_dereq_,module,exports){
+},{"./addToHashTable":49,"./appendChild":50,"./isBlankString":67,"./locatorBump":71,"./removeElement":74,"./replaceElement":77,"./updateElement":79}],77:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
