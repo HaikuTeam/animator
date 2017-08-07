@@ -639,13 +639,15 @@ var BUILTIN_INJECTABLES = {
 }
 
 for (var builtinInjectableKey in BUILTIN_INJECTABLES) {
-  INJECTABLES[builtinInjectableKey] = {
-    builtin: true,
-    schema: '*',
-    summon: function (injectees) {
-      injectees[builtinInjectableKey] = BUILTIN_INJECTABLES[builtinInjectableKey]
+  (function (key, value) {
+    INJECTABLES[key] = {
+      builtin: true,
+      schema: '*',
+      summon: function (injectees) {
+        injectees[key] = value
+      }
     }
-  }
+  }(builtinInjectableKey, BUILTIN_INJECTABLES[builtinInjectableKey]))
 }
 
 // When editing a component, any of these appearing inside an expression will trigger a warning.
@@ -898,13 +900,15 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
 ) {
   var summonables = {}
 
+
+
   for (var key in summons) {
     // If the summons structure has a falsy, just skip it - I don't see why how this could happen, but just in case
     if (!summons[key]) continue
 
     // If a special summonable has been defined, then call its summoner function
     // Note the lower-case - allow lo-coders to comfortably call say $FRAME and $frame and get the same thing back
-    if (INJECTABLES[key.toLowerCase()]) {
+    if (INJECTABLES[key]) {
       // But don't lowercase the assignment - otherwise the object destructuring won't work!!!
       INJECTABLES[key].summon(
         summonables, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they key must be added
