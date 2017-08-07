@@ -900,8 +900,6 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
 ) {
   var summonables = {}
 
-
-
   for (var key in summons) {
     // If the summons structure has a falsy, just skip it - I don't see why how this could happen, but just in case
     if (!summons[key]) continue
