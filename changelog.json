@@ -2271,5 +2271,12 @@
       "message": "Dumb bug because of shared template object"
     }
   },
-  "2.1.27": {}
+  "2.1.27": {},
+  "2.1.28": {
+    "3781bfe8a97c5addd3a6fec77738d11897f2f545": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "When ids change, we need to completely replace the existing DOM so SVG url() references update"
+    }
+  }
 }
