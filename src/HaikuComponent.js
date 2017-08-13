@@ -679,6 +679,7 @@ HaikuComponent.prototype.render = function render (container, renderOptions) {
   // 2. Given the above updates, 'expand' the tree to its final form (which gets flushed out to the mount element)
   this._lastTemplateExpansion = _expandTreeElement(
     this._template,
+    this,
     this._context
   )
 
@@ -884,24 +885,27 @@ function _applyContextChanges (
   return template
 }
 
-function _expandTreeElement (element, context) {
+function _expandTreeElement (element, component, context) {
+  // Handlers attach first since they may want to respond to an immediate property setter
+  if (element.__handlers) {
+    for (var key in element.__handlers) {
+      var handler = element.__handlers[key]
+
+      // Don't subscribe twice!
+      if (!handler.__subscribed) {
+        if (element.__instance) { // We might have a component from a system that doesn't adhere to our own internal API
+          if (element.__instance.instance) {
+            element.__instance.instance.on(key, handler)
+            handler.__subscribed = true
+          }
+        }
+      }
+    }
+  }
+
   if (typeof element.elementName === FUNCTION_TYPE) {
     if (!element.__instance) {
       element.__instance = _instantiateElement(element, context)
-    }
-
-    // Handlers attach first since they may want to respond to an immediate property setter
-    if (element.__handlers) {
-      for (var key in element.__handlers) {
-        var handler = element.__handlers[key]
-        if (!handler.__subscribed) {
-          // We might have a component from a system that doesn't adhere to our own internal API
-          if (element.__instance.instance) {
-            element.__instance.instance.on(key, handler)
-          }
-          handler.__subscribed = true
-        }
-      }
     }
 
     // Cache previous messages and don't repeat any that have the same value as last time
@@ -920,27 +924,16 @@ function _expandTreeElement (element, context) {
     // Call render on the interior element to get its full subtree, and recurse
     var interior = element.__instance.render()
 
-    return _expandTreeElement(interior, context)
+    return _expandTreeElement(interior, element.__instance, context)
   }
 
   if (typeof element.elementName === STRING_TYPE) {
-    // Handlers attach first since they may want to respond to an immediate property setter
-    if (element.__handlers) {
-      for (var nativekey in element.__handlers) {
-        var nativehandler = element.__handlers[nativekey]
-        if (!nativehandler.__subscribed) {
-          element.attributes[nativekey] = nativehandler
-          nativehandler.__subscribed = true
-        }
-      }
-    }
-
     var copy = _shallowCloneComponentTreeElement(element)
 
     if (element.children && element.children.length > 0) {
       for (var i = 0; i < element.children.length; i++) {
         var child = element.children[i]
-        copy.children[i] = _expandTreeElement(child, context)
+        copy.children[i] = _expandTreeElement(child, component, context)
       }
     }
 

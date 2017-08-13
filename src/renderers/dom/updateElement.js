@@ -95,7 +95,7 @@ function updateElement (
   ) {
     assignAttributes(
       domElement,
-      virtualElement.attributes,
+      virtualElement,
       options,
       scopes,
       isPatchOperation,

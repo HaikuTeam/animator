@@ -19,7 +19,7 @@ module.exports = {
   ],
   eventHandlers: [
     {
-      name: 'onclick',
+      name: 'click',
       selector: '#box',
       handler: function () {
         this.getTimelines()['Move'].gotoAndPlay(0)

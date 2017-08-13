@@ -70,7 +70,7 @@ function setAttribute (el, key, val, options, scopes, cache) {
 
 function assignAttributes (
   domElement,
-  attributes,
+  virtualElement,
   options,
   scopes,
   isPatchOperation,
@@ -81,7 +81,7 @@ function assignAttributes (
     if (domElement.haiku && domElement.haiku.element) {
       for (var oldKey in domElement.haiku.element.attributes) {
         var oldValue = domElement.haiku.element.attributes[oldKey]
-        var newValue = attributes[oldKey]
+        var newValue = virtualElement.attributes[oldKey]
         if (oldKey !== STYLE) {
           // Removal of old styles is handled downstream; see assignStyle()
           if (
@@ -96,8 +96,8 @@ function assignAttributes (
     }
   }
 
-  for (var key in attributes) {
-    var anotherNewValue = attributes[key]
+  for (var key in virtualElement.attributes) {
+    var anotherNewValue = virtualElement.attributes[key]
 
     if (key === STYLE && anotherNewValue && typeof anotherNewValue === OBJECT) {
       assignStyle(
@@ -115,19 +115,32 @@ function assignAttributes (
       continue
     }
 
-    var lower = key.toLowerCase()
-    // 'onclick', etc
+    // 'onclick', etc - Handling the chance that we got an inline event handler
     if (
-      lower[0] === 'o' &&
-      lower[1] === 'n' &&
+      key[0] === 'o' &&
+      key[1] === 'n' &&
       typeof anotherNewValue === FUNCTION
     ) {
-      assignEvent(domElement, lower, anotherNewValue, options, scopes)
+      assignEvent(domElement, key.slice(2).toLowerCase(), anotherNewValue, options, scopes)
       continue
     }
 
     setAttribute(domElement, key, anotherNewValue, options, scopes, options.cache[domElement.haiku.locator])
   }
+
+  // Any 'hidden' eventHandlers we got need to be assigned now.
+  // Note: The #legacy way this used to happen was via node attributes, which caused problems
+  // Hence them being 'hidden' in this __handlers object
+  if (virtualElement.__handlers) {
+    for (var eventName in virtualElement.__handlers) {
+      var handler = virtualElement.__handlers[eventName]
+      if (!handler.__subscribed) {
+        assignEvent(domElement, eventName, handler, options, scopes)
+        handler.__subscribed = true
+      }
+    }
+  }
+
   return domElement
 }
 

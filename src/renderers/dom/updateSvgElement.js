@@ -25,7 +25,7 @@ function updateSvgElement (
   if (attributes && typeof attributes === OBJECT) {
     assignAttributes(
       svgDomElement,
-      attributes,
+      virtualElement,
       options,
       scopes,
       isPatchOperation,
