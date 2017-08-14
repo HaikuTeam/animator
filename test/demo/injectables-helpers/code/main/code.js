@@ -16,7 +16,7 @@ module.exports = {
               return JSON.stringify(
                 {
                   now: $helpers.now(),
-                  rand: $helper.rand()
+                  rand: $helpers.rand()
                 },
                 null,
                 2
