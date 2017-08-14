@@ -2278,5 +2278,47 @@
       "label": "fix",
       "message": "When ids change, we need to completely replace the existing DOM so SVG url() references update"
     }
+  },
+  "2.1.31": {
+    "c43b57f46147567e442b5d4388f25434e9315279": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "At least better handling of overflow logic"
+    },
+    "56ea10c52c79e9fecd8bbb238c82525eda0e3a0e": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "gridline and trim-area heights"
+    },
+    "d62be2e409126c98c81b7616eb35303ae115ff81": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "remove shadow on 0 visible range rather than 0 scrubber"
+    },
+    "a7d638d05fd4405732d3a26a210eddbfa46bbeda": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "show/hide timeline scrolled-in shadow on arrowkeying"
+    },
+    "a2198784603477fa937146ccb874b7242c5cf8dc": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "shift+meta+leftArrow moves time to position 0"
+    },
+    "e7cc4b087b0a13be7f4a517ab266cacdad330a25": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "easeOutBounce and easeInOutQuint curves"
+    },
+    "18fcdd91295b9a3a0e015ef4bfbb8963c8f82d64": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "prevent incidental vertical scrolling on scrubber drag"
+    },
+    "bb677ad4aa2b86b1d22b02c3a6c80deb8653e6ea": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "container sizing for playback speed dail"
+    }
   }
 }
