@@ -77,6 +77,10 @@ var DEFAULTS = {
     // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without needing a wrapper element.
     overflowY: null,
 
+    // overflow: String|null
+    // CSS overflow setting for the component. Use this OR overflowX/overflowY
+    overflow: null,
+
     // mixpanel: String|null
     // If provided, a Mixpanel tracking instance will be created using this string as the API token. The default token is Haiku's production token.
     mixpanel: '6f31d4f99cf71024ce27c3e404a79a61',
@@ -154,6 +158,13 @@ function _build () {
     if (incoming.vanities) config.vanities = assign({}, config.vanities, incoming.vanities)
 
     if (incoming.children) config.children = incoming.children
+  }
+
+  // Validations:
+  if (config.options.overflow && (config.options.overflowX || config.options.overflowY)) {
+    console.warn('[haiku player] `overflow` overrides `overflowY`/`overflowX`')
+    config.options.overflowX = null
+    config.options.overflowY = null
   }
 
   return config

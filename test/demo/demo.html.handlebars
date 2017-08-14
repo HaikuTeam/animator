@@ -33,7 +33,11 @@
   <script>
     {{#if vanilla}}
       {{{vanilla}}}
-      vanilla(document.getElementById('vanilla'))
+      if (vanilla.mount) {
+        vanilla.mount(document.getElementById('vanilla'))
+      } else {
+        vanilla(document.getElementById('vanilla'))
+      }
     {{/if}}
   </script>
 

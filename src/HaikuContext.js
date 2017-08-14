@@ -283,27 +283,36 @@ HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles ()
     if (this.config.options.position && root.style.position !== this.config.options.position) {
       root.style.position = this.config.options.position
     }
-    if (
-      this.config.options.overflowX &&
-      root.style.overflowX !== this.config.options.overflowX
-    ) {
-      root.style.overflowX = this.config.options.overflowX
-    }
-    if (
-      this.config.options.overflowY &&
-      root.style.overflowY !== this.config.options.overflowY
-    ) {
-      root.style.overflowY = this.config.options.overflowY
+
+    if (this.config.options.overflow) {
+      root.style.overflow = this.config.options.overflow
+    } else {
+      if (
+        this.config.options.overflowX &&
+        root.style.overflowX !== this.config.options.overflowX
+      ) {
+        root.style.overflowX = this.config.options.overflowX
+      }
+      if (
+        this.config.options.overflowY &&
+        root.style.overflowY !== this.config.options.overflowY
+      ) {
+        root.style.overflowY = this.config.options.overflowY
+      }
     }
   }
 
-  if (
-    this._mount &&
-    this.config.options.sizing === 'cover' &&
-    this._mount.style.overflow !== 'hidden'
-  ) {
-    this._mount.style.overflow = 'hidden'
-  }
+  // Before Aug 14 2017 we clipped the mount when the sizing was cover, but I think
+  // it makes more sense to let the user control the clipping at the mount level;
+  // i.e. this behavior is trivial to add if you want it, but annoying to remove if you don't,
+  // so I think it makes sense to _not_ do the stanza below.
+  // if (
+  //   this._mount &&
+  //   this.config.options.sizing === 'cover' &&
+  //   this._mount.style.overflow !== 'hidden'
+  // ) {
+  //   this._mount.style.overflow = 'hidden'
+  // }
 
   return this
 }
