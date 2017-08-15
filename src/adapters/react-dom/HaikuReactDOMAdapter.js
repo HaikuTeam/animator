@@ -4,11 +4,8 @@
 
 var React = require('react')
 var ReactDOM = require('react-dom')
-var ReactTestRenderer = require('react-test-renderer')
 var EventsDict = require('./EventsDict')
 var merge = require('lodash.merge')
-var reactToMana = require('./../../helpers/reactToMana')
-var Layout3D = require('./../../Layout3D')
 
 var DEFAULT_HOST_ELEMENT_TAG_NAME = 'div'
 
@@ -70,7 +67,11 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
     displayName: 'HaikuComponent',
 
     getInitialState: function () {
-      return {}
+      return {
+        // This random id is used to give us a hook to query the DOM for our mount element,
+        // even in cases where React mysteriously decides not to pass us its ref.
+        randomId: 'haiku-reactroot-' + randomString(24)
+      }
     },
 
     componentWillReceiveProps: function (nextPropsRaw) {
@@ -96,7 +97,10 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
     },
 
     componentDidMount: function () {
-      // Ensure we have a reference to the DOM node before proceeding...
+      this.attemptMount()
+    },
+
+    attemptMount: function () {
       if (this.mount) {
         this.createContext(this.props)
 
@@ -107,6 +111,8 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
     },
 
     buildHaikuCompatibleConfigFromRawProps: function (rawProps) {
+      // Note that these vanities are called _after_ an initial render,
+      // i.e., after this.mount is supposed to have been attached.
       var haikuConfig = {
         ref: this.mount,
         vanities: {
@@ -117,12 +123,20 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
             component,
             implementation
           ) {
-            var renderer = ReactTestRenderer.create(insertable)
-            var json = renderer.toJSON()
-            var mana = reactToMana(json)
-            Layout3D.initializeTreeAttributes(mana, element)
-            implementation(element, mana, context, component)
-          },
+            visit(this.mount, function visitor (node) {
+              if (same(element, node)) {
+                if (typeof insertable.type === 'function' && insertable.type.isHaikuAdapter) {
+                  // For reasons unknown, this dance is required with nested Haiku mounts
+                  var div = document.createElement('div')
+                  while (node.firstChild) node.removeChild(node.firstChild)
+                  node.appendChild(div)
+                  node = div
+                }
+                ReactDOM.render(insertable, node)
+                element.__horizon = true // Tell the renderer not to update any of this one's children
+              }
+            })
+          }.bind(this),
           'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity (
             element,
             surrogate,
@@ -130,12 +144,19 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
             component,
             implementation
           ) {
-            var renderer = ReactTestRenderer.create(surrogate)
-            var json = renderer.toJSON()
-            var mana = reactToMana(json)
-            Layout3D.initializeTreeAttributes(mana, element)
-            implementation(element, mana, context, component)
-          }
+            visit(this.mount, function visitor (node) {
+              if (same(element, node)) {
+                if (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter) {
+                  // For reasons unknown, this dance is required with nested Haiku mounts
+                  var div = document.createElement('div')
+                  node.parentNode.replaceChild(div, node)
+                  node = div
+                }
+                ReactDOM.render(surrogate, node)
+                element.__horizon = true // Tell the renderer not to update any of this one's children
+              }
+            })
+          }.bind(this)
         }
       }
 
@@ -229,15 +250,21 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
 
       // Merge our basic host props with some defaults we want to assign
       return merge({
+        id: this.state.randomId,
         style: {
           position: 'relative',
           margin: 0,
           padding: 0,
           border: 0,
           width: '100%',
-          height: '100%'
+          height: '100%',
+          transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)'
         }
       }, propsForHostElement)
+    },
+
+    assignMountFromRef: function (element) {
+      this.mount = element
     },
 
     render: function () {
@@ -245,9 +272,7 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
 
       // Having this ref assigned like this is critical to the adapter working,
       // so we override it despite what the host element props might say
-      hostElementProps.ref = function _ref (element) {
-        this.mount = element
-      }.bind(this)
+      hostElementProps.ref = this.assignMountFromRef
 
       return React.createElement(
         hostElementProps.tagName || DEFAULT_HOST_ELEMENT_TAG_NAME,
@@ -263,10 +288,52 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
     reactClass.propTypes[propName] = React.PropTypes[propType]
   }
 
+  reactClass.isHaikuAdapter = true // Used for condition in placeholder rendering
   reactClass.React = React // Used by Haiku for testing and debugging
   reactClass.ReactDOM = ReactDOM // Used by Haiku for testing and debugging
 
   return reactClass
+}
+
+/**
+ * Quick-and-dirty way to generate unique DOM-friendly ids on the fly...
+ */
+var ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
+function randomString (len) {
+  var str = ''
+  while (str.length < len) {
+    str += ALPHABET[Math.floor(Math.random() * ALPHABET.length)]
+  }
+  return str
+}
+
+function visit (el, visitor) {
+  if (el) {
+    visitor(el)
+    if (el.children) {
+      for (var i = 0; i < el.children.length; i++) {
+        visit(el.children[i], visitor)
+      }
+    }
+  }
+}
+
+function same (virtual, dom) {
+  if (virtual.attributes) {
+    if (virtual.attributes['haiku-id']) {
+      if (dom.getAttribute('haiku-id') === virtual.attributes['haiku-id']) {
+        return true
+      }
+    }
+
+    if (virtual.attributes.id) {
+      if (dom.getAttribute('id') === virtual.attributes.id) {
+        return true
+      }
+    }
+  }
+
+  return false
 }
 
 HaikuReactDOMAdapter.React = React // Used by Haiku for testing and debugging

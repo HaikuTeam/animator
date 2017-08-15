@@ -6,8 +6,6 @@ var applyLayout = require('./applyLayout')
 var assignAttributes = require('./assignAttributes')
 var getTypeAsString = require('./getTypeAsString')
 
-var SVG_EL_NAMES = require('./../../helpers/allSvgElementNames')
-
 var OBJECT = 'object'
 
 function updateElement (
@@ -41,52 +39,34 @@ function updateElement (
     incomingKey !== undefined &&
     incomingKey !== existingKey
 
-  if (domTagName !== virtualElementTagName) {
-    return replaceElement(
-      domElement,
-      virtualElement,
-      parentNode,
-      parentVirtualElement,
-      locator,
-      hash,
-      options,
-      scopes
-    )
-  }
-
-  if (isKeyDifferent) {
-    return replaceElement(
-      domElement,
-      virtualElement,
-      parentNode,
-      parentVirtualElement,
-      locator,
-      hash,
-      options,
-      scopes
-    )
-  }
-
-  if (SVG_EL_NAMES[elName]) {
-    updateSvgElement(
-      domElement,
-      elName,
-      virtualElement.attributes,
-      virtualElement.children,
-      virtualElement,
-      parentNode,
-      parentVirtualElement,
-      locator,
-      hash,
-      options,
-      scopes,
-      isPatchOperation,
-      isKeyDifferent
-    )
-    if (incomingKey !== undefined && incomingKey !== null) {
-      domElement.haiku.key = incomingKey
+  // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
+  // so the most we want to do is update the attributes and layout properties, but leave the rest alone
+  if (!virtualElement.__horizon) {
+    if (domTagName !== virtualElementTagName) {
+      return replaceElement(
+        domElement,
+        virtualElement,
+        parentNode,
+        parentVirtualElement,
+        locator,
+        hash,
+        options,
+        scopes
+      )
     }
-    return domElement
+
+    if (isKeyDifferent) {
+      return replaceElement(
+        domElement,
+        virtualElement,
+        parentNode,
+        parentVirtualElement,
+        locator,
+        hash,
+        options,
+        scopes
+      )
+    }
   }
 
   if (
@@ -147,7 +127,6 @@ function updateElement (
 module.exports = updateElement
 
 var renderTree = require('./renderTree')
-var updateSvgElement = require('./updateSvgElement')
 var replaceElementWithText = require('./replaceElementWithText')
 var replaceElement = require('./replaceElement')
 var normalizeName = require('./normalizeName')

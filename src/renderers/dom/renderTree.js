@@ -52,6 +52,12 @@ function renderTree (
     return domElement
   }
 
+  // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
+  // so the most we want to do is update the attributes and layout properties, but leave the rest alone
+  if (virtualElement.__horizon) {
+    return domElement
+  }
+
   while (virtualChildren.length > 0 && isBlankString(virtualChildren[0])) {
     virtualChildren.shift()
   }
