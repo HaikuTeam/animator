@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.31",
+  "version": "2.1.32",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -233,7 +233,6 @@ module.exports={
     "prettier-standard": "^5.1.0",
     "react-dom": "15.4.2",
     "react-router-dom": "^4.1.1",
-    "rollup": "^0.43.0",
     "snazzy": "6.0.0",
     "standard": "8.6.0",
     "tap-spec": "4.1.1",
@@ -241,8 +240,7 @@ module.exports={
     "uglify-js": "^2.7.5"
   },
   "dependencies": {
-    "lodash.merge": "4.6.0",
-    "react-test-renderer": "15.4.2"
+    "lodash.merge": "4.6.0"
   },
   "peerDependencies": {
     "react": "15.4.2",
@@ -429,7 +427,7 @@ Config.seed = _seed
 
 module.exports = Config
 
-},{"./vendor/assign":83}],4:[function(_dereq_,module,exports){
+},{"./vendor/assign":81}],4:[function(_dereq_,module,exports){
 (function (global){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
@@ -641,7 +639,7 @@ HaikuClock.prototype.getFrameDuration = function getFrameDuration () {
 module.exports = HaikuClock
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./helpers/SimpleEventEmitter":18,"./vendor/assign":83,"./vendor/raf":136}],5:[function(_dereq_,module,exports){
+},{"./helpers/SimpleEventEmitter":18,"./vendor/assign":81,"./vendor/raf":134}],5:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -1888,7 +1886,7 @@ function _isComponent (thing) {
 
 module.exports = HaikuComponent
 
-},{"./../package.json":2,"./Config":3,"./HaikuTimeline":8,"./Layout3D":9,"./ValueBuilder":11,"./helpers/SimpleEventEmitter":18,"./helpers/cssQueryTree":28,"./helpers/scopifyElements":33,"./helpers/upgradeBytecodeInPlace":34,"./properties/dom/vanities":46,"./vendor/assign":83}],6:[function(_dereq_,module,exports){
+},{"./../package.json":2,"./Config":3,"./HaikuTimeline":8,"./Layout3D":9,"./ValueBuilder":11,"./helpers/SimpleEventEmitter":18,"./helpers/cssQueryTree":29,"./helpers/scopifyElements":34,"./helpers/upgradeBytecodeInPlace":35,"./properties/dom/vanities":47,"./vendor/assign":81}],6:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -1898,6 +1896,7 @@ var HaikuClock = _dereq_('./HaikuClock')
 var HaikuComponent = _dereq_('./HaikuComponent')
 var Config = _dereq_('./Config')
 var PRNG = _dereq_('./helpers/PRNG')
+var addElementToHashTable = _dereq_('./helpers/addElementToHashTable')
 
 var PLAYER_VERSION = _dereq_('./../package.json').version
 
@@ -2007,6 +2006,11 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
     // in case of edge cases or possibly for future implementation details around $repeat
     // "abcde": [el, el]
   }
+
+  // Dictionary of ids-to-elements, representing elements that we
+  // do not want to render past in the tree (i.e. cede control to some
+  // other rendering context)
+  this._horizons = {}
 
   // Just a counter for the number of clock ticks that have occurred; used to determine first-frame for mounting
   this._ticks = 0
@@ -2134,9 +2138,7 @@ HaikuContext.prototype.performFullFlushRender = function performFullFlushRender 
     container,
     tree,
     this._address,
-    this._hash,
-    this.config.options,
-    this.component._getRenderScopes()
+    this
   )
   return this
 }
@@ -2153,9 +2155,7 @@ HaikuContext.prototype.performPatchRender = function performPatchRender () {
     container,
     patches,
     this._address,
-    this._hash,
-    this.config.options,
-    this.component._getRenderScopes()
+    this
   )
   return this
 }
@@ -2260,6 +2260,37 @@ HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState () {
 }
 
 /**
+ * @description We store DOM elements in a lookup table keyed by their id so we can do fast patches.
+ * This is a hook that allows e.g. the ReactDOMAdapter to push elements into the list if it mutates the DOM.
+ * e.g. during control flow
+ */
+HaikuContext.prototype._addElementToHashTable = function _addElementToHashTable (realElement, virtualElement) {
+  addElementToHashTable(this._hash, realElement, virtualElement)
+  return this
+}
+
+/**
+ * @description Track elements that are at the horizon of what we want to render, i.e., a list of
+ * virtual elements that we don't want to make any updates lower than in the tree.
+ */
+HaikuContext.prototype._markHorizonElement = function _markHorizonElement (virtualElement) {
+  if (virtualElement && virtualElement.attributes) {
+    var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
+    if (flexId) {
+      this._horizons[flexId] = virtualElement
+    }
+  }
+}
+
+HaikuContext.prototype._isHorizonElement = function _isHorizonElement (virtualElement) {
+  if (virtualElement && virtualElement.attributes) {
+    var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
+    return !!this._horizons[flexId]
+  }
+  return false
+}
+
+/**
  * @function createComponentFactory
  * @description Returns a factory function that can create a HaikuComponent and run it upon a mount.
  * The created player runs using the passed-in renderer, bytecode, options, and platform.
@@ -2336,7 +2367,7 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
 module.exports = HaikuContext
 
-},{"./../package.json":2,"./Config":3,"./HaikuClock":4,"./HaikuComponent":5,"./helpers/PRNG":16,"./vendor/assign":83}],7:[function(_dereq_,module,exports){
+},{"./../package.json":2,"./Config":3,"./HaikuClock":4,"./HaikuComponent":5,"./helpers/PRNG":16,"./helpers/addElementToHashTable":19,"./vendor/assign":81}],7:[function(_dereq_,module,exports){
 (function (global){
 var VERSION = _dereq_('./../package.json').version
 
@@ -2762,7 +2793,7 @@ HaikuTimeline.prototype.gotoAndStop = function gotoAndStop (ms) {
 
 module.exports = HaikuTimeline
 
-},{"./helpers/SimpleEventEmitter":18,"./helpers/getTimelineMaxTime":29,"./vendor/assign":83}],9:[function(_dereq_,module,exports){
+},{"./helpers/SimpleEventEmitter":18,"./helpers/getTimelineMaxTime":30,"./vendor/assign":81}],9:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -3003,7 +3034,7 @@ module.exports = {
   isZero: isZero
 }
 
-},{"./layout/computeMatrix":38,"./layout/computeRotationFlexibly":39,"./layout/computeSize":40}],10:[function(_dereq_,module,exports){
+},{"./layout/computeMatrix":39,"./layout/computeRotationFlexibly":40,"./layout/computeSize":41}],10:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -3235,7 +3266,7 @@ module.exports = {
   calculateValueAndReturnUndefinedIfNotWorthwhile: calculateValueAndReturnUndefinedIfNotWorthwhile
 }
 
-},{"./vendor/just-curves":124}],11:[function(_dereq_,module,exports){
+},{"./vendor/just-curves":122}],11:[function(_dereq_,module,exports){
 (function (process,global){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
@@ -3793,9 +3824,6 @@ INJECTABLES['$flow'] = {
       payload: 'any' // alias for payload
     },
     placeholder: {
-      node: 'any' // The injected element?
-    },
-    insert: {
       node: 'any' // The injected element?
     }
   },
@@ -4485,7 +4513,7 @@ ValueBuilder.FORBIDDEN_EXPRESSION_TOKENS = FORBIDDEN_EXPRESSION_TOKENS
 module.exports = ValueBuilder
 
 }).call(this,_dereq_('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./HaikuHelpers":7,"./Transitions":10,"./helpers/BasicUtils":14,"./helpers/ColorUtils":15,"./helpers/SVGPoints":17,"./properties/dom/schema":45,"./reflection/functionToRFO":47,"./vendor/assign":83,"_process":1}],12:[function(_dereq_,module,exports){
+},{"./HaikuHelpers":7,"./Transitions":10,"./helpers/BasicUtils":14,"./helpers/ColorUtils":15,"./helpers/SVGPoints":17,"./properties/dom/schema":46,"./reflection/functionToRFO":48,"./vendor/assign":81,"_process":1}],12:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4612,7 +4640,7 @@ module.exports = {
   uniq: uniq
 }
 
-},{"./../vendor/array-unique":82}],15:[function(_dereq_,module,exports){
+},{"./../vendor/array-unique":80}],15:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4642,7 +4670,7 @@ module.exports = {
   generateString: generateString
 }
 
-},{"./../vendor/color-string":85}],16:[function(_dereq_,module,exports){
+},{"./../vendor/color-string":83}],16:[function(_dereq_,module,exports){
 var seedrandom = _dereq_('./../vendor/seedrandom')
 
 function PRNG (seed) {
@@ -4655,7 +4683,7 @@ PRNG.prototype.random = function random () {
 
 module.exports = PRNG
 
-},{"./../vendor/seedrandom":137}],17:[function(_dereq_,module,exports){
+},{"./../vendor/seedrandom":135}],17:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4813,7 +4841,7 @@ module.exports = {
   manaToPoints: manaToPoints
 }
 
-},{"./../vendor/svg-points":139,"./parseCssValueString":32}],18:[function(_dereq_,module,exports){
+},{"./../vendor/svg-points":137,"./parseCssValueString":33}],18:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4954,6 +4982,26 @@ SimpleEventEmitter.create = create
 module.exports = SimpleEventEmitter
 
 },{}],19:[function(_dereq_,module,exports){
+module.exports = function addElementToHashTable (hash, realElement, virtualElement) {
+  if (virtualElement && virtualElement.attributes) {
+    var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
+    if (!hash[flexId]) hash[flexId] = []
+
+    var alreadyInList = false
+    for (var i = 0; i < hash[flexId].length; i++) {
+      var elInList = hash[flexId][i]
+      if (elInList === realElement) {
+        alreadyInList = true
+      }
+    }
+
+    if (!alreadyInList) {
+      hash[flexId].push(realElement)
+    }
+  }
+}
+
+},{}],20:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5044,7 +5092,7 @@ var allSvgElementNames = {
 
 module.exports = allSvgElementNames
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5064,7 +5112,7 @@ function attrSelectorParser (selector) {
 
 module.exports = attrSelectorParser
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5100,7 +5148,7 @@ function matchByAttribute (
 
 module.exports = matchByAttribute
 
-},{"./objectPath":31}],22:[function(_dereq_,module,exports){
+},{"./objectPath":32}],23:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5127,7 +5175,7 @@ function matchByClass (node, className, options) {
 
 module.exports = matchByClass
 
-},{"./objectPath":31}],23:[function(_dereq_,module,exports){
+},{"./objectPath":32}],24:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5145,7 +5193,7 @@ function matchByHaiku (node, haikuString, options) {
 
 module.exports = matchByHaiku
 
-},{"./objectPath":31}],24:[function(_dereq_,module,exports){
+},{"./objectPath":32}],25:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5163,7 +5211,7 @@ function matchById (node, id, options) {
 
 module.exports = matchById
 
-},{"./objectPath":31}],25:[function(_dereq_,module,exports){
+},{"./objectPath":32}],26:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5209,7 +5257,7 @@ function matchByTagName (node, tagName, options) {
 
 module.exports = matchByTagName
 
-},{"./objectPath":31}],26:[function(_dereq_,module,exports){
+},{"./objectPath":32}],27:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5256,7 +5304,7 @@ function matchOne (node, piece, options) {
 
 module.exports = matchOne
 
-},{"./attrSelectorParser":20,"./cssMatchByAttribute":21,"./cssMatchByClass":22,"./cssMatchByHaiku":23,"./cssMatchById":24,"./cssMatchByTagName":25}],27:[function(_dereq_,module,exports){
+},{"./attrSelectorParser":21,"./cssMatchByAttribute":22,"./cssMatchByClass":23,"./cssMatchByHaiku":24,"./cssMatchById":25,"./cssMatchByTagName":26}],28:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5285,7 +5333,7 @@ function queryList (matches, list, query, options) {
 
 module.exports = queryList
 
-},{"./cssMatchOne":26}],28:[function(_dereq_,module,exports){
+},{"./cssMatchOne":27}],29:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5305,7 +5353,7 @@ function queryTree (matches, node, query, options) {
 
 module.exports = queryTree
 
-},{"./BasicUtils":14,"./cssQueryList":27,"./manaFlattenTree":30}],29:[function(_dereq_,module,exports){
+},{"./BasicUtils":14,"./cssQueryList":28,"./manaFlattenTree":31}],30:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5328,7 +5376,7 @@ function getTimelineMaxTime (descriptor) {
 
 module.exports = getTimelineMaxTime
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5365,7 +5413,7 @@ function flattenTree (list, node, options, depth, index) {
 
 module.exports = flattenTree
 
-},{"./objectPath":31}],31:[function(_dereq_,module,exports){
+},{"./objectPath":32}],32:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5384,7 +5432,7 @@ function objectPath (obj, key) {
 
 module.exports = objectPath
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5429,7 +5477,7 @@ function parseCssValueString (str, optionalPropertyHint) {
 
 module.exports = parseCssValueString
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5471,7 +5519,7 @@ function scopifyElements (mana, parent, scope) {
 
 module.exports = scopifyElements
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 var xmlToMana = _dereq_('./xmlToMana')
 var visitManaTree = _dereq_('./visitManaTree')
 
@@ -5572,7 +5620,7 @@ function upgradeBytecodeInPlace (_bytecode, options) {
 
 module.exports = upgradeBytecodeInPlace
 
-},{"./visitManaTree":35,"./xmlToMana":36}],35:[function(_dereq_,module,exports){
+},{"./visitManaTree":36,"./xmlToMana":37}],36:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5597,7 +5645,7 @@ function visitManaTree (locator, mana, visitor, parent, index) {
 
 module.exports = visitManaTree
 
-},{}],36:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5638,7 +5686,7 @@ function xmlToMana (xml) {
 
 module.exports = xmlToMana
 
-},{"./../vendor/to-style":146,"./../vendor/xml-parser":159}],37:[function(_dereq_,module,exports){
+},{"./../vendor/to-style":144,"./../vendor/xml-parser":157}],38:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5661,8 +5709,7 @@ function applyCssLayout (
   nodeLayout,
   computedLayout,
   pixelRatio,
-  rendererOptions,
-  rendererScopes
+  context
 ) {
   // No point continuing if there's no computedLayout contents
   if (
@@ -5734,7 +5781,7 @@ function applyCssLayout (
     var attributeTransform = domElement.getAttribute('transform')
     // IE doesn't support using transform on the CSS style in SVG elements, so if we are in SVG,
     // and if we are inside an IE context, use the transform attribute itself
-    if (rendererOptions.platform.isIE) {
+    if (context.config.options.platform.isIE) {
       if (elementScope === SVG) {
         var matrixString = formatTransform(
           computedLayout.matrix,
@@ -5749,10 +5796,9 @@ function applyCssLayout (
           domElement.style,
           nodeLayout.format,
           computedLayout.matrix,
-          rendererOptions && rendererOptions.useWebkitPrefix,
+          context.config.options.useWebkitPrefix,
           pixelRatio,
-          rendererOptions,
-          rendererScopes
+          context
         )
       }
     } else {
@@ -5768,10 +5814,9 @@ function applyCssLayout (
             domElement.style,
             nodeLayout.format,
             computedLayout.matrix,
-            rendererOptions && rendererOptions.useWebkitPrefix,
+            context.config.options.useWebkitPrefix,
             pixelRatio,
-            rendererOptions,
-            rendererScopes
+            context
           )
         }
       }
@@ -5783,7 +5828,7 @@ function applyCssLayout (
 
 module.exports = applyCssLayout
 
-},{"./formatTransform":41,"./isEqualTransformString":42,"./scopeOfElement":43,"./setStyleMatrix":44}],38:[function(_dereq_,module,exports){
+},{"./formatTransform":42,"./isEqualTransformString":43,"./scopeOfElement":44,"./setStyleMatrix":45}],39:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -5919,7 +5964,7 @@ function computeMatrix (
 
 module.exports = computeMatrix
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -6026,7 +6071,7 @@ function computeRotationFlexibly (x, y, z, w, quat) {
 
 module.exports = computeRotationFlexibly
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -6085,7 +6130,7 @@ function computeSize (
 
 module.exports = computeSize
 
-},{}],41:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -6178,7 +6223,7 @@ function formatTransform (transform, format, devicePixelRatio) {
 
 module.exports = formatTransform
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -6217,7 +6262,7 @@ function isEqualTransformString (t1, t2) {
 
 module.exports = isEqualTransformString
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -6232,7 +6277,7 @@ module.exports = function scopeOfElement (mana) {
   return null
 }
 
-},{}],44:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -6245,8 +6290,7 @@ function setStyleMatrix (
   format,
   matrix,
   usePrefix,
-  devicePixelRatio,
-  rendererScopes
+  devicePixelRatio
 ) {
   var matrixString = formatTransform(matrix, format, devicePixelRatio)
   if (usePrefix) {
@@ -6263,7 +6307,7 @@ function setStyleMatrix (
 
 module.exports = setStyleMatrix
 
-},{"./formatTransform":41,"./isEqualTransformString":42}],45:[function(_dereq_,module,exports){
+},{"./formatTransform":42,"./isEqualTransformString":43}],46:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -6559,7 +6603,6 @@ var CONTROL_FLOW_SCHEMA = {
   // 'controlFlow.if': 'any',
   // 'controlFlow.repeat': 'any',
   // 'controlFlow.yield': 'any',
-  'controlFlow.insert': 'any',
   'controlFlow.placeholder': 'any'
 }
 
@@ -7294,7 +7337,7 @@ module.exports = {
   wb: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA)
 }
 
-},{}],46:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -8063,31 +8106,6 @@ var CONTROL_FLOW_VANITIES = {
   // 'controlFlow.yield': function (name, element, value) {
   //   // TODO
   // },
-  'controlFlow.insert': function (name, element, value, context, component) {
-    if (value === null || value === undefined) return void 0
-    if (typeof value !== 'number') {
-      throw new Error('controlFlow.insert expects null or number')
-    }
-    if (!context.config.children) return void 0
-    var children = Array.isArray(context.config.children)
-      ? context.config.children
-      : [context.config.children]
-    var surrogate = children[value]
-    if (surrogate === null || surrogate === undefined) return void 0
-    // If we are running via a framework adapter, allow that framework to provide its own insert mechanism.
-    // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
-    if (context.config.vanities['controlFlow.insert']) {
-      context.config.vanities['controlFlow.insert'](
-        element,
-        surrogate,
-        context,
-        component,
-        controlFlowInsertImpl
-      )
-    } else {
-      controlFlowInsertImpl(element, surrogate, context, component)
-    }
-  },
   'controlFlow.placeholder': function (
     name,
     element,
@@ -8105,6 +8123,10 @@ var CONTROL_FLOW_VANITIES = {
       : [context.config.children]
     var surrogate = children[value]
     if (surrogate === null || surrogate === undefined) return void 0
+    // No matter what, if we have a surrogate, then we must clear the children, otherwise we will often
+    // see a flash of the default content before the injected content flows in. This is especially a
+    // problem with React et al, where their rendering is lazy
+    element.children = []
     // If we are running via a framework adapter, allow that framework to provide its own placeholder mechanism.
     // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
     if (context.config.vanities['controlFlow.placeholder']) {
@@ -8112,8 +8134,7 @@ var CONTROL_FLOW_VANITIES = {
         element,
         surrogate,
         context,
-        component,
-        controlFlowPlaceholderImpl
+        component
       )
     } else {
       controlFlowPlaceholderImpl(element, surrogate, context, component)
@@ -8131,10 +8152,6 @@ function controlFlowPlaceholderImpl (element, surrogate, context, component) {
       element.attributes[key] = surrogate.attributes[key]
     }
   }
-}
-
-function controlFlowInsertImpl (element, surrogate, context, component) {
-  element.children = [surrogate]
 }
 
 module.exports = {
@@ -8937,7 +8954,7 @@ module.exports = {
   wb: has(CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES)
 }
 
-},{"./../../Layout3D":9}],47:[function(_dereq_,module,exports){
+},{"./../../Layout3D":9}],48:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -9132,7 +9149,7 @@ function functionToRFO (fn) {
 
 module.exports = functionToRFO
 
-},{}],48:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 // Each of these would have an on* prefix normally
 module.exports = {
   mouse: {
@@ -9387,7 +9404,7 @@ module.exports = {
   }
 }
 
-},{}],49:[function(_dereq_,module,exports){
+},{}],50:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -9423,18 +9440,14 @@ HaikuDOMRenderer.prototype.render = function render (
   virtualContainer,
   virtualTree,
   locator,
-  hash,
-  options,
-  scopes
+  context
 ) {
   return _render(
     domElement,
     virtualContainer,
     virtualTree,
     locator,
-    hash,
-    options,
-    scopes
+    context
   )
 }
 
@@ -9443,18 +9456,14 @@ HaikuDOMRenderer.prototype.patch = function patch (
   virtualContainer,
   patchesDict,
   locator,
-  hash,
-  options,
-  scopes
+  context
 ) {
   return _patch(
     domElement,
     virtualContainer,
     patchesDict,
     locator,
-    hash,
-    options,
-    scopes
+    context
   )
 }
 
@@ -9650,27 +9659,7 @@ HaikuDOMRenderer.prototype.getUser = function getUser () {
 
 module.exports = HaikuDOMRenderer
 
-},{"./createMixpanel":58,"./createRightClickMenu":59,"./getElementSize":64,"./getLocalDomEventPosition":65,"./patch":74,"./render":76}],50:[function(_dereq_,module,exports){
-module.exports = function addToHashTable (hash, domElement, virtualElement) {
-  if (virtualElement && virtualElement.attributes) {
-    var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
-    if (!hash[flexId]) hash[flexId] = []
-
-    var alreadyInList = false
-    for (var i = 0; i < hash[flexId].length; i++) {
-      var elInList = hash[flexId][i]
-      if (elInList === domElement) {
-        alreadyInList = true
-      }
-    }
-
-    if (!alreadyInList) {
-      hash[flexId].push(domElement)
-    }
-  }
-}
-
-},{}],51:[function(_dereq_,module,exports){
+},{"./createMixpanel":58,"./createRightClickMenu":59,"./getElementSize":64,"./getLocalDomEventPosition":65,"./patch":73,"./render":75}],51:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -9686,17 +9675,14 @@ function appendChild (
   parentDomElement,
   parentVirtualElement,
   locator,
-  hash,
-  options,
-  scopes
+  context
 ) {
   var domElementToInsert
-  if (isTextNode(virtualElement, scopes)) {
+  if (isTextNode(virtualElement)) {
     domElementToInsert = createTextNode(
       parentDomElement,
       virtualElement,
-      options,
-      scopes
+      context
     )
   } else {
     domElementToInsert = createTagNode(
@@ -9704,9 +9690,7 @@ function appendChild (
       virtualElement,
       parentVirtualElement,
       locator,
-      hash,
-      options,
-      scopes
+      context
     )
   }
 
@@ -9715,8 +9699,7 @@ function appendChild (
     virtualElement,
     parentDomElement,
     parentVirtualElement,
-    options,
-    scopes
+    context
   )
 
   parentDomElement.appendChild(domElementToInsert)
@@ -9780,8 +9763,7 @@ function applyLayout (
   virtualElement,
   parentDomNode,
   parentVirtualElement,
-  options,
-  scopes,
+  context,
   isPatchOperation,
   isKeyDifferent
 ) {
@@ -9809,7 +9791,7 @@ function applyLayout (
     }
 
     var devicePixelRatio =
-      (options && options.devicePixelRatio) || DEFAULT_PIXEL_RATIO
+      (context.config.options && context.config.options.devicePixelRatio) || DEFAULT_PIXEL_RATIO
     var computedLayout = virtualElement.layout.computed
 
     // No computed layout means the el is not shown
@@ -9821,15 +9803,16 @@ function applyLayout (
       if (domElement.style.display !== 'block') {
         domElement.style.display = 'block'
       }
-      options.platform = PLATFORM_INFO
+
+      context.config.options.platform = PLATFORM_INFO
+
       applyCssLayout(
         domElement,
         virtualElement,
         virtualElement.layout,
         computedLayout,
         devicePixelRatio,
-        options,
-        scopes
+        context
       )
     }
   }
@@ -9847,7 +9830,7 @@ function _warnOnce (warning) {
 
 module.exports = applyLayout
 
-},{"./../../layout/applyCssLayout":37,"./../../layout/scopeOfElement":43,"./../../vendor/modernizr":134,"./isIE":69,"./isMobile":70,"./isTextNode":71}],53:[function(_dereq_,module,exports){
+},{"./../../layout/applyCssLayout":38,"./../../layout/scopeOfElement":44,"./../../vendor/modernizr":132,"./isIE":69,"./isMobile":70,"./isTextNode":71}],53:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -9879,7 +9862,7 @@ var G = 'g'
 var E = 'e'
 var FSLASH = '/'
 
-function setAttribute (el, key, val, options, scopes, cache) {
+function setAttribute (el, key, val, context, cache) {
   // If key === xlink:href we are dealing with a reference and need to use a namepsace
   if (key[0] === X && key[1] === L && key[2] === I && key[3] === N && key[4] === K) {
     var ns = XLINK_XMLNS
@@ -9921,8 +9904,7 @@ function setAttribute (el, key, val, options, scopes, cache) {
 function assignAttributes (
   domElement,
   virtualElement,
-  options,
-  scopes,
+  context,
   isPatchOperation,
   isKeyDifferent
 ) {
@@ -9953,15 +9935,14 @@ function assignAttributes (
       assignStyle(
         domElement,
         anotherNewValue,
-        options,
-        scopes,
+        context,
         isPatchOperation
       )
       continue
     }
 
     if ((key === CLASS || key === CLASS_NAME) && anotherNewValue) {
-      assignClass(domElement, anotherNewValue, options, scopes)
+      assignClass(domElement, anotherNewValue, context)
       continue
     }
 
@@ -9971,11 +9952,11 @@ function assignAttributes (
       key[1] === 'n' &&
       typeof anotherNewValue === FUNCTION
     ) {
-      assignEvent(domElement, key.slice(2).toLowerCase(), anotherNewValue, options, scopes)
+      assignEvent(domElement, key.slice(2).toLowerCase(), anotherNewValue, context)
       continue
     }
 
-    setAttribute(domElement, key, anotherNewValue, options, scopes, options.cache[domElement.haiku.locator])
+    setAttribute(domElement, key, anotherNewValue, context, context.config.options.cache[domElement.haiku.locator])
   }
 
   // Any 'hidden' eventHandlers we got need to be assigned now.
@@ -9985,7 +9966,7 @@ function assignAttributes (
     for (var eventName in virtualElement.__handlers) {
       var handler = virtualElement.__handlers[eventName]
       if (!handler.__subscribed) {
-        assignEvent(domElement, eventName, handler, options, scopes)
+        assignEvent(domElement, eventName, handler, context)
         handler.__subscribed = true
       }
     }
@@ -10001,7 +9982,7 @@ module.exports = assignAttributes
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function assignClass (domElement, className, options, scopes) {
+function assignClass (domElement, className) {
   if (domElement.className !== className) {
     domElement.className = className
   }
@@ -10021,8 +10002,7 @@ function assignEvent (
   domElement,
   eventName,
   listenerFunction,
-  options,
-  scopes
+  context
 ) {
   if (!domElement.haiku) {
     domElement.haiku = {}
@@ -10051,8 +10031,7 @@ function assignEvent (
       domElement,
       eventName,
       listenerFunction,
-      options,
-      scopes
+      context
     )
   }
 }
@@ -10064,7 +10043,7 @@ module.exports = assignEvent
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function assignStyle (domElement, style, options, scopes, isPatchOperation) {
+function assignStyle (domElement, style, context, isPatchOperation) {
   if (!domElement.__haikuExplicitStyles) domElement.__haikuExplicitStyles = {}
 
   if (!isPatchOperation) {
@@ -10108,8 +10087,7 @@ module.exports = function attachEventListener (
   domElement,
   eventName,
   listener,
-  options,
-  scopes
+  context
 ) {
   // FF doesn't like it if this isn't a function... this can happen if bad props are passed upstream
   if (typeof listener === 'function') {
@@ -10126,7 +10104,7 @@ module.exports = function attachEventListener (
   }
 }
 
-},{"./Events":48}],58:[function(_dereq_,module,exports){
+},{"./Events":49}],58:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10166,7 +10144,7 @@ module.exports = function createMixpanel (domElement, mixpanelToken, component) 
   })
 }
 
-},{"./../../vendor/assign":83,"./../../vendor/mixpanel-browser/tiny":133}],59:[function(_dereq_,module,exports){
+},{"./../../vendor/assign":81,"./../../vendor/mixpanel-browser/tiny":131}],59:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10345,7 +10323,7 @@ module.exports = function createRightClickMenu (domElement, component) {
 
 var SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 
-function createSvgElement (domElement, tagName, options, scopes) {
+function createSvgElement (domElement, tagName) {
   return domElement.ownerDocument.createElementNS(SVG_NAMESPACE, tagName)
 }
 
@@ -10366,15 +10344,13 @@ function createTagNode (
   virtualElement,
   parentVirtualElement,
   locator,
-  hash,
-  options,
-  scopes
+  context
 ) {
   var tagName = normalizeName(getTypeAsString(virtualElement))
   var newDomElement
   if (SVG_EL_NAMES[tagName]) {
     // SVG
-    newDomElement = createSvgElement(domElement, tagName, options, scopes)
+    newDomElement = createSvgElement(domElement, tagName, context)
   } else {
     // Normal DOM
     newDomElement = domElement.ownerDocument.createElement(tagName)
@@ -10383,8 +10359,8 @@ function createTagNode (
   // This doesn't happen in renderTree because the element doesn't exist yet.
   if (!newDomElement.haiku) newDomElement.haiku = {}
   newDomElement.haiku.locator = locator
-  if (!options.cache[newDomElement.haiku.locator]) {
-    options.cache[newDomElement.haiku.locator] = {}
+  if (!context.config.options.cache[newDomElement.haiku.locator]) {
+    context.config.options.cache[newDomElement.haiku.locator] = {}
   }
 
   var incomingKey =
@@ -10401,9 +10377,7 @@ function createTagNode (
     domElement,
     parentVirtualElement,
     locator,
-    hash,
-    options,
-    scopes
+    context
   )
   return newDomElement
 }
@@ -10413,12 +10387,12 @@ module.exports = createTagNode
 var createSvgElement = _dereq_('./createSvgElement')
 var updateElement = _dereq_('./updateElement')
 
-},{"./../../helpers/allSvgElementNames":19,"./createSvgElement":60,"./getTypeAsString":66,"./normalizeName":73,"./updateElement":80}],62:[function(_dereq_,module,exports){
+},{"./../../helpers/allSvgElementNames":20,"./createSvgElement":60,"./getTypeAsString":66,"./normalizeName":72,"./updateElement":79}],62:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function createTextNode (domElement, textContent, options, scopes) {
+function createTextNode (domElement, textContent) {
   return domElement.ownerDocument.createTextNode(textContent)
 }
 
@@ -10540,7 +10514,7 @@ module.exports = getTypeAsString
 
 module.exports = _dereq_('./HaikuDOMRenderer')
 
-},{"./HaikuDOMRenderer":49}],68:[function(_dereq_,module,exports){
+},{"./HaikuDOMRenderer":50}],68:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10583,24 +10557,13 @@ module.exports = function isMobile (window) {
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function isTextNode (virtualElement, scopes) {
+function isTextNode (virtualElement) {
   return typeof virtualElement === 'string'
 }
 
 module.exports = isTextNode
 
 },{}],72:[function(_dereq_,module,exports){
-/**
- * Copyright (c) Haiku 2016-2017. All rights reserved.
- */
-
-function locatorBump (locator, index) {
-  return locator + '.' + index
-}
-
-module.exports = locatorBump
-
-},{}],73:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10612,7 +10575,7 @@ function normalizeName (tagName) {
 
 module.exports = normalizeName
 
-},{}],74:[function(_dereq_,module,exports){
+},{}],73:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10624,9 +10587,7 @@ function patch (
   virtualContainer,
   patchesDict,
   locator,
-  hash,
-  options,
-  scopes
+  context
 ) {
   if (Object.keys(patchesDict) < 1) {
     return topLevelDomElement
@@ -10635,25 +10596,17 @@ function patch (
   for (var flexId in patchesDict) {
     var virtualElement = patchesDict[flexId]
 
-    if (virtualElement && options.modifier) {
-      var virtualReplacement = options.modifier(virtualElement)
-      if (virtualReplacement !== undefined) {
-        virtualElement = virtualReplacement
-      }
-    }
+    if (context._hash[flexId] && context._hash[flexId].length > 0) {
+      for (var i = 0; i < context._hash[flexId].length; i++) {
+        var domElement = context._hash[flexId][i]
 
-    if (hash[flexId] && hash[flexId].length > 0) {
-      for (var i = 0; i < hash[flexId].length; i++) {
-        var domElement = hash[flexId][i]
         updateElement(
           domElement,
           virtualElement,
           domElement.parentNode,
           virtualElement.__parent,
           domElement.haiku.locator,
-          hash,
-          options,
-          scopes,
+          context,
           true
         )
       }
@@ -10663,19 +10616,19 @@ function patch (
 
 module.exports = patch
 
-},{"./updateElement":80}],75:[function(_dereq_,module,exports){
+},{"./updateElement":79}],74:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function removeElement (domElement, hash, options, scopes) {
+function removeElement (domElement) {
   domElement.parentNode.removeChild(domElement)
   return domElement
 }
 
 module.exports = removeElement
 
-},{}],76:[function(_dereq_,module,exports){
+},{}],75:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10687,32 +10640,26 @@ function render (
   virtualContainer,
   virtualTree,
   locator,
-  hash,
-  options,
-  scopes
+  context
 ) {
   return renderTree(
     domElement,
     virtualContainer,
     [virtualTree],
     locator,
-    hash,
-    options,
-    scopes
+    context
   )
 }
 
 module.exports = render
 
-},{"./renderTree":77}],77:[function(_dereq_,module,exports){
+},{"./renderTree":76}],76:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 var isBlankString = _dereq_('./isBlankString')
 var removeElement = _dereq_('./removeElement')
-var locatorBump = _dereq_('./locatorBump')
-var addToHashTable = _dereq_('./addToHashTable')
 
 function _cloneVirtualElement (virtualElement) {
   return {
@@ -10736,26 +10683,29 @@ function renderTree (
   virtualElement,
   virtualChildren,
   locator,
-  hash,
-  options,
-  scopes,
+  context,
   isPatchOperation
 ) {
-  addToHashTable(hash, domElement, virtualElement)
+  context._addElementToHashTable(domElement, virtualElement)
 
   if (!domElement.haiku) domElement.haiku = {}
 
-  // 'hashtab', 'locator', and 'virtual' are more for debugging convenience than anything else.
+  // 'locator', and 'virtual' are more for debugging convenience than anything else.
   // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
-  domElement.haiku.hashtab = hash
   domElement.haiku.locator = locator
   domElement.haiku.virtual = virtualElement
   domElement.haiku.element = _cloneVirtualElement(virtualElement) // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-  if (!options.cache[domElement.haiku.locator]) {
-    options.cache[domElement.haiku.locator] = {}
+  if (!context.config.options.cache[domElement.haiku.locator]) {
+    context.config.options.cache[domElement.haiku.locator] = {}
   }
 
   if (!Array.isArray(virtualChildren)) {
+    return domElement
+  }
+
+  // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
+  // so the most we want to do is update the attributes and layout properties, but leave the rest alone
+  if (context._isHorizonElement(virtualElement)) {
     return domElement
   }
 
@@ -10769,19 +10719,12 @@ function renderTree (
   for (var i = 0; i < max; i++) {
     var virtualChild = virtualChildren[i]
     var domChild = domElement.childNodes[i]
-    var sublocator = locatorBump(locator, i)
-
-    if (virtualChild && options.modifier) {
-      var virtualReplacement = options.modifier(virtualChild)
-      if (virtualReplacement !== undefined) {
-        virtualChild = virtualReplacement
-      }
-    }
+    var sublocator = locator + '.' + i
 
     if (!virtualChild && !domChild) {
       continue
     } else if (!virtualChild && domChild) {
-      removeElement(domChild, hash, options, scopes)
+      removeElement(domChild, context)
     } else if (virtualChild && !domChild) {
       var insertedElement = appendChild(
         null,
@@ -10789,12 +10732,10 @@ function renderTree (
         domElement,
         virtualElement,
         sublocator,
-        hash,
-        options,
-        scopes
+        context
       )
 
-      addToHashTable(hash, insertedElement, virtualChild)
+      context._addElementToHashTable(insertedElement, virtualChild)
     } else {
       var oldId = domChild.getAttribute && domChild.getAttribute('id')
       var newId = virtualChild.attributes && virtualChild.attributes.id
@@ -10808,17 +10749,15 @@ function renderTree (
           domElement,
           virtualElement,
           locator,
-          hash,
-          options,
-          scopes
+          context
         )
         continue
       }
 
       if (!domChild.haiku) domChild.haiku = {}
       domChild.haiku.locator = sublocator
-      if (!options.cache[domChild.haiku.locator]) {
-        options.cache[domChild.haiku.locator] = {}
+      if (!context.config.options.cache[domChild.haiku.locator]) {
+        context.config.options.cache[domChild.haiku.locator] = {}
       }
 
       if (!domChild.haiku.element) {
@@ -10832,9 +10771,7 @@ function renderTree (
         domElement,
         virtualElement,
         sublocator,
-        hash,
-        options,
-        scopes,
+        context,
         isPatchOperation
       )
     }
@@ -10849,7 +10786,7 @@ var appendChild = _dereq_('./appendChild')
 var updateElement = _dereq_('./updateElement')
 var replaceElement = _dereq_('./replaceElement')
 
-},{"./addToHashTable":50,"./appendChild":51,"./isBlankString":68,"./locatorBump":72,"./removeElement":75,"./replaceElement":78,"./updateElement":80}],78:[function(_dereq_,module,exports){
+},{"./appendChild":51,"./isBlankString":68,"./removeElement":74,"./replaceElement":77,"./updateElement":79}],77:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10863,22 +10800,18 @@ function replaceElement (
   parentDomNode,
   parentVirtualElement,
   locator,
-  hash,
-  options,
-  scopes
+  context
 ) {
   var newElement
   if (isTextNode(virtualElement)) {
-    newElement = createTextNode(domElement, virtualElement, options, scopes)
+    newElement = createTextNode(domElement, virtualElement, context)
   } else {
     newElement = createTagNode(
       domElement,
       virtualElement,
       parentVirtualElement,
       locator,
-      hash,
-      options,
-      scopes
+      context
     )
   }
 
@@ -10887,8 +10820,7 @@ function replaceElement (
     virtualElement,
     parentDomNode,
     parentVirtualElement,
-    options,
-    scopes
+    context
   )
 
   parentDomNode.replaceChild(newElement, domElement)
@@ -10900,18 +10832,18 @@ module.exports = replaceElement
 var createTextNode = _dereq_('./createTextNode')
 var createTagNode = _dereq_('./createTagNode')
 
-},{"./applyLayout":52,"./createTagNode":61,"./createTextNode":62,"./isTextNode":71}],79:[function(_dereq_,module,exports){
+},{"./applyLayout":52,"./createTagNode":61,"./createTextNode":62,"./isTextNode":71}],78:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 var createTextNode = _dereq_('./createTextNode')
 
-function replaceElementWithText (domElement, textContent, options, scopes) {
+function replaceElementWithText (domElement, textContent, context) {
   if (domElement) {
     if (domElement.textContent !== textContent) {
       var parentNode = domElement.parentNode
-      var textNode = createTextNode(domElement, textContent, options, scopes)
+      var textNode = createTextNode(domElement, textContent, context)
       parentNode.replaceChild(textNode, domElement)
     }
   }
@@ -10920,7 +10852,7 @@ function replaceElementWithText (domElement, textContent, options, scopes) {
 
 module.exports = replaceElementWithText
 
-},{"./createTextNode":62}],80:[function(_dereq_,module,exports){
+},{"./createTextNode":62}],79:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10928,8 +10860,6 @@ module.exports = replaceElementWithText
 var applyLayout = _dereq_('./applyLayout')
 var assignAttributes = _dereq_('./assignAttributes')
 var getTypeAsString = _dereq_('./getTypeAsString')
-
-var SVG_EL_NAMES = _dereq_('./../../helpers/allSvgElementNames')
 
 var OBJECT = 'object'
 
@@ -10939,14 +10869,12 @@ function updateElement (
   parentNode,
   parentVirtualElement,
   locator,
-  hash,
-  options,
-  scopes,
+  context,
   isPatchOperation
 ) {
   // If a text node, go straight to 'replace' since we don't know the tag name
-  if (isTextNode(virtualElement, scopes)) {
-    replaceElementWithText(domElement, virtualElement, options, scopes)
+  if (isTextNode(virtualElement, context)) {
+    replaceElementWithText(domElement, virtualElement, context)
     return virtualElement
   }
 
@@ -10964,52 +10892,30 @@ function updateElement (
     incomingKey !== undefined &&
     incomingKey !== existingKey
 
-  if (domTagName !== virtualElementTagName) {
-    return replaceElement(
-      domElement,
-      virtualElement,
-      parentNode,
-      parentVirtualElement,
-      locator,
-      hash,
-      options,
-      scopes
-    )
-  }
-
-  if (isKeyDifferent) {
-    return replaceElement(
-      domElement,
-      virtualElement,
-      parentNode,
-      parentVirtualElement,
-      locator,
-      hash,
-      options,
-      scopes
-    )
-  }
-
-  if (SVG_EL_NAMES[elName]) {
-    updateSvgElement(
-      domElement,
-      elName,
-      virtualElement.attributes,
-      virtualElement.children,
-      virtualElement,
-      parentNode,
-      parentVirtualElement,
-      locator,
-      hash,
-      options,
-      scopes,
-      isPatchOperation,
-      isKeyDifferent
-    )
-    if (incomingKey !== undefined && incomingKey !== null) {
-      domElement.haiku.key = incomingKey
+  // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
+  // so the most we want to do is update the attributes and layout properties, but leave the rest alone
+  if (!context._isHorizonElement(virtualElement)) {
+    if (domTagName !== virtualElementTagName) {
+      return replaceElement(
+        domElement,
+        virtualElement,
+        parentNode,
+        parentVirtualElement,
+        locator,
+        context
+      )
     }
-    return domElement
+
+    if (isKeyDifferent) {
+      return replaceElement(
+        domElement,
+        virtualElement,
+        parentNode,
+        parentVirtualElement,
+        locator,
+        context
+      )
+    }
   }
 
   if (
@@ -11019,8 +10925,7 @@ function updateElement (
     assignAttributes(
       domElement,
       virtualElement,
-      options,
-      scopes,
+      context,
       isPatchOperation,
       isKeyDifferent
     )
@@ -11030,8 +10935,7 @@ function updateElement (
     virtualElement,
     parentNode,
     parentVirtualElement,
-    options,
-    scopes,
+    context,
     isPatchOperation,
     isKeyDifferent
   )
@@ -11045,9 +10949,7 @@ function updateElement (
       virtualElement,
       virtualElement.children,
       locator,
-      hash,
-      options,
-      scopes,
+      context,
       isPatchOperation
     )
   } else if (!virtualElement.children) {
@@ -11057,9 +10959,7 @@ function updateElement (
       virtualElement,
       [],
       locator,
-      hash,
-      options,
-      scopes,
+      context,
       isPatchOperation
     )
   }
@@ -11070,76 +10970,12 @@ function updateElement (
 module.exports = updateElement
 
 var renderTree = _dereq_('./renderTree')
-var updateSvgElement = _dereq_('./updateSvgElement')
 var replaceElementWithText = _dereq_('./replaceElementWithText')
 var replaceElement = _dereq_('./replaceElement')
 var normalizeName = _dereq_('./normalizeName')
 var isTextNode = _dereq_('./isTextNode')
 
-},{"./../../helpers/allSvgElementNames":19,"./applyLayout":52,"./assignAttributes":53,"./getTypeAsString":66,"./isTextNode":71,"./normalizeName":73,"./renderTree":77,"./replaceElement":78,"./replaceElementWithText":79,"./updateSvgElement":81}],81:[function(_dereq_,module,exports){
-/**
- * Copyright (c) Haiku 2016-2017. All rights reserved.
- */
-
-var applyLayout = _dereq_('./applyLayout')
-var assignAttributes = _dereq_('./assignAttributes')
-
-var OBJECT = 'object'
-
-function updateSvgElement (
-  svgDomElement,
-  elementName,
-  attributes,
-  virtualChildren,
-  virtualElement,
-  parentDomNode,
-  parentVirtualElement,
-  locator,
-  hash,
-  options,
-  scopes,
-  isPatchOperation,
-  isKeyDifferent
-) {
-  if (attributes && typeof attributes === OBJECT) {
-    assignAttributes(
-      svgDomElement,
-      virtualElement,
-      options,
-      scopes,
-      isPatchOperation,
-      isKeyDifferent
-    )
-  }
-  applyLayout(
-    svgDomElement,
-    virtualElement,
-    parentDomNode,
-    parentVirtualElement,
-    options,
-    scopes,
-    isPatchOperation,
-    isKeyDifferent
-  )
-  if (Array.isArray(virtualChildren)) {
-    renderTree(
-      svgDomElement,
-      virtualElement,
-      virtualChildren,
-      locator,
-      hash,
-      options,
-      scopes,
-      isPatchOperation
-    )
-  }
-}
-
-module.exports = updateSvgElement
-
-var renderTree = _dereq_('./renderTree')
-
-},{"./applyLayout":52,"./assignAttributes":53,"./renderTree":77}],82:[function(_dereq_,module,exports){
+},{"./applyLayout":52,"./assignAttributes":53,"./getTypeAsString":66,"./isTextNode":71,"./normalizeName":72,"./renderTree":76,"./replaceElement":77,"./replaceElementWithText":78}],80:[function(_dereq_,module,exports){
 function uniq (arr) {
   var len = arr.length
   var i = -1
@@ -11168,7 +11004,7 @@ module.exports = {
   immutable: immutable
 }
 
-},{}],83:[function(_dereq_,module,exports){
+},{}],81:[function(_dereq_,module,exports){
 module.exports = function assign (t) {
   for (var s, i = 1, n = arguments.length; i < n; i++) {
     s = arguments[i]
@@ -11181,7 +11017,7 @@ module.exports = function assign (t) {
   return t
 }
 
-},{}],84:[function(_dereq_,module,exports){
+},{}],82:[function(_dereq_,module,exports){
 module.exports = {
   aliceblue: [240, 248, 255],
   antiquewhite: [250, 235, 215],
@@ -11333,7 +11169,7 @@ module.exports = {
   yellowgreen: [154, 205, 50]
 }
 
-},{}],85:[function(_dereq_,module,exports){
+},{}],83:[function(_dereq_,module,exports){
 var ColorNames = _dereq_('./../color-names')
 
 var reverseNames = {}
@@ -11588,38 +11424,38 @@ function hexDouble (num) {
   return str.length < 2 ? '0' + str : str
 }
 
-},{"./../color-names":84}],86:[function(_dereq_,module,exports){
+},{"./../color-names":82}],84:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.ease = internal1.cubicBezier(0.25, 0.1, 0.25, 0.1)
 
-},{"../internal":130}],87:[function(_dereq_,module,exports){
+},{"../internal":128}],85:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeIn = internal1.cubicBezier(0.42, 0, 1, 1)
 
-},{"../internal":130}],88:[function(_dereq_,module,exports){
+},{"../internal":128}],86:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInBack = function (x) {
   return internal1.c3 * x * x * x - internal1.c1 * x * x
 }
 
-},{"../internal":130}],89:[function(_dereq_,module,exports){
+},{"../internal":128}],87:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 exports.easeInBounce = function (x) {
   return 1 - index1.easeOutBounce(1 - x)
 }
 
-},{"./index":120}],90:[function(_dereq_,module,exports){
+},{"./index":118}],88:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInCirc = function (x) {
   return 1 - internal1.sqrt(1 - x * x)
 }
 
-},{"../internal":130}],91:[function(_dereq_,module,exports){
+},{"../internal":128}],89:[function(_dereq_,module,exports){
 exports.easeInCubic = function (x) {
   return x * x * x
 }
 
-},{}],92:[function(_dereq_,module,exports){
+},{}],90:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInElastic = function (n) {
   return !n || n === 1
@@ -11629,17 +11465,17 @@ exports.easeInElastic = function (n) {
         internal1.pow(2, 10 * (n - 1))
 }
 
-},{"../internal":130}],93:[function(_dereq_,module,exports){
+},{"../internal":128}],91:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInExpo = function (x) {
   return x === 0 ? 0 : internal1.pow(2, 10 * x - 10)
 }
 
-},{"../internal":130}],94:[function(_dereq_,module,exports){
+},{"../internal":128}],92:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOut = internal1.cubicBezier(0.42, 0, 0.58, 1)
 
-},{"../internal":130}],95:[function(_dereq_,module,exports){
+},{"../internal":128}],93:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutBack = function (x) {
   return x < 0.5
@@ -11650,7 +11486,7 @@ exports.easeInOutBack = function (x) {
         2
 }
 
-},{"../internal":130}],96:[function(_dereq_,module,exports){
+},{"../internal":128}],94:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 exports.easeInOutBounce = function (x) {
   return x < 0.5
@@ -11658,7 +11494,7 @@ exports.easeInOutBounce = function (x) {
     : (1 + index1.easeOutBounce(2 * x - 1)) / 2
 }
 
-},{"./index":120}],97:[function(_dereq_,module,exports){
+},{"./index":118}],95:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutCirc = function (x) {
   return x < 0.5
@@ -11666,13 +11502,13 @@ exports.easeInOutCirc = function (x) {
     : (internal1.sqrt(1 - internal1.pow(-2 * x + 2, 2)) + 1) / 2
 }
 
-},{"../internal":130}],98:[function(_dereq_,module,exports){
+},{"../internal":128}],96:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutCubic = function (x) {
   return x < 0.5 ? 4 * x * x * x : 1 - internal1.pow(-2 * x + 2, 3) / 2
 }
 
-},{"../internal":130}],99:[function(_dereq_,module,exports){
+},{"../internal":128}],97:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutElastic = function (n) {
   if (!n || n === 1) return n
@@ -11692,7 +11528,7 @@ exports.easeInOutElastic = function (n) {
   )
 }
 
-},{"../internal":130}],100:[function(_dereq_,module,exports){
+},{"../internal":128}],98:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutExpo = function (x) {
   return x === 0
@@ -11704,56 +11540,56 @@ exports.easeInOutExpo = function (x) {
         : (2 - internal1.pow(2, -20 * x + 10)) / 2
 }
 
-},{"../internal":130}],101:[function(_dereq_,module,exports){
+},{"../internal":128}],99:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuad = function (x) {
   return x < 0.5 ? 2 * x * x : 1 - internal1.pow(-2 * x + 2, 2) / 2
 }
 
-},{"../internal":130}],102:[function(_dereq_,module,exports){
+},{"../internal":128}],100:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuart = function (x) {
   return x < 0.5 ? 8 * x * x * x * x : 1 - internal1.pow(-2 * x + 2, 4) / 2
 }
 
-},{"../internal":130}],103:[function(_dereq_,module,exports){
+},{"../internal":128}],101:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuint = function (x) {
   return x < 0.5 ? 16 * x * x * x * x * x : 1 - internal1.pow(-2 * x + 2, 5) / 2
 }
 
-},{"../internal":130}],104:[function(_dereq_,module,exports){
+},{"../internal":128}],102:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutSine = function (x) {
   return -(internal1.cos(internal1.pi * x) - 1) / 2
 }
 
-},{"../internal":130}],105:[function(_dereq_,module,exports){
+},{"../internal":128}],103:[function(_dereq_,module,exports){
 exports.easeInQuad = function (x) {
   return x * x
 }
 
-},{}],106:[function(_dereq_,module,exports){
+},{}],104:[function(_dereq_,module,exports){
 exports.easeInQuart = function (x) {
   return x * x * x * x
 }
 
-},{}],107:[function(_dereq_,module,exports){
+},{}],105:[function(_dereq_,module,exports){
 exports.easeInQuint = function (x) {
   return x * x * x * x * x
 }
 
-},{}],108:[function(_dereq_,module,exports){
+},{}],106:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInSine = function (x) {
   return 1 - internal1.cos(x * internal1.pi / 2)
 }
 
-},{"../internal":130}],109:[function(_dereq_,module,exports){
+},{"../internal":128}],107:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOut = internal1.cubicBezier(0, 0, 0.58, 1)
 
-},{"../internal":130}],110:[function(_dereq_,module,exports){
+},{"../internal":128}],108:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutBack = function (x) {
   return (
@@ -11763,7 +11599,7 @@ exports.easeOutBack = function (x) {
   )
 }
 
-},{"../internal":130}],111:[function(_dereq_,module,exports){
+},{"../internal":128}],109:[function(_dereq_,module,exports){
 exports.easeOutBounce = function (x) {
   var n1 = 7.5625
   var d1 = 2.75
@@ -11776,19 +11612,19 @@ exports.easeOutBounce = function (x) {
         : n1 * (x -= 2.625 / d1) * x + 0.984375
 }
 
-},{}],112:[function(_dereq_,module,exports){
+},{}],110:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutCirc = function (x) {
   return internal1.sqrt(1 - (x - 1) * (x - 1))
 }
 
-},{"../internal":130}],113:[function(_dereq_,module,exports){
+},{"../internal":128}],111:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutCubic = function (x) {
   return 1 - internal1.pow(1 - x, 3)
 }
 
-},{"../internal":130}],114:[function(_dereq_,module,exports){
+},{"../internal":128}],112:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutElastic = function (n) {
   if (!n || n === 1) return n
@@ -11805,36 +11641,36 @@ exports.easeOutElastic = function (n) {
   )
 }
 
-},{"../internal":130}],115:[function(_dereq_,module,exports){
+},{"../internal":128}],113:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutExpo = function (x) {
   return x === 1 ? 1 : 1 - internal1.pow(2, -10 * x)
 }
 
-},{"../internal":130}],116:[function(_dereq_,module,exports){
+},{"../internal":128}],114:[function(_dereq_,module,exports){
 exports.easeOutQuad = function (x) {
   return 1 - (1 - x) * (1 - x)
 }
 
-},{}],117:[function(_dereq_,module,exports){
+},{}],115:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutQuart = function (x) {
   return 1 - internal1.pow(1 - x, 4)
 }
 
-},{"../internal":130}],118:[function(_dereq_,module,exports){
+},{"../internal":128}],116:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutQuint = function (x) {
   return 1 - internal1.pow(1 - x, 5)
 }
 
-},{"../internal":130}],119:[function(_dereq_,module,exports){
+},{"../internal":128}],117:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutSine = function (x) {
   return internal1.sin(x * internal1.pi / 2)
 }
 
-},{"../internal":130}],120:[function(_dereq_,module,exports){
+},{"../internal":128}],118:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -11876,20 +11712,20 @@ __export(_dereq_('./linear'))
 __export(_dereq_('./stepEnd'))
 __export(_dereq_('./stepStart'))
 
-},{"./ease":86,"./easeIn":87,"./easeInBack":88,"./easeInBounce":89,"./easeInCirc":90,"./easeInCubic":91,"./easeInElastic":92,"./easeInExpo":93,"./easeInOut":94,"./easeInOutBack":95,"./easeInOutBounce":96,"./easeInOutCirc":97,"./easeInOutCubic":98,"./easeInOutElastic":99,"./easeInOutExpo":100,"./easeInOutQuad":101,"./easeInOutQuart":102,"./easeInOutQuint":103,"./easeInOutSine":104,"./easeInQuad":105,"./easeInQuart":106,"./easeInQuint":107,"./easeInSine":108,"./easeOut":109,"./easeOutBack":110,"./easeOutBounce":111,"./easeOutCirc":112,"./easeOutCubic":113,"./easeOutElastic":114,"./easeOutExpo":115,"./easeOutQuad":116,"./easeOutQuart":117,"./easeOutQuint":118,"./easeOutSine":119,"./linear":121,"./stepEnd":122,"./stepStart":123}],121:[function(_dereq_,module,exports){
+},{"./ease":84,"./easeIn":85,"./easeInBack":86,"./easeInBounce":87,"./easeInCirc":88,"./easeInCubic":89,"./easeInElastic":90,"./easeInExpo":91,"./easeInOut":92,"./easeInOutBack":93,"./easeInOutBounce":94,"./easeInOutCirc":95,"./easeInOutCubic":96,"./easeInOutElastic":97,"./easeInOutExpo":98,"./easeInOutQuad":99,"./easeInOutQuart":100,"./easeInOutQuint":101,"./easeInOutSine":102,"./easeInQuad":103,"./easeInQuart":104,"./easeInQuint":105,"./easeInSine":106,"./easeOut":107,"./easeOutBack":108,"./easeOutBounce":109,"./easeOutCirc":110,"./easeOutCubic":111,"./easeOutElastic":112,"./easeOutExpo":113,"./easeOutQuad":114,"./easeOutQuart":115,"./easeOutQuint":116,"./easeOutSine":117,"./linear":119,"./stepEnd":120,"./stepStart":121}],119:[function(_dereq_,module,exports){
 exports.linear = function (x) {
   return x
 }
 
-},{}],122:[function(_dereq_,module,exports){
+},{}],120:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.stepEnd = internal1.steps(1, 0)
 
-},{"../internal":130}],123:[function(_dereq_,module,exports){
+},{"../internal":128}],121:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.stepStart = internal1.steps(1, 1)
 
-},{"../internal":130}],124:[function(_dereq_,module,exports){
+},{"../internal":128}],122:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -11902,7 +11738,7 @@ __export(_dereq_('./curves'))
 var css = _dereq_('./internal/cssEasings')
 exports.css = css
 
-},{"./curves":120,"./internal":130,"./internal/cssEasings":126}],125:[function(_dereq_,module,exports){
+},{"./curves":118,"./internal":128,"./internal/cssEasings":124}],123:[function(_dereq_,module,exports){
 exports.pi = Math.PI
 exports.tau = 2 * exports.pi
 exports.epsilon = 0.0001
@@ -11912,7 +11748,7 @@ exports.c3 = exports.c1 + 1
 exports.c4 = exports.tau / 3
 exports.c5 = exports.tau / 4.5
 
-},{}],126:[function(_dereq_,module,exports){
+},{}],124:[function(_dereq_,module,exports){
 var c = 'cubic-bezier'
 var s = 'steps'
 exports.ease = c + '(.25,.1,.25,1)'
@@ -11948,7 +11784,7 @@ exports.linear = c + '(0,0,1,1)'
 exports.stepEnd = s + '(1,0)'
 exports.stepStart = s + '(1,1)'
 
-},{}],127:[function(_dereq_,module,exports){
+},{}],125:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 var camelCaseRegex = /([a-z])[- ]([a-z])/gi
 var cssFunctionRegex = /^([a-z-]+)\(([^)]+)\)$/i
@@ -11994,7 +11830,7 @@ exports.cssFunction = function (easingString) {
   throw new Error('unknown css function')
 }
 
-},{"./index":130}],128:[function(_dereq_,module,exports){
+},{"./index":128}],126:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 var bezier = function (n1, n2, t) {
   return 3 * n1 * (1 - t) * (1 - t) * t + 3 * n2 * (1 - t) * t * t + t * t * t
@@ -12029,7 +11865,7 @@ exports.cubicBezier = function (p0, p1, p2, p3) {
   }
 }
 
-},{"./index":130}],129:[function(_dereq_,module,exports){
+},{"./index":128}],127:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.frames = function (n) {
   var q = 1 / (n - 1)
@@ -12039,7 +11875,7 @@ exports.frames = function (n) {
   }
 }
 
-},{"../internal":130}],130:[function(_dereq_,module,exports){
+},{"../internal":128}],128:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -12051,7 +11887,7 @@ __export(_dereq_('./frames'))
 __export(_dereq_('./math'))
 __export(_dereq_('./steps'))
 
-},{"./constants":125,"./cssEasings":126,"./cssFunction":127,"./cubicBezier":128,"./frames":129,"./math":131,"./steps":132}],131:[function(_dereq_,module,exports){
+},{"./constants":123,"./cssEasings":124,"./cssFunction":125,"./cubicBezier":126,"./frames":127,"./math":129,"./steps":130}],129:[function(_dereq_,module,exports){
 exports.abs = Math.abs
 exports.asin = Math.asin
 exports.floor = Math.floor
@@ -12060,7 +11896,7 @@ exports.pow = Math.pow
 exports.sin = Math.sin
 exports.sqrt = Math.sqrt
 
-},{}],132:[function(_dereq_,module,exports){
+},{}],130:[function(_dereq_,module,exports){
 exports.steps = function (count, pos) {
   var q = count / 1
   var p = pos === 'end' ? 0 : pos === 'start' ? 1 : pos || 0
@@ -12069,7 +11905,7 @@ exports.steps = function (count, pos) {
   }
 }
 
-},{}],133:[function(_dereq_,module,exports){
+},{}],131:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 module.exports = function _mixpanelTiny() {
@@ -12156,7 +11992,7 @@ module.exports = function _mixpanelTiny() {
   return setup(document, window.mixpanel || [])
 }
 
-},{}],134:[function(_dereq_,module,exports){
+},{}],132:[function(_dereq_,module,exports){
 function hasPreserve3d (window) {
   if (!window) return false
   if (!window.document) return false
@@ -12185,7 +12021,7 @@ module.exports = {
   hasPreserve3d: hasPreserve3d
 }
 
-},{}],135:[function(_dereq_,module,exports){
+},{}],133:[function(_dereq_,module,exports){
 (function (process){
 /* eslint-disable */
 // Generated by CoffeeScript 1.7.1
@@ -12229,7 +12065,7 @@ module.exports = {
 }.call(this))
 
 }).call(this,_dereq_('_process'))
-},{"_process":1}],136:[function(_dereq_,module,exports){
+},{"_process":1}],134:[function(_dereq_,module,exports){
 (function (global){
 /* eslint-disable */
 
@@ -12311,12 +12147,12 @@ module.exports.polyfill = function() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../performance-now":135}],137:[function(_dereq_,module,exports){
+},{"./../performance-now":133}],135:[function(_dereq_,module,exports){
 // The original ARC4-based prng included in this library.
 // Period: ~2^1600
 module.exports = _dereq_('./seedrandom')
 
-},{"./seedrandom":138}],138:[function(_dereq_,module,exports){
+},{"./seedrandom":136}],136:[function(_dereq_,module,exports){
 var width = 256        // each RC4 output is 0 <= x < 256
 var chunks = 6         // at least six RC4 outputs for each double
 var digits = 52        // there are 52 significant digits in a double
@@ -12444,7 +12280,7 @@ function tostring (a) {
 
 module.exports = seedrandom
 
-},{}],139:[function(_dereq_,module,exports){
+},{}],137:[function(_dereq_,module,exports){
 'use strict'
 
 exports.__esModule = true
@@ -12470,7 +12306,7 @@ exports.toPath = _toPath2.default
 exports.toPoints = _toPoints2.default
 exports.valid = _valid2.default
 
-},{"./toPath":140,"./toPoints":141,"./valid":142}],140:[function(_dereq_,module,exports){
+},{"./toPath":138,"./toPoints":139,"./valid":140}],138:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -12620,7 +12456,7 @@ var toPath = function(s) {
 
 exports.default = toPath
 
-},{"./toPoints":141}],141:[function(_dereq_,module,exports){
+},{"./toPoints":139}],139:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -13079,7 +12915,7 @@ var getPointsFromG = function(_ref13) {
 
 exports.default = toPoints
 
-},{}],142:[function(_dereq_,module,exports){
+},{}],140:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -13209,10 +13045,10 @@ var valid = function(shape) {
 
 exports.default = valid
 
-},{}],143:[function(_dereq_,module,exports){
+},{}],141:[function(_dereq_,module,exports){
 module.exports = _dereq_('./prefixer')()
 
-},{"./prefixer":151}],144:[function(_dereq_,module,exports){
+},{"./prefixer":149}],142:[function(_dereq_,module,exports){
 module.exports = {
   animation: 1,
   'column-count': 1,
@@ -13232,33 +13068,33 @@ module.exports = {
   rowspan: 1
 }
 
-},{}],145:[function(_dereq_,module,exports){
+},{}],143:[function(_dereq_,module,exports){
 var objectHasOwn = Object.prototype.hasOwnProperty
 
 module.exports = function (object, propertyName) {
   return objectHasOwn.call(object, propertyName)
 }
 
-},{}],146:[function(_dereq_,module,exports){
+},{}],144:[function(_dereq_,module,exports){
 module.exports = {
   object: _dereq_('./toStyleObject')
 }
 
-},{"./toStyleObject":158}],147:[function(_dereq_,module,exports){
+},{"./toStyleObject":156}],145:[function(_dereq_,module,exports){
 var objectToString = Object.prototype.toString
 
 module.exports = function (v) {
   return objectToString.apply(v) === '[object Function]'
 }
 
-},{}],148:[function(_dereq_,module,exports){
+},{}],146:[function(_dereq_,module,exports){
 var objectToString = Object.prototype.toString
 
 module.exports = function (v) {
   return !!v && objectToString.call(v) === '[object Object]'
 }
 
-},{}],149:[function(_dereq_,module,exports){
+},{}],147:[function(_dereq_,module,exports){
 var toUpperFirst = _dereq_('./stringUtils/toUpperFirst')
 
 var re = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/
@@ -13307,7 +13143,7 @@ var prefixInfo = (function () {
 
 module.exports = prefixInfo
 
-},{"./stringUtils/toUpperFirst":157}],150:[function(_dereq_,module,exports){
+},{"./stringUtils/toUpperFirst":155}],148:[function(_dereq_,module,exports){
 module.exports = {
   'border-radius': 1,
   'border-top-left-radius': 1,
@@ -13334,7 +13170,7 @@ module.exports = {
   'box-pack': 1
 }
 
-},{}],151:[function(_dereq_,module,exports){
+},{}],149:[function(_dereq_,module,exports){
 var camelize = _dereq_('./stringUtils/camelize')
 var hyphenate = _dereq_('./stringUtils/hyphenate')
 var toLowerFirst = _dereq_('./stringUtils/toLowerFirst')
@@ -13406,7 +13242,7 @@ module.exports = function (asStylePrefix) {
   }
 }
 
-},{"./prefixInfo":149,"./prefixProperties":150,"./stringUtils/camelize":152,"./stringUtils/hyphenate":154,"./stringUtils/toLowerFirst":156,"./stringUtils/toUpperFirst":157}],152:[function(_dereq_,module,exports){
+},{"./prefixInfo":147,"./prefixProperties":148,"./stringUtils/camelize":150,"./stringUtils/hyphenate":152,"./stringUtils/toLowerFirst":154,"./stringUtils/toUpperFirst":155}],150:[function(_dereq_,module,exports){
 var toCamelFn = function (str, letter) {
   return letter ? letter.toUpperCase() : ''
 }
@@ -13417,17 +13253,17 @@ module.exports = function (str) {
   return str ? str.replace(hyphenRe, toCamelFn) : ''
 }
 
-},{"./hyphenRe":153}],153:[function(_dereq_,module,exports){
+},{"./hyphenRe":151}],151:[function(_dereq_,module,exports){
 module.exports = /[-\s]+(.)?/g
 
-},{}],154:[function(_dereq_,module,exports){
+},{}],152:[function(_dereq_,module,exports){
 var separate = _dereq_('./separate')
 
 module.exports = function (name) {
   return separate(name).toLowerCase()
 }
 
-},{"./separate":155}],155:[function(_dereq_,module,exports){
+},{"./separate":153}],153:[function(_dereq_,module,exports){
 var doubleColonRe = /::/g
 var upperToLowerRe = /([A-Z]+)([A-Z][a-z])/g
 var lowerToUpperRe = /([a-z\d])([A-Z])/g
@@ -13443,21 +13279,21 @@ module.exports = function (name, separator) {
     : ''
 }
 
-},{}],156:[function(_dereq_,module,exports){
+},{}],154:[function(_dereq_,module,exports){
 module.exports = function (value) {
   return value.length
     ? value.charAt(0).toLowerCase() + value.substring(1)
     : value
 }
 
-},{}],157:[function(_dereq_,module,exports){
+},{}],155:[function(_dereq_,module,exports){
 module.exports = function (value) {
   return value.length
     ? value.charAt(0).toUpperCase() + value.substring(1)
     : value
 }
 
-},{}],158:[function(_dereq_,module,exports){
+},{}],156:[function(_dereq_,module,exports){
 var cssPrefixFn = _dereq_('./cssPrefix')
 
 var HYPHENATE = _dereq_('./stringUtils/hyphenate')
@@ -13683,7 +13519,7 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
 
 module.exports = TO_STYLE_OBJECT
 
-},{"./cssPrefix":143,"./cssUnitless":144,"./hasOwn":145,"./isFunction":147,"./isObject":148,"./stringUtils/camelize":152,"./stringUtils/hyphenate":154}],159:[function(_dereq_,module,exports){
+},{"./cssPrefix":141,"./cssUnitless":142,"./hasOwn":143,"./isFunction":145,"./isObject":146,"./stringUtils/camelize":150,"./stringUtils/hyphenate":152}],157:[function(_dereq_,module,exports){
 module.exports = parse
 
 /**
