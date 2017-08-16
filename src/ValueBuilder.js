@@ -555,9 +555,6 @@ INJECTABLES['$flow'] = {
     },
     placeholder: {
       node: 'any' // The injected element?
-    },
-    insert: {
-      node: 'any' // The injected element?
     }
   },
   summon: function (injectees, summonSpec, hostInstance, matchingElement) {

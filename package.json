@@ -46,7 +46,6 @@
     "prettier-standard": "^5.1.0",
     "react-dom": "15.4.2",
     "react-router-dom": "^4.1.1",
-    "rollup": "^0.43.0",
     "snazzy": "6.0.0",
     "standard": "8.6.0",
     "tap-spec": "4.1.1",
@@ -54,8 +53,7 @@
     "uglify-js": "^2.7.5"
   },
   "dependencies": {
-    "lodash.merge": "4.6.0",
-    "react-test-renderer": "15.4.2"
+    "lodash.merge": "4.6.0"
   },
   "peerDependencies": {
     "react": "15.4.2",

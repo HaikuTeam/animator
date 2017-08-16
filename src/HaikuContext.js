@@ -118,6 +118,11 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
     // "abcde": [el, el]
   }
 
+  // Dictionary of ids-to-elements, representing elements that we
+  // do not want to render past in the tree (i.e. cede control to some
+  // other rendering context)
+  this._horizons = {}
+
   // Just a counter for the number of clock ticks that have occurred; used to determine first-frame for mounting
   this._ticks = 0
 
@@ -373,6 +378,27 @@ HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState () {
 HaikuContext.prototype._addElementToHashTable = function _addElementToHashTable (realElement, virtualElement) {
   addElementToHashTable(this._hash, realElement, virtualElement)
   return this
+}
+
+/**
+ * @description Track elements that are at the horizon of what we want to render, i.e., a list of
+ * virtual elements that we don't want to make any updates lower than in the tree.
+ */
+HaikuContext.prototype._markHorizonElement = function _markHorizonElement (virtualElement) {
+  if (virtualElement && virtualElement.attributes) {
+    var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
+    if (flexId) {
+      this._horizons[flexId] = virtualElement
+    }
+  }
+}
+
+HaikuContext.prototype._isHorizonElement = function _isHorizonElement (virtualElement) {
+  if (virtualElement && virtualElement.attributes) {
+    var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
+    return !!this._horizons[flexId]
+  }
+  return false
 }
 
 /**

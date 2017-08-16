@@ -293,7 +293,6 @@ var CONTROL_FLOW_SCHEMA = {
   // 'controlFlow.if': null,
   // 'controlFlow.repeat': null,
   // 'controlFlow.yield': null,
-  'controlFlow.insert': null,
   'controlFlow.placeholder': null
 }
 

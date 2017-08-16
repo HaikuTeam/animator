@@ -116,25 +116,6 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
       var haikuConfig = {
         ref: this.mount,
         vanities: {
-          'controlFlow.insert': function _controlFlowInsertReactVanity (
-            element,
-            insertable,
-            context,
-            component
-          ) {
-            visit(this.mount, function visitor (node) {
-              var flexId = flexIdIfSame(element, node)
-              if (flexId) {
-                var div = document.createElement('div')
-                while (node.firstChild) node.removeChild(node.firstChild)
-                node.appendChild(div)
-                node = div
-              }
-              component._markForFullFlush()
-              ReactDOM.render(insertable, node)
-              element.__horizon = true // Tell the renderer not to update any of this one's children
-            })
-          }.bind(this),
           'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity (
             element,
             surrogate,
@@ -151,10 +132,9 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
                   node.parentNode.replaceChild(div, node)
                   node = div
                 }
-                component._markForFullFlush()
                 ReactDOM.render(surrogate, node)
-
-                element.__horizon = true // Tell the renderer not to update any of this one's children
+                context._markHorizonElement(element)
+                component._markForFullFlush()
               }
             })
           }.bind(this)

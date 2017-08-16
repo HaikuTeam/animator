@@ -766,31 +766,6 @@ var CONTROL_FLOW_VANITIES = {
   // 'controlFlow.yield': function (name, element, value) {
   //   // TODO
   // },
-  'controlFlow.insert': function (name, element, value, context, component) {
-    if (value === null || value === undefined) return void 0
-    if (typeof value !== 'number') {
-      throw new Error('controlFlow.insert expects null or number')
-    }
-    if (!context.config.children) return void 0
-    var children = Array.isArray(context.config.children)
-      ? context.config.children
-      : [context.config.children]
-    var surrogate = children[value]
-    if (surrogate === null || surrogate === undefined) return void 0
-    // If we are running via a framework adapter, allow that framework to provide its own insert mechanism.
-    // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
-    if (context.config.vanities['controlFlow.insert']) {
-      context.config.vanities['controlFlow.insert'](
-        element,
-        surrogate,
-        context,
-        component,
-        controlFlowInsertImpl
-      )
-    } else {
-      controlFlowInsertImpl(element, surrogate, context, component)
-    }
-  },
   'controlFlow.placeholder': function (
     name,
     element,
@@ -808,6 +783,10 @@ var CONTROL_FLOW_VANITIES = {
       : [context.config.children]
     var surrogate = children[value]
     if (surrogate === null || surrogate === undefined) return void 0
+    // No matter what, if we have a surrogate, then we must clear the children, otherwise we will often
+    // see a flash of the default content before the injected content flows in. This is especially a
+    // problem with React et al, where their rendering is lazy
+    element.children = []
     // If we are running via a framework adapter, allow that framework to provide its own placeholder mechanism.
     // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
     if (context.config.vanities['controlFlow.placeholder']) {
@@ -815,8 +794,7 @@ var CONTROL_FLOW_VANITIES = {
         element,
         surrogate,
         context,
-        component,
-        controlFlowPlaceholderImpl
+        component
       )
     } else {
       controlFlowPlaceholderImpl(element, surrogate, context, component)
@@ -834,10 +812,6 @@ function controlFlowPlaceholderImpl (element, surrogate, context, component) {
       element.attributes[key] = surrogate.attributes[key]
     }
   }
-}
-
-function controlFlowInsertImpl (element, surrogate, context, component) {
-  element.children = [surrogate]
 }
 
 module.exports = {

@@ -39,7 +39,7 @@ function updateElement (
 
   // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
   // so the most we want to do is update the attributes and layout properties, but leave the rest alone
-  if (!virtualElement.__horizon) {
+  if (!context._isHorizonElement(virtualElement)) {
     if (domTagName !== virtualElementTagName) {
       return replaceElement(
         domElement,
