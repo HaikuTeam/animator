@@ -11,6 +11,10 @@ var DEFAULTS = {
   // Optional lifecycle event hook (see below)
   onHaikuComponentDidMount: null,
 
+  // onHaikuComponentWillMount: Function|null
+  // Optional lifecycle event hook (see below)
+  onHaikuComponentWillMount: null,
+
   // onHaikuComponentDidInitialize: Function|null
   // Optional lifecycle event hook (see below)
   onHaikuComponentDidInitialize: null,

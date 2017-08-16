@@ -83,14 +83,11 @@ HaikuTimeline.prototype._doUpdateWithGlobalClockTime = function _doUpdateWithGlo
     this._updateInternalProperties(globalClockTime)
   }
 
-  var frame = this.getFrame()
-  var time = Math.round(this.getTime())
-
   if (this.isActive() && this.isPlaying()) {
-    this.emit('tick', frame, time)
+    this._shout('tick')
   }
 
-  this.emit('update', frame, time)
+  this._shout('update')
 
   return this
 }
@@ -274,6 +271,15 @@ HaikuTimeline.prototype.unfreeze = function freeze () {
   return this
 }
 
+HaikuTimeline.prototype._shout = function _shout (key) {
+  var frame = this.getFrame()
+  var time = Math.round(this.getTime())
+  var name = this.getName()
+  this.emit(key, frame, time)
+  this._component.emit('timeline:' + key, name, frame, time)
+  return this
+}
+
 HaikuTimeline.prototype.start = function start (
   maybeGlobalClockTime,
   descriptor
@@ -283,6 +289,9 @@ HaikuTimeline.prototype.start = function start (
   this._isPlaying = true
   this._globalClockTime = maybeGlobalClockTime || 0
   this._maxExplicitlyDefinedTime = _getMaxTimeFromDescriptor(descriptor)
+
+  this._shout('start')
+
   return this
 }
 
@@ -290,6 +299,9 @@ HaikuTimeline.prototype.stop = function stop (maybeGlobalClockTime, descriptor) 
   this._isActive = false
   this._isPlaying = false
   this._maxExplicitlyDefinedTime = _getMaxTimeFromDescriptor(descriptor)
+
+  this._shout('stop')
+
   return this
 }
 
@@ -297,6 +309,9 @@ HaikuTimeline.prototype.pause = function pause () {
   var time = this._component.getClock().getTime()
   var descriptor = this._component._getTimelineDescriptor(this._name)
   this.stop(time, descriptor)
+
+  this._shout('pause')
+
   return this
 }
 
@@ -322,6 +337,8 @@ HaikuTimeline.prototype.play = function play (options) {
     this._component._markForFullFlush(true)
   }
 
+  this._shout('play')
+
   return this
 }
 
@@ -332,6 +349,9 @@ HaikuTimeline.prototype.seek = function seek (ms) {
   var descriptor = this._component._getTimelineDescriptor(this._name)
   this.start(clockTime, descriptor)
   this._component._markForFullFlush(true)
+
+  this._shout('seek')
+
   return this
 }
 

@@ -111,6 +111,22 @@ function HaikuComponent (bytecode, context, config) {
   // A sort of cache with a mapping of elements to the scope in which they belong (div, svg, etc)
   this._renderScopes = {}
 
+  // Used to determine whether this component will emit events for lots of actions, or only the basics
+  this._doesEmitEventsVerbosely = false
+
+  // List of subscribers to frame events, kept inside a single dict as a performance optimization
+  this._frameEventListeners = {}
+
+  this.on('timeline:tick', function _anyTimelineTick (timelineName, timelineFrame, timelineTime) {
+    if (this._frameEventListeners[timelineName]) {
+      if (this._frameEventListeners[timelineName][timelineFrame]) {
+        for (var i = 0; i < this._frameEventListeners[timelineName][timelineFrame].length; i++) {
+          this._frameEventListeners[timelineName][timelineFrame][i](timelineFrame, timelineTime)
+        }
+      }
+    }
+  }.bind(this))
+
   // Notify anybody who cares that we've successfully initialized their component in memory
   this.emit('haikuComponentDidInitialize', this)
   if (config.onHaikuComponentDidInitialize) {
@@ -140,6 +156,11 @@ function _clone (thing) {
 
 // If the component needs to remount itself for some reason, make sure we fire the right events
 HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, skipMarkForFullFlush) {
+  this.emit('haikuComponentWillMount', this)
+  if (this.config.onHaikuComponentWillMount) {
+    this.config.onHaikuComponentWillMount(this)
+  }
+
   // Note!: Only update config if we actually got incoming options!
   if (incomingConfig) {
     this.assignConfig(incomingConfig)
@@ -581,6 +602,11 @@ function _defineSettableState (component, statesTargetObject, stateSpec, stateSp
         statesTargetObject[stateSpecName] = inputValue
       }
 
+      // Really only used as a hook for Haiku's ActiveComponent
+      if (component._doesEmitEventsVerbosely) {
+        component.emit('state:set', stateSpecName, statesTargetObject[stateSpecName], statesTargetObject)
+      }
+
       return statesTargetObject[stateSpecName]
     }
   })
@@ -706,6 +732,46 @@ function _applyBehaviors (
     // Associate any event handlers with the elements matched
     if (component._bytecode.eventHandlers) {
       for (var eventSelector in component._bytecode.eventHandlers) {
+        var eventHandlerGroup = component._bytecode.eventHandlers[eventSelector]
+
+        // First handle any subscriptions to internal events, like component lifecycle or frame events
+        for (var eventName1 in eventHandlerGroup) {
+          var eventHandlerSpec1 = eventHandlerGroup[eventName1]
+          if (!eventHandlerSpec1.handler.__subscribed && !eventHandlerSpec1.handler.__external) { // Don't subscribe twice or waste effort
+            if (eventName1 === 'component:will-mount') {
+              component.on('haikuComponentWillMount', eventHandlerSpec1.handler)
+              eventHandlerSpec1.handler.__subscribed = true
+              continue
+            }
+            if (eventName1 === 'component:did-mount') {
+              component.on('haikuComponentDidMount', eventHandlerSpec1.handler)
+              eventHandlerSpec1.handler.__subscribed = true
+              continue
+            }
+            if (eventName1 === 'component:will-unmount') {
+              component.on('haikuComponentWillUnmount', eventHandlerSpec1.handler)
+              eventHandlerSpec1.handler.__subscribed = true
+              continue
+            }
+
+            var namePieces = eventName1.split(':')
+            if (namePieces.length > 1) {
+              if (namePieces[0] === 'timeline') {
+                var timelineNamePiece = namePieces[1]
+                var frameValuePiece = parseInt(namePieces[2], 10)
+                if (!component._frameEventListeners[timelineNamePiece]) component._frameEventListeners[timelineNamePiece] = {}
+                if (!component._frameEventListeners[timelineNamePiece][frameValuePiece]) component._frameEventListeners[timelineNamePiece][frameValuePiece] = []
+                component._frameEventListeners[timelineNamePiece][frameValuePiece].push(eventHandlerSpec1.handler)
+                eventHandlerSpec1.handler.__subscribed = true
+                continue
+              }
+            }
+
+            // Mark this so as to skip this expensive process on subsequent loops
+            eventHandlerSpec1.handler.__external = true
+          }
+        }
+
         var matchingElementsForEvents = _findMatchingElementsByCssSelector(
           eventSelector,
           template,
@@ -716,12 +782,13 @@ function _applyBehaviors (
           continue
         }
 
-        var eventHandlerGroup = component._bytecode.eventHandlers[eventSelector]
-
         for (var k = 0; k < matchingElementsForEvents.length; k++) {
           for (var eventName in eventHandlerGroup) {
             var eventHandlerSpec = eventHandlerGroup[eventName]
-            _applyHandlerToElement(matchingElementsForEvents[k], eventName, eventHandlerSpec.handler, context, component)
+            // We may have already subscribed to something internally, so no point repeating actions here
+            if (!eventHandlerSpec.__subscribed) {
+              _applyHandlerToElement(matchingElementsForEvents[k], eventName, eventHandlerSpec.handler, context, component)
+            }
           }
         }
       }
