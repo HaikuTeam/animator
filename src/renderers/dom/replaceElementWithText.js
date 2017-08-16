@@ -4,11 +4,11 @@
 
 var createTextNode = require('./createTextNode')
 
-function replaceElementWithText (domElement, textContent, options, scopes) {
+function replaceElementWithText (domElement, textContent, context) {
   if (domElement) {
     if (domElement.textContent !== textContent) {
       var parentNode = domElement.parentNode
-      var textNode = createTextNode(domElement, textContent, options, scopes)
+      var textNode = createTextNode(domElement, textContent, context)
       parentNode.replaceChild(textNode, domElement)
     }
   }

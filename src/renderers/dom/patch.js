@@ -9,9 +9,7 @@ function patch (
   virtualContainer,
   patchesDict,
   locator,
-  hash,
-  options,
-  scopes
+  context
 ) {
   if (Object.keys(patchesDict) < 1) {
     return topLevelDomElement
@@ -20,25 +18,17 @@ function patch (
   for (var flexId in patchesDict) {
     var virtualElement = patchesDict[flexId]
 
-    if (virtualElement && options.modifier) {
-      var virtualReplacement = options.modifier(virtualElement)
-      if (virtualReplacement !== undefined) {
-        virtualElement = virtualReplacement
-      }
-    }
+    if (context._hash[flexId] && context._hash[flexId].length > 0) {
+      for (var i = 0; i < context._hash[flexId].length; i++) {
+        var domElement = context._hash[flexId][i]
 
-    if (hash[flexId] && hash[flexId].length > 0) {
-      for (var i = 0; i < hash[flexId].length; i++) {
-        var domElement = hash[flexId][i]
         updateElement(
           domElement,
           virtualElement,
           domElement.parentNode,
           virtualElement.__parent,
           domElement.haiku.locator,
-          hash,
-          options,
-          scopes,
+          context,
           true
         )
       }

@@ -8,8 +8,7 @@ module.exports = function attachEventListener (
   domElement,
   eventName,
   listener,
-  options,
-  scopes
+  context
 ) {
   // FF doesn't like it if this isn't a function... this can happen if bad props are passed upstream
   if (typeof listener === 'function') {

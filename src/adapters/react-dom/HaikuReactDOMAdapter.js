@@ -120,39 +120,40 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
             element,
             insertable,
             context,
-            component,
-            implementation
+            component
           ) {
             visit(this.mount, function visitor (node) {
-              if (same(element, node)) {
-                if (typeof insertable.type === 'function' && insertable.type.isHaikuAdapter) {
-                  // For reasons unknown, this dance is required with nested Haiku mounts
-                  var div = document.createElement('div')
-                  while (node.firstChild) node.removeChild(node.firstChild)
-                  node.appendChild(div)
-                  node = div
-                }
-                ReactDOM.render(insertable, node)
-                element.__horizon = true // Tell the renderer not to update any of this one's children
+              var flexId = flexIdIfSame(element, node)
+              if (flexId) {
+                var div = document.createElement('div')
+                while (node.firstChild) node.removeChild(node.firstChild)
+                node.appendChild(div)
+                node = div
               }
+              component._markForFullFlush()
+              ReactDOM.render(insertable, node)
+              element.__horizon = true // Tell the renderer not to update any of this one's children
             })
           }.bind(this),
           'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity (
             element,
             surrogate,
             context,
-            component,
-            implementation
+            component
           ) {
             visit(this.mount, function visitor (node) {
-              if (same(element, node)) {
-                if (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter) {
-                  // For reasons unknown, this dance is required with nested Haiku mounts
+              var flexId = flexIdIfSame(element, node)
+              if (flexId) {
+                if (typeof surrogate.type === 'string' || (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
+                  // What *should happen* in the Haiku Player is this new swapped DOM element will be
+                  // updated (not replaced!) with the attributes of the virtual element at the same position
                   var div = document.createElement('div')
                   node.parentNode.replaceChild(div, node)
                   node = div
                 }
+                component._markForFullFlush()
                 ReactDOM.render(surrogate, node)
+
                 element.__horizon = true // Tell the renderer not to update any of this one's children
               }
             })
@@ -288,7 +289,9 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
     reactClass.propTypes[propName] = React.PropTypes[propType]
   }
 
-  reactClass.isHaikuAdapter = true // Used for condition in placeholder rendering
+  // This setting is required to do proper setup for placeholder/inject vanities
+  reactClass.isHaikuAdapter = true
+
   reactClass.React = React // Used by Haiku for testing and debugging
   reactClass.ReactDOM = ReactDOM // Used by Haiku for testing and debugging
 
@@ -318,22 +321,22 @@ function visit (el, visitor) {
   }
 }
 
-function same (virtual, dom) {
+function flexIdIfSame (virtual, dom) {
   if (virtual.attributes) {
     if (virtual.attributes['haiku-id']) {
       if (dom.getAttribute('haiku-id') === virtual.attributes['haiku-id']) {
-        return true
+        return virtual.attributes['haiku-id']
       }
     }
 
     if (virtual.attributes.id) {
       if (dom.getAttribute('id') === virtual.attributes.id) {
-        return true
+        return virtual.attributes.id
       }
     }
   }
 
-  return false
+  return null
 }
 
 HaikuReactDOMAdapter.React = React // Used by Haiku for testing and debugging

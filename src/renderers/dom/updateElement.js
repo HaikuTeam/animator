@@ -14,14 +14,12 @@ function updateElement (
   parentNode,
   parentVirtualElement,
   locator,
-  hash,
-  options,
-  scopes,
+  context,
   isPatchOperation
 ) {
   // If a text node, go straight to 'replace' since we don't know the tag name
-  if (isTextNode(virtualElement, scopes)) {
-    replaceElementWithText(domElement, virtualElement, options, scopes)
+  if (isTextNode(virtualElement, context)) {
+    replaceElementWithText(domElement, virtualElement, context)
     return virtualElement
   }
 
@@ -49,9 +47,7 @@ function updateElement (
         parentNode,
         parentVirtualElement,
         locator,
-        hash,
-        options,
-        scopes
+        context
       )
     }
 
@@ -62,9 +58,7 @@ function updateElement (
         parentNode,
         parentVirtualElement,
         locator,
-        hash,
-        options,
-        scopes
+        context
       )
     }
   }
@@ -76,8 +70,7 @@ function updateElement (
     assignAttributes(
       domElement,
       virtualElement,
-      options,
-      scopes,
+      context,
       isPatchOperation,
       isKeyDifferent
     )
@@ -87,8 +80,7 @@ function updateElement (
     virtualElement,
     parentNode,
     parentVirtualElement,
-    options,
-    scopes,
+    context,
     isPatchOperation,
     isKeyDifferent
   )
@@ -102,9 +94,7 @@ function updateElement (
       virtualElement,
       virtualElement.children,
       locator,
-      hash,
-      options,
-      scopes,
+      context,
       isPatchOperation
     )
   } else if (!virtualElement.children) {
@@ -114,9 +104,7 @@ function updateElement (
       virtualElement,
       [],
       locator,
-      hash,
-      options,
-      scopes,
+      context,
       isPatchOperation
     )
   }

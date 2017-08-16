@@ -9,18 +9,14 @@ function render (
   virtualContainer,
   virtualTree,
   locator,
-  hash,
-  options,
-  scopes
+  context
 ) {
   return renderTree(
     domElement,
     virtualContainer,
     [virtualTree],
     locator,
-    hash,
-    options,
-    scopes
+    context
   )
 }
 

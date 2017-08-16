@@ -7,6 +7,7 @@ var HaikuClock = require('./HaikuClock')
 var HaikuComponent = require('./HaikuComponent')
 var Config = require('./Config')
 var PRNG = require('./helpers/PRNG')
+var addElementToHashTable = require('./helpers/addElementToHashTable')
 
 var PLAYER_VERSION = require('./../package.json').version
 
@@ -243,9 +244,7 @@ HaikuContext.prototype.performFullFlushRender = function performFullFlushRender 
     container,
     tree,
     this._address,
-    this._hash,
-    this.config.options,
-    this.component._getRenderScopes()
+    this
   )
   return this
 }
@@ -262,9 +261,7 @@ HaikuContext.prototype.performPatchRender = function performPatchRender () {
     container,
     patches,
     this._address,
-    this._hash,
-    this.config.options,
-    this.component._getRenderScopes()
+    this
   )
   return this
 }
@@ -366,6 +363,16 @@ HaikuContext.prototype.getDeterministicTime = function getDeterministicTime () {
 
 HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState () {
   return this._renderer && this._renderer.getUser && this._renderer.getUser()
+}
+
+/**
+ * @description We store DOM elements in a lookup table keyed by their id so we can do fast patches.
+ * This is a hook that allows e.g. the ReactDOMAdapter to push elements into the list if it mutates the DOM.
+ * e.g. during control flow
+ */
+HaikuContext.prototype._addElementToHashTable = function _addElementToHashTable (realElement, virtualElement) {
+  addElementToHashTable(this._hash, realElement, virtualElement)
+  return this
 }
 
 /**

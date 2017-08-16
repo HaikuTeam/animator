@@ -20,8 +20,7 @@ function applyCssLayout (
   nodeLayout,
   computedLayout,
   pixelRatio,
-  rendererOptions,
-  rendererScopes
+  context
 ) {
   // No point continuing if there's no computedLayout contents
   if (
@@ -93,7 +92,7 @@ function applyCssLayout (
     var attributeTransform = domElement.getAttribute('transform')
     // IE doesn't support using transform on the CSS style in SVG elements, so if we are in SVG,
     // and if we are inside an IE context, use the transform attribute itself
-    if (rendererOptions.platform.isIE) {
+    if (context.config.options.platform.isIE) {
       if (elementScope === SVG) {
         var matrixString = formatTransform(
           computedLayout.matrix,
@@ -108,10 +107,9 @@ function applyCssLayout (
           domElement.style,
           nodeLayout.format,
           computedLayout.matrix,
-          rendererOptions && rendererOptions.useWebkitPrefix,
+          context.config.options.useWebkitPrefix,
           pixelRatio,
-          rendererOptions,
-          rendererScopes
+          context
         )
       }
     } else {
@@ -127,10 +125,9 @@ function applyCssLayout (
             domElement.style,
             nodeLayout.format,
             computedLayout.matrix,
-            rendererOptions && rendererOptions.useWebkitPrefix,
+            context.config.options.useWebkitPrefix,
             pixelRatio,
-            rendererOptions,
-            rendererScopes
+            context
           )
         }
       }

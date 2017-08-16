@@ -52,8 +52,7 @@ function applyLayout (
   virtualElement,
   parentDomNode,
   parentVirtualElement,
-  options,
-  scopes,
+  context,
   isPatchOperation,
   isKeyDifferent
 ) {
@@ -81,7 +80,7 @@ function applyLayout (
     }
 
     var devicePixelRatio =
-      (options && options.devicePixelRatio) || DEFAULT_PIXEL_RATIO
+      (context.config.options && context.config.options.devicePixelRatio) || DEFAULT_PIXEL_RATIO
     var computedLayout = virtualElement.layout.computed
 
     // No computed layout means the el is not shown
@@ -93,15 +92,16 @@ function applyLayout (
       if (domElement.style.display !== 'block') {
         domElement.style.display = 'block'
       }
-      options.platform = PLATFORM_INFO
+
+      context.config.options.platform = PLATFORM_INFO
+
       applyCssLayout(
         domElement,
         virtualElement,
         virtualElement.layout,
         computedLayout,
         devicePixelRatio,
-        options,
-        scopes
+        context
       )
     }
   }

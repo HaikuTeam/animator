@@ -4,8 +4,6 @@
 
 var isBlankString = require('./isBlankString')
 var removeElement = require('./removeElement')
-var locatorBump = require('./locatorBump')
-var addToHashTable = require('./addToHashTable')
 
 function _cloneVirtualElement (virtualElement) {
   return {
@@ -29,23 +27,20 @@ function renderTree (
   virtualElement,
   virtualChildren,
   locator,
-  hash,
-  options,
-  scopes,
+  context,
   isPatchOperation
 ) {
-  addToHashTable(hash, domElement, virtualElement)
+  context._addElementToHashTable(domElement, virtualElement)
 
   if (!domElement.haiku) domElement.haiku = {}
 
-  // 'hashtab', 'locator', and 'virtual' are more for debugging convenience than anything else.
+  // 'locator', and 'virtual' are more for debugging convenience than anything else.
   // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
-  domElement.haiku.hashtab = hash
   domElement.haiku.locator = locator
   domElement.haiku.virtual = virtualElement
   domElement.haiku.element = _cloneVirtualElement(virtualElement) // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-  if (!options.cache[domElement.haiku.locator]) {
-    options.cache[domElement.haiku.locator] = {}
+  if (!context.config.options.cache[domElement.haiku.locator]) {
+    context.config.options.cache[domElement.haiku.locator] = {}
   }
 
   if (!Array.isArray(virtualChildren)) {
@@ -68,19 +63,12 @@ function renderTree (
   for (var i = 0; i < max; i++) {
     var virtualChild = virtualChildren[i]
     var domChild = domElement.childNodes[i]
-    var sublocator = locatorBump(locator, i)
-
-    if (virtualChild && options.modifier) {
-      var virtualReplacement = options.modifier(virtualChild)
-      if (virtualReplacement !== undefined) {
-        virtualChild = virtualReplacement
-      }
-    }
+    var sublocator = locator + '.' + i
 
     if (!virtualChild && !domChild) {
       continue
     } else if (!virtualChild && domChild) {
-      removeElement(domChild, hash, options, scopes)
+      removeElement(domChild, context)
     } else if (virtualChild && !domChild) {
       var insertedElement = appendChild(
         null,
@@ -88,12 +76,10 @@ function renderTree (
         domElement,
         virtualElement,
         sublocator,
-        hash,
-        options,
-        scopes
+        context
       )
 
-      addToHashTable(hash, insertedElement, virtualChild)
+      context._addElementToHashTable(insertedElement, virtualChild)
     } else {
       var oldId = domChild.getAttribute && domChild.getAttribute('id')
       var newId = virtualChild.attributes && virtualChild.attributes.id
@@ -107,17 +93,15 @@ function renderTree (
           domElement,
           virtualElement,
           locator,
-          hash,
-          options,
-          scopes
+          context
         )
         continue
       }
 
       if (!domChild.haiku) domChild.haiku = {}
       domChild.haiku.locator = sublocator
-      if (!options.cache[domChild.haiku.locator]) {
-        options.cache[domChild.haiku.locator] = {}
+      if (!context.config.options.cache[domChild.haiku.locator]) {
+        context.config.options.cache[domChild.haiku.locator] = {}
       }
 
       if (!domChild.haiku.element) {
@@ -131,9 +115,7 @@ function renderTree (
         domElement,
         virtualElement,
         sublocator,
-        hash,
-        options,
-        scopes,
+        context,
         isPatchOperation
       )
     }

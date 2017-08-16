@@ -11,22 +11,18 @@ function replaceElement (
   parentDomNode,
   parentVirtualElement,
   locator,
-  hash,
-  options,
-  scopes
+  context
 ) {
   var newElement
   if (isTextNode(virtualElement)) {
-    newElement = createTextNode(domElement, virtualElement, options, scopes)
+    newElement = createTextNode(domElement, virtualElement, context)
   } else {
     newElement = createTagNode(
       domElement,
       virtualElement,
       parentVirtualElement,
       locator,
-      hash,
-      options,
-      scopes
+      context
     )
   }
 
@@ -35,8 +31,7 @@ function replaceElement (
     virtualElement,
     parentDomNode,
     parentVirtualElement,
-    options,
-    scopes
+    context
   )
 
   parentDomNode.replaceChild(newElement, domElement)

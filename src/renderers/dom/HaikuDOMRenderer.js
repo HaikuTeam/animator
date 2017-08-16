@@ -33,18 +33,14 @@ HaikuDOMRenderer.prototype.render = function render (
   virtualContainer,
   virtualTree,
   locator,
-  hash,
-  options,
-  scopes
+  context
 ) {
   return _render(
     domElement,
     virtualContainer,
     virtualTree,
     locator,
-    hash,
-    options,
-    scopes
+    context
   )
 }
 
@@ -53,18 +49,14 @@ HaikuDOMRenderer.prototype.patch = function patch (
   virtualContainer,
   patchesDict,
   locator,
-  hash,
-  options,
-  scopes
+  context
 ) {
   return _patch(
     domElement,
     virtualContainer,
     patchesDict,
     locator,
-    hash,
-    options,
-    scopes
+    context
   )
 }
 

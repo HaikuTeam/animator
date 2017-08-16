@@ -8,8 +8,7 @@ function assignEvent (
   domElement,
   eventName,
   listenerFunction,
-  options,
-  scopes
+  context
 ) {
   if (!domElement.haiku) {
     domElement.haiku = {}
@@ -38,8 +37,7 @@ function assignEvent (
       domElement,
       eventName,
       listenerFunction,
-      options,
-      scopes
+      context
     )
   }
 }

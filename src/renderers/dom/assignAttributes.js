@@ -29,7 +29,7 @@ var G = 'g'
 var E = 'e'
 var FSLASH = '/'
 
-function setAttribute (el, key, val, options, scopes, cache) {
+function setAttribute (el, key, val, context, cache) {
   // If key === xlink:href we are dealing with a reference and need to use a namepsace
   if (key[0] === X && key[1] === L && key[2] === I && key[3] === N && key[4] === K) {
     var ns = XLINK_XMLNS
@@ -71,8 +71,7 @@ function setAttribute (el, key, val, options, scopes, cache) {
 function assignAttributes (
   domElement,
   virtualElement,
-  options,
-  scopes,
+  context,
   isPatchOperation,
   isKeyDifferent
 ) {
@@ -103,15 +102,14 @@ function assignAttributes (
       assignStyle(
         domElement,
         anotherNewValue,
-        options,
-        scopes,
+        context,
         isPatchOperation
       )
       continue
     }
 
     if ((key === CLASS || key === CLASS_NAME) && anotherNewValue) {
-      assignClass(domElement, anotherNewValue, options, scopes)
+      assignClass(domElement, anotherNewValue, context)
       continue
     }
 
@@ -121,11 +119,11 @@ function assignAttributes (
       key[1] === 'n' &&
       typeof anotherNewValue === FUNCTION
     ) {
-      assignEvent(domElement, key.slice(2).toLowerCase(), anotherNewValue, options, scopes)
+      assignEvent(domElement, key.slice(2).toLowerCase(), anotherNewValue, context)
       continue
     }
 
-    setAttribute(domElement, key, anotherNewValue, options, scopes, options.cache[domElement.haiku.locator])
+    setAttribute(domElement, key, anotherNewValue, context, context.config.options.cache[domElement.haiku.locator])
   }
 
   // Any 'hidden' eventHandlers we got need to be assigned now.
@@ -135,7 +133,7 @@ function assignAttributes (
     for (var eventName in virtualElement.__handlers) {
       var handler = virtualElement.__handlers[eventName]
       if (!handler.__subscribed) {
-        assignEvent(domElement, eventName, handler, options, scopes)
+        assignEvent(domElement, eventName, handler, context)
         handler.__subscribed = true
       }
     }

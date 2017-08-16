@@ -10,8 +10,7 @@ function setStyleMatrix (
   format,
   matrix,
   usePrefix,
-  devicePixelRatio,
-  rendererScopes
+  devicePixelRatio
 ) {
   var matrixString = formatTransform(matrix, format, devicePixelRatio)
   if (usePrefix) {

@@ -1,4 +1,4 @@
-module.exports = function addToHashTable (hash, domElement, virtualElement) {
+module.exports = function addElementToHashTable (hash, realElement, virtualElement) {
   if (virtualElement && virtualElement.attributes) {
     var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
     if (!hash[flexId]) hash[flexId] = []
@@ -6,13 +6,13 @@ module.exports = function addToHashTable (hash, domElement, virtualElement) {
     var alreadyInList = false
     for (var i = 0; i < hash[flexId].length; i++) {
       var elInList = hash[flexId][i]
-      if (elInList === domElement) {
+      if (elInList === realElement) {
         alreadyInList = true
       }
     }
 
     if (!alreadyInList) {
-      hash[flexId].push(domElement)
+      hash[flexId].push(realElement)
     }
   }
 }
