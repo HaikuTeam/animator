@@ -2320,5 +2320,17 @@
       "label": "fix",
       "message": "container sizing for playback speed dail"
     }
+  },
+  "2.1.32": {
+    "e3fa3bd41efa8c055de8a12fda8f5f7b8d121b2d": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Make sure we can use controlFlow.placeholder with React and Haiku elements"
+    },
+    "5e0789b02d940c4e7b921e38410d376ffaa83497": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Placeholder with nested Haiku in React"
+    }
   }
 }
