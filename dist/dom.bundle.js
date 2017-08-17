@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.32",
+  "version": "2.1.33",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -261,6 +261,10 @@ var DEFAULTS = {
   // onHaikuComponentDidMount: Function|null
   // Optional lifecycle event hook (see below)
   onHaikuComponentDidMount: null,
+
+  // onHaikuComponentWillMount: Function|null
+  // Optional lifecycle event hook (see below)
+  onHaikuComponentWillMount: null,
 
   // onHaikuComponentDidInitialize: Function|null
   // Optional lifecycle event hook (see below)
@@ -753,6 +757,22 @@ function HaikuComponent (bytecode, context, config) {
   // A sort of cache with a mapping of elements to the scope in which they belong (div, svg, etc)
   this._renderScopes = {}
 
+  // Used to determine whether this component will emit events for lots of actions, or only the basics
+  this._doesEmitEventsVerbosely = false
+
+  // List of subscribers to frame events, kept inside a single dict as a performance optimization
+  this._frameEventListeners = {}
+
+  this.on('timeline:tick', function _anyTimelineTick (timelineName, timelineFrame, timelineTime) {
+    if (this._frameEventListeners[timelineName]) {
+      if (this._frameEventListeners[timelineName][timelineFrame]) {
+        for (var i = 0; i < this._frameEventListeners[timelineName][timelineFrame].length; i++) {
+          this._frameEventListeners[timelineName][timelineFrame][i](timelineFrame, timelineTime)
+        }
+      }
+    }
+  }.bind(this))
+
   // Notify anybody who cares that we've successfully initialized their component in memory
   this.emit('haikuComponentDidInitialize', this)
   if (config.onHaikuComponentDidInitialize) {
@@ -782,6 +802,11 @@ function _clone (thing) {
 
 // If the component needs to remount itself for some reason, make sure we fire the right events
 HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, skipMarkForFullFlush) {
+  this.emit('haikuComponentWillMount', this)
+  if (this.config.onHaikuComponentWillMount) {
+    this.config.onHaikuComponentWillMount(this)
+  }
+
   // Note!: Only update config if we actually got incoming options!
   if (incomingConfig) {
     this.assignConfig(incomingConfig)
@@ -1223,6 +1248,11 @@ function _defineSettableState (component, statesTargetObject, stateSpec, stateSp
         statesTargetObject[stateSpecName] = inputValue
       }
 
+      // Really only used as a hook for Haiku's ActiveComponent
+      if (component._doesEmitEventsVerbosely) {
+        component.emit('state:set', stateSpecName, statesTargetObject[stateSpecName], statesTargetObject)
+      }
+
       return statesTargetObject[stateSpecName]
     }
   })
@@ -1348,6 +1378,46 @@ function _applyBehaviors (
     // Associate any event handlers with the elements matched
     if (component._bytecode.eventHandlers) {
       for (var eventSelector in component._bytecode.eventHandlers) {
+        var eventHandlerGroup = component._bytecode.eventHandlers[eventSelector]
+
+        // First handle any subscriptions to internal events, like component lifecycle or frame events
+        for (var eventName1 in eventHandlerGroup) {
+          var eventHandlerSpec1 = eventHandlerGroup[eventName1]
+          if (!eventHandlerSpec1.handler.__subscribed && !eventHandlerSpec1.handler.__external) { // Don't subscribe twice or waste effort
+            if (eventName1 === 'component:will-mount') {
+              component.on('haikuComponentWillMount', eventHandlerSpec1.handler)
+              eventHandlerSpec1.handler.__subscribed = true
+              continue
+            }
+            if (eventName1 === 'component:did-mount') {
+              component.on('haikuComponentDidMount', eventHandlerSpec1.handler)
+              eventHandlerSpec1.handler.__subscribed = true
+              continue
+            }
+            if (eventName1 === 'component:will-unmount') {
+              component.on('haikuComponentWillUnmount', eventHandlerSpec1.handler)
+              eventHandlerSpec1.handler.__subscribed = true
+              continue
+            }
+
+            var namePieces = eventName1.split(':')
+            if (namePieces.length > 1) {
+              if (namePieces[0] === 'timeline') {
+                var timelineNamePiece = namePieces[1]
+                var frameValuePiece = parseInt(namePieces[2], 10)
+                if (!component._frameEventListeners[timelineNamePiece]) component._frameEventListeners[timelineNamePiece] = {}
+                if (!component._frameEventListeners[timelineNamePiece][frameValuePiece]) component._frameEventListeners[timelineNamePiece][frameValuePiece] = []
+                component._frameEventListeners[timelineNamePiece][frameValuePiece].push(eventHandlerSpec1.handler)
+                eventHandlerSpec1.handler.__subscribed = true
+                continue
+              }
+            }
+
+            // Mark this so as to skip this expensive process on subsequent loops
+            eventHandlerSpec1.handler.__external = true
+          }
+        }
+
         var matchingElementsForEvents = _findMatchingElementsByCssSelector(
           eventSelector,
           template,
@@ -1358,12 +1428,13 @@ function _applyBehaviors (
           continue
         }
 
-        var eventHandlerGroup = component._bytecode.eventHandlers[eventSelector]
-
         for (var k = 0; k < matchingElementsForEvents.length; k++) {
           for (var eventName in eventHandlerGroup) {
             var eventHandlerSpec = eventHandlerGroup[eventName]
-            _applyHandlerToElement(matchingElementsForEvents[k], eventName, eventHandlerSpec.handler, context, component)
+            // We may have already subscribed to something internally, so no point repeating actions here
+            if (!eventHandlerSpec.__subscribed) {
+              _applyHandlerToElement(matchingElementsForEvents[k], eventName, eventHandlerSpec.handler, context, component)
+            }
           }
         }
       }
@@ -2491,14 +2562,11 @@ HaikuTimeline.prototype._doUpdateWithGlobalClockTime = function _doUpdateWithGlo
     this._updateInternalProperties(globalClockTime)
   }
 
-  var frame = this.getFrame()
-  var time = Math.round(this.getTime())
-
   if (this.isActive() && this.isPlaying()) {
-    this.emit('tick', frame, time)
+    this._shout('tick')
   }
 
-  this.emit('update', frame, time)
+  this._shout('update')
 
   return this
 }
@@ -2682,6 +2750,15 @@ HaikuTimeline.prototype.unfreeze = function freeze () {
   return this
 }
 
+HaikuTimeline.prototype._shout = function _shout (key) {
+  var frame = this.getFrame()
+  var time = Math.round(this.getTime())
+  var name = this.getName()
+  this.emit(key, frame, time)
+  this._component.emit('timeline:' + key, name, frame, time)
+  return this
+}
+
 HaikuTimeline.prototype.start = function start (
   maybeGlobalClockTime,
   descriptor
@@ -2691,6 +2768,9 @@ HaikuTimeline.prototype.start = function start (
   this._isPlaying = true
   this._globalClockTime = maybeGlobalClockTime || 0
   this._maxExplicitlyDefinedTime = _getMaxTimeFromDescriptor(descriptor)
+
+  this._shout('start')
+
   return this
 }
 
@@ -2698,6 +2778,9 @@ HaikuTimeline.prototype.stop = function stop (maybeGlobalClockTime, descriptor) 
   this._isActive = false
   this._isPlaying = false
   this._maxExplicitlyDefinedTime = _getMaxTimeFromDescriptor(descriptor)
+
+  this._shout('stop')
+
   return this
 }
 
@@ -2705,6 +2788,9 @@ HaikuTimeline.prototype.pause = function pause () {
   var time = this._component.getClock().getTime()
   var descriptor = this._component._getTimelineDescriptor(this._name)
   this.stop(time, descriptor)
+
+  this._shout('pause')
+
   return this
 }
 
@@ -2730,6 +2816,8 @@ HaikuTimeline.prototype.play = function play (options) {
     this._component._markForFullFlush(true)
   }
 
+  this._shout('play')
+
   return this
 }
 
@@ -2740,6 +2828,9 @@ HaikuTimeline.prototype.seek = function seek (ms) {
   var descriptor = this._component._getTimelineDescriptor(this._name)
   this.start(clockTime, descriptor)
   this._component._markForFullFlush(true)
+
+  this._shout('seek')
+
   return this
 }
 
@@ -6601,7 +6692,7 @@ var HTML_STYLE_SHORTHAND_SCHEMA = {
 
 var CONTROL_FLOW_SCHEMA = {
   // 'controlFlow.if': 'any',
-  // 'controlFlow.repeat': 'any',
+  'controlFlow.repeat': 'any',
   // 'controlFlow.yield': 'any',
   'controlFlow.placeholder': 'any'
 }
@@ -8100,8 +8191,36 @@ var CONTROL_FLOW_VANITIES = {
   // 'controlFlow.if': function (name, element, value) {
   //   // TODO
   // },
-  // 'controlFlow.repeat': function (name, element, value) {
-  //   // TODO
+  // 'controlFlow.repeat': function (
+  //   name,
+  //   element,
+  //   value,
+  //   context,
+  //   component) {
+  //   // Convert our input format flexibly into our expected format, an array
+  //   var behaviors
+  //   if (value === null || value === undefined || value === '' || value === true) {
+  //     // These signals mean 'no repeat' i.e. 'just the element itself' which means
+  //     // we populate the behaviors with just one empty object indicating no repeat info.
+  //     // If the behaviors array were empty then the original element wouldn't appear at all
+  //     behaviors = [{}]
+  //   } else if (Array.isArray(value)) {
+  //     behaviors = value
+  //   } else if (typeof value === 'number' && value >= 0 && value < Infinity) {
+  //     value = parseInt(value, 10) // May as well cast to integer just in case
+  //     behaviors = []
+  //     for (var i = 0; i < value; i++) {
+  //       behaviors[i] = {} // Empty payload, just a numeric repeat
+  //     }
+  //   } else if (value === false) {
+  //     behaviors = [] // No repeat, i.e. an empty array
+  //   } else if (value && typeof value === 'object') { // Why not?
+  //     behaviors = []
+  //     for (var key in value) {
+  //       behaviors.push(value)
+  //     }
+  //   }
+  //   controlFlowRepeatImpl(element, behaviors, context, component)
   // },
   // 'controlFlow.yield': function (name, element, value) {
   //   // TODO
@@ -8142,6 +8261,45 @@ var CONTROL_FLOW_VANITIES = {
   }
 }
 
+// function getIndexOfElementInParent (element, parent) {
+//   if (!parent.children) {
+//     return -1
+//   }
+//   for (var i = 0; i < parent.children.length; i++) {
+//     if (parent.children[i] === element) {
+//       return i
+//     }
+//   }
+//   return -1
+// }
+
+// function controlFlowRepeatImpl (element, behaviors, context, component) {
+//   if (!element.__parent) {
+//     warnOnce('cannot do `controlFlow.repeat` on an element with no parent')
+//     return void (0)
+//   }
+//   // We need to track repeats so we can revert to the original repeat when necessary
+//   if (!element.__parent.__repeats) {
+//     element.__parent.__repeats = {}
+//   }
+//   // We'll store the original element for reference keyed by its flexible id
+//   var flexId = element.attributes['haiku-id'] || element.attributes.id
+//   if (!element.__parent.__repeats[flexId]) {
+//     element.__parent.__repeats[flexId] = {
+//       originalElement: element,
+//       originalIndex: getIndexOfElementInParent(element, element.__parent)
+//     }
+//   }
+//   // We'll use the original repeat info to decide how to handle the repeat
+//   var repeatInfo = element.__parent.repeats[flexId]
+//   // Get the index of the first matching element in the collection
+//   var firstIndex = getIndexOfElementInParent(element, element.__parent)
+//   // And also cache the behaviors that are going to apply to it
+//   for (var i = 0; i < element.__parent.children.length; i++) {
+//     var child = element.__parent.children[i]
+//   }
+// }
+
 function controlFlowPlaceholderImpl (element, surrogate, context, component) {
   element.elementName = surrogate.elementName
   element.children = surrogate.children || []
@@ -8153,6 +8311,14 @@ function controlFlowPlaceholderImpl (element, surrogate, context, component) {
     }
   }
 }
+
+// var warnings = {}
+// function warnOnce (msg) {
+//   if (!warnings[msg]) {
+//     console.warn('[haiku player] ' + msg)
+//     warnings[msg] = true
+//   }
+// }
 
 module.exports = {
   'missing-glyph': has(
