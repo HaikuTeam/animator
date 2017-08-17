@@ -760,8 +760,36 @@ var CONTROL_FLOW_VANITIES = {
   // 'controlFlow.if': function (name, element, value) {
   //   // TODO
   // },
-  // 'controlFlow.repeat': function (name, element, value) {
-  //   // TODO
+  // 'controlFlow.repeat': function (
+  //   name,
+  //   element,
+  //   value,
+  //   context,
+  //   component) {
+  //   // Convert our input format flexibly into our expected format, an array
+  //   var behaviors
+  //   if (value === null || value === undefined || value === '' || value === true) {
+  //     // These signals mean 'no repeat' i.e. 'just the element itself' which means
+  //     // we populate the behaviors with just one empty object indicating no repeat info.
+  //     // If the behaviors array were empty then the original element wouldn't appear at all
+  //     behaviors = [{}]
+  //   } else if (Array.isArray(value)) {
+  //     behaviors = value
+  //   } else if (typeof value === 'number' && value >= 0 && value < Infinity) {
+  //     value = parseInt(value, 10) // May as well cast to integer just in case
+  //     behaviors = []
+  //     for (var i = 0; i < value; i++) {
+  //       behaviors[i] = {} // Empty payload, just a numeric repeat
+  //     }
+  //   } else if (value === false) {
+  //     behaviors = [] // No repeat, i.e. an empty array
+  //   } else if (value && typeof value === 'object') { // Why not?
+  //     behaviors = []
+  //     for (var key in value) {
+  //       behaviors.push(value)
+  //     }
+  //   }
+  //   controlFlowRepeatImpl(element, behaviors, context, component)
   // },
   // 'controlFlow.yield': function (name, element, value) {
   //   // TODO
@@ -802,6 +830,45 @@ var CONTROL_FLOW_VANITIES = {
   }
 }
 
+// function getIndexOfElementInParent (element, parent) {
+//   if (!parent.children) {
+//     return -1
+//   }
+//   for (var i = 0; i < parent.children.length; i++) {
+//     if (parent.children[i] === element) {
+//       return i
+//     }
+//   }
+//   return -1
+// }
+
+// function controlFlowRepeatImpl (element, behaviors, context, component) {
+//   if (!element.__parent) {
+//     warnOnce('cannot do `controlFlow.repeat` on an element with no parent')
+//     return void (0)
+//   }
+//   // We need to track repeats so we can revert to the original repeat when necessary
+//   if (!element.__parent.__repeats) {
+//     element.__parent.__repeats = {}
+//   }
+//   // We'll store the original element for reference keyed by its flexible id
+//   var flexId = element.attributes['haiku-id'] || element.attributes.id
+//   if (!element.__parent.__repeats[flexId]) {
+//     element.__parent.__repeats[flexId] = {
+//       originalElement: element,
+//       originalIndex: getIndexOfElementInParent(element, element.__parent)
+//     }
+//   }
+//   // We'll use the original repeat info to decide how to handle the repeat
+//   var repeatInfo = element.__parent.repeats[flexId]
+//   // Get the index of the first matching element in the collection
+//   var firstIndex = getIndexOfElementInParent(element, element.__parent)
+//   // And also cache the behaviors that are going to apply to it
+//   for (var i = 0; i < element.__parent.children.length; i++) {
+//     var child = element.__parent.children[i]
+//   }
+// }
+
 function controlFlowPlaceholderImpl (element, surrogate, context, component) {
   element.elementName = surrogate.elementName
   element.children = surrogate.children || []
@@ -813,6 +880,14 @@ function controlFlowPlaceholderImpl (element, surrogate, context, component) {
     }
   }
 }
+
+// var warnings = {}
+// function warnOnce (msg) {
+//   if (!warnings[msg]) {
+//     console.warn('[haiku player] ' + msg)
+//     warnings[msg] = true
+//   }
+// }
 
 module.exports = {
   'missing-glyph': has(

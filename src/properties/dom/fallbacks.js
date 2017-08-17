@@ -291,7 +291,7 @@ var HTML_STYLE_SHORTHAND_SCHEMA = {
 
 var CONTROL_FLOW_SCHEMA = {
   // 'controlFlow.if': null,
-  // 'controlFlow.repeat': null,
+  'controlFlow.repeat': null,
   // 'controlFlow.yield': null,
   'controlFlow.placeholder': null
 }
