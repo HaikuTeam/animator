@@ -2332,5 +2332,6 @@
       "label": "fix",
       "message": "Placeholder with nested Haiku in React"
     }
-  }
+  },
+  "2.1.33": {}
 }
