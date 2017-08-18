@@ -2333,5 +2333,17 @@
       "message": "Placeholder with nested Haiku in React"
     }
   },
-  "2.1.33": {}
+  "2.1.33": {},
+  "2.1.34": {
+    "6fc8579b78e8aaf1955a5ab53fc7059d487ac344": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "When doing the type check, don't make the classic blunder"
+    },
+    "b5f0ee11dc4879668405c3d860847578db379c92": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure vanities are correctly applied to placeholder elements"
+    }
+  }
 }
