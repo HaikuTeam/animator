@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.33",
+  "version": "2.1.34",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -1194,10 +1194,24 @@ function _typecheckStateSpec (stateSpec, stateSpecName) {
     return void 0
   }
 
-  if (typeof stateSpec.value !== stateSpec.type) {
-    throw new Error(
-      'Property value `' + stateSpecName + '` must be a `' + stateSpec.type + '`'
-    )
+  if (stateSpec.type === 'array') {
+    if (!Array.isArray(stateSpec.value)) {
+      throw new Error(
+        'Property value `' + stateSpecName + '` must be an array'
+      )
+    }
+  } else if (stateSpec.type === 'object') {
+    if (stateSpec.value && typeof stateSpec.value !== 'object') {
+      throw new Error(
+        'Property value `' + stateSpecName + '` must be an object'
+      )
+    }
+  } else {
+    if (typeof stateSpec.value !== stateSpec.type) {
+      throw new Error(
+        'Property value `' + stateSpecName + '` must be a `' + stateSpec.type + '`'
+      )
+    }
   }
 }
 
