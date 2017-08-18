@@ -14,6 +14,10 @@ glob([
   'libs/plumbing/src/**/*.js',
   'libs/plumbing/test/**/*.js',
 
+  // bytecode
+  'libs/plumbing/node_modules/haiku-bytecode/src/**/*.js',
+  'libs/plumbing/node_modules/haiku-bytecode/test/**/*.js',
+
   // cli
   'libs/plumbing/node_modules/haiku-cli/src/*.js',
   'libs/plumbing/node_modules/haiku-cli/lib/*.js',
@@ -28,14 +32,13 @@ glob([
   'libs/plumbing/node_modules/haiku-glass/react/**/*.js',
   'libs/plumbing/node_modules/haiku-glass/test/**/*.js',
 
-  // player
-  'libs/plumbing/node_modules/haiku-player/demo/**/*.js',
-  'libs/plumbing/node_modules/haiku-player/src/**/*.js',
-  'libs/plumbing/node_modules/haiku-player/test/**/*.js',
-
   // sdk
   'libs/plumbing/node_modules/haiku-sdk/lib/**/*.js',
   'libs/plumbing/node_modules/haiku-sdk/src/**/*.js',
+  'libs/plumbing/node_modules/haiku-sdk-client/lib/**/*.js',
+  'libs/plumbing/node_modules/haiku-sdk-client/src/**/*.js',
+  'libs/plumbing/node_modules/haiku-sdk-inkstone/lib/**/*.js',
+  'libs/plumbing/node_modules/haiku-sdk-inkstone/src/**/*.js',
 
   // serialization
   'libs/plumbing/node_modules/haiku-serialization/src/**/*.js',
