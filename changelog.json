@@ -2345,5 +2345,12 @@
       "label": "fix",
       "message": "Ensure vanities are correctly applied to placeholder elements"
     }
+  },
+  "2.1.35": {
+    "83dc2db764d31644e1cdef007dbb3a425e6c74f3": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Apply transform as attribute if browser is IE or Edge"
+    }
   }
 }
