@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.35",
+  "version": "2.1.36",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -346,7 +346,11 @@ var DEFAULTS = {
 
     // cache: object
     // General purpose cache to use in rendering
-    cache: {}
+    cache: {},
+
+    // interactionMode: object
+    // Control how this instance handles interaction, e.g. preview mode
+    interactionMode: { type: 'live' }
   },
 
   // states: Object|null
@@ -723,6 +727,7 @@ function HaikuComponent (bytecode, context, config) {
 
   // STATES
   this._states = {} // Storage for getter/setter actions in userland logic
+  this.state = {} // Public accessor object, e.g. this.state.foo = 1
   this._stateChanges = {}
   this._anyStateChange = false
 
@@ -1156,16 +1161,20 @@ function _bindEventHandler (
     j,
     k
   ) {
-    component._anyEventChange = true
+    // Only fire the event listeners if the component is in 'live' interaction mode,
+    // i.e., not currently being edited inside the Haiku authoring environment
+    if (component.config.options.interactionMode.type === 'live') {
+      component._anyEventChange = true
 
-    if (!component._eventsFired[selector]) {
-      component._eventsFired[selector] = {}
+      if (!component._eventsFired[selector]) {
+        component._eventsFired[selector] = {}
+      }
+
+      component._eventsFired[selector][eventName] =
+        event || true
+
+      originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
     }
-
-    component._eventsFired[selector][eventName] =
-      event || true
-
-    originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
   }
 }
 
@@ -1234,13 +1243,13 @@ function _bindStates (statesTargetObject, component, extraStates) {
 
     statesTargetObject[stateSpecName] = stateSpec.value
 
-    _defineSettableState(component, statesTargetObject, stateSpec, stateSpecName)
+    _defineSettableState(component, component.state, statesTargetObject, stateSpec, stateSpecName)
   }
 }
 
-function _defineSettableState (component, statesTargetObject, stateSpec, stateSpecName) {
+function _defineSettableState (component, statesHostObject, statesTargetObject, stateSpec, stateSpecName) {
   // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in statesTargetObject
-  Object.defineProperty(component, stateSpecName, {
+  Object.defineProperty(statesHostObject, stateSpecName, {
     configurable: true,
 
     get: function get () {
@@ -4291,11 +4300,11 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
       continue
     }
 
-    // Otherwise, assume the user wants to access one of the properties of the component instance
-    // Note that the 'properties' defined in the component's bytecode should have been set up upstream by the
-    // player initialization process. hostInstance is a HaikuPlayer which has a series of getter/setter props
-    // set up corresponding to whatever the 'properties' were set to
-    summonables[key] = hostInstance[key]
+    // Otherwise, assume the user wants to access one of the states of the component instance
+    // Note that the 'states' defined in the component's bytecode should have been set up upstream by the
+    // player initialization process. hostInstance is a HaikuPlayer which has a state prop which has
+    // getter/setter props set up corresponding to whatever the 'states' were set to
+    summonables[key] = hostInstance.state[key]
   }
 
   return summonables
@@ -10698,6 +10707,10 @@ module.exports = getTypeAsString
 },{}],67:[function(_dereq_,module,exports){
 module.exports = function getWindowsBrowser (window) {
   var rv = -1
+  if (!window) return rv
+  if (!window.navigator) return rv
+  if (!window.navigator.userAgent) return rv
+  if (!window.navigator.appName) return rv
   if (window.navigator.appName === 'Microsoft Internet Explorer') {
     var ua = window.navigator.userAgent
     var re = new RegExp('MSIE ([0-9]{1,}[\\.0-9]{0,})')
@@ -10730,6 +10743,9 @@ module.exports = isBlankString
 
 },{}],70:[function(_dereq_,module,exports){
 module.exports = function isEdge (window) {
+  if (!window) return false
+  if (!window.navigator) return false
+  if (!window.navigator.userAgent) return false
   return /Edge\/\d./i.test(window.navigator.userAgent)
 }
 
