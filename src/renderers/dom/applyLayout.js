@@ -4,21 +4,29 @@
 
 var isTextNode = require('./isTextNode')
 var isIE = require('./isIE')
+var isEdge = require('./isEdge')
+var getWindowsBrowserVersion = require('./getWindowsBrowserVersion')
 var isMobile = require('./isMobile')
 var applyCssLayout = require('./../../layout/applyCssLayout')
 var scopeOfElement = require('./../../layout/scopeOfElement')
 var hasPreserve3d = require('./../../vendor/modernizr').hasPreserve3d
+
+var DEFAULT_PIXEL_RATIO = 1.0
+var SVG = 'svg'
 
 var _window = typeof window !== 'undefined' && window
 var PLATFORM_INFO = {
   hasWindow: !!_window,
   isMobile: isMobile(_window), // Dumb navigator check
   isIE: isIE(_window), // Dumb navigator check - use feature detection instead?
-  hasPreserve3d: hasPreserve3d(_window) // I dunno if we actually need this
+  isEdge: isEdge(_window),
+  windowsBrowserVersion: getWindowsBrowserVersion(_window),
+  hasPreserve3d: hasPreserve3d(_window), // I dunno if we actually need this
+  devicePixelRatio: DEFAULT_PIXEL_RATIO
 }
 
-var DEFAULT_PIXEL_RATIO = 1.0
-var SVG = 'svg'
+console.info('[haiku player] platform info:', JSON.stringify(PLATFORM_INFO))
+
 var SVG_RENDERABLES = {
   a: true,
   audio: true,
