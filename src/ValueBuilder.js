@@ -916,11 +916,11 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
       continue
     }
 
-    // Otherwise, assume the user wants to access one of the properties of the component instance
-    // Note that the 'properties' defined in the component's bytecode should have been set up upstream by the
-    // player initialization process. hostInstance is a HaikuPlayer which has a series of getter/setter props
-    // set up corresponding to whatever the 'properties' were set to
-    summonables[key] = hostInstance[key]
+    // Otherwise, assume the user wants to access one of the states of the component instance
+    // Note that the 'states' defined in the component's bytecode should have been set up upstream by the
+    // player initialization process. hostInstance is a HaikuPlayer which has a state prop which has
+    // getter/setter props set up corresponding to whatever the 'states' were set to
+    summonables[key] = hostInstance.state[key]
   }
 
   return summonables

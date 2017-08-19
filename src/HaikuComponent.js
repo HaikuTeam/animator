@@ -77,6 +77,7 @@ function HaikuComponent (bytecode, context, config) {
 
   // STATES
   this._states = {} // Storage for getter/setter actions in userland logic
+  this.state = {} // Public accessor object, e.g. this.state.foo = 1
   this._stateChanges = {}
   this._anyStateChange = false
 
@@ -510,16 +511,20 @@ function _bindEventHandler (
     j,
     k
   ) {
-    component._anyEventChange = true
+    // Only fire the event listeners if the component is in 'live' interaction mode,
+    // i.e., not currently being edited inside the Haiku authoring environment
+    if (component.config.options.interactionMode.type === 'live') {
+      component._anyEventChange = true
 
-    if (!component._eventsFired[selector]) {
-      component._eventsFired[selector] = {}
+      if (!component._eventsFired[selector]) {
+        component._eventsFired[selector] = {}
+      }
+
+      component._eventsFired[selector][eventName] =
+        event || true
+
+      originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
     }
-
-    component._eventsFired[selector][eventName] =
-      event || true
-
-    originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
   }
 }
 
@@ -588,13 +593,13 @@ function _bindStates (statesTargetObject, component, extraStates) {
 
     statesTargetObject[stateSpecName] = stateSpec.value
 
-    _defineSettableState(component, statesTargetObject, stateSpec, stateSpecName)
+    _defineSettableState(component, component.state, statesTargetObject, stateSpec, stateSpecName)
   }
 }
 
-function _defineSettableState (component, statesTargetObject, stateSpec, stateSpecName) {
+function _defineSettableState (component, statesHostObject, statesTargetObject, stateSpec, stateSpecName) {
   // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in statesTargetObject
-  Object.defineProperty(component, stateSpecName, {
+  Object.defineProperty(statesHostObject, stateSpecName, {
     configurable: true,
 
     get: function get () {

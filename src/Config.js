@@ -95,7 +95,11 @@ var DEFAULTS = {
 
     // cache: object
     // General purpose cache to use in rendering
-    cache: {}
+    cache: {},
+
+    // interactionMode: object
+    // Control how this instance handles interaction, e.g. preview mode
+    interactionMode: { type: 'live' }
   },
 
   // states: Object|null

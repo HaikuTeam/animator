@@ -25,7 +25,7 @@ module.exports = {
       'lala':{
         handler:function(event) {
           console.log('#a got lala', event)
-          this.foobar = 'WAHOOOO'
+          this.state.foobar = 'WAHOOOO'
         }
       }
     },

@@ -29,7 +29,7 @@ module.exports = {
       name: 'onclick',
       type: 'number',
       handler: function () {
-        this.clicks = this.clicks + 1
+        this.state.clicks = this.state.clicks + 1
       }
     }
   ],
