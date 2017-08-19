@@ -92,7 +92,7 @@ function applyCssLayout (
     var attributeTransform = domElement.getAttribute('transform')
     // IE doesn't support using transform on the CSS style in SVG elements, so if we are in SVG,
     // and if we are inside an IE context, use the transform attribute itself
-    if (context.config.options.platform.isIE) {
+    if (context.config.options.platform.isIE || context.config.options.platform.isEdge) {
       if (elementScope === SVG) {
         var matrixString = formatTransform(
           computedLayout.matrix,
