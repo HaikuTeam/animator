@@ -2352,5 +2352,6 @@
       "label": "fix",
       "message": "Apply transform as attribute if browser is IE or Edge"
     }
-  }
+  },
+  "2.1.36": {}
 }
