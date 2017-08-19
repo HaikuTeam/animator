@@ -2353,5 +2353,6 @@
       "message": "Apply transform as attribute if browser is IE or Edge"
     }
   },
-  "2.1.36": {}
+  "2.1.36": {},
+  "2.1.37": {}
 }
