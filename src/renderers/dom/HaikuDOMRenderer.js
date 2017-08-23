@@ -157,6 +157,11 @@ HaikuDOMRenderer.prototype.initialize = function initialize (domElement) {
     clearMouch()
   })
 
+  domElement.addEventListener('wheel', function _wheelHandler (mouseEvent) {
+    setMouse(mouseEvent)
+    setMouches()
+  })
+
   var doc = domElement.ownerDocument
   var win = doc.defaultView || doc.parentWindow
 
