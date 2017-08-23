@@ -2356,5 +2356,12 @@
   "2.1.36": {},
   "2.1.37": {},
   "2.1.39": {},
-  "2.1.40": {}
+  "2.1.40": {},
+  "2.1.41": {
+    "050374667abfddb4e52e2a9a030652b37303fe38": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "update user.mouse on scroll as well as move"
+    }
+  }
 }
