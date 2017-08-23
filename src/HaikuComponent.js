@@ -888,7 +888,7 @@ container,
   inputsChanged,
   patchOptions
 ) {
-Layout3D.initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing in the first place
+  Layout3D.initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing in the first place
 
   var deltas = {} // This is what we're going to return - a dictionary of ids to elements
 
@@ -965,7 +965,7 @@ function _applyContextChanges (
   )
 
   if (renderOptions.sizing) {
-  _computeAndApplyPresetSizing(template, container, renderOptions.sizing)
+    _computeAndApplyPresetSizing(template, container, renderOptions.sizing)
   }
 
   _computeAndApplyTreeLayouts(template, container, renderOptions)
@@ -1073,7 +1073,7 @@ function _findMatchingElementsByCssSelector (selector, template, cache) {
 function _computeAndApplyTreeLayouts (tree, container, options) {
   if (!tree || typeof tree === 'string') return void 0
 
-_computeAndApplyNodeLayout(tree, container, options)
+  _computeAndApplyNodeLayout(tree, container, options)
 
   if (!tree.children) return void 0
   if (tree.children.length < 1) return void 0
@@ -1299,8 +1299,8 @@ function _isBytecode (thing) {
   return thing && typeof thing === OBJECT_TYPE && thing.template
 }
 
-function _isComponent (thing) {
-  return thing && typeof thing.render === FUNCTION_TYPE
-}
+// function _isComponent (thing) {
+//   return thing && typeof thing.render === FUNCTION_TYPE
+// }
 
 module.exports = HaikuComponent
