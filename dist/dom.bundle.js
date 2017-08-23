@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.40",
+  "version": "2.1.41",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -9730,6 +9730,11 @@ HaikuDOMRenderer.prototype.initialize = function initialize (domElement) {
   domElement.addEventListener('mouseleave', function _mouseenterHandler (mouseEvent) {
     clearMouse()
     clearMouch()
+  })
+
+  domElement.addEventListener('wheel', function _wheelHandler (mouseEvent) {
+    setMouse(mouseEvent)
+    setMouches()
   })
 
   var doc = domElement.ownerDocument
