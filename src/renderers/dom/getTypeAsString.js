@@ -4,6 +4,7 @@
 
 var STRING = 'string'
 var FUNCTION = 'function'
+var OBJECT = 'object'
 
 function getType (virtualElement) {
   var typeValue = virtualElement.elementName
@@ -14,6 +15,14 @@ function getType (virtualElement) {
 function thingToTagName (thing) {
   if (typeof thing === STRING && thing.length > 0) return thing
   if (typeof thing === FUNCTION) return fnToTagName(thing)
+  if (thing && typeof thing === OBJECT) return objToTagName(thing)
+  _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
+  return 'div'
+}
+
+function objToTagName (obj) {
+  if (obj.name) return obj.name
+  if (obj.metadata && obj.metadata.name) return obj.metadata.name
   _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
   return 'div'
 }

@@ -5,22 +5,21 @@ module.exports = {
   },
   options: {},
   states: {
-    width: { type: 'number', value: 0 },
-    height: { type: 'number', value: 0 },
-    linecap: { type: 'string', value: 'square' },
-    stroke: { type: 'string', value: '#000000' },
+    width: { type: 'number', value: 100 },
+    height: { type: 'number', value: 100 },
     points: {
       type: 'array',
       // Please refer to SVGPoints.pathToPoints for data format reference
       value: [
-        { x:0, y: 0, moveTo: true},
-        { x:0, y: 0 }
+        { x: 0, y: 0, moveTo: true },
+        { x: 100, y: 100 }
       ]
     },
-    stroke: { type: 'string', value: 'none' },
+    stroke: { type: 'string', value: '#000000' },
     strokeWidth: { type: 'number', value: 1 },
     fill: { type: 'string', value: 'none' },
-    fillRule: { type: 'string', value: 'evenodd' }
+    fillRule: { type: 'string', value: 'evenodd' },
+    linecap: { type: 'string', value: 'square' }
   },
   eventHandlers: {},
   timelines: {
@@ -99,8 +98,8 @@ module.exports = {
       },
       "haiku:HaikuPathPath": {
         d: { "0": {
-          value: function ({ x1, y1, x2, y2 }) {
-            "M" + x1 + "," + y1 + " L" + x2 + "," + y2
+          value: function ({ points }) {
+            return points
           }
         } },
         stroke: { "0": {

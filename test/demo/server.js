@@ -25,6 +25,10 @@ var swapPlayerRequirePath = tools.makeStringTransform(
       .split(`'@haiku/player/dom/react'`)
       .join(`'./../../../../../src/adapters/react-dom'`)
 
+    content = content
+      .split(`'@haiku/player/components/`)
+      .join(`'./../../../../../components/`)
+
     return done(null, content)
   }
 )
