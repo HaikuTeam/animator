@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.39",
+  "version": "2.1.40",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -1530,7 +1530,7 @@ function _applyBehaviors (
 function _gatherDeltaPatches (
   component,
   template,
-  container,
+container,
   context,
   states,
   timelinesRunning,
@@ -1554,7 +1554,7 @@ function _gatherDeltaPatches (
   if (patchOptions.sizing) {
     _computeAndApplyPresetSizing(
       template,
-      container,
+    container,
       patchOptions.sizing,
       deltas
     )
@@ -1582,7 +1582,9 @@ function _applyContextChanges (
   if (component._bytecode.timelines) {
     for (var timelineName in component._bytecode.timelines) {
       var timeline = component.getTimeline(timelineName)
-      if (!timeline) continue
+      if (!timeline) {
+        continue
+      }
       // No need to execute behaviors on timelines that aren't active
       if (!timeline.isActive()) {
         continue
@@ -1639,28 +1641,25 @@ function _expandTreeElement (element, component, context) {
     }
   }
 
-  if (typeof element.elementName === FUNCTION_TYPE) {
+  // In addition to plain objects, a sub-element can also be a component,
+  // which we currently detect by checking to see if it looks like 'bytecode'
+  if (_isBytecode(element.elementName)) {
+    // Don't instantiate a second time if we already have the instance at this node
     if (!element.__instance) {
-      element.__instance = _instantiateElement(element, context)
-    }
-
-    // Cache previous messages and don't repeat any that have the same value as last time
-    if (!element.previous) element.previous = {}
-
-    for (var name in element.attributes) {
-      if (element.previous[name] === element.attributes[name]) continue
-
-      element.previous[name] = element.attributes[name]
-      // We might have a component from a system that doesn't adhere to our own internal API
-      if (element.__instance.instance) {
-        element.__instance.instance[name] = element.attributes[name] // Apply top-down behavior
-      }
+      // function HaikuComponent (bytecode, context, config)
+      element.__instance = new HaikuComponent(element.elementName, context, {
+        // Exclude states, etc. (everything except 'options') since those should override *only* on the root element being instantiated
+        options: context.config.options
+      })
+      // We duplicate the behavior of HaikuContext and start the default timeline
+      element.__instance.startTimeline(DEFAULT_TIMELINE_NAME)
     }
 
     // Call render on the interior element to get its full subtree, and recurse
-    var interior = element.__instance.render()
-
-    return _expandTreeElement(interior, element.__instance, context)
+    // HaikuComponent.prototype.render = (container, renderOptions) => {...}
+    // The element is the 'container' in that it should have a layout computed computed already?
+    var interiorTree = element.__instance.render(element, element.__instance.config.options)
+    return _expandTreeElement(interiorTree, element.__instance, context)
   }
 
   if (typeof element.elementName === STRING_TYPE) {
@@ -1678,30 +1677,6 @@ function _expandTreeElement (element, component, context) {
 
   // If we got here, we've either completed recursion or there's nothing special to do - so just return the element itself
   return element
-}
-
-function _instantiateElement (element, context) {
-  // Similar to React, if the element name is a function, invoke it to get its renderable
-  var something = element.elementName(
-    element.attributes,
-    element.children,
-    context
-  )
-
-  var instance
-
-  // The thing returned can either be raw bytecode, or a component instance.
-  // We do our best to detect this, and proceed with a HaikuComponent instance.
-  if (_isBytecode(something)) {
-    instance = new HaikuComponent(something, context, {
-      // Exclude states, etc. (everythign except 'options') since those should override *only* on the root element being instantiated
-      options: context.config.options
-    })
-  } else if (_isComponent(something)) {
-    instance = something
-  }
-
-  return instance
 }
 
 function _shallowCloneComponentTreeElement (element) {
@@ -1974,9 +1949,9 @@ function _isBytecode (thing) {
   return thing && typeof thing === OBJECT_TYPE && thing.template
 }
 
-function _isComponent (thing) {
-  return thing && typeof thing.render === FUNCTION_TYPE
-}
+// function _isComponent (thing) {
+//   return thing && typeof thing.render === FUNCTION_TYPE
+// }
 
 module.exports = HaikuComponent
 
@@ -3408,6 +3383,10 @@ PARSERS['d'] = function _parseD (value) {
   // in case of d="" for any reason, don't try to expand this otherwise this will choke
   // #TODO: arguably we should preprocess SVGs before things get this far; try svgo?
   if (!value) return []
+  // Allow points to return an array for convenience, and let downstream marshal it
+  if (Array.isArray(value)) {
+    return value
+  }
   return SVGPoints.pathToPoints(value)
 }
 PARSERS['color'] = function _parseColor (value) {
@@ -10664,6 +10643,7 @@ module.exports = getLocalDomEventPosition
 
 var STRING = 'string'
 var FUNCTION = 'function'
+var OBJECT = 'object'
 
 function getType (virtualElement) {
   var typeValue = virtualElement.elementName
@@ -10674,6 +10654,14 @@ function getType (virtualElement) {
 function thingToTagName (thing) {
   if (typeof thing === STRING && thing.length > 0) return thing
   if (typeof thing === FUNCTION) return fnToTagName(thing)
+  if (thing && typeof thing === OBJECT) return objToTagName(thing)
+  _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
+  return 'div'
+}
+
+function objToTagName (obj) {
+  if (obj.name) return obj.name
+  if (obj.metadata && obj.metadata.name) return obj.metadata.name
   _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
   return 'div'
 }
