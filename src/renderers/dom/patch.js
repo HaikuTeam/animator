@@ -11,7 +11,8 @@ function patch (
   locator,
   context
 ) {
-  if (Object.keys(patchesDict) < 1) {
+  var keysToUpdate = Object.keys(patchesDict)
+  if (keysToUpdate.length < 1) {
     return topLevelDomElement
   }
 

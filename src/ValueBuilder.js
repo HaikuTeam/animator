@@ -59,11 +59,13 @@ PARSERS['style.floodColor'] = PARSERS['color']
 PARSERS['style.lightingColor'] = PARSERS['color']
 PARSERS['style.stopColor'] = PARSERS['color']
 PARSERS['points'] = function _parsePoints (value) {
+  if (Array.isArray(value)) return value
   return SVGPoints.polyPointsStringToPoints(value)
 }
 
 var GENERATORS = {}
 GENERATORS['d'] = function _genD (value) {
+  if (typeof value === 'string') return value
   return SVGPoints.pointsToPath(value)
 }
 GENERATORS['color'] = function _genColor (value) {
@@ -95,6 +97,7 @@ GENERATORS['style.floodColor'] = GENERATORS['color']
 GENERATORS['style.lightingColor'] = GENERATORS['color']
 GENERATORS['style.stopColor'] = GENERATORS['color']
 GENERATORS['points'] = function _genPoints (value) {
+  if (typeof value === 'string') return value
   return SVGPoints.pointsToPolyString(value)
 }
 
@@ -1029,9 +1032,9 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
       )
 
       // The function's return value is expected to be in the *raw* format - we parse to allow for interpolation
-      if (PARSERS[outputName]) {
-        var parser = PARSERS[outputName]
-        parsee[ms].value = parser(functionReturnValue)
+      var parser1 = this.getParser(outputName, matchingElement)
+      if (parser1) {
+        parsee[ms].value = parser1(functionReturnValue)
       } else {
         parsee[ms].value = functionReturnValue
       }
@@ -1047,8 +1050,9 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
         parsee[ms].curve = descriptor.curve
       }
 
-      if (PARSERS[outputName]) {
-        parsee[ms].value = PARSERS[outputName](descriptor.value)
+      var parser2 = this.getParser(outputName, matchingElement)
+      if (parser2) {
+        parsee[ms].value = parser2(descriptor.value)
       } else {
         parsee[ms].value = descriptor.value
       }
@@ -1059,6 +1063,16 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
   return parsee
 }
 
+ValueBuilder.prototype.getParser = function getParser (outputName, virtualElement) {
+  // TODO: Allow 'component' elements to provide their own parsers/generators
+  return PARSERS[outputName]
+}
+
+ValueBuilder.prototype.getGenerator = function getGenerator (outputName, virtualElement) {
+  // TODO: Allow 'component' elements to provide their own parsers/generators
+  return GENERATORS[outputName]
+}
+
 ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFinalValueFromParsedValue (
   timelineName,
   flexId,
@@ -1066,8 +1080,9 @@ ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFin
   outputName,
   computedValue
 ) {
-  if (GENERATORS[outputName]) {
-    return GENERATORS[outputName](computedValue)
+  var generator = this.getGenerator(outputName, matchingElement)
+  if (generator) {
+    return generator(computedValue)
   } else {
     return computedValue
   }
@@ -1238,6 +1253,10 @@ ValueBuilder.prototype.grabValue = function _grabValue (
 
   return finalValue
 }
+
+// function _isBytecode (thing) {
+//   return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines
+// }
 
 ValueBuilder.INJECTABLES = INJECTABLES
 ValueBuilder.PARSERS = PARSERS

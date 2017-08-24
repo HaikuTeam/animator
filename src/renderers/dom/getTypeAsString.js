@@ -21,9 +21,9 @@ function thingToTagName (thing) {
 }
 
 function objToTagName (obj) {
-  if (obj.name) return obj.name
-  if (obj.metadata && obj.metadata.name) return obj.metadata.name
-  _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
+  // if (obj.name) return obj.name
+  // if (obj.metadata && obj.metadata.name) return obj.metadata.name
+  // _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
   return 'div'
 }
 

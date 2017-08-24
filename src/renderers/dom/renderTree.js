@@ -4,23 +4,7 @@
 
 var isBlankString = require('./isBlankString')
 var removeElement = require('./removeElement')
-
-function _cloneVirtualElement (virtualElement) {
-  return {
-    elementName: virtualElement.elementName,
-    attributes: _cloneAttributes(virtualElement.attributes),
-    children: virtualElement.children
-  }
-}
-
-function _cloneAttributes (attributes) {
-  if (!attributes) return {}
-  var clone = {}
-  for (var key in attributes) {
-    clone[key] = attributes[key]
-  }
-  return clone
-}
+var _cloneVirtualElement = require('./cloneVirtualElement')
 
 function renderTree (
   domElement,
@@ -28,7 +12,8 @@ function renderTree (
   virtualChildren,
   locator,
   context,
-  isPatchOperation
+  isPatchOperation,
+  doSkipChildren
 ) {
   context._addElementToHashTable(domElement, virtualElement)
 
@@ -50,6 +35,12 @@ function renderTree (
   // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
   // so the most we want to do is update the attributes and layout properties, but leave the rest alone
   if (context._isHorizonElement(virtualElement)) {
+    return domElement
+  }
+
+  // During patch renders we don't want to drill down and update children as
+  // we're just going to end up doing a lot of unnecessary DOM writes
+  if (doSkipChildren) {
     return domElement
   }
 
@@ -96,17 +87,6 @@ function renderTree (
           context
         )
         continue
-      }
-
-      if (!domChild.haiku) domChild.haiku = {}
-      domChild.haiku.locator = sublocator
-      if (!context.config.options.cache[domChild.haiku.locator]) {
-        context.config.options.cache[domChild.haiku.locator] = {}
-      }
-
-      if (!domChild.haiku.element) {
-        // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-        domChild.haiku.element = _cloneVirtualElement(virtualChild)
       }
 
       updateElement(

@@ -15,7 +15,7 @@ var Config = require('./Config')
 
 var PLAYER_VERSION = require('./../package.json').version
 
-var FUNCTION_TYPE = 'function'
+// var FUNCTION_TYPE = 'function'
 var STRING_TYPE = 'string'
 var OBJECT_TYPE = 'object'
 
@@ -117,6 +117,9 @@ function HaikuComponent (bytecode, context, config) {
 
   // List of subscribers to frame events, kept inside a single dict as a performance optimization
   this._frameEventListeners = {}
+
+  // Dictionary of haiku-ids pointing to any nested components we have in the tree, used for patching
+  this._nestedComponentElements = {}
 
   this.on('timeline:tick', function _anyTimelineTick (timelineName, timelineFrame, timelineTime) {
     if (this._frameEventListeners[timelineName]) {
@@ -398,6 +401,10 @@ HaikuComponent.prototype._getInjectables = function _getInjectables (element) {
 
 HaikuComponent.prototype._getTopLevelElement = function _getTopLevelElement () {
   return this._template
+}
+
+HaikuComponent.prototype.getAddressableProperties = function getAddressableProperties () {
+  return this._bytecode.states || {}
 }
 
 /**
@@ -690,8 +697,16 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
     timelinesRunning,
     eventsFired,
     inputsChanged,
-    patchOptions || {}
+    patchOptions
   )
+
+  for (var flexId in this._nestedComponentElements) {
+    var nestedComponentEl = this._nestedComponentElements[flexId]
+    var subPatches = nestedComponentEl.__instance.patch(nestedComponentEl, {})
+    for (var subFlexId in subPatches) {
+      this._lastDeltaPatches[subFlexId] = subPatches[subFlexId]
+    }
+  }
 
   this._clearDetectedEventsFired()
   this._clearDetectedInputChanges()
@@ -699,7 +714,7 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
   return this._lastDeltaPatches
 }
 
-HaikuComponent.prototype.render = function render (container, renderOptions) {
+HaikuComponent.prototype.render = function render (container, renderOptions, surrogates) {
   var time = this._context.clock.getExplicitTime()
 
   for (var timelineName in this._timelineInstances) {
@@ -880,7 +895,7 @@ function _applyBehaviors (
 function _gatherDeltaPatches (
   component,
   template,
-container,
+  container,
   context,
   states,
   timelinesRunning,
@@ -904,7 +919,7 @@ container,
   if (patchOptions.sizing) {
     _computeAndApplyPresetSizing(
       template,
-    container,
+      container,
       patchOptions.sizing,
       deltas
     )
@@ -1003,13 +1018,21 @@ function _expandTreeElement (element, component, context) {
       })
       // We duplicate the behavior of HaikuContext and start the default timeline
       element.__instance.startTimeline(DEFAULT_TIMELINE_NAME)
+
+      var flexId = element.attributes && (element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes.id)
+      component._nestedComponentElements[flexId] = element
     }
 
     // Call render on the interior element to get its full subtree, and recurse
     // HaikuComponent.prototype.render = (container, renderOptions) => {...}
     // The element is the 'container' in that it should have a layout computed computed already?
-    var interiorTree = element.__instance.render(element, element.__instance.config.options)
-    return _expandTreeElement(interiorTree, element.__instance, context)
+
+    var wrapper = _shallowCloneComponentTreeElement(element)
+    var surrogates = wrapper.children
+    var subtree = element.__instance.render(element, element.__instance.config.options, surrogates)
+    var expansion = _expandTreeElement(subtree, element.__instance, context)
+    wrapper.children = [expansion]
+    return wrapper
   }
 
   if (typeof element.elementName === STRING_TYPE) {
@@ -1107,11 +1130,29 @@ function _computeAndApplyNodeLayout (element, parent, options) {
 }
 
 function _applyPropertyToElement (element, name, value, context, component) {
+  var type = element.elementName
+
+  if (element.__instance) {
+    // See if the instance at this node will allow us to apply this property
+    var addressables = element.__instance.getAddressableProperties()
+    if (addressables[name] !== undefined) {
+      // Call the 'setter' of the given addressable property
+      // TODO: Runtime type check?
+      element.__instance.state[name] = value
+      // Early return - the component instance will handle applying the
+      // property internally
+      return
+    }
+    // If we get here, then we will just apply to the wrapper element itself
+    // using any of the built-in vanity handler functions
+    type = 'div' // TODO: How will this assumption bite us later?
+  }
+
   if (
-    vanityHandlers[element.elementName] &&
-    vanityHandlers[element.elementName][name]
+    vanityHandlers[type] &&
+    vanityHandlers[type][name]
   ) {
-    vanityHandlers[element.elementName][name](
+    vanityHandlers[type][name](
       name,
       element,
       value,
@@ -1296,7 +1337,7 @@ function _computeAndApplyPresetSizing (element, container, mode, deltas) {
 }
 
 function _isBytecode (thing) {
-  return thing && typeof thing === OBJECT_TYPE && thing.template
+  return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines
 }
 
 // function _isComponent (thing) {

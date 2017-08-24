@@ -5,8 +5,10 @@
 var applyLayout = require('./applyLayout')
 var assignAttributes = require('./assignAttributes')
 var getTypeAsString = require('./getTypeAsString')
+var _cloneVirtualElement = require('./cloneVirtualElement')
 
 var OBJECT = 'object'
+var STRING = 'string'
 
 function updateElement (
   domElement,
@@ -24,6 +26,14 @@ function updateElement (
   }
 
   if (!domElement.haiku) domElement.haiku = {}
+  domElement.haiku.locator = locator
+  if (!context.config.options.cache[domElement.haiku.locator]) {
+    context.config.options.cache[domElement.haiku.locator] = {}
+  }
+  if (!domElement.haiku.element) {
+    // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
+    domElement.haiku.element = _cloneVirtualElement(virtualElement)
+  }
 
   var domTagName = domElement.tagName.toLowerCase().trim()
   var elName = normalizeName(getTypeAsString(virtualElement))
@@ -89,13 +99,18 @@ function updateElement (
   }
 
   if (Array.isArray(virtualElement.children)) {
+    // For performance, we don't render children during a patch operation, except in the case
+    // that we have some text content, which we (hack) need to always assume needs an update.
+    // TODO: Fix this hack and make smarter
+    var doSkipChildren = isPatchOperation && (typeof virtualElement.children[0] !== STRING)
     renderTree(
       domElement,
       virtualElement,
       virtualElement.children,
       locator,
       context,
-      isPatchOperation
+      isPatchOperation,
+      doSkipChildren
     )
   } else if (!virtualElement.children) {
     // In case of falsy virtual children, we still need to remove elements that were already there

@@ -6,28 +6,33 @@ module.exports = {
     project: 'Clickable Square',
     organization: 'Haiku'
   },
-  properties: [
-    {
-      name: 'clicks',
+  states: {
+    'clicks': {
       type: 'number',
       value: 0
     },
-    {
-      name: 'rotation',
+    'rotation': {
       type: 'number',
       value: 0
     }
-  ],
-  eventHandlers: [
-    {
-      name: 'click',
-      selector: '#box',
-      handler: function () {
-        this.getTimelines()['Move'].gotoAndPlay(0)
-        this.state.clicks = this.state.clicks + 1
+  },
+  eventHandlers: {
+    '#box': {
+      'click': {
+        handler: function () {
+          this.getTimelines()['Move'].gotoAndPlay(0)
+          this.state.clicks = this.state.clicks + 1
+        }
+      }
+    },
+    '#path': {
+      'click': {
+        handler: function () {
+          console.log('#path click called')
+        }
       }
     }
-  ],
+  },
   timelines: {
     Default: {
       '#box': {
@@ -66,6 +71,54 @@ module.exports = {
         'translation.y': {
           0: {
             value: 60
+          }
+        }
+      },
+      '#path': {
+        'translation.x': {
+          '0': {
+            value: 45
+          }
+        },
+        'width': {
+          '0': {
+            value: 100
+          }
+        },
+        'height': {
+          '0': {
+            value: 100
+          }
+        },
+        'stroke': {
+          '0': {
+            value: '#fff'
+          }
+        },
+        'strokeWidth': {
+          '0': {
+            value: 5
+          }
+        },
+        'd': {
+          '0': {
+            value: [
+              { x: 0, y: 0, moveTo: true },
+              { x: 10, y: 10 },
+              { x: 20, y: 20 },
+              { x: 30, y: 30 },
+              { x: 40, y: 40 }
+            ],
+            curve: 'easeInOutBounce'
+          },
+          '2500': {
+            value: [
+              { x: 0, y: 0, moveTo: true },
+              { x: 10, y: 5 },
+              { x: 20, y: 25 },
+              { x: 50, y: 80 },
+              { x: 150, y: 200 }
+            ]
           }
         }
       }

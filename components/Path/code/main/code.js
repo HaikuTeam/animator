@@ -5,14 +5,14 @@ module.exports = {
   },
   options: {},
   states: {
-    width: { type: 'number', value: 100 },
-    height: { type: 'number', value: 100 },
-    points: {
+    width: { type: 'number', value: 0 },
+    height: { type: 'number', value: 0 },
+    d: {
       type: 'array',
       // Please refer to SVGPoints.pathToPoints for data format reference
       value: [
         { x: 0, y: 0, moveTo: true },
-        { x: 100, y: 100 }
+        { x: 0, y: 0 }
       ]
     },
     stroke: { type: 'string', value: '#000000' },
@@ -98,8 +98,8 @@ module.exports = {
       },
       "haiku:HaikuPathPath": {
         d: { "0": {
-          value: function ({ points }) {
-            return points
+          value: function ({ d }) {
+            return d
           }
         } },
         stroke: { "0": {
