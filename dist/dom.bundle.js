@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.41",
+  "version": "2.1.42",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -435,8 +435,7 @@ Config.seed = _seed
 
 module.exports = Config
 
-},{"./vendor/assign":83}],4:[function(_dereq_,module,exports){
-(function (global){
+},{"./vendor/assign":88}],4:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -444,6 +443,7 @@ module.exports = Config
 var raf = _dereq_('./vendor/raf')
 var assign = _dereq_('./vendor/assign')
 var SimpleEventEmitter = _dereq_('./helpers/SimpleEventEmitter')
+var HaikuGlobal = _dereq_('./HaikuGlobal')
 
 var NUMBER = 'number'
 
@@ -461,38 +461,27 @@ var DEFAULT_OPTIONS = {
   marginOfErrorForDelta: 1.0
 }
 
-// We need a global harness so we can have a single rAF loop even if we've got multiple Haiku Contexts on the same page
-var MAIN
-if (typeof window !== 'undefined') { // Window gets highest precedence since most likely we're running in DOM
-  MAIN = window
-} else if (typeof global !== 'undefined') {
-  MAIN = global
-} else {
-  // On the off-chance there is no real global, just use the clock class, even though that may mean we have multiple loops
-  MAIN = HaikuClock
-}
-
 // The global animation harness is a *singleton* so we don't want to create new ones even if this is reloaded
-if (!MAIN.HaikuGlobalAnimationHarness) {
-  MAIN.HaikuGlobalAnimationHarness = {}
-  MAIN.HaikuGlobalAnimationHarness.queue = [] // Just an array of functions to call on every rAF tick
+if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
+  HaikuGlobal.HaikuGlobalAnimationHarness = {}
+  HaikuGlobal.HaikuGlobalAnimationHarness.queue = [] // Just an array of functions to call on every rAF tick
   // The main frame function, loops through all those who need an animation tick and calls them
-  MAIN.HaikuGlobalAnimationHarness.frame = function HaikuGlobalAnimationHarnessFrame () {
-    var queue = MAIN.HaikuGlobalAnimationHarness.queue
+  HaikuGlobal.HaikuGlobalAnimationHarness.frame = function HaikuGlobalAnimationHarnessFrame () {
+    var queue = HaikuGlobal.HaikuGlobalAnimationHarness.queue
     var length = queue.length
     for (var i = 0; i < length; i++) {
       queue[i]()
     }
-    MAIN.HaikuGlobalAnimationHarness.raf = raf(MAIN.HaikuGlobalAnimationHarness.frame)
+    HaikuGlobal.HaikuGlobalAnimationHarness.raf = raf(HaikuGlobal.HaikuGlobalAnimationHarness.frame)
   }
   // Need a mechanism to cancel the rAF loop otherwise some contexts (e.g. tests) will have leaked handles
-  MAIN.HaikuGlobalAnimationHarness.cancel = function HaikuGlobalAnimationHarnessCancel () {
-    if (MAIN.HaikuGlobalAnimationHarness.raf) {
-      raf.cancel(MAIN.HaikuGlobalAnimationHarness.raf)
+  HaikuGlobal.HaikuGlobalAnimationHarness.cancel = function HaikuGlobalAnimationHarnessCancel () {
+    if (HaikuGlobal.HaikuGlobalAnimationHarness.raf) {
+      raf.cancel(HaikuGlobal.HaikuGlobalAnimationHarness.raf)
     }
   }
   // Trigger the loop to start; we'll push frame functions into its queue later
-  MAIN.HaikuGlobalAnimationHarness.frame()
+  HaikuGlobal.HaikuGlobalAnimationHarness.frame()
 }
 
 function HaikuClock (tickables, component, options) {
@@ -511,10 +500,10 @@ function HaikuClock (tickables, component, options) {
   this._reinitialize()
 
    // Bind to avoid `this`-detachment when called by raf
-  MAIN.HaikuGlobalAnimationHarness.queue.push(this.run.bind(this))
+  HaikuGlobal.HaikuGlobalAnimationHarness.queue.push(this.run.bind(this))
 
   // Tests and others may need this to cancel the rAF loop, to avoid leaked handles
-  this.GLOBAL_ANIMATION_HARNESS = MAIN.HaikuGlobalAnimationHarness
+  this.GLOBAL_ANIMATION_HARNESS = HaikuGlobal.HaikuGlobalAnimationHarness
 }
 
 HaikuClock.prototype._reinitialize = function _reinitialize () {
@@ -646,8 +635,7 @@ HaikuClock.prototype.getFrameDuration = function getFrameDuration () {
 
 module.exports = HaikuClock
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./helpers/SimpleEventEmitter":18,"./vendor/assign":83,"./vendor/raf":136}],5:[function(_dereq_,module,exports){
+},{"./HaikuGlobal":7,"./helpers/SimpleEventEmitter":19,"./vendor/assign":88,"./vendor/raf":141}],5:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -665,7 +653,7 @@ var Config = _dereq_('./Config')
 
 var PLAYER_VERSION = _dereq_('./../package.json').version
 
-var FUNCTION_TYPE = 'function'
+// var FUNCTION_TYPE = 'function'
 var STRING_TYPE = 'string'
 var OBJECT_TYPE = 'object'
 
@@ -767,6 +755,9 @@ function HaikuComponent (bytecode, context, config) {
 
   // List of subscribers to frame events, kept inside a single dict as a performance optimization
   this._frameEventListeners = {}
+
+  // Dictionary of haiku-ids pointing to any nested components we have in the tree, used for patching
+  this._nestedComponentElements = {}
 
   this.on('timeline:tick', function _anyTimelineTick (timelineName, timelineFrame, timelineTime) {
     if (this._frameEventListeners[timelineName]) {
@@ -1048,6 +1039,14 @@ HaikuComponent.prototype._getInjectables = function _getInjectables (element) {
 
 HaikuComponent.prototype._getTopLevelElement = function _getTopLevelElement () {
   return this._template
+}
+
+HaikuComponent.prototype.getAddressableProperties = function getAddressableProperties () {
+  return this._bytecode.states || {}
+}
+
+HaikuComponent.prototype.getParser = function getParser (outputName, virtualElement) {
+  return this._bytecode.parsers && this._bytecode.parsers[outputName]
 }
 
 /**
@@ -1340,8 +1339,16 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
     timelinesRunning,
     eventsFired,
     inputsChanged,
-    patchOptions || {}
+    patchOptions
   )
+
+  for (var flexId in this._nestedComponentElements) {
+    var nestedComponentEl = this._nestedComponentElements[flexId]
+    var subPatches = nestedComponentEl.__instance.patch(nestedComponentEl, {})
+    for (var subFlexId in subPatches) {
+      this._lastDeltaPatches[subFlexId] = subPatches[subFlexId]
+    }
+  }
 
   this._clearDetectedEventsFired()
   this._clearDetectedInputChanges()
@@ -1349,7 +1356,7 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
   return this._lastDeltaPatches
 }
 
-HaikuComponent.prototype.render = function render (container, renderOptions) {
+HaikuComponent.prototype.render = function render (container, renderOptions, surrogates) {
   var time = this._context.clock.getExplicitTime()
 
   for (var timelineName in this._timelineInstances) {
@@ -1530,7 +1537,7 @@ function _applyBehaviors (
 function _gatherDeltaPatches (
   component,
   template,
-container,
+  container,
   context,
   states,
   timelinesRunning,
@@ -1554,7 +1561,7 @@ container,
   if (patchOptions.sizing) {
     _computeAndApplyPresetSizing(
       template,
-    container,
+      container,
       patchOptions.sizing,
       deltas
     )
@@ -1653,13 +1660,21 @@ function _expandTreeElement (element, component, context) {
       })
       // We duplicate the behavior of HaikuContext and start the default timeline
       element.__instance.startTimeline(DEFAULT_TIMELINE_NAME)
+
+      var flexId = element.attributes && (element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes.id)
+      component._nestedComponentElements[flexId] = element
     }
 
     // Call render on the interior element to get its full subtree, and recurse
     // HaikuComponent.prototype.render = (container, renderOptions) => {...}
     // The element is the 'container' in that it should have a layout computed computed already?
-    var interiorTree = element.__instance.render(element, element.__instance.config.options)
-    return _expandTreeElement(interiorTree, element.__instance, context)
+
+    var wrapper = _shallowCloneComponentTreeElement(element)
+    var surrogates = wrapper.children
+    var subtree = element.__instance.render(element, element.__instance.config.options, surrogates)
+    var expansion = _expandTreeElement(subtree, element.__instance, context)
+    wrapper.children = [expansion]
+    return wrapper
   }
 
   if (typeof element.elementName === STRING_TYPE) {
@@ -1757,11 +1772,29 @@ function _computeAndApplyNodeLayout (element, parent, options) {
 }
 
 function _applyPropertyToElement (element, name, value, context, component) {
+  var type = element.elementName
+
+  if (element.__instance) {
+    // See if the instance at this node will allow us to apply this property
+    var addressables = element.__instance.getAddressableProperties()
+    if (addressables[name] !== undefined) {
+      // Call the 'setter' of the given addressable property
+      // TODO: Runtime type check?
+      element.__instance.state[name] = value
+      // Early return - the component instance will handle applying the
+      // property internally
+      return
+    }
+    // If we get here, then we will just apply to the wrapper element itself
+    // using any of the built-in vanity handler functions
+    type = 'div' // TODO: How will this assumption bite us later?
+  }
+
   if (
-    vanityHandlers[element.elementName] &&
-    vanityHandlers[element.elementName][name]
+    vanityHandlers[type] &&
+    vanityHandlers[type][name]
   ) {
-    vanityHandlers[element.elementName][name](
+    vanityHandlers[type][name](
       name,
       element,
       value,
@@ -1946,7 +1979,7 @@ function _computeAndApplyPresetSizing (element, container, mode, deltas) {
 }
 
 function _isBytecode (thing) {
-  return thing && typeof thing === OBJECT_TYPE && thing.template
+  return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines
 }
 
 // function _isComponent (thing) {
@@ -1955,7 +1988,7 @@ function _isBytecode (thing) {
 
 module.exports = HaikuComponent
 
-},{"./../package.json":2,"./Config":3,"./HaikuTimeline":8,"./Layout3D":9,"./ValueBuilder":11,"./helpers/SimpleEventEmitter":18,"./helpers/cssQueryTree":29,"./helpers/scopifyElements":34,"./helpers/upgradeBytecodeInPlace":35,"./properties/dom/vanities":47,"./vendor/assign":83}],6:[function(_dereq_,module,exports){
+},{"./../package.json":2,"./Config":3,"./HaikuTimeline":9,"./Layout3D":10,"./ValueBuilder":12,"./helpers/SimpleEventEmitter":19,"./helpers/cssQueryTree":30,"./helpers/scopifyElements":35,"./helpers/upgradeBytecodeInPlace":36,"./properties/dom/vanities":50,"./vendor/assign":88}],6:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -2436,7 +2469,59 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
 module.exports = HaikuContext
 
-},{"./../package.json":2,"./Config":3,"./HaikuClock":4,"./HaikuComponent":5,"./helpers/PRNG":16,"./helpers/addElementToHashTable":19,"./vendor/assign":83}],7:[function(_dereq_,module,exports){
+},{"./../package.json":2,"./Config":3,"./HaikuClock":4,"./HaikuComponent":5,"./helpers/PRNG":17,"./helpers/addElementToHashTable":20,"./vendor/assign":88}],7:[function(_dereq_,module,exports){
+(function (global){
+var functionToRFO = _dereq_('./reflection/functionToRFO')
+
+// We need a global harness so we can...
+// - have a single rAF loop even if we've got multiple Haiku Contexts on the same page
+// - expose some global APIs that we hope to make available for all components
+var ROOT
+
+// Window gets highest precedence since most likely we're running in DOM
+if (typeof window !== 'undefined') {
+  ROOT = window
+} else if (typeof global !== 'undefined') {
+  ROOT = global
+} else {
+  // On the off-chance there is no real global, just use this singleton
+  ROOT = {}
+}
+
+if (!ROOT.haiku) {
+  ROOT.haiku = {}
+}
+
+if (!ROOT.haiku.enhance) {
+  ROOT.haiku['enhance!'] = function enhance (fn, params) {
+    // Only create a specification if we don't already have one
+    if (!fn.specification) {
+      var rfo = functionToRFO(fn)
+      if (rfo && rfo.__function) {
+        // Cache this so we don't expensively parse each time
+        fn.specification = rfo.__function
+        // Allow an explicit list of params to override ours
+        if (params) {
+          fn.specification.params = params
+        }
+      } else {
+        // Signal that this function is of an unknown kind
+        // so future runs don't try to parse this one again
+        fn.specification = true
+      }
+    }
+  }
+}
+
+// Function.prototype.inject = function inject () { // eslint-disable-line
+//   ROOT.haiku.enhance(this, arguments)
+//   return this
+// }
+
+module.exports = ROOT.haiku
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./reflection/functionToRFO":51}],8:[function(_dereq_,module,exports){
 (function (global){
 var VERSION = _dereq_('./../package.json').version
 
@@ -2474,7 +2559,7 @@ exp.register = function register (name, method) {
 module.exports = exp
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../package.json":2}],8:[function(_dereq_,module,exports){
+},{"./../package.json":2}],9:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -2882,7 +2967,7 @@ HaikuTimeline.prototype.gotoAndStop = function gotoAndStop (ms) {
 
 module.exports = HaikuTimeline
 
-},{"./helpers/SimpleEventEmitter":18,"./helpers/getTimelineMaxTime":30,"./vendor/assign":83}],9:[function(_dereq_,module,exports){
+},{"./helpers/SimpleEventEmitter":19,"./helpers/getTimelineMaxTime":31,"./vendor/assign":88}],10:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -3123,7 +3208,7 @@ module.exports = {
   isZero: isZero
 }
 
-},{"./layout/computeMatrix":39,"./layout/computeRotationFlexibly":40,"./layout/computeSize":41}],10:[function(_dereq_,module,exports){
+},{"./layout/computeMatrix":40,"./layout/computeRotationFlexibly":41,"./layout/computeSize":42}],11:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -3355,7 +3440,7 @@ module.exports = {
   calculateValueAndReturnUndefinedIfNotWorthwhile: calculateValueAndReturnUndefinedIfNotWorthwhile
 }
 
-},{"./vendor/just-curves":124}],11:[function(_dereq_,module,exports){
+},{"./vendor/just-curves":129}],12:[function(_dereq_,module,exports){
 (function (process,global){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
@@ -3363,12 +3448,10 @@ module.exports = {
 
 var Transitions = _dereq_('./Transitions')
 var BasicUtils = _dereq_('./helpers/BasicUtils')
-var ColorUtils = _dereq_('./helpers/ColorUtils')
-var SVGPoints = _dereq_('./helpers/SVGPoints')
-var functionToRFO = _dereq_('./reflection/functionToRFO')
 var DOMSchema = _dereq_('./properties/dom/schema')
-// var DOMFallbacks = require('./properties/dom/fallbacks')
+var DOMValueParsers = _dereq_('./properties/dom/parsers')
 var HaikuHelpers = _dereq_('./HaikuHelpers')
+var HaikuGlobal = _dereq_('./HaikuGlobal')
 var assign = _dereq_('./vendor/assign')
 
 var FUNCTION = 'function'
@@ -3376,85 +3459,6 @@ var OBJECT = 'object'
 
 function isFunction (value) {
   return typeof value === FUNCTION
-}
-
-var PARSERS = {}
-PARSERS['d'] = function _parseD (value) {
-  // in case of d="" for any reason, don't try to expand this otherwise this will choke
-  // #TODO: arguably we should preprocess SVGs before things get this far; try svgo?
-  if (!value) return []
-  // Allow points to return an array for convenience, and let downstream marshal it
-  if (Array.isArray(value)) {
-    return value
-  }
-  return SVGPoints.pathToPoints(value)
-}
-PARSERS['color'] = function _parseColor (value) {
-  return ColorUtils.parseString(value)
-}
-PARSERS['stroke'] = PARSERS['color']
-PARSERS['fill'] = PARSERS['color']
-PARSERS['floodColor'] = PARSERS['color']
-PARSERS['lightingColor'] = PARSERS['color']
-PARSERS['stopColor'] = PARSERS['color']
-PARSERS['backgroundColor'] = PARSERS['color']
-PARSERS['animateColor'] = PARSERS['color']
-PARSERS['feColor'] = PARSERS['color']
-PARSERS['flood-color'] = PARSERS['color']
-PARSERS['lighting-color'] = PARSERS['color']
-PARSERS['stop-color'] = PARSERS['color']
-PARSERS['background-color'] = PARSERS['color']
-PARSERS['animate-color'] = PARSERS['color']
-PARSERS['fe-color'] = PARSERS['color']
-PARSERS['style.stroke'] = PARSERS['color']
-PARSERS['style.fill'] = PARSERS['color']
-PARSERS['style.backgroundColor'] = PARSERS['color']
-PARSERS['style.borderBottomColor'] = PARSERS['color']
-PARSERS['style.borderColor'] = PARSERS['color']
-PARSERS['style.borderLeftColor'] = PARSERS['color']
-PARSERS['style.borderRightColor'] = PARSERS['color']
-PARSERS['style.borderTopColor'] = PARSERS['color']
-PARSERS['style.floodColor'] = PARSERS['color']
-PARSERS['style.lightingColor'] = PARSERS['color']
-PARSERS['style.stopColor'] = PARSERS['color']
-PARSERS['points'] = function _parsePoints (value) {
-  return SVGPoints.polyPointsStringToPoints(value)
-}
-
-var GENERATORS = {}
-GENERATORS['d'] = function _genD (value) {
-  return SVGPoints.pointsToPath(value)
-}
-GENERATORS['color'] = function _genColor (value) {
-  return ColorUtils.generateString(value)
-}
-GENERATORS['stroke'] = GENERATORS['color']
-GENERATORS['fill'] = GENERATORS['color']
-GENERATORS['floodColor'] = GENERATORS['color']
-GENERATORS['lightingColor'] = GENERATORS['color']
-GENERATORS['stopColor'] = GENERATORS['color']
-GENERATORS['backgroundColor'] = GENERATORS['color']
-GENERATORS['animateColor'] = GENERATORS['color']
-GENERATORS['feColor'] = GENERATORS['color']
-GENERATORS['flood-color'] = GENERATORS['color']
-GENERATORS['lighting-color'] = GENERATORS['color']
-GENERATORS['stop-color'] = GENERATORS['color']
-GENERATORS['background-color'] = GENERATORS['color']
-GENERATORS['animate-color'] = GENERATORS['color']
-GENERATORS['fe-color'] = GENERATORS['color']
-GENERATORS['style.stroke'] = GENERATORS['color']
-GENERATORS['style.fill'] = GENERATORS['color']
-GENERATORS['style.backgroundColor'] = GENERATORS['color']
-GENERATORS['style.borderBottomColor'] = GENERATORS['color']
-GENERATORS['style.borderColor'] = GENERATORS['color']
-GENERATORS['style.borderLeftColor'] = GENERATORS['color']
-GENERATORS['style.borderRightColor'] = GENERATORS['color']
-GENERATORS['style.borderTopColor'] = GENERATORS['color']
-GENERATORS['style.floodColor'] = GENERATORS['color']
-GENERATORS['style.lightingColor'] = GENERATORS['color']
-GENERATORS['style.stopColor'] = GENERATORS['color']
-GENERATORS['points'] = function _genPoints (value) {
-  return SVGPoints.pointsToPolyString(value)
 }
 
 var INJECTABLES = {}
@@ -3806,11 +3810,14 @@ INJECTABLES['$tree'] = {
     injectees.$tree.parent = null
 
     if (matchingElement.__parent) {
-      assignElementInjectables(injectees.$tree, 'parent', summonSpec.$tree && summonSpec.$tree.parent, hostInstance, matchingElement.__parent)
+      var subspec0 = (typeof summonSpec === 'string') ? summonSpec : (summonSpec.$tree && summonSpec.$tree.parent)
+      assignElementInjectables(injectees.$tree, 'parent', subspec0, hostInstance, matchingElement.__parent)
 
       for (var i = 0; i < matchingElement.__parent.children.length; i++) {
         var sibling = matchingElement.__parent.children[i]
-        var subspec1 = summonSpec.$tree && summonSpec.$tree.siblings && summonSpec.$tree.siblings[j]
+        var subspec1 = (typeof summonSpec === 'string')
+          ? summonSpec
+          : summonSpec.$tree && summonSpec.$tree.siblings && summonSpec.$tree.siblings[j]
         assignElementInjectables(injectees.$tree.siblings, i, subspec1, hostInstance, sibling)
       }
     }
@@ -3820,7 +3827,9 @@ INJECTABLES['$tree'] = {
     if (matchingElement.children) {
       for (var j = 0; j < matchingElement.children.length; j++) {
         var child = matchingElement.children[j]
-        var subspec2 = summonSpec.$tree && summonSpec.$tree.children && summonSpec.$tree.children[j]
+        var subspec2 = (typeof summonSpec === 'string')
+          ? summonSpec
+          : summonSpec.$tree && summonSpec.$tree.children && summonSpec.$tree.children[j]
         assignElementInjectables(injectees.$tree.children, j, subspec2, hostInstance, child)
       }
     }
@@ -3857,7 +3866,8 @@ INJECTABLES['$component'] = {
     if (injectees.$tree && injectees.$tree.component) {
       injectees.$component = injectees.$tree.component
     } else {
-      assignElementInjectables(injectees, '$component', summonSpec.$component, hostInstance, hostInstance._getTopLevelElement())
+      var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$component
+      assignElementInjectables(injectees, '$component', subspec, hostInstance, hostInstance._getTopLevelElement())
     }
   }
 }
@@ -3873,7 +3883,8 @@ INJECTABLES['$root'] = {
       injectees.$root = injectees.$tree.root
     } else {
       // Until we support nested components, $root resolves to $component
-      assignElementInjectables(injectees, '$root', summonSpec.$root, hostInstance, hostInstance._getTopLevelElement())
+      var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$root
+      assignElementInjectables(injectees, '$root', subspec, hostInstance, hostInstance._getTopLevelElement())
     }
   }
 }
@@ -3885,7 +3896,8 @@ INJECTABLES['$element'] = {
     if (injectees.$tree && injectees.$tree.element) {
       injectees.$element = injectees.$tree.element
     } else {
-      assignElementInjectables(injectees, '$element', summonSpec.$element, hostInstance, matchingElement)
+      var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$element
+      assignElementInjectables(injectees, '$element', subspec, hostInstance, matchingElement)
     }
   }
 }
@@ -4153,16 +4165,7 @@ ValueBuilder.prototype.evaluate = function _evaluate (
   keyframeCluster,
   hostInstance
 ) {
-  if (!fn.specification) {
-    var rfo = functionToRFO(fn)
-    if (rfo && rfo.__function) {
-      // Cache this so we don't expensively parse each time
-      fn.specification = rfo.__function
-    } else {
-      // Signal that this function is of an unknown kind/ don't try to parse again
-      fn.specification = true
-    }
-  }
+  HaikuGlobal['enhance!'](fn)
 
   // We'll store the result of this evaluation in this variable (so we can cache it in case unexpected subsequent calls)
   var evaluation = void 0
@@ -4177,14 +4180,12 @@ ValueBuilder.prototype.evaluate = function _evaluate (
     // If for some reason we got 0 params, just evaluate it
     evaluation = fn.call(hostInstance, hostInstance._states)
   } else {
-    var summons = fn.specification.params[0] // For now, ignore all subsequent arguments
-
-    if (!summons || typeof summons !== 'object') {
+    if (fn.specification.params.length < 1) {
       // If the summon isn't in the destructured object format, just evaluate it
       evaluation = fn.call(hostInstance, hostInstance._states)
     } else {
-      var summonees = this.summonSummonables(
-        summons,
+      var summoneesArray = this.summonSummonables(
+        fn.specification.params,
         timelineName,
         flexId,
         matchingElement,
@@ -4194,18 +4195,15 @@ ValueBuilder.prototype.evaluate = function _evaluate (
         hostInstance
       )
 
-      var previousSummonees = this._getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs)
+      var previousSummoneesArray = this._getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs)
 
-      if (_areSummoneesDifferent(previousSummonees, summonees)) {
-        this._cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summonees)
+      if (_areSummoneesDifferent(previousSummoneesArray, summoneesArray)) {
+        this._cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summoneesArray)
 
-        evaluation = fn.call(hostInstance, summonees)
+        evaluation = fn.apply(hostInstance, summoneesArray)
       } else {
         // Since nothing is different, return the previous evaluation
         evaluation = this._getPreviousEvaluation(timelineName, flexId, propertyName, keyframeMs)
-        // if (flexId === '16301b9a3241' && propertyName === 'rotation.z') {
-        //   console.log(evaluation)
-        // }
       }
     }
   }
@@ -4249,7 +4247,7 @@ ValueBuilder.prototype._cacheEvaluation = function _cacheEvaluation (timelineNam
 }
 
 ValueBuilder.prototype.summonSummonables = function _summonSummonables (
-  summons,
+  paramsArray,
   timelineName,
   flexId,
   matchingElement,
@@ -4258,35 +4256,70 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
   keyframeCluster,
   hostInstance
 ) {
-  var summonables = {}
+  var summonablesArray = []
 
-  for (var key in summons) {
-    // If the summons structure has a falsy, just skip it - I don't see why how this could happen, but just in case
-    if (!summons[key]) continue
+  // Temporary storage, just creating one object here to avoid excessive allocations
+  var _summonStorage = {}
 
-    // If a special summonable has been defined, then call its summoner function
-    // Note the lower-case - allow lo-coders to comfortably call say $FRAME and $frame and get the same thing back
-    if (INJECTABLES[key]) {
-      // But don't lowercase the assignment - otherwise the object destructuring won't work!!!
-      INJECTABLES[key].summon(
-        summonables, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they key must be added
-        summons[key],
-        hostInstance,
-        matchingElement,
-        timelineName
-      )
+  for (var i = 0; i < paramsArray.length; i++) {
+    var summonsEntry = paramsArray[i]
 
-      continue
+    // We'll store the output of the summons in this var, whether we're dealing with
+    // a complex nested summonable or a flat one
+    var summonsOutput
+
+    // In case of a string, we will treat it as the key for the object to summon
+    if (typeof summonsEntry === 'string') {
+      // Treat the entry as the key to a known injectable
+      if (INJECTABLES[summonsEntry]) {
+        _summonStorage[summonsEntry] = undefined // Clear out the old value before populating with the new one
+        INJECTABLES[summonsKey].summon(
+          _summonStorage, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they summonsKey must be added
+          summonsEntry, // The summon function should know how to handle a string and what it signifies
+          hostInstance,
+          matchingElement,
+          timelineName
+        )
+        summonsOutput = _summonStorage[summonsEntry]
+      } else {
+        summonsOutput = hostInstance.state[summonsEntry]
+      }
+    } else if (summonsEntry && typeof summonsEntry === 'object') {
+      // If dealing with a summon that is an object, the output will be an object
+      summonsOutput = {}
+
+      for (var summonsKey in summonsEntry) {
+        // If the summons structure has a falsy, just skip it - I don't see why how this could happen, but just in case
+        if (!summonsEntry[summonsKey]) continue
+
+        // If a special summonable has been defined, then call its summoner function
+        if (INJECTABLES[summonsKey]) {
+          INJECTABLES[summonsKey].summon(
+            summonsOutput, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they summonsKey must be added
+            summonsEntry[summonsKey], // The object specifies the specific fields we want to extract
+            hostInstance,
+            matchingElement,
+            timelineName
+          )
+
+          continue
+        }
+
+        // Otherwise, assume the user wants to access one of the states of the component instance
+        // Note that the 'states' defined in the component's bytecode should have been set up upstream by the
+        // player initialization process. hostInstance is a HaikuPlayer which has a state prop which has
+        // getter/setter props set up corresponding to whatever the 'states' were set to
+        summonsOutput[summonsKey] = hostInstance.state[summonsKey]
+      }
     }
 
-    // Otherwise, assume the user wants to access one of the states of the component instance
-    // Note that the 'states' defined in the component's bytecode should have been set up upstream by the
-    // player initialization process. hostInstance is a HaikuPlayer which has a state prop which has
-    // getter/setter props set up corresponding to whatever the 'states' were set to
-    summonables[key] = hostInstance.state[key]
+    // Whatever the request format was, populate the result in here
+    if (summonsOutput !== undefined) {
+      summonablesArray[i] = summonsOutput
+    }
   }
 
-  return summonables
+  return summonablesArray
 }
 
 ValueBuilder.prototype._getSummonablesSchema = function _getSummonablesSchema () {
@@ -4388,9 +4421,9 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
       )
 
       // The function's return value is expected to be in the *raw* format - we parse to allow for interpolation
-      if (PARSERS[outputName]) {
-        var parser = PARSERS[outputName]
-        parsee[ms].value = parser(functionReturnValue)
+      var parser1 = this.getParser(outputName, matchingElement)
+      if (parser1) {
+        parsee[ms].value = parser1(functionReturnValue)
       } else {
         parsee[ms].value = functionReturnValue
       }
@@ -4406,8 +4439,9 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
         parsee[ms].curve = descriptor.curve
       }
 
-      if (PARSERS[outputName]) {
-        parsee[ms].value = PARSERS[outputName](descriptor.value)
+      var parser2 = this.getParser(outputName, matchingElement)
+      if (parser2) {
+        parsee[ms].value = parser2(descriptor.value)
       } else {
         parsee[ms].value = descriptor.value
       }
@@ -4418,6 +4452,20 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
   return parsee
 }
 
+ValueBuilder.prototype.getParser = function getParser (outputName, virtualElement) {
+  if (!virtualElement) return undefined
+  var foundParser = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement)
+  if (!foundParser) foundParser = DOMValueParsers[virtualElement.elementName] && DOMValueParsers[virtualElement.elementName][outputName]
+  return foundParser && foundParser.parse
+}
+
+ValueBuilder.prototype.getGenerator = function getGenerator (outputName, virtualElement) {
+  if (!virtualElement) return undefined
+  var foundGenerator = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement)
+  if (!foundGenerator) foundGenerator = DOMValueParsers[virtualElement.elementName] && DOMValueParsers[virtualElement.elementName][outputName]
+  return foundGenerator && foundGenerator.generate
+}
+
 ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFinalValueFromParsedValue (
   timelineName,
   flexId,
@@ -4425,8 +4473,9 @@ ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFin
   outputName,
   computedValue
 ) {
-  if (GENERATORS[outputName]) {
-    return GENERATORS[outputName](computedValue)
+  var generator = this.getGenerator(outputName, matchingElement)
+  if (generator) {
+    return generator(computedValue)
   } else {
     return computedValue
   }
@@ -4599,14 +4648,12 @@ ValueBuilder.prototype.grabValue = function _grabValue (
 }
 
 ValueBuilder.INJECTABLES = INJECTABLES
-ValueBuilder.PARSERS = PARSERS
-ValueBuilder.GENERATORS = GENERATORS
 ValueBuilder.FORBIDDEN_EXPRESSION_TOKENS = FORBIDDEN_EXPRESSION_TOKENS
 
 module.exports = ValueBuilder
 
 }).call(this,_dereq_('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./HaikuHelpers":7,"./Transitions":10,"./helpers/BasicUtils":14,"./helpers/ColorUtils":15,"./helpers/SVGPoints":17,"./properties/dom/schema":46,"./reflection/functionToRFO":48,"./vendor/assign":83,"_process":1}],12:[function(_dereq_,module,exports){
+},{"./HaikuGlobal":7,"./HaikuHelpers":8,"./Transitions":11,"./helpers/BasicUtils":15,"./properties/dom/parsers":48,"./properties/dom/schema":49,"./vendor/assign":88,"_process":1}],13:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4670,14 +4717,14 @@ if (IS_WINDOW_DEFINED) {
 
 module.exports = HaikuDOMAdapter
 
-},{"./../../../package.json":2,"./../../HaikuContext":6,"./../../renderers/dom":68}],13:[function(_dereq_,module,exports){
+},{"./../../../package.json":2,"./../../HaikuContext":6,"./../../renderers/dom":73}],14:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 module.exports = _dereq_('./HaikuDOMAdapter')
 
-},{"./HaikuDOMAdapter":12}],14:[function(_dereq_,module,exports){
+},{"./HaikuDOMAdapter":13}],15:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4733,7 +4780,7 @@ module.exports = {
   uniq: uniq
 }
 
-},{"./../vendor/array-unique":82}],15:[function(_dereq_,module,exports){
+},{"./../vendor/array-unique":87}],16:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4763,7 +4810,7 @@ module.exports = {
   generateString: generateString
 }
 
-},{"./../vendor/color-string":85}],16:[function(_dereq_,module,exports){
+},{"./../vendor/color-string":90}],17:[function(_dereq_,module,exports){
 var seedrandom = _dereq_('./../vendor/seedrandom')
 
 function PRNG (seed) {
@@ -4776,7 +4823,7 @@ PRNG.prototype.random = function random () {
 
 module.exports = PRNG
 
-},{"./../vendor/seedrandom":137}],17:[function(_dereq_,module,exports){
+},{"./../vendor/seedrandom":142}],18:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4934,7 +4981,7 @@ module.exports = {
   manaToPoints: manaToPoints
 }
 
-},{"./../vendor/svg-points":139,"./parseCssValueString":33}],18:[function(_dereq_,module,exports){
+},{"./../vendor/svg-points":144,"./parseCssValueString":34}],19:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5074,7 +5121,7 @@ SimpleEventEmitter.create = create
 
 module.exports = SimpleEventEmitter
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 module.exports = function addElementToHashTable (hash, realElement, virtualElement) {
   if (virtualElement && virtualElement.attributes) {
     var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
@@ -5094,7 +5141,7 @@ module.exports = function addElementToHashTable (hash, realElement, virtualEleme
   }
 }
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5185,7 +5232,7 @@ var allSvgElementNames = {
 
 module.exports = allSvgElementNames
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5205,7 +5252,7 @@ function attrSelectorParser (selector) {
 
 module.exports = attrSelectorParser
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5241,7 +5288,7 @@ function matchByAttribute (
 
 module.exports = matchByAttribute
 
-},{"./objectPath":32}],23:[function(_dereq_,module,exports){
+},{"./objectPath":33}],24:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5268,7 +5315,7 @@ function matchByClass (node, className, options) {
 
 module.exports = matchByClass
 
-},{"./objectPath":32}],24:[function(_dereq_,module,exports){
+},{"./objectPath":33}],25:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5286,7 +5333,7 @@ function matchByHaiku (node, haikuString, options) {
 
 module.exports = matchByHaiku
 
-},{"./objectPath":32}],25:[function(_dereq_,module,exports){
+},{"./objectPath":33}],26:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5304,7 +5351,7 @@ function matchById (node, id, options) {
 
 module.exports = matchById
 
-},{"./objectPath":32}],26:[function(_dereq_,module,exports){
+},{"./objectPath":33}],27:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5350,7 +5397,7 @@ function matchByTagName (node, tagName, options) {
 
 module.exports = matchByTagName
 
-},{"./objectPath":32}],27:[function(_dereq_,module,exports){
+},{"./objectPath":33}],28:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5397,7 +5444,7 @@ function matchOne (node, piece, options) {
 
 module.exports = matchOne
 
-},{"./attrSelectorParser":21,"./cssMatchByAttribute":22,"./cssMatchByClass":23,"./cssMatchByHaiku":24,"./cssMatchById":25,"./cssMatchByTagName":26}],28:[function(_dereq_,module,exports){
+},{"./attrSelectorParser":22,"./cssMatchByAttribute":23,"./cssMatchByClass":24,"./cssMatchByHaiku":25,"./cssMatchById":26,"./cssMatchByTagName":27}],29:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5426,7 +5473,7 @@ function queryList (matches, list, query, options) {
 
 module.exports = queryList
 
-},{"./cssMatchOne":27}],29:[function(_dereq_,module,exports){
+},{"./cssMatchOne":28}],30:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5446,7 +5493,7 @@ function queryTree (matches, node, query, options) {
 
 module.exports = queryTree
 
-},{"./BasicUtils":14,"./cssQueryList":28,"./manaFlattenTree":31}],30:[function(_dereq_,module,exports){
+},{"./BasicUtils":15,"./cssQueryList":29,"./manaFlattenTree":32}],31:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5469,7 +5516,7 @@ function getTimelineMaxTime (descriptor) {
 
 module.exports = getTimelineMaxTime
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5506,7 +5553,7 @@ function flattenTree (list, node, options, depth, index) {
 
 module.exports = flattenTree
 
-},{"./objectPath":32}],32:[function(_dereq_,module,exports){
+},{"./objectPath":33}],33:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5525,7 +5572,7 @@ function objectPath (obj, key) {
 
 module.exports = objectPath
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5570,7 +5617,7 @@ function parseCssValueString (str, optionalPropertyHint) {
 
 module.exports = parseCssValueString
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5612,7 +5659,7 @@ function scopifyElements (mana, parent, scope) {
 
 module.exports = scopifyElements
 
-},{}],35:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 var xmlToMana = _dereq_('./xmlToMana')
 var visitManaTree = _dereq_('./visitManaTree')
 
@@ -5713,7 +5760,7 @@ function upgradeBytecodeInPlace (_bytecode, options) {
 
 module.exports = upgradeBytecodeInPlace
 
-},{"./visitManaTree":36,"./xmlToMana":37}],36:[function(_dereq_,module,exports){
+},{"./visitManaTree":37,"./xmlToMana":38}],37:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5738,7 +5785,7 @@ function visitManaTree (locator, mana, visitor, parent, index) {
 
 module.exports = visitManaTree
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5779,7 +5826,7 @@ function xmlToMana (xml) {
 
 module.exports = xmlToMana
 
-},{"./../vendor/to-style":146,"./../vendor/xml-parser":159}],38:[function(_dereq_,module,exports){
+},{"./../vendor/to-style":151,"./../vendor/xml-parser":164}],39:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5921,7 +5968,7 @@ function applyCssLayout (
 
 module.exports = applyCssLayout
 
-},{"./formatTransform":42,"./isEqualTransformString":43,"./scopeOfElement":44,"./setStyleMatrix":45}],39:[function(_dereq_,module,exports){
+},{"./formatTransform":43,"./isEqualTransformString":44,"./scopeOfElement":45,"./setStyleMatrix":46}],40:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -6057,7 +6104,7 @@ function computeMatrix (
 
 module.exports = computeMatrix
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -6164,7 +6211,7 @@ function computeRotationFlexibly (x, y, z, w, quat) {
 
 module.exports = computeRotationFlexibly
 
-},{}],41:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -6223,7 +6270,7 @@ function computeSize (
 
 module.exports = computeSize
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 /**
  * This file contains modified code from https://github.com/famous/engine
  *
@@ -6316,7 +6363,7 @@ function formatTransform (transform, format, devicePixelRatio) {
 
 module.exports = formatTransform
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -6355,7 +6402,7 @@ function isEqualTransformString (t1, t2) {
 
 module.exports = isEqualTransformString
 
-},{}],44:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -6370,7 +6417,7 @@ module.exports = function scopeOfElement (mana) {
   return null
 }
 
-},{}],45:[function(_dereq_,module,exports){
+},{}],46:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -6400,16 +6447,8 @@ function setStyleMatrix (
 
 module.exports = setStyleMatrix
 
-},{"./formatTransform":42,"./isEqualTransformString":43}],46:[function(_dereq_,module,exports){
-/**
- * Copyright (c) Haiku 2016-2017. All rights reserved.
- */
-
-// A dictionary that maps HTML+SVG element names (camelCase)
-// to addressable properties. This acts as a whitelist of properties that
-// _can_ be applied, and special logic for applying them.
-
-// Just a utility for populating these objects
+},{"./formatTransform":43,"./isEqualTransformString":44}],47:[function(_dereq_,module,exports){
+// Just a utility function for populating these objects
 function has () {
   var obj = {}
   for (var i = 0; i < arguments.length; i++) {
@@ -6421,6 +6460,310 @@ function has () {
   }
   return obj
 }
+
+module.exports = has
+
+},{}],48:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
+var has = _dereq_('./has')
+var ColorUtils = _dereq_('./../../helpers/ColorUtils')
+var SVGPoints = _dereq_('./../../helpers/SVGPoints')
+
+function parseD (value) {
+  // in case of d="" for any reason, don't try to expand this otherwise this will choke
+  // #TODO: arguably we should preprocess SVGs before things get this far; try svgo?
+  if (!value) return []
+  // Allow points to return an array for convenience, and let downstream marshal it
+  if (Array.isArray(value)) {
+    return value
+  }
+  return SVGPoints.pathToPoints(value)
+}
+
+function generateD (value) {
+  if (typeof value === 'string') return value
+  return SVGPoints.pointsToPath(value)
+}
+
+function parseColor (value) {
+  return ColorUtils.parseString(value)
+}
+
+function generateColor (value) {
+  return ColorUtils.generateString(value)
+}
+
+function parsePoints (value) {
+  if (Array.isArray(value)) return value
+  return SVGPoints.polyPointsStringToPoints(value)
+}
+
+function generatePoints (value) {
+  if (typeof value === 'string') return value
+  return SVGPoints.pointsToPolyString(value)
+}
+
+var STYLE_COLOR_PARSERS = {
+  'style.stroke': { parse: parseColor, generate: generateColor },
+  'style.fill': { parse: parseColor, generate: generateColor },
+  'style.backgroundColor': { parse: parseColor, generate: generateColor },
+  'style.borderBottomColor': { parse: parseColor, generate: generateColor },
+  'style.borderColor': { parse: parseColor, generate: generateColor },
+  'style.borderLeftColor': { parse: parseColor, generate: generateColor },
+  'style.borderRightColor': { parse: parseColor, generate: generateColor },
+  'style.borderTopColor': { parse: parseColor, generate: generateColor },
+  'style.floodColor': { parse: parseColor, generate: generateColor },
+  'style.lightingColor': { parse: parseColor, generate: generateColor },
+  'style.stopColor': { parse: parseColor, generate: generateColor }
+}
+
+var SVG_COLOR_PARSERS = {
+  'stroke': { parse: parseColor, generate: generateColor },
+  'fill': { parse: parseColor, generate: generateColor },
+  'floodColor': { parse: parseColor, generate: generateColor },
+  'lightingColor': { parse: parseColor, generate: generateColor },
+  'stopColor': { parse: parseColor, generate: generateColor },
+  'backgroundColor': { parse: parseColor, generate: generateColor },
+  'animateColor': { parse: parseColor, generate: generateColor },
+  'feColor': { parse: parseColor, generate: generateColor },
+  // Note the hyphenated duplicates, for convenience
+  'flood-color': { parse: parseColor, generate: generateColor },
+  'lighting-color': { parse: parseColor, generate: generateColor },
+  'stop-color': { parse: parseColor, generate: generateColor },
+  'background-color': { parse: parseColor, generate: generateColor },
+  'animate-color': { parse: parseColor, generate: generateColor },
+  'fe-color': { parse: parseColor, generate: generateColor }
+}
+
+var SVG_PATH_PARSERS = {
+  'd': { parse: parseD, generate: generateD }
+}
+
+var SVG_POINT_PARSERS = {
+  'points': { parse: parsePoints, generate: generatePoints }
+}
+
+module.exports = {
+  'missing-glyph': has(STYLE_COLOR_PARSERS),
+  a: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  abbr: has(STYLE_COLOR_PARSERS),
+  acronym: has(STYLE_COLOR_PARSERS),
+  address: has(STYLE_COLOR_PARSERS),
+  altGlyph: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  altGlyphDef: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  altGlyphItem: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  animate: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  animateColor: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  animateMotion: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  animateTransform: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  applet: has(STYLE_COLOR_PARSERS),
+  area: has(STYLE_COLOR_PARSERS),
+  article: has(STYLE_COLOR_PARSERS),
+  aside: has(STYLE_COLOR_PARSERS),
+  audio: has(STYLE_COLOR_PARSERS),
+  b: has(STYLE_COLOR_PARSERS),
+  base: has(STYLE_COLOR_PARSERS),
+  basefont: has(STYLE_COLOR_PARSERS),
+  bdi: has(STYLE_COLOR_PARSERS),
+  bdo: has(STYLE_COLOR_PARSERS),
+  big: has(STYLE_COLOR_PARSERS),
+  blockquote: has(STYLE_COLOR_PARSERS),
+  body: has(STYLE_COLOR_PARSERS),
+  br: has(STYLE_COLOR_PARSERS),
+  button: has(STYLE_COLOR_PARSERS),
+  canvas: has(STYLE_COLOR_PARSERS),
+  caption: has(STYLE_COLOR_PARSERS),
+  center: has(STYLE_COLOR_PARSERS),
+  circle: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  cite: has(STYLE_COLOR_PARSERS),
+  clipPath: has(STYLE_COLOR_PARSERS),
+  code: has(STYLE_COLOR_PARSERS),
+  col: has(STYLE_COLOR_PARSERS),
+  colgroup: has(STYLE_COLOR_PARSERS),
+  'color-profile': has(STYLE_COLOR_PARSERS),
+  command: has(STYLE_COLOR_PARSERS),
+  cursor: has(STYLE_COLOR_PARSERS),
+  datalist: has(STYLE_COLOR_PARSERS),
+  dd: has(STYLE_COLOR_PARSERS),
+  defs: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  del: has(STYLE_COLOR_PARSERS),
+  desc: has(STYLE_COLOR_PARSERS),
+  details: has(STYLE_COLOR_PARSERS),
+  dfn: has(STYLE_COLOR_PARSERS),
+  dir: has(STYLE_COLOR_PARSERS),
+  discard: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  div: has(STYLE_COLOR_PARSERS),
+  dl: has(STYLE_COLOR_PARSERS),
+  dt: has(STYLE_COLOR_PARSERS),
+  ellipse: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  em: has(STYLE_COLOR_PARSERS),
+  embed: has(STYLE_COLOR_PARSERS),
+  feBlend: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feColorMatrix: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feComponentTransfer: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feComposite: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feConvolveMatrix: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feDiffuseLighting: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feDisplacementMap: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feDistantLight: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feDropShadow: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feFlood: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feFuncA: has(STYLE_COLOR_PARSERS),
+  feFuncB: has(STYLE_COLOR_PARSERS),
+  feFuncG: has(STYLE_COLOR_PARSERS),
+  feFuncR: has(STYLE_COLOR_PARSERS),
+  feGaussianBlur: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feImage: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feMerge: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feMergeNode: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feMorphology: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feOffset: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  fePointLight: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feSpecularLighting: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feTile: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  feTurbulence: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  fieldset: has(STYLE_COLOR_PARSERS),
+  figcaption: has(STYLE_COLOR_PARSERS),
+  figure: has(STYLE_COLOR_PARSERS),
+  filter: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  'font-face': has(STYLE_COLOR_PARSERS),
+  'font-face-format': has(STYLE_COLOR_PARSERS),
+  'font-face-name': has(STYLE_COLOR_PARSERS),
+  'font-face-src': has(STYLE_COLOR_PARSERS),
+  'font-face-uri': has(STYLE_COLOR_PARSERS),
+  font: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  footer: has(STYLE_COLOR_PARSERS),
+  foreignObject: has(STYLE_COLOR_PARSERS),
+  form: has(STYLE_COLOR_PARSERS),
+  frame: has(STYLE_COLOR_PARSERS),
+  frameset: has(STYLE_COLOR_PARSERS),
+  g: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  glyph: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  glyphRef: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  h1: has(STYLE_COLOR_PARSERS),
+  h2: has(STYLE_COLOR_PARSERS),
+  h3: has(STYLE_COLOR_PARSERS),
+  h4: has(STYLE_COLOR_PARSERS),
+  h5: has(STYLE_COLOR_PARSERS),
+  h6: has(STYLE_COLOR_PARSERS),
+  hatch: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  hatchpath: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  head: has(STYLE_COLOR_PARSERS),
+  header: has(STYLE_COLOR_PARSERS),
+  hgroup: has(STYLE_COLOR_PARSERS),
+  hkern: has(STYLE_COLOR_PARSERS),
+  hr: has(STYLE_COLOR_PARSERS),
+  html: has(STYLE_COLOR_PARSERS),
+  i: has(STYLE_COLOR_PARSERS),
+  iframe: has(STYLE_COLOR_PARSERS),
+  image: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  img: has(STYLE_COLOR_PARSERS),
+  input: has(STYLE_COLOR_PARSERS),
+  ins: has(STYLE_COLOR_PARSERS),
+  kbd: has(STYLE_COLOR_PARSERS),
+  keygen: has(STYLE_COLOR_PARSERS),
+  label: has(STYLE_COLOR_PARSERS),
+  legend: has(STYLE_COLOR_PARSERS),
+  li: has(STYLE_COLOR_PARSERS),
+  line: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  linearGradient: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  link: has(STYLE_COLOR_PARSERS),
+  map: has(STYLE_COLOR_PARSERS),
+  mark: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  marker: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  mask: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  menu: has(STYLE_COLOR_PARSERS),
+  mesh: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  meshgradient: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  meshpatch: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  meshrow: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  meta: has(STYLE_COLOR_PARSERS),
+  metadata: has(STYLE_COLOR_PARSERS),
+  meter: has(STYLE_COLOR_PARSERS),
+  mpath: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  nav: has(STYLE_COLOR_PARSERS),
+  noframes: has(STYLE_COLOR_PARSERS),
+  noscript: has(STYLE_COLOR_PARSERS),
+  object: has(STYLE_COLOR_PARSERS),
+  ol: has(STYLE_COLOR_PARSERS),
+  optgroup: has(STYLE_COLOR_PARSERS),
+  option: has(STYLE_COLOR_PARSERS),
+  output: has(STYLE_COLOR_PARSERS),
+  p: has(STYLE_COLOR_PARSERS),
+  param: has(STYLE_COLOR_PARSERS),
+  path: has(SVG_PATH_PARSERS, SVG_COLOR_PARSERS, STYLE_COLOR_PARSERS),
+  pattern: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  polygon: has(SVG_POINT_PARSERS, SVG_COLOR_PARSERS, STYLE_COLOR_PARSERS),
+  polyline: has(SVG_POINT_PARSERS, SVG_COLOR_PARSERS, STYLE_COLOR_PARSERS),
+  pre: has(STYLE_COLOR_PARSERS),
+  progress: has(STYLE_COLOR_PARSERS),
+  q: has(STYLE_COLOR_PARSERS),
+  radialGradient: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  rect: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  rp: has(STYLE_COLOR_PARSERS),
+  rt: has(STYLE_COLOR_PARSERS),
+  ruby: has(STYLE_COLOR_PARSERS),
+  s: has(STYLE_COLOR_PARSERS),
+  samp: has(STYLE_COLOR_PARSERS),
+  script: has(STYLE_COLOR_PARSERS),
+  section: has(STYLE_COLOR_PARSERS),
+  select: has(STYLE_COLOR_PARSERS),
+  set: has(STYLE_COLOR_PARSERS),
+  small: has(STYLE_COLOR_PARSERS),
+  solidcolor: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  source: has(STYLE_COLOR_PARSERS),
+  span: has(STYLE_COLOR_PARSERS),
+  stop: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  strike: has(STYLE_COLOR_PARSERS),
+  strong: has(STYLE_COLOR_PARSERS),
+  style: has(STYLE_COLOR_PARSERS),
+  sub: has(STYLE_COLOR_PARSERS),
+  summary: has(STYLE_COLOR_PARSERS),
+  sup: has(STYLE_COLOR_PARSERS),
+  svg: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  switch: has(STYLE_COLOR_PARSERS),
+  symbol: has(STYLE_COLOR_PARSERS),
+  table: has(STYLE_COLOR_PARSERS),
+  tbody: has(STYLE_COLOR_PARSERS),
+  td: has(STYLE_COLOR_PARSERS),
+  text: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  textarea: has(STYLE_COLOR_PARSERS),
+  textPath: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  tfoot: has(STYLE_COLOR_PARSERS),
+  th: has(STYLE_COLOR_PARSERS),
+  thead: has(STYLE_COLOR_PARSERS),
+  time: has(STYLE_COLOR_PARSERS),
+  title: has(STYLE_COLOR_PARSERS),
+  tr: has(STYLE_COLOR_PARSERS),
+  track: has(STYLE_COLOR_PARSERS),
+  tref: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  tspan: has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+  tt: has(STYLE_COLOR_PARSERS),
+  u: has(STYLE_COLOR_PARSERS),
+  ul: has(STYLE_COLOR_PARSERS),
+  unknown: has(STYLE_COLOR_PARSERS),
+  us: has(STYLE_COLOR_PARSERS),
+  use: has(STYLE_COLOR_PARSERS),
+  var: has(STYLE_COLOR_PARSERS),
+  video: has(STYLE_COLOR_PARSERS),
+  view: has(STYLE_COLOR_PARSERS),
+  vkern: has(STYLE_COLOR_PARSERS),
+  wb: has(STYLE_COLOR_PARSERS)
+}
+
+},{"./../../helpers/ColorUtils":16,"./../../helpers/SVGPoints":18,"./has":47}],49:[function(_dereq_,module,exports){
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
+var has = _dereq_('./has')
+
+// A dictionary that maps HTML+SVG element names (camelCase)
+// to addressable properties. This acts as a whitelist of properties that
+// _can_ be applied, and special logic for applying them.
 
 var TEXT_CONTENT_SCHEMA = {
   content: 'string'
@@ -7426,16 +7769,17 @@ module.exports = {
     STYLE_SCHEMA
   ),
   view: has(),
-  vker: has(),
+  vkern: has(),
   wb: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA)
 }
 
-},{}],47:[function(_dereq_,module,exports){
+},{"./has":47}],50:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 var Layout3D = _dereq_('./../../Layout3D')
+var has = _dereq_('./has')
 
 /**
  * 'Vanities' are functions that provide special handling for applied properties.
@@ -7452,19 +7796,6 @@ var Layout3D = _dereq_('./../../Layout3D')
  *   }
  * }
  */
-
-// Just a utility function for populating these objects
-function has () {
-  var obj = {}
-  for (var i = 0; i < arguments.length; i++) {
-    var arg = arguments[i]
-    for (var name in arg) {
-      var fn = arg[name]
-      obj[name] = fn
-    }
-  }
-  return obj
-}
 
 var LAYOUT_3D_VANITIES = {
   // Layout has a couple of special values that relate to display
@@ -9118,11 +9449,11 @@ module.exports = {
     STYLE_VANITIES
   ),
   view: has(),
-  vker: has(),
+  vkern: has(),
   wb: has(CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES)
 }
 
-},{"./../../Layout3D":9}],48:[function(_dereq_,module,exports){
+},{"./../../Layout3D":10,"./has":47}],51:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -9317,7 +9648,7 @@ function functionToRFO (fn) {
 
 module.exports = functionToRFO
 
-},{}],49:[function(_dereq_,module,exports){
+},{}],52:[function(_dereq_,module,exports){
 // Each of these would have an on* prefix normally
 module.exports = {
   mouse: {
@@ -9572,7 +9903,7 @@ module.exports = {
   }
 }
 
-},{}],50:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -9832,7 +10163,7 @@ HaikuDOMRenderer.prototype.getUser = function getUser () {
 
 module.exports = HaikuDOMRenderer
 
-},{"./createMixpanel":58,"./createRightClickMenu":59,"./getElementSize":64,"./getLocalDomEventPosition":65,"./patch":75,"./render":77}],51:[function(_dereq_,module,exports){
+},{"./createMixpanel":63,"./createRightClickMenu":64,"./getElementSize":69,"./getLocalDomEventPosition":70,"./patch":80,"./render":82}],54:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -9881,7 +10212,7 @@ function appendChild (
 
 module.exports = appendChild
 
-},{"./applyLayout":52,"./createTagNode":61,"./createTextNode":62,"./isTextNode":73}],52:[function(_dereq_,module,exports){
+},{"./applyLayout":55,"./createTagNode":66,"./createTextNode":67,"./isTextNode":78}],55:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10011,7 +10342,7 @@ function _warnOnce (warning) {
 
 module.exports = applyLayout
 
-},{"./../../layout/applyCssLayout":38,"./../../layout/scopeOfElement":44,"./../../vendor/modernizr":134,"./getWindowsBrowserVersion":67,"./isEdge":70,"./isIE":71,"./isMobile":72,"./isTextNode":73}],53:[function(_dereq_,module,exports){
+},{"./../../layout/applyCssLayout":39,"./../../layout/scopeOfElement":45,"./../../vendor/modernizr":139,"./getWindowsBrowserVersion":72,"./isEdge":75,"./isIE":76,"./isMobile":77,"./isTextNode":78}],56:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10158,7 +10489,7 @@ function assignAttributes (
 
 module.exports = assignAttributes
 
-},{"./assignClass":54,"./assignEvent":55,"./assignStyle":56}],54:[function(_dereq_,module,exports){
+},{"./assignClass":57,"./assignEvent":58,"./assignStyle":59}],57:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10172,7 +10503,7 @@ function assignClass (domElement, className) {
 
 module.exports = assignClass
 
-},{}],55:[function(_dereq_,module,exports){
+},{}],58:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10219,7 +10550,7 @@ function assignEvent (
 
 module.exports = assignEvent
 
-},{"./attachEventListener":57}],56:[function(_dereq_,module,exports){
+},{"./attachEventListener":60}],59:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10257,7 +10588,7 @@ function assignStyle (domElement, style, context, isPatchOperation) {
 
 module.exports = assignStyle
 
-},{}],57:[function(_dereq_,module,exports){
+},{}],60:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10285,7 +10616,33 @@ module.exports = function attachEventListener (
   }
 }
 
-},{"./Events":49}],58:[function(_dereq_,module,exports){
+},{"./Events":52}],61:[function(_dereq_,module,exports){
+function _cloneAttributes (attributes) {
+  if (!attributes) return {}
+  var clone = {}
+  for (var key in attributes) {
+    clone[key] = attributes[key]
+  }
+  return clone
+}
+
+module.exports = _cloneAttributes
+
+},{}],62:[function(_dereq_,module,exports){
+
+function _cloneVirtualElement (virtualElement) {
+  return {
+    elementName: virtualElement.elementName,
+    attributes: _cloneAttributes(virtualElement.attributes),
+    children: virtualElement.children
+  }
+}
+
+module.exports = _cloneVirtualElement
+
+var _cloneAttributes = _dereq_('./cloneAttributes')
+
+},{"./cloneAttributes":61}],63:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10325,7 +10682,7 @@ module.exports = function createMixpanel (domElement, mixpanelToken, component) 
   })
 }
 
-},{"./../../vendor/assign":83,"./../../vendor/mixpanel-browser/tiny":133}],59:[function(_dereq_,module,exports){
+},{"./../../vendor/assign":88,"./../../vendor/mixpanel-browser/tiny":138}],64:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10497,7 +10854,7 @@ module.exports = function createRightClickMenu (domElement, component) {
   doc.addEventListener('click', hideMenu)
 }
 
-},{}],60:[function(_dereq_,module,exports){
+},{}],65:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10510,7 +10867,7 @@ function createSvgElement (domElement, tagName) {
 
 module.exports = createSvgElement
 
-},{}],61:[function(_dereq_,module,exports){
+},{}],66:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10568,7 +10925,7 @@ module.exports = createTagNode
 var createSvgElement = _dereq_('./createSvgElement')
 var updateElement = _dereq_('./updateElement')
 
-},{"./../../helpers/allSvgElementNames":20,"./createSvgElement":60,"./getTypeAsString":66,"./normalizeName":74,"./updateElement":81}],62:[function(_dereq_,module,exports){
+},{"./../../helpers/allSvgElementNames":21,"./createSvgElement":65,"./getTypeAsString":71,"./normalizeName":79,"./updateElement":86}],67:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10579,7 +10936,7 @@ function createTextNode (domElement, textContent) {
 
 module.exports = createTextNode
 
-},{}],63:[function(_dereq_,module,exports){
+},{}],68:[function(_dereq_,module,exports){
 function getDomEventPosition (event, doc) {
   var x = -1
   var y = -1
@@ -10598,7 +10955,7 @@ function getDomEventPosition (event, doc) {
 
 module.exports = getDomEventPosition
 
-},{}],64:[function(_dereq_,module,exports){
+},{}],69:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10622,7 +10979,7 @@ function getElementSize (domElement) {
 
 module.exports = getElementSize
 
-},{}],65:[function(_dereq_,module,exports){
+},{}],70:[function(_dereq_,module,exports){
 var getDomEventPosition = _dereq_('./getDomEventPosition')
 
 function getLocalDomEventPosition (event, element) {
@@ -10641,7 +10998,7 @@ function getLocalDomEventPosition (event, element) {
 
 module.exports = getLocalDomEventPosition
 
-},{"./getDomEventPosition":63}],66:[function(_dereq_,module,exports){
+},{"./getDomEventPosition":68}],71:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10665,9 +11022,9 @@ function thingToTagName (thing) {
 }
 
 function objToTagName (obj) {
-  if (obj.name) return obj.name
-  if (obj.metadata && obj.metadata.name) return obj.metadata.name
-  _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
+  // if (obj.name) return obj.name
+  // if (obj.metadata && obj.metadata.name) return obj.metadata.name
+  // _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
   return 'div'
 }
 
@@ -10697,7 +11054,7 @@ function _warnOnce (warning) {
 
 module.exports = getTypeAsString
 
-},{}],67:[function(_dereq_,module,exports){
+},{}],72:[function(_dereq_,module,exports){
 module.exports = function getWindowsBrowser (window) {
   var rv = -1
   if (!window) return rv
@@ -10716,14 +11073,14 @@ module.exports = function getWindowsBrowser (window) {
   return rv
 }
 
-},{}],68:[function(_dereq_,module,exports){
+},{}],73:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 module.exports = _dereq_('./HaikuDOMRenderer')
 
-},{"./HaikuDOMRenderer":50}],69:[function(_dereq_,module,exports){
+},{"./HaikuDOMRenderer":53}],74:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10734,7 +11091,7 @@ function isBlankString (thing) {
 
 module.exports = isBlankString
 
-},{}],70:[function(_dereq_,module,exports){
+},{}],75:[function(_dereq_,module,exports){
 module.exports = function isEdge (window) {
   if (!window) return false
   if (!window.navigator) return false
@@ -10742,7 +11099,7 @@ module.exports = function isEdge (window) {
   return /Edge\/\d./i.test(window.navigator.userAgent)
 }
 
-},{}],71:[function(_dereq_,module,exports){
+},{}],76:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10757,7 +11114,7 @@ module.exports = function isIE (window) {
   )
 }
 
-},{}],72:[function(_dereq_,module,exports){
+},{}],77:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10769,7 +11126,7 @@ module.exports = function isMobile (window) {
   return /iPhone|iPad|iPod|Android/i.test(window.navigator.userAgent)
 }
 
-},{}],73:[function(_dereq_,module,exports){
+},{}],78:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10780,7 +11137,7 @@ function isTextNode (virtualElement) {
 
 module.exports = isTextNode
 
-},{}],74:[function(_dereq_,module,exports){
+},{}],79:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10792,7 +11149,7 @@ function normalizeName (tagName) {
 
 module.exports = normalizeName
 
-},{}],75:[function(_dereq_,module,exports){
+},{}],80:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10806,7 +11163,8 @@ function patch (
   locator,
   context
 ) {
-  if (Object.keys(patchesDict) < 1) {
+  var keysToUpdate = Object.keys(patchesDict)
+  if (keysToUpdate.length < 1) {
     return topLevelDomElement
   }
 
@@ -10833,7 +11191,7 @@ function patch (
 
 module.exports = patch
 
-},{"./updateElement":81}],76:[function(_dereq_,module,exports){
+},{"./updateElement":86}],81:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10845,7 +11203,7 @@ function removeElement (domElement) {
 
 module.exports = removeElement
 
-},{}],77:[function(_dereq_,module,exports){
+},{}],82:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10870,30 +11228,14 @@ function render (
 
 module.exports = render
 
-},{"./renderTree":78}],78:[function(_dereq_,module,exports){
+},{"./renderTree":83}],83:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 var isBlankString = _dereq_('./isBlankString')
 var removeElement = _dereq_('./removeElement')
-
-function _cloneVirtualElement (virtualElement) {
-  return {
-    elementName: virtualElement.elementName,
-    attributes: _cloneAttributes(virtualElement.attributes),
-    children: virtualElement.children
-  }
-}
-
-function _cloneAttributes (attributes) {
-  if (!attributes) return {}
-  var clone = {}
-  for (var key in attributes) {
-    clone[key] = attributes[key]
-  }
-  return clone
-}
+var _cloneVirtualElement = _dereq_('./cloneVirtualElement')
 
 function renderTree (
   domElement,
@@ -10901,7 +11243,8 @@ function renderTree (
   virtualChildren,
   locator,
   context,
-  isPatchOperation
+  isPatchOperation,
+  doSkipChildren
 ) {
   context._addElementToHashTable(domElement, virtualElement)
 
@@ -10923,6 +11266,12 @@ function renderTree (
   // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
   // so the most we want to do is update the attributes and layout properties, but leave the rest alone
   if (context._isHorizonElement(virtualElement)) {
+    return domElement
+  }
+
+  // During patch renders we don't want to drill down and update children as
+  // we're just going to end up doing a lot of unnecessary DOM writes
+  if (doSkipChildren) {
     return domElement
   }
 
@@ -10971,17 +11320,6 @@ function renderTree (
         continue
       }
 
-      if (!domChild.haiku) domChild.haiku = {}
-      domChild.haiku.locator = sublocator
-      if (!context.config.options.cache[domChild.haiku.locator]) {
-        context.config.options.cache[domChild.haiku.locator] = {}
-      }
-
-      if (!domChild.haiku.element) {
-        // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-        domChild.haiku.element = _cloneVirtualElement(virtualChild)
-      }
-
       updateElement(
         domChild,
         virtualChild,
@@ -11003,7 +11341,7 @@ var appendChild = _dereq_('./appendChild')
 var updateElement = _dereq_('./updateElement')
 var replaceElement = _dereq_('./replaceElement')
 
-},{"./appendChild":51,"./isBlankString":69,"./removeElement":76,"./replaceElement":79,"./updateElement":81}],79:[function(_dereq_,module,exports){
+},{"./appendChild":54,"./cloneVirtualElement":62,"./isBlankString":74,"./removeElement":81,"./replaceElement":84,"./updateElement":86}],84:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11049,7 +11387,7 @@ module.exports = replaceElement
 var createTextNode = _dereq_('./createTextNode')
 var createTagNode = _dereq_('./createTagNode')
 
-},{"./applyLayout":52,"./createTagNode":61,"./createTextNode":62,"./isTextNode":73}],80:[function(_dereq_,module,exports){
+},{"./applyLayout":55,"./createTagNode":66,"./createTextNode":67,"./isTextNode":78}],85:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11069,7 +11407,7 @@ function replaceElementWithText (domElement, textContent, context) {
 
 module.exports = replaceElementWithText
 
-},{"./createTextNode":62}],81:[function(_dereq_,module,exports){
+},{"./createTextNode":67}],86:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11077,8 +11415,10 @@ module.exports = replaceElementWithText
 var applyLayout = _dereq_('./applyLayout')
 var assignAttributes = _dereq_('./assignAttributes')
 var getTypeAsString = _dereq_('./getTypeAsString')
+var _cloneVirtualElement = _dereq_('./cloneVirtualElement')
 
 var OBJECT = 'object'
+var STRING = 'string'
 
 function updateElement (
   domElement,
@@ -11096,6 +11436,14 @@ function updateElement (
   }
 
   if (!domElement.haiku) domElement.haiku = {}
+  domElement.haiku.locator = locator
+  if (!context.config.options.cache[domElement.haiku.locator]) {
+    context.config.options.cache[domElement.haiku.locator] = {}
+  }
+  if (!domElement.haiku.element) {
+    // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
+    domElement.haiku.element = _cloneVirtualElement(virtualElement)
+  }
 
   var domTagName = domElement.tagName.toLowerCase().trim()
   var elName = normalizeName(getTypeAsString(virtualElement))
@@ -11161,13 +11509,18 @@ function updateElement (
   }
 
   if (Array.isArray(virtualElement.children)) {
+    // For performance, we don't render children during a patch operation, except in the case
+    // that we have some text content, which we (hack) need to always assume needs an update.
+    // TODO: Fix this hack and make smarter
+    var doSkipChildren = isPatchOperation && (typeof virtualElement.children[0] !== STRING)
     renderTree(
       domElement,
       virtualElement,
       virtualElement.children,
       locator,
       context,
-      isPatchOperation
+      isPatchOperation,
+      doSkipChildren
     )
   } else if (!virtualElement.children) {
     // In case of falsy virtual children, we still need to remove elements that were already there
@@ -11192,7 +11545,7 @@ var replaceElement = _dereq_('./replaceElement')
 var normalizeName = _dereq_('./normalizeName')
 var isTextNode = _dereq_('./isTextNode')
 
-},{"./applyLayout":52,"./assignAttributes":53,"./getTypeAsString":66,"./isTextNode":73,"./normalizeName":74,"./renderTree":78,"./replaceElement":79,"./replaceElementWithText":80}],82:[function(_dereq_,module,exports){
+},{"./applyLayout":55,"./assignAttributes":56,"./cloneVirtualElement":62,"./getTypeAsString":71,"./isTextNode":78,"./normalizeName":79,"./renderTree":83,"./replaceElement":84,"./replaceElementWithText":85}],87:[function(_dereq_,module,exports){
 function uniq (arr) {
   var len = arr.length
   var i = -1
@@ -11221,7 +11574,7 @@ module.exports = {
   immutable: immutable
 }
 
-},{}],83:[function(_dereq_,module,exports){
+},{}],88:[function(_dereq_,module,exports){
 module.exports = function assign (t) {
   for (var s, i = 1, n = arguments.length; i < n; i++) {
     s = arguments[i]
@@ -11234,7 +11587,7 @@ module.exports = function assign (t) {
   return t
 }
 
-},{}],84:[function(_dereq_,module,exports){
+},{}],89:[function(_dereq_,module,exports){
 module.exports = {
   aliceblue: [240, 248, 255],
   antiquewhite: [250, 235, 215],
@@ -11386,7 +11739,7 @@ module.exports = {
   yellowgreen: [154, 205, 50]
 }
 
-},{}],85:[function(_dereq_,module,exports){
+},{}],90:[function(_dereq_,module,exports){
 var ColorNames = _dereq_('./../color-names')
 
 var reverseNames = {}
@@ -11641,38 +11994,38 @@ function hexDouble (num) {
   return str.length < 2 ? '0' + str : str
 }
 
-},{"./../color-names":84}],86:[function(_dereq_,module,exports){
+},{"./../color-names":89}],91:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.ease = internal1.cubicBezier(0.25, 0.1, 0.25, 0.1)
 
-},{"../internal":130}],87:[function(_dereq_,module,exports){
+},{"../internal":135}],92:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeIn = internal1.cubicBezier(0.42, 0, 1, 1)
 
-},{"../internal":130}],88:[function(_dereq_,module,exports){
+},{"../internal":135}],93:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInBack = function (x) {
   return internal1.c3 * x * x * x - internal1.c1 * x * x
 }
 
-},{"../internal":130}],89:[function(_dereq_,module,exports){
+},{"../internal":135}],94:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 exports.easeInBounce = function (x) {
   return 1 - index1.easeOutBounce(1 - x)
 }
 
-},{"./index":120}],90:[function(_dereq_,module,exports){
+},{"./index":125}],95:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInCirc = function (x) {
   return 1 - internal1.sqrt(1 - x * x)
 }
 
-},{"../internal":130}],91:[function(_dereq_,module,exports){
+},{"../internal":135}],96:[function(_dereq_,module,exports){
 exports.easeInCubic = function (x) {
   return x * x * x
 }
 
-},{}],92:[function(_dereq_,module,exports){
+},{}],97:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInElastic = function (n) {
   return !n || n === 1
@@ -11682,17 +12035,17 @@ exports.easeInElastic = function (n) {
         internal1.pow(2, 10 * (n - 1))
 }
 
-},{"../internal":130}],93:[function(_dereq_,module,exports){
+},{"../internal":135}],98:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInExpo = function (x) {
   return x === 0 ? 0 : internal1.pow(2, 10 * x - 10)
 }
 
-},{"../internal":130}],94:[function(_dereq_,module,exports){
+},{"../internal":135}],99:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOut = internal1.cubicBezier(0.42, 0, 0.58, 1)
 
-},{"../internal":130}],95:[function(_dereq_,module,exports){
+},{"../internal":135}],100:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutBack = function (x) {
   return x < 0.5
@@ -11703,7 +12056,7 @@ exports.easeInOutBack = function (x) {
         2
 }
 
-},{"../internal":130}],96:[function(_dereq_,module,exports){
+},{"../internal":135}],101:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 exports.easeInOutBounce = function (x) {
   return x < 0.5
@@ -11711,7 +12064,7 @@ exports.easeInOutBounce = function (x) {
     : (1 + index1.easeOutBounce(2 * x - 1)) / 2
 }
 
-},{"./index":120}],97:[function(_dereq_,module,exports){
+},{"./index":125}],102:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutCirc = function (x) {
   return x < 0.5
@@ -11719,13 +12072,13 @@ exports.easeInOutCirc = function (x) {
     : (internal1.sqrt(1 - internal1.pow(-2 * x + 2, 2)) + 1) / 2
 }
 
-},{"../internal":130}],98:[function(_dereq_,module,exports){
+},{"../internal":135}],103:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutCubic = function (x) {
   return x < 0.5 ? 4 * x * x * x : 1 - internal1.pow(-2 * x + 2, 3) / 2
 }
 
-},{"../internal":130}],99:[function(_dereq_,module,exports){
+},{"../internal":135}],104:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutElastic = function (n) {
   if (!n || n === 1) return n
@@ -11745,7 +12098,7 @@ exports.easeInOutElastic = function (n) {
   )
 }
 
-},{"../internal":130}],100:[function(_dereq_,module,exports){
+},{"../internal":135}],105:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutExpo = function (x) {
   return x === 0
@@ -11757,56 +12110,56 @@ exports.easeInOutExpo = function (x) {
         : (2 - internal1.pow(2, -20 * x + 10)) / 2
 }
 
-},{"../internal":130}],101:[function(_dereq_,module,exports){
+},{"../internal":135}],106:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuad = function (x) {
   return x < 0.5 ? 2 * x * x : 1 - internal1.pow(-2 * x + 2, 2) / 2
 }
 
-},{"../internal":130}],102:[function(_dereq_,module,exports){
+},{"../internal":135}],107:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuart = function (x) {
   return x < 0.5 ? 8 * x * x * x * x : 1 - internal1.pow(-2 * x + 2, 4) / 2
 }
 
-},{"../internal":130}],103:[function(_dereq_,module,exports){
+},{"../internal":135}],108:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuint = function (x) {
   return x < 0.5 ? 16 * x * x * x * x * x : 1 - internal1.pow(-2 * x + 2, 5) / 2
 }
 
-},{"../internal":130}],104:[function(_dereq_,module,exports){
+},{"../internal":135}],109:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutSine = function (x) {
   return -(internal1.cos(internal1.pi * x) - 1) / 2
 }
 
-},{"../internal":130}],105:[function(_dereq_,module,exports){
+},{"../internal":135}],110:[function(_dereq_,module,exports){
 exports.easeInQuad = function (x) {
   return x * x
 }
 
-},{}],106:[function(_dereq_,module,exports){
+},{}],111:[function(_dereq_,module,exports){
 exports.easeInQuart = function (x) {
   return x * x * x * x
 }
 
-},{}],107:[function(_dereq_,module,exports){
+},{}],112:[function(_dereq_,module,exports){
 exports.easeInQuint = function (x) {
   return x * x * x * x * x
 }
 
-},{}],108:[function(_dereq_,module,exports){
+},{}],113:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInSine = function (x) {
   return 1 - internal1.cos(x * internal1.pi / 2)
 }
 
-},{"../internal":130}],109:[function(_dereq_,module,exports){
+},{"../internal":135}],114:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOut = internal1.cubicBezier(0, 0, 0.58, 1)
 
-},{"../internal":130}],110:[function(_dereq_,module,exports){
+},{"../internal":135}],115:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutBack = function (x) {
   return (
@@ -11816,7 +12169,7 @@ exports.easeOutBack = function (x) {
   )
 }
 
-},{"../internal":130}],111:[function(_dereq_,module,exports){
+},{"../internal":135}],116:[function(_dereq_,module,exports){
 exports.easeOutBounce = function (x) {
   var n1 = 7.5625
   var d1 = 2.75
@@ -11829,19 +12182,19 @@ exports.easeOutBounce = function (x) {
         : n1 * (x -= 2.625 / d1) * x + 0.984375
 }
 
-},{}],112:[function(_dereq_,module,exports){
+},{}],117:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutCirc = function (x) {
   return internal1.sqrt(1 - (x - 1) * (x - 1))
 }
 
-},{"../internal":130}],113:[function(_dereq_,module,exports){
+},{"../internal":135}],118:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutCubic = function (x) {
   return 1 - internal1.pow(1 - x, 3)
 }
 
-},{"../internal":130}],114:[function(_dereq_,module,exports){
+},{"../internal":135}],119:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutElastic = function (n) {
   if (!n || n === 1) return n
@@ -11858,36 +12211,36 @@ exports.easeOutElastic = function (n) {
   )
 }
 
-},{"../internal":130}],115:[function(_dereq_,module,exports){
+},{"../internal":135}],120:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutExpo = function (x) {
   return x === 1 ? 1 : 1 - internal1.pow(2, -10 * x)
 }
 
-},{"../internal":130}],116:[function(_dereq_,module,exports){
+},{"../internal":135}],121:[function(_dereq_,module,exports){
 exports.easeOutQuad = function (x) {
   return 1 - (1 - x) * (1 - x)
 }
 
-},{}],117:[function(_dereq_,module,exports){
+},{}],122:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutQuart = function (x) {
   return 1 - internal1.pow(1 - x, 4)
 }
 
-},{"../internal":130}],118:[function(_dereq_,module,exports){
+},{"../internal":135}],123:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutQuint = function (x) {
   return 1 - internal1.pow(1 - x, 5)
 }
 
-},{"../internal":130}],119:[function(_dereq_,module,exports){
+},{"../internal":135}],124:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutSine = function (x) {
   return internal1.sin(x * internal1.pi / 2)
 }
 
-},{"../internal":130}],120:[function(_dereq_,module,exports){
+},{"../internal":135}],125:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -11929,20 +12282,20 @@ __export(_dereq_('./linear'))
 __export(_dereq_('./stepEnd'))
 __export(_dereq_('./stepStart'))
 
-},{"./ease":86,"./easeIn":87,"./easeInBack":88,"./easeInBounce":89,"./easeInCirc":90,"./easeInCubic":91,"./easeInElastic":92,"./easeInExpo":93,"./easeInOut":94,"./easeInOutBack":95,"./easeInOutBounce":96,"./easeInOutCirc":97,"./easeInOutCubic":98,"./easeInOutElastic":99,"./easeInOutExpo":100,"./easeInOutQuad":101,"./easeInOutQuart":102,"./easeInOutQuint":103,"./easeInOutSine":104,"./easeInQuad":105,"./easeInQuart":106,"./easeInQuint":107,"./easeInSine":108,"./easeOut":109,"./easeOutBack":110,"./easeOutBounce":111,"./easeOutCirc":112,"./easeOutCubic":113,"./easeOutElastic":114,"./easeOutExpo":115,"./easeOutQuad":116,"./easeOutQuart":117,"./easeOutQuint":118,"./easeOutSine":119,"./linear":121,"./stepEnd":122,"./stepStart":123}],121:[function(_dereq_,module,exports){
+},{"./ease":91,"./easeIn":92,"./easeInBack":93,"./easeInBounce":94,"./easeInCirc":95,"./easeInCubic":96,"./easeInElastic":97,"./easeInExpo":98,"./easeInOut":99,"./easeInOutBack":100,"./easeInOutBounce":101,"./easeInOutCirc":102,"./easeInOutCubic":103,"./easeInOutElastic":104,"./easeInOutExpo":105,"./easeInOutQuad":106,"./easeInOutQuart":107,"./easeInOutQuint":108,"./easeInOutSine":109,"./easeInQuad":110,"./easeInQuart":111,"./easeInQuint":112,"./easeInSine":113,"./easeOut":114,"./easeOutBack":115,"./easeOutBounce":116,"./easeOutCirc":117,"./easeOutCubic":118,"./easeOutElastic":119,"./easeOutExpo":120,"./easeOutQuad":121,"./easeOutQuart":122,"./easeOutQuint":123,"./easeOutSine":124,"./linear":126,"./stepEnd":127,"./stepStart":128}],126:[function(_dereq_,module,exports){
 exports.linear = function (x) {
   return x
 }
 
-},{}],122:[function(_dereq_,module,exports){
+},{}],127:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.stepEnd = internal1.steps(1, 0)
 
-},{"../internal":130}],123:[function(_dereq_,module,exports){
+},{"../internal":135}],128:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.stepStart = internal1.steps(1, 1)
 
-},{"../internal":130}],124:[function(_dereq_,module,exports){
+},{"../internal":135}],129:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -11955,7 +12308,7 @@ __export(_dereq_('./curves'))
 var css = _dereq_('./internal/cssEasings')
 exports.css = css
 
-},{"./curves":120,"./internal":130,"./internal/cssEasings":126}],125:[function(_dereq_,module,exports){
+},{"./curves":125,"./internal":135,"./internal/cssEasings":131}],130:[function(_dereq_,module,exports){
 exports.pi = Math.PI
 exports.tau = 2 * exports.pi
 exports.epsilon = 0.0001
@@ -11965,7 +12318,7 @@ exports.c3 = exports.c1 + 1
 exports.c4 = exports.tau / 3
 exports.c5 = exports.tau / 4.5
 
-},{}],126:[function(_dereq_,module,exports){
+},{}],131:[function(_dereq_,module,exports){
 var c = 'cubic-bezier'
 var s = 'steps'
 exports.ease = c + '(.25,.1,.25,1)'
@@ -12001,7 +12354,7 @@ exports.linear = c + '(0,0,1,1)'
 exports.stepEnd = s + '(1,0)'
 exports.stepStart = s + '(1,1)'
 
-},{}],127:[function(_dereq_,module,exports){
+},{}],132:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 var camelCaseRegex = /([a-z])[- ]([a-z])/gi
 var cssFunctionRegex = /^([a-z-]+)\(([^)]+)\)$/i
@@ -12047,7 +12400,7 @@ exports.cssFunction = function (easingString) {
   throw new Error('unknown css function')
 }
 
-},{"./index":130}],128:[function(_dereq_,module,exports){
+},{"./index":135}],133:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 var bezier = function (n1, n2, t) {
   return 3 * n1 * (1 - t) * (1 - t) * t + 3 * n2 * (1 - t) * t * t + t * t * t
@@ -12082,7 +12435,7 @@ exports.cubicBezier = function (p0, p1, p2, p3) {
   }
 }
 
-},{"./index":130}],129:[function(_dereq_,module,exports){
+},{"./index":135}],134:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.frames = function (n) {
   var q = 1 / (n - 1)
@@ -12092,7 +12445,7 @@ exports.frames = function (n) {
   }
 }
 
-},{"../internal":130}],130:[function(_dereq_,module,exports){
+},{"../internal":135}],135:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -12104,7 +12457,7 @@ __export(_dereq_('./frames'))
 __export(_dereq_('./math'))
 __export(_dereq_('./steps'))
 
-},{"./constants":125,"./cssEasings":126,"./cssFunction":127,"./cubicBezier":128,"./frames":129,"./math":131,"./steps":132}],131:[function(_dereq_,module,exports){
+},{"./constants":130,"./cssEasings":131,"./cssFunction":132,"./cubicBezier":133,"./frames":134,"./math":136,"./steps":137}],136:[function(_dereq_,module,exports){
 exports.abs = Math.abs
 exports.asin = Math.asin
 exports.floor = Math.floor
@@ -12113,7 +12466,7 @@ exports.pow = Math.pow
 exports.sin = Math.sin
 exports.sqrt = Math.sqrt
 
-},{}],132:[function(_dereq_,module,exports){
+},{}],137:[function(_dereq_,module,exports){
 exports.steps = function (count, pos) {
   var q = count / 1
   var p = pos === 'end' ? 0 : pos === 'start' ? 1 : pos || 0
@@ -12122,7 +12475,7 @@ exports.steps = function (count, pos) {
   }
 }
 
-},{}],133:[function(_dereq_,module,exports){
+},{}],138:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 module.exports = function _mixpanelTiny() {
@@ -12209,7 +12562,7 @@ module.exports = function _mixpanelTiny() {
   return setup(document, window.mixpanel || [])
 }
 
-},{}],134:[function(_dereq_,module,exports){
+},{}],139:[function(_dereq_,module,exports){
 function hasPreserve3d (window) {
   if (!window) return false
   if (!window.document) return false
@@ -12238,7 +12591,7 @@ module.exports = {
   hasPreserve3d: hasPreserve3d
 }
 
-},{}],135:[function(_dereq_,module,exports){
+},{}],140:[function(_dereq_,module,exports){
 (function (process){
 /* eslint-disable */
 // Generated by CoffeeScript 1.7.1
@@ -12282,7 +12635,7 @@ module.exports = {
 }.call(this))
 
 }).call(this,_dereq_('_process'))
-},{"_process":1}],136:[function(_dereq_,module,exports){
+},{"_process":1}],141:[function(_dereq_,module,exports){
 (function (global){
 /* eslint-disable */
 
@@ -12364,12 +12717,12 @@ module.exports.polyfill = function() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../performance-now":135}],137:[function(_dereq_,module,exports){
+},{"./../performance-now":140}],142:[function(_dereq_,module,exports){
 // The original ARC4-based prng included in this library.
 // Period: ~2^1600
 module.exports = _dereq_('./seedrandom')
 
-},{"./seedrandom":138}],138:[function(_dereq_,module,exports){
+},{"./seedrandom":143}],143:[function(_dereq_,module,exports){
 var width = 256        // each RC4 output is 0 <= x < 256
 var chunks = 6         // at least six RC4 outputs for each double
 var digits = 52        // there are 52 significant digits in a double
@@ -12497,7 +12850,7 @@ function tostring (a) {
 
 module.exports = seedrandom
 
-},{}],139:[function(_dereq_,module,exports){
+},{}],144:[function(_dereq_,module,exports){
 'use strict'
 
 exports.__esModule = true
@@ -12523,7 +12876,7 @@ exports.toPath = _toPath2.default
 exports.toPoints = _toPoints2.default
 exports.valid = _valid2.default
 
-},{"./toPath":140,"./toPoints":141,"./valid":142}],140:[function(_dereq_,module,exports){
+},{"./toPath":145,"./toPoints":146,"./valid":147}],145:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -12673,7 +13026,7 @@ var toPath = function(s) {
 
 exports.default = toPath
 
-},{"./toPoints":141}],141:[function(_dereq_,module,exports){
+},{"./toPoints":146}],146:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -13132,7 +13485,7 @@ var getPointsFromG = function(_ref13) {
 
 exports.default = toPoints
 
-},{}],142:[function(_dereq_,module,exports){
+},{}],147:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -13262,10 +13615,10 @@ var valid = function(shape) {
 
 exports.default = valid
 
-},{}],143:[function(_dereq_,module,exports){
+},{}],148:[function(_dereq_,module,exports){
 module.exports = _dereq_('./prefixer')()
 
-},{"./prefixer":151}],144:[function(_dereq_,module,exports){
+},{"./prefixer":156}],149:[function(_dereq_,module,exports){
 module.exports = {
   animation: 1,
   'column-count': 1,
@@ -13285,33 +13638,33 @@ module.exports = {
   rowspan: 1
 }
 
-},{}],145:[function(_dereq_,module,exports){
+},{}],150:[function(_dereq_,module,exports){
 var objectHasOwn = Object.prototype.hasOwnProperty
 
 module.exports = function (object, propertyName) {
   return objectHasOwn.call(object, propertyName)
 }
 
-},{}],146:[function(_dereq_,module,exports){
+},{}],151:[function(_dereq_,module,exports){
 module.exports = {
   object: _dereq_('./toStyleObject')
 }
 
-},{"./toStyleObject":158}],147:[function(_dereq_,module,exports){
+},{"./toStyleObject":163}],152:[function(_dereq_,module,exports){
 var objectToString = Object.prototype.toString
 
 module.exports = function (v) {
   return objectToString.apply(v) === '[object Function]'
 }
 
-},{}],148:[function(_dereq_,module,exports){
+},{}],153:[function(_dereq_,module,exports){
 var objectToString = Object.prototype.toString
 
 module.exports = function (v) {
   return !!v && objectToString.call(v) === '[object Object]'
 }
 
-},{}],149:[function(_dereq_,module,exports){
+},{}],154:[function(_dereq_,module,exports){
 var toUpperFirst = _dereq_('./stringUtils/toUpperFirst')
 
 var re = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/
@@ -13360,7 +13713,7 @@ var prefixInfo = (function () {
 
 module.exports = prefixInfo
 
-},{"./stringUtils/toUpperFirst":157}],150:[function(_dereq_,module,exports){
+},{"./stringUtils/toUpperFirst":162}],155:[function(_dereq_,module,exports){
 module.exports = {
   'border-radius': 1,
   'border-top-left-radius': 1,
@@ -13387,7 +13740,7 @@ module.exports = {
   'box-pack': 1
 }
 
-},{}],151:[function(_dereq_,module,exports){
+},{}],156:[function(_dereq_,module,exports){
 var camelize = _dereq_('./stringUtils/camelize')
 var hyphenate = _dereq_('./stringUtils/hyphenate')
 var toLowerFirst = _dereq_('./stringUtils/toLowerFirst')
@@ -13459,7 +13812,7 @@ module.exports = function (asStylePrefix) {
   }
 }
 
-},{"./prefixInfo":149,"./prefixProperties":150,"./stringUtils/camelize":152,"./stringUtils/hyphenate":154,"./stringUtils/toLowerFirst":156,"./stringUtils/toUpperFirst":157}],152:[function(_dereq_,module,exports){
+},{"./prefixInfo":154,"./prefixProperties":155,"./stringUtils/camelize":157,"./stringUtils/hyphenate":159,"./stringUtils/toLowerFirst":161,"./stringUtils/toUpperFirst":162}],157:[function(_dereq_,module,exports){
 var toCamelFn = function (str, letter) {
   return letter ? letter.toUpperCase() : ''
 }
@@ -13470,17 +13823,17 @@ module.exports = function (str) {
   return str ? str.replace(hyphenRe, toCamelFn) : ''
 }
 
-},{"./hyphenRe":153}],153:[function(_dereq_,module,exports){
+},{"./hyphenRe":158}],158:[function(_dereq_,module,exports){
 module.exports = /[-\s]+(.)?/g
 
-},{}],154:[function(_dereq_,module,exports){
+},{}],159:[function(_dereq_,module,exports){
 var separate = _dereq_('./separate')
 
 module.exports = function (name) {
   return separate(name).toLowerCase()
 }
 
-},{"./separate":155}],155:[function(_dereq_,module,exports){
+},{"./separate":160}],160:[function(_dereq_,module,exports){
 var doubleColonRe = /::/g
 var upperToLowerRe = /([A-Z]+)([A-Z][a-z])/g
 var lowerToUpperRe = /([a-z\d])([A-Z])/g
@@ -13496,21 +13849,21 @@ module.exports = function (name, separator) {
     : ''
 }
 
-},{}],156:[function(_dereq_,module,exports){
+},{}],161:[function(_dereq_,module,exports){
 module.exports = function (value) {
   return value.length
     ? value.charAt(0).toLowerCase() + value.substring(1)
     : value
 }
 
-},{}],157:[function(_dereq_,module,exports){
+},{}],162:[function(_dereq_,module,exports){
 module.exports = function (value) {
   return value.length
     ? value.charAt(0).toUpperCase() + value.substring(1)
     : value
 }
 
-},{}],158:[function(_dereq_,module,exports){
+},{}],163:[function(_dereq_,module,exports){
 var cssPrefixFn = _dereq_('./cssPrefix')
 
 var HYPHENATE = _dereq_('./stringUtils/hyphenate')
@@ -13736,7 +14089,7 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
 
 module.exports = TO_STYLE_OBJECT
 
-},{"./cssPrefix":143,"./cssUnitless":144,"./hasOwn":145,"./isFunction":147,"./isObject":148,"./stringUtils/camelize":152,"./stringUtils/hyphenate":154}],159:[function(_dereq_,module,exports){
+},{"./cssPrefix":148,"./cssUnitless":149,"./hasOwn":150,"./isFunction":152,"./isObject":153,"./stringUtils/camelize":157,"./stringUtils/hyphenate":159}],164:[function(_dereq_,module,exports){
 module.exports = parse
 
 /**
@@ -13892,5 +14245,5 @@ function parse (xml) {
   }
 }
 
-},{}]},{},[13])(13)
+},{}]},{},[14])(14)
 });
