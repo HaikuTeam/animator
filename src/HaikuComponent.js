@@ -908,6 +908,7 @@ function _gatherDeltaPatches (
   patchOptions
 ) {
   Layout3D.initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing in the first place
+  _initializeComponentTree(template, component, context)
 
   var deltas = {} // This is what we're going to return - a dictionary of ids to elements
 
@@ -971,6 +972,7 @@ function _applyContextChanges (
   }
 
   Layout3D.initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
+  _initializeComponentTree(template, component, context)
 
   scopifyElements(template) // I think this only needs to happen once when we build the full tree
 
@@ -992,6 +994,29 @@ function _applyContextChanges (
   return template
 }
 
+
+function _initializeComponentTree(element, component, context) {
+  // In addition to plain objects, a sub-element can also be a component,
+  // which we currently detect by checking to see if it looks like 'bytecode'
+  // Don't instantiate a second time if we already have the instance at this node
+  if (_isBytecode(element.elementName) && !element.__instance) {
+    // function HaikuComponent (bytecode, context, config)
+    element.__instance = new HaikuComponent(element.elementName, context, {
+      // Exclude states, etc. (everything except 'options') since those should override *only* on the root element being instantiated
+      options: context.config.options
+    })
+    // We duplicate the behavior of HaikuContext and start the default timeline
+    element.__instance.startTimeline(DEFAULT_TIMELINE_NAME)
+
+    var flexId = element.attributes && (element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes.id)
+    component._nestedComponentElements[flexId] = element
+  }
+
+  // repeat through children
+  element.children.forEach((child) => _initializeComponentTree(child, component, context))
+}
+
+
 function _expandTreeElement (element, component, context) {
   // Handlers attach first since they may want to respond to an immediate property setter
   if (element.__handlers) {
@@ -1010,27 +1035,10 @@ function _expandTreeElement (element, component, context) {
     }
   }
 
-  // In addition to plain objects, a sub-element can also be a component,
-  // which we currently detect by checking to see if it looks like 'bytecode'
-  if (_isBytecode(element.elementName)) {
-    // Don't instantiate a second time if we already have the instance at this node
-    if (!element.__instance) {
-      // function HaikuComponent (bytecode, context, config)
-      element.__instance = new HaikuComponent(element.elementName, context, {
-        // Exclude states, etc. (everything except 'options') since those should override *only* on the root element being instantiated
-        options: context.config.options
-      })
-      // We duplicate the behavior of HaikuContext and start the default timeline
-      element.__instance.startTimeline(DEFAULT_TIMELINE_NAME)
-
-      var flexId = element.attributes && (element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes.id)
-      component._nestedComponentElements[flexId] = element
-    }
-
+  if (element.__instance) {
     // Call render on the interior element to get its full subtree, and recurse
     // HaikuComponent.prototype.render = (container, renderOptions) => {...}
     // The element is the 'container' in that it should have a layout computed computed already?
-
     var wrapper = _shallowCloneComponentTreeElement(element)
     var surrogates = wrapper.children
     var subtree = element.__instance.render(element, element.__instance.config.options, surrogates)
