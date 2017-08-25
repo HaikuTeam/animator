@@ -670,6 +670,25 @@ var FORBIDDEN_EXPRESSION_TOKENS = {
 //   'short': true,
 // }
 
+function _maybeBuildFunctionSpecification (fn) {
+  // Only create a specification if we don't already have one
+  if (!fn.specification) {
+    var rfo = functionToRFO(fn)
+    if (rfo && rfo.__function) {
+      // Cache this so we don't expensively parse each time
+      fn.specification = rfo.__function
+    } else {
+      // Signal that this function is of an unknown kind
+      // so future runs don't try to parse this one again
+      fn.specification = true
+    }
+  }
+}
+
+// Function.prototype.inject = function inject () {
+//   _maybeBuildFunctionSpecification(this)
+// }
+
 function ValueBuilder (component) {
   this._component = component // ::HaikuComponent
   this._parsees = {}
@@ -713,16 +732,7 @@ ValueBuilder.prototype.evaluate = function _evaluate (
   keyframeCluster,
   hostInstance
 ) {
-  if (!fn.specification) {
-    var rfo = functionToRFO(fn)
-    if (rfo && rfo.__function) {
-      // Cache this so we don't expensively parse each time
-      fn.specification = rfo.__function
-    } else {
-      // Signal that this function is of an unknown kind/ don't try to parse again
-      fn.specification = true
-    }
-  }
+  _maybeBuildFunctionSpecification(fn)
 
   // We'll store the result of this evaluation in this variable (so we can cache it in case unexpected subsequent calls)
   var evaluation = void 0
