@@ -4,10 +4,10 @@
 
 var Transitions = require('./Transitions')
 var BasicUtils = require('./helpers/BasicUtils')
-var functionToRFO = require('./reflection/functionToRFO')
 var DOMSchema = require('./properties/dom/schema')
 var DOMValueParsers = require('./properties/dom/parsers')
 var HaikuHelpers = require('./HaikuHelpers')
+var HaikuGlobal = require('./HaikuGlobal')
 var assign = require('./vendor/assign')
 
 var FUNCTION = 'function'
@@ -366,11 +366,14 @@ INJECTABLES['$tree'] = {
     injectees.$tree.parent = null
 
     if (matchingElement.__parent) {
-      assignElementInjectables(injectees.$tree, 'parent', summonSpec.$tree && summonSpec.$tree.parent, hostInstance, matchingElement.__parent)
+      var subspec0 = (typeof summonSpec === 'string') ? summonSpec : (summonSpec.$tree && summonSpec.$tree.parent)
+      assignElementInjectables(injectees.$tree, 'parent', subspec0, hostInstance, matchingElement.__parent)
 
       for (var i = 0; i < matchingElement.__parent.children.length; i++) {
         var sibling = matchingElement.__parent.children[i]
-        var subspec1 = summonSpec.$tree && summonSpec.$tree.siblings && summonSpec.$tree.siblings[j]
+        var subspec1 = (typeof summonSpec === 'string')
+          ? summonSpec
+          : summonSpec.$tree && summonSpec.$tree.siblings && summonSpec.$tree.siblings[j]
         assignElementInjectables(injectees.$tree.siblings, i, subspec1, hostInstance, sibling)
       }
     }
@@ -380,7 +383,9 @@ INJECTABLES['$tree'] = {
     if (matchingElement.children) {
       for (var j = 0; j < matchingElement.children.length; j++) {
         var child = matchingElement.children[j]
-        var subspec2 = summonSpec.$tree && summonSpec.$tree.children && summonSpec.$tree.children[j]
+        var subspec2 = (typeof summonSpec === 'string')
+          ? summonSpec
+          : summonSpec.$tree && summonSpec.$tree.children && summonSpec.$tree.children[j]
         assignElementInjectables(injectees.$tree.children, j, subspec2, hostInstance, child)
       }
     }
@@ -417,7 +422,8 @@ INJECTABLES['$component'] = {
     if (injectees.$tree && injectees.$tree.component) {
       injectees.$component = injectees.$tree.component
     } else {
-      assignElementInjectables(injectees, '$component', summonSpec.$component, hostInstance, hostInstance._getTopLevelElement())
+      var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$component
+      assignElementInjectables(injectees, '$component', subspec, hostInstance, hostInstance._getTopLevelElement())
     }
   }
 }
@@ -433,7 +439,8 @@ INJECTABLES['$root'] = {
       injectees.$root = injectees.$tree.root
     } else {
       // Until we support nested components, $root resolves to $component
-      assignElementInjectables(injectees, '$root', summonSpec.$root, hostInstance, hostInstance._getTopLevelElement())
+      var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$root
+      assignElementInjectables(injectees, '$root', subspec, hostInstance, hostInstance._getTopLevelElement())
     }
   }
 }
@@ -445,7 +452,8 @@ INJECTABLES['$element'] = {
     if (injectees.$tree && injectees.$tree.element) {
       injectees.$element = injectees.$tree.element
     } else {
-      assignElementInjectables(injectees, '$element', summonSpec.$element, hostInstance, matchingElement)
+      var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$element
+      assignElementInjectables(injectees, '$element', subspec, hostInstance, matchingElement)
     }
   }
 }
@@ -670,25 +678,6 @@ var FORBIDDEN_EXPRESSION_TOKENS = {
 //   'short': true,
 // }
 
-function _maybeBuildFunctionSpecification (fn) {
-  // Only create a specification if we don't already have one
-  if (!fn.specification) {
-    var rfo = functionToRFO(fn)
-    if (rfo && rfo.__function) {
-      // Cache this so we don't expensively parse each time
-      fn.specification = rfo.__function
-    } else {
-      // Signal that this function is of an unknown kind
-      // so future runs don't try to parse this one again
-      fn.specification = true
-    }
-  }
-}
-
-// Function.prototype.inject = function inject () {
-//   _maybeBuildFunctionSpecification(this)
-// }
-
 function ValueBuilder (component) {
   this._component = component // ::HaikuComponent
   this._parsees = {}
@@ -732,7 +721,7 @@ ValueBuilder.prototype.evaluate = function _evaluate (
   keyframeCluster,
   hostInstance
 ) {
-  _maybeBuildFunctionSpecification(fn)
+  HaikuGlobal['enhance!'](fn)
 
   // We'll store the result of this evaluation in this variable (so we can cache it in case unexpected subsequent calls)
   var evaluation = void 0
@@ -747,14 +736,12 @@ ValueBuilder.prototype.evaluate = function _evaluate (
     // If for some reason we got 0 params, just evaluate it
     evaluation = fn.call(hostInstance, hostInstance._states)
   } else {
-    var summons = fn.specification.params[0] // For now, ignore all subsequent arguments
-
-    if (!summons || typeof summons !== 'object') {
+    if (fn.specification.params.length < 1) {
       // If the summon isn't in the destructured object format, just evaluate it
       evaluation = fn.call(hostInstance, hostInstance._states)
     } else {
-      var summonees = this.summonSummonables(
-        summons,
+      var summoneesArray = this.summonSummonables(
+        fn.specification.params,
         timelineName,
         flexId,
         matchingElement,
@@ -764,18 +751,15 @@ ValueBuilder.prototype.evaluate = function _evaluate (
         hostInstance
       )
 
-      var previousSummonees = this._getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs)
+      var previousSummoneesArray = this._getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs)
 
-      if (_areSummoneesDifferent(previousSummonees, summonees)) {
-        this._cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summonees)
+      if (_areSummoneesDifferent(previousSummoneesArray, summoneesArray)) {
+        this._cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summoneesArray)
 
-        evaluation = fn.call(hostInstance, summonees)
+        evaluation = fn.apply(hostInstance, summoneesArray)
       } else {
         // Since nothing is different, return the previous evaluation
         evaluation = this._getPreviousEvaluation(timelineName, flexId, propertyName, keyframeMs)
-        // if (flexId === '16301b9a3241' && propertyName === 'rotation.z') {
-        //   console.log(evaluation)
-        // }
       }
     }
   }
@@ -819,7 +803,7 @@ ValueBuilder.prototype._cacheEvaluation = function _cacheEvaluation (timelineNam
 }
 
 ValueBuilder.prototype.summonSummonables = function _summonSummonables (
-  summons,
+  paramsArray,
   timelineName,
   flexId,
   matchingElement,
@@ -828,35 +812,70 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
   keyframeCluster,
   hostInstance
 ) {
-  var summonables = {}
+  var summonablesArray = []
 
-  for (var key in summons) {
-    // If the summons structure has a falsy, just skip it - I don't see why how this could happen, but just in case
-    if (!summons[key]) continue
+  // Temporary storage, just creating one object here to avoid excessive allocations
+  var _summonStorage = {}
 
-    // If a special summonable has been defined, then call its summoner function
-    // Note the lower-case - allow lo-coders to comfortably call say $FRAME and $frame and get the same thing back
-    if (INJECTABLES[key]) {
-      // But don't lowercase the assignment - otherwise the object destructuring won't work!!!
-      INJECTABLES[key].summon(
-        summonables, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they key must be added
-        summons[key],
-        hostInstance,
-        matchingElement,
-        timelineName
-      )
+  for (var i = 0; i < paramsArray.length; i++) {
+    var summonsEntry = paramsArray[i]
 
-      continue
+    // We'll store the output of the summons in this var, whether we're dealing with
+    // a complex nested summonable or a flat one
+    var summonsOutput
+
+    // In case of a string, we will treat it as the key for the object to summon
+    if (typeof summonsEntry === 'string') {
+      // Treat the entry as the key to a known injectable
+      if (INJECTABLES[summonsEntry]) {
+        _summonStorage[summonsEntry] = undefined // Clear out the old value before populating with the new one
+        INJECTABLES[summonsKey].summon(
+          _summonStorage, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they summonsKey must be added
+          summonsEntry, // The summon function should know how to handle a string and what it signifies
+          hostInstance,
+          matchingElement,
+          timelineName
+        )
+        summonsOutput = _summonStorage[summonsEntry]
+      } else {
+        summonsOutput = hostInstance.state[summonsEntry]
+      }
+    } else if (summonsEntry && typeof summonsEntry === 'object') {
+      // If dealing with a summon that is an object, the output will be an object
+      summonsOutput = {}
+
+      for (var summonsKey in summonsEntry) {
+        // If the summons structure has a falsy, just skip it - I don't see why how this could happen, but just in case
+        if (!summonsEntry[summonsKey]) continue
+
+        // If a special summonable has been defined, then call its summoner function
+        if (INJECTABLES[summonsKey]) {
+          INJECTABLES[summonsKey].summon(
+            summonsOutput, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they summonsKey must be added
+            summonsEntry[summonsKey], // The object specifies the specific fields we want to extract
+            hostInstance,
+            matchingElement,
+            timelineName
+          )
+
+          continue
+        }
+
+        // Otherwise, assume the user wants to access one of the states of the component instance
+        // Note that the 'states' defined in the component's bytecode should have been set up upstream by the
+        // player initialization process. hostInstance is a HaikuPlayer which has a state prop which has
+        // getter/setter props set up corresponding to whatever the 'states' were set to
+        summonsOutput[summonsKey] = hostInstance.state[summonsKey]
+      }
     }
 
-    // Otherwise, assume the user wants to access one of the states of the component instance
-    // Note that the 'states' defined in the component's bytecode should have been set up upstream by the
-    // player initialization process. hostInstance is a HaikuPlayer which has a state prop which has
-    // getter/setter props set up corresponding to whatever the 'states' were set to
-    summonables[key] = hostInstance.state[key]
+    // Whatever the request format was, populate the result in here
+    if (summonsOutput !== undefined) {
+      summonablesArray[i] = summonsOutput
+    }
   }
 
-  return summonables
+  return summonablesArray
 }
 
 ValueBuilder.prototype._getSummonablesSchema = function _getSummonablesSchema () {
