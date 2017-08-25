@@ -1009,12 +1009,14 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
 }
 
 ValueBuilder.prototype.getParser = function getParser (outputName, virtualElement) {
+  if (!virtualElement) return undefined
   var foundParser = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement)
   if (!foundParser) foundParser = DOMValueParsers[virtualElement.elementName] && DOMValueParsers[virtualElement.elementName][outputName]
   return foundParser && foundParser.parse
 }
 
 ValueBuilder.prototype.getGenerator = function getGenerator (outputName, virtualElement) {
+  if (!virtualElement) return undefined
   var foundGenerator = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement)
   if (!foundGenerator) foundGenerator = DOMValueParsers[virtualElement.elementName] && DOMValueParsers[virtualElement.elementName][outputName]
   return foundGenerator && foundGenerator.generate
