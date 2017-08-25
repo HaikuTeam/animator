@@ -407,6 +407,10 @@ HaikuComponent.prototype.getAddressableProperties = function getAddressablePrope
   return this._bytecode.states || {}
 }
 
+HaikuComponent.prototype.getParser = function getParser (outputName, virtualElement) {
+  return this._bytecode.parsers && this._bytecode.parsers[outputName]
+}
+
 /**
  * TODO:
  * Implement the methods commented out below

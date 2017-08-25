@@ -4,11 +4,9 @@
 
 var Transitions = require('./Transitions')
 var BasicUtils = require('./helpers/BasicUtils')
-var ColorUtils = require('./helpers/ColorUtils')
-var SVGPoints = require('./helpers/SVGPoints')
 var functionToRFO = require('./reflection/functionToRFO')
 var DOMSchema = require('./properties/dom/schema')
-// var DOMFallbacks = require('./properties/dom/fallbacks')
+var DOMValueParsers = require('./properties/dom/parsers')
 var HaikuHelpers = require('./HaikuHelpers')
 var assign = require('./vendor/assign')
 
@@ -17,88 +15,6 @@ var OBJECT = 'object'
 
 function isFunction (value) {
   return typeof value === FUNCTION
-}
-
-var PARSERS = {}
-PARSERS['d'] = function _parseD (value) {
-  // in case of d="" for any reason, don't try to expand this otherwise this will choke
-  // #TODO: arguably we should preprocess SVGs before things get this far; try svgo?
-  if (!value) return []
-  // Allow points to return an array for convenience, and let downstream marshal it
-  if (Array.isArray(value)) {
-    return value
-  }
-  return SVGPoints.pathToPoints(value)
-}
-PARSERS['color'] = function _parseColor (value) {
-  return ColorUtils.parseString(value)
-}
-PARSERS['stroke'] = PARSERS['color']
-PARSERS['fill'] = PARSERS['color']
-PARSERS['floodColor'] = PARSERS['color']
-PARSERS['lightingColor'] = PARSERS['color']
-PARSERS['stopColor'] = PARSERS['color']
-PARSERS['backgroundColor'] = PARSERS['color']
-PARSERS['animateColor'] = PARSERS['color']
-PARSERS['feColor'] = PARSERS['color']
-PARSERS['flood-color'] = PARSERS['color']
-PARSERS['lighting-color'] = PARSERS['color']
-PARSERS['stop-color'] = PARSERS['color']
-PARSERS['background-color'] = PARSERS['color']
-PARSERS['animate-color'] = PARSERS['color']
-PARSERS['fe-color'] = PARSERS['color']
-PARSERS['style.stroke'] = PARSERS['color']
-PARSERS['style.fill'] = PARSERS['color']
-PARSERS['style.backgroundColor'] = PARSERS['color']
-PARSERS['style.borderBottomColor'] = PARSERS['color']
-PARSERS['style.borderColor'] = PARSERS['color']
-PARSERS['style.borderLeftColor'] = PARSERS['color']
-PARSERS['style.borderRightColor'] = PARSERS['color']
-PARSERS['style.borderTopColor'] = PARSERS['color']
-PARSERS['style.floodColor'] = PARSERS['color']
-PARSERS['style.lightingColor'] = PARSERS['color']
-PARSERS['style.stopColor'] = PARSERS['color']
-PARSERS['points'] = function _parsePoints (value) {
-  if (Array.isArray(value)) return value
-  return SVGPoints.polyPointsStringToPoints(value)
-}
-
-var GENERATORS = {}
-GENERATORS['d'] = function _genD (value) {
-  if (typeof value === 'string') return value
-  return SVGPoints.pointsToPath(value)
-}
-GENERATORS['color'] = function _genColor (value) {
-  return ColorUtils.generateString(value)
-}
-GENERATORS['stroke'] = GENERATORS['color']
-GENERATORS['fill'] = GENERATORS['color']
-GENERATORS['floodColor'] = GENERATORS['color']
-GENERATORS['lightingColor'] = GENERATORS['color']
-GENERATORS['stopColor'] = GENERATORS['color']
-GENERATORS['backgroundColor'] = GENERATORS['color']
-GENERATORS['animateColor'] = GENERATORS['color']
-GENERATORS['feColor'] = GENERATORS['color']
-GENERATORS['flood-color'] = GENERATORS['color']
-GENERATORS['lighting-color'] = GENERATORS['color']
-GENERATORS['stop-color'] = GENERATORS['color']
-GENERATORS['background-color'] = GENERATORS['color']
-GENERATORS['animate-color'] = GENERATORS['color']
-GENERATORS['fe-color'] = GENERATORS['color']
-GENERATORS['style.stroke'] = GENERATORS['color']
-GENERATORS['style.fill'] = GENERATORS['color']
-GENERATORS['style.backgroundColor'] = GENERATORS['color']
-GENERATORS['style.borderBottomColor'] = GENERATORS['color']
-GENERATORS['style.borderColor'] = GENERATORS['color']
-GENERATORS['style.borderLeftColor'] = GENERATORS['color']
-GENERATORS['style.borderRightColor'] = GENERATORS['color']
-GENERATORS['style.borderTopColor'] = GENERATORS['color']
-GENERATORS['style.floodColor'] = GENERATORS['color']
-GENERATORS['style.lightingColor'] = GENERATORS['color']
-GENERATORS['style.stopColor'] = GENERATORS['color']
-GENERATORS['points'] = function _genPoints (value) {
-  if (typeof value === 'string') return value
-  return SVGPoints.pointsToPolyString(value)
 }
 
 var INJECTABLES = {}
@@ -1064,13 +980,15 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
 }
 
 ValueBuilder.prototype.getParser = function getParser (outputName, virtualElement) {
-  // TODO: Allow 'component' elements to provide their own parsers/generators
-  return PARSERS[outputName]
+  var foundParser = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement)
+  if (!foundParser) foundParser = DOMValueParsers[virtualElement.elementName] && DOMValueParsers[virtualElement.elementName][outputName]
+  return foundParser && foundParser.parse
 }
 
 ValueBuilder.prototype.getGenerator = function getGenerator (outputName, virtualElement) {
-  // TODO: Allow 'component' elements to provide their own parsers/generators
-  return GENERATORS[outputName]
+  var foundGenerator = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement)
+  if (!foundGenerator) foundGenerator = DOMValueParsers[virtualElement.elementName] && DOMValueParsers[virtualElement.elementName][outputName]
+  return foundGenerator && foundGenerator.generate
 }
 
 ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFinalValueFromParsedValue (
@@ -1254,13 +1172,7 @@ ValueBuilder.prototype.grabValue = function _grabValue (
   return finalValue
 }
 
-// function _isBytecode (thing) {
-//   return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines
-// }
-
 ValueBuilder.INJECTABLES = INJECTABLES
-ValueBuilder.PARSERS = PARSERS
-ValueBuilder.GENERATORS = GENERATORS
 ValueBuilder.FORBIDDEN_EXPRESSION_TOKENS = FORBIDDEN_EXPRESSION_TOKENS
 
 module.exports = ValueBuilder

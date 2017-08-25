@@ -3,6 +3,7 @@
  */
 
 var Layout3D = require('./../../Layout3D')
+var has = require('./has')
 
 /**
  * 'Vanities' are functions that provide special handling for applied properties.
@@ -19,19 +20,6 @@ var Layout3D = require('./../../Layout3D')
  *   }
  * }
  */
-
-// Just a utility function for populating these objects
-function has () {
-  var obj = {}
-  for (var i = 0; i < arguments.length; i++) {
-    var arg = arguments[i]
-    for (var name in arg) {
-      var fn = arg[name]
-      obj[name] = fn
-    }
-  }
-  return obj
-}
 
 var LAYOUT_3D_VANITIES = {
   // Layout has a couple of special values that relate to display
@@ -1685,6 +1673,6 @@ module.exports = {
     STYLE_VANITIES
   ),
   view: has(),
-  vker: has(),
+  vkern: has(),
   wb: has(CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES)
 }

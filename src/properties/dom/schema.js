@@ -2,22 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
+var has = require('./has')
+
 // A dictionary that maps HTML+SVG element names (camelCase)
 // to addressable properties. This acts as a whitelist of properties that
 // _can_ be applied, and special logic for applying them.
-
-// Just a utility for populating these objects
-function has () {
-  var obj = {}
-  for (var i = 0; i < arguments.length; i++) {
-    var arg = arguments[i]
-    for (var name in arg) {
-      var fn = arg[name]
-      obj[name] = fn
-    }
-  }
-  return obj
-}
 
 var TEXT_CONTENT_SCHEMA = {
   content: 'string'
@@ -1023,6 +1012,6 @@ module.exports = {
     STYLE_SCHEMA
   ),
   view: has(),
-  vker: has(),
+  vkern: has(),
   wb: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA)
 }
