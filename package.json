@@ -24,7 +24,8 @@
     "prettify": "prettier-standard \"{,!(node_modules|dist)/**/}*.js\"",
     "footprint": "./footprint.sh",
     "demo": "nodemon ./test/demo/server.js",
-    "start": "npm run demo"
+    "link-player": "npm link && npm link @haiku/player",
+    "start": "npm run link-player && npm run demo"
   },
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",

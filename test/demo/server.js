@@ -8,31 +8,6 @@ var browserify = require('browserify')
 var handlebars = require('handlebars')
 var filesize = require('filesize')
 var fse = require('fs-extra')
-var tools = require('browserify-transform-tools')
-
-var swapPlayerRequirePath = tools.makeStringTransform(
-  'swapPlayerRequirePath',
-  {},
-  function (content, options, done) {
-    // Don't replace the require string unless we're loading an actual demo file
-    if (!options.file.match(/\/test\/demo\//)) {
-      return done(null, content)
-    }
-
-    content = content.split(`'@haiku/player/dom'`).join(`'./../../../../../src/adapters/dom'`)
-
-    content = content
-      .split(`'@haiku/player/dom/react'`)
-      .join(`'./../../../../../src/adapters/react-dom'`)
-
-    content = content
-      .split(`'@haiku/player/components/`)
-      .join(`'./../../../../../components/`)
-
-    return done(null, content)
-  }
-)
-
 var PORT = process.env.PORT || 3000
 var DEMOS_PATH = path.join(__dirname)
 
@@ -94,7 +69,7 @@ app.get('/demos/:demo', function (req, res) {
       var raw = htmlbuf.toString()
       var tpl = handlebars.compile(raw)
 
-      var vanillabr = browserify(domAbspath, { standalone: 'vanilla', transform: [swapPlayerRequirePath] })
+      var vanillabr = browserify(domAbspath, { standalone: 'vanilla' })
       vanillabr.on('error', function (err) { return res.status(500).send('Server error! (' + err + ')') })
       return vanillabr.bundle(function (err, vanillabuf) {
         if (err) return res.status(500).send('Server error! (' + err + ')')
@@ -102,7 +77,7 @@ app.get('/demos/:demo', function (req, res) {
 
         console.log(`[haiku player demo server] ${demo} bundle size: ${filesize(Buffer.byteLength(vanillajs, 'utf8'))} (unminified)`)
 
-        var reactbr = browserify(reactAbspath, { standalone: 'react', transform: [swapPlayerRequirePath] })
+        var reactbr = browserify(reactAbspath, { standalone: 'react' })
         reactbr.on('error', function (err) { return res.status(500).send('Server error! (' + err + ')') })
         return reactbr.bundle(function (err, reactbuf) {
           if (err) return res.status(500).send('Server error! (' + err + ')')

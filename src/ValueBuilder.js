@@ -721,7 +721,7 @@ ValueBuilder.prototype.evaluate = function _evaluate (
   keyframeCluster,
   hostInstance
 ) {
-  HaikuGlobal['enhance!'](fn)
+  HaikuGlobal.enhance(fn)
 
   // We'll store the result of this evaluation in this variable (so we can cache it in case unexpected subsequent calls)
   var evaluation = void 0
