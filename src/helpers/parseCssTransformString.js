@@ -115,7 +115,9 @@ function parseCssTransformString (str) {
 
       // Special case: If we get a matrix3d, we can just use that matrix itself instead of flowing through the layout calculator
       case 'matrix3d':
-        return Layout3D.copyMatrix([], spec.values.map(val => val.value))
+        return Layout3D.copyMatrix([], spec.values.map(function _mapper (val) {
+          return val.value
+        }))
 
       default:
         console.warn('No CSS transform parser available for ' + spec.type)

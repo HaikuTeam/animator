@@ -63,7 +63,7 @@ function stringifyParam (param, key) {
 
 function marshalParams (params) {
   return params
-    .map(param => {
+    .map(function _mapper (param) {
       // Need wrap function to avoid passing the index (key) to stringifyParam, which uses that to detect something
       return stringifyParam(param)
     })

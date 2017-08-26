@@ -994,8 +994,7 @@ function _applyContextChanges (
   return template
 }
 
-
-function _initializeComponentTree(element, component, context) {
+function _initializeComponentTree (element, component, context) {
   // In addition to plain objects, a sub-element can also be a component,
   // which we currently detect by checking to see if it looks like 'bytecode'
   // Don't instantiate a second time if we already have the instance at this node
@@ -1013,9 +1012,12 @@ function _initializeComponentTree(element, component, context) {
   }
 
   // repeat through children
-  element.children.forEach((child) => _initializeComponentTree(child, component, context))
+  if (element.children && element.children.length > 0) {
+    for (var i = 0; i < element.children.length; i++) {
+      _initializeComponentTree(element.children[i], component, context)
+    }
+  }
 }
-
 
 function _expandTreeElement (element, component, context) {
   // Handlers attach first since they may want to respond to an immediate property setter
