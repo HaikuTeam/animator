@@ -7,14 +7,30 @@ var marshalParams = require('./marshalParams')
 function functionSpecificationToFunction (name, params, body, type) {
   if (!type) type = 'FunctionExpression'
 
+  params = marshalParams(params)
+  var fn
+
   if (type === 'ArrowFunctionExpression') {
-    return new Function( // eslint-disable-line
+    fn = new Function( // eslint-disable-line
       '\n' +
         'return ' +
         (name || '') +
         '(' +
-        marshalParams(params) +
+        params +
         ') => {\n' +
+        '  ' +
+        (body || '') +
+        '\n' +
+        '}\n'
+    )()
+  } else {
+    fn = new Function( // eslint-disable-line
+      '\n' +
+        'return function ' +
+        (name || '') +
+        '(' +
+        params +
+        ') {\n' +
         '  ' +
         (body || '') +
         '\n' +
@@ -22,18 +38,7 @@ function functionSpecificationToFunction (name, params, body, type) {
     )()
   }
 
-  return new Function( // eslint-disable-line
-    '\n' +
-      'return function ' +
-      (name || '') +
-      '(' +
-      marshalParams(params) +
-      ') {\n' +
-      '  ' +
-      (body || '') +
-      '\n' +
-      '}\n'
-  )()
+  return fn
 }
 
 module.exports = functionSpecificationToFunction

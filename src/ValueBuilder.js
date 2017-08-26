@@ -6,8 +6,8 @@ var Transitions = require('./Transitions')
 var BasicUtils = require('./helpers/BasicUtils')
 var DOMSchema = require('./properties/dom/schema')
 var DOMValueParsers = require('./properties/dom/parsers')
+var enhance = require('./reflection/enhance')
 var HaikuHelpers = require('./HaikuHelpers')
-var HaikuGlobal = require('./HaikuGlobal')
 var assign = require('./vendor/assign')
 
 var FUNCTION = 'function'
@@ -721,7 +721,7 @@ ValueBuilder.prototype.evaluate = function _evaluate (
   keyframeCluster,
   hostInstance
 ) {
-  HaikuGlobal.enhance(fn)
+  enhance(fn)
 
   // We'll store the result of this evaluation in this variable (so we can cache it in case unexpected subsequent calls)
   var evaluation = void 0
@@ -829,7 +829,7 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
       // Treat the entry as the key to a known injectable
       if (INJECTABLES[summonsEntry]) {
         _summonStorage[summonsEntry] = undefined // Clear out the old value before populating with the new one
-        INJECTABLES[summonsKey].summon(
+        INJECTABLES[summonsEntry].summon(
           _summonStorage, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they summonsKey must be added
           summonsEntry, // The summon function should know how to handle a string and what it signifies
           hostInstance,

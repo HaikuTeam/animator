@@ -2,6 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
+var inject = require('./inject')
 var functionSpecificationToFunction = require('./functionSpecificationToFunction')
 
 function reifyRFO (rfo) {
@@ -11,6 +12,13 @@ function reifyRFO (rfo) {
     rfo.body,
     rfo.type
   )
+
+  // Upstream can signal that this function needs to become 'injected'
+  // in order to function properly using this flag
+  if (rfo.injectee) {
+    inject.apply(null, [fn].concat(rfo.params))
+  }
+
   return fn
 }
 
