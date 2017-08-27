@@ -8,7 +8,11 @@ module.exports = function inject (/* fn, ...args */) {
     console.warn('[haiku player] Inject expects a function as the first argument')
     return fn
   }
-  enhance(fn, args)
+  if (args.length > 0) {
+    enhance(fn, args)
+  } else {
+    enhance(fn) // If no args here, let 'enhance' try to parse them out
+  }
   // I'm adding this flag in case we did this in a random spot at
   // player runtime and need to detect later this when writing the AST
   fn.injectee = true
