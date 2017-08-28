@@ -7,7 +7,7 @@ var allPackages = require('./helpers/allPackages')()
 var message = argv.message
 
 if (!message) {
-  log.err('please supply a commit message ($ npm run mono:git-ac -- --message="foo")')
+  log.err('please supply a commit message ($ yarn run mono:git-ac -- --message="foo")')
   process.exit(1)
 }
 

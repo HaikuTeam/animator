@@ -10,7 +10,7 @@ async.eachSeries(allPackages, function (pack, next) {
   if (pack.pkg.scripts && pack.pkg.scripts.lint) {
     try {
       log.log('linting ' + pack.name)
-      cp.execSync('npm run lint', { cwd: pack.abspath, stdio: 'inherit' })
+      cp.execSync('yarn run lint', { cwd: pack.abspath, stdio: 'inherit' })
     } catch (exception) {
       log.err(exception.message)
     }

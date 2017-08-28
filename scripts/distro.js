@@ -10,7 +10,7 @@ delete inputs.$0
 var ROOT = path.join(__dirname, '..')
 var DISTRO = path.join(ROOT, 'distro')
 
-cp.execSync('npm install', { cwd: DISTRO, stdio: 'inherit' })
+cp.execSync('yarn install', { cwd: DISTRO, stdio: 'inherit' })
 
 var pipeline = cp.fork(path.join(DISTRO, 'pipeline.js'), [`--version=${inputs.version}`], { cwd: DISTRO, stdio: 'inherit' })
 

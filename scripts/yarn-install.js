@@ -8,13 +8,13 @@ var EXEC_OPTIONS = {
 }
 
 lodash.forEach(allPackages, function (pack) {
-  log.log('npm install for ' + pack.name)
+  log.log('yarn install for ' + pack.name)
 
-  cp.execSync('npm install', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath }))
+  cp.execSync('yarn install', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath }))
 
   // special snowflake...
   if (pack.name === 'haiku-plumbing') {
     log.log('compiling javascript for ' + pack.name)
-    return cp.execSync('npm run compile', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath }))
+    return cp.execSync('yarn run compile', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath }))
   }
 })

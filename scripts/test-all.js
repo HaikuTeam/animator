@@ -11,7 +11,7 @@ async.eachSeries(allPackages, function (pack, next) {
     if (pack.pkg.scripts.test !== `echo "Error: no test specified" && exit 1`) {
       try {
         log.log('running tests in ' + pack.name)
-        cp.execSync('npm run test', { cwd: pack.abspath, stdio: 'inherit' })
+        cp.execSync('yarn run test', { cwd: pack.abspath, stdio: 'inherit' })
       } catch (exception) {
         log.err(exception.message)
       }

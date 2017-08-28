@@ -41,7 +41,7 @@
       "!**/node_modules/.bin",
       "!**/*.{o,hprof,orig,pyc,pyo,rbc}",
       "!**/._*",
-      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,__pycache__,thumbs.db,.gitignore,.gitattributes,.editorconfig,.flowconfig,.yarn-metadata.json,.idea,appveyor.yml,.travis.yml,circle.yml,npm-debug.log,.nyc_output,yarn.lock,.yarn-integrity}",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,__pycache__,thumbs.db,.gitignore,.gitattributes,.editorconfig,.flowconfig,.yarn-metadata.json,.idea,appveyor.yml,.travis.yml,circle.yml,npm-debug.log,yarn-debug.log,.nyc_output,yarn.lock,.yarn-integrity}",
       "!libs/*/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__,tests,powered-test,example,examples,*.d.ts}",
       "!libs/plumbing/node_modules/nodegit",
       "libs/plumbing/node_modules/nodegit/package.json",
@@ -59,8 +59,9 @@
     ]
   },
   "engines": {
-    "node": "6.6.0",
-    "npm": "3.10.3",
+    "node": "8.4.0",
+    "npm": "5.3.0",
+    "yarn": "0.27.5",
     "electron": "1.7.0"
   },
   "name": "haiku-distro",

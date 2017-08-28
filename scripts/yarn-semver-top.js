@@ -24,6 +24,6 @@ lodash.forEach(allPackages, function (pack) {
 
 log.log('highest semver version found is ' + top)
 
-runScript('npm-semver-set', ['--version=' + top], function (err) {
+runScript('yarn-semver-set', ['--version=' + top], function (err) {
   if (err) throw err
 })

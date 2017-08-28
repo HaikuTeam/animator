@@ -21,7 +21,7 @@ if (!level) throw new Error('Level required (patch, minor, major)')
 if (!VALID_LEVELS[level]) throw new Error('Invalid level')
 
 // First make sure all the packages are normalized to the topmost semver
-runScript('npm-semver-top', [], function (err) {
+runScript('yarn-semver-top', [], function (err) {
   if (err) throw err
 
   // Then go ahead and increment all of them from that normalized semver

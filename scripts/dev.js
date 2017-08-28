@@ -23,24 +23,24 @@ process.env.NODE_ENV = 'development'
 
 var instructionSets = {
   default: [
-    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
+    ['haiku-plumbing', ['yarn', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['node', './HaikuHelper.js'], { HAIKU_SKIP_AUTOUPDATE: 1 }, 5000]
   ],
 
   blank: [
-    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
+    ['haiku-plumbing', ['yarn', 'run', 'watch'], null, 10000],
     ['haiku-plumbing', ['node', './HaikuHelper.js', '--folder=' + blankProject], { HAIKU_SKIP_AUTOUPDATE: 1 }, 5000]
   ],
 
   zack: [
-    ['haiku-plumbing', ['npm', 'run', 'watch'], null, 10000],
-    ['haiku-plumbing', ['npm', 'run', 'zack'], null, 5000],
-    // ['haiku-timeline', ['npm', 'run', 'zack']], // You can run this piecemeal *instead of creator*
-    // ['haiku-glass', ['npm', 'run', 'zack']], // You can run this piecemeal *instead of creator*
-    ['haiku-creator', ['npm', 'run', 'zack']],
-    ['haiku-cli', ['npm', 'run', 'develop']],
-    ['haiku-sdk-client', ['npm', 'run', 'develop']],
-    ['haiku-sdk-inkstone', ['npm', 'run', 'develop']]
+    ['haiku-plumbing', ['yarn', 'run', 'watch'], null, 10000],
+    ['haiku-plumbing', ['yarn', 'run', 'zack'], null, 5000],
+    // ['haiku-timeline', ['yarn', 'run', 'zack']], // You can run this piecemeal *instead of creator*
+    // ['haiku-glass', ['yarn', 'run', 'zack']], // You can run this piecemeal *instead of creator*
+    ['haiku-creator', ['yarn', 'run', 'zack']],
+    ['haiku-cli', ['yarn', 'run', 'develop']],
+    ['haiku-sdk-client', ['yarn', 'run', 'develop']],
+    ['haiku-sdk-inkstone', ['yarn', 'run', 'develop']]
   ]
 }
 

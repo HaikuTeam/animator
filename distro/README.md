@@ -6,7 +6,7 @@ Scripts and config to build+distribute Haiku
 
 This project assumes you have Node, Git, and have developer access to Haiku's GitHub repos.
 
-As usual, you'll need to `$ npm install` before you begin.
+As usual, you'll need to `$ yarn install` before you begin.
 
 You will also need Xcode command-line tools since running build scripts in several sub-projects requires it (nodegit, etc).
 
@@ -14,4 +14,4 @@ You will also need Xcode command-line tools since running build scripts in sever
 
 For an interactive experience, just run:
 
-    $ npm start
+    $ yarn start
