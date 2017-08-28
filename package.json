@@ -29,6 +29,7 @@
     "mono:git-ac": "node ./scripts/git-ac.js",
     "mono:git-push": "node ./scripts/git-push.js",
     "mono:git-pull": "node ./scripts/git-pull.js",
+    "mono:git-fetch": "node ./scripts/git-fetch.js",
     "mono:git-status": "node ./scripts/git-status.js",
     "mono:git-diff": "node ./scripts/git-diff.js",
     "mono:git-co-all": "node ./scripts/git-co-all.js",
