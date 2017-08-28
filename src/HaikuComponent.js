@@ -1013,6 +1013,7 @@ function _initializeComponentTree(element, component, context) {
   }
 
   // repeat through children
+  if (!element.children) return
   element.children.forEach((child) => _initializeComponentTree(child, component, context))
 }
 
