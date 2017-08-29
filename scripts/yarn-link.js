@@ -7,7 +7,7 @@ var allPackages = require('./helpers/allPackages')()
 
 async.eachSeries(allPackages, function (pack, next) {
   log.log('yarn linking ' + pack.name)
-  cp.execSync('yarn link', { cwd: pack.abspath })
+  cp.execSync('yarn link', { cwd: pack.abspath, stdio: 'inherit' })
   next()
 }, function () {
   async.eachSeries(allPackages, function (pack, next) {
@@ -29,7 +29,7 @@ async.eachSeries(allPackages, function (pack, next) {
             // pkgname is like haiku-bytecode or @haiku/player - whatever appears in package.json
             if (dep === innerPack.pkgname) {
               log.log('yarn linking ' + dep + ' into project ' + pack.name)
-              cp.execSync('yarn link ' + dep, { cwd: pack.abspath })
+              cp.execSync('yarn link ' + dep, { cwd: pack.abspath, stdio: 'inherit' })
             }
           })
         })

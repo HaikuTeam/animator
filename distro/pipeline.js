@@ -165,7 +165,7 @@ function runit () {
       // it also makes sure we don't put our dev dependencies inside the user's app
       cp.execSync('yarn install --only=production', { stdio: 'inherit', cwd: libsPlumbingDir })
       console.log(`installing plumbing compilation packages`)
-      cp.execSync('yarn install gulp gulp-watch babel-cli', { stdio: 'inherit', cwd: libsPlumbingDir })
+      cp.execSync('yarn add gulp gulp-watch babel-cli', { stdio: 'inherit', cwd: libsPlumbingDir })
 
       console.log('copying player contents missing from public yarn package')
       // Since yarn install respects .yarnignore _even if installing from a git url_, the player

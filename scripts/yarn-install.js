@@ -10,11 +10,11 @@ var EXEC_OPTIONS = {
 lodash.forEach(allPackages, function (pack) {
   log.log('yarn install for ' + pack.name)
 
-  cp.execSync('yarn install', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath }))
+  cp.execSync('yarn install --non-interactive', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath, stdio: 'inherit' }))
 
   // special snowflake...
   if (pack.name === 'haiku-plumbing') {
     log.log('compiling javascript for ' + pack.name)
-    return cp.execSync('yarn run compile', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath }))
+    return cp.execSync('yarn run compile', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath, stdio: 'inherit' }))
   }
 })

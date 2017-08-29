@@ -1,7 +1,7 @@
 {
   "name": "haiku-mono",
   "private": true,
-  "version": "2.1.43",
+  "version": "2.1.44",
   "description": "Haiku monorepo",
   "main": "index.js",
   "author": "Matthew Trost <matthew@trost.co>",
@@ -18,6 +18,7 @@
     "lint": "standard \"./scripts/**/*.js\" --fix --verbose | snazzy",
     "mono:dev": "node ./scripts/dev.js",
     "mono:changelog": "node ./scripts/changelog.js",
+    "mono:sha-norm": "node ./scripts/sha-norm.js",
     "mono:lint-all": "node ./scripts/lint-all.js",
     "mono:test-all": "node ./scripts/test-all.js",
     "mono:finalize": "node ./scripts/finalize.js",
