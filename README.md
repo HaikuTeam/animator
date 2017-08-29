@@ -29,7 +29,7 @@ And add to `~/.ssh/config`:
 
     $ git submodule update --init --recursive
     $ yarn install
-    $ yarn run mono:npm-clean
+    $ yarn run mono:yarn-clean
 
 ## Development
 
