@@ -18,7 +18,7 @@ async.eachSeries(allPackages, function (pack, next) {
     for (var depName in groups) {
       if (pack.pkg[depType][depName]) {
         log.log('yarn unlinking ' + depName + ' from project ' + pack.name)
-        cp.execSync('yarn unlink ' + depName, { cwd: pack.abspath })
+        cp.execSync('yarn unlink ' + depName, { cwd: pack.abspath, stdio: 'inherit' })
       }
     }
   })
@@ -27,7 +27,7 @@ async.eachSeries(allPackages, function (pack, next) {
 }, function () {
   async.eachSeries(allPackages, function (pack, next) {
     log.log('yarn unlinking ' + pack.name)
-    cp.execSync('yarn unlink', { cwd: pack.abspath })
+    cp.execSync('yarn unlink', { cwd: pack.abspath, stdio: 'inherit' })
     next()
   })
 })
