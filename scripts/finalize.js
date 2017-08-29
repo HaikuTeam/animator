@@ -281,6 +281,7 @@ async.series([
     if (inputs.doPushToNpmRegistry) {
       log.hat('publishing @haiku/player to the npm registry')
       // cp.execSync(`yarn publish --verbose --new-version ${nowVersion()} --access public`, { cwd: path.join(playerPath), stdio: 'inherit' })
+      process.env.npm_config_registry = 'https://registry.npmjs.org'
       cp.execSync(`npm publish --verbose --access public`, { cwd: path.join(playerPath), stdio: 'inherit' })
       return cb()
     } else {
