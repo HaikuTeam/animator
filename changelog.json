@@ -2380,5 +2380,12 @@
       "label": "feat",
       "message": "ast manip to normalize bytecode file according to destructure-fix changes"
     }
+  },
+  "2.1.47": {
+    "fd8b0c59f9fd1ffcb1f5641d5e037c13039d43fc": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "npm link throws EROFS when running in Haiku.app"
+    }
   }
 }

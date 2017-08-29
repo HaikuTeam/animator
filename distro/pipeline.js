@@ -96,19 +96,19 @@ inquirer.prompt([
 
 function shout (text, cb) {
   console.log(text + '\n')
-  // if (inputs.shout) {
-  //   console.log('^^ sending slack message ^^')
-  //   return slack.chat.postMessage({
-  //     text: text,
-  //     token: deploy.slack.token,
-  //     channel: 'creator',
-  //     username: 'Haiku Distro',
-  //     icon_emoji: ':robot_face:'
-  //   }, function (err) {
-  //     if (err) console.error(err)
-  //     return cb()
-  //   })
-  // }
+  if (inputs.shout) {
+    console.log('^^ sending slack message ^^')
+    return slack.chat.postMessage({
+      text: text,
+      token: deploy.slack.token,
+      channel: 'creator',
+      username: 'Haiku Distro',
+      icon_emoji: ':robot_face:'
+    }, function (err) {
+      if (err) console.error(err)
+      return cb()
+    })
+  }
   return cb()
 }
 
@@ -163,7 +163,7 @@ function runit () {
       console.log(`installing plumbing production packages`)
       // IMPORTANT: only=production is to avoid any errors such as: "bundle format is ambiguous"
       // it also makes sure we don't put our dev dependencies inside the user's app
-      cp.execSync('yarn install --only=production', { stdio: 'inherit', cwd: libsPlumbingDir })
+      cp.execSync('yarn install --production=true', { stdio: 'inherit', cwd: libsPlumbingDir })
       console.log(`installing plumbing compilation packages`)
       cp.execSync('yarn add gulp gulp-watch babel-cli', { stdio: 'inherit', cwd: libsPlumbingDir })
 
@@ -229,13 +229,3 @@ function runit () {
     }
   })
 }
-
-// var uploadInstaller = require('./../uploadInstaller')
-// var deploy = require('./../../deploy')
-// var dest = 'scripts/cli/installer.js'
-// console.log('uploading cloud installer')
-// return uploadInstaller(region, key, secret, bucket, dest, function(err) {
-//   if (err) return console.log(err)
-//   console.log('cloud installer uploaded!')
-//   console.log('url: http://code.haiku.ai/scripts/cli/installer.js')
-// })

@@ -5,3 +5,4 @@ dist/*
 libs/*
 out/*
 config.js
+yarn.lock

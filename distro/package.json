@@ -44,6 +44,7 @@
       "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,__pycache__,thumbs.db,.gitignore,.gitattributes,.editorconfig,.flowconfig,.yarn-metadata.json,.idea,appveyor.yml,.travis.yml,circle.yml,npm-debug.log,yarn-debug.log,.nyc_output,yarn.lock,.yarn-integrity}",
       "!libs/*/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__,tests,powered-test,example,examples,*.d.ts}",
       "!libs/plumbing/node_modules/nodegit",
+      "!libs/plumbing/node_modules/electron",
       "libs/plumbing/node_modules/nodegit/package.json",
       "libs/plumbing/node_modules/nodegit/dist/**",
       "libs/plumbing/node_modules/nodegit/build/Release/nodegit.node",
