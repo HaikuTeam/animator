@@ -96,19 +96,19 @@ inquirer.prompt([
 
 function shout (text, cb) {
   console.log(text + '\n')
-  if (inputs.shout) {
-    console.log('^^ sending slack message ^^')
-    return slack.chat.postMessage({
-      text: text,
-      token: deploy.slack.token,
-      channel: 'creator',
-      username: 'Haiku Distro',
-      icon_emoji: ':robot_face:'
-    }, function (err) {
-      if (err) console.error(err)
-      return cb()
-    })
-  }
+  // if (inputs.shout) {
+  //   console.log('^^ sending slack message ^^')
+  //   return slack.chat.postMessage({
+  //     text: text,
+  //     token: deploy.slack.token,
+  //     channel: 'creator',
+  //     username: 'Haiku Distro',
+  //     icon_emoji: ':robot_face:'
+  //   }, function (err) {
+  //     if (err) console.error(err)
+  //     return cb()
+  //   })
+  // }
   return cb()
 }
 
