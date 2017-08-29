@@ -2363,5 +2363,22 @@
       "label": "fix",
       "message": "update user.mouse on scroll as well as move"
     }
+  },
+  "2.1.46": {
+    "b8e351a7450a5c3f949869e12bdf385f67452ba8": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Handle case if no children and use ES5 until we add tooling for ES+"
+    },
+    "538bb723e1111070a263541f1eedf0d709fd28df": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "npm link the project after installing npm packages"
+    },
+    "d952a3392b872add6ab09e394c6ebfb262db548e": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "ast manip to normalize bytecode file according to destructure-fix changes"
+    }
   }
 }
