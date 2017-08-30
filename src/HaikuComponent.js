@@ -508,6 +508,7 @@ function _bindEventHandler (
   eventName,
   originalHandlerFn
 ) {
+  eventHandlerDescriptor.original = originalHandlerFn
   eventHandlerDescriptor.handler = function _wrappedEventHandler (
     event,
     a,
