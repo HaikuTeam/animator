@@ -2394,5 +2394,102 @@
       "label": "fix",
       "message": "Load the actual function not the player's handler wrapper"
     }
+  },
+  "2.1.49": {
+    "20d35f23303066bbab5bfde37f8a6fdd45795475": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "make overlays render on (almost) every frame instead of using an on-demand draw loop.  fixes control-rendering race condition and support for updating controls on transform; minor perf cost"
+    },
+    "69310285162e523c8c82d1ddcf159538c0c97e8e": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "overlay control race condition (hack, didn't dive into the source of the RC.)"
+    },
+    "0ae2e56966f842f65d898d4b4da44363f222ea2e": {
+      "project": "haiku-glass",
+      "label": "feat",
+      "message": "hook into envoy for glass playback and seek + overlay rendering; pause still has some funkiness"
+    },
+    "0cbb645812fb376fb5959490cd63099286cda05d": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "pass in ref to server for envoy"
+    },
+    "ad73e92ea1e48def49b99cd9162a0627670a172d": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "start to wire up event triggers"
+    },
+    "3c1323363274946b35c52c6af1dc4e4814f2d801": {
+      "project": "haiku-sdk-creator",
+      "label": "fix",
+      "message": "accidental multiple connections, test for events"
+    },
+    "28e12fdbdbe10a1d9b0dd4a5bff12e100638b8e2": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "add single/synchronous seekToFrameAndPause method to timeline handler"
+    },
+    "3f0212255ac6126ec6543527398c71dd902c8718": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "support custom log levels; fix perf reduction from constant log spewing"
+    },
+    "9e2c6a42c85813ed1396a9ea3fa9b9bfa8ab6071": {
+      "project": "haiku-sdk-creator",
+      "label": "fix",
+      "message": "loop closure, promise warning, timelineRegistry instantiation"
+    },
+    "0fe84293c17b7c82baa34a296622660344afb3f5": {
+      "project": "haiku-sdk-creator",
+      "label": "docs",
+      "message": "clean-up and basic jsdoc"
+    },
+    "5565111f39a09c21ab6c61cb54e1fd39d31fcd98": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "function end-to-end server/handler/client setup"
+    },
+    "4e4c37e97ebbb39aad9d77f3d1d0a05b46cdb5a1": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "get schema transmission working"
+    },
+    "625a675cd41af3c64f8cac203cc49b45fcb135eb": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "set up basic fs structure and ts config"
+    },
+    "dff5bba88a961ba5ab912f12bedfea5df158e955": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "merge boof"
+    },
+    "b17db530a916f35a3fd539c473a20e8a983a3ca2": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "pass envoy timeline client to Glass for playback hookups"
+    },
+    "06901fb3585e798a5cb5bf05a37d19605a963d66": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "hook envoy timeline client into activecomponent"
+    },
+    "7c99166f8fad9eae2a77203a078555465bbbe2a9": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "merge issues for envoy + timeline"
+    },
+    "bb39b3e04cf4e26ce8a8c9f892451af26e76c31a": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "seek logic, fwd/back logic"
+    },
+    "297379598a1265756e764f0d84914d1bbe338167": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "keep local approximations of playback; use envoy as a 'time server'; reduce flood of requests"
+    }
   }
 }
