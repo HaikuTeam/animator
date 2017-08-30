@@ -2387,5 +2387,12 @@
       "label": "fix",
       "message": "npm link throws EROFS when running in Haiku.app"
     }
+  },
+  "2.1.48": {
+    "3f7cebeafce96749f4fa7653cecf69cd2f7ec97b": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Load the actual function not the player's handler wrapper"
+    }
   }
 }
