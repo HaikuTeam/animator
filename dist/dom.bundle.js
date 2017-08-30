@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.47",
+  "version": "2.1.48",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -1154,6 +1154,7 @@ function _bindEventHandler (
   eventName,
   originalHandlerFn
 ) {
+  eventHandlerDescriptor.original = originalHandlerFn
   eventHandlerDescriptor.handler = function _wrappedEventHandler (
     event,
     a,
