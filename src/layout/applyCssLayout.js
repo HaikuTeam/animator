@@ -24,7 +24,7 @@ function applyCssLayout (
 ) {
   // No point continuing if there's no computedLayout contents
   if (
-    !computedLayout.opacity &&
+    computedLayout.opacity === undefined &&
     !computedLayout.size &&
     !computedLayout.matrix
   ) {
@@ -44,7 +44,7 @@ function applyCssLayout (
   }
 
   if (!hasExplicitStyle(domElement, 'opacity')) {
-    if (computedLayout.opacity) {
+    if (computedLayout.opacity !== undefined) {
       // A lack of an opacity setting means 100% opacity, so unset any existing
       // value if we happen to get an opacity approaching 1.
       if (computedLayout.opacity > 0.999) {

@@ -702,7 +702,12 @@ var PRESENTATION_VANITIES = {
   markerMid: attributeSetter('markerMid'),
   markerStart: attributeSetter('markerStart'),
   mask: attributeSetter('mask'),
-  opacity: attributeSetter('opacity'),
+  // Special snowflake opacity needs to have its opacity layout property set
+  // as opposed to its element attribute so the renderer can make a decision about
+  // where to put it based on the rendering medium's rules
+  opacity: function (name, element, value) {
+    element.layout.opacity = value
+  },
   overflow: attributeSetter('overflow'),
   pointerEvents: attributeSetter('pointerEvents'),
   shapeRendering: attributeSetter('shapeRendering'),
@@ -790,30 +795,38 @@ var CONTROL_FLOW_VANITIES = {
     component
   ) {
     if (value === null || value === undefined) return void 0
+
     if (typeof value !== 'number') {
       throw new Error('controlFlow.placeholder expects null or number')
     }
+
     if (!context.config.children) return void 0
+
     var children = Array.isArray(context.config.children)
       ? context.config.children
       : [context.config.children]
+
+    context._markElementAnticipatedSurrogates(element, children)
+
     var surrogate = children[value]
     if (surrogate === null || surrogate === undefined) return void 0
-    // No matter what, if we have a surrogate, then we must clear the children, otherwise we will often
-    // see a flash of the default content before the injected content flows in. This is especially a
-    // problem with React et al, where their rendering is lazy
+
+    // If we have a surrogate, then we must clear the children, otherwise we will often
+    // see a flash of the default content before the injected content flows in lazily
     element.children = []
+
     // If we are running via a framework adapter, allow that framework to provide its own placeholder mechanism.
     // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
     if (context.config.vanities['controlFlow.placeholder']) {
       context.config.vanities['controlFlow.placeholder'](
         element,
         surrogate,
+        value,
         context,
         component
       )
     } else {
-      controlFlowPlaceholderImpl(element, surrogate, context, component)
+      controlFlowPlaceholderImpl(element, surrogate, value, context, component)
     }
   }
 }
@@ -857,15 +870,18 @@ var CONTROL_FLOW_VANITIES = {
 //   }
 // }
 
-function controlFlowPlaceholderImpl (element, surrogate, context, component) {
-  element.elementName = surrogate.elementName
-  element.children = surrogate.children || []
-  if (surrogate.attributes) {
-    if (!element.attributes) element.attributes = {}
-    for (var key in surrogate.attributes) {
-      if (key === 'haiku-id') continue
-      element.attributes[key] = surrogate.attributes[key]
+function controlFlowPlaceholderImpl (element, surrogate, value, context, component) {
+  if (!context._didElementRenderSurrogate(element, surrogate)) {
+    element.elementName = surrogate.elementName
+    element.children = surrogate.children || []
+    if (surrogate.attributes) {
+      if (!element.attributes) element.attributes = {}
+      for (var key in surrogate.attributes) {
+        if (key === 'haiku-id') continue
+        element.attributes[key] = surrogate.attributes[key]
+      }
     }
+    context._markElementSurrogateAsRendered(element, surrogate)
   }
 }
 

@@ -123,6 +123,11 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
   // other rendering context)
   this._horizons = {}
 
+  // Dictionary of ids-to-elements, representing control-flow operation
+  // status that has occurred during the rendering process, e.g. placeholder
+  // or repeat/if/yield
+  this._controlFlows = {}
+
   // Just a counter for the number of clock ticks that have occurred; used to determine first-frame for mounting
   this._ticks = 0
 
@@ -399,6 +404,39 @@ HaikuContext.prototype._isHorizonElement = function _isHorizonElement (virtualEl
     return !!this._horizons[flexId]
   }
   return false
+}
+
+/**
+ * @description Keep track of whether a given element has rendered its surrogate, i.e.
+ * an element passed to it as a placeholder. This is used in the renderer to determine
+ * whether the element needs to be temporarily invisible to avoid a flash of content while
+ * rendering occurs
+ */
+HaikuContext.prototype._didElementRenderSurrogate = function _didElementRenderSurrogate (virtualElement, surrogatePlacementKey, surrogateObject) {
+  if (!virtualElement) return false
+  if (!virtualElement.attributes) return false
+  var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
+  if (!flexId) return false
+  if (!this._controlFlows[flexId]) return false
+  if (!this._controlFlows[flexId].renderedSurrogates) return false
+  return this._controlFlows[flexId].renderedSurrogates[surrogatePlacementKey] === surrogateObject
+}
+
+HaikuContext.prototype._markElementAnticipatedSurrogates = function _markElementAnticipatedSurrogates (virtualElement, surrogatesArray) {
+  var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id)
+  if (flexId) {
+    if (!this._controlFlows[flexId]) this._controlFlows[flexId] = {}
+    this._controlFlows[flexId].anticipatedSurrogates = surrogatesArray
+  }
+}
+
+HaikuContext.prototype._markElementSurrogateAsRendered = function _markElementSurrogateAsRendered (virtualElement, surrogatePlacementKey, surrogateObject) {
+  var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id)
+  if (flexId) {
+    if (!this._controlFlows[flexId]) this._controlFlows[flexId] = {}
+    if (!this._controlFlows[flexId].renderedSurrogates) this._controlFlows[flexId].renderedSurrogates = {}
+    this._controlFlows[flexId].renderedSurrogates[surrogatePlacementKey] = surrogateObject
+  }
 }
 
 /**

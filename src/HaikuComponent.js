@@ -275,6 +275,7 @@ HaikuComponent.prototype._clearCaches = function _clearCaches () {
 
   // TODO: Do we _need_ to reach in and clear the caches of context?
   this._context.config.options.cache = {}
+  this._context._controlFlows = {}
   this.config.options.cache = {}
 
   return this
@@ -935,7 +936,7 @@ function _gatherDeltaPatches (
   // that we have already calculated among the descendants of the changed one
   for (var flexId in deltas) {
     var changedNode = deltas[flexId]
-    _computeAndApplyTreeLayouts(changedNode, changedNode.__parent, patchOptions)
+    _computeAndApplyTreeLayouts(changedNode, changedNode.__parent, patchOptions, context)
   }
 
   return deltas
@@ -990,7 +991,7 @@ function _applyContextChanges (
     _computeAndApplyPresetSizing(template, container, renderOptions.sizing)
   }
 
-  _computeAndApplyTreeLayouts(template, container, renderOptions)
+  _computeAndApplyTreeLayouts(template, container, renderOptions, context)
 
   return template
 }
@@ -1108,20 +1109,20 @@ function _findMatchingElementsByCssSelector (selector, template, cache) {
   return matches
 }
 
-function _computeAndApplyTreeLayouts (tree, container, options) {
+function _computeAndApplyTreeLayouts (tree, container, options, context) {
   if (!tree || typeof tree === 'string') return void 0
 
-  _computeAndApplyNodeLayout(tree, container, options)
+  _computeAndApplyNodeLayout(tree, container, options, context)
 
   if (!tree.children) return void 0
   if (tree.children.length < 1) return void 0
 
   for (var i = 0; i < tree.children.length; i++) {
-    _computeAndApplyTreeLayouts(tree.children[i], tree, options)
+    _computeAndApplyTreeLayouts(tree.children[i], tree, options, context)
   }
 }
 
-function _computeAndApplyNodeLayout (element, parent, options) {
+function _computeAndApplyNodeLayout (element, parent, options, context) {
   if (parent) {
     var parentSize = parent.layout.computed.size
     var computedLayout = Layout3D.computeLayout(
