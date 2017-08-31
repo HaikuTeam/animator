@@ -2491,5 +2491,12 @@
       "label": "feat",
       "message": "keep local approximations of playback; use envoy as a 'time server'; reduce flood of requests"
     }
+  },
+  "2.1.50": {
+    "9ca3fa3e9e7b138192556c2d3721e99009daf7d0": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "add sample TourHandler"
+    }
   }
 }
