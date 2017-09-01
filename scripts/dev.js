@@ -24,12 +24,20 @@ process.env.NODE_ENV = 'development'
 var instructionSets = {
   default: [
     ['haiku-plumbing', ['yarn', 'run', 'watch'], null, 10000],
-    ['haiku-plumbing', ['node', './HaikuHelper.js'], { HAIKU_SKIP_AUTOUPDATE: 1 }, 5000]
+    ['haiku-plumbing', ['node', './HaikuHelper.js'], { HAIKU_SKIP_AUTOUPDATE: 1 }, 5000],
+    ['haiku-cli', ['yarn', 'run', 'develop']],
+    ['haiku-sdk-client', ['yarn', 'run', 'develop']],
+    ['haiku-sdk-inkstone', ['yarn', 'run', 'develop']],
+    ['haiku-sdk-creator', ['yarn', 'run', 'develop']]
   ],
 
   blank: [
     ['haiku-plumbing', ['yarn', 'run', 'watch'], null, 10000],
-    ['haiku-plumbing', ['node', './HaikuHelper.js', '--folder=' + blankProject], { HAIKU_SKIP_AUTOUPDATE: 1 }, 5000]
+    ['haiku-plumbing', ['node', './HaikuHelper.js', '--folder=' + blankProject], { HAIKU_SKIP_AUTOUPDATE: 1 }, 5000],
+    ['haiku-cli', ['yarn', 'run', 'develop']],
+    ['haiku-sdk-client', ['yarn', 'run', 'develop']],
+    ['haiku-sdk-inkstone', ['yarn', 'run', 'develop']],
+    ['haiku-sdk-creator', ['yarn', 'run', 'develop']]
   ],
 
   zack: [
@@ -40,7 +48,8 @@ var instructionSets = {
     ['haiku-creator', ['yarn', 'run', 'zack']],
     ['haiku-cli', ['yarn', 'run', 'develop']],
     ['haiku-sdk-client', ['yarn', 'run', 'develop']],
-    ['haiku-sdk-inkstone', ['yarn', 'run', 'develop']]
+    ['haiku-sdk-inkstone', ['yarn', 'run', 'develop']],
+    ['haiku-sdk-creator', ['yarn', 'run', 'develop']]
   ]
 }
 
