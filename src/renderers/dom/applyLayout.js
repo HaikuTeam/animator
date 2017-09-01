@@ -60,7 +60,7 @@ function applyLayout (
   virtualElement,
   parentDomNode,
   parentVirtualElement,
-  context,
+  component,
   isPatchOperation,
   isKeyDifferent
 ) {
@@ -68,7 +68,7 @@ function applyLayout (
 
   if (virtualElement.layout) {
     // Don't assign layout to things that never need it like <desc>, <title>, etc.
-    // Check if we're inside an <svg> context *and* one of the actually renderable svg-type els
+    // Check if we're inside an <svg> component *and* one of the actually renderable svg-type els
     if (
       scopeOfElement(virtualElement) === SVG &&
       !SVG_RENDERABLES[virtualElement.elementName]
@@ -88,7 +88,7 @@ function applyLayout (
     }
 
     var devicePixelRatio =
-      (context.config.options && context.config.options.devicePixelRatio) || DEFAULT_PIXEL_RATIO
+      (component.config.options && component.config.options.devicePixelRatio) || DEFAULT_PIXEL_RATIO
     var computedLayout = virtualElement.layout.computed
 
     // No computed layout means the el is not shown
@@ -101,7 +101,7 @@ function applyLayout (
         domElement.style.display = 'block'
       }
 
-      context.config.options.platform = PLATFORM_INFO
+      component.config.options.platform = PLATFORM_INFO
 
       applyCssLayout(
         domElement,
@@ -109,7 +109,7 @@ function applyLayout (
         virtualElement.layout,
         computedLayout,
         devicePixelRatio,
-        context
+        component
       )
     }
   }

@@ -7,7 +7,6 @@ var HaikuClock = require('./HaikuClock')
 var HaikuComponent = require('./HaikuComponent')
 var Config = require('./Config')
 var PRNG = require('./helpers/PRNG')
-var addElementToHashTable = require('./helpers/addElementToHashTable')
 
 var PLAYER_VERSION = require('./../package.json').version
 
@@ -108,25 +107,6 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
       this._renderer.mixpanel(this._mount, this.config.options.mixpanel, this.component)
     }
   }
-
-  // Dictionary of ids-to-elements, for quick lookups.
-  // We hydrate this with elements as we render so we don't have to query the DOM
-  // to quickly load elements for patch-style rendering
-  this._hash = {
-    // Elements are stored in _arrays_ as opposed to singletons, since there could be more than one
-    // in case of edge cases or possibly for future implementation details around $repeat
-    // "abcde": [el, el]
-  }
-
-  // Dictionary of ids-to-elements, representing elements that we
-  // do not want to render past in the tree (i.e. cede control to some
-  // other rendering context)
-  this._horizons = {}
-
-  // Dictionary of ids-to-elements, representing control-flow operation
-  // status that has occurred during the rendering process, e.g. placeholder
-  // or repeat/if/yield
-  this._controlFlows = {}
 
   // Just a counter for the number of clock ticks that have occurred; used to determine first-frame for mounting
   this._ticks = 0
@@ -254,7 +234,7 @@ HaikuContext.prototype.performFullFlushRender = function performFullFlushRender 
     container,
     tree,
     this._address,
-    this
+    this.component
   )
   return this
 }
@@ -271,7 +251,7 @@ HaikuContext.prototype.performPatchRender = function performPatchRender () {
     container,
     patches,
     this._address,
-    this
+    this.component
   )
   return this
 }
@@ -373,70 +353,6 @@ HaikuContext.prototype.getDeterministicTime = function getDeterministicTime () {
 
 HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState () {
   return this._renderer && this._renderer.getUser && this._renderer.getUser()
-}
-
-/**
- * @description We store DOM elements in a lookup table keyed by their id so we can do fast patches.
- * This is a hook that allows e.g. the ReactDOMAdapter to push elements into the list if it mutates the DOM.
- * e.g. during control flow
- */
-HaikuContext.prototype._addElementToHashTable = function _addElementToHashTable (realElement, virtualElement) {
-  addElementToHashTable(this._hash, realElement, virtualElement)
-  return this
-}
-
-/**
- * @description Track elements that are at the horizon of what we want to render, i.e., a list of
- * virtual elements that we don't want to make any updates lower than in the tree.
- */
-HaikuContext.prototype._markHorizonElement = function _markHorizonElement (virtualElement) {
-  if (virtualElement && virtualElement.attributes) {
-    var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
-    if (flexId) {
-      this._horizons[flexId] = virtualElement
-    }
-  }
-}
-
-HaikuContext.prototype._isHorizonElement = function _isHorizonElement (virtualElement) {
-  if (virtualElement && virtualElement.attributes) {
-    var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
-    return !!this._horizons[flexId]
-  }
-  return false
-}
-
-/**
- * @description Keep track of whether a given element has rendered its surrogate, i.e.
- * an element passed to it as a placeholder. This is used in the renderer to determine
- * whether the element needs to be temporarily invisible to avoid a flash of content while
- * rendering occurs
- */
-HaikuContext.prototype._didElementRenderSurrogate = function _didElementRenderSurrogate (virtualElement, surrogatePlacementKey, surrogateObject) {
-  if (!virtualElement) return false
-  if (!virtualElement.attributes) return false
-  var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
-  if (!flexId) return false
-  if (!this._controlFlows[flexId]) return false
-  if (!this._controlFlows[flexId].renderedSurrogates) return false
-  return this._controlFlows[flexId].renderedSurrogates[surrogatePlacementKey] === surrogateObject
-}
-
-HaikuContext.prototype._markElementAnticipatedSurrogates = function _markElementAnticipatedSurrogates (virtualElement, surrogatesArray) {
-  var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id)
-  if (flexId) {
-    if (!this._controlFlows[flexId]) this._controlFlows[flexId] = {}
-    this._controlFlows[flexId].anticipatedSurrogates = surrogatesArray
-  }
-}
-
-HaikuContext.prototype._markElementSurrogateAsRendered = function _markElementSurrogateAsRendered (virtualElement, surrogatePlacementKey, surrogateObject) {
-  var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id)
-  if (flexId) {
-    if (!this._controlFlows[flexId]) this._controlFlows[flexId] = {}
-    if (!this._controlFlows[flexId].renderedSurrogates) this._controlFlows[flexId].renderedSurrogates = {}
-    this._controlFlows[flexId].renderedSurrogates[surrogatePlacementKey] = surrogateObject
-  }
 }
 
 /**

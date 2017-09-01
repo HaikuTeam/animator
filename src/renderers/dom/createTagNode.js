@@ -12,13 +12,13 @@ function createTagNode (
   virtualElement,
   parentVirtualElement,
   locator,
-  context
+  component
 ) {
   var tagName = normalizeName(getTypeAsString(virtualElement))
   var newDomElement
   if (SVG_EL_NAMES[tagName]) {
     // SVG
-    newDomElement = createSvgElement(domElement, tagName, context)
+    newDomElement = createSvgElement(domElement, tagName, component)
   } else {
     // Normal DOM
     newDomElement = domElement.ownerDocument.createElement(tagName)
@@ -27,8 +27,8 @@ function createTagNode (
   // This doesn't happen in renderTree because the element doesn't exist yet.
   if (!newDomElement.haiku) newDomElement.haiku = {}
   newDomElement.haiku.locator = locator
-  if (!context.config.options.cache[newDomElement.haiku.locator]) {
-    context.config.options.cache[newDomElement.haiku.locator] = {}
+  if (!component.config.options.cache[newDomElement.haiku.locator]) {
+    component.config.options.cache[newDomElement.haiku.locator] = {}
   }
 
   var incomingKey =
@@ -45,7 +45,7 @@ function createTagNode (
     domElement,
     parentVirtualElement,
     locator,
-    context
+    component
   )
   return newDomElement
 }

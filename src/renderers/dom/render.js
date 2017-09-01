@@ -9,14 +9,14 @@ function render (
   virtualContainer,
   virtualTree,
   locator,
-  context
+  component
 ) {
   return renderTree(
     domElement,
     virtualContainer,
     [virtualTree],
     locator,
-    context
+    component
   )
 }
 

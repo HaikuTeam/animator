@@ -16,19 +16,19 @@ function updateElement (
   parentNode,
   parentVirtualElement,
   locator,
-  context,
+  component,
   isPatchOperation
 ) {
   // If a text node, go straight to 'replace' since we don't know the tag name
-  if (isTextNode(virtualElement, context)) {
-    replaceElementWithText(domElement, virtualElement, context)
+  if (isTextNode(virtualElement, component)) {
+    replaceElementWithText(domElement, virtualElement, component)
     return virtualElement
   }
 
   if (!domElement.haiku) domElement.haiku = {}
   domElement.haiku.locator = locator
-  if (!context.config.options.cache[domElement.haiku.locator]) {
-    context.config.options.cache[domElement.haiku.locator] = {}
+  if (!component.config.options.cache[domElement.haiku.locator]) {
+    component.config.options.cache[domElement.haiku.locator] = {}
   }
   if (!domElement.haiku.element) {
     // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
@@ -49,7 +49,7 @@ function updateElement (
 
   // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
   // so the most we want to do is update the attributes and layout properties, but leave the rest alone
-  if (!context._isHorizonElement(virtualElement)) {
+  if (!component._isHorizonElement(virtualElement)) {
     if (domTagName !== virtualElementTagName) {
       return replaceElement(
         domElement,
@@ -57,7 +57,7 @@ function updateElement (
         parentNode,
         parentVirtualElement,
         locator,
-        context
+        component
       )
     }
 
@@ -68,7 +68,7 @@ function updateElement (
         parentNode,
         parentVirtualElement,
         locator,
-        context
+        component
       )
     }
   }
@@ -80,7 +80,7 @@ function updateElement (
     assignAttributes(
       domElement,
       virtualElement,
-      context,
+      component,
       isPatchOperation,
       isKeyDifferent
     )
@@ -90,7 +90,7 @@ function updateElement (
     virtualElement,
     parentNode,
     parentVirtualElement,
-    context,
+    component,
     isPatchOperation,
     isKeyDifferent
   )
@@ -108,7 +108,7 @@ function updateElement (
       virtualElement,
       virtualElement.children,
       locator,
-      context,
+      component,
       isPatchOperation,
       doSkipChildren
     )
@@ -119,7 +119,7 @@ function updateElement (
       virtualElement,
       [],
       locator,
-      context,
+      component,
       isPatchOperation
     )
   }

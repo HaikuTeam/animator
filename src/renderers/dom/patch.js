@@ -9,7 +9,7 @@ function patch (
   virtualContainer,
   patchesDict,
   locator,
-  context
+  component
 ) {
   var keysToUpdate = Object.keys(patchesDict)
   if (keysToUpdate.length < 1) {
@@ -18,21 +18,17 @@ function patch (
 
   for (var flexId in patchesDict) {
     var virtualElement = patchesDict[flexId]
-
-    if (context._hash[flexId] && context._hash[flexId].length > 0) {
-      for (var i = 0; i < context._hash[flexId].length; i++) {
-        var domElement = context._hash[flexId][i]
-
-        updateElement(
-          domElement,
-          virtualElement,
-          domElement.parentNode,
-          virtualElement.__parent,
-          domElement.haiku.locator,
-          context,
-          true
-        )
-      }
+    var domElements = component._getRealElementsAtId(flexId)
+    for (var i = 0; i < domElements.length; i++) {
+      updateElement(
+        domElements[i],
+        virtualElement,
+        domElements[i].parentNode,
+        virtualElement.__parent,
+        domElements[i].haiku.locator,
+        component,
+        true
+      )
     }
   }
 }

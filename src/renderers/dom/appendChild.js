@@ -13,14 +13,14 @@ function appendChild (
   parentDomElement,
   parentVirtualElement,
   locator,
-  context
+  component
 ) {
   var domElementToInsert
   if (isTextNode(virtualElement)) {
     domElementToInsert = createTextNode(
       parentDomElement,
       virtualElement,
-      context
+      component
     )
   } else {
     domElementToInsert = createTagNode(
@@ -28,7 +28,7 @@ function appendChild (
       virtualElement,
       parentVirtualElement,
       locator,
-      context
+      component
     )
   }
 
@@ -37,7 +37,7 @@ function appendChild (
     virtualElement,
     parentDomElement,
     parentVirtualElement,
-    context
+    component
   )
 
   parentDomElement.appendChild(domElementToInsert)

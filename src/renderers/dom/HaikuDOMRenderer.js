@@ -33,14 +33,14 @@ HaikuDOMRenderer.prototype.render = function render (
   virtualContainer,
   virtualTree,
   locator,
-  context
+  component
 ) {
   return _render(
     domElement,
     virtualContainer,
     virtualTree,
     locator,
-    context
+    component
   )
 }
 
@@ -49,23 +49,23 @@ HaikuDOMRenderer.prototype.patch = function patch (
   virtualContainer,
   patchesDict,
   locator,
-  context
+  component
 ) {
   return _patch(
     domElement,
     virtualContainer,
     patchesDict,
     locator,
-    context
+    component
   )
 }
 
-HaikuDOMRenderer.prototype.menuize = function menuize (domElement, playerInstance) {
-  return createRightClickMenu(domElement, playerInstance)
+HaikuDOMRenderer.prototype.menuize = function menuize (domElement, component) {
+  return createRightClickMenu(domElement, component)
 }
 
-HaikuDOMRenderer.prototype.mixpanel = function mixpanel (domElement, mixpanelToken, playerInstance) {
-  return createMixpanel(domElement, mixpanelToken, playerInstance)
+HaikuDOMRenderer.prototype.mixpanel = function mixpanel (domElement, mixpanelToken, component) {
+  return createMixpanel(domElement, mixpanelToken, component)
 }
 
 HaikuDOMRenderer.prototype.createContainer = function createContainer (domElement) {

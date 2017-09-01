@@ -11,11 +11,11 @@ function renderTree (
   virtualElement,
   virtualChildren,
   locator,
-  context,
+  component,
   isPatchOperation,
   doSkipChildren
 ) {
-  context._addElementToHashTable(domElement, virtualElement)
+  component._addElementToHashTable(domElement, virtualElement)
 
   if (!domElement.haiku) domElement.haiku = {}
 
@@ -24,8 +24,8 @@ function renderTree (
   domElement.haiku.locator = locator
   domElement.haiku.virtual = virtualElement
   domElement.haiku.element = _cloneVirtualElement(virtualElement) // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-  if (!context.config.options.cache[domElement.haiku.locator]) {
-    context.config.options.cache[domElement.haiku.locator] = {}
+  if (!component.config.options.cache[domElement.haiku.locator]) {
+    component.config.options.cache[domElement.haiku.locator] = {}
   }
 
   if (!Array.isArray(virtualChildren)) {
@@ -34,7 +34,7 @@ function renderTree (
 
   // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
   // so the most we want to do is update the attributes and layout properties, but leave the rest alone
-  if (context._isHorizonElement(virtualElement)) {
+  if (component._isHorizonElement(virtualElement)) {
     return domElement
   }
 
@@ -59,7 +59,7 @@ function renderTree (
     if (!virtualChild && !domChild) {
       continue
     } else if (!virtualChild && domChild) {
-      removeElement(domChild, context)
+      removeElement(domChild, component)
     } else if (virtualChild && !domChild) {
       var insertedElement = appendChild(
         null,
@@ -67,10 +67,10 @@ function renderTree (
         domElement,
         virtualElement,
         sublocator,
-        context
+        component
       )
 
-      context._addElementToHashTable(insertedElement, virtualChild)
+      component._addElementToHashTable(insertedElement, virtualChild)
     } else {
       var oldId = domChild.getAttribute && domChild.getAttribute('id')
       var newId = virtualChild.attributes && virtualChild.attributes.id
@@ -84,7 +84,7 @@ function renderTree (
           domElement,
           virtualElement,
           locator,
-          context
+          component
         )
         continue
       }
@@ -95,7 +95,7 @@ function renderTree (
         domElement,
         virtualElement,
         sublocator,
-        context,
+        component,
         isPatchOperation
       )
     }

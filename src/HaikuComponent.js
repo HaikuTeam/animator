@@ -10,6 +10,7 @@ var scopifyElements = require('./helpers/scopifyElements')
 var assign = require('./vendor/assign')
 var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
 var upgradeBytecodeInPlace = require('./helpers/upgradeBytecodeInPlace')
+var addElementToHashTable = require('./helpers/addElementToHashTable')
 var HaikuTimeline = require('./HaikuTimeline')
 var Config = require('./Config')
 
@@ -121,6 +122,25 @@ function HaikuComponent (bytecode, context, config) {
   // Dictionary of haiku-ids pointing to any nested components we have in the tree, used for patching
   this._nestedComponentElements = {}
 
+  // Dictionary of ids-to-elements, for quick lookups.
+  // We hydrate this with elements as we render so we don't have to query the DOM
+  // to quickly load elements for patch-style rendering
+  this._hashTableOfIdsToElements = {
+    // Elements are stored in _arrays_ as opposed to singletons, since there could be more than one
+    // in case of edge cases or possibly for future implementation details around $repeat
+    // "abcde": [el, el]
+  }
+
+  // Dictionary of ids-to-elements, representing elements that we
+  // do not want to render past in the tree (i.e. cede control to some
+  // other rendering context)
+  this._horizonElements = {}
+
+  // Dictionary of ids-to-elements, representing control-flow operation
+  // status that has occurred during the rendering process, e.g. placeholder
+  // or repeat/if/yield
+  this._controlFlowData = {}
+
   this.on('timeline:tick', function _anyTimelineTick (timelineName, timelineFrame, timelineTime) {
     if (this._frameEventListeners[timelineName]) {
       if (this._frameEventListeners[timelineName][timelineFrame]) {
@@ -155,6 +175,75 @@ function _clone (thing) {
     return obj
   } else {
     return thing
+  }
+}
+
+/**
+ * @description Track elements that are at the horizon of what we want to render, i.e., a list of
+ * virtual elements that we don't want to make any updates lower than in the tree.
+ */
+HaikuComponent.prototype._markHorizonElement = function _markHorizonElement (virtualElement) {
+  if (virtualElement && virtualElement.attributes) {
+    var flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
+    if (flexId) {
+      this._horizonElements[flexId] = virtualElement
+    }
+  }
+}
+
+HaikuComponent.prototype._isHorizonElement = function _isHorizonElement (virtualElement) {
+  if (virtualElement && virtualElement.attributes) {
+    var flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
+    return !!this._horizonElements[flexId]
+  }
+  return false
+}
+
+HaikuComponent.prototype._getRealElementsAtId = function _getRealElementsAtId (flexId) {
+  if (!this._hashTableOfIdsToElements[flexId]) return []
+  return this._hashTableOfIdsToElements[flexId]
+}
+
+/**
+ * @description We store DOM elements in a lookup table keyed by their id so we can do fast patches.
+ * This is a hook that allows e.g. the ReactDOMAdapter to push elements into the list if it mutates the DOM.
+ * e.g. during control flow
+ */
+HaikuComponent.prototype._addElementToHashTable = function _addElementToHashTable (realElement, virtualElement) {
+  addElementToHashTable(this._hashTableOfIdsToElements, realElement, virtualElement)
+  return this
+}
+
+/**
+ * @description Keep track of whether a given element has rendered its surrogate, i.e.
+ * an element passed to it as a placeholder. This is used in the renderer to determine
+ * whether the element needs to be temporarily invisible to avoid a flash of content while
+ * rendering occurs
+ */
+HaikuComponent.prototype._didElementRenderSurrogate = function _didElementRenderSurrogate (virtualElement, surrogatePlacementKey, surrogateObject) {
+  if (!virtualElement) return false
+  if (!virtualElement.attributes) return false
+  var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
+  if (!flexId) return false
+  if (!this._controlFlowData[flexId]) return false
+  if (!this._controlFlowData[flexId].renderedSurrogates) return false
+  return this._controlFlowData[flexId].renderedSurrogates[surrogatePlacementKey] === surrogateObject
+}
+
+HaikuComponent.prototype._markElementAnticipatedSurrogates = function _markElementAnticipatedSurrogates (virtualElement, surrogatesArray) {
+  var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id)
+  if (flexId) {
+    if (!this._controlFlowData[flexId]) this._controlFlowData[flexId] = {}
+    this._controlFlowData[flexId].anticipatedSurrogates = surrogatesArray
+  }
+}
+
+HaikuComponent.prototype._markElementSurrogateAsRendered = function _markElementSurrogateAsRendered (virtualElement, surrogatePlacementKey, surrogateObject) {
+  var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id)
+  if (flexId) {
+    if (!this._controlFlowData[flexId]) this._controlFlowData[flexId] = {}
+    if (!this._controlFlowData[flexId].renderedSurrogates) this._controlFlowData[flexId].renderedSurrogates = {}
+    this._controlFlowData[flexId].renderedSurrogates[surrogatePlacementKey] = surrogateObject
   }
 }
 
@@ -269,13 +358,14 @@ HaikuComponent.prototype._clearCaches = function _clearCaches () {
   this._lastDeltaPatches = null
   this._matchedElementCache = {}
   this._renderScopes = {}
+  this._controlFlowData = {}
   this._clearDetectedEventsFired()
   this._clearDetectedInputChanges()
   this._builder._clearCaches()
 
   // TODO: Do we _need_ to reach in and clear the caches of context?
   this._context.config.options.cache = {}
-  this._context._controlFlows = {}
+
   this.config.options.cache = {}
 
   return this
