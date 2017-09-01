@@ -2505,5 +2505,6 @@
       "label": "fix",
       "message": "set _currentTimelineTime with ActiveComponent so that transforms work at frames other than 0"
     }
-  }
+  },
+  "2.2.0": {}
 }
