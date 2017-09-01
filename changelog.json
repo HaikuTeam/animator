@@ -2498,5 +2498,12 @@
       "label": "feat",
       "message": "add sample TourHandler"
     }
+  },
+  "2.1.51": {
+    "9f3c5502b8db7fa81077e0ec2b72136161147b36": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "set _currentTimelineTime with ActiveComponent so that transforms work at frames other than 0"
+    }
   }
 }
