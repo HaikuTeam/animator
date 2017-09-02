@@ -2506,5 +2506,12 @@
       "message": "set _currentTimelineTime with ActiveComponent so that transforms work at frames other than 0"
     }
   },
-  "2.2.0": {}
+  "2.2.0": {},
+  "2.3.1": {
+    "ebddc71039cc56810c9593fd092c21c99fa221a5": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Make sure opacity gets set and fix flash of placeholder default content when rendering in React"
+    }
+  }
 }
