@@ -20689,25 +20689,33 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
           'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity (
             element,
             surrogate,
+            value,
             context,
             component
           ) {
             visit(this.mount, function visitor (node) {
               var flexId = flexIdIfSame(element, node)
               if (flexId) {
-                if (typeof surrogate.type === 'string' || (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
-                  // What *should happen* in the Haiku Player is this new swapped DOM element will be
-                  // updated (not replaced!) with the attributes of the virtual element at the same position
-                  var div = document.createElement('div')
-                  node.parentNode.replaceChild(div, node)
-                  node = div
-                  // We have to change the element name as well here so that the correct vanity behaviors
-                  // are used when applying outputs to the placeheld element (e.g. opacity vs style.opacity)
-                  element.elementName = 'div'
+                if (!component._didElementRenderSurrogate(element, surrogate)) {
+                  if (typeof surrogate.type === 'string' || (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
+                    // What *should happen* in the Haiku Player is this new swapped DOM element will be
+                    // updated (not replaced!) with the attributes of the virtual element at the same position
+                    var div = document.createElement('div')
+                    node.parentNode.replaceChild(div, node)
+                    node = div
+                    // We have to change the element name as well here so that the correct vanity behaviors
+                    // are used when applying outputs to the placeheld element (e.g. opacity vs style.opacity)
+                    element.elementName = 'div'
+                  }
+                  node.style.visibility = 'hidden'
+                  ReactDOM.render(surrogate, node)
+                  window.requestAnimationFrame(function frame () {
+                    component._markElementSurrogateAsRendered(element, surrogate)
+                    node.style.visibility = 'visible'
+                  })
+                  component._markHorizonElement(element)
+                  component._markForFullFlush()
                 }
-                ReactDOM.render(surrogate, node)
-                context._markHorizonElement(element)
-                component._markForFullFlush()
               }
             })
           }.bind(this)

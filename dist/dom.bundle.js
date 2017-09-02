@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.2.0",
+  "version": "2.3.1",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -209,7 +209,7 @@ module.exports={
   "repository": "https://github.com/HaikuTeam/player",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test:unit && npm run test:api && npm run test:perf",
+    "test": "yarn run test:unit && yarn run test:api && yarn run test:perf",
     "test:perf": "tape \"test/perf/**/*.test.js\" | tap-spec || true",
     "test:api": "tape \"test/api/**/*.test.js\" | tap-spec || true",
     "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
@@ -217,8 +217,8 @@ module.exports={
     "prettify": "prettier-standard \"{,!(node_modules|dist)/**/}*.js\"",
     "footprint": "./footprint.sh",
     "demo": "nodemon ./test/demo/server.js",
-    "link-player": "npm link && npm link @haiku/player",
-    "start": "npm run link-player && npm run demo"
+    "link-player": "yarn link && yarn link @haiku/player",
+    "start": "yarn run link-player && yarn run demo"
   },
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
@@ -656,6 +656,7 @@ var scopifyElements = _dereq_('./helpers/scopifyElements')
 var assign = _dereq_('./vendor/assign')
 var SimpleEventEmitter = _dereq_('./helpers/SimpleEventEmitter')
 var upgradeBytecodeInPlace = _dereq_('./helpers/upgradeBytecodeInPlace')
+var addElementToHashTable = _dereq_('./helpers/addElementToHashTable')
 var HaikuTimeline = _dereq_('./HaikuTimeline')
 var Config = _dereq_('./Config')
 
@@ -671,9 +672,9 @@ var HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
 var DEFAULT_TIMELINE_NAME = 'Default'
 
-function HaikuComponent (bytecode, context, config, componentScope) {
+function HaikuComponent (bytecode, context, config, metadata) {
   if (!(this instanceof HaikuComponent)) {
-    return new HaikuComponent(bytecode, context, config, componentScope)
+    return new HaikuComponent(bytecode, context, config, metadata)
   }
 
   if (!bytecode) {
@@ -720,7 +721,6 @@ function HaikuComponent (bytecode, context, config, componentScope) {
 
   this._context = context
   this._builder = new ValueBuilder(this)
-  this._componentScope = componentScope
 
   // STATES
   this._states = {} // Storage for getter/setter actions in userland logic
@@ -736,6 +736,9 @@ function HaikuComponent (bytecode, context, config, componentScope) {
   // Note that assignConfig calls _bindStates and _bindEventHandlers, because our incoming config, which
   // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
   this.assignConfig(config)
+
+  // Optional metadata just used for internal tracking and debugging; don't base any logic on this
+  this._metadata = metadata || {}
 
   // TIMELINES
   this._timelineInstances = {}
@@ -767,6 +770,25 @@ function HaikuComponent (bytecode, context, config, componentScope) {
 
   // Dictionary of haiku-ids pointing to any nested components we have in the tree, used for patching
   this._nestedComponentElements = {}
+
+  // Dictionary of ids-to-elements, for quick lookups.
+  // We hydrate this with elements as we render so we don't have to query the DOM
+  // to quickly load elements for patch-style rendering
+  this._hashTableOfIdsToElements = {
+    // Elements are stored in _arrays_ as opposed to singletons, since there could be more than one
+    // in case of edge cases or possibly for future implementation details around $repeat
+    // "abcde": [el, el]
+  }
+
+  // Dictionary of ids-to-elements, representing elements that we
+  // do not want to render past in the tree (i.e. cede control to some
+  // other rendering context)
+  this._horizonElements = {}
+
+  // Dictionary of ids-to-elements, representing control-flow operation
+  // status that has occurred during the rendering process, e.g. placeholder
+  // or repeat/if/yield
+  this._controlFlowData = {}
 
   this.on('timeline:tick', function _anyTimelineTick (timelineName, timelineFrame, timelineTime) {
     if (this._frameEventListeners[timelineName]) {
@@ -802,6 +824,75 @@ function _clone (thing) {
     return obj
   } else {
     return thing
+  }
+}
+
+/**
+ * @description Track elements that are at the horizon of what we want to render, i.e., a list of
+ * virtual elements that we don't want to make any updates lower than in the tree.
+ */
+HaikuComponent.prototype._markHorizonElement = function _markHorizonElement (virtualElement) {
+  if (virtualElement && virtualElement.attributes) {
+    var flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
+    if (flexId) {
+      this._horizonElements[flexId] = virtualElement
+    }
+  }
+}
+
+HaikuComponent.prototype._isHorizonElement = function _isHorizonElement (virtualElement) {
+  if (virtualElement && virtualElement.attributes) {
+    var flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
+    return !!this._horizonElements[flexId]
+  }
+  return false
+}
+
+HaikuComponent.prototype._getRealElementsAtId = function _getRealElementsAtId (flexId) {
+  if (!this._hashTableOfIdsToElements[flexId]) return []
+  return this._hashTableOfIdsToElements[flexId]
+}
+
+/**
+ * @description We store DOM elements in a lookup table keyed by their id so we can do fast patches.
+ * This is a hook that allows e.g. the ReactDOMAdapter to push elements into the list if it mutates the DOM.
+ * e.g. during control flow
+ */
+HaikuComponent.prototype._addElementToHashTable = function _addElementToHashTable (realElement, virtualElement) {
+  addElementToHashTable(this._hashTableOfIdsToElements, realElement, virtualElement)
+  return this
+}
+
+/**
+ * @description Keep track of whether a given element has rendered its surrogate, i.e.
+ * an element passed to it as a placeholder. This is used in the renderer to determine
+ * whether the element needs to be temporarily invisible to avoid a flash of content while
+ * rendering occurs
+ */
+HaikuComponent.prototype._didElementRenderSurrogate = function _didElementRenderSurrogate (virtualElement, surrogatePlacementKey, surrogateObject) {
+  if (!virtualElement) return false
+  if (!virtualElement.attributes) return false
+  var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
+  if (!flexId) return false
+  if (!this._controlFlowData[flexId]) return false
+  if (!this._controlFlowData[flexId].renderedSurrogates) return false
+  return this._controlFlowData[flexId].renderedSurrogates[surrogatePlacementKey] === surrogateObject
+}
+
+HaikuComponent.prototype._markElementAnticipatedSurrogates = function _markElementAnticipatedSurrogates (virtualElement, surrogatesArray) {
+  var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id)
+  if (flexId) {
+    if (!this._controlFlowData[flexId]) this._controlFlowData[flexId] = {}
+    this._controlFlowData[flexId].anticipatedSurrogates = surrogatesArray
+  }
+}
+
+HaikuComponent.prototype._markElementSurrogateAsRendered = function _markElementSurrogateAsRendered (virtualElement, surrogatePlacementKey, surrogateObject) {
+  var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id)
+  if (flexId) {
+    if (!this._controlFlowData[flexId]) this._controlFlowData[flexId] = {}
+    if (!this._controlFlowData[flexId].renderedSurrogates) this._controlFlowData[flexId].renderedSurrogates = {}
+    this._controlFlowData[flexId].renderedSurrogates[surrogatePlacementKey] = surrogateObject
   }
 }
 
@@ -916,12 +1007,14 @@ HaikuComponent.prototype._clearCaches = function _clearCaches () {
   this._lastDeltaPatches = null
   this._matchedElementCache = {}
   this._renderScopes = {}
+  this._controlFlowData = {}
   this._clearDetectedEventsFired()
   this._clearDetectedInputChanges()
   this._builder._clearCaches()
 
   // TODO: Do we _need_ to reach in and clear the caches of context?
   this._context.config.options.cache = {}
+
   this.config.options.cache = {}
 
   return this
@@ -1353,17 +1446,19 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
   )
 
   for (var flexId in this._nestedComponentElements) {
-    var nestedComponentEl = this._nestedComponentElements[flexId]
-    var subPatches = nestedComponentEl.__instance.patch(nestedComponentEl, {})
-    for (var subFlexId in subPatches) {
-      this._lastDeltaPatches[flexId + ':' + subFlexId] = subPatches[subFlexId]
-    }
+    var _componentElement = this._nestedComponentElements[flexId]
+    this._lastDeltaPatches[flexId] = _componentElement
+    _componentElement.__instance.patch(_componentElement, {})
   }
 
   this._clearDetectedEventsFired()
   this._clearDetectedInputChanges()
 
   return this._lastDeltaPatches
+}
+
+HaikuComponent.prototype._getPrecalcedPatches = function _getPrecalcedPatches () {
+  return this._lastDeltaPatches || {}
 }
 
 HaikuComponent.prototype.render = function render (container, renderOptions, surrogates) {
@@ -1582,7 +1677,7 @@ function _gatherDeltaPatches (
   // that we have already calculated among the descendants of the changed one
   for (var flexId in deltas) {
     var changedNode = deltas[flexId]
-    _computeAndApplyTreeLayouts(changedNode, changedNode.__parent, patchOptions)
+    _computeAndApplyTreeLayouts(changedNode, changedNode.__parent, patchOptions, context)
   }
 
   return deltas
@@ -1637,14 +1732,12 @@ function _applyContextChanges (
     _computeAndApplyPresetSizing(template, container, renderOptions.sizing)
   }
 
-  _computeAndApplyTreeLayouts(template, container, renderOptions)
+  _computeAndApplyTreeLayouts(template, container, renderOptions, context)
 
   return template
 }
 
 function _initializeComponentTree (element, component, context) {
-  element.__componentScope = component._componentScope
-
   // In addition to plain objects, a sub-element can also be a component,
   // which we currently detect by checking to see if it looks like 'bytecode'
   // Don't instantiate a second time if we already have the instance at this node
@@ -1653,7 +1746,9 @@ function _initializeComponentTree (element, component, context) {
     element.__instance = new HaikuComponent(element.elementName, context, {
       // Exclude states, etc. (everything except 'options') since those should override *only* on the root element being instantiated
       options: context.config.options
-    }, component._componentScope ? (component._componentScope + ':' + flexId) : flexId)
+    }, {
+      nested: true
+    })
 
     // We duplicate the behavior of HaikuContext and start the default timeline
     element.__instance.startTimeline(DEFAULT_TIMELINE_NAME)
@@ -1723,7 +1818,6 @@ function _shallowCloneComponentTreeElement (element) {
   clone.__transformed = element.__transformed // Transfer flag detecting whether a transform has occurred [#LEGACY?]
   clone.__parent = element.__parent // Make sure it doesn't get detached from its ancestors
   clone.__scope = element.__scope // It still has the same scope (svg, div, etc)
-  clone.__componentScope = element.__componentScope
   clone.layout = element.layout // Allow its layout, which we update in-place, to remain a pointer
 
   // Simply copy over the other standard parts of the node...
@@ -1752,20 +1846,20 @@ function _findMatchingElementsByCssSelector (selector, template, cache) {
   return matches
 }
 
-function _computeAndApplyTreeLayouts (tree, container, options) {
+function _computeAndApplyTreeLayouts (tree, container, options, context) {
   if (!tree || typeof tree === 'string') return void 0
 
-  _computeAndApplyNodeLayout(tree, container, options)
+  _computeAndApplyNodeLayout(tree, container, options, context)
 
   if (!tree.children) return void 0
   if (tree.children.length < 1) return void 0
 
   for (var i = 0; i < tree.children.length; i++) {
-    _computeAndApplyTreeLayouts(tree.children[i], tree, options)
+    _computeAndApplyTreeLayouts(tree.children[i], tree, options, context)
   }
 }
 
-function _computeAndApplyNodeLayout (element, parent, options) {
+function _computeAndApplyNodeLayout (element, parent, options, context) {
   if (parent) {
     var parentSize = parent.layout.computed.size
     var computedLayout = Layout3D.computeLayout(
@@ -2005,7 +2099,7 @@ function _isBytecode (thing) {
 
 module.exports = HaikuComponent
 
-},{"./../package.json":2,"./Config":3,"./HaikuTimeline":9,"./Layout3D":10,"./ValueBuilder":12,"./helpers/SimpleEventEmitter":19,"./helpers/cssQueryTree":30,"./helpers/scopifyElements":35,"./helpers/upgradeBytecodeInPlace":36,"./properties/dom/vanities":50,"./vendor/assign":90}],6:[function(_dereq_,module,exports){
+},{"./../package.json":2,"./Config":3,"./HaikuTimeline":9,"./Layout3D":10,"./ValueBuilder":12,"./helpers/SimpleEventEmitter":19,"./helpers/addElementToHashTable":20,"./helpers/cssQueryTree":30,"./helpers/scopifyElements":35,"./helpers/upgradeBytecodeInPlace":36,"./properties/dom/vanities":50,"./vendor/assign":90}],6:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -2015,7 +2109,6 @@ var HaikuClock = _dereq_('./HaikuClock')
 var HaikuComponent = _dereq_('./HaikuComponent')
 var Config = _dereq_('./Config')
 var PRNG = _dereq_('./helpers/PRNG')
-var addElementToHashTable = _dereq_('./helpers/addElementToHashTable')
 
 var PLAYER_VERSION = _dereq_('./../package.json').version
 
@@ -2116,20 +2209,6 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
       this._renderer.mixpanel(this._mount, this.config.options.mixpanel, this.component)
     }
   }
-
-  // Dictionary of ids-to-elements, for quick lookups.
-  // We hydrate this with elements as we render so we don't have to query the DOM
-  // to quickly load elements for patch-style rendering
-  this._hash = {
-    // Elements are stored in _arrays_ as opposed to singletons, since there could be more than one
-    // in case of edge cases or possibly for future implementation details around $repeat
-    // "abcde": [el, el]
-  }
-
-  // Dictionary of ids-to-elements, representing elements that we
-  // do not want to render past in the tree (i.e. cede control to some
-  // other rendering context)
-  this._horizons = {}
 
   // Just a counter for the number of clock ticks that have occurred; used to determine first-frame for mounting
   this._ticks = 0
@@ -2257,7 +2336,7 @@ HaikuContext.prototype.performFullFlushRender = function performFullFlushRender 
     container,
     tree,
     this._address,
-    this
+    this.component
   )
   return this
 }
@@ -2274,7 +2353,7 @@ HaikuContext.prototype.performPatchRender = function performPatchRender () {
     container,
     patches,
     this._address,
-    this
+    this.component
   )
   return this
 }
@@ -2379,37 +2458,6 @@ HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState () {
 }
 
 /**
- * @description We store DOM elements in a lookup table keyed by their id so we can do fast patches.
- * This is a hook that allows e.g. the ReactDOMAdapter to push elements into the list if it mutates the DOM.
- * e.g. during control flow
- */
-HaikuContext.prototype._addElementToHashTable = function _addElementToHashTable (realElement, virtualElement) {
-  addElementToHashTable(this._hash, realElement, virtualElement)
-  return this
-}
-
-/**
- * @description Track elements that are at the horizon of what we want to render, i.e., a list of
- * virtual elements that we don't want to make any updates lower than in the tree.
- */
-HaikuContext.prototype._markHorizonElement = function _markHorizonElement (virtualElement) {
-  if (virtualElement && virtualElement.attributes) {
-    var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
-    if (flexId) {
-      this._horizons[flexId] = virtualElement
-    }
-  }
-}
-
-HaikuContext.prototype._isHorizonElement = function _isHorizonElement (virtualElement) {
-  if (virtualElement && virtualElement.attributes) {
-    var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
-    return !!this._horizons[flexId]
-  }
-  return false
-}
-
-/**
  * @function createComponentFactory
  * @description Returns a factory function that can create a HaikuComponent and run it upon a mount.
  * The created player runs using the passed-in renderer, bytecode, options, and platform.
@@ -2486,7 +2534,7 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
 module.exports = HaikuContext
 
-},{"./../package.json":2,"./Config":3,"./HaikuClock":4,"./HaikuComponent":5,"./helpers/PRNG":17,"./helpers/addElementToHashTable":20,"./vendor/assign":90}],7:[function(_dereq_,module,exports){
+},{"./../package.json":2,"./Config":3,"./HaikuClock":4,"./HaikuComponent":5,"./helpers/PRNG":17,"./vendor/assign":90}],7:[function(_dereq_,module,exports){
 (function (global){
 // We need a global harness so we can...
 // - have a single rAF loop even if we've got multiple Haiku Contexts on the same page
@@ -5157,21 +5205,19 @@ module.exports = SimpleEventEmitter
 module.exports = function addElementToHashTable (hash, realElement, virtualElement) {
   if (virtualElement && virtualElement.attributes) {
     var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
-    var scopedId = (virtualElement.__componentScope) ?
-        (virtualElement.__componentScope + ':' + flexId) : flexId
 
-    if (!hash[scopedId]) hash[scopedId] = []
+    if (!hash[flexId]) hash[flexId] = []
 
     var alreadyInList = false
-    for (var i = 0; i < hash[scopedId].length; i++) {
-      var elInList = hash[scopedId][i]
+    for (var i = 0; i < hash[flexId].length; i++) {
+      var elInList = hash[flexId][i]
       if (elInList === realElement) {
         alreadyInList = true
       }
     }
 
     if (!alreadyInList) {
-      hash[scopedId].push(realElement)
+      hash[flexId].push(realElement)
     }
   }
 }
@@ -5888,7 +5934,7 @@ function applyCssLayout (
 ) {
   // No point continuing if there's no computedLayout contents
   if (
-    !computedLayout.opacity &&
+    computedLayout.opacity === undefined &&
     !computedLayout.size &&
     !computedLayout.matrix
   ) {
@@ -5908,7 +5954,7 @@ function applyCssLayout (
   }
 
   if (!hasExplicitStyle(domElement, 'opacity')) {
-    if (computedLayout.opacity) {
+    if (computedLayout.opacity !== undefined) {
       // A lack of an opacity setting means 100% opacity, so unset any existing
       // value if we happen to get an opacity approaching 1.
       if (computedLayout.opacity > 0.999) {
@@ -8513,7 +8559,12 @@ var PRESENTATION_VANITIES = {
   markerMid: attributeSetter('markerMid'),
   markerStart: attributeSetter('markerStart'),
   mask: attributeSetter('mask'),
-  opacity: attributeSetter('opacity'),
+  // Special snowflake opacity needs to have its opacity layout property set
+  // as opposed to its element attribute so the renderer can make a decision about
+  // where to put it based on the rendering medium's rules
+  opacity: function (name, element, value) {
+    element.layout.opacity = value
+  },
   overflow: attributeSetter('overflow'),
   pointerEvents: attributeSetter('pointerEvents'),
   shapeRendering: attributeSetter('shapeRendering'),
@@ -8601,30 +8652,38 @@ var CONTROL_FLOW_VANITIES = {
     component
   ) {
     if (value === null || value === undefined) return void 0
+
     if (typeof value !== 'number') {
       throw new Error('controlFlow.placeholder expects null or number')
     }
+
     if (!context.config.children) return void 0
+
     var children = Array.isArray(context.config.children)
       ? context.config.children
       : [context.config.children]
+
+    component._markElementAnticipatedSurrogates(element, children)
+
     var surrogate = children[value]
     if (surrogate === null || surrogate === undefined) return void 0
-    // No matter what, if we have a surrogate, then we must clear the children, otherwise we will often
-    // see a flash of the default content before the injected content flows in. This is especially a
-    // problem with React et al, where their rendering is lazy
+
+    // If we have a surrogate, then we must clear the children, otherwise we will often
+    // see a flash of the default content before the injected content flows in lazily
     element.children = []
+
     // If we are running via a framework adapter, allow that framework to provide its own placeholder mechanism.
     // This is necessary e.g. in React where their element format needs to be converted into our 'mana' format
     if (context.config.vanities['controlFlow.placeholder']) {
       context.config.vanities['controlFlow.placeholder'](
         element,
         surrogate,
+        value,
         context,
         component
       )
     } else {
-      controlFlowPlaceholderImpl(element, surrogate, context, component)
+      controlFlowPlaceholderImpl(element, surrogate, value, context, component)
     }
   }
 }
@@ -8668,15 +8727,18 @@ var CONTROL_FLOW_VANITIES = {
 //   }
 // }
 
-function controlFlowPlaceholderImpl (element, surrogate, context, component) {
-  element.elementName = surrogate.elementName
-  element.children = surrogate.children || []
-  if (surrogate.attributes) {
-    if (!element.attributes) element.attributes = {}
-    for (var key in surrogate.attributes) {
-      if (key === 'haiku-id') continue
-      element.attributes[key] = surrogate.attributes[key]
+function controlFlowPlaceholderImpl (element, surrogate, value, context, component) {
+  if (!component._didElementRenderSurrogate(element, surrogate)) {
+    element.elementName = surrogate.elementName
+    element.children = surrogate.children || []
+    if (surrogate.attributes) {
+      if (!element.attributes) element.attributes = {}
+      for (var key in surrogate.attributes) {
+        if (key === 'haiku-id') continue
+        element.attributes[key] = surrogate.attributes[key]
+      }
     }
+    component._markElementSurrogateAsRendered(element, surrogate)
   }
 }
 
@@ -10018,14 +10080,14 @@ HaikuDOMRenderer.prototype.render = function render (
   virtualContainer,
   virtualTree,
   locator,
-  context
+  component
 ) {
   return _render(
     domElement,
     virtualContainer,
     virtualTree,
     locator,
-    context
+    component
   )
 }
 
@@ -10034,23 +10096,23 @@ HaikuDOMRenderer.prototype.patch = function patch (
   virtualContainer,
   patchesDict,
   locator,
-  context
+  component
 ) {
   return _patch(
     domElement,
     virtualContainer,
     patchesDict,
     locator,
-    context
+    component
   )
 }
 
-HaikuDOMRenderer.prototype.menuize = function menuize (domElement, playerInstance) {
-  return createRightClickMenu(domElement, playerInstance)
+HaikuDOMRenderer.prototype.menuize = function menuize (domElement, component) {
+  return createRightClickMenu(domElement, component)
 }
 
-HaikuDOMRenderer.prototype.mixpanel = function mixpanel (domElement, mixpanelToken, playerInstance) {
-  return createMixpanel(domElement, mixpanelToken, playerInstance)
+HaikuDOMRenderer.prototype.mixpanel = function mixpanel (domElement, mixpanelToken, component) {
+  return createMixpanel(domElement, mixpanelToken, component)
 }
 
 HaikuDOMRenderer.prototype.createContainer = function createContainer (domElement) {
@@ -10258,14 +10320,14 @@ function appendChild (
   parentDomElement,
   parentVirtualElement,
   locator,
-  context
+  component
 ) {
   var domElementToInsert
   if (isTextNode(virtualElement)) {
     domElementToInsert = createTextNode(
       parentDomElement,
       virtualElement,
-      context
+      component
     )
   } else {
     domElementToInsert = createTagNode(
@@ -10273,7 +10335,7 @@ function appendChild (
       virtualElement,
       parentVirtualElement,
       locator,
-      context
+      component
     )
   }
 
@@ -10282,7 +10344,7 @@ function appendChild (
     virtualElement,
     parentDomElement,
     parentVirtualElement,
-    context
+    component
   )
 
   parentDomElement.appendChild(domElementToInsert)
@@ -10354,7 +10416,7 @@ function applyLayout (
   virtualElement,
   parentDomNode,
   parentVirtualElement,
-  context,
+  component,
   isPatchOperation,
   isKeyDifferent
 ) {
@@ -10362,7 +10424,7 @@ function applyLayout (
 
   if (virtualElement.layout) {
     // Don't assign layout to things that never need it like <desc>, <title>, etc.
-    // Check if we're inside an <svg> context *and* one of the actually renderable svg-type els
+    // Check if we're inside an <svg> component *and* one of the actually renderable svg-type els
     if (
       scopeOfElement(virtualElement) === SVG &&
       !SVG_RENDERABLES[virtualElement.elementName]
@@ -10382,7 +10444,7 @@ function applyLayout (
     }
 
     var devicePixelRatio =
-      (context.config.options && context.config.options.devicePixelRatio) || DEFAULT_PIXEL_RATIO
+      (component.config.options && component.config.options.devicePixelRatio) || DEFAULT_PIXEL_RATIO
     var computedLayout = virtualElement.layout.computed
 
     // No computed layout means the el is not shown
@@ -10395,7 +10457,7 @@ function applyLayout (
         domElement.style.display = 'block'
       }
 
-      context.config.options.platform = PLATFORM_INFO
+      component.config.options.platform = PLATFORM_INFO
 
       applyCssLayout(
         domElement,
@@ -10403,7 +10465,7 @@ function applyLayout (
         virtualElement.layout,
         computedLayout,
         devicePixelRatio,
-        context
+        component
       )
     }
   }
@@ -10453,7 +10515,7 @@ var G = 'g'
 var E = 'e'
 var FSLASH = '/'
 
-function setAttribute (el, key, val, context, cache) {
+function setAttribute (el, key, val, component, cache) {
   // If key === xlink:href we are dealing with a reference and need to use a namepsace
   if (key[0] === X && key[1] === L && key[2] === I && key[3] === N && key[4] === K) {
     var ns = XLINK_XMLNS
@@ -10495,7 +10557,7 @@ function setAttribute (el, key, val, context, cache) {
 function assignAttributes (
   domElement,
   virtualElement,
-  context,
+  component,
   isPatchOperation,
   isKeyDifferent
 ) {
@@ -10526,14 +10588,14 @@ function assignAttributes (
       assignStyle(
         domElement,
         anotherNewValue,
-        context,
+        component,
         isPatchOperation
       )
       continue
     }
 
     if ((key === CLASS || key === CLASS_NAME) && anotherNewValue) {
-      assignClass(domElement, anotherNewValue, context)
+      assignClass(domElement, anotherNewValue, component)
       continue
     }
 
@@ -10543,11 +10605,11 @@ function assignAttributes (
       key[1] === 'n' &&
       typeof anotherNewValue === FUNCTION
     ) {
-      assignEvent(domElement, key.slice(2).toLowerCase(), anotherNewValue, context)
+      assignEvent(domElement, key.slice(2).toLowerCase(), anotherNewValue, component)
       continue
     }
 
-    setAttribute(domElement, key, anotherNewValue, context, context.config.options.cache[domElement.haiku.locator])
+    setAttribute(domElement, key, anotherNewValue, component, component.config.options.cache[domElement.haiku.locator])
   }
 
   // Any 'hidden' eventHandlers we got need to be assigned now.
@@ -10557,7 +10619,7 @@ function assignAttributes (
     for (var eventName in virtualElement.__handlers) {
       var handler = virtualElement.__handlers[eventName]
       if (!handler.__subscribed) {
-        assignEvent(domElement, eventName, handler, context)
+        assignEvent(domElement, eventName, handler, component)
         handler.__subscribed = true
       }
     }
@@ -10593,7 +10655,7 @@ function assignEvent (
   domElement,
   eventName,
   listenerFunction,
-  context
+  component
 ) {
   if (!domElement.haiku) {
     domElement.haiku = {}
@@ -10622,7 +10684,7 @@ function assignEvent (
       domElement,
       eventName,
       listenerFunction,
-      context
+      component
     )
   }
 }
@@ -10634,7 +10696,7 @@ module.exports = assignEvent
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function assignStyle (domElement, style, context, isPatchOperation) {
+function assignStyle (domElement, style, component, isPatchOperation) {
   if (!domElement.__haikuExplicitStyles) domElement.__haikuExplicitStyles = {}
 
   if (!isPatchOperation) {
@@ -10678,7 +10740,7 @@ module.exports = function attachEventListener (
   domElement,
   eventName,
   listener,
-  context
+  component
 ) {
   // FF doesn't like it if this isn't a function... this can happen if bad props are passed upstream
   if (typeof listener === 'function') {
@@ -10961,13 +11023,13 @@ function createTagNode (
   virtualElement,
   parentVirtualElement,
   locator,
-  context
+  component
 ) {
   var tagName = normalizeName(getTypeAsString(virtualElement))
   var newDomElement
   if (SVG_EL_NAMES[tagName]) {
     // SVG
-    newDomElement = createSvgElement(domElement, tagName, context)
+    newDomElement = createSvgElement(domElement, tagName, component)
   } else {
     // Normal DOM
     newDomElement = domElement.ownerDocument.createElement(tagName)
@@ -10976,8 +11038,8 @@ function createTagNode (
   // This doesn't happen in renderTree because the element doesn't exist yet.
   if (!newDomElement.haiku) newDomElement.haiku = {}
   newDomElement.haiku.locator = locator
-  if (!context.config.options.cache[newDomElement.haiku.locator]) {
-    context.config.options.cache[newDomElement.haiku.locator] = {}
+  if (!component.config.options.cache[newDomElement.haiku.locator]) {
+    component.config.options.cache[newDomElement.haiku.locator] = {}
   }
 
   var incomingKey =
@@ -10994,7 +11056,7 @@ function createTagNode (
     domElement,
     parentVirtualElement,
     locator,
-    context
+    component
   )
   return newDomElement
 }
@@ -11240,8 +11302,13 @@ function patch (
   virtualContainer,
   patchesDict,
   locator,
-  context
+  component
 ) {
+  // Just in case we get a null which might be set as a no-op signal by a component upstream
+  if (!patchesDict) {
+    return topLevelDomElement
+  }
+
   var keysToUpdate = Object.keys(patchesDict)
   if (keysToUpdate.length < 1) {
     return topLevelDomElement
@@ -11250,18 +11317,30 @@ function patch (
   for (var flexId in patchesDict) {
     var virtualElement = patchesDict[flexId]
 
-    if (context._hash[flexId] && context._hash[flexId].length > 0) {
-      for (var i = 0; i < context._hash[flexId].length; i++) {
-        var domElement = context._hash[flexId][i]
+    var domElements = component._getRealElementsAtId(flexId)
 
-        updateElement(
+    var nestedModuleElement = component._nestedComponentElements[flexId]
+
+    for (var i = 0; i < domElements.length; i++) {
+      var domElement = domElements[i]
+      updateElement(
+        domElement,
+        virtualElement,
+        domElement.parentNode,
+        virtualElement.__parent,
+        domElement.haiku.locator,
+        component,
+        true
+      )
+
+      // If there is a nested component at this location, let it patch inside its scope
+      if (nestedModuleElement && nestedModuleElement.__instance) {
+        patch(
           domElement,
-          virtualElement,
-          domElement.parentNode,
-          virtualElement.__parent,
-          domElement.haiku.locator,
-          context,
-          true
+          nestedModuleElement, // Sizing info is stored here
+          nestedModuleElement.__instance._getPrecalcedPatches(),
+          locator + ';' + i, // Not yet sure what to set here
+          nestedModuleElement.__instance
         )
       }
     }
@@ -11294,14 +11373,14 @@ function render (
   virtualContainer,
   virtualTree,
   locator,
-  context
+  component
 ) {
   return renderTree(
     domElement,
     virtualContainer,
     [virtualTree],
     locator,
-    context
+    component
   )
 }
 
@@ -11321,11 +11400,11 @@ function renderTree (
   virtualElement,
   virtualChildren,
   locator,
-  context,
+  component,
   isPatchOperation,
   doSkipChildren
 ) {
-  context._addElementToHashTable(domElement, virtualElement)
+  component._addElementToHashTable(domElement, virtualElement)
 
   if (!domElement.haiku) domElement.haiku = {}
 
@@ -11334,8 +11413,8 @@ function renderTree (
   domElement.haiku.locator = locator
   domElement.haiku.virtual = virtualElement
   domElement.haiku.element = _cloneVirtualElement(virtualElement) // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-  if (!context.config.options.cache[domElement.haiku.locator]) {
-    context.config.options.cache[domElement.haiku.locator] = {}
+  if (!component.config.options.cache[domElement.haiku.locator]) {
+    component.config.options.cache[domElement.haiku.locator] = {}
   }
 
   if (!Array.isArray(virtualChildren)) {
@@ -11344,7 +11423,7 @@ function renderTree (
 
   // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
   // so the most we want to do is update the attributes and layout properties, but leave the rest alone
-  if (context._isHorizonElement(virtualElement)) {
+  if (component._isHorizonElement(virtualElement)) {
     return domElement
   }
 
@@ -11369,45 +11448,48 @@ function renderTree (
     if (!virtualChild && !domChild) {
       continue
     } else if (!virtualChild && domChild) {
-      removeElement(domChild, context)
-    } else if (virtualChild && !domChild) {
-      var insertedElement = appendChild(
-        null,
-        virtualChild,
-        domElement,
-        virtualElement,
-        sublocator,
-        context
-      )
+      removeElement(domChild)
+    } else if (virtualChild) {
+      if (!domChild) {
+        var insertedElement = appendChild(
+          null,
+          virtualChild,
+          domElement,
+          virtualElement,
+          sublocator,
+          component
+        )
 
-      context._addElementToHashTable(insertedElement, virtualChild)
-    } else {
-      var oldId = domChild.getAttribute && domChild.getAttribute('id')
-      var newId = virtualChild.attributes && virtualChild.attributes.id
-      if (oldId && newId && oldId !== newId) {
-        // If we now have an element that has a different id, we need to trigger a full re-render
-        // of itself and all of its children, because url(#...) references will retain pointers to
-        // old elements and this is the only way to clear the DOM to get a correct render
-        replaceElement(
+        component._addElementToHashTable(insertedElement, virtualChild)
+      } else {
+        var oldId = domChild.getAttribute && domChild.getAttribute('id')
+        var newId = virtualChild.attributes && virtualChild.attributes.id
+
+        if (oldId && newId && oldId !== newId) {
+          // If we now have an element that has a different id, we need to trigger a full re-render
+          // of itself and all of its children, because url(#...) references will retain pointers to
+          // old elements and this is the only way to clear the DOM to get a correct render
+          replaceElement(
+            domChild,
+            virtualChild,
+            domElement,
+            virtualElement,
+            locator,
+            component
+          )
+          continue
+        }
+
+        updateElement(
           domChild,
           virtualChild,
           domElement,
           virtualElement,
-          locator,
-          context
+          sublocator,
+          component,
+          isPatchOperation
         )
-        continue
       }
-
-      updateElement(
-        domChild,
-        virtualChild,
-        domElement,
-        virtualElement,
-        sublocator,
-        context,
-        isPatchOperation
-      )
     }
   }
 
@@ -11434,18 +11516,18 @@ function replaceElement (
   parentDomNode,
   parentVirtualElement,
   locator,
-  context
+  component
 ) {
   var newElement
   if (isTextNode(virtualElement)) {
-    newElement = createTextNode(domElement, virtualElement, context)
+    newElement = createTextNode(domElement, virtualElement, component)
   } else {
     newElement = createTagNode(
       domElement,
       virtualElement,
       parentVirtualElement,
       locator,
-      context
+      component
     )
   }
 
@@ -11454,7 +11536,7 @@ function replaceElement (
     virtualElement,
     parentDomNode,
     parentVirtualElement,
-    context
+    component
   )
 
   parentDomNode.replaceChild(newElement, domElement)
@@ -11473,11 +11555,11 @@ var createTagNode = _dereq_('./createTagNode')
 
 var createTextNode = _dereq_('./createTextNode')
 
-function replaceElementWithText (domElement, textContent, context) {
+function replaceElementWithText (domElement, textContent, component) {
   if (domElement) {
     if (domElement.textContent !== textContent) {
       var parentNode = domElement.parentNode
-      var textNode = createTextNode(domElement, textContent, context)
+      var textNode = createTextNode(domElement, textContent, component)
       parentNode.replaceChild(textNode, domElement)
     }
   }
@@ -11505,19 +11587,19 @@ function updateElement (
   parentNode,
   parentVirtualElement,
   locator,
-  context,
+  component,
   isPatchOperation
 ) {
   // If a text node, go straight to 'replace' since we don't know the tag name
-  if (isTextNode(virtualElement, context)) {
-    replaceElementWithText(domElement, virtualElement, context)
+  if (isTextNode(virtualElement, component)) {
+    replaceElementWithText(domElement, virtualElement, component)
     return virtualElement
   }
 
   if (!domElement.haiku) domElement.haiku = {}
   domElement.haiku.locator = locator
-  if (!context.config.options.cache[domElement.haiku.locator]) {
-    context.config.options.cache[domElement.haiku.locator] = {}
+  if (!component.config.options.cache[domElement.haiku.locator]) {
+    component.config.options.cache[domElement.haiku.locator] = {}
   }
   if (!domElement.haiku.element) {
     // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
@@ -11538,7 +11620,7 @@ function updateElement (
 
   // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
   // so the most we want to do is update the attributes and layout properties, but leave the rest alone
-  if (!context._isHorizonElement(virtualElement)) {
+  if (!component._isHorizonElement(virtualElement)) {
     if (domTagName !== virtualElementTagName) {
       return replaceElement(
         domElement,
@@ -11546,7 +11628,7 @@ function updateElement (
         parentNode,
         parentVirtualElement,
         locator,
-        context
+        component
       )
     }
 
@@ -11557,7 +11639,7 @@ function updateElement (
         parentNode,
         parentVirtualElement,
         locator,
-        context
+        component
       )
     }
   }
@@ -11569,7 +11651,7 @@ function updateElement (
     assignAttributes(
       domElement,
       virtualElement,
-      context,
+      component,
       isPatchOperation,
       isKeyDifferent
     )
@@ -11579,13 +11661,15 @@ function updateElement (
     virtualElement,
     parentNode,
     parentVirtualElement,
-    context,
+    component,
     isPatchOperation,
     isKeyDifferent
   )
   if (incomingKey !== undefined && incomingKey !== null) {
     domElement.haiku.key = incomingKey
   }
+
+  var subcomponent = (virtualElement && virtualElement.__instance) || component
 
   if (Array.isArray(virtualElement.children)) {
     // For performance, we don't render children during a patch operation, except in the case
@@ -11597,7 +11681,7 @@ function updateElement (
       virtualElement,
       virtualElement.children,
       locator,
-      context,
+      subcomponent,
       isPatchOperation,
       doSkipChildren
     )
@@ -11608,7 +11692,7 @@ function updateElement (
       virtualElement,
       [],
       locator,
-      context,
+      subcomponent,
       isPatchOperation
     )
   }
