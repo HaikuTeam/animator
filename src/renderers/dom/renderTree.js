@@ -59,45 +59,48 @@ function renderTree (
     if (!virtualChild && !domChild) {
       continue
     } else if (!virtualChild && domChild) {
-      removeElement(domChild, component)
-    } else if (virtualChild && !domChild) {
-      var insertedElement = appendChild(
-        null,
-        virtualChild,
-        domElement,
-        virtualElement,
-        sublocator,
-        component
-      )
+      removeElement(domChild)
+    } else if (virtualChild) {
+      if (!domChild) {
+        var insertedElement = appendChild(
+          null,
+          virtualChild,
+          domElement,
+          virtualElement,
+          sublocator,
+          component
+        )
 
-      component._addElementToHashTable(insertedElement, virtualChild)
-    } else {
-      var oldId = domChild.getAttribute && domChild.getAttribute('id')
-      var newId = virtualChild.attributes && virtualChild.attributes.id
-      if (oldId && newId && oldId !== newId) {
-        // If we now have an element that has a different id, we need to trigger a full re-render
-        // of itself and all of its children, because url(#...) references will retain pointers to
-        // old elements and this is the only way to clear the DOM to get a correct render
-        replaceElement(
+        component._addElementToHashTable(insertedElement, virtualChild)
+      } else {
+        var oldId = domChild.getAttribute && domChild.getAttribute('id')
+        var newId = virtualChild.attributes && virtualChild.attributes.id
+
+        if (oldId && newId && oldId !== newId) {
+          // If we now have an element that has a different id, we need to trigger a full re-render
+          // of itself and all of its children, because url(#...) references will retain pointers to
+          // old elements and this is the only way to clear the DOM to get a correct render
+          replaceElement(
+            domChild,
+            virtualChild,
+            domElement,
+            virtualElement,
+            locator,
+            component
+          )
+          continue
+        }
+
+        updateElement(
           domChild,
           virtualChild,
           domElement,
           virtualElement,
-          locator,
-          component
+          sublocator,
+          component,
+          isPatchOperation
         )
-        continue
       }
-
-      updateElement(
-        domChild,
-        virtualChild,
-        domElement,
-        virtualElement,
-        sublocator,
-        component,
-        isPatchOperation
-      )
     }
   }
 

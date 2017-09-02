@@ -26,7 +26,7 @@ var HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
 var DEFAULT_TIMELINE_NAME = 'Default'
 
-function HaikuComponent (bytecode, context, config) {
+function HaikuComponent (bytecode, context, config, metadata) {
   if (!(this instanceof HaikuComponent)) {
     return new HaikuComponent(bytecode, context, config)
   }
@@ -90,6 +90,9 @@ function HaikuComponent (bytecode, context, config) {
   // Note that assignConfig calls _bindStates and _bindEventHandlers, because our incoming config, which
   // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
   this.assignConfig(config)
+
+  // Optional metadata just used for internal tracking and debugging; don't base any logic on this
+  this._metadata = metadata || {}
 
   // TIMELINES
   this._timelineInstances = {}
@@ -797,17 +800,19 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
   )
 
   for (var flexId in this._nestedComponentElements) {
-    var nestedComponentEl = this._nestedComponentElements[flexId]
-    var subPatches = nestedComponentEl.__instance.patch(nestedComponentEl, {})
-    for (var subFlexId in subPatches) {
-      this._lastDeltaPatches[subFlexId] = subPatches[subFlexId]
-    }
+    var _componentElement = this._nestedComponentElements[flexId]
+    this._lastDeltaPatches[flexId] = _componentElement
+    _componentElement.__instance.patch(_componentElement, {})
   }
 
   this._clearDetectedEventsFired()
   this._clearDetectedInputChanges()
 
   return this._lastDeltaPatches
+}
+
+HaikuComponent.prototype._getPrecalcedPatches = function _getPrecalcedPatches () {
+  return this._lastDeltaPatches || {}
 }
 
 HaikuComponent.prototype.render = function render (container, renderOptions, surrogates) {
@@ -1095,7 +1100,10 @@ function _initializeComponentTree (element, component, context) {
     element.__instance = new HaikuComponent(element.elementName, context, {
       // Exclude states, etc. (everything except 'options') since those should override *only* on the root element being instantiated
       options: context.config.options
+    }, {
+      nested: true
     })
+
     // We duplicate the behavior of HaikuContext and start the default timeline
     element.__instance.startTimeline(DEFAULT_TIMELINE_NAME)
 

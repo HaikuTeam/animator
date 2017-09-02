@@ -806,7 +806,7 @@ var CONTROL_FLOW_VANITIES = {
       ? context.config.children
       : [context.config.children]
 
-    context._markElementAnticipatedSurrogates(element, children)
+    component._markElementAnticipatedSurrogates(element, children)
 
     var surrogate = children[value]
     if (surrogate === null || surrogate === undefined) return void 0
@@ -871,7 +871,7 @@ var CONTROL_FLOW_VANITIES = {
 // }
 
 function controlFlowPlaceholderImpl (element, surrogate, value, context, component) {
-  if (!context._didElementRenderSurrogate(element, surrogate)) {
+  if (!component._didElementRenderSurrogate(element, surrogate)) {
     element.elementName = surrogate.elementName
     element.children = surrogate.children || []
     if (surrogate.attributes) {
@@ -881,7 +881,7 @@ function controlFlowPlaceholderImpl (element, surrogate, value, context, compone
         element.attributes[key] = surrogate.attributes[key]
       }
     }
-    context._markElementSurrogateAsRendered(element, surrogate)
+    component._markElementSurrogateAsRendered(element, surrogate)
   }
 }
 

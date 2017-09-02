@@ -126,7 +126,7 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
             visit(this.mount, function visitor (node) {
               var flexId = flexIdIfSame(element, node)
               if (flexId) {
-                if (!context._didElementRenderSurrogate(element, surrogate)) {
+                if (!component._didElementRenderSurrogate(element, surrogate)) {
                   if (typeof surrogate.type === 'string' || (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
                     // What *should happen* in the Haiku Player is this new swapped DOM element will be
                     // updated (not replaced!) with the attributes of the virtual element at the same position
@@ -140,10 +140,10 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
                   node.style.visibility = 'hidden'
                   ReactDOM.render(surrogate, node)
                   window.requestAnimationFrame(function frame () {
-                    context._markElementSurrogateAsRendered(element, surrogate)
+                    component._markElementSurrogateAsRendered(element, surrogate)
                     node.style.visibility = 'visible'
                   })
-                  context._markHorizonElement(element)
+                  component._markHorizonElement(element)
                   component._markForFullFlush()
                 }
               }

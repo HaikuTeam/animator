@@ -98,6 +98,8 @@ function updateElement (
     domElement.haiku.key = incomingKey
   }
 
+  var subcomponent = (virtualElement && virtualElement.__instance) || component
+
   if (Array.isArray(virtualElement.children)) {
     // For performance, we don't render children during a patch operation, except in the case
     // that we have some text content, which we (hack) need to always assume needs an update.
@@ -108,7 +110,7 @@ function updateElement (
       virtualElement,
       virtualElement.children,
       locator,
-      component,
+      subcomponent,
       isPatchOperation,
       doSkipChildren
     )
@@ -119,7 +121,7 @@ function updateElement (
       virtualElement,
       [],
       locator,
-      component,
+      subcomponent,
       isPatchOperation
     )
   }
