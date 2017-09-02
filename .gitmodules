@@ -34,3 +34,6 @@
 [submodule "packages/haiku-player"]
 	path = packages/haiku-player
 	url = git@github.com:HaikuTeam/player.git
+[submodule "packages/haiku-sdk-creator"]
+	path = packages/haiku-sdk-creator
+	url = git@github.com:HaikuTeam/sdk-creator
