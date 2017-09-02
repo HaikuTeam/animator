@@ -85,8 +85,8 @@ app.get('/demos/:demo', function (req, res) {
 
           var locals = {
             demo: demo,
-            vanilla: vanillajs,
-            react: reactjs
+            vanilla: (req.query.vanilla === 'false') ? null : vanillajs,
+            react: (req.query.react === 'false') ? null : reactjs
           }
 
           if (fse.existsSync(path.join(DEMOS_PATH, demo, 'note.txt'))) {
