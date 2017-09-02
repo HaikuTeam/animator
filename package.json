@@ -22,7 +22,7 @@
   "repository": "https://github.com/HaikuTeam/player",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test:unit && npm run test:api && npm run test:perf",
+    "test": "yarn run test:unit && yarn run test:api && yarn run test:perf",
     "test:perf": "tape \"test/perf/**/*.test.js\" | tap-spec || true",
     "test:api": "tape \"test/api/**/*.test.js\" | tap-spec || true",
     "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
@@ -30,8 +30,8 @@
     "prettify": "prettier-standard \"{,!(node_modules|dist)/**/}*.js\"",
     "footprint": "./footprint.sh",
     "demo": "nodemon ./test/demo/server.js",
-    "link-player": "npm link && npm link @haiku/player",
-    "start": "npm run link-player && npm run demo"
+    "link-player": "yarn link && yarn link @haiku/player",
+    "start": "yarn run link-player && yarn run demo"
   },
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
