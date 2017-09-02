@@ -11,7 +11,7 @@ test('perf2', function (t) {
         return done(true)
       },
       function (done, delta) {
-        console.log('[haiku player perf test] initial tick took ' + delta + ' vs baseline of 45')
+        console.log('[haiku player perf test] initial tick took ' + delta + ' vs baseline of 35')
         return setTimeout(done, 100)
       },
       function (done) {
@@ -19,7 +19,7 @@ test('perf2', function (t) {
         return done(true)
       },
       function (done, delta) {
-        console.log('[haiku player perf test] patch took ' + delta + ' vs baseline of 25')
+        console.log('[haiku player perf test] patch took ' + delta + ' vs baseline of 20')
         done()
       }
     ], teardown)
