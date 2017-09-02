@@ -2,7 +2,7 @@ var Haiku = require('@haiku/player')
 module.exports = {
   metadata: {
     type: "haiku",
-    name: "Rect"
+    name: "Oval"
   },
   options: {},
   states: {
@@ -17,7 +17,7 @@ module.exports = {
   eventHandlers: {},
   timelines: {
     Default: {
-      "haiku:HaikuRectWrapper": {
+      "haiku:HaikuOvalWrapper": {
         "style.WebkitTapHighlightColor": { "0": { value: "rgba(0,0,0,0)" } },
         "style.position": { "0": { value: "relative" } },
         "style.overflowX": { "0": { value: "hidden" } },
@@ -36,7 +36,7 @@ module.exports = {
         "sizeMode.y": { "0": { value: 1 } },
         "sizeMode.z": { "0": { value: 1 } }
       },
-      "haiku:HaikuRectSVGContext": {
+      "haiku:HaikuOvalSVGContext": {
         viewBox: { "0": {
           value: Haiku.inject(function (width, height) {
             return "0 0 " + width + " " + height
@@ -62,7 +62,7 @@ module.exports = {
         "translation.y": { "0": { value: 0 } },
         "style.zIndex": { "0": { value: 1 } }
       },
-      "haiku:HaikuRectGroup": {
+      "haiku:HaikuOvalOval": {
         stroke: { "0": {
           value: Haiku.inject(function (stroke) {
             return stroke
@@ -87,13 +87,26 @@ module.exports = {
           value: Haiku.inject(function (linecap) {
             return linecap
           }, 'linecap')
-        } }
-      },
-      "haiku:HaikuRectRect": {
-        stroke: { "0": {
-          value: Haiku.inject(function (stroke) {
-            return stroke
-          }, 'stroke')
+        } },
+        "cx": { "0": {
+          value: Haiku.inject(function (width) {
+            return width / 2
+          }, 'width')
+        } },
+        "cy": { "0": {
+          value: Haiku.inject(function (height) {
+            return height / 2
+          }, 'height')
+        } },
+        "rx": { "0": {
+          value: Haiku.inject(function (width , strokeWidth) {
+            return (width / 2) - strokeWidth
+          }, 'width', 'strokeWidth')
+        } },
+        "ry": { "0": {
+          value: Haiku.inject(function (height , strokeWidth) {
+            return (height / 2) - strokeWidth
+          }, 'height', 'strokeWidth')
         } }
       }
     }
@@ -102,8 +115,8 @@ module.exports = {
   template: {
     elementName: "div",
     attributes: {
-      "haiku-title": "HaikuRectWrapper",
-      "haiku-id": "HaikuRectWrapper"
+      "haiku-title": "HaikuOvalWrapper",
+      "haiku-id": "HaikuOvalWrapper"
     },
     children: [
       {
@@ -112,22 +125,15 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "@haiku/player/components/Rect",
-          "haiku-title": "HaikuRectSVGContext",
-          "haiku-id": "HaikuRectSVGContext",
-          "viewBox": "0 0 100 100"
+          source: "@haiku/player/components/Oval",
+          "haiku-title": "HaikuOvalSVGContext",
+          "haiku-id": "HaikuOvalSVGContext"
         },
         children: [
           {
-            elementName: "g",
-            attributes: { id: "HaikuRectGroup", "haiku-id": "HaikuRectGroup" },
-            children: [
-              {
-                elementName: "rect",
-                attributes: { id: "HaikuRectRect", "haiku-id": "HaikuRectRect" },
-                children: []
-              }
-            ]
+            elementName: "ellipse",
+            attributes: { id: "HaikuOvalOval", "haiku-id": "HaikuOvalOval" },
+            children: []
           }
         ]
       }

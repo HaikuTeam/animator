@@ -71,6 +71,21 @@ module.exports = function convertManaLayout (mana) {
     // object has sizing attributes, those end up overriding whatever was in the base attributes.
     if (!attributes) return void 0
 
+    if (name.states) {
+      var width = name.states.width
+      var height = name.states.height
+      // `elementName` is an object, so this is a recursive component: try to extract width/height from state
+      if (width && width.type === 'number') {
+        attributes['sizeAbsolute.x'] = width.value
+        attributes['sizeMode.x'] = 1
+      }
+
+      if (height && height.type === 'number') {
+        attributes['sizeAbsolute.y'] = height.value
+        attributes['sizeMode.y'] = 1
+      }
+    }
+
     // Convert the width attribute to our layout-friendly size property
     if (attributes.width !== undefined && attributes.width !== null) {
       var widthProp = determineSizingProp('x', attributes.width)

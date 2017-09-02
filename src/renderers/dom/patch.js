@@ -45,7 +45,7 @@ function patch (
         patch(
           domElement,
           nestedModuleElement, // Sizing info is stored here
-          nestedModuleElement.__instance._lastDeltaPatches, // Already ran HaikuComponent.prototype.patch
+          nestedModuleElement.__instance._getPrecalcedPatches(),
           locator + ';' + i, // Not yet sure what to set here
           nestedModuleElement.__instance
         )

@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.1.48",
+  "version": "2.2.0",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -671,9 +671,9 @@ var HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
 var DEFAULT_TIMELINE_NAME = 'Default'
 
-function HaikuComponent (bytecode, context, config) {
+function HaikuComponent (bytecode, context, config, componentScope) {
   if (!(this instanceof HaikuComponent)) {
-    return new HaikuComponent(bytecode, context, config)
+    return new HaikuComponent(bytecode, context, config, componentScope)
   }
 
   if (!bytecode) {
@@ -720,6 +720,7 @@ function HaikuComponent (bytecode, context, config) {
 
   this._context = context
   this._builder = new ValueBuilder(this)
+  this._componentScope = componentScope
 
   // STATES
   this._states = {} // Storage for getter/setter actions in userland logic
@@ -1355,7 +1356,7 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
     var nestedComponentEl = this._nestedComponentElements[flexId]
     var subPatches = nestedComponentEl.__instance.patch(nestedComponentEl, {})
     for (var subFlexId in subPatches) {
-      this._lastDeltaPatches[subFlexId] = subPatches[subFlexId]
+      this._lastDeltaPatches[flexId + ':' + subFlexId] = subPatches[subFlexId]
     }
   }
 
@@ -1642,19 +1643,20 @@ function _applyContextChanges (
 }
 
 function _initializeComponentTree (element, component, context) {
+  element.__componentScope = component._componentScope
+
   // In addition to plain objects, a sub-element can also be a component,
   // which we currently detect by checking to see if it looks like 'bytecode'
   // Don't instantiate a second time if we already have the instance at this node
   if (_isBytecode(element.elementName) && !element.__instance) {
-    // function HaikuComponent (bytecode, context, config)
+    var flexId = element.attributes && (element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes.id)
     element.__instance = new HaikuComponent(element.elementName, context, {
       // Exclude states, etc. (everything except 'options') since those should override *only* on the root element being instantiated
       options: context.config.options
-    })
+    }, component._componentScope ? (component._componentScope + ':' + flexId) : flexId)
+
     // We duplicate the behavior of HaikuContext and start the default timeline
     element.__instance.startTimeline(DEFAULT_TIMELINE_NAME)
-
-    var flexId = element.attributes && (element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes.id)
     component._nestedComponentElements[flexId] = element
   }
 
@@ -1717,15 +1719,11 @@ function _shallowCloneComponentTreeElement (element) {
   var clone = {}
 
   clone.__instance = element.__instance // Cache the instance
-
   clone.__handlers = element.__handlers // Transfer active event handlers
-
   clone.__transformed = element.__transformed // Transfer flag detecting whether a transform has occurred [#LEGACY?]
-
   clone.__parent = element.__parent // Make sure it doesn't get detached from its ancestors
-
   clone.__scope = element.__scope // It still has the same scope (svg, div, etc)
-
+  clone.__componentScope = element.__componentScope
   clone.layout = element.layout // Allow its layout, which we update in-place, to remain a pointer
 
   // Simply copy over the other standard parts of the node...
@@ -5159,18 +5157,21 @@ module.exports = SimpleEventEmitter
 module.exports = function addElementToHashTable (hash, realElement, virtualElement) {
   if (virtualElement && virtualElement.attributes) {
     var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
-    if (!hash[flexId]) hash[flexId] = []
+    var scopedId = (virtualElement.__componentScope) ?
+        (virtualElement.__componentScope + ':' + flexId) : flexId
+
+    if (!hash[scopedId]) hash[scopedId] = []
 
     var alreadyInList = false
-    for (var i = 0; i < hash[flexId].length; i++) {
-      var elInList = hash[flexId][i]
+    for (var i = 0; i < hash[scopedId].length; i++) {
+      var elInList = hash[scopedId][i]
       if (elInList === realElement) {
         alreadyInList = true
       }
     }
 
     if (!alreadyInList) {
-      hash[flexId].push(realElement)
+      hash[scopedId].push(realElement)
     }
   }
 }

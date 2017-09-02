@@ -1,6 +1,7 @@
 module.exports = function addElementToHashTable (hash, realElement, virtualElement) {
   if (virtualElement && virtualElement.attributes) {
     var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
+
     if (!hash[flexId]) hash[flexId] = []
 
     var alreadyInList = false
