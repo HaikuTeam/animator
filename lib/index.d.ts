@@ -35,12 +35,17 @@ export declare namespace inkstone {
             Password: string;
             OrganizationName?: string;
         }
+        interface PrefineryCheckParams {
+            Code: string;
+            Email: string;
+        }
         enum Validity {
             VALID = 0,
             INVALID = 1,
             ALREADY_CLAIMED = 2,
             ERROR = 3,
         }
+        function getInviteFromPrefineryCode(params: PrefineryCheckParams, cb: inkstone.Callback<Invite>): void;
         function checkValidity(code: string, cb: inkstone.Callback<InvitePresetDetails>): void;
         function claimInvite(claim: InviteClaim, cb: inkstone.Callback<boolean>): void;
     }

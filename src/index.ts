@@ -10,6 +10,7 @@ var ENDPOINTS = {
   CHANGE_PASSWORD: "v0/user/password",
   ORGANIZATION_LIST: "v0/organization",
   PROJECT_LIST: "v0/project",
+  INVITE_PREFINERY_CHECK: "v0/invite/check",
   INVITE_CHECK: "v0/invite/:CODE",
   INVITE_CLAIM: "v0/invite/claim",
   SNAPSHOT_GET_BY_ID: "v0/snapshot/:ID",
@@ -120,12 +121,38 @@ export namespace inkstone {
       OrganizationName?: string
     }
 
+    export interface PrefineryCheckParams {
+      Code: string,
+      Email: string
+    }
+
     export enum Validity {
       VALID = 0,
       INVALID = 1,
       ALREADY_CLAIMED = 2,
       ERROR = 3
     }
+
+    export function getInviteFromPrefineryCode(params: PrefineryCheckParams, cb: inkstone.Callback<Invite>) {
+      var options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        strictSSL: false,
+        url: _inkstoneConfig.baseUrl + ENDPOINTS.INVITE_PREFINERY_CHECK,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        json: params
+      }
+
+      request.post(options, function (err, httpResponse, body) {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          var project = body as Invite
+          cb(undefined, project, httpResponse)
+        } else {
+          cb("uncategorized error", undefined, httpResponse)
+        }
+      })
+    }
+
 
     export function checkValidity(code: string, cb: inkstone.Callback<InvitePresetDetails>) {
       var options: requestLib.UrlOptions & requestLib.CoreOptions = {
