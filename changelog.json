@@ -2513,5 +2513,17 @@
       "label": "fix",
       "message": "Make sure opacity gets set and fix flash of placeholder default content when rendering in React"
     }
+  },
+  "2.3.2": {
+    "f08f5bd77b794c470d1b5b1e63d50141852daa2c": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add undocumented method for checking prefinery invite codes through SDK"
+    },
+    "3ee16dc91daf0cd449f410e9b3917c8dd038133d": {
+      "project": "haiku-sdk-inkstone",
+      "label": "feat",
+      "message": "add sdk method for checking prefinery codes via Inkstone"
+    }
   }
 }
