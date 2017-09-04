@@ -111,6 +111,10 @@ switch (subcommand) {
     //undocumented: used for SDK development
     doCheckInvite()
     break
+  case "check-prefinery-code":
+    //undocumented: used for SDK development
+    doCheckPrefineryCode()
+    break
   case "claim-invite":
     //undocumented: used for SDK development
     doClaimInvite()
@@ -220,6 +224,16 @@ function doCheckInvite() {
   var code = args[0]
   inkstone.invite.checkValidity(code, (err, valid) => {
     if (valid) console.log(chalk.green("invite is valid"))
+    else console.log(chalk.red(err))
+  })
+}
+
+
+function doCheckPrefineryCode() {
+  var Code = args[0]
+  var Email = args[1]
+  inkstone.invite.getInviteFromPrefineryCode({Code, Email}, (err, code) => {
+    if (code) console.log(chalk.green(code.Code))
     else console.log(chalk.red(err))
   })
 }
