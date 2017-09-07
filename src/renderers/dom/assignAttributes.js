@@ -5,6 +5,7 @@
 var assignStyle = require('./assignStyle')
 var assignClass = require('./assignClass')
 var assignEvent = require('./assignEvent')
+var getFlexId = require('./getFlexId')
 
 var STYLE = 'style'
 var OBJECT = 'object'
@@ -124,7 +125,7 @@ function assignAttributes (
       continue
     }
 
-    setAttribute(domElement, key, anotherNewValue, component, component.config.options.cache[domElement.haiku.locator])
+    setAttribute(domElement, key, anotherNewValue, component, component.config.options.cache[getFlexId(virtualElement)])
   }
 
   // Any 'hidden' eventHandlers we got need to be assigned now.

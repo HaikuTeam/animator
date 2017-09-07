@@ -10,9 +10,6 @@ var PRNG = require('./helpers/PRNG')
 
 var PLAYER_VERSION = require('./../package.json').version
 
-// Starting prefix to use for element locators, e.g. 0.1.2.3.4
-var COMPONENT_GRAPH_ADDRESS_PREFIX = ''
-
 var DEFAULT_TIMELINE_NAME = 'Default'
 
 /**
@@ -65,8 +62,7 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
     console.warn('[haiku player] no platform (e.g. window) provided; some features may be unavailable')
   }
 
-  this._index = HaikuContext.contexts.push(this) - 1
-  this._address = COMPONENT_GRAPH_ADDRESS_PREFIX + this._index
+  HaikuContext.contexts.push(this) - 1
 
   // List of tickable objects managed by this context. These are invoked on every clock tick.
   // These are removed when context unmounts and re-added in case of re-mount
@@ -233,7 +229,6 @@ HaikuContext.prototype.performFullFlushRender = function performFullFlushRender 
     this._mount,
     container,
     tree,
-    this._address,
     this.component
   )
   return this
@@ -250,7 +245,6 @@ HaikuContext.prototype.performPatchRender = function performPatchRender () {
     this._mount,
     container,
     patches,
-    this._address,
     this.component
   )
   return this

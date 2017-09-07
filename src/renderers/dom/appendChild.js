@@ -12,7 +12,6 @@ function appendChild (
   virtualElement,
   parentDomElement,
   parentVirtualElement,
-  locator,
   component
 ) {
   var domElementToInsert
@@ -27,7 +26,6 @@ function appendChild (
       parentDomElement,
       virtualElement,
       parentVirtualElement,
-      locator,
       component
     )
   }

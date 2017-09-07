@@ -6,6 +6,7 @@ var applyLayout = require('./applyLayout')
 var assignAttributes = require('./assignAttributes')
 var getTypeAsString = require('./getTypeAsString')
 var _cloneVirtualElement = require('./cloneVirtualElement')
+var getFlexId = require('./getFlexId')
 
 var OBJECT = 'object'
 var STRING = 'string'
@@ -15,7 +16,6 @@ function updateElement (
   virtualElement,
   parentNode,
   parentVirtualElement,
-  locator,
   component,
   isPatchOperation
 ) {
@@ -26,10 +26,11 @@ function updateElement (
   }
 
   if (!domElement.haiku) domElement.haiku = {}
-  domElement.haiku.locator = locator
-  if (!component.config.options.cache[domElement.haiku.locator]) {
-    component.config.options.cache[domElement.haiku.locator] = {}
+
+  if (!component.config.options.cache[getFlexId(virtualElement)]) {
+    component.config.options.cache[getFlexId(virtualElement)] = {}
   }
+
   if (!domElement.haiku.element) {
     // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
     domElement.haiku.element = _cloneVirtualElement(virtualElement)
@@ -56,7 +57,6 @@ function updateElement (
         virtualElement,
         parentNode,
         parentVirtualElement,
-        locator,
         component
       )
     }
@@ -67,7 +67,6 @@ function updateElement (
         virtualElement,
         parentNode,
         parentVirtualElement,
-        locator,
         component
       )
     }
@@ -109,7 +108,6 @@ function updateElement (
       domElement,
       virtualElement,
       virtualElement.children,
-      locator,
       subcomponent,
       isPatchOperation,
       doSkipChildren
@@ -120,7 +118,6 @@ function updateElement (
       domElement,
       virtualElement,
       [],
-      locator,
       subcomponent,
       isPatchOperation
     )

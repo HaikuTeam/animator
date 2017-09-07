@@ -10,7 +10,6 @@ function replaceElement (
   virtualElement,
   parentDomNode,
   parentVirtualElement,
-  locator,
   component
 ) {
   var newElement
@@ -21,7 +20,6 @@ function replaceElement (
       domElement,
       virtualElement,
       parentVirtualElement,
-      locator,
       component
     )
   }

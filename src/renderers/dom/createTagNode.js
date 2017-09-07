@@ -4,6 +4,7 @@
 
 var normalizeName = require('./normalizeName')
 var getTypeAsString = require('./getTypeAsString')
+var getFlexId = require('./getFlexId')
 
 var SVG_EL_NAMES = require('./../../helpers/allSvgElementNames')
 
@@ -11,7 +12,6 @@ function createTagNode (
   domElement,
   virtualElement,
   parentVirtualElement,
-  locator,
   component
 ) {
   var tagName = normalizeName(getTypeAsString(virtualElement))
@@ -26,9 +26,9 @@ function createTagNode (
 
   // This doesn't happen in renderTree because the element doesn't exist yet.
   if (!newDomElement.haiku) newDomElement.haiku = {}
-  newDomElement.haiku.locator = locator
-  if (!component.config.options.cache[newDomElement.haiku.locator]) {
-    component.config.options.cache[newDomElement.haiku.locator] = {}
+
+  if (!component.config.options.cache[getFlexId(virtualElement)]) {
+    component.config.options.cache[getFlexId(virtualElement)] = {}
   }
 
   var incomingKey =
@@ -44,7 +44,6 @@ function createTagNode (
     virtualElement,
     domElement,
     parentVirtualElement,
-    locator,
     component
   )
   return newDomElement

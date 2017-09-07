@@ -8,7 +8,6 @@ function patch (
   topLevelDomElement,
   virtualContainer,
   patchesDict,
-  locator,
   component
 ) {
   // Just in case we get a null which might be set as a no-op signal by a component upstream
@@ -35,7 +34,6 @@ function patch (
         virtualElement,
         domElement.parentNode,
         virtualElement.__parent,
-        domElement.haiku.locator,
         component,
         true
       )
@@ -46,7 +44,6 @@ function patch (
           domElement,
           nestedModuleElement, // Sizing info is stored here
           nestedModuleElement.__instance._getPrecalcedPatches(),
-          locator + ';' + i, // Not yet sure what to set here
           nestedModuleElement.__instance
         )
       }

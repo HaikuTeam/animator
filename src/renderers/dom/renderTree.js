@@ -5,12 +5,12 @@
 var isBlankString = require('./isBlankString')
 var removeElement = require('./removeElement')
 var _cloneVirtualElement = require('./cloneVirtualElement')
+var getFlexId = require('./getFlexId')
 
 function renderTree (
   domElement,
   virtualElement,
   virtualChildren,
-  locator,
   component,
   isPatchOperation,
   doSkipChildren
@@ -19,13 +19,11 @@ function renderTree (
 
   if (!domElement.haiku) domElement.haiku = {}
 
-  // 'locator', and 'virtual' are more for debugging convenience than anything else.
   // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
-  domElement.haiku.locator = locator
   domElement.haiku.virtual = virtualElement
   domElement.haiku.element = _cloneVirtualElement(virtualElement) // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-  if (!component.config.options.cache[domElement.haiku.locator]) {
-    component.config.options.cache[domElement.haiku.locator] = {}
+  if (!component.config.options.cache[getFlexId(virtualElement)]) {
+    component.config.options.cache[getFlexId(virtualElement)] = {}
   }
 
   if (!Array.isArray(virtualChildren)) {
@@ -54,7 +52,6 @@ function renderTree (
   for (var i = 0; i < max; i++) {
     var virtualChild = virtualChildren[i]
     var domChild = domElement.childNodes[i]
-    var sublocator = locator + '.' + i
 
     if (!virtualChild && !domChild) {
       continue
@@ -67,7 +64,6 @@ function renderTree (
           virtualChild,
           domElement,
           virtualElement,
-          sublocator,
           component
         )
 
@@ -85,7 +81,6 @@ function renderTree (
             virtualChild,
             domElement,
             virtualElement,
-            locator,
             component
           )
           continue
@@ -96,7 +91,6 @@ function renderTree (
           virtualChild,
           domElement,
           virtualElement,
-          sublocator,
           component,
           isPatchOperation
         )

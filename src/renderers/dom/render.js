@@ -8,14 +8,12 @@ function render (
   domElement,
   virtualContainer,
   virtualTree,
-  locator,
   component
 ) {
   return renderTree(
     domElement,
     virtualContainer,
     [virtualTree],
-    locator,
     component
   )
 }

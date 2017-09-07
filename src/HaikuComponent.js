@@ -1447,8 +1447,4 @@ function _isBytecode (thing) {
   return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines
 }
 
-// function _isComponent (thing) {
-//   return thing && typeof thing.render === FUNCTION_TYPE
-// }
-
 module.exports = HaikuComponent
