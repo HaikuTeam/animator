@@ -1172,6 +1172,7 @@ function _shallowCloneComponentTreeElement (element) {
   clone.__transformed = element.__transformed // Transfer flag detecting whether a transform has occurred [#LEGACY?]
   clone.__parent = element.__parent // Make sure it doesn't get detached from its ancestors
   clone.__scope = element.__scope // It still has the same scope (svg, div, etc)
+  clone.__target = element.__target // The platform rendered target element, e.g. DOM node
   clone.layout = element.layout // Allow its layout, which we update in-place, to remain a pointer
 
   // Simply copy over the other standard parts of the node...

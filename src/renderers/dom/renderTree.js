@@ -20,6 +20,7 @@ function renderTree (
   if (!domElement.haiku) domElement.haiku = {}
 
   // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
+  virtualElement.__target = domElement
   domElement.haiku.virtual = virtualElement
   domElement.haiku.element = _cloneVirtualElement(virtualElement) // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
   if (!component.config.options.cache[getFlexId(virtualElement)]) {
