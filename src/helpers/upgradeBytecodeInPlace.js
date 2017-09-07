@@ -16,7 +16,7 @@ function upgradeBytecodeInPlace (_bytecode, options) {
 
   // Convert the properties array to the states dictionary
   if (_bytecode.properties) {
-    console.info('[haiku player] auto-upgrading code properties array to states object (2.1.14+)')
+    // console.info('[haiku player] auto-upgrading code properties array to states object (2.1.14+)')
     var properties = _bytecode.properties
     delete _bytecode.properties
     for (var i = 0; i < properties.length; i++) {
@@ -35,7 +35,7 @@ function upgradeBytecodeInPlace (_bytecode, options) {
   // Convert the eventHandlers array into a dictionary
   // [{selector:'foo',name:'onclick',handler:function}] => {'foo':{'onclick':{handler:function}}}
   if (Array.isArray(_bytecode.eventHandlers)) {
-    console.info('[haiku player] auto-upgrading code event handlers to object format (2.1.14+)')
+    // console.info('[haiku player] auto-upgrading code event handlers to object format (2.1.14+)')
     var eventHandlers = _bytecode.eventHandlers
     delete _bytecode.eventHandlers
     _bytecode.eventHandlers = {}
@@ -50,7 +50,7 @@ function upgradeBytecodeInPlace (_bytecode, options) {
 
   // Convert a string template into our internal object format
   if (typeof _bytecode.template === STRING_TYPE) {
-    console.info('[haiku player] auto-upgrading template string to object format (2.0.0+)')
+    // console.info('[haiku player] auto-upgrading template string to object format (2.0.0+)')
     _bytecode.template = xmlToMana(_bytecode.template)
   }
 
@@ -83,7 +83,7 @@ function upgradeBytecodeInPlace (_bytecode, options) {
             for (var keyframeMs in _bytecode.timelines[timelineName][selector][propertyName]) {
               var keyframeDesc = _bytecode.timelines[timelineName][selector][propertyName][keyframeMs]
               if (keyframeDesc && referencesToUpdate[keyframeDesc.value]) {
-                console.info('[haiku player] changing filter url reference ' + keyframeDesc.value + ' to ' + referencesToUpdate[keyframeDesc.value])
+                // console.info('[haiku player] changing filter url reference ' + keyframeDesc.value + ' to ' + referencesToUpdate[keyframeDesc.value])
                 keyframeDesc.value = referencesToUpdate[keyframeDesc.value]
               }
             }
