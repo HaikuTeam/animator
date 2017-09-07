@@ -101,6 +101,7 @@ function assignAttributes (
     if (key === STYLE && anotherNewValue && typeof anotherNewValue === OBJECT) {
       assignStyle(
         domElement,
+        virtualElement,
         anotherNewValue,
         component,
         isPatchOperation

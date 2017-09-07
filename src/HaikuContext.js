@@ -305,8 +305,6 @@ HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles ()
 }
 
 HaikuContext.prototype.tick = function tick () {
-  this.updateMountRootStyles()
-
   var flushed = false
 
   // After we've hydrated the tree the first time, we can proceed with patches --
@@ -318,6 +316,12 @@ HaikuContext.prototype.tick = function tick () {
   } else {
     this.performPatchRender()
   }
+
+  // We update the mount root *after* we complete the render pass ^^ because configuration
+  // from the top level should unset anything that the component set.
+  // Specifically important wrt overflow, where the component probably defines
+  // overflowX/overflowY: hidden, but our configuration might define them as visible.
+  this.updateMountRootStyles()
 
   // Do any initialization that may need to occur if we happen to be on the very first tick
   if (this._ticks < 1) {
