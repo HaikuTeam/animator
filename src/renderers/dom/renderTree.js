@@ -70,13 +70,23 @@ function renderTree (
 
         component._addElementToHashTable(insertedElement, virtualChild)
       } else {
-        var oldId = domChild.getAttribute && domChild.getAttribute('id')
-        var newId = virtualChild.attributes && virtualChild.attributes.id
+        var oldDOMId = domChild.getAttribute && domChild.getAttribute('id')
+        var newDOMId = virtualChild.attributes && virtualChild.attributes.id
+        var oldFlexId = getFlexId(domChild)
+        var newFlexId = getFlexId(virtualChild)
 
-        if (oldId && newId && oldId !== newId) {
-          // If we now have an element that has a different id, we need to trigger a full re-render
-          // of itself and all of its children, because url(#...) references will retain pointers to
-          // old elements and this is the only way to clear the DOM to get a correct render
+        // Circumstances in which we want to completely *replace* the element:
+        // - We see that our cached target element is not the one at this location
+        // - We see that the DOM id doesn't match the incoming one
+        // - we see that the haiku-id doesn't match the incoming one.
+        // If we now have an element that is different, we need to trigger a full re-render
+        // of itself and all of its children, because e.g. url(#...) references will retain pointers to
+        // old elements and this is the only way to clear the DOM to get a correct render.
+        if (
+          (virtualChild.__target && virtualChild.__target !== domChild) ||
+          (oldDOMId && newDOMId && oldDOMId !== newDOMId) ||
+          (oldFlexId && newFlexId && oldFlexId !== newFlexId)
+        ) {
           replaceElement(
             domChild,
             virtualChild,
@@ -84,17 +94,16 @@ function renderTree (
             virtualElement,
             component
           )
-          continue
+        } else {
+          updateElement(
+            domChild,
+            virtualChild,
+            domElement,
+            virtualElement,
+            component,
+            isPatchOperation
+          )
         }
-
-        updateElement(
-          domChild,
-          virtualChild,
-          domElement,
-          virtualElement,
-          component,
-          isPatchOperation
-        )
       }
     }
   }
