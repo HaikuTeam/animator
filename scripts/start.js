@@ -144,7 +144,7 @@ async.series([
 })
 
 function setup () {
-  log.hat(`preparing`, 'cyan')
+  log.hat(`preparing to develop locally`, 'cyan')
 
   process.env.DEV = inputs.dev
   process.env.NODE_ENV = inputs.nodeEnv
@@ -211,7 +211,7 @@ function go () {
     throw new Error('[mono] no instructions found for this dev mode')
   }
 
-  log.hat(`starting`, 'green')
+  log.hat(`starting local development`, 'green')
 
   log.log(JSON.stringify(instructions))
 
