@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!-- Copyright (c) 2016-2017 Haiku. All rights reserved. -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{demo}} | Vanilla JavaScript | Haiku Player</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <style>.mount { border: 1px solid black; height: 600px; }</style>
+</head>
+<body>
+  <div class="container">
+    <p><a href="/">&laquo; Back to demos</a></p>
+
+    <h1>{{demo}} | Haiku Player</h1>
+
+    {{#if note}}
+      <p>{{note}}</p>
+    {{/if}}
+
+    <div class="row">
+      <div class="col-md-6">
+        <h2>vanilla</h2>
+        <div class="mount" id="vanilla"></div>
+      </div>
+      <div class="col-md-6">
+        <h2>react</h2>
+        <div class="mount" id="react"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    {{#if vanilla}}
+      {{{vanilla}}}
+      if (vanilla.mount) {
+        vanilla.mount(document.getElementById('vanilla'))
+      } else {
+        vanilla(document.getElementById('vanilla'))
+      }
+    {{/if}}
+  </script>
+
+  <script>
+    {{#if react}}
+      {{{react}}}
+      if (react.mount) {
+        react.mount(document.getElementById('react'), react.React, react.ReactDOM)
+      } else {
+        react.ReactDOM.render(react.React.createElement(react), document.getElementById('react'))
+      }
+    {{/if}}
+  </script>
+</body>
+</html>

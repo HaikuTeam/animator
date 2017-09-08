@@ -1,0 +1,3 @@
+Copyright (c) 2017 Haiku. All rights reserved.
+
+This project includes some MIT/ISC/Apache licensed source code; such source code and other content retains its original licenses. (See files and folders within this project for individual copyright/licensing notices.)

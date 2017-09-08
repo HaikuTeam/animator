@@ -1,0 +1,70 @@
+{
+  "name": "@haiku/player",
+  "version": "2.3.3",
+  "description": "Haiku Player is a JavaScript library for building user interfaces",
+  "homepage": "https://haiku.ai",
+  "keywords": [
+    "animation",
+    "motion",
+    "component",
+    "web",
+    "browser",
+    "svg",
+    "rendering",
+    "engine"
+  ],
+  "engines": {
+    "node": "8.4.0",
+    "npm": "5.3.0",
+    "yarn": "0.27.5",
+    "electron": "1.7.0"
+  },
+  "repository": "https://github.com/HaikuTeam/player",
+  "main": "index.js",
+  "scripts": {
+    "test": "yarn run test:unit && yarn run test:api && yarn run test:perf",
+    "test:perf": "tape \"test/perf/**/*.test.js\" | tap-spec || true",
+    "test:api": "tape \"test/api/**/*.test.js\" | tap-spec || true",
+    "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
+    "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true",
+    "prettify": "prettier-standard \"{,!(node_modules|dist)/**/}*.js\"",
+    "footprint": "./footprint.sh",
+    "demo": "nodemon ./test/demo/server.js",
+    "link-player": "yarn link && yarn link @haiku/player",
+    "start": "yarn run link-player && yarn run demo"
+  },
+  "authors": [
+    "Matthew Trost <matthew@haiku.ai>",
+    "Zack Brown <zack@haiku.ai>",
+    "Taylor Poe <taylor@haiku.ai>"
+  ],
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "async": "^2.5.0",
+    "browserify": "^14.1.0",
+    "browserify-transform-tools": "^1.7.0",
+    "bundle-collapser": "^1.2.1",
+    "express": "4.14.1",
+    "filesize": "3.5.10",
+    "fs-extra": "2.0.0",
+    "handlebars": "4.0.6",
+    "jsdom": "9.11.0",
+    "nodemon": "1.11.0",
+    "prettier-standard": "^5.1.0",
+    "react-dom": "15.4.2",
+    "react-router-dom": "^4.1.1",
+    "snazzy": "6.0.0",
+    "standard": "8.6.0",
+    "tap-spec": "4.1.1",
+    "tape": "4.6.3",
+    "uglify-js": "^2.7.5"
+  },
+  "dependencies": {
+    "lodash.merge": "4.6.0",
+    "react": "15.4.2"
+  },
+  "peerDependencies": {
+    "react": "15.4.2",
+    "react-dom": "15.4.2"
+  }
+}
