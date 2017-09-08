@@ -67,8 +67,6 @@
     "tap-spec": "4.1.1",
     "tape": "4.6.3",
     "uglify-js": "^2.7.5",
-    "@types/node": "^8.0.17",
-    "@types/ws": "^3.0.2",
     "leaked-handles": "^5.2.0",
     "tape": "^4.7.0",
     "tslint": "^5.7.0",
