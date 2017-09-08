@@ -1,5 +1,5 @@
 var test = require('tape')
-var PRNG = require('./../../src/helpers/PRNG')
+var PRNG = require('./../../lib/helpers/PRNG')
 
 test('PRNG', function (t) {
   t.plan(3)

@@ -1,5 +1,5 @@
 var test = require('tape')
-var expressionToRO = require('./../../src/reflection/expressionToRO')
+var expressionToRO = require('./../../lib/reflection/expressionToRO')
 
 test('reflection.expressionToRO', function (t) {
   t.plan(2)
