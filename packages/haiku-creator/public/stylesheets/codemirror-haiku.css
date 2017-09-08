@@ -1,0 +1,40 @@
+
+.cm-s-haiku { color: #666; background: rgb(45,56,58); }
+
+.cm-s-haiku span.cm-keyword { color: #eee; font-weight:bold; }  /* off-white 1 */
+.cm-s-haiku span.cm-atom { color: #e1c76e; }                    /* yellow */
+.cm-s-haiku span.cm-number { color: #6cb5d9; }                  /* blue */
+.cm-s-haiku span.cm-def { color: rgb(239,203,63); }                     /* green */
+
+.cm-s-haiku span.cm-variable { color: #6cb5d9; }                /* blue */
+.cm-s-haiku span.cm-variable-2 { color: #cc1e5c; }              /* pink */
+.cm-s-haiku span.cm-variable-3 { color: #f9602c; }              /* orange */
+
+.cm-s-haiku span.cm-property { color: #eee; }                   /* off-white 1 */
+.cm-s-haiku span.cm-operator { color: #9179bb; }                /* purple */
+.cm-s-haiku span.cm-comment { color: #97a3aa; }                 /* grey-blue */
+
+.cm-s-haiku span.cm-string { color: rgb(239,203,63); }                  /* green */
+.cm-s-haiku span.cm-string-2 { color: #6cb5d9; }                /* blue */
+
+.cm-s-haiku span.cm-meta { color: #555; }                       /* grey */
+
+.cm-s-haiku span.cm-qualifier { color: #555; }                  /* grey */
+.cm-s-haiku span.cm-builtin { color: #214e7b; }                 /* bright blue */
+.cm-s-haiku span.cm-bracket { color: #cc7; }                    /* grey-yellow */
+
+.cm-s-haiku span.cm-tag { color: #e8e8e8; }                     /* off-white 2 */
+.cm-s-haiku span.cm-attribute { color: #099; }                  /* teal */
+
+.cm-s-haiku span.cm-header { color: #6a0d6a; }                  /* purple-pink */
+.cm-s-haiku span.cm-quote { color: #186718; }                   /* dark green */
+.cm-s-haiku span.cm-hr { color: #888; }                         /* mid-grey */
+.cm-s-haiku span.cm-link { color: #e1c76e; }                    /* yellow */
+.cm-s-haiku span.cm-error { color: #d00; }                      /* red */
+
+.cm-s-haiku .CodeMirror-cursor { border-left: 1px solid white; }
+.cm-s-haiku div.CodeMirror-selected { color: #fff; background: #037; }
+.cm-s-haiku .CodeMirror-gutters { background: rgb(45,56,58); min-width: 41px; border-right: 0; }
+.cm-s-haiku .CodeMirror-linenumber { color: #555; cursor: default; }
+.cm-s-haiku .CodeMirror-matchingbracket { color: #fff !important; background: #555 !important; }
+.cm-s-haiku .CodeMirror-activeline-background { background: #000; }
