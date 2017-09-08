@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./public/global.css">
+    <link rel="stylesheet" href="./public/icons.css">
+    <link rel="stylesheet" href="./public/react-select.css">
+    <link rel="stylesheet" href="./public/codemirror.css">
+    <link rel="stylesheet" href="./public/codemirror-haiku.css">
+    <title>Haiku Glass</title>
+    <style>
+      html, body, #root {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border: 0;
+        margin: 0;
+        padding: 0;
+        background-color: #ebebeb;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      require('babel-register')
+      require('./react/index')
+    </script>
+  </body>
+</html>
