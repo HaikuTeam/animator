@@ -1,0 +1,35 @@
+{
+    "compilerOptions": {
+        "target": "es2015",
+        "declaration": true,
+        "declarationDir": "lib",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "isolatedModules": false,
+        "allowJs": false,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "noImplicitAny": false,
+        "removeComments": true,
+        "noLib": false,
+        "sourceMap": true,
+        "preserveConstEnums": true,
+        "rootDir": "src",
+        "outDir": "lib",
+        "suppressImplicitAnyIndexErrors": true,
+        "typeRoots": [
+            "node_modules/@types/"
+        ],
+        "types": [
+            "node"
+        ]
+    },
+    "compileOnSave": true,
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
