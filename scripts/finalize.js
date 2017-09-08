@@ -181,8 +181,8 @@ async.series([
   },
 
   function (cb) {
-    log.hat('fetching & merging git repos for all the packages')
-    return runScript('git-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
+    log.hat('fetching & merging all subtrees')
+    return runScript('git-subtree-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
 
   function (cb) {
@@ -263,8 +263,10 @@ async.series([
   },
 
   function (cb) {
-    log.hat('adding and committing all changes in all the packages')
-    return runScript('git-ac', [`--message=${JSON.stringify(inputs.commitMessage)}`], cb)
+    log.hat('adding and committing all changes')
+    cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
+    cp.execSync(`git commit -m "auto: ${inputs.commitMessage}"`, { cwd: ROOT, stdio: 'inherit' })
+    return cb()
   },
 
   function (cb) {
@@ -273,8 +275,8 @@ async.series([
   },
 
   function (cb) {
-    log.hat('pushing changes to the git repos for all packages')
-    return runScript('git-push', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
+    log.hat('pushing changes to all git subtrees')
+    return runScript('git-subtree-push', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
 
   function (cb) {

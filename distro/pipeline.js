@@ -156,9 +156,7 @@ function runit () {
 
       console.log(`cloning fresh version of plumbing`)
       cp.execSync(`git clone git@github.com:HaikuTeam/plumbing.git`, { stdio: 'inherit', cwd: libsDir })
-      cp.execSync('git submodule update --init --recursive', { stdio: 'inherit', cwd: libsPlumbingDir })
       cp.execSync(`git checkout ${inputs.branch}`, { stdio: 'inherit', cwd: libsPlumbingDir })
-      cp.execSync(`git submodule update --init --recursive`, { stdio: 'inherit', cwd: libsPlumbingDir })
 
       console.log(`installing plumbing production packages`)
       // IMPORTANT: only=production is to avoid any errors such as: "bundle format is ambiguous"

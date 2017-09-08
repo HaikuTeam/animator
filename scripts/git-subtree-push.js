@@ -8,9 +8,12 @@ var branch = argv.branch || 'master'
 var remote = argv.remote || 'origin'
 
 async.eachSeries(allPackages, function (pack, next) {
-  log.log('git pushing ' + pack.name)
+  log.log('git subtree pushing ' + pack.name)
   try {
-    cp.execSync('git push ' + remote + ' HEAD:' + branch, { cwd: pack.abspath })
+
+    var cmd = `git subtree push --prefix ${pack.name} ${pack.name} ${remote} ${branch}`
+    console.log(cmd)
+    // cp.execSync(cmd, { cwd: pack.abspath, stdio: 'inherit' })
   } catch (exception) {
     log.log(exception.message)
   }

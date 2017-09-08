@@ -27,8 +27,8 @@ And add to `~/.ssh/config`:
 
 **git/yarn/packages setup**
 
-    $ git submodule update --init --recursive
     $ yarn install
+    $ cd distro && yarn install && cd ..
     $ yarn run mono:yarn-clean
 
 ## Development
@@ -38,10 +38,6 @@ And add to `~/.ssh/config`:
 Assuming you've done the initial setup, you can start all the dev servers with:
 
     $ yarn start
-
-Alternately, to go directly to the editing view in a fresh blank project, you can:
-
-    $ yarn start -- -- --mode=blank
 
 #### Finishing
 
