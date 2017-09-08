@@ -4,15 +4,15 @@
 
 // var CIDENT = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)'
 
-var C1 = ', '
+let C1 = ", "
 
-function isEqualTransformString (t1, t2) {
+function isEqualTransformString(t1, t2) {
   if (t1 === t2) return true
 
   if (!t1) return false
 
-  var cs1 = t1.split(C1)
-  var cs2 = t2.split(C1)
+  let cs1 = t1.split(C1)
+  let cs2 = t2.split(C1)
 
   if (cs1[0] !== cs2[0]) return false
   if (cs1[1] !== cs2[1]) return false

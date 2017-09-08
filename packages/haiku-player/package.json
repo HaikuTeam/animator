@@ -30,7 +30,7 @@
   "scripts": {
     "compile": "echo 1",
     "develop": "tsc --watch",
-    "lint": "tslint -c tslint.json 'src/**/*.ts' --format stylish --fix",
+    "lint": "tslint -c tslint.json 'src/**/*.ts' --exclude 'src/vendor/**' --format stylish --fix",
     "test": "yarn run test:unit && yarn run test:api && yarn run test:perf",
     "test:perf": "yarn run compile && tape \"test/perf/**/*.test.js\" | tap-spec || true",
     "test:api": "yarn run compile && tape \"test/api/**/*.test.js\" | tap-spec || true",

@@ -26,42 +26,42 @@
  * THE SOFTWARE.
  */
 
-var TRANSFORM_SUFFIX = ')'
-var TRANSFORM_ZERO = '0'
-var TRANSFORM_COMMA = ','
-var TRANSFORM_ZILCH = TRANSFORM_ZERO + TRANSFORM_COMMA
-var TWO = 2
-var THREE = 3
+let TRANSFORM_SUFFIX = ")"
+let TRANSFORM_ZERO = "0"
+let TRANSFORM_COMMA = ","
+let TRANSFORM_ZILCH = TRANSFORM_ZERO + TRANSFORM_COMMA
+let TWO = 2
+let THREE = 3
 
-function formatTransform (transform, format, devicePixelRatio) {
+function formatTransform(transform, format, devicePixelRatio) {
   transform[12] =
     Math.round(transform[12] * devicePixelRatio) / devicePixelRatio
   transform[13] =
     Math.round(transform[13] * devicePixelRatio) / devicePixelRatio
 
-  var prefix
-  var last
+  let prefix
+  let last
   if (format === TWO) {
     // Example: matrix(1,0,0,0,0,1)
     // 2d matrix is: matrix(scaleX(),skewY(),skewX(),scaleY(),translateX(),translateY())
     // Modify via: matrix(a,b,c,d,tx,ty) <= matrix3d(a,b,0,0,c,d,0,0,0,0,1,0,tx,ty,0,1)
-    var two = [
+    let two = [
       transform[0],
       transform[1],
       transform[4],
       transform[5],
       transform[12],
-      transform[13]
+      transform[13],
     ]
 
     // Note how we set the transform far to two here!
     transform = two
 
-    prefix = 'matrix('
+    prefix = "matrix("
     last = 5
   } else if (format === THREE) {
     // Example: matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,716,243,0,1)
-    prefix = 'matrix3d('
+    prefix = "matrix3d("
     last = 15
   }
 

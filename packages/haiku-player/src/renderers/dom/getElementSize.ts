@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function getElementSize (domElement) {
-  var x
-  var y
+function getElementSize(domElement) {
+  let x
+  let y
   if (domElement.offsetWidth === undefined) {
-    var rect = domElement.getBoundingClientRect()
+    let rect = domElement.getBoundingClientRect()
     x = rect.width
     y = rect.height
   } else {
@@ -14,8 +14,8 @@ function getElementSize (domElement) {
     y = domElement.offsetHeight
   }
   return {
-    x: x,
-    y: y
+    x,
+    y,
   }
 }
 

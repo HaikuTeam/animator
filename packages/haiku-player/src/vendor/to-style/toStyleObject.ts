@@ -1,24 +1,24 @@
-var cssPrefixFn = require('./cssPrefix')
+let cssPrefixFn = require("./cssPrefix")
 
-var HYPHENATE = require('./stringUtils/hyphenate')
-var CAMELIZE = require('./stringUtils/camelize')
-var HAS_OWN = require('./hasOwn')
-var IS_OBJECT = require('./isObject')
-var IS_FUNCTION = require('./isFunction')
+let HYPHENATE = require("./stringUtils/hyphenate")
+let CAMELIZE = require("./stringUtils/camelize")
+let HAS_OWN = require("./hasOwn")
+let IS_OBJECT = require("./isObject")
+let IS_FUNCTION = require("./isFunction")
 
-var applyPrefix = function (target, property, value, normalizeFn) {
-  cssPrefixFn(property).forEach(function (p) {
+let applyPrefix = function(target, property, value, normalizeFn) {
+  cssPrefixFn(property).forEach(function(p) {
     target[normalizeFn ? normalizeFn(p) : p] = value
   })
 }
 
-var toObject = function (str) {
-  str = (str || '').split(';')
+let toObject = function(str) {
+  str = (str || "").split(";")
 
-  var result = {}
+  let result = {}
 
-  str.forEach(function (item) {
-    var split = item.split(':')
+  str.forEach(function(item) {
+    let split = item.split(":")
 
     if (split.length === 2) {
       result[split[0].trim()] = split[1].trim()
@@ -28,11 +28,11 @@ var toObject = function (str) {
   return result
 }
 
-var CONFIG = {
-  cssUnitless: require('./cssUnitless')
+let CONFIG = {
+  cssUnitless: require("./cssUnitless"),
 }
 
-function _notUndef (thing) {
+function _notUndef(thing) {
   return thing !== null && thing !== undefined
 }
 
@@ -49,8 +49,8 @@ function _notUndef (thing) {
  * @param  {String}  config.scope
  * @return {Object} The object, normalized with css style names
  */
-var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
-  if (typeof styles === 'string') {
+let TO_STYLE_OBJECT = function(styles, config, prepend, result) {
+  if (typeof styles === "string") {
     styles = toObject(styles)
   }
 
@@ -60,27 +60,27 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
 
   result = result || {}
 
-  var scope = config.scope || {}
+  let scope = config.scope || {}
 
-  var addUnits = _notUndef(config.addUnits)
+  let addUnits = _notUndef(config.addUnits)
     ? config.addUnits
     : scope && _notUndef(scope.addUnits) ? scope.addUnits : true
 
-  var cssUnitless =
+  let cssUnitless =
     (_notUndef(config.cssUnitless)
       ? config.cssUnitless
       : scope ? scope.cssUnitless : null) || {}
 
-  var cssUnit = (config.cssUnit || scope ? scope.cssUnit : null) || 'px'
+  let cssUnit = (config.cssUnit || scope ? scope.cssUnit : null) || "px"
 
-  var prefixProperties =
+  let prefixProperties =
     config.prefixProperties || (scope ? scope.prefixProperties : null) || {}
 
-  var camelize = config.camelize
+  let camelize = config.camelize
 
-  var normalizeFn = camelize ? CAMELIZE : HYPHENATE
+  let normalizeFn = camelize ? CAMELIZE : HYPHENATE
 
-  var processed,
+  let processed,
     styleName,
     propName,
     propValue,
@@ -107,7 +107,7 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
           propValue,
           propName,
           styleName,
-          styles
+          styles,
         )
 
         if (IS_OBJECT(fnPropValue) && fnPropValue.value != null) {
@@ -121,9 +121,9 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
 
       propType = typeof propValue
       propIsNumber =
-        propType === 'number' ||
-        (propType === 'string' &&
-          propValue !== '' &&
+        propType === "number" ||
+        (propType === "string" &&
+          propValue !== "" &&
           propValue * 1 === propValue)
 
       if (
@@ -131,12 +131,12 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
         propValue === undefined ||
         styleName === null ||
         styleName === undefined ||
-        styleName === ''
+        styleName === ""
       ) {
         continue
       }
 
-      if (propIsNumber || propType === 'string') {
+      if (propIsNumber || propType === "string") {
         processed = true
       }
 
@@ -154,47 +154,47 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
         if (propIsNumber) {
           propValue = addUnits && !(styleName in cssUnitless)
             ? propValue + cssUnit
-            : propValue + '' // change it to a string, so that jquery does not append px or other units
+            : propValue + "" // change it to a string, so that jquery does not append px or other units
         }
 
         // special border treatment
         if (
-          (styleName === 'border' ||
-            (!styleName.indexOf('border') &&
-              !~styleName.indexOf('radius') &&
-              !~styleName.indexOf('width'))) &&
+          (styleName === "border" ||
+            (!styleName.indexOf("border") &&
+              !~styleName.indexOf("radius") &&
+              !~styleName.indexOf("width"))) &&
           propIsNumber
         ) {
-          styleName = styleName + '-width'
+          styleName = styleName + "-width"
         }
 
         // special border radius treatment
-        if (!styleName.indexOf('border-radius-')) {
-          styleName.replace(/border(-radius)(-(.*))/, function (
+        if (!styleName.indexOf("border-radius-")) {
+          styleName.replace(/border(-radius)(-(.*))/, function(
             str,
             radius,
-            theRest
+            theRest,
           ) {
-            var positions = {
-              '-top': ['-top-left', '-top-right'],
-              '-left': ['-top-left', '-bottom-left'],
-              '-right': ['-top-right', '-bottom-right'],
-              '-bottom': ['-bottom-left', '-bottom-right']
+            let positions = {
+              "-top": ["-top-left", "-top-right"],
+              "-left": ["-top-left", "-bottom-left"],
+              "-right": ["-top-right", "-bottom-right"],
+              "-bottom": ["-bottom-left", "-bottom-right"],
             }
 
             if (theRest in positions) {
               styleName = []
 
-              positions[theRest].forEach(function (pos) {
-                styleName.push('border' + pos + radius)
+              positions[theRest].forEach(function(pos) {
+                styleName.push("border" + pos + radius)
               })
             } else {
-              styleName = 'border' + theRest + radius
+              styleName = "border" + theRest + radius
             }
           })
 
           if (Array.isArray(styleName)) {
-            styleName.forEach(function (styleName) {
+            styleName.forEach(function(styleName) {
               if (prefix) {
                 applyPrefix(result, styleName, propValue, normalizeFn)
               } else {
@@ -213,7 +213,7 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
         }
       } else {
         // the propValue must be an object, so go down the hierarchy
-        TO_STYLE_OBJECT(propValue, config, styleName + '-', result)
+        TO_STYLE_OBJECT(propValue, config, styleName + "-", result)
       }
     }
   }

@@ -2,32 +2,32 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var isTextNode = require('./isTextNode')
-var isIE = require('./isIE')
-var isEdge = require('./isEdge')
-var getWindowsBrowserVersion = require('./getWindowsBrowserVersion')
-var isMobile = require('./isMobile')
-var applyCssLayout = require('./../../layout/applyCssLayout')
-var scopeOfElement = require('./../../layout/scopeOfElement')
-var hasPreserve3d = require('./../../vendor/modernizr').hasPreserve3d
+let isTextNode = require("./isTextNode")
+let isIE = require("./isIE")
+let isEdge = require("./isEdge")
+let getWindowsBrowserVersion = require("./getWindowsBrowserVersion")
+let isMobile = require("./isMobile")
+let applyCssLayout = require("./../../layout/applyCssLayout")
+let scopeOfElement = require("./../../layout/scopeOfElement")
+let hasPreserve3d = require("./../../vendor/modernizr").hasPreserve3d
 
-var DEFAULT_PIXEL_RATIO = 1.0
-var SVG = 'svg'
+let DEFAULT_PIXEL_RATIO = 1.0
+let SVG = "svg"
 
-var _window = typeof window !== 'undefined' && window
-var PLATFORM_INFO = {
-  hasWindow: !!_window,
-  isMobile: isMobile(_window), // Dumb navigator check
-  isIE: isIE(_window), // Dumb navigator check - use feature detection instead?
-  isEdge: isEdge(_window),
-  windowsBrowserVersion: getWindowsBrowserVersion(_window),
-  hasPreserve3d: hasPreserve3d(_window), // I dunno if we actually need this
-  devicePixelRatio: DEFAULT_PIXEL_RATIO
+let safeWindow = typeof window !== "undefined" && window
+let PLATFORM_INFO = {
+  hasWindow: !!safeWindow,
+  isMobile: isMobile(safeWindow), // Dumb navigator check
+  isIE: isIE(safeWindow), // Dumb navigator check - use feature detection instead?
+  isEdge: isEdge(safeWindow),
+  windowsBrowserVersion: getWindowsBrowserVersion(safeWindow),
+  hasPreserve3d: hasPreserve3d(safeWindow), // I dunno if we actually need this
+  devicePixelRatio: DEFAULT_PIXEL_RATIO,
 }
 
 // console.info('[haiku player] platform info:', JSON.stringify(PLATFORM_INFO))
 
-var SVG_RENDERABLES = {
+let SVG_RENDERABLES = {
   a: true,
   audio: true,
   canvas: true,
@@ -52,17 +52,17 @@ var SVG_RENDERABLES = {
   tspan: true,
   unknown: true,
   use: true,
-  video: true
+  video: true,
 }
 
-function applyLayout (
+function applyLayout(
   domElement,
   virtualElement,
   parentDomNode,
   parentVirtualElement,
   component,
   isPatchOperation,
-  isKeyDifferent
+  isKeyDifferent,
 ) {
   if (isTextNode(virtualElement)) return domElement
 
@@ -78,27 +78,27 @@ function applyLayout (
 
     if (!parentVirtualElement.layout || !parentVirtualElement.layout.computed) {
       _warnOnce(
-        'Cannot compute layout without parent computed size (child: <' +
+        "Cannot compute layout without parent computed size (child: <" +
           virtualElement.elementName +
-          '>; parent: <' +
+          ">; parent: <" +
           parentVirtualElement.elementName +
-          '>)'
+          ">)",
       )
       return domElement
     }
 
-    var devicePixelRatio =
+    let devicePixelRatio =
       (component.config.options && component.config.options.devicePixelRatio) || DEFAULT_PIXEL_RATIO
-    var computedLayout = virtualElement.layout.computed
+    let computedLayout = virtualElement.layout.computed
 
     // No computed layout means the el is not shown
     if (!computedLayout || computedLayout.invisible) {
-      if (domElement.style.display !== 'none') {
-        domElement.style.display = 'none'
+      if (domElement.style.display !== "none") {
+        domElement.style.display = "none"
       }
     } else {
-      if (domElement.style.display !== 'block') {
-        domElement.style.display = 'block'
+      if (domElement.style.display !== "block") {
+        domElement.style.display = "block"
       }
 
       component.config.options.platform = PLATFORM_INFO
@@ -109,7 +109,7 @@ function applyLayout (
         virtualElement.layout,
         computedLayout,
         devicePixelRatio,
-        component
+        component,
       )
     }
   }
@@ -117,12 +117,12 @@ function applyLayout (
   return domElement
 }
 
-var warnings = {}
+let warnings = {}
 
-function _warnOnce (warning) {
+function _warnOnce(warning) {
   if (warnings[warning]) return void 0
   warnings[warning] = true
-  console.warn('[haiku player] warning:', warning)
+  console.warn("[haiku player] warning:", warning)
 }
 
 module.exports = applyLayout

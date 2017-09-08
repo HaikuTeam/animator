@@ -2,57 +2,57 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var ValueBuilder = require('./ValueBuilder')
-var vanityHandlers = require('./properties/dom/vanities')
-var queryTree = require('./helpers/cssQueryTree')
-var Layout3D = require('./Layout3D')
-var scopifyElements = require('./helpers/scopifyElements')
-var assign = require('./vendor/assign')
-var SimpleEventEmitter = require('./helpers/SimpleEventEmitter')
-var upgradeBytecodeInPlace = require('./helpers/upgradeBytecodeInPlace')
-var addElementToHashTable = require('./helpers/addElementToHashTable')
-var HaikuTimeline = require('./HaikuTimeline')
-var Config = require('./Config')
+let ValueBuilder = require("./ValueBuilder")
+let vanityHandlers = require("./properties/dom/vanities")
+let queryTree = require("./helpers/cssQueryTree")
+let Layout3D = require("./Layout3D")
+let scopifyElements = require("./helpers/scopifyElements")
+let assign = require("./vendor/assign")
+let SimpleEventEmitter = require("./helpers/SimpleEventEmitter")
+let upgradeBytecodeInPlace = require("./helpers/upgradeBytecodeInPlace")
+let addElementToHashTable = require("./helpers/addElementToHashTable")
+let HaikuTimeline = require("./HaikuTimeline")
+let Config = require("./Config")
 
-var PLAYER_VERSION = require('./../package.json').version
+let PLAYER_VERSION = require("./../package.json").version
 
 // var FUNCTION_TYPE = 'function'
-var STRING_TYPE = 'string'
-var OBJECT_TYPE = 'object'
+let STRING_TYPE = "string"
+let OBJECT_TYPE = "object"
 
-var IDENTITY_MATRIX = Layout3D.createMatrix()
+let IDENTITY_MATRIX = Layout3D.createMatrix()
 
-var HAIKU_ID_ATTRIBUTE = 'haiku-id'
+let HAIKU_ID_ATTRIBUTE = "haiku-id"
 
-var DEFAULT_TIMELINE_NAME = 'Default'
+let DEFAULT_TIMELINE_NAME = "Default"
 
-function HaikuComponent (bytecode, context, config, metadata) {
+function HaikuComponent(bytecode, context, config, metadata) {
   if (!(this instanceof HaikuComponent)) {
     return new HaikuComponent(bytecode, context, config, metadata)
   }
 
   if (!bytecode) {
-    throw new Error('Empty bytecode not allowed')
+    throw new Error("Empty bytecode not allowed")
   }
 
   if (!bytecode.timelines) {
-    throw new Error('Bytecode must define timelines')
+    throw new Error("Bytecode must define timelines")
   }
 
   if (!bytecode.template) {
-    throw new Error('Bytecode must define template')
+    throw new Error("Bytecode must define template")
   }
 
   if (!context) {
-    throw new Error('Component requires a context')
+    throw new Error("Component requires a context")
   }
 
   if (!config.options) {
-    throw new Error('Config options required')
+    throw new Error("Config options required")
   }
 
   if (!config.options.seed) {
-    throw new Error('Seed value must be provided')
+    throw new Error("Seed value must be provided")
   }
 
   SimpleEventEmitter.create(this)
@@ -60,7 +60,7 @@ function HaikuComponent (bytecode, context, config, metadata) {
   this.PLAYER_VERSION = PLAYER_VERSION
 
   // Notify anybody who cares that we've successfully initialized their component in memory (but not rendered yet)
-  this.emit('haikuComponentWillInitialize', this)
+  this.emit("haikuComponentWillInitialize", this)
   if (config.onHaikuComponentWillInitialize) {
     config.onHaikuComponentWillInitialize(this)
   }
@@ -70,7 +70,7 @@ function HaikuComponent (bytecode, context, config, metadata) {
 
   // If the bytecode we got happens to be in an outdated format, we automatically updated it to ours
   upgradeBytecodeInPlace(this._bytecode, {
-    referenceUniqueness: Math.random().toString(36).slice(2) // Random seed for addding instance uniqueness to ids at runtime
+    referenceUniqueness: Math.random().toString(36).slice(2), // Random seed for addding instance uniqueness to ids at runtime
   })
 
   this._context = context
@@ -144,10 +144,10 @@ function HaikuComponent (bytecode, context, config, metadata) {
   // or repeat/if/yield
   this._controlFlowData = {}
 
-  this.on('timeline:tick', function _anyTimelineTick (timelineName, timelineFrame, timelineTime) {
+  this.on("timeline:tick", function _anyTimelineTick(timelineName, timelineFrame, timelineTime) {
     if (this._frameEventListeners[timelineName]) {
       if (this._frameEventListeners[timelineName][timelineFrame]) {
-        for (var i = 0; i < this._frameEventListeners[timelineName][timelineFrame].length; i++) {
+        for (let i = 0; i < this._frameEventListeners[timelineName][timelineFrame].length; i++) {
           this._frameEventListeners[timelineName][timelineFrame][i](timelineFrame, timelineTime)
         }
       }
@@ -155,7 +155,7 @@ function HaikuComponent (bytecode, context, config, metadata) {
   }.bind(this))
 
   // Notify anybody who cares that we've successfully initialized their component in memory
-  this.emit('haikuComponentDidInitialize', this)
+  this.emit("haikuComponentDidInitialize", this)
   if (config.onHaikuComponentDidInitialize) {
     config.onHaikuComponentDidInitialize(this)
   }
@@ -163,16 +163,16 @@ function HaikuComponent (bytecode, context, config, metadata) {
 
 HaikuComponent.PLAYER_VERSION = PLAYER_VERSION
 
-function _clone (thing) {
+function _clone(thing) {
   if (Array.isArray(thing)) {
-    var arr = []
-    for (var i = 0; i < thing.length; i++) {
+    let arr = []
+    for (let i = 0; i < thing.length; i++) {
       arr[i] = _clone(thing[i])
     }
     return arr
-  } else if (thing && typeof thing === 'object') {
-    var obj = {}
-    for (var key in thing) {
+  } else if (thing && typeof thing === "object") {
+    let obj = {}
+    for (let key in thing) {
       obj[key] = _clone(thing[key])
     }
     return obj
@@ -185,24 +185,24 @@ function _clone (thing) {
  * @description Track elements that are at the horizon of what we want to render, i.e., a list of
  * virtual elements that we don't want to make any updates lower than in the tree.
  */
-HaikuComponent.prototype._markHorizonElement = function _markHorizonElement (virtualElement) {
+HaikuComponent.prototype._markHorizonElement = function _markHorizonElement(virtualElement) {
   if (virtualElement && virtualElement.attributes) {
-    var flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
+    let flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
     if (flexId) {
       this._horizonElements[flexId] = virtualElement
     }
   }
 }
 
-HaikuComponent.prototype._isHorizonElement = function _isHorizonElement (virtualElement) {
+HaikuComponent.prototype._isHorizonElement = function _isHorizonElement(virtualElement) {
   if (virtualElement && virtualElement.attributes) {
-    var flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
+    let flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
     return !!this._horizonElements[flexId]
   }
   return false
 }
 
-HaikuComponent.prototype._getRealElementsAtId = function _getRealElementsAtId (flexId) {
+HaikuComponent.prototype._getRealElementsAtId = function _getRealElementsAtId(flexId) {
   if (!this._hashTableOfIdsToElements[flexId]) return []
   return this._hashTableOfIdsToElements[flexId]
 }
@@ -212,7 +212,7 @@ HaikuComponent.prototype._getRealElementsAtId = function _getRealElementsAtId (f
  * This is a hook that allows e.g. the ReactDOMAdapter to push elements into the list if it mutates the DOM.
  * e.g. during control flow
  */
-HaikuComponent.prototype._addElementToHashTable = function _addElementToHashTable (realElement, virtualElement) {
+HaikuComponent.prototype._addElementToHashTable = function _addElementToHashTable(realElement, virtualElement) {
   addElementToHashTable(this._hashTableOfIdsToElements, realElement, virtualElement)
   return this
 }
@@ -223,26 +223,26 @@ HaikuComponent.prototype._addElementToHashTable = function _addElementToHashTabl
  * whether the element needs to be temporarily invisible to avoid a flash of content while
  * rendering occurs
  */
-HaikuComponent.prototype._didElementRenderSurrogate = function _didElementRenderSurrogate (virtualElement, surrogatePlacementKey, surrogateObject) {
+HaikuComponent.prototype._didElementRenderSurrogate = function _didElementRenderSurrogate(virtualElement, surrogatePlacementKey, surrogateObject) {
   if (!virtualElement) return false
   if (!virtualElement.attributes) return false
-  var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id
+  let flexId = virtualElement.attributes["haiku-id"] || virtualElement.attributes.id
   if (!flexId) return false
   if (!this._controlFlowData[flexId]) return false
   if (!this._controlFlowData[flexId].renderedSurrogates) return false
   return this._controlFlowData[flexId].renderedSurrogates[surrogatePlacementKey] === surrogateObject
 }
 
-HaikuComponent.prototype._markElementAnticipatedSurrogates = function _markElementAnticipatedSurrogates (virtualElement, surrogatesArray) {
-  var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id)
+HaikuComponent.prototype._markElementAnticipatedSurrogates = function _markElementAnticipatedSurrogates(virtualElement, surrogatesArray) {
+  let flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes["haiku-id"] || virtualElement.attributes.id)
   if (flexId) {
     if (!this._controlFlowData[flexId]) this._controlFlowData[flexId] = {}
     this._controlFlowData[flexId].anticipatedSurrogates = surrogatesArray
   }
 }
 
-HaikuComponent.prototype._markElementSurrogateAsRendered = function _markElementSurrogateAsRendered (virtualElement, surrogatePlacementKey, surrogateObject) {
-  var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id)
+HaikuComponent.prototype._markElementSurrogateAsRendered = function _markElementSurrogateAsRendered(virtualElement, surrogatePlacementKey, surrogateObject) {
+  let flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes["haiku-id"] || virtualElement.attributes.id)
   if (flexId) {
     if (!this._controlFlowData[flexId]) this._controlFlowData[flexId] = {}
     if (!this._controlFlowData[flexId].renderedSurrogates) this._controlFlowData[flexId].renderedSurrogates = {}
@@ -251,8 +251,8 @@ HaikuComponent.prototype._markElementSurrogateAsRendered = function _markElement
 }
 
 // If the component needs to remount itself for some reason, make sure we fire the right events
-HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, skipMarkForFullFlush) {
-  this.emit('haikuComponentWillMount', this)
+HaikuComponent.prototype.callRemount = function _callRemount(incomingConfig, skipMarkForFullFlush) {
+  this.emit("haikuComponentWillMount", this)
   if (this.config.onHaikuComponentWillMount) {
     this.config.onHaikuComponentWillMount(this)
   }
@@ -271,9 +271,9 @@ HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, sk
   // If autoplay is not wanted, stop the all timelines immediately after we've mounted
   // (We have to mount first so that the component displays, but then pause it at that state.)
   // If you don't want the component to show up at all, use options.automount=false.
-  var timelineInstances = this.getTimelines()
-  for (var timelineName in timelineInstances) {
-    var timelineInstance = timelineInstances[timelineName]
+  let timelineInstances = this.getTimelines()
+  for (let timelineName in timelineInstances) {
+    let timelineInstance = timelineInstances[timelineName]
     if (this.config.options.autoplay) {
       if (timelineName === DEFAULT_TIMELINE_NAME) {
         // Assume we want to start the timeline from the beginning upon remount.
@@ -282,7 +282,7 @@ HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, sk
         // from the get-go. However, in case of a callRemount, we might not want to do that since it can be kind of
         // like running the first frame twice. So we pass the option into play so it can conditionally skip the
         // _markForFullFlush step.
-        timelineInstance.play({ skipMarkForFullFlush: skipMarkForFullFlush })
+        timelineInstance.play({ skipMarkForFullFlush })
       }
     } else {
       timelineInstance.pause()
@@ -291,7 +291,7 @@ HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, sk
 
   this._context.contextMount()
 
-  this.emit('haikuComponentDidMount', this)
+  this.emit("haikuComponentDidMount", this)
   if (this.config.onHaikuComponentDidMount) {
     this.config.onHaikuComponentDidMount(this)
   }
@@ -299,27 +299,27 @@ HaikuComponent.prototype.callRemount = function _callRemount (incomingConfig, sk
 
 // If the component needs to unmount itself for some reason, make sure we fire the right events
 // This is primarily used in the React Adapter, but there might be other uses for it?
-HaikuComponent.prototype.callUnmount = function _callUnmount (incomingConfig) {
+HaikuComponent.prototype.callUnmount = function _callUnmount(incomingConfig) {
   if (incomingConfig) {
     this.assignConfig(incomingConfig)
   }
 
   // Since we're unmounting, pause all animations to avoid unnecessary calc while detached
-  var timelineInstances = this.getTimelines()
-  for (var timelineName in timelineInstances) {
-    var timelineInstance = timelineInstances[timelineName]
+  let timelineInstances = this.getTimelines()
+  for (let timelineName in timelineInstances) {
+    let timelineInstance = timelineInstances[timelineName]
     timelineInstance.pause()
   }
 
   this._context.contextUnmount()
 
-  this.emit('haikuComponentWillUnmount', this)
+  this.emit("haikuComponentWillUnmount", this)
   if (this.config.onHaikuComponentWillUnmount) {
     this.config.onHaikuComponentWillUnmount(this)
   }
 }
 
-HaikuComponent.prototype.assignConfig = function _assignConfig (incomingConfig) {
+HaikuComponent.prototype.assignConfig = function _assignConfig(incomingConfig) {
   // - OPTIONS
   // - VANITIES
   // - CONTROLLER
@@ -329,8 +329,8 @@ HaikuComponent.prototype.assignConfig = function _assignConfig (incomingConfig) 
   // Skip component assignment so we don't end up in an infinite loop :P
   this._context.assignConfig(this.config, { skipComponentAssign: true })
 
-  for (var timelineName in this._timelineInstances) {
-    var timelineInstance = this._timelineInstances[timelineName]
+  for (let timelineName in this._timelineInstances) {
+    let timelineInstance = this._timelineInstances[timelineName]
     timelineInstance.assignOptions(this.config.options)
   }
 
@@ -346,7 +346,7 @@ HaikuComponent.prototype.assignConfig = function _assignConfig (incomingConfig) 
   return this
 }
 
-HaikuComponent.prototype._clearCaches = function _clearCaches () {
+HaikuComponent.prototype._clearCaches = function _clearCaches() {
   this._states = {}
   // Don't forget to repopulate the states with originals when we cc otherwise folks
   // who depend on initial states being set will be SAD!
@@ -374,30 +374,30 @@ HaikuComponent.prototype._clearCaches = function _clearCaches () {
   return this
 }
 
-HaikuComponent.prototype.getClock = function getClock () {
+HaikuComponent.prototype.getClock = function getClock() {
   return this._context.getClock()
 }
 
-HaikuComponent.prototype.getTimelines = function getTimelines () {
+HaikuComponent.prototype.getTimelines = function getTimelines() {
   return this._fetchTimelines()
 }
 
-HaikuComponent.prototype._fetchTimelines = function _fetchTimelines () {
-  var names = Object.keys(this._bytecode.timelines)
+HaikuComponent.prototype._fetchTimelines = function _fetchTimelines() {
+  let names = Object.keys(this._bytecode.timelines)
 
-  for (var i = 0; i < names.length; i++) {
-    var name = names[i]
+  for (let i = 0; i < names.length; i++) {
+    let name = names[i]
     if (!name) continue
 
-    var descriptor = this._getTimelineDescriptor(name)
-    var existing = this._timelineInstances[name]
+    let descriptor = this._getTimelineDescriptor(name)
+    let existing = this._timelineInstances[name]
 
     if (!existing) {
       this._timelineInstances[name] = new HaikuTimeline(
         this,
         name,
         descriptor,
-        this.config.options
+        this.config.options,
       )
     }
   }
@@ -405,22 +405,22 @@ HaikuComponent.prototype._fetchTimelines = function _fetchTimelines () {
   return this._timelineInstances
 }
 
-HaikuComponent.prototype.getTimeline = function getTimeline (name) {
+HaikuComponent.prototype.getTimeline = function getTimeline(name) {
   return this.getTimelines()[name]
 }
 
-HaikuComponent.prototype.getDefaultTimeline = function getDefaultTimeline () {
-  var timelines = this.getTimelines()
+HaikuComponent.prototype.getDefaultTimeline = function getDefaultTimeline() {
+  let timelines = this.getTimelines()
   return timelines[DEFAULT_TIMELINE_NAME]
 }
 
-HaikuComponent.prototype.getActiveTimelines = function getActiveTimelines () {
-  var activeTimelines = {}
+HaikuComponent.prototype.getActiveTimelines = function getActiveTimelines() {
+  let activeTimelines = {}
 
-  var timelines = this.getTimelines()
+  let timelines = this.getTimelines()
 
-  for (var timelineName in timelines) {
-    var timelineInstance = timelines[timelineName]
+  for (let timelineName in timelines) {
+    let timelineInstance = timelines[timelineName]
     if (timelineInstance.isActive()) {
       activeTimelines[timelineName] = timelineInstance
     }
@@ -429,63 +429,63 @@ HaikuComponent.prototype.getActiveTimelines = function getActiveTimelines () {
   return activeTimelines
 }
 
-HaikuComponent.prototype.stopAllTimelines = function stopAllTimelines () {
-  for (var timelineName in this._timelineInstances) {
+HaikuComponent.prototype.stopAllTimelines = function stopAllTimelines() {
+  for (let timelineName in this._timelineInstances) {
     this.stopTimeline(timelineName)
   }
 }
 
-HaikuComponent.prototype.startAllTimelines = function startAllTimelines () {
-  for (var timelineName in this._timelineInstances) {
+HaikuComponent.prototype.startAllTimelines = function startAllTimelines() {
+  for (let timelineName in this._timelineInstances) {
     this.startTimeline(timelineName)
   }
 }
 
-HaikuComponent.prototype.startTimeline = function startTimeline (timelineName) {
-  var time = this._context.clock.getExplicitTime()
-  var descriptor = this._getTimelineDescriptor(timelineName)
-  var existing = this._timelineInstances[timelineName]
+HaikuComponent.prototype.startTimeline = function startTimeline(timelineName) {
+  let time = this._context.clock.getExplicitTime()
+  let descriptor = this._getTimelineDescriptor(timelineName)
+  let existing = this._timelineInstances[timelineName]
   if (existing) {
     existing.start(time, descriptor)
   } else {
     // As a convenience we auto-initialize timeline if the user is trying to start one that hasn't initialized yet
-    var fresh = new HaikuTimeline(this, timelineName, descriptor, this.config.options)
+    let fresh = new HaikuTimeline(this, timelineName, descriptor, this.config.options)
     fresh.start(time, descriptor) // Initialization alone doesn't start the timeline, so we start it explicitly
     this._timelineInstances[timelineName] = fresh // Don't forget to add it to our collection
   }
 }
 
-HaikuComponent.prototype.stopTimeline = function startTimeline (timelineName) {
-  var time = this._context.clock.getExplicitTime()
-  var descriptor = this._getTimelineDescriptor(timelineName)
-  var existing = this._timelineInstances[timelineName]
+HaikuComponent.prototype.stopTimeline = function startTimeline(timelineName) {
+  let time = this._context.clock.getExplicitTime()
+  let descriptor = this._getTimelineDescriptor(timelineName)
+  let existing = this._timelineInstances[timelineName]
   if (existing) {
     existing.stop(time, descriptor)
   }
 }
 
-HaikuComponent.prototype._getTimelineDescriptor = function _getTimelineDescriptor (
-  timelineName
+HaikuComponent.prototype._getTimelineDescriptor = function _getTimelineDescriptor(
+  timelineName,
 ) {
   return this._bytecode.timelines[timelineName]
 }
 
-HaikuComponent.prototype.getBytecode = function getBytecode () {
+HaikuComponent.prototype.getBytecode = function getBytecode() {
   return this._bytecode
 }
 
-HaikuComponent.prototype._getRenderScopes = function _getRenderScopes () {
+HaikuComponent.prototype._getRenderScopes = function _getRenderScopes() {
   return this._renderScopes
 }
 
-HaikuComponent.prototype._getInjectables = function _getInjectables (element) {
-  var injectables = {}
+HaikuComponent.prototype._getInjectables = function _getInjectables(element) {
+  let injectables = {}
 
   assign(injectables, this._builder._getSummonablesSchema(element))
 
   // Local states get precedence over global summonables, so assign them last
-  for (var key in this._states) {
-    var type = this._states[key].type
+  for (let key in this._states) {
+    let type = this._states[key].type
     if (!type) type = typeof this._states[key]
     injectables[key] = type
   }
@@ -493,15 +493,15 @@ HaikuComponent.prototype._getInjectables = function _getInjectables (element) {
   return injectables
 }
 
-HaikuComponent.prototype._getTopLevelElement = function _getTopLevelElement () {
+HaikuComponent.prototype._getTopLevelElement = function _getTopLevelElement() {
   return this._template
 }
 
-HaikuComponent.prototype.getAddressableProperties = function getAddressableProperties () {
+HaikuComponent.prototype.getAddressableProperties = function getAddressableProperties() {
   return this._bytecode.states || {}
 }
 
-HaikuComponent.prototype.getParser = function getParser (outputName, virtualElement) {
+HaikuComponent.prototype.getParser = function getParser(outputName, virtualElement) {
   return this._bytecode.parsers && this._bytecode.parsers[outputName]
 }
 
@@ -526,13 +526,7 @@ HaikuComponent.prototype.getParser = function getParser (outputName, virtualElem
 //   return this.template
 // }
 
-/**
- **
- ** BELOW BE DRAGONS
- **
- **/
-
-function _cloneTemplate (mana) {
+function _cloneTemplate(mana) {
   if (!mana) {
     return mana
   }
@@ -541,14 +535,14 @@ function _cloneTemplate (mana) {
     return mana
   }
 
-  var out = {
-    elementName: mana.elementName
+  let out = {
+    elementName: mana.elementName,
   }
 
   if (mana.attributes) {
     out.attributes = {}
 
-    for (var key in mana.attributes) {
+    for (let key in mana.attributes) {
       out.attributes[key] = mana.attributes[key]
     }
   }
@@ -556,7 +550,7 @@ function _cloneTemplate (mana) {
   if (mana.children) {
     out.children = []
 
-    for (var i = 0; i < mana.children.length; i++) {
+    for (let i = 0; i < mana.children.length; i++) {
       out.children[i] = _cloneTemplate(mana.children[i])
     }
   }
@@ -564,46 +558,45 @@ function _cloneTemplate (mana) {
   return out
 }
 
-function _fetchAndCloneTemplate (template) {
+function _fetchAndCloneTemplate(template) {
   if (!template) {
-    throw new Error('Empty template not allowed')
+    throw new Error("Empty template not allowed")
   }
 
   if (typeof template === OBJECT_TYPE) {
     if (!template.elementName) {
       console.warn(
-        '[haiku player] warning: saw unexpected bytecode template format'
+        "[haiku player] warning: saw unexpected bytecode template format",
       )
-      console.log('[haiku player] template:', template)
     }
     return _cloneTemplate(template)
   }
 
-  throw new Error('Unknown bytecode template format')
+  throw new Error("Unknown bytecode template format")
 }
 
-function _bindEventHandlers (component, extraEventHandlers) {
-  var allEventHandlers = assign({}, component._bytecode.eventHandlers, extraEventHandlers)
+function _bindEventHandlers(component, extraEventHandlers) {
+  let allEventHandlers = assign({}, component._bytecode.eventHandlers, extraEventHandlers)
 
-  for (var selector in allEventHandlers) {
-    var handlerGroup = allEventHandlers[selector]
-    for (var eventName in handlerGroup) {
-      var eventHandlerDescriptor = handlerGroup[eventName]
-      var originalHandlerFn = eventHandlerDescriptor.handler
+  for (let selector in allEventHandlers) {
+    let handlerGroup = allEventHandlers[selector]
+    for (let eventName in handlerGroup) {
+      let eventHandlerDescriptor = handlerGroup[eventName]
+      let originalHandlerFn = eventHandlerDescriptor.handler
       _bindEventHandler(component, eventHandlerDescriptor, selector, eventName, originalHandlerFn)
     }
   }
 }
 
-function _bindEventHandler (
+function _bindEventHandler(
   component,
   eventHandlerDescriptor,
   selector,
   eventName,
-  originalHandlerFn
+  originalHandlerFn,
 ) {
   eventHandlerDescriptor.original = originalHandlerFn
-  eventHandlerDescriptor.handler = function _wrappedEventHandler (
+  eventHandlerDescriptor.handler = function _wrappedEventHandler(
     event,
     a,
     b,
@@ -615,11 +608,11 @@ function _bindEventHandler (
     h,
     i,
     j,
-    k
+    k,
   ) {
     // Only fire the event listeners if the component is in 'live' interaction mode,
     // i.e., not currently being edited inside the Haiku authoring environment
-    if (component.config.options.interactionMode.type === 'live') {
+    if (component.config.options.interactionMode.type === "live") {
       component._anyEventChange = true
 
       if (!component._eventsFired[selector]) {
@@ -634,64 +627,64 @@ function _bindEventHandler (
   }
 }
 
-function _typecheckStateSpec (stateSpec, stateSpecName) {
+function _typecheckStateSpec(stateSpec, stateSpecName) {
   if (
-    stateSpec.type === 'any' ||
-    stateSpec.type === '*' ||
+    stateSpec.type === "any" ||
+    stateSpec.type === "*" ||
     stateSpec.type === undefined ||
     stateSpec.type === null
   ) {
     return void 0
   }
 
-  if (stateSpec.type === 'event' || stateSpec.type === 'listener') {
+  if (stateSpec.type === "event" || stateSpec.type === "listener") {
     if (
-      typeof stateSpec.value !== 'function' &&
+      typeof stateSpec.value !== "function" &&
       stateSpec.value !== null &&
       stateSpec.value !== undefined
     ) {
       throw new Error(
-        'Property value `' +
+        "Property value `" +
           stateSpecName +
-          '` must be an event listener function'
+          "` must be an event listener function",
       )
     }
     return void 0
   }
 
-  if (stateSpec.type === 'array') {
+  if (stateSpec.type === "array") {
     if (!Array.isArray(stateSpec.value)) {
       throw new Error(
-        'Property value `' + stateSpecName + '` must be an array'
+        "Property value `" + stateSpecName + "` must be an array",
       )
     }
-  } else if (stateSpec.type === 'object') {
-    if (stateSpec.value && typeof stateSpec.value !== 'object') {
+  } else if (stateSpec.type === "object") {
+    if (stateSpec.value && typeof stateSpec.value !== "object") {
       throw new Error(
-        'Property value `' + stateSpecName + '` must be an object'
+        "Property value `" + stateSpecName + "` must be an object",
       )
     }
   } else {
     if (typeof stateSpec.value !== stateSpec.type) {
       throw new Error(
-        'Property value `' + stateSpecName + '` must be a `' + stateSpec.type + '`'
+        "Property value `" + stateSpecName + "` must be a `" + stateSpec.type + "`",
       )
     }
   }
 }
 
-function _bindStates (statesTargetObject, component, extraStates) {
-  var allStates = assign({}, component._bytecode.states, extraStates)
+function _bindStates(statesTargetObject, component, extraStates) {
+  let allStates = assign({}, component._bytecode.states, extraStates)
 
-  for (var stateSpecName in allStates) {
-    var stateSpec = allStates[stateSpecName]
+  for (let stateSpecName in allStates) {
+    let stateSpec = allStates[stateSpecName]
 
     // 'null' is the signal for an empty prop, not undefined.
     if (stateSpec.value === undefined) {
       throw new Error(
-        'Property `' +
+        "Property `" +
           stateSpecName +
-          '` cannot be undefined; use null for empty states'
+          "` cannot be undefined; use null for empty states",
       )
     }
 
@@ -703,16 +696,16 @@ function _bindStates (statesTargetObject, component, extraStates) {
   }
 }
 
-function _defineSettableState (component, statesHostObject, statesTargetObject, stateSpec, stateSpecName) {
+function _defineSettableState(component, statesHostObject, statesTargetObject, stateSpec, stateSpecName) {
   // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in statesTargetObject
   Object.defineProperty(statesHostObject, stateSpecName, {
     configurable: true,
 
-    get: function get () {
+    get: function get() {
       return statesTargetObject[stateSpecName]
     },
 
-    set: function set (inputValue) {
+    set: function set(inputValue) {
       // For optimization downstream, we track whether & which input values changed since a previous setter call
       component._stateChanges[stateSpecName] = inputValue
       component._anyStateChange = true
@@ -721,7 +714,7 @@ function _defineSettableState (component, statesHostObject, statesTargetObject, 
         // Important: We call the setter with a binding of the component, so it can access methods on `this`
         statesTargetObject[stateSpecName] = stateSpec.setter.call(
           component,
-          inputValue
+          inputValue,
         )
       } else {
         statesTargetObject[stateSpecName] = inputValue
@@ -729,63 +722,63 @@ function _defineSettableState (component, statesHostObject, statesTargetObject, 
 
       // Really only used as a hook for Haiku's ActiveComponent
       if (component._doesEmitEventsVerbosely) {
-        component.emit('state:set', stateSpecName, statesTargetObject[stateSpecName], statesTargetObject)
+        component.emit("state:set", stateSpecName, statesTargetObject[stateSpecName], statesTargetObject)
       }
 
       return statesTargetObject[stateSpecName]
-    }
+    },
   })
 }
 
-HaikuComponent.prototype._markForFullFlush = function _markForFullFlush (
-  doMark
+HaikuComponent.prototype._markForFullFlush = function _markForFullFlush(
+  doMark,
 ) {
   this._needsFullFlush = true
   return this
 }
 
-HaikuComponent.prototype._shouldPerformFullFlush = function _shouldPerformFullFlush () {
+HaikuComponent.prototype._shouldPerformFullFlush = function _shouldPerformFullFlush() {
   return this._needsFullFlush
 }
 
-HaikuComponent.prototype._getEventsFired = function _getEventsFired () {
+HaikuComponent.prototype._getEventsFired = function _getEventsFired() {
   return this._anyEventChange && this._eventsFired
 }
 
-HaikuComponent.prototype._getInputsChanged = function _getInputsChanged () {
+HaikuComponent.prototype._getInputsChanged = function _getInputsChanged() {
   return this._anyStateChange && this._stateChanges
 }
 
-HaikuComponent.prototype._clearDetectedEventsFired = function _clearDetectedEventsFired () {
+HaikuComponent.prototype._clearDetectedEventsFired = function _clearDetectedEventsFired() {
   this._anyEventChange = false
   this._eventsFired = {}
   return this
 }
 
-HaikuComponent.prototype._clearDetectedInputChanges = function _clearDetectedInputChanges () {
+HaikuComponent.prototype._clearDetectedInputChanges = function _clearDetectedInputChanges() {
   this._anyStateChange = false
   this._stateChanges = {}
   return this
 }
 
-HaikuComponent.prototype.patch = function patch (container, patchOptions) {
-  var time = this._context.clock.getExplicitTime()
+HaikuComponent.prototype.patch = function patch(container, patchOptions) {
+  let time = this._context.clock.getExplicitTime()
 
-  var timelinesRunning = []
-  for (var timelineName in this._timelineInstances) {
-    var timeline = this._timelineInstances[timelineName]
+  let timelinesRunning = []
+  for (let timelineName in this._timelineInstances) {
+    let timeline = this._timelineInstances[timelineName]
     if (timeline.isActive()) {
       timeline._doUpdateWithGlobalClockTime(time)
 
       // The default timeline is always considered to be running
-      if (timelineName === 'Default' || !timeline.isFinished()) {
+      if (timelineName === "Default" || !timeline.isFinished()) {
         timelinesRunning.push(timeline)
       }
     }
   }
 
-  var eventsFired = this._getEventsFired()
-  var inputsChanged = this._getInputsChanged()
+  let eventsFired = this._getEventsFired()
+  let inputsChanged = this._getInputsChanged()
 
   this._lastDeltaPatches = _gatherDeltaPatches(
     this,
@@ -796,13 +789,13 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
     timelinesRunning,
     eventsFired,
     inputsChanged,
-    patchOptions
+    patchOptions,
   )
 
-  for (var flexId in this._nestedComponentElements) {
-    var _componentElement = this._nestedComponentElements[flexId]
-    this._lastDeltaPatches[flexId] = _componentElement
-    _componentElement.__instance.patch(_componentElement, {})
+  for (let flexId in this._nestedComponentElements) {
+    let compElement = this._nestedComponentElements[flexId]
+    this._lastDeltaPatches[flexId] = compElement
+    compElement.__instance.patch(compElement, {})
   }
 
   this._clearDetectedEventsFired()
@@ -811,15 +804,15 @@ HaikuComponent.prototype.patch = function patch (container, patchOptions) {
   return this._lastDeltaPatches
 }
 
-HaikuComponent.prototype._getPrecalcedPatches = function _getPrecalcedPatches () {
+HaikuComponent.prototype._getPrecalcedPatches = function _getPrecalcedPatches() {
   return this._lastDeltaPatches || {}
 }
 
-HaikuComponent.prototype.render = function render (container, renderOptions, surrogates) {
-  var time = this._context.clock.getExplicitTime()
+HaikuComponent.prototype.render = function render(container, renderOptions, surrogates) {
+  let time = this._context.clock.getExplicitTime()
 
-  for (var timelineName in this._timelineInstances) {
-    var timeline = this._timelineInstances[timelineName]
+  for (let timelineName in this._timelineInstances) {
+    let timeline = this._timelineInstances[timelineName]
 
     // QUESTION: What differentiates an active timeline from a playing one?
     if (timeline.isActive()) {
@@ -834,14 +827,14 @@ HaikuComponent.prototype.render = function render (container, renderOptions, sur
     this._template,
     container,
     this._context,
-    renderOptions || {}
+    renderOptions || {},
   )
 
   // 2. Given the above updates, 'expand' the tree to its final form (which gets flushed out to the mount element)
   this._lastTemplateExpansion = _expandTreeElement(
     this._template,
     this,
-    this._context
+    this._context,
   )
 
   this._needsFullFlush = false
@@ -849,51 +842,51 @@ HaikuComponent.prototype.render = function render (container, renderOptions, sur
   return this._lastTemplateExpansion
 }
 
-HaikuComponent.prototype._findElementsByHaikuId = function _findElementsByHaikuId (componentId) {
-  return _findMatchingElementsByCssSelector('haiku:' + componentId, this._template, this._matchedElementCache)
+HaikuComponent.prototype._findElementsByHaikuId = function _findElementsByHaikuId(componentId) {
+  return _findMatchingElementsByCssSelector("haiku:" + componentId, this._template, this._matchedElementCache)
 }
 
-function _applyBehaviors (
+function _applyBehaviors(
   timelinesRunning,
   deltas,
   component,
   template,
   context,
-  isPatchOperation
+  isPatchOperation,
 ) {
   // We shouldn't need to add event handlers for patch operations since theoretically that same listener
   // would remain a constant throughout the lifetime of the component
   if (!isPatchOperation) {
     // Associate any event handlers with the elements matched
     if (component._bytecode.eventHandlers) {
-      for (var eventSelector in component._bytecode.eventHandlers) {
-        var eventHandlerGroup = component._bytecode.eventHandlers[eventSelector]
+      for (let eventSelector in component._bytecode.eventHandlers) {
+        let eventHandlerGroup = component._bytecode.eventHandlers[eventSelector]
 
         // First handle any subscriptions to internal events, like component lifecycle or frame events
-        for (var eventName1 in eventHandlerGroup) {
-          var eventHandlerSpec1 = eventHandlerGroup[eventName1]
+        for (let eventName1 in eventHandlerGroup) {
+          let eventHandlerSpec1 = eventHandlerGroup[eventName1]
           if (!eventHandlerSpec1.handler.__subscribed && !eventHandlerSpec1.handler.__external) { // Don't subscribe twice or waste effort
-            if (eventName1 === 'component:will-mount') {
-              component.on('haikuComponentWillMount', eventHandlerSpec1.handler)
+            if (eventName1 === "component:will-mount") {
+              component.on("haikuComponentWillMount", eventHandlerSpec1.handler)
               eventHandlerSpec1.handler.__subscribed = true
               continue
             }
-            if (eventName1 === 'component:did-mount') {
-              component.on('haikuComponentDidMount', eventHandlerSpec1.handler)
+            if (eventName1 === "component:did-mount") {
+              component.on("haikuComponentDidMount", eventHandlerSpec1.handler)
               eventHandlerSpec1.handler.__subscribed = true
               continue
             }
-            if (eventName1 === 'component:will-unmount') {
-              component.on('haikuComponentWillUnmount', eventHandlerSpec1.handler)
+            if (eventName1 === "component:will-unmount") {
+              component.on("haikuComponentWillUnmount", eventHandlerSpec1.handler)
               eventHandlerSpec1.handler.__subscribed = true
               continue
             }
 
-            var namePieces = eventName1.split(':')
+            let namePieces = eventName1.split(":")
             if (namePieces.length > 1) {
-              if (namePieces[0] === 'timeline') {
-                var timelineNamePiece = namePieces[1]
-                var frameValuePiece = parseInt(namePieces[2], 10)
+              if (namePieces[0] === "timeline") {
+                let timelineNamePiece = namePieces[1]
+                let frameValuePiece = parseInt(namePieces[2], 10)
                 if (!component._frameEventListeners[timelineNamePiece]) component._frameEventListeners[timelineNamePiece] = {}
                 if (!component._frameEventListeners[timelineNamePiece][frameValuePiece]) component._frameEventListeners[timelineNamePiece][frameValuePiece] = []
                 component._frameEventListeners[timelineNamePiece][frameValuePiece].push(eventHandlerSpec1.handler)
@@ -907,19 +900,19 @@ function _applyBehaviors (
           }
         }
 
-        var matchingElementsForEvents = _findMatchingElementsByCssSelector(
+        let matchingElementsForEvents = _findMatchingElementsByCssSelector(
           eventSelector,
           template,
-          component._matchedElementCache
+          component._matchedElementCache,
         )
 
         if (!matchingElementsForEvents || matchingElementsForEvents.length < 1) {
           continue
         }
 
-        for (var k = 0; k < matchingElementsForEvents.length; k++) {
-          for (var eventName in eventHandlerGroup) {
-            var eventHandlerSpec = eventHandlerGroup[eventName]
+        for (let k = 0; k < matchingElementsForEvents.length; k++) {
+          for (let eventName in eventHandlerGroup) {
+            let eventHandlerSpec = eventHandlerGroup[eventName]
             // We may have already subscribed to something internally, so no point repeating actions here
             if (!eventHandlerSpec.__subscribed) {
               _applyHandlerToElement(matchingElementsForEvents[k], eventName, eventHandlerSpec.handler, context, component)
@@ -931,37 +924,37 @@ function _applyBehaviors (
   }
 
   // Apply any behaviors to the element
-  for (var i = 0; i < timelinesRunning.length; i++) {
-    var timelineInstance = timelinesRunning[i]
-    var timelineName = timelineInstance.getName()
-    var timelineTime = timelineInstance.getBoundedTime()
-    var timelineDescriptor = component._bytecode.timelines[timelineName]
+  for (let i = 0; i < timelinesRunning.length; i++) {
+    let timelineInstance = timelinesRunning[i]
+    let timelineName = timelineInstance.getName()
+    let timelineTime = timelineInstance.getBoundedTime()
+    let timelineDescriptor = component._bytecode.timelines[timelineName]
 
-    for (var behaviorSelector in timelineDescriptor) {
-      var propertiesGroup = timelineDescriptor[behaviorSelector]
+    for (let behaviorSelector in timelineDescriptor) {
+      let propertiesGroup = timelineDescriptor[behaviorSelector]
 
       if (!propertiesGroup) {
         continue
       }
 
-      var matchingElementsForBehavior = _findMatchingElementsByCssSelector(
+      let matchingElementsForBehavior = _findMatchingElementsByCssSelector(
         behaviorSelector,
         template,
-        component._matchedElementCache
+        component._matchedElementCache,
       )
 
       if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
         continue
       }
 
-      for (var j = 0; j < matchingElementsForBehavior.length; j++) {
-        var matchingElement = matchingElementsForBehavior[j]
-        var domId = matchingElement && matchingElement.attributes && matchingElement.attributes.id
-        var haikuId = matchingElement && matchingElement.attributes && matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
-        var flexId = haikuId || domId
+      for (let j = 0; j < matchingElementsForBehavior.length; j++) {
+        let matchingElement = matchingElementsForBehavior[j]
+        let domId = matchingElement && matchingElement.attributes && matchingElement.attributes.id
+        let haikuId = matchingElement && matchingElement.attributes && matchingElement.attributes[HAIKU_ID_ATTRIBUTE]
+        let flexId = haikuId || domId
 
         // If assembledOutputs is undefined that's supposed to mean that there is nothing changed
-        var assembledOutputs = component._builder.build(
+        let assembledOutputs = component._builder.build(
           {}, // We provide an object onto which outputs are placed
           timelineName,
           timelineTime,
@@ -969,7 +962,7 @@ function _applyBehaviors (
           matchingElement,
           propertiesGroup,
           isPatchOperation,
-          component
+          component,
         )
 
         // [#LEGACY?]
@@ -983,8 +976,8 @@ function _applyBehaviors (
         }
 
         if (assembledOutputs) {
-          for (var behaviorKey in assembledOutputs) {
-            var behaviorValue = assembledOutputs[behaviorKey]
+          for (let behaviorKey in assembledOutputs) {
+            let behaviorValue = assembledOutputs[behaviorKey]
             _applyPropertyToElement(matchingElement, behaviorKey, behaviorValue, context, component)
           }
         }
@@ -993,7 +986,7 @@ function _applyBehaviors (
   }
 }
 
-function _gatherDeltaPatches (
+function _gatherDeltaPatches(
   component,
   template,
   container,
@@ -1002,12 +995,12 @@ function _gatherDeltaPatches (
   timelinesRunning,
   eventsFired,
   inputsChanged,
-  patchOptions
+  patchOptions,
 ) {
   Layout3D.initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing in the first place
   _initializeComponentTree(template, component, context)
 
-  var deltas = {} // This is what we're going to return - a dictionary of ids to elements
+  let deltas = {} // This is what we're going to return - a dictionary of ids to elements
 
   _applyBehaviors(
     timelinesRunning,
@@ -1015,7 +1008,7 @@ function _gatherDeltaPatches (
     component,
     template,
     context,
-    true // isPatchOperation
+    true, // isPatchOperation
   )
 
   if (patchOptions.sizing) {
@@ -1023,32 +1016,32 @@ function _gatherDeltaPatches (
       template,
       container,
       patchOptions.sizing,
-      deltas
+      deltas,
     )
   }
 
   // TODO: Calculating the tree layout should be skipped for already visited node
   // that we have already calculated among the descendants of the changed one
-  for (var flexId in deltas) {
-    var changedNode = deltas[flexId]
+  for (let flexId in deltas) {
+    let changedNode = deltas[flexId]
     _computeAndApplyTreeLayouts(changedNode, changedNode.__parent, patchOptions, context)
   }
 
   return deltas
 }
 
-function _applyContextChanges (
+function _applyContextChanges(
   component,
   inputs,
   template,
   container,
   context,
-  renderOptions
+  renderOptions,
 ) {
-  var timelinesRunning = []
+  let timelinesRunning = []
   if (component._bytecode.timelines) {
-    for (var timelineName in component._bytecode.timelines) {
-      var timeline = component.getTimeline(timelineName)
+    for (let timelineName in component._bytecode.timelines) {
+      let timeline = component.getTimeline(timelineName)
       if (!timeline) {
         continue
       }
@@ -1079,7 +1072,7 @@ function _applyContextChanges (
     component,
     template,
     context,
-    false // isPatchOperation
+    false, // isPatchOperation
   )
 
   if (renderOptions.sizing) {
@@ -1091,17 +1084,17 @@ function _applyContextChanges (
   return template
 }
 
-function _initializeComponentTree (element, component, context) {
+function _initializeComponentTree(element, component, context) {
   // In addition to plain objects, a sub-element can also be a component,
   // which we currently detect by checking to see if it looks like 'bytecode'
   // Don't instantiate a second time if we already have the instance at this node
   if (_isBytecode(element.elementName) && !element.__instance) {
-    var flexId = element.attributes && (element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes.id)
+    let flexId = element.attributes && (element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes.id)
     element.__instance = new HaikuComponent(element.elementName, context, {
       // Exclude states, etc. (everything except 'options') since those should override *only* on the root element being instantiated
-      options: context.config.options
+      options: context.config.options,
     }, {
-      nested: true
+      nested: true,
     })
 
     // We duplicate the behavior of HaikuContext and start the default timeline
@@ -1111,17 +1104,17 @@ function _initializeComponentTree (element, component, context) {
 
   // repeat through children
   if (element.children && element.children.length > 0) {
-    for (var i = 0; i < element.children.length; i++) {
+    for (let i = 0; i < element.children.length; i++) {
       _initializeComponentTree(element.children[i], component, context)
     }
   }
 }
 
-function _expandTreeElement (element, component, context) {
+function _expandTreeElement(element, component, context) {
   // Handlers attach first since they may want to respond to an immediate property setter
   if (element.__handlers) {
-    for (var key in element.__handlers) {
-      var handler = element.__handlers[key]
+    for (let key in element.__handlers) {
+      let handler = element.__handlers[key]
 
       // Don't subscribe twice!
       if (!handler.__subscribed) {
@@ -1139,20 +1132,20 @@ function _expandTreeElement (element, component, context) {
     // Call render on the interior element to get its full subtree, and recurse
     // HaikuComponent.prototype.render = (container, renderOptions) => {...}
     // The element is the 'container' in that it should have a layout computed computed already?
-    var wrapper = _shallowCloneComponentTreeElement(element)
-    var surrogates = wrapper.children
-    var subtree = element.__instance.render(element, element.__instance.config.options, surrogates)
-    var expansion = _expandTreeElement(subtree, element.__instance, context)
+    let wrapper = _shallowCloneComponentTreeElement(element)
+    let surrogates = wrapper.children
+    let subtree = element.__instance.render(element, element.__instance.config.options, surrogates)
+    let expansion = _expandTreeElement(subtree, element.__instance, context)
     wrapper.children = [expansion]
     return wrapper
   }
 
   if (typeof element.elementName === STRING_TYPE) {
-    var copy = _shallowCloneComponentTreeElement(element)
+    let copy = _shallowCloneComponentTreeElement(element)
 
     if (element.children && element.children.length > 0) {
-      for (var i = 0; i < element.children.length; i++) {
-        var child = element.children[i]
+      for (let i = 0; i < element.children.length; i++) {
+        let child = element.children[i]
         copy.children[i] = _expandTreeElement(child, component, context)
       }
     }
@@ -1164,8 +1157,8 @@ function _expandTreeElement (element, component, context) {
   return element
 }
 
-function _shallowCloneComponentTreeElement (element) {
-  var clone = {}
+function _shallowCloneComponentTreeElement(element) {
+  let clone = {}
 
   clone.__instance = element.__instance // Cache the instance
   clone.__handlers = element.__handlers // Transfer active event handlers
@@ -1178,7 +1171,7 @@ function _shallowCloneComponentTreeElement (element) {
   // Simply copy over the other standard parts of the node...
   clone.elementName = element.elementName
   clone.attributes = {}
-  for (var key in element.attributes) {
+  for (let key in element.attributes) {
     clone.attributes[key] = element.attributes[key]
   }
 
@@ -1188,48 +1181,48 @@ function _shallowCloneComponentTreeElement (element) {
   return clone
 }
 
-var CSS_QUERY_MAPPING = {
-  name: 'elementName',
-  attributes: 'attributes',
-  children: 'children'
+let CSS_QUERY_MAPPING = {
+  name: "elementName",
+  attributes: "attributes",
+  children: "children",
 }
 
-function _findMatchingElementsByCssSelector (selector, template, cache) {
+function _findMatchingElementsByCssSelector(selector, template, cache) {
   if (cache[selector]) return cache[selector]
-  var matches = queryTree([], template, selector, CSS_QUERY_MAPPING)
+  let matches = queryTree([], template, selector, CSS_QUERY_MAPPING)
   cache[selector] = matches
   return matches
 }
 
-function _computeAndApplyTreeLayouts (tree, container, options, context) {
-  if (!tree || typeof tree === 'string') return void 0
+function _computeAndApplyTreeLayouts(tree, container, options, context) {
+  if (!tree || typeof tree === "string") return void 0
 
   _computeAndApplyNodeLayout(tree, container, options, context)
 
   if (!tree.children) return void 0
   if (tree.children.length < 1) return void 0
 
-  for (var i = 0; i < tree.children.length; i++) {
+  for (let i = 0; i < tree.children.length; i++) {
     _computeAndApplyTreeLayouts(tree.children[i], tree, options, context)
   }
 }
 
-function _computeAndApplyNodeLayout (element, parent, options, context) {
+function _computeAndApplyNodeLayout(element, parent, options, context) {
   if (parent) {
-    var parentSize = parent.layout.computed.size
-    var computedLayout = Layout3D.computeLayout(
+    let parentSize = parent.layout.computed.size
+    let computedLayout = Layout3D.computeLayout(
       {},
       element.layout,
       element.layout.matrix,
       IDENTITY_MATRIX,
-      parentSize
+      parentSize,
     )
 
     if (computedLayout === false) {
       // False indicates 'don't show
       element.layout.computed = {
         invisible: true,
-        size: parentSize || { x: 0, y: 0, z: 0 }
+        size: parentSize || { x: 0, y: 0, z: 0 },
       }
     } else {
       element.layout.computed = computedLayout || { size: parentSize } // Need to pass some size to children, so if this element doesn't have one, use the parent's
@@ -1237,12 +1230,12 @@ function _computeAndApplyNodeLayout (element, parent, options, context) {
   }
 }
 
-function _applyPropertyToElement (element, name, value, context, component) {
-  var type = element.elementName
+function _applyPropertyToElement(element, name, value, context, component) {
+  let type = element.elementName
 
   if (element.__instance) {
     // See if the instance at this node will allow us to apply this property
-    var addressables = element.__instance.getAddressableProperties()
+    let addressables = element.__instance.getAddressableProperties()
     if (addressables[name] !== undefined) {
       // Call the 'setter' of the given addressable property
       // TODO: Runtime type check?
@@ -1253,7 +1246,7 @@ function _applyPropertyToElement (element, name, value, context, component) {
     }
     // If we get here, then we will just apply to the wrapper element itself
     // using any of the built-in vanity handler functions
-    type = 'div' // TODO: How will this assumption bite us later?
+    type = "div" // TODO: How will this assumption bite us later?
   }
 
   if (
@@ -1265,48 +1258,48 @@ function _applyPropertyToElement (element, name, value, context, component) {
       element,
       value,
       context,
-      component
+      component,
     )
   } else {
     element.attributes[name] = value
   }
 }
 
-function _applyHandlerToElement (match, name, fn, context, component) {
+function _applyHandlerToElement(match, name, fn, context, component) {
   if (!match.__handlers) match.__handlers = {}
   match.__handlers[name] = fn
   return match
 }
 
-function _computeAndApplyPresetSizing (element, container, mode, deltas) {
+function _computeAndApplyPresetSizing(element, container, mode, deltas) {
   if (mode === true) {
-    mode = 'contain'
+    mode = "contain"
   }
 
-  var elementWidth = element.layout.sizeAbsolute.x
-  var elementHeight = element.layout.sizeAbsolute.y
+  let elementWidth = element.layout.sizeAbsolute.x
+  let elementHeight = element.layout.sizeAbsolute.y
 
-  var containerWidth = container.layout.computed.size.x
-  var containerHeight = container.layout.computed.size.y
+  let containerWidth = container.layout.computed.size.x
+  let containerHeight = container.layout.computed.size.y
 
   // I.e., the amount by which we'd have to multiply the element's scale to make it
   // exactly the same size as its container (without going above it)
-  var scaleDiffX = containerWidth / elementWidth
-  var scaleDiffY = containerHeight / elementHeight
+  let scaleDiffX = containerWidth / elementWidth
+  let scaleDiffY = containerHeight / elementHeight
 
   // This makes sure that the sizing occurs with respect to a correct and consistent origin point,
   // but only if the user didn't happen to explicitly set this value (we allow their override).
-  if (!element.attributes.style['transform-origin']) {
-    element.attributes.style['transform-origin'] = 'top left'
+  if (!element.attributes.style["transform-origin"]) {
+    element.attributes.style["transform-origin"] = "top left"
   }
 
   // IMPORTANT: If any value has been changed on the element, you must set this to true.
   // Otherwise the changed object won't go into the deltas dictionary, and the element won't update.
-  var changed = false
+  let changed = false
 
   switch (mode) {
     // Make the base element its default scale, which is just a multiplier of one. This is the default.
-    case 'normal':
+    case "normal":
       if (element.layout.scale.x !== 1.0) {
         changed = true
         element.layout.scale.x = 1.0
@@ -1318,7 +1311,7 @@ function _computeAndApplyPresetSizing (element, container, mode, deltas) {
       break
 
     // Stretch the element to fit the container on both x and y dimensions (distortion allowed)
-    case 'stretch':
+    case "stretch":
       if (scaleDiffX !== element.layout.scale.x) {
         changed = true
         element.layout.scale.x = scaleDiffX
@@ -1335,8 +1328,8 @@ function _computeAndApplyPresetSizing (element, container, mode, deltas) {
     // (image doesn't get squished). Image is letterboxed within the container.
     // When the image and container have different dimensions, the empty areas (either top/bottom of left/right)
     // are filled with the background-color.
-    case 'contain':
-      var containScaleToUse = null
+    case "contain":
+      let containScaleToUse = null
 
       // We're looking for the larger of the two scales that still allows both dimensions to fit in the box
       // The rounding is necessary to avoid precision issues, where we end up comparing e.g. 2.0000000000001 to 2
@@ -1369,8 +1362,8 @@ function _computeAndApplyPresetSizing (element, container, mode, deltas) {
       }
 
       // Offset the translation so that the element remains centered within the letterboxing
-      var containTranslationOffsetX = -(containScaleToUse * elementWidth - containerWidth) / 2
-      var containTranslationOffsetY = -(containScaleToUse * elementHeight - containerHeight) / 2
+      let containTranslationOffsetX = -(containScaleToUse * elementWidth - containerWidth) / 2
+      let containTranslationOffsetY = -(containScaleToUse * elementHeight - containerHeight) / 2
       if (element.layout.translation.x !== containTranslationOffsetX) {
         changed = true
         element.layout.translation.x = containTranslationOffsetX
@@ -1388,8 +1381,8 @@ function _computeAndApplyPresetSizing (element, container, mode, deltas) {
     // image aspect ratio (image doesn't get squished). The image "covers" the entire width or height
     // of the container. When the image and container have different dimensions, the image is clipped
     // either left/right or top/bottom.
-    case 'cover':
-      var coverScaleToUse = null
+    case "cover":
+      let coverScaleToUse = null
 
       // We're looking for the smaller of two scales that ensures the entire box is covered.
       // The rounding is necessary to avoid precision issues, where we end up comparing e.g. 2.0000000000001 to 2
@@ -1422,8 +1415,8 @@ function _computeAndApplyPresetSizing (element, container, mode, deltas) {
       }
 
       // Offset the translation so that the element remains centered despite clipping
-      var coverTranslationOffsetX = -(coverScaleToUse * elementWidth - containerWidth) / 2
-      var coverTranslationOffsetY = -(coverScaleToUse * elementHeight - containerHeight) / 2
+      let coverTranslationOffsetX = -(coverScaleToUse * elementWidth - containerWidth) / 2
+      let coverTranslationOffsetY = -(coverScaleToUse * elementHeight - containerHeight) / 2
       if (element.layout.translation.x !== coverTranslationOffsetX) {
         changed = true
         element.layout.translation.x = coverTranslationOffsetX
@@ -1444,7 +1437,7 @@ function _computeAndApplyPresetSizing (element, container, mode, deltas) {
   }
 }
 
-function _isBytecode (thing) {
+function _isBytecode(thing) {
   return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines
 }
 

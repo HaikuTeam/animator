@@ -2,39 +2,39 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var marshalParams = require('./marshalParams')
+let marshalParams = require("./marshalParams")
 
-function functionSpecificationToFunction (name, params, body, type) {
-  if (!type) type = 'FunctionExpression'
+function functionSpecificationToFunction(name, params, body, type) {
+  if (!type) type = "FunctionExpression"
 
   params = marshalParams(params)
-  var fn
+  let fn
 
-  if (type === 'ArrowFunctionExpression') {
+  if (type === "ArrowFunctionExpression") {
     fn = new Function( // eslint-disable-line
-      '\n' +
-        'return ' +
-        (name || '') +
-        '(' +
+      "\n" +
+        "return " +
+        (name || "") +
+        "(" +
         params +
-        ') => {\n' +
-        '  ' +
-        (body || '') +
-        '\n' +
-        '}\n'
+        ") => {\n" +
+        "  " +
+        (body || "") +
+        "\n" +
+        "}\n",
     )()
   } else {
     fn = new Function( // eslint-disable-line
-      '\n' +
-        'return function ' +
-        (name || '') +
-        '(' +
+      "\n" +
+        "return function " +
+        (name || "") +
+        "(" +
         params +
-        ') {\n' +
-        '  ' +
-        (body || '') +
-        '\n' +
-        '}\n'
+        ") {\n" +
+        "  " +
+        (body || "") +
+        "\n" +
+        "}\n",
     )()
   }
 

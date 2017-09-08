@@ -2,33 +2,33 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var SimpleEventEmitter = {}
+let SimpleEventEmitter = {}
 
-function create (instance) {
-  var registry = {}
-  var eavesdroppers = []
+function create(instance) {
+  let registry = {}
+  let eavesdroppers = []
 
-  instance.on = function on (key, fn) {
+  instance.on = function on(key, fn) {
     if (!registry[key]) registry[key] = []
     // Check for dupes and ignore if this is one
-    for (var i = 0; i < registry[key].length; i++) {
+    for (let i = 0; i < registry[key].length; i++) {
       if (registry[key][i] === fn) return this
     }
     registry[key].push(fn)
     return this
   }
 
-  instance.off = function off (key, fn) {
-    var listeners = registry[key]
+  instance.off = function off(key, fn) {
+    let listeners = registry[key]
     if (!listeners || listeners.length < 1) return this
-    for (var i = 0; i < listeners.length; i++) {
+    for (let i = 0; i < listeners.length; i++) {
       if (fn && listeners[i] === fn) listeners.splice(i, 1)
       else listeners.splice(i, 1)
     }
     return this
   }
 
-  instance.emit = function emit (
+  instance.emit = function emit(
     key,
     msg,
     a,
@@ -54,11 +54,11 @@ function create (instance) {
     w,
     x,
     y,
-    z
+    z,
   ) {
-    var listeners = registry[key]
+    let listeners = registry[key]
     if (listeners && listeners.length > 0) {
-      for (var i = 0; i < listeners.length; i++) {
+      for (let i = 0; i < listeners.length; i++) {
         listeners[i](
           msg,
           a,
@@ -84,12 +84,12 @@ function create (instance) {
           w,
           x,
           y,
-          z
+          z,
         )
       }
     }
     if (eavesdroppers.length > 0) {
-      for (var j = 0; j < eavesdroppers.length; j++) {
+      for (let j = 0; j < eavesdroppers.length; j++) {
         eavesdroppers[j](
           key,
           msg,
@@ -116,14 +116,14 @@ function create (instance) {
           w,
           x,
           y,
-          z
+          z,
         )
       }
     }
     return this
   }
 
-  instance.hear = function hear (fn) {
+  instance.hear = function hear(fn) {
     eavesdroppers.push(fn)
   }
 

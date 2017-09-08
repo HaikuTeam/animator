@@ -2,22 +2,22 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var applyLayout = require('./applyLayout')
-var assignAttributes = require('./assignAttributes')
-var getTypeAsString = require('./getTypeAsString')
-var _cloneVirtualElement = require('./cloneVirtualElement')
-var getFlexId = require('./getFlexId')
+let applyLayout = require("./applyLayout")
+let assignAttributes = require("./assignAttributes")
+let getTypeAsString = require("./getTypeAsString")
+let cloneVirtualElement = require("./cloneVirtualElement")
+let getFlexId = require("./getFlexId")
 
-var OBJECT = 'object'
-var STRING = 'string'
+let OBJECT = "object"
+let STRING = "string"
 
-function updateElement (
+function updateElement(
   domElement,
   virtualElement,
   parentNode,
   parentVirtualElement,
   component,
-  isPatchOperation
+  isPatchOperation,
 ) {
   // If a text node, go straight to 'replace' since we don't know the tag name
   if (isTextNode(virtualElement, component)) {
@@ -33,17 +33,17 @@ function updateElement (
 
   if (!domElement.haiku.element) {
     // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-    domElement.haiku.element = _cloneVirtualElement(virtualElement)
+    domElement.haiku.element = cloneVirtualElement(virtualElement)
   }
 
-  var domTagName = domElement.tagName.toLowerCase().trim()
-  var elName = normalizeName(getTypeAsString(virtualElement))
-  var virtualElementTagName = elName.toLowerCase().trim()
-  var incomingKey =
+  let domTagName = domElement.tagName.toLowerCase().trim()
+  let elName = normalizeName(getTypeAsString(virtualElement))
+  let virtualElementTagName = elName.toLowerCase().trim()
+  let incomingKey =
     virtualElement.key ||
     (virtualElement.attributes && virtualElement.attributes.key)
-  var existingKey = domElement.haiku && domElement.haiku.key
-  var isKeyDifferent =
+  let existingKey = domElement.haiku && domElement.haiku.key
+  let isKeyDifferent =
     incomingKey !== null &&
     incomingKey !== undefined &&
     incomingKey !== existingKey
@@ -57,7 +57,7 @@ function updateElement (
         virtualElement,
         parentNode,
         parentVirtualElement,
-        component
+        component,
       )
     }
 
@@ -67,7 +67,7 @@ function updateElement (
         virtualElement,
         parentNode,
         parentVirtualElement,
-        component
+        component,
       )
     }
   }
@@ -81,7 +81,7 @@ function updateElement (
       virtualElement,
       component,
       isPatchOperation,
-      isKeyDifferent
+      isKeyDifferent,
     )
   }
   applyLayout(
@@ -91,26 +91,26 @@ function updateElement (
     parentVirtualElement,
     component,
     isPatchOperation,
-    isKeyDifferent
+    isKeyDifferent,
   )
   if (incomingKey !== undefined && incomingKey !== null) {
     domElement.haiku.key = incomingKey
   }
 
-  var subcomponent = (virtualElement && virtualElement.__instance) || component
+  let subcomponent = (virtualElement && virtualElement.__instance) || component
 
   if (Array.isArray(virtualElement.children)) {
     // For performance, we don't render children during a patch operation, except in the case
     // that we have some text content, which we (hack) need to always assume needs an update.
     // TODO: Fix this hack and make smarter
-    var doSkipChildren = isPatchOperation && (typeof virtualElement.children[0] !== STRING)
+    let doSkipChildren = isPatchOperation && (typeof virtualElement.children[0] !== STRING)
     renderTree(
       domElement,
       virtualElement,
       virtualElement.children,
       subcomponent,
       isPatchOperation,
-      doSkipChildren
+      doSkipChildren,
     )
   } else if (!virtualElement.children) {
     // In case of falsy virtual children, we still need to remove elements that were already there
@@ -119,7 +119,7 @@ function updateElement (
       virtualElement,
       [],
       subcomponent,
-      isPatchOperation
+      isPatchOperation,
     )
   }
 
@@ -128,8 +128,8 @@ function updateElement (
 
 module.exports = updateElement
 
-var renderTree = require('./renderTree')
-var replaceElementWithText = require('./replaceElementWithText')
-var replaceElement = require('./replaceElement')
-var normalizeName = require('./normalizeName')
-var isTextNode = require('./isTextNode')
+let renderTree = require("./renderTree")
+let replaceElementWithText = require("./replaceElementWithText")
+let replaceElement = require("./replaceElement")
+let normalizeName = require("./normalizeName")
+let isTextNode = require("./isTextNode")

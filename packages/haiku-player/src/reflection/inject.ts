@@ -1,11 +1,11 @@
-var enhance = require('./enhance')
+let enhance = require("./enhance")
 
-module.exports = function inject (/* fn, ...args */) {
-  var args = []
-  for (var i = 0; i < arguments.length; i++) args[i] = arguments[i]
-  var fn = args.shift()
-  if (typeof fn !== 'function') {
-    console.warn('[haiku player] Inject expects a function as the first argument')
+module.exports = function inject(/* fn, ...args */) {
+  let args = []
+  for (let i = 0; i < arguments.length; i++) args[i] = arguments[i]
+  let fn = args.shift()
+  if (typeof fn !== "function") {
+    console.warn("[haiku player] Inject expects a function as the first argument")
     return fn
   }
   if (args.length > 0) {

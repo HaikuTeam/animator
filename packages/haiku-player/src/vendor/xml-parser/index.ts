@@ -8,11 +8,11 @@ module.exports = parse
  * @api public
  */
 
-function parse (xml) {
+function parse(xml) {
   xml = xml.trim()
 
   // strip comments
-  xml = xml.replace(/<!--[\s\S]*?-->/g, '')
+  xml = xml.replace(/<!--[\s\S]*?-->/g, "")
 
   return document()
 
@@ -20,10 +20,10 @@ function parse (xml) {
    * XML document.
    */
 
-  function document () {
+  function document() {
     return {
       declaration: declaration(),
-      root: tag()
+      root: tag(),
     }
   }
 
@@ -31,18 +31,18 @@ function parse (xml) {
    * Declaration.
    */
 
-  function declaration () {
-    var m = match(/^<\?xml\s*/)
+  function declaration() {
+    let m = match(/^<\?xml\s*/)
     if (!m) return
 
     // tag
-    var node = {
-      attributes: {}
+    let node = {
+      attributes: {},
     }
 
     // attributes
-    while (!(eos() || is('?>'))) {
-      var attr = attribute()
+    while (!(eos() || is("?>"))) {
+      let attr = attribute()
       if (!attr) return node
       node.attributes[attr.name] = attr.value
     }
@@ -56,20 +56,20 @@ function parse (xml) {
    * Tag.
    */
 
-  function tag () {
-    var m = match(/^<([\w-:.]+)\s*/)
+  function tag() {
+    let m = match(/^<([\w-:.]+)\s*/)
     if (!m) return
 
     // name
-    var node = {
+    let node = {
       name: m[1],
       attributes: {},
-      children: []
+      children: [],
     }
 
     // attributes
-    while (!(eos() || is('>') || is('?>') || is('/>'))) {
-      var attr = attribute()
+    while (!(eos() || is(">") || is("?>") || is("/>"))) {
+      let attr = attribute()
       if (!attr) return node
       node.attributes[attr.name] = attr.value
     }
@@ -85,7 +85,7 @@ function parse (xml) {
     node.content = content()
 
     // children
-    var child = tag()
+    let child = tag()
     while (child) {
       node.children.push(child)
       child = tag()
@@ -101,18 +101,18 @@ function parse (xml) {
    * Text content.
    */
 
-  function content () {
-    var m = match(/^([^<]*)/)
+  function content() {
+    let m = match(/^([^<]*)/)
     if (m) return m[1]
-    return ''
+    return ""
   }
 
   /**
    * Attribute.
    */
 
-  function attribute () {
-    var m = match(/([\w:-]+)\s*=\s*("[^"]*"|'[^']*'|\w+)\s*/)
+  function attribute() {
+    let m = match(/([\w:-]+)\s*=\s*("[^"]*"|'[^']*'|\w+)\s*/)
     if (!m) return
     return { name: m[1], value: strip(m[2]) }
   }
@@ -121,16 +121,16 @@ function parse (xml) {
    * Strip quotes from `val`.
    */
 
-  function strip (val) {
-    return val.replace(/^['"]|['"]$/g, '')
+  function strip(val) {
+    return val.replace(/^['"]|['"]$/g, "")
   }
 
   /**
    * Match `re` and advance the string.
    */
 
-  function match (re) {
-    var m = xml.match(re)
+  function match(re) {
+    let m = xml.match(re)
     if (!m) return
     xml = xml.slice(m[0].length)
     return m
@@ -140,7 +140,7 @@ function parse (xml) {
    * End-of-source.
    */
 
-  function eos () {
+  function eos() {
     return xml.length === 0
   }
 
@@ -148,7 +148,7 @@ function parse (xml) {
    * Check for `prefix`.
    */
 
-  function is (prefix) {
+  function is(prefix) {
     return xml.indexOf(prefix) === 0
   }
 }

@@ -26,23 +26,23 @@
  * THE SOFTWARE.
  */
 
-var SIZE_PROPORTIONAL = 0 // A percentage of the parent
-var SIZE_ABSOLUTE = 1 // A fixed size in screen pixels
+let SIZE_PROPORTIONAL = 0 // A percentage of the parent
+let SIZE_ABSOLUTE = 1 // A fixed size in screen pixels
 
-var SIZING_COMPONENTS = ['x', 'y', 'z']
+let SIZING_COMPONENTS = ["x", "y", "z"]
 
-function computeSize (
+function computeSize(
   outputSize,
   layoutSpec,
   sizeModeArray,
-  parentsizeAbsolute
+  parentsizeAbsolute,
 ) {
-  for (var i = 0; i < SIZING_COMPONENTS.length; i++) {
-    var component = SIZING_COMPONENTS[i]
+  for (let i = 0; i < SIZING_COMPONENTS.length; i++) {
+    let component = SIZING_COMPONENTS[i]
     switch (sizeModeArray[component]) {
       case SIZE_PROPORTIONAL:
-        var sizeProportional = layoutSpec.sizeProportional[component]
-        var sizeDifferential = layoutSpec.sizeDifferential[component]
+        let sizeProportional = layoutSpec.sizeProportional[component]
+        let sizeDifferential = layoutSpec.sizeDifferential[component]
         outputSize[component] =
           parentsizeAbsolute[component] * sizeProportional + sizeDifferential
         break

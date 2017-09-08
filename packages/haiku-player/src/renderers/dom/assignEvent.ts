@@ -2,13 +2,13 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var attachEventListener = require('./attachEventListener')
+let attachEventListener = require("./attachEventListener")
 
-function assignEvent (
+function assignEvent(
   domElement,
   eventName,
   listenerFunction,
-  component
+  component,
 ) {
   if (!domElement.haiku) {
     domElement.haiku = {}
@@ -20,9 +20,9 @@ function assignEvent (
     domElement.haiku.listeners[eventName] = []
   }
 
-  var already = false
-  for (var i = 0; i < domElement.haiku.listeners[eventName].length; i++) {
-    var existing = domElement.haiku.listeners[eventName][i]
+  let already = false
+  for (let i = 0; i < domElement.haiku.listeners[eventName].length; i++) {
+    let existing = domElement.haiku.listeners[eventName][i]
     if (existing._haikuListenerId === listenerFunction._haikuListenerId) {
       already = true
       break
@@ -30,14 +30,14 @@ function assignEvent (
   }
 
   if (!already) {
-    listenerFunction._haikuListenerId = Math.random() + ''
+    listenerFunction._haikuListenerId = Math.random() + ""
     domElement.haiku.listeners[eventName].push(listenerFunction)
 
     attachEventListener(
       domElement,
       eventName,
       listenerFunction,
-      component
+      component,
     )
   }
 }

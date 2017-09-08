@@ -2,79 +2,79 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var Transitions = require('./Transitions')
-var BasicUtils = require('./helpers/BasicUtils')
-var DOMSchema = require('./properties/dom/schema')
-var DOMValueParsers = require('./properties/dom/parsers')
-var enhance = require('./reflection/enhance')
-var HaikuHelpers = require('./HaikuHelpers')
-var assign = require('./vendor/assign')
+let Transitions = require("./Transitions")
+let BasicUtils = require("./helpers/BasicUtils")
+let DOMSchema = require("./properties/dom/schema")
+let DOMValueParsers = require("./properties/dom/parsers")
+let enhance = require("./reflection/enhance")
+let HaikuHelpers = require("./HaikuHelpers")
+let assign = require("./vendor/assign")
 
-var FUNCTION = 'function'
-var OBJECT = 'object'
+let FUNCTION = "function"
+let OBJECT = "object"
 
-function isFunction (value) {
+function isFunction(value) {
   return typeof value === FUNCTION
 }
 
-var INJECTABLES = {}
+let INJECTABLES = {}
 
-if (typeof window !== 'undefined') {
-  INJECTABLES['$window'] = {
+if (typeof window !== "undefined") {
+  INJECTABLES.$window = {
     schema: {
-      width: 'number',
-      height: 'number',
+      width: "number",
+      height: "number",
       screen: {
-        availHeight: 'number',
-        availLeft: 'number',
-        availWidth: 'number',
-        colorDepth: 'number',
-        height: 'number',
-        pixelDepth: 'number',
-        width: 'number',
+        availHeight: "number",
+        availLeft: "number",
+        availWidth: "number",
+        colorDepth: "number",
+        height: "number",
+        pixelDepth: "number",
+        width: "number",
         orientation: {
-          angle: 'number',
-          type: 'string'
-        }
+          angle: "number",
+          type: "string",
+        },
       },
       navigator: {
-        userAgent: 'string',
-        appCodeName: 'string',
-        appName: 'string',
-        appVersion: 'string',
-        cookieEnabled: 'boolean',
-        doNotTrack: 'boolean',
-        language: 'string',
-        maxTouchPoints: 'number',
-        onLine: 'boolean',
-        platform: 'string',
-        product: 'string',
-        vendor: 'string'
+        userAgent: "string",
+        appCodeName: "string",
+        appName: "string",
+        appVersion: "string",
+        cookieEnabled: "boolean",
+        doNotTrack: "boolean",
+        language: "string",
+        maxTouchPoints: "number",
+        onLine: "boolean",
+        platform: "string",
+        product: "string",
+        vendor: "string",
       },
       document: {
-        charset: 'string',
-        compatMode: 'string',
-        contentType: 'string',
-        cookie: 'string',
-        documentURI: 'string',
-        fullscreen: 'boolean',
-        readyState: 'number',
-        referrer: 'string',
-        title: 'string'
+        charset: "string",
+        compatMode: "string",
+        contentType: "string",
+        cookie: "string",
+        documentURI: "string",
+        fullscreen: "boolean",
+        readyState: "number",
+        referrer: "string",
+        title: "string",
       },
       location: {
-        hash: 'string',
-        host: 'string',
-        hostname: 'string',
-        href: 'string',
-        pathname: 'string',
-        protocol: 'string',
-        search: 'string'
-      }
+        hash: "string",
+        host: "string",
+        hostname: "string",
+        href: "string",
+        pathname: "string",
+        protocol: "string",
+        search: "string",
+      },
     },
-    summon: function (injectees, summonSpec) {
+    summon(injectees, summonSpec) {
       if (!injectees.$window) injectees.$window = {}
-      var out = injectees.$window
+      let out = injectees.$window
 
       out.width = window.innerWidth
       out.height = window.innerHeight
@@ -93,7 +93,7 @@ if (typeof window !== 'undefined') {
           out.screen.orientation.type = window.screen.orientation.type
         }
       }
-      if (typeof navigator !== 'undefined') {
+      if (typeof navigator !== "undefined") {
         if (!out.navigator) out.navigator = {}
         out.navigator.userAgent = navigator.userAgent
         out.navigator.appCodeName = navigator.appCodeName
@@ -131,28 +131,28 @@ if (typeof window !== 'undefined') {
         out.location.protocol = window.location.protocol
         out.location.search = window.location.search
       }
-    }
+    },
   }
 }
 
-if (typeof global !== 'undefined') {
-  INJECTABLES['$global'] = {
+if (typeof global !== "undefined") {
+  INJECTABLES.$global = {
     schema: {
       process: {
-        pid: 'number',
-        arch: 'string',
-        platform: 'string',
-        argv: ['string'],
-        title: 'string',
-        version: 'string',
-        env: {} // Worth explicitly numerating these? #QUESTION
-      }
+        pid: "number",
+        arch: "string",
+        platform: "string",
+        argv: ["string"],
+        title: "string",
+        version: "string",
+        env: {}, // Worth explicitly numerating these? #QUESTION
+      },
     },
-    summon: function (injectees, summonSpec) {
+    summon(injectees, summonSpec) {
       if (!injectees.$global) injectees.$global = {}
-      var out = injectees.$global
+      let out = injectees.$global
 
-      if (typeof process !== 'undefined') {
+      if (typeof process !== "undefined") {
         if (!out.process) out.process = {}
         out.process.pid = process.pid
         out.process.arch = process.arch
@@ -162,51 +162,51 @@ if (typeof global !== 'undefined') {
         out.process.version = process.version
         out.process.env = process.env
       }
-    }
+    },
   }
 }
 
-INJECTABLES['$player'] = {
+INJECTABLES.$player = {
   schema: {
-    version: 'string',
+    version: "string",
     options: {
-      seed: 'string',
-      loop: 'boolean',
-      sizing: 'string',
-      preserve3d: 'boolean',
-      position: 'string',
-      overflowX: 'string',
-      overflowY: 'string'
+      seed: "string",
+      loop: "boolean",
+      sizing: "string",
+      preserve3d: "boolean",
+      position: "string",
+      overflowX: "string",
+      overflowY: "string",
     },
     timeline: {
-      name: 'string',
-      duration: 'number',
-      repeat: 'boolean',
+      name: "string",
+      duration: "number",
+      repeat: "boolean",
       time: {
-        apparent: 'number',
-        elapsed: 'number',
-        max: 'number'
+        apparent: "number",
+        elapsed: "number",
+        max: "number",
       },
       frame: {
-        apparent: 'number',
-        elapsed: 'number'
-      }
+        apparent: "number",
+        elapsed: "number",
+      },
     },
     clock: {
-      frameDuration: 'number',
-      frameDelay: 'number',
+      frameDuration: "number",
+      frameDelay: "number",
       time: {
-        apparent: 'number',
-        elapsed: 'number'
-      }
-    }
+        apparent: "number",
+        elapsed: "number",
+      },
+    },
   },
-  summon: function (injectees, summonSpec, hostInstance, matchingElement, timelineName) {
+  summon(injectees, summonSpec, hostInstance, matchingElement, timelineName) {
     if (!injectees.$player) injectees.$player = {}
-    var out = injectees.$player
+    let out = injectees.$player
 
     out.version = hostInstance._context.PLAYER_VERSION
-    var options = hostInstance._context.config.options
+    let options = hostInstance._context.config.options
     if (options) {
       if (!out.options) out.options = {}
       out.options.seed = options.seed
@@ -217,7 +217,7 @@ INJECTABLES['$player'] = {
       out.options.overflowX = options.overflowX
       out.options.overflowY = options.overflowY
     }
-    var timelineInstance = hostInstance.getTimeline(timelineName)
+    let timelineInstance = hostInstance.getTimeline(timelineName)
     if (timelineInstance) {
       if (!out.timeline) out.timeline = {}
       out.timeline.name = timelineName
@@ -231,7 +231,7 @@ INJECTABLES['$player'] = {
       out.timeline.frame.apparent = timelineInstance.getFrame()
       out.timeline.frame.elapsed = timelineInstance.getUnboundedFrame()
     }
-    var clockInstance = hostInstance.getClock()
+    let clockInstance = hostInstance.getClock()
     if (clockInstance) {
       if (!out.clock) out.clock = {}
       out.clock.frameDuration = clockInstance.options.frameDuration
@@ -240,27 +240,27 @@ INJECTABLES['$player'] = {
       out.clock.time.apparent = clockInstance.getExplicitTime()
       out.clock.time.elapsed = clockInstance.getRunningTime()
     }
-  }
+  },
 }
 
-var EVENT_SCHEMA = {
+let EVENT_SCHEMA = {
   mouse: {
-    x: 'number',
-    y: 'number',
-    isDown: 'boolean'
+    x: "number",
+    y: "number",
+    isDown: "boolean",
   },
   touches: [{
-    x: 'number',
-    y: 'number'
+    x: "number",
+    y: "number",
   }],
   mouches: [{
-    x: 'number',
-    y: 'number'
+    x: "number",
+    y: "number",
   }],
   keys: [{
-    which: 'number',
-    code: 'number' // alias for 'which'
-  }]
+    which: "number",
+    code: "number", // alias for 'which'
+  }],
   // TODO:
   // accelerometer
   // compass
@@ -268,16 +268,16 @@ var EVENT_SCHEMA = {
   // camera
 }
 
-var ELEMENT_SCHEMA = {
+let ELEMENT_SCHEMA = {
   // A function in the schema indicates that schema is dynamic, dependent on some external information
-  properties: function (element) {
-    var defined = DOMSchema[element.elementName]
+  properties(element) {
+    let defined = DOMSchema[element.elementName]
     if (!defined) {
-      console.warn('[haiku player] element ' + element.elementName + ' has no schema defined')
+      console.warn("[haiku player] element " + element.elementName + " has no schema defined")
       return {}
     }
     return defined
-  }
+  },
 
   // TODO
   // bbox: {
@@ -291,19 +291,19 @@ var ELEMENT_SCHEMA = {
   // events: EVENT_SCHEMA
 }
 
-function assignElementInjectables (obj, key, summonSpec, hostInstance, element) {
+function assignElementInjectables(obj, key, summonSpec, hostInstance, element) {
   // If for some reason no element, nothing to do
   if (!element) {
     return {}
   }
 
   // For some reason we get string elements here #FIXME
-  if (typeof element === 'string') {
+  if (typeof element === "string") {
     return {}
   }
 
   obj[key] = {}
-  var out = obj[key]
+  let out = obj[key]
 
   // It's not clear yet when we need fallbacks
   // var fallbacks = DOMFallbacks[element.elementName]
@@ -347,7 +347,7 @@ function assignElementInjectables (obj, key, summonSpec, hostInstance, element) 
   // out.events = hostInstance._context.getElementEvents(element)
 }
 
-INJECTABLES['$tree'] = {
+INJECTABLES.$tree = {
   schema: {
     // Unique to $tree
     parent: ELEMENT_SCHEMA,
@@ -356,9 +356,9 @@ INJECTABLES['$tree'] = {
     // Aliases for convenience
     component: ELEMENT_SCHEMA,
     root: ELEMENT_SCHEMA, // root at runtime
-    element: ELEMENT_SCHEMA // same as $element
+    element: ELEMENT_SCHEMA, // same as $element
   },
-  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+  summon(injectees, summonSpec, hostInstance, matchingElement) {
     if (!injectees.$tree) injectees.$tree = {}
 
     injectees.$tree.siblings = [] // Provide an array even if no siblings in case user tries to access
@@ -366,12 +366,12 @@ INJECTABLES['$tree'] = {
     injectees.$tree.parent = null
 
     if (matchingElement.__parent) {
-      var subspec0 = (typeof summonSpec === 'string') ? summonSpec : (summonSpec.$tree && summonSpec.$tree.parent)
-      assignElementInjectables(injectees.$tree, 'parent', subspec0, hostInstance, matchingElement.__parent)
+      let subspec0 = (typeof summonSpec === "string") ? summonSpec : (summonSpec.$tree && summonSpec.$tree.parent)
+      assignElementInjectables(injectees.$tree, "parent", subspec0, hostInstance, matchingElement.__parent)
 
-      for (var i = 0; i < matchingElement.__parent.children.length; i++) {
-        var sibling = matchingElement.__parent.children[i]
-        var subspec1 = (typeof summonSpec === 'string')
+      for (let i = 0; i < matchingElement.__parent.children.length; i++) {
+        let sibling = matchingElement.__parent.children[i]
+        let subspec1 = (typeof summonSpec === "string")
           ? summonSpec
           : summonSpec.$tree && summonSpec.$tree.siblings && summonSpec.$tree.siblings[j]
         assignElementInjectables(injectees.$tree.siblings, i, subspec1, hostInstance, sibling)
@@ -381,9 +381,9 @@ INJECTABLES['$tree'] = {
     injectees.$tree.children = [] // Provide an array even if no children in case user tries to access
 
     if (matchingElement.children) {
-      for (var j = 0; j < matchingElement.children.length; j++) {
-        var child = matchingElement.children[j]
-        var subspec2 = (typeof summonSpec === 'string')
+      for (let j = 0; j < matchingElement.children.length; j++) {
+        let child = matchingElement.children[j]
+        let subspec2 = (typeof summonSpec === "string")
           ? summonSpec
           : summonSpec.$tree && summonSpec.$tree.children && summonSpec.$tree.children[j]
         assignElementInjectables(injectees.$tree.children, j, subspec2, hostInstance, child)
@@ -394,142 +394,142 @@ INJECTABLES['$tree'] = {
     // and avoid recalc if it's already been added:
 
     if (!injectees.$component) {
-      INJECTABLES['$component'].summon(injectees, summonSpec, hostInstance, matchingElement)
+      INJECTABLES.$component.summon(injectees, summonSpec, hostInstance, matchingElement)
     }
 
     injectees.$tree.component = injectees.$component
 
     if (!injectees.$root) {
-      INJECTABLES['$root'].summon(injectees, summonSpec, hostInstance, matchingElement)
+      INJECTABLES.$root.summon(injectees, summonSpec, hostInstance, matchingElement)
     }
 
     injectees.$tree.root = injectees.$root
 
     if (!injectees.$element) {
-      INJECTABLES['$element'].summon(injectees, summonSpec, hostInstance, matchingElement)
+      INJECTABLES.$element.summon(injectees, summonSpec, hostInstance, matchingElement)
     }
 
     injectees.$tree.element = injectees.$element
-  }
+  },
 }
 
 // (top-level Element of a given component, (i.e. tranverse tree upward past groups but
 // stop at first component definition))
-INJECTABLES['$component'] = {
+INJECTABLES.$component = {
   schema: ELEMENT_SCHEMA,
-  summon: function (injectees, summonSpec, hostInstance) {
+  summon(injectees, summonSpec, hostInstance) {
     // Don't double-recalc this if it's already shown to be present in $tree
     if (injectees.$tree && injectees.$tree.component) {
       injectees.$component = injectees.$tree.component
     } else {
-      var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$component
-      assignElementInjectables(injectees, '$component', subspec, hostInstance, hostInstance._getTopLevelElement())
+      let subspec = (typeof summonSpec === "string") ? summonSpec : summonSpec.$component
+      assignElementInjectables(injectees, "$component", subspec, hostInstance, hostInstance._getTopLevelElement())
     }
-  }
+  },
 }
 
 // absolute root of component tree (but does not traverse host codebase DOM)
 // i.e. if Haiku components are nested. Until we support nested components,
 // $root will be the same as $component
-INJECTABLES['$root'] = {
+INJECTABLES.$root = {
   schema: ELEMENT_SCHEMA,
-  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+  summon(injectees, summonSpec, hostInstance, matchingElement) {
     // Don't double-recalc this if it's already shown to be present in $tree
     if (injectees.$tree && injectees.$tree.root) {
       injectees.$root = injectees.$tree.root
     } else {
       // Until we support nested components, $root resolves to $component
-      var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$root
-      assignElementInjectables(injectees, '$root', subspec, hostInstance, hostInstance._getTopLevelElement())
+      let subspec = (typeof summonSpec === "string") ? summonSpec : summonSpec.$root
+      assignElementInjectables(injectees, "$root", subspec, hostInstance, hostInstance._getTopLevelElement())
     }
-  }
+  },
 }
 
-INJECTABLES['$element'] = {
+INJECTABLES.$element = {
   schema: ELEMENT_SCHEMA,
-  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
+  summon(injectees, summonSpec, hostInstance, matchingElement) {
     // Don't double-recalc this if it's already shown to be present in $tree
     if (injectees.$tree && injectees.$tree.element) {
       injectees.$element = injectees.$tree.element
     } else {
-      var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$element
-      assignElementInjectables(injectees, '$element', subspec, hostInstance, matchingElement)
-    }
-  }
-}
-
-INJECTABLES['$user'] = {
-  schema: assign({}, EVENT_SCHEMA),
-  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
-    injectees.$user = hostInstance._context._getGlobalUserState()
-  }
-}
-
-INJECTABLES['$flow'] = {
-  schema: {
-    repeat: {
-      list: ['any'],
-      index: 'number',
-      value: 'any',
-      data: 'any', // alias for value
-      payload: 'any' // alias for payload
-    },
-    'if': {
-      value: 'any',
-      data: 'any', // alias for value
-      payload: 'any' // alias for payload
-    },
-    'yield': {
-      value: 'any',
-      data: 'any', // alias for value
-      payload: 'any' // alias for payload
-    },
-    placeholder: {
-      node: 'any' // The injected element?
+      let subspec = (typeof summonSpec === "string") ? summonSpec : summonSpec.$element
+      assignElementInjectables(injectees, "$element", subspec, hostInstance, matchingElement)
     }
   },
-  summon: function (injectees, summonSpec, hostInstance, matchingElement) {
-    // if (!injectees.$flow) injectees.$flow = {}
-    // var out = injectees.$flow
-  }
 }
 
-INJECTABLES['$helpers'] = {
+INJECTABLES.$user = {
+  schema: assign({}, EVENT_SCHEMA),
+  summon(injectees, summonSpec, hostInstance, matchingElement) {
+    injectees.$user = hostInstance._context._getGlobalUserState()
+  },
+}
+
+INJECTABLES.$flow = {
+  schema: {
+    repeat: {
+      list: ["any"],
+      index: "number",
+      value: "any",
+      data: "any", // alias for value
+      payload: "any", // alias for payload
+    },
+    if: {
+      value: "any",
+      data: "any", // alias for value
+      payload: "any", // alias for payload
+    },
+    yield: {
+      value: "any",
+      data: "any", // alias for value
+      payload: "any", // alias for payload
+    },
+    placeholder: {
+      node: "any", // The injected element?
+    },
+  },
+  summon(injectees, summonSpec, hostInstance, matchingElement) {
+    // if (!injectees.$flow) injectees.$flow = {}
+    // var out = injectees.$flow
+  },
+}
+
+INJECTABLES.$helpers = {
   schema: HaikuHelpers.schema,
-  summon: function (injectees) {
+  summon(injectees) {
     injectees.$helpers = HaikuHelpers.helpers
-  }
+  },
 }
 
 // List of JavaScript global built-in objects that we want to provide as an injectable.
 // In the future, we might end up passing in modified versions of these objects/functions.
-var BUILTIN_INJECTABLES = {
-  'Infinity': Infinity,
-  'NaN': NaN,
-  'undefined': void (0),
-  'Object': Object,
-  'Boolean': Boolean,
-  'Math': Math,
-  'Date': Date,
-  'JSON': JSON,
-  'Number': Number,
-  'String': String,
-  'RegExp': RegExp,
-  'Array': Array,
-  'isFinite': isFinite,
-  'isNaN': isNaN,
-  'parseFloat': parseFloat,
-  'parseInt': parseInt,
-  'decodeURI': decodeURI,
-  'decodeURIComponent': decodeURIComponent,
-  'encodeURI': encodeURI,
-  'encodeURIComponent': encodeURIComponent,
-  'escape': escape,
-  'unescape': unescape,
-  'Error': Error,
-  'ReferenceError': ReferenceError,
-  'SyntaxError': SyntaxError,
-  'TypeError': TypeError
+let BUILTIN_INJECTABLES = {
+  Infinity,
+  NaN,
+  undefined: void (0),
+  Object,
+  Boolean,
+  Math,
+  Date,
+  JSON,
+  Number,
+  String,
+  RegExp,
+  Array,
+  isFinite,
+  isNaN,
+  parseFloat,
+  parseInt,
+  decodeURI,
+  decodeURIComponent,
+  encodeURI,
+  encodeURIComponent,
+  escape,
+  unescape,
+  Error,
+  ReferenceError,
+  SyntaxError,
+  TypeError,
   // TODO: Determine which of the following to include. Need to test each for support.
   // 'Int8Array': Int8Array,
   // 'Uint8Array': Uint8Array,
@@ -566,14 +566,14 @@ var BUILTIN_INJECTABLES = {
   // 'StopIteration': StopIteration
 }
 
-for (var builtinInjectableKey in BUILTIN_INJECTABLES) {
-  (function (key, value) {
+for (let builtinInjectableKey in BUILTIN_INJECTABLES) {
+  (function(key, value) {
     INJECTABLES[key] = {
       builtin: true,
-      schema: '*',
-      summon: function (injectees) {
+      schema: "*",
+      summon(injectees) {
         injectees[key] = value
-      }
+      },
     }
   }(builtinInjectableKey, BUILTIN_INJECTABLES[builtinInjectableKey]))
 }
@@ -581,65 +581,65 @@ for (var builtinInjectableKey in BUILTIN_INJECTABLES) {
 // When editing a component, any of these appearing inside an expression will trigger a warning.
 // This is kept in the player so it's easier to compare these to the built-in injectables and
 // other special treatment for JavaScript globals. "single source of truth" etc.
-var FORBIDDEN_EXPRESSION_TOKENS = {
+let FORBIDDEN_EXPRESSION_TOKENS = {
   // Keywords
-  'new': true,
-  'this': true,
-  'with': true,
-  'delete': true,
-  'export': true,
-  'extends': true,
-  'super': true,
-  'class': true,
-  'abstract': true,
-  'interface': true,
-  'static': true,
-  'label': true,
-  'goto': true,
-  'private': true,
-  'import': true,
-  'public': true,
+  new: true,
+  this: true,
+  with: true,
+  delete: true,
+  export: true,
+  extends: true,
+  super: true,
+  class: true,
+  abstract: true,
+  interface: true,
+  static: true,
+  label: true,
+  goto: true,
+  private: true,
+  import: true,
+  public: true,
 
   // Future keywords
-  'do': true,
-  'native': true,
-  'package': true,
-  'transient': true,
-  'implements': true,
-  'protected': true,
-  'throws': true,
-  'synchronized': true,
-  'final': true,
+  do: true,
+  native: true,
+  package: true,
+  transient: true,
+  implements: true,
+  protected: true,
+  throws: true,
+  synchronized: true,
+  final: true,
 
   // Common globals
-  'window': true,
-  'document': true,
-  'global': true,
+  window: true,
+  document: true,
+  global: true,
 
   // Danger
-  'eval': true,
-  'uneval': true,
-  'Function': true,
-  'EvalError': true,
+  eval: true,
+  uneval: true,
+  Function: true,
+  EvalError: true,
 
   // Module stuff to forbid
-  'require': true,
-  'module': true,
-  'exports': true,
-  'Module': true,
+  require: true,
+  module: true,
+  exports: true,
+  Module: true,
 
   // Sandbox
-  'arguments': true,
-  'callee': true,
+  arguments: true,
+  callee: true,
 
   // Identifiers on built-in global objects
-  'prototpye': true, // Object.
-  '__proto__': true, // Object.
-  'freeze': true, // Object.
-  'setPrototypeOf': true, // Object.
-  'constructor': true, // Object.
-  'defineProperties': true, // Object.
-  'defineProperty': true // Object.
+  prototpye: true, // Object.
+  __proto__: true, // Object.
+  freeze: true, // Object.
+  setPrototypeOf: true, // Object.
+  constructor: true, // Object.
+  defineProperties: true, // Object.
+  defineProperty: true, // Object.
 }
 
 // Just to be completionist/in case we want to whitelist instead, here is a list of keywords that we would allow.
@@ -678,24 +678,24 @@ var FORBIDDEN_EXPRESSION_TOKENS = {
 //   'short': true,
 // }
 
-function ValueBuilder (component) {
+function ValueBuilder(component) {
   this._component = component // ::HaikuComponent
   this._parsees = {}
   this._changes = {}
   this._summonees = {}
   this._evaluations = {}
 
-  HaikuHelpers.register('now', function _helperNow () {
+  HaikuHelpers.register("now", function _helperNow() {
     return this._component._context.getDeterministicTime()
   }.bind(this))
 
-  HaikuHelpers.register('rand', function _helperRand () {
+  HaikuHelpers.register("rand", function _helperRand() {
     // prng seeded at the HaikuContext level
     return this._component._context.getDeterministicRand()
   }.bind(this))
 }
 
-ValueBuilder.prototype._clearCaches = function _clearCaches () {
+ValueBuilder.prototype._clearCaches = function _clearCaches() {
   this._parsees = {}
   this._changes = {}
   this._summonees = {}
@@ -703,15 +703,15 @@ ValueBuilder.prototype._clearCaches = function _clearCaches () {
   return this
 }
 
-ValueBuilder.prototype._clearCachedClusters = function _clearCachedClusters (
+ValueBuilder.prototype._clearCachedClusters = function _clearCachedClusters(
   timelineName,
-  componentId
+  componentId,
 ) {
   if (this._parsees[timelineName]) this._parsees[timelineName][componentId] = {}
   return this
 }
 
-ValueBuilder.prototype.evaluate = function _evaluate (
+ValueBuilder.prototype.evaluate = function _evaluate(
   fn,
   timelineName,
   flexId,
@@ -719,12 +719,12 @@ ValueBuilder.prototype.evaluate = function _evaluate (
   propertyName,
   keyframeMs,
   keyframeCluster,
-  hostInstance
+  hostInstance,
 ) {
   enhance(fn)
 
   // We'll store the result of this evaluation in this variable (so we can cache it in case unexpected subsequent calls)
-  var evaluation = void 0
+  let evaluation = void 0
 
   if (fn.specification === true) {
     // This function is of an unknown kind, so just evaluate it normally without magic dependency injection
@@ -740,7 +740,7 @@ ValueBuilder.prototype.evaluate = function _evaluate (
       // If the summon isn't in the destructured object format, just evaluate it
       evaluation = fn.call(hostInstance, hostInstance._states)
     } else {
-      var summoneesArray = this.summonSummonables(
+      let summoneesArray = this.summonSummonables(
         fn.specification.params,
         timelineName,
         flexId,
@@ -748,10 +748,10 @@ ValueBuilder.prototype.evaluate = function _evaluate (
         propertyName,
         keyframeMs,
         keyframeCluster,
-        hostInstance
+        hostInstance,
       )
 
-      var previousSummoneesArray = this._getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs)
+      let previousSummoneesArray = this._getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs)
 
       if (_areSummoneesDifferent(previousSummoneesArray, summoneesArray)) {
         this._cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summoneesArray)
@@ -772,14 +772,14 @@ ValueBuilder.prototype.evaluate = function _evaluate (
   return evaluation
 }
 
-ValueBuilder.prototype._getPreviousSummonees = function _getPreviousSummonees (timelineName, flexId, propertyName, keyframeMs) {
+ValueBuilder.prototype._getPreviousSummonees = function _getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs) {
   if (!this._summonees[timelineName]) return void (0)
   if (!this._summonees[timelineName][flexId]) return void (0)
   if (!this._summonees[timelineName][flexId][propertyName]) return void (0)
   return this._summonees[timelineName][flexId][propertyName][keyframeMs]
 }
 
-ValueBuilder.prototype._cacheSummonees = function _cacheSummonees (timelineName, flexId, propertyName, keyframeMs, summonees) {
+ValueBuilder.prototype._cacheSummonees = function _cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summonees) {
   if (!this._summonees[timelineName]) this._summonees[timelineName] = {}
   if (!this._summonees[timelineName][flexId]) this._summonees[timelineName][flexId] = {}
   if (!this._summonees[timelineName][flexId][propertyName]) this._summonees[timelineName][flexId][propertyName] = {}
@@ -787,14 +787,14 @@ ValueBuilder.prototype._cacheSummonees = function _cacheSummonees (timelineName,
   return summonees
 }
 
-ValueBuilder.prototype._getPreviousEvaluation = function _getPreviousEvaluation (timelineName, flexId, propertyName, keyframeMs) {
+ValueBuilder.prototype._getPreviousEvaluation = function _getPreviousEvaluation(timelineName, flexId, propertyName, keyframeMs) {
   if (!this._evaluations[timelineName]) return void (0)
   if (!this._evaluations[timelineName][flexId]) return void (0)
   if (!this._evaluations[timelineName][flexId][propertyName]) return void (0)
   return this._evaluations[timelineName][flexId][propertyName][keyframeMs]
 }
 
-ValueBuilder.prototype._cacheEvaluation = function _cacheEvaluation (timelineName, flexId, propertyName, keyframeMs, evaluation) {
+ValueBuilder.prototype._cacheEvaluation = function _cacheEvaluation(timelineName, flexId, propertyName, keyframeMs, evaluation) {
   if (!this._evaluations[timelineName]) this._evaluations[timelineName] = {}
   if (!this._evaluations[timelineName][flexId]) this._evaluations[timelineName][flexId] = {}
   if (!this._evaluations[timelineName][flexId][propertyName]) this._evaluations[timelineName][flexId][propertyName] = {}
@@ -802,7 +802,7 @@ ValueBuilder.prototype._cacheEvaluation = function _cacheEvaluation (timelineNam
   return evaluation
 }
 
-ValueBuilder.prototype.summonSummonables = function _summonSummonables (
+ValueBuilder.prototype.summonSummonables = function _summonSummonables(
   paramsArray,
   timelineName,
   flexId,
@@ -810,41 +810,41 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
   propertyName,
   keyframeMs,
   keyframeCluster,
-  hostInstance
+  hostInstance,
 ) {
-  var summonablesArray = []
+  let summonablesArray = []
 
   // Temporary storage, just creating one object here to avoid excessive allocations
-  var _summonStorage = {}
+  let summonStorage = {}
 
-  for (var i = 0; i < paramsArray.length; i++) {
-    var summonsEntry = paramsArray[i]
+  for (let i = 0; i < paramsArray.length; i++) {
+    let summonsEntry = paramsArray[i]
 
     // We'll store the output of the summons in this var, whether we're dealing with
     // a complex nested summonable or a flat one
-    var summonsOutput
+    let summonsOutput
 
     // In case of a string, we will treat it as the key for the object to summon
-    if (typeof summonsEntry === 'string') {
+    if (typeof summonsEntry === "string") {
       // Treat the entry as the key to a known injectable
       if (INJECTABLES[summonsEntry]) {
-        _summonStorage[summonsEntry] = undefined // Clear out the old value before populating with the new one
+        summonStorage[summonsEntry] = undefined // Clear out the old value before populating with the new one
         INJECTABLES[summonsEntry].summon(
-          _summonStorage, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they summonsKey must be added
+          summonStorage, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they summonsKey must be added
           summonsEntry, // The summon function should know how to handle a string and what it signifies
           hostInstance,
           matchingElement,
-          timelineName
+          timelineName,
         )
-        summonsOutput = _summonStorage[summonsEntry]
+        summonsOutput = summonStorage[summonsEntry]
       } else {
         summonsOutput = hostInstance.state[summonsEntry]
       }
-    } else if (summonsEntry && typeof summonsEntry === 'object') {
+    } else if (summonsEntry && typeof summonsEntry === "object") {
       // If dealing with a summon that is an object, the output will be an object
       summonsOutput = {}
 
-      for (var summonsKey in summonsEntry) {
+      for (let summonsKey in summonsEntry) {
         // If the summons structure has a falsy, just skip it - I don't see why how this could happen, but just in case
         if (!summonsEntry[summonsKey]) continue
 
@@ -855,7 +855,7 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
             summonsEntry[summonsKey], // The object specifies the specific fields we want to extract
             hostInstance,
             matchingElement,
-            timelineName
+            timelineName,
           )
 
           continue
@@ -878,15 +878,15 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables (
   return summonablesArray
 }
 
-ValueBuilder.prototype._getSummonablesSchema = function _getSummonablesSchema () {
-  var schema = {}
-  for (var key in INJECTABLES) {
+ValueBuilder.prototype._getSummonablesSchema = function _getSummonablesSchema() {
+  let schema = {}
+  for (let key in INJECTABLES) {
     schema[key] = INJECTABLES[key].schema
   }
   return schema
 }
 
-function _areSummoneesDifferent (previous, incoming) {
+function _areSummoneesDifferent(previous, incoming) {
   // First check if either is an array, and do an el-by-el comparison
   if (Array.isArray(previous) && Array.isArray(incoming)) {
     // A good quick check is just to compare the lengths
@@ -894,7 +894,7 @@ function _areSummoneesDifferent (previous, incoming) {
       return true
     } else {
       // Do an element-by-element comparison; if any fail, it all fails
-      for (var i = 0; i < incoming.length; i++) {
+      for (let i = 0; i < incoming.length; i++) {
         if (_areSummoneesDifferent(previous[i], incoming[i])) {
           return true
         }
@@ -905,7 +905,7 @@ function _areSummoneesDifferent (previous, incoming) {
   } else if (typeof previous === OBJECT && typeof incoming === OBJECT) {
     // Sub-objects detected; recurse and ask the same question
     if (previous !== null && incoming !== null) {
-      for (var key in incoming) {
+      for (let key in incoming) {
         if (_areSummoneesDifferent(previous[key], incoming[key])) {
           return true
         }
@@ -922,7 +922,7 @@ function _areSummoneesDifferent (previous, incoming) {
   return previous !== incoming
 }
 
-ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueCluster (
+ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueCluster(
   timelineName,
   flexId,
   matchingElement,
@@ -930,7 +930,7 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
   cluster,
   hostInstance,
   isPatchOperation,
-  skipCache
+  skipCache,
 ) {
   // Establish the cache objects for this properties group within this timeline
   if (!this._parsees[timelineName]) this._parsees[timelineName] = {}
@@ -941,10 +941,10 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
     this._parsees[timelineName][flexId][outputName] = {}
   }
 
-  var parsee = this._parsees[timelineName][flexId][outputName]
+  let parsee = this._parsees[timelineName][flexId][outputName]
 
-  for (var ms in cluster) {
-    var descriptor = cluster[ms]
+  for (let ms in cluster) {
+    let descriptor = cluster[ms]
 
     // Important: The ActiveComponent depends on the ability to be able to get fresh values via this option
     if (skipCache) {
@@ -965,7 +965,7 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
       parsee[ms].machine = true
 
       // Note that evaluate doesn't necessarily call the function - it may itself return a cached value
-      var functionReturnValue = this.evaluate(
+      let functionReturnValue = this.evaluate(
         descriptor.value,
         timelineName,
         flexId,
@@ -973,11 +973,11 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
         outputName,
         ms,
         cluster,
-        hostInstance
+        hostInstance,
       )
 
       // The function's return value is expected to be in the *raw* format - we parse to allow for interpolation
-      var parser1 = this.getParser(outputName, matchingElement)
+      let parser1 = this.getParser(outputName, matchingElement)
       if (parser1) {
         parsee[ms].value = parser1(functionReturnValue)
       } else {
@@ -995,7 +995,7 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
         parsee[ms].curve = descriptor.curve
       }
 
-      var parser2 = this.getParser(outputName, matchingElement)
+      let parser2 = this.getParser(outputName, matchingElement)
       if (parser2) {
         parsee[ms].value = parser2(descriptor.value)
       } else {
@@ -1008,28 +1008,28 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
   return parsee
 }
 
-ValueBuilder.prototype.getParser = function getParser (outputName, virtualElement) {
+ValueBuilder.prototype.getParser = function getParser(outputName, virtualElement) {
   if (!virtualElement) return undefined
-  var foundParser = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement)
+  let foundParser = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement)
   if (!foundParser) foundParser = DOMValueParsers[virtualElement.elementName] && DOMValueParsers[virtualElement.elementName][outputName]
   return foundParser && foundParser.parse
 }
 
-ValueBuilder.prototype.getGenerator = function getGenerator (outputName, virtualElement) {
+ValueBuilder.prototype.getGenerator = function getGenerator(outputName, virtualElement) {
   if (!virtualElement) return undefined
-  var foundGenerator = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement)
+  let foundGenerator = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement)
   if (!foundGenerator) foundGenerator = DOMValueParsers[virtualElement.elementName] && DOMValueParsers[virtualElement.elementName][outputName]
   return foundGenerator && foundGenerator.generate
 }
 
-ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFinalValueFromParsedValue (
+ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFinalValueFromParsedValue(
   timelineName,
   flexId,
   matchingElement,
   outputName,
-  computedValue
+  computedValue,
 ) {
-  var generator = this.getGenerator(outputName, matchingElement)
+  let generator = this.getGenerator(outputName, matchingElement)
   if (generator) {
     return generator(computedValue)
   } else {
@@ -1037,14 +1037,14 @@ ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFin
   }
 }
 
-ValueBuilder.prototype.didChangeValue = function _didChangeValue (
+ValueBuilder.prototype.didChangeValue = function _didChangeValue(
   timelineName,
   flexId,
   matchingElement,
   outputName,
-  outputValue
+  outputValue,
 ) {
-  var answer = false
+  let answer = false
   if (!this._changes[timelineName]) {
     this._changes[timelineName] = {}
     answer = true
@@ -1068,7 +1068,7 @@ ValueBuilder.prototype.didChangeValue = function _didChangeValue (
  * @description Given an 'out' object, accumulate values into that object based on the current timeline, time, and instance state.
  * If we didn't make any changes, we return undefined here. The caller should account for this.
  */
-ValueBuilder.prototype.build = function _build (
+ValueBuilder.prototype.build = function _build(
   out,
   timelineName,
   timelineTime,
@@ -1076,12 +1076,12 @@ ValueBuilder.prototype.build = function _build (
   matchingElement,
   propertiesGroup,
   isPatchOperation,
-  haikuComponent
+  haikuComponent,
 ) {
-  var isAnythingWorthUpdating = false
+  let isAnythingWorthUpdating = false
 
-  for (var propertyName in propertiesGroup) {
-    var finalValue = this.grabValue(
+  for (let propertyName in propertiesGroup) {
+    let finalValue = this.grabValue(
       timelineName,
       flexId,
       matchingElement,
@@ -1089,7 +1089,7 @@ ValueBuilder.prototype.build = function _build (
       propertiesGroup,
       timelineTime,
       haikuComponent,
-      isPatchOperation
+      isPatchOperation,
     )
 
     // We use undefined as a signal that it's not worthwhile to put this value in the list of updates.
@@ -1109,7 +1109,7 @@ ValueBuilder.prototype.build = function _build (
       } else {
         out[propertyName] = BasicUtils.mergeValue(
           out[propertyName],
-          finalValue
+          finalValue,
         )
       }
 
@@ -1140,7 +1140,7 @@ ValueBuilder.prototype.build = function _build (
  * @param isPatchOperation {Boolean} Is this a patch?
  * @param skipCache {Boolean} Skip caching?
  */
-ValueBuilder.prototype.grabValue = function _grabValue (
+ValueBuilder.prototype.grabValue = function _grabValue(
   timelineName,
   flexId,
   matchingElement,
@@ -1150,9 +1150,9 @@ ValueBuilder.prototype.grabValue = function _grabValue (
   haikuComponent,
   isPatchOperation,
   skipCache,
-  clearSortedKeyframesCache
+  clearSortedKeyframesCache,
 ) {
-  var parsedValueCluster = this.fetchParsedValueCluster(
+  let parsedValueCluster = this.fetchParsedValueCluster(
     timelineName,
     flexId,
     matchingElement,
@@ -1160,7 +1160,7 @@ ValueBuilder.prototype.grabValue = function _grabValue (
     propertiesGroup[propertyName],
     haikuComponent,
     isPatchOperation,
-    skipCache
+    skipCache,
   )
 
   // If there is no property of that name, we would have gotten nothing back, so we can't forward this to Transitions
@@ -1173,18 +1173,18 @@ ValueBuilder.prototype.grabValue = function _grabValue (
     delete parsedValueCluster.__sorted
   }
 
-  var computedValueForTime
+  let computedValueForTime
 
   // Important: The ActiveComponent depends on the ability to be able to get fresh values via the skipCache optino
   if (isPatchOperation && !skipCache) {
     computedValueForTime = Transitions.calculateValueAndReturnUndefinedIfNotWorthwhile(
       parsedValueCluster,
-      timelineTime
+      timelineTime,
     )
   } else {
     computedValueForTime = Transitions.calculateValue(
       parsedValueCluster,
-      timelineTime
+      timelineTime,
     )
   }
 
@@ -1192,12 +1192,12 @@ ValueBuilder.prototype.grabValue = function _grabValue (
     return undefined
   }
 
-  var finalValue = this.generateFinalValueFromParsedValue(
+  let finalValue = this.generateFinalValueFromParsedValue(
     timelineName,
     flexId,
     matchingElement,
     propertyName,
-    computedValueForTime
+    computedValueForTime,
   )
 
   return finalValue

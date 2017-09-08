@@ -2,47 +2,47 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var React = require('react')
-var ReactDOM = require('react-dom')
-var EventsDict = require('./EventsDict')
-var merge = require('lodash.merge')
+let React = require("react")
+let ReactDOM = require("react-dom")
+let EventsDict = require("./EventsDict")
+let merge = require("lodash.merge")
 
-var DEFAULT_HOST_ELEMENT_TAG_NAME = 'div'
+let DEFAULT_HOST_ELEMENT_TAG_NAME = "div"
 
-var HAIKU_FORWARDED_PROPS = {
-  haikuOptions: 'options',
-  haikuStates: 'states',
-  haikuInitialStates: 'states',
-  haikuEventHandlers: 'eventHandlers',
-  haikuTimelines: 'timelines',
-  haikuVanities: 'vanities'
+let HAIKU_FORWARDED_PROPS = {
+  haikuOptions: "options",
+  haikuStates: "states",
+  haikuInitialStates: "states",
+  haikuEventHandlers: "eventHandlers",
+  haikuTimelines: "timelines",
+  haikuVanities: "vanities",
 }
 
-var VALID_PROPS = {
-  tagName: 'string',
-  id: 'string',
-  className: 'string',
-  style: 'object',
-  width: 'string',
-  height: 'string',
+let VALID_PROPS = {
+  tagName: "string",
+  id: "string",
+  className: "string",
+  style: "object",
+  width: "string",
+  height: "string",
 
   // Convenience
-  onComponentWillMount: 'func',
-  onComponentWillUnmount: 'func',
-  onComponentDidMount: 'func',
+  onComponentWillMount: "func",
+  onComponentWillUnmount: "func",
+  onComponentDidMount: "func",
 
   // We allow these to be passed at the root level since that feels more natural
-  onHaikuComponentWillInitialize: 'func',
-  onHaikuComponentDidMount: 'func',
-  onHaikuComponentDidInitialize: 'func',
-  onHaikuComponentWillUnmount: 'func',
+  onHaikuComponentWillInitialize: "func",
+  onHaikuComponentDidMount: "func",
+  onHaikuComponentDidInitialize: "func",
+  onHaikuComponentWillUnmount: "func",
 
   // Allow a haiku player to be (optionally) passed in
-  haikuAdapter: 'func',
-  haikuCode: 'object'
+  haikuAdapter: "func",
+  haikuCode: "object",
 }
 
-var REACT_ELEMENT_PROPS_TO_OMIT = {
+let REACT_ELEMENT_PROPS_TO_OMIT = {
   onComponentWillMount: true,
   onComponentWillUnmount: true,
   onComponentDidMount: true,
@@ -51,43 +51,43 @@ var REACT_ELEMENT_PROPS_TO_OMIT = {
   onHaikuComponentDidInitialize: true,
   onHaikuComponentWillUnmount: true,
   haikuAdapter: true,
-  haikuCode: true
+  haikuCode: true,
 }
 
-for (var eventKey in EventsDict) {
+for (let eventKey in EventsDict) {
   VALID_PROPS[eventKey] = EventsDict[eventKey]
 }
 
-for (var fwdPropKey in HAIKU_FORWARDED_PROPS) {
-  VALID_PROPS[fwdPropKey] = 'object'
+for (let fwdPropKey in HAIKU_FORWARDED_PROPS) {
+  VALID_PROPS[fwdPropKey] = "object"
 }
 
-function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
-  var reactClass = React.createClass({
-    displayName: 'HaikuComponent',
+function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
+  let reactClass = React.createClass({
+    displayName: "HaikuComponent",
 
-    getInitialState: function () {
+    getInitialState() {
       return {
         // This random id is used to give us a hook to query the DOM for our mount element,
         // even in cases where React mysteriously decides not to pass us its ref.
-        randomId: 'haiku-reactroot-' + randomString(24)
+        randomId: "haiku-reactroot-" + randomString(24),
       }
     },
 
-    componentWillReceiveProps: function (nextPropsRaw) {
+    componentWillReceiveProps(nextPropsRaw) {
       if (this.haiku) {
-        var haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(nextPropsRaw)
+        let haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(nextPropsRaw)
         this.haiku.assignConfig(haikuConfig)
       }
     },
 
-    componentWillMount: function () {
+    componentWillMount() {
       if (this.props.onComponentWillMount) {
         this.props.onComponentWillMount(this)
       }
     },
 
-    componentWillUnmount: function () {
+    componentWillUnmount() {
       if (this.props.onComponentWillUnmount) {
         this.props.onComponentWillUnmount(this)
       }
@@ -96,11 +96,11 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
       }
     },
 
-    componentDidMount: function () {
+    componentDidMount() {
       this.attemptMount()
     },
 
-    attemptMount: function () {
+    attemptMount() {
       if (this.mount) {
         this.createContext(this.props)
 
@@ -110,54 +110,54 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
       }
     },
 
-    buildHaikuCompatibleConfigFromRawProps: function (rawProps) {
+    buildHaikuCompatibleConfigFromRawProps(rawProps) {
       // Note that these vanities are called _after_ an initial render,
       // i.e., after this.mount is supposed to have been attached.
-      var haikuConfig = {
+      let haikuConfig = {
         ref: this.mount,
         vanities: {
-          'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity (
+          "controlFlow.placeholder": function _controlFlowPlaceholderReactVanity(
             element,
             surrogate,
             value,
             context,
-            component
+            component,
           ) {
-            visit(this.mount, function visitor (node) {
-              var flexId = flexIdIfSame(element, node)
+            visit(this.mount, function visitor(node) {
+              let flexId = flexIdIfSame(element, node)
               if (flexId) {
                 if (!component._didElementRenderSurrogate(element, surrogate)) {
-                  if (typeof surrogate.type === 'string' || (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
+                  if (typeof surrogate.type === "string" || (typeof surrogate.type === "function" && surrogate.type.isHaikuAdapter)) {
                     // What *should happen* in the Haiku Player is this new swapped DOM element will be
                     // updated (not replaced!) with the attributes of the virtual element at the same position
-                    var div = document.createElement('div')
+                    let div = document.createElement("div")
                     node.parentNode.replaceChild(div, node)
                     node = div
 
                     // We have to change the element name as well here so that the correct vanity behaviors
                     // are used when applying outputs to the placeheld element (e.g. opacity vs style.opacity).
-                    element.elementName = 'div'
+                    element.elementName = "div"
                   }
-                  node.style.visibility = 'hidden'
+                  node.style.visibility = "hidden"
                   ReactDOM.render(surrogate, node)
-                  window.requestAnimationFrame(function frame () {
+                  window.requestAnimationFrame(function frame() {
                     component._markElementSurrogateAsRendered(element, surrogate)
-                    node.style.visibility = 'visible'
+                    node.style.visibility = "visible"
                   })
                   component._markHorizonElement(element)
                   component._markForFullFlush()
                 }
               }
             })
-          }.bind(this)
-        }
+          }.bind(this),
+        },
       }
 
       // It's assumed that anything the user wants to pass into the Haiku engine should be
       // assigned among the whitelisted properties
       if (rawProps) {
-        for (var verboseKeyName in rawProps) {
-          var haikuConfigFinalKey = HAIKU_FORWARDED_PROPS[verboseKeyName]
+        for (let verboseKeyName in rawProps) {
+          let haikuConfigFinalKey = HAIKU_FORWARDED_PROPS[verboseKeyName]
           if (haikuConfigFinalKey) {
             haikuConfig[haikuConfigFinalKey] = rawProps[verboseKeyName]
           } else {
@@ -172,10 +172,10 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
       return haikuConfig
     },
 
-    createContext: function (rawProps) {
-      var haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(rawProps)
+    createContext(rawProps) {
+      let haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(rawProps)
 
-      var haikuAdapter
+      let haikuAdapter
 
       if (rawProps.haikuAdapter) {
         if (rawProps.haikuCode) {
@@ -183,7 +183,7 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
         } else if (optionalRawBytecode) {
           haikuAdapter = rawProps.haikuAdapter(optionalRawBytecode)
         } else {
-          throw new Error('A Haiku code object is required if you supply a Haiku adapter')
+          throw new Error("A Haiku code object is required if you supply a Haiku adapter")
         }
       } else {
         // Otherwise default to the adapter which was initialized in the wrapper module
@@ -191,14 +191,14 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
       }
 
       if (!haikuAdapter) {
-        throw new Error('A Haiku adapter is required')
+        throw new Error("A Haiku adapter is required")
       }
 
       // Reuse existing mounted component if one exists
       if (!this.haiku) {
         this.haiku = haikuAdapter( // eslint-disable-line
           this.mount,
-          haikuConfig
+          haikuConfig,
         )
       } else {
         // If the component already exists, update its options and make sure it remounts.
@@ -210,25 +210,25 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
       }
     },
 
-    createEventPropWrapper: function (eventListener) {
-      return function _eventPropWrapper (proxy, event) {
+    createEventPropWrapper(eventListener) {
+      return function _eventPropWrapper(proxy, event) {
         return eventListener.call(
           this,
           proxy,
           event,
-          this.haiku
+          this.haiku,
         )
       }.bind(this)
     },
 
-    buildHostElementPropsFromRawProps: function (rawProps) {
-      var propsForHostElement = {}
+    buildHostElementPropsFromRawProps(rawProps) {
+      let propsForHostElement = {}
 
       // Build a basic props object which includes:
       //    - Standard DOM event listeners
       // But which excludes:
       //    - Haiku special forwarded props (those belong to Haiku only)
-      for (var key in rawProps) {
+      for (let key in rawProps) {
         if (VALID_PROPS[key]) {
           if (EventsDict[key]) {
             propsForHostElement[key] = this.createEventPropWrapper(rawProps[key])
@@ -245,23 +245,23 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
       return merge({
         id: this.state.randomId,
         style: {
-          position: 'relative',
+          position: "relative",
           margin: 0,
           padding: 0,
           border: 0,
-          width: '100%',
-          height: '100%',
-          transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)'
-        }
+          width: "100%",
+          height: "100%",
+          transform: "matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)",
+        },
       }, propsForHostElement)
     },
 
-    assignMountFromRef: function (element) {
+    assignMountFromRef(element) {
       this.mount = element
     },
 
-    render: function () {
-      var hostElementProps = this.buildHostElementPropsFromRawProps(this.props)
+    render() {
+      let hostElementProps = this.buildHostElementPropsFromRawProps(this.props)
 
       // Having this ref assigned like this is critical to the adapter working,
       // so we override it despite what the host element props might say
@@ -269,15 +269,15 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
 
       return React.createElement(
         hostElementProps.tagName || DEFAULT_HOST_ELEMENT_TAG_NAME,
-        hostElementProps
+        hostElementProps,
       )
-    }
+    },
   })
 
   reactClass.propTypes = {}
 
-  for (var propName in VALID_PROPS) {
-    var propType = VALID_PROPS[propName]
+  for (let propName in VALID_PROPS) {
+    let propType = VALID_PROPS[propName]
     reactClass.propTypes[propName] = React.PropTypes[propType]
   }
 
@@ -293,36 +293,36 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
 /**
  * Quick-and-dirty way to generate unique DOM-friendly ids on the fly...
  */
-var ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
-function randomString (len) {
-  var str = ''
+let ALPHABET = "abcdefghijklmnopqrstuvwxyz"
+function randomString(len) {
+  let str = ""
   while (str.length < len) {
     str += ALPHABET[Math.floor(Math.random() * ALPHABET.length)]
   }
   return str
 }
 
-function visit (el, visitor) {
+function visit(el, visitor) {
   if (el) {
     visitor(el)
     if (el.children) {
-      for (var i = 0; i < el.children.length; i++) {
+      for (let i = 0; i < el.children.length; i++) {
         visit(el.children[i], visitor)
       }
     }
   }
 }
 
-function flexIdIfSame (virtual, dom) {
+function flexIdIfSame(virtual, dom) {
   if (virtual.attributes) {
-    if (virtual.attributes['haiku-id']) {
-      if (dom.getAttribute('haiku-id') === virtual.attributes['haiku-id']) {
-        return virtual.attributes['haiku-id']
+    if (virtual.attributes["haiku-id"]) {
+      if (dom.getAttribute("haiku-id") === virtual.attributes["haiku-id"]) {
+        return virtual.attributes["haiku-id"]
       }
     }
 
     if (virtual.attributes.id) {
-      if (dom.getAttribute('id') === virtual.attributes.id) {
+      if (dom.getAttribute("id") === virtual.attributes.id) {
         return virtual.attributes.id
       }
     }

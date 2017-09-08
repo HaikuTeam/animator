@@ -2,19 +2,19 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var isBlankString = require('./isBlankString')
-var removeElement = require('./removeElement')
-var _cloneVirtualElement = require('./cloneVirtualElement')
-var getFlexId = require('./getFlexId')
-var shouldElementBeReplaced = require('./shouldElementBeReplaced')
+let isBlankString = require("./isBlankString")
+let removeElement = require("./removeElement")
+let cloneVirtualElement = require("./cloneVirtualElement")
+let getFlexId = require("./getFlexId")
+let shouldElementBeReplaced = require("./shouldElementBeReplaced")
 
-function renderTree (
+function renderTree(
   domElement,
   virtualElement,
   virtualChildren,
   component,
   isPatchOperation,
-  doSkipChildren
+  doSkipChildren,
 ) {
   component._addElementToHashTable(domElement, virtualElement)
 
@@ -23,7 +23,8 @@ function renderTree (
   // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
   virtualElement.__target = domElement
   domElement.haiku.virtual = virtualElement
-  domElement.haiku.element = _cloneVirtualElement(virtualElement) // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
+  // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
+  domElement.haiku.element = cloneVirtualElement(virtualElement)
   if (!component.config.options.cache[getFlexId(virtualElement)]) {
     component.config.options.cache[getFlexId(virtualElement)] = {}
   }
@@ -51,19 +52,19 @@ function renderTree (
   // Store a copy of the array here, otherwise we can hit a race where as we remove
   // elements from the DOM, the childNodes array gets shifted and the indices get offset, leading
   // to removals not occurring properly
-  var domChildNodes = []
-  for (var k = 0; k < domElement.childNodes.length; k++) {
+  let domChildNodes = []
+  for (let k = 0; k < domElement.childNodes.length; k++) {
     domChildNodes[k] = domElement.childNodes[k]
   }
 
-  var max = virtualChildren.length
+  let max = virtualChildren.length
   if (max < domChildNodes.length) {
     max = domChildNodes.length
   }
 
-  for (var i = 0; i < max; i++) {
-    var virtualChild = virtualChildren[i]
-    var domChild = domChildNodes[i]
+  for (let i = 0; i < max; i++) {
+    let virtualChild = virtualChildren[i]
+    let domChild = domChildNodes[i]
 
     if (!virtualChild && !domChild) {
       // empty
@@ -71,12 +72,12 @@ function renderTree (
       removeElement(domChild)
     } else if (virtualChild) {
       if (!domChild) {
-        var insertedElement = appendChild(
+        let insertedElement = appendChild(
           null,
           virtualChild,
           domElement,
           virtualElement,
-          component
+          component,
         )
 
         component._addElementToHashTable(insertedElement, virtualChild)
@@ -94,7 +95,7 @@ function renderTree (
             virtualChild,
             domElement,
             virtualElement,
-            component
+            component,
           )
         } else {
           updateElement(
@@ -103,7 +104,7 @@ function renderTree (
             domElement,
             virtualElement,
             component,
-            isPatchOperation
+            isPatchOperation,
           )
         }
       }
@@ -115,6 +116,6 @@ function renderTree (
 
 module.exports = renderTree
 
-var appendChild = require('./appendChild')
-var updateElement = require('./updateElement')
-var replaceElement = require('./replaceElement')
+let appendChild = require("./appendChild")
+let updateElement = require("./updateElement")
+let replaceElement = require("./replaceElement")

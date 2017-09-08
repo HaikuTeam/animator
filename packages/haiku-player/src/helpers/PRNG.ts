@@ -1,10 +1,10 @@
-var seedrandom = require('./../vendor/seedrandom')
+let seedrandom = require("./../vendor/seedrandom")
 
-function PRNG (seed) {
+function PRNG(seed) {
   this._prng = seedrandom(seed)
 }
 
-PRNG.prototype.random = function random () {
+PRNG.prototype.random = function random() {
   return this._prng()
 }
 

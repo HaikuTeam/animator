@@ -2,17 +2,17 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var DEFAULT_SCOPE = 'div'
+let DEFAULT_SCOPE = "div"
 
-var SCOPE_STRATA = {
-  div: 'div',
-  svg: 'svg'
+let SCOPE_STRATA = {
+  div: "div",
+  svg: "svg",
   // canvas: 'canvas'
 }
 
-var STRING = 'string'
+let STRING = "string"
 
-function scopifyElements (mana, parent, scope) {
+function scopifyElements(mana, parent, scope) {
   if (!mana) return mana
   if (typeof mana === STRING) return mana
 
@@ -30,8 +30,8 @@ function scopifyElements (mana, parent, scope) {
   }
 
   if (mana.children) {
-    for (var i = 0; i < mana.children.length; i++) {
-      var child = mana.children[i]
+    for (let i = 0; i < mana.children.length; i++) {
+      let child = mana.children[i]
       scopifyElements(child, mana, scope)
     }
   }

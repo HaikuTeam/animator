@@ -3,251 +3,251 @@ module.exports = {
   mouse: {
     click: {
       menuable: true,
-      human: 'Click'
+      human: "Click",
     },
     dblclick: {
       menuable: true,
-      human: 'Double Click'
+      human: "Double Click",
     },
     mousedown: {
       menuable: true,
-      human: 'Mouse Down'
+      human: "Mouse Down",
     },
     mouseup: {
       menuable: true,
-      human: 'Mouse Up'
+      human: "Mouse Up",
     },
     mousemove: {
       menuable: true,
-      human: 'Mouse Move'
+      human: "Mouse Move",
     },
     mouseover: {
       menuable: true,
-      human: 'Mouse Over'
+      human: "Mouse Over",
     },
     mouseout: {
       menuable: true,
-      human: 'Mouse Out'
+      human: "Mouse Out",
     },
     wheel: {
-      menuable: false
+      menuable: false,
     },
     scroll: {
       menuable: true,
-      human: 'Scroll'
-    }
+      human: "Scroll",
+    },
   },
   keyboard: {
     keyup: {
       menuable: true,
-      human: 'Key Up'
+      human: "Key Up",
     },
     keydown: {
       menuable: true,
-      human: 'Key Down'
+      human: "Key Down",
     },
     keypress: {
-      menuable: false
-    }
+      menuable: false,
+    },
   },
   drag: {
     drag: {
-      menuable: false
+      menuable: false,
     },
     dragend: {
-      menuable: false
+      menuable: false,
     },
     dragenter: {
-      menuable: false
+      menuable: false,
     },
     dragleave: {
-      menuable: false
+      menuable: false,
     },
     dragover: {
-      menuable: false
+      menuable: false,
     },
     dragstart: {
-      menuable: false
+      menuable: false,
     },
     drop: {
-      menuable: false
-    }
+      menuable: false,
+    },
   },
   form: {
     focus: {
       menuable: true,
-      human: 'Focus'
+      human: "Focus",
     },
     blur: {
       menuable: true,
-      human: 'Blur'
+      human: "Blur",
     },
     change: {
       menuable: true,
-      human: 'Change'
+      human: "Change",
     },
     select: {
       menuable: true,
-      human: 'Select'
+      human: "Select",
     },
     submit: {
       menuable: true,
-      human: 'Submit'
+      human: "Submit",
     },
     contextmenu: {
-      menuable: false
+      menuable: false,
     },
     input: {
-      menuable: false
+      menuable: false,
     },
     invalid: {
-      menuable: false
+      menuable: false,
     },
     reset: {
-      menuable: false
+      menuable: false,
     },
     search: {
-      menuable: false
-    }
+      menuable: false,
+    },
   },
   text: {
     cut: {
-      menuable: false
+      menuable: false,
     },
     copy: {
-      menuable: false
+      menuable: false,
     },
     paste: {
-      menuable: false
-    }
+      menuable: false,
+    },
   },
   window: {
     resize: {
       menuable: true,
-      human: 'Window Resize'
+      human: "Window Resize",
     },
     popstate: {
       menuable: true,
-      human: 'URL Change'
+      human: "URL Change",
     },
     hashchange: {
       menuable: true,
-      human: 'Anchor Change'
+      human: "Anchor Change",
     },
     load: {
-      menuable: false
+      menuable: false,
     },
     message: {
-      menuable: false
+      menuable: false,
     },
     afterprint: {
-      menuable: false
+      menuable: false,
     },
     beforeprint: {
-      menuable: false
+      menuable: false,
     },
     beforeunload: {
-      menuable: false
+      menuable: false,
     },
     error: {
-      menuable: false
+      menuable: false,
     },
     offline: {
-      menuable: false
+      menuable: false,
     },
     online: {
-      menuable: false
+      menuable: false,
     },
     pagehide: {
-      menuable: false
+      menuable: false,
     },
     pageshow: {
-      menuable: false
+      menuable: false,
     },
     storage: {
-      menuable: false
+      menuable: false,
     },
     unload: {
-      menuable: false
-    }
+      menuable: false,
+    },
   },
   media: {
     abort: {
-      menuable: false
+      menuable: false,
     },
     canplay: {
-      menuable: false
+      menuable: false,
     },
     canplaythrough: {
-      menuable: false
+      menuable: false,
     },
     cuechange: {
-      menuable: false
+      menuable: false,
     },
     durationchange: {
-      menuable: false
+      menuable: false,
     },
     emptied: {
-      menuable: false
+      menuable: false,
     },
     ended: {
-      menuable: false
+      menuable: false,
     },
     error: {
-      menuable: false
+      menuable: false,
     },
     loadeddata: {
-      menuable: false
+      menuable: false,
     },
     loadedmetadata: {
-      menuable: false
+      menuable: false,
     },
     loadstart: {
-      menuable: false
+      menuable: false,
     },
     pause: {
-      menuable: false
+      menuable: false,
     },
     play: {
-      menuable: false
+      menuable: false,
     },
     playing: {
-      menuable: false
+      menuable: false,
     },
     progress: {
-      menuable: false
+      menuable: false,
     },
     ratechange: {
-      menuable: false
+      menuable: false,
     },
     seeked: {
-      menuable: false
+      menuable: false,
     },
     seeking: {
-      menuable: false
+      menuable: false,
     },
     stalled: {
-      menuable: false
+      menuable: false,
     },
     suspend: {
-      menuable: false
+      menuable: false,
     },
     timeupdate: {
-      menuable: false
+      menuable: false,
     },
     volumechange: {
-      menuable: false
+      menuable: false,
     },
     waiting: {
-      menuable: false
-    }
+      menuable: false,
+    },
   },
   other: {
     show: {
-      menuable: false
+      menuable: false,
     },
     toggle: {
-      menuable: false
-    }
-  }
+      menuable: false,
+    },
+  },
 }

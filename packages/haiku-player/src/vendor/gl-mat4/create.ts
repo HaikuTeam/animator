@@ -5,8 +5,8 @@ module.exports = create
  *
  * @returns {mat4} a new 4x4 matrix
  */
-function create () {
-  var out = new Float32Array(16)
+function create() {
+  let out = new Float32Array(16)
   out[0] = 1
   out[1] = 0
   out[2] = 0

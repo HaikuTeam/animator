@@ -2,25 +2,25 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var setStyleMatrix = require('./setStyleMatrix')
-var formatTransform = require('./formatTransform')
-var isEqualTransformString = require('./isEqualTransformString')
-var scopeOfElement = require('./scopeOfElement')
+let setStyleMatrix = require("./setStyleMatrix")
+let formatTransform = require("./formatTransform")
+let isEqualTransformString = require("./isEqualTransformString")
+let scopeOfElement = require("./scopeOfElement")
 
-var SVG = 'svg'
+let SVG = "svg"
 
-function hasExplicitStyle (domElement, key) {
+function hasExplicitStyle(domElement, key) {
   if (!domElement.__haikuExplicitStyles) return false
   return !!domElement.__haikuExplicitStyles[key]
 }
 
-function applyCssLayout (
+function applyCssLayout(
   domElement,
   virtualElement,
   nodeLayout,
   computedLayout,
   pixelRatio,
-  context
+  context,
 ) {
   // No point continuing if there's no computedLayout contents
   if (
@@ -31,26 +31,26 @@ function applyCssLayout (
     return
   }
 
-  var elementScope = scopeOfElement(virtualElement)
+  let elementScope = scopeOfElement(virtualElement)
 
   if (nodeLayout.shown === false) {
-    if (domElement.style.visibility !== 'hidden') {
-      domElement.style.visibility = 'hidden'
+    if (domElement.style.visibility !== "hidden") {
+      domElement.style.visibility = "hidden"
     }
   } else if (nodeLayout.shown === true) {
-    if (domElement.style.visibility !== 'visible') {
-      domElement.style.visibility = 'visible'
+    if (domElement.style.visibility !== "visible") {
+      domElement.style.visibility = "visible"
     }
   }
 
-  if (!hasExplicitStyle(domElement, 'opacity')) {
+  if (!hasExplicitStyle(domElement, "opacity")) {
     if (computedLayout.opacity !== undefined) {
       // A lack of an opacity setting means 100% opacity, so unset any existing
       // value if we happen to get an opacity approaching 1.
       if (computedLayout.opacity > 0.999) {
         if (domElement.style.opacity) domElement.style.opacity = void 0
       } else {
-        var opacityString = '' + computedLayout.opacity
+        let opacityString = "" + computedLayout.opacity
         if (domElement.style.opacity !== opacityString) {
           domElement.style.opacity = opacityString
         }
@@ -58,49 +58,49 @@ function applyCssLayout (
     }
   }
 
-  if (!hasExplicitStyle(domElement, 'width')) {
+  if (!hasExplicitStyle(domElement, "width")) {
     if (computedLayout.size.x !== undefined) {
-      var sizeXString = parseFloat(computedLayout.size.x.toFixed(2)) + 'px'
+      let sizeXString = parseFloat(computedLayout.size.x.toFixed(2)) + "px"
       if (domElement.style.width !== sizeXString) {
         domElement.style.width = sizeXString
       }
       // If we're inside an SVG, we also have to assign the width/height attributes or Firefox will complain
       if (elementScope === SVG) {
-        if (domElement.getAttribute('width') !== sizeXString) {
-          domElement.setAttribute('width', sizeXString)
+        if (domElement.getAttribute("width") !== sizeXString) {
+          domElement.setAttribute("width", sizeXString)
         }
       }
     }
   }
 
-  if (!hasExplicitStyle(domElement, 'height')) {
+  if (!hasExplicitStyle(domElement, "height")) {
     if (computedLayout.size.y !== undefined) {
-      var sizeYString = parseFloat(computedLayout.size.y.toFixed(2)) + 'px'
+      let sizeYString = parseFloat(computedLayout.size.y.toFixed(2)) + "px"
       if (domElement.style.height !== sizeYString) {
         domElement.style.height = sizeYString
       }
       // If we're inside an SVG, we also have to assign the width/height attributes or Firefox will complain
       if (elementScope === SVG) {
-        if (domElement.getAttribute('height') !== sizeYString) {
-          domElement.setAttribute('height', sizeYString)
+        if (domElement.getAttribute("height") !== sizeYString) {
+          domElement.setAttribute("height", sizeYString)
         }
       }
     }
   }
 
   if (computedLayout.matrix) {
-    var attributeTransform = domElement.getAttribute('transform')
+    let attributeTransform = domElement.getAttribute("transform")
     // IE doesn't support using transform on the CSS style in SVG elements, so if we are in SVG,
     // and if we are inside an IE context, use the transform attribute itself
     if (context.config.options.platform.isIE || context.config.options.platform.isEdge) {
       if (elementScope === SVG) {
-        var matrixString = formatTransform(
+        let matrixString = formatTransform(
           computedLayout.matrix,
           nodeLayout.format,
-          pixelRatio
+          pixelRatio,
         )
         if (!isEqualTransformString(attributeTransform, matrixString)) {
-          domElement.setAttribute('transform', matrixString)
+          domElement.setAttribute("transform", matrixString)
         }
       } else {
         setStyleMatrix(
@@ -109,16 +109,16 @@ function applyCssLayout (
           computedLayout.matrix,
           context.config.options.useWebkitPrefix,
           pixelRatio,
-          context
+          context,
         )
       }
     } else {
       // An domElement might have an explicit transform override set, in which case, don't
       // attach the style transform to this node, because we will likely clobber what they've set
-      if (!hasExplicitStyle(domElement, 'transform')) {
+      if (!hasExplicitStyle(domElement, "transform")) {
         if (
           !attributeTransform ||
-          attributeTransform === '' ||
+          attributeTransform === "" ||
           virtualElement.__transformed
         ) {
           setStyleMatrix(
@@ -127,7 +127,7 @@ function applyCssLayout (
             computedLayout.matrix,
             context.config.options.useWebkitPrefix,
             pixelRatio,
-            context
+            context,
           )
         }
       }

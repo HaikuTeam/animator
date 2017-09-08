@@ -1,1 +1,1 @@
-module.exports = require('./prefixer')(true)
+module.exports = require("./prefixer")(true)

@@ -1,9 +1,9 @@
-var functionToRFO = require('./functionToRFO')
+let functionToRFO = require("./functionToRFO")
 
-module.exports = function enhance (fn, params) {
+module.exports = function enhance(fn, params) {
   // Only create a specification if we don't already have one
   if (!fn.specification) {
-    var rfo = functionToRFO(fn)
+    let rfo = functionToRFO(fn)
     if (rfo && rfo.__function) {
       // Cache this so we don't expensively parse each time
       fn.specification = rfo.__function

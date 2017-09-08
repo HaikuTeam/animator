@@ -2,17 +2,17 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var formatTransform = require('./formatTransform')
-var isEqualTransformString = require('./isEqualTransformString')
+let formatTransform = require("./formatTransform")
+let isEqualTransformString = require("./isEqualTransformString")
 
-function setStyleMatrix (
+function setStyleMatrix(
   styleObject,
   format,
   matrix,
   usePrefix,
-  devicePixelRatio
+  devicePixelRatio,
 ) {
-  var matrixString = formatTransform(matrix, format, devicePixelRatio)
+  let matrixString = formatTransform(matrix, format, devicePixelRatio)
   if (usePrefix) {
     if (!isEqualTransformString(styleObject.webkitTransform, matrixString)) {
       styleObject.webkitTransform = matrixString

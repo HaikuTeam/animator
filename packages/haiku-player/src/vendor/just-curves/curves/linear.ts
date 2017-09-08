@@ -1,3 +1,3 @@
-exports.linear = function (x) {
+exports.linear = function(x) {
   return x
 }

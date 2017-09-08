@@ -2,19 +2,19 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var renderTree = require('./renderTree')
+let renderTree = require("./renderTree")
 
-function render (
+function render(
   domElement,
   virtualContainer,
   virtualTree,
-  component
+  component,
 ) {
   return renderTree(
     domElement,
     virtualContainer,
     [virtualTree],
-    component
+    component,
   )
 }
 

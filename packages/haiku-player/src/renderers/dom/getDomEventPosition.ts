@@ -1,6 +1,6 @@
-function getDomEventPosition (event, doc) {
-  var x = -1
-  var y = -1
+function getDomEventPosition(event, doc) {
+  let x = -1
+  let y = -1
   if (event.pageX || event.pageY) {
     x = event.pageX
     y = event.pageY
@@ -10,7 +10,7 @@ function getDomEventPosition (event, doc) {
   }
   return {
     x: ~~x,
-    y: ~~y
+    y: ~~y,
   }
 }
 

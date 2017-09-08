@@ -2,12 +2,12 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var FUNCTION = 'function'
-var OBJECT = 'object'
+let FUNCTION = "function"
+let OBJECT = "object"
 
 // The inverse of this function is 'reifyRO'
 
-function expressionToRO (exp, options) {
+function expressionToRO(exp, options) {
   if (typeof exp === FUNCTION) {
     return functionToRFO(exp)
   }
@@ -30,7 +30,7 @@ function expressionToRO (exp, options) {
 
 module.exports = expressionToRO
 
-var isSerializableScalar = require('./isSerializableScalar')
-var objectToRO = require('./objectToRO')
-var functionToRFO = require('./functionToRFO')
-var arrayToRO = require('./arrayToRO')
+let isSerializableScalar = require("./isSerializableScalar")
+let objectToRO = require("./objectToRO")
+let functionToRFO = require("./functionToRFO")
+let arrayToRO = require("./arrayToRO")

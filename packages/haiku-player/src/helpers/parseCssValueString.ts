@@ -2,41 +2,41 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function parseCssValueString (str, optionalPropertyHint) {
-  if (typeof str === 'number') {
+function parseCssValueString(str, optionalPropertyHint) {
+  if (typeof str === "number") {
     return {
       value: str,
-      unit: null
+      unit: null,
     }
   }
 
   if (str === null || str === undefined) {
     return {
       value: null,
-      unit: null
+      unit: null,
     }
   }
 
-  var num
-  var nmatch = str.match(/([+-]?[\d|.]+)/)
+  let num
+  let nmatch = str.match(/([+-]?[\d|.]+)/)
 
   if (nmatch) num = Number(nmatch[0])
   else num = 0
 
-  var unit
-  var smatch = str.match(/(em|px|%|turn|deg|in)/)
+  let unit
+  let smatch = str.match(/(em|px|%|turn|deg|in)/)
   if (smatch) {
     unit = smatch[0]
   } else {
     if (optionalPropertyHint && optionalPropertyHint.match(/rotate/)) {
-      unit = 'deg'
+      unit = "deg"
     } else {
       unit = null
     }
   }
   return {
     value: num,
-    unit: unit
+    unit,
   }
 }
 

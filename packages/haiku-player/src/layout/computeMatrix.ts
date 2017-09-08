@@ -26,68 +26,68 @@
  * THE SOFTWARE.
  */
 
-function computeMatrix (
+function computeMatrix(
   outputMatrix,
   outputNodepad,
   layoutSpec,
   currentMatrix,
   currentsizeAbsolute,
   parentMatrix,
-  parentsizeAbsolute
+  parentsizeAbsolute,
 ) {
-  var translationX = layoutSpec.translation.x
-  var translationY = layoutSpec.translation.y
-  var translationZ = layoutSpec.translation.z
-  var rotationX = layoutSpec.rotation.x
-  var rotationY = layoutSpec.rotation.y
-  var rotationZ = layoutSpec.rotation.z
-  var rotationW = layoutSpec.rotation.w
-  var scaleX = layoutSpec.scale.x
-  var scaleY = layoutSpec.scale.y
-  var scaleZ = layoutSpec.scale.z
-  var alignX = layoutSpec.align.x * parentsizeAbsolute.x
-  var alignY = layoutSpec.align.y * parentsizeAbsolute.y
-  var alignZ = layoutSpec.align.z * parentsizeAbsolute.z
-  var mountPointX = layoutSpec.mount.x * currentsizeAbsolute.x
-  var mountPointY = layoutSpec.mount.y * currentsizeAbsolute.y
-  var mountPointZ = layoutSpec.mount.z * currentsizeAbsolute.z
-  var originX = layoutSpec.origin.x * currentsizeAbsolute.x
-  var originY = layoutSpec.origin.y * currentsizeAbsolute.y
-  var originZ = layoutSpec.origin.z * currentsizeAbsolute.z
+  let translationX = layoutSpec.translation.x
+  let translationY = layoutSpec.translation.y
+  let translationZ = layoutSpec.translation.z
+  let rotationX = layoutSpec.rotation.x
+  let rotationY = layoutSpec.rotation.y
+  let rotationZ = layoutSpec.rotation.z
+  let rotationW = layoutSpec.rotation.w
+  let scaleX = layoutSpec.scale.x
+  let scaleY = layoutSpec.scale.y
+  let scaleZ = layoutSpec.scale.z
+  let alignX = layoutSpec.align.x * parentsizeAbsolute.x
+  let alignY = layoutSpec.align.y * parentsizeAbsolute.y
+  let alignZ = layoutSpec.align.z * parentsizeAbsolute.z
+  let mountPointX = layoutSpec.mount.x * currentsizeAbsolute.x
+  let mountPointY = layoutSpec.mount.y * currentsizeAbsolute.y
+  let mountPointZ = layoutSpec.mount.z * currentsizeAbsolute.z
+  let originX = layoutSpec.origin.x * currentsizeAbsolute.x
+  let originY = layoutSpec.origin.y * currentsizeAbsolute.y
+  let originZ = layoutSpec.origin.z * currentsizeAbsolute.z
 
-  var wx = rotationW * rotationX
-  var wy = rotationW * rotationY
-  var wz = rotationW * rotationZ
-  var xx = rotationX * rotationX
-  var yy = rotationY * rotationY
-  var zz = rotationZ * rotationZ
-  var xy = rotationX * rotationY
-  var xz = rotationX * rotationZ
-  var yz = rotationY * rotationZ
+  let wx = rotationW * rotationX
+  let wy = rotationW * rotationY
+  let wz = rotationW * rotationZ
+  let xx = rotationX * rotationX
+  let yy = rotationY * rotationY
+  let zz = rotationZ * rotationZ
+  let xy = rotationX * rotationY
+  let xz = rotationX * rotationZ
+  let yz = rotationY * rotationZ
 
-  var rs0 = (1 - 2 * (yy + zz)) * scaleX
-  var rs1 = 2 * (xy + wz) * scaleX
-  var rs2 = 2 * (xz - wy) * scaleX
-  var rs3 = 2 * (xy - wz) * scaleY
-  var rs4 = (1 - 2 * (xx + zz)) * scaleY
-  var rs5 = 2 * (yz + wx) * scaleY
-  var rs6 = 2 * (xz + wy) * scaleZ
-  var rs7 = 2 * (yz - wx) * scaleZ
-  var rs8 = (1 - 2 * (xx + yy)) * scaleZ
+  let rs0 = (1 - 2 * (yy + zz)) * scaleX
+  let rs1 = 2 * (xy + wz) * scaleX
+  let rs2 = 2 * (xz - wy) * scaleX
+  let rs3 = 2 * (xy - wz) * scaleY
+  let rs4 = (1 - 2 * (xx + zz)) * scaleY
+  let rs5 = 2 * (yz + wx) * scaleY
+  let rs6 = 2 * (xz + wy) * scaleZ
+  let rs7 = 2 * (yz - wx) * scaleZ
+  let rs8 = (1 - 2 * (xx + yy)) * scaleZ
 
-  var tx =
+  let tx =
     alignX +
     translationX -
     mountPointX +
     originX -
     (rs0 * originX + rs3 * originY + rs6 * originZ)
-  var ty =
+  let ty =
     alignY +
     translationY -
     mountPointY +
     originY -
     (rs1 * originX + rs4 * originY + rs7 * originZ)
-  var tz =
+  let tz =
     alignZ +
     translationZ -
     mountPointZ +

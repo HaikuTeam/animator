@@ -2,25 +2,25 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var uniq = require('./../vendor/array-unique').immutable
+let uniq = require("./../vendor/array-unique").immutable
 
-var OBJECT = 'object'
-var FUNCTION = 'function'
+let OBJECT = "object"
+let FUNCTION = "function"
 
-function isObject (value) {
+function isObject(value) {
   return value !== null && typeof value === OBJECT && !Array.isArray(value)
 }
 
-function isFunction (value) {
+function isFunction(value) {
   return typeof value === FUNCTION
 }
 
-function isEmpty (value) {
+function isEmpty(value) {
   return value === undefined
 }
 
-function mergeIncoming (previous, incoming) {
-  for (var key in incoming) {
+function mergeIncoming(previous, incoming) {
+  for (let key in incoming) {
     // Skip if there's no incoming property
     if (isEmpty(incoming[key])) continue
     // Deep merge if we have two objects
@@ -34,7 +34,7 @@ function mergeIncoming (previous, incoming) {
   return previous
 }
 
-function mergeValue (previous, incoming) {
+function mergeValue(previous, incoming) {
   if (isFunction(previous) || isFunction(incoming)) {
     return incoming
   }
@@ -45,10 +45,10 @@ function mergeValue (previous, incoming) {
 }
 
 module.exports = {
-  isObject: isObject,
-  isFunction: isFunction,
-  isEmpty: isEmpty,
-  mergeIncoming: mergeIncoming,
-  mergeValue: mergeValue,
-  uniq: uniq
+  isObject,
+  isFunction,
+  isEmpty,
+  mergeIncoming,
+  mergeValue,
+  uniq,
 }

@@ -2,18 +2,18 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var STRING_TYPE = 'string'
+let STRING_TYPE = "string"
 
-function reactToMana (react) {
-  var props = {}
-  for (var key in react.props) {
-    if (key !== 'children') {
+function reactToMana(react) {
+  let props = {}
+  for (let key in react.props) {
+    if (key !== "children") {
       props[key] = react.props[key]
     }
   }
 
-  var givenChildren = react.props.children || react.children
-  var processedChildren
+  let givenChildren = react.props.children || react.children
+  let processedChildren
   if (Array.isArray(givenChildren)) {
     processedChildren = reactChildrenToMana(givenChildren)
   } else if (givenChildren && givenChildren.type) {
@@ -25,10 +25,10 @@ function reactToMana (react) {
   return {
     elementName: react.type,
     attributes: props,
-    children: processedChildren
+    children: processedChildren,
   }
 }
 
 module.exports = reactToMana
 
-var reactChildrenToMana = require('./reactChildrenToMana')
+let reactChildrenToMana = require("./reactChildrenToMana")

@@ -2,19 +2,19 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var matchById = require('./cssMatchById')
-var matchByClass = require('./cssMatchByClass')
-var matchByTagName = require('./cssMatchByTagName')
-var matchByAttribute = require('./cssMatchByAttribute')
-var matchByHaiku = require('./cssMatchByHaiku')
-var attrSelectorParser = require('./attrSelectorParser')
+let matchById = require("./cssMatchById")
+let matchByClass = require("./cssMatchByClass")
+let matchByTagName = require("./cssMatchByTagName")
+let matchByAttribute = require("./cssMatchByAttribute")
+let matchByHaiku = require("./cssMatchByHaiku")
+let attrSelectorParser = require("./attrSelectorParser")
 
-var ID_PREFIX = '#'
-var CLASS_PREFIX = '.'
-var ATTR_PREFIX = '['
-var HAIKU_PREFIX = 'haiku:'
+let ID_PREFIX = "#"
+let CLASS_PREFIX = "."
+let ATTR_PREFIX = "["
+let HAIKU_PREFIX = "haiku:"
 
-function matchOne (node, piece, options) {
+function matchOne(node, piece, options) {
   if (piece.slice(0, 6) === HAIKU_PREFIX) {
     return matchByHaiku(node, piece.slice(6), options)
   }
@@ -28,14 +28,14 @@ function matchOne (node, piece, options) {
   }
 
   if (piece[0] === ATTR_PREFIX) {
-    var parsedAttr = attrSelectorParser(piece)
+    let parsedAttr = attrSelectorParser(piece)
     if (!parsedAttr) return false
     return matchByAttribute(
       node,
       parsedAttr.key,
       parsedAttr.operator,
       parsedAttr.value,
-      options
+      options,
     )
   }
 

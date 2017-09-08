@@ -2,13 +2,13 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var createTextNode = require('./createTextNode')
+let createTextNode = require("./createTextNode")
 
-function replaceElementWithText (domElement, textContent, component) {
+function replaceElementWithText(domElement, textContent, component) {
   if (domElement) {
     if (domElement.textContent !== textContent) {
-      var parentNode = domElement.parentNode
-      var textNode = createTextNode(domElement, textContent, component)
+      let parentNode = domElement.parentNode
+      let textNode = createTextNode(domElement, textContent, component)
       parentNode.replaceChild(textNode, domElement)
     }
   }

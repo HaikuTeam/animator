@@ -2,15 +2,15 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var inject = require('./inject')
-var functionSpecificationToFunction = require('./functionSpecificationToFunction')
+let inject = require("./inject")
+let functionSpecificationToFunction = require("./functionSpecificationToFunction")
 
-function reifyRFO (rfo) {
-  var fn = functionSpecificationToFunction(
-    rfo.name || '',
+function reifyRFO(rfo) {
+  let fn = functionSpecificationToFunction(
+    rfo.name || "",
     rfo.params,
     rfo.body,
-    rfo.type
+    rfo.type,
   )
 
   // Upstream can signal that this function needs to become 'injected'

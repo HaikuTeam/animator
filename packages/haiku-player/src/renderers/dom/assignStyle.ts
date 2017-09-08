@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function assignStyle (domElement, virtualElement, style, component, isPatchOperation) {
+function assignStyle(domElement, virtualElement, style, component, isPatchOperation) {
   if (!domElement.__haikuExplicitStyles) domElement.__haikuExplicitStyles = {}
 
   if (!isPatchOperation) {
@@ -13,8 +13,8 @@ function assignStyle (domElement, virtualElement, style, component, isPatchOpera
       domElement.haiku.element.attributes &&
       domElement.haiku.element.attributes.style
     ) {
-      for (var oldStyleKey in domElement.haiku.element.attributes.style) {
-        var newStyleValue = style[oldStyleKey]
+      for (let oldStyleKey in domElement.haiku.element.attributes.style) {
+        let newStyleValue = style[oldStyleKey]
         if (newStyleValue === null || newStyleValue === undefined) {
           domElement.style[oldStyleKey] = null
         }
@@ -22,9 +22,9 @@ function assignStyle (domElement, virtualElement, style, component, isPatchOpera
     }
   }
 
-  for (var key in style) {
-    var newProp = style[key]
-    var previousProp = domElement.style[key]
+  for (let key in style) {
+    let newProp = style[key]
+    let previousProp = domElement.style[key]
     if (previousProp !== newProp) {
       domElement.__haikuExplicitStyles[key] = true
       domElement.style[key] = style[key]

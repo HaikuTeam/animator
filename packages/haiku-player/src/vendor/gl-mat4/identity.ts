@@ -6,7 +6,7 @@ module.exports = identity
  * @param {mat4} out the receiving matrix
  * @returns {mat4} out
  */
-function identity (out) {
+function identity(out) {
   out[0] = 1
   out[1] = 0
   out[2] = 0

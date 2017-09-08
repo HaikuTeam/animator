@@ -1,32 +1,32 @@
-var __baddies__ = 0
+let baddies = 0
 
-function arrayParamToString (param) {
-  var pieces = []
+function arrayParamToString(param) {
+  let pieces = []
 
-  for (var i = 0; i < param.length; i++) {
+  for (let i = 0; i < param.length; i++) {
     pieces.push(stringifyParam(param[i]))
   }
 
-  return '[ ' + pieces.join(', ') + ' ]'
+  return "[ " + pieces.join(", ") + " ]"
 }
 
-function objectParamToString (param) {
-  var pieces = []
+function objectParamToString(param) {
+  let pieces = []
 
   // Special case, an object that describes a rest parameter
   if (param.__rest) {
-    return '...' + param.__rest
+    return "..." + param.__rest
   }
 
-  for (var key in param) {
+  for (let key in param) {
     pieces.push(stringifyParam(param[key], key))
   }
 
-  return '{ ' + pieces.join(', ') + ' }'
+  return "{ " + pieces.join(", ") + " }"
 }
 
-function stringifyParam (param, key) {
-  if (param && typeof param === 'string') {
+function stringifyParam(param, key) {
+  if (param && typeof param === "string") {
     return param
   }
 
@@ -38,13 +38,13 @@ function stringifyParam (param, key) {
 
     if (key) {
       // e.g.: a, a: [...] <~ To allow reference to the destructure root
-      return key + ', ' + key + ': ' + arrayParamToString(param)
+      return key + ", " + key + ": " + arrayParamToString(param)
     }
 
     return arrayParamToString(param)
   }
 
-  if (param && typeof param === 'object') {
+  if (param && typeof param === "object") {
     // Let `a: {}` be a signal that we only want to access 'a'
     if (Object.keys(param).length < 1) {
       return key
@@ -52,22 +52,22 @@ function stringifyParam (param, key) {
 
     if (key) {
       // e.g. a, a: { ... } <~ To allow reference to the destructure root
-      return key + ', ' + key + ': ' + objectParamToString(param)
+      return key + ", " + key + ": " + objectParamToString(param)
     }
 
     return objectParamToString(param)
   }
 
-  return '__' + __baddies__++ + '__' // In case we get something we just can't handle, create something unique and noticeably ugly
+  return "__" + baddies++ + "__" // In case we get something we just can't handle, create something unique and noticeably ugly
 }
 
-function marshalParams (params) {
+function marshalParams(params) {
   return params
-    .map(function _mapper (param) {
+    .map(function _mapper(param) {
       // Need wrap function to avoid passing the index (key) to stringifyParam, which uses that to detect something
       return stringifyParam(param)
     })
-    .join(', ')
+    .join(", ")
 }
 
 module.exports = marshalParams

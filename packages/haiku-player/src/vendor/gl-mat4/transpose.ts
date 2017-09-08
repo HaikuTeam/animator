@@ -7,15 +7,15 @@ module.exports = transpose
  * @param {mat4} a the source matrix
  * @returns {mat4} out
  */
-function transpose (out, a) {
+function transpose(out, a) {
   // If we are transposing ourselves we can skip a few steps but have to cache some values
   if (out === a) {
-    var a01 = a[1]
-    var a02 = a[2]
-    var a03 = a[3]
-    var a12 = a[6]
-    var a13 = a[7]
-    var a23 = a[11]
+    let a01 = a[1]
+    let a02 = a[2]
+    let a03 = a[3]
+    let a12 = a[6]
+    let a13 = a[7]
+    let a23 = a[11]
 
     out[1] = a[4]
     out[2] = a[8]

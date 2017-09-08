@@ -2,12 +2,12 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-module.exports = function isIE (window) {
+module.exports = function isIE(window) {
   if (!window) return false
   if (!window.navigator) return false
   if (!window.navigator.userAgent) return false
   return (
-    window.navigator.userAgent.indexOf('MSIE') !== -1 ||
-    navigator.appVersion.indexOf('Trident') > 0
+    window.navigator.userAgent.indexOf("MSIE") !== -1 ||
+    navigator.appVersion.indexOf("Trident") > 0
   )
 }

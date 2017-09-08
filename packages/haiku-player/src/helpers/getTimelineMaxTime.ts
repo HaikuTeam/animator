@@ -2,15 +2,15 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function getTimelineMaxTime (descriptor) {
-  var max = 0
-  for (var selector in descriptor) {
-    var group = descriptor[selector]
-    for (var output in group) {
-      var keyframes = group[output]
-      var keys = Object.keys(keyframes)
-      for (var i = 0; i < keys.length; i++) {
-        var key = parseInt(keys[i], 10)
+function getTimelineMaxTime(descriptor) {
+  let max = 0
+  for (let selector in descriptor) {
+    let group = descriptor[selector]
+    for (let output in group) {
+      let keyframes = group[output]
+      let keys = Object.keys(keyframes)
+      for (let i = 0; i < keys.length; i++) {
+        let key = parseInt(keys[i], 10)
         if (key > max) max = key
       }
     }
