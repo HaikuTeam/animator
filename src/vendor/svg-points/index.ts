@@ -1,21 +1,21 @@
-'use strict'
+"use strict"
 
 exports.__esModule = true
 exports.valid = exports.toPoints = exports.toPath = undefined
 
-var _toPath = require('./toPath')
+let _toPath = require("./toPath")
 
-var _toPath2 = _interopRequireDefault(_toPath)
+let _toPath2 = _interopRequireDefault(_toPath)
 
-var _toPoints = require('./toPoints')
+let _toPoints = require("./toPoints")
 
-var _toPoints2 = _interopRequireDefault(_toPoints)
+let _toPoints2 = _interopRequireDefault(_toPoints)
 
-var _valid = require('./valid')
+let _valid = require("./valid")
 
-var _valid2 = _interopRequireDefault(_valid)
+let _valid2 = _interopRequireDefault(_valid)
 
-function _interopRequireDefault (obj) {
+function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { default: obj }
 }
 

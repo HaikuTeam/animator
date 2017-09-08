@@ -2,12 +2,12 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var OBJECT = 'object'
-var FUNCTION = 'function'
+let OBJECT = "object"
+let FUNCTION = "function"
 
 // The inverse of this function is 'expressionToRO'
 
-function reifyRO (robj, referenceEvaluator, skipFunctions) {
+function reifyRO(robj, referenceEvaluator, skipFunctions) {
   if (robj === undefined) {
     return undefined
   }
@@ -25,8 +25,8 @@ function reifyRO (robj, referenceEvaluator, skipFunctions) {
   }
 
   if (Array.isArray(robj)) {
-    var aout = []
-    for (var i = 0; i < robj.length; i++) {
+    let aout = []
+    for (let i = 0; i < robj.length; i++) {
       aout[i] = reifyRO(robj[i], referenceEvaluator, skipFunctions)
     }
     return aout
@@ -44,12 +44,12 @@ function reifyRO (robj, referenceEvaluator, skipFunctions) {
     }
     if (robj.__reference) {
       if (referenceEvaluator) return referenceEvaluator(robj.__reference)
-      throw new Error('Reference evaluator required')
+      throw new Error("Reference evaluator required")
     }
 
     // Normal object
-    var oout = {}
-    for (var key in robj) {
+    let oout = {}
+    for (let key in robj) {
       oout[key] = reifyRO(robj[key], referenceEvaluator, skipFunctions)
     }
     return oout
@@ -60,6 +60,6 @@ function reifyRO (robj, referenceEvaluator, skipFunctions) {
 
 module.exports = reifyRO
 
-var expressionToRO = require('./expressionToRO')
-var reifyRFO = require('./reifyRFO')
-var isSerializableScalar = require('./isSerializableScalar')
+let expressionToRO = require("./expressionToRO")
+let reifyRFO = require("./reifyRFO")
+let isSerializableScalar = require("./isSerializableScalar")

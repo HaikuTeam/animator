@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var computeMatrix = require('./layout/computeMatrix')
-var computeRotationFlexibly = require('./layout/computeRotationFlexibly')
-var computeSize = require('./layout/computeSize')
+let computeMatrix = require("./layout/computeMatrix")
+let computeRotationFlexibly = require("./layout/computeRotationFlexibly")
+let computeSize = require("./layout/computeSize")
 
-var ELEMENTS_2D = {
+let ELEMENTS_2D = {
   circle: true,
   ellipse: true,
   foreignObject: true,
@@ -25,23 +25,23 @@ var ELEMENTS_2D = {
   textPath: true,
   tspan: true,
   unknown: true,
-  use: true
+  use: true,
 }
 
 // Coordinate (0, 0, 0) is the top left of the screen
 
-var SIZE_PROPORTIONAL = 0 // A percentage of the parent
-var SIZE_ABSOLUTE = 1 // A fixed size in screen pixels
-var DEFAULT_DEPTH = 0
-var IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+let SIZE_PROPORTIONAL = 0 // A percentage of the parent
+let SIZE_ABSOLUTE = 1 // A fixed size in screen pixels
+let DEFAULT_DEPTH = 0
+let IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
 
 // Used for rendering downstream
-var FORMATS = {
+let FORMATS = {
   THREE: 3,
-  TWO: 2
+  TWO: 2,
 }
 
-function initializeNodeAttributes (element, parent) {
+function initializeNodeAttributes(element, parent) {
   if (!element.attributes) element.attributes = {}
   if (!element.attributes.style) element.attributes.style = {}
   if (!element.layout) {
@@ -54,13 +54,13 @@ function initializeNodeAttributes (element, parent) {
   return element
 }
 
-function initializeTreeAttributes (tree, container) {
-  if (!tree || typeof tree === 'string') return
+function initializeTreeAttributes(tree, container) {
+  if (!tree || typeof tree === "string") return
   initializeNodeAttributes(tree, container)
   tree.__parent = container
   if (!tree.children) return
   if (tree.children.length < 1) return
-  for (var i = 0; i < tree.children.length; i++) {
+  for (let i = 0; i < tree.children.length; i++) {
     initializeTreeAttributes(tree.children[i], tree)
   }
 }
@@ -68,10 +68,15 @@ function initializeTreeAttributes (tree, container) {
 // The layout specification naming in createLayoutSpec is derived in part from https://github.com/Famous/engine/blob/master/core/Transform.js which is MIT licensed.
 // The MIT License (MIT)
 // Copyright (c) 2015 Famous Industries Inc.
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-function createLayoutSpec (ax, ay, az) {
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+function createLayoutSpec(ax, ay, az) {
   return {
     shown: true,
     opacity: 1.0,
@@ -84,19 +89,19 @@ function createLayoutSpec (ax, ay, az) {
     sizeMode: {
       x: SIZE_PROPORTIONAL,
       y: SIZE_PROPORTIONAL,
-      z: SIZE_PROPORTIONAL
+      z: SIZE_PROPORTIONAL,
     },
     sizeProportional: { x: 1, y: 1, z: 1 },
     sizeDifferential: { x: 0, y: 0, z: 0 },
-    sizeAbsolute: { x: 0, y: 0, z: 0 }
+    sizeAbsolute: { x: 0, y: 0, z: 0 },
   }
 }
 
-function createMatrix () {
+function createMatrix() {
   return copyMatrix([], IDENTITY)
 }
 
-function copyMatrix (out, m) {
+function copyMatrix(out, m) {
   out[0] = m[0]
   out[1] = m[1]
   out[2] = m[2]
@@ -116,7 +121,7 @@ function copyMatrix (out, m) {
   return out
 }
 
-function multiplyMatrices (out, a, b) {
+function multiplyMatrices(out, a, b) {
   out[0] = a[0] * b[0] + a[1] * b[4] + a[2] * b[8] + a[3] * b[12]
   out[1] = a[0] * b[1] + a[1] * b[5] + a[2] * b[9] + a[3] * b[13]
   out[2] = a[0] * b[2] + a[1] * b[6] + a[2] * b[10] + a[3] * b[14]
@@ -136,7 +141,7 @@ function multiplyMatrices (out, a, b) {
   return out
 }
 
-function transposeMatrix (out, a) {
+function transposeMatrix(out, a) {
   out[0] = a[0]
   out[1] = a[4]
   out[2] = a[8]
@@ -156,36 +161,36 @@ function transposeMatrix (out, a) {
   return out
 }
 
-function multiplyArrayOfMatrices (arrayOfMatrices) {
-  var product = createMatrix()
-  for (var i = 0; i < arrayOfMatrices.length; i++) {
+function multiplyArrayOfMatrices(arrayOfMatrices) {
+  let product = createMatrix()
+  for (let i = 0; i < arrayOfMatrices.length; i++) {
     product = multiplyMatrices([], product, arrayOfMatrices[i])
   }
   return product
 }
 
-function isZero (num) {
+function isZero(num) {
   return num > -0.000001 && num < 0.000001
 }
 
-function createBaseComputedLayout (x, y, z) {
+function createBaseComputedLayout(x, y, z) {
   if (!x) x = 0
   if (!y) y = 0
   if (!z) z = 0
   return {
-    size: { x: x, y: y, z: z },
+    size: { x, y, z },
     matrix: createMatrix(),
     shown: true,
-    opacity: 1.0
+    opacity: 1.0,
   }
 }
 
-function computeLayout (
+function computeLayout(
   out,
   layoutSpec,
   currentMatrix,
   parentMatrix,
-  parentsizeAbsolute
+  parentsizeAbsolute,
 ) {
   if (!parentsizeAbsolute) parentsizeAbsolute = { x: 0, y: 0, z: 0 }
 
@@ -193,21 +198,21 @@ function computeLayout (
     parentsizeAbsolute.z = DEFAULT_DEPTH
   }
 
-  var size = computeSize(
+  let size = computeSize(
     {},
     layoutSpec,
     layoutSpec.sizeMode,
-    parentsizeAbsolute
+    parentsizeAbsolute,
   )
 
-  var matrix = computeMatrix(
+  let matrix = computeMatrix(
     [],
     out,
     layoutSpec,
     currentMatrix,
     size,
     parentMatrix,
-    parentsizeAbsolute
+    parentsizeAbsolute,
   )
 
   out.size = size
@@ -219,21 +224,21 @@ function computeLayout (
 }
 
 module.exports = {
-  computeMatrix: computeMatrix,
-  multiplyArrayOfMatrices: multiplyArrayOfMatrices,
-  computeLayout: computeLayout,
-  createLayoutSpec: createLayoutSpec,
-  createBaseComputedLayout: createBaseComputedLayout,
-  computeRotationFlexibly: computeRotationFlexibly,
-  createMatrix: createMatrix,
-  FORMATS: FORMATS,
-  SIZE_ABSOLUTE: SIZE_ABSOLUTE,
-  SIZE_PROPORTIONAL: SIZE_PROPORTIONAL,
+  computeMatrix,
+  multiplyArrayOfMatrices,
+  computeLayout,
+  createLayoutSpec,
+  createBaseComputedLayout,
+  computeRotationFlexibly,
+  createMatrix,
+  FORMATS,
+  SIZE_ABSOLUTE,
+  SIZE_PROPORTIONAL,
   ATTRIBUTES: createLayoutSpec(),
-  multiplyMatrices: multiplyMatrices,
-  transposeMatrix: transposeMatrix,
-  copyMatrix: copyMatrix,
-  initializeTreeAttributes: initializeTreeAttributes,
-  initializeNodeAttributes: initializeNodeAttributes,
-  isZero: isZero
+  multiplyMatrices,
+  transposeMatrix,
+  copyMatrix,
+  initializeTreeAttributes,
+  initializeNodeAttributes,
+  isZero,
 }

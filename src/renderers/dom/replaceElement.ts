@@ -2,17 +2,17 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var applyLayout = require('./applyLayout')
-var isTextNode = require('./isTextNode')
+let applyLayout = require("./applyLayout")
+let isTextNode = require("./isTextNode")
 
-function replaceElement (
+function replaceElement(
   domElement,
   virtualElement,
   parentDomNode,
   parentVirtualElement,
-  component
+  component,
 ) {
-  var newElement
+  let newElement
   if (isTextNode(virtualElement)) {
     newElement = createTextNode(domElement, virtualElement, component)
   } else {
@@ -20,7 +20,7 @@ function replaceElement (
       domElement,
       virtualElement,
       parentVirtualElement,
-      component
+      component,
     )
   }
 
@@ -29,7 +29,7 @@ function replaceElement (
     virtualElement,
     parentDomNode,
     parentVirtualElement,
-    component
+    component,
   )
 
   parentDomNode.replaceChild(newElement, domElement)
@@ -38,5 +38,5 @@ function replaceElement (
 
 module.exports = replaceElement
 
-var createTextNode = require('./createTextNode')
-var createTagNode = require('./createTagNode')
+let createTextNode = require("./createTextNode")
+let createTagNode = require("./createTagNode")

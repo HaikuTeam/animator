@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var FUNCTION = 'function'
+let FUNCTION = "function"
 
-function isFunction (value) {
+function isFunction(value) {
   return typeof value === FUNCTION
 }
 

@@ -6,9 +6,9 @@ module.exports = length
  * @param {vec3} a vector to calculate length of
  * @returns {Number} length of a
  */
-function length (a) {
-  var x = a[0]
-  var y = a[1]
-  var z = a[2]
+function length(a) {
+  let x = a[0]
+  let y = a[1]
+  let z = a[2]
   return Math.sqrt(x * x + y * y + z * z)
 }

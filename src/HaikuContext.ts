@@ -2,15 +2,15 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var assign = require('./vendor/assign')
-var HaikuClock = require('./HaikuClock')
-var HaikuComponent = require('./HaikuComponent')
-var Config = require('./Config')
-var PRNG = require('./helpers/PRNG')
+let assign = require("./vendor/assign")
+let HaikuClock = require("./HaikuClock")
+let HaikuComponent = require("./HaikuComponent")
+let Config = require("./Config")
+let PRNG = require("./helpers/PRNG")
 
-var PLAYER_VERSION = require('./../package.json').version
+let PLAYER_VERSION = require("./../package.json").version
 
-var DEFAULT_TIMELINE_NAME = 'Default'
+let DEFAULT_TIMELINE_NAME = "Default"
 
 /**
  * @class HaikuContext
@@ -18,17 +18,17 @@ var DEFAULT_TIMELINE_NAME = 'Default'
  * A Haiku component tree may contain many components, but there is only one context.
  * The context is where information shared by all components in the tree should go, e.g. clock time.
  */
-function HaikuContext (mount, renderer, platform, bytecode, config) {
+function HaikuContext(mount, renderer, platform, bytecode, config) {
   if (!(this instanceof HaikuContext)) {
     return new HaikuContext(mount, renderer, platform, bytecode, config)
   }
 
   if (!renderer) {
-    throw new Error('Context requires a renderer')
+    throw new Error("Context requires a renderer")
   }
 
   if (!bytecode) {
-    throw new Error('Context requires bytecode')
+    throw new Error("Context requires bytecode")
   }
 
   this.PLAYER_VERSION = PLAYER_VERSION
@@ -39,13 +39,13 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
   this._mount = mount
 
   if (!this._mount) {
-    console.info('[haiku player] mount not provided so running in headless mode')
+    console.info("[haiku player] mount not provided so running in headless mode")
   }
 
   // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
   if (this._mount && !this._mount.haiku) {
     this._mount.haiku = {
-      context: this
+      context: this,
     }
   }
 
@@ -59,10 +59,10 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
   this._platform = platform
 
   if (!this._platform) {
-    console.warn('[haiku player] no platform (e.g. window) provided; some features may be unavailable')
+    console.warn("[haiku player] no platform (e.g. window) provided; some features may be unavailable")
   }
 
-  HaikuContext.contexts.push(this) - 1
+  HaikuContext.contexts.push(this)
 
   // List of tickable objects managed by this context. These are invoked on every clock tick.
   // These are removed when context unmounts and re-added in case of re-mount
@@ -85,7 +85,7 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
   this.component.startTimeline(DEFAULT_TIMELINE_NAME)
 
   // If configured, bootstrap the Haiku right-click context menu
-  if (this._mount && this._renderer.menuize && this.config.options.contextMenu !== 'disabled') {
+  if (this._mount && this._renderer.menuize && this.config.options.contextMenu !== "disabled") {
     this._renderer.menuize(this._mount, this.component)
   }
 
@@ -95,8 +95,8 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
     this._mount &&
     this._platform &&
     this._platform.location &&
-    this._platform.location.hostname !== 'localhost' &&
-    this._platform.location.hostname !== '0.0.0.0'
+    this._platform.location.hostname !== "localhost" &&
+    this._platform.location.hostname !== "0.0.0.0"
   ) {
     // If configured, initialize Mixpanel with the given API token
     if (this._renderer.mixpanel && this.config.options.mixpanel) {
@@ -125,7 +125,7 @@ HaikuContext.PLAYER_VERSION = PLAYER_VERSION
  * @method getRootComponent
  * @description Return the root component associated with this context (of which there is only one).
  */
-HaikuContext.prototype.getRootComponent = function getRootComponent () {
+HaikuContext.prototype.getRootComponent = function getRootComponent() {
   return this.component
 }
 
@@ -133,18 +133,18 @@ HaikuContext.prototype.getRootComponent = function getRootComponent () {
  * @method getClock
  * @description Return the clock instance associated with this context
  */
-HaikuContext.prototype.getClock = function getClock () {
+HaikuContext.prototype.getClock = function getClock() {
   return this.clock
 }
 
 /**
  * @method contextMount
  */
-HaikuContext.prototype.contextMount = function _contextMount () {
+HaikuContext.prototype.contextMount = function _contextMount() {
   if (this._unmountedTickables) {
     // Gotta remember to _remove_ the tickables so we don't end up with dupes if we re-mount later
-    var unmounted = this._unmountedTickables.splice(0)
-    for (var i = 0; i < unmounted.length; i++) {
+    let unmounted = this._unmountedTickables.splice(0)
+    for (let i = 0; i < unmounted.length; i++) {
       this.addTickable(unmounted[i])
     }
   }
@@ -154,7 +154,7 @@ HaikuContext.prototype.contextMount = function _contextMount () {
 /**
  * @method contextUnmount
  */
-HaikuContext.prototype.contextUnmount = function _contextUnmount () {
+HaikuContext.prototype.contextUnmount = function _contextUnmount() {
   this._unmountedTickables = this._tickables.splice(0)
   return this
 }
@@ -164,9 +164,9 @@ HaikuContext.prototype.contextUnmount = function _contextUnmount () {
  * @description Add a tickable object to the list of those that will be called on every clock tick.
  * This only adds if the given object isn't already present in the list.
  */
-HaikuContext.prototype.addTickable = function addTickable (tickable) {
-  var alreadyAdded = false
-  for (var i = 0; i < this._tickables.length; i++) {
+HaikuContext.prototype.addTickable = function addTickable(tickable) {
+  let alreadyAdded = false
+  for (let i = 0; i < this._tickables.length; i++) {
     if (tickable === this._tickables[i]) {
       alreadyAdded = true
       break
@@ -182,8 +182,8 @@ HaikuContext.prototype.addTickable = function addTickable (tickable) {
  * @method removeTickable
  * @description Remove a tickable object to the list of those that will be called on every clock tick.
  */
-HaikuContext.prototype.removeTickable = function removeTickable (tickable) {
-  for (var i = (this._tickables.length - 1); i >= 0; i--) {
+HaikuContext.prototype.removeTickable = function removeTickable(tickable) {
+  for (let i = (this._tickables.length - 1); i >= 0; i--) {
     if (tickable === this._tickables[i]) {
       this._tickables.splice(i, 1)
     }
@@ -196,7 +196,7 @@ HaikuContext.prototype.removeTickable = function removeTickable (tickable) {
  * @description Update our internal settings with those passed in, using the assign algorithm.
  * This also updates the internal options for the clock instance and root component instance.
  */
-HaikuContext.prototype.assignConfig = function assignConfig (config, options) {
+HaikuContext.prototype.assignConfig = function assignConfig(config, options) {
   this.config = assign({}, config) // QUESTION: Why do we assign here?
 
   // HACK: Since we run this method before the clock is initialized sometimes, we have to check whether the clock exists before assigning sub-options to it.
@@ -219,46 +219,46 @@ HaikuContext.prototype.assignConfig = function assignConfig (config, options) {
 }
 
 // Call to completely update the entire component tree - as though it were the first time
-HaikuContext.prototype.performFullFlushRender = function performFullFlushRender () {
+HaikuContext.prototype.performFullFlushRender = function performFullFlushRender() {
   if (!this._mount) {
     return void (0)
   }
-  var container = this._renderer.createContainer(this._mount)
-  var tree = this.component.render(container, this.config.options)
+  let container = this._renderer.createContainer(this._mount)
+  let tree = this.component.render(container, this.config.options)
   this._renderer.render(
     this._mount,
     container,
     tree,
-    this.component
+    this.component,
   )
   return this
 }
 
 // Call to update elements of the this.component tree - but only those that we detect have changed
-HaikuContext.prototype.performPatchRender = function performPatchRender () {
+HaikuContext.prototype.performPatchRender = function performPatchRender() {
   if (!this._mount) {
     return void (0)
   }
-  var container = this._renderer.createContainer(this._mount)
-  var patches = this.component.patch(container, this.config.options)
+  let container = this._renderer.createContainer(this._mount)
+  let patches = this.component.patch(container, this.config.options)
   this._renderer.patch(
     this._mount,
     container,
     patches,
-    this.component
+    this.component,
   )
   return this
 }
 
 // Called on every frame, this function updates the mount+root elements to ensure their style settings are in accordance
 // with any passed-in haikuConfig.options that may affect it, e.g. CSS overflow or positioning settings
-HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles () {
+HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles() {
   if (!this._mount) {
     return void (0)
   }
 
   // We can assume the mount has only one child since we only mount one component into it (#?)
-  var root = this._mount && this._mount.children[0]
+  let root = this._mount && this._mount.children[0]
 
   if (root) {
     if (this.config.options.position && root.style.position !== this.config.options.position) {
@@ -298,8 +298,8 @@ HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles ()
   return this
 }
 
-HaikuContext.prototype.tick = function tick () {
-  var flushed = false
+HaikuContext.prototype.tick = function tick() {
+  let flushed = false
 
   // After we've hydrated the tree the first time, we can proceed with patches --
   // unless the component indicates it wants a full flush per its internal settings.
@@ -334,7 +334,7 @@ HaikuContext.prototype.tick = function tick () {
  * @description Return a random number in the range [0,1].
  * Unlike Math.random() this is deterministic, based on our seed number.
  */
-HaikuContext.prototype.getDeterministicRand = function getDeterministicRand () {
+HaikuContext.prototype.getDeterministicRand = function getDeterministicRand() {
   return this._prng.random()
 }
 
@@ -343,13 +343,13 @@ HaikuContext.prototype.getDeterministicRand = function getDeterministicRand () {
  * @description Return the current timestamp (Unicode) but based on our initial seeded value for 'timestamp'
  * Ultimately this is exposed as the helper 'now'
  */
-HaikuContext.prototype.getDeterministicTime = function getDeterministicTime () {
-  var runningTime = this.getClock().getRunningTime() // ms
-  var seededTime = this.config.options.timestamp
+HaikuContext.prototype.getDeterministicTime = function getDeterministicTime() {
+  let runningTime = this.getClock().getRunningTime() // ms
+  let seededTime = this.config.options.timestamp
   return seededTime + runningTime
 }
 
-HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState () {
+HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState() {
   return this._renderer && this._renderer.getUser && this._renderer.getUser()
 }
 
@@ -358,41 +358,41 @@ HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState () {
  * @description Returns a factory function that can create a HaikuComponent and run it upon a mount.
  * The created player runs using the passed-in renderer, bytecode, options, and platform.
  */
-HaikuContext.createComponentFactory = function createComponentFactory (
+HaikuContext.createComponentFactory = function createComponentFactory(
   RendererClass,
   bytecode,
   haikuConfigFromFactoryCreator,
-  platform
+  platform,
 ) {
   if (!RendererClass) {
-    throw new Error('A runtime renderer class object is required')
+    throw new Error("A runtime renderer class object is required")
   }
 
   if (!bytecode) {
-    throw new Error('A runtime `bytecode` object is required')
+    throw new Error("A runtime `bytecode` object is required")
   }
 
   // Only warn on this in case we're running in headless/server/test mode
   if (!platform) {
-    console.warn('[haiku player] no runtime `platform` object was provided')
+    console.warn("[haiku player] no runtime `platform` object was provided")
   }
 
   // Note that haiku Config may be passed at this level, or below at the factory invocation level.
-  var haikuConfigFromTop = Config.build(
+  let haikuConfigFromTop = Config.build(
     {
       options: {
         // The seed value should remain constant from here on, because it is used for PRNG
         seed: Config.seed(),
 
         // The now value is used to compute a current date with respect to the current time
-        timestamp: Date.now()
-      }
+        timestamp: Date.now(),
+      },
     },
     // The bytecode itself may contain configuration for playback, etc., but is lower precedence than config passed in
     {
-      options: bytecode && bytecode.options
+      options: bytecode && bytecode.options,
     },
-    haikuConfigFromFactoryCreator
+    haikuConfigFromFactoryCreator,
   )
 
   /**
@@ -400,15 +400,15 @@ HaikuContext.createComponentFactory = function createComponentFactory (
    * @description Creates a new HaikuComponent instance.
    * The (renderer, bytecode) pair are bootstrapped into the given mount element, and played.
    */
-  function HaikuComponentFactory (mount, haikuConfigFromFactory) {
+  function HaikuComponentFactory(mount, haikuConfigFromFactory) {
     // Merge any config received "late" with the config we might have already gotten during bootstrapping
-    var haikuConfigMerged = Config.build(haikuConfigFromTop, haikuConfigFromFactory)
+    let haikuConfigMerged = Config.build(haikuConfigFromTop, haikuConfigFromFactory)
 
     // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
     // an initialization/mounting issue when running in React.
-    var renderer = new RendererClass()
-    var context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged)
-    var component = context.getRootComponent()
+    let renderer = new RendererClass()
+    let context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged)
+    let component = context.getRootComponent()
 
     // These properties are added for convenience as hot editing hooks inside Haiku Desktop (and elsewhere?).
     // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.

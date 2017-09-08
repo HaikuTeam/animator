@@ -2,31 +2,31 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var createTextNode = require('./createTextNode')
-var createTagNode = require('./createTagNode')
-var applyLayout = require('./applyLayout')
-var isTextNode = require('./isTextNode')
+let createTextNode = require("./createTextNode")
+let createTagNode = require("./createTagNode")
+let applyLayout = require("./applyLayout")
+let isTextNode = require("./isTextNode")
 
-function appendChild (
+function appendChild(
   alreadyChildElement,
   virtualElement,
   parentDomElement,
   parentVirtualElement,
-  component
+  component,
 ) {
-  var domElementToInsert
+  let domElementToInsert
   if (isTextNode(virtualElement)) {
     domElementToInsert = createTextNode(
       parentDomElement,
       virtualElement,
-      component
+      component,
     )
   } else {
     domElementToInsert = createTagNode(
       parentDomElement,
       virtualElement,
       parentVirtualElement,
-      component
+      component,
     )
   }
 
@@ -35,7 +35,7 @@ function appendChild (
     virtualElement,
     parentDomElement,
     parentVirtualElement,
-    component
+    component,
   )
 
   parentDomElement.appendChild(domElementToInsert)

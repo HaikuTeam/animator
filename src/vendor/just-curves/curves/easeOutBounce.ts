@@ -1,6 +1,6 @@
-exports.easeOutBounce = function (x) {
-  var n1 = 7.5625
-  var d1 = 2.75
+exports.easeOutBounce = function(x) {
+  let n1 = 7.5625
+  let d1 = 2.75
   return x < 1 / d1
     ? n1 * x * x
     : x < 2 / d1

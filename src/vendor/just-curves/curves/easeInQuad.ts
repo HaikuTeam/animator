@@ -1,3 +1,3 @@
-exports.easeInQuad = function (x) {
+exports.easeInQuad = function(x) {
   return x * x
 }

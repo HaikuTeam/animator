@@ -1,5 +1,5 @@
-var internal1 = require('../internal')
-exports.easeInOutExpo = function (x) {
+let internal1 = require("../internal")
+exports.easeInOutExpo = function(x) {
   return x === 0
     ? 0
     : x === 1

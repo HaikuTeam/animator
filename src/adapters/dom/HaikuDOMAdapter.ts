@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var HaikuContext = require('./../../HaikuContext')
-var HaikuDOMRendererClass = require('./../../renderers/dom')
-var PLAYER_VERSION = require('./../../../package.json').version
+let HaikuContext = require("./../../HaikuContext")
+let HaikuDOMRendererClass = require("./../../renderers/dom")
+let PLAYER_VERSION = require("./../../../package.json").version
 
 /**
  * Example ways in which the export of this module is invoked:
@@ -17,27 +17,27 @@ var PLAYER_VERSION = require('./../../../package.json').version
  * module.exports = HaikuDOMAdapter(require('./code/main/code.js'))
  */
 
-var IS_WINDOW_DEFINED = typeof window !== 'undefined'
+let IS_WINDOW_DEFINED = typeof window !== "undefined"
 
 /**
  * @function HaikuDOMAdapter
  * @description Given a bytecode object, return a factory function which can create a DOM-playable component.
  */
-function HaikuDOMAdapter (bytecode, config, _window) {
+function HaikuDOMAdapter(bytecode, config, safeWindow) {
   if (!config) config = {}
   if (!config.options) config.options = {}
 
-  if (!_window) {
+  if (!safeWindow) {
     if (IS_WINDOW_DEFINED) {
-      _window = window
+      safeWindow = window
     }
   }
 
   if (config.options.useWebkitPrefix === undefined) {
     // Allow headless mode, e.g. in server-side rendering or in Node.js unit tests
-    if (_window && _window.document) {
-      var isWebKit =
-        'WebkitAppearance' in _window.document.documentElement.style
+    if (safeWindow && safeWindow.document) {
+      let isWebKit =
+        "WebkitAppearance" in safeWindow.document.documentElement.style
       config.options.useWebkitPrefix = !!isWebKit
     }
   }
@@ -46,7 +46,7 @@ function HaikuDOMAdapter (bytecode, config, _window) {
     HaikuDOMRendererClass,
     bytecode,
     config, // Note: Full config object, of which options is one property!
-    _window
+    safeWindow,
   )
 }
 

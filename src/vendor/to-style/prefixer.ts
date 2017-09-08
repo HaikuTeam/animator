@@ -1,28 +1,28 @@
-var camelize = require('./stringUtils/camelize')
-var hyphenate = require('./stringUtils/hyphenate')
-var toLowerFirst = require('./stringUtils/toLowerFirst')
-var toUpperFirst = require('./stringUtils/toUpperFirst')
+let camelize = require("./stringUtils/camelize")
+let hyphenate = require("./stringUtils/hyphenate")
+let toLowerFirst = require("./stringUtils/toLowerFirst")
+let toUpperFirst = require("./stringUtils/toUpperFirst")
 
-var prefixInfo = require('./prefixInfo')
-var prefixProperties = require('./prefixProperties')
+let prefixInfo = require("./prefixInfo")
+let prefixProperties = require("./prefixProperties")
 
-var docStyle = typeof document === 'undefined'
+let docStyle = typeof document === "undefined"
   ? {}
   : document.documentElement.style
 
-module.exports = function (asStylePrefix) {
-  return function (name, config) {
+module.exports = function(asStylePrefix) {
+  return function(name, config) {
     config = config || {}
 
-    var styleName = toLowerFirst(camelize(name))
+    let styleName = toLowerFirst(camelize(name))
 
-    var cssName = hyphenate(name)
+    let cssName = hyphenate(name)
 
-    var theName = asStylePrefix ? styleName : cssName
+    let theName = asStylePrefix ? styleName : cssName
 
-    var thePrefix = prefixInfo.style
+    let thePrefix = prefixInfo.style
       ? asStylePrefix ? prefixInfo.style : prefixInfo.css
-      : ''
+      : ""
 
     if (styleName in docStyle) {
       return config.asString ? theName : [theName]
@@ -30,22 +30,22 @@ module.exports = function (asStylePrefix) {
 
     // not a valid style name, so we'll return the value with a prefix
 
-    var upperCased = theName
-    var prefixProperty = prefixProperties[cssName]
-    var result = []
+    let upperCased = theName
+    let prefixProperty = prefixProperties[cssName]
+    let result = []
 
     if (asStylePrefix) {
       upperCased = toUpperFirst(theName)
     }
 
-    if (typeof prefixProperty === 'function') {
-      var prefixedCss = prefixProperty(theName, thePrefix) || []
+    if (typeof prefixProperty === "function") {
+      let prefixedCss = prefixProperty(theName, thePrefix) || []
       if (prefixedCss && !Array.isArray(prefixedCss)) {
         prefixedCss = [prefixedCss]
       }
 
       if (prefixedCss.length) {
-        prefixedCss = prefixedCss.map(function (property) {
+        prefixedCss = prefixedCss.map(function(property) {
           return asStylePrefix
             ? toLowerFirst(camelize(property))
             : hyphenate(property)

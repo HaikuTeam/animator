@@ -1,9 +1,9 @@
-var toCamelFn = function (str, letter) {
-  return letter ? letter.toUpperCase() : ''
+let toCamelFn = function(str, letter) {
+  return letter ? letter.toUpperCase() : ""
 }
 
-var hyphenRe = require('./hyphenRe')
+let hyphenRe = require("./hyphenRe")
 
-module.exports = function (str) {
-  return str ? str.replace(hyphenRe, toCamelFn) : ''
+module.exports = function(str) {
+  return str ? str.replace(hyphenRe, toCamelFn) : ""
 }

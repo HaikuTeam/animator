@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function objectToRO (obj, options) {
-  var out = {}
-  for (var key in obj) {
+function objectToRO(obj, options) {
+  let out = {}
+  for (let key in obj) {
     if (options && options.ignore && options.ignore.test(key)) continue
     out[key] = expressionToRO(obj[key], options)
   }
@@ -13,4 +13,4 @@ function objectToRO (obj, options) {
 
 module.exports = objectToRO
 
-var expressionToRO = require('./expressionToRO')
+let expressionToRO = require("./expressionToRO")

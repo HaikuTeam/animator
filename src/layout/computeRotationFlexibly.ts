@@ -26,7 +26,7 @@
  * THE SOFTWARE.
  */
 
-function computeRotationFlexibly (x, y, z, w, quat) {
+function computeRotationFlexibly(x, y, z, w, quat) {
   // If w-component was given, we are dealing with someone who is quaternion-savvy,
   // and who we assume wants to compute a rotation exactly, so we'll just return the vector
   // if (w != null) {
@@ -41,7 +41,7 @@ function computeRotationFlexibly (x, y, z, w, quat) {
     !quat ||
     (quat.x == null || quat.y == null || quat.z == null || quat.w == null)
   ) {
-    throw new Error('No w-component nor quaternion provided!')
+    throw new Error("No w-component nor quaternion provided!")
   }
 
   // If we got here, we are going to return a new quaternion to describe the
@@ -50,14 +50,14 @@ function computeRotationFlexibly (x, y, z, w, quat) {
   // case that any of the other values was omitted, which we will interpret
   // to mean we want to use the value given by the passed quaternion
   if (x == null || y == null || z == null) {
-    var sp = -2 * (quat.y * quat.z - quat.w * quat.x)
+    let sp = -2 * (quat.y * quat.z - quat.w * quat.x)
 
     if (Math.abs(sp) > 0.99999) {
       y = y == null ? Math.PI * 0.5 * sp : y
       x = x == null
         ? Math.atan2(
             -quat.x * quat.z + quat.w * quat.y,
-            0.5 - quat.y * quat.y - quat.z * quat.z
+            0.5 - quat.y * quat.y - quat.z * quat.z,
           )
         : x
       z = z == null ? 0 : z
@@ -66,38 +66,38 @@ function computeRotationFlexibly (x, y, z, w, quat) {
       x = x == null
         ? Math.atan2(
             quat.x * quat.z + quat.w * quat.y,
-            0.5 - quat.x * quat.x - quat.y * quat.y
+            0.5 - quat.x * quat.x - quat.y * quat.y,
           )
         : x
       z = z == null
         ? Math.atan2(
             quat.x * quat.y + quat.w * quat.z,
-            0.5 - quat.x * quat.x - quat.z * quat.z
+            0.5 - quat.x * quat.x - quat.z * quat.z,
           )
         : z
     }
   }
 
-  var hx = x * 0.5
-  var hy = y * 0.5
-  var hz = z * 0.5
+  let hx = x * 0.5
+  let hy = y * 0.5
+  let hz = z * 0.5
 
-  var sx = Math.sin(hx)
-  var sy = Math.sin(hy)
-  var sz = Math.sin(hz)
-  var cx = Math.cos(hx)
-  var cy = Math.cos(hy)
-  var cz = Math.cos(hz)
+  let sx = Math.sin(hx)
+  let sy = Math.sin(hy)
+  let sz = Math.sin(hz)
+  let cx = Math.cos(hx)
+  let cy = Math.cos(hy)
+  let cz = Math.cos(hz)
 
-  var sysz = sy * sz
-  var cysz = cy * sz
-  var sycz = sy * cz
-  var cycz = cy * cz
+  let sysz = sy * sz
+  let cysz = cy * sz
+  let sycz = sy * cz
+  let cycz = cy * cz
 
-  var qx = sx * cycz + cx * sysz
-  var qy = cx * sycz - sx * cysz
-  var qz = cx * cysz + sx * sycz
-  var qw = cx * cycz - sx * sysz
+  let qx = sx * cycz + cx * sysz
+  let qy = cx * sycz - sx * cysz
+  let qz = cx * cysz + sx * sycz
+  let qw = cx * cycz - sx * sysz
 
   return { x: qx, y: qy, z: qz, w: qw }
 }

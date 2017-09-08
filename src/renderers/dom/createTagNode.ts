@@ -2,20 +2,20 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var normalizeName = require('./normalizeName')
-var getTypeAsString = require('./getTypeAsString')
-var getFlexId = require('./getFlexId')
+let normalizeName = require("./normalizeName")
+let getTypeAsString = require("./getTypeAsString")
+let getFlexId = require("./getFlexId")
 
-var SVG_EL_NAMES = require('./../../helpers/allSvgElementNames')
+let SVG_EL_NAMES = require("./../../helpers/allSvgElementNames")
 
-function createTagNode (
+function createTagNode(
   domElement,
   virtualElement,
   parentVirtualElement,
-  component
+  component,
 ) {
-  var tagName = normalizeName(getTypeAsString(virtualElement))
-  var newDomElement
+  let tagName = normalizeName(getTypeAsString(virtualElement))
+  let newDomElement
   if (SVG_EL_NAMES[tagName]) {
     // SVG
     newDomElement = createSvgElement(domElement, tagName, component)
@@ -31,7 +31,7 @@ function createTagNode (
     component.config.options.cache[getFlexId(virtualElement)] = {}
   }
 
-  var incomingKey =
+  let incomingKey =
     virtualElement.key ||
     (virtualElement.attributes && virtualElement.attributes.key)
   if (incomingKey !== undefined && incomingKey !== null) {
@@ -44,12 +44,12 @@ function createTagNode (
     virtualElement,
     domElement,
     parentVirtualElement,
-    component
+    component,
   )
   return newDomElement
 }
 
 module.exports = createTagNode
 
-var createSvgElement = require('./createSvgElement')
-var updateElement = require('./updateElement')
+let createSvgElement = require("./createSvgElement")
+let updateElement = require("./updateElement")

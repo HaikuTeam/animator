@@ -8,10 +8,10 @@ module.exports = scale
  * @param {vec3} v the vec3 to scale the matrix by
  * @returns {mat4} out
  **/
-function scale (out, a, v) {
-  var x = v[0]
-  var y = v[1]
-  var z = v[2]
+function scale(out, a, v) {
+  let x = v[0]
+  let y = v[1]
+  let z = v[2]
 
   out[0] = a[0] * x
   out[1] = a[1] * x

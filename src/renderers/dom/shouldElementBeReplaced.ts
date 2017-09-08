@@ -1,8 +1,8 @@
-var getFlexId = require('./getFlexId')
+let getFlexId = require("./getFlexId")
 
-module.exports = function shouldElementBeReplaced (domElement, virtualElement) {
-  var oldFlexId = getFlexId(domElement)
-  var newFlexId = getFlexId(virtualElement)
+module.exports = function shouldElementBeReplaced(domElement, virtualElement) {
+  let oldFlexId = getFlexId(domElement)
+  let newFlexId = getFlexId(virtualElement)
 
   if (oldFlexId && newFlexId) {
     if (oldFlexId !== newFlexId) {

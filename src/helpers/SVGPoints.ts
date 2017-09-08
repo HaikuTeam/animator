@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var SVGPoints = require('./../vendor/svg-points')
-var parseCssValueString = require('./parseCssValueString')
+let SVGPoints = require("./../vendor/svg-points")
+let parseCssValueString = require("./parseCssValueString")
 
-var SVG_TYPES = {
+let SVG_TYPES = {
   g: true,
   rect: true,
   polyline: true,
@@ -13,10 +13,10 @@ var SVG_TYPES = {
   path: true,
   line: true,
   ellipse: true,
-  circle: true
+  circle: true,
 }
 
-var SVG_POINT_NUMERIC_FIELDS = {
+let SVG_POINT_NUMERIC_FIELDS = {
   cx: true,
   cy: true,
   r: true,
@@ -25,29 +25,29 @@ var SVG_POINT_NUMERIC_FIELDS = {
   x1: true,
   x2: true,
   x: true,
-  y: true
+  y: true,
 }
 
-var SVG_POINT_COMMAND_FIELDS = {
+let SVG_POINT_COMMAND_FIELDS = {
   d: true,
-  points: true
+  points: true,
 }
 
-var SVG_COMMAND_TYPES = {
+let SVG_COMMAND_TYPES = {
   path: true,
   polyline: true,
-  polygon: true
+  polygon: true,
 }
 
-function polyPointsStringToPoints (pointsString) {
+function polyPointsStringToPoints(pointsString) {
   if (!pointsString) return []
   if (Array.isArray(pointsString)) return pointsString
-  var points = []
-  var couples = pointsString.split(/\s+/)
-  for (var i = 0; i < couples.length; i++) {
-    var pair = couples[i]
-    var segs = pair.split(/,\s*/)
-    var coord = []
+  let points = []
+  let couples = pointsString.split(/\s+/)
+  for (let i = 0; i < couples.length; i++) {
+    let pair = couples[i]
+    let segs = pair.split(/,\s*/)
+    let coord = []
     if (segs[0]) coord[0] = Number(segs[0])
     if (segs[1]) coord[1] = Number(segs[1])
     points.push(coord)
@@ -55,42 +55,42 @@ function polyPointsStringToPoints (pointsString) {
   return points
 }
 
-function pointsToPolyString (points) {
-  if (!points) return ''
-  if (typeof points === 'string') return points
-  var arr = []
-  for (var i = 0; i < points.length; i++) {
-    var point = points[i]
-    var seg = point.join(',')
+function pointsToPolyString(points) {
+  if (!points) return ""
+  if (typeof points === "string") return points
+  let arr = []
+  for (let i = 0; i < points.length; i++) {
+    let point = points[i]
+    let seg = point.join(",")
     arr.push(seg)
   }
-  return arr.join(' ')
+  return arr.join(" ")
 }
 
-function pathToPoints (pathString) {
-  var shape = { type: 'path', d: pathString }
+function pathToPoints(pathString) {
+  let shape = { type: "path", d: pathString }
   return SVGPoints.toPoints(shape)
 }
 
-function pointsToPath (pointsArray) {
+function pointsToPath(pointsArray) {
   return SVGPoints.toPath(pointsArray)
 }
 
-function manaToPoints (mana) {
+function manaToPoints(mana) {
   if (
     SVG_TYPES[mana.elementName] &&
-    mana.elementName !== 'rect' &&
-    mana.elementName !== 'g'
+    mana.elementName !== "rect" &&
+    mana.elementName !== "g"
   ) {
-    var shape = { type: mana.elementName }
+    let shape = { type: mana.elementName }
     if (SVG_COMMAND_TYPES[shape.type]) {
-      for (var f2 in SVG_POINT_COMMAND_FIELDS) {
+      for (let f2 in SVG_POINT_COMMAND_FIELDS) {
         if (mana.attributes[f2]) {
           shape[f2] = mana.attributes[f2]
         }
       }
     } else {
-      for (var f1 in SVG_POINT_NUMERIC_FIELDS) {
+      for (let f1 in SVG_POINT_NUMERIC_FIELDS) {
         if (mana.attributes[f1]) {
           shape[f1] = Number(mana.attributes[f1])
         }
@@ -99,7 +99,7 @@ function manaToPoints (mana) {
     return SVGPoints.toPoints(shape)
   } else {
     // div, rect, svg ...
-    var width = parseCssValueString(
+    let width = parseCssValueString(
       (mana.layout &&
         mana.layout.computed &&
         mana.layout.computed.size &&
@@ -110,9 +110,9 @@ function manaToPoints (mana) {
           mana.attributes.style.width) ||
         (mana.attributes && mana.attributes.width) ||
         (mana.attributes && mana.attributes.x) ||
-        0
+        0,
     ).value
-    var height = parseCssValueString(
+    let height = parseCssValueString(
       (mana.layout &&
         mana.layout.computed &&
         mana.layout.computed.size &&
@@ -123,34 +123,34 @@ function manaToPoints (mana) {
           mana.attributes.style.height) ||
         (mana.attributes && mana.attributes.height) ||
         (mana.attributes && mana.attributes.y) ||
-        0
+        0,
     ).value
-    var left = parseCssValueString(
+    let left = parseCssValueString(
       (mana.rect && mana.rect.left) ||
         (mana.attributes.style && mana.attributes.style.left) ||
         mana.attributes.x ||
-        0
+        0,
     ).value
-    var top = parseCssValueString(
+    let top = parseCssValueString(
       (mana.rect && mana.rect.top) ||
         (mana.attributes.style && mana.attributes.style.top) ||
         mana.attributes.y ||
-        0
+        0,
     ).value
     return SVGPoints.toPoints({
-      type: 'rect',
-      width: width,
-      height: height,
+      type: "rect",
+      width,
+      height,
       x: left,
-      y: top
+      y: top,
     })
   }
 }
 
 module.exports = {
-  pathToPoints: pathToPoints,
-  pointsToPath: pointsToPath,
-  polyPointsStringToPoints: polyPointsStringToPoints,
-  pointsToPolyString: pointsToPolyString,
-  manaToPoints: manaToPoints
+  pathToPoints,
+  pointsToPath,
+  polyPointsStringToPoints,
+  pointsToPolyString,
+  manaToPoints,
 }

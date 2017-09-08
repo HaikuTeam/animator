@@ -2,22 +2,22 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var objectPath = require('./objectPath')
+let objectPath = require("./objectPath")
 
-function matchByAttribute (
+function matchByAttribute(
   node,
   attrKeyToMatch,
   attrOperator,
   attrValueToMatch,
-  options
+  options,
 ) {
-  var attributes = objectPath(node, options.attributes)
+  let attributes = objectPath(node, options.attributes)
   if (attributes) {
-    var attrValue = attributes[attrKeyToMatch]
+    let attrValue = attributes[attrKeyToMatch]
     // If no operator, do a simple presence check ([foo])
     if (!attrOperator) return !!attrValue
     switch (attrOperator) {
-      case '=':
+      case "=":
         return attrValueToMatch === attrValue
       // case '~=':
       // case '|=':
@@ -25,7 +25,7 @@ function matchByAttribute (
       // case '$=':
       // case '*=':
       default:
-        console.warn('Operator `' + attrOperator + '` not supported yet')
+        console.warn("Operator `" + attrOperator + "` not supported yet")
         return false
     }
   }

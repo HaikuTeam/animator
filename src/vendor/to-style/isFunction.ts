@@ -1,5 +1,5 @@
-var objectToString = Object.prototype.toString
+let objectToString = Object.prototype.toString
 
-module.exports = function (v) {
-  return objectToString.apply(v) === '[object Function]'
+module.exports = function(v) {
+  return objectToString.apply(v) === "[object Function]"
 }

@@ -15,24 +15,24 @@ module.exports = fromRotationTranslation
  * @param {vec3} v Translation vector
  * @returns {mat4} out
  */
-function fromRotationTranslation (out, q, v) {
+function fromRotationTranslation(out, q, v) {
   // Quaternion math
-  var x = q[0]
-  var y = q[1]
-  var z = q[2]
-  var w = q[3]
-  var x2 = x + x
-  var y2 = y + y
-  var z2 = z + z
-  var xx = x * x2
-  var xy = x * y2
-  var xz = x * z2
-  var yy = y * y2
-  var yz = y * z2
-  var zz = z * z2
-  var wx = w * x2
-  var wy = w * y2
-  var wz = w * z2
+  let x = q[0]
+  let y = q[1]
+  let z = q[2]
+  let w = q[3]
+  let x2 = x + x
+  let y2 = y + y
+  let z2 = z + z
+  let xx = x * x2
+  let xy = x * y2
+  let xz = x * z2
+  let yy = y * y2
+  let yz = y * z2
+  let zz = z * z2
+  let wx = w * x2
+  let wy = w * y2
+  let wz = w * z2
 
   out[0] = 1 - (yy + zz)
   out[1] = xy + wz

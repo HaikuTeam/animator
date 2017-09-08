@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var STRING = 'string'
-var NUMBER = 'number'
-var BOOLEAN = 'boolean'
+let STRING = "string"
+let NUMBER = "number"
+let BOOLEAN = "boolean"
 
-function isSerializableScalar (value) {
+function isSerializableScalar(value) {
   return (
     value === null ||
     typeof value === NUMBER ||

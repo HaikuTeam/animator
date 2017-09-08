@@ -1,28 +1,28 @@
-var width = 256        // each RC4 output is 0 <= x < 256
-var chunks = 6         // at least six RC4 outputs for each double
-var digits = 52        // there are 52 significant digits in a double
-var startdenom = Math.pow(width, chunks)
-var significance = Math.pow(2, digits)
-var overflow = significance * 2
-var mask = width - 1
-var pool = []
+let width = 256        // each RC4 output is 0 <= x < 256
+let chunks = 6         // at least six RC4 outputs for each double
+let digits = 52        // there are 52 significant digits in a double
+let startdenom = Math.pow(width, chunks)
+let significance = Math.pow(2, digits)
+let overflow = significance * 2
+let mask = width - 1
+let pool = []
 
 //
 // seedrandom()
 // This is the seedrandom function described above.
 //
-function seedrandom (seed, options, callback) {
-  var key = []
+function seedrandom(seed, options, callback) {
+  let key = []
 
   // Use the seed to initialize an ARC4 generator.
-  var arc4 = new ARC4(key)
+  let arc4 = new ARC4(key)
 
   // This function returns a random double in [0, 1) that contains
   // randomness in every bit of the mantissa of the IEEE 754 value.
-  function prng () {
-    var n = arc4.g(chunks)             // Start with a numerator n < 2 ^ 48
-    var d = startdenom                 //   and denominator d = 2 ^ 48.
-    var x = 0                          //   and no 'extra last byte'.
+  function prng() {
+    let n = arc4.g(chunks)             // Start with a numerator n < 2 ^ 48
+    let d = startdenom                 //   and denominator d = 2 ^ 48.
+    let x = 0                          //   and no 'extra last byte'.
 
     while (n < significance) {          // Fill up all significant digits by
       n = (n + x) * width              //   shifting numerator and
@@ -53,13 +53,13 @@ function seedrandom (seed, options, callback) {
 // The g(count) method returns a pseudorandom integer that concatenates
 // the next (count) outputs from ARC4.  Its return value is a number x
 // that is in the range 0 <= x < (width ^ count).
-function ARC4 (key) {
-  var t
-  var keylen = key.length
-  var me = this
-  var i = 0
-  var j = me.i = me.j = 0
-  var s = me.S = []
+function ARC4(key) {
+  let t
+  let keylen = key.length
+  let me = this
+  let i = 0
+  let j = me.i = me.j = 0
+  let s = me.S = []
 
   // The empty key [] is treated as [0].
   if (!keylen) {
@@ -77,13 +77,13 @@ function ARC4 (key) {
   }
 
   // The "g" method returns the next (count) outputs as one number.
-  (me.g = function g (count) {
+  (me.g = function g(count) {
     // Using instance members instead of closure state nearly doubles speed.
-    var t
-    var r = 0
-    var i = me.i
-    var j = me.j
-    var s = me.S
+    let t
+    let r = 0
+    let i = me.i
+    let j = me.j
+    let s = me.S
 
     while (count--) {
       t = s[i = mask & (i + 1)]
@@ -104,10 +104,10 @@ function ARC4 (key) {
 // mixkey()
 // Mixes a string seed into a key that is an array of integers, and
 // returns a shortened string seed that is equivalent to the result key.
-function mixkey (seed, key) {
-  var stringseed = seed + ''
-  var smear
-  var j = 0
+function mixkey(seed, key) {
+  let stringseed = seed + ""
+  let smear
+  let j = 0
 
   while (j < stringseed.length) {
     key[mask & j] =
@@ -119,7 +119,7 @@ function mixkey (seed, key) {
 
 // tostring()
 // Converts an array of charcodes to a string
-function tostring (a) {
+function tostring(a) {
   return String.fromCharCode.apply(0, a)
 }
 

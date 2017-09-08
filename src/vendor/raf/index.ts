@@ -1,39 +1,39 @@
 /* eslint-disable */
 
-var now = require('./../performance-now')
+let now = require("./../performance-now")
 
-var root = typeof window === 'undefined' ? global : window
-var vendors = ['moz', 'webkit']
-var suffix = 'AnimationFrame'
-var raf = root['request' + suffix]
-var caf = root['cancel' + suffix] || root['cancelRequest' + suffix]
+let root = typeof window === "undefined" ? global : window
+let vendors = ["moz", "webkit"]
+let suffix = "AnimationFrame"
+let raf = root["request" + suffix]
+let caf = root["cancel" + suffix] || root["cancelRequest" + suffix]
 
-for (var i = 0; !raf && i < vendors.length; i++) {
-  raf = root[vendors[i] + 'Request' + suffix]
+for (let i = 0; !raf && i < vendors.length; i++) {
+  raf = root[vendors[i] + "Request" + suffix]
   caf =
-    root[vendors[i] + 'Cancel' + suffix] ||
-    root[vendors[i] + 'CancelRequest' + suffix]
+    root[vendors[i] + "Cancel" + suffix] ||
+    root[vendors[i] + "CancelRequest" + suffix]
 }
 
 // Some versions of FF have rAF but not cAF
 if (!raf || !caf) {
-  var last = 0,
+  let last = 0,
     id = 0,
     queue = [],
     frameDuration = 1000 / 60
 
   raf = function(callback) {
     if (queue.length === 0) {
-      var _now = now(),
+      let _now = now(),
         next = Math.max(0, frameDuration - (_now - last))
       last = next + _now
       setTimeout(function() {
-        var cp = queue.slice(0)
+        let cp = queue.slice(0)
         // Clear queue here to prevent
         // callbacks from appending listeners
         // to the current frame's queue
         queue.length = 0
-        for (var i = 0; i < cp.length; i++) {
+        for (let i = 0; i < cp.length; i++) {
           if (!cp[i].cancelled) {
             try {
               cp[i].callback(last)
@@ -48,14 +48,14 @@ if (!raf || !caf) {
     }
     queue.push({
       handle: ++id,
-      callback: callback,
-      cancelled: false
+      callback,
+      cancelled: false,
     })
     return id
   }
 
   caf = function(handle) {
-    for (var i = 0; i < queue.length; i++) {
+    for (let i = 0; i < queue.length; i++) {
       if (queue[i].handle === handle) {
         queue[i].cancelled = true
       }

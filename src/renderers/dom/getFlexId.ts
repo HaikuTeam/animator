@@ -1,12 +1,12 @@
-var HAIKU_ID_ATTRIBUTE = 'haiku-id'
-var ID_ATTRIBUTE = 'id'
+let HAIKU_ID_ATTRIBUTE = "haiku-id"
+let ID_ATTRIBUTE = "id"
 
 /**
  * @function getFlexId
  * @description Get the flexible main identifier for the element, which may
  * be either a virtual element in the mana format, or a vanilla dom node.
  */
-module.exports = function getFlexId (element) {
+module.exports = function getFlexId(element) {
   if (element) {
     if (element.getAttribute) {
       return element.getAttribute(HAIKU_ID_ATTRIBUTE) || element.getAttribute(ID_ATTRIBUTE)

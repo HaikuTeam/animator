@@ -1,10 +1,10 @@
-var VERSION = require('./../package.json').version
+let VERSION = require("./../package.json").version
 
 // We need a global harness so we can attach helpers
-var MAIN
-if (typeof window !== 'undefined') { // Window gets highest precedence since most likely we're running in DOM
+let MAIN
+if (typeof window !== "undefined") { // Window gets highest precedence since most likely we're running in DOM
   MAIN = window
-} else if (typeof global !== 'undefined') {
+} else if (typeof global !== "undefined") {
   MAIN = global
 } else {
   // Forget it; don't bother trying to share between Haiku threads
@@ -19,15 +19,15 @@ if (!MAIN.HaikuHelpers) {
 if (!MAIN.HaikuHelpers[VERSION]) {
   MAIN.HaikuHelpers[VERSION] = {
     helpers: {},
-    schema: {}
+    schema: {},
   }
 }
 
-var exp = MAIN.HaikuHelpers[VERSION]
+let exp = MAIN.HaikuHelpers[VERSION]
 
-exp.register = function register (name, method) {
+exp.register = function register(name, method) {
   exp.helpers[name] = method
-  exp.schema[name] = 'function'
+  exp.schema[name] = "function"
   return exp
 }
 

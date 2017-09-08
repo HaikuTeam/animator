@@ -6,8 +6,8 @@ module.exports = clone
  * @param {mat4} a matrix to clone
  * @returns {mat4} a new 4x4 matrix
  */
-function clone (a) {
-  var out = new Float32Array(16)
+function clone(a) {
+  let out = new Float32Array(16)
   out[0] = a[0]
   out[1] = a[1]
   out[2] = a[2]

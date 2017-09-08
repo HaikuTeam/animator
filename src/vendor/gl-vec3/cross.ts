@@ -8,13 +8,13 @@ module.exports = cross
  * @param {vec3} b the second operand
  * @returns {vec3} out
  */
-function cross (out, a, b) {
-  var ax = a[0]
-  var ay = a[1]
-  var az = a[2]
-  var bx = b[0]
-  var by = b[1]
-  var bz = b[2]
+function cross(out, a, b) {
+  let ax = a[0]
+  let ay = a[1]
+  let az = a[2]
+  let bx = b[0]
+  let by = b[1]
+  let bz = b[2]
 
   out[0] = ay * bz - az * by
   out[1] = az * bx - ax * bz

@@ -1,5 +1,5 @@
-var separate = require('./separate')
+let separate = require("./separate")
 
-module.exports = function (name) {
+module.exports = function(name) {
   return separate(name).toLowerCase()
 }

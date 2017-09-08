@@ -1,12 +1,12 @@
 
-function _cloneVirtualElement (virtualElement) {
+function cloneVirtualElement(virtualElement) {
   return {
     elementName: virtualElement.elementName,
-    attributes: _cloneAttributes(virtualElement.attributes),
-    children: virtualElement.children
+    attributes: cloneAttributes(virtualElement.attributes),
+    children: virtualElement.children,
   }
 }
 
-module.exports = _cloneVirtualElement
+module.exports = cloneVirtualElement
 
-var _cloneAttributes = require('./cloneAttributes')
+let cloneAttributes = require("./cloneAttributes")

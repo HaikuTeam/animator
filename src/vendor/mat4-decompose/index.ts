@@ -14,33 +14,33 @@ https://github.com/ChromiumWebApps/chromium/blob/master/ui/gfx/transform_util.cc
 http://www.w3.org/TR/css3-transforms/#decomposing-a-3d-matrix
 */
 
-var normalize = require('./normalize')
+let normalize = require("./normalize")
 
-var create = require('./../gl-mat4/create')
-var clone = require('./../gl-mat4/clone')
-var determinant = require('./../gl-mat4/determinant')
-var invert = require('./../gl-mat4/invert')
-var transpose = require('./../gl-mat4/transpose')
-var vec3 = {
-  length: require('./../gl-vec3/length'),
-  normalize: require('./../gl-vec3/normalize'),
-  dot: require('./../gl-vec3/dot'),
-  cross: require('./../gl-vec3/cross')
+let create = require("./../gl-mat4/create")
+let clone = require("./../gl-mat4/clone")
+let determinant = require("./../gl-mat4/determinant")
+let invert = require("./../gl-mat4/invert")
+let transpose = require("./../gl-mat4/transpose")
+let vec3 = {
+  length: require("./../gl-vec3/length"),
+  normalize: require("./../gl-vec3/normalize"),
+  dot: require("./../gl-vec3/dot"),
+  cross: require("./../gl-vec3/cross"),
 }
 
-var tmp = create()
-var perspectiveMatrix = create()
-var tmpVec4 = [0, 0, 0, 0]
-var row = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-var pdum3 = [0, 0, 0]
+let tmp = create()
+let perspectiveMatrix = create()
+let tmpVec4 = [0, 0, 0, 0]
+let row = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+let pdum3 = [0, 0, 0]
 
-module.exports = function decomposeMat4 (
+module.exports = function decomposeMat4(
   matrix,
   translation,
   scale,
   skew,
   perspective,
-  quaternion
+  quaternion,
 ) {
   if (!translation) translation = [0, 0, 0]
   if (!scale) scale = [0, 0, 0]
@@ -64,13 +64,13 @@ module.exports = function decomposeMat4 (
   // decompose, so we'll bail early. Constant taken from SkMatrix44::invert.
   if (Math.abs(determinant(perspectiveMatrix) < 1e-8)) return false
 
-  var a03 = tmp[3]
-  var a13 = tmp[7]
-  var a23 = tmp[11]
-  var a30 = tmp[12]
-  var a31 = tmp[13]
-  var a32 = tmp[14]
-  var a33 = tmp[15]
+  let a03 = tmp[3]
+  let a13 = tmp[7]
+  let a23 = tmp[11]
+  let a30 = tmp[12]
+  let a31 = tmp[13]
+  let a32 = tmp[14]
+  let a33 = tmp[15]
 
   // First, isolate perspective.
   if (a03 !== 0 || a13 !== 0 || a23 !== 0) {
@@ -82,7 +82,7 @@ module.exports = function decomposeMat4 (
     // Solve the equation by inverting perspectiveMatrix and multiplying
     // rightHandSide by the inverse.
     // resuing the perspectiveMatrix here since it's no longer needed
-    var ret = invert(perspectiveMatrix, perspectiveMatrix)
+    let ret = invert(perspectiveMatrix, perspectiveMatrix)
     if (!ret) return false
     transpose(perspectiveMatrix, perspectiveMatrix)
 
@@ -132,7 +132,7 @@ module.exports = function decomposeMat4 (
   // is -1, then negate the matrix and the scaling factors.
   vec3.cross(pdum3, row[1], row[2])
   if (vec3.dot(row[0], pdum3) < 0) {
-    for (var i = 0; i < 3; i++) {
+    for (let i = 0; i < 3; i++) {
       scale[i] *= -1
       row[i][0] *= -1
       row[i][1] *= -1
@@ -157,11 +157,11 @@ module.exports = function decomposeMat4 (
 }
 
 // will be replaced by gl-vec4 eventually
-function vec4multMat4 (out, a, m) {
-  var x = a[0]
-  var y = a[1]
-  var z = a[2]
-  var w = a[3]
+function vec4multMat4(out, a, m) {
+  let x = a[0]
+  let y = a[1]
+  let z = a[2]
+  let w = a[3]
   out[0] = m[0] * x + m[4] * y + m[8] * z + m[12] * w
   out[1] = m[1] * x + m[5] * y + m[9] * z + m[13] * w
   out[2] = m[2] * x + m[6] * y + m[10] * z + m[14] * w
@@ -170,7 +170,7 @@ function vec4multMat4 (out, a, m) {
 }
 
 // gets upper-left of a 4x4 matrix into a 3x3 of vectors
-function mat3from4 (out, mat4x4) {
+function mat3from4(out, mat4x4) {
   out[0][0] = mat4x4[0]
   out[0][1] = mat4x4[1]
   out[0][2] = mat4x4[2]
@@ -184,7 +184,7 @@ function mat3from4 (out, mat4x4) {
   out[2][2] = mat4x4[10]
 }
 
-function combine (out, a, b, scale1, scale2) {
+function combine(out, a, b, scale1, scale2) {
   out[0] = a[0] * scale1 + b[0] * scale2
   out[1] = a[1] * scale1 + b[1] * scale2
   out[2] = a[2] * scale1 + b[2] * scale2

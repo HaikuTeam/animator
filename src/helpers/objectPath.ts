@@ -2,13 +2,13 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var STRING = 'string'
+let STRING = "string"
 
-function objectPath (obj, key) {
+function objectPath(obj, key) {
   if (typeof key === STRING) return obj[key]
-  var base = obj
-  for (var i = 0; i < key.length; i++) {
-    var name = key[i]
+  let base = obj
+  for (let i = 0; i < key.length; i++) {
+    let name = key[i]
     base = base[name]
   }
   return base

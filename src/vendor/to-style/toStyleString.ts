@@ -1,5 +1,5 @@
-var toStyleObject = require('./toStyleObject')
-var hasOwn = require('./hasOwn')
+let toStyleObject = require("./toStyleObject")
+let hasOwn = require("./hasOwn")
 
 /**
  * @ignore
@@ -13,17 +13,17 @@ var hasOwn = require('./hasOwn')
  * @param  {String}  config.scope
  * @return {Object} The object, normalized with css style names
  */
-module.exports = function (styles, config) {
+module.exports = function(styles, config) {
   styles = toStyleObject(styles, config)
 
-  var result = []
-  var prop
+  let result = []
+  let prop
 
   for (prop in styles) {
     if (hasOwn(styles, prop)) {
-      result.push(prop + ': ' + styles[prop])
+      result.push(prop + ": " + styles[prop])
     }
   }
 
-  return result.join('; ')
+  return result.join("; ")
 }

@@ -1,5 +1,5 @@
-var internal1 = require('../internal')
-exports.easeInElastic = function (n) {
+let internal1 = require("../internal")
+exports.easeInElastic = function(n) {
   return !n || n === 1
     ? n
     : -1 *

@@ -2,121 +2,121 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-var parseCssTransformString = require('./../helpers/parseCssTransformString')
-var visitManaTree = require('./../helpers/visitManaTree')
-var parseCssValue = require('./../vendor/css-value')
+let parseCssTransformString = require("./../helpers/parseCssTransformString")
+let visitManaTree = require("./../helpers/visitManaTree")
+let parseCssValue = require("./../vendor/css-value")
 
-var ROOT_LOCATOR = '0'
+let ROOT_LOCATOR = "0"
 
-var TRANSFORM_COMPONENT_WHITELIST = {
-  'rotation.x': true,
-  'rotation.y': true,
-  'rotation.z': true,
-  'rotation.w': true,
-  'scale.x': true,
-  'scale.y': true,
-  'scale.z': true,
-  'translation.x': true,
-  'translation.y': true,
-  'translation.z': true,
-  'mount.x': true,
-  'mount.y': true,
-  'mount.z': true,
-  'origin.x': true,
-  'origin.y': true,
-  'origin.z': true,
-  'align.x': true,
-  'align.y': true,
-  'align.z': true
+let TRANSFORM_COMPONENT_WHITELIST = {
+  "rotation.x": true,
+  "rotation.y": true,
+  "rotation.z": true,
+  "rotation.w": true,
+  "scale.x": true,
+  "scale.y": true,
+  "scale.z": true,
+  "translation.x": true,
+  "translation.y": true,
+  "translation.z": true,
+  "mount.x": true,
+  "mount.y": true,
+  "mount.z": true,
+  "origin.x": true,
+  "origin.y": true,
+  "origin.z": true,
+  "align.x": true,
+  "align.y": true,
+  "align.z": true,
 }
 
-function determineSizingProp (sizeAxis, attributeValue) {
-  var parsedValues = parseCssValue(attributeValue)
-  var parsedValue = parsedValues[0] // Some CSS props have multi values, but our size ones shouldn't
+function determineSizingProp(sizeAxis, attributeValue) {
+  let parsedValues = parseCssValue(attributeValue)
+  let parsedValue = parsedValues[0] // Some CSS props have multi values, but our size ones shouldn't
   switch (parsedValue.unit) {
-    case '%':
+    case "%":
       return {
-        name: 'sizeProportional',
+        name: "sizeProportional",
         value: parsedValue.value / 100,
-        mode: 0
+        mode: 0,
       }
-    case 'px':
+    case "px":
       return {
-        name: 'sizeAbsolute',
+        name: "sizeAbsolute",
         value: parsedValue.value,
-        mode: 1
+        mode: 1,
       }
-    case '':
+    case "":
       return {
-        name: 'sizeAbsolute',
+        name: "sizeAbsolute",
         value: parsedValue.value,
-        mode: 1
+        mode: 1,
       }
     default:
       return false
   }
 }
 
-module.exports = function convertManaLayout (mana) {
-  visitManaTree(ROOT_LOCATOR, mana, function _visitor (
+module.exports = function convertManaLayout(mana) {
+  visitManaTree(ROOT_LOCATOR, mana, function _visitor(
     name,
     attributes,
     children,
     node,
     locator,
     parent,
-    index
+    index,
   ) {
     // Note the order of operations here: first we process base attributes, but then if the style
     // object has sizing attributes, those end up overriding whatever was in the base attributes.
     if (!attributes) return void 0
 
     if (name.states) {
-      var width = name.states.width
-      var height = name.states.height
+      let width = name.states.width
+      let height = name.states.height
       // `elementName` is an object, so this is a recursive component: try to extract width/height from state
-      if (width && width.type === 'number') {
-        attributes['sizeAbsolute.x'] = width.value
-        attributes['sizeMode.x'] = 1
+      if (width && width.type === "number") {
+        attributes["sizeAbsolute.x"] = width.value
+        attributes["sizeMode.x"] = 1
       }
 
-      if (height && height.type === 'number') {
-        attributes['sizeAbsolute.y'] = height.value
-        attributes['sizeMode.y'] = 1
+      if (height && height.type === "number") {
+        attributes["sizeAbsolute.y"] = height.value
+        attributes["sizeMode.y"] = 1
       }
     }
 
     // Convert the width attribute to our layout-friendly size property
     if (attributes.width !== undefined && attributes.width !== null) {
-      var widthProp = determineSizingProp('x', attributes.width)
+      let widthProp = determineSizingProp("x", attributes.width)
       if (widthProp) {
-        attributes[widthProp.name + '.x'] = widthProp.value
-        attributes['sizeMode.x'] = widthProp.mode
+        attributes[widthProp.name + ".x"] = widthProp.value
+        attributes["sizeMode.x"] = widthProp.mode
         delete attributes.width // Strip off the old value which is no longer needed
       }
     }
 
     // Convert the height attribute to our layout-friendly size property
     if (attributes.height !== undefined && attributes.height !== null) {
-      var heightProp = determineSizingProp('y', attributes.height)
+      let heightProp = determineSizingProp("y", attributes.height)
       if (heightProp) {
-        attributes[heightProp.name + '.y'] = heightProp.value
-        attributes['sizeMode.y'] = heightProp.mode
+        attributes[heightProp.name + ".y"] = heightProp.value
+        attributes["sizeMode.y"] = heightProp.mode
         delete attributes.height // Strip off the old value which is no longer needed
       }
     }
 
     // Now do the same for any sizing attributes that may be present on the style object
-    if (attributes.style && typeof attributes.style === 'object') {
+    if (attributes.style && typeof attributes.style === "object") {
       // Convert the style.width attribute to a layout-friendly size property
       if (
         attributes.style.width !== undefined &&
         attributes.style.width !== null
       ) {
-        var widthStyleProp = determineSizingProp('x', attributes.style.width)
+        let widthStyleProp = determineSizingProp("x", attributes.style.width)
         if (widthStyleProp) {
-          attributes[widthStyleProp.name + '.x'] = widthStyleProp.value
-          attributes['sizeMode.x'] = widthStyleProp.mode
+          attributes[widthStyleProp.name + ".x"] = widthStyleProp.value
+          attributes["sizeMode.x"] = widthStyleProp.mode
           delete attributes.style.width // Strip off the old value which is no longer needed
         }
       }
@@ -126,10 +126,10 @@ module.exports = function convertManaLayout (mana) {
         attributes.style.height !== undefined &&
         attributes.style.height !== null
       ) {
-        var heightStyleProp = determineSizingProp('y', attributes.style.height)
+        let heightStyleProp = determineSizingProp("y", attributes.style.height)
         if (heightStyleProp) {
-          attributes[heightStyleProp.name + '.y'] = heightStyleProp.value
-          attributes['sizeMode.y'] = heightStyleProp.mode
+          attributes[heightStyleProp.name + ".y"] = heightStyleProp.value
+          attributes["sizeMode.y"] = heightStyleProp.mode
           delete attributes.style.height // Strip off the old value which is no longer needed
         }
       }
@@ -137,15 +137,15 @@ module.exports = function convertManaLayout (mana) {
 
     // If we have a transform attribute, we're in for a fun ride; we have to conver this to our layout system
     if (attributes.transform !== undefined && attributes.transform !== null) {
-      var transformAttributes = parseCssTransformString(attributes.transform)
+      let transformAttributes = parseCssTransformString(attributes.transform)
 
-      for (var transformAttributeName in transformAttributes) {
-        var transformValue = transformAttributes[transformAttributeName]
+      for (let transformAttributeName in transformAttributes) {
+        let transformValue = transformAttributes[transformAttributeName]
         if (!TRANSFORM_COMPONENT_WHITELIST[transformAttributeName]) {
           console.warn(
-            'Skipping transform attribute ' +
+            "Skipping transform attribute " +
               transformAttributeName +
-              ' because it is not yet supported'
+              " because it is not yet supported",
           )
           continue
         }
