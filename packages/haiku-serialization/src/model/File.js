@@ -7,12 +7,12 @@ var merge = require('lodash.merge')
 var find = require('lodash.find')
 var pascalcase = require('pascalcase')
 
-var visitManaTree = require('@haiku/player/src/helpers/visitManaTree')
-var xmlToMana = require('@haiku/player/src/helpers/xmlToMana')
-var convertManaLayout = require('@haiku/player/src/layout/convertManaLayout')
-var objectToRO = require('@haiku/player/src/reflection/objectToRO')
-var reifyRO = require('@haiku/player/src/reflection/reifyRO')
-var upgradeBytecodeInPlace = require('@haiku/player/src/helpers/upgradeBytecodeInPlace')
+var visitManaTree = require('@haiku/player/lib/helpers/visitManaTree')
+var xmlToMana = require('@haiku/player/lib/helpers/xmlToMana')
+var convertManaLayout = require('@haiku/player/lib/layout/convertManaLayout')
+var objectToRO = require('@haiku/player/lib/reflection/objectToRO')
+var reifyRO = require('@haiku/player/lib/reflection/reifyRO')
+var upgradeBytecodeInPlace = require('@haiku/player/lib/helpers/upgradeBytecodeInPlace')
 
 var Aspects = require('haiku-bytecode/src/Aspects')
 var ensureManaChildrenArray = require('haiku-bytecode/src/ensureManaChildrenArray')
@@ -51,7 +51,7 @@ var getNormalizedComponentModulePath = require('./helpers/getNormalizedComponent
 var HaikuHomeDir = require('./../utils/HaikuHomeDir')
 var logdir = path.join(HaikuHomeDir.HOMEDIR_PATH, 'logs')
 
-// This file also depends on '@haiku/player/src/HaikuComponent'
+// This file also depends on '@haiku/player/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as 'hostInstance' here.
 // ^^ Leave this message in this file so we can grep for it if necessary
 
