@@ -28,7 +28,7 @@
   "repository": "https://github.com/HaikuTeam/player",
   "main": "index.js",
   "scripts": {
-    "compile": "echo 1",
+    "compile": "tsc",
     "develop": "tsc --watch",
     "lint": "tslint -c tslint.json 'src/**/*.ts' --exclude 'src/vendor/**' --format stylish --fix",
     "test": "yarn run test:unit && yarn run test:api && yarn run test:perf",
@@ -36,7 +36,6 @@
     "test:api": "yarn run compile && tape \"test/api/**/*.test.js\" | tap-spec || true",
     "test:render": "yarn run compile && tape \"test/render/**/*.test.js\" | tap-spec || true",
     "test:unit": "yarn run compile && tape \"test/unit/**/*.test.js\" | tap-spec || true",
-    "prettify": "prettier-standard \"{,!(node_modules|dist)/**/}*.js\"",
     "footprint": "./footprint.sh",
     "demo": "nodemon ./test/demo/server.js",
     "link-player": "yarn link && yarn link @haiku/player",
