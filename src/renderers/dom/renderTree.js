@@ -6,6 +6,7 @@ var isBlankString = require('./isBlankString')
 var removeElement = require('./removeElement')
 var _cloneVirtualElement = require('./cloneVirtualElement')
 var getFlexId = require('./getFlexId')
+var shouldElementBeReplaced = require('./shouldElementBeReplaced')
 
 function renderTree (
   domElement,
@@ -80,11 +81,6 @@ function renderTree (
 
         component._addElementToHashTable(insertedElement, virtualChild)
       } else {
-        var oldDOMId = domChild.getAttribute && domChild.getAttribute('id')
-        var newDOMId = virtualChild.attributes && virtualChild.attributes.id
-        var oldFlexId = getFlexId(domChild)
-        var newFlexId = getFlexId(virtualChild)
-
         // Circumstances in which we want to completely *replace* the element:
         // - We see that our cached target element is not the one at this location
         // - We see that the DOM id doesn't match the incoming one
@@ -92,11 +88,7 @@ function renderTree (
         // If we now have an element that is different, we need to trigger a full re-render
         // of itself and all of its children, because e.g. url(#...) references will retain pointers to
         // old elements and this is the only way to clear the DOM to get a correct render.
-        if (
-          (virtualChild.__target && virtualChild.__target !== domChild) ||
-          (oldDOMId && newDOMId && oldDOMId !== newDOMId) ||
-          (oldFlexId && newFlexId && oldFlexId !== newFlexId)
-        ) {
+        if (shouldElementBeReplaced(domChild, virtualChild)) {
           replaceElement(
             domChild,
             virtualChild,

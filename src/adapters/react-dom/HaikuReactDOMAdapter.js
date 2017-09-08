@@ -133,8 +133,9 @@ function HaikuReactDOMAdapter (HaikuComponentFactory, optionalRawBytecode) {
                     var div = document.createElement('div')
                     node.parentNode.replaceChild(div, node)
                     node = div
+
                     // We have to change the element name as well here so that the correct vanity behaviors
-                    // are used when applying outputs to the placeheld element (e.g. opacity vs style.opacity)
+                    // are used when applying outputs to the placeheld element (e.g. opacity vs style.opacity).
                     element.elementName = 'div'
                   }
                   node.style.visibility = 'hidden'

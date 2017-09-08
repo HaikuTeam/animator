@@ -25,7 +25,7 @@ var PLATFORM_INFO = {
   devicePixelRatio: DEFAULT_PIXEL_RATIO
 }
 
-console.info('[haiku player] platform info:', JSON.stringify(PLATFORM_INFO))
+// console.info('[haiku player] platform info:', JSON.stringify(PLATFORM_INFO))
 
 var SVG_RENDERABLES = {
   a: true,
