@@ -1,0 +1,10 @@
+declare let MENU_GLOBAL_ID: string;
+declare let WIDTH: number;
+declare let HEIGHT: number;
+declare let haikuIcon: string;
+declare let sharePageIcon: string;
+declare let SUBSTITUTION_STRING: string;
+declare function setBoxShadow(el: any, color: any): void;
+declare function px(num: any): string;
+declare function findOrCreateMenuElement(doc: any): any;
+declare function truncate(str: any, len: any): any;

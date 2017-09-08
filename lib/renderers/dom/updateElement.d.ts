@@ -1,0 +1,13 @@
+declare let applyLayout: any;
+declare let assignAttributes: any;
+declare let getTypeAsString: any;
+declare let cloneVirtualElement: any;
+declare let getFlexId: any;
+declare let OBJECT: string;
+declare let STRING: string;
+declare function updateElement(domElement: any, virtualElement: any, parentNode: any, parentVirtualElement: any, component: any, isPatchOperation: any): any;
+declare let renderTree: any;
+declare let replaceElementWithText: any;
+declare let replaceElement: any;
+declare let normalizeName: any;
+declare let isTextNode: any;

@@ -1,0 +1,1 @@
+{"version":3,"file":"assignClass.js","sourceRoot":"","sources":["../../../src/renderers/dom/assignClass.ts"],"names":[],"mappings":"AAIA,qBAAqB,UAAU,EAAE,SAAS;IACxC,EAAE,CAAC,CAAC,UAAU,CAAC,SAAS,KAAK,SAAS,CAAC,CAAC,CAAC;QACvC,UAAU,CAAC,SAAS,GAAG,SAAS,CAAA;IAClC,CAAC;IACD,MAAM,CAAC,UAAU,CAAA;AACnB,CAAC;AAED,MAAM,CAAC,OAAO,GAAG,WAAW,CAAA"}

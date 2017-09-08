@@ -1,0 +1,1 @@
+{"version":3,"file":"hasOwn.js","sourceRoot":"","sources":["../../../src/vendor/to-style/hasOwn.ts"],"names":[],"mappings":"AAAA,IAAI,YAAY,GAAG,MAAM,CAAC,SAAS,CAAC,cAAc,CAAA;AAElD,MAAM,CAAC,OAAO,GAAG,UAAS,MAAM,EAAE,YAAY;IAC5C,MAAM,CAAC,YAAY,CAAC,IAAI,CAAC,MAAM,EAAE,YAAY,CAAC,CAAA;AAChD,CAAC,CAAA"}
