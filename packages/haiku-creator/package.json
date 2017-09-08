@@ -19,10 +19,8 @@
     "electron": "1.7.0"
   },
   "scripts": {
-    "start": "NODE_ENV=development HAIKU_PLUMBING_PORT=1024 HAIKU_SKIP_AUTOUPDATE=1 HAIKU_AUTOUPDATE_SERVER=http://localhost:3002 HAIKU_RELEASE_ENVIRONMENT=development HAIKU_RELEASE_BRANCH=master HAIKU_RELEASE_PLATFORM=mac HAIKU_RELEASE_VERSION=0.0.0 electron ./electron.js",
-    "lint": "standard --fix --verbose | snazzy || true",
-    "matthew": "HAIKU_PROJECT_FOLDER=/Users/matthew/Code/HaikuTeam/mono/packages/haiku-glass/test/projects/primitives npm start",
-    "zack": "HAIKU_PROJECT_FOLDER=/Users/zack/code/haiku/mono/packages/haiku-glass/test/projects/primitives npm start"
+    "start": "electron ./electron.js",
+    "lint": "standard --fix --verbose | snazzy || true"
   },
   "dependencies": {
     "async": "2.1.4",

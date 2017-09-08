@@ -10,11 +10,8 @@
   ],
   "scripts": {
     "test": "tape \"test/**/*.test.js\" | tap-spec",
-    "start": "NODE_ENV=development electron ./electron.js",
-    "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy",
-    "matthew": "DEV=1 HAIKU_PROJECT_FOLDER=/Users/matthew/Code/HaikuTeam/mono/packages/haiku-timeline/test/projects/complex HAIKU_PLUMBING_URL=http://0.0.0.0:1024 npm start",
-    "zack": "DEV=1 HAIKU_PROJECT_FOLDER=/Users/zack/code/haiku/mono/packages/haiku-timeline/test/projects/SuperComplex HAIKU_PLUMBING_URL=http://0.0.0.0:1024 npm start",
-    "taylor": "DEV=1 HAIKU_PROJECT_FOLDER=/Users/taylorpoe/code/haiku/mono/packages/haiku-timeline/test/projects/complex HAIKU_PLUMBING_URL=http://0.0.0.0:1024 npm start"
+    "start": "electron ./electron.js",
+    "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy"
   },
   "standard": {
     "ignore": [

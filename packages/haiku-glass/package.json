@@ -57,11 +57,9 @@
     "tape": "^4.6.3"
   },
   "scripts": {
-    "start": "DEV=1 NODE_ENV=development electron ./electron.js",
+    "start": "electron ./electron.js",
     "lint": "standard \"./react/**/*.js\" --fix --verbose | snazzy || true",
     "test": "tape \"test/**/*.test.js\" | tap-spec || true",
-    "matthew": "HAIKU_PROJECT_FOLDER=/Users/matthew/Code/HaikuTeam/mono/packages/haiku-glass/test/projects/primitives npm start",
-    "zack": "HAIKU_PROJECT_FOLDER=/Users/zack/code/haiku/mono/packages/haiku-glass/test/projects/SuperComplex npm start",
     "transpile-destructive": "babel react --out-dir react"
   }
 }
