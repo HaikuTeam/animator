@@ -1,0 +1,79 @@
+.cm-s-haiku {
+  color: inherit;
+  background: inherit;
+}
+
+.cm-s-haiku .CodeMirror-cursor {
+  border-left: 1px solid rgb(192, 204, 205);
+}
+
+/*
+ * Keywords like 'return' or 'for' get bolded...
+ */
+.cm-s-haiku span.cm-keyword { font-weight: bold; }
+
+.cm-s-haiku .CodeMirror-linenumber { cursor: default; }
+.cm-s-haiku div.CodeMirror-selected { background: rgba(222, 80, 130, 0.8); }
+.cm-s-haiku .CodeMirror-matchingbracket { background: #555 !important; }
+.cm-s-haiku .CodeMirror-activeline-background { background: #000; }
+
+/**
+ * Text color settings:
+ * There are some duplicate CSS selectors in this file to make it easier to see *just* the text color rules.
+ */
+.cm-s-haiku .CodeMirror-linenumber { color: color: rgb(192, 204, 205) }
+.cm-s-haiku span.cm-keyword { color: #eee; }
+.cm-s-haiku span.cm-atom { color: #e1c76e; }
+.cm-s-haiku span.cm-number { color: #6cb5d9; }
+.cm-s-haiku span.cm-def { color: rgb(239, 203, 63); }
+.cm-s-haiku span.cm-variable { color: #6cb5d9; }
+.cm-s-haiku span.cm-variable-2 { color: #cc1e5c; }
+.cm-s-haiku span.cm-variable-3 { color: #f9602c; }
+.cm-s-haiku span.cm-property { color: #eee; }
+.cm-s-haiku span.cm-operator { color: #9179bb; }
+.cm-s-haiku span.cm-comment { color: #97a3aa; }
+.cm-s-haiku span.cm-string { color: rgb(239, 203, 63); }
+.cm-s-haiku span.cm-string-2 { color: #6cb5d9; }
+.cm-s-haiku span.cm-meta { color: #555; }
+.cm-s-haiku span.cm-qualifier { color: #555; }
+.cm-s-haiku span.cm-builtin { color: #214e7b; }
+.cm-s-haiku span.cm-bracket { color: #cc7; }
+.cm-s-haiku span.cm-tag { color: #e8e8e8; }
+.cm-s-haiku span.cm-attribute { color: #099; }
+.cm-s-haiku span.cm-header { color: #6a0d6a; }
+.cm-s-haiku span.cm-quote { color: #186718; }
+.cm-s-haiku span.cm-hr { color: #888; }
+.cm-s-haiku span.cm-link { color: #e1c76e; }
+.cm-s-haiku span.cm-error { color: #d00; }
+.cm-s-haiku div.CodeMirror-selected { color: #fff; }
+
+/**
+ * We use codemirror even when the value being entered is static, i.e. not an expression.
+ * To make it "look static" we force all colors to be just the plain gray text color. (rgb(192, 204, 205))
+ */
+
+.haiku-static .cm-s-haiku .CodeMirror-linenumber { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-keyword { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-atom { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-number { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-def { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-variable { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-variable-2 { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-variable-3 { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-property { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-operator { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-comment { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-string { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-string-2 { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-meta { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-qualifier { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-builtin { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-bracket { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-tag { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-attribute { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-header { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-quote { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-hr { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-link { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku span.cm-error { color: rgb(192, 204, 205) }
+.haiku-static .cm-s-haiku div.CodeMirror-selected { color: rgb(192, 204, 205) }

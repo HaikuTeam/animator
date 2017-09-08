@@ -1,0 +1,67 @@
+{
+  "name": "haiku-glass",
+  "version": "2.3.3",
+  "private": true,
+  "authors": [
+    "Matthew Trost <matthew@haiku.ai>",
+    "Zack Brown <zack@haiku.ai>",
+    "Taylor Poe <taylor@haiku.ai>"
+  ],
+  "babel": {
+    "presets": [
+      "react-app"
+    ]
+  },
+  "standard": {
+    "ignore": [
+      "./react/modes/haiku.js"
+    ]
+  },
+  "engines": {
+    "node": "8.4.0",
+    "npm": "5.3.0",
+    "yarn": "0.27.5",
+    "electron": "1.7.0"
+  },
+  "dependencies": {
+    "babel-register": "6.23.0",
+    "bluebird": "^3.5.0",
+    "capitalize": "^1.0.0",
+    "codemirror": "^5.28.0",
+    "color": "^2.0.0",
+    "combokeys": "^2.4.6",
+    "@haiku/player": "HaikuTeam/player.git#d455d6640f7ea38fec131592dbccf71d20e67ecc",
+    "haiku-bytecode": "HaikuTeam/bytecode#3a402092fb1ac7259afaa3f1dfc72b0625c96351",
+    "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
+    "haiku-serialization": "HaikuTeam/serialization#7ddb7b2f35162ed3a0581214b766debb84bda0b2",
+    "lodash": "^4.17.4",
+    "moment": "^2.17.1",
+    "pretty": "^2.0.0",
+    "qs": "6.3.0",
+    "radium": "0.18.1",
+    "react": "15.4.2",
+    "react-dom": "15.4.2",
+    "react-select": "^1.0.0-rc.5",
+    "react-select-plus": "^1.0.0-rc.5",
+    "strip-indent": "^2.0.0"
+  },
+  "devDependencies": {
+    "async": "^2.5.0",
+    "babel-cli": "^6.24.0",
+    "babel-preset-react-app": "^2.2.0",
+    "electron": "1.7.0",
+    "jsdom": "^11.1.0",
+    "snazzy": "^6.0.0",
+    "standard": "^9.0.1",
+    "tap-spec": "^4.1.1",
+    "tape": "^4.6.3"
+  },
+  "scripts": {
+    "start": "DEV=1 NODE_ENV=development electron ./electron.js",
+    "lint": "standard \"./react/**/*.js\" --fix --verbose | snazzy || true",
+    "test": "tape \"test/**/*.test.js\" | tap-spec || true",
+    "matthew": "HAIKU_PROJECT_FOLDER=/Users/matthew/Code/HaikuTeam/mono/packages/haiku-glass/test/projects/primitives npm start",
+    "zack": "HAIKU_PROJECT_FOLDER=/Users/zack/code/haiku/mono/packages/haiku-glass/test/projects/SuperComplex npm start",
+    "transpile-destructive": "babel react --out-dir react"
+  }
+}
