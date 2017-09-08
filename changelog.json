@@ -2513,5 +2513,62 @@
       "label": "fix",
       "message": "Make sure opacity gets set and fix flash of placeholder default content when rendering in React"
     }
+  },
+  "2.3.3": {
+    "f08f5bd77b794c470d1b5b1e63d50141852daa2c": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add undocumented method for checking prefinery invite codes through SDK"
+    },
+    "a415bcf61cf2c5e5e853b598aa9b2a2074bfb42d": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "I messed this flag up, playing should be false to start or keyframe creation doesn't work"
+    },
+    "69e538e0bc162b44230597a508720e38fab0c35a": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Make sure rotation still works"
+    },
+    "96ac924439e6e79f2758564bc54cb684e7a868c9": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "After refactor, need to pass component into render, not context"
+    },
+    "2534008a7f04ed05ad482872b80de479fefb0f01": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Make sure DOM node removal logic works"
+    },
+    "40e1f24779e0a58568280b6989a93b2be2b3c642": {
+      "project": "haiku-sdk-creator",
+      "label": "fix",
+      "message": "Default options were being clobbered"
+    },
+    "bfd602611f7ce306fb4cb98253022ef3b194b372": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "Remove closed clients; let server be closed to avoid leaked handles; add test"
+    },
+    "132b2515890d71ae9515ab573a833832e04326da": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "Add port discovery, more logging, and test proving multiple servers can coexist"
+    },
+    "df3851e481e015d79bfa988df496c63578cd721e": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "Add util function to retrieve an open port, and a smoke test for it"
+    },
+    "3ee16dc91daf0cd449f410e9b3917c8dd038133d": {
+      "project": "haiku-sdk-inkstone",
+      "label": "feat",
+      "message": "add sdk method for checking prefinery codes via Inkstone"
+    },
+    "6274eddcd1ad8aa844c3784aaa096c407c5d0470": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Dumb coding error"
+    }
   }
 }
