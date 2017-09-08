@@ -1,6 +1,8 @@
 var jsdom = require('jsdom')
 var async = require('async')
 var HaikuDOMAdapter = require('./../src/adapters/dom')
+var HaikuDOMRenderer = require('./../src/renderers/dom')
+var HaikuContext = require('./../src/HaikuContext')
 
 var TestHelpers = {}
 
@@ -15,17 +17,34 @@ function createDOM (cb) {
     if (key in global) continue
     global[key] = window[key]
   }
-  return cb(null, win)
+  var mount = global.window.document.createElement('div')
+  mount.style.width = '800px'
+  mount.style.height = '600px'
+  global.window.document.body.appendChild(mount)
+  return cb(null, win, mount)
+}
+
+function createRenderTest (template, cb) {
+  return createDOM(function _createDOM (err, window, mount) {
+    if (err) throw err
+    var renderer = new HaikuDOMRenderer()
+    var context = new HaikuContext(null, renderer, {}, { timelines: {}, template: template }, { options: { cache: {}, seed: 'abcde' + Math.random() } })
+    var component = context.component
+    var container = renderer.createContainer(mount)
+    var tree = component.render(container, context.config.options, null)
+    renderer.render(mount, container, tree, component, false)
+    function teardown () {
+      component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+      return void 0
+    }
+    return cb(null, mount, renderer, context, component, teardown)
+  })
 }
 
 function createComponent (bytecode, options, cb) {
-  return createDOM(function _createDOM (err, window) {
+  return createDOM(function _createDOM (err, window, mount) {
     if (err) throw err
     var runner = HaikuDOMAdapter(bytecode, options, window)
-    var mount = window.document.createElement('div')
-    mount.style.width = '800px'
-    mount.style.height = '600px'
-    window.document.body.appendChild(mount)
     var component = runner(mount, options)
     // If rafs and timers aren't cancelled, the tests never finish due to leaked handles
     function teardown () {
@@ -57,6 +76,7 @@ function timeBracket (steps, cb) {
 }
 
 TestHelpers.createDOM = createDOM
+TestHelpers.createRenderTest = createRenderTest
 TestHelpers.createComponent = createComponent
 TestHelpers.simulateEvent = simulateEvent
 TestHelpers.timeBracket = timeBracket
