@@ -19,6 +19,7 @@ process.env.NODE_ENV = 'development'
 
 var DEFAULTS = {
   dev: '1',
+  mockEnvoy: '1',
   folderChoice: 'blank',
   devChoice: 'everything',
   nodeEnv: 'development',
@@ -142,18 +143,21 @@ async.series([
   go()
 })
 
-
 function setup () {
   log.hat(`preparing`, 'cyan')
+
   process.env.DEV = inputs.dev
   process.env.NODE_ENV = inputs.nodeEnv
   process.env.HAIKU_SKIP_AUTOUPDATE = inputs.skipAutoUpdate
   process.env.HAIKU_PLUMBING_PORT = inputs.plumbingPort
+
+  // These are just stubbed out for completeness' sake
   process.env.HAIKU_RELEASE_ENVIRONMENT = inputs.releaseEnvironment
   process.env.HAIKU_RELEASE_BRANCH = inputs.releaseBranch
   process.env.HAIKU_RELEASE_PLATFORM = inputs.releasePlatform
   process.env.HAIKU_RELEASE_VERSION = inputs.releaseVersion
   process.env.HAIKU_AUTOUPDATE_SERVER = inputs.autoUpdateServer
+
   if (inputs.devChoice === 'everything') {
     process.env.HAIKU_PLUMBING_URL = inputs.plumbingUrl
   }
@@ -179,6 +183,8 @@ function setup () {
       instructions.unshift(['haiku-plumbing', ['yarn', 'run', 'watch'], null, 10000])
     }
   } else {
+    // Only set the mock envoy variable if we are in an env where it will work
+    process.env.MOCK_ENVOY = inputs.mockEnvoy
     if (inputs.devChoice === 'glass') {
       instructions.unshift(['haiku-glass', ['yarn', 'start'], null, 5000])
     } else if (inputs.devChoice === 'timeline') {
