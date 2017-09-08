@@ -31,9 +31,13 @@
       "libs/plumbing/node_modules/@haiku/player/package.json",
       "libs/plumbing/node_modules/@haiku/player/src/*",
       "libs/plumbing/node_modules/@haiku/player/src/**/*",
+      "libs/plumbing/node_modules/@haiku/player/lib/*",
+      "libs/plumbing/node_modules/@haiku/player/lib/**/*",
       "libs/plumbing/node_modules/haiku-serialization/src/**/*.js",
       "libs/plumbing/node_modules/haiku-serialization/node_modules/@haiku/player/src/*",
-      "libs/plumbing/node_modules/haiku-serialization/node_modules/@haiku/player/src/**/*"
+      "libs/plumbing/node_modules/haiku-serialization/node_modules/@haiku/player/src/**/*",
+      "libs/plumbing/node_modules/haiku-serialization/node_modules/@haiku/player/lib/*",
+      "libs/plumbing/node_modules/haiku-serialization/node_modules/@haiku/player/lib/**/*"
     ],
     "mac": {
       "category": "public.app-category.developer-tools"
