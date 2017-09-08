@@ -47,15 +47,25 @@ function renderTree (
     virtualChildren.shift()
   }
 
+  // Store a copy of the array here, otherwise we can hit a race where as we remove
+  // elements from the DOM, the childNodes array gets shifted and the indices get offset, leading
+  // to removals not occurring properly
+  var domChildNodes = []
+  for (var k = 0; k < domElement.childNodes.length; k++) {
+    domChildNodes[k] = domElement.childNodes[k]
+  }
+
   var max = virtualChildren.length
-  if (max < domElement.childNodes.length) max = domElement.childNodes.length
+  if (max < domChildNodes.length) {
+    max = domChildNodes.length
+  }
 
   for (var i = 0; i < max; i++) {
     var virtualChild = virtualChildren[i]
-    var domChild = domElement.childNodes[i]
+    var domChild = domChildNodes[i]
 
     if (!virtualChild && !domChild) {
-      continue
+      // empty
     } else if (!virtualChild && domChild) {
       removeElement(domChild)
     } else if (virtualChild) {
