@@ -1,5 +1,5 @@
 var unserValue = require('./unserValue')
-var upgradeBytecodeInPlace = require('@haiku/player/src/helpers/upgradeBytecodeInPlace')
+var upgradeBytecodeInPlace = require('@haiku/player/lib/helpers/upgradeBytecodeInPlace')
 
 module.exports = function upsertStateValue (bytecode, stateName, stateDescriptor) {
   // To convert legacy properties array to states object

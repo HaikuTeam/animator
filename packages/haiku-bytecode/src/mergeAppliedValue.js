@@ -1,6 +1,6 @@
 var assign = require('lodash.assign')
 var defaults = require('lodash.defaults')
-var BasicUtils = require('@haiku/player/src/helpers/BasicUtils')
+var BasicUtils = require('@haiku/player/lib/helpers/BasicUtils')
 var isSerializedFunction = require('./isSerializedFunction')
 
 var MERGE_STRATEGIES = {
