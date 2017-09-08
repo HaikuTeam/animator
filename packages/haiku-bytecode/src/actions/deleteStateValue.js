@@ -1,0 +1,12 @@
+var upgradeBytecodeInPlace = require('@haiku/player/src/helpers/upgradeBytecodeInPlace')
+
+module.exports = function deleteStateValue (bytecode, stateName) {
+  // To convert legacy properties array to states object
+  upgradeBytecodeInPlace(bytecode)
+
+  if (bytecode.states) {
+    delete bytecode.states[stateName]
+  }
+
+  return bytecode
+}
