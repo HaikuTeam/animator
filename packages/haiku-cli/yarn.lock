@@ -912,17 +912,17 @@ gunzip-maybe@^1.3.1:
     pumpify "^1.3.3"
     through2 "^2.0.3"
 
-haiku-sdk-client@HaikuTeam/sdk-client.git#82f70e0ba09197f2ea6a4cc724ceaf0b7dfebd97:
-  version "2.2.0"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-client.git#82f70e0ba09197f2ea6a4cc724ceaf0b7dfebd97"
+haiku-sdk-client@HaikuTeam/sdk-client.git#3d8fda1fa61930094fb7f3c70003f1bc99ae144f:
+  version "2.3.3"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-client.git#3d8fda1fa61930094fb7f3c70003f1bc99ae144f"
   dependencies:
     lodash "^4.17.4"
     mkdirp "^0.5.1"
     request "^2.79.0"
 
-haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git#aea32b89379bce2f48aec46ff4e5f47e2878962e:
-  version "2.2.0"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#aea32b89379bce2f48aec46ff4e5f47e2878962e"
+haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git#bb5abde28fa7d00e6fa1e4f2c487febaac7557c6:
+  version "2.3.3"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#bb5abde28fa7d00e6fa1e4f2c487febaac7557c6"
   dependencies:
     lodash "^4.17.4"
     mkdirp "^0.5.1"

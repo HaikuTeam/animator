@@ -154,7 +154,9 @@ function setup () {
   process.env.HAIKU_RELEASE_PLATFORM = inputs.releasePlatform
   process.env.HAIKU_RELEASE_VERSION = inputs.releaseVersion
   process.env.HAIKU_AUTOUPDATE_SERVER = inputs.autoUpdateServer
-  process.env.HAIKU_PLUMBING_URL = inputs.plumbingUrl
+  if (inputs.devChoice === 'everything') {
+    process.env.HAIKU_PLUMBING_URL = inputs.plumbingUrl
+  }
 
   var chosenFolder = FOLDER_CHOICES[inputs.folderChoice]
 
