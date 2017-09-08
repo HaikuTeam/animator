@@ -1,7 +1,7 @@
 var test = require('tape')
 var PACKAGE = require('./../../package.json')
 var TestHelpers = require('./../TestHelpers')
-var HaikuDOMAdapter = require('./../../src/adapters/dom')
+var HaikuDOMAdapter = require('./../../lib/adapters/dom')
 test('exposedProperties', function (t) {
   t.plan(4)
   var bytecode = {

@@ -1,8 +1,8 @@
 var jsdom = require('jsdom')
 var async = require('async')
-var HaikuDOMAdapter = require('./../src/adapters/dom')
-var HaikuDOMRenderer = require('./../src/renderers/dom')
-var HaikuContext = require('./../src/HaikuContext')
+var HaikuDOMAdapter = require('./../lib/adapters/dom')
+var HaikuDOMRenderer = require('./../lib/renderers/dom')
+var HaikuContext = require('./../lib/HaikuContext')
 
 var TestHelpers = {}
 

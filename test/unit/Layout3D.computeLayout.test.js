@@ -1,5 +1,5 @@
 var test = require('tape')
-var Layout3D = require('./../../src/Layout3D')
+var Layout3D = require('./../../lib/Layout3D')
 
 test('Layout3D.computeLayout', function (t) {
   t.plan(1)

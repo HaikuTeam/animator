@@ -4,7 +4,7 @@ tmpfile=footprint.ignore.min.js
 zipfile=footprint.ignore.min.js.gz
 
 player="./index.js"
-domrenderer="./src/renderers/dom/index.js"
+domrenderer="./lib/renderers/dom/index.js"
 
 echo "player bundled size:"
 browserify -p bundle-collapser/plugin $player > $tmpfile && ls -lah $tmpfile | awk '{print $5}'

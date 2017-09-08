@@ -3,6 +3,12 @@
   "version": "2.3.3",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
+  "directories": {
+    "lib": "lib",
+    "dom": "dom",
+    "components": "components",
+    "dist": "dist"
+  },
   "keywords": [
     "animation",
     "motion",
@@ -22,12 +28,14 @@
   "repository": "https://github.com/HaikuTeam/player",
   "main": "index.js",
   "scripts": {
+    "compile": "echo 1",
+    "develop": "tsc --watch",
+    "lint": "tslint -c tslint.json 'src/**/*.ts' --format stylish --fix",
     "test": "yarn run test:unit && yarn run test:api && yarn run test:perf",
-    "test:perf": "tape \"test/perf/**/*.test.js\" | tap-spec || true",
-    "test:api": "tape \"test/api/**/*.test.js\" | tap-spec || true",
-    "test:render": "tape \"test/render/**/*.test.js\" | tap-spec || true",
-    "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
-    "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true",
+    "test:perf": "yarn run compile && tape \"test/perf/**/*.test.js\" | tap-spec || true",
+    "test:api": "yarn run compile && tape \"test/api/**/*.test.js\" | tap-spec || true",
+    "test:render": "yarn run compile && tape \"test/render/**/*.test.js\" | tap-spec || true",
+    "test:unit": "yarn run compile && tape \"test/unit/**/*.test.js\" | tap-spec || true",
     "prettify": "prettier-standard \"{,!(node_modules|dist)/**/}*.js\"",
     "footprint": "./footprint.sh",
     "demo": "nodemon ./test/demo/server.js",
@@ -58,7 +66,14 @@
     "standard": "8.6.0",
     "tap-spec": "4.1.1",
     "tape": "4.6.3",
-    "uglify-js": "^2.7.5"
+    "uglify-js": "^2.7.5",
+    "@types/node": "^8.0.17",
+    "@types/ws": "^3.0.2",
+    "leaked-handles": "^5.2.0",
+    "tape": "^4.7.0",
+    "tslint": "^5.7.0",
+    "tap-spec": "^4.1.1",
+    "typescript": "^2.4.2"
   },
   "dependencies": {
     "lodash.merge": "4.6.0",
