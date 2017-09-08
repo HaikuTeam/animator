@@ -1,0 +1,24 @@
+.btn-icon {
+  width: .77em;
+  height: .77em;
+  position: relative;
+  vertical-align: middle;
+}
+
+.preview-icon {
+  width: 90px;
+  height: 74px;
+  position: relative;
+  vertical-align: middle;
+}
+
+.utf-icon {
+  display: inline-block;
+  width: 16px;
+  margin: 5px 0 0 5px;
+  color: #666;
+  font-size: 16px;
+  position: relative;
+  cursor: pointer;
+  -webkit-user-select: none;
+}

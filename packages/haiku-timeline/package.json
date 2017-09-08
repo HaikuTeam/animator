@@ -1,0 +1,65 @@
+{
+  "name": "haiku-timeline",
+  "version": "2.3.3",
+  "private": true,
+  "license": "UNLICENSED",
+  "authors": [
+    "Matthew Trost <matthew@haiku.ai>",
+    "Taylor Poe <taylor@haiku.ai>",
+    "Zack Brown <zack@haiku.ai>"
+  ],
+  "scripts": {
+    "test": "tape \"test/**/*.test.js\" | tap-spec",
+    "start": "NODE_ENV=development electron ./electron.js",
+    "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy",
+    "matthew": "DEV=1 HAIKU_PROJECT_FOLDER=/Users/matthew/Code/HaikuTeam/mono/packages/haiku-timeline/test/projects/complex HAIKU_PLUMBING_URL=http://0.0.0.0:1024 npm start",
+    "zack": "DEV=1 HAIKU_PROJECT_FOLDER=/Users/zack/code/haiku/mono/packages/haiku-timeline/test/projects/SuperComplex HAIKU_PLUMBING_URL=http://0.0.0.0:1024 npm start",
+    "taylor": "DEV=1 HAIKU_PROJECT_FOLDER=/Users/taylorpoe/code/haiku/mono/packages/haiku-timeline/test/projects/complex HAIKU_PLUMBING_URL=http://0.0.0.0:1024 npm start"
+  },
+  "standard": {
+    "ignore": [
+      "./src/components/modes/haiku.js",
+      "./src/components/modes/haiku-hint.js"
+    ]
+  },
+  "babel": {
+    "presets": [
+      "react-app"
+    ]
+  },
+  "engines": {
+    "node": "8.4.0",
+    "npm": "5.3.0",
+    "yarn": "0.27.5",
+    "electron": "1.7.0"
+  },
+  "dependencies": {
+    "archy": "^1.0.0",
+    "classnames": "2.2.5",
+    "codemirror": "^5.28.0",
+    "color": "1.0.3",
+    "decamelize": "1.2.0",
+    "@haiku/player": "HaikuTeam/player.git#d455d6640f7ea38fec131592dbccf71d20e67ecc",
+    "haiku-bytecode": "HaikuTeam/bytecode#3a402092fb1ac7259afaa3f1dfc72b0625c96351",
+    "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
+    "haiku-serialization": "HaikuTeam/serialization#7ddb7b2f35162ed3a0581214b766debb84bda0b2",
+    "lodash": "4.17.4",
+    "numeral": "^2.0.4",
+    "qs": "6.4.0",
+    "radium": "0.18.1",
+    "react": "15.4.2",
+    "react-dom": "15.4.2",
+    "react-draggable": "2.2.3",
+    "react-popover": "0.4.4",
+    "strip-indent": "^2.0.0"
+  },
+  "devDependencies": {
+    "babel-preset-react-app": "2.2.0",
+    "babel-register": "6.24.0",
+    "electron": "1.7.0",
+    "snazzy": "^7.0.0",
+    "standard": "^10.0.2",
+    "tap-spec": "4.1.1",
+    "tape": "4.6.3"
+  }
+}
