@@ -187,7 +187,7 @@ process.umask = function() { return 0; };
 },{}],2:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "keywords": [
@@ -443,7 +443,7 @@ Config.seed = _seed
 
 module.exports = Config
 
-},{"./vendor/assign":90}],4:[function(_dereq_,module,exports){
+},{"./vendor/assign":92}],4:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -643,7 +643,7 @@ HaikuClock.prototype.getFrameDuration = function getFrameDuration () {
 
 module.exports = HaikuClock
 
-},{"./HaikuGlobal":7,"./helpers/SimpleEventEmitter":19,"./vendor/assign":90,"./vendor/raf":143}],5:[function(_dereq_,module,exports){
+},{"./HaikuGlobal":7,"./helpers/SimpleEventEmitter":19,"./vendor/assign":92,"./vendor/raf":145}],5:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -1818,6 +1818,7 @@ function _shallowCloneComponentTreeElement (element) {
   clone.__transformed = element.__transformed // Transfer flag detecting whether a transform has occurred [#LEGACY?]
   clone.__parent = element.__parent // Make sure it doesn't get detached from its ancestors
   clone.__scope = element.__scope // It still has the same scope (svg, div, etc)
+  clone.__target = element.__target // The platform rendered target element, e.g. DOM node
   clone.layout = element.layout // Allow its layout, which we update in-place, to remain a pointer
 
   // Simply copy over the other standard parts of the node...
@@ -2093,13 +2094,9 @@ function _isBytecode (thing) {
   return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines
 }
 
-// function _isComponent (thing) {
-//   return thing && typeof thing.render === FUNCTION_TYPE
-// }
-
 module.exports = HaikuComponent
 
-},{"./../package.json":2,"./Config":3,"./HaikuTimeline":9,"./Layout3D":10,"./ValueBuilder":12,"./helpers/SimpleEventEmitter":19,"./helpers/addElementToHashTable":20,"./helpers/cssQueryTree":30,"./helpers/scopifyElements":35,"./helpers/upgradeBytecodeInPlace":36,"./properties/dom/vanities":50,"./vendor/assign":90}],6:[function(_dereq_,module,exports){
+},{"./../package.json":2,"./Config":3,"./HaikuTimeline":9,"./Layout3D":10,"./ValueBuilder":12,"./helpers/SimpleEventEmitter":19,"./helpers/addElementToHashTable":20,"./helpers/cssQueryTree":30,"./helpers/scopifyElements":35,"./helpers/upgradeBytecodeInPlace":36,"./properties/dom/vanities":50,"./vendor/assign":92}],6:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -2111,9 +2108,6 @@ var Config = _dereq_('./Config')
 var PRNG = _dereq_('./helpers/PRNG')
 
 var PLAYER_VERSION = _dereq_('./../package.json').version
-
-// Starting prefix to use for element locators, e.g. 0.1.2.3.4
-var COMPONENT_GRAPH_ADDRESS_PREFIX = ''
 
 var DEFAULT_TIMELINE_NAME = 'Default'
 
@@ -2167,8 +2161,7 @@ function HaikuContext (mount, renderer, platform, bytecode, config) {
     console.warn('[haiku player] no platform (e.g. window) provided; some features may be unavailable')
   }
 
-  this._index = HaikuContext.contexts.push(this) - 1
-  this._address = COMPONENT_GRAPH_ADDRESS_PREFIX + this._index
+  HaikuContext.contexts.push(this) - 1
 
   // List of tickable objects managed by this context. These are invoked on every clock tick.
   // These are removed when context unmounts and re-added in case of re-mount
@@ -2335,7 +2328,6 @@ HaikuContext.prototype.performFullFlushRender = function performFullFlushRender 
     this._mount,
     container,
     tree,
-    this._address,
     this.component
   )
   return this
@@ -2352,7 +2344,6 @@ HaikuContext.prototype.performPatchRender = function performPatchRender () {
     this._mount,
     container,
     patches,
-    this._address,
     this.component
   )
   return this
@@ -2407,8 +2398,6 @@ HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles ()
 }
 
 HaikuContext.prototype.tick = function tick () {
-  this.updateMountRootStyles()
-
   var flushed = false
 
   // After we've hydrated the tree the first time, we can proceed with patches --
@@ -2420,6 +2409,12 @@ HaikuContext.prototype.tick = function tick () {
   } else {
     this.performPatchRender()
   }
+
+  // We update the mount root *after* we complete the render pass ^^ because configuration
+  // from the top level should unset anything that the component set.
+  // Specifically important wrt overflow, where the component probably defines
+  // overflowX/overflowY: hidden, but our configuration might define them as visible.
+  this.updateMountRootStyles()
 
   // Do any initialization that may need to occur if we happen to be on the very first tick
   if (this._ticks < 1) {
@@ -2534,7 +2529,7 @@ HaikuContext.createComponentFactory = function createComponentFactory (
 
 module.exports = HaikuContext
 
-},{"./../package.json":2,"./Config":3,"./HaikuClock":4,"./HaikuComponent":5,"./helpers/PRNG":17,"./vendor/assign":90}],7:[function(_dereq_,module,exports){
+},{"./../package.json":2,"./Config":3,"./HaikuClock":4,"./HaikuComponent":5,"./helpers/PRNG":17,"./vendor/assign":92}],7:[function(_dereq_,module,exports){
 (function (global){
 // We need a global harness so we can...
 // - have a single rAF loop even if we've got multiple Haiku Contexts on the same page
@@ -3047,7 +3042,7 @@ HaikuTimeline.prototype.gotoAndStop = function gotoAndStop (ms) {
 
 module.exports = HaikuTimeline
 
-},{"./helpers/SimpleEventEmitter":19,"./helpers/getTimelineMaxTime":31,"./vendor/assign":90}],10:[function(_dereq_,module,exports){
+},{"./helpers/SimpleEventEmitter":19,"./helpers/getTimelineMaxTime":31,"./vendor/assign":92}],10:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -3520,7 +3515,7 @@ module.exports = {
   calculateValueAndReturnUndefinedIfNotWorthwhile: calculateValueAndReturnUndefinedIfNotWorthwhile
 }
 
-},{"./vendor/just-curves":131}],12:[function(_dereq_,module,exports){
+},{"./vendor/just-curves":133}],12:[function(_dereq_,module,exports){
 (function (process,global){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
@@ -4733,7 +4728,7 @@ ValueBuilder.FORBIDDEN_EXPRESSION_TOKENS = FORBIDDEN_EXPRESSION_TOKENS
 module.exports = ValueBuilder
 
 }).call(this,_dereq_('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./HaikuHelpers":8,"./Transitions":11,"./helpers/BasicUtils":15,"./properties/dom/parsers":48,"./properties/dom/schema":49,"./reflection/enhance":51,"./vendor/assign":90,"_process":1}],13:[function(_dereq_,module,exports){
+},{"./HaikuHelpers":8,"./Transitions":11,"./helpers/BasicUtils":15,"./properties/dom/parsers":48,"./properties/dom/schema":49,"./reflection/enhance":51,"./vendor/assign":92,"_process":1}],13:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4797,7 +4792,7 @@ if (IS_WINDOW_DEFINED) {
 
 module.exports = HaikuDOMAdapter
 
-},{"./../../../package.json":2,"./../../HaikuContext":6,"./../../renderers/dom":75}],14:[function(_dereq_,module,exports){
+},{"./../../../package.json":2,"./../../HaikuContext":6,"./../../renderers/dom":76}],14:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4860,7 +4855,7 @@ module.exports = {
   uniq: uniq
 }
 
-},{"./../vendor/array-unique":89}],16:[function(_dereq_,module,exports){
+},{"./../vendor/array-unique":91}],16:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -4890,7 +4885,7 @@ module.exports = {
   generateString: generateString
 }
 
-},{"./../vendor/color-string":92}],17:[function(_dereq_,module,exports){
+},{"./../vendor/color-string":94}],17:[function(_dereq_,module,exports){
 var seedrandom = _dereq_('./../vendor/seedrandom')
 
 function PRNG (seed) {
@@ -4903,7 +4898,7 @@ PRNG.prototype.random = function random () {
 
 module.exports = PRNG
 
-},{"./../vendor/seedrandom":144}],18:[function(_dereq_,module,exports){
+},{"./../vendor/seedrandom":146}],18:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5061,7 +5056,7 @@ module.exports = {
   manaToPoints: manaToPoints
 }
 
-},{"./../vendor/svg-points":146,"./parseCssValueString":34}],19:[function(_dereq_,module,exports){
+},{"./../vendor/svg-points":148,"./parseCssValueString":34}],19:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -5759,7 +5754,7 @@ function upgradeBytecodeInPlace (_bytecode, options) {
 
   // Convert the properties array to the states dictionary
   if (_bytecode.properties) {
-    console.info('[haiku player] auto-upgrading code properties array to states object (2.1.14+)')
+    // console.info('[haiku player] auto-upgrading code properties array to states object (2.1.14+)')
     var properties = _bytecode.properties
     delete _bytecode.properties
     for (var i = 0; i < properties.length; i++) {
@@ -5778,7 +5773,7 @@ function upgradeBytecodeInPlace (_bytecode, options) {
   // Convert the eventHandlers array into a dictionary
   // [{selector:'foo',name:'onclick',handler:function}] => {'foo':{'onclick':{handler:function}}}
   if (Array.isArray(_bytecode.eventHandlers)) {
-    console.info('[haiku player] auto-upgrading code event handlers to object format (2.1.14+)')
+    // console.info('[haiku player] auto-upgrading code event handlers to object format (2.1.14+)')
     var eventHandlers = _bytecode.eventHandlers
     delete _bytecode.eventHandlers
     _bytecode.eventHandlers = {}
@@ -5793,7 +5788,7 @@ function upgradeBytecodeInPlace (_bytecode, options) {
 
   // Convert a string template into our internal object format
   if (typeof _bytecode.template === STRING_TYPE) {
-    console.info('[haiku player] auto-upgrading template string to object format (2.0.0+)')
+    // console.info('[haiku player] auto-upgrading template string to object format (2.0.0+)')
     _bytecode.template = xmlToMana(_bytecode.template)
   }
 
@@ -5826,7 +5821,7 @@ function upgradeBytecodeInPlace (_bytecode, options) {
             for (var keyframeMs in _bytecode.timelines[timelineName][selector][propertyName]) {
               var keyframeDesc = _bytecode.timelines[timelineName][selector][propertyName][keyframeMs]
               if (keyframeDesc && referencesToUpdate[keyframeDesc.value]) {
-                console.info('[haiku player] changing filter url reference ' + keyframeDesc.value + ' to ' + referencesToUpdate[keyframeDesc.value])
+                // console.info('[haiku player] changing filter url reference ' + keyframeDesc.value + ' to ' + referencesToUpdate[keyframeDesc.value])
                 keyframeDesc.value = referencesToUpdate[keyframeDesc.value]
               }
             }
@@ -5907,7 +5902,7 @@ function xmlToMana (xml) {
 
 module.exports = xmlToMana
 
-},{"./../vendor/to-style":153,"./../vendor/xml-parser":166}],39:[function(_dereq_,module,exports){
+},{"./../vendor/to-style":155,"./../vendor/xml-parser":168}],39:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10079,14 +10074,12 @@ HaikuDOMRenderer.prototype.render = function render (
   domElement,
   virtualContainer,
   virtualTree,
-  locator,
   component
 ) {
   return _render(
     domElement,
     virtualContainer,
     virtualTree,
-    locator,
     component
   )
 }
@@ -10095,14 +10088,12 @@ HaikuDOMRenderer.prototype.patch = function patch (
   domElement,
   virtualContainer,
   patchesDict,
-  locator,
   component
 ) {
   return _patch(
     domElement,
     virtualContainer,
     patchesDict,
-    locator,
     component
   )
 }
@@ -10304,7 +10295,7 @@ HaikuDOMRenderer.prototype.getUser = function getUser () {
 
 module.exports = HaikuDOMRenderer
 
-},{"./createMixpanel":65,"./createRightClickMenu":66,"./getElementSize":71,"./getLocalDomEventPosition":72,"./patch":82,"./render":84}],56:[function(_dereq_,module,exports){
+},{"./createMixpanel":65,"./createRightClickMenu":66,"./getElementSize":71,"./getLocalDomEventPosition":73,"./patch":83,"./render":85}],56:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10319,7 +10310,6 @@ function appendChild (
   virtualElement,
   parentDomElement,
   parentVirtualElement,
-  locator,
   component
 ) {
   var domElementToInsert
@@ -10334,7 +10324,6 @@ function appendChild (
       parentDomElement,
       virtualElement,
       parentVirtualElement,
-      locator,
       component
     )
   }
@@ -10353,7 +10342,7 @@ function appendChild (
 
 module.exports = appendChild
 
-},{"./applyLayout":57,"./createTagNode":68,"./createTextNode":69,"./isTextNode":80}],57:[function(_dereq_,module,exports){
+},{"./applyLayout":57,"./createTagNode":68,"./createTextNode":69,"./isTextNode":81}],57:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10381,7 +10370,7 @@ var PLATFORM_INFO = {
   devicePixelRatio: DEFAULT_PIXEL_RATIO
 }
 
-console.info('[haiku player] platform info:', JSON.stringify(PLATFORM_INFO))
+// console.info('[haiku player] platform info:', JSON.stringify(PLATFORM_INFO))
 
 var SVG_RENDERABLES = {
   a: true,
@@ -10483,7 +10472,7 @@ function _warnOnce (warning) {
 
 module.exports = applyLayout
 
-},{"./../../layout/applyCssLayout":39,"./../../layout/scopeOfElement":45,"./../../vendor/modernizr":141,"./getWindowsBrowserVersion":74,"./isEdge":77,"./isIE":78,"./isMobile":79,"./isTextNode":80}],58:[function(_dereq_,module,exports){
+},{"./../../layout/applyCssLayout":39,"./../../layout/scopeOfElement":45,"./../../vendor/modernizr":143,"./getWindowsBrowserVersion":75,"./isEdge":78,"./isIE":79,"./isMobile":80,"./isTextNode":81}],58:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10491,6 +10480,7 @@ module.exports = applyLayout
 var assignStyle = _dereq_('./assignStyle')
 var assignClass = _dereq_('./assignClass')
 var assignEvent = _dereq_('./assignEvent')
+var getFlexId = _dereq_('./getFlexId')
 
 var STYLE = 'style'
 var OBJECT = 'object'
@@ -10587,6 +10577,7 @@ function assignAttributes (
     if (key === STYLE && anotherNewValue && typeof anotherNewValue === OBJECT) {
       assignStyle(
         domElement,
+        virtualElement,
         anotherNewValue,
         component,
         isPatchOperation
@@ -10609,7 +10600,7 @@ function assignAttributes (
       continue
     }
 
-    setAttribute(domElement, key, anotherNewValue, component, component.config.options.cache[domElement.haiku.locator])
+    setAttribute(domElement, key, anotherNewValue, component, component.config.options.cache[getFlexId(virtualElement)])
   }
 
   // Any 'hidden' eventHandlers we got need to be assigned now.
@@ -10630,7 +10621,7 @@ function assignAttributes (
 
 module.exports = assignAttributes
 
-},{"./assignClass":59,"./assignEvent":60,"./assignStyle":61}],59:[function(_dereq_,module,exports){
+},{"./assignClass":59,"./assignEvent":60,"./assignStyle":61,"./getFlexId":72}],59:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -10696,7 +10687,7 @@ module.exports = assignEvent
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function assignStyle (domElement, style, component, isPatchOperation) {
+function assignStyle (domElement, virtualElement, style, component, isPatchOperation) {
   if (!domElement.__haikuExplicitStyles) domElement.__haikuExplicitStyles = {}
 
   if (!isPatchOperation) {
@@ -10823,7 +10814,7 @@ module.exports = function createMixpanel (domElement, mixpanelToken, component) 
   })
 }
 
-},{"./../../vendor/assign":90,"./../../vendor/mixpanel-browser/tiny":140}],66:[function(_dereq_,module,exports){
+},{"./../../vendor/assign":92,"./../../vendor/mixpanel-browser/tiny":142}],66:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11015,6 +11006,7 @@ module.exports = createSvgElement
 
 var normalizeName = _dereq_('./normalizeName')
 var getTypeAsString = _dereq_('./getTypeAsString')
+var getFlexId = _dereq_('./getFlexId')
 
 var SVG_EL_NAMES = _dereq_('./../../helpers/allSvgElementNames')
 
@@ -11022,7 +11014,6 @@ function createTagNode (
   domElement,
   virtualElement,
   parentVirtualElement,
-  locator,
   component
 ) {
   var tagName = normalizeName(getTypeAsString(virtualElement))
@@ -11037,9 +11028,9 @@ function createTagNode (
 
   // This doesn't happen in renderTree because the element doesn't exist yet.
   if (!newDomElement.haiku) newDomElement.haiku = {}
-  newDomElement.haiku.locator = locator
-  if (!component.config.options.cache[newDomElement.haiku.locator]) {
-    component.config.options.cache[newDomElement.haiku.locator] = {}
+
+  if (!component.config.options.cache[getFlexId(virtualElement)]) {
+    component.config.options.cache[getFlexId(virtualElement)] = {}
   }
 
   var incomingKey =
@@ -11055,7 +11046,6 @@ function createTagNode (
     virtualElement,
     domElement,
     parentVirtualElement,
-    locator,
     component
   )
   return newDomElement
@@ -11066,7 +11056,7 @@ module.exports = createTagNode
 var createSvgElement = _dereq_('./createSvgElement')
 var updateElement = _dereq_('./updateElement')
 
-},{"./../../helpers/allSvgElementNames":21,"./createSvgElement":67,"./getTypeAsString":73,"./normalizeName":81,"./updateElement":88}],69:[function(_dereq_,module,exports){
+},{"./../../helpers/allSvgElementNames":21,"./createSvgElement":67,"./getFlexId":72,"./getTypeAsString":74,"./normalizeName":82,"./updateElement":90}],69:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11121,6 +11111,25 @@ function getElementSize (domElement) {
 module.exports = getElementSize
 
 },{}],72:[function(_dereq_,module,exports){
+var HAIKU_ID_ATTRIBUTE = 'haiku-id'
+var ID_ATTRIBUTE = 'id'
+
+/**
+ * @function getFlexId
+ * @description Get the flexible main identifier for the element, which may
+ * be either a virtual element in the mana format, or a vanilla dom node.
+ */
+module.exports = function getFlexId (element) {
+  if (element) {
+    if (element.getAttribute) {
+      return element.getAttribute(HAIKU_ID_ATTRIBUTE) || element.getAttribute(ID_ATTRIBUTE)
+    } else if (element.attributes) {
+      return element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes[ID_ATTRIBUTE]
+    }
+  }
+}
+
+},{}],73:[function(_dereq_,module,exports){
 var getDomEventPosition = _dereq_('./getDomEventPosition')
 
 function getLocalDomEventPosition (event, element) {
@@ -11139,7 +11148,7 @@ function getLocalDomEventPosition (event, element) {
 
 module.exports = getLocalDomEventPosition
 
-},{"./getDomEventPosition":70}],73:[function(_dereq_,module,exports){
+},{"./getDomEventPosition":70}],74:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11195,7 +11204,7 @@ function _warnOnce (warning) {
 
 module.exports = getTypeAsString
 
-},{}],74:[function(_dereq_,module,exports){
+},{}],75:[function(_dereq_,module,exports){
 module.exports = function getWindowsBrowser (window) {
   var rv = -1
   if (!window) return rv
@@ -11214,14 +11223,14 @@ module.exports = function getWindowsBrowser (window) {
   return rv
 }
 
-},{}],75:[function(_dereq_,module,exports){
+},{}],76:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
 module.exports = _dereq_('./HaikuDOMRenderer')
 
-},{"./HaikuDOMRenderer":55}],76:[function(_dereq_,module,exports){
+},{"./HaikuDOMRenderer":55}],77:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11232,7 +11241,7 @@ function isBlankString (thing) {
 
 module.exports = isBlankString
 
-},{}],77:[function(_dereq_,module,exports){
+},{}],78:[function(_dereq_,module,exports){
 module.exports = function isEdge (window) {
   if (!window) return false
   if (!window.navigator) return false
@@ -11240,7 +11249,7 @@ module.exports = function isEdge (window) {
   return /Edge\/\d./i.test(window.navigator.userAgent)
 }
 
-},{}],78:[function(_dereq_,module,exports){
+},{}],79:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11255,7 +11264,7 @@ module.exports = function isIE (window) {
   )
 }
 
-},{}],79:[function(_dereq_,module,exports){
+},{}],80:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11267,7 +11276,7 @@ module.exports = function isMobile (window) {
   return /iPhone|iPad|iPod|Android/i.test(window.navigator.userAgent)
 }
 
-},{}],80:[function(_dereq_,module,exports){
+},{}],81:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11278,7 +11287,7 @@ function isTextNode (virtualElement) {
 
 module.exports = isTextNode
 
-},{}],81:[function(_dereq_,module,exports){
+},{}],82:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11290,7 +11299,7 @@ function normalizeName (tagName) {
 
 module.exports = normalizeName
 
-},{}],82:[function(_dereq_,module,exports){
+},{}],83:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11301,7 +11310,6 @@ function patch (
   topLevelDomElement,
   virtualContainer,
   patchesDict,
-  locator,
   component
 ) {
   // Just in case we get a null which might be set as a no-op signal by a component upstream
@@ -11328,7 +11336,6 @@ function patch (
         virtualElement,
         domElement.parentNode,
         virtualElement.__parent,
-        domElement.haiku.locator,
         component,
         true
       )
@@ -11339,7 +11346,6 @@ function patch (
           domElement,
           nestedModuleElement, // Sizing info is stored here
           nestedModuleElement.__instance._getPrecalcedPatches(),
-          locator + ';' + i, // Not yet sure what to set here
           nestedModuleElement.__instance
         )
       }
@@ -11349,7 +11355,7 @@ function patch (
 
 module.exports = patch
 
-},{"./updateElement":88}],83:[function(_dereq_,module,exports){
+},{"./updateElement":90}],84:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11361,7 +11367,7 @@ function removeElement (domElement) {
 
 module.exports = removeElement
 
-},{}],84:[function(_dereq_,module,exports){
+},{}],85:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11372,21 +11378,19 @@ function render (
   domElement,
   virtualContainer,
   virtualTree,
-  locator,
   component
 ) {
   return renderTree(
     domElement,
     virtualContainer,
     [virtualTree],
-    locator,
     component
   )
 }
 
 module.exports = render
 
-},{"./renderTree":85}],85:[function(_dereq_,module,exports){
+},{"./renderTree":86}],86:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11394,12 +11398,13 @@ module.exports = render
 var isBlankString = _dereq_('./isBlankString')
 var removeElement = _dereq_('./removeElement')
 var _cloneVirtualElement = _dereq_('./cloneVirtualElement')
+var getFlexId = _dereq_('./getFlexId')
+var shouldElementBeReplaced = _dereq_('./shouldElementBeReplaced')
 
 function renderTree (
   domElement,
   virtualElement,
   virtualChildren,
-  locator,
   component,
   isPatchOperation,
   doSkipChildren
@@ -11408,13 +11413,12 @@ function renderTree (
 
   if (!domElement.haiku) domElement.haiku = {}
 
-  // 'locator', and 'virtual' are more for debugging convenience than anything else.
   // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
-  domElement.haiku.locator = locator
+  virtualElement.__target = domElement
   domElement.haiku.virtual = virtualElement
   domElement.haiku.element = _cloneVirtualElement(virtualElement) // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-  if (!component.config.options.cache[domElement.haiku.locator]) {
-    component.config.options.cache[domElement.haiku.locator] = {}
+  if (!component.config.options.cache[getFlexId(virtualElement)]) {
+    component.config.options.cache[getFlexId(virtualElement)] = {}
   }
 
   if (!Array.isArray(virtualChildren)) {
@@ -11437,16 +11441,25 @@ function renderTree (
     virtualChildren.shift()
   }
 
+  // Store a copy of the array here, otherwise we can hit a race where as we remove
+  // elements from the DOM, the childNodes array gets shifted and the indices get offset, leading
+  // to removals not occurring properly
+  var domChildNodes = []
+  for (var k = 0; k < domElement.childNodes.length; k++) {
+    domChildNodes[k] = domElement.childNodes[k]
+  }
+
   var max = virtualChildren.length
-  if (max < domElement.childNodes.length) max = domElement.childNodes.length
+  if (max < domChildNodes.length) {
+    max = domChildNodes.length
+  }
 
   for (var i = 0; i < max; i++) {
     var virtualChild = virtualChildren[i]
-    var domChild = domElement.childNodes[i]
-    var sublocator = locator + '.' + i
+    var domChild = domChildNodes[i]
 
     if (!virtualChild && !domChild) {
-      continue
+      // empty
     } else if (!virtualChild && domChild) {
       removeElement(domChild)
     } else if (virtualChild) {
@@ -11456,39 +11469,36 @@ function renderTree (
           virtualChild,
           domElement,
           virtualElement,
-          sublocator,
           component
         )
 
         component._addElementToHashTable(insertedElement, virtualChild)
       } else {
-        var oldId = domChild.getAttribute && domChild.getAttribute('id')
-        var newId = virtualChild.attributes && virtualChild.attributes.id
-
-        if (oldId && newId && oldId !== newId) {
-          // If we now have an element that has a different id, we need to trigger a full re-render
-          // of itself and all of its children, because url(#...) references will retain pointers to
-          // old elements and this is the only way to clear the DOM to get a correct render
+        // Circumstances in which we want to completely *replace* the element:
+        // - We see that our cached target element is not the one at this location
+        // - We see that the DOM id doesn't match the incoming one
+        // - we see that the haiku-id doesn't match the incoming one.
+        // If we now have an element that is different, we need to trigger a full re-render
+        // of itself and all of its children, because e.g. url(#...) references will retain pointers to
+        // old elements and this is the only way to clear the DOM to get a correct render.
+        if (shouldElementBeReplaced(domChild, virtualChild)) {
           replaceElement(
             domChild,
             virtualChild,
             domElement,
             virtualElement,
-            locator,
             component
           )
-          continue
+        } else {
+          updateElement(
+            domChild,
+            virtualChild,
+            domElement,
+            virtualElement,
+            component,
+            isPatchOperation
+          )
         }
-
-        updateElement(
-          domChild,
-          virtualChild,
-          domElement,
-          virtualElement,
-          sublocator,
-          component,
-          isPatchOperation
-        )
       }
     }
   }
@@ -11502,7 +11512,7 @@ var appendChild = _dereq_('./appendChild')
 var updateElement = _dereq_('./updateElement')
 var replaceElement = _dereq_('./replaceElement')
 
-},{"./appendChild":56,"./cloneVirtualElement":64,"./isBlankString":76,"./removeElement":83,"./replaceElement":86,"./updateElement":88}],86:[function(_dereq_,module,exports){
+},{"./appendChild":56,"./cloneVirtualElement":64,"./getFlexId":72,"./isBlankString":77,"./removeElement":84,"./replaceElement":87,"./shouldElementBeReplaced":89,"./updateElement":90}],87:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11515,7 +11525,6 @@ function replaceElement (
   virtualElement,
   parentDomNode,
   parentVirtualElement,
-  locator,
   component
 ) {
   var newElement
@@ -11526,7 +11535,6 @@ function replaceElement (
       domElement,
       virtualElement,
       parentVirtualElement,
-      locator,
       component
     )
   }
@@ -11548,7 +11556,7 @@ module.exports = replaceElement
 var createTextNode = _dereq_('./createTextNode')
 var createTagNode = _dereq_('./createTagNode')
 
-},{"./applyLayout":57,"./createTagNode":68,"./createTextNode":69,"./isTextNode":80}],87:[function(_dereq_,module,exports){
+},{"./applyLayout":57,"./createTagNode":68,"./createTextNode":69,"./isTextNode":81}],88:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11568,7 +11576,23 @@ function replaceElementWithText (domElement, textContent, component) {
 
 module.exports = replaceElementWithText
 
-},{"./createTextNode":69}],88:[function(_dereq_,module,exports){
+},{"./createTextNode":69}],89:[function(_dereq_,module,exports){
+var getFlexId = _dereq_('./getFlexId')
+
+module.exports = function shouldElementBeReplaced (domElement, virtualElement) {
+  var oldFlexId = getFlexId(domElement)
+  var newFlexId = getFlexId(virtualElement)
+
+  if (oldFlexId && newFlexId) {
+    if (oldFlexId !== newFlexId) {
+      return true
+    }
+  }
+
+  return false
+}
+
+},{"./getFlexId":72}],90:[function(_dereq_,module,exports){
 /**
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
@@ -11577,6 +11601,7 @@ var applyLayout = _dereq_('./applyLayout')
 var assignAttributes = _dereq_('./assignAttributes')
 var getTypeAsString = _dereq_('./getTypeAsString')
 var _cloneVirtualElement = _dereq_('./cloneVirtualElement')
+var getFlexId = _dereq_('./getFlexId')
 
 var OBJECT = 'object'
 var STRING = 'string'
@@ -11586,7 +11611,6 @@ function updateElement (
   virtualElement,
   parentNode,
   parentVirtualElement,
-  locator,
   component,
   isPatchOperation
 ) {
@@ -11597,10 +11621,11 @@ function updateElement (
   }
 
   if (!domElement.haiku) domElement.haiku = {}
-  domElement.haiku.locator = locator
-  if (!component.config.options.cache[domElement.haiku.locator]) {
-    component.config.options.cache[domElement.haiku.locator] = {}
+
+  if (!component.config.options.cache[getFlexId(virtualElement)]) {
+    component.config.options.cache[getFlexId(virtualElement)] = {}
   }
+
   if (!domElement.haiku.element) {
     // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
     domElement.haiku.element = _cloneVirtualElement(virtualElement)
@@ -11627,7 +11652,6 @@ function updateElement (
         virtualElement,
         parentNode,
         parentVirtualElement,
-        locator,
         component
       )
     }
@@ -11638,7 +11662,6 @@ function updateElement (
         virtualElement,
         parentNode,
         parentVirtualElement,
-        locator,
         component
       )
     }
@@ -11680,7 +11703,6 @@ function updateElement (
       domElement,
       virtualElement,
       virtualElement.children,
-      locator,
       subcomponent,
       isPatchOperation,
       doSkipChildren
@@ -11691,7 +11713,6 @@ function updateElement (
       domElement,
       virtualElement,
       [],
-      locator,
       subcomponent,
       isPatchOperation
     )
@@ -11708,7 +11729,7 @@ var replaceElement = _dereq_('./replaceElement')
 var normalizeName = _dereq_('./normalizeName')
 var isTextNode = _dereq_('./isTextNode')
 
-},{"./applyLayout":57,"./assignAttributes":58,"./cloneVirtualElement":64,"./getTypeAsString":73,"./isTextNode":80,"./normalizeName":81,"./renderTree":85,"./replaceElement":86,"./replaceElementWithText":87}],89:[function(_dereq_,module,exports){
+},{"./applyLayout":57,"./assignAttributes":58,"./cloneVirtualElement":64,"./getFlexId":72,"./getTypeAsString":74,"./isTextNode":81,"./normalizeName":82,"./renderTree":86,"./replaceElement":87,"./replaceElementWithText":88}],91:[function(_dereq_,module,exports){
 function uniq (arr) {
   var len = arr.length
   var i = -1
@@ -11737,7 +11758,7 @@ module.exports = {
   immutable: immutable
 }
 
-},{}],90:[function(_dereq_,module,exports){
+},{}],92:[function(_dereq_,module,exports){
 module.exports = function assign (t) {
   for (var s, i = 1, n = arguments.length; i < n; i++) {
     s = arguments[i]
@@ -11750,7 +11771,7 @@ module.exports = function assign (t) {
   return t
 }
 
-},{}],91:[function(_dereq_,module,exports){
+},{}],93:[function(_dereq_,module,exports){
 module.exports = {
   aliceblue: [240, 248, 255],
   antiquewhite: [250, 235, 215],
@@ -11902,7 +11923,7 @@ module.exports = {
   yellowgreen: [154, 205, 50]
 }
 
-},{}],92:[function(_dereq_,module,exports){
+},{}],94:[function(_dereq_,module,exports){
 var ColorNames = _dereq_('./../color-names')
 
 var reverseNames = {}
@@ -12157,38 +12178,38 @@ function hexDouble (num) {
   return str.length < 2 ? '0' + str : str
 }
 
-},{"./../color-names":91}],93:[function(_dereq_,module,exports){
+},{"./../color-names":93}],95:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.ease = internal1.cubicBezier(0.25, 0.1, 0.25, 0.1)
 
-},{"../internal":137}],94:[function(_dereq_,module,exports){
+},{"../internal":139}],96:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeIn = internal1.cubicBezier(0.42, 0, 1, 1)
 
-},{"../internal":137}],95:[function(_dereq_,module,exports){
+},{"../internal":139}],97:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInBack = function (x) {
   return internal1.c3 * x * x * x - internal1.c1 * x * x
 }
 
-},{"../internal":137}],96:[function(_dereq_,module,exports){
+},{"../internal":139}],98:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 exports.easeInBounce = function (x) {
   return 1 - index1.easeOutBounce(1 - x)
 }
 
-},{"./index":127}],97:[function(_dereq_,module,exports){
+},{"./index":129}],99:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInCirc = function (x) {
   return 1 - internal1.sqrt(1 - x * x)
 }
 
-},{"../internal":137}],98:[function(_dereq_,module,exports){
+},{"../internal":139}],100:[function(_dereq_,module,exports){
 exports.easeInCubic = function (x) {
   return x * x * x
 }
 
-},{}],99:[function(_dereq_,module,exports){
+},{}],101:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInElastic = function (n) {
   return !n || n === 1
@@ -12198,17 +12219,17 @@ exports.easeInElastic = function (n) {
         internal1.pow(2, 10 * (n - 1))
 }
 
-},{"../internal":137}],100:[function(_dereq_,module,exports){
+},{"../internal":139}],102:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInExpo = function (x) {
   return x === 0 ? 0 : internal1.pow(2, 10 * x - 10)
 }
 
-},{"../internal":137}],101:[function(_dereq_,module,exports){
+},{"../internal":139}],103:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOut = internal1.cubicBezier(0.42, 0, 0.58, 1)
 
-},{"../internal":137}],102:[function(_dereq_,module,exports){
+},{"../internal":139}],104:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutBack = function (x) {
   return x < 0.5
@@ -12219,7 +12240,7 @@ exports.easeInOutBack = function (x) {
         2
 }
 
-},{"../internal":137}],103:[function(_dereq_,module,exports){
+},{"../internal":139}],105:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 exports.easeInOutBounce = function (x) {
   return x < 0.5
@@ -12227,7 +12248,7 @@ exports.easeInOutBounce = function (x) {
     : (1 + index1.easeOutBounce(2 * x - 1)) / 2
 }
 
-},{"./index":127}],104:[function(_dereq_,module,exports){
+},{"./index":129}],106:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutCirc = function (x) {
   return x < 0.5
@@ -12235,13 +12256,13 @@ exports.easeInOutCirc = function (x) {
     : (internal1.sqrt(1 - internal1.pow(-2 * x + 2, 2)) + 1) / 2
 }
 
-},{"../internal":137}],105:[function(_dereq_,module,exports){
+},{"../internal":139}],107:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutCubic = function (x) {
   return x < 0.5 ? 4 * x * x * x : 1 - internal1.pow(-2 * x + 2, 3) / 2
 }
 
-},{"../internal":137}],106:[function(_dereq_,module,exports){
+},{"../internal":139}],108:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutElastic = function (n) {
   if (!n || n === 1) return n
@@ -12261,7 +12282,7 @@ exports.easeInOutElastic = function (n) {
   )
 }
 
-},{"../internal":137}],107:[function(_dereq_,module,exports){
+},{"../internal":139}],109:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutExpo = function (x) {
   return x === 0
@@ -12273,56 +12294,56 @@ exports.easeInOutExpo = function (x) {
         : (2 - internal1.pow(2, -20 * x + 10)) / 2
 }
 
-},{"../internal":137}],108:[function(_dereq_,module,exports){
+},{"../internal":139}],110:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuad = function (x) {
   return x < 0.5 ? 2 * x * x : 1 - internal1.pow(-2 * x + 2, 2) / 2
 }
 
-},{"../internal":137}],109:[function(_dereq_,module,exports){
+},{"../internal":139}],111:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuart = function (x) {
   return x < 0.5 ? 8 * x * x * x * x : 1 - internal1.pow(-2 * x + 2, 4) / 2
 }
 
-},{"../internal":137}],110:[function(_dereq_,module,exports){
+},{"../internal":139}],112:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutQuint = function (x) {
   return x < 0.5 ? 16 * x * x * x * x * x : 1 - internal1.pow(-2 * x + 2, 5) / 2
 }
 
-},{"../internal":137}],111:[function(_dereq_,module,exports){
+},{"../internal":139}],113:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInOutSine = function (x) {
   return -(internal1.cos(internal1.pi * x) - 1) / 2
 }
 
-},{"../internal":137}],112:[function(_dereq_,module,exports){
+},{"../internal":139}],114:[function(_dereq_,module,exports){
 exports.easeInQuad = function (x) {
   return x * x
 }
 
-},{}],113:[function(_dereq_,module,exports){
+},{}],115:[function(_dereq_,module,exports){
 exports.easeInQuart = function (x) {
   return x * x * x * x
 }
 
-},{}],114:[function(_dereq_,module,exports){
+},{}],116:[function(_dereq_,module,exports){
 exports.easeInQuint = function (x) {
   return x * x * x * x * x
 }
 
-},{}],115:[function(_dereq_,module,exports){
+},{}],117:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeInSine = function (x) {
   return 1 - internal1.cos(x * internal1.pi / 2)
 }
 
-},{"../internal":137}],116:[function(_dereq_,module,exports){
+},{"../internal":139}],118:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOut = internal1.cubicBezier(0, 0, 0.58, 1)
 
-},{"../internal":137}],117:[function(_dereq_,module,exports){
+},{"../internal":139}],119:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutBack = function (x) {
   return (
@@ -12332,7 +12353,7 @@ exports.easeOutBack = function (x) {
   )
 }
 
-},{"../internal":137}],118:[function(_dereq_,module,exports){
+},{"../internal":139}],120:[function(_dereq_,module,exports){
 exports.easeOutBounce = function (x) {
   var n1 = 7.5625
   var d1 = 2.75
@@ -12345,19 +12366,19 @@ exports.easeOutBounce = function (x) {
         : n1 * (x -= 2.625 / d1) * x + 0.984375
 }
 
-},{}],119:[function(_dereq_,module,exports){
+},{}],121:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutCirc = function (x) {
   return internal1.sqrt(1 - (x - 1) * (x - 1))
 }
 
-},{"../internal":137}],120:[function(_dereq_,module,exports){
+},{"../internal":139}],122:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutCubic = function (x) {
   return 1 - internal1.pow(1 - x, 3)
 }
 
-},{"../internal":137}],121:[function(_dereq_,module,exports){
+},{"../internal":139}],123:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutElastic = function (n) {
   if (!n || n === 1) return n
@@ -12374,36 +12395,36 @@ exports.easeOutElastic = function (n) {
   )
 }
 
-},{"../internal":137}],122:[function(_dereq_,module,exports){
+},{"../internal":139}],124:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutExpo = function (x) {
   return x === 1 ? 1 : 1 - internal1.pow(2, -10 * x)
 }
 
-},{"../internal":137}],123:[function(_dereq_,module,exports){
+},{"../internal":139}],125:[function(_dereq_,module,exports){
 exports.easeOutQuad = function (x) {
   return 1 - (1 - x) * (1 - x)
 }
 
-},{}],124:[function(_dereq_,module,exports){
+},{}],126:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutQuart = function (x) {
   return 1 - internal1.pow(1 - x, 4)
 }
 
-},{"../internal":137}],125:[function(_dereq_,module,exports){
+},{"../internal":139}],127:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutQuint = function (x) {
   return 1 - internal1.pow(1 - x, 5)
 }
 
-},{"../internal":137}],126:[function(_dereq_,module,exports){
+},{"../internal":139}],128:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.easeOutSine = function (x) {
   return internal1.sin(x * internal1.pi / 2)
 }
 
-},{"../internal":137}],127:[function(_dereq_,module,exports){
+},{"../internal":139}],129:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -12445,20 +12466,20 @@ __export(_dereq_('./linear'))
 __export(_dereq_('./stepEnd'))
 __export(_dereq_('./stepStart'))
 
-},{"./ease":93,"./easeIn":94,"./easeInBack":95,"./easeInBounce":96,"./easeInCirc":97,"./easeInCubic":98,"./easeInElastic":99,"./easeInExpo":100,"./easeInOut":101,"./easeInOutBack":102,"./easeInOutBounce":103,"./easeInOutCirc":104,"./easeInOutCubic":105,"./easeInOutElastic":106,"./easeInOutExpo":107,"./easeInOutQuad":108,"./easeInOutQuart":109,"./easeInOutQuint":110,"./easeInOutSine":111,"./easeInQuad":112,"./easeInQuart":113,"./easeInQuint":114,"./easeInSine":115,"./easeOut":116,"./easeOutBack":117,"./easeOutBounce":118,"./easeOutCirc":119,"./easeOutCubic":120,"./easeOutElastic":121,"./easeOutExpo":122,"./easeOutQuad":123,"./easeOutQuart":124,"./easeOutQuint":125,"./easeOutSine":126,"./linear":128,"./stepEnd":129,"./stepStart":130}],128:[function(_dereq_,module,exports){
+},{"./ease":95,"./easeIn":96,"./easeInBack":97,"./easeInBounce":98,"./easeInCirc":99,"./easeInCubic":100,"./easeInElastic":101,"./easeInExpo":102,"./easeInOut":103,"./easeInOutBack":104,"./easeInOutBounce":105,"./easeInOutCirc":106,"./easeInOutCubic":107,"./easeInOutElastic":108,"./easeInOutExpo":109,"./easeInOutQuad":110,"./easeInOutQuart":111,"./easeInOutQuint":112,"./easeInOutSine":113,"./easeInQuad":114,"./easeInQuart":115,"./easeInQuint":116,"./easeInSine":117,"./easeOut":118,"./easeOutBack":119,"./easeOutBounce":120,"./easeOutCirc":121,"./easeOutCubic":122,"./easeOutElastic":123,"./easeOutExpo":124,"./easeOutQuad":125,"./easeOutQuart":126,"./easeOutQuint":127,"./easeOutSine":128,"./linear":130,"./stepEnd":131,"./stepStart":132}],130:[function(_dereq_,module,exports){
 exports.linear = function (x) {
   return x
 }
 
-},{}],129:[function(_dereq_,module,exports){
+},{}],131:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.stepEnd = internal1.steps(1, 0)
 
-},{"../internal":137}],130:[function(_dereq_,module,exports){
+},{"../internal":139}],132:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.stepStart = internal1.steps(1, 1)
 
-},{"../internal":137}],131:[function(_dereq_,module,exports){
+},{"../internal":139}],133:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -12471,7 +12492,7 @@ __export(_dereq_('./curves'))
 var css = _dereq_('./internal/cssEasings')
 exports.css = css
 
-},{"./curves":127,"./internal":137,"./internal/cssEasings":133}],132:[function(_dereq_,module,exports){
+},{"./curves":129,"./internal":139,"./internal/cssEasings":135}],134:[function(_dereq_,module,exports){
 exports.pi = Math.PI
 exports.tau = 2 * exports.pi
 exports.epsilon = 0.0001
@@ -12481,7 +12502,7 @@ exports.c3 = exports.c1 + 1
 exports.c4 = exports.tau / 3
 exports.c5 = exports.tau / 4.5
 
-},{}],133:[function(_dereq_,module,exports){
+},{}],135:[function(_dereq_,module,exports){
 var c = 'cubic-bezier'
 var s = 'steps'
 exports.ease = c + '(.25,.1,.25,1)'
@@ -12517,7 +12538,7 @@ exports.linear = c + '(0,0,1,1)'
 exports.stepEnd = s + '(1,0)'
 exports.stepStart = s + '(1,1)'
 
-},{}],134:[function(_dereq_,module,exports){
+},{}],136:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 var camelCaseRegex = /([a-z])[- ]([a-z])/gi
 var cssFunctionRegex = /^([a-z-]+)\(([^)]+)\)$/i
@@ -12563,7 +12584,7 @@ exports.cssFunction = function (easingString) {
   throw new Error('unknown css function')
 }
 
-},{"./index":137}],135:[function(_dereq_,module,exports){
+},{"./index":139}],137:[function(_dereq_,module,exports){
 var index1 = _dereq_('./index')
 var bezier = function (n1, n2, t) {
   return 3 * n1 * (1 - t) * (1 - t) * t + 3 * n2 * (1 - t) * t * t + t * t * t
@@ -12598,7 +12619,7 @@ exports.cubicBezier = function (p0, p1, p2, p3) {
   }
 }
 
-},{"./index":137}],136:[function(_dereq_,module,exports){
+},{"./index":139}],138:[function(_dereq_,module,exports){
 var internal1 = _dereq_('../internal')
 exports.frames = function (n) {
   var q = 1 / (n - 1)
@@ -12608,7 +12629,7 @@ exports.frames = function (n) {
   }
 }
 
-},{"../internal":137}],137:[function(_dereq_,module,exports){
+},{"../internal":139}],139:[function(_dereq_,module,exports){
 function __export (m) {
   for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
 }
@@ -12620,7 +12641,7 @@ __export(_dereq_('./frames'))
 __export(_dereq_('./math'))
 __export(_dereq_('./steps'))
 
-},{"./constants":132,"./cssEasings":133,"./cssFunction":134,"./cubicBezier":135,"./frames":136,"./math":138,"./steps":139}],138:[function(_dereq_,module,exports){
+},{"./constants":134,"./cssEasings":135,"./cssFunction":136,"./cubicBezier":137,"./frames":138,"./math":140,"./steps":141}],140:[function(_dereq_,module,exports){
 exports.abs = Math.abs
 exports.asin = Math.asin
 exports.floor = Math.floor
@@ -12629,7 +12650,7 @@ exports.pow = Math.pow
 exports.sin = Math.sin
 exports.sqrt = Math.sqrt
 
-},{}],139:[function(_dereq_,module,exports){
+},{}],141:[function(_dereq_,module,exports){
 exports.steps = function (count, pos) {
   var q = count / 1
   var p = pos === 'end' ? 0 : pos === 'start' ? 1 : pos || 0
@@ -12638,7 +12659,7 @@ exports.steps = function (count, pos) {
   }
 }
 
-},{}],140:[function(_dereq_,module,exports){
+},{}],142:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 module.exports = function _mixpanelTiny() {
@@ -12725,7 +12746,7 @@ module.exports = function _mixpanelTiny() {
   return setup(document, window.mixpanel || [])
 }
 
-},{}],141:[function(_dereq_,module,exports){
+},{}],143:[function(_dereq_,module,exports){
 function hasPreserve3d (window) {
   if (!window) return false
   if (!window.document) return false
@@ -12754,7 +12775,7 @@ module.exports = {
   hasPreserve3d: hasPreserve3d
 }
 
-},{}],142:[function(_dereq_,module,exports){
+},{}],144:[function(_dereq_,module,exports){
 (function (process){
 /* eslint-disable */
 // Generated by CoffeeScript 1.7.1
@@ -12798,7 +12819,7 @@ module.exports = {
 }.call(this))
 
 }).call(this,_dereq_('_process'))
-},{"_process":1}],143:[function(_dereq_,module,exports){
+},{"_process":1}],145:[function(_dereq_,module,exports){
 (function (global){
 /* eslint-disable */
 
@@ -12880,12 +12901,12 @@ module.exports.polyfill = function() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../performance-now":142}],144:[function(_dereq_,module,exports){
+},{"./../performance-now":144}],146:[function(_dereq_,module,exports){
 // The original ARC4-based prng included in this library.
 // Period: ~2^1600
 module.exports = _dereq_('./seedrandom')
 
-},{"./seedrandom":145}],145:[function(_dereq_,module,exports){
+},{"./seedrandom":147}],147:[function(_dereq_,module,exports){
 var width = 256        // each RC4 output is 0 <= x < 256
 var chunks = 6         // at least six RC4 outputs for each double
 var digits = 52        // there are 52 significant digits in a double
@@ -13013,7 +13034,7 @@ function tostring (a) {
 
 module.exports = seedrandom
 
-},{}],146:[function(_dereq_,module,exports){
+},{}],148:[function(_dereq_,module,exports){
 'use strict'
 
 exports.__esModule = true
@@ -13039,7 +13060,7 @@ exports.toPath = _toPath2.default
 exports.toPoints = _toPoints2.default
 exports.valid = _valid2.default
 
-},{"./toPath":147,"./toPoints":148,"./valid":149}],147:[function(_dereq_,module,exports){
+},{"./toPath":149,"./toPoints":150,"./valid":151}],149:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -13189,7 +13210,7 @@ var toPath = function(s) {
 
 exports.default = toPath
 
-},{"./toPoints":148}],148:[function(_dereq_,module,exports){
+},{"./toPoints":150}],150:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -13648,7 +13669,7 @@ var getPointsFromG = function(_ref13) {
 
 exports.default = toPoints
 
-},{}],149:[function(_dereq_,module,exports){
+},{}],151:[function(_dereq_,module,exports){
 /* eslint-disable */
 
 'use strict'
@@ -13778,10 +13799,10 @@ var valid = function(shape) {
 
 exports.default = valid
 
-},{}],150:[function(_dereq_,module,exports){
+},{}],152:[function(_dereq_,module,exports){
 module.exports = _dereq_('./prefixer')()
 
-},{"./prefixer":158}],151:[function(_dereq_,module,exports){
+},{"./prefixer":160}],153:[function(_dereq_,module,exports){
 module.exports = {
   animation: 1,
   'column-count': 1,
@@ -13801,33 +13822,33 @@ module.exports = {
   rowspan: 1
 }
 
-},{}],152:[function(_dereq_,module,exports){
+},{}],154:[function(_dereq_,module,exports){
 var objectHasOwn = Object.prototype.hasOwnProperty
 
 module.exports = function (object, propertyName) {
   return objectHasOwn.call(object, propertyName)
 }
 
-},{}],153:[function(_dereq_,module,exports){
+},{}],155:[function(_dereq_,module,exports){
 module.exports = {
   object: _dereq_('./toStyleObject')
 }
 
-},{"./toStyleObject":165}],154:[function(_dereq_,module,exports){
+},{"./toStyleObject":167}],156:[function(_dereq_,module,exports){
 var objectToString = Object.prototype.toString
 
 module.exports = function (v) {
   return objectToString.apply(v) === '[object Function]'
 }
 
-},{}],155:[function(_dereq_,module,exports){
+},{}],157:[function(_dereq_,module,exports){
 var objectToString = Object.prototype.toString
 
 module.exports = function (v) {
   return !!v && objectToString.call(v) === '[object Object]'
 }
 
-},{}],156:[function(_dereq_,module,exports){
+},{}],158:[function(_dereq_,module,exports){
 var toUpperFirst = _dereq_('./stringUtils/toUpperFirst')
 
 var re = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/
@@ -13876,7 +13897,7 @@ var prefixInfo = (function () {
 
 module.exports = prefixInfo
 
-},{"./stringUtils/toUpperFirst":164}],157:[function(_dereq_,module,exports){
+},{"./stringUtils/toUpperFirst":166}],159:[function(_dereq_,module,exports){
 module.exports = {
   'border-radius': 1,
   'border-top-left-radius': 1,
@@ -13903,7 +13924,7 @@ module.exports = {
   'box-pack': 1
 }
 
-},{}],158:[function(_dereq_,module,exports){
+},{}],160:[function(_dereq_,module,exports){
 var camelize = _dereq_('./stringUtils/camelize')
 var hyphenate = _dereq_('./stringUtils/hyphenate')
 var toLowerFirst = _dereq_('./stringUtils/toLowerFirst')
@@ -13975,7 +13996,7 @@ module.exports = function (asStylePrefix) {
   }
 }
 
-},{"./prefixInfo":156,"./prefixProperties":157,"./stringUtils/camelize":159,"./stringUtils/hyphenate":161,"./stringUtils/toLowerFirst":163,"./stringUtils/toUpperFirst":164}],159:[function(_dereq_,module,exports){
+},{"./prefixInfo":158,"./prefixProperties":159,"./stringUtils/camelize":161,"./stringUtils/hyphenate":163,"./stringUtils/toLowerFirst":165,"./stringUtils/toUpperFirst":166}],161:[function(_dereq_,module,exports){
 var toCamelFn = function (str, letter) {
   return letter ? letter.toUpperCase() : ''
 }
@@ -13986,17 +14007,17 @@ module.exports = function (str) {
   return str ? str.replace(hyphenRe, toCamelFn) : ''
 }
 
-},{"./hyphenRe":160}],160:[function(_dereq_,module,exports){
+},{"./hyphenRe":162}],162:[function(_dereq_,module,exports){
 module.exports = /[-\s]+(.)?/g
 
-},{}],161:[function(_dereq_,module,exports){
+},{}],163:[function(_dereq_,module,exports){
 var separate = _dereq_('./separate')
 
 module.exports = function (name) {
   return separate(name).toLowerCase()
 }
 
-},{"./separate":162}],162:[function(_dereq_,module,exports){
+},{"./separate":164}],164:[function(_dereq_,module,exports){
 var doubleColonRe = /::/g
 var upperToLowerRe = /([A-Z]+)([A-Z][a-z])/g
 var lowerToUpperRe = /([a-z\d])([A-Z])/g
@@ -14012,21 +14033,21 @@ module.exports = function (name, separator) {
     : ''
 }
 
-},{}],163:[function(_dereq_,module,exports){
+},{}],165:[function(_dereq_,module,exports){
 module.exports = function (value) {
   return value.length
     ? value.charAt(0).toLowerCase() + value.substring(1)
     : value
 }
 
-},{}],164:[function(_dereq_,module,exports){
+},{}],166:[function(_dereq_,module,exports){
 module.exports = function (value) {
   return value.length
     ? value.charAt(0).toUpperCase() + value.substring(1)
     : value
 }
 
-},{}],165:[function(_dereq_,module,exports){
+},{}],167:[function(_dereq_,module,exports){
 var cssPrefixFn = _dereq_('./cssPrefix')
 
 var HYPHENATE = _dereq_('./stringUtils/hyphenate')
@@ -14252,7 +14273,7 @@ var TO_STYLE_OBJECT = function (styles, config, prepend, result) {
 
 module.exports = TO_STYLE_OBJECT
 
-},{"./cssPrefix":150,"./cssUnitless":151,"./hasOwn":152,"./isFunction":154,"./isObject":155,"./stringUtils/camelize":159,"./stringUtils/hyphenate":161}],166:[function(_dereq_,module,exports){
+},{"./cssPrefix":152,"./cssUnitless":153,"./hasOwn":154,"./isFunction":156,"./isObject":157,"./stringUtils/camelize":161,"./stringUtils/hyphenate":163}],168:[function(_dereq_,module,exports){
 module.exports = parse
 
 /**
