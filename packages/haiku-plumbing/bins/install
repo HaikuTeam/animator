@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+
+var path = require('path')
+var fs = require('fs')
+var os = require('os')
+var root = (os.platform() === "win32") ? process.cwd().split(path.sep)[0] : '/'
+
+var haikuExecutablePath = path.join(__dirname, 'haiku')
+
+function getBinFolderPath(platform) {
+  switch (platform) {
+    case 'darwin': return path.join(root, 'usr', 'local', 'bin')
+    case 'aix':  
+    case 'freebsd':
+    case 'linux':
+    case 'openbsd':
+    case 'sunos':
+    case 'win32':
+    default:
+      throw new Error('Haiku does not yet support platform ' + platform)
+  }
+}
+
+var haikuDestinationPath = path.join(getBinFolderPath(os.platform()), 'haiku')
+
+fs.writeFileSync(haikuDestinationPath, fs.readFileSync(haikuExecutablePath))
+
+fs.chmodSync(haikuDestinationPath, '777')
+
+console.log('Haiku installed @ ' + haikuDestinationPath)
+console.log('Usage:')
+console.log('$ haiku')
