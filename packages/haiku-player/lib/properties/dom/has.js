@@ -1,14 +1,12 @@
-// Just a utility function for populating these objects
-function has () {
-  var obj = {}
-  for (var i = 0; i < arguments.length; i++) {
-    var arg = arguments[i]
-    for (var name in arg) {
-      var fn = arg[name]
-      obj[name] = fn
+function has() {
+    var obj = {};
+    for (var i = 0; i < arguments.length; i++) {
+        var arg = arguments[i];
+        for (var name_1 in arg) {
+            var fn = arg[name_1];
+            obj[name_1] = fn;
+        }
     }
-  }
-  return obj
+    return obj;
 }
-
-module.exports = has
+module.exports = has;

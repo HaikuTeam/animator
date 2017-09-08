@@ -1,14 +1,11 @@
-var getFlexId = require('./getFlexId')
-
-module.exports = function shouldElementBeReplaced (domElement, virtualElement) {
-  var oldFlexId = getFlexId(domElement)
-  var newFlexId = getFlexId(virtualElement)
-
-  if (oldFlexId && newFlexId) {
-    if (oldFlexId !== newFlexId) {
-      return true
+var getFlexId = require("./getFlexId");
+module.exports = function shouldElementBeReplaced(domElement, virtualElement) {
+    var oldFlexId = getFlexId(domElement);
+    var newFlexId = getFlexId(virtualElement);
+    if (oldFlexId && newFlexId) {
+        if (oldFlexId !== newFlexId) {
+            return true;
+        }
     }
-  }
-
-  return false
-}
+    return false;
+};

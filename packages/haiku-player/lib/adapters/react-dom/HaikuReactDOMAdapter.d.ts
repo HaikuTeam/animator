@@ -1,0 +1,46 @@
+declare let React: any;
+declare let ReactDOM: any;
+declare let EventsDict: any;
+declare let merge: any;
+declare let DEFAULT_HOST_ELEMENT_TAG_NAME: string;
+declare let HAIKU_FORWARDED_PROPS: {
+    haikuOptions: string;
+    haikuStates: string;
+    haikuInitialStates: string;
+    haikuEventHandlers: string;
+    haikuTimelines: string;
+    haikuVanities: string;
+};
+declare let VALID_PROPS: {
+    tagName: string;
+    id: string;
+    className: string;
+    style: string;
+    width: string;
+    height: string;
+    onComponentWillMount: string;
+    onComponentWillUnmount: string;
+    onComponentDidMount: string;
+    onHaikuComponentWillInitialize: string;
+    onHaikuComponentDidMount: string;
+    onHaikuComponentDidInitialize: string;
+    onHaikuComponentWillUnmount: string;
+    haikuAdapter: string;
+    haikuCode: string;
+};
+declare let REACT_ELEMENT_PROPS_TO_OMIT: {
+    onComponentWillMount: boolean;
+    onComponentWillUnmount: boolean;
+    onComponentDidMount: boolean;
+    onHaikuComponentWillInitialize: boolean;
+    onHaikuComponentDidMount: boolean;
+    onHaikuComponentDidInitialize: boolean;
+    onHaikuComponentWillUnmount: boolean;
+    haikuAdapter: boolean;
+    haikuCode: boolean;
+};
+declare function HaikuReactDOMAdapter(HaikuComponentFactory: any, optionalRawBytecode: any): any;
+declare let ALPHABET: string;
+declare function randomString(len: any): string;
+declare function visit(el: any, visitor: any): void;
+declare function flexIdIfSame(virtual: any, dom: any): any;

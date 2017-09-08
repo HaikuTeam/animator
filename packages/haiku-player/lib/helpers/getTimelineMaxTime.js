@@ -1,21 +1,17 @@
-/**
- * Copyright (c) Haiku 2016-2017. All rights reserved.
- */
-
-function getTimelineMaxTime (descriptor) {
-  var max = 0
-  for (var selector in descriptor) {
-    var group = descriptor[selector]
-    for (var output in group) {
-      var keyframes = group[output]
-      var keys = Object.keys(keyframes)
-      for (var i = 0; i < keys.length; i++) {
-        var key = parseInt(keys[i], 10)
-        if (key > max) max = key
-      }
+function getTimelineMaxTime(descriptor) {
+    var max = 0;
+    for (var selector in descriptor) {
+        var group = descriptor[selector];
+        for (var output in group) {
+            var keyframes = group[output];
+            var keys = Object.keys(keyframes);
+            for (var i = 0; i < keys.length; i++) {
+                var key = parseInt(keys[i], 10);
+                if (key > max)
+                    max = key;
+            }
+        }
     }
-  }
-  return max
+    return max;
 }
-
-module.exports = getTimelineMaxTime
+module.exports = getTimelineMaxTime;

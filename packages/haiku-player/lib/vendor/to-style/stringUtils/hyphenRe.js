@@ -1,1 +1,1 @@
-module.exports = /[-\s]+(.)?/g
+module.exports = /[-\s]+(.)?/g;

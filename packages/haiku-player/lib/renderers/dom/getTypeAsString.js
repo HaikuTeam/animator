@@ -1,54 +1,48 @@
-/**
- * Copyright (c) Haiku 2016-2017. All rights reserved.
- */
-
-var STRING = 'string'
-var FUNCTION = 'function'
-var OBJECT = 'object'
-
-function getType (virtualElement) {
-  var typeValue = virtualElement.elementName
-  if (typeValue && typeValue.default) return typeValue.default
-  return typeValue
+var STRING = "string";
+var FUNCTION = "function";
+var OBJECT = "object";
+function getType(virtualElement) {
+    var typeValue = virtualElement.elementName;
+    if (typeValue && typeValue["default"])
+        return typeValue["default"];
+    return typeValue;
 }
-
-function thingToTagName (thing) {
-  if (typeof thing === STRING && thing.length > 0) return thing
-  if (typeof thing === FUNCTION) return fnToTagName(thing)
-  if (thing && typeof thing === OBJECT) return objToTagName(thing)
-  _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
-  return 'div'
+function thingToTagName(thing) {
+    if (typeof thing === STRING && thing.length > 0)
+        return thing;
+    if (typeof thing === FUNCTION)
+        return fnToTagName(thing);
+    if (thing && typeof thing === OBJECT)
+        return objToTagName(thing);
+    _warnOnce("Got blank/malformed virtual element object; falling back to <div>");
+    return "div";
 }
-
-function objToTagName (obj) {
-  // if (obj.name) return obj.name
-  // if (obj.metadata && obj.metadata.name) return obj.metadata.name
-  // _warnOnce('Got blank/malformed virtual element object; falling back to <div>')
-  return 'div'
+function objToTagName(obj) {
+    return "div";
 }
-
-function fnToTagName (fn) {
-  if (fn.name) return fn.name
-  if (fn.displayName) return fn.displayName
-  if (fn.constructor) {
-    if (fn.constructor.name !== 'Function') {
-      return fn.constructor.name
+function fnToTagName(fn) {
+    if (fn.name)
+        return fn.name;
+    if (fn.displayName)
+        return fn.displayName;
+    if (fn.constructor) {
+        if (fn.constructor.name !== "Function") {
+            return fn.constructor.name;
+        }
     }
-  }
 }
-
-function getTypeAsString (virtualElement) {
-  var typeValue = getType(virtualElement)
-  typeValue = thingToTagName(typeValue)
-  if (!typeValue) throw new Error('Node has no discernable name')
-  return typeValue
+function getTypeAsString(virtualElement) {
+    var typeValue = getType(virtualElement);
+    typeValue = thingToTagName(typeValue);
+    if (!typeValue)
+        throw new Error("Node has no discernable name");
+    return typeValue;
 }
-
-var warnings = {}
-function _warnOnce (warning) {
-  if (warnings[warning]) return void 0
-  warnings[warning] = true
-  console.warn('[haiku player] warning:', warning)
+var warnings = {};
+function _warnOnce(warning) {
+    if (warnings[warning])
+        return void 0;
+    warnings[warning] = true;
+    console.warn("[haiku player] warning:", warning);
 }
-
-module.exports = getTypeAsString
+module.exports = getTypeAsString;

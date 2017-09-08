@@ -1,14 +1,12 @@
 {
     "compilerOptions": {
-        "target": "es2015",
+        "target": "ES3",
         "declaration": true,
         "declarationDir": "lib",
         "module": "commonjs",
         "moduleResolution": "node",
         "isolatedModules": false,
         "allowJs": false,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
         "noImplicitAny": false,
         "removeComments": true,
         "noLib": false,
@@ -16,12 +14,10 @@
         "preserveConstEnums": true,
         "rootDir": "src",
         "outDir": "lib",
+        "lib": ["es5", "dom"],
         "suppressImplicitAnyIndexErrors": true,
         "typeRoots": [
             "node_modules/@types/"
-        ],
-        "types": [
-            "node"
         ]
     },
     "compileOnSave": true,
