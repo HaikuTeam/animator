@@ -2,7 +2,7 @@
 
 var test = require('tape')
 var File = require('./../../src/model/File')()
-var ValueBuilder = require('@haiku/player/lib/ValueBuilder')
+var ValueBuilder = require('@haiku/player/lib/ValueBuilder').default
 
 test('file.zStacking', function (t) {
   t.plan(2)

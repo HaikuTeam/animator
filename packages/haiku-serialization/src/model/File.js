@@ -7,12 +7,12 @@ var merge = require('lodash.merge')
 var find = require('lodash.find')
 var pascalcase = require('pascalcase')
 
-var visitManaTree = require('@haiku/player/lib/helpers/visitManaTree')
-var xmlToMana = require('@haiku/player/lib/helpers/xmlToMana')
-var convertManaLayout = require('@haiku/player/lib/layout/convertManaLayout')
-var objectToRO = require('@haiku/player/lib/reflection/objectToRO')
-var reifyRO = require('@haiku/player/lib/reflection/reifyRO')
-var upgradeBytecodeInPlace = require('@haiku/player/lib/helpers/upgradeBytecodeInPlace')
+var visitManaTree = require('@haiku/player/lib/helpers/visitManaTree').default
+var xmlToMana = require('@haiku/player/lib/helpers/xmlToMana').default
+var convertManaLayout = require('@haiku/player/lib/layout/convertManaLayout').default
+var objectToRO = require('@haiku/player/lib/reflection/objectToRO').default
+var reifyRO = require('@haiku/player/lib/reflection/reifyRO').default
+var upgradeBytecodeInPlace = require('@haiku/player/lib/helpers/upgradeBytecodeInPlace').default
 
 var Aspects = require('haiku-bytecode/src/Aspects')
 var ensureManaChildrenArray = require('haiku-bytecode/src/ensureManaChildrenArray')

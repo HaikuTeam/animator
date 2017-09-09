@@ -11,14 +11,14 @@ if (typeof process !== 'undefined' && process && process.env && process.env.HAIK
 var NODE_MODULES_PATH = path.join(rootdir, 'node_modules')
 var replacements = {
   // legacy name (global npm)
-  'haiku.ai/player/dom': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'src', 'adapters', 'dom'),
-  'haiku.ai/player/dom/index': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'src', 'adapters', 'dom'),
-  'haiku.ai/player/dom/react': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'src', 'adapters', 'react-dom'),
+  'haiku.ai/player/dom': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom'),
+  'haiku.ai/player/dom/index': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom'),
+  'haiku.ai/player/dom/react': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom', 'react'),
   // new name (haiku org npm)
   '@haiku/player': path.join(NODE_MODULES_PATH, '@haiku', 'player'),
-  '@haiku/player/dom': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'src', 'adapters', 'dom'),
-  '@haiku/player/dom/index': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'src', 'adapters', 'dom'),
-  '@haiku/player/dom/react': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'src', 'adapters', 'react-dom')
+  '@haiku/player/dom': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom'),
+  '@haiku/player/dom/index': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom'),
+  '@haiku/player/dom/react': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom', 'react')
 }
 
 /**
