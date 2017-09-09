@@ -40,7 +40,7 @@
     "footprint": "./footprint.sh",
     "demo": "nodemon ./test/demo/server.js",
     "link-player": "yarn link && yarn link @haiku/player",
-    "start": "yarn run link-player && yarn run demo"
+    "start": "yarn run link-player && yarn run compile && yarn run demo"
   },
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
@@ -71,7 +71,7 @@
     "uglify-js": "^2.7.5"
   },
   "dependencies": {
-    "lodash.merge": "4.6.0",
+    "lodash": "^4.17.4",
     "react": "15.4.2"
   },
   "peerDependencies": {
