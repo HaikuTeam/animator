@@ -1,6 +1,6 @@
 var test = require('tape')
 var TimelineProperty = require('./../src/TimelineProperty')
-var ValueBuilder = require('@haiku/player/lib/ValueBuilder')
+var ValueBuilder = require('@haiku/player/lib/ValueBuilder').default
 function _findElementsByHaikuId () {
   return { elementName: 'svg', attributes: {}, children: [] }
 }
