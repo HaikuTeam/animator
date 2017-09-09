@@ -1,3 +1,5 @@
+"use strict";
+exports.__esModule = true;
 function degreesToRadians(d) {
     return d * Math.PI / 180;
 }
@@ -13,9 +15,10 @@ function anglesOfTriangle(sa, sb, sc) {
 function hypotenuseValue(a, b) {
     return Math.sqrt(a * a + b * b);
 }
-module.exports = {
+exports["default"] = {
     degreesToRadians: degreesToRadians,
     radiansToDegrees: radiansToDegrees,
     anglesOfTriangle: anglesOfTriangle,
     hypotenuseValue: hypotenuseValue
 };
+//# sourceMappingURL=MathUtils.js.map

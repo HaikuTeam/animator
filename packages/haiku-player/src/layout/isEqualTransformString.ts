@@ -6,7 +6,7 @@
 
 let C1 = ", "
 
-function isEqualTransformString(t1, t2) {
+export default function isEqualTransformString(t1, t2) {
   if (t1 === t2) return true
 
   if (!t1) return false
@@ -33,5 +33,3 @@ function isEqualTransformString(t1, t2) {
 
   return true
 }
-
-module.exports = isEqualTransformString

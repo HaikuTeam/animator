@@ -1,5 +1,5 @@
 // ZYX order
-module.exports.fromEuler = function(quaternion, euler) {
+function fromEuler (quaternion, euler) {
   let x = euler[0]
   let y = euler[1]
   let z = euler[2]
@@ -18,10 +18,15 @@ module.exports.fromEuler = function(quaternion, euler) {
   return quaternion
 }
 
-module.exports.identity = function(out) {
+function identity(out) {
   out[0] = 0
   out[1] = 0
   out[2] = 0
   out[3] = 1
   return out
+}
+
+export default {
+  fromEuler,
+  identity
 }

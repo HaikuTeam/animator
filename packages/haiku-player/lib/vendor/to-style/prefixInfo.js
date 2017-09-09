@@ -1,9 +1,11 @@
-var toUpperFirst = require("./stringUtils/toUpperFirst");
+"use strict";
+exports.__esModule = true;
+var toUpperFirst_1 = require("./stringUtils/toUpperFirst");
 var re = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/;
 var docStyle = typeof document === "undefined"
     ? {}
     : document.documentElement.style;
-var prefixInfo = (function () {
+function prefixInfoFn() {
     var prefix = (function () {
         for (var prop in docStyle) {
             if (re.test(prop)) {
@@ -26,7 +28,9 @@ var prefixInfo = (function () {
             Webkit: "WebKit",
             ms: "MS",
             o: "WebKit"
-        }[prefix] || toUpperFirst(prefix)
+        }[prefix] || toUpperFirst_1["default"](prefix)
     };
-})();
-module.exports = prefixInfo;
+}
+var prefixInfo = prefixInfoFn();
+exports["default"] = prefixInfo;
+//# sourceMappingURL=prefixInfo.js.map

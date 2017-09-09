@@ -1,1 +1,1 @@
-declare let objectToString: () => string;
+export default function isFunction(v: any): boolean;

@@ -1,1 +1,1 @@
-declare let internal1: any;
+export declare const easeOut: (x: number) => number;

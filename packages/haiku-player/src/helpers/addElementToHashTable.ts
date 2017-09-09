@@ -1,4 +1,4 @@
-module.exports = function addElementToHashTable(hash, realElement, virtualElement) {
+export default function addElementToHashTable(hash, realElement, virtualElement) {
   if (virtualElement && virtualElement.attributes) {
     let flexId = virtualElement.attributes["haiku-id"] || virtualElement.attributes.id
 

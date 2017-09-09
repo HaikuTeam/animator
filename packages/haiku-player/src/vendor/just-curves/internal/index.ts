@@ -1,10 +1,7 @@
-function __export(m) {
-  for (let p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
-}
-__export(require("./constants"))
-__export(require("./cssEasings"))
-__export(require("./cssFunction"))
-__export(require("./cubicBezier"))
-__export(require("./frames"))
-__export(require("./math"))
-__export(require("./steps"))
+export * from './constants';
+export * from './cssEasings';
+export * from './cssFunction';
+export * from './cubicBezier';
+export * from './frames';
+export * from './math';
+export * from './steps';

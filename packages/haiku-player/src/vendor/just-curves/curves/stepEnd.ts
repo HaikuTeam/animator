@@ -1,2 +1,3 @@
-let internal1 = require("../internal")
-exports.stepEnd = internal1.steps(1, 0)
+import { steps } from '../internal';
+
+export const stepEnd = steps(1, 0);

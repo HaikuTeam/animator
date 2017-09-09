@@ -1,5 +1,5 @@
 let objectHasOwn = Object.prototype.hasOwnProperty
 
-module.exports = function(object, propertyName) {
+export default function hasOwn(object, propertyName) {
   return objectHasOwn.call(object, propertyName)
 }

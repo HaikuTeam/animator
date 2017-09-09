@@ -1,3 +1,5 @@
+"use strict";
+exports.__esModule = true;
 var C1 = ", ";
 function isEqualTransformString(t1, t2) {
     if (t1 === t2)
@@ -40,4 +42,5 @@ function isEqualTransformString(t1, t2) {
         return false;
     return true;
 }
-module.exports = isEqualTransformString;
+exports["default"] = isEqualTransformString;
+//# sourceMappingURL=isEqualTransformString.js.map

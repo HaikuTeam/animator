@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let objectPath = require("./objectPath")
+import objectPath from "./objectPath"
 
-function matchById(node, id, options) {
+export default function matchById(node, id, options) {
   let attributes = objectPath(node, options.attributes)
   if (attributes) {
     if (attributes.id === id) {
@@ -12,5 +12,3 @@ function matchById(node, id, options) {
     }
   }
 }
-
-module.exports = matchById

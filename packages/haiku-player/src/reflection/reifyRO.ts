@@ -2,12 +2,16 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let OBJECT = "object"
-let FUNCTION = "function"
+import expressionToRO from "./expressionToRO"
+import reifyRFO from "./reifyRFO"
+import isSerializableScalar from "./isSerializableScalar"
+
+const OBJECT = "object"
+const FUNCTION = "function"
 
 // The inverse of this function is 'expressionToRO'
 
-function reifyRO(robj, referenceEvaluator, skipFunctions) {
+export default function reifyRO(robj, referenceEvaluator, skipFunctions) {
   if (robj === undefined) {
     return undefined
   }
@@ -17,7 +21,7 @@ function reifyRO(robj, referenceEvaluator, skipFunctions) {
     // applied to it at runtime for e.g. caching, which we don't want hanging around the new copy.
     // Note that we *cannot* just call fn.bind({}) here because then newfn.toString() would
     // return a string like "function () { [native code] }" which we can then not parse!
-    return reifyRO(expressionToRO(robj), referenceEvaluator, skipFunctions)
+    return reifyRO(expressionToRO(robj, null), referenceEvaluator, skipFunctions)
   }
 
   if (isSerializableScalar(robj)) {
@@ -57,9 +61,3 @@ function reifyRO(robj, referenceEvaluator, skipFunctions) {
 
   return undefined
 }
-
-module.exports = reifyRO
-
-let expressionToRO = require("./expressionToRO")
-let reifyRFO = require("./reifyRFO")
-let isSerializableScalar = require("./isSerializableScalar")

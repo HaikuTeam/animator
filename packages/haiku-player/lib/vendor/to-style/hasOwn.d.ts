@@ -1,1 +1,1 @@
-declare let objectHasOwn: (v: string) => boolean;
+export default function hasOwn(object: any, propertyName: any): any;

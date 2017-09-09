@@ -1,7 +1,9 @@
-var setStyleMatrix = require("./setStyleMatrix");
-var formatTransform = require("./formatTransform");
-var isEqualTransformString = require("./isEqualTransformString");
-var scopeOfElement = require("./scopeOfElement");
+"use strict";
+exports.__esModule = true;
+var setStyleMatrix_1 = require("./setStyleMatrix");
+var formatTransform_1 = require("./formatTransform");
+var isEqualTransformString_1 = require("./isEqualTransformString");
+var scopeOfElement_1 = require("./scopeOfElement");
 var SVG = "svg";
 function hasExplicitStyle(domElement, key) {
     if (!domElement.__haikuExplicitStyles)
@@ -14,7 +16,7 @@ function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, 
         !computedLayout.matrix) {
         return;
     }
-    var elementScope = scopeOfElement(virtualElement);
+    var elementScope = scopeOfElement_1["default"](virtualElement);
     if (nodeLayout.shown === false) {
         if (domElement.style.visibility !== "hidden") {
             domElement.style.visibility = "hidden";
@@ -69,13 +71,13 @@ function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, 
         var attributeTransform = domElement.getAttribute("transform");
         if (context.config.options.platform.isIE || context.config.options.platform.isEdge) {
             if (elementScope === SVG) {
-                var matrixString = formatTransform(computedLayout.matrix, nodeLayout.format, pixelRatio);
-                if (!isEqualTransformString(attributeTransform, matrixString)) {
+                var matrixString = formatTransform_1["default"](computedLayout.matrix, nodeLayout.format, pixelRatio);
+                if (!isEqualTransformString_1["default"](attributeTransform, matrixString)) {
                     domElement.setAttribute("transform", matrixString);
                 }
             }
             else {
-                setStyleMatrix(domElement.style, nodeLayout.format, computedLayout.matrix, context.config.options.useWebkitPrefix, pixelRatio, context);
+                setStyleMatrix_1["default"](domElement.style, nodeLayout.format, computedLayout.matrix, context.config.options.useWebkitPrefix, pixelRatio);
             }
         }
         else {
@@ -83,11 +85,12 @@ function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, 
                 if (!attributeTransform ||
                     attributeTransform === "" ||
                     virtualElement.__transformed) {
-                    setStyleMatrix(domElement.style, nodeLayout.format, computedLayout.matrix, context.config.options.useWebkitPrefix, pixelRatio, context);
+                    setStyleMatrix_1["default"](domElement.style, nodeLayout.format, computedLayout.matrix, context.config.options.useWebkitPrefix, pixelRatio);
                 }
             }
         }
     }
     return domElement.style;
 }
-module.exports = applyCssLayout;
+exports["default"] = applyCssLayout;
+//# sourceMappingURL=applyCssLayout.js.map

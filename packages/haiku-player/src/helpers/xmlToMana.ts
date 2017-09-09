@@ -2,8 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let parseXmlNonCompliantly = require("./../vendor/xml-parser")
-let styleStringToObject = require("./../vendor/to-style").object
+import parseXmlNonCompliantly from "./../vendor/xml-parser"
+import ToStyle from "./../vendor/to-style"
+
+const  styleStringToObject = ToStyle.object
 
 function fixChildren(kids) {
   if (Array.isArray(kids)) return kids.map(fixNode)
@@ -13,7 +15,7 @@ function fixChildren(kids) {
 function fixAttributes(attributes) {
   if (attributes.style) {
     if (typeof attributes.style === "string") {
-      attributes.style = styleStringToObject(attributes.style)
+      attributes.style = styleStringToObject(attributes.style, null, null, null)
     }
   }
   return attributes
@@ -31,9 +33,7 @@ function fixNode(obj) {
   }
 }
 
-function xmlToMana(xml) {
+export default function xmlToMana(xml) {
   let obj = parseXmlNonCompliantly(xml).root
   return fixNode(obj)
 }
-
-module.exports = xmlToMana

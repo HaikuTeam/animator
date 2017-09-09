@@ -2,8 +2,6 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function isTextNode(virtualElement) {
+export default function isTextNode(virtualElement) {
   return typeof virtualElement === "string"
 }
-
-module.exports = isTextNode

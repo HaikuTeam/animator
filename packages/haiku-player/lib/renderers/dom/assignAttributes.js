@@ -1,7 +1,9 @@
-var assignStyle = require("./assignStyle");
-var assignClass = require("./assignClass");
-var assignEvent = require("./assignEvent");
-var getFlexId = require("./getFlexId");
+"use strict";
+exports.__esModule = true;
+var assignStyle_1 = require("./assignStyle");
+var assignClass_1 = require("./assignClass");
+var assignEvent_1 = require("./assignEvent");
+var getFlexId_1 = require("./getFlexId");
 var STYLE = "style";
 var OBJECT = "object";
 var FUNCTION = "function";
@@ -87,30 +89,31 @@ function assignAttributes(domElement, virtualElement, component, isPatchOperatio
     for (var key in virtualElement.attributes) {
         var anotherNewValue = virtualElement.attributes[key];
         if (key === STYLE && anotherNewValue && typeof anotherNewValue === OBJECT) {
-            assignStyle(domElement, virtualElement, anotherNewValue, component, isPatchOperation);
+            assignStyle_1["default"](domElement, virtualElement, anotherNewValue, component, isPatchOperation);
             continue;
         }
         if ((key === CLASS || key === CLASS_NAME) && anotherNewValue) {
-            assignClass(domElement, anotherNewValue, component);
+            assignClass_1["default"](domElement, anotherNewValue);
             continue;
         }
         if (key[0] === "o" &&
             key[1] === "n" &&
             typeof anotherNewValue === FUNCTION) {
-            assignEvent(domElement, key.slice(2).toLowerCase(), anotherNewValue, component);
+            assignEvent_1["default"](domElement, key.slice(2).toLowerCase(), anotherNewValue, component);
             continue;
         }
-        setAttribute(domElement, key, anotherNewValue, component, component.config.options.cache[getFlexId(virtualElement)]);
+        setAttribute(domElement, key, anotherNewValue, component, component.config.options.cache[getFlexId_1["default"](virtualElement)]);
     }
     if (virtualElement.__handlers) {
         for (var eventName in virtualElement.__handlers) {
             var handler = virtualElement.__handlers[eventName];
             if (!handler.__subscribed) {
-                assignEvent(domElement, eventName, handler, component);
+                assignEvent_1["default"](domElement, eventName, handler, component);
                 handler.__subscribed = true;
             }
         }
     }
     return domElement;
 }
-module.exports = assignAttributes;
+exports["default"] = assignAttributes;
+//# sourceMappingURL=assignAttributes.js.map

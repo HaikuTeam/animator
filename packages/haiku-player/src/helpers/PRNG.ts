@@ -1,11 +1,9 @@
-let seedrandom = require("./../vendor/seedrandom")
+import seedrandom from "./../vendor/seedrandom"
 
-function PRNG(seed) {
-  this._prng = seedrandom(seed)
+export default function PRNG(seed) {
+  this._prng = seedrandom(seed, null, null)
 }
 
 PRNG.prototype.random = function random() {
   return this._prng()
 }
-
-module.exports = PRNG

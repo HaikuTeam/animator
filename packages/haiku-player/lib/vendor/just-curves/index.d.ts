@@ -1,2 +1,5 @@
-declare let internal1: any;
-declare let css: any;
+import * as css from "./internal/cssEasings";
+import * as curves from "./curves";
+export { cssFunction, cubicBezier, frames, steps } from "./internal";
+export { css };
+export default curves;

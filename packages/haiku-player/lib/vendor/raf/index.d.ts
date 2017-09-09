@@ -1,6 +1,5 @@
-declare let now: any;
-declare let root: any;
-declare let vendors: string[];
-declare let suffix: string;
-declare let raf: any;
-declare let caf: any;
+declare const _default: {
+    request: (fn: any) => any;
+    cancel: (...args: any[]) => any;
+};
+export default _default;

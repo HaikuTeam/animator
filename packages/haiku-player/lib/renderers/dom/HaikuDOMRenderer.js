@@ -1,13 +1,12 @@
-var getElementSize = require("./getElementSize");
-var getLocalDomEventPosition = require("./getLocalDomEventPosition");
-var createRightClickMenu = require("./createRightClickMenu");
-var createMixpanel = require("./createMixpanel");
-var render = require("./render");
-var patch = require("./patch");
+"use strict";
+exports.__esModule = true;
+var getElementSize_1 = require("./getElementSize");
+var getLocalDomEventPosition_1 = require("./getLocalDomEventPosition");
+var createRightClickMenu_1 = require("./createRightClickMenu");
+var createMixpanel_1 = require("./createMixpanel");
+var render_1 = require("./render");
+var patch_1 = require("./patch");
 function HaikuDOMRenderer() {
-    if (!(this instanceof HaikuDOMRenderer)) {
-        return new HaikuDOMRenderer();
-    }
     this._user = {
         mouse: {
             x: 0,
@@ -20,24 +19,25 @@ function HaikuDOMRenderer() {
         mouches: []
     };
 }
+exports["default"] = HaikuDOMRenderer;
 HaikuDOMRenderer.prototype.render = function renderWrap(domElement, virtualContainer, virtualTree, component) {
-    return render(domElement, virtualContainer, virtualTree, component);
+    return render_1["default"](domElement, virtualContainer, virtualTree, component);
 };
 HaikuDOMRenderer.prototype.patch = function patchWrap(domElement, virtualContainer, patchesDict, component) {
-    return patch(domElement, virtualContainer, patchesDict, component);
+    return patch_1["default"](domElement, virtualContainer, patchesDict, component);
 };
 HaikuDOMRenderer.prototype.menuize = function menuize(domElement, component) {
-    return createRightClickMenu(domElement, component);
+    return createRightClickMenu_1["default"](domElement, component);
 };
 HaikuDOMRenderer.prototype.mixpanel = function mixpanel(domElement, mixpanelToken, component) {
-    return createMixpanel(domElement, mixpanelToken, component);
+    return createMixpanel_1["default"](domElement, mixpanelToken, component);
 };
 HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement) {
     return {
         isContainer: true,
         layout: {
             computed: {
-                size: getElementSize(domElement)
+                size: getElementSize_1["default"](domElement)
             }
         }
     };
@@ -45,7 +45,7 @@ HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement
 HaikuDOMRenderer.prototype.initialize = function initialize(domElement) {
     var user = this._user;
     function setMouse(mouseEvent) {
-        var pos = getLocalDomEventPosition(mouseEvent, domElement);
+        var pos = getLocalDomEventPosition_1["default"](mouseEvent, domElement);
         user.mouse.x = pos.x;
         user.mouse.y = pos.y;
     }
@@ -53,7 +53,7 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domElement) {
         user.touches.splice(0);
         for (var i = 0; i < touchEvent.touches.length; i++) {
             var touch = touchEvent.touches[i];
-            var pos = getLocalDomEventPosition(touch, domElement);
+            var pos = getLocalDomEventPosition_1["default"](touch, domElement);
             user.touches.push(pos);
         }
     }
@@ -181,4 +181,4 @@ HaikuDOMRenderer.prototype.getUser = function getUser() {
         mouches: _copy(this._user.mouches)
     };
 };
-module.exports = HaikuDOMRenderer;
+//# sourceMappingURL=HaikuDOMRenderer.js.map

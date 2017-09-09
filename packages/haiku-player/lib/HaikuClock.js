@@ -1,44 +1,44 @@
-var raf = require("./vendor/raf");
-var assign = require("./vendor/assign");
-var SimpleEventEmitter = require("./helpers/SimpleEventEmitter");
-var HaikuGlobal = require("./HaikuGlobal");
+"use strict";
+exports.__esModule = true;
+var raf_1 = require("./vendor/raf");
+var assign_1 = require("./vendor/assign");
+var SimpleEventEmitter_1 = require("./helpers/SimpleEventEmitter");
+var HaikuGlobal_1 = require("./HaikuGlobal");
 var NUMBER = "number";
 var DEFAULT_OPTIONS = {
     frameDuration: 16.666,
     frameDelay: 16.666,
     marginOfErrorForDelta: 1.0
 };
-if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
-    HaikuGlobal.HaikuGlobalAnimationHarness = {};
-    HaikuGlobal.HaikuGlobalAnimationHarness.queue = [];
-    HaikuGlobal.HaikuGlobalAnimationHarness.frame = function HaikuGlobalAnimationHarnessFrame() {
-        var queue = HaikuGlobal.HaikuGlobalAnimationHarness.queue;
+if (!HaikuGlobal_1["default"].HaikuGlobalAnimationHarness) {
+    HaikuGlobal_1["default"].HaikuGlobalAnimationHarness = {};
+    HaikuGlobal_1["default"].HaikuGlobalAnimationHarness.queue = [];
+    HaikuGlobal_1["default"].HaikuGlobalAnimationHarness.frame = function HaikuGlobalAnimationHarnessFrame() {
+        var queue = HaikuGlobal_1["default"].HaikuGlobalAnimationHarness.queue;
         var length = queue.length;
         for (var i = 0; i < length; i++) {
             queue[i]();
         }
-        HaikuGlobal.HaikuGlobalAnimationHarness.raf = raf(HaikuGlobal.HaikuGlobalAnimationHarness.frame);
+        HaikuGlobal_1["default"].HaikuGlobalAnimationHarness.raf = raf_1["default"].request(HaikuGlobal_1["default"].HaikuGlobalAnimationHarness.frame);
     };
-    HaikuGlobal.HaikuGlobalAnimationHarness.cancel = function HaikuGlobalAnimationHarnessCancel() {
-        if (HaikuGlobal.HaikuGlobalAnimationHarness.raf) {
-            raf.cancel(HaikuGlobal.HaikuGlobalAnimationHarness.raf);
+    HaikuGlobal_1["default"].HaikuGlobalAnimationHarness.cancel = function HaikuGlobalAnimationHarnessCancel() {
+        if (HaikuGlobal_1["default"].HaikuGlobalAnimationHarness.raf) {
+            raf_1["default"].cancel(HaikuGlobal_1["default"].HaikuGlobalAnimationHarness.raf);
         }
     };
-    HaikuGlobal.HaikuGlobalAnimationHarness.frame();
+    HaikuGlobal_1["default"].HaikuGlobalAnimationHarness.frame();
 }
 function HaikuClock(tickables, component, options) {
-    if (!(this instanceof HaikuClock)) {
-        return new HaikuClock(tickables, component, options);
-    }
-    SimpleEventEmitter.create(this);
+    SimpleEventEmitter_1["default"].create(this);
     this._tickables = tickables;
     this._component = component;
     this.assignOptions(options);
     this._isRunning = false;
     this._reinitialize();
-    HaikuGlobal.HaikuGlobalAnimationHarness.queue.push(this.run.bind(this));
-    this.GLOBAL_ANIMATION_HARNESS = HaikuGlobal.HaikuGlobalAnimationHarness;
+    HaikuGlobal_1["default"].HaikuGlobalAnimationHarness.queue.push(this.run.bind(this));
+    this.GLOBAL_ANIMATION_HARNESS = HaikuGlobal_1["default"].HaikuGlobalAnimationHarness;
 }
+exports["default"] = HaikuClock;
 HaikuClock.prototype._reinitialize = function _reinitialize() {
     this._numLoopsRun = 0;
     this._localFramesElapsed = 0;
@@ -52,7 +52,7 @@ HaikuClock.prototype.addTickable = function addTickable(tickable) {
     return this;
 };
 HaikuClock.prototype.assignOptions = function assignOptions(options) {
-    this.options = assign(this.options || {}, DEFAULT_OPTIONS, options || {});
+    this.options = assign_1["default"](this.options || {}, DEFAULT_OPTIONS, options || {});
     return this;
 };
 HaikuClock.prototype.run = function run() {
@@ -120,4 +120,4 @@ HaikuClock.prototype.stop = function stop() {
 HaikuClock.prototype.getFrameDuration = function getFrameDuration() {
     return this.options.frameDuration;
 };
-module.exports = HaikuClock;
+//# sourceMappingURL=HaikuClock.js.map

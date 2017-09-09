@@ -1,6 +1,9 @@
-declare let _toPath: any;
-declare let _toPath2: any;
-declare let _toPoints: any;
-declare let _toPoints2: any;
-declare let _valid: any;
-declare let _valid2: any;
+declare const _default: {
+    toPath: (s: any) => any;
+    toPoints: (spec: any) => any;
+    valid: (shape: any) => {
+        errors: any;
+        valid: boolean;
+    };
+};
+export default _default;

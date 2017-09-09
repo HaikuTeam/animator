@@ -1,5 +1,8 @@
-var parseXmlNonCompliantly = require("./../vendor/xml-parser");
-var styleStringToObject = require("./../vendor/to-style").object;
+"use strict";
+exports.__esModule = true;
+var xml_parser_1 = require("./../vendor/xml-parser");
+var to_style_1 = require("./../vendor/to-style");
+var styleStringToObject = to_style_1["default"].object;
 function fixChildren(kids) {
     if (Array.isArray(kids))
         return kids.map(fixNode);
@@ -8,7 +11,7 @@ function fixChildren(kids) {
 function fixAttributes(attributes) {
     if (attributes.style) {
         if (typeof attributes.style === "string") {
-            attributes.style = styleStringToObject(attributes.style);
+            attributes.style = styleStringToObject(attributes.style, null, null, null);
         }
     }
     return attributes;
@@ -28,7 +31,8 @@ function fixNode(obj) {
     };
 }
 function xmlToMana(xml) {
-    var obj = parseXmlNonCompliantly(xml).root;
+    var obj = xml_parser_1["default"](xml).root;
     return fixNode(obj);
 }
-module.exports = xmlToMana;
+exports["default"] = xmlToMana;
+//# sourceMappingURL=xmlToMana.js.map

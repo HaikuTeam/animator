@@ -1,2 +1,2 @@
-declare let EventsDict: {};
-declare let eventsList: string[];
+declare const EventsDict: {};
+export default EventsDict;

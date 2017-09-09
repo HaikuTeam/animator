@@ -1,6 +1,6 @@
-let getFlexId = require("./getFlexId")
+import getFlexId from "./getFlexId"
 
-module.exports = function shouldElementBeReplaced(domElement, virtualElement) {
+export default function shouldElementBeReplaced(domElement, virtualElement) {
   let oldFlexId = getFlexId(domElement)
   let newFlexId = getFlexId(virtualElement)
 

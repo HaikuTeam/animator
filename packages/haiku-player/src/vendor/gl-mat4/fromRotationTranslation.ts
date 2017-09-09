@@ -1,5 +1,3 @@
-module.exports = fromRotationTranslation
-
 /**
  * Creates a matrix from a quaternion rotation and vector translation
  * This is equivalent to (but much faster than):
@@ -15,7 +13,7 @@ module.exports = fromRotationTranslation
  * @param {vec3} v Translation vector
  * @returns {mat4} out
  */
-function fromRotationTranslation(out, q, v) {
+export default function fromRotationTranslation(out, q, v) {
   // Quaternion math
   let x = q[0]
   let y = q[1]

@@ -1,4 +1,5 @@
-module.exports = scale;
+"use strict";
+exports.__esModule = true;
 function scale(out, a, v) {
     var x = v[0];
     var y = v[1];
@@ -21,3 +22,5 @@ function scale(out, a, v) {
     out[15] = a[15];
     return out;
 }
+exports["default"] = scale;
+//# sourceMappingURL=scale.js.map

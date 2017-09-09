@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let computeMatrix = require("./layout/computeMatrix")
-let computeRotationFlexibly = require("./layout/computeRotationFlexibly")
-let computeSize = require("./layout/computeSize")
+import computeMatrix from "./layout/computeMatrix"
+import computeRotationFlexibly from "./layout/computeRotationFlexibly"
+import computeSize from "./layout/computeSize"
 
-let ELEMENTS_2D = {
+const ELEMENTS_2D = {
   circle: true,
   ellipse: true,
   foreignObject: true,
@@ -30,13 +30,13 @@ let ELEMENTS_2D = {
 
 // Coordinate (0, 0, 0) is the top left of the screen
 
-let SIZE_PROPORTIONAL = 0 // A percentage of the parent
-let SIZE_ABSOLUTE = 1 // A fixed size in screen pixels
-let DEFAULT_DEPTH = 0
-let IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+const SIZE_PROPORTIONAL = 0 // A percentage of the parent
+const SIZE_ABSOLUTE = 1 // A fixed size in screen pixels
+const DEFAULT_DEPTH = 0
+const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
 
 // Used for rendering downstream
-let FORMATS = {
+const FORMATS = {
   THREE: 3,
   TWO: 2,
 }
@@ -45,7 +45,7 @@ function initializeNodeAttributes(element, parent) {
   if (!element.attributes) element.attributes = {}
   if (!element.attributes.style) element.attributes.style = {}
   if (!element.layout) {
-    element.layout = createLayoutSpec()
+    element.layout = createLayoutSpec(null, null, null)
     element.layout.matrix = createMatrix()
     element.layout.format = ELEMENTS_2D[element.elementName]
       ? FORMATS.TWO
@@ -223,7 +223,7 @@ function computeLayout(
   return out
 }
 
-module.exports = {
+export default {
   computeMatrix,
   multiplyArrayOfMatrices,
   computeLayout,
@@ -234,7 +234,7 @@ module.exports = {
   FORMATS,
   SIZE_ABSOLUTE,
   SIZE_PROPORTIONAL,
-  ATTRIBUTES: createLayoutSpec(),
+  ATTRIBUTES: createLayoutSpec(null, null, null),
   multiplyMatrices,
   transposeMatrix,
   copyMatrix,

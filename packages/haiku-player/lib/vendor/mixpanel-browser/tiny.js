@@ -1,69 +1,77 @@
-module.exports = function _mixpanelTiny() {
-    if (typeof window === "undefined") {
+"use strict";
+exports.__esModule = true;
+function tiny() {
+    if (typeof window === 'undefined') {
         return null;
     }
-    if (typeof document === "undefined") {
+    if (typeof document === 'undefined') {
         return null;
     }
-    function setup(e, a) {
+    function setup(doc, a) {
         if (!a.__SV) {
             var b = window;
             try {
-                var c_1, l_1, i = void 0, j = b.location, g = j.hash;
-                c_1 = function (a, b) {
-                    return (l_1 = a.match(RegExp(b + "=([^&]*)"))) ? l_1[1] : null;
+                var c;
+                var l;
+                var i;
+                var j = b.location;
+                var g = j.hash;
+                var cFunc = function cFunc(cFuncA, cFuncB) {
+                    return (l = cFuncA.match(RegExp(cFuncB + '=([^&]*)'))) ? l[1] : null;
                 };
                 g &&
-                    c_1(g, "state") &&
-                    ((i = JSON.parse(decodeURIComponent(c_1(g, "state")))),
-                        "mpeditor" === i.action &&
-                            (b.sessionStorage.setItem("_mpcehash", g),
-                                history.replaceState(i.desiredHash || "", e.title, j.pathname + j.search)));
+                    cFunc(g, 'state') &&
+                    ((i = JSON.parse(decodeURIComponent(cFunc(g, 'state')))),
+                        'mpeditor' === i.action &&
+                            (b.sessionStorage.setItem('_mpcehash', g),
+                                history.replaceState(i.desiredHash || '', doc.title, j.pathname + j.search)));
             }
-            catch (m) { }
-            var k_1, h_1;
-            window.mixpanel = a;
+            catch (exception) {
+            }
+            var arrayOfWords = [];
+            window['mixpanel'] = a;
             a._i = [];
-            a.init = function (b, c, f) {
-                function e(b, a) {
-                    var c = a.split(".");
-                    2 == c.length && ((b = b[c[0]]), (a = c[1]));
-                    b[a] = function () {
-                        b.push([a].concat(Array.prototype.slice.call(arguments, 0)));
+            a.init = function init(initB, initC, initF) {
+                function splitterPusher(spArray, spString) {
+                    var strParts = spString.split('.');
+                    2 == strParts.length && ((spArray = spArray[strParts[0]]), (spString = strParts[1]));
+                    spArray[spString] = function () {
+                        spArray.push([spString].concat(Array.prototype.slice.call(arguments, 0)));
                     };
                 }
-                var d = a;
-                "undefined" !== typeof f ? (d = a[f] = []) : (f = "mixpanel");
+                var d = a('undefined' !== typeof initF)
+                    ? (d = a[initF] = [])
+                    : (initF = 'mixpanel');
                 d.people = d.people || [];
-                d.toString = function (b) {
-                    var a = "mixpanel";
-                    "mixpanel" !== f && (a += "." + f);
-                    b || (a += " (stub)");
-                    return a;
+                d.toString = function toString1(toStringArg) {
+                    var mpString = 'mixpanel';
+                    'mixpanel' !== initF && (mpString += '.' + initF);
+                    toStringArg || (mpString += ' (stub)');
+                    return mpString;
                 };
-                d.people.toString = function () {
-                    return d.toString(1) + ".people (stub)";
+                d.people.toString = function toString2() {
+                    return d.toString(1) + '.people (stub)';
                 };
-                k_1 = "disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config reset people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
-                for (h_1 = 0; h_1 < k_1.length; h_1++)
-                    e(d, k_1[h_1]);
-                a._i.push([b, c, f]);
+                arrayOfWords = 'disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config reset people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user'.split(' ');
+                for (var h = 0; h < arrayOfWords.length; h++) {
+                    splitterPusher(d, arrayOfWords[h]);
+                }
+                a._i.push([initB, initC, initF]);
             };
             a.__SV = 1.2;
-            b = e.createElement("script");
-            b.type = "text/javascript";
-            b.async = !0;
-            b.src = "undefined" !== typeof MIXPANEL_CUSTOM_LIB_URL
-                ? MIXPANEL_CUSTOM_LIB_URL
-                : "file:" === e.location.protocol &&
-                    "//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)
-                    ? "https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js"
-                    : "//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";
+            var script = doc.createElement('script');
+            script.type = 'text/javascript';
+            script.async = !0;
+            script.src = ('file:' === doc.location.protocol && '//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js'.match(/^\/\//))
+                ? 'https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js'
+                : '//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js';
             if (c && c.parentNode) {
                 c.parentNode.insertBefore(b, c);
             }
         }
         return a;
     }
-    return setup(document, window.mixpanel || []);
-};
+    return setup(document, window['mixpanel'] || []);
+}
+exports["default"] = tiny;
+//# sourceMappingURL=tiny.js.map

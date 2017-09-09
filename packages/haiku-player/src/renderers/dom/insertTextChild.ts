@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let createTextNode = require("./createTextNode")
+import createTextNode from "./createTextNode"
 
-function insertTextChild(domElement, index, textContent) {
+export default function insertTextChild(domElement, index, textContent) {
   let existingChild = domElement.childNodes[index]
 
   // Don't do anything if the textContent is already equal
@@ -21,5 +21,3 @@ function insertTextChild(domElement, index, textContent) {
 
   return domElement
 }
-
-module.exports = insertTextChild

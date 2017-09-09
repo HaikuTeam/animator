@@ -2,12 +2,17 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let FUNCTION = "function"
-let OBJECT = "object"
+import isSerializableScalar from "./isSerializableScalar"
+import objectToRO from "./objectToRO"
+import functionToRFO from "./functionToRFO"
+import arrayToRO from "./arrayToRO"
+
+const FUNCTION = "function"
+const OBJECT = "object"
 
 // The inverse of this function is 'reifyRO'
 
-function expressionToRO(exp, options) {
+export default function expressionToRO(exp, options) {
   if (typeof exp === FUNCTION) {
     return functionToRFO(exp)
   }
@@ -27,10 +32,3 @@ function expressionToRO(exp, options) {
     return exp
   }
 }
-
-module.exports = expressionToRO
-
-let isSerializableScalar = require("./isSerializableScalar")
-let objectToRO = require("./objectToRO")
-let functionToRFO = require("./functionToRFO")
-let arrayToRO = require("./arrayToRO")

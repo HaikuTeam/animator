@@ -1,3 +1,5 @@
+"use strict";
+exports.__esModule = true;
 function getElementSize(domElement) {
     var x;
     var y;
@@ -15,4 +17,5 @@ function getElementSize(domElement) {
         y: y
     };
 }
-module.exports = getElementSize;
+exports["default"] = getElementSize;
+//# sourceMappingURL=getElementSize.js.map

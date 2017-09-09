@@ -2,16 +2,21 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let applyLayout = require("./applyLayout")
-let assignAttributes = require("./assignAttributes")
-let getTypeAsString = require("./getTypeAsString")
-let cloneVirtualElement = require("./cloneVirtualElement")
-let getFlexId = require("./getFlexId")
+import applyLayout from "./applyLayout"
+import assignAttributes from "./assignAttributes"
+import getTypeAsString from "./getTypeAsString"
+import cloneVirtualElement from "./cloneVirtualElement"
+import getFlexId from "./getFlexId"
+import renderTree from "./renderTree"
+import replaceElementWithText from "./replaceElementWithText"
+import replaceElement from "./replaceElement"
+import normalizeName from "./normalizeName"
+import isTextNode from "./isTextNode"
 
-let OBJECT = "object"
-let STRING = "string"
+const OBJECT = "object"
+const STRING = "string"
 
-function updateElement(
+export default function updateElement(
   domElement,
   virtualElement,
   parentNode,
@@ -20,7 +25,7 @@ function updateElement(
   isPatchOperation,
 ) {
   // If a text node, go straight to 'replace' since we don't know the tag name
-  if (isTextNode(virtualElement, component)) {
+  if (isTextNode(virtualElement)) {
     replaceElementWithText(domElement, virtualElement, component)
     return virtualElement
   }
@@ -120,16 +125,9 @@ function updateElement(
       [],
       subcomponent,
       isPatchOperation,
+      null
     )
   }
 
   return domElement
 }
-
-module.exports = updateElement
-
-let renderTree = require("./renderTree")
-let replaceElementWithText = require("./replaceElementWithText")
-let replaceElement = require("./replaceElement")
-let normalizeName = require("./normalizeName")
-let isTextNode = require("./isTextNode")

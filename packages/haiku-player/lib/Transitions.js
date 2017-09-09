@@ -1,4 +1,6 @@
-var Curves = require("./vendor/just-curves");
+"use strict";
+exports.__esModule = true;
+var just_curves_1 = require("./vendor/just-curves");
 var CENT = 1.0;
 var OBJECT = "object";
 var NUMBER = "number";
@@ -131,12 +133,12 @@ function getTransitionValue(currentKeyframe, currentTransition, nextKeyframe, ne
         return currentValue;
     var currentCurve = currentTransition.curve;
     if (typeof currentCurve === STRING)
-        currentCurve = Curves[currentCurve];
+        currentCurve = just_curves_1["default"][currentCurve];
     var nextValue = nextTransition.value;
     var finalValue = interpolate(nowValue, currentCurve, currentKeyframe, nextKeyframe, currentValue, nextValue);
     return finalValue;
 }
-module.exports = {
+exports["default"] = {
     percentOfTime: percentOfTime,
     valueAtPercent: valueAtPercent,
     valueAtTime: valueAtTime,
@@ -146,3 +148,4 @@ module.exports = {
     sortedKeyframes: sortedKeyframes,
     calculateValueAndReturnUndefinedIfNotWorthwhile: calculateValueAndReturnUndefinedIfNotWorthwhile
 };
+//# sourceMappingURL=Transitions.js.map

@@ -1,14 +1,14 @@
-var assign = require("./vendor/assign");
-var HaikuClock = require("./HaikuClock");
-var HaikuComponent = require("./HaikuComponent");
-var Config = require("./Config");
-var PRNG = require("./helpers/PRNG");
-var PLAYER_VERSION = require("./../package.json").version;
+"use strict";
+exports.__esModule = true;
+var assign_1 = require("./vendor/assign");
+var HaikuClock_1 = require("./HaikuClock");
+var HaikuComponent_1 = require("./HaikuComponent");
+var Config_1 = require("./Config");
+var PRNG_1 = require("./helpers/PRNG");
+var pkg = require("./../package.json");
+var PLAYER_VERSION = pkg.version;
 var DEFAULT_TIMELINE_NAME = "Default";
 function HaikuContext(mount, renderer, platform, bytecode, config) {
-    if (!(this instanceof HaikuContext)) {
-        return new HaikuContext(mount, renderer, platform, bytecode, config);
-    }
     if (!renderer) {
         throw new Error("Context requires a renderer");
     }
@@ -35,15 +35,15 @@ function HaikuContext(mount, renderer, platform, bytecode, config) {
     if (!this._platform) {
         console.warn("[haiku player] no platform (e.g. window) provided; some features may be unavailable");
     }
-    HaikuContext.contexts.push(this);
+    HaikuContext['contexts'].push(this);
     this._tickables = [];
     this._tickables.push({ performTick: this.tick.bind(this) });
     if (this.config.options.frame) {
         this._tickables.push({ performTick: this.config.options.frame });
     }
-    this.clock = new HaikuClock(this._tickables, this.config.options.clock || {});
+    this.component = new HaikuComponent_1["default"](bytecode, this, this.config, null);
+    this.clock = new HaikuClock_1["default"](this._tickables, this.component, this.config.options.clock || {});
     this.clock.run();
-    this.component = new HaikuComponent(bytecode, this, this.config);
     this.component.startTimeline(DEFAULT_TIMELINE_NAME);
     if (this._mount && this._renderer.menuize && this.config.options.contextMenu !== "disabled") {
         this._renderer.menuize(this._mount, this.component);
@@ -62,8 +62,9 @@ function HaikuContext(mount, renderer, platform, bytecode, config) {
         this.component.getClock().start();
     }
 }
-HaikuContext.contexts = [];
-HaikuContext.PLAYER_VERSION = PLAYER_VERSION;
+exports["default"] = HaikuContext;
+HaikuContext['contexts'] = [];
+HaikuContext['PLAYER_VERSION'] = PLAYER_VERSION;
 HaikuContext.prototype.getRootComponent = function getRootComponent() {
     return this.component;
 };
@@ -105,7 +106,7 @@ HaikuContext.prototype.removeTickable = function removeTickable(tickable) {
     return this;
 };
 HaikuContext.prototype.assignConfig = function assignConfig(config, options) {
-    this.config = assign({}, config);
+    this.config = assign_1["default"]({}, config);
     if (this.clock) {
         this.clock.assignOptions(this.config.options.clock);
     }
@@ -114,7 +115,7 @@ HaikuContext.prototype.assignConfig = function assignConfig(config, options) {
             this.component.assignConfig(this.config);
         }
     }
-    this._prng = new PRNG(this.config.options.seed);
+    this._prng = new PRNG_1["default"](this.config.options.seed);
     return this;
 };
 HaikuContext.prototype.performFullFlushRender = function performFullFlushRender() {
@@ -187,7 +188,7 @@ HaikuContext.prototype.getDeterministicTime = function getDeterministicTime() {
 HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState() {
     return this._renderer && this._renderer.getUser && this._renderer.getUser();
 };
-HaikuContext.createComponentFactory = function createComponentFactory(RendererClass, bytecode, haikuConfigFromFactoryCreator, platform) {
+HaikuContext['createComponentFactory'] = function createComponentFactory(RendererClass, bytecode, haikuConfigFromFactoryCreator, platform) {
     if (!RendererClass) {
         throw new Error("A runtime renderer class object is required");
     }
@@ -197,27 +198,27 @@ HaikuContext.createComponentFactory = function createComponentFactory(RendererCl
     if (!platform) {
         console.warn("[haiku player] no runtime `platform` object was provided");
     }
-    var haikuConfigFromTop = Config.build({
+    var haikuConfigFromTop = Config_1["default"].build({
         options: {
-            seed: Config.seed(),
+            seed: Config_1["default"].seed(),
             timestamp: Date.now()
         }
     }, {
         options: bytecode && bytecode.options
     }, haikuConfigFromFactoryCreator);
     function HaikuComponentFactory(mount, haikuConfigFromFactory) {
-        var haikuConfigMerged = Config.build(haikuConfigFromTop, haikuConfigFromFactory);
+        var haikuConfigMerged = Config_1["default"].build(haikuConfigFromTop, haikuConfigFromFactory);
         var renderer = new RendererClass();
         var context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged);
         var component = context.getRootComponent();
-        HaikuComponentFactory.bytecode = bytecode;
-        HaikuComponentFactory.renderer = renderer;
-        HaikuComponentFactory.mount = mount;
-        HaikuComponentFactory.context = context;
-        HaikuComponentFactory.component = component;
+        HaikuComponentFactory['bytecode'] = bytecode;
+        HaikuComponentFactory['renderer'] = renderer;
+        HaikuComponentFactory['mount'] = mount;
+        HaikuComponentFactory['context'] = context;
+        HaikuComponentFactory['component'] = component;
         return component;
     }
-    HaikuComponentFactory.PLAYER_VERSION = PLAYER_VERSION;
+    HaikuComponentFactory['PLAYER_VERSION'] = PLAYER_VERSION;
     return HaikuComponentFactory;
 };
-module.exports = HaikuContext;
+//# sourceMappingURL=HaikuContext.js.map

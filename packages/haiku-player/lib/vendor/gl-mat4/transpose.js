@@ -1,4 +1,5 @@
-module.exports = transpose;
+"use strict";
+exports.__esModule = true;
 function transpose(out, a) {
     if (out === a) {
         var a01 = a[1];
@@ -40,3 +41,5 @@ function transpose(out, a) {
     }
     return out;
 }
+exports["default"] = transpose;
+//# sourceMappingURL=transpose.js.map

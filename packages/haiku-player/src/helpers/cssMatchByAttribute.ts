@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let objectPath = require("./objectPath")
+import objectPath from "./objectPath"
 
-function matchByAttribute(
+export default function matchByAttribute(
   node,
   attrKeyToMatch,
   attrOperator,
@@ -30,5 +30,3 @@ function matchByAttribute(
     }
   }
 }
-
-module.exports = matchByAttribute

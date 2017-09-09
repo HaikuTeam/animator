@@ -1,1 +1,2 @@
-declare let internal1: any;
+import { Curve } from '../types';
+export declare const frames: (n: number) => Curve;

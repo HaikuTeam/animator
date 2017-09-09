@@ -1,1 +1,1 @@
-declare function getTimelineMaxTime(descriptor: any): number;
+export default function getTimelineMaxTime(descriptor: any): number;

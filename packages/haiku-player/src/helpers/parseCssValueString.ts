@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function parseCssValueString(str, optionalPropertyHint) {
+export default function parseCssValueString(str, optionalPropertyHint) {
   if (typeof str === "number") {
     return {
       value: str,
@@ -39,5 +39,3 @@ function parseCssValueString(str, optionalPropertyHint) {
     unit,
   }
 }
-
-module.exports = parseCssValueString

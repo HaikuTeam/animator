@@ -1,4 +1,6 @@
-module.exports = function normalize(out, mat) {
+"use strict";
+exports.__esModule = true;
+function normalize(out, mat) {
     var m44 = mat[15];
     if (m44 === 0)
         return false;
@@ -6,4 +8,6 @@ module.exports = function normalize(out, mat) {
     for (var i = 0; i < 16; i++)
         out[i] = mat[i] * scale;
     return true;
-};
+}
+exports["default"] = normalize;
+//# sourceMappingURL=normalize.js.map

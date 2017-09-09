@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let attachEventListener = require("./attachEventListener")
+import attachEventListener from "./attachEventListener"
 
-function assignEvent(
+export default function assignEvent(
   domElement,
   eventName,
   listenerFunction,
@@ -41,5 +41,3 @@ function assignEvent(
     )
   }
 }
-
-module.exports = assignEvent

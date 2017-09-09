@@ -1,12 +1,10 @@
-module.exports = length
-
 /**
  * Calculates the length of a vec3
  *
  * @param {vec3} a vector to calculate length of
  * @returns {Number} length of a
  */
-function length(a) {
+export default function length(a) {
   let x = a[0]
   let y = a[1]
   let z = a[2]

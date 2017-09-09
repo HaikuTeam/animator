@@ -1,5 +1,3 @@
-module.exports = cross
-
 /**
  * Computes the cross product of two vec3's
  *
@@ -8,7 +6,7 @@ module.exports = cross
  * @param {vec3} b the second operand
  * @returns {vec3} out
  */
-function cross(out, a, b) {
+export default function cross(out, a, b) {
   let ax = a[0]
   let ay = a[1]
   let az = a[2]

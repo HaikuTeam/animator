@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let SVGPoints = require("./../vendor/svg-points")
-let parseCssValueString = require("./parseCssValueString")
+import SVGPoints from "./../vendor/svg-points"
+import parseCssValueString from "./parseCssValueString"
 
-let SVG_TYPES = {
+const SVG_TYPES = {
   g: true,
   rect: true,
   polyline: true,
@@ -16,7 +16,7 @@ let SVG_TYPES = {
   circle: true,
 }
 
-let SVG_POINT_NUMERIC_FIELDS = {
+const SVG_POINT_NUMERIC_FIELDS = {
   cx: true,
   cy: true,
   r: true,
@@ -28,12 +28,12 @@ let SVG_POINT_NUMERIC_FIELDS = {
   y: true,
 }
 
-let SVG_POINT_COMMAND_FIELDS = {
+const SVG_POINT_COMMAND_FIELDS = {
   d: true,
   points: true,
 }
 
-let SVG_COMMAND_TYPES = {
+const SVG_COMMAND_TYPES = {
   path: true,
   polyline: true,
   polygon: true,
@@ -110,7 +110,7 @@ function manaToPoints(mana) {
           mana.attributes.style.width) ||
         (mana.attributes && mana.attributes.width) ||
         (mana.attributes && mana.attributes.x) ||
-        0,
+        0, null
     ).value
     let height = parseCssValueString(
       (mana.layout &&
@@ -123,19 +123,19 @@ function manaToPoints(mana) {
           mana.attributes.style.height) ||
         (mana.attributes && mana.attributes.height) ||
         (mana.attributes && mana.attributes.y) ||
-        0,
+        0, null
     ).value
     let left = parseCssValueString(
       (mana.rect && mana.rect.left) ||
         (mana.attributes.style && mana.attributes.style.left) ||
         mana.attributes.x ||
-        0,
+        0, null
     ).value
     let top = parseCssValueString(
       (mana.rect && mana.rect.top) ||
         (mana.attributes.style && mana.attributes.style.top) ||
         mana.attributes.y ||
-        0,
+        0, null
     ).value
     return SVGPoints.toPoints({
       type: "rect",
@@ -147,7 +147,7 @@ function manaToPoints(mana) {
   }
 }
 
-module.exports = {
+export default {
   pathToPoints,
   pointsToPath,
   polyPointsStringToPoints,

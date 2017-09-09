@@ -2,16 +2,16 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let Layout3D = require("./../../Layout3D")
-let has = require("./has")
+import Layout3D from "./../../Layout3D"
+import has from "./has"
 
-let TEXT_CONTENT_FALLBACKS = {
+const TEXT_CONTENT_FALLBACKS = {
   content: null,
 }
 
-let LAYOUT_DEFAULTS = Layout3D.createLayoutSpec()
+const LAYOUT_DEFAULTS = Layout3D.createLayoutSpec(null, null, null)
 
-let LAYOUT_3D_FALLBACKS = {
+const LAYOUT_3D_FALLBACKS = {
   "shown": LAYOUT_DEFAULTS.shown,
   "opacity": LAYOUT_DEFAULTS.opacity,
   "mount.x": LAYOUT_DEFAULTS.mount.x,
@@ -46,7 +46,7 @@ let LAYOUT_3D_FALLBACKS = {
   "sizeMode.z": LAYOUT_DEFAULTS.sizeMode.z,
 }
 
-let LAYOUT_2D_FALLBACKS = {
+const LAYOUT_2D_FALLBACKS = {
   "shown": LAYOUT_DEFAULTS.shown,
   "opacity": LAYOUT_DEFAULTS.opacity,
   "mount.x": LAYOUT_DEFAULTS.mount.x,
@@ -73,7 +73,7 @@ let LAYOUT_2D_FALLBACKS = {
   "sizeMode.y": LAYOUT_DEFAULTS.sizeMode.y,
 }
 
-let PRESENTATION_FALLBACKS = {
+const PRESENTATION_FALLBACKS = {
   alignmentBaseline: "",
   baselineShift: "",
   clipPath: "",
@@ -137,7 +137,7 @@ let PRESENTATION_FALLBACKS = {
   writingMode: "",
 }
 
-let STYLE_FALLBACKS = {
+const STYLE_FALLBACKS = {
   "style.alignmentBaseline": "",
   "style.background": "",
   "style.backgroundAttachment": "",
@@ -263,7 +263,7 @@ let STYLE_FALLBACKS = {
   "style.WebkitTapHighlightColor": "rgba(0,0,0,0)",
 }
 
-let FILTER_FALLBACKS = {
+const FILTER_FALLBACKS = {
   x: "",
   y: "",
   width: "",
@@ -273,18 +273,18 @@ let FILTER_FALLBACKS = {
   primitiveUnits: "",
 }
 
-let HTML_STYLE_SHORTHAND_FALLBACKS = {
+const HTML_STYLE_SHORTHAND_FALLBACKS = {
   backgroundColor: "",
 }
 
-let CONTROL_FLOW_FALLBACKS = {
+const CONTROL_FLOW_FALLBACKS = {
   // 'controlFlow.if': null,
   "controlFlow.repeat": null,
   // 'controlFlow.yield': null,
   "controlFlow.placeholder": null,
 }
 
-module.exports = {
+export default {
   "missing-glyph": has(
     CONTROL_FLOW_FALLBACKS,
     LAYOUT_3D_FALLBACKS,

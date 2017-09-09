@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let STRING = "string"
-let FUNCTION = "function"
-let OBJECT = "object"
+const STRING = "string"
+const FUNCTION = "function"
+const OBJECT = "object"
 
 function getType(virtualElement) {
   let typeValue = virtualElement.elementName
@@ -37,18 +37,17 @@ function fnToTagName(fn) {
   }
 }
 
-function getTypeAsString(virtualElement) {
+export default function getTypeAsString(virtualElement) {
   let typeValue = getType(virtualElement)
   typeValue = thingToTagName(typeValue)
   if (!typeValue) throw new Error("Node has no discernable name")
   return typeValue
 }
 
-let warnings = {}
+const warnings = {}
+
 function _warnOnce(warning) {
   if (warnings[warning]) return void 0
   warnings[warning] = true
   console.warn("[haiku player] warning:", warning)
 }
-
-module.exports = getTypeAsString

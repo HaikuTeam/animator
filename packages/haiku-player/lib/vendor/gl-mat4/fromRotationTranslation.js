@@ -1,4 +1,5 @@
-module.exports = fromRotationTranslation;
+"use strict";
+exports.__esModule = true;
 function fromRotationTranslation(out, q, v) {
     var x = q[0];
     var y = q[1];
@@ -34,3 +35,5 @@ function fromRotationTranslation(out, q, v) {
     out[15] = 1;
     return out;
 }
+exports["default"] = fromRotationTranslation;
+//# sourceMappingURL=fromRotationTranslation.js.map

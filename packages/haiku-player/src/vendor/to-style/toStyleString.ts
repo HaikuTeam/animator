@@ -1,5 +1,5 @@
-let toStyleObject = require("./toStyleObject")
-let hasOwn = require("./hasOwn")
+import toStyleObject from "./toStyleObject"
+import hasOwn from "./hasOwn"
 
 /**
  * @ignore
@@ -13,8 +13,8 @@ let hasOwn = require("./hasOwn")
  * @param  {String}  config.scope
  * @return {Object} The object, normalized with css style names
  */
-module.exports = function(styles, config) {
-  styles = toStyleObject(styles, config)
+export default function toStyleString(styles, config) {
+  styles = toStyleObject(styles, config, null, null)
 
   let result = []
   let prop

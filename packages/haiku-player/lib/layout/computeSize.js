@@ -1,3 +1,5 @@
+"use strict";
+exports.__esModule = true;
 var SIZE_PROPORTIONAL = 0;
 var SIZE_ABSOLUTE = 1;
 var SIZING_COMPONENTS = ["x", "y", "z"];
@@ -18,4 +20,5 @@ function computeSize(outputSize, layoutSpec, sizeModeArray, parentsizeAbsolute) 
     }
     return outputSize;
 }
-module.exports = computeSize;
+exports["default"] = computeSize;
+//# sourceMappingURL=computeSize.js.map

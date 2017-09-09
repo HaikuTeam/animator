@@ -1,3 +1,6 @@
+"use strict";
+exports.__esModule = true;
+var reactChildrenToMana_1 = require("./reactChildrenToMana");
 var STRING_TYPE = "string";
 function reactToMana(react) {
     var props = {};
@@ -9,7 +12,7 @@ function reactToMana(react) {
     var givenChildren = react.props.children || react.children;
     var processedChildren;
     if (Array.isArray(givenChildren)) {
-        processedChildren = reactChildrenToMana(givenChildren);
+        processedChildren = reactChildrenToMana_1["default"](givenChildren);
     }
     else if (givenChildren && givenChildren.type) {
         processedChildren = [reactToMana(givenChildren)];
@@ -23,5 +26,5 @@ function reactToMana(react) {
         children: processedChildren
     };
 }
-module.exports = reactToMana;
-var reactChildrenToMana = require("./reactChildrenToMana");
+exports["default"] = reactToMana;
+//# sourceMappingURL=reactToMana.js.map

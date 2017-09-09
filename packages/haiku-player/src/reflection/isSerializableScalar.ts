@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let STRING = "string"
-let NUMBER = "number"
-let BOOLEAN = "boolean"
+const STRING = "string"
+const NUMBER = "number"
+const BOOLEAN = "boolean"
 
-function isSerializableScalar(value) {
+export default function isSerializableScalar(value) {
   return (
     value === null ||
     typeof value === NUMBER ||
@@ -14,5 +14,3 @@ function isSerializableScalar(value) {
     typeof value === BOOLEAN
   )
 }
-
-module.exports = isSerializableScalar

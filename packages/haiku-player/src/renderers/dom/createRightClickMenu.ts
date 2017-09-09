@@ -2,12 +2,12 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let MENU_GLOBAL_ID = "haiku-right-click-menu"
-let WIDTH = 167
-let HEIGHT = 44
+const MENU_GLOBAL_ID = "haiku-right-click-menu"
+const WIDTH = 167
+const HEIGHT = 44
 
 /* tslint:disable */
-let haikuIcon =
+const haikuIcon =
   "" +
   '<svg style="transform:translateY(3px);margin-right:3px;" width="13px" height="13px" viewBox="0 0 9 9" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
   '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">' +
@@ -19,7 +19,7 @@ let haikuIcon =
   "    </g>" +
   "</svg>"
 
-let sharePageIcon =
+const sharePageIcon =
   "" +
   '<svg style="transform:translate(-1px, 3px);margin-right:3px;" width="14px" height="14px" viewBox="0 0 11 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
   '  <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">' +
@@ -41,7 +41,7 @@ let sharePageIcon =
 
 // Haiku servers will substitute the _actual_ full string in any js file,
 // so it's split into pieces here to avoid that build step
-let SUBSTITUTION_STRING = "HAIKU" + "_" + "SHARE" + "_" + "UUID"
+const SUBSTITUTION_STRING = "HAIKU" + "_" + "SHARE" + "_" + "UUID"
 
 function setBoxShadow(el, color) {
   el.style["-webkit-box-shadow"] = "0 1px 4px 0 " + color
@@ -86,7 +86,7 @@ function truncate(str, len) {
   return str
 }
 
-module.exports = function createRightClickMenu(domElement, component) {
+export default function createRightClickMenu(domElement, component) {
   let doc = domElement.ownerDocument
   let menu = findOrCreateMenuElement(doc)
 
@@ -99,6 +99,7 @@ module.exports = function createRightClickMenu(domElement, component) {
   // revealMenu(100,100) // Uncomment me to render the menu while testing
 
   function revealMenu(mx, my) {
+    let height = HEIGHT
     let lines = []
     let titleLine = null
 
@@ -136,11 +137,11 @@ module.exports = function createRightClickMenu(domElement, component) {
 
     if (lines.length < 1) return undefined
 
-    HEIGHT = lines.length > 1 ? 88 : 61
-    HEIGHT = titleLine ? HEIGHT : 22
+    height = lines.length > 1 ? 88 : 61
+    height = titleLine ? height : 22
 
     menu.style.width = px(WIDTH)
-    menu.style.height = px(HEIGHT)
+    menu.style.height = px(height)
     menu.style.top = px(my)
     menu.style.left = px(mx)
     menu.style.pointerEvents = "auto"

@@ -1,3 +1,2 @@
-declare let ROOT: any;
-declare let HaikuContext: any;
-declare let HaikuComponent: any;
+declare const haiku: any;
+export default haiku;

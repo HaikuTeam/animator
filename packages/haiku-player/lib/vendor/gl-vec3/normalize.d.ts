@@ -1,1 +1,1 @@
-declare function normalize(out: any, a: any): any;
+export default function normalize(out: any, a: any): any;

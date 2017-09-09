@@ -1,3 +1,5 @@
+"use strict";
+exports.__esModule = true;
 function doublesEqual(d1, d2) {
     var preciseness = 1e-13;
     return Math.abs(d1 - d2) < preciseness;
@@ -12,7 +14,7 @@ function normalizeRad(rad) {
     }
     return angle;
 }
-function _getEulerAngles(x, y, z, w) {
+function getEulerAngles(x, y, z, w) {
     var poleSum = x * w - y * z;
     if (doublesEqual(poleSum, 0.5))
         return [90, 0, 0];
@@ -23,6 +25,7 @@ function _getEulerAngles(x, y, z, w) {
     var _z = Math.PI - Math.atan2(2 * x * y + 2 * z * w, 1 - 2 * (y * y) - 2 * (w * w));
     return [normalizeRad(_x), normalizeRad(_y), normalizeRad(_z)];
 }
-module.exports = {
-    getEulerAngles: _getEulerAngles
+exports["default"] = {
+    getEulerAngles: getEulerAngles
 };
+//# sourceMappingURL=index.js.map

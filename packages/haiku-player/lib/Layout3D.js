@@ -1,6 +1,8 @@
-var computeMatrix = require("./layout/computeMatrix");
-var computeRotationFlexibly = require("./layout/computeRotationFlexibly");
-var computeSize = require("./layout/computeSize");
+"use strict";
+exports.__esModule = true;
+var computeMatrix_1 = require("./layout/computeMatrix");
+var computeRotationFlexibly_1 = require("./layout/computeRotationFlexibly");
+var computeSize_1 = require("./layout/computeSize");
 var ELEMENTS_2D = {
     circle: true,
     ellipse: true,
@@ -36,7 +38,7 @@ function initializeNodeAttributes(element, parent) {
     if (!element.attributes.style)
         element.attributes.style = {};
     if (!element.layout) {
-        element.layout = createLayoutSpec();
+        element.layout = createLayoutSpec(null, null, null);
         element.layout.matrix = createMatrix();
         element.layout.format = ELEMENTS_2D[element.elementName]
             ? FORMATS.TWO
@@ -167,26 +169,26 @@ function computeLayout(out, layoutSpec, currentMatrix, parentMatrix, parentsizeA
     if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
         parentsizeAbsolute.z = DEFAULT_DEPTH;
     }
-    var size = computeSize({}, layoutSpec, layoutSpec.sizeMode, parentsizeAbsolute);
-    var matrix = computeMatrix([], out, layoutSpec, currentMatrix, size, parentMatrix, parentsizeAbsolute);
+    var size = computeSize_1["default"]({}, layoutSpec, layoutSpec.sizeMode, parentsizeAbsolute);
+    var matrix = computeMatrix_1["default"]([], out, layoutSpec, currentMatrix, size, parentMatrix, parentsizeAbsolute);
     out.size = size;
     out.matrix = matrix;
     out.shown = layoutSpec.shown;
     out.opacity = layoutSpec.opacity;
     return out;
 }
-module.exports = {
-    computeMatrix: computeMatrix,
+exports["default"] = {
+    computeMatrix: computeMatrix_1["default"],
     multiplyArrayOfMatrices: multiplyArrayOfMatrices,
     computeLayout: computeLayout,
     createLayoutSpec: createLayoutSpec,
     createBaseComputedLayout: createBaseComputedLayout,
-    computeRotationFlexibly: computeRotationFlexibly,
+    computeRotationFlexibly: computeRotationFlexibly_1["default"],
     createMatrix: createMatrix,
     FORMATS: FORMATS,
     SIZE_ABSOLUTE: SIZE_ABSOLUTE,
     SIZE_PROPORTIONAL: SIZE_PROPORTIONAL,
-    ATTRIBUTES: createLayoutSpec(),
+    ATTRIBUTES: createLayoutSpec(null, null, null),
     multiplyMatrices: multiplyMatrices,
     transposeMatrix: transposeMatrix,
     copyMatrix: copyMatrix,
@@ -194,3 +196,4 @@ module.exports = {
     initializeNodeAttributes: initializeNodeAttributes,
     isZero: isZero
 };
+//# sourceMappingURL=Layout3D.js.map

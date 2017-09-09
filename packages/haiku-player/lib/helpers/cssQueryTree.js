@@ -1,12 +1,15 @@
-var BasicUtils = require("./BasicUtils");
-var flattenTree = require("./manaFlattenTree");
-var queryList = require("./cssQueryList");
+"use strict";
+exports.__esModule = true;
+var BasicUtils_1 = require("./BasicUtils");
+var manaFlattenTree_1 = require("./manaFlattenTree");
+var cssQueryList_1 = require("./cssQueryList");
 var OBJECT = "object";
 function queryTree(matches, node, query, options) {
     if (!node || typeof node !== OBJECT)
         return matches;
-    var list = BasicUtils.uniq(flattenTree([], node, options, 0, 0));
-    queryList(matches, list, query, options);
+    var list = BasicUtils_1["default"].uniq(manaFlattenTree_1["default"]([], node, options, 0, 0));
+    cssQueryList_1["default"](matches, list, query, options);
     return matches;
 }
-module.exports = queryTree;
+exports["default"] = queryTree;
+//# sourceMappingURL=cssQueryTree.js.map

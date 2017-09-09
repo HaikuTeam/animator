@@ -1,1 +1,1 @@
-declare function isComplexValue(value: any): boolean;
+export default function isComplexValue(value: any): boolean;

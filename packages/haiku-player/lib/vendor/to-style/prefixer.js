@@ -1,29 +1,31 @@
-var camelize = require("./stringUtils/camelize");
-var hyphenate = require("./stringUtils/hyphenate");
-var toLowerFirst = require("./stringUtils/toLowerFirst");
-var toUpperFirst = require("./stringUtils/toUpperFirst");
-var prefixInfo = require("./prefixInfo");
-var prefixProperties = require("./prefixProperties");
+"use strict";
+exports.__esModule = true;
+var camelize_1 = require("./stringUtils/camelize");
+var hyphenate_1 = require("./stringUtils/hyphenate");
+var toLowerFirst_1 = require("./stringUtils/toLowerFirst");
+var toUpperFirst_1 = require("./stringUtils/toUpperFirst");
+var prefixInfo_1 = require("./prefixInfo");
+var prefixProperties_1 = require("./prefixProperties");
 var docStyle = typeof document === "undefined"
     ? {}
     : document.documentElement.style;
-module.exports = function (asStylePrefix) {
+function prefixer(asStylePrefix) {
     return function (name, config) {
         config = config || {};
-        var styleName = toLowerFirst(camelize(name));
-        var cssName = hyphenate(name);
+        var styleName = toLowerFirst_1["default"](camelize_1["default"](name));
+        var cssName = hyphenate_1["default"](name);
         var theName = asStylePrefix ? styleName : cssName;
-        var thePrefix = prefixInfo.style
-            ? asStylePrefix ? prefixInfo.style : prefixInfo.css
+        var thePrefix = prefixInfo_1["default"].style
+            ? asStylePrefix ? prefixInfo_1["default"].style : prefixInfo_1["default"].css
             : "";
         if (styleName in docStyle) {
             return config.asString ? theName : [theName];
         }
         var upperCased = theName;
-        var prefixProperty = prefixProperties[cssName];
+        var prefixProperty = prefixProperties_1["default"][cssName];
         var result = [];
         if (asStylePrefix) {
-            upperCased = toUpperFirst(theName);
+            upperCased = toUpperFirst_1["default"](theName);
         }
         if (typeof prefixProperty === "function") {
             var prefixedCss = prefixProperty(theName, thePrefix) || [];
@@ -33,8 +35,8 @@ module.exports = function (asStylePrefix) {
             if (prefixedCss.length) {
                 prefixedCss = prefixedCss.map(function (property) {
                     return asStylePrefix
-                        ? toLowerFirst(camelize(property))
-                        : hyphenate(property);
+                        ? toLowerFirst_1["default"](camelize_1["default"](property))
+                        : hyphenate_1["default"](property);
                 });
             }
             result = result.concat(prefixedCss);
@@ -48,4 +50,6 @@ module.exports = function (asStylePrefix) {
         }
         return result;
     };
-};
+}
+exports["default"] = prefixer;
+//# sourceMappingURL=prefixer.js.map

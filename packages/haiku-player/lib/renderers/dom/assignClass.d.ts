@@ -1,1 +1,1 @@
-declare function assignClass(domElement: any, className: any): any;
+export default function assignClass(domElement: any, className: any): any;

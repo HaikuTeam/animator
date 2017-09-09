@@ -1,5 +1,6 @@
-var assign = require("./vendor/assign");
-var Config = {};
+"use strict";
+exports.__esModule = true;
+var assign_1 = require("./vendor/assign");
 var DEFAULTS = {
     onHaikuComponentWillInitialize: null,
     onHaikuComponentDidMount: null,
@@ -33,14 +34,30 @@ var DEFAULTS = {
     vanities: null,
     children: null
 };
-function _seed() {
+function seed() {
     return Math.random().toString(36).slice(2);
 }
-function _build() {
-    var config = {};
+function build() {
+    var argums = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        argums[_i] = arguments[_i];
+    }
+    var config = {
+        onHaikuComponentWillInitialize: null,
+        onHaikuComponentDidMount: null,
+        onHaikuComponentDidInitialize: null,
+        onHaikuComponentWillUnmount: null,
+        options: null,
+        states: null,
+        eventHandlers: null,
+        timelines: null,
+        template: null,
+        vanities: null,
+        children: null
+    };
     var args = [];
-    for (var i = 0; i < arguments.length; i++)
-        args[i] = arguments[i];
+    for (var i = 0; i < argums.length; i++)
+        args[i] = argums[i];
     args.unshift(DEFAULTS);
     for (var j = 0; j < args.length; j++) {
         var incoming = args[j];
@@ -57,23 +74,23 @@ function _build() {
         if (incoming.onHaikuComponentWillUnmount)
             config.onHaikuComponentWillUnmount = incoming.onHaikuComponentWillUnmount;
         if (incoming.options)
-            config.options = assign({}, config.options, incoming.options);
+            config.options = assign_1["default"]({}, config.options, incoming.options);
         for (var key in incoming) {
             if (incoming[key] !== undefined && DEFAULTS.options.hasOwnProperty(key)) {
                 config.options[key] = incoming[key];
             }
         }
         if (incoming.states)
-            config.states = assign({}, config.states, incoming.states);
+            config.states = assign_1["default"]({}, config.states, incoming.states);
         if (incoming.initialStates && typeof incoming.initialStates === "object") {
-            assign(config.states, incoming.initialStates);
+            assign_1["default"](config.states, incoming.initialStates);
         }
         if (incoming.eventHandlers)
-            config.eventHandlers = assign({}, config.eventHandlers, incoming.eventHandlers);
+            config.eventHandlers = assign_1["default"]({}, config.eventHandlers, incoming.eventHandlers);
         if (incoming.timelines)
-            config.timelines = assign({}, config.timelines, incoming.timelines);
+            config.timelines = assign_1["default"]({}, config.timelines, incoming.timelines);
         if (incoming.vanities)
-            config.vanities = assign({}, config.vanities, incoming.vanities);
+            config.vanities = assign_1["default"]({}, config.vanities, incoming.vanities);
         if (incoming.children)
             config.children = incoming.children;
     }
@@ -84,7 +101,9 @@ function _build() {
     }
     return config;
 }
-Config.DEFAULTS = DEFAULTS;
-Config.build = _build;
-Config.seed = _seed;
-module.exports = Config;
+exports["default"] = {
+    build: build,
+    seed: seed,
+    DEFAULTS: DEFAULTS
+};
+//# sourceMappingURL=Config.js.map

@@ -1,1 +1,1 @@
-declare function transpose(out: any, a: any): any;
+export default function transpose(out: any, a: any): any;

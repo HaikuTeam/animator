@@ -1,1 +1,1 @@
-declare function determinant(a: any): number;
+export default function determinant(a: any): number;

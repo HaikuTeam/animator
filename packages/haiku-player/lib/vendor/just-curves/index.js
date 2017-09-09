@@ -1,13 +1,12 @@
-function __export(m) {
-    for (var p in m)
-        if (!exports.hasOwnProperty(p))
-            exports[p] = m[p];
-}
-var internal1 = require("./internal");
-exports.cssFunction = internal1.cssFunction;
-exports.cubicBezier = internal1.cubicBezier;
-exports.frames = internal1.frames;
-exports.steps = internal1.steps;
-__export(require("./curves"));
+"use strict";
+exports.__esModule = true;
 var css = require("./internal/cssEasings");
 exports.css = css;
+var curves = require("./curves");
+var internal_1 = require("./internal");
+exports.cssFunction = internal_1.cssFunction;
+exports.cubicBezier = internal_1.cubicBezier;
+exports.frames = internal_1.frames;
+exports.steps = internal_1.steps;
+exports["default"] = curves;
+//# sourceMappingURL=index.js.map

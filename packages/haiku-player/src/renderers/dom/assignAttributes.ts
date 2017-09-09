@@ -2,33 +2,33 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let assignStyle = require("./assignStyle")
-let assignClass = require("./assignClass")
-let assignEvent = require("./assignEvent")
-let getFlexId = require("./getFlexId")
+import assignStyle from "./assignStyle"
+import assignClass from "./assignClass"
+import assignEvent from "./assignEvent"
+import getFlexId from "./getFlexId"
 
-let STYLE = "style"
-let OBJECT = "object"
-let FUNCTION = "function"
-let CLASS = "class"
-let CLASS_NAME = "className"
+const STYLE = "style"
+const OBJECT = "object"
+const FUNCTION = "function"
+const CLASS = "class"
+const CLASS_NAME = "className"
 
-let XLINK_XMLNS = "http://www.w3.org/1999/xlink"
-let X = "x"
-let L = "l"
-let I = "i"
-let N = "n"
-let K = "k"
+const XLINK_XMLNS = "http://www.w3.org/1999/xlink"
+const X = "x"
+const L = "l"
+const I = "i"
+const N = "n"
+const K = "k"
 
 // data:image/png;base64 etc
-let D = "d"
-let A = "a"
-let T = "t"
-let COLON = ":"
-let M = "m"
-let G = "g"
-let E = "e"
-let FSLASH = "/"
+const D = "d"
+const A = "a"
+const T = "t"
+const COLON = ":"
+const M = "m"
+const G = "g"
+const E = "e"
+const FSLASH = "/"
 
 function setAttribute(el, key, val, component, cache) {
   // If key === xlink:href we are dealing with a reference and need to use a namepsace
@@ -80,7 +80,7 @@ function setAttribute(el, key, val, component, cache) {
   }
 }
 
-function assignAttributes(
+export default function assignAttributes(
   domElement,
   virtualElement,
   component,
@@ -122,7 +122,7 @@ function assignAttributes(
     }
 
     if ((key === CLASS || key === CLASS_NAME) && anotherNewValue) {
-      assignClass(domElement, anotherNewValue, component)
+      assignClass(domElement, anotherNewValue)
       continue
     }
 
@@ -154,5 +154,3 @@ function assignAttributes(
 
   return domElement
 }
-
-module.exports = assignAttributes

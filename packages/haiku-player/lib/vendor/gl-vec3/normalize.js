@@ -1,4 +1,5 @@
-module.exports = normalize;
+"use strict";
+exports.__esModule = true;
 function normalize(out, a) {
     var x = a[0];
     var y = a[1];
@@ -12,3 +13,5 @@ function normalize(out, a) {
     }
     return out;
 }
+exports["default"] = normalize;
+//# sourceMappingURL=normalize.js.map

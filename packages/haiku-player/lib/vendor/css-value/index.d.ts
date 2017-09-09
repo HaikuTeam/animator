@@ -1,1 +1,1 @@
-declare function Parser(str: any): void;
+export default function parse(str: any): any;

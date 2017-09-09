@@ -1,4 +1,5 @@
-module.exports = clone;
+"use strict";
+exports.__esModule = true;
 function clone(a) {
     var out = new Float32Array(16);
     out[0] = a[0];
@@ -19,3 +20,5 @@ function clone(a) {
     out[15] = a[15];
     return out;
 }
+exports["default"] = clone;
+//# sourceMappingURL=clone.js.map

@@ -21,7 +21,7 @@ function hypotenuseValue(a, b) {
   return Math.sqrt(a * a + b * b)
 }
 
-module.exports = {
+export default {
   degreesToRadians,
   radiansToDegrees,
   anglesOfTriangle,

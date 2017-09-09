@@ -1,2 +1,1 @@
-declare let STRING: string;
-declare function objectPath(obj: any, key: any): any;
+export default function objectPath(obj: any, key: any): any;

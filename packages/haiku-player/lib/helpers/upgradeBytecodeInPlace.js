@@ -1,5 +1,7 @@
-var xmlToMana = require("./xmlToMana");
-var visitManaTree = require("./visitManaTree");
+"use strict";
+exports.__esModule = true;
+var xmlToMana_1 = require("./xmlToMana");
+var visitManaTree_1 = require("./visitManaTree");
 var STRING_TYPE = "string";
 function upgradeBytecodeInPlace(bytecode, options) {
     if (!bytecode.states) {
@@ -12,17 +14,17 @@ function upgradeBytecodeInPlace(bytecode, options) {
             var propertySpec = properties[i];
             var updatedSpec = {};
             if (propertySpec.value !== undefined)
-                updatedSpec.value = propertySpec.value;
+                updatedSpec['value'] = propertySpec.value;
             if (propertySpec.type !== undefined)
-                updatedSpec.type = propertySpec.type;
+                updatedSpec['type'] = propertySpec.type;
             if (propertySpec.setter !== undefined)
-                updatedSpec.set = propertySpec.setter;
+                updatedSpec['set'] = propertySpec.setter;
             if (propertySpec.getter !== undefined)
-                updatedSpec.get = propertySpec.getter;
+                updatedSpec['get'] = propertySpec.getter;
             if (propertySpec.set !== undefined)
-                updatedSpec.set = propertySpec.set;
+                updatedSpec['set'] = propertySpec.set;
             if (propertySpec.get !== undefined)
-                updatedSpec.get = propertySpec.get;
+                updatedSpec['get'] = propertySpec.get;
             bytecode.states[propertySpec.name] = updatedSpec;
         }
     }
@@ -40,13 +42,13 @@ function upgradeBytecodeInPlace(bytecode, options) {
         }
     }
     if (typeof bytecode.template === STRING_TYPE) {
-        bytecode.template = xmlToMana(bytecode.template);
+        bytecode.template = xmlToMana_1["default"](bytecode.template);
     }
     if (options && options.referenceUniqueness) {
         var referencesToUpdate_1 = {};
         var alreadyUpdatedReferences_1 = {};
         if (bytecode.template) {
-            visitManaTree("0", bytecode.template, function _visitor(elementName, attributes, children, node) {
+            visitManaTree_1["default"]("0", bytecode.template, function _visitor(elementName, attributes, children, node) {
                 if (elementName === "filter") {
                     if (attributes.id && !alreadyUpdatedReferences_1[attributes.id]) {
                         var prev = attributes.id;
@@ -77,4 +79,5 @@ function upgradeBytecodeInPlace(bytecode, options) {
         }
     }
 }
-module.exports = upgradeBytecodeInPlace;
+exports["default"] = upgradeBytecodeInPlace;
+//# sourceMappingURL=upgradeBytecodeInPlace.js.map

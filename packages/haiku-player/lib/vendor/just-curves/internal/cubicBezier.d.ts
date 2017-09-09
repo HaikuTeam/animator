@@ -1,2 +1,2 @@
-declare let index1: any;
-declare let bezier: (n1: any, n2: any, t: any) => number;
+import { Curve } from '../types';
+export declare const cubicBezier: (p0: number, p1: number, p2: number, p3: number) => Curve;

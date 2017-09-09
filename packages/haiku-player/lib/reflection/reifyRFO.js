@@ -1,10 +1,13 @@
-var inject = require("./inject");
-var functionSpecificationToFunction = require("./functionSpecificationToFunction");
+"use strict";
+exports.__esModule = true;
+var inject_1 = require("./inject");
+var functionSpecificationToFunction_1 = require("./functionSpecificationToFunction");
 function reifyRFO(rfo) {
-    var fn = functionSpecificationToFunction(rfo.name || "", rfo.params, rfo.body, rfo.type);
+    var fn = functionSpecificationToFunction_1["default"](rfo.name || "", rfo.params, rfo.body, rfo.type);
     if (rfo.injectee) {
-        inject.apply(null, [fn].concat(rfo.params));
+        inject_1["default"].apply(null, [fn].concat(rfo.params));
     }
     return fn;
 }
-module.exports = reifyRFO;
+exports["default"] = reifyRFO;
+//# sourceMappingURL=reifyRFO.js.map

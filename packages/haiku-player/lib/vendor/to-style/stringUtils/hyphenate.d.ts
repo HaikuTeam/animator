@@ -1,1 +1,1 @@
-declare let separate: any;
+export default function hyphenate(name: string): string;

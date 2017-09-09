@@ -1,1 +1,1 @@
-declare function isTextNode(virtualElement: any): boolean;
+export default function isTextNode(virtualElement: any): boolean;

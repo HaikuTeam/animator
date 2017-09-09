@@ -1,5 +1,3 @@
-module.exports = scale
-
 /**
  * Scales the mat4 by the dimensions in the given vec3
  *
@@ -8,7 +6,7 @@ module.exports = scale
  * @param {vec3} v the vec3 to scale the matrix by
  * @returns {mat4} out
  **/
-function scale(out, a, v) {
+export default function scale(out, a, v) {
   let x = v[0]
   let y = v[1]
   let z = v[2]

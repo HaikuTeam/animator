@@ -1,1 +1,1 @@
-declare function cross(out: any, a: any, b: any): any;
+export default function cross(out: any, a: any, b: any): any;

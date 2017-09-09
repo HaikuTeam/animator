@@ -1,40 +1,37 @@
-function __export(m) {
-  for (let p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p]
-}
-__export(require("./ease"))
-__export(require("./easeIn"))
-__export(require("./easeInBack"))
-__export(require("./easeInBounce"))
-__export(require("./easeInCirc"))
-__export(require("./easeInCubic"))
-__export(require("./easeInElastic"))
-__export(require("./easeInExpo"))
-__export(require("./easeInOut"))
-__export(require("./easeInOutBack"))
-__export(require("./easeInOutBounce"))
-__export(require("./easeInOutCirc"))
-__export(require("./easeInOutCubic"))
-__export(require("./easeInOutElastic"))
-__export(require("./easeInOutExpo"))
-__export(require("./easeInOutQuad"))
-__export(require("./easeInOutQuart"))
-__export(require("./easeInOutQuint"))
-__export(require("./easeInOutSine"))
-__export(require("./easeInQuad"))
-__export(require("./easeInQuart"))
-__export(require("./easeInQuint"))
-__export(require("./easeInSine"))
-__export(require("./easeOut"))
-__export(require("./easeOutBack"))
-__export(require("./easeOutBounce"))
-__export(require("./easeOutCirc"))
-__export(require("./easeOutCubic"))
-__export(require("./easeOutElastic"))
-__export(require("./easeOutExpo"))
-__export(require("./easeOutQuad"))
-__export(require("./easeOutQuart"))
-__export(require("./easeOutQuint"))
-__export(require("./easeOutSine"))
-__export(require("./linear"))
-__export(require("./stepEnd"))
-__export(require("./stepStart"))
+export * from './ease';
+export * from './easeIn';
+export * from './easeInBack';
+export * from './easeInBounce';
+export * from './easeInCirc';
+export * from './easeInCubic';
+export * from './easeInElastic';
+export * from './easeInExpo';
+export * from './easeInOut';
+export * from './easeInOutBack';
+export * from './easeInOutBounce';
+export * from './easeInOutCirc';
+export * from './easeInOutCubic';
+export * from './easeInOutElastic';
+export * from './easeInOutExpo';
+export * from './easeInOutQuad';
+export * from './easeInOutQuart';
+export * from './easeInOutQuint';
+export * from './easeInOutSine';
+export * from './easeInQuad';
+export * from './easeInQuart';
+export * from './easeInQuint';
+export * from './easeInSine';
+export * from './easeOut';
+export * from './easeOutBack';
+export * from './easeOutBounce';
+export * from './easeOutCirc';
+export * from './easeOutCubic';
+export * from './easeOutElastic';
+export * from './easeOutExpo';
+export * from './easeOutQuad';
+export * from './easeOutQuart';
+export * from './easeOutQuint';
+export * from './easeOutSine';
+export * from './linear';
+export * from './stepEnd';
+export * from './stepStart';

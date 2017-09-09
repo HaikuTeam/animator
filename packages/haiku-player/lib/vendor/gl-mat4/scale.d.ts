@@ -1,1 +1,1 @@
-declare function scale(out: any, a: any, v: any): any;
+export default function scale(out: any, a: any, v: any): any;

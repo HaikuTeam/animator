@@ -1,4 +1,6 @@
-module.exports = function getWindowsBrowser(window) {
+"use strict";
+exports.__esModule = true;
+function getWindowsBrowser(window) {
     var rv = -1;
     if (!window)
         return rv;
@@ -10,8 +12,8 @@ module.exports = function getWindowsBrowser(window) {
         return rv;
     if (window.navigator.appName === "Microsoft Internet Explorer") {
         var ua = window.navigator.userAgent;
-        var re_1 = new RegExp("MSIE ([0-9]{1,}[\\.0-9]{0,})");
-        if (re_1.exec(ua) !== null) {
+        var re = new RegExp("MSIE ([0-9]{1,}[\\.0-9]{0,})");
+        if (re.exec(ua) !== null) {
             rv = parseFloat(RegExp.$1);
         }
     }
@@ -19,4 +21,6 @@ module.exports = function getWindowsBrowser(window) {
         rv = (window.navigator.appVersion.indexOf("Trident") === -1) ? 12 : 11;
     }
     return rv;
-};
+}
+exports["default"] = getWindowsBrowser;
+//# sourceMappingURL=getWindowsBrowserVersion.js.map

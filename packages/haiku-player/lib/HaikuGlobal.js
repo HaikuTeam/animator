@@ -1,32 +1,40 @@
-var ROOT;
-if (typeof window !== "undefined") {
-    ROOT = window;
+"use strict";
+exports.__esModule = true;
+var HaikuContext_1 = require("./HaikuContext");
+var HaikuComponent_1 = require("./HaikuComponent");
+var enhance_1 = require("./reflection/enhance");
+var inject_1 = require("./reflection/inject");
+function buildRoot() {
+    var ROOT = {};
+    if (typeof window !== "undefined") {
+        ROOT = window;
+    }
+    else if (typeof global !== "undefined") {
+        ROOT = global;
+    }
+    else {
+    }
+    if (!ROOT['haiku']) {
+        ROOT['haiku'] = {};
+    }
+    if (!ROOT['haiku']['enhance']) {
+        ROOT['haiku']['enhance'] = enhance_1["default"];
+    }
+    if (!ROOT['haiku']['inject']) {
+        ROOT['haiku']['inject'] = inject_1["default"];
+    }
+    if (!ROOT['haiku']['context']) {
+        ROOT['haiku']['context'] = function context(mount, renderer, platform, bytecode, config) {
+            return new HaikuContext_1["default"](mount, renderer, platform, bytecode, config);
+        };
+    }
+    if (!ROOT['haiku']['component']) {
+        ROOT['haiku']['component'] = function component(bytecode, context, config, metadata) {
+            return new HaikuComponent_1["default"](bytecode, context, config, metadata);
+        };
+    }
+    return ROOT['haiku'];
 }
-else if (typeof global !== "undefined") {
-    ROOT = global;
-}
-else {
-    ROOT = {};
-}
-if (!ROOT.haiku) {
-    ROOT.haiku = {};
-}
-if (!ROOT.haiku.enhance) {
-    ROOT.haiku.enhance = require("./reflection/enhance");
-}
-if (!ROOT.haiku.inject) {
-    ROOT.haiku.inject = require("./reflection/inject");
-}
-if (!ROOT.haiku.context) {
-    ROOT.haiku.context = function context(mount, renderer, platform, bytecode, config) {
-        return new HaikuContext(mount, renderer, platform, bytecode, config);
-    };
-}
-if (!ROOT.haiku.component) {
-    ROOT.haiku.component = function component(bytecode, context, config) {
-        return new HaikuComponent(bytecode, context, config);
-    };
-}
-module.exports = ROOT.haiku;
-var HaikuContext = require("./HaikuContext");
-var HaikuComponent = require("./HaikuComponent");
+var haiku = buildRoot();
+exports["default"] = haiku;
+//# sourceMappingURL=HaikuGlobal.js.map

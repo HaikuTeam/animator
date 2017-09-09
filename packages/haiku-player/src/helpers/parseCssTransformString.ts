@@ -2,12 +2,12 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let MathUtils = require("./MathUtils")
-let parseCssValueString = require("./parseCssValueString")
-let Layout3D = require("./../Layout3D")
-let getEulerAngles = require("./../vendor/math3d").getEulerAngles
-let mat4decompose = require("./../vendor/mat4-decompose")
-let mat4compose = require("./../vendor/css-mat4")
+import MathUtils from "./MathUtils"
+import parseCssValueString from "./parseCssValueString"
+import Layout3D from "./../Layout3D"
+import Math3d from "./../vendor/math3d"
+import mat4decompose from "./../vendor/mat4-decompose"
+import mat4compose from "./../vendor/css-mat4"
 
 function separate(str) {
   let bits = str.split("(")
@@ -21,7 +21,7 @@ function separate(str) {
   }
 }
 
-function parseCssTransformString(str) {
+export default function parseCssTransformString(str) {
   let out = {}
 
   if (!str) return out
@@ -141,6 +141,7 @@ function parseCssTransformString(str) {
     skew: [0, 0, 0],
     perspective: [0, 0, 0, 1],
     quaternion: [0, 0, 0, 1],
+    rotation: [0, 0, 0]
   }
   mat4decompose(
     product,
@@ -151,7 +152,7 @@ function parseCssTransformString(str) {
     components.quaternion,
   )
 
-  components.rotation = getEulerAngles(
+  components.rotation = Math3d.getEulerAngles(
     components.quaternion[0],
     components.quaternion[1],
     components.quaternion[2],
@@ -187,5 +188,3 @@ function parseCssTransformString(str) {
 
   return out
 }
-
-module.exports = parseCssTransformString

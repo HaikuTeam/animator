@@ -1,4 +1,6 @@
-module.exports = {
+"use strict";
+exports.__esModule = true;
+exports["default"] = {
     "animation": 1,
     "column-count": 1,
     "columns": 1,
@@ -16,3 +18,4 @@ module.exports = {
     "colspan": 1,
     "rowspan": 1
 };
+//# sourceMappingURL=cssUnitless.js.map

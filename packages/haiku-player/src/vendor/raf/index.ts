@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-let now = require("./../performance-now")
+import now from "./../performance-now"
 
 let root = typeof window === "undefined" ? global : window
 let vendors = ["moz", "webkit"]
@@ -63,16 +63,18 @@ if (!raf || !caf) {
   }
 }
 
-module.exports = function(fn) {
+function rafCall(fn) {
   // Wrap in a new function to prevent
   // `cancel` potentially being assigned
   // to the native rAF function
   return raf.call(root, fn)
 }
-module.exports.cancel = function() {
-  caf.apply(root, arguments)
+
+function cafCall(...args) {
+  return caf.apply(root, args)
 }
-module.exports.polyfill = function() {
-  root.requestAnimationFrame = raf
-  root.cancelAnimationFrame = caf
+
+export default {
+  request: rafCall,
+  cancel: cafCall
 }

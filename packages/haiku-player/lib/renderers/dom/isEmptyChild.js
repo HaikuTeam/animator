@@ -1,4 +1,7 @@
+"use strict";
+exports.__esModule = true;
 function isEmptyChild(thing) {
     return thing === undefined || thing === null;
 }
-module.exports = isEmptyChild;
+exports["default"] = isEmptyChild;
+//# sourceMappingURL=isEmptyChild.js.map

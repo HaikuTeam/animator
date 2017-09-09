@@ -1,3 +1,5 @@
+"use strict";
+exports.__esModule = true;
 function getDomEventPosition(event, doc) {
     var x = -1;
     var y = -1;
@@ -14,4 +16,5 @@ function getDomEventPosition(event, doc) {
         y: ~~y
     };
 }
-module.exports = getDomEventPosition;
+exports["default"] = getDomEventPosition;
+//# sourceMappingURL=getDomEventPosition.js.map

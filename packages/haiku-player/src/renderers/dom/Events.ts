@@ -1,5 +1,5 @@
 // Each of these would have an on* prefix normally
-module.exports = {
+export default {
   mouse: {
     click: {
       menuable: true,

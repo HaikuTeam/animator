@@ -1,4 +1,6 @@
-var now = require("./../performance-now");
+"use strict";
+exports.__esModule = true;
+var performance_now_1 = require("./../performance-now");
 var root = typeof window === "undefined" ? global : window;
 var vendors = ["moz", "webkit"];
 var suffix = "AnimationFrame";
@@ -14,7 +16,7 @@ if (!raf || !caf) {
     var last_1 = 0, id_1 = 0, queue_1 = [], frameDuration_1 = 1000 / 60;
     raf = function (callback) {
         if (queue_1.length === 0) {
-            var _now = now(), next = Math.max(0, frameDuration_1 - (_now - last_1));
+            var _now = performance_now_1["default"](), next = Math.max(0, frameDuration_1 - (_now - last_1));
             last_1 = next + _now;
             setTimeout(function () {
                 var cp = queue_1.slice(0);
@@ -48,13 +50,18 @@ if (!raf || !caf) {
         }
     };
 }
-module.exports = function (fn) {
+function rafCall(fn) {
     return raf.call(root, fn);
+}
+function cafCall() {
+    var args = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        args[_i] = arguments[_i];
+    }
+    return caf.apply(root, args);
+}
+exports["default"] = {
+    request: rafCall,
+    cancel: cafCall
 };
-module.exports.cancel = function () {
-    caf.apply(root, arguments);
-};
-module.exports.polyfill = function () {
-    root.requestAnimationFrame = raf;
-    root.cancelAnimationFrame = caf;
-};
+//# sourceMappingURL=index.js.map

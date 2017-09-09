@@ -1,4 +1,6 @@
-module.exports = {
+"use strict";
+exports.__esModule = true;
+exports["default"] = {
     mouse: {
         click: {
             menuable: true,
@@ -250,3 +252,4 @@ module.exports = {
         }
     }
 };
+//# sourceMappingURL=Events.js.map

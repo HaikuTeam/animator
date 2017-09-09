@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let React = require("react")
-let ReactDOM = require("react-dom")
-let EventsDict = require("./EventsDict")
-let merge = require("lodash.merge")
+import React from "react"
+import ReactDOM from "react-dom"
+import EventsDict from "./EventsDict"
+import merge from "lodash.merge"
 
 let DEFAULT_HOST_ELEMENT_TAG_NAME = "div"
 
@@ -62,7 +62,7 @@ for (let fwdPropKey in HAIKU_FORWARDED_PROPS) {
   VALID_PROPS[fwdPropKey] = "object"
 }
 
-function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
+export default function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
   let reactClass = React.createClass({
     displayName: "HaikuComponent",
 
@@ -293,7 +293,9 @@ function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
 /**
  * Quick-and-dirty way to generate unique DOM-friendly ids on the fly...
  */
-let ALPHABET = "abcdefghijklmnopqrstuvwxyz"
+
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz"
+
 function randomString(len) {
   let str = ""
   while (str.length < len) {
@@ -330,8 +332,3 @@ function flexIdIfSame(virtual, dom) {
 
   return null
 }
-
-HaikuReactDOMAdapter.React = React // Used by Haiku for testing and debugging
-HaikuReactDOMAdapter.ReactDOM = ReactDOM // Used by Haiku for testing and debugging
-
-module.exports = HaikuReactDOMAdapter

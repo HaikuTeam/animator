@@ -1,1 +1,1 @@
-declare function domInjectStylesheet(doc: any, css: any): void;
+export default function domInjectStylesheet(doc: any, css: any): void;

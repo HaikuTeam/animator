@@ -1,7 +1,9 @@
-var getDomEventPosition = require("./getDomEventPosition");
+"use strict";
+exports.__esModule = true;
+var getDomEventPosition_1 = require("./getDomEventPosition");
 function getLocalDomEventPosition(event, element) {
     var doc = element.ownerDocument;
-    var viewPosition = getDomEventPosition(event, doc);
+    var viewPosition = getDomEventPosition_1["default"](event, doc);
     var elementRect = element.getBoundingClientRect();
     var x = viewPosition.x - elementRect.left;
     var y = viewPosition.y - elementRect.top;
@@ -12,4 +14,5 @@ function getLocalDomEventPosition(event, element) {
         pageY: viewPosition.y
     };
 }
-module.exports = getLocalDomEventPosition;
+exports["default"] = getLocalDomEventPosition;
+//# sourceMappingURL=getLocalDomEventPosition.js.map

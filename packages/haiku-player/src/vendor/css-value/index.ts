@@ -1,9 +1,3 @@
-module.exports = parse
-
-function parse(str) {
-  return new Parser(str).parse()
-}
-
 function Parser(str) {
   this.str = str
 }
@@ -107,4 +101,8 @@ Parser.prototype.parse = function() {
   }
 
   return vals
+}
+
+export default function parse(str) {
+  return new Parser(str).parse()
 }

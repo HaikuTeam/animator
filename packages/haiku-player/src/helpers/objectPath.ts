@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let STRING = "string"
+const STRING = "string"
 
-function objectPath(obj, key) {
+export default function objectPath(obj, key) {
   if (typeof key === STRING) return obj[key]
   let base = obj
   for (let i = 0; i < key.length; i++) {
@@ -13,5 +13,3 @@ function objectPath(obj, key) {
   }
   return base
 }
-
-module.exports = objectPath

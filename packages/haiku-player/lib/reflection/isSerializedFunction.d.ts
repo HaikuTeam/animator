@@ -1,1 +1,1 @@
-declare function isSerializedFunction(object: any): boolean;
+export default function isSerializedFunction(object: any): boolean;

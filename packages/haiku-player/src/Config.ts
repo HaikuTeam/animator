@@ -1,8 +1,6 @@
-let assign = require("./vendor/assign")
+import assign from "./vendor/assign"
 
-let Config = {}
-
-let DEFAULTS = {
+const DEFAULTS = {
   // onHaikuComponentWillInitialize: Function|null
   // Optional lifecycle event hook (see below)
   onHaikuComponentWillInitialize: null,
@@ -123,15 +121,28 @@ let DEFAULTS = {
   children: null,
 }
 
-function _seed() {
+function seed() {
   return Math.random().toString(36).slice(2)
 }
 
-function _build() {
-  let config = {}
+function build(...argums) {
+  let config = {
+    onHaikuComponentWillInitialize: null,
+    onHaikuComponentDidMount: null,
+    onHaikuComponentDidInitialize: null,
+    onHaikuComponentWillUnmount: null,
+    options: null,
+    states: null,
+    eventHandlers: null,
+    timelines: null,
+    template: null,
+    vanities: null,
+    children: null
+  }
 
   let args = []
-  for (let i = 0; i < arguments.length; i++) args[i] = arguments[i]
+  for (let i = 0; i < argums.length; i++) args[i] = argums[i]
+
   args.unshift(DEFAULTS)
 
   for (let j = 0; j < args.length; j++) {
@@ -178,8 +189,8 @@ function _build() {
   return config
 }
 
-Config.DEFAULTS = DEFAULTS
-Config.build = _build
-Config.seed = _seed
-
-module.exports = Config
+export default {
+  build,
+  seed,
+  DEFAULTS
+}

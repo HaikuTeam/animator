@@ -26,7 +26,7 @@
  * THE SOFTWARE.
  */
 
-function computeMatrix(
+export default function computeMatrix(
   outputMatrix,
   outputNodepad,
   layoutSpec,
@@ -130,5 +130,3 @@ function computeMatrix(
 
   return outputMatrix
 }
-
-module.exports = computeMatrix

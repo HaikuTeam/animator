@@ -1,14 +1,16 @@
-var MathUtils = require("./MathUtils");
-var parseCssValueString = require("./parseCssValueString");
-var Layout3D = require("./../Layout3D");
-var getEulerAngles = require("./../vendor/math3d").getEulerAngles;
-var mat4decompose = require("./../vendor/mat4-decompose");
-var mat4compose = require("./../vendor/css-mat4");
+"use strict";
+exports.__esModule = true;
+var MathUtils_1 = require("./MathUtils");
+var parseCssValueString_1 = require("./parseCssValueString");
+var Layout3D_1 = require("./../Layout3D");
+var math3d_1 = require("./../vendor/math3d");
+var mat4_decompose_1 = require("./../vendor/mat4-decompose");
+var css_mat4_1 = require("./../vendor/css-mat4");
 function separate(str) {
     var bits = str.split("(");
     var type = bits[0];
     var vals = bits[1].replace(")", "").split(/,\s*?/gi).map(function (str2) {
-        return parseCssValueString(str2, type);
+        return parseCssValueString_1["default"](str2, type);
     });
     return {
         type: type,
@@ -64,7 +66,7 @@ function parseCssTransformString(str) {
                 break;
             case "rotate":
                 if (spec.values[0].unit === "deg") {
-                    var converted = MathUtils.degreesToRadians(spec.values[0].value);
+                    var converted = MathUtils_1["default"].degreesToRadians(spec.values[0].value);
                     layout.rotate[2] = converted;
                 }
                 else {
@@ -101,29 +103,30 @@ function parseCssTransformString(str) {
                 layout.translate[2] = spec.values[2].value;
                 break;
             case "matrix3d":
-                return Layout3D.copyMatrix([], spec.values.map(function _mapper(val) {
+                return Layout3D_1["default"].copyMatrix([], spec.values.map(function _mapper(val) {
                     return val.value;
                 }));
             default:
                 console.warn("No CSS transform parser available for " + spec.type);
                 break;
         }
-        var matrix = mat4compose([], layout);
+        var matrix = css_mat4_1["default"]([], layout);
         return matrix;
     });
-    var product = Layout3D.multiplyArrayOfMatrices(matrices.reverse());
+    var product = Layout3D_1["default"].multiplyArrayOfMatrices(matrices.reverse());
     var components = {
         translation: [0, 0, 0],
         scale: [0, 0, 0],
         skew: [0, 0, 0],
         perspective: [0, 0, 0, 1],
-        quaternion: [0, 0, 0, 1]
+        quaternion: [0, 0, 0, 1],
+        rotation: [0, 0, 0]
     };
-    mat4decompose(product, components.translation, components.scale, components.skew, components.perspective, components.quaternion);
-    components.rotation = getEulerAngles(components.quaternion[0], components.quaternion[1], components.quaternion[2], components.quaternion[3]);
-    components.rotation[0] = MathUtils.degreesToRadians(components.rotation[0]);
-    components.rotation[1] = MathUtils.degreesToRadians(components.rotation[1]);
-    components.rotation[2] = MathUtils.degreesToRadians(components.rotation[2]);
+    mat4_decompose_1["default"](product, components.translation, components.scale, components.skew, components.perspective, components.quaternion);
+    components.rotation = math3d_1["default"].getEulerAngles(components.quaternion[0], components.quaternion[1], components.quaternion[2], components.quaternion[3]);
+    components.rotation[0] = MathUtils_1["default"].degreesToRadians(components.rotation[0]);
+    components.rotation[1] = MathUtils_1["default"].degreesToRadians(components.rotation[1]);
+    components.rotation[2] = MathUtils_1["default"].degreesToRadians(components.rotation[2]);
     for (var subkey in components) {
         for (var idx in components[subkey]) {
             components[subkey][idx] = parseFloat(components[subkey][idx].toFixed(2));
@@ -152,4 +155,5 @@ function parseCssTransformString(str) {
         out["scale.z"] = components.scale[2];
     return out;
 }
-module.exports = parseCssTransformString;
+exports["default"] = parseCssTransformString;
+//# sourceMappingURL=parseCssTransformString.js.map

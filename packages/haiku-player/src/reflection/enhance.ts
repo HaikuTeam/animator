@@ -1,6 +1,10 @@
-let functionToRFO = require("./functionToRFO")
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
 
-module.exports = function enhance(fn, params) {
+import functionToRFO from "./functionToRFO"
+
+export default function enhance(fn, params) {
   // Only create a specification if we don't already have one
   if (!fn.specification) {
     let rfo = functionToRFO(fn)

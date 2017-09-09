@@ -1,5 +1,5 @@
-let separate = require("./separate")
+import separate from "./separate"
 
-module.exports = function(name) {
-  return separate(name).toLowerCase()
+export default function hyphenate(name: string) {
+  return separate(name, null).toLowerCase()
 }

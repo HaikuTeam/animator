@@ -1,5 +1,8 @@
+"use strict";
+exports.__esModule = true;
 function removeElement(domElement) {
     domElement.parentNode.removeChild(domElement);
     return domElement;
 }
-module.exports = removeElement;
+exports["default"] = removeElement;
+//# sourceMappingURL=removeElement.js.map

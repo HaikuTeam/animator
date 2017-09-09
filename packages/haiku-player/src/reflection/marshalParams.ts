@@ -1,10 +1,12 @@
-let baddies = 0
+const data = {
+  baddies: 0
+}
 
 function arrayParamToString(param) {
   let pieces = []
 
   for (let i = 0; i < param.length; i++) {
-    pieces.push(stringifyParam(param[i]))
+    pieces.push(stringifyParam(param[i], null))
   }
 
   return "[ " + pieces.join(", ") + " ]"
@@ -58,16 +60,14 @@ function stringifyParam(param, key) {
     return objectParamToString(param)
   }
 
-  return "__" + baddies++ + "__" // In case we get something we just can't handle, create something unique and noticeably ugly
+  return "__" + data.baddies++ + "__" // In case we get something we just can't handle, create something unique and noticeably ugly
 }
 
-function marshalParams(params) {
+export default function marshalParams(params) {
   return params
     .map(function _mapper(param) {
       // Need wrap function to avoid passing the index (key) to stringifyParam, which uses that to detect something
-      return stringifyParam(param)
+      return stringifyParam(param, null)
     })
     .join(", ")
 }
-
-module.exports = marshalParams

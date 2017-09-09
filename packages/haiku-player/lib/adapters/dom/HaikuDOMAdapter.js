@@ -1,6 +1,9 @@
-var HaikuContext = require("./../../HaikuContext");
-var HaikuDOMRendererClass = require("./../../renderers/dom");
-var PLAYER_VERSION = require("./../../../package.json").version;
+"use strict";
+exports.__esModule = true;
+var HaikuContext_1 = require("./../../HaikuContext");
+var dom_1 = require("./../../renderers/dom");
+var pkg = require("./../../../package.json");
+var PLAYER_VERSION = pkg.version;
 var IS_WINDOW_DEFINED = typeof window !== "undefined";
 function HaikuDOMAdapter(bytecode, config, safeWindow) {
     if (!config)
@@ -18,12 +21,13 @@ function HaikuDOMAdapter(bytecode, config, safeWindow) {
             config.options.useWebkitPrefix = !!isWebKit;
         }
     }
-    return HaikuContext.createComponentFactory(HaikuDOMRendererClass, bytecode, config, safeWindow);
+    return HaikuContext_1["default"]['createComponentFactory'](dom_1["default"], bytecode, config, safeWindow);
 }
+exports["default"] = HaikuDOMAdapter;
 if (IS_WINDOW_DEFINED) {
-    if (!window.HaikuPlayer) {
-        window.HaikuPlayer = {};
+    if (!window['HaikuPlayer']) {
+        window['HaikuPlayer'] = {};
     }
-    window.HaikuPlayer[PLAYER_VERSION] = HaikuDOMAdapter;
+    window['HaikuPlayer'][PLAYER_VERSION] = HaikuDOMAdapter;
 }
-module.exports = HaikuDOMAdapter;
+//# sourceMappingURL=HaikuDOMAdapter.js.map

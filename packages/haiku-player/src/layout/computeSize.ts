@@ -26,12 +26,11 @@
  * THE SOFTWARE.
  */
 
-let SIZE_PROPORTIONAL = 0 // A percentage of the parent
-let SIZE_ABSOLUTE = 1 // A fixed size in screen pixels
+const SIZE_PROPORTIONAL = 0 // A percentage of the parent
+const SIZE_ABSOLUTE = 1 // A fixed size in screen pixels
+const SIZING_COMPONENTS = ["x", "y", "z"]
 
-let SIZING_COMPONENTS = ["x", "y", "z"]
-
-function computeSize(
+export default function computeSize(
   outputSize,
   layoutSpec,
   sizeModeArray,
@@ -53,5 +52,3 @@ function computeSize(
   }
   return outputSize
 }
-
-module.exports = computeSize

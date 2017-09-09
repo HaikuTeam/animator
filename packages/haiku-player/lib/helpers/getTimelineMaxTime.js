@@ -1,3 +1,5 @@
+"use strict";
+exports.__esModule = true;
 function getTimelineMaxTime(descriptor) {
     var max = 0;
     for (var selector in descriptor) {
@@ -14,4 +16,5 @@ function getTimelineMaxTime(descriptor) {
     }
     return max;
 }
-module.exports = getTimelineMaxTime;
+exports["default"] = getTimelineMaxTime;
+//# sourceMappingURL=getTimelineMaxTime.js.map

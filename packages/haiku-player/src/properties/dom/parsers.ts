@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let has = require("./has")
-let ColorUtils = require("./../../helpers/ColorUtils")
-let SVGPoints = require("./../../helpers/SVGPoints")
+import has from "./has"
+import ColorUtils from "./../../helpers/ColorUtils"
+import SVGPoints from "./../../helpers/SVGPoints"
 
 function parseD(value) {
   // in case of d="" for any reason, don't try to expand this otherwise this will choke
@@ -40,7 +40,7 @@ function generatePoints(value) {
   return SVGPoints.pointsToPolyString(value)
 }
 
-let STYLE_COLOR_PARSERS = {
+const STYLE_COLOR_PARSERS = {
   "style.stroke": { parse: parseColor, generate: generateColor },
   "style.fill": { parse: parseColor, generate: generateColor },
   "style.backgroundColor": { parse: parseColor, generate: generateColor },
@@ -54,7 +54,7 @@ let STYLE_COLOR_PARSERS = {
   "style.stopColor": { parse: parseColor, generate: generateColor },
 }
 
-let SVG_COLOR_PARSERS = {
+const SVG_COLOR_PARSERS = {
   "stroke": { parse: parseColor, generate: generateColor },
   "fill": { parse: parseColor, generate: generateColor },
   "floodColor": { parse: parseColor, generate: generateColor },
@@ -72,15 +72,15 @@ let SVG_COLOR_PARSERS = {
   "fe-color": { parse: parseColor, generate: generateColor },
 }
 
-let SVG_PATH_PARSERS = {
+const SVG_PATH_PARSERS = {
   d: { parse: parseD, generate: generateD },
 }
 
-let SVG_POINT_PARSERS = {
+const SVG_POINT_PARSERS = {
   points: { parse: parsePoints, generate: generatePoints },
 }
 
-module.exports = {
+export default {
   "missing-glyph": has(STYLE_COLOR_PARSERS),
   "a": has(STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
   "abbr": has(STYLE_COLOR_PARSERS),

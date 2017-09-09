@@ -1,5 +1,3 @@
-module.exports = multiply
-
 /**
  * Multiplies two mat4's
  *
@@ -8,7 +6,7 @@ module.exports = multiply
  * @param {mat4} b the second operand
  * @returns {mat4} out
  */
-function multiply(out, a, b) {
+export default function multiply(out, a, b) {
   let a00 = a[0]
   let a01 = a[1]
   let a02 = a[2]

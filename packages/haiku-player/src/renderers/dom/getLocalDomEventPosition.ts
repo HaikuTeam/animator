@@ -1,6 +1,6 @@
-let getDomEventPosition = require("./getDomEventPosition")
+import getDomEventPosition from "./getDomEventPosition"
 
-function getLocalDomEventPosition(event, element) {
+export default function getLocalDomEventPosition(event, element) {
   let doc = element.ownerDocument
   let viewPosition = getDomEventPosition(event, doc)
   let elementRect = element.getBoundingClientRect()
@@ -13,5 +13,3 @@ function getLocalDomEventPosition(event, element) {
     pageY: viewPosition.y,
   }
 }
-
-module.exports = getLocalDomEventPosition

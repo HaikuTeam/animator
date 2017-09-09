@@ -1,16 +1,15 @@
-let camelize = require("./stringUtils/camelize")
-let hyphenate = require("./stringUtils/hyphenate")
-let toLowerFirst = require("./stringUtils/toLowerFirst")
-let toUpperFirst = require("./stringUtils/toUpperFirst")
-
-let prefixInfo = require("./prefixInfo")
-let prefixProperties = require("./prefixProperties")
+import camelize from "./stringUtils/camelize"
+import hyphenate from "./stringUtils/hyphenate"
+import toLowerFirst from "./stringUtils/toLowerFirst"
+import toUpperFirst from "./stringUtils/toUpperFirst"
+import prefixInfo from "./prefixInfo"
+import prefixProperties from "./prefixProperties"
 
 let docStyle = typeof document === "undefined"
   ? {}
   : document.documentElement.style
 
-module.exports = function(asStylePrefix) {
+export default function prefixer(asStylePrefix) {
   return function(name, config) {
     config = config || {}
 

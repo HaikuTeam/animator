@@ -2,35 +2,27 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let ValueBuilder = require("./ValueBuilder")
-let vanityHandlers = require("./properties/dom/vanities")
-let queryTree = require("./helpers/cssQueryTree")
-let Layout3D = require("./Layout3D")
-let scopifyElements = require("./helpers/scopifyElements")
-let assign = require("./vendor/assign")
-let SimpleEventEmitter = require("./helpers/SimpleEventEmitter")
-let upgradeBytecodeInPlace = require("./helpers/upgradeBytecodeInPlace")
-let addElementToHashTable = require("./helpers/addElementToHashTable")
-let HaikuTimeline = require("./HaikuTimeline")
-let Config = require("./Config")
+import ValueBuilder from "./ValueBuilder"
+import vanityHandlers from "./properties/dom/vanities"
+import queryTree from "./helpers/cssQueryTree"
+import Layout3D from "./Layout3D"
+import scopifyElements from "./helpers/scopifyElements"
+import assign from "./vendor/assign"
+import SimpleEventEmitter from "./helpers/SimpleEventEmitter"
+import upgradeBytecodeInPlace from "./helpers/upgradeBytecodeInPlace"
+import addElementToHashTable from "./helpers/addElementToHashTable"
+import HaikuTimeline from "./HaikuTimeline"
+import Config from "./Config"
 
-let PLAYER_VERSION = require("./../package.json").version
+const pkg = require("./../package.json")
+const PLAYER_VERSION = pkg.version
+const STRING_TYPE = "string"
+const OBJECT_TYPE = "object"
+const IDENTITY_MATRIX = Layout3D.createMatrix()
+const HAIKU_ID_ATTRIBUTE = "haiku-id"
+const DEFAULT_TIMELINE_NAME = "Default"
 
-// var FUNCTION_TYPE = 'function'
-let STRING_TYPE = "string"
-let OBJECT_TYPE = "object"
-
-let IDENTITY_MATRIX = Layout3D.createMatrix()
-
-let HAIKU_ID_ATTRIBUTE = "haiku-id"
-
-let DEFAULT_TIMELINE_NAME = "Default"
-
-function HaikuComponent(bytecode, context, config, metadata) {
-  if (!(this instanceof HaikuComponent)) {
-    return new HaikuComponent(bytecode, context, config, metadata)
-  }
-
+export default function HaikuComponent(bytecode, context, config, metadata) {
   if (!bytecode) {
     throw new Error("Empty bytecode not allowed")
   }
@@ -161,7 +153,7 @@ function HaikuComponent(bytecode, context, config, metadata) {
   }
 }
 
-HaikuComponent.PLAYER_VERSION = PLAYER_VERSION
+HaikuComponent['PLAYER_VERSION'] = PLAYER_VERSION
 
 function _clone(thing) {
   if (Array.isArray(thing)) {
@@ -537,6 +529,8 @@ function _cloneTemplate(mana) {
 
   let out = {
     elementName: mana.elementName,
+    attributes: null,
+    children: null
   }
 
   if (mana.attributes) {
@@ -1064,7 +1058,7 @@ function _applyContextChanges(
   Layout3D.initializeTreeAttributes(template, container) // handlers/vanities depend on attributes objects existing
   _initializeComponentTree(template, component, context)
 
-  scopifyElements(template) // I think this only needs to happen once when we build the full tree
+  scopifyElements(template, null, null) // I think this only needs to happen once when we build the full tree
 
   _applyBehaviors(
     timelinesRunning,
@@ -1076,7 +1070,7 @@ function _applyContextChanges(
   )
 
   if (renderOptions.sizing) {
-    _computeAndApplyPresetSizing(template, container, renderOptions.sizing)
+    _computeAndApplyPresetSizing(template, container, renderOptions.sizing, null)
   }
 
   _computeAndApplyTreeLayouts(template, container, renderOptions, context)
@@ -1158,7 +1152,18 @@ function _expandTreeElement(element, component, context) {
 }
 
 function _shallowCloneComponentTreeElement(element) {
-  let clone = {}
+  let clone = {
+    __instance: null,
+    __handlers: null,
+    __transformed: null,
+    __parent: null,
+    __scope: null,
+    __target: null,
+    layout: null,
+    elementName: null,
+    attributes: null,
+    children: null
+  }
 
   clone.__instance = element.__instance // Cache the instance
   clone.__handlers = element.__handlers // Transfer active event handlers
@@ -1170,6 +1175,7 @@ function _shallowCloneComponentTreeElement(element) {
 
   // Simply copy over the other standard parts of the node...
   clone.elementName = element.elementName
+
   clone.attributes = {}
   for (let key in element.attributes) {
     clone.attributes[key] = element.attributes[key]
@@ -1440,5 +1446,3 @@ function _computeAndApplyPresetSizing(element, container, mode, deltas) {
 function _isBytecode(thing) {
   return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines
 }
-
-module.exports = HaikuComponent

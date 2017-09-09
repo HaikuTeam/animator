@@ -1,4 +1,4 @@
-module.exports = function getWindowsBrowser(window) {
+export default function getWindowsBrowser(window) {
   let rv = -1
   if (!window) return rv
   if (!window.navigator) return rv

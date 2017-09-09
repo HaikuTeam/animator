@@ -1,4 +1,4 @@
-module.exports = function normalize(out, mat) {
+export default function normalize(out, mat) {
   let m44 = mat[15]
   // Cannot normalize.
   if (m44 === 0) return false

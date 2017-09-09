@@ -1,4 +1,6 @@
-var matchOne = require("./cssMatchOne");
+"use strict";
+exports.__esModule = true;
+var cssMatchOne_1 = require("./cssMatchOne");
 var PIECE_SEPARATOR = ",";
 function queryList(matches, list, query, options) {
     var maxdepth = options.maxdepth !== undefined
@@ -10,11 +12,12 @@ function queryList(matches, list, query, options) {
         for (var j = 0; j < list.length; j++) {
             var node = list[j];
             if (node.__depth <= maxdepth) {
-                if (matchOne(node, piece, options)) {
+                if (cssMatchOne_1["default"](node, piece, options)) {
                     matches.push(node);
                 }
             }
         }
     }
 }
-module.exports = queryList;
+exports["default"] = queryList;
+//# sourceMappingURL=cssQueryList.js.map

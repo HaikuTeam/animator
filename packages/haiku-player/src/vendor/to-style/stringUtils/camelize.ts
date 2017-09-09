@@ -1,9 +1,9 @@
-let toCamelFn = function(str, letter) {
+const hyphenRe = /[-\s]+(.)?/g
+
+function toCamelFn(str, letter) {
   return letter ? letter.toUpperCase() : ""
 }
 
-let hyphenRe = require("./hyphenRe")
-
-module.exports = function(str) {
+export default function camelize(str) {
   return str ? str.replace(hyphenRe, toCamelFn) : ""
 }

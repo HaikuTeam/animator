@@ -2,13 +2,16 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let isBlankString = require("./isBlankString")
-let removeElement = require("./removeElement")
-let cloneVirtualElement = require("./cloneVirtualElement")
-let getFlexId = require("./getFlexId")
-let shouldElementBeReplaced = require("./shouldElementBeReplaced")
+import isBlankString from "./isBlankString"
+import removeElement from "./removeElement"
+import cloneVirtualElement from "./cloneVirtualElement"
+import getFlexId from "./getFlexId"
+import shouldElementBeReplaced from "./shouldElementBeReplaced"
+import appendChild from "./appendChild"
+import updateElement from "./updateElement"
+import replaceElement from "./replaceElement"
 
-function renderTree(
+export default function renderTree(
   domElement,
   virtualElement,
   virtualChildren,
@@ -113,9 +116,3 @@ function renderTree(
 
   return domElement
 }
-
-module.exports = renderTree
-
-let appendChild = require("./appendChild")
-let updateElement = require("./updateElement")
-let replaceElement = require("./replaceElement")

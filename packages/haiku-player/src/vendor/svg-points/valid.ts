@@ -1,128 +1,112 @@
-/* eslint-disable */
+const getErrors = shape => {
+  const rules = getRules(shape)
+  const errors = []
 
-"use strict"
-
-exports.__esModule = true
-let getErrors = function(shape) {
-  let rules = getRules(shape)
-  let errors = []
-
-  rules.map(function(_ref) {
-    let match = _ref.match,
-      prop = _ref.prop,
-      required = _ref.required,
-      type = _ref.type
-
-    if (typeof shape[prop] === "undefined") {
+  rules.map(({ match, prop, required, type }) => {
+    if (typeof shape[ prop ] === 'undefined') {
       if (required) {
         errors.push(
-          prop +
-            " prop is required" +
-            (prop === "type" ? "" : " on a " + shape.type),
+          `${prop} prop is required${prop === 'type' ? '' : ` on a ${shape.type}`}`
         )
       }
     } else {
-      if (typeof type !== "undefined") {
-        if (type === "array") {
-          if (!Array.isArray(shape[prop])) {
-            errors.push(prop + " prop must be of type array")
+      if (typeof type !== 'undefined') {
+        if (type === 'array') {
+          if (!Array.isArray(shape[ prop ])) {
+            errors.push(`${prop} prop must be of type array`)
           }
-        } else if (typeof shape[prop] !== type) {
-          errors.push(prop + " prop must be of type " + type)
+        } else if (typeof shape[ prop ] !== type) { // eslint-disable-line valid-typeof
+          errors.push(`${prop} prop must be of type ${type}`)
         }
       }
 
       if (Array.isArray(match)) {
-        if (match.indexOf(shape[prop]) === -1) {
-          errors.push(prop + " prop must be one of " + match.join(", "))
+        if (match.indexOf(shape[ prop ]) === -1) {
+          errors.push(`${prop} prop must be one of ${match.join(', ')}`)
         }
       }
     }
   })
 
-  if (shape.type === "g" && Array.isArray(shape.shapes)) {
-    let childErrors = shape.shapes.map(function(s) {
-      return getErrors(s)
-    })
+  if (shape.type === 'g' && Array.isArray(shape.shapes)) {
+    const childErrors = shape.shapes.map(s => getErrors(s))
     return [].concat.apply(errors, childErrors)
   }
 
   return errors
 }
 
-let getRules = function(shape) {
-  let rules = [
-    {
-      match: [
-        "circle",
-        "ellipse",
-        "line",
-        "path",
-        "polygon",
-        "polyline",
-        "rect",
-        "g",
-      ],
-      prop: "type",
-      required: true,
-      type: "string",
-    },
-  ]
+const getRules = shape => {
+  const rules = [{
+    match: [
+      'circle',
+      'ellipse',
+      'line',
+      'path',
+      'polygon',
+      'polyline',
+      'rect',
+      'g'
+    ],
+    prop: 'type',
+    required: true,
+    type: 'string'
+  }]
 
   switch (shape.type) {
-    case "circle":
-      rules.push({ prop: "cx", required: true, type: "number" })
-      rules.push({ prop: "cy", required: true, type: "number" })
-      rules.push({ prop: "r", required: true, type: "number" })
+    case 'circle':
+      rules.push({ match: null, prop: 'cx', required: true, type: 'number' })
+      rules.push({ match: null, prop: 'cy', required: true, type: 'number' })
+      rules.push({ match: null, prop: 'r', required: true, type: 'number' })
       break
 
-    case "ellipse":
-      rules.push({ prop: "cx", required: true, type: "number" })
-      rules.push({ prop: "cy", required: true, type: "number" })
-      rules.push({ prop: "rx", required: true, type: "number" })
-      rules.push({ prop: "ry", required: true, type: "number" })
+    case 'ellipse':
+      rules.push({ match: null, prop: 'cx', required: true, type: 'number' })
+      rules.push({ match: null, prop: 'cy', required: true, type: 'number' })
+      rules.push({ match: null, prop: 'rx', required: true, type: 'number' })
+      rules.push({ match: null, prop: 'ry', required: true, type: 'number' })
       break
 
-    case "line":
-      rules.push({ prop: "x1", required: true, type: "number" })
-      rules.push({ prop: "x2", required: true, type: "number" })
-      rules.push({ prop: "y1", required: true, type: "number" })
-      rules.push({ prop: "y2", required: true, type: "number" })
+    case 'line':
+      rules.push({ match: null, prop: 'x1', required: true, type: 'number' })
+      rules.push({ match: null, prop: 'x2', required: true, type: 'number' })
+      rules.push({ match: null, prop: 'y1', required: true, type: 'number' })
+      rules.push({ match: null, prop: 'y2', required: true, type: 'number' })
       break
 
-    case "path":
-      rules.push({ prop: "d", required: true, type: "string" })
+    case 'path':
+      rules.push({ match: null, prop: 'd', required: true, type: 'string' })
       break
 
-    case "polygon":
-    case "polyline":
-      rules.push({ prop: "points", required: true, type: "string" })
+    case 'polygon':
+    case 'polyline':
+      rules.push({ match: null, prop: 'points', required: true, type: 'string' })
       break
 
-    case "rect":
-      rules.push({ prop: "height", required: true, type: "number" })
-      rules.push({ prop: "rx", type: "number" })
-      rules.push({ prop: "ry", type: "number" })
-      rules.push({ prop: "width", required: true, type: "number" })
-      rules.push({ prop: "x", required: true, type: "number" })
-      rules.push({ prop: "y", required: true, type: "number" })
+    case 'rect':
+      rules.push({ match: null, prop: 'height', required: true, type: 'number' })
+      rules.push({ match: null, prop: 'rx', type: 'number', required: false })
+      rules.push({ match: null, prop: 'ry', type: 'number', required: false })
+      rules.push({ match: null, prop: 'width', required: true, type: 'number' })
+      rules.push({ match: null, prop: 'x', required: true, type: 'number' })
+      rules.push({ match: null, prop: 'y', required: true, type: 'number' })
       break
 
-    case "g":
-      rules.push({ prop: "shapes", required: true, type: "array" })
+    case 'g':
+      rules.push({ match: null, prop: 'shapes', required: true, type: 'array' })
       break
   }
 
   return rules
 }
 
-let valid = function(shape) {
-  let errors = getErrors(shape)
+const valid = shape => {
+  const errors = getErrors(shape)
 
   return {
     errors,
-    valid: errors.length === 0,
+    valid: errors.length === 0
   }
 }
 
-exports.default = valid
+export default valid

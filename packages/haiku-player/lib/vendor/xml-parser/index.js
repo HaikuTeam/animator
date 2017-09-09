@@ -1,4 +1,5 @@
-module.exports = parse;
+"use strict";
+exports.__esModule = true;
 function parse(xml) {
     xml = xml.trim();
     xml = xml.replace(/<!--[\s\S]*?-->/g, "");
@@ -32,7 +33,8 @@ function parse(xml) {
         var node = {
             name: m[1],
             attributes: {},
-            children: []
+            children: [],
+            content: null
         };
         while (!(eos() || is(">") || is("?>") || is("/>"))) {
             var attr = attribute();
@@ -82,3 +84,5 @@ function parse(xml) {
         return xml.indexOf(prefix) === 0;
     }
 }
+exports["default"] = parse;
+//# sourceMappingURL=index.js.map

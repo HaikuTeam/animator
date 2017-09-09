@@ -1,23 +1,28 @@
-let quat = require("./lib/quat")
-let mat4 = {
-  identity: require("./../gl-mat4/identity"),
-  fromRotationTranslation: require("./../gl-mat4/fromRotationTranslation"),
-  scale: require("./../gl-mat4/scale"),
-  multiply: require("./../gl-mat4/multiply"),
+import quat from "./lib/quat"
+import glm4identity from "./../gl-mat4/identity"
+import glm4fromRotationTranslation from "./../gl-mat4/fromRotationTranslation"
+import glm4scale from "./../gl-mat4/scale"
+import glm4multiply from "./../gl-mat4/multiply"
+
+const mat4 = {
+  identity: glm4identity,
+  fromRotationTranslation: glm4fromRotationTranslation,
+  scale: glm4scale,
+  multiply: glm4multiply,
 }
 
-let ZERO3 = [0, 0, 0]
-let ZERO2 = [0, 0]
-let ONES = [1, 1, 1]
-let tmpQuat = [0, 0, 0, 1]
+const ZERO3 = [0, 0, 0]
+const ZERO2 = [0, 0]
+const ONES = [1, 1, 1]
+const tmpQuat = [0, 0, 0, 1]
 
-let tmpMat4 = mat4.identity([])
-let translation = [0, 0, 0]
-let euler = [0, 0, 0]
-let scale = [1, 1, 1]
-let skew = [0, 0]
+const tmpMat4 = mat4.identity([])
+const translation = [0, 0, 0]
+const euler = [0, 0, 0]
+const scale = [1, 1, 1]
+const skew = [0, 0]
 
-module.exports = function compose(out, opt) {
+export default function compose(out, opt) {
   if (!opt) return mat4.identity(out)
 
   copyVec3(translation, opt.translate || ZERO3)

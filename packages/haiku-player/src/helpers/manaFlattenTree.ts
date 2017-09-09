@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let objectPath = require("./objectPath")
+import objectPath from "./objectPath"
 
-function flattenTree(list, node, options, depth, index) {
+export default function flattenTree(list, node, options, depth, index) {
   if (!depth) depth = 0
   if (!index) index = 0
 
@@ -31,5 +31,3 @@ function flattenTree(list, node, options, depth, index) {
   }
   return list
 }
-
-module.exports = flattenTree

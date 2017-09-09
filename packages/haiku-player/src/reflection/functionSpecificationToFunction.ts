@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let marshalParams = require("./marshalParams")
+import marshalParams from "./marshalParams"
 
-function functionSpecificationToFunction(name, params, body, type) {
+export default function functionSpecificationToFunction(name, params, body, type) {
   if (!type) type = "FunctionExpression"
 
   params = marshalParams(params)
@@ -40,5 +40,3 @@ function functionSpecificationToFunction(name, params, body, type) {
 
   return fn
 }
-
-module.exports = functionSpecificationToFunction

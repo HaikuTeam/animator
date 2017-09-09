@@ -1,4 +1,5 @@
-module.exports = determinant;
+"use strict";
+exports.__esModule = true;
 function determinant(a) {
     var a00 = a[0];
     var a01 = a[1];
@@ -30,3 +31,5 @@ function determinant(a) {
     var b11 = a22 * a33 - a23 * a32;
     return b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
 }
+exports["default"] = determinant;
+//# sourceMappingURL=determinant.js.map

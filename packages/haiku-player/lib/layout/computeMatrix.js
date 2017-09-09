@@ -1,3 +1,5 @@
+"use strict";
+exports.__esModule = true;
 function computeMatrix(outputMatrix, outputNodepad, layoutSpec, currentMatrix, currentsizeAbsolute, parentMatrix, parentsizeAbsolute) {
     var translationX = layoutSpec.translation.x;
     var translationY = layoutSpec.translation.y;
@@ -85,4 +87,5 @@ function computeMatrix(outputMatrix, outputNodepad, layoutSpec, currentMatrix, c
     outputMatrix[15] = 1;
     return outputMatrix;
 }
-module.exports = computeMatrix;
+exports["default"] = computeMatrix;
+//# sourceMappingURL=computeMatrix.js.map

@@ -1,1 +1,1 @@
-declare function length(a: any): number;
+export default function length(a: any): number;
