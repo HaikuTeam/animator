@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let Events = require("./Events")
+import Events from "./Events"
 
-module.exports = function attachEventListener(
+export default function attachEventListener(
   domElement,
   eventName,
   listener,

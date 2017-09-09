@@ -1,4 +1,3 @@
-let internal1 = require("../internal")
-exports.easeOutExpo = function(x) {
-  return x === 1 ? 1 : 1 - internal1.pow(2, -10 * x)
-}
+import { pow } from '../internal';
+
+export const easeOutExpo = (x: number): number => x === 1 ? 1 : 1 - pow(2, -10 * x);

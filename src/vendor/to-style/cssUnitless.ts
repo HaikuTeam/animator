@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   "animation": 1,
   "column-count": 1,
   "columns": 1,

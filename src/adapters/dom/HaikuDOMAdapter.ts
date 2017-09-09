@@ -2,9 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let HaikuContext = require("./../../HaikuContext")
-let HaikuDOMRendererClass = require("./../../renderers/dom")
-let PLAYER_VERSION = require("./../../../package.json").version
+import HaikuContext from "./../../HaikuContext"
+import HaikuDOMRendererClass from "./../../renderers/dom"
+
+const pkg = require("./../../../package.json")
+const PLAYER_VERSION = pkg.version
 
 /**
  * Example ways in which the export of this module is invoked:
@@ -17,13 +19,13 @@ let PLAYER_VERSION = require("./../../../package.json").version
  * module.exports = HaikuDOMAdapter(require('./code/main/code.js'))
  */
 
-let IS_WINDOW_DEFINED = typeof window !== "undefined"
+const IS_WINDOW_DEFINED = typeof window !== "undefined"
 
 /**
  * @function HaikuDOMAdapter
  * @description Given a bytecode object, return a factory function which can create a DOM-playable component.
  */
-function HaikuDOMAdapter(bytecode, config, safeWindow) {
+export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
   if (!config) config = {}
   if (!config.options) config.options = {}
 
@@ -42,7 +44,7 @@ function HaikuDOMAdapter(bytecode, config, safeWindow) {
     }
   }
 
-  return HaikuContext.createComponentFactory(
+  return HaikuContext['createComponentFactory'](
     HaikuDOMRendererClass,
     bytecode,
     config, // Note: Full config object, of which options is one property!
@@ -52,11 +54,9 @@ function HaikuDOMAdapter(bytecode, config, safeWindow) {
 
 // Allow multiple players of different versions to exist on the same page
 if (IS_WINDOW_DEFINED) {
-  if (!window.HaikuPlayer) {
-    window.HaikuPlayer = {}
+  if (!window['HaikuPlayer']) {
+    window['HaikuPlayer'] = {}
   }
 
-  window.HaikuPlayer[PLAYER_VERSION] = HaikuDOMAdapter
+  window['HaikuPlayer'][PLAYER_VERSION] = HaikuDOMAdapter
 }
-
-module.exports = HaikuDOMAdapter

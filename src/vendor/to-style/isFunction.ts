@@ -1,5 +1,5 @@
 let objectToString = Object.prototype.toString
 
-module.exports = function(v) {
+export default function isFunction(v) {
   return objectToString.apply(v) === "[object Function]"
 }

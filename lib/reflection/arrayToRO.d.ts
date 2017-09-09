@@ -1,2 +1,1 @@
-declare let expressionToRO: any;
-declare function arrayToRO(arr: any): any[];
+export default function arrayToRO(arr: any): any[];

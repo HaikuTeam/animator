@@ -2,19 +2,19 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let matchById = require("./cssMatchById")
-let matchByClass = require("./cssMatchByClass")
-let matchByTagName = require("./cssMatchByTagName")
-let matchByAttribute = require("./cssMatchByAttribute")
-let matchByHaiku = require("./cssMatchByHaiku")
-let attrSelectorParser = require("./attrSelectorParser")
+import matchById from "./cssMatchById"
+import matchByClass from "./cssMatchByClass"
+import matchByTagName from "./cssMatchByTagName"
+import matchByAttribute from "./cssMatchByAttribute"
+import matchByHaiku from "./cssMatchByHaiku"
+import attrSelectorParser from "./attrSelectorParser"
 
-let ID_PREFIX = "#"
-let CLASS_PREFIX = "."
-let ATTR_PREFIX = "["
-let HAIKU_PREFIX = "haiku:"
+const ID_PREFIX = "#"
+const CLASS_PREFIX = "."
+const ATTR_PREFIX = "["
+const HAIKU_PREFIX = "haiku:"
 
-function matchOne(node, piece, options) {
+export default function matchOne(node, piece, options) {
   if (piece.slice(0, 6) === HAIKU_PREFIX) {
     return matchByHaiku(node, piece.slice(6), options)
   }
@@ -41,5 +41,3 @@ function matchOne(node, piece, options) {
 
   return matchByTagName(node, piece, options)
 }
-
-module.exports = matchOne

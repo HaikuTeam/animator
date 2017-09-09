@@ -1,4 +1,4 @@
-module.exports = function(value) {
+export default function toUpperFirst(value) {
   return value.length
     ? value.charAt(0).toUpperCase() + value.substring(1)
     : value

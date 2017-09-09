@@ -14,27 +14,31 @@ https://github.com/ChromiumWebApps/chromium/blob/master/ui/gfx/transform_util.cc
 http://www.w3.org/TR/css3-transforms/#decomposing-a-3d-matrix
 */
 
-let normalize = require("./normalize")
+import normalize from "./normalize"
+import create from "./../gl-mat4/create"
+import clone from "./../gl-mat4/clone"
+import determinant from "./../gl-mat4/determinant"
+import invert from "./../gl-mat4/invert"
+import transpose from "./../gl-mat4/transpose"
+import glv3length from "./../gl-vec3/length"
+import glv3normalize from "./../gl-vec3/normalize"
+import glv3dot from "./../gl-vec3/dot"
+import glv3cross from "./../gl-vec3/cross"
 
-let create = require("./../gl-mat4/create")
-let clone = require("./../gl-mat4/clone")
-let determinant = require("./../gl-mat4/determinant")
-let invert = require("./../gl-mat4/invert")
-let transpose = require("./../gl-mat4/transpose")
-let vec3 = {
-  length: require("./../gl-vec3/length"),
-  normalize: require("./../gl-vec3/normalize"),
-  dot: require("./../gl-vec3/dot"),
-  cross: require("./../gl-vec3/cross"),
+const vec3 = {
+  length: glv3length,
+  normalize: glv3normalize,
+  dot: glv3dot,
+  cross: glv3cross,
 }
 
-let tmp = create()
-let perspectiveMatrix = create()
-let tmpVec4 = [0, 0, 0, 0]
-let row = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-let pdum3 = [0, 0, 0]
+const tmp = create()
+const perspectiveMatrix = create()
+const tmpVec4 = [0, 0, 0, 0]
+const row = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+const pdum3 = [0, 0, 0]
 
-module.exports = function decomposeMat4(
+export default function decomposeMat4(
   matrix,
   translation,
   scale,
@@ -53,7 +57,7 @@ module.exports = function decomposeMat4(
 
   // perspectiveMatrix is used to solve for perspective, but it also provides
   // an easy way to test for singularity of the upper 3x3 component.
-  clone(perspectiveMatrix, tmp)
+  clone(perspectiveMatrix)
 
   perspectiveMatrix[3] = 0
   perspectiveMatrix[7] = 0
@@ -62,7 +66,7 @@ module.exports = function decomposeMat4(
 
   // If the perspectiveMatrix is not invertible, we are also unable to
   // decompose, so we'll bail early. Constant taken from SkMatrix44::invert.
-  if (Math.abs(determinant(perspectiveMatrix) < 1e-8)) return false
+  if (Math.abs(Number(determinant(perspectiveMatrix) < 1e-8))) return false
 
   let a03 = tmp[3]
   let a13 = tmp[7]

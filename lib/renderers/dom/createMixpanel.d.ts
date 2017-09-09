@@ -1,2 +1,1 @@
-declare let assign: any;
-declare let Mixpanel: any;
+export default function createMixpanel(domElement: any, mixpanelToken: any, component: any): void;

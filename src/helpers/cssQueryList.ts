@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let matchOne = require("./cssMatchOne")
+import matchOne from "./cssMatchOne"
 
-let PIECE_SEPARATOR = ","
+const PIECE_SEPARATOR = ","
 
-function queryList(matches, list, query, options) {
+export default function queryList(matches, list, query, options) {
   let maxdepth = options.maxdepth !== undefined
     ? parseInt(options.maxdepth, 10)
     : Infinity
@@ -23,5 +23,3 @@ function queryList(matches, list, query, options) {
     }
   }
 }
-
-module.exports = queryList

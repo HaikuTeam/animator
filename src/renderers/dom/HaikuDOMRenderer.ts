@@ -2,19 +2,14 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let getElementSize = require("./getElementSize")
-let getLocalDomEventPosition = require("./getLocalDomEventPosition")
-let createRightClickMenu = require("./createRightClickMenu")
-let createMixpanel = require("./createMixpanel")
-let render = require("./render")
-let patch = require("./patch")
+import getElementSize from "./getElementSize"
+import getLocalDomEventPosition from "./getLocalDomEventPosition"
+import createRightClickMenu from "./createRightClickMenu"
+import createMixpanel from "./createMixpanel"
+import render from "./render"
+import patch from "./patch"
 
-function HaikuDOMRenderer() {
-  // TODO: Pass in the mount element here instead of through the methods each time?
-  if (!(this instanceof HaikuDOMRenderer)) {
-    return new HaikuDOMRenderer()
-  }
-
+export default function HaikuDOMRenderer() {
   this._user = {
     mouse: {
       x: 0,
@@ -250,5 +245,3 @@ HaikuDOMRenderer.prototype.getUser = function getUser() {
     mouches: _copy(this._user.mouches),
   }
 }
-
-module.exports = HaikuDOMRenderer

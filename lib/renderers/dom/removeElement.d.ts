@@ -1,1 +1,1 @@
-declare function removeElement(domElement: any): any;
+export default function removeElement(domElement: any): any;

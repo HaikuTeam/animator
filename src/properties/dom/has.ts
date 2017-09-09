@@ -1,8 +1,12 @@
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
+
 // Just a utility function for populating these objects
-function has() {
+export default function has(...args) {
   let obj = {}
-  for (let i = 0; i < arguments.length; i++) {
-    let arg = arguments[i]
+  for (let i = 0; i < args.length; i++) {
+    let arg = args[i]
     for (let name in arg) {
       let fn = arg[name]
       obj[name] = fn
@@ -10,5 +14,3 @@ function has() {
   }
   return obj
 }
-
-module.exports = has

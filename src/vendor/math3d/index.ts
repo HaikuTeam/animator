@@ -20,7 +20,7 @@ function normalizeRad(rad) {
  * @param {Quternion} quaternion
  * @returns {Object} eulerAngles: [x,y,z]
  */
-function _getEulerAngles(x, y, z, w) {
+function getEulerAngles(x, y, z, w) {
   let poleSum = x * w - y * z
 
   if (doublesEqual(poleSum, 0.5)) return [90, 0, 0]
@@ -34,6 +34,6 @@ function _getEulerAngles(x, y, z, w) {
   return [normalizeRad(_x), normalizeRad(_y), normalizeRad(_z)]
 }
 
-module.exports = {
-  getEulerAngles: _getEulerAngles,
+export default {
+  getEulerAngles,
 }

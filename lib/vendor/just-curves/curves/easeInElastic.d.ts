@@ -1,1 +1,1 @@
-declare let internal1: any;
+export declare const easeInElastic: (n: number) => number;

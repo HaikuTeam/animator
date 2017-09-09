@@ -1,6 +1,5 @@
-declare function cloneVirtualElement(virtualElement: any): {
+export default function cloneVirtualElement(virtualElement: any): {
     elementName: any;
-    attributes: any;
+    attributes: {};
     children: any;
 };
-declare let cloneAttributes: any;

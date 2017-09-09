@@ -1,4 +1,4 @@
-declare let allSvgElementNames: {
+declare const _default: {
     "a": boolean;
     "altGlyph": boolean;
     "altGlyphDef": boolean;
@@ -81,3 +81,4 @@ declare let allSvgElementNames: {
     "view": boolean;
     "vkern": boolean;
 };
+export default _default;

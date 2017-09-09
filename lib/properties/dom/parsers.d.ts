@@ -1,125 +1,208 @@
-declare let has: any;
-declare let ColorUtils: any;
-declare let SVGPoints: any;
-declare function parseD(value: any): any;
-declare function generateD(value: any): any;
-declare function parseColor(value: any): any;
-declare function generateColor(value: any): any;
-declare function parsePoints(value: any): any;
-declare function generatePoints(value: any): any;
-declare let STYLE_COLOR_PARSERS: {
-    "style.stroke": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "style.fill": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "style.backgroundColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "style.borderBottomColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "style.borderColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "style.borderLeftColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "style.borderRightColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "style.borderTopColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "style.floodColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "style.lightingColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "style.stopColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
+declare const _default: {
+    "missing-glyph": {};
+    "a": {};
+    "abbr": {};
+    "acronym": {};
+    "address": {};
+    "altGlyph": {};
+    "altGlyphDef": {};
+    "altGlyphItem": {};
+    "animate": {};
+    "animateColor": {};
+    "animateMotion": {};
+    "animateTransform": {};
+    "applet": {};
+    "area": {};
+    "article": {};
+    "aside": {};
+    "audio": {};
+    "b": {};
+    "base": {};
+    "basefont": {};
+    "bdi": {};
+    "bdo": {};
+    "big": {};
+    "blockquote": {};
+    "body": {};
+    "br": {};
+    "button": {};
+    "canvas": {};
+    "caption": {};
+    "center": {};
+    "circle": {};
+    "cite": {};
+    "clipPath": {};
+    "code": {};
+    "col": {};
+    "colgroup": {};
+    "color-profile": {};
+    "command": {};
+    "cursor": {};
+    "datalist": {};
+    "dd": {};
+    "defs": {};
+    "del": {};
+    "desc": {};
+    "details": {};
+    "dfn": {};
+    "dir": {};
+    "discard": {};
+    "div": {};
+    "dl": {};
+    "dt": {};
+    "ellipse": {};
+    "em": {};
+    "embed": {};
+    "feBlend": {};
+    "feColorMatrix": {};
+    "feComponentTransfer": {};
+    "feComposite": {};
+    "feConvolveMatrix": {};
+    "feDiffuseLighting": {};
+    "feDisplacementMap": {};
+    "feDistantLight": {};
+    "feDropShadow": {};
+    "feFlood": {};
+    "feFuncA": {};
+    "feFuncB": {};
+    "feFuncG": {};
+    "feFuncR": {};
+    "feGaussianBlur": {};
+    "feImage": {};
+    "feMerge": {};
+    "feMergeNode": {};
+    "feMorphology": {};
+    "feOffset": {};
+    "fePointLight": {};
+    "feSpecularLighting": {};
+    "feTile": {};
+    "feTurbulence": {};
+    "fieldset": {};
+    "figcaption": {};
+    "figure": {};
+    "filter": {};
+    "font-face": {};
+    "font-face-format": {};
+    "font-face-name": {};
+    "font-face-src": {};
+    "font-face-uri": {};
+    "font": {};
+    "footer": {};
+    "foreignObject": {};
+    "form": {};
+    "frame": {};
+    "frameset": {};
+    "g": {};
+    "glyph": {};
+    "glyphRef": {};
+    "h1": {};
+    "h2": {};
+    "h3": {};
+    "h4": {};
+    "h5": {};
+    "h6": {};
+    "hatch": {};
+    "hatchpath": {};
+    "head": {};
+    "header": {};
+    "hgroup": {};
+    "hkern": {};
+    "hr": {};
+    "html": {};
+    "i": {};
+    "iframe": {};
+    "image": {};
+    "img": {};
+    "input": {};
+    "ins": {};
+    "kbd": {};
+    "keygen": {};
+    "label": {};
+    "legend": {};
+    "li": {};
+    "line": {};
+    "linearGradient": {};
+    "link": {};
+    "map": {};
+    "mark": {};
+    "marker": {};
+    "mask": {};
+    "menu": {};
+    "mesh": {};
+    "meshgradient": {};
+    "meshpatch": {};
+    "meshrow": {};
+    "meta": {};
+    "metadata": {};
+    "meter": {};
+    "mpath": {};
+    "nav": {};
+    "noframes": {};
+    "noscript": {};
+    "object": {};
+    "ol": {};
+    "optgroup": {};
+    "option": {};
+    "output": {};
+    "p": {};
+    "param": {};
+    "path": {};
+    "pattern": {};
+    "polygon": {};
+    "polyline": {};
+    "pre": {};
+    "progress": {};
+    "q": {};
+    "radialGradient": {};
+    "rect": {};
+    "rp": {};
+    "rt": {};
+    "ruby": {};
+    "s": {};
+    "samp": {};
+    "script": {};
+    "section": {};
+    "select": {};
+    "set": {};
+    "small": {};
+    "solidcolor": {};
+    "source": {};
+    "span": {};
+    "stop": {};
+    "strike": {};
+    "strong": {};
+    "style": {};
+    "sub": {};
+    "summary": {};
+    "sup": {};
+    "svg": {};
+    "switch": {};
+    "symbol": {};
+    "table": {};
+    "tbody": {};
+    "td": {};
+    "text": {};
+    "textarea": {};
+    "textPath": {};
+    "tfoot": {};
+    "th": {};
+    "thead": {};
+    "time": {};
+    "title": {};
+    "tr": {};
+    "track": {};
+    "tref": {};
+    "tspan": {};
+    "tt": {};
+    "u": {};
+    "ul": {};
+    "unknown": {};
+    "us": {};
+    "use": {};
+    "var": {};
+    "video": {};
+    "view": {};
+    "vkern": {};
+    "wb": {};
 };
-declare let SVG_COLOR_PARSERS: {
-    "stroke": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "fill": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "floodColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "lightingColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "stopColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "backgroundColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "animateColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "feColor": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "flood-color": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "lighting-color": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "stop-color": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "background-color": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "animate-color": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-    "fe-color": {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-};
-declare let SVG_PATH_PARSERS: {
-    d: {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-};
-declare let SVG_POINT_PARSERS: {
-    points: {
-        parse: (value: any) => any;
-        generate: (value: any) => any;
-    };
-};
+export default _default;

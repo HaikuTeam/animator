@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let objectPath = require("./objectPath")
+import objectPath from "./objectPath"
 
-let STRING = "string"
-let OBJECT = "object"
-let FUNCTION = "function"
+const STRING = "string"
+const OBJECT = "object"
+const FUNCTION = "function"
 
 // Quick and dirty (not AST-based) way to get the name of a function at runtime
 function _getFnName(fn) {
@@ -22,7 +22,7 @@ function _getFnName(fn) {
   return ex && ex[1]
 }
 
-function matchByTagName(node, tagName, options) {
+export default function matchByTagName(node, tagName, options) {
   let val = objectPath(node, options.name)
   if (val) {
     if (typeof val === STRING && val === tagName) {
@@ -40,5 +40,3 @@ function matchByTagName(node, tagName, options) {
     }
   }
 }
-
-module.exports = matchByTagName

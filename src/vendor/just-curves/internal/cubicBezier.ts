@@ -1,33 +1,38 @@
-let index1 = require("./index")
-let bezier = function(n1, n2, t) {
-  return 3 * n1 * (1 - t) * (1 - t) * t + 3 * n2 * (1 - t) * t * t + t * t * t
-}
-exports.cubicBezier = function(p0, p1, p2, p3) {
+import { abs, epsilon } from './index';
+import { Curve } from '../types';
+
+const bezier = (n1: number, n2: number, t: number) =>
+  3 * n1 * (1 - t) * (1 - t) * t + 3 * n2 * (1 - t) * t * t + t * t * t;
+
+export const cubicBezier = (p0: number, p1: number, p2: number, p3: number): Curve => {
   if (p0 < 0 || p0 > 1 || p2 < 0 || p2 > 1) {
-    return function(x) {
-      return x
-    }
+    return (x: number) => x;
   }
-  return function(x) {
+
+  return (x: number): number => {
     if (x === 0 || x === 1) {
-      return x
+      return x;
     }
-    let start = 0
-    let end = 1
-    let limit = 19
+
+    let start = 0;
+    let end = 1;
+    let limit = 19;
+
     do {
-      let mid = (start + end) * 0.5
-      let xEst = bezier(p0, p2, mid)
-      if (index1.abs(x - xEst) < index1.epsilon) {
-        return bezier(p1, p3, mid)
+      const mid = (start + end) * .5;
+      const xEst = bezier(p0, p2, mid);
+
+      if (abs(x - xEst) < epsilon) {
+        return bezier(p1, p3, mid);
       }
       if (xEst < x) {
-        start = mid
+        start = mid;
       } else {
-        end = mid
+        end = mid;
       }
-    } while (--limit)
+    } while (--limit);
+
     // limit is reached
-    return x
-  }
-}
+    return x;
+  };
+};

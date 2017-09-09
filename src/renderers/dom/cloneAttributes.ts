@@ -1,4 +1,4 @@
-function _cloneAttributes(attributes) {
+export default function _cloneAttributes(attributes) {
   if (!attributes) return {}
   let clone = {}
   for (let key in attributes) {
@@ -6,5 +6,3 @@ function _cloneAttributes(attributes) {
   }
   return clone
 }
-
-module.exports = _cloneAttributes

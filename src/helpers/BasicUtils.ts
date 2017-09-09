@@ -2,10 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let uniq = require("./../vendor/array-unique").immutable
+import ArrayUniq from "./../vendor/array-unique"
 
-let OBJECT = "object"
-let FUNCTION = "function"
+const uniq = ArrayUniq.immutable
+const OBJECT = "object"
+const FUNCTION = "function"
 
 function isObject(value) {
   return value !== null && typeof value === OBJECT && !Array.isArray(value)
@@ -44,7 +45,7 @@ function mergeValue(previous, incoming) {
   return incoming
 }
 
-module.exports = {
+export default {
   isObject,
   isFunction,
   isEmpty,

@@ -21,7 +21,7 @@ function immutable(arr) {
   return uniq(newArray)
 }
 
-module.exports = {
+export default {
   uniq,
   immutable,
 }

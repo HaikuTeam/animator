@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function assignStyle(domElement, virtualElement, style, component, isPatchOperation) {
+export default function assignStyle(domElement, virtualElement, style, component, isPatchOperation) {
   if (!domElement.__haikuExplicitStyles) domElement.__haikuExplicitStyles = {}
 
   if (!isPatchOperation) {
@@ -32,5 +32,3 @@ function assignStyle(domElement, virtualElement, style, component, isPatchOperat
   }
   return domElement
 }
-
-module.exports = assignStyle

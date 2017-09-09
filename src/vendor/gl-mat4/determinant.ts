@@ -1,12 +1,10 @@
-module.exports = determinant
-
 /**
  * Calculates the determinant of a mat4
  *
  * @param {mat4} a the source matrix
  * @returns {Number} determinant of a
  */
-function determinant(a) {
+export default function determinant(a) {
   let a00 = a[0]
   let a01 = a[1]
   let a02 = a[2]

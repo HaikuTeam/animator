@@ -1,3 +1,2 @@
-exports.easeInQuart = function(x) {
-  return x * x * x * x
-}
+export const easeInQuart = (x: number): number => x * x * x * x;
+

@@ -1,1 +1,1 @@
-declare function isEmptyChild(thing: any): boolean;
+export default function isEmptyChild(thing: any): boolean;

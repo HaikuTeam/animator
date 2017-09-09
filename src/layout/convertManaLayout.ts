@@ -2,13 +2,13 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let parseCssTransformString = require("./../helpers/parseCssTransformString")
-let visitManaTree = require("./../helpers/visitManaTree")
-let parseCssValue = require("./../vendor/css-value")
+import parseCssTransformString from "./../helpers/parseCssTransformString"
+import visitManaTree from "./../helpers/visitManaTree"
+import parseCssValue from "./../vendor/css-value"
 
-let ROOT_LOCATOR = "0"
+const ROOT_LOCATOR = "0"
 
-let TRANSFORM_COMPONENT_WHITELIST = {
+const TRANSFORM_COMPONENT_WHITELIST = {
   "rotation.x": true,
   "rotation.y": true,
   "rotation.z": true,
@@ -57,7 +57,7 @@ function determineSizingProp(sizeAxis, attributeValue) {
   }
 }
 
-module.exports = function convertManaLayout(mana) {
+export default function convertManaLayout(mana) {
   visitManaTree(ROOT_LOCATOR, mana, function _visitor(
     name,
     attributes,
@@ -159,7 +159,7 @@ module.exports = function convertManaLayout(mana) {
       delete attributes.x
       delete attributes.y
     }
-  })
+  }, null, null)
 
   return mana
 }

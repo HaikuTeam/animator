@@ -1,11 +1,9 @@
-module.exports = create
-
 /**
  * Creates a new identity mat4
  *
  * @returns {mat4} a new 4x4 matrix
  */
-function create() {
+export default function create() {
   let out = new Float32Array(16)
   out[0] = 1
   out[1] = 0

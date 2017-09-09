@@ -1,4 +1,3 @@
-let internal1 = require("../internal")
-exports.easeOutCirc = function(x) {
-  return internal1.sqrt(1 - (x - 1) * (x - 1))
-}
+import { sqrt } from '../internal';
+
+export const easeOutCirc = (x: number): number => sqrt(1 - ((x - 1) * (x - 1)));

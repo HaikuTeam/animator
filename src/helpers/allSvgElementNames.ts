@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let allSvgElementNames = {
+export default {
   "a": true,
   "altGlyph": true,
   "altGlyphDef": true,
@@ -85,5 +85,3 @@ let allSvgElementNames = {
   "view": true,
   "vkern": true,
 }
-
-module.exports = allSvgElementNames

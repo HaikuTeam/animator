@@ -5,6 +5,7 @@ function hasPreserve3d(window) {
   let innerAnchor
   let CSS = window.CSS
   let result = false
+  let tmp
   if (CSS && CSS.supports && CSS.supports("(transform-style: preserve-3d)")) {
     return true
   }
@@ -16,12 +17,12 @@ function hasPreserve3d(window) {
     "display: block; width: 9px; height: 1px; background: #000; transform-origin: right; transform: rotateY(40deg);"
   outerAnchor.appendChild(innerAnchor)
   window.document.documentElement.appendChild(outerAnchor)
-  result = innerAnchor.getBoundingClientRect()
+  tmp = innerAnchor.getBoundingClientRect()
   window.document.documentElement.removeChild(outerAnchor)
-  result = result.width && result.width < 4
+  result = tmp.width && tmp.width < 4
   return result
 }
 
-module.exports = {
-  hasPreserve3d,
+export default {
+  hasPreserve3d
 }

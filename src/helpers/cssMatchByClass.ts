@@ -2,13 +2,13 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let objectPath = require("./objectPath")
+import objectPath from "./objectPath"
 
-let CLASS_NAME_ATTR = "class"
-let ALT_CLASS_NAME_ATTR = "className" // Ease of React integration
-let SPACE = " "
+const CLASS_NAME_ATTR = "class"
+const ALT_CLASS_NAME_ATTR = "className" // Ease of React integration
+const SPACE = " "
 
-function matchByClass(node, className, options) {
+export default function matchByClass(node, className, options) {
   let attributes = objectPath(node, options.attributes)
   if (attributes) {
     let foundClassName = attributes[CLASS_NAME_ATTR]
@@ -21,5 +21,3 @@ function matchByClass(node, className, options) {
     }
   }
 }
-
-module.exports = matchByClass

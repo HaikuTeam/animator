@@ -1,8 +1,6 @@
-declare let toUpperFirst: any;
-declare let re: RegExp;
-declare let docStyle: {};
-declare let prefixInfo: {
+declare const prefixInfo: {
     style: string;
     css: string;
     dom: any;
 };
+export default prefixInfo;

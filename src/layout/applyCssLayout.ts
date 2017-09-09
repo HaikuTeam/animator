@@ -2,19 +2,19 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let setStyleMatrix = require("./setStyleMatrix")
-let formatTransform = require("./formatTransform")
-let isEqualTransformString = require("./isEqualTransformString")
-let scopeOfElement = require("./scopeOfElement")
+import setStyleMatrix from "./setStyleMatrix"
+import formatTransform from "./formatTransform"
+import isEqualTransformString from "./isEqualTransformString"
+import scopeOfElement from "./scopeOfElement"
 
-let SVG = "svg"
+const SVG = "svg"
 
 function hasExplicitStyle(domElement, key) {
   if (!domElement.__haikuExplicitStyles) return false
   return !!domElement.__haikuExplicitStyles[key]
 }
 
-function applyCssLayout(
+export default function applyCssLayout(
   domElement,
   virtualElement,
   nodeLayout,
@@ -108,8 +108,7 @@ function applyCssLayout(
           nodeLayout.format,
           computedLayout.matrix,
           context.config.options.useWebkitPrefix,
-          pixelRatio,
-          context,
+          pixelRatio
         )
       }
     } else {
@@ -126,8 +125,7 @@ function applyCssLayout(
             nodeLayout.format,
             computedLayout.matrix,
             context.config.options.useWebkitPrefix,
-            pixelRatio,
-            context,
+            pixelRatio
           )
         }
       }
@@ -136,5 +134,3 @@ function applyCssLayout(
 
   return domElement.style
 }
-
-module.exports = applyCssLayout

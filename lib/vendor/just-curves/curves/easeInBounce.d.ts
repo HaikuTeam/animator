@@ -1,1 +1,1 @@
-declare let index1: any;
+export declare const easeInBounce: (x: number) => number;

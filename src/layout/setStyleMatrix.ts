@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let formatTransform = require("./formatTransform")
-let isEqualTransformString = require("./isEqualTransformString")
+import formatTransform from "./formatTransform"
+import isEqualTransformString from "./isEqualTransformString"
 
-function setStyleMatrix(
+export default function setStyleMatrix(
   styleObject,
   format,
   matrix,
@@ -24,5 +24,3 @@ function setStyleMatrix(
   }
   return styleObject
 }
-
-module.exports = setStyleMatrix

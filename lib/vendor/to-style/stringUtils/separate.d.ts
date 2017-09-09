@@ -1,4 +1,1 @@
-declare let doubleColonRe: RegExp;
-declare let upperToLowerRe: RegExp;
-declare let lowerToUpperRe: RegExp;
-declare let underscoreToDashRe: RegExp;
+export default function separate(name: string, separator: string): string;

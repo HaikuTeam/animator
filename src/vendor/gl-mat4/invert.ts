@@ -1,5 +1,3 @@
-module.exports = invert
-
 /**
  * Inverts a mat4
  *
@@ -7,7 +5,7 @@ module.exports = invert
  * @param {mat4} a the source matrix
  * @returns {mat4} out
  */
-function invert(out, a) {
+export default function invert(out, a) {
   let a00 = a[0]
   let a01 = a[1]
   let a02 = a[2]

@@ -1,5 +1,5 @@
-declare let cs: any;
-declare let STRING: string;
-declare let OBJECT: string;
-declare function parseString(str: any): any;
-declare function generateString(desc: any): any;
+declare const _default: {
+    parseString: (str: any) => any;
+    generateString: (desc: any) => any;
+};
+export default _default;

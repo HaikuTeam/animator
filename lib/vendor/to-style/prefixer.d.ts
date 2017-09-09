@@ -1,7 +1,1 @@
-declare let camelize: any;
-declare let hyphenate: any;
-declare let toLowerFirst: any;
-declare let toUpperFirst: any;
-declare let prefixInfo: any;
-declare let prefixProperties: any;
-declare let docStyle: {};
+export default function prefixer(asStylePrefix: any): (name: any, config: any) => any;

@@ -2,14 +2,14 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let Curves = require("./vendor/just-curves")
+import Curves from "./vendor/just-curves"
 
-let CENT = 1.0
-let OBJECT = "object"
-let NUMBER = "number"
-let KEYFRAME_ZERO = 0
-let KEYFRAME_MARGIN = 16.666
-let STRING = "string"
+const CENT = 1.0
+const OBJECT = "object"
+const NUMBER = "number"
+const KEYFRAME_ZERO = 0
+const KEYFRAME_MARGIN = 16.666
+const STRING = "string"
 
 function percentOfTime(t0, t1, tnow) {
   let span = t1 - t0
@@ -218,7 +218,7 @@ function getTransitionValue(
   return finalValue
 }
 
-module.exports = {
+export default {
   percentOfTime,
   valueAtPercent,
   valueAtTime,

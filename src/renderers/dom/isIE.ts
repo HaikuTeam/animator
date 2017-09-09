@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-module.exports = function isIE(window) {
+export default function isIE(window) {
   if (!window) return false
   if (!window.navigator) return false
   if (!window.navigator.userAgent) return false

@@ -1,2 +1,5 @@
-declare function uniq(arr: any): any;
-declare function immutable(arr: any): any;
+declare const _default: {
+    uniq: (arr: any) => any;
+    immutable: (arr: any) => any;
+};
+export default _default;

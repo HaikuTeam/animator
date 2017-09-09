@@ -3,7 +3,7 @@
  */
 
 // Order matters
-let REGEXPS = [
+const REGEXPS = [
   { type: "whitespace", re: /^[\s]+/ },
   { type: "paren_open", re: /^\(/ },
   { type: "paren_close", re: /^\)/ },
@@ -156,7 +156,7 @@ function signatureToParams(signature) {
   return tokensToParams(clean)
 }
 
-function functionToRFO(fn) {
+export default function functionToRFO(fn) {
   let str = fn.toString()
 
   // HACK: Remove paren wrapping if any was provided
@@ -189,5 +189,3 @@ function functionToRFO(fn) {
     __function: spec,
   }
 }
-
-module.exports = functionToRFO

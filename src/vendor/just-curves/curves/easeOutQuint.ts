@@ -1,4 +1,3 @@
-let internal1 = require("../internal")
-exports.easeOutQuint = function(x) {
-  return 1 - internal1.pow(1 - x, 5)
-}
+import { pow } from '../internal';
+
+export const easeOutQuint = (x: number): number => 1 - pow(1 - x, 5);

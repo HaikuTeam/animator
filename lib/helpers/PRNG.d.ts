@@ -1,2 +1,1 @@
-declare let seedrandom: any;
-declare function PRNG(seed: any): void;
+export default function PRNG(seed: any): void;

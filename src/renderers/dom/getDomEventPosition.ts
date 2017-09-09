@@ -1,4 +1,4 @@
-function getDomEventPosition(event, doc) {
+export default function getDomEventPosition(event, doc) {
   let x = -1
   let y = -1
   if (event.pageX || event.pageY) {
@@ -13,5 +13,3 @@ function getDomEventPosition(event, doc) {
     y: ~~y,
   }
 }
-
-module.exports = getDomEventPosition

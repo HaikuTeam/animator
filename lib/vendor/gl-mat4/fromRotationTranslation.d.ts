@@ -1,1 +1,1 @@
-declare function fromRotationTranslation(out: any, q: any, v: any): any;
+export default function fromRotationTranslation(out: any, q: any, v: any): any;

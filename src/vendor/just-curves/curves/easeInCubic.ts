@@ -1,3 +1,1 @@
-exports.easeInCubic = function(x) {
-  return x * x * x
-}
+export const easeInCubic = (x: number): number => x * x * x;

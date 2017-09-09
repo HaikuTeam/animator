@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let EventsDict = {}
+const EventsDict = {}
 
 let eventsList = [
   "onAbort",
@@ -80,4 +80,4 @@ for (let i = 0; i < eventsList.length; i++) {
   EventsDict[name + "Capture"] = "func"
 }
 
-module.exports = EventsDict
+export default EventsDict

@@ -1,4 +1,4 @@
-let toUpperFirst = require("./stringUtils/toUpperFirst")
+import toUpperFirst from "./stringUtils/toUpperFirst"
 
 let re = /^(Moz|Webkit|Khtml|O|ms|Icab)(?=[A-Z])/
 
@@ -6,7 +6,7 @@ let docStyle = typeof document === "undefined"
   ? {}
   : document.documentElement.style
 
-let prefixInfo = (function() {
+function prefixInfoFn() {
   let prefix = (function() {
     for (let prop in docStyle) {
       if (re.test(prop)) {
@@ -42,6 +42,8 @@ let prefixInfo = (function() {
         o: "WebKit",
       }[prefix] || toUpperFirst(prefix),
   }
-})()
+}
 
-module.exports = prefixInfo
+const prefixInfo = prefixInfoFn()
+
+export default prefixInfo

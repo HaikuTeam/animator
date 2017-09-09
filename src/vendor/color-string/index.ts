@@ -1,33 +1,31 @@
-let ColorNames = require("./../color-names")
+import ColorNames from "./../color-names"
 
-let reverseNames = {}
+const reverseNames = {}
 
 // create a list of reverse color names
-for (let name in ColorNames) {
+for (const name in ColorNames) {
   if (ColorNames.hasOwnProperty(name)) {
     reverseNames[ColorNames[name]] = name
   }
 }
 
-let cs = (module.exports = {
-  to: {},
-})
+const cs = {}
 
-cs.get = function(string) {
+cs['get'] = function(string) {
   let prefix = string.substring(0, 3).toLowerCase()
   let val
   let model
   switch (prefix) {
     case "hsl":
-      val = cs.get.hsl(string)
+      val = cs['get']['hsl'](string)
       model = "hsl"
       break
     case "hwb":
-      val = cs.get.hwb(string)
+      val = cs['get']['hwb'](string)
       model = "hwb"
       break
     default:
-      val = cs.get.rgb(string)
+      val = cs['get']['rgb'](string)
       model = "rgb"
       break
   }
@@ -39,7 +37,7 @@ cs.get = function(string) {
   return { model, value: val }
 }
 
-cs.get.rgb = function(string) {
+cs['get']['rgb'] = function(string) {
   if (!string) {
     return null
   }
@@ -132,7 +130,7 @@ cs.get.rgb = function(string) {
   return rgb
 }
 
-cs.get.hsl = function(string) {
+cs['get']['hsl'] = function(string) {
   if (!string) {
     return null
   }
@@ -153,7 +151,7 @@ cs.get.hsl = function(string) {
   return null
 }
 
-cs.get.hwb = function(string) {
+cs['get']['hwb'] = function(string) {
   if (!string) {
     return null
   }
@@ -173,7 +171,7 @@ cs.get.hwb = function(string) {
   return null
 }
 
-cs.to.hex = function(rgba) {
+cs['to']['hex'] = function(rgba) {
   return (
     "#" +
     hexDouble(rgba[0]) +
@@ -183,7 +181,7 @@ cs.to.hex = function(rgba) {
   )
 }
 
-cs.to.rgb = function(rgba) {
+cs['to']['rgb'] = function(rgba) {
   return rgba.length < 4 || rgba[3] === 1
     ? "rgb(" +
         Math.round(rgba[0]) +
@@ -203,7 +201,7 @@ cs.to.rgb = function(rgba) {
         ")"
 }
 
-cs.to.rgb.percent = function(rgba) {
+cs['to']['rgb']['percent'] = function(rgba) {
   let r = Math.round(rgba[0] / 255 * 100)
   let g = Math.round(rgba[1] / 255 * 100)
   let b = Math.round(rgba[2] / 255 * 100)
@@ -213,7 +211,7 @@ cs.to.rgb.percent = function(rgba) {
     : "rgba(" + r + "%, " + g + "%, " + b + "%, " + rgba[3] + ")"
 }
 
-cs.to.hsl = function(hsla) {
+cs['to']['hsl'] = function(hsla) {
   return hsla.length < 4 || hsla[3] === 1
     ? "hsl(" + hsla[0] + ", " + hsla[1] + "%, " + hsla[2] + "%)"
     : "hsla(" +
@@ -229,7 +227,7 @@ cs.to.hsl = function(hsla) {
 
 // hwb is a bit different than rgb(a) & hsl(a) since there is no alpha specific syntax
 // (hwb have alpha optional & 1 is default value)
-cs.to.hwb = function(hwba) {
+cs['to']['hwb'] = function(hwba) {
   let a = ""
   if (hwba.length >= 4 && hwba[3] !== 1) {
     a = ", " + hwba[3]
@@ -238,7 +236,7 @@ cs.to.hwb = function(hwba) {
   return "hwb(" + hwba[0] + ", " + hwba[1] + "%, " + hwba[2] + "%" + a + ")"
 }
 
-cs.to.keyword = function(rgb) {
+cs['to']['keyword'] = function(rgb) {
   return reverseNames[rgb.slice(0, 3)]
 }
 
@@ -251,3 +249,5 @@ function hexDouble(num) {
   let str = num.toString(16).toUpperCase()
   return str.length < 2 ? "0" + str : str
 }
+
+export default cs

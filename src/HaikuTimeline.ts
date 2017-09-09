@@ -2,23 +2,19 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let getMaxTimeFromDescriptor = require("./helpers/getTimelineMaxTime")
-let SimpleEventEmitter = require("./helpers/SimpleEventEmitter")
-let assign = require("./vendor/assign")
+import getMaxTimeFromDescriptor from "./helpers/getTimelineMaxTime"
+import SimpleEventEmitter from "./helpers/SimpleEventEmitter"
+import assign from "./vendor/assign"
 
-let NUMBER = "number"
+const NUMBER = "number"
 
-let DEFAULT_OPTIONS = {
+const DEFAULT_OPTIONS = {
   // loop: Boolean
   // Determines whether this timeline should loop (start at its beginning when finished)
   loop: true,
 }
 
-function HaikuTimeline(component, name, descriptor, options) {
-  if (!(this instanceof HaikuTimeline)) {
-    return new HaikuTimeline(component, name, descriptor, options)
-  }
-
+export default function HaikuTimeline(component, name, descriptor, options) {
   SimpleEventEmitter.create(this)
 
   this._component = component
@@ -402,5 +398,3 @@ HaikuTimeline.prototype.gotoAndStop = function gotoAndStop(ms) {
 
 // HaikuTimeline.prototype.getPosts = function getPosts () {
 // }
-
-module.exports = HaikuTimeline

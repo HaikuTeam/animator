@@ -1,4 +1,3 @@
-let internal1 = require("../internal")
-exports.easeInOutSine = function(x) {
-  return -(internal1.cos(internal1.pi * x) - 1) / 2
-}
+import { cos, pi } from '../internal';
+
+export const easeInOutSine = (x: number): number => -(cos(pi * x) - 1) / 2;

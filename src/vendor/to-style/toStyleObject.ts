@@ -1,18 +1,17 @@
-let cssPrefixFn = require("./cssPrefix")
+import cssPrefixFn from "./cssPrefix"
+import HYPHENATE from "./stringUtils/hyphenate"
+import CAMELIZE from "./stringUtils/camelize"
+import HAS_OWN from "./hasOwn"
+import IS_OBJECT from "./isObject"
+import IS_FUNCTION from "./isFunction"
 
-let HYPHENATE = require("./stringUtils/hyphenate")
-let CAMELIZE = require("./stringUtils/camelize")
-let HAS_OWN = require("./hasOwn")
-let IS_OBJECT = require("./isObject")
-let IS_FUNCTION = require("./isFunction")
-
-let applyPrefix = function(target, property, value, normalizeFn) {
-  cssPrefixFn(property).forEach(function(p) {
+function applyPrefix(target, property, value, normalizeFn) {
+  cssPrefixFn(property, null).forEach(function(p) {
     target[normalizeFn ? normalizeFn(p) : p] = value
   })
 }
 
-let toObject = function(str) {
+function toObject(str) {
   str = (str || "").split(";")
 
   let result = {}
@@ -49,7 +48,7 @@ function _notUndef(thing) {
  * @param  {String}  config.scope
  * @return {Object} The object, normalized with css style names
  */
-let TO_STYLE_OBJECT = function(styles, config, prepend, result) {
+export default function toStyleObject(styles, config, prepend, result) {
   if (typeof styles === "string") {
     styles = toObject(styles)
   }
@@ -213,12 +212,10 @@ let TO_STYLE_OBJECT = function(styles, config, prepend, result) {
         }
       } else {
         // the propValue must be an object, so go down the hierarchy
-        TO_STYLE_OBJECT(propValue, config, styleName + "-", result)
+        toStyleObject(propValue, config, styleName + "-", result)
       }
     }
   }
 
   return result
 }
-
-module.exports = TO_STYLE_OBJECT

@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let inject = require("./inject")
-let functionSpecificationToFunction = require("./functionSpecificationToFunction")
+import inject from "./inject"
+import functionSpecificationToFunction from "./functionSpecificationToFunction"
 
-function reifyRFO(rfo) {
+export default function reifyRFO(rfo) {
   let fn = functionSpecificationToFunction(
     rfo.name || "",
     rfo.params,
@@ -21,5 +21,3 @@ function reifyRFO(rfo) {
 
   return fn
 }
-
-module.exports = reifyRFO

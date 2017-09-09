@@ -1,1 +1,1 @@
-declare let FUNCTION: string;
+export default function isFunction(value: any): boolean;

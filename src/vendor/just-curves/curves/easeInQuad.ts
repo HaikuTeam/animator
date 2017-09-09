@@ -1,3 +1,1 @@
-exports.easeInQuad = function(x) {
-  return x * x
-}
+export const easeInQuad = (x: number): number => x * x;

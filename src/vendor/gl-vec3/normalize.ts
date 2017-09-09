@@ -1,5 +1,3 @@
-module.exports = normalize
-
 /**
  * Normalize a vec3
  *
@@ -7,7 +5,7 @@ module.exports = normalize
  * @param {vec3} a vector to normalize
  * @returns {vec3} out
  */
-function normalize(out, a) {
+export default function normalize(out, a) {
   let x = a[0]
   let y = a[1]
   let z = a[2]

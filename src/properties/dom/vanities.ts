@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let Layout3D = require("./../../Layout3D")
-let has = require("./has")
+import Layout3D from "./../../Layout3D"
+import has from "./has"
 
 /**
  * 'Vanities' are functions that provide special handling for applied properties.
@@ -21,7 +21,7 @@ let has = require("./has")
  * }
  */
 
-let LAYOUT_3D_VANITIES = {
+const LAYOUT_3D_VANITIES = {
   // Layout has a couple of special values that relate to display
   // but not to position:
 
@@ -197,7 +197,7 @@ function _clone(obj) {
   return out
 }
 
-let LAYOUT_2D_VANITIES = _clone(LAYOUT_3D_VANITIES)
+const LAYOUT_2D_VANITIES = _clone(LAYOUT_3D_VANITIES)
 
 function styleSetter(prop) {
   return function(name, element, value) {
@@ -205,7 +205,7 @@ function styleSetter(prop) {
   }
 }
 
-let STYLE_VANITIES = {
+const STYLE_VANITIES = {
   "style.alignContent": styleSetter("alignContent"),
   "style.alignItems": styleSetter("alignItems"),
   "style.alignmentBaseline": styleSetter("alignmentBaseline"),
@@ -651,7 +651,7 @@ let STYLE_VANITIES = {
   },
 }
 
-let TEXT_CONTENT_VANITIES = {
+const TEXT_CONTENT_VANITIES = {
   content(name, element, value) {
     element.children = [value + ""]
   },
@@ -663,7 +663,7 @@ function attributeSetter(prop) {
   }
 }
 
-let PRESENTATION_VANITIES = {
+const PRESENTATION_VANITIES = {
   alignmentBaseline: attributeSetter("alignmentBaseline"),
   baselineShift: attributeSetter("baselineShift"),
   clipPath: attributeSetter("clipPath"),
@@ -730,7 +730,7 @@ let PRESENTATION_VANITIES = {
   writingMode: attributeSetter("writingMode"),
 }
 
-let FILTER_VANITIES = {
+const FILTER_VANITIES = {
   x: attributeSetter("x"),
   y: attributeSetter("y"),
   width: attributeSetter("width"),
@@ -740,7 +740,7 @@ let FILTER_VANITIES = {
   primitiveUnits: attributeSetter("primitiveUnits"),
 }
 
-let HTML_STYLE_SHORTHAND_VANITIES = {
+const HTML_STYLE_SHORTHAND_VANITIES = {
   backgroundColor(name, element, value) {
     element.attributes.style.backgroundColor = value
   },
@@ -749,7 +749,7 @@ let HTML_STYLE_SHORTHAND_VANITIES = {
   },
 }
 
-let CONTROL_FLOW_VANITIES = {
+const CONTROL_FLOW_VANITIES = {
   // 'controlFlow.if': function (name, element, value) {
   //   // TODO
   // },
@@ -893,7 +893,7 @@ function controlFlowPlaceholderImpl(element, surrogate, value, context, componen
 //   }
 // }
 
-module.exports = {
+export default {
   "missing-glyph": has(
     CONTROL_FLOW_VANITIES,
     LAYOUT_3D_VANITIES,

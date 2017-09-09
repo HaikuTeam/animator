@@ -3,7 +3,7 @@ let upperToLowerRe = /([A-Z]+)([A-Z][a-z])/g
 let lowerToUpperRe = /([a-z\d])([A-Z])/g
 let underscoreToDashRe = /_/g
 
-module.exports = function(name, separator) {
+export default function separate(name: string, separator: string) {
   return name
     ? name
         .replace(doubleColonRe, "/")

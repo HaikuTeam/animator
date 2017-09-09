@@ -26,14 +26,14 @@
  * THE SOFTWARE.
  */
 
-let TRANSFORM_SUFFIX = ")"
-let TRANSFORM_ZERO = "0"
-let TRANSFORM_COMMA = ","
-let TRANSFORM_ZILCH = TRANSFORM_ZERO + TRANSFORM_COMMA
-let TWO = 2
-let THREE = 3
+const TRANSFORM_SUFFIX = ")"
+const TRANSFORM_ZERO = "0"
+const TRANSFORM_COMMA = ","
+const TRANSFORM_ZILCH = TRANSFORM_ZERO + TRANSFORM_COMMA
+const TWO = 2
+const THREE = 3
 
-function formatTransform(transform, format, devicePixelRatio) {
+export default function formatTransform(transform, format, devicePixelRatio) {
   transform[12] =
     Math.round(transform[12] * devicePixelRatio) / devicePixelRatio
   transform[13] =
@@ -87,5 +87,3 @@ function formatTransform(transform, format, devicePixelRatio) {
 
   return prefix
 }
-
-module.exports = formatTransform

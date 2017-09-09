@@ -1,1 +1,1 @@
-declare function has(): {};
+export default function has(...args: any[]): {};

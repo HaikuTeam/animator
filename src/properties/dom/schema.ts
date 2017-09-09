@@ -2,17 +2,17 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let has = require("./has")
+import has from "./has"
 
 // A dictionary that maps HTML+SVG element names (camelCase)
 // to addressable properties. This acts as a whitelist of properties that
 // _can_ be applied, and special logic for applying them.
 
-let TEXT_CONTENT_SCHEMA = {
+const TEXT_CONTENT_SCHEMA = {
   content: "string",
 }
 
-let LAYOUT_3D_SCHEMA = {
+const LAYOUT_3D_SCHEMA = {
   "shown": "boolean",
   "opacity": "number",
   "mount.x": "number",
@@ -47,7 +47,7 @@ let LAYOUT_3D_SCHEMA = {
   "sizeMode.z": "number",
 }
 
-let LAYOUT_2D_SCHEMA = {
+const LAYOUT_2D_SCHEMA = {
   "shown": "boolean",
   "opacity": "number",
   "mount.x": "number",
@@ -74,7 +74,7 @@ let LAYOUT_2D_SCHEMA = {
   "sizeMode.y": "number",
 }
 
-let PRESENTATION_SCHEMA = {
+const PRESENTATION_SCHEMA = {
   alignmentBaseline: "string",
   baselineShift: "string",
   clipPath: "string",
@@ -138,7 +138,7 @@ let PRESENTATION_SCHEMA = {
   writingMode: "string",
 }
 
-let FILTER_SCHEMA = {
+const FILTER_SCHEMA = {
   x: "string",
   y: "string",
   width: "string",
@@ -148,7 +148,7 @@ let FILTER_SCHEMA = {
   primitiveUnits: "string",
 }
 
-let STYLE_SCHEMA = {
+const STYLE_SCHEMA = {
   "style.alignmentBaseline": "string",
   "style.background": "string",
   "style.backgroundAttachment": "string",
@@ -274,18 +274,18 @@ let STYLE_SCHEMA = {
   "style.WebkitTapHighlightColor": "string",
 }
 
-let HTML_STYLE_SHORTHAND_SCHEMA = {
+const HTML_STYLE_SHORTHAND_SCHEMA = {
   backgroundColor: "string",
 }
 
-let CONTROL_FLOW_SCHEMA = {
+const CONTROL_FLOW_SCHEMA = {
   // 'controlFlow.if': 'any',
   "controlFlow.repeat": "any",
   // 'controlFlow.yield': 'any',
   "controlFlow.placeholder": "any",
 }
 
-module.exports = {
+export default {
   "missing-glyph": has(
     CONTROL_FLOW_SCHEMA,
     LAYOUT_3D_SCHEMA,

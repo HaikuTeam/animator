@@ -1,1 +1,1 @@
-declare function isBlankString(thing: any): boolean;
+export default function isBlankString(thing: any): boolean;

@@ -1,5 +1,3 @@
-module.exports = transpose
-
 /**
  * Transpose the values of a mat4
  *
@@ -7,7 +5,7 @@ module.exports = transpose
  * @param {mat4} a the source matrix
  * @returns {mat4} out
  */
-function transpose(out, a) {
+export default function transpose(out, a) {
   // If we are transposing ourselves we can skip a few steps but have to cache some values
   if (out === a) {
     let a01 = a[1]

@@ -1,1 +1,1 @@
-declare function normalizeName(tagName: any): any;
+export default function normalizeName(tagName: any): any;

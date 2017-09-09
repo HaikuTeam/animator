@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   "border-radius": 1,
   "border-top-left-radius": 1,
   "border-top-right-radius": 1,
@@ -6,7 +6,7 @@ module.exports = {
   "border-bottom-right-radius": 1,
   "box-shadow": 1,
   "order": 1,
-  "flex"(name, prefix) {
+  "flex": function flex (name, prefix) {
     return [prefix + "box-flex"]
   },
   "box-flex": 1,

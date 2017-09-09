@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function getTimelineMaxTime(descriptor) {
+export default function getTimelineMaxTime(descriptor) {
   let max = 0
   for (let selector in descriptor) {
     let group = descriptor[selector]
@@ -17,5 +17,3 @@ function getTimelineMaxTime(descriptor) {
   }
   return max
 }
-
-module.exports = getTimelineMaxTime

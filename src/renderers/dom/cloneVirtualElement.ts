@@ -1,12 +1,9 @@
+import cloneAttributes from "./cloneAttributes"
 
-function cloneVirtualElement(virtualElement) {
+export default function cloneVirtualElement(virtualElement) {
   return {
     elementName: virtualElement.elementName,
     attributes: cloneAttributes(virtualElement.attributes),
     children: virtualElement.children,
   }
 }
-
-module.exports = cloneVirtualElement
-
-let cloneAttributes = require("./cloneAttributes")

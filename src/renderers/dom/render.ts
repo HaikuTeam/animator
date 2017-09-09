@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let renderTree = require("./renderTree")
+import renderTree from "./renderTree"
 
-function render(
+export default function render(
   domElement,
   virtualContainer,
   virtualTree,
@@ -15,7 +15,7 @@ function render(
     virtualContainer,
     [virtualTree],
     component,
+    null,
+    null
   )
 }
-
-module.exports = render

@@ -1,7 +1,11 @@
-let xmlToMana = require("./xmlToMana")
-let visitManaTree = require("./visitManaTree")
+/**
+ * Copyright (c) Haiku 2016-2017. All rights reserved.
+ */
 
-let STRING_TYPE = "string"
+import xmlToMana from "./xmlToMana"
+import visitManaTree from "./visitManaTree"
+
+const STRING_TYPE = "string"
 
 /**
  * @method upgradeBytecodeInPlace
@@ -9,7 +13,7 @@ let STRING_TYPE = "string"
  * Think of this like a migration that always runs in production components just in case we
  * get something that happens to be legacy.
  */
-function upgradeBytecodeInPlace(bytecode, options) {
+export default function upgradeBytecodeInPlace(bytecode, options) {
   if (!bytecode.states) {
     bytecode.states = {}
   }
@@ -22,12 +26,12 @@ function upgradeBytecodeInPlace(bytecode, options) {
     for (let i = 0; i < properties.length; i++) {
       let propertySpec = properties[i]
       let updatedSpec = {}
-      if (propertySpec.value !== undefined) updatedSpec.value = propertySpec.value
-      if (propertySpec.type !== undefined) updatedSpec.type = propertySpec.type
-      if (propertySpec.setter !== undefined) updatedSpec.set = propertySpec.setter
-      if (propertySpec.getter !== undefined) updatedSpec.get = propertySpec.getter
-      if (propertySpec.set !== undefined) updatedSpec.set = propertySpec.set
-      if (propertySpec.get !== undefined) updatedSpec.get = propertySpec.get
+      if (propertySpec.value !== undefined) updatedSpec['value'] = propertySpec.value
+      if (propertySpec.type !== undefined) updatedSpec['type'] = propertySpec.type
+      if (propertySpec.setter !== undefined) updatedSpec['set'] = propertySpec.setter
+      if (propertySpec.getter !== undefined) updatedSpec['get'] = propertySpec.getter
+      if (propertySpec.set !== undefined) updatedSpec['set'] = propertySpec.set
+      if (propertySpec.get !== undefined) updatedSpec['get'] = propertySpec.get
       bytecode.states[propertySpec.name] = updatedSpec
     }
   }
@@ -95,5 +99,3 @@ function upgradeBytecodeInPlace(bytecode, options) {
 
   // What else?
 }
-
-module.exports = upgradeBytecodeInPlace

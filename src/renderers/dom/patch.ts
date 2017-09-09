@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let updateElement = require("./updateElement")
+import updateElement from "./updateElement"
 
-function patch(
+export default function patch(
   topLevelDomElement,
   virtualContainer,
   patchesDict,
@@ -50,5 +50,3 @@ function patch(
     }
   }
 }
-
-module.exports = patch

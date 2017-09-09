@@ -1,2 +1,3 @@
-let internal1 = require("../internal")
-exports.easeOut = internal1.cubicBezier(0, 0, 0.58, 1)
+import { cubicBezier } from '../internal';
+
+export const easeOut = cubicBezier(0, 0, .58, 1);

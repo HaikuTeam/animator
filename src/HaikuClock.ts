@@ -2,14 +2,14 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let raf = require("./vendor/raf")
-let assign = require("./vendor/assign")
-let SimpleEventEmitter = require("./helpers/SimpleEventEmitter")
-let HaikuGlobal = require("./HaikuGlobal")
+import raf from "./vendor/raf"
+import assign from "./vendor/assign"
+import SimpleEventEmitter from "./helpers/SimpleEventEmitter"
+import HaikuGlobal from "./HaikuGlobal"
 
-let NUMBER = "number"
+const NUMBER = "number"
 
-let DEFAULT_OPTIONS = {
+const DEFAULT_OPTIONS = {
   // frameDuration: Number
   // Time to elapse per frame (ms)
   frameDuration: 16.666,
@@ -34,7 +34,7 @@ if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
     for (let i = 0; i < length; i++) {
       queue[i]()
     }
-    HaikuGlobal.HaikuGlobalAnimationHarness.raf = raf(HaikuGlobal.HaikuGlobalAnimationHarness.frame)
+    HaikuGlobal.HaikuGlobalAnimationHarness.raf = raf.request(HaikuGlobal.HaikuGlobalAnimationHarness.frame)
   }
   // Need a mechanism to cancel the rAF loop otherwise some contexts (e.g. tests) will have leaked handles
   HaikuGlobal.HaikuGlobalAnimationHarness.cancel = function HaikuGlobalAnimationHarnessCancel() {
@@ -46,11 +46,7 @@ if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
   HaikuGlobal.HaikuGlobalAnimationHarness.frame()
 }
 
-function HaikuClock(tickables, component, options) {
-  if (!(this instanceof HaikuClock)) {
-    return new HaikuClock(tickables, component, options)
-  }
-
+export default function HaikuClock(tickables, component, options) {
   SimpleEventEmitter.create(this)
 
   this._tickables = tickables
@@ -183,16 +179,3 @@ HaikuClock.prototype.stop = function stop() {
 HaikuClock.prototype.getFrameDuration = function getFrameDuration() {
   return this.options.frameDuration
 }
-
-/**
- * TODO:
- * Implement the below:
- */
-
-// HaikuClock.prototype.getFps = function getFps () {
-// }
-
-// HaikuClock.prototype.setFps = function setFps () {
-// }
-
-module.exports = HaikuClock

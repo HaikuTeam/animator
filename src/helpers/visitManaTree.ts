@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function visitManaTree(locator, mana, visitor, parent, index) {
+export default function visitManaTree(locator, mana, visitor, parent, index) {
   if (!mana) return null
   visitor(
     mana.elementName,
@@ -19,5 +19,3 @@ function visitManaTree(locator, mana, visitor, parent, index) {
     visitManaTree(locator + "." + i, child, visitor, mana, i)
   }
 }
-
-module.exports = visitManaTree

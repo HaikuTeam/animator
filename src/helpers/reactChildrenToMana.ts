@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let reactToMana = require("./reactToMana")
+import reactToMana from "./reactToMana"
 
-function reactChildrenToMana(children) {
+export default function reactChildrenToMana(children) {
   if (!children) return null
   if (children.length < 1) return null
   return children.map(function _map(child) {
@@ -12,5 +12,3 @@ function reactChildrenToMana(children) {
     return reactToMana(child)
   })
 }
-
-module.exports = reactChildrenToMana

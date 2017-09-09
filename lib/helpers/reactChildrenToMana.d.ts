@@ -1,2 +1,1 @@
-declare let reactToMana: any;
-declare function reactChildrenToMana(children: any): any;
+export default function reactChildrenToMana(children: any): any;

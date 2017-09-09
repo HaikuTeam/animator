@@ -2,17 +2,17 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let DEFAULT_SCOPE = "div"
+const DEFAULT_SCOPE = "div"
 
-let SCOPE_STRATA = {
+const SCOPE_STRATA = {
   div: "div",
   svg: "svg",
   // canvas: 'canvas'
 }
 
-let STRING = "string"
+const STRING = "string"
 
-function scopifyElements(mana, parent, scope) {
+export default function scopifyElements(mana, parent, scope) {
   if (!mana) return mana
   if (typeof mana === STRING) return mana
 
@@ -36,5 +36,3 @@ function scopifyElements(mana, parent, scope) {
     }
   }
 }
-
-module.exports = scopifyElements

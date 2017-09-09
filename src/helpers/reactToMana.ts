@@ -2,9 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let STRING_TYPE = "string"
+import reactChildrenToMana from "./reactChildrenToMana"
 
-function reactToMana(react) {
+const STRING_TYPE = "string"
+
+export default function reactToMana(react) {
   let props = {}
   for (let key in react.props) {
     if (key !== "children") {
@@ -28,7 +30,3 @@ function reactToMana(react) {
     children: processedChildren,
   }
 }
-
-module.exports = reactToMana
-
-let reactChildrenToMana = require("./reactChildrenToMana")

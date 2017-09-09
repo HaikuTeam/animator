@@ -2,10 +2,12 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let applyLayout = require("./applyLayout")
-let isTextNode = require("./isTextNode")
+import applyLayout from "./applyLayout"
+import isTextNode from "./isTextNode"
+import createTextNode from "./createTextNode"
+import createTagNode from "./createTagNode"
 
-function replaceElement(
+export default function replaceElement(
   domElement,
   virtualElement,
   parentDomNode,
@@ -14,7 +16,7 @@ function replaceElement(
 ) {
   let newElement
   if (isTextNode(virtualElement)) {
-    newElement = createTextNode(domElement, virtualElement, component)
+    newElement = createTextNode(domElement, virtualElement)
   } else {
     newElement = createTagNode(
       domElement,
@@ -30,13 +32,10 @@ function replaceElement(
     parentDomNode,
     parentVirtualElement,
     component,
+    null,
+    null
   )
 
   parentDomNode.replaceChild(newElement, domElement)
   return newElement
 }
-
-module.exports = replaceElement
-
-let createTextNode = require("./createTextNode")
-let createTagNode = require("./createTagNode")

@@ -1,1 +1,1 @@
-declare function invert(out: any, a: any): any;
+export default function invert(out: any, a: any): any;

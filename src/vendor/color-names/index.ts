@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   aliceblue: [240, 248, 255],
   antiquewhite: [250, 235, 215],
   aqua: [0, 255, 255],

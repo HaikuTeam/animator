@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let assign = require("./../../vendor/assign")
-let Mixpanel = require("./../../vendor/mixpanel-browser/tiny")
+import assign from "./../../vendor/assign"
+import Mixpanel from "./../../vendor/mixpanel-browser/tiny"
 
-module.exports = function createMixpanel(domElement, mixpanelToken, component) {
+export default function createMixpanel(domElement, mixpanelToken, component) {
   let mixpanel = Mixpanel()
 
   if (!mixpanel) {

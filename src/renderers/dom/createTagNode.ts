@@ -2,13 +2,14 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let normalizeName = require("./normalizeName")
-let getTypeAsString = require("./getTypeAsString")
-let getFlexId = require("./getFlexId")
+import normalizeName from "./normalizeName"
+import getTypeAsString from "./getTypeAsString"
+import getFlexId from "./getFlexId"
+import SVG_EL_NAMES from "./../../helpers/allSvgElementNames"
+import createSvgElement from "./createSvgElement"
+import updateElement from "./updateElement"
 
-let SVG_EL_NAMES = require("./../../helpers/allSvgElementNames")
-
-function createTagNode(
+export default function createTagNode(
   domElement,
   virtualElement,
   parentVirtualElement,
@@ -18,7 +19,7 @@ function createTagNode(
   let newDomElement
   if (SVG_EL_NAMES[tagName]) {
     // SVG
-    newDomElement = createSvgElement(domElement, tagName, component)
+    newDomElement = createSvgElement(domElement, tagName)
   } else {
     // Normal DOM
     newDomElement = domElement.ownerDocument.createElement(tagName)
@@ -45,11 +46,7 @@ function createTagNode(
     domElement,
     parentVirtualElement,
     component,
+    null
   )
   return newDomElement
 }
-
-module.exports = createTagNode
-
-let createSvgElement = require("./createSvgElement")
-let updateElement = require("./updateElement")

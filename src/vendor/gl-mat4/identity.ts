@@ -1,12 +1,10 @@
-module.exports = identity
-
 /**
  * Set a mat4 to the identity matrix
  *
  * @param {mat4} out the receiving matrix
  * @returns {mat4} out
  */
-function identity(out) {
+export default function identity(out) {
   out[0] = 1
   out[1] = 0
   out[2] = 0

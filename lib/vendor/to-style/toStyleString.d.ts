@@ -1,2 +1,1 @@
-declare let toStyleObject: any;
-declare let hasOwn: any;
+export default function toStyleString(styles: any, config: any): string;

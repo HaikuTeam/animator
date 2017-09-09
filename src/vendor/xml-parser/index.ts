@@ -1,5 +1,3 @@
-module.exports = parse
-
 /**
  * Parse the given string of `xml`.
  *
@@ -8,7 +6,7 @@ module.exports = parse
  * @api public
  */
 
-function parse(xml) {
+export default function parse(xml) {
   xml = xml.trim()
 
   // strip comments
@@ -65,6 +63,7 @@ function parse(xml) {
       name: m[1],
       attributes: {},
       children: [],
+      content: null
     }
 
     // attributes

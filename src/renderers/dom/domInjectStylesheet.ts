@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-function domInjectStylesheet(doc, css) {
+export default function domInjectStylesheet(doc, css) {
   if (doc.createStyleSheet) {
     let sheet = doc.createStyleSheet()
     sheet.cssText = css
@@ -17,5 +17,3 @@ function domInjectStylesheet(doc, css) {
     (head || doc.documentElement).appendChild(style)
   }
 }
-
-module.exports = domInjectStylesheet

@@ -1,3 +1,5 @@
-module.exports = {
-  object: require("./toStyleObject"),
+import toStyleObject from "./toStyleObject"
+
+export default {
+  object: toStyleObject
 }

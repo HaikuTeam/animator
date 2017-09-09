@@ -2,32 +2,32 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let isTextNode = require("./isTextNode")
-let isIE = require("./isIE")
-let isEdge = require("./isEdge")
-let getWindowsBrowserVersion = require("./getWindowsBrowserVersion")
-let isMobile = require("./isMobile")
-let applyCssLayout = require("./../../layout/applyCssLayout")
-let scopeOfElement = require("./../../layout/scopeOfElement")
-let hasPreserve3d = require("./../../vendor/modernizr").hasPreserve3d
+import isTextNode from "./isTextNode"
+import isIE from "./isIE"
+import isEdge from "./isEdge"
+import getWindowsBrowserVersion from "./getWindowsBrowserVersion"
+import isMobile from "./isMobile"
+import applyCssLayout from "./../../layout/applyCssLayout"
+import scopeOfElement from "./../../layout/scopeOfElement"
+import modernizr from "./../../vendor/modernizr"
 
-let DEFAULT_PIXEL_RATIO = 1.0
-let SVG = "svg"
+const DEFAULT_PIXEL_RATIO = 1.0
+const SVG = "svg"
 
-let safeWindow = typeof window !== "undefined" && window
-let PLATFORM_INFO = {
+const safeWindow = typeof window !== "undefined" && window
+const PLATFORM_INFO = {
   hasWindow: !!safeWindow,
   isMobile: isMobile(safeWindow), // Dumb navigator check
   isIE: isIE(safeWindow), // Dumb navigator check - use feature detection instead?
   isEdge: isEdge(safeWindow),
   windowsBrowserVersion: getWindowsBrowserVersion(safeWindow),
-  hasPreserve3d: hasPreserve3d(safeWindow), // I dunno if we actually need this
+  hasPreserve3d: modernizr.hasPreserve3d(safeWindow), // I dunno if we actually need this
   devicePixelRatio: DEFAULT_PIXEL_RATIO,
 }
 
 // console.info('[haiku player] platform info:', JSON.stringify(PLATFORM_INFO))
 
-let SVG_RENDERABLES = {
+const SVG_RENDERABLES = {
   a: true,
   audio: true,
   canvas: true,
@@ -55,7 +55,7 @@ let SVG_RENDERABLES = {
   video: true,
 }
 
-function applyLayout(
+export default function applyLayout(
   domElement,
   virtualElement,
   parentDomNode,
@@ -117,12 +117,10 @@ function applyLayout(
   return domElement
 }
 
-let warnings = {}
+const warnings = {}
 
 function _warnOnce(warning) {
   if (warnings[warning]) return void 0
   warnings[warning] = true
   console.warn("[haiku player] warning:", warning)
 }
-
-module.exports = applyLayout

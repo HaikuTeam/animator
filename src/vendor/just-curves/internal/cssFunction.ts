@@ -1,44 +1,37 @@
-let index1 = require("./index")
-let camelCaseRegex = /([a-z])[- ]([a-z])/gi
-let cssFunctionRegex = /^([a-z-]+)\(([^)]+)\)$/i
-let cssEasings = {
-  ease: index1.ease,
-  easeIn: index1.easeIn,
-  easeOut: index1.easeOut,
-  easeInOut: index1.easeInOut,
-  stepStart: index1.stepStart,
-  stepEnd: index1.stepEnd,
-  linear: index1.linear,
-}
-let camelCaseMatcher = function(match, p1, p2) {
-  return p1 + p2.toUpperCase()
-}
-let toCamelCase = function(value) {
-  return typeof value === "string"
-    ? value.replace(camelCaseRegex, camelCaseMatcher)
-    : ""
-}
-let find = function(nameOrCssFunction) {
+import { Curve } from '../types';
+import { cubicBezier, frames, ease, easeIn, easeOut, easeInOut, stepStart, stepEnd, linear, steps } from './index';
+
+const camelCaseRegex = /([a-z])[- ]([a-z])/ig;
+const cssFunctionRegex = /^([a-z-]+)\(([^\)]+)\)$/i;
+const cssEasings = { ease, easeIn, easeOut, easeInOut, stepStart, stepEnd, linear };
+
+const camelCaseMatcher = (match: string, p1: string, p2: string) => p1 + p2.toUpperCase();
+
+const toCamelCase = (value: string | undefined): string => typeof value === 'string'
+  ? (value as string).replace(camelCaseRegex, camelCaseMatcher) : '';
+
+const find = (nameOrCssFunction: string) => {
   // search for a compatible known easing
-  let easingName = toCamelCase(nameOrCssFunction)
-  let easing = cssEasings[easingName] || nameOrCssFunction
-  let matches = cssFunctionRegex.exec(easing)
+  const easingName = toCamelCase(nameOrCssFunction);
+  const easing = cssEasings[easingName] || nameOrCssFunction;
+  const matches = cssFunctionRegex.exec(easing);
   if (!matches) {
-    throw new Error("could not parse css function")
+    throw new Error('could not parse css function');
   }
-  return [matches[1]].concat(matches[2].split(","))
-}
-exports.cssFunction = function(easingString) {
-  let p = find(easingString)
-  let fnName = p[0]
-  if (fnName === "steps") {
-    return index1.steps(+p[1], p[2])
+  return [matches[1]].concat(matches[2].split(','));
+};
+
+export const cssFunction = (easingString: string): Curve => {
+  const p = find(easingString);
+  const fnName = p[0];
+  if (fnName === 'steps') {
+    return steps(+p[1], p[2] as (number | 'start' | 'end'));
   }
-  if (fnName === "cubic-bezier") {
-    return index1.cubicBezier(+p[1], +p[2], +p[3], +p[4])
+  if (fnName === 'cubic-bezier') {
+    return cubicBezier(+p[1], +p[2], +p[3], +p[4]);
   }
-  if (fnName === "frames") {
-    return index1.frames(+p[1])
+  if (fnName === 'frames') {
+    return frames(+p[1]);
   }
-  throw new Error("unknown css function")
-}
+  throw new Error('unknown css function');
+};

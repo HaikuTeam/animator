@@ -2,8 +2,6 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let SimpleEventEmitter = {}
-
 function create(instance) {
   let registry = {}
   let eavesdroppers = []
@@ -133,6 +131,6 @@ function create(instance) {
   return instance
 }
 
-SimpleEventEmitter.create = create
-
-module.exports = SimpleEventEmitter
+export default {
+  create
+}

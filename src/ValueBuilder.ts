@@ -2,25 +2,25 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-let Transitions = require("./Transitions")
-let BasicUtils = require("./helpers/BasicUtils")
-let DOMSchema = require("./properties/dom/schema")
-let DOMValueParsers = require("./properties/dom/parsers")
-let enhance = require("./reflection/enhance")
-let HaikuHelpers = require("./HaikuHelpers")
-let assign = require("./vendor/assign")
+import Transitions from "./Transitions"
+import BasicUtils from "./helpers/BasicUtils"
+import DOMSchema from "./properties/dom/schema"
+import DOMValueParsers from "./properties/dom/parsers"
+import enhance from "./reflection/enhance"
+import HaikuHelpers from "./HaikuHelpers"
+import assign from "./vendor/assign"
 
-let FUNCTION = "function"
-let OBJECT = "object"
+const FUNCTION = "function"
+const OBJECT = "object"
 
 function isFunction(value) {
   return typeof value === FUNCTION
 }
 
-let INJECTABLES = {}
+const INJECTABLES = {}
 
 if (typeof window !== "undefined") {
-  INJECTABLES.$window = {
+  INJECTABLES['$window'] = {
     schema: {
       width: "number",
       height: "number",
@@ -80,17 +80,17 @@ if (typeof window !== "undefined") {
       out.height = window.innerHeight
       if (window.screen) {
         if (!out.screen) out.screen = {}
-        out.screen.availHeight = window.screen.availHeight
-        out.screen.availLeft = window.screen.availLeft
-        out.screen.availWidth = window.screen.availWidth
-        out.screen.colorDepth = window.screen.colorDepth
-        out.screen.height = window.screen.height
-        out.screen.pixelDepth = window.screen.pixelDepth
-        out.screen.width = window.screen.width
-        if (window.screen.orientation) {
+        out.screen.availHeight = window.screen['availHeight']
+        out.screen.availLeft = window.screen['availLeft']
+        out.screen.availWidth = window.screen['availWidth']
+        out.screen.colorDepth = window.screen['colorDepth']
+        out.screen.height = window.screen['height']
+        out.screen.pixelDepth = window.screen['pixelDepth']
+        out.screen.width = window.screen['width']
+        if (window.screen['orientation']) {
           if (!out.screen.orientation) out.screen.orientation = {}
-          out.screen.orientation.angle = window.screen.orientation.angle
-          out.screen.orientation.type = window.screen.orientation.type
+          out.screen.orientation.angle = window.screen['orientation'].angle
+          out.screen.orientation.type = window.screen['orientation'].type
         }
       }
       if (typeof navigator !== "undefined") {
@@ -100,7 +100,7 @@ if (typeof window !== "undefined") {
         out.navigator.appName = navigator.appName
         out.navigator.appVersion = navigator.appVersion
         out.navigator.cookieEnabled = navigator.cookieEnabled
-        out.navigator.doNotTrack = navigator.doNotTrack
+        out.navigator.doNotTrack = navigator['doNotTrack']
         out.navigator.language = navigator.language
         out.navigator.maxTouchPoints = navigator.maxTouchPoints
         out.navigator.onLine = navigator.onLine
@@ -113,10 +113,10 @@ if (typeof window !== "undefined") {
         if (!out.document) out.document = {}
         out.document.charset = window.document.charset
         out.document.compatMode = window.document.compatMode
-        out.document.contenttype = window.document.contentType
+        out.document.contenttype = window.document['contentType']
         out.document.cookie = window.document.cookie
-        out.document.documentURI = window.document.documentURI
-        out.document.fullscreen = window.document.fullscreen
+        out.document.documentURI = window.document['documentURI']
+        out.document.fullscreen = window.document['fullscreen']
         out.document.readyState = window.document.readyState
         out.document.referrer = window.document.referrer
         out.document.title = window.document.title
@@ -136,7 +136,7 @@ if (typeof window !== "undefined") {
 }
 
 if (typeof global !== "undefined") {
-  INJECTABLES.$global = {
+  INJECTABLES['$global'] = {
     schema: {
       process: {
         pid: "number",
@@ -166,7 +166,7 @@ if (typeof global !== "undefined") {
   }
 }
 
-INJECTABLES.$player = {
+INJECTABLES['$player'] = {
   schema: {
     version: "string",
     options: {
@@ -243,7 +243,7 @@ INJECTABLES.$player = {
   },
 }
 
-let EVENT_SCHEMA = {
+const EVENT_SCHEMA = {
   mouse: {
     x: "number",
     y: "number",
@@ -268,7 +268,7 @@ let EVENT_SCHEMA = {
   // camera
 }
 
-let ELEMENT_SCHEMA = {
+const ELEMENT_SCHEMA = {
   // A function in the schema indicates that schema is dynamic, dependent on some external information
   properties(element) {
     let defined = DOMSchema[element.elementName]
@@ -312,7 +312,10 @@ function assignElementInjectables(obj, key, summonSpec, hostInstance, element) {
   //   return {}
   // }
 
-  out.properties = {}
+  out.properties = {
+    name: null,
+    attributes: null
+  }
 
   out.properties.name = element.elementName
   out.properties.attributes = element.attributes
@@ -347,7 +350,7 @@ function assignElementInjectables(obj, key, summonSpec, hostInstance, element) {
   // out.events = hostInstance._context.getElementEvents(element)
 }
 
-INJECTABLES.$tree = {
+INJECTABLES['$tree'] = {
   schema: {
     // Unique to $tree
     parent: ELEMENT_SCHEMA,
@@ -373,7 +376,7 @@ INJECTABLES.$tree = {
         let sibling = matchingElement.__parent.children[i]
         let subspec1 = (typeof summonSpec === "string")
           ? summonSpec
-          : summonSpec.$tree && summonSpec.$tree.siblings && summonSpec.$tree.siblings[j]
+          : summonSpec.$tree && summonSpec.$tree.siblings && summonSpec.$tree.siblings[i]
         assignElementInjectables(injectees.$tree.siblings, i, subspec1, hostInstance, sibling)
       }
     }
@@ -394,19 +397,19 @@ INJECTABLES.$tree = {
     // and avoid recalc if it's already been added:
 
     if (!injectees.$component) {
-      INJECTABLES.$component.summon(injectees, summonSpec, hostInstance, matchingElement)
+      INJECTABLES['$component'].summon(injectees, summonSpec, hostInstance, matchingElement)
     }
 
     injectees.$tree.component = injectees.$component
 
     if (!injectees.$root) {
-      INJECTABLES.$root.summon(injectees, summonSpec, hostInstance, matchingElement)
+      INJECTABLES['$root'].summon(injectees, summonSpec, hostInstance, matchingElement)
     }
 
     injectees.$tree.root = injectees.$root
 
     if (!injectees.$element) {
-      INJECTABLES.$element.summon(injectees, summonSpec, hostInstance, matchingElement)
+      INJECTABLES['$element'].summon(injectees, summonSpec, hostInstance, matchingElement)
     }
 
     injectees.$tree.element = injectees.$element
@@ -415,7 +418,7 @@ INJECTABLES.$tree = {
 
 // (top-level Element of a given component, (i.e. tranverse tree upward past groups but
 // stop at first component definition))
-INJECTABLES.$component = {
+INJECTABLES['$component'] = {
   schema: ELEMENT_SCHEMA,
   summon(injectees, summonSpec, hostInstance) {
     // Don't double-recalc this if it's already shown to be present in $tree
@@ -431,7 +434,7 @@ INJECTABLES.$component = {
 // absolute root of component tree (but does not traverse host codebase DOM)
 // i.e. if Haiku components are nested. Until we support nested components,
 // $root will be the same as $component
-INJECTABLES.$root = {
+INJECTABLES['$root'] = {
   schema: ELEMENT_SCHEMA,
   summon(injectees, summonSpec, hostInstance, matchingElement) {
     // Don't double-recalc this if it's already shown to be present in $tree
@@ -445,7 +448,7 @@ INJECTABLES.$root = {
   },
 }
 
-INJECTABLES.$element = {
+INJECTABLES['$element'] = {
   schema: ELEMENT_SCHEMA,
   summon(injectees, summonSpec, hostInstance, matchingElement) {
     // Don't double-recalc this if it's already shown to be present in $tree
@@ -458,14 +461,14 @@ INJECTABLES.$element = {
   },
 }
 
-INJECTABLES.$user = {
+INJECTABLES['$user'] = {
   schema: assign({}, EVENT_SCHEMA),
   summon(injectees, summonSpec, hostInstance, matchingElement) {
     injectees.$user = hostInstance._context._getGlobalUserState()
   },
 }
 
-INJECTABLES.$flow = {
+INJECTABLES['$flow'] = {
   schema: {
     repeat: {
       list: ["any"],
@@ -494,7 +497,7 @@ INJECTABLES.$flow = {
   },
 }
 
-INJECTABLES.$helpers = {
+INJECTABLES['$helpers'] = {
   schema: HaikuHelpers.schema,
   summon(injectees) {
     injectees.$helpers = HaikuHelpers.helpers
@@ -503,7 +506,7 @@ INJECTABLES.$helpers = {
 
 // List of JavaScript global built-in objects that we want to provide as an injectable.
 // In the future, we might end up passing in modified versions of these objects/functions.
-let BUILTIN_INJECTABLES = {
+const BUILTIN_INJECTABLES = {
   Infinity,
   NaN,
   undefined: void (0),
@@ -524,8 +527,8 @@ let BUILTIN_INJECTABLES = {
   decodeURIComponent,
   encodeURI,
   encodeURIComponent,
-  escape,
-  unescape,
+  // escape,
+  // unescape,
   Error,
   ReferenceError,
   SyntaxError,
@@ -566,7 +569,7 @@ let BUILTIN_INJECTABLES = {
   // 'StopIteration': StopIteration
 }
 
-for (let builtinInjectableKey in BUILTIN_INJECTABLES) {
+for (const builtinInjectableKey in BUILTIN_INJECTABLES) {
   (function(key, value) {
     INJECTABLES[key] = {
       builtin: true,
@@ -581,7 +584,7 @@ for (let builtinInjectableKey in BUILTIN_INJECTABLES) {
 // When editing a component, any of these appearing inside an expression will trigger a warning.
 // This is kept in the player so it's easier to compare these to the built-in injectables and
 // other special treatment for JavaScript globals. "single source of truth" etc.
-let FORBIDDEN_EXPRESSION_TOKENS = {
+const FORBIDDEN_EXPRESSION_TOKENS = {
   // Keywords
   new: true,
   this: true,
@@ -678,7 +681,7 @@ let FORBIDDEN_EXPRESSION_TOKENS = {
 //   'short': true,
 // }
 
-function ValueBuilder(component) {
+export default function ValueBuilder(component) {
   this._component = component // ::HaikuComponent
   this._parsees = {}
   this._changes = {}
@@ -721,7 +724,7 @@ ValueBuilder.prototype.evaluate = function _evaluate(
   keyframeCluster,
   hostInstance,
 ) {
-  enhance(fn)
+  enhance(fn, null)
 
   // We'll store the result of this evaluation in this variable (so we can cache it in case unexpected subsequent calls)
   let evaluation = void 0
@@ -1203,7 +1206,5 @@ ValueBuilder.prototype.grabValue = function _grabValue(
   return finalValue
 }
 
-ValueBuilder.INJECTABLES = INJECTABLES
-ValueBuilder.FORBIDDEN_EXPRESSION_TOKENS = FORBIDDEN_EXPRESSION_TOKENS
-
-module.exports = ValueBuilder
+ValueBuilder['INJECTABLES'] = INJECTABLES
+ValueBuilder['FORBIDDEN_EXPRESSION_TOKENS'] = FORBIDDEN_EXPRESSION_TOKENS
