@@ -1,5 +1,5 @@
 var test = require('tape')
-var vanities = require('./../../lib/properties/dom/vanities')
+var vanities = require('./../../lib/properties/dom/vanities').default
 var fs = require('fs')
 
 test('dom.vanities', function (t) {

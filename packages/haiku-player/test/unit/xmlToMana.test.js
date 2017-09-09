@@ -1,5 +1,5 @@
 var test = require('tape')
-var xmlToMana = require('./../../lib/helpers/xmlToMana')
+var xmlToMana = require('./../../lib/helpers/xmlToMana').default
 
 test('xmlToMana', function (t) {
   t.plan(1)
