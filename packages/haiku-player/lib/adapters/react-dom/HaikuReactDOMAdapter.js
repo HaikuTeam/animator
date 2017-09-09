@@ -1,8 +1,8 @@
 "use strict";
 exports.__esModule = true;
-var lodash_merge_1 = require("lodash.merge");
-var react_1 = require("react");
-var react_dom_1 = require("react-dom");
+var lodash_1 = require("lodash");
+var React = require("react");
+var ReactDOM = require("react-dom");
 var EventsDict_1 = require("./EventsDict");
 var DEFAULT_HOST_ELEMENT_TAG_NAME = "div";
 var HAIKU_FORWARDED_PROPS = {
@@ -48,7 +48,7 @@ for (var fwdPropKey in HAIKU_FORWARDED_PROPS) {
     VALID_PROPS[fwdPropKey] = "object";
 }
 function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
-    var reactClass = react_1["default"].createClass({
+    var reactClass = React.createClass({
         displayName: "HaikuComponent",
         getInitialState: function () {
             return {
@@ -101,7 +101,7 @@ function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
                                         element.elementName = "div";
                                     }
                                     node.style.visibility = "hidden";
-                                    react_dom_1["default"].render(surrogate, node);
+                                    ReactDOM.render(surrogate, node);
                                     window.requestAnimationFrame(function frame() {
                                         component._markElementSurrogateAsRendered(element, surrogate);
                                         node.style.visibility = "visible";
@@ -173,7 +173,7 @@ function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
                     }
                 }
             }
-            return lodash_merge_1["default"]({
+            return lodash_1.merge({
                 id: this.state.randomId,
                 style: {
                     position: "relative",
@@ -192,17 +192,17 @@ function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
         render: function () {
             var hostElementProps = this.buildHostElementPropsFromRawProps(this.props);
             hostElementProps.ref = this.assignMountFromRef;
-            return react_1["default"].createElement(hostElementProps.tagName || DEFAULT_HOST_ELEMENT_TAG_NAME, hostElementProps);
+            return React.createElement(hostElementProps.tagName || DEFAULT_HOST_ELEMENT_TAG_NAME, hostElementProps);
         }
     });
     reactClass.propTypes = {};
     for (var propName in VALID_PROPS) {
         var propType = VALID_PROPS[propName];
-        reactClass.propTypes[propName] = react_1["default"].PropTypes[propType];
+        reactClass.propTypes[propName] = React.PropTypes[propType];
     }
     reactClass.isHaikuAdapter = true;
-    reactClass.React = react_1["default"];
-    reactClass.ReactDOM = react_dom_1["default"];
+    reactClass.React = React;
+    reactClass.ReactDOM = ReactDOM;
     return reactClass;
 }
 exports["default"] = HaikuReactDOMAdapter;

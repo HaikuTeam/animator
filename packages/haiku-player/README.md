@@ -14,28 +14,15 @@ Haiku Player is ultimately the bedrock of [Haiku](https://haiku.ai), our Mac des
 
 ## Installation
 
-You can install Haiku Player via npm:
+You can install Haiku Player via yarn:
 
-    $ npm install @haiku/player
+    $ yarn install @haiku/player
 
 Note that `react` and `react-dom` are `peerDependencies` of Haiku Player. They are only necessary if you intend to use the React adapter (e.g., if you are importing  a Haiku component into a React codebase via `import MyComponent from '@haiku/my-component/react'`). These dependencies either need to be explicit `dependencies` of the host project, or installed manually:
 
-    $ npm install react@15.4.2 react-dom@15.4.2
+    $ yarn install react@15.4.2 react-dom@15.4.2
 
 Warning: Haiku Player is in beta. Expect breaking changes to occur frequently and without advance notice or deprecation warnings. (We are a small team and often need to modify Haiku Player to meet the needs of [Haiku](https://haiku.ai) on the fly; we hope to be able to put more maintainance toward Haiku Player as a standalone engine in the near future.)
-
-## Example
-
-Here is a "Hello World" for playing a component in a web page:
-
-    var HaikuContext = require('@haiku/player')
-    var HaikuDOMRendererClass = require('@haiku/player/renderers/dom')
-    var HaikuComponentFactory = HaikuContext.createComponentFactory(HaikuDOMRendererClass, {
-      template: { elementName: 'div', attributes: {}, children: ["Hello World"] }
-    })
-    var component = HaikuComponentFactory(document.getElementById('mount'))
-
-More detailed examples coming soon.
 
 ## Usage / API Docs
 
@@ -52,21 +39,25 @@ Before submitting a pull request, make sure to run the [tests](#tests) and [lint
 To develop Haiku Player locally, you should:
 
 1. `git clone git@github.com:HaikuTeam/player.git && cd player`
-2. `npm install`
-3. `npm install react@15.4.2 react-dom@15.4.2` (required for the React adapter)
-4. `npm run demo`
+2. `yarn install`
+3. `yarn add react@15.4.2 react-dom@15.4.2` (required for the React adapter)
+4. `yarn start`
 
 A local development server should start running on [localhost:3000](http://localhost:3000). A listing of visual test cases should be displayed, which you can browse through to verify that features are working.
+
+Compile the Typescript with:
+
+    $ yarn run compile
 
 ## Tests
 
 Run the tests with:
 
-    $ npm test
+    $ yarn test
 
 Lint (and auto-format) the code with:
 
-    $ npm run lint
+    $ yarn run lint
 
 ## Bugs, feature requests, troubleshooting
 

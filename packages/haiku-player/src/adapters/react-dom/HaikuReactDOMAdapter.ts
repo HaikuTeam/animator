@@ -2,14 +2,14 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import merge from "lodash.merge"
-import React from "react"
-import ReactDOM from "react-dom"
+import { merge } from "lodash"
+import * as React from "react"
+import * as ReactDOM from "react-dom"
 import EventsDict from "./EventsDict"
 
-let DEFAULT_HOST_ELEMENT_TAG_NAME = "div"
+const DEFAULT_HOST_ELEMENT_TAG_NAME = "div"
 
-let HAIKU_FORWARDED_PROPS = {
+const HAIKU_FORWARDED_PROPS = {
   haikuOptions: "options",
   haikuStates: "states",
   haikuInitialStates: "states",
@@ -18,7 +18,7 @@ let HAIKU_FORWARDED_PROPS = {
   haikuVanities: "vanities",
 }
 
-let VALID_PROPS = {
+const VALID_PROPS = {
   tagName: "string",
   id: "string",
   className: "string",
@@ -42,7 +42,7 @@ let VALID_PROPS = {
   haikuCode: "object",
 }
 
-let REACT_ELEMENT_PROPS_TO_OMIT = {
+const REACT_ELEMENT_PROPS_TO_OMIT = {
   onComponentWillMount: true,
   onComponentWillUnmount: true,
   onComponentDidMount: true,
@@ -54,11 +54,11 @@ let REACT_ELEMENT_PROPS_TO_OMIT = {
   haikuCode: true,
 }
 
-for (let eventKey in EventsDict) {
+for (const eventKey in EventsDict) {
   VALID_PROPS[eventKey] = EventsDict[eventKey]
 }
 
-for (let fwdPropKey in HAIKU_FORWARDED_PROPS) {
+for (const fwdPropKey in HAIKU_FORWARDED_PROPS) {
   VALID_PROPS[fwdPropKey] = "object"
 }
 
