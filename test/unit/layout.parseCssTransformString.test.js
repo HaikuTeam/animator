@@ -1,5 +1,5 @@
 var test = require('tape')
-var parseCssTransformString = require('./../../lib/helpers/parseCssTransformString')
+var parseCssTransformString = require('./../../lib/helpers/parseCssTransformString').default
 
 test('layout.parseCssTransformString', function (t) {
   var data = [

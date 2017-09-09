@@ -1,5 +1,5 @@
 var test = require('tape')
-var reifyRFO = require('./../../lib/reflection/reifyRFO')
+var reifyRFO = require('./../../lib/reflection/reifyRFO').default
 
 test('reflection.reifyRFO', function (t) {
   var specs = [

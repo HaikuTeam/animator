@@ -171,6 +171,8 @@ cs['get']['hwb'] = function(string) {
   return null
 }
 
+cs['to'] = {}
+
 cs['to']['hex'] = function(rgba) {
   return (
     "#" +

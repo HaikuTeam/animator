@@ -56,9 +56,11 @@ export default function tiny() {
 
         var d = a
 
-        ('undefined' !== typeof initF)
-          ? (d = a[initF] = [])
-          : (initF = 'mixpanel')
+        if ('undefined' !== typeof initF) {
+          d = a[initF] = []
+        } else {
+          initF = 'mixpanel'
+        }
 
         d.people = d.people || []
 

@@ -1,7 +1,7 @@
 var test = require('tape')
 var PACKAGE = require('./../../package.json')
 var TestHelpers = require('./../TestHelpers')
-var HaikuDOMAdapter = require('./../../lib/adapters/dom')
+var HaikuDOMAdapter = require('./../../lib/adapters/dom').default
 test('component._getInjectables', function (t) {
   t.plan(16)
 
