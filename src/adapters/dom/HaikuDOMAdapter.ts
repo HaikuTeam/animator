@@ -44,7 +44,7 @@ export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
     }
   }
 
-  return HaikuContext['createComponentFactory'](
+  return HaikuContext["createComponentFactory"](
     HaikuDOMRendererClass,
     bytecode,
     config, // Note: Full config object, of which options is one property!
@@ -54,9 +54,9 @@ export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
 
 // Allow multiple players of different versions to exist on the same page
 if (IS_WINDOW_DEFINED) {
-  if (!window['HaikuPlayer']) {
-    window['HaikuPlayer'] = {}
+  if (!window["HaikuPlayer"]) {
+    window["HaikuPlayer"] = {}
   }
 
-  window['HaikuPlayer'][PLAYER_VERSION] = HaikuDOMAdapter
+  window["HaikuPlayer"][PLAYER_VERSION] = HaikuDOMAdapter
 }

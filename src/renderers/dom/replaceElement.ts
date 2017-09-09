@@ -3,9 +3,9 @@
  */
 
 import applyLayout from "./applyLayout"
-import isTextNode from "./isTextNode"
-import createTextNode from "./createTextNode"
 import createTagNode from "./createTagNode"
+import createTextNode from "./createTextNode"
+import isTextNode from "./isTextNode"
 
 export default function replaceElement(
   domElement,
@@ -33,7 +33,7 @@ export default function replaceElement(
     parentVirtualElement,
     component,
     null,
-    null
+    null,
   )
 
   parentDomNode.replaceChild(newElement, domElement)

@@ -4,14 +4,14 @@
 
 import applyLayout from "./applyLayout"
 import assignAttributes from "./assignAttributes"
-import getTypeAsString from "./getTypeAsString"
 import cloneVirtualElement from "./cloneVirtualElement"
 import getFlexId from "./getFlexId"
-import renderTree from "./renderTree"
-import replaceElementWithText from "./replaceElementWithText"
-import replaceElement from "./replaceElement"
-import normalizeName from "./normalizeName"
+import getTypeAsString from "./getTypeAsString"
 import isTextNode from "./isTextNode"
+import normalizeName from "./normalizeName"
+import renderTree from "./renderTree"
+import replaceElement from "./replaceElement"
+import replaceElementWithText from "./replaceElementWithText"
 
 const OBJECT = "object"
 const STRING = "string"
@@ -125,7 +125,7 @@ export default function updateElement(
       [],
       subcomponent,
       isPatchOperation,
-      null
+      null,
     )
   }
 

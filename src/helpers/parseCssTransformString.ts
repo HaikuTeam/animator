@@ -2,12 +2,12 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
+import Layout3D from "./../Layout3D"
+import mat4compose from "./../vendor/css-mat4"
+import mat4decompose from "./../vendor/mat4-decompose"
+import Math3d from "./../vendor/math3d"
 import MathUtils from "./MathUtils"
 import parseCssValueString from "./parseCssValueString"
-import Layout3D from "./../Layout3D"
-import Math3d from "./../vendor/math3d"
-import mat4decompose from "./../vendor/mat4-decompose"
-import mat4compose from "./../vendor/css-mat4"
 
 function separate(str) {
   let bits = str.split("(")
@@ -141,7 +141,7 @@ export default function parseCssTransformString(str) {
     skew: [0, 0, 0],
     perspective: [0, 0, 0, 1],
     quaternion: [0, 0, 0, 1],
-    rotation: [0, 0, 0]
+    rotation: [0, 0, 0],
   }
   mat4decompose(
     product,

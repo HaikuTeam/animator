@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import setStyleMatrix from "./setStyleMatrix"
 import formatTransform from "./formatTransform"
 import isEqualTransformString from "./isEqualTransformString"
 import scopeOfElement from "./scopeOfElement"
+import setStyleMatrix from "./setStyleMatrix"
 
 const SVG = "svg"
 
@@ -108,7 +108,7 @@ export default function applyCssLayout(
           nodeLayout.format,
           computedLayout.matrix,
           context.config.options.useWebkitPrefix,
-          pixelRatio
+          pixelRatio,
         )
       }
     } else {
@@ -125,7 +125,7 @@ export default function applyCssLayout(
             nodeLayout.format,
             computedLayout.matrix,
             context.config.options.useWebkitPrefix,
-            pixelRatio
+            pixelRatio,
           )
         }
       }

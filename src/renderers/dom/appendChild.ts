@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import createTextNode from "./createTextNode"
-import createTagNode from "./createTagNode"
 import applyLayout from "./applyLayout"
+import createTagNode from "./createTagNode"
+import createTextNode from "./createTextNode"
 import isTextNode from "./isTextNode"
 
 export default function appendChild(
@@ -18,7 +18,7 @@ export default function appendChild(
   if (isTextNode(virtualElement)) {
     domElementToInsert = createTextNode(
       parentDomElement,
-      virtualElement
+      virtualElement,
     )
   } else {
     domElementToInsert = createTagNode(
@@ -36,7 +36,7 @@ export default function appendChild(
     parentVirtualElement,
     component,
     null,
-    null
+    null,
   )
 
   parentDomElement.appendChild(domElementToInsert)

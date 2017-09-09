@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import assign from "./vendor/assign"
+import Config from "./Config"
 import HaikuClock from "./HaikuClock"
 import HaikuComponent from "./HaikuComponent"
-import Config from "./Config"
 import PRNG from "./helpers/PRNG"
+import assign from "./vendor/assign"
 
 const pkg = require("./../package.json")
 const PLAYER_VERSION = pkg.version
@@ -58,7 +58,7 @@ export default function HaikuContext(mount, renderer, platform, bytecode, config
     console.warn("[haiku player] no platform (e.g. window) provided; some features may be unavailable")
   }
 
-  HaikuContext['contexts'].push(this)
+  HaikuContext["contexts"].push(this)
 
   // List of tickable objects managed by this context. These are invoked on every clock tick.
   // These are removed when context unmounts and re-added in case of re-mount
@@ -110,10 +110,10 @@ export default function HaikuContext(mount, renderer, platform, bytecode, config
 
 // Keep track of all instantiated contexts; this is mainly exposed for convenience when debugging the engine,
 // as well as to help provide a unique root graph address prefix for subtrees (e.g. 0.2.3.4.5)
-HaikuContext['contexts'] = []
+HaikuContext["contexts"] = []
 
 // Also expose so we can programatically choose a player on the page
-HaikuContext['PLAYER_VERSION'] = PLAYER_VERSION
+HaikuContext["PLAYER_VERSION"] = PLAYER_VERSION
 
 /**
  * @method getRootComponent
@@ -352,7 +352,7 @@ HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState() {
  * @description Returns a factory function that can create a HaikuComponent and run it upon a mount.
  * The created player runs using the passed-in renderer, bytecode, options, and platform.
  */
-HaikuContext['createComponentFactory'] = function createComponentFactory(
+HaikuContext["createComponentFactory"] = function createComponentFactory(
   RendererClass,
   bytecode,
   haikuConfigFromFactoryCreator,
@@ -406,18 +406,18 @@ HaikuContext['createComponentFactory'] = function createComponentFactory(
 
     // These properties are added for convenience as hot editing hooks inside Haiku Desktop (and elsewhere?).
     // It's a bit hacky to just expose these in this way, but it proves pretty convenient downstream.
-    HaikuComponentFactory['bytecode'] = bytecode
-    HaikuComponentFactory['renderer'] = renderer
+    HaikuComponentFactory["bytecode"] = bytecode
+    HaikuComponentFactory["renderer"] = renderer
     // Note that these ones could theoretically change if this factory was called more than once; use with care
-    HaikuComponentFactory['mount'] = mount
-    HaikuComponentFactory['context'] = context
-    HaikuComponentFactory['component'] = component
+    HaikuComponentFactory["mount"] = mount
+    HaikuComponentFactory["context"] = context
+    HaikuComponentFactory["component"] = component
 
     // Finally, return the HaikuComponent instance which can also be used for programmatic behavior
     return component
   }
 
-  HaikuComponentFactory['PLAYER_VERSION'] = PLAYER_VERSION
+  HaikuComponentFactory["PLAYER_VERSION"] = PLAYER_VERSION
 
   return HaikuComponentFactory
 }

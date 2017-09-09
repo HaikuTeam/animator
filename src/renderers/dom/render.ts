@@ -16,6 +16,6 @@ export default function render(
     [virtualTree],
     component,
     null,
-    null
+    null,
   )
 }

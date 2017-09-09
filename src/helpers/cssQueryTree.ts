@@ -3,8 +3,8 @@
  */
 
 import BasicUtils from "./BasicUtils"
-import flattenTree from "./manaFlattenTree"
 import queryList from "./cssQueryList"
+import flattenTree from "./manaFlattenTree"
 
 const OBJECT = "object"
 

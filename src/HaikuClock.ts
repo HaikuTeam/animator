@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import raf from "./vendor/raf"
-import assign from "./vendor/assign"
-import SimpleEventEmitter from "./helpers/SimpleEventEmitter"
 import HaikuGlobal from "./HaikuGlobal"
+import SimpleEventEmitter from "./helpers/SimpleEventEmitter"
+import assign from "./vendor/assign"
+import raf from "./vendor/raf"
 
 const NUMBER = "number"
 

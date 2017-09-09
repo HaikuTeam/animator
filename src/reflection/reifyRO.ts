@@ -3,8 +3,8 @@
  */
 
 import expressionToRO from "./expressionToRO"
-import reifyRFO from "./reifyRFO"
 import isSerializableScalar from "./isSerializableScalar"
+import reifyRFO from "./reifyRFO"
 
 const OBJECT = "object"
 const FUNCTION = "function"
