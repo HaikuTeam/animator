@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import xmlToMana from "./xmlToMana"
 import visitManaTree from "./visitManaTree"
+import xmlToMana from "./xmlToMana"
 
 const STRING_TYPE = "string"
 
@@ -26,12 +26,12 @@ export default function upgradeBytecodeInPlace(bytecode, options) {
     for (let i = 0; i < properties.length; i++) {
       let propertySpec = properties[i]
       let updatedSpec = {}
-      if (propertySpec.value !== undefined) updatedSpec['value'] = propertySpec.value
-      if (propertySpec.type !== undefined) updatedSpec['type'] = propertySpec.type
-      if (propertySpec.setter !== undefined) updatedSpec['set'] = propertySpec.setter
-      if (propertySpec.getter !== undefined) updatedSpec['get'] = propertySpec.getter
-      if (propertySpec.set !== undefined) updatedSpec['set'] = propertySpec.set
-      if (propertySpec.get !== undefined) updatedSpec['get'] = propertySpec.get
+      if (propertySpec.value !== undefined) updatedSpec["value"] = propertySpec.value
+      if (propertySpec.type !== undefined) updatedSpec["type"] = propertySpec.type
+      if (propertySpec.setter !== undefined) updatedSpec["set"] = propertySpec.setter
+      if (propertySpec.getter !== undefined) updatedSpec["get"] = propertySpec.getter
+      if (propertySpec.set !== undefined) updatedSpec["set"] = propertySpec.set
+      if (propertySpec.get !== undefined) updatedSpec["get"] = propertySpec.get
       bytecode.states[propertySpec.name] = updatedSpec
     }
   }

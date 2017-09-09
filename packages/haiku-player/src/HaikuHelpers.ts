@@ -9,21 +9,21 @@ const MAIN =
       ? global
       : {}
 
-if (!MAIN['HaikuHelpers']) {
-  MAIN['HaikuHelpers'] = {}
+if (!MAIN["HaikuHelpers"]) {
+  MAIN["HaikuHelpers"] = {}
 }
 
 // Different versions may have different helpers, so keep that in mind...
-if (!MAIN['HaikuHelpers'][VERSION]) {
-  MAIN['HaikuHelpers'][VERSION] = {
+if (!MAIN["HaikuHelpers"][VERSION]) {
+  MAIN["HaikuHelpers"][VERSION] = {
     helpers: {},
     schema: {},
   }
 }
 
-const exp = MAIN['HaikuHelpers'][VERSION]
+const exp = MAIN["HaikuHelpers"][VERSION]
 
-exp['register'] = function register(name, method) {
+exp["register"] = function register(name, method) {
   exp.helpers[name] = method
   exp.schema[name] = "function"
   return exp

@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import normalizeName from "./normalizeName"
-import getTypeAsString from "./getTypeAsString"
-import getFlexId from "./getFlexId"
 import SVG_EL_NAMES from "./../../helpers/allSvgElementNames"
 import createSvgElement from "./createSvgElement"
+import getFlexId from "./getFlexId"
+import getTypeAsString from "./getTypeAsString"
+import normalizeName from "./normalizeName"
 import updateElement from "./updateElement"
 
 export default function createTagNode(
@@ -46,7 +46,7 @@ export default function createTagNode(
     domElement,
     parentVirtualElement,
     component,
-    null
+    null,
   )
   return newDomElement
 }

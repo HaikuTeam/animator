@@ -2,17 +2,17 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import ValueBuilder from "./ValueBuilder"
-import vanityHandlers from "./properties/dom/vanities"
+import Config from "./Config"
+import HaikuTimeline from "./HaikuTimeline"
+import addElementToHashTable from "./helpers/addElementToHashTable"
 import queryTree from "./helpers/cssQueryTree"
-import Layout3D from "./Layout3D"
 import scopifyElements from "./helpers/scopifyElements"
-import assign from "./vendor/assign"
 import SimpleEventEmitter from "./helpers/SimpleEventEmitter"
 import upgradeBytecodeInPlace from "./helpers/upgradeBytecodeInPlace"
-import addElementToHashTable from "./helpers/addElementToHashTable"
-import HaikuTimeline from "./HaikuTimeline"
-import Config from "./Config"
+import Layout3D from "./Layout3D"
+import vanityHandlers from "./properties/dom/vanities"
+import ValueBuilder from "./ValueBuilder"
+import assign from "./vendor/assign"
 
 const pkg = require("./../package.json")
 const PLAYER_VERSION = pkg.version
@@ -153,7 +153,7 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   }
 }
 
-HaikuComponent['PLAYER_VERSION'] = PLAYER_VERSION
+HaikuComponent["PLAYER_VERSION"] = PLAYER_VERSION
 
 function _clone(thing) {
   if (Array.isArray(thing)) {
@@ -530,7 +530,7 @@ function _cloneTemplate(mana) {
   let out = {
     elementName: mana.elementName,
     attributes: null,
-    children: null
+    children: null,
   }
 
   if (mana.attributes) {
@@ -1162,7 +1162,7 @@ function _shallowCloneComponentTreeElement(element) {
     layout: null,
     elementName: null,
     attributes: null,
-    children: null
+    children: null,
   }
 
   clone.__instance = element.__instance // Cache the instance

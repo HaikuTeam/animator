@@ -2,12 +2,12 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import matchById from "./cssMatchById"
-import matchByClass from "./cssMatchByClass"
-import matchByTagName from "./cssMatchByTagName"
-import matchByAttribute from "./cssMatchByAttribute"
-import matchByHaiku from "./cssMatchByHaiku"
 import attrSelectorParser from "./attrSelectorParser"
+import matchByAttribute from "./cssMatchByAttribute"
+import matchByClass from "./cssMatchByClass"
+import matchByHaiku from "./cssMatchByHaiku"
+import matchById from "./cssMatchById"
+import matchByTagName from "./cssMatchByTagName"
 
 const ID_PREFIX = "#"
 const CLASS_PREFIX = "."

@@ -1,7 +1,7 @@
 "use strict";
 exports.__esModule = true;
-var xml_parser_1 = require("./../vendor/xml-parser");
 var to_style_1 = require("./../vendor/to-style");
+var xml_parser_1 = require("./../vendor/xml-parser");
 var styleStringToObject = to_style_1["default"].object;
 function fixChildren(kids) {
     if (Array.isArray(kids))

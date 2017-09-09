@@ -2,14 +2,14 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import isBlankString from "./isBlankString"
-import removeElement from "./removeElement"
+import appendChild from "./appendChild"
 import cloneVirtualElement from "./cloneVirtualElement"
 import getFlexId from "./getFlexId"
-import shouldElementBeReplaced from "./shouldElementBeReplaced"
-import appendChild from "./appendChild"
-import updateElement from "./updateElement"
+import isBlankString from "./isBlankString"
+import removeElement from "./removeElement"
 import replaceElement from "./replaceElement"
+import shouldElementBeReplaced from "./shouldElementBeReplaced"
+import updateElement from "./updateElement"
 
 export default function renderTree(
   domElement,

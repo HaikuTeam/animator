@@ -1,5 +1,5 @@
 const data = {
-  baddies: 0
+  baddies: 0,
 }
 
 function arrayParamToString(param) {

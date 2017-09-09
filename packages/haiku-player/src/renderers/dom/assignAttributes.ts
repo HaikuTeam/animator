@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import assignStyle from "./assignStyle"
 import assignClass from "./assignClass"
 import assignEvent from "./assignEvent"
+import assignStyle from "./assignStyle"
 import getFlexId from "./getFlexId"
 
 const STYLE = "style"

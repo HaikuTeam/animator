@@ -1,10 +1,10 @@
 "use strict";
 exports.__esModule = true;
-var assign_1 = require("./vendor/assign");
+var Config_1 = require("./Config");
 var HaikuClock_1 = require("./HaikuClock");
 var HaikuComponent_1 = require("./HaikuComponent");
-var Config_1 = require("./Config");
 var PRNG_1 = require("./helpers/PRNG");
+var assign_1 = require("./vendor/assign");
 var pkg = require("./../package.json");
 var PLAYER_VERSION = pkg.version;
 var DEFAULT_TIMELINE_NAME = "Default";
@@ -35,7 +35,7 @@ function HaikuContext(mount, renderer, platform, bytecode, config) {
     if (!this._platform) {
         console.warn("[haiku player] no platform (e.g. window) provided; some features may be unavailable");
     }
-    HaikuContext['contexts'].push(this);
+    HaikuContext["contexts"].push(this);
     this._tickables = [];
     this._tickables.push({ performTick: this.tick.bind(this) });
     if (this.config.options.frame) {
@@ -63,8 +63,8 @@ function HaikuContext(mount, renderer, platform, bytecode, config) {
     }
 }
 exports["default"] = HaikuContext;
-HaikuContext['contexts'] = [];
-HaikuContext['PLAYER_VERSION'] = PLAYER_VERSION;
+HaikuContext["contexts"] = [];
+HaikuContext["PLAYER_VERSION"] = PLAYER_VERSION;
 HaikuContext.prototype.getRootComponent = function getRootComponent() {
     return this.component;
 };
@@ -188,7 +188,7 @@ HaikuContext.prototype.getDeterministicTime = function getDeterministicTime() {
 HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState() {
     return this._renderer && this._renderer.getUser && this._renderer.getUser();
 };
-HaikuContext['createComponentFactory'] = function createComponentFactory(RendererClass, bytecode, haikuConfigFromFactoryCreator, platform) {
+HaikuContext["createComponentFactory"] = function createComponentFactory(RendererClass, bytecode, haikuConfigFromFactoryCreator, platform) {
     if (!RendererClass) {
         throw new Error("A runtime renderer class object is required");
     }
@@ -211,14 +211,14 @@ HaikuContext['createComponentFactory'] = function createComponentFactory(Rendere
         var renderer = new RendererClass();
         var context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged);
         var component = context.getRootComponent();
-        HaikuComponentFactory['bytecode'] = bytecode;
-        HaikuComponentFactory['renderer'] = renderer;
-        HaikuComponentFactory['mount'] = mount;
-        HaikuComponentFactory['context'] = context;
-        HaikuComponentFactory['component'] = component;
+        HaikuComponentFactory["bytecode"] = bytecode;
+        HaikuComponentFactory["renderer"] = renderer;
+        HaikuComponentFactory["mount"] = mount;
+        HaikuComponentFactory["context"] = context;
+        HaikuComponentFactory["component"] = component;
         return component;
     }
-    HaikuComponentFactory['PLAYER_VERSION'] = PLAYER_VERSION;
+    HaikuComponentFactory["PLAYER_VERSION"] = PLAYER_VERSION;
     return HaikuComponentFactory;
 };
 //# sourceMappingURL=HaikuContext.js.map

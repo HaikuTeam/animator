@@ -15,7 +15,8 @@
       "no-var-requires": [false],
       "prefer-for-of": [false],
       "only-arrow-functions": [false],
-      "no-console": [true, "log"]
+      "no-console": [true, "log"],
+      "no-string-literal": [false]
     },
     "rulesDirectory": []
 }

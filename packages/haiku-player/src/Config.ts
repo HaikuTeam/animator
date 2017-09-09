@@ -137,7 +137,7 @@ function build(...argums) {
     timelines: null,
     template: null,
     vanities: null,
-    children: null
+    children: null,
   }
 
   let args = []
@@ -192,5 +192,5 @@ function build(...argums) {
 export default {
   build,
   seed,
-  DEFAULTS
+  DEFAULTS,
 }

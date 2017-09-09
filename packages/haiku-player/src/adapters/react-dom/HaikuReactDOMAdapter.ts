@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
+import merge from "lodash.merge"
 import React from "react"
 import ReactDOM from "react-dom"
 import EventsDict from "./EventsDict"
-import merge from "lodash.merge"
 
 let DEFAULT_HOST_ELEMENT_TAG_NAME = "div"
 

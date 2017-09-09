@@ -1,8 +1,8 @@
 "use strict";
 exports.__esModule = true;
-var assignStyle_1 = require("./assignStyle");
 var assignClass_1 = require("./assignClass");
 var assignEvent_1 = require("./assignEvent");
+var assignStyle_1 = require("./assignStyle");
 var getFlexId_1 = require("./getFlexId");
 var STYLE = "style";
 var OBJECT = "object";

@@ -2,14 +2,14 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import isTextNode from "./isTextNode"
-import isIE from "./isIE"
-import isEdge from "./isEdge"
-import getWindowsBrowserVersion from "./getWindowsBrowserVersion"
-import isMobile from "./isMobile"
 import applyCssLayout from "./../../layout/applyCssLayout"
 import scopeOfElement from "./../../layout/scopeOfElement"
 import modernizr from "./../../vendor/modernizr"
+import getWindowsBrowserVersion from "./getWindowsBrowserVersion"
+import isEdge from "./isEdge"
+import isIE from "./isIE"
+import isMobile from "./isMobile"
+import isTextNode from "./isTextNode"
 
 const DEFAULT_PIXEL_RATIO = 1.0
 const SVG = "svg"

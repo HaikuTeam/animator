@@ -7,17 +7,17 @@ var MAIN = (typeof window !== "undefined")
     : (typeof global !== "undefined")
         ? global
         : {};
-if (!MAIN['HaikuHelpers']) {
-    MAIN['HaikuHelpers'] = {};
+if (!MAIN["HaikuHelpers"]) {
+    MAIN["HaikuHelpers"] = {};
 }
-if (!MAIN['HaikuHelpers'][VERSION]) {
-    MAIN['HaikuHelpers'][VERSION] = {
+if (!MAIN["HaikuHelpers"][VERSION]) {
+    MAIN["HaikuHelpers"][VERSION] = {
         helpers: {},
         schema: {}
     };
 }
-var exp = MAIN['HaikuHelpers'][VERSION];
-exp['register'] = function register(name, method) {
+var exp = MAIN["HaikuHelpers"][VERSION];
+exp["register"] = function register(name, method) {
     exp.helpers[name] = method;
     exp.schema[name] = "function";
     return exp;

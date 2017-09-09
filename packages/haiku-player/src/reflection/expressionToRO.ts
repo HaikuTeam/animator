@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
+import arrayToRO from "./arrayToRO"
+import functionToRFO from "./functionToRFO"
 import isSerializableScalar from "./isSerializableScalar"
 import objectToRO from "./objectToRO"
-import functionToRFO from "./functionToRFO"
-import arrayToRO from "./arrayToRO"
 
 const FUNCTION = "function"
 const OBJECT = "object"

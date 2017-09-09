@@ -1,11 +1,11 @@
 "use strict";
 exports.__esModule = true;
+var Layout3D_1 = require("./../Layout3D");
+var css_mat4_1 = require("./../vendor/css-mat4");
+var mat4_decompose_1 = require("./../vendor/mat4-decompose");
+var math3d_1 = require("./../vendor/math3d");
 var MathUtils_1 = require("./MathUtils");
 var parseCssValueString_1 = require("./parseCssValueString");
-var Layout3D_1 = require("./../Layout3D");
-var math3d_1 = require("./../vendor/math3d");
-var mat4_decompose_1 = require("./../vendor/mat4-decompose");
-var css_mat4_1 = require("./../vendor/css-mat4");
 function separate(str) {
     var bits = str.split("(");
     var type = bits[0];

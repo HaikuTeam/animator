@@ -1,8 +1,8 @@
 "use strict";
 exports.__esModule = true;
-var has_1 = require("./has");
 var ColorUtils_1 = require("./../../helpers/ColorUtils");
 var SVGPoints_1 = require("./../../helpers/SVGPoints");
+var has_1 = require("./has");
 function parseD(value) {
     if (!value)
         return [];

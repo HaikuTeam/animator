@@ -132,5 +132,5 @@ function create(instance) {
 }
 
 export default {
-  create
+  create,
 }

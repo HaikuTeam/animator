@@ -1,8 +1,8 @@
 "use strict";
 exports.__esModule = true;
-var createTextNode_1 = require("./createTextNode");
-var createTagNode_1 = require("./createTagNode");
 var applyLayout_1 = require("./applyLayout");
+var createTagNode_1 = require("./createTagNode");
+var createTextNode_1 = require("./createTextNode");
 var isTextNode_1 = require("./isTextNode");
 function appendChild(alreadyChildElement, virtualElement, parentDomElement, parentVirtualElement, component) {
     var domElementToInsert;

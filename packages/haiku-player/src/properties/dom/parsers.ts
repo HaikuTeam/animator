@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import has from "./has"
 import ColorUtils from "./../../helpers/ColorUtils"
 import SVGPoints from "./../../helpers/SVGPoints"
+import has from "./has"
 
 function parseD(value) {
   // in case of d="" for any reason, don't try to expand this otherwise this will choke

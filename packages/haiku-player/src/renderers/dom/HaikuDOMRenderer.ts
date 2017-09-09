@@ -2,12 +2,12 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
+import createMixpanel from "./createMixpanel"
+import createRightClickMenu from "./createRightClickMenu"
 import getElementSize from "./getElementSize"
 import getLocalDomEventPosition from "./getLocalDomEventPosition"
-import createRightClickMenu from "./createRightClickMenu"
-import createMixpanel from "./createMixpanel"
-import render from "./render"
 import patch from "./patch"
+import render from "./render"
 
 export default function HaikuDOMRenderer() {
   this._user = {

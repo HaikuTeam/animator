@@ -2,8 +2,8 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import parseXmlNonCompliantly from "./../vendor/xml-parser"
 import ToStyle from "./../vendor/to-style"
+import parseXmlNonCompliantly from "./../vendor/xml-parser"
 
 const  styleStringToObject = ToStyle.object
 

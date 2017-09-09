@@ -1,11 +1,11 @@
 "use strict";
 exports.__esModule = true;
+var createMixpanel_1 = require("./createMixpanel");
+var createRightClickMenu_1 = require("./createRightClickMenu");
 var getElementSize_1 = require("./getElementSize");
 var getLocalDomEventPosition_1 = require("./getLocalDomEventPosition");
-var createRightClickMenu_1 = require("./createRightClickMenu");
-var createMixpanel_1 = require("./createMixpanel");
-var render_1 = require("./render");
 var patch_1 = require("./patch");
+var render_1 = require("./render");
 function HaikuDOMRenderer() {
     this._user = {
         mouse: {
