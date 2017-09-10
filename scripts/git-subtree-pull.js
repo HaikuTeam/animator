@@ -13,7 +13,7 @@ async.eachSeries(allPackages, function (pack, next) {
   try {
     var cmds = [
       `git fetch ${pack.remote} ${branch}`,
-      `git subtree pull --prefix packages/${pack.name} ${pack.remote} ${branch}`
+      `git subtree pull --squash --prefix packages/${pack.name} ${pack.remote} ${branch}`
     ]
     cmds.forEach((cmd) => {
       log.log(cmd)
