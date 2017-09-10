@@ -41,13 +41,21 @@ Assuming you've done the initial setup, you can start all the dev servers with:
 
 #### Finishing
 
-**Basic**
+First lint all of the code:
 
-Push your changes to a feature branch and open a pull request on GitHub. A lead developer will handle taking care of the merge into master, ensuring that all packages are synchronized, and publishing any necessary changes to the npm registry.
+    $ yarn run lint-all
+
+Then run the unit tests in all of the code:
+
+    $ yarn run test-all
+
+Assuming no lint errors or test failures, push your changes:
+
+    $ git push
 
 **Advanced**
 
-Note: The following requires additional Haiku credentials. Once you're done developing, and all changes have been committed and merged, you can run the following command which will synchronize repos and perform additional cleanup:
+Note: The following requires additional Haiku credentials. Once you're done developing, and all changes have been committed and pushed, you can run the following command which will synchronize subtree repos, publish the player, and perform additional cleanup:
 
     $ yarn run finish
 
