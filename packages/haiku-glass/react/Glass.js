@@ -133,6 +133,13 @@ export class Glass extends React.Component {
         seekMs = baseMs + deltaMs
       }
 
+      // This rounding is required otherwise we'll see bizarre behavior on stage.
+      // I think it's because some part of the player's caching or transition logic
+      // which wants things to be round numbers. If we don't round this, i.e. convert
+      // 16.666 -> 17 and 33.333 -> 33, then the player won't render those frames,
+      // which means the user will have trouble moving things on stage at those times.
+      seekMs = Math.round(seekMs)
+
       this._component._setTimelineTimeValue(seekMs)
 
       var currentTimeline = this._component._componentInstance.getTimeline(this._component._currentTimelineName)
