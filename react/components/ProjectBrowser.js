@@ -259,7 +259,8 @@ class ProjectBrowser extends React.Component {
       <button
         style={DASH_STYLES.editProject}
         disabled={!!this.state.launchingProject}
-        onClick={this.handleProjectLaunch.bind(this, projectObject)}>
+        onClick={this.handleProjectLaunch.bind(this, projectObject)}
+        id="project-edit-button">
         Open Editor
       </button>
     )

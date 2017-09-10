@@ -4,6 +4,7 @@ import assign from 'lodash.assign'
 import path from 'path'
 import StageTitleBar from './StageTitleBar'
 import Palette from './Palette'
+import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 
 const STAGE_BOX_STYLE = {
   position: 'relative',
@@ -14,6 +15,9 @@ const STAGE_BOX_STYLE = {
   height: '100%'
 }
 
+const clientFactory = new EnvoyClient()
+const tourClient = clientFactory.get('/tour')
+
 export default class Stage extends React.Component {
   constructor (props) {
     super(props)
@@ -23,6 +27,16 @@ export default class Stage extends React.Component {
 
   componentDidMount () {
     this.injectWebview()
+
+    tourClient.then((client) => {
+      client.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this, client))
+      // window.addEventListener('resize', debounce(this.onRequestWebViewData.bind(this), 64))
+    })
+  }
+
+  onRequestWebviewCoordinates(client) {
+    let { top, left } = this.webview.getBoundingClientRect()
+    client.receiveWebviewCoordinates('glass', { top, left })
   }
 
   injectWebview () {
