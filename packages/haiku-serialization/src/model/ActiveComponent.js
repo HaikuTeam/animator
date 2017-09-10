@@ -120,11 +120,11 @@ function ActiveComponent (options) {
     this.emit('envoy:timelineClientReady', this._envoyTimelineChannel)
   })
 
-  this._envoyClient.get("tour").then((tourChannel) => {
+  this._envoyClient.get('tour').then((tourChannel) => {
     this._envoyTourChannel = tourChannel
     if (!this._envoyClient.isInMockMode()) {
       this._envoyTourChannel.requestWebviewCoordinates().then(() => {
-        this.emit("envoy:tourClientReady", this._envoyTourChannel)
+        this.emit('envoy:tourClientReady', this._envoyTourChannel)
       })
     }
   })

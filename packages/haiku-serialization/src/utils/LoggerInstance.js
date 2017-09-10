@@ -1,5 +1,4 @@
 var fs = require('haiku-fs-extra')
-var path = require('path')
 var Logger = require('./Logger')
 var { HOMEDIR_LOGS_PATH } = require('./HaikuHomeDir')
 
