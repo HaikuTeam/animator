@@ -120,10 +120,13 @@ function ActiveComponent (options) {
     this.emit('envoy:timelineClientReady', this._envoyTimelineChannel)
   })
 
-  clientFactory.get("/tour").then((client) => {
-    client.requestWebviewCoordinates().then(() => {
-      this.emit("envoy:tourClientReady", client)
-    })
+  this._envoyClient.get("tour").then((tourChannel) => {
+    this._envoyTourChannel = tourChannel
+    if (!this._envoyClient.isInMockMode()) {
+      this._envoyTourChannel.requestWebviewCoordinates().then(() => {
+        this.emit("envoy:tourClientReady", this._envoyTourChannel)
+      })
+    }
   })
 }
 
