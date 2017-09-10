@@ -2,7 +2,7 @@ var Parser = require('cst').Parser
 var walk = require('estree-walker').walk
 var fsm = require('fuzzy-string-matching')
 var uniq = require('lodash').uniq
-var FORBIDDEN_EXPRESSION_TOKENS = require('@haiku/player/src/ValueBuilder').FORBIDDEN_EXPRESSION_TOKENS
+var FORBIDDEN_EXPRESSION_TOKENS = require('@haiku/player/lib/ValueBuilder').default.FORBIDDEN_EXPRESSION_TOKENS
 
 var PARSER = new Parser()
 PARSER._options.sourceType = 'script'

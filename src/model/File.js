@@ -7,12 +7,12 @@ var merge = require('lodash.merge')
 var find = require('lodash.find')
 var pascalcase = require('pascalcase')
 
-var visitManaTree = require('@haiku/player/src/helpers/visitManaTree')
-var xmlToMana = require('@haiku/player/src/helpers/xmlToMana')
-var convertManaLayout = require('@haiku/player/src/layout/convertManaLayout')
-var objectToRO = require('@haiku/player/src/reflection/objectToRO')
-var reifyRO = require('@haiku/player/src/reflection/reifyRO')
-var upgradeBytecodeInPlace = require('@haiku/player/src/helpers/upgradeBytecodeInPlace')
+var visitManaTree = require('@haiku/player/lib/helpers/visitManaTree').default
+var xmlToMana = require('@haiku/player/lib/helpers/xmlToMana').default
+var convertManaLayout = require('@haiku/player/lib/layout/convertManaLayout').default
+var objectToRO = require('@haiku/player/lib/reflection/objectToRO').default
+var reifyRO = require('@haiku/player/lib/reflection/reifyRO').default
+var upgradeBytecodeInPlace = require('@haiku/player/lib/helpers/upgradeBytecodeInPlace').default
 
 var Aspects = require('haiku-bytecode/src/Aspects')
 var ensureManaChildrenArray = require('haiku-bytecode/src/ensureManaChildrenArray')
@@ -48,10 +48,9 @@ var walkFiles = require('./../utils/walkFiles')
 var define = require('./ModelClassFactory').define
 var getNormalizedComponentModulePath = require('./helpers/getNormalizedComponentModulePath')
 
-var HaikuHomeDir = require('./../utils/HaikuHomeDir')
-var logdir = path.join(HaikuHomeDir.HOMEDIR_PATH, 'logs')
+var { HOMEDIR_LOGS_PATH } = require('./../utils/HaikuHomeDir')
 
-// This file also depends on '@haiku/player/src/HaikuComponent'
+// This file also depends on '@haiku/player/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as 'hostInstance' here.
 // ^^ Leave this message in this file so we can grep for it if necessary
 
@@ -393,7 +392,7 @@ function FileModel (config) {
 
       if (process.env.HAIKU_DEBUG_MUTATIONS === '1') {
         fse.outputFileSync(
-          path.join(logdir, 'mutations', `${this.get('relpath').split(/[/.]/).join('_')}-${this._mutations.length}.json`),
+          path.join(HOMEDIR_LOGS_PATH, 'mutations', `${this.get('relpath').split(/[/.]/).join('_')}-${this._mutations.length}.json`),
           JSON.stringify(ast.program, null, 2)
         )
       }

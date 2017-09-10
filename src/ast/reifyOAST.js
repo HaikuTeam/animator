@@ -1,5 +1,5 @@
 var OASTToRO = require('./OASTToRO')
-var reifyRO = require('@haiku/player/src/reflection/reifyRO')
+var reifyRO = require('@haiku/player/lib/reflection/reifyRO').default
 
 function reifyOAST (oast, referenceEvaluator, skipFunctionReification) {
   var ro = OASTToRO(oast)

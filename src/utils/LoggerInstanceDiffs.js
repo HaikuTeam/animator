@@ -2,16 +2,15 @@ var fs = require('haiku-fs-extra')
 var path = require('path')
 var Differ = require('./../model/Differ')
 var Logger = require('./Logger')
-var HaikuHomeDir = require('./HaikuHomeDir')
+var { HOMEDIR_LOGS_PATH } = require('./HaikuHomeDir')
 
 require('colors') // TODO: use non-string-extending module
 
 var MAX_LOG_LEN = 20000
 
-const logdir = path.join(HaikuHomeDir.HOMEDIR_PATH, 'logs')
-fs.mkdirpSync(logdir)
+fs.mkdirpSync(HOMEDIR_LOGS_PATH)
 
-const logger = new Logger(logdir, 'haiku-diffs.log', {
+const logger = new Logger(HOMEDIR_LOGS_PATH, 'haiku-diffs.log', {
   colorize: true,
   maxsize: 100000,
   maxFiles: 2,

@@ -120,17 +120,10 @@ function ActiveComponent (options) {
     this.emit('envoy:timelineClientReady', this._envoyTimelineChannel)
   })
 
-  this._envoyClient.get('tour').then((tourChannel) => {
-    this._envoyTourChannel = tourChannel
-    this.emit('envoy:timelineClientReady', this._envoyTourChannel)
-    // Both of these should occur in both TIMELINE and GLASS, because ActiveComponent is
-    // initialized in both processes.
-    // client.on('test:event', (payload) => {
-    //   console.log("'test' event received from TourHandler", payload)
-    // })
-    // client.testMethod('WORLD!').then((response) => {
-    //   console.log('should be HELLO, WORLD!', response)
-    // })
+  clientFactory.get("/tour").then((client) => {
+    client.requestWebviewCoordinates().then(() => {
+      this.emit("envoy:tourClientReady", client)
+    })
   })
 }
 

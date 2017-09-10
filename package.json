@@ -17,7 +17,7 @@
     "electron": "1.7.0"
   },
   "dependencies": {
-    "@haiku/player": "HaikuTeam/player.git#d455d6640f7ea38fec131592dbccf71d20e67ecc",
+    "@haiku/player": "HaikuTeam/player.git",
     "async": "2.1.5",
     "babel-core": "6.23.1",
     "babel-generator": "6.23.0",
@@ -40,9 +40,9 @@
     "estree-walker": "^0.5.0",
     "fs-extra": "2.0.0",
     "fuzzy-string-matching": "^1.0.2",
-    "haiku-bytecode": "HaikuTeam/bytecode#3a402092fb1ac7259afaa3f1dfc72b0625c96351",
+    "haiku-bytecode": "HaikuTeam/bytecode",
     "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
-    "haiku-sdk-creator": "HaikuTeam/sdk-creator#a669f7871cfa9c2b8d1aaedc1e315f3583687212",
+    "haiku-sdk-creator": "HaikuTeam/sdk-creator",
     "lodash": "4.17.4",
     "lodash.assign": "4.2.0",
     "lodash.debounce": "4.0.8",
