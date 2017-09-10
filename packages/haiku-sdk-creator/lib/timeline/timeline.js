@@ -5,7 +5,7 @@ const DEFAULT_TIMELINE_DATA = {
     currentFrame: 0,
     fps: 60,
     playing: false,
-    stopwatch: (new Date()).getTime(),
+    stopwatch: Date.now(),
 };
 const TIMELINE_CHANNEL = "timeline";
 class TimelineHandler {
@@ -17,14 +17,14 @@ class TimelineHandler {
         if (this.timelineRegistry[timelineId]) {
             return this.timelineRegistry[timelineId];
         }
-        const newTimelineData = Object.assign({}, DEFAULT_TIMELINE_DATA, { stopwatch: (new Date()).getTime() });
+        const newTimelineData = Object.assign({}, DEFAULT_TIMELINE_DATA, { stopwatch: Date.now() });
         this.timelineRegistry[timelineId] = newTimelineData;
         return newTimelineData;
     }
     play(timelineId) {
         const timeline = this.getTimelineDataById(timelineId);
         timeline.playing = true;
-        timeline.stopwatch = (new Date()).getTime();
+        timeline.stopwatch = Date.now();
         this.server.emit(TIMELINE_CHANNEL, {
             name: "didPlay",
             payload: {
@@ -59,7 +59,7 @@ class TimelineHandler {
     seekToFrame(timelineId, frame) {
         const timeline = this.getTimelineDataById(timelineId);
         timeline.currentFrame = frame | 0;
-        timeline.stopwatch = (new Date()).getTime();
+        timeline.stopwatch = Date.now();
         this.server.emit(TIMELINE_CHANNEL, {
             name: "didSeek",
             payload: {
@@ -90,7 +90,7 @@ class TimelineHandler {
         const timeline = this.getTimelineDataById(timelineId);
         let ret;
         if (timeline.playing) {
-            const lap = (new Date()).getTime();
+            const lap = Date.now();
             const spanMs = lap - timeline.stopwatch;
             const spanS = spanMs / 1000;
             const spanFrames = spanS * timeline.fps;

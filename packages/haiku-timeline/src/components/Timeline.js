@@ -320,7 +320,8 @@ class Timeline extends React.Component {
       userconfig: this.props.userconfig,
       websocket: this.props.websocket,
       platform: window,
-      envoy: this.props.envoy
+      envoy: this.props.envoy,
+      WebSocket: window.WebSocket
     })
 
     // Since we store accumulated keyframe movements, we can send the websocket update in batches;

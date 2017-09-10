@@ -8,7 +8,6 @@ import AnimatorNotice from './Steps/AnimatorNotice'
 import LibraryStart from './Steps/LibraryStart'
 import Finish from './Steps/Finish'
 import Tooltip from '../Tooltip'
-import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 import {
   didTakeTour,
   createTourFile
@@ -42,13 +41,7 @@ class Tour extends React.Component {
   }
 
   componentDidMount () {
-    const clientFactory = new EnvoyClient({
-      port: this.props.envoy.port,
-      host: this.props.envoy.host,
-      WebSocket: window.WebSocket
-    })
-
-    clientFactory.get('tour').then((tourChannel) => {
+    this.props.envoy.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
       this.tourChannel.on('tour:requestShowStep', this.showStep)
     })

@@ -71,7 +71,8 @@ export class Glass extends React.Component {
       userconfig: this.props.userconfig,
       websocket: this.props.websocket,
       platform: window,
-      envoy: this.props.envoy
+      envoy: this.props.envoy,
+      WebSocket: window.WebSocket
     })
 
     this._component.setStageTransform({zoom: this.state.zoomXY, pan: {x: this.state.panX, y: this.state.panY}})
@@ -94,10 +95,10 @@ export class Glass extends React.Component {
 
     window.glass = this
 
-    this._component.on('envoy:timelineClientReady', (client) => {
-      client.on('didPlay', this.handleTimelineDidPlay.bind(this))
-      client.on('didPause', this.handleTimelineDidPause.bind(this))
-      client.on('didSeek', this.handleTimelineDidSeek.bind(this))
+    this._component.on('envoy:timelineClientReady', (timelineChannel) => {
+      timelineChannel.on('didPlay', this.handleTimelineDidPlay.bind(this))
+      timelineChannel.on('didPause', this.handleTimelineDidPause.bind(this))
+      timelineChannel.on('didSeek', this.handleTimelineDidSeek.bind(this))
     })
   }
 
@@ -107,15 +108,13 @@ export class Glass extends React.Component {
   }
 
   handleTimelineDidPause (frameData) {
-    var finalFrame = frameData.frame
     this._playing = false
-    this._lastAuthoritativeFrame = finalFrame
+    this._lastAuthoritativeFrame = frameData.frame
     this._stopwatch = Date.now()
   }
 
   handleTimelineDidSeek (frameData) {
-    var finalFrame = frameData.frame
-    this._lastAuthoritativeFrame = finalFrame
+    this._lastAuthoritativeFrame = frameData.frame
     this._stopwatch = Date.now()
     this.draw(true)
   }
@@ -139,6 +138,7 @@ export class Glass extends React.Component {
       var currentTimeline = this._component._componentInstance.getTimeline(this._component._currentTimelineName)
       if (currentTimeline) {
         if (forceSeek) {
+          // Note that under the hood, Timeline calls controlTime
           currentTimeline.seek(seekMs)
         } else {
           currentTimeline._controlTime(seekMs)

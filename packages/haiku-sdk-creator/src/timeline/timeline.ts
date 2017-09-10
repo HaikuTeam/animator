@@ -15,7 +15,7 @@ const DEFAULT_TIMELINE_DATA: TimelineData = {
     currentFrame: 0,
     fps: 60,
     playing: false,
-    stopwatch: (new Date()).getTime(),
+    stopwatch: Date.now(),
 }
 
 const TIMELINE_CHANNEL = "timeline"
@@ -36,7 +36,7 @@ export default class TimelineHandler implements Timeline {
             return this.timelineRegistry[timelineId]
         }
 
-        const newTimelineData = Object.assign({}, DEFAULT_TIMELINE_DATA, { stopwatch: (new Date()).getTime() })
+        const newTimelineData = Object.assign({}, DEFAULT_TIMELINE_DATA, { stopwatch: Date.now() })
         this.timelineRegistry[timelineId] = newTimelineData
         return newTimelineData
     }
@@ -46,7 +46,7 @@ export default class TimelineHandler implements Timeline {
         //TODO:  need to setTimelineTime in ActiveComponent
         // let currentTime = Math.round(currentFrame * frameInfo.mspf)
         timeline.playing = true
-        timeline.stopwatch = (new Date()).getTime()
+        timeline.stopwatch = Date.now()
         this.server.emit(TIMELINE_CHANNEL, {
             name: "didPlay",
             payload: {
@@ -75,7 +75,7 @@ export default class TimelineHandler implements Timeline {
     seekToMs(timelineId: string, ms: number) {
         const timeline = this.getTimelineDataById(timelineId)
         // timeline.currentFrame = 0 //TODO
-        // timeline.stopwatch = (new Date()).getTime()
+        // timeline.stopwatch = Date.now()
         throw new Error("unimplemented")
     }
 
@@ -90,7 +90,7 @@ export default class TimelineHandler implements Timeline {
     seekToFrame(timelineId: string, frame: number) {
         const timeline = this.getTimelineDataById(timelineId)
         timeline.currentFrame = frame | 0
-        timeline.stopwatch = (new Date()).getTime()
+        timeline.stopwatch = Date.now()
         this.server.emit(TIMELINE_CHANNEL, {
             name: "didSeek",
             payload: {
@@ -131,7 +131,7 @@ export default class TimelineHandler implements Timeline {
         const timeline = this.getTimelineDataById(timelineId)
         let ret: number
         if (timeline.playing) {
-            const lap = (new Date()).getTime()
+            const lap = Date.now()
             const spanMs = lap - timeline.stopwatch
             const spanS = spanMs / 1000
             const spanFrames = spanS * timeline.fps

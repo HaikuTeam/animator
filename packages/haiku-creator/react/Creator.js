@@ -228,13 +228,13 @@ export default class Creator extends React.Component {
       }
     })
 
-    const clientFactory = new EnvoyClient({
+    this.envoy = new EnvoyClient({
       port: this.props.haiku.envoy.port,
       host: this.props.haiku.envoy.host,
       WebSocket: window.WebSocket
     })
 
-    clientFactory.get('tour').then((tourChannel) => {
+    this.envoy.get('tour').then((tourChannel) => {
       tourChannel.on('tour:requestElementCoordinates', ({ selector, webview }) => {
         if (webview !== 'creator') { return }
 
@@ -543,7 +543,7 @@ export default class Creator extends React.Component {
             removeNotice={this.removeNotice}
             notices={this.state.notices}
             {...this.props} />
-          <Tour envoy={this.props.haiku.envoy} />
+          <Tour envoy={this.envoy} />
         </div>
       )
     }
@@ -551,7 +551,7 @@ export default class Creator extends React.Component {
     if (!this.state.projectFolder) {
       return (
         <div>
-          <Tour envoy={this.props.haiku.envoy} />
+          <Tour envoy={this.envoy} />
           <ProjectBrowser
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
@@ -585,7 +585,7 @@ export default class Creator extends React.Component {
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        <Tour envoy={this.props.haiku.envoy} />
+        <Tour envoy={this.envoy} />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
           <div className='layout-box' style={{overflow: 'visible'}}>
             <ReactCSSTransitionGroup
@@ -624,7 +624,7 @@ export default class Creator extends React.Component {
                     <Stage
                       ref='stage'
                       folder={this.state.projectFolder}
-                      envoy={this.props.haiku.envoy}
+                      envoy={this.envoy}
                       haiku={this.props.haiku}
                       websocket={this.props.websocket}
                       project={this.state.projectObject}
@@ -644,7 +644,7 @@ export default class Creator extends React.Component {
               <Timeline
                 ref='timeline'
                 folder={this.state.projectFolder}
-                envoy={this.props.haiku.envoy}
+                envoy={this.envoy}
                 haiku={this.props.haiku} />
             </SplitPane>
           </div>

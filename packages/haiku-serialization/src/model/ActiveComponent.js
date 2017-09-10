@@ -10,10 +10,7 @@ var visitTemplate = require('./helpers/visitTemplate')
 var getHaikuKnownImportMatch = require('./getHaikuKnownImportMatch')
 var overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 var EnvoyClient = require('haiku-sdk-creator/lib/envoy/client').default
-
-if (typeof WebSocket === 'undefined') { // eslint-disable-line
-  var WebSocket = require('ws')
-}
+var WebSocket = require('ws')
 
 var HAIKU_ID_ATTRIBUTE = 'haiku-id'
 var DEFAULT_SCENE_NAME = 'main' // e.g. code/main/*
@@ -111,8 +108,14 @@ function ActiveComponent (options) {
   // Used to control how we render in an editing environment, e.g. preview mode
   this._interactionMode = DEFAULT_INTERACTION_MODE
 
+  var wsc = (
+    options.WebSocket ||
+    ((typeof window !== 'undefined') && window.WebSocket) ||
+    WebSocket
+  )
+
   this._envoyClient = new EnvoyClient(lodash.assign({
-    WebSocket: WebSocket
+    WebSocket: wsc
   }, options.envoy))
 
   this._envoyClient.get('timeline').then((timelineChannel) => {

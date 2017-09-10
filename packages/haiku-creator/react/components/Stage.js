@@ -4,7 +4,6 @@ import assign from 'lodash.assign'
 import path from 'path'
 import StageTitleBar from './StageTitleBar'
 import Palette from './Palette'
-import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 
 const STAGE_BOX_STYLE = {
   position: 'relative',
@@ -25,15 +24,9 @@ export default class Stage extends React.Component {
   componentDidMount () {
     this.injectWebview()
 
-    const clientFactory = new EnvoyClient({
-      port: this.props.envoy.port,
-      host: this.props.envoy.host,
-      WebSocket: window.WebSocket
-    })
+    const tourChannel = this.props.envoy.get('tour')
 
-    const tourChannel = clientFactory.get('tour')
-
-    if (!clientFactory.isInMockMode()) {
+    if (!this.props.envoy.isInMockMode()) {
       tourChannel.then((client) => {
         client.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this, client))
       })
@@ -51,7 +44,10 @@ export default class Stage extends React.Component {
     const query = qs.stringify(assign({}, this.props.haiku, {
       plumbing: this.props.haiku.plumbing.url,
       folder: this.props.folder,
-      envoy: this.props.envoy
+      envoy: {
+        host: this.props.envoy.getOption('host'),
+        port: this.props.envoy.getOption('port')
+      }
     }))
 
     // When building a distribution (see 'distro' repo) the node_modules folder is at a different level #FIXME matthew
