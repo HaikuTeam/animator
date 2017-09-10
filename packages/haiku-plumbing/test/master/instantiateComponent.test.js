@@ -14,7 +14,6 @@ tape('instantiateComponent', (t) => {
     return async.series([
       function (cb) { return creator.request('initializeProject', ['test', { projectPath: folder }, 'matthew+test@haiku.ai', 'quitesecure'], cb) },
       function (cb) { return creator.request('startProject', ['test', folder], cb) },
-
       function (cb) { return creator.action('instantiateComponent', [folder, instpath, {}], cb) },
       function (cb) {
         setTimeout(() => { // Wait for the debounced file system update to finish

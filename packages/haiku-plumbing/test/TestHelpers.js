@@ -44,6 +44,10 @@ function setup(ready) {
         function teardown() {
           cleanup()
           plumbing.teardown()
+          if (global.haiku) {
+            // Avoid leaking this handle so the test finishes
+            global.haiku.HaikuGlobalAnimationHarness.cancel()
+          }
         }
         creator.on('open', () => {
           plumbing.getCurrentOrganizationName((err, organizationName) => {

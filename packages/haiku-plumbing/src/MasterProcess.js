@@ -242,6 +242,9 @@ const methods = {
           // the ActiveComponent's internal initialization sets things up in the right way for updates,
           // even if we aren't necessarily going to use it together.
           File = activeComponent.FileModel
+          // Since we aren't running in the DOM, we can cancel this request animation frame loop
+          // which will cause handles to be leaked in a testing environment
+          activeComponent._componentInstance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
           return cb()
         })
       },

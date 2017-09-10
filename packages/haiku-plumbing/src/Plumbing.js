@@ -89,6 +89,7 @@ export default class Plumbing extends StateObject {
   constructor () {
     super()
     this.subprocs = []
+    this.envoys = []
     this.servers = []
     this.clients = []
     this.requests = {}
@@ -168,6 +169,8 @@ export default class Plumbing extends StateObject {
       WebSocket: WebSocket,
       logger: new EnvoyLogger('warn', logger)
     })
+
+    this.envoys.push(envoyServer)
 
     return envoyServer.ready().then(() => {
       if (!haiku.envoy) haiku.envoy = {} // Gets stored in env vars before subprocs created
@@ -382,6 +385,10 @@ export default class Plumbing extends StateObject {
         logger.info('[plumbing] calling exit')
         subproc.exit()
       }
+    })
+    this.envoys.forEach((envoy) => {
+      logger.info('[plumbing] closing envoy')
+      envoy.close()
     })
     this.servers.forEach((server) => {
       logger.info('[plumbing] closing server')
