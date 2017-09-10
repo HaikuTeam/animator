@@ -17,12 +17,19 @@ import StateInspector from './components/StateInspector/StateInspector'
 import Stage from './components/Stage'
 import Timeline from './components/Timeline'
 import Toast from './components/notifications/Toast'
+import Tour from './components/Tour/Tour'
+import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
+import {
+  HOMEDIR_PATH,
+  HOMEDIR_LOGS_PATH
+} from 'haiku-serialization/src/utils/HaikuHomeDir'
 
 var mixpanel = require('./../utils/Mixpanel')
 const electron = require('electron')
 const remote = electron.remote
 const ipcRenderer = electron.ipcRenderer
 const clipboard = electron.clipboard
+const clientFactory = new EnvoyClient()
 
 var webFrame = electron.webFrame
 if (webFrame) {
@@ -114,13 +121,12 @@ export default class Creator extends React.Component {
 
   dumpSystemInfo () {
     const timestamp = Date.now()
-    const maindir = path.join(os.homedir(), '.haiku')
-    const dumpdir = path.join(maindir, 'dumps', `dump-${timestamp}`)
+    const dumpdir = path.join(HOMEDIR_PATH, 'dumps', `dump-${timestamp}`)
     cp.execSync(`mkdir -p ${JSON.stringify(dumpdir)}`)
     fs.writeFileSync(path.join(dumpdir, 'argv'), JSON.stringify(process.argv, null, 2))
     fs.writeFileSync(path.join(dumpdir, 'env'), JSON.stringify(process.env, null, 2))
-    if (fs.existsSync(path.join(maindir, 'logs', 'haiku-debug.log'))) {
-      fs.writeFileSync(path.join(dumpdir, 'log'), fs.readFileSync(path.join(maindir, 'logs', 'haiku-debug.log')).toString())
+    if (fs.existsSync(path.join(HOMEDIR_LOGS_PATH, 'haiku-debug.log'))) {
+      fs.writeFileSync(path.join(dumpdir, 'log'), fs.readFileSync(path.join(HOMEDIR_LOGS_PATH, 'haiku-debug.log')).toString())
     }
     fs.writeFileSync(path.join(dumpdir, 'info'), JSON.stringify({
       activeFolder: this.state.projectFolder,
@@ -221,6 +227,26 @@ export default class Creator extends React.Component {
           console.info('[creator] current-pasteable:request-paste', message.data)
           return this.handleContentPaste(message.data)
       }
+    })
+
+    clientFactory.get('/tour').then((client) => {
+      client.on("tour:requestElementCoordinates", ({ selector, webview }) => {
+        if (webview !== 'creator') { return }
+
+        try {
+          // TODO: find if there is a better solution to this scape hatch
+          let element = document.querySelector(selector)
+          let { top, left } = element.getBoundingClientRect()
+
+          client.receiveElementCoordinates('creator', { top, left })
+        } catch (error) {
+          console.error(`Error fetching ${element} in webview ${webview}`)
+        }
+      })
+
+      ipcRenderer.on('global-menu:start-tour', () => {
+        client.start({ force: true })
+      })
     })
 
     document.addEventListener('paste', (pasteEvent) => {
@@ -503,23 +529,33 @@ export default class Creator extends React.Component {
     }
 
     if (this.state.dashboardVisible) {
-      return <ProjectBrowser
-        loadProjects={this.loadProjects}
-        launchProject={this.launchProject}
-        createNotice={this.createNotice}
-        removeNotice={this.removeNotice}
-        notices={this.state.notices}
-        {...this.props} />
+      return (
+        <div>
+          <ProjectBrowser
+          loadProjects={this.loadProjects}
+          launchProject={this.launchProject}
+          createNotice={this.createNotice}
+          removeNotice={this.removeNotice}
+          notices={this.state.notices}
+          {...this.props} />
+          <Tour />
+        </div>
+      )
     }
 
     if (!this.state.projectFolder) {
-      return <ProjectBrowser
-        loadProjects={this.loadProjects}
-        launchProject={this.launchProject}
-        createNotice={this.createNotice}
-        removeNotice={this.removeNotice}
-        notices={this.state.notices}
-        {...this.props} />
+      return (
+        <div>
+          <Tour />
+          <ProjectBrowser
+            loadProjects={this.loadProjects}
+            launchProject={this.launchProject}
+            createNotice={this.createNotice}
+            removeNotice={this.removeNotice}
+            notices={this.state.notices}
+            {...this.props} />
+        </div>
+      )
     }
 
     if (!this.state.applicationImage || this.state.folderLoadingError) {
@@ -544,6 +580,7 @@ export default class Creator extends React.Component {
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <Tour />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
           <div className='layout-box' style={{overflow: 'visible'}}>
             <ReactCSSTransitionGroup

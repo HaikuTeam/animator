@@ -159,6 +159,10 @@ function createWindow () {
     browserWindow.webContents.send('global-menu:toggle-dev-tools')
   })
 
+  topmenu.on('global-menu:start-tour', () => {
+    browserWindow.webContents.send('global-menu:start-tour')
+  })
+
   // active in dev & staging only
   topmenu.on('global-menu:open-hacker-helper', () => {
     browserWindow.webContents.send('global-menu:open-hacker-helper')

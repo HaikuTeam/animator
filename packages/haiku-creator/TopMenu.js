@@ -188,6 +188,12 @@ class TopMenu extends EventEmitter {
               shell.openExternal('https://docs.haiku.ai/')
             }
           },
+          {
+            label: 'Take Tour',
+            click: () => {
+              this.emit('global-menu:start-tour')
+            }
+          },
           { type: 'separator' },
           {
             label: 'Haiku Community on Slack',

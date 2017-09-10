@@ -307,6 +307,7 @@ export const DASH_STYLES = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Color(Palette.GRAY).fade(0.1)
+    backgroundColor: Color(Palette.GRAY).fade(0.1),
+    zIndex: 5
   }
 }

@@ -201,7 +201,7 @@ class LibraryDrawer extends React.Component {
 
   render () {
     return (
-      <div>
+      <div id="library-wrapper">
         <div style={STYLES.sectionHeader}>
           Library
           <button style={STYLES.button} onClick={this.launchFilepicker}>+</button>
