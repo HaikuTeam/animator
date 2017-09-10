@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "target": "ES3",
+        "declaration": true,
+        "declarationDir": "lib",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "isolatedModules": false,
+        "allowJs": false,
+        "noImplicitAny": false,
+        "removeComments": true,
+        "noLib": false,
+        "sourceMap": true,
+        "preserveConstEnums": true,
+        "rootDir": "src",
+        "outDir": "lib",
+        "lib": ["es5", "dom"],
+        "suppressImplicitAnyIndexErrors": true,
+        "typeRoots": [
+            "node_modules/@types/"
+        ]
+    },
+    "compileOnSave": true,
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

@@ -1,7 +1,7 @@
 'use strict'
 
 var test = require('tape')
-var SVGPoints = require('./../../src/helpers/SVGPoints')
+var SVGPoints = require('./../../lib/helpers/SVGPoints').default
 
 test('SVGPoints.pathToPoints', function (t) {
   t.plan(1)

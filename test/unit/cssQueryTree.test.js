@@ -1,7 +1,7 @@
 'use strict'
 
 var test = require('tape')
-var queryTree = require('./../../src/helpers/cssQueryTree')
+var queryTree = require('./../../lib/helpers/cssQueryTree').default
 
 test('cssQueryTree', function (t) {
   t.plan(2)

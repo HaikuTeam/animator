@@ -1,5 +1,5 @@
 var test = require('tape')
-var schema = require('./../../src/properties/dom/schema')
+var schema = require('./../../lib/properties/dom/schema').default
 var fs = require('fs')
 
 test('dom.properties', function (t) {

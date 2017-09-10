@@ -1,8 +1,8 @@
 var test = require('tape')
 var PACKAGE = require('./../../package.json')
 var TestHelpers = require('./../TestHelpers')
-var HaikuDOMAdapter = require('./../../src/adapters/dom')
-var Config = require('./../../src/Config')
+var HaikuDOMAdapter = require('./../../lib/adapters/dom').default
+var Config = require('./../../lib/Config').default
 test('passingOptions', function (t) {
   t.plan(6)
 

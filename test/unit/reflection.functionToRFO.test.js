@@ -1,5 +1,5 @@
 var test = require('tape')
-var functionToRFO = require('./../../src/reflection/functionToRFO')
+var functionToRFO = require('./../../lib/reflection/functionToRFO').default
 
 test('reflection.functionToRFO', function (t) {
   t.plan(20)
