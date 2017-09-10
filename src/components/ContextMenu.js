@@ -1,11 +1,12 @@
 const { EventEmitter } = require('events')
 const { remote } = require('electron')
 const { Menu, MenuItem } = remote
+const { HOMEDIR_PATH } = require('haiku-serialization/src/utils/HaikuHomeDir')
 const path = require('path')
 var os = require('os')
 var fse = require('haiku-fs-extra')
-var HOME = path.join(os.homedir(), '.haiku')
-fse.mkdirpSync(HOME)
+
+fse.mkdirpSync(HOMEDIR_PATH)
 
 export default class ContextMenu extends EventEmitter {
   constructor (window, react) {

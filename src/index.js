@@ -15,7 +15,7 @@ function _fixPlumbingUrl (url) { return url.replace(/^http/, 'ws') }
 
 const userconfig = require(path.join(config.folder, 'haiku.js'))
 
-const websocket = ((process.env.DEV === '1') ? false : config.plumbing)
+const websocket = (config.plumbing)
   ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'timeline')
   : { on: () => {}, send: () => {}, method: () => {}, request: () => {}, sendIfConnected: () => {}, action: () => {} }
 
