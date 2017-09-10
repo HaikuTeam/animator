@@ -112,6 +112,30 @@ function shout (text, cb) {
   return cb()
 }
 
+var LIBS_DIR = path.join(__dirname, 'libs')
+var PLAYER_SOURCE_DIR = path.join(__dirname, '..', 'packages', 'haiku-player')
+var PLUMBING_SOURCE_DIR = path.join(__dirname, '..', 'packages', 'haiku-plumbing')
+var PLUMBING_DEST_DIR = path.join(LIBS_DIR, 'plumbing')
+
+function prepLibs() {
+  cp.execSync(`rm -rf ${LIBS_DIR}`, { stdio: 'inherit' })
+  cp.execSync(`mkdir -p ${PLUMBING_DEST_DIR}`, { stdio: 'inherit' })
+  cp.execSync(`git clone git@github.com:HaikuTeam/plumbing.git`, { stdio: 'inherit', cwd: LIBS_DIR })
+  cp.execSync('yarn install --production=true', { stdio: 'inherit', cwd: PLUMBING_DEST_DIR }) // --production to avoid "bundle format is ambiguous"
+  cp.execSync('yarn add gulp gulp-watch babel-cli', { stdio: 'inherit', cwd: PLUMBING_DEST_DIR })
+}
+
+
+function buildStuff () {
+  cp.execSync(path.join(__dirname, 'scripts', 'bash', 'electron-rebuild.sh'), { stdio: 'inherit' })
+  cp.execSync(path.join(__dirname, 'scripts', 'bash', 'compile.sh'), { stdio: 'inherit' })
+  if (inputs.uglify) {
+    cp.execSync(path.join(__dirname, 'scripts', 'node', 'uglify.js'), { stdio: 'inherit', cwd: __dirname })
+  }
+  cp.execSync(path.join(__dirname, 'scripts', 'bash', 'build.sh'), { stdio: 'inherit' })
+  cp.execSync(path.join(__dirname, 'local-install.sh'), { stdio: 'inherit' })
+}
+
 function runit () {
   var pkg = fse.readJsonSync(path.join(__dirname, 'package.json'))
   pkg.version = inputs.version
@@ -146,45 +170,9 @@ function runit () {
 
   shout(`Distro build started (${tuple})`, () => {
     try {
-      // Reset the repository contents
-      var libsDir = path.join(__dirname, 'libs')
-      var libsPlumbingDir = path.join(libsDir, 'plumbing')
+      prepLibs()
 
-      console.log(`clearing out old libs ${libsDir}`)
-      cp.execSync(`rm -rf ${libsDir}`, { stdio: 'inherit' })
-      cp.execSync(`mkdir -p ${libsDir}`, { stdio: 'inherit' })
-
-      console.log(`cloning fresh version of plumbing`)
-      cp.execSync(`git clone git@github.com:HaikuTeam/plumbing.git`, { stdio: 'inherit', cwd: libsDir })
-      cp.execSync(`git checkout ${inputs.branch}`, { stdio: 'inherit', cwd: libsPlumbingDir })
-
-      console.log(`installing plumbing production packages`)
-      // IMPORTANT: only=production is to avoid any errors such as: "bundle format is ambiguous"
-      // it also makes sure we don't put our dev dependencies inside the user's app
-      cp.execSync('yarn install --production=true', { stdio: 'inherit', cwd: libsPlumbingDir })
-      console.log(`installing plumbing compilation packages`)
-      cp.execSync('yarn add gulp gulp-watch babel-cli', { stdio: 'inherit', cwd: libsPlumbingDir })
-
-      console.log('copying player contents missing from public yarn package')
-      // Since yarn install respects .yarnignore _even if installing from a git url_, the player
-      // project will be missing necessary modules. So we just copy those over.
-      var playerSourceDir = path.join(__dirname, '..', 'packages', 'haiku-player', 'src')
-      var playerDestDir = path.join(libsPlumbingDir, 'node_modules', '@haiku', 'player', 'src')
-      cp.execSync(`rsync -r --delete ${playerSourceDir}/ ${playerDestDir}`, { stdio: 'inherit' })
-
-      // Build the libraries and packages
-      console.log('building libraries and packages')
-      cp.execSync(path.join(__dirname, 'scripts', 'bash', 'electron-rebuild.sh'), { stdio: 'inherit' })
-      cp.execSync(path.join(__dirname, 'scripts', 'bash', 'compile.sh'), { stdio: 'inherit' })
-
-      if (inputs.uglify) {
-        cp.execSync(path.join(__dirname, 'scripts', 'node', 'uglify.js'), { stdio: 'inherit', cwd: __dirname })
-      }
-
-      cp.execSync(path.join(__dirname, 'scripts', 'bash', 'build.sh'), { stdio: 'inherit' })
-
-      // Install the distro locally
-      cp.execSync(path.join(__dirname, 'local-install.sh'), { stdio: 'inherit' })
+      buildStuff()
 
       // Reload the config with updated values to read from
       for (var key in require.cache) delete require.cache[key]

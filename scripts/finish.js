@@ -81,12 +81,6 @@ async.series([
         default: inputs.origin || 'origin'
       },
       {
-        type: 'input',
-        name: 'semverBumpLevel',
-        message: 'Semver bump level (i.e., which number do you want to bump in the `major.minor.patch` string):',
-        default: inputs.semverBumpLevel || 'patch'
-      },
-      {
         type: 'confirm',
         name: 'doLintPackages',
         message: 'Run the linter in all the packages? (warning: this may auto-format your code, resulting in unsaved changes)',
@@ -97,18 +91,6 @@ async.series([
         name: 'doTestPackages',
         message: 'Run automated tests in all the packages? (note: failed tests will _not_ block the rest of the steps)',
         default: false
-      },
-      {
-        type: 'confirm',
-        name: 'doPushToNpmRegistry',
-        message: 'Push to npm registry? (you almost certainly want to say "Y", otherwise npm/yarn installs might break)',
-        default: true
-      },
-      {
-        type: 'confirm',
-        name: 'doUpdateChangelog',
-        message: 'Update the changelog? (i.e., do you want to put your commits into the changelog (probably yes))',
-        default: true
       },
       {
         type: 'input',
@@ -188,8 +170,7 @@ async.series([
   },
 
   function (cb) {
-    log.hat('normalizing & bumping the version number for all packages')
-    return runScript('yarn-semver-inc', [`--level=${inputs.semverBumpLevel}`], cb)
+    return runScript('semver', [], cb)
   },
 
   function (cb) {
@@ -266,35 +247,20 @@ async.series([
   },
 
   function (cb) {
-    log.hat('normalizing the npm version number (git sha) for all internal deps')
-    return runScript('sha-norm', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
-  },
-
-  function (cb) {
     log.hat('pushing changes to all git subtrees')
     return runScript('git-subtree-push', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
   },
 
   function (cb) {
-    if (inputs.doPushToNpmRegistry) {
-      log.hat('publishing @haiku/player to the npm registry')
-      // cp.execSync(`yarn publish --verbose --new-version ${nowVersion()} --access public`, { cwd: path.join(playerPath), stdio: 'inherit' })
-      process.env.npm_config_registry = 'https://registry.npmjs.org'
-      cp.execSync(`npm publish --verbose --access public`, { cwd: path.join(playerPath), stdio: 'inherit' })
-      return cb()
-    } else {
-      log.log('skipping npm publish step because you said so')
-      return cb()
-    }
+    log.hat('publishing @haiku/player to the npm registry')
+    // cp.execSync(`yarn publish --verbose --new-version ${nowVersion()} --access public`, { cwd: path.join(playerPath), stdio: 'inherit' })
+    process.env.npm_config_registry = 'https://registry.npmjs.org'
+    cp.execSync(`npm publish --verbose --access public`, { cwd: path.join(playerPath), stdio: 'inherit' })
+    return cb()
   },
 
   function (cb) {
-    if (inputs.doUpdateChangelog) {
-      return runScript('changelog', [], cb)
-    } else {
-      log.log('skipping changelog update because you said so')
-      return cb()
-    }
+    return runScript('changelog', [], cb)
   },
 
   function (cb) {

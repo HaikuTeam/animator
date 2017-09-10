@@ -13,23 +13,18 @@
     "electron": "1.7.0"
   },
   "scripts": {
+    "setup": "node ./scripts/setup.js",
     "start": "node ./scripts/start.js",
     "finish": "node ./scripts/finish.js",
     "lint": "standard \"./scripts/**/*.js\" --fix --verbose | snazzy",
-    "mono:cmd": "node ./scripts/cmd.js",
-    "mono:changelog": "node ./scripts/changelog.js",
-    "mono:git-subtree-push": "node ./scripts/git-subtree-push.js",
-    "mono:git-subtree-pull": "node ./scripts/git-subtree-pull.js",
-    "mono:sha-norm": "node ./scripts/sha-norm.js",
-    "mono:lint-all": "node ./scripts/lint-all.js",
-    "mono:test-all": "node ./scripts/test-all.js",
-    "mono:yarn-clean": "node ./scripts/yarn-clean.js",
-    "mono:yarn-install": "node ./scripts/yarn-install.js",
-    "mono:yarn-link": "node ./scripts/yarn-link.js",
-    "mono:yarn-unlink": "node ./scripts/yarn-unlink.js",
-    "mono:yarn-semver-set": "node ./scripts/yarn-semver-set.js",
-    "mono:yarn-semver-inc": "node ./scripts/yarn-semver-inc.js",
-    "mono:yarn-semver-top": "node ./scripts/yarn-semver-top.js"
+    "semver": "node ./scripts/semver.js",
+    "lint-all": "node ./scripts/lint-all.js",
+    "test-all": "node ./scripts/test-all.js",
+    "git-subtree-push": "node ./scripts/git-subtree-push.js",
+    "git-subtree-pull": "node ./scripts/git-subtree-pull.js",
+    "yarn-install": "node ./scripts/yarn-install.js",
+    "yarn-link": "node ./scripts/yarn-link.js",
+    "yarn-unlink": "node ./scripts/yarn-unlink.js"
   },
   "devDependencies": {
     "async": "2.1.5",

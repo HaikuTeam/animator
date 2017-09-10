@@ -29,7 +29,7 @@ And add to `~/.ssh/config`:
 
     $ yarn install
     $ cd distro && yarn install && cd ..
-    $ yarn run mono:yarn-clean
+    $ yarn run setup
 
 ## Development
 
@@ -49,7 +49,7 @@ Push your changes to a feature branch and open a pull request on GitHub. A lead 
 
 Note: The following requires additional Haiku credentials. Once you're done developing, and all changes have been committed and merged, you can run the following command which will synchronize repos and perform additional cleanup:
 
-    $ yarn run mono:finish
+    $ yarn run finish
 
 ## Contributing
 
