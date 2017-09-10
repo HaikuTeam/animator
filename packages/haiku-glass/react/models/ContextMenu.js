@@ -1,5 +1,6 @@
 const { EventEmitter } = require('events')
 const { remote, clipboard, shell } = require('electron')
+const { HOMEDIR_PATH } = require('haiku-serialization/src/utils/HaikuHomeDir')
 const path = require('path')
 var os = require('os')
 var fse = require('haiku-fs-extra')
@@ -13,13 +14,12 @@ function niceTimestamp () {
   return moment().format('YYYY-MM-DD-HHmmss')
 }
 
-var HOME = path.join(os.homedir(), '.haiku')
-fse.mkdirpSync(HOME)
+fse.mkdirpSync(HOMEDIR_PATH)
 
 function writeHtmlSnapshot (html, react) {
-  fse.mkdirpSync(path.join(HOME, 'snapshots'))
+  fse.mkdirpSync(path.join(HOMEDIR_PATH, 'snapshots'))
   var filename = (react.props.projectName || 'Unknown') + '-' + niceTimestamp() + '.html'
-  var filepath = path.join(HOME, 'snapshots', filename)
+  var filepath = path.join(HOMEDIR_PATH, 'snapshots', filename)
   fse.outputFile(filepath, html, (err) => {
     if (err) return void (0)
     shell.openItem(filepath)
