@@ -48,8 +48,7 @@ var walkFiles = require('./../utils/walkFiles')
 var define = require('./ModelClassFactory').define
 var getNormalizedComponentModulePath = require('./helpers/getNormalizedComponentModulePath')
 
-var HaikuHomeDir = require('./../utils/HaikuHomeDir')
-var logdir = path.join(HaikuHomeDir.HOMEDIR_PATH, 'logs')
+var { HOMEDIR_LOGS_PATH } = require('./../utils/HaikuHomeDir')
 
 // This file also depends on '@haiku/player/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as 'hostInstance' here.
@@ -393,7 +392,7 @@ function FileModel (config) {
 
       if (process.env.HAIKU_DEBUG_MUTATIONS === '1') {
         fse.outputFileSync(
-          path.join(logdir, 'mutations', `${this.get('relpath').split(/[/.]/).join('_')}-${this._mutations.length}.json`),
+          path.join(HOMEDIR_LOGS_PATH, 'mutations', `${this.get('relpath').split(/[/.]/).join('_')}-${this._mutations.length}.json`),
           JSON.stringify(ast.program, null, 2)
         )
       }
