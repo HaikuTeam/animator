@@ -17,7 +17,7 @@ const STYLES = {
 export default function ({ style, next }) {
   return (
     <Dialog style={style}>
-      <img src="https://thumbs.gfycat.com/FalseNiftyCricket-size_restricted.gif" style={{width: 250}} alt=""/>
+      <img src='https://thumbs.gfycat.com/FalseNiftyCricket-size_restricted.gif' style={{width: 250}} alt='' />
       <h2>Keyframes</h2>
       <p style={STYLES.text}>
       Try right clicking a property row, choosing "create keyframe",

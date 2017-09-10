@@ -17,7 +17,7 @@ const STYLES = {
 export default function ({ style, next }) {
   return (
     <Dialog style={style}>
-      <img src="http://placehold.it/250x100" alt=""/>
+      <img src='http://placehold.it/250x100' alt='' />
       <h2>Play with properties</h2>
       <p style={STYLES.text}>Each component has elements whose properties can be changed at any point in time.</p>
       <button style={STYLES.btn} onClick={next}>Next</button>

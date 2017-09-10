@@ -1,5 +1,4 @@
 import React from 'react'
-import Radium from 'radium'
 import Dialog from '../../Dialog'
 import { DASH_STYLES } from '../../../styles/dashShared'
 
@@ -12,7 +11,7 @@ const STYLES = {
   },
   btnSecondary: {
     textTransform: 'none',
-    padding: '10px',
+    padding: '10px'
   },
   buttons: {
     marginTop: '30px'

@@ -20,7 +20,6 @@ const STYLES = {
     height: 20,
     background: '#49c000',
     borderRadius: '50%',
-    margin: '0 20',
     margin: '4px auto 0'
   },
   children: {
@@ -74,28 +73,28 @@ export default function ({ coordinates, display, children }) {
     circleDisplay = 'inline-block'
   }
 
-  if(display === 'left') {
+  if (display === 'left') {
     top = top + 10
     left = coordinates.left - STYLES.circle.width - 20
   }
 
-  if(display === 'right') {
+  if (display === 'right') {
     top = top + 10
     left = coordinates.left + 20
   }
 
-  if(display === 'bottom') {
+  if (display === 'bottom') {
     top = top + 10
   }
 
-  if(display === 'top') {
+  if (display === 'top') {
     top = top - 10
   }
 
   return (
     <div style={{top, left, ...STYLES.container, ...positionStyles.container}}>
       <div style={{...STYLES.circle, display: circleDisplay}}>
-        <div style={STYLES.circleInner}></div>
+        <div style={STYLES.circleInner} />
       </div>
       <div style={{...STYLES.children, ...positionStyles.children}}>
         {children}

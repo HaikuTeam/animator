@@ -1,5 +1,4 @@
 import React from 'react'
-import { ipcRenderer } from 'electron'
 import Welcome from './Steps/Welcome'
 import OpenProject from './Steps/OpenProject'
 import ScrubTicker from './Steps/ScrubTicker'
@@ -29,7 +28,7 @@ const components = {
 const clientFactory = new EnvoyClient()
 
 class Tour extends React.Component {
-  constructor() {
+  constructor () {
     super()
 
     this.next = this.next.bind(this)
@@ -44,25 +43,25 @@ class Tour extends React.Component {
     }
   }
 
-  componentDidMount() {
-    clientFactory.get('/tour').then((client) => {
-      this.client = client
-      client.on('tour:requestShowStep', this.showStep)
+  componentDidMount () {
+    clientFactory.get('tour').then((tourChannel) => {
+      this.tourChannel = tourChannel
+      this.tourChannel.on('tour:requestShowStep', this.showStep)
     })
 
     this.mnt = true
   }
 
-  componentWillUnmount() {
+  componentWillUnmount () {
     this.mnt = false
   }
 
-  next() {
-    this.client.next()
+  next () {
+    this.tourChannel.next()
   }
 
-  finish() {
-    this.client.finish()
+  finish () {
+    this.tourChannel.finish()
 
     this.setState({
       didTakeTour: true
@@ -71,7 +70,7 @@ class Tour extends React.Component {
     createTourFile()
   }
 
-  showStep(state) {
+  showStep (state) {
     // TODO: this is a bad practice, we should implement
     // a way to unbind events from a client in Envoy, then
     // remove this
@@ -80,7 +79,7 @@ class Tour extends React.Component {
     }
   }
 
-  shouldRender() {
+  shouldRender () {
     return this.state.component && !this.state.didTakeTour
   }
 

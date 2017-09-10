@@ -229,8 +229,8 @@ export default class Creator extends React.Component {
       }
     })
 
-    clientFactory.get('/tour').then((client) => {
-      client.on("tour:requestElementCoordinates", ({ selector, webview }) => {
+    clientFactory.get('tour').then((tourChannel) => {
+      tourChannel.on('tour:requestElementCoordinates', ({ selector, webview }) => {
         if (webview !== 'creator') { return }
 
         try {
@@ -238,14 +238,14 @@ export default class Creator extends React.Component {
           let element = document.querySelector(selector)
           let { top, left } = element.getBoundingClientRect()
 
-          client.receiveElementCoordinates('creator', { top, left })
+          tourChannel.receiveElementCoordinates('creator', { top, left })
         } catch (error) {
-          console.error(`Error fetching ${element} in webview ${webview}`)
+          console.error(`[creator] error fetching element in webview ${webview}`)
         }
       })
 
       ipcRenderer.on('global-menu:start-tour', () => {
-        client.start({ force: true })
+        tourChannel.start({ force: true })
       })
     })
 
@@ -532,12 +532,12 @@ export default class Creator extends React.Component {
       return (
         <div>
           <ProjectBrowser
-          loadProjects={this.loadProjects}
-          launchProject={this.launchProject}
-          createNotice={this.createNotice}
-          removeNotice={this.removeNotice}
-          notices={this.state.notices}
-          {...this.props} />
+            loadProjects={this.loadProjects}
+            launchProject={this.launchProject}
+            createNotice={this.createNotice}
+            removeNotice={this.removeNotice}
+            notices={this.state.notices}
+            {...this.props} />
           <Tour />
         </div>
       )
@@ -580,7 +580,7 @@ export default class Creator extends React.Component {
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <Tour />
+        <Tour />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
           <div className='layout-box' style={{overflow: 'visible'}}>
             <ReactCSSTransitionGroup

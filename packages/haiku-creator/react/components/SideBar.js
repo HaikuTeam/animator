@@ -98,7 +98,7 @@ class SideBar extends React.Component {
       <div style={STYLES.container} className='layout-box'>
         <div style={[STYLES.bar, {zIndex: 1, paddingLeft: this.state.isFullscreen ? 15 : 82}]} className='frame'>
           <LogoMiniSVG />
-          <button id="go-to-dashboard" key='dashboard' onClick={() => this.props.setDashboardVisibility(true)}
+          <button id='go-to-dashboard' key='dashboard' onClick={() => this.props.setDashboardVisibility(true)}
             style={[
               BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover, BTN_STYLES.btnText,
               {width: 'auto', position: 'absolute', right: 6}

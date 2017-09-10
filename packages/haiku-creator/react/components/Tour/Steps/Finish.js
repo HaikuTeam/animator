@@ -14,7 +14,7 @@ const STYLES = {
   },
   link: {
     display: 'block',
-    color: 'white',
+    color: 'white'
   },
   text: {
     fontSize: 16
@@ -30,11 +30,11 @@ export default function ({ style, finish }) {
         at the following links for more help.
 
         <div style={STYLES.linksWrapper}>
-          <a href="" style={STYLES.link}>Haiku Docs</a>
-          <a href="" style={STYLES.link}>Haiku Slack Community</a>
-          <a href="" style={STYLES.link}>@HaikuForTeams</a>
-          <a href="mailto:support@haiku.ai" style={STYLES.link}>support@haiku.ai</a>
-          </div>
+          <a href='' style={STYLES.link}>Haiku Docs</a>
+          <a href='' style={STYLES.link}>Haiku Slack Community</a>
+          <a href='' style={STYLES.link}>@HaikuForTeams</a>
+          <a href='mailto:support@haiku.ai' style={STYLES.link}>support@haiku.ai</a>
+        </div>
       </div>
       <button style={STYLES.btn} onClick={finish}>Finish</button>
     </Dialog>

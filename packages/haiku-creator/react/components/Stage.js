@@ -16,7 +16,6 @@ const STAGE_BOX_STYLE = {
 }
 
 const clientFactory = new EnvoyClient()
-const tourClient = clientFactory.get('/tour')
 
 export default class Stage extends React.Component {
   constructor (props) {
@@ -28,13 +27,16 @@ export default class Stage extends React.Component {
   componentDidMount () {
     this.injectWebview()
 
-    tourClient.then((client) => {
-      client.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this, client))
-      // window.addEventListener('resize', debounce(this.onRequestWebViewData.bind(this), 64))
-    })
+    const tourChannel = clientFactory.get('tour')
+
+    if (!clientFactory.isInMockMode()) {
+      tourChannel.then((client) => {
+        client.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this, client))
+      })
+    }
   }
 
-  onRequestWebviewCoordinates(client) {
+  onRequestWebviewCoordinates (client) {
     let { top, left } = this.webview.getBoundingClientRect()
     client.receiveWebviewCoordinates('glass', { top, left })
   }

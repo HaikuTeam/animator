@@ -6,7 +6,6 @@ import Palette from './Palette'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 
 const clientFactory = new EnvoyClient()
-const tourClient = clientFactory.get('/tour')
 
 export default class Timeline extends React.Component {
   constructor (props) {
@@ -18,15 +17,18 @@ export default class Timeline extends React.Component {
   componentDidMount () {
     this.injectWebview()
 
-    tourClient.then((client) => {
-      client.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this, client))
-      // window.addEventListener('resize', debounce(this.onRequestWebViewData.bind(this), 64))
-    })
+    const tourChannel = clientFactory.get('tour')
+
+    if (!clientFactory.isInMockMode()) {
+      tourChannel.then((tourChannel) => {
+        tourChannel.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this, tourChannel))
+      })
+    }
   }
 
-  onRequestWebviewCoordinates(client) {
+  onRequestWebviewCoordinates (tourChannel) {
     let { top, left } = this.webview.getBoundingClientRect()
-    client.receiveWebviewCoordinates('timeline', { top, left })
+    tourChannel.receiveWebviewCoordinates('timeline', { top, left })
   }
 
   injectWebview () {
