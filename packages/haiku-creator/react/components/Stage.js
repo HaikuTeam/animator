@@ -15,8 +15,6 @@ const STAGE_BOX_STYLE = {
   height: '100%'
 }
 
-const clientFactory = new EnvoyClient()
-
 export default class Stage extends React.Component {
   constructor (props) {
     super(props)
@@ -26,6 +24,12 @@ export default class Stage extends React.Component {
 
   componentDidMount () {
     this.injectWebview()
+
+    const clientFactory = new EnvoyClient({
+      port: this.props.envoy.port,
+      host: this.props.envoy.host,
+      WebSocket: window.WebSocket
+    })
 
     const tourChannel = clientFactory.get('tour')
 

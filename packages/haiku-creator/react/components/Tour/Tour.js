@@ -25,8 +25,6 @@ const components = {
   Finish
 }
 
-const clientFactory = new EnvoyClient()
-
 class Tour extends React.Component {
   constructor () {
     super()
@@ -44,6 +42,12 @@ class Tour extends React.Component {
   }
 
   componentDidMount () {
+    const clientFactory = new EnvoyClient({
+      port: this.props.envoy.port,
+      host: this.props.envoy.host,
+      WebSocket: window.WebSocket
+    })
+
     clientFactory.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
       this.tourChannel.on('tour:requestShowStep', this.showStep)

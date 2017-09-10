@@ -5,8 +5,6 @@ import path from 'path'
 import Palette from './Palette'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 
-const clientFactory = new EnvoyClient()
-
 export default class Timeline extends React.Component {
   constructor (props) {
     super(props)
@@ -16,6 +14,12 @@ export default class Timeline extends React.Component {
 
   componentDidMount () {
     this.injectWebview()
+
+    const clientFactory = new EnvoyClient({
+      port: this.props.envoy.port,
+      host: this.props.envoy.host,
+      WebSocket: window.WebSocket
+    })
 
     const tourChannel = clientFactory.get('tour')
 
