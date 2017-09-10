@@ -1,5 +1,5 @@
-var DOMSchema = require('@haiku/player/src/properties/dom/schema')
-var DOMFallbacks = require('@haiku/player/src/properties/dom/fallbacks')
+var DOMSchema = require('@haiku/player/lib/properties/dom/schema').default
+var DOMFallbacks = require('@haiku/player/lib/properties/dom/fallbacks').default
 var computeNumericDelta = require('./computeNumericDelta')
 
 // This module also "sort of" depends on @haiku/player/ValueBuilder even though the instance of that

@@ -1,4 +1,4 @@
-var upgradeBytecodeInPlace = require('@haiku/player/src/helpers/upgradeBytecodeInPlace')
+var upgradeBytecodeInPlace = require('@haiku/player/lib/helpers/upgradeBytecodeInPlace').default
 
 module.exports = function deleteEventHandler (bytecode, selectorName, eventName) {
   // To convert legacy event handlers in array format

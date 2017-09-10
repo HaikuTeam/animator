@@ -1,5 +1,5 @@
 var expandManaChildren = require('./expandManaChildren')
-var reactToMana = require('@haiku/player/src/helpers/reactToMana')
+var reactToMana = require('@haiku/player/lib/helpers/reactToMana').default
 
 function isReactElement (thing) {
   return thing && thing.type && thing.$$typeof

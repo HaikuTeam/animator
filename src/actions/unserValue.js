@@ -1,4 +1,4 @@
-var reifyRO = require('@haiku/player/src/reflection/reifyRO')
+var reifyRO = require('@haiku/player/lib/reflection/reifyRO').default
 
 var DO_REIFY_FUNCTIONS = true
 

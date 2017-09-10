@@ -1,4 +1,4 @@
-var upgradeBytecodeInPlace = require('@haiku/player/src/helpers/upgradeBytecodeInPlace')
+var upgradeBytecodeInPlace = require('@haiku/player/lib/helpers/upgradeBytecodeInPlace').default
 
 module.exports = function readAllStateValues (bytecode) {
   // To convert legacy properties array to states object

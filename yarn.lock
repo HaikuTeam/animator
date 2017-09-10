@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@haiku/player@HaikuTeam/player.git#c1571de6578c942de5c650c94a30283741430a41":
-  version "2.2.0"
-  resolved "git+ssh://git@github.com/HaikuTeam/player.git#c1571de6578c942de5c650c94a30283741430a41"
+"@haiku/player@HaikuTeam/player.git#d455d6640f7ea38fec131592dbccf71d20e67ecc":
+  version "2.3.3"
+  resolved "git+ssh://git@github.com/HaikuTeam/player.git#d455d6640f7ea38fec131592dbccf71d20e67ecc"
   dependencies:
     lodash.merge "4.6.0"
     react "15.4.2"
