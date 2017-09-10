@@ -1,9 +1,18 @@
 export interface Tour {
-    testMethod(str: string): MaybeAsync<string>;
-    start(): MaybeAsync<void>;
     next(): MaybeAsync<void>;
-    goto(stateName: string): MaybeAsync<void>;
-    finish(): MaybeAsync<void>;
+    start(options?: object): MaybeAsync<void>;
+    receiveElementCoordinates(webview: string, position: ClientBoundingRect): MaybeAsync<void>;
+    receiveWebviewCoordinates(webview: string, coordinates: ClientBoundingRect): MaybeAsync<void>;
+}
+export interface TourState {
+    selector: string;
+    webview: string;
+    component: string;
+    display: string;
+}
+export interface ClientBoundingRect {
+    top: number | string;
+    left: number | string;
 }
 export declare type MaybeAsync<T> = T | Promise<T>;
 export * from "./tour";

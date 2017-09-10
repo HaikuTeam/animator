@@ -1,4 +1,4 @@
-import { MaybeAsync, Tour } from "."
+import { ClientBoundingRect, MaybeAsync, Tour, TourState } from "."
 import { EnvoyEvent } from "../envoy"
 import EnvoyServer from "../envoy/server"
 
@@ -6,41 +6,122 @@ const TOUR_CHANNEL = "tour"
 
 export default class TourHandler implements Tour {
 
-    //example
-    private states = [] //or {}
+    private currentStep: number = 0
+
+    private states: TourState[] = [
+        {
+            selector: "#",
+            webview: "creator",
+            component: "Welcome",
+            display: "none",
+        },
+        {
+            selector: "#project-edit-button",
+            webview: "creator",
+            component: "OpenProject",
+            display: "left",
+        },
+        {
+            selector: "#gauge-box",
+            webview: "timeline",
+            component: "ScrubTicker",
+            display: "top",
+        },
+        {
+            selector: ".property-timeline-segments-box",
+            webview: "timeline",
+            component: "PropertyChanger",
+            display: "right",
+        },
+        {
+            selector: ".pill-container span:nth-child(5)",
+            webview: "timeline",
+            component: "KeyframeCreator",
+            display: "top",
+        },
+        {
+            selector: ".pill-container span:nth-child(5)",
+            webview: "timeline",
+            component: "AnimatorNotice",
+            display: "top",
+        },
+        {
+            selector: "#library-wrapper",
+            webview: "creator",
+            component: "LibraryStart",
+            display: "right",
+        },
+        {
+            selector: "#go-to-dashboard",
+            webview: "creator",
+            component: "Finish",
+            display: "bottom",
+        },
+    ]
 
     private server: EnvoyServer
+
+    private webviewData: object = {
+        creator: { top: 0, left: 0 },
+    }
 
     constructor(server: EnvoyServer) {
         this.server = server
     }
 
-    testMethod(str: string) {
-        //you can emit an event to all clients like this
-        this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {name: "test:event", payload: {hello: str}})
+    private requestWebviewCoordinates() {
+        this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+            payload: {},
+            name: "tour:requestWebviewCoordinates",
+        })
+    }
 
-        //this return value will be wrapped in a promise to the client who called this method
-        return "HELLO, " + str
+    private requestElementCoordinates(state: TourState): void {
+        this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+            payload: state,
+            name: "tour:requestElementCoordinates",
+        })
+    }
+
+    private requestShowStep(state: TourState, position: ClientBoundingRect) {
+        this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+            payload: { ...state, coordinates: position },
+            name: "tour:requestShowStep",
+        })
+    }
+
+    private getState() {
+        return this.states[this.currentStep]
+    }
+
+    receiveElementCoordinates(webview: string, position: ClientBoundingRect) {
+        const state = this.getState()
+        const top = this.webviewData[webview].top + position.top
+        const left =  this.webviewData[webview].left + position.left
+
+        this.requestShowStep(state, { top, left })
+    }
+
+    receiveWebviewCoordinates(webview: string, coordinates: ClientBoundingRect) {
+        this.webviewData[webview] = coordinates
     }
 
     start() {
-        //example
+        this.requestShowStep({ ...this.states[0] }, { top: "50%", left: "50%" })
+    }
+
+    finish() {
+        // empty
     }
 
     next() {
-        //example
+        this.currentStep++
+        const nextState = this.getState()
 
-        //handle internal state changes
-
-        //then broadcast to clients the new state
-        this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {name: "tour:nextState", payload: {}})
-    }
-
-    goto(stateName: string) {
-        //example
-    }
-
-    finish(): MaybeAsync<void> {
-        //example
+        if (nextState) {
+            this.requestElementCoordinates(nextState)
+        } else {
+            this.finish()
+        }
     }
 }
