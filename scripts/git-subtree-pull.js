@@ -12,12 +12,12 @@ async.eachSeries(allPackages, function (pack, next) {
   log.log('git subtree pulling ' + pack.name)
   try {
     var cmds = [
-      `git fetch packages/${pack.name}.git master`,
+      `git fetch ${pack.remote} ${branch}`,
       `git subtree pull --prefix packages/${pack.name} ${pack.remote} ${branch}`
     ]
     cmds.forEach((cmd) => {
       log.log(cmd)
-      cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })      
+      cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
     })
   } catch (exception) {
     log.log(exception.message)
