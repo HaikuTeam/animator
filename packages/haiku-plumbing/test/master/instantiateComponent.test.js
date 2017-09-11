@@ -9,8 +9,8 @@ tape('instantiateComponent', (t) => {
   TestHelpers.setup(function(folder, creator, glass, timeline, metadata, teardown) {
     var instpath = path.join(folder, 'Hello.svg')
     fse.writeFileSync(instpath, '<svg><rect x="0" y="0" stroke="1" fill="black"></rect></svg>')
-    glass.on('meow', (message) => { return glass.message(message) }) // Auto-respond as mock
-    timeline.on('meow', (message) => { return timeline.message(message) }) // Auto-respond as mock
+    glass.on('meow', (message) => { if (message.type !== 'broadcast') return glass.message(message) }) // Auto-respond as mock
+    timeline.on('meow', (message) => { if (message.type !== 'broadcast') return timeline.message(message) }) // Auto-respond as mock
     return async.series([
       function (cb) { return creator.request('initializeProject', ['test', { projectPath: folder }, 'matthew+test@haiku.ai', 'quitesecure'], cb) },
       function (cb) { return creator.request('startProject', ['test', folder], cb) },
