@@ -918,7 +918,7 @@ export default class ExpressionInput extends React.Component {
     switch (this.state.evaluatorState) {
       case EVALUATOR_STATES.WARN: return Palette.ORANGE
       case EVALUATOR_STATES.ERROR: return Palette.RED
-      default: return Palette.COAL
+      default: return Palette.FATHER_COAL
     }
   }
 
@@ -1043,7 +1043,7 @@ export default class ExpressionInput extends React.Component {
       padding: '3px 5px 2px 5px',
       position: 'absolute',
       textAlign: 'center',
-      top: -24,
+      top: -26,
       transform: 'scale(.4)',
       transition: 'transform 182ms cubic-bezier(.175, .885, .316, 1.171)'
     }
@@ -1069,7 +1069,7 @@ export default class ExpressionInput extends React.Component {
       position: 'absolute',
       width: 0,
       height: 0,
-      top: 13,
+      top: 17,
       left: 12,
       transform: 'translate(-8.8px, 0)',
       borderLeft: '8.8px solid transparent',
