@@ -79,15 +79,15 @@ function TimelineModel (component, window) {
   }
 
   Timeline.prototype.play = function play () {
+    this.playing = true
+    this.stopwatch = Date.now()
     if (!this.getEnvoyClient().isInMockMode()) {
       // TODO: need to setTimelineTime
       this.getEnvoyChannel().play(this.getId())
-      // this.getEnvoyChannel().play(this.getId()).then(() => {
-      //   this.update()
-      // })
+      this.getEnvoyChannel().play(this.getId()).then(() => {
+        this.update()
+      })
     }
-    this.playing = true
-    this.stopwatch = Date.now()
   }
 
   Timeline.prototype.pause = function pause () {

@@ -84,7 +84,7 @@ function ActiveComponent (options) {
 
   this._currentTimelineName = 'Default'
   this._currentTimelineTime = 0
-  this._timelines = Timeline(this)
+  this._timelines = Timeline(this, options.platform)
   this._timelines.on('timeline:tick', (currentFrame) => {
     this.emit('timeline:tick', currentFrame)
   })
