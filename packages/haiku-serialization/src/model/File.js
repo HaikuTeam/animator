@@ -1258,10 +1258,6 @@ function FileModel (config) {
     })
   }
 
-  File.isPathDesign = function isPathDesign (relpath) {
-    return _isFileDesign(relpath)
-  }
-
   File.isPathCode = function isPathCode (relpath) {
     return _isFileCode(relpath)
   }
@@ -1280,12 +1276,6 @@ function FileModel (config) {
     const relpath = path.normalize(givenRelpath)
     const foundFile = File.firstSync({ relpath })
     return foundFile
-  }
-
-  File.allDesigns = function allDesigns () {
-    return File.whereWithSync(function (file) {
-      return File.isPathDesign(file.get('relpath'))
-    })
   }
 
   File.ingestOne = function ingestOne (folder, relpath, cb) {
@@ -1311,8 +1301,11 @@ function FileModel (config) {
 
         logger.info('[file] file was upserted:', relpath)
 
-        if (File.isPathDesign(relpath)) file.set('type', FILE_TYPES.design)
-        if (File.isPathCode(relpath)) file.set('type', FILE_TYPES.code)
+        if (File.isPathCode(relpath)) {
+          file.set('type', FILE_TYPES.code)
+        } else {
+          file.set('type', 'other')
+        }
 
         return file.updateContents(contents, { shouldUpdateFileSystem: false }, (err) => {
           if (err) return cb(err)
@@ -1331,38 +1324,25 @@ function FileModel (config) {
     return File.destroyWhere({ relpath }, cb)
   }
 
-  File.ingestAll = function ingestAll (folder, cb) {
-    return File.ingestFromFolder(folder, {}, cb)
-  }
-
   File.ingestFromFolder = function ingestFromFolder (folder, options, cb) {
-    function isAmongExcludes (relpath) {
+    function isExcluded (relpath) {
       if (!options) return false
-      if (!options.excludes) return false
-      for (var i = 0; i < options.excludes.length; i++) {
-        var regex = options.excludes[i]
-        if (relpath.match(regex)) return true
-      }
-      return false
+      if (!options.exclude) return false
+      return options.exclude(relpath)
     }
     return walkFiles(folder, (err, entries) => {
       if (err) return cb(err)
-      const designs = []
-      const codes = []
-      const others = []
+      const picks = []
       entries.forEach((entry) => {
         const relpath = path.relative(folder, entry.path)
         // Don't ingest massive bundle files that have no business being in memory
         // Also skip any files that match any exclude patterns passed in with the options
-        if (!looksLikeMassiveFile(relpath) && !isAmongExcludes(relpath)) {
-          if (File.isPathDesign(relpath)) return designs.push(entry)
-          if (File.isPathCode(relpath)) return codes.push(entry)
-          return others.push(entry)
+        if (!looksLikeMassiveFile(relpath) && !isExcluded(relpath)) {
+          return picks.push(entry)
         }
       })
       // Load the code first, then designs. This is so we can merge design changes!
-      const ordered = codes.concat(designs).concat(others)
-      return async.mapSeries(ordered, (entry, next) => {
+      return async.mapSeries(picks, (entry, next) => {
         const relpath = path.relative(folder, entry.path)
         return File.ingestOne(folder, relpath, next)
       }, (err, files) => {
@@ -1408,10 +1388,6 @@ FileModel.astmod = function astmod (abspath, fn) {
 
 function _isFileCode (relpath) {
   return path.extname(relpath) === '.js'
-}
-
-function _isFileDesign (relpath) {
-  return path.extname(relpath) === '.svg' || path.extname(relpath) === '.sketch'
 }
 
 function _readFile (abspath, cb) {

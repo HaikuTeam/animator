@@ -2,13 +2,18 @@ import path from 'path'
 import * as Sketch from './Sketch'
 import reverseEach from './reverseEach'
 
-export function assetsToDirectoryStructure (assets) {
+export function assetsToDirectoryStructure (dict) {
+  const assets = []
+  for (const relpath in dict) {
+    assets.push(dict[relpath])
+  }
+
   const dir = []
   const sketches = []
 
   // First go through and accumulate a list of Sketch-exported assets
   reverseEach(assets, (asset, index) => {
-    const relpath = asset.get('relpath')
+    const relpath = asset.relpath
     const extname = path.extname(relpath)
     if (extname === '.sketch') {
       assets.splice(index, 1)
@@ -18,7 +23,7 @@ export function assetsToDirectoryStructure (assets) {
 
   // Then infer which of any remainers are slices/artboards belonging to it
   sketches.forEach((sketch) => {
-    const sketchRelpath = sketch.get('relpath')
+    const sketchRelpath = sketch.relpath
     const exportFolder = Sketch.exportFolderPath(sketchRelpath)
     dir.push({
       type: 'sketch',
@@ -42,9 +47,9 @@ export function assetsToDirectoryStructure (assets) {
   assets.forEach((asset) => {
     dir.push({
       type: 'file',
-      fileName: path.basename(asset.get('relpath')),
-      preview: asset.getAbspath(),
-      updateTime: asset.get('dtModified')
+      fileName: path.basename(asset.relpath),
+      preview: asset.abspath,
+      updateTime: asset.dtModified
     })
   })
 
@@ -59,8 +64,8 @@ function pullArtboardsFor (exportFolder, assets) {
         assets.splice(index, 1)
         artboards.push({
           fileName: basename,
-          preview: asset.getAbspath(),
-          updateTime: asset.get('dtModified')
+          preview: asset.abspath,
+          updateTime: asset.dtModified
         })
       }
     }
@@ -76,8 +81,8 @@ function pullSlicesFor (exportFolder, assets) {
         assets.splice(index, 1)
         slices.push({
           fileName: basename,
-          preview: asset.getAbspath(),
-          updateTime: asset.get('dtModified')
+          preview: asset.abspath,
+          updateTime: asset.dtModified
         })
       }
     }
@@ -93,8 +98,8 @@ function pullPagesFor (exportFolder, assets) {
         assets.splice(index, 1)
         pages.push({
           fileName: basename,
-          preview: asset.getAbspath(),
-          updateTime: asset.get('dtModified')
+          preview: asset.abspath,
+          updateTime: asset.dtModified
         })
       }
     }
@@ -105,7 +110,7 @@ function pullPagesFor (exportFolder, assets) {
 // Just a bit of reusable logic for iterating over asseets
 function assetsEach (assets, iterator) {
   reverseEach(assets, (asset, index) => {
-    const assetRelpath = asset.get('relpath')
+    const assetRelpath = asset.relpath
     const assetDirname = path.dirname(assetRelpath)
     const assetBasename = path.basename(assetRelpath)
     iterator(asset, index, assetRelpath, assetDirname, assetBasename, assets)
