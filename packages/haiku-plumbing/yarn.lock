@@ -2,11 +2,11 @@
 # yarn lockfile v1
 
 
-"@haiku/player@HaikuTeam/player.git#d455d6640f7ea38fec131592dbccf71d20e67ecc":
+"@haiku/player@HaikuTeam/player.git":
   version "2.3.3"
-  resolved "git+ssh://git@github.com/HaikuTeam/player.git#d455d6640f7ea38fec131592dbccf71d20e67ecc"
+  resolved "git+ssh://git@github.com/HaikuTeam/player.git#740d5624a13916ca11d834967ba6a00b5f8d5868"
   dependencies:
-    lodash.merge "4.6.0"
+    lodash "^4.17.4"
     react "15.4.2"
 
 JSONStream@^1.0.3, JSONStream@~1.3.1:
@@ -3571,11 +3571,11 @@ gunzip-maybe@^1.3.1:
     pumpify "^1.3.3"
     through2 "^2.0.3"
 
-haiku-bytecode@HaikuTeam/bytecode#3a402092fb1ac7259afaa3f1dfc72b0625c96351:
+haiku-bytecode@HaikuTeam/bytecode:
   version "2.3.3"
-  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#3a402092fb1ac7259afaa3f1dfc72b0625c96351"
+  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#fdeb82dcf09649b9869e754a0397667faac1bc6b"
   dependencies:
-    "@haiku/player" HaikuTeam/player.git#d455d6640f7ea38fec131592dbccf71d20e67ecc
+    "@haiku/player" HaikuTeam/player.git
     camelcase "4.0.0"
     handlebars "4.0.6"
     lodash.assign "4.2.0"
@@ -3589,15 +3589,15 @@ haiku-bytecode@HaikuTeam/bytecode#3a402092fb1ac7259afaa3f1dfc72b0625c96351:
     svg-parser "1.0.5"
     to-style "1.3.3"
 
-haiku-cli@HaikuTeam/cli#ab9d4d4c1913c20cbd7605e81ba09c319abbf0a1:
+haiku-cli@HaikuTeam/cli:
   version "2.3.3"
-  resolved "git+ssh://git@github.com/HaikuTeam/cli.git#ab9d4d4c1913c20cbd7605e81ba09c319abbf0a1"
+  resolved "git+ssh://git@github.com/HaikuTeam/cli.git#3cb042128a7b5dd8029de23b4309aed910c06c71"
   dependencies:
     chalk "^1.1.3"
     cli-color "^1.1.0"
     dedent "^0.6.0"
-    haiku-sdk-client HaikuTeam/sdk-client.git#3d8fda1fa61930094fb7f3c70003f1bc99ae144f
-    haiku-sdk-inkstone HaikuTeam/sdk-inkstone.git#bb5abde28fa7d00e6fa1e4f2c487febaac7557c6
+    haiku-sdk-client HaikuTeam/sdk-client.git
+    haiku-sdk-inkstone HaikuTeam/sdk-inkstone.git
     hasbin "^1.2.3"
     inquirer "^2.0.0"
     lodash "^4.17.4"
@@ -3607,20 +3607,20 @@ haiku-cli@HaikuTeam/cli#ab9d4d4c1913c20cbd7605e81ba09c319abbf0a1:
     tail "^1.2.1"
     yargs "^6.6.0"
 
-haiku-creator-electron@HaikuTeam/creator#193ea99b0649544876839334c947d509fe1a929d:
+haiku-creator-electron@HaikuTeam/creator:
   version "2.3.3"
-  resolved "git+ssh://git@github.com/HaikuTeam/creator.git#193ea99b0649544876839334c947d509fe1a929d"
+  resolved "git+ssh://git@github.com/HaikuTeam/creator.git#ab077c49a3c39c19cb3127d13ab89457b5bf4d3d"
   dependencies:
-    "@haiku/player" HaikuTeam/player.git#d455d6640f7ea38fec131592dbccf71d20e67ecc
+    "@haiku/player" HaikuTeam/player.git
     async "2.1.4"
     better-react-spinkit "2.0.0-4"
     color "1.0.3"
     combokeys "2.4.6"
     event-emitter "0.3.4"
-    haiku-bytecode HaikuTeam/bytecode#3a402092fb1ac7259afaa3f1dfc72b0625c96351
-    haiku-glass HaikuTeam/glass.git#cc7f50632ef93cdaf89ab71e2df9da80e7b811ed
-    haiku-serialization HaikuTeam/serialization#7ddb7b2f35162ed3a0581214b766debb84bda0b2
-    haiku-timeline HaikuTeam/timeline#f8366d2ac241abb65897ee552fd8ff4316117101
+    haiku-bytecode HaikuTeam/bytecode
+    haiku-glass HaikuTeam/glass.git
+    haiku-serialization HaikuTeam/serialization
+    haiku-timeline HaikuTeam/timeline
     inline-style-prefixer "2.0.5"
     lodash "4.17.4"
     lodash.assign "4.2.0"
@@ -3650,20 +3650,20 @@ haiku-fs-extra@HaikuTeam/node-fs-extra.git#master-haiku:
     jsonfile "^2.1.0"
     klaw "^1.0.0"
 
-haiku-glass@HaikuTeam/glass.git#cc7f50632ef93cdaf89ab71e2df9da80e7b811ed:
+haiku-glass@HaikuTeam/glass.git:
   version "2.3.3"
-  resolved "git+ssh://git@github.com/HaikuTeam/glass.git#cc7f50632ef93cdaf89ab71e2df9da80e7b811ed"
+  resolved "git+ssh://git@github.com/HaikuTeam/glass.git#2815a3d74d211f14c0a738d8dc8e0ea4ef8383e5"
   dependencies:
-    "@haiku/player" HaikuTeam/player.git#d455d6640f7ea38fec131592dbccf71d20e67ecc
+    "@haiku/player" HaikuTeam/player.git
     babel-register "6.23.0"
     bluebird "^3.5.0"
     capitalize "^1.0.0"
     codemirror "^5.28.0"
     color "^2.0.0"
     combokeys "^2.4.6"
-    haiku-bytecode HaikuTeam/bytecode#3a402092fb1ac7259afaa3f1dfc72b0625c96351
+    haiku-bytecode HaikuTeam/bytecode
     haiku-fs-extra HaikuTeam/node-fs-extra.git#master-haiku
-    haiku-serialization HaikuTeam/serialization#7ddb7b2f35162ed3a0581214b766debb84bda0b2
+    haiku-serialization HaikuTeam/serialization
     lodash "^4.17.4"
     moment "^2.17.1"
     pretty "^2.0.0"
@@ -3675,7 +3675,7 @@ haiku-glass@HaikuTeam/glass.git#cc7f50632ef93cdaf89ab71e2df9da80e7b811ed:
     react-select-plus "^1.0.0-rc.5"
     strip-indent "^2.0.0"
 
-haiku-sdk-client@HaikuTeam/sdk-client.git#3d8fda1fa61930094fb7f3c70003f1bc99ae144f:
+haiku-sdk-client@HaikuTeam/sdk-client.git:
   version "2.3.3"
   resolved "git+ssh://git@github.com/HaikuTeam/sdk-client.git#3d8fda1fa61930094fb7f3c70003f1bc99ae144f"
   dependencies:
@@ -3683,7 +3683,7 @@ haiku-sdk-client@HaikuTeam/sdk-client.git#3d8fda1fa61930094fb7f3c70003f1bc99ae14
     mkdirp "^0.5.1"
     request "^2.79.0"
 
-haiku-sdk-creator@HaikuTeam/sdk-creator#a669f7871cfa9c2b8d1aaedc1e315f3583687212:
+haiku-sdk-creator@HaikuTeam/sdk-creator:
   version "2.3.3"
   resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#a669f7871cfa9c2b8d1aaedc1e315f3583687212"
   dependencies:
@@ -3695,7 +3695,7 @@ haiku-sdk-creator@HaikuTeam/sdk-creator#a669f7871cfa9c2b8d1aaedc1e315f3583687212
     wrtc "0.0.62"
     ws "^3.0.0"
 
-haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git#bb5abde28fa7d00e6fa1e4f2c487febaac7557c6:
+haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git:
   version "2.3.3"
   resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#bb5abde28fa7d00e6fa1e4f2c487febaac7557c6"
   dependencies:
@@ -3703,11 +3703,11 @@ haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git#bb5abde28fa7d00e6fa1e4f2c487febaac
     mkdirp "^0.5.1"
     request "^2.79.0"
 
-haiku-serialization@HaikuTeam/serialization#7ddb7b2f35162ed3a0581214b766debb84bda0b2:
+haiku-serialization@HaikuTeam/serialization:
   version "2.3.3"
-  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#7ddb7b2f35162ed3a0581214b766debb84bda0b2"
+  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#d9a1c91bd16e9986fdd939c6279ea0762c134828"
   dependencies:
-    "@haiku/player" HaikuTeam/player.git#d455d6640f7ea38fec131592dbccf71d20e67ecc
+    "@haiku/player" HaikuTeam/player.git
     async "2.1.5"
     babel-core "6.23.1"
     babel-generator "6.23.0"
@@ -3730,9 +3730,9 @@ haiku-serialization@HaikuTeam/serialization#7ddb7b2f35162ed3a0581214b766debb84bd
     estree-walker "^0.5.0"
     fs-extra "2.0.0"
     fuzzy-string-matching "^1.0.2"
-    haiku-bytecode HaikuTeam/bytecode#3a402092fb1ac7259afaa3f1dfc72b0625c96351
+    haiku-bytecode HaikuTeam/bytecode
     haiku-fs-extra HaikuTeam/node-fs-extra.git#master-haiku
-    haiku-sdk-creator HaikuTeam/sdk-creator#a669f7871cfa9c2b8d1aaedc1e315f3583687212
+    haiku-sdk-creator HaikuTeam/sdk-creator
     lodash "4.17.4"
     lodash.assign "4.2.0"
     lodash.debounce "4.0.8"
@@ -3746,26 +3746,26 @@ haiku-serialization@HaikuTeam/serialization#7ddb7b2f35162ed3a0581214b766debb84bd
     standard "8.6.0"
     winston "^2.3.1"
 
-haiku-state-object@HaikuTeam/StateObject#943ab648f7854d1025f2f7e563411b7db77d0f57:
+haiku-state-object@HaikuTeam/StateObject:
   version "2.3.3"
-  resolved "git+ssh://git@github.com/HaikuTeam/StateObject.git#943ab648f7854d1025f2f7e563411b7db77d0f57"
+  resolved "git+ssh://git@github.com/HaikuTeam/StateObject.git#a20bb020e696bf7f3e3dae9caf6ccd3d09988940"
   dependencies:
     lodash.get "^4.4.2"
     lodash.set "^4.3.2"
 
-haiku-timeline@HaikuTeam/timeline#f8366d2ac241abb65897ee552fd8ff4316117101:
+haiku-timeline@HaikuTeam/timeline:
   version "2.3.3"
-  resolved "git+ssh://git@github.com/HaikuTeam/timeline.git#f8366d2ac241abb65897ee552fd8ff4316117101"
+  resolved "git+ssh://git@github.com/HaikuTeam/timeline.git#5b66d988892f0ec6ffaf3a24c8fe7b194db015ce"
   dependencies:
-    "@haiku/player" HaikuTeam/player.git#d455d6640f7ea38fec131592dbccf71d20e67ecc
+    "@haiku/player" HaikuTeam/player.git
     archy "^1.0.0"
     classnames "2.2.5"
     codemirror "^5.28.0"
     color "1.0.3"
     decamelize "1.2.0"
-    haiku-bytecode HaikuTeam/bytecode#3a402092fb1ac7259afaa3f1dfc72b0625c96351
+    haiku-bytecode HaikuTeam/bytecode
     haiku-fs-extra HaikuTeam/node-fs-extra.git#master-haiku
-    haiku-serialization HaikuTeam/serialization#7ddb7b2f35162ed3a0581214b766debb84bda0b2
+    haiku-serialization HaikuTeam/serialization
     lodash "4.17.4"
     numeral "^2.0.4"
     qs "6.4.0"
@@ -3776,7 +3776,7 @@ haiku-timeline@HaikuTeam/timeline#f8366d2ac241abb65897ee552fd8ff4316117101:
     react-popover "0.4.4"
     strip-indent "^2.0.0"
 
-haiku-websockets@HaikuTeam/websockets#f6a6af24c8b2cedc85acc4966c08a7cacfa46789:
+haiku-websockets@HaikuTeam/websockets:
   version "2.3.3"
   resolved "git+ssh://git@github.com/HaikuTeam/websockets.git#f6a6af24c8b2cedc85acc4966c08a7cacfa46789"
   dependencies:
