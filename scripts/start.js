@@ -68,11 +68,15 @@ async.series([
         choices: [
           { name: 'the whole enchilada', value: 'everything' },
           { name: 'just glass', value: 'glass' },
-          { name: 'just timeline', value: 'timeline' }
+          { name: 'just timeline', value: 'timeline' },
+          { name: 'just the player', value: 'player' }
         ],
         default: inputs.devChoice
       },
       {
+        when: (answers) => {
+          return answers.devChoice !== 'player'
+        },
         type: 'list',
         name: 'folderChoice',
         message: 'Project folder (if developing "the whole enchilada", you can select "none" to use the dashboard)',
@@ -182,6 +186,8 @@ function setup () {
       instructions.unshift(['haiku-plumbing', ['node', './HaikuHelper.js'], null, 5000])
       instructions.unshift(['haiku-plumbing', ['yarn', 'run', 'watch'], null, 10000])
     }
+  } else if (inputs.devChoice === 'player') {
+    instructions.unshift(['haiku-player', ['yarn', 'run', 'develop'], null, 1000])
   } else {
     // Only set the mock envoy variable if we are in an env where it will work
     process.env.MOCK_ENVOY = inputs.mockEnvoy
