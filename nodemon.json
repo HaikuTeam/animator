@@ -1,0 +1,13 @@
+{
+  "ignore": [
+    ".git",
+    "dist",
+    "src",
+    "node_modules/**/node_modules"
+  ],
+  "verbose": true,
+  "watch": [
+    "test/demo"
+  ],
+  "delay": 1
+}

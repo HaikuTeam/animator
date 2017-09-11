@@ -28,19 +28,15 @@
   "repository": "https://github.com/HaikuTeam/player",
   "main": "index.js",
   "scripts": {
+    "develop": "node ./develop.js",
     "compile": "tsc",
-    "develop": "tsc --watch",
     "lint": "tslint -c tslint.json 'src/**/*.ts' --exclude 'src/vendor/**' --format stylish --fix",
-    "depcheck": "depcheck .",
     "test": "yarn run test:unit && yarn run test:api && yarn run test:perf",
     "test:perf": "yarn run compile && tape \"test/perf/**/*.test.js\" | tap-spec || true",
     "test:api": "yarn run compile && tape \"test/api/**/*.test.js\" | tap-spec || true",
     "test:render": "yarn run compile && tape \"test/render/**/*.test.js\" | tap-spec || true",
     "test:unit": "yarn run compile && tape \"test/unit/**/*.test.js\" | tap-spec || true",
-    "footprint": "./footprint.sh",
-    "demo": "nodemon ./test/demo/server.js",
-    "link-player": "yarn link && yarn link @haiku/player",
-    "start": "yarn run link-player && yarn run compile && yarn run demo"
+    "depcheck": "depcheck ."
   },
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
@@ -52,6 +48,7 @@
     "@types/node": "^8.0.27",
     "async": "^2.5.0",
     "browserify": "^14.1.0",
+    "chokidar": "^1.7.0",
     "depcheck": "^0.6.7",
     "express": "4.14.1",
     "filesize": "3.5.10",
@@ -60,6 +57,7 @@
     "jsdom": "9.11.0",
     "leaked-handles": "^5.2.0",
     "nodemon": "1.11.0",
+    "opn": "^5.1.0",
     "react-dom": "15.4.2",
     "react-router-dom": "^4.1.1",
     "snazzy": "6.0.0",
