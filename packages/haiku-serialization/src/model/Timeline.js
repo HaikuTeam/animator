@@ -14,6 +14,7 @@ function TimelineModel (component, window) {
     this.currentFrame = 0
     this.playing = false
     this.fps = 60
+    this._lastSeek = null
 
     this.initialize(attrs)
 
@@ -62,6 +63,7 @@ function TimelineModel (component, window) {
   }
 
   Timeline.prototype.setAuthoritativeFrame = function setAuthoritativeFrame (authoritativeFrame) {
+    var lastFrame = this.lastAuthoritativeFrame
     this.lastAuthoritativeFrame = authoritativeFrame
     this.stopwatch = Date.now()
     this.emit('timeline:tick', authoritativeFrame)
@@ -100,9 +102,15 @@ function TimelineModel (component, window) {
 
   Timeline.prototype.seek = function seek (newFrame) {
     this.currentFrame = newFrame
-    this.setAuthoritativeFrame(newFrame)
-    if (!this.getEnvoyClient().isInMockMode()) {
-      this.getEnvoyChannel().seekToFrame(this.getId(), newFrame)
+    var id = this.getId()
+    var tuple = id + '|' + newFrame
+    var last = this._lastSeek
+    if (last !== tuple) {
+      this._lastSeek = tuple
+      this.setAuthoritativeFrame(newFrame)
+      if (!this.getEnvoyClient().isInMockMode()) {
+        this.getEnvoyChannel().seekToFrame(id, newFrame)
+      }
     }
   }
 
