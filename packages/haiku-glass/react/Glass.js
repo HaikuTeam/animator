@@ -100,6 +100,22 @@ export class Glass extends React.Component {
       timelineChannel.on('didPause', this.handleTimelineDidPause.bind(this))
       timelineChannel.on('didSeek', this.handleTimelineDidSeek.bind(this))
     })
+
+    this._component.on("envoy:tourClientReady", (client)=>{
+      client.on("tour:requestElementCoordinates", ({ selector, webview }) => {
+        if (webview !== 'glass') { return }
+
+        try {
+          // TODO: find if there is a better solution to this scape hatch
+          let element = document.querySelector(selector)
+          let { top, left } = element.getBoundingClientRect()
+
+          client.receiveElementCoordinates('glass', { top, left })
+        } catch (error) {
+          console.error(`Error fetching ${element} in webview ${webview}`)
+        }
+      })
+    })
   }
 
   handleTimelineDidPlay () {

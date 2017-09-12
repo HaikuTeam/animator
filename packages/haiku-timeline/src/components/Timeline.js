@@ -278,6 +278,8 @@ class Timeline extends React.Component {
 
     this.emitters = [] // Array<{eventEmitter:EventEmitter, eventName:string, eventHandler:Function}>
 
+    this.shouldEmitToTour = true
+
     this._component = new ActiveComponent({
       alias: 'timeline',
       folder: this.props.folder,
@@ -330,6 +332,11 @@ class Timeline extends React.Component {
   }
 
   updateTime (currentFrame) {
+    if (this.shouldEmitToTour) {
+      this.shouldEmitToTour = false
+      this.tourClient.next()
+    }
+
     this.setState({ currentFrame })
   }
 
@@ -421,6 +428,26 @@ class Timeline extends React.Component {
 
     // component:mounted fires when this finishes without error
     this._component.mountApplication()
+
+    this._component.on("envoy:tourClientReady", (client)=>{
+      client.on("tour:requestElementCoordinates", ({ selector, webview }) => {
+        if (webview !== 'timeline') { return }
+
+        try {
+          // TODO: find if there is a better solution to this scape hatch
+          let element = document.querySelector(selector)
+          let { top, left } = element.getBoundingClientRect()
+
+          client.receiveElementCoordinates('timeline', { top, left })
+        } catch (error) {
+          console.error(`Error fetching ${selector} in webview ${webview}`)
+        }
+      })
+
+      client.next()
+
+      this.tourClient = client
+    })
 
     document.addEventListener('paste', (pasteEvent) => {
       console.info('[timeline] paste heard')
