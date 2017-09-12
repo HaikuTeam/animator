@@ -120,7 +120,7 @@ export default class TourHandler implements Tour {
     start({ force }) {
         if (!didTakeTour() || force) {
             this.currentStep = 0
-            this.requestShowStep({ ...this.states[0] }, { top: "50%", left: "50%" })
+            this.requestShowStep({ ...this.states[this.currentStep] }, { top: "50%", left: "50%" })
         }
     }
 
