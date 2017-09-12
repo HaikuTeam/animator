@@ -1,6 +1,10 @@
 import { ClientBoundingRect, MaybeAsync, Tour, TourState } from "."
 import { EnvoyEvent } from "../envoy"
 import EnvoyServer from "../envoy/server"
+import {
+  didTakeTour,
+  createTourFile
+} from 'haiku-serialization/src/utils/HaikuHomeDir'
 
 const TOUR_CHANNEL = "tour"
 
@@ -106,12 +110,15 @@ export default class TourHandler implements Tour {
         this.webviewData[webview] = coordinates
     }
 
-    start() {
-        this.requestShowStep({ ...this.states[0] }, { top: "50%", left: "50%" })
+    start({ force }) {
+        if (!didTakeTour() || force) {
+            this.currentStep = 0
+            this.requestShowStep({ ...this.states[0] }, { top: "50%", left: "50%" })
+        }
     }
 
     finish() {
-        // empty
+        createTourFile()
     }
 
     next() {

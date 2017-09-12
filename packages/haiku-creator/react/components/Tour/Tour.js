@@ -8,10 +8,6 @@ import AnimatorNotice from './Steps/AnimatorNotice'
 import LibraryStart from './Steps/LibraryStart'
 import Finish from './Steps/Finish'
 import Tooltip from '../Tooltip'
-import {
-  didTakeTour,
-  createTourFile
-} from 'haiku-serialization/src/utils/HaikuHomeDir'
 
 const components = {
   Welcome,
@@ -33,8 +29,6 @@ class Tour extends React.Component {
     this.finish = this.finish.bind(this)
 
     this.state = {
-      didTakeTour: didTakeTour(),
-      step: null,
       component: null,
       coordinates: null
     }
@@ -59,12 +53,6 @@ class Tour extends React.Component {
 
   finish () {
     this.tourChannel.finish()
-
-    this.setState({
-      didTakeTour: true
-    })
-
-    createTourFile()
   }
 
   showStep (state) {
@@ -76,12 +64,8 @@ class Tour extends React.Component {
     }
   }
 
-  shouldRender () {
-    return this.state.component && !this.state.didTakeTour
-  }
-
   render () {
-    if (!this.shouldRender()) {
+    if (!this.state.component) {
       return null
     }
 
