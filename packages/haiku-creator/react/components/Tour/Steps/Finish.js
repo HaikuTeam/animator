@@ -30,9 +30,9 @@ export default function ({ style, finish }) {
         at the following links for more help.
 
         <div style={STYLES.linksWrapper}>
-          <a href='' style={STYLES.link}>Haiku Docs</a>
-          <a href='' style={STYLES.link}>Haiku Slack Community</a>
-          <a href='' style={STYLES.link}>@HaikuForTeams</a>
+          <a href='https://docs.haiku.ai/' style={STYLES.link}>Haiku Docs</a>
+          <a href='https://haiku-community.slack.com' style={STYLES.link}>Haiku Slack Community</a>
+          <a href='https://twitter.com/HaikuForTeams' style={STYLES.link}>@HaikuForTeams</a>
           <a href='mailto:support@haiku.ai' style={STYLES.link}>support@haiku.ai</a>
         </div>
       </div>
