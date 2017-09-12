@@ -36,7 +36,11 @@ export default function ({ style, finish }) {
           <a href='mailto:support@haiku.ai' style={STYLES.link}>support@haiku.ai</a>
         </div>
       </div>
-      <button style={STYLES.btn} onClick={finish}>Finish</button>
+      <button
+        style={STYLES.btn}
+        onClick={() => finish({createFile: true})}
+      > Finish
+      </button>
     </Dialog>
   )
 }

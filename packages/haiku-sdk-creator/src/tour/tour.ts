@@ -94,6 +94,13 @@ export default class TourHandler implements Tour {
         })
     }
 
+    private requestFinish() {
+        this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+            payload: {},
+            name: "tour:requestFinish"
+        })
+    }
+
     private getState() {
         return this.states[this.currentStep]
     }
@@ -117,8 +124,12 @@ export default class TourHandler implements Tour {
         }
     }
 
-    finish() {
-        createTourFile()
+    finish(createFile?) {
+        if (createFile) {
+            createTourFile()
+        }
+
+        this.requestFinish()
     }
 
     next() {

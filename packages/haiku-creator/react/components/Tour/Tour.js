@@ -38,6 +38,7 @@ class Tour extends React.Component {
     this.props.envoy.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
       this.tourChannel.on('tour:requestShowStep', this.showStep)
+      this.tourChannel.on('tour:requestFinish', this.hide)
     })
 
     this.mnt = true
