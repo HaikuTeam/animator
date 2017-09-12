@@ -26,7 +26,7 @@ export default class TourHandler implements Tour {
             display: "left",
         },
         {
-            selector: "#gauge-box",
+            selector: ".gauge-box",
             webview: "timeline",
             component: "ScrubTicker",
             display: "top",
