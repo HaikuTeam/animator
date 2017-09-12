@@ -24,10 +24,6 @@ class Tour extends React.Component {
   constructor () {
     super()
 
-    this.next = this.next.bind(this)
-    this.showStep = this.showStep.bind(this)
-    this.finish = this.finish.bind(this)
-
     this.state = {
       component: null,
       coordinates: null
@@ -48,15 +44,21 @@ class Tour extends React.Component {
     this.mnt = false
   }
 
-  next () {
+  next = () => {
     this.tourChannel.next()
   }
 
-  finish () {
-    this.tourChannel.finish()
+  finish = ({ createFile }) => {
+    this.tourChannel.finish(createFile)
   }
 
-  showStep (state) {
+  hide = () => {
+    if (this.mnt) {
+      this.setState({ component: null })
+    }
+  }
+
+  showStep = (state) => {
     // TODO: this is a bad practice, we should implement
     // a way to unbind events from a client in Envoy, then
     // remove this
