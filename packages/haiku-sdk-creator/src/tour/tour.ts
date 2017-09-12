@@ -2,9 +2,9 @@ import { ClientBoundingRect, MaybeAsync, Tour, TourState } from "."
 import { EnvoyEvent } from "../envoy"
 import EnvoyServer from "../envoy/server"
 import {
+  createTourFile,
   didTakeTour,
-  createTourFile
-} from 'haiku-serialization/src/utils/HaikuHomeDir'
+} from "haiku-serialization/src/utils/HaikuHomeDir"
 
 const TOUR_CHANNEL = "tour"
 
