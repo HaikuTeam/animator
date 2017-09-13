@@ -250,7 +250,7 @@ export default class Creator extends React.Component {
       })
 
       ipcRenderer.on('global-menu:start-tour', () => {
-        tourChannel.start({ force: true })
+        tourChannel.start(true)
       })
     })
 

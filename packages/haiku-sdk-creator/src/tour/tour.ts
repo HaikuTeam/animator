@@ -117,7 +117,7 @@ export default class TourHandler implements Tour {
         this.webviewData[webview] = coordinates
     }
 
-    start({ force }) {
+    start(force) {
         if (!didTakeTour() || force) {
             this.currentStep = 0
             this.requestShowStep({ ...this.states[this.currentStep] }, { top: "50%", left: "50%" })
