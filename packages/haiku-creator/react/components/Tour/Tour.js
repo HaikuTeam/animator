@@ -35,6 +35,10 @@ class Tour extends React.Component {
       this.tourChannel = tourChannel
       this.tourChannel.on('tour:requestShowStep', this.showStep)
       this.tourChannel.on('tour:requestFinish', this.hide)
+
+      if (this.props.startTourOnMount) {
+        this.tourChannel.start()
+      }
     })
 
     this.mnt = true
