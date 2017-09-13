@@ -7,6 +7,9 @@ import logger from 'haiku-serialization/src/utils/LoggerInstance'
 const DEFAULT_COMMITTER_EMAIL = 'contact@haiku.ai'
 const DEFAULT_COMMITTER_NAME = 'Haiku Plumbing'
 const FORCE_PUSH_REFSPEC_PREFIX = '+'
+const DEFAULT_GIT_USERNAME = 'Haiku-Plumbing'
+const DEFAULT_GIT_EMAIL = 'contact@haiku.ai'
+const DEFAULT_GIT_COMMIT_MESSAGE = 'Edited project with Haiku Desktop'
 
 function globalExceptionCatcher (exception) {
   logger.error(exception)
@@ -517,4 +520,141 @@ export function listTags (pwd, cb) {
       }, cb)
     }, cb)
   })
+}
+
+/**
+ * @function commitProject
+ * @param folder {String}
+ * @param username {String|Null}
+ * @param useHeadAsParent {Beolean}
+ * @param saveOptions {Object}
+ * @param pathsToAdd {String|Array} - '.' to add all paths, [path, path] to add individual paths
+ **/
+export function commitProject (folder, username, useHeadAsParent, saveOptions = {}, pathsToAdd, cb) {
+  logger.info(`[git] adding paths to index (${folder})`)
+
+  // Depending on the 'pathsToAdd' given, either add specific paths to the index, or commit them all
+  function pathAdder (done) {
+    if (pathsToAdd === '.') {
+      return addAllPathsToIndex(folder, done)
+    } else if (Array.isArray(pathsToAdd) && pathsToAdd.length > 0) {
+      return addPathsToIndex(folder, pathsToAdd, done)
+    } else {
+      return done()
+    }
+  }
+
+  return pathAdder((err, oid) => {
+    if (err) return cb(err)
+
+    const user = username || DEFAULT_GIT_USERNAME
+    const email = username || DEFAULT_GIT_EMAIL
+    const message = (saveOptions && saveOptions.commitMessage) || DEFAULT_GIT_COMMIT_MESSAGE
+
+    const parentRef = (useHeadAsParent) ? 'HEAD' : null // Initial commit might not want us to specify a nonexistent ref
+    const updateRef = 'HEAD'
+
+    logger.info(`[git] committing ${JSON.stringify(message)} in ${folder} [${updateRef} onto ${parentRef}] ...`)
+
+    return buildCommit(folder, user, email, message, oid, updateRef, parentRef, (err, commitId) => {
+      if (err) return cb(err)
+
+      logger.info(`[git] commit done (${commitId.toString()})`)
+
+      return cb(null, commitId)
+    })
+  })
+}
+
+export function fetchProject (folder, projectName, projectGitRemoteUrl, gitRemoteUsername, gitRemotePassword, cb) {
+  return upsertRemote(folder, projectName, projectGitRemoteUrl, (err, remote) => {
+    if (err) return cb(err)
+
+    logger.info(`[git] fetching ${projectName} from remote ${projectGitRemoteUrl}`)
+
+    return fetchFromRemote(folder, projectName, gitRemoteUsername, gitRemotePassword, (err) => {
+      if (err) return cb(err)
+      logger.info('[git] fetch done')
+      return cb()
+    })
+  })
+}
+
+export function pushProject (folder, projectName, projectGitRemoteUrl, gitRemoteUsername, gitRemotePassword, cb) {
+  return getCurrentBranchName(folder, (err, partialBranchName, fullBranchName) => {
+    if (err) return cb(err)
+
+    logger.info(`[git] pushing ${fullBranchName} to remote (${projectName}) ${projectGitRemoteUrl}`)
+
+    const doForcePush = true
+
+    return pushToRemote(folder, projectName, fullBranchName, gitRemoteUsername, gitRemotePassword, doForcePush, (err) => {
+      if (err) return cb(err)
+      logger.info('[git] push done')
+      return cb()
+    })
+  })
+}
+
+export function combineHistories (folder, projectName, ourBranchName, theirBranchName, saveOptions = {}, cb) {
+  const fileFavorName = saveStrategyToFileFavorName(saveOptions && saveOptions.saveStrategy)
+
+  return mergeBranchesWithoutBase(folder, ourBranchName, theirBranchName, null, null, fileFavorName, (err, didHaveConflicts, shaOrIndex) => {
+    if (err) return cb(err)
+    return cb(null, didHaveConflicts, shaOrIndex)
+  })
+}
+
+export function mergeProject (folder, projectName, partialBranchName, saveOptions = {}, cb) {
+  const remoteBranchRefName = `remotes/${projectName}/${partialBranchName}`
+  const fileFavorName = saveStrategyToFileFavorName(saveOptions && saveOptions.saveStrategy)
+
+  // #IDUNNO: For some reason when this is set to `true` (in turn resulting in mergeOptions.flags getting set to 1),
+  // merging with a merge strategy of OURS/THEIRS ends up with conflicts (which should never happen with OURS/THEIRS).
+  // Since I don't initially see any problem with just setting it to `false` for all cases, I'll hardcode it as such.
+  // It's possible this is a flaw in Nodegit?
+  // If you find a case where this needs to be `true`, please document why below this comment.
+  const doFindRenames = false
+
+  logger.info(`[git] merging '${remoteBranchRefName}' into '${partialBranchName}' via '${fileFavorName}' (${folder})`)
+
+  return mergeBranches(folder, partialBranchName, remoteBranchRefName, fileFavorName, doFindRenames, (err, didHaveConflicts, shaOrIndex) => {
+    if (!err) {
+      return cb(null, didHaveConflicts, shaOrIndex)
+    }
+
+    if (err.message && err.message.match(/No merge base found/i)) {
+      logger.info(`[git] histories lack common ancestor; trying to combine`)
+
+      // This should return the same payload as Git.mergeBranches returns
+      return combineHistories(folder, projectName, partialBranchName, remoteBranchRefName, saveOptions, cb)
+    }
+
+    return cb(err)
+  })
+}
+
+export function logStatuses (statuses) {
+  statuses.forEach((status) => {
+    logger.info('[git] git status:' + status.path() + ' ' + statusToText(status))
+  })
+}
+
+export function statusToText (status) {
+  const words = []
+  if (status.isNew()) words.push('NEW')
+  if (status.isModified()) words.push('MODIFIED')
+  if (status.isTypechange()) words.push('TYPECHANGE')
+  if (status.isRenamed()) words.push('RENAMED')
+  if (status.isIgnored()) words.push('IGNORED')
+  return words.join(' ')
+}
+
+export function saveStrategyToFileFavorName (saveStrategy) {
+  if (!saveStrategy) return 'normal'
+  if (!saveStrategy.strategy) return 'normal'
+  if (saveStrategy.strategy === 'recursive') return 'normal'
+  if (saveStrategy.strategy === 'ours') return 'ours'
+  if (saveStrategy.strategy === 'theirs') return 'theirs'
+  return 'normal'
 }

@@ -23,7 +23,15 @@ tape('mergeDesign.sketch', (t) => {
       function (cb) { return creator.action('instantiateComponent', [folder, path.join(folder, `designs/SparrowSez3.sketch.contents/slices/Mask.svg`), {}], cb) },
       function (cb) { return creator.action('instantiateComponent', [folder, path.join(folder, `designs/SparrowSez3.sketch.contents/slices/Mostly the new Quinn Copy 2.svg`), {}], cb) },
       function (cb) { return creator.action('instantiateComponent', [folder, path.join(folder, `designs/SparrowSez3.sketch.contents/slices/thumb copy 2.svg`), {}], cb) },
-      function (cb) { return setTimeout(cb, 5000) }
+      function (cb) { return setTimeout(cb, 10000) },
+      function (cb) {
+        console.log('=====================')
+        console.log('=====================')
+        console.log('=====================')
+        console.log('=====================')
+        console.log('=====================')
+        return creator.action('linkAsset', [folder, afterSourcePath], cb)
+      }
     ], (err) => {
       t.error(err, 'no error')
       // teardown()

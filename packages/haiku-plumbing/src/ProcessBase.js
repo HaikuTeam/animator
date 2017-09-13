@@ -78,12 +78,18 @@ export default class ProcessBase extends EventEmitter {
     }
   }
 
+  getReadyState () {
+    if (!this.socket) return 0
+    if (!this.socket.wsc) return 0
+    return this.socket.wsc.readyState
+  }
+
   isOpen () {
-    return this.socket && this.socket.wsc && this.socket.wsc.readyState === Websocket.OPEN
+    return this.getReadyState() === Websocket.OPEN
   }
 
   isConnecting () {
-    return this.socket && this.socket.wsc && this.socket.wsc.readyState === Websocket.CONNECTING
+    return this.getReadyState() === Websocket.CONNECTING
   }
 
   emitUp (message) {

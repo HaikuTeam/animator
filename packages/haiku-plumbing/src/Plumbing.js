@@ -19,7 +19,6 @@ import StateObject from 'haiku-state-object'
 import serializeError from 'haiku-serialization/src/utils/serializeError'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import * as ProjectFolder from './ProjectFolder'
-import Constants from './Constants'
 import getNormalizedComponentModulePath from 'haiku-serialization/src/model/helpers/getNormalizedComponentModulePath'
 
 const IGNORED_METHOD_MESSAGES = {
@@ -65,7 +64,7 @@ const WAIT_DELAY = 10 * 1000
 const HAIKU_DEFAULTS = {
   socket: {
     port: process.env.HAIKU_CONTROL_PORT,
-    host: process.env.HAIKU_CONTROL_HOST || Constants.broadcastHost
+    host: process.env.HAIKU_CONTROL_HOST || '0.0.0.0'
   }
 }
 
@@ -901,7 +900,7 @@ function getPort (host, cb) {
 }
 
 Plumbing.prototype.launchControlServer = function launchControlServer (socketInfo, cb) {
-  const host = (socketInfo && socketInfo.host) || Constants.broadcastHost
+  const host = (socketInfo && socketInfo.host) || '0.0.0.0'
 
   if (socketInfo && socketInfo.port) {
     logger.info(`[plumbing] plumbing websocket server listening on specified port ${socketInfo.port}...`)
