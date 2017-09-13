@@ -308,6 +308,6 @@ export const DASH_STYLES = {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Color(Palette.GRAY).fade(0.1),
-    zIndex: 5
+    zIndex: 6
   }
 }

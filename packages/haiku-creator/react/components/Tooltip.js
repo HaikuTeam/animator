@@ -5,7 +5,7 @@ const STYLES = {
     position: 'absolute',
     display: 'flex',
     alignItems: 'center',
-    zIndex: 2
+    zIndex: 3
   },
   circle: {
     width: 30,
