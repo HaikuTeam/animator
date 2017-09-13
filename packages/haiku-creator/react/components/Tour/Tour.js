@@ -52,7 +52,7 @@ class Tour extends React.Component {
     this.tourChannel.next()
   }
 
-  finish = ({ createFile }) => {
+  finish = (createFile) => {
     this.tourChannel.finish(createFile)
   }
 
