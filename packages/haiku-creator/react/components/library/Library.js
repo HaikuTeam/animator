@@ -145,7 +145,7 @@ class LibraryDrawer extends React.Component {
   }
 
   handleAssetInstantiation (fileData) {
-    switch(fileData.type) {
+    switch (fileData.type) {
       case 'sketch':
         this.handleSketchInstantiation(fileData)
         break

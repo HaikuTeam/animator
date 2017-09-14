@@ -117,12 +117,12 @@ function ActiveComponent (options) {
 
   this._envoyClient = new EnvoyClient(lodash.assign({
     WebSocket: wsc,
-    logger: new EnvoyLogger("warn", console)
+    logger: new EnvoyLogger('warn', console)
   }, options.envoy))
 
   this._envoyClient.get('timeline').then((timelineChannel) => {
     this._envoyTimelineChannel = timelineChannel
-      
+
     this.emit('envoy:timelineClientReady', this._envoyTimelineChannel)
   })
 

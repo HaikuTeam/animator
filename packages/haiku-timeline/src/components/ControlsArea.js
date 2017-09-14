@@ -3,7 +3,7 @@ import Palette from './DefaultPalette'
 import ActiveComponentIndicator from './ActiveComponentIndicator'
 // import CurrentTimelineSelectMenu from './CurrentTimelineSelectMenu'
 import PlaybackButtons from './PlaybackButtons'
-import PlaybackSpeedDial from './PlaybackSpeedDial'
+// import PlaybackSpeedDial from './PlaybackSpeedDial'
 
 const STYLES = {
   wrapper: {
