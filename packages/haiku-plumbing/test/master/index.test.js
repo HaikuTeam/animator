@@ -3,8 +3,6 @@ var async = require('async')
 var fse = require('haiku-fs-extra')
 var path = require('path')
 var TestHelpers = require('./../TestHelpers')
-process.env.HAIKU_SKIP_NPM_INSTALL = '1'
-process.env.HAIKU_SKIP_NPM_LINK = '1'
 tape('master:index', (t) => {
   t.plan(2)
   TestHelpers.setup(function(folder, creator, glass, timeline, metadata, teardown) {

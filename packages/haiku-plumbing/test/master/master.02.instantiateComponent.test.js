@@ -22,6 +22,7 @@ tape('master.02.instantiateComponent', (t) => {
     ], (err) => {
       if (err) throw err
       t.ok(true)
+      master.teardown()
       teardown()
     })
   })

@@ -6,6 +6,7 @@ var tmp = require('tmp')
 var fse = require('haiku-fs-extra')
 var randomAlphabetical = require('./../lib/randomAlphabetical').default
 var Plumbing = require('./../lib/Plumbing').default
+var Watcher = require('./../lib/Watcher')
 
 function websocket(host, port, folder, alias, type) {
   const websocket = new Websocket(`ws://${host}:${port}/?folder=${folder}&alias=${alias}&type=${type}`)

@@ -87,10 +87,7 @@ export default class Master extends EventEmitter {
     this.proc = new ProcessBase('master') // 'master' is not a branch name in this context
 
     this.proc.socket.on('close', () => {
-      clearInterval(this._methodQueueInterval)
-      clearInterval(this._mod._modificationsInterval)
-      if (this._component) this._component._envoyClient.closeConnection()
-      if (this._watcher) this._watcher.stop()
+      this.teardown()
       this.emit('host-disconnected')
     })
 
@@ -148,6 +145,13 @@ export default class Master extends EventEmitter {
 
     // Saving takes a while and we use this flag to avoid overlapping saves
     this._isSaving = false
+  }
+
+  teardown () {
+    clearInterval(this._methodQueueInterval)
+    clearInterval(this._mod._modificationsInterval)
+    if (this._component) this._component._envoyClient.closeConnection()
+    if (this._watcher) this._watcher.stop()
   }
 
   logMethodMessage ({ method, params }) {

@@ -24,14 +24,8 @@ tape('proc.mergeDesign.sketch', (t) => {
       function (cb) { return creator.action('linkAsset', [folder, afterSourcePath], cb) },
       function (cb) { return setTimeout(cb, 10000) }
     ], (err) => {
-      console.log('=========')
-      console.log(folder)
-      console.log('+++++++++')
-      setTimeout(() => {
-
-      },60*1000)
-      // t.error(err, 'no error')
-      // teardown()
+      t.error(err, 'no error')
+      teardown()
     })
   })
 })

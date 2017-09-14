@@ -18,6 +18,7 @@ tape('master.01.startProject', (t) => {
     ], (err) => {
       if (err) throw err
       t.ok(true)
+      master.teardown()
       teardown()
     })
   })
