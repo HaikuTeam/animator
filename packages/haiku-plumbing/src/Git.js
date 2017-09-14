@@ -531,7 +531,7 @@ export function listTags (pwd, cb) {
  * @param pathsToAdd {String|Array} - '.' to add all paths, [path, path] to add individual paths
  **/
 export function commitProject (folder, username, useHeadAsParent, saveOptions = {}, pathsToAdd, cb) {
-  logger.info(`[git] adding paths to index (${folder})`)
+  logger.info(`[git] adding paths to index in folder ${folder}`)
 
   // Depending on the 'pathsToAdd' given, either add specific paths to the index, or commit them all
   function pathAdder (done) {

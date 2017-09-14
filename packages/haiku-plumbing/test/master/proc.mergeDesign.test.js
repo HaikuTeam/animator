@@ -3,14 +3,11 @@ var async = require('async')
 var fse = require('haiku-fs-extra')
 var path = require('path')
 var TestHelpers = require('./../TestHelpers')
-process.env.HAIKU_SKIP_NPM_INSTALL = '1'
-tape('mergeDesign', (t) => {
+tape('proc.mergeDesign', (t) => {
   t.plan(3)
   TestHelpers.setup(function(folder, creator, glass, timeline, metadata, teardown) {
     var instpath = path.join(folder, 'Hello.svg')
     fse.writeFileSync(instpath, '<svg><rect x="0" y="0" stroke="1" fill="black"></rect></svg>')
-    glass.on('meow', (message) => { if (message.type !== 'broadcast') return glass.message(message) }) // Auto-respond as mock
-    timeline.on('meow', (message) => { if (message.type !== 'broadcast') return timeline.message(message) }) // Auto-respond as mock
     return async.series([
       function (cb) { return creator.request('initializeProject', ['test', { projectPath: folder }, 'matthew+test@haiku.ai', 'quitesecure'], cb) },
       function (cb) { return creator.request('startProject', ['test', folder], cb) },

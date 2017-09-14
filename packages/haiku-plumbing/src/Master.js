@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events'
 import fse from 'haiku-fs-extra'
 import path from 'path'
 import async from 'async'
@@ -66,9 +67,11 @@ function _excludeIfNotJs (relpath) {
   return !_isFileSignificant(relpath)
 }
 
-export default class Master {
-  constructor () {
-    this.folder = ProcessBase.HAIKU.folder
+export default class Master extends EventEmitter {
+  constructor (folder) {
+    super()
+
+    this.folder = folder
 
     if (!this.folder) {
       throw new Error('[master] Master cannot launch without a folder defined')
@@ -78,7 +81,11 @@ export default class Master {
     this.proc = new ProcessBase('master') // 'master' is not a branch name in this context
 
     this.proc.socket.on('close', () => {
-      throw new Error('[master] Disconnected from host plumbing process')
+      clearInterval(this._methodQueueInterval)
+      clearInterval(this._mod._modificationsInterval)
+      if (this._component) this._component._envoyClient.closeConnection()
+      if (this._watcher) this._watcher.stop()
+      this.emit('host-disconnected')
     })
 
     this.proc.on('request', (message, cb) => {
@@ -616,36 +623,39 @@ export default class Master {
 
     return async.series([
       // Load the user's configuration defined in haiku.js (sort of LEGACY)
-      function (cb) {
+      (cb) => {
         logger.info(`[master] start project: loading configuration for ${this.folder}`)
-        return this.config.load(this.folder, (err) => {
+        return this._config.load(this.folder, (err) => {
           if (err) return done(err)
           // Gotta make this available after we load the config, but before anything else, since the
           // done callback happens immediately if we've already initialized this master process once.
-          response.projectName = this.config.get('config.name')
+          response.projectName = this._config.get('config.name')
           return cb()
         })
       },
 
       // Initialize the ActiveComponent and file models
-      function (cb) {
+      (cb) => {
         // No need to reinitialize if already in memory
         if (!this._component) {
           logger.info(`[master] start project: creating active component`)
+
           this._component = new ActiveComponent({
             alias: 'master', // Don't be fooled, this is not a branch name
             folder: this.folder,
-            userconfig: this.config.get('config'),
+            userconfig: this._config.get('config'),
             websocket: {/* websocket */},
             platform: {/* window */},
-            envoy: ProcessBase.HAIKU.envoy,
+            envoy: ProcessBase.HAIKU.envoy || { host: process.env.ENVOY_HOST, port: process.env.ENVOY_PORT },
             file: {
               doShallowWorkOnly: false, // Must override the in-memory-only defaults
               skipDiffLogging: false // Must override the in-memory-only defaults
             }
           })
+
           // This is required so that a hostInstance is loaded which is (required for calculations)
           this._component.mountApplication()
+
           this._component.on('component:mounted', () => {
             // Since we aren't running in the DOM cancel the raf to avoid leaked handles
             this._component._componentInstance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
@@ -657,20 +667,20 @@ export default class Master {
       },
 
       // Take an initial commit of the starting state so we have a baseline
-      function (cb) {
+      (cb) => {
         return this._git.startupSnapshot(cb)
       },
 
       // Load all relevant files into memory (only JavaScript files for now)
-      function (cb) {
+      (cb) => {
         logger.info(`[master] start project: ingesting js files in ${this.folder}`)
-        return this._component.FileModel.ingestFromFolder(ProcessBase.HAIKU.folder, {
+        return this._component.FileModel.ingestFromFolder(this.folder, {
           exclude: _excludeIfNotJs
         }, cb)
       },
 
       // Start watching the file system for changes
-      function (cb) {
+      (cb) => {
         // No need to reinitialize if already in memory
         if (!this._watcher) {
           logger.info('[master] start project: initializing file watcher', this.folder)
@@ -687,11 +697,11 @@ export default class Master {
       },
 
       // Do any setup necessary on the in-memory bytecode object
-      function (cb) {
+      (cb) => {
         const file = this._component.fetchActiveBytecodeFile()
         if (file) {
           logger.info(`[master] start project: initializing bytecode`)
-          file.set('substructInitialized', file.reinitializeSubstruct(this.config.get('config'), 'Master.startProject'))
+          file.set('substructInitialized', file.reinitializeSubstruct(this._config.get('config'), 'Master.startProject'))
           return file.performComponentWork((bytecode, mana, wrapup) => wrapup(), cb)
         } else {
           return cb()
@@ -699,7 +709,7 @@ export default class Master {
       },
 
       // Finish up and signal that we are ready
-      function (cb) {
+      (cb) => {
         this._isReadyToReceiveMethods = true
         logger.info(`[master] start project: ready`)
         return cb(null, response)
@@ -726,7 +736,7 @@ export default class Master {
 
     // Note: 'ensureProjectFolder' and/or 'buildProjectContent' should already have ran by this point.
     return async.series([
-      function (cb) {
+      (cb) => {
         return this._git.initializeProject(projectOptions, cb)
       },
 
@@ -736,7 +746,7 @@ export default class Master {
       // never had remote content pulled, but has changes, we move those changes away them copy them back in on top of
       // the cloned content. Which means we have to be sparing with what we create on the first run, but also need
       // to create any missing remainders on the second run.
-      function (cb) {
+      (cb) => {
         return ProjectFolder.buildProjectContent(null, this.folder, projectName, 'haiku', {
           organizationName: projectOptions.organizationName, // Important: Must set this here or the package.name will be wrong
           skipContentCreation: false,
@@ -745,8 +755,8 @@ export default class Master {
       },
 
       // Make sure we are starting with a good git history
-      function (cb) {
-        this._git.setUndoBaseline()
+      (cb) => {
+        this._git.setUndoBaselineIfHeadCommitExists()
         return cb()
       }
     ], (err, results) => {
@@ -768,7 +778,7 @@ export default class Master {
 
     return async.series([
       // Check to see if a save is even necessary, and return early if not
-      function (cb) {
+      (cb) => {
         return this._git.getExistingShareDataIfSaveIsUnnecessary((err, existingShareData) => {
           if (err) return cb(err)
           return cb(true, existingShareData) // eslint-disable-line
@@ -776,7 +786,7 @@ export default class Master {
       },
 
       // Populate the bytecode's metadata. This may be a no-op if the file has already been saved
-      function (cb) {
+      (cb) => {
         logger.info('[master] project save: assigning metadata')
 
         const {
@@ -799,7 +809,7 @@ export default class Master {
       },
 
       // Build the rest of the content of the folder, including any bundles that belong on the cdn
-      function (cb) {
+      (cb) => {
         logger.info('[master] project save: populating content')
         const { projectName } = this._git.getFolderState()
         return ProjectFolder.buildProjectContent(null, this.folder, projectName, 'haiku', {
@@ -811,13 +821,13 @@ export default class Master {
       },
 
       // Bump the semver in the package.json and perform a git tag
-      function (cb) {
+      (cb) => {
         logger.info('[master] project save: bumping semver')
         return this._git.bumpSemverAppropriately(cb)
       },
 
       // Now do all of the git/share/publish/fs operations required for the real save
-      function (cb) {
+      (cb) => {
         logger.info('[master] project save: committing, pushing, publishing')
         return this._git.saveProject(saveOptions, cb)
       }

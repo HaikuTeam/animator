@@ -248,7 +248,7 @@ export default class Plumbing extends StateObject {
         this.spawnSubgroup(this.subprocs, haiku, (err, spawned) => {
           if (err) return cb(err)
           this.subprocs.push.apply(this.subprocs, spawned)
-          return cb(null, host, port, server, spawned)
+          return cb(null, host, port, server, spawned, haiku.envoy)
         })
       })
     })

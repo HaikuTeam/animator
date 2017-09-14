@@ -23,8 +23,7 @@ function attachProcess () {
   }
   // process.stdin.resume()
   process.on('uncaughtException', (exception) => {
-    console.error('------------------------\n', exception, '\n------------------------')
-    if (exception && exception.stack) logger.error(exception)
+    console.error(exception)
     killall()
     process.exit(1)
   })
@@ -69,7 +68,7 @@ export default class ProcessBase extends EventEmitter {
     }
 
     if (this.haiku && this.haiku.socket) {
-      const url = `http://${this.haiku.socket.host}:${this.haiku.socket.port}?type=controllee&alias=${this.alias}&folder=${this.haiku.folder}`
+      const url = `http://${this.haiku.socket.host || process.env.HAIKU_PLUMBING_HOST}:${this.haiku.socket.port || process.env.HAIKU_PLUMBING_PORT}?type=controllee&alias=${this.alias}&folder=${this.haiku.folder || process.env.HAIKU_PROJECT_FOLDER}`
       logger.info(`[process] establishing websocket connection to ${url}`)
       this.socket = new WebsocketClient(new Websocket(url))
       this.socket.on('request', this.emit.bind(this, 'request'))

@@ -804,7 +804,7 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
-  setUndoBaseline () {
+  setUndoBaselineIfHeadCommitExists () {
     // We need a base commit to act as the commit to return to if the user has done 'undo' to the limit of the stack
     if (this._folderState.headCommitId) {
       if (this._gitUndoables.length < 1) {

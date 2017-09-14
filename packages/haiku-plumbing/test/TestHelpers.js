@@ -33,14 +33,23 @@ function websocket(host, port, folder, alias, type) {
 }
 
 function setup(ready) {
+  process.env.HAIKU_SKIP_NPM_INSTALL = '1'
+  // process.env.HAIKU_SKIP_NPM_LINK = '1' // enabled so that @haiku/player exists in component code.js
   return setTimeout(() => { // HACK: always wait for teardown of previous test #RC-test
     return tmpdir((folder, cleanup) => {
       var plumbing = new Plumbing()
-      plumbing.launch({ mode: 'headless' }, (err, host, port) => {
+      plumbing.launch({ mode: 'headless' }, (err, host, port, server, spawned, envoy) => {
         if (err) throw err
+        process.env.HAIKU_PROJECT_FOLDER = folder
+        process.env.HAIKU_PLUMBING_HOST = host
+        process.env.HAIKU_PLUMBING_PORT = port
+        process.env.ENVOY_HOST = envoy.host
+        process.env.ENVOY_PORT = envoy.port
         const creator = websocket(host, port, folder, 'creator', 'commander')
         const glass = websocket(host, port, folder, 'glass', 'controllee')
         const timeline = websocket(host, port, folder, 'timeline', 'controllee')
+        glass.on('meow', (message) => { if (message.type !== 'broadcast') return glass.message(message) }) // Auto-respond as mock
+        timeline.on('meow', (message) => { if (message.type !== 'broadcast') return timeline.message(message) }) // Auto-respond as mock
         function teardown() {
           cleanup()
           plumbing.teardown()
