@@ -47,9 +47,11 @@ function TimelineModel (component, window) {
       var id = Timeline.objToId(attrs)
       Timeline.dict[id] = instance
 
-      // init timelines at frame 0, otherwise opening a second project in
-      // a session will adopt playhead position of former project
-      instance.getEnvoyChannel().seekToFrameAndPause(id, 0)
+      if (!instance.getEnvoyClient().isInMockMode()) {
+        // init timelines at frame 0, otherwise opening a second project in
+        // a session will adopt playhead position of former project
+        instance.getEnvoyChannel().seekToFrameAndPause(id, 0)
+      }
 
       instance.on('timeline:tick', (frame) => {
         Timeline.emit('timeline:tick', frame)
