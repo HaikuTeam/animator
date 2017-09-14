@@ -63,11 +63,6 @@ class CollapseItem extends React.Component {
     })
   }
 
-  handleSketchDoubleClick () {
-    var abspath = path.join(this.props.folder, 'designs', this.props.file.fileName)
-    shell.openItem(abspath)
-  }
-
   render () {
     const {isOpened} = this.state
     const {file} = this.props
@@ -133,10 +128,10 @@ class CollapseItem extends React.Component {
           </span>
           {this.props.file
             ? <span key={`file-header-${file.fileName}`} style={STYLES.header}>
-              <span onContextMenu={this.handleContextMenu.bind(this)} onDoubleClick={this.handleSketchDoubleClick.bind(this)} style={STYLES.icon}>
+              <span onContextMenu={this.handleContextMenu.bind(this)} onDoubleClick={this.props.instantiate} style={STYLES.icon}>
                 <SketchIconSVG style='' color={Radium.getState(this.state, `file-header-${file.fileName}`, ':hover') ? Palette.ORANGE : Palette.DARKER_ROCK} />
               </span>
-              <span onContextMenu={this.handleContextMenu.bind(this)} onDoubleClick={this.handleSketchDoubleClick.bind(this)}>{this.props.file.fileName}</span>
+              <span onContextMenu={this.handleContextMenu.bind(this)} onDoubleClick={this.props.instantiate}>{this.props.file.fileName}</span>
             </span>
             : <span><span style={STYLES.icon}><FolderIconSVG /></span>{this.props.name}</span>
           }

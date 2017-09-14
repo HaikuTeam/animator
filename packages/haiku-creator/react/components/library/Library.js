@@ -12,6 +12,7 @@ import RectanglePrimitiveProps from './../../primitives/Rectangle'
 import EllipsePrimitiveProps from './../../primitives/Ellipse'
 import PolygonPrimitiveProps from './../../primitives/Polygon'
 import TextPrimitiveProps from './../../primitives/Text'
+import { shell } from 'electron'
 // import { BTN_STYLES } from '../../styles/btnShared'
 
 // List of extnames which, upon change, should trigger an asset listing refresh.
@@ -128,7 +129,7 @@ class LibraryDrawer extends React.Component {
     })
   }
 
-  handleAssetInstantiation (fileData) {
+  handleFileInstantiation (fileData) {
     if (!fileData.preview) return this.props.createNotice({ type: 'warning', title: 'Oops!', message: 'File path was blank; cannot instantiate' })
     const metadata = {}
     this.props.websocket.request({ type: 'action', method: 'instantiateComponent', params: [this.props.folder, fileData.preview, metadata] }, (err) => {
@@ -136,6 +137,24 @@ class LibraryDrawer extends React.Component {
         return this.props.createNotice({ type: 'danger', title: err.name, message: err.message })
       }
     })
+  }
+
+  handleSketchInstantiation (fileData) {
+    let abspath = path.join(this.props.folder, 'designs', fileData.fileName)
+    shell.openItem(abspath)
+  }
+
+  handleAssetInstantiation (fileData) {
+    switch(fileData.type) {
+      case 'sketch':
+        this.handleSketchInstantiation(fileData)
+        break
+      case 'file':
+        this.handleFileInstantiation(fileData)
+        break
+      default:
+        this.props.createNotice({ type: 'warning', title: 'Oops!', message: 'Couldn\'t handle that file, please contact support.' })
+    }
   }
 
   handleFileDrop (files, event) {
