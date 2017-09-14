@@ -15,8 +15,7 @@ const STYLES = {
     borderBottomLeftRadius: '3px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    pointerEvents: 'none'
+    justifyContent: 'center'
   },
   success: {
     backgroundColor: Palette.GREEN
@@ -82,6 +81,10 @@ const STYLES = {
 }
 
 class Toast extends React.Component {
+  closeNotice = () => {
+    this.props.removeNotice(this.props.myKey)
+  }
+
   render () {
     const {toastType, toastTitle, toastMessage, closeText, lightScheme} = this.props
     let icon
@@ -104,13 +107,14 @@ class Toast extends React.Component {
           STYLES.cap,
           STYLES[toastType],
           lightScheme && {backgroundColor: Color(STYLES[toastType].backgroundColor).fade(0.27)}
-        ]}>{icon}
+        ]}
+        onClick={this.closeNotice}>{icon}
         </div>
         <div style={[STYLES.title]}>{toastTitle}</div>
         <div style={[STYLES.body]}>{toastMessage}</div>
-        <span style={[STYLES.closer, lightScheme && STYLES.lightCloser]} onClick={() => {
-          this.props.removeNotice(this.props.myKey)
-        }}>{closeText || 'Got it'}
+        <span
+          style={[STYLES.closer, lightScheme && STYLES.lightCloser]}
+          onClick={this.closeNotice}>{closeText || 'Got it'}
         </span>
       </div>
     )
