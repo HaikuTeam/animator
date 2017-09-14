@@ -52,7 +52,7 @@ module.exports = function _loggerConstructor (folder, filepath, options) {
 
   if (typeof process !== 'undefined') {
     // No-op all logs in production since we only use them in dev
-    if (process.env && process.env.NODE_ENV === 'production') {
+    if (process.env && (process.env.NODE_ENV === 'production' || process.env.HAIKU_ECHO_OFF === '1')) {
       logger.info = function () {}
       logger.warn = function () {}
       logger.error = function () {}
