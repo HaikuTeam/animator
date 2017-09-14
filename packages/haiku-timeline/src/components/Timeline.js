@@ -2539,6 +2539,7 @@ class Timeline extends React.Component {
         <div style={{ width: this.state.propertiesWidth + this.state.timelinesWidth - 10, left: 10, position: 'relative' }}>
           <div style={{
             position: 'absolute',
+            pointerEvents: 'none',
             height: knobRadius * 2,
             width: 1,
             backgroundColor: Palette.ROCK,
