@@ -130,7 +130,9 @@ function FileModel (config) {
     logger.info('[file] updating in-memory content state')
 
     options = assign({}, File.UPDATE_OPTIONS, options)
+
     this.set('dtModified', Date.now())
+
     const previous = this.get('contents')
     this.set('previous', previous)
 
@@ -139,6 +141,7 @@ function FileModel (config) {
     }
 
     this.set('contents', contents)
+
     if (this.isCode() || path.extname(this.get('relpath')) === '.svg') {
       if (!this.get('skipDiffLogging')) {
         var relpath = this.get('relpath')
@@ -149,6 +152,7 @@ function FileModel (config) {
         }
       }
     }
+
     if (this.isCode() && options.shouldReloadCodeStructures) {
       return File.loadCodeStructures(this.get('relpath'), contents, (err, ast, substructs) => {
         if (err) return cb(err)
@@ -160,6 +164,7 @@ function FileModel (config) {
         return cb()
       })
     }
+
     this.emit('in-memory-content-state-updated')
     return cb()
   }
@@ -228,13 +233,7 @@ function FileModel (config) {
           const ast = this.get('ast')
           if (!ast) return finish(new Error('AST missing'))
 
-          if (this.get('commitImmediate')) {
-            return this.commitContentState(substruct, ast, finish)
-          } else {
-            // By default, early return and do the rest of this heavy stuff in the background
-            finish(null, result, this)
-            return this.commitContentStateDebounced(substruct, ast, noop)
-          }
+          return this.commitContentState(substruct, ast, finish)
         } catch (exception) {
           return finish(exception)
         }
@@ -428,17 +427,10 @@ function FileModel (config) {
       return this.updateInMemoryContentState(code, { shouldReloadCodeStructures: false }, (err) => {
         if (err) return cb(err)
 
-        if (this.get('skipFileUpdates')) {
-          logger.info('[file] commit content state is skipping file updates')
-          return cb()
-        }
-
         this.actualizeContentState({}, cb) // debounce?
       })
     })
   }
-
-  File.prototype.commitContentStateDebounced = debounce(File.prototype.commitContentState, 64)
 
   File.prototype.performComponentTimelinesWork = function performComponentTimelinesWork (worker, finish) {
     return this.performComponentWork((bytecode, mana, done) => {
