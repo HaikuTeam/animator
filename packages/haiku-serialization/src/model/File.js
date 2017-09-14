@@ -2,7 +2,6 @@ var fse = require('fs-extra')
 var path = require('path')
 var async = require('async')
 var assign = require('lodash.assign')
-var debounce = require('lodash.debounce')
 var merge = require('lodash.merge')
 var find = require('lodash.find')
 var pascalcase = require('pascalcase')
@@ -97,8 +96,6 @@ function FileModel (config) {
   // Dictionary of files currently in the process of being read/written.
   // Used as a kind of mutex where reading-while-writing causes a problem.
   File.lockees = {}
-
-  function noop () {}
 
   // Constructor hook
 
@@ -427,7 +424,7 @@ function FileModel (config) {
       return this.updateInMemoryContentState(code, { shouldReloadCodeStructures: false }, (err) => {
         if (err) return cb(err)
 
-        this.actualizeContentState({}, cb) // debounce?
+        this.actualizeContentState({}, cb)
       })
     })
   }
