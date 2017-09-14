@@ -46,14 +46,62 @@ export default class TourHandler implements Tour {
         {
             selector: ".pill-container span:nth-child(5)",
             webview: "timeline",
+            component: "TweenCreator",
+            display: "top",
+        },
+        {
+            selector: ".pill-container span:nth-child(5)",
+            webview: "timeline",
             component: "AnimatorNotice",
             display: "top",
         },
         {
-            selector: "#library-wrapper",
+            selector: "#stage-mount",
             webview: "creator",
             component: "LibraryStart",
             display: "right",
+        },
+        {
+            selector: "#state-inspector",
+            webview: "creator",
+            component: "StatesStart",
+            display: "right",
+        },
+        {
+            selector: "#add-state-button",
+            webview: "creator",
+            component: "AddState",
+            display: "bottom",
+        },
+        {
+            selector: ".property-input-field",
+            webview: "timeline",
+            component: "ReferenceState",
+            display: "top",
+        },
+        {
+            selector: ".property-input-field",
+            webview: "timeline",
+            component: "ExpressionsCongrat",
+            display: "top",
+        },
+        {
+            selector: ".property-input-field",
+            webview: "timeline",
+            component: "Summonables",
+            display: "top",
+        },
+        {
+          selector: "#publish",
+          webview: "creator",
+          component: "Publish",
+          display: "bottom",
+        },
+        {
+          selector: ".Popover",
+          webview: "creator",
+          component: "PublishedLink",
+          display: "bottom",
         },
         {
             selector: "#go-to-dashboard",

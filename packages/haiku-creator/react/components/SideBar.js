@@ -113,7 +113,7 @@ class SideBar extends React.Component {
             onClick={() => this.props.switchActiveNav('library')}>
             <LibraryIconSVG color={Palette.ROCK} />
           </div>
-          <div key='state_inspector'
+          <div id='state-inspector' key='state_inspector'
             style={[STYLES.btnNav, this.props.activeNav === 'state_inspector' && STYLES.activeBtnNav]}
             onClick={() => this.props.switchActiveNav('state_inspector')}>
             <StateInspectorIconSVG color={Palette.ROCK} />
