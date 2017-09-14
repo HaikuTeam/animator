@@ -1,5 +1,6 @@
 import React from 'react'
 import Tooltip from '../Tooltip'
+import { TOUR_STYLES } from '../../styles/tourShared'
 import * as steps from './Steps'
 
 class Tour extends React.Component {
@@ -63,7 +64,7 @@ class Tour extends React.Component {
 
     return (
       <Tooltip coordinates={coordinates} display={display}>
-        <Step next={this.next} finish={this.finish} />
+        <Step styles={TOUR_STYLES} next={this.next} finish={this.finish} />
       </Tooltip>
     )
   }

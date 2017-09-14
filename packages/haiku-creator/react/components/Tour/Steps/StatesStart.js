@@ -1,24 +1,11 @@
 import React from 'react'
 import Dialog from '../../Dialog'
-import { DASH_STYLES } from '../../../styles/dashShared'
 
-const STYLES = {
-  btn: {
-    ...DASH_STYLES.btn,
-    padding: '10px 15px',
-    margin: '0 10px 0 0',
-    fontSize: 16
-  },
-  text: {
-    fontSize: 16
-  }
-}
-
-export default function ({ style, next }) {
+export default function ({ styles, next }) {
   return (
-    <Dialog style={style}>
+    <Dialog>
       <h2>States</h2>
-      <div style={STYLES.text}>
+      <div style={styles.text}>
         <p>
           Alright, did you notice it change! That's the beauty of Haiku -
           you don't lose your ability to continue designing.
@@ -27,7 +14,7 @@ export default function ({ style, next }) {
           Let's move ahead and toggle to the State Inspector.
         </p>
       </div>
-      <button style={STYLES.btn} onClick={next}>Next</button>
+      <button style={styles.btn} onClick={next}>Next</button>
     </Dialog>
   )
 }
