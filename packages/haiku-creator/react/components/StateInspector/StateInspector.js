@@ -11,7 +11,8 @@ const STYLES = {
   container: {
     position: 'relative',
     backgroundColor: Palette.GRAY,
-    WebkitUserSelect: 'none'
+    WebkitUserSelect: 'none',
+    height: '100%'
   },
   statesContainer: {
     overflow: 'auto',
@@ -20,10 +21,8 @@ const STYLES = {
   sectionHeader: {
     cursor: 'default',
     height: 25,
-    marginBottom: 18,
-    paddingLeft: 14,
-    paddingRight: 14,
-    paddingTop: 18,
+    marginBottom: 8,
+    padding: '18px 14px 10px',
     textTransform: 'uppercase',
     display: 'flex',
     alignItems: 'center',

@@ -44,7 +44,13 @@ function TimelineModel (component, window) {
       instance.initialize(attrs)
     } else {
       instance = new Timeline(attrs)
-      Timeline.dict[Timeline.objToId(attrs)] = instance
+      var id = Timeline.objToId(attrs)
+      Timeline.dict[id] = instance
+
+      //init timelines at frame 0, otherwise opening a second project in
+      //a session will adopt playhead position of former project
+      instance.getEnvoyChannel().seekToFrameAndPause(id, 0)
+
       instance.on('timeline:tick', (frame) => {
         Timeline.emit('timeline:tick', frame)
       })
@@ -82,7 +88,6 @@ function TimelineModel (component, window) {
     this.playing = true
     this.stopwatch = Date.now()
     if (!this.getEnvoyClient().isInMockMode()) {
-      // TODO: need to setTimelineTime
       this.getEnvoyChannel().play(this.getId())
       this.getEnvoyChannel().play(this.getId()).then(() => {
         this.update()
@@ -127,16 +132,22 @@ function TimelineModel (component, window) {
 
   Timeline.prototype.update = function update () {
     if (this.playing) {
-      if (!this.requestingFrame) {
-        this.requestingFrame = true
-        if (!this.getEnvoyClient().isInMockMode()) {
-          this.getEnvoyChannel().getCurrentFrame(this.getId()).then((currentFrame) => {
-            this.requestingFrame = false
-            this.currentFrame = currentFrame
-            this.setAuthoritativeFrame(currentFrame)
-          })
-        }
-      }
+      
+      // this logic is net-bad:  if we listen on the correct events, there's no need to synchronize at every moment
+      // (no 'drift') — the cost is that it literally fills the websocket connection as fast as it can with requests, which
+      // serves to add latency to other requests.  This also contributed to a bug in playback when opening multiple projects
+      // with a single plumbing session (would snap new playheads to old playhead values even when resetting in upsert above.)
+
+      // if (!this.requestingFrame) {
+      //   this.requestingFrame = true
+      //   if (!this.getEnvoyClient().isInMockMode()) {
+      //     this.getEnvoyChannel().getCurrentFrame(this.getId()).then((currentFrame) => {
+      //       this.requestingFrame = false
+      //       this.currentFrame = currentFrame
+      //       this.setAuthoritativeFrame(currentFrame)
+      //     })
+      //   }
+      // }
       this.currentFrame = this.getExtrapolatedCurrentFrame()
       this.emit('timeline:tick', this.currentFrame)
       this.raf = window.requestAnimationFrame(this.update)

@@ -10,6 +10,7 @@ var visitTemplate = require('./helpers/visitTemplate')
 var getHaikuKnownImportMatch = require('./getHaikuKnownImportMatch')
 var overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 var EnvoyClient = require('haiku-sdk-creator/lib/envoy/client').default
+var EnvoyLogger = require('haiku-sdk-creator/lib/envoy/logger').default
 var WebSocket = require('ws')
 
 var HAIKU_ID_ATTRIBUTE = 'haiku-id'
@@ -115,11 +116,13 @@ function ActiveComponent (options) {
   )
 
   this._envoyClient = new EnvoyClient(lodash.assign({
-    WebSocket: wsc
+    WebSocket: wsc,
+    logger: new EnvoyLogger("warn", console)
   }, options.envoy))
 
   this._envoyClient.get('timeline').then((timelineChannel) => {
     this._envoyTimelineChannel = timelineChannel
+      
     this.emit('envoy:timelineClientReady', this._envoyTimelineChannel)
   })
 

@@ -384,7 +384,7 @@ class StageTitleBar extends React.Component {
           place='below'
           isOpen={showSharePopover}
           body={
-            <div style={STYLES.sharePopover}>
+            <div style={[STYLES.sharePopover, this.state.snapshotSaveConfirmed && {right: -67}, this.state.isSnapshotSaveInProgress && {right: -70}]}>
               {titleText}
               <div style={STYLES.linkHolster}>
                 {(this.state.isSnapshotSaveInProgress || this.state.isProjectInfoFetchInProgress)
