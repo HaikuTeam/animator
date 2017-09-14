@@ -98,6 +98,14 @@ export default class EnvoyClient<T> {
     }
 
     /**
+     * @method closeConnection
+     * @description Close the websocket connection
+     */
+    closeConnection() {
+        return this.socket.close()
+    }
+
+    /**
      * @method isInMockMode
      * @description Returns true/false whether we are in mock mode.
      * Used in dev/testing when we don't have a real socket connection.

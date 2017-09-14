@@ -14,6 +14,7 @@ export default class EnvoyClient<T> {
     constructor(options?: EnvoyOptions);
     get(channel: string): Promise<T>;
     getOption(key: string): any;
+    closeConnection(): void;
     isInMockMode(): boolean;
     private addEventLogic(subject);
     ready(): Promise<void>;

@@ -47,6 +47,9 @@ class EnvoyClient {
     getOption(key) {
         return this.options[key];
     }
+    closeConnection() {
+        return this.socket.close();
+    }
     isInMockMode() {
         return this.getOption("mock");
     }
