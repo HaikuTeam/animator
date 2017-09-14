@@ -4,6 +4,7 @@ import OpenProject from './Steps/OpenProject'
 import ScrubTicker from './Steps/ScrubTicker'
 import PropertyChanger from './Steps/PropertyChanger'
 import KeyframeCreator from './Steps/KeyframeCreator'
+import TweenCreator from './Steps/TweenCreator'
 import AnimatorNotice from './Steps/AnimatorNotice'
 import LibraryStart from './Steps/LibraryStart'
 import Finish from './Steps/Finish'
@@ -15,6 +16,7 @@ const components = {
   ScrubTicker,
   PropertyChanger,
   KeyframeCreator,
+  TweenCreator,
   AnimatorNotice,
   LibraryStart,
   Finish

@@ -17,17 +17,15 @@ const STYLES = {
 export default function ({ style, next }) {
   return (
     <Dialog style={style}>
-      <h2>Library</h2>
+      <h2>States</h2>
       <div style={STYLES.text}>
-        <p style={STYLES.text}>Let's focus on the library now.</p>
         <p>
-          You can drag any element from here to the stage to instantiate it.
+          Alright, did you notice it change! That's the beauty of Haiku -
+          you don't lose your ability to continue designing.
         </p>
         <p>
-        But let's try demonstrating the conected design and animation
-        workflows first. Note xyz element let's change its color in Sketch
-        and watch it update here in Haiku automatically.
-        Double click the Sketch Diamond to open Sketch.</p>
+          Let's move ahead and toggle to the State Inspector.
+        </p>
       </div>
       <button style={STYLES.btn} onClick={next}>Next</button>
     </Dialog>
