@@ -2,6 +2,7 @@ import { EventEmitter } from 'events'
 import fse from 'haiku-fs-extra'
 import path from 'path'
 import async from 'async'
+import walkFiles from 'haiku-serialization/src/utils/walkFiles'
 import ActiveComponent from 'haiku-serialization/src/model/ActiveComponent'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import ProcessBase from './ProcessBase'
@@ -37,6 +38,11 @@ const WATCHABLE_EXTNAMES = {
   '.js': true,
   '.svg': true,
   '.sketch': true
+}
+
+const DESIGN_EXTNAMES = {
+  '.sketch': true,
+  '.svg': true
 }
 
 const UNWATCHABLE_RELPATHS = {
@@ -300,12 +306,8 @@ export default class Master extends EventEmitter {
 
   handleSemverTagChange (tag, cb) {
     const file = this._component.fetchActiveBytecodeFile()
-    // Commit the content directly to the file instead of waiting for debounce #RC
-    file.set('commitImmediate', true)
     return file.writeMetadata({ version: tag }, (err) => {
       if (err) return cb(err)
-      // Go back to the original commit debounce disposition #RC
-      file.set('commitImmediate', false)
       logger.info(`[master-git] bumped bytecode semver to ${tag}`)
       return cb(null, tag)
     })
@@ -373,9 +375,30 @@ export default class Master extends EventEmitter {
     return this._git.redo(redoOptions, cb)
   }
 
+  loadAssets (done) {
+    return walkFiles(this.folder, (err, entries) => {
+      if (err) return done(err)
+      entries.forEach((entry) => {
+        const extname = path.extname(entry.path)
+        if (DESIGN_EXTNAMES[extname]) {
+          const relpath = path.normalize(path.relative(this.folder, entry.path))
+          this._knownDesigns[relpath] = { relpath, abspath: entry.path, dtModified: Date.now() }
+        }
+      })
+      return this.getAssets(done)
+    })
+  }
+
+  getAssets (done) {
+    return done(null, Asset.assetsToDirectoryStructure(this._knownDesigns))
+  }
+
   fetchAssets (message, done) {
-    const assets = Asset.assetsToDirectoryStructure(this._knownDesigns)
-    return done(null, assets)
+    if (Object.keys(this._knownDesigns).length > 0) {
+      return this.getAssets(done)
+    } else {
+      return this.loadAssets(done)
+    }
   }
 
   linkAsset ({ params: [abspath] }, done) {

@@ -119,6 +119,10 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
+  isCommittingProject () {
+    return this._isCommitting
+  }
+
   getFolderState () {
     return this._folderState
   }
