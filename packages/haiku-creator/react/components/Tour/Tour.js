@@ -1,26 +1,6 @@
 import React from 'react'
-import Welcome from './Steps/Welcome'
-import OpenProject from './Steps/OpenProject'
-import ScrubTicker from './Steps/ScrubTicker'
-import PropertyChanger from './Steps/PropertyChanger'
-import KeyframeCreator from './Steps/KeyframeCreator'
-import TweenCreator from './Steps/TweenCreator'
-import AnimatorNotice from './Steps/AnimatorNotice'
-import LibraryStart from './Steps/LibraryStart'
-import Finish from './Steps/Finish'
 import Tooltip from '../Tooltip'
-
-const components = {
-  Welcome,
-  OpenProject,
-  ScrubTicker,
-  PropertyChanger,
-  KeyframeCreator,
-  TweenCreator,
-  AnimatorNotice,
-  LibraryStart,
-  Finish
-}
+import * as steps from './Steps'
 
 class Tour extends React.Component {
   constructor () {
@@ -79,7 +59,7 @@ class Tour extends React.Component {
     }
 
     const { display, coordinates, component } = this.state
-    const Step = components[component]
+    const Step = steps[component]
 
     return (
       <Tooltip coordinates={coordinates} display={display}>
