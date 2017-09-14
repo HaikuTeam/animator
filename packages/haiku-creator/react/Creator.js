@@ -542,6 +542,7 @@ export default class Creator extends React.Component {
             createNotice={this.createNotice}
             removeNotice={this.removeNotice}
             notices={this.state.notices}
+            envoy={this.envoy}
             {...this.props} />
           <Tour envoy={this.envoy} startTourOnMount />
         </div>
@@ -558,6 +559,7 @@ export default class Creator extends React.Component {
             createNotice={this.createNotice}
             removeNotice={this.removeNotice}
             notices={this.state.notices}
+            envoy={this.envoy}
             {...this.props} />
         </div>
       )

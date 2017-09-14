@@ -73,6 +73,21 @@ export default class TourHandler implements Tour {
         this.server = server
     }
 
+    private performStepActions() {
+        switch (this.currentStep) {
+            case 1:
+                this.requestSelectProject()
+                break;
+        }
+    }
+
+    private requestSelectProject() {
+        this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+            payload: {},
+            name: "tour:requestSelectProject"
+        })
+    }
+
     private requestWebviewCoordinates() {
         this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
             payload: {},
@@ -134,7 +149,10 @@ export default class TourHandler implements Tour {
 
     next() {
         this.currentStep++
+
         const nextState = this.getState()
+
+        this.performStepActions()
 
         if (nextState) {
             this.requestElementCoordinates(nextState)

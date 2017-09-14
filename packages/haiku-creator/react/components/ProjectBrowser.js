@@ -26,6 +26,13 @@ class ProjectBrowser extends React.Component {
   componentDidMount () {
     this.loadProjects()
     document.addEventListener('keydown', this.handleDocumentKeyPress, true)
+
+    this.props.envoy.get('tour').then((tourChannel) => {
+      tourChannel.on('tour:requestSelectProject', () => {
+        const projectIdx = this.state.projectsList.length - 2
+        this.setActiveProject(this.state.projectsList[projectIdx], projectIdx)
+      })
+    })
   }
 
   componentWillUnmount () {
@@ -82,7 +89,7 @@ class ProjectBrowser extends React.Component {
     })
   }
 
-  handleProjectClick (projectObject, projectIndex) {
+  setActiveProject (projectObject, projectIndex) {
     const projectsList = this.state.projectsList
 
     // TODO: if current project has unsaved edits then show save dialogue
@@ -226,7 +233,7 @@ class ProjectBrowser extends React.Component {
             <div style={[DASH_STYLES.projectWrapper, projectObject.isActive && DASH_STYLES.activeWrapper]}
               key={index}
               onDoubleClick={this.handleProjectLaunch.bind(this, projectObject)}
-              onClick={this.handleProjectClick.bind(this, projectObject, index)}>
+              onClick={this.setActiveProject.bind(this, projectObject, index)}>
               <span key={`a-${projectObject.projectName}`} style={[projectObject.isActive && DASH_STYLES.activeProject]} />
               <span style={[DASH_STYLES.logo, projectObject.isActive && DASH_STYLES.logoActive]}><LogoSVG /></span>
               {projectTitle}
