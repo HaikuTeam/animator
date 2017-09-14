@@ -122,8 +122,7 @@ function ActiveComponent (options) {
 
   this._envoyClient.get('timeline').then((timelineChannel) => {
     this._envoyTimelineChannel = timelineChannel
-
-    this._envoyTimelineChannel.seekToFrame(0)
+      
     this.emit('envoy:timelineClientReady', this._envoyTimelineChannel)
   })
 

@@ -57,9 +57,12 @@ export default class ControlsArea extends React.Component {
             position: 'absolute',
             top: -63
           }}>
-            <PlaybackSpeedDial
+            {/* zb: removing for now because
+                      1. it interferes with ability to drag horiz scrollbar (even when hidden, vertical track steals events)
+                      2. we don't support playback speed changes yet, perhaps encouraging the new user to wonder "what else is fake?"
+                 <PlaybackSpeedDial
               changePlaybackSpeed={this.props.changePlaybackSpeed}
-              playbackSpeed={this.props.playbackSpeed} />
+              playbackSpeed={this.props.playbackSpeed} /> */}
           </div>
         </span>
       </div>
