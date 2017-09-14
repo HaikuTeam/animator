@@ -50,5 +50,15 @@ module.exports = function _loggerConstructor (folder, filepath, options) {
     logger.stream({ start: -1 }).on('log', cb)
   }
 
+  if (typeof process !== 'undefined') {
+    // No-op all logs in production since we only use them in dev
+    if (process.env && process.env.NODE_ENV === 'production') {
+      logger.info = function(){}
+      logger.warn = function(){}
+      logger.error = function(){}
+      logger.log = function(){}
+    }
+  }
+
   return logger
 }
