@@ -151,6 +151,9 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   if (config.onHaikuComponentDidInitialize) {
     config.onHaikuComponentDidInitialize(this)
   }
+
+  // Flag to determine whether this component should continue doing any work
+  this._deactivated = false
 }
 
 HaikuComponent["PLAYER_VERSION"] = PLAYER_VERSION
@@ -498,6 +501,16 @@ HaikuComponent.prototype.getParser = function getParser(outputName, virtualEleme
 }
 
 /**
+ * @method _deactivate
+ * @description When hot-reloading a component during editing, this can be used to
+ * ensure that this component doesn't keep updating after its replacement is loaded.
+ */
+HaikuComponent.prototype._deactivate = function _deactivate() {
+  this._deactivated = true
+  return this
+}
+
+/**
  * TODO:
  * Implement the methods commented out below
  */
@@ -756,6 +769,11 @@ HaikuComponent.prototype._clearDetectedInputChanges = function _clearDetectedInp
 }
 
 HaikuComponent.prototype.patch = function patch(container, patchOptions) {
+  if (this._deactivated) {
+    // If deactivated, pretend like there is nothing to render
+    return {}
+  }
+
   let time = this._context.clock.getExplicitTime()
 
   let timelinesRunning = []
@@ -799,10 +817,19 @@ HaikuComponent.prototype.patch = function patch(container, patchOptions) {
 }
 
 HaikuComponent.prototype._getPrecalcedPatches = function _getPrecalcedPatches() {
+  if (this._deactivated) {
+    // If deactivated, pretend like there is nothing to render
+    return {}
+  }
   return this._lastDeltaPatches || {}
 }
 
 HaikuComponent.prototype.render = function render(container, renderOptions, surrogates) {
+  if (this._deactivated) {
+    // If deactivated, pretend like there is nothing to render
+    return void 0
+  }
+
   let time = this._context.clock.getExplicitTime()
 
   for (let timelineName in this._timelineInstances) {
