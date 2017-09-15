@@ -25,6 +25,15 @@ const STYLES = {
   children: {
     position: 'absolute',
     minWidth: '260px'
+  },
+  spotlight: {
+    position: 'absolute',
+    width: 500,
+    height: 500,
+    boxShadow: '0 0 0 2560px rgba(0, 0, 0, 0.5), 0 0 20px 0px #000 inset',
+    borderRadius: '100%',
+    background: 'transparent',
+    pointerEvents: 'none'
   }
 }
 
@@ -34,6 +43,9 @@ STYLES.TOP = {
   },
   children: {
     bottom: 45
+  },
+  spotlight: {
+    top: -40
   }
 }
 
@@ -43,6 +55,9 @@ STYLES.BOTTOM = {
   },
   children: {
     top: 45
+  },
+  spotlight: {
+    bottom: -40
   }
 }
 
@@ -52,6 +67,9 @@ STYLES.LEFT = {
   },
   children: {
     right: '130%'
+  },
+  spotlight: {
+    left: -40
   }
 }
 
@@ -61,16 +79,22 @@ STYLES.RIGHT = {
   },
   children: {
     left: '110%'
+  },
+  spotlight: {
+    right: -40
   }
 }
 
-export default function ({ coordinates, display, children }) {
+export default function ({ coordinates, offset, spotlightRadius, display, children }) {
   let { top, left } = coordinates
   let circleDisplay = 'none'
   let positionStyles = STYLES[display.toUpperCase()] || {}
+  let spotlightExtraStyles = {}
 
   if (display !== 'none') {
     circleDisplay = 'inline-block'
+  } else {
+    spotlightExtraStyles.transform = 'translateX(-25%)'
   }
 
   if (display === 'left') {
@@ -91,8 +115,20 @@ export default function ({ coordinates, display, children }) {
     top = top - 10
   }
 
+  if (typeof top === 'number') {
+    top = top + offset.top
+    left = left + offset.left
+  }
+
+  if (spotlightRadius !== 'default') {
+    spotlightExtraStyles.width = spotlightRadius
+    spotlightExtraStyles.height = spotlightRadius
+  }
+
   return (
     <div style={{top, left, ...STYLES.container, ...positionStyles.container}}>
+      <div style={{...STYLES.spotlight, ...positionStyles.spotlight, ...spotlightExtraStyles}} />
+
       <div style={{...STYLES.circle, display: circleDisplay}}>
         <div style={STYLES.circleInner} />
       </div>

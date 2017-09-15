@@ -11,6 +11,8 @@ export interface TourState {
     webview: string
     component: string
     display: string
+    offset: ClientBoundingRect
+    spotlightRadius: number|string
 }
 
 export interface ClientBoundingRect {
