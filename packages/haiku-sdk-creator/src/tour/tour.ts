@@ -1,10 +1,10 @@
-import { ClientBoundingRect, MaybeAsync, Tour, TourState } from "."
-import { EnvoyEvent } from "../envoy"
-import EnvoyServer from "../envoy/server"
 import {
   createTourFile,
   didTakeTour,
 } from "haiku-serialization/src/utils/HaikuHomeDir"
+import { ClientBoundingRect, MaybeAsync, Tour, TourState } from "."
+import { EnvoyEvent } from "../envoy"
+import EnvoyServer from "../envoy/server"
 
 const TOUR_CHANNEL = "tour"
 
@@ -125,7 +125,7 @@ export default class TourHandler implements Tour {
         switch (this.currentStep) {
             case 1:
                 this.requestSelectProject()
-                break;
+                break
         }
     }
 
@@ -140,7 +140,7 @@ export default class TourHandler implements Tour {
     private requestSelectProject() {
         this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
             payload: {},
-            name: "tour:requestSelectProject"
+            name: "tour:requestSelectProject",
         })
     }
 
@@ -168,7 +168,7 @@ export default class TourHandler implements Tour {
     private requestFinish() {
         this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
             payload: {},
-            name: "tour:requestFinish"
+            name: "tour:requestFinish",
         })
     }
 

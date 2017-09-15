@@ -319,8 +319,8 @@ export default class Creator extends React.Component {
   }
 
   componentWillUnmount () {
-    tourChannel.off('tour:requestElementCoordinates', this.handleFindElementCoordinates)
-    tourChannel.off('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates)
+    this.tourChannel.off('tour:requestElementCoordinates', this.handleFindElementCoordinates)
+    this.tourChannel.off('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates)
   }
 
   handleFindElementCoordinates ({ selector, webview }) {

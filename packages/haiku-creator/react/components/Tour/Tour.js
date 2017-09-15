@@ -7,6 +7,11 @@ class Tour extends React.Component {
   constructor () {
     super()
 
+    this.next = this.next.bind(this)
+    this.finish = this.finish.bind(this)
+    this.hide = this.hide.bind(this)
+    this.showStep = this.showStep.bind(this)
+
     this.state = {
       component: null,
       coordinates: null
@@ -30,19 +35,19 @@ class Tour extends React.Component {
     this.tourChannel.off('tour:requestFinish', this.hide)
   }
 
-  next = () => {
+  next () {
     this.tourChannel.next()
   }
 
-  finish = (createFile) => {
+  finish (createFile) {
     this.tourChannel.finish(createFile)
   }
 
-  hide = () => {
+  hide () {
     this.setState({ component: null })
   }
 
-  showStep = (state) => {
+  showStep (state) {
     this.setState(state)
   }
 

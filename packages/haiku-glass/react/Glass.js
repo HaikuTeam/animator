@@ -103,13 +103,13 @@ export class Glass extends React.Component {
       timelineChannel.on('didSeek', this.handleTimelineDidSeek.bind(this))
     })
 
-    this._component.on("envoy:tourClientReady", (client)=>{
+    this._component.on('envoy:tourClientReady', (client) => {
       this.tourClient = client
-      this.tourClient.on("tour:requestElementCoordinates", this.handleRequestElementCoordinates)
+      this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
     })
   }
 
-  handleRequestElementCoordinates({ selector, webview }) {
+  handleRequestElementCoordinates ({ selector, webview }) {
     if (webview !== 'glass') { return }
 
     try {
@@ -119,7 +119,7 @@ export class Glass extends React.Component {
 
       this.tourClient.receiveElementCoordinates('glass', { top, left })
     } catch (error) {
-      console.error(`Error fetching ${element} in webview ${webview}`)
+      console.error(`Error fetching ${selector} in webview ${webview}`)
     }
   }
 
@@ -406,7 +406,7 @@ export class Glass extends React.Component {
   }
 
   componentWillUnmount () {
-    this.tourClient.off("tour:requestElementCoordinates", handleRequestElementCoordinates)
+    this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
   }
 
   handleWindowResize () {

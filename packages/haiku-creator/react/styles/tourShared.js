@@ -1,5 +1,3 @@
-import Palette from '../components/Palette'
-import Color from 'color'
 import { DASH_STYLES } from './dashShared'
 
 export const TOUR_STYLES = {

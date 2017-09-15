@@ -11,28 +11,33 @@ const STYLES = {
 }
 
 export default class Welcome extends React.Component {
+  constructor () {
+    super()
 
-  handleFinish = () => {
+    this.handleFinish = this.handleFinish.bind(this)
+  }
+
+  handleFinish () {
     const createFile = this.checkInput.checked
 
     this.props.finish(createFile)
   }
 
-  render() {
+  render () {
     const { styles, next } = this.props
 
     return (
       <Dialog>
         <h2>Welcome to Haiku</h2>
         <p style={styles.text}>Would you like to take the guided tour?</p>
-        <form action="#">
+        <form action='#'>
           <input
-            type="checkbox"
-            name="not-show-again"
-            id="not-show-again"
+            type='checkbox'
+            name='not-show-again'
+            id='not-show-again'
             style={STYLES.input}
-            ref={input => this.checkInput = input}/>
-          <label htmlFor="not-show-again">Don't show this again.</label>
+            ref={(input) => { this.checkInput = input }} />
+          <label htmlFor='not-show-again'>Don't show this again.</label>
         </form>
         <div style={STYLES.buttons}>
           <button style={styles.btn} onClick={next}>Yes, please</button>

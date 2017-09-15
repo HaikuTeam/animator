@@ -11,7 +11,7 @@ export default function ({ styles, next }) {
           snippet. It's Just That Easy™.
         </p>
         <p>
-          Read more on <a href="https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html" style={styles.link}>our docs</a>
+          Read more on <a href='https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html' style={styles.link}>our docs</a>
           about embedding your haikus.
         </p>
       </div>

@@ -362,7 +362,7 @@ class Timeline extends React.Component {
     })
     this.state.didMount = false
 
-    this.tourClient.off("tour:requestElementCoordinates", handleRequestElementCoordinates)
+    this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
 
     // Scroll.Events.scrollEvent.remove('begin');
     // Scroll.Events.scrollEvent.remove('end');
@@ -432,8 +432,8 @@ class Timeline extends React.Component {
     // component:mounted fires when this finishes without error
     this._component.mountApplication()
 
-    this._component.on("envoy:tourClientReady", (client)=>{
-      client.on("tour:requestElementCoordinates", this.handleRequestElementCoordinates)
+    this._component.on('envoy:tourClientReady', (client) => {
+      client.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
 
       client.next()
 
