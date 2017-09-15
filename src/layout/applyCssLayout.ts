@@ -44,16 +44,24 @@ export default function applyCssLayout(
   }
 
   if (!hasExplicitStyle(domElement, "opacity")) {
-    if (computedLayout.opacity !== undefined) {
-      // A lack of an opacity setting means 100% opacity, so unset any existing
-      // value if we happen to get an opacity approaching 1.
-      if (computedLayout.opacity > 0.999) {
-        if (domElement.style.opacity) domElement.style.opacity = void 0
+    // No opacity defined means use whatever the previously defined opacity was
+    if (computedLayout.opacity === undefined) {
+      // no-op
+    } else {
+      let finalOpacity
+
+      if (computedLayout.opacity >= 0.999) {
+        finalOpacity = 1
+      } else if (computedLayout.opacity <= 0.0001) {
+        finalOpacity = 0
       } else {
-        let opacityString = "" + computedLayout.opacity
-        if (domElement.style.opacity !== opacityString) {
-          domElement.style.opacity = opacityString
-        }
+        finalOpacity = computedLayout.opacity
+      }
+
+      let opacityString = "" + finalOpacity
+
+      if (domElement.style.opacity !== opacityString) {
+        domElement.style.opacity = opacityString
       }
     }
   }
