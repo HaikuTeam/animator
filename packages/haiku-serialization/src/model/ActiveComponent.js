@@ -134,6 +134,11 @@ function ActiveComponent (options) {
       })
     }
   })
+
+  this._stageTransform = {
+    zoom: 1,
+    pan: { x: 0, y: 0 }
+  }
 }
 
 util.inherits(ActiveComponent, EventEmitter)
@@ -369,13 +374,13 @@ ActiveComponent.prototype.gitRedo = function gitRedo (options, metadata, cb) {
   return cb()
 }
 
-var _stageTransform = {zoom: 1, pan: {x: 0, y: 0}}
 ActiveComponent.prototype.setStageTransform = function setStageTransform (newTransform) {
-  _stageTransform = newTransform
+  this._stageTransform = newTransform
+  return this
 }
 
 ActiveComponent.prototype.getStageTransform = function getStageTransform () {
-  return _stageTransform
+  return this._stageTransform
 }
 
 ActiveComponent.prototype.instantiateComponent = function instantiateComponent (relpath, posdata, metadata, cb) {
@@ -391,9 +396,8 @@ ActiveComponent.prototype.instantiateComponent = function instantiateComponent (
     if (posdata.offsetY) coords.y = posdata.offsetY - bounds.top
   }
 
-  // account for stage transform
-  coords.x *= 1 / _stageTransform.zoom
-  coords.y *= 1 / _stageTransform.zoom
+  coords.x *= 1 / this._stageTransform.zoom
+  coords.y *= 1 / this._stageTransform.zoom
 
   this.fetchActiveBytecodeFile().instantiateComponent(relpath, coords, function _instantiatecb (err, mana) {
     this._clearCaches()
@@ -785,6 +789,35 @@ ActiveComponent.prototype.getMount = function getMount () {
   return this._mount
 }
 
+ActiveComponent.prototype._recalibrateReloadedComponent = function _recalibrateReloadedComponent (haikuComponentFactory, config) {
+  this._componentInstance = haikuComponentFactory(this.getMount(), lodash.assign({}, {
+    options: {
+      // Don't show the right-click context menu since our editing tools make use of right-click
+      contextMenu: 'disabled',
+      overflowX: 'visible',
+      overflowY: 'visible',
+      // Don't track events in mixpanel while the component is being built
+      mixpanel: false,
+      interactionMode: this._interactionMode
+    }
+  }, config))
+
+  // Make sure we get notified of state updates and everything else we care about
+  this._componentInstance._doesEmitEventsVerbosely = true
+
+  // Need to notify others any time we change our state so that it can be updated dynamically
+  this._componentInstance.on('state:set', function _stateSetCb (stateName, stateValue) {
+    this.websocket.send({ type: 'broadcast', name: 'state:set', params: [this.folder, stateName, stateValue] })
+  }.bind(this))
+
+  // These are used at Haiku Desktop runtime for live editing, e.g. if you change a value we need to compute
+  // the previous for interpolation, but since that might be dynamic, we need the full instance
+  this.fetchActiveBytecodeFile().set('hostInstance', this._componentInstance)
+  this.fetchActiveBytecodeFile().set('states', this._componentInstance._states)
+
+  return this
+}
+
 /**
  * @method mountApplication
  * @description Given an *optional* DOM element to mount, load the component and boostrap it inside the mount.
@@ -801,28 +834,9 @@ ActiveComponent.prototype.mountApplication = function mountApplication (mount, c
       if (err) return this.emit('error', err)
 
       try {
-        this._componentInstance = updatedHaikuComponentFactory(this.getMount(), lodash.assign({}, {
-          options: {
-            // Don't show the right-click context menu since our editing tools make use of right-click
-            contextMenu: 'disabled',
-            overflowX: 'visible',
-            overflowY: 'visible',
-            // Don't track events in mixpanel while the component is being built
-            mixpanel: false,
-            interactionMode: this._interactionMode
-          }
-        }, config))
+        this._recalibrateReloadedComponent(updatedHaikuComponentFactory, config)
 
-        // Make sure we get notified of state updates and everything else we care about
-        this._componentInstance._doesEmitEventsVerbosely = true
-        this._componentInstance.on('state:set', function _stateSetCb (stateName, stateValue) {
-          this.websocket.send({ type: 'broadcast', name: 'state:set', params: [this.folder, stateName, stateValue] })
-        }.bind(this))
-
-        // These are used at Haiku Desktop runtime for live editing, e.g. if you change a value we need to compute
-        // the previous for interpolation, but since that might be dynamic, we need the full instance
-        this.fetchActiveBytecodeFile().set('hostInstance', this._componentInstance)
-        this.fetchActiveBytecodeFile().set('states', this._componentInstance._states)
+        info(this._componentInstance)
 
         // Update the entire bytecode object pointer otherwise some updates might not touch the right properties.
         // This also clears all the caches.
@@ -879,56 +893,28 @@ ActiveComponent.prototype.moduleReplace = function moduleReplace (cb, config) {
 
       var previousComponentInstance = this._componentInstance
 
-      // We need to re-bootstrap the reloaded component inside the mount so the updated one displays.
-      this._componentInstance = updatedHaikuComponentFactory(mount, lodash.assign({}, {
-        options: {
-          // Don't show the right-click context menu since our editing tools make use of right-click
-          contextMenu: 'disabled',
-          overflowX: 'visible',
-          overflowY: 'visible',
-          // Don't track events in mixpanel while the component is being built
-          mixpanel: false,
-          interactionMode: this._interactionMode
-        }
-      }, config))
+      this._recalibrateReloadedComponent(updatedHaikuComponentFactory, config)
 
-      // Make sure we get notified of state updates and everything else we care about
-      this._componentInstance._doesEmitEventsVerbosely = true
-
-      // Need to notify others any time we change our state so that it can be updated dynamically
-      this._componentInstance.on('state:set', function _stateSetCb (stateName, stateValue) {
-        this.websocket.send({ type: 'broadcast', name: 'state:set', params: [this.folder, stateName, stateValue] })
-      }.bind(this))
-
-      // These are used at Haiku Desktop runtime for live editing, e.g. if you change a value we need to compute
-      // the previous for interpolation, but since that might be dynamic, we need the full instance
-      this.fetchActiveBytecodeFile().set('hostInstance', this._componentInstance)
-      this.fetchActiveBytecodeFile().set('states', this._componentInstance._states)
-
-      var existingComponent = previousComponentInstance
-      var existingTimelines = existingComponent._timelineInstances
-
-      var incomingComponent = this._componentInstance
-      var incomingTimelines = incomingComponent._timelineInstances
+      info(this._componentInstance)
 
       // We need to copy the in-memory timeline (NOT the data object!) over the new one so we retain
       // the same local time/time control data that had already been set by the user
-      for (var timelineName in existingTimelines) {
-        incomingTimelines[timelineName] = existingTimelines[timelineName]
+      for (var timelineName in previousComponentInstance._timelineInstances) {
+        this._componentInstance._timelineInstances[timelineName] = previousComponentInstance._timelineInstances[timelineName]
       }
 
       // Start the clock again, as we should now be ready to flow updated component.
       this._componentInstance._context.clock.start()
 
-      var incomingBytecode = incomingComponent._bytecode
-      var incomingTemplate = incomingComponent._template
-
-      existingComponent._bytecode = incomingBytecode
-      existingComponent._template = incomingTemplate
+      // Tell the previous component to stop updating so we don't munge anything on stage
+      previousComponentInstance._deactivate()
 
       // Update the entire bytecode object pointer otherwise some updates might not touch the right properties.
-      // This also clears all the caches.
-      this.rehydrateBytecode(incomingBytecode, incomingTemplate)
+      // This also clears all the caches, i.e. calls this._clearCaches()
+      this.rehydrateBytecode(this._componentInstance._bytecode, this._componentInstance._template)
+
+      // We end up with stale attributes unless we do this
+      this._forceFlush()
 
       // Give the on-stage renderer time to reflow its changes out to the DOM
       setTimeout(() => {

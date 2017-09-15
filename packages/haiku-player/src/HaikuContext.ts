@@ -219,12 +219,16 @@ HaikuContext.prototype.performFullFlushRender = function performFullFlushRender(
   }
   let container = this._renderer.createContainer(this._mount)
   let tree = this.component.render(container, this.config.options)
-  this._renderer.render(
-    this._mount,
-    container,
-    tree,
-    this.component,
-  )
+  // The component can optionally return undefined as a signal to take no action
+  // TODO: Maybe something other than undefined would be better
+  if (tree !== undefined) {
+    this._renderer.render(
+      this._mount,
+      container,
+      tree,
+      this.component,
+    )
+  }
   return this
 }
 
@@ -295,30 +299,34 @@ HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles() 
 HaikuContext.prototype.tick = function tick() {
   let flushed = false
 
-  // After we've hydrated the tree the first time, we can proceed with patches --
-  // unless the component indicates it wants a full flush per its internal settings.
-  if (this.component._shouldPerformFullFlush() || this.config.options.forceFlush || this._ticks < 1) {
-    this.performFullFlushRender()
+  // Only continue ticking and updating if our root component is still activated;
+  // this is mainly a hacky internal hook used during hot editing inside Haiku Desktop
+  if (!this.component._deactivated) {
+    // After we've hydrated the tree the first time, we can proceed with patches --
+    // unless the component indicates it wants a full flush per its internal settings.
+    if (this.component._shouldPerformFullFlush() || this.config.options.forceFlush || this._ticks < 1) {
+      this.performFullFlushRender()
 
-    flushed = true
-  } else {
-    this.performPatchRender()
+      flushed = true
+    } else {
+      this.performPatchRender()
+    }
+
+    // We update the mount root *after* we complete the render pass ^^ because configuration
+    // from the top level should unset anything that the component set.
+    // Specifically important wrt overflow, where the component probably defines
+    // overflowX/overflowY: hidden, but our configuration might define them as visible.
+    this.updateMountRootStyles()
+
+    // Do any initialization that may need to occur if we happen to be on the very first tick
+    if (this._ticks < 1) {
+      // If this is the 0th (first) tick, notify anybody listening that we've mounted
+      // If we've already flushed, _don't_ request to trigger a re-flush (second arg)
+      this.component.callRemount(null, flushed)
+    }
+
+    this._ticks++
   }
-
-  // We update the mount root *after* we complete the render pass ^^ because configuration
-  // from the top level should unset anything that the component set.
-  // Specifically important wrt overflow, where the component probably defines
-  // overflowX/overflowY: hidden, but our configuration might define them as visible.
-  this.updateMountRootStyles()
-
-  // Do any initialization that may need to occur if we happen to be on the very first tick
-  if (this._ticks < 1) {
-    // If this is the 0th (first) tick, notify anybody listening that we've mounted
-    // If we've already flushed, _don't_ request to trigger a re-flush (second arg)
-    this.component.callRemount(null, flushed)
-  }
-
-  this._ticks++
 
   return this
 }
