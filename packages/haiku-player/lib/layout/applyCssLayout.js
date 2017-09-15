@@ -28,16 +28,22 @@ function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, 
         }
     }
     if (!hasExplicitStyle(domElement, "opacity")) {
-        if (computedLayout.opacity !== undefined) {
-            if (computedLayout.opacity > 0.999) {
-                if (domElement.style.opacity)
-                    domElement.style.opacity = void 0;
+        if (computedLayout.opacity === undefined) {
+        }
+        else {
+            var finalOpacity = void 0;
+            if (computedLayout.opacity >= 0.999) {
+                finalOpacity = 1;
+            }
+            else if (computedLayout.opacity <= 0.0001) {
+                finalOpacity = 0;
             }
             else {
-                var opacityString = "" + computedLayout.opacity;
-                if (domElement.style.opacity !== opacityString) {
-                    domElement.style.opacity = opacityString;
-                }
+                finalOpacity = computedLayout.opacity;
+            }
+            var opacityString = "" + finalOpacity;
+            if (domElement.style.opacity !== opacityString) {
+                domElement.style.opacity = opacityString;
             }
         }
     }
