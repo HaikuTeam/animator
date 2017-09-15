@@ -19,8 +19,6 @@ const PLAYER_VERSION = pkg.version
  * module.exports = HaikuDOMAdapter(require('./code/main/code.js'))
  */
 
-const IS_WINDOW_DEFINED = typeof window !== "undefined"
-
 /**
  * @function HaikuDOMAdapter
  * @description Given a bytecode object, return a factory function which can create a DOM-playable component.
@@ -30,7 +28,7 @@ export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
   if (!config.options) config.options = {}
 
   if (!safeWindow) {
-    if (IS_WINDOW_DEFINED) {
+    if (typeof window !== "undefined") {
       safeWindow = window
     }
   }
@@ -52,11 +50,15 @@ export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
   )
 }
 
-// Allow multiple players of different versions to exist on the same page
-if (IS_WINDOW_DEFINED) {
-  if (!window["HaikuPlayer"]) {
-    window["HaikuPlayer"] = {}
-  }
+HaikuDOMAdapter["defineOnWindow"] = function() {
+  // Allow multiple players of different versions to exist on the same page
+  if (typeof window !== "undefined") {
+    if (!window["HaikuPlayer"]) {
+      window["HaikuPlayer"] = {}
+    }
 
-  window["HaikuPlayer"][PLAYER_VERSION] = HaikuDOMAdapter
+    window["HaikuPlayer"][PLAYER_VERSION] = HaikuDOMAdapter
+  }
 }
+
+HaikuDOMAdapter["defineOnWindow"]()

@@ -1,5 +1,3 @@
-import HaikuComponent from "./HaikuComponent"
-import HaikuContext from "./HaikuContext"
 import enhance from "./reflection/enhance"
 import inject from "./reflection/inject"
 
@@ -40,26 +38,6 @@ function buildRoot() {
      * used to 'enhance' (see above) the function, specifying the parameters it wants injected.
      */
     ROOT["haiku"]["inject"] = inject
-  }
-
-  if (!ROOT["haiku"]["context"]) {
-    /**
-     * @function context
-     * @description Factory function that creates a new HaikuContext.
-     */
-    ROOT["haiku"]["context"] = function context(mount, renderer, platform, bytecode, config) {
-      return new HaikuContext(mount, renderer, platform, bytecode, config)
-    }
-  }
-
-  if (!ROOT["haiku"]["component"]) {
-    /**
-     * @function component
-     * @description Factory function that creates a new HaikuComponent.
-     */
-    ROOT["haiku"]["component"] = function component(bytecode, context, config, metadata) {
-      return new HaikuComponent(bytecode, context, config, metadata)
-    }
   }
 
   return ROOT["haiku"]
