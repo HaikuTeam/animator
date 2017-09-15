@@ -23,12 +23,11 @@ class Tour extends React.Component {
         this.tourChannel.start()
       }
     })
-
-    this.mnt = true
   }
 
   componentWillUnmount () {
-    this.mnt = false
+    this.tourChannel.off('tour:requestShowStep', this.showStep)
+    this.tourChannel.off('tour:requestFinish', this.hide)
   }
 
   next = () => {
@@ -40,18 +39,11 @@ class Tour extends React.Component {
   }
 
   hide = () => {
-    if (this.mnt) {
-      this.setState({ component: null })
-    }
+    this.setState({ component: null })
   }
 
   showStep = (state) => {
-    // TODO: this is a bad practice, we should implement
-    // a way to unbind events from a client in Envoy, then
-    // remove this
-    if (this.mnt) {
-      this.setState(state)
-    }
+    this.setState(state)
   }
 
   render () {

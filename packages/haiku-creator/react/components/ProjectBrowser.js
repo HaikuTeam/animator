@@ -21,6 +21,7 @@ class ProjectBrowser extends React.Component {
       launchingProject: false
     }
     this.handleDocumentKeyPress = this.handleDocumentKeyPress.bind(this)
+    this.handleSelectProject = this.handleSelectProject.bind(this)
   }
 
   componentDidMount () {
@@ -28,15 +29,19 @@ class ProjectBrowser extends React.Component {
     document.addEventListener('keydown', this.handleDocumentKeyPress, true)
 
     this.props.envoy.get('tour').then((tourChannel) => {
-      tourChannel.on('tour:requestSelectProject', () => {
-        const projectIdx = this.state.projectsList.length - 2
-        this.setActiveProject(this.state.projectsList[projectIdx], projectIdx)
-      })
+      this.tourChannel = tourChannel
+      tourChannel.on('tour:requestSelectProject', this.handleSelectProject)
     })
   }
 
   componentWillUnmount () {
     document.removeEventListener('keydown', this.handleDocumentKeyPress, true)
+    this.tourChannel.off('tour:requestSelectProject', this.handleSelectProject)
+  }
+
+  handleSelectProject () {
+    const projectIdx = this.state.projectsList.length - 2
+    this.setActiveProject(this.state.projectsList[projectIdx], projectIdx)
   }
 
   handleDocumentKeyPress (evt) {

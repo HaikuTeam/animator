@@ -294,6 +294,7 @@ class Timeline extends React.Component {
     // This improves performance and avoids unnecessary updates to the over views
     this.debouncedKeyframeMoveAction = lodash.throttle(this.debouncedKeyframeMoveAction.bind(this), 250)
     this.updateState = this.updateState.bind(this)
+    this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
     window.timeline = this
   }
 
@@ -360,6 +361,8 @@ class Timeline extends React.Component {
       tuple[0].removeListener(tuple[1], tuple[2])
     })
     this.state.didMount = false
+
+    this.tourClient.off("tour:requestElementCoordinates", handleRequestElementCoordinates)
 
     // Scroll.Events.scrollEvent.remove('begin');
     // Scroll.Events.scrollEvent.remove('end');
@@ -430,19 +433,7 @@ class Timeline extends React.Component {
     this._component.mountApplication()
 
     this._component.on("envoy:tourClientReady", (client)=>{
-      client.on("tour:requestElementCoordinates", ({ selector, webview }) => {
-        if (webview !== 'timeline') { return }
-
-        try {
-          // TODO: find if there is a better solution to this scape hatch
-          let element = document.querySelector(selector)
-          let { top, left } = element.getBoundingClientRect()
-
-          client.receiveElementCoordinates('timeline', { top, left })
-        } catch (error) {
-          console.error(`Error fetching ${selector} in webview ${webview}`)
-        }
-      })
+      client.on("tour:requestElementCoordinates", this.handleRequestElementCoordinates)
 
       client.next()
 
@@ -524,6 +515,20 @@ class Timeline extends React.Component {
         this.tryToLeftAlignTickerInVisibleFrameRange(frameInfo)
       }
     })
+  }
+
+  handleRequestElementCoordinates ({ selector, webview }) {
+    if (webview !== 'timeline') { return }
+
+    try {
+      // TODO: find if there is a better solution to this scape hatch
+      let element = document.querySelector(selector)
+      let { top, left } = element.getBoundingClientRect()
+
+      this.tourClient.receiveElementCoordinates('timeline', { top, left })
+    } catch (error) {
+      console.error(`Error fetching ${selector} in webview ${webview}`)
+    }
   }
 
   handleKeyDown (nativeEvent) {

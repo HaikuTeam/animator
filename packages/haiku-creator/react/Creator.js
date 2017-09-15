@@ -47,6 +47,8 @@ export default class Creator extends React.Component {
     this.createNotice = this.createNotice.bind(this)
     this.renderNotifications = this.renderNotifications.bind(this)
     this.receiveProjectInfo = this.receiveProjectInfo.bind(this)
+    this.handleFindElementCoordinates = this.handleFindElementCoordinates.bind(this)
+    this.handleFindWebviewCoordinates = this.handleFindWebviewCoordinates.bind(this)
     this.layout = new EventEmitter()
 
     this.state = {
@@ -235,23 +237,19 @@ export default class Creator extends React.Component {
     })
 
     this.envoy.get('tour').then((tourChannel) => {
-      tourChannel.on('tour:requestElementCoordinates', ({ selector, webview }) => {
-        if (webview !== 'creator') { return }
+      this.tourChannel = tourChannel
 
-        try {
-          // TODO: find if there is a better solution to this scape hatch
-          let element = document.querySelector(selector)
-          let { top, left } = element.getBoundingClientRect()
+      tourChannel.on('tour:requestElementCoordinates', this.handleFindElementCoordinates)
 
-          tourChannel.receiveElementCoordinates('creator', { top, left })
-        } catch (error) {
-          console.error(`[creator] error fetching element in webview ${webview}`)
-        }
-      })
+      tourChannel.on('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates)
 
       ipcRenderer.on('global-menu:start-tour', () => {
         tourChannel.start(true)
       })
+
+      window.addEventListener('resize', lodash.throttle(() => {
+        tourChannel.notifyScreenResize()
+      }), 300)
     })
 
     document.addEventListener('paste', (pasteEvent) => {
@@ -318,6 +316,29 @@ export default class Creator extends React.Component {
         }, 1000)
       })
     })
+  }
+
+  componentWillUnmount () {
+    tourChannel.off('tour:requestElementCoordinates', this.handleFindElementCoordinates)
+    tourChannel.off('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates)
+  }
+
+  handleFindElementCoordinates ({ selector, webview }) {
+    if (webview !== 'creator') { return }
+
+    try {
+      // TODO: find if there is a better solution to this scape hatch
+      let element = document.querySelector(selector)
+      let { top, left } = element.getBoundingClientRect()
+
+      this.tourChannel.receiveElementCoordinates('creator', { top, left })
+    } catch (error) {
+      console.error(`[creator] error fetching ${selector} in webview ${webview}`)
+    }
+  }
+
+  handleFindWebviewCoordinates () {
+    this.tourChannel.receiveWebviewCoordinates('creator', { top: 0, left: 0 })
   }
 
   handlePaneResize () {
