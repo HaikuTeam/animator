@@ -113,9 +113,9 @@ export default class TourHandler implements Tour {
 
     private server: EnvoyServer
 
-    private webviewData: object = {
-        creator: { top: 0, left: 0 },
-    }
+    private shouldRenderAgain: boolean
+
+    private webviewData: object = {}
 
     constructor(server: EnvoyServer) {
         this.server = server
@@ -126,6 +126,14 @@ export default class TourHandler implements Tour {
             case 1:
                 this.requestSelectProject()
                 break;
+        }
+    }
+
+    private renderCurrentStepAgain() {
+        if (this.shouldRenderAgain) {
+            this.currentStep--
+            this.next()
+            this.shouldRenderAgain = false
         }
     }
 
@@ -178,6 +186,12 @@ export default class TourHandler implements Tour {
 
     receiveWebviewCoordinates(webview: string, coordinates: ClientBoundingRect) {
         this.webviewData[webview] = coordinates
+        this.renderCurrentStepAgain()
+    }
+
+    notifyScreenResize() {
+        this.shouldRenderAgain = true
+        this.requestWebviewCoordinates()
     }
 
     start(force) {
