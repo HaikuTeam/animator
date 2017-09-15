@@ -244,7 +244,12 @@ export default class Creator extends React.Component {
       tourChannel.on('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates)
 
       ipcRenderer.on('global-menu:start-tour', () => {
-        tourChannel.start(true)
+        this.setDashboardVisibility(true)
+
+        // Put it at the bottom of the event loop
+        setTimeout(() => {
+          tourChannel.start(true)
+        })
       })
 
       window.addEventListener('resize', lodash.throttle(() => {
