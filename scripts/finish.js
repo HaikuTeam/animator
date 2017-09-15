@@ -182,13 +182,16 @@ async.series([
     fse.removeSync(path.join(playerPath, 'dist'))
     fse.mkdirpSync(path.join(playerPath, 'dist'))
 
+    // Compile Typescript to Javascript just to be sure
+    cp.execSync('yarn run compile', { cwd: playerPath, stdio: 'inherit' })
+
     var playerPackageJson = require('./../packages/haiku-player/package.json')
     var reactVersion = playerPackageJson.peerDependencies.react
     cp.execSync(`yarn add react@${reactVersion}`, { cwd: playerPath, stdio: 'inherit' })
 
     log.log('browserifying player packages and adapters')
-    cp.execSync(`browserify ${JSON.stringify(path.join(playerPath, 'src', 'adapters', 'dom', 'index.js'))} --standalone HaikuDOMPlayer | derequire > ${JSON.stringify(path.join(playerPath, 'dist', 'dom.bundle.js'))}`, { stdio: 'inherit' })
-    cp.execSync(`browserify ${JSON.stringify(path.join(playerPath, 'src', 'adapters', 'react-dom', 'index.js'))} --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > ${JSON.stringify(path.join(playerPath, 'dist', 'react-dom.bundle.js'))} && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${JSON.stringify(path.join(playerPath, 'dist', 'react-dom.bundle.js'))}`, { stdio: 'inherit' })
+    cp.execSync(`browserify ${JSON.stringify(path.join(playerPath, 'lib', 'adapters', 'dom', 'index.js'))} --standalone HaikuDOMPlayer | derequire > ${JSON.stringify(path.join(playerPath, 'dist', 'dom.bundle.js'))}`, { stdio: 'inherit' })
+    cp.execSync(`browserify ${JSON.stringify(path.join(playerPath, 'lib', 'adapters', 'react-dom', 'index.js'))} --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | derequire > ${JSON.stringify(path.join(playerPath, 'dist', 'react-dom.bundle.js'))} && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${JSON.stringify(path.join(playerPath, 'dist', 'react-dom.bundle.js'))}`, { stdio: 'inherit' })
 
     log.log('creating minified bundles for the cdn')
     cp.execSync(`uglifyjs ${JSON.stringify(path.join(playerPath, 'dist', 'dom.bundle.js'))} --compress --mangle --output ${JSON.stringify(path.join(playerPath, 'dist', 'dom.bundle.min.js'))}`)
@@ -268,10 +271,6 @@ async.series([
     try {
       cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
       cp.execSync('git commit -m ' + JSON.stringify(inputs.finalUberCommitMessage), { cwd: ROOT, stdio: 'inherit' })
-
-      // QUESTION: It seems like we probably want to use these strategies but I'm not sure...
-      cp.execSync('git pull -s recursive -X ours ' + inputs.remote + ' ' + inputs.branch, { cwd: ROOT, stdio: 'inherit' })
-
       cp.execSync('git push ' + inputs.remote + ' HEAD:' + inputs.branch, { cwd: ROOT, stdio: 'inherit' })
       return cb()
     } catch (exception) {
