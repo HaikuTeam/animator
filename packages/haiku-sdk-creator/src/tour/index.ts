@@ -1,6 +1,7 @@
 export interface Tour {
     next(): MaybeAsync<void>
     start(options?: object): MaybeAsync<void>
+    notifyScreenResize(): MaybeAsync<void>
     receiveElementCoordinates(webview: string, position: ClientBoundingRect): MaybeAsync<void>
     receiveWebviewCoordinates(webview: string, coordinates: ClientBoundingRect): MaybeAsync<void>
 }
