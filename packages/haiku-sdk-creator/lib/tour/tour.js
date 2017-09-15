@@ -75,7 +75,7 @@ class TourHandler {
                 webview: "creator",
                 component: "StatesStart",
                 display: "right",
-                offset: { top: 0, left: 50 },
+                offset: { top: 80, left: 50 },
                 spotlightRadius: "default",
             },
             {

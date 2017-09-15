@@ -92,7 +92,7 @@ export default function ({ coordinates, offset, spotlightRadius, display, childr
   let spotlightExtraStyles = {}
 
   if (display !== 'none') {
-    circleDisplay = 'inline-block'
+    // circleDisplay = 'inline-block'
   } else {
     spotlightExtraStyles.transform = 'translateX(-25%)'
   }
