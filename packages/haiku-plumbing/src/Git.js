@@ -534,9 +534,15 @@ export function commitProject (folder, username, useHeadAsParent, saveOptions = 
   logger.info(`[git] adding paths to index in folder ${folder}`)
 
   // Depending on the 'pathsToAdd' given, either add specific paths to the index, or commit them all
+  // Supported paths:
+  // '.'
+  // 'foo/bar'
+  // ['foo/bar', 'baz/qux', ...]
   function pathAdder (done) {
     if (pathsToAdd === '.') {
       return addAllPathsToIndex(folder, done)
+    } else if (typeof pathsToAdd === 'string') {
+      return addPathsToIndex(folder, [pathsToAdd], done)
     } else if (Array.isArray(pathsToAdd) && pathsToAdd.length > 0) {
       return addPathsToIndex(folder, pathsToAdd, done)
     } else {

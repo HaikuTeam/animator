@@ -18,7 +18,9 @@ const MAX_SEMVER_TAG_ATTEMPTS = 100
 const AWAIT_COMMIT_INTERVAL = 64
 const MAX_CLONE_ATTEMPTS = 5
 const CLONE_RETRY_DELAY = 10000
-const DEFAULT_BRANCH_NAME = 'master'
+const DEFAULT_BRANCH_NAME = 'master' // "'master' process" has nothing to do with this :/
+const BASELINE_SEMVER_TAG = '0.0.0'
+const COMMIT_SUFFIX = '(via Haiku Desktop)'
 
 function _checkIsOnline (cb) {
   return checkIsOnline().then((answer) => {
@@ -128,7 +130,7 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   fetchFolderState (who, projectOptions, cb) {
-    logger.info(`[master] fetching folder state (${who})`)
+    logger.info(`[master-git] fetching folder state (${who})`)
 
     let previousState = lodash.clone(this._folderState)
 
@@ -304,11 +306,7 @@ export default class MasterGitProject extends EventEmitter {
    */
 
   makeCommit (cb) {
-    return Git.commitProject(this.folder, this._folderState.haikuUsername, this._folderState.hasHeadCommit, this._folderState.saveOptions, '.', (err, commitId) => {
-      if (err) return cb(err)
-      this._folderState.commitId = commitId
-      return cb()
-    })
+    return this.commitProject('.', 'Project changes', cb)
   }
 
   bumpSemverAppropriately (cb) {
@@ -327,7 +325,8 @@ export default class MasterGitProject extends EventEmitter {
       // 1. Figure out which is the largest semver tag among
       //    - git tags
       //    - the max version
-      let maxTag = '0.0.0'
+      let maxTag = BASELINE_SEMVER_TAG
+
       cleanTags.forEach((cleanTag) => {
         if (semver.gt(cleanTag, maxTag)) {
           maxTag = cleanTag
@@ -678,7 +677,7 @@ export default class MasterGitProject extends EventEmitter {
     // Currently the _getFolderState method just checks to see if there are git statuses,
     // but that might not be correct (although it seemed to be when I initially checked).
     if (this._folderState.doesGitHaveChanges) {
-      logger.info('[master] looks like git has changes; must do full save')
+      logger.info('[master-git] looks like git has changes; must do full save')
       return cb(null, false) // falsy == you gotta save
     }
 
@@ -785,7 +784,7 @@ export default class MasterGitProject extends EventEmitter {
 
     return Git.hardResetFromSHA(this.folder, redoable.commitId.toString(), (err) => {
       if (err) {
-        logger.info(`[master] git redo failed`)
+        logger.info(`[master-git] git redo failed`)
         this._gitRedoables.push(redoable) // If error, put the 'undone' thing back on the stack since we didn't succeed
         return done(err)
       }
@@ -796,57 +795,65 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
-  startupSnapshot (cb) {
+  snapshotCommitProject (message, cb) {
     return this.safeGitStatus({ log: true }, (gitStatuses) => {
       const doesGitHaveChanges = !!(gitStatuses && gitStatuses.length > 0)
       if (doesGitHaveChanges) { // Don't add garbage/empty commits if nothing changed
-        return this.safeHasAnyHeadCommitForCurrentBranch((hasHeadCommit) => {
-          return Git.commitProject(this.folder, null, hasHeadCommit, { commitMessage: 'Project setup (via Haiku Desktop)' }, '.', cb)
-        })
+        return this.commitProject('.', message, cb)
       }
       return cb()
     })
   }
 
-  setUndoBaselineIfHeadCommitExists () {
-    // We need a base commit to act as the commit to return to if the user has done 'undo' to the limit of the stack
-    if (this._folderState.headCommitId) {
-      if (this._gitUndoables.length < 1) {
-        logger.info(`[master-git] base commit for session is ${this._folderState.headCommitId.toString()}`)
-        this._gitUndoables.push({ commitId: this._folderState.headCommitId, isBase: true })
+  setUndoBaselineIfHeadCommitExists (cb) {
+    return this.fetchFolderState('undo-baseline', {}, () => {
+      // We need a base commit to act as the commit to return to if the user has done 'undo' to the limit of the stack
+      if (this._folderState.headCommitId) {
+        if (this._gitUndoables.length < 1) {
+          logger.info(`[master-git] base commit for session is ${this._folderState.headCommitId.toString()}`)
+          this._gitUndoables.push({
+            commitId: this._folderState.headCommitId,
+            message: 'Base commit for session',
+            isBase: true
+          })
+        }
       }
-    }
+      return cb()
+    })
   }
 
-  commitProject (relpath, message, cb) {
+  commitProject (addable, message, cb) {
     const commitOptions = {}
-    commitOptions.commitMessage = `${message} (via Haiku Desktop)`
 
-    return Git.commitProject(this.folder, this._folderState.haikuUsername, this._folderState.hasHeadCommit, commitOptions, [relpath], (err, commitId) => {
-      if (err) return cb()
+    commitOptions.commitMessage = `${message} ${COMMIT_SUFFIX}`
 
-      this._folderState.commitId = commitId
+    return this.fetchFolderState('commit-project', {}, () => {
+      return Git.commitProject(this.folder, this._folderState.haikuUsername, this._folderState.hasHeadCommit, commitOptions, addable, (err, commitId) => {
+        if (err) return cb()
 
-      // HACK: If for some reason we never got a 'base' undoable before this point, set this cmomit as
-      // the new base so that there are always commits from a base commit going forward
-      let isBase = false
+        this._folderState.commitId = commitId
 
-      const baseUndoable = this._gitUndoables.filter((undoable) => {
-        return undoable && undoable.isBase
-      })[0]
+        // HACK: If for some reason we never got a 'base' undoable before this point, set this cmomit as
+        // the new base so that there are always commits from a base commit going forward
+        let isBase = false
 
-      if (!baseUndoable) {
-        isBase = true
-      }
+        const baseUndoable = this._gitUndoables.filter((undoable) => {
+          return undoable && undoable.isBase
+        })[0]
 
-      logger.info(`[master] making commit ${commitId.toString()} undoable (as base: ${isBase})`)
+        if (!baseUndoable) {
+          isBase = true
+        }
 
-      // For now, pretty much any commit we capture in this session is considered an undoable. We may want to
-      // circle back and restrict it to only certain types of commits, but that does end up making the undo/redo
-      // stack logic a bit more complicated.
-      this._gitUndoables.push({ commitId, isBase })
+        logger.info(`[master-git] making commit ${commitId.toString()} undoable (as base: ${isBase})`)
 
-      return cb()
+        // For now, pretty much any commit we capture in this session is considered an undoable. We may want to
+        // circle back and restrict it to only certain types of commits, but that does end up making the undo/redo
+        // stack logic a bit more complicated.
+        this._gitUndoables.push({ commitId, isBase, message })
+
+        return cb(null, commitId)
+      })
     })
   }
 
@@ -858,7 +865,7 @@ export default class MasterGitProject extends EventEmitter {
       (cb) => {
         return this.fetchFolderState('initialize-folder', initOptions, (err) => {
           if (err) return cb(err)
-          logger.info('[master] folder initialization status:', this._folderState)
+          logger.info('[master-git] folder initialization status:', this._folderState)
           return cb()
         })
       },
@@ -891,7 +898,7 @@ export default class MasterGitProject extends EventEmitter {
           }
         }
 
-        logger.info('[master] action sequence:', actionSequence.map((name) => name))
+        logger.info('[master-git] action sequence:', actionSequence.map((name) => name))
 
         return this.runActionSequence(actionSequence, initOptions, (err) => {
           if (err) return cb(err)
@@ -926,13 +933,13 @@ export default class MasterGitProject extends EventEmitter {
           if (err) return cb(err)
           this._folderState.semverVersion = saveAccumulator.semverVersion
           this._folderState.saveOptions = saveOptions
-          logger.info('[master] pre-save status:', this._folderState)
+          logger.info('[master-git] pre-save status:', this._folderState)
           return cb()
         })
       },
 
       (cb) => {
-        logger.info('[master] project save: preparing action sequence')
+        logger.info('[master-git] project save: preparing action sequence')
 
         const {
           isGitInitialized,
@@ -981,7 +988,7 @@ export default class MasterGitProject extends EventEmitter {
           }
         }
 
-        logger.info('[master] project save: action sequence:', actionSequence.map((name) => name))
+        logger.info('[master-git] project save: action sequence:', actionSequence.map((name) => name))
 
         return this.runActionSequence(actionSequence, saveOptions, (err) => {
           if (err) return cb(err)
@@ -990,7 +997,7 @@ export default class MasterGitProject extends EventEmitter {
       },
 
       (cb) => {
-        logger.info('[master] project save: completed initial sequence')
+        logger.info('[master-git] project save: completed initial sequence')
 
         // If we have conflicts, we can't proceed to the share step, so return early.
         // Conflicts aren't returned as an error because the frontend expects them as part of the response payload.
@@ -1000,7 +1007,7 @@ export default class MasterGitProject extends EventEmitter {
           return cb(null, { conflicts: [1] })
         }
 
-        logger.info('[master] project save: fetching current share info')
+        logger.info('[master-git] project save: fetching current share info')
 
         // TODO: it may make sense to separate the "get the share link"
         // flow from the "save" flow

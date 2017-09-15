@@ -9,9 +9,7 @@ tape('master.01.startProject', (t) => {
   TestHelpers.setup(function(folder, creator, glass, timeline, metadata, teardown) {
     var master = new Master(folder)
     async.series([
-      function (cb) {
-        return master.initializeFolder({ params: ['boobar', 'matthew+matthew@haiku.ai', 'supersecure', {}] }, cb)
-      },
+      function (cb) { return master.initializeFolder({ params: ['boobar', 'matthew+matthew@haiku.ai', 'supersecure', {}] }, cb) },
       function (cb) {
         return master.startProject({}, cb)
       }

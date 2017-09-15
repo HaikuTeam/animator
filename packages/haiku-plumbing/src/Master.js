@@ -201,8 +201,6 @@ export default class Master extends EventEmitter {
         return void (0)
       }
 
-      logger.info('[master] file change detected:', relpath)
-
       if (this.proc.isOpen()) {
         this.proc.socket.send({ type: 'broadcast', name: 'file:change', folder: this.folder, relpath, abspath })
       }
@@ -248,8 +246,6 @@ export default class Master extends EventEmitter {
         return void (0)
       }
 
-      logger.info('[master] file addition detected:', relpath)
-
       if (this.proc.isOpen()) {
         this.proc.socket.send({ type: 'broadcast', name: 'file:add', folder: this.folder, relpath, abspath })
       }
@@ -287,8 +283,6 @@ export default class Master extends EventEmitter {
       if (!_isFileSignificant(relpath)) {
         return void (0)
       }
-
-      logger.info('[master] file removal detected:', relpath)
 
       if (this.proc.isOpen()) {
         this.proc.socket.send({ type: 'broadcast', name: 'file:remove', folder: this.folder, relpath, abspath })
@@ -636,6 +630,50 @@ export default class Master extends EventEmitter {
    */
 
   /**
+   * @method initializeFolder
+   */
+  initializeFolder ({ params: [projectName, haikuUsername, haikuPassword, projectOptions] }, done) {
+    // We need to clear off undos in the case that somebody made an fs-based commit between sessions;
+    // if we tried to reset to a previous "known" undoable, we'd miss the missing intermediate one.
+    // This has to happen in initializeFolder because it's here that we set the 'isBase' undoable.
+    this._git.restart({
+      projectName,
+      haikuUsername,
+      haikuPassword,
+      branchName: DEFAULT_BRANCH_NAME
+    })
+
+    // Note: 'ensureProjectFolder' and/or 'buildProjectContent' should already have ran by this point.
+    return async.series([
+      (cb) => {
+        return this._git.initializeProject(projectOptions, cb)
+      },
+
+      // Now that we've (maybe) cloned content, we need to create any other necessary files that _might not_ yet
+      // exist in the folder. You may note that we run this method _before_ this process, and ask yourself: why twice?
+      // Well, don't be fooled. Both methods are necessary due to the way git pulling is handled: if a project has
+      // never had remote content pulled, but has changes, we move those changes away them copy them back in on top of
+      // the cloned content. Which means we have to be sparing with what we create on the first run, but also need
+      // to create any missing remainders on the second run.
+      (cb) => {
+        return ProjectFolder.buildProjectContent(null, this.folder, projectName, 'haiku', {
+          organizationName: projectOptions.organizationName, // Important: Must set this here or the package.name will be wrong
+          skipContentCreation: false,
+          skipCDNBundles: true
+        }, cb)
+      },
+
+      // Make sure we are starting with a good git history
+      (cb) => {
+        return this._git.setUndoBaselineIfHeadCommitExists(cb)
+      }
+    ], (err, results) => {
+      if (err) return done(err)
+      return done(null, results[results.length - 1])
+    })
+  }
+
+  /**
    * @method startProject
    */
   startProject (message, done) {
@@ -695,7 +733,7 @@ export default class Master extends EventEmitter {
 
       // Take an initial commit of the starting state so we have a baseline
       (cb) => {
-        return this._git.startupSnapshot(cb)
+        return this._git.snapshotCommitProject('Project setup', cb)
       },
 
       // Load all relevant files into memory (only JavaScript files for now)
@@ -704,6 +742,23 @@ export default class Master extends EventEmitter {
         return this._component.FileModel.ingestFromFolder(this.folder, {
           exclude: _excludeIfNotJs
         }, cb)
+      },
+
+      // Do any setup necessary on the in-memory bytecode object
+      (cb) => {
+        const file = this._component.fetchActiveBytecodeFile()
+        if (file) {
+          logger.info(`[master] start project: initializing bytecode`)
+          file.set('substructInitialized', file.reinitializeSubstruct(this._config.get('config'), 'Master.startProject'))
+          return file.performComponentWork((bytecode, mana, wrapup) => wrapup(), cb)
+        } else {
+          return cb()
+        }
+      },
+
+      // Take an initial commit of the starting state so we have a baseline
+      (cb) => {
+        return this._git.snapshotCommitProject('Code setup', cb)
       },
 
       // Start watching the file system for changes
@@ -723,16 +778,9 @@ export default class Master extends EventEmitter {
         }
       },
 
-      // Do any setup necessary on the in-memory bytecode object
+      // Make sure we are starting with a good git history
       (cb) => {
-        const file = this._component.fetchActiveBytecodeFile()
-        if (file) {
-          logger.info(`[master] start project: initializing bytecode`)
-          file.set('substructInitialized', file.reinitializeSubstruct(this._config.get('config'), 'Master.startProject'))
-          return file.performComponentWork((bytecode, mana, wrapup) => wrapup(), cb)
-        } else {
-          return cb()
-        }
+        return this._git.setUndoBaselineIfHeadCommitExists(cb)
       },
 
       // Finish up and signal that we are ready
@@ -740,51 +788,6 @@ export default class Master extends EventEmitter {
         this._isReadyToReceiveMethods = true
         logger.info(`[master] start project: ready`)
         return cb(null, response)
-      }
-    ], (err, results) => {
-      if (err) return done(err)
-      return done(null, results[results.length - 1])
-    })
-  }
-
-  /**
-   * @method initializeFolder
-   */
-  initializeFolder ({ params: [projectName, haikuUsername, haikuPassword, projectOptions] }, done) {
-    // We need to clear off undos in the case that somebody made an fs-based commit between sessions;
-    // if we tried to reset to a previous "known" undoable, we'd miss the missing intermediate one.
-    // This has to happen in initializeFolder because it's here that we set the 'isBase' undoable.
-    this._git.restart({
-      projectName,
-      haikuUsername,
-      haikuPassword,
-      branchName: DEFAULT_BRANCH_NAME
-    })
-
-    // Note: 'ensureProjectFolder' and/or 'buildProjectContent' should already have ran by this point.
-    return async.series([
-      (cb) => {
-        return this._git.initializeProject(projectOptions, cb)
-      },
-
-      // Now that we've (maybe) cloned content, we need to create any other necessary files that _might not_ yet
-      // exist in the folder. You may note that we run this method _before_ this process, and ask yourself: why twice?
-      // Well, don't be fooled. Both methods are necessary due to the way git pulling is handled: if a project has
-      // never had remote content pulled, but has changes, we move those changes away them copy them back in on top of
-      // the cloned content. Which means we have to be sparing with what we create on the first run, but also need
-      // to create any missing remainders on the second run.
-      (cb) => {
-        return ProjectFolder.buildProjectContent(null, this.folder, projectName, 'haiku', {
-          organizationName: projectOptions.organizationName, // Important: Must set this here or the package.name will be wrong
-          skipContentCreation: false,
-          skipCDNBundles: true
-        }, cb)
-      },
-
-      // Make sure we are starting with a good git history
-      (cb) => {
-        this._git.setUndoBaselineIfHeadCommitExists()
-        return cb()
       }
     ], (err, results) => {
       if (err) return done(err)
