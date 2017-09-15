@@ -1,7 +1,7 @@
 import React from 'react'
 import Dialog from '../../Dialog'
 
-export default function ({ styles, next }) {
+export default function ({ styles }) {
   return (
     <Dialog>
       <h2>States</h2>
@@ -11,10 +11,10 @@ export default function ({ styles, next }) {
           you don't lose your ability to continue designing.
         </p>
         <p>
-          Let's move ahead and toggle to the State Inspector.
+          Let's move ahead and toggle to the State Inspector, click on the icon
+          to switch.
         </p>
       </div>
-      <button style={styles.btn} onClick={next}>Next</button>
     </Dialog>
   )
 }

@@ -10,7 +10,6 @@ export default function ({ styles, next }) {
           Add a new state. Give it a name and a value.
         </p>
       </div>
-      <button style={styles.btn} onClick={next}>Next</button>
     </Dialog>
   )
 }

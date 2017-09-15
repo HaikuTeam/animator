@@ -185,7 +185,8 @@ class LibraryDrawer extends React.Component {
                   onDragEnd={this.props.onDragEnd}
                   onDragStart={this.props.onDragStart}
                   websocket={this.props.websocket}
-                  instantiate={this.handleAssetInstantiation.bind(this, file)} />
+                  instantiate={this.handleAssetInstantiation.bind(this, file)}
+                  tourChannel={this.props.tourChannel} />
               }
             </div>
           )

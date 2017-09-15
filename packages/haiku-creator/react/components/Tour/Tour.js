@@ -56,11 +56,11 @@ class Tour extends React.Component {
       return null
     }
 
-    const { display, coordinates, component } = this.state
+    const { display, coordinates, offset, component, spotlightRadius } = this.state
     const Step = steps[component]
 
     return (
-      <Tooltip coordinates={coordinates} display={display}>
+      <Tooltip coordinates={coordinates} offset={offset} display={display} spotlightRadius={spotlightRadius}>
         <Step styles={TOUR_STYLES} next={this.next} finish={this.finish} />
       </Tooltip>
     )

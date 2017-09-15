@@ -4,6 +4,12 @@ import Dialog from '../../Dialog'
 export default function ({ styles, next }) {
   return (
     <Dialog>
+      <video alt='make-tween GIF' height='220' width='460' autoPlay='' loop='' muted='' playsInline='' preload='true' poster='https://thumbs.gfycat.com/MedicalAppropriateIrukandjijellyfish-small.gif'>
+        <source src='https://giant.gfycat.com/MedicalAppropriateIrukandjijellyfish.webm' type='video/webm' />
+        <source src='https://thumbs.gfycat.com/MedicalAppropriateIrukandjijellyfish-mobile.mp4' type='video/mp4' />
+        <source src='https://giant.gfycat.com/MedicalAppropriateIrukandjijellyfish.mp4' type='video/mp4' />
+        <img src='https://thumbs.gfycat.com/MedicalAppropriateIrukandjijellyfish-small.gif' alt='make-tween GIF' height='220' width='460' />
+      </video>
       <h2>Tweens</h2>
       <p style={styles.text}>
       You may notice now as you scrub your timeline, the element just jumps

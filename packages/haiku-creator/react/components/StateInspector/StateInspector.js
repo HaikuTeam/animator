@@ -101,6 +101,8 @@ class StateInspector extends React.Component {
         return maybeCb()
       }
     })
+
+    this.props.tourChannel.next()
   }
 
   deleteStateValue (stateName, maybeCb) {

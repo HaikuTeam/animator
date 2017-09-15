@@ -11,7 +11,6 @@ export default function ({ styles, next }) {
           button.
         </p>
       </div>
-      <button style={styles.btn} onClick={next}>Next</button>
     </Dialog>
   )
 }

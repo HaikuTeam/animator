@@ -370,6 +370,10 @@ export default class Creator extends React.Component {
 
   switchActiveNav (activeNav) {
     this.setState({activeNav})
+
+    if (activeNav === 'state_inspector') {
+      this.tourChannel.next()
+    }
   }
 
   authenticateUser (username, password, cb) {
@@ -637,6 +641,7 @@ export default class Creator extends React.Component {
                         folder={this.state.projectFolder}
                         haiku={this.props.haiku}
                         websocket={this.props.websocket}
+                        tourChannel={this.tourChannel}
                         onDragEnd={this.onLibraryDragEnd.bind(this)}
                         onDragStart={this.onLibraryDragStart.bind(this)}
                         createNotice={this.createNotice}
@@ -645,7 +650,8 @@ export default class Creator extends React.Component {
                         createNotice={this.createNotice}
                         removeNotice={this.removeNotice}
                         folder={this.state.projectFolder}
-                        websocket={this.props.websocket} />
+                        websocket={this.props.websocket}
+                        tourChannel={this.tourChannel} />
                       }
                   </SideBar>
                   <div style={{position: 'relative', width: '100%', height: '100%'}}>
