@@ -266,7 +266,7 @@ ActiveComponent.prototype._setTimelineTimeValue = function _setTimelineTimeValue
       if (timeline.isActive()) {
         if (forceSeek) {
           // Note that under the hood, Timeline calls controlTime
-          timeline.seek(seekMs)
+          timeline.seek(timelineTime)
         } else {
           timeline._controlTime(timelineTime, time)
         }
