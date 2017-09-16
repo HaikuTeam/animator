@@ -140,17 +140,7 @@ export class Glass extends React.Component {
       // which means the user will have trouble moving things on stage at those times.
       seekMs = Math.round(seekMs)
 
-      this._component._setTimelineTimeValue(seekMs)
-
-      var currentTimeline = this._component._componentInstance.getTimeline(this._component._currentTimelineName)
-      if (currentTimeline) {
-        if (forceSeek) {
-          // Note that under the hood, Timeline calls controlTime
-          currentTimeline.seek(seekMs)
-        } else {
-          currentTimeline._controlTime(seekMs)
-        }
-      }
+      this._component._setTimelineTimeValue(seekMs, forceSeek)
     }
 
     if (this.refs.overlay) {

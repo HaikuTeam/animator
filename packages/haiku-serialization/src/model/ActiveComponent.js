@@ -249,7 +249,7 @@ ActiveComponent.prototype._forceFlush = function _forceFlush () {
   }
 }
 
-ActiveComponent.prototype._setTimelineTimeValue = function _setTimelineTimeValue (timelineTime) {
+ActiveComponent.prototype._setTimelineTimeValue = function _setTimelineTimeValue (timelineTime, forceSeek) {
   timelineTime = Math.round(timelineTime)
 
   this._currentTimelineTime = timelineTime
@@ -264,7 +264,12 @@ ActiveComponent.prototype._setTimelineTimeValue = function _setTimelineTimeValue
       var timeline = timelines[this._currentTimelineName]
 
       if (timeline.isActive()) {
-        timeline._controlTime(timelineTime, time)
+        if (forceSeek) {
+          // Note that under the hood, Timeline calls controlTime
+          timeline.seek(seekMs)
+        } else {
+          timeline._controlTime(timelineTime, time)
+        }
       }
     }
   }
