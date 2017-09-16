@@ -39,6 +39,10 @@ Assuming you've done the initial setup, you can start all the dev servers with:
 
     $ yarn start
 
+You can also skip the interactive prompt and start with good defaults with:
+
+    $ yarn go
+
 #### Finishing
 
 First lint all of the code:

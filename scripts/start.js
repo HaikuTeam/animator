@@ -18,7 +18,7 @@ process.env.NODE_ENV = 'development'
  */
 
 var DEFAULTS = {
-  dev: '1',
+  dev: true,
   mockEnvoy: '1',
   folderChoice: 'blank',
   devChoice: 'everything',
@@ -58,99 +58,136 @@ var FOLDER_CHOICES = {
   'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex')
 }
 
-async.series([
-  function (cb) {
-    inquirer.prompt([
-      {
-        type: 'list',
-        name: 'devChoice',
-        message: 'What do you want to develop?',
-        choices: [
-          { name: 'the whole enchilada', value: 'everything' },
-          { name: 'just glass', value: 'glass' },
-          { name: 'just timeline', value: 'timeline' },
-          { name: 'just the player', value: 'player' }
-        ],
-        default: inputs.devChoice
-      },
-      {
-        when: (answers) => {
-          return answers.devChoice !== 'player'
-        },
-        type: 'list',
-        name: 'folderChoice',
-        message: 'Project folder (if developing "the whole enchilada", you can select "none" to use the dashboard)',
-        choices: [
-          { name: 'none', value: 'none' },
-          { name: 'a fresh blank project', value: 'blank' },
-          { name: 'the previous "blank" project including content', value: 'blank-noclean' },
-          { name: 'primitives (glass)', value: 'primitives-glass' },
-          { name: 'simple (glass)', value: 'simple-gl' },
-          { name: 'SuperComplex (glass)', value: 'SuperComplex-glass' },
-          { name: 'complex (timeline)', value: 'complex-timeline' },
-          { name: 'SuperComplex (timeline)', value: 'SuperComplex-timeline' }
-        ],
-        default: inputs.folderChoice
-      },
-      {
-        type: 'confirm',
-        name: 'doDevelopCLI',
-        message: 'Do you need to develop the CLI too?',
-        default: inputs.doDevelopCLI
-      },
-      {
-        type: 'confirm',
-        name: 'doDevelopSDKClient',
-        message: 'Do you need to develop the SDK client too?',
-        default: inputs.doDevelopSDKClient
-      },
-      {
-        type: 'confirm',
-        name: 'doDevelopSDKInkstone',
-        message: 'Do you need to develop the Inkstone SDK too?',
-        default: inputs.doDevelopSDKInkstone
-      },
-      {
-        type: 'confirm',
-        name: 'doDevelopSDKCreator',
-        message: 'Do you need to develop Envoy/Creator SDK too?',
-        default: inputs.doDevelopSDKCreator
-      }
-    ]).then(function (answers) {
-      lodash.assign(inputs, answers)
-      return cb()
-    })
-  },
+// $ yarn start -- --default
+if (argv.default === true) {
+  argv.preset = 'default'
+}
 
-  function (cb) {
-    log.log(`inputs were: ${JSON.stringify(inputs, null, 2)}`)
-    inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'doProceed',
-        message: 'ok to proceed with "start"?',
-        default: true
-      }
-    ]).then(function (answers) {
-      if (answers.doProceed) {
-        log.log('ok, proceeding...')
+// $ yarn start -- --preset=default
+// vs
+// $ yarn start # interactive
+if (argv.preset) {
+  if (argv.preset === true) argv.preset = 'default'
+  log.hat('running automatically with preset ' + argv.preset)
+  runAutomatic(argv.preset)
+} else {
+  log.hat('running interactively')
+  runInteractive()
+}
+
+function runInteractive () {
+  async.series([
+    function (cb) {
+      inquirer.prompt([
+        {
+          type: 'list',
+          name: 'devChoice',
+          message: 'What do you want to develop?',
+          choices: [
+            { name: 'the whole enchilada', value: 'everything' },
+            { name: 'just glass', value: 'glass' },
+            { name: 'just timeline', value: 'timeline' },
+            { name: 'just the player', value: 'player' }
+          ],
+          default: inputs.devChoice
+        },
+        {
+          when: (answers) => {
+            return answers.devChoice !== 'player'
+          },
+          type: 'list',
+          name: 'folderChoice',
+          message: 'Project folder (if developing "the whole enchilada", you can select "none" to use the dashboard)',
+          choices: [
+            { name: 'none', value: 'none' },
+            { name: 'a fresh blank project', value: 'blank' },
+            { name: 'the previous "blank" project including content', value: 'blank-noclean' },
+            { name: 'primitives (glass)', value: 'primitives-glass' },
+            { name: 'simple (glass)', value: 'simple-gl' },
+            { name: 'SuperComplex (glass)', value: 'SuperComplex-glass' },
+            { name: 'complex (timeline)', value: 'complex-timeline' },
+            { name: 'SuperComplex (timeline)', value: 'SuperComplex-timeline' }
+          ],
+          default: inputs.folderChoice
+        },
+        {
+          type: 'confirm',
+          name: 'doDevelopCLI',
+          message: 'Do you need to develop the CLI too?',
+          default: inputs.doDevelopCLI
+        },
+        {
+          type: 'confirm',
+          name: 'doDevelopSDKClient',
+          message: 'Do you need to develop the SDK client too?',
+          default: inputs.doDevelopSDKClient
+        },
+        {
+          type: 'confirm',
+          name: 'doDevelopSDKInkstone',
+          message: 'Do you need to develop the Inkstone SDK too?',
+          default: inputs.doDevelopSDKInkstone
+        },
+        {
+          type: 'confirm',
+          name: 'doDevelopSDKCreator',
+          message: 'Do you need to develop Envoy/Creator SDK too?',
+          default: inputs.doDevelopSDKCreator
+        },
+        {
+          type: 'confirm',
+          name: 'dev',
+          message: 'Automatically open Chrome Dev Tools?',
+          default: inputs.dev
+        }
+      ]).then(function (answers) {
+        lodash.assign(inputs, answers)
         return cb()
-      } else {
-        log.log('bailed')
-        process.exit()
-      }
-    })
+      })
+    },
+
+    function (cb) {
+      log.log(`inputs were: ${JSON.stringify(inputs, null, 2)}`)
+      inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'doProceed',
+          message: 'ok to proceed with "start"?',
+          default: true
+        }
+      ]).then(function (answers) {
+        if (answers.doProceed) {
+          log.log('ok, proceeding...')
+          return cb()
+        } else {
+          log.log('bailed')
+          process.exit()
+        }
+      })
+    }
+  ], function (err) {
+    if (err) throw err
+    runAutomatic()
+  })
+}
+
+function runAutomatic (preset) {
+  if (preset) {
+    switch (preset) {
+      case 'default':
+        inputs.dev = false
+        break
+    }
   }
-], function (err) {
-  if (err) throw err
+
   setup()
   go()
-})
+}
 
 function setup () {
   log.hat(`preparing to develop locally`, 'cyan')
 
-  process.env.DEV = inputs.dev
+  process.env.DEV = (inputs.dev) ? '1' : undefined
   process.env.NODE_ENV = inputs.nodeEnv
   process.env.HAIKU_SKIP_AUTOUPDATE = inputs.skipAutoUpdate
   process.env.HAIKU_PLUMBING_PORT = inputs.plumbingPort

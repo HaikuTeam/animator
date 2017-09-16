@@ -13,6 +13,7 @@
     "electron": "1.7.0"
   },
   "scripts": {
+    "go": "yarn start -- --default",
     "setup": "node ./scripts/setup.js",
     "start": "node ./scripts/start.js",
     "finish": "node ./scripts/finish.js",
