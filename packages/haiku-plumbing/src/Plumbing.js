@@ -141,7 +141,7 @@ export default class Plumbing extends StateObject {
       }
 
       logger.warn(`[plumbing] restarting client ${alias} in ${folder}`)
-      return this.awaitFolderClientWithQuery(folder, { alias }, WAIT_DELAY, (err) => {
+      return this.awaitFolderClientWithQuery(folder, 'startProject', { alias }, WAIT_DELAY, (err) => {
         if (err) throw new Error(`Unable to restart client ${alias} in ${folder}`)
         if (alias === 'master') {
           return this.startProject(null/* projectName is ignored */, folder, (err) => {
@@ -323,12 +323,16 @@ export default class Plumbing extends StateObject {
     }))
   }
 
-  awaitFolderClientWithQuery (folder, query, timeout, cb) {
+  awaitFolderClientWithQuery (folder, method, query, timeout, cb) {
     if (!folder) return cb(new Error('Folder argument was missing'))
     if (!query) return cb(new Error('Query argument was missing'))
     if (timeout <= 0) {
       return cb(new Error(`Timed out waiting for client ${JSON.stringify(query)} of ${folder} to connect`))
     }
+
+    // uncomment me for insight into why a request might not be making it
+    // console.log('awaiting', method, query)
+
     // HACK: At the time of this writing, there is only "one" creator client, not one per folder.
     // So the method just get ssent to the one client (if available)
     if (query.alias === 'creator') {
@@ -346,12 +350,12 @@ export default class Plumbing extends StateObject {
       }
     }
     return setTimeout(() => {
-      return this.awaitFolderClientWithQuery(folder, query, timeout - AWAIT_INTERVAL, cb)
+      return this.awaitFolderClientWithQuery(folder, method, query, timeout - AWAIT_INTERVAL, cb)
     }, AWAIT_INTERVAL)
   }
 
   sendFolderSpecificClientMethodQuery (folder, query = {}, method, params = [], cb) {
-    return this.awaitFolderClientWithQuery(folder, query, WAIT_DELAY, (err, client) => {
+    return this.awaitFolderClientWithQuery(folder, method, query, WAIT_DELAY, (err, client) => {
       if (err) return cb(err)
       return this.sendClientMethod(client, method, params, cb)
     })
