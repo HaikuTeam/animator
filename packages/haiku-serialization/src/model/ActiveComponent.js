@@ -841,8 +841,6 @@ ActiveComponent.prototype.mountApplication = function mountApplication (mount, c
       try {
         this._recalibrateReloadedComponent(updatedHaikuComponentFactory, config)
 
-        info(this._componentInstance)
-
         // Update the entire bytecode object pointer otherwise some updates might not touch the right properties.
         // This also clears all the caches.
         this.rehydrateBytecode(this._componentInstance._bytecode, this._componentInstance._template)
@@ -899,8 +897,6 @@ ActiveComponent.prototype.moduleReplace = function moduleReplace (cb, config) {
       var previousComponentInstance = this._componentInstance
 
       this._recalibrateReloadedComponent(updatedHaikuComponentFactory, config)
-
-      info(this._componentInstance)
 
       // We need to copy the in-memory timeline (NOT the data object!) over the new one so we retain
       // the same local time/time control data that had already been set by the user
