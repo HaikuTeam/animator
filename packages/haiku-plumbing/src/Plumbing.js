@@ -581,7 +581,6 @@ export default class Plumbing extends StateObject {
 
   listProjects (cb) {
     var authToken = sdkClient.config.getAuthToken()
-
     return inkstone.project.list(authToken, (projectListErr, projectsList) => {
       if (projectListErr) return cb(projectListErr)
       return cb(null, projectsList.map(remapProjectObjectToExpectedFormat))
@@ -594,6 +593,11 @@ export default class Plumbing extends StateObject {
       if (projectCreateErr) return cb(projectCreateErr)
       return cb(null, remapProjectObjectToExpectedFormat(project))
     })
+  }
+
+  deleteProject (name, cb) {
+    var authToken = sdkClient.config.getAuthToken()
+    return inkstone.project.deleteByName(authToken, name, cb)
   }
 
   discardProjectChanges (folder, cb) {

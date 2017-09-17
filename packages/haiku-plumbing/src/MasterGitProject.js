@@ -554,7 +554,7 @@ export default class MasterGitProject extends EventEmitter {
         return Git.addAllPathsToIndex(this.folder, (err, oid) => {
           if (err) return cb(err)
 
-          return Git.buildCommit(this.folder, this._folderState.haikuUsername, null, 'Base commit', oid, null, null, (err, commitId) => {
+          return Git.buildCommit(this.folder, this._folderState.haikuUsername, null, `Base commit ${COMMIT_SUFFIX}`, oid, null, null, (err, commitId) => {
             if (err) return cb(err)
             const branchName = DEFAULT_BRANCH_NAME
             const refSpecToPush = `refs/heads/${branchName}`

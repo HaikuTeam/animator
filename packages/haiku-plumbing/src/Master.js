@@ -819,7 +819,7 @@ export default class Master extends EventEmitter {
         return this._git.getExistingShareDataIfSaveIsUnnecessary((err, existingShareData) => {
           if (err) return cb(err)
           if (existingShareData) { // Presence of share data means early return
-            return cb(true, existingShareData)
+            return cb(true, existingShareData) // eslint-disable-line
           }
           return cb() // Falsy share data means perform the save
         })

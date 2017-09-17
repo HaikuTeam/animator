@@ -33,19 +33,41 @@ function websocket(host, port, folder, alias, type) {
   return websocket
 }
 
-function setup(ready) {
+function before(cb) {
   process.env.HAIKU_SKIP_NPM_INSTALL = '1'
   // process.env.HAIKU_SKIP_NPM_LINK = '1' // enabled so that @haiku/player exists in component code.js
-  return setTimeout(() => { // HACK: always wait for teardown of previous test #RC-test
+  return setTimeout(cb, 2500) // HACK: always wait for teardown of previous test #RC-test
+}
+
+function launch(ready) {
+  return before(() => {
+    return plumb((plumbing) => {
+      function teardown() {
+        plumbing.teardown()
+        if (global.haiku) global.haiku.HaikuGlobalAnimationHarness.cancel()
+      }
+      return ready(plumbing, teardown)
+    })
+  })
+}
+
+function plumb(cb) {
+  var plumbing = new Plumbing()
+  return plumbing.launch({ mode: 'headless' }, (err, host, port, server, spawned, envoy) => {
+    if (err) throw err
+    process.env.HAIKU_PLUMBING_HOST = host
+    process.env.HAIKU_PLUMBING_PORT = port
+    process.env.ENVOY_HOST = envoy.host
+    process.env.ENVOY_PORT = envoy.port
+    return cb(plumbing, host, port, envoy)
+  })
+}
+
+function setup(ready) {
+  return before(() => {
     return tmpdir((folder, cleanup) => {
-      var plumbing = new Plumbing()
-      plumbing.launch({ mode: 'headless' }, (err, host, port, server, spawned, envoy) => {
-        if (err) throw err
-        process.env.HAIKU_PROJECT_FOLDER = folder
-        process.env.HAIKU_PLUMBING_HOST = host
-        process.env.HAIKU_PLUMBING_PORT = port
-        process.env.ENVOY_HOST = envoy.host
-        process.env.ENVOY_PORT = envoy.port
+      process.env.HAIKU_PROJECT_FOLDER = folder
+      return plumb((plumbing, host, port, envoy) => {
         const creator = websocket(host, port, folder, 'creator', 'commander')
         const glass = websocket(host, port, folder, 'glass', 'controllee')
         const timeline = websocket(host, port, folder, 'timeline', 'controllee')
@@ -54,10 +76,7 @@ function setup(ready) {
         function teardown() {
           cleanup()
           plumbing.teardown()
-          if (global.haiku) {
-            // Avoid leaking this handle so the test finishes
-            global.haiku.HaikuGlobalAnimationHarness.cancel()
-          }
+          if (global.haiku) global.haiku.HaikuGlobalAnimationHarness.cancel()
         }
         creator.on('open', () => {
           plumbing.getCurrentOrganizationName((err, organizationName) => {
@@ -70,7 +89,7 @@ function setup(ready) {
         })
       })
     })
-  }, 5000)
+  })
 }
 
 function tmpdir(cb) {
@@ -93,5 +112,6 @@ const gitcfg = {
 module.exports = {
   tmpdir: tmpdir,
   gitcfg: gitcfg,
-  setup: setup
+  setup: setup,
+  launch: launch
 }
