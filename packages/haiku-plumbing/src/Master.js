@@ -799,10 +799,17 @@ export default class Master extends EventEmitter {
    * @method saveProject
    */
   saveProject ({ params: [projectName, haikuUsername, haikuPassword, saveOptions = {}] }, done) {
+    const finish = (err, out) => {
+      this._isSaving = false
+      return done(err, out)
+    }
+
     if (this._isSaving) {
       logger.info('[master] project save: already in progress! short circuiting')
       return done()
     }
+
+    this._isSaving = true
 
     logger.info('[master] project save')
 
@@ -811,7 +818,10 @@ export default class Master extends EventEmitter {
       (cb) => {
         return this._git.getExistingShareDataIfSaveIsUnnecessary((err, existingShareData) => {
           if (err) return cb(err)
-          return cb(true, existingShareData) // eslint-disable-line
+          if (existingShareData) { // Presence of share data means early return
+            return cb(true, existingShareData)
+          }
+          return cb() // Falsy share data means perform the save
         })
       },
 
@@ -862,9 +872,8 @@ export default class Master extends EventEmitter {
         return this._git.saveProject(saveOptions, cb)
       }
     ], (err, results) => { // async gives back _all_ results from each step
-      this._isSaving = false
-      if (err) return done(err)
-      return done(null, results[results.length - 1])
+      if (err && err !== true) return finish(err)
+      return finish(null, results[results.length - 1])
     })
   }
 }

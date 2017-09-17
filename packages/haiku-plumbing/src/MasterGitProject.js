@@ -433,7 +433,7 @@ export default class MasterGitProject extends EventEmitter {
       CodeCommitHttpsPassword
     } = this._folderState.remoteProjectDescriptor
 
-    return Git.pushProject(this.folder, GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, (err) => {
+    return Git.pushProject(this.folder, this._folderState.projectName, GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, (err) => {
       if (err) return cb(err)
       return this.pushTag(GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, cb)
     })
@@ -673,33 +673,35 @@ export default class MasterGitProject extends EventEmitter {
    * retrieve a pre-existing share link.
    */
   getExistingShareDataIfSaveIsUnnecessary (cb) {
-    // TODO: We may need to look closely to see if this boolean is set properly.
-    // Currently the _getFolderState method just checks to see if there are git statuses,
-    // but that might not be correct (although it seemed to be when I initially checked).
-    if (this._folderState.doesGitHaveChanges) {
-      logger.info('[master-git] looks like git has changes; must do full save')
-      return cb(null, false) // falsy == you gotta save
-    }
-
-    // Inkstone should return info pretty fast if it has share info, so only wait 2s
-    return this.getCurrentShareInfo(2000, (err, shareInfo) => {
-      // Rather than treat the error as an error, assume it indicates that we need
-      // to do a full publish. For example, we don't want to "error" if this is just a network timeout.
-      // #FIXME?
-      if (err) {
-        logger.info('[master-git] share info was error-ish; must do full save')
+    return this.fetchFolderState('get-existing-share-data', {}, () => {
+      // TODO: We may need to look closely to see if this boolean is set properly.
+      // Currently the _getFolderState method just checks to see if there are git statuses,
+      // but that might not be correct (although it seemed to be when I initially checked).
+      if (this._folderState.doesGitHaveChanges) {
+        logger.info('[master-git] looks like git has changes; must do full save')
         return cb(null, false) // falsy == you gotta save
       }
 
-      // Not sure why this would be null, but just in case...
-      if (!shareInfo) {
-        logger.info('[master-git] share info was blank; must do full save')
-        return cb(null, false) // falsy == you gotta save
-      }
+      // Inkstone should return info pretty fast if it has share info, so only wait 2s
+      return this.getCurrentShareInfo(2000, (err, shareInfo) => {
+        // Rather than treat the error as an error, assume it indicates that we need
+        // to do a full publish. For example, we don't want to "error" if this is just a network timeout.
+        // #FIXME?
+        if (err) {
+          logger.info('[master-git] share info was error-ish; must do full save')
+          return cb(null, false) // falsy == you gotta save
+        }
 
-      // If we go this far, we already have a save for our current SHA, and can skip the expensive stuff
-      logger.info('[master-git] share info found! no need to save')
-      return cb(null, shareInfo)
+        // Not sure why this would be null, but just in case...
+        if (!shareInfo) {
+          logger.info('[master-git] share info was blank; must do full save')
+          return cb(null, false) // falsy == you gotta save
+        }
+
+        // If we go this far, we already have a save for our current SHA, and can skip the expensive stuff
+        logger.info('[master-git] share info found! no need to save')
+        return cb(null, shareInfo)
+      })
     })
   }
 
