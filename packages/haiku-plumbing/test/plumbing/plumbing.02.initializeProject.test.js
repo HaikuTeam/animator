@@ -25,7 +25,7 @@ tape('plumbing.02.initializeProject', (t) => {
           t.equal(plumbing.subprocs[0]._attributes.name, 'master', 'first subproc is master')
           t.equal(plumbing.subprocs[0]._attributes.folder, folder, 'master subproc has folder name')
           var gitloglines = cp.execSync('git log --pretty=oneline', { cwd: folder }).toString().split('\n')
-          t.equal(gitloglines.length, 2, 'git log has one entry')
+          t.equal(gitloglines.length, 3, 'git log has two entries')
           return cb()
         })
       },
