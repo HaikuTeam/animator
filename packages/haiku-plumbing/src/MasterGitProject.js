@@ -844,6 +844,7 @@ export default class MasterGitProject extends EventEmitter {
   commitFileIfChanged (relpath, message, cb) {
     return this.statusForFile(relpath, (err, status) => {
       if (err) return cb(err)
+      if (!status) return cb() // No status means no changes
       if (
         status.isDeleted() ||
         status.isModified() ||
@@ -965,6 +966,10 @@ export default class MasterGitProject extends EventEmitter {
 
     return async.series([
       (cb) => {
+        return this.waitUntilNoFurtherChangesAreAwaitingCommit(cb)
+      },
+
+      (cb) => {
         return this.fetchFolderState('save-project', saveOptions, (err) => {
           if (err) return cb(err)
           this._folderState.semverVersion = saveAccumulator.semverVersion
@@ -1020,7 +1025,13 @@ export default class MasterGitProject extends EventEmitter {
               'pushToRemote'
             ]
           } else if (!doesGitHaveChanges) {
-            actionSequence = ['pullRemote']
+            actionSequence = [
+              'pullRemote',
+              'bumpSemverAppropriately',
+              'makeCommit',
+              'makeTag',
+              'pushToRemote'
+            ]
           }
         }
 

@@ -33,6 +33,7 @@ const FORBIDDEN_METHODS = {
 }
 
 const METHOD_QUEUE_INTERVAL = 64
+const SAVE_AWAIT_TIME = 64 * 2
 
 const WATCHABLE_EXTNAMES = {
   '.js': true,
@@ -53,6 +54,8 @@ const UNWATCHABLE_RELPATHS = {
 }
 
 const UNWATCHABLE_BASENAMES = {
+  'index.standalone.js': true,
+  'index.embed.js': true,
   'dom-embed.js': true,
   'dom-standalone.js': true,
   'react-dom.js': true,
@@ -187,6 +190,16 @@ export default class Master extends EventEmitter {
     }
   }
 
+  waitForSaveToComplete (cb) {
+    if (this._isSaving) {
+      return setTimeout(() => {
+        return this.waitForSaveToComplete(cb)
+      }, SAVE_AWAIT_TIME)
+    } else {
+      return cb()
+    }
+  }
+
   // /**
   //  * watchers/handlers
   //  * =================
@@ -196,44 +209,46 @@ export default class Master extends EventEmitter {
     const relpath = path.relative(this.folder, abspath)
     const extname = path.extname(relpath)
 
-    return this._git.commitFileIfChanged(relpath, `Changed ${relpath}`, () => {
-      if (!_isFileSignificant(relpath)) {
-        return void (0)
-      }
-
-      if (this.proc.isOpen()) {
-        this.proc.socket.send({ type: 'broadcast', name: 'file:change', folder: this.folder, relpath, abspath })
-      }
-
-      if (extname === '.sketch') {
-        logger.info('[master] sketchtool pipeline running; please wait')
-        Sketch.sketchtoolPipeline(abspath)
-        logger.info('[master] sketchtool done')
-        this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
-        return void (0)
-      }
-
-      if (extname === '.svg') {
-        if (this.proc.isOpen()) {
-          logger.info('[master] merge design requested', relpath)
-          this.proc.socket.request({ type: 'action', method: 'mergeDesign', params: [this.folder, 'Default', 0, abspath] }, () => {})
+    return this.waitForSaveToComplete(() => {
+      return this._git.commitFileIfChanged(relpath, `Changed ${relpath}`, () => {
+        if (!_isFileSignificant(relpath)) {
+          return void (0)
         }
-        this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
-        return void (0)
-      }
 
-      if (extname === '.js') {
-        return this._component.FileModel.ingestOne(this.folder, relpath, (err, file) => {
-          if (err) return logger.info(err)
-          logger.info('[master] file ingested:', abspath)
-          if (relpath === this._component.fetchActiveBytecodeFile().get('relpath')) {
-            file.set('substructInitialized', file.reinitializeSubstruct(this._config.get('config'), 'Master.handleFileChange'))
-            if (file.get('previous') !== file.get('contents')) {
-              this._mod.handleModuleChange(file)
-            }
+        if (this.proc.isOpen()) {
+          this.proc.socket.send({ type: 'broadcast', name: 'file:change', folder: this.folder, relpath, abspath })
+        }
+
+        if (extname === '.sketch') {
+          logger.info('[master] sketchtool pipeline running; please wait')
+          Sketch.sketchtoolPipeline(abspath)
+          logger.info('[master] sketchtool done')
+          this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
+          return void (0)
+        }
+
+        if (extname === '.svg') {
+          if (this.proc.isOpen()) {
+            logger.info('[master] merge design requested', relpath)
+            this.proc.socket.request({ type: 'action', method: 'mergeDesign', params: [this.folder, 'Default', 0, abspath] }, () => {})
           }
-        })
-      }
+          this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
+          return void (0)
+        }
+
+        if (extname === '.js') {
+          return this._component.FileModel.ingestOne(this.folder, relpath, (err, file) => {
+            if (err) return logger.info(err)
+            logger.info('[master] file ingested:', abspath)
+            if (relpath === this._component.fetchActiveBytecodeFile().get('relpath')) {
+              file.set('substructInitialized', file.reinitializeSubstruct(this._config.get('config'), 'Master.handleFileChange'))
+              if (file.get('previous') !== file.get('contents')) {
+                this._mod.handleModuleChange(file)
+              }
+            }
+          })
+        }
+      })
     })
   }
 
@@ -241,37 +256,39 @@ export default class Master extends EventEmitter {
     const relpath = path.relative(this.folder, abspath)
     const extname = path.extname(relpath)
 
-    return this._git.commitFileIfChanged(relpath, `Added ${relpath}`, () => {
-      if (!_isFileSignificant(relpath)) {
-        return void (0)
-      }
+    return this.waitForSaveToComplete(() => {
+      return this._git.commitFileIfChanged(relpath, `Added ${relpath}`, () => {
+        if (!_isFileSignificant(relpath)) {
+          return void (0)
+        }
 
-      if (this.proc.isOpen()) {
-        this.proc.socket.send({ type: 'broadcast', name: 'file:add', folder: this.folder, relpath, abspath })
-      }
+        if (this.proc.isOpen()) {
+          this.proc.socket.send({ type: 'broadcast', name: 'file:add', folder: this.folder, relpath, abspath })
+        }
 
-      if (extname === '.sketch') {
-        logger.info('[master] sketchtool pipeline running; please wait')
-        Sketch.sketchtoolPipeline(abspath)
-        logger.info('[master] sketchtool done')
-        this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
-        return void (0)
-      }
+        if (extname === '.sketch') {
+          logger.info('[master] sketchtool pipeline running; please wait')
+          Sketch.sketchtoolPipeline(abspath)
+          logger.info('[master] sketchtool done')
+          this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
+          return void (0)
+        }
 
-      if (extname === '.svg') {
-        this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
-        return void (0)
-      }
+        if (extname === '.svg') {
+          this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
+          return void (0)
+        }
 
-      if (extname === '.js') {
-        return this._component.FileModel.ingestOne(this.folder, relpath, (err, file) => {
-          if (err) return logger.info(err)
-          logger.info('[master] file ingested:', abspath)
-          if (relpath === this._component.fetchActiveBytecodeFile().get('relpath')) {
-            file.set('substructInitialized', file.reinitializeSubstruct(this._config.get('config'), 'Master.handleFileAdd'))
-          }
-        })
-      }
+        if (extname === '.js') {
+          return this._component.FileModel.ingestOne(this.folder, relpath, (err, file) => {
+            if (err) return logger.info(err)
+            logger.info('[master] file ingested:', abspath)
+            if (relpath === this._component.fetchActiveBytecodeFile().get('relpath')) {
+              file.set('substructInitialized', file.reinitializeSubstruct(this._config.get('config'), 'Master.handleFileAdd'))
+            }
+          })
+        }
+      })
     })
   }
 
@@ -279,26 +296,28 @@ export default class Master extends EventEmitter {
     const relpath = path.relative(this.folder, abspath)
     const extname = path.extname(relpath)
 
-    return this._git.commitFileIfChanged(relpath, `Removed ${relpath}`, () => {
-      if (!_isFileSignificant(relpath)) {
-        return void (0)
-      }
+    return this.waitForSaveToComplete(() => {
+      return this._git.commitFileIfChanged(relpath, `Removed ${relpath}`, () => {
+        if (!_isFileSignificant(relpath)) {
+          return void (0)
+        }
 
-      if (this.proc.isOpen()) {
-        this.proc.socket.send({ type: 'broadcast', name: 'file:remove', folder: this.folder, relpath, abspath })
-      }
+        if (this.proc.isOpen()) {
+          this.proc.socket.send({ type: 'broadcast', name: 'file:remove', folder: this.folder, relpath, abspath })
+        }
 
-      if (extname === '.sketch' || extname === '.svg') {
-        delete this._knownDesigns[relpath]
-        return void (0)
-      }
+        if (extname === '.sketch' || extname === '.svg') {
+          delete this._knownDesigns[relpath]
+          return void (0)
+        }
 
-      if (extname === '.js') {
-        return this._component.FileModel.expelOne(relpath, (err) => {
-          if (err) return logger.info(err)
-          logger.info('[master] file expelled:', abspath)
-        })
-      }
+        if (extname === '.js') {
+          return this._component.FileModel.expelOne(relpath, (err) => {
+            if (err) return logger.info(err)
+            logger.info('[master] file expelled:', abspath)
+          })
+        }
+      })
     })
   }
 
