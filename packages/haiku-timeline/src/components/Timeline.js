@@ -333,7 +333,7 @@ class Timeline extends React.Component {
   }
 
   updateTime (currentFrame) {
-    if (this.shouldEmitToTour) {
+    if (this.shouldEmitToTour && (currentFrame > 13 || currentFrame < 17)) {
       this.shouldEmitToTour = false
       this.tourClient.next()
     }
