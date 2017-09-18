@@ -5,6 +5,7 @@ const TOUR_CHANNEL = "tour";
 class TourHandler {
     constructor(server) {
         this.currentStep = 0;
+        this.isActive = false;
         this.states = [
             {
                 selector: "body",
@@ -202,6 +203,7 @@ class TourHandler {
     start(force) {
         if (!HaikuHomeDir_1.didTakeTour() || force) {
             this.currentStep = 0;
+            this.isActive = true;
             this.requestShowStep(Object.assign({}, this.states[this.currentStep]), { top: "50%", left: "50%" });
         }
     }
@@ -209,9 +211,13 @@ class TourHandler {
         if (createFile) {
             HaikuHomeDir_1.createTourFile();
         }
+        this.isActive = false;
         this.requestFinish();
     }
     next() {
+        if (!this.isActive) {
+            return;
+        }
         this.currentStep++;
         const nextState = this.getState();
         this.performStepActions();

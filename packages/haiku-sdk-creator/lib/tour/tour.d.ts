@@ -2,6 +2,7 @@ import { ClientBoundingRect, Tour } from ".";
 import EnvoyServer from "../envoy/server";
 export default class TourHandler implements Tour {
     private currentStep;
+    private isActive;
     private states;
     private server;
     private shouldRenderAgain;
