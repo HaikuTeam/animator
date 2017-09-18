@@ -827,15 +827,18 @@ export default class MasterGitProject extends EventEmitter {
   statusForFile (relpath, cb) {
     return this.safeGitStatus({ log: false }, (gitStatuses) => {
       let foundStatus
-      gitStatuses.forEach((gitStatus) => {
-        if (foundStatus) {
-          return void (0)
-        }
 
-        if (path.normalize(gitStatus.path()) === path.normalize(relpath)) {
-          foundStatus = gitStatus
-        }
-      })
+      if (gitStatuses) {
+        gitStatuses.forEach((gitStatus) => {
+          if (foundStatus) {
+            return void (0)
+          }
+
+          if (path.normalize(gitStatus.path()) === path.normalize(relpath)) {
+            foundStatus = gitStatus
+          }
+        })
+      }
 
       return cb(null, foundStatus)
     })
