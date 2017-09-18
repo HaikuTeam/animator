@@ -303,8 +303,8 @@ process.on('uncaughtException', exit)
 
 function exit () {
   log.log('exiting; telling children to interrupt')
-
   children.forEach(function (child) {
-    child.kill('SIGINT')
+    if (child.stdin) child.stdin.pause()
+    child.kill('SIGKILL')
   })
 }
