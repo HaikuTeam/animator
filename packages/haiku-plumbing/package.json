@@ -22,7 +22,7 @@
     "compile": "gulp compile",
     "test": "yarn run test:unit && yarn run test:plumbing && yarn run test:master || true",
     "test:unit": "yarn run compile && NODE_ENV=test tape \"test/unit/**/*.test.js\" | tap-spec || true",
-    "test:plumbing": "yarn run compile && NODE_ENV=test tape \"test/plumbing/**/*.04.*.test.js\" | tap-spec || true",
+    "test:plumbing": "yarn run compile && NODE_ENV=test tape \"test/plumbing/**/*.05.*.test.js\" | tap-spec || true",
     "test:master": "yarn run compile && NODE_ENV=test tape \"test/master/**/*.test.js\" | tap-spec || true",
     "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy || true",
     "matthew": "node ./HaikuHelper.js --folder=/Users/matthew/Code/HaikuTeam/mono/packages/haiku-glass/test/projects/primitives --mode=headless --repl",

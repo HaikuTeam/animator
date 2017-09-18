@@ -310,10 +310,7 @@ export function fetchFromRemote (pwd, remoteName, gitRemoteUsername, gitRemotePa
       fetchOpts.downloadTags = 3
 
       logger.info('[git] fetching remote', remoteName, fetchOpts)
-
-      console.log(remote)
-      console.log(remote.url())
-      console.log(remote.name())
+      logger.info('[git] remote info:', remote.name(), remote.url())
 
       return repository.fetch(remote, fetchOpts).then(() => {
         return cb()

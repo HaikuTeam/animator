@@ -24,9 +24,9 @@ tape('plumbing.04.saveProject', (t) => {
           t.error(err, 'no err saving')
           t.ok(shareInfo, 'share info present')
           var localsha = cp.execSync(`git rev-parse --verify HEAD`, { cwd: folder() }).toString().trim()
-          t.equal(localsha, shareInfo.sha, 'local sha is share info sha')
-          t.ok(shareInfo.shareLink, 'share link present')
-          t.ok(shareInfo.projectUid, 'share project uid present')
+          t.equal(localsha, shareInfo && shareInfo.sha, 'local sha is share info sha')
+          t.ok(shareInfo && shareInfo.shareLink, 'share link present')
+          t.ok(shareInfo && shareInfo.projectUid, 'share project uid present')
           var pkg = fse.readJsonSync(path.join(folder(), 'package.json'))
           t.equal(pkg.version, '0.0.1', 'semver is 0.0.1')
           initialShareInfo = shareInfo
@@ -38,7 +38,7 @@ tape('plumbing.04.saveProject', (t) => {
         var saveOptions = {} // ?
         return plumbing.saveProject(folder(), projectName, 'matthew+matthew@haiku.ai', 'supersecure', saveOptions, (err, shareInfo) => {
           t.error(err, 'no err saving again')
-          t.equal(initialShareInfo && initialShareInfo.sha, shareInfo.sha, 'new sha same as initial save because no change')
+          t.equal(initialShareInfo && initialShareInfo.sha, shareInfo && shareInfo.sha, 'new sha same as initial save because no change')
           return cb()
         })
       },
