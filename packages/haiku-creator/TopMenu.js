@@ -113,47 +113,47 @@ class TopMenu extends EventEmitter {
           }
         ]
       },
-      {
-        label: 'Insert',
-        submenu: [
-          {
-            label: 'Shape',
-            submenu: [
-              {
-                label: 'Rectangle',
-                accelerator: 'R',
-                enabled: !!options.folder,
-                click: () => this.emit('global-menu:set-tool', ['shape', 'Rectangle'])
-              },
-              {
-                label: 'Oval',
-                accelerator: 'O',
-                enabled: !!options.folder,
-                click: () => this.emit('global-menu:set-tool', ['shape', 'Oval'])
-              }
-            ]
-          },
-          {
-            label: 'Vector',
-            accelerator: 'V',
-            enabled: !!options.folder,
-            click: () => this.emit('global-menu:set-tool', ['pen'])
-          },
-          {
-            label: 'Brush',
-            accelerator: 'B',
-            enabled: !!options.folder,
-            click: () => this.emit('global-menu:set-tool', ['brush'])
-          },
-          { type: 'separator' },
-          {
-            label: 'Text',
-            accelerator: 'T',
-            enabled: !!options.folder,
-            click: () => this.emit('global-menu:set-tool', ['text'])
-          }
-        ]
-      },
+      // {
+      //   label: 'Insert',
+      //   submenu: [
+      //     {
+      //       label: 'Shape',
+      //       submenu: [
+      //         {
+      //           label: 'Rectangle',
+      //           accelerator: 'R',
+      //           enabled: !!options.folder,
+      //           click: () => this.emit('global-menu:set-tool', ['shape', 'Rectangle'])
+      //         },
+      //         {
+      //           label: 'Oval',
+      //           accelerator: 'O',
+      //           enabled: !!options.folder,
+      //           click: () => this.emit('global-menu:set-tool', ['shape', 'Oval'])
+      //         }
+      //       ]
+      //     },
+      //     {
+      //       label: 'Vector',
+      //       accelerator: 'V',
+      //       enabled: !!options.folder,
+      //       click: () => this.emit('global-menu:set-tool', ['pen'])
+      //     },
+      //     {
+      //       label: 'Brush',
+      //       accelerator: 'B',
+      //       enabled: !!options.folder,
+      //       click: () => this.emit('global-menu:set-tool', ['brush'])
+      //     },
+      //     { type: 'separator' },
+      //     {
+      //       label: 'Text',
+      //       accelerator: 'T',
+      //       enabled: !!options.folder,
+      //       click: () => this.emit('global-menu:set-tool', ['text'])
+      //     }
+      //   ]
+      // },
       {
         label: 'View',
         submenu: [
