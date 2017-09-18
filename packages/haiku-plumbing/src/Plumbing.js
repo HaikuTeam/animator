@@ -342,7 +342,7 @@ export default class Plumbing extends StateObject {
       return cb(new Error(`Timed out waiting for client ${JSON.stringify(query)} of ${folder} to connect`))
     }
 
-    // uncomment me for insight into why a request might not be making it
+    // // // uncomment me for insight into why a request might not be making it
     // console.log('awaiting', method, query)
 
     // HACK: At the time of this writing, there is only "one" creator client, not one per folder.

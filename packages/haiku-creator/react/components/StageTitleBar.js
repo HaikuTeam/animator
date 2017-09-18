@@ -113,6 +113,47 @@ const SNAPSHOT_SAVE_RESOLUTION_STRATEGIES = {
   theirs: { strategy: 'theirs' }
 }
 
+class PopoverBody extends React.Component {
+  shouldComponentUpdate (nextProps) {
+    return (
+      this.props.titleText !== nextProps.titleText ||
+      this.props.linkAddress !== nextProps.linkAddress ||
+      this.props.isSnapshotSaveInProgress !== nextProps.isSnapshotSaveInProgress ||
+      this.props.isProjectInfoFetchInProgress !== nextProps.isProjectInfoFetchInProgress
+    )
+  }
+
+  render () {
+    return (
+      <div style={[STYLES.sharePopover, this.props.snapshotSaveConfirmed && {right: -67}, this.props.isSnapshotSaveInProgress && {right: -70}]}>
+        {this.props.titleText}
+        <div style={STYLES.linkHolster}>
+          {(this.props.isSnapshotSaveInProgress || this.props.isProjectInfoFetchInProgress)
+            ? <span style={[STYLES.link, STYLES.generatingLink]}>Updating Share Page</span>
+            : <span style={STYLES.link} onClick={() => shell.openExternal(this.props.linkAddress)}>{this.props.linkAddress.substring(0, 33)}</span>}
+          <CopyToClipboard
+            text={this.props.linkAddress}
+            onCopy={() => {
+              this.props.parent.setState({copied: true})
+              this.props.parent.setState({showCopied: true}, () => {
+                setTimeout(() => {
+                  this.props.parent.setState({showCopied: false})
+                }, 1900)
+              })
+            }}>
+            {(this.props.isSnapshotSaveInProgress || this.props.isProjectInfoFetchInProgress)
+              ? <span style={[STYLES.copy, STYLES.copyLoading]}><ThreeBounce size={3} color={Palette.ROCK} /></span>
+              : <span style={STYLES.copy}><CliboardIconSVG /></span>}
+          </CopyToClipboard>
+        </div>
+        {/* todo: show last updated? <div style={STYLES.footer}>UPDATED<span style={STYLES.time}>{'9:00am Jun 15, 2017'}</span></div> */}
+      </div>
+    )
+  }
+}
+
+const PopoverBodyRadiumized = Radium(PopoverBody)
+
 class StageTitleBar extends React.Component {
   constructor (props) {
     super(props)
@@ -266,6 +307,10 @@ class StageTitleBar extends React.Component {
     })
   }
 
+  requestSaveProject (cb) {
+    return this.props.websocket.request({ method: 'saveProject', params: [this.props.folder, this.props.project.projectName, this.props.username, this.props.password, this.getProjectSaveOptions()] }, cb)
+  }
+
   performProjectSave () {
     mixpanel.haikuTrack('creator:project:saving', this.withProjectInfo({
       username: this.props.username,
@@ -273,7 +318,7 @@ class StageTitleBar extends React.Component {
     }))
     this.setState({ isSnapshotSaveInProgress: true })
 
-    return this.props.websocket.request({ method: 'saveProject', params: [this.props.folder, this.props.project.projectName, this.props.username, this.props.password, this.getProjectSaveOptions()] }, (snapshotSaveError, snapshotData) => {
+    return this.requestSaveProject((snapshotSaveError, snapshotData) => {
       if (snapshotSaveError) {
         console.error(snapshotSaveError)
         if (snapshotSaveError.message === 'Timed out waiting for project share info') {
@@ -384,28 +429,13 @@ class StageTitleBar extends React.Component {
           place='below'
           isOpen={showSharePopover}
           body={
-            <div style={[STYLES.sharePopover, this.state.snapshotSaveConfirmed && {right: -67}, this.state.isSnapshotSaveInProgress && {right: -70}]}>
-              {titleText}
-              <div style={STYLES.linkHolster}>
-                {(this.state.isSnapshotSaveInProgress || this.state.isProjectInfoFetchInProgress)
-                  ? <span style={[STYLES.link, STYLES.generatingLink]}>Updating Share Page</span>
-                  : <span style={STYLES.link} onClick={() => shell.openExternal(this.state.linkAddress)}>{this.state.linkAddress.substring(0, 33)}</span>}
-                <CopyToClipboard text={this.state.linkAddress}
-                  onCopy={() => {
-                    this.setState({copied: true})
-                    this.setState({showCopied: true}, () => {
-                      setTimeout(() => {
-                        this.setState({showCopied: false})
-                      }, 1900)
-                    })
-                  }}>
-                  {(this.state.isSnapshotSaveInProgress || this.state.isProjectInfoFetchInProgress)
-                    ? <span style={[STYLES.copy, STYLES.copyLoading]}><ThreeBounce size={3} color={Palette.ROCK} /></span>
-                    : <span style={STYLES.copy}><CliboardIconSVG /></span>}
-                </CopyToClipboard>
-              </div>
-              {/* todo: show last updated? <div style={STYLES.footer}>UPDATED<span style={STYLES.time}>{'9:00am Jun 15, 2017'}</span></div> */}
-            </div>
+            <PopoverBodyRadiumized
+              parent={this}
+              titleText={titleText}
+              snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
+              isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
+              isProjectInfoFetchInProgress={this.state.isProjectInfoFetchInProgress}
+              linkAddress={this.state.linkAddress} />
           }
           onOuterAction={() => this.setState({ showSharePopover: false })}>
           <button key='save'
