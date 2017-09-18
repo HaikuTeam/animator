@@ -157,7 +157,10 @@ export function referenceNameToId (pwd, name, cb) {
     return Reference.nameToId(repository, name).then((id) => {
       logger.info('[git] reference name', name, 'resolved to', id && id.toString())
       return cb(null, id)
-    }, cb)
+    }, (err) => {
+      logger.info('[git]', err)
+      return cb(err)
+    })
   })
 }
 
@@ -306,7 +309,12 @@ export function fetchFromRemote (pwd, remoteName, gitRemoteUsername, gitRemotePa
       // Without tags, we can't detect what the next tag to bump to is
       fetchOpts.downloadTags = 3
 
-      logger.info('[git] fetching remote', fetchOpts.downloadTags)
+      logger.info('[git] fetching remote', remoteName, fetchOpts)
+
+      console.log(remote)
+      console.log(remote.url())
+      console.log(remote.name())
+
       return repository.fetch(remote, fetchOpts).then(() => {
         return cb()
       }, cb)

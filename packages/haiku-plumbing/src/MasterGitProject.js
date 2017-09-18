@@ -15,7 +15,7 @@ import * as Inkstone from './Inkstone'
 const PLUMBING_PKG_PATH = path.join(__dirname, '..')
 const PLUMBING_PKG_JSON_PATH = path.join(PLUMBING_PKG_PATH, 'package.json')
 const MAX_SEMVER_TAG_ATTEMPTS = 100
-const AWAIT_COMMIT_INTERVAL = 64
+const AWAIT_COMMIT_INTERVAL = 0
 const MAX_CLONE_ATTEMPTS = 5
 const CLONE_RETRY_DELAY = 10000
 const DEFAULT_BRANCH_NAME = 'master' // "'master' process" has nothing to do with this :/
@@ -144,14 +144,14 @@ export default class MasterGitProject extends EventEmitter {
 
     return async.series([
       (cb) => {
-        this.safeHasAnyHeadCommitForCurrentBranch((hasHeadCommit) => {
+        return this.safeHasAnyHeadCommitForCurrentBranch((hasHeadCommit) => {
           this._folderState.hasHeadCommit = hasHeadCommit
           return cb()
         })
       },
 
       (cb) => {
-        Git.referenceNameToId(this.folder, 'HEAD', (_err, headCommitId) => {
+        return Git.referenceNameToId(this.folder, 'HEAD', (_err, headCommitId) => {
           this._folderState.headCommitId = headCommitId
           return cb()
         })
@@ -353,9 +353,9 @@ export default class MasterGitProject extends EventEmitter {
 
         // The main master process and component need to handle this too since the
         // bytecode contains the version which we use to render in the right-click menu
-        this.emit('semver-bumped', nextTag)
-
-        return cb(null, nextTag)
+        this.emit('semver-bumped', nextTag, () => {
+          return cb(null, nextTag)
+        })
       })
     })
   }
@@ -799,7 +799,7 @@ export default class MasterGitProject extends EventEmitter {
 
   snapshotCommitProject (message, cb) {
     return this.safeGitStatus({ log: true }, (gitStatuses) => {
-      const doesGitHaveChanges = !!(gitStatuses && gitStatuses.length > 0)
+      const doesGitHaveChanges = gitStatuses && gitStatuses.length > 0
       if (doesGitHaveChanges) { // Don't add garbage/empty commits if nothing changed
         return this.commitProject('.', message, cb)
       }
@@ -824,37 +824,79 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
-  commitProject (addable, message, cb) {
-    const commitOptions = {}
-
-    commitOptions.commitMessage = `${message} ${COMMIT_SUFFIX}`
-
-    return this.fetchFolderState('commit-project', {}, () => {
-      return Git.commitProject(this.folder, this._folderState.haikuUsername, this._folderState.hasHeadCommit, commitOptions, addable, (err, commitId) => {
-        if (err) return cb()
-
-        this._folderState.commitId = commitId
-
-        // HACK: If for some reason we never got a 'base' undoable before this point, set this cmomit as
-        // the new base so that there are always commits from a base commit going forward
-        let isBase = false
-
-        const baseUndoable = this._gitUndoables.filter((undoable) => {
-          return undoable && undoable.isBase
-        })[0]
-
-        if (!baseUndoable) {
-          isBase = true
+  statusForFile (relpath, cb) {
+    return this.safeGitStatus({ log: false }, (gitStatuses) => {
+      let foundStatus
+      gitStatuses.forEach((gitStatus) => {
+        if (foundStatus) {
+          return void (0)
         }
 
-        logger.info(`[master-git] making commit ${commitId.toString()} undoable (as base: ${isBase})`)
+        if (path.normalize(gitStatus.path()) === path.normalize(relpath)) {
+          foundStatus = gitStatus
+        }
+      })
 
-        // For now, pretty much any commit we capture in this session is considered an undoable. We may want to
-        // circle back and restrict it to only certain types of commits, but that does end up making the undo/redo
-        // stack logic a bit more complicated.
-        this._gitUndoables.push({ commitId, isBase, message })
+      return cb(null, foundStatus)
+    })
+  }
 
-        return cb(null, commitId)
+  commitFileIfChanged (relpath, message, cb) {
+    return this.statusForFile(relpath, (err, status) => {
+      if (err) return cb(err)
+      if (
+        status.isDeleted() ||
+        status.isModified() ||
+        status.isNew() ||
+        status.isRenamed() ||
+        status.isTypechange()) {
+        return this.commitProject(relpath, message, cb)
+      } else {
+        return cb()
+      }
+    })
+  }
+
+  commitProject (addable, message, cb) {
+    return this.waitUntilNoFurtherChangesAreAwaitingCommit(() => {
+      this._isCommitting = true
+
+      const commitOptions = {}
+
+      commitOptions.commitMessage = `${message} ${COMMIT_SUFFIX}`
+
+      return this.fetchFolderState('commit-project', {}, () => {
+        return Git.commitProject(this.folder, this._folderState.haikuUsername, this._folderState.hasHeadCommit, commitOptions, addable, (err, commitId) => {
+          if (err) {
+            this._isCommitting = false
+            return cb(err)
+          }
+
+          this._folderState.commitId = commitId
+
+          // HACK: If for some reason we never got a 'base' undoable before this point, set this cmomit as
+          // the new base so that there are always commits from a base commit going forward
+          let isBase = false
+
+          const baseUndoable = this._gitUndoables.filter((undoable) => {
+            return undoable && undoable.isBase
+          })[0]
+
+          if (!baseUndoable) {
+            isBase = true
+          }
+
+          logger.info(`[master-git] commit ${commitId.toString()} is undoable (as base: ${isBase})`)
+
+          // For now, pretty much any commit we capture in this session is considered an undoable. We may want to
+          // circle back and restrict it to only certain types of commits, but that does end up making the undo/redo
+          // stack logic a bit more complicated.
+          this._gitUndoables.push({ commitId, isBase, message })
+
+          this._isCommitting = false
+
+          return cb(null, commitId)
+        })
       })
     })
   }
@@ -923,14 +965,6 @@ export default class MasterGitProject extends EventEmitter {
 
     return async.series([
       (cb) => {
-        return this.bumpSemverAppropriately((err, semverVersion) => {
-          if (err) return cb(err)
-          saveAccumulator.semverVersion = semverVersion
-          return cb()
-        })
-      },
-
-      (cb) => {
         return this.fetchFolderState('save-project', saveOptions, (err) => {
           if (err) return cb(err)
           this._folderState.semverVersion = saveAccumulator.semverVersion
@@ -992,10 +1026,7 @@ export default class MasterGitProject extends EventEmitter {
 
         logger.info('[master-git] project save: action sequence:', actionSequence.map((name) => name))
 
-        return this.runActionSequence(actionSequence, saveOptions, (err) => {
-          if (err) return cb(err)
-          return cb()
-        })
+        return this.runActionSequence(actionSequence, saveOptions, cb)
       },
 
       (cb) => {

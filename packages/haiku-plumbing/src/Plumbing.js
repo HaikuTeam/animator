@@ -77,16 +77,42 @@ if (process.env.HAIKU_API) {
 
 const emitter = new EventEmitter()
 
-const pinfo = `${process.pid} ${path.basename(__filename)} ${path.basename(process.execPath)}`
+const PINFO = `${process.pid} ${path.basename(__filename)} ${path.basename(process.execPath)}`
 
 var idIncrementor = 1
 function _id () {
   return idIncrementor++
 }
 
+const PLUMBING_INSTANCES = []
+
+// In test environment these listeners may get wrapped so we begin listening
+// to them immediately in the hope that we can start listening before the
+// test wrapper steps in and interferes
+process.on('exit', () => {
+  logger.info(`[plumbing] plumbing process (${PINFO}) exiting`)
+  PLUMBING_INSTANCES.forEach((plumbing) => plumbing.teardown())
+})
+process.on('SIGINT', () => {
+  logger.info(`[plumbing] plumbing process (${PINFO}) SIGINT`)
+  PLUMBING_INSTANCES.forEach((plumbing) => plumbing.teardown())
+  process.exit()
+})
+process.on('SIGTERM', () => {
+  logger.info(`[plumbing] plumbing process (${PINFO}) SIGTERM`)
+  PLUMBING_INSTANCES.forEach((plumbing) => plumbing.teardown())
+  process.exit()
+})
+
 export default class Plumbing extends StateObject {
   constructor () {
     super()
+
+    // Keep track of all PLUMBING_INSTANCES so we can put our process.on listeners
+    // above this constructor, which is necessary in test environments such
+    // as tape where exit might never get called despite an exit.
+    PLUMBING_INSTANCES.push(this)
+
     this.subprocs = []
     this.envoys = []
     this.servers = []
@@ -117,20 +143,6 @@ export default class Plumbing extends StateObject {
       logger.info(`[plumbing] pulse`, JSON.stringify(pulses))
     }, 10 * 1000)
 
-    process.on('exit', () => {
-      logger.info(`[plumbing] plumbing process (${pinfo}) exiting`)
-      this.teardown()
-    })
-    process.on('SIGINT', () => {
-      logger.info(`[plumbing] plumbing process (${pinfo}) interrupted`)
-      this.teardown()
-      process.exit()
-    })
-    process.on('SIGTERM', () => {
-      logger.info(`[plumbing] plumbing process (${pinfo}) terminated`)
-      this.teardown()
-      process.exit()
-    })
     emitter.on('teardown-requested', () => {
       this.teardown()
     })
@@ -580,14 +592,18 @@ export default class Plumbing extends StateObject {
   }
 
   listProjects (cb) {
+    logger.info('[plumbing] listing projects')
     var authToken = sdkClient.config.getAuthToken()
     return inkstone.project.list(authToken, (projectListErr, projectsList) => {
       if (projectListErr) return cb(projectListErr)
-      return cb(null, projectsList.map(remapProjectObjectToExpectedFormat))
+      var finalList = projectsList.map(remapProjectObjectToExpectedFormat)
+      logger.info('[plumbing] fetched project list', JSON.stringify(finalList))
+      return cb(null, finalList)
     })
   }
 
   createProject (name, cb) {
+    logger.info('[plumbing] creating project', name)
     var authToken = sdkClient.config.getAuthToken()
     return inkstone.project.create(authToken, { Name: name }, (projectCreateErr, project) => {
       if (projectCreateErr) return cb(projectCreateErr)
@@ -596,6 +612,7 @@ export default class Plumbing extends StateObject {
   }
 
   deleteProject (name, cb) {
+    logger.info('[plumbing] deleting project', name)
     var authToken = sdkClient.config.getAuthToken()
     return inkstone.project.deleteByName(authToken, name, cb)
   }

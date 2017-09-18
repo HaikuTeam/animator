@@ -105,8 +105,8 @@ export default class Master extends EventEmitter {
     // Encapsulation of project actions that relate to git or cloud saving in some way
     this._git = new MasterGitProject(this.folder)
 
-    this._git.on('semver-bumped', (tag) => {
-      this.handleSemverTagChange(tag, () => {})
+    this._git.on('semver-bumped', (tag, cb) => {
+      this.handleSemverTagChange(tag, cb)
     })
 
     // Encapsulation of project actions that concern the live module in other views
@@ -196,7 +196,7 @@ export default class Master extends EventEmitter {
     const relpath = path.relative(this.folder, abspath)
     const extname = path.extname(relpath)
 
-    return this._git.commitProject(relpath, `Changed ${relpath}`, () => {
+    return this._git.commitFileIfChanged(relpath, `Changed ${relpath}`, () => {
       if (!_isFileSignificant(relpath)) {
         return void (0)
       }
@@ -241,7 +241,7 @@ export default class Master extends EventEmitter {
     const relpath = path.relative(this.folder, abspath)
     const extname = path.extname(relpath)
 
-    return this._git.commitProject(relpath, `Added ${relpath}`, () => {
+    return this._git.commitFileIfChanged(relpath, `Added ${relpath}`, () => {
       if (!_isFileSignificant(relpath)) {
         return void (0)
       }
@@ -279,7 +279,7 @@ export default class Master extends EventEmitter {
     const relpath = path.relative(this.folder, abspath)
     const extname = path.extname(relpath)
 
-    return this._git.commitProject(relpath, `Removed ${relpath}`, () => {
+    return this._git.commitFileIfChanged(relpath, `Removed ${relpath}`, () => {
       if (!_isFileSignificant(relpath)) {
         return void (0)
       }
@@ -663,6 +663,10 @@ export default class Master extends EventEmitter {
         }, cb)
       },
 
+      (cb) => {
+        return this._git.snapshotCommitProject('Initialized folder', cb)
+      },
+
       // Make sure we are starting with a good git history
       (cb) => {
         return this._git.setUndoBaselineIfHeadCommitExists(cb)
@@ -848,6 +852,10 @@ export default class Master extends EventEmitter {
         return this._component.fetchActiveBytecodeFile().writeMetadata(bytecodeMetadata, cb)
       },
 
+      (cb) => {
+        return this._git.snapshotCommitProject('Updated metadata', cb)
+      },
+
       // Build the rest of the content of the folder, including any bundles that belong on the cdn
       (cb) => {
         logger.info('[master] project save: populating content')
@@ -860,10 +868,8 @@ export default class Master extends EventEmitter {
         }, cb)
       },
 
-      // Bump the semver in the package.json and perform a git tag
       (cb) => {
-        logger.info('[master] project save: bumping semver')
-        return this._git.bumpSemverAppropriately(cb)
+        return this._git.snapshotCommitProject('Populated content', cb)
       },
 
       // Now do all of the git/share/publish/fs operations required for the real save
