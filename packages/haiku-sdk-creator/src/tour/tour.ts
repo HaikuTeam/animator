@@ -12,6 +12,8 @@ export default class TourHandler implements Tour {
 
     private currentStep: number = 0
 
+    private isActive: boolean = false
+
     private states: TourState[] = [
         {
             selector: "body",
@@ -229,6 +231,7 @@ export default class TourHandler implements Tour {
     start(force) {
         if (!didTakeTour() || force) {
             this.currentStep = 0
+            this.isActive = true
             this.requestShowStep({ ...this.states[this.currentStep] }, { top: "50%", left: "50%" })
         }
     }
@@ -238,10 +241,13 @@ export default class TourHandler implements Tour {
             createTourFile()
         }
 
+        this.isActive = false
         this.requestFinish()
     }
 
     next() {
+        if(!this.isActive) { return }
+
         this.currentStep++
 
         const nextState = this.getState()
