@@ -395,7 +395,8 @@ export default class Plumbing extends StateObject {
     this.subprocs.forEach((subproc) => {
       if (subproc.kill) {
         logger.info('[plumbing] sending interrupt signal')
-        subproc.kill('SIGINT')
+        if (subproc.stdin) subproc.stdin.pause()
+        subproc.kill('SIGKILL')
       } else if (subproc.exit) {
         logger.info('[plumbing] calling exit')
         subproc.exit()
