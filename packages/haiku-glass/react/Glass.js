@@ -131,12 +131,6 @@ export class Glass extends React.Component {
         var baseMs = this._lastAuthoritativeFrame * 1000 / fps
         var deltaMs = this._playing ? Date.now() - this._stopwatch : 0
         seekMs = baseMs + deltaMs
-
-        //TODO:  the implications of mutating this directly vs. calling setTimelineTime haven't been fully explored.
-        //       it's possible that e.g. animating stage size won't work without some deeper hooks.  Calling this instead
-        //       of setTimelineTime because the forceFlush and other trappings of setTimelineTime are prohibitivesly expensive
-        //       for this when looped.
-        this._component._currentTimelineTime = seekMs
       }
 
       // This rounding is required otherwise we'll see bizarre behavior on stage.
