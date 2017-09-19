@@ -15,6 +15,7 @@
   "scripts": {
     "go": "yarn start -- --default",
     "setup": "node ./scripts/setup.js",
+    "changelog": "node ./scripts/changelog.js",
     "start": "node ./scripts/start.js",
     "finish": "node ./scripts/finish.js",
     "lint": "standard \"./scripts/**/*.js\" --fix --verbose | snazzy",

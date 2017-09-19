@@ -2569,6 +2569,256 @@
       "project": "haiku-serialization",
       "label": "fix",
       "message": "Dumb coding error"
+    },
+    "5122f49d4a4555aabec1dbc159e67add5e56b82a": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "My poor variable naming made ambiguity of 'maxf' vs 'friMax' cause scrollbar bug"
+    },
+    "ce1267a242696885fa4297606806d3687fe32bf2": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Need to check for git statuses which might be empty if no changes recorded"
+    },
+    "2c02bc30ead944f7027cbae5572632c0c83ecead": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Bad interactions between concurrent file watchers and save process"
+    },
+    "4e787f20cd9b304242a5df9f3ed21116e4560a59": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Saving flag"
+    },
+    "b7f55b32ca57fbd4e0c1051d0b3da189d5796d5d": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Code copy mistake"
+    },
+    "52cc25834726c411cea1c03ccf87dba743339975": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Add 'yarn go' for starting up with sane defaults"
+    },
+    "4bb182396705e716b15982bb5c2639a24326e0e8": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Player compilation introduced unforeseen problem with dom-embed snippets"
+    },
+    "15b508becb69e89f9f6bef7c5d139e60576b27a1": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Opacity wasn't being set correctly but not sure what changed upstream to cause this problem"
+    },
+    "3c202c91a93da3ba2792b3bca0956f8249ed928c": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "For tests to succeed, need mock mode check in this method"
+    },
+    "6d3f5d5b436af3d3a333309cb37dd2e7e7fcecb5": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Add closeConnection method to envoy client"
+    },
+    "c5ebc962145f3fed8e149cea52c4d035f8d9491b": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "loading multiple projects under the same plumbing session broke playhead positioning"
+    },
+    "4a7e112edc459f142734737cc40320b92f50cb0a": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "undraggability of timeline horiz scrollbar when position indicator was on top"
+    },
+    "f73d40cd663e9263c78ce661a70ad586f69c2209": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "prevent publish popover from jumping when finished"
+    },
+    "41f908fa6a561dae2cc3c636b3197659e3875d0f": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "scrolling on library & SI"
+    },
+    "d192e55f3948564a011356eda549b13e98c3d688": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "tooltip arrows on expressions"
+    },
+    "ca5d23f21645244e95d235f5b8eec04852669d06": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "I munged the playback logic during a refactor"
+    },
+    "2ca32764f75f9a03cc588d37be6f30b0686e2c86": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Stage transform wasn't working at certain frames due to lack of rounding...probably some player weirdness"
+    },
+    "4f4b28e58c60c0916708130cefec733096eb6d77": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Envoy client needs the host and port specified since it's dynamic"
+    },
+    "bf9ca1eef8963fb7acd215112c2788ec3c343c3f": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "README update"
+    },
+    "3118fed3213e676e97cb86c9ee52a09f8d2bc0a9": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "When using yarn to run npm yarn ends up setting env var that conflicts with npm's"
+    },
+    "6fd387e844be7e88aa01b70a1f9747a8be479f4e": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "watch timeout for zack's slow machine"
+    },
+    "b8262f20ea3f0b092424a99b62d35fe95edf401d": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Scripts take branch and remote into account"
+    },
+    "aaf9b1bd6be949188e6c5f7fd98ab73b3411a324": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "remove haiku-sdk and refactor everything to haiku-sdk-client/haiku-sdk-inkstone"
+    },
+    "5bfbf59cae06ad6e45bff47b964bb1803e34f151": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "auto-inject version into CLI banner"
+    },
+    "72215a94b6e72b531c17e9c9e25697b9b7e4f6ae": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Script stuff"
+    },
+    "c440b109eb9bda89db793a37436f35f00d56dcad": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Missing step to finalize script"
+    },
+    "dcac1c4558d8937688b2c4f8fbd6685d18494c25": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Script improvements"
+    },
+    "25dfb4bc4e9eb20470f286e73149c856eb2bb177": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "More scripts"
+    },
+    "b00aa3d50d6a422cef4193055100c3c090de8790": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "try/catch bundle thing"
+    },
+    "e1876b73fa4c55db57638294afa00b41eff80ab0": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Typo"
+    },
+    "08b8e3c20b1467ebe040e1a96c1a070c955e11cb": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "README"
+    },
+    "973ae92d21ca93d9d019d6926e358022956d3825": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Use different start command"
+    },
+    "3cc350a3237a4ab7b25e13ee649d8ad1657a6ce7": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "README update"
+    },
+    "d5598a5654f18eb57c8cdcfb6805a54f0d51153b": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "mono:sha-norm 'error"
+    },
+    "fd568606401ccb0d7f984ef83795f692f457b4d7": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Typo"
+    },
+    "e10b468c4192a4c17c1ecd732055c372fc5bd0b5": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "(hopefully) mono:npm-install maxBuffer issue"
+    },
+    "ab318a8cb7b6b62f712faf0ec1515add78ea447b": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Show color in dev logs"
+    },
+    "15c5e3805eb1711e427a41fdb85fdd67a392c191": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "npm publish has to be run from the haiku.ai dir, not the parent"
+    },
+    "00d3b327036abb42c2e2be383377f4a65c69fb4c": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Add mono:git-diff to package.json"
+    },
+    "7bb92a943af7062925ae40909e23e2a26528f925": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "mono:git-diff script"
+    },
+    "2095d4a33f9a4f274452a0665ad33d04f16c53c8": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "mono:git-push"
+    },
+    "268ce953a94f57bf23cf91b5832c5f00d4208ddc": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "npm link only actual dep graph and get working"
+    },
+    "8810d6592c8af04413befbfba364b569159ace33": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Scripts must be sync if expectation is that they be sync"
+    },
+    "5dd234e2c43864d7201969e571eec00d6666c851": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "add fast-open project"
+    },
+    "1eb8f0664053281580096abff73bb11430a0eb6c": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "make btn layout aware of browser fullscreen"
+    },
+    "a79a37ec325a50ec60668847b472b640f28052d8": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Script to bundle creator"
+    },
+    "dd1062a2d82a56f59e39b9c89b4865c5d63d1500": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Dep graph based sha normalization"
+    },
+    "53574c71a1447e37a65934f0a6639c77cbff8dc9": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "git checkout"
+    },
+    "e1091e79f2b9f5ca71f776030c09fac18764d696": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Path lib"
+    },
+    "3707e7658dc6df0951855180739771a15d83c21c": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Tasks"
     }
   }
 }
