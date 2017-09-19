@@ -53,8 +53,11 @@ function TimelineModel (component, window) {
         instance.getEnvoyChannel().seekToFrameAndPause(id, 0)
       }
 
-      instance.on('timeline:tick', (frame) => {
-        Timeline.emit('timeline:tick', frame)
+      instance.on('timeline-model:tick', (frame) => {
+        Timeline.emit('timeline-model:tick', frame)
+      })
+      instance.on('timeline-model:authoritative-frame-set', (frame) => {
+        Timeline.emit('timeline-model:authoritative-frame-set', frame)
       })
     }
     return instance
@@ -73,7 +76,7 @@ function TimelineModel (component, window) {
   Timeline.prototype.setAuthoritativeFrame = function setAuthoritativeFrame (authoritativeFrame) {
     this.lastAuthoritativeFrame = authoritativeFrame
     this.stopwatch = Date.now()
-    this.emit('timeline:tick', authoritativeFrame)
+    this.emit('timeline-model:authoritative-frame-set', authoritativeFrame)
   }
 
   Timeline.prototype.getExtrapolatedCurrentFrame = function getExtrapolatedCurrentFrame () {
@@ -149,7 +152,7 @@ function TimelineModel (component, window) {
       //   }
       // }
       this.currentFrame = this.getExtrapolatedCurrentFrame()
-      this.emit('timeline:tick', this.currentFrame)
+      this.emit('timeline-model:tick', this.currentFrame)
       this.raf = window.requestAnimationFrame(this.update)
     }
   }

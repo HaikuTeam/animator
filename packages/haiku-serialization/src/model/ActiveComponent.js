@@ -86,9 +86,6 @@ function ActiveComponent (options) {
   this._currentTimelineName = 'Default'
   this._currentTimelineTime = 0
   this._timelines = Timeline(this, options.platform)
-  this._timelines.on('timeline:tick', (currentFrame) => {
-    this.emit('timeline:tick', currentFrame)
-  })
 
   // Super hack, but it turns out we need to have this in a LOT of places in order for routing to work
   // and not end up with infinite loops of events emitted, captured, and emitted again. Beware!
