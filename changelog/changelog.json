@@ -1,0 +1,2829 @@
+{
+  "2.0.101": {
+    "2fc3426f5dd0ebd4e3d1eea439920b4ed731ffb4": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Fix transform issue with svg instantiation"
+    },
+    "7828fb361d86ef0d67b870048ce20fc2c672fec7": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Handle case when path d attribute is blank string"
+    },
+    "ec226efaa44a13ed5937fe99e0eedfc5f92a6780": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Fix keyframe delete but and add unit test"
+    },
+    "7eb01262c2b62b49ed0a68bcc70cd28812aad6be": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Handle layout.shown since this was moved outside of Layout3D"
+    },
+    "b43dc4ba3b91fa9221839ef039c07a1a7600d945": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Add overflow properties"
+    },
+    "218aef2771fa3c28e00e02b7953113f99af837ad": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "keyframe move issues"
+    },
+    "3045e9b7532a5fb21253ef8d7ab448c9581969ab": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "moveKeyframes impl"
+    },
+    "274791a2b2c0e3d6a8f055567d07cb3a84800752": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Fixes to logic/guards on moving keyframes"
+    },
+    "c3d3a0907cb7132447d287bdd05d24bce441bad1": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "No false if invisible, we still need the transform info"
+    },
+    "22d3a580fbe3574172a9be9ab5e6cb30b62e98e4": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Let body be dragged past end"
+    },
+    "8d75fd3f7e56f46816cf386e854a64d51c739759": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Don't put a bunch o' nulls in"
+    },
+    "edfb03e53f3b7871a06af85bdc97f9ae3e23189b": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Let end segs be moved"
+    },
+    "5352380d1d2300106e32a188d1a55893a3b8da15": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "If no parent size, that also means invisible"
+    },
+    "828e9e133bd4a330d2b7d9d819784ec23d2b95c4": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "controlFlow.insert vs. controlFlow.placeholder"
+    },
+    "5e04b489c8ac977f2418f9684c02bcf19d45402d": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Make sure we re-write critical values if a full reflow is requested"
+    },
+    "400a361a9785bd624a27b4b3d8295ae3f599e8ad": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "No idea how this got in here"
+    },
+    "786a71ffbe498d0090532672f9a3a128d03a373a": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Tweak layout3d case when there is nothing to show"
+    },
+    "8c49ff99b6a9e4fdb13498c655a98b98650bdcab": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Drag keyframe by index instead of key"
+    },
+    "d5881c8dc6a3455210db3bc3235979456396e74a": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Try the preceding and current value instead of falling back to null"
+    },
+    "d8b3c49aa1212eb183e1b63afd4f740124c11b8e": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "More specific return value when nothing is to be shown"
+    },
+    "a6d72a0af70c645d70177394a4ea5c284b964289": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Keyframe is an obj not the value itself"
+    },
+    "82519d6796155d9e65d86cc742d65bdfdfcae2c5": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Check for null since those come in over comlink"
+    },
+    "42ef09a0db432c59eb8d2009ef59d41c9fc2bd39": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Guards on missing properties"
+    },
+    "3db3b54258f82621ffb41eb7292b5f08e39b45ae": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Method"
+    },
+    "ff42b21b640951f3d2af5950c35876f3f110fd29": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Check for presence before prop access"
+    },
+    "7bcdcee6048bf0480b9e393656e336f75e0c91b2": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Get svg points account for group in fallthru"
+    },
+    "fcbdcdd5b20734a798dc413bbfe66ce4906956cd": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Method to return points for a mana node"
+    },
+    "4c84a004ff52dc02fb4b50a29924d4b25efd80e4": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Use new scope-check method"
+    },
+    "700a125c9ceba04a8fd68ba5bdd60e9ad75886c8": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Lint/lang issues"
+    },
+    "8bc64e1170a06a785dcab9e5756dd5d37052bcc9": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Use transform attribute, not style, when in IE and inside an SVG context"
+    },
+    "e3d7be443f41bcfa71066d530505cd1617dc5750": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Don't overwrite style values that were explicitly set upstream by the renderer"
+    },
+    "297599798195c7faa8e59b3f1bc8ad00df573e7c": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Refactor updates and fix Firefox rendering issue"
+    },
+    "ceeec221c4ba89114bcdae785b9b2c501b88687c": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "style is inside attributes"
+    },
+    "20422ff8eadbbb5a6fb4086efeefdbf8d966e597": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Include all svg el names, and include style in svg schema"
+    },
+    "8e467f33f9a48fa089a52eb0a338b0bd7373653f": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Don't use shorthand schema, use the full one"
+    },
+    "2f44b91b0552ca034e514f9e4e81655ca29b4297": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Don't overwrite valueInCurrentContext if it was passed in"
+    },
+    "86ec5c7398dcc7094fed81375488dafacb5c5f65": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Set actual value in current context, not just the fallback"
+    },
+    "3cdc99440f41a26a2a530160de72aeb3f19e41aa": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "offset/rotation fixes"
+    },
+    "998c7773a3cb1101c5572c58d760f11e17557b99": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "rotate(n) refers to the z-component"
+    },
+    "3e7466268be08453d0e26454be7369a8a3eb9d67": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Don't return undefs, accumulate values, fix tests"
+    },
+    "85d087f25a5f462f39e8d49ef8ec261631f94b14": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "maybe make rotation-z work"
+    },
+    "13b6056f6a8d536dec2c43dbef61730c6d840fa6": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Keyframe edit that doesn't clobber other metaprops"
+    },
+    "7edfda5aca5f341e5b9cfcb5ee1405445f6631b3": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Ignore explicit quat - fixes z-rotation"
+    },
+    "e1dca32daaa60558f898a5f064286bc4a797a340": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Use haiku-title as display name"
+    },
+    "f83d01b8b43b5520122abfd285e49375a0bc88bc": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "npm link only actual dep graph and get working"
+    },
+    "e4a6384deaa30cf2e70a0da83ed938a8b2c6bb71": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Object format"
+    },
+    "344c20f11a76c1425bb3b07c17ee8f20311e0322": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Numbers can be negative"
+    },
+    "3a8ee042dba34a8a729cbb04fdba3ecc7ac97de9": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Add transform parse to attr remapping and add test of it"
+    },
+    "5c123165618d47b72d819f80edcf617aef549805": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Naming was wrong"
+    },
+    "8506128bf290fea13de301c2d54115b8f38fb0b9": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Method to flexibly parse CSS3 transform strings into usable data"
+    },
+    "256d559e0dd2ec3e7f8fe44b6bf34492dfb8b3a7": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add some simple doing-work indicators and tweak some messages"
+    },
+    "e0637c22c703d9f42a5ed13a8610e95d13721423": {
+      "project": "haiku-cli",
+      "label": "fix",
+      "message": "missed paren"
+    },
+    "831a56fea10b46dd07566692e41834827148927b": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add CLI method to claim invite via SDK"
+    },
+    "ecc56c34f1d6b3143af2e6f21098c48f31ab7ced": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add CLI command for checking invites via SDK"
+    },
+    "803daf724625f7ae5601ec0e924838e705ee56ef": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "on haiku install, create project-local .npmrc instead of at ~"
+    },
+    "8b896cfd01e743fe05180d3addf002b76e0d8e09": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add await-share wrapper over SDK"
+    },
+    "e13cd80ceebf1414750e8b3067cb8c60ba7f8c45": {
+      "project": "haiku-cli",
+      "label": "fix",
+      "message": "wrong undefined check; would misleadingly show success message on failed auth"
+    },
+    "26fc2e9fba6badef12b493520b3278f8f879e39a": {
+      "project": "haiku-cli",
+      "label": "fix",
+      "message": "prepend haiku scope definition in user npmrc instead of append"
+    },
+    "281296b3ba4e5d0bf7852661fdf7c499d458d4b7": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add diff-tail command, to see code diffs using CLI"
+    },
+    "2c2d1eaf683a3a15309bb7e4c0feddcf1bc0f1e4": {
+      "project": "haiku-cli",
+      "label": "docs",
+      "message": "very basic CLI help banner"
+    },
+    "30b684aa020f9d6d82a083f82193941986eb00c9": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "support CLI project delete"
+    },
+    "40cc0f95372532c28f47d3613afc849a034bda4a": {
+      "project": "haiku-cli",
+      "label": "fix",
+      "message": "build"
+    },
+    "8b6f99c20101340d47f29f4b1b8c8b3125f2b563": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "support basic haiku update/upgrade"
+    },
+    "4a9e8040c70daadc76001a87c0861bd8f6edf2a5": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "haiku install release candidate"
+    },
+    "3109b4a05bba0f670b0cc9ea8a5041b9d5788b17": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "functional haiku install ProjectName"
+    },
+    "6fd27024f24176e04b77f8c7b615a3f88835cac8": {
+      "project": "haiku-cli",
+      "label": "fix",
+      "message": "merge, package.json"
+    },
+    "bed8debfe01e5392d372679718aebace7af7593b": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add undocumented organization listing command to CLI, bump SDK SHA"
+    },
+    "da898171b0b827a429bb4c704f9be45a66dc5a18": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "support haiku clone projectname, with modest error handling"
+    },
+    "3b4ec5980c627501cbd41b75391dd96bc9ba9b0a": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add prepublish script for npm integration"
+    },
+    "4c6d1debeb56b71604f6b968162379054907e765": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "npm scripts for dev, build (extremely long build time), install"
+    },
+    "272c69372bd7d849ebc6bdfcd775a73885ea9622": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "prompt for folder overwrites; support verbose logging"
+    },
+    "22d1ec65ce5f2dc9db00e9611994d8af102fba25": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add basic project creation command (not really intended for end-users yet)"
+    },
+    "8a086121029d695dcde5236c18f79b9ea510b096": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "peel out SDK, load as external lib via git"
+    },
+    "b205ad0d17848e07e3be7e58e90a3f1c4241924e": {
+      "project": "haiku-cli",
+      "label": "fix",
+      "message": "handle undefined auth tokens, make git subtree happy about paths"
+    },
+    "78f9f19d887bafad29d75960dbb0f300844ed41d": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "get git HTTPS credentials from API and store with config"
+    },
+    "3d3702c0b40d13b373c0892fdce7e3628c9be9b1": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "hook up project getByName to API, start to hook up to import"
+    },
+    "bcde388e6a9ab154a1578c71b5e8843644058bda": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "implement passable project listing CLI command"
+    },
+    "c109aa09fd6b548f0aba07e3944e14d968804157": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add project list method to sdk"
+    },
+    "fdab36bff139f9838d4e97b9166852b3b4bc814a": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "implement logout"
+    },
+    "cba44921648a7e0bbef0e6e0f63f762ee6d5603c": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "persist auth token to home directory; support retrieval via SDK"
+    },
+    "45f7b69670ba9ed119f5892353ab72dca82a16e0": {
+      "project": "haiku-cli",
+      "label": "docs",
+      "message": "tweak"
+    },
+    "432447caa045923eb5823521d26667038ef25d4e": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "implement login prompt and API call"
+    },
+    "9be39050f655aff893a6c788e82cd43ce8f192ed": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "initial commit and typescript setup"
+    },
+    "fa31d66b1a705284f8fb5314429d117f2877014b": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "Add keyboard shortcuts for cut/copy/paste to the global menu"
+    },
+    "372e67105faacc2916790912a8799fc17fa7e489": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "quit for rookies"
+    },
+    "174ac4b99f80eea956a90decceb6444c9fd9aaea": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "(inception) skeleton state for asset loading in library"
+    },
+    "50eeb2acc277b2d1f68b2cee178af7e53a43457b": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Allow save/publish to work even if no unsaved changes"
+    },
+    "86d1ed94ba8e2005cf0b3450f44e4fb363ffba4d": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "Inform user when update is ready to install"
+    },
+    "4aee8a783d357e3eb97923768e5fcf5cfd632ecf": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "moveKeyframes impl"
+    },
+    "eaa505771c7a66ca579d551b140f7c54e010aafc": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "disallow copying share-page link when loading"
+    },
+    "05d49a7ee8455588323ebce6d6248865cf7e1811": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Track add'l auth data including org name"
+    },
+    "8a9a2070e09faddbed05ccbdac76dd96fbc0c23f": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Check for snapshotData and use safer flow if error comes back"
+    },
+    "c7d4229ec1185120f55723d89b469f0f9ee5e723": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "more spinner fixing"
+    },
+    "556a296961e63d8276c51f97398797b4b5d8e623": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "loading project spinner glitch"
+    },
+    "d306d334fd89ee521cc18d49dd8c1f5ab2e46cd7": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Disable native zoom"
+    },
+    "35b09b995790038bf0be2f03137a508a1c9eeec4": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "Fetch project info when stage title bar loads"
+    },
+    "915ca8a598127499bfee7b8c5ace7e6ecb5fc91e": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "hook up inkstone share link to UI"
+    },
+    "35720eb7b3e5aee49ff2d88eed383cf7147df807": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Close window when if plumbing is dead"
+    },
+    "097183ec66f59d0584b19647da729a482b64c5b3": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "add ui for savestuffs"
+    },
+    "59902c835e5a6330407383a550f291830b1e932d": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Access websocket"
+    },
+    "8f0491c730986b20cdfd7ceb459ac3a0b165a0eb": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Correct ws url spec"
+    },
+    "db3a62ffb3da3a4960cd72971f46b50dd1fc6286": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "EULA link"
+    },
+    "5daa686d6c9c31d20c85f85ceff5e62ddfb19a41": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Not prop, state"
+    },
+    "2273dd9bbc5ed50b5658a3392a6d2f25ba4ca56e": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Save button"
+    },
+    "c690be6d907365c390902c75904ad5aedbdde9d9": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "three different setState react warnings"
+    },
+    "6005ba6e15578658a2d7cd398c9dc6c792f81150": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Correctly create asset list so asset preview updates"
+    },
+    "bcc2d42fb67d6063bff85c61d21f459381e68e94": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Back to dashboard arg (typezzz)"
+    },
+    "ba3cd7bbbede000e0745a4c5e0689617abbb179c": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Toast needs access to notice removal function"
+    },
+    "8d982e011972635e878972b14752896dec70836f": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Pass explicit (and correct) props"
+    },
+    "93b354333d8eddb4c576d66cbad20eda9c282c75": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Check if app is already ready"
+    },
+    "9135f294773e24e0335cf875dd0f81d7706daeb3": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Pass the correct folder arg"
+    },
+    "e653915c7de7e1ba5d38d9a973f89de93604bf67": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Box size to avoid gray bar"
+    },
+    "5397df8335f914f5900c65f0288552d35355e1a3": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Top-level keys seem broke? Use combokeys for refresh, quit, etc."
+    },
+    "a06ebb77c847d13013c2ae1052f3753a135f4d35": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Pass folder so loading existing proj works"
+    },
+    "742e2b7dc317d95cb460dd191ca892e0dcbf5b3e": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Modification to glass webview setup"
+    },
+    "cae268f8b0277a243cfc86a45fd7a28a4f6e80ed": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "don't lose mousedown when user accidentally leaves stage; remove asset drag&drop for now"
+    },
+    "7b05663eba2d660fe8e76317a1b932cac88f78de": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "electron-vibrancy as a webpack external, also update build"
+    },
+    "ef5b20627cce6576193dcb4f9ecff1ff997dc667": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "add vibrancy to non-bundled file this time (ha)"
+    },
+    "5309251be9fe5995552619c9e0ec6162fa5be987": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "Refresh element when element has been changed in webview (for selec control motion)"
+    },
+    "a683a4c63119cb57065ce9f127859d84e4aebb48": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "reinstate background blur"
+    },
+    "d9793472026127be1cd0578b1fde5ae0c556bfe1": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Debounce 'reloadAssets' call that can happen many times when Sketch files are gen'd"
+    },
+    "bcf57654fa06e91d786e9889f42e5dc310f5e219": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "Pass position metadata to instantiation call"
+    },
+    "c09964ca779d627b3e62a51aadd9a78308c66bd1": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "empty state project creation and react className warning"
+    },
+    "3ec104f4fd5bcdb7db2c80c1aaf5fe98b9f406dd": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "basic events hookeruper-er"
+    },
+    "75c4b58c8ed2f29e524905da2a932059f943bb80": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "Hook up actual error sources to toasts"
+    },
+    "a30395ab72447865f4a28e240694f43a1666ca24": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "reimplement top-level toasts"
+    },
+    "de53f7c16010008f521d656df55c77c5d5a8fe05": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "light theme support for notifications"
+    },
+    "522d405ccd29ed49d5a5a2c569c6e0207eee3c70": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "error from missing argument"
+    },
+    "1196c1c03a951693a5afcb447dddf0b13e79528b": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "make btn layout aware of browser fullscreen"
+    },
+    "0ae836c6ce0c1d4e71927e68e4dfd05cff476a68": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "some rotation math"
+    },
+    "b1d0d23dc5bf1397ea37633cdd88b9392571cdb2": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Fix big preview so it updates when the design does"
+    },
+    "5fe0b73c48cedc6af7ba02618f1adf6adb05ec0d": {
+      "project": "haiku-creator",
+      "label": "fix",
+      "message": "Avoid dupe keys"
+    },
+    "bf30f3432b02e11e311f16995c20b84eaf9d689b": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "add zack npm script"
+    },
+    "107cba2cff4df603e9603649b9b2ac624eb26e8d": {
+      "project": "haiku-glass",
+      "label": "feat",
+      "message": "enable a visually active glass state"
+    },
+    "83b6144beead5ecb9f187eea8baffa4baf1b1f0a": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Artboard goes crazy issue"
+    },
+    "81c0cdc2ce2a67fe50768d66bad1db8aef25241a": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Path"
+    },
+    "2fdfa580b256ca4e8daa4ee6fd8445a9c5033768": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Unset other control states if we did a ctx menu click?"
+    },
+    "8e480d9a7150d223f70a1cc1d810fdd00807da44": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Compat"
+    },
+    "4158b45e31ff00133e8cd6e19b01a99dd89cb4a1": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Don't allow artboard to move, period"
+    },
+    "67bb1851377e846aa5c89066be5367462c863035": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Use property size instead of computed size for closer artboard sizing"
+    },
+    "7fcdd044cfcc12ba61894c5141d4a85e7180499e": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Remove testing style"
+    },
+    "ffa7ff8265b045692f76fc2cfce5dc43641bc1b5": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Account for inversion when deciding cursor for control point"
+    },
+    "898204333740734bfbd1d7ed42bf995dd79a504e": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Click outside artboard should deselect too"
+    },
+    "b12128e01e370fd213fcaafd69cb37885075eff7": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Use actual rotation when accounting for scale"
+    },
+    "a4ffce2849bbb21a26d81f7c99a239c34c9989c2": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Change cursor per rotation"
+    },
+    "aae18138863616a27bbffc5fb0402aa2e86070d7": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Rotation handle should remain when moved out of the hitbox if rotation is continuing"
+    },
+    "13cac384f5c2c34b005a41a96b1be769d0e4fd26": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Don't deselect after transform"
+    },
+    "c2012409231cb8b85c840f0d1163d7db7af9a20a": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Scale becomes rotate bug"
+    },
+    "80fee5d3bd54b43cde9d758f6d00bccb85445fda": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Hide edit source"
+    },
+    "7421ea10b6c4f01f405204bf0b13c4b145fbbf97": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Select element upon instantiation"
+    },
+    "f63b322842df1533f54a008441c348ac2dd7ce0f": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Ensure only top-level svgs get selected for now"
+    },
+    "eb8186c73d2076acb2a79d827248f7c69c0d732f": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Prevent rotate/scale of groups until we write the correct logic"
+    },
+    "dedd7b18728e9c8de16c70ec12b6dff684268c3a": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Prevent artboard rotation and translation for now"
+    },
+    "83507037734917b17b20075f8a503f123e8f515d": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Deselect others when artboard is clicked"
+    },
+    "ef7bd5c4c94a34728ef1b9a43ba0e9089f0a4d8d": {
+      "project": "haiku-glass",
+      "label": "docs",
+      "message": "Add some comments regarding a few scary parts of the code"
+    },
+    "fed00e22d5d471349c06b55ff1d5e3a08183e530": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Remove api signature needs to accept metadata"
+    },
+    "8e378bf344d5d629df865cd50f94c8b8c52a21df": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Transmit artboard size update when it is resized"
+    },
+    "cece321a3db89bb256b1d7aa05c34260eaaa96ed": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Track which elements were selected previously to reduce websocket sends"
+    },
+    "329aa6d7f6728c9791e9d93ae3eed02207123018": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Artboard should reflect new size after code reload"
+    },
+    "63c3fb1359f00b4eb1d2d92d376493596485b17c": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Use extant method"
+    },
+    "3694d2d4799d5e638a0ffddc3c80e398e364db69": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "rotate & scale controls were unclickable behind comment box"
+    },
+    "fd669c7aec1d93897738f209d87f6a1202efa683": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Don't throttle this action (this doesn't cover all cases but at least fixes that instantiation issue Taylor had)"
+    },
+    "b33b267aa19aa2151f4a1ff4004e7cac473c3e52": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Clear max cache on update"
+    },
+    "4268595ad0e5687e1026152d839fb0d5b38ce240": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Another player cache to clear on hot update"
+    },
+    "334c39bf279daa6fd3b820838b456fde2ee8b655": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Don't throttle some cbs because we end up dropping callbacks"
+    },
+    "703dbdc24c3ce93c60adf767e0f31bd7e80f3cce": {
+      "project": "haiku-glass",
+      "label": "feat",
+      "message": "make off-stage elements visible"
+    },
+    "d64f3df9a657d4ecfd7138f3508ca6e87ec00053": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Clear caches when component is instantiated"
+    },
+    "54ffea9d5b9fd5d6010b3db318355216e9eadac4": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Selection/deselection pointer coords need to be offset by mount position"
+    },
+    "f8d65a794540555946e92798ddc49627b559991c": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "occasional stutters in scale and rotate logic related to react state lifecycle"
+    },
+    "13b89fb29f96730036b73cd9a47814cb4689f3d8": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Start runner after file gets reinited"
+    },
+    "a0f2e76a7fea0bd9dd3e631378c46867313f85f3": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Make sure bytecode gets basic initialization in the hot component context"
+    },
+    "ff07e425a54e6276d395fc8d97a494adf77da126": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Typo"
+    },
+    "af1a686156f5f5fe95420bc706795ed0d5560bb9": {
+      "project": "haiku-glass",
+      "label": "feat",
+      "message": "support stage resize in Glass"
+    },
+    "6b06368a5f81522ac8705bd570658e5d7c744396": {
+      "project": "haiku-glass",
+      "label": "feat",
+      "message": "hover, click, and display logic for stage transform controls"
+    },
+    "43434a2faeed6ca0840fe46b5c45139ef45697f1": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "adjust for stage position with selection marquee, also disable marquee for now"
+    },
+    "6de7ad306a36510507576d4f7b126baaa3e45252": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "updateTransformOverlay logic"
+    },
+    "aa6114bf4b994b70e832257b1708636a2d67ed61": {
+      "project": "haiku-glass",
+      "label": "feat",
+      "message": "update transform box as transforms occur; make cursors respond to current transform"
+    },
+    "8c7c8adc4d9a3b862a1848a731cd328603df4214": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "allow scaling from corners"
+    },
+    "d9044dbcf5dfac462e935be8987df3d77570a064": {
+      "project": "haiku-glass",
+      "label": "feat",
+      "message": "account for rotation when scaling, also only scale correct axes when scaling from edges"
+    },
+    "0e3286045aefb85af3e389f619c58385994d91b0": {
+      "project": "haiku-glass",
+      "label": "feat",
+      "message": "make transform controls stay expected size"
+    },
+    "53a849b0fcbac6a7f95eb67cb551dfd92eedaee5": {
+      "project": "haiku-glass",
+      "label": "feat",
+      "message": "transform the transform controls with the selected element"
+    },
+    "f65494ba82f101ff9190dc9b17a4bc4c750ad74a": {
+      "project": "haiku-glass",
+      "label": "feat",
+      "message": "Notify other views when props update (for minions)"
+    },
+    "6349f8ac1ddbb22bb6e344877719492a714817b4": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Access the property by the key, not the property named 'key'"
+    },
+    "5807a454698e8f6ef56b3971430df422d39d7849": {
+      "project": "haiku-player",
+      "label": "docs",
+      "message": "Quick instructions on running the player repo"
+    },
+    "5546f3c6c919f81024be7a554690e0e3100620ec": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Clone element so new versions can be correctly compared (for removals especially)"
+    },
+    "f4b40884aa554dda3e34c9980f0ed5c74c9e8c4a": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Allow options to be assigned later; fix 'shown' handling in layout"
+    },
+    "660ca634e48821e79abc802d7c0b85d92e61574d": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Ability to forcibly override the position and overflow settings of the root (note"
+    },
+    "af3a9efd3adb7cdc74153045f482aa1cba0d0a2a": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Add overflow settings"
+    },
+    "efc5a7eea72e1e494a0437f08fab42e142f81545": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "context menu position when target is on a larger-than-one-screen-size page"
+    },
+    "654daefdc9eb79c5130e05033db3ba033f9bb0b1": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Public API for isPlaying and getting events re"
+    },
+    "a6f27baaf4b2ea69f3139c3804497c25ca76ac2e": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Indicate invisible but still return a size"
+    },
+    "e9faa67eb3b39e4971cbdf77552033b3f91174c5": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Tweaks to rc menu"
+    },
+    "29c5ca2937870271901955319a88759029d4cfce": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Timeline time methods"
+    },
+    "730630852e02de3a07ee7b60fe16d95bc44e8aaa": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Share link stuff in right-click menu"
+    },
+    "a408c498c9f385755278674efd89653edc4be45f": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Modification for more correct (?) placeholder feature"
+    },
+    "0acc23fbcf1ad14011a99f94b433feb6401b24d7": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Timeline API MVP"
+    },
+    "42fb1ff774e0d3975e7f3cebdab21dc178120356": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Apply layout after attribute updates so cleared values get re-et"
+    },
+    "6b2b2181f3cffdc8643bb57cd2e827a32b504473": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "If computed layout isn't there, that signals invisible"
+    },
+    "0aab7e928583857cbb7986f1eb9e54c196732c58": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Initialize tree before patches too, otherwise deep access may fail"
+    },
+    "83627500338ea2eec381179b34e6472007eec53b": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Don't clear on patch (hack)"
+    },
+    "ea09322412ecfa4f67807dd72cc10429d80baa70": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Why can't I have no kids and three money"
+    },
+    "f844b8984802d2ee3be0effc1dcac96d32cd8e07": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Remove old attrs/values on each run"
+    },
+    "5903eaa26e4e849a2e379c787f71d8ff5084323f": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Put replaceElement here to avoid cyclic deps issues"
+    },
+    "1efd71e53f94d1a6bbe5e13cf10ebb5063e9ac2c": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Allow a modifier function to replace elements on the fly"
+    },
+    "da7dd36c558d3468cf071d9ca42148686dba9edf": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Allow a modifier function to replace elements on the fly"
+    },
+    "827c688c39e752cd641cdf40828a679a52d88de2": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Assuming/autoconverting event names leads to bad props passing thru"
+    },
+    "c4c9f2ea10cc3d45042b63b965175e4b2a86a55d": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Add demo of gradients and masks (frag ident issue)"
+    },
+    "52d86035285068d6802e311317b49eb7bb88d33b": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Some lifecycle events for the programmatic api"
+    },
+    "2843f682b1e5264fa2295601b878e2c8239a5274": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Use better scope method to fix IE issue"
+    },
+    "2ab355c6ac9ff499a67ac2ed905f12edb672daba": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Use method for assignment to current scope el"
+    },
+    "850a72eac6c358c5387af499da24ab9b2687153c": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Pass platform info thru to the layout applyer"
+    },
+    "5af165f69358ee5cc34cbdd8899fc00c95dc17e7": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "A few platform/device check methods"
+    },
+    "f668729952737e170f3617eeea5af6a659a4abc2": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Instead of stopping the clock for autoplay, pause timelines - allows top-level layout to be dynamic without recalcing the whole tree"
+    },
+    "d0f9711bff805c70bde56886986d20331162efcf": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "In patch mode, we have to change the 'scope' on a per-patch basis"
+    },
+    "ef81c530f27900b25c541872131744d406b91d75": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Sizing mode from programmatic api"
+    },
+    "98dc670406d1f505f9d35563e62c2a580c7bf29c": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "React bundle needs to be standalone"
+    },
+    "11eb0666239b9ab9dd6c4700ad6df890e924b462": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Whack a mole"
+    },
+    "08a7085491817a0da110fb9e0ead92c65657e23f": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "If time is in control mode, use that value no matter what"
+    },
+    "46254b13391ec9b9d0d0c255eb4926b9125d74d4": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Jumping outside timeline's domain should use the bookend frame's calcs, not the last visited frame"
+    },
+    "468db48f6974936d7ee0cc7e425cd2ed8bba6738": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Looping"
+    },
+    "93068448fb0aca81b95c7f0d3c4d1c6b36688b48": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Refactor some random things and fix Firefox rendering"
+    },
+    "3d9fb3d5c1e2372eb00d42502ab5e4941682be7e": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Fixes and example showing programmatic control of default timeline"
+    },
+    "b4b6e8d826068716421a2d2b27fc6417f31dc547": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Programmatic api"
+    },
+    "4c20ec5dcb8033a15a42901095ea5f1424acd6d4": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "On second thought, this warning doesn't make sense until we can inspect the schema"
+    },
+    "9ec757ce0ea1cd67b78166853c766f762f0d2af9": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Check for NaN, not falsy"
+    },
+    "297be7eab7401deb7870d84fd6becd4fe9fd34c7": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Remove log"
+    },
+    "3d16e609a4df70d2ee8382dfd00ee27f3a93ec8e": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "xlink inline image"
+    },
+    "d5c386c351fcf36aa2238a8e311bbd5a66c01ac6": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Registry isn't needed in here"
+    },
+    "d2b001396eb36d31d2e27660d8480422180e6541": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Caching and some teensy optimizations"
+    },
+    "a37830d02bb6743243c3d77cfd465d726b907171": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Stop timeline (except Default) when time reaches end"
+    },
+    "a803d724e8fa62df87bd1e78b15ba87da08626ee": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure layout prop for all elements, not just those we happen to match via CSS selection"
+    },
+    "6dcf3b67401e9a51a5c10a9d4e8284c357f188a8": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Check for null before accessing node property"
+    },
+    "dcde8bb4341b504cc007e3ddd5aa55fc34bff7a0": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Lost timeline time update during refactor"
+    },
+    "d67a442588bf06fe8ba719df480eb91e4fb2e3fa": {
+      "project": "haiku-npm",
+      "label": "fix",
+      "message": "Standalone bundle"
+    },
+    "12c43ec962f023025769180c705ec7e9ce3a5190": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Make sure the bytecode's metadata gets assigned immediately when it is generated"
+    },
+    "3fe2da3ca9acb192e2596d098dffd91f6b28d4aa": {
+      "project": "haiku-plumbing",
+      "label": "docs",
+      "message": "Add some notes about plumbing program flow"
+    },
+    "8fe6ac79202d70708a9c2664f2ff288d6f3a6d3b": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "Handle fast undo/redo and undo/redo during component reload events more gracefully"
+    },
+    "d778ca1a558e87ffc9374fb024912faa3d3e3225": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "I think this needs the npmrc"
+    },
+    "b5f4cc25ee30fea1749951fcddc097128d2fa867": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Adjust gamma so opacity is consistent across browsers?"
+    },
+    "b2f8b6976171fbd8fdf9efa2db4557e9d72b9781": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Hold undo until commits/saves are finished"
+    },
+    "aeb31a73b578e642d1ad0cff6801f032329a8f44": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Still create tmp folder even if no contents"
+    },
+    "e9523594adb0a3548fa935379f208dd31b13c785": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Dumb logic and add log prefix"
+    },
+    "151ad9e5bef4c16a8d0846587cd2aa50848849f3": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Add time padding on mod replace back before pushing, and move in-memory globals around"
+    },
+    "4928eea8cbbf5c4214855733bf6febaf9c47dae7": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Clear off add'l ephemeral states in master process"
+    },
+    "1ceb7e7635d6572a7ea256f4c7f9a4401933f5c0": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Add paths by index needs async handling"
+    },
+    "d46203d2e06d932e91aa89ff419bf91d8652ff51": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "masterHeartbeat method in MasterProcess"
+    },
+    "01b814e2525f1c3324360edf01d32b7f2c228ae9": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "masterHeartbeat method"
+    },
+    "dda5f59ddd7516320122b409b734966c95761581": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Move npm i into forked proc"
+    },
+    "ba92853b1b9c9a64c7ed6d53ae25592b17fc6578": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Use actual npm client instead of enpeem"
+    },
+    "3fc5b37984926977a6bf104eefc35602275aee29": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Return error if we time out waiting for publish"
+    },
+    "92b3232abb1a13f9395a872fd0324890bc1b3456": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Clear old subprocs too"
+    },
+    "b9aa308f85260bb96cfb3bdf4fec580d1e65bec1": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Semver bump so hard reset via semver works"
+    },
+    "dc97ba1fca72b9f8c137acbdab154d0ab5f7187b": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "moveKeyframes impl"
+    },
+    "e7a84b248620f3ef2f22862680cfd5c6b326db68": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Remove log"
+    },
+    "e99c6ec90de0e5439031d175ac089f610db3d11d": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "Endpoint"
+    },
+    "47eae01d39234502b62a39f5082cfdad5eee43c9": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Master needs to know about the merge despite sending it"
+    },
+    "7837c020e6052cef7d45487a71665e6d79ea11a9": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "support dev API in MasterProcess"
+    },
+    "7661192681d4086384553a882ae6bb16e53bfafe": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Path normalization issue; also added many logs"
+    },
+    "eddc6e91a1b56f56fb08f26eb27dc2e5b232935e": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Extra data provided in auth hook including org name"
+    },
+    "5ef2e0910cbce57b23e182d7dbcce2341990014e": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Use folder if passed explicitly"
+    },
+    "f5bf2db448da105d75ef71e025f7fcc3bfc1f4f3": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Don't send this method to creator"
+    },
+    "69c49503cea28ec00a3ea3d9489773f9ba122f0b": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Correct params for merge design"
+    },
+    "f001840dc6d783b542159ad56cc43773ce72d1c4": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Comm API update"
+    },
+    "01064966333c3ee688fb21d12d3c3cf8963a90d3": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Wait longer and log share info"
+    },
+    "9f9bc49c8d80bb3982f05470f5be6946385ab5bc": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "Harness for running 'migrations' in users projects"
+    },
+    "dc65e010e90673017a310bbbca0e146e94f4d74f": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "Project info method and add metadata to bytecode on save"
+    },
+    "ba4cd135059083d4fa209071dee584909dd8ce58": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Actual method names"
+    },
+    "860cb428147409f0501c2e315349169514aa2070": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Need to track subprocs so we can reuse them"
+    },
+    "89129beaf2bd04c574a99be7643a678d594f3145": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Missed callback"
+    },
+    "a1cbd05e93042bd5bb9b2329f4112fd651d8ee52": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "Create standalone bundle on save, prior to committing&pushing"
+    },
+    "0ada01938ecaabdc21bcf7b47af087f466d6504d": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "hook into inkstone share link logic when saving project"
+    },
+    "ae7b676d308cc9a056f0b3fb009605a67ed974e7": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Try logging error when master crashes"
+    },
+    "c9da98694f38a9a456369bf5fc22b50a10768d28": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Folder abspath"
+    },
+    "26c99700dadbd6c20d3c8057b4891d59eecda294": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Don't transmit to glass if not ready"
+    },
+    "6d760d9f4d7cf54df707f11639d2034ef2c9304b": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Cached require caused overwrite of edits to package.json"
+    },
+    "5e568edf4b4f612e5135c6b699ea04940c36ba9b": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Only code reload if the change occurred from fs"
+    },
+    "551487dcd3e9f3644d017adfe8163efb3e062d8f": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "npmignore .haiku folder"
+    },
+    "0f8c0370c083ce7f8ff72b404afdd42a4b2c80f2": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Install bundled CLI executable on startup"
+    },
+    "85a455938dfe47a1689f7003609b41a771cc4569": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Add cli executable files to this repo"
+    },
+    "68fff79442610f184e57730ebf19f7b3119236c0": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Reinit the bytecode after the file is ingested/re-ingested"
+    },
+    "bcb1d8be6cd4f7bb575df5233def26c930289821": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Ensure logs get written"
+    },
+    "9b3592c2d2ad61251fb321e447d994ebd8fb2f5f": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "Ensure interpreter caches are cleared when necessary; cache dom nodes"
+    },
+    "ffaa1024364a318c96f486217462bcc88dac20b2": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "Truncate/snip the diff logs"
+    },
+    "155656356574311463fd287c2ad497bc91102187": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "Log colored diffs when js or svg files change"
+    },
+    "c4d344be1c4233a6c8ecbd57df29501c4d40186d": {
+      "project": "haiku-sdk-inkstone",
+      "label": "fix",
+      "message": "target es5 to make other build tools happy"
+    },
+    "99b50b7ec34b3aadbf734afe6559db0a15b0861c": {
+      "project": "haiku-sdk-inkstone",
+      "label": "feat",
+      "message": "pass preset details with invite status check from SDK"
+    },
+    "3963af363506bdc7ce5121643ea88c029953e214": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Make sure pasted elements' reference urls don't collide with ones already on stage"
+    },
+    "38fabf52b6071bb5ff62210502cdd5037e232124": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "resize from center when alt key is pressed"
+    },
+    "d40b3db525d7cb6fab885eaf0b27605a0cb511d2": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "support resizing from edge instead of center (need to fix rounding error)"
+    },
+    "86c9fc73f1e7cf1d9d854c8791096cb544792602": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "support proportion-constrained resizing on edges"
+    },
+    "2bf8b25f7d75399a0a68be008c163dddc9de24d5": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "support shift to constrain proportions on resize (corners only)"
+    },
+    "b98922aefb6cd609933ec7cb4326fe30099b98ad": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "SVG elements can now safely contain xlink:href='' references"
+    },
+    "7911c8d4b38ec1d7422706c567861eb90adc72eb": {
+      "project": "haiku-serialization",
+      "label": "docs",
+      "message": "Quick description of hoist attributes method"
+    },
+    "4aadff8b73dbf20e801decf90f92fa62f36dcfbd": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Use new attr hoisting method with correct layout calcs"
+    },
+    "8be8556a4b0a538a794b6e18b146f1680940f883": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Ensure bytecode object pointer on subsequent actions is correct"
+    },
+    "134baa89d554abb2fdb3ff6cb30574e5816ee092": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Prevent clipping after module replace"
+    },
+    "9bb48718e02e7fe4cea537f54c5133c841785579": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Use computed, not declared, property for z-setting to avoid undefineds->NaNs [HaikuTeam/mono#5]"
+    },
+    "30e038889900998334a60cd9e111931003a57a32": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Return context size always"
+    },
+    "93b8fe3ee4b72d33f05d30dec11987c380b4a099": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Context size method"
+    },
+    "72242bb3c222dfe026243f8c849bb84c116cfddd": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "moveKeyframes impl"
+    },
+    "eb6fb709ced29c51a738cad1ccac8e638a9a3a92": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "Endpoint"
+    },
+    "b9e38f8f6f617812a2aa86b180544ff330acf807": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Missing callbacks"
+    },
+    "a2c386c712a5585d8e0b9f264542031fd5f4a343": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Load prop val at time"
+    },
+    "1714b01b7022c386d9e81f31791406ef7b3a925a": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Vars missing"
+    },
+    "2368346bfbd9e824c15e62c2de53308708e4a70e": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Add missing aspects"
+    },
+    "980f717d3fdcba20f17bee6144388859ce8381f2": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "Write metadata to bytecode file"
+    },
+    "f6bd16ec102e815f293cbc14bf3e380fa3e7eb30": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Move segment endpoints accepts keyframe index"
+    },
+    "7d490fb38c25a3c9d9c8c66f395eb6a20d8abf2c": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Quiet websocket request logging"
+    },
+    "12a31b3c2c12cc1ae229240d102f92a83c92905f": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "API"
+    },
+    "219051fe03bc3968f0b99916beb4a9c58eead12c": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Fix gradient and mask clobber issue due to id collisions in Sketch's outputs"
+    },
+    "48334ffba9691e3c1eff2dbbb128c52b60fed739": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Gotta set size mode on the context (artboard)"
+    },
+    "366f20611f4d864bad024aa86f457b17b3868f80": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Wait for writes to complete before reading, fixes crash issue"
+    },
+    "faaff7767260221cd5c640e3c39d8d38b5f9cdf3": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Not default"
+    },
+    "aa60789c96ee3effa7e704ba3d234ba3aea3f1ef": {
+      "project": "haiku-state-object",
+      "label": "feat",
+      "message": "npm link only actual dep graph and get working"
+    },
+    "38ed839cd417be8a834ee3f0b3c7e8219ca09331": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "increase input by 1 or 10 on up arrow"
+    },
+    "3f1c0713af10784d0b5f3d367c5b29d0539e3a53": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Remove merge conflict lines"
+    },
+    "867ba3913d2e639a9af115b4bb25a3be912ac9ae": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "enable visually active timeline state"
+    },
+    "3966ab85f9340dcb45d08e72618b68e31b3a394e": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Disallow overflow settings until we can depict it in glass"
+    },
+    "f53991b4358ed976e1bf41e07ec6dfa04dda8e0a": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Only children, no grandchildren [HaikuTeam/mono#4]"
+    },
+    "573753d09f4de25e967eda297232c3a1595a896b": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Allow more than 10 rows to display [HaikuTeam/mono#4]"
+    },
+    "0e6bf9f1008158df9d620d3cd9c535d5044039e5": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Remove bgcolor until supported by expression input"
+    },
+    "134db83c31080d41f5c59eecde1e264979973691": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Remove all caching for now"
+    },
+    "971becebc58b5e3db410f718bad2376b86e0a43a": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Correct ms for removing a tween"
+    },
+    "5a47e19a9fe4b9ee67c70807e056ce6a06c495e9": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "remove wip scrollTo"
+    },
+    "1a03eb6e6b8a6d4759462370c8a635b4fe3dd457": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "allow strings in certain inputs; show custom errors"
+    },
+    "f7277e09fcd7fec027d75ae37c0cc819325ff04c": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "make hover selector more specific"
+    },
+    "8fc8f38e26c94492123f7b8ddea5a04643bcf5f7": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "show inner shadow on timeline if not a horz scroll 0"
+    },
+    "1e5c32e6dc5ec963e92ddbd359f620ef74f9995c": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "active color logic"
+    },
+    "689aca095a0dea4e57ca9b9aecf4f7613f6359ca": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Unset cache on certain updates"
+    },
+    "961f231a08ec98c51f9c00fc43f53553a865ed5c": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "active seg borders and label color"
+    },
+    "da4b21442c67a0603592d314371fa13b1c9763e3": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "don't show duplicate times in gauge"
+    },
+    "53e9b76b91ce20524e531d5a01feb5c515c26f80": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "visual issues with alignment on horz scroll"
+    },
+    "0603571fe6a6cc99e0aadc96a74d90e5766fafb2": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "input visual issues"
+    },
+    "1de3c25f96b4dee73657703ce176ff35ac099514": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Compat"
+    },
+    "5347adfc6169a23544c9de48bb1bbc3d098f54c4": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Disable native zoom"
+    },
+    "84cf6e5494498217a5f6ffaa3dfc6382495845d1": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Make pixels line up"
+    },
+    "0132baddef0b99a014cf71133316f7d885df29cc": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "add input NaN check and simple evaluator"
+    },
+    "a71108b4cf02d6786da210ec8f3cf8e5607e478d": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Math for playback speed"
+    },
+    "669ae50fa068f095039cb28e1da9d91702d10942": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Playback speed meter"
+    },
+    "23d5f7cf0e7d7426c1829a158e317414e42358f4": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Caching was broken during playback"
+    },
+    "f5c1e764b00842f5ebb154fe6cbc763155ff1526": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Send correct frame when updating time in glass during playback jump"
+    },
+    "f50e6a815f2752a9ede973730454924240d64936": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Put scroller in own div to prevent scroll-down bug"
+    },
+    "30ba58d5304353bf9c1ad8514aa771e3e6e1d1ad": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Don't show keyframes on top of gauge"
+    },
+    "6f1551d3bcf9f66325dd535e146f96a8b292b58d": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "show duration in segs on hover"
+    },
+    "6443607df9436188e78189cb849a68827b7aa824": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Targeting keyframe 'pole' ctx menu"
+    },
+    "8ac45c96cd37b51d1c718e99b79f3fb92dffec59": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Minion activations"
+    },
+    "b3c8fe550b5d5ec058cac6181bc57b674f1ea8cc": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Scroll to selected node"
+    },
+    "ed7c8d4f5d490846932236c31b63a89197f102f6": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Right endpoint must be offset when someone moves the scroller quickly to 0"
+    },
+    "502e5717d5dff7a285bde3ceaa660c2d7a25bab7": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Humanize sizeAbsolute.* prop names"
+    },
+    "5f4621c0d54cefd4bdaa6f4688f32dfa6d0a284d": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Let component heading be clicked to expand it"
+    },
+    "0780d7a2670c48040ba5bfbdf664d066bc4460bd": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Prevent visible overflow of collapsed heading seg"
+    },
+    "68cd38542951ac4360a992a6b6eabb535a81bc10": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Playback skip-back state change ordering so scrubber goes back to beginning"
+    },
+    "37d0e8675a0ebdf759d2cbbf53fe9305db1a4e92": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Better keys to fix render glitches"
+    },
+    "c4e3887b94f3435062cee7b9181b618f8f5c0220": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Need to check for NaN in case of bad data here too I guess"
+    },
+    "7b99125c1ea36b6cccf2f94d11866a731e51a421": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Calc the correct thing"
+    },
+    "1598276488d2225a1fcdd3d02d4fe7f1a0e32478": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Check for boolean-ish strings (Does this belong inside ExpressionInput itself?)"
+    },
+    "9202504827b5d8f25154554ce050ba904018a2e4": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Use round, not floor, so keyframes get set at the right place"
+    },
+    "f1ed6a6629b5da5bb147c526f3a10fb11a18d005": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Set expanded on top level after comparing the trees so the setting doesn't get lost"
+    },
+    "e483c637d549bf83c0520eddaa037d637013f6f2": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Ensure preloaded bytecode fixture hydrates correctly"
+    },
+    "e38e92ea03502b9ae0d11112f0c78b3bf5192067": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Track whether an input is focused to avoid scrubber motion on key arrow movement"
+    },
+    "3c87ebce5154c8ac9b7ebb93abfa3f9aeda2e8d3": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "Expression input triggers focus/blur props if passed"
+    },
+    "4597af58e08f2571983c1c4e09f5d06c81caa2aa": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "Collapsed segments in component row heading"
+    },
+    "0be74d4f11e1253752b6cbafdf6eaaa56d897503": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Make this list of keyframes the same as the list used by the bytecode mutation method so the keyframeIndex is the same in both places"
+    },
+    "dd8d8e7f378667e20f7936ca863654ee4bab59bb": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Lock keyframe create to nearest frame to avoid 'invisibles'"
+    },
+    "02f9c284e7e7449cb3a8a99ed4bd17c846ab536b": {
+      "project": "haiku-websockets",
+      "label": "feat",
+      "message": "npm link only actual dep graph and get working"
+    },
+    "d3c09c81b57183e764483c0d5b0aa1151aeccfa6": {
+      "project": "haiku-websockets",
+      "label": "feat",
+      "message": "isOpen method"
+    },
+    "7bacfb30abe574be619b756d508537931287b7ae": {
+      "project": "haiku-websockets",
+      "label": "feat",
+      "message": "Add 'broadcast' hook"
+    },
+    "7537e6f4c2857ebbe6b66e607985494d7df8b76c": {
+      "project": "haiku-websockets",
+      "label": "feat",
+      "message": "Basic client reply ability"
+    },
+    "f42b39d6d2aff9e73f0b2539df476461d3742b93": {
+      "project": "haiku-websockets",
+      "label": "feat",
+      "message": "Enhancements and a test"
+    },
+    "99158130c72037e17d2835359afa866609f7e71d": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "Testing that changelog generation works"
+    }
+  },
+  "2.0.102": {},
+  "2.0.103": {
+    "ad8659db1d3467e56b0af9c85e6f63655dceda23": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "rounding error when resizing from edge"
+    }
+  },
+  "2.0.104": {
+    "717a8d811dbb0aaa66543c57b1b98888e39b7ddc": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "resize from edge when element is rotated"
+    }
+  },
+  "2.0.105": {
+    "02670312d9e052ba4df5f9f851f86fef840f3d4f": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Fix on-stage transform perf regression"
+    }
+  },
+  "2.0.107": {
+    "5b9d21be8ea2e0b6253c533853008713c729c886": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "don't use browser bounding box for scale calculations; refactor accordingly; make resize work as expected for various axes"
+    }
+  },
+  "2.0.110": {
+    "83a0d41305d66d68526b531713bba8cda0046cae": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "allow shift, alt, cmd, ctrl to be toggled partway through a transform"
+    },
+    "fe94fdd4bd7f0cc40015acb32d98188541e02eba": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Address memory leak from POC code on the player public API"
+    },
+    "54c17c74a1a0b116cd99a2b5be92f529e3c21a92": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "clipping on context menu"
+    },
+    "4181c27100cc48dd7dd7cf0023deea63149a2d70": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Pass in the clock time for correct calc, and format comment on guard condition"
+    },
+    "1e986f3781e02058278db9380af02458b245874b": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "snap rotation to increments of pi/12 (15deg) when shift key is held"
+    },
+    "e1f25bcd409eb7bd02d35d7066a1290ee20a75fb": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "Allow code expressions to be written inside timeline property input fields"
+    },
+    "8633cfc46378a5c911e24accaad3461660a3d8f3": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "better add-frames control"
+    },
+    "c52252eecfdac1bfd97e835c29a952aaaed0a1b0": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "duration trim overdrag protections"
+    },
+    "19bb944cb72a73362d579bb853f97492b1eefebc": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "trim duration dragged pixels"
+    },
+    "680703112914a8df5f714a8a5e70749e0b49470c": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "prototype timeline duration adjustor (warning bugs)"
+    }
+  },
+  "2.0.113": {
+    "aa74bd1816ba6a64800c2ae118d95d8409a53555": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Callback needed to be fired here or the queue wouldn't finish in plumbing"
+    },
+    "d19aee1cb9fdece334620c32325d81cd4a1c0da3": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "add frame grid"
+    }
+  },
+  "2.0.115": {
+    "c2217cc003f22ed165d4bdc9543ed7212a61f403": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "dragging for keyframe segment ends"
+    }
+  },
+  "2.0.119": {
+    "6e0a2a723b62b3dbd0f8cbdf8e8ae54e6d16388e": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "instantiate elements where expected when zoomed"
+    },
+    "b365f073e8a1643d4a1a9a1a5ce34fd8515fed17": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "dragging elements should only go as far as mouse cursor when zoomed"
+    },
+    "445dc5a3236e67cc15bf7dcdbd11dce8a9241b76": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "keep control points and lines same size across zoom levels"
+    },
+    "3c85a00178570f96c649273ff91fb4daaa5542ce": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "add sizing cover support and center sizing contain"
+    },
+    "d8478ba590f9a919b96ae0f66c5ba24218024cf6": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "instantiate elements where expected when zoomed"
+    },
+    "3dd982ce374d71084c38df9ceb95d5b2dfe875cd": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "scale objects as expected when zoomed"
+    },
+    "ef9c6e34ba4aac7d053b1f599a094d9c6ef604a8": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "don't apply margin 0 auto to root element of new projects by default (breaks sizing logic)"
+    }
+  },
+  "2.0.120": {
+    "38a3b621cb20b346fb79218fbd71567ee5870423": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Fix perf regression and use clipboard module instead of element"
+    }
+  },
+  "2.0.121": {},
+  "2.0.122": {},
+  "2.0.124": {},
+  "2.0.125": {
+    "a0cc4ac3b33181865d9ea2e43957075f2b61750d": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Don't start timeline when initialized, and modify API via changes to transition/machine handling"
+    }
+  },
+  "2.0.126": {
+    "687ad666fcc4cb504dd5ab6f53d37106f7264047": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Make sure org name gets set and fix package names we detect to be wrong"
+    }
+  },
+  "2.0.127": {
+    "ed3366bd2ca071691b60aa3a449ec9b5ec048fcc": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure sizing='contain' and sizing='cover' modes work correctly when the element is resized"
+    }
+  },
+  "2.0.129": {
+    "28f110f1d955306ede0bc09a47d71150342baa30": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Clear cache after creating keyframe so timeline edits to existing keyframes update on the first time"
+    }
+  },
+  "2.0.131": {
+    "4e00cc35de152ced1e9f39b46b120c73c6818dfa": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "When component rows are expanded, select the respective elements on stage"
+    }
+  },
+  "2.0.132": {},
+  "2.1.0": {
+    "4bf1f08b3b8dffff743d21dead511d70285af5a3": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Fix bug where undo/redo would never become available"
+    }
+  },
+  "2.1.3": {
+    "e7fd7c4b50c6ede48469709e231738dc267c5d4a": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add cli command to change password"
+    },
+    "d2e9bb66709c1c8eceb0e472a9bf28f9a5684cab": {
+      "project": "haiku-cli",
+      "label": "fix",
+      "message": "misplaced process.exit"
+    },
+    "bd804152aee17a8a935e670f5b84aa948706a911": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "Rename 'haiku-interpreter' to 'haiku-player'"
+    },
+    "be961e0f089c4ee602bea31af73a2698bdc2a55d": {
+      "project": "haiku-sdk-inkstone",
+      "label": "feat",
+      "message": "add sdk method to change password"
+    }
+  },
+  "2.1.5": {},
+  "2.1.6": {
+    "4c83a74190becd88d35c6a7362951e7c0c045bda": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "My npmignore didn't re-include a necessary package"
+    }
+  },
+  "2.1.7": {},
+  "2.1.9": {
+    "f13d55e574b7eadd39c390a0f880cfce2249a3cf": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Implement correct change detection on contain/cover; may solve the performance issues on haiku.ai"
+    },
+    "9a5ab2ddcd3716b5d8f7bd70f36d770241d59815": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Migrate to our own simple parser instead of loading all of babylon etc"
+    },
+    "8aa6b7230b9b92373f0d231bd9e670a0d8ed846d": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "special handle opacity inputs"
+    },
+    "2c5315572b3039f6909fe7fda89a4003ee0b000b": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "mouseout state of const segs"
+    }
+  },
+  "2.1.10": {
+    "dc7bdd7b163c7e2b31b4206af9c7d6f2638a4078": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure React-adapted components don't pause prior to mounting the first time"
+    },
+    "e4ae788afcdf3b2d8d5d23d316b03fb3dc9634e8": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Make sure React-adapted components behave properly when un/re-mounted"
+    },
+    "02db0fe47acadaaf8fbb439c407b5c93ec6a789f": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Files were missing from the npmignore"
+    },
+    "1f189fb441ba5375e5bb9bbd1b3becfcf295e00d": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Fix problem causing failed updates when teammate's work has gone ahead by multiple tags"
+    }
+  },
+  "2.1.11": {
+    "a9eb123a423d3681bd74045829bd7c637dad6ee7": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Fix issue with bundling when loading a legacy-constructed project"
+    }
+  },
+  "2.1.12": {
+    "a5f66d66648ffaab17595791e72a9353013e02bc": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Plumbing now correctly locates an open port"
+    }
+  },
+  "2.1.13": {},
+  "2.1.14": {
+    "b6f99a13b45d99f9a3f6ff27490504b9b8a3d08f": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Fix bug preventing states from being reassigned during react render"
+    },
+    "2ffa7b9fd52c86516b7847cae712bda604aaf367": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Fix problems re-/mounting React-adapted Haiku components when new elements are fed in"
+    },
+    "47e1af400e96a6bf1f0f0b8bab4faca45420f23f": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Load orig source to prevent webpack complaints and 3rd-party bundling issues"
+    }
+  },
+  "2.1.15": {},
+  "2.1.20": {
+    "2f88eff4001db834bfa15152c6e94848dc96ae6a": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "re-enable visibility of elements off stage"
+    },
+    "c580177f8b9c24fec0250d76f06bd95a96c348da": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "show the bottom of the timeline without clipping"
+    }
+  },
+  "2.1.21": {
+    "a76aa03056103bf050c4e98866c7f20ebae42267": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "hook into sdk-client's setUserId when logging in from CLI"
+    },
+    "fde882e58e8d919cd685e16d46dd0668fb9ea6cd": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "v0 State Inpector"
+    },
+    "3754e5d47b6c1b28d558de82c9c4b71e25c29d6d": {
+      "project": "haiku-creator",
+      "label": "feat",
+      "message": "switch library preview to inline; remove replaced code"
+    },
+    "784319263344b334bdb71a59807f380b3b662f70": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Reifying a reference object needs to handle already-reified functions"
+    },
+    "4c541e4f08a22f39aafb42b0437e00c1fe436b59": {
+      "project": "haiku-sdk-client",
+      "label": "feat",
+      "message": "update auth logic and include userid getter/setter + fs persist"
+    },
+    "e722d85f8103da7b65aa98f14906878cd5b24fc4": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "Move parseExpression logic in here for easier integration and unit testing"
+    },
+    "ebde07cf67c0dc28a960f14f1d311d4d738b2375": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Naive check for 'is this an expr' should be a bit less naive"
+    },
+    "6b25362cf27eee40f5f533e71a5a76f152a99721": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "show both keyframes active on pill drag"
+    },
+    "21c7007008fd1af05706d1e8bd08f091e820286f": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "color blade with gradient on side of keyframe active"
+    },
+    "9ea8740f9dbc1ad7fabe462bea38210d269c98ea": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "highlight keyframe being dragged"
+    },
+    "7f5ea1f416326b753271df7d18a97b6e35922150": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "finish tree pruning"
+    },
+    "b09acb79c786154b37d09b387cfb190467d5f8f3": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "less broken treeline"
+    },
+    "780651a419b9f8d7a59c6f24277b546a5197fce1": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "Component name truncation"
+    },
+    "398dc414d1c9580684f77ac5fe3418059e4b12b0": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "starfield bug"
+    },
+    "d8317002804802cb7b17741a243e1de36f16636b": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "collapse property carrot"
+    },
+    "da3d0a65e0df8995bbf506ee646bcdaee97e0357": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "better blades"
+    }
+  },
+  "2.1.22": {},
+  "2.1.23": {
+    "664e1a023be22242e68c4c5ff053ad5b0420003a": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "Fulfill design merge request before reinitializing in-mem bytecode in master"
+    }
+  },
+  "2.1.24": {},
+  "2.1.25": {
+    "9269a9382db29b0aca1962607fadd105b8e558de": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "This fixes the drop shadow issue"
+    }
+  },
+  "2.1.26": {
+    "7eeb0f3b983e6950a067cdf235e896da30d848cb": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Don't cache on the function which is shared"
+    },
+    "f3ad66bb9e99024be284ab4d93ec57cff379d885": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Dumb bug because of shared template object"
+    }
+  },
+  "2.1.27": {},
+  "2.1.28": {
+    "3781bfe8a97c5addd3a6fec77738d11897f2f545": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "When ids change, we need to completely replace the existing DOM so SVG url() references update"
+    }
+  },
+  "2.1.31": {
+    "c43b57f46147567e442b5d4388f25434e9315279": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "At least better handling of overflow logic"
+    },
+    "56ea10c52c79e9fecd8bbb238c82525eda0e3a0e": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "gridline and trim-area heights"
+    },
+    "d62be2e409126c98c81b7616eb35303ae115ff81": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "remove shadow on 0 visible range rather than 0 scrubber"
+    },
+    "a7d638d05fd4405732d3a26a210eddbfa46bbeda": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "show/hide timeline scrolled-in shadow on arrowkeying"
+    },
+    "a2198784603477fa937146ccb874b7242c5cf8dc": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "shift+meta+leftArrow moves time to position 0"
+    },
+    "e7cc4b087b0a13be7f4a517ab266cacdad330a25": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "easeOutBounce and easeInOutQuint curves"
+    },
+    "18fcdd91295b9a3a0e015ef4bfbb8963c8f82d64": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "prevent incidental vertical scrolling on scrubber drag"
+    },
+    "bb677ad4aa2b86b1d22b02c3a6c80deb8653e6ea": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "container sizing for playback speed dail"
+    }
+  },
+  "2.1.32": {
+    "e3fa3bd41efa8c055de8a12fda8f5f7b8d121b2d": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Make sure we can use controlFlow.placeholder with React and Haiku elements"
+    },
+    "5e0789b02d940c4e7b921e38410d376ffaa83497": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Placeholder with nested Haiku in React"
+    }
+  },
+  "2.1.33": {},
+  "2.1.34": {
+    "6fc8579b78e8aaf1955a5ab53fc7059d487ac344": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "When doing the type check, don't make the classic blunder"
+    },
+    "b5f0ee11dc4879668405c3d860847578db379c92": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure vanities are correctly applied to placeholder elements"
+    }
+  },
+  "2.1.35": {
+    "83dc2db764d31644e1cdef007dbb3a425e6c74f3": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Apply transform as attribute if browser is IE or Edge"
+    }
+  },
+  "2.1.36": {},
+  "2.1.37": {},
+  "2.1.39": {},
+  "2.1.40": {},
+  "2.1.42": {
+    "050374667abfddb4e52e2a9a030652b37303fe38": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "update user.mouse on scroll as well as move"
+    }
+  },
+  "2.1.46": {
+    "b8e351a7450a5c3f949869e12bdf385f67452ba8": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Handle case if no children and use ES5 until we add tooling for ES+"
+    },
+    "538bb723e1111070a263541f1eedf0d709fd28df": {
+      "project": "haiku-plumbing",
+      "label": "feat",
+      "message": "npm link the project after installing npm packages"
+    },
+    "d952a3392b872add6ab09e394c6ebfb262db548e": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "ast manip to normalize bytecode file according to destructure-fix changes"
+    }
+  },
+  "2.1.47": {
+    "fd8b0c59f9fd1ffcb1f5641d5e037c13039d43fc": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "npm link throws EROFS when running in Haiku.app"
+    }
+  },
+  "2.1.48": {
+    "3f7cebeafce96749f4fa7653cecf69cd2f7ec97b": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Load the actual function not the player's handler wrapper"
+    }
+  },
+  "2.1.49": {
+    "20d35f23303066bbab5bfde37f8a6fdd45795475": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "make overlays render on (almost) every frame instead of using an on-demand draw loop.  fixes control-rendering race condition and support for updating controls on transform; minor perf cost"
+    },
+    "69310285162e523c8c82d1ddcf159538c0c97e8e": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "overlay control race condition (hack, didn't dive into the source of the RC.)"
+    },
+    "0ae2e56966f842f65d898d4b4da44363f222ea2e": {
+      "project": "haiku-glass",
+      "label": "feat",
+      "message": "hook into envoy for glass playback and seek + overlay rendering; pause still has some funkiness"
+    },
+    "0cbb645812fb376fb5959490cd63099286cda05d": {
+      "project": "haiku-plumbing",
+      "label": "fix",
+      "message": "pass in ref to server for envoy"
+    },
+    "ad73e92ea1e48def49b99cd9162a0627670a172d": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "start to wire up event triggers"
+    },
+    "3c1323363274946b35c52c6af1dc4e4814f2d801": {
+      "project": "haiku-sdk-creator",
+      "label": "fix",
+      "message": "accidental multiple connections, test for events"
+    },
+    "28e12fdbdbe10a1d9b0dd4a5bff12e100638b8e2": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "add single/synchronous seekToFrameAndPause method to timeline handler"
+    },
+    "3f0212255ac6126ec6543527398c71dd902c8718": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "support custom log levels; fix perf reduction from constant log spewing"
+    },
+    "9e2c6a42c85813ed1396a9ea3fa9b9bfa8ab6071": {
+      "project": "haiku-sdk-creator",
+      "label": "fix",
+      "message": "loop closure, promise warning, timelineRegistry instantiation"
+    },
+    "0fe84293c17b7c82baa34a296622660344afb3f5": {
+      "project": "haiku-sdk-creator",
+      "label": "docs",
+      "message": "clean-up and basic jsdoc"
+    },
+    "5565111f39a09c21ab6c61cb54e1fd39d31fcd98": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "function end-to-end server/handler/client setup"
+    },
+    "4e4c37e97ebbb39aad9d77f3d1d0a05b46cdb5a1": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "get schema transmission working"
+    },
+    "625a675cd41af3c64f8cac203cc49b45fcb135eb": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "set up basic fs structure and ts config"
+    },
+    "dff5bba88a961ba5ab912f12bedfea5df158e955": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "merge boof"
+    },
+    "b17db530a916f35a3fd539c473a20e8a983a3ca2": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "pass envoy timeline client to Glass for playback hookups"
+    },
+    "06901fb3585e798a5cb5bf05a37d19605a963d66": {
+      "project": "haiku-serialization",
+      "label": "feat",
+      "message": "hook envoy timeline client into activecomponent"
+    },
+    "7c99166f8fad9eae2a77203a078555465bbbe2a9": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "merge issues for envoy + timeline"
+    },
+    "bb39b3e04cf4e26ce8a8c9f892451af26e76c31a": {
+      "project": "haiku-timeline",
+      "label": "fix",
+      "message": "seek logic, fwd/back logic"
+    },
+    "297379598a1265756e764f0d84914d1bbe338167": {
+      "project": "haiku-timeline",
+      "label": "feat",
+      "message": "keep local approximations of playback; use envoy as a 'time server'; reduce flood of requests"
+    }
+  },
+  "2.1.50": {
+    "9ca3fa3e9e7b138192556c2d3721e99009daf7d0": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "add sample TourHandler"
+    }
+  },
+  "2.1.51": {
+    "9f3c5502b8db7fa81077e0ec2b72136161147b36": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "set _currentTimelineTime with ActiveComponent so that transforms work at frames other than 0"
+    }
+  },
+  "2.2.0": {},
+  "2.3.1": {
+    "ebddc71039cc56810c9593fd092c21c99fa221a5": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Make sure opacity gets set and fix flash of placeholder default content when rendering in React"
+    }
+  },
+  "2.3.3": {
+    "f08f5bd77b794c470d1b5b1e63d50141852daa2c": {
+      "project": "haiku-cli",
+      "label": "feat",
+      "message": "add undocumented method for checking prefinery invite codes through SDK"
+    },
+    "a415bcf61cf2c5e5e853b598aa9b2a2074bfb42d": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "I messed this flag up, playing should be false to start or keyframe creation doesn't work"
+    },
+    "69e538e0bc162b44230597a508720e38fab0c35a": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "Make sure rotation still works"
+    },
+    "96ac924439e6e79f2758564bc54cb684e7a868c9": {
+      "project": "haiku-glass",
+      "label": "fix",
+      "message": "After refactor, need to pass component into render, not context"
+    },
+    "2534008a7f04ed05ad482872b80de479fefb0f01": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Make sure DOM node removal logic works"
+    },
+    "40e1f24779e0a58568280b6989a93b2be2b3c642": {
+      "project": "haiku-sdk-creator",
+      "label": "fix",
+      "message": "Default options were being clobbered"
+    },
+    "bfd602611f7ce306fb4cb98253022ef3b194b372": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "Remove closed clients; let server be closed to avoid leaked handles; add test"
+    },
+    "132b2515890d71ae9515ab573a833832e04326da": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "Add port discovery, more logging, and test proving multiple servers can coexist"
+    },
+    "df3851e481e015d79bfa988df496c63578cd721e": {
+      "project": "haiku-sdk-creator",
+      "label": "feat",
+      "message": "Add util function to retrieve an open port, and a smoke test for it"
+    },
+    "3ee16dc91daf0cd449f410e9b3917c8dd038133d": {
+      "project": "haiku-sdk-inkstone",
+      "label": "feat",
+      "message": "add sdk method for checking prefinery codes via Inkstone"
+    },
+    "6274eddcd1ad8aa844c3784aaa096c407c5d0470": {
+      "project": "haiku-serialization",
+      "label": "fix",
+      "message": "Dumb coding error"
+    },
+    "5122f49d4a4555aabec1dbc159e67add5e56b82a": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "My poor variable naming made ambiguity of 'maxf' vs 'friMax' cause scrollbar bug"
+    },
+    "ce1267a242696885fa4297606806d3687fe32bf2": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Need to check for git statuses which might be empty if no changes recorded"
+    },
+    "2c02bc30ead944f7027cbae5572632c0c83ecead": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Bad interactions between concurrent file watchers and save process"
+    },
+    "4e787f20cd9b304242a5df9f3ed21116e4560a59": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Saving flag"
+    },
+    "b7f55b32ca57fbd4e0c1051d0b3da189d5796d5d": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Code copy mistake"
+    },
+    "52cc25834726c411cea1c03ccf87dba743339975": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Add 'yarn go' for starting up with sane defaults"
+    },
+    "4bb182396705e716b15982bb5c2639a24326e0e8": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Player compilation introduced unforeseen problem with dom-embed snippets"
+    },
+    "15b508becb69e89f9f6bef7c5d139e60576b27a1": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Opacity wasn't being set correctly but not sure what changed upstream to cause this problem"
+    },
+    "3c202c91a93da3ba2792b3bca0956f8249ed928c": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "For tests to succeed, need mock mode check in this method"
+    },
+    "6d3f5d5b436af3d3a333309cb37dd2e7e7fcecb5": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Add closeConnection method to envoy client"
+    },
+    "c5ebc962145f3fed8e149cea52c4d035f8d9491b": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "loading multiple projects under the same plumbing session broke playhead positioning"
+    },
+    "4a7e112edc459f142734737cc40320b92f50cb0a": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "undraggability of timeline horiz scrollbar when position indicator was on top"
+    },
+    "f73d40cd663e9263c78ce661a70ad586f69c2209": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "prevent publish popover from jumping when finished"
+    },
+    "41f908fa6a561dae2cc3c636b3197659e3875d0f": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "scrolling on library & SI"
+    },
+    "d192e55f3948564a011356eda549b13e98c3d688": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "tooltip arrows on expressions"
+    },
+    "ca5d23f21645244e95d235f5b8eec04852669d06": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "I munged the playback logic during a refactor"
+    },
+    "2ca32764f75f9a03cc588d37be6f30b0686e2c86": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Stage transform wasn't working at certain frames due to lack of rounding...probably some player weirdness"
+    },
+    "4f4b28e58c60c0916708130cefec733096eb6d77": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Envoy client needs the host and port specified since it's dynamic"
+    },
+    "bf9ca1eef8963fb7acd215112c2788ec3c343c3f": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "README update"
+    },
+    "3118fed3213e676e97cb86c9ee52a09f8d2bc0a9": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "When using yarn to run npm yarn ends up setting env var that conflicts with npm's"
+    },
+    "6fd387e844be7e88aa01b70a1f9747a8be479f4e": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "watch timeout for zack's slow machine"
+    },
+    "b8262f20ea3f0b092424a99b62d35fe95edf401d": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Scripts take branch and remote into account"
+    },
+    "aaf9b1bd6be949188e6c5f7fd98ab73b3411a324": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "remove haiku-sdk and refactor everything to haiku-sdk-client/haiku-sdk-inkstone"
+    },
+    "5bfbf59cae06ad6e45bff47b964bb1803e34f151": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "auto-inject version into CLI banner"
+    },
+    "72215a94b6e72b531c17e9c9e25697b9b7e4f6ae": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Script stuff"
+    },
+    "c440b109eb9bda89db793a37436f35f00d56dcad": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Missing step to finalize script"
+    },
+    "dcac1c4558d8937688b2c4f8fbd6685d18494c25": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Script improvements"
+    },
+    "25dfb4bc4e9eb20470f286e73149c856eb2bb177": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "More scripts"
+    },
+    "b00aa3d50d6a422cef4193055100c3c090de8790": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "try/catch bundle thing"
+    },
+    "e1876b73fa4c55db57638294afa00b41eff80ab0": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Typo"
+    },
+    "08b8e3c20b1467ebe040e1a96c1a070c955e11cb": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "README"
+    },
+    "973ae92d21ca93d9d019d6926e358022956d3825": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Use different start command"
+    },
+    "3cc350a3237a4ab7b25e13ee649d8ad1657a6ce7": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "README update"
+    },
+    "d5598a5654f18eb57c8cdcfb6805a54f0d51153b": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "mono:sha-norm 'error"
+    },
+    "fd568606401ccb0d7f984ef83795f692f457b4d7": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Typo"
+    },
+    "e10b468c4192a4c17c1ecd732055c372fc5bd0b5": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "(hopefully) mono:npm-install maxBuffer issue"
+    },
+    "ab318a8cb7b6b62f712faf0ec1515add78ea447b": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Show color in dev logs"
+    },
+    "15c5e3805eb1711e427a41fdb85fdd67a392c191": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "npm publish has to be run from the haiku.ai dir, not the parent"
+    },
+    "00d3b327036abb42c2e2be383377f4a65c69fb4c": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Add mono:git-diff to package.json"
+    },
+    "7bb92a943af7062925ae40909e23e2a26528f925": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "mono:git-diff script"
+    },
+    "2095d4a33f9a4f274452a0665ad33d04f16c53c8": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "mono:git-push"
+    },
+    "268ce953a94f57bf23cf91b5832c5f00d4208ddc": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "npm link only actual dep graph and get working"
+    },
+    "8810d6592c8af04413befbfba364b569159ace33": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Scripts must be sync if expectation is that they be sync"
+    },
+    "5dd234e2c43864d7201969e571eec00d6666c851": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "add fast-open project"
+    },
+    "1eb8f0664053281580096abff73bb11430a0eb6c": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "make btn layout aware of browser fullscreen"
+    },
+    "a79a37ec325a50ec60668847b472b640f28052d8": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Script to bundle creator"
+    },
+    "dd1062a2d82a56f59e39b9c89b4865c5d63d1500": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Dep graph based sha normalization"
+    },
+    "53574c71a1447e37a65934f0a6639c77cbff8dc9": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "git checkout"
+    },
+    "e1091e79f2b9f5ca71f776030c09fac18764d696": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Path lib"
+    },
+    "3707e7658dc6df0951855180739771a15d83c21c": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Tasks"
+    },
+    "ba634f5b46b1c3ff3196934d7dfb7172b3392b04": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "generate markdown for changelog"
+    }
+  }
+}
