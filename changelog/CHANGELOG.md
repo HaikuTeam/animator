@@ -73,6 +73,9 @@
  * README
  * README update
  * generate markdown for changelog
+ * sort changelog markdown by semver desc
+ * sort changelog markdown by semver desc
+ * generate markdown for changelog
 
 ## 2.3.1
 
