@@ -333,7 +333,7 @@ class Timeline extends React.Component {
   }
 
   updateTime (currentFrame) {
-    if (this.shouldEmitToTour && (currentFrame > 13 || currentFrame < 17)) {
+    if (this.shouldEmitToTour && (currentFrame > 13 && currentFrame < 17)) {
       this.shouldEmitToTour = false
       this.tourClient.next()
     }
@@ -435,7 +435,9 @@ class Timeline extends React.Component {
     this._component.on('envoy:tourClientReady', (client) => {
       client.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
 
-      client.next()
+      setTimeout(() => {
+        client.next()
+      })
 
       this.tourClient = client
     })
