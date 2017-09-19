@@ -829,7 +829,6 @@ class Timeline extends React.Component {
   }
 
   // will left-align the current timeline window (maintaining zoom)
-  // unless
   tryToLeftAlignTickerInVisibleFrameRange (frameInfo) {
     var l = this.state.visibleFrameRange[0]
     var r = this.state.visibleFrameRange[1]
@@ -837,9 +836,9 @@ class Timeline extends React.Component {
     var newL = this.state.currentFrame
     var newR = newL + span
 
-    if (newR > frameInfo.maxf) {
-      newL -= (newR - frameInfo.maxf)
-      newR = frameInfo.maxf
+    if (newR > frameInfo.friMax) {
+      newL -= (newR - frameInfo.friMax)
+      newR = frameInfo.friMax
     }
 
     this.setState({ visibleFrameRange: [newL, newR] })
@@ -2474,6 +2473,7 @@ class Timeline extends React.Component {
 
   renderTimelineRangeScrollbar () {
     const frameInfo = this.getFrameInfo()
+    console.log(frameInfo.maxms)
     const knobRadius = 5
     return (
       <div
