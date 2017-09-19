@@ -1,5 +1,6 @@
 var async = require('async')
 var cp = require('child_process')
+var path = require('path')
 var argv = require('yargs').argv
 var log = require('./helpers/log')
 var allPackages = require('./helpers/allPackages')()
@@ -28,9 +29,9 @@ var changelog = {
 }
 
 try {
-  var cmd = `git subtree push --squash --prefix /${changelog.name} ${changelog.remote} ${branch}`
+  var cmd = `git subtree push --squash --prefix ${changelog.name} ${changelog.remote} ${branch}`
   log.log(cmd)
-  cp.execSync(cmd, { cwd: changelog.abspath, stdio: 'inherit' })
+  cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
 } catch (exception) {
   log.log(exception.message)
 }
