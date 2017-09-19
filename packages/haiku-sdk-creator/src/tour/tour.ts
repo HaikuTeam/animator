@@ -28,7 +28,7 @@ export default class TourHandler implements Tour {
             webview: "creator",
             component: "OpenProject",
             display: "left",
-            offset: {top: 0, left: 0},
+            offset: {top: 0, left: 50},
             spotlightRadius: "default",
         },
         {
@@ -230,7 +230,7 @@ export default class TourHandler implements Tour {
     }
 
     next() {
-        if(!this.isActive) { return }
+        if (!this.isActive) { return }
 
         this.currentStep++
 
