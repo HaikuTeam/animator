@@ -2819,6 +2819,11 @@
       "project": "haiku-bytecode",
       "label": "feat",
       "message": "Tasks"
+    },
+    "ba634f5b46b1c3ff3196934d7dfb7172b3392b04": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "generate markdown for changelog"
     }
   }
 }
