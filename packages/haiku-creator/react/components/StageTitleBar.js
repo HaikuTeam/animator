@@ -272,6 +272,11 @@ class StageTitleBar extends React.Component {
     if (this.state.snapshotSaveError) return void (0)
     if (this.state.isSnapshotSaveInProgress) return void (0)
     if (this.state.snapshotMergeConflicts) return void (0)
+    if (this.state.showSharePopover) return void (0)
+
+    this.setState({showSharePopover: !this.state.showSharePopover})
+    this.props.tourClient.next()
+
     return this.performProjectSave()
   }
 
@@ -439,10 +444,8 @@ class StageTitleBar extends React.Component {
           }
           onOuterAction={() => this.setState({ showSharePopover: false })}>
           <button key='save'
-            onClick={(e) => {
-              if (!this.state.showSharePopover && !this.state.isSnapshotSaveInProgress) this.handleSaveSnapshotClick()
-              this.setState({showSharePopover: !this.state.showSharePopover})
-            }}
+            id='publish'
+            onClick={this.handleSaveSnapshotClick}
             style={[
               BTN_STYLES.btnText,
               BTN_STYLES.rightBtns,
