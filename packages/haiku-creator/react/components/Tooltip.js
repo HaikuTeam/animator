@@ -23,9 +23,14 @@ const STYLES = {
     borderRadius: '50%',
     margin: '4px auto 0'
   },
-  children: {
+  childrenWrapper: {
     position: 'absolute',
     minWidth: '260px'
+  },
+  children: {
+    background: 'linear-gradient(to bottom, rgba(255,221,100,1) 0%, rgba(214,37,99,1) 100%)',
+    padding: '1px',
+    borderRadius: '3px'
   },
   spotlight: {
     position: 'absolute',
@@ -131,8 +136,10 @@ export default function ({ coordinates, offset, spotlightRadius, display, childr
       <div style={{...STYLES.circle, display: circleDisplay}}>
         <div style={STYLES.circleInner} />
       </div>
-      <div style={{...STYLES.children, ...positionStyles.children}}>
-        {children}
+      <div style={{...STYLES.childrenWrapper, ...positionStyles.children}}>
+        <div style={STYLES.children}>
+          {children}
+        </div>
       </div>
     </div>
   )
