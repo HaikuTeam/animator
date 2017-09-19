@@ -21,7 +21,7 @@ export default class TourHandler implements Tour {
             component: "Welcome",
             display: "none",
             offset: {top: 0, left: 0},
-            spotlightRadius: "default",
+            spotlightRadius: 400,
         },
         {
             selector: "#project-edit-button",
@@ -32,7 +32,7 @@ export default class TourHandler implements Tour {
             spotlightRadius: "default",
         },
         {
-            selector: ".gauge-box",
+            selector: ".gauge-box span:nth-child(10)",
             webview: "timeline",
             component: "ScrubTicker",
             display: "top",
@@ -216,7 +216,7 @@ export default class TourHandler implements Tour {
         if (!didTakeTour() || force) {
             this.currentStep = 0
             this.isActive = true
-            this.requestShowStep({ ...this.states[this.currentStep] }, { top: "50%", left: "50%" })
+            this.requestShowStep({ ...this.states[this.currentStep] }, { top: "40%", left: "50%" })
         }
     }
 

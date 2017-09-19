@@ -5,6 +5,7 @@ const STYLES = {
     position: 'absolute',
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 3
   },
   circle: {
@@ -93,8 +94,6 @@ export default function ({ coordinates, offset, spotlightRadius, display, childr
 
   if (display !== 'none') {
     // circleDisplay = 'inline-block'
-  } else {
-    spotlightExtraStyles.transform = 'translateX(-25%)'
   }
 
   if (display === 'left') {
