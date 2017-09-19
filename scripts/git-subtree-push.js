@@ -3,6 +3,7 @@ var cp = require('child_process')
 var argv = require('yargs').argv
 var log = require('./helpers/log')
 var allPackages = require('./helpers/allPackages')()
+var ROOT = path.join(__dirname, '..')
 
 var branch = argv.branch || 'master'
 
@@ -17,3 +18,19 @@ async.eachSeries(allPackages, function (pack, next) {
   }
   return next()
 })
+
+//zb: bit of a hack, but we can pay this down in the off-chance that any this logic needs to extend/scale
+//NOTE: there's no analogue written for subtree-pull.  the assumption is that repo will be 'push-only'
+var changelog = {
+  name: 'changelog',
+  remote: 'git@github.com:HaikuTeam/changelog.git',
+  abspath: path.join(ROOT, 'changelog/')
+}
+
+try {
+  var cmd = `git subtree push --squash --prefix /${changelog.name} ${changelog.remote} ${branch}`
+  log.log(cmd)
+  cp.execSync(cmd, { cwd: changelog.abspath, stdio: 'inherit' })
+} catch (exception) {
+  log.log(exception.message)
+}
