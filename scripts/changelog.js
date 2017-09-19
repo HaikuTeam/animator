@@ -2,6 +2,7 @@ var async = require('async')
 var cp = require('child_process')
 var path = require('path')
 var fse = require('fs-extra')
+var semverSort = require('semver-sort')
 var log = require('./helpers/log')
 var allPackages = require('./helpers/allPackages')()
 var ROOT = path.join(__dirname, '..')
@@ -116,7 +117,14 @@ async.eachSeries(allPackages, function (pack, next) {
 function generateMarkdownSync(changelog) {
   var markdown = '# Changelog\n\n'
 
+  var unsortedVersions = []
   for (var version in changelog) {
+    unsortedVersions.push(version)
+  }
+
+  var sortedVersions = semverSort.desc(unsortedVersions)
+
+  sortedVersions.forEach((version)=>{
 
     markdown += '\n## ' + version + "\n"
     
@@ -139,7 +147,7 @@ function generateMarkdownSync(changelog) {
         markdown += ' * ' + msg + "\n"
       })
     }
-  }
 
-  fse.writeFileSync(CHANGELOG_MD, markdown)
+    fse.writeFileSync(CHANGELOG_MD, markdown)
+  })
 }

@@ -1,6 +1,458 @@
 # Changelog
 
 
+## 2.3.3
+
+### Features
+
+ * add undocumented method for checking prefinery invite codes through SDK
+ * Remove closed clients; let server be closed to avoid leaked handles; add test
+ * Add port discovery, more logging, and test proving multiple servers can coexist
+ * Add util function to retrieve an open port, and a smoke test for it
+ * add sdk method for checking prefinery codes via Inkstone
+ * Add 'yarn go' for starting up with sane defaults
+ * Add closeConnection method to envoy client
+ * Scripts take branch and remote into account
+ * remove haiku-sdk and refactor everything to haiku-sdk-client/haiku-sdk-inkstone
+ * auto-inject version into CLI banner
+ * Script stuff
+ * Script improvements
+ * More scripts
+ * Show color in dev logs
+ * mono:git-diff script
+ * npm link only actual dep graph and get working
+ * add fast-open project
+ * make btn layout aware of browser fullscreen
+ * Script to bundle creator
+ * git checkout
+ * Tasks
+
+### Bug Fixes
+
+ * I messed this flag up, playing should be false to start or keyframe creation doesn't work
+ * Make sure rotation still works
+ * After refactor, need to pass component into render, not context
+ * Make sure DOM node removal logic works
+ * Default options were being clobbered
+ * Dumb coding error
+ * My poor variable naming made ambiguity of 'maxf' vs 'friMax' cause scrollbar bug
+ * Need to check for git statuses which might be empty if no changes recorded
+ * Bad interactions between concurrent file watchers and save process
+ * Saving flag
+ * Code copy mistake
+ * Player compilation introduced unforeseen problem with dom-embed snippets
+ * Opacity wasn't being set correctly but not sure what changed upstream to cause this problem
+ * For tests to succeed, need mock mode check in this method
+ * loading multiple projects under the same plumbing session broke playhead positioning
+ * undraggability of timeline horiz scrollbar when position indicator was on top
+ * prevent publish popover from jumping when finished
+ * scrolling on library & SI
+ * tooltip arrows on expressions
+ * I munged the playback logic during a refactor
+ * Stage transform wasn't working at certain frames due to lack of rounding...probably some player weirdness
+ * Envoy client needs the host and port specified since it's dynamic
+ * When using yarn to run npm yarn ends up setting env var that conflicts with npm's
+ * watch timeout for zack's slow machine
+ * Missing step to finalize script
+ * try/catch bundle thing
+ * Typo
+ * Use different start command
+ * mono:sha-norm 'error
+ * Typo
+ * (hopefully) mono:npm-install maxBuffer issue
+ * npm publish has to be run from the haiku.ai dir, not the parent
+ * Add mono:git-diff to package.json
+ * mono:git-push
+ * Scripts must be sync if expectation is that they be sync
+ * Dep graph based sha normalization
+ * Path lib
+
+### Documentation
+
+ * README update
+ * README
+ * README update
+ * generate markdown for changelog
+
+## 2.3.1
+
+### Bug Fixes
+
+ * Make sure opacity gets set and fix flash of placeholder default content when rendering in React
+
+## 2.2.0
+
+## 2.1.51
+
+### Bug Fixes
+
+ * set _currentTimelineTime with ActiveComponent so that transforms work at frames other than 0
+
+## 2.1.50
+
+### Features
+
+ * add sample TourHandler
+
+## 2.1.49
+
+### Bug Fixes
+
+ * make overlays render on (almost) every frame instead of using an on-demand draw loop.  fixes control-rendering race condition and support for updating controls on transform; minor perf cost
+ * overlay control race condition (hack, didn't dive into the source of the RC.)
+ * pass in ref to server for envoy
+ * accidental multiple connections, test for events
+ * loop closure, promise warning, timelineRegistry instantiation
+ * merge boof
+ * merge issues for envoy + timeline
+ * seek logic, fwd/back logic
+
+### Features
+
+ * hook into envoy for glass playback and seek + overlay rendering; pause still has some funkiness
+ * start to wire up event triggers
+ * add single/synchronous seekToFrameAndPause method to timeline handler
+ * support custom log levels; fix perf reduction from constant log spewing
+ * function end-to-end server/handler/client setup
+ * get schema transmission working
+ * set up basic fs structure and ts config
+ * pass envoy timeline client to Glass for playback hookups
+ * hook envoy timeline client into activecomponent
+ * keep local approximations of playback; use envoy as a 'time server'; reduce flood of requests
+
+### Documentation
+
+ * clean-up and basic jsdoc
+
+## 2.1.48
+
+### Bug Fixes
+
+ * Load the actual function not the player's handler wrapper
+
+## 2.1.47
+
+### Bug Fixes
+
+ * npm link throws EROFS when running in Haiku.app
+
+## 2.1.46
+
+### Bug Fixes
+
+ * Handle case if no children and use ES5 until we add tooling for ES+
+
+### Features
+
+ * npm link the project after installing npm packages
+ * ast manip to normalize bytecode file according to destructure-fix changes
+
+## 2.1.42
+
+### Bug Fixes
+
+ * update user.mouse on scroll as well as move
+
+## 2.1.40
+
+## 2.1.39
+
+## 2.1.37
+
+## 2.1.36
+
+## 2.1.35
+
+### Bug Fixes
+
+ * Apply transform as attribute if browser is IE or Edge
+
+## 2.1.34
+
+### Bug Fixes
+
+ * When doing the type check, don't make the classic blunder
+ * Ensure vanities are correctly applied to placeholder elements
+
+## 2.1.33
+
+## 2.1.32
+
+### Bug Fixes
+
+ * Make sure we can use controlFlow.placeholder with React and Haiku elements
+ * Placeholder with nested Haiku in React
+
+## 2.1.31
+
+### Bug Fixes
+
+ * At least better handling of overflow logic
+ * gridline and trim-area heights
+ * remove shadow on 0 visible range rather than 0 scrubber
+ * show/hide timeline scrolled-in shadow on arrowkeying
+ * easeOutBounce and easeInOutQuint curves
+ * prevent incidental vertical scrolling on scrubber drag
+ * container sizing for playback speed dail
+
+### Features
+
+ * shift+meta+leftArrow moves time to position 0
+
+## 2.1.28
+
+### Bug Fixes
+
+ * When ids change, we need to completely replace the existing DOM so SVG url() references update
+
+## 2.1.27
+
+## 2.1.26
+
+### Bug Fixes
+
+ * Don't cache on the function which is shared
+ * Dumb bug because of shared template object
+
+## 2.1.25
+
+### Bug Fixes
+
+ * This fixes the drop shadow issue
+
+## 2.1.24
+
+## 2.1.23
+
+### Bug Fixes
+
+ * Fulfill design merge request before reinitializing in-mem bytecode in master
+
+## 2.1.22
+
+## 2.1.21
+
+### Features
+
+ * hook into sdk-client's setUserId when logging in from CLI
+ * v0 State Inpector
+ * switch library preview to inline; remove replaced code
+ * update auth logic and include userid getter/setter + fs persist
+ * Move parseExpression logic in here for easier integration and unit testing
+ * show both keyframes active on pill drag
+ * color blade with gradient on side of keyframe active
+ * highlight keyframe being dragged
+ * better blades
+
+### Bug Fixes
+
+ * Reifying a reference object needs to handle already-reified functions
+ * Naive check for 'is this an expr' should be a bit less naive
+ * finish tree pruning
+ * less broken treeline
+ * Component name truncation
+ * starfield bug
+ * collapse property carrot
+
+## 2.1.20
+
+### Bug Fixes
+
+ * re-enable visibility of elements off stage
+ * show the bottom of the timeline without clipping
+
+## 2.1.15
+
+## 2.1.14
+
+### Bug Fixes
+
+ * Fix bug preventing states from being reassigned during react render
+ * Fix problems re-/mounting React-adapted Haiku components when new elements are fed in
+ * Load orig source to prevent webpack complaints and 3rd-party bundling issues
+
+## 2.1.13
+
+## 2.1.12
+
+### Bug Fixes
+
+ * Plumbing now correctly locates an open port
+
+## 2.1.11
+
+### Bug Fixes
+
+ * Fix issue with bundling when loading a legacy-constructed project
+
+## 2.1.10
+
+### Bug Fixes
+
+ * Ensure React-adapted components don't pause prior to mounting the first time
+ * Make sure React-adapted components behave properly when un/re-mounted
+ * Files were missing from the npmignore
+ * Fix problem causing failed updates when teammate's work has gone ahead by multiple tags
+
+## 2.1.9
+
+### Bug Fixes
+
+ * Implement correct change detection on contain/cover; may solve the performance issues on haiku.ai
+ * mouseout state of const segs
+
+### Features
+
+ * Migrate to our own simple parser instead of loading all of babylon etc
+ * special handle opacity inputs
+
+## 2.1.7
+
+## 2.1.6
+
+### Bug Fixes
+
+ * My npmignore didn't re-include a necessary package
+
+## 2.1.5
+
+## 2.1.3
+
+### Features
+
+ * add cli command to change password
+ * Rename 'haiku-interpreter' to 'haiku-player'
+ * add sdk method to change password
+
+### Bug Fixes
+
+ * misplaced process.exit
+
+## 2.1.0
+
+### Bug Fixes
+
+ * Fix bug where undo/redo would never become available
+
+## 2.0.132
+
+## 2.0.131
+
+### Features
+
+ * When component rows are expanded, select the respective elements on stage
+
+## 2.0.129
+
+### Bug Fixes
+
+ * Clear cache after creating keyframe so timeline edits to existing keyframes update on the first time
+
+## 2.0.127
+
+### Bug Fixes
+
+ * Ensure sizing='contain' and sizing='cover' modes work correctly when the element is resized
+
+## 2.0.126
+
+### Bug Fixes
+
+ * Make sure org name gets set and fix package names we detect to be wrong
+
+## 2.0.125
+
+### Bug Fixes
+
+ * Don't start timeline when initialized, and modify API via changes to transition/machine handling
+
+## 2.0.124
+
+## 2.0.122
+
+## 2.0.121
+
+## 2.0.120
+
+### Bug Fixes
+
+ * Fix perf regression and use clipboard module instead of element
+
+## 2.0.119
+
+### Bug Fixes
+
+ * instantiate elements where expected when zoomed
+ * dragging elements should only go as far as mouse cursor when zoomed
+ * keep control points and lines same size across zoom levels
+ * instantiate elements where expected when zoomed
+ * scale objects as expected when zoomed
+ * don't apply margin 0 auto to root element of new projects by default (breaks sizing logic)
+
+### Features
+
+ * add sizing cover support and center sizing contain
+
+## 2.0.115
+
+### Bug Fixes
+
+ * dragging for keyframe segment ends
+
+## 2.0.113
+
+### Bug Fixes
+
+ * Callback needed to be fired here or the queue wouldn't finish in plumbing
+
+### Features
+
+ * add frame grid
+
+## 2.0.110
+
+### Bug Fixes
+
+ * allow shift, alt, cmd, ctrl to be toggled partway through a transform
+ * Address memory leak from POC code on the player public API
+ * clipping on context menu
+ * Pass in the clock time for correct calc, and format comment on guard condition
+ * better add-frames control
+ * duration trim overdrag protections
+ * trim duration dragged pixels
+
+### Features
+
+ * snap rotation to increments of pi/12 (15deg) when shift key is held
+ * Allow code expressions to be written inside timeline property input fields
+ * prototype timeline duration adjustor (warning bugs)
+
+## 2.0.107
+
+### Bug Fixes
+
+ * don't use browser bounding box for scale calculations; refactor accordingly; make resize work as expected for various axes
+
+## 2.0.105
+
+### Bug Fixes
+
+ * Fix on-stage transform perf regression
+
+## 2.0.104
+
+### Bug Fixes
+
+ * resize from edge when element is rotated
+
+## 2.0.103
+
+### Bug Fixes
+
+ * rounding error when resizing from edge
+
+## 2.0.102
+
 ## 2.0.101
 
 ### Bug Fixes
@@ -381,454 +833,3 @@
  * Quick instructions on running the player repo
  * Add some notes about plumbing program flow
  * Quick description of hoist attributes method
-
-## 2.0.102
-
-## 2.0.103
-
-### Bug Fixes
-
- * rounding error when resizing from edge
-
-## 2.0.104
-
-### Bug Fixes
-
- * resize from edge when element is rotated
-
-## 2.0.105
-
-### Bug Fixes
-
- * Fix on-stage transform perf regression
-
-## 2.0.107
-
-### Bug Fixes
-
- * don't use browser bounding box for scale calculations; refactor accordingly; make resize work as expected for various axes
-
-## 2.0.110
-
-### Bug Fixes
-
- * allow shift, alt, cmd, ctrl to be toggled partway through a transform
- * Address memory leak from POC code on the player public API
- * clipping on context menu
- * Pass in the clock time for correct calc, and format comment on guard condition
- * better add-frames control
- * duration trim overdrag protections
- * trim duration dragged pixels
-
-### Features
-
- * snap rotation to increments of pi/12 (15deg) when shift key is held
- * Allow code expressions to be written inside timeline property input fields
- * prototype timeline duration adjustor (warning bugs)
-
-## 2.0.113
-
-### Bug Fixes
-
- * Callback needed to be fired here or the queue wouldn't finish in plumbing
-
-### Features
-
- * add frame grid
-
-## 2.0.115
-
-### Bug Fixes
-
- * dragging for keyframe segment ends
-
-## 2.0.119
-
-### Bug Fixes
-
- * instantiate elements where expected when zoomed
- * dragging elements should only go as far as mouse cursor when zoomed
- * keep control points and lines same size across zoom levels
- * instantiate elements where expected when zoomed
- * scale objects as expected when zoomed
- * don't apply margin 0 auto to root element of new projects by default (breaks sizing logic)
-
-### Features
-
- * add sizing cover support and center sizing contain
-
-## 2.0.120
-
-### Bug Fixes
-
- * Fix perf regression and use clipboard module instead of element
-
-## 2.0.121
-
-## 2.0.122
-
-## 2.0.124
-
-## 2.0.125
-
-### Bug Fixes
-
- * Don't start timeline when initialized, and modify API via changes to transition/machine handling
-
-## 2.0.126
-
-### Bug Fixes
-
- * Make sure org name gets set and fix package names we detect to be wrong
-
-## 2.0.127
-
-### Bug Fixes
-
- * Ensure sizing='contain' and sizing='cover' modes work correctly when the element is resized
-
-## 2.0.129
-
-### Bug Fixes
-
- * Clear cache after creating keyframe so timeline edits to existing keyframes update on the first time
-
-## 2.0.131
-
-### Features
-
- * When component rows are expanded, select the respective elements on stage
-
-## 2.0.132
-
-## 2.1.0
-
-### Bug Fixes
-
- * Fix bug where undo/redo would never become available
-
-## 2.1.3
-
-### Features
-
- * add cli command to change password
- * Rename 'haiku-interpreter' to 'haiku-player'
- * add sdk method to change password
-
-### Bug Fixes
-
- * misplaced process.exit
-
-## 2.1.5
-
-## 2.1.6
-
-### Bug Fixes
-
- * My npmignore didn't re-include a necessary package
-
-## 2.1.7
-
-## 2.1.9
-
-### Bug Fixes
-
- * Implement correct change detection on contain/cover; may solve the performance issues on haiku.ai
- * mouseout state of const segs
-
-### Features
-
- * Migrate to our own simple parser instead of loading all of babylon etc
- * special handle opacity inputs
-
-## 2.1.10
-
-### Bug Fixes
-
- * Ensure React-adapted components don't pause prior to mounting the first time
- * Make sure React-adapted components behave properly when un/re-mounted
- * Files were missing from the npmignore
- * Fix problem causing failed updates when teammate's work has gone ahead by multiple tags
-
-## 2.1.11
-
-### Bug Fixes
-
- * Fix issue with bundling when loading a legacy-constructed project
-
-## 2.1.12
-
-### Bug Fixes
-
- * Plumbing now correctly locates an open port
-
-## 2.1.13
-
-## 2.1.14
-
-### Bug Fixes
-
- * Fix bug preventing states from being reassigned during react render
- * Fix problems re-/mounting React-adapted Haiku components when new elements are fed in
- * Load orig source to prevent webpack complaints and 3rd-party bundling issues
-
-## 2.1.15
-
-## 2.1.20
-
-### Bug Fixes
-
- * re-enable visibility of elements off stage
- * show the bottom of the timeline without clipping
-
-## 2.1.21
-
-### Features
-
- * hook into sdk-client's setUserId when logging in from CLI
- * v0 State Inpector
- * switch library preview to inline; remove replaced code
- * update auth logic and include userid getter/setter + fs persist
- * Move parseExpression logic in here for easier integration and unit testing
- * show both keyframes active on pill drag
- * color blade with gradient on side of keyframe active
- * highlight keyframe being dragged
- * better blades
-
-### Bug Fixes
-
- * Reifying a reference object needs to handle already-reified functions
- * Naive check for 'is this an expr' should be a bit less naive
- * finish tree pruning
- * less broken treeline
- * Component name truncation
- * starfield bug
- * collapse property carrot
-
-## 2.1.22
-
-## 2.1.23
-
-### Bug Fixes
-
- * Fulfill design merge request before reinitializing in-mem bytecode in master
-
-## 2.1.24
-
-## 2.1.25
-
-### Bug Fixes
-
- * This fixes the drop shadow issue
-
-## 2.1.26
-
-### Bug Fixes
-
- * Don't cache on the function which is shared
- * Dumb bug because of shared template object
-
-## 2.1.27
-
-## 2.1.28
-
-### Bug Fixes
-
- * When ids change, we need to completely replace the existing DOM so SVG url() references update
-
-## 2.1.31
-
-### Bug Fixes
-
- * At least better handling of overflow logic
- * gridline and trim-area heights
- * remove shadow on 0 visible range rather than 0 scrubber
- * show/hide timeline scrolled-in shadow on arrowkeying
- * easeOutBounce and easeInOutQuint curves
- * prevent incidental vertical scrolling on scrubber drag
- * container sizing for playback speed dail
-
-### Features
-
- * shift+meta+leftArrow moves time to position 0
-
-## 2.1.32
-
-### Bug Fixes
-
- * Make sure we can use controlFlow.placeholder with React and Haiku elements
- * Placeholder with nested Haiku in React
-
-## 2.1.33
-
-## 2.1.34
-
-### Bug Fixes
-
- * When doing the type check, don't make the classic blunder
- * Ensure vanities are correctly applied to placeholder elements
-
-## 2.1.35
-
-### Bug Fixes
-
- * Apply transform as attribute if browser is IE or Edge
-
-## 2.1.36
-
-## 2.1.37
-
-## 2.1.39
-
-## 2.1.40
-
-## 2.1.42
-
-### Bug Fixes
-
- * update user.mouse on scroll as well as move
-
-## 2.1.46
-
-### Bug Fixes
-
- * Handle case if no children and use ES5 until we add tooling for ES+
-
-### Features
-
- * npm link the project after installing npm packages
- * ast manip to normalize bytecode file according to destructure-fix changes
-
-## 2.1.47
-
-### Bug Fixes
-
- * npm link throws EROFS when running in Haiku.app
-
-## 2.1.48
-
-### Bug Fixes
-
- * Load the actual function not the player's handler wrapper
-
-## 2.1.49
-
-### Bug Fixes
-
- * make overlays render on (almost) every frame instead of using an on-demand draw loop.  fixes control-rendering race condition and support for updating controls on transform; minor perf cost
- * overlay control race condition (hack, didn't dive into the source of the RC.)
- * pass in ref to server for envoy
- * accidental multiple connections, test for events
- * loop closure, promise warning, timelineRegistry instantiation
- * merge boof
- * merge issues for envoy + timeline
- * seek logic, fwd/back logic
-
-### Features
-
- * hook into envoy for glass playback and seek + overlay rendering; pause still has some funkiness
- * start to wire up event triggers
- * add single/synchronous seekToFrameAndPause method to timeline handler
- * support custom log levels; fix perf reduction from constant log spewing
- * function end-to-end server/handler/client setup
- * get schema transmission working
- * set up basic fs structure and ts config
- * pass envoy timeline client to Glass for playback hookups
- * hook envoy timeline client into activecomponent
- * keep local approximations of playback; use envoy as a 'time server'; reduce flood of requests
-
-### Documentation
-
- * clean-up and basic jsdoc
-
-## 2.1.50
-
-### Features
-
- * add sample TourHandler
-
-## 2.1.51
-
-### Bug Fixes
-
- * set _currentTimelineTime with ActiveComponent so that transforms work at frames other than 0
-
-## 2.2.0
-
-## 2.3.1
-
-### Bug Fixes
-
- * Make sure opacity gets set and fix flash of placeholder default content when rendering in React
-
-## 2.3.3
-
-### Features
-
- * add undocumented method for checking prefinery invite codes through SDK
- * Remove closed clients; let server be closed to avoid leaked handles; add test
- * Add port discovery, more logging, and test proving multiple servers can coexist
- * Add util function to retrieve an open port, and a smoke test for it
- * add sdk method for checking prefinery codes via Inkstone
- * Add 'yarn go' for starting up with sane defaults
- * Add closeConnection method to envoy client
- * Scripts take branch and remote into account
- * remove haiku-sdk and refactor everything to haiku-sdk-client/haiku-sdk-inkstone
- * auto-inject version into CLI banner
- * Script stuff
- * Script improvements
- * More scripts
- * Show color in dev logs
- * mono:git-diff script
- * npm link only actual dep graph and get working
- * add fast-open project
- * make btn layout aware of browser fullscreen
- * Script to bundle creator
- * git checkout
- * Tasks
-
-### Bug Fixes
-
- * I messed this flag up, playing should be false to start or keyframe creation doesn't work
- * Make sure rotation still works
- * After refactor, need to pass component into render, not context
- * Make sure DOM node removal logic works
- * Default options were being clobbered
- * Dumb coding error
- * My poor variable naming made ambiguity of 'maxf' vs 'friMax' cause scrollbar bug
- * Need to check for git statuses which might be empty if no changes recorded
- * Bad interactions between concurrent file watchers and save process
- * Saving flag
- * Code copy mistake
- * Player compilation introduced unforeseen problem with dom-embed snippets
- * Opacity wasn't being set correctly but not sure what changed upstream to cause this problem
- * For tests to succeed, need mock mode check in this method
- * loading multiple projects under the same plumbing session broke playhead positioning
- * undraggability of timeline horiz scrollbar when position indicator was on top
- * prevent publish popover from jumping when finished
- * scrolling on library & SI
- * tooltip arrows on expressions
- * I munged the playback logic during a refactor
- * Stage transform wasn't working at certain frames due to lack of rounding...probably some player weirdness
- * Envoy client needs the host and port specified since it's dynamic
- * When using yarn to run npm yarn ends up setting env var that conflicts with npm's
- * watch timeout for zack's slow machine
- * Missing step to finalize script
- * try/catch bundle thing
- * Typo
- * Use different start command
- * mono:sha-norm 'error
- * Typo
- * (hopefully) mono:npm-install maxBuffer issue
- * npm publish has to be run from the haiku.ai dir, not the parent
- * Add mono:git-diff to package.json
- * mono:git-push
- * Scripts must be sync if expectation is that they be sync
- * Dep graph based sha normalization
- * Path lib
-
-### Documentation
-
- * README update
- * README
- * README update
