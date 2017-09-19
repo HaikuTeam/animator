@@ -1,7 +1,6 @@
 import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
-import debounce from 'lodash.debounce'
 import async from 'async'
 import Radium from 'radium'
 import path from 'path'
@@ -13,14 +12,6 @@ import EllipsePrimitiveProps from './../../primitives/Ellipse'
 import PolygonPrimitiveProps from './../../primitives/Polygon'
 import TextPrimitiveProps from './../../primitives/Text'
 import { shell } from 'electron'
-// import { BTN_STYLES } from '../../styles/btnShared'
-
-// List of extnames which, upon change, should trigger an asset listing refresh.
-// (We shouldn't need to change the list based on script changes, etc.)
-const ASSET_RELOAD_TRIGGERS = {
-  '.svg': true,
-  '.sketch': true
-}
 
 const STYLES = {
   scrollwrap: {
@@ -108,12 +99,10 @@ class LibraryDrawer extends React.Component {
   componentWillMount () {
     this.setState({isLoading: true})
     this.reloadAssetList()
-    this.debouncedReloadAssetList = debounce(this.reloadAssetList, 1000, { trailing: true })
-    this.props.websocket.on('broadcast', (message) => {
-      if (message.name === 'file:add' || message.name === 'file:change' || message.name === 'file:remove') {
-        if (ASSET_RELOAD_TRIGGERS[path.extname(message.relpath)]) {
-          this.debouncedReloadAssetList(message)
-        }
+    this.props.websocket.on('broadcast', ({ name, assets }) => {
+      if (name === 'assets-changed') {
+        const empty = assets.length === 0
+        this.setState({ assets, empty })
       }
     })
   }
