@@ -2824,6 +2824,21 @@
       "project": "haiku-bytecode",
       "label": "docs",
       "message": "generate markdown for changelog"
+    },
+    "1e5cef88382615c112e63fcb0c3f181f7c744bbc": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "sort changelog markdown by semver desc"
+    },
+    "55fd41152633a9689eb16cf5dc61e81d3485681b": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "sort changelog markdown by semver desc"
+    },
+    "446b669d694aadc082868ca5f76d47678f066c55": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "generate markdown for changelog"
     }
   }
 }
