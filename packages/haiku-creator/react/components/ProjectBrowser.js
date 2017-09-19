@@ -40,7 +40,11 @@ class ProjectBrowser extends React.Component {
   }
 
   handleSelectProject () {
-    const projectIdx = this.state.projectsList.length - 2
+    const projectIdx = this.state.projectsList.findIndex((project) => {
+      // Hardcoded - Name of the project that will be used for the tutorial
+      return project.projectName === 'CheckTutorial'
+    })
+
     this.setActiveProject(this.state.projectsList[projectIdx], projectIdx)
   }
 
