@@ -81,6 +81,12 @@ const STYLES = {
 }
 
 class Toast extends React.Component {
+  constructor () {
+    super()
+
+    this.closeNotice = this.closeNotice.bind(this)
+  }
+
   closeNotice () {
     this.props.removeNotice(this.props.myKey)
   }
