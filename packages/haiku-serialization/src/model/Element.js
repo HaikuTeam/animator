@@ -31,6 +31,19 @@ const GROUPING_ELEMENTS = {
   g: true
 }
 
+const PI_OVER_12 = Math.PI / 12
+
+const DELTA_ROTATION_OFFSETS = {
+  0: 16 * PI_OVER_12,
+  1: 12 * PI_OVER_12,
+  2: 8 * PI_OVER_12,
+  3: 18 * PI_OVER_12,
+  5: 6 * PI_OVER_12,
+  6: 20 * PI_OVER_12,
+  7: 24 * PI_OVER_12,
+  8: 4 * PI_OVER_12
+}
+
 function _manaQuerySelectorAll (selector, mana) {
   return cssQueryTree([], mana, selector, {
     name: 'elementName',
@@ -912,20 +925,9 @@ function ElementModel (platform, component, metadata) {
     // if shift is held, snap to absolute increments of pi/12
     if (activationPoint.shift) {
       // pretty hacky math/logic, won't allow for rotating past 2*Math.PI (unlike free rotation, which will rotate to any limit)
-      const PI_OVER_12 = Math.PI / 12
       theta0 = this.getPropertyValue('rotation.z') || 0
       theta1 = -PI_OVER_12 * Math.round(theta1 / PI_OVER_12)
-      var offsets = {
-        0: 16 * Math.PI / 12,
-        1: 12 * Math.PI / 12,
-        2: 8 * Math.PI / 12,
-        3: 18 * Math.PI / 12,
-        5: 6 * Math.PI / 12,
-        6: 20 * Math.PI / 12,
-        7: 24 * Math.PI / 12,
-        8: 4 * Math.PI / 12
-      }
-      deltaRotationZ = offsets[activationPoint.index] + theta1 - theta0
+      deltaRotationZ = DELTA_ROTATION_OFFSETS[activationPoint.index] + theta1 - theta0
     }
 
     const propertyGroup = { 'rotation.z': deltaRotationZ }
