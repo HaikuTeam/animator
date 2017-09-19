@@ -103,13 +103,11 @@ class LibraryItem extends React.Component {
           onDragEnd={(dragEndEvent) => {
             this.setState({isDragging: false})
             this.props.onDragEnd(dragEndEvent.nativeEvent, this.props)
-            this.props.toggleLibAssetDraggingState()
           }}
           onDragStart={(dragStartEvent) => {
             this.setState({isDragging: true})
             this.props.onDragStart(dragStartEvent.nativeEvent, this.props)
             this.props.websocket.set('dragee', this.props)
-            this.props.toggleLibAssetDraggingState()
           }}>
           <div
             style={STYLES.card}

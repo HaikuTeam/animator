@@ -77,7 +77,6 @@ class CollapseItem extends React.Component {
           changePreview={this.props.changePreview}
           onDragEnd={this.props.onDragEnd}
           onDragStart={this.props.onDragStart}
-          toggleLibAssetDraggingState={this.props.toggleLibAssetDraggingState}
           websocket={this.props.websocket}
           instantiate={this.props.instantiate}
         />
@@ -93,7 +92,6 @@ class CollapseItem extends React.Component {
           changePreview={this.props.changePreview}
           onDragEnd={this.props.onDragEnd}
           onDragStart={this.props.onDragStart}
-          toggleLibAssetDraggingState={this.props.toggleLibAssetDraggingState}
           websocket={this.props.websocket}
           instantiate={this.props.instantiate}
         />
@@ -113,7 +111,6 @@ class CollapseItem extends React.Component {
             updateTime={file.updateTime}
             websocket={this.props.websocket}
             changePreview={this.props.changePreview}
-            toggleLibAssetDraggingState={this.props.toggleLibAssetDraggingState}
             instantiate={this.props.instantiate}
           />
         )

@@ -90,7 +90,6 @@ class LibraryDrawer extends React.Component {
       assets: [],
       previewImageTime: null,
       overDropTarget: false,
-      isDraggingLibAsset: false,
       isLoading: false,
       empty: false
     }
@@ -159,10 +158,6 @@ class LibraryDrawer extends React.Component {
     })
   }
 
-  toggleLibAssetDraggingState () {
-    this.setState({isDraggingLibAsset: !this.state.isDraggingLibAsset})
-  }
-
   assetsList (currentAssets) {
     return (
       (!currentAssets || currentAssets.length < 1)
@@ -180,7 +175,6 @@ class LibraryDrawer extends React.Component {
                   fileName={file.fileName}
                   onDragEnd={this.props.onDragEnd}
                   onDragStart={this.props.onDragStart}
-                  toggleLibAssetDraggingState={this.toggleLibAssetDraggingState.bind(this)}
                   updateTime={file.updateTime}
                   websocket={this.props.websocket}
                   instantiate={this.handleAssetInstantiation.bind(this, file)} />
@@ -191,7 +185,6 @@ class LibraryDrawer extends React.Component {
                   onDragEnd={this.props.onDragEnd}
                   onDragStart={this.props.onDragStart}
                   websocket={this.props.websocket}
-                  toggleLibAssetDraggingState={this.toggleLibAssetDraggingState.bind(this)}
                   instantiate={this.handleAssetInstantiation.bind(this, file)} />
               }
             </div>
