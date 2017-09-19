@@ -209,30 +209,38 @@ export default class Master extends EventEmitter {
     const relpath = path.relative(this.folder, abspath)
     const extname = path.extname(relpath)
 
+    if (extname === '.sketch' || extname === '.svg') {
+      this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
+
+      if (this.proc.isOpen()) {
+        this.proc.socket.send({
+          type: 'broadcast',
+          name: 'assets-changed',
+          folder: this.folder,
+          relpath,
+          abspath,
+          assets: Asset.assetsToDirectoryStructure(this._knownDesigns)
+        })
+
+        if (extname === '.svg') {
+          logger.info('[master] merge design requested', relpath)
+          this.proc.socket.request({ type: 'action', method: 'mergeDesign', params: [this.folder, 'Default', 0, abspath] }, () => {
+            // TODO: Call rest after design merge finishes?
+          })
+        }
+      }
+    }
+
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, `Changed ${relpath}`, () => {
         if (!_isFileSignificant(relpath)) {
           return void (0)
         }
 
-        if (this.proc.isOpen()) {
-          this.proc.socket.send({ type: 'broadcast', name: 'file:change', folder: this.folder, relpath, abspath })
-        }
-
         if (extname === '.sketch') {
           logger.info('[master] sketchtool pipeline running; please wait')
           Sketch.sketchtoolPipeline(abspath)
           logger.info('[master] sketchtool done')
-          this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
-          return void (0)
-        }
-
-        if (extname === '.svg') {
-          if (this.proc.isOpen()) {
-            logger.info('[master] merge design requested', relpath)
-            this.proc.socket.request({ type: 'action', method: 'mergeDesign', params: [this.folder, 'Default', 0, abspath] }, () => {})
-          }
-          this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
           return void (0)
         }
 
@@ -256,26 +264,31 @@ export default class Master extends EventEmitter {
     const relpath = path.relative(this.folder, abspath)
     const extname = path.extname(relpath)
 
+    if (extname === '.sketch' || extname === '.svg') {
+      this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
+
+      if (this.proc.isOpen()) {
+        this.proc.socket.send({
+          type: 'broadcast',
+          name: 'assets-changed',
+          folder: this.folder,
+          relpath,
+          abspath,
+          assets: Asset.assetsToDirectoryStructure(this._knownDesigns)
+        })
+      }
+    }
+
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, `Added ${relpath}`, () => {
         if (!_isFileSignificant(relpath)) {
           return void (0)
         }
 
-        if (this.proc.isOpen()) {
-          this.proc.socket.send({ type: 'broadcast', name: 'file:add', folder: this.folder, relpath, abspath })
-        }
-
         if (extname === '.sketch') {
           logger.info('[master] sketchtool pipeline running; please wait')
           Sketch.sketchtoolPipeline(abspath)
           logger.info('[master] sketchtool done')
-          this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
-          return void (0)
-        }
-
-        if (extname === '.svg') {
-          this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
           return void (0)
         }
 
@@ -296,18 +309,24 @@ export default class Master extends EventEmitter {
     const relpath = path.relative(this.folder, abspath)
     const extname = path.extname(relpath)
 
+    if (extname === '.sketch' || extname === '.svg') {
+      delete this._knownDesigns[relpath]
+
+      if (this.proc.isOpen()) {
+        this.proc.socket.send({
+          type: 'broadcast',
+          name: 'assets-changed',
+          folder: this.folder,
+          relpath,
+          abspath,
+          assets: Asset.assetsToDirectoryStructure(this._knownDesigns)
+        })
+      }
+    }
+
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, `Removed ${relpath}`, () => {
         if (!_isFileSignificant(relpath)) {
-          return void (0)
-        }
-
-        if (this.proc.isOpen()) {
-          this.proc.socket.send({ type: 'broadcast', name: 'file:remove', folder: this.folder, relpath, abspath })
-        }
-
-        if (extname === '.sketch' || extname === '.svg') {
-          delete this._knownDesigns[relpath]
           return void (0)
         }
 
