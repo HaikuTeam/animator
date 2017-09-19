@@ -9,7 +9,6 @@ import { DraggableCore } from 'react-draggable'
 
 import DOMSchema from '@haiku/player/lib/properties/dom/schema'
 import DOMFallbacks from '@haiku/player/lib/properties/dom/fallbacks'
-import _getTimelineMaxTime from '@haiku/player/lib/helpers/getTimelineMaxTime'
 import expressionToRO from '@haiku/player/lib/reflection/expressionToRO'
 
 import TimelineProperty from 'haiku-bytecode/src/TimelineProperty'
@@ -23,6 +22,11 @@ import {
   getItemPropertyName,
   isItemEqual
 } from './helpers/ItemHelpers'
+
+import inferUnitOfValue from './helpers/inferUnitOfValue'
+import getMaximumMs from './helpers/getMaximumMs'
+import millisecondToNearestFrame from './helpers/millisecondToNearestFrame'
+import clearInMemoryBytecodeCaches from './helpers/clearInMemoryBytecodeCaches'
 
 import truncate from './helpers/truncate'
 import Palette from './DefaultPalette'
@@ -250,23 +254,6 @@ const ALLOWED_PROPS_TOP_LEVEL = {
   'opacity': true
 }
 
-const UNIT_MAPPING = {
-  'translation.x': 'px',
-  'translation.y': 'px',
-  'translation.z': 'px',
-  'rotation.z': 'rad',
-  'rotation.y': 'rad',
-  'rotation.x': 'rad',
-  'scale.x': '',
-  'scale.y': '',
-  'opacity': '',
-  'shown': '',
-  'backgroundColor': '',
-  'color': '',
-  'fill': '',
-  'stroke': ''
-}
-
 const ALLOWED_TAGNAMES = {
   div: true,
   svg: true,
@@ -291,18 +278,6 @@ function visit (node, visitor) {
       }
     }
   }
-}
-
-function inferUnitOfValue (propertyName) {
-  var unit = UNIT_MAPPING[propertyName]
-  if (unit) return unit
-  return ''
-}
-
-function getTimelineMaxTime (descriptor) {
-  if (descriptor.__max !== undefined) return descriptor.__max
-  descriptor.__max = _getTimelineMaxTime(descriptor)
-  return descriptor.__max
 }
 
 class Timeline extends React.Component {
@@ -426,6 +401,7 @@ class Timeline extends React.Component {
       console.info('[timeline] component updated', maybeComponentIds, maybeTimelineName, maybeTimelineTime, maybePropertyNames, maybeMetadata)
       var reifiedBytecode = this._component.getReifiedBytecode()
       var serializedBytecode = this._component.getSerializedBytecode()
+      clearInMemoryBytecodeCaches(reifiedBytecode)
       this.setState({ reifiedBytecode, serializedBytecode })
       if (maybeMetadata && maybeMetadata.from !== 'timeline') {
         if (maybeComponentIds && maybeTimelineName && maybePropertyNames) {
@@ -485,13 +461,13 @@ class Timeline extends React.Component {
 
     this.addEmitterListener(this.ctxmenu, 'createKeyframe', (componentId, timelineName, elementName, propertyName, startMs) => {
       var frameInfo = this.getFrameInfo()
-      var nearestFrame = this.millisecondToNearestFrame(startMs, frameInfo.mspf)
+      var nearestFrame = millisecondToNearestFrame(startMs, frameInfo.mspf)
       var finalMs = Math.round(nearestFrame * frameInfo.mspf)
       this.executeBytecodeActionCreateKeyframe(componentId, timelineName, elementName, propertyName, finalMs/* value, curve, endms, endvalue */)
     })
     this.addEmitterListener(this.ctxmenu, 'splitSegment', (componentId, timelineName, elementName, propertyName, startMs) => {
       var frameInfo = this.getFrameInfo()
-      var nearestFrame = this.millisecondToNearestFrame(startMs, frameInfo.mspf)
+      var nearestFrame = millisecondToNearestFrame(startMs, frameInfo.mspf)
       var finalMs = Math.round(nearestFrame * frameInfo.mspf)
       this.executeBytecodeActionSplitSegment(componentId, timelineName, elementName, propertyName, finalMs)
     })
@@ -508,12 +484,27 @@ class Timeline extends React.Component {
       this.executeBytecodeActionMoveSegmentEndpoints(componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs)
     })
 
-    this.addEmitterListener(this._component, 'timeline:tick', (currentFrame) => {
+    this.addEmitterListener(this._component._timelines, 'timeline-model:tick', (currentFrame) => {
       var frameInfo = this.getFrameInfo()
       this.updateTime(currentFrame)
+      // If we got a tick, which occurs during Timeline model updating, then we want to pause it if the scrubber
+      // has arrived at the maximum acceptible frame in the timeline.
       if (currentFrame > frameInfo.friMax) {
         this._component.getCurrentTimeline().seekAndPause(frameInfo.friMax)
-      } else if (currentFrame >= frameInfo.friB || currentFrame < frameInfo.friA) {
+      }
+      // If our current frame has gone outside of the interval that defines the timeline viewport, then
+      // try to re-align the ticker inside of that range
+      if (currentFrame >= frameInfo.friB || currentFrame < frameInfo.friA) {
+        this.tryToLeftAlignTickerInVisibleFrameRange(frameInfo)
+      }
+    })
+
+    this.addEmitterListener(this._component._timelines, 'timeline-model:authoritative-frame-set', (currentFrame) => {
+      var frameInfo = this.getFrameInfo()
+      this.updateTime(currentFrame)
+      // If our current frame has gone outside of the interval that defines the timeline viewport, then
+      // try to re-align the ticker inside of that range
+      if (currentFrame >= frameInfo.friB || currentFrame < frameInfo.friA) {
         this.tryToLeftAlignTickerInVisibleFrameRange(frameInfo)
       }
     })
@@ -853,6 +844,7 @@ class Timeline extends React.Component {
   executeBytecodeActionCreateKeyframe (componentId, timelineName, elementName, propertyName, startMs, startValue, maybeCurve, endMs, endValue) {
     // Note that if startValue is undefined, the previous value will be examined to determine the value of the present one
     BytecodeActions.createKeyframe(this.state.reifiedBytecode, componentId, timelineName, elementName, propertyName, startMs, startValue, maybeCurve, endMs, endValue, this._component.fetchActiveBytecodeFile().get('hostInstance'), this._component.fetchActiveBytecodeFile().get('states'))
+    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -863,6 +855,7 @@ class Timeline extends React.Component {
 
   executeBytecodeActionSplitSegment (componentId, timelineName, elementName, propertyName, startMs) {
     BytecodeActions.splitSegment(this.state.reifiedBytecode, componentId, timelineName, elementName, propertyName, startMs)
+    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -872,6 +865,7 @@ class Timeline extends React.Component {
 
   executeBytecodeActionJoinKeyframes (componentId, timelineName, elementName, propertyName, startMs, endMs, curveName) {
     BytecodeActions.joinKeyframes(this.state.reifiedBytecode, componentId, timelineName, elementName, propertyName, startMs, endMs, curveName)
+    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode(),
@@ -886,6 +880,7 @@ class Timeline extends React.Component {
 
   executeBytecodeActionDeleteKeyframe (componentId, timelineName, propertyName, startMs) {
     BytecodeActions.deleteKeyframe(this.state.reifiedBytecode, componentId, timelineName, propertyName, startMs)
+    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode(),
@@ -898,6 +893,7 @@ class Timeline extends React.Component {
 
   executeBytecodeActionChangeSegmentCurve (componentId, timelineName, propertyName, startMs, curveName) {
     BytecodeActions.changeSegmentCurve(this.state.reifiedBytecode, componentId, timelineName, propertyName, startMs, curveName)
+    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -909,6 +905,7 @@ class Timeline extends React.Component {
 
   executeBytecodeActionChangeSegmentEndpoints (componentId, timelineName, propertyName, oldStartMs, oldEndMs, newStartMs, newEndMs) {
     BytecodeActions.changeSegmentEndpoints(this.state.reifiedBytecode, componentId, timelineName, propertyName, oldStartMs, oldEndMs, newStartMs, newEndMs)
+    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -918,6 +915,7 @@ class Timeline extends React.Component {
 
   executeBytecodeActionRenameTimeline (oldTimelineName, newTimelineName) {
     BytecodeActions.renameTimeline(this.state.reifiedBytecode, oldTimelineName, newTimelineName)
+    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -927,6 +925,7 @@ class Timeline extends React.Component {
 
   executeBytecodeActionCreateTimeline (timelineName) {
     BytecodeActions.createTimeline(this.state.reifiedBytecode, timelineName)
+    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -937,6 +936,7 @@ class Timeline extends React.Component {
 
   executeBytecodeActionDuplicateTimeline (timelineName) {
     BytecodeActions.duplicateTimeline(this.state.reifiedBytecode, timelineName)
+    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -946,6 +946,7 @@ class Timeline extends React.Component {
 
   executeBytecodeActionDeleteTimeline (timelineName) {
     BytecodeActions.deleteTimeline(this.state.reifiedBytecode, timelineName)
+    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -958,6 +959,7 @@ class Timeline extends React.Component {
     let keyframeMoves = BytecodeActions.moveSegmentEndpoints(this.state.reifiedBytecode, componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo)
     // The 'keyframeMoves' indicate a list of changes we know occurred. Only if some occurred do we bother to update the other views
     if (Object.keys(keyframeMoves).length > 0) {
+      clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
       this.setState({
         reifiedBytecode: this.state.reifiedBytecode,
         serializedBytecode: this._component.getSerializedBytecode()
@@ -1019,6 +1021,7 @@ class Timeline extends React.Component {
         })
         reifiedBytecode.template.__isExpanded = true
       }
+      clearInMemoryBytecodeCaches(reifiedBytecode)
       this.setState({ reifiedBytecode, serializedBytecode })
     }
   }
@@ -1075,6 +1078,7 @@ class Timeline extends React.Component {
       }
     })
 
+    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode(),
@@ -1147,7 +1151,7 @@ class Timeline extends React.Component {
     }
     for (let i = 0; i < msMarkers.length; i++) {
       let msMarker = msMarkers[i]
-      let nearestFrame = this.millisecondToNearestFrame(msMarker, frameInfo.mspf)
+      let nearestFrame = millisecondToNearestFrame(msMarker, frameInfo.mspf)
       let msRemainder = Math.floor(nearestFrame * frameInfo.mspf - msMarker)
       // TODO: handle the msRemainder case rather than ignoring it
       if (!msRemainder) {
@@ -1187,8 +1191,8 @@ class Timeline extends React.Component {
     const frameInfo = {}
     frameInfo.fps = this.state.framesPerSecond // Number of frames per second
     frameInfo.mspf = 1000 / frameInfo.fps // Milliseconds per frame
-    frameInfo.maxms = this.getMaximumMs(this.state.reifiedBytecode)
-    frameInfo.maxf = this.millisecondToNearestFrame(frameInfo.maxms, frameInfo.mspf) // Maximum frame defined in the timeline
+    frameInfo.maxms = getMaximumMs(this.state.reifiedBytecode, this.state.currentTimelineName)
+    frameInfo.maxf = millisecondToNearestFrame(frameInfo.maxms, frameInfo.mspf) // Maximum frame defined in the timeline
     frameInfo.fri0 = 0 // The lowest possible frame (always 0)
     frameInfo.friA = (this.state.visibleFrameRange[0] < frameInfo.fri0) ? frameInfo.fri0 : this.state.visibleFrameRange[0] // The leftmost frame on the visible range
     frameInfo.friMax = (frameInfo.maxf < 60) ? 60 : frameInfo.maxf // The maximum frame as defined in the timeline
@@ -1219,17 +1223,6 @@ class Timeline extends React.Component {
     return numeral(seconds).format('0[.]0[0]')
   }
 
-  getCachedTimelineMaxTime () {
-
-  }
-
-  getMaximumMs (reifiedBytecode) {
-    if (!reifiedBytecode) return 0
-    if (!reifiedBytecode.timelines) return 0
-    if (!reifiedBytecode.timelines[this.state.currentTimelineName]) return 0
-    return getTimelineMaxTime(reifiedBytecode.timelines[this.state.currentTimelineName])
-  }
-
   // TODO: Fix this/these misnomer(s). It's not 'ASCII'
   getAsciiTree () {
     if (this.state.reifiedBytecode && this.state.reifiedBytecode.template && this.state.reifiedBytecode.template.children) {
@@ -1248,10 +1241,6 @@ class Timeline extends React.Component {
         return this.getArchyFormatNodes('', child.children)
       })
     }
-  }
-
-  millisecondToNearestFrame (msValue, mspf) {
-    return Math.round(msValue / mspf)
   }
 
   roundUp (numToRound, multiple) {
@@ -1403,7 +1392,7 @@ class Timeline extends React.Component {
           ms: msprev,
           name: propertyName,
           index: i - 1,
-          frame: this.millisecondToNearestFrame(msprev, frameInfo.mspf),
+          frame: millisecondToNearestFrame(msprev, frameInfo.mspf),
           value: valueGroup[msprev].value,
           curve: valueGroup[msprev].curve
         }
@@ -1413,7 +1402,7 @@ class Timeline extends React.Component {
         ms: mscurr,
         name: propertyName,
         index: i,
-        frame: this.millisecondToNearestFrame(mscurr, frameInfo.mspf),
+        frame: millisecondToNearestFrame(mscurr, frameInfo.mspf),
         value: valueGroup[mscurr].value,
         curve: valueGroup[mscurr].curve
       }
@@ -1423,7 +1412,7 @@ class Timeline extends React.Component {
           ms: msnext,
           name: propertyName,
           index: i + 1,
-          frame: this.millisecondToNearestFrame(msnext, frameInfo.mspf),
+          frame: millisecondToNearestFrame(msnext, frameInfo.mspf),
           value: valueGroup[msnext].value,
           curve: valueGroup[msnext].curve
         }
@@ -1475,7 +1464,6 @@ class Timeline extends React.Component {
   // ---------
 
   renderTimelinePlaybackControls () {
-    let frameInfo = this.getFrameInfo()
     return (
       <div
         style={{
@@ -1490,7 +1478,7 @@ class Timeline extends React.Component {
           currentFrame={this.state.currentFrame}
           isPlaying={this.state.isPlayerPlaying}
           playbackSpeed={this.state.playerPlaybackSpeed}
-          lastFrame={frameInfo.friMax}
+          lastFrame={this.getFrameInfo().friMax}
           changeTimelineName={(oldTimelineName, newTimelineName) => {
             this.executeBytecodeActionRenameTimeline(oldTimelineName, newTimelineName)
           }}
@@ -1513,10 +1501,12 @@ class Timeline extends React.Component {
             /* this._component.getCurrentTimeline().pause() */
             /* this.updateVisibleFrameRange(frameInfo.fri0 - frameInfo.friA) */
             /* this.updateTime(frameInfo.fri0) */
+            let frameInfo = this.getFrameInfo()
             this._component.getCurrentTimeline().seekAndPause(frameInfo.fri0)
             this.setState({ isPlayerPlaying: false, currentFrame: frameInfo.fri0 })
           }}
           playbackSkipForward={() => {
+            let frameInfo = this.getFrameInfo()
             this.setState({ isPlayerPlaying: false, currentFrame: frameInfo.friMax })
             this._component.getCurrentTimeline().seekAndPause(frameInfo.friMax)
           }}
@@ -2444,7 +2434,6 @@ class Timeline extends React.Component {
               let leftX = clickEvent.nativeEvent.offsetX
               let frameX = Math.round(leftX / frameInfo.pxpf)
               let newFrame = frameInfo.friA + frameX
-
               this.setState({
                 inputSelected: null,
                 inputFocused: null
@@ -2473,7 +2462,6 @@ class Timeline extends React.Component {
 
   renderTimelineRangeScrollbar () {
     const frameInfo = this.getFrameInfo()
-    console.log(frameInfo.maxms)
     const knobRadius = 5
     return (
       <div
