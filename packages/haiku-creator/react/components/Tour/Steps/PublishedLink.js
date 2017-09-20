@@ -10,12 +10,13 @@ export default function ({ styles }) {
       <h2 style={styles.heading}>Publishing</h2>
       <div style={styles.text}>
         <p>
-          At this link you'll find a button that gives you an embed
-          snippet. It's Just That Easy™.
+          Sharing your work with teammates by giving them this link.
         </p>
         <p>
-          Read more on {' '} <a href='https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html' style={styles.link}> our docs</a>
-          {' '} about embedding your haikus.
+          That page includes not only your latest work, but instructions and code snippets for using your Haiku in any web codebase.
+        </p>
+        <p>
+          Read more in the <a href='https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html' style={styles.link}> docs </a> about embedding Haiku.
         </p>
       </div>
     </div>
