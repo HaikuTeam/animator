@@ -13,39 +13,35 @@ class TourHandler {
                 component: "Welcome",
                 display: "none",
                 offset: { top: 0, left: 0 },
-                spotlightRadius: "default",
+                spotlightRadius: 400,
+                waitUserAction: true,
             },
             {
                 selector: "#project-edit-button",
                 webview: "creator",
                 component: "OpenProject",
                 display: "left",
-                offset: { top: 0, left: 0 },
+                offset: { top: 0, left: 60 },
                 spotlightRadius: "default",
+                waitUserAction: true,
+            },
+            {
+                selector: ".gauge-box span:nth-child(10)",
+                webview: "timeline",
+                component: "ScrubTicker",
+                display: "top",
+                offset: { top: -50, left: 0 },
+                spotlightRadius: 600,
+                waitUserAction: true,
             },
             {
                 selector: ".gauge-box",
                 webview: "timeline",
-                component: "ScrubTicker",
+                component: "ModifyProperty",
                 display: "top",
-                offset: { top: 0, left: 0 },
-                spotlightRadius: "default",
-            },
-            {
-                selector: ".property-timeline-segments-box",
-                webview: "timeline",
-                component: "PropertyChanger",
-                display: "right",
-                offset: { top: 0, left: 0 },
-                spotlightRadius: "default",
-            },
-            {
-                selector: ".pill-container span:nth-child(5)",
-                webview: "timeline",
-                component: "KeyframeCreator",
-                display: "top",
-                offset: { top: -50, left: 100 },
-                spotlightRadius: 8000,
+                offset: { top: -50, left: 0 },
+                spotlightRadius: 600,
+                waitUserAction: false,
             },
             {
                 selector: ".pill-container span:nth-child(5)",
@@ -53,7 +49,8 @@ class TourHandler {
                 component: "TweenCreator",
                 display: "top",
                 offset: { top: -50, left: 100 },
-                spotlightRadius: "default",
+                spotlightRadius: 8000,
+                waitUserAction: false,
             },
             {
                 selector: ".pill-container span:nth-child(5)",
@@ -62,6 +59,7 @@ class TourHandler {
                 display: "top",
                 offset: { top: -50, left: 100 },
                 spotlightRadius: "default",
+                waitUserAction: false,
             },
             {
                 selector: "#stage-mount",
@@ -70,22 +68,25 @@ class TourHandler {
                 display: "right",
                 offset: { top: 150, left: 0 },
                 spotlightRadius: "default",
+                waitUserAction: true,
             },
             {
                 selector: "#state-inspector",
                 webview: "creator",
                 component: "StatesStart",
                 display: "right",
-                offset: { top: 80, left: 50 },
+                offset: { top: 180, left: 50 },
                 spotlightRadius: "default",
+                waitUserAction: true,
             },
             {
                 selector: "#add-state-button",
                 webview: "creator",
                 component: "AddState",
                 display: "right",
-                offset: { top: 70, left: 50 },
+                offset: { top: 120, left: 50 },
                 spotlightRadius: "default",
+                waitUserAction: true,
             },
             {
                 selector: ".property-input-field",
@@ -94,6 +95,7 @@ class TourHandler {
                 display: "top",
                 offset: { top: -50, left: 0 },
                 spotlightRadius: "default",
+                waitUserAction: false,
             },
             {
                 selector: ".property-input-field",
@@ -102,6 +104,7 @@ class TourHandler {
                 display: "top",
                 offset: { top: -50, left: 0 },
                 spotlightRadius: "default",
+                waitUserAction: false,
             },
             {
                 selector: ".property-input-field",
@@ -110,22 +113,25 @@ class TourHandler {
                 display: "top",
                 offset: { top: -50, left: 0 },
                 spotlightRadius: "default",
+                waitUserAction: false,
             },
             {
                 selector: "#publish",
                 webview: "creator",
                 component: "Publish",
                 display: "left",
-                offset: { top: 50, left: -50 },
+                offset: { top: 140, left: -50 },
                 spotlightRadius: "default",
+                waitUserAction: true,
             },
             {
                 selector: ".Popover",
                 webview: "creator",
                 component: "PublishedLink",
                 display: "left",
-                offset: { top: 150, left: -150 },
+                offset: { top: 200, left: -150 },
                 spotlightRadius: "default",
+                waitUserAction: false,
             },
             {
                 selector: "#go-to-dashboard",
@@ -134,6 +140,7 @@ class TourHandler {
                 display: "bottom",
                 offset: { top: 50, left: 0 },
                 spotlightRadius: "default",
+                waitUserAction: true,
             },
         ];
         this.webviewData = {};
@@ -173,7 +180,7 @@ class TourHandler {
     }
     requestShowStep(state, position) {
         this.server.emit(TOUR_CHANNEL, {
-            payload: Object.assign({}, state, { coordinates: position }),
+            payload: Object.assign({}, state, { coordinates: position, stepData: { current: this.currentStep, total: this.states.length - 1 } }),
             name: "tour:requestShowStep",
         });
     }
@@ -204,7 +211,7 @@ class TourHandler {
         if (!HaikuHomeDir_1.didTakeTour() || force) {
             this.currentStep = 0;
             this.isActive = true;
-            this.requestShowStep(Object.assign({}, this.states[this.currentStep]), { top: "50%", left: "50%" });
+            this.requestShowStep(Object.assign({}, this.states[this.currentStep]), { top: "40%", left: "50%" });
         }
     }
     finish(createFile) {

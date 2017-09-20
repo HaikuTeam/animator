@@ -12,6 +12,7 @@ export interface TourState {
     display: string;
     offset: ClientBoundingRect;
     spotlightRadius: number | string;
+    waitUserAction: boolean;
 }
 export interface ClientBoundingRect {
     top: number | string;
