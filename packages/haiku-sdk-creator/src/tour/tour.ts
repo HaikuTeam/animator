@@ -58,7 +58,7 @@ export default class TourHandler implements Tour {
             display: "top",
             offset: {top: -50, left: 100},
             spotlightRadius: 8000,
-            waitUserAction: false,
+            waitUserAction: true,
         },
         {
             selector: ".pill-container span:nth-child(5)",

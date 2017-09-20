@@ -481,6 +481,7 @@ class Timeline extends React.Component {
       this.executeBytecodeActionSplitSegment(componentId, timelineName, elementName, propertyName, finalMs)
     })
     this.addEmitterListener(this.ctxmenu, 'joinKeyframes', (componentId, timelineName, elementName, propertyName, startMs, endMs, curveName) => {
+      this.tourClient.next()
       this.executeBytecodeActionJoinKeyframes(componentId, timelineName, elementName, propertyName, startMs, endMs, curveName)
     })
     this.addEmitterListener(this.ctxmenu, 'deleteKeyframe', (componentId, timelineName, propertyName, startMs) => {
