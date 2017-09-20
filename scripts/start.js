@@ -54,6 +54,7 @@ var FOLDER_CHOICES = {
   'primitives-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/primitives'),
   'simple-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/simple'),
   'SuperComplex-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/SuperComplex'),
+  'comet-rotation-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/comet-rotation'),
   'complex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/complex'),
   'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex')
 }
@@ -105,6 +106,7 @@ function runInteractive () {
             { name: 'primitives (glass)', value: 'primitives-glass' },
             { name: 'simple (glass)', value: 'simple-gl' },
             { name: 'SuperComplex (glass)', value: 'SuperComplex-glass' },
+            { name: 'comet-rotation (glass)', value: 'comet-rotation-glass' },
             { name: 'complex (timeline)', value: 'complex-timeline' },
             { name: 'SuperComplex (timeline)', value: 'SuperComplex-timeline' }
           ],
