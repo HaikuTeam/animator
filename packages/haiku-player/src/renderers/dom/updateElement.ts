@@ -89,6 +89,7 @@ export default function updateElement(
       isKeyDifferent,
     )
   }
+
   applyLayout(
     domElement,
     virtualElement,

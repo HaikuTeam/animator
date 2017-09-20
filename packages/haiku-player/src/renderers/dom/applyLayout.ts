@@ -89,6 +89,7 @@ export default function applyLayout(
 
     let devicePixelRatio =
       (component.config.options && component.config.options.devicePixelRatio) || DEFAULT_PIXEL_RATIO
+
     let computedLayout = virtualElement.layout.computed
 
     // No computed layout means the el is not shown

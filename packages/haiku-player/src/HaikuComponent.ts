@@ -5,12 +5,13 @@
 import Config from "./Config"
 import HaikuTimeline from "./HaikuTimeline"
 import addElementToHashTable from "./helpers/addElementToHashTable"
+import applyPropertyToElement from "./helpers/applyPropertyToElement"
 import queryTree from "./helpers/cssQueryTree"
 import scopifyElements from "./helpers/scopifyElements"
 import SimpleEventEmitter from "./helpers/SimpleEventEmitter"
 import upgradeBytecodeInPlace from "./helpers/upgradeBytecodeInPlace"
+
 import Layout3D from "./Layout3D"
-import vanityHandlers from "./properties/dom/vanities"
 import ValueBuilder from "./ValueBuilder"
 import assign from "./vendor/assign"
 
@@ -744,6 +745,11 @@ HaikuComponent.prototype._markForFullFlush = function _markForFullFlush(
   return this
 }
 
+HaikuComponent.prototype._unmarkForFullFlush = function _unmarkForFullFlush() {
+  this._needsFullFlush = false
+  return this
+}
+
 HaikuComponent.prototype._shouldPerformFullFlush = function _shouldPerformFullFlush() {
   return this._needsFullFlush
 }
@@ -999,7 +1005,7 @@ function _applyBehaviors(
         if (assembledOutputs) {
           for (let behaviorKey in assembledOutputs) {
             let behaviorValue = assembledOutputs[behaviorKey]
-            _applyPropertyToElement(matchingElement, behaviorKey, behaviorValue, context, component)
+            applyPropertyToElement(matchingElement, behaviorKey, behaviorValue, context, component)
           }
         }
       }
@@ -1243,6 +1249,7 @@ function _computeAndApplyTreeLayouts(tree, container, options, context) {
 function _computeAndApplyNodeLayout(element, parent, options, context) {
   if (parent) {
     let parentSize = parent.layout.computed.size
+
     let computedLayout = Layout3D.computeLayout(
       {},
       element.layout,
@@ -1260,41 +1267,6 @@ function _computeAndApplyNodeLayout(element, parent, options, context) {
     } else {
       element.layout.computed = computedLayout || { size: parentSize } // Need to pass some size to children, so if this element doesn't have one, use the parent's
     }
-  }
-}
-
-function _applyPropertyToElement(element, name, value, context, component) {
-  let type = element.elementName
-
-  if (element.__instance) {
-    // See if the instance at this node will allow us to apply this property
-    let addressables = element.__instance.getAddressableProperties()
-    if (addressables[name] !== undefined) {
-      // Call the 'setter' of the given addressable property
-      // TODO: Runtime type check?
-      element.__instance.state[name] = value
-      // Early return - the component instance will handle applying the
-      // property internally
-      return
-    }
-    // If we get here, then we will just apply to the wrapper element itself
-    // using any of the built-in vanity handler functions
-    type = "div" // TODO: How will this assumption bite us later?
-  }
-
-  if (
-    vanityHandlers[type] &&
-    vanityHandlers[type][name]
-  ) {
-    vanityHandlers[type][name](
-      name,
-      element,
-      value,
-      context,
-      component,
-    )
-  } else {
-    element.attributes[name] = value
   }
 }
 
