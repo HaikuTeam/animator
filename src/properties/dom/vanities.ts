@@ -36,59 +36,43 @@ const LAYOUT_3D_VANITIES = {
   // the w-component of the quaternion and carry it
 
   "rotation.x"(name, element, value) {
-    let rotation = element.layout.rotation
-    let x = value
-    let y = rotation.y
-    let z = rotation.z
-    let w = rotation.w
-    element.layout.rotation = Layout3D.computeRotationFlexibly(
-      x,
-      y,
-      z,
-      w,
-      rotation,
+    element.layout.rotation.x = value
+    element.layout.orientation = Layout3D.computeOrientationFlexibly(
+      element.layout.rotation.x,
+      element.layout.rotation.y,
+      element.layout.rotation.z,
+      element.layout.rotation.w,
+      element.layout.rotation,
     )
   },
   "rotation.y"(name, element, value) {
-    let rotation = element.layout.rotation
-    let x = rotation.x
-    let y = value
-    let z = rotation.z
-    let w = rotation.w
-    element.layout.rotation = Layout3D.computeRotationFlexibly(
-      x,
-      y,
-      z,
-      w,
-      rotation,
+    element.layout.rotation.y = value
+    element.layout.orientation = Layout3D.computeOrientationFlexibly(
+      element.layout.rotation.x,
+      element.layout.rotation.y,
+      element.layout.rotation.z,
+      element.layout.rotation.w,
+      element.layout.orientation,
     )
   },
   "rotation.z"(name, element, value) {
-    let rotation = element.layout.rotation
-    let x = rotation.x
-    let y = rotation.y
-    let z = value
-    let w = rotation.w
-    element.layout.rotation = Layout3D.computeRotationFlexibly(
-      x,
-      y,
-      z,
-      w,
-      rotation,
+    element.layout.rotation.z = value
+    element.layout.orientation = Layout3D.computeOrientationFlexibly(
+      element.layout.rotation.x,
+      element.layout.rotation.y,
+      element.layout.rotation.z,
+      element.layout.rotation.w,
+      element.layout.orientation,
     )
   },
   "rotation.w"(name, element, value) {
-    let rotation = element.layout.rotation
-    let x = rotation.x
-    let y = rotation.y
-    let z = rotation.z
-    let w = value
-    element.layout.rotation = Layout3D.computeRotationFlexibly(
-      x,
-      y,
-      z,
-      w,
-      rotation,
+    element.layout.rotation.w = value
+    element.layout.orientation = Layout3D.computeOrientationFlexibly(
+      element.layout.rotation.x,
+      element.layout.rotation.y,
+      element.layout.rotation.z,
+      element.layout.rotation.w,
+      element.layout.orientation,
     )
   },
 

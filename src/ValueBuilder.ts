@@ -330,6 +330,7 @@ function assignElementInjectables(obj, key, summonSpec, hostInstance, element) {
   out.properties.opacity = element.layout.opacity
   out.properties.origin = element.layout.origin
   out.properties.rotation = element.layout.rotation
+  out.properties.orientation = element.layout.orientation
   out.properties.scale = element.layout.scale
   out.properties.shown = element.layout.shown
   out.properties.sizeAbsolute = element.layout.sizeAbsolute
