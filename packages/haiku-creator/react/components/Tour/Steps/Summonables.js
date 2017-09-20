@@ -6,10 +6,14 @@ export default function ({ styles }) {
       <h2 style={styles.heading}>Summonables</h2>
       <div style={styles.text}>
         <p>
-          In addition to states you create, there are also "built-in" summonables
-          that can be referenced.
-          Try the one below and move your mouse over the stage. For a full list
-          of the built-in summonables, visit our <a href='https://docs.haiku.ai/using-haiku/summonables.html' style={styles.link}>docs.</a>
+          In addition to States you create, Haiku offers several built-in
+          helpers for things like mouse and touch position, stage dimensions,
+          timeline position, and more. We call these helpers <strong>Summonables</strong>.
+        </p>
+
+        <p>
+          These are a powerful way to animate or respond to user interactions,
+          while writing almost no code. You can read more about Summonables <a href='https://docs.haiku.ai/using-haiku/summonables.html' style={styles.link}> in our docs.</a>
         </p>
       </div>
     </div>
