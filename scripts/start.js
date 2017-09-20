@@ -209,7 +209,7 @@ function setup () {
     process.env.HAIKU_PROJECT_FOLDER = chosenFolder
   }
 
-  if (inputs.folderChoice === 'blank') {
+  if (inputs.devChoice === 'everything' && inputs.folderChoice === 'blank') {
     fse.removeSync(blankProject)
     fse.mkdirpSync(blankProject)
     fse.outputFileSync(path.join(blankProject, '.keep'), '')
