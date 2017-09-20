@@ -685,8 +685,11 @@ function FileModel (config) {
       let problem = false
       componentIds.forEach((componentId) => {
         let elementNode = this.findElementByComponentId(mana, componentId)
-        if (elementNode) TimelineProperty.addPropertyGroupDelta(timelines, timelineName, componentId, _safeElementName(elementNode), propertyGroup, timelineTime, this.get('hostInstance'), this.get('states'))
-        else (problem = `Cannot locate element with id ${componentId}`)
+        if (elementNode) {
+          TimelineProperty.addPropertyGroupDelta(timelines, timelineName, componentId, _safeElementName(elementNode), propertyGroup, timelineTime, this.get('hostInstance'), this.get('states'))
+        } else {
+          problem = `Cannot locate element with id ${componentId}`
+        }
       })
       if (problem) return done(new Error(problem))
       return done()
