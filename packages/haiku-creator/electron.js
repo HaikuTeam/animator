@@ -3,7 +3,6 @@ var electron = require('electron')
 var ipcMain = electron.ipcMain
 var systemPreferences = electron.systemPreferences
 var app = electron.app
-var protocol = electron.protocol
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
 var TopMenu = require('./TopMenu')
@@ -216,14 +215,6 @@ if (app.isReady()) {
   createWindow()
 } else {
   app.on('ready', createWindow)
-  app.on('ready', () => {
-    protocol.registerFileProtocol('creator', (request, callback) => {
-      const url = request.url.substr(7)
-      callback({path: path.normalize(`${__dirname}/${url}`)})
-    }, (error) => {
-      if (error) console.error('Failed to register protocol')
-    })
-  })
 }
 
 // Hacky: When plumbing launches inside an Electron process it expects an EventEmitter-like
