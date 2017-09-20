@@ -99,13 +99,15 @@ STYLES.RIGHT = {
   }
 }
 
-export default function ({ coordinates, offset, spotlightRadius, display, children }) {
+export default function ({ coordinates, offset, spotlightRadius, display, children, next, finish, stepData, waitUserAction }) {
   let { top, left } = coordinates
   let circleDisplay = 'none'
   let positionStyles = STYLES[display.toUpperCase()] || {}
   let spotlightExtraStyles = {}
 
   if (display !== 'none') {
+    // Temporally disable the circle until we figure out placement
+    // and design
     // circleDisplay = 'inline-block'
   }
 
@@ -147,6 +149,20 @@ export default function ({ coordinates, offset, spotlightRadius, display, childr
       <div style={{...STYLES.childrenWrapper, ...positionStyles.children}}>
         <div style={STYLES.children}>
           {children}
+
+          {/* Don't show buttons on the first and last slides */}
+          {stepData.current > 0 && stepData.current < stepData.total &&
+            <div style={{display: 'flex', justifyContent: 'space-between', marginTop: 30}}>
+              <button style={TOUR_STYLES.btnSecondary} onClick={() => finish(true)}>Skip Tutorial</button>
+              <div>
+                <span style={{marginRight: 10}}>{stepData.current} of {stepData.total}</span>
+                {/* Show the next button if we aren't waiting for user interaction */}
+                {!waitUserAction &&
+                  <button style={TOUR_STYLES.btn} onClick={() => next()}>Next</button>
+                }
+              </div>
+            </div>
+          }
         </div>
       </div>
     </div>

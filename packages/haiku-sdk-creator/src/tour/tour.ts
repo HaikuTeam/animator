@@ -22,14 +22,16 @@ export default class TourHandler implements Tour {
             display: "none",
             offset: {top: 0, left: 0},
             spotlightRadius: 400,
+            waitUserAction: true,
         },
         {
             selector: "#project-edit-button",
             webview: "creator",
             component: "OpenProject",
             display: "left",
-            offset: {top: 0, left: 50},
+            offset: {top: 0, left: 60},
             spotlightRadius: "default",
+            waitUserAction: true,
         },
         {
             selector: ".gauge-box span:nth-child(10)",
@@ -38,6 +40,7 @@ export default class TourHandler implements Tour {
             display: "top",
             offset: {top: -50, left: 0},
             spotlightRadius: 600,
+            waitUserAction: true,
         },
         {
             selector: ".pill-container span:nth-child(5)",
@@ -46,6 +49,7 @@ export default class TourHandler implements Tour {
             display: "top",
             offset: {top: -50, left: 100},
             spotlightRadius: "default",
+            waitUserAction: false,
         },
         {
             selector: ".pill-container span:nth-child(5)",
@@ -54,6 +58,7 @@ export default class TourHandler implements Tour {
             display: "top",
             offset: {top: -50, left: 100},
             spotlightRadius: "default",
+            waitUserAction: false,
         },
         {
             selector: "#stage-mount",
@@ -62,14 +67,16 @@ export default class TourHandler implements Tour {
             display: "right",
             offset: {top: 150, left: 0},
             spotlightRadius: "default",
+            waitUserAction: true,
         },
         {
             selector: "#state-inspector",
             webview: "creator",
             component: "StatesStart",
             display: "right",
-            offset: {top: 80, left: 50},
+            offset: {top: 100, left: 50},
             spotlightRadius: "default",
+            waitUserAction: true,
         },
         {
             selector: "#add-state-button",
@@ -78,6 +85,7 @@ export default class TourHandler implements Tour {
             display: "right",
             offset: {top: 70, left: 50},
             spotlightRadius: "default",
+            waitUserAction: true,
         },
         {
             selector: ".property-input-field",
@@ -86,6 +94,7 @@ export default class TourHandler implements Tour {
             display: "top",
             offset: {top: -50, left: 0},
             spotlightRadius: "default",
+            waitUserAction: false,
         },
         {
             selector: ".property-input-field",
@@ -94,6 +103,7 @@ export default class TourHandler implements Tour {
             display: "top",
             offset: {top: -50, left: 0},
             spotlightRadius: "default",
+            waitUserAction: false,
         },
         {
             selector: ".property-input-field",
@@ -102,14 +112,16 @@ export default class TourHandler implements Tour {
             display: "top",
             offset: {top: -50, left: 0},
             spotlightRadius: "default",
+            waitUserAction: false,
         },
         {
             selector: "#publish",
             webview: "creator",
             component: "Publish",
             display: "left",
-            offset: {top: 50, left: -50},
+            offset: {top: 100, left: -50},
             spotlightRadius: "default",
+            waitUserAction: true,
         },
         {
             selector: ".Popover",
@@ -118,6 +130,7 @@ export default class TourHandler implements Tour {
             display: "left",
             offset: {top: 150, left: -150},
             spotlightRadius: "default",
+            waitUserAction: false,
         },
         {
             selector: "#go-to-dashboard",
@@ -126,6 +139,7 @@ export default class TourHandler implements Tour {
             display: "bottom",
             offset: {top: 50, left: 0},
             spotlightRadius: "default",
+            waitUserAction: true,
         },
     ]
 
@@ -178,7 +192,11 @@ export default class TourHandler implements Tour {
 
     private requestShowStep(state: TourState, position: ClientBoundingRect) {
         this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
-            payload: { ...state, coordinates: position },
+            payload: {
+                ...state,
+                coordinates: position,
+                stepData: { current: this.currentStep, total: this.states.length - 1}
+            },
             name: "tour:requestShowStep",
         })
     }

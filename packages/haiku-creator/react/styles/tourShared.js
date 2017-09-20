@@ -1,21 +1,23 @@
 import { DASH_STYLES } from './dashShared'
+import Palette from '../components/Palette'
 
 export const TOUR_STYLES = {
+  heading: {
+    marginTop: 0
+  },
   btn: {
     ...DASH_STYLES.btn,
     padding: '10px 15px',
-    margin: '0 10px 0 0',
     fontSize: 16
   },
   btnSecondary: {
     textTransform: 'none',
-    padding: '10px'
+    color: Palette.DARK_PINK
   },
   linksWrapper: {
     margin: '20px 0'
   },
   link: {
-    display: 'block',
     color: 'white'
   },
   text: {

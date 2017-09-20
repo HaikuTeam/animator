@@ -26,7 +26,8 @@ export default {
   SHADY: 'rgba(21, 32, 34, .3)',
 
   // Start of real scheme:
-  BLUE: '#488192'
+  BLUE: '#488192',
+  DARK_PINK: '#F03F82' // used in the tour (buttons and UI)
 }
 
 /* will bring in full palette & rename soon */
