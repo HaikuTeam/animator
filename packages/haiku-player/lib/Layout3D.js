@@ -15,7 +15,6 @@ var ELEMENTS_2D = {
     polygon: true,
     polyline: true,
     rect: true,
-    svg: true,
     "switch": true,
     symbol: true,
     text: true,
