@@ -2541,6 +2541,7 @@ class Timeline extends React.Component {
             height={height}
             frameInfo={frameInfo}
             component={this._component}
+            isPlayerPlaying={this.state.isPlayerPlaying}
             timelineTime={this.getCurrentTimelineTime(frameInfo)}
             timelineName={this.state.currentTimelineName}
             rowHeight={this.state.rowHeight}
@@ -2684,6 +2685,7 @@ class Timeline extends React.Component {
             height={height}
             frameInfo={frameInfo}
             component={this._component}
+            isPlayerPlaying={this.state.isPlayerPlaying}
             timelineTime={this.getCurrentTimelineTime(frameInfo)}
             timelineName={this.state.currentTimelineName}
             rowHeight={this.state.rowHeight}
