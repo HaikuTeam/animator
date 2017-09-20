@@ -15,7 +15,7 @@ export default function ({ styles }) {
         </p>
         <p>
           Read more on {' '} <a href='https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html' style={styles.link}> our docs</a>
-          about embedding your haikus.
+          {' '} about embedding your haikus.
         </p>
       </div>
     </div>

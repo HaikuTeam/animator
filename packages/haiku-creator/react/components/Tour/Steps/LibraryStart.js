@@ -10,9 +10,9 @@ export default function ({ styles }) {
           You can drag any element from here to the stage to instantiate it.
         </p>
         <p>
-          But let's try demonstrating the conected design and animation
-          workflows first. Note the "checkmarck" element, let's change
-          its color in Sketch and watch it update here in Haiku automatically.
+          But let's try demonstrating the connected design and animation
+          workflows first. Note the "checkmark" element, let's change its color
+          in Sketch and watch it update here in Haiku automatically.
           Double click the Sketch Diamond to open Sketch.
         </p>
       </div>
