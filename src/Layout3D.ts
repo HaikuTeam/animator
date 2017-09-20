@@ -18,7 +18,7 @@ const ELEMENTS_2D = {
   polygon: true,
   polyline: true,
   rect: true,
-  svg: true,
+  // svg: true, // Since we host <svg> only underneath <div> it should be fine to set this?
   switch: true,
   symbol: true,
   text: true,

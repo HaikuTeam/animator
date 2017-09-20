@@ -39,14 +39,13 @@ module.exports = {
         "scale.x": { "0": { value: 0.18470301057770588, edited: true } },
         "scale.y": { "0": { value: 0.18840579710144809, edited: true } },
         "rotation.z": {
-          "0": { value: 0.10617623189165348, edited: true, curve: "linear" },
-          "83": { value: -0.7995180954320653, edited: true },
-          "500": { value: -1.1415337833181067, edited: true, curve: "linear" },
-          "550": { value: 1.5967406474096975, edited: true, curve: "linear" },
-          "650": { value: 0.6725650207314146, edited: true }
+          "0": { value: 0, edited: true, curve: "linear" },
+          "2000": { value: 3.14159, edited: true }
         },
-        "rotation.x": { "0": { value: 0, edited: true } },
-        "rotation.y": { "0": { value: 0, edited: true } }
+        // "rotation.x": { "0": { value: 0, edited: true } },
+        // "rotation.y": { "0": { value: 0, edited: true } }
+        "rotation.x": { "0": { value: 0, curve: "linear", edited: true }, "2000": { value: 3.14159, edited: true } },
+        "rotation.y": { "0": { value: 0, curve: "linear", edited: true }, "2000": { value: 3.14159, edited: true } }
       },
       "haiku:568839ae8337": {
         x1: { "0": { value: "20.4299463%" } },
@@ -135,11 +134,13 @@ module.exports = {
         "scale.x": { "0": { value: 0.12937347436940605, edited: true } },
         "scale.y": { "0": { value: 0.21283848909661565, edited: true } },
         "rotation.z": {
-          "0": { value: 0.9194279791183939, edited: true, curve: "linear" },
-          "500": { value: 2.2238904022796255, edited: true, curve: "linear" },
-          "550": { value: 0.5748823133281741, edited: true, curve: "linear" },
-          "650": { value: 1.2920123920849875, edited: true }
-        }
+          "0": { value: 0, edited: true, curve: "linear" },
+          "2000": { value: 3.14159, edited: true }
+        },
+        // "rotation.x": { "0": { value: 0, edited: true } },
+        // "rotation.y": { "0": { value: 0, edited: true } }
+        "rotation.x": { "0": { value: 0, curve: "linear", edited: true }, "2000": { value: 3.14159, edited: true } },
+        "rotation.y": { "0": { value: 0, curve: "linear", edited: true }, "2000": { value: 3.14159, edited: true } }
       },
       "haiku:7c33862271db": {
         x1: { "0": { value: "20.4299463%" } },

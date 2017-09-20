@@ -30,6 +30,7 @@ const LAYOUT_3D_SCHEMA = {
   "rotation.x": "number",
   "rotation.y": "number",
   "rotation.z": "number",
+  "rotation.w": "number",
   "scale.x": "number",
   "scale.y": "number",
   "scale.z": "number",
@@ -896,7 +897,7 @@ export default {
   ),
   "svg": has(
     CONTROL_FLOW_SCHEMA,
-    LAYOUT_2D_SCHEMA,
+    LAYOUT_3D_SCHEMA,
     PRESENTATION_SCHEMA,
     STYLE_SCHEMA,
   ),
