@@ -20,8 +20,8 @@ async.eachSeries(allPackages, function (pack, next) {
   return next()
 })
 
-//zb: bit of a hack, but we can pay this down in the off-chance that any this logic needs to extend/scale
-//NOTE: there's no analogue written for subtree-pull.  the assumption is that repo will be 'push-only'
+// zb: bit of a hack, but we can pay this down in the off-chance that any this logic needs to extend/scale
+// NOTE: there's no analogue written for subtree-pull.  the assumption is that repo will be 'push-only'
 var changelog = {
   name: 'changelog',
   remote: 'git@github.com:HaikuTeam/changelog.git',

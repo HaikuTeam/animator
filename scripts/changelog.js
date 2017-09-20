@@ -37,11 +37,11 @@ var LABELS = {
 }
 
 var MARKDOWN_LABELS = {
-  feat: "Features",
-  fix: "Bug Fixes",
-  docs: "Documentation",
-  refactor: "Refactors",
-  perf: "Performance"
+  feat: 'Features',
+  fix: 'Bug Fixes',
+  docs: 'Documentation',
+  refactor: 'Refactors',
+  perf: 'Performance'
 }
 
 // Whitelist of labels we will include in the public changelog
@@ -114,7 +114,7 @@ async.eachSeries(allPackages, function (pack, next) {
   log.hat(`changelog updated`, 'green')
 })
 
-function generateMarkdownSync(changelog) {
+function generateMarkdownSync (changelog) {
   var markdown = '# Changelog\n\n'
 
   var unsortedVersions = []
@@ -124,27 +124,26 @@ function generateMarkdownSync(changelog) {
 
   var sortedVersions = semverSort.desc(unsortedVersions)
 
-  sortedVersions.forEach((version)=>{
+  sortedVersions.forEach((version) => {
+    markdown += '\n## ' + version + '\n'
 
-    markdown += '\n## ' + version + "\n"
-    
     var changeset = changelog[version]
     var changesetGroups = {}
     for (var sha in changeset) {
       var change = changeset[sha]
-      
-      //only add the labels we care about
-      if(MARKDOWN_LABELS[change.label]){
+
+      // only add the labels we care about
+      if (MARKDOWN_LABELS[change.label]) {
         changesetGroups[change.label] = changesetGroups[change.label] || []
         changesetGroups[change.label].push(change.message)
       }
     }
 
-    for(var group in changesetGroups) {
-      markdown += '\n### ' + MARKDOWN_LABELS[group] + "\n\n"
+    for (var group in changesetGroups) {
+      markdown += '\n### ' + MARKDOWN_LABELS[group] + '\n\n'
       var messages = changesetGroups[group]
       messages.forEach((msg) => {
-        markdown += ' * ' + msg + "\n"
+        markdown += ' * ' + msg + '\n'
       })
     }
 
