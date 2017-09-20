@@ -1,21 +1,21 @@
 import React from 'react'
-import Dialog from '../../Dialog'
 
-export default function ({ styles, next }) {
+export default function ({ styles }) {
   return (
-    <Dialog>
-      <h2>Library</h2>
-      <div style={[styles.text, {width: 440}]}>
-        <p style={styles.text}>Let's focus on the library now.</p>
+    <div style={{width: 440}}>
+      <h2 style={styles.heading}>Library</h2>
+      <div style={styles.text}>
+        <p>Let's focus on the library now.</p>
         <p>
           You can drag any element from here to the stage to instantiate it.
         </p>
         <p>
-        But let's try demonstrating the conected design and animation
-        workflows first. Note the "bar yellow" element let's change its color in Sketch
-        and watch it update here in Haiku automatically.
-        Double click the Sketch Diamond to open Sketch.</p>
+          But let's try demonstrating the conected design and animation
+          workflows first. Note the "checkmarck" element, let's change
+          its color in Sketch and watch it update here in Haiku automatically.
+          Double click the Sketch Diamond to open Sketch.
+        </p>
       </div>
-    </Dialog>
+    </div>
   )
 }

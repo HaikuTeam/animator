@@ -1,4 +1,6 @@
 import React from 'react'
+import Palette from './Palette'
+import { TOUR_STYLES } from '../styles/tourShared'
 
 const STYLES = {
   container: {
@@ -25,12 +27,18 @@ const STYLES = {
   },
   childrenWrapper: {
     position: 'absolute',
-    minWidth: '260px'
+    minWidth: '260px',
+    WebkitUserSelect: 'none',
+    color: Palette.ROCK,
+    padding: 1,
+    borderRadius: 3,
+    background: 'linear-gradient(to bottom, rgba(255,221,100,1) 0%, rgba(214,37,99,1) 100%)',
+    boxShadow: '0 4px 18px 0 rgba(1,28,33,0.38)'
   },
   children: {
-    background: 'linear-gradient(to bottom, rgba(255,221,100,1) 0%, rgba(214,37,99,1) 100%)',
-    padding: '1px',
-    borderRadius: '3px'
+    backgroundColor: Palette.COAL,
+    borderRadius: 3,
+    padding: 20
   },
   spotlight: {
     position: 'absolute',

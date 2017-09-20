@@ -1,15 +1,14 @@
 import React from 'react'
-import Dialog from '../../Dialog'
 
-export default function ({ styles, next }) {
+export default function ({ styles }) {
   return (
-    <Dialog>
-      <h2>States</h2>
+    <div>
+      <h2 style={styles.heading}>States</h2>
       <div style={styles.text}>
         <p>
           Add a new state. Give it a name and a value.
         </p>
       </div>
-    </Dialog>
+    </div>
   )
 }

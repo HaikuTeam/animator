@@ -1,10 +1,9 @@
 import React from 'react'
-import Dialog from '../../Dialog'
 
 export default function ({ styles }) {
   return (
-    <Dialog>
-      <h2>States</h2>
+    <div>
+      <h2 style={styles.heading}>States</h2>
       <div style={styles.text}>
         <p>
           Alright, did you notice it change! That's the beauty of Haiku -
@@ -15,6 +14,6 @@ export default function ({ styles }) {
           to switch.
         </p>
       </div>
-    </Dialog>
+    </div>
   )
 }

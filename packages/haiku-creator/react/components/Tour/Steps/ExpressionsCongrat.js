@@ -1,16 +1,14 @@
 import React from 'react'
-import Dialog from '../../Dialog'
 
-export default function ({ styles, next }) {
+export default function ({ styles }) {
   return (
-    <Dialog>
-      <h2>Yay!</h2>
+    <div>
+      <h2 style={styles.heading}>Yay!</h2>
       <div style={styles.text}>
         <p>
           Congrats you just discovered Haiku expressions!
         </p>
       </div>
-      <button style={styles.btn} onClick={next}>Next</button>
-    </Dialog>
+    </div>
   )
 }

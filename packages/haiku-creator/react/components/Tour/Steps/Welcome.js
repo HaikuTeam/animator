@@ -1,12 +1,13 @@
 import React from 'react'
-import Dialog from '../../Dialog'
 
 const STYLES = {
   input: {
     marginRight: 10
   },
   buttons: {
-    marginTop: '30px'
+    marginTop: '30px',
+    display: 'flex',
+    justifyContent: 'space-between'
   }
 }
 
@@ -27,8 +28,8 @@ export default class Welcome extends React.Component {
     const { styles, next } = this.props
 
     return (
-      <Dialog>
-        <h2>Welcome to Haiku</h2>
+      <div>
+        <h2 style={styles.heading}>Welcome to Haiku</h2>
         <p style={styles.text}>Would you like to take the guided tour?</p>
         <form action='#'>
           <input
@@ -43,7 +44,7 @@ export default class Welcome extends React.Component {
           <button style={styles.btn} onClick={next}>Yes, please</button>
           <button style={styles.btnSecondary} onClick={this.handleFinish}>Not now</button>
         </div>
-      </Dialog>
+      </div>
     )
   }
 }

@@ -1,12 +1,11 @@
 import React from 'react'
-import Dialog from '../../Dialog'
 
-export default function ({ styles, next }) {
+export default function ({ styles }) {
   return (
-    <Dialog>
+    <div>
       <img src='http://placehold.it/250x100' alt='' />
-      <h2>Travel in time</h2>
+      <h2 style={styles.heading}>Travel in time</h2>
       <p style={styles.text}>Haikus are built on timelines. Scrub the ticker to move through time and leave it on frame 15.</p>
-    </Dialog>
+    </div>
   )
 }
