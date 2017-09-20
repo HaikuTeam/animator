@@ -3,7 +3,7 @@ import Palette from '../components/Palette'
 
 export const TOUR_STYLES = {
   heading: {
-    marginTop: 0
+    marginTop: 20
   },
   btn: {
     ...DASH_STYLES.btn,
