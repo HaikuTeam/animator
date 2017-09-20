@@ -505,6 +505,14 @@ ActiveComponent.prototype.applyPropertyGroupDelta = function applyPropertyGroupD
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', componentIds, timelineName, timelineTime, _getDefinedKeys(propertyGroup), metadata)
 
+    // If we're doing rotation, then we really *really* need to make sure we do a full flush.
+    // In production mode, rotation is handled normally, but as we do live editing, we lose
+    // 'determinism' on rotation if we update the property piecemeal, because the quaternion
+    // calc depends on passing in and mutating the previous output. This is a bug we should
+    // try to address better in the future, but for now, this seems an 'all right' way to fix.
+    this._forceFlush()
+    this._clearCaches()
+
     if (metadata.from === this.alias) {
       componentIds.forEach((componentId) => {
         this.batchPropertyGroupUpdate(componentId, this._currentTimelineName, this._currentTimelineTime, _getDefinedKeys(propertyGroup))
