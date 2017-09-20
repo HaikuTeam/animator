@@ -14,6 +14,7 @@ function TimelineModel (component, window) {
     this.currentFrame = 0
     this.playing = false
     this.fps = 60
+    this.lastAuthoritativeFrame = 0
     this._lastSeek = null
 
     this.initialize(attrs)
@@ -92,7 +93,6 @@ function TimelineModel (component, window) {
     this.playing = true
     this.stopwatch = Date.now()
     if (!this.getEnvoyClient().isInMockMode()) {
-      this.getEnvoyChannel().play(this.getId())
       this.getEnvoyChannel().play(this.getId()).then(() => {
         this.update()
       })
