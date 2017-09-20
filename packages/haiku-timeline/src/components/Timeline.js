@@ -1947,13 +1947,13 @@ class Timeline extends React.Component {
         if (totalMilliseconds <= 1000) {
           return (
             <span key={`time-${millisecondsNumber}`} style={{ pointerEvents: 'none', display: 'inline-block', position: 'absolute', left: pixelOffsetLeft, transform: 'translateX(-50%)' }}>
-              <span style={{ fontWeight: 'bold' }}>{millisecondsNumber}</span>
+              <span style={{ fontWeight: 'bold' }}>{millisecondsNumber}ms</span>
             </span>
           )
         } else {
           return (
             <span key={`time-${millisecondsNumber}`} style={{ pointerEvents: 'none', display: 'inline-block', position: 'absolute', left: pixelOffsetLeft, transform: 'translateX(-50%)' }}>
-              <span style={{ fontWeight: 'bold' }}>{formatSeconds(millisecondsNumber / 1000)}</span>
+              <span style={{ fontWeight: 'bold' }}>{formatSeconds(millisecondsNumber / 1000)}s</span>
             </span>
           )
         }
