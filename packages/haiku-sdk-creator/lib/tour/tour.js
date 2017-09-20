@@ -41,7 +41,7 @@ class TourHandler {
                 display: "top",
                 offset: { top: -50, left: 0 },
                 spotlightRadius: 600,
-                waitUserAction: false,
+                waitUserAction: true,
             },
             {
                 selector: ".pill-container span:nth-child(5)",
@@ -50,7 +50,7 @@ class TourHandler {
                 display: "top",
                 offset: { top: -50, left: 100 },
                 spotlightRadius: 8000,
-                waitUserAction: false,
+                waitUserAction: true,
             },
             {
                 selector: ".pill-container span:nth-child(5)",
@@ -58,7 +58,7 @@ class TourHandler {
                 component: "AnimatorNotice",
                 display: "top",
                 offset: { top: -50, left: 100 },
-                spotlightRadius: "default",
+                spotlightRadius: 8000,
                 waitUserAction: false,
             },
             {
@@ -66,7 +66,7 @@ class TourHandler {
                 webview: "creator",
                 component: "LibraryStart",
                 display: "right",
-                offset: { top: 150, left: 0 },
+                offset: { top: 180, left: 0 },
                 spotlightRadius: "default",
                 waitUserAction: true,
             },

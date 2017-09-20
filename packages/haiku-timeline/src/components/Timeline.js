@@ -875,6 +875,10 @@ class Timeline extends React.Component {
     })
     // No need to 'expressionToRO' here because if we got an expression, that would have already been provided in its serialized __function form
     this.props.websocket.action('createKeyframe', [this.props.folder, [componentId], timelineName, elementName, propertyName, startMs, startValue, maybeCurve, endMs, endValue], () => {})
+
+    if(elementName === 'div' && propertyName === 'opacity') {
+      this.tourClient.next()
+    }
   }
 
   executeBytecodeActionSplitSegment (componentId, timelineName, elementName, propertyName, startMs) {
