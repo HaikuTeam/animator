@@ -34,6 +34,10 @@ function toast (msg) {
   console.info('[notice] ' + msg)
 }
 
+function error (err) {
+  console.error(err)
+}
+
 /**
  * @class ActiveComponent
  * @description Encapsulates and consolidates code to edit a live in-stage component.
@@ -76,7 +80,7 @@ function ActiveComponent (options) {
     hostInstance: {}, // Assigned later; used for dynamic computation of values during live editing
     states: {} // ditto
   }, options.file || {}), function (err, file) {
-    if (err) return console.error(err)
+    if (err) return error(err)
     info('[active component] active bytecode file loaded via ' + file.get('relpath'))
   })
 
@@ -155,28 +159,6 @@ ActiveComponent.prototype._setSceneName = function _setSceneName (scenename) {
 
 ActiveComponent.prototype.fetchActiveBytecodeFile = function fetchActiveBytecodeFile () {
   return this.FileModel.findFile(this._getSceneCodePath())
-}
-
-ActiveComponent.prototype._afterRequestWrapped = function _afterRequestWrapped (cb, err) {
-  if (err) {
-    console.error(err)
-    return cb(err)
-  }
-  return cb()
-}
-
-ActiveComponent.prototype._createChangeCallback = function _createChangeCallback (cb, maybeComponentIds, maybeTimelineName, maybeTimelineTime, maybePropertyNames, maybeMetadata) {
-  return function (err) {
-    if (err) return this._afterRequestWrapped(cb, err)
-    // For the player to work after update, we need to update each timeline object's 'max time'
-    // This is a caching optimization the player uses to avoid wasting cycles
-    this._updateTimelineMaxes(this._currentTimelineName)
-
-    // Notify the timeline that we have updated so it knows to flush its caches
-    this.emit('component:updated', maybeComponentIds, maybeTimelineName, maybeTimelineTime, maybePropertyNames, maybeMetadata)
-
-    return this._afterRequestWrapped(cb)
-  }.bind(this)
 }
 
 ActiveComponent.prototype._clearCaches = function _clearCaches () {
@@ -276,18 +258,15 @@ ActiveComponent.prototype.setTimelineTime = function setTimelineTime (timelineTi
   this._setTimelineTimeValue(timelineTime)
   this._forceFlush()
   this.emit('time:change', this._currentTimelineName, this._currentTimelineTime)
-  return this._afterRequestWrapped(cb)
+  return cb()
 }
 
 ActiveComponent.prototype.setTimelineName = function setTimelineName (timelineName, metadata, cb) {
   info('[active component] changing active timeline to ' + timelineName)
-
   this._currentTimelineName = timelineName
-
   this._componentInstance.stopAllTimelines()
   this._componentInstance.startTimeline(timelineName)
-
-  return this._afterRequestWrapped(cb)
+  return cb()
 }
 
 /**
@@ -429,7 +408,15 @@ ActiveComponent.prototype.instantiateComponent = function instantiateComponent (
 }
 
 ActiveComponent.prototype.deleteComponent = function deleteComponent (componentIds, metadata, cb) {
-  this.fetchActiveBytecodeFile().deleteComponent(componentIds, this._createChangeCallback((err) => {
+  this.fetchActiveBytecodeFile().deleteComponent(componentIds, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', null, null, null, null, metadata)
+
     this._clearCaches()
     this._forceFlush()
     this._hydrateElements()
@@ -438,45 +425,94 @@ ActiveComponent.prototype.deleteComponent = function deleteComponent (componentI
     if (metadata.from === this.alias) {
       this.websocket.send({ type: 'action', method: 'deleteComponent', params: [this.folder, componentIds] })
     }
+
     return cb()
-  }, null, null, null, null, metadata))
+  })
 }
 
 ActiveComponent.prototype.mergeDesign = function mergeDesign (timelineName, timelineTime, relpath, metadata, cb) {
-  this.fetchActiveBytecodeFile().mergeDesign(timelineName, timelineTime, relpath, this._createChangeCallback((err) => {
+  this.fetchActiveBytecodeFile().mergeDesign(timelineName, timelineTime, relpath, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', null, timelineName, timelineTime, null, metadata)
+
     this._clearCaches()
     this._forceFlush()
     this._hydrateElements()
+
     if (err) return cb(err)
     if (metadata.from === this.alias) {
       this.websocket.send({ type: 'action', method: 'mergeDesign', params: [this.folder, timelineName, timelineTime, relpath] })
     }
+
     return cb()
-  }, null, timelineName, timelineTime, null, metadata))
+  })
 }
 
 ActiveComponent.prototype.applyPropertyValue = function applyPropertyValue (componentIds, timelineName, timelineTime, propertyName, propertyValue, metadata, cb) {
-  this.fetchActiveBytecodeFile().applyPropertyValue(componentIds, timelineName, timelineTime, propertyName, propertyValue, this._createChangeCallback(cb, componentIds, timelineName, timelineTime, [propertyName], metadata))
+  this.fetchActiveBytecodeFile().applyPropertyValue(componentIds, timelineName, timelineTime, propertyName, propertyValue, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, timelineTime, [propertyName], metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.applyPropertyDelta = function applyPropertyDelta (componentIds, timelineName, timelineTime, propertyName, propertyValue, metadata, cb) {
-  this.fetchActiveBytecodeFile().applyPropertyDelta(componentIds, timelineName, timelineTime, propertyName, propertyValue, this._createChangeCallback(cb, componentIds, timelineName, timelineTime, [propertyName], metadata))
+  this.fetchActiveBytecodeFile().applyPropertyDelta(componentIds, timelineName, timelineTime, propertyName, propertyValue, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, timelineTime, [propertyName], metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.applyPropertyGroupValue = function applyPropertyGroupValue (componentIds, timelineName, timelineTime, propertyGroup, metadata, cb) {
-  this.fetchActiveBytecodeFile().applyPropertyGroupValue(componentIds, timelineName, timelineTime, propertyGroup, this._createChangeCallback(cb, componentIds, timelineName, timelineTime, _getDefinedKeys(propertyGroup), metadata))
+  this.fetchActiveBytecodeFile().applyPropertyGroupValue(componentIds, timelineName, timelineTime, propertyGroup, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, timelineTime, _getDefinedKeys(propertyGroup), metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.applyPropertyGroupDelta = function applyPropertyGroupDelta (componentIds, timelineName, timelineTime, propertyGroup, metadata, cb) {
-  this.fetchActiveBytecodeFile().applyPropertyGroupDelta(componentIds, timelineName, timelineTime, propertyGroup, this._createChangeCallback((err) => {
-    if (err) return cb(err)
+  this.fetchActiveBytecodeFile().applyPropertyGroupDelta(componentIds, timelineName, timelineTime, propertyGroup, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, timelineTime, _getDefinedKeys(propertyGroup), metadata)
+
     if (metadata.from === this.alias) {
       componentIds.forEach((componentId) => {
         this.batchPropertyGroupUpdate(componentId, this._currentTimelineName, this._currentTimelineTime, _getDefinedKeys(propertyGroup))
       })
     }
+
     return cb()
-  }, componentIds, timelineName, timelineTime, _getDefinedKeys(propertyGroup), metadata))
+  })
 }
 
 ActiveComponent.prototype.getContextSize = function getContextSize () {
@@ -484,158 +520,385 @@ ActiveComponent.prototype.getContextSize = function getContextSize () {
 }
 
 ActiveComponent.prototype.resizeContext = function resizeContext (artboardIds, timelineName, timelineTime, sizeDescriptor, metadata, cb) {
-  this.fetchActiveBytecodeFile().resizeContext(artboardIds, timelineName, timelineTime, sizeDescriptor, this._createChangeCallback((err) => {
-    if (err) return cb(err)
+  this.fetchActiveBytecodeFile().resizeContext(artboardIds, timelineName, timelineTime, sizeDescriptor, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', artboardIds, timelineName, timelineTime, ['sizeAbsolute.x', 'sizeAbsolute.y'], metadata)
     this.emit('artboard:resized', sizeDescriptor)
+
     if (metadata.from === this.alias) {
       artboardIds.forEach((artboardId) => {
         this.batchPropertyGroupUpdate(artboardId, timelineName, timelineTime, ['sizeAbsolute.x', 'sizeAbsolute.y'])
       })
     }
+
     return cb()
-  }, artboardIds, timelineName, timelineTime, ['sizeAbsolute.x', 'sizeAbsolute.y'], metadata))
+  })
 }
 
 // ------***
 
-ActiveComponent.prototype.changeKeyframeValue = function (componentIds, timelineName, propertyName, keyframeMs, newValue, metadata, cb) {
-  componentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  return this.fetchActiveBytecodeFile().changeKeyframeValue(componentIds, timelineName, propertyName, keyframeMs, newValue, this._createChangeCallback(cb, componentIds, timelineName, keyframeMs, [propertyName], metadata))
+ActiveComponent.prototype.changePlaybackSpeed = function (framesPerSecond, metadata, cb) {
+  return this.fetchActiveBytecodeFile().changePlaybackSpeed(framesPerSecond, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', null, null, null, null, metadata)
+
+    return cb()
+  })
 }
 
-ActiveComponent.prototype.changePlaybackSpeed = function (framesPerSecond, metadata, cb) {
-  return this.fetchActiveBytecodeFile().changePlaybackSpeed(framesPerSecond, this._createChangeCallback(cb))
+ActiveComponent.prototype.changeKeyframeValue = function (componentIds, timelineName, propertyName, keyframeMs, newValue, metadata, cb) {
+  componentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
+  return this.fetchActiveBytecodeFile().changeKeyframeValue(componentIds, timelineName, propertyName, keyframeMs, newValue, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, keyframeMs, [propertyName], metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.changeSegmentCurve = function (componentIds, timelineName, propertyName, keyframeMs, newCurve, metadata, cb) {
   componentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  return this.fetchActiveBytecodeFile().changeSegmentCurve(componentIds, timelineName, propertyName, keyframeMs, newCurve, this._createChangeCallback(cb, componentIds, timelineName, null, [propertyName], metadata))
+  return this.fetchActiveBytecodeFile().changeSegmentCurve(componentIds, timelineName, propertyName, keyframeMs, newCurve, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, null, [propertyName], metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.changeSegmentEndpoints = function (componentIds, timelineName, propertyName, oldMs, newMs, metadata, cb) {
   componentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  return this.fetchActiveBytecodeFile().changeSegmentEndpoints(componentIds, timelineName, propertyName, oldMs, newMs, this._createChangeCallback(cb, componentIds, timelineName, null, [propertyName], metadata))
+  return this.fetchActiveBytecodeFile().changeSegmentEndpoints(componentIds, timelineName, propertyName, oldMs, newMs, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, null, [propertyName], metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.createKeyframe = function (componentIds, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata, cb) {
   componentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  return this.fetchActiveBytecodeFile().createKeyframe(componentIds, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, this._createChangeCallback((err) => {
-    if (err) return cb(err)
+  return this.fetchActiveBytecodeFile().createKeyframe(componentIds, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, keyframeStartMs, [propertyName], metadata)
     this._clearCaches()
+
     return cb()
-  }, componentIds, timelineName, keyframeStartMs, [propertyName], metadata))
+  })
 }
 
 ActiveComponent.prototype.createTimeline = function (timelineName, timelineDescriptor, metadata, cb) {
-  return this.fetchActiveBytecodeFile().createTimeline(timelineName, timelineDescriptor, this._createChangeCallback(cb, null, timelineName, null, null, metadata))
+  return this.fetchActiveBytecodeFile().createTimeline(timelineName, timelineDescriptor, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', null, timelineName, null, null, metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.deleteKeyframe = function (componentIds, timelineName, propertyName, keyframeMs, metadata, cb) {
   componentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  return this.fetchActiveBytecodeFile().deleteKeyframe(componentIds, timelineName, propertyName, keyframeMs, this._createChangeCallback(cb, componentIds, timelineName, keyframeMs, [propertyName], metadata))
+  return this.fetchActiveBytecodeFile().deleteKeyframe(componentIds, timelineName, propertyName, keyframeMs, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, keyframeMs, [propertyName], metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.deleteTimeline = function (timelineName, metadata, cb) {
-  return this.fetchActiveBytecodeFile().deleteTimeline(timelineName, this._createChangeCallback(cb, null, timelineName, null, null, metadata))
+  return this.fetchActiveBytecodeFile().deleteTimeline(timelineName, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', null, timelineName, null, null, metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.duplicateTimeline = function (timelineName, metadata, cb) {
-  return this.fetchActiveBytecodeFile().duplicateTimeline(timelineName, this._createChangeCallback(cb, null, timelineName, null, null, metadata))
+  return this.fetchActiveBytecodeFile().duplicateTimeline(timelineName, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', null, timelineName, null, null, metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.joinKeyframes = function (componentIds, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, metadata, cb) {
   componentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  return this.fetchActiveBytecodeFile().joinKeyframes(componentIds, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, this._createChangeCallback(cb, componentIds, timelineName, keyframeMsLeft, [propertyName], metadata))
+  return this.fetchActiveBytecodeFile().joinKeyframes(componentIds, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, keyframeMsLeft, [propertyName], metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.moveSegmentEndpoints = function (componentIds, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo, metadata, cb) {
   componentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  return this.fetchActiveBytecodeFile().moveSegmentEndpoints(componentIds, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo, this._createChangeCallback(cb, componentIds, timelineName, startMs, [propertyName], metadata))
+  return this.fetchActiveBytecodeFile().moveSegmentEndpoints(componentIds, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, startMs, [propertyName], metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.moveKeyframes = function (componentIds, timelineName, propertyName, keyframeMoves, frameInfo, metadata, cb) {
   componentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  return this.fetchActiveBytecodeFile().moveKeyframes(componentIds, timelineName, propertyName, keyframeMoves, frameInfo, this._createChangeCallback(cb, componentIds, timelineName, null, [propertyName], metadata))
+  return this.fetchActiveBytecodeFile().moveKeyframes(componentIds, timelineName, propertyName, keyframeMoves, frameInfo, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, null, [propertyName], metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.renameTimeline = function (timelineNameOld, timelineNameNew, metadata, cb) {
-  return this.fetchActiveBytecodeFile().renameTimeline(timelineNameOld, timelineNameNew, this._createChangeCallback(cb))
+  return this.fetchActiveBytecodeFile().renameTimeline(timelineNameOld, timelineNameNew, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', null, null, null, null, metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.sliceSegment = function (componentIds, timelineName, elementName, propertyName, keyframeMs, sliceMs, metadata, cb) {
   componentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  return this.fetchActiveBytecodeFile().sliceSegment(componentIds, timelineName, elementName, propertyName, keyframeMs, sliceMs, this._createChangeCallback(cb, componentIds, timelineName, keyframeMs, [propertyName], metadata))
+  return this.fetchActiveBytecodeFile().sliceSegment(componentIds, timelineName, elementName, propertyName, keyframeMs, sliceMs, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, keyframeMs, [propertyName], metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.splitSegment = function (componentIds, timelineName, elementName, propertyName, keyframeMs, metadata, cb) {
   componentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  return this.fetchActiveBytecodeFile().splitSegment(componentIds, timelineName, elementName, propertyName, keyframeMs, this._createChangeCallback(cb, componentIds, timelineName, keyframeMs, [propertyName], metadata))
+  return this.fetchActiveBytecodeFile().splitSegment(componentIds, timelineName, elementName, propertyName, keyframeMs, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, keyframeMs, [propertyName], metadata)
+
+    return cb()
+  })
 }
 
 // -----***
 
 ActiveComponent.prototype.zMoveToFront = function (componentIds, timelineName, timelineTime, metadata, cb) {
-  this.fetchActiveBytecodeFile().zMoveToFront(componentIds, timelineName, timelineTime, this._createChangeCallback((err) => {
-    if (err) return cb()
+  this.fetchActiveBytecodeFile().zMoveToFront(componentIds, timelineName, timelineTime, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, timelineTime, null, metadata)
+    this._clearCaches()
+
     if (metadata.from === this.alias) {
       this.websocket.send({ type: 'action', method: 'zMoveToFront', params: [this.folder, componentIds, timelineName, timelineTime] })
     }
-    this._clearCaches()
+
     return cb()
-  }, componentIds, timelineName, timelineTime, null, metadata))
+  })
 }
 
 ActiveComponent.prototype.zMoveForward = function (componentIds, timelineName, timelineTime, metadata, cb) {
-  this.fetchActiveBytecodeFile().zMoveForward(componentIds, timelineName, timelineTime, this._createChangeCallback((err) => {
-    if (err) return cb(err)
+  this.fetchActiveBytecodeFile().zMoveForward(componentIds, timelineName, timelineTime, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, timelineTime, null, metadata)
+    this._clearCaches()
+
     if (metadata.from === this.alias) {
       this.websocket.send({ type: 'action', method: 'zMoveForward', params: [this.folder, componentIds, timelineName, timelineTime] })
     }
-    this._clearCaches()
+
     return cb()
-  }, componentIds, timelineName, timelineTime, null, metadata))
+  })
 }
 
 ActiveComponent.prototype.zMoveBackward = function (componentIds, timelineName, timelineTime, metadata, cb) {
-  this.fetchActiveBytecodeFile().zMoveBackward(componentIds, timelineName, timelineTime, this._createChangeCallback((err) => {
-    if (err) return cb(err)
+  this.fetchActiveBytecodeFile().zMoveBackward(componentIds, timelineName, timelineTime, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, timelineTime, null, metadata)
+    this._clearCaches()
+
     if (metadata.from === this.alias) {
       this.websocket.send({ type: 'action', method: 'zMoveBackward', params: [this.folder, componentIds, timelineName, timelineTime] })
     }
-    this._clearCaches()
+
     return cb()
-  }, componentIds, timelineName, timelineTime, null, metadata))
+  })
 }
 
 ActiveComponent.prototype.zMoveToBack = function (componentIds, timelineName, timelineTime, metadata, cb) {
-  this.fetchActiveBytecodeFile().zMoveToBack(componentIds, timelineName, timelineTime, this._createChangeCallback((err) => {
-    if (err) return cb(err)
+  this.fetchActiveBytecodeFile().zMoveToBack(componentIds, timelineName, timelineTime, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, timelineName, timelineTime, null, metadata)
+    this._clearCaches()
+
     if (metadata.from === this.alias) {
       this.websocket.send({ type: 'action', method: 'zMoveToBack', params: [this.folder, componentIds, timelineName, timelineTime] })
     }
-    this._clearCaches()
+
     return cb()
-  }, componentIds, timelineName, timelineTime, null, metadata))
+  })
 }
 
 ActiveComponent.prototype.reorderElement = function (componentId, componentIdToInsertBefore, metadata, cb) {
   this._clearCachedClusters(this._currentTimelineName, componentId)
-  this.fetchActiveBytecodeFile().reorderElement(componentId, componentIdToInsertBefore, this._createChangeCallback(cb, [componentId], null, null, null, metadata))
+  this.fetchActiveBytecodeFile().reorderElement(componentId, componentIdToInsertBefore, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', [componentId], null, null, null, metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.groupElements = function (componentIdsToGroup, metadata, cb) {
   componentIdsToGroup.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  this.fetchActiveBytecodeFile().groupElements(componentIdsToGroup, this._createChangeCallback(cb, componentIdsToGroup, null, null, null, metadata))
+  this.fetchActiveBytecodeFile().groupElements(componentIdsToGroup, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIdsToGroup, null, null, null, metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.ungroupElements = function (groupComponentIds, metadata, cb) {
   groupComponentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  this.fetchActiveBytecodeFile().ungroupElements(groupComponentIds, this._createChangeCallback(cb, groupComponentIds, null, null, null, metadata))
+  this.fetchActiveBytecodeFile().ungroupElements(groupComponentIds, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', groupComponentIds, null, null, null, metadata)
+
+    return cb()
+  })
 }
 
 ActiveComponent.prototype.hideElements = function (componentIds, metadata, cb) {
   componentIds.forEach((componentId) => { this._clearCachedClusters(this._currentTimelineName, componentId) })
-  this.fetchActiveBytecodeFile().hideElements(componentIds, metadata, this._createChangeCallback(cb, componentIds, null, null, null, metadata))
+  this.fetchActiveBytecodeFile().hideElements(componentIds, metadata, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', componentIds, null, null, null, metadata)
+
+    return cb()
+  })
 }
 
 /**
@@ -672,7 +935,17 @@ ActiveComponent.prototype.pasteThing = function (pasteable, request, metadata, c
  * @param metadata {Object}
  */
 ActiveComponent.prototype.deleteThing = function (deletable, metadata, cb) {
-  this.fetchActiveBytecodeFile().deleteThing(deletable, this._createChangeCallback(cb, null, null, null, null, metadata))
+  this.fetchActiveBytecodeFile().deleteThing(deletable, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', null, null, null, null, metadata)
+
+    return cb()
+  })
 }
 
 /**
@@ -686,28 +959,88 @@ ActiveComponent.prototype.readAllStateValues = function readAllStateValues (meta
  * @method upsertStateValue
  */
 ActiveComponent.prototype.upsertStateValue = function upsertStateValue (stateName, stateDescriptor, metadata, cb) {
-  return this.fetchActiveBytecodeFile().upsertStateValue(stateName, stateDescriptor, this._createChangeCallback((err) => {
-    if (err) return cb(err)
+  return this.fetchActiveBytecodeFile().upsertStateValue(stateName, stateDescriptor, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', null, null, null, null, metadata)
+    this._clearCaches()
+
     if (metadata.from === this.alias) {
       this.websocket.send({ type: 'action', method: 'upsertStateValue', params: [this.folder, stateName, stateDescriptor] })
     }
-    this._clearCaches()
+
     return cb()
-  }, null, null, null, null, metadata))
+  })
 }
 
 /**
  * @method deleteStateValue
  */
 ActiveComponent.prototype.deleteStateValue = function deleteStateValue (stateName, metadata, cb) {
-  return this.fetchActiveBytecodeFile().deleteStateValue(stateName, this._createChangeCallback((err) => {
-    if (err) return cb(err)
+  return this.fetchActiveBytecodeFile().deleteStateValue(stateName, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', null, null, null, null, metadata)
+    this._clearCaches()
+
     if (metadata.from === this.alias) {
       this.websocket.send({ type: 'action', method: 'deleteStateValue', params: [this.folder, stateName] })
     }
-    this._clearCaches()
+
     return cb()
-  }, null, null, null, null, metadata))
+  })
+}
+
+/**
+ * @method upsertEventHandler
+ */
+ActiveComponent.prototype.upsertEventHandler = function upsertEventHandler (selectorName, eventName, handlerDescriptor, metadata, cb) {
+  return this.fetchActiveBytecodeFile().upsertEventHandler(selectorName, eventName, handlerDescriptor, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', null, null, null, null, metadata)
+    this._clearCaches()
+
+    if (metadata.from === this.alias) {
+      this.websocket.send({ type: 'action', method: 'upsertEventHandler', params: [this.folder, selectorName, eventName, handlerDescriptor] })
+    }
+
+    return cb()
+  })
+}
+
+/**
+ * @method deleteEventHandler
+ */
+ActiveComponent.prototype.deleteEventHandler = function deleteEventHandler (selectorName, eventName, metadata, cb) {
+  return this.fetchActiveBytecodeFile().deleteEventHandler(selectorName, eventName, (err) => {
+    if (err) {
+      error(err)
+      return cb(err)
+    }
+
+    this._updateTimelineMaxes(this._currentTimelineName)
+    this.emit('component:updated', null, null, null, null, metadata)
+    this._clearCaches()
+
+    if (metadata.from === this.alias) {
+      this.websocket.send({ type: 'action', method: 'deleteEventHandler', params: [this.folder, selectorName, eventName] })
+    }
+
+    return cb()
+  })
 }
 
 /**
@@ -715,34 +1048,6 @@ ActiveComponent.prototype.deleteStateValue = function deleteStateValue (stateNam
  */
 ActiveComponent.prototype.readAllEventHandlers = function readAllEventHandlers (metadata, cb) {
   return this.fetchActiveBytecodeFile().readAllEventHandlers(cb)
-}
-
-/**
- * @method upsertEventHandler
- */
-ActiveComponent.prototype.upsertEventHandler = function upsertEventHandler (selectorName, eventName, handlerDescriptor, metadata, cb) {
-  return this.fetchActiveBytecodeFile().upsertEventHandler(selectorName, eventName, handlerDescriptor, this._createChangeCallback((err) => {
-    if (err) return cb(err)
-    if (metadata.from === this.alias) {
-      this.websocket.send({ type: 'action', method: 'upsertEventHandler', params: [this.folder, selectorName, eventName, handlerDescriptor] })
-    }
-    this._clearCaches()
-    return cb()
-  }, null, null, null, null, metadata))
-}
-
-/**
- * @method deleteEventHandler
- */
-ActiveComponent.prototype.deleteEventHandler = function deleteEventHandler (selectorName, eventName, metadata, cb) {
-  return this.fetchActiveBytecodeFile().deleteEventHandler(selectorName, eventName, this._createChangeCallback((err) => {
-    if (err) return cb(err)
-    if (metadata.from === this.alias) {
-      this.websocket.send({ type: 'action', method: 'deleteEventHandler', params: [this.folder, selectorName, eventName] })
-    }
-    this._clearCaches()
-    return cb()
-  }, null, null, null, null, metadata))
 }
 
 /** ------------ */
@@ -859,7 +1164,7 @@ ActiveComponent.prototype.mountApplication = function mountApplication (mount, c
           this.emit('component:mounted')
         })
       } catch (exception) {
-        console.error(exception)
+        error(exception)
         this.emit('error', exception)
       }
     })
