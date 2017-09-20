@@ -38,10 +38,10 @@ export default function computeMatrix(
   let translationX = layoutSpec.translation.x
   let translationY = layoutSpec.translation.y
   let translationZ = layoutSpec.translation.z
-  let rotationX = layoutSpec.rotation.x
-  let rotationY = layoutSpec.rotation.y
-  let rotationZ = layoutSpec.rotation.z
-  let rotationW = layoutSpec.rotation.w
+  let orientationX = layoutSpec.orientation.x
+  let orientationY = layoutSpec.orientation.y
+  let orientationZ = layoutSpec.orientation.z
+  let orientationW = layoutSpec.orientation.w
   let scaleX = layoutSpec.scale.x
   let scaleY = layoutSpec.scale.y
   let scaleZ = layoutSpec.scale.z
@@ -55,15 +55,15 @@ export default function computeMatrix(
   let originY = layoutSpec.origin.y * currentsizeAbsolute.y
   let originZ = layoutSpec.origin.z * currentsizeAbsolute.z
 
-  let wx = rotationW * rotationX
-  let wy = rotationW * rotationY
-  let wz = rotationW * rotationZ
-  let xx = rotationX * rotationX
-  let yy = rotationY * rotationY
-  let zz = rotationZ * rotationZ
-  let xy = rotationX * rotationY
-  let xz = rotationX * rotationZ
-  let yz = rotationY * rotationZ
+  let wx = orientationW * orientationX
+  let wy = orientationW * orientationY
+  let wz = orientationW * orientationZ
+  let xx = orientationX * orientationX
+  let yy = orientationY * orientationY
+  let zz = orientationZ * orientationZ
+  let xy = orientationX * orientationY
+  let xz = orientationX * orientationZ
+  let yz = orientationY * orientationZ
 
   let rs0 = (1 - 2 * (yy + zz)) * scaleX
   let rs1 = 2 * (xy + wz) * scaleX

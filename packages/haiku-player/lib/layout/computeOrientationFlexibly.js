@@ -44,4 +44,4 @@ function computeOrientationFlexibly(x, y, z, w, quat) {
     return { x: qx, y: qy, z: qz, w: qw };
 }
 exports["default"] = computeOrientationFlexibly;
-//# sourceMappingURL=computeRotationFlexibly.js.map
+//# sourceMappingURL=computeOrientationFlexibly.js.map

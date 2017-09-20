@@ -1,7 +1,7 @@
 "use strict";
 exports.__esModule = true;
 var computeMatrix_1 = require("./layout/computeMatrix");
-var computeRotationFlexibly_1 = require("./layout/computeRotationFlexibly");
+var computeOrientationFlexibly_1 = require("./layout/computeOrientationFlexibly");
 var computeSize_1 = require("./layout/computeSize");
 var ELEMENTS_2D = {
     circle: true,
@@ -67,6 +67,7 @@ function createLayoutSpec(ax, ay, az) {
         origin: { x: ax || 0, y: ay || 0, z: az || 0 },
         translation: { x: 0, y: 0, z: 0 },
         rotation: { x: 0, y: 0, z: 0, w: 0 },
+        orientation: { x: 0, y: 0, z: 0, w: 0 },
         scale: { x: 1, y: 1, z: 1 },
         sizeMode: {
             x: SIZE_PROPORTIONAL,
@@ -182,7 +183,7 @@ exports["default"] = {
     computeLayout: computeLayout,
     createLayoutSpec: createLayoutSpec,
     createBaseComputedLayout: createBaseComputedLayout,
-    computeRotationFlexibly: computeRotationFlexibly_1["default"],
+    computeOrientationFlexibly: computeOrientationFlexibly_1["default"],
     createMatrix: createMatrix,
     FORMATS: FORMATS,
     SIZE_ABSOLUTE: SIZE_ABSOLUTE,

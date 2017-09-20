@@ -31,6 +31,12 @@ declare const _default: {
             z: number;
             w: number;
         };
+        orientation: {
+            x: number;
+            y: number;
+            z: number;
+            w: number;
+        };
         scale: {
             x: number;
             y: number;
@@ -67,7 +73,7 @@ declare const _default: {
         shown: boolean;
         opacity: number;
     };
-    computeRotationFlexibly: (x: any, y: any, z: any, w: any, quat: any) => {
+    computeOrientationFlexibly: (x: any, y: any, z: any, w: any, quat: any) => {
         x: number;
         y: number;
         z: number;
@@ -104,6 +110,12 @@ declare const _default: {
             z: number;
         };
         rotation: {
+            x: number;
+            y: number;
+            z: number;
+            w: number;
+        };
+        orientation: {
             x: number;
             y: number;
             z: number;

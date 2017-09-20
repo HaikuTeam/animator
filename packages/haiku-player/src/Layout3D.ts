@@ -3,7 +3,7 @@
  */
 
 import computeMatrix from "./layout/computeMatrix"
-import computeRotationFlexibly from "./layout/computeRotationFlexibly"
+import computeOrientationFlexibly from "./layout/computeOrientationFlexibly"
 import computeSize from "./layout/computeSize"
 
 const ELEMENTS_2D = {
@@ -85,6 +85,7 @@ function createLayoutSpec(ax, ay, az) {
     origin: { x: ax || 0, y: ay || 0, z: az || 0 }, // transform origin
     translation: { x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0, w: 0 },
+    orientation: { x: 0, y: 0, z: 0, w: 0 },
     scale: { x: 1, y: 1, z: 1 },
     sizeMode: {
       x: SIZE_PROPORTIONAL,
@@ -229,7 +230,7 @@ export default {
   computeLayout,
   createLayoutSpec,
   createBaseComputedLayout,
-  computeRotationFlexibly,
+  computeOrientationFlexibly,
   createMatrix,
   FORMATS,
   SIZE_ABSOLUTE,

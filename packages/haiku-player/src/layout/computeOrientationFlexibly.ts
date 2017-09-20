@@ -26,7 +26,7 @@
  * THE SOFTWARE.
  */
 
-export default function computeRotationFlexibly(x, y, z, w, quat) {
+export default function computeOrientationFlexibly(x, y, z, w, quat) {
   // If w-component was given, we are dealing with someone who is quaternion-savvy,
   // and who we assume wants to compute a rotation exactly, so we'll just return the vector
   // if (w != null) {

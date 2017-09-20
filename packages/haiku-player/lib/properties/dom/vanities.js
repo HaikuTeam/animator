@@ -10,36 +10,20 @@ var LAYOUT_3D_VANITIES = {
         element.layout.opacity = value;
     },
     "rotation.x": function (name, element, value) {
-        var rotation = element.layout.rotation;
-        var x = value;
-        var y = rotation.y;
-        var z = rotation.z;
-        var w = rotation.w;
-        element.layout.rotation = Layout3D_1["default"].computeRotationFlexibly(x, y, z, w, rotation);
+        element.layout.rotation.x = value;
+        element.layout.orientation = Layout3D_1["default"].computeOrientationFlexibly(element.layout.rotation.x, element.layout.rotation.y, element.layout.rotation.z, element.layout.rotation.w, element.layout.rotation);
     },
     "rotation.y": function (name, element, value) {
-        var rotation = element.layout.rotation;
-        var x = rotation.x;
-        var y = value;
-        var z = rotation.z;
-        var w = rotation.w;
-        element.layout.rotation = Layout3D_1["default"].computeRotationFlexibly(x, y, z, w, rotation);
+        element.layout.rotation.y = value;
+        element.layout.orientation = Layout3D_1["default"].computeOrientationFlexibly(element.layout.rotation.x, element.layout.rotation.y, element.layout.rotation.z, element.layout.rotation.w, element.layout.orientation);
     },
     "rotation.z": function (name, element, value) {
-        var rotation = element.layout.rotation;
-        var x = rotation.x;
-        var y = rotation.y;
-        var z = value;
-        var w = rotation.w;
-        element.layout.rotation = Layout3D_1["default"].computeRotationFlexibly(x, y, z, w, rotation);
+        element.layout.rotation.z = value;
+        element.layout.orientation = Layout3D_1["default"].computeOrientationFlexibly(element.layout.rotation.x, element.layout.rotation.y, element.layout.rotation.z, element.layout.rotation.w, element.layout.orientation);
     },
     "rotation.w": function (name, element, value) {
-        var rotation = element.layout.rotation;
-        var x = rotation.x;
-        var y = rotation.y;
-        var z = rotation.z;
-        var w = value;
-        element.layout.rotation = Layout3D_1["default"].computeRotationFlexibly(x, y, z, w, rotation);
+        element.layout.rotation.w = value;
+        element.layout.orientation = Layout3D_1["default"].computeOrientationFlexibly(element.layout.rotation.x, element.layout.rotation.y, element.layout.rotation.z, element.layout.rotation.w, element.layout.orientation);
     },
     "position.x": function (name, element, value) {
         element.attributes.x = value;
