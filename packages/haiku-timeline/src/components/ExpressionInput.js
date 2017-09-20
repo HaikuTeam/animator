@@ -8,16 +8,16 @@ import parseExpression from 'haiku-serialization/src/ast/parseExpression'
 import Palette from './DefaultPalette'
 import AutoCompleter from './AutoCompleter'
 import { getItemPropertyId, mod } from './helpers/ItemHelpers'
+import * as EXPR_SIGNS from './helpers/ExprSigns'
+import isNumeric from './helpers/isNumeric'
+import retToEq from './helpers/retToEq'
+import eqToRet from './helpers/eqToRet'
+import ensureRet from './helpers/ensureRet'
+import ensureEq from './helpers/ensureEq'
+import doesValueImplyExpression from './helpers/doesValueImplyExpression'
+import humanizePropertyName from './helpers/humanizePropertyName'
 
 const HaikuMode = require('./modes/haiku')
-
-function leftTrim (str) {
-  return str.replace(/^\s+/, '')
-}
-
-function isNumeric (n) {
-  return !isNaN(parseFloat(n)) && isFinite(n)
-}
 
 const MAX_AUTOCOMPLETION_ENTRIES = 8
 
@@ -43,11 +43,6 @@ const NAVIGATION_DIRECTIONS = {
 const EXPR_KINDS = {
   VALUE: 1, // A static value
   MACHINE: 2 // To be written as a function
-}
-
-const EXPR_SIGNS = {
-  EQ: '=',
-  RET: 'return'
 }
 
 const EDITOR_LINE_HEIGHT = 24
@@ -108,48 +103,6 @@ ${valueDescriptor.body}
   ${eqToRet(valueDescriptor.body)}
 }`
   }
-}
-
-function eqToRet (str) {
-  if (leftTrim(str).substring(0, 1) === EXPR_SIGNS.EQ) {
-    str = leftTrim(str) // Avoid creating "=    foobar"
-    str = str.slice(1)
-    str = leftTrim(str) // Avoid creating "=    foobar"
-    str = (EXPR_SIGNS.RET + ' ') + str
-  }
-  return str
-}
-
-function ensureRet (str) {
-  str = eqToRet(str)
-  if (str.slice(0, 6) !== EXPR_SIGNS.RET) {
-    str = (EXPR_SIGNS.RET + ' ') + str
-  }
-  return str
-}
-
-function retToEq (str) {
-  if (str.substring(0, 7) === (EXPR_SIGNS.RET + ' ')) {
-    str = str.slice(7)
-    str = (EXPR_SIGNS.EQ + ' ') + str
-  }
-  return str
-}
-
-function ensureEq (str) {
-  str = retToEq(str)
-  if (str.slice(0, 1) !== EXPR_SIGNS.EQ) {
-    str = EXPR_SIGNS.EQ + str
-  }
-  return str
-}
-
-function doesValueImplyExpression (val) {
-  val = leftTrim(val)
-  return (
-    val.substring(0, 1) === EXPR_SIGNS.EQ ||
-    val.substring(0, 7) === (EXPR_SIGNS.RET + ' ')
-  )
 }
 
 export default class ExpressionInput extends React.Component {
@@ -886,7 +839,7 @@ export default class ExpressionInput extends React.Component {
 
   getLabelString () {
     let name = (this.props.inputFocused && this.props.inputFocused.property.name) || ''
-    return this.props.reactParent.humanizePropertyName(name)
+    return humanizePropertyName(name)
   }
 
   getRootRect () {
@@ -1125,6 +1078,3 @@ export default class ExpressionInput extends React.Component {
     )
   }
 }
-
-ExpressionInput.retToEq = retToEq
-ExpressionInput.leftTrim = leftTrim

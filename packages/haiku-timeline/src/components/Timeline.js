@@ -1,10 +1,7 @@
 import React from 'react'
 import Color from 'color'
-// import Scroll from 'react-scroll'
 import lodash from 'lodash'
 import archy from 'archy'
-import decamelize from 'decamelize'
-import numeral from 'numeral'
 import { DraggableCore } from 'react-draggable'
 
 import DOMSchema from '@haiku/player/lib/properties/dom/schema'
@@ -18,15 +15,18 @@ import ActiveComponent from 'haiku-serialization/src/model/ActiveComponent'
 import {
   nextPropItem,
   getItemComponentId,
-  getItemPropertyId,
-  getItemPropertyName,
-  isItemEqual
+  getItemPropertyName
 } from './helpers/ItemHelpers'
 
-import inferUnitOfValue from './helpers/inferUnitOfValue'
 import getMaximumMs from './helpers/getMaximumMs'
 import millisecondToNearestFrame from './helpers/millisecondToNearestFrame'
 import clearInMemoryBytecodeCaches from './helpers/clearInMemoryBytecodeCaches'
+import humanizePropertyName from './helpers/humanizePropertyName'
+import getPropertyValueDescriptor from './helpers/getPropertyValueDescriptor'
+import getMillisecondModulus from './helpers/getMillisecondModulus'
+import getFrameModulus from './helpers/getFrameModulus'
+import formatSeconds from './helpers/formatSeconds'
+import roundUp from './helpers/roundUp'
 
 import truncate from './helpers/truncate'
 import Palette from './DefaultPalette'
@@ -71,6 +71,8 @@ import RightCarrotSVG from './icons/RightCarrotSVG'
 import ControlsArea from './ControlsArea'
 import ContextMenu from './ContextMenu'
 import ExpressionInput from './ExpressionInput'
+import ClusterInputField from './ClusterInputField'
+import PropertyInputField from './PropertyInputField'
 
 /* z-index guide
   keyframe: 1002
@@ -229,19 +231,6 @@ const CLUSTER_NAMES = {
   'sizeDifferential': 'Size +/-',
   'sizeAbsolute': 'Size',
   'overflow': 'Overflow'
-}
-
-const HUMANIZED_PROP_NAMES = {
-  'rotation.z': 'Rotation Z', // Change me if we enable other types of rotation again
-  'rotation.y': 'Rotation Y',
-  'rotation.x': 'Rotation X',
-  'translation.x': 'Position X',
-  'translation.y': 'Position Y',
-  'translation.z': 'Position Z',
-  'sizeAbsolute.x': 'Size X',
-  'sizeAbsolute.y': 'Size Y',
-  'style.overflowX': 'Overflow X',
-  'style.overflowY': 'Overflow Y'
 }
 
 const ALLOWED_PROPS_TOP_LEVEL = {
@@ -1118,7 +1107,7 @@ class Timeline extends React.Component {
     const frameInfo = this.getFrameInfo()
     const leftFrame = frameInfo.friA
     const rightFrame = frameInfo.friB
-    const frameModulus = this.getFrameModulus(frameInfo.pxpf)
+    const frameModulus = getFrameModulus(frameInfo.pxpf)
     let iterationIndex = -1
     for (let i = leftFrame; i < rightFrame; i++) {
       iterationIndex++
@@ -1137,12 +1126,12 @@ class Timeline extends React.Component {
   mapVisibleTimes (iteratee) {
     const mappedOutput = []
     const frameInfo = this.getFrameInfo()
-    const msModulus = this.getMillisecondsModulus(frameInfo.pxpf)
+    const msModulus = getMillisecondModulus(frameInfo.pxpf)
     const leftFrame = frameInfo.friA
     const leftMs = frameInfo.friA * frameInfo.mspf
     const rightMs = frameInfo.friB * frameInfo.mspf
     const totalMs = rightMs - leftMs
-    const firstMarker = this.roundUp(leftMs, msModulus)
+    const firstMarker = roundUp(leftMs, msModulus)
     let msMarkerTmp = firstMarker
     const msMarkers = []
     while (msMarkerTmp <= rightMs) {
@@ -1214,15 +1203,6 @@ class Timeline extends React.Component {
     return frameInfo
   }
 
-  humanizePropertyName (propertyName) {
-    if (HUMANIZED_PROP_NAMES[propertyName]) return HUMANIZED_PROP_NAMES[propertyName]
-    return decamelize(propertyName).replace(/[\W_]/g, ' ')
-  }
-
-  formatSeconds (seconds) {
-    return numeral(seconds).format('0[.]0[0]')
-  }
-
   // TODO: Fix this/these misnomer(s). It's not 'ASCII'
   getAsciiTree () {
     if (this.state.reifiedBytecode && this.state.reifiedBytecode.template && this.state.reifiedBytecode.template.children) {
@@ -1241,37 +1221,6 @@ class Timeline extends React.Component {
         return this.getArchyFormatNodes('', child.children)
       })
     }
-  }
-
-  roundUp (numToRound, multiple) {
-    if (multiple === 0) return numToRound
-    let remainder = Math.abs(numToRound) % multiple
-    if (remainder === 0) return numToRound
-    if (numToRound < 0) return -(Math.abs(numToRound) - remainder)
-    return numToRound + multiple - remainder
-  }
-
-  getMillisecondsModulus (pxpf) {
-    if (pxpf >= 20) return 25
-    if (pxpf >= 15) return 50
-    if (pxpf >= 10) return 100
-    if (pxpf >= 5) return 200
-    if (pxpf === 4) return 250
-    if (pxpf === 3) return 500
-    if (pxpf === 2) return 1000
-    return 5000
-  }
-
-  // return value means "show every nth frame"
-  getFrameModulus (pxpf) {
-    if (pxpf >= 20) return 1
-    if (pxpf >= 15) return 2
-    if (pxpf >= 10) return 5
-    if (pxpf >= 5) return 10
-    if (pxpf === 4) return 15
-    if (pxpf === 3) return 20
-    if (pxpf === 2) return 30
-    return 50
   }
 
   getComponentRowsData () {
@@ -1521,181 +1470,13 @@ class Timeline extends React.Component {
     )
   }
 
-  renderClusterInputField (item, index, height, items, reifiedBytecode) {
-    // let componentId = item.node.attributes['haiku-id']
-    // let elementName = (typeof item.node.elementName === 'object') ? 'div' : item.node.elementName
-
-    let clusterValues = this.getClusterValues(item.node, reifiedBytecode, item.cluster)
-    let valueString = clusterValues.map((clusterVal) => clusterVal.prettyValue).join('; ')
-
-    return (
-      <div
-        className='property-cluster-input-field no-select'
-        style={{
-          width: 83,
-          margin: 0,
-          color: Palette.DARK_ROCK,
-          backgroundColor: Palette.LIGHT_GRAY,
-          position: 'relative',
-          zIndex: 1004,
-          borderTopLeftRadius: 4,
-          borderBottomLeftRadius: 4,
-          border: '1px solid ' + Palette.DARKER_GRAY,
-          height: this.state.rowHeight + 1,
-          padding: '3px 5px',
-          fontSize: 13,
-          overflow: 'hidden',
-          whiteSpace: 'nowrap'
-        }}>
-        {valueString}
-      </div>
-    )
-  }
-
-  getClusterValues (node, reifiedBytecode, cluster) {
-    let frameInfo = this.getFrameInfo()
-
-    return cluster.map((propertyDescriptor) => {
-      return this.getPropertyValueDescriptor(node, frameInfo, reifiedBytecode, propertyDescriptor)
-    })
-  }
-
-  getPropertyValueDescriptor (node, frameInfo, reifiedBytecode, propertyDescriptor, options = {}) {
-    let componentId = node.attributes['haiku-id']
-    let elementName = node.elementName
-
-    let propertyName = propertyDescriptor.name
-    let currentTimelineTime = this.getCurrentTimelineTime(frameInfo)
-    let currentTimelineName = this.state.currentTimelineName
-
-    let hostInstance = this._component.fetchActiveBytecodeFile().get('hostInstance')
-    let hostStates = this._component.fetchActiveBytecodeFile().get('states')
-
-    let fallbackValue = propertyDescriptor.fallback
-    let baselineValue = TimelineProperty.getBaselineValue(componentId, elementName, propertyName, currentTimelineName, currentTimelineTime, fallbackValue, reifiedBytecode, hostInstance, hostStates)
-    let computedValue = TimelineProperty.getComputedValue(componentId, elementName, propertyName, currentTimelineName, currentTimelineTime, fallbackValue, reifiedBytecode, hostInstance, hostStates)
-
-    let assignedValueObject = TimelineProperty.getAssignedValueObject(componentId, elementName, propertyName, currentTimelineName, currentTimelineTime, this.state.serializedBytecode)
-    let assignedValue = assignedValueObject && assignedValueObject.value
-
-    let bookendValueObject = TimelineProperty.getAssignedBaselineValueObject(componentId, elementName, propertyName, currentTimelineName, currentTimelineTime, this.state.serializedBytecode)
-    let bookendValue = bookendValueObject && bookendValueObject.value
-
-    let valueType = propertyDescriptor.typedef || typeof baselineValue
-
-    let prettyValue
-    if (assignedValue !== undefined) {
-      if (assignedValue && typeof assignedValue === 'object' && assignedValue.__function) {
-        let cleanValue = ExpressionInput.retToEq(assignedValue.__function.body.trim())
-        if (cleanValue.length > 6) cleanValue = (cleanValue.slice(0, 6) + '…')
-        prettyValue = (
-          <span style={{ whiteSpace: 'nowrap' }}>
-            {cleanValue}
-          </span>
-        )
-      }
-    }
-    if (prettyValue === undefined) {
-      if (assignedValue === undefined && bookendValue !== undefined) {
-        if (bookendValue && typeof bookendValue === 'object' && bookendValue.__function) {
-          prettyValue = <span style={{ fontSize: '11px' }}>⚡</span>
-        }
-      }
-    }
-    if (prettyValue === undefined) {
-      prettyValue = (valueType === 'number')
-        ? numeral(computedValue || 0).format(options.numFormat || '0,0[.]0')
-        : computedValue
-    }
-
-    let valueUnit = inferUnitOfValue(propertyDescriptor.name)
-    let valueLabel = this.humanizePropertyName(propertyName)
-
-    return {
-      timelineTime: currentTimelineTime,
-      timelineName: currentTimelineName,
-      propertyName,
-      valueType,
-      valueUnit,
-      valueLabel,
-      fallbackValue,
-      baselineValue,
-      computedValue,
-      assignedValue,
-      bookendValue,
-      prettyValue
-    }
-  }
-
   getItemValueDescriptor (inputItem) {
-    return this.getPropertyValueDescriptor(inputItem.node, this.getFrameInfo(), this.state.reifiedBytecode, inputItem.property)
+    const frameInfo = this.getFrameInfo()
+    return getPropertyValueDescriptor(inputItem.node, frameInfo, this.state.reifiedBytecode, this.state.serializedBytecode, this._component, this.getCurrentTimelineTime(frameInfo), this.state.currentTimelineName, inputItem.property)
   }
 
   getCurrentTimelineTime (frameInfo) {
     return Math.round(this.state.currentFrame * frameInfo.mspf)
-  }
-
-  renderPropertyInputField (item, index, height, items, reifiedBytecode) {
-    // let componentId = item.node.attributes['haiku-id']
-    // let elementName = (typeof item.node.elementName === 'object') ? 'div' : item.node.elementName
-
-    let propertyId = getItemPropertyId(item)
-    let frameInfo = this.getFrameInfo()
-
-    let valueDescriptor = this.getPropertyValueDescriptor(item.node, frameInfo, reifiedBytecode, item.property, { numFormat: '0,0[.]000' })
-
-    return (
-      <div
-        id={propertyId}
-        className='property-input-field-box'
-        style={{
-          height: this.state.rowHeight - 1,
-          width: this.state.inputCellWidth,
-          position: 'relative',
-          outline: 'none'
-        }}
-        onClick={() => {
-          this.setState({
-            inputFocused: null,
-            inputSelected: item
-          })
-        }}
-        onDoubleClick={() => {
-          this.setState({
-            inputSelected: item,
-            inputFocused: item
-          })
-        }}>
-        <div
-          className='property-input-field no-select'
-          style={lodash.assign({
-            position: 'absolute',
-            outline: 'none',
-            color: 'transparent',
-            textShadow: '0 0 0 ' + Color(Palette.ROCK).fade(0.3), // darkmagic
-            minWidth: 83,
-            height: this.state.rowHeight + 1,
-            paddingLeft: 7,
-            paddingTop: 3,
-            zIndex: 1004,
-            paddingRight: 15,
-            lineHeight: '20px',
-            borderTopLeftRadius: 4,
-            borderBottomLeftRadius: 4,
-            fontSize: 13,
-            border: '1px solid ' + Palette.DARKER_GRAY,
-            backgroundColor: Palette.LIGHT_GRAY,
-            overflow: 'hidden',
-            fontFamily: 'inherit',
-            cursor: 'default'
-          }, isItemEqual(this.state.inputSelected, item) && {
-            border: '1px solid ' + Color(Palette.LIGHTEST_PINK).fade(0.2),
-            zIndex: 2005
-          })}>
-          {valueDescriptor.prettyValue}
-        </div>
-      </div>
-    )
   }
 
   renderCollapsedPropertyTimelineSegments (item) {
@@ -2172,7 +1953,7 @@ class Timeline extends React.Component {
         } else {
           return (
             <span key={`time-${millisecondsNumber}`} style={{ pointerEvents: 'none', display: 'inline-block', position: 'absolute', left: pixelOffsetLeft, transform: 'translateX(-50%)' }}>
-              <span style={{ fontWeight: 'bold' }}>{this.formatSeconds(millisecondsNumber / 1000)}</span>
+              <span style={{ fontWeight: 'bold' }}>{formatSeconds(millisecondsNumber / 1000)}</span>
             </span>
           )
         }
@@ -2367,7 +2148,7 @@ class Timeline extends React.Component {
             <span style={{ display: 'inline-block', height: 24, padding: 4, fontWeight: 'lighter', fontSize: 19 }}>
               {(this.state.timeDisplayMode === 'frames')
                 ? <span>{~~this.state.currentFrame}f</span>
-                : <span>{this.formatSeconds(this.state.currentFrame * 1000 / this.state.framesPerSecond / 1000)}s</span>
+                : <span>{formatSeconds(this.state.currentFrame * 1000 / this.state.framesPerSecond / 1000)}s</span>
               }
             </span>
           </div>
@@ -2388,7 +2169,7 @@ class Timeline extends React.Component {
             }}>
             <div>
               {(this.state.timeDisplayMode === 'frames')
-                ? <span>{this.formatSeconds(this.state.currentFrame * 1000 / this.state.framesPerSecond / 1000)}s</span>
+                ? <span>{formatSeconds(this.state.currentFrame * 1000 / this.state.framesPerSecond / 1000)}s</span>
                 : <span>{~~this.state.currentFrame}f</span>
               }
             </div>
@@ -2665,7 +2446,7 @@ class Timeline extends React.Component {
 
   renderPropertyRow (item, index, height, items, propertyOnLastComponent) {
     var frameInfo = this.getFrameInfo()
-    var humanName = this.humanizePropertyName(item.property.name)
+    var humanName = humanizePropertyName(item.property.name)
     var componentId = item.node.attributes['haiku-id']
     var elementName = (typeof item.node.elementName === 'object') ? 'div' : item.node.elementName
     var propertyName = item.property && item.property.name
@@ -2753,7 +2534,19 @@ class Timeline extends React.Component {
             height: this.state.rowHeight - 1,
             textAlign: 'left'
           }}>
-          {this.renderPropertyInputField(item, index, height, items, this.state.reifiedBytecode)}
+          <PropertyInputField
+            parent={this}
+            item={item}
+            index={index}
+            height={height}
+            frameInfo={frameInfo}
+            component={this._component}
+            timelineTime={this.getCurrentTimelineTime(frameInfo)}
+            timelineName={this.state.currentTimelineName}
+            rowHeight={this.state.rowHeight}
+            inputSelected={this.state.inputSelected}
+            serializedBytecode={this.state.serializedBytecode}
+            reifiedBytecode={this.state.reifiedBytecode} />
         </div>
         <div
           onContextMenu={(ctxMenuEvent) => {
@@ -2884,7 +2677,18 @@ class Timeline extends React.Component {
             height: 24,
             textAlign: 'left'
           }}>
-          {this.renderClusterInputField(item, index, height, items, this.state.reifiedBytecode)}
+          <ClusterInputField
+            parent={this}
+            item={item}
+            index={index}
+            height={height}
+            frameInfo={frameInfo}
+            component={this._component}
+            timelineTime={this.getCurrentTimelineTime(frameInfo)}
+            timelineName={this.state.currentTimelineName}
+            rowHeight={this.state.rowHeight}
+            serializedBytecode={this.state.serializedBytecode}
+            reifiedBytecode={reifiedBytecode} />
         </div>
         <div
           className='property-cluster-timeline-segments-box'
