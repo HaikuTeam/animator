@@ -29,6 +29,7 @@ export default function patch(
 
     for (let i = 0; i < domElements.length; i++) {
       let domElement = domElements[i]
+
       updateElement(
         domElement,
         virtualElement,
