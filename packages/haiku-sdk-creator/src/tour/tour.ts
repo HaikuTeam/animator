@@ -43,6 +43,15 @@ export default class TourHandler implements Tour {
             waitUserAction: true,
         },
         {
+            selector: ".gauge-box",
+            webview: "timeline",
+            component: "ModifyProperty",
+            display: "top",
+            offset: {top: -50, left: 0},
+            spotlightRadius: 600,
+            waitUserAction: false,
+        },
+        {
             selector: ".pill-container span:nth-child(5)",
             webview: "timeline",
             component: "TweenCreator",
