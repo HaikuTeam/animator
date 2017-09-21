@@ -1,4 +1,3 @@
-var path = require('path')
 var cp = require('child_process')
 var lodash = require('lodash')
 var log = require('./helpers/log')
@@ -12,4 +11,4 @@ log.hat('publishing @haiku/player to the npm registry')
 // Have to set this because when we run via yarn, yarn sets this var and we want npm's registry.
 process.env.npm_config_registry = 'https://registry.npmjs.org'
 
-cp.execSync(`npm publish --verbose --access public`, { cwd: path.join(PLAYER_PATH), stdio: 'inherit' })
+cp.execSync(`npm publish --verbose --access public`, { cwd: PLAYER_PATH, stdio: 'inherit' })
