@@ -27,7 +27,7 @@ const STYLES = {
   },
   childrenWrapper: {
     position: 'absolute',
-    minWidth: '260px',
+    minWidth: 340,
     WebkitUserSelect: 'none',
     color: Palette.ROCK,
     padding: 1,
