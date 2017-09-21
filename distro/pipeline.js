@@ -173,16 +173,14 @@ function addInfoToMostRecentReleaseLogEntry (info) {
 
 function runit () {
   updateOwnVersion()
-
   writeHackyDynamicConfig()
-
   prependReleaseToReleaseLog()
+  prepLibs()
+  buildStuff()
 
-  shout(`Distro build started (${getTupleString()})`, () => {
-    try {
-      prepLibs()
-
-      buildStuff()
+  try {
+    if (inputs.upload) {
+      shout(`Distro upload started (${getTupleString()})`, () => {})
 
       // Reload the config with updated values to read from
       for (var key in require.cache) delete require.cache[key]
@@ -197,33 +195,32 @@ function runit () {
       var secret = deploy.deployer[environment].secret
       var bucket = deploy.deployer[environment].bucket
 
-      // Push the build to the remote
-      if (inputs.upload) {
-        return uploadRelease(region, objkey, secret, bucket, platform, environment, branch, version, (err, { environment, platform, branch, countdown, version }) => {
-          if (err) throw err
-          var url = `https://s3.amazonaws.com/${bucket}/releases/${environment}/${branch}/${platform}/${countdown}/${version}/Haiku-${version}-${platform}.zip`
-          shout(`Distro build finished (${getTupleString()}). Download: ${url}`, () => {})
-          console.log('success! built and uploaded release')
-          addInfoToMostRecentReleaseLogEntry({
-            finished: moment().format('YYYYMMDDHHmmss'),
-            uploaded: true,
-            success: true
-          })
-        })
-      }
+      return uploadRelease(region, objkey, secret, bucket, platform, environment, branch, version, (err, { environment, platform, branch, countdown, version }) => {
+        if (err) throw err
+        var url = `https://s3.amazonaws.com/${bucket}/releases/${environment}/${branch}/${platform}/${countdown}/${version}/Haiku-${version}-${platform}.zip`
 
-      console.log('success! built release (but did not upload)')
-      addInfoToMostRecentReleaseLogEntry({
-        finished: moment().format('YYYYMMDDHHmmss'),
-        uploaded: false,
-        success: true
-      })
-    } catch (exception) {
-      console.log(exception)
-      addInfoToMostRecentReleaseLogEntry({
-        success: false,
-        error: exception.message
+        shout(`Distro upload finished (${getTupleString()}). Download: ${url}`, () => {})
+
+        console.log('success! built and uploaded release')
+        addInfoToMostRecentReleaseLogEntry({
+          finished: moment().format('YYYYMMDDHHmmss'),
+          uploaded: true,
+          success: true
+        })
       })
     }
-  })
+
+    console.log('success! built release (but did not upload)')
+    addInfoToMostRecentReleaseLogEntry({
+      finished: moment().format('YYYYMMDDHHmmss'),
+      uploaded: false,
+      success: true
+    })
+  } catch (exception) {
+    console.log(exception)
+    addInfoToMostRecentReleaseLogEntry({
+      success: false,
+      error: exception.message
+    })
+  }
 }
