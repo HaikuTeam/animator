@@ -9,10 +9,10 @@ export default function ({ styles, finish }) {
         at the following links for more help.
 
         <div style={styles.linksWrapper}>
-          <a href='https://docs.haiku.ai/' style={styles.link}>Haiku Docs</a> <br/>
-          <a href='https://haiku-community.slack.com' style={styles.link}>Haiku Slack Community</a> <br/>
-          <a href='https://twitter.com/HaikuForTeams' style={styles.link}>@HaikuForTeams</a> <br/>
-          <a href='mailto:support@haiku.ai' style={styles.link}>support@haiku.ai</a> <br/>
+          <a href='https://docs.haiku.ai/' style={styles.link}>Haiku Docs</a> <br />
+          <a href='https://haiku-community.slack.com' style={styles.link}>Haiku Slack Community</a> <br />
+          <a href='https://twitter.com/HaikuForTeams' style={styles.link}>@HaikuForTeams</a> <br />
+          <a href='mailto:support@haiku.ai' style={styles.link}>support@haiku.ai</a> <br />
         </div>
       </div>
       <button
