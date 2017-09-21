@@ -1,6 +1,6 @@
 {
   "name": "haiku-plumbing",
-  "version": "2.3.3",
+  "version": "2.3.4",
   "description": "Haiku plumbing (serializer, processes, etc)",
   "authors": [
     "Zack Brown <zack@haiku.ai>",
@@ -48,7 +48,7 @@
     "esformatter-jsx": "7.4.1",
     "express": "4.14.0",
     "express-ws": "2.0.0",
-    "@haiku/player": "HaikuTeam/player.git",
+    "@haiku/player": "2.3.4",
     "haiku-bytecode": "HaikuTeam/bytecode",
     "haiku-cli": "HaikuTeam/cli",
     "haiku-creator-electron": "HaikuTeam/creator",
