@@ -34,15 +34,6 @@ export default class TourHandler implements Tour {
             waitUserAction: true,
         },
         {
-            selector: ".gauge-box span:nth-child(10)",
-            webview: "timeline",
-            component: "ScrubTicker",
-            display: "top",
-            offset: {top: -50, left: 0},
-            spotlightRadius: 600,
-            waitUserAction: true,
-        },
-        {
             selector: ".gauge-box",
             webview: "timeline",
             component: "ModifyProperty",

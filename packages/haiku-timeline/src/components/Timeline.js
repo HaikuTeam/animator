@@ -278,8 +278,6 @@ class Timeline extends React.Component {
 
     this.emitters = [] // Array<{eventEmitter:EventEmitter, eventName:string, eventHandler:Function}>
 
-    this.shouldEmitToTour = true
-
     this._component = new ActiveComponent({
       alias: 'timeline',
       folder: this.props.folder,
@@ -333,11 +331,6 @@ class Timeline extends React.Component {
   }
 
   updateTime (currentFrame) {
-    if (this.shouldEmitToTour && (currentFrame > 13 && currentFrame < 17)) {
-      this.shouldEmitToTour = false
-      this.tourClient.next()
-    }
-
     this.setState({ currentFrame })
   }
 
