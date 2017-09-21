@@ -7,4 +7,3 @@ lib/*
 dist
 .haiku
 test/fixtures/projects/blank-project
-yarn.lock

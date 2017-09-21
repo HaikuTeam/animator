@@ -2,4 +2,3 @@ node_modules
 .DS_Store
 *.log
 ~test
-yarn.lock
