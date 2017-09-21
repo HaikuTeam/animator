@@ -245,7 +245,10 @@ export default class TourHandler implements Tour {
     }
 
     notifyScreenResize() {
-        this.shouldRenderAgain = true
+        if (this.currentStep > 0) {
+            this.shouldRenderAgain = true
+        }
+
         this.requestWebviewCoordinates()
     }
 

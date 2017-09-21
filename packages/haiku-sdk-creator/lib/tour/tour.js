@@ -204,7 +204,9 @@ class TourHandler {
         this.renderCurrentStepAgain();
     }
     notifyScreenResize() {
-        this.shouldRenderAgain = true;
+        if (this.currentStep > 0) {
+            this.shouldRenderAgain = true;
+        }
         this.requestWebviewCoordinates();
     }
     start(force) {
