@@ -98,9 +98,7 @@ inquirer.prompt([
 })
 
 function shout (text, cb) {
-  console.log(text + '\n')
   if (inputs.shout) {
-    console.log('^^ sending slack message ^^')
     return slack.chat.postMessage({
       text: text,
       token: deploy.slack.token,
