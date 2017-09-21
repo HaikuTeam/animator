@@ -117,7 +117,7 @@ function prepLibs () {
   cp.execSync(`rm -rf ${LIBS_DIR}`, { stdio: 'inherit' })
   cp.execSync(`mkdir -p ${PLUMBING_DEST_DIR}`, { stdio: 'inherit' })
   cp.execSync(`git clone git@github.com:HaikuTeam/plumbing.git`, { stdio: 'inherit', cwd: LIBS_DIR })
-  cp.execSync('yarn install --production=true', { stdio: 'inherit', cwd: PLUMBING_DEST_DIR }) // --production to avoid "bundle format is ambiguous"
+  cp.execSync('yarn install --production=true --ignore-engines --non-interactive --network-concurrency 2', { stdio: 'inherit', cwd: PLUMBING_DEST_DIR }) // --production to avoid "bundle format is ambiguous"
   cp.execSync('yarn add gulp gulp-watch babel-cli', { stdio: 'inherit', cwd: PLUMBING_DEST_DIR })
 }
 
