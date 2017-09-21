@@ -115,7 +115,7 @@ async.series([
   },
 
   function (cb) {
-    return runScript('git-subtree-pull', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
+    return runScript('git-subtree-pull', [`--branch=${inputs.branch}`], cb)
   },
 
   function (cb) {
@@ -144,8 +144,7 @@ async.series([
   },
 
   function (cb) {
-    log.hat('pushing changes to all git subtrees')
-    return runScript('git-subtree-push', [`--branch=${inputs.branch}`, `--remote=${inputs.remote}`], cb)
+    return runScript('git-subtree-push', [`--branch=${inputs.branch}`], cb)
   },
 
   function (cb) {

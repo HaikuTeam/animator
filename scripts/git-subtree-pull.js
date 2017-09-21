@@ -8,6 +8,8 @@ var ROOT = path.join(__dirname, '..')
 
 var branch = argv.branch || 'master'
 
+log.hat(`pulling changes from all git subtrees on ${branch}`)
+
 async.eachSeries(allPackages, function (pack, next) {
   log.log('git subtree pulling ' + pack.name)
   try {
