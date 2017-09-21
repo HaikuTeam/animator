@@ -1,6 +1,15 @@
 # Changelog
 
 
+## 2.3.4
+
+### Bug Fixes
+
+ * Subtree push needs the working dir not the package dir
+ * Problem with rotation flicker/corruption when roation y and z are present
+ * Remove duplicate play call and assign last authoritative frame property in constructor
+ * Move methods into helpers and address issues with timeline playback past the max frame
+
 ## 2.3.3
 
 ### Features

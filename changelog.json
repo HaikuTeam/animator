@@ -2840,5 +2840,27 @@
       "label": "docs",
       "message": "generate markdown for changelog"
     }
+  },
+  "2.3.4": {
+    "a5acd7ce89e907a59380f0c5168d2ad49a90e200": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Subtree push needs the working dir not the package dir"
+    },
+    "60ba10a50f52eddc9bcd8f9e6b33fe6c90b61591": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Problem with rotation flicker/corruption when roation y and z are present"
+    },
+    "4c2b06ad87aaa5e1908ad7516f752ab27d85d2cb": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Remove duplicate play call and assign last authoritative frame property in constructor"
+    },
+    "7509f2589ab489815cb234f4f8dacb4834e89458": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Move methods into helpers and address issues with timeline playback past the max frame"
+    }
   }
 }
