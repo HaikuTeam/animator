@@ -100,9 +100,9 @@ order.forEach(function (pkgname) {
 
     log.log(packJson)
 
-    // fse.writeFileSync(path.join(pack.abspath, 'package.json'), packJson)
+    fse.writeFileSync(path.join(pack.abspath, 'package.json'), packJson)
 
-    // cp.execSync(`yarn install`, { cwd: pack.abspath, stdio: 'inherit' })
+    cp.execSync(`yarn install --non-interactive --ignore-scripts --ignore-engines`, { cwd: pack.abspath, stdio: 'inherit' })
   } else {
     log.log('no changes for ' + pack.pkgname)
   }
