@@ -3,9 +3,8 @@ import React from 'react'
 export default function ({ styles }) {
   return (
     <div style={{width: 280}}>
-      <video height='82' width='200' autoPlay loop muted playsInline preload='true'>
-        <source src='https://giant.gfycat.com/EasygoingWildGartersnake.mp4' type='video/mp4' />
-        <img src='https://thumbs.gfycat.com/EasygoingWildGartersnake-small.gif' height='82' width='200' />
+      <video height="140" width="274" autoPlay loop muted playsInline preload='true'>
+        <source src='https://giant.gfycat.com/BigheartedCriminalConey.mp4' type='video/mp4' />
       </video>
       <h2 style={styles.heading}>Publishing</h2>
       <div style={styles.text}>

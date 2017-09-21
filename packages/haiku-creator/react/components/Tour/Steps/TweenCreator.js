@@ -3,11 +3,8 @@ import React from 'react'
 export default function ({ styles }) {
   return (
     <div>
-      <video alt='make-tween GIF' height='220' width='460' autoPlay='' loop='' muted='' playsInline='' preload='true' poster='https://thumbs.gfycat.com/MedicalAppropriateIrukandjijellyfish-small.gif'>
-        <source src='https://giant.gfycat.com/MedicalAppropriateIrukandjijellyfish.webm' type='video/webm' />
-        <source src='https://thumbs.gfycat.com/MedicalAppropriateIrukandjijellyfish-mobile.mp4' type='video/mp4' />
-        <source src='https://giant.gfycat.com/MedicalAppropriateIrukandjijellyfish.mp4' type='video/mp4' />
-        <img src='https://thumbs.gfycat.com/MedicalAppropriateIrukandjijellyfish-small.gif' alt='make-tween GIF' height='220' width='460' />
+      <video height="67.2" width="392" autoPlay loop muted playsInline preload='true'>
+        <source src='https://giant.gfycat.com/RegalNeglectedCutworm.mp4' type='video/mp4' />
       </video>
       <h2 style={styles.heading}>Tweens</h2>
       <p style={styles.text}>
