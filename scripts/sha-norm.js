@@ -103,7 +103,3 @@ order.forEach(function (pkgname) {
     log.log('no changes for ' + pack.pkgname)
   }
 })
-
-allPackages.forEach((pack) => {
-  cp.execSync(`rm yarn.lock || true`, { cwd: pack.abspath, stdio: 'inherit' })
-})

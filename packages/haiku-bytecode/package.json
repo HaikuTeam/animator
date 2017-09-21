@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "camelcase": "4.0.0",
-    "@haiku/player": "HaikuTeam/player.git#e4a65bed78c72666d5ad5a1f68637f6372c44fb7",
+    "@haiku/player": "HaikuTeam/player.git#478f545c1b5fc4b9566df6dc9c2df8ae00db51c5",
     "handlebars": "4.0.6",
     "lodash.assign": "4.2.0",
     "lodash.clone": "4.5.0",
