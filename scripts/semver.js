@@ -5,6 +5,7 @@ var argv = require('yargs').argv
 var semver = require('semver')
 var inquirer = require('inquirer')
 var log = require('./helpers/log')
+var runScript = require('./helpers/runScript')
 var getSemverTop = require('./helpers/getSemverTop')
 var execSync = require('child_process').execSync
 var allPackages = require('./helpers/allPackages')()
@@ -32,7 +33,7 @@ inquirer.prompt([
 ]).then(function (answers) {
   lodash.assign(inputs, answers)
 
-  if (semver.lt(inputs.version, patched)) {
+  if (semver.lt(inputs.version, current)) {
     throw new Error('You cannot set a lower version than the current one')
   }
 
@@ -68,10 +69,17 @@ function go () {
   plumbingPackageJson.dependencies['@haiku/player'] = haikuPlayerPackageJson.version
   fse.outputFileSync(plumbingPackageJsonPath, JSON.stringify(plumbingPackageJson, null, 2) + '\n')
 
-  var monoJsonPath = path.join(__dirname, '..', 'package.json')
-  var monoJson = fse.readJsonSync(monoJsonPath)
-  log.log('setting mono to ' + inputs.version + ' (was ' + monoJson.version + ')')
-  monoJson.version = inputs.version
-  fse.writeFileSync(monoJsonPath, JSON.stringify(monoJson, null, 2) + '\n')
-  log.log('done!')
+  runScript('compile-player', [], (err) => {
+    if (err) throw err
+
+    var monoJsonPath = path.join(__dirname, '..', 'package.json')
+    var monoJson = fse.readJsonSync(monoJsonPath)
+
+    log.log('setting mono to ' + inputs.version + ' (was ' + monoJson.version + ')')
+
+    monoJson.version = inputs.version
+    fse.writeFileSync(monoJsonPath, JSON.stringify(monoJson, null, 2) + '\n')
+
+    log.log('done!')
+  })
 }
