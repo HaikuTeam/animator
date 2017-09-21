@@ -1,7 +1,6 @@
 var fse = require('fs-extra')
 var path = require('path')
 var lodash = require('lodash')
-var cp = require('child_process')
 var DepGraph = require('dependency-graph').DepGraph
 var log = require('./helpers/log')
 var allPackages = require('./helpers/allPackages')()

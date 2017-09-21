@@ -49,18 +49,6 @@ async.series([
         default: false
       },
       {
-        type: 'input',
-        name: 'commitMessage',
-        message: 'Commit message (for the packages):',
-        default: inputs.commitMessage || 'auto: Housekeeping'
-      },
-      {
-        type: 'input',
-        name: 'finalUberCommitMessage',
-        message: 'Final uber-commit message (for mono itself):',
-        default: inputs.finalUberCommitMessage || 'auto: Housekeeping'
-      },
-      {
         type: 'confirm',
         name: 'doDistro',
         message: 'Build distro (build Haiku.app, push to release channel etc.)?:',
@@ -137,9 +125,8 @@ async.series([
   },
 
   function (cb) {
-    log.hat('adding and committing all changes')
     cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
-    cp.execSync(`git commit -m "auto: ${inputs.commitMessage}"`, { cwd: ROOT, stdio: 'inherit' })
+    cp.execSync(`git commit -m "auto: Housekeeping (changes)"`, { cwd: ROOT, stdio: 'inherit' })
     return cb()
   },
 
@@ -152,34 +139,21 @@ async.series([
   },
 
   function (cb) {
-    return runScript('changelog', [], cb)
+    return runScript('sha-norm', [], cb)
   },
 
   function (cb) {
-    log.hat('finishing up by doing some git cleanup inside mono itself')
-    try {
-      cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
-      cp.execSync('git commit -m ' + JSON.stringify(inputs.finalUberCommitMessage), { cwd: ROOT, stdio: 'inherit' })
-      cp.execSync('git push ' + inputs.remote + ' HEAD:' + inputs.branch, { cwd: ROOT, stdio: 'inherit' })
-      return cb()
-    } catch (exception) {
-      log.log('there was error doing git cleanup inside mono itself. please fix issues, commit, and push mono manually')
-      return cb()
-    }
-  },
-
-  function (cb) {
-    if (inputs.doDistro) {
-      log.hat('starting interactive distro build process')
-      return runScript('distro', [`--version=${nowVersion()}`], (err) => {
-        if (err) return cb(err)
-        cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
-        cp.execSync(`git commit -m "auto: Built release"`, { cwd: ROOT, stdio: 'inherit' })
-        return cb()
-      })
-    }
-    log.log('skipping distro because you said so')
+    cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
+    cp.execSync(`git commit -m "auto: Housekeeping (dependencies)"`, { cwd: ROOT, stdio: 'inherit' })
     return cb()
+  },
+
+  function (cb) {
+    return runScript('git-subtree-push', [`--branch=${inputs.branch}`], cb)
+  },
+
+  function (cb) {
+    return runScript('changelog', [], cb)
   }
 ], function (err) {
   if (err) throw err
