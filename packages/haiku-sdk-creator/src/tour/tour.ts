@@ -105,10 +105,20 @@ export default class TourHandler implements Tour {
             spotlightRadius: "default",
             waitUserAction: false,
         },
+        //  Disable this step until we add interactivity to the previous
+        // {
+        //     selector: ".property-input-field",
+        //     webview: "timeline",
+        //     component: "ExpressionsCongrat",
+        //     display: "top",
+        //     offset: {top: -50, left: 0},
+        //     spotlightRadius: "default",
+        //     waitUserAction: false,
+        // },
         {
             selector: ".property-input-field",
             webview: "timeline",
-            component: "ExpressionsCongrat",
+            component: "Summonables",
             display: "top",
             offset: {top: -50, left: 0},
             spotlightRadius: "default",
@@ -117,7 +127,7 @@ export default class TourHandler implements Tour {
         {
             selector: ".property-input-field",
             webview: "timeline",
-            component: "Summonables",
+            component: "NoCodeRequired",
             display: "top",
             offset: {top: -50, left: 0},
             spotlightRadius: "default",
@@ -204,7 +214,7 @@ export default class TourHandler implements Tour {
             payload: {
                 ...state,
                 coordinates: position,
-                stepData: { current: this.currentStep, total: this.states.length - 1}
+                stepData: { current: this.currentStep, total: this.states.length - 1},
             },
             name: "tour:requestShowStep",
         })
