@@ -1,44 +1,56 @@
+var os = require('os')
+var path = require('path')
+require(path.join(os.homedir(), 'Secrets', 'haiku-distro.js'))
+
+if (!process.env.HAIKU_INTENRAL_SLACK_CLIENT_ID) throw new error('env var missing')
+if (!process.env.HAIKU_INTENRAL_SLACK_CLIENT_SECRET) throw new error('env var missing')
+if (!process.env.HAIKU_INTENRAL_SLACK_TOKEN) throw new error('env var missing')
+if (!process.env.HAIKU_RELEASE_WRITER_KEY) throw new error('env var missing')
+if (!process.env.HAIKU_RELEASE_WRITER_SECRET) throw new error('env var missing')
+if (!process.env.HAIKU_S3_DEPLOYER_KEY) throw new error('env var missing')
+if (!process.env.HAIKU_S3_DEPLOYER_SECRET) throw new error('env var missing')
+
 module.exports = {
   slack: {
-    clientId: '37379153060.184971918048',
-    clientSecret: '86222e2ece31ba6e4511e7fd85175d34',
-    token: 'xoxp-37379153060-37430867396-185691464980-fa4b852837724e21a7314fbda6d4d2fc'
+    clientId: process.env.HAIKU_INTENRAL_SLACK_CLIENT_ID,
+    clientSecret: process.env.HAIKU_INTENRAL_SLACK_CLIENT_SECRET,
+    token: process.env.HAIKU_INTENRAL_SLACK_TOKEN
   },
   deployer: {
     production: {
       region: 'us-east-1',
       bucket: 'haiku-electron-releases-production',
-      user: 'haiku-electron-releases-writer',
-      key: 'AKIAIE3WQFLUBUYHPWHQ',
-      secret: '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',
+      user: 'haiku-electron-releases-writer-2',
+      key: process.env.HAIKU_RELEASE_WRITER_KEY,
+      secret: process.env.HAIKU_RELEASE_WRITER_SECRET
     },
     staging: {
       region: 'us-east-1',
       bucket: 'haiku-electron-releases-staging',
-      user: 'haiku-electron-releases-writer',
-      key: 'AKIAIE3WQFLUBUYHPWHQ',
-      secret: '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',
+      user: 'haiku-electron-releases-writer-2',
+      key: process.env.HAIKU_RELEASE_WRITER_KEY,
+      secret: process.env.HAIKU_RELEASE_WRITER_SECRET
     },
     development: {
       region: 'us-east-1',
       bucket: 'haiku-electron-releases-development',
-      user: 'haiku-electron-releases-writer',
-      key: 'AKIAIE3WQFLUBUYHPWHQ',
-      secret: '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',
+      user: 'haiku-electron-releases-writer-2',
+      key: process.env.HAIKU_RELEASE_WRITER_KEY,
+      secret: process.env.HAIKU_RELEASE_WRITER_SECRET
     },
     test: {
       region: 'us-east-1',
       bucket: 'haiku-electron-releases-test',
-      user: 'haiku-electron-releases-writer',
-      key: 'AKIAIE3WQFLUBUYHPWHQ',
-      secret: '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',
+      user: 'haiku-electron-releases-writer-2',
+      key: process.env.HAIKU_RELEASE_WRITER_KEY,
+      secret: process.env.HAIKU_RELEASE_WRITER_SECRET
     },
   },
   'code.haiku.ai': {
     production: {
-      user: 'haiku-s3-deployer',
-      key: 'AKIAIH7B7VTCOY2IXGCQ',
-      secret: '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'
+      user: 'haiku-s3-deployer-2',
+      key: process.env.HAIKU_S3_DEPLOYER_KEY,
+      secret: process.env.HAIKU_S3_DEPLOYER_SECRET
     }
   },
   cloudfront: {
@@ -49,9 +61,9 @@ module.exports = {
   },
   marketing: {
     production: {
-      user: 'haiku-s3-deployer',
-      key: 'AKIAIH7B7VTCOY2IXGCQ',
-      secret: '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'
+      user: 'haiku-s3-deployer-2',
+      key: process.env.HAIKU_S3_DEPLOYER_KEY,
+      secret: process.env.HAIKU_S3_DEPLOYER_SECRET
     }
   }
 }
