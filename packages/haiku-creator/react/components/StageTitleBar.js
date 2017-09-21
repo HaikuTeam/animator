@@ -285,7 +285,7 @@ class StageTitleBar extends React.Component {
 
     this.setState({showSharePopover: !this.state.showSharePopover})
 
-    if(this.props.tourClient) this.props.tourClient.next()
+    if (this.props.tourClient) this.props.tourClient.next()
 
     return this.performProjectSave()
   }
