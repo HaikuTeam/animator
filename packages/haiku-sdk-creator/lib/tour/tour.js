@@ -13,7 +13,7 @@ class TourHandler {
                 component: "Welcome",
                 display: "none",
                 offset: { top: 0, left: 0 },
-                spotlightRadius: 400,
+                spotlightRadius: "default",
                 waitUserAction: true,
             },
             {
@@ -26,12 +26,12 @@ class TourHandler {
                 waitUserAction: true,
             },
             {
-                selector: ".gauge-box span:nth-child(10)",
+                selector: ".gauge-box",
                 webview: "timeline",
                 component: "OpacityIncrease",
                 display: "top",
-                offset: { top: -50, left: 0 },
-                spotlightRadius: 600,
+                offset: { top: -50, left: -80 },
+                spotlightRadius: 800,
                 waitUserAction: true,
             },
             {
@@ -39,8 +39,8 @@ class TourHandler {
                 webview: "timeline",
                 component: "OpacityReduce",
                 display: "top",
-                offset: { top: -50, left: 0 },
-                spotlightRadius: 600,
+                offset: { top: -50, left: -80 },
+                spotlightRadius: 800,
                 waitUserAction: true,
             },
             {
@@ -53,7 +53,7 @@ class TourHandler {
                 waitUserAction: true,
             },
             {
-                selector: ".pill-container span:nth-child(5)",
+                selector: ".gauge-box",
                 webview: "timeline",
                 component: "AnimatorNotice",
                 display: "top",
