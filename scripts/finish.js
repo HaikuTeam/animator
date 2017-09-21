@@ -139,20 +139,6 @@ async.series([
   },
 
   function (cb) {
-    return runScript('sha-norm', [], cb)
-  },
-
-  function (cb) {
-    cp.execSync('git add --all .', { cwd: ROOT, stdio: 'inherit' })
-    cp.execSync(`git commit -m "auto: Housekeeping (dependencies)"`, { cwd: ROOT, stdio: 'inherit' })
-    return cb()
-  },
-
-  function (cb) {
-    return runScript('git-subtree-push', [`--branch=${inputs.branch}`], cb)
-  },
-
-  function (cb) {
     return runScript('changelog', [], cb)
   }
 ], function (err) {
