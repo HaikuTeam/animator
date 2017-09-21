@@ -28,7 +28,7 @@ class TourHandler {
             {
                 selector: ".gauge-box span:nth-child(10)",
                 webview: "timeline",
-                component: "ScrubTicker",
+                component: "OpacityIncrease",
                 display: "top",
                 offset: { top: -50, left: 0 },
                 spotlightRadius: 600,
@@ -37,14 +37,14 @@ class TourHandler {
             {
                 selector: ".gauge-box",
                 webview: "timeline",
-                component: "ModifyProperty",
+                component: "OpacityReduce",
                 display: "top",
                 offset: { top: -50, left: 0 },
                 spotlightRadius: 600,
                 waitUserAction: true,
             },
             {
-                selector: ".pill-container span:nth-child(5)",
+                selector: ".gauge-box",
                 webview: "timeline",
                 component: "TweenCreator",
                 display: "top",
@@ -100,7 +100,7 @@ class TourHandler {
             {
                 selector: ".property-input-field",
                 webview: "timeline",
-                component: "ExpressionsCongrat",
+                component: "Summonables",
                 display: "top",
                 offset: { top: -50, left: 0 },
                 spotlightRadius: "default",
@@ -109,7 +109,7 @@ class TourHandler {
             {
                 selector: ".property-input-field",
                 webview: "timeline",
-                component: "Summonables",
+                component: "NoCodeRequired",
                 display: "top",
                 offset: { top: -50, left: 0 },
                 spotlightRadius: "default",
@@ -129,7 +129,7 @@ class TourHandler {
                 webview: "creator",
                 component: "PublishedLink",
                 display: "left",
-                offset: { top: 200, left: -150 },
+                offset: { top: 230, left: -150 },
                 spotlightRadius: "default",
                 waitUserAction: false,
             },
