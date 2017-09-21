@@ -1,6 +1,6 @@
 var fse = require('fs-extra')
 var path = require('path')
-var cp = require('child_process')
+var getRemoteSha = require('./getRemoteSha')
 var ROOT = path.join(__dirname, '..', '..')
 
 function req (mod) {
@@ -40,8 +40,8 @@ module.exports = function allPackages () {
     var abspath = path.join(ROOT, 'packages', name)
     var pkg = req(path.join(abspath, 'package.json')) || {}
     var version = pkg.version
-    var sha = cp.execSync('git rev-parse HEAD', { cwd: abspath }).toString().trim()
     var remote = remotes[name]
+    var sha = getRemoteSha(remote)
     return {
       name: name,
       abspath: abspath,
