@@ -8,11 +8,9 @@ var slack = require('slack')
 var moment = require('moment')
 var inquirer = require('inquirer')
 var deploy = require('./deploy')
-var uploadRelease = require('./scripts/uploadRelease')
+var uploadRelease = require('./distro-scripts/uploadRelease')
 
 var ENVS = { test: true, development: true, staging: true, production: true }
-var LIBS_DIR = path.join(__dirname, 'libs')
-var PLUMBING_DEST_DIR = path.join(LIBS_DIR, 'plumbing')
 var RELEASE_LOG = fse.readJsonSync(path.join(__dirname, 'releases.json'))
 
 var inputs = lodash.assign({}, argv)
@@ -20,22 +18,10 @@ delete inputs.$0
 delete inputs._
 
 if (!inputs.version) {
-  inputs.version = fse.readJsonSync(path.join(__dirname, '..', 'package.json')).version
+  inputs.version = fse.readJsonSync(path.join(__dirname, 'package.json')).version
 }
 
 inquirer.prompt([
-  {
-    type: 'input',
-    name: 'version',
-    message: `Semver tag to use for this release (required; should match mono's version):`,
-    default: inputs.version
-  },
-  {
-    type: 'input',
-    name: 'branch',
-    message: `Plumbing git branch to clone for source code (should probably be master, unless you've created a feature branch):`,
-    default: inputs.branch || 'master'
-  },
   {
     type: 'input',
     name: 'environment',
@@ -113,35 +99,21 @@ function shout (text, cb) {
   return cb()
 }
 
-function prepLibs () {
-  cp.execSync(`rm -rf ${LIBS_DIR}`, { stdio: 'inherit' })
-  cp.execSync(`mkdir -p ${PLUMBING_DEST_DIR}`, { stdio: 'inherit' })
-  cp.execSync(`git clone git@github.com:HaikuTeam/plumbing.git`, { stdio: 'inherit', cwd: LIBS_DIR })
-  cp.execSync('yarn install --production=true --ignore-engines --non-interactive --network-concurrency 2', { stdio: 'inherit', cwd: PLUMBING_DEST_DIR }) // --production to avoid "bundle format is ambiguous"
-  cp.execSync('yarn add gulp gulp-watch babel-cli', { stdio: 'inherit', cwd: PLUMBING_DEST_DIR })
-}
-
-function buildStuff () {
-  cp.execSync(path.join(__dirname, 'scripts', 'bash', 'electron-rebuild.sh'), { stdio: 'inherit' })
-  cp.execSync(path.join(__dirname, 'scripts', 'bash', 'compile.sh'), { stdio: 'inherit' })
-  if (inputs.uglify) {
-    cp.execSync(path.join(__dirname, 'scripts', 'node', 'uglify.js'), { stdio: 'inherit', cwd: __dirname })
-  }
-  cp.execSync(path.join(__dirname, 'scripts', 'bash', 'build.sh'), { stdio: 'inherit' })
-  cp.execSync(path.join(__dirname, 'local-install.sh'), { stdio: 'inherit' })
-}
-
-function updateOwnVersion () {
-  var pkg = fse.readJsonSync(path.join(__dirname, 'package.json'))
-  pkg.version = inputs.version
-  fse.writeJsonSync(path.join(__dirname, 'package.json'), pkg, { spaces: 2 })
-}
-
 function writeHackyDynamicConfig () {
   var src = fse.readFileSync(path.join(__dirname, '_config.js.handlebars')).toString()
   var tpl = hb.compile(src)
   var result = tpl(inputs)
   fse.writeFileSync(path.join(__dirname, 'config.js'), result)
+}
+
+function buildStuff () {
+  cp.execSync(path.join(__dirname, 'distro-scripts', 'bash', 'electron-rebuild.sh'), { stdio: 'inherit' })
+  cp.execSync(path.join(__dirname, 'distro-scripts', 'bash', 'compile.sh'), { stdio: 'inherit' })
+  if (inputs.uglify) {
+    cp.execSync(path.join(__dirname, 'distro-scripts', 'node', 'uglify.js'), { stdio: 'inherit', cwd: __dirname })
+  }
+  cp.execSync(path.join(__dirname, 'distro-scripts', 'bash', 'build.sh'), { stdio: 'inherit' })
+  cp.execSync(path.join(__dirname, 'local-install.sh'), { stdio: 'inherit' })
 }
 
 function getTupleString () {
@@ -172,10 +144,8 @@ function addInfoToMostRecentReleaseLogEntry (info) {
 }
 
 function runit () {
-  updateOwnVersion()
   writeHackyDynamicConfig()
   prependReleaseToReleaseLog()
-  prepLibs()
   buildStuff()
 
   try {

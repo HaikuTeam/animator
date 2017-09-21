@@ -1,5 +1,0 @@
-deployment:
-  release:
-    branch: release
-    commands:
-      - npm run deploy

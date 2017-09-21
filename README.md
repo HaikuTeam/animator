@@ -63,6 +63,12 @@ Note: The following requires additional Haiku credentials. Once you're done deve
 
     $ yarn run finish
 
+**Distro**
+
+To roll a distro (public release), run:
+
+    $ yarn run distro
+
 ## Contributing
 
 Script improvements are welcomed. The scripts are located in `scripts/`.

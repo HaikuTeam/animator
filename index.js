@@ -7,8 +7,8 @@ process.env.HAIKU_INTERPRETER_URL_MODE = 'distro'
 if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
   process.env.HAIKU_APP_SKIP_LOG = '1'
   require('./config')
-  require('./libs/plumbing/node_modules/haiku-cli')
+  require('./packages/haiku-plumbing/node_modules/haiku-cli')
 } else {
   require('./config')
-  require('./libs/plumbing/HaikuHelper')
+  require('./packages/haiku-plumbing/HaikuHelper')
 }
