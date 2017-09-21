@@ -52,7 +52,7 @@ inquirer.prompt([
     type: 'confirm',
     name: 'upload',
     message: 'Upload release to public distro server?:',
-    default: true
+    default: false
   },
   {
     type: 'confirm',
