@@ -22,5 +22,10 @@ export const TOUR_STYLES = {
   },
   text: {
     fontSize: 16
+  },
+  code: {
+    padding: 17,
+    borderRadius: 3,
+    background: Palette.LIGHTEST_GRAY
   }
 }
