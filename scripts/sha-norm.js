@@ -55,8 +55,6 @@ var order = graph.overallOrder()
 
 log.log('updating dependencies')
 
-var changedPackages = []
-
 order.forEach(function (pkgname) {
   var pack = groups[pkgnameToName[pkgname]]
   var deps = graph.dependenciesOf(pkgname)
@@ -92,7 +90,6 @@ order.forEach(function (pkgname) {
 
           changedDeps[depPkgname] = true
           didAnythingChange = true
-          changedPackages.push(pack)
         }
       }
     })
@@ -100,17 +97,13 @@ order.forEach(function (pkgname) {
 
   if (didAnythingChange) {
     var packJson = JSON.stringify(pack.pkg, null, 2) + '\n'
-
     log.log(packJson)
-
     fse.writeFileSync(path.join(pack.abspath, 'package.json'), packJson)
   } else {
     log.log('no changes for ' + pack.pkgname)
   }
 })
 
-
-
-changedPackages.forEach((pack) => {
-  cp.execSync(`yarn install --non-interactive --ignore-scripts --ignore-engines`, { cwd: pack.abspath, stdio: 'inherit' })
+allPackages.forEach((pack) => {
+  cp.execSync(`rm yarn.lock || true`, { cwd: pack.abspath, stdio: 'inherit' })
 })
