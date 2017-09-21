@@ -153,7 +153,7 @@ export default function ({ coordinates, offset, spotlightRadius, display, childr
           {/* Don't show buttons on the first and last slides */}
           {stepData.current > 0 && stepData.current < stepData.total &&
             <div style={{display: 'flex', justifyContent: 'space-between', marginTop: 30}}>
-              <button style={TOUR_STYLES.btnSecondary} onClick={() => finish(true)}>Skip Tutorial</button>
+              <button style={TOUR_STYLES.btnSecondary} onClick={() => finish(true, true)}>Skip Tutorial</button>
               <div>
                 <span style={{marginRight: 10}}>{stepData.current} of {stepData.total}</span>
                 {/* Show the next button if we aren't waiting for user interaction */}

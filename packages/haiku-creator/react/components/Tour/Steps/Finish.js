@@ -17,7 +17,7 @@ export default function ({ styles, finish }) {
       </div>
       <button
         style={styles.btn}
-        onClick={() => finish(true)}
+        onClick={() => finish(true, false)}
       > Finish
       </button>
     </div>

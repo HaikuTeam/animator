@@ -2,6 +2,7 @@ import React from 'react'
 import Tooltip from '../Tooltip'
 import { TOUR_STYLES } from '../../styles/tourShared'
 import * as steps from './Steps'
+import mixpanel from '../../../utils/Mixpanel'
 
 class Tour extends React.Component {
   constructor () {
@@ -26,6 +27,7 @@ class Tour extends React.Component {
 
       if (this.props.startTourOnMount) {
         this.tourChannel.start()
+        mixpanel.haikuTrack('tour', {state: 'started'})
       }
     })
   }
@@ -37,10 +39,12 @@ class Tour extends React.Component {
 
   next () {
     this.tourChannel.next()
+    mixpanel.haikuTrack('tour', {state: 'step completed', step: this.state.stepData.current})
   }
 
-  finish (createFile) {
+  finish (createFile, skipped) {
     this.tourChannel.finish(createFile)
+    mixpanel.haikuTrack('tour', {state: 'skipped', step: this.state.stepData.current})
   }
 
   hide () {
