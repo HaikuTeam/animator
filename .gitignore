@@ -4,4 +4,3 @@ npm-debug.log
 npm-debug.log.*
 .vscode
 tmp/
-yarn.lock
