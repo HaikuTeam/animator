@@ -18,7 +18,7 @@ var PLAYER_PATH = groups['haiku-player'].abspath
 // the version we push will always be _ahead_ of the version userland is on, and someone would have
 // to manually change the snippet to get an advance/untested version
 
-log.log('uploading cdn player')
+log.log(`uploading cdn player ${nowVersion()}`)
 
 async.series([
   function (cb) {
@@ -43,16 +43,14 @@ async.series([
   },
 
   function (cb) {
-    log.hat(`
-      our provided 3rd-party scripts:
+    log.hat(`      our provided 3rd-party scripts:
       https://code.haiku.ai/scripts/player/HaikuPlayer.${nowVersion()}.js
       https://code.haiku.ai/scripts/player/HaikuPlayer.${nowVersion()}.min.js
 
       and for convenience:
       https://code.haiku.ai/scripts/player/HaikuPlayer.latest.js
       https://code.haiku.ai/scripts/player/HaikuPlayer.latest.min.js
-      ^^ you probably need to invalidate cloudfront for the "latest" files to update ^^
-    `)
+      ^^ you probably need to invalidate cloudfront for the "latest" files to update ^^`)
 
     return cb()
   }
