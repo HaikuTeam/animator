@@ -11,6 +11,9 @@ var deploy = require('./deploy')
 var uploadRelease = require('./scripts/uploadRelease')
 
 var ENVS = { test: true, development: true, staging: true, production: true }
+var LIBS_DIR = path.join(__dirname, 'libs')
+var PLUMBING_DEST_DIR = path.join(LIBS_DIR, 'plumbing')
+var RELEASE_LOG = fse.readJsonSync(path.join(__dirname, 'releases.json'))
 
 var inputs = lodash.assign({}, argv)
 delete inputs.$0
@@ -55,7 +58,7 @@ inquirer.prompt([
     type: 'confirm',
     name: 'shout',
     message: 'Notify our internal Slack account about build progress?:',
-    default: true
+    default: false
   }
 ]).then(function (answers) {
   lodash.assign(inputs, answers)
@@ -112,19 +115,13 @@ function shout (text, cb) {
   return cb()
 }
 
-var LIBS_DIR = path.join(__dirname, 'libs')
-var PLAYER_SOURCE_DIR = path.join(__dirname, '..', 'packages', 'haiku-player')
-var PLUMBING_SOURCE_DIR = path.join(__dirname, '..', 'packages', 'haiku-plumbing')
-var PLUMBING_DEST_DIR = path.join(LIBS_DIR, 'plumbing')
-
-function prepLibs() {
+function prepLibs () {
   cp.execSync(`rm -rf ${LIBS_DIR}`, { stdio: 'inherit' })
   cp.execSync(`mkdir -p ${PLUMBING_DEST_DIR}`, { stdio: 'inherit' })
   cp.execSync(`git clone git@github.com:HaikuTeam/plumbing.git`, { stdio: 'inherit', cwd: LIBS_DIR })
   cp.execSync('yarn install --production=true', { stdio: 'inherit', cwd: PLUMBING_DEST_DIR }) // --production to avoid "bundle format is ambiguous"
   cp.execSync('yarn add gulp gulp-watch babel-cli', { stdio: 'inherit', cwd: PLUMBING_DEST_DIR })
 }
-
 
 function buildStuff () {
   cp.execSync(path.join(__dirname, 'scripts', 'bash', 'electron-rebuild.sh'), { stdio: 'inherit' })
@@ -136,20 +133,25 @@ function buildStuff () {
   cp.execSync(path.join(__dirname, 'local-install.sh'), { stdio: 'inherit' })
 }
 
-function runit () {
+function updateOwnVersion () {
   var pkg = fse.readJsonSync(path.join(__dirname, 'package.json'))
   pkg.version = inputs.version
   fse.writeJsonSync(path.join(__dirname, 'package.json'), pkg, { spaces: 2 })
+}
 
+function writeHackyDynamicConfig () {
   var src = fse.readFileSync(path.join(__dirname, '_config.js.handlebars')).toString()
   var tpl = hb.compile(src)
   var result = tpl(inputs)
   fse.writeFileSync(path.join(__dirname, 'config.js'), result)
+}
 
-  var tuple = `from ${inputs.branch} at ${inputs.version} as ${inputs.environment} ${(inputs.upload ? '' : ' (no upload)')}`
+function getTupleString () {
+  return `from ${inputs.branch} at ${inputs.version} as ${inputs.environment} ${(inputs.upload ? '' : ' (no upload)')}`
+}
 
-  var releases = fse.readJsonSync(path.join(__dirname, 'releases.json'))
-  var release = {
+function getReleaseInfo () {
+  return {
     branch: inputs.branch,
     version: inputs.version,
     environment: inputs.environment,
@@ -159,16 +161,26 @@ function runit () {
     finished: null,
     success: null
   }
-  releases.unshift(release)
-  fse.writeJsonSync(path.join(__dirname, 'releases.json'), releases, { spaces: 2 })
+}
 
-  function done (info) {
-    lodash.assign(release, info)
-    fse.writeJsonSync(path.join(__dirname, 'releases.json'), releases, { spaces: 2 })
-    console.log('done!')
-  }
+function prependReleaseToReleaseLog () {
+  RELEASE_LOG.unshift(getReleaseInfo())
+  fse.writeJsonSync(path.join(__dirname, 'releases.json'), RELEASE_LOG, { spaces: 2 })
+}
 
-  shout(`Distro build started (${tuple})`, () => {
+function addInfoToMostRecentReleaseLogEntry (info) {
+  lodash.assign(RELEASE_LOG[0], info)
+  fse.writeJsonSync(path.join(__dirname, 'releases.json'), RELEASE_LOG, { spaces: 2 })
+}
+
+function runit () {
+  updateOwnVersion()
+
+  writeHackyDynamicConfig()
+
+  prependReleaseToReleaseLog()
+
+  shout(`Distro build started (${getTupleString()})`, () => {
     try {
       prepLibs()
 
@@ -192,23 +204,25 @@ function runit () {
         return uploadRelease(region, objkey, secret, bucket, platform, environment, branch, version, (err, { environment, platform, branch, countdown, version }) => {
           if (err) throw err
           var url = `https://s3.amazonaws.com/${bucket}/releases/${environment}/${branch}/${platform}/${countdown}/${version}/Haiku-${version}-${platform}.zip`
-          done({
+          shout(`Distro build finished (${getTupleString()}). Download: ${url}`, () => {})
+          console.log('success! built and uploaded release')
+          addInfoToMostRecentReleaseLogEntry({
             finished: moment().format('YYYYMMDDHHmmss'),
             uploaded: true,
             success: true
           })
-          shout(`Distro build finished (${tuple}). Download: ${url}`, () => {})
-        })
-      } else {
-        return done({
-          finished: moment().format('YYYYMMDDHHmmss'),
-          uploaded: false,
-          success: true
         })
       }
+
+      console.log('success! built release (but did not upload)')
+      addInfoToMostRecentReleaseLogEntry({
+        finished: moment().format('YYYYMMDDHHmmss'),
+        uploaded: false,
+        success: true
+      })
     } catch (exception) {
       console.log(exception)
-      return done({
+      addInfoToMostRecentReleaseLogEntry({
         success: false,
         error: exception.message
       })
