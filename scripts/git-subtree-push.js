@@ -15,7 +15,7 @@ async.eachSeries(allPackages, function (pack, next) {
   try {
     var cmd = `git subtree push --squash --prefix packages/${pack.name} ${pack.remote} ${branch}`
     log.log(cmd)
-    cp.execSync(cmd, { cwd: pack.abspath, stdio: 'inherit' })
+    cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
   } catch (exception) {
     log.log(exception.message)
   }
