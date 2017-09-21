@@ -39,12 +39,20 @@ class Tour extends React.Component {
 
   next () {
     this.tourChannel.next()
-    mixpanel.haikuTrack('tour', {state: 'step completed', step: this.state.stepData.current})
+    mixpanel.haikuTrack('tour', {
+      state: 'step completed',
+      step: this.state.stepData.current,
+      title: this.state.component
+    })
   }
 
   finish (createFile, skipped) {
     this.tourChannel.finish(createFile)
-    mixpanel.haikuTrack('tour', {state: 'skipped', step: this.state.stepData.current})
+    mixpanel.haikuTrack('tour', {
+      state: 'skipped',
+      step: this.state.stepData.current,
+      title: this.state.component
+    })
   }
 
   hide () {
