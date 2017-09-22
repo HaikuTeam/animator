@@ -8,7 +8,12 @@ export default function ({ styles }) {
       </video>
       <h2 style={styles.heading}>Animations</h2>
       <div style={styles.text}>
-        <p>Now move the ticker back to the starting position and change that keyframe to 0.</p>
+        <p>Now lets set the first keyframe to have an opacity of 0.</p>
+        <ol>
+          <li>Drag the ticker back to frame 0</li>
+          <li>Double click the box next to Opacity to edit it</li>
+          <li>Type 0 and press enter</li>
+        </ol>
       </div>
     </div>
   )

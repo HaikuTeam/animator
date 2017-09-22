@@ -8,9 +8,13 @@ export default function ({ styles }) {
       </video>
       <h2 style={styles.heading}>Animations</h2>
       <div style={styles.text}>
-        <p>Let's see if we can fade the checkmark in from 0 opacity to 1 opacity.</p>
-        <p><strong>Start by moving the scrubber to frame 16 and inputting '1' into the input and pressing 'return'</strong></p>
-        <p>You will see this has created a new keyframe.</p>
+        <p>Let's animate the opacity of the checkmark, so it fades in smoothly from fully transparent to fully visible.  First, let's set the final value for the transition:</p>
+        <ol>
+          <li>Drag the ticker to frame 16*</li>
+          <li>Click on the word “checkmark” below to expand its properties*</li>
+          <li>Then double-click the box next to “Opacity” to change its value*</li>
+          <li>Ensure the value is 1, then press Enter*</li>
+        </ol>
       </div>
     </div>
   )

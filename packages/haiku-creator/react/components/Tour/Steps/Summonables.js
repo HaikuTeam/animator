@@ -6,7 +6,7 @@ export default function ({ styles }) {
       <video height='192' width='342' autoPlay loop muted playsInline preload='true'>
         <source src='https://giant.gfycat.com/FixedReadyArgentinehornedfrog.mp4' type='video/mp4' />
       </video>
-      <h2 style={styles.heading}>Summonables</h2>
+      <h2 style={styles.heading}>Summonables (Advanced)</h2>
       <div style={styles.text}>
         <p>
           In addition to States you create, Haiku offers several built-in
