@@ -29,6 +29,7 @@
     "zack": "node ./HaikuHelper.js --folder=/Users/zack/code/haiku/mono/packages/haiku-glass/test/projects/primitives --mode=headless --repl"
   },
   "dependencies": {
+    "@haiku/player": "HaikuTeam/player.git",
     "async": "2.1.4",
     "aws-sdk": "2.7.22",
     "babel-core": "6.21.0",
@@ -48,7 +49,6 @@
     "esformatter-jsx": "7.4.1",
     "express": "4.14.0",
     "express-ws": "2.0.0",
-    "@haiku/player": "HaikuTeam/player.git",
     "haiku-bytecode": "HaikuTeam/bytecode.git",
     "haiku-cli": "HaikuTeam/cli.git",
     "haiku-creator-electron": "HaikuTeam/creator.git",
