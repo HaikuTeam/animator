@@ -1,40 +1,19 @@
 import React from 'react'
-import Welcome from './Steps/Welcome'
-import OpenProject from './Steps/OpenProject'
-import ScrubTicker from './Steps/ScrubTicker'
-import PropertyChanger from './Steps/PropertyChanger'
-import KeyframeCreator from './Steps/KeyframeCreator'
-import AnimatorNotice from './Steps/AnimatorNotice'
-import LibraryStart from './Steps/LibraryStart'
-import Finish from './Steps/Finish'
 import Tooltip from '../Tooltip'
-import {
-  didTakeTour,
-  createTourFile
-} from 'haiku-serialization/src/utils/HaikuHomeDir'
-
-const components = {
-  Welcome,
-  OpenProject,
-  ScrubTicker,
-  PropertyChanger,
-  KeyframeCreator,
-  AnimatorNotice,
-  LibraryStart,
-  Finish
-}
+import { TOUR_STYLES } from '../../styles/tourShared'
+import * as steps from './Steps'
+import mixpanel from '../../../utils/Mixpanel'
 
 class Tour extends React.Component {
   constructor () {
     super()
 
     this.next = this.next.bind(this)
-    this.showStep = this.showStep.bind(this)
     this.finish = this.finish.bind(this)
+    this.hide = this.hide.bind(this)
+    this.showStep = this.showStep.bind(this)
 
     this.state = {
-      didTakeTour: didTakeTour(),
-      step: null,
       component: null,
       coordinates: null
     }
@@ -44,53 +23,75 @@ class Tour extends React.Component {
     this.props.envoy.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
       this.tourChannel.on('tour:requestShowStep', this.showStep)
-    })
+      this.tourChannel.on('tour:requestFinish', this.hide)
 
-    this.mnt = true
+      if (this.props.startTourOnMount) {
+        this.tourChannel.start()
+        mixpanel.haikuTrack('tour', {state: 'started'})
+      }
+    })
   }
 
   componentWillUnmount () {
-    this.mnt = false
+    this.tourChannel.off('tour:requestShowStep', this.showStep)
+    this.tourChannel.off('tour:requestFinish', this.hide)
   }
 
   next () {
     this.tourChannel.next()
+    mixpanel.haikuTrack('tour', {
+      state: 'step completed',
+      step: this.state.stepData.current,
+      title: this.state.component
+    })
   }
 
-  finish () {
-    this.tourChannel.finish()
-
-    this.setState({
-      didTakeTour: true
+  finish (createFile, skipped) {
+    this.tourChannel.finish(createFile)
+    mixpanel.haikuTrack('tour', {
+      state: 'skipped',
+      step: this.state.stepData.current,
+      title: this.state.component
     })
+  }
 
-    createTourFile()
+  hide () {
+    this.setState({ component: null })
   }
 
   showStep (state) {
-    // TODO: this is a bad practice, we should implement
-    // a way to unbind events from a client in Envoy, then
-    // remove this
-    if (this.mnt) {
-      this.setState(state)
-    }
-  }
-
-  shouldRender () {
-    return this.state.component && !this.state.didTakeTour
+    this.setState(state)
   }
 
   render () {
-    if (!this.shouldRender()) {
+    if (!this.state.component) {
       return null
     }
 
-    const { display, coordinates, component } = this.state
-    const Step = components[component]
+    const {
+      display,
+      coordinates,
+      offset,
+      component,
+      spotlightRadius,
+      stepData,
+      waitUserAction
+    } = this.state
+
+    const Step = steps[component]
 
     return (
-      <Tooltip coordinates={coordinates} display={display}>
-        <Step next={this.next} finish={this.finish} />
+      <Tooltip
+        coordinates={coordinates}
+        offset={offset}
+        display={display}
+        spotlightRadius={spotlightRadius}
+        next={this.next}
+        finish={this.finish}
+        stepData={stepData}
+        waitUserAction={waitUserAction}
+      >
+        <Step styles={TOUR_STYLES} next={this.next} finish={this.finish} />
       </Tooltip>
     )
   }

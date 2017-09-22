@@ -51,6 +51,14 @@ const STYLES = {
     borderRadius: 4,
     boxShadow: '0 6px 25px 0 ' + Palette.FATHER_COAL
   },
+  popoverClose: {
+    color: 'white',
+    position: 'absolute',
+    top: 5,
+    right: 10,
+    fontSize: 15,
+    textTransform: 'lowercase'
+  },
   footer: {
     backgroundColor: Color(Palette.DARK_GRAY).fade(0.7),
     height: 25,
@@ -126,6 +134,7 @@ class PopoverBody extends React.Component {
   render () {
     return (
       <div style={[STYLES.sharePopover, this.props.snapshotSaveConfirmed && {right: -67}, this.props.isSnapshotSaveInProgress && {right: -70}]}>
+        <button style={STYLES.popoverClose} onClick={this.props.close}>x</button>
         {this.props.titleText}
         <div style={STYLES.linkHolster}>
           {(this.props.isSnapshotSaveInProgress || this.props.isProjectInfoFetchInProgress)
@@ -276,6 +285,8 @@ class StageTitleBar extends React.Component {
 
     this.setState({showSharePopover: !this.state.showSharePopover})
 
+    if (this.props.tourClient) this.props.tourClient.next()
+
     return this.performProjectSave()
   }
 
@@ -338,7 +349,7 @@ class StageTitleBar extends React.Component {
             message: 'We were unable to publish your project. 😢 Please try again in a few moments. If you still see this error, contact Haiku for support.'
           })
         }
-        return this.setState({ isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError, showSharePopover: false }, () => {
+        return this.setState({ isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError }, () => {
           return setTimeout(() => this.setState({ snapshotSaveError: null }), 2000)
         })
       }
@@ -439,9 +450,9 @@ class StageTitleBar extends React.Component {
               snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
               isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
               isProjectInfoFetchInProgress={this.state.isProjectInfoFetchInProgress}
-              linkAddress={this.state.linkAddress} />
-          }
-          onOuterAction={() => this.setState({ showSharePopover: false })}>
+              linkAddress={this.state.linkAddress}
+              close={() => this.setState({ showSharePopover: false })} />
+          }>
           <button key='save'
             id='publish'
             onClick={this.handleSaveSnapshotClick}

@@ -28,14 +28,15 @@ export default class Stage extends React.Component {
 
     if (!this.props.envoy.isInMockMode()) {
       tourChannel.then((client) => {
-        client.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this, client))
+        this.tourClient = client
+        this.tourClient.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this))
       })
     }
   }
 
-  onRequestWebviewCoordinates (client) {
+  onRequestWebviewCoordinates () {
     let { top, left } = this.webview.getBoundingClientRect()
-    client.receiveWebviewCoordinates('glass', { top, left })
+    this.tourClient.receiveWebviewCoordinates('glass', { top, left })
   }
 
   injectWebview () {
@@ -122,7 +123,8 @@ export default class Stage extends React.Component {
             authToken={this.props.authToken}
             username={this.props.username}
             password={this.props.password}
-            receiveProjectInfo={this.props.receiveProjectInfo} />
+            receiveProjectInfo={this.props.receiveProjectInfo}
+            tourClient={this.tourClient} />
           <div
             id='stage-mount'
             ref={(element) => { this.mount = element }}

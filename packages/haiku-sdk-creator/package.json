@@ -24,7 +24,8 @@
     "peerjs": "^0.3.14",
     "simple-peer": "^8.1.1",
     "wrtc": "0.0.62",
-    "ws": "^3.0.0"
+    "ws": "^3.0.0",
+    "haiku-serialization": "HaikuTeam/serialization"
   },
   "devDependencies": {
     "@types/node": "^8.0.17",

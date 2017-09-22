@@ -1,26 +1,18 @@
 import React from 'react'
-import Dialog from '../../Dialog'
-import { DASH_STYLES } from '../../../styles/dashShared'
 
-const STYLES = {
-  btn: {
-    ...DASH_STYLES.btn,
-    padding: '10px 15px',
-    margin: '0 10px 0 0',
-    fontSize: 16
-  },
-  text: {
-    fontSize: 16
-  }
-}
-
-export default function ({ style, next }) {
+export default function ({ styles }) {
   return (
-    <Dialog style={style}>
-      <h2>Library!</h2>
-      <p style={STYLES.text}>Let's focus on the library now.</p>
-      <p style={STYLES.text}>You can drag any element from here to the stage to instantiate it.</p>
-      <button style={STYLES.btn} onClick={next}>Next</button>
-    </Dialog>
+    <div style={{width: 440}}>
+      <h2 style={styles.heading}>Library</h2>
+      <div style={styles.text}>
+        <p>Let's focus on the library now.</p>
+
+        <p>You can drag any element from here to the stage to instantiate it.</p>
+
+        <p>But let's check out the connected design and animation workflow first.  Notice the “checkmark” asset here, which is instantiated on the stage.  Let's change its color in Sketch and watch it update here in Haiku automatically.</p>
+
+        <p><strong>Double-click the Sketch file to launch Sketch, then change the color of the checkmark and choose “File > Save” in Sketch.</strong></p>
+      </div>
+    </div>
   )
 }

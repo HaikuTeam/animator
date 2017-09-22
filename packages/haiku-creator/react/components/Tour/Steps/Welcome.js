@@ -1,35 +1,50 @@
 import React from 'react'
-import Dialog from '../../Dialog'
-import { DASH_STYLES } from '../../../styles/dashShared'
 
 const STYLES = {
-  btn: {
-    ...DASH_STYLES.btn,
-    padding: '10px 15px',
-    margin: '0 10px 0 0',
-    fontSize: 16
-  },
-  btnSecondary: {
-    textTransform: 'none',
-    padding: '10px'
+  input: {
+    marginRight: 10
   },
   buttons: {
-    marginTop: '30px'
-  },
-  text: {
-    fontSize: 16
+    marginTop: '30px',
+    display: 'flex',
+    justifyContent: 'space-between'
   }
 }
 
-export default function ({ style, next, finish }) {
-  return (
-    <Dialog style={style}>
-      <h2>Welcome to Haiku</h2>
-      <p style={STYLES.text}>Would you like to take the guided tour?</p>
-      <div style={STYLES.buttons}>
-        <button style={STYLES.btn} onClick={next}>Yes, please</button>
-        <button style={STYLES.btnSecondary} onClick={finish}>Not now</button>
+export default class Welcome extends React.Component {
+  constructor () {
+    super()
+
+    this.handleFinish = this.handleFinish.bind(this)
+  }
+
+  handleFinish () {
+    const createFile = this.checkInput.checked
+
+    this.props.finish(createFile)
+  }
+
+  render () {
+    const { styles, next } = this.props
+
+    return (
+      <div>
+        <h2 style={styles.heading}>Welcome to Haiku</h2>
+        <p style={styles.text}>Would you like to take the guided tour?</p>
+        <form action='#'>
+          <input
+            type='checkbox'
+            name='not-show-again'
+            id='not-show-again'
+            style={STYLES.input}
+            ref={(input) => { this.checkInput = input }} />
+          <label htmlFor='not-show-again'>Don't show this again.</label>
+        </form>
+        <div style={STYLES.buttons}>
+          <button style={styles.btn} onClick={next}>Yes, please</button>
+          <button style={styles.btnSecondary} onClick={this.handleFinish}>Not now</button>
+        </div>
       </div>
-    </Dialog>
-  )
+    )
+  }
 }

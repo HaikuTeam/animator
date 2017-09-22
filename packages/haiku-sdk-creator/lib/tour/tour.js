@@ -1,63 +1,170 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const HaikuHomeDir_1 = require("haiku-serialization/src/utils/HaikuHomeDir");
 const TOUR_CHANNEL = "tour";
 class TourHandler {
     constructor(server) {
         this.currentStep = 0;
+        this.isActive = false;
         this.states = [
             {
-                selector: "#",
+                selector: "body",
                 webview: "creator",
                 component: "Welcome",
                 display: "none",
+                offset: { top: 0, left: 0 },
+                spotlightRadius: "default",
+                waitUserAction: true,
             },
             {
                 selector: "#project-edit-button",
                 webview: "creator",
                 component: "OpenProject",
                 display: "left",
+                offset: { top: 0, left: 60 },
+                spotlightRadius: "default",
+                waitUserAction: true,
             },
             {
-                selector: "#gauge-box",
+                selector: ".gauge-box",
                 webview: "timeline",
-                component: "ScrubTicker",
+                component: "OpacityIncrease",
                 display: "top",
+                offset: { top: -50, left: 20 },
+                spotlightRadius: 800,
+                waitUserAction: true,
             },
             {
-                selector: ".property-timeline-segments-box",
+                selector: ".gauge-box",
                 webview: "timeline",
-                component: "PropertyChanger",
-                display: "right",
-            },
-            {
-                selector: ".pill-container span:nth-child(5)",
-                webview: "timeline",
-                component: "KeyframeCreator",
+                component: "OpacityReduce",
                 display: "top",
+                offset: { top: -50, left: 0 },
+                spotlightRadius: 800,
+                waitUserAction: true,
             },
             {
-                selector: ".pill-container span:nth-child(5)",
+                selector: ".gauge-box",
+                webview: "timeline",
+                component: "TweenCreator",
+                display: "top",
+                offset: { top: -50, left: 100 },
+                spotlightRadius: 8000,
+                waitUserAction: true,
+            },
+            {
+                selector: ".gauge-box",
                 webview: "timeline",
                 component: "AnimatorNotice",
                 display: "top",
+                offset: { top: -50, left: 100 },
+                spotlightRadius: 8000,
+                waitUserAction: false,
             },
             {
-                selector: "#library-wrapper",
+                selector: "#stage-mount",
                 webview: "creator",
                 component: "LibraryStart",
                 display: "right",
+                offset: { top: 180, left: 0 },
+                spotlightRadius: "default",
+                waitUserAction: true,
+            },
+            {
+                selector: "#state-inspector",
+                webview: "creator",
+                component: "StatesStart",
+                display: "right",
+                offset: { top: 180, left: 50 },
+                spotlightRadius: "default",
+                waitUserAction: true,
+            },
+            {
+                selector: "#add-state-button",
+                webview: "creator",
+                component: "AddState",
+                display: "right",
+                offset: { top: 120, left: 50 },
+                spotlightRadius: "default",
+                waitUserAction: true,
+            },
+            {
+                selector: ".property-input-field",
+                webview: "timeline",
+                component: "ReferenceState",
+                display: "top",
+                offset: { top: -50, left: 0 },
+                spotlightRadius: "default",
+                waitUserAction: false,
+            },
+            {
+                selector: ".property-input-field",
+                webview: "timeline",
+                component: "Summonables",
+                display: "right",
+                offset: { top: 0, left: 120 },
+                spotlightRadius: "default",
+                waitUserAction: false,
+            },
+            {
+                selector: ".property-input-field",
+                webview: "timeline",
+                component: "NoCodeRequired",
+                display: "right",
+                offset: { top: 0, left: 120 },
+                spotlightRadius: "default",
+                waitUserAction: false,
+            },
+            {
+                selector: "#publish",
+                webview: "creator",
+                component: "Publish",
+                display: "left",
+                offset: { top: 140, left: -50 },
+                spotlightRadius: "default",
+                waitUserAction: true,
+            },
+            {
+                selector: ".Popover",
+                webview: "creator",
+                component: "PublishedLink",
+                display: "left",
+                offset: { top: 230, left: -150 },
+                spotlightRadius: "default",
+                waitUserAction: false,
             },
             {
                 selector: "#go-to-dashboard",
                 webview: "creator",
                 component: "Finish",
                 display: "bottom",
+                offset: { top: 50, left: 0 },
+                spotlightRadius: "default",
+                waitUserAction: true,
             },
         ];
-        this.webviewData = {
-            creator: { top: 0, left: 0 },
-        };
+        this.webviewData = {};
         this.server = server;
+    }
+    performStepActions() {
+        switch (this.currentStep) {
+            case 1:
+                this.requestSelectProject();
+                break;
+        }
+    }
+    renderCurrentStepAgain() {
+        if (this.shouldRenderAgain) {
+            this.currentStep--;
+            this.next();
+            this.shouldRenderAgain = false;
+        }
+    }
+    requestSelectProject() {
+        this.server.emit(TOUR_CHANNEL, {
+            payload: {},
+            name: "tour:requestSelectProject",
+        });
     }
     requestWebviewCoordinates() {
         this.server.emit(TOUR_CHANNEL, {
@@ -73,8 +180,14 @@ class TourHandler {
     }
     requestShowStep(state, position) {
         this.server.emit(TOUR_CHANNEL, {
-            payload: Object.assign({}, state, { coordinates: position }),
+            payload: Object.assign({}, state, { coordinates: position, stepData: { current: this.currentStep, total: this.states.length - 1 } }),
             name: "tour:requestShowStep",
+        });
+    }
+    requestFinish() {
+        this.server.emit(TOUR_CHANNEL, {
+            payload: {},
+            name: "tour:requestFinish",
         });
     }
     getState() {
@@ -88,15 +201,35 @@ class TourHandler {
     }
     receiveWebviewCoordinates(webview, coordinates) {
         this.webviewData[webview] = coordinates;
+        this.renderCurrentStepAgain();
     }
-    start() {
-        this.requestShowStep(Object.assign({}, this.states[0]), { top: "50%", left: "50%" });
+    notifyScreenResize() {
+        if (this.currentStep > 0) {
+            this.shouldRenderAgain = true;
+        }
+        this.requestWebviewCoordinates();
     }
-    finish() {
+    start(force) {
+        if (!HaikuHomeDir_1.didTakeTour() || force) {
+            this.currentStep = 0;
+            this.isActive = true;
+            this.requestShowStep(Object.assign({}, this.states[this.currentStep]), { top: "40%", left: "50%" });
+        }
+    }
+    finish(createFile) {
+        if (createFile) {
+            HaikuHomeDir_1.createTourFile();
+        }
+        this.isActive = false;
+        this.requestFinish();
     }
     next() {
+        if (!this.isActive) {
+            return;
+        }
         this.currentStep++;
         const nextState = this.getState();
+        this.performStepActions();
         if (nextState) {
             this.requestElementCoordinates(nextState);
         }

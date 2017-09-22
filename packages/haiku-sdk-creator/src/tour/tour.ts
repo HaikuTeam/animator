@@ -1,3 +1,7 @@
+import {
+  createTourFile,
+  didTakeTour,
+} from "haiku-serialization/src/utils/HaikuHomeDir"
 import { ClientBoundingRect, MaybeAsync, Tour, TourState } from "."
 import { EnvoyEvent } from "../envoy"
 import EnvoyServer from "../envoy/server"
@@ -8,65 +12,187 @@ export default class TourHandler implements Tour {
 
     private currentStep: number = 0
 
+    private isActive: boolean = false
+
     private states: TourState[] = [
         {
-            selector: "#",
+            selector: "body",
             webview: "creator",
             component: "Welcome",
             display: "none",
+            offset: {top: 0, left: 0},
+            spotlightRadius: "default",
+            waitUserAction: true,
         },
         {
             selector: "#project-edit-button",
             webview: "creator",
             component: "OpenProject",
             display: "left",
+            offset: {top: 0, left: 60},
+            spotlightRadius: "default",
+            waitUserAction: true,
         },
         {
-            selector: "#gauge-box",
+            selector: ".gauge-box",
             webview: "timeline",
-            component: "ScrubTicker",
+            component: "OpacityIncrease",
             display: "top",
+            offset: {top: -50, left: 20},
+            spotlightRadius: 800,
+            waitUserAction: true,
         },
         {
-            selector: ".property-timeline-segments-box",
+            selector: ".gauge-box",
             webview: "timeline",
-            component: "PropertyChanger",
-            display: "right",
-        },
-        {
-            selector: ".pill-container span:nth-child(5)",
-            webview: "timeline",
-            component: "KeyframeCreator",
+            component: "OpacityReduce",
             display: "top",
+            offset: {top: -50, left: 0},
+            spotlightRadius: 800,
+            waitUserAction: true,
         },
         {
-            selector: ".pill-container span:nth-child(5)",
+            selector: ".gauge-box",
+            webview: "timeline",
+            component: "TweenCreator",
+            display: "top",
+            offset: {top: -50, left: 100},
+            spotlightRadius: 8000,
+            waitUserAction: true,
+        },
+        {
+            selector: ".gauge-box",
             webview: "timeline",
             component: "AnimatorNotice",
             display: "top",
+            offset: {top: -50, left: 100},
+            spotlightRadius: 8000,
+            waitUserAction: false,
         },
         {
-            selector: "#library-wrapper",
+            selector: "#stage-mount",
             webview: "creator",
             component: "LibraryStart",
             display: "right",
+            offset: {top: 180, left: 0},
+            spotlightRadius: "default",
+            waitUserAction: true,
+        },
+        {
+            selector: "#state-inspector",
+            webview: "creator",
+            component: "StatesStart",
+            display: "right",
+            offset: {top: 180, left: 50},
+            spotlightRadius: "default",
+            waitUserAction: true,
+        },
+        {
+            selector: "#add-state-button",
+            webview: "creator",
+            component: "AddState",
+            display: "right",
+            offset: {top: 120, left: 50},
+            spotlightRadius: "default",
+            waitUserAction: true,
+        },
+        {
+            selector: ".property-input-field",
+            webview: "timeline",
+            component: "ReferenceState",
+            display: "top",
+            offset: {top: -50, left: 0},
+            spotlightRadius: "default",
+            waitUserAction: false,
+        },
+        //  Disable this step until we add interactivity to the previous
+        // {
+        //     selector: ".property-input-field",
+        //     webview: "timeline",
+        //     component: "ExpressionsCongrat",
+        //     display: "top",
+        //     offset: {top: -50, left: 0},
+        //     spotlightRadius: "default",
+        //     waitUserAction: false,
+        // },
+        {
+            selector: ".property-input-field",
+            webview: "timeline",
+            component: "Summonables",
+            display: "right",
+            offset: {top: 0, left: 120},
+            spotlightRadius: "default",
+            waitUserAction: false,
+        },
+        {
+            selector: ".property-input-field",
+            webview: "timeline",
+            component: "NoCodeRequired",
+            display: "right",
+            offset: {top: 0, left: 120},
+            spotlightRadius: "default",
+            waitUserAction: false,
+        },
+        {
+            selector: "#publish",
+            webview: "creator",
+            component: "Publish",
+            display: "left",
+            offset: {top: 140, left: -50},
+            spotlightRadius: "default",
+            waitUserAction: true,
+        },
+        {
+            selector: ".Popover",
+            webview: "creator",
+            component: "PublishedLink",
+            display: "left",
+            offset: {top: 230, left: -150},
+            spotlightRadius: "default",
+            waitUserAction: false,
         },
         {
             selector: "#go-to-dashboard",
             webview: "creator",
             component: "Finish",
             display: "bottom",
+            offset: {top: 50, left: 0},
+            spotlightRadius: "default",
+            waitUserAction: true,
         },
     ]
 
     private server: EnvoyServer
 
-    private webviewData: object = {
-        creator: { top: 0, left: 0 },
-    }
+    private shouldRenderAgain: boolean
+
+    private webviewData: object = {}
 
     constructor(server: EnvoyServer) {
         this.server = server
+    }
+
+    private performStepActions() {
+        switch (this.currentStep) {
+            case 1:
+                this.requestSelectProject()
+                break
+        }
+    }
+
+    private renderCurrentStepAgain() {
+        if (this.shouldRenderAgain) {
+            this.currentStep--
+            this.next()
+            this.shouldRenderAgain = false
+        }
+    }
+
+    private requestSelectProject() {
+        this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+            payload: {},
+            name: "tour:requestSelectProject",
+        })
     }
 
     private requestWebviewCoordinates() {
@@ -85,8 +211,19 @@ export default class TourHandler implements Tour {
 
     private requestShowStep(state: TourState, position: ClientBoundingRect) {
         this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
-            payload: { ...state, coordinates: position },
+            payload: {
+                ...state,
+                coordinates: position,
+                stepData: { current: this.currentStep, total: this.states.length - 1},
+            },
             name: "tour:requestShowStep",
+        })
+    }
+
+    private requestFinish() {
+        this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+            payload: {},
+            name: "tour:requestFinish",
         })
     }
 
@@ -104,19 +241,42 @@ export default class TourHandler implements Tour {
 
     receiveWebviewCoordinates(webview: string, coordinates: ClientBoundingRect) {
         this.webviewData[webview] = coordinates
+        this.renderCurrentStepAgain()
     }
 
-    start() {
-        this.requestShowStep({ ...this.states[0] }, { top: "50%", left: "50%" })
+    notifyScreenResize() {
+        if (this.currentStep > 0) {
+            this.shouldRenderAgain = true
+        }
+
+        this.requestWebviewCoordinates()
     }
 
-    finish() {
-        // empty
+    start(force) {
+        if (!didTakeTour() || force) {
+            this.currentStep = 0
+            this.isActive = true
+            this.requestShowStep({ ...this.states[this.currentStep] }, { top: "40%", left: "50%" })
+        }
+    }
+
+    finish(createFile?) {
+        if (createFile) {
+            createTourFile()
+        }
+
+        this.isActive = false
+        this.requestFinish()
     }
 
     next() {
+        if (!this.isActive) { return }
+
         this.currentStep++
+
         const nextState = this.getState()
+
+        this.performStepActions()
 
         if (nextState) {
             this.requestElementCoordinates(nextState)

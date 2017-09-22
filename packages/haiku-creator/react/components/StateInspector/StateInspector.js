@@ -101,6 +101,8 @@ class StateInspector extends React.Component {
         return maybeCb()
       }
     })
+
+    this.props.tourChannel.next()
   }
 
   deleteStateValue (stateName, maybeCb) {
@@ -134,7 +136,7 @@ class StateInspector extends React.Component {
       <div style={STYLES.container}>
         <div style={STYLES.sectionHeader}>
           State Inspector
-          <button style={STYLES.button}
+          <button id='add-state-button' style={STYLES.button}
             onClick={() => this.setState({addingNew: true})}>
             +
           </button>

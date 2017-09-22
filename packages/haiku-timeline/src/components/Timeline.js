@@ -292,6 +292,7 @@ class Timeline extends React.Component {
     // This improves performance and avoids unnecessary updates to the over views
     this.debouncedKeyframeMoveAction = lodash.throttle(this.debouncedKeyframeMoveAction.bind(this), 250)
     this.updateState = this.updateState.bind(this)
+    this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
     window.timeline = this
   }
 
@@ -353,6 +354,8 @@ class Timeline extends React.Component {
       tuple[0].removeListener(tuple[1], tuple[2])
     })
     this.state.didMount = false
+
+    this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
 
     // Scroll.Events.scrollEvent.remove('begin');
     // Scroll.Events.scrollEvent.remove('end');
@@ -422,6 +425,16 @@ class Timeline extends React.Component {
     // component:mounted fires when this finishes without error
     this._component.mountApplication()
 
+    this._component.on('envoy:tourClientReady', (client) => {
+      client.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
+
+      setTimeout(() => {
+        client.next()
+      })
+
+      this.tourClient = client
+    })
+
     document.addEventListener('paste', (pasteEvent) => {
       console.info('[timeline] paste heard')
       let tagname = pasteEvent.target.tagName.toLowerCase()
@@ -461,6 +474,7 @@ class Timeline extends React.Component {
       this.executeBytecodeActionSplitSegment(componentId, timelineName, elementName, propertyName, finalMs)
     })
     this.addEmitterListener(this.ctxmenu, 'joinKeyframes', (componentId, timelineName, elementName, propertyName, startMs, endMs, curveName) => {
+      this.tourClient.next()
       this.executeBytecodeActionJoinKeyframes(componentId, timelineName, elementName, propertyName, startMs, endMs, curveName)
     })
     this.addEmitterListener(this.ctxmenu, 'deleteKeyframe', (componentId, timelineName, propertyName, startMs) => {
@@ -497,6 +511,20 @@ class Timeline extends React.Component {
         this.tryToLeftAlignTickerInVisibleFrameRange(frameInfo)
       }
     })
+  }
+
+  handleRequestElementCoordinates ({ selector, webview }) {
+    if (webview !== 'timeline') { return }
+
+    try {
+      // TODO: find if there is a better solution to this scape hatch
+      let element = document.querySelector(selector)
+      let { top, left } = element.getBoundingClientRect()
+
+      this.tourClient.receiveElementCoordinates('timeline', { top, left })
+    } catch (error) {
+      console.error(`Error fetching ${selector} in webview ${webview}`)
+    }
   }
 
   handleKeyDown (nativeEvent) {
@@ -840,6 +868,10 @@ class Timeline extends React.Component {
     })
     // No need to 'expressionToRO' here because if we got an expression, that would have already been provided in its serialized __function form
     this.props.websocket.action('createKeyframe', [this.props.folder, [componentId], timelineName, elementName, propertyName, startMs, startValue, maybeCurve, endMs, endValue], () => {})
+
+    if (elementName === 'svg' && propertyName === 'opacity') {
+      this.tourClient.next()
+    }
   }
 
   executeBytecodeActionSplitSegment (componentId, timelineName, elementName, propertyName, startMs) {
