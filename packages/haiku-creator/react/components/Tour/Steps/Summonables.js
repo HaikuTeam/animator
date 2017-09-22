@@ -3,7 +3,7 @@ import React from 'react'
 export default function ({ styles }) {
   return (
     <div>
-      <video height="192" width="342" autoPlay loop muted playsInline preload='true'>
+      <video height='192' width='342' autoPlay loop muted playsInline preload='true'>
         <source src='https://giant.gfycat.com/FixedReadyArgentinehornedfrog.mp4' type='video/mp4' />
       </video>
       <h2 style={styles.heading}>Summonables</h2>

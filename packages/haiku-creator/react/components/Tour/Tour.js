@@ -25,7 +25,7 @@ class Tour extends React.Component {
       this.tourChannel.on('tour:requestShowStep', this.showStep)
       this.tourChannel.on('tour:requestFinish', this.hide)
 
-      if (this.props.startTourOnMount) {
+      if (this.props.startTourOnMount && this.hasNecessaryProject()) {
         this.tourChannel.start()
         mixpanel.haikuTrack('tour', {state: 'started'})
       }
@@ -35,6 +35,16 @@ class Tour extends React.Component {
   componentWillUnmount () {
     this.tourChannel.off('tour:requestShowStep', this.showStep)
     this.tourChannel.off('tour:requestFinish', this.hide)
+  }
+
+  hasNecessaryProject () {
+    if (!this.props.projectsList) return false
+    if (this.props.projectsList.length < 1) return false
+    const projectIdx = this.props.projectsList.findIndex((project) => {
+      // Hardcoded - Name of the project that will be used for the tutorial
+      return project.projectName === 'CheckTutorial'
+    })
+    return projectIdx !== -1
   }
 
   next () {

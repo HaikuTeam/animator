@@ -65,7 +65,8 @@ export default class Creator extends React.Component {
       notices: [],
       softwareVersion: require('./../package.json').version,
       didPlumbingNoticeCrash: false,
-      activeNav: 'library'
+      activeNav: 'library',
+      projectsList: []
     }
 
     const win = remote.getCurrentWindow()
@@ -403,6 +404,7 @@ export default class Creator extends React.Component {
   loadProjects (cb) {
     return this.props.websocket.request({ method: 'listProjects', params: [] }, (error, projectsList) => {
       if (error) return cb(error)
+      this.setState({ projectsList })
       return cb(null, projectsList)
     })
   }
@@ -574,7 +576,7 @@ export default class Creator extends React.Component {
             notices={this.state.notices}
             envoy={this.envoy}
             {...this.props} />
-          <Tour envoy={this.envoy} startTourOnMount />
+          <Tour projectsList={this.state.projectsList} envoy={this.envoy} startTourOnMount />
         </div>
       )
     }
@@ -582,7 +584,7 @@ export default class Creator extends React.Component {
     if (!this.state.projectFolder) {
       return (
         <div>
-          <Tour envoy={this.envoy} />
+          <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
           <ProjectBrowser
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
@@ -617,7 +619,7 @@ export default class Creator extends React.Component {
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        <Tour envoy={this.envoy} />
+        <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
           <div className='layout-box' style={{overflow: 'visible'}}>
             <ReactCSSTransitionGroup
