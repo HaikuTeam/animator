@@ -122,14 +122,20 @@ function buildStuff () {
   cp.execSync(`git clone git@github.com:HaikuTeam/plumbing.git`, { cwd: DISTRO_SOURCE, stdio: 'inherit' })
   cp.execSync(`rm yarn.lock || true`, { cwd: PLUMBING_SOURCE, stdio: 'inherit' })
   cp.execSync(`rm package-lock.json || true`, { cwd: PLUMBING_SOURCE, stdio: 'inherit' })
-  cp.execSync(`yarn install --production --ignore-engines --non-interactive --network-concurrency 1`, { cwd: PLUMBING_SOURCE, stdio: 'inherit' })
+  cp.execSync(`yarn install --production --ignore-engines --non-interactive --mutex file:/tmp/.yarn-mutex`, { cwd: PLUMBING_SOURCE, stdio: 'inherit' })
+  cp.execSync(`./node_modules/.bin/babel distro-source/plumbing/node_modules/haiku-creator-electron/dom.js --out-file distro-source/plumbing/node_modules/haiku-creator-electron/dom.js --source-maps inline`, { cwd: __dirname, stdio: 'inherit' })
+  cp.execSync(`./node_modules/.bin/babel distro-source/plumbing/node_modules/haiku-creator-electron/TopMenu.js --out-file distro-source/plumbing/node_modules/haiku-creator-electron/TopMenu.js --source-maps inline`, { cwd: __dirname, stdio: 'inherit' })
+  cp.execSync(`./node_modules/.bin/babel distro-source/plumbing/node_modules/haiku-creator-electron/utils/ --out-dir distro-source/plumbing/node_modules/haiku-creator-electron/utils/ --source-maps inline`, { cwd: __dirname, stdio: 'inherit' })
+  cp.execSync(`./node_modules/.bin/babel distro-source/plumbing/node_modules/haiku-creator-electron/react/ --out-dir distro-source/plumbing/node_modules/haiku-creator-electron/react/ --source-maps inline`, { cwd: __dirname, stdio: 'inherit' })
+  cp.execSync(`./node_modules/.bin/babel distro-source/plumbing/node_modules/haiku-glass/react/ --out-dir distro-source/plumbing/node_modules/haiku-glass/react/ --source-maps inline`, { cwd: __dirname, stdio: 'inherit' })
+  cp.execSync(`./node_modules/.bin/babel distro-source/plumbing/node_modules/haiku-timeline/src/ --out-dir distro-source/plumbing/node_modules/haiku-timeline/src/ --source-maps inline`, { cwd: __dirname, stdio: 'inherit' })
+  // // uglifyDistroSourceLibs()
   cp.execSync(`mkdir -p ${JSON.stringify(path.join(os.homedir(), '.haiku-distro-archives'))}`, { cwd: __dirname, stdio: 'inherit' })
   cp.execSync(`cd ${JSON.stringify(DISTRO_SOURCE)} && tar czf ${JSON.stringify(path.join(os.homedir(), '.haiku-distro-archives', Date.now() + '.tar.gz'))} . && cd ${JSON.stringify(__dirname)}`, { stdio: 'inherit' })
-  // cp.execSync(`./node_modules/.bin/electron-rebuild --version 1.7.0 --module-dir ${JSON.stringify(PLUMBING_SOURCE)}`, { cwd: __dirname, stdio: 'inherit' })
-  // uglifyDistroSourceLibs()
-  // process.env.CSC_LINK=`file://${os.homedir()}/Certificates/DeveloperIdApplicationMatthewB73M94S23A.p12`
-  // process.env.CSC_KEY_PASSWORD=fse.readFileSync(path.join(os.homedir(), '/Certificates/DeveloperIdApplicationMatthewB73M94S23A.p12.password')).toString().trim()
-  // cp.execSync(`./node_modules/.bin/build --mac`, { cwd: __dirname })
+  // // cp.execSync(`./node_modules/.bin/electron-rebuild --version 1.7.0 --module-dir ${JSON.stringify(PLUMBING_SOURCE)}`, { cwd: __dirname, stdio: 'inherit' })
+  process.env.CSC_LINK=`file://${os.homedir()}/Secrets/DeveloperIdApplicationMatthewB73M94S23A.p12`
+  process.env.CSC_KEY_PASSWORD=fse.readFileSync(path.join(os.homedir(), '/Secrets/DeveloperIdApplicationMatthewB73M94S23A.p12.password')).toString().trim()
+  cp.execSync(`./node_modules/.bin/build --mac`, { cwd: __dirname, stdio: 'inherit' })
   // cp.execSync('rm -rf /Applications/Haiku.app', { cwd: __dirname, stdio: 'inherit' })
   // cp.execSync(`cp -R ${JSON.stringify(path.join(__dirname, '/dist/mac/Haiku.app'))} /Applications`, { cwd: __dirname, stdio: 'inherit' })
   // require('./bins/cli-cloud-installer.js')
@@ -216,6 +222,7 @@ function uglifyDistroSourceLibs (cb) {
 }
 
 function runit () {
+  process.env.NODE_ENV = (inputs.environment === 'production') ? 'production' : 'development'
   writeHackyDynamicConfig()
   // prependReleaseToReleaseLog()
   buildStuff()
