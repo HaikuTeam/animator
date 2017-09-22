@@ -1161,7 +1161,8 @@ Plumbing.prototype.createControlSocket = function createControlSocket(socketInfo
   // const httpServer = http.createServer()
   // httpServer.listen(socketInfo.port)
 
-  websocketServer.on('connection', function (websocket) {
+  websocketServer.on('connection', function (websocket, req) {
+    websocket.upgradeReq = req;
     var params = getWsParams(websocket);
 
     if (!params.type) params.type = 'default';
