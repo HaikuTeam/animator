@@ -2762,12 +2762,6 @@ expand-tilde@^2.0.2:
   dependencies:
     homedir-polyfill "^1.0.1"
 
-express-ws@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/express-ws/-/express-ws-2.0.0.tgz#96d13fa41c8de8fa5dcbfa2dacace6f594272888"
-  dependencies:
-    ws "^1.0.0"
-
 express@4.14.0:
   version "4.14.0"
   resolved "https://registry.yarnpkg.com/express/-/express-4.14.0.tgz#c1ee3f42cdc891fb3dc650a8922d51ec847d0d66"
@@ -3818,9 +3812,8 @@ haiku-glass@HaikuTeam/glass.git#69d3784b22092ba3a6921543efff66672715e9d8:
     react-select-plus "^1.0.0-rc.5"
     strip-indent "^2.0.0"
 
-haiku-sdk-client@HaikuTeam/sdk-client.git, haiku-sdk-client@HaikuTeam/sdk-client.git#6172675978a73c7d3f08a278be2249b15e4f8ed2:
+haiku-sdk-client@HaikuTeam/sdk-client.git:
   version "2.3.5"
-  uid "6172675978a73c7d3f08a278be2249b15e4f8ed2"
   resolved "git+ssh://git@github.com/HaikuTeam/sdk-client.git#6172675978a73c7d3f08a278be2249b15e4f8ed2"
   dependencies:
     lodash "^4.17.4"
@@ -3863,9 +3856,8 @@ haiku-sdk-creator@HaikuTeam/sdk-creator.git#e347981db35b4869be675e8deaf6c1252262
     wrtc "0.0.62"
     ws "^3.0.0"
 
-haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git, haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git#b360c94e69f00884a64529d5330bf004a098f100:
+haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git:
   version "2.3.5"
-  uid b360c94e69f00884a64529d5330bf004a098f100
   resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#b360c94e69f00884a64529d5330bf004a098f100"
   dependencies:
     lodash "^4.17.4"
@@ -6573,7 +6565,7 @@ peer@^0.2.8:
     optimist "~0.6.1"
     ws "~0.4.25"
 
-peerjs@0.3.14, peerjs@^0.3.14:
+peerjs@^0.3.14:
   version "0.3.14"
   resolved "https://registry.yarnpkg.com/peerjs/-/peerjs-0.3.14.tgz#5f934eb09a04ce237a47d52f4766c9373da2511e"
   dependencies:
@@ -8923,21 +8915,14 @@ wrtc@0.0.62:
     node-pre-gyp "0.6.x"
     tar-fs "^1.13.0"
 
-ws@1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-1.1.1.tgz#082ddb6c641e85d4bb451f03d52f06eabdb1f018"
-  dependencies:
-    options ">=0.0.5"
-    ultron "1.0.x"
-
-ws@^1.0.0, ws@^1.1.1:
+ws@^1.1.1:
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/ws/-/ws-1.1.4.tgz#57f40d036832e5f5055662a397c4de76ed66bf61"
   dependencies:
     options ">=0.0.5"
     ultron "1.0.x"
 
-ws@^3.0.0:
+ws@^3.0.0, ws@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/ws/-/ws-3.2.0.tgz#d5d3d6b11aff71e73f808f40cc69d52bb6d4a185"
   dependencies:
