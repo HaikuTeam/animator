@@ -1,6 +1,6 @@
 var fse = require('fs-extra')
 var path = require('path')
-var getRemoteSha = require('./getRemoteSha')
+// var getRemoteSha = require('./getRemoteSha')
 var ROOT = path.join(__dirname, '..', '..')
 
 function req (mod) {
@@ -41,7 +41,7 @@ module.exports = function allPackages () {
     var pkg = req(path.join(abspath, 'package.json')) || {}
     var version = pkg.version
     var remote = remotes[name]
-    var sha = getRemoteSha(remote)
+    // var sha = getRemoteSha(remote)
     return {
       name: name,
       abspath: abspath,
@@ -50,7 +50,7 @@ module.exports = function allPackages () {
       pkg: pkg,
       pkgname: pkg.name,
       version: version,
-      sha: sha,
+      // sha: sha,
       remote: remote
     }
   })
