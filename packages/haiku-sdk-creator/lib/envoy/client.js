@@ -59,12 +59,6 @@ class EnvoyClient {
             handlers.push(handler);
             this.eventHandlers.set(eventName, handlers);
         };
-        subject["off"] = (eventName, handler) => {
-            const handlers = this.eventHandlers.get(eventName) || [];
-            const idx = handlers.indexOf(handler);
-            handlers.splice(idx, 1);
-            this.eventHandlers.set(eventName, handlers);
-        };
         return subject;
     }
     ready() {
