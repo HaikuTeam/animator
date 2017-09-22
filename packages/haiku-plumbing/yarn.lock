@@ -3820,9 +3820,18 @@ haiku-sdk-client@HaikuTeam/sdk-client.git:
     mkdirp "^0.5.1"
     request "^2.79.0"
 
-haiku-sdk-creator@HaikuTeam/sdk-creator.git, haiku-sdk-creator@HaikuTeam/sdk-creator.git#bf1fbfab7009c3ec91d7cce0132d113c048c3b2a:
+haiku-sdk-creator@HaikuTeam/sdk-creator.git:
   version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#bf1fbfab7009c3ec91d7cce0132d113c048c3b2a"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#9785737f7f8a7c57a9f0619dedc4619bfd7a178d"
+  dependencies:
+    bluebird "^3.5.0"
+    haiku-serialization HaikuTeam/serialization
+    npm "^5.3.0"
+    ws "^3.0.0"
+
+haiku-sdk-creator@HaikuTeam/sdk-creator.git#b4c8fceb0e25f5d9eef48cadeb8c148d906f9fd7:
+  version "2.3.4"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#b4c8fceb0e25f5d9eef48cadeb8c148d906f9fd7"
   dependencies:
     bluebird "^3.5.0"
     npm "^5.3.0"
@@ -3832,9 +3841,9 @@ haiku-sdk-creator@HaikuTeam/sdk-creator.git, haiku-sdk-creator@HaikuTeam/sdk-cre
     wrtc "0.0.62"
     ws "^3.0.0"
 
-haiku-sdk-creator@HaikuTeam/sdk-creator.git#b4c8fceb0e25f5d9eef48cadeb8c148d906f9fd7:
-  version "2.3.4"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#b4c8fceb0e25f5d9eef48cadeb8c148d906f9fd7"
+haiku-sdk-creator@HaikuTeam/sdk-creator.git#bf1fbfab7009c3ec91d7cce0132d113c048c3b2a:
+  version "2.3.5"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#bf1fbfab7009c3ec91d7cce0132d113c048c3b2a"
   dependencies:
     bluebird "^3.5.0"
     npm "^5.3.0"
@@ -3863,6 +3872,49 @@ haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git:
     lodash "^4.17.4"
     mkdirp "^0.5.1"
     request "^2.79.0"
+
+haiku-serialization@HaikuTeam/serialization:
+  version "2.3.5"
+  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#259a25bcb39581841a61c37ac4b22575102477be"
+  dependencies:
+    "@haiku/player" HaikuTeam/player.git
+    async "2.1.5"
+    babel-core "6.23.1"
+    babel-generator "6.23.0"
+    babel-plugin-syntax-flow "6.18.0"
+    babel-plugin-syntax-jsx "6.18.0"
+    babel-plugin-transform-flow-strip-types "6.22.0"
+    babel-plugin-transform-react-display-name "6.23.0"
+    babel-plugin-transform-react-jsx "6.23.0"
+    babel-preset-es2015 "6.22.0"
+    babel-traverse "6.23.1"
+    babylon "6.15.0"
+    bluebird "^3.5.0"
+    colors "1.1.2"
+    crypto-js "3.1.9-1"
+    cst "^0.4.10"
+    diff "3.2.0"
+    es-strip-semicolons "1.0.9"
+    esformatter "0.10.0"
+    esformatter-jsx "7.4.1"
+    estree-walker "^0.5.0"
+    fs-extra "2.0.0"
+    fuzzy-string-matching "^1.0.2"
+    haiku-bytecode HaikuTeam/bytecode.git
+    haiku-fs-extra HaikuTeam/node-fs-extra.git#master-haiku
+    haiku-sdk-creator HaikuTeam/sdk-creator.git
+    lodash "4.17.4"
+    lodash.assign "4.2.0"
+    lodash.debounce "4.0.8"
+    lodash.find "4.6.0"
+    lodash.merge "4.6.0"
+    node-hook "^0.4.0"
+    pascalcase "0.1.1"
+    prettier "^0.22.0"
+    pretty "^2.0.0"
+    raf "^3.3.2"
+    standard "8.6.0"
+    winston "^2.3.1"
 
 haiku-serialization@HaikuTeam/serialization.git:
   version "2.3.5"
@@ -4048,14 +4100,14 @@ haiku-timeline@HaikuTeam/timeline.git#d83f6fb77d9ac7817e5e6561cab052ffae9b9c43:
 
 haiku-websockets@HaikuTeam/websockets.git:
   version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/websockets.git#a1ee8961e3d234c5d167ba910e2ed0f3d54917ed"
+  resolved "git+ssh://git@github.com/HaikuTeam/websockets.git#0927d4710c29f8a751b09f6a24f0df140535ef39"
   dependencies:
     lodash.clone "^4.5.0"
     lodash.filter "^4.6.0"
     lodash.find "^4.6.0"
     lodash.foreach "^4.5.0"
     qs "^6.3.0"
-    ws "^1.1.1"
+    ws "^3.2.0"
 
 handlebars@4.0.6:
   version "4.0.6"
