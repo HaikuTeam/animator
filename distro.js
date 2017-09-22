@@ -21,6 +21,8 @@ if (!inputs.version) {
   inputs.version = fse.readJsonSync(path.join(__dirname, 'package.json')).version
 }
 
+inputs.branch = 'master'
+
 inquirer.prompt([
   {
     type: 'input',
@@ -145,52 +147,52 @@ function addInfoToMostRecentReleaseLogEntry (info) {
 
 function runit () {
   writeHackyDynamicConfig()
-  prependReleaseToReleaseLog()
+  // prependReleaseToReleaseLog()
   buildStuff()
 
-  try {
-    if (inputs.upload) {
-      shout(`Distro upload started (${getTupleString()})`, () => {})
+  // try {
+  //   if (inputs.upload) {
+  //     shout(`Distro upload started (${getTupleString()})`, () => {})
 
-      // Reload the config with updated values to read from
-      for (var key in require.cache) delete require.cache[key]
-      require('./config.js')
+  //     // Reload the config with updated values to read from
+  //     for (var key in require.cache) delete require.cache[key]
+  //     require('./config.js')
 
-      var environment = process.env.HAIKU_RELEASE_ENVIRONMENT
-      var platform = process.env.HAIKU_RELEASE_PLATFORM
-      var branch = process.env.HAIKU_RELEASE_BRANCH
-      var version = process.env.HAIKU_RELEASE_VERSION
-      var region = deploy.deployer[environment].region
-      var objkey = deploy.deployer[environment].key
-      var secret = deploy.deployer[environment].secret
-      var bucket = deploy.deployer[environment].bucket
+  //     var environment = process.env.HAIKU_RELEASE_ENVIRONMENT
+  //     var platform = process.env.HAIKU_RELEASE_PLATFORM
+  //     var branch = process.env.HAIKU_RELEASE_BRANCH
+  //     var version = process.env.HAIKU_RELEASE_VERSION
+  //     var region = deploy.deployer[environment].region
+  //     var objkey = deploy.deployer[environment].key
+  //     var secret = deploy.deployer[environment].secret
+  //     var bucket = deploy.deployer[environment].bucket
 
-      return uploadRelease(region, objkey, secret, bucket, platform, environment, branch, version, (err, { environment, platform, branch, countdown, version }) => {
-        if (err) throw err
-        var url = `https://s3.amazonaws.com/${bucket}/releases/${environment}/${branch}/${platform}/${countdown}/${version}/Haiku-${version}-${platform}.zip`
+  //     return uploadRelease(region, objkey, secret, bucket, platform, environment, branch, version, (err, { environment, platform, branch, countdown, version }) => {
+  //       if (err) throw err
+  //       var url = `https://s3.amazonaws.com/${bucket}/releases/${environment}/${branch}/${platform}/${countdown}/${version}/Haiku-${version}-${platform}.zip`
 
-        shout(`Distro upload finished (${getTupleString()}). Download: ${url}`, () => {})
+  //       shout(`Distro upload finished (${getTupleString()}). Download: ${url}`, () => {})
 
-        console.log('success! built and uploaded release')
-        addInfoToMostRecentReleaseLogEntry({
-          finished: moment().format('YYYYMMDDHHmmss'),
-          uploaded: true,
-          success: true
-        })
-      })
-    }
+  //       console.log('success! built and uploaded release')
+  //       addInfoToMostRecentReleaseLogEntry({
+  //         finished: moment().format('YYYYMMDDHHmmss'),
+  //         uploaded: true,
+  //         success: true
+  //       })
+  //     })
+  //   }
 
-    console.log('success! built release (but did not upload)')
-    addInfoToMostRecentReleaseLogEntry({
-      finished: moment().format('YYYYMMDDHHmmss'),
-      uploaded: false,
-      success: true
-    })
-  } catch (exception) {
-    console.log(exception)
-    addInfoToMostRecentReleaseLogEntry({
-      success: false,
-      error: exception.message
-    })
-  }
+  //   console.log('success! built release (but did not upload)')
+  //   addInfoToMostRecentReleaseLogEntry({
+  //     finished: moment().format('YYYYMMDDHHmmss'),
+  //     uploaded: false,
+  //     success: true
+  //   })
+  // } catch (exception) {
+  //   console.log(exception)
+  //   addInfoToMostRecentReleaseLogEntry({
+  //     success: false,
+  //     error: exception.message
+  //   })
+  // }
 }
