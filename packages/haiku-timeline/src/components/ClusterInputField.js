@@ -4,7 +4,6 @@ import getPropertyValueDescriptor from './helpers/getPropertyValueDescriptor'
 
 export default class ClusterInputField extends React.Component {
   shouldComponentUpdate (nextProps) {
-    if (nextProps.isPlayerPlaying) return false
     return true
   }
 

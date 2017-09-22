@@ -7,7 +7,6 @@ import { getItemPropertyId, isItemEqual } from './helpers/ItemHelpers'
 
 export default class PropertyInputField extends React.Component {
   shouldComponentUpdate (nextProps) {
-    if (nextProps.isPlayerPlaying) return false
     return true
   }
 
