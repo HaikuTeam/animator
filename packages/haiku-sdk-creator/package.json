@@ -19,17 +19,20 @@
   "license": "UNLICENSED",
   "dependencies": {
     "bluebird": "^3.5.0",
-    "haiku-serialization": "HaikuTeam/serialization",
     "npm": "^5.3.0",
+    "peer": "^0.2.8",
+    "peerjs": "^0.3.14",
+    "simple-peer": "^8.1.1",
+    "wrtc": "0.0.62",
     "ws": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^8.0.17",
     "@types/ws": "^3.0.2",
     "leaked-handles": "^5.2.0",
-    "tap-spec": "^4.1.1",
     "tape": "^4.7.0",
     "tslint": "^5.7.0",
+    "tap-spec": "^4.1.1",
     "typescript": "^2.4.2"
   }
 }

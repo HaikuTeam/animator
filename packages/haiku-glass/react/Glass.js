@@ -91,8 +91,6 @@ export class Glass extends React.Component {
     this._haikuRenderer = new HaikuDOMRenderer()
     this._haikuContext = new HaikuContext(null, this._haikuRenderer, {}, { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } }, { options: { cache: {}, seed: 'abcde' } })
 
-    this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
-
     this.resetContainerDimensions()
 
     window.glass = this
@@ -102,25 +100,6 @@ export class Glass extends React.Component {
       timelineChannel.on('didPause', this.handleTimelineDidPause.bind(this))
       timelineChannel.on('didSeek', this.handleTimelineDidSeek.bind(this))
     })
-
-    this._component.on('envoy:tourClientReady', (client) => {
-      this.tourClient = client
-      this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
-    })
-  }
-
-  handleRequestElementCoordinates ({ selector, webview }) {
-    if (webview !== 'glass') { return }
-
-    try {
-      // TODO: find if there is a better solution to this scape hatch
-      let element = document.querySelector(selector)
-      let { top, left } = element.getBoundingClientRect()
-
-      this.tourClient.receiveElementCoordinates('glass', { top, left })
-    } catch (error) {
-      console.error(`Error fetching ${selector} in webview ${webview}`)
-    }
   }
 
   handleTimelineDidPlay () {
@@ -403,10 +382,6 @@ export class Glass extends React.Component {
 
   componentDidUpdate () {
     this.resetContainerDimensions()
-  }
-
-  componentWillUnmount () {
-    this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
   }
 
   handleWindowResize () {
