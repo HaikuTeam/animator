@@ -24,17 +24,19 @@ class Tour extends React.Component {
       this.tourChannel = tourChannel
       this.tourChannel.on('tour:requestShowStep', this.showStep)
       this.tourChannel.on('tour:requestFinish', this.hide)
-
-      if (this.props.startTourOnMount && this.hasNecessaryProject()) {
-        this.tourChannel.start()
-        mixpanel.haikuTrack('tour', {state: 'started'})
-      }
     })
   }
 
   componentWillUnmount () {
     this.tourChannel.off('tour:requestShowStep', this.showStep)
     this.tourChannel.off('tour:requestFinish', this.hide)
+  }
+
+  componentWillReceiveProps () {
+    if (this.props.startTourOnMount && this.hasNecessaryProject()) {
+      this.tourChannel.start()
+      mixpanel.haikuTrack('tour', {state: 'started'})
+    }
   }
 
   hasNecessaryProject () {
