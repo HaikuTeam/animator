@@ -3,7 +3,7 @@ var path = require('path')
 var async = require('async')
 var initializeAWSService = require('./initializeAWSService')
 var uploadObjectToS3 = require('./uploadObjectToS3')
-var baseDir = path.join(__dirname, '..')
+var baseDir = path.join(__dirname, '..', '..')
 
 function uploadRelease (region, key, secret, bucket, platform, environment, branch, version, cb) {
   var s3 = initializeAWSService('S3', region, key, secret)

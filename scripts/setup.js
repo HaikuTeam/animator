@@ -1,8 +1,8 @@
-var lodash = require('lodash')
-var cp = require('child_process')
-var log = require('./helpers/log')
+// var lodash = require('lodash')
+// var cp = require('child_process')
+// var log = require('./helpers/log')
+// var allPackages = require('./helpers/allPackages')()
 var runScript = require('./helpers/runScript')
-var allPackages = require('./helpers/allPackages')()
 
 // lodash.forEach(allPackages, function (pack) {
 //   log.log('cleaning out npm/yarn stuff for ' + pack.name)

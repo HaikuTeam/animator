@@ -4,3 +4,4 @@ node_modules
 dist/*
 out/*
 config.js
+distro-source/

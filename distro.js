@@ -4,14 +4,22 @@ var fse = require('fs-extra')
 var path = require('path')
 var lodash = require('lodash')
 var hb = require('handlebars')
+var os = require('os')
 var slack = require('slack')
 var moment = require('moment')
 var inquirer = require('inquirer')
+// var Uglify2 = require('uglify-js')
+// var glob = require('glob-all')
+// var async = require('async')
+// var path = require('path')
+// var fs = require('fs-extra')
 var deploy = require('./deploy')
-var uploadRelease = require('./distro-scripts/uploadRelease')
+var uploadRelease = require('./scripts/helpers/uploadRelease')
 
 var ENVS = { test: true, development: true, staging: true, production: true }
 var RELEASE_LOG = fse.readJsonSync(path.join(__dirname, 'releases.json'))
+var DISTRO_SOURCE = path.join(__dirname, 'distro-source')
+var PLUMBING_SOURCE = path.join(DISTRO_SOURCE, 'plumbing')
 
 var inputs = lodash.assign({}, argv)
 delete inputs.$0
@@ -109,13 +117,22 @@ function writeHackyDynamicConfig () {
 }
 
 function buildStuff () {
-  cp.execSync(path.join(__dirname, 'distro-scripts', 'bash', 'electron-rebuild.sh'), { stdio: 'inherit' })
-  cp.execSync(path.join(__dirname, 'distro-scripts', 'bash', 'compile.sh'), { stdio: 'inherit' })
-  if (inputs.uglify) {
-    cp.execSync(path.join(__dirname, 'distro-scripts', 'node', 'uglify.js'), { stdio: 'inherit', cwd: __dirname })
-  }
-  cp.execSync(path.join(__dirname, 'distro-scripts', 'bash', 'build.sh'), { stdio: 'inherit' })
-  cp.execSync(path.join(__dirname, 'local-install.sh'), { stdio: 'inherit' })
+  cp.execSync(`rm -rf ${JSON.stringify(DISTRO_SOURCE)}`, { cwd: __dirname, stdio: 'inherit' })
+  cp.execSync(`mkdir -p ${JSON.stringify(DISTRO_SOURCE)}`, { cwd: __dirname, stdio: 'inherit' })
+  cp.execSync(`git clone git@github.com:HaikuTeam/plumbing.git`, { cwd: DISTRO_SOURCE, stdio: 'inherit' })
+  cp.execSync(`rm yarn.lock || true`, { cwd: PLUMBING_SOURCE, stdio: 'inherit' })
+  cp.execSync(`rm package-lock.json || true`, { cwd: PLUMBING_SOURCE, stdio: 'inherit' })
+  cp.execSync(`yarn install --production --ignore-engines --non-interactive --network-concurrency 1`, { cwd: PLUMBING_SOURCE, stdio: 'inherit' })
+  cp.execSync(`mkdir -p ${JSON.stringify(path.join(os.homedir(), '.haiku-distro-archives'))}`, { cwd: __dirname, stdio: 'inherit' })
+  cp.execSync(`cd ${JSON.stringify(DISTRO_SOURCE)} && tar czf ${JSON.stringify(path.join(os.homedir(), '.haiku-distro-archives', Date.now() + '.tar.gz'))} . && cd ${JSON.stringify(__dirname)}`, { stdio: 'inherit' })
+  // cp.execSync(`./node_modules/.bin/electron-rebuild --version 1.7.0 --module-dir ${JSON.stringify(PLUMBING_SOURCE)}`, { cwd: __dirname, stdio: 'inherit' })
+  // uglifyDistroSourceLibs()
+  // process.env.CSC_LINK=`file://${os.homedir()}/Certificates/DeveloperIdApplicationMatthewB73M94S23A.p12`
+  // process.env.CSC_KEY_PASSWORD=fse.readFileSync(path.join(os.homedir(), '/Certificates/DeveloperIdApplicationMatthewB73M94S23A.p12.password')).toString().trim()
+  // cp.execSync(`./node_modules/.bin/build --mac`, { cwd: __dirname })
+  // cp.execSync('rm -rf /Applications/Haiku.app', { cwd: __dirname, stdio: 'inherit' })
+  // cp.execSync(`cp -R ${JSON.stringify(path.join(__dirname, '/dist/mac/Haiku.app'))} /Applications`, { cwd: __dirname, stdio: 'inherit' })
+  // require('./bins/cli-cloud-installer.js')
 }
 
 function getTupleString () {
@@ -143,6 +160,59 @@ function prependReleaseToReleaseLog () {
 function addInfoToMostRecentReleaseLogEntry (info) {
   lodash.assign(RELEASE_LOG[0], info)
   fse.writeJsonSync(path.join(__dirname, 'releases.json'), RELEASE_LOG, { spaces: 2 })
+}
+
+function uglifyDistroSourceLibs (cb) {
+  // glob([
+  //   'distro-source/plumbing/dev/*.js',
+  //   'distro-source/plumbing/lib/**/*.js',
+  //   'distro-source/plumbing/src/**/*.js',
+  //   'distro-source/plumbing/test/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-bytecode/src/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-bytecode/test/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-cli/src/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-cli/lib/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-creator-electron/public/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-creator-electron/react/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-creator-electron/utils/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-glass/public/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-glass/react/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-glass/test/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-sdk/lib/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-sdk/src/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-sdk-client/lib/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-sdk-client/src/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-sdk-inkstone/lib/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-sdk-inkstone/src/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-serialization/src/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-serialization/test/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-state-object/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-state-object/lib/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-timeline/public/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-timeline/src/**/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-websockets/lib/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-websockets/src/*.js',
+  //   'distro-source/plumbing/node_modules/haiku-websockets/test/*.js'
+  // ], function (err, files) {
+  //   return async.eachSeries(files, function (file, next) {
+  //     console.log('uglifying', file, '...')
+  //     var sourcepath = path.join(process.cwd(), file)
+  //     var destpath = path.join(process.cwd(), file)
+  //     try {
+  //       var result = Uglify2.minify(sourcepath)
+  //       var code = result.code
+  //       return fs.outputFile(destpath, code, function (err) {
+  //         if (err) return next(err)
+  //         return next()
+  //       })
+  //     } catch (exception) {
+  //       console.log('cannot uglify (' + exception.message + ')')
+  //       return next()
+  //     }
+  //   }, function () {
+  //     console.log('done uglifying')
+  //   })
+  // })
 }
 
 function runit () {
