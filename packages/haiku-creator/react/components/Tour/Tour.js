@@ -1,5 +1,6 @@
 import React from 'react'
 import Tooltip from '../Tooltip'
+import { shell } from 'electron'
 import { TOUR_STYLES } from '../../styles/tourShared'
 import * as steps from './Steps'
 import mixpanel from '../../../utils/Mixpanel'
@@ -75,6 +76,11 @@ class Tour extends React.Component {
     this.setState(state)
   }
 
+  openLink (e) {
+    e.preventDefault
+    shell.openExternal(e.target.href)
+  }
+
   render () {
     if (!this.state.component) {
       return null
@@ -103,7 +109,7 @@ class Tour extends React.Component {
         stepData={stepData}
         waitUserAction={waitUserAction}
       >
-        <Step styles={TOUR_STYLES} next={this.next} finish={this.finish} />
+        <Step styles={TOUR_STYLES} next={this.next} finish={this.finish} openLink={openLink} />
       </Tooltip>
     )
   }

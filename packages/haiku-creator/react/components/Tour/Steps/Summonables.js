@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function ({ styles }) {
+export default function ({ styles, openLink }) {
   return (
     <div>
       <video height='192' width='342' autoPlay loop muted playsInline preload='true'>
@@ -16,7 +16,7 @@ export default function ({ styles }) {
 
         <p>
           These are a powerful way to animate or respond to user interactions,
-          while writing almost no code. You can read more about Summonables <a href='https://docs.haiku.ai/using-haiku/summonables.html' style={styles.link}> in our docs.</a>
+          while writing almost no code. You can read more about Summonables <a onClick={openLink} href='https://docs.haiku.ai/using-haiku/summonables.html' style={styles.link}> in our docs.</a>
         </p>
       </div>
     </div>

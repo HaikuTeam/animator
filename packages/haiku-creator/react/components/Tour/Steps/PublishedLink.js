@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function ({ styles }) {
+export default function ({ styles, openLink }) {
   return (
     <div style={{width: 280}}>
       <video height='140' width='274' autoPlay loop muted playsInline preload='true'>
@@ -15,7 +15,7 @@ export default function ({ styles }) {
           That page includes not only your latest work, but instructions and code snippets for using your Haiku in any web codebase.
         </p>
         <p>
-          Read more in the <a href='https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html' style={styles.link}> docs </a> about embedding Haiku.
+          Read more in the <a onClick={openLink} href='https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html' style={styles.link}> docs </a> about embedding Haiku.
         </p>
       </div>
     </div>
