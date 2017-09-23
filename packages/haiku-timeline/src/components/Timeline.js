@@ -494,6 +494,7 @@ class Timeline extends React.Component {
       // has arrived at the maximum acceptible frame in the timeline.
       if (currentFrame > frameInfo.friMax) {
         this._component.getCurrentTimeline().seekAndPause(frameInfo.friMax)
+        this.setState({isPlayerPlaying: false})
       }
       // If our current frame has gone outside of the interval that defines the timeline viewport, then
       // try to re-align the ticker inside of that range
