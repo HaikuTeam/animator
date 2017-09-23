@@ -19,7 +19,8 @@
     "electron": "1.7.0"
   },
   "scripts": {
-    "start": "electron lib/electron.js",
+    "start": "electron ./lib/electron.js",
+    "watch": "babel --watch src --out-dir lib --source-maps inline",
     "compile": "babel src --out-dir lib --source-maps inline",
     "lint": "standard --fix --verbose | snazzy || true"
   },
