@@ -1,6 +1,5 @@
 export { default as AddState } from './AddState'
 export { default as AnimatorNotice } from './AnimatorNotice'
-export { default as ExpressionsCongrat } from './ExpressionsCongrat'
 export { default as Finish } from './Finish'
 export { default as LibraryStart } from './LibraryStart'
 export { default as ModifyProperty } from './ModifyProperty'

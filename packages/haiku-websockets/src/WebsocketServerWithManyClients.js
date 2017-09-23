@@ -13,8 +13,8 @@ export default class WebsocketServerWithManyClients extends EventEmitter {
   constructor (config = {}) {
     super()
     this.wss = new Websocket.Server(config)
-    this.wss.on('connection', (websocket) => {
-      var url = websocket.upgradeReq.url || DEFAULT_URL
+    this.wss.on('connection', (websocket, request) => {
+      var url = request.url || DEFAULT_URL
       var query = url.split('?')[1] || DEFAULT_QUERY
       var params = qs.parse(query)
       if (!params.type) params.type = DEFAULT_TYPE
