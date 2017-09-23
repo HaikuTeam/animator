@@ -57,9 +57,10 @@
     "tape": "^4.6.3"
   },
   "scripts": {
-    "start": "electron ./electron.js",
+    "start": "electron ./lib/electron.js",
+    "watch": "babel --watch src --out-dir lib --source-maps inline",
+    "compile": "babel src --out-dir lib --source-maps inline",
     "lint": "standard \"./react/**/*.js\" --fix --verbose | snazzy || true",
-    "test": "tape \"test/**/*.test.js\" | tap-spec || true",
-    "transpile-destructive": "babel react --out-dir react"
+    "test": "tape \"test/**/*.test.js\" | tap-spec || true"
   }
 }

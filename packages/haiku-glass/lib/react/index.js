@@ -1,0 +1,60 @@
+'use strict';
+
+var _jsxFileName = 'src/react/index.js';
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = require('react-dom');
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
+
+var _qs = require('qs');
+
+var _qs2 = _interopRequireDefault(_qs);
+
+var _Websocket = require('haiku-serialization/src/ws/Websocket');
+
+var _Websocket2 = _interopRequireDefault(_Websocket);
+
+var _Glass = require('./Glass');
+
+var _Glass2 = _interopRequireDefault(_Glass);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// We are in a webview; use query string parameters for boot-up configuration
+var search = (window.location.search || '').split('?')[1] || '';
+var params = _qs2.default.parse(search, { plainObjects: true });
+var config = _lodash2.default.assign({}, params);
+if (!config.folder) throw new Error('A folder (the absolute path to the user project) is required');
+function _fixPlumbingUrl(url) {
+  return url.replace(/^http/, 'ws');
+}
+
+var userconfig = require(_path2.default.join(config.folder, 'haiku.js'));
+
+var websocket = config.plumbing ? new _Websocket2.default(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'glass') : { on: function on() {}, send: function send() {}, method: function method() {}, request: function request() {}, action: function action() {} };
+
+_reactDom2.default.render(_react2.default.createElement(_Glass2.default, {
+  envoy: config.envoy,
+  userconfig: userconfig,
+  websocket: websocket,
+  folder: config.folder,
+  projectName: userconfig.name || 'untitled',
+  __source: {
+    fileName: _jsxFileName,
+    lineNumber: 23
+  },
+  __self: undefined
+}), document.getElementById('root'));
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uL3NyYy9yZWFjdC9pbmRleC5qcyJdLCJuYW1lcyI6WyJzZWFyY2giLCJ3aW5kb3ciLCJsb2NhdGlvbiIsInNwbGl0IiwicGFyYW1zIiwicGFyc2UiLCJwbGFpbk9iamVjdHMiLCJjb25maWciLCJhc3NpZ24iLCJmb2xkZXIiLCJFcnJvciIsIl9maXhQbHVtYmluZ1VybCIsInVybCIsInJlcGxhY2UiLCJ1c2VyY29uZmlnIiwicmVxdWlyZSIsImpvaW4iLCJ3ZWJzb2NrZXQiLCJwbHVtYmluZyIsIm9uIiwic2VuZCIsIm1ldGhvZCIsInJlcXVlc3QiLCJhY3Rpb24iLCJyZW5kZXIiLCJlbnZveSIsIm5hbWUiLCJkb2N1bWVudCIsImdldEVsZW1lbnRCeUlkIl0sIm1hcHBpbmdzIjoiOzs7O0FBQUE7Ozs7QUFDQTs7OztBQUNBOzs7O0FBQ0E7Ozs7QUFDQTs7OztBQUNBOzs7O0FBQ0E7Ozs7OztBQUVBO0FBQ0EsSUFBTUEsU0FBUyxDQUFDQyxPQUFPQyxRQUFQLENBQWdCRixNQUFoQixJQUEwQixFQUEzQixFQUErQkcsS0FBL0IsQ0FBcUMsR0FBckMsRUFBMEMsQ0FBMUMsS0FBZ0QsRUFBL0Q7QUFDQSxJQUFNQyxTQUFTLGFBQUdDLEtBQUgsQ0FBU0wsTUFBVCxFQUFpQixFQUFFTSxjQUFjLElBQWhCLEVBQWpCLENBQWY7QUFDQSxJQUFNQyxTQUFTLGlCQUFPQyxNQUFQLENBQWMsRUFBZCxFQUFrQkosTUFBbEIsQ0FBZjtBQUNBLElBQUksQ0FBQ0csT0FBT0UsTUFBWixFQUFvQixNQUFNLElBQUlDLEtBQUosQ0FBVSw4REFBVixDQUFOO0FBQ3BCLFNBQVNDLGVBQVQsQ0FBMEJDLEdBQTFCLEVBQStCO0FBQUUsU0FBT0EsSUFBSUMsT0FBSixDQUFZLE9BQVosRUFBcUIsSUFBckIsQ0FBUDtBQUFtQzs7QUFFcEUsSUFBTUMsYUFBYUMsUUFBUSxlQUFLQyxJQUFMLENBQVVULE9BQU9FLE1BQWpCLEVBQXlCLFVBQXpCLENBQVIsQ0FBbkI7O0FBRUEsSUFBTVEsWUFBYVYsT0FBT1csUUFBUixHQUNkLHdCQUFjUCxnQkFBZ0JKLE9BQU9XLFFBQXZCLENBQWQsRUFBZ0RYLE9BQU9FLE1BQXZELEVBQStELFlBQS9ELEVBQTZFLE9BQTdFLENBRGMsR0FFZCxFQUFFVSxJQUFJLGNBQU0sQ0FBRSxDQUFkLEVBQWdCQyxNQUFNLGdCQUFNLENBQUUsQ0FBOUIsRUFBZ0NDLFFBQVEsa0JBQU0sQ0FBRSxDQUFoRCxFQUFrREMsU0FBUyxtQkFBTSxDQUFFLENBQW5FLEVBQXFFQyxRQUFRLGtCQUFNLENBQUUsQ0FBckYsRUFGSjs7QUFJQSxtQkFBU0MsTUFBVCxDQUNFO0FBQ0UsU0FBT2pCLE9BQU9rQixLQURoQjtBQUVFLGNBQVlYLFVBRmQ7QUFHRSxhQUFXRyxTQUhiO0FBSUUsVUFBUVYsT0FBT0UsTUFKakI7QUFLRSxlQUFhSyxXQUFXWSxJQUFYLElBQW1CLFVBTGxDO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLEVBREYsRUFRRUMsU0FBU0MsY0FBVCxDQUF3QixNQUF4QixDQVJGIiwiZmlsZSI6ImluZGV4LmpzIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0J1xuaW1wb3J0IFJlYWN0RE9NIGZyb20gJ3JlYWN0LWRvbSdcbmltcG9ydCBsb2Rhc2ggZnJvbSAnbG9kYXNoJ1xuaW1wb3J0IHBhdGggZnJvbSAncGF0aCdcbmltcG9ydCBxcyBmcm9tICdxcydcbmltcG9ydCBXZWJzb2NrZXQgZnJvbSAnaGFpa3Utc2VyaWFsaXphdGlvbi9zcmMvd3MvV2Vic29ja2V0J1xuaW1wb3J0IEdsYXNzIGZyb20gJy4vR2xhc3MnXG5cbi8vIFdlIGFyZSBpbiBhIHdlYnZpZXc7IHVzZSBxdWVyeSBzdHJpbmcgcGFyYW1ldGVycyBmb3IgYm9vdC11cCBjb25maWd1cmF0aW9uXG5jb25zdCBzZWFyY2ggPSAod2luZG93LmxvY2F0aW9uLnNlYXJjaCB8fCAnJykuc3BsaXQoJz8nKVsxXSB8fCAnJ1xuY29uc3QgcGFyYW1zID0gcXMucGFyc2Uoc2VhcmNoLCB7IHBsYWluT2JqZWN0czogdHJ1ZSB9KVxuY29uc3QgY29uZmlnID0gbG9kYXNoLmFzc2lnbih7fSwgcGFyYW1zKVxuaWYgKCFjb25maWcuZm9sZGVyKSB0aHJvdyBuZXcgRXJyb3IoJ0EgZm9sZGVyICh0aGUgYWJzb2x1dGUgcGF0aCB0byB0aGUgdXNlciBwcm9qZWN0KSBpcyByZXF1aXJlZCcpXG5mdW5jdGlvbiBfZml4UGx1bWJpbmdVcmwgKHVybCkgeyByZXR1cm4gdXJsLnJlcGxhY2UoL15odHRwLywgJ3dzJykgfVxuXG5jb25zdCB1c2VyY29uZmlnID0gcmVxdWlyZShwYXRoLmpvaW4oY29uZmlnLmZvbGRlciwgJ2hhaWt1LmpzJykpXG5cbmNvbnN0IHdlYnNvY2tldCA9IChjb25maWcucGx1bWJpbmcpXG4gID8gbmV3IFdlYnNvY2tldChfZml4UGx1bWJpbmdVcmwoY29uZmlnLnBsdW1iaW5nKSwgY29uZmlnLmZvbGRlciwgJ2NvbnRyb2xsZWUnLCAnZ2xhc3MnKVxuICA6IHsgb246ICgpID0+IHt9LCBzZW5kOiAoKSA9PiB7fSwgbWV0aG9kOiAoKSA9PiB7fSwgcmVxdWVzdDogKCkgPT4ge30sIGFjdGlvbjogKCkgPT4ge30gfVxuXG5SZWFjdERPTS5yZW5kZXIoXG4gIDxHbGFzc1xuICAgIGVudm95PXtjb25maWcuZW52b3l9XG4gICAgdXNlcmNvbmZpZz17dXNlcmNvbmZpZ31cbiAgICB3ZWJzb2NrZXQ9e3dlYnNvY2tldH1cbiAgICBmb2xkZXI9e2NvbmZpZy5mb2xkZXJ9XG4gICAgcHJvamVjdE5hbWU9e3VzZXJjb25maWcubmFtZSB8fCAndW50aXRsZWQnfVxuICAgIC8+LFxuICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncm9vdCcpXG4pXG4iXX0=
