@@ -48,8 +48,8 @@ var WebsocketServerWithManyClients = function (_EventEmitter) {
     var _this = _possibleConstructorReturn(this, (WebsocketServerWithManyClients.__proto__ || Object.getPrototypeOf(WebsocketServerWithManyClients)).call(this));
 
     _this.wss = new _ws2.default.Server(config);
-    _this.wss.on('connection', function (websocket) {
-      var url = websocket.upgradeReq.url || DEFAULT_URL;
+    _this.wss.on('connection', function (websocket, request) {
+      var url = request.url || DEFAULT_URL;
       var query = url.split('?')[1] || DEFAULT_QUERY;
       var params = _qs2.default.parse(query);
       if (!params.type) params.type = DEFAULT_TYPE;
