@@ -22,7 +22,7 @@
     "start": "electron ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
     "compile": "babel src --out-dir lib --source-maps inline",
-    "lint": "standard --fix --verbose | snazzy || true"
+    "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy || true"
   },
   "dependencies": {
     "async": "2.1.4",
