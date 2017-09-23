@@ -5,11 +5,12 @@ var systemPreferences = electron.systemPreferences
 var app = electron.app
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
-var TopMenu = require('./TopMenu')
 
 if (!app) {
   throw new Error('You can only run electron.js from an electron process')
 }
+
+var TopMenu = require('./TopMenu')
 
 systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true)
 systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true)
@@ -28,7 +29,7 @@ var autoUpdate = require('./utils/autoUpdate')
 var mixpanel = require('./utils/Mixpanel')
 var dialog = require('electron').dialog
 
-var URL = 'file://' + path.join(__dirname, 'index.html')
+var URL = 'file://' + path.join(__dirname, '..', 'index.html')
 
 // Plumbing starts up this process, and it uses HAIKU_ENV to forward to us data about
 // how it has been set up, e.g. what ports it is using for websocket server, envoy, etc.
