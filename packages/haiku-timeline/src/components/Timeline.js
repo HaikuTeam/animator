@@ -1669,6 +1669,7 @@ class Timeline extends React.Component {
         key={`${propertyName}-${index}`}
         axis='x'
         onStart={(dragEvent, dragData) => {
+          if (options.collapsed) return false
           this.setRowCacheActivation({ componentId, propertyName })
           let activeKeyframes = this.state.activeKeyframes
           activeKeyframes = [componentId + '-' + propertyName + '-' + curr.index, componentId + '-' + propertyName + '-' + (curr.index + 1)]
