@@ -38,8 +38,8 @@ export default class TourHandler implements Tour {
             webview: "timeline",
             component: "OpacityIncrease",
             display: "top",
-            offset: {top: -50, left: 20},
-            spotlightRadius: 800,
+            offset: {top: 50, left: 20},
+            spotlightRadius: 8000,
             waitUserAction: true,
         },
         {
@@ -47,8 +47,8 @@ export default class TourHandler implements Tour {
             webview: "timeline",
             component: "OpacityReduce",
             display: "top",
-            offset: {top: -50, left: 0},
-            spotlightRadius: 800,
+            offset: {top: 50, left: 0},
+            spotlightRadius: 8000,
             waitUserAction: true,
         },
         {
@@ -56,7 +56,7 @@ export default class TourHandler implements Tour {
             webview: "timeline",
             component: "TweenCreator",
             display: "top",
-            offset: {top: -50, left: 100},
+            offset: {top: 50, left: 100},
             spotlightRadius: 8000,
             waitUserAction: true,
         },
@@ -65,7 +65,7 @@ export default class TourHandler implements Tour {
             webview: "timeline",
             component: "AnimatorNotice",
             display: "top",
-            offset: {top: -50, left: 100},
+            offset: {top: 50, left: 100},
             spotlightRadius: 8000,
             waitUserAction: false,
         },
@@ -74,7 +74,7 @@ export default class TourHandler implements Tour {
             webview: "creator",
             component: "LibraryStart",
             display: "right",
-            offset: {top: 180, left: 0},
+            offset: {top: 220, left: 0},
             spotlightRadius: "default",
             waitUserAction: true,
         },
@@ -83,8 +83,8 @@ export default class TourHandler implements Tour {
             webview: "creator",
             component: "StatesStart",
             display: "right",
-            offset: {top: 180, left: 50},
-            spotlightRadius: "default",
+            offset: {top: 220, left: 50},
+            spotlightRadius: 800,
             waitUserAction: true,
         },
         {
@@ -92,7 +92,7 @@ export default class TourHandler implements Tour {
             webview: "creator",
             component: "AddState",
             display: "right",
-            offset: {top: 120, left: 50},
+            offset: {top: 220, left: 50},
             spotlightRadius: "default",
             waitUserAction: true,
         },
@@ -100,21 +100,11 @@ export default class TourHandler implements Tour {
             selector: ".property-input-field",
             webview: "timeline",
             component: "ReferenceState",
-            display: "top",
-            offset: {top: -50, left: 0},
+            display: "right",
+            offset: {top: 0, left: 120},
             spotlightRadius: "default",
             waitUserAction: false,
         },
-        //  Disable this step until we add interactivity to the previous
-        // {
-        //     selector: ".property-input-field",
-        //     webview: "timeline",
-        //     component: "ExpressionsCongrat",
-        //     display: "top",
-        //     offset: {top: -50, left: 0},
-        //     spotlightRadius: "default",
-        //     waitUserAction: false,
-        // },
         {
             selector: ".property-input-field",
             webview: "timeline",
@@ -147,8 +137,8 @@ export default class TourHandler implements Tour {
             webview: "creator",
             component: "PublishedLink",
             display: "left",
-            offset: {top: 230, left: -150},
-            spotlightRadius: "default",
+            offset: {top: 260, left: -150},
+            spotlightRadius: 900,
             waitUserAction: false,
         },
         {
@@ -233,8 +223,10 @@ export default class TourHandler implements Tour {
 
     receiveElementCoordinates(webview: string, position: ClientBoundingRect) {
         const state = this.getState()
-        const top = this.webviewData[webview].top + position.top
-        const left =  this.webviewData[webview].left + position.left
+        const fallbackPosition = {top: 0, left: 0}
+        const origin = this.webviewData[webview] || fallbackPosition
+        const top = origin.top + position.top
+        const left =  origin.left + position.left
 
         this.requestShowStep(state, { top, left })
     }

@@ -136,6 +136,7 @@ class LibraryDrawer extends React.Component {
     switch (fileData.type) {
       case 'sketch':
         this.handleSketchInstantiation(fileData)
+        this.props.tourChannel.next()
         break
       case 'file':
         this.handleFileInstantiation(fileData)
@@ -185,8 +186,7 @@ class LibraryDrawer extends React.Component {
                   onDragEnd={this.props.onDragEnd}
                   onDragStart={this.props.onDragStart}
                   websocket={this.props.websocket}
-                  instantiate={this.handleAssetInstantiation.bind(this, file)}
-                  tourChannel={this.props.tourChannel} />
+                  instantiate={this.handleAssetInstantiation.bind(this, file)} />
               }
             </div>
           )

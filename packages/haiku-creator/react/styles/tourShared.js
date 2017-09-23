@@ -27,5 +27,8 @@ export const TOUR_STYLES = {
     padding: 17,
     borderRadius: 3,
     background: Palette.LIGHTEST_GRAY
+  },
+  list: {
+    paddingLeft: 15
   }
 }

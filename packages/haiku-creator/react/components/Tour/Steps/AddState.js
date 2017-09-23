@@ -9,9 +9,8 @@ export default function ({ styles }) {
       </video>
       <h2 style={styles.heading}>States</h2>
       <div style={styles.text}>
-        <p>
-          Add a new state. Give it a name and a value.
-        </p>
+        <p>Think of States as containers for mock data.  You can design animations and interactions in response to States—then when your Haiku is ready for your app, all a developer has to do is pass in live data.   Really, that's it.</p>
+        <p>Go ahead and create a State—just give it a name and a value.</p>
       </div>
     </div>
   )
