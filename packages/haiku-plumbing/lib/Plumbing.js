@@ -1145,8 +1145,8 @@ Plumbing.prototype.extendEnvironment = function extendEnvironment(haiku) {
   process.env.HAIKU_ENV = JSON.stringify(HAIKU_ENV); // Forward env to subprocesses
 };
 
-function getWsParams(websocket) {
-  var url = websocket.upgradeReq.url || '';
+function getWsParams(websocket, request) {
+  var url = request.url || '';
   var query = url.split('?')[1] || '';
   var params = _qs2.default.parse(query);
   params.url = url;
@@ -1161,8 +1161,8 @@ Plumbing.prototype.createControlSocket = function createControlSocket(socketInfo
   // const httpServer = http.createServer()
   // httpServer.listen(socketInfo.port)
 
-  websocketServer.on('connection', function (websocket) {
-    var params = getWsParams(websocket);
+  websocketServer.on('connection', function (websocket, request) {
+    var params = getWsParams(websocket, request);
 
     if (!params.type) params.type = 'default';
     if (!params.haiku) params.haiku = {};
