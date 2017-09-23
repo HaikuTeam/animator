@@ -77,7 +77,7 @@ class Tour extends React.Component {
   }
 
   openLink (e) {
-    e.preventDefault
+    e.preventDefault()
     shell.openExternal(e.target.href)
   }
 
@@ -109,7 +109,7 @@ class Tour extends React.Component {
         stepData={stepData}
         waitUserAction={waitUserAction}
       >
-        <Step styles={TOUR_STYLES} next={this.next} finish={this.finish} openLink={openLink} />
+        <Step styles={TOUR_STYLES} next={this.next} finish={this.finish} openLink={this.openLink} />
       </Tooltip>
     )
   }
