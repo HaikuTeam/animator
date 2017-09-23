@@ -223,8 +223,10 @@ export default class TourHandler implements Tour {
 
     receiveElementCoordinates(webview: string, position: ClientBoundingRect) {
         const state = this.getState()
-        const top = this.webviewData[webview].top + position.top
-        const left =  this.webviewData[webview].left + position.left
+        const fallbackPosition = {top: 0, left: 0}
+        const origin = this.webviewData[webview] || fallbackPosition
+        const top = origin.top + position.top
+        const left =  origin.left + position.left
 
         this.requestShowStep(state, { top, left })
     }
