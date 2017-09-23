@@ -956,8 +956,8 @@ Plumbing.prototype.extendEnvironment = function extendEnvironment (haiku) {
   process.env.HAIKU_ENV = JSON.stringify(HAIKU_ENV) // Forward env to subprocesses
 }
 
-function getWsParams (websocket) {
-  const url = websocket.upgradeReq.url || ''
+function getWsParams (websocket, request) {
+  const url = request.url || ''
   const query = url.split('?')[1] || ''
   const params = qs.parse(query)
   params.url = url
@@ -972,8 +972,8 @@ Plumbing.prototype.createControlSocket = function createControlSocket (socketInf
   // const httpServer = http.createServer()
   // httpServer.listen(socketInfo.port)
 
-  websocketServer.on('connection', (websocket) => {
-    const params = getWsParams(websocket)
+  websocketServer.on('connection', (websocket, request) => {
+    const params = getWsParams(websocket, request)
 
     if (!params.type) params.type = 'default'
     if (!params.haiku) params.haiku = {}
