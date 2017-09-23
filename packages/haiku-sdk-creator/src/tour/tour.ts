@@ -100,21 +100,11 @@ export default class TourHandler implements Tour {
             selector: ".property-input-field",
             webview: "timeline",
             component: "ReferenceState",
-            display: "top",
-            offset: {top: -50, left: 0},
+            display: "right",
+            offset: {top: 0, left: 0},
             spotlightRadius: "default",
             waitUserAction: false,
         },
-        //  Disable this step until we add interactivity to the previous
-        // {
-        //     selector: ".property-input-field",
-        //     webview: "timeline",
-        //     component: "ExpressionsCongrat",
-        //     display: "top",
-        //     offset: {top: -50, left: 0},
-        //     spotlightRadius: "default",
-        //     waitUserAction: false,
-        // },
         {
             selector: ".property-input-field",
             webview: "timeline",
