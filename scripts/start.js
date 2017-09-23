@@ -228,6 +228,7 @@ function setup () {
     // When developing plumbing, assume we need recompilation on the glass and timeline too
     instructions.unshift(['haiku-glass', ['yarn', 'run', 'watch'], null, 5000])
     instructions.unshift(['haiku-timeline', ['yarn', 'run', 'watch'], null, 5000])
+    instructions.unshift(['haiku-creator', ['yarn', 'run', 'watch'], null, 5000])
   } else {
     // Only set the mock envoy variable if we are in an env where it will work
     process.env.MOCK_ENVOY = inputs.mockEnvoy
@@ -253,8 +254,12 @@ function setup () {
     instructions.push(['haiku-sdk-creator', ['yarn', 'run', 'develop']])
   }
 
-  // No matter what, assume player changes are probably needed since it's a core dependency
-  instructions.unshift(['haiku-player', ['yarn', 'run', 'develop'], null, 1000])
+  if (inputs.devChoice === 'player') {
+    instructions.unshift(['haiku-player', ['yarn', 'run', 'develop'], null, 5000])
+  } else {
+    // No matter what, assume player changes are probably needed since it's a core dependency
+    instructions.unshift(['haiku-player', ['yarn', 'run', 'watch'], null, 5000])
+  }
 }
 
 function go () {
@@ -283,22 +288,9 @@ function go () {
 
     var child = cp.spawn(cmd, args, { cwd: pack.abspath, env: lodash.assign(process.env, env), stdio: 'inherit' })
 
-    children.push(child)
-
-    child.on('close', function (code) {
-      if (!ignoreClose) {
-        cancelled = true
-
-        log.log(cmd + ' closed, exiting all!')
-
-        children.forEach((child) => {
-          child.kill()
-        })
-
-        process.exit(0)
-      } else {
-        log.log(cmd + ' closed')
-      }
+    children.push({
+      info: { pack, cmd, ignoreClose },
+      proc: child
     })
 
     return setTimeout(next, wait)
@@ -307,12 +299,17 @@ function go () {
 
 process.on('exit', exit)
 process.on('SIGINT', exit)
+process.on('SIGTERM', exit)
 process.on('uncaughtException', exit)
 
 function exit () {
+  log.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
   log.log('exiting; telling children to interrupt')
-  children.forEach(function (child) {
-    if (child.stdin) child.stdin.pause()
-    child.kill('SIGKILL')
+  log.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+
+  children.forEach(function (child, index) {
+    if (child.proc.stdin) child.stdin.pause()
+    log.log('$$$$$ ' + index + ' ' + JSON.stringify(child.info))
+    child.proc.kill('SIGKILL')
   })
 }

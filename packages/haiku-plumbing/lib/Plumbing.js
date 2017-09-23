@@ -129,7 +129,7 @@ var PROC_DIR = _path2.default.join(__dirname);
 
 var PROCS = {
   master: { name: 'master', path: _path2.default.join(PROC_DIR, 'MasterProcess.js') },
-  creator: { name: 'creator', path: require('electron'), args: [_path2.default.join(ROOT_DIR, 'node_modules', 'haiku-creator-electron', 'electron.js')], opts: { electron: true, spawn: true } }
+  creator: { name: 'creator', path: require('electron'), args: [_path2.default.join(ROOT_DIR, 'node_modules', 'haiku-creator-electron', 'lib', 'electron.js')], opts: { electron: true, spawn: true } }
 };
 
 var Q_GLASS = { alias: 'glass' };

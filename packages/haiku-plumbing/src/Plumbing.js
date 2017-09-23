@@ -50,7 +50,7 @@ const PROC_DIR = path.join(__dirname)
 
 const PROCS = {
   master: { name: 'master', path: path.join(PROC_DIR, 'MasterProcess.js') },
-  creator: { name: 'creator', path: require('electron'), args: [path.join(ROOT_DIR, 'node_modules', 'haiku-creator-electron', 'electron.js')], opts: { electron: true, spawn: true } }
+  creator: { name: 'creator', path: require('electron'), args: [path.join(ROOT_DIR, 'node_modules', 'haiku-creator-electron', 'lib', 'electron.js')], opts: { electron: true, spawn: true } }
 }
 
 const Q_GLASS = { alias: 'glass' }

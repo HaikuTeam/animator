@@ -181,6 +181,9 @@ function createWindow () {
     browserWindow.show()
   })
 
+  // Uncomment me to automatically open the tools
+  // browserWindow.openDevTools()
+
   autoUpdate((error, message, updater, quitAndInstall) => {
     if (error) console.log(error)
     // You can set a HAIKU_SKIP_AUTOUPDATE env var to skip this entirely

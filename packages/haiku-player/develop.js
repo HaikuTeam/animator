@@ -12,12 +12,16 @@ cp.execSync('yarn run compile', { stdio: 'inherit' })
 console.log('watching typescript')
 cp.spawn(`tsc`, [`--watch`], { stdio: 'inherit' })
 
-console.log('starting server')
-cp.spawn(`nodemon`, [`./test/demo/server.js`], { stdio: 'inherit' })
+if (process.env.HAIKU_PLAYER_WATCH_ONLY !== '1') {
+  console.log('starting server')
+  cp.spawn(`nodemon`, [`./test/demo/server.js`], { stdio: 'inherit' })
+}
 
 setTimeout(() => {
-  console.log('opening browser demos')
-  opn('http://localhost:3000')
+  if (process.env.HAIKU_PLAYER_WATCH_ONLY !== '1') {
+    console.log('opening browser demos')
+    opn('http://localhost:3000')
+  }
 
   console.log('watching files')
   chokidar.watch('src', {

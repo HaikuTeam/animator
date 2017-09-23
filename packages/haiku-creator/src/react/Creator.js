@@ -24,7 +24,10 @@ import {
   HOMEDIR_LOGS_PATH
 } from 'haiku-serialization/src/utils/HaikuHomeDir'
 
+var pkg = require('./../../package.json')
+
 var mixpanel = require('./../utils/Mixpanel')
+
 const electron = require('electron')
 const remote = electron.remote
 const ipcRenderer = electron.ipcRenderer
@@ -63,7 +66,7 @@ export default class Creator extends React.Component {
       username: null,
       password: null,
       notices: [],
-      softwareVersion: require('./../package.json').version,
+      softwareVersion: pkg.version,
       didPlumbingNoticeCrash: false,
       activeNav: 'library',
       projectsList: []
