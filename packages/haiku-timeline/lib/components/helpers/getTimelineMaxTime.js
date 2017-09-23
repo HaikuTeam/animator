@@ -1,0 +1,26 @@
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = getTimelineMaxTime;
+
+var _getTimelineMaxTime2 = require('@haiku/player/lib/helpers/getTimelineMaxTime');
+
+var _getTimelineMaxTime3 = _interopRequireDefault(_getTimelineMaxTime2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// A cached version of the above that stores the max value so we
+// can avoid doing what is a rather expensive calculation every frame.
+// We also need to clear this cache; see `clearInMemoryBytecodeCaches`
+function getTimelineMaxTime(timelineDescriptor) {
+  if (timelineDescriptor.__max !== undefined) {
+    return timelineDescriptor.__max;
+  }
+
+  timelineDescriptor.__max = (0, _getTimelineMaxTime3.default)(timelineDescriptor);
+
+  return timelineDescriptor.__max;
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uLy4uL3NyYy9jb21wb25lbnRzL2hlbHBlcnMvZ2V0VGltZWxpbmVNYXhUaW1lLmpzIl0sIm5hbWVzIjpbImdldFRpbWVsaW5lTWF4VGltZSIsInRpbWVsaW5lRGVzY3JpcHRvciIsIl9fbWF4IiwidW5kZWZpbmVkIl0sIm1hcHBpbmdzIjoiOzs7OztrQkFLd0JBLGtCOztBQUx4Qjs7Ozs7O0FBRUE7QUFDQTtBQUNBO0FBQ2UsU0FBU0Esa0JBQVQsQ0FBNkJDLGtCQUE3QixFQUFpRDtBQUM5RCxNQUFJQSxtQkFBbUJDLEtBQW5CLEtBQTZCQyxTQUFqQyxFQUE0QztBQUMxQyxXQUFPRixtQkFBbUJDLEtBQTFCO0FBQ0Q7O0FBRURELHFCQUFtQkMsS0FBbkIsR0FBMkIsa0NBQW9CRCxrQkFBcEIsQ0FBM0I7O0FBRUEsU0FBT0EsbUJBQW1CQyxLQUExQjtBQUNEIiwiZmlsZSI6ImdldFRpbWVsaW5lTWF4VGltZS5qcyIsInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBfZ2V0VGltZWxpbmVNYXhUaW1lIGZyb20gJ0BoYWlrdS9wbGF5ZXIvbGliL2hlbHBlcnMvZ2V0VGltZWxpbmVNYXhUaW1lJ1xuXG4vLyBBIGNhY2hlZCB2ZXJzaW9uIG9mIHRoZSBhYm92ZSB0aGF0IHN0b3JlcyB0aGUgbWF4IHZhbHVlIHNvIHdlXG4vLyBjYW4gYXZvaWQgZG9pbmcgd2hhdCBpcyBhIHJhdGhlciBleHBlbnNpdmUgY2FsY3VsYXRpb24gZXZlcnkgZnJhbWUuXG4vLyBXZSBhbHNvIG5lZWQgdG8gY2xlYXIgdGhpcyBjYWNoZTsgc2VlIGBjbGVhckluTWVtb3J5Qnl0ZWNvZGVDYWNoZXNgXG5leHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBnZXRUaW1lbGluZU1heFRpbWUgKHRpbWVsaW5lRGVzY3JpcHRvcikge1xuICBpZiAodGltZWxpbmVEZXNjcmlwdG9yLl9fbWF4ICE9PSB1bmRlZmluZWQpIHtcbiAgICByZXR1cm4gdGltZWxpbmVEZXNjcmlwdG9yLl9fbWF4XG4gIH1cblxuICB0aW1lbGluZURlc2NyaXB0b3IuX19tYXggPSBfZ2V0VGltZWxpbmVNYXhUaW1lKHRpbWVsaW5lRGVzY3JpcHRvcilcblxuICByZXR1cm4gdGltZWxpbmVEZXNjcmlwdG9yLl9fbWF4XG59XG4iXX0=

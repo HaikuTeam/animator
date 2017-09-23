@@ -9,8 +9,10 @@
     "Zack Brown <zack@haiku.ai>"
   ],
   "scripts": {
+    "start": "electron ./lib/electron.js",
+    "watch": "babel --watch src --out-dir lib --source-maps inline",
+    "compile": "babel src --out-dir lib --source-maps inline",
     "test": "tape \"test/**/*.test.js\" | tap-spec",
-    "start": "electron ./electron.js",
     "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy"
   },
   "standard": {
@@ -31,12 +33,12 @@
     "electron": "1.7.0"
   },
   "dependencies": {
+    "@haiku/player": "HaikuTeam/player.git",
     "archy": "^1.0.0",
     "classnames": "2.2.5",
     "codemirror": "^5.28.0",
     "color": "1.0.3",
     "decamelize": "1.2.0",
-    "@haiku/player": "HaikuTeam/player.git",
     "haiku-bytecode": "HaikuTeam/bytecode.git",
     "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
     "haiku-serialization": "HaikuTeam/serialization.git",
@@ -51,8 +53,8 @@
     "strip-indent": "^2.0.0"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
     "babel-preset-react-app": "2.2.0",
-    "babel-register": "6.24.0",
     "electron": "1.7.0",
     "snazzy": "^7.0.0",
     "standard": "^10.0.2",

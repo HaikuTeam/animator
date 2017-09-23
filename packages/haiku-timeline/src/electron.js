@@ -8,7 +8,7 @@ if (!app) {
   throw new Error('You can only run electron.js from an electron process')
 }
 
-var url = 'file://' + path.join(__dirname, 'index.html')
+var url = 'file://' + path.join(__dirname, '..', 'index.html')
 
 var params = {
   folder: process.env.HAIKU_PROJECT_FOLDER,
