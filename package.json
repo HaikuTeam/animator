@@ -29,6 +29,7 @@
   "main": "index.js",
   "scripts": {
     "develop": "node ./develop.js",
+    "watch": "HAIKU_PLAYER_WATCH_ONLY=1 node ./develop.js",
     "compile": "tsc",
     "lint": "tslint -c tslint.json 'src/**/*.ts' --exclude 'src/vendor/**' --format stylish --fix",
     "test": "yarn run test:unit && yarn run test:api && yarn run test:perf",
