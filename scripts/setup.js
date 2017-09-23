@@ -1,13 +1,13 @@
-// var lodash = require('lodash')
-// var cp = require('child_process')
-// var log = require('./helpers/log')
-// var allPackages = require('./helpers/allPackages')()
+var lodash = require('lodash')
+var cp = require('child_process')
+var log = require('./helpers/log')
+var allPackages = require('./helpers/allPackages')()
 var runScript = require('./helpers/runScript')
 
-// lodash.forEach(allPackages, function (pack) {
-//   log.log('cleaning out npm/yarn stuff for ' + pack.name)
-//   cp.execSync('rm -rf node_modules', { cwd: pack.abspath })
-// })
+lodash.forEach(allPackages, function (pack) {
+  log.log('cleaning out npm/yarn stuff for ' + pack.name)
+  cp.execSync('rm -rf node_modules', { cwd: pack.abspath })
+})
 
 runScript('yarn-unlink', [], function (err) {
   if (err) throw err

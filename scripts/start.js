@@ -225,15 +225,18 @@ function setup () {
       instructions.unshift(['haiku-plumbing', ['node', './HaikuHelper.js'], null, 5000])
       instructions.unshift(['haiku-plumbing', ['yarn', 'run', 'watch'], null, 10000])
     }
-  } else if (inputs.devChoice === 'player') {
-    instructions.unshift(['haiku-player', ['yarn', 'run', 'develop'], null, 1000])
+    // When developing plumbing, assume we need recompilation on the glass and timeline too
+    instructions.unshift(['haiku-glass', ['yarn', 'run', 'watch'], null, 5000])
+    instructions.unshift(['haiku-timeline', ['yarn', 'run', 'watch'], null, 5000])
   } else {
     // Only set the mock envoy variable if we are in an env where it will work
     process.env.MOCK_ENVOY = inputs.mockEnvoy
     if (inputs.devChoice === 'glass') {
       instructions.unshift(['haiku-glass', ['yarn', 'start'], null, 5000])
+      instructions.unshift(['haiku-glass', ['yarn', 'run', 'watch'], null, 5000])
     } else if (inputs.devChoice === 'timeline') {
       instructions.unshift(['haiku-timeline', ['yarn', 'start'], null, 5000])
+      instructions.unshift(['haiku-timeline', ['yarn', 'run', 'watch'], null, 5000])
     }
   }
 
@@ -249,6 +252,9 @@ function setup () {
   if (inputs.doDevelopSDKCreator) {
     instructions.push(['haiku-sdk-creator', ['yarn', 'run', 'develop']])
   }
+
+  // No matter what, assume player changes are probably needed since it's a core dependency
+  instructions.unshift(['haiku-player', ['yarn', 'run', 'develop'], null, 1000])
 }
 
 function go () {
