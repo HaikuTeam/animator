@@ -2,13 +2,13 @@ var os = require('os')
 var path = require('path')
 require(path.join(os.homedir(), 'Secrets', 'haiku-distro.js'))
 
-if (!process.env.HAIKU_INTENRAL_SLACK_CLIENT_ID) throw new error('env var missing')
-if (!process.env.HAIKU_INTENRAL_SLACK_CLIENT_SECRET) throw new error('env var missing')
-if (!process.env.HAIKU_INTENRAL_SLACK_TOKEN) throw new error('env var missing')
-if (!process.env.HAIKU_RELEASE_WRITER_KEY) throw new error('env var missing')
-if (!process.env.HAIKU_RELEASE_WRITER_SECRET) throw new error('env var missing')
-if (!process.env.HAIKU_S3_DEPLOYER_KEY) throw new error('env var missing')
-if (!process.env.HAIKU_S3_DEPLOYER_SECRET) throw new error('env var missing')
+if (!process.env.HAIKU_INTENRAL_SLACK_CLIENT_ID) throw new Error('env var missing')
+if (!process.env.HAIKU_INTENRAL_SLACK_CLIENT_SECRET) throw new Error('env var missing')
+if (!process.env.HAIKU_INTENRAL_SLACK_TOKEN) throw new Error('env var missing')
+if (!process.env.HAIKU_RELEASE_WRITER_KEY) throw new Error('env var missing')
+if (!process.env.HAIKU_RELEASE_WRITER_SECRET) throw new Error('env var missing')
+if (!process.env.HAIKU_S3_DEPLOYER_KEY) throw new Error('env var missing')
+if (!process.env.HAIKU_S3_DEPLOYER_SECRET) throw new Error('env var missing')
 
 module.exports = {
   slack: {
@@ -44,7 +44,7 @@ module.exports = {
       user: 'haiku-electron-releases-writer-2',
       key: process.env.HAIKU_RELEASE_WRITER_KEY,
       secret: process.env.HAIKU_RELEASE_WRITER_SECRET
-    },
+    }
   },
   'code.haiku.ai': {
     production: {

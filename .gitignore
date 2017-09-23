@@ -2,6 +2,5 @@
 node_modules
 *.log
 dist/*
-out/*
 config.js
-distro-source/
+distro/*
