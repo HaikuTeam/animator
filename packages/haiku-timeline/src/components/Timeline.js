@@ -1879,6 +1879,7 @@ class Timeline extends React.Component {
         key={`${propertyName}-${index}`}
         className='constant-body'
         onContextMenu={(ctxMenuEvent) => {
+          if (options.collapsed) return false
           ctxMenuEvent.stopPropagation()
           let localOffsetX = ctxMenuEvent.nativeEvent.offsetX
           let totalOffsetX = localOffsetX + pxOffsetLeft + Math.round(frameInfo.pxA / frameInfo.pxpf)
