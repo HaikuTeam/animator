@@ -18,7 +18,7 @@ class ProjectBrowser extends React.Component {
       showNeedsSaveDialogue: false,
       projectsList: [],
       areProjectsLoading: true,
-      launchingProject: true
+      launchingProject: false
     }
     this.handleDocumentKeyPress = this.handleDocumentKeyPress.bind(this)
     this.handleSelectProject = this.handleSelectProject.bind(this)

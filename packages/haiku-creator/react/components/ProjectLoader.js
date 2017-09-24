@@ -1,8 +1,7 @@
 import React from 'react'
 import Radium from 'radium'
 import Color from 'color'
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
-import { FadingCircle } from 'better-react-spinkit'
+import { ThreeBounce } from 'better-react-spinkit'
 import Palette from './Palette'
 import { LightIconSVG } from './Icons'
 
@@ -11,18 +10,24 @@ const STYLES = {
     position: 'absolute',
     width: '100%',
     height: '100%',
+    color: Palette.ROCK,
     backgroundColor: Color(Palette.GRAY).fade(0.023),
     zIndex: 6
   },
   contentHolster: {
     textAlign: 'center',
-    width: 800,
+    width: 820,
     position: 'absolute',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)'
   },
   tip: {
+    position: 'absolute',
+    bottom: 100,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: 820,
     fontSize: 16,
     backgroundColor: Palette.ROCK,
     color: Palette.MEDIUM_COAL,
@@ -50,25 +55,26 @@ const STYLES = {
     marginTop: 5
   },
   reticulator: {
-    fontSize: 50
+    fontSize: 44,
+    lineHeight: '1.3em'
   }
 }
 
 const reticulations = [
-  "Bear with us while we set up your project. This can take several moments.",
-  "Configuring version control system...",
-  "Connecting to remote code repository...",
-  "Checking for changes from other collaborators on your team...",
-  "Syncing changes from Haiku Cloud...",
-  "Merging changes...",
-  "Loading your project files...",
-  "Preparing your design files...",
-  "Preparing your code files...",
-  "Installing dependencies...",
-  "Checking for Haiku Player updates...",
-  "Watching your source files for changes...",
-  "Initializing your component...",
-  "Setting up the stage and timeline..."
+  "Bear with us while we set up your project. This can take several moments",
+  "Configuring version control system",
+  "Connecting to remote code repository",
+  "Checking for changes from other collaborators on your team",
+  "Syncing changes from Haiku Cloud",
+  "Merging changes",
+  "Loading your project files",
+  "Preparing your design files",
+  "Preparing your code files",
+  "Installing dependencies",
+  "Checking for Haiku Player updates",
+  "Watching your source files for changes",
+  "Initializing your component",
+  "Setting up the stage and timeline"
 ]
 
 const tips = [
@@ -81,32 +87,48 @@ const tips = [
   "When your animation is ready, click “Publish” to get code snippets for embedding"
 ]
 
+const tip = tips[Math.floor(Math.random()*tips.length)]
+
 class ProjectLoader extends React.Component {
-  constructor (props) {
-    super(props)
-    this.state = {}
+  constructor() {
+    super()
+
+    this.state = {
+      retic: 0
+    }
+  }
+
+  componentDidMount() {
+    this.incrementReticulator()
+  }
+
+  incrementReticulator () {
+    setTimeout(() => {
+      this.setState({retic: this.state.retic + 1}, () => {
+        if (this.state.retic != reticulations.length - 1) this.incrementReticulator()
+      })
+    }, 5200)
   }
 
   render () {
-    const tip = tips[Math.floor(Math.random()*tips.length)]
     return (
       <div style={STYLES.fullScreenCenterWrap}>
         <div style={STYLES.contentHolster}>
           <div style={STYLES.reticulator}>
-            {reticulations[0]}
+            {reticulations[this.state.retic]}
+            <ThreeBounce color={Palette.ROCK} />
           </div>
-          <div style={STYLES.tip}>
-            <span style={STYLES.pretip}>
-              <span style={STYLES.icon}><LightIconSVG color={Palette.PINK} /></span>
-              Tip of the Load
-            </span>
-            <span style={STYLES.tipText}>{tip}</span>
-          </div>
+        </div>
+        <div style={STYLES.tip}>
+          <span style={STYLES.pretip}>
+            <span style={STYLES.icon}><LightIconSVG color={Palette.PINK} /></span>
+            Tip of the Load
+          </span>
+          <span style={STYLES.tipText}>{tip}</span>
         </div>
       </div>
     )
   }
 }
-
 
 export default Radium(ProjectLoader)
