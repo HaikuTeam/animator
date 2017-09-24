@@ -817,7 +817,8 @@ function ElementModel (platform, component, metadata) {
 
       if (finalSize.width <= 1 || finalSize.height <= 1) return void (0)
 
-      return this.component.resizeContext([this.uid], this.component._currentTimelineName, this.component._currentTimelineTime, finalSize, { from: 'glass' }, (err) => {
+      // Frame zero is hardcoded since artboard resizes at different times is confusing
+      return this.component.resizeContext([this.uid], this.component._currentTimelineName, 0, finalSize, { from: 'glass' }, (err) => {
         if (err) return void (0)
       })
     }
