@@ -1,11 +1,11 @@
 import lodash from 'lodash'
 import React from 'react'
 import Radium from 'radium'
-// import Color from 'color'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { FadingCircle } from 'better-react-spinkit'
 import Palette from './Palette'
 import Toast from './notifications/Toast'
+import ProjectLoader from './ProjectLoader'
 import { LogoSVG, LoadingSpinnerSVG } from './Icons'
 import { DASH_STYLES } from '../styles/dashShared'
 
@@ -18,7 +18,7 @@ class ProjectBrowser extends React.Component {
       showNeedsSaveDialogue: false,
       projectsList: [],
       areProjectsLoading: true,
-      launchingProject: false
+      launchingProject: true
     }
     this.handleDocumentKeyPress = this.handleDocumentKeyPress.bind(this)
     this.handleSelectProject = this.handleSelectProject.bind(this)
@@ -361,11 +361,7 @@ class ProjectBrowser extends React.Component {
             </div>
           </div>
         </div>
-        {this.state.launchingProject
-          ? <div style={DASH_STYLES.fullScreenCenterWrap}>
-            <FadingCircle size={52} color={Palette.ROCK} />
-          </div>
-          : '' }
+        {this.state.launchingProject && <ProjectLoader />}
       </div>
     )
   }
