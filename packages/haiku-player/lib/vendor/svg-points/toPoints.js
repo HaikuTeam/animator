@@ -80,14 +80,31 @@ var relativeCommands = [
 var isRelative = function (command) { return relativeCommands.indexOf(command) !== -1; };
 var optionalArcKeys = ['xAxisRotation', 'largeArcFlag', 'sweepFlag'];
 var getCommands = function (d) { return d.match(validCommands); };
-var getParams = function (d) { return d.split(validCommands)
-    .map(function (v) { return v.replace(/[0-9]+-/g, function (m) { return m.slice(0, -1) + " -"; }); })
-    .map(function (v) { return v.replace(/\.[0-9]+/g, function (m) { return m + " "; }); })
-    .map(function (v) { return v.trim(); })
-    .filter(function (v) { return v.length > 0; })
-    .map(function (v) { return v.split(/[ ,]+/)
-    .map(parseFloat)
-    .filter(function (n) { return !isNaN(n); }); }); };
+var getParams = function (d) {
+    var segs = d.split(validCommands)
+        .map(function (v) {
+        return v.replace(/[0-9]+(e[+-][0-9]+)?-/g, function (m) { return m.slice(0, -1) + " -"; });
+    })
+        .map(function (v) {
+        return v.replace(/\.[0-9]+(e[+-][0-9]+)?/g, function (m) { return m + " "; });
+    })
+        .map(function (p) {
+        return p.trim();
+    })
+        .filter(function (p) {
+        return p.length > 0;
+    });
+    var groups = segs.map(function (s) {
+        return s.split(/[ ,]+/)
+            .map(function (n) {
+            return parseFloat(n);
+        })
+            .filter(function (n) {
+            return !isNaN(n);
+        });
+    });
+    return groups;
+};
 var getPointsFromPath = function (_a) {
     var d = _a.d;
     var commands = getCommands(d);
