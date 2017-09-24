@@ -149,8 +149,12 @@ class LibraryDrawer extends React.Component {
   handleFileDrop (files, event) {
     this.setState({isLoading: true})
     return async.eachSeries(files, (file, next) => {
-      return this.props.websocket.request({ method: 'linkAsset', params: [file.path, this.props.folder] }, (error) => {
+      return this.props.websocket.request({ method: 'linkAsset', params: [file.path, this.props.folder] }, (error, assets) => {
         if (error) return next(error)
+        if (assets) {
+          const empty = assets.length === 0
+          this.setState({ assets, empty })
+        }
         return next()
       })
     }, (error) => {

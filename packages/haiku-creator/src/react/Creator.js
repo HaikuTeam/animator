@@ -252,12 +252,15 @@ export default class Creator extends React.Component {
 
         // Put it at the bottom of the event loop
         setTimeout(() => {
+          tourChannel.notifyScreenResize()
           tourChannel.start(true)
         })
       })
 
       window.addEventListener('resize', lodash.throttle(() => {
-        tourChannel.notifyScreenResize()
+        if (tourChannel.isTourActive()) {
+          tourChannel.notifyScreenResize()
+        }
       }), 300)
     })
 
