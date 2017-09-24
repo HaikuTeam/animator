@@ -244,6 +244,10 @@ export default class TourHandler implements Tour {
         this.requestWebviewCoordinates()
     }
 
+    isTourActive() {
+        return this.isActive
+    }
+
     start(force) {
         if (!didTakeTour() || force) {
             this.currentStep = 0

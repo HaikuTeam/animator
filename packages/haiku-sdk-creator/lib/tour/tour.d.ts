@@ -19,6 +19,7 @@ export default class TourHandler implements Tour {
     receiveElementCoordinates(webview: string, position: ClientBoundingRect): void;
     receiveWebviewCoordinates(webview: string, coordinates: ClientBoundingRect): void;
     notifyScreenResize(): void;
+    isTourActive(): boolean;
     start(force: any): void;
     finish(createFile?: any): void;
     next(): void;

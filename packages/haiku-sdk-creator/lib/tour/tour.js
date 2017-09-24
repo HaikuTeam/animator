@@ -211,6 +211,9 @@ class TourHandler {
         }
         this.requestWebviewCoordinates();
     }
+    isTourActive() {
+        return this.isActive;
+    }
     start(force) {
         if (!HaikuHomeDir_1.didTakeTour() || force) {
             this.currentStep = 0;
