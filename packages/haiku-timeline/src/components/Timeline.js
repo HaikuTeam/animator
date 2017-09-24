@@ -494,6 +494,7 @@ class Timeline extends React.Component {
       // has arrived at the maximum acceptible frame in the timeline.
       if (currentFrame > frameInfo.friMax) {
         this._component.getCurrentTimeline().seekAndPause(frameInfo.friMax)
+        this.setState({isPlayerPlaying: false})
       }
       // If our current frame has gone outside of the interval that defines the timeline viewport, then
       // try to re-align the ticker inside of that range
@@ -1669,6 +1670,7 @@ class Timeline extends React.Component {
         key={`${propertyName}-${index}`}
         axis='x'
         onStart={(dragEvent, dragData) => {
+          if (options.collapsed) return false
           this.setRowCacheActivation({ componentId, propertyName })
           let activeKeyframes = this.state.activeKeyframes
           activeKeyframes = [componentId + '-' + propertyName + '-' + curr.index, componentId + '-' + propertyName + '-' + (curr.index + 1)]
@@ -1878,6 +1880,7 @@ class Timeline extends React.Component {
         key={`${propertyName}-${index}`}
         className='constant-body'
         onContextMenu={(ctxMenuEvent) => {
+          if (options.collapsed) return false
           ctxMenuEvent.stopPropagation()
           let localOffsetX = ctxMenuEvent.nativeEvent.offsetX
           let totalOffsetX = localOffsetX + pxOffsetLeft + Math.round(frameInfo.pxA / frameInfo.pxpf)
