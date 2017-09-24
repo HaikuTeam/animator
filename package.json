@@ -36,7 +36,7 @@
     "test:perf": "yarn run compile && tape \"test/perf/**/*.test.js\" | tap-spec || true",
     "test:api": "yarn run compile && tape \"test/api/**/*.test.js\" | tap-spec || true",
     "test:render": "yarn run compile && tape \"test/render/**/*.test.js\" | tap-spec || true",
-    "test:unit": "yarn run compile && tape \"test/unit/**/SV*.test.js\" | tap-spec || true",
+    "test:unit": "yarn run compile && tape \"test/unit/**/*.test.js\" | tap-spec || true",
     "depcheck": "depcheck ."
   },
   "authors": [
