@@ -182,7 +182,7 @@ function createWindow () {
   })
 
   // Uncomment me to automatically open the tools
-  browserWindow.openDevTools()
+  // browserWindow.openDevTools()
 
   autoUpdate((error, message, updater, quitAndInstall) => {
     if (error) console.log(error)
