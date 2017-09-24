@@ -289,6 +289,31 @@ var Master = function (_EventEmitter) {
         return cb();
       }
     }
+  }, {
+    key: 'emitDesignChange',
+    value: function emitDesignChange(relpath) {
+      var assets = Asset.assetsToDirectoryStructure(this._knownDesigns);
+      var abspath = _path2.default.join(this.folder, relpath);
+      var extname = _path2.default.extname(relpath);
+      this.emit('design-change', relpath, assets);
+      if (this.proc.isOpen()) {
+        _LoggerInstance2.default.info('[master] asset changed', relpath);
+        this.proc.socket.send({
+          type: 'broadcast',
+          name: 'assets-changed',
+          folder: this.folder,
+          assets: assets,
+          relpath: relpath,
+          abspath: abspath
+        });
+        if (extname === '.svg') {
+          _LoggerInstance2.default.info('[master] merge design requested', relpath);
+          this.proc.socket.request({ type: 'action', method: 'mergeDesign', params: [this.folder, 'Default', 0, abspath] }, function () {
+            // TODO: Call rest after design merge finishes?
+          });
+        }
+      }
+    }
 
     // /**
     //  * watchers/handlers
@@ -305,24 +330,7 @@ var Master = function (_EventEmitter) {
 
       if (extname === '.sketch' || extname === '.svg') {
         this._knownDesigns[relpath] = { relpath: relpath, abspath: abspath, dtModified: Date.now() };
-
-        if (this.proc.isOpen()) {
-          this.proc.socket.send({
-            type: 'broadcast',
-            name: 'assets-changed',
-            folder: this.folder,
-            relpath: relpath,
-            abspath: abspath,
-            assets: Asset.assetsToDirectoryStructure(this._knownDesigns)
-          });
-
-          if (extname === '.svg') {
-            _LoggerInstance2.default.info('[master] merge design requested', relpath);
-            this.proc.socket.request({ type: 'action', method: 'mergeDesign', params: [this.folder, 'Default', 0, abspath] }, function () {
-              // TODO: Call rest after design merge finishes?
-            });
-          }
-        }
+        this.emitDesignChange(relpath);
       }
 
       return this.waitForSaveToComplete(function () {
@@ -363,17 +371,7 @@ var Master = function (_EventEmitter) {
 
       if (extname === '.sketch' || extname === '.svg') {
         this._knownDesigns[relpath] = { relpath: relpath, abspath: abspath, dtModified: Date.now() };
-
-        if (this.proc.isOpen()) {
-          this.proc.socket.send({
-            type: 'broadcast',
-            name: 'assets-changed',
-            folder: this.folder,
-            relpath: relpath,
-            abspath: abspath,
-            assets: Asset.assetsToDirectoryStructure(this._knownDesigns)
-          });
-        }
+        this.emitDesignChange(relpath);
       }
 
       return this.waitForSaveToComplete(function () {
@@ -411,17 +409,7 @@ var Master = function (_EventEmitter) {
 
       if (extname === '.sketch' || extname === '.svg') {
         delete this._knownDesigns[relpath];
-
-        if (this.proc.isOpen()) {
-          this.proc.socket.send({
-            type: 'broadcast',
-            name: 'assets-changed',
-            folder: this.folder,
-            relpath: relpath,
-            abspath: abspath,
-            assets: Asset.assetsToDirectoryStructure(this._knownDesigns)
-          });
-        }
+        this.emitDesignChange(relpath);
       }
 
       return this.waitForSaveToComplete(function () {
@@ -581,6 +569,7 @@ var Master = function (_EventEmitter) {
       var destination = _path2.default.join(this.folder, relpath);
       return _haikuFsExtra2.default.copy(abspath, destination, function (copyErr) {
         if (copyErr) return done(copyErr);
+        _this9._knownDesigns[relpath] = { relpath: relpath, abspath: destination, dtModified: Date.now() };
         return done(null, Asset.assetsToDirectoryStructure(_this9._knownDesigns));
       });
     }
@@ -596,6 +585,7 @@ var Master = function (_EventEmitter) {
       var abspath = _path2.default.join(this.folder, relpath);
       return _haikuFsExtra2.default.remove(abspath, function (removeErr) {
         if (removeErr) return done(removeErr);
+        delete _this10._knownDesigns[relpath];
         return done(null, Asset.assetsToDirectoryStructure(_this10._knownDesigns));
       });
     }

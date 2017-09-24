@@ -200,6 +200,30 @@ export default class Master extends EventEmitter {
     }
   }
 
+  emitDesignChange (relpath) {
+    const assets = Asset.assetsToDirectoryStructure(this._knownDesigns)
+    const abspath = path.join(this.folder, relpath)
+    const extname = path.extname(relpath)
+    this.emit('design-change', relpath, assets)
+    if (this.proc.isOpen()) {
+      logger.info('[master] asset changed', relpath)
+      this.proc.socket.send({
+        type: 'broadcast',
+        name: 'assets-changed',
+        folder: this.folder,
+        assets,
+        relpath,
+        abspath,
+      })
+      if (extname === '.svg') {
+        logger.info('[master] merge design requested', relpath)
+        this.proc.socket.request({ type: 'action', method: 'mergeDesign', params: [this.folder, 'Default', 0, abspath] }, () => {
+          // TODO: Call rest after design merge finishes?
+        })
+      }
+    }
+  }
+
   // /**
   //  * watchers/handlers
   //  * =================
@@ -211,24 +235,7 @@ export default class Master extends EventEmitter {
 
     if (extname === '.sketch' || extname === '.svg') {
       this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
-
-      if (this.proc.isOpen()) {
-        this.proc.socket.send({
-          type: 'broadcast',
-          name: 'assets-changed',
-          folder: this.folder,
-          relpath,
-          abspath,
-          assets: Asset.assetsToDirectoryStructure(this._knownDesigns)
-        })
-
-        if (extname === '.svg') {
-          logger.info('[master] merge design requested', relpath)
-          this.proc.socket.request({ type: 'action', method: 'mergeDesign', params: [this.folder, 'Default', 0, abspath] }, () => {
-            // TODO: Call rest after design merge finishes?
-          })
-        }
-      }
+      this.emitDesignChange(relpath)
     }
 
     return this.waitForSaveToComplete(() => {
@@ -266,17 +273,7 @@ export default class Master extends EventEmitter {
 
     if (extname === '.sketch' || extname === '.svg') {
       this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
-
-      if (this.proc.isOpen()) {
-        this.proc.socket.send({
-          type: 'broadcast',
-          name: 'assets-changed',
-          folder: this.folder,
-          relpath,
-          abspath,
-          assets: Asset.assetsToDirectoryStructure(this._knownDesigns)
-        })
-      }
+      this.emitDesignChange(relpath)
     }
 
     return this.waitForSaveToComplete(() => {
@@ -311,17 +308,7 @@ export default class Master extends EventEmitter {
 
     if (extname === '.sketch' || extname === '.svg') {
       delete this._knownDesigns[relpath]
-
-      if (this.proc.isOpen()) {
-        this.proc.socket.send({
-          type: 'broadcast',
-          name: 'assets-changed',
-          folder: this.folder,
-          relpath,
-          abspath,
-          assets: Asset.assetsToDirectoryStructure(this._knownDesigns)
-        })
-      }
+      this.emitDesignChange(relpath)
     }
 
     return this.waitForSaveToComplete(() => {
@@ -443,6 +430,7 @@ export default class Master extends EventEmitter {
     const destination = path.join(this.folder, relpath)
     return fse.copy(abspath, destination, (copyErr) => {
       if (copyErr) return done(copyErr)
+      this._knownDesigns[relpath] = { relpath, abspath: destination, dtModified: Date.now() }
       return done(null, Asset.assetsToDirectoryStructure(this._knownDesigns))
     })
   }
@@ -452,6 +440,7 @@ export default class Master extends EventEmitter {
     const abspath = path.join(this.folder, relpath)
     return fse.remove(abspath, (removeErr) => {
       if (removeErr) return done(removeErr)
+      delete this._knownDesigns[relpath]
       return done(null, Asset.assetsToDirectoryStructure(this._knownDesigns))
     })
   }

@@ -458,8 +458,8 @@ var Plumbing = function (_StateObject) {
         return cb(new Error('Timed out waiting for client ' + JSON.stringify(query) + ' of ' + folder + ' to connect'));
       }
 
-      // // // uncomment me for insight into why a request might not be making it
-      // console.log('awaiting', method, query)
+      // // uncomment me for insight into why a request might not be making it
+      // console.log('==== awaiting', method, query)
 
       // HACK: At the time of this writing, there is only "one" creator client, not one per folder.
       // So the method just get ssent to the one client (if available)
@@ -515,7 +515,7 @@ var Plumbing = function (_StateObject) {
         var data = JSON.stringify(message);
         return websocket.send(data);
       } else {
-        console.warn('[plumbing] websocket readyState was not open so we did not send message ' + (message.method || message.id));
+        _LoggerInstance2.default.info('[plumbing] websocket readyState was not open so we did not send message ' + (message.method || message.id));
         callback(); // Should this return an error or remain silent?
       }
     }
