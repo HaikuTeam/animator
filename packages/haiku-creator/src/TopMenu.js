@@ -23,39 +23,49 @@ class TopMenu extends EventEmitter {
       }
     ]
 
+    const mainMenuPieces = []
+
+    mainMenuPieces.push({
+      label: 'About Haiku',
+      click: () => {
+        shell.openExternal('https://www.haiku.ai/')
+      }
+    })
+    mainMenuPieces.push({
+      type: 'separator'
+    })
+
+    if (process.env.NODE_ENV !== 'production') {
+      mainMenuPieces.push({
+        label: 'Reload Haiku',
+        accelerator: 'CmdOrCtrl+R',
+        role: 'reload'
+      })
+    }
+
+    mainMenuPieces.push({
+      label: 'Minimize Haiku',
+      accelerator: 'CmdOrCtrl+M',
+      role: 'minimize'
+    })
+    mainMenuPieces.push({
+      label: 'Hide Haiku',
+      accelerator: 'CmdOrCtrl+H',
+      role: 'hide'
+    })
+    mainMenuPieces.push({
+      type: 'separator'
+    })
+    mainMenuPieces.push({
+      label: 'Quit Haiku',
+      accelerator: 'CmdOrCtrl+Q',
+      role: 'quit'
+    })
+
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       {
         label: app.getName(),
-        submenu: [
-          {
-            label: 'About Haiku',
-            click: () => {
-              shell.openExternal('https://www.haiku.ai/')
-            }
-          },
-          { type: 'separator' },
-          {
-            label: 'Reload Haiku',
-            accelerator: 'CmdOrCtrl+R',
-            role: 'reload'
-          },
-          {
-            label: 'Minimize Haiku',
-            accelerator: 'CmdOrCtrl+M',
-            role: 'minimize'
-          },
-          {
-            label: 'Hide Haiku',
-            accelerator: 'CmdOrCtrl+H',
-            role: 'hide'
-          },
-          { type: 'separator' },
-          {
-            label: 'Quit Haiku',
-            accelerator: 'CmdOrCtrl+Q',
-            role: 'quit'
-          }
-        ]
+        submenu: mainMenuPieces
       },
       {
         label: 'Project',
