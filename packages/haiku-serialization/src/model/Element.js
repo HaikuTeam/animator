@@ -562,25 +562,25 @@ function ElementModel (platform, component, metadata) {
   }
 
   Element.prototype.sendToBack = function () {
-    this.component.zMoveToBack([this.uid], this.component._currentTimelineName, this.component._currentTimelineTime, { from: 'glass' }, (err) => {
+    this.component.zMoveToBack([this.uid], this.component._currentTimelineName, 0, { from: 'glass' }, (err) => {
       if (err) return void (0)
     })
   }
 
   Element.prototype.bringToFront = function () {
-    this.component.zMoveToFront([this.uid], this.component._currentTimelineName, this.component._currentTimelineTime, { from: 'glass' }, (err) => {
+    this.component.zMoveToFront([this.uid], this.component._currentTimelineName, 0, { from: 'glass' }, (err) => {
       if (err) return void (0)
     })
   }
 
   Element.prototype.sendForward = function () {
-    this.component.zMoveForward([this.uid], this.component._currentTimelineName, this.component._currentTimelineTime, { from: 'glass' }, (err) => {
+    this.component.zMoveForward([this.uid], this.component._currentTimelineName, 0, { from: 'glass' }, (err) => {
       if (err) return void (0)
     })
   }
 
   Element.prototype.sendBackward = function () {
-    this.component.zMoveBackward([this.uid], this.component._currentTimelineName, this.component._currentTimelineTime, { from: 'glass' }, (err) => {
+    this.component.zMoveBackward([this.uid], this.component._currentTimelineName, 0, { from: 'glass' }, (err) => {
       if (err) return void (0)
     })
   }
