@@ -77,15 +77,43 @@ const optionalArcKeys = [ 'xAxisRotation', 'largeArcFlag', 'sweepFlag' ]
 
 const getCommands = d => d.match(validCommands)
 
-const getParams = d => d.split(validCommands)
-  .map(v => v.replace(/[0-9]+-/g, m => `${m.slice(0, -1)} -`))
-  .map(v => v.replace(/\.[0-9]+/g, m => `${m} `))
-  .map(v => v.trim())
-  .filter(v => v.length > 0)
-  .map(v => v.split(/[ ,]+/)
-    .map(parseFloat)
-    .filter(n => !isNaN(n))
-  )
+// const getParams = d => d.split(validCommands)
+//   .map(v => v.replace(/[0-9]+-/g, m => `${m.slice(0, -1)} -`))
+//   .map(v => v.replace(/\.[0-9]+/g, m => `${m} `))
+//   .map(v => v.trim())
+//   .filter(v => v.length > 0)
+//   .map(v => v.split(/[ ,]+/)
+//     .map(parseFloat)
+//     .filter(n => !isNaN(n))
+//   )
+
+const getParams = (d) => {
+  const segs = d.split(validCommands)
+    .map((v) => {
+      return v.replace(/[0-9]+(e[+-][0-9]+)?-/g, m => `${m.slice(0, -1)} -`)
+    })
+    .map((v) => {
+      return v.replace(/\.[0-9]+(e[+-][0-9]+)?/g, m => `${m} `)
+    })
+    .map((p) => {
+      return p.trim()
+    })
+    .filter((p) => {
+      return p.length > 0
+    })
+
+  const groups = segs.map((s) => {
+    return s.split(/[ ,]+/)
+      .map((n) => {
+        return parseFloat(n)
+      })
+      .filter((n) => {
+        return !isNaN(n)
+      })
+  })
+
+  return groups
+}
 
 const getPointsFromPath = ({ d }) => {
   const commands = getCommands(d)
