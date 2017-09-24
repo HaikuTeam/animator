@@ -206,11 +206,15 @@ function buildProjectContent(_ignoredLegacyArg, projectPath, projectName) {
     return location;
   }
 
+  var looksLikeBrandNewProject = false;
+
   try {
     _LoggerInstance2.default.info('[project folder] building project content', projectPath);
 
     if (!_haikuFsExtra2.default.existsSync(dir(HAIKU_CONFIG_FILE))) {
       _LoggerInstance2.default.info('[project folder] creating haiku config');
+
+      looksLikeBrandNewProject = true;
 
       _haikuFsExtra2.default.outputFileSync(dir(HAIKU_CONFIG_FILE), (0, _dedent2.default)(_templateObject, projectType, getSafeProjectName(projectPath, projectName)));
     }
@@ -220,6 +224,7 @@ function buildProjectContent(_ignoredLegacyArg, projectPath, projectName) {
 
     var projectSemverVersion = projectHaikuConfig.version || FALLBACK_SEMVER_VERSION;
     var projectNameSafe = getSafeProjectName(projectPath, projectHaikuConfig.name);
+    var projectNameSafeShort = projectNameSafe.slice(0, 20);
     var projectNameLowerCase = projectNameSafe.toLowerCase();
     var reactProjectName = 'React_' + projectNameSafe;
     var organizationName = projectOptions.organizationName || FALLBACK_ORG_NAME;
@@ -349,6 +354,13 @@ function buildProjectContent(_ignoredLegacyArg, projectPath, projectName) {
       // Other user data may have been written these, so don't overwrite if they're already present
       if (!_haikuFsExtra2.default.existsSync(dir('.haiku/comments.json'))) {
         _haikuFsExtra2.default.outputFileSync(dir('.haiku/comments.json'), (0, _dedent2.default)(_templateObject4));
+      }
+
+      // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
+      if (looksLikeBrandNewProject) {
+        if (!_haikuFsExtra2.default.existsSync(dir('designs/' + projectNameSafeShort + '.sketch'))) {
+          _haikuFsExtra2.default.copySync(_path2.default.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'), dir('designs/' + projectNameSafeShort + '.sketch'));
+        }
       }
 
       _haikuFsExtra2.default.outputFileSync(dir('README.md'), (0, _dedent2.default)(_templateObject5, projectNameSafe, projectNameSafe, projectNameSafe, npmPackageName, copyrightNotice));

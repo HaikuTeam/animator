@@ -213,7 +213,7 @@ export default class Master extends EventEmitter {
         folder: this.folder,
         assets,
         relpath,
-        abspath,
+        abspath
       })
       if (extname === '.svg') {
         logger.info('[master] merge design requested', relpath)

@@ -117,11 +117,15 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
     return location
   }
 
+  let looksLikeBrandNewProject = false
+
   try {
     logger.info('[project folder] building project content', projectPath)
 
     if (!fse.existsSync(dir(HAIKU_CONFIG_FILE))) {
       logger.info('[project folder] creating haiku config')
+
+      looksLikeBrandNewProject = true
 
       fse.outputFileSync(dir(HAIKU_CONFIG_FILE), dedent`
         module.exports = {
@@ -136,6 +140,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
 
     const projectSemverVersion = projectHaikuConfig.version || FALLBACK_SEMVER_VERSION
     const projectNameSafe = getSafeProjectName(projectPath, projectHaikuConfig.name)
+    const projectNameSafeShort = projectNameSafe.slice(0, 20)
     const projectNameLowerCase = projectNameSafe.toLowerCase()
     const reactProjectName = `React_${projectNameSafe}`
     const organizationName = projectOptions.organizationName || FALLBACK_ORG_NAME
@@ -306,6 +311,13 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
         fse.outputFileSync(dir('.haiku/comments.json'), dedent`
           []
         `)
+      }
+
+      // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
+      if (looksLikeBrandNewProject) {
+        if (!fse.existsSync(dir(`designs/${projectNameSafeShort}.sketch`))) {
+          fse.copySync(path.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'), dir(`designs/${projectNameSafeShort}.sketch`))
+        }
       }
 
       fse.outputFileSync(dir('README.md'), dedent`
