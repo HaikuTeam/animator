@@ -4,7 +4,7 @@ import Color from 'color'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { FadingCircle } from 'better-react-spinkit'
 import Palette from './Palette'
-import { LogoSVG, LoadingSpinnerSVG } from './Icons'
+import { LightIconSVG } from './Icons'
 
 const STYLES = {
   fullScreenCenterWrap: {
@@ -23,11 +23,31 @@ const STYLES = {
     transform: 'translate(-50%, -50%)'
   },
   tip: {
-    fontSize: 18
+    fontSize: 16,
+    backgroundColor: Palette.ROCK,
+    color: Palette.MEDIUM_COAL,
+    borderRadius: 5,
+    padding: '13px 30px',
+    marginTop: 50,
+    textAlign: 'left',
+    boxShadow: '0 22px 74px 0 rgba(0,14,14,0.46)',
+    display: 'flex',
+    alignItems: 'center'
   },
   pretip: {
-    fontStyle: 'itallic',
-    fontWeight: 'bold'
+    fontStyle: 'italic',
+    fontWeight: 'bold',
+    color: Palette.PINK,
+    marginRight: 14,
+    width: 161,
+    minWidth: 161,
+    borderRight: '1px solid rgba(128, 128, 128, 0.14)',
+    display: 'flex',
+    alignItems: 'center'
+  },
+  icon: {
+    marginRight: 9,
+    marginTop: 5
   },
   reticulator: {
     fontSize: 50
@@ -76,7 +96,11 @@ class ProjectLoader extends React.Component {
             {reticulations[0]}
           </div>
           <div style={STYLES.tip}>
-            <span style={STYLES.pretip}>Tip of the Load: </span> {tip}
+            <span style={STYLES.pretip}>
+              <span style={STYLES.icon}><LightIconSVG color={Palette.PINK} /></span>
+              Tip of the Load
+            </span>
+            <span style={STYLES.tipText}>{tip}</span>
           </div>
         </div>
       </div>
