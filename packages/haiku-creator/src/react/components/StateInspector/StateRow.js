@@ -113,6 +113,20 @@ class StateRow extends React.Component {
     })
   }
 
+  handleTabSwitch(event, side) {
+    if(event.keyCode === 9) {
+      event.preventDefault()
+
+      if (side === 'name') {
+        this.valueInput.focus()
+      }
+
+      if (side === 'value') {
+        this.nameInput.focus()
+      }
+    }
+  }
+
   handleChange (event, side) {
     if (event.keyCode === 27) { // esc key
       return this.setState({isEditing: false, didEscape: true})
@@ -263,17 +277,20 @@ class StateRow extends React.Component {
           : <div style={STYLES.stateWrapper}>
             <div style={[STYLES.col, STYLES.col2]}>
               <input key={`${this.props.stateName}-name`}
-                ref='name'
+                ref={(nameInput) => {this.nameInput = nameInput}}
                 style={[STYLES.pill, STYLES.input]}
                 defaultValue={this.props.stateName}
-                onKeyUp={(event) => this.handleChange(event, 'name')} />
+                onKeyUp={(event) => this.handleChange(event, 'name')}
+                onKeyDown={(event) => this.handleTabSwitch(event, 'name')}
+                autoFocus />
             </div>
             <div style={[STYLES.col, STYLES.col2]}>
               <input key={`${this.props.stateName}-value`}
-                ref='value'
+                ref={(valueInput) => {this.valueInput = valueInput}}
                 style={[STYLES.pill, STYLES.input, STYLES.input2]}
                 defaultValue={this.getEditableStateValue()}
-                onKeyUp={(event) => this.handleChange(event, 'value')} />
+                onKeyUp={(event) => this.handleChange(event, 'value')}
+                onKeyDown={(event) => this.handleTabSwitch(event, 'value')} />
               <span key={`${this.props.stateName}-menu`}
                 style={[
                   STYLES.stateMenu,
