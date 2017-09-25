@@ -246,6 +246,13 @@ class StateRow extends React.Component {
     }
   }
 
+  isValidColor (color) {
+    console.log("isValidColor", color)
+    const dummyElement = document.createElement('span')
+    dummyElement.backgroundColor = color
+    return dummyElement.backgroundColor === color
+  }
+
   render () {
     return (
       <form key={`${this.props.stateName}-state`}
@@ -254,6 +261,7 @@ class StateRow extends React.Component {
         onDoubleClick={() => this.setState({isEditing: true, didEscape: false})}>
         {!this.state.isEditing && !this.props.isNew
           ? <div style={STYLES.stateWrapper}>
+            {this.isValidColor(this.getDisplayableStateValue()) && <span style={{backgroundColor: this.getDisplayableStateValue(), width: 15, height: 15}}></span>}
             <div style={[STYLES.col, STYLES.col1]}>
               <span key={`${this.props.stateName}-name`}
                 style={[STYLES.pill, STYLES.pillName]}>
