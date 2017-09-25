@@ -93,7 +93,7 @@ export default class TourHandler implements Tour {
             component: "AddState",
             display: "right",
             offset: {top: 220, left: 50},
-            spotlightRadius: "default",
+            spotlightRadius: 800,
             waitUserAction: true,
         },
         {
