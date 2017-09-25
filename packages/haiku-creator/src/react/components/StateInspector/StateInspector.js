@@ -54,6 +54,7 @@ class StateInspector extends React.Component {
     super(props)
     this.upsertStateValue = this.upsertStateValue.bind(this)
     this.deleteStateValue = this.deleteStateValue.bind(this)
+    this.openNewStateForm = this.openNewStateForm.bind(this)
     this.closeNewStateForm = this.closeNewStateForm.bind(this)
     this.state = {
       statesData: null,
@@ -127,6 +128,12 @@ class StateInspector extends React.Component {
     })
   }
 
+  openNewStateForm () {
+    if (!this.state.addingNew) {
+      this.setState({addingNew: true})
+    }
+  }
+
   closeNewStateForm () {
     this.setState({addingNew: false})
   }
@@ -137,7 +144,7 @@ class StateInspector extends React.Component {
         <div style={STYLES.sectionHeader}>
           State Inspector
           <button id='add-state-button' style={STYLES.button}
-            onClick={() => this.setState({addingNew: true})}>
+            onClick={this.openNewStateForm}>
             +
           </button>
         </div>
