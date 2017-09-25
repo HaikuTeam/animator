@@ -168,7 +168,7 @@ class StateInspector extends React.Component {
                   upsertStateValue={this.upsertStateValue}
                   deleteStateValue={this.deleteStateValue} />
               )
-            })
+            }).reverse()
             : <div>LOADING...</div>
           }
         </div>
