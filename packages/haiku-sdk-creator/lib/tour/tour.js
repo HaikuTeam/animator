@@ -85,7 +85,7 @@ class TourHandler {
                 component: "AddState",
                 display: "right",
                 offset: { top: 220, left: 50 },
-                spotlightRadius: "default",
+                spotlightRadius: 800,
                 waitUserAction: true,
             },
             {
@@ -212,7 +212,7 @@ class TourHandler {
         this.requestWebviewCoordinates();
     }
     start(force) {
-        if (!HaikuHomeDir_1.didTakeTour() || force) {
+        if ((!HaikuHomeDir_1.didTakeTour() && !this.isActive) || force) {
             this.currentStep = 0;
             this.isActive = true;
             this.requestShowStep(Object.assign({}, this.states[this.currentStep]), { top: "40%", left: "50%" });
