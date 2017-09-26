@@ -18,6 +18,8 @@ class Tour extends React.Component {
       component: null,
       coordinates: null
     }
+
+    this.hasTriggeredTourRender = false
   }
 
   componentDidMount () {
@@ -33,9 +35,10 @@ class Tour extends React.Component {
     this.tourChannel.off('tour:requestFinish', this.hide)
   }
 
-  componentWillReceiveProps () {
-    if (this.props.startTourOnMount && this.hasNecessaryProject()) {
+  componentDidUpdate () {
+    if (this.props.startTourOnMount && this.hasNecessaryProject() && !this.hasTriggeredTourRender) {
       this.tourChannel.start()
+      this.hasTriggeredTourRender = true
       mixpanel.haikuTrack('tour', {state: 'started'})
     }
   }

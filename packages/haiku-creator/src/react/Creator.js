@@ -259,7 +259,7 @@ export default class Creator extends React.Component {
 
       window.addEventListener('resize', lodash.throttle(() => {
         // if (tourChannel.isTourActive()) {
-          tourChannel.notifyScreenResize()
+        tourChannel.notifyScreenResize()
         // }
       }), 300)
     })

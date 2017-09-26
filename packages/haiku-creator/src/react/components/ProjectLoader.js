@@ -61,36 +61,36 @@ const STYLES = {
 }
 
 const reticulations = [
-  "Bear with us while we set up your project. This can take several moments",
-  "Configuring version control system",
-  "Connecting to remote code repository",
-  "Checking for changes from other collaborators on your team",
-  "Syncing changes from Haiku Cloud",
-  "Merging changes",
-  "Loading your project files",
-  "Preparing your design files",
-  "Preparing your code files",
-  "Installing dependencies",
-  "Checking for Haiku Player updates",
-  "Watching your source files for changes",
-  "Initializing your component",
-  "Setting up the stage and timeline"
+  'Bear with us while we set up your project. This can take several moments',
+  'Configuring version control system',
+  'Connecting to remote code repository',
+  'Checking for changes from other collaborators on your team',
+  'Syncing changes from Haiku Cloud',
+  'Merging changes',
+  'Loading your project files',
+  'Preparing your design files',
+  'Preparing your code files',
+  'Installing dependencies',
+  'Checking for Haiku Player updates',
+  'Watching your source files for changes',
+  'Initializing your component',
+  'Setting up the stage and timeline'
 ]
 
 const tips = [
-  "Did you know? Every change you make in Haiku is tracked as a Git commit!",
-  "For a great bouncy animation effect, try Make Tween > Ease In Out > Elastic",
+  'Did you know? Every change you make in Haiku is tracked as a Git commit!',
+  'For a great bouncy animation effect, try Make Tween > Ease In Out > Elastic',
   "To animate along a curve, try using different easing curves for Position X and Position Y.  You'll be surprised what you can create!",
-  "Import any Sketch file, then drag and drop design elements on stage to animate",
+  'Import any Sketch file, then drag and drop design elements on stage to animate',
   "While you're designing in Sketch, remember to make slices of all the pieces you want to animate",
   "Did you know? Haiku is for engineers too. Your animation is plain ol' JavaScript code",
-  "When your animation is ready, click “Publish” to get code snippets for embedding"
+  'When your animation is ready, click “Publish” to get code snippets for embedding'
 ]
 
-const tip = tips[Math.floor(Math.random()*tips.length)]
+const tip = tips[Math.floor(Math.random() * tips.length)]
 
 class ProjectLoader extends React.Component {
-  constructor() {
+  constructor () {
     super()
 
     this.state = {
@@ -98,14 +98,14 @@ class ProjectLoader extends React.Component {
     }
   }
 
-  componentDidMount() {
+  componentDidMount () {
     this.incrementReticulator()
   }
 
   incrementReticulator () {
     setTimeout(() => {
       this.setState({retic: this.state.retic + 1}, () => {
-        if (this.state.retic != reticulations.length - 1) this.incrementReticulator()
+        if (this.state.retic !== reticulations.length - 1) this.incrementReticulator()
       })
     }, 5200)
   }
