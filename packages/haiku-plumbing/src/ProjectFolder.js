@@ -108,26 +108,46 @@ function npmActions (projectPath, projectDependencies, cb) {
   })
 }
 
-export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName, projectType = DEFAULT_PROJECT_TYPE, projectOptions, finish) {
-  function dir () {
-    var args = []
-    for (var i = 0; i < arguments.length; i++) args[i] = arguments[i]
-    var pieces = [projectPath].concat(args)
-    var location = path.join.apply(path, pieces)
-    return location
-  }
+function dir (folder) {
+  var args = []
+  for (var i = 0; i < arguments.length; i++) args[i] = arguments[i]
+  var pieces = [folder].concat(args)
+  var location = path.join.apply(path, pieces)
+  return location
+}
 
+export function getProjectHaikuConfig (folder) {
+  return require(dir(folder, HAIKU_CONFIG_FILE))
+}
+
+export function getProjectNameVariations (folder) {
+  const projectHaikuConfig = getProjectHaikuConfig(folder)
+  const projectNameSafe = getSafeProjectName(folder, projectHaikuConfig.name)
+  const projectNameSafeShort = projectNameSafe.slice(0, 20)
+  const projectNameLowerCase = projectNameSafe.toLowerCase()
+  const reactProjectName = `React_${projectNameSafe}`
+  const primaryAssetPath = `designs/${projectNameSafeShort}.sketch`
+  return {
+    projectNameSafe,
+    projectNameSafeShort,
+    projectNameLowerCase,
+    reactProjectName,
+    primaryAssetPath
+  }
+}
+
+export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName, projectType = DEFAULT_PROJECT_TYPE, projectOptions, finish) {
   let looksLikeBrandNewProject = false
 
   try {
     logger.info('[project folder] building project content', projectPath)
 
-    if (!fse.existsSync(dir(HAIKU_CONFIG_FILE))) {
+    if (!fse.existsSync(dir(projectPath, HAIKU_CONFIG_FILE))) {
       logger.info('[project folder] creating haiku config')
 
       looksLikeBrandNewProject = true
 
-      fse.outputFileSync(dir(HAIKU_CONFIG_FILE), dedent`
+      fse.outputFileSync(dir(projectPath, HAIKU_CONFIG_FILE), dedent`
         module.exports = {
           type: '${projectType}',
           name: '${getSafeProjectName(projectPath, projectName)}'
@@ -136,15 +156,20 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
     }
 
     // Reload from the user's config in case they overrode ours
-    const projectHaikuConfig = require(dir(HAIKU_CONFIG_FILE))
+    const projectHaikuConfig = getProjectHaikuConfig(projectPath)
 
     const projectSemverVersion = projectHaikuConfig.version || FALLBACK_SEMVER_VERSION
-    const projectNameSafe = getSafeProjectName(projectPath, projectHaikuConfig.name)
-    const projectNameSafeShort = projectNameSafe.slice(0, 20)
-    const projectNameLowerCase = projectNameSafe.toLowerCase()
-    const reactProjectName = `React_${projectNameSafe}`
+
+    const {
+      projectNameSafe,
+      projectNameLowerCase,
+      reactProjectName,
+      primaryAssetPath
+    } = getProjectNameVariations(projectPath)
+
     const organizationName = projectOptions.organizationName || FALLBACK_ORG_NAME
     const organizationNameLowerCase = organizationName.toLowerCase()
+
     const authorName = projectOptions.authorName || FALLBACK_AUTHOR_NAME
 
     // const nodeVersion = PLUMBING_PKG.engines.node
@@ -158,8 +183,8 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
     // const embedPlayerJavascriptPath = `https://code.haiku.ai/scripts/player/HaikuPlayer.${haikuPlayerVersion}.js`
     // const embedPlayerJavascriptMinPath = `https://code.haiku.ai/scripts/player/HaikuPlayer.${haikuPlayerVersion}.min.js`
 
-    if (!fse.existsSync(dir('package.json'))) {
-      fse.outputFileSync(dir('package.json'), dedent`
+    if (!fse.existsSync(dir(projectPath, 'package.json'))) {
+      fse.outputFileSync(dir(projectPath, 'package.json'), dedent`
         {
           "name": "${npmPackageName}",
           "version": "${projectSemverVersion}",
@@ -181,7 +206,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
     }
 
     // Fix up the contents of the package.json if they happen to be wrong, e.g., organization name not set correctly
-    let packageJson = fse.readJsonSync(dir('package.json'), { throws: false })
+    let packageJson = fse.readJsonSync(dir(projectPath, 'package.json'), { throws: false })
     if (!packageJson) return finish(new Error('package.json was found to be empty/unreadable'))
 
     // Note that we _don't_  want to set back to 'unknown' if it's already set
@@ -203,10 +228,10 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
     }
 
     // Write the file assuming we may have made a change in any of the conditions above
-    fse.writeJsonSync(dir('package.json'), packageJson, { spaces: 2 })
+    fse.writeJsonSync(dir(projectPath, 'package.json'), packageJson, { spaces: 2 })
 
     // Do npm stuff here since the following steps may require the installation to be complete first
-    let projectDependencies = require(dir('package.json')).dependencies
+    let projectDependencies = require(dir(projectPath, 'package.json')).dependencies
     return npmActions(projectPath, projectDependencies, (err) => {
       if (err) return finish(err)
 
@@ -220,10 +245,10 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
 
       logger.info('[project folder] creating folders')
 
-      fse.mkdirpSync(dir('.haiku'))
-      fse.mkdirpSync(dir('designs'))
-      fse.mkdirpSync(dir('code/main'))
-      fse.mkdirpSync(dir('public'))
+      fse.mkdirpSync(dir(projectPath, '.haiku'))
+      fse.mkdirpSync(dir(projectPath, 'designs'))
+      fse.mkdirpSync(dir(projectPath, 'code/main'))
+      fse.mkdirpSync(dir(projectPath, 'public'))
 
       logger.info('[project folder] moving/updating legacy files')
 
@@ -249,18 +274,18 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       }
       for (let formerFilePath in filesToMove) {
         let nextFilePath = filesToMove[formerFilePath]
-        if (fse.existsSync(dir(formerFilePath))) {
+        if (fse.existsSync(dir(projectPath, formerFilePath))) {
           // I guess there is no 'moveSync', and 'copySync' acts weird, so here it is imperatively:
-          let contentsToCopy = fse.readFileSync(dir(formerFilePath)).toString()
-          fse.outputFileSync(dir(nextFilePath), contentsToCopy)
-          fse.removeSync(dir(formerFilePath))
+          let contentsToCopy = fse.readFileSync(dir(projectPath, formerFilePath)).toString()
+          fse.outputFileSync(dir(projectPath, nextFilePath), contentsToCopy)
+          fse.removeSync(dir(projectPath, formerFilePath))
         }
         // Now fix any legacy content that may be present inside of the updated file, e.g. references
-        if (fse.existsSync(dir(nextFilePath))) {
-          let fileContents = fse.readFileSync(dir(nextFilePath)).toString()
+        if (fse.existsSync(dir(projectPath, nextFilePath))) {
+          let fileContents = fse.readFileSync(dir(projectPath, nextFilePath)).toString()
           fileContents.split('bytecode.js').join('code.js') // Respective to the code/main dir
           fileContents.split('interpreter.js').join('dom.js') // Respective to the code/main dir
-          fse.outputFileSync(dir(nextFilePath), fileContents)
+          fse.outputFileSync(dir(projectPath, nextFilePath), fileContents)
         }
       }
 
@@ -271,16 +296,16 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
         'index.standalone.html'
       ]
       filesToRemove.forEach((fileToRemove) => {
-        fse.removeSync(dir(fileToRemove))
+        fse.removeSync(dir(projectPath, fileToRemove))
       })
 
       logger.info('[project folder] creating files')
 
       // Only write these files if they don't exist yet; don't overwrite the user's own content
-      if (!fse.existsSync(dir('code/main/code.js'))) {
+      if (!fse.existsSync(dir(projectPath, 'code/main/code.js'))) {
         logger.info('[project folder] created main code file')
 
-        fse.outputFileSync(dir('code/main/code.js'), dedent`
+        fse.outputFileSync(dir(projectPath, 'code/main/code.js'), dedent`
           var Haiku = require('@haiku/player')
           module.exports = {
             metadata: {},
@@ -301,26 +326,26 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
         `)
       } else {
         // If the file already exists, we can run any migration steps we might want
-        FileModel.astmod(dir('code/main/code.js'), (ast) => {
+        FileModel.astmod(dir(projectPath, 'code/main/code.js'), (ast) => {
           normalizeBytecodeFile(ast)
         })
       }
 
       // Other user data may have been written these, so don't overwrite if they're already present
-      if (!fse.existsSync(dir('.haiku/comments.json'))) {
-        fse.outputFileSync(dir('.haiku/comments.json'), dedent`
+      if (!fse.existsSync(dir(projectPath, '.haiku/comments.json'))) {
+        fse.outputFileSync(dir(projectPath, '.haiku/comments.json'), dedent`
           []
         `)
       }
 
       // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
       if (looksLikeBrandNewProject) {
-        if (!fse.existsSync(dir(`designs/${projectNameSafeShort}.sketch`))) {
-          fse.copySync(path.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'), dir(`designs/${projectNameSafeShort}.sketch`))
+        if (!fse.existsSync(dir(projectPath, primaryAssetPath))) {
+          fse.copySync(path.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'), dir(projectPath, primaryAssetPath))
         }
       }
 
-      fse.outputFileSync(dir('README.md'), dedent`
+      fse.outputFileSync(dir(projectPath, 'README.md'), dedent`
         # ${projectNameSafe}
 
         This project was created with [Haiku](https://haiku.ai).
@@ -342,7 +367,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
         ${copyrightNotice}
       `)
 
-      fse.outputFileSync(dir('LICENSE.txt'), dedent`
+      fse.outputFileSync(dir(projectPath, 'LICENSE.txt'), dedent`
         ${autoGeneratedNotice}
         ${copyrightNotice}
       `)
@@ -351,17 +376,17 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       let standaloneName = `HaikuComponent_${organizationName}_${projectNameSafe}`
 
       // But a bunch of ancillary files we take full control of and overwrite despite what the user did
-      fse.outputFileSync(dir('index.js'), dedent`
+      fse.outputFileSync(dir(projectPath, 'index.js'), dedent`
         /** ${autoGeneratedNotice} */
         // By default, a DOM module is exported; see code/main/* for other options
         module.exports = require('./code/main/dom')
       `)
-      fse.outputFileSync(dir('react.js'), dedent`
+      fse.outputFileSync(dir(projectPath, 'react.js'), dedent`
         /** ${autoGeneratedNotice} */
         // By default, a react-dom module is exported; see code/main/* for other options
         module.exports = require('./code/main/react-dom')
       `)
-      fse.outputFileSync(dir('react-bare.js'), dedent`
+      fse.outputFileSync(dir(projectPath, 'react-bare.js'), dedent`
         /** ${autoGeneratedNotice} */
         // This only exports a React module into which a Haiku Player must be passed
         var React = require('react') // Installed as a peer dependency of '@haiku/player'
@@ -372,12 +397,12 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
         module.exports = ${reactProjectName}_Bare
       `)
 
-      fse.outputFileSync(dir('code/main/dom.js'), dedent`
+      fse.outputFileSync(dir(projectPath, 'code/main/dom.js'), dedent`
         /** ${autoGeneratedNotice} */
         var HaikuDOMAdapter = require('@haiku/player/dom')
         module.exports = HaikuDOMAdapter(require('./code'))
       `)
-      fse.outputFileSync(dir('code/main/dom-embed.js'), dedent`
+      fse.outputFileSync(dir(projectPath, 'code/main/dom-embed.js'), dedent`
         /** ${autoGeneratedNotice} */
         var code = require('./code')
         var adapter = window.HaikuPlayer && window.HaikuPlayer['${haikuPlayerVersion}']
@@ -400,11 +425,11 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
           module.exports = safety
         }
       `)
-      fse.outputFileSync(dir('code/main/dom-standalone.js'), dedent`
+      fse.outputFileSync(dir(projectPath, 'code/main/dom-standalone.js'), dedent`
         /** ${autoGeneratedNotice} */
         module.exports = require('./dom')
       `)
-      fse.outputFileSync(dir('code/main/react-dom.js'), dedent`
+      fse.outputFileSync(dir(projectPath, 'code/main/react-dom.js'), dedent`
         /** ${autoGeneratedNotice} */
         var React = require('react') // Installed as a peer dependency of '@haiku/player'
         var ReactDOM = require('react-dom') // Installed as a peer dependency of '@haiku/player'
@@ -414,7 +439,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
         module.exports = ${reactProjectName}
       `)
 
-      fse.outputFileSync(dir('preview.html'), dedent`
+      fse.outputFileSync(dir(projectPath, 'preview.html'), dedent`
         <!DOCTYPE html>
         <!-- ${autoGeneratedNotice} -->
         <html>
@@ -443,7 +468,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       `)
 
       // Should we try to merge these if the user made any changes?
-      fse.outputFileSync(dir('.gitignore'), dedent`
+      fse.outputFileSync(dir(projectPath, '.gitignore'), dedent`
         # ${autoGeneratedNotice}
         .DS_Store
         *.log
@@ -456,7 +481,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
         dist
         .env
       `)
-      fse.outputFileSync(dir('.npmignore'), dedent`
+      fse.outputFileSync(dir(projectPath, '.npmignore'), dedent`
         # ${autoGeneratedNotice}
         .DS_Store
         .git
@@ -469,7 +494,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
         .env
         .haiku
       `)
-      fse.outputFileSync(dir('.yarnignore'), dedent`
+      fse.outputFileSync(dir(projectPath, '.yarnignore'), dedent`
         # ${autoGeneratedNotice}
         .DS_Store
         .git
@@ -482,12 +507,12 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
         .env
         .haiku
       `)
-      fse.outputFileSync(dir('.npmrc'), dedent`
+      fse.outputFileSync(dir(projectPath, '.npmrc'), dedent`
         # ${autoGeneratedNotice}
         registry=https://registry.npmjs.org/
         @haiku:registry=https://reservoir.haiku.ai:8910/
       `)
-      fse.outputFileSync(dir('.yarnrc'), dedent`
+      fse.outputFileSync(dir(projectPath, '.yarnrc'), dedent`
         # ${autoGeneratedNotice}
         registry "https://registry.npmjs.org/"
         "@haiku:registry" "https://reservoir.haiku.ai:8910/"
@@ -502,24 +527,24 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       logger.info('[project folder] creating cdn bundles')
       return async.series([
         function (cb) {
-          let embedSource = fse.readFileSync(dir('code/main/dom-embed.js')).toString()
+          let embedSource = fse.readFileSync(dir(projectPath, 'code/main/dom-embed.js')).toString()
           logger.info('[project folder] browserifying code/main/dom-embed.js')
-          return Browserify.createBundle(dir('code/main'), embedSource, embedName, {}, (err, browserifiedContents) => {
+          return Browserify.createBundle(dir(projectPath, 'code/main'), embedSource, embedName, {}, (err, browserifiedContents) => {
             if (err) return cb(err)
             logger.info('[project folder] browserify succeeded for', embedName)
             let finalContent = `/** ${autoGeneratedNotice}\n${copyrightNotice}\n*/\n${browserifiedContents}`
-            fse.outputFileSync(dir('index.embed.js'), finalContent)
+            fse.outputFileSync(dir(projectPath, 'index.embed.js'), finalContent)
             return cb()
           })
         },
         function (cb) {
-          let standaloneSource = fse.readFileSync(dir('code/main/dom-standalone.js')).toString()
+          let standaloneSource = fse.readFileSync(dir(projectPath, 'code/main/dom-standalone.js')).toString()
           logger.info('[project folder] browserifying code/main/dom-standalone.js')
-          return Browserify.createBundle(dir('code/main'), standaloneSource, standaloneName, {}, (err, browserifiedContents) => {
+          return Browserify.createBundle(dir(projectPath, 'code/main'), standaloneSource, standaloneName, {}, (err, browserifiedContents) => {
             if (err) return cb(err)
             logger.info('[project folder] browserify succeeded for', standaloneName)
             let finalContent = `/** ${autoGeneratedNotice}\n${copyrightNotice}\n*/\n${browserifiedContents}`
-            fse.outputFileSync(dir('index.standalone.js'), finalContent)
+            fse.outputFileSync(dir(projectPath, 'index.standalone.js'), finalContent)
             return cb()
           })
         }

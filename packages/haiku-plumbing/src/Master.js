@@ -201,7 +201,7 @@ export default class Master extends EventEmitter {
   }
 
   emitDesignChange (relpath) {
-    const assets = Asset.assetsToDirectoryStructure(this._knownDesigns)
+    const assets = this.getAssetDirectoryInfo()
     const abspath = path.join(this.folder, relpath)
     const extname = path.extname(relpath)
     this.emit('design-change', relpath, assets)
@@ -413,7 +413,18 @@ export default class Master extends EventEmitter {
   }
 
   getAssets (done) {
-    return done(null, Asset.assetsToDirectoryStructure(this._knownDesigns))
+    return done(null, this.getAssetDirectoryInfo())
+  }
+
+  getAssetDirectoryInfo () {
+    const info = Asset.assetsToDirectoryStructure(this._knownDesigns)
+    const { primaryAssetPath } = ProjectFolder.getProjectNameVariations(this.folder)
+    info.forEach((asset) => {
+      if (asset.relpath && (path.normalize(asset.relpath) === primaryAssetPath)) {
+        asset.isPrimaryDesign = true
+      }
+    })
+    return info
   }
 
   fetchAssets (message, done) {
@@ -431,7 +442,7 @@ export default class Master extends EventEmitter {
     return fse.copy(abspath, destination, (copyErr) => {
       if (copyErr) return done(copyErr)
       this._knownDesigns[relpath] = { relpath, abspath: destination, dtModified: Date.now() }
-      return done(null, Asset.assetsToDirectoryStructure(this._knownDesigns))
+      return done(null, this.getAssetDirectoryInfo())
     })
   }
 
@@ -441,7 +452,7 @@ export default class Master extends EventEmitter {
     return fse.remove(abspath, (removeErr) => {
       if (removeErr) return done(removeErr)
       delete this._knownDesigns[relpath]
-      return done(null, Asset.assetsToDirectoryStructure(this._knownDesigns))
+      return done(null, this.getAssetDirectoryInfo())
     })
   }
 
