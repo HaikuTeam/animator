@@ -93,7 +93,7 @@ export default class TourHandler implements Tour {
             component: "AddState",
             display: "right",
             offset: {top: 220, left: 50},
-            spotlightRadius: "default",
+            spotlightRadius: 800,
             waitUserAction: true,
         },
         {
@@ -245,7 +245,7 @@ export default class TourHandler implements Tour {
     }
 
     start(force) {
-        if (!didTakeTour() || force) {
+        if ((!didTakeTour() && !this.isActive) || force) {
             this.currentStep = 0
             this.isActive = true
             this.requestShowStep({ ...this.states[this.currentStep] }, { top: "40%", left: "50%" })
