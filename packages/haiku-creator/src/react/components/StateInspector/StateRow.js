@@ -247,10 +247,22 @@ class StateRow extends React.Component {
   }
 
   isValidColor (color) {
-    console.log("isValidColor", color)
     const dummyElement = document.createElement('span')
-    dummyElement.backgroundColor = color
-    return dummyElement.backgroundColor === color
+    dummyElement.style.backgroundColor = color
+
+    return dummyElement.style.backgroundColor !== ''
+  }
+
+  generateColorCap () {
+    const maybeColor = this.getDisplayableStateValue()
+
+    if(this.isValidColor(maybeColor)) {
+      return {
+        borderRightWidth: 4,
+        borderRightColor: maybeColor,
+        borderRightStyle: 'solid'
+      }
+    }
   }
 
   render () {
@@ -261,7 +273,6 @@ class StateRow extends React.Component {
         onDoubleClick={() => this.setState({isEditing: true, didEscape: false})}>
         {!this.state.isEditing && !this.props.isNew
           ? <div style={STYLES.stateWrapper}>
-            {this.isValidColor(this.getDisplayableStateValue()) && <span style={{backgroundColor: this.getDisplayableStateValue(), width: 15, height: 15}}></span>}
             <div style={[STYLES.col, STYLES.col1]}>
               <span key={`${this.props.stateName}-name`}
                 style={[STYLES.pill, STYLES.pillName]}>
@@ -270,7 +281,7 @@ class StateRow extends React.Component {
             </div>
             <div style={[STYLES.col, STYLES.col2]}>
               <span key={`${this.props.stateName}-value`}
-                style={[STYLES.pill, STYLES.pillValue]}>
+                style={[STYLES.pill, STYLES.pillValue, this.generateColorCap()]}>
                 {this.getDisplayableStateValue()}
               </span>
               <span key={`${this.props.stateName}-menu`}
