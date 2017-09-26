@@ -53,6 +53,10 @@ Then run the unit tests in all of the code:
 
     $ yarn run test-all
 
+You might also want to run:
+
+    $ yarn run compile-all
+
 Assuming no lint errors or test failures, push your changes:
 
     $ git push
