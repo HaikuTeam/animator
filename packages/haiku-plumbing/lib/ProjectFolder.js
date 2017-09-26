@@ -27,6 +27,8 @@ exports.getSafeProjectName = getSafeProjectName;
 exports.getSafeOrgName = getSafeOrgName;
 exports.ensureProject = ensureProject;
 exports.ensureSpecificProject = ensureSpecificProject;
+exports.getProjectHaikuConfig = getProjectHaikuConfig;
+exports.getProjectNameVariations = getProjectNameVariations;
 exports.buildProjectContent = buildProjectContent;
 exports.semverBumpPackageJson = semverBumpPackageJson;
 
@@ -192,43 +194,66 @@ function npmActions(projectPath, projectDependencies, cb) {
   });
 }
 
+function dir() {
+  var args = [];
+  for (var i = 0; i < arguments.length; i++) {
+    args[i] = arguments[i];
+  }var location = _path2.default.join.apply(_path2.default, args);
+  return location;
+}
+
+function getProjectHaikuConfig(folder) {
+  return require(dir(folder, HAIKU_CONFIG_FILE));
+}
+
+function getProjectNameVariations(folder) {
+  var projectHaikuConfig = getProjectHaikuConfig(folder);
+  var projectNameSafe = getSafeProjectName(folder, projectHaikuConfig.name);
+  var projectNameSafeShort = projectNameSafe.slice(0, 20);
+  var projectNameLowerCase = projectNameSafe.toLowerCase();
+  var reactProjectName = 'React_' + projectNameSafe;
+  var primaryAssetPath = 'designs/' + projectNameSafeShort + '.sketch';
+  return {
+    projectNameSafe: projectNameSafe,
+    projectNameSafeShort: projectNameSafeShort,
+    projectNameLowerCase: projectNameLowerCase,
+    reactProjectName: reactProjectName,
+    primaryAssetPath: primaryAssetPath
+  };
+}
+
 function buildProjectContent(_ignoredLegacyArg, projectPath, projectName) {
   var projectType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : DEFAULT_PROJECT_TYPE;
   var projectOptions = arguments[4];
   var finish = arguments[5];
-
-  function dir() {
-    var args = [];
-    for (var i = 0; i < arguments.length; i++) {
-      args[i] = arguments[i];
-    }var pieces = [projectPath].concat(args);
-    var location = _path2.default.join.apply(_path2.default, pieces);
-    return location;
-  }
 
   var looksLikeBrandNewProject = false;
 
   try {
     _LoggerInstance2.default.info('[project folder] building project content', projectPath);
 
-    if (!_haikuFsExtra2.default.existsSync(dir(HAIKU_CONFIG_FILE))) {
+    if (!_haikuFsExtra2.default.existsSync(dir(projectPath, HAIKU_CONFIG_FILE))) {
       _LoggerInstance2.default.info('[project folder] creating haiku config');
 
       looksLikeBrandNewProject = true;
 
-      _haikuFsExtra2.default.outputFileSync(dir(HAIKU_CONFIG_FILE), (0, _dedent2.default)(_templateObject, projectType, getSafeProjectName(projectPath, projectName)));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, HAIKU_CONFIG_FILE), (0, _dedent2.default)(_templateObject, projectType, getSafeProjectName(projectPath, projectName)));
     }
 
     // Reload from the user's config in case they overrode ours
-    var projectHaikuConfig = require(dir(HAIKU_CONFIG_FILE));
+    var projectHaikuConfig = getProjectHaikuConfig(projectPath);
 
     var projectSemverVersion = projectHaikuConfig.version || FALLBACK_SEMVER_VERSION;
-    var projectNameSafe = getSafeProjectName(projectPath, projectHaikuConfig.name);
-    var projectNameSafeShort = projectNameSafe.slice(0, 20);
-    var projectNameLowerCase = projectNameSafe.toLowerCase();
-    var reactProjectName = 'React_' + projectNameSafe;
+
+    var _getProjectNameVariat = getProjectNameVariations(projectPath),
+        projectNameSafe = _getProjectNameVariat.projectNameSafe,
+        projectNameLowerCase = _getProjectNameVariat.projectNameLowerCase,
+        reactProjectName = _getProjectNameVariat.reactProjectName,
+        primaryAssetPath = _getProjectNameVariat.primaryAssetPath;
+
     var organizationName = projectOptions.organizationName || FALLBACK_ORG_NAME;
     var organizationNameLowerCase = organizationName.toLowerCase();
+
     var authorName = projectOptions.authorName || FALLBACK_AUTHOR_NAME;
 
     // const nodeVersion = PLUMBING_PKG.engines.node
@@ -242,12 +267,12 @@ function buildProjectContent(_ignoredLegacyArg, projectPath, projectName) {
     // const embedPlayerJavascriptPath = `https://code.haiku.ai/scripts/player/HaikuPlayer.${haikuPlayerVersion}.js`
     // const embedPlayerJavascriptMinPath = `https://code.haiku.ai/scripts/player/HaikuPlayer.${haikuPlayerVersion}.min.js`
 
-    if (!_haikuFsExtra2.default.existsSync(dir('package.json'))) {
-      _haikuFsExtra2.default.outputFileSync(dir('package.json'), (0, _dedent2.default)(_templateObject2, npmPackageName, projectSemverVersion, organizationName, projectNameSafe, authorName, haikuPlayerVersion));
+    if (!_haikuFsExtra2.default.existsSync(dir(projectPath, 'package.json'))) {
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'package.json'), (0, _dedent2.default)(_templateObject2, npmPackageName, projectSemverVersion, organizationName, projectNameSafe, authorName, haikuPlayerVersion));
     }
 
     // Fix up the contents of the package.json if they happen to be wrong, e.g., organization name not set correctly
-    var packageJson = _haikuFsExtra2.default.readJsonSync(dir('package.json'), { throws: false });
+    var packageJson = _haikuFsExtra2.default.readJsonSync(dir(projectPath, 'package.json'), { throws: false });
     if (!packageJson) return finish(new Error('package.json was found to be empty/unreadable'));
 
     // Note that we _don't_  want to set back to 'unknown' if it's already set
@@ -269,10 +294,10 @@ function buildProjectContent(_ignoredLegacyArg, projectPath, projectName) {
     }
 
     // Write the file assuming we may have made a change in any of the conditions above
-    _haikuFsExtra2.default.writeJsonSync(dir('package.json'), packageJson, { spaces: 2 });
+    _haikuFsExtra2.default.writeJsonSync(dir(projectPath, 'package.json'), packageJson, { spaces: 2 });
 
     // Do npm stuff here since the following steps may require the installation to be complete first
-    var projectDependencies = require(dir('package.json')).dependencies;
+    var projectDependencies = require(dir(projectPath, 'package.json')).dependencies;
     return npmActions(projectPath, projectDependencies, function (err) {
       if (err) return finish(err);
 
@@ -286,10 +311,10 @@ function buildProjectContent(_ignoredLegacyArg, projectPath, projectName) {
 
       _LoggerInstance2.default.info('[project folder] creating folders');
 
-      _haikuFsExtra2.default.mkdirpSync(dir('.haiku'));
-      _haikuFsExtra2.default.mkdirpSync(dir('designs'));
-      _haikuFsExtra2.default.mkdirpSync(dir('code/main'));
-      _haikuFsExtra2.default.mkdirpSync(dir('public'));
+      _haikuFsExtra2.default.mkdirpSync(dir(projectPath, '.haiku'));
+      _haikuFsExtra2.default.mkdirpSync(dir(projectPath, 'designs'));
+      _haikuFsExtra2.default.mkdirpSync(dir(projectPath, 'code/main'));
+      _haikuFsExtra2.default.mkdirpSync(dir(projectPath, 'public'));
 
       _LoggerInstance2.default.info('[project folder] moving/updating legacy files');
 
@@ -315,18 +340,18 @@ function buildProjectContent(_ignoredLegacyArg, projectPath, projectName) {
       };
       for (var formerFilePath in filesToMove) {
         var nextFilePath = filesToMove[formerFilePath];
-        if (_haikuFsExtra2.default.existsSync(dir(formerFilePath))) {
+        if (_haikuFsExtra2.default.existsSync(dir(projectPath, formerFilePath))) {
           // I guess there is no 'moveSync', and 'copySync' acts weird, so here it is imperatively:
-          var contentsToCopy = _haikuFsExtra2.default.readFileSync(dir(formerFilePath)).toString();
-          _haikuFsExtra2.default.outputFileSync(dir(nextFilePath), contentsToCopy);
-          _haikuFsExtra2.default.removeSync(dir(formerFilePath));
+          var contentsToCopy = _haikuFsExtra2.default.readFileSync(dir(projectPath, formerFilePath)).toString();
+          _haikuFsExtra2.default.outputFileSync(dir(projectPath, nextFilePath), contentsToCopy);
+          _haikuFsExtra2.default.removeSync(dir(projectPath, formerFilePath));
         }
         // Now fix any legacy content that may be present inside of the updated file, e.g. references
-        if (_haikuFsExtra2.default.existsSync(dir(nextFilePath))) {
-          var fileContents = _haikuFsExtra2.default.readFileSync(dir(nextFilePath)).toString();
+        if (_haikuFsExtra2.default.existsSync(dir(projectPath, nextFilePath))) {
+          var fileContents = _haikuFsExtra2.default.readFileSync(dir(projectPath, nextFilePath)).toString();
           fileContents.split('bytecode.js').join('code.js'); // Respective to the code/main dir
           fileContents.split('interpreter.js').join('dom.js'); // Respective to the code/main dir
-          _haikuFsExtra2.default.outputFileSync(dir(nextFilePath), fileContents);
+          _haikuFsExtra2.default.outputFileSync(dir(projectPath, nextFilePath), fileContents);
         }
       }
 
@@ -334,60 +359,60 @@ function buildProjectContent(_ignoredLegacyArg, projectPath, projectName) {
 
       var filesToRemove = ['index.embed.html', 'index.standalone.html'];
       filesToRemove.forEach(function (fileToRemove) {
-        _haikuFsExtra2.default.removeSync(dir(fileToRemove));
+        _haikuFsExtra2.default.removeSync(dir(projectPath, fileToRemove));
       });
 
       _LoggerInstance2.default.info('[project folder] creating files');
 
       // Only write these files if they don't exist yet; don't overwrite the user's own content
-      if (!_haikuFsExtra2.default.existsSync(dir('code/main/code.js'))) {
+      if (!_haikuFsExtra2.default.existsSync(dir(projectPath, 'code/main/code.js'))) {
         _LoggerInstance2.default.info('[project folder] created main code file');
 
-        _haikuFsExtra2.default.outputFileSync(dir('code/main/code.js'), (0, _dedent2.default)(_templateObject3));
+        _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'code/main/code.js'), (0, _dedent2.default)(_templateObject3));
       } else {
         // If the file already exists, we can run any migration steps we might want
-        _File2.default.astmod(dir('code/main/code.js'), function (ast) {
+        _File2.default.astmod(dir(projectPath, 'code/main/code.js'), function (ast) {
           (0, _normalizeBytecodeFile2.default)(ast);
         });
       }
 
       // Other user data may have been written these, so don't overwrite if they're already present
-      if (!_haikuFsExtra2.default.existsSync(dir('.haiku/comments.json'))) {
-        _haikuFsExtra2.default.outputFileSync(dir('.haiku/comments.json'), (0, _dedent2.default)(_templateObject4));
+      if (!_haikuFsExtra2.default.existsSync(dir(projectPath, '.haiku/comments.json'))) {
+        _haikuFsExtra2.default.outputFileSync(dir(projectPath, '.haiku/comments.json'), (0, _dedent2.default)(_templateObject4));
       }
 
       // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
       if (looksLikeBrandNewProject) {
-        if (!_haikuFsExtra2.default.existsSync(dir('designs/' + projectNameSafeShort + '.sketch'))) {
-          _haikuFsExtra2.default.copySync(_path2.default.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'), dir('designs/' + projectNameSafeShort + '.sketch'));
+        if (!_haikuFsExtra2.default.existsSync(dir(projectPath, primaryAssetPath))) {
+          _haikuFsExtra2.default.copySync(_path2.default.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'), dir(projectPath, primaryAssetPath));
         }
       }
 
-      _haikuFsExtra2.default.outputFileSync(dir('README.md'), (0, _dedent2.default)(_templateObject5, projectNameSafe, projectNameSafe, projectNameSafe, npmPackageName, copyrightNotice));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'README.md'), (0, _dedent2.default)(_templateObject5, projectNameSafe, projectNameSafe, projectNameSafe, npmPackageName, copyrightNotice));
 
-      _haikuFsExtra2.default.outputFileSync(dir('LICENSE.txt'), (0, _dedent2.default)(_templateObject6, autoGeneratedNotice, copyrightNotice));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'LICENSE.txt'), (0, _dedent2.default)(_templateObject6, autoGeneratedNotice, copyrightNotice));
 
       var embedName = 'HaikuComponentEmbed_' + organizationName + '_' + projectNameSafe;
       var standaloneName = 'HaikuComponent_' + organizationName + '_' + projectNameSafe;
 
       // But a bunch of ancillary files we take full control of and overwrite despite what the user did
-      _haikuFsExtra2.default.outputFileSync(dir('index.js'), (0, _dedent2.default)(_templateObject7, autoGeneratedNotice));
-      _haikuFsExtra2.default.outputFileSync(dir('react.js'), (0, _dedent2.default)(_templateObject8, autoGeneratedNotice));
-      _haikuFsExtra2.default.outputFileSync(dir('react-bare.js'), (0, _dedent2.default)(_templateObject9, autoGeneratedNotice, reactProjectName, reactProjectName, reactProjectName, reactProjectName, reactProjectName));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'index.js'), (0, _dedent2.default)(_templateObject7, autoGeneratedNotice));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'react.js'), (0, _dedent2.default)(_templateObject8, autoGeneratedNotice));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'react-bare.js'), (0, _dedent2.default)(_templateObject9, autoGeneratedNotice, reactProjectName, reactProjectName, reactProjectName, reactProjectName, reactProjectName));
 
-      _haikuFsExtra2.default.outputFileSync(dir('code/main/dom.js'), (0, _dedent2.default)(_templateObject10, autoGeneratedNotice));
-      _haikuFsExtra2.default.outputFileSync(dir('code/main/dom-embed.js'), (0, _dedent2.default)(_templateObject11, autoGeneratedNotice, haikuPlayerVersion, haikuPlayerVersion, haikuPlayerVersion, embedName));
-      _haikuFsExtra2.default.outputFileSync(dir('code/main/dom-standalone.js'), (0, _dedent2.default)(_templateObject12, autoGeneratedNotice));
-      _haikuFsExtra2.default.outputFileSync(dir('code/main/react-dom.js'), (0, _dedent2.default)(_templateObject13, autoGeneratedNotice, reactProjectName, reactProjectName, reactProjectName, reactProjectName, reactProjectName));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'code/main/dom.js'), (0, _dedent2.default)(_templateObject10, autoGeneratedNotice));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'code/main/dom-embed.js'), (0, _dedent2.default)(_templateObject11, autoGeneratedNotice, haikuPlayerVersion, haikuPlayerVersion, haikuPlayerVersion, embedName));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'code/main/dom-standalone.js'), (0, _dedent2.default)(_templateObject12, autoGeneratedNotice));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'code/main/react-dom.js'), (0, _dedent2.default)(_templateObject13, autoGeneratedNotice, reactProjectName, reactProjectName, reactProjectName, reactProjectName, reactProjectName));
 
-      _haikuFsExtra2.default.outputFileSync(dir('preview.html'), (0, _dedent2.default)(_templateObject14, autoGeneratedNotice, projectNameSafe, standaloneName));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'preview.html'), (0, _dedent2.default)(_templateObject14, autoGeneratedNotice, projectNameSafe, standaloneName));
 
       // Should we try to merge these if the user made any changes?
-      _haikuFsExtra2.default.outputFileSync(dir('.gitignore'), (0, _dedent2.default)(_templateObject15, autoGeneratedNotice));
-      _haikuFsExtra2.default.outputFileSync(dir('.npmignore'), (0, _dedent2.default)(_templateObject16, autoGeneratedNotice));
-      _haikuFsExtra2.default.outputFileSync(dir('.yarnignore'), (0, _dedent2.default)(_templateObject16, autoGeneratedNotice));
-      _haikuFsExtra2.default.outputFileSync(dir('.npmrc'), (0, _dedent2.default)(_templateObject17, autoGeneratedNotice));
-      _haikuFsExtra2.default.outputFileSync(dir('.yarnrc'), (0, _dedent2.default)(_templateObject18, autoGeneratedNotice));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, '.gitignore'), (0, _dedent2.default)(_templateObject15, autoGeneratedNotice));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, '.npmignore'), (0, _dedent2.default)(_templateObject16, autoGeneratedNotice));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, '.yarnignore'), (0, _dedent2.default)(_templateObject16, autoGeneratedNotice));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, '.npmrc'), (0, _dedent2.default)(_templateObject17, autoGeneratedNotice));
+      _haikuFsExtra2.default.outputFileSync(dir(projectPath, '.yarnrc'), (0, _dedent2.default)(_templateObject18, autoGeneratedNotice));
 
       // Let the user skip this heavy step optionally, e.g. when just initializing the project the first time
       if (projectOptions.skipCDNBundles) {
@@ -397,23 +422,23 @@ function buildProjectContent(_ignoredLegacyArg, projectPath, projectName) {
 
       _LoggerInstance2.default.info('[project folder] creating cdn bundles');
       return _async2.default.series([function (cb) {
-        var embedSource = _haikuFsExtra2.default.readFileSync(dir('code/main/dom-embed.js')).toString();
+        var embedSource = _haikuFsExtra2.default.readFileSync(dir(projectPath, 'code/main/dom-embed.js')).toString();
         _LoggerInstance2.default.info('[project folder] browserifying code/main/dom-embed.js');
-        return _Browserify2.default.createBundle(dir('code/main'), embedSource, embedName, {}, function (err, browserifiedContents) {
+        return _Browserify2.default.createBundle(dir(projectPath, 'code/main'), embedSource, embedName, {}, function (err, browserifiedContents) {
           if (err) return cb(err);
           _LoggerInstance2.default.info('[project folder] browserify succeeded for', embedName);
           var finalContent = '/** ' + autoGeneratedNotice + '\n' + copyrightNotice + '\n*/\n' + browserifiedContents;
-          _haikuFsExtra2.default.outputFileSync(dir('index.embed.js'), finalContent);
+          _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'index.embed.js'), finalContent);
           return cb();
         });
       }, function (cb) {
-        var standaloneSource = _haikuFsExtra2.default.readFileSync(dir('code/main/dom-standalone.js')).toString();
+        var standaloneSource = _haikuFsExtra2.default.readFileSync(dir(projectPath, 'code/main/dom-standalone.js')).toString();
         _LoggerInstance2.default.info('[project folder] browserifying code/main/dom-standalone.js');
-        return _Browserify2.default.createBundle(dir('code/main'), standaloneSource, standaloneName, {}, function (err, browserifiedContents) {
+        return _Browserify2.default.createBundle(dir(projectPath, 'code/main'), standaloneSource, standaloneName, {}, function (err, browserifiedContents) {
           if (err) return cb(err);
           _LoggerInstance2.default.info('[project folder] browserify succeeded for', standaloneName);
           var finalContent = '/** ' + autoGeneratedNotice + '\n' + copyrightNotice + '\n*/\n' + browserifiedContents;
-          _haikuFsExtra2.default.outputFileSync(dir('index.standalone.js'), finalContent);
+          _haikuFsExtra2.default.outputFileSync(dir(projectPath, 'index.standalone.js'), finalContent);
           return cb();
         });
       }], function (err, results) {

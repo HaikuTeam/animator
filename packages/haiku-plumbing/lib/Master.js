@@ -292,7 +292,7 @@ var Master = function (_EventEmitter) {
   }, {
     key: 'emitDesignChange',
     value: function emitDesignChange(relpath) {
-      var assets = Asset.assetsToDirectoryStructure(this._knownDesigns);
+      var assets = this.getAssetDirectoryInfo();
       var abspath = _path2.default.join(this.folder, relpath);
       var extname = _path2.default.extname(relpath);
       this.emit('design-change', relpath, assets);
@@ -545,7 +545,22 @@ var Master = function (_EventEmitter) {
   }, {
     key: 'getAssets',
     value: function getAssets(done) {
-      return done(null, Asset.assetsToDirectoryStructure(this._knownDesigns));
+      return done(null, this.getAssetDirectoryInfo());
+    }
+  }, {
+    key: 'getAssetDirectoryInfo',
+    value: function getAssetDirectoryInfo() {
+      var info = Asset.assetsToDirectoryStructure(this._knownDesigns);
+
+      var _ProjectFolder$getPro = ProjectFolder.getProjectNameVariations(this.folder),
+          primaryAssetPath = _ProjectFolder$getPro.primaryAssetPath;
+
+      info.forEach(function (asset) {
+        if (asset.relpath && _path2.default.normalize(asset.relpath) === primaryAssetPath) {
+          asset.isPrimaryDesign = true;
+        }
+      });
+      return info;
     }
   }, {
     key: 'fetchAssets',
@@ -570,7 +585,7 @@ var Master = function (_EventEmitter) {
       return _haikuFsExtra2.default.copy(abspath, destination, function (copyErr) {
         if (copyErr) return done(copyErr);
         _this9._knownDesigns[relpath] = { relpath: relpath, abspath: destination, dtModified: Date.now() };
-        return done(null, Asset.assetsToDirectoryStructure(_this9._knownDesigns));
+        return done(null, _this9.getAssetDirectoryInfo());
       });
     }
   }, {
@@ -586,7 +601,7 @@ var Master = function (_EventEmitter) {
       return _haikuFsExtra2.default.remove(abspath, function (removeErr) {
         if (removeErr) return done(removeErr);
         delete _this10._knownDesigns[relpath];
-        return done(null, Asset.assetsToDirectoryStructure(_this10._knownDesigns));
+        return done(null, _this10.getAssetDirectoryInfo());
       });
     }
   }, {
@@ -1039,7 +1054,10 @@ var Master = function (_EventEmitter) {
             userconfig: _this12._config.get('config'),
             websocket: {/* websocket */},
             platform: {/* window */},
-            envoy: _ProcessBase2.default.HAIKU.envoy || { host: process.env.ENVOY_HOST, port: process.env.ENVOY_PORT },
+            envoy: _ProcessBase2.default.HAIKU.envoy || {
+              host: process.env.ENVOY_HOST,
+              port: process.env.ENVOY_PORT
+            },
             file: {
               doShallowWorkOnly: false, // Must override the in-memory-only defaults
               skipDiffLogging: false // Must override the in-memory-only defaults

@@ -46,6 +46,7 @@ function assetsToDirectoryStructure(dict) {
     var exportFolder = Sketch.exportFolderPath(sketchRelpath);
     dir.push({
       type: 'sketch',
+      relpath: sketch.relpath,
       fileName: _path2.default.basename(sketchRelpath),
       artboards: {
         type: 'folder',
@@ -66,6 +67,7 @@ function assetsToDirectoryStructure(dict) {
   assets.forEach(function (asset) {
     dir.push({
       type: 'file',
+      relpath: asset.relpath,
       fileName: _path2.default.basename(asset.relpath),
       preview: asset.abspath,
       updateTime: asset.dtModified
@@ -82,6 +84,7 @@ function pullArtboardsFor(exportFolder, assets) {
       if (Sketch.looksLikeArtboard(relpath)) {
         assets.splice(index, 1);
         artboards.push({
+          relpath: relpath,
           fileName: basename,
           preview: asset.abspath,
           updateTime: asset.dtModified
@@ -99,6 +102,7 @@ function pullSlicesFor(exportFolder, assets) {
       if (Sketch.looksLikeSlice(relpath)) {
         assets.splice(index, 1);
         slices.push({
+          relpath: relpath,
           fileName: basename,
           preview: asset.abspath,
           updateTime: asset.dtModified
@@ -116,6 +120,7 @@ function pullPagesFor(exportFolder, assets) {
       if (Sketch.looksLikePage(relpath)) {
         assets.splice(index, 1);
         pages.push({
+          relpath: relpath,
           fileName: basename,
           preview: asset.abspath,
           updateTime: asset.dtModified

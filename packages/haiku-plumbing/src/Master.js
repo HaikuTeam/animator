@@ -753,7 +753,10 @@ export default class Master extends EventEmitter {
             userconfig: this._config.get('config'),
             websocket: {/* websocket */},
             platform: {/* window */},
-            envoy: ProcessBase.HAIKU.envoy || { host: process.env.ENVOY_HOST, port: process.env.ENVOY_PORT },
+            envoy: ProcessBase.HAIKU.envoy || {
+              host: process.env.ENVOY_HOST,
+              port: process.env.ENVOY_PORT
+            },
             file: {
               doShallowWorkOnly: false, // Must override the in-memory-only defaults
               skipDiffLogging: false // Must override the in-memory-only defaults

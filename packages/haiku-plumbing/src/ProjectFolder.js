@@ -108,11 +108,10 @@ function npmActions (projectPath, projectDependencies, cb) {
   })
 }
 
-function dir (folder) {
+function dir () {
   var args = []
   for (var i = 0; i < arguments.length; i++) args[i] = arguments[i]
-  var pieces = [folder].concat(args)
-  var location = path.join.apply(path, pieces)
+  var location = path.join.apply(path, args)
   return location
 }
 
