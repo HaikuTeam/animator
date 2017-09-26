@@ -70,6 +70,13 @@ const STYLES = {
     padding: 24,
     textAlign: 'center',
     fontStyle: 'italic'
+  },
+  primaryAssetText: {
+    color: Palette.COAL,
+    fontSize: 25,
+    padding: 24,
+    textAlign: 'center',
+    fontStyle: 'italic'
   }
 }
 
@@ -90,8 +97,7 @@ class LibraryDrawer extends React.Component {
       assets: [],
       previewImageTime: null,
       overDropTarget: false,
-      isLoading: false,
-      empty: false
+      isLoading: false
     }
   }
 
@@ -100,8 +106,7 @@ class LibraryDrawer extends React.Component {
     this.reloadAssetList()
     this.props.websocket.on('broadcast', ({ name, assets }) => {
       if (name === 'assets-changed') {
-        const empty = assets.length === 0
-        this.setState({ assets, empty })
+        this.setState({ assets })
       }
     })
   }
@@ -109,8 +114,7 @@ class LibraryDrawer extends React.Component {
   reloadAssetList () {
     return this.props.websocket.request({ method: 'listAssets', params: [this.props.folder] }, (error, assets) => {
       if (error) return this.setState({ error })
-      const empty = assets.length === 0
-      this.setState({ assets, empty })
+      this.setState({ assets })
       setTimeout(() => {
         this.setState({ isLoading: false })
       }, 1000)
@@ -152,8 +156,7 @@ class LibraryDrawer extends React.Component {
       return this.props.websocket.request({ method: 'linkAsset', params: [file.path, this.props.folder] }, (error, assets) => {
         if (error) return next(error)
         if (assets) {
-          const empty = assets.length === 0
-          this.setState({ assets, empty })
+          this.setState({ assets })
         }
         return next()
       })
@@ -163,38 +166,118 @@ class LibraryDrawer extends React.Component {
     })
   }
 
-  assetsList (currentAssets) {
+  getPrimaryAsset () {
+    if (!this.state.assets) return null
+    if (!this.state.assets.length < 1) return null
+    let primary
+    this.state.assets.forEach((asset) => {
+      if (asset.isPrimaryDesign) {
+        primary = asset
+      }
+    })
+    return primary
+  }
+
+  getOtherAssets () {
+    if (!this.state.assets) return []
+    if (!this.state.assets.length < 1) return []
+    let others = []
+    this.state.assets.forEach((asset) => {
+      if (!asset.isPrimaryDesign) {
+        others.push(asset)
+      }
+    })
+    return others
+  }
+
+  renderPrimaryAsset (asset) {
+    return this.renderAssetItem(asset, true)
+  }
+
+  renderPrimaryAssetHint (asset) {
     return (
-      (!currentAssets || currentAssets.length < 1)
-      ? (this.state.empty
-        ? <div style={STYLES.startText}>Import a Sketch or SVG file to start</div>
-        : <div />)
-      : <div>
-        {lodash.map(currentAssets, (file, index) => {
+      <div style={STYLES.primaryAssetText}>
+        Double click to open this file in Sketch.
+        Every slice and artboard will be synced here when you save.
+      </div>
+    )
+  }
+
+  renderAssetItem (asset, isPrimaryAsset) {
+    if (asset.type === 'sketch') {
+      return (
+        <CollapseItem
+          isPrimaryAsset={isPrimaryAsset}
+          key={asset.fileName}
+          file={asset}
+          folder={this.props.folder}
+          onDragEnd={this.props.onDragEnd}
+          onDragStart={this.props.onDragStart}
+          websocket={this.props.websocket}
+          instantiate={this.handleAssetInstantiation.bind(this, asset)} />
+      )
+    }
+
+    return (
+      <LibraryItem
+        key={asset.fileName}
+        preview={asset.preview}
+        fileName={asset.fileName}
+        onDragEnd={this.props.onDragEnd}
+        onDragStart={this.props.onDragStart}
+        updateTime={asset.updateTime}
+        websocket={this.props.websocket}
+        instantiate={this.handleAssetInstantiation.bind(this, asset)} />
+    )
+  }
+
+  renderOtherAssets (assets) {
+    return (
+      <div>
+        {lodash.map(assets, (file, index) => {
           return (
             <div key={`item-${file.fileName}-${index}`}>
-              {file.type !== 'sketch'
-                ? <LibraryItem
-                  key={file.fileName}
-                  preview={file.preview}
-                  fileName={file.fileName}
-                  onDragEnd={this.props.onDragEnd}
-                  onDragStart={this.props.onDragStart}
-                  updateTime={file.updateTime}
-                  websocket={this.props.websocket}
-                  instantiate={this.handleAssetInstantiation.bind(this, file)} />
-                : <CollapseItem
-                  key={file.fileName}
-                  file={file}
-                  folder={this.props.folder}
-                  onDragEnd={this.props.onDragEnd}
-                  onDragStart={this.props.onDragStart}
-                  websocket={this.props.websocket}
-                  instantiate={this.handleAssetInstantiation.bind(this, file)} />
-              }
+              {this.renderAssetItem(file)}
             </div>
           )
         })}
+      </div>
+    )
+  }
+
+  renderAssetsList () {
+    let primaryAsset = this.getPrimaryAsset()
+    let otherAssets = this.getOtherAssets()
+
+    if (!primaryAsset && otherAssets.length < 1) {
+      return (
+        <div style={STYLES.startText}>
+          Import a Sketch or SVG file to start
+        </div>
+      )
+    }
+
+    if (primaryAsset && otherAssets.length < 1) {
+      return (
+        <div>
+          {this.renderPrimaryAsset(primaryAsset)}
+          {this.renderPrimaryAssetHint(primaryAsset)}
+        </div>
+      )
+    }
+
+    if (!primaryAsset && otherAssets.length > 0) {
+      return (
+        <div>
+          {this.renderOtherAssets(otherAssets)}
+        </div>
+      )
+    }
+
+    return (
+      <div>
+        {this.renderPrimaryAsset(primaryAsset)}
+        {this.renderOtherAssets(otherAssets)}
       </div>
     )
   }
@@ -220,7 +303,7 @@ class LibraryDrawer extends React.Component {
           <div style={STYLES.assetsWrapper}>
             {this.state.isLoading
               ? ''
-              : this.assetsList(this.state.assets)}
+              : this.renderAssetsList()}
           </div>
         </div>
       </div>

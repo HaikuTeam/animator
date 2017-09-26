@@ -63,6 +63,44 @@ class CollapseItem extends React.Component {
     })
   }
 
+  doesAssetHaveAnyDescendants () {
+    if (this.props.collection && this.props.collection.length > 0) {
+      return true
+    }
+    if (this.props.file) {
+      if (this.props.file.artboards) {
+        if (this.props.file.artboards.collection.length > 0) {
+          return true
+        }
+      }
+      if (this.props.file.slices) {
+        if (this.props.file.slices.collection.length > 0) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  renderChevy () {
+    if (!this.doesAssetHaveAnyDescendants()) {
+      return <span style={STYLES.chevy} />
+    }
+    if (this.state.isOpened) {
+      return (
+        <span style={STYLES.chevy}>
+          <CollapseChevronDownSVG />
+        </span>
+      )
+    } else {
+      return (
+        <span style={STYLES.chevy}>
+          <CollapseChevronRightSVG />
+        </span>
+      )
+    }
+  }
+
   render () {
     const {isOpened} = this.state
     const {file} = this.props
@@ -120,9 +158,7 @@ class CollapseItem extends React.Component {
     return (
       <div style={STYLES.row}>
         <div onClick={this.handleCollapseToggle}>
-          <span style={STYLES.chevy} >
-            {this.state.isOpened ? <CollapseChevronDownSVG /> : <CollapseChevronRightSVG />}
-          </span>
+          {this.renderChevy()}
           {this.props.file
             ? <span key={`file-header-${file.fileName}`} style={STYLES.header}>
               <span onContextMenu={this.handleContextMenu.bind(this)} onDoubleClick={this.props.instantiate} style={STYLES.icon}>
