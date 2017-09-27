@@ -2,7 +2,7 @@ var fs = require('fs')
 var log = require('./log')
 var initializeAWSService = require('./initializeAWSService')
 var uploadObjectToS3 = require('./uploadObjectToS3')
-var DEPLOY_CONFIGS = require('./../../deploy')
+var DEPLOY_CONFIGS = require('./../deploy')
 
 module.exports = function uploadFileStream (sourcepath, destpath, region, deployer, env, bucket, acl, cb) {
   var config = DEPLOY_CONFIGS[deployer][env]
