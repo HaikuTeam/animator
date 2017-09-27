@@ -22,7 +22,8 @@
     "start": "electron ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
     "compile": "babel src --out-dir lib --source-maps inline",
-    "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy || true"
+    "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy || true",
+    "test": "tape \"test/**/*.test.js\" | tap-spec || true"
   },
   "dependencies": {
     "@haiku/player": "HaikuTeam/player.git",
@@ -64,6 +65,8 @@
     "babel-register": "6.24.0",
     "electron": "1.7.0",
     "snazzy": "6.0.0",
-    "standard": "8.6.0"
+    "standard": "8.6.0",
+    "tap-spec": "^4.1.1",
+    "tape": "^4.8.0"
   }
 }
