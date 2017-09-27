@@ -27,6 +27,7 @@
     "yarn-install": "node ./scripts/yarn-install.js",
     "yarn-link": "node ./scripts/yarn-link.js",
     "yarn-unlink": "node ./scripts/yarn-unlink.js",
+    "relink": "yarn run yarn-unlink && yarn run yarn-link",
     "compile-all": "node ./scripts/compile-all.js",
     "distro": "node ./scripts/distro.js"
   },
