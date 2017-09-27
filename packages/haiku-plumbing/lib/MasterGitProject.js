@@ -240,13 +240,7 @@ var MasterGitProject = function (_EventEmitter) {
         });
       }, function (cb) {
         return _this3.safeGitStatus({ log: false }, function (gitStatuses) {
-          if (gitStatuses) {
-            gitStatuses = gitStatuses.map(function (statusEntry) {
-              return statusEntry.status();
-            });
-          }
-          _this3._folderState.gitStatuses = gitStatuses;
-          _this3._folderState.doesGitHaveChanges = !!(gitStatuses && gitStatuses.length > 0);
+          _this3._folderState.doesGitHaveChanges = !!(gitStatuses && Object.keys(gitStatuses).length > 0);
           _this3._folderState.isGitInitialized = _haikuFsExtra2.default.existsSync(_path2.default.join(_this3.folder, '.git'));
           return cb();
         });
@@ -277,7 +271,7 @@ var MasterGitProject = function (_EventEmitter) {
   }, {
     key: 'safeGitStatus',
     value: function safeGitStatus(options, cb) {
-      return Git.status(this.folder, function (err, statuses) {
+      return Git.status(this.folder, options || {}, function (err, statuses) {
         if (options && options.log) {
           if (statuses) {
             Git.logStatuses(statuses);
@@ -285,10 +279,11 @@ var MasterGitProject = function (_EventEmitter) {
             _LoggerInstance2.default.info('[master-git] git status error:', err);
           }
         }
-
         // Note the inversion of the error-first style
         // This is a legacy implementation; I'm not sure why #TODO
-        if (err) return cb(null, err);
+        if (err) {
+          return cb(null, err);
+        }
         return cb(statuses);
       });
     }
@@ -921,7 +916,7 @@ var MasterGitProject = function (_EventEmitter) {
       var _this20 = this;
 
       return this.safeGitStatus({ log: true }, function (gitStatuses) {
-        var doesGitHaveChanges = gitStatuses && gitStatuses.length > 0;
+        var doesGitHaveChanges = gitStatuses && Object.keys(gitStatuses).length > 0;
         if (doesGitHaveChanges) {
           // Don't add garbage/empty commits if nothing changed
           return _this20.commitProject('.', message, cb);
@@ -952,19 +947,21 @@ var MasterGitProject = function (_EventEmitter) {
   }, {
     key: 'statusForFile',
     value: function statusForFile(relpath, cb) {
-      return this.safeGitStatus({ log: false }, function (gitStatuses) {
+      return this.safeGitStatus({ log: false, relpath: relpath }, function (gitStatuses) {
         var foundStatus = void 0;
 
         if (gitStatuses) {
-          gitStatuses.forEach(function (gitStatus) {
+          for (var key in gitStatuses) {
+            var gitStatus = gitStatuses[key];
+
             if (foundStatus) {
               return void 0;
             }
 
-            if (_path2.default.normalize(gitStatus.path()) === _path2.default.normalize(relpath)) {
+            if (_path2.default.normalize(gitStatus.path) === _path2.default.normalize(relpath)) {
               foundStatus = gitStatus;
             }
-          });
+          }
         }
 
         return cb(null, foundStatus);
@@ -978,7 +975,9 @@ var MasterGitProject = function (_EventEmitter) {
       return this.statusForFile(relpath, function (err, status) {
         if (err) return cb(err);
         if (!status) return cb(); // No status means no changes
-        if (status.isDeleted() || status.isModified() || status.isNew() || status.isRenamed() || status.isTypechange()) {
+        // 0 is UNMODIFIED, everything else is a change
+        // See http://www.nodegit.org/api/diff/#getDelta
+        if (status.num && status.num > 0) {
           return _this22.commitProject(relpath, message, cb);
         } else {
           return cb();

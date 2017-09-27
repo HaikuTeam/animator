@@ -367,9 +367,9 @@ export default class Master extends EventEmitter {
   }
 
   doesProjectHaveUnsavedChanges (message, cb) {
-    return Git.status(this.folder, (statusErr, statuses) => {
+    return Git.status(this.folder, {}, (statusErr, statusesDict) => {
       if (statusErr) return cb(statusErr)
-      if (statuses.length < 1) return cb(null, false)
+      if (Object.keys(statusesDict).length < 1) return cb(null, false)
       return cb(null, true)
     })
   }

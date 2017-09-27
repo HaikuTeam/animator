@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.open = open;
+exports.forceOpen = forceOpen;
 exports.init = init;
 exports.status = status;
 exports.hardReset = hardReset;
@@ -78,7 +79,23 @@ function globalExceptionCatcher(exception) {
   throw exception;
 }
 
+// Multiton for caching already-opened repos
+var REPOS = {};
+
 function open(pwd, cb) {
+  if (REPOS[pwd]) {
+    return cb(null, REPOS[pwd]);
+  }
+  return forceOpen(pwd, function (err, repository) {
+    if (err) return cb(err);
+    if (repository) {
+      REPOS[pwd] = repository;
+    }
+    return cb(null, REPOS[pwd]);
+  });
+}
+
+function forceOpen(pwd, cb) {
   return _nodegit.Repository.open(pwd).then(function (repository) {
     return cb(null, repository);
   }, cb).catch(globalExceptionCatcher);
@@ -91,14 +108,44 @@ function init(pwd, cb) {
   }, cb);
 }
 
-function status(pwd, cb) {
+function status(pwd, opts, cb) {
   return open(pwd, function (err, repository) {
     if (err) return cb(err);
-    return repository.getStatus().then(function (statuses) {
-      return cb(null, statuses);
+    return repository.refreshIndex().then(function (index) {
+      var diffOptions = {
+        flags: _nodegit.Diff.OPTION.SHOW_UNTRACKED_CONTENT | _nodegit.Diff.OPTION.RECURSE_UNTRACKED_DIRS
+      };
+      return _nodegit.Diff.indexToWorkdir(repository, index, diffOptions).then(function (diff) {
+        var changes = {};
+        for (var i = 0; i < diff.numDeltas(); i++) {
+          var delta = diff.getDelta(i);
+          var oldPath = delta.oldFile().path();
+          var newPath = delta.newFile().path();
+          var statusPath = oldPath || newPath;
+          changes[statusPath] = {
+            delta: i,
+            prev: oldPath,
+            path: statusPath,
+            num: delta.status()
+          };
+        }
+        return cb(null, changes);
+      }, cb);
     }, cb);
   });
 }
+
+// The repository.getStatus call would hang when called too many times in parallel,
+// regardless of attempting to cache the repository object, so we swapped this for
+// the algorithm above.
+// export function status (pwd, opts, cb) {
+//   return open(pwd, (err, repository) => {
+//     if (err) return cb(err)
+//     return repository.getStatus().then((statuses) => {
+//       return cb(null, statuses)
+//     })
+//   })
+// }
 
 function hardReset(pwd, targetRef, cb) {
   return open(pwd, function (err, repository) {
@@ -115,11 +162,11 @@ function hardReset(pwd, targetRef, cb) {
 }
 
 function removeUntrackedFiles(pwd, cb) {
-  return status(pwd, function (err, statuses) {
+  return status(pwd, function (err, statusesDict) {
     if (err) return cb(err);
-    if (statuses.length < 1) return cb();
-    return _async2.default.each(statuses, function (status, next) {
-      var abspath = _path2.default.join(pwd, status.path());
+    if (Object.keys(statusesDict).length < 1) return cb();
+    return _async2.default.each(statusesDict, function (statusItem, next) {
+      var abspath = _path2.default.join(pwd, statusItem.path);
       return _haikuFsExtra2.default.remove(abspath, function (err) {
         if (err) return next(err);
         return next();
@@ -729,18 +776,25 @@ function mergeProject(folder, projectName, partialBranchName) {
 }
 
 function logStatuses(statuses) {
-  statuses.forEach(function (status) {
-    _LoggerInstance2.default.info('[git] git status:' + status.path() + ' ' + statusToText(status));
-  });
+  for (var key in statuses) {
+    var _status = statuses[key];
+    _LoggerInstance2.default.info('[git] git status:' + _status.path + ' ' + statusToText(_status));
+  }
 }
 
 function statusToText(status) {
   var words = [];
-  if (status.isNew()) words.push('NEW');
-  if (status.isModified()) words.push('MODIFIED');
-  if (status.isTypechange()) words.push('TYPECHANGE');
-  if (status.isRenamed()) words.push('RENAMED');
-  if (status.isIgnored()) words.push('IGNORED');
+  if (status.num === _nodegit.Diff.DELTA.UNMODIFIED) words.push('UNMODIFIED');
+  if (status.num === _nodegit.Diff.DELTA.ADDED) words.push('ADDED');
+  if (status.num === _nodegit.Diff.DELTA.DELETED) words.push('DELETED');
+  if (status.num === _nodegit.Diff.DELTA.MODIFIED) words.push('MODIFIED');
+  if (status.num === _nodegit.Diff.DELTA.RENAMED) words.push('RENAMED');
+  if (status.num === _nodegit.Diff.DELTA.COPIED) words.push('COPIED');
+  if (status.num === _nodegit.Diff.DELTA.IGNORED) words.push('IGNORED');
+  if (status.num === _nodegit.Diff.DELTA.UNTRACKED) words.push('UNTRACKED');
+  if (status.num === _nodegit.Diff.DELTA.TYPECHANGE) words.push('TYPECHANGE');
+  if (status.num === _nodegit.Diff.DELTA.UNREADABLE) words.push('UNREADABLE');
+  if (status.num === _nodegit.Diff.DELTA.CONFLICTED) words.push('CONFLICTED');
   return words.join(' ');
 }
 

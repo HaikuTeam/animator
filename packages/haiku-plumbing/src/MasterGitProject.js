@@ -181,11 +181,7 @@ export default class MasterGitProject extends EventEmitter {
 
       (cb) => {
         return this.safeGitStatus({ log: false }, (gitStatuses) => {
-          if (gitStatuses) {
-            gitStatuses = gitStatuses.map((statusEntry) => statusEntry.status())
-          }
-          this._folderState.gitStatuses = gitStatuses
-          this._folderState.doesGitHaveChanges = !!(gitStatuses && gitStatuses.length > 0)
+          this._folderState.doesGitHaveChanges = !!(gitStatuses && Object.keys(gitStatuses).length > 0)
           this._folderState.isGitInitialized = fse.existsSync(path.join(this.folder, '.git'))
           return cb()
         })
@@ -220,7 +216,7 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   safeGitStatus (options, cb) {
-    return Git.status(this.folder, (err, statuses) => {
+    return Git.status(this.folder, options || {}, (err, statuses) => {
       if (options && options.log) {
         if (statuses) {
           Git.logStatuses(statuses)
@@ -228,10 +224,11 @@ export default class MasterGitProject extends EventEmitter {
           logger.info('[master-git] git status error:', err)
         }
       }
-
       // Note the inversion of the error-first style
       // This is a legacy implementation; I'm not sure why #TODO
-      if (err) return cb(null, err)
+      if (err) {
+        return cb(null, err)
+      }
       return cb(statuses)
     })
   }
@@ -799,7 +796,7 @@ export default class MasterGitProject extends EventEmitter {
 
   snapshotCommitProject (message, cb) {
     return this.safeGitStatus({ log: true }, (gitStatuses) => {
-      const doesGitHaveChanges = gitStatuses && gitStatuses.length > 0
+      const doesGitHaveChanges = gitStatuses && Object.keys(gitStatuses).length > 0
       if (doesGitHaveChanges) { // Don't add garbage/empty commits if nothing changed
         return this.commitProject('.', message, cb)
       }
@@ -825,19 +822,21 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   statusForFile (relpath, cb) {
-    return this.safeGitStatus({ log: false }, (gitStatuses) => {
+    return this.safeGitStatus({ log: false, relpath }, (gitStatuses) => {
       let foundStatus
 
       if (gitStatuses) {
-        gitStatuses.forEach((gitStatus) => {
+        for (let key in gitStatuses) {
+          let gitStatus = gitStatuses[key]
+
           if (foundStatus) {
             return void (0)
           }
 
-          if (path.normalize(gitStatus.path()) === path.normalize(relpath)) {
+          if (path.normalize(gitStatus.path) === path.normalize(relpath)) {
             foundStatus = gitStatus
           }
-        })
+        }
       }
 
       return cb(null, foundStatus)
@@ -848,12 +847,9 @@ export default class MasterGitProject extends EventEmitter {
     return this.statusForFile(relpath, (err, status) => {
       if (err) return cb(err)
       if (!status) return cb() // No status means no changes
-      if (
-        status.isDeleted() ||
-        status.isModified() ||
-        status.isNew() ||
-        status.isRenamed() ||
-        status.isTypechange()) {
+      // 0 is UNMODIFIED, everything else is a change
+      // See http://www.nodegit.org/api/diff/#getDelta
+      if (status.num && status.num > 0) {
         return this.commitProject(relpath, message, cb)
       } else {
         return cb()

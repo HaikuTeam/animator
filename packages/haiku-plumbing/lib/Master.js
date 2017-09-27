@@ -476,9 +476,9 @@ var Master = function (_EventEmitter) {
   }, {
     key: 'doesProjectHaveUnsavedChanges',
     value: function doesProjectHaveUnsavedChanges(message, cb) {
-      return Git.status(this.folder, function (statusErr, statuses) {
+      return Git.status(this.folder, {}, function (statusErr, statusesDict) {
         if (statusErr) return cb(statusErr);
-        if (statuses.length < 1) return cb(null, false);
+        if (Object.keys(statusesDict).length < 1) return cb(null, false);
         return cb(null, true);
       });
     }

@@ -39,6 +39,7 @@
     "babel-plugin-transform-react-display-name": "6.8.0",
     "babel-plugin-transform-react-jsx": "6.8.0",
     "babel-preset-es2015": "6.18.0",
+    "bluebird": "^3.0.5",
     "body-parser": "1.15.2",
     "browserify": "14.1.0",
     "browserify-transform-tools": "1.7.0",
