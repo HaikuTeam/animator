@@ -192,7 +192,7 @@ function uploadDistroApp () {
 
   // Reload the config with updated values to read from
   for (var key in require.cache) delete require.cache[key]
-  require('./config.js')
+  require('./../config.js')
 
   var environment = process.env.HAIKU_RELEASE_ENVIRONMENT
   var platform = process.env.HAIKU_RELEASE_PLATFORM
