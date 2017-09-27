@@ -1223,7 +1223,7 @@ function FileModel (config) {
         return File.awaitUnlock(abspath, cb)
       }
       return cb()
-    }, 64)
+    }, 0)
   }
 
   File.write = function write (folder, relpath, contents, cb) {
