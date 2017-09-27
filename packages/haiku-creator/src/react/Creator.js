@@ -252,7 +252,6 @@ export default class Creator extends React.Component {
 
         // Put it at the bottom of the event loop
         setTimeout(() => {
-          // tourChannel.notifyScreenResize()
           tourChannel.start(true)
         })
       })

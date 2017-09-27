@@ -299,5 +299,15 @@ export const DASH_STYLES = {
   noSelect: {
     WebkitUserSelect: 'none',
     cursor: 'default'
+  },
+  fullScreenCenterWrap: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Color(Palette.GRAY).fade(0.1),
+    zIndex: 6
   }
 }
