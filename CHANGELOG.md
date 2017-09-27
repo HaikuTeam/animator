@@ -1,6 +1,22 @@
 # Changelog
 
 
+## 2.3.6
+
+### Bug Fixes
+
+ * Syntax issue which uglify was choking on
+ * Reduce ipc messages by not doing screen size notification when tour isn't happening
+ * SVG path 'd' parsing lib wasn't accounting for exponentials
+ * disable dragging of collapsed segments
+ * Remove this attempt at caching which isn't UX ideal anywa
+ * Only show the tour if we see 'CheckProject' in the list
+
+### Features
+
+ * Start new projects out with a blank sketch file
+ * finish v0 project loader
+
 ## 2.3.4
 
 ### Bug Fixes

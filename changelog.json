@@ -2862,5 +2862,47 @@
       "label": "fix",
       "message": "Move methods into helpers and address issues with timeline playback past the max frame"
     }
+  },
+  "2.3.6": {
+    "26e193791523e04b9d28d6a389053b9ff5c6e686": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Syntax issue which uglify was choking on"
+    },
+    "646ca4059ef7da46103972ba39f100af555b51df": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Start new projects out with a blank sketch file"
+    },
+    "35f37ed80505fc146a9693cca70a9495db64f92e": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Reduce ipc messages by not doing screen size notification when tour isn't happening"
+    },
+    "758b072c0e7889dbc9572808aab33dcf7e251238": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "SVG path 'd' parsing lib wasn't accounting for exponentials"
+    },
+    "89d7ba45ba4abbf2b0739533c38289eec5ef0d2e": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "finish v0 project loader"
+    },
+    "4be6f9b40090cab8ba2b1e610fe9b2ec6c78dbf9": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "disable dragging of collapsed segments"
+    },
+    "13e797fa29f2ce4c9b2d476b1d1343d192d26306": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Remove this attempt at caching which isn't UX ideal anywa"
+    },
+    "da5159c7b4b28f8bf22ed296f75708e66e3bc3be": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Only show the tour if we see 'CheckProject' in the list"
+    }
   }
 }
