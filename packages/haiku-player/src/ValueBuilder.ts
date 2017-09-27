@@ -478,16 +478,6 @@ INJECTABLES["$flow"] = {
       data: "any", // alias for value
       payload: "any", // alias for payload
     },
-    if: {
-      value: "any",
-      data: "any", // alias for value
-      payload: "any", // alias for payload
-    },
-    yield: {
-      value: "any",
-      data: "any", // alias for value
-      payload: "any", // alias for payload
-    },
     placeholder: {
       node: "any", // The injected element?
     },
@@ -496,6 +486,18 @@ INJECTABLES["$flow"] = {
     // if (!injectees.$flow) injectees.$flow = {}
     // var out = injectees.$flow
   },
+}
+
+INJECTABLES["$flow"]["schema"]["if"] = {
+  value: "any",
+  data: "any", // alias for value
+  payload: "any", // alias for payload
+}
+
+INJECTABLES["$flow"]["schema"]["yield"] = {
+  value: "any",
+  data: "any", // alias for value
+  payload: "any", // alias for payload
 }
 
 INJECTABLES["$helpers"] = {
