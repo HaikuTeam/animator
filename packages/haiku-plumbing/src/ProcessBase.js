@@ -6,6 +6,8 @@ import WebsocketClient from 'haiku-websockets/lib/WebsocketClient'
 import envInfo from './envInfo'
 import haikuInfo from './haikuInfo'
 
+// require('njstrace').inject()
+
 const killables = []
 function killall () {
   killables.forEach((killable) => {

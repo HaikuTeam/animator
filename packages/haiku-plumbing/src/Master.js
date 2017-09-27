@@ -2,6 +2,7 @@ import { EventEmitter } from 'events'
 import fse from 'haiku-fs-extra'
 import path from 'path'
 import async from 'async'
+import { debounce } from 'lodash'
 import walkFiles from 'haiku-serialization/src/utils/walkFiles'
 import ActiveComponent from 'haiku-serialization/src/model/ActiveComponent'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
@@ -33,7 +34,7 @@ const FORBIDDEN_METHODS = {
 }
 
 const METHOD_QUEUE_INTERVAL = 64
-const SAVE_AWAIT_TIME = 64 * 2
+const SAVE_AWAIT_TIME = 64 * 8
 
 const WATCHABLE_EXTNAMES = {
   '.js': true,
@@ -90,8 +91,13 @@ export default class Master extends EventEmitter {
     this.proc = new ProcessBase('master') // 'master' is not a branch name in this context
 
     this.proc.socket.on('close', () => {
+      logger.info('[master] !!! socket closed')
       this.teardown()
       this.emit('host-disconnected')
+    })
+
+    this.proc.socket.on('error', (err) => {
+      logger.info('[master] !!! socket error', err)
     })
 
     this.proc.on('request', (message, cb) => {
@@ -149,6 +155,9 @@ export default class Master extends EventEmitter {
 
     // Saving takes a while and we use this flag to avoid overlapping saves
     this._isSaving = false
+
+    // We end up oversaturating the sockets unless we debounce this
+    this.debouncedEmitAssetsChanged = debounce(this.emitAssetsChanged.bind(this), 500, { trailing: true })
   }
 
   teardown () {
@@ -202,21 +211,23 @@ export default class Master extends EventEmitter {
     }
   }
 
+  emitAssetsChanged (assets) {
+    return this.proc.socket.send({
+      type: 'broadcast',
+      name: 'assets-changed',
+      folder: this.folder,
+      assets
+    })
+  }
+
   emitDesignChange (relpath) {
     const assets = this.getAssetDirectoryInfo()
     const abspath = path.join(this.folder, relpath)
     const extname = path.extname(relpath)
+    logger.info('[master] asset changed', relpath)
     this.emit('design-change', relpath, assets)
     if (this.proc.isOpen()) {
-      logger.info('[master] asset changed', relpath)
-      this.proc.socket.send({
-        type: 'broadcast',
-        name: 'assets-changed',
-        folder: this.folder,
-        assets,
-        relpath,
-        abspath
-      })
+      this.debouncedEmitAssetsChanged(assets)
       if (extname === '.svg') {
         logger.info('[master] merge design requested', relpath)
         this.proc.socket.request({ type: 'action', method: 'mergeDesign', params: [this.folder, 'Default', 0, abspath] }, () => {

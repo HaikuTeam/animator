@@ -22,6 +22,8 @@ var _async = require('async');
 
 var _async2 = _interopRequireDefault(_async);
 
+var _lodash = require('lodash');
+
 var _walkFiles = require('haiku-serialization/src/utils/walkFiles');
 
 var _walkFiles2 = _interopRequireDefault(_walkFiles);
@@ -98,7 +100,7 @@ var FORBIDDEN_METHODS = {
 };
 
 var METHOD_QUEUE_INTERVAL = 64;
-var SAVE_AWAIT_TIME = 64 * 2;
+var SAVE_AWAIT_TIME = 64 * 8;
 
 var WATCHABLE_EXTNAMES = {
   '.js': true,
@@ -159,8 +161,13 @@ var Master = function (_EventEmitter) {
     _this.proc = new _ProcessBase2.default('master'); // 'master' is not a branch name in this context
 
     _this.proc.socket.on('close', function () {
+      _LoggerInstance2.default.info('[master] !!! socket closed');
       _this.teardown();
       _this.emit('host-disconnected');
+    });
+
+    _this.proc.socket.on('error', function (err) {
+      _LoggerInstance2.default.info('[master] !!! socket error', err);
     });
 
     _this.proc.on('request', function (message, cb) {
@@ -222,6 +229,9 @@ var Master = function (_EventEmitter) {
 
     // Saving takes a while and we use this flag to avoid overlapping saves
     _this._isSaving = false;
+
+    // We end up oversaturating the sockets unless we debounce this
+    _this.debouncedEmitAssetsChanged = (0, _lodash.debounce)(_this.emitAssetsChanged.bind(_this), 500, { trailing: true });
     return _this;
   }
 
@@ -292,22 +302,25 @@ var Master = function (_EventEmitter) {
       }
     }
   }, {
+    key: 'emitAssetsChanged',
+    value: function emitAssetsChanged(assets) {
+      return this.proc.socket.send({
+        type: 'broadcast',
+        name: 'assets-changed',
+        folder: this.folder,
+        assets: assets
+      });
+    }
+  }, {
     key: 'emitDesignChange',
     value: function emitDesignChange(relpath) {
       var assets = this.getAssetDirectoryInfo();
       var abspath = _path2.default.join(this.folder, relpath);
       var extname = _path2.default.extname(relpath);
+      _LoggerInstance2.default.info('[master] asset changed', relpath);
       this.emit('design-change', relpath, assets);
       if (this.proc.isOpen()) {
-        _LoggerInstance2.default.info('[master] asset changed', relpath);
-        this.proc.socket.send({
-          type: 'broadcast',
-          name: 'assets-changed',
-          folder: this.folder,
-          assets: assets,
-          relpath: relpath,
-          abspath: abspath
-        });
+        this.debouncedEmitAssetsChanged(assets);
         if (extname === '.svg') {
           _LoggerInstance2.default.info('[master] merge design requested', relpath);
           this.proc.socket.request({ type: 'action', method: 'mergeDesign', params: [this.folder, 'Default', 0, abspath] }, function () {
