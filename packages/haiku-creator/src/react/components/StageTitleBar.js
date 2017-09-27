@@ -238,7 +238,7 @@ class StageTitleBar extends React.Component {
           })
         }
       })
-    }, 64 * 4)
+    }, 1000)
 
     ipcRenderer.on('global-menu:save', () => {
       this.handleSaveSnapshotClick()
