@@ -3,10 +3,6 @@ import qs from 'qs'
 import assign from 'lodash.assign'
 import path from 'path'
 import Palette from './Palette'
-import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
-
-const clientFactory = new EnvoyClient()
-const tourClient = clientFactory.get('/tour')
 
 export default class Timeline extends React.Component {
   constructor (props) {
@@ -18,15 +14,18 @@ export default class Timeline extends React.Component {
   componentDidMount () {
     this.injectWebview()
 
-    tourClient.then((client) => {
-      client.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this, client))
-      // window.addEventListener('resize', debounce(this.onRequestWebViewData.bind(this), 64))
-    })
+    const tourChannel = this.props.envoy.get('tour')
+
+    if (!this.props.envoy.isInMockMode()) {
+      tourChannel.then((tourChannel) => {
+        tourChannel.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this, tourChannel))
+      })
+    }
   }
 
-  onRequestWebviewCoordinates(client) {
+  onRequestWebviewCoordinates (tourChannel) {
     let { top, left } = this.webview.getBoundingClientRect()
-    client.receiveWebviewCoordinates('timeline', { top, left })
+    tourChannel.receiveWebviewCoordinates('timeline', { top, left })
   }
 
   injectWebview () {
@@ -35,7 +34,10 @@ export default class Timeline extends React.Component {
     const query = qs.stringify(assign({}, this.props.haiku, {
       plumbing: this.props.haiku.plumbing.url,
       folder: this.props.folder,
-      envoy: this.props.envoy
+      envoy: {
+        host: this.props.envoy.getOption('host'),
+        port: this.props.envoy.getOption('port')
+      }
     }))
 
     // When building a distribution (see 'distro' repo) the node_modules folder is at a different level #FIXME matthew

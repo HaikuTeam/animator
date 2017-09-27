@@ -40,6 +40,7 @@ class CollapseItem extends React.Component {
     }
 
     this.handleCollapseToggle = this.handleCollapseToggle.bind(this)
+    this.handleSketchDoubleClick = this.handleSketchDoubleClick.bind(this)
   }
 
   handleCollapseToggle () {
@@ -64,8 +65,8 @@ class CollapseItem extends React.Component {
   }
 
   handleSketchDoubleClick () {
-    var abspath = path.join(this.props.folder, 'designs', this.props.file.fileName)
-    shell.openItem(abspath)
+    this.props.instantiate()
+    this.props.tourChannel.next()
   }
 
   render () {
@@ -82,7 +83,6 @@ class CollapseItem extends React.Component {
           changePreview={this.props.changePreview}
           onDragEnd={this.props.onDragEnd}
           onDragStart={this.props.onDragStart}
-          toggleLibAssetDraggingState={this.props.toggleLibAssetDraggingState}
           websocket={this.props.websocket}
           instantiate={this.props.instantiate}
         />
@@ -98,7 +98,6 @@ class CollapseItem extends React.Component {
           changePreview={this.props.changePreview}
           onDragEnd={this.props.onDragEnd}
           onDragStart={this.props.onDragStart}
-          toggleLibAssetDraggingState={this.props.toggleLibAssetDraggingState}
           websocket={this.props.websocket}
           instantiate={this.props.instantiate}
         />
@@ -118,7 +117,6 @@ class CollapseItem extends React.Component {
             updateTime={file.updateTime}
             websocket={this.props.websocket}
             changePreview={this.props.changePreview}
-            toggleLibAssetDraggingState={this.props.toggleLibAssetDraggingState}
             instantiate={this.props.instantiate}
           />
         )
@@ -133,10 +131,10 @@ class CollapseItem extends React.Component {
           </span>
           {this.props.file
             ? <span key={`file-header-${file.fileName}`} style={STYLES.header}>
-              <span onContextMenu={this.handleContextMenu.bind(this)} onDoubleClick={this.handleSketchDoubleClick.bind(this)} style={STYLES.icon}>
+              <span onContextMenu={this.handleContextMenu.bind(this)} onDoubleClick={this.handleSketchDoubleClick} style={STYLES.icon}>
                 <SketchIconSVG style='' color={Radium.getState(this.state, `file-header-${file.fileName}`, ':hover') ? Palette.ORANGE : Palette.DARKER_ROCK} />
               </span>
-              <span onContextMenu={this.handleContextMenu.bind(this)} onDoubleClick={this.handleSketchDoubleClick.bind(this)}>{this.props.file.fileName}</span>
+              <span onContextMenu={this.handleContextMenu.bind(this)} onDoubleClick={this.handleSketchDoubleClick}>{this.props.file.fileName}</span>
             </span>
             : <span><span style={STYLES.icon}><FolderIconSVG /></span>{this.props.name}</span>
           }

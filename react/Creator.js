@@ -29,7 +29,6 @@ const electron = require('electron')
 const remote = electron.remote
 const ipcRenderer = electron.ipcRenderer
 const clipboard = electron.clipboard
-const clientFactory = new EnvoyClient()
 
 var webFrame = electron.webFrame
 if (webFrame) {
@@ -48,6 +47,8 @@ export default class Creator extends React.Component {
     this.createNotice = this.createNotice.bind(this)
     this.renderNotifications = this.renderNotifications.bind(this)
     this.receiveProjectInfo = this.receiveProjectInfo.bind(this)
+    this.handleFindElementCoordinates = this.handleFindElementCoordinates.bind(this)
+    this.handleFindWebviewCoordinates = this.handleFindWebviewCoordinates.bind(this)
     this.layout = new EventEmitter()
 
     this.state = {
@@ -64,7 +65,8 @@ export default class Creator extends React.Component {
       notices: [],
       softwareVersion: require('./../package.json').version,
       didPlumbingNoticeCrash: false,
-      activeNav: 'library'
+      activeNav: 'library',
+      projectsList: []
     }
 
     const win = remote.getCurrentWindow()
@@ -229,24 +231,31 @@ export default class Creator extends React.Component {
       }
     })
 
-    clientFactory.get('/tour').then((client) => {
-      client.on("tour:requestElementCoordinates", ({ selector, webview }) => {
-        if (webview !== 'creator') { return }
+    this.envoy = new EnvoyClient({
+      port: this.props.haiku.envoy.port,
+      host: this.props.haiku.envoy.host,
+      WebSocket: window.WebSocket
+    })
 
-        try {
-          // TODO: find if there is a better solution to this scape hatch
-          let element = document.querySelector(selector)
-          let { top, left } = element.getBoundingClientRect()
+    this.envoy.get('tour').then((tourChannel) => {
+      this.tourChannel = tourChannel
 
-          client.receiveElementCoordinates('creator', { top, left })
-        } catch (error) {
-          console.error(`Error fetching ${element} in webview ${webview}`)
-        }
-      })
+      tourChannel.on('tour:requestElementCoordinates', this.handleFindElementCoordinates)
+
+      tourChannel.on('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates)
 
       ipcRenderer.on('global-menu:start-tour', () => {
-        client.start({ force: true })
+        this.setDashboardVisibility(true)
+
+        // Put it at the bottom of the event loop
+        setTimeout(() => {
+          tourChannel.start(true)
+        })
       })
+
+      window.addEventListener('resize', lodash.throttle(() => {
+        tourChannel.notifyScreenResize()
+      }), 300)
     })
 
     document.addEventListener('paste', (pasteEvent) => {
@@ -315,6 +324,29 @@ export default class Creator extends React.Component {
     })
   }
 
+  componentWillUnmount () {
+    this.tourChannel.off('tour:requestElementCoordinates', this.handleFindElementCoordinates)
+    this.tourChannel.off('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates)
+  }
+
+  handleFindElementCoordinates ({ selector, webview }) {
+    if (webview !== 'creator') { return }
+
+    try {
+      // TODO: find if there is a better solution to this scape hatch
+      let element = document.querySelector(selector)
+      let { top, left } = element.getBoundingClientRect()
+
+      this.tourChannel.receiveElementCoordinates('creator', { top, left })
+    } catch (error) {
+      console.error(`[creator] error fetching ${selector} in webview ${webview}`)
+    }
+  }
+
+  handleFindWebviewCoordinates () {
+    this.tourChannel.receiveWebviewCoordinates('creator', { top: 0, left: 0 })
+  }
+
   handlePaneResize () {
     // this.layout.emit('resize')
   }
@@ -339,6 +371,10 @@ export default class Creator extends React.Component {
 
   switchActiveNav (activeNav) {
     this.setState({activeNav})
+
+    if (activeNav === 'state_inspector') {
+      this.tourChannel.next()
+    }
   }
 
   authenticateUser (username, password, cb) {
@@ -368,6 +404,7 @@ export default class Creator extends React.Component {
   loadProjects (cb) {
     return this.props.websocket.request({ method: 'listProjects', params: [] }, (error, projectsList) => {
       if (error) return cb(error)
+      this.setState({ projectsList })
       return cb(null, projectsList)
     })
   }
@@ -532,13 +569,14 @@ export default class Creator extends React.Component {
       return (
         <div>
           <ProjectBrowser
-          loadProjects={this.loadProjects}
-          launchProject={this.launchProject}
-          createNotice={this.createNotice}
-          removeNotice={this.removeNotice}
-          notices={this.state.notices}
-          {...this.props} />
-          <Tour />
+            loadProjects={this.loadProjects}
+            launchProject={this.launchProject}
+            createNotice={this.createNotice}
+            removeNotice={this.removeNotice}
+            notices={this.state.notices}
+            envoy={this.envoy}
+            {...this.props} />
+          <Tour projectsList={this.state.projectsList} envoy={this.envoy} startTourOnMount />
         </div>
       )
     }
@@ -546,13 +584,14 @@ export default class Creator extends React.Component {
     if (!this.state.projectFolder) {
       return (
         <div>
-          <Tour />
+          <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
           <ProjectBrowser
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
             createNotice={this.createNotice}
             removeNotice={this.removeNotice}
             notices={this.state.notices}
+            envoy={this.envoy}
             {...this.props} />
         </div>
       )
@@ -580,7 +619,7 @@ export default class Creator extends React.Component {
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <Tour />
+        <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
           <div className='layout-box' style={{overflow: 'visible'}}>
             <ReactCSSTransitionGroup
@@ -604,6 +643,7 @@ export default class Creator extends React.Component {
                         folder={this.state.projectFolder}
                         haiku={this.props.haiku}
                         websocket={this.props.websocket}
+                        tourChannel={this.tourChannel}
                         onDragEnd={this.onLibraryDragEnd.bind(this)}
                         onDragStart={this.onLibraryDragStart.bind(this)}
                         createNotice={this.createNotice}
@@ -612,14 +652,15 @@ export default class Creator extends React.Component {
                         createNotice={this.createNotice}
                         removeNotice={this.removeNotice}
                         folder={this.state.projectFolder}
-                        websocket={this.props.websocket} />
+                        websocket={this.props.websocket}
+                        tourChannel={this.tourChannel} />
                       }
                   </SideBar>
                   <div style={{position: 'relative', width: '100%', height: '100%'}}>
                     <Stage
                       ref='stage'
                       folder={this.state.projectFolder}
-                      envoy={this.props.haiku.envoy}
+                      envoy={this.envoy}
                       haiku={this.props.haiku}
                       websocket={this.props.websocket}
                       project={this.state.projectObject}
@@ -639,7 +680,7 @@ export default class Creator extends React.Component {
               <Timeline
                 ref='timeline'
                 folder={this.state.projectFolder}
-                envoy={this.props.haiku.envoy}
+                envoy={this.envoy}
                 haiku={this.props.haiku} />
             </SplitPane>
           </div>

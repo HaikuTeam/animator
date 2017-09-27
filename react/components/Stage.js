@@ -4,7 +4,6 @@ import assign from 'lodash.assign'
 import path from 'path'
 import StageTitleBar from './StageTitleBar'
 import Palette from './Palette'
-import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 
 const STAGE_BOX_STYLE = {
   position: 'relative',
@@ -14,9 +13,6 @@ const STAGE_BOX_STYLE = {
   width: '100%',
   height: '100%'
 }
-
-const clientFactory = new EnvoyClient()
-const tourClient = clientFactory.get('/tour')
 
 export default class Stage extends React.Component {
   constructor (props) {
@@ -28,15 +24,19 @@ export default class Stage extends React.Component {
   componentDidMount () {
     this.injectWebview()
 
-    tourClient.then((client) => {
-      client.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this, client))
-      // window.addEventListener('resize', debounce(this.onRequestWebViewData.bind(this), 64))
-    })
+    const tourChannel = this.props.envoy.get('tour')
+
+    if (!this.props.envoy.isInMockMode()) {
+      tourChannel.then((client) => {
+        this.tourClient = client
+        this.tourClient.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this))
+      })
+    }
   }
 
-  onRequestWebviewCoordinates(client) {
+  onRequestWebviewCoordinates () {
     let { top, left } = this.webview.getBoundingClientRect()
-    client.receiveWebviewCoordinates('glass', { top, left })
+    this.tourClient.receiveWebviewCoordinates('glass', { top, left })
   }
 
   injectWebview () {
@@ -45,7 +45,10 @@ export default class Stage extends React.Component {
     const query = qs.stringify(assign({}, this.props.haiku, {
       plumbing: this.props.haiku.plumbing.url,
       folder: this.props.folder,
-      envoy: this.props.envoy
+      envoy: {
+        host: this.props.envoy.getOption('host'),
+        port: this.props.envoy.getOption('port')
+      }
     }))
 
     // When building a distribution (see 'distro' repo) the node_modules folder is at a different level #FIXME matthew
@@ -120,7 +123,8 @@ export default class Stage extends React.Component {
             authToken={this.props.authToken}
             username={this.props.username}
             password={this.props.password}
-            receiveProjectInfo={this.props.receiveProjectInfo} />
+            receiveProjectInfo={this.props.receiveProjectInfo}
+            tourClient={this.tourClient} />
           <div
             id='stage-mount'
             ref={(element) => { this.mount = element }}

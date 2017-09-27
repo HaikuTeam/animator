@@ -1,100 +1,107 @@
 import React from 'react'
-import { ipcRenderer } from 'electron'
-import Welcome from './Steps/Welcome'
-import OpenProject from './Steps/OpenProject'
-import ScrubTicker from './Steps/ScrubTicker'
-import PropertyChanger from './Steps/PropertyChanger'
-import KeyframeCreator from './Steps/KeyframeCreator'
-import AnimatorNotice from './Steps/AnimatorNotice'
-import LibraryStart from './Steps/LibraryStart'
-import Finish from './Steps/Finish'
 import Tooltip from '../Tooltip'
-import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
-import {
-  didTakeTour,
-  createTourFile
-} from 'haiku-serialization/src/utils/HaikuHomeDir'
-
-const components = {
-  Welcome,
-  OpenProject,
-  ScrubTicker,
-  PropertyChanger,
-  KeyframeCreator,
-  AnimatorNotice,
-  LibraryStart,
-  Finish
-}
-
-const clientFactory = new EnvoyClient()
+import { TOUR_STYLES } from '../../styles/tourShared'
+import * as steps from './Steps'
+import mixpanel from '../../../utils/Mixpanel'
 
 class Tour extends React.Component {
-  constructor() {
+  constructor () {
     super()
 
     this.next = this.next.bind(this)
-    this.showStep = this.showStep.bind(this)
     this.finish = this.finish.bind(this)
+    this.hide = this.hide.bind(this)
+    this.showStep = this.showStep.bind(this)
 
     this.state = {
-      didTakeTour: didTakeTour(),
-      step: null,
       component: null,
       coordinates: null
     }
   }
 
-  componentDidMount() {
-    clientFactory.get('/tour').then((client) => {
-      this.client = client
-      client.on('tour:requestShowStep', this.showStep)
+  componentDidMount () {
+    this.props.envoy.get('tour').then((tourChannel) => {
+      this.tourChannel = tourChannel
+      this.tourChannel.on('tour:requestShowStep', this.showStep)
+      this.tourChannel.on('tour:requestFinish', this.hide)
+
+      if (this.props.startTourOnMount && this.hasNecessaryProject()) {
+        this.tourChannel.start()
+        mixpanel.haikuTrack('tour', {state: 'started'})
+      }
     })
-
-    this.mnt = true
   }
 
-  componentWillUnmount() {
-    this.mnt = false
+  componentWillUnmount () {
+    this.tourChannel.off('tour:requestShowStep', this.showStep)
+    this.tourChannel.off('tour:requestFinish', this.hide)
   }
 
-  next() {
-    this.client.next()
-  }
-
-  finish() {
-    this.client.finish()
-
-    this.setState({
-      didTakeTour: true
+  hasNecessaryProject () {
+    if (!this.props.projectsList) return false
+    if (this.props.projectsList.length < 1) return false
+    const projectIdx = this.props.projectsList.findIndex((project) => {
+      // Hardcoded - Name of the project that will be used for the tutorial
+      return project.projectName === 'CheckTutorial'
     })
-
-    createTourFile()
+    return projectIdx !== -1
   }
 
-  showStep(state) {
-    // TODO: this is a bad practice, we should implement
-    // a way to unbind events from a client in Envoy, then
-    // remove this
-    if (this.mnt) {
-      this.setState(state)
-    }
+  next () {
+    this.tourChannel.next()
+    mixpanel.haikuTrack('tour', {
+      state: 'step completed',
+      step: this.state.stepData.current,
+      title: this.state.component
+    })
   }
 
-  shouldRender() {
-    return this.state.component && !this.state.didTakeTour
+  finish (createFile, skipped) {
+    this.tourChannel.finish(createFile)
+    mixpanel.haikuTrack('tour', {
+      state: 'skipped',
+      step: this.state.stepData.current,
+      title: this.state.component
+    })
+  }
+
+  hide () {
+    this.setState({ component: null })
+  }
+
+  showStep (state) {
+    this.setState(state)
   }
 
   render () {
-    if (!this.shouldRender()) {
+    if (!this.state.component) {
       return null
     }
 
-    const { display, coordinates, component } = this.state
-    const Step = components[component]
+    const {
+      display,
+      coordinates,
+      offset,
+      component,
+      spotlightRadius,
+      stepData,
+      waitUserAction
+    } = this.state
+
+    const Step = steps[component]
 
     return (
-      <Tooltip coordinates={coordinates} display={display}>
-        <Step next={this.next} finish={this.finish} />
+      <Tooltip
+        coordinates={coordinates}
+        offset={offset}
+        display={display}
+        spotlightRadius={spotlightRadius}
+        next={this.next}
+        finish={this.finish}
+        stepData={stepData}
+        waitUserAction={waitUserAction}
+      >
+        <Step styles={TOUR_STYLES} next={this.next} finish={this.finish} />
       </Tooltip>
     )
   }

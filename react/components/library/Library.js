@@ -1,7 +1,6 @@
 import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
-import debounce from 'lodash.debounce'
 import async from 'async'
 import Radium from 'radium'
 import path from 'path'
@@ -12,19 +11,12 @@ import RectanglePrimitiveProps from './../../primitives/Rectangle'
 import EllipsePrimitiveProps from './../../primitives/Ellipse'
 import PolygonPrimitiveProps from './../../primitives/Polygon'
 import TextPrimitiveProps from './../../primitives/Text'
-// import { BTN_STYLES } from '../../styles/btnShared'
-
-// List of extnames which, upon change, should trigger an asset listing refresh.
-// (We shouldn't need to change the list based on script changes, etc.)
-const ASSET_RELOAD_TRIGGERS = {
-  '.svg': true,
-  '.sketch': true
-}
+import { shell } from 'electron'
 
 const STYLES = {
   scrollwrap: {
     overflowY: 'auto',
-    height: 'calc(100% - 136px)'
+    height: '100%'
   },
   sectionHeader: {
     cursor: 'default',
@@ -32,9 +24,7 @@ const STYLES = {
     textTransform: 'uppercase',
     display: 'flex',
     alignItems: 'center',
-    paddingLeft: 14,
-    paddingRight: 14,
-    paddingTop: 18,
+    padding: '18px 14px 10px',
     fontSize: 15,
     justifyContent: 'space-between'
   },
@@ -100,7 +90,6 @@ class LibraryDrawer extends React.Component {
       assets: [],
       previewImageTime: null,
       overDropTarget: false,
-      isDraggingLibAsset: false,
       isLoading: false,
       empty: false
     }
@@ -109,12 +98,10 @@ class LibraryDrawer extends React.Component {
   componentWillMount () {
     this.setState({isLoading: true})
     this.reloadAssetList()
-    this.debouncedReloadAssetList = debounce(this.reloadAssetList, 1000, { trailing: true })
-    this.props.websocket.on('broadcast', (message) => {
-      if (message.name === 'file:add' || message.name === 'file:change' || message.name === 'file:remove') {
-        if (ASSET_RELOAD_TRIGGERS[path.extname(message.relpath)]) {
-          this.debouncedReloadAssetList(message)
-        }
+    this.props.websocket.on('broadcast', ({ name, assets }) => {
+      if (name === 'assets-changed') {
+        const empty = assets.length === 0
+        this.setState({ assets, empty })
       }
     })
   }
@@ -130,7 +117,7 @@ class LibraryDrawer extends React.Component {
     })
   }
 
-  handleAssetInstantiation (fileData) {
+  handleFileInstantiation (fileData) {
     if (!fileData.preview) return this.props.createNotice({ type: 'warning', title: 'Oops!', message: 'File path was blank; cannot instantiate' })
     const metadata = {}
     this.props.websocket.request({ type: 'action', method: 'instantiateComponent', params: [this.props.folder, fileData.preview, metadata] }, (err) => {
@@ -138,6 +125,24 @@ class LibraryDrawer extends React.Component {
         return this.props.createNotice({ type: 'danger', title: err.name, message: err.message })
       }
     })
+  }
+
+  handleSketchInstantiation (fileData) {
+    let abspath = path.join(this.props.folder, 'designs', fileData.fileName)
+    shell.openItem(abspath)
+  }
+
+  handleAssetInstantiation (fileData) {
+    switch (fileData.type) {
+      case 'sketch':
+        this.handleSketchInstantiation(fileData)
+        break
+      case 'file':
+        this.handleFileInstantiation(fileData)
+        break
+      default:
+        this.props.createNotice({ type: 'warning', title: 'Oops!', message: 'Couldn\'t handle that file, please contact support.' })
+    }
   }
 
   handleFileDrop (files, event) {
@@ -151,10 +156,6 @@ class LibraryDrawer extends React.Component {
       this.setState({isLoading: false})
       if (error) return this.setState({ error })
     })
-  }
-
-  toggleLibAssetDraggingState () {
-    this.setState({isDraggingLibAsset: !this.state.isDraggingLibAsset})
   }
 
   assetsList (currentAssets) {
@@ -174,7 +175,6 @@ class LibraryDrawer extends React.Component {
                   fileName={file.fileName}
                   onDragEnd={this.props.onDragEnd}
                   onDragStart={this.props.onDragStart}
-                  toggleLibAssetDraggingState={this.toggleLibAssetDraggingState.bind(this)}
                   updateTime={file.updateTime}
                   websocket={this.props.websocket}
                   instantiate={this.handleAssetInstantiation.bind(this, file)} />
@@ -185,8 +185,8 @@ class LibraryDrawer extends React.Component {
                   onDragEnd={this.props.onDragEnd}
                   onDragStart={this.props.onDragStart}
                   websocket={this.props.websocket}
-                  toggleLibAssetDraggingState={this.toggleLibAssetDraggingState.bind(this)}
-                  instantiate={this.handleAssetInstantiation.bind(this, file)} />
+                  instantiate={this.handleAssetInstantiation.bind(this, file)}
+                  tourChannel={this.props.tourChannel} />
               }
             </div>
           )
@@ -201,7 +201,7 @@ class LibraryDrawer extends React.Component {
 
   render () {
     return (
-      <div id="library-wrapper">
+      <div id='library-wrapper' style={{height: '100%'}}>
         <div style={STYLES.sectionHeader}>
           Library
           <button style={STYLES.button} onClick={this.launchFilepicker}>+</button>
