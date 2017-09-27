@@ -21,13 +21,13 @@ function getTupleString () {
   return `from ${branch} at ${version} as ${environment}`
 }
 
-slackShout({ shout: true }, `Distro upload started (${getTupleString()})`, () => {
+slackShout({ shout: false }, `Distro upload started (${getTupleString()})`, () => {
   return uploadRelease(region, objkey, secret, bucket, platform, environment, branch, version, (err, { environment, platform, branch, countdown, version }) => {
     if (err) throw err
 
     var url = `https://s3.amazonaws.com/${bucket}/releases/${environment}/${branch}/${platform}/${countdown}/${version}/Haiku-${version}-${platform}.zip`
 
-    slackShout({ shout: true }, `Distro upload finished (${getTupleString()}). Download: ${url}`, () => {
+    slackShout({ shout: false }, `Distro upload finished (${getTupleString()}). Download: ${url}`, () => {
       log.hat('success! built and uploaded release\n' + url)
     })
   })
