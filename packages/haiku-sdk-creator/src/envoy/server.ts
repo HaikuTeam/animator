@@ -83,7 +83,7 @@ export default class EnvoyServer {
                 })
 
                 client.on("error", (err) => {
-                    console.log(`[haiku envoy server] error on client ${client.id}, connection closed`, err)
+                    this.logger.info(`[haiku envoy server] error on client ${client.id}, connection closed`, err)
                     this.clientRegistry.delete(client.id)
                 })
             })
