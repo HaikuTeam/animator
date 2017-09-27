@@ -200,6 +200,7 @@ class TopMenu extends EventEmitter {
           },
           {
             label: 'Take Tour',
+            enabled: !!options.projectList.find(project => project.projectName === 'CheckTutorial'),
             click: () => {
               this.emit('global-menu:start-tour')
             }
