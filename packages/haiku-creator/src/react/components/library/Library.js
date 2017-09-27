@@ -72,20 +72,16 @@ const STYLES = {
     fontStyle: 'italic'
   },
   primaryAssetText: {
-    color: Palette.COAL,
-    fontSize: 25,
+    color: Palette.ROCK,
+    fontSize: 16,
     padding: 24,
-    textAlign: 'center',
-    fontStyle: 'italic'
+    textAlign: 'center'
   }
 }
 
 class LibraryDrawer extends React.Component {
   constructor (props) {
     super(props)
-    this.assetsList = this.assetsList.bind(this)
-    this.handleFileDrop = this.handleFileDrop.bind(this)
-    this.reloadAssetList = this.reloadAssetList.bind(this)
     this.primitives = {
       Rectangle: RectanglePrimitiveProps(props.websocket),
       Ellipse: EllipsePrimitiveProps(props.websocket),
@@ -168,7 +164,7 @@ class LibraryDrawer extends React.Component {
 
   getPrimaryAsset () {
     if (!this.state.assets) return null
-    if (!this.state.assets.length < 1) return null
+    if (this.state.assets.length < 1) return null
     let primary
     this.state.assets.forEach((asset) => {
       if (asset.isPrimaryDesign) {
@@ -180,7 +176,7 @@ class LibraryDrawer extends React.Component {
 
   getOtherAssets () {
     if (!this.state.assets) return []
-    if (!this.state.assets.length < 1) return []
+    if (this.state.assets.length < 1) return []
     let others = []
     this.state.assets.forEach((asset) => {
       if (!asset.isPrimaryDesign) {
@@ -197,7 +193,7 @@ class LibraryDrawer extends React.Component {
   renderPrimaryAssetHint (asset) {
     return (
       <div style={STYLES.primaryAssetText}>
-        Double click to open this file in Sketch.
+        ⇧ Double click to open this file in Sketch.
         Every slice and artboard will be synced here when you save.
       </div>
     )
@@ -257,19 +253,19 @@ class LibraryDrawer extends React.Component {
       )
     }
 
+    if (!primaryAsset && otherAssets.length > 0) {
+      return (
+        <div>
+          {this.renderOtherAssets(otherAssets)}
+        </div>
+      )
+    }
+
     if (primaryAsset && otherAssets.length < 1) {
       return (
         <div>
           {this.renderPrimaryAsset(primaryAsset)}
           {this.renderPrimaryAssetHint(primaryAsset)}
-        </div>
-      )
-    }
-
-    if (!primaryAsset && otherAssets.length > 0) {
-      return (
-        <div>
-          {this.renderOtherAssets(otherAssets)}
         </div>
       )
     }
@@ -301,9 +297,7 @@ class LibraryDrawer extends React.Component {
         </div>
         <div style={STYLES.scrollwrap}>
           <div style={STYLES.assetsWrapper}>
-            {this.state.isLoading
-              ? ''
-              : this.renderAssetsList()}
+            {this.state.isLoading ? '' : this.renderAssetsList()}
           </div>
         </div>
       </div>
