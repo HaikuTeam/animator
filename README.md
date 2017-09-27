@@ -28,7 +28,6 @@ And add to `~/.ssh/config`:
 **git/yarn/packages setup**
 
     $ yarn install
-    $ cd distro && yarn install && cd ..
     $ yarn run setup
 
 ## Development

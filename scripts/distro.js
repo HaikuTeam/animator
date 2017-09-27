@@ -14,7 +14,7 @@ var async = require('async')
 var fs = require('fs-extra')
 var log = require('./helpers/log')
 var deploy = require('./deploy')
-var uploadRelease = require('./scripts/helpers/uploadRelease')
+var uploadRelease = require('./helpers/uploadRelease')
 var ROOT = path.join(__dirname, '..')
 
 var ENVS = { test: true, development: true, staging: true, production: true }
@@ -161,9 +161,9 @@ function addInfoToMostRecentReleaseLogEntry (info) {
 }
 
 function uglifyDistroSourceLibs (cb) {
-  glob([
-    // TODO
-  ], function (err, files) {
+  var globs = [/*TODO*/]
+  if (globs.length < 1) return cb()
+  return glob(globs, function (err, files) {
     if (err) return cb(err)
     return async.eachSeries(files, function (file, next) {
       log.log('uglifying', file, '...')
