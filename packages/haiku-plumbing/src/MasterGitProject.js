@@ -845,23 +845,19 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   commitFileIfChanged (relpath, message, cb) {
-    // Put at bottom of event loop; this solves a lock problem where fast
-    // updates to mergeDesign cause an oversaturation of calls.
-    return setTimeout(() => {
-      return this.statusForFile(relpath, (err, status) => {
-        if (err) return cb(err)
-        if (!status) return cb() // No status means no changes
-        if (
-          status.isDeleted() ||
-          status.isModified() ||
-          status.isNew() ||
-          status.isRenamed() ||
-          status.isTypechange()) {
-          return this.commitProject(relpath, message, cb)
-        } else {
-          return cb()
-        }
-      })
+    return this.statusForFile(relpath, (err, status) => {
+      if (err) return cb(err)
+      if (!status) return cb() // No status means no changes
+      if (
+        status.isDeleted() ||
+        status.isModified() ||
+        status.isNew() ||
+        status.isRenamed() ||
+        status.isTypechange()) {
+        return this.commitProject(relpath, message, cb)
+      } else {
+        return cb()
+      }
     })
   }
 
