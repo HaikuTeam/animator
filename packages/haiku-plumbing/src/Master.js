@@ -137,6 +137,7 @@ export default class Master extends EventEmitter {
       if (this._isReadyToReceiveMethods) {
         const methods = this._methodQueue.splice(0)
         methods.forEach(({ message, cb }) => this.callMethodWithMessage(message, cb))
+        clearInterval(this._methodQueueInterval)
       }
     }, METHOD_QUEUE_INTERVAL)
 
@@ -165,7 +166,8 @@ export default class Master extends EventEmitter {
 
   handleMethodMessage (message, cb) {
     const { method, params } = message
-    if (METHODS_TO_RUN_IMMEDIATELY[method]) {
+    // We stop using the queue once we're up and running; no point keeping the queue
+    if (METHODS_TO_RUN_IMMEDIATELY[method] || this._isReadyToReceiveMethods) {
       return this.callMethodWithMessage({ method, params }, cb)
     } else {
       return this._methodQueue.push({ message, cb })

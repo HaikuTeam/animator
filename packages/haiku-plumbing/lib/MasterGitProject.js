@@ -975,14 +975,18 @@ var MasterGitProject = function (_EventEmitter) {
     value: function commitFileIfChanged(relpath, message, cb) {
       var _this22 = this;
 
-      return this.statusForFile(relpath, function (err, status) {
-        if (err) return cb(err);
-        if (!status) return cb(); // No status means no changes
-        if (status.isDeleted() || status.isModified() || status.isNew() || status.isRenamed() || status.isTypechange()) {
-          return _this22.commitProject(relpath, message, cb);
-        } else {
-          return cb();
-        }
+      // Put at bottom of event loop; this solves a lock problem where fast
+      // updates to mergeDesign cause an oversaturation of calls.
+      return setTimeout(function () {
+        return _this22.statusForFile(relpath, function (err, status) {
+          if (err) return cb(err);
+          if (!status) return cb(); // No status means no changes
+          if (status.isDeleted() || status.isModified() || status.isNew() || status.isRenamed() || status.isTypechange()) {
+            return _this22.commitProject(relpath, message, cb);
+          } else {
+            return cb();
+          }
+        });
       });
     }
   }, {
