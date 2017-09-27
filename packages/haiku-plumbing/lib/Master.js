@@ -100,7 +100,7 @@ var FORBIDDEN_METHODS = {
 };
 
 var METHOD_QUEUE_INTERVAL = 64;
-var SAVE_AWAIT_TIME = 64 * 8;
+var SAVE_AWAIT_TIME = 64 * 2;
 
 var WATCHABLE_EXTNAMES = {
   '.js': true,

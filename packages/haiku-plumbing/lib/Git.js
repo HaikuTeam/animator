@@ -111,26 +111,26 @@ function init(pwd, cb) {
 function status(pwd, opts, cb) {
   return open(pwd, function (err, repository) {
     if (err) return cb(err);
-    return repository.refreshIndex().then(function (index) {
-      var diffOptions = {
-        flags: _nodegit.Diff.OPTION.SHOW_UNTRACKED_CONTENT | _nodegit.Diff.OPTION.RECURSE_UNTRACKED_DIRS
-      };
-      return _nodegit.Diff.indexToWorkdir(repository, index, diffOptions).then(function (diff) {
-        var changes = {};
-        for (var i = 0; i < diff.numDeltas(); i++) {
-          var delta = diff.getDelta(i);
-          var oldPath = delta.oldFile().path();
-          var newPath = delta.newFile().path();
-          var statusPath = oldPath || newPath;
-          changes[statusPath] = {
-            delta: i,
-            prev: oldPath,
-            path: statusPath,
-            num: delta.status()
-          };
-        }
-        return cb(null, changes);
-      }, cb);
+    // return repository.refreshIndex().then((index) => {}, cb) // Might need this?
+    var diffOptions = {
+      flags: _nodegit.Diff.OPTION.SHOW_UNTRACKED_CONTENT | _nodegit.Diff.OPTION.RECURSE_UNTRACKED_DIRS
+    };
+    return _nodegit.Diff.indexToWorkdir(repository, null, diffOptions).then(function (diff) {
+
+      var changes = {};
+      for (var i = 0; i < diff.numDeltas(); i++) {
+        var delta = diff.getDelta(i);
+        var oldPath = delta.oldFile().path();
+        var newPath = delta.newFile().path();
+        var statusPath = oldPath || newPath;
+        changes[statusPath] = {
+          delta: i,
+          prev: oldPath,
+          path: statusPath,
+          num: delta.status()
+        };
+      }
+      return cb(null, changes);
     }, cb);
   });
 }

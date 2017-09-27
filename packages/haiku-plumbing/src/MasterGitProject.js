@@ -215,24 +215,6 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
-  safeGitStatus (options, cb) {
-    return Git.status(this.folder, options || {}, (err, statuses) => {
-      if (options && options.log) {
-        if (statuses) {
-          Git.logStatuses(statuses)
-        } else if (err) {
-          logger.info('[master-git] git status error:', err)
-        }
-      }
-      // Note the inversion of the error-first style
-      // This is a legacy implementation; I'm not sure why #TODO
-      if (err) {
-        return cb(null, err)
-      }
-      return cb(statuses)
-    })
-  }
-
   safeListLocallyDeclaredRemotes (cb) {
     return Git.listRemotes(this.folder, (err, remotes) => {
       // Note that in case of error we return the error object
@@ -821,17 +803,35 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
+  safeGitStatus (options, cb) {
+    return Git.status(this.folder, options || {}, (err, statuses) => {
+      if (options && options.log) {
+        if (statuses) {
+          Git.logStatuses(statuses)
+        } else if (err) {
+          logger.info('[master-git] git status error:', err)
+        }
+      }
+      // Note the inversion of the error-first style
+      // This is a legacy implementation; I'm not sure why #TODO
+      if (err) {
+        return cb(null, err)
+      }
+      return cb(statuses)
+    })
+  }
+
   statusForFile (relpath, cb) {
     return this.safeGitStatus({ log: false, relpath }, (gitStatuses) => {
       let foundStatus
 
       if (gitStatuses) {
         for (let key in gitStatuses) {
-          let gitStatus = gitStatuses[key]
-
           if (foundStatus) {
-            return void (0)
+            continue
           }
+
+          let gitStatus = gitStatuses[key]
 
           if (path.normalize(gitStatus.path) === path.normalize(relpath)) {
             foundStatus = gitStatus

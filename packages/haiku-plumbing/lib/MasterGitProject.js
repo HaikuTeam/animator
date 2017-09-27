@@ -269,25 +269,6 @@ var MasterGitProject = function (_EventEmitter) {
       });
     }
   }, {
-    key: 'safeGitStatus',
-    value: function safeGitStatus(options, cb) {
-      return Git.status(this.folder, options || {}, function (err, statuses) {
-        if (options && options.log) {
-          if (statuses) {
-            Git.logStatuses(statuses);
-          } else if (err) {
-            _LoggerInstance2.default.info('[master-git] git status error:', err);
-          }
-        }
-        // Note the inversion of the error-first style
-        // This is a legacy implementation; I'm not sure why #TODO
-        if (err) {
-          return cb(null, err);
-        }
-        return cb(statuses);
-      });
-    }
-  }, {
     key: 'safeListLocallyDeclaredRemotes',
     value: function safeListLocallyDeclaredRemotes(cb) {
       return Git.listRemotes(this.folder, function (err, remotes) {
@@ -945,6 +926,25 @@ var MasterGitProject = function (_EventEmitter) {
       });
     }
   }, {
+    key: 'safeGitStatus',
+    value: function safeGitStatus(options, cb) {
+      return Git.status(this.folder, options || {}, function (err, statuses) {
+        if (options && options.log) {
+          if (statuses) {
+            Git.logStatuses(statuses);
+          } else if (err) {
+            _LoggerInstance2.default.info('[master-git] git status error:', err);
+          }
+        }
+        // Note the inversion of the error-first style
+        // This is a legacy implementation; I'm not sure why #TODO
+        if (err) {
+          return cb(null, err);
+        }
+        return cb(statuses);
+      });
+    }
+  }, {
     key: 'statusForFile',
     value: function statusForFile(relpath, cb) {
       return this.safeGitStatus({ log: false, relpath: relpath }, function (gitStatuses) {
@@ -952,11 +952,11 @@ var MasterGitProject = function (_EventEmitter) {
 
         if (gitStatuses) {
           for (var key in gitStatuses) {
-            var gitStatus = gitStatuses[key];
-
             if (foundStatus) {
-              return void 0;
+              continue;
             }
+
+            var gitStatus = gitStatuses[key];
 
             if (_path2.default.normalize(gitStatus.path) === _path2.default.normalize(relpath)) {
               foundStatus = gitStatus;

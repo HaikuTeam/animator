@@ -34,7 +34,7 @@ const FORBIDDEN_METHODS = {
 }
 
 const METHOD_QUEUE_INTERVAL = 64
-const SAVE_AWAIT_TIME = 64 * 8
+const SAVE_AWAIT_TIME = 64 * 2
 
 const WATCHABLE_EXTNAMES = {
   '.js': true,

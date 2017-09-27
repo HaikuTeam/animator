@@ -48,26 +48,26 @@ export function init (pwd, cb) {
 export function status (pwd, opts, cb) {
   return open(pwd, (err, repository) => {
     if (err) return cb(err)
-    return repository.refreshIndex().then((index) => {
-      const diffOptions = {
-        flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS
-      }
-      return Diff.indexToWorkdir(repository, index, diffOptions).then((diff) => {
-        const changes = {}
-        for (let i = 0; i < diff.numDeltas(); i++) {
-          const delta = diff.getDelta(i)
-          const oldPath = delta.oldFile().path()
-          const newPath = delta.newFile().path()
-          const statusPath = oldPath || newPath
-          changes[statusPath] = {
-            delta: i,
-            prev: oldPath,
-            path: statusPath,
-            num: delta.status()
-          }
+    // return repository.refreshIndex().then((index) => {}, cb) // Might need this?
+    const diffOptions = {
+      flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS
+    }
+    return Diff.indexToWorkdir(repository, null, diffOptions).then((diff) => {
+
+      const changes = {}
+      for (let i = 0; i < diff.numDeltas(); i++) {
+        const delta = diff.getDelta(i)
+        const oldPath = delta.oldFile().path()
+        const newPath = delta.newFile().path()
+        const statusPath = oldPath || newPath
+        changes[statusPath] = {
+          delta: i,
+          prev: oldPath,
+          path: statusPath,
+          num: delta.status()
         }
-        return cb(null, changes)
-      }, cb)
+      }
+      return cb(null, changes)
     }, cb)
   })
 }
