@@ -106,6 +106,9 @@ async.series([
     return runScript('git-subtree-pull', [`--branch=${inputs.branch}`], cb)
   },
 
+  // Sometimes there are a ton of merge conflicts that need to be fixed here.
+  // Anything we can do to prevent this from happening? It seems unnecessary.
+
   function (cb) {
     // If pulling created merge conflicts or other issues, we need to bail and let a human fix it
     assertGitStatus()
