@@ -2625,22 +2625,22 @@ INJECTABLES["$flow"] = {
             data: "any",
             payload: "any"
         },
-        "if": {
-            value: "any",
-            data: "any",
-            payload: "any"
-        },
-        yield: {
-            value: "any",
-            data: "any",
-            payload: "any"
-        },
         placeholder: {
             node: "any"
         }
     },
     summon: function (injectees, summonSpec, hostInstance, matchingElement) {
     }
+};
+INJECTABLES["$flow"]["schema"]["if"] = {
+    value: "any",
+    data: "any",
+    payload: "any"
+};
+INJECTABLES["$flow"]["schema"]["yield"] = {
+    value: "any",
+    data: "any",
+    payload: "any"
 };
 INJECTABLES["$helpers"] = {
     schema: HaikuHelpers_1["default"].schema,
@@ -9131,14 +9131,31 @@ var relativeCommands = [
 var isRelative = function (command) { return relativeCommands.indexOf(command) !== -1; };
 var optionalArcKeys = ['xAxisRotation', 'largeArcFlag', 'sweepFlag'];
 var getCommands = function (d) { return d.match(validCommands); };
-var getParams = function (d) { return d.split(validCommands)
-    .map(function (v) { return v.replace(/[0-9]+-/g, function (m) { return m.slice(0, -1) + " -"; }); })
-    .map(function (v) { return v.replace(/\.[0-9]+/g, function (m) { return m + " "; }); })
-    .map(function (v) { return v.trim(); })
-    .filter(function (v) { return v.length > 0; })
-    .map(function (v) { return v.split(/[ ,]+/)
-    .map(parseFloat)
-    .filter(function (n) { return !isNaN(n); }); }); };
+var getParams = function (d) {
+    var segs = d.split(validCommands)
+        .map(function (v) {
+        return v.replace(/[0-9]+(e[+-][0-9]+)?-/g, function (m) { return m.slice(0, -1) + " -"; });
+    })
+        .map(function (v) {
+        return v.replace(/\.[0-9]+(e[+-][0-9]+)?/g, function (m) { return m + " "; });
+    })
+        .map(function (p) {
+        return p.trim();
+    })
+        .filter(function (p) {
+        return p.length > 0;
+    });
+    var groups = segs.map(function (s) {
+        return s.split(/[ ,]+/)
+            .map(function (n) {
+            return parseFloat(n);
+        })
+            .filter(function (n) {
+            return !isNaN(n);
+        });
+    });
+    return groups;
+};
 var getPointsFromPath = function (_a) {
     var d = _a.d;
     var commands = getCommands(d);
@@ -9933,7 +9950,7 @@ exports["default"] = parse;
 },{}],167:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.5",
+  "version": "2.3.6",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
@@ -9962,6 +9979,7 @@ module.exports={
   "main": "index.js",
   "scripts": {
     "develop": "node ./develop.js",
+    "watch": "HAIKU_PLAYER_WATCH_ONLY=1 node ./develop.js",
     "compile": "tsc",
     "lint": "tslint -c tslint.json 'src/**/*.ts' --exclude 'src/vendor/**' --format stylish --fix",
     "test": "yarn run test:unit && yarn run test:api && yarn run test:perf",
