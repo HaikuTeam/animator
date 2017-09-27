@@ -53,7 +53,6 @@ export function status (pwd, opts, cb) {
       flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS
     }
     return Diff.indexToWorkdir(repository, null, diffOptions).then((diff) => {
-
       const changes = {}
       for (let i = 0; i < diff.numDeltas(); i++) {
         const delta = diff.getDelta(i)
