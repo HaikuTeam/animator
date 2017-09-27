@@ -41,7 +41,6 @@ const STYLES = {
   sharePopover: {
     position: 'absolute',
     top: 34,
-    right: -59,
     backgroundColor: Palette.FATHER_COAL,
     width: 204,
     padding: '13px 9px',
@@ -127,13 +126,24 @@ class PopoverBody extends React.Component {
       this.props.titleText !== nextProps.titleText ||
       this.props.linkAddress !== nextProps.linkAddress ||
       this.props.isSnapshotSaveInProgress !== nextProps.isSnapshotSaveInProgress ||
+      this.props.snapshotSaveConfirmed !== nextProps.snapshotSaveConfirmed ||
       this.props.isProjectInfoFetchInProgress !== nextProps.isProjectInfoFetchInProgress
     )
   }
 
   render () {
+    let popoverPosition
+
+    if (this.props.snapshotSaveConfirmed) {
+      popoverPosition = -72
+    } else if (this.props.isSnapshotSaveInProgress) {
+      popoverPosition = -70
+    } else {
+      popoverPosition = -59
+    }
+
     return (
-      <div style={[STYLES.sharePopover, this.props.snapshotSaveConfirmed && {right: -67}, this.props.isSnapshotSaveInProgress && {right: -70}]}>
+      <div style={[STYLES.sharePopover, {right: popoverPosition}]}>
         <button style={STYLES.popoverClose} onClick={this.props.close}>x</button>
         {this.props.titleText}
         <div style={STYLES.linkHolster}>
@@ -228,7 +238,7 @@ class StageTitleBar extends React.Component {
           })
         }
       })
-    }, 64 * 4)
+    }, 1000)
 
     ipcRenderer.on('global-menu:save', () => {
       this.handleSaveSnapshotClick()

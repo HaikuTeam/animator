@@ -210,6 +210,7 @@ var Master = function (_EventEmitter) {
               cb = _ref.cb;
           return _this.callMethodWithMessage(message, cb);
         });
+        clearInterval(_this._methodQueueInterval);
       }
     }, METHOD_QUEUE_INTERVAL);
 
@@ -247,8 +248,9 @@ var Master = function (_EventEmitter) {
     value: function handleMethodMessage(message, cb) {
       var method = message.method,
           params = message.params;
+      // We stop using the queue once we're up and running; no point keeping the queue
 
-      if (METHODS_TO_RUN_IMMEDIATELY[method]) {
+      if (METHODS_TO_RUN_IMMEDIATELY[method] || this._isReadyToReceiveMethods) {
         return this.callMethodWithMessage({ method: method, params: params }, cb);
       } else {
         return this._methodQueue.push({ message: message, cb: cb });
