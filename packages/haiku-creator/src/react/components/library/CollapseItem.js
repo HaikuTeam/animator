@@ -100,6 +100,7 @@ class CollapseItem extends React.Component {
         </span>
       )
     }
+  }
 
   handleSketchDoubleClick () {
     this.props.instantiate()
