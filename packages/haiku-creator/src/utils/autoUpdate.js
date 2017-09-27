@@ -1,3 +1,5 @@
+var qs = require('qs')
+
 // var autoUpdater = require('electron').autoUpdater
 
 // const opts = {
@@ -63,7 +65,9 @@
 // }
 
 module.exports = {
-  generateURL({ server, environment, branch, platform, version }) {
-    return `${server}/updates/latest?environment=${environment}&branch=${branch}&platform=${platform}&version=${version}`
+  generateURL({ server, ...query }) {
+    const queryString = qs.stringify(query);
+
+    return `${server}/updates/latest?${queryString}`
   }
 }
