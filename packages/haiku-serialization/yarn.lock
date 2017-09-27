@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@haiku/player@HaikuTeam/player.git", "@haiku/player@HaikuTeam/player.git#9645c01fdc4f3ab2f268e2022848726482426470":
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/player.git#9645c01fdc4f3ab2f268e2022848726482426470"
+"@haiku/player@HaikuTeam/player.git":
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/player.git#691ddfc6a789a7ad13d66dca36a73ab171aaf56a"
   dependencies:
     lodash "^4.17.4"
     react "15.4.2"
@@ -1227,7 +1227,7 @@ debug@^0.7.4:
   version "0.7.4"
   resolved "https://registry.yarnpkg.com/debug/-/debug-0.7.4.tgz#06e1ea8082c2cb14e39806e22e2f6f757f92af39"
 
-debuglog@*, debuglog@^1.0.1:
+debuglog@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/debuglog/-/debuglog-1.0.1.tgz#aa24ffb9ac3df9a2351837cfb2d279360cd78492"
 
@@ -2303,10 +2303,10 @@ gunzip-maybe@^1.3.1:
     through2 "^2.0.3"
 
 haiku-bytecode@HaikuTeam/bytecode.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#c19612036ac989c02cb0eb200e32475ffcf4b92d"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#f50af8dcf1f874374394513ee80f78df8cabda87"
   dependencies:
-    "@haiku/player" HaikuTeam/player.git#9645c01fdc4f3ab2f268e2022848726482426470
+    "@haiku/player" HaikuTeam/player.git
     camelcase "4.0.0"
     handlebars "4.0.6"
     lodash.assign "4.2.0"
@@ -2329,16 +2329,56 @@ haiku-fs-extra@HaikuTeam/node-fs-extra.git#master-haiku:
     klaw "^1.0.0"
 
 haiku-sdk-creator@HaikuTeam/sdk-creator.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#bf1fbfab7009c3ec91d7cce0132d113c048c3b2a"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#94c5739440fc256548561c5ec5b1af676de3e347"
   dependencies:
     bluebird "^3.5.0"
+    haiku-serialization HaikuTeam/serialization
     npm "^5.3.0"
-    peer "^0.2.8"
-    peerjs "^0.3.14"
-    simple-peer "^8.1.1"
-    wrtc "0.0.62"
     ws "^3.0.0"
+
+haiku-serialization@HaikuTeam/serialization:
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#0ba3445a7d02bdb32521a312d80419d652fc84d9"
+  dependencies:
+    "@haiku/player" HaikuTeam/player.git
+    async "2.1.5"
+    babel-core "6.23.1"
+    babel-generator "6.23.0"
+    babel-plugin-syntax-flow "6.18.0"
+    babel-plugin-syntax-jsx "6.18.0"
+    babel-plugin-transform-flow-strip-types "6.22.0"
+    babel-plugin-transform-react-display-name "6.23.0"
+    babel-plugin-transform-react-jsx "6.23.0"
+    babel-preset-es2015 "6.22.0"
+    babel-traverse "6.23.1"
+    babylon "6.15.0"
+    bluebird "^3.5.0"
+    colors "1.1.2"
+    crypto-js "3.1.9-1"
+    cst "^0.4.10"
+    diff "3.2.0"
+    es-strip-semicolons "1.0.9"
+    esformatter "0.10.0"
+    esformatter-jsx "7.4.1"
+    estree-walker "^0.5.0"
+    fs-extra "2.0.0"
+    fuzzy-string-matching "^1.0.2"
+    haiku-bytecode HaikuTeam/bytecode.git
+    haiku-fs-extra HaikuTeam/node-fs-extra.git#master-haiku
+    haiku-sdk-creator HaikuTeam/sdk-creator.git
+    lodash "4.17.4"
+    lodash.assign "4.2.0"
+    lodash.debounce "4.0.8"
+    lodash.find "4.6.0"
+    lodash.merge "4.6.0"
+    node-hook "^0.4.0"
+    pascalcase "0.1.1"
+    prettier "^0.22.0"
+    pretty "^2.0.0"
+    raf "^3.3.2"
+    standard "8.6.0"
+    winston "^2.3.1"
 
 handlebars@4.0.6:
   version "4.0.6"
@@ -2514,7 +2554,7 @@ import-lazy@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/import-lazy/-/import-lazy-2.1.0.tgz#05698e3d45c88e8d7e9d92cb0584e77f096f3e43"
 
-imurmurhash@*, imurmurhash@^0.1.4:
+imurmurhash@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/imurmurhash/-/imurmurhash-0.1.4.tgz#9218b9b2b928a238b13dc4fb6b6d576f231453ea"
 
@@ -2969,10 +3009,6 @@ lockfile@~1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/lockfile/-/lockfile-1.0.3.tgz#2638fc39a0331e9cac1a04b71799931c9c50df79"
 
-lodash._baseindexof@*:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/lodash._baseindexof/-/lodash._baseindexof-3.1.0.tgz#fe52b53a1c6761e42618d654e4a25789ed61822c"
-
 lodash._baseuniq@~4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash._baseuniq/-/lodash._baseuniq-4.6.0.tgz#0ebb44e456814af7905c6212fa2c9b2d51b841e8"
@@ -2980,27 +3016,9 @@ lodash._baseuniq@~4.6.0:
     lodash._createset "~4.0.0"
     lodash._root "~3.0.0"
 
-lodash._bindcallback@*:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/lodash._bindcallback/-/lodash._bindcallback-3.0.1.tgz#e531c27644cf8b57a99e17ed95b35c748789392e"
-
-lodash._cacheindexof@*:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/lodash._cacheindexof/-/lodash._cacheindexof-3.0.2.tgz#3dc69ac82498d2ee5e3ce56091bafd2adc7bde92"
-
-lodash._createcache@*:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/lodash._createcache/-/lodash._createcache-3.1.2.tgz#56d6a064017625e79ebca6b8018e17440bdcf093"
-  dependencies:
-    lodash._getnative "^3.0.0"
-
 lodash._createset@~4.0.0:
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/lodash._createset/-/lodash._createset-4.0.3.tgz#0f4659fbb09d75194fa9e2b88a6644d363c9fe26"
-
-lodash._getnative@*, lodash._getnative@^3.0.0:
-  version "3.9.1"
-  resolved "https://registry.yarnpkg.com/lodash._getnative/-/lodash._getnative-3.9.1.tgz#570bc7dede46d61cdcde687d65d3eecbaa3aaff5"
 
 lodash._root@~3.0.0:
   version "3.0.1"
@@ -3049,10 +3067,6 @@ lodash.map@4.6.0:
 lodash.merge@4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.0.tgz#69884ba144ac33fe699737a6086deffadd0f89c5"
-
-lodash.restparam@*:
-  version "3.6.1"
-  resolved "https://registry.yarnpkg.com/lodash.restparam/-/lodash.restparam-3.6.1.tgz#936a4e309ef330a7645ed4145986c85ae5b20805"
 
 lodash.union@~4.6.0:
   version "4.6.0"
@@ -4169,7 +4183,7 @@ readable-stream@~1.1.10:
     isarray "0.0.1"
     string_decoder "~0.10.x"
 
-readdir-scoped-modules@*, readdir-scoped-modules@^1.0.0:
+readdir-scoped-modules@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/readdir-scoped-modules/-/readdir-scoped-modules-1.0.2.tgz#9fafa37d286be5d92cbaebdee030dc9b5f406747"
   dependencies:
@@ -5193,7 +5207,7 @@ uuid@^3.0.0, uuid@^3.1.0, uuid@~3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.1.0.tgz#3dd3d3e790abc24d7b0d3a034ffababe28ebbc04"
 
-validate-npm-package-license@*, validate-npm-package-license@^3.0.1:
+validate-npm-package-license@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/validate-npm-package-license/-/validate-npm-package-license-3.0.1.tgz#2804babe712ad3379459acfbe24746ab2c303fbc"
   dependencies:

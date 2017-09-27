@@ -24,13 +24,13 @@
     "electron": "1.7.0"
   },
   "dependencies": {
+    "@haiku/player": "HaikuTeam/player.git",
     "babel-register": "6.23.0",
     "bluebird": "^3.5.0",
     "capitalize": "^1.0.0",
     "codemirror": "^5.28.0",
     "color": "^2.0.0",
     "combokeys": "^2.4.6",
-    "@haiku/player": "HaikuTeam/player.git",
     "haiku-bytecode": "HaikuTeam/bytecode.git",
     "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
     "haiku-serialization": "HaikuTeam/serialization.git",
