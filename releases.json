@@ -3,6 +3,16 @@
     "branch": "master",
     "version": "2.3.6",
     "environment": "staging",
+    "started": "20170926220456",
+    "uglified": false,
+    "uploaded": false,
+    "finished": "20170926220955",
+    "success": true
+  },
+  {
+    "branch": "master",
+    "version": "2.3.6",
+    "environment": "staging",
     "started": "20170926213319",
     "uglified": false,
     "uploaded": false,
