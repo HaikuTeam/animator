@@ -11,6 +11,7 @@ export default class EnvoyClient<T> {
     private eventHandlers;
     private WebSocket;
     private logger;
+    private schemaCache;
     constructor(options?: EnvoyOptions);
     get(channel: string): Promise<T>;
     getOption(key: string): any;

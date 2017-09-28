@@ -29,9 +29,11 @@ export default class EnvoyClient<T> {
     private eventHandlers: Map<string, Function[]>
     private WebSocket
     private logger: Console
+    private schemaCache: Map<string, Schema>
 
     constructor(options?: EnvoyOptions) {
         this.options = Object.assign({}, DEFAULT_ENVOY_OPTIONS, options)
+        this.schemaCache = new Map<string, Schema>()
         this.isConnected = false
         this.WebSocket = this.options.WebSocket
         this.datagramQueue = []
@@ -287,6 +289,11 @@ export default class EnvoyClient<T> {
      * @param path
      */
     private getRemoteSchema(channel: string): Promise<Schema> {
+        const foundSchema = this.schemaCache.get(channel)
+        if (foundSchema) {
+            return Promise.resolve(foundSchema)
+        }
+
         return this.send(<Datagram> {
             channel,
             id: generateUUIDv4(),
@@ -294,7 +301,11 @@ export default class EnvoyClient<T> {
             method: "",
             params: [],
         }).then((data) => {
-            return <Schema> JSON.parse(data)
+            const loadedSchema = <Schema> JSON.parse(data)
+            if (loadedSchema) {
+                this.schemaCache.set(channel, loadedSchema)
+            }
+            return loadedSchema
         })
     }
 
