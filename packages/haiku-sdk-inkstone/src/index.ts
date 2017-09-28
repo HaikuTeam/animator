@@ -246,8 +246,8 @@ export namespace inkstone {
         cb("timed out: retries exceeded", undefined, undefined)
       } else {
         getSnapshotAndProject(id, (err, snap, response) => {
-          if (err || !response) {
-            cb(err || 'no response', null, response)
+          if (err) {
+            cb(err, null, response)
           } else {
             if (response.statusCode !== 200) {
               setTimeout(() => { awaitSnapshotLink(id, cb, recursionIncr + 1) }, RETRY_PERIOD)
