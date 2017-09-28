@@ -1,6 +1,14 @@
 # Changelog
 
 
+## 2.3.7
+
+### Bug Fixes
+
+ * Make sure we update the component pointer so the timeline maxes get reloaded properly
+ * Make sure NODE_ENV is set and separate distro configure step
+ * stop publish popover from shifting
+
 ## 2.3.6
 
 ### Bug Fixes
