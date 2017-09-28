@@ -68,6 +68,7 @@ var PLUMBING_PKG_PATH = _path2.default.join(__dirname, '..');
 var PLUMBING_PKG_JSON_PATH = _path2.default.join(PLUMBING_PKG_PATH, 'package.json');
 var MAX_SEMVER_TAG_ATTEMPTS = 100;
 var AWAIT_COMMIT_INTERVAL = 0;
+var WORKER_INTERVAL = 64;
 var MAX_CLONE_ATTEMPTS = 5;
 var CLONE_RETRY_DELAY = 10000;
 var DEFAULT_BRANCH_NAME = 'master'; // "'master' process" has nothing to do with this :/
@@ -99,9 +100,22 @@ var MasterGitProject = function (_EventEmitter) {
 
     // List of all actions that can be undone via git
     _this._gitUndoables = [];
-
-    // List of all actions that can be redone via git
     _this._gitRedoables = [];
+    _this._undoOrRedoRequestsQueue = [];
+    _this._undoRedoWorker = setInterval(function () {
+      var undoOrRedoInfo = _this._undoOrRedoRequestsQueue.shift();
+      if (undoOrRedoInfo) {
+        var type = undoOrRedoInfo.type,
+            options = undoOrRedoInfo.options,
+            cb = undoOrRedoInfo.cb;
+
+        if (type === 'undo') {
+          _this.undoActual(options, cb);
+        } else if (type === 'redo') {
+          _this.redoActual(options, cb);
+        }
+      }
+    }, WORKER_INTERVAL);
 
     // Dictionary mapping SHA strings to share payloads, used for caching
     _this._shareInfoPayloads = {};
@@ -120,6 +134,11 @@ var MasterGitProject = function (_EventEmitter) {
   }
 
   _createClass(MasterGitProject, [{
+    key: 'teardown',
+    value: function teardown() {
+      clearInterval(this._undoRedoWorker);
+    }
+  }, {
     key: 'restart',
     value: function restart(projectInfo) {
       this._isCommitting = false;
@@ -821,7 +840,25 @@ var MasterGitProject = function (_EventEmitter) {
     }
   }, {
     key: 'undo',
-    value: function undo(undoOptions, done) {
+    value: function undo(undoOptions, cb) {
+      this._undoOrRedoRequestsQueue.push({
+        type: 'undo',
+        options: undoOptions,
+        cb: cb
+      });
+    }
+  }, {
+    key: 'redo',
+    value: function redo(redoOptions, cb) {
+      this._undoOrRedoRequestsQueue.push({
+        type: 'redo',
+        options: redoOptions,
+        cb: cb
+      });
+    }
+  }, {
+    key: 'undoActual',
+    value: function undoActual(undoOptions, done) {
       var _this18 = this;
 
       _LoggerInstance2.default.info('[master-git] undo beginning');
@@ -853,7 +890,7 @@ var MasterGitProject = function (_EventEmitter) {
 
         return Git.hardResetFromSHA(_this18.folder, target.commitId.toString(), function (err) {
           if (err) {
-            _LoggerInstance2.default.info('[master-git] git undo failed');
+            _LoggerInstance2.default.info('[master-git] git undo failed', err);
             return done(err);
           }
 
@@ -868,8 +905,8 @@ var MasterGitProject = function (_EventEmitter) {
       });
     }
   }, {
-    key: 'redo',
-    value: function redo(redoOptions, done) {
+    key: 'redoActual',
+    value: function redoActual(redoOptions, done) {
       var _this19 = this;
 
       var redoable = this._gitRedoables.pop();

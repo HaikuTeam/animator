@@ -16,6 +16,7 @@ const PLUMBING_PKG_PATH = path.join(__dirname, '..')
 const PLUMBING_PKG_JSON_PATH = path.join(PLUMBING_PKG_PATH, 'package.json')
 const MAX_SEMVER_TAG_ATTEMPTS = 100
 const AWAIT_COMMIT_INTERVAL = 0
+const WORKER_INTERVAL = 64
 const MAX_CLONE_ATTEMPTS = 5
 const CLONE_RETRY_DELAY = 10000
 const DEFAULT_BRANCH_NAME = 'master' // "'master' process" has nothing to do with this :/
@@ -43,9 +44,19 @@ export default class MasterGitProject extends EventEmitter {
 
     // List of all actions that can be undone via git
     this._gitUndoables = []
-
-    // List of all actions that can be redone via git
     this._gitRedoables = []
+    this._undoOrRedoRequestsQueue = []
+    this._undoRedoWorker = setInterval(() => {
+      const undoOrRedoInfo = this._undoOrRedoRequestsQueue.shift()
+      if (undoOrRedoInfo) {
+        const { type, options, cb } = undoOrRedoInfo
+        if (type === 'undo') {
+          this.undoActual(options, cb)
+        } else if (type === 'redo') {
+          this.redoActual(options, cb)
+        }
+      }
+    }, WORKER_INTERVAL)
 
     // Dictionary mapping SHA strings to share payloads, used for caching
     this._shareInfoPayloads = {}
@@ -60,6 +71,10 @@ export default class MasterGitProject extends EventEmitter {
       // haikuPassword,
       // branchName,
     }
+  }
+
+  teardown () {
+    clearInterval(this._undoRedoWorker)
   }
 
   restart (projectInfo) {
@@ -710,7 +725,23 @@ export default class MasterGitProject extends EventEmitter {
     return Git.pushTagToRemote(this.folder, this._folderState.projectName, this._folderState.semverVersion, CodeCommitHttpsUsername, CodeCommitHttpsPassword, cb)
   }
 
-  undo (undoOptions, done) {
+  undo (undoOptions, cb) {
+    this._undoOrRedoRequestsQueue.push({
+      type: 'undo',
+      options: undoOptions,
+      cb
+    })
+  }
+
+  redo (redoOptions, cb) {
+    this._undoOrRedoRequestsQueue.push({
+      type: 'redo',
+      options: redoOptions,
+      cb
+    })
+  }
+
+  undoActual (undoOptions, done) {
     logger.info('[master-git] undo beginning')
 
     // We can't undo if there isn't a target ref yet to go back to; skip if so
@@ -740,7 +771,7 @@ export default class MasterGitProject extends EventEmitter {
 
       return Git.hardResetFromSHA(this.folder, target.commitId.toString(), (err) => {
         if (err) {
-          logger.info(`[master-git] git undo failed`)
+          logger.info(`[master-git] git undo failed`, err)
           return done(err)
         }
 
@@ -755,7 +786,7 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
-  redo (redoOptions, done) {
+  redoActual (redoOptions, done) {
     const redoable = this._gitRedoables.pop()
 
     // If nothing to redo, consider this a noop

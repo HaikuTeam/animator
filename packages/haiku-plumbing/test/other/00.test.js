@@ -28,13 +28,61 @@ tape('other.00', (t) => {
       function (cb) { return mgp.setUndoBaselineIfHeadCommitExists(cb) },
       function (cb) {
         fse.outputFileSync(abspath, `${change(relpath)}`)
-        return mgp.commitFileIfChanged(relpath, 'change', (err, out) => {
-          console.log('commit out:', err, out)
-          return cb()
-        })
+        return mgp.commitFileIfChanged(relpath, 'change', cb)
+      },
+      function (cb) {
+        fse.outputFileSync(abspath, `${change(relpath)}`)
+        return mgp.commitFileIfChanged(relpath, 'change', cb)
+      },
+      function (cb) {
+        fse.outputFileSync(abspath, `${change(relpath)}`)
+        return mgp.commitFileIfChanged(relpath, 'change', cb)
+      },
+      function (cb) {
+        fse.outputFileSync(abspath, `${change(relpath)}`)
+        return mgp.commitFileIfChanged(relpath, 'change', cb)
+      },
+      function (cb) {
+        fse.outputFileSync(abspath, `${change(relpath)}`)
+        return mgp.commitFileIfChanged(relpath, 'change', cb)
+      },
+      function (cb) {
+        fse.outputFileSync(abspath, `${change(relpath)}`)
+        return mgp.commitFileIfChanged(relpath, 'change', cb)
+      },
+      function (cb) {
+        fse.outputFileSync(abspath, `${change(relpath)}`)
+        return mgp.commitFileIfChanged(relpath, 'change', cb)
+      },
+      function (cb) {
+        fse.outputFileSync(abspath, `${change(relpath)}`)
+        return mgp.commitFileIfChanged(relpath, 'change', cb)
+      },
+      function (cb) {
+        fse.outputFileSync(abspath, `${change(relpath)}`)
+        return mgp.commitFileIfChanged(relpath, 'change', cb)
+      },
+      function (cb) {
+        fse.outputFileSync(abspath, `${change(relpath)}`)
+        return mgp.commitFileIfChanged(relpath, 'change', cb)
+      },
+
+      // TODO: Check the sha versions to ensure order is correct etc.
+      function (cb) {
+        mgp.undo({}, () => {})
+        mgp.undo({}, () => {})
+        mgp.undo({}, () => {})
+        mgp.redo({}, () => {})
+        mgp.redo({}, () => {})
+        mgp.undo({}, () => {})
+        mgp.redo({}, () => {})
+        mgp.undo({}, () => {})
+        mgp.redo({}, () => {})
+        setTimeout(cb, 5000)
       }
     ], (err) => {
       t.error(err, 'finished without error')
+      mgp.teardown()
       teardown()
     })
   })
