@@ -90,7 +90,6 @@ const tips = [
 const tip = tips[Math.floor(Math.random() * tips.length)]
 var _reticularHandle
 
-
 class ProjectLoader extends React.Component {
   constructor () {
     super()
@@ -104,8 +103,8 @@ class ProjectLoader extends React.Component {
     this.incrementReticulator()
   }
 
-  componentWillUnmount() {
-    if(_reticularHandle){
+  componentWillUnmount () {
+    if (_reticularHandle) {
       clearTimeout(_reticularHandle)
     }
   }

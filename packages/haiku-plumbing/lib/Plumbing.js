@@ -1006,18 +1006,18 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess(existingSpawnedSub
   } else {
     // If we aren't in electron, start the process using the electron binary path
     if (opts && opts.spawn) {
-      //TODO:  disable for prod?
-      if (process.env.NODE_ENV !== "production") {
-        args.push("--enable-logging", "--remote-debugging-port=9222");
+      // TODO:  disable for prod?
+      if (process.env.NODE_ENV !== 'production') {
+        args.push('--enable-logging', '--remote-debugging-port=9222');
       }
-      console.log("SPAWNING", args);
+      console.log('SPAWNING', args);
       proc = _child_process2.default.spawn(path, args, { stdio: [null, null, null, 'ipc'] });
     } else {
       args = args || [];
-      if (process.env.NODE_ENV !== "production") {
-        args.push("--debug=5859");
+      if (process.env.NODE_ENV !== 'production') {
+        args.push('--debug=5859');
       }
-      console.log("FORKING", args);
+      console.log('FORKING', args);
       proc = _child_process2.default.fork(path, args);
     }
     _LoggerInstance2.default.info('[plumbing] proc ' + name + ' created @ ' + path);
