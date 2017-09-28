@@ -970,7 +970,7 @@ haiku-sdk-client@HaikuTeam/sdk-client.git:
 
 haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git:
   version "2.3.6"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#9811deccbda5be90348593ba65200d1dab1c9034"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#2d0ba851aafe75ed0916e43d50f9235dd55fc4b6"
   dependencies:
     lodash "^4.17.4"
     mkdirp "^0.5.1"
