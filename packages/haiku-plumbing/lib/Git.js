@@ -116,7 +116,6 @@ function status(pwd, opts, cb) {
       flags: _nodegit.Diff.OPTION.SHOW_UNTRACKED_CONTENT | _nodegit.Diff.OPTION.RECURSE_UNTRACKED_DIRS
     };
     return _nodegit.Diff.indexToWorkdir(repository, null, diffOptions).then(function (diff) {
-
       var changes = {};
       for (var i = 0; i < diff.numDeltas(); i++) {
         var delta = diff.getDelta(i);
