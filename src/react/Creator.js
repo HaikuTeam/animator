@@ -410,6 +410,7 @@ export default class Creator extends React.Component {
     return this.props.websocket.request({ method: 'listProjects', params: [] }, (error, projectsList) => {
       if (error) return cb(error)
       this.setState({ projectsList })
+      ipcRenderer.send('renderer:projects-list-fetched', projectsList)
       return cb(null, projectsList)
     })
   }

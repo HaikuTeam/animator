@@ -191,12 +191,21 @@ class LibraryDrawer extends React.Component {
   }
 
   renderPrimaryAssetHint (asset) {
-    return (
-      <div style={STYLES.primaryAssetText}>
-        ⇧ Double click to open this file in Sketch.
-        Every slice and artboard will be synced here when you save.
-      </div>
-    )
+    let hasSubAssets = false
+    if (asset.artboards && asset.artboards.collection.length > 0) hasSubAssets = true
+    if (asset.pages && asset.pages.collection.length > 0) hasSubAssets = true
+    if (asset.slices && asset.slices.collection.length > 0) hasSubAssets = true
+
+    if (hasSubAssets) {
+      return ''
+    } else {
+      return (
+        <div style={STYLES.primaryAssetText}>
+          ⇧ Double click to open this file in Sketch.
+          Every slice and artboard will be synced here when you save.
+        </div>
+      )
+    }
   }
 
   renderAssetItem (asset, isPrimaryAsset) {

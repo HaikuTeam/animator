@@ -66,6 +66,7 @@ function createWindow () {
   var menuspec = {
     undoables: [],
     redoables: [],
+    projectList: [],
     isSaving: false,
     folder: null
   }
@@ -111,6 +112,11 @@ function createWindow () {
     if (didChange) {
       topmenu.create(menuspec)
     }
+  })
+
+  ipcMain.on('renderer:projects-list-fetched', (ipcEvent, projectList) => {
+    menuspec.projectList = projectList
+    topmenu.create(menuspec)
   })
 
   browserWindow = new BrowserWindow({

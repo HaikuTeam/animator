@@ -34,9 +34,17 @@ export default class Stage extends React.Component {
     }
   }
 
+  componentWillUnmount () {
+    if (this.tourClient) {
+      this.tourClient.off('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
+    }
+  }
+
   onRequestWebviewCoordinates () {
     let { top, left } = this.webview.getBoundingClientRect()
-    this.tourClient.receiveWebviewCoordinates('glass', { top, left })
+    if (this.tourClient) {
+      this.tourClient.receiveWebviewCoordinates('glass', { top, left })
+    }
   }
 
   injectWebview () {

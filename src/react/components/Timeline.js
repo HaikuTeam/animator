@@ -9,6 +9,7 @@ export default class Timeline extends React.Component {
     super(props)
     this.webview = null
     this.state = {}
+    this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this)
   }
 
   componentDidMount () {
@@ -18,14 +19,23 @@ export default class Timeline extends React.Component {
 
     if (!this.props.envoy.isInMockMode()) {
       tourChannel.then((tourChannel) => {
-        tourChannel.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this, tourChannel))
+        this.tourChannel = tourChannel
+        this.tourChannel.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
       })
     }
   }
 
-  onRequestWebviewCoordinates (tourChannel) {
+  componentWillUnmount () {
+    if (this.tourChannel) {
+      this.tourChannel.off('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
+    }
+  }
+
+  onRequestWebviewCoordinates () {
     let { top, left } = this.webview.getBoundingClientRect()
-    tourChannel.receiveWebviewCoordinates('timeline', { top, left })
+    if (this.tourChannel) {
+      this.tourChannel.receiveWebviewCoordinates('timeline', { top, left })
+    }
   }
 
   injectWebview () {

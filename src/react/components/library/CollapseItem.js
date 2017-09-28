@@ -104,7 +104,6 @@ class CollapseItem extends React.Component {
 
   handleSketchDoubleClick () {
     this.props.instantiate()
-    this.props.tourChannel.next()
   }
 
   render () {
