@@ -3,8 +3,8 @@
 
 
 "@haiku/player@HaikuTeam/player.git":
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/player.git#9645c01fdc4f3ab2f268e2022848726482426470"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/player.git#691ddfc6a789a7ad13d66dca36a73ab171aaf56a"
   dependencies:
     lodash "^4.17.4"
     react "15.4.2"
