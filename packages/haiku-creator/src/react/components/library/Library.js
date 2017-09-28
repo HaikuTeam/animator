@@ -72,7 +72,7 @@ const STYLES = {
     fontStyle: 'italic'
   },
   primaryAssetText: {
-    color: Palette.ROCK,
+    color: Palette.DARK_ROCK,
     fontSize: 16,
     padding: 24,
     textAlign: 'center'
