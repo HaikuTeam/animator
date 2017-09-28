@@ -20,7 +20,7 @@ process.env.NODE_ENV = 'development'
 var DEFAULTS = {
   dev: true,
   mockEnvoy: '1',
-  folderChoice: 'blank',
+  folderChoice: 'none',
   devChoice: 'everything',
   nodeEnv: 'development',
   skipAutoUpdate: '1',
@@ -31,10 +31,10 @@ var DEFAULTS = {
   releaseVersion: '0.0.0', // stub
   autoUpdateServer: 'http://localhost:3002',
   plumbingUrl: 'http://0.0.0.0:1024',
-  doDevelopCLI: false,
-  doDevelopSDKClient: false,
-  doDevelopSDKInkstone: false,
-  doDevelopSDKCreator: false
+  doDevelopCLI: true,
+  doDevelopSDKClient: true,
+  doDevelopSDKInkstone: true,
+  doDevelopSDKCreator: true
 }
 var inputs = lodash.assign({}, DEFAULTS, argv)
 delete inputs._

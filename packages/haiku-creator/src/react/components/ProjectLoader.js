@@ -88,6 +88,8 @@ const tips = [
 ]
 
 const tip = tips[Math.floor(Math.random() * tips.length)]
+var _reticularHandle
+
 
 class ProjectLoader extends React.Component {
   constructor () {
@@ -102,8 +104,14 @@ class ProjectLoader extends React.Component {
     this.incrementReticulator()
   }
 
+  componentWillUnmount() {
+    if(_reticularHandle){
+      clearTimeout(_reticularHandle)
+    }
+  }
+
   incrementReticulator () {
-    setTimeout(() => {
+    _reticularHandle = setTimeout(() => {
       this.setState({retic: this.state.retic + 1}, () => {
         if (this.state.retic !== reticulations.length - 1) this.incrementReticulator()
       })

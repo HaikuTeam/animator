@@ -823,8 +823,11 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSu
   } else {
     // If we aren't in electron, start the process using the electron binary path
     if (opts && opts.spawn) {
+      args.push("--enable-logging","--remote-debugging-port=9222")
+      console.log("SPAWNING ELECTRON", args)
       proc = cp.spawn(path, args, { stdio: [null, null, null, 'ipc'] })
     } else {
+      console.log("FORK")
       proc = cp.fork(path, args)
     }
     logger.info(`[plumbing] proc ${name} created @ ${path}`)
