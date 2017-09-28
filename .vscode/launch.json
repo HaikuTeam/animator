@@ -38,6 +38,24 @@
             "name": "attach-creator",
             "url": "file://${workspaceRoot}/packages/haiku-creator/index.html",
             "webRoot": "${workspaceRoot}/packages/haiku-creator"
+        },
+        {
+            "name": "plumbing",
+            "type": "node",
+            "outFiles": [
+                "${workspaceRoot}/packages/haiku-plumbing/lib/**/*"
+            ],
+            "sourceMaps": true,
+            "request": "attach",
+            "processId": "${command:PickProcess}"
+        },
+        {
+            //To use this, select the /path/to/node /path/to/haiku-plumbing process
+            "name": "master-process",
+            "type": "node",
+            "sourceMaps": true,
+            "request": "attach",
+            "processId": "${command:PickProcess}"
         }//, keeping the below around for future reference, if we want to set up a "launch" configuration
         // {
         //     "type": "node",
