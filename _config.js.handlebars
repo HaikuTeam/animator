@@ -9,6 +9,7 @@
 */
 
 var env = {
+  NODE_ENV: '{{environment}}',
   HAIKU_RELEASE_VERSION: require('./package.json').version,
   HAIKU_RELEASE_PLATFORM: 'mac',
   HAIKU_RELEASE_ENVIRONMENT: '{{environment}}', // just a tag, really - use to push to a url that won't trigger an update to users on the mainline
@@ -25,4 +26,11 @@ for (var key in env) {
   if (process.env.HAIKU_APP_SKIP_LOG !== '1') {
     console.log(key + '=' + JSON.stringify(value)) // important: provides values to shell scripts (hack!)
   }
+}
+
+module.exports = {
+  uglify: {{uglify}},
+  branch: '{{branch}}',
+  environment: '{{environment}}',
+  upload: {{upload}}
 }
