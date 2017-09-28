@@ -31,10 +31,10 @@ var DEFAULTS = {
   releaseVersion: '0.0.0', // stub
   autoUpdateServer: 'http://localhost:3002',
   plumbingUrl: 'http://0.0.0.0:1024',
-  doDevelopCLI: true,
-  doDevelopSDKClient: true,
-  doDevelopSDKInkstone: true,
-  doDevelopSDKCreator: true
+  doDevelopCLI: false,
+  doDevelopSDKClient: false,
+  doDevelopSDKInkstone: false,
+  doDevelopSDKCreator: false
 }
 var inputs = lodash.assign({}, DEFAULTS, argv)
 delete inputs._

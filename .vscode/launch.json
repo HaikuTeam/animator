@@ -1,0 +1,54 @@
+{
+    "version": "0.2.0",
+
+    //unless we can fix the "url" issue described in attach-glass, compounds aren't useful to us
+    //because an interactive "choose your URL"
+    // "compounds": [
+    //     {
+    //         "name": "Attach-FULL-Mono-UI",
+    //         "configurations": [
+    //             "attach-glass",
+    //             "attach-timeline",
+    //             "attach-creator"
+    //         ]
+    //     }
+    // ],
+    "configurations": [
+        {
+            "type": "chrome",
+            "request":"attach",
+            "port": 9222,
+            "name": "attach-glass",
+            // "url": "file://${workspaceRoot}/packages/haiku-creator/node_modules/haiku-glass/index.html",
+            // ^ the above does not work because of a query string on index.html
+            //   urlFilter is supposed to allow wildcard matching, but doesn't seem to work.  see https://github.com/Microsoft/vscode-chrome-debug/issues/438
+            "webRoot": "${workspaceRoot}/packages/haiku-glass"
+        },
+        {
+            "type": "chrome",
+            "request":"attach",
+            "port": 9222,
+            "name": "attach-timeline",
+            "webRoot": "${workspaceRoot}/packages/haiku-timeline"
+        },
+        {
+            "type": "chrome",
+            "request":"attach",
+            "port": 9222,
+            "name": "attach-creator",
+            "url": "file://${workspaceRoot}/packages/haiku-creator/index.html",
+            "webRoot": "${workspaceRoot}/packages/haiku-creator"
+        }//, keeping the below around for future reference, if we want to set up a "launch" configuration
+        // {
+        //     "type": "node",
+        //     "console": "integratedTerminal",
+        //     "request": "launch",
+        //     "name": "vanilla-start",
+        //     "program": "${workspaceRoot}/scripts/start.js",
+        //     "args": [
+        //         "--default"
+        //     ],
+        //     "cwd": "${workspaceRoot}"
+        // }
+    ]
+}
