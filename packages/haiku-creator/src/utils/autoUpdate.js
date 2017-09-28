@@ -1,6 +1,11 @@
-var qs = require('qs')
+const qs = require('qs')
+const https = require('https');
+const fs = require('fs');
+const path = require('path')
+const os = require('os')
+const unzip = require('extract-zip');
 
-// var autoUpdater = require('electron').autoUpdater
+// require('electron').remote.app.relaunch()
 
 // const opts = {
 //   server: process.env.HAIKU_AUTOUPDATE_SERVER,
@@ -16,58 +21,59 @@ var qs = require('qs')
 //   }
 // }
 
-// module.exports = function run (cb) {
-//   console.log('[autoupdate] running')
 
-//   if (process.env.HAIKU_SKIP_AUTOUPDATE) {
-//     console.log('[autoupdate] skipped-update-check')
-//     return cb(null, 'skipped-update-check')
-//   }
+function _download (url, downloadPath) {
+  const file = fs.createWriteStream(downloadPath);
 
-//   const feedURL = `${opts.server}/updates/latest?environment=${opts.environment}&branch=${opts.branch}&platform=${opts.platform}&version=${opts.version}`
+  return new Promise((resolve, reject) => {
+    const response = https.get(url, function(response) {
+      response.pipe(file);
 
-//   autoUpdater.setFeedURL(feedURL)
+      file.on('finish', function() {
+        file.close(resolve);
+      });
+    })
 
-//   console.log('[autoupdate] checking')
-//   console.log('[autoupdate] url: ' + feedURL)
-
-//   autoUpdater.checkForUpdates()
-
-//   autoUpdater.on('error', (error) => {
-//     console.log('[autoupdate] error')
-//     return cb(error, 'error', autoUpdater)
-//   })
-
-//   autoUpdater.on('checking-for-update', () => {
-//     console.log('[autoupdate] checking-for-update')
-//     return cb(null, 'checking-for-update', autoUpdater)
-//   })
-
-//   autoUpdater.on('update-available', () => {
-//     console.log('[autoupdate] update-available')
-//     return cb(null, 'update-available', autoUpdater)
-//   })
-
-//   autoUpdater.on('update-not-available', () => {
-//     console.log('[autoupdate] update-not-available')
-//     return cb(null, 'update-not-available', autoUpdater)
-//   })
-
-//   autoUpdater.on('update-downloaded', () => {
-//     console.log('[autoupdate] update-downloaded')
-
-//     return cb(null, 'update-downloaded', autoUpdater, () => {
-//       console.log('[autoupdate] quit-and-install')
-//       // Note how this is run only if the callback is called.
-//       autoUpdater.quitAndInstall()
-//     })
-//   })
-// }
+    response.on('error', function(error) {
+      fs.unlink(downloadPath);
+      reject(error)
+    });
+  })
+};
 
 module.exports = {
-  generateURL({ server, ...query }) {
+  generateURL ({ server, ...query }) {
     const queryString = qs.stringify(query);
 
     return `${server}/updates/latest?${queryString}`
+  },
+
+  async run () {
+    const [ shouldUpdate, url ] = checkUpdates()
+    const downloadPath = path.join(os.tmpdir(), 'haiku.zip')
+
+    if (shouldUpdate) {
+      await _download(url, downloadPath)
+
+      unzip(updatePath, {dir: '/Applications/'}, function (err) {
+        if (err) {
+          console.log(err)
+        }
+      })
+    }
+  },
+
+  async checkUpdates () {
+    const { status, url } = await this.requestToUpdateServer()
+
+    if (status === 200 && url) {
+      return [true, url]
+    }
+
+    return [false, null]
+  },
+
+  async requestToUpdateServer () {
+    return {status: 300, url: ""}
   }
 }
