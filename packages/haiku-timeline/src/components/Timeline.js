@@ -391,10 +391,19 @@ class Timeline extends React.Component {
 
     this._component.on('component:updated', (maybeComponentIds, maybeTimelineName, maybeTimelineTime, maybePropertyNames, maybeMetadata) => {
       console.info('[timeline] component updated', maybeComponentIds, maybeTimelineName, maybeTimelineTime, maybePropertyNames, maybeMetadata)
+
+      // If we don't clear caches then the timeline fields might not update right after keyframe deletions
+      this._component._clearCaches()
+
       var reifiedBytecode = this._component.getReifiedBytecode()
       var serializedBytecode = this._component.getSerializedBytecode()
       clearInMemoryBytecodeCaches(reifiedBytecode)
+
+      console.log('r', reifiedBytecode)
+      console.log('s', serializedBytecode)
+
       this.setState({ reifiedBytecode, serializedBytecode })
+
       if (maybeMetadata && maybeMetadata.from !== 'timeline') {
         if (maybeComponentIds && maybeTimelineName && maybePropertyNames) {
           maybeComponentIds.forEach((componentId) => {
@@ -863,6 +872,7 @@ class Timeline extends React.Component {
     // Note that if startValue is undefined, the previous value will be examined to determine the value of the present one
     BytecodeActions.createKeyframe(this.state.reifiedBytecode, componentId, timelineName, elementName, propertyName, startMs, startValue, maybeCurve, endMs, endValue, this._component.fetchActiveBytecodeFile().get('hostInstance'), this._component.fetchActiveBytecodeFile().get('states'))
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+    this._component._clearCaches()
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -878,6 +888,7 @@ class Timeline extends React.Component {
   executeBytecodeActionSplitSegment (componentId, timelineName, elementName, propertyName, startMs) {
     BytecodeActions.splitSegment(this.state.reifiedBytecode, componentId, timelineName, elementName, propertyName, startMs)
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+    this._component._clearCaches()
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -888,6 +899,7 @@ class Timeline extends React.Component {
   executeBytecodeActionJoinKeyframes (componentId, timelineName, elementName, propertyName, startMs, endMs, curveName) {
     BytecodeActions.joinKeyframes(this.state.reifiedBytecode, componentId, timelineName, elementName, propertyName, startMs, endMs, curveName)
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+    this._component._clearCaches()
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode(),
@@ -903,6 +915,7 @@ class Timeline extends React.Component {
   executeBytecodeActionDeleteKeyframe (componentId, timelineName, propertyName, startMs) {
     BytecodeActions.deleteKeyframe(this.state.reifiedBytecode, componentId, timelineName, propertyName, startMs)
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+    this._component._clearCaches()
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode(),
@@ -916,6 +929,7 @@ class Timeline extends React.Component {
   executeBytecodeActionChangeSegmentCurve (componentId, timelineName, propertyName, startMs, curveName) {
     BytecodeActions.changeSegmentCurve(this.state.reifiedBytecode, componentId, timelineName, propertyName, startMs, curveName)
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+    this._component._clearCaches()
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -928,6 +942,7 @@ class Timeline extends React.Component {
   executeBytecodeActionChangeSegmentEndpoints (componentId, timelineName, propertyName, oldStartMs, oldEndMs, newStartMs, newEndMs) {
     BytecodeActions.changeSegmentEndpoints(this.state.reifiedBytecode, componentId, timelineName, propertyName, oldStartMs, oldEndMs, newStartMs, newEndMs)
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+    this._component._clearCaches()
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -938,6 +953,7 @@ class Timeline extends React.Component {
   executeBytecodeActionRenameTimeline (oldTimelineName, newTimelineName) {
     BytecodeActions.renameTimeline(this.state.reifiedBytecode, oldTimelineName, newTimelineName)
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+    this._component._clearCaches()
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -948,6 +964,7 @@ class Timeline extends React.Component {
   executeBytecodeActionCreateTimeline (timelineName) {
     BytecodeActions.createTimeline(this.state.reifiedBytecode, timelineName)
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+    this._component._clearCaches()
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -959,6 +976,7 @@ class Timeline extends React.Component {
   executeBytecodeActionDuplicateTimeline (timelineName) {
     BytecodeActions.duplicateTimeline(this.state.reifiedBytecode, timelineName)
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+    this._component._clearCaches()
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -969,6 +987,7 @@ class Timeline extends React.Component {
   executeBytecodeActionDeleteTimeline (timelineName) {
     BytecodeActions.deleteTimeline(this.state.reifiedBytecode, timelineName)
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+    this._component._clearCaches()
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode()
@@ -982,6 +1001,7 @@ class Timeline extends React.Component {
     // The 'keyframeMoves' indicate a list of changes we know occurred. Only if some occurred do we bother to update the other views
     if (Object.keys(keyframeMoves).length > 0) {
       clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+      this._component._clearCaches()
       this.setState({
         reifiedBytecode: this.state.reifiedBytecode,
         serializedBytecode: this._component.getSerializedBytecode()
