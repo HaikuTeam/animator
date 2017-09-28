@@ -2904,5 +2904,22 @@
       "label": "fix",
       "message": "Only show the tour if we see 'CheckProject' in the list"
     }
+  },
+  "2.3.7": {
+    "aa6fe0370e3e6614e88cef452c13d01690cebafc": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Make sure we update the component pointer so the timeline maxes get reloaded properly"
+    },
+    "7da61868182320d1a27254e533f929efeb2547e0": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Make sure NODE_ENV is set and separate distro configure step"
+    },
+    "eecb33256edc10a36020ad733757829aad67b601": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "stop publish popover from shifting"
+    }
   }
 }
