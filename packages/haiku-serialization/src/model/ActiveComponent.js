@@ -930,6 +930,7 @@ ActiveComponent.prototype.pasteThing = function (pasteable, request, metadata, c
       // cb(null, { center: coords })
       // Should this have the same logic we use for instantiation? (probably yes)
 
+      this._updateTimelineMaxes(this._currentTimelineName)
       this.emit('component:updated', null, null, null, null, metadata)
     }.bind(this))
   }.bind(this))
@@ -1212,6 +1213,7 @@ ActiveComponent.prototype.moduleReplace = function moduleReplace (cb, config) {
       // the same local time/time control data that had already been set by the user
       for (var timelineName in previousComponentInstance._timelineInstances) {
         this._componentInstance._timelineInstances[timelineName] = previousComponentInstance._timelineInstances[timelineName]
+        previousComponentInstance._timelineInstances[timelineName]._setComponent(this._componentInstance)
       }
 
       // Start the clock again, as we should now be ready to flow updated component.
@@ -1262,6 +1264,9 @@ ActiveComponent.prototype.rehydrateBytecode = function rehydrateBytecode (incomi
 
   // Important: Unlesss we do this, the file will be pointing to the old bytecode object when edits are made.
   this.fetchActiveBytecodeFile().set('substructInitialized', this.fetchActiveBytecodeFile().reinitializeSubstruct(null, 'ActiveComponent.prototype.rehydrateBytecode'))
+
+  this._updateTimelineMaxes(this._currentTimelineName)
+  // this.emit('component:updated', null, null, null, null, metadata) // Do we need this?
 
   return this
 }
