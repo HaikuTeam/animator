@@ -20,19 +20,22 @@ export default class Timeline extends React.Component {
     if (!this.props.envoy.isInMockMode()) {
       tourChannel.then((tourChannel) => {
         this.tourChannel = tourChannel
-
         this.tourChannel.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
       })
     }
   }
 
   componentWillUnmount () {
-    this.tourChannel.off('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
+    if (this.tourChannel) {
+      this.tourChannel.off('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
+    }
   }
 
   onRequestWebviewCoordinates () {
     let { top, left } = this.webview.getBoundingClientRect()
-    this.tourChannel.receiveWebviewCoordinates('timeline', { top, left })
+    if (this.tourChannel) {
+      this.tourChannel.receiveWebviewCoordinates('timeline', { top, left })
+    }
   }
 
   injectWebview () {

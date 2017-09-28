@@ -306,7 +306,12 @@ class StageTitleBar extends React.Component {
       this.setState({ isProjectInfoFetchInProgress: false })
 
       if (projectInfoFetchError) {
-        console.error(projectInfoFetchError.message)
+        if (projectInfoFetchError.message) {
+          console.error(projectInfoFetchError.message)
+        } else {
+          console.error('unknown problem fetching project')
+        }
+
         // We might only care about this if it comes up during a save... #FIXME ??
         if (projectInfoFetchError.message === 'Timed out waiting for project share info') {
           // ?
