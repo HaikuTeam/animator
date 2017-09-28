@@ -9,9 +9,16 @@ var MasterGitProject = require('./../../lib/MasterGitProject').default
 var Git = require('./../../lib/Git')
 tape('other.00', (t) => {
   t.plan(2)
+  var changes = {}
+  function change (relpath) {
+    if (!changes[relpath]) changes[relpath] = 0
+    else changes[relpath] += 1
+    return changes[relpath]
+  }
   return TestHelpers.setup(function(folder, creator, glass, timeline, metadata, teardown) {
     t.ok(true)
-    fse.outputFileSync(path.join(folder, 'hello.txt'), `${Date.now()}`)
+    var relpath = path.join(folder, 'hello.txt')
+    fse.outputFileSync(relpath, `${change(relpath)}`)
     var mgp = new MasterGitProject(folder)
     mgp.restart({ branchName: 'master' })
     return async.series([
@@ -19,6 +26,7 @@ tape('other.00', (t) => {
       function (cb) { return mgp.snapshotCommitProject('Initialized test folder', cb) },
       function (cb) { return mgp.setUndoBaselineIfHeadCommitExists(cb) },
       function (cb) {
+        // console.log(folder)
         // mpg.commitFileIfChanged(relpath, message, cb)
         return cb()
       }
