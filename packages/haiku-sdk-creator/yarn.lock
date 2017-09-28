@@ -2233,7 +2233,7 @@ haiku-sdk-creator@HaikuTeam/sdk-creator.git:
 
 haiku-serialization@HaikuTeam/serialization:
   version "2.3.6"
-  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#0ba3445a7d02bdb32521a312d80419d652fc84d9"
+  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#0a17a840686cfbd3c2615a4273fc48b633c7427d"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     async "2.1.5"

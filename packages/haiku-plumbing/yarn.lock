@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@haiku/player@2.3.5", "@haiku/player@HaikuTeam/player.git":
+  version "2.3.5"
+  resolved "git+ssh://git@github.com/HaikuTeam/player.git#9645c01fdc4f3ab2f268e2022848726482426470"
+  dependencies:
+    lodash "^4.17.4"
+    react "15.4.2"
+
 "@haiku/player@2.3.6":
   version "2.3.6"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.6.tgz#b8ed349dc6940bfe696160ce5905f8da5439613b"
@@ -9,26 +16,11 @@
     lodash "^4.17.4"
     react "15.4.2"
 
-"@haiku/player@HaikuTeam/player.git", "@haiku/player@HaikuTeam/player.git#9645c01fdc4f3ab2f268e2022848726482426470":
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/player.git#9645c01fdc4f3ab2f268e2022848726482426470"
+"@haiku/zack2-checktutorial@0.0.18":
+  version "0.0.18"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fzack2-checktutorial/-/zack2-checktutorial-0.0.18.tgz#8511549ba7ac7017576903e75b0b861156be63cd"
   dependencies:
-    lodash "^4.17.4"
-    react "15.4.2"
-
-"@haiku/player@HaikuTeam/player.git#478f545c1b5fc4b9566df6dc9c2df8ae00db51c5":
-  version "2.3.4"
-  resolved "git+ssh://git@github.com/HaikuTeam/player.git#478f545c1b5fc4b9566df6dc9c2df8ae00db51c5"
-  dependencies:
-    lodash "^4.17.4"
-    react "15.4.2"
-
-"@haiku/player@HaikuTeam/player.git#e4a65bed78c72666d5ad5a1f68637f6372c44fb7":
-  version "2.3.4"
-  resolved "git+ssh://git@github.com/HaikuTeam/player.git#e4a65bed78c72666d5ad5a1f68637f6372c44fb7"
-  dependencies:
-    lodash "^4.17.4"
-    react "15.4.2"
+    "@haiku/player" "2.3.5"
 
 JSONStream@^1.0.3, JSONStream@~1.3.1:
   version "1.3.1"
@@ -994,10 +986,6 @@ balanced-match@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
 
-base64-js@0.0.8:
-  version "0.0.8"
-  resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-0.0.8.tgz#1101e9544f4a76b1bc3b26d452ca96d7a35e7978"
-
 base64-js@^1.0.2:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.2.1.tgz#a91947da1f4a516ea38e5b4ec0ec3773675e0886"
@@ -1025,12 +1013,6 @@ better-react-spinkit@2.0.0-4:
 binary-extensions@^1.0.0:
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-1.10.0.tgz#9aeb9a6c5e88638aad171e167f5900abe24835d0"
-
-bl@^1.0.0:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/bl/-/bl-1.2.1.tgz#cac328f7bee45730d404b692203fcb590e172d5e"
-  dependencies:
-    readable-stream "^2.0.5"
 
 block-stream@*:
   version "0.0.9"
@@ -1060,21 +1042,6 @@ body-parser@1.15.2:
     qs "6.2.0"
     raw-body "~2.1.7"
     type-is "~1.6.13"
-
-body-parser@^1.9.0:
-  version "1.18.1"
-  resolved "https://registry.yarnpkg.com/body-parser/-/body-parser-1.18.1.tgz#9c1629370bcfd42917f30641a2dcbe2ec50d4c26"
-  dependencies:
-    bytes "3.0.0"
-    content-type "~1.0.4"
-    debug "2.6.8"
-    depd "~1.1.1"
-    http-errors "~1.6.2"
-    iconv-lite "0.4.19"
-    on-finished "~2.3.0"
-    qs "6.5.1"
-    raw-body "2.3.2"
-    type-is "~1.6.15"
 
 boom@2.x.x:
   version "2.10.1"
@@ -1198,7 +1165,7 @@ browserify-transform-tools@1.7.0:
     falafel "^2.0.0"
     through "^2.3.7"
 
-browserify-zlib@^0.1.4, browserify-zlib@~0.1.2:
+browserify-zlib@~0.1.2:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/browserify-zlib/-/browserify-zlib-0.1.4.tgz#bb35f8a519f600e0fa6b8485241c979d0141fb2d"
   dependencies:
@@ -1256,10 +1223,6 @@ browserify@14.1.0:
     vm-browserify "~0.0.1"
     xtend "^4.0.0"
 
-buffer-crc32@~0.2.3:
-  version "0.2.13"
-  resolved "https://registry.yarnpkg.com/buffer-crc32/-/buffer-crc32-0.2.13.tgz#0d333e3f00eac50aa1454abd30ef8c2a5d9a7242"
-
 buffer-xor@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/buffer-xor/-/buffer-xor-1.0.3.tgz#26e61ed1422fb70dd42e6e36729ed51d855fe8d9"
@@ -1269,14 +1232,6 @@ buffer@4.9.1:
   resolved "https://registry.yarnpkg.com/buffer/-/buffer-4.9.1.tgz#6d1bb601b07a4efced97094132093027c95bc298"
   dependencies:
     base64-js "^1.0.2"
-    ieee754 "^1.1.4"
-    isarray "^1.0.0"
-
-buffer@^3.0.1:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/buffer/-/buffer-3.6.0.tgz#a72c936f77b96bf52f5f7e7b467180628551defb"
-  dependencies:
-    base64-js "0.0.8"
     ieee754 "^1.1.4"
     isarray "^1.0.0"
 
@@ -1302,10 +1257,6 @@ builtins@^1.0.3:
 bytes@2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/bytes/-/bytes-2.4.0.tgz#7d97196f9d5baf7f6935e25985549edd2a6c2339"
-
-bytes@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/bytes/-/bytes-3.0.0.tgz#d32815404d689699f85a4ea4fa8755dd13a96048"
 
 cacache@^9.2.9, cacache@~9.2.9:
   version "9.2.9"
@@ -1381,15 +1332,6 @@ capture-stack-trace@^1.0.0:
 caseless@~0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
-
-caw@^2.0.0:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/caw/-/caw-2.0.1.tgz#6c3ca071fc194720883c2dc5da9b074bfc7e9e95"
-  dependencies:
-    get-proxy "^2.0.0"
-    isurl "^1.0.0-alpha5"
-    tunnel-agent "^0.6.0"
-    url-to-options "^1.0.1"
 
 center-align@^0.1.1:
   version "0.1.3"
@@ -1614,16 +1556,6 @@ commander@^2.2.0, commander@^2.8.1, commander@^2.9.0:
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.11.0.tgz#157152fd1e7a6c8d98a5b715cf376df928004563"
 
-commander@~2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/commander/-/commander-2.1.0.tgz#d121bbae860d9992a3d517ba96f56588e47c6781"
-
-commander@~2.8.1:
-  version "2.8.1"
-  resolved "https://registry.yarnpkg.com/commander/-/commander-2.8.1.tgz#06be367febfda0c330aa1e2a072d3dc9762425d4"
-  dependencies:
-    graceful-readlink ">= 1.0.0"
-
 concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
@@ -1652,7 +1584,7 @@ condense-newlines@^0.2.1:
     is-whitespace "^0.3.0"
     kind-of "^3.0.2"
 
-config-chain@^1.1.11, config-chain@~1.1.11, config-chain@~1.1.5:
+config-chain@~1.1.11, config-chain@~1.1.5:
   version "1.1.11"
   resolved "https://registry.yarnpkg.com/config-chain/-/config-chain-1.1.11.tgz#aba09747dfbe4c3e70e766a6e41586e1859fc6f2"
   dependencies:
@@ -1692,11 +1624,7 @@ content-disposition@0.5.1:
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/content-disposition/-/content-disposition-0.5.1.tgz#87476c6a67c8daa87e32e87616df883ba7fb071b"
 
-content-disposition@0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/content-disposition/-/content-disposition-0.5.2.tgz#0cf68bb9ddf5f2be7961c3a85178cb85dba78cb4"
-
-content-type@~1.0.2, content-type@~1.0.4:
+content-type@~1.0.2:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/content-type/-/content-type-1.0.4.tgz#e138cc75e040c727b1966fe5e5f8c9aee256fe3b"
 
@@ -1744,12 +1672,6 @@ core-js@^2.4.0, core-js@^2.5.0:
 core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
-
-cors@~2.5.0:
-  version "2.5.3"
-  resolved "https://registry.yarnpkg.com/cors/-/cors-2.5.3.tgz#0d70a211ec3b6cc9824e6cdc299c0630ef69c392"
-  dependencies:
-    vary "^1"
 
 create-ecdh@^4.0.0:
   version "4.0.0"
@@ -1897,7 +1819,7 @@ debug-log@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/debug-log/-/debug-log-1.0.1.tgz#2307632d4c04382b8df8a32f70b895046d52745f"
 
-debug@2, debug@2.6.8, debug@^2.1.0, debug@^2.1.1, debug@^2.1.3, debug@^2.2.0, debug@^2.4.1, debug@^2.4.5, debug@^2.5.1, debug@^2.6.8:
+debug@2, debug@^2.1.1, debug@^2.1.3, debug@^2.2.0, debug@^2.4.1, debug@^2.4.5, debug@^2.5.1, debug@^2.6.8:
   version "2.6.8"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.8.tgz#e731531ca2ede27d188222427da17821d68ff4fc"
   dependencies:
@@ -1926,54 +1848,6 @@ decompress-response@^3.2.0:
   resolved "https://registry.yarnpkg.com/decompress-response/-/decompress-response-3.3.0.tgz#80a4dd323748384bfa248083622aedec982adff3"
   dependencies:
     mimic-response "^1.0.0"
-
-decompress-tar@^4.0.0, decompress-tar@^4.1.0, decompress-tar@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/decompress-tar/-/decompress-tar-4.1.1.tgz#718cbd3fcb16209716e70a26b84e7ba4592e5af1"
-  dependencies:
-    file-type "^5.2.0"
-    is-stream "^1.1.0"
-    tar-stream "^1.5.2"
-
-decompress-tarbz2@^4.0.0:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/decompress-tarbz2/-/decompress-tarbz2-4.1.1.tgz#3082a5b880ea4043816349f378b56c516be1a39b"
-  dependencies:
-    decompress-tar "^4.1.0"
-    file-type "^6.1.0"
-    is-stream "^1.1.0"
-    seek-bzip "^1.0.5"
-    unbzip2-stream "^1.0.9"
-
-decompress-targz@^4.0.0:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/decompress-targz/-/decompress-targz-4.1.1.tgz#c09bc35c4d11f3de09f2d2da53e9de23e7ce1eee"
-  dependencies:
-    decompress-tar "^4.1.1"
-    file-type "^5.2.0"
-    is-stream "^1.1.0"
-
-decompress-unzip@^4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/decompress-unzip/-/decompress-unzip-4.0.1.tgz#deaaccdfd14aeaf85578f733ae8210f9b4848f69"
-  dependencies:
-    file-type "^3.8.0"
-    get-stream "^2.2.0"
-    pify "^2.3.0"
-    yauzl "^2.4.2"
-
-decompress@^4.0.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/decompress/-/decompress-4.2.0.tgz#7aedd85427e5a92dacfe55674a7c505e96d01f9d"
-  dependencies:
-    decompress-tar "^4.0.0"
-    decompress-tarbz2 "^4.0.0"
-    decompress-targz "^4.0.0"
-    decompress-unzip "^4.0.1"
-    graceful-fs "^4.1.10"
-    make-dir "^1.0.0"
-    pify "^2.3.0"
-    strip-dirs "^2.0.0"
 
 dedent@0.6.0, dedent@^0.6.0:
   version "0.6.0"
@@ -2039,7 +1913,7 @@ delegates@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz#84c6e159b81904fdca59a0ef44cd870d31250f9a"
 
-depd@1.1.1, depd@~1.1.0, depd@~1.1.1:
+depd@~1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/depd/-/depd-1.1.1.tgz#5783b4e1c459f06fa5ca27f991f3d06e7a310359"
 
@@ -2148,18 +2022,6 @@ dotenv@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-4.0.0.tgz#864ef1379aced55ce6f95debecdce179f7a0cd1d"
 
-download@^5.0.0:
-  version "5.0.3"
-  resolved "https://registry.yarnpkg.com/download/-/download-5.0.3.tgz#63537f977f99266a30eb8a2a2fbd1f20b8000f7a"
-  dependencies:
-    caw "^2.0.0"
-    decompress "^4.0.0"
-    filenamify "^2.0.0"
-    get-stream "^3.0.0"
-    got "^6.3.0"
-    mkdirp "^0.5.1"
-    pify "^2.3.0"
-
 duplexer2@0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/duplexer2/-/duplexer2-0.0.2.tgz#c614dcf67e2fb14995a91711e5a617e8a60a31db"
@@ -2180,7 +2042,7 @@ duplexer@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/duplexer/-/duplexer-0.1.1.tgz#ace6ff808c1ce66b57d1ebf97977acb02334cfc1"
 
-duplexify@^3.1.2, duplexify@^3.4.2, duplexify@^3.5.0:
+duplexify@^3.1.2, duplexify@^3.4.2:
   version "3.5.1"
   resolved "https://registry.yarnpkg.com/duplexify/-/duplexify-3.5.1.tgz#4e1516be68838bc90a49994f0b39a6e5960befcd"
   dependencies:
@@ -2692,10 +2554,6 @@ etag@~1.7.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.7.0.tgz#03d30b5f67dd6e632d2945d30d6652731a34d5d8"
 
-etag@~1.8.0:
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/etag/-/etag-1.8.1.tgz#41ae2eeb65efa62268aebfea83ac7d79299b0887"
-
 event-emitter@0.3.4:
   version "0.3.4"
   resolved "https://registry.yarnpkg.com/event-emitter/-/event-emitter-0.3.4.tgz#8d63ddfb4cfe1fae3b32ca265c4c720222080bb5"
@@ -2709,10 +2567,6 @@ event-emitter@^0.3.5, event-emitter@~0.3.5:
   dependencies:
     d "1"
     es5-ext "~0.10.14"
-
-eventemitter3@^0.1.5:
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-0.1.6.tgz#8c7ac44b87baab55cd50c828dc38778eac052ea5"
 
 events@~1.1.0:
   version "1.1.1"
@@ -2799,39 +2653,6 @@ express@4.14.0:
     type-is "~1.6.13"
     utils-merge "1.0.0"
     vary "~1.1.0"
-
-express@^4.9.8:
-  version "4.15.4"
-  resolved "https://registry.yarnpkg.com/express/-/express-4.15.4.tgz#032e2253489cf8fce02666beca3d11ed7a2daed1"
-  dependencies:
-    accepts "~1.3.3"
-    array-flatten "1.1.1"
-    content-disposition "0.5.2"
-    content-type "~1.0.2"
-    cookie "0.3.1"
-    cookie-signature "1.0.6"
-    debug "2.6.8"
-    depd "~1.1.1"
-    encodeurl "~1.0.1"
-    escape-html "~1.0.3"
-    etag "~1.8.0"
-    finalhandler "~1.0.4"
-    fresh "0.5.0"
-    merge-descriptors "1.0.1"
-    methods "~1.1.2"
-    on-finished "~2.3.0"
-    parseurl "~1.3.1"
-    path-to-regexp "0.1.7"
-    proxy-addr "~1.1.5"
-    qs "6.5.0"
-    range-parser "~1.2.0"
-    send "0.15.4"
-    serve-static "1.12.4"
-    setprototypeof "1.0.3"
-    statuses "~1.3.1"
-    type-is "~1.6.15"
-    utils-merge "1.0.0"
-    vary "~1.1.1"
 
 extend-shallow@^2.0.1:
   version "2.0.1"
@@ -2948,33 +2769,9 @@ file-entry-cache@^2.0.0:
     flat-cache "^1.2.1"
     object-assign "^4.0.1"
 
-file-type@^3.8.0:
-  version "3.9.0"
-  resolved "https://registry.yarnpkg.com/file-type/-/file-type-3.9.0.tgz#257a078384d1db8087bc449d107d52a52672b9e9"
-
-file-type@^5.2.0:
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/file-type/-/file-type-5.2.0.tgz#2ddbea7c73ffe36368dfae49dc338c058c2b8ad6"
-
-file-type@^6.1.0:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/file-type/-/file-type-6.1.0.tgz#5a7dba98138fa0abec7afc43e5a9a0b2aac729f1"
-
 filename-regex@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/filename-regex/-/filename-regex-2.0.1.tgz#c1c4b9bee3e09725ddb106b75c1e301fe2f18b26"
-
-filename-reserved-regex@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/filename-reserved-regex/-/filename-reserved-regex-2.0.0.tgz#abf73dfab735d045440abfea2d91f389ebbfa229"
-
-filenamify@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/filenamify/-/filenamify-2.0.0.tgz#bd162262c0b6e94bfbcdcf19a3bbb3764f785695"
-  dependencies:
-    filename-reserved-regex "^2.0.0"
-    strip-outer "^1.0.0"
-    trim-repeated "^1.0.0"
 
 fill-range@^2.1.0:
   version "2.2.3"
@@ -2994,18 +2791,6 @@ finalhandler@0.5.0:
     escape-html "~1.0.3"
     on-finished "~2.3.0"
     statuses "~1.3.0"
-    unpipe "~1.0.0"
-
-finalhandler@~1.0.4:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/finalhandler/-/finalhandler-1.0.5.tgz#a701303d257a1bc82fea547a33e5ae89531723df"
-  dependencies:
-    debug "2.6.8"
-    encodeurl "~1.0.1"
-    escape-html "~1.0.3"
-    on-finished "~2.3.0"
-    parseurl "~1.3.2"
-    statuses "~1.3.1"
     unpipe "~1.0.0"
 
 find-index@^0.1.1:
@@ -3145,10 +2930,6 @@ forwarded@~0.1.0:
 fresh@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.3.0.tgz#651f838e22424e7566de161d8358caa199f83d4f"
-
-fresh@0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.0.tgz#f474ca5e6a9246d6fd8e0953cfa9b9c805afa78e"
 
 from2@^1.3.0:
   version "1.3.0"
@@ -3311,19 +3092,9 @@ genfun@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/genfun/-/genfun-4.0.1.tgz#ed10041f2e4a7f1b0a38466d17a5c3e27df1dfc1"
 
-get-browser-rtc@^1.0.0:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/get-browser-rtc/-/get-browser-rtc-1.0.2.tgz#bbcd40c8451a7ed4ef5c373b8169a409dd1d11d9"
-
 get-caller-file@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/get-caller-file/-/get-caller-file-1.0.2.tgz#f702e63127e7e231c160a80c1554acb70d5047e5"
-
-get-proxy@^2.0.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/get-proxy/-/get-proxy-2.1.0.tgz#349f2b4d91d44c4d4d4e9cba2ad90143fac5ef93"
-  dependencies:
-    npm-conf "^1.1.0"
 
 get-stdin@5.0.1, get-stdin@^5.0.1:
   version "5.0.1"
@@ -3332,13 +3103,6 @@ get-stdin@5.0.1, get-stdin@^5.0.1:
 get-stdin@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/get-stdin/-/get-stdin-4.0.1.tgz#b968c6b0a04384324902e8bf1a5df32579a450fe"
-
-get-stream@^2.2.0:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-2.3.1.tgz#5f38f93f346009666ee0150a054167f91bdd95de"
-  dependencies:
-    object-assign "^4.0.1"
-    pinkie-promise "^2.0.0"
 
 get-stream@^3.0.0:
   version "3.0.0"
@@ -3487,7 +3251,7 @@ glogg@^1.0.0:
   dependencies:
     sparkles "^1.0.0"
 
-got@^6.3.0, got@^6.7.1:
+got@^6.7.1:
   version "6.7.1"
   resolved "https://registry.yarnpkg.com/got/-/got-6.7.1.tgz#240cd05785a9a18e561dc1b44b41c763ef1e8db0"
   dependencies:
@@ -3528,17 +3292,13 @@ graceful-fs@^3.0.0:
   dependencies:
     natives "^1.1.0"
 
-graceful-fs@^4.1.10, graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.4, graceful-fs@^4.1.6, graceful-fs@^4.1.9, graceful-fs@~4.1.11:
+graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.4, graceful-fs@^4.1.6, graceful-fs@^4.1.9, graceful-fs@~4.1.11:
   version "4.1.11"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
 
 graceful-fs@~1.2.0:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-1.2.3.tgz#15a4806a57547cb2d2dbf27f42e89a8c3451b364"
-
-"graceful-readlink@>= 1.0.0":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/graceful-readlink/-/graceful-readlink-1.0.1.tgz#4cafad76bc62f02fa039b2f94e9a3dd3a391a725"
 
 gulp-cli@1.2.2:
   version "1.2.2"
@@ -3625,38 +3385,9 @@ gulplog@^1.0.0:
   dependencies:
     glogg "^1.0.0"
 
-gunzip-maybe@^1.3.1:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/gunzip-maybe/-/gunzip-maybe-1.4.1.tgz#39c72ed89d1b49ba708e18776500488902a52027"
-  dependencies:
-    browserify-zlib "^0.1.4"
-    is-deflate "^1.0.0"
-    is-gzip "^1.0.0"
-    peek-stream "^1.1.0"
-    pumpify "^1.3.3"
-    through2 "^2.0.3"
-
 haiku-bytecode@HaikuTeam/bytecode.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#c19612036ac989c02cb0eb200e32475ffcf4b92d"
-  dependencies:
-    "@haiku/player" HaikuTeam/player.git#9645c01fdc4f3ab2f268e2022848726482426470
-    camelcase "4.0.0"
-    handlebars "4.0.6"
-    lodash.assign "4.2.0"
-    lodash.clone "4.5.0"
-    lodash.compact "3.0.1"
-    lodash.defaults "4.2.0"
-    lodash.foreach "4.5.0"
-    lodash.map "4.6.0"
-    lodash.merge "4.6.0"
-    pretty-data2 "0.40.1"
-    svg-parser "1.0.5"
-    to-style "1.3.3"
-
-haiku-bytecode@HaikuTeam/bytecode.git#34fa59aba5147350bf798d486238a3fb53bef2f8:
-  version "2.3.4"
-  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#34fa59aba5147350bf798d486238a3fb53bef2f8"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#3af185e7f1346d6beaa1ac7cd1d0822acb8c1cc8"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     camelcase "4.0.0"
@@ -3672,45 +3403,9 @@ haiku-bytecode@HaikuTeam/bytecode.git#34fa59aba5147350bf798d486238a3fb53bef2f8:
     svg-parser "1.0.5"
     to-style "1.3.3"
 
-haiku-bytecode@HaikuTeam/bytecode.git#bcfd81ae142603d602280af9bf1ecd50e3e26d6b:
-  version "2.3.4"
-  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#bcfd81ae142603d602280af9bf1ecd50e3e26d6b"
-  dependencies:
-    "@haiku/player" HaikuTeam/player.git#e4a65bed78c72666d5ad5a1f68637f6372c44fb7
-    camelcase "4.0.0"
-    handlebars "4.0.6"
-    lodash.assign "4.2.0"
-    lodash.clone "4.5.0"
-    lodash.compact "3.0.1"
-    lodash.defaults "4.2.0"
-    lodash.foreach "4.5.0"
-    lodash.map "4.6.0"
-    lodash.merge "4.6.0"
-    pretty-data2 "0.40.1"
-    svg-parser "1.0.5"
-    to-style "1.3.3"
-
-haiku-bytecode@HaikuTeam/bytecode.git#e23b87e0391848fbb0cc8c7cd58e149691013683:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#e23b87e0391848fbb0cc8c7cd58e149691013683"
-  dependencies:
-    "@haiku/player" HaikuTeam/player.git#478f545c1b5fc4b9566df6dc9c2df8ae00db51c5
-    camelcase "4.0.0"
-    handlebars "4.0.6"
-    lodash.assign "4.2.0"
-    lodash.clone "4.5.0"
-    lodash.compact "3.0.1"
-    lodash.defaults "4.2.0"
-    lodash.foreach "4.5.0"
-    lodash.map "4.6.0"
-    lodash.merge "4.6.0"
-    pretty-data2 "0.40.1"
-    svg-parser "1.0.5"
-    to-style "1.3.3"
-
 haiku-cli@HaikuTeam/cli.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/cli.git#aa7ad6b3b5a54b933cdd791fc1151ca30db19a2a"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/cli.git#532e148e08b609c42228941c0e9c92495e90d539"
   dependencies:
     chalk "^1.1.3"
     cli-color "^1.1.0"
@@ -3727,19 +3422,21 @@ haiku-cli@HaikuTeam/cli.git:
     yargs "^6.6.0"
 
 haiku-creator-electron@HaikuTeam/creator.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/creator.git#80b251d8984f944160f04e63c21ca0e0611f0af3"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/creator.git#55743c7a2e345ff92e0ae3d96211f9d08a1596b3"
   dependencies:
-    "@haiku/player" HaikuTeam/player.git#9645c01fdc4f3ab2f268e2022848726482426470
+    "@haiku/player" HaikuTeam/player.git
+    "@haiku/zack2-checktutorial" "0.0.18"
     async "2.1.4"
     better-react-spinkit "2.0.0-4"
     color "1.0.3"
     combokeys "2.4.6"
     event-emitter "0.3.4"
-    haiku-bytecode HaikuTeam/bytecode.git#e23b87e0391848fbb0cc8c7cd58e149691013683
-    haiku-glass HaikuTeam/glass.git#69d3784b22092ba3a6921543efff66672715e9d8
-    haiku-serialization HaikuTeam/serialization.git#9abd610b84208787063dbfbd1fa81a72d520aaa3
-    haiku-timeline HaikuTeam/timeline.git#d83f6fb77d9ac7817e5e6561cab052ffae9b9c43
+    haiku-bytecode HaikuTeam/bytecode.git
+    haiku-glass HaikuTeam/glass.git
+    haiku-sdk-creator HaikuTeam/sdk-creator.git
+    haiku-serialization HaikuTeam/serialization.git
+    haiku-timeline HaikuTeam/timeline.git
     inline-style-prefixer "2.0.5"
     lodash "4.17.4"
     lodash.assign "4.2.0"
@@ -3770,44 +3467,19 @@ haiku-fs-extra@HaikuTeam/node-fs-extra.git#master-haiku:
     klaw "^1.0.0"
 
 haiku-glass@HaikuTeam/glass.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/glass.git#8f906567c66a76c24095fbb6d5d9378e80e09921"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/glass.git#dc867e5faee9a315a5cd1a8a6f8a8c9993c24fc3"
   dependencies:
-    "@haiku/player" HaikuTeam/player.git#9645c01fdc4f3ab2f268e2022848726482426470
+    "@haiku/player" HaikuTeam/player.git
     babel-register "6.23.0"
     bluebird "^3.5.0"
     capitalize "^1.0.0"
     codemirror "^5.28.0"
     color "^2.0.0"
     combokeys "^2.4.6"
-    haiku-bytecode HaikuTeam/bytecode.git#e23b87e0391848fbb0cc8c7cd58e149691013683
+    haiku-bytecode HaikuTeam/bytecode.git
     haiku-fs-extra HaikuTeam/node-fs-extra.git#master-haiku
-    haiku-serialization HaikuTeam/serialization.git#9abd610b84208787063dbfbd1fa81a72d520aaa3
-    lodash "^4.17.4"
-    moment "^2.17.1"
-    pretty "^2.0.0"
-    qs "6.3.0"
-    radium "0.18.1"
-    react "15.4.2"
-    react-dom "15.4.2"
-    react-select "^1.0.0-rc.5"
-    react-select-plus "^1.0.0-rc.5"
-    strip-indent "^2.0.0"
-
-haiku-glass@HaikuTeam/glass.git#69d3784b22092ba3a6921543efff66672715e9d8:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/glass.git#69d3784b22092ba3a6921543efff66672715e9d8"
-  dependencies:
-    "@haiku/player" HaikuTeam/player.git#478f545c1b5fc4b9566df6dc9c2df8ae00db51c5
-    babel-register "6.23.0"
-    bluebird "^3.5.0"
-    capitalize "^1.0.0"
-    codemirror "^5.28.0"
-    color "^2.0.0"
-    combokeys "^2.4.6"
-    haiku-bytecode HaikuTeam/bytecode.git#bcfd81ae142603d602280af9bf1ecd50e3e26d6b
-    haiku-fs-extra HaikuTeam/node-fs-extra.git#master-haiku
-    haiku-serialization HaikuTeam/serialization.git#f5258f782a24e593ddddde877b13ba79b1dba51c
+    haiku-serialization HaikuTeam/serialization.git
     lodash "^4.17.4"
     moment "^2.17.1"
     pretty "^2.0.0"
@@ -3820,61 +3492,25 @@ haiku-glass@HaikuTeam/glass.git#69d3784b22092ba3a6921543efff66672715e9d8:
     strip-indent "^2.0.0"
 
 haiku-sdk-client@HaikuTeam/sdk-client.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-client.git#6172675978a73c7d3f08a278be2249b15e4f8ed2"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-client.git#3d5019ec6d695082f6cf3b75142794283c8b99fd"
   dependencies:
     lodash "^4.17.4"
     mkdirp "^0.5.1"
     request "^2.79.0"
 
 haiku-sdk-creator@HaikuTeam/sdk-creator.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#9785737f7f8a7c57a9f0619dedc4619bfd7a178d"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#7898425fafc48f89c8566e6f140f82b445868888"
   dependencies:
     bluebird "^3.5.0"
     haiku-serialization HaikuTeam/serialization
     npm "^5.3.0"
     ws "^3.0.0"
 
-haiku-sdk-creator@HaikuTeam/sdk-creator.git#b4c8fceb0e25f5d9eef48cadeb8c148d906f9fd7:
-  version "2.3.4"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#b4c8fceb0e25f5d9eef48cadeb8c148d906f9fd7"
-  dependencies:
-    bluebird "^3.5.0"
-    npm "^5.3.0"
-    peer "^0.2.8"
-    peerjs "^0.3.14"
-    simple-peer "^8.1.1"
-    wrtc "0.0.62"
-    ws "^3.0.0"
-
-haiku-sdk-creator@HaikuTeam/sdk-creator.git#bf1fbfab7009c3ec91d7cce0132d113c048c3b2a:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#bf1fbfab7009c3ec91d7cce0132d113c048c3b2a"
-  dependencies:
-    bluebird "^3.5.0"
-    npm "^5.3.0"
-    peer "^0.2.8"
-    peerjs "^0.3.14"
-    simple-peer "^8.1.1"
-    wrtc "0.0.62"
-    ws "^3.0.0"
-
-haiku-sdk-creator@HaikuTeam/sdk-creator.git#e347981db35b4869be675e8deaf6c1252262f2e9:
-  version "2.3.4"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#e347981db35b4869be675e8deaf6c1252262f2e9"
-  dependencies:
-    bluebird "^3.5.0"
-    npm "^5.3.0"
-    peer "^0.2.8"
-    peerjs "^0.3.14"
-    simple-peer "^8.1.1"
-    wrtc "0.0.62"
-    ws "^3.0.0"
-
 haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#b360c94e69f00884a64529d5330bf004a098f100"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#2d0ba851aafe75ed0916e43d50f9235dd55fc4b6"
   dependencies:
     lodash "^4.17.4"
     mkdirp "^0.5.1"
@@ -3924,10 +3560,10 @@ haiku-serialization@HaikuTeam/serialization:
     winston "^2.3.1"
 
 haiku-serialization@HaikuTeam/serialization.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#1140d7f2cf833167429edccb26953dd93e0cdd6c"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#0a17a840686cfbd3c2615a4273fc48b633c7427d"
   dependencies:
-    "@haiku/player" HaikuTeam/player.git#9645c01fdc4f3ab2f268e2022848726482426470
+    "@haiku/player" HaikuTeam/player.git
     async "2.1.5"
     babel-core "6.23.1"
     babel-generator "6.23.0"
@@ -3950,95 +3586,9 @@ haiku-serialization@HaikuTeam/serialization.git:
     estree-walker "^0.5.0"
     fs-extra "2.0.0"
     fuzzy-string-matching "^1.0.2"
-    haiku-bytecode HaikuTeam/bytecode.git#e23b87e0391848fbb0cc8c7cd58e149691013683
+    haiku-bytecode HaikuTeam/bytecode.git
     haiku-fs-extra HaikuTeam/node-fs-extra.git#master-haiku
-    haiku-sdk-creator HaikuTeam/sdk-creator.git#bf1fbfab7009c3ec91d7cce0132d113c048c3b2a
-    lodash "4.17.4"
-    lodash.assign "4.2.0"
-    lodash.debounce "4.0.8"
-    lodash.find "4.6.0"
-    lodash.merge "4.6.0"
-    node-hook "^0.4.0"
-    pascalcase "0.1.1"
-    prettier "^0.22.0"
-    pretty "^2.0.0"
-    raf "^3.3.2"
-    standard "8.6.0"
-    winston "^2.3.1"
-
-haiku-serialization@HaikuTeam/serialization.git#9abd610b84208787063dbfbd1fa81a72d520aaa3:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#9abd610b84208787063dbfbd1fa81a72d520aaa3"
-  dependencies:
-    "@haiku/player" HaikuTeam/player.git#478f545c1b5fc4b9566df6dc9c2df8ae00db51c5
-    async "2.1.5"
-    babel-core "6.23.1"
-    babel-generator "6.23.0"
-    babel-plugin-syntax-flow "6.18.0"
-    babel-plugin-syntax-jsx "6.18.0"
-    babel-plugin-transform-flow-strip-types "6.22.0"
-    babel-plugin-transform-react-display-name "6.23.0"
-    babel-plugin-transform-react-jsx "6.23.0"
-    babel-preset-es2015 "6.22.0"
-    babel-traverse "6.23.1"
-    babylon "6.15.0"
-    bluebird "^3.5.0"
-    colors "1.1.2"
-    crypto-js "3.1.9-1"
-    cst "^0.4.10"
-    diff "3.2.0"
-    es-strip-semicolons "1.0.9"
-    esformatter "0.10.0"
-    esformatter-jsx "7.4.1"
-    estree-walker "^0.5.0"
-    fs-extra "2.0.0"
-    fuzzy-string-matching "^1.0.2"
-    haiku-bytecode HaikuTeam/bytecode.git#bcfd81ae142603d602280af9bf1ecd50e3e26d6b
-    haiku-fs-extra HaikuTeam/node-fs-extra.git#master-haiku
-    haiku-sdk-creator HaikuTeam/sdk-creator.git#b4c8fceb0e25f5d9eef48cadeb8c148d906f9fd7
-    lodash "4.17.4"
-    lodash.assign "4.2.0"
-    lodash.debounce "4.0.8"
-    lodash.find "4.6.0"
-    lodash.merge "4.6.0"
-    node-hook "^0.4.0"
-    pascalcase "0.1.1"
-    prettier "^0.22.0"
-    pretty "^2.0.0"
-    raf "^3.3.2"
-    standard "8.6.0"
-    winston "^2.3.1"
-
-haiku-serialization@HaikuTeam/serialization.git#f5258f782a24e593ddddde877b13ba79b1dba51c:
-  version "2.3.4"
-  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#f5258f782a24e593ddddde877b13ba79b1dba51c"
-  dependencies:
-    "@haiku/player" HaikuTeam/player.git#e4a65bed78c72666d5ad5a1f68637f6372c44fb7
-    async "2.1.5"
-    babel-core "6.23.1"
-    babel-generator "6.23.0"
-    babel-plugin-syntax-flow "6.18.0"
-    babel-plugin-syntax-jsx "6.18.0"
-    babel-plugin-transform-flow-strip-types "6.22.0"
-    babel-plugin-transform-react-display-name "6.23.0"
-    babel-plugin-transform-react-jsx "6.23.0"
-    babel-preset-es2015 "6.22.0"
-    babel-traverse "6.23.1"
-    babylon "6.15.0"
-    bluebird "^3.5.0"
-    colors "1.1.2"
-    crypto-js "3.1.9-1"
-    cst "^0.4.10"
-    diff "3.2.0"
-    es-strip-semicolons "1.0.9"
-    esformatter "0.10.0"
-    esformatter-jsx "7.4.1"
-    estree-walker "^0.5.0"
-    fs-extra "2.0.0"
-    fuzzy-string-matching "^1.0.2"
-    haiku-bytecode HaikuTeam/bytecode.git#34fa59aba5147350bf798d486238a3fb53bef2f8
-    haiku-fs-extra HaikuTeam/node-fs-extra.git#master-haiku
-    haiku-sdk-creator HaikuTeam/sdk-creator.git#e347981db35b4869be675e8deaf6c1252262f2e9
+    haiku-sdk-creator HaikuTeam/sdk-creator.git
     lodash "4.17.4"
     lodash.assign "4.2.0"
     lodash.debounce "4.0.8"
@@ -4053,48 +3603,25 @@ haiku-serialization@HaikuTeam/serialization.git#f5258f782a24e593ddddde877b13ba79
     winston "^2.3.1"
 
 haiku-state-object@HaikuTeam/StateObject.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/StateObject.git#4d79999bb11fb07b09b2cad10b2bb980ce7b969d"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/StateObject.git#eccb8fcaedca6704970b63015397cdd3ddd7ab60"
   dependencies:
     lodash.get "^4.4.2"
     lodash.set "^4.3.2"
 
 haiku-timeline@HaikuTeam/timeline.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/timeline.git#1046a69e286a670dc67d30314048704d46ff094b"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/timeline.git#79b671687c7e4f8fc019499d6c5cf72e0a745932"
   dependencies:
-    "@haiku/player" HaikuTeam/player.git#9645c01fdc4f3ab2f268e2022848726482426470
+    "@haiku/player" HaikuTeam/player.git
     archy "^1.0.0"
     classnames "2.2.5"
     codemirror "^5.28.0"
     color "1.0.3"
     decamelize "1.2.0"
-    haiku-bytecode HaikuTeam/bytecode.git#e23b87e0391848fbb0cc8c7cd58e149691013683
+    haiku-bytecode HaikuTeam/bytecode.git
     haiku-fs-extra HaikuTeam/node-fs-extra.git#master-haiku
-    haiku-serialization HaikuTeam/serialization.git#9abd610b84208787063dbfbd1fa81a72d520aaa3
-    lodash "4.17.4"
-    numeral "^2.0.4"
-    qs "6.4.0"
-    radium "0.18.1"
-    react "15.4.2"
-    react-dom "15.4.2"
-    react-draggable "2.2.3"
-    react-popover "0.4.4"
-    strip-indent "^2.0.0"
-
-haiku-timeline@HaikuTeam/timeline.git#d83f6fb77d9ac7817e5e6561cab052ffae9b9c43:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/timeline.git#d83f6fb77d9ac7817e5e6561cab052ffae9b9c43"
-  dependencies:
-    "@haiku/player" HaikuTeam/player.git#478f545c1b5fc4b9566df6dc9c2df8ae00db51c5
-    archy "^1.0.0"
-    classnames "2.2.5"
-    codemirror "^5.28.0"
-    color "1.0.3"
-    decamelize "1.2.0"
-    haiku-bytecode HaikuTeam/bytecode.git#bcfd81ae142603d602280af9bf1ecd50e3e26d6b
-    haiku-fs-extra HaikuTeam/node-fs-extra.git#master-haiku
-    haiku-serialization HaikuTeam/serialization.git#f5258f782a24e593ddddde877b13ba79b1dba51c
+    haiku-serialization HaikuTeam/serialization.git
     lodash "4.17.4"
     numeral "^2.0.4"
     qs "6.4.0"
@@ -4106,8 +3633,8 @@ haiku-timeline@HaikuTeam/timeline.git#d83f6fb77d9ac7817e5e6561cab052ffae9b9c43:
     strip-indent "^2.0.0"
 
 haiku-websockets@HaikuTeam/websockets.git:
-  version "2.3.5"
-  resolved "git+ssh://git@github.com/HaikuTeam/websockets.git#0927d4710c29f8a751b09f6a24f0df140535ef39"
+  version "2.3.6"
+  resolved "git+ssh://git@github.com/HaikuTeam/websockets.git#50ae2e8f062aa14c6ff4d9ab49c0ec7fcbd47d7d"
   dependencies:
     lodash.clone "^4.5.0"
     lodash.filter "^4.6.0"
@@ -4277,15 +3804,6 @@ http-cache-semantics@^3.7.3:
   version "3.7.3"
   resolved "https://registry.yarnpkg.com/http-cache-semantics/-/http-cache-semantics-3.7.3.tgz#2f35c532ecd29f1e5413b9af833b724a3c6f7f72"
 
-http-errors@1.6.2, http-errors@~1.6.2:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/http-errors/-/http-errors-1.6.2.tgz#0a002cc85707192a7e7946ceedc11155f60ec736"
-  dependencies:
-    depd "1.1.1"
-    inherits "2.0.3"
-    setprototypeof "1.0.3"
-    statuses ">= 1.3.1 < 2"
-
 http-errors@~1.5.0, http-errors@~1.5.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/http-errors/-/http-errors-1.5.1.tgz#788c0d2c1de2c81b9e6e8c01843b6b97eb920750"
@@ -4342,7 +3860,7 @@ iconv-lite@0.4.13:
   version "0.4.13"
   resolved "https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.4.13.tgz#1f88aba4ab0b1508e8312acc39345f36e992e2f2"
 
-iconv-lite@0.4.19, iconv-lite@~0.4.13:
+iconv-lite@~0.4.13:
   version "0.4.19"
   resolved "https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.4.19.tgz#f7468f60135f5e5dad3399c0a81be9a1603a082b"
 
@@ -4563,10 +4081,6 @@ is-date-object@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/is-date-object/-/is-date-object-1.0.1.tgz#9aa20eb6aeebbff77fbd33e74ca01b33581d3a16"
 
-is-deflate@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/is-deflate/-/is-deflate-1.0.0.tgz#c862901c3c161fb09dac7cdc7e784f80e98f2f14"
-
 is-dotfile@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/is-dotfile/-/is-dotfile-1.0.3.tgz#a6a2f32ffd2dfb04f5ca25ecd0f6b83cf798a1e1"
@@ -4621,10 +4135,6 @@ is-glob@^3.1.0:
   dependencies:
     is-extglob "^2.1.0"
 
-is-gzip@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/is-gzip/-/is-gzip-1.0.0.tgz#6ca8b07b99c77998025900e555ced8ed80879a83"
-
 is-in-browser@^1.0.2:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/is-in-browser/-/is-in-browser-1.1.3.tgz#56ff4db683a078c6082eb95dad7dc62e1d04f835"
@@ -4637,10 +4147,6 @@ is-my-json-valid@^2.10.0:
     generate-object-property "^1.1.0"
     jsonpointer "^4.0.0"
     xtend "^4.0.0"
-
-is-natural-number@^4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/is-natural-number/-/is-natural-number-4.0.1.tgz#ab9d76e1db4ced51e35de0c72ebecf09f734cde8"
 
 is-npm@^1.0.0:
   version "1.0.0"
@@ -4868,10 +4374,6 @@ js-beautify@^1.6.12:
     editorconfig "^0.13.2"
     mkdirp "~0.5.0"
     nopt "~3.0.1"
-
-js-binarypack@0.0.9:
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/js-binarypack/-/js-binarypack-0.0.9.tgz#454243d3de212961cc1514a2f119dec2faf64035"
 
 js-tokens@^3.0.0, js-tokens@^3.0.2:
   version "3.0.2"
@@ -5710,13 +5212,9 @@ mz@^2.3.1:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-nan@^2.2.0, nan@^2.3.0, nan@^2.3.2:
+nan@^2.2.0, nan@^2.3.0:
   version "2.7.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.7.0.tgz#d95bf721ec877e08db276ed3fc6eb78f9083ad46"
-
-nan@~1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/nan/-/nan-1.0.0.tgz#ae24f8850818d662fcab5acf7f3b95bfaa2ccf38"
 
 natives@^1.1.0:
   version "1.1.0"
@@ -5784,7 +5282,7 @@ node-hook@^0.4.0:
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/node-hook/-/node-hook-0.4.1.tgz#1016a106e93ebd959fd337cbe35fa6397fa9d61c"
 
-node-pre-gyp@0.6.x, node-pre-gyp@^0.6.36, node-pre-gyp@~0.6.15:
+node-pre-gyp@^0.6.36, node-pre-gyp@~0.6.15:
   version "0.6.37"
   resolved "https://registry.yarnpkg.com/node-pre-gyp/-/node-pre-gyp-0.6.37.tgz#3c872b236b2e266e4140578fe1ee88f693323a05"
   dependencies:
@@ -5864,13 +5362,6 @@ npm-bundled@^1.0.1:
 npm-cache-filename@~1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/npm-cache-filename/-/npm-cache-filename-1.0.2.tgz#ded306c5b0bfc870a9e9faf823bc5f283e05ae11"
-
-npm-conf@^1.1.0:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/npm-conf/-/npm-conf-1.1.2.tgz#170a2c48a0c6ad0495f03f87aec2da11ef47a525"
-  dependencies:
-    config-chain "^1.1.11"
-    pify "^3.0.0"
 
 npm-install-checks@~3.0.0:
   version "3.0.0"
@@ -6305,7 +5796,7 @@ openport@0.0.4:
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/openport/-/openport-0.0.4.tgz#1d6715d8a8789695f985fa84f68dd4cd1ba426cb"
 
-optimist@^0.6.1, optimist@~0.6.1:
+optimist@^0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/optimist/-/optimist-0.6.1.tgz#da3ea74686fa21a19a111c326e90eb15a0196686"
   dependencies:
@@ -6322,10 +5813,6 @@ optionator@^0.8.2:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
     wordwrap "~1.0.0"
-
-options@>=0.0.5:
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/options/-/options-0.0.6.tgz#ec22d312806bb53e731773e7cdaefcf1c643128f"
 
 ora@^0.3.0:
   version "0.3.0"
@@ -6523,7 +6010,7 @@ parse-passwd@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/parse-passwd/-/parse-passwd-1.0.0.tgz#6d5b934a456993b23d37f40a382d6f1666a8e5c6"
 
-parseurl@~1.3.1, parseurl@~1.3.2:
+parseurl@~1.3.1:
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/parseurl/-/parseurl-1.3.2.tgz#fc289d4ed8993119460c156253262cdc8de65bf3"
 
@@ -6606,31 +6093,6 @@ pbkdf2@^3.0.3:
     ripemd160 "^2.0.1"
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
-
-peek-stream@^1.1.0:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/peek-stream/-/peek-stream-1.1.2.tgz#97eb76365bcfd8c89e287f55c8b69d4c3e9bcc52"
-  dependencies:
-    duplexify "^3.5.0"
-    through2 "^2.0.3"
-
-peer@^0.2.8:
-  version "0.2.8"
-  resolved "https://registry.yarnpkg.com/peer/-/peer-0.2.8.tgz#980165ded7f9676b0b8ab32a144af06e07df3d53"
-  dependencies:
-    body-parser "^1.9.0"
-    cors "~2.5.0"
-    express "^4.9.8"
-    optimist "~0.6.1"
-    ws "~0.4.25"
-
-peerjs@^0.3.14:
-  version "0.3.14"
-  resolved "https://registry.yarnpkg.com/peerjs/-/peerjs-0.3.14.tgz#5f934eb09a04ce237a47d52f4766c9373da2511e"
-  dependencies:
-    eventemitter3 "^0.1.5"
-    js-binarypack "0.0.9"
-    reliable "git+https://github.com/michelle/reliable.git"
 
 pend@~1.2.0:
   version "1.2.0"
@@ -6856,7 +6318,7 @@ protoduck@^4.0.0:
   dependencies:
     genfun "^4.0.1"
 
-proxy-addr@~1.1.2, proxy-addr@~1.1.5:
+proxy-addr@~1.1.2:
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/proxy-addr/-/proxy-addr-1.1.5.tgz#71c0ee3b102de3f202f3b64f608d173fcba1a918"
   dependencies:
@@ -6916,11 +6378,7 @@ qs@6.4.0, qs@~6.4.0:
   version "6.4.0"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.4.0.tgz#13e26d28ad6b0ffaa91312cd3bf708ed351e7233"
 
-qs@6.5.0:
-  version "6.5.0"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.0.tgz#8d04954d364def3efc55b5a0793e1e2c8b1e6e49"
-
-qs@6.5.1, qs@^6.3.0, qs@~6.5.1:
+qs@^6.3.0, qs@~6.5.1:
   version "6.5.1"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.1.tgz#349cdf6eef89ec45c12d7d5eb3fc0c870343a6d8"
 
@@ -6962,7 +6420,7 @@ randomatic@^1.1.3:
     is-number "^3.0.0"
     kind-of "^4.0.0"
 
-randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.3:
+randombytes@^2.0.0, randombytes@^2.0.1:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/randombytes/-/randombytes-2.0.5.tgz#dc009a246b8d09a177b4b7a0ae77bc570f4b1b79"
   dependencies:
@@ -6971,15 +6429,6 @@ randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.3:
 range-parser@~1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/range-parser/-/range-parser-1.2.0.tgz#f49be6b487894ddc40dcc94a322f611092e00d5e"
-
-raw-body@2.3.2:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/raw-body/-/raw-body-2.3.2.tgz#bcd60c77d3eb93cde0050295c3f379389bc88f89"
-  dependencies:
-    bytes "3.0.0"
-    http-errors "1.6.2"
-    iconv-lite "0.4.19"
-    unpipe "1.0.0"
 
 raw-body@~2.1.7:
   version "2.1.7"
@@ -7215,7 +6664,7 @@ read@1, read@~1.0.1, read@~1.0.7:
   dependencies:
     mute-stream "~0.0.4"
 
-"readable-stream@1 || 2", readable-stream@^2.0.0, readable-stream@^2.0.2, readable-stream@^2.0.4, readable-stream@^2.0.5, readable-stream@^2.0.6, readable-stream@^2.1.4, readable-stream@^2.1.5, readable-stream@^2.2.2, readable-stream@^2.2.6, readable-stream@~2.3.3:
+"readable-stream@1 || 2", readable-stream@^2.0.0, readable-stream@^2.0.2, readable-stream@^2.0.4, readable-stream@^2.0.6, readable-stream@^2.1.4, readable-stream@^2.1.5, readable-stream@^2.2.2, readable-stream@^2.2.6, readable-stream@~2.3.3:
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.3.3.tgz#368f2512d79f9d46fdfc71349ae7878bbc1eb95c"
   dependencies:
@@ -7374,12 +6823,6 @@ regjsparser@^0.1.4:
   resolved "https://registry.yarnpkg.com/regjsparser/-/regjsparser-0.1.5.tgz#7ee8f84dc6fa792d3fd0ae228d24bd949ead205c"
   dependencies:
     jsesc "~0.5.0"
-
-"reliable@git+https://github.com/michelle/reliable.git":
-  version "0.1.0"
-  resolved "git+https://github.com/michelle/reliable.git#f09ba29d57a05beaa07990171f3fe7b746587aaa"
-  dependencies:
-    js-binarypack "0.0.9"
 
 remove-trailing-separator@^1.0.1:
   version "1.1.0"
@@ -7631,12 +7074,6 @@ sax@>=0.6.0:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
 
-seek-bzip@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/seek-bzip/-/seek-bzip-1.0.5.tgz#cfe917cb3d274bcffac792758af53173eb1fabdc"
-  dependencies:
-    commander "~2.8.1"
-
 semver-diff@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/semver-diff/-/semver-diff-2.1.0.tgz#4bbb8437c8d37e4b0cf1a68fd726ec6d645d6d36"
@@ -7697,24 +7134,6 @@ send@0.14.2:
     range-parser "~1.2.0"
     statuses "~1.3.1"
 
-send@0.15.4:
-  version "0.15.4"
-  resolved "https://registry.yarnpkg.com/send/-/send-0.15.4.tgz#985faa3e284b0273c793364a35c6737bd93905b9"
-  dependencies:
-    debug "2.6.8"
-    depd "~1.1.1"
-    destroy "~1.0.4"
-    encodeurl "~1.0.1"
-    escape-html "~1.0.3"
-    etag "~1.8.0"
-    fresh "0.5.0"
-    http-errors "~1.6.2"
-    mime "1.3.4"
-    ms "2.0.0"
-    on-finished "~2.3.0"
-    range-parser "~1.2.0"
-    statuses "~1.3.1"
-
 sequencify@~0.0.7:
   version "0.0.7"
   resolved "https://registry.yarnpkg.com/sequencify/-/sequencify-0.0.7.tgz#90cff19d02e07027fd767f5ead3e7b95d1e7380c"
@@ -7724,15 +7143,6 @@ serializerr@^1.0.1:
   resolved "https://registry.yarnpkg.com/serializerr/-/serializerr-1.0.3.tgz#12d4c5aa1c3ffb8f6d1dc5f395aa9455569c3f91"
   dependencies:
     protochain "^1.0.5"
-
-serve-static@1.12.4:
-  version "1.12.4"
-  resolved "https://registry.yarnpkg.com/serve-static/-/serve-static-1.12.4.tgz#9b6aa98eeb7253c4eedc4c1f6fdbca609901a961"
-  dependencies:
-    encodeurl "~1.0.1"
-    escape-html "~1.0.3"
-    parseurl "~1.3.1"
-    send "0.15.4"
 
 serve-static@~1.11.1:
   version "1.11.2"
@@ -7758,10 +7168,6 @@ setimmediate@^1.0.5:
 setprototypeof@1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/setprototypeof/-/setprototypeof-1.0.2.tgz#81a552141ec104b88e89ce383103ad5c66564d08"
-
-setprototypeof@1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/setprototypeof/-/setprototypeof-1.0.3.tgz#66567e37043eeb4f04d91bd658c0cbefb55b8e04"
 
 sha.js@^2.4.0, sha.js@^2.4.8, sha.js@~2.4.4:
   version "2.4.8"
@@ -7817,16 +7223,6 @@ sigmund@^1.0.1, sigmund@~1.0.0:
 signal-exit@^3.0.0, signal-exit@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz#b5fdc08f1287ea1178628e415e25132b73646c6d"
-
-simple-peer@^8.1.1:
-  version "8.1.1"
-  resolved "https://registry.yarnpkg.com/simple-peer/-/simple-peer-8.1.1.tgz#71c475ad9f10da2f22e045d4ec2a1d282046ba23"
-  dependencies:
-    debug "^2.1.0"
-    get-browser-rtc "^1.0.0"
-    inherits "^2.0.1"
-    randombytes "^2.0.3"
-    readable-stream "^2.0.5"
 
 simple-swizzle@^0.2.2:
   version "0.2.2"
@@ -8182,12 +7578,6 @@ strip-bom@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/strip-bom/-/strip-bom-3.0.0.tgz#2334c18e9c759f7bdd56fdef7e9ae3d588e68ed3"
 
-strip-dirs@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/strip-dirs/-/strip-dirs-2.0.0.tgz#610cdb2928200da0004f41dcb90fc95cd919a0b6"
-  dependencies:
-    is-natural-number "^4.0.1"
-
 strip-eof@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/strip-eof/-/strip-eof-1.0.0.tgz#bb43ff5598a6eb05d89b59fcd129c983313606bf"
@@ -8213,12 +7603,6 @@ strip-json-comments@~1.0.1:
 strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
-
-strip-outer@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/strip-outer/-/strip-outer-1.0.0.tgz#aac0ba60d2e90c5d4f275fd8869fd9a2d310ffb8"
-  dependencies:
-    escape-string-regexp "^1.0.2"
 
 subarg@^1.0.0:
   version "1.0.0"
@@ -8351,15 +7735,6 @@ tape@^4.6.3:
     string.prototype.trim "~1.1.2"
     through "~2.3.8"
 
-tar-fs@^1.13.0:
-  version "1.15.3"
-  resolved "https://registry.yarnpkg.com/tar-fs/-/tar-fs-1.15.3.tgz#eccf935e941493d8151028e636e51ce4c3ca7f20"
-  dependencies:
-    chownr "^1.0.1"
-    mkdirp "^0.5.1"
-    pump "^1.0.0"
-    tar-stream "^1.1.2"
-
 tar-pack@^3.4.0:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/tar-pack/-/tar-pack-3.4.0.tgz#23be2d7f671a8339376cbdb0b8fe3fdebf317984"
@@ -8372,15 +7747,6 @@ tar-pack@^3.4.0:
     rimraf "^2.5.1"
     tar "^2.2.1"
     uid-number "^0.0.6"
-
-tar-stream@^1.1.2, tar-stream@^1.5.2:
-  version "1.5.4"
-  resolved "https://registry.yarnpkg.com/tar-stream/-/tar-stream-1.5.4.tgz#36549cf04ed1aee9b2a30c0143252238daf94016"
-  dependencies:
-    bl "^1.0.0"
-    end-of-stream "^1.0.0"
-    readable-stream "^2.0.0"
-    xtend "^4.0.0"
 
 tar@^2.0.0, tar@^2.2.1, tar@~2.2.1:
   version "2.2.1"
@@ -8433,7 +7799,7 @@ through2@^0.6.1:
     readable-stream ">=1.0.33-1 <1.1.0-0"
     xtend ">=4.0.0 <4.1.0-0"
 
-through2@^2.0.0, through2@^2.0.3:
+through2@^2.0.0:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/through2/-/through2-2.0.3.tgz#0004569b37c7c74ba39c43f3ced78d1ad94140be"
   dependencies:
@@ -8478,10 +7844,6 @@ timers-ext@0.1, timers-ext@^0.1.2:
     es5-ext "~0.10.14"
     next-tick "1"
 
-tinycolor@0.x:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/tinycolor/-/tinycolor-0.0.1.tgz#320b5a52d83abb5978d81a3e887d4aefb15a6164"
-
 tmp@0.0.31:
   version "0.0.31"
   resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.0.31.tgz#8f38ab9438e17315e5dbd8b3657e8bfb277ae4a7"
@@ -8520,12 +7882,6 @@ trim-newlines@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/trim-newlines/-/trim-newlines-1.0.0.tgz#5887966bb582a4503a41eb524f7d35011815a613"
 
-trim-repeated@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/trim-repeated/-/trim-repeated-1.0.0.tgz#e3646a2ea4e891312bf7eace6cfb05380bc01c21"
-  dependencies:
-    escape-string-regexp "^1.0.2"
-
 trim-right@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/trim-right/-/trim-right-1.0.1.tgz#cb2e1203067e0c8de1f614094b9fe45704ea6003"
@@ -8558,7 +7914,7 @@ type-check@~0.3.2:
   dependencies:
     prelude-ls "~1.1.2"
 
-type-is@~1.6.13, type-is@~1.6.15:
+type-is@~1.6.13:
   version "1.6.15"
   resolved "https://registry.yarnpkg.com/type-is/-/type-is-1.6.15.tgz#cab10fb4909e441c82842eafe1ad646c81804410"
   dependencies:
@@ -8601,13 +7957,6 @@ umask@^1.1.0, umask@~1.1.0:
 umd@^3.0.0:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/umd/-/umd-3.0.1.tgz#8ae556e11011f63c2596708a8837259f01b3d60e"
-
-unbzip2-stream@^1.0.9:
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/unbzip2-stream/-/unbzip2-stream-1.2.5.tgz#73a033a567bbbde59654b193c44d48a7e4f43c47"
-  dependencies:
-    buffer "^3.0.1"
-    through "^2.3.6"
 
 unc-path-regex@^0.1.0:
   version "0.1.2"
@@ -8763,7 +8112,7 @@ validate-npm-package-name@^3.0.0, validate-npm-package-name@~3.0.0:
   dependencies:
     builtins "^1.0.3"
 
-vary@^1, vary@~1.1.0, vary@~1.1.1:
+vary@~1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.1.tgz#67535ebb694c1d52257457984665323f587e8d37"
 
@@ -8960,16 +8309,6 @@ write@^0.2.1:
   dependencies:
     mkdirp "^0.5.1"
 
-wrtc@0.0.62:
-  version "0.0.62"
-  resolved "https://registry.yarnpkg.com/wrtc/-/wrtc-0.0.62.tgz#e487e9b983e168f1eb65e90796b15b863d52fba8"
-  dependencies:
-    download "^5.0.0"
-    gunzip-maybe "^1.3.1"
-    nan "^2.3.2"
-    node-pre-gyp "0.6.x"
-    tar-fs "^1.13.0"
-
 ws@^3.0.0, ws@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/ws/-/ws-3.2.0.tgz#d5d3d6b11aff71e73f808f40cc69d52bb6d4a185"
@@ -8977,15 +8316,6 @@ ws@^3.0.0, ws@^3.2.0:
     async-limiter "~1.0.0"
     safe-buffer "~5.1.0"
     ultron "~1.1.0"
-
-ws@~0.4.25:
-  version "0.4.32"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-0.4.32.tgz#787a6154414f3c99ed83c5772153b20feb0cec32"
-  dependencies:
-    commander "~2.1.0"
-    nan "~1.0.0"
-    options ">=0.0.5"
-    tinycolor "0.x"
 
 xdg-basedir@^3.0.0:
   version "3.0.0"
@@ -9103,11 +8433,4 @@ yauzl@2.4.1:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/yauzl/-/yauzl-2.4.1.tgz#9528f442dab1b2284e58b4379bb194e22e0c4005"
   dependencies:
-    fd-slicer "~1.0.1"
-
-yauzl@^2.4.2:
-  version "2.8.0"
-  resolved "https://registry.yarnpkg.com/yauzl/-/yauzl-2.8.0.tgz#79450aff22b2a9c5a41ef54e02db907ccfbf9ee2"
-  dependencies:
-    buffer-crc32 "~0.2.3"
     fd-slicer "~1.0.1"

@@ -2,25 +2,18 @@
 # yarn lockfile v1
 
 
-"@haiku/player@2.3.5":
-  version "2.3.5"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.5.tgz#a680405c491cdd558ebeb1c08eed996cd9697c3b"
-  dependencies:
-    lodash "^4.17.4"
-    react "15.4.2"
-
-"@haiku/player@HaikuTeam/player.git":
+"@haiku/player@2.3.6", "@haiku/player@HaikuTeam/player.git":
   version "2.3.6"
   resolved "git+ssh://git@github.com/HaikuTeam/player.git#691ddfc6a789a7ad13d66dca36a73ab171aaf56a"
   dependencies:
     lodash "^4.17.4"
     react "15.4.2"
 
-"@haiku/zack2-checktutorial@0.0.18":
-  version "0.0.18"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fzack2-checktutorial/-/zack2-checktutorial-0.0.18.tgz#8511549ba7ac7017576903e75b0b861156be63cd"
+"@haiku/zack2-checktutorial@0.0.19":
+  version "0.0.19"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fzack2-checktutorial/-/zack2-checktutorial-0.0.19.tgz#defae8960e2086432e096594560e7c4785740ad3"
   dependencies:
-    "@haiku/player" "2.3.5"
+    "@haiku/player" "2.3.6"
 
 JSONStream@~1.3.1:
   version "1.3.1"
@@ -2559,7 +2552,7 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.4, graceful-fs@^4.1.6,
 
 haiku-bytecode@HaikuTeam/bytecode.git:
   version "2.3.6"
-  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#f50af8dcf1f874374394513ee80f78df8cabda87"
+  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#3af185e7f1346d6beaa1ac7cd1d0822acb8c1cc8"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     camelcase "4.0.0"
@@ -2585,7 +2578,7 @@ haiku-fs-extra@HaikuTeam/node-fs-extra.git#master-haiku:
 
 haiku-glass@HaikuTeam/glass.git:
   version "2.3.6"
-  resolved "git+ssh://git@github.com/HaikuTeam/glass.git#0ba12337be2ba6543f896085adc11c79d8af2102"
+  resolved "git+ssh://git@github.com/HaikuTeam/glass.git#dc867e5faee9a315a5cd1a8a6f8a8c9993c24fc3"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     babel-register "6.23.0"
@@ -2610,7 +2603,7 @@ haiku-glass@HaikuTeam/glass.git:
 
 haiku-sdk-creator@HaikuTeam/sdk-creator.git:
   version "2.3.6"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#94c5739440fc256548561c5ec5b1af676de3e347"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#7898425fafc48f89c8566e6f140f82b445868888"
   dependencies:
     bluebird "^3.5.0"
     haiku-serialization HaikuTeam/serialization
@@ -2662,7 +2655,7 @@ haiku-serialization@HaikuTeam/serialization:
 
 haiku-serialization@HaikuTeam/serialization.git:
   version "2.3.6"
-  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#0ba3445a7d02bdb32521a312d80419d652fc84d9"
+  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#0a17a840686cfbd3c2615a4273fc48b633c7427d"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     async "2.1.5"
@@ -2705,7 +2698,7 @@ haiku-serialization@HaikuTeam/serialization.git:
 
 haiku-timeline@HaikuTeam/timeline.git:
   version "2.3.6"
-  resolved "git+ssh://git@github.com/HaikuTeam/timeline.git#426e03416943cf50d341e6b3ea8777e0eba2613a"
+  resolved "git+ssh://git@github.com/HaikuTeam/timeline.git#79b671687c7e4f8fc019499d6c5cf72e0a745932"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     archy "^1.0.0"
