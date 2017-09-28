@@ -9,7 +9,18 @@ var ROOT = path.join(__dirname, '..')
 
 // File globs with respect to the root of the mono project
 var GLOBS = [
-  /* TODO */
+  'source/plumbing/lib/*.js',
+  'source/plumbing/node_modules/haiku-bytecode/src/**/*.js',
+  'source/plumbing/node_modules/haiku-cli/lib/**/*.js',
+  'source/plumbing/node_modules/haiku-creator-electron/lib/**/*.js',
+  'source/plumbing/node_modules/haiku-glass/lib/**/*.js',
+  'source/plumbing/node_modules/haiku-sdk-client/lib/**/*.js',
+  'source/plumbing/node_modules/haiku-sdk-creator/lib/**/*.js',
+  'source/plumbing/node_modules/haiku-sdk-inkstone/lib/**/*.js',
+  'source/plumbing/node_modules/haiku-serialization/src/**/*.js',
+  'source/plumbing/node_modules/haiku-state-object/src/**/*.js',
+  'source/plumbing/node_modules/haiku-timeline/lib/**/*.js',
+  'source/plumbing/node_modules/haiku-websockets/lib/**/*.js'
 ]
 
 if (GLOBS.length > 0) {
@@ -17,21 +28,20 @@ if (GLOBS.length > 0) {
     if (err) throw err
 
     return async.eachSeries(files, function (file, next) {
-      log.log('uglifying', file, '...')
+      log.log('uglifying ' + file)
 
       var sourcepath = path.join(ROOT, file)
       var destpath = path.join(ROOT, file)
 
       try {
-        var result = Uglify2.minify(sourcepath)
-        var code = result.code
+        var code = Uglify2.minify(sourcepath).code
 
         return fs.outputFile(destpath, code, function (err) {
           if (err) return next(err)
           return next()
         })
       } catch (exception) {
-        log.log('cannot uglify (' + exception.message + ')')
+        log.log('cannot uglify: ' + exception.message)
         return next()
       }
     }, function (err) {
