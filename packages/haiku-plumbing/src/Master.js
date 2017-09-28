@@ -163,6 +163,7 @@ export default class Master extends EventEmitter {
   teardown () {
     clearInterval(this._methodQueueInterval)
     clearInterval(this._mod._modificationsInterval)
+    if (this._git) this._git.teardown()
     if (this._component) this._component._envoyClient.closeConnection()
     if (this._watcher) this._watcher.stop()
   }

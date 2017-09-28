@@ -2551,8 +2551,8 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.4, graceful-fs@^4.1.6,
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
 
 haiku-bytecode@HaikuTeam/bytecode.git:
-  version "2.3.6"
-  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#3af185e7f1346d6beaa1ac7cd1d0822acb8c1cc8"
+  version "2.3.7"
+  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#1a894454ca93bd9cb898f03cf869213ee4e3fbb8"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     camelcase "4.0.0"
@@ -2577,8 +2577,8 @@ haiku-fs-extra@HaikuTeam/node-fs-extra.git#master-haiku:
     klaw "^1.0.0"
 
 haiku-glass@HaikuTeam/glass.git:
-  version "2.3.6"
-  resolved "git+ssh://git@github.com/HaikuTeam/glass.git#dc867e5faee9a315a5cd1a8a6f8a8c9993c24fc3"
+  version "2.3.7"
+  resolved "git+ssh://git@github.com/HaikuTeam/glass.git#1bf85cf4fe7f4adf1f9d59c1a1236ffd8d579173"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     babel-register "6.23.0"
@@ -2602,8 +2602,8 @@ haiku-glass@HaikuTeam/glass.git:
     strip-indent "^2.0.0"
 
 haiku-sdk-creator@HaikuTeam/sdk-creator.git:
-  version "2.3.6"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#7898425fafc48f89c8566e6f140f82b445868888"
+  version "2.3.7"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#0e68a7e78d50a71764343ce7f576853b9ecdf657"
   dependencies:
     bluebird "^3.5.0"
     haiku-serialization HaikuTeam/serialization
@@ -2654,8 +2654,8 @@ haiku-serialization@HaikuTeam/serialization:
     winston "^2.3.1"
 
 haiku-serialization@HaikuTeam/serialization.git:
-  version "2.3.6"
-  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#0a17a840686cfbd3c2615a4273fc48b633c7427d"
+  version "2.3.7"
+  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#ca5a8100451524b7b797cee3a1e9df9eff191078"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     async "2.1.5"
@@ -2697,8 +2697,8 @@ haiku-serialization@HaikuTeam/serialization.git:
     winston "^2.3.1"
 
 haiku-timeline@HaikuTeam/timeline.git:
-  version "2.3.6"
-  resolved "git+ssh://git@github.com/HaikuTeam/timeline.git#79b671687c7e4f8fc019499d6c5cf72e0a745932"
+  version "2.3.7"
+  resolved "git+ssh://git@github.com/HaikuTeam/timeline.git#87c43dfe3d17ba1bdf129e1db878bee67bd5bda8"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     archy "^1.0.0"
