@@ -1670,6 +1670,10 @@ HaikuTimeline.prototype._ensureClockIsRunning = function _ensureClockIsRunning()
         clock.start();
     return this;
 };
+HaikuTimeline.prototype._setComponent = function _setComponent(component) {
+    this._component = component;
+    return this;
+};
 HaikuTimeline.prototype._updateInternalProperties = function _updateInternalProperties(updatedGlobalClockTime) {
     var previousGlobalClockTime = this._globalClockTime;
     var deltaGlobalClockTime = updatedGlobalClockTime - previousGlobalClockTime;
@@ -9950,7 +9954,7 @@ exports["default"] = parse;
 },{}],167:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.6",
+  "version": "2.3.7",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
