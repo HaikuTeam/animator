@@ -43,6 +43,15 @@ HaikuTimeline.prototype._ensureClockIsRunning = function _ensureClockIsRunning()
   return this
 }
 
+/**
+ * @method _setComponent
+ * @description Internal hook to allow Haiku to hot swap on-stage components during editing.
+ */
+HaikuTimeline.prototype._setComponent = function _setComponent(component) {
+  this._component = component
+  return this
+}
+
 HaikuTimeline.prototype._updateInternalProperties = function _updateInternalProperties(
   updatedGlobalClockTime,
 ) {
