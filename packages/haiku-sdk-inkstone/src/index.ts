@@ -168,9 +168,9 @@ export namespace inkstone {
           invitePreset.Valid = Validity.VALID
           cb(undefined, invitePreset, httpResponse)
         } else {
-          if (httpResponse && httpResponse.statusCode === 404) {
+          if (httpResponse.statusCode === 404) {
             cb("invalid code", { Valid: Validity.INVALID }, httpResponse)
-          } else if (httpResponse && httpResponse.statusCode === 410) {
+          } else if (httpResponse.statusCode === 410) {
             cb("code already claimed", { Valid: Validity.ALREADY_CLAIMED }, httpResponse)
           } else {
             cb("uncategorized error", { Valid: Validity.ERROR }, httpResponse)
@@ -246,15 +246,11 @@ export namespace inkstone {
         cb("timed out: retries exceeded", undefined, undefined)
       } else {
         getSnapshotAndProject(id, (err, snap, response) => {
-          if (err) {
-            cb(err, null, response)
+          if (response.statusCode !== 200) {
+            setTimeout(() => { awaitSnapshotLink(id, cb, recursionIncr + 1) }, RETRY_PERIOD)
           } else {
-            if (response.statusCode !== 200) {
-              setTimeout(() => { awaitSnapshotLink(id, cb, recursionIncr + 1) }, RETRY_PERIOD)
-            } else {
-              console.log("Response", snap)
-              cb(undefined, assembleSnapshotLinkFromSnapshot(snap.Snapshot), response)
-            }
+            console.log("Response", snap)
+            cb(undefined, assembleSnapshotLinkFromSnapshot(snap.Snapshot), response)
           }
         })
       }
