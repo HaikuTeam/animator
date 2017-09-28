@@ -12,13 +12,14 @@ tape('other.00', (t) => {
   var changes = {}
   function change (relpath) {
     if (!changes[relpath]) changes[relpath] = 0
-    else changes[relpath] += 1
+    changes[relpath] += 1
     return changes[relpath]
   }
   return TestHelpers.setup(function(folder, creator, glass, timeline, metadata, teardown) {
     t.ok(true)
-    var relpath = path.join(folder, 'hello.txt')
-    fse.outputFileSync(relpath, `${change(relpath)}`)
+    var relpath = 'hello.txt'
+    var abspath = path.join(folder, relpath)
+    fse.outputFileSync(abspath, `${change(relpath)}`)
     var mgp = new MasterGitProject(folder)
     mgp.restart({ branchName: 'master' })
     return async.series([
@@ -26,13 +27,14 @@ tape('other.00', (t) => {
       function (cb) { return mgp.snapshotCommitProject('Initialized test folder', cb) },
       function (cb) { return mgp.setUndoBaselineIfHeadCommitExists(cb) },
       function (cb) {
-        // console.log(folder)
-        // mpg.commitFileIfChanged(relpath, message, cb)
-        return cb()
+        fse.outputFileSync(abspath, `${change(relpath)}`)
+        return mgp.commitFileIfChanged(relpath, 'change', (err, out) => {
+          console.log('commit out:', err, out)
+          return cb()
+        })
       }
     ], (err) => {
-      if (err) throw err
-      t.ok(true, 'finished')
+      t.error(err, 'finished without error')
       teardown()
     })
   })
