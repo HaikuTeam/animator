@@ -140,7 +140,7 @@ export default class Plumbing extends StateObject {
         if (!pulses[subproc._attributes.folder]) pulses[subproc._attributes.folder] = []
         pulses[subproc._attributes.folder].push(['subproc', subproc._attributes.id, subproc._attributes.name, !subproc._attributes.closed])
       })
-      logger.info(`[plumbing] pulse`, JSON.stringify(pulses))
+      // logger.info(`[plumbing] pulse`, JSON.stringify(pulses))
     }, 10 * 1000)
 
     emitter.on('teardown-requested', () => {
@@ -824,13 +824,16 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSu
     // If we aren't in electron, start the process using the electron binary path
     if (opts && opts.spawn) {
       //TODO:  disable for prod?
-      args.push("--enable-logging","--remote-debugging-port=9222")
+      if(process.env.NODE_ENV !== "production"){
+        args.push("--enable-logging","--remote-debugging-port=9222")
+      }
       console.log("SPAWNING", args)
       proc = cp.spawn(path, args, { stdio: [null, null, null, 'ipc'] })
     } else {
       args = args || []
-      //TODO:  disable for prod?
-      args.push("--debug=5859")
+      if(process.env.NODE_ENV !== "production"){
+        args.push("--debug=5859")
+      }
       console.log("FORKING", args)      
       proc = cp.fork(path, args)
     }
