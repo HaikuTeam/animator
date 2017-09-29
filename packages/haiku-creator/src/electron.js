@@ -189,36 +189,6 @@ function createWindow () {
 
   // Uncomment me to automatically open the tools
   // browserWindow.openDevTools()
-
-  autoUpdate((error, message, updater, quitAndInstall) => {
-    if (error) console.log(error)
-    // You can set a HAIKU_SKIP_AUTOUPDATE env var to skip this entirely
-    // If 'quitAndInstall' is present, call it to quit-and-install immediately.
-    // Otherwise, the behavior (as far as I can tell) is to download in the background,
-    // unzip, and install the next time the app is quitted. I.e.: You need not
-    // explicitly do anything for a new update to happen.
-    if (message === 'update-downloaded') {
-      mixpanel.haikuTrack('app:update-downloaded')
-      showAutoUpdateNativeBox(quitAndInstall)
-    }
-  })
-}
-
-function showAutoUpdateNativeBox (quitAndInstallCallback) {
-  dialog.showMessageBox({
-    message: 'An update is ready to install',
-    detail: 'A new version of Haiku is ready to use. Install now to get the latest features and fixes.',
-    cancelId: 1,
-    defaultId: 0,
-    buttons: ['Install Now', 'Install After I Quit']
-  }, (responseNum) => {
-    if (responseNum === 0) {
-      mixpanel.haikuTrack('app:install-later')
-      return quitAndInstallCallback()
-    } else {
-      mixpanel.haikuTrack('app:install-after-i-quit')
-    }
-  })
 }
 
 if (app.isReady()) {
