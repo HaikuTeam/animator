@@ -22,7 +22,7 @@ test('autoUpdate #generateURL generates an expected URL', (t) => {
 })
 
 test('autoUpdate #checkUpdates returns [false, null] if not updates are available', async (t) => {
-  let stubbedAutoUpdate = stub(autoUpdate, 'requestToUpdateServer', async () => {
+  let stubbedAutoUpdate = stub(autoUpdate, 'checkServer', async () => {
     return { status: 204, message: '' }
   })
 
@@ -35,7 +35,7 @@ test('autoUpdate #checkUpdates returns [false, null] if not updates are availabl
 })
 
 test('autoUpdate #checkUpdates returns [true, url] if there is an update', async (t) => {
-  let stubbedAutoUpdate = stub(autoUpdate, 'requestToUpdateServer', async () => {
+  let stubbedAutoUpdate = stub(autoUpdate, 'checkServer', async () => {
     return { status: 200, url: 'http://test.com' }
   })
 
