@@ -88,6 +88,7 @@ var UNLOGGABLE_METHODS = {
 
 var METHODS_TO_RUN_IMMEDIATELY = {
   'startProject': true,
+  'restartProject': true,
   'initializeFolder': true,
   'masterHeartbeat': true
 };
@@ -191,12 +192,12 @@ var Master = function (_EventEmitter) {
     // Encapsulation of project actions that concern the live module in other views
     _this._mod = new _MasterModuleProject2.default(_this.folder, _this.proc);
 
-    _this._mod.on('triggering-reload', function (file) {
-      _LoggerInstance2.default.info('[master] module replacment triggering', file.get('relpath'), file.get('dtLastReadStart'), file.get('dtLastWriteEnd'));
+    _this._mod.on('triggering-reload', function () {
+      _LoggerInstance2.default.info('[master] module replacment triggering');
     });
 
-    _this._mod.on('reload-complete', function (file) {
-      _LoggerInstance2.default.info('[master] module replacment finished', file.get('relpath'));
+    _this._mod.on('reload-complete', function () {
+      _LoggerInstance2.default.info('[master] module replacment finished');
     });
 
     // To store a Watcher instance which will watch for changes on the file system
@@ -1028,6 +1029,20 @@ var Master = function (_EventEmitter) {
     }
 
     /**
+     * @method restartProject
+     * Just a vanity method used to distinguish starts from restarts.
+     * Should be exactly the same as startProject since this only occurs
+     * If the MasterProcess has crashed and we need to reboot it.
+     */
+
+  }, {
+    key: 'restartProject',
+    value: function restartProject(message, done) {
+      message.restart = true;
+      return this.startProject(message, done);
+    }
+
+    /**
      * @method startProject
      */
 
@@ -1036,7 +1051,9 @@ var Master = function (_EventEmitter) {
     value: function startProject(message, done) {
       var _this12 = this;
 
-      _LoggerInstance2.default.info('[master] start project: ' + this.folder);
+      var loggingPrefix = message.restart ? 'restart project' : 'start project';
+
+      _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': ' + this.folder);
 
       this._mod.restart();
       this._git.restart();
@@ -1048,7 +1065,7 @@ var Master = function (_EventEmitter) {
       return _async2.default.series([
       // Load the user's configuration defined in haiku.js (sort of LEGACY)
       function (cb) {
-        _LoggerInstance2.default.info('[master] start project: loading configuration for ' + _this12.folder);
+        _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': loading configuration for ' + _this12.folder);
         return _this12._config.load(_this12.folder, function (err) {
           if (err) return done(err);
           // Gotta make this available after we load the config, but before anything else, since the
@@ -1062,7 +1079,7 @@ var Master = function (_EventEmitter) {
       function (cb) {
         // No need to reinitialize if already in memory
         if (!_this12._component) {
-          _LoggerInstance2.default.info('[master] start project: creating active component');
+          _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': creating active component');
 
           _this12._component = new _ActiveComponent2.default({
             alias: 'master', // Don't be fooled, this is not a branch name
@@ -1100,7 +1117,7 @@ var Master = function (_EventEmitter) {
 
       // Load all relevant files into memory (only JavaScript files for now)
       function (cb) {
-        _LoggerInstance2.default.info('[master] start project: ingesting js files in ' + _this12.folder);
+        _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': ingesting js files in ' + _this12.folder);
         return _this12._component.FileModel.ingestFromFolder(_this12.folder, {
           exclude: _excludeIfNotJs
         }, cb);
@@ -1110,7 +1127,7 @@ var Master = function (_EventEmitter) {
       function (cb) {
         var file = _this12._component.fetchActiveBytecodeFile();
         if (file) {
-          _LoggerInstance2.default.info('[master] start project: initializing bytecode');
+          _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': initializing bytecode');
           file.set('substructInitialized', file.reinitializeSubstruct(_this12._config.get('config'), 'Master.startProject'));
           return file.performComponentWork(function (bytecode, mana, wrapup) {
             return wrapup();
@@ -1129,13 +1146,13 @@ var Master = function (_EventEmitter) {
       function (cb) {
         // No need to reinitialize if already in memory
         if (!_this12._watcher) {
-          _LoggerInstance2.default.info('[master] start project: initializing file watcher', _this12.folder);
+          _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': initializing file watcher', _this12.folder);
           _this12._watcher = new _Watcher2.default();
           _this12._watcher.watch(_this12.folder);
           _this12._watcher.on('change', _this12.handleFileChange.bind(_this12));
           _this12._watcher.on('add', _this12.handleFileAdd.bind(_this12));
           _this12._watcher.on('remove', _this12.handleFileRemove.bind(_this12));
-          _LoggerInstance2.default.info('[master] start project: file watcher is now watching', _this12.folder);
+          _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': file watcher is now watching', _this12.folder);
           return cb();
         } else {
           return cb();
@@ -1150,7 +1167,7 @@ var Master = function (_EventEmitter) {
       // Finish up and signal that we are ready
       function (cb) {
         _this12._isReadyToReceiveMethods = true;
-        _LoggerInstance2.default.info('[master] start project: ready');
+        _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': ready');
         return cb(null, response);
       }], function (err, results) {
         if (err) return done(err);
