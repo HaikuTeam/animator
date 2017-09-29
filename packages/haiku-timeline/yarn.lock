@@ -2458,7 +2458,7 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.4, graceful-fs@^4.1.6,
 
 haiku-bytecode@HaikuTeam/bytecode.git:
   version "2.3.7"
-  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#1a894454ca93bd9cb898f03cf869213ee4e3fbb8"
+  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#076ac5c75c8993499e04de6cff3b87a3149f30ad"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     camelcase "4.0.0"
@@ -2536,7 +2536,7 @@ haiku-serialization@HaikuTeam/serialization:
 
 haiku-serialization@HaikuTeam/serialization.git:
   version "2.3.7"
-  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#ca5a8100451524b7b797cee3a1e9df9eff191078"
+  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#f463f903d8610d622be5b0ba7515a45ab4fe1521"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     async "2.1.5"

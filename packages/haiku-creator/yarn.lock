@@ -2552,7 +2552,7 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.4, graceful-fs@^4.1.6,
 
 haiku-bytecode@HaikuTeam/bytecode.git:
   version "2.3.7"
-  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#1a894454ca93bd9cb898f03cf869213ee4e3fbb8"
+  resolved "git+ssh://git@github.com/HaikuTeam/bytecode.git#076ac5c75c8993499e04de6cff3b87a3149f30ad"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     camelcase "4.0.0"
@@ -2578,7 +2578,7 @@ haiku-fs-extra@HaikuTeam/node-fs-extra.git#master-haiku:
 
 haiku-glass@HaikuTeam/glass.git:
   version "2.3.7"
-  resolved "git+ssh://git@github.com/HaikuTeam/glass.git#1bf85cf4fe7f4adf1f9d59c1a1236ffd8d579173"
+  resolved "git+ssh://git@github.com/HaikuTeam/glass.git#8a2e36d3982173ade8c434e25e76f119ac43e5e3"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     babel-register "6.23.0"
@@ -2603,7 +2603,7 @@ haiku-glass@HaikuTeam/glass.git:
 
 haiku-sdk-creator@HaikuTeam/sdk-creator.git:
   version "2.3.7"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#0e68a7e78d50a71764343ce7f576853b9ecdf657"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#8229f78dbc85a3e5f3aef393f155604da061a676"
   dependencies:
     bluebird "^3.5.0"
     haiku-serialization HaikuTeam/serialization
@@ -2655,7 +2655,7 @@ haiku-serialization@HaikuTeam/serialization:
 
 haiku-serialization@HaikuTeam/serialization.git:
   version "2.3.7"
-  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#ca5a8100451524b7b797cee3a1e9df9eff191078"
+  resolved "git+ssh://git@github.com/HaikuTeam/serialization.git#f463f903d8610d622be5b0ba7515a45ab4fe1521"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     async "2.1.5"
@@ -2698,7 +2698,7 @@ haiku-serialization@HaikuTeam/serialization.git:
 
 haiku-timeline@HaikuTeam/timeline.git:
   version "2.3.7"
-  resolved "git+ssh://git@github.com/HaikuTeam/timeline.git#87c43dfe3d17ba1bdf129e1db878bee67bd5bda8"
+  resolved "git+ssh://git@github.com/HaikuTeam/timeline.git#0b3492f44bcb9c76bef658a18b81cedb46573946"
   dependencies:
     "@haiku/player" HaikuTeam/player.git
     archy "^1.0.0"
