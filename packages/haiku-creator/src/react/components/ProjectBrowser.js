@@ -118,7 +118,9 @@ class ProjectBrowser extends React.Component {
   }
 
   handleProjectTitleChange (projectObject, changeEvent) {
-    projectObject.projectName = changeEvent.target.value
+    if (!this.isProjectNameBad(changeEvent.target.value)) {
+      projectObject.projectName = changeEvent.target.value
+    }
     this.setState({ projectsList: this.state.projectsList })
   }
 
@@ -140,22 +142,32 @@ class ProjectBrowser extends React.Component {
     }
   }
 
+  isProjectNameBad (projectName) {
+    if (!projectName) return true
+    if (projectName === '') return true
+    return false
+  }
+
   handleProjectLaunch (projectObject) {
-    this.setState({ launchingProject: projectObject })
-    // projectObject.projectsHome to use project container folder
-    // projectObject.projectPath to set specific project folder (no inference)
-    return this.props.launchProject(projectObject.projectName, projectObject, (error) => {
-      if (error) {
-        this.props.createNotice({
-          type: 'error',
-          title: 'Oh no!',
-          message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
-          closeText: 'Okay',
-          lightScheme: true
-        })
-        return this.setState({ error, launchingProject: null })
-      }
-    })
+    if (this.isProjectNameBad(projectObject.projectName)) {
+      console.warn('bad name launched:', projectObject.projectName)
+    } else {
+      this.setState({ launchingProject: projectObject })
+      // projectObject.projectsHome to use project container folder
+      // projectObject.projectPath to set specific project folder (no inference)
+      return this.props.launchProject(projectObject.projectName, projectObject, (error) => {
+        if (error) {
+          this.props.createNotice({
+            type: 'error',
+            title: 'Oh no!',
+            message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
+            closeText: 'Okay',
+            lightScheme: true
+          })
+          return this.setState({ error, launchingProject: null })
+        }
+      })
+    }
   }
 
   handleImportInputClick () {
@@ -173,36 +185,39 @@ class ProjectBrowser extends React.Component {
   }
 
   handleNewProjectGo () {
-    this.setState({newProjectLoading: true})
-    var name = this.refs.newProjectInput.value
-
+    var raw = this.refs.newProjectInput.value
     // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
-    name = name.replace(/[^a-z0-9]/gi, '')
+    var name = raw && raw.replace(/[^a-z0-9]/gi, '')
 
-    this.props.websocket.request({ method: 'createProject', params: [name] }, (err, newProject) => {
-      const projectsList = this.state.projectsList
-      this.setState({newProjectLoading: false})
-      if (err) {
-        projectsList.splice(0, 1)
-        this.setState({ projectsList })
-        this.state.newProjectError = err
-        this.props.createNotice({
-          type: 'error',
-          title: 'Oh no!',
-          message: 'We couldn\'t create your project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message our servers might be having problems. Please try again in a few moments. If you still see this error, contact Haiku for support.',
-          closeText: 'Okay',
-          lightScheme: true
-        })
-      } else {
-        // strip "new" project from top of list, unshift actual new project
-        var placeholderProject = projectsList.splice(0, 1)[0]
-        newProject.isActive = placeholderProject.isActive
-        projectsList.unshift(newProject)
-        this.setState({projectList: projectsList})
-        // auto-launch newly created project
-        // this.handleProjectLaunch(newProject)
-      }
-    })
+    if (this.isProjectNameBad(name)) {
+      console.warn('bad name entered:', name)
+    } else {
+      this.setState({newProjectLoading: true})
+      this.props.websocket.request({ method: 'createProject', params: [name] }, (err, newProject) => {
+        const projectsList = this.state.projectsList
+        this.setState({newProjectLoading: false})
+        if (err) {
+          projectsList.splice(0, 1)
+          this.setState({ projectsList })
+          this.state.newProjectError = err
+          this.props.createNotice({
+            type: 'error',
+            title: 'Oh no!',
+            message: 'We couldn\'t create your project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message our servers might be having problems. Please try again in a few moments. If you still see this error, contact Haiku for support.',
+            closeText: 'Okay',
+            lightScheme: true
+          })
+        } else {
+          // strip "new" project from top of list, unshift actual new project
+          var placeholderProject = projectsList.splice(0, 1)[0]
+          newProject.isActive = placeholderProject.isActive
+          projectsList.unshift(newProject)
+          this.setState({projectList: projectsList})
+          // auto-launch newly created project
+          // this.handleProjectLaunch(newProject)
+        }
+      })
+    }
   }
 
   projectsListElement () {
@@ -261,7 +276,10 @@ class ProjectBrowser extends React.Component {
     return (
       <div style={DASH_STYLES.titleWrapper}>
         <span style={DASH_STYLES.projectsTitle}>Projects</span>
-        <button style={DASH_STYLES.btnNewProject} onClick={this.launchNewProjectInput.bind(this)}>+</button>
+        <button
+          tabIndex='-1'
+          style={DASH_STYLES.btnNewProject}
+          onClick={this.launchNewProjectInput.bind(this)}>+</button>
         { !this.state.areProjectsLoading && this.state.projectsList.length === 0
           ? <span style={DASH_STYLES.tooltip}><span style={DASH_STYLES.arrowLeft} />Create a Project</span>
           : null
@@ -273,6 +291,7 @@ class ProjectBrowser extends React.Component {
   projectEditButtonElement (projectObject) {
     return (
       <button
+        tabIndex='-1'
         style={DASH_STYLES.editProject}
         disabled={!!this.state.launchingProject}
         onClick={this.handleProjectLaunch.bind(this, projectObject)}
@@ -305,14 +324,6 @@ class ProjectBrowser extends React.Component {
             style={DASH_STYLES.field}
             readOnly
             onChange={this.handleProjectTitleChange.bind(this, projectObject)} />
-          <span style={[DASH_STYLES.fieldDialogue, this.state.showNeedsSaveDialogue && DASH_STYLES.fieldDialogueActive]}>
-            <span style={DASH_STYLES.arrowTop} />
-            This project has unsaved changes. Please save or discard the edits before switching projects.
-            <div style={{marginTop: 8}}>
-              <button key='btn-save' style={[DASH_STYLES.btn, DASH_STYLES.btnRight]}>Save</button>
-              <button key='btn-discard' style={[DASH_STYLES.btn, DASH_STYLES.btnRight, DASH_STYLES.btnSecondary]}>Discard</button>
-            </div>
-          </span>
         </div>
         <div style={DASH_STYLES.fieldTitle}>Import into a codebase via command line</div>
         <input key='projectImportUri' ref='importInput' onClick={this.handleImportInputClick.bind(this)} value={commandLineSnippet} style={[DASH_STYLES.field, DASH_STYLES.fieldMono]} readOnly />

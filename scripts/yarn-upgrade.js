@@ -35,5 +35,5 @@ lodash.forEach(allPackages, function (pack) {
     var cmd = `yarn upgrade ${deps.join(' ')} --latest --ignore-engines --non-interactive --mutex file:/tmp/.yarn-mutex --network-concurrency 1`
     log.log(cmd)
     cp.execSync(cmd, { cwd: pack.abspath, stdio: 'inherit' })
-  }  
+  }
 })
