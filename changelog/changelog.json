@@ -2920,6 +2920,21 @@
       "project": "haiku-bytecode",
       "label": "fix",
       "message": "stop publish popover from shifting"
+    },
+    "e1e6bbe0d1627d252c528e5602bc0307f7471f69": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "robustify envoy connection handling and awareness"
+    },
+    "ee0d33d8c0ce77746f8b9caa792485b04ef28733": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Ensure timeline component caches are cleared on updates so fields reflect correctly after deletions"
+    },
+    "eea9ec7cf4252b0473fecca71871d190da483705": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "react warning for setting state on un-mounted component"
     }
   }
 }
