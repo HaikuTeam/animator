@@ -131,19 +131,29 @@ export default class Plumbing extends StateObject {
     emitter.on('teardown-requested', () => {
       this.teardown()
     })
-    emitter.on('restart-client', (folder, alias) => {
+
+    emitter.on('proc-respawned', (folder, alias) => {
       if (this._isTornDown) {
         logger.info('[plumbing] we are torn down, so not restarting client')
         return void (0)
       }
 
-      logger.warn(`[plumbing] restarting client ${alias} in ${folder}`)
-      return this.awaitFolderClientWithQuery(folder, 'startProject', { alias }, WAIT_DELAY, (err) => {
-        if (err) throw new Error(`Unable to restart client ${alias} in ${folder}`)
+      logger.info(`[plumbing] restarting client ${alias} in ${folder}`)
+
+      // This just waits until we have a 'master' client available with the given name.
+      // The reconnect logic is elsewhere
+      return this.awaitFolderClientWithQuery(folder, 'proc-respawned+restartProject', { alias }, WAIT_DELAY, (err) => {
+        if (err) {
+          throw new Error(`Waited too long for client ${alias} in ${folder} because ${err}`)
+        }
+
         if (alias === 'master') {
-          return this.startProject(null/* projectName is ignored */, folder, (err) => {
-            if (err) throw new Error(`Unable to restart client ${alias} in ${folder}`)
-            logger.warn(`[plumbing] restarted client ${alias} in ${folder}`)
+          // This actually calls the method in question on the given client
+          return this.restartProject(null/* projectName is ignored */, folder, (err) => {
+            if (err) {
+              throw new Error(`Unable to finish restart on client ${alias} in ${folder} because ${err}`)
+            }
+            logger.info(`[plumbing] restarted client ${alias} in ${folder}`)
           })
         }
       })
@@ -401,7 +411,6 @@ export default class Plumbing extends StateObject {
       sendMessageToClient(client, { signal: 'CRASH' })
     })
     this._isTornDown = true
-    clearInterval(this._pulseInterval)
   }
 
   toggleDevTools (folder, cb) {
@@ -518,6 +527,10 @@ export default class Plumbing extends StateObject {
 
   startProject (maybeProjectName, folder, cb) {
     return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'startProject', [], cb)
+  }
+
+  restartProject (maybeProjectName, folder, cb) {
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'restartProject', [], cb)
   }
 
   isUserAuthenticated (cb) {
@@ -808,33 +821,28 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSu
   } else {
     // If we aren't in electron, start the process using the electron binary path
     if (opts && opts.spawn) {
-      // TODO:  disable for prod?
-      if (process.env.NODE_ENV !== 'production') {
+      // Remote debugging hook only used in development; causes problems in distro
+      if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging' && process.env.NO_REMOTE_DEBUG !== '1') {
         args.push('--enable-logging', '--remote-debugging-port=9222')
       }
-      console.log('SPAWNING', args)
       proc = cp.spawn(path, args, { stdio: [null, null, null, 'ipc'] })
     } else {
       args = args || []
-      if (process.env.NODE_ENV !== 'production') {
+      // Remote debugging hook only used in development; causes problems in distro
+      if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging' && process.env.NO_REMOTE_DEBUG !== '1') {
         args.push('--debug=5859')
       }
-      console.log('FORKING', args)
       proc = cp.fork(path, args)
     }
+
     logger.info(`[plumbing] proc ${name} created @ ${path}`)
-    if (proc.stdout) {
-      proc.stdout.on('data', (data) => { logger.info(`[plumbing] proc ${name} stdin:`, data.toString()) })
-    }
-    if (proc.stderr) {
-      proc.stderr.on('data', (error) => { logger.info(`[plumbing] proc ${name} stderr:`, error.toString()) })
-    }
   }
 
   proc._attributes = { name, folder, id: _id() }
 
   proc.on('exit', () => {
     logger.info(`[plumbing] proc ${name} exiting`)
+
     proc._attributes.exited = true
 
     if (proc._attributes.name) {
@@ -844,23 +852,25 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSu
       } else if (proc._attributes.name.match(/master/)) {
         // Avoid ending up in an endless loop of fail if we find ourselves torn down
         if (!this._isTornDown) {
-          // If we got here, master probably got an exception and exited. We may want to notify the views.
-          // Note that a simple app refresh should NOT get us here!!! - that would only trigger websocket disconnect.
-          this.sendBroadcastMessage({ folder, type: 'broadcast', name: 'crash', from: 'plumbing', whom: 'master' })
-
           // Master should probably keep running, since it does peristence stuff, so reconnect if we detect it crashed.
-          logger.warn(`[plumbing] trying to reconnect proc master for folder ${folder}`)
+          logger.info(`[plumbing] trying to respawn master for ${folder}`)
 
-          this.spawnSubprocess(existingSpawnedSubprocs, folder, { name, path, args, opts }, (err, proc) => {
+          this.spawnSubprocess(existingSpawnedSubprocs, folder, { name, path, args, opts }, (err, newProc) => {
             if (err) {
-              throw new Error(`Unable to reconnect master for ${folder}`)
+              throw new Error(`Unable to respawn master for ${folder} because ${err}`)
             }
-            proc._attributes.closed = undefined
-            proc._attributes.disconnected = undefined
-            proc._attributes.exited = undefined
-            existingSpawnedSubprocs.push(proc)
-            logger.warn(`[plumbing] respawned proc master for folder ${folder}; restarting project`)
-            emitter.emit('restart-client', folder, name)
+
+            newProc._attributes.closed = undefined
+            newProc._attributes.disconnected = undefined
+            newProc._attributes.exited = undefined
+
+            existingSpawnedSubprocs.push(newProc)
+
+            logger.info(`[plumbing] respawned proc master for folder ${folder}; restarting project`)
+
+            // Emit this event to notify ourselves that we want to wait for the websocket
+            // in the given process to reconnect itself and then do any of the usual setup
+            emitter.emit('proc-respawned', folder, name)
           })
         }
       }
@@ -874,12 +884,11 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSu
       }
     }
   })
+
   proc.on('close', () => {
-    logger.info(`[plumbing] proc ${name} closing`)
     proc._attributes.closed = true
   })
   proc.on('disconnect', () => {
-    logger.info(`[plumbing] proc ${name} disconnected`)
     proc._attributes.disconnected = true
   })
   proc.on('error', (error) => {
