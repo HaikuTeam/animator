@@ -18,7 +18,7 @@ process.env.NODE_ENV = 'development'
  */
 
 var DEFAULTS = {
-  dev: true,
+  dev: false,
   mockEnvoy: '1',
   folderChoice: 'none',
   devChoice: 'everything',
