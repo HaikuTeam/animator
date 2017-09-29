@@ -47,7 +47,7 @@ var walkFiles = require('./../utils/walkFiles')
 var define = require('./ModelClassFactory').define
 var getNormalizedComponentModulePath = require('./helpers/getNormalizedComponentModulePath')
 
-var { HOMEDIR_LOGS_PATH } = require('./../utils/HaikuHomeDir')
+// var { HOMEDIR_LOGS_PATH } = require('./../utils/HaikuHomeDir')
 
 // This file also depends on '@haiku/player/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as 'hostInstance' here.
@@ -386,13 +386,6 @@ function FileModel (config) {
       })
       this._unrefedModules = []
 
-      if (process.env.HAIKU_DEBUG_MUTATIONS === '1') {
-        fse.outputFileSync(
-          path.join(HOMEDIR_LOGS_PATH, 'mutations', `${this.get('relpath').split(/[/.]/).join('_')}-${this._mutations.length}.json`),
-          JSON.stringify(ast.program, null, 2)
-        )
-      }
-
       let updatedCode = generateCode(ast)
 
       return formatStandard(updatedCode, {}, (err, formatted) => {
@@ -411,6 +404,7 @@ function FileModel (config) {
     logger.info('[file] committing content state')
 
     // substruct -> { bytecode: {...}, objectExpression: {...} }
+    // This also runs formatStandard on the code
     return this._mutateComponent(substruct, ast, (err, code) => {
       if (err) {
         logger.error('[file] content state commit error', err)
