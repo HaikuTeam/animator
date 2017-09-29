@@ -22,6 +22,7 @@ const UNLOGGABLE_METHODS = {
 
 const METHODS_TO_RUN_IMMEDIATELY = {
   'startProject': true,
+  'restartProject': true,
   'initializeFolder': true,
   'masterHeartbeat': true
 }
@@ -730,10 +731,23 @@ export default class Master extends EventEmitter {
   }
 
   /**
+   * @method restartProject
+   * Just a vanity method used to distinguish starts from restarts.
+   * Should be exactly the same as startProject since this only occurs
+   * If the MasterProcess has crashed and we need to reboot it.
+   */
+  restartProject (message, done) {
+    message.restart = true
+    return this.startProject(message, done)
+  }
+
+  /**
    * @method startProject
    */
   startProject (message, done) {
-    logger.info(`[master] start project: ${this.folder}`)
+    const loggingPrefix = (message.restart) ? 'restart project' : 'start project'
+
+    logger.info(`[master] ${loggingPrefix}: ${this.folder}`)
 
     this._mod.restart()
     this._git.restart()
@@ -745,7 +759,7 @@ export default class Master extends EventEmitter {
     return async.series([
       // Load the user's configuration defined in haiku.js (sort of LEGACY)
       (cb) => {
-        logger.info(`[master] start project: loading configuration for ${this.folder}`)
+        logger.info(`[master] ${loggingPrefix}: loading configuration for ${this.folder}`)
         return this._config.load(this.folder, (err) => {
           if (err) return done(err)
           // Gotta make this available after we load the config, but before anything else, since the
@@ -759,7 +773,7 @@ export default class Master extends EventEmitter {
       (cb) => {
         // No need to reinitialize if already in memory
         if (!this._component) {
-          logger.info(`[master] start project: creating active component`)
+          logger.info(`[master] ${loggingPrefix}: creating active component`)
 
           this._component = new ActiveComponent({
             alias: 'master', // Don't be fooled, this is not a branch name
@@ -797,7 +811,7 @@ export default class Master extends EventEmitter {
 
       // Load all relevant files into memory (only JavaScript files for now)
       (cb) => {
-        logger.info(`[master] start project: ingesting js files in ${this.folder}`)
+        logger.info(`[master] ${loggingPrefix}: ingesting js files in ${this.folder}`)
         return this._component.FileModel.ingestFromFolder(this.folder, {
           exclude: _excludeIfNotJs
         }, cb)
@@ -807,7 +821,7 @@ export default class Master extends EventEmitter {
       (cb) => {
         const file = this._component.fetchActiveBytecodeFile()
         if (file) {
-          logger.info(`[master] start project: initializing bytecode`)
+          logger.info(`[master] ${loggingPrefix}: initializing bytecode`)
           file.set('substructInitialized', file.reinitializeSubstruct(this._config.get('config'), 'Master.startProject'))
           return file.performComponentWork((bytecode, mana, wrapup) => wrapup(), cb)
         } else {
@@ -824,13 +838,13 @@ export default class Master extends EventEmitter {
       (cb) => {
         // No need to reinitialize if already in memory
         if (!this._watcher) {
-          logger.info('[master] start project: initializing file watcher', this.folder)
+          logger.info(`[master] ${loggingPrefix}: initializing file watcher`, this.folder)
           this._watcher = new Watcher()
           this._watcher.watch(this.folder)
           this._watcher.on('change', this.handleFileChange.bind(this))
           this._watcher.on('add', this.handleFileAdd.bind(this))
           this._watcher.on('remove', this.handleFileRemove.bind(this))
-          logger.info('[master] start project: file watcher is now watching', this.folder)
+          logger.info(`[master] ${loggingPrefix}: file watcher is now watching`, this.folder)
           return cb()
         } else {
           return cb()
@@ -845,7 +859,7 @@ export default class Master extends EventEmitter {
       // Finish up and signal that we are ready
       (cb) => {
         this._isReadyToReceiveMethods = true
-        logger.info(`[master] start project: ready`)
+        logger.info(`[master] ${loggingPrefix}: ready`)
         return cb(null, response)
       }
     ], (err, results) => {
