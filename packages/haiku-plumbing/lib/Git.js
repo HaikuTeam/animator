@@ -659,8 +659,6 @@ function commitProject(folder, username, useHeadAsParent) {
   var pathsToAdd = arguments[4];
   var cb = arguments[5];
 
-  _LoggerInstance2.default.info('[git] adding paths to index in folder ' + folder);
-
   // Depending on the 'pathsToAdd' given, either add specific paths to the index, or commit them all
   // Supported paths:
   // '.'
@@ -668,18 +666,27 @@ function commitProject(folder, username, useHeadAsParent) {
   // ['foo/bar', 'baz/qux', ...]
   function pathAdder(done) {
     if (pathsToAdd === '.') {
+      _LoggerInstance2.default.info('[git] adding all paths to index');
       return addAllPathsToIndex(folder, done);
     } else if (typeof pathsToAdd === 'string') {
+      _LoggerInstance2.default.info('[git] adding path ' + pathsToAdd + ' to index');
       return addPathsToIndex(folder, [pathsToAdd], done);
     } else if (Array.isArray(pathsToAdd) && pathsToAdd.length > 0) {
+      _LoggerInstance2.default.info('[git] adding paths ' + pathsToAdd.join(', ') + ' to index');
       return addPathsToIndex(folder, pathsToAdd, done);
     } else {
+      _LoggerInstance2.default.info('[git] no path given');
       return done();
     }
   }
 
   return pathAdder(function (err, oid) {
     if (err) return cb(err);
+
+    if (!oid) {
+      _LoggerInstance2.default.info('[git] blank oid so cannot commit');
+      // return cb()
+    }
 
     var user = username || DEFAULT_GIT_USERNAME;
     var email = username || DEFAULT_GIT_EMAIL;

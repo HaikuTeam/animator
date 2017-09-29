@@ -581,8 +581,6 @@ export function listTags (pwd, cb) {
  * @param pathsToAdd {String|Array} - '.' to add all paths, [path, path] to add individual paths
  **/
 export function commitProject (folder, username, useHeadAsParent, saveOptions = {}, pathsToAdd, cb) {
-  logger.info(`[git] adding paths to index in folder ${folder}`)
-
   // Depending on the 'pathsToAdd' given, either add specific paths to the index, or commit them all
   // Supported paths:
   // '.'
@@ -590,18 +588,27 @@ export function commitProject (folder, username, useHeadAsParent, saveOptions = 
   // ['foo/bar', 'baz/qux', ...]
   function pathAdder (done) {
     if (pathsToAdd === '.') {
+      logger.info(`[git] adding all paths to index`)
       return addAllPathsToIndex(folder, done)
     } else if (typeof pathsToAdd === 'string') {
+      logger.info(`[git] adding path ${pathsToAdd} to index`)
       return addPathsToIndex(folder, [pathsToAdd], done)
     } else if (Array.isArray(pathsToAdd) && pathsToAdd.length > 0) {
+      logger.info(`[git] adding paths ${pathsToAdd.join(', ')} to index`)
       return addPathsToIndex(folder, pathsToAdd, done)
     } else {
+      logger.info(`[git] no path given`)
       return done()
     }
   }
 
   return pathAdder((err, oid) => {
     if (err) return cb(err)
+
+    if (!oid) {
+      logger.info(`[git] blank oid so cannot commit`)
+      // return cb()
+    }
 
     const user = username || DEFAULT_GIT_USERNAME
     const email = username || DEFAULT_GIT_EMAIL
