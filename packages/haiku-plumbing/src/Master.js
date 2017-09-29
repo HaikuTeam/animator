@@ -151,6 +151,9 @@ export default class Master extends EventEmitter {
     // Dictionary of all designs in the project, mapping relpath to metadata object
     this._knownDesigns = {}
 
+    // Designs that have changed and need merge, batched for
+    this._designsPendingMerge = {}
+
     // Store an ActiveComponent instance for method delegation
     this._component = null
 
@@ -159,6 +162,7 @@ export default class Master extends EventEmitter {
 
     // We end up oversaturating the sockets unless we debounce this
     this.debouncedEmitAssetsChanged = debounce(this.emitAssetsChanged.bind(this), 500, { trailing: true })
+    this.debouncedEmitDesignNeedsMergeRequest = debounce(this.emitDesignNeedsMergeRequest.bind(this), 500, { trailing: true })
   }
 
   teardown () {
@@ -222,19 +226,32 @@ export default class Master extends EventEmitter {
     })
   }
 
+  emitDesignNeedsMergeRequest () {
+    let designs = this._designsPendingMerge
+    this._designsPendingMerge = {}
+    if (Object.keys(designs).length > 0) {
+      logger.info('[master] merge designs requested')
+      this.proc.socket.request({ type: 'action', method: 'mergeDesigns', params: [this.folder, 'Default', 0, designs] }, () => {
+        // TODO: Call rest after design merge finishes?
+      })
+    }
+  }
+
+  batchDesignMergeRequest (relpath) {
+    this._designsPendingMerge[relpath] = {}
+    return this
+  }
+
   emitDesignChange (relpath) {
     const assets = this.getAssetDirectoryInfo()
-    const abspath = path.join(this.folder, relpath)
     const extname = path.extname(relpath)
     logger.info('[master] asset changed', relpath)
     this.emit('design-change', relpath, assets)
     if (this.proc.isOpen()) {
       this.debouncedEmitAssetsChanged(assets)
       if (extname === '.svg') {
-        logger.info('[master] merge design requested', relpath)
-        this.proc.socket.request({ type: 'action', method: 'mergeDesign', params: [this.folder, 'Default', 0, abspath] }, () => {
-          // TODO: Call rest after design merge finishes?
-        })
+        this.batchDesignMergeRequest(relpath)
+        this.debouncedEmitDesignNeedsMergeRequest()
       }
     }
   }
@@ -533,8 +550,8 @@ export default class Master extends EventEmitter {
     return this.bytecodeAction('deleteComponent', params, cb)
   }
 
-  mergeDesign ({ params }, cb) {
-    return this.bytecodeAction('mergeDesign', params, cb)
+  mergeDesigns ({ params }, cb) {
+    return this.bytecodeAction('mergeDesigns', params, cb)
   }
 
   applyPropertyValue ({ params }, cb) {
