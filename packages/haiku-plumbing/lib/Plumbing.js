@@ -216,37 +216,32 @@ var Plumbing = function (_StateObject) {
     _this._methodMessages = [];
     _this.executeMethodMessagesWorker();
 
-    // Just log information about who is connected to make it easier to diagnose comms issues.
-    _this._pulseInterval = setInterval(function () {
-      var pulses = {};
-      pulses.info = { pendingMethods: _this._methodMessages.length, isTornDown: _this._isTornDown };
-      _this.clients.forEach(function (client) {
-        if (!pulses[client.params.folder]) pulses[client.params.folder] = [];
-        pulses[client.params.folder].push(['client', client.params.id, client.params.alias, client.readyState === 1]); /** WebSocket.OPEN */
-      });
-      _this.subprocs.forEach(function (subproc) {
-        if (!pulses[subproc._attributes.folder]) pulses[subproc._attributes.folder] = [];
-        pulses[subproc._attributes.folder].push(['subproc', subproc._attributes.id, subproc._attributes.name, !subproc._attributes.closed]);
-      });
-      // logger.info(`[plumbing] pulse`, JSON.stringify(pulses))
-    }, 10 * 1000);
-
     emitter.on('teardown-requested', function () {
       _this.teardown();
     });
-    emitter.on('restart-client', function (folder, alias) {
+
+    emitter.on('proc-respawned', function (folder, alias) {
       if (_this._isTornDown) {
         _LoggerInstance2.default.info('[plumbing] we are torn down, so not restarting client');
         return void 0;
       }
 
-      _LoggerInstance2.default.warn('[plumbing] restarting client ' + alias + ' in ' + folder);
-      return _this.awaitFolderClientWithQuery(folder, 'startProject', { alias: alias }, WAIT_DELAY, function (err) {
-        if (err) throw new Error('Unable to restart client ' + alias + ' in ' + folder);
+      _LoggerInstance2.default.info('[plumbing] restarting client ' + alias + ' in ' + folder);
+
+      // This just waits until we have a 'master' client available with the given name.
+      // The reconnect logic is elsewhere
+      return _this.awaitFolderClientWithQuery(folder, 'proc-respawned+restartProject', { alias: alias }, WAIT_DELAY, function (err) {
+        if (err) {
+          throw new Error('Waited too long for client ' + alias + ' in ' + folder + ' because ' + err);
+        }
+
         if (alias === 'master') {
-          return _this.startProject(null /* projectName is ignored */, folder, function (err) {
-            if (err) throw new Error('Unable to restart client ' + alias + ' in ' + folder);
-            _LoggerInstance2.default.warn('[plumbing] restarted client ' + alias + ' in ' + folder);
+          // This actually calls the method in question on the given client
+          return _this.restartProject(null /* projectName is ignored */, folder, function (err) {
+            if (err) {
+              throw new Error('Unable to finish restart on client ' + alias + ' in ' + folder + ' because ' + err);
+            }
+            _LoggerInstance2.default.info('[plumbing] restarted client ' + alias + ' in ' + folder);
           });
         }
       });
@@ -547,7 +542,6 @@ var Plumbing = function (_StateObject) {
         sendMessageToClient(client, { signal: 'CRASH' });
       });
       this._isTornDown = true;
-      clearInterval(this._pulseInterval);
     }
   }, {
     key: 'toggleDevTools',
@@ -676,6 +670,11 @@ var Plumbing = function (_StateObject) {
     key: 'startProject',
     value: function startProject(maybeProjectName, folder, cb) {
       return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'startProject', [], cb);
+    }
+  }, {
+    key: 'restartProject',
+    value: function restartProject(maybeProjectName, folder, cb) {
+      return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'restartProject', [], cb);
     }
   }, {
     key: 'isUserAuthenticated',
@@ -1006,37 +1005,28 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess(existingSpawnedSub
   } else {
     // If we aren't in electron, start the process using the electron binary path
     if (opts && opts.spawn) {
-      // TODO:  disable for prod?
-      if (process.env.NODE_ENV !== 'production') {
+      // Remote debugging hook only used in development; causes problems in distro
+      if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging' && process.env.NO_REMOTE_DEBUG !== '1') {
         args.push('--enable-logging', '--remote-debugging-port=9222');
       }
-      console.log('SPAWNING', args);
       proc = _child_process2.default.spawn(path, args, { stdio: [null, null, null, 'ipc'] });
     } else {
       args = args || [];
-      if (process.env.NODE_ENV !== 'production') {
+      // Remote debugging hook only used in development; causes problems in distro
+      if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging' && process.env.NO_REMOTE_DEBUG !== '1') {
         args.push('--debug=5859');
       }
-      console.log('FORKING', args);
       proc = _child_process2.default.fork(path, args);
     }
+
     _LoggerInstance2.default.info('[plumbing] proc ' + name + ' created @ ' + path);
-    if (proc.stdout) {
-      proc.stdout.on('data', function (data) {
-        _LoggerInstance2.default.info('[plumbing] proc ' + name + ' stdin:', data.toString());
-      });
-    }
-    if (proc.stderr) {
-      proc.stderr.on('data', function (error) {
-        _LoggerInstance2.default.info('[plumbing] proc ' + name + ' stderr:', error.toString());
-      });
-    }
   }
 
   proc._attributes = { name: name, folder: folder, id: _id() };
 
   proc.on('exit', function () {
     _LoggerInstance2.default.info('[plumbing] proc ' + name + ' exiting');
+
     proc._attributes.exited = true;
 
     if (proc._attributes.name) {
@@ -1046,23 +1036,25 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess(existingSpawnedSub
       } else if (proc._attributes.name.match(/master/)) {
         // Avoid ending up in an endless loop of fail if we find ourselves torn down
         if (!_this11._isTornDown) {
-          // If we got here, master probably got an exception and exited. We may want to notify the views.
-          // Note that a simple app refresh should NOT get us here!!! - that would only trigger websocket disconnect.
-          _this11.sendBroadcastMessage({ folder: folder, type: 'broadcast', name: 'crash', from: 'plumbing', whom: 'master' });
-
           // Master should probably keep running, since it does peristence stuff, so reconnect if we detect it crashed.
-          _LoggerInstance2.default.warn('[plumbing] trying to reconnect proc master for folder ' + folder);
+          _LoggerInstance2.default.info('[plumbing] trying to respawn master for ' + folder);
 
-          _this11.spawnSubprocess(existingSpawnedSubprocs, folder, { name: name, path: path, args: args, opts: opts }, function (err, proc) {
+          _this11.spawnSubprocess(existingSpawnedSubprocs, folder, { name: name, path: path, args: args, opts: opts }, function (err, newProc) {
             if (err) {
-              throw new Error('Unable to reconnect master for ' + folder);
+              throw new Error('Unable to respawn master for ' + folder + ' because ' + err);
             }
-            proc._attributes.closed = undefined;
-            proc._attributes.disconnected = undefined;
-            proc._attributes.exited = undefined;
-            existingSpawnedSubprocs.push(proc);
-            _LoggerInstance2.default.warn('[plumbing] respawned proc master for folder ' + folder + '; restarting project');
-            emitter.emit('restart-client', folder, name);
+
+            newProc._attributes.closed = undefined;
+            newProc._attributes.disconnected = undefined;
+            newProc._attributes.exited = undefined;
+
+            existingSpawnedSubprocs.push(newProc);
+
+            _LoggerInstance2.default.info('[plumbing] respawned proc master for folder ' + folder + '; restarting project');
+
+            // Emit this event to notify ourselves that we want to wait for the websocket
+            // in the given process to reconnect itself and then do any of the usual setup
+            emitter.emit('proc-respawned', folder, name);
           });
         }
       }
@@ -1076,12 +1068,11 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess(existingSpawnedSub
       }
     }
   });
+
   proc.on('close', function () {
-    _LoggerInstance2.default.info('[plumbing] proc ' + name + ' closing');
     proc._attributes.closed = true;
   });
   proc.on('disconnect', function () {
-    _LoggerInstance2.default.info('[plumbing] proc ' + name + ' disconnected');
     proc._attributes.disconnected = true;
   });
   proc.on('error', function (error) {

@@ -70,7 +70,8 @@ var MAX_SEMVER_TAG_ATTEMPTS = 100;
 var AWAIT_COMMIT_INTERVAL = 0;
 var WORKER_INTERVAL = 64;
 var MAX_CLONE_ATTEMPTS = 5;
-var CLONE_RETRY_DELAY = 10000;
+var CLONE_RETRY_DELAY = 5000;
+var CLONE_INIT_DELAY = 2500;
 var DEFAULT_BRANCH_NAME = 'master'; // "'master' process" has nothing to do with this :/
 var BASELINE_SEMVER_TAG = '0.0.0';
 var COMMIT_SUFFIX = '(via Haiku Desktop)';
@@ -556,6 +557,18 @@ var MasterGitProject = function (_EventEmitter) {
         });
       });
     }
+
+    // Before the first time we clone, add an artificial timer that waits a couple
+    // of seconds before attempting. Basically, give the cloud a chance to set things
+    // up *before* we immediately call clone, that way we don't call it prematurely
+    // and then have to wait an additional 10 seconds before trying again
+
+  }, {
+    key: 'hackyInitialDelayBeforeFirstCloneAttempt',
+    value: function hackyInitialDelayBeforeFirstCloneAttempt(cb) {
+      _LoggerInstance2.default.info('[master-git] waiting before first clone attempt');
+      return setTimeout(cb, CLONE_INIT_DELAY);
+    }
   }, {
     key: 'cloneRemoteIntoFolder',
     value: function cloneRemoteIntoFolder(cb) {
@@ -573,7 +586,7 @@ var MasterGitProject = function (_EventEmitter) {
           CodeCommitHttpsPassword = _folderState$remotePr2.CodeCommitHttpsPassword;
 
 
-      _LoggerInstance2.default.info('[master-git] cloning from remote ' + GitRemoteUrl + ' (attempt ' + this._folderState.cloneAttempts + ') ...');
+      _LoggerInstance2.default.info('[master-git] cloning from remote ' + GitRemoteUrl + ' (attempt ' + this._folderState.cloneAttempts + ')');
 
       return Git.cloneRepo(GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, this.folder, function (err) {
         if (err) {
@@ -1009,16 +1022,20 @@ var MasterGitProject = function (_EventEmitter) {
     value: function commitFileIfChanged(relpath, message, cb) {
       var _this22 = this;
 
-      return this.statusForFile(relpath, function (err, status) {
-        if (err) return cb(err);
-        if (!status) return cb(); // No status means no changes
-        // 0 is UNMODIFIED, everything else is a change
-        // See http://www.nodegit.org/api/diff/#getDelta
-        if (status.num && status.num > 0) {
-          return _this22.commitProject(relpath, message, cb);
-        } else {
-          return cb();
-        }
+      // The call to status is sync, so we add this hook in case pending commits
+      // should alter the status in advance of us checking it
+      return this.waitUntilNoFurtherChangesAreAwaitingCommit(function () {
+        return _this22.statusForFile(relpath, function (err, status) {
+          if (err) return cb(err);
+          if (!status) return cb(); // No status means no changes
+          // 0 is UNMODIFIED, everything else is a change
+          // See http://www.nodegit.org/api/diff/#getDelta
+          if (status.num && status.num > 0) {
+            return _this22.commitProject(relpath, message, cb);
+          } else {
+            return cb();
+          }
+        });
       });
     }
   }, {
@@ -1095,7 +1112,7 @@ var MasterGitProject = function (_EventEmitter) {
         if (!isGitInitialized && !isCodeCommitReady) {
           actionSequence = ['initializeGit'];
         } else if (!isGitInitialized && isCodeCommitReady) {
-          actionSequence = ['moveContentsToTemp', 'cloneRemoteIntoFolder', 'copyContentsFromTemp'];
+          actionSequence = ['moveContentsToTemp', 'hackyInitialDelayBeforeFirstCloneAttempt', 'cloneRemoteIntoFolder', 'copyContentsFromTemp'];
         } else if (isGitInitialized && !isCodeCommitReady) {
           actionSequence = [];
         } else if (isGitInitialized && isCodeCommitReady) {
