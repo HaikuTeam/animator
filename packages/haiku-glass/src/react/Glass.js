@@ -407,6 +407,7 @@ export class Glass extends React.Component {
 
   componentWillUnmount () {
     this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
+    this._envoyClient.closeConnection()
   }
 
   handleWindowResize () {

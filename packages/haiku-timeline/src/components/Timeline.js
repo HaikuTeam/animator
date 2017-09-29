@@ -356,6 +356,7 @@ class Timeline extends React.Component {
     this.state.didMount = false
 
     this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
+    this._envoyClient.closeConnection()
 
     // Scroll.Events.scrollEvent.remove('begin');
     // Scroll.Events.scrollEvent.remove('end');

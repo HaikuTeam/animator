@@ -216,11 +216,15 @@ export default class EnvoyClient<T> {
      * each datagram in the order enqueued
      */
     private flushQueue() {
-        return this.connect(this.options).then(() => {
+        return new Promise((accept) => {
             this.logger.info("[haiku envoy client] flushing queue")
             while (this.datagramQueue.length) {
-                this.rawTransmit(this.datagramQueue.shift())
+                const datagram = this.datagramQueue.shift()
+                this.connect(this.options).then(() => {
+                    this.rawTransmit(datagram)
+                })
             }
+            accept()
         })
     }
 

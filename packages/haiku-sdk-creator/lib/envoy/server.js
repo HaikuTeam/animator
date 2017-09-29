@@ -111,8 +111,13 @@ class EnvoyServer {
     }
     broadcast(datagram) {
         for (const [id, client] of this.clientRegistry) {
-            this.logger.info("[haiku envoy server] sending message to client id:" + client.id, datagram);
-            this.rawTransmitToClient(datagram, client);
+            if (client.readyState === 1) {
+                this.logger.info("[haiku envoy server] sending message to client id:" + client.id, datagram);
+                this.rawTransmitToClient(datagram, client);
+            }
+            else {
+                this.logger.info("[haiku envoy server] client is disconnected, id:" + client.id, datagram);
+            }
         }
     }
     rawTransmitToClient(datagram, client) {

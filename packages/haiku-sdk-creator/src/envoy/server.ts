@@ -192,11 +192,13 @@ export default class EnvoyServer {
         //TODO:  could detect which channel a client is bound to, then
         //       broadcast a given datagram only to the relevant clients.
         //       For now, every client gets every response.
-
         for (const [id, client] of this.clientRegistry) {
-            this.logger.info("[haiku envoy server] sending message to client id:" + client.id, datagram)
-
-            this.rawTransmitToClient(datagram, client)
+            if (client.readyState === 1) { //only update clients with live connections
+                this.logger.info("[haiku envoy server] sending message to client id:" + client.id, datagram)
+                this.rawTransmitToClient(datagram, client)
+            } else {
+                this.logger.info("[haiku envoy server] client is disconnected, id:" + client.id, datagram)
+            }
         }
     }
 

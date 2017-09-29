@@ -1230,5 +1230,4 @@ function remapProjectObjectToExpectedFormat(projectObject) {
 function isElectronMain() {
   return typeof process !== 'undefined' && process.versions && !!process.versions.electron;
 }
-
 //# sourceMappingURL=Plumbing.js.map
