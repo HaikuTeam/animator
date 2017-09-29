@@ -541,6 +541,13 @@ function FileModel (config) {
     }, cb)
   }
 
+  File.prototype.mergeDesigns = function mergeDesigns (timelineName, timelineTime, designs, cb) {
+    return async.eachOf(designs, (truthy, sourceRelpath, next) => {
+      return this.mergeDesign(timelineName, timelineTime, sourceRelpath, next)
+    }, cb)
+  }
+
+  // This is normally called in a loop from the above mergeDesigns
   File.prototype.mergeDesign = function mergeDesign (timelineName, timelineTime, sourceRelpath, cb) {
     let didUpdate = false
     logger.info('[file] maybe merging design ' + sourceRelpath + ' in timeline ' + timelineName + ' @ ' + timelineTime)

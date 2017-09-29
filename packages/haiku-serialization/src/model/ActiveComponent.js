@@ -3,6 +3,7 @@ var util = require('util')
 var EventEmitter = require('events').EventEmitter
 var lodash = require('lodash')
 var raf = require('raf')
+
 var Element = require('./Element')
 var Timeline = require('./Timeline')
 var FileModel = require('./File')
@@ -430,8 +431,8 @@ ActiveComponent.prototype.deleteComponent = function deleteComponent (componentI
   })
 }
 
-ActiveComponent.prototype.mergeDesign = function mergeDesign (timelineName, timelineTime, relpath, metadata, cb) {
-  this.fetchActiveBytecodeFile().mergeDesign(timelineName, timelineTime, relpath, (err) => {
+ActiveComponent.prototype.mergeDesigns = function mergeDesigns (timelineName, timelineTime, designs, metadata, cb) {
+  this.fetchActiveBytecodeFile().mergeDesigns(timelineName, timelineTime, designs, (err) => {
     if (err) {
       error(err)
       return cb(err)
@@ -445,8 +446,9 @@ ActiveComponent.prototype.mergeDesign = function mergeDesign (timelineName, time
     this._hydrateElements()
 
     if (err) return cb(err)
+
     if (metadata.from === this.alias) {
-      this.websocket.send({ type: 'action', method: 'mergeDesign', params: [this.folder, timelineName, timelineTime, relpath] })
+      this.websocket.send({ type: 'action', method: 'mergeDesigns', params: [this.folder, timelineName, timelineTime, designs] })
     }
 
     return cb()
