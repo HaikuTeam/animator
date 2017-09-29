@@ -9,6 +9,7 @@ import cp from 'child_process'
 import os from 'os'
 import path from 'path'
 import fs from 'fs'
+import autoUpdate from '../utils/autoUpdate'
 import AuthenticationUI from './components/AuthenticationUI'
 import ProjectBrowser from './components/ProjectBrowser'
 import SideBar from './components/SideBar'
@@ -63,6 +64,7 @@ export default class Creator extends React.Component {
       dashboardVisible: !this.props.folder,
       readyForAuth: false,
       isUserAuthenticated: false,
+      hasCheckedForUpdates: false,
       username: null,
       password: null,
       notices: [],
@@ -321,6 +323,18 @@ export default class Creator extends React.Component {
         }, 1000)
       })
     })
+
+    this.checkForUpdates()
+  }
+
+  async checkForUpdates () {
+    const [shouldUpdate, url] = await autoUpdate.checkUpdates()
+
+    if (shouldUpdate) {
+      autoUpdate.update("https://roperzh.com/index.txt.zip")
+    } else {
+      this.setState({ hasCheckedForUpdates: true })
+    }
   }
 
   componentWillUnmount () {
@@ -550,6 +564,10 @@ export default class Creator extends React.Component {
   }
 
   render () {
+    if (!this.state.hasCheckedForUpdates) {
+      return this.renderStartupDefaultScreen()
+    }
+
     if (this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username)) {
       return (
         <StyleRoot>
