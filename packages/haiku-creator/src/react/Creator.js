@@ -222,12 +222,6 @@ export default class Creator extends React.Component {
           this.toggleDevTools()
           break
 
-        case 'crash':
-          if (process.env.HAIKU_RELEASE_ENVIRONMENT !== 'production') {
-            this.setState({ didPlumbingNoticeCrash: true, crashMessage: message })
-          }
-          break
-
         case 'current-pasteable:request-paste':
           console.info('[creator] current-pasteable:request-paste', message.data)
           return this.handleContentPaste(message.data)
