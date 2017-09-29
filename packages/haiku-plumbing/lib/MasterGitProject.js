@@ -82,6 +82,12 @@ function _checkIsOnline(cb) {
   });
 }
 
+function _isCommitTypeRequest(_ref) {
+  var type = _ref.type;
+
+  return type === 'commit';
+}
+
 var MasterGitProject = function (_EventEmitter) {
   _inherits(MasterGitProject, _EventEmitter);
 
@@ -102,18 +108,20 @@ var MasterGitProject = function (_EventEmitter) {
     // List of all actions that can be undone via git
     _this._gitUndoables = [];
     _this._gitRedoables = [];
-    _this._undoOrRedoRequestsQueue = [];
-    _this._undoRedoWorker = setInterval(function () {
-      var undoOrRedoInfo = _this._undoOrRedoRequestsQueue.shift();
-      if (undoOrRedoInfo) {
-        var type = undoOrRedoInfo.type,
-            options = undoOrRedoInfo.options,
-            cb = undoOrRedoInfo.cb;
+    _this._requestQueue = [];
+    _this._requestsWorker = setInterval(function () {
+      var requestInfo = _this._requestQueue.shift();
+      if (requestInfo) {
+        var type = requestInfo.type,
+            options = requestInfo.options,
+            cb = requestInfo.cb;
 
         if (type === 'undo') {
           _this.undoActual(options, cb);
         } else if (type === 'redo') {
           _this.redoActual(options, cb);
+        } else if (type === 'commit') {
+          _this.commitActual(options, cb);
         }
       }
     }, WORKER_INTERVAL);
@@ -137,7 +145,7 @@ var MasterGitProject = function (_EventEmitter) {
   _createClass(MasterGitProject, [{
     key: 'teardown',
     value: function teardown() {
-      clearInterval(this._undoRedoWorker);
+      clearInterval(this._requestsWorker);
     }
   }, {
     key: 'restart',
@@ -348,11 +356,21 @@ var MasterGitProject = function (_EventEmitter) {
       });
     }
   }, {
+    key: 'getPendingCommitRequests',
+    value: function getPendingCommitRequests() {
+      return this._requestQueue.filter(_isCommitTypeRequest);
+    }
+  }, {
+    key: 'hasAnyPendingCommits',
+    value: function hasAnyPendingCommits() {
+      return this.getPendingCommitRequests().length > 0;
+    }
+  }, {
     key: 'waitUntilNoFurtherChangesAreAwaitingCommit',
     value: function waitUntilNoFurtherChangesAreAwaitingCommit(cb) {
       var _this5 = this;
 
-      if (!this._isCommitting) {
+      if (!this.hasAnyPendingCommits()) {
         return cb();
       }
 
@@ -366,11 +384,6 @@ var MasterGitProject = function (_EventEmitter) {
      * =======================
      */
 
-  }, {
-    key: 'makeCommit',
-    value: function makeCommit(cb) {
-      return this.commitProject('.', 'Project changes', cb);
-    }
   }, {
     key: 'bumpSemverAppropriately',
     value: function bumpSemverAppropriately(cb) {
@@ -854,7 +867,7 @@ var MasterGitProject = function (_EventEmitter) {
   }, {
     key: 'undo',
     value: function undo(undoOptions, cb) {
-      this._undoOrRedoRequestsQueue.push({
+      this._requestQueue.push({
         type: 'undo',
         options: undoOptions,
         cb: cb
@@ -863,7 +876,7 @@ var MasterGitProject = function (_EventEmitter) {
   }, {
     key: 'redo',
     value: function redo(redoOptions, cb) {
-      this._undoOrRedoRequestsQueue.push({
+      this._requestQueue.push({
         type: 'redo',
         options: redoOptions,
         cb: cb
@@ -882,39 +895,32 @@ var MasterGitProject = function (_EventEmitter) {
         return done();
       }
 
-      _LoggerInstance2.default.info('[master-git] undo is waiting for pending changes to drain');
+      _LoggerInstance2.default.info('[master-git] undo proceeding');
 
-      // If the user tries to undo an action before we've finished the commit,
-      // they'll end up undoing the previous one, so we will wait until there are
-      // no pending changes and only then run the undo action
-      this.waitUntilNoFurtherChangesAreAwaitingCommit(function () {
-        _LoggerInstance2.default.info('[master-git] undo proceeding');
+      // The most recent item is the one we are going to undo...
+      var validUndoables = this.getGitUndoablesUptoBase();
+      var undone = validUndoables.pop();
 
-        // The most recent item is the one we are going to undo...
-        var validUndoables = _this18.getGitUndoablesUptoBase();
-        var undone = validUndoables.pop();
+      _LoggerInstance2.default.info('[master-git] git undo commit ' + undone.commitId.toString());
 
-        _LoggerInstance2.default.info('[master-git] git undo commit ' + undone.commitId.toString());
+      // To undo, we go back to the commit _prior to_ the most recent one
+      var target = validUndoables[validUndoables.length - 1];
 
-        // To undo, we go back to the commit _prior to_ the most recent one
-        var target = validUndoables[validUndoables.length - 1];
+      _LoggerInstance2.default.info('[master-git] git undo resetting to commit ' + target.commitId.toString());
 
-        _LoggerInstance2.default.info('[master-git] git undo resetting to commit ' + target.commitId.toString());
+      return Git.hardResetFromSHA(this.folder, target.commitId.toString(), function (err) {
+        if (err) {
+          _LoggerInstance2.default.info('[master-git] git undo failed', err);
+          return done(err);
+        }
 
-        return Git.hardResetFromSHA(_this18.folder, target.commitId.toString(), function (err) {
-          if (err) {
-            _LoggerInstance2.default.info('[master-git] git undo failed', err);
-            return done(err);
-          }
+        _LoggerInstance2.default.info('[master-git] undo done');
 
-          _LoggerInstance2.default.info('[master-git] undo done');
+        // The most recent undone thing becomes an action we can now undo.
+        // Only do the actual stack-pop here once we know we have succeeded.
+        _this18._gitRedoables.push(_this18._gitUndoables.pop());
 
-          // The most recent undone thing becomes an action we can now undo.
-          // Only do the actual stack-pop here once we know we have succeeded.
-          _this18._gitRedoables.push(_this18._gitUndoables.pop());
-
-          return done();
-        });
+        return done();
       });
     }
   }, {
@@ -942,31 +948,17 @@ var MasterGitProject = function (_EventEmitter) {
       });
     }
   }, {
-    key: 'snapshotCommitProject',
-    value: function snapshotCommitProject(message, cb) {
-      var _this20 = this;
-
-      return this.safeGitStatus({ log: true }, function (gitStatuses) {
-        var doesGitHaveChanges = gitStatuses && Object.keys(gitStatuses).length > 0;
-        if (doesGitHaveChanges) {
-          // Don't add garbage/empty commits if nothing changed
-          return _this20.commitProject('.', message, cb);
-        }
-        return cb();
-      });
-    }
-  }, {
     key: 'setUndoBaselineIfHeadCommitExists',
     value: function setUndoBaselineIfHeadCommitExists(cb) {
-      var _this21 = this;
+      var _this20 = this;
 
       return this.fetchFolderState('undo-baseline', {}, function () {
         // We need a base commit to act as the commit to return to if the user has done 'undo' to the limit of the stack
-        if (_this21._folderState.headCommitId) {
-          if (_this21._gitUndoables.length < 1) {
-            _LoggerInstance2.default.info('[master-git] base commit for session is ' + _this21._folderState.headCommitId.toString());
-            _this21._gitUndoables.push({
-              commitId: _this21._folderState.headCommitId,
+        if (_this20._folderState.headCommitId) {
+          if (_this20._gitUndoables.length < 1) {
+            _LoggerInstance2.default.info('[master-git] base commit for session is ' + _this20._folderState.headCommitId.toString());
+            _this20._gitUndoables.push({
+              commitId: _this20._folderState.headCommitId,
               message: 'Base commit for session',
               isBase: true
             });
@@ -1020,18 +1012,17 @@ var MasterGitProject = function (_EventEmitter) {
   }, {
     key: 'commitFileIfChanged',
     value: function commitFileIfChanged(relpath, message, cb) {
-      var _this22 = this;
+      var _this21 = this;
 
-      // The call to status is sync, so we add this hook in case pending commits
-      // should alter the status in advance of us checking it
+      // The call to status is sync, so we add this hook in case pending commits may alter the status
       return this.waitUntilNoFurtherChangesAreAwaitingCommit(function () {
-        return _this22.statusForFile(relpath, function (err, status) {
+        return _this21.statusForFile(relpath, function (err, status) {
           if (err) return cb(err);
           if (!status) return cb(); // No status means no changes
           // 0 is UNMODIFIED, everything else is a change
           // See http://www.nodegit.org/api/diff/#getDelta
           if (status.num && status.num > 0) {
-            return _this22.commitProject(relpath, message, cb);
+            return _this21.commit(relpath, message, cb);
           } else {
             return cb();
           }
@@ -1039,49 +1030,79 @@ var MasterGitProject = function (_EventEmitter) {
       });
     }
   }, {
-    key: 'commitProject',
-    value: function commitProject(addable, message, cb) {
+    key: 'commitProjectIfChanged',
+    value: function commitProjectIfChanged(message, cb) {
+      var _this22 = this;
+
+      // The call to status is sync, so we add this hook in case pending commits may alter the status
+      return this.waitUntilNoFurtherChangesAreAwaitingCommit(function () {
+        return _this22.safeGitStatus({ log: true }, function (gitStatuses) {
+          var doesGitHaveChanges = gitStatuses && Object.keys(gitStatuses).length > 0;
+          if (doesGitHaveChanges) {
+            // Don't add garbage/empty commits if nothing changed
+            return _this22.commit('.', message, cb);
+          }
+          return cb();
+        });
+      });
+    }
+
+    // Note: This is an action sequence method, only takes a cb as an arg.
+
+  }, {
+    key: 'commitEverything',
+    value: function commitEverything(cb) {
+      return this.commit('.', 'Project changes', cb);
+    }
+  }, {
+    key: 'commit',
+    value: function commit(addable, message, cb) {
+      this._requestQueue.push({
+        type: 'commit',
+        options: { addable: addable, message: message },
+        cb: cb
+      });
+    }
+  }, {
+    key: 'commitActual',
+    value: function commitActual(commitOptions, cb) {
       var _this23 = this;
 
-      return this.waitUntilNoFurtherChangesAreAwaitingCommit(function () {
-        _this23._isCommitting = true;
+      var message = commitOptions.message,
+          addable = commitOptions.addable;
 
-        var commitOptions = {};
 
-        commitOptions.commitMessage = message + ' ' + COMMIT_SUFFIX;
+      var finalOptions = {};
+      finalOptions.commitMessage = message + ' ' + COMMIT_SUFFIX;
 
-        return _this23.fetchFolderState('commit-project', {}, function () {
-          return Git.commitProject(_this23.folder, _this23._folderState.haikuUsername, _this23._folderState.hasHeadCommit, commitOptions, addable, function (err, commitId) {
-            if (err) {
-              _this23._isCommitting = false;
-              return cb(err);
-            }
+      return this.fetchFolderState('commit-project', {}, function () {
+        return Git.commitProject(_this23.folder, _this23._folderState.haikuUsername, _this23._folderState.hasHeadCommit, finalOptions, addable, function (err, commitId) {
+          if (err) {
+            return cb(err);
+          }
 
-            _this23._folderState.commitId = commitId;
+          _this23._folderState.commitId = commitId;
 
-            // HACK: If for some reason we never got a 'base' undoable before this point, set this cmomit as
-            // the new base so that there are always commits from a base commit going forward
-            var isBase = false;
+          // HACK: If for some reason we never got a 'base' undoable before this point, set this cmomit as
+          // the new base so that there are always commits from a base commit going forward
+          var isBase = false;
 
-            var baseUndoable = _this23._gitUndoables.filter(function (undoable) {
-              return undoable && undoable.isBase;
-            })[0];
+          var baseUndoable = _this23._gitUndoables.filter(function (undoable) {
+            return undoable && undoable.isBase;
+          })[0];
 
-            if (!baseUndoable) {
-              isBase = true;
-            }
+          if (!baseUndoable) {
+            isBase = true;
+          }
 
-            _LoggerInstance2.default.info('[master-git] commit ' + commitId.toString() + ' is undoable (as base: ' + isBase + ')');
+          _LoggerInstance2.default.info('[master-git] commit ' + commitId.toString() + ' is undoable (as base: ' + isBase + ')');
 
-            // For now, pretty much any commit we capture in this session is considered an undoable. We may want to
-            // circle back and restrict it to only certain types of commits, but that does end up making the undo/redo
-            // stack logic a bit more complicated.
-            _this23._gitUndoables.push({ commitId: commitId, isBase: isBase, message: message });
+          // For now, pretty much any commit we capture in this session is considered an undoable. We may want to
+          // circle back and restrict it to only certain types of commits, but that does end up making the undo/redo
+          // stack logic a bit more complicated.
+          _this23._gitUndoables.push({ commitId: commitId, isBase: isBase, message: message });
 
-            _this23._isCommitting = false;
-
-            return cb(null, commitId);
-          });
+          return cb(null, commitId);
         });
       });
     }
@@ -1171,16 +1192,16 @@ var MasterGitProject = function (_EventEmitter) {
         var actionSequence = [];
 
         if (!isGitInitialized && !isCodeCommitReady) {
-          actionSequence = ['initializeGit', 'makeCommit', 'makeTag', 'retryCloudSaveSetup'];
+          actionSequence = ['initializeGit', 'commitEverything', 'makeTag', 'retryCloudSaveSetup'];
         } else if (!isGitInitialized && isCodeCommitReady) {
-          actionSequence = ['moveContentsToTemp', 'cloneRemoteIntoFolder', 'copyContentsFromTemp', 'makeCommit', 'makeTag', 'pushToRemote'];
+          actionSequence = ['moveContentsToTemp', 'cloneRemoteIntoFolder', 'copyContentsFromTemp', 'commitEverything', 'makeTag', 'pushToRemote'];
         } else if (isGitInitialized && !isCodeCommitReady) {
-          actionSequence = ['makeCommit', 'makeTag', 'retryCloudSaveSetup'];
+          actionSequence = ['commitEverything', 'makeTag', 'retryCloudSaveSetup'];
         } else if (isGitInitialized && isCodeCommitReady) {
           if (doesGitHaveChanges) {
-            actionSequence = ['makeCommit', 'pullRemote', 'conflictResetOrContinue', 'bumpSemverAppropriately', 'makeCommit', 'makeTag', 'pushToRemote'];
+            actionSequence = ['commitEverything', 'pullRemote', 'conflictResetOrContinue', 'bumpSemverAppropriately', 'commitEverything', 'makeTag', 'pushToRemote'];
           } else if (!doesGitHaveChanges) {
-            actionSequence = ['pullRemote', 'bumpSemverAppropriately', 'makeCommit', 'makeTag', 'pushToRemote'];
+            actionSequence = ['pullRemote', 'bumpSemverAppropriately', 'commitEverything', 'makeTag', 'pushToRemote'];
           }
         }
 

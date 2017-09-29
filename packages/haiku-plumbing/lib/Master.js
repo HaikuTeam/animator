@@ -225,6 +225,9 @@ var Master = function (_EventEmitter) {
     // Dictionary of all designs in the project, mapping relpath to metadata object
     _this._knownDesigns = {};
 
+    // Designs that have changed and need merge, batched for
+    _this._designsPendingMerge = {};
+
     // Store an ActiveComponent instance for method delegation
     _this._component = null;
 
@@ -233,6 +236,7 @@ var Master = function (_EventEmitter) {
 
     // We end up oversaturating the sockets unless we debounce this
     _this.debouncedEmitAssetsChanged = (0, _lodash.debounce)(_this.emitAssetsChanged.bind(_this), 500, { trailing: true });
+    _this.debouncedEmitDesignNeedsMergeRequest = (0, _lodash.debounce)(_this.emitDesignNeedsMergeRequest.bind(_this), 500, { trailing: true });
     return _this;
   }
 
@@ -314,20 +318,35 @@ var Master = function (_EventEmitter) {
       });
     }
   }, {
+    key: 'emitDesignNeedsMergeRequest',
+    value: function emitDesignNeedsMergeRequest() {
+      var designs = this._designsPendingMerge;
+      this._designsPendingMerge = {};
+      if (Object.keys(designs).length > 0) {
+        _LoggerInstance2.default.info('[master] merge designs requested');
+        this.proc.socket.request({ type: 'action', method: 'mergeDesigns', params: [this.folder, 'Default', 0, designs] }, function () {
+          // TODO: Call rest after design merge finishes?
+        });
+      }
+    }
+  }, {
+    key: 'batchDesignMergeRequest',
+    value: function batchDesignMergeRequest(relpath) {
+      this._designsPendingMerge[relpath] = {};
+      return this;
+    }
+  }, {
     key: 'emitDesignChange',
     value: function emitDesignChange(relpath) {
       var assets = this.getAssetDirectoryInfo();
-      var abspath = _path2.default.join(this.folder, relpath);
       var extname = _path2.default.extname(relpath);
       _LoggerInstance2.default.info('[master] asset changed', relpath);
       this.emit('design-change', relpath, assets);
       if (this.proc.isOpen()) {
         this.debouncedEmitAssetsChanged(assets);
         if (extname === '.svg') {
-          _LoggerInstance2.default.info('[master] merge design requested', relpath);
-          this.proc.socket.request({ type: 'action', method: 'mergeDesign', params: [this.folder, 'Default', 0, abspath] }, function () {
-            // TODO: Call rest after design merge finishes?
-          });
+          this.batchDesignMergeRequest(relpath);
+          this.debouncedEmitDesignNeedsMergeRequest();
         }
       }
     }
@@ -470,7 +489,7 @@ var Master = function (_EventEmitter) {
         isReady: this._isReadyToReceiveMethods,
         isSaving: this._isSaving,
         websocketReadyState: this.proc.getReadyState(),
-        isCommitting: this._git.isCommittingProject(),
+        isCommitting: this._git.hasAnyPendingCommits(),
         gitUndoables: this._git.getGitUndoablesUptoBase(),
         gitRedoables: this._git.getGitRedoablesUptoBase()
       });
@@ -716,11 +735,11 @@ var Master = function (_EventEmitter) {
       return this.bytecodeAction('deleteComponent', params, cb);
     }
   }, {
-    key: 'mergeDesign',
-    value: function mergeDesign(_ref17, cb) {
+    key: 'mergeDesigns',
+    value: function mergeDesigns(_ref17, cb) {
       var params = _ref17.params;
 
-      return this.bytecodeAction('mergeDesign', params, cb);
+      return this.bytecodeAction('mergeDesigns', params, cb);
     }
   }, {
     key: 'applyPropertyValue',
@@ -1016,7 +1035,7 @@ var Master = function (_EventEmitter) {
           skipCDNBundles: true
         }, cb);
       }, function (cb) {
-        return _this11._git.snapshotCommitProject('Initialized folder', cb);
+        return _this11._git.commitProjectIfChanged('Initialized folder', cb);
       },
 
       // Make sure we are starting with a good git history
@@ -1112,7 +1131,7 @@ var Master = function (_EventEmitter) {
 
       // Take an initial commit of the starting state so we have a baseline
       function (cb) {
-        return _this12._git.snapshotCommitProject('Project setup', cb);
+        return _this12._git.commitProjectIfChanged('Project setup', cb);
       },
 
       // Load all relevant files into memory (only JavaScript files for now)
@@ -1139,7 +1158,7 @@ var Master = function (_EventEmitter) {
 
       // Take an initial commit of the starting state so we have a baseline
       function (cb) {
-        return _this12._git.snapshotCommitProject('Code setup', cb);
+        return _this12._git.commitProjectIfChanged('Code setup', cb);
       },
 
       // Start watching the file system for changes
@@ -1239,7 +1258,7 @@ var Master = function (_EventEmitter) {
 
         return _this13._component.fetchActiveBytecodeFile().writeMetadata(bytecodeMetadata, cb);
       }, function (cb) {
-        return _this13._git.snapshotCommitProject('Updated metadata', cb);
+        return _this13._git.commitProjectIfChanged('Updated metadata', cb);
       },
 
       // Build the rest of the content of the folder, including any bundles that belong on the cdn
@@ -1256,7 +1275,7 @@ var Master = function (_EventEmitter) {
           organizationName: saveOptions.organizationName
         }, cb);
       }, function (cb) {
-        return _this13._git.snapshotCommitProject('Populated content', cb);
+        return _this13._git.commitProjectIfChanged('Populated content', cb);
       },
 
       // Now do all of the git/share/publish/fs operations required for the real save

@@ -874,7 +874,7 @@ var Plumbing = function (_StateObject) {
         if (!modulepath) {
           params[0] = _path2.default.normalize(_path2.default.relative(folder, params[0]));
         }
-      } else if (method === 'mergeDesign') {
+      } else if (method === 'mergeDesigns') {
         params[2] = _path2.default.normalize(_path2.default.relative(folder, params[2]));
       }
 
@@ -882,15 +882,15 @@ var Plumbing = function (_StateObject) {
       // with master at the end, which results in a file system update reflecting the change
       _async2.default.eachSeries([Q_GLASS, Q_TIMELINE, Q_CREATOR, Q_MASTER], function (clientSpec, nextStep) {
         if (clientSpec.alias === alias) {
-          if (method !== 'mergeDesign') {
-            // Don't send to oneself, unless it is mergeDesign, which is a special snowflake
+          if (method !== 'mergeDesigns') {
+            // Don't send to oneself, unless it is mergeDesigns, which is a special snowflake
             // that originates in 'master' but also needs to be sent back to it (HACK)
             return nextStep();
           }
         }
 
         // There are a bunch of methods (actually...most of them) that creator doesn't need to receive
-        if ((method === 'moveSegmentEndpoints' || method === 'mergeDesign' || method === 'moveKeyframes') && clientSpec.alias === 'creator') {
+        if ((method === 'moveSegmentEndpoints' || method === 'mergeDesigns' || method === 'moveKeyframes') && clientSpec.alias === 'creator') {
           return nextStep();
         }
 
