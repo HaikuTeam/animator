@@ -8,6 +8,9 @@
  * Make sure we update the component pointer so the timeline maxes get reloaded properly
  * Make sure NODE_ENV is set and separate distro configure step
  * stop publish popover from shifting
+ * robustify envoy connection handling and awareness
+ * Ensure timeline component caches are cleared on updates so fields reflect correctly after deletions
+ * react warning for setting state on un-mounted component
 
 ## 2.3.6
 
