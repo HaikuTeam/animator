@@ -84,7 +84,7 @@ function setup(ready) {
             var metadata = {
               organizationName
             }
-            return ready(folder, creator, glass, timeline, metadata, teardown)
+            return ready(folder, creator, glass, timeline, metadata, teardown, plumbing)
           })
         })
       })
