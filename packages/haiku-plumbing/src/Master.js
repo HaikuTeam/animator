@@ -237,20 +237,21 @@ export default class Master extends EventEmitter {
     }
   }
 
-  batchDesignMergeRequest (relpath) {
-    this._designsPendingMerge[relpath] = {}
+  batchDesignMergeRequest (relpath, abspath) {
+    this._designsPendingMerge[relpath] = abspath
     return this
   }
 
   emitDesignChange (relpath) {
     const assets = this.getAssetDirectoryInfo()
     const extname = path.extname(relpath)
+    const abspath = path.join(this.folder, relpath)
     logger.info('[master] asset changed', relpath)
     this.emit('design-change', relpath, assets)
     if (this.proc.isOpen()) {
       this.debouncedEmitAssetsChanged(assets)
       if (extname === '.svg') {
-        this.batchDesignMergeRequest(relpath)
+        this.batchDesignMergeRequest(relpath, abspath)
         this.debouncedEmitDesignNeedsMergeRequest()
       }
     }

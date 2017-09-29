@@ -331,8 +331,8 @@ var Master = function (_EventEmitter) {
     }
   }, {
     key: 'batchDesignMergeRequest',
-    value: function batchDesignMergeRequest(relpath) {
-      this._designsPendingMerge[relpath] = {};
+    value: function batchDesignMergeRequest(relpath, abspath) {
+      this._designsPendingMerge[relpath] = abspath;
       return this;
     }
   }, {
@@ -340,12 +340,13 @@ var Master = function (_EventEmitter) {
     value: function emitDesignChange(relpath) {
       var assets = this.getAssetDirectoryInfo();
       var extname = _path2.default.extname(relpath);
+      var abspath = _path2.default.join(this.folder, relpath);
       _LoggerInstance2.default.info('[master] asset changed', relpath);
       this.emit('design-change', relpath, assets);
       if (this.proc.isOpen()) {
         this.debouncedEmitAssetsChanged(assets);
         if (extname === '.svg') {
-          this.batchDesignMergeRequest(relpath);
+          this.batchDesignMergeRequest(relpath, abspath);
           this.debouncedEmitDesignNeedsMergeRequest();
         }
       }

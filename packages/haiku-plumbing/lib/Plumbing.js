@@ -874,8 +874,6 @@ var Plumbing = function (_StateObject) {
         if (!modulepath) {
           params[0] = _path2.default.normalize(_path2.default.relative(folder, params[0]));
         }
-      } else if (method === 'mergeDesigns') {
-        params[2] = _path2.default.normalize(_path2.default.relative(folder, params[2]));
       }
 
       // Start with the glass, since that's most visible, then move through the rest, and end

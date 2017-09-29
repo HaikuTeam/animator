@@ -704,8 +704,6 @@ export default class Plumbing extends StateObject {
       if (!modulepath) {
         params[0] = path.normalize(path.relative(folder, params[0]))
       }
-    } else if (method === 'mergeDesigns') {
-      params[2] = path.normalize(path.relative(folder, params[2]))
     }
 
     // Start with the glass, since that's most visible, then move through the rest, and end
