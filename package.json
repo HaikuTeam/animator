@@ -1,6 +1,6 @@
 {
   "name": "haiku-glass",
-  "version": "2.3.3",
+  "version": "2.3.7",
   "private": true,
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
@@ -14,26 +14,26 @@
   },
   "standard": {
     "ignore": [
-      "./react/modes/haiku.js"
+      "./src/react/modes/haiku.js"
     ]
   },
   "engines": {
     "node": "8.4.0",
     "npm": "5.3.0",
-    "yarn": "0.27.5",
+    "yarn": "1.0.2",
     "electron": "1.7.0"
   },
   "dependencies": {
+    "@haiku/player": "HaikuTeam/player.git",
     "babel-register": "6.23.0",
     "bluebird": "^3.5.0",
     "capitalize": "^1.0.0",
     "codemirror": "^5.28.0",
     "color": "^2.0.0",
     "combokeys": "^2.4.6",
-    "@haiku/player": "HaikuTeam/player.git",
-    "haiku-bytecode": "HaikuTeam/bytecode",
+    "haiku-bytecode": "HaikuTeam/bytecode.git",
     "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
-    "haiku-serialization": "HaikuTeam/serialization",
+    "haiku-serialization": "HaikuTeam/serialization.git",
     "lodash": "^4.17.4",
     "moment": "^2.17.1",
     "pretty": "^2.0.0",
@@ -57,9 +57,10 @@
     "tape": "^4.6.3"
   },
   "scripts": {
-    "start": "electron ./electron.js",
-    "lint": "standard \"./react/**/*.js\" --fix --verbose | snazzy || true",
-    "test": "tape \"test/**/*.test.js\" | tap-spec || true",
-    "transpile-destructive": "babel react --out-dir react"
+    "start": "electron ./lib/electron.js",
+    "watch": "babel --watch src --out-dir lib --source-maps inline",
+    "compile": "babel src --out-dir lib --source-maps inline",
+    "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy || true",
+    "test": "tape \"test/**/*.test.js\" | tap-spec || true"
   }
 }

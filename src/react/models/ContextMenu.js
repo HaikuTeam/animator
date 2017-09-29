@@ -2,7 +2,6 @@ const { EventEmitter } = require('events')
 const { remote, clipboard, shell } = require('electron')
 const { HOMEDIR_PATH } = require('haiku-serialization/src/utils/HaikuHomeDir')
 const path = require('path')
-var os = require('os')
 var fse = require('haiku-fs-extra')
 var moment = require('moment')
 

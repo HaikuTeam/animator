@@ -4,7 +4,7 @@ const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 const path = require('path')
 
-let url = `file://${path.join(__dirname, 'index.html')}`
+let url = `file://${path.join(__dirname, '..', 'index.html')}`
 
 const params = {
   folder: process.env.HAIKU_PROJECT_FOLDER,

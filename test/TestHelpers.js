@@ -43,7 +43,7 @@ function createDOM (folder, cb) {
 function createApp (folder, cb) {
   return createDOM(folder, function (err, win, _teardown) {
     if (err) throw err
-    var Glass = require('./../react/Glass').Glass
+    var Glass = require('./../lib/react/Glass').Glass
     const userconfig = require(path.join(folder, 'haiku.js'))
     const websocket = { on: () => {}, send: () => {}, method: () => {}, request: () => {}, action: () => {} }
     ReactDOM.render(

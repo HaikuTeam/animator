@@ -71,7 +71,8 @@ export class Glass extends React.Component {
       userconfig: this.props.userconfig,
       websocket: this.props.websocket,
       platform: window,
-      envoy: this.props.envoy
+      envoy: this.props.envoy,
+      WebSocket: window.WebSocket
     })
 
     this._component.setStageTransform({zoom: this.state.zoomXY, pan: {x: this.state.panX, y: this.state.panY}})
@@ -90,15 +91,36 @@ export class Glass extends React.Component {
     this._haikuRenderer = new HaikuDOMRenderer()
     this._haikuContext = new HaikuContext(null, this._haikuRenderer, {}, { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } }, { options: { cache: {}, seed: 'abcde' } })
 
+    this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
+
     this.resetContainerDimensions()
 
     window.glass = this
 
-    this._component.on('envoy:timelineClientReady', (client) => {
-      client.on('didPlay', this.handleTimelineDidPlay.bind(this))
-      client.on('didPause', this.handleTimelineDidPause.bind(this))
-      client.on('didSeek', this.handleTimelineDidSeek.bind(this))
+    this._component.on('envoy:timelineClientReady', (timelineChannel) => {
+      timelineChannel.on('didPlay', this.handleTimelineDidPlay.bind(this))
+      timelineChannel.on('didPause', this.handleTimelineDidPause.bind(this))
+      timelineChannel.on('didSeek', this.handleTimelineDidSeek.bind(this))
     })
+
+    this._component.on('envoy:tourClientReady', (client) => {
+      this.tourClient = client
+      this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
+    })
+  }
+
+  handleRequestElementCoordinates ({ selector, webview }) {
+    if (webview !== 'glass') { return }
+
+    try {
+      // TODO: find if there is a better solution to this scape hatch
+      let element = document.querySelector(selector)
+      let { top, left } = element.getBoundingClientRect()
+
+      this.tourClient.receiveElementCoordinates('glass', { top, left })
+    } catch (error) {
+      console.error(`Error fetching ${selector} in webview ${webview}`)
+    }
   }
 
   handleTimelineDidPlay () {
@@ -107,15 +129,13 @@ export class Glass extends React.Component {
   }
 
   handleTimelineDidPause (frameData) {
-    var finalFrame = frameData.frame
     this._playing = false
-    this._lastAuthoritativeFrame = finalFrame
+    this._lastAuthoritativeFrame = frameData.frame
     this._stopwatch = Date.now()
   }
 
   handleTimelineDidSeek (frameData) {
-    var finalFrame = frameData.frame
-    this._lastAuthoritativeFrame = finalFrame
+    this._lastAuthoritativeFrame = frameData.frame
     this._stopwatch = Date.now()
     this.draw(true)
   }
@@ -134,16 +154,14 @@ export class Glass extends React.Component {
         seekMs = baseMs + deltaMs
       }
 
-      this._component._setTimelineTimeValue(seekMs)
+      // This rounding is required otherwise we'll see bizarre behavior on stage.
+      // I think it's because some part of the player's caching or transition logic
+      // which wants things to be round numbers. If we don't round this, i.e. convert
+      // 16.666 -> 17 and 33.333 -> 33, then the player won't render those frames,
+      // which means the user will have trouble moving things on stage at those times.
+      seekMs = Math.round(seekMs)
 
-      var currentTimeline = this._component._componentInstance.getTimeline(this._component._currentTimelineName)
-      if (currentTimeline) {
-        if (forceSeek) {
-          currentTimeline.seek(seekMs)
-        } else {
-          currentTimeline._controlTime(seekMs)
-        }
-      }
+      this._component._setTimelineTimeValue(seekMs, forceSeek)
     }
 
     if (this.refs.overlay) {
@@ -385,6 +403,10 @@ export class Glass extends React.Component {
 
   componentDidUpdate () {
     this.resetContainerDimensions()
+  }
+
+  componentWillUnmount () {
+    this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
   }
 
   handleWindowResize () {
