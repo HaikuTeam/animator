@@ -128,21 +128,6 @@ export default class Plumbing extends StateObject {
     this._methodMessages = []
     this.executeMethodMessagesWorker()
 
-    // Just log information about who is connected to make it easier to diagnose comms issues.
-    this._pulseInterval = setInterval(() => {
-      var pulses = {}
-      pulses.info = { pendingMethods: this._methodMessages.length, isTornDown: this._isTornDown }
-      this.clients.forEach((client) => {
-        if (!pulses[client.params.folder]) pulses[client.params.folder] = []
-        pulses[client.params.folder].push(['client', client.params.id, client.params.alias, client.readyState === 1]) /** WebSocket.OPEN */
-      })
-      this.subprocs.forEach((subproc) => {
-        if (!pulses[subproc._attributes.folder]) pulses[subproc._attributes.folder] = []
-        pulses[subproc._attributes.folder].push(['subproc', subproc._attributes.id, subproc._attributes.name, !subproc._attributes.closed])
-      })
-      // logger.info(`[plumbing] pulse`, JSON.stringify(pulses))
-    }, 10 * 1000)
-
     emitter.on('teardown-requested', () => {
       this.teardown()
     })
