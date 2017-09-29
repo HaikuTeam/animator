@@ -85,7 +85,11 @@ class CollapseItem extends React.Component {
 
   renderChevy () {
     if (!this.doesAssetHaveAnyDescendants()) {
-      return <span style={STYLES.chevy} />
+      return (
+        <span style={STYLES.chevy}>
+          <CollapseChevronDownSVG color='transparent' />
+        </span>
+      )
     }
     if (this.state.isOpened) {
       return (
