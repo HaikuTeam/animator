@@ -1,6 +1,6 @@
-/**
- * Proves that a bunch of rapid async undo/redo actions don't cause a crash.
- */
+// /**
+//  * Proves that a bunch of rapid async undo/redo actions don't cause a crash.
+//  */
 // var tape = require('tape')
 // var async = require('async')
 // var fse = require('haiku-fs-extra')
@@ -27,7 +27,7 @@
 //     mgp.restart({ branchName: 'master' })
 //     return async.series([
 //       function (cb) { return mgp.initializeProject({}, cb)  },
-//       function (cb) { return mgp.snapshotCommitProject('Initialized test folder', cb) },
+//       function (cb) { return mgp.commitProjectIfChanged('Initialized test folder', cb) },
 //       function (cb) { return mgp.setUndoBaselineIfHeadCommitExists(cb) },
 //       function (cb) {
 //         fse.outputFileSync(abspath, `${change(relpath)}`)

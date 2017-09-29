@@ -3,7 +3,7 @@ var async = require('async')
 var fse = require('haiku-fs-extra')
 var path = require('path')
 var TestHelpers = require('./../TestHelpers')
-tape('proc.mergeDesign', (t) => {
+tape('proc.mergeDesigns', (t) => {
   t.plan(3)
   TestHelpers.setup(function(folder, creator, glass, timeline, metadata, teardown) {
     var instpath = path.join(folder, 'Hello.svg')

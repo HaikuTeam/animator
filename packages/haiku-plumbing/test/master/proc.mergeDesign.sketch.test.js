@@ -3,7 +3,7 @@ var async = require('async')
 var fse = require('haiku-fs-extra')
 var path = require('path')
 var TestHelpers = require('./../TestHelpers')
-tape('proc.mergeDesign.sketch', (t) => {
+tape('proc.mergeDesigns.sketch', (t) => {
   t.plan(1)
   TestHelpers.setup(function(folder, creator, glass, timeline, metadata, teardown) {
     var beforeSourcePath = path.join(__dirname, '..', 'fixtures', 'files', 'sketch', 'SparrowSez-before', 'SparrowSez3.sketch')

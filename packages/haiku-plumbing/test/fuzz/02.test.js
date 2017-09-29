@@ -1,3 +1,6 @@
+// /*
+//  * Proves that a lot of rapid commits don't cause a crash
+//  */
 // var tape = require('tape')
 // var async = require('async')
 // var fse = require('haiku-fs-extra')
@@ -24,17 +27,22 @@
 //     mgp.restart({ branchName: 'master' })
 //     return async.series([
 //       function (cb) { return mgp.initializeProject({}, cb)  },
-//       function (cb) { return mgp.snapshotCommitProject('Initialized test folder', cb) },
+//       function (cb) { return mgp.commitProjectIfChanged('Initialized test folder', cb) },
 //       function (cb) { return mgp.setUndoBaselineIfHeadCommitExists(cb) },
 //       function (cb) {
 //         fse.outputFileSync(path.join(folder, 'hello.txt'), `${change('hello.txt')}`)
 //         fse.removeSync(path.join(folder, 'goodbye.txt'))
 //         fse.outputFileSync(path.join(folder, 'meow.txt'), `${change('meow.txt')}`)
-//         mgp.snapshotCommitProject('check #1', () => {})
-//         mgp.snapshotCommitProject('check #2', () => {})
-//         mgp.snapshotCommitProject('check #3', () => {})
-//         mgp.snapshotCommitProject('check #4', () => {})
-//         mgp.snapshotCommitProject('check #5', () => {})
+//         for (var i = 0; i < 100; i++) {
+//           (function(i) {
+//             setTimeout(() => {
+//               mgp.commitProjectIfChanged(`check${i}`, (err) => {
+//                 console.log(`check${i}`,err)
+//                 if (err) throw err
+//               })
+//             }, Math.random() * 10)
+//           }(i))
+//         }
 //         setTimeout(cb, 10000)
 //       },
 
