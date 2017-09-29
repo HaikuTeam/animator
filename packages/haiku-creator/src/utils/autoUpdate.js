@@ -70,7 +70,7 @@ module.exports = {
   async requestToUpdateServer () {
     const url = this.generateURL(opts)
     return {status: 300, url: ""}
-  }
+  },
 
   generateURL ({ server, ...query }) {
     const queryString = qs.stringify(query);
