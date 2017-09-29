@@ -68,10 +68,11 @@ var PLUMBING_PKG_PATH = _path2.default.join(__dirname, '..');
 var PLUMBING_PKG_JSON_PATH = _path2.default.join(PLUMBING_PKG_PATH, 'package.json');
 var MAX_SEMVER_TAG_ATTEMPTS = 100;
 var AWAIT_COMMIT_INTERVAL = 0;
-var WORKER_INTERVAL = 32;
+var MIN_WORKER_INTERVAL = 32;
+var MAX_WORKER_INTERVAL = 32 * 20;
 var MAX_CLONE_ATTEMPTS = 5;
 var CLONE_RETRY_DELAY = 5000;
-var CLONE_INIT_DELAY = 2500;
+var CLONE_INIT_DELAY = 5000;
 var DEFAULT_BRANCH_NAME = 'master'; // "'master' process" has nothing to do with this :/
 var BASELINE_SEMVER_TAG = '0.0.0';
 var COMMIT_SUFFIX = '(via Haiku Desktop)';
@@ -110,6 +111,8 @@ var MasterGitProject = function (_EventEmitter) {
     _this._gitRedoables = [];
     _this._requestQueue = [];
     _this._requestWorkerStopped = false;
+    _this._workerInterval = MIN_WORKER_INTERVAL;
+    _this._requestsWorker = _this._requestsWorker.bind(_this); // Save object allocs
     _this._requestsWorker();
 
     // Dictionary mapping SHA strings to share payloads, used for caching
@@ -129,6 +132,20 @@ var MasterGitProject = function (_EventEmitter) {
   }
 
   _createClass(MasterGitProject, [{
+    key: '_upWorkerInterval',
+    value: function _upWorkerInterval() {
+      if (this._workerInterval < MAX_WORKER_INTERVAL) {
+        this._workerInterval += 16;
+      }
+    }
+  }, {
+    key: '_downWorkerInterval',
+    value: function _downWorkerInterval() {
+      if (this._workerInterval > MIN_WORKER_INTERVAL) {
+        this._workerInterval -= 16;
+      }
+    }
+  }, {
     key: '_requestsWorker',
     value: function _requestsWorker() {
       var _this2 = this;
@@ -136,18 +153,22 @@ var MasterGitProject = function (_EventEmitter) {
       if (this._requestWorkerStopped) return void 0;
       var requestInfo = this._requestQueue.shift();
       if (requestInfo) {
+        // If we have work, start going faster
+        // this._downWorkerInterval()
         var type = requestInfo.type,
             options = requestInfo.options,
             cb = requestInfo.cb;
 
         var finish = function finish(err, out) {
           // Put at the bottom of the event loop
-          setTimeout(_this2._requestsWorker.bind(_this2));
+          setTimeout(_this2._requestsWorker);
           return cb(err, out);
         };
         if (type === 'undo') this.undoActual(options, finish);else if (type === 'redo') this.redoActual(options, finish);else if (type === 'commit') this.commitActual(options, finish);
       } else {
-        setTimeout(this._requestsWorker.bind(this), WORKER_INTERVAL);
+        // If we have nothing to do, start backing off
+        // this._upWorkerInterval()
+        setTimeout(this._requestsWorker, this._workerInterval);
       }
     }
   }, {

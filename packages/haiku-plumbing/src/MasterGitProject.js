@@ -16,10 +16,11 @@ const PLUMBING_PKG_PATH = path.join(__dirname, '..')
 const PLUMBING_PKG_JSON_PATH = path.join(PLUMBING_PKG_PATH, 'package.json')
 const MAX_SEMVER_TAG_ATTEMPTS = 100
 const AWAIT_COMMIT_INTERVAL = 0
-const WORKER_INTERVAL = 32
+const MIN_WORKER_INTERVAL = 32
+const MAX_WORKER_INTERVAL = 32 * 20
 const MAX_CLONE_ATTEMPTS = 5
 const CLONE_RETRY_DELAY = 5000
-const CLONE_INIT_DELAY = 2500
+const CLONE_INIT_DELAY = 5000
 const DEFAULT_BRANCH_NAME = 'master' // "'master' process" has nothing to do with this :/
 const BASELINE_SEMVER_TAG = '0.0.0'
 const COMMIT_SUFFIX = '(via Haiku Desktop)'
@@ -52,6 +53,7 @@ export default class MasterGitProject extends EventEmitter {
     this._gitRedoables = []
     this._requestQueue = []
     this._requestWorkerStopped = false
+    this._workerInterval = MIN_WORKER_INTERVAL
     this._requestsWorker = this._requestsWorker.bind(this) // Save object allocs
     this._requestsWorker()
 
@@ -70,10 +72,24 @@ export default class MasterGitProject extends EventEmitter {
     }
   }
 
+  _upWorkerInterval () {
+    if (this._workerInterval < MAX_WORKER_INTERVAL) {
+      this._workerInterval += 16
+    }
+  }
+
+  _downWorkerInterval () {
+    if (this._workerInterval > MIN_WORKER_INTERVAL) {
+      this._workerInterval -= 16
+    }
+  }
+
   _requestsWorker () {
     if (this._requestWorkerStopped) return void (0)
     const requestInfo = this._requestQueue.shift()
     if (requestInfo) {
+      // If we have work, start going faster
+      // this._downWorkerInterval()
       const { type, options, cb } = requestInfo
       const finish = (err, out) => {
         // Put at the bottom of the event loop
@@ -84,7 +100,9 @@ export default class MasterGitProject extends EventEmitter {
       else if (type === 'redo') this.redoActual(options, finish)
       else if (type === 'commit') this.commitActual(options, finish)
     } else {
-      setTimeout(this._requestsWorker, WORKER_INTERVAL)
+      // If we have nothing to do, start backing off
+      // this._upWorkerInterval()
+      setTimeout(this._requestsWorker, this._workerInterval)
     }
   }
 
