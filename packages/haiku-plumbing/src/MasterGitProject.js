@@ -16,7 +16,7 @@ const PLUMBING_PKG_PATH = path.join(__dirname, '..')
 const PLUMBING_PKG_JSON_PATH = path.join(PLUMBING_PKG_PATH, 'package.json')
 const MAX_SEMVER_TAG_ATTEMPTS = 100
 const AWAIT_COMMIT_INTERVAL = 0
-const WORKER_INTERVAL = 64
+const WORKER_INTERVAL = 32
 const MAX_CLONE_ATTEMPTS = 5
 const CLONE_RETRY_DELAY = 5000
 const CLONE_INIT_DELAY = 2500
@@ -51,19 +51,9 @@ export default class MasterGitProject extends EventEmitter {
     this._gitUndoables = []
     this._gitRedoables = []
     this._requestQueue = []
-    this._requestsWorker = setInterval(() => {
-      const requestInfo = this._requestQueue.shift()
-      if (requestInfo) {
-        const { type, options, cb } = requestInfo
-        if (type === 'undo') {
-          this.undoActual(options, cb)
-        } else if (type === 'redo') {
-          this.redoActual(options, cb)
-        } else if (type === 'commit') {
-          this.commitActual(options, cb)
-        }
-      }
-    }, WORKER_INTERVAL)
+    this._requestWorkerStopped = false
+    this._requestsWorker = this._requestsWorker.bind(this) // Save object allocs
+    this._requestsWorker()
 
     // Dictionary mapping SHA strings to share payloads, used for caching
     this._shareInfoPayloads = {}
@@ -80,8 +70,26 @@ export default class MasterGitProject extends EventEmitter {
     }
   }
 
+  _requestsWorker () {
+    if (this._requestWorkerStopped) return void (0)
+    const requestInfo = this._requestQueue.shift()
+    if (requestInfo) {
+      const { type, options, cb } = requestInfo
+      const finish = (err, out) => {
+        // Put at the bottom of the event loop
+        setTimeout(this._requestsWorker)
+        return cb(err, out)
+      }
+      if (type === 'undo') this.undoActual(options, finish)
+      else if (type === 'redo') this.redoActual(options, finish)
+      else if (type === 'commit') this.commitActual(options, finish)
+    } else {
+      setTimeout(this._requestsWorker, WORKER_INTERVAL)
+    }
+  }
+
   teardown () {
-    clearInterval(this._requestsWorker)
+    this._requestWorkerStopped = true
   }
 
   restart (projectInfo) {
