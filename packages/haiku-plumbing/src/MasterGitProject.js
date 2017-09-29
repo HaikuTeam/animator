@@ -30,6 +30,10 @@ function _checkIsOnline (cb) {
   })
 }
 
+function _isCommitTypeRequest ({ type }) {
+  return type === 'commit'
+}
+
 export default class MasterGitProject extends EventEmitter {
   constructor (folder) {
     super()
@@ -46,15 +50,17 @@ export default class MasterGitProject extends EventEmitter {
     // List of all actions that can be undone via git
     this._gitUndoables = []
     this._gitRedoables = []
-    this._undoOrRedoRequestsQueue = []
-    this._undoRedoWorker = setInterval(() => {
-      const undoOrRedoInfo = this._undoOrRedoRequestsQueue.shift()
-      if (undoOrRedoInfo) {
-        const { type, options, cb } = undoOrRedoInfo
+    this._requestQueue = []
+    this._requestsWorker = setInterval(() => {
+      const requestInfo = this._requestQueue.shift()
+      if (requestInfo) {
+        const { type, options, cb } = requestInfo
         if (type === 'undo') {
           this.undoActual(options, cb)
         } else if (type === 'redo') {
           this.redoActual(options, cb)
+        } else if (type === 'commit') {
+          this.commitActual(options, cb)
         }
       }
     }, WORKER_INTERVAL)
@@ -75,7 +81,7 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   teardown () {
-    clearInterval(this._undoRedoWorker)
+    clearInterval(this._requestsWorker)
   }
 
   restart (projectInfo) {
@@ -285,8 +291,16 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
+  getPendingCommitRequests () {
+    return this._requestQueue.filter(_isCommitTypeRequest)
+  }
+
+  hasAnyPendingCommits () {
+    return this.getPendingCommitRequests().length > 0
+  }
+
   waitUntilNoFurtherChangesAreAwaitingCommit (cb) {
-    if (!this._isCommitting) {
+    if (!this.hasAnyPendingCommits()) {
       return cb()
     }
 
@@ -299,10 +313,6 @@ export default class MasterGitProject extends EventEmitter {
    * action sequence methods
    * =======================
    */
-
-  makeCommit (cb) {
-    return this.commitProject('.', 'Project changes', cb)
-  }
 
   bumpSemverAppropriately (cb) {
     logger.info('[master-git] trying to bump semver appropriately')
@@ -736,7 +746,7 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   undo (undoOptions, cb) {
-    this._undoOrRedoRequestsQueue.push({
+    this._requestQueue.push({
       type: 'undo',
       options: undoOptions,
       cb
@@ -744,7 +754,7 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   redo (redoOptions, cb) {
-    this._undoOrRedoRequestsQueue.push({
+    this._requestQueue.push({
       type: 'redo',
       options: redoOptions,
       cb
@@ -760,39 +770,32 @@ export default class MasterGitProject extends EventEmitter {
       return done()
     }
 
-    logger.info('[master-git] undo is waiting for pending changes to drain')
+    logger.info('[master-git] undo proceeding')
 
-    // If the user tries to undo an action before we've finished the commit,
-    // they'll end up undoing the previous one, so we will wait until there are
-    // no pending changes and only then run the undo action
-    this.waitUntilNoFurtherChangesAreAwaitingCommit(() => {
-      logger.info('[master-git] undo proceeding')
+    // The most recent item is the one we are going to undo...
+    const validUndoables = this.getGitUndoablesUptoBase()
+    const undone = validUndoables.pop()
 
-      // The most recent item is the one we are going to undo...
-      const validUndoables = this.getGitUndoablesUptoBase()
-      const undone = validUndoables.pop()
+    logger.info(`[master-git] git undo commit ${undone.commitId.toString()}`)
 
-      logger.info(`[master-git] git undo commit ${undone.commitId.toString()}`)
+    // To undo, we go back to the commit _prior to_ the most recent one
+    const target = validUndoables[validUndoables.length - 1]
 
-      // To undo, we go back to the commit _prior to_ the most recent one
-      const target = validUndoables[validUndoables.length - 1]
+    logger.info(`[master-git] git undo resetting to commit ${target.commitId.toString()}`)
 
-      logger.info(`[master-git] git undo resetting to commit ${target.commitId.toString()}`)
+    return Git.hardResetFromSHA(this.folder, target.commitId.toString(), (err) => {
+      if (err) {
+        logger.info(`[master-git] git undo failed`, err)
+        return done(err)
+      }
 
-      return Git.hardResetFromSHA(this.folder, target.commitId.toString(), (err) => {
-        if (err) {
-          logger.info(`[master-git] git undo failed`, err)
-          return done(err)
-        }
+      logger.info('[master-git] undo done')
 
-        logger.info('[master-git] undo done')
+      // The most recent undone thing becomes an action we can now undo.
+      // Only do the actual stack-pop here once we know we have succeeded.
+      this._gitRedoables.push(this._gitUndoables.pop())
 
-        // The most recent undone thing becomes an action we can now undo.
-        // Only do the actual stack-pop here once we know we have succeeded.
-        this._gitRedoables.push(this._gitUndoables.pop())
-
-        return done()
-      })
+      return done()
     })
   }
 
@@ -814,16 +817,6 @@ export default class MasterGitProject extends EventEmitter {
       this._gitUndoables.push(redoable)
 
       return done()
-    })
-  }
-
-  snapshotCommitProject (message, cb) {
-    return this.safeGitStatus({ log: true }, (gitStatuses) => {
-      const doesGitHaveChanges = gitStatuses && Object.keys(gitStatuses).length > 0
-      if (doesGitHaveChanges) { // Don't add garbage/empty commits if nothing changed
-        return this.commitProject('.', message, cb)
-      }
-      return cb()
     })
   }
 
@@ -885,8 +878,7 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   commitFileIfChanged (relpath, message, cb) {
-    // The call to status is sync, so we add this hook in case pending commits
-    // should alter the status in advance of us checking it
+    // The call to status is sync, so we add this hook in case pending commits may alter the status
     return this.waitUntilNoFurtherChangesAreAwaitingCommit(() => {
       return this.statusForFile(relpath, (err, status) => {
         if (err) return cb(err)
@@ -894,7 +886,7 @@ export default class MasterGitProject extends EventEmitter {
         // 0 is UNMODIFIED, everything else is a change
         // See http://www.nodegit.org/api/diff/#getDelta
         if (status.num && status.num > 0) {
-          return this.commitProject(relpath, message, cb)
+          return this.commit(relpath, message, cb)
         } else {
           return cb()
         }
@@ -902,46 +894,66 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
-  commitProject (addable, message, cb) {
+  commitProjectIfChanged (message, cb) {
+    // The call to status is sync, so we add this hook in case pending commits may alter the status
     return this.waitUntilNoFurtherChangesAreAwaitingCommit(() => {
-      this._isCommitting = true
+      return this.safeGitStatus({ log: true }, (gitStatuses) => {
+        const doesGitHaveChanges = gitStatuses && Object.keys(gitStatuses).length > 0
+        if (doesGitHaveChanges) { // Don't add garbage/empty commits if nothing changed
+          return this.commit('.', message, cb)
+        }
+        return cb()
+      })
+    })
+  }
 
-      const commitOptions = {}
+  // Note: This is an action sequence method, only takes a cb as an arg.
+  commitEverything (cb) {
+    return this.commit('.', 'Project changes', cb)
+  }
 
-      commitOptions.commitMessage = `${message} ${COMMIT_SUFFIX}`
+  commit (addable, message, cb) {
+    this._requestQueue.push({
+      type: 'commit',
+      options: { addable, message },
+      cb
+    })
+  }
 
-      return this.fetchFolderState('commit-project', {}, () => {
-        return Git.commitProject(this.folder, this._folderState.haikuUsername, this._folderState.hasHeadCommit, commitOptions, addable, (err, commitId) => {
-          if (err) {
-            this._isCommitting = false
-            return cb(err)
-          }
+  commitActual (commitOptions, cb) {
+    const { message, addable } = commitOptions
 
-          this._folderState.commitId = commitId
+    const finalOptions = {}
+    finalOptions.commitMessage = `${message} ${COMMIT_SUFFIX}`
 
-          // HACK: If for some reason we never got a 'base' undoable before this point, set this cmomit as
-          // the new base so that there are always commits from a base commit going forward
-          let isBase = false
+    return this.fetchFolderState('commit-project', {}, () => {
+      return Git.commitProject(this.folder, this._folderState.haikuUsername, this._folderState.hasHeadCommit, finalOptions, addable, (err, commitId) => {
+        if (err) {
+          return cb(err)
+        }
 
-          const baseUndoable = this._gitUndoables.filter((undoable) => {
-            return undoable && undoable.isBase
-          })[0]
+        this._folderState.commitId = commitId
 
-          if (!baseUndoable) {
-            isBase = true
-          }
+        // HACK: If for some reason we never got a 'base' undoable before this point, set this cmomit as
+        // the new base so that there are always commits from a base commit going forward
+        let isBase = false
 
-          logger.info(`[master-git] commit ${commitId.toString()} is undoable (as base: ${isBase})`)
+        const baseUndoable = this._gitUndoables.filter((undoable) => {
+          return undoable && undoable.isBase
+        })[0]
 
-          // For now, pretty much any commit we capture in this session is considered an undoable. We may want to
-          // circle back and restrict it to only certain types of commits, but that does end up making the undo/redo
-          // stack logic a bit more complicated.
-          this._gitUndoables.push({ commitId, isBase, message })
+        if (!baseUndoable) {
+          isBase = true
+        }
 
-          this._isCommitting = false
+        logger.info(`[master-git] commit ${commitId.toString()} is undoable (as base: ${isBase})`)
 
-          return cb(null, commitId)
-        })
+        // For now, pretty much any commit we capture in this session is considered an undoable. We may want to
+        // circle back and restrict it to only certain types of commits, but that does end up making the undo/redo
+        // stack logic a bit more complicated.
+        this._gitUndoables.push({ commitId, isBase, message })
+
+        return cb(null, commitId)
       })
     })
   }
@@ -1039,7 +1051,7 @@ export default class MasterGitProject extends EventEmitter {
         if (!isGitInitialized && !isCodeCommitReady) {
           actionSequence = [
             'initializeGit',
-            'makeCommit',
+            'commitEverything',
             'makeTag',
             'retryCloudSaveSetup'
           ]
@@ -1048,24 +1060,24 @@ export default class MasterGitProject extends EventEmitter {
             'moveContentsToTemp',
             'cloneRemoteIntoFolder',
             'copyContentsFromTemp',
-            'makeCommit',
+            'commitEverything',
             'makeTag',
             'pushToRemote'
           ]
         } else if (isGitInitialized && !isCodeCommitReady) {
           actionSequence = [
-            'makeCommit',
+            'commitEverything',
             'makeTag',
             'retryCloudSaveSetup'
           ]
         } else if (isGitInitialized && isCodeCommitReady) {
           if (doesGitHaveChanges) {
             actionSequence = [
-              'makeCommit',
+              'commitEverything',
               'pullRemote',
               'conflictResetOrContinue',
               'bumpSemverAppropriately',
-              'makeCommit',
+              'commitEverything',
               'makeTag',
               'pushToRemote'
             ]
@@ -1073,7 +1085,7 @@ export default class MasterGitProject extends EventEmitter {
             actionSequence = [
               'pullRemote',
               'bumpSemverAppropriately',
-              'makeCommit',
+              'commitEverything',
               'makeTag',
               'pushToRemote'
             ]

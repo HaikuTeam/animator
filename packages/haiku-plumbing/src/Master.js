@@ -362,7 +362,7 @@ export default class Master extends EventEmitter {
       isReady: this._isReadyToReceiveMethods,
       isSaving: this._isSaving,
       websocketReadyState: this.proc.getReadyState(),
-      isCommitting: this._git.isCommittingProject(),
+      isCommitting: this._git.hasAnyPendingCommits(),
       gitUndoables: this._git.getGitUndoablesUptoBase(),
       gitRedoables: this._git.getGitRedoablesUptoBase()
     })
@@ -717,7 +717,7 @@ export default class Master extends EventEmitter {
       },
 
       (cb) => {
-        return this._git.snapshotCommitProject('Initialized folder', cb)
+        return this._git.commitProjectIfChanged('Initialized folder', cb)
       },
 
       // Make sure we are starting with a good git history
@@ -806,7 +806,7 @@ export default class Master extends EventEmitter {
 
       // Take an initial commit of the starting state so we have a baseline
       (cb) => {
-        return this._git.snapshotCommitProject('Project setup', cb)
+        return this._git.commitProjectIfChanged('Project setup', cb)
       },
 
       // Load all relevant files into memory (only JavaScript files for now)
@@ -831,7 +831,7 @@ export default class Master extends EventEmitter {
 
       // Take an initial commit of the starting state so we have a baseline
       (cb) => {
-        return this._git.snapshotCommitProject('Code setup', cb)
+        return this._git.commitProjectIfChanged('Code setup', cb)
       },
 
       // Start watching the file system for changes
@@ -922,7 +922,7 @@ export default class Master extends EventEmitter {
       },
 
       (cb) => {
-        return this._git.snapshotCommitProject('Updated metadata', cb)
+        return this._git.commitProjectIfChanged('Updated metadata', cb)
       },
 
       // Build the rest of the content of the folder, including any bundles that belong on the cdn
@@ -938,7 +938,7 @@ export default class Master extends EventEmitter {
       },
 
       (cb) => {
-        return this._git.snapshotCommitProject('Populated content', cb)
+        return this._git.commitProjectIfChanged('Populated content', cb)
       },
 
       // Now do all of the git/share/publish/fs operations required for the real save
