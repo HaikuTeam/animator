@@ -994,24 +994,126 @@ class Timeline extends React.Component {
   }
 
   executeBytecodeActionMoveSegmentEndpoints (componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs) {
-    let frameInfo = this.getFrameInfo()
-    let keyframeMoves = BytecodeActions.moveSegmentEndpoints(this.state.reifiedBytecode, componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo)
-    // The 'keyframeMoves' indicate a list of changes we know occurred. Only if some occurred do we bother to update the other views
-    if (Object.keys(keyframeMoves).length > 0) {
-      clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
-      this._component._clearCaches()
-      this.setState({
-        reifiedBytecode: this.state.reifiedBytecode,
-        serializedBytecode: this._component.getSerializedBytecode()
-      })
+    return false
 
-      // It's very heavy to transmit a websocket message for every single movement while updating the ui,
-      // so the values are accumulated and sent via a single batched update.
-      if (!this._keyframeMoves) this._keyframeMoves = {}
-      let movementKey = [componentId, timelineName, propertyName].join('-')
-      this._keyframeMoves[movementKey] = { componentId, timelineName, propertyName, keyframeMoves, frameInfo }
-      this.debouncedKeyframeMoveAction()
-    }
+
+    //  for reference: this.executeBytecodeActionMoveSegmentEndpoints(componentId, this.state.currentTimelineName, propertyName, 'body', curr.index, curr.ms, destM
+
+    // for reference:
+    // activeKeyframes.push({
+    //         id: componentId + '-' + propertyName + '-' + curr.index, propertyName,
+    //         index: curr.index,
+    //         ms: curr.ms,
+    //         handle,
+    //         componentId,
+    //         propertyName
+    //       })
+
+    // Taylor Change Note (8.10.17): rather than pulling these in from the method call, I'm just grabbing them here:
+
+    let frameInfo = this.getFrameInfo()
+    // The 'keyframeMoves' indicate a list of changes we know occurred. Only if some occurred do we bother to update the other views
+      console.log(this.state.activeKeyframes)
+
+    this.state.activeKeyframes.forEach((k) => {
+
+      // console.log('oldmove', [
+      //   this.state.reifiedBytecode,
+      //   componentId,
+      //   timelineName,
+      //   propertyName,
+      //   handle,
+      //   keyframeIndex,
+      //   startMs,
+      //   endMs
+      // ])
+      // console.log('newmove', [this.state.reifiedBytecode,
+      //   k.componentId,
+      //   this.state.currentTimelineName,
+      //   k.propertyName,
+      //   k.handle,
+      //   k.index,
+      //   k.ms,
+      //   endMs
+      // ])
+
+      let keyframeMoves = BytecodeActions.moveSegmentEndpoints(
+        this.state.reifiedBytecode,
+        k.componentId,
+        this.state.currentTimelineName,
+        k.propertyName,
+        k.handle,
+        k.index,
+        k.ms,
+        endMs,
+        frameInfo
+      )
+
+      // after moving all activeKeyframes, make sure we set the new curr ms on each of them
+      // console.log('pre state', this.state.activeKeyframes)
+
+      let activeKeyframes = this.state.activeKeyframes
+      const keyframe = lodash.find(activeKeyframes, { id: k.id })
+
+      // these two should be same, but they're not :(
+      console.log('keyframe.ms', keyframe.ms)
+      console.log('startMs', startMs)
+
+      /* startMs isn't getting far enough along next time it comes in.
+      the keyframe.ms which is set by the previous endMs is too far ahead
+
+      what i really need to know is what's the difference of the previous drag (of the one I'm dragging)
+      then I can apply this to its own next starting place (keyframe.ms),
+      but also to the starting value of all the others in the drag collection
+
+    */
+
+      // these two should be same, but they're not :(
+      console.log('endMs', endMs)
+      console.log('beginning_keyframe.ms+ end - start', keyframe.ms+ endMs - startMs)
+
+      keyframe.ms = keyframe.ms+ endMs - startMs // ought to use this, but doesn't work yet
+      keyframe.ms = endMs
+
+      // console.log('adjusted ms', keyframe.ms)
+
+      this.setState({activeKeyframes}, () => {
+        // console.log('post state', this.state.activeKeyframes
+        })
+    // The 'keyframeMoves' indicate a list of changes we know occurred. Only if some occurred do we bother to update the other views
+      if (Object.keys(keyframeMoves).length > 0) {
+        this.setState({
+          reifiedBytecode: this.state.reifiedBytecode,
+          serializedBytecode: this._component.getSerializedBytecode()
+        })
+
+        // It's very heavy to transmit a websocket message for every single movement while updating the ui,
+        // so the values are accumulated and sent via a single batched update.
+        if (!this._keyframeMoves) this._keyframeMoves = {}
+        let movementKey = [componentId, timelineName, propertyName].join('-')
+        this._keyframeMoves[movementKey] = { componentId, timelineName, propertyName, keyframeMoves, frameInfo }
+        this.debouncedKeyframeMoveAction()
+      }
+    })
+
+
+    // let keyframeMoves = BytecodeActions.moveSegmentEndpoints(this.state.reifiedBytecode, componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo)
+
+    // // The 'keyframeMoves' indicate a list of changes we know occurred. Only if some occurred do we bother to update the other views
+    // if (Object.keys(keyframeMoves).length > 0) {
+    //   this.setState({
+    //     reifiedBytecode: this.state.reifiedBytecode,
+    //     serializedBytecode: this._component.getSerializedBytecode()
+    //   })
+
+    //   // It's very heavy to transmit a websocket message for every single movement while updating the ui,
+    //   // so the values are accumulated and sent via a single batched update.
+    //   if (!this._keyframeMoves) this._keyframeMoves = {}
+    //   let movementKey = [componentId, timelineName, propertyName].join('-')
+    //   this._keyframeMoves[movementKey] = { componentId, timelineName, propertyName, keyframeMoves, frameInfo }
+    //   this.debouncedKeyframeMoveAction()
+    // }
+
   }
 
   debouncedKeyframeMoveAction () {
@@ -1567,19 +1669,16 @@ class Timeline extends React.Component {
         axis='x'
         onStart={(dragEvent, dragData) => {
           this.setRowCacheActivation({ componentId, propertyName })
-          let activeKeyframes = this.state.activeKeyframes
-          activeKeyframes = [componentId + '-' + propertyName + '-' + curr.index]
           this.setState({
             inputSelected: null,
             inputFocused: null,
             keyframeDragStartPx: dragData.x,
-            keyframeDragStartMs: curr.ms,
-            activeKeyframes
+            keyframeDragStartMs: curr.ms
           })
         }}
         onStop={(dragEvent, dragData) => {
           this.unsetRowCacheActivation({ componentId, propertyName })
-          this.setState({ keyframeDragStartPx: false, keyframeDragStartMs: false, activeKeyframes: [] })
+          this.setState({ keyframeDragStartPx: false, keyframeDragStartMs: false })
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
           if (!this.state.transitionBodyDragging) {
@@ -1588,7 +1687,20 @@ class Timeline extends React.Component {
             let destMs = Math.round(this.state.keyframeDragStartMs + msChange)
             this.executeBytecodeActionMoveSegmentEndpoints(componentId, this.state.currentTimelineName, propertyName, handle, curr.index, curr.ms, destMs)
           }
-        }, THROTTLE_TIME)}>
+        }, THROTTLE_TIME)}
+        onMouseDown={(e) => {
+          let activeKeyframes = this.state.activeKeyframes
+          if (!e.shiftKey) activeKeyframes = []
+          activeKeyframes.push({
+            id: componentId + '-' + propertyName + '-' + curr.index, propertyName,
+            index: curr.index,
+            ms: curr.ms,
+            handle,
+            componentId,
+            propertyName
+          })
+          this.setState({ activeKeyframes })
+        }}>
         <span
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
@@ -1633,7 +1745,7 @@ class Timeline extends React.Component {
   renderSoloKeyframe (frameInfo, componentId, elementName, propertyName, reifiedBytecode, prev, curr, next, pxOffsetLeft, pxOffsetRight, index, options) {
     let isActive = false
     this.state.activeKeyframes.forEach((k) => {
-      if (k === componentId + '-' + propertyName + '-' + curr.index) isActive = true
+      if (k.id === componentId + '-' + propertyName + '-' + curr.index) isActive = true
     })
 
     return (
@@ -1678,8 +1790,8 @@ class Timeline extends React.Component {
     let firstKeyframeActive = false
     let secondKeyframeActive = false
     this.state.activeKeyframes.forEach((k) => {
-      if (k === componentId + '-' + propertyName + '-' + curr.index) firstKeyframeActive = true
-      if (k === componentId + '-' + propertyName + '-' + (curr.index + 1)) secondKeyframeActive = true
+      if (k.id === componentId + '-' + propertyName + '-' + curr.index) firstKeyframeActive = true
+      if (k.id === componentId + '-' + propertyName + '-' + (curr.index + 1)) secondKeyframeActive = true
     })
 
     return (
@@ -1690,27 +1802,33 @@ class Timeline extends React.Component {
         onStart={(dragEvent, dragData) => {
           if (options.collapsed) return false
           this.setRowCacheActivation({ componentId, propertyName })
-          let activeKeyframes = this.state.activeKeyframes
-          activeKeyframes = [componentId + '-' + propertyName + '-' + curr.index, componentId + '-' + propertyName + '-' + (curr.index + 1)]
           this.setState({
             inputSelected: null,
             inputFocused: null,
             keyframeDragStartPx: dragData.x,
             keyframeDragStartMs: curr.ms,
-            transitionBodyDragging: true,
-            activeKeyframes
+            transitionBodyDragging: true
           })
         }}
         onStop={(dragEvent, dragData) => {
           this.unsetRowCacheActivation({ componentId, propertyName })
-          this.setState({ keyframeDragStartPx: false, keyframeDragStartMs: false, transitionBodyDragging: false, activeKeyframes: [] })
+          this.setState({ keyframeDragStartPx: false, keyframeDragStartMs: false, transitionBodyDragging: false })
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
           let pxChange = dragData.lastX - this.state.keyframeDragStartPx
           let msChange = (pxChange / frameInfo.pxpf) * frameInfo.mspf
           let destMs = Math.round(this.state.keyframeDragStartMs + msChange)
           this.executeBytecodeActionMoveSegmentEndpoints(componentId, this.state.currentTimelineName, propertyName, 'body', curr.index, curr.ms, destMs)
-        }, THROTTLE_TIME)}>
+        }, THROTTLE_TIME)}
+        onMouseDown={(e) => {
+          let activeKeyframes = this.state.activeKeyframes
+          if (!e.shiftKey) activeKeyframes = []
+          activeKeyframes.push(
+            {id: componentId + '-' + propertyName + '-' + curr.index, componentId, propertyName, index: curr.index, ms: curr.ms, handle: 'body'},
+            {id: componentId + '-' + propertyName + '-' + (curr.index + 1), componentId, propertyName, index: curr.index, ms: curr.ms, handle: 'body'},
+          )
+          this.setState({ activeKeyframes })
+        }}>
         <span
           className='pill-container'
           key={uniqueKey}
