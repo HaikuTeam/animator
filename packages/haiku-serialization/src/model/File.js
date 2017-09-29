@@ -542,100 +542,105 @@ function FileModel (config) {
   }
 
   File.prototype.mergeDesigns = function mergeDesigns (timelineName, timelineTime, designs, cb) {
-    return async.eachOf(designs, (truthy, sourceRelpath, next) => {
-      return this.mergeDesign(timelineName, timelineTime, sourceRelpath, next)
+    return this.performComponentTimelinesWork((bytecode, existingMana, timelines, done) => {
+      return async.eachOf(designs, (truthy, sourceRelpath, next) => {
+        return this.mergeDesign(timelineName, timelineTime, sourceRelpath, bytecode, existingMana, timelines, next)
+      }, done)
     }, cb)
   }
 
   // This is normally called in a loop from the above mergeDesigns
-  File.prototype.mergeDesign = function mergeDesign (timelineName, timelineTime, sourceRelpath, cb) {
+  File.prototype.mergeDesign = function mergeDesign (timelineName, timelineTime, sourceRelpath, bytecode, existingMana, timelines, cb) {
     let didUpdate = false
+
     logger.info('[file] maybe merging design ' + sourceRelpath + ' in timeline ' + timelineName + ' @ ' + timelineTime)
+
     return File.read(this.get('folder'), sourceRelpath, (err, sourceBuffer) => {
       if (err) return cb(err)
-      const sourceContents = sourceBuffer.toString()
-      return this.performComponentTimelinesWork((bytecode, existingMana, timelines, done) => {
-        let oldTimeline = timelines[timelineName]
 
-        // Create this timeline if it doesn't exist yet
-        if (!oldTimeline) {
-          timelines[timelineName] = {}
-          oldTimeline = timelines[timelineName]
+      const sourceContents = sourceBuffer.toString()
+
+      let oldTimeline = timelines[timelineName]
+
+      // Create this timeline if it doesn't exist yet
+      if (!oldTimeline) {
+        timelines[timelineName] = {}
+        oldTimeline = timelines[timelineName]
+      }
+
+      _allSourceNodes(ROOT_LOCATOR, existingMana, (existingNode, nodeSourceRelpath, existingNodeParent, nodeIndexInParent) => {
+        // Only replace nodes whose 'source' attribute matches the one we are merging
+        if (path.normalize(nodeSourceRelpath) !== path.normalize(sourceRelpath)) return void (0)
+
+        logger.info('[file] found merge root for ' + nodeSourceRelpath)
+
+        let incomingMana = xmlToMana(sourceContents) // Do this here to avoid needing to clone
+        if (!incomingMana.attributes[SOURCE_ATTRIBUTE]) {
+          incomingMana.attributes[SOURCE_ATTRIBUTE] = path.normalize(sourceRelpath)
         }
 
-        _allSourceNodes(ROOT_LOCATOR, existingMana, (existingNode, nodeSourceRelpath, existingNodeParent, nodeIndexInParent) => {
-          // Only replace nodes whose 'source' attribute matches the one we are merging
-          if (path.normalize(nodeSourceRelpath) !== path.normalize(sourceRelpath)) return void (0)
+        // This is used to ensure that the merge operation is the same across runs. We can't have randomness here due to multithreading
+        var insertionPointHash = _getInsertionPointHash(existingNodeParent, nodeIndexInParent, 0)
 
-          logger.info('[file] found merge root for ' + nodeSourceRelpath)
+        // Each url(#whatever) needs to be unique to avoid styling collisions
+        _fixFragmentIdentifierReferences(incomingMana, insertionPointHash)
 
-          let incomingMana = xmlToMana(sourceContents) // Do this here to avoid needing to clone
-          if (!incomingMana.attributes[SOURCE_ATTRIBUTE]) {
-            incomingMana.attributes[SOURCE_ATTRIBUTE] = path.normalize(sourceRelpath)
-          }
+        // Do this every time since any instance will have different uids
+        _mirrorHaikuUids(existingNode, incomingMana)
 
-          // This is used to ensure that the merge operation is the same across runs. We can't have randomness here due to multithreading
-          var insertionPointHash = _getInsertionPointHash(existingNodeParent, nodeIndexInParent, 0)
+        // Add haiku-ids to any nodes we may have missed due to structural differences
+        this.ensureTitleAndUidifyTree(incomingMana, path.normalize(sourceRelpath), insertionPointHash)
 
-          // Each url(#whatever) needs to be unique to avoid styling collisions
-          _fixFragmentIdentifierReferences(incomingMana, insertionPointHash)
+        convertManaLayout(incomingMana)
 
-          // Do this every time since any instance will have different uids
-          _mirrorHaikuUids(existingNode, incomingMana)
+        let newDefaultTimeline = _hoistTreeAttributes(incomingMana, timelineName, timelineTime)[timelineName]
 
-          // Add haiku-ids to any nodes we may have missed due to structural differences
-          this.ensureTitleAndUidifyTree(incomingMana, path.normalize(sourceRelpath), insertionPointHash)
+        // Replace the old tree with the new one
+        // This ensures we get new structural changes, as well as content changes e.g. strings
+        // Note that we have kept any matching haiku-ids from the previous tree so those rules can be retained
+        existingNodeParent.children.splice(nodeIndexInParent, 1, incomingMana)
 
-          convertManaLayout(incomingMana)
-
-          let newDefaultTimeline = _hoistTreeAttributes(incomingMana, timelineName, timelineTime)[timelineName]
-
-          // Replace the old tree with the new one
-          // This ensures we get new structural changes, as well as content changes e.g. strings
-          // Note that we have kept any matching haiku-ids from the previous tree so those rules can be retained
-          existingNodeParent.children.splice(nodeIndexInParent, 1, incomingMana)
-
-          // Now add any new rules from the new timeline we created, and modify
-          // any existing ones that match
-          for (let selector in newDefaultTimeline) {
-            if (!_isHaikuIdSelector(selector)) continue // We only manage haiku-ids
-            if (!oldTimeline[selector]) oldTimeline[selector] = {}
-            let newSelectorGroup = newDefaultTimeline[selector]
-            for (let newPropertyName in newSelectorGroup) {
-              if (!oldTimeline[selector][newPropertyName]) oldTimeline[selector][newPropertyName] = {}
-              let newPropertyGroup = newSelectorGroup[newPropertyName]
-              let newBasethKeyframe = newPropertyGroup[timelineTime]
-              let keyframeWasCreated = false
-              if (!oldTimeline[selector][newPropertyName][timelineTime]) {
-                // Track whether or not we are creating a value or changing an existing one so we can
-                // decide whether to clobber the previous value or leave it alone (see below)
-                keyframeWasCreated = true
-                oldTimeline[selector][newPropertyName][timelineTime] = {}
-              }
-              let oldBasethKeyframe = oldTimeline[selector][newPropertyName][timelineTime]
-              let newBasethValue = newBasethKeyframe.value
-              let oldBasethValue = oldBasethKeyframe.value
-              if (newBasethValue !== oldBasethValue) {
-                if (keyframeWasCreated) {
-                  logger.info('[file] design property created: ' + selector + ' ' + newPropertyName + ' ' + oldBasethValue + ' -> ' + newBasethValue + ' in timeline ' + timelineName + ' @ ' + timelineTime)
+        // Now add any new rules from the new timeline we created, and modify
+        // any existing ones that match
+        for (let selector in newDefaultTimeline) {
+          if (!_isHaikuIdSelector(selector)) continue // We only manage haiku-ids
+          if (!oldTimeline[selector]) oldTimeline[selector] = {}
+          let newSelectorGroup = newDefaultTimeline[selector]
+          for (let newPropertyName in newSelectorGroup) {
+            if (!oldTimeline[selector][newPropertyName]) oldTimeline[selector][newPropertyName] = {}
+            let newPropertyGroup = newSelectorGroup[newPropertyName]
+            let newBasethKeyframe = newPropertyGroup[timelineTime]
+            let keyframeWasCreated = false
+            if (!oldTimeline[selector][newPropertyName][timelineTime]) {
+              // Track whether or not we are creating a value or changing an existing one so we can
+              // decide whether to clobber the previous value or leave it alone (see below)
+              keyframeWasCreated = true
+              oldTimeline[selector][newPropertyName][timelineTime] = {}
+            }
+            let oldBasethKeyframe = oldTimeline[selector][newPropertyName][timelineTime]
+            let newBasethValue = newBasethKeyframe.value
+            let oldBasethValue = oldBasethKeyframe.value
+            if (newBasethValue !== oldBasethValue) {
+              if (keyframeWasCreated) {
+                logger.info('[file] design property created: ' + selector + ' ' + newPropertyName + ' ' + oldBasethValue + ' -> ' + newBasethValue + ' in timeline ' + timelineName + ' @ ' + timelineTime)
+                oldTimeline[selector][newPropertyName][timelineTime].value = newBasethValue
+                didUpdate = true
+              } else {
+                if (oldBasethKeyframe.lock || oldBasethKeyframe.edited) {
+                  logger.info('[file] skipped design change to edited/locked property ' + newPropertyName + ' in timeline ' + timelineName + ' @ ' + timelineTime)
+                } else {
+                  logger.info('[file] design property changed: ' + selector + ' ' + newPropertyName + ' ' + oldBasethValue + ' -> ' + newBasethValue + ' in timeline ' + timelineName + ' @ ' + timelineTime)
                   oldTimeline[selector][newPropertyName][timelineTime].value = newBasethValue
                   didUpdate = true
-                } else {
-                  if (oldBasethKeyframe.lock || oldBasethKeyframe.edited) {
-                    logger.info('[file] skipped design change to edited/locked property ' + newPropertyName + ' in timeline ' + timelineName + ' @ ' + timelineTime)
-                  } else {
-                    logger.info('[file] design property changed: ' + selector + ' ' + newPropertyName + ' ' + oldBasethValue + ' -> ' + newBasethValue + ' in timeline ' + timelineName + ' @ ' + timelineTime)
-                    oldTimeline[selector][newPropertyName][timelineTime].value = newBasethValue
-                    didUpdate = true
-                  }
                 }
               }
             }
           }
-        })
-        logger.info('[file] did design merge result in updates?: ' + didUpdate)
-        return done()
-      }, cb)
+        }
+      })
+
+      logger.info('[file] did design merge result in updates?: ' + didUpdate)
+      return cb()
     })
   }
 

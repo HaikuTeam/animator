@@ -400,9 +400,6 @@ class Timeline extends React.Component {
       var serializedBytecode = this._component.getSerializedBytecode()
       clearInMemoryBytecodeCaches(reifiedBytecode)
 
-      console.log('r', reifiedBytecode)
-      console.log('s', serializedBytecode)
-
       this.setState({ reifiedBytecode, serializedBytecode })
 
       if (maybeMetadata && maybeMetadata.from !== 'timeline') {
