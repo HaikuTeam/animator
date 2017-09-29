@@ -18,7 +18,8 @@ const MAX_SEMVER_TAG_ATTEMPTS = 100
 const AWAIT_COMMIT_INTERVAL = 0
 const WORKER_INTERVAL = 64
 const MAX_CLONE_ATTEMPTS = 5
-const CLONE_RETRY_DELAY = 10000
+const CLONE_RETRY_DELAY = 5000
+const CLONE_INIT_DELAY = 2500
 const DEFAULT_BRANCH_NAME = 'master' // "'master' process" has nothing to do with this :/
 const BASELINE_SEMVER_TAG = '0.0.0'
 const COMMIT_SUFFIX = '(via Haiku Desktop)'
@@ -473,6 +474,15 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
+  // Before the first time we clone, add an artificial timer that waits a couple
+  // of seconds before attempting. Basically, give the cloud a chance to set things
+  // up *before* we immediately call clone, that way we don't call it prematurely
+  // and then have to wait an additional 10 seconds before trying again
+  hackyInitialDelayBeforeFirstCloneAttempt (cb) {
+    logger.info(`[master-git] waiting before first clone attempt`)
+    return setTimeout(cb, CLONE_INIT_DELAY)
+  }
+
   cloneRemoteIntoFolder (cb) {
     if (!this._folderState.cloneAttempts) {
       this._folderState.cloneAttempts = 0
@@ -486,7 +496,7 @@ export default class MasterGitProject extends EventEmitter {
       CodeCommitHttpsPassword
     } = this._folderState.remoteProjectDescriptor
 
-    logger.info(`[master-git] cloning from remote ${GitRemoteUrl} (attempt ${this._folderState.cloneAttempts}) ...`)
+    logger.info(`[master-git] cloning from remote ${GitRemoteUrl} (attempt ${this._folderState.cloneAttempts})`)
 
     return Git.cloneRepo(GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, this.folder, (err) => {
       if (err) {
@@ -960,6 +970,7 @@ export default class MasterGitProject extends EventEmitter {
         } else if (!isGitInitialized && isCodeCommitReady) {
           actionSequence = [
             'moveContentsToTemp',
+            'hackyInitialDelayBeforeFirstCloneAttempt',
             'cloneRemoteIntoFolder',
             'copyContentsFromTemp'
           ]
