@@ -122,12 +122,12 @@ export default class Master extends EventEmitter {
     // Encapsulation of project actions that concern the live module in other views
     this._mod = new MasterModuleProject(this.folder, this.proc)
 
-    this._mod.on('triggering-reload', (file) => {
-      logger.info('[master] module replacment triggering', file.get('relpath'), file.get('dtLastReadStart'), file.get('dtLastWriteEnd'))
+    this._mod.on('triggering-reload', () => {
+      logger.info('[master] module replacment triggering')
     })
 
-    this._mod.on('reload-complete', (file) => {
-      logger.info('[master] module replacment finished', file.get('relpath'))
+    this._mod.on('reload-complete', () => {
+      logger.info('[master] module replacment finished')
     })
 
     // To store a Watcher instance which will watch for changes on the file system
