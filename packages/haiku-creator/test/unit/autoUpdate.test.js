@@ -13,10 +13,10 @@ test('autoUpdate #generateURL generates an expected URL', (t) => {
   let url
 
   url = 'https://server.com/updates/latest?environment=test&branch=master&platform=macOS&version=1.0.1'
-  t.equal(autoUpdate.generateURL(options), url)
+  t.equal(autoUpdate.generateURL(options), url, 'is the expected URL')
 
   url = 'https://server.com/updates/latest?environment=production&branch=staging&platform=macOS&version=1.0.1'
-  t.equal(autoUpdate.generateURL({...options, environment: 'production', branch: 'staging'}), url)
+  t.equal(autoUpdate.generateURL({...options, environment: 'production', branch: 'staging'}), url, 'is the expected URL')
 
   t.end()
 })
