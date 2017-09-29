@@ -26,6 +26,32 @@ tape('envoy:index:basic', async (t) => {
     })
 })
 
+tape('envoy:index:schema', async (t) => {
+    t.plan(3)
+
+    class TestHandler {
+        doFoo(arg) {
+            return "foo, " + arg + "!"
+        }
+    }
+
+    let server = new EnvoyServer({ logger: new EnvoyLogger("info") })
+    server = await server.ready()
+    server.bindHandler("foo", TestHandler, new TestHandler())
+
+    var client = new EnvoyClient<TestHandler>({ port: server.port, WebSocket: ws, logger: new EnvoyLogger("info") })
+    client.get("foo").then(async (fooHandler: TestHandler) => {
+        t.equal(await fooHandler.doFoo("meow"), "foo, meow!")
+        client.get("foo").then(async (fooHandler: TestHandler) => {
+            t.equal(await fooHandler.doFoo("meow"), "foo, meow!")
+            client.get("foo").then(async (fooHandler: TestHandler) => {
+                t.equal(await fooHandler.doFoo("meow"), "foo, meow!")
+                server.close()
+            })
+        })
+    })
+})
+
 tape('envoy:index:events', async (t) => {
     t.plan(1)
 

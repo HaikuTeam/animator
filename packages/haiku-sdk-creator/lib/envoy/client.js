@@ -8,6 +8,7 @@ const AWAIT_READY_TIMEOUT = 100;
 class EnvoyClient {
     constructor(options) {
         this.options = Object.assign({}, _1.DEFAULT_ENVOY_OPTIONS, options);
+        this.schemaCache = new Map();
         this.isConnected = false;
         this.WebSocket = this.options.WebSocket;
         this.datagramQueue = [];
@@ -173,6 +174,10 @@ class EnvoyClient {
         });
     }
     getRemoteSchema(channel) {
+        const foundSchema = this.schemaCache.get(channel);
+        if (foundSchema) {
+            return Promise.resolve(foundSchema);
+        }
         return this.send({
             channel,
             id: generateUUIDv4_1.default(),
@@ -180,7 +185,11 @@ class EnvoyClient {
             method: "",
             params: [],
         }).then((data) => {
-            return JSON.parse(data);
+            const loadedSchema = JSON.parse(data);
+            if (loadedSchema) {
+                this.schemaCache.set(channel, loadedSchema);
+            }
+            return loadedSchema;
         });
     }
 }
