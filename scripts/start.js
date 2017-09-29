@@ -31,6 +31,7 @@ var DEFAULTS = {
   releaseVersion: '0.0.0', // stub
   autoUpdateServer: 'http://localhost:3002',
   plumbingUrl: 'http://0.0.0.0:1024',
+  remoteDebug: true,
   doDevelopCLI: false,
   doDevelopSDKClient: false,
   doDevelopSDKInkstone: false,
@@ -193,6 +194,10 @@ function setup () {
   process.env.NODE_ENV = inputs.nodeEnv
   process.env.HAIKU_SKIP_AUTOUPDATE = inputs.skipAutoUpdate
   process.env.HAIKU_PLUMBING_PORT = inputs.plumbingPort
+
+  if (inputs.remoteDebug === false) {
+    process.env.NO_REMOTE_DEBUG = '1'
+  }
 
   // These are just stubbed out for completeness' sake
   process.env.HAIKU_RELEASE_ENVIRONMENT = inputs.releaseEnvironment
