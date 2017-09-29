@@ -9,6 +9,8 @@ import ProjectLoader from './ProjectLoader'
 import { LogoSVG, LoadingSpinnerSVG } from './Icons'
 import { DASH_STYLES } from '../styles/dashShared'
 
+const HARDCODED_PROJECTS_LIMIT = 15
+
 class ProjectBrowser extends React.Component {
   constructor (props) {
     super(props)
@@ -125,6 +127,10 @@ class ProjectBrowser extends React.Component {
   }
 
   launchNewProjectInput () {
+    if (this.alreadyHasTooManyProjects()) {
+      return void (0)
+    }
+
     var projectsList = this.state.projectsList
     if (!projectsList[0] || !projectsList[0].isNew) {
       projectsList.forEach((foundProject, foundIndex) => {
@@ -272,7 +278,24 @@ class ProjectBrowser extends React.Component {
     )
   }
 
+  alreadyHasTooManyProjects () {
+    return (
+      !this.state.areProjectsLoading &&
+      this.state.projectsList &&
+      this.state.projectsList.length >= HARDCODED_PROJECTS_LIMIT
+    )
+  }
+
   titleWrapperElement () {
+    if (this.alreadyHasTooManyProjects()) {
+      return (
+        <div style={DASH_STYLES.titleWrapper}>
+          <span style={DASH_STYLES.projectsTitle}>Projects</span>
+          <span style={{ color: Palette.ORANGE }}>Project limit: {HARDCODED_PROJECTS_LIMIT}</span>
+        </div>
+      )
+    }
+
     return (
       <div style={DASH_STYLES.titleWrapper}>
         <span style={DASH_STYLES.projectsTitle}>Projects</span>
