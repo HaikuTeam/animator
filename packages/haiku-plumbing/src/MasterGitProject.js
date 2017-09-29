@@ -885,16 +885,20 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   commitFileIfChanged (relpath, message, cb) {
-    return this.statusForFile(relpath, (err, status) => {
-      if (err) return cb(err)
-      if (!status) return cb() // No status means no changes
-      // 0 is UNMODIFIED, everything else is a change
-      // See http://www.nodegit.org/api/diff/#getDelta
-      if (status.num && status.num > 0) {
-        return this.commitProject(relpath, message, cb)
-      } else {
-        return cb()
-      }
+    // The call to status is sync, so we add this hook in case pending commits
+    // should alter the status in advance of us checking it
+    return this.waitUntilNoFurtherChangesAreAwaitingCommit(() => {
+      return this.statusForFile(relpath, (err, status) => {
+        if (err) return cb(err)
+        if (!status) return cb() // No status means no changes
+        // 0 is UNMODIFIED, everything else is a change
+        // See http://www.nodegit.org/api/diff/#getDelta
+        if (status.num && status.num > 0) {
+          return this.commitProject(relpath, message, cb)
+        } else {
+          return cb()
+        }
+      })
     })
   }
 
