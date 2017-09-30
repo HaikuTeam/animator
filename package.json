@@ -133,8 +133,10 @@
       "!build${/*}",
       "!changelog${/*}",
       "!packages${/*}",
+      "!~tmp${/*}",
       "!scripts${/*}",
       "!_config.js.handlebars",
+      "!distro.sh",
       "!README.md",
       "!releases.json",
       "!yarn.lock"
