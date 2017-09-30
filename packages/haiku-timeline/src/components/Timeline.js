@@ -1689,6 +1689,7 @@ class Timeline extends React.Component {
           }
         }, THROTTLE_TIME)}
         onMouseDown={(e) => {
+          e.stopPropagation()
           let activeKeyframes = this.state.activeKeyframes
           if (!e.shiftKey) activeKeyframes = {}
 
@@ -1818,6 +1819,7 @@ class Timeline extends React.Component {
           this.executeBytecodeActionMoveSegmentEndpoints(componentId, this.state.currentTimelineName, propertyName, 'body', curr.index, curr.ms, destMs)
         }, THROTTLE_TIME)}
         onMouseDown={(e) => {
+          e.stopPropagation()
           let activeKeyframes = this.state.activeKeyframes
           if (!e.shiftKey) activeKeyframes = {}
           activeKeyframes[componentId + '-' + propertyName + '-' + curr.index, componentId] = {}
@@ -2969,6 +2971,9 @@ class Timeline extends React.Component {
             bottom: 0,
             overflowY: 'auto',
             overflowX: 'hidden'
+          }}
+          onMouseDown={() => {
+            this.setState({activeKeyframes: {}})
           }}>
           {this.renderComponentRows(this.state.componentRowsData)}
         </div>
