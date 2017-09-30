@@ -120,7 +120,7 @@ const DEFAULTS = {
   inputSelected: null,
   inputFocused: null,
   expandedPropertyClusters: {},
-  activeKeyframes: [],
+  activeKeyframes: {},
   reifiedBytecode: null,
   serializedBytecode: null
 }
@@ -1690,15 +1690,16 @@ class Timeline extends React.Component {
         }, THROTTLE_TIME)}
         onMouseDown={(e) => {
           let activeKeyframes = this.state.activeKeyframes
-          if (!e.shiftKey) activeKeyframes = []
-          activeKeyframes.push({
-            id: componentId + '-' + propertyName + '-' + curr.index, propertyName,
+          if (!e.shiftKey) activeKeyframes = {}
+
+          activeKeyframes[componentId + '-' + propertyName + '-' + curr.index] = {
+            id: componentId + '-' + propertyName + '-' + curr.index,
             index: curr.index,
             ms: curr.ms,
             handle,
             componentId,
             propertyName
-          })
+          }
           this.setState({ activeKeyframes })
         }}>
         <span
@@ -1744,9 +1745,7 @@ class Timeline extends React.Component {
 
   renderSoloKeyframe (frameInfo, componentId, elementName, propertyName, reifiedBytecode, prev, curr, next, pxOffsetLeft, pxOffsetRight, index, options) {
     let isActive = false
-    this.state.activeKeyframes.forEach((k) => {
-      if (k.id === componentId + '-' + propertyName + '-' + curr.index) isActive = true
-    })
+    if (this.state.activeKeyframes[componentId + '-' + propertyName + '-' + curr.index] != undefined) isActive = true
 
     return (
       <span
@@ -1789,10 +1788,8 @@ class Timeline extends React.Component {
     const CurveSVG = CURVESVGS[curve + 'SVG']
     let firstKeyframeActive = false
     let secondKeyframeActive = false
-    this.state.activeKeyframes.forEach((k) => {
-      if (k.id === componentId + '-' + propertyName + '-' + curr.index) firstKeyframeActive = true
-      if (k.id === componentId + '-' + propertyName + '-' + (curr.index + 1)) secondKeyframeActive = true
-    })
+    if (this.state.activeKeyframes[componentId + '-' + propertyName + '-' + curr.index] != undefined) firstKeyframeActive = true
+    if (this.state.activeKeyframes[componentId + '-' + propertyName + '-' + (curr.index + 1)] != undefined) secondKeyframeActive = true
 
     return (
       <DraggableCore
@@ -1822,11 +1819,24 @@ class Timeline extends React.Component {
         }, THROTTLE_TIME)}
         onMouseDown={(e) => {
           let activeKeyframes = this.state.activeKeyframes
-          if (!e.shiftKey) activeKeyframes = []
-          activeKeyframes.push(
-            {id: componentId + '-' + propertyName + '-' + curr.index, componentId, propertyName, index: curr.index, ms: curr.ms, handle: 'body'},
-            {id: componentId + '-' + propertyName + '-' + (curr.index + 1), componentId, propertyName, index: curr.index, ms: curr.ms, handle: 'body'},
-          )
+          if (!e.shiftKey) activeKeyframes = {}
+          activeKeyframes[componentId + '-' + propertyName + '-' + curr.index, componentId] = {}
+          activeKeyframes[componentId + '-' + propertyName + '-' + curr.index] = {
+            id: componentId + '-' + propertyName + '-' + curr.index,
+            componentId,
+            propertyName,
+            index: curr.index,
+            ms: curr.ms,
+            handle: 'body'
+          }
+          activeKeyframes[componentId + '-' + propertyName + '-' + (curr.index + 1)] = {
+            id: componentId + '-' + propertyName + '-' + (curr.index + 1),
+            componentId,
+            propertyName,
+            index: curr.index,
+            ms: curr.ms,
+            handle: 'body'
+          }
           this.setState({ activeKeyframes })
         }}>
         <span
