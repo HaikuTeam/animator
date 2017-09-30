@@ -76,6 +76,15 @@ log.log(rsynccmd1)
 cp.execSync(rsynccmd1, { cwd: ROOT, stdio: 'inherit' })
 
 /**
+ * Strip any dev dependencies from the plumbing target.
+ * TODO: Can we stop this from installing the Haiku dependencies?
+ */
+
+var yarncmd = `yarn install ${YARN_INSTALL_FLAGS.join(' ')}`
+log.log(yarncmd)
+cp.execSync(yarncmd, { cwd: PLUMBING_SOURCE, stdio: 'inherit' })
+
+/**
  * "Manually" install plumbing's Haiku dependencies from our local sources.
  */
 
@@ -85,8 +94,9 @@ for (var pkgdest0 in HAIKU_PLUMBING_SUBPACKAGES) {
   if (pkgsrc === true) pkgsrc = pkgdest0
 
   var cmds0 = [
-    `mkdir -p ${sdir(path.join(PLUMBING_SOURCE_MODULES, pkgdest0))}`,
-    `rsync ${RSYNC_FLAGS.join(' ')} ${sdir(path.join(ROOT, 'packages', pkgsrc))} ${sdir(path.join(PLUMBING_SOURCE_MODULES, pkgdest0))}`
+    `rm -rf ${sdir(path.join(PLUMBING_SOURCE_MODULES, pkgdest0))}`, // Clear the installed one
+    `mkdir -p ${sdir(path.join(PLUMBING_SOURCE_MODULES, pkgdest0))}`, // Make sure we have the folder
+    `rsync ${RSYNC_FLAGS.join(' ')} ${sdir(path.join(ROOT, 'packages', pkgsrc))} ${sdir(path.join(PLUMBING_SOURCE_MODULES, pkgdest0))}` // Install our one
   ]
 
   cmds0.forEach((cmd) => {
@@ -94,14 +104,6 @@ for (var pkgdest0 in HAIKU_PLUMBING_SUBPACKAGES) {
     cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
   })
 }
-
-/**
- * Strip any dev dependencies from the plumbing target.
- */
-
-var yarncmd = `yarn install ${YARN_INSTALL_FLAGS.join(' ')}`
-log.log(yarncmd)
-cp.execSync(yarncmd, { cwd: PLUMBING_SOURCE, stdio: 'inherit' })
 
 /**
  * Clean any Haiku dependencies from the subpackages since they're already installed one level up.
