@@ -485,7 +485,7 @@ class Timeline extends React.Component {
       this.executeBytecodeActionJoinKeyframes(componentId, timelineName, elementName, propertyName, startMs, endMs, curveName)
     })
     this.addEmitterListener(this.ctxmenu, 'deleteKeyframe', (componentId, timelineName, propertyName, startMs) => {
-      this.executeBytecodeActionDeleteKeyframe(componentId, timelineName, propertyName, startMs)
+      this.executeBytecodeActionDeleteKeyframe({componentId: {componentId, propertyName, ms: startMs}}, timelineName)
     })
     this.addEmitterListener(this.ctxmenu, 'changeSegmentCurve', (componentId, timelineName, propertyName, startMs, curveName) => {
       this.executeBytecodeActionChangeSegmentCurve(componentId, timelineName, propertyName, startMs, curveName)
@@ -577,8 +577,11 @@ class Timeline extends React.Component {
       // case 38: // up
       // case 40: // down
       // case 46: //delete
-      // case 8: //delete
       // case 13: //enter
+      case 8: // delete
+        if (!lodash.isEmpty(this.state.activeKeyframes)) {
+          this.executeBytecodeActionDeleteKeyframe(this.state.activeKeyframes, this.state.currentTimelineName)
+        }
       case 16: return this.updateKeyboardState({ isShiftKeyDown: true })
       case 17: return this.updateKeyboardState({ isControlKeyDown: true })
       case 18: return this.updateKeyboardState({ isAltKeyDown: true })
@@ -910,18 +913,21 @@ class Timeline extends React.Component {
     this.props.websocket.action('joinKeyframes', [this.props.folder, [componentId], timelineName, elementName, propertyName, startMs, endMs, curveForWire], () => {})
   }
 
-  executeBytecodeActionDeleteKeyframe (componentId, timelineName, propertyName, startMs) {
-    BytecodeActions.deleteKeyframe(this.state.reifiedBytecode, componentId, timelineName, propertyName, startMs)
-    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
-    this._component._clearCaches()
-    this.setState({
-      reifiedBytecode: this.state.reifiedBytecode,
-      serializedBytecode: this._component.getSerializedBytecode(),
-      keyframeDragStartPx: false,
-      keyframeDragStartMs: false,
-      transitionBodyDragging: false
+  executeBytecodeActionDeleteKeyframe (keyframes, timelineName) {
+    lodash.each(keyframes, (k) => {
+      BytecodeActions.deleteKeyframe(this.state.reifiedBytecode, k.componentId, timelineName, k.propertyName, k.ms)
+      clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+      this._component._clearCaches()
+      this.setState({
+        reifiedBytecode: this.state.reifiedBytecode,
+        serializedBytecode: this._component.getSerializedBytecode(),
+        keyframeDragStartPx: false,
+        keyframeDragStartMs: false,
+        transitionBodyDragging: false
+      })
+      this.props.websocket.action('deleteKeyframe', [this.props.folder, [k.componentId], timelineName, k.propertyName, k.ms], () => {})
     })
-    this.props.websocket.action('deleteKeyframe', [this.props.folder, [componentId], timelineName, propertyName, startMs], () => {})
+    this.setState({activeKeyframes: {}})
   }
 
   executeBytecodeActionChangeSegmentCurve (componentId, timelineName, propertyName, startMs, curveName) {
