@@ -26,7 +26,7 @@ test('autoUpdate #checkUpdates returns [false, null] if not updates are availabl
     return { status: 204, message: '' }
   })
 
-  let [shouldUpdate, url] = await stubbedAutoUpdate.checkUpdates()
+  let {shouldUpdate, url} = await stubbedAutoUpdate.checkUpdates()
 
   t.notOk(shouldUpdate, 'first item on the tuple is false')
   t.equal(url, null, 'second item on the tuple is null')
@@ -39,7 +39,7 @@ test('autoUpdate #checkUpdates returns [true, url] if there is an update', async
     return { status: 200, url: 'http://test.com' }
   })
 
-  let [shouldUpdate, url] = await stubbedAutoUpdate.checkUpdates()
+  let {shouldUpdate, url} = await stubbedAutoUpdate.checkUpdates()
 
   t.ok(shouldUpdate, 'first item on the tuple is true')
   t.equal(url, 'http://test.com','second item on the tuple is an url')

@@ -9,7 +9,6 @@ import cp from 'child_process'
 import os from 'os'
 import path from 'path'
 import fs from 'fs'
-import autoUpdate from '../utils/autoUpdate'
 import AuthenticationUI from './components/AuthenticationUI'
 import ProjectBrowser from './components/ProjectBrowser'
 import SideBar from './components/SideBar'
@@ -19,6 +18,7 @@ import Stage from './components/Stage'
 import Timeline from './components/Timeline'
 import Toast from './components/notifications/Toast'
 import Tour from './components/Tour/Tour'
+import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 import {
   HOMEDIR_PATH,
@@ -53,6 +53,7 @@ export default class Creator extends React.Component {
     this.receiveProjectInfo = this.receiveProjectInfo.bind(this)
     this.handleFindElementCoordinates = this.handleFindElementCoordinates.bind(this)
     this.handleFindWebviewCoordinates = this.handleFindWebviewCoordinates.bind(this)
+    this.onAutoUpdateCheckComplete = this.onAutoUpdateCheckComplete.bind(this)
     this.layout = new EventEmitter()
 
     this.state = {
@@ -323,18 +324,6 @@ export default class Creator extends React.Component {
         }, 1000)
       })
     })
-
-    this.checkForUpdates()
-  }
-
-  async checkForUpdates () {
-    const [shouldUpdate, url] = await autoUpdate.checkUpdates()
-
-    if (shouldUpdate) {
-      autoUpdate.update("https://roperzh.com/index.txt.zip")
-    } else {
-      this.setState({ hasCheckedForUpdates: true })
-    }
   }
 
   componentWillUnmount () {
@@ -531,6 +520,10 @@ export default class Creator extends React.Component {
     this.setState({ libraryItemDragging: libraryItemInfo })
   }
 
+  onAutoUpdateCheckComplete () {
+    this.setState({ hasCheckedForUpdates: true })
+  }
+
   renderStartupDefaultScreen () {
     return (
       <div style={{ position: 'absolute', width: '100%', height: '100%' }}>
@@ -555,6 +548,9 @@ export default class Creator extends React.Component {
                 </g>
               </g>
             </svg>
+
+            <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} />
+
             <br />
             <span style={{ color: '#FAFCFD', display: 'inline-block', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0 }}>{this.state.softwareVersion}</span>
           </div>
@@ -564,6 +560,7 @@ export default class Creator extends React.Component {
   }
 
   render () {
+    // TODO: check for conflicts with the  another if rendering the default screen
     if (!this.state.hasCheckedForUpdates) {
       return this.renderStartupDefaultScreen()
     }
