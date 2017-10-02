@@ -25,9 +25,7 @@ util.inherits(CreatorElectron, EventEmitter)
 var creator = new CreatorElectron()
 
 var BrowserWindow = electron.BrowserWindow
-var autoUpdate = require('./utils/autoUpdate')
-var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
-var dialog = require('electron').dialog
+var mixpanel = require('./utils/Mixpanel')
 
 var URL = 'file://' + path.join(__dirname, '..', 'index.html')
 
