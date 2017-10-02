@@ -3,7 +3,7 @@ var path = require('path')
 var Uglify2 = require('uglify-js')
 var glob = require('glob-all')
 var log = require('./helpers/log')
-var fs = require('fs')
+var fse = require('fs-extra')
 
 var ROOT = path.join(__dirname, '..')
 
@@ -36,7 +36,7 @@ if (GLOBS.length > 0) {
       try {
         var code = Uglify2.minify(sourcepath).code
 
-        return fs.outputFile(destpath, code, function (err) {
+        return fse.outputFile(destpath, code, function (err) {
           if (err) return next(err)
           return next()
         })
