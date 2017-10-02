@@ -71,11 +71,37 @@ const relativeCommands = [
   'v'
 ]
 
+var PARSING_REGEXPS = {
+  command: /^[MmLlHhVvCcSsQqTtAaZz]/g,
+  whitespace: /^[\s]+/,
+  comma: /^,/,
+  number: /^0b[01]+|^0o[0-7]+|^0x[\da-f]+|^-?\d*\.?\d+(?:e[+-]?\d+)?/i,
+}
+
 const isRelative = command => relativeCommands.indexOf(command) !== -1
 
 const optionalArcKeys = [ 'xAxisRotation', 'largeArcFlag', 'sweepFlag' ]
 
 const getCommands = d => d.match(validCommands)
+
+function tokenize (d) {
+  let tokens = []
+  let chunk = d
+  let total = chunk.length
+  let iterations = 0
+  while (chunk.length > 0) {
+    for (let regexpName in PARSING_REGEXPS) {
+      let match = PARSING_REGEXPS[regexpName].exec(chunk)
+      if (match) {
+        tokens.push({ type: regexpName, raw: match[0] })
+        // Need to slice the chunk at the original match length
+        chunk = chunk.slice(match[0].length, chunk.length)
+        break
+      }
+    }
+  }
+  return tokens
+}
 
 // const getParams = d => d.split(validCommands)
 //   .map(v => v.replace(/[0-9]+-/g, m => `${m.slice(0, -1)} -`))
@@ -88,13 +114,15 @@ const getCommands = d => d.match(validCommands)
 //   )
 
 const getParams = (d) => {
-  const segs = d.split(validCommands)
-    .map((v) => {
-      return v.replace(/[0-9]+(e[+-][0-9]+)?-/g, m => `${m.slice(0, -1)} -`)
-    })
-    .map((v) => {
-      return v.replace(/\.[0-9]+(e[+-][0-9]+)?/g, m => `${m} `)
-    })
+  const tokens = tokenize(d)
+
+  const fixed = tokens.filter((t) => {
+    return t.type === 'number' || t.type === 'command' || t.type === 'comma'
+  }).map((t) => {
+    return t.raw
+  }).join(' ')
+
+  const segs = fixed.split(validCommands)
     .map((p) => {
       return p.trim()
     })
