@@ -6,41 +6,32 @@ const os = require('os')
 const unzip = require('extract-zip')
 const electron = require('electron')
 const fetch = require('node-fetch')
-var sudo = require('sudo-prompt');
-const { exec } = require('child_process');
-
-// const opts = {
-//   server: process.env.HAIKU_AUTOUPDATE_SERVER,
-//   environment: process.env.HAIKU_RELEASE_ENVIRONMENT,
-//   branch: process.env.HAIKU_RELEASE_BRANCH,
-//   platform: process.env.HAIKU_RELEASE_PLATFORM,
-//   version: process.env.HAIKU_RELEASE_VERSION
-// }
+const {exec} = require('child_process')
 
 const opts = {
   server: process.env.HAIKU_AUTOUPDATE_SERVER,
-  environment: 'staging',
-  branch: 'master',
-  platform: 'mac',
-  version: '2.3.6'
+  environment: process.env.HAIKU_RELEASE_ENVIRONMENT,
+  branch: process.env.HAIKU_RELEASE_BRANCH,
+  platform: process.env.HAIKU_RELEASE_PLATFORM,
+  version: process.env.HAIKU_RELEASE_VERSION
 }
 
-function _download (url, downloadPath, progressCallback) {
+function _download (url, downloadPath, onProgress) {
   const file = fs.createWriteStream(downloadPath)
 
   return new Promise((resolve, reject) => {
-    const response = https.get(url, (response) => {
+    https.get(url, response => {
       const contentLenght = parseInt(response.headers['content-length'], 10)
-      let current = 0
+      let progress = 0
 
       response.pipe(file)
 
-      response.on('data', (data) => {
-        current = current + data.length
-        progressCallback({ progress: (current * 100) / contentLenght })
+      response.on('data', data => {
+        progress += data.length
+        onProgress({progress: progress * 100 / contentLenght})
       })
 
-      response.on('error', (error) => {
+      response.on('error', error => {
         fs.unlink(downloadPath)
         reject(error)
       })
@@ -50,28 +41,29 @@ function _download (url, downloadPath, progressCallback) {
       })
     })
   })
-};
-
-function _rename(oldPath, newPath, cb) {
-  const opts = {name: 'Haiku'}
-
-  return new Promise((resolve, reject) => {
-    exec(`rm -rf ${newPath}/Haiku.app && mv ${oldPath} ${newPath}`, {}, (error) => {
-      if (error) reject(error);
-      resolve(true)
-    })
-  })
 }
 
+function _mv (oldPath, newPath) {
+  return new Promise((resolve, reject) => {
+    exec(
+      `rm -rf ${newPath}/Haiku.app && mv ${oldPath} ${newPath}`,
+      {},
+      err => {
+        if (err) reject(err)
+        resolve(true)
+      }
+    )
+  })
+}
 
 function _unzip (zipPath, destination) {
   const tempPath = os.tmpdir()
 
   return new Promise((resolve, reject) => {
-    unzip(zipPath, {dir: tempPath}, function (err) {
+    unzip(zipPath, {dir: tempPath}, err => {
       if (err) reject(err)
 
-      return _rename(`${tempPath}/Haiku.app`, '/Applications')
+      return _mv(`${tempPath}/Haiku.app`, destination)
     })
   })
 }
@@ -79,17 +71,24 @@ function _unzip (zipPath, destination) {
 module.exports = {
   async update (url, progressCallback, options = opts) {
     if (!process.env.HAIKU_SKIP_AUTOUPDATE) {
-      if (!options.server || !options.environment || !options.branch || !options.platform || !options.version) {
+      if (
+        !options.server ||
+        !options.environment ||
+        !options.branch ||
+        !options.platform ||
+        !options.version
+      ) {
         throw new Error('Missing release/autoupdate environment variables')
       }
     }
 
     const downloadPath = path.join(os.tmpdir(), 'haiku.zip')
+    const installationPath = '/Applications/'
 
-    // await _download(url, downloadPath, progressCallback)
-    await _unzip(downloadPath, '/Applications/')
-    // electron.remote.app.relaunch()
-    // electron.remote.app.exit()
+    await _download(url, downloadPath, progressCallback)
+    await _unzip(downloadPath, installationPath)
+    electron.remote.app.relaunch()
+    electron.remote.app.exit()
   },
 
   async checkUpdates () {
@@ -109,7 +108,7 @@ module.exports = {
     return {status: response.status, url: data.url}
   },
 
-  generateURL ({ server, ...query }) {
+  generateURL ({server, ...query}) {
     const queryString = qs.stringify(query)
 
     return `${server}/updates/latest?${queryString}`
