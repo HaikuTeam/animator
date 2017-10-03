@@ -24,6 +24,8 @@ cache:
 
 before_install:
   - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.0.2
+  - brew install openssl
+  - brew link openssl --force
 
 install:
   - yarn

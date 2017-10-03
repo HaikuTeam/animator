@@ -18,7 +18,7 @@ if (!process.env.HAIKU_S3_DEPLOYER_SECRET) throw new Error('env var missing')
 
 module.exports = {
   vault: VAULT,
-  // certificate: 'HaikuSystemsIncDeveloperId', // Haiku Systems, new
+  // certificate: 'HaikuSystemsIncDeveloperId.p12', // Haiku Systems, new
   certificate: 'DeveloperIdApplicationMatthewB73M94S23A.p12',
   slack: {
     clientId: process.env.HAIKU_INTERNAL_SLACK_CLIENT_ID,
