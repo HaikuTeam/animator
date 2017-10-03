@@ -19,6 +19,7 @@ var DEP_TYPES = [
 
 var RSYNC_FLAGS = [
   '--archive',
+  '--quiet',
   '--recursive', // Include dirs and subdirs
   '--no-links' // Exclude all symlinks - assumed to be haiku internal (we'll inject these)
 ]

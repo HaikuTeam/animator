@@ -1,0 +1,21 @@
+version: 2
+jobs:
+  build:
+    branches:
+      only:
+        - staging
+        - production
+    machine:
+      node:
+        version: 8.4.0
+      xcode:
+        version: 8.2
+    dependencies:
+      pre:
+        - brew install yarn
+      override:
+        - yarn
+      cache_directories:
+        - ~/.cache/yarn
+    steps:
+      - checkout

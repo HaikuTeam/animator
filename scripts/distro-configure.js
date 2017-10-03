@@ -90,5 +90,6 @@ if (!argv['non-interactive']) {
     process.exit()
   })
 } else {
+  console.log(JSON.stringify(inputs))
   writeHackyDynamicDistroConfig(inputs)
 }

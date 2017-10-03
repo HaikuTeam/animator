@@ -1,20 +1,28 @@
 var os = require('os')
 var path = require('path')
-require(path.join(os.homedir(), 'Secrets', 'haiku-distro.js'))
 
-if (!process.env.HAIKU_INTENRAL_SLACK_CLIENT_ID) throw new Error('env var missing')
-if (!process.env.HAIKU_INTENRAL_SLACK_CLIENT_SECRET) throw new Error('env var missing')
-if (!process.env.HAIKU_INTENRAL_SLACK_TOKEN) throw new Error('env var missing')
+var VAULT = path.join(os.homedir(), 'Secrets')
+
+// If we're running in CircleCI these would have been set these in their web UI
+if (!process.env.CIRCLE_BRANCH) {
+  require(path.join(VAULT, 'haiku-distro.js'))
+}
+
+if (!process.env.HAIKU_INTERNAL_SLACK_CLIENT_ID) throw new Error('env var missing')
+if (!process.env.HAIKU_INTERNAL_SLACK_CLIENT_SECRET) throw new Error('env var missing')
+if (!process.env.HAIKU_INTERNAL_SLACK_TOKEN) throw new Error('env var missing')
 if (!process.env.HAIKU_RELEASE_WRITER_KEY) throw new Error('env var missing')
 if (!process.env.HAIKU_RELEASE_WRITER_SECRET) throw new Error('env var missing')
 if (!process.env.HAIKU_S3_DEPLOYER_KEY) throw new Error('env var missing')
 if (!process.env.HAIKU_S3_DEPLOYER_SECRET) throw new Error('env var missing')
 
 module.exports = {
+  vault: VAULT,
+  certificate: 'DeveloperIdApplicationMatthewB73M94S23A.p12',
   slack: {
-    clientId: process.env.HAIKU_INTENRAL_SLACK_CLIENT_ID,
-    clientSecret: process.env.HAIKU_INTENRAL_SLACK_CLIENT_SECRET,
-    token: process.env.HAIKU_INTENRAL_SLACK_TOKEN
+    clientId: process.env.HAIKU_INTERNAL_SLACK_CLIENT_ID,
+    clientSecret: process.env.HAIKU_INTERNAL_SLACK_CLIENT_SECRET,
+    token: process.env.HAIKU_INTERNAL_SLACK_TOKEN
   },
   deployer: {
     production: {
