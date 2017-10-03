@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
 
-if [ ${CIRCLE_BRANCH} ]
+if [ ${TRAVIS} ]
 then
-  export NODE_ENV=${CIRCLE_BRANCH}
-  yarn install # 1m
-  yarn run yarn-install # 5m
-  yarn relink
-  node ./scripts/distro-download-certs.js
+  export NODE_ENV=${TRAVIS_BRANCH}
 fi
 
 node ./scripts/distro-configure.js --non-interactive # 0m
