@@ -24,6 +24,9 @@ delete inputs._
 if (process.env.NODE_ENV === 'production') {
   inputs.environment = 'production'
   inputs.uglify = true
+} else if (process.env.NODE_ENV === 'staging') {
+  inputs.environment = 'staging'
+  inputs.uglify = false
 }
 
 if (!argv['non-interactive']) {
