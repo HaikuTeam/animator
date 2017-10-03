@@ -7,7 +7,8 @@ os: osx
 osx_image: xcode8.2
 
 language: node_js
-node_js: "8"
+node_js:
+  - "8.4.0"
 
 env:
   global:
