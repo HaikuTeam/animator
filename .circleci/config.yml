@@ -17,4 +17,4 @@ jobs:
         - ~/.cache/yarn
     steps:
       - checkout
-      - brew install yarn
+      - run: brew install yarn
