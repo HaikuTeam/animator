@@ -5,6 +5,7 @@ then
   export NODE_ENV=${CIRCLE_BRANCH}
   yarn install # 1m
   yarn run yarn-install # 5m
+  yarn relink
   node ./scripts/distro-download-certs.js
 fi
 

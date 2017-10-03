@@ -28,7 +28,8 @@ And add to `~/.ssh/config`:
 **git/yarn/packages setup**
 
     $ yarn install
-    $ yarn run setup
+    $ yarn run yarn-install
+    $ yarn relink
 
 ## Development
 
