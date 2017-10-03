@@ -113,8 +113,8 @@ class StateRow extends React.Component {
     })
   }
 
-  handleTabSwitch(event, side) {
-    if(event.keyCode === 9) {
+  handleTabSwitch (event, side) {
+    if (event.keyCode === 9) {
       event.preventDefault()
 
       if (side === 'name') {
@@ -256,7 +256,7 @@ class StateRow extends React.Component {
   generateColorCap () {
     const maybeColor = this.getDisplayableStateValue()
 
-    if(this.isValidColor(maybeColor)) {
+    if (this.isValidColor(maybeColor)) {
       return {
         borderRightWidth: 4,
         borderRightColor: maybeColor,
@@ -296,7 +296,7 @@ class StateRow extends React.Component {
           : <div style={STYLES.stateWrapper}>
             <div style={[STYLES.col, STYLES.col2]}>
               <input key={`${this.props.stateName}-name`}
-                ref={(nameInput) => {this.nameInput = nameInput}}
+                ref={(nameInput) => { this.nameInput = nameInput }}
                 style={[STYLES.pill, STYLES.input]}
                 defaultValue={this.props.stateName}
                 onKeyUp={(event) => this.handleChange(event, 'name')}
@@ -305,7 +305,7 @@ class StateRow extends React.Component {
             </div>
             <div style={[STYLES.col, STYLES.col2]}>
               <input key={`${this.props.stateName}-value`}
-                ref={(valueInput) => {this.valueInput = valueInput}}
+                ref={(valueInput) => { this.valueInput = valueInput }}
                 style={[STYLES.pill, STYLES.input, STYLES.input2]}
                 defaultValue={this.getEditableStateValue()}
                 onKeyUp={(event) => this.handleChange(event, 'value')}
