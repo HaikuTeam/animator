@@ -214,6 +214,9 @@ class TourHandler {
     isTourActive() {
         return this.isActive;
     }
+    getCurrentStep() {
+        return this.currentStep;
+    }
     start(force) {
         if ((!HaikuHomeDir_1.didTakeTour() && !this.isActive) || force) {
             this.currentStep = 0;
