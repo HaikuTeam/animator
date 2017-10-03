@@ -27,7 +27,6 @@ before_install:
 
 install:
   - yarn
-  - yarn run yarn-install
   - node ./scripts/distro-download-certs.js
 
 script:
