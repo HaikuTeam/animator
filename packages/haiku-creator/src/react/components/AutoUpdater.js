@@ -41,6 +41,7 @@ class AutoUpdater extends React.Component {
 
     this.state = {
       isDownloading: false,
+      isDownloadFinished: false,
       progress: 0
     }
   }
@@ -69,7 +70,11 @@ class AutoUpdater extends React.Component {
 
     return (
       <div>
-        <span>Updating Haiku...</span>
+        <span>
+        {this.state.isDownloadFinished
+          ? 'Update installed! Loading your Haiku!'
+          : 'An update is available. Downloading and installing...'}
+        </span>
         <p style={STYLES.progressNumber}>{progress} %</p>
         <progress value={progress} max='100'>{progress} %</progress>
       </div>

@@ -28,7 +28,10 @@ function _download (url, downloadPath, onProgress) {
 
       response.on('data', data => {
         progress += data.length
-        onProgress({progress: progress * 100 / contentLenght})
+        onProgress({
+          progress: progress * 100 / contentLenght,
+          isDownloadFinished: false
+        })
       })
 
       response.on('error', error => {
@@ -37,6 +40,10 @@ function _download (url, downloadPath, onProgress) {
       })
 
       file.on('finish', () => {
+        onProgress({
+          progress: 100,
+          isDownloadFinished: true
+        })
         file.close(resolve)
       })
     })
