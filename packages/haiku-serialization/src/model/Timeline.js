@@ -84,7 +84,7 @@ function TimelineModel (component, window) {
     var lap = Date.now()
     var spanMs = lap - this.stopwatch
     var spanS = spanMs / 1000
-    var spanFrames = spanS * this.fps
+    var spanFrames = Math.round(spanS * this.fps)
     // var max // TODO: handle?
     return this.lastAuthoritativeFrame + spanFrames
   }
