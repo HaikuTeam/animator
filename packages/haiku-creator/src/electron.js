@@ -168,6 +168,10 @@ function createWindow () {
     browserWindow.webContents.send('global-menu:start-tour')
   })
 
+  topmenu.on('global-menu:check-updates', () => {
+    browserWindow.webContents.send('global-menu:check-updates')
+  })
+
   // active in dev & staging only
   topmenu.on('global-menu:open-hacker-helper', () => {
     browserWindow.webContents.send('global-menu:open-hacker-helper')

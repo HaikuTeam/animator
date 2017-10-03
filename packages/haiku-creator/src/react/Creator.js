@@ -117,6 +117,9 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:redo', lodash.debounce(() => {
       this.props.websocket.send({ method: 'gitRedo', params: [this.state.projectFolder, { type: 'global' }] })
     }, 500, { leading: true }))
+    ipcRenderer.on('global-menu:redo', () => {
+      this.setState()
+    })
   }
 
   openTerminal (folder) {
