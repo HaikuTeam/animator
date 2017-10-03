@@ -3,6 +3,10 @@ var fse = require('fs-extra')
 var initializeAWSService = require('./helpers/initializeAWSService')
 var deploy = require('./deploy')
 
+if (process.env.TRAVIS) {
+  process.env.NODE_ENV = process.env.TRAVIS_BRANCH
+}
+
 if (!process.env.NODE_ENV) throw new Error('NODE_ENV needs to be set')
 
 var s3 = initializeAWSService(
