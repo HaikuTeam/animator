@@ -1,18 +1,43 @@
 import React from 'react'
 import autoUpdate from '../../utils/autoUpdate'
 import debounce from 'lodash.debounce'
+import Palette from './Palette'
 
 const STYLES = {
   container: {
     color: 'black',
-    fontSize: 20,
-    marginTop: 50
+    fontSize: 18,
+    zIndex: 999999,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 25,
+    position: 'fixed',
+    display: 'inline-block',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)'
+  },
+  overlay: {
+    position: 'fixed',
+    width: '100%',
+    height: '100%',
+    top: 0,
+    left: 0,
+    backgroundColor: Palette.SHADY,
+    zIndex: 99999,
+    pointerEvents: 'none'
+  },
+  progressNumber: {
+    fontSize: 15,
+    margin: '10px 0 0 0'
   }
 }
 
 class AutoUpdater extends React.Component {
   constructor (props) {
     super(props)
+
+    this.debouncedSetState = debounce(this.setState.bind(this), 500)
 
     this.state = {
       isDownloading: false,
@@ -25,23 +50,28 @@ class AutoUpdater extends React.Component {
   }
 
   async checkForUpdates () {
-    const {shouldUpdate, url} = await autoUpdate.checkUpdates()
+    try {
+      const {shouldUpdate, url} = await autoUpdate.checkUpdates()
 
-    if (shouldUpdate) {
-      this.setState({isDownloading: true})
-      autoUpdate.update(url, debounce(({ progress }) => {
-        this.setState({ progress })
-      }, 500))
-    } else {
+      if (shouldUpdate) {
+        this.setState({isDownloading: true})
+        autoUpdate.update(url, this.debouncedSetState)
+      } else {
+        this.props.onAutoUpdateCheckComplete()
+      }
+    } catch (e) {
       this.props.onAutoUpdateCheckComplete()
     }
   }
 
   renderProgressBar () {
+    const progress = this.state.progress.toFixed(1)
+
     return (
       <div>
-        <p>Downloading updates...</p>
-        <p>{this.state.progress.toFixed(2)} %</p>
+        <span>Updating Haiku...</span>
+        <p style={STYLES.progressNumber}>{progress} %</p>
+        <progress value={progress} max='100'>{progress} %</progress>
       </div>
     )
   }
@@ -49,17 +79,20 @@ class AutoUpdater extends React.Component {
   renderCheckingForUpdates () {
     return (
       <div>
-        <p>Checking for updates...</p>
+        <span>Checking for updates...</span>
       </div>
     )
   }
 
   render () {
     return (
-      <div style={STYLES.container}>
-        {this.state.isDownloading
-          ? this.renderProgressBar()
-          : this.renderCheckingForUpdates()}
+      <div>
+        <div style={STYLES.container}>
+          {this.state.isDownloading
+            ? this.renderProgressBar()
+            : this.renderCheckingForUpdates()}
+        </div>
+        <div style={STYLES.overlay} />
       </div>
     )
   }
