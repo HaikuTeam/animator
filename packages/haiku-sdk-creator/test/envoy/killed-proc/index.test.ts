@@ -8,7 +8,7 @@ import CatHandler from './CatHandler'
 tape('envoy:killed-proc', async (t) => {
     t.plan(1)
 
-    var server = new EnvoyServer({ logger: new EnvoyLogger("info") })
+    var server = new EnvoyServer({ logger: new EnvoyLogger("error") })
     server = await server.ready()
     server.bindHandler("cat", CatHandler, new CatHandler(server))
     process.env.HAIKU_SDK_TEST_PORT = "" + server.port

@@ -6,7 +6,7 @@ import CatHandler from './CatHandler'
 const client = new EnvoyClient<CatHandler>({
   port: parseInt(process.env.HAIKU_SDK_TEST_PORT, 10),
   WebSocket: ws,
-  logger: new EnvoyLogger("info") 
+  logger: new EnvoyLogger("error")
 })
 
 async function go () {

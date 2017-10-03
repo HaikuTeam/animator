@@ -1,42 +1,43 @@
-// import EnvoyClient from '../../lib/envoy/client.js'
-// import EnvoyServer from '../../lib/envoy/server.js'
-// import EnvoyLogger from '../../lib/envoy/logger.js'
-// import { EnvoyHandler } from '../../lib/envoy'
-// import TourHandler from '../../lib/tour/tour'
-// import * as ws from 'ws'
-// import * as tape from 'tape'
+import EnvoyClient from '../../lib/envoy/client.js'
+import EnvoyServer from '../../lib/envoy/server.js'
+import EnvoyLogger from '../../lib/envoy/logger.js'
+import { EnvoyHandler } from '../../lib/envoy'
+import TourHandler from '../../lib/tour/tour'
+import * as ws from 'ws'
+import * as tape from 'tape'
 
-// tape('tour:next acts like a fsm', (t) => {
-//     t.plan(3)
+tape('tour:lifecycle methods starts and ends the tour properly', async (t) => {
+    t.plan(4)
 
-//     let client = _setTour()
+    let server
+    let tourHandler
+    let client
 
-//     client.get("tour").then(async (handler: TourHandler) => {
-//         let { value, done } = await handler.next()
+    server = new EnvoyServer({ logger: new EnvoyLogger("error"), mock: true })
+    server = await server.ready()
+    tourHandler = new TourHandler(server)
 
-//         t.equal(value.index, 0)
-//         t.equal(value.selector, '#test')
-//         t.notOk(done)
-//     })
-// })
+    server.bindHandler("tour", TourHandler, tourHandler)
+    client = new EnvoyClient<TourHandler>({ port: server.port, WebSocket: ws, logger: new EnvoyLogger("error") })
 
-// tape('tour:next increments the steps every time is invoked', (t) => {
-//     t.plan(2)
+    client.get("tour").then(async (handler: TourHandler) => {
+        let isActive
+        let step
 
-//     let client = _setTour()
+        await handler.start(true)
+        isActive = await handler.isTourActive()
+        step = await handler.getCurrentStep()
+        t.ok(isActive, '#start starts the tour')
+        t.equal(step, 0, '#start sets the tour current step to 0')
 
-//     client.get("tour").then(async (handler: TourHandler) => {
-//         let step = await handler.next()
-//         t.equal(step.value.index, 0)
+        await handler.next()
+        step = await handler.getCurrentStep()
+        t.equal(step, 1, '#next increases the tour current step by one')
 
-//         step = await handler.next()
-//         t.equal(step.value.index, 1)
-//     })
-// })
+        await handler.finish()
+        isActive = await handler.isTourActive()
+        t.notOk(isActive, '#finish finishes the tour')
 
-// function _setTour() {
-//     let server = new EnvoyServer({ logger: new EnvoyLogger("info") })
-//     let tourHandler = new TourHandler(server)
-//     server.bindHandler("tour", TourHandler, tourHandler)
-//     return new EnvoyClient<TourHandler>({ WebSocket: ws })
-// }
+        server.close()
+    })
+})

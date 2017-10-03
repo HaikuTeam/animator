@@ -14,11 +14,11 @@ tape('envoy:index:basic', async (t) => {
         }
     }
 
-    let server = new EnvoyServer({ logger: new EnvoyLogger("info") })
+    let server = new EnvoyServer({ logger: new EnvoyLogger("error") })
     server = await server.ready()
     server.bindHandler("foo", TestHandler, new TestHandler())
 
-    var client = new EnvoyClient<TestHandler>({ port: server.port, WebSocket: ws, logger: new EnvoyLogger("info") })
+    var client = new EnvoyClient<TestHandler>({ port: server.port, WebSocket: ws, logger: new EnvoyLogger("error") })
     client.get("foo").then(async (fooHandler: TestHandler) => {
         var ret = await fooHandler.doFoo("meow")
         t.equal(ret, "foo, meow!")
@@ -65,11 +65,11 @@ tape('envoy:index:events', async (t) => {
         }
     }
 
-    let server = new EnvoyServer({ logger: new EnvoyLogger("info") })
+    let server = new EnvoyServer({ logger: new EnvoyLogger("error") })
     server = await server.ready()
     server.bindHandler("foo-event", TestEventHandler, new TestEventHandler(server))
 
-    var client = new EnvoyClient<TestEventHandler>({ port: server.port, WebSocket: ws, logger: new EnvoyLogger("info") })
+    var client = new EnvoyClient<TestEventHandler>({ port: server.port, WebSocket: ws, logger: new EnvoyLogger("error") })
     client.get("foo-event").then(async (fooClient: TestEventHandler & EnvoyHandler) => {
         fooClient.on("foo", (payload) => {
             t.equal(payload, "data for dayz")
