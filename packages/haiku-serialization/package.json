@@ -48,6 +48,7 @@
     "lodash.debounce": "4.0.8",
     "lodash.find": "4.6.0",
     "lodash.merge": "4.6.0",
+    "mixpanel": "0.6.0",
     "node-hook": "^0.4.0",
     "pascalcase": "0.1.1",
     "prettier": "^0.22.0",
