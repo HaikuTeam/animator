@@ -3,8 +3,8 @@
  */
 
 import assignClass from "./assignClass"
-import assignEvent from "./assignEvent"
 import assignStyle from "./assignStyle"
+import attachEventListener from "./attachEventListener"
 import getFlexId from "./getFlexId"
 
 const STYLE = "style"
@@ -132,7 +132,7 @@ export default function assignAttributes(
       key[1] === "n" &&
       typeof anotherNewValue === FUNCTION
     ) {
-      assignEvent(domElement, key.slice(2).toLowerCase(), anotherNewValue, component)
+      attachEventListener(virtualElement, domElement, key.slice(2).toLowerCase(), anotherNewValue, component)
       continue
     }
 
@@ -146,7 +146,7 @@ export default function assignAttributes(
     for (let eventName in virtualElement.__handlers) {
       let handler = virtualElement.__handlers[eventName]
       if (!handler.__subscribed) {
-        assignEvent(domElement, eventName, handler, component)
+        attachEventListener(virtualElement, domElement, eventName, handler, component)
         handler.__subscribed = true
       }
     }
