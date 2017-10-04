@@ -1022,7 +1022,9 @@ ActiveComponent.prototype.upsertEventHandler = function upsertEventHandler (sele
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', null, null, null, null, metadata)
-    this._clearCaches()
+    this._clearCaches({
+      clearPreviouslyRegisteredEventListeners: true
+    })
 
     if (metadata.from === this.alias) {
       this.websocket.send({ type: 'action', method: 'upsertEventHandler', params: [this.folder, selectorName, eventName, handlerDescriptor] })
@@ -1044,7 +1046,9 @@ ActiveComponent.prototype.deleteEventHandler = function deleteEventHandler (sele
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', null, null, null, null, metadata)
-    this._clearCaches()
+    this._clearCaches({
+      clearPreviouslyRegisteredEventListeners: true
+    })
 
     if (metadata.from === this.alias) {
       this.websocket.send({ type: 'action', method: 'deleteEventHandler', params: [this.folder, selectorName, eventName] })
