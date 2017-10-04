@@ -888,14 +888,20 @@ class Timeline extends React.Component {
   }
 
   executeBytecodeActionSplitSegment (componentId, timelineName, elementName, propertyName, startMs) {
-    BytecodeActions.splitSegment(this.state.reifiedBytecode, componentId, timelineName, elementName, propertyName, startMs)
-    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
-    this._component._clearCaches()
-    this.setState({
-      reifiedBytecode: this.state.reifiedBytecode,
-      serializedBytecode: this._component.getSerializedBytecode()
+    lodash.each(this.state.selectedSegments, (s) => {
+      if (s.hasCurve) {
+        BytecodeActions.splitSegment(this.state.reifiedBytecode, componentId, timelineName, s.elementName, s.propertyName, s.ms)
+        clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+        this._component._clearCaches()
+        this.setState({
+          reifiedBytecode: this.state.reifiedBytecode,
+          serializedBytecode: this._component.getSerializedBytecode(),
+          selectedKeyframes: {},
+          selectedSegments: {}
+        })
+        this.props.websocket.action('splitSegment', [this.props.folder, [componentId], timelineName, s.elementName, s.propertyName, s.ms], () => {})
+      }
     })
-    this.props.websocket.action('splitSegment', [this.props.folder, [componentId], timelineName, elementName, propertyName, startMs], () => {})
   }
 
   executeBytecodeActionDeleteKeyframe (keyframes, timelineName) {
@@ -1811,6 +1817,7 @@ class Timeline extends React.Component {
             id: componentId + '-' + propertyName + '-' + (curr.index + 1),
             componentId,
             propertyName,
+            elementName,
             index: next.index,
             ms: next.ms,
             handle: 'middle'
