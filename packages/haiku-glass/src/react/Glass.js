@@ -849,7 +849,7 @@ export class Glass extends React.Component {
     }
   }
 
-  controlActivation (controlActivation) {
+  controlActivation (activationInfo) {
     var artboard = this.getArtboardRect()
     this.setState({
       isAnythingRotating: this.state.isKeyCommandDown,
@@ -859,15 +859,15 @@ export class Glass extends React.Component {
         ctrl: this.state.isKeyCtrlDown,
         cmd: this.state.isKeyCommandDown,
         alt: this.state.isKeyAltDown,
-        index: controlActivation.index,
+        index: activationInfo.index,
         arboard: artboard,
         client: {
-          x: controlActivation.event.clientX,
-          y: controlActivation.event.clientY
+          x: activationInfo.event.clientX,
+          y: activationInfo.event.clientY
         },
         coords: {
-          x: controlActivation.event.clientX - artboard.left,
-          y: controlActivation.event.clientY - artboard.top
+          x: activationInfo.event.clientX - artboard.left,
+          y: activationInfo.event.clientY - artboard.top
         }
       }
     })
@@ -907,6 +907,11 @@ export class Glass extends React.Component {
         },
         children: parts
       }
+
+      // HACK! We already cache the control point listeners ourselves, so clear the cache
+      // used normally by the component instance for caching/deduping listeners in production
+      this._haikuContext.component._registeredElementEventListeners = {}
+
       this._haikuRenderer.render(this.refs.overlay, container, overlay, this._haikuContext.component, false)
     }
   }
