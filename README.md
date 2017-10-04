@@ -69,8 +69,6 @@ There are configurations included here for debugging any of the UI directly from
 
 To debug, first launch mono normally (see `Starting`) — then from VS Code's left-side Debug menu, select `attach-glass`, `attach-timeline`, or `attach-creator`.  You can then place breakpoints, explore stack traces, explore local values (and more) from inside VS Code.
 
-TODO:  write a similar config for debugging node/electron processes
-
 
 **Advanced**
 

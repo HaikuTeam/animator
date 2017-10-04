@@ -9,7 +9,7 @@
     "Zack Brown <zack@haiku.ai>"
   ],
   "scripts": {
-    "start": "electron ./lib/electron.js",
+    "start": "electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
     "compile": "babel src --out-dir lib --source-maps inline",
     "test": "tape \"test/**/*.test.js\" | tap-spec",
