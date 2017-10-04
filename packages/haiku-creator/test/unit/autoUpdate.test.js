@@ -15,13 +15,14 @@ test('autoUpdate #generateURL generates an expected URL', (t) => {
   url = 'https://server.com/updates/latest?environment=test&branch=master&platform=macOS&version=1.0.1'
   t.equal(autoUpdate.generateURL(options), url, 'is the expected URL')
 
+  let modifiedOpts = {...options, environment: 'production', branch: 'staging'}
   url = 'https://server.com/updates/latest?environment=production&branch=staging&platform=macOS&version=1.0.1'
-  t.equal(autoUpdate.generateURL({...options, environment: 'production', branch: 'staging'}), url, 'is the expected URL')
+  t.equal(autoUpdate.generateURL(modifiedOpts), url, 'is the expected URL')
 
   t.end()
 })
 
-test('autoUpdate #checkUpdates returns [false, null] if not updates are available', async (t) => {
+test('autoUpdate #checkUpdates returns the proper tuple if not updates are available', async (t) => {
   let stubbedAutoUpdate = stub(autoUpdate, 'checkServer', async () => {
     return { status: 204, message: '' }
   })
@@ -34,7 +35,7 @@ test('autoUpdate #checkUpdates returns [false, null] if not updates are availabl
   t.end()
 })
 
-test('autoUpdate #checkUpdates returns [true, url] if there is an update', async (t) => {
+test('autoUpdate #checkUpdates returns the proper tuple if there is an update', async (t) => {
   let stubbedAutoUpdate = stub(autoUpdate, 'checkServer', async () => {
     return { status: 200, url: 'http://test.com' }
   })
