@@ -19,7 +19,7 @@ install:
   - yarn
 
 script:
-  - node ./scripts/distro-download-certs.js
+  - node ./scripts/distro-download-secrets.js
   - yarn relink
   - node ./scripts/distro-configure.js --non-interactive # 0m
   - travis_wait 30 node ./scripts/distro-prepare.js # 3m
