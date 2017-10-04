@@ -120,7 +120,7 @@ const DEFAULTS = {
   inputSelected: null,
   inputFocused: null,
   expandedPropertyClusters: {},
-  activeKeyframes: {},
+  selectedKeyframes: {},
   reifiedBytecode: null,
   serializedBytecode: null
 }
@@ -579,8 +579,8 @@ class Timeline extends React.Component {
       // case 46: //delete
       // case 13: //enter
       case 8: // delete
-        if (!lodash.isEmpty(this.state.activeKeyframes)) {
-          this.executeBytecodeActionDeleteKeyframe(this.state.activeKeyframes, this.state.currentTimelineName)
+        if (!lodash.isEmpty(this.state.selectedKeyframes)) {
+          this.executeBytecodeActionDeleteKeyframe(this.state.selectedKeyframes, this.state.currentTimelineName)
         }
       case 16: return this.updateKeyboardState({ isShiftKeyDown: true })
       case 17: return this.updateKeyboardState({ isControlKeyDown: true })
@@ -927,7 +927,7 @@ class Timeline extends React.Component {
       })
       this.props.websocket.action('deleteKeyframe', [this.props.folder, [k.componentId], timelineName, k.propertyName, k.ms], () => {})
     })
-    this.setState({activeKeyframes: {}})
+    this.setState({selectedKeyframes: {}})
   }
 
   executeBytecodeActionChangeSegmentCurve (componentId, timelineName, propertyName, startMs, curveName) {
@@ -1004,7 +1004,7 @@ class Timeline extends React.Component {
     We're going to use the call from what's being dragged, because that's sometimes a transition body
     rather than a simple keyframe.
 
-    From there we're going to learn how far to move all other keyframes in activeKeyframes: {}
+    From there we're going to learn how far to move all other keyframes in selectedKeyframes: {}
 
     Concerns:
       When we need to stop one keyframe because it can't go any further, we need to stop the entire group drag.
@@ -1012,11 +1012,11 @@ class Timeline extends React.Component {
     Notes:
       When a user drags a segment body it has the "body" handle. It
     */
-    let activeKeyframes = this.state.activeKeyframes
+    let selectedKeyframes = this.state.selectedKeyframes
     const frameInfo = this.getFrameInfo()
     const changeMs = endMs - startMs
 
-    lodash.each(activeKeyframes, (k) => {
+    lodash.each(selectedKeyframes, (k) => {
       const adjustedMs = parseInt(k.ms) + changeMs
       let keyframeMoves = BytecodeActions.moveSegmentEndpoints(
         this.state.reifiedBytecode,
@@ -1031,9 +1031,9 @@ class Timeline extends React.Component {
       )
       // Update our selected keyframes start time now that we've moved them
       // Note: This seems like there's probably a more clever way to make sure this gets
-      // updated when via the BytecodeActions.moveSegmentEndpoints perhaps.
-      activeKeyframes[k.componentId + '-' + k.propertyName + '-' + k.index].ms = Object.keys(keyframeMoves)[k.index]
-      this.setState({activeKeyframes})
+      // updated via the BytecodeActions.moveSegmentEndpoints perhaps.
+      selectedKeyframes[k.componentId + '-' + k.propertyName + '-' + k.index].ms = Object.keys(keyframeMoves)[k.index]
+      this.setState({selectedKeyframes})
 
       // The 'keyframeMoves' indicate a list of changes we know occurred. Only if some occurred do we bother to update the other views
       if (Object.keys(keyframeMoves).length > 0) {
@@ -1628,10 +1628,10 @@ class Timeline extends React.Component {
         }, THROTTLE_TIME)}
         onMouseDown={(e) => {
           e.stopPropagation()
-          let activeKeyframes = this.state.activeKeyframes
-          if (!e.shiftKey) activeKeyframes = {}
+          let selectedKeyframes = this.state.selectedKeyframes
+          if (!e.shiftKey) selectedKeyframes = {}
 
-          activeKeyframes[componentId + '-' + propertyName + '-' + curr.index] = {
+          selectedKeyframes[componentId + '-' + propertyName + '-' + curr.index] = {
             id: componentId + '-' + propertyName + '-' + curr.index,
             index: curr.index,
             ms: curr.ms,
@@ -1639,7 +1639,7 @@ class Timeline extends React.Component {
             componentId,
             propertyName
           }
-          this.setState({ activeKeyframes })
+          this.setState({ selectedKeyframes })
         }}>
         <span
           onContextMenu={(ctxMenuEvent) => {
@@ -1684,7 +1684,7 @@ class Timeline extends React.Component {
 
   renderSoloKeyframe (frameInfo, componentId, elementName, propertyName, reifiedBytecode, prev, curr, next, pxOffsetLeft, pxOffsetRight, index, options) {
     let isActive = false
-    if (this.state.activeKeyframes[componentId + '-' + propertyName + '-' + curr.index] != undefined) isActive = true
+    if (this.state.selectedKeyframes[componentId + '-' + propertyName + '-' + curr.index] != undefined) isActive = true
 
     return (
       <span
@@ -1727,8 +1727,8 @@ class Timeline extends React.Component {
     const CurveSVG = CURVESVGS[curve + 'SVG']
     let firstKeyframeActive = false
     let secondKeyframeActive = false
-    if (this.state.activeKeyframes[componentId + '-' + propertyName + '-' + curr.index] != undefined) firstKeyframeActive = true
-    if (this.state.activeKeyframes[componentId + '-' + propertyName + '-' + (curr.index + 1)] != undefined) secondKeyframeActive = true
+    if (this.state.selectedKeyframes[componentId + '-' + propertyName + '-' + curr.index] != undefined) firstKeyframeActive = true
+    if (this.state.selectedKeyframes[componentId + '-' + propertyName + '-' + (curr.index + 1)] != undefined) secondKeyframeActive = true
 
     return (
       <DraggableCore
@@ -1758,9 +1758,9 @@ class Timeline extends React.Component {
         }, THROTTLE_TIME)}
         onMouseDown={(e) => {
           e.stopPropagation()
-          let activeKeyframes = this.state.activeKeyframes
-          if (!e.shiftKey) activeKeyframes = {}
-          activeKeyframes[componentId + '-' + propertyName + '-' + curr.index] = {
+          let selectedKeyframes = this.state.selectedKeyframes
+          if (!e.shiftKey) selectedKeyframes = {}
+          selectedKeyframes[componentId + '-' + propertyName + '-' + curr.index] = {
             id: componentId + '-' + propertyName + '-' + curr.index,
             componentId,
             propertyName,
@@ -1768,7 +1768,7 @@ class Timeline extends React.Component {
             ms: curr.ms,
             handle: 'middle'
           }
-          activeKeyframes[componentId + '-' + propertyName + '-' + (curr.index + 1)] = {
+          selectedKeyframes[componentId + '-' + propertyName + '-' + (curr.index + 1)] = {
             id: componentId + '-' + propertyName + '-' + (curr.index + 1),
             componentId,
             propertyName,
@@ -1776,7 +1776,7 @@ class Timeline extends React.Component {
             ms: next.ms,
             handle: 'middle'
           }
-          this.setState({ activeKeyframes })
+          this.setState({ selectedKeyframes })
         }}>
         <span
           className='pill-container'
@@ -2910,7 +2910,7 @@ class Timeline extends React.Component {
             overflowX: 'hidden'
           }}
           onMouseDown={() => {
-            this.setState({activeKeyframes: {}})
+            this.setState({selectedKeyframes: {}})
           }}>
           {this.renderComponentRows(this.state.componentRowsData)}
         </div>
