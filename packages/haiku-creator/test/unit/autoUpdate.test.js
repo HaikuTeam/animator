@@ -48,6 +48,29 @@ test('autoUpdate #checkUpdates returns the proper tuple if there is an update', 
   t.end()
 })
 
+test('autoUpdate #update throws an error if does not have the correct env variables', async (t) => {
+  try {
+    await autoUpdate.update()
+    t.fail('should throw error')
+  } catch (err) {
+    t.equal(err.message, 'Missing release/autoupdate environment variables', 'throws w/correct error')
+  }
+
+  t.end()
+})
+
+test('autoUpdate #update does nothing if process.env.HAIKU_SKIP_AUTOUPDATE is set', async (t) => {
+  try {
+    process.env.HAIKU_SKIP_AUTOUPDATE = '1'
+    await autoUpdate.update()
+    t.pass('autoUpdate#update is not executed')
+  } catch (err) {
+    t.fail('should not throw errors')
+  }
+
+  t.end()
+})
+
 function stub (object, functionName, stub) {
   return { ...object, [functionName]: stub }
 }
