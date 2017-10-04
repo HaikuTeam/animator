@@ -3,7 +3,7 @@ import Tooltip from '../Tooltip'
 import { shell } from 'electron'
 import { TOUR_STYLES } from '../../styles/tourShared'
 import * as steps from './Steps'
-import mixpanel from '../../../utils/Mixpanel'
+import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 
 class Tour extends React.Component {
   constructor () {

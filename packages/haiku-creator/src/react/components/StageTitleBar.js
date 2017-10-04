@@ -20,7 +20,7 @@ import {
   CliboardIconSVG
 } from './Icons'
 
-var mixpanel = require('./../../utils/Mixpanel')
+var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
 const STYLES = {
   hide: {

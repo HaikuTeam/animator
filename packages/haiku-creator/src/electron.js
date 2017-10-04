@@ -26,7 +26,7 @@ var creator = new CreatorElectron()
 
 var BrowserWindow = electron.BrowserWindow
 var autoUpdate = require('./utils/autoUpdate')
-var mixpanel = require('./utils/Mixpanel')
+var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 var dialog = require('electron').dialog
 
 var URL = 'file://' + path.join(__dirname, '..', 'index.html')

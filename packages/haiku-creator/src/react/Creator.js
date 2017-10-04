@@ -26,7 +26,7 @@ import {
 
 var pkg = require('./../../package.json')
 
-var mixpanel = require('./../utils/Mixpanel')
+var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
 const electron = require('electron')
 const remote = electron.remote
