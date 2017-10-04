@@ -1,16 +1,20 @@
 "use strict";
 exports.__esModule = true;
 var Events_1 = require("./Events");
-function attachEventListener(domElement, eventName, listener, component) {
+function attachEventListener(virtualElement, domElement, eventName, listener, component) {
     if (typeof listener === "function") {
+        var target = void 0;
         if (Events_1["default"].window[eventName]) {
-            var win = domElement.ownerDocument.defaultView || domElement.ownerDocument.parentWindow;
-            if (win) {
-                win.addEventListener(eventName, listener);
-            }
+            target = domElement.ownerDocument.defaultView || domElement.ownerDocument.parentWindow;
         }
         else {
-            domElement.addEventListener(eventName, listener);
+            target = domElement;
+        }
+        if (target) {
+            if (!component._hasRegisteredListenerOnElement(virtualElement, eventName, listener)) {
+                component._markDidRegisterListenerOnElement(virtualElement, target, eventName, listener);
+                target.addEventListener(eventName, listener);
+            }
         }
     }
 }
