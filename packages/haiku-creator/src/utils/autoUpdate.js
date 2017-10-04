@@ -3,7 +3,6 @@ const https = require('https')
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
-const unzip = require('extract-zip')
 const electron = require('electron')
 const fetch = require('node-fetch')
 const {exec} = require('child_process')
@@ -40,38 +39,22 @@ function _download (url, downloadPath, onProgress) {
       })
 
       file.on('finish', () => {
-        onProgress({
-          progress: 100,
-          isDownloadFinished: true
-        })
         file.close(resolve)
       })
     })
   })
 }
 
-function _mv (oldPath, newPath) {
+function _unzip (zipPath, destination) {
   return new Promise((resolve, reject) => {
     exec(
-      `rm -rf ${newPath}/Haiku.app && mv ${oldPath} ${newPath}`,
+      `unzip -o -qq ${zipPath} -d ${destination}`,
       {},
       err => {
         if (err) reject(err)
         resolve(true)
       }
     )
-  })
-}
-
-function _unzip (zipPath, destination) {
-  const tempPath = os.tmpdir()
-
-  return new Promise((resolve, reject) => {
-    unzip(zipPath, {dir: tempPath}, err => {
-      if (err) reject(err)
-
-      return _mv(`${tempPath}/Haiku.app`, destination)
-    })
   })
 }
 
@@ -89,11 +72,12 @@ module.exports = {
       }
     }
 
-    const downloadPath = path.join(os.tmpdir(), 'haiku.zip')
-    const installationPath = '/Applications/'
+    const tempPath = os.tmpdir()
+    const zipPath = `${tempPath}/haiku.zip`
+    const installationPath = '/Applications'
 
-    await _download(url, downloadPath, progressCallback)
-    await _unzip(downloadPath, installationPath)
+    await _download(url, zipPath, progressCallback)
+    await _unzip(zipPath, installationPath)
     electron.remote.app.relaunch()
     electron.remote.app.exit()
   },
