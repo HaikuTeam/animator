@@ -3,10 +3,6 @@ import Palette from './DefaultPalette'
 import getPropertyValueDescriptor from './helpers/getPropertyValueDescriptor'
 
 export default class ClusterInputField extends React.Component {
-  shouldComponentUpdate (nextProps) {
-    return true
-  }
-
   getClusterValues (node, reifiedBytecode, cluster) {
     return cluster.map((propertyDescriptor) => {
       return getPropertyValueDescriptor(

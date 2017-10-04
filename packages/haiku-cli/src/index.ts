@@ -338,15 +338,8 @@ function doDelete() {
   ensureAuth((token: string) => {
     console.log(chalk.bold("Please note that deleting this project will delete it for your entire team."))
     console.log(chalk.red("Deleting a project cannot be undone!"))
-    inquirer.prompt([
-      {
-        type: "input",
-        name: "name",
-        message: "Project Name:",
-      }
-    ]).then(function (answers: inquirer.Answers) {
-      var projectName = answers["name"]
-      console.log("Deleting project...")
+
+    function _actuallyDelete(projectName) {
       inkstone.project.deleteByName(token, projectName, (err, project) => {
         if (err) {
           console.log(chalk.red("Error deleting project.  Does this project exist?"))
@@ -356,9 +349,30 @@ function doDelete() {
           process.exit(0)
         }
       })
-    })
+    }
+
+    var projectName = args[0]
+
+    if (projectName) {
+      _actuallyDelete(projectName)
+    } else {
+      inquirer
+        .prompt([
+          {
+            type: "input",
+            name: "name",
+            message: "Project Name:"
+          }
+        ])
+        .then(function(answers: inquirer.Answers) {
+          projectName = answers["name"]
+          console.log("Deleting project...")
+          _actuallyDelete(projectName)
+        })
+    }
   })
 }
+
 
 function doDiffTail() {
   try {
