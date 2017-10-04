@@ -553,11 +553,13 @@ HaikuComponent.prototype._deactivate = function _deactivate() {
 
 HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegisteredListenerOnElement(virtualElement, eventName, listenerFunction) {
   let flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
+  if (!flexId) return false
   return this._registeredElementEventListeners[flexId] && this._registeredElementEventListeners[flexId][eventName]
 }
 
 HaikuComponent.prototype._markDidRegisterListenerOnElement = function _markDidRegisterListenerOnElement(virtualElement, domElement, eventName, listenerFunction) {
   let flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
+  if (!flexId) return this
   if (!this._registeredElementEventListeners[flexId]) this._registeredElementEventListeners[flexId] = {}
   this._registeredElementEventListeners[flexId][eventName] = {
     handler: listenerFunction,
