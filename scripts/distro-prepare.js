@@ -3,6 +3,8 @@ var cp = require('child_process')
 var path = require('path')
 var log = require('./helpers/log')
 
+require('./../config')
+
 var ROOT = path.join(__dirname, '..')
 var DISTRO_SOURCE = path.join(ROOT, 'source') // Location of distro source code to push
 var PLUMBING_SOURCE = path.join(DISTRO_SOURCE, 'plumbing') // Location of plumbing source code to push

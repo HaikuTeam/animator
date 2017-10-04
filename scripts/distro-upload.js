@@ -3,8 +3,6 @@ var log = require('./helpers/log')
 var slackShout = require('./helpers/slackShout')
 var uploadRelease = require('./helpers/uploadRelease')
 
-// Reload the config with updated values to read from
-for (var key in require.cache) delete require.cache[key]
 require('./../config.js')
 
 var platform = process.env.HAIKU_RELEASE_PLATFORM

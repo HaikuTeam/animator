@@ -3,6 +3,8 @@ var cp = require('child_process')
 var path = require('path')
 var deploy = require('./deploy')
 
+require('./../config')
+
 var ROOT = path.join(__dirname, '..')
 
 process.env.CSC_LINK = `file://${deploy.vault}/${deploy.certificate}`

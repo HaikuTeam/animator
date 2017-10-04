@@ -21,7 +21,12 @@ install:
 script:
   - node ./scripts/distro-download-certs.js
   - yarn relink
-  - ./distro.sh
+  - node ./scripts/distro-configure.js --non-interactive # 0m
+  - travis_wait 30 node ./scripts/distro-prepare.js # 3m
+  - travis_wait 30 node ./scripts/distro-electron-rebuild.js # 5m
+  - node ./scripts/distro-uglify-sources.js # 1m
+  - travis_wait 30 node ./scripts/distro-build.js # 8m
+  - node ./scripts/distro-upload.js # 2m
 
 notifications:
   email:
