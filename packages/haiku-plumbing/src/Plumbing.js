@@ -18,6 +18,7 @@ import { client as sdkClient } from 'haiku-sdk-client'
 import StateObject from 'haiku-state-object'
 import serializeError from 'haiku-serialization/src/utils/serializeError'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
 import getNormalizedComponentModulePath from 'haiku-serialization/src/model/helpers/getNormalizedComponentModulePath'
 
@@ -104,6 +105,14 @@ process.on('SIGTERM', () => {
   process.exit()
 })
 
+function _safeErrorMessage (err) {
+  if (!err) return 'unknown error'
+  if (typeof err === 'string') return err
+  if (err.stack) return err.stack
+  if (err.message) return err.message
+  return err + ''
+}
+
 export default class Plumbing extends StateObject {
   constructor () {
     super()
@@ -144,20 +153,30 @@ export default class Plumbing extends StateObject {
       // The reconnect logic is elsewhere
       return this.awaitFolderClientWithQuery(folder, 'proc-respawned+restartProject', { alias }, WAIT_DELAY, (err) => {
         if (err) {
-          throw new Error(`Waited too long for client ${alias} in ${folder} because ${err}`)
+          return this._handleUnrecoverableError(new Error(`Waited too long for client ${alias} in ${folder} because ${_safeErrorMessage(err)}`))
         }
 
         if (alias === 'master') {
           // This actually calls the method in question on the given client
           return this.restartProject(null/* projectName is ignored */, folder, (err) => {
             if (err) {
-              throw new Error(`Unable to finish restart on client ${alias} in ${folder} because ${err}`)
+              return this._handleUnrecoverableError(new Error(`Unable to finish restart on client ${alias} in ${folder} because ${_safeErrorMessage(err)}`))
             }
             logger.info(`[plumbing] restarted client ${alias} in ${folder}`)
           })
         }
       })
     })
+  }
+
+  _handleUnrecoverableError (err) {
+    mixpanel.haikuTrackOnce('app:crash', {
+      error: err.message
+    })
+    // Crash in the timeout to give a chance for mixpanel to transmit
+    setTimeout(() => {
+      throw err
+    }, 100)
   }
 
   /**
@@ -303,8 +322,7 @@ export default class Plumbing extends StateObject {
   }
 
   processMethodMessage (type, alias, folder, message, cb) {
-    // Certain messages aren't of a kind that we can reliably enqueue, either because they happen
-    // too fast or because they have a 'fire and forget' nature.
+    // Certain messages aren't of a kind that we can reliably enqueue - either they happen too fast or they are 'fire and forget'
     if (METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY[message.method]) {
       if (message.type === 'action') return this.handleClientAction(type, alias, folder, message.method, message.params, cb)
       else return this.plumbingMethod(message.method, message.params, cb)
@@ -540,9 +558,11 @@ export default class Plumbing extends StateObject {
     }
     return this.getCurrentOrganizationName((err, organizationName) => {
       if (err) return cb(err)
+      const username = sdkClient.config.getUserId()
+      mixpanel.mergeToPayload({ distinct_id: username })
       return cb(null, {
         isAuthed: true,
-        username: sdkClient.config.getUserId(),
+        username: username,
         authToken: sdkClient.config.getAuthToken(),
         organizationName
       })
@@ -561,6 +581,7 @@ export default class Plumbing extends StateObject {
       this.set('inkstoneAuthToken', authResponse.Token)
       sdkClient.config.setAuthToken(authResponse.Token)
       sdkClient.config.setUserId(username)
+      mixpanel.mergeToPayload({ distinct_id: username })
       return this.getCurrentOrganizationName((err, organizationName) => {
         if (err) return cb(err)
         return cb(null, {
@@ -855,7 +876,7 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSu
 
           this.spawnSubprocess(existingSpawnedSubprocs, folder, { name, path, args, opts }, (err, newProc) => {
             if (err) {
-              throw new Error(`Unable to respawn master for ${folder} because ${err}`)
+              return this._handleUnrecoverableError(new Error(`Unable to respawn master for ${folder} because ${_safeErrorMessage(err)}`))
             }
 
             newProc._attributes.closed = undefined

@@ -82,6 +82,10 @@ var _LoggerInstance = require('haiku-serialization/src/utils/LoggerInstance');
 
 var _LoggerInstance2 = _interopRequireDefault(_LoggerInstance);
 
+var _Mixpanel = require('haiku-serialization/src/utils/Mixpanel');
+
+var _Mixpanel2 = _interopRequireDefault(_Mixpanel);
+
 var _ProjectFolder = require('./ProjectFolder');
 
 var ProjectFolder = _interopRequireWildcard(_ProjectFolder);
@@ -188,6 +192,14 @@ process.on('SIGTERM', function () {
   process.exit();
 });
 
+function _safeErrorMessage(err) {
+  if (!err) return 'unknown error';
+  if (typeof err === 'string') return err;
+  if (err.stack) return err.stack;
+  if (err.message) return err.message;
+  return err + '';
+}
+
 var Plumbing = function (_StateObject) {
   _inherits(Plumbing, _StateObject);
 
@@ -232,14 +244,14 @@ var Plumbing = function (_StateObject) {
       // The reconnect logic is elsewhere
       return _this.awaitFolderClientWithQuery(folder, 'proc-respawned+restartProject', { alias: alias }, WAIT_DELAY, function (err) {
         if (err) {
-          throw new Error('Waited too long for client ' + alias + ' in ' + folder + ' because ' + err);
+          return _this._handleUnrecoverableError(new Error('Waited too long for client ' + alias + ' in ' + folder + ' because ' + _safeErrorMessage(err)));
         }
 
         if (alias === 'master') {
           // This actually calls the method in question on the given client
           return _this.restartProject(null /* projectName is ignored */, folder, function (err) {
             if (err) {
-              throw new Error('Unable to finish restart on client ' + alias + ' in ' + folder + ' because ' + err);
+              return _this._handleUnrecoverableError(new Error('Unable to finish restart on client ' + alias + ' in ' + folder + ' because ' + _safeErrorMessage(err)));
             }
             _LoggerInstance2.default.info('[plumbing] restarted client ' + alias + ' in ' + folder);
           });
@@ -249,11 +261,23 @@ var Plumbing = function (_StateObject) {
     return _this;
   }
 
-  /**
-   * Mostly-internal methods
-   */
-
   _createClass(Plumbing, [{
+    key: '_handleUnrecoverableError',
+    value: function _handleUnrecoverableError(err) {
+      _Mixpanel2.default.haikuTrackOnce('app:crash', {
+        error: err.message
+      });
+      // Crash in the timeout to give a chance for mixpanel to transmit
+      setTimeout(function () {
+        throw err;
+      }, 100);
+    }
+
+    /**
+     * Mostly-internal methods
+     */
+
+  }, {
     key: 'launch',
     value: function launch() {
       var _this2 = this;
@@ -412,8 +436,7 @@ var Plumbing = function (_StateObject) {
   }, {
     key: 'processMethodMessage',
     value: function processMethodMessage(type, alias, folder, message, cb) {
-      // Certain messages aren't of a kind that we can reliably enqueue, either because they happen
-      // too fast or because they have a 'fire and forget' nature.
+      // Certain messages aren't of a kind that we can reliably enqueue - either they happen too fast or they are 'fire and forget'
       if (METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY[message.method]) {
         if (message.type === 'action') return this.handleClientAction(type, alias, folder, message.method, message.params, cb);else return this.plumbingMethod(message.method, message.params, cb);
       } else {
@@ -685,9 +708,11 @@ var Plumbing = function (_StateObject) {
       }
       return this.getCurrentOrganizationName(function (err, organizationName) {
         if (err) return cb(err);
+        var username = _haikuSdkClient.client.config.getUserId();
+        _Mixpanel2.default.mergeToPayload({ distinct_id: username });
         return cb(null, {
           isAuthed: true,
-          username: _haikuSdkClient.client.config.getUserId(),
+          username: username,
           authToken: _haikuSdkClient.client.config.getAuthToken(),
           organizationName: organizationName
         });
@@ -709,6 +734,7 @@ var Plumbing = function (_StateObject) {
         _this7.set('inkstoneAuthToken', authResponse.Token);
         _haikuSdkClient.client.config.setAuthToken(authResponse.Token);
         _haikuSdkClient.client.config.setUserId(username);
+        _Mixpanel2.default.mergeToPayload({ distinct_id: username });
         return _this7.getCurrentOrganizationName(function (err, organizationName) {
           if (err) return cb(err);
           return cb(null, {
@@ -1039,7 +1065,7 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess(existingSpawnedSub
 
           _this11.spawnSubprocess(existingSpawnedSubprocs, folder, { name: name, path: path, args: args, opts: opts }, function (err, newProc) {
             if (err) {
-              throw new Error('Unable to respawn master for ' + folder + ' because ' + err);
+              return _this11._handleUnrecoverableError(new Error('Unable to respawn master for ' + folder + ' because ' + _safeErrorMessage(err)));
             }
 
             newProc._attributes.closed = undefined;
