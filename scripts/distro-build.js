@@ -10,4 +10,4 @@ var ROOT = path.join(__dirname, '..')
 process.env.CSC_LINK = `file://${deploy.vault}/${deploy.certificate}`
 process.env.CSC_KEY_PASSWORD = fse.readFileSync(path.join(deploy.vault, `${deploy.certificate}.password`)).toString().trim()
 
-cp.execSync(`./node_modules/.bin/build --mac`, { cwd: ROOT, stdio: 'inherit' })
+cp.execSync(`./node_modules/.bin/build --mac --publish=never`, { cwd: ROOT, stdio: 'inherit' })

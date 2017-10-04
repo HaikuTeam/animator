@@ -11,6 +11,7 @@ if (!process.env.TRAVIS) {
 if (!process.env.HAIKU_INTERNAL_SLACK_CLIENT_ID) throw new Error('env var missing')
 if (!process.env.HAIKU_INTERNAL_SLACK_CLIENT_SECRET) throw new Error('env var missing')
 if (!process.env.HAIKU_INTERNAL_SLACK_TOKEN) throw new Error('env var missing')
+if (!process.env.HAIKU_INTERNAL_SLACK_LEGACY_TOKEN) throw new Error('env var missing')
 if (!process.env.HAIKU_RELEASE_WRITER_KEY) throw new Error('env var missing')
 if (!process.env.HAIKU_RELEASE_WRITER_SECRET) throw new Error('env var missing')
 if (!process.env.HAIKU_S3_DEPLOYER_KEY) throw new Error('env var missing')
@@ -23,7 +24,8 @@ module.exports = {
   slack: {
     clientId: process.env.HAIKU_INTERNAL_SLACK_CLIENT_ID,
     clientSecret: process.env.HAIKU_INTERNAL_SLACK_CLIENT_SECRET,
-    token: process.env.HAIKU_INTERNAL_SLACK_TOKEN
+    token: process.env.HAIKU_INTERNAL_SLACK_TOKEN,
+    legacy: process.env.HAIKU_INTERNAL_SLACK_LEGACY_TOKEN
   },
   deployer: {
     production: {
