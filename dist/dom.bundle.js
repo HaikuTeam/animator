@@ -294,7 +294,7 @@ exports["default"] = {
     DEFAULTS: DEFAULTS
 };
 
-},{"./vendor/assign":92}],3:[function(_dereq_,module,exports){
+},{"./vendor/assign":91}],3:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var HaikuGlobal_1 = _dereq_("./HaikuGlobal");
@@ -418,7 +418,7 @@ HaikuClock.prototype.getFrameDuration = function getFrameDuration() {
     return this.options.frameDuration;
 };
 
-},{"./HaikuGlobal":6,"./helpers/SimpleEventEmitter":18,"./vendor/assign":92,"./vendor/raf":145}],4:[function(_dereq_,module,exports){
+},{"./HaikuGlobal":6,"./helpers/SimpleEventEmitter":18,"./vendor/assign":91,"./vendor/raf":144}],4:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var Config_1 = _dereq_("./Config");
@@ -489,6 +489,7 @@ function HaikuComponent(bytecode, context, config, metadata) {
     this._frameEventListeners = {};
     this._nestedComponentElements = {};
     this._hashTableOfIdsToElements = {};
+    this._registeredElementEventListeners = {};
     this._horizonElements = {};
     this._controlFlowData = {};
     this.on("timeline:tick", function _anyTimelineTick(timelineName, timelineFrame, timelineTime) {
@@ -640,9 +641,38 @@ HaikuComponent.prototype.assignConfig = function _assignConfig(incomingConfig) {
     assign_1["default"](this._bytecode.timelines, this.config.timelines);
     return this;
 };
-HaikuComponent.prototype._clearCaches = function _clearCaches() {
+HaikuComponent.prototype.set = function set(key, value) {
+    this.state[key] = value;
+    return this;
+};
+HaikuComponent.prototype.get = function get(key) {
+    return this.state[key];
+};
+HaikuComponent.prototype.setState = function setState(states) {
+    if (!states)
+        return this;
+    if (typeof states !== "object")
+        return this;
+    for (var key in states) {
+        this.set(key, states[key]);
+    }
+    return this;
+};
+HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
     this._states = {};
     _bindStates(this._states, this, this.config.states);
+    if (options && options.clearPreviouslyRegisteredEventListeners) {
+        for (var flexId in this._registeredElementEventListeners) {
+            for (var eventName in this._registeredElementEventListeners[flexId]) {
+                var _a = this._registeredElementEventListeners[flexId][eventName], target = _a.target, handler = _a.handler;
+                if (target && handler && this._context._renderer.removeListener) {
+                    this._context._renderer.removeListener(target, handler, eventName);
+                }
+                delete this._registeredElementEventListeners[flexId][eventName];
+            }
+        }
+    }
+    _bindEventHandlers(this, this.config.eventHandlers);
     this._stateChanges = {};
     this._anyStateChange = false;
     this._eventsFired = {};
@@ -762,6 +792,24 @@ HaikuComponent.prototype._deactivate = function _deactivate() {
     this._deactivated = true;
     return this;
 };
+HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegisteredListenerOnElement(virtualElement, eventName, listenerFunction) {
+    var flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
+    if (!flexId)
+        return false;
+    return this._registeredElementEventListeners[flexId] && this._registeredElementEventListeners[flexId][eventName];
+};
+HaikuComponent.prototype._markDidRegisterListenerOnElement = function _markDidRegisterListenerOnElement(virtualElement, domElement, eventName, listenerFunction) {
+    var flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
+    if (!flexId)
+        return this;
+    if (!this._registeredElementEventListeners[flexId])
+        this._registeredElementEventListeners[flexId] = {};
+    this._registeredElementEventListeners[flexId][eventName] = {
+        handler: listenerFunction,
+        target: domElement
+    };
+    return this;
+};
 function _cloneTemplate(mana) {
     if (!mana) {
         return mana;
@@ -806,13 +854,15 @@ function _bindEventHandlers(component, extraEventHandlers) {
         var handlerGroup = allEventHandlers[selector];
         for (var eventName in handlerGroup) {
             var eventHandlerDescriptor = handlerGroup[eventName];
-            var originalHandlerFn = eventHandlerDescriptor.handler;
-            _bindEventHandler(component, eventHandlerDescriptor, selector, eventName, originalHandlerFn);
+            _bindEventHandler(component, eventHandlerDescriptor, selector, eventName);
         }
     }
 }
-function _bindEventHandler(component, eventHandlerDescriptor, selector, eventName, originalHandlerFn) {
-    eventHandlerDescriptor.original = originalHandlerFn;
+function _bindEventHandler(component, eventHandlerDescriptor, selector, eventName) {
+    if (eventHandlerDescriptor.original) {
+        eventHandlerDescriptor.handler = eventHandlerDescriptor.original;
+    }
+    eventHandlerDescriptor.original = eventHandlerDescriptor.handler;
     eventHandlerDescriptor.handler = function _wrappedEventHandler(event, a, b, c, d, e, f, g, h, i, j, k) {
         if (component.config.options.interactionMode.type === "live") {
             component._anyEventChange = true;
@@ -821,7 +871,7 @@ function _bindEventHandler(component, eventHandlerDescriptor, selector, eventNam
             }
             component._eventsFired[selector][eventName] =
                 event || true;
-            originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k);
+            eventHandlerDescriptor.original.call(component, event, a, b, c, d, e, f, g, h, i, j, k);
         }
     };
 }
@@ -1347,7 +1397,7 @@ function _isBytecode(thing) {
     return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines;
 }
 
-},{"./../package.json":167,"./Config":2,"./HaikuTimeline":8,"./Layout3D":9,"./ValueBuilder":11,"./helpers/SimpleEventEmitter":18,"./helpers/addElementToHashTable":19,"./helpers/applyPropertyToElement":21,"./helpers/cssQueryTree":30,"./helpers/scopifyElements":35,"./helpers/upgradeBytecodeInPlace":36,"./vendor/assign":92}],5:[function(_dereq_,module,exports){
+},{"./../package.json":166,"./Config":2,"./HaikuTimeline":8,"./Layout3D":9,"./ValueBuilder":11,"./helpers/SimpleEventEmitter":18,"./helpers/addElementToHashTable":19,"./helpers/applyPropertyToElement":21,"./helpers/cssQueryTree":30,"./helpers/scopifyElements":35,"./helpers/upgradeBytecodeInPlace":36,"./vendor/assign":91}],5:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var Config_1 = _dereq_("./Config");
@@ -1576,7 +1626,7 @@ HaikuContext["createComponentFactory"] = function createComponentFactory(Rendere
     return HaikuComponentFactory;
 };
 
-},{"./../package.json":167,"./Config":2,"./HaikuClock":3,"./HaikuComponent":4,"./helpers/PRNG":16,"./vendor/assign":92}],6:[function(_dereq_,module,exports){
+},{"./../package.json":166,"./Config":2,"./HaikuClock":3,"./HaikuComponent":4,"./helpers/PRNG":16,"./vendor/assign":91}],6:[function(_dereq_,module,exports){
 (function (global){
 "use strict";
 exports.__esModule = true;
@@ -1636,7 +1686,7 @@ exp["register"] = function register(name, method) {
 exports["default"] = exp;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../package.json":167}],8:[function(_dereq_,module,exports){
+},{"./../package.json":166}],8:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var getTimelineMaxTime_1 = _dereq_("./helpers/getTimelineMaxTime");
@@ -1865,7 +1915,7 @@ HaikuTimeline.prototype.gotoAndStop = function gotoAndStop(ms) {
     return this;
 };
 
-},{"./helpers/SimpleEventEmitter":18,"./helpers/getTimelineMaxTime":31,"./vendor/assign":92}],9:[function(_dereq_,module,exports){
+},{"./helpers/SimpleEventEmitter":18,"./helpers/getTimelineMaxTime":31,"./vendor/assign":91}],9:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var computeMatrix_1 = _dereq_("./layout/computeMatrix");
@@ -2217,7 +2267,7 @@ exports["default"] = {
     calculateValueAndReturnUndefinedIfNotWorthwhile: calculateValueAndReturnUndefinedIfNotWorthwhile
 };
 
-},{"./vendor/just-curves":133}],11:[function(_dereq_,module,exports){
+},{"./vendor/just-curves":132}],11:[function(_dereq_,module,exports){
 (function (process,global){
 "use strict";
 exports.__esModule = true;
@@ -3048,7 +3098,7 @@ ValueBuilder["INJECTABLES"] = INJECTABLES;
 ValueBuilder["FORBIDDEN_EXPRESSION_TOKENS"] = FORBIDDEN_EXPRESSION_TOKENS;
 
 }).call(this,_dereq_('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./HaikuHelpers":7,"./Transitions":10,"./helpers/BasicUtils":14,"./properties/dom/parsers":48,"./properties/dom/schema":49,"./reflection/enhance":51,"./vendor/assign":92,"_process":1}],12:[function(_dereq_,module,exports){
+},{"./HaikuHelpers":7,"./Transitions":10,"./helpers/BasicUtils":14,"./properties/dom/parsers":48,"./properties/dom/schema":49,"./reflection/enhance":51,"./vendor/assign":91,"_process":1}],12:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var HaikuContext_1 = _dereq_("./../../HaikuContext");
@@ -3084,7 +3134,7 @@ HaikuDOMAdapter["defineOnWindow"] = function () {
 };
 HaikuDOMAdapter["defineOnWindow"]();
 
-},{"./../../../package.json":167,"./../../HaikuContext":5,"./../../renderers/dom":76}],13:[function(_dereq_,module,exports){
+},{"./../../../package.json":166,"./../../HaikuContext":5,"./../../renderers/dom":75}],13:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var HaikuDOMAdapter_1 = _dereq_("./HaikuDOMAdapter");
@@ -3136,7 +3186,7 @@ exports["default"] = {
     uniq: uniq
 };
 
-},{"./../vendor/array-unique":91}],15:[function(_dereq_,module,exports){
+},{"./../vendor/array-unique":90}],15:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var color_string_1 = _dereq_("./../vendor/color-string");
@@ -3165,7 +3215,7 @@ exports["default"] = {
     generateString: generateString
 };
 
-},{"./../vendor/color-string":94}],16:[function(_dereq_,module,exports){
+},{"./../vendor/color-string":93}],16:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var seedrandom_1 = _dereq_("./../vendor/seedrandom");
@@ -3177,7 +3227,7 @@ PRNG.prototype.random = function random() {
     return this._prng();
 };
 
-},{"./../vendor/seedrandom":146}],17:[function(_dereq_,module,exports){
+},{"./../vendor/seedrandom":145}],17:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var svg_points_1 = _dereq_("./../vendor/svg-points");
@@ -3320,7 +3370,7 @@ exports["default"] = {
     manaToPoints: manaToPoints
 };
 
-},{"./../vendor/svg-points":147,"./parseCssValueString":34}],18:[function(_dereq_,module,exports){
+},{"./../vendor/svg-points":146,"./parseCssValueString":34}],18:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function create(instance) {
@@ -3987,7 +4037,7 @@ function xmlToMana(xml) {
 }
 exports["default"] = xmlToMana;
 
-},{"./../vendor/to-style":154,"./../vendor/xml-parser":166}],39:[function(_dereq_,module,exports){
+},{"./../vendor/to-style":153,"./../vendor/xml-parser":165}],39:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var formatTransform_1 = _dereq_("./formatTransform");
@@ -6716,6 +6766,10 @@ function _clone(a) {
         b[key] = a[key];
     return b;
 }
+HaikuDOMRenderer.prototype.removeListener = function removeListener(target, handler, eventName) {
+    target.removeEventListener(eventName, handler);
+    return this;
+};
 HaikuDOMRenderer.prototype.getUser = function getUser() {
     return {
         mouse: {
@@ -6730,7 +6784,7 @@ HaikuDOMRenderer.prototype.getUser = function getUser() {
     };
 };
 
-},{"./createMixpanel":65,"./createRightClickMenu":66,"./getElementSize":71,"./getLocalDomEventPosition":73,"./patch":83,"./render":85}],56:[function(_dereq_,module,exports){
+},{"./createMixpanel":64,"./createRightClickMenu":65,"./getElementSize":70,"./getLocalDomEventPosition":72,"./patch":82,"./render":84}],56:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var applyLayout_1 = _dereq_("./applyLayout");
@@ -6751,7 +6805,7 @@ function appendChild(alreadyChildElement, virtualElement, parentDomElement, pare
 }
 exports["default"] = appendChild;
 
-},{"./applyLayout":57,"./createTagNode":68,"./createTextNode":69,"./isTextNode":81}],57:[function(_dereq_,module,exports){
+},{"./applyLayout":57,"./createTagNode":67,"./createTextNode":68,"./isTextNode":80}],57:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var applyCssLayout_1 = _dereq_("./../../layout/applyCssLayout");
@@ -6843,12 +6897,12 @@ function _warnOnce(warning) {
     console.warn("[haiku player] warning:", warning);
 }
 
-},{"./../../layout/applyCssLayout":39,"./../../layout/scopeOfElement":45,"./../../vendor/modernizr":143,"./getWindowsBrowserVersion":75,"./isEdge":78,"./isIE":79,"./isMobile":80,"./isTextNode":81}],58:[function(_dereq_,module,exports){
+},{"./../../layout/applyCssLayout":39,"./../../layout/scopeOfElement":45,"./../../vendor/modernizr":142,"./getWindowsBrowserVersion":74,"./isEdge":77,"./isIE":78,"./isMobile":79,"./isTextNode":80}],58:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var assignClass_1 = _dereq_("./assignClass");
-var assignEvent_1 = _dereq_("./assignEvent");
 var assignStyle_1 = _dereq_("./assignStyle");
+var attachEventListener_1 = _dereq_("./attachEventListener");
 var getFlexId_1 = _dereq_("./getFlexId");
 var STYLE = "style";
 var OBJECT = "object";
@@ -6945,7 +6999,7 @@ function assignAttributes(domElement, virtualElement, component, isPatchOperatio
         if (key[0] === "o" &&
             key[1] === "n" &&
             typeof anotherNewValue === FUNCTION) {
-            assignEvent_1["default"](domElement, key.slice(2).toLowerCase(), anotherNewValue, component);
+            attachEventListener_1["default"](virtualElement, domElement, key.slice(2).toLowerCase(), anotherNewValue, component);
             continue;
         }
         setAttribute(domElement, key, anotherNewValue, component, component.config.options.cache[getFlexId_1["default"](virtualElement)]);
@@ -6954,7 +7008,7 @@ function assignAttributes(domElement, virtualElement, component, isPatchOperatio
         for (var eventName in virtualElement.__handlers) {
             var handler = virtualElement.__handlers[eventName];
             if (!handler.__subscribed) {
-                assignEvent_1["default"](domElement, eventName, handler, component);
+                attachEventListener_1["default"](virtualElement, domElement, eventName, handler, component);
                 handler.__subscribed = true;
             }
         }
@@ -6963,7 +7017,7 @@ function assignAttributes(domElement, virtualElement, component, isPatchOperatio
 }
 exports["default"] = assignAttributes;
 
-},{"./assignClass":59,"./assignEvent":60,"./assignStyle":61,"./getFlexId":72}],59:[function(_dereq_,module,exports){
+},{"./assignClass":59,"./assignStyle":60,"./attachEventListener":61,"./getFlexId":71}],59:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function assignClass(domElement, className) {
@@ -6975,36 +7029,6 @@ function assignClass(domElement, className) {
 exports["default"] = assignClass;
 
 },{}],60:[function(_dereq_,module,exports){
-"use strict";
-exports.__esModule = true;
-var attachEventListener_1 = _dereq_("./attachEventListener");
-function assignEvent(domElement, eventName, listenerFunction, component) {
-    if (!domElement.haiku) {
-        domElement.haiku = {};
-    }
-    if (!domElement.haiku.listeners) {
-        domElement.haiku.listeners = {};
-    }
-    if (!domElement.haiku.listeners[eventName]) {
-        domElement.haiku.listeners[eventName] = [];
-    }
-    var already = false;
-    for (var i = 0; i < domElement.haiku.listeners[eventName].length; i++) {
-        var existing = domElement.haiku.listeners[eventName][i];
-        if (existing._haikuListenerId === listenerFunction._haikuListenerId) {
-            already = true;
-            break;
-        }
-    }
-    if (!already) {
-        listenerFunction._haikuListenerId = Math.random() + "";
-        domElement.haiku.listeners[eventName].push(listenerFunction);
-        attachEventListener_1["default"](domElement, eventName, listenerFunction, component);
-    }
-}
-exports["default"] = assignEvent;
-
-},{"./attachEventListener":62}],61:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function assignStyle(domElement, virtualElement, style, component, isPatchOperation) {
@@ -7035,26 +7059,30 @@ function assignStyle(domElement, virtualElement, style, component, isPatchOperat
 }
 exports["default"] = assignStyle;
 
-},{}],62:[function(_dereq_,module,exports){
+},{}],61:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var Events_1 = _dereq_("./Events");
-function attachEventListener(domElement, eventName, listener, component) {
+function attachEventListener(virtualElement, domElement, eventName, listener, component) {
     if (typeof listener === "function") {
+        var target = void 0;
         if (Events_1["default"].window[eventName]) {
-            var win = domElement.ownerDocument.defaultView || domElement.ownerDocument.parentWindow;
-            if (win) {
-                win.addEventListener(eventName, listener);
-            }
+            target = domElement.ownerDocument.defaultView || domElement.ownerDocument.parentWindow;
         }
         else {
-            domElement.addEventListener(eventName, listener);
+            target = domElement;
+        }
+        if (target) {
+            if (!component._hasRegisteredListenerOnElement(virtualElement, eventName, listener)) {
+                component._markDidRegisterListenerOnElement(virtualElement, target, eventName, listener);
+                target.addEventListener(eventName, listener);
+            }
         }
     }
 }
 exports["default"] = attachEventListener;
 
-},{"./Events":54}],63:[function(_dereq_,module,exports){
+},{"./Events":54}],62:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function _cloneAttributes(attributes) {
@@ -7068,7 +7096,7 @@ function _cloneAttributes(attributes) {
 }
 exports["default"] = _cloneAttributes;
 
-},{}],64:[function(_dereq_,module,exports){
+},{}],63:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var cloneAttributes_1 = _dereq_("./cloneAttributes");
@@ -7081,7 +7109,7 @@ function cloneVirtualElement(virtualElement) {
 }
 exports["default"] = cloneVirtualElement;
 
-},{"./cloneAttributes":63}],65:[function(_dereq_,module,exports){
+},{"./cloneAttributes":62}],64:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var assign_1 = _dereq_("./../../vendor/assign");
@@ -7106,7 +7134,7 @@ function createMixpanel(domElement, mixpanelToken, component) {
 }
 exports["default"] = createMixpanel;
 
-},{"./../../vendor/assign":92,"./../../vendor/mixpanel-browser/tiny":142}],66:[function(_dereq_,module,exports){
+},{"./../../vendor/assign":91,"./../../vendor/mixpanel-browser/tiny":141}],65:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var MENU_GLOBAL_ID = "haiku-right-click-menu";
@@ -7249,7 +7277,7 @@ function createRightClickMenu(domElement, component) {
 }
 exports["default"] = createRightClickMenu;
 
-},{}],67:[function(_dereq_,module,exports){
+},{}],66:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var SVG_NAMESPACE = "http://www.w3.org/2000/svg";
@@ -7258,7 +7286,7 @@ function createSvgElement(domElement, tagName) {
 }
 exports["default"] = createSvgElement;
 
-},{}],68:[function(_dereq_,module,exports){
+},{}],67:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var allSvgElementNames_1 = _dereq_("./../../helpers/allSvgElementNames");
@@ -7291,7 +7319,7 @@ function createTagNode(domElement, virtualElement, parentVirtualElement, compone
 }
 exports["default"] = createTagNode;
 
-},{"./../../helpers/allSvgElementNames":20,"./createSvgElement":67,"./getFlexId":72,"./getTypeAsString":74,"./normalizeName":82,"./updateElement":90}],69:[function(_dereq_,module,exports){
+},{"./../../helpers/allSvgElementNames":20,"./createSvgElement":66,"./getFlexId":71,"./getTypeAsString":73,"./normalizeName":81,"./updateElement":89}],68:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function createTextNode(domElement, textContent) {
@@ -7299,7 +7327,7 @@ function createTextNode(domElement, textContent) {
 }
 exports["default"] = createTextNode;
 
-},{}],70:[function(_dereq_,module,exports){
+},{}],69:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function getDomEventPosition(event, doc) {
@@ -7320,7 +7348,7 @@ function getDomEventPosition(event, doc) {
 }
 exports["default"] = getDomEventPosition;
 
-},{}],71:[function(_dereq_,module,exports){
+},{}],70:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function getElementSize(domElement) {
@@ -7342,7 +7370,7 @@ function getElementSize(domElement) {
 }
 exports["default"] = getElementSize;
 
-},{}],72:[function(_dereq_,module,exports){
+},{}],71:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var HAIKU_ID_ATTRIBUTE = "haiku-id";
@@ -7359,7 +7387,7 @@ function getFlexId(element) {
 }
 exports["default"] = getFlexId;
 
-},{}],73:[function(_dereq_,module,exports){
+},{}],72:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var getDomEventPosition_1 = _dereq_("./getDomEventPosition");
@@ -7378,7 +7406,7 @@ function getLocalDomEventPosition(event, element) {
 }
 exports["default"] = getLocalDomEventPosition;
 
-},{"./getDomEventPosition":70}],74:[function(_dereq_,module,exports){
+},{"./getDomEventPosition":69}],73:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var STRING = "string";
@@ -7430,7 +7458,7 @@ function _warnOnce(warning) {
     console.warn("[haiku player] warning:", warning);
 }
 
-},{}],75:[function(_dereq_,module,exports){
+},{}],74:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function getWindowsBrowser(window) {
@@ -7457,13 +7485,13 @@ function getWindowsBrowser(window) {
 }
 exports["default"] = getWindowsBrowser;
 
-},{}],76:[function(_dereq_,module,exports){
+},{}],75:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var HaikuDOMRenderer_1 = _dereq_("./HaikuDOMRenderer");
 exports["default"] = HaikuDOMRenderer_1["default"];
 
-},{"./HaikuDOMRenderer":55}],77:[function(_dereq_,module,exports){
+},{"./HaikuDOMRenderer":55}],76:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function isBlankString(thing) {
@@ -7471,7 +7499,7 @@ function isBlankString(thing) {
 }
 exports["default"] = isBlankString;
 
-},{}],78:[function(_dereq_,module,exports){
+},{}],77:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function isEdge(window) {
@@ -7485,7 +7513,7 @@ function isEdge(window) {
 }
 exports["default"] = isEdge;
 
-},{}],79:[function(_dereq_,module,exports){
+},{}],78:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function isIE(window) {
@@ -7500,7 +7528,7 @@ function isIE(window) {
 }
 exports["default"] = isIE;
 
-},{}],80:[function(_dereq_,module,exports){
+},{}],79:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function isMobile(window) {
@@ -7514,7 +7542,7 @@ function isMobile(window) {
 }
 exports["default"] = isMobile;
 
-},{}],81:[function(_dereq_,module,exports){
+},{}],80:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function isTextNode(virtualElement) {
@@ -7522,7 +7550,7 @@ function isTextNode(virtualElement) {
 }
 exports["default"] = isTextNode;
 
-},{}],82:[function(_dereq_,module,exports){
+},{}],81:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function normalizeName(tagName) {
@@ -7532,7 +7560,7 @@ function normalizeName(tagName) {
 }
 exports["default"] = normalizeName;
 
-},{}],83:[function(_dereq_,module,exports){
+},{}],82:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var updateElement_1 = _dereq_("./updateElement");
@@ -7559,7 +7587,7 @@ function patch(topLevelDomElement, virtualContainer, patchesDict, component) {
 }
 exports["default"] = patch;
 
-},{"./updateElement":90}],84:[function(_dereq_,module,exports){
+},{"./updateElement":89}],83:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function removeElement(domElement) {
@@ -7568,7 +7596,7 @@ function removeElement(domElement) {
 }
 exports["default"] = removeElement;
 
-},{}],85:[function(_dereq_,module,exports){
+},{}],84:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var renderTree_1 = _dereq_("./renderTree");
@@ -7577,7 +7605,7 @@ function render(domElement, virtualContainer, virtualTree, component) {
 }
 exports["default"] = render;
 
-},{"./renderTree":86}],86:[function(_dereq_,module,exports){
+},{"./renderTree":85}],85:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var appendChild_1 = _dereq_("./appendChild");
@@ -7645,7 +7673,7 @@ function renderTree(domElement, virtualElement, virtualChildren, component, isPa
 }
 exports["default"] = renderTree;
 
-},{"./appendChild":56,"./cloneVirtualElement":64,"./getFlexId":72,"./isBlankString":77,"./removeElement":84,"./replaceElement":87,"./shouldElementBeReplaced":89,"./updateElement":90}],87:[function(_dereq_,module,exports){
+},{"./appendChild":56,"./cloneVirtualElement":63,"./getFlexId":71,"./isBlankString":76,"./removeElement":83,"./replaceElement":86,"./shouldElementBeReplaced":88,"./updateElement":89}],86:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var applyLayout_1 = _dereq_("./applyLayout");
@@ -7666,7 +7694,7 @@ function replaceElement(domElement, virtualElement, parentDomNode, parentVirtual
 }
 exports["default"] = replaceElement;
 
-},{"./applyLayout":57,"./createTagNode":68,"./createTextNode":69,"./isTextNode":81}],88:[function(_dereq_,module,exports){
+},{"./applyLayout":57,"./createTagNode":67,"./createTextNode":68,"./isTextNode":80}],87:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var createTextNode_1 = _dereq_("./createTextNode");
@@ -7682,7 +7710,7 @@ function replaceElementWithText(domElement, textContent, component) {
 }
 exports["default"] = replaceElementWithText;
 
-},{"./createTextNode":69}],89:[function(_dereq_,module,exports){
+},{"./createTextNode":68}],88:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var getFlexId_1 = _dereq_("./getFlexId");
@@ -7698,7 +7726,7 @@ function shouldElementBeReplaced(domElement, virtualElement) {
 }
 exports["default"] = shouldElementBeReplaced;
 
-},{"./getFlexId":72}],90:[function(_dereq_,module,exports){
+},{"./getFlexId":71}],89:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var applyLayout_1 = _dereq_("./applyLayout");
@@ -7763,7 +7791,7 @@ function updateElement(domElement, virtualElement, parentNode, parentVirtualElem
 }
 exports["default"] = updateElement;
 
-},{"./applyLayout":57,"./assignAttributes":58,"./cloneVirtualElement":64,"./getFlexId":72,"./getTypeAsString":74,"./isTextNode":81,"./normalizeName":82,"./renderTree":86,"./replaceElement":87,"./replaceElementWithText":88}],91:[function(_dereq_,module,exports){
+},{"./applyLayout":57,"./assignAttributes":58,"./cloneVirtualElement":63,"./getFlexId":71,"./getTypeAsString":73,"./isTextNode":80,"./normalizeName":81,"./renderTree":85,"./replaceElement":86,"./replaceElementWithText":87}],90:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function uniq(arr) {
@@ -7792,7 +7820,7 @@ exports["default"] = {
     immutable: immutable
 };
 
-},{}],92:[function(_dereq_,module,exports){
+},{}],91:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function assign() {
@@ -7813,7 +7841,7 @@ function assign() {
 }
 exports["default"] = assign;
 
-},{}],93:[function(_dereq_,module,exports){
+},{}],92:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports["default"] = {
@@ -7967,7 +7995,7 @@ exports["default"] = {
     yellowgreen: [154, 205, 50]
 };
 
-},{}],94:[function(_dereq_,module,exports){
+},{}],93:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var color_names_1 = _dereq_("./../color-names");
@@ -8180,42 +8208,42 @@ function hexDouble(num) {
 }
 exports["default"] = cs;
 
-},{"./../color-names":93}],95:[function(_dereq_,module,exports){
+},{"./../color-names":92}],94:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.ease = internal_1.cubicBezier(.25, .1, .25, .1);
 
-},{"../internal":139}],96:[function(_dereq_,module,exports){
+},{"../internal":138}],95:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeIn = internal_1.cubicBezier(.42, 0, 1, 1);
 
-},{"../internal":139}],97:[function(_dereq_,module,exports){
+},{"../internal":138}],96:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeInBack = function (x) { return internal_1.c3 * x * x * x - internal_1.c1 * x * x; };
 
-},{"../internal":139}],98:[function(_dereq_,module,exports){
+},{"../internal":138}],97:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var index_1 = _dereq_("./index");
 exports.easeInBounce = function (x) { return 1 - index_1.easeOutBounce(1 - x); };
 
-},{"./index":129}],99:[function(_dereq_,module,exports){
+},{"./index":128}],98:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeInCirc = function (x) { return 1 - internal_1.sqrt(1 - (x * x)); };
 
-},{"../internal":139}],100:[function(_dereq_,module,exports){
+},{"../internal":138}],99:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports.easeInCubic = function (x) { return x * x * x; };
 
-},{}],101:[function(_dereq_,module,exports){
+},{}],100:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
@@ -8223,19 +8251,19 @@ exports.easeInElastic = function (n) {
     return !n || n === 1 ? n : -1 * internal_1.sin((n - 1.1) * internal_1.tau * 2.5) * internal_1.pow(2, 10 * (n - 1));
 };
 
-},{"../internal":139}],102:[function(_dereq_,module,exports){
+},{"../internal":138}],101:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeInExpo = function (x) { return x === 0 ? 0 : internal_1.pow(2, 10 * x - 10); };
 
-},{"../internal":139}],103:[function(_dereq_,module,exports){
+},{"../internal":138}],102:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeInOut = internal_1.cubicBezier(.42, 0, .58, 1);
 
-},{"../internal":139}],104:[function(_dereq_,module,exports){
+},{"../internal":138}],103:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
@@ -8243,7 +8271,7 @@ exports.easeInOutBack = function (x) { return x < 0.5
     ? (internal_1.pow(2 * x, 2) * ((internal_1.c2 + 1) * 2 * x - internal_1.c2)) / 2
     : (internal_1.pow(2 * x - 2, 2) * ((internal_1.c2 + 1) * (x * 2 - 2) + internal_1.c2) + 2) / 2; };
 
-},{"../internal":139}],105:[function(_dereq_,module,exports){
+},{"../internal":138}],104:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var index_1 = _dereq_("./index");
@@ -8251,7 +8279,7 @@ exports.easeInOutBounce = function (x) { return x < 0.5
     ? (1 - index_1.easeOutBounce(1 - 2 * x)) / 2
     : (1 + index_1.easeOutBounce(2 * x - 1)) / 2; };
 
-},{"./index":129}],106:[function(_dereq_,module,exports){
+},{"./index":128}],105:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
@@ -8259,7 +8287,7 @@ exports.easeInOutCirc = function (x) { return x < 0.5
     ? (1 - internal_1.sqrt(1 - internal_1.pow(2 * x, 2))) / 2
     : (internal_1.sqrt(1 - internal_1.pow(-2 * x + 2, 2)) + 1) / 2; };
 
-},{"../internal":139}],107:[function(_dereq_,module,exports){
+},{"../internal":138}],106:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
@@ -8267,7 +8295,7 @@ exports.easeInOutCubic = function (x) { return x < 0.5
     ? 4 * x * x * x
     : 1 - internal_1.pow(-2 * x + 2, 3) / 2; };
 
-},{"../internal":139}],108:[function(_dereq_,module,exports){
+},{"../internal":138}],107:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
@@ -8281,7 +8309,7 @@ exports.easeInOutElastic = function (n) {
     return internal_1.pow(2, -10 * (n - 1)) * internal_1.sin((n - 1.1) * internal_1.tau / .4) * .5 + 1;
 };
 
-},{"../internal":139}],109:[function(_dereq_,module,exports){
+},{"../internal":138}],108:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
@@ -8291,7 +8319,7 @@ exports.easeInOutExpo = function (x) { return x === 0
     ? internal_1.pow(2, 20 * x - 10) / 2
     : (2 - internal_1.pow(2, -20 * x + 10)) / 2; };
 
-},{"../internal":139}],110:[function(_dereq_,module,exports){
+},{"../internal":138}],109:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
@@ -8299,7 +8327,7 @@ exports.easeInOutQuad = function (x) { return x < 0.5 ?
     2 * x * x :
     1 - internal_1.pow(-2 * x + 2, 2) / 2; };
 
-},{"../internal":139}],111:[function(_dereq_,module,exports){
+},{"../internal":138}],110:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
@@ -8307,7 +8335,7 @@ exports.easeInOutQuart = function (x) { return x < 0.5
     ? 8 * x * x * x * x
     : 1 - internal_1.pow(-2 * x + 2, 4) / 2; };
 
-},{"../internal":139}],112:[function(_dereq_,module,exports){
+},{"../internal":138}],111:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
@@ -8315,46 +8343,46 @@ exports.easeInOutQuint = function (x) { return x < 0.5
     ? 16 * x * x * x * x * x
     : 1 - internal_1.pow(-2 * x + 2, 5) / 2; };
 
-},{"../internal":139}],113:[function(_dereq_,module,exports){
+},{"../internal":138}],112:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeInOutSine = function (x) { return -(internal_1.cos(internal_1.pi * x) - 1) / 2; };
 
-},{"../internal":139}],114:[function(_dereq_,module,exports){
+},{"../internal":138}],113:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports.easeInQuad = function (x) { return x * x; };
 
-},{}],115:[function(_dereq_,module,exports){
+},{}],114:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports.easeInQuart = function (x) { return x * x * x * x; };
 
-},{}],116:[function(_dereq_,module,exports){
+},{}],115:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports.easeInQuint = function (x) { return x * x * x * x * x; };
 
-},{}],117:[function(_dereq_,module,exports){
+},{}],116:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeInSine = function (x) { return 1 - internal_1.cos(x * internal_1.pi / 2); };
 
-},{"../internal":139}],118:[function(_dereq_,module,exports){
+},{"../internal":138}],117:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeOut = internal_1.cubicBezier(0, 0, .58, 1);
 
-},{"../internal":139}],119:[function(_dereq_,module,exports){
+},{"../internal":138}],118:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeOutBack = function (x) { return 1 + internal_1.c3 * internal_1.pow(x - 1, 3) + internal_1.c1 * internal_1.pow(x - 1, 2); };
 
-},{"../internal":139}],120:[function(_dereq_,module,exports){
+},{"../internal":138}],119:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports.easeOutBounce = function (x) {
@@ -8369,19 +8397,19 @@ exports.easeOutBounce = function (x) {
                 : n1 * (x -= (2.625 / d1)) * x + .984375;
 };
 
-},{}],121:[function(_dereq_,module,exports){
+},{}],120:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeOutCirc = function (x) { return internal_1.sqrt(1 - ((x - 1) * (x - 1))); };
 
-},{"../internal":139}],122:[function(_dereq_,module,exports){
+},{"../internal":138}],121:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeOutCubic = function (x) { return 1 - internal_1.pow(1 - x, 3); };
 
-},{"../internal":139}],123:[function(_dereq_,module,exports){
+},{"../internal":138}],122:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
@@ -8398,36 +8426,36 @@ exports.easeOutElastic = function (n) {
     return (a * internal_1.pow(2, -10 * n) * internal_1.sin((n - s) * (internal_1.tau) / p) + 1);
 };
 
-},{"../internal":139}],124:[function(_dereq_,module,exports){
+},{"../internal":138}],123:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeOutExpo = function (x) { return x === 1 ? 1 : 1 - internal_1.pow(2, -10 * x); };
 
-},{"../internal":139}],125:[function(_dereq_,module,exports){
+},{"../internal":138}],124:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports.easeOutQuad = function (x) { return 1 - (1 - x) * (1 - x); };
 
-},{}],126:[function(_dereq_,module,exports){
+},{}],125:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeOutQuart = function (x) { return 1 - internal_1.pow(1 - x, 4); };
 
-},{"../internal":139}],127:[function(_dereq_,module,exports){
+},{"../internal":138}],126:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeOutQuint = function (x) { return 1 - internal_1.pow(1 - x, 5); };
 
-},{"../internal":139}],128:[function(_dereq_,module,exports){
+},{"../internal":138}],127:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.easeOutSine = function (x) { return internal_1.sin(x * internal_1.pi / 2); };
 
-},{"../internal":139}],129:[function(_dereq_,module,exports){
+},{"../internal":138}],128:[function(_dereq_,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -8471,24 +8499,24 @@ __export(_dereq_("./linear"));
 __export(_dereq_("./stepEnd"));
 __export(_dereq_("./stepStart"));
 
-},{"./ease":95,"./easeIn":96,"./easeInBack":97,"./easeInBounce":98,"./easeInCirc":99,"./easeInCubic":100,"./easeInElastic":101,"./easeInExpo":102,"./easeInOut":103,"./easeInOutBack":104,"./easeInOutBounce":105,"./easeInOutCirc":106,"./easeInOutCubic":107,"./easeInOutElastic":108,"./easeInOutExpo":109,"./easeInOutQuad":110,"./easeInOutQuart":111,"./easeInOutQuint":112,"./easeInOutSine":113,"./easeInQuad":114,"./easeInQuart":115,"./easeInQuint":116,"./easeInSine":117,"./easeOut":118,"./easeOutBack":119,"./easeOutBounce":120,"./easeOutCirc":121,"./easeOutCubic":122,"./easeOutElastic":123,"./easeOutExpo":124,"./easeOutQuad":125,"./easeOutQuart":126,"./easeOutQuint":127,"./easeOutSine":128,"./linear":130,"./stepEnd":131,"./stepStart":132}],130:[function(_dereq_,module,exports){
+},{"./ease":94,"./easeIn":95,"./easeInBack":96,"./easeInBounce":97,"./easeInCirc":98,"./easeInCubic":99,"./easeInElastic":100,"./easeInExpo":101,"./easeInOut":102,"./easeInOutBack":103,"./easeInOutBounce":104,"./easeInOutCirc":105,"./easeInOutCubic":106,"./easeInOutElastic":107,"./easeInOutExpo":108,"./easeInOutQuad":109,"./easeInOutQuart":110,"./easeInOutQuint":111,"./easeInOutSine":112,"./easeInQuad":113,"./easeInQuart":114,"./easeInQuint":115,"./easeInSine":116,"./easeOut":117,"./easeOutBack":118,"./easeOutBounce":119,"./easeOutCirc":120,"./easeOutCubic":121,"./easeOutElastic":122,"./easeOutExpo":123,"./easeOutQuad":124,"./easeOutQuart":125,"./easeOutQuint":126,"./easeOutSine":127,"./linear":129,"./stepEnd":130,"./stepStart":131}],129:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports.linear = function (x) { return x; };
 
-},{}],131:[function(_dereq_,module,exports){
+},{}],130:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.stepEnd = internal_1.steps(1, 0);
 
-},{"../internal":139}],132:[function(_dereq_,module,exports){
+},{"../internal":138}],131:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
 exports.stepStart = internal_1.steps(1, 1);
 
-},{"../internal":139}],133:[function(_dereq_,module,exports){
+},{"../internal":138}],132:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var css = _dereq_("./internal/cssEasings");
@@ -8501,7 +8529,7 @@ exports.frames = internal_1.frames;
 exports.steps = internal_1.steps;
 exports["default"] = curves;
 
-},{"./curves":129,"./internal":139,"./internal/cssEasings":135}],134:[function(_dereq_,module,exports){
+},{"./curves":128,"./internal":138,"./internal/cssEasings":134}],133:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports.pi = Math.PI;
@@ -8513,7 +8541,7 @@ exports.c3 = exports.c1 + 1;
 exports.c4 = exports.tau / 3;
 exports.c5 = exports.tau / 4.5;
 
-},{}],135:[function(_dereq_,module,exports){
+},{}],134:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var c = "cubic-bezier";
@@ -8551,7 +8579,7 @@ exports.linear = c + "(0,0,1,1)";
 exports.stepEnd = s + "(1,0)";
 exports.stepStart = s + "(1,1)";
 
-},{}],136:[function(_dereq_,module,exports){
+},{}],135:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var index_1 = _dereq_("./index");
@@ -8585,7 +8613,7 @@ exports.cssFunction = function (easingString) {
     throw new Error('unknown css function');
 };
 
-},{"./index":139}],137:[function(_dereq_,module,exports){
+},{"./index":138}],136:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var index_1 = _dereq_("./index");
@@ -8620,7 +8648,7 @@ exports.cubicBezier = function (p0, p1, p2, p3) {
     };
 };
 
-},{"./index":139}],138:[function(_dereq_,module,exports){
+},{"./index":138}],137:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var internal_1 = _dereq_("../internal");
@@ -8632,7 +8660,7 @@ exports.frames = function (n) {
     };
 };
 
-},{"../internal":139}],139:[function(_dereq_,module,exports){
+},{"../internal":138}],138:[function(_dereq_,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -8646,7 +8674,7 @@ __export(_dereq_("./frames"));
 __export(_dereq_("./math"));
 __export(_dereq_("./steps"));
 
-},{"./constants":134,"./cssEasings":135,"./cssFunction":136,"./cubicBezier":137,"./frames":138,"./math":140,"./steps":141}],140:[function(_dereq_,module,exports){
+},{"./constants":133,"./cssEasings":134,"./cssFunction":135,"./cubicBezier":136,"./frames":137,"./math":139,"./steps":140}],139:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports.abs = Math.abs;
@@ -8657,7 +8685,7 @@ exports.pow = Math.pow;
 exports.sin = Math.sin;
 exports.sqrt = Math.sqrt;
 
-},{}],141:[function(_dereq_,module,exports){
+},{}],140:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports.steps = function (count, pos) {
@@ -8668,7 +8696,7 @@ exports.steps = function (count, pos) {
     return function (x) { return x >= 1 ? 1 : (p * q + x) - (p * q + x) % q; };
 };
 
-},{}],142:[function(_dereq_,module,exports){
+},{}],141:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function tiny() {
@@ -8750,7 +8778,7 @@ function tiny() {
 }
 exports["default"] = tiny;
 
-},{}],143:[function(_dereq_,module,exports){
+},{}],142:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function hasPreserve3d(window) {
@@ -8783,7 +8811,7 @@ exports["default"] = {
     hasPreserve3d: hasPreserve3d
 };
 
-},{}],144:[function(_dereq_,module,exports){
+},{}],143:[function(_dereq_,module,exports){
 (function (process){
 "use strict";
 exports.__esModule = true;
@@ -8828,7 +8856,7 @@ function now() {
 exports["default"] = now;
 
 }).call(this,_dereq_('_process'))
-},{"_process":1}],145:[function(_dereq_,module,exports){
+},{"_process":1}],144:[function(_dereq_,module,exports){
 (function (global){
 "use strict";
 exports.__esModule = true;
@@ -8898,7 +8926,7 @@ exports["default"] = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./../performance-now":144}],146:[function(_dereq_,module,exports){
+},{"./../performance-now":143}],145:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var width = 256;
@@ -8978,7 +9006,7 @@ function tostring(a) {
     return String.fromCharCode.apply(0, a);
 }
 
-},{}],147:[function(_dereq_,module,exports){
+},{}],146:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var toPath_1 = _dereq_("./toPath");
@@ -8986,7 +9014,7 @@ var toPoints_1 = _dereq_("./toPoints");
 var valid_1 = _dereq_("./valid");
 exports["default"] = { toPath: toPath_1["default"], toPoints: toPoints_1["default"], valid: valid_1["default"] };
 
-},{"./toPath":148,"./toPoints":149,"./valid":150}],148:[function(_dereq_,module,exports){
+},{"./toPath":147,"./toPoints":148,"./valid":149}],147:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var toPoints_1 = _dereq_("./toPoints");
@@ -9052,7 +9080,7 @@ function toPath(s) {
 }
 exports["default"] = toPath;
 
-},{"./toPoints":149}],149:[function(_dereq_,module,exports){
+},{"./toPoints":148}],148:[function(_dereq_,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || Object.assign || function(t) {
     for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -9132,17 +9160,40 @@ var relativeCommands = [
     't',
     'v'
 ];
+var PARSING_REGEXPS = {
+    command: /^[MmLlHhVvCcSsQqTtAaZz]/g,
+    whitespace: /^[\s]+/,
+    comma: /^,/,
+    number: /^0b[01]+|^0o[0-7]+|^0x[\da-f]+|^-?\d*\.?\d+(?:e[+-]?\d+)?/i
+};
 var isRelative = function (command) { return relativeCommands.indexOf(command) !== -1; };
 var optionalArcKeys = ['xAxisRotation', 'largeArcFlag', 'sweepFlag'];
 var getCommands = function (d) { return d.match(validCommands); };
+function tokenize(d) {
+    var tokens = [];
+    var chunk = d;
+    var total = chunk.length;
+    var iterations = 0;
+    while (chunk.length > 0) {
+        for (var regexpName in PARSING_REGEXPS) {
+            var match = PARSING_REGEXPS[regexpName].exec(chunk);
+            if (match) {
+                tokens.push({ type: regexpName, raw: match[0] });
+                chunk = chunk.slice(match[0].length, chunk.length);
+                break;
+            }
+        }
+    }
+    return tokens;
+}
 var getParams = function (d) {
-    var segs = d.split(validCommands)
-        .map(function (v) {
-        return v.replace(/[0-9]+(e[+-][0-9]+)?-/g, function (m) { return m.slice(0, -1) + " -"; });
-    })
-        .map(function (v) {
-        return v.replace(/\.[0-9]+(e[+-][0-9]+)?/g, function (m) { return m + " "; });
-    })
+    var tokens = tokenize(d);
+    var fixed = tokens.filter(function (t) {
+        return t.type === 'number' || t.type === 'command' || t.type === 'comma';
+    }).map(function (t) {
+        return t.raw;
+    }).join(' ');
+    var segs = fixed.split(validCommands)
         .map(function (p) {
         return p.trim();
     })
@@ -9171,11 +9222,12 @@ var getPointsFromPath = function (_a) {
         var upperCaseCommand = command.toUpperCase();
         var commandLength = commandLengths[upperCaseCommand];
         var relative = isRelative(command);
-        var prevPoint = i === 0 ? null : points[points.length - 1];
+        var prevPoint = (points.length < 1) ? null : points[points.length - 1];
         if (commandLength > 0) {
             var commandParams = params.shift();
             var iterations = commandParams.length / commandLength;
             for (var j = 0; j < iterations; j++) {
+                prevPoint = (points.length < 1) ? null : points[points.length - 1];
                 switch (upperCaseCommand) {
                     case 'M':
                         var x = (relative && prevPoint ? prevPoint.x : 0) + commandParams.shift();
@@ -9368,7 +9420,7 @@ var getPointsFromG = function (_a) {
 };
 exports["default"] = toPoints;
 
-},{}],150:[function(_dereq_,module,exports){
+},{}],149:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var getErrors = function (shape) {
@@ -9469,14 +9521,14 @@ var valid = function (shape) {
 };
 exports["default"] = valid;
 
-},{}],151:[function(_dereq_,module,exports){
+},{}],150:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var prefixer_1 = _dereq_("./prefixer");
 var cssPrefix = prefixer_1["default"](null);
 exports["default"] = cssPrefix;
 
-},{"./prefixer":159}],152:[function(_dereq_,module,exports){
+},{"./prefixer":158}],151:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports["default"] = {
@@ -9498,7 +9550,7 @@ exports["default"] = {
     "rowspan": 1
 };
 
-},{}],153:[function(_dereq_,module,exports){
+},{}],152:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var objectHasOwn = Object.prototype.hasOwnProperty;
@@ -9507,7 +9559,7 @@ function hasOwn(object, propertyName) {
 }
 exports["default"] = hasOwn;
 
-},{}],154:[function(_dereq_,module,exports){
+},{}],153:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var toStyleObject_1 = _dereq_("./toStyleObject");
@@ -9515,7 +9567,7 @@ exports["default"] = {
     object: toStyleObject_1["default"]
 };
 
-},{"./toStyleObject":165}],155:[function(_dereq_,module,exports){
+},{"./toStyleObject":164}],154:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var objectToString = Object.prototype.toString;
@@ -9524,7 +9576,7 @@ function isFunction(v) {
 }
 exports["default"] = isFunction;
 
-},{}],156:[function(_dereq_,module,exports){
+},{}],155:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var objectToString = Object.prototype.toString;
@@ -9533,7 +9585,7 @@ function isObject(v) {
 }
 exports["default"] = isObject;
 
-},{}],157:[function(_dereq_,module,exports){
+},{}],156:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var toUpperFirst_1 = _dereq_("./stringUtils/toUpperFirst");
@@ -9570,7 +9622,7 @@ function prefixInfoFn() {
 var prefixInfo = prefixInfoFn();
 exports["default"] = prefixInfo;
 
-},{"./stringUtils/toUpperFirst":164}],158:[function(_dereq_,module,exports){
+},{"./stringUtils/toUpperFirst":163}],157:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 exports["default"] = {
@@ -9599,7 +9651,7 @@ exports["default"] = {
     "box-pack": 1
 };
 
-},{}],159:[function(_dereq_,module,exports){
+},{}],158:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var camelize_1 = _dereq_("./stringUtils/camelize");
@@ -9655,7 +9707,7 @@ function prefixer(asStylePrefix) {
 }
 exports["default"] = prefixer;
 
-},{"./prefixInfo":157,"./prefixProperties":158,"./stringUtils/camelize":160,"./stringUtils/hyphenate":161,"./stringUtils/toLowerFirst":163,"./stringUtils/toUpperFirst":164}],160:[function(_dereq_,module,exports){
+},{"./prefixInfo":156,"./prefixProperties":157,"./stringUtils/camelize":159,"./stringUtils/hyphenate":160,"./stringUtils/toLowerFirst":162,"./stringUtils/toUpperFirst":163}],159:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var hyphenRe = /[-\s]+(.)?/g;
@@ -9667,7 +9719,7 @@ function camelize(str) {
 }
 exports["default"] = camelize;
 
-},{}],161:[function(_dereq_,module,exports){
+},{}],160:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var separate_1 = _dereq_("./separate");
@@ -9676,7 +9728,7 @@ function hyphenate(name) {
 }
 exports["default"] = hyphenate;
 
-},{"./separate":162}],162:[function(_dereq_,module,exports){
+},{"./separate":161}],161:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var doubleColonRe = /::/g;
@@ -9694,7 +9746,7 @@ function separate(name, separator) {
 }
 exports["default"] = separate;
 
-},{}],163:[function(_dereq_,module,exports){
+},{}],162:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function toLowerFirst(value) {
@@ -9704,7 +9756,7 @@ function toLowerFirst(value) {
 }
 exports["default"] = toLowerFirst;
 
-},{}],164:[function(_dereq_,module,exports){
+},{}],163:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function toUpperFirst(value) {
@@ -9714,7 +9766,7 @@ function toUpperFirst(value) {
 }
 exports["default"] = toUpperFirst;
 
-},{}],165:[function(_dereq_,module,exports){
+},{}],164:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 var cssPrefix_1 = _dereq_("./cssPrefix");
@@ -9862,7 +9914,7 @@ function toStyleObject(styles, config, prepend, result) {
 }
 exports["default"] = toStyleObject;
 
-},{"./cssPrefix":151,"./cssUnitless":152,"./hasOwn":153,"./isFunction":155,"./isObject":156,"./stringUtils/camelize":160,"./stringUtils/hyphenate":161}],166:[function(_dereq_,module,exports){
+},{"./cssPrefix":150,"./cssUnitless":151,"./hasOwn":152,"./isFunction":154,"./isObject":155,"./stringUtils/camelize":159,"./stringUtils/hyphenate":160}],165:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
 function parse(xml) {
@@ -9951,10 +10003,10 @@ function parse(xml) {
 }
 exports["default"] = parse;
 
-},{}],167:[function(_dereq_,module,exports){
+},{}],166:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.7",
+  "version": "2.3.8",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
