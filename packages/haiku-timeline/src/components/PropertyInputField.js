@@ -6,10 +6,6 @@ import getPropertyValueDescriptor from './helpers/getPropertyValueDescriptor'
 import { getItemPropertyId, isItemEqual } from './helpers/ItemHelpers'
 
 export default class PropertyInputField extends React.Component {
-  shouldComponentUpdate (nextProps) {
-    return true
-  }
-
   render () {
     let propertyId = getItemPropertyId(this.props.item)
     let valueDescriptor = getPropertyValueDescriptor(
