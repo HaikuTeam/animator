@@ -1,7 +1,6 @@
 const qs = require('qs')
 const https = require('https')
 const fs = require('fs')
-const path = require('path')
 const os = require('os')
 const electron = require('electron')
 const fetch = require('node-fetch')

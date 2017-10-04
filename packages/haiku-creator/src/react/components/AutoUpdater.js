@@ -1,13 +1,11 @@
 import React from 'react'
 import autoUpdate from '../../utils/autoUpdate'
-import debounce from 'lodash.debounce'
 import Palette from './Palette'
 import Color from 'color'
 import { DASH_STYLES } from '../styles/dashShared'
 
 const STYLES = {
   container: {
-    color: 'black',
     fontSize: 16,
     zIndex: 9999999,
     backgroundColor: Palette.COAL,
@@ -20,7 +18,7 @@ const STYLES = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    maxWidth: 270,
+    maxWidth: 270
   },
   btn: {
     ...DASH_STYLES.btn,
@@ -178,9 +176,8 @@ class AutoUpdater extends React.Component {
 
   render () {
     let content = this[`render${this.state.status}`]()
-    console.log(this.props.shouldDisplay, !!content, this.state.status)
+
     if (!this.props.shouldDisplay) {
-      console.log("rendering null")
       return null
     }
 

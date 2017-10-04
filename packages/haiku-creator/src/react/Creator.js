@@ -631,7 +631,7 @@ export default class Creator extends React.Component {
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
+        <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
         <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
           <div className='layout-box' style={{overflow: 'visible'}}>
