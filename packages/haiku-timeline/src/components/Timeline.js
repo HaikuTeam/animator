@@ -121,6 +121,7 @@ const DEFAULTS = {
   inputFocused: null,
   expandedPropertyClusters: {},
   selectedKeyframes: {},
+  selectedSegments: {},
   reifiedBytecode: null,
   serializedBytecode: null
 }
@@ -481,14 +482,14 @@ class Timeline extends React.Component {
       this.executeBytecodeActionSplitSegment(componentId, timelineName, elementName, propertyName, finalMs)
     })
     this.addEmitterListener(this.ctxmenu, 'joinKeyframes', (componentId, timelineName, elementName, propertyName, startMs, endMs, curveName) => {
-      this.tourClient.next()
-      this.executeBytecodeActionJoinKeyframes(componentId, timelineName, elementName, propertyName, startMs, endMs, curveName)
+      if (this.tourClient) this.tourClient.next()
+      this.changeMultipleSegmentCurves(componentId, timelineName, propertyName, startMs, curveName)
     })
     this.addEmitterListener(this.ctxmenu, 'deleteKeyframe', (componentId, timelineName, propertyName, startMs) => {
       this.executeBytecodeActionDeleteKeyframe({componentId: {componentId, propertyName, ms: startMs}}, timelineName)
     })
     this.addEmitterListener(this.ctxmenu, 'changeSegmentCurve', (componentId, timelineName, propertyName, startMs, curveName) => {
-      this.executeBytecodeActionChangeSegmentCurve(componentId, timelineName, propertyName, startMs, curveName)
+      this.changeMultipleSegmentCurves(componentId, timelineName, propertyName, startMs, curveName)
     })
     this.addEmitterListener(this.ctxmenu, 'moveSegmentEndpoints', (componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs) => {
       this.executeBytecodeActionMoveSegmentEndpoints(componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs)
@@ -897,22 +898,6 @@ class Timeline extends React.Component {
     this.props.websocket.action('splitSegment', [this.props.folder, [componentId], timelineName, elementName, propertyName, startMs], () => {})
   }
 
-  executeBytecodeActionJoinKeyframes (componentId, timelineName, elementName, propertyName, startMs, endMs, curveName) {
-    BytecodeActions.joinKeyframes(this.state.reifiedBytecode, componentId, timelineName, elementName, propertyName, startMs, endMs, curveName)
-    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
-    this._component._clearCaches()
-    this.setState({
-      reifiedBytecode: this.state.reifiedBytecode,
-      serializedBytecode: this._component.getSerializedBytecode(),
-      keyframeDragStartPx: false,
-      keyframeDragStartMs: false,
-      transitionBodyDragging: false
-    })
-    // In the future, curve may be a function
-    let curveForWire = expressionToRO(curveName)
-    this.props.websocket.action('joinKeyframes', [this.props.folder, [componentId], timelineName, elementName, propertyName, startMs, endMs, curveForWire], () => {})
-  }
-
   executeBytecodeActionDeleteKeyframe (keyframes, timelineName) {
     lodash.each(keyframes, (k) => {
       BytecodeActions.deleteKeyframe(this.state.reifiedBytecode, k.componentId, timelineName, k.propertyName, k.ms)
@@ -930,13 +915,59 @@ class Timeline extends React.Component {
     this.setState({selectedKeyframes: {}})
   }
 
-  executeBytecodeActionChangeSegmentCurve (componentId, timelineName, propertyName, startMs, curveName) {
-    BytecodeActions.changeSegmentCurve(this.state.reifiedBytecode, componentId, timelineName, propertyName, startMs, curveName)
+  changeMultipleSegmentCurves (componentId, timelineName, propertyName, startMs, curveName) {
+    lodash.each(this.state.selectedSegments, (s) => {
+      if (!s.hasCurve) {
+        this.executeBytecodeActionJoinKeyframes(componentId, timelineName, s.elementName, s.propertyName, s.ms, s.endMs, curveName)
+      } else {
+        this.executeBytecodeActionChangeSegmentCurve(componentId, timelineName, s.propertyName, s.ms, curveName)
+      }
+    })
+  }
+
+  executeBytecodeActionJoinKeyframes(componentId, timelineName, elementName, propertyName, startMs, endMs, curveName) {
+    BytecodeActions.joinKeyframes(
+      this.state.reifiedBytecode,
+      componentId,
+      timelineName,
+      elementName,
+      propertyName,
+      startMs,
+      endMs,
+      curveName
+    )
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this._component._clearCaches()
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
-      serializedBytecode: this._component.getSerializedBytecode()
+      serializedBytecode: this._component.getSerializedBytecode(),
+      keyframeDragStartPx: false,
+      keyframeDragStartMs: false,
+      transitionBodyDragging: false,
+      selectedKeyframes: {},
+      selectedSegments: {}
+    })
+    // In the future, curve may be a function
+    let curveForWire = expressionToRO(curveName)
+    this.props.websocket.action('joinKeyframes', [this.props.folder, [componentId], timelineName, elementName, propertyName, startMs, endMs, curveForWire], () => {})
+  }
+
+  executeBytecodeActionChangeSegmentCurve (componentId, timelineName, propertyName, startMs, curveName) {
+    BytecodeActions.changeSegmentCurve(
+      this.state.reifiedBytecode,
+      componentId,
+      timelineName,
+      propertyName,
+      startMs,
+      curveName
+    )
+    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+    this._component._clearCaches()
+    this.setState({
+      reifiedBytecode: this.state.reifiedBytecode,
+      serializedBytecode: this._component.getSerializedBytecode(),
+      selectedKeyframes: {},
+      selectedSegments: {}
     })
     // In the future, curve may be a function
     let curveForWire = expressionToRO(curveName)
@@ -1629,7 +1660,11 @@ class Timeline extends React.Component {
         onMouseDown={(e) => {
           e.stopPropagation()
           let selectedKeyframes = this.state.selectedKeyframes
-          if (!e.shiftKey) selectedKeyframes = {}
+          let selectedSegments = this.state.selectedSegments
+          if (!e.shiftKey) {
+            selectedKeyframes = {}
+            selectedSegments = {}
+          }
 
           selectedKeyframes[componentId + '-' + propertyName + '-' + curr.index] = {
             id: componentId + '-' + propertyName + '-' + curr.index,
@@ -1639,7 +1674,7 @@ class Timeline extends React.Component {
             componentId,
             propertyName
           }
-          this.setState({ selectedKeyframes })
+          this.setState({ selectedKeyframes, selectedSegments })
         }}>
         <span
           onContextMenu={(ctxMenuEvent) => {
@@ -1759,7 +1794,11 @@ class Timeline extends React.Component {
         onMouseDown={(e) => {
           e.stopPropagation()
           let selectedKeyframes = this.state.selectedKeyframes
-          if (!e.shiftKey) selectedKeyframes = {}
+          let selectedSegments = this.state.selectedSegments
+          if (!e.shiftKey) {
+            selectedKeyframes = {}
+            selectedSegments = {}
+          }
           selectedKeyframes[componentId + '-' + propertyName + '-' + curr.index] = {
             id: componentId + '-' + propertyName + '-' + curr.index,
             componentId,
@@ -1776,7 +1815,14 @@ class Timeline extends React.Component {
             ms: next.ms,
             handle: 'middle'
           }
-          this.setState({ selectedKeyframes })
+          selectedSegments[componentId + '-' + propertyName + '-' + curr.index] = {
+            id: componentId + '-' + propertyName + '-' + curr.index,
+            componentId,
+            propertyName,
+            ms: curr.ms,
+            hasCurve: true
+          }
+          this.setState({ selectedKeyframes, selectedSegments })
         }}>
         <span
           className='pill-container'
@@ -1956,6 +2002,8 @@ class Timeline extends React.Component {
   renderConstantBody (frameInfo, componentId, elementName, propertyName, reifiedBytecode, prev, curr, next, pxOffsetLeft, pxOffsetRight, index, options) {
     // const activeInfo = setActiveContents(propertyName, curr, next, false, this.state.timeDisplayMode === 'frames')
     const uniqueKey = `${propertyName}-${index}-${curr.ms}`
+    let isSelected = false
+    if (this.state.selectedSegments[componentId + '-' + propertyName + '-' + curr.index] != undefined) isSelected = true
 
     return (
       <span
@@ -1991,6 +2039,26 @@ class Timeline extends React.Component {
             elementName
           })
         }}
+        onMouseDown={(e) => {
+          e.stopPropagation()
+          let selectedSegments = this.state.selectedSegments
+          let selectedKeyframes = this.state.selectedKeyframes
+          if (!e.shiftKey) {
+            selectedSegments = {}
+            selectedKeyframes = {}
+          } else {
+            selectedSegments[componentId + '-' + propertyName + '-' + curr.index] = {
+              id: componentId + '-' + propertyName + '-' + curr.index,
+              componentId,
+              elementName,
+              propertyName,
+              ms: curr.ms,
+              endMs: next.ms,
+              hasCurve: false
+            }
+          }
+          this.setState({ selectedSegments, selectedKeyframes })
+        }}
         style={{
           position: 'absolute',
           left: pxOffsetLeft + 4,
@@ -2005,7 +2073,9 @@ class Timeline extends React.Component {
           width: '100%',
           backgroundColor: (options.collapsedElement)
             ? Color(Palette.GRAY).fade(0.23)
-            : Palette.DARKER_GRAY
+            : (isSelected)
+              ?  Color(Palette.LIGHTEST_PINK).fade(.5)
+              : Palette.DARKER_GRAY
         }} />
       </span>
     )
@@ -2910,7 +2980,7 @@ class Timeline extends React.Component {
             overflowX: 'hidden'
           }}
           onMouseDown={() => {
-            this.setState({selectedKeyframes: {}})
+            this.setState({selectedKeyframes: {}, selectedSegments: {}})
           }}>
           {this.renderComponentRows(this.state.componentRowsData)}
         </div>
