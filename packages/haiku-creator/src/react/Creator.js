@@ -117,8 +117,8 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:redo', lodash.debounce(() => {
       this.props.websocket.send({ method: 'gitRedo', params: [this.state.projectFolder, { type: 'global' }] })
     }, 500, { leading: true }))
-    ipcRenderer.on('global-menu:redo', () => {
-      this.setState()
+    ipcRenderer.on('global-menu:check-updates', () => {
+      this.setState({ hasCheckedForUpdates: false })
     })
   }
 
@@ -551,9 +551,6 @@ export default class Creator extends React.Component {
                 </g>
               </g>
             </svg>
-
-            <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} />
-
             <br />
             <span style={{ color: '#FAFCFD', display: 'inline-block', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0 }}>{this.state.softwareVersion}</span>
           </div>
@@ -563,11 +560,6 @@ export default class Creator extends React.Component {
   }
 
   render () {
-    // TODO: check for conflicts with the  another if rendering the default screen
-    if (!this.state.hasCheckedForUpdates) {
-      return this.renderStartupDefaultScreen()
-    }
-
     if (this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username)) {
       return (
         <StyleRoot>
@@ -595,6 +587,7 @@ export default class Creator extends React.Component {
             envoy={this.envoy}
             {...this.props} />
           <Tour projectsList={this.state.projectsList} envoy={this.envoy} startTourOnMount />
+          <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
         </div>
       )
     }
@@ -603,6 +596,7 @@ export default class Creator extends React.Component {
       return (
         <div>
           <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
+          <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
           <ProjectBrowser
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
@@ -637,6 +631,7 @@ export default class Creator extends React.Component {
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
         <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
           <div className='layout-box' style={{overflow: 'visible'}}>
