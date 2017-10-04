@@ -28,11 +28,14 @@ var YARN_INSTALL_FLAGS = [
   '--production', // Strip out dev dependencies
   '--force', // Clean out any stripped-out dependencies
   '--ignore-engines', // Ignore any (spurious) engine errors
-  '--ignore-scripts', // Don't recompile since we already have
-  '--prefer-offline', // Use the packages we've already installed locally
   '--non-interactive', // Don't prompt (just in case)
+  '--prefer-offline', // Use the packages we've already installed locally
   '--mutex file:/tmp/.yarn-mutex' // Avoid intermittent concurrency bugs in yarn
 ]
+
+if (!process.env.TRAVIS) {
+  YARN_INSTALL_FLAGS.push('--ignore-scripts') // If not in CI, don't recompile, since we already have done so locally
+}
 
 var HAIKU_SUBPACKAGES = {
   'haiku-bytecode': true,

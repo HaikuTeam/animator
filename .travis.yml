@@ -11,10 +11,9 @@ node_js:
   - "8.4.0"
 
 before_install:
-  - brew update
-  - brew install openssl --force
-  - brew link openssl --force
   - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.0.2
+  - nvm alias default 8.4.0
+  - nvm use 8.4.0
 
 install:
   - yarn
