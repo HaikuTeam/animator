@@ -39,6 +39,7 @@
     "pretty": "^2.0.0",
     "qs": "6.3.0",
     "radium": "0.18.1",
+    "raven-js": "^3.18.1",
     "react": "15.4.2",
     "react-dom": "15.4.2",
     "react-select": "^1.0.0-rc.5",
