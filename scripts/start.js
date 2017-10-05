@@ -25,7 +25,7 @@ var DEFAULTS = {
   nodeEnv: 'development',
   skipAutoUpdate: '1',
   plumbingPort: '1024',
-  releaseEnvironment: 'staging', // stub
+  releaseEnvironment: 'development', // stub
   releaseBranch: 'master', // stub
   releasePlatform: 'mac', // stub
   releaseVersion: require('./../package.json').version, // stub
