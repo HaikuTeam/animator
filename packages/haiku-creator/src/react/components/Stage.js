@@ -86,11 +86,19 @@ export default class Stage extends React.Component {
             }, 1000)
           }
           break
+        // case 1:
+        //   this.props.createNotice({ type: 'warning', title: 'Warning', message: event.message })
+        //   break
+        case 2:
+          this.props.createNotice({ type: 'error', title: 'Error', message: event.message })
+          break
       }
     })
+
     this.webview.addEventListener('dom-ready', () => {
       if (process.env.DEV === '1') this.webview.openDevTools()
     })
+
     while (this.mount.firstChild) this.mount.removeChild(this.mount.firstChild)
     this.mount.appendChild(this.webview)
   }

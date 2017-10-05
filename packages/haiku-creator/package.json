@@ -43,6 +43,7 @@
     "lodash.debounce": "4.0.8",
     "qs": "6.3.0",
     "radium": "0.18.1",
+    "raven-js": "^3.18.1",
     "react": "15.4.2",
     "react-addons-css-transition-group": "15.4.2",
     "react-animations": "0.1.0",

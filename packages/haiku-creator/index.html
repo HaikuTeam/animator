@@ -14,8 +14,15 @@
 </head>
 <body style="position:relative;">
   <div id="mount" style="width: 100%; height: 100%; overflow: hidden;"></div>
+  <script src="./node_modules/raven-js/dist/raven.js"></script>
   <script>
-    require('./lib/entry')
+    Raven.config('https://07b703c10ea14681a29a1a870c28e84a@sentry.io/226383', {
+      environment: process.env.HAIKU_RELEASE_ENVIRONMENT || 'development',
+      release: process.env.HAIKU_RELEASE_VERSION
+    }).install()
+    Raven.context(function () {
+      require('./lib/entry')
+    })
   </script>
 </body>
 </html>

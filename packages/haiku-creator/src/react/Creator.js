@@ -681,7 +681,9 @@ export default class Creator extends React.Component {
                 ref='timeline'
                 folder={this.state.projectFolder}
                 envoy={this.envoy}
-                haiku={this.props.haiku} />
+                haiku={this.props.haiku}
+                createNotice={this.createNotice}
+                removeNotice={this.removeNotice} />
             </SplitPane>
           </div>
         </div>
