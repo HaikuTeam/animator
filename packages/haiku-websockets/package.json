@@ -13,7 +13,7 @@
     "electron": "1.7.0"
   },
   "scripts": {
-    "watch": "babel src --out-dir lib --watch",
+    "watch": "babel src --out-dir lib --watch --skip-initial-build",
     "build": "babel src --out-dir lib",
     "build:git": "npm run build && git add . && git commit -m \"auto: Rebuild\" && git push origin master",
     "test": "tape \"./test/*.test.js\" | tap-spec || true"
