@@ -1,4 +1,4 @@
-var debounce = require('lodash').debounce
+var throttle = require('lodash').throttle
 var ReactDOMAdapter = require('@haiku/player/dom/react')
 var HaikuDOMComponent = require('./dom')
 var ReactDOMComponent = ReactDOMAdapter(HaikuDOMComponent)
@@ -6,9 +6,12 @@ if (ReactDOMComponent.default) ReactDOMComponent = ReactDOMComponent.default
 ReactDOMComponent.mount = function (element, React, ReactDOM) {
   var Wrap = React.createClass({
     getInitialState: function () {
-      this.setMouseCoordinates = debounce(({ clientX, clientY }) => {
+      this.setMouseCoordinates = ({ clientX, clientY }) => {
         this.setState({ mouseX: clientX, mouseY: clientY })
-      }, 8)
+      }
+      // this.setMouseCoordinates = throttle(({ clientX, clientY }) => {
+      //   this.setState({ mouseX: clientX, mouseY: clientY })
+      // }, 32)
       return {
         mouseX: 0,
         mouseY: 0
