@@ -23,8 +23,15 @@
   </head>
   <body>
     <div id="root"></div>
+    <script src="./node_modules/raven-js/dist/raven.js"></script>
     <script>
-      require('./lib/react/index')
+      Raven.config('https://287e52df9cfd48aab7f6091ec17a5921@sentry.io/226362', {
+        environment: process.env.HAIKU_RELEASE_ENVIRONMENT || 'development',
+        release: process.env.HAIKU_RELEASE_VERSION
+      }).install()
+      Raven.context(function () {
+        require('./lib/react/index')
+      })
     </script>
   </body>
 </html>
