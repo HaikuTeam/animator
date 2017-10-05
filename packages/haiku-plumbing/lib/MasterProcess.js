@@ -14,14 +14,14 @@ var _Master2 = _interopRequireDefault(_Master);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var Raven = require('./Raven');
+if (process.env.HAIKU_RELEASE_ENVIRONMENT === 'production' || process.env.HAIKU_RELEASE_ENVIRONMENT === 'staging') {
+  require('./Raven');
+}
 
-Raven.context(function () {
-  var master = new _Master2.default(_ProcessBase2.default.HAIKU.folder);
+var master = new _Master2.default(_ProcessBase2.default.HAIKU.folder);
 
-  master.on('host-disconnected', function () {
-    throw new Error('[master] disconnected from host plumbing process');
-  });
+master.on('host-disconnected', function () {
+  throw new Error('[master] disconnected from host plumbing process');
 });
 
 exports.default = master;
