@@ -1,93 +1,99 @@
 import React from 'react'
 import Radium from 'radium'
 import Palette from '../Palette'
+import Popover from 'react-popover'
+import { CollapseChevronRightSVG, CollapseChevronDownSVG, SketchIconSVG, FolderIconSVG } from './../Icons'
 
 const STYLES = {
+  dots: {
+    color: Palette.ROCK,
+    transform: 'rotate(90deg)'
+  },
   container: {
-    position: 'absolute',
-    right: 15
+    display: 'inline-block',
+    marginLeft: '5px'
   },
   popover: {
-    position: 'fixed',
-    width: 100,
-    zIndex: 10000,
-    height: 100,
-    backgroundColor: Palette.DARK_GRAY,
-    color: Palette.ROCK
+    container: {
+      listStyle: 'none',
+      padding: '15px',
+      margin: '0',
+      backgroundColor: Palette.DARKER_GRAY,
+      minWidth: '150px'
+    },
+    item: {
+      textAlign: 'left',
+      marginBottom: '5px',
+      color: Palette.ROCK,
+      ':hover': {
+        backgroundColor: Palette.DARK_GRAY
+      }
+    }
   }
 }
 
-// 2017-02-08: ZB started building this menu for library items, to
-//             give a non-context-menu way to open files in Sketch or
-//             Finder.  Decided that building the popover
-//             was too heavy-weight (either relies on bloated third-party
-//             libraries or requires a lot of wheel-reinventing.)
-//
-//             Leaving this code here in case someone else wants to pick this up.
-//             Tether (http://tether.io/) may be a useful next step.
-//
-//             Might make sense to find a way to patch into the same
-//             logic that's being used for the custom context menu, and
-//             just programatically trigger that context menu here
+const PopoverBody = () => {
+  const items = [
+    {name: 'Open Sketch', onClick: () => {console.log('click')}, icon: SketchIconSVG},
+    {name: 'Remove'}
+  ]
+
+  const renderedItems = items.map(({ name, icon, onClick }, id) => {
+    return (
+      <li key={id} onClick={onClick}>
+        <button style={STYLES.popover.item}>
+          {icon && React.createElement(icon)}
+          {name}
+        </button>
+      </li>
+    )
+  })
+
+  return (
+    <ul style={STYLES.popover.container}>
+      {renderedItems}
+    </ul>
+  )
+}
 
 class ThreeDotMenu extends React.Component {
   constructor (props) {
     super(props)
+
+    this.openPopover = this.openPopover.bind(this)
+    this.closePopover = this.closePopover.bind(this)
+
     this.state = {
-      popoverVisible: false,
-      popoverX: 0,
-      popoverY: 0,
-      refReady: false
-    }
-    this.handleThreeDotClick = this.handleThreeDotClick.bind(this)
-  }
-
-  handleThreeDotClick (evt) {
-    var rect = this.refs.threeDots.getBoundingClientRect()
-
-    var x = rect.left + rect.width
-    var y = rect.top
-    this.setState({
-      popoverVisible: !this.state.popoverVisible,
-      popoverX: x,
-      popoverY: y,
-      refReady: false
-    })
-  }
-
-  getDynamicPopoverStyle () {
-    var offset = this.calcPopoverYOffsetFromDOMNode(this.popoverRef)
-    return {
-      top: this.state.popoverY + offset,
-      left: this.state.popoverX
+      isPopoverOpen: false
     }
   }
 
-  calcPopoverYOffsetFromDOMNode (node) {
-    if (!node) return 0
-    return 10 - node.getBoundingClientRect().height / 2
+  openPopover (evt) {
+    evt.stopPropagation()
+    this.setState({isPopoverOpen: true})
   }
 
-  // &#5867; for bigger bullets
-  // &#183; for smaller bullets
+  closePopover () {
+    this.setState({isPopoverOpen: false})
+  }
+
   render () {
+    const {isPopoverOpen} = this.state
+
     return (
-      <span ref='threeDots' onClick={this.handleThreeDotClick} className='container' style={STYLES.container}>
-        &#5867; &#5867; &#5867;
-        {
-          this.state.popoverVisible
-          ? <div ref={(elem) => {
-            if (!this.state.refReady) {
-              this.setState({refReady: true})
-              this.popoverRef = elem
-            }
-          }}
-            style={[STYLES.popover, this.getDynamicPopoverStyle()]}>
-             Popover!
-            </div>
-          : <span />
-        }
-      </span>
+      <div style={STYLES.container}>
+        <Popover
+          onOuterAction={this.closePopover}
+          isOpen={isPopoverOpen}
+          place="left"
+          tipSize={0.1}
+          body={<PopoverBody />}
+        >
+          <div>
+            <button style={STYLES.dots} onClick={this.openPopover}>&#5867;&#5867;&#5867;</button>
+          </div>
+        </Popover>
+      </div>
     )
   }
 }

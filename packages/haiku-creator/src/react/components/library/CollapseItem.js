@@ -6,6 +6,8 @@ import Collapse from 'react-collapse'
 import LibraryItem from './LibraryItem'
 import ContextMenu from './../../ContextMenu'
 import { CollapseChevronRightSVG, CollapseChevronDownSVG, SketchIconSVG, FolderIconSVG } from './../Icons'
+import ThreeDotMenu from './ThreeDotMenu'
+import Popover from 'react-popover'
 const {shell} = require('electron')
 
 const STYLES = {
@@ -174,6 +176,7 @@ class CollapseItem extends React.Component {
                 <SketchIconSVG style='' color={Radium.getState(this.state, `file-header-${file.fileName}`, ':hover') ? Palette.ORANGE : Palette.DARKER_ROCK} />
               </span>
               <span onContextMenu={this.handleContextMenu.bind(this)} onDoubleClick={this.handleSketchDoubleClick}>{this.props.file.fileName}</span>
+              <ThreeDotMenu />
             </span>
             : <span><span style={STYLES.icon}><FolderIconSVG /></span>{this.props.name}</span>
           }
