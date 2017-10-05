@@ -6,34 +6,47 @@ const {download, unzip} = require('./fileManipulation')
 
 const opts = {
   server: process.env.HAIKU_AUTOUPDATE_SERVER,
-  environment: process.env.HAIKU_RELEASE_ENVIRONMENT,
-  branch: process.env.HAIKU_RELEASE_BRANCH,
-  platform: process.env.HAIKU_RELEASE_PLATFORM,
-  version: process.env.HAIKU_RELEASE_VERSION
+  environment: 'staging',
+  branch: 'master',
+  platform: 'mac',
+  version: '2.3.6'
 }
+
+
+// const opts = {
+//   server: process.env.HAIKU_AUTOUPDATE_SERVER,
+//   environment: process.env.HAIKU_RELEASE_ENVIRONMENT,
+//   branch: process.env.HAIKU_RELEASE_BRANCH,
+//   platform: process.env.HAIKU_RELEASE_PLATFORM,
+//   version: process.env.HAIKU_RELEASE_VERSION
+// }
 
 module.exports = {
   async update (url, progressCallback, options = opts) {
-    if (!process.env.HAIKU_SKIP_AUTOUPDATE) {
-      if (
-        !options.server ||
-        !options.environment ||
-        !options.branch ||
-        !options.platform ||
-        !options.version
-      ) {
-        throw new Error('Missing release/autoupdate environment variables')
+    return new Promise(async (resolve, reject) => {
+      if (process.env.HAIKU_SKIP_AUTOUPDATE !== '1') {
+        if (
+          !options.server ||
+          !options.environment ||
+          !options.branch ||
+          !options.platform ||
+          !options.version
+        ) {
+          throw new Error('Missing release/autoupdate environment variables')
+          reject(false)
+        }
+
+        const tempPath = os.tmpdir()
+        const zipPath = `${tempPath}/haiku.zip`
+        const installationPath = '/Applications'
+
+        await download(url, zipPath, progressCallback)
+        await unzip(zipPath, installationPath)
+        resolve(true)
+        electron.remote.app.relaunch()
+        electron.remote.app.exit()
       }
-
-      const tempPath = os.tmpdir()
-      const zipPath = `${tempPath}/haiku.zip`
-      const installationPath = '/Applications'
-
-      await download(url, zipPath, progressCallback)
-      await unzip(zipPath, installationPath)
-      electron.remote.app.relaunch()
-      electron.remote.app.exit()
-    }
+    })
   },
 
   async checkUpdates () {

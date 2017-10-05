@@ -173,11 +173,11 @@ class AutoUpdater extends React.Component {
   }
 
   render () {
-    let content = this[`render${this.state.status}`]()
-
-    if (!this.props.shouldDisplay) {
+    if (process.env.HAIKU_SKIP_AUTOUPDATE === '1' || !this.props.shouldDisplay) {
       return null
     }
+
+    let content = this[`render${this.state.status}`]()
 
     return (
       <div>
