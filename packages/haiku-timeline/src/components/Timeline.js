@@ -2690,6 +2690,7 @@ class Timeline extends React.Component {
               position: 'absolute',
               left: 36,
               width: 5,
+              zIndex: 1005,
               borderLeft: '1px solid ' + Palette.GRAY_FIT1,
               height
             }} />
@@ -2706,12 +2707,15 @@ class Timeline extends React.Component {
           <div
             className='property-cluster-row-label no-select'
             style={{
-              right: 0,
-              width: this.state.propertiesWidth - 90,
-              height: 'inherit',
-              textAlign: 'right',
               position: 'relative',
-              paddingTop: 5
+              right: 0,
+              width: this.state.propertiesWidth - 80,
+              height: this.state.rowHeight,
+              paddingTop: 3,
+              paddingRight: 10,
+              backgroundColor: Palette.GRAY,
+              zIndex: 1004,
+              textAlign: 'right',
             }}>
             <span style={{
               textTransform: 'uppercase',
