@@ -14,10 +14,14 @@ var _Master2 = _interopRequireDefault(_Master);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var master = new _Master2.default(_ProcessBase2.default.HAIKU.folder);
+var Raven = require('./Raven');
 
-master.on('host-disconnected', function () {
-  throw new Error('[master] disconnected from host plumbing process');
+Raven.context(function () {
+  var master = new _Master2.default(_ProcessBase2.default.HAIKU.folder);
+
+  master.on('host-disconnected', function () {
+    throw new Error('[master] disconnected from host plumbing process');
+  });
 });
 
 exports.default = master;

@@ -1,10 +1,14 @@
 import ProcessBase from './ProcessBase'
 import Master from './Master'
 
-const master = new Master(ProcessBase.HAIKU.folder)
+var Raven = require('./Raven')
 
-master.on('host-disconnected', () => {
-  throw new Error('[master] disconnected from host plumbing process')
+Raven.context(() => {
+  const master = new Master(ProcessBase.HAIKU.folder)
+
+  master.on('host-disconnected', () => {
+    throw new Error('[master] disconnected from host plumbing process')
+  })
 })
 
 export default master
