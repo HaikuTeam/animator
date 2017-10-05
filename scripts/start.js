@@ -11,6 +11,7 @@ var groups = lodash.keyBy(allPackages, 'name')
 var ROOT = path.join(__dirname, '..')
 var plumbingPackage = groups['haiku-plumbing']
 var blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
+
 process.env.NODE_ENV = 'development'
 
 /**
@@ -25,7 +26,7 @@ var DEFAULTS = {
   nodeEnv: 'development',
   skipAutoUpdate: '1',
   plumbingPort: '1024',
-  releaseEnvironment: 'development', // stub
+  releaseEnvironment: process.env.NODE_ENV, // stub
   releaseBranch: 'master', // stub
   releasePlatform: 'mac', // stub
   releaseVersion: require('./../package.json').version, // stub
