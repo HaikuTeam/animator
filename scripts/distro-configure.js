@@ -6,6 +6,10 @@ var inquirer = require('inquirer')
 var log = require('./helpers/log')
 var writeHackyDynamicDistroConfig = require('./helpers/writeHackyDynamicDistroConfig')
 
+if (process.env.TRAVIS) {
+  process.env.NODE_ENV = process.env.TRAVIS_BRANCH
+}
+
 var ROOT = path.join(__dirname, '..')
 var ENVS = { test: true, development: true, staging: true, production: true }
 
