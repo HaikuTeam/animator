@@ -15,7 +15,7 @@ module.exports = {
 
         response.on('data', data => {
           progress += data.length
-          onProgress({ progress: progress * 100 / contentLenght })
+          onProgress(progress * 100 / contentLenght)
         })
 
         response.on('error', error => {

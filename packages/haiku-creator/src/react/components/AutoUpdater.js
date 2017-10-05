@@ -75,9 +75,7 @@ class AutoUpdater extends React.Component {
   }
 
   async checkForUpdates () {
-    if (!this.isFirstRun) {
-      this.setState({status: statuses.CHECKING})
-    }
+    this.setState({status: statuses.CHECKING})
 
     try {
       const {shouldUpdate, url} = await autoUpdate.checkUpdates()
