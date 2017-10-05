@@ -28,7 +28,7 @@ var DEFAULTS = {
   releaseEnvironment: 'development', // stub
   releaseBranch: 'master', // stub
   releasePlatform: 'mac', // stub
-  releaseVersion: '0.0.0', // stub
+  releaseVersion: require('./../package.json').version, // stub
   autoUpdateServer: 'http://localhost:3002',
   plumbingUrl: 'http://0.0.0.0:1024',
   remoteDebug: true,
