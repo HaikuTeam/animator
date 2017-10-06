@@ -1,0 +1,13 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "target": "es5",
+         "outDir": "~test",
+         "rootDir": "test",
+         "lib": ["es2015"]
+    },
+    "include": [
+        "test/**/*.ts",
+        "test/**/*.tsx"
+    ]
+}
