@@ -1,7 +1,6 @@
-import React from "react";
-import Radium from "radium";
-import Palette from "./Palette";
-import Popover from "react-popover";
+import React from 'react'
+import Palette from './Palette'
+import Popover from 'react-popover'
 
 const STYLES = {
   dots: {
@@ -97,4 +96,4 @@ class ThreeDotMenu extends React.Component {
   }
 }
 
-export default Radium(ThreeDotMenu)
+export default ThreeDotMenu
