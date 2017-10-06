@@ -6,6 +6,8 @@ var SVGPoints = require('@haiku/player/lib/helpers/SVGPoints').default
 var Layout3D = require('@haiku/player/lib/Layout3D').default
 var cssQueryTree = require('@haiku/player/lib/helpers/cssQueryTree').default
 var KnownDOMEvents = require('@haiku/player/lib/renderers/dom/Events').default
+var DOMSchema = require('@haiku/player/lib/properties/dom/schema')
+var DOMFallbacks = require('@haiku/player/lib/properties/dom/fallbacks')
 var TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
 var manaToHtml = require('haiku-bytecode/src/manaToHtml')
 var manaToJson = require('haiku-bytecode/src/manaToJson')
@@ -42,6 +44,102 @@ const DELTA_ROTATION_OFFSETS = {
   6: 20 * PI_OVER_12,
   7: 24 * PI_OVER_12,
   8: 4 * PI_OVER_12
+}
+
+/**
+ * Hey! If you want to ADD any properties here, you might also need to update the dictionary in
+ * haiku-bytecode/src/properties/dom/schema,
+ * haiku-bytecode/src/properties/dom/fallbacks,
+ * or they might not show up in the view.
+ */
+
+const ALLOWED_PROPS = {
+  'translation.x': true,
+  'translation.y': true,
+  // 'translation.z': true, // This doesn't work for some reason, so leaving it out
+  'rotation.z': true,
+  'rotation.x': true,
+  'rotation.y': true,
+  'scale.x': true,
+  'scale.y': true,
+  'opacity': true,
+  // 'shown': true,
+  'backgroundColor': true
+  // 'color': true,
+  // 'fill': true,
+  // 'stroke': true
+}
+
+const ALLOWED_PROPS_TOP_LEVEL = {
+  'sizeAbsolute.x': true,
+  'sizeAbsolute.y': true,
+  // Enable these as such a time as we can represent them visually in the glass
+  // 'style.overflowX': true,
+  // 'style.overflowY': true,
+  'backgroundColor': true,
+  'opacity': true
+}
+
+const CLUSTERED_PROPS = {
+  'mount.x': 'mount',
+  'mount.y': 'mount',
+  'mount.z': 'mount',
+  'align.x': 'align',
+  'align.y': 'align',
+  'align.z': 'align',
+  'origin.x': 'origin',
+  'origin.y': 'origin',
+  'origin.z': 'origin',
+  'translation.x': 'translation',
+  'translation.y': 'translation',
+  'translation.z': 'translation', // This doesn't work for some reason, so leaving it out
+  'rotation.x': 'rotation',
+  'rotation.y': 'rotation',
+  'rotation.z': 'rotation',
+  // 'rotation.w': 'rotation', // Probably easiest not to let the user have control over quaternion math
+  'scale.x': 'scale',
+  'scale.y': 'scale',
+  'scale.z': 'scale',
+  'sizeMode.x': 'sizeMode',
+  'sizeMode.y': 'sizeMode',
+  'sizeMode.z': 'sizeMode',
+  'sizeProportional.x': 'sizeProportional',
+  'sizeProportional.y': 'sizeProportional',
+  'sizeProportional.z': 'sizeProportional',
+  'sizeDifferential.x': 'sizeDifferential',
+  'sizeDifferential.y': 'sizeDifferential',
+  'sizeDifferential.z': 'sizeDifferential',
+  'sizeAbsolute.x': 'sizeAbsolute',
+  'sizeAbsolute.y': 'sizeAbsolute',
+  'sizeAbsolute.z': 'sizeAbsolute',
+  'style.overflowX': 'overflow',
+  'style.overflowY': 'overflow'
+}
+
+const CLUSTER_NAMES = {
+  'mount': 'Mount',
+  'align': 'Align',
+  'origin': 'Origin',
+  'translation': 'Position',
+  'rotation': 'Rotation',
+  'scale': 'Scale',
+  'sizeMode': 'Sizing Mode',
+  'sizeProportional': 'Size %',
+  'sizeDifferential': 'Size +/-',
+  'sizeAbsolute': 'Size',
+  'overflow': 'Overflow'
+}
+
+const ALLOWED_TAGNAMES = {
+  div: true,
+  svg: true,
+  g: true,
+  rect: true,
+  circle: true,
+  ellipse: true,
+  line: true,
+  polyline: true,
+  polygon: true
 }
 
 function _manaQuerySelectorAll (selector, mana) {
@@ -224,7 +322,13 @@ function ElementModel (platform, component, metadata) {
     return points
   }
 
-  Element.upsertFromNodeWithComponent = function upsertFromNode (node, parent, component, metadata) {
+  Element.upsertFromNodeWithComponentCached = function upsertFromNodeWithComponentCached (node, parent, component, metadata) {
+    var found = Element.find(node.attributes[HAIKU_ID_ATTRIBUTE])
+    if (found) return found
+    return Element.upsertFromNodeWithComponent(node, parent, component, metadata)
+  }
+
+  Element.upsertFromNodeWithComponent = function upsertFromNodeWithComponent (node, parent, component, metadata) {
     var uid = node.attributes[HAIKU_ID_ATTRIBUTE] || Math.random()
     var $el = Element.findDomNode(uid)
     parent = parent && Element.find(parent.attributes[HAIKU_ID_ATTRIBUTE])
@@ -248,56 +352,6 @@ function ElementModel (platform, component, metadata) {
     return instance
   }
 
-  // This is weird and warrants some explanation. Any time an Element is clicked, I add that element to
-  // this stack (called a "queue", I dunno why) of clicked elements. This method then pulls out that set
-  // of clicked elements and makes a choice as to what to do. The reason for this is my original implementation
-  // which used stopPropagation caused a lot of pain -- so many things going on in the stage, it just seemed
-  // easier to track "everything that was clicked" and make a decision later rather than work out the
-  // spaghetti of who blocked the event.
-  Element.dequeueClicks = lodash.debounce(function (metadata) {
-    var clicked = Element.clicked.dequeue()
-    clicked.pop() // Remove root div
-    if (clicked.length < 1) {
-      // If nothing left, we clicked the artboard
-      Element.unselectAllElements(metadata)
-      return void (0)
-    }
-    var top = clicked.pop()
-    if (top.isSelected) return void (0)
-    var childSelected
-    Element.visitChildren(top, (child) => {
-      if (!childSelected && child.isSelected) childSelected = child
-    })
-    if (childSelected) return void (0)
-    if (!Element.isKeyShiftDown) Element.unselectAllElements(metadata)
-    if (top.isSelectableType()) {
-      top.select(metadata)
-    }
-  })
-
-  Element.dequeueDoubleClicks = lodash.debounce(function (metadata) {
-    var dblclicked = Element.dblclicked.dequeue()
-    return dblclicked
-    // TODO: Enable drill down when transform issues are resolved
-    // dblclicked.pop() // Remove root div
-    // if (dblclicked.length < 1) return void (0)
-    // var alreadySelected
-    // var i = dblclicked.length
-    // while (i--) {
-    //   var element = dblclicked[i]
-    //   if (!alreadySelected && element.isSelected) {
-    //     alreadySelected = element
-    //   }
-    // }
-    // if (!alreadySelected) {
-    //   if (!Element.isKeyShiftDown) Element.unselectAllElements()
-    //   var top = clicked.pop()
-    //   top.select()
-    // } else {
-    //   alreadySelected.drill()
-    // }
-  })
-
   Element.prototype.update = function update (attrs) {
     for (var key in attrs) this[key] = attrs[key]
     return this
@@ -317,50 +371,6 @@ function ElementModel (platform, component, metadata) {
     var rotationDegrees = ~~(radians * 180 / Math.PI)
     if (rotationDegrees > 360) rotationDegrees = rotationDegrees % 360
     return rotationDegrees
-  }
-
-  Element.prototype.drill = function () {
-    // TODO: Enable drill down when transform issues are resolved
-    // if (this.children) {
-    //   var candidates = this.children.all().filter((child) => {
-    //     return child.isSelectableType() || child.isRenderableType() || child.isGroupingType()
-    //   })
-    //   if (candidates[0]) {
-    //     this.unselect()
-    //     Element.unselectAllElements()
-    //     candidates[0].select()
-    //   }
-    // }
-  }
-
-  Element.prototype.initialize = function initialize (metadata) {
-    if (this.$el) { // Allow headless, e.g. in tests
-      // this.oneListener(this.$el, this.uid, 'mouseover', () => {
-      //   if (component._interactionMode.type === 'live') return void (0)
-      //   if (this.isRenderableType()) {
-      //     this.hoverOn(metadata)
-      //   }
-      // })
-      // this.oneListener(this.$el, this.uid, 'mouseout', () => {
-      //   if (component._interactionMode.type === 'live') return void (0)
-      //   this.hoverOff(metadata)
-      // })
-      // this.oneListener(this.$el, this.uid, 'mousedown', (event) => {
-      //   if (component._interactionMode.type === 'live') return void (0)
-      //   Element.clicked.add(this)
-      //   Element.dequeueClicks(metadata)
-      // })
-      // this.oneListener(this.$el, this.uid, 'click', (event) => {
-      //   if (component._interactionMode.type === 'live') return void (0)
-      //   Element.clicked.add(this)
-      //   Element.dequeueClicks(metadata)
-      // })
-      // this.oneListener(this.$el, this.uid, 'dblclick', (event) => {
-      //   if (component._interactionMode.type === 'live') return void (0)
-      //   Element.dblclicked.add(this)
-      //   Element.dequeueDoubleClicks(metadata)
-      // })
-    }
   }
 
   Element.prototype.oneListener = function oneListener ($el, uid, type, fn) {
@@ -956,6 +966,89 @@ function ElementModel (platform, component, metadata) {
     return !!GROUPING_ELEMENTS[_safeElementName(this.node)]
   }
 
+  Element.prototype.isComponent = function () {
+    return typeof this.node.elementName === 'object'
+  }
+
+  Element.prototype.getNameString = function () {
+    if (this.isComponent()) return this.node.attributes.source
+    return this.node.elementName
+  }
+
+  Element.prototype.getComponentId = function () {
+    return this.node.attributes[HAIKU_ID_ATTRIBUTE]
+  }
+
+  Element.prototype.getAddressablePropertiesArray = function (isTopLevel) {
+    const addressables = []
+
+    // If this element is component, then start by populating standard DOM properties
+    const elementName = (this.isComponent()) ? 'div' : this.getNameString()
+    const domSchema = DOMSchema[elementName]
+    const domFallbacks = DOMFallbacks[elementName]
+
+    // Start with the basic hardcoded DOM schema; we'll add component-specifics if necessary
+    if (domSchema) {
+      for (const propertyName in domSchema) {
+        let propertyGroup = null
+
+        let nameParts = propertyName.split('.')
+        if (propertyName === 'style.overflowX') nameParts = ['overflow', 'x']
+        if (propertyName === 'style.overflowY') nameParts = ['overflow', 'y']
+
+        if (isTopLevel) {
+          if (ALLOWED_PROPS_TOP_LEVEL[propertyName]) {
+            propertyGroup = {
+              name: propertyName,
+              prefix: nameParts[0],
+              suffix: nameParts[1],
+              fallback: domFallbacks[propertyName],
+              typedef: domSchema[propertyName]
+            }
+          }
+        } else {
+          if (ALLOWED_PROPS[propertyName]) {
+            propertyGroup = {
+              name: propertyName,
+              prefix: nameParts[0],
+              suffix: nameParts[1],
+              fallback: domFallbacks[propertyName],
+              typedef: domSchema[propertyName]
+            }
+          }
+        }
+
+        // If we successfully created a property group, push it onto the list
+        if (propertyGroup) {
+          let clusterPrefix = CLUSTERED_PROPS[propertyGroup.name]
+          if (clusterPrefix) {
+            propertyGroup.cluster = {
+              prefix: clusterPrefix,
+              name: CLUSTER_NAMES[clusterPrefix]
+            }
+          }
+          addressables.push(propertyGroup)
+        }
+      }
+    }
+
+    // If this is a component, then add any of our exposed states as addressables
+    if (this.isComponent()) {
+      for (let name in this.node.elementName.states) {
+        let state = this.node.elementName.states[name]
+        addressables.push({
+          name: name,
+          prefix: name,
+          suffix: undefined,
+          fallback: state.value,
+          typedef: state.type
+        })
+      }
+    }
+
+    return addressables
+  }
+
   Element.prototype.isAtCoords = function (coords) {
     if (!this.$el) return false
     return _isCoordInsideRect(coords.clientX, coords.clientY, this.$el.getBoundingClientRect())
@@ -985,6 +1078,9 @@ function ElementModel (platform, component, metadata) {
       }
     })
   }
+
+  // Used by Timeline
+  Element.ALLOWED_TAGNAMES = ALLOWED_TAGNAMES
 
   return Element
 }
