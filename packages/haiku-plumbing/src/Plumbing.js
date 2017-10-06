@@ -22,6 +22,13 @@ import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
 import getNormalizedComponentModulePath from 'haiku-serialization/src/model/helpers/getNormalizedComponentModulePath'
 
+const Raven = require('./Raven')
+
+const NOTIFIABLE_ENVS = {
+  production: true,
+  staging: true
+}
+
 const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
   doesProjectHaveUnsavedChanges: true,
@@ -557,13 +564,30 @@ export default class Plumbing extends StateObject {
    */
   initializeFolder (maybeProjectName, folder, maybeUsername, maybePassword, projectOptions, cb) {
     return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'initializeFolder', [maybeProjectName, maybeUsername, maybePassword, projectOptions], (err) => {
-      if (err) return cb(err)
+      if (err) {
+        if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+          Raven.captureException(err, {
+            tags: { folder, projectName: maybeProjectName || 'unknown' }
+          })
+        }
+        return cb(err)
+      }
       return cb()
     })
   }
 
   startProject (maybeProjectName, folder, cb) {
-    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'startProject', [], cb)
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'startProject', [], (err, response) => {
+      if (err) {
+        if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+          Raven.captureException(err, {
+            tags: { folder, projectName: maybeProjectName || 'unknown' }
+          })
+        }
+        return cb(err)
+      }
+      return cb(null, response)
+    })
   }
 
   restartProject (maybeProjectName, folder, cb) {
@@ -579,6 +603,8 @@ export default class Plumbing extends StateObject {
       if (err) return cb(err)
       const username = sdkClient.config.getUserId()
       mixpanel.mergeToPayload({ distinct_id: username })
+      Raven.setUserContext({ email: username })
+      Raven.setTagsContext({ username })
       return cb(null, {
         isAuthed: true,
         username: username,
@@ -601,6 +627,8 @@ export default class Plumbing extends StateObject {
       sdkClient.config.setAuthToken(authResponse.Token)
       sdkClient.config.setUserId(username)
       mixpanel.mergeToPayload({ distinct_id: username })
+      Raven.setUserContext({ email: username })
+      Raven.setTagsContext({ username })
       return this.getCurrentOrganizationName((err, organizationName) => {
         if (err) return cb(err)
         return cb(null, {
@@ -645,7 +673,14 @@ export default class Plumbing extends StateObject {
     logger.info('[plumbing] creating project', name)
     var authToken = sdkClient.config.getAuthToken()
     return inkstone.project.create(authToken, { Name: name }, (projectCreateErr, project) => {
-      if (projectCreateErr) return cb(projectCreateErr)
+      if (projectCreateErr) {
+        if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+          Raven.captureException(projectCreateErr, {
+            tags: { projectName: name }
+          })
+        }
+        return cb(projectCreateErr)
+      }
       return cb(null, remapProjectObjectToExpectedFormat(project))
     })
   }
@@ -665,7 +700,17 @@ export default class Plumbing extends StateObject {
     if (!saveOptions.authorName) saveOptions.authorName = this.get('username')
     if (!saveOptions.organizationName) saveOptions.organizationName = this.get('organizationName')
     logger.info('[plumbing] saving with options', saveOptions)
-    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions], cb)
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions], (projectSaveErr, response) => {
+      if (projectSaveErr) {
+        if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+          Raven.captureException(projectSaveErr, {
+            tags: { folder, projectName }
+          })
+        }
+        return cb(projectSaveErr)
+      }
+      return cb(null, response)
+    })
   }
 
   previewProject (folder, projectName, previewOptions, cb) {

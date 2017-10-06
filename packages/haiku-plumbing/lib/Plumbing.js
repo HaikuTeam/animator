@@ -104,6 +104,13 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var Raven = require('./Raven');
+
+var NOTIFIABLE_ENVS = {
+  production: true,
+  staging: true
+};
+
 var IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
   doesProjectHaveUnsavedChanges: true,
@@ -707,14 +714,31 @@ var Plumbing = function (_StateObject) {
     key: 'initializeFolder',
     value: function initializeFolder(maybeProjectName, folder, maybeUsername, maybePassword, projectOptions, cb) {
       return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'initializeFolder', [maybeProjectName, maybeUsername, maybePassword, projectOptions], function (err) {
-        if (err) return cb(err);
+        if (err) {
+          if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+            Raven.captureException(err, {
+              tags: { folder: folder, projectName: maybeProjectName || 'unknown' }
+            });
+          }
+          return cb(err);
+        }
         return cb();
       });
     }
   }, {
     key: 'startProject',
     value: function startProject(maybeProjectName, folder, cb) {
-      return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'startProject', [], cb);
+      return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'startProject', [], function (err, response) {
+        if (err) {
+          if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+            Raven.captureException(err, {
+              tags: { folder: folder, projectName: maybeProjectName || 'unknown' }
+            });
+          }
+          return cb(err);
+        }
+        return cb(null, response);
+      });
     }
   }, {
     key: 'restartProject',
@@ -732,6 +756,8 @@ var Plumbing = function (_StateObject) {
         if (err) return cb(err);
         var username = _haikuSdkClient.client.config.getUserId();
         _Mixpanel2.default.mergeToPayload({ distinct_id: username });
+        Raven.setUserContext({ email: username });
+        Raven.setTagsContext({ username: username });
         return cb(null, {
           isAuthed: true,
           username: username,
@@ -757,6 +783,8 @@ var Plumbing = function (_StateObject) {
         _haikuSdkClient.client.config.setAuthToken(authResponse.Token);
         _haikuSdkClient.client.config.setUserId(username);
         _Mixpanel2.default.mergeToPayload({ distinct_id: username });
+        Raven.setUserContext({ email: username });
+        Raven.setTagsContext({ username: username });
         return _this7.getCurrentOrganizationName(function (err, organizationName) {
           if (err) return cb(err);
           return cb(null, {
@@ -806,7 +834,14 @@ var Plumbing = function (_StateObject) {
       _LoggerInstance2.default.info('[plumbing] creating project', name);
       var authToken = _haikuSdkClient.client.config.getAuthToken();
       return _haikuSdkInkstone.inkstone.project.create(authToken, { Name: name }, function (projectCreateErr, project) {
-        if (projectCreateErr) return cb(projectCreateErr);
+        if (projectCreateErr) {
+          if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+            Raven.captureException(projectCreateErr, {
+              tags: { projectName: name }
+            });
+          }
+          return cb(projectCreateErr);
+        }
         return cb(null, remapProjectObjectToExpectedFormat(project));
       });
     }
@@ -829,7 +864,17 @@ var Plumbing = function (_StateObject) {
       if (!saveOptions.authorName) saveOptions.authorName = this.get('username');
       if (!saveOptions.organizationName) saveOptions.organizationName = this.get('organizationName');
       _LoggerInstance2.default.info('[plumbing] saving with options', saveOptions);
-      return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions], cb);
+      return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions], function (projectSaveErr, response) {
+        if (projectSaveErr) {
+          if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+            Raven.captureException(projectSaveErr, {
+              tags: { folder: folder, projectName: projectName }
+            });
+          }
+          return cb(projectSaveErr);
+        }
+        return cb(null, response);
+      });
     }
   }, {
     key: 'previewProject',
