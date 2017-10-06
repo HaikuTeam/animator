@@ -18,6 +18,7 @@ import Stage from './components/Stage'
 import Timeline from './components/Timeline'
 import Toast from './components/notifications/Toast'
 import Tour from './components/Tour/Tour'
+import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 import {
   HOMEDIR_PATH,
@@ -52,6 +53,7 @@ export default class Creator extends React.Component {
     this.receiveProjectInfo = this.receiveProjectInfo.bind(this)
     this.handleFindElementCoordinates = this.handleFindElementCoordinates.bind(this)
     this.handleFindWebviewCoordinates = this.handleFindWebviewCoordinates.bind(this)
+    this.onAutoUpdateCheckComplete = this.onAutoUpdateCheckComplete.bind(this)
     this.layout = new EventEmitter()
 
     this.state = {
@@ -63,6 +65,7 @@ export default class Creator extends React.Component {
       dashboardVisible: !this.props.folder,
       readyForAuth: false,
       isUserAuthenticated: false,
+      hasCheckedForUpdates: false,
       username: null,
       password: null,
       notices: [],
@@ -114,6 +117,9 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:redo', lodash.debounce(() => {
       this.props.websocket.send({ method: 'gitRedo', params: [this.state.projectFolder, { type: 'global' }] })
     }, 500, { leading: true }))
+    ipcRenderer.on('global-menu:check-updates', () => {
+      this.setState({ hasCheckedForUpdates: false })
+    })
   }
 
   openTerminal (folder) {
@@ -517,6 +523,10 @@ export default class Creator extends React.Component {
     this.setState({ libraryItemDragging: libraryItemInfo })
   }
 
+  onAutoUpdateCheckComplete () {
+    this.setState({ hasCheckedForUpdates: true })
+  }
+
   renderStartupDefaultScreen () {
     return (
       <div style={{ position: 'absolute', width: '100%', height: '100%' }}>
@@ -577,6 +587,7 @@ export default class Creator extends React.Component {
             envoy={this.envoy}
             {...this.props} />
           <Tour projectsList={this.state.projectsList} envoy={this.envoy} startTourOnMount />
+          <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
         </div>
       )
     }
@@ -585,6 +596,7 @@ export default class Creator extends React.Component {
       return (
         <div>
           <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
+          <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
           <ProjectBrowser
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
@@ -619,6 +631,7 @@ export default class Creator extends React.Component {
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
         <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
           <div className='layout-box' style={{overflow: 'visible'}}>
