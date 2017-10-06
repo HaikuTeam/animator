@@ -13,8 +13,8 @@ const opts = {
 }
 
 module.exports = {
-  async update (url, progressCallback, options = opts) {
-    return new Promise(async (resolve, reject) => {
+  update (url, progressCallback, options = opts) {
+    return new Promise((resolve, reject) => {
       if (process.env.HAIKU_SKIP_AUTOUPDATE !== '1') {
         if (
           !options.server ||
@@ -30,30 +30,47 @@ module.exports = {
         const zipPath = `${tempPath}/haiku.zip`
         const installationPath = '/Applications'
 
-        await download(url, zipPath, progressCallback)
-        await unzip(zipPath, installationPath)
-        resolve(true)
-        electron.remote.app.relaunch()
-        electron.remote.app.exit()
+        download(url, zipPath, progressCallback)
+          .then(() => {unzip(zipPath, installationPath)})
+          .then(() => {
+            resolve(true)
+            electron.remote.app.relaunch()
+            electron.remote.app.exit()
+          })
       }
     })
   },
 
-  async checkUpdates () {
-    const {status, url} = await this.checkServer()
+  checkUpdates () {
+    return new Promise((resolve, reject) => {
+      this.checkServer()
+        .then(({status, url}) => {
+          if (status === 200 && url) {
+            resolve({shouldUpdate: true, url})
+          }
 
-    if (status === 200 && url) {
-      return {shouldUpdate: true, url}
-    }
-
-    return {shouldUpdate: false, url: null}
+          resolve({shouldUpdate: false, url: null})
+        })
+        .catch(reject)
+    })
   },
 
-  async checkServer () {
-    const response = await fetch(this.generateURL(opts))
-    const data = await response.json()
+  checkServer () {
+    let status
 
-    return {status: response.status, url: data.url}
+    return new Promise((resolve, reject) => {
+      fetch(this.generateURL(opts))
+        .then((response) => {
+          status = response.status
+          return response.json()
+        })
+        .then((data) => {
+          resolve({status: status, url: data.url})
+        })
+        .catch((error) => {
+          reject(error)
+        })
+    })
   },
 
   generateURL ({server, ...query}) {
