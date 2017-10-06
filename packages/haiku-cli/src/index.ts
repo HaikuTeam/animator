@@ -1,20 +1,17 @@
 import * as chalk from "chalk"
 import { execSync } from "child_process"
-import * as clc from "cli-color"
-import dedent from "dedent"
 import * as fs from "fs"
 import { client } from "haiku-sdk-client"
 import { inkstone } from "haiku-sdk-inkstone"
 import * as hasbin from "hasbin"
 import * as inquirer from "inquirer"
 import * as _ from "lodash"
-import * as mkdirp from "mkdirp"
 import * as os from "os"
-import * as path from "path"
 import * as prependFile from "prepend-file"
-import * as request from "request"
 import * as tail from "tail"
 import { argv } from "yargs"
+
+const dedent = require("dedent")
 
 const banner = dedent`
   Haiku CLI (version 2.3.8)
@@ -46,7 +43,6 @@ function finish(code?: number) {
   process.exit(code)
 }
 
-// process.stdin.resume()
 function exitwrap(maybeException) {
   if (maybeException) console.log(maybeException)
   process.exit()
@@ -54,12 +50,6 @@ function exitwrap(maybeException) {
 process.on("exit", exitwrap)
 process.on("SIGINT", exitwrap)
 process.on("uncaughtException", exitwrap)
-
-const main = path.join(__dirname, "..", "creator", "electron-main.js")
-
-function handleError(err) {
-  //TODO: figure out error categories, allow individual CLI commands to handle categories as needed
-}
 
 function help() {
   console.log(banner)
@@ -96,23 +86,23 @@ if (flags.verbose) {
 
 switch (subcommand) {
   case "await-share":
-    //undocumented; used for SDK development
+    // undocumented; used for SDK development
     doAwaitShare()
     break
   case "change-password":
-    //undocumented: used for SDK development
+    // undocumented: used for SDK development
     doChangePassword()
     break
   case "check-invite":
-    //undocumented: used for SDK development
+    // undocumented: used for SDK development
     doCheckInvite()
     break
   case "check-prefinery-code":
-    //undocumented: used for SDK development
+    // undocumented: used for SDK development
     doCheckPrefineryCode()
     break
   case "claim-invite":
-    //undocumented: used for SDK development
+    // undocumented: used for SDK development
     doClaimInvite()
     break
   case "clone":
@@ -140,7 +130,7 @@ switch (subcommand) {
   case "new":
   case "generate":
   case "create":
-    //Not intended for user consumption yet
+    // Not intended for user consumption yet
     doCreate()
     break
   // case "import":
@@ -156,6 +146,9 @@ switch (subcommand) {
   case "upgrade":
     doUpdate()
     break
+  // case "upgrade-player":
+  //   doUpgradePlayer()
+  //   break
   case "help":
     help()
     break
@@ -256,7 +249,6 @@ function doClaimInvite() {
       message: "Organization Name (only needed if org invite):",
     },
   ]).then((answers: inquirer.Answers) => {
-    const projectName = answers["name"]
     const claim: inkstone.invite.InviteClaim = {
       Code: answers["code"],
       Email: answers["email"],
@@ -284,7 +276,7 @@ function doClone() {
         process.exit(1)
       } else {
         let gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
-        //TODO:  store credentials more securely than this
+        // TODO: store credentials more securely than this
         gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
 
         client.git.cloneRepo(gitEndpoint, destination, (cloneErr) => {
@@ -303,7 +295,7 @@ function doClone() {
 
 function doCreate() {
   ensureAuth((token: string) => {
-    //TODO:  support "cloning" project directly into fs after creation (i.e. autoimport)
+    // TODO: support "cloning" project directly into fs after creation (i.e. autoimport)
     inquirer.prompt([
       {
         type: "input",
@@ -378,58 +370,59 @@ function doDiffTail() {
   }
 }
 
-//USAGE:  haiku import design-test dest/
-//        clone git repo "someendpoint/design-test" as a subtree into the dest/design-test folder
-function doImport() {
-  const projectName = args[0]
-  let destination = args[1] || projectName
-  if (destination.charAt(destination.length - 1) !== "/") destination += "/"
+// // USAGE: haiku import design-test dest/
+// //        clone git repo "someendpoint/design-test" as a subtree into the dest/design-test folder
+// function doImport() {
+//   const projectName = args[0]
+//   let destination = args[1] || projectName
+//   if (destination.charAt(destination.length - 1) !== "/") destination += "/"
 
-  ensureAuth((token) => {
-    inkstone.project.getByName(token, projectName, (err, projectAndCredentials) => {
-      if (err) {
-        console.log(chalk.bold(`Project ${projectName} not found.`))
-      } else {
+//   ensureAuth((token) => {
+//     inkstone.project.getByName(token, projectName, (err, projectAndCredentials) => {
+//       if (err) {
+//         console.log(chalk.bold(`Project ${projectName} not found.`))
+//       } else {
 
-        const actuallyDoImport = () => {
-          let gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
-          //TODO:  store credentials more securely than this
-          gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
+//         const actuallyDoImport = () => {
+//           let gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
+//           // TODO: store credentials more securely than this
+//           gitEndpoint = gitEndpoint.replace(
+//             "https://",
+//             "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@"
+//           )
 
-          client.git.ensureRemoteIsInitialized(projectName, gitEndpoint, () => {
-            client.git.forciblyCloneSubrepo(projectName, destination, () => {
-              console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
-            })
-          })
-        }
+//           client.git.ensureRemoteIsInitialized(projectName, gitEndpoint, () => {
+//             client.git.forciblyCloneSubrepo(projectName, destination, () => {
+//               console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
+//             })
+//           })
+//         }
 
-        //check if directory exists and is non-empty
-        //if it does, prompt user that it exists & has stuff in it
-        //ask whether it should be overwritten
-        const alreadyExists = fs.existsSync(path.resolve(destination))
-        if (alreadyExists) {
-          inquirer.prompt([
-            {
-              type: "confirm",
-              name: "confirmed",
-              message: `The destination directory ${destination} already exists.  Do you want to overwrite it?`,
-            },
-          ]).then((answers: inquirer.Answers) => {
-            if (answers["confirmed"]) {
-              actuallyDoImport()
-            }
-          })
-        } else {
-          actuallyDoImport()
-        }
+//         // check if directory exists and is non-empty
+//         // if it does, prompt user that it exists & has stuff in it
+//         // ask whether it should be overwritten
+//         const alreadyExists = fs.existsSync(path.resolve(destination))
+//         if (alreadyExists) {
+//           inquirer.prompt([
+//             {
+//               type: "confirm",
+//               name: "confirmed",
+//               message: `The destination directory ${destination} already exists.  Do you want to overwrite it?`,
+//             },
+//           ]).then((answers: inquirer.Answers) => {
+//             if (answers["confirmed"]) {
+//               actuallyDoImport()
+//             }
+//           })
+//         } else {
+//           actuallyDoImport()
+//         }
+//       }
+//     })
+//   })
+// }
 
-      }
-
-    })
-  })
-}
-
-//TODO:  copy .haiku scripts
+// TODO: copy .haiku scripts
 //       ensure that packages are legit & pointed at latest & updated
 //       ensure that prepare script is injected
 //       message that .haiku folder needs to be added to git
@@ -446,10 +439,10 @@ function doInstall() {
     process.exit(1)
   }
   ensureAuth((token) => {
-    //ensure that npm is installed
+    // ensure that npm is installed
     hasbin("npm", (result) => {
       if (result) {
-        //ensure that there's a package.json in this directory
+        // ensure that there's a package.json in this directory
         if (fs.existsSync(process.cwd() + "/package.json")) {
           console.log("Installing " + projectName + "...")
 
@@ -459,7 +452,7 @@ function doInstall() {
             packageJson.dependencies = {}
           }
 
-          //construct project string: @haiku/org-project#latest
+          // construct project string: @haiku/org-project#latest
           let projectString = "@haiku/"
           inkstone.organization.list(token, (listErr, orgs) => {
             if (listErr) {
@@ -471,7 +464,7 @@ function doInstall() {
               process.exit(1)
             }
 
-            //TODO: for multi-org support, get the org name more intelligently than this
+            // TODO: for multi-org support, get the org name more intelligently than this
             projectString += orgs[0].Name.toLowerCase() + "-"
 
             inkstone.project.getByName(token, projectName, (getByNameErr, projectAndCredentials) => {
@@ -486,18 +479,18 @@ function doInstall() {
 
               projectString += projectAndCredentials.Project.Name.toLowerCase()
 
-              //now projectString should be @haiku/org-project
+              // now projectString should be @haiku/org-project
               packageJson.dependencies[projectString] = "latest"
 
-              //Set up @haiku scope for this project if it doesn't exist
+              // Set up @haiku scope for this project if it doesn't exist
               let npmrc = ""
               try {
                 npmrc = fs.readFileSync(".npmrc").toString()
               } catch (exception) {
                 if (exception.code === "ENOENT") {
-                  //file not found, this is fine
+                  // file not found, this is fine
                 } else {
-                  //different error, should throw
+                  // different error, should throw
                   throw (exception)
                 }
               }
@@ -610,7 +603,7 @@ function doLogin(cb?: Function) {
 }
 
 function doLogout() {
-  //TODO:  expire auth token on inkstone?
+  // TODO: expire auth token on inkstone?
   client.config.setAuthToken("")
   process.exit(0)
 }
@@ -626,7 +619,7 @@ function doOpen() {
   })
 }
 
-//TODO:  update only @haiku packages, instead of all updatable packages in package.json
+// TODO: update only @haiku packages, instead of all updatable packages in package.json
 function doUpdate() {
   hasbin("npm", (result) => {
     if (result) {
@@ -645,3 +638,92 @@ function doUpdate() {
     }
   })
 }
+
+// // TODO: I'm not sure if this will work since we need to npm publish
+// // TODO: This is incomplete, I realized ^^ halfway through implementing
+// // Auth should already have been handled by the point this is called
+// function doUpgradePlayerForProject (token, projectName, cb) {
+//   return inkstone.project.getByName(token, projectName, (getByNameErr, projectAndCredentials) => {
+//     if (getByNameErr) return cb(getByNameErr)
+
+//     let gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
+//     gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
+
+//     // TODO: Perhaps allow the working dir to be specified?
+//     let destinationDirRel = projectName
+//     let destinationDirAbs = path.join(process.cwd(), projectName)
+
+//     return client.git.cloneRepo(gitEndpoint, destinationDirRel, (cloneErr) => {
+//       if (cloneErr) return cb(cloneErr)
+
+//       try {
+//         execSync(`git fetch`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         execSync(`npm update @haiku/player --save`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         execSync(`git add .`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         execSync(`git commit -m "auto: Upgrade @haiku/player"`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         const tag = execSync(`git describe $(git rev-list --tags --max-count=1)`, { cwd: destinationDirAbs })
+//         if (tag) {
+//           const next = semver.inc(tag, 'patch')
+//           const pkg = fse.readJsonSync(path.join(destinationDirAbs, 'package.json'), { throws: false })
+//           if (pkg) {
+//             pkg.version = next
+//             fse.outputJsonSync(path.join(destinationDirAbs, 'package.json'), pkg)
+//             execSync(`git add .`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//             execSync(`git commit -m "auto: Bump semver"`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//           }
+//           execSync(`git tag -a v${next}`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         }
+//         // execSync(`git push`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//       } catch (exception) {
+//         return cb(exception)
+//       }
+
+//       return cb()
+//     })
+//   })
+// }
+
+// function doUpgradePlayer() {
+//   let names = _.uniq(args)
+//   if (names.length < 1) {
+//     console.log(chalk.red("Please pass a list of project names."))
+//     process.exit(1)
+//   }
+//   return ensureAuth((token) => {
+//     return inkstone.project.list(token, (err, projects) => {
+//       const projectsToUpgrade = []
+//       const projectsNotKnown = []
+//       names.forEach((projectName) => {
+//         let isKnown = false
+//         projects.forEach(({ Name }) => {
+//           if (Name === projectName) {
+//             isKnown = true
+//             projectsToUpgrade.push(projectName)
+//           }
+//         })
+//         if (!isKnown) {
+//           projectsNotKnown.push(projectName)
+//         }
+//       })
+//       if (projectsNotKnown.length > 0) {
+//         console.log(chalk.red(`Unknown projects specified: ${projectsNotKnown.join(', ')}`))
+//         process.exit(1)
+//       }
+//       if (projectsToUpgrade.length < 1) {
+//         console.log(chalk.red(`Projects to upgrade not found`))
+//         process.exit(1)
+//       }
+//       return async.each(projectsToUpgrade, (projectName, next) => {
+//         return doUpgradePlayerForProject(token, projectName, next)
+//       }, (err) => {
+//         if (err) {
+//           console.log(chalk.red(err))
+//           process.exit(1)
+//         }
+
+//         console.log(chalk.green(`Done!`))
+//         process.exit()
+//       })
+//     })
+//   })
+// }
