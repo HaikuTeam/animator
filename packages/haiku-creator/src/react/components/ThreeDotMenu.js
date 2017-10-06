@@ -30,30 +30,6 @@ const STYLES = {
   }
 }
 
-const PopoverBody = () => {
-  const items = [
-    {name: 'Open Sketch', onClick: () => {console.log('click')}, icon: SketchIconSVG},
-    {name: 'Remove'}
-  ]
-
-  const renderedItems = items.map(({ name, icon, onClick }, id) => {
-    return (
-      <li key={id} onClick={onClick}>
-        <button style={STYLES.popover.item}>
-          {icon && React.createElement(icon)}
-          {name}
-        </button>
-      </li>
-    )
-  })
-
-  return (
-    <ul style={STYLES.popover.container}>
-      {renderedItems}
-    </ul>
-  )
-}
-
 class ThreeDotMenu extends React.Component {
   constructor (props) {
     super(props)
@@ -68,27 +44,44 @@ class ThreeDotMenu extends React.Component {
 
   openPopover (evt) {
     evt.stopPropagation()
-    this.setState({isPopoverOpen: true})
+    this.setState({ isPopoverOpen: true })
   }
 
   closePopover () {
-    this.setState({isPopoverOpen: false})
+    this.setState({ isPopoverOpen: false })
+  }
+
+  renderMenuItems () {
+    return (
+      <ul style={STYLES.popover.container} onClick={this.closePopover}>
+        {this.props.items.map(({ label, icon, onClick }, id) => {
+          return (
+            <li key={id} onClick={onClick}>
+              <button style={STYLES.popover.item}>
+                {icon && React.createElement(icon)}
+                {label}
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    )
   }
 
   render () {
-    const {isPopoverOpen} = this.state
-
     return (
       <div style={STYLES.container}>
         <Popover
           onOuterAction={this.closePopover}
-          isOpen={isPopoverOpen}
-          place="left"
+          isOpen={this.state.isPopoverOpen}
+          place='left'
           tipSize={0.1}
-          body={<PopoverBody />}
+          body={this.renderMenuItems()}
         >
           <div>
-            <button style={STYLES.dots} onClick={this.openPopover}>&#5867;&#5867;&#5867;</button>
+            <button style={STYLES.dots} onClick={this.openPopover}>
+              &#5867;&#5867;&#5867;
+            </button>
           </div>
         </Popover>
       </div>
