@@ -219,6 +219,7 @@ var Plumbing = function (_StateObject) {
     _this.clients = [];
     _this.requests = {};
     _this.caches = {};
+    _this.projects = {};
 
     // Keep track of whether we got a teardown signal so we know whether we should keep trying to
     // reconnect any subprocs that seem to have disconnected. This seems useless (why not just kill
@@ -672,8 +673,29 @@ var Plumbing = function (_StateObject) {
         });
       }], function (err) {
         if (err) return finish(err);
+
+        if (maybeProjectName) {
+          _this6.projects[maybeProjectName] = {
+            folder: projectFolder,
+            username: maybeUsername,
+            password: maybePassword,
+            organization: projectOptions.organizationName
+          };
+        }
+
         return finish(null, projectFolder);
       });
+    }
+
+    /**
+     * Returns the absolute path of the folder of a project by name, if we are tracking one.
+     */
+
+  }, {
+    key: 'getFolderFor',
+    value: function getFolderFor(projectName) {
+      if (!this.projects[projectName]) return null;
+      return this.projects[projectName].folder;
     }
 
     /**
