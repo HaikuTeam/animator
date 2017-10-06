@@ -1,8 +1,7 @@
-import React from 'react'
-import Radium from 'radium'
-import Palette from '../Palette'
-import Popover from 'react-popover'
-import { CollapseChevronRightSVG, CollapseChevronDownSVG, SketchIconSVG, FolderIconSVG } from './../Icons'
+import React from "react";
+import Radium from "radium";
+import Palette from "./Palette";
+import Popover from "react-popover";
 
 const STYLES = {
   dots: {
