@@ -104,12 +104,15 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var Raven = require('./Raven');
-
 var NOTIFIABLE_ENVS = {
   production: true,
   staging: true
 };
+
+var Raven = void 0;
+if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+  Raven = require('./Raven');
+}
 
 var IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
@@ -715,7 +718,7 @@ var Plumbing = function (_StateObject) {
     value: function initializeFolder(maybeProjectName, folder, maybeUsername, maybePassword, projectOptions, cb) {
       return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'initializeFolder', [maybeProjectName, maybeUsername, maybePassword, projectOptions], function (err) {
         if (err) {
-          if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+          if (Raven) {
             Raven.captureException(err, {
               tags: { folder: folder, projectName: maybeProjectName || 'unknown' }
             });
@@ -730,7 +733,7 @@ var Plumbing = function (_StateObject) {
     value: function startProject(maybeProjectName, folder, cb) {
       return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'startProject', [], function (err, response) {
         if (err) {
-          if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+          if (Raven) {
             Raven.captureException(err, {
               tags: { folder: folder, projectName: maybeProjectName || 'unknown' }
             });
@@ -756,8 +759,12 @@ var Plumbing = function (_StateObject) {
         if (err) return cb(err);
         var username = _haikuSdkClient.client.config.getUserId();
         _Mixpanel2.default.mergeToPayload({ distinct_id: username });
-        Raven.setUserContext({ email: username });
-        Raven.setTagsContext({ username: username });
+        if (Raven) {
+          Raven.setContext({
+            user: { email: username },
+            tags: { username: username }
+          });
+        }
         return cb(null, {
           isAuthed: true,
           username: username,
@@ -783,8 +790,12 @@ var Plumbing = function (_StateObject) {
         _haikuSdkClient.client.config.setAuthToken(authResponse.Token);
         _haikuSdkClient.client.config.setUserId(username);
         _Mixpanel2.default.mergeToPayload({ distinct_id: username });
-        Raven.setUserContext({ email: username });
-        Raven.setTagsContext({ username: username });
+        if (Raven) {
+          Raven.setContext({
+            user: { email: username },
+            tags: { username: username }
+          });
+        }
         return _this7.getCurrentOrganizationName(function (err, organizationName) {
           if (err) return cb(err);
           return cb(null, {
@@ -835,7 +846,7 @@ var Plumbing = function (_StateObject) {
       var authToken = _haikuSdkClient.client.config.getAuthToken();
       return _haikuSdkInkstone.inkstone.project.create(authToken, { Name: name }, function (projectCreateErr, project) {
         if (projectCreateErr) {
-          if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+          if (Raven) {
             Raven.captureException(projectCreateErr, {
               tags: { projectName: name }
             });
@@ -866,7 +877,7 @@ var Plumbing = function (_StateObject) {
       _LoggerInstance2.default.info('[plumbing] saving with options', saveOptions);
       return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions], function (projectSaveErr, response) {
         if (projectSaveErr) {
-          if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+          if (Raven) {
             Raven.captureException(projectSaveErr, {
               tags: { folder: folder, projectName: projectName }
             });

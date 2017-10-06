@@ -22,11 +22,14 @@ import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
 import getNormalizedComponentModulePath from 'haiku-serialization/src/model/helpers/getNormalizedComponentModulePath'
 
-const Raven = require('./Raven')
-
 const NOTIFIABLE_ENVS = {
   production: true,
   staging: true
+}
+
+let Raven
+if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+  Raven = require('./Raven')
 }
 
 const IGNORED_METHOD_MESSAGES = {
@@ -565,7 +568,7 @@ export default class Plumbing extends StateObject {
   initializeFolder (maybeProjectName, folder, maybeUsername, maybePassword, projectOptions, cb) {
     return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'initializeFolder', [maybeProjectName, maybeUsername, maybePassword, projectOptions], (err) => {
       if (err) {
-        if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+        if (Raven) {
           Raven.captureException(err, {
             tags: { folder, projectName: maybeProjectName || 'unknown' }
           })
@@ -579,7 +582,7 @@ export default class Plumbing extends StateObject {
   startProject (maybeProjectName, folder, cb) {
     return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'startProject', [], (err, response) => {
       if (err) {
-        if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+        if (Raven) {
           Raven.captureException(err, {
             tags: { folder, projectName: maybeProjectName || 'unknown' }
           })
@@ -603,8 +606,12 @@ export default class Plumbing extends StateObject {
       if (err) return cb(err)
       const username = sdkClient.config.getUserId()
       mixpanel.mergeToPayload({ distinct_id: username })
-      Raven.setUserContext({ email: username })
-      Raven.setTagsContext({ username })
+      if (Raven) {
+        Raven.setContext({
+          user: { email: username },
+          tags: { username }
+        })
+      }
       return cb(null, {
         isAuthed: true,
         username: username,
@@ -627,8 +634,12 @@ export default class Plumbing extends StateObject {
       sdkClient.config.setAuthToken(authResponse.Token)
       sdkClient.config.setUserId(username)
       mixpanel.mergeToPayload({ distinct_id: username })
-      Raven.setUserContext({ email: username })
-      Raven.setTagsContext({ username })
+      if (Raven) {
+        Raven.setContext({
+          user: { email: username },
+          tags: { username }
+        })
+      }
       return this.getCurrentOrganizationName((err, organizationName) => {
         if (err) return cb(err)
         return cb(null, {
@@ -674,7 +685,7 @@ export default class Plumbing extends StateObject {
     var authToken = sdkClient.config.getAuthToken()
     return inkstone.project.create(authToken, { Name: name }, (projectCreateErr, project) => {
       if (projectCreateErr) {
-        if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+        if (Raven) {
           Raven.captureException(projectCreateErr, {
             tags: { projectName: name }
           })
@@ -702,7 +713,7 @@ export default class Plumbing extends StateObject {
     logger.info('[plumbing] saving with options', saveOptions)
     return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions], (projectSaveErr, response) => {
       if (projectSaveErr) {
-        if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+        if (Raven) {
           Raven.captureException(projectSaveErr, {
             tags: { folder, projectName }
           })
