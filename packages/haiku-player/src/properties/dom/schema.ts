@@ -149,6 +149,41 @@ const FILTER_SCHEMA = {
   primitiveUnits: "string",
 }
 
+const RECT_SCHEMA = {
+  x: "number",
+  y: "number",
+  width: "number",
+  height: "number",
+  rx: "number",
+  ry: "number",
+}
+const CIRCLE_SCHEMA = {
+  r: "number",
+  cx: "number",
+  cy: "number",
+}
+const ELLIPSE_SCHEMA = {
+  rx: "number",
+  ry: "number",
+  cx: "number",
+  cy: "number",
+}
+const LINE_SCHEMA = {
+  x1: "number",
+  y1: "number",
+  x2: "number",
+  y2: "number",
+}
+const POLYLINE_SCHEMA = {
+  points: "string",
+}
+const POLYGON_SCHEMA = {
+  points: "string",
+}
+const PATH_SCHEMA = {
+  d: "string",
+}
+
 const STYLE_SCHEMA = {
   "style.alignmentBaseline": "string",
   "style.background": "string",
@@ -402,7 +437,7 @@ export default {
     LAYOUT_3D_SCHEMA,
     STYLE_SCHEMA,
   ),
-  "circle": has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  "circle": has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, CIRCLE_SCHEMA),
   "cite": has(
     HTML_STYLE_SHORTHAND_SCHEMA,
     TEXT_CONTENT_SCHEMA,
@@ -469,7 +504,7 @@ export default {
     LAYOUT_3D_SCHEMA,
     STYLE_SCHEMA,
   ),
-  "ellipse": has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+  "ellipse": has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA, ELLIPSE_SCHEMA),
   "em": has(
     HTML_STYLE_SHORTHAND_SCHEMA,
     TEXT_CONTENT_SCHEMA,
@@ -723,7 +758,7 @@ export default {
     LAYOUT_3D_SCHEMA,
     STYLE_SCHEMA,
   ),
-  "line": has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  "line": has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, LINE_SCHEMA),
   "linearGradient": has(
     CONTROL_FLOW_SCHEMA,
     LAYOUT_3D_SCHEMA,
@@ -792,10 +827,10 @@ export default {
     STYLE_SCHEMA,
   ),
   "param": has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-  "path": has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  "path": has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, PATH_SCHEMA),
   "pattern": has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-  "polygon": has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
-  "polyline": has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  "polygon": has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, POLYGON_SCHEMA),
+  "polyline": has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, POLYLINE_SCHEMA),
   "pre": has(
     HTML_STYLE_SHORTHAND_SCHEMA,
     TEXT_CONTENT_SCHEMA,
@@ -810,7 +845,7 @@ export default {
     LAYOUT_3D_SCHEMA,
     PRESENTATION_SCHEMA,
   ),
-  "rect": has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+  "rect": has(CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, RECT_SCHEMA),
   "rp": has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
   "rt": has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
   "ruby": has(
