@@ -32,6 +32,12 @@ class TopMenu extends EventEmitter {
       }
     })
     mainMenuPieces.push({
+      label: 'Check for updates',
+      click: () => {
+        this.emit('global-menu:check-updates')
+      }
+    })
+    mainMenuPieces.push({
       type: 'separator'
     })
 
