@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _regenerator = require('/Users/roperzh/Projects/haiku/mono1/packages/haiku-creator/node_modules/babel-preset-react-app/node_modules/babel-runtime/regenerator');
+var _regenerator = require('/Users/matthew/Code/HaikuTeam/mono/packages/haiku-creator/node_modules/babel-preset-react-app/node_modules/babel-runtime/regenerator');
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
 
