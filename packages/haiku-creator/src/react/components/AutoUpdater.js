@@ -60,6 +60,7 @@ class AutoUpdater extends React.Component {
 
     this.hide = this.hide.bind(this)
     this.updateProgress = this.updateProgress.bind(this)
+    this.onFail = this.onFail.bind(this)
     this.isFirstRun = true
 
     this.state = {
@@ -74,18 +75,18 @@ class AutoUpdater extends React.Component {
     }
   }
 
-  async checkForUpdates () {
+  checkForUpdates () {
     this.setState({status: statuses.CHECKING})
 
-    try {
-      const {shouldUpdate, url} = await autoUpdate.checkUpdates()
-      shouldUpdate ? this.update(url) : this.dismiss()
-    } catch (e) {
-      this.onFail()
-    }
+    autoUpdate.checkUpdates()
+      .then(({shouldUpdate, url}) => {
+        shouldUpdate ? this.update(url) : this.dismiss()
+      })
+      .catch(this.onFail)
   }
 
-  onFail () {
+  onFail (error) {
+    console.error(error)
     this.setState({status: statuses.DOWNLOAD_FAILED})
   }
 
@@ -98,14 +99,13 @@ class AutoUpdater extends React.Component {
     }
   }
 
-  async update (url) {
-    try {
-      this.setState({status: statuses.DOWNLOADING})
-      await autoUpdate.update(url, this.updateProgress)
-      this.setState({status: statuses.DOWNLOAD_FINISHED, progress: 0})
-    } catch (err) {
-      this.onFail()
-    }
+  update (url) {
+    this.setState({status: statuses.DOWNLOADING})
+    autoUpdate.update(url, this.updateProgress)
+      .then(() => {
+        this.setState({status: statuses.DOWNLOAD_FINISHED, progress: 0})
+      })
+      .catch(this.onFail)
   }
 
   updateProgress (progress) {
