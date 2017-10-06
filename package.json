@@ -13,8 +13,8 @@
     "develop": "tsc --watch",
     "transpile": "tsc",
     "tsc": "tsc",
-    "lint": "tslint -c tslint.json 'src/**/*.ts' --format stylish --fix",
-    "test": "tsc && tsc -p tsconfig.test.json && NODE_ENV=test tape \"~test/**/*.test.js\" | tap-spec && rm -rf ~test"
+    "lint": "tslint --type-check --project tsconfig.json -c tslint.json 'src/**/*.ts' --format stylish --fix",
+    "test": "rm -rf ~test || true && tsc && tsc -p tsconfig.test.json && NODE_ENV=test tape \"~test/**/*.test.js\" | tap-spec"
   },
   "authors": [
     "Zack Brown <zack@haiku.ai>",
@@ -22,9 +22,11 @@
   ],
   "license": "UNLICENSED",
   "dependencies": {
+    "async": "^2.5.0",
     "chalk": "^1.1.3",
     "cli-color": "^1.1.0",
     "dedent": "^0.6.0",
+    "fs-extra": "^4.0.2",
     "haiku-sdk-client": "HaikuTeam/sdk-client.git",
     "haiku-sdk-inkstone": "HaikuTeam/sdk-inkstone.git",
     "hasbin": "^1.2.3",
@@ -33,6 +35,7 @@
     "mkdirp": "^0.5.1",
     "prepend-file": "^1.3.1",
     "request": "^2.79.0",
+    "semver": "^5.4.1",
     "tail": "^1.2.1",
     "yargs": "^6.6.0"
   },
