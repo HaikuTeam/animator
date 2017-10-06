@@ -58,7 +58,7 @@ class CollapseItem extends React.Component {
       {
         label: 'Remove',
         icon: TrashIconSVG,
-        onClick: () => {}
+        onClick: this.props.delete
       }
     ]
   }
