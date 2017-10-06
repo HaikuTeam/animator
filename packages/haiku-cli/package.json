@@ -10,13 +10,16 @@
     "electron": "1.7.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "develop": "tsc --watch",
     "transpile": "tsc",
     "tsc": "tsc",
-    "build": "nexe -i ./lib/index.js -o ./lib/bin/haiku"
+    "lint": "tslint -c tslint.json 'src/**/*.ts' --format stylish --fix",
+    "test": "tsc && tsc -p tsconfig.test.json && NODE_ENV=test tape \"~test/**/*.test.js\" | tap-spec && rm -rf ~test"
   },
-  "author": "Zack Brown <zack@haiku.ai>",
+  "authors": [
+    "Zack Brown <zack@haiku.ai>",
+    "Matthew Trost <matthew@haiku.ai>"
+  ],
   "license": "UNLICENSED",
   "dependencies": {
     "chalk": "^1.1.3",
@@ -42,8 +45,10 @@
     "@types/node": "^6.0.56",
     "@types/request": "^2.0.0",
     "@types/yargs": "^6.5.0",
-    "nexe": "^1.1.2",
     "try-thread-sleep": "^1.0.0",
-    "typescript": "^2.3.2"
+    "typescript": "^2.3.2",
+    "tap-spec": "^4.1.1",
+    "tape": "^4.7.0",
+    "tslint": "^5.7.0"
   }
 }

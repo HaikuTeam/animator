@@ -1,20 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const path = require("path");
-const prependFile = require("prepend-file");
+const chalk = require("chalk");
+const child_process_1 = require("child_process");
+const dedent_1 = require("dedent");
+const fs = require("fs");
+const haiku_sdk_client_1 = require("haiku-sdk-client");
+const haiku_sdk_inkstone_1 = require("haiku-sdk-inkstone");
+const hasbin = require("hasbin");
 const inquirer = require("inquirer");
 const _ = require("lodash");
 const os = require("os");
+const path = require("path");
+const prependFile = require("prepend-file");
 const tail = require("tail");
 const yargs_1 = require("yargs");
-const chalk = require("chalk");
-const fs = require("fs");
-const hasbin = require("hasbin");
-const child_process_1 = require("child_process");
-const haiku_sdk_inkstone_1 = require("haiku-sdk-inkstone");
-const haiku_sdk_client_1 = require("haiku-sdk-client");
-let dedent = require("dedent");
-const banner = dedent `
+const banner = dedent_1.default `
   Haiku CLI (version 2.3.8)
 
   Usage:
@@ -55,12 +55,12 @@ function help() {
     finish();
 }
 function ensureAuth(cb) {
-    var token = haiku_sdk_client_1.client.config.getAuthToken();
-    if (!token || token == "") {
+    let token = haiku_sdk_client_1.client.config.getAuthToken();
+    if (!token || token === "") {
         console.log("You must be authenticated to do that.");
-        doLogin(function () {
+        doLogin(() => {
             token = haiku_sdk_client_1.client.config.getAuthToken();
-            if (!token || token == "") {
+            if (!token || token === "") {
                 console.log("Hm, that didn't work.  Let's try again.");
                 ensureAuth(cb);
             }
@@ -75,7 +75,7 @@ function ensureAuth(cb) {
 }
 haiku_sdk_inkstone_1.inkstone.setConfig({
     baseUrl: flags.api || "https://inkstone.haiku.ai/",
-    baseShareUrl: flags.share || "https://share.haiku.ai/"
+    baseShareUrl: flags.share || "https://share.haiku.ai/",
 });
 if (flags.verbose) {
     haiku_sdk_client_1.client.setConfig({ verbose: true });
@@ -142,7 +142,7 @@ switch (subcommand) {
         break;
 }
 function doAwaitShare() {
-    var id = args[0];
+    const id = args[0];
     haiku_sdk_inkstone_1.inkstone.snapshot.awaitSnapshotLink(id, (err, str) => {
         if (err !== undefined) {
             console.log(chalk.red(err));
@@ -153,7 +153,7 @@ function doAwaitShare() {
     });
 }
 function doChangePassword() {
-    ensureAuth(function (token) {
+    ensureAuth((token) => {
         inquirer.prompt([
             {
                 type: "password",
@@ -169,17 +169,17 @@ function doChangePassword() {
                 type: "password",
                 name: "NewPassword2",
                 message: "New Password (confirm):",
-            }
-        ]).then(function (answers) {
+            },
+        ]).then((answers) => {
             if (answers["NewPassword"] !== answers["NewPassword2"]) {
                 console.log(chalk.red("New passwords do not match."));
                 process.exit(1);
             }
-            var params = {
+            const params = {
                 OldPassword: answers["OldPassword"],
-                NewPassword: answers["NewPassword"]
+                NewPassword: answers["NewPassword"],
             };
-            haiku_sdk_inkstone_1.inkstone.user.changePassword(token, params, function (err, responseBody, response) {
+            haiku_sdk_inkstone_1.inkstone.user.changePassword(token, params, (err, responseBody, response) => {
                 if (err) {
                     console.log(chalk.bold(`Unabled to change password: `) + err);
                     process.exit(1);
@@ -192,7 +192,7 @@ function doChangePassword() {
     });
 }
 function doCheckInvite() {
-    var code = args[0];
+    const code = args[0];
     haiku_sdk_inkstone_1.inkstone.invite.checkValidity(code, (err, valid) => {
         if (valid)
             console.log(chalk.green("invite is valid"));
@@ -201,8 +201,8 @@ function doCheckInvite() {
     });
 }
 function doCheckPrefineryCode() {
-    var Code = args[0];
-    var Email = args[1];
+    const Code = args[0];
+    const Email = args[1];
     haiku_sdk_inkstone_1.inkstone.invite.getInviteFromPrefineryCode({ Code, Email }, (err, code) => {
         if (code)
             console.log(chalk.green(code.Code));
@@ -231,14 +231,14 @@ function doClaimInvite() {
             type: "input",
             name: "organizationName",
             message: "Organization Name (only needed if org invite):",
-        }
-    ]).then(function (answers) {
-        var projectName = answers["name"];
-        var claim = {
+        },
+    ]).then((answers) => {
+        const projectName = answers["name"];
+        const claim = {
             Code: answers["code"],
             Email: answers["email"],
             OrganizationName: answers["organizationName"],
-            Password: answers["password"]
+            Password: answers["password"],
         };
         haiku_sdk_inkstone_1.inkstone.invite.claimInvite(claim, (err, valid) => {
             if (valid)
@@ -249,22 +249,22 @@ function doClaimInvite() {
     });
 }
 function doClone() {
-    var projectName = args[0];
-    var destination = args[1] || projectName;
+    const projectName = args[0];
+    let destination = args[1] || projectName;
     if (destination.charAt(destination.length - 1) !== "/")
         destination += "/";
-    ensureAuth(function (token) {
+    ensureAuth((token) => {
         console.log("Cloning project...");
-        haiku_sdk_inkstone_1.inkstone.project.getByName(token, projectName, function (err, projectAndCredentials) {
-            if (err) {
+        haiku_sdk_inkstone_1.inkstone.project.getByName(token, projectName, (getByNameErr, projectAndCredentials) => {
+            if (getByNameErr) {
                 console.log(chalk.bold(`Project ${projectName} not found.`));
                 process.exit(1);
             }
             else {
-                var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl;
+                let gitEndpoint = projectAndCredentials.Project.GitRemoteUrl;
                 gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@");
-                haiku_sdk_client_1.client.git.cloneRepo(gitEndpoint, destination, (err) => {
-                    if (err != undefined) {
+                haiku_sdk_client_1.client.git.cloneRepo(gitEndpoint, destination, (cloneErr) => {
+                    if (cloneErr) {
                         console.log(chalk.red("Error cloning project.  Use the --verbose flag for more information."));
                         process.exit(1);
                     }
@@ -284,9 +284,9 @@ function doCreate() {
                 type: "input",
                 name: "name",
                 message: "Project Name:",
-            }
-        ]).then(function (answers) {
-            var projectName = answers["name"];
+            },
+        ]).then((answers) => {
+            const projectName = answers["name"];
             console.log("Creating project...");
             haiku_sdk_inkstone_1.inkstone.project.create(token, { Name: projectName }, (err, project) => {
                 if (err) {
@@ -305,8 +305,8 @@ function doDelete() {
     ensureAuth((token) => {
         console.log(chalk.bold("Please note that deleting this project will delete it for your entire team."));
         console.log(chalk.red("Deleting a project cannot be undone!"));
-        function _actuallyDelete(projectName) {
-            haiku_sdk_inkstone_1.inkstone.project.deleteByName(token, projectName, (err, project) => {
+        function _actuallyDelete(finalProjectName) {
+            haiku_sdk_inkstone_1.inkstone.project.deleteByName(token, finalProjectName, (err, project) => {
                 if (err) {
                     console.log(chalk.red("Error deleting project.  Does this project exist?"));
                     process.exit(1);
@@ -317,7 +317,7 @@ function doDelete() {
                 }
             });
         }
-        var projectName = args[0];
+        let projectName = args[0];
         if (projectName) {
             _actuallyDelete(projectName);
         }
@@ -327,10 +327,10 @@ function doDelete() {
                 {
                     type: "input",
                     name: "name",
-                    message: "Project Name:"
-                }
+                    message: "Project Name:",
+                },
             ])
-                .then(function (answers) {
+                .then((answers) => {
                 projectName = answers["name"];
                 console.log("Deleting project...");
                 _actuallyDelete(projectName);
@@ -341,8 +341,8 @@ function doDelete() {
 function doDiffTail() {
     try {
         console.log("Waiting for diffs...");
-        var tailer = new tail.Tail(os.homedir() + "/.haiku/logs/haiku-diffs.log");
-        tailer.on("line", function (data) {
+        const tailer = new tail.Tail(os.homedir() + "/.haiku/logs/haiku-diffs.log");
+        tailer.on("line", (data) => {
             console.log(data);
         });
     }
@@ -351,18 +351,18 @@ function doDiffTail() {
     }
 }
 function doImport() {
-    var projectName = args[0];
-    var destination = args[1] || projectName;
+    const projectName = args[0];
+    let destination = args[1] || projectName;
     if (destination.charAt(destination.length - 1) !== "/")
         destination += "/";
-    ensureAuth(function (token) {
-        haiku_sdk_inkstone_1.inkstone.project.getByName(token, projectName, function (err, projectAndCredentials) {
+    ensureAuth((token) => {
+        haiku_sdk_inkstone_1.inkstone.project.getByName(token, projectName, (err, projectAndCredentials) => {
             if (err) {
                 console.log(chalk.bold(`Project ${projectName} not found.`));
             }
             else {
-                var actuallyDoImport = function () {
-                    var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl;
+                const actuallyDoImport = () => {
+                    let gitEndpoint = projectAndCredentials.Project.GitRemoteUrl;
                     gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@");
                     haiku_sdk_client_1.client.git.ensureRemoteIsInitialized(projectName, gitEndpoint, () => {
                         haiku_sdk_client_1.client.git.forciblyCloneSubrepo(projectName, destination, () => {
@@ -370,15 +370,15 @@ function doImport() {
                         });
                     });
                 };
-                var alreadyExists = fs.existsSync(path.resolve(destination));
+                const alreadyExists = fs.existsSync(path.resolve(destination));
                 if (alreadyExists) {
                     inquirer.prompt([
                         {
                             type: "confirm",
                             name: "confirmed",
                             message: `The destination directory ${destination} already exists.  Do you want to overwrite it?`,
-                        }
-                    ]).then(function (answers) {
+                        },
+                    ]).then((answers) => {
                         if (answers["confirmed"]) {
                             actuallyDoImport();
                         }
@@ -396,47 +396,51 @@ function doHeal() {
     process.exit(0);
 }
 function doInstall() {
-    var projectName = args[0];
-    if (!projectName || projectName == "") {
+    const projectName = args[0];
+    if (!projectName || projectName === "") {
         console.log(chalk.red("Please provide a project name: ") + chalk.bold("haiku install projectname"));
         process.exit(1);
     }
-    ensureAuth(function (token) {
-        hasbin('npm', function (result) {
+    ensureAuth((token) => {
+        hasbin("npm", (result) => {
             if (result) {
                 if (fs.existsSync(process.cwd() + "/package.json")) {
                     console.log("Installing " + projectName + "...");
-                    var packageJson = haiku_sdk_client_1.client.npm.readPackageJson();
+                    const packageJson = haiku_sdk_client_1.client.npm.readPackageJson();
                     if (!packageJson.dependencies) {
                         packageJson.dependencies = {};
                     }
-                    var projectString = "@haiku/";
-                    haiku_sdk_inkstone_1.inkstone.organization.list(token, (err, orgs) => {
-                        if (err !== undefined) {
-                            console.log(chalk.red("There was an error retrieving your account information.") + "  Please ensure that you have internet access.  If this problem persists, please contact support@haiku.ai and tell us that you don't have an organization associated with your account.");
+                    let projectString = "@haiku/";
+                    haiku_sdk_inkstone_1.inkstone.organization.list(token, (listErr, orgs) => {
+                        if (listErr) {
+                            console.log(chalk.red("There was an error retrieving your account information.") +
+                                " Please ensure that you have internet access." +
+                                " If this problem persists, please contact support@haiku.ai and tell us that you don't have an organization associated with your account.");
                             process.exit(1);
                         }
                         projectString += orgs[0].Name.toLowerCase() + "-";
-                        haiku_sdk_inkstone_1.inkstone.project.getByName(token, projectName, (err, projectAndCredentials) => {
-                            if (err != undefined) {
-                                console.log(chalk.red("That project wasn't found.") + "  Note that project names are CaseSensitive.  Please ensure that you have the correct project name, that you're logged into the correct account and that you have internet access.");
+                        haiku_sdk_inkstone_1.inkstone.project.getByName(token, projectName, (getByNameErr, projectAndCredentials) => {
+                            if (getByNameErr) {
+                                console.log(chalk.red("That project wasn't found.") +
+                                    "  Note that project names are CaseSensitive. " +
+                                    "Please ensure that you have the correct project name, that you're logged into the correct account, and that you have internet access.");
                                 process.exit(1);
                             }
                             projectString += projectAndCredentials.Project.Name.toLowerCase();
                             packageJson.dependencies[projectString] = "latest";
-                            var npmrc = "";
+                            let npmrc = "";
                             try {
                                 npmrc = fs.readFileSync(".npmrc").toString();
                             }
-                            catch (err) {
-                                if (err.code === 'ENOENT') {
+                            catch (exception) {
+                                if (exception.code === "ENOENT") {
                                 }
                                 else {
-                                    throw (err);
+                                    throw (exception);
                                 }
                             }
                             if (npmrc.indexOf("@haiku") === -1) {
-                                prependFile.sync(".npmrc", dedent `
+                                prependFile.sync(".npmrc", dedent_1.default `
                   //reservoir.haiku.ai:8910/:_authToken=
                   @haiku:registry=https://reservoir.haiku.ai:8910/
                 `);
@@ -485,7 +489,7 @@ function doList() {
         }
         else {
             haiku_sdk_inkstone_1.inkstone.project.list(token, (err, projects) => {
-                if (projects == undefined || projects.length == 0) {
+                if (!projects || projects.length === 0) {
                     console.log("No existing projects.  Use " + chalk.bold("haiku generate") + " to make a new one!");
                     process.exit(0);
                 }
@@ -503,8 +507,8 @@ function doList() {
 }
 function doLogin(cb) {
     console.log("Enter your Haiku credentials.");
-    var username = "";
-    var password = "";
+    let username = "";
+    let password = "";
     inquirer.prompt([
         {
             type: "input",
@@ -515,11 +519,11 @@ function doLogin(cb) {
             type: "password",
             name: "password",
             message: "Password:",
-        }
-    ]).then(function (answers) {
+        },
+    ]).then((answers) => {
         username = answers["username"];
         password = answers["password"];
-        haiku_sdk_inkstone_1.inkstone.user.authenticate(username, password, function (err, authResponse) {
+        haiku_sdk_inkstone_1.inkstone.user.authenticate(username, password, (err, authResponse) => {
             if (err !== undefined) {
                 console.log(chalk.bold.red("Username or password incorrect."));
                 if (flags.verbose) {
@@ -545,16 +549,16 @@ function doLogout() {
     process.exit(0);
 }
 function doOpen() {
-    var projectName = args[0];
-    ensureAuth(function (token) {
-        haiku_sdk_inkstone_1.inkstone.project.getByName(token, projectName, function (err, project) {
+    const projectName = args[0];
+    ensureAuth((token) => {
+        haiku_sdk_inkstone_1.inkstone.project.getByName(token, projectName, (err, project) => {
             console.log("TODO:  launch an instance of Haiku with this project open:", project);
             process.exit(0);
         });
     });
 }
 function doUpdate() {
-    hasbin('npm', function (result) {
+    hasbin("npm", (result) => {
         if (result) {
             try {
                 console.log("Updating packages...");
