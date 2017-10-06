@@ -6,20 +6,11 @@ const {download, unzip} = require('./fileManipulation')
 
 const opts = {
   server: process.env.HAIKU_AUTOUPDATE_SERVER,
-  environment: 'staging',
-  branch: 'master',
-  platform: 'mac',
-  version: '2.3.6'
+  environment: process.env.HAIKU_RELEASE_ENVIRONMENT,
+  branch: process.env.HAIKU_RELEASE_BRANCH,
+  platform: process.env.HAIKU_RELEASE_PLATFORM,
+  version: process.env.HAIKU_RELEASE_VERSION
 }
-
-
-// const opts = {
-//   server: process.env.HAIKU_AUTOUPDATE_SERVER,
-//   environment: process.env.HAIKU_RELEASE_ENVIRONMENT,
-//   branch: process.env.HAIKU_RELEASE_BRANCH,
-//   platform: process.env.HAIKU_RELEASE_PLATFORM,
-//   version: process.env.HAIKU_RELEASE_VERSION
-// }
 
 module.exports = {
   async update (url, progressCallback, options = opts) {
@@ -33,7 +24,6 @@ module.exports = {
           !options.version
         ) {
           throw new Error('Missing release/autoupdate environment variables')
-          reject(false)
         }
 
         const tempPath = os.tmpdir()
