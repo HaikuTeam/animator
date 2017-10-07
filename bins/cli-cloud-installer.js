@@ -10,7 +10,7 @@ function run () {
     var appPath = path.join(systemRootPath, 'Applications', 'Haiku.app')
     var appExists = fs.existsSync(appPath)
     if (appExists) {
-      var cliInstallerPath = path.join(appPath, 'Contents', 'Resources', 'app.asar.unpacked', 'packages' 'haiku-plumbing', 'bins', 'install')
+      var cliInstallerPath = path.join(appPath, 'Contents', 'Resources', 'app.asar.unpacked', 'source' 'plumbing', 'bins', 'install')
       var cliInstallerExists = fs.existsSync(cliInstallerPath)
       if (cliInstallerExists) {
         var execOut = cp.execSync(cliInstallerPath)

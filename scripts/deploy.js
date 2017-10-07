@@ -21,6 +21,9 @@ module.exports = {
   vault: VAULT,
   certificate: 'HaikuSystemsIncDeveloperId.p12', // Haiku Systems, new
   // certificate: 'DeveloperIdApplicationMatthewB73M94S23A.p12',
+  cloud_installer: {
+
+  },
   slack: {
     clientId: process.env.HAIKU_INTERNAL_SLACK_CLIENT_ID,
     clientSecret: process.env.HAIKU_INTERNAL_SLACK_CLIENT_SECRET,

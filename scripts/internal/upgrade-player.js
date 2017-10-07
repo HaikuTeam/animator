@@ -5,10 +5,6 @@
  * Upgrades the @haiku/player version for all projects specified, then saves+publishes them.
  */
 var async = require('async')
-var lodash = require('lodash')
-var fse = require('fs-extra')
-var cp = require('child_process')
-var path = require('path')
 var argv = require('yargs').argv
 var Plumbing = require('./../../packages/haiku-plumbing/lib/Plumbing').default
 var plumbing = new Plumbing()
@@ -68,7 +64,7 @@ plumbing.launch({ mode: 'headless' }, (err, host, port, server, spawned, envoy) 
           ], next)
         }, cb)
       })
-    },
+    }
   ], (err, results) => {
     if (err) throw err
     console.info('done')

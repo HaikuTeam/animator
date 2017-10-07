@@ -233,7 +233,7 @@ function setup () {
     fse.outputFileSync(path.join(blankProject, '.keep'), '')
   }
 
-  var watchOptions = inputs.skipInitialBuild ?  ['--', '--skip-initial-build'] : ''
+  var watchOptions = inputs.skipInitialBuild ? ['--', '--skip-initial-build'] : ''
 
   if (inputs.devChoice === 'everything') {
     if (chosenFolder) {
