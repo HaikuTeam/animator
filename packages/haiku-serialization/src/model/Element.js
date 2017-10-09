@@ -6,8 +6,8 @@ var SVGPoints = require('@haiku/player/lib/helpers/SVGPoints').default
 var Layout3D = require('@haiku/player/lib/Layout3D').default
 var cssQueryTree = require('@haiku/player/lib/helpers/cssQueryTree').default
 var KnownDOMEvents = require('@haiku/player/lib/renderers/dom/Events').default
-var DOMSchema = require('@haiku/player/lib/properties/dom/schema')
-var DOMFallbacks = require('@haiku/player/lib/properties/dom/fallbacks')
+var DOMSchema = require('@haiku/player/lib/properties/dom/schema').default
+var DOMFallbacks = require('@haiku/player/lib/properties/dom/fallbacks').default
 var TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
 var manaToHtml = require('haiku-bytecode/src/manaToHtml')
 var manaToJson = require('haiku-bytecode/src/manaToJson')
@@ -53,34 +53,96 @@ const DELTA_ROTATION_OFFSETS = {
  * or they might not show up in the view.
  */
 
-const ALLOWED_PROPS = {
-  'translation.x': true,
-  'translation.y': true,
-  // 'translation.z': true, // This doesn't work for some reason, so leaving it out
-  'rotation.z': true,
-  'rotation.x': true,
-  'rotation.y': true,
-  'scale.x': true,
-  'scale.y': true,
-  'opacity': true,
-  // 'shown': true,
-  'backgroundColor': true
-  // 'color': true,
-  // 'fill': true,
-  // 'stroke': true
+const ALLOWED_PROPS_BY_NAME = {
+  div: {
+    'sizeAbsolute.x': true,
+    'sizeAbsolute.y': true,
+    'backgroundColor': true,
+    'opacity': true,
+    // Enable these as such a time as we can represent them visually in the glass
+    // 'style.overflowX': true,
+    // 'style.overflowY': true,
+  },
+  svg: {
+    'translation.x': true,
+    'translation.y': true,
+    // 'translation.z': true, // This doesn't work for some reason, so leaving it out
+    'rotation.z': true,
+    'rotation.x': true,
+    'rotation.y': true,
+    'scale.x': true,
+    'scale.y': true,
+    'opacity': true,
+    'backgroundColor': true
+  },
+  rect: {
+    fill: true,
+    stroke: true,
+    strokeWidth: true,
+    x: true,
+    y: true,
+    width: true,
+    height: true,
+    rx: true,
+    ry: true,
+  },
+  circle: {
+    fill: true,
+    stroke: true,
+    strokeWidth: true,
+    r: true,
+    cx: true,
+    cy: true,
+  },
+  ellipse: {
+    fill: true,
+    stroke: true,
+    strokeWidth: true,
+    rx: true,
+    ry: true,
+    cx: true,
+    cy: true
+  },
+  line: {
+    fill: true,
+    stroke: true,
+    strokeWidth: true,
+    x1: true,
+    y1: true,
+    x2: true,
+    y2: true,
+  },
+  polyline: {
+    fill: true,
+    stroke: true,
+    strokeWidth: true,
+    points: true,
+  },
+  polygon: {
+    fill: true,
+    stroke: true,
+    strokeWidth: true,
+    points: true,
+  },
+  path: {
+    fill: true,
+    stroke: true,
+    strokeWidth: true,
+    d: true,
+  }
 }
 
-const ALLOWED_PROPS_TOP_LEVEL = {
-  'sizeAbsolute.x': true,
-  'sizeAbsolute.y': true,
-  // Enable these as such a time as we can represent them visually in the glass
-  // 'style.overflowX': true,
-  // 'style.overflowY': true,
-  'backgroundColor': true,
-  'opacity': true
+const PRIMITIVE_SHAPES = {
+  rect: true,
+  circle: true,
+  ellipse: true,
+  line: true,
+  polyline: true,
+  polygon: true,
+  path: true,
 }
 
-const CLUSTERED_PROPS = {
+const DOM_CLUSTERED_PROPS = {
   'mount.x': 'mount',
   'mount.y': 'mount',
   'mount.z': 'mount',
@@ -113,10 +175,26 @@ const CLUSTERED_PROPS = {
   'sizeAbsolute.y': 'sizeAbsolute',
   'sizeAbsolute.z': 'sizeAbsolute',
   'style.overflowX': 'overflow',
-  'style.overflowY': 'overflow'
+  'style.overflowY': 'overflow',
+  '<rect>.x': '<rect>.offset',
+  '<rect>.y': '<rect>.offset',
+  '<rect>.width': '<rect>.size',
+  '<rect>.height': '<rect>.size',
+  '<rect>.rx': '<rect>.cornerRadius',
+  '<rect>.ry': '<rect>.cornerRadius',
+  '<circle>.cx': '<circle>.center',
+  '<circle>.cy': '<circle>.center',
+  '<ellipse>.cx': '<ellipse>.center',
+  '<ellipse>.cy': '<ellipse>.center',
+  '<ellipse>.rx': '<ellipse>.radius',
+  '<ellipse>.ry': '<ellipse>.radius',
+  '<line>.x1': '<line>.endpoints',
+  '<line>.y1': '<line>.endpoints',
+  '<line>.x2': '<line>.endpoints',
+  '<line>.y2': '<line>.endpoints',
 }
 
-const CLUSTER_NAMES = {
+const DOM_CLUSTER_NAMES = {
   'mount': 'Mount',
   'align': 'Align',
   'origin': 'Origin',
@@ -127,7 +205,14 @@ const CLUSTER_NAMES = {
   'sizeProportional': 'Size %',
   'sizeDifferential': 'Size +/-',
   'sizeAbsolute': 'Size',
-  'overflow': 'Overflow'
+  'overflow': 'Overflow',
+  '<rect>.offset': 'Offset',
+  '<rect>.size': 'Size',
+  '<rect>.cornerRadius': 'Corner Radius',
+  '<circle>.center': 'Center',
+  '<ellipse>.center': 'Center',
+  '<ellipse>.radius': 'Radius',
+  '<line>.endpoints': 'Endpoints'
 }
 
 const ALLOWED_TAGNAMES = {
@@ -266,6 +351,28 @@ function ElementModel (platform, component, metadata) {
     return element
   }
 
+  Element.findNodesByComponentId = function findNodesByComponentId (componentId) {
+    var found = []
+    if (this.state.reifiedBytecode && this.state.reifiedBytecode.template) {
+      this.visitTemplate('0', 0, [], this.state.reifiedBytecode.template, null, (node) => {
+        let id = node.attributes && node.attributes['haiku-id']
+        if (id && id === componentId) found.push(node)
+      })
+    }
+    return found
+  }
+
+  Element.findNodeByComponentId = function findNodeByComponentId (componentId) {
+    if (!reifiedBytecode) return void (0)
+    if (!reifiedBytecode.template) return void (0)
+    let found
+    this.visitTemplate('0', 0, [], reifiedBytecode.template, null, (node) => {
+      let id = node.attributes && node.attributes['haiku-id']
+      if (id && id === componentId) found = node
+    })
+    return found
+  }
+
   Element.where = function where (query) {
     var collection = []
     for (var uid in Element.dict) {
@@ -350,6 +457,10 @@ function ElementModel (platform, component, metadata) {
       parent.children.add(instance)
     }
     return instance
+  }
+
+  Element.prototype.initialize = function initialize () {
+    // no-op, legacy
   }
 
   Element.prototype.update = function update (attrs) {
@@ -979,55 +1090,82 @@ function ElementModel (platform, component, metadata) {
     return this.node.attributes[HAIKU_ID_ATTRIBUTE]
   }
 
-  Element.prototype.getAddressablePropertiesArray = function (isTopLevel) {
-    const addressables = []
+  function _assignDOMSchemaProperties (out, elementName) {
+    const schema = DOMSchema[elementName]
+    const fallbacks = DOMFallbacks[elementName]
 
-    // If this element is component, then start by populating standard DOM properties
-    const elementName = (this.isComponent()) ? 'div' : this.getNameString()
-    const domSchema = DOMSchema[elementName]
-    const domFallbacks = DOMFallbacks[elementName]
+    for (const name in schema) {
+      let propertyGroup = null
 
-    // Start with the basic hardcoded DOM schema; we'll add component-specifics if necessary
-    if (domSchema) {
-      for (const propertyName in domSchema) {
-        let propertyGroup = null
+      let nameParts = name.split('.')
 
-        let nameParts = propertyName.split('.')
-        if (propertyName === 'style.overflowX') nameParts = ['overflow', 'x']
-        if (propertyName === 'style.overflowY') nameParts = ['overflow', 'y']
+      // HACK, but not sure what we can do that's better
+      if (name === 'style.overflowX') nameParts = ['overflow', 'x']
+      if (name === 'style.overflowY') nameParts = ['overflow', 'y']
 
-        if (isTopLevel) {
-          if (ALLOWED_PROPS_TOP_LEVEL[propertyName]) {
-            propertyGroup = {
-              name: propertyName,
-              prefix: nameParts[0],
-              suffix: nameParts[1],
-              fallback: domFallbacks[propertyName],
-              typedef: domSchema[propertyName]
-            }
-          }
-        } else {
-          if (ALLOWED_PROPS[propertyName]) {
-            propertyGroup = {
-              name: propertyName,
-              prefix: nameParts[0],
-              suffix: nameParts[1],
-              fallback: domFallbacks[propertyName],
-              typedef: domSchema[propertyName]
-            }
+      if (ALLOWED_PROPS_BY_NAME[elementName] && ALLOWED_PROPS_BY_NAME[elementName][name]) {
+        propertyGroup = {
+          name: name,
+          prefix: nameParts[0],
+          suffix: nameParts[1],
+          fallback: fallbacks[name],
+          typedef: schema[name],
+        }
+      }
+
+      // If we successfully created a property group, push it onto the list
+      if (propertyGroup) {
+        let clusterPrefix = DOM_CLUSTERED_PROPS[propertyGroup.name]
+
+        // Check if we are dealing with a special cluster like <rect>.foo
+        if (!clusterPrefix) {
+          clusterPrefix = DOM_CLUSTERED_PROPS[`<${elementName}>.${name}`]
+        }
+
+        if (clusterPrefix) {
+          propertyGroup.cluster = {
+            prefix: clusterPrefix,
+            name: DOM_CLUSTER_NAMES[clusterPrefix],
           }
         }
 
-        // If we successfully created a property group, push it onto the list
-        if (propertyGroup) {
-          let clusterPrefix = CLUSTERED_PROPS[propertyGroup.name]
-          if (clusterPrefix) {
-            propertyGroup.cluster = {
-              prefix: clusterPrefix,
-              name: CLUSTER_NAMES[clusterPrefix]
-            }
+        out[name] = propertyGroup
+      }
+    }
+  }
+
+  Element.prototype.getAddressableProperties = function (doGoDeep) {
+    const addressables = {}
+
+    // If this element is component, then start by populating standard DOM properties
+    const elementName = (this.isComponent()) ? 'div' : this.getNameString()
+
+    // Start with the basic hardcoded DOM schema; we'll add component-specifics if necessary
+    if (DOMSchema[elementName]) {
+      _assignDOMSchemaProperties(addressables, elementName)
+    }
+
+    if (doGoDeep) {
+      const primitives = []
+      Element.visitChildren(this, (descendant) => {
+        if (PRIMITIVE_SHAPES[descendant.getNameString()]) {
+          primitives.push(descendant)
+        }
+      })
+
+      // If we are dealing with an effective primitive, hoist its addressables
+      if (primitives.length === 1) {
+        let descendant = primitives[0]
+        let subaddressables = descendant.getAddressableProperties(false)
+
+        for (let subname in subaddressables) {
+          // Add this flag so the timeline knows to whom to apply updates
+          subaddressables[subname].subid = descendant.getComponentId()
+
+          // And add it to our own object if we haven't set it already
+          if (!addressables[subname]) {
+            addressables[subname] = subaddressables[subname]
           }
-          addressables.push(propertyGroup)
         }
       }
     }
@@ -1036,13 +1174,13 @@ function ElementModel (platform, component, metadata) {
     if (this.isComponent()) {
       for (let name in this.node.elementName.states) {
         let state = this.node.elementName.states[name]
-        addressables.push({
+        addressables[name] = {
           name: name,
           prefix: name,
           suffix: undefined,
           fallback: state.value,
           typedef: state.type
-        })
+        }
       }
     }
 
