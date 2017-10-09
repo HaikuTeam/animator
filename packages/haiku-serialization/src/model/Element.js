@@ -75,61 +75,61 @@ const ALLOWED_PROPS_BY_NAME = {
     'opacity': true,
     'backgroundColor': true
   },
-  rect: {
-    fill: true,
-    stroke: true,
-    strokeWidth: true,
-    x: true,
-    y: true,
-    width: true,
-    height: true,
-    rx: true,
-    ry: true
-  },
-  circle: {
-    fill: true,
-    stroke: true,
-    strokeWidth: true,
-    r: true,
-    cx: true,
-    cy: true
-  },
-  ellipse: {
-    fill: true,
-    stroke: true,
-    strokeWidth: true,
-    rx: true,
-    ry: true,
-    cx: true,
-    cy: true
-  },
-  line: {
-    fill: true,
-    stroke: true,
-    strokeWidth: true,
-    x1: true,
-    y1: true,
-    x2: true,
-    y2: true
-  },
-  polyline: {
-    fill: true,
-    stroke: true,
-    strokeWidth: true,
-    points: true
-  },
-  polygon: {
-    fill: true,
-    stroke: true,
-    strokeWidth: true,
-    points: true
-  },
-  path: {
-    fill: true,
-    stroke: true,
-    strokeWidth: true,
-    d: true
-  }
+  // rect: {
+  //   fill: true,
+  //   stroke: true,
+  //   strokeWidth: true,
+  //   x: true,
+  //   y: true,
+  //   width: true,
+  //   height: true,
+  //   rx: true,
+  //   ry: true
+  // },
+  // circle: {
+  //   fill: true,
+  //   stroke: true,
+  //   strokeWidth: true,
+  //   r: true,
+  //   cx: true,
+  //   cy: true
+  // },
+  // ellipse: {
+  //   fill: true,
+  //   stroke: true,
+  //   strokeWidth: true,
+  //   rx: true,
+  //   ry: true,
+  //   cx: true,
+  //   cy: true
+  // },
+  // line: {
+  //   fill: true,
+  //   stroke: true,
+  //   strokeWidth: true,
+  //   x1: true,
+  //   y1: true,
+  //   x2: true,
+  //   y2: true
+  // },
+  // polyline: {
+  //   fill: true,
+  //   stroke: true,
+  //   strokeWidth: true,
+  //   points: true
+  // },
+  // polygon: {
+  //   fill: true,
+  //   stroke: true,
+  //   strokeWidth: true,
+  //   points: true
+  // },
+  // path: {
+  //   fill: true,
+  //   stroke: true,
+  //   strokeWidth: true,
+  //   d: true
+  // }
 }
 
 const PRIMITIVE_SHAPES = {
