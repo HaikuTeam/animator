@@ -31,7 +31,7 @@ module.exports = {
         const installationPath = '/Applications'
 
         download(url, zipPath, progressCallback)
-          .then(() => {unzip(zipPath, installationPath)})
+          .then(() => { unzip(zipPath, installationPath) })
           .then(() => {
             resolve(true)
             electron.remote.app.relaunch()
