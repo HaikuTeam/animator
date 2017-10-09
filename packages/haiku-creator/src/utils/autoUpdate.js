@@ -30,11 +30,11 @@ module.exports = {
         const zipPath = `${tempPath}/haiku.zip`
         const installationPath = '/Applications'
 
+        console.info('[autoupdater] About to download an update:', options, url)
+
         download(url, zipPath, progressCallback)
-          .then(() => { unzip(zipPath, installationPath) })
           .then(() => {
-            resolve(true)
-            electron.remote.app.relaunch()
+            unzip(zipPath, installationPath)
             electron.remote.app.exit()
           })
       }
@@ -62,7 +62,12 @@ module.exports = {
       fetch(this.generateURL(opts))
         .then((response) => {
           status = response.status
-          return response.json()
+
+          if (status === 200) {
+            return response.json()
+          } else {
+            return {}
+          }
         })
         .then((data) => {
           resolve({status: status, url: data.url})
