@@ -74,7 +74,7 @@ const ALLOWED_PROPS_BY_NAME = {
     'scale.y': true,
     'opacity': true,
     'backgroundColor': true
-  },
+  }
   // rect: {
   //   fill: true,
   //   stroke: true,

@@ -45,9 +45,6 @@ export default class MasterGitProject extends EventEmitter {
       throw new Error('[master-git] MasterGitProject cannot launch without a folder defined')
     }
 
-    // Is a git commit currently in the midst of taking place
-    this._isCommitting = false
-
     // List of all actions that can be undone via git
     this._gitUndoables = []
     this._gitRedoables = []
@@ -111,7 +108,10 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   restart (projectInfo) {
-    this._isCommitting = false
+    // In case a previous run left a lock file lying around, get rid of it otherwise
+    // we won't be able to add paths to the index. This is just a hacky protection.
+    Git.destroyIndexLockSync(this.folder)
+
     this._gitUndoables.splice(0)
     this._gitRedoables.splice(0)
 
@@ -167,10 +167,6 @@ export default class MasterGitProject extends EventEmitter {
       // Recipients of this response also depend on the folderState being up to date
       return this.fetchFolderState('action-sequence=done', projectOptions, cb)
     })
-  }
-
-  isCommittingProject () {
-    return this._isCommitting
   }
 
   getFolderState () {
@@ -592,7 +588,9 @@ export default class MasterGitProject extends EventEmitter {
         logger.info('[master-git] remote refs: making base commit')
 
         return Git.addAllPathsToIndex(this.folder, (err, oid) => {
-          if (err) return cb(err)
+          if (err) {
+            return cb(err)
+          }
 
           return Git.buildCommit(this.folder, this._folderState.haikuUsername, null, `Base commit ${COMMIT_SUFFIX}`, oid, null, null, (err, commitId) => {
             if (err) return cb(err)

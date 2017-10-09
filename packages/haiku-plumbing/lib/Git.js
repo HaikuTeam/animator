@@ -11,9 +11,9 @@ exports.hardReset = hardReset;
 exports.removeUntrackedFiles = removeUntrackedFiles;
 exports.upsertRemote = upsertRemote;
 exports.maybeInit = maybeInit;
-exports.getIndex = getIndex;
-exports.refreshIndex = refreshIndex;
-exports.writeIndex = writeIndex;
+exports.getIndexLockAgnostic = getIndexLockAgnostic;
+exports.writeIndexLockAgnostic = writeIndexLockAgnostic;
+exports.destroyIndexLockSync = destroyIndexLockSync;
 exports.addPathsToIndex = addPathsToIndex;
 exports.addAllPathsToIndex = addAllPathsToIndex;
 exports.referenceNameToId = referenceNameToId;
@@ -81,6 +81,20 @@ function globalExceptionCatcher(exception) {
 
 // Multiton for caching already-opened repos
 var REPOS = {};
+var LOCKED_INDEXES = {};
+var INDEX_LOCK_INTERVAL = 0;
+
+function _gimmeIndex(pwd, cb) {
+  if (!LOCKED_INDEXES[pwd]) {
+    LOCKED_INDEXES[pwd] = true;
+    return cb(function () {
+      LOCKED_INDEXES[pwd] = false;
+    });
+  }
+  return setTimeout(function () {
+    return _gimmeIndex(pwd, cb);
+  }, INDEX_LOCK_INTERVAL);
+}
 
 function open(pwd, cb) {
   if (REPOS[pwd]) {
@@ -109,28 +123,35 @@ function init(pwd, cb) {
 }
 
 function status(pwd, opts, cb) {
-  return open(pwd, function (err, repository) {
-    if (err) return cb(err);
-    // return repository.refreshIndex().then((index) => {}, cb) // Might need this?
-    var diffOptions = {
-      flags: _nodegit.Diff.OPTION.SHOW_UNTRACKED_CONTENT | _nodegit.Diff.OPTION.RECURSE_UNTRACKED_DIRS
-    };
-    return _nodegit.Diff.indexToWorkdir(repository, null, diffOptions).then(function (diff) {
-      var changes = {};
-      for (var i = 0; i < diff.numDeltas(); i++) {
-        var delta = diff.getDelta(i);
-        var oldPath = delta.oldFile().path();
-        var newPath = delta.newFile().path();
-        var statusPath = oldPath || newPath;
-        changes[statusPath] = {
-          delta: i,
-          prev: oldPath,
-          path: statusPath,
-          num: delta.status()
-        };
-      }
-      return cb(null, changes);
-    }, cb);
+  return _gimmeIndex(pwd, function (freeIndex) {
+    function done(err, out) {
+      freeIndex();
+      return cb(err, out);
+    }
+
+    return open(pwd, function (err, repository) {
+      if (err) return done(err);
+      // return repository.refreshIndex().then((index) => {}, done) // Might need this?
+      var diffOptions = {
+        flags: _nodegit.Diff.OPTION.SHOW_UNTRACKED_CONTENT | _nodegit.Diff.OPTION.RECURSE_UNTRACKED_DIRS
+      };
+      return _nodegit.Diff.indexToWorkdir(repository, null, diffOptions).then(function (diff) {
+        var changes = {};
+        for (var i = 0; i < diff.numDeltas(); i++) {
+          var delta = diff.getDelta(i);
+          var oldPath = delta.oldFile().path();
+          var newPath = delta.newFile().path();
+          var statusPath = oldPath || newPath;
+          changes[statusPath] = {
+            delta: i,
+            prev: oldPath,
+            path: statusPath,
+            num: delta.status()
+          };
+        }
+        return done(null, changes);
+      }, done);
+    });
   });
 }
 
@@ -207,7 +228,7 @@ function maybeInit(pwd, cb) {
   });
 }
 
-function getIndex(pwd, cb) {
+function getIndexLockAgnostic(pwd, cb) {
   return open(pwd, function (err, repository) {
     if (err) return cb(err);
     return repository.index().then(function (index) {
@@ -216,16 +237,7 @@ function getIndex(pwd, cb) {
   });
 }
 
-function refreshIndex(pwd, cb) {
-  return open(pwd, function (err, repository) {
-    if (err) return cb(err);
-    return repository.refreshIndex().then(function (index) {
-      return cb(null, index);
-    }, cb);
-  });
-}
-
-function writeIndex(index, pwd, cb) {
+function writeIndexLockAgnostic(index, pwd, cb) {
   return index.write().then(function () {
     return index.writeTree().then(function (oid) {
       return cb(null, oid);
@@ -233,30 +245,57 @@ function writeIndex(index, pwd, cb) {
   }, cb);
 }
 
+// HACK: This assumes we are only running one thread against this repo
+function destroyIndexLockSync(pwd) {
+  var lockPath = _path2.default.join(pwd, '.git', 'index.lock');
+  delete LOCKED_INDEXES[pwd]; // Remove the in-memory mutex too in case one is hanging around
+  try {
+    if (_haikuFsExtra2.default.existsSync(lockPath)) {
+      _haikuFsExtra2.default.removeSync(lockPath);
+    }
+  } catch (exception) {
+    _LoggerInstance2.default.info('[git]', exception);
+  }
+}
+
 function addPathsToIndex(pwd) {
   var relpaths = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
   var cb = arguments[2];
 
   if (relpaths.length < 1) return cb(new Error('Empty paths list given'));
-  return getIndex(pwd, function (err, index) {
-    if (err) return cb(err);
-    return _async2.default.eachSeries(relpaths, function (relpath, next) {
-      return index.addByPath(relpath).then(function () {
-        return next();
-      }, next);
-    }, function (err) {
-      if (err) return cb(err);
-      return writeIndex(index, pwd, cb);
+  return _gimmeIndex(pwd, function (freeIndex) {
+    function done(err, out) {
+      freeIndex();
+      return cb(err, out);
+    }
+
+    return getIndexLockAgnostic(pwd, function (err, index) {
+      if (err) return done(err);
+      return _async2.default.eachSeries(relpaths, function (relpath, next) {
+        return index.addByPath(relpath).then(function () {
+          return next();
+        }, next);
+      }, function (err) {
+        if (err) return done(err);
+        return writeIndexLockAgnostic(index, pwd, done);
+      });
     });
   });
 }
 
 function addAllPathsToIndex(pwd, cb) {
-  return getIndex(pwd, function (err, index) {
-    if (err) return cb(err);
-    return index.addAll('.').then(function () {
-      return writeIndex(index, pwd, cb);
-    }, cb);
+  return _gimmeIndex(pwd, function (freeIndex) {
+    function done(err, out) {
+      freeIndex();
+      return cb(err, out);
+    }
+
+    return getIndexLockAgnostic(pwd, function (err, index) {
+      if (err) return done(err);
+      return index.addAll('.').then(function () {
+        return writeIndexLockAgnostic(index, pwd, done);
+      }, done);
+    });
   });
 }
 
@@ -547,59 +586,66 @@ function getMasterCommitHistory(folder, cb) {
 function mergeBranchesWithoutBase(folder, toName, fromName, signature, mergePreference, fileFavorName, cb) {
   _LoggerInstance2.default.info('[git] merging branches (without base) from', fromName, 'to', toName);
 
-  return open(folder, function (err, repository) {
-    if (err) return cb(err);
-    if (!mergePreference) mergePreference = _nodegit.Merge.PREFERENCE.NONE;
-    if (!signature) signature = signature || repository.defaultSignature();
+  return _gimmeIndex(folder, function (freeIndex) {
+    function done(err, out) {
+      freeIndex();
+      return cb(err, out);
+    }
 
-    fileFavorName = fileFavorName && fileFavorName.toUpperCase() || 'NORMAL';
-    _LoggerInstance2.default.info('[git] merge (without base) file favor:', fileFavorName);
+    return open(folder, function (err, repository) {
+      if (err) return done(err);
+      if (!mergePreference) mergePreference = _nodegit.Merge.PREFERENCE.NONE;
+      if (!signature) signature = signature || repository.defaultSignature();
 
-    // See libgit2 for info: https://github.com/libgit2/libgit2/blob/master/include/git2/merge.h
-    var mergeOptions = {
-      fileFavor: _nodegit.Merge.FILE_FAVOR[fileFavorName],
-      fileFlags: _nodegit.Merge.FILE_FLAG.FILE_DEFAULT
-    };
+      fileFavorName = fileFavorName && fileFavorName.toUpperCase() || 'NORMAL';
+      _LoggerInstance2.default.info('[git] merge (without base) file favor:', fileFavorName);
 
-    return repository.getBranch(toName).then(function (toBranch) {
-      return repository.getBranch(fromName).then(function (fromBranch) {
-        return repository.getBranchCommit(toBranch).then(function (toCommit) {
-          return repository.getBranchCommit(fromBranch).then(function (fromCommit) {
-            var toCommitOid = toCommit.toString();
-            var fromCommitOid = fromCommit.toString();
-            return _nodegit.Reference.lookup(repository, 'HEAD').then(function (headRef) {
-              return headRef.resolve().then(function (headRef) {
-                var updateHead = !!headRef && headRef.name() === toBranch.name();
+      // See libgit2 for info: https://github.com/libgit2/libgit2/blob/master/include/git2/merge.h
+      var mergeOptions = {
+        fileFavor: _nodegit.Merge.FILE_FAVOR[fileFavorName],
+        fileFlags: _nodegit.Merge.FILE_FLAG.FILE_DEFAULT
+      };
 
-                _LoggerInstance2.default.info('[git] merge using options:', mergeOptions);
+      return repository.getBranch(toName).then(function (toBranch) {
+        return repository.getBranch(fromName).then(function (fromBranch) {
+          return repository.getBranchCommit(toBranch).then(function (toCommit) {
+            return repository.getBranchCommit(fromBranch).then(function (fromCommit) {
+              var toCommitOid = toCommit.toString();
+              var fromCommitOid = fromCommit.toString();
+              return _nodegit.Reference.lookup(repository, 'HEAD').then(function (headRef) {
+                return headRef.resolve().then(function (headRef) {
+                  var updateHead = !!headRef && headRef.name() === toBranch.name();
 
-                return _nodegit.Merge.commits(repository, toCommitOid, fromCommitOid, mergeOptions).then(function (index) {
-                  if (index.hasConflicts()) return cb(null, true, index);
-                  return index.writeTreeTo(repository).then(function (oid) {
-                    var commitMessage = 'Merged ' + fromBranch.shorthand() + ' into ' + toBranch.shorthand();
-                    return repository.createCommit(toBranch.name(), signature, signature, commitMessage, oid, [toCommitOid, fromCommitOid]).then(function (mergeCommit) {
-                      if (!updateHead) return cb(null, false, mergeCommit.toString());
-                      // Make sure head is updated so index isn't messed up
-                      return repository.getBranch(toName).then(function (toBranch) {
-                        return repository.getBranchCommit(toBranch).then(function (branchCommit) {
-                          return branchCommit.getTree().then(function (toBranchTree) {
-                            return _nodegit.Checkout.tree(repository, toBranchTree, {
-                              checkoutStrategy: _nodegit.Checkout.STRATEGY.SAFE | _nodegit.Checkout.STRATEGY.RECREATE_MISSING
-                            }).then(function () {
-                              return cb(null, false, mergeCommit.toString());
-                            }, cb);
-                          }, cb);
-                        }, cb);
-                      }, cb);
-                    }, cb);
-                  }, cb);
-                }, cb);
-              }, cb);
-            }, cb);
-          }, cb);
-        }, cb);
-      }, cb);
-    }, cb);
+                  _LoggerInstance2.default.info('[git] merge using options:', mergeOptions);
+
+                  return _nodegit.Merge.commits(repository, toCommitOid, fromCommitOid, mergeOptions).then(function (index) {
+                    if (index.hasConflicts()) return done(null, true, index);
+                    return index.writeTreeTo(repository).then(function (oid) {
+                      var commitMessage = 'Merged ' + fromBranch.shorthand() + ' into ' + toBranch.shorthand();
+                      return repository.createCommit(toBranch.name(), signature, signature, commitMessage, oid, [toCommitOid, fromCommitOid]).then(function (mergeCommit) {
+                        if (!updateHead) return done(null, false, mergeCommit.toString());
+                        // Make sure head is updated so index isn't messed up
+                        return repository.getBranch(toName).then(function (toBranch) {
+                          return repository.getBranchCommit(toBranch).then(function (branchCommit) {
+                            return branchCommit.getTree().then(function (toBranchTree) {
+                              return _nodegit.Checkout.tree(repository, toBranchTree, {
+                                checkoutStrategy: _nodegit.Checkout.STRATEGY.SAFE | _nodegit.Checkout.STRATEGY.RECREATE_MISSING
+                              }).then(function () {
+                                return done(null, false, mergeCommit.toString());
+                              }, done);
+                            }, done);
+                          }, done);
+                        }, done);
+                      }, done);
+                    }, done);
+                  }, done);
+                }, done);
+              }, done);
+            }, done);
+          }, done);
+        }, done);
+      }, done);
+    });
   });
 }
 

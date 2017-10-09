@@ -15,9 +15,7 @@ tape('master:index', (t) => {
         var pkg = fse.readJsonSync(path.join(folder, 'package.json'))
         t.equal(pkg.name, `@haiku/${metadata.organizationName.toLowerCase()}-test`, 'organization name was set correctly')
         return cb()
-      },
-
-      function (cb) { return creator.request('startProject', ['test', folder], cb) }
+      }
     ], (err) => {
       t.error(err, 'no error')
       teardown()

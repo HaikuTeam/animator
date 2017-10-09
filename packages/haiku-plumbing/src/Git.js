@@ -18,6 +18,20 @@ function globalExceptionCatcher (exception) {
 
 // Multiton for caching already-opened repos
 const REPOS = {}
+const LOCKED_INDEXES = {}
+const INDEX_LOCK_INTERVAL = 0
+
+function _gimmeIndex (pwd, cb) {
+  if (!LOCKED_INDEXES[pwd]) {
+    LOCKED_INDEXES[pwd] = true
+    return cb(() => {
+      LOCKED_INDEXES[pwd] = false
+    })
+  }
+  return setTimeout(() => {
+    return _gimmeIndex(pwd, cb)
+  }, INDEX_LOCK_INTERVAL)
+}
 
 export function open (pwd, cb) {
   if (REPOS[pwd]) {
@@ -46,28 +60,35 @@ export function init (pwd, cb) {
 }
 
 export function status (pwd, opts, cb) {
-  return open(pwd, (err, repository) => {
-    if (err) return cb(err)
-    // return repository.refreshIndex().then((index) => {}, cb) // Might need this?
-    const diffOptions = {
-      flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS
+  return _gimmeIndex(pwd, (freeIndex) => {
+    function done (err, out) {
+      freeIndex()
+      return cb(err, out)
     }
-    return Diff.indexToWorkdir(repository, null, diffOptions).then((diff) => {
-      const changes = {}
-      for (let i = 0; i < diff.numDeltas(); i++) {
-        const delta = diff.getDelta(i)
-        const oldPath = delta.oldFile().path()
-        const newPath = delta.newFile().path()
-        const statusPath = oldPath || newPath
-        changes[statusPath] = {
-          delta: i,
-          prev: oldPath,
-          path: statusPath,
-          num: delta.status()
-        }
+
+    return open(pwd, (err, repository) => {
+      if (err) return done(err)
+      // return repository.refreshIndex().then((index) => {}, done) // Might need this?
+      const diffOptions = {
+        flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS
       }
-      return cb(null, changes)
-    }, cb)
+      return Diff.indexToWorkdir(repository, null, diffOptions).then((diff) => {
+        const changes = {}
+        for (let i = 0; i < diff.numDeltas(); i++) {
+          const delta = diff.getDelta(i)
+          const oldPath = delta.oldFile().path()
+          const newPath = delta.newFile().path()
+          const statusPath = oldPath || newPath
+          changes[statusPath] = {
+            delta: i,
+            prev: oldPath,
+            path: statusPath,
+            num: delta.status()
+          }
+        }
+        return done(null, changes)
+      }, done)
+    })
   })
 }
 
@@ -145,7 +166,7 @@ export function maybeInit (pwd, cb) {
   })
 }
 
-export function getIndex (pwd, cb) {
+export function getIndexLockAgnostic (pwd, cb) {
   return open(pwd, (err, repository) => {
     if (err) return cb(err)
     return repository.index().then((index) => {
@@ -154,16 +175,7 @@ export function getIndex (pwd, cb) {
   })
 }
 
-export function refreshIndex (pwd, cb) {
-  return open(pwd, (err, repository) => {
-    if (err) return cb(err)
-    return repository.refreshIndex().then((index) => {
-      return cb(null, index)
-    }, cb)
-  })
-}
-
-export function writeIndex (index, pwd, cb) {
+export function writeIndexLockAgnostic (index, pwd, cb) {
   return index.write().then(() => {
     return index.writeTree().then((oid) => {
       return cb(null, oid)
@@ -171,27 +183,54 @@ export function writeIndex (index, pwd, cb) {
   }, cb)
 }
 
+// HACK: This assumes we are only running one thread against this repo
+export function destroyIndexLockSync (pwd) {
+  const lockPath = path.join(pwd, '.git', 'index.lock')
+  delete LOCKED_INDEXES[pwd] // Remove the in-memory mutex too in case one is hanging around
+  try {
+    if (fs.existsSync(lockPath)) {
+      fs.removeSync(lockPath)
+    }
+  } catch (exception) {
+    logger.info('[git]', exception)
+  }
+}
+
 export function addPathsToIndex (pwd, relpaths = [], cb) {
   if (relpaths.length < 1) return cb(new Error('Empty paths list given'))
-  return getIndex(pwd, (err, index) => {
-    if (err) return cb(err)
-    return async.eachSeries(relpaths, (relpath, next) => {
-      return index.addByPath(relpath).then(() => {
-        return next()
-      }, next)
-    }, (err) => {
-      if (err) return cb(err)
-      return writeIndex(index, pwd, cb)
+  return _gimmeIndex(pwd, (freeIndex) => {
+    function done (err, out) {
+      freeIndex()
+      return cb(err, out)
+    }
+
+    return getIndexLockAgnostic(pwd, (err, index) => {
+      if (err) return done(err)
+      return async.eachSeries(relpaths, (relpath, next) => {
+        return index.addByPath(relpath).then(() => {
+          return next()
+        }, next)
+      }, (err) => {
+        if (err) return done(err)
+        return writeIndexLockAgnostic(index, pwd, done)
+      })
     })
   })
 }
 
 export function addAllPathsToIndex (pwd, cb) {
-  return getIndex(pwd, (err, index) => {
-    if (err) return cb(err)
-    return index.addAll('.').then(() => {
-      return writeIndex(index, pwd, cb)
-    }, cb)
+  return _gimmeIndex(pwd, (freeIndex) => {
+    function done (err, out) {
+      freeIndex()
+      return cb(err, out)
+    }
+
+    return getIndexLockAgnostic(pwd, (err, index) => {
+      if (err) return done(err)
+      return index.addAll('.').then(() => {
+        return writeIndexLockAgnostic(index, pwd, done)
+      }, done)
+    })
   })
 }
 
@@ -473,59 +512,66 @@ export function getMasterCommitHistory (folder, cb) {
 export function mergeBranchesWithoutBase (folder, toName, fromName, signature, mergePreference, fileFavorName, cb) {
   logger.info('[git] merging branches (without base) from', fromName, 'to', toName)
 
-  return open(folder, (err, repository) => {
-    if (err) return cb(err)
-    if (!mergePreference) mergePreference = Merge.PREFERENCE.NONE
-    if (!signature) signature = signature || repository.defaultSignature()
-
-    fileFavorName = (fileFavorName && fileFavorName.toUpperCase()) || 'NORMAL'
-    logger.info('[git] merge (without base) file favor:', fileFavorName)
-
-    // See libgit2 for info: https://github.com/libgit2/libgit2/blob/master/include/git2/merge.h
-    let mergeOptions = {
-      fileFavor: Merge.FILE_FAVOR[fileFavorName],
-      fileFlags: Merge.FILE_FLAG.FILE_DEFAULT
+  return _gimmeIndex(folder, (freeIndex) => {
+    function done (err, out) {
+      freeIndex()
+      return cb(err, out)
     }
 
-    return repository.getBranch(toName).then((toBranch) => {
-      return repository.getBranch(fromName).then((fromBranch) => {
-        return repository.getBranchCommit(toBranch).then((toCommit) => {
-          return repository.getBranchCommit(fromBranch).then((fromCommit) => {
-            const toCommitOid = toCommit.toString()
-            const fromCommitOid = fromCommit.toString()
-            return Reference.lookup(repository, 'HEAD').then((headRef) => {
-              return headRef.resolve().then((headRef) => {
-                const updateHead = !!headRef && headRef.name() === toBranch.name()
+    return open(folder, (err, repository) => {
+      if (err) return done(err)
+      if (!mergePreference) mergePreference = Merge.PREFERENCE.NONE
+      if (!signature) signature = signature || repository.defaultSignature()
 
-                logger.info('[git] merge using options:', mergeOptions)
+      fileFavorName = (fileFavorName && fileFavorName.toUpperCase()) || 'NORMAL'
+      logger.info('[git] merge (without base) file favor:', fileFavorName)
 
-                return Merge.commits(repository, toCommitOid, fromCommitOid, mergeOptions).then((index) => {
-                  if (index.hasConflicts()) return cb(null, true, index)
-                  return index.writeTreeTo(repository).then((oid) => {
-                    const commitMessage = `Merged ${fromBranch.shorthand()} into ${toBranch.shorthand()}`
-                    return repository.createCommit(toBranch.name(), signature, signature, commitMessage, oid, [toCommitOid, fromCommitOid]).then((mergeCommit) => {
-                      if (!updateHead) return cb(null, false, mergeCommit.toString())
-                      // Make sure head is updated so index isn't messed up
-                      return repository.getBranch(toName).then((toBranch) => {
-                        return repository.getBranchCommit(toBranch).then((branchCommit) => {
-                          return branchCommit.getTree().then((toBranchTree) => {
-                            return Checkout.tree(repository, toBranchTree, {
-                              checkoutStrategy: Checkout.STRATEGY.SAFE | Checkout.STRATEGY.RECREATE_MISSING
-                            }).then(() => {
-                              return cb(null, false, mergeCommit.toString())
-                            }, cb)
-                          }, cb)
-                        }, cb)
-                      }, cb)
-                    }, cb)
-                  }, cb)
-                }, cb)
-              }, cb)
-            }, cb)
-          }, cb)
-        }, cb)
-      }, cb)
-    }, cb)
+      // See libgit2 for info: https://github.com/libgit2/libgit2/blob/master/include/git2/merge.h
+      let mergeOptions = {
+        fileFavor: Merge.FILE_FAVOR[fileFavorName],
+        fileFlags: Merge.FILE_FLAG.FILE_DEFAULT
+      }
+
+      return repository.getBranch(toName).then((toBranch) => {
+        return repository.getBranch(fromName).then((fromBranch) => {
+          return repository.getBranchCommit(toBranch).then((toCommit) => {
+            return repository.getBranchCommit(fromBranch).then((fromCommit) => {
+              const toCommitOid = toCommit.toString()
+              const fromCommitOid = fromCommit.toString()
+              return Reference.lookup(repository, 'HEAD').then((headRef) => {
+                return headRef.resolve().then((headRef) => {
+                  const updateHead = !!headRef && headRef.name() === toBranch.name()
+
+                  logger.info('[git] merge using options:', mergeOptions)
+
+                  return Merge.commits(repository, toCommitOid, fromCommitOid, mergeOptions).then((index) => {
+                    if (index.hasConflicts()) return done(null, true, index)
+                    return index.writeTreeTo(repository).then((oid) => {
+                      const commitMessage = `Merged ${fromBranch.shorthand()} into ${toBranch.shorthand()}`
+                      return repository.createCommit(toBranch.name(), signature, signature, commitMessage, oid, [toCommitOid, fromCommitOid]).then((mergeCommit) => {
+                        if (!updateHead) return done(null, false, mergeCommit.toString())
+                        // Make sure head is updated so index isn't messed up
+                        return repository.getBranch(toName).then((toBranch) => {
+                          return repository.getBranchCommit(toBranch).then((branchCommit) => {
+                            return branchCommit.getTree().then((toBranchTree) => {
+                              return Checkout.tree(repository, toBranchTree, {
+                                checkoutStrategy: Checkout.STRATEGY.SAFE | Checkout.STRATEGY.RECREATE_MISSING
+                              }).then(() => {
+                                return done(null, false, mergeCommit.toString())
+                              }, done)
+                            }, done)
+                          }, done)
+                        }, done)
+                      }, done)
+                    }, done)
+                  }, done)
+                }, done)
+              }, done)
+            }, done)
+          }, done)
+        }, done)
+      }, done)
+    })
   })
 }
 
