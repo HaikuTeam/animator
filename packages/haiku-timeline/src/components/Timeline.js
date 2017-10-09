@@ -1198,7 +1198,8 @@ class Timeline extends React.Component {
         componentRows.push(headingRow)
 
         if (!addressableArraysCache[elementName]) {
-          addressableArraysCache[elementName] = element.getAddressablePropertiesArray(locator === '0')
+          const doGoDeep = locator.length === 3 // 0.0, 0.1, etc
+          addressableArraysCache[elementName] = Object.values(element.getAddressableProperties(doGoDeep))
         }
 
         const clusterHeadingsFound = {}

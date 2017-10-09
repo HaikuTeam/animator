@@ -58,7 +58,7 @@ const ALLOWED_PROPS_BY_NAME = {
     'sizeAbsolute.x': true,
     'sizeAbsolute.y': true,
     'backgroundColor': true,
-    'opacity': true,
+    'opacity': true
     // Enable these as such a time as we can represent them visually in the glass
     // 'style.overflowX': true,
     // 'style.overflowY': true,
@@ -84,7 +84,7 @@ const ALLOWED_PROPS_BY_NAME = {
     width: true,
     height: true,
     rx: true,
-    ry: true,
+    ry: true
   },
   circle: {
     fill: true,
@@ -92,7 +92,7 @@ const ALLOWED_PROPS_BY_NAME = {
     strokeWidth: true,
     r: true,
     cx: true,
-    cy: true,
+    cy: true
   },
   ellipse: {
     fill: true,
@@ -110,25 +110,25 @@ const ALLOWED_PROPS_BY_NAME = {
     x1: true,
     y1: true,
     x2: true,
-    y2: true,
+    y2: true
   },
   polyline: {
     fill: true,
     stroke: true,
     strokeWidth: true,
-    points: true,
+    points: true
   },
   polygon: {
     fill: true,
     stroke: true,
     strokeWidth: true,
-    points: true,
+    points: true
   },
   path: {
     fill: true,
     stroke: true,
     strokeWidth: true,
-    d: true,
+    d: true
   }
 }
 
@@ -139,7 +139,7 @@ const PRIMITIVE_SHAPES = {
   line: true,
   polyline: true,
   polygon: true,
-  path: true,
+  path: true
 }
 
 const DOM_CLUSTERED_PROPS = {
@@ -191,7 +191,7 @@ const DOM_CLUSTERED_PROPS = {
   '<line>.x1': '<line>.endpoints',
   '<line>.y1': '<line>.endpoints',
   '<line>.x2': '<line>.endpoints',
-  '<line>.y2': '<line>.endpoints',
+  '<line>.y2': '<line>.endpoints'
 }
 
 const DOM_CLUSTER_NAMES = {
@@ -349,28 +349,6 @@ function ElementModel (platform, component, metadata) {
       element.unselect(metadata)
     }
     return element
-  }
-
-  Element.findNodesByComponentId = function findNodesByComponentId (componentId) {
-    var found = []
-    if (this.state.reifiedBytecode && this.state.reifiedBytecode.template) {
-      this.visitTemplate('0', 0, [], this.state.reifiedBytecode.template, null, (node) => {
-        let id = node.attributes && node.attributes['haiku-id']
-        if (id && id === componentId) found.push(node)
-      })
-    }
-    return found
-  }
-
-  Element.findNodeByComponentId = function findNodeByComponentId (componentId) {
-    if (!reifiedBytecode) return void (0)
-    if (!reifiedBytecode.template) return void (0)
-    let found
-    this.visitTemplate('0', 0, [], reifiedBytecode.template, null, (node) => {
-      let id = node.attributes && node.attributes['haiku-id']
-      if (id && id === componentId) found = node
-    })
-    return found
   }
 
   Element.where = function where (query) {
@@ -1109,7 +1087,7 @@ function ElementModel (platform, component, metadata) {
           prefix: nameParts[0],
           suffix: nameParts[1],
           fallback: fallbacks[name],
-          typedef: schema[name],
+          typedef: schema[name]
         }
       }
 
@@ -1125,7 +1103,7 @@ function ElementModel (platform, component, metadata) {
         if (clusterPrefix) {
           propertyGroup.cluster = {
             prefix: clusterPrefix,
-            name: DOM_CLUSTER_NAMES[clusterPrefix],
+            name: DOM_CLUSTER_NAMES[clusterPrefix]
           }
         }
 
