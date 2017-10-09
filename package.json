@@ -1,7 +1,7 @@
 {
   "name": "haiku-mono",
   "private": true,
-  "version": "2.3.7",
+  "version": "2.3.8",
   "description": "Haiku monorepo",
   "main": "index.js",
   "author": "Matthew Trost <matthew@trost.co>",
@@ -17,7 +17,6 @@
     "setup": "node ./scripts/setup.js",
     "changelog": "node ./scripts/changelog.js",
     "start": "node ./scripts/start.js",
-    "finish": "node ./scripts/finish.js",
     "lint": "standard \"./scripts/**/*.js\" --fix --verbose | snazzy",
     "semver": "node ./scripts/semver.js",
     "lint-all": "node ./scripts/lint-all.js",
@@ -29,7 +28,8 @@
     "yarn-unlink": "node ./scripts/yarn-unlink.js",
     "relink": "yarn run yarn-unlink && yarn run yarn-link",
     "compile-all": "node ./scripts/compile-all.js",
-    "distro": "node ./scripts/distro.js"
+    "distro": "node ./scripts/distro.js",
+    "test": "tape \"test/**/*.test.js\" | tap-spec"
   },
   "devDependencies": {
     "async": "2.1.5",
@@ -40,7 +40,7 @@
     "cli-color": "1.2.0",
     "dependency-graph": "^0.5.0",
     "derequire": "^2.0.6",
-    "electron-builder": "17.5.0",
+    "electron-builder": "19.6.0",
     "electron-rebuild": "1.5.11",
     "fs-extra": "2.0.0",
     "git-branch": "0.3.0",
@@ -53,6 +53,7 @@
     "semver": "5.3.0",
     "semver-sort": "^0.0.4",
     "snazzy": "^7.0.0",
+    "spectron": "^3.7.2",
     "standard": "^10.0.2",
     "tap-spec": "4.1.1",
     "tape": "4.6.3",
@@ -133,8 +134,10 @@
       "!build${/*}",
       "!changelog${/*}",
       "!packages${/*}",
+      "!~tmp${/*}",
       "!scripts${/*}",
       "!_config.js.handlebars",
+      "!distro.sh",
       "!README.md",
       "!releases.json",
       "!yarn.lock"

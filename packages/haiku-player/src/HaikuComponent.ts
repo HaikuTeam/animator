@@ -127,6 +127,10 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
     // "abcde": [el, el]
   }
 
+  // Dictionary mapping element ids to listeners registered at that element,
+  // which are in turn keyed by the event name
+  this._registeredElementEventListeners = {}
+
   // Dictionary of ids-to-elements, representing elements that we
   // do not want to render past in the tree (i.e. cede control to some
   // other rendering context)
@@ -342,11 +346,47 @@ HaikuComponent.prototype.assignConfig = function _assignConfig(incomingConfig) {
   return this
 }
 
-HaikuComponent.prototype._clearCaches = function _clearCaches() {
+HaikuComponent.prototype.set = function set(key, value) {
+  this.state[key] = value
+  return this
+}
+
+HaikuComponent.prototype.get = function get(key) {
+  return this.state[key]
+}
+
+HaikuComponent.prototype.setState = function setState(states) {
+  if (!states) return this
+  if (typeof states !== "object") return this
+  for (let key in states) {
+    this.set(key, states[key])
+  }
+  return this
+}
+
+HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
   this._states = {}
+
   // Don't forget to repopulate the states with originals when we cc otherwise folks
   // who depend on initial states being set will be SAD!
   _bindStates(this._states, this, this.config.states)
+
+  if (options && options.clearPreviouslyRegisteredEventListeners) {
+    // If specified, remove any previous registrations of event listeners so we don't get a bunch
+    // of duplicate events firing when we re-register events after a reload or remount
+    for (let flexId in this._registeredElementEventListeners) {
+      for (let eventName in this._registeredElementEventListeners[flexId]) {
+        let { target, handler } = this._registeredElementEventListeners[flexId][eventName]
+        if (target && handler && this._context._renderer.removeListener) {
+          this._context._renderer.removeListener(target, handler, eventName)
+        }
+        delete this._registeredElementEventListeners[flexId][eventName]
+      }
+    }
+  }
+
+  // Gotta bind any event handlers that may have been dynamically added
+  _bindEventHandlers(this, this.config.eventHandlers)
 
   this._stateChanges = {}
   this._anyStateChange = false
@@ -511,6 +551,23 @@ HaikuComponent.prototype._deactivate = function _deactivate() {
   return this
 }
 
+HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegisteredListenerOnElement(virtualElement, eventName, listenerFunction) {
+  let flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
+  if (!flexId) return false
+  return this._registeredElementEventListeners[flexId] && this._registeredElementEventListeners[flexId][eventName]
+}
+
+HaikuComponent.prototype._markDidRegisterListenerOnElement = function _markDidRegisterListenerOnElement(virtualElement, domElement, eventName, listenerFunction) {
+  let flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
+  if (!flexId) return this
+  if (!this._registeredElementEventListeners[flexId]) this._registeredElementEventListeners[flexId] = {}
+  this._registeredElementEventListeners[flexId][eventName] = {
+    handler: listenerFunction,
+    target: domElement,
+  }
+  return this
+}
+
 /**
  * TODO:
  * Implement the methods commented out below
@@ -590,8 +647,7 @@ function _bindEventHandlers(component, extraEventHandlers) {
     let handlerGroup = allEventHandlers[selector]
     for (let eventName in handlerGroup) {
       let eventHandlerDescriptor = handlerGroup[eventName]
-      let originalHandlerFn = eventHandlerDescriptor.handler
-      _bindEventHandler(component, eventHandlerDescriptor, selector, eventName, originalHandlerFn)
+      _bindEventHandler(component, eventHandlerDescriptor, selector, eventName)
     }
   }
 }
@@ -601,9 +657,14 @@ function _bindEventHandler(
   eventHandlerDescriptor,
   selector,
   eventName,
-  originalHandlerFn,
 ) {
-  eventHandlerDescriptor.original = originalHandlerFn
+  // If we've already set this on a previous run, ensure we reset in the same way
+  // so that we don't load the handler wrapper downstream (e.g. in the events ui)
+  if (eventHandlerDescriptor.original) {
+    eventHandlerDescriptor.handler = eventHandlerDescriptor.original
+  }
+
+  eventHandlerDescriptor.original = eventHandlerDescriptor.handler
   eventHandlerDescriptor.handler = function _wrappedEventHandler(
     event,
     a,
@@ -630,7 +691,7 @@ function _bindEventHandler(
       component._eventsFired[selector][eventName] =
         event || true
 
-      originalHandlerFn.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
+      eventHandlerDescriptor.original.call(component, event, a, b, c, d, e, f, g, h, i, j, k)
     }
   }
 }

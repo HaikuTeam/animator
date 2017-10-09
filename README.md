@@ -28,7 +28,8 @@ And add to `~/.ssh/config`:
 **git/yarn/packages setup**
 
     $ yarn install
-    $ yarn run setup
+    $ yarn run yarn-install
+    $ yarn relink
 
 ## Development
 
@@ -67,8 +68,6 @@ There are configurations included here for debugging any of the UI directly from
 **You must install the `Debugger for Chrome` VS Code extension to use these.  (cmd + shift + p, "install extensions", "Debugger for Chrome")**
 
 To debug, first launch mono normally (see `Starting`) — then from VS Code's left-side Debug menu, select `attach-glass`, `attach-timeline`, or `attach-creator`.  You can then place breakpoints, explore stack traces, explore local values (and more) from inside VS Code.
-
-TODO:  write a similar config for debugging node/electron processes
 
 
 **Advanced**

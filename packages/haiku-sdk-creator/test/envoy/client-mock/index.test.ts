@@ -11,7 +11,7 @@ tape('envoy:client-mock', async (t) => {
     let client = new EnvoyClient({
         mock: true, // This should specify that no connection should begin
         WebSocket: ws,
-        logger: new EnvoyLogger("info") 
+        logger: new EnvoyLogger("error")
     })
 
     t.equal(client.isInMockMode(), true, 'options mock is set to true')

@@ -1,6 +1,6 @@
 {
   "name": "haiku-timeline",
-  "version": "2.3.7",
+  "version": "2.3.8",
   "private": true,
   "license": "UNLICENSED",
   "authors": [
@@ -9,7 +9,7 @@
     "Zack Brown <zack@haiku.ai>"
   ],
   "scripts": {
-    "start": "electron ./lib/electron.js",
+    "start": "electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
     "compile": "babel src --out-dir lib --source-maps inline",
     "test": "tape \"test/**/*.test.js\" | tap-spec",
@@ -46,6 +46,7 @@
     "numeral": "^2.0.4",
     "qs": "6.4.0",
     "radium": "0.18.1",
+    "raven-js": "^3.18.1",
     "react": "15.4.2",
     "react-dom": "15.4.2",
     "react-draggable": "2.2.3",

@@ -390,15 +390,6 @@ export class Glass extends React.Component {
     window.addEventListener('keydown', this.windowKeyDownHandler.bind(this))
     window.addEventListener('keyup', this.windowKeyUpHandler.bind(this))
     window.addEventListener('mouseout', this.windowMouseOutHandler.bind(this))
-
-    window.onerror = (error) => {
-      this._playing = false
-      this.setState({ error })
-    }
-
-    // this.resetContainerDimensions(() => {
-    //    this.drawLoop()
-    // })
   }
 
   componentDidUpdate () {
@@ -849,7 +840,7 @@ export class Glass extends React.Component {
     }
   }
 
-  controlActivation (controlActivation) {
+  controlActivation (activationInfo) {
     var artboard = this.getArtboardRect()
     this.setState({
       isAnythingRotating: this.state.isKeyCommandDown,
@@ -859,15 +850,15 @@ export class Glass extends React.Component {
         ctrl: this.state.isKeyCtrlDown,
         cmd: this.state.isKeyCommandDown,
         alt: this.state.isKeyAltDown,
-        index: controlActivation.index,
+        index: activationInfo.index,
         arboard: artboard,
         client: {
-          x: controlActivation.event.clientX,
-          y: controlActivation.event.clientY
+          x: activationInfo.event.clientX,
+          y: activationInfo.event.clientY
         },
         coords: {
-          x: controlActivation.event.clientX - artboard.left,
-          y: controlActivation.event.clientY - artboard.top
+          x: activationInfo.event.clientX - artboard.left,
+          y: activationInfo.event.clientY - artboard.top
         }
       }
     })
@@ -907,6 +898,11 @@ export class Glass extends React.Component {
         },
         children: parts
       }
+
+      // HACK! We already cache the control point listeners ourselves, so clear the cache
+      // used normally by the component instance for caching/deduping listeners in production
+      this._haikuContext.component._registeredElementEventListeners = {}
+
       this._haikuRenderer.render(this.refs.overlay, container, overlay, this._haikuContext.component, false)
     }
   }
@@ -1378,44 +1374,6 @@ export class Glass extends React.Component {
               zIndex: 60,
               opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
             }} />
-
-          {(this.state.error)
-            ? <div
-              id='haiku-glass-exception-bar'
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                height: 35,
-                backgroundColor: Palette.RED,
-                color: Palette.SUNSTONE,
-                textAlign: 'center',
-                width: '100%',
-                zIndex: 9999,
-                overflow: 'hidden',
-                padding: '9px 20px 0',
-                whiteSpace: 'nowrap'
-              }}>
-              <button
-                style={{
-                  textTransform: 'none',
-                  color: Palette.RED_DARKER,
-                  fontFamily: 'Arial',
-                  fontWeight: 'bold',
-                  borderRadius: '50%',
-                  border: '1px solid ' + Palette.RED_DARKER,
-                  cursor: 'pointer',
-                  width: 15,
-                  paddingLeft: 1
-                }}
-                onClick={() => {
-                  this.setState({ error: null })
-                }}>
-                  x
-                </button><span>{' '}</span>
-              {this.state.error}
-            </div>
-            : ''}
         </div>
       </div>
     )

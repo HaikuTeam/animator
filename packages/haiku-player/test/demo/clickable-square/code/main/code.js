@@ -23,7 +23,9 @@ module.exports = {
       selector: '#box',
       handler: function () {
         this.getTimelines()['Move'].gotoAndPlay(0)
-        this.state.clicks = this.state.clicks + 1
+        this.setState({
+          clicks: this.state.clicks + 1
+        })
       }
     }
   ],

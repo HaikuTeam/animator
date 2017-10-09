@@ -20,7 +20,7 @@ import {
   CliboardIconSVG
 } from './Icons'
 
-var mixpanel = require('./../../utils/Mixpanel')
+var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
 const STYLES = {
   hide: {
@@ -458,6 +458,7 @@ class StageTitleBar extends React.Component {
         <Popover
           place='below'
           isOpen={showSharePopover}
+          style={{zIndex: 2}}
           body={
             <PopoverBodyRadiumized
               parent={this}

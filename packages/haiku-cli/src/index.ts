@@ -1,26 +1,20 @@
-
-import * as clc from "cli-color"
-import * as path from "path"
-import * as prependFile from "prepend-file"
+import * as chalk from "chalk"
+import { execSync } from "child_process"
+import * as fs from "fs"
+import { client } from "haiku-sdk-client"
+import { inkstone } from "haiku-sdk-inkstone"
+import * as hasbin from "hasbin"
 import * as inquirer from "inquirer"
 import * as _ from "lodash"
 import * as os from "os"
+import * as prependFile from "prepend-file"
 import * as tail from "tail"
 import { argv } from "yargs"
-import * as request from "request"
-import * as chalk from "chalk"
-import * as mkdirp from "mkdirp"
-import * as fs from "fs"
-import * as hasbin from "hasbin"
-import { execSync } from 'child_process'
 
-import { inkstone } from "haiku-sdk-inkstone"
-import { client } from "haiku-sdk-client"
-
-let dedent = require("dedent")
+const dedent = require("dedent")
 
 const banner = dedent`
-  Haiku CLI (version 2.3.7)
+  Haiku CLI (version 2.3.8)
 
   Usage:
     haiku <command> [flags]
@@ -49,7 +43,6 @@ function finish(code?: number) {
   process.exit(code)
 }
 
-// process.stdin.resume()
 function exitwrap(maybeException) {
   if (maybeException) console.log(maybeException)
   process.exit()
@@ -58,24 +51,18 @@ process.on("exit", exitwrap)
 process.on("SIGINT", exitwrap)
 process.on("uncaughtException", exitwrap)
 
-const main = path.join(__dirname, "..", "creator", "electron-main.js")
-
-function handleError(err) {
-  //TODO: figure out error categories, allow individual CLI commands to handle categories as needed
-}
-
 function help() {
   console.log(banner)
   finish()
 }
 
 function ensureAuth(cb) {
-  var token = client.config.getAuthToken()
-  if (!token || token == "") {
+  let token = client.config.getAuthToken()
+  if (!token || token === "") {
     console.log("You must be authenticated to do that.")
-    doLogin(function () {
+    doLogin(() => {
       token = client.config.getAuthToken()
-      if (!token || token == "") {
+      if (!token || token === "") {
         console.log("Hm, that didn't work.  Let's try again.")
         ensureAuth(cb)
       } else {
@@ -87,11 +74,10 @@ function ensureAuth(cb) {
   }
 }
 
-
 inkstone.setConfig({
   baseUrl: flags.api || "https://inkstone.haiku.ai/",
-  baseShareUrl: flags.share || "https://share.haiku.ai/"
-});
+  baseShareUrl: flags.share || "https://share.haiku.ai/",
+})
 
 if (flags.verbose) {
   client.setConfig({ verbose: true })
@@ -100,23 +86,23 @@ if (flags.verbose) {
 
 switch (subcommand) {
   case "await-share":
-    //undocumented; used for SDK development
+    // undocumented; used for SDK development
     doAwaitShare()
     break
   case "change-password":
-    //undocumented: used for SDK development
+    // undocumented: used for SDK development
     doChangePassword()
     break
   case "check-invite":
-    //undocumented: used for SDK development
+    // undocumented: used for SDK development
     doCheckInvite()
     break
   case "check-prefinery-code":
-    //undocumented: used for SDK development
+    // undocumented: used for SDK development
     doCheckPrefineryCode()
     break
   case "claim-invite":
-    //undocumented: used for SDK development
+    // undocumented: used for SDK development
     doClaimInvite()
     break
   case "clone":
@@ -144,7 +130,7 @@ switch (subcommand) {
   case "new":
   case "generate":
   case "create":
-    //Not intended for user consumption yet
+    // Not intended for user consumption yet
     doCreate()
     break
   // case "import":
@@ -160,6 +146,9 @@ switch (subcommand) {
   case "upgrade":
     doUpdate()
     break
+  // case "upgrade-player":
+  //   doUpgradePlayer()
+  //   break
   case "help":
     help()
     break
@@ -169,7 +158,7 @@ switch (subcommand) {
 }
 
 function doAwaitShare() {
-  var id = args[0]
+  const id = args[0]
   inkstone.snapshot.awaitSnapshotLink(id, (err, str) => {
     if (err !== undefined) {
       console.log(chalk.red(err))
@@ -180,7 +169,7 @@ function doAwaitShare() {
 }
 
 function doChangePassword() {
-  ensureAuth(function (token) {
+  ensureAuth((token) => {
     inquirer.prompt([
       {
         type: "password",
@@ -196,19 +185,19 @@ function doChangePassword() {
         type: "password",
         name: "NewPassword2",
         message: "New Password (confirm):",
-      }
-    ]).then(function (answers: inquirer.Answers) {
-      if(answers["NewPassword"] !== answers["NewPassword2"]){
+      },
+    ]).then((answers: inquirer.Answers) => {
+      if (answers["NewPassword"] !== answers["NewPassword2"]) {
         console.log(chalk.red("New passwords do not match."))
         process.exit(1)
       }
 
-      var params: inkstone.user.ChangePasswordParams = {
+      const params: inkstone.user.ChangePasswordParams = {
         OldPassword: answers["OldPassword"],
-        NewPassword: answers["NewPassword"]
+        NewPassword: answers["NewPassword"],
       }
 
-      inkstone.user.changePassword(token, params, function (err, responseBody, response) {
+      inkstone.user.changePassword(token, params, (err, responseBody, response) => {
         if (err) {
           console.log(chalk.bold(`Unabled to change password: `) + err)
           process.exit(1)
@@ -221,17 +210,16 @@ function doChangePassword() {
 }
 
 function doCheckInvite() {
-  var code = args[0]
+  const code = args[0]
   inkstone.invite.checkValidity(code, (err, valid) => {
     if (valid) console.log(chalk.green("invite is valid"))
     else console.log(chalk.red(err))
   })
 }
 
-
 function doCheckPrefineryCode() {
-  var Code = args[0]
-  var Email = args[1]
+  const Code = args[0]
+  const Email = args[1]
   inkstone.invite.getInviteFromPrefineryCode({Code, Email}, (err, code) => {
     if (code) console.log(chalk.green(code.Code))
     else console.log(chalk.red(err))
@@ -259,14 +247,13 @@ function doClaimInvite() {
       type: "input",
       name: "organizationName",
       message: "Organization Name (only needed if org invite):",
-    }
-  ]).then(function (answers: inquirer.Answers) {
-    var projectName = answers["name"]
-    var claim: inkstone.invite.InviteClaim = {
+    },
+  ]).then((answers: inquirer.Answers) => {
+    const claim: inkstone.invite.InviteClaim = {
       Code: answers["code"],
       Email: answers["email"],
       OrganizationName: answers["organizationName"],
-      Password: answers["password"]
+      Password: answers["password"],
     }
 
     inkstone.invite.claimInvite(claim, (err, valid) => {
@@ -276,25 +263,24 @@ function doClaimInvite() {
   })
 }
 
-
 function doClone() {
-  var projectName = args[0]
-  var destination = args[1] || projectName
+  const projectName = args[0]
+  let destination = args[1] || projectName
   if (destination.charAt(destination.length - 1) !== "/") destination += "/"
 
-  ensureAuth(function (token) {
+  ensureAuth((token) => {
     console.log("Cloning project...")
-    inkstone.project.getByName(token, projectName, function (err, projectAndCredentials) {
-      if (err) {
+    inkstone.project.getByName(token, projectName, (getByNameErr, projectAndCredentials) => {
+      if (getByNameErr) {
         console.log(chalk.bold(`Project ${projectName} not found.`))
         process.exit(1)
       } else {
-        var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
-        //TODO:  store credentials more securely than this
+        let gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
+        // TODO: store credentials more securely than this
         gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
 
-        client.git.cloneRepo(gitEndpoint, destination, (err) => {
-          if (err != undefined) {
+        client.git.cloneRepo(gitEndpoint, destination, (cloneErr) => {
+          if (cloneErr) {
             console.log(chalk.red("Error cloning project.  Use the --verbose flag for more information."))
             process.exit(1)
           } else {
@@ -307,18 +293,17 @@ function doClone() {
   })
 }
 
-
 function doCreate() {
   ensureAuth((token: string) => {
-    //TODO:  support "cloning" project directly into fs after creation (i.e. autoimport)
+    // TODO: support "cloning" project directly into fs after creation (i.e. autoimport)
     inquirer.prompt([
       {
         type: "input",
         name: "name",
         message: "Project Name:",
-      }
-    ]).then(function (answers: inquirer.Answers) {
-      var projectName = answers["name"]
+      },
+    ]).then((answers: inquirer.Answers) => {
+      const projectName = answers["name"]
       console.log("Creating project...")
 
       inkstone.project.create(token, { Name: projectName }, (err, project) => {
@@ -338,16 +323,9 @@ function doDelete() {
   ensureAuth((token: string) => {
     console.log(chalk.bold("Please note that deleting this project will delete it for your entire team."))
     console.log(chalk.red("Deleting a project cannot be undone!"))
-    inquirer.prompt([
-      {
-        type: "input",
-        name: "name",
-        message: "Project Name:",
-      }
-    ]).then(function (answers: inquirer.Answers) {
-      var projectName = answers["name"]
-      console.log("Deleting project...")
-      inkstone.project.deleteByName(token, projectName, (err, project) => {
+
+    function _actuallyDelete(finalProjectName) {
+      inkstone.project.deleteByName(token, finalProjectName, (err, project) => {
         if (err) {
           console.log(chalk.red("Error deleting project.  Does this project exist?"))
           process.exit(1)
@@ -356,15 +334,35 @@ function doDelete() {
           process.exit(0)
         }
       })
-    })
+    }
+
+    let projectName = args[0]
+
+    if (projectName) {
+      _actuallyDelete(projectName)
+    } else {
+      inquirer
+        .prompt([
+          {
+            type: "input",
+            name: "name",
+            message: "Project Name:",
+          },
+        ])
+        .then((answers: inquirer.Answers) => {
+          projectName = answers["name"]
+          console.log("Deleting project...")
+          _actuallyDelete(projectName)
+        })
+    }
   })
 }
 
 function doDiffTail() {
   try {
     console.log("Waiting for diffs...")
-    var tailer = new tail.Tail(os.homedir() + "/.haiku/logs/haiku-diffs.log")
-    tailer.on("line", function (data) {
+    const tailer = new tail.Tail(os.homedir() + "/.haiku/logs/haiku-diffs.log")
+    tailer.on("line", (data) => {
       console.log(data)
     })
   } catch (e) {
@@ -372,59 +370,59 @@ function doDiffTail() {
   }
 }
 
-//USAGE:  haiku import design-test dest/
-//        clone git repo "someendpoint/design-test" as a subtree into the dest/design-test folder
-function doImport() {
-  var projectName = args[0]
-  var destination = args[1] || projectName
-  if (destination.charAt(destination.length - 1) !== "/") destination += "/"
+// // USAGE: haiku import design-test dest/
+// //        clone git repo "someendpoint/design-test" as a subtree into the dest/design-test folder
+// function doImport() {
+//   const projectName = args[0]
+//   let destination = args[1] || projectName
+//   if (destination.charAt(destination.length - 1) !== "/") destination += "/"
 
-  ensureAuth(function (token) {
-    inkstone.project.getByName(token, projectName, function (err, projectAndCredentials) {
-      if (err) {
-        console.log(chalk.bold(`Project ${projectName} not found.`))
-      } else {
+//   ensureAuth((token) => {
+//     inkstone.project.getByName(token, projectName, (err, projectAndCredentials) => {
+//       if (err) {
+//         console.log(chalk.bold(`Project ${projectName} not found.`))
+//       } else {
 
-        var actuallyDoImport = function () {
-          var gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
-          //TODO:  store credentials more securely than this
-          gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
+//         const actuallyDoImport = () => {
+//           let gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
+//           // TODO: store credentials more securely than this
+//           gitEndpoint = gitEndpoint.replace(
+//             "https://",
+//             "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@"
+//           )
 
-          client.git.ensureRemoteIsInitialized(projectName, gitEndpoint, () => {
-            client.git.forciblyCloneSubrepo(projectName, destination, () => {
-              console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
-            })
-          })
-        }
+//           client.git.ensureRemoteIsInitialized(projectName, gitEndpoint, () => {
+//             client.git.forciblyCloneSubrepo(projectName, destination, () => {
+//               console.log(`Project ${chalk.bold(projectName)} imported to ${chalk.bold(destination)}`)
+//             })
+//           })
+//         }
 
-        //check if directory exists and is non-empty
-        //if it does, prompt user that it exists & has stuff in it
-        //ask whether it should be overwritten
-        var alreadyExists = fs.existsSync(path.resolve(destination))
-        if (alreadyExists) {
-          inquirer.prompt([
-            {
-              type: "confirm",
-              name: "confirmed",
-              message: `The destination directory ${destination} already exists.  Do you want to overwrite it?`,
-            }
-          ]).then(function (answers: inquirer.Answers) {
-            if (answers["confirmed"]) {
-              actuallyDoImport()
-            }
-          })
-        } else {
-          actuallyDoImport()
-        }
+//         // check if directory exists and is non-empty
+//         // if it does, prompt user that it exists & has stuff in it
+//         // ask whether it should be overwritten
+//         const alreadyExists = fs.existsSync(path.resolve(destination))
+//         if (alreadyExists) {
+//           inquirer.prompt([
+//             {
+//               type: "confirm",
+//               name: "confirmed",
+//               message: `The destination directory ${destination} already exists.  Do you want to overwrite it?`,
+//             },
+//           ]).then((answers: inquirer.Answers) => {
+//             if (answers["confirmed"]) {
+//               actuallyDoImport()
+//             }
+//           })
+//         } else {
+//           actuallyDoImport()
+//         }
+//       }
+//     })
+//   })
+// }
 
-      }
-
-    })
-  })
-}
-
-
-//TODO:  copy .haiku scripts
+// TODO: copy .haiku scripts
 //       ensure that packages are legit & pointed at latest & updated
 //       ensure that prepare script is injected
 //       message that .haiku folder needs to be added to git
@@ -435,58 +433,65 @@ function doHeal() {
 }
 
 function doInstall() {
-  var projectName = args[0]
-  if (!projectName || projectName == "") {
+  const projectName = args[0]
+  if (!projectName || projectName === "") {
     console.log(chalk.red("Please provide a project name: ") + chalk.bold("haiku install projectname"))
     process.exit(1)
   }
-  ensureAuth(function (token) {
-    //ensure that npm is installed
-    hasbin('npm', function (result) {
+  ensureAuth((token) => {
+    // ensure that npm is installed
+    hasbin("npm", (result) => {
       if (result) {
-        //ensure that there's a package.json in this directory
+        // ensure that there's a package.json in this directory
         if (fs.existsSync(process.cwd() + "/package.json")) {
           console.log("Installing " + projectName + "...")
 
-
-          var packageJson = client.npm.readPackageJson()
+          const packageJson = client.npm.readPackageJson()
 
           if (!packageJson.dependencies) {
             packageJson.dependencies = {}
           }
 
-          //construct project string: @haiku/org-project#latest          
-          var projectString = "@haiku/"
-          inkstone.organization.list(token, (err, orgs) => {
-            if (err !== undefined) {
-              console.log(chalk.red("There was an error retrieving your account information.") + "  Please ensure that you have internet access.  If this problem persists, please contact support@haiku.ai and tell us that you don't have an organization associated with your account.")
+          // construct project string: @haiku/org-project#latest
+          let projectString = "@haiku/"
+          inkstone.organization.list(token, (listErr, orgs) => {
+            if (listErr) {
+              console.log(
+                chalk.red("There was an error retrieving your account information.") +
+                " Please ensure that you have internet access." +
+                " If this problem persists, please contact support@haiku.ai and tell us that you don't have an organization associated with your account.",
+              )
               process.exit(1)
             }
 
-            //TODO: for multi-org support, get the org name more intelligently than this
+            // TODO: for multi-org support, get the org name more intelligently than this
             projectString += orgs[0].Name.toLowerCase() + "-"
 
-            inkstone.project.getByName(token, projectName, (err, projectAndCredentials) => {
-              if (err != undefined) {
-                console.log(chalk.red("That project wasn't found.") + "  Note that project names are CaseSensitive.  Please ensure that you have the correct project name, that you're logged into the correct account and that you have internet access.")
+            inkstone.project.getByName(token, projectName, (getByNameErr, projectAndCredentials) => {
+              if (getByNameErr) {
+                console.log(
+                  chalk.red("That project wasn't found.") +
+                  "  Note that project names are CaseSensitive. " +
+                  "Please ensure that you have the correct project name, that you're logged into the correct account, and that you have internet access.",
+                )
                 process.exit(1)
               }
 
               projectString += projectAndCredentials.Project.Name.toLowerCase()
 
-              //now projectString should be @haiku/org-project
+              // now projectString should be @haiku/org-project
               packageJson.dependencies[projectString] = "latest"
 
-              //Set up @haiku scope for this project if it doesn't exist
-              var npmrc = ""
+              // Set up @haiku scope for this project if it doesn't exist
+              let npmrc = ""
               try {
                 npmrc = fs.readFileSync(".npmrc").toString()
-              } catch (err) {
-                if (err.code === 'ENOENT') {
-                  //file not found, this is fine
+              } catch (exception) {
+                if (exception.code === "ENOENT") {
+                  // file not found, this is fine
                 } else {
-                  //different error, should throw
-                  throw (err)
+                  // different error, should throw
+                  throw (exception)
                 }
               }
               if (npmrc.indexOf("@haiku") === -1) {
@@ -541,7 +546,7 @@ function doList() {
     } else {
 
       inkstone.project.list(token, (err, projects) => {
-        if (projects == undefined || projects.length == 0) {
+        if (!projects || projects.length === 0) {
           console.log("No existing projects.  Use " + chalk.bold("haiku generate") + " to make a new one!")
           process.exit(0)
         } else {
@@ -559,8 +564,8 @@ function doList() {
 
 function doLogin(cb?: Function) {
   console.log("Enter your Haiku credentials.")
-  var username = ""
-  var password = ""
+  let username = ""
+  let password = ""
 
   inquirer.prompt([
     {
@@ -572,12 +577,12 @@ function doLogin(cb?: Function) {
       type: "password",
       name: "password",
       message: "Password:",
-    }
-  ]).then(function (answers: inquirer.Answers) {
+    },
+  ]).then((answers: inquirer.Answers) => {
     username = answers["username"]
     password = answers["password"]
 
-    inkstone.user.authenticate(username, password, function (err, authResponse) {
+    inkstone.user.authenticate(username, password, (err, authResponse) => {
       if (err !== undefined) {
         console.log(chalk.bold.red("Username or password incorrect."))
         if (flags.verbose) {
@@ -598,25 +603,25 @@ function doLogin(cb?: Function) {
 }
 
 function doLogout() {
-  //TODO:  expire auth token on inkstone?
+  // TODO: expire auth token on inkstone?
   client.config.setAuthToken("")
   process.exit(0)
 }
 
 function doOpen() {
-  var projectName = args[0]
+  const projectName = args[0]
 
-  ensureAuth(function (token) {
-    inkstone.project.getByName(token, projectName, function (err, project) {
+  ensureAuth((token) => {
+    inkstone.project.getByName(token, projectName, (err, project) => {
       console.log("TODO:  launch an instance of Haiku with this project open:", project)
       process.exit(0)
     })
   })
 }
 
-//TODO:  update only @haiku packages, instead of all updatable packages in package.json
+// TODO: update only @haiku packages, instead of all updatable packages in package.json
 function doUpdate() {
-  hasbin('npm', function (result) {
+  hasbin("npm", (result) => {
     if (result) {
       try {
         console.log("Updating packages...")
@@ -634,6 +639,91 @@ function doUpdate() {
   })
 }
 
+// // TODO: I'm not sure if this will work since we need to npm publish
+// // TODO: This is incomplete, I realized ^^ halfway through implementing
+// // Auth should already have been handled by the point this is called
+// function doUpgradePlayerForProject (token, projectName, cb) {
+//   return inkstone.project.getByName(token, projectName, (getByNameErr, projectAndCredentials) => {
+//     if (getByNameErr) return cb(getByNameErr)
 
+//     let gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
+//     gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
 
+//     // TODO: Perhaps allow the working dir to be specified?
+//     let destinationDirRel = projectName
+//     let destinationDirAbs = path.join(process.cwd(), projectName)
 
+//     return client.git.cloneRepo(gitEndpoint, destinationDirRel, (cloneErr) => {
+//       if (cloneErr) return cb(cloneErr)
+
+//       try {
+//         execSync(`git fetch`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         execSync(`npm update @haiku/player --save`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         execSync(`git add .`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         execSync(`git commit -m "auto: Upgrade @haiku/player"`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         const tag = execSync(`git describe $(git rev-list --tags --max-count=1)`, { cwd: destinationDirAbs })
+//         if (tag) {
+//           const next = semver.inc(tag, 'patch')
+//           const pkg = fse.readJsonSync(path.join(destinationDirAbs, 'package.json'), { throws: false })
+//           if (pkg) {
+//             pkg.version = next
+//             fse.outputJsonSync(path.join(destinationDirAbs, 'package.json'), pkg)
+//             execSync(`git add .`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//             execSync(`git commit -m "auto: Bump semver"`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//           }
+//           execSync(`git tag -a v${next}`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         }
+//         // execSync(`git push`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//       } catch (exception) {
+//         return cb(exception)
+//       }
+
+//       return cb()
+//     })
+//   })
+// }
+
+// function doUpgradePlayer() {
+//   let names = _.uniq(args)
+//   if (names.length < 1) {
+//     console.log(chalk.red("Please pass a list of project names."))
+//     process.exit(1)
+//   }
+//   return ensureAuth((token) => {
+//     return inkstone.project.list(token, (err, projects) => {
+//       const projectsToUpgrade = []
+//       const projectsNotKnown = []
+//       names.forEach((projectName) => {
+//         let isKnown = false
+//         projects.forEach(({ Name }) => {
+//           if (Name === projectName) {
+//             isKnown = true
+//             projectsToUpgrade.push(projectName)
+//           }
+//         })
+//         if (!isKnown) {
+//           projectsNotKnown.push(projectName)
+//         }
+//       })
+//       if (projectsNotKnown.length > 0) {
+//         console.log(chalk.red(`Unknown projects specified: ${projectsNotKnown.join(', ')}`))
+//         process.exit(1)
+//       }
+//       if (projectsToUpgrade.length < 1) {
+//         console.log(chalk.red(`Projects to upgrade not found`))
+//         process.exit(1)
+//       }
+//       return async.each(projectsToUpgrade, (projectName, next) => {
+//         return doUpgradePlayerForProject(token, projectName, next)
+//       }, (err) => {
+//         if (err) {
+//           console.log(chalk.red(err))
+//           process.exit(1)
+//         }
+
+//         console.log(chalk.green(`Done!`))
+//         process.exit()
+//       })
+//     })
+//   })
+// }

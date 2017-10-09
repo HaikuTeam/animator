@@ -168,6 +168,10 @@ function _clone(a) {
         b[key] = a[key];
     return b;
 }
+HaikuDOMRenderer.prototype.removeListener = function removeListener(target, handler, eventName) {
+    target.removeEventListener(eventName, handler);
+    return this;
+};
 HaikuDOMRenderer.prototype.getUser = function getUser() {
     return {
         mouse: {

@@ -9,9 +9,9 @@
     lodash "^4.17.4"
     react "15.4.2"
 
-"@haiku/player@2.3.7":
-  version "2.3.7"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.7.tgz#dab90e612679f6b9ce9c00d7def699412db13a51"
+"@haiku/player@2.3.8":
+  version "2.3.8"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.8.tgz#0f9f0664904b7e00d68d43b5ea47b7347b9109cc"
   dependencies:
     lodash "^4.17.4"
     react "15.4.2"
@@ -4888,6 +4888,10 @@ lru-queue@0.1:
   dependencies:
     es5-ext "~0.10.2"
 
+lsmod@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/lsmod/-/lsmod-1.0.0.tgz#9a00f76dca36eb23fa05350afe1b585d4299e64b"
+
 make-dir@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/make-dir/-/make-dir-1.0.0.tgz#97a011751e91dd87cfadef58832ebb04936de978"
@@ -6437,6 +6441,16 @@ range-parser@~1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/range-parser/-/range-parser-1.2.0.tgz#f49be6b487894ddc40dcc94a322f611092e00d5e"
 
+raven@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/raven/-/raven-2.2.1.tgz#57c7fbe68a80147ec527def3d7c01575cf948fe3"
+  dependencies:
+    cookie "0.3.1"
+    lsmod "1.0.0"
+    stack-trace "0.0.9"
+    timed-out "4.0.1"
+    uuid "3.0.0"
+
 raw-body@~2.1.7:
   version "2.1.7"
   resolved "https://registry.yarnpkg.com/raw-body/-/raw-body-2.1.7.tgz#adfeace2e4fb3098058014d08c072dcc59758774"
@@ -7834,7 +7848,7 @@ time-stamp@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/time-stamp/-/time-stamp-1.1.0.tgz#764a5a11af50561921b133f3b44e618687e0f5c3"
 
-timed-out@^4.0.0:
+timed-out@4.0.1, timed-out@^4.0.0:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/timed-out/-/timed-out-4.0.1.tgz#f32eacac5a175bea25d7fab565ab3ed8741ef56f"
 

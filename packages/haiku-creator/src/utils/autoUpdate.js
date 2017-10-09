@@ -1,4 +1,8 @@
-var autoUpdater = require('electron').autoUpdater
+const qs = require('qs')
+const os = require('os')
+const electron = require('electron')
+const fetch = require('node-fetch')
+const {download, unzip} = require('./fileManipulation')
 
 const opts = {
   server: process.env.HAIKU_AUTOUPDATE_SERVER,
@@ -8,56 +12,70 @@ const opts = {
   version: process.env.HAIKU_RELEASE_VERSION
 }
 
-if (!process.env.HAIKU_SKIP_AUTOUPDATE) {
-  if (!opts.server || !opts.environment || !opts.branch || !opts.platform || !opts.version) {
-    throw new Error('Missing release/autoupdate environment variables')
-  }
-}
+module.exports = {
+  update (url, progressCallback, options = opts) {
+    return new Promise((resolve, reject) => {
+      if (process.env.HAIKU_SKIP_AUTOUPDATE !== '1') {
+        if (
+          !options.server ||
+          !options.environment ||
+          !options.branch ||
+          !options.platform ||
+          !options.version
+        ) {
+          throw new Error('Missing release/autoupdate environment variables')
+        }
 
-module.exports = function run (cb) {
-  console.log('[autoupdate] running')
+        const tempPath = os.tmpdir()
+        const zipPath = `${tempPath}/haiku.zip`
+        const installationPath = '/Applications'
 
-  if (process.env.HAIKU_SKIP_AUTOUPDATE) {
-    console.log('[autoupdate] skipped-update-check')
-    return cb(null, 'skipped-update-check')
-  }
-
-  const feedURL = `${opts.server}/updates/latest?environment=${opts.environment}&branch=${opts.branch}&platform=${opts.platform}&version=${opts.version}`
-
-  autoUpdater.setFeedURL(feedURL)
-
-  console.log('[autoupdate] checking')
-  console.log('[autoupdate] url: ' + feedURL)
-
-  autoUpdater.checkForUpdates()
-
-  autoUpdater.on('error', (error) => {
-    console.log('[autoupdate] error')
-    return cb(error, 'error', autoUpdater)
-  })
-
-  autoUpdater.on('checking-for-update', () => {
-    console.log('[autoupdate] checking-for-update')
-    return cb(null, 'checking-for-update', autoUpdater)
-  })
-
-  autoUpdater.on('update-available', () => {
-    console.log('[autoupdate] update-available')
-    return cb(null, 'update-available', autoUpdater)
-  })
-
-  autoUpdater.on('update-not-available', () => {
-    console.log('[autoupdate] update-not-available')
-    return cb(null, 'update-not-available', autoUpdater)
-  })
-
-  autoUpdater.on('update-downloaded', () => {
-    console.log('[autoupdate] update-downloaded')
-
-    return cb(null, 'update-downloaded', autoUpdater, () => {
-      console.log('[autoupdate] quit-and-install')
-      // Note how this is run only if the callback is called.
-      autoUpdater.quitAndInstall()
+        download(url, zipPath, progressCallback)
+          .then(() => { unzip(zipPath, installationPath) })
+          .then(() => {
+            resolve(true)
+            electron.remote.app.relaunch()
+            electron.remote.app.exit()
+          })
+      }
     })
-  })
+  },
+
+  checkUpdates () {
+    return new Promise((resolve, reject) => {
+      this.checkServer()
+        .then(({status, url}) => {
+          if (status === 200 && url) {
+            resolve({shouldUpdate: true, url})
+          }
+
+          resolve({shouldUpdate: false, url: null})
+        })
+        .catch(reject)
+    })
+  },
+
+  checkServer () {
+    let status
+
+    return new Promise((resolve, reject) => {
+      fetch(this.generateURL(opts))
+        .then((response) => {
+          status = response.status
+          return response.json()
+        })
+        .then((data) => {
+          resolve({status: status, url: data.url})
+        })
+        .catch((error) => {
+          reject(error)
+        })
+    })
+  },
+
+  generateURL ({server, ...query}) {
+    const queryString = qs.stringify(query)
+
+    return `${server}/updates/latest?${queryString}`
+  }
 }

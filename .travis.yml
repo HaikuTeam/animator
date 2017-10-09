@@ -1,0 +1,35 @@
+branches:
+  only:
+    - staging
+    - production
+
+os: osx
+osx_image: xcode8.3
+
+language: node_js
+node_js:
+  - "8.4.0"
+
+before_install:
+  - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.0.2
+  - nvm alias default 8.4.0
+  - nvm use 8.4.0
+
+install:
+  - yarn
+
+script:
+  - node ./scripts/distro-download-secrets.js
+  - yarn relink
+  - node ./scripts/distro-configure.js --non-interactive # 0m
+  - travis_wait 30 node ./scripts/distro-prepare.js # 3m
+  - travis_wait 30 node ./scripts/distro-electron-rebuild.js # 5m
+  - node ./scripts/distro-uglify-sources.js # 1m
+  - travis_wait 30 node ./scripts/distro-build.js # 8m
+  - node ./scripts/distro-upload.js # 2m
+
+notifications:
+  email:
+    on_success: never
+    on_failure: change
+  slack: the-haiku-team:dpd26udXvhWVlvoZTgKDj5jV

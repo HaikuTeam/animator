@@ -23,24 +23,28 @@ var DEFAULTS = {
 
 var inputs = lodash.assign({}, DEFAULTS, argv)
 
-inquirer.prompt([
-  {
-    type: 'input',
-    name: 'version',
-    message: 'Enter version to set in all projects:',
-    default: inputs.version
-  }
-]).then(function (answers) {
-  lodash.assign(inputs, answers)
-
-  if (semver.lt(inputs.version, current)) {
-    throw new Error('You cannot set a lower version than the current one')
-  }
-
-  log.hat('setting version to ' + inputs.version)
-
+if (argv['non-interactive']) {
   go()
-})
+} else {
+  inquirer.prompt([
+    {
+      type: 'input',
+      name: 'version',
+      message: 'Enter version to set in all projects:',
+      default: inputs.version
+    }
+  ]).then(function (answers) {
+    lodash.assign(inputs, answers)
+
+    if (semver.lt(inputs.version, current)) {
+      throw new Error('You cannot set a lower version than the current one')
+    }
+
+    log.hat('setting version to ' + inputs.version)
+
+    go()
+  })
+}
 
 function go () {
   lodash.forEach(allPackages, function (pack) {

@@ -4,8 +4,6 @@ import lodash from 'lodash'
 import archy from 'archy'
 import { DraggableCore } from 'react-draggable'
 
-import DOMSchema from '@haiku/player/lib/properties/dom/schema'
-import DOMFallbacks from '@haiku/player/lib/properties/dom/fallbacks'
 import expressionToRO from '@haiku/player/lib/reflection/expressionToRO'
 
 import TimelineProperty from 'haiku-bytecode/src/TimelineProperty'
@@ -158,102 +156,6 @@ const CURVESVGS = {
   EaseOutQuintSVG,
   EaseOutSineSVG,
   LinearSVG
-}
-
-/**
- * Hey! If you want to ADD any properties here, you might also need to update the dictionary in
- * haiku-bytecode/src/properties/dom/schema,
- * haiku-bytecode/src/properties/dom/fallbacks,
- * or they might not show up in the view.
- */
-
-const ALLOWED_PROPS = {
-  'translation.x': true,
-  'translation.y': true,
-  // 'translation.z': true, // This doesn't work for some reason, so leaving it out
-  'rotation.z': true,
-  'rotation.x': true,
-  'rotation.y': true,
-  'scale.x': true,
-  'scale.y': true,
-  'opacity': true,
-  // 'shown': true,
-  'backgroundColor': true
-  // 'color': true,
-  // 'fill': true,
-  // 'stroke': true
-}
-
-const CLUSTERED_PROPS = {
-  'mount.x': 'mount',
-  'mount.y': 'mount',
-  'mount.z': 'mount',
-  'align.x': 'align',
-  'align.y': 'align',
-  'align.z': 'align',
-  'origin.x': 'origin',
-  'origin.y': 'origin',
-  'origin.z': 'origin',
-  'translation.x': 'translation',
-  'translation.y': 'translation',
-  'translation.z': 'translation', // This doesn't work for some reason, so leaving it out
-  'rotation.x': 'rotation',
-  'rotation.y': 'rotation',
-  'rotation.z': 'rotation',
-  // 'rotation.w': 'rotation', // Probably easiest not to let the user have control over quaternion math
-  'scale.x': 'scale',
-  'scale.y': 'scale',
-  'scale.z': 'scale',
-  'sizeMode.x': 'sizeMode',
-  'sizeMode.y': 'sizeMode',
-  'sizeMode.z': 'sizeMode',
-  'sizeProportional.x': 'sizeProportional',
-  'sizeProportional.y': 'sizeProportional',
-  'sizeProportional.z': 'sizeProportional',
-  'sizeDifferential.x': 'sizeDifferential',
-  'sizeDifferential.y': 'sizeDifferential',
-  'sizeDifferential.z': 'sizeDifferential',
-  'sizeAbsolute.x': 'sizeAbsolute',
-  'sizeAbsolute.y': 'sizeAbsolute',
-  'sizeAbsolute.z': 'sizeAbsolute',
-  'style.overflowX': 'overflow',
-  'style.overflowY': 'overflow'
-}
-
-const CLUSTER_NAMES = {
-  'mount': 'Mount',
-  'align': 'Align',
-  'origin': 'Origin',
-  'translation': 'Position',
-  'rotation': 'Rotation',
-  'scale': 'Scale',
-  'sizeMode': 'Sizing Mode',
-  'sizeProportional': 'Size %',
-  'sizeDifferential': 'Size +/-',
-  'sizeAbsolute': 'Size',
-  'overflow': 'Overflow'
-}
-
-const ALLOWED_PROPS_TOP_LEVEL = {
-  'sizeAbsolute.x': true,
-  'sizeAbsolute.y': true,
-  // Enable these as such a time as we can represent them visually in the glass
-  // 'style.overflowX': true,
-  // 'style.overflowY': true,
-  'backgroundColor': true,
-  'opacity': true
-}
-
-const ALLOWED_TAGNAMES = {
-  div: true,
-  svg: true,
-  g: true,
-  rect: true,
-  circle: true,
-  ellipse: true,
-  line: true,
-  polyline: true,
-  polygon: true
 }
 
 const THROTTLE_TIME = 17 // ms
@@ -1361,20 +1263,22 @@ class Timeline extends React.Component {
     if (!this.state.reifiedBytecode || !this.state.reifiedBytecode.template) return componentRows
 
     this.visitTemplate('0', 0, [], this.state.reifiedBytecode.template, null, (node, parent, locator, index, siblings) => {
-      // TODO how will this bite us?
-      let isComponent = (typeof node.elementName === 'object')
-      let elementName = isComponent ? node.attributes.source : node.elementName
+      const element = this._component._elements.upsertFromNodeWithComponentCached(node, parent, this._component, {})
 
-      if (!parent || (parent.__isExpanded && (ALLOWED_TAGNAMES[elementName] || isComponent))) { // Only the top-level and any expanded subcomponents
+      const isComponent = element.isComponent()
+      const elementName = element.getNameString()
+      const componentId = element.getComponentId()
+
+      if (!parent || (parent.__isExpanded && (this._component._elements.ALLOWED_TAGNAMES[elementName] || isComponent))) { // Only the top-level and any expanded subcomponents
         const asciiBranch = asciiSymbols[visitorIterations] // Warning: The component structure must match that given to create the ascii tree
         const headingRow = { node, parent, locator, index, siblings, asciiBranch, propertyRows: [], isHeading: true, componentId: node.attributes['haiku-id'] }
         componentRows.push(headingRow)
 
         if (!addressableArraysCache[elementName]) {
-          addressableArraysCache[elementName] = isComponent ? _buildComponentAddressables(node) : _buildDOMAddressables(elementName, locator)
+          const doGoDeep = locator.length === 3 // 0.0, 0.1, etc
+          addressableArraysCache[elementName] = Object.values(element.getAddressableProperties(doGoDeep))
         }
 
-        const componentId = node.attributes['haiku-id']
         const clusterHeadingsFound = {}
 
         for (let i = 0; i < addressableArraysCache[elementName].length; i++) {
@@ -1394,7 +1298,22 @@ class Timeline extends React.Component {
                 isClusterHeading = true
                 clusterHeadingsFound[clusterPrefix] = true
               }
-              propertyRow = { node, parent, locator, index, siblings, clusterPrefix, clusterKey, isClusterMember: true, isClusterHeading, property: propertyGroupDescriptor, isProperty: true, componentId }
+
+              propertyRow = {
+                element,
+                node,
+                parent,
+                locator,
+                index,
+                siblings,
+                clusterPrefix,
+                clusterKey,
+                isClusterMember: true,
+                isClusterHeading,
+                property: propertyGroupDescriptor,
+                isProperty: true,
+                componentId
+              }
             } else {
                 // Otherwise, create a cluster, shifting the index forward so we don't re-render the individuals on the next iteration of the loop
               let clusterSet = [propertyGroupDescriptor]
@@ -1410,10 +1329,34 @@ class Timeline extends React.Component {
                   i += 1
                 }
               }
-              propertyRow = { node, parent, locator, index, siblings, clusterPrefix, clusterKey, cluster: clusterSet, clusterName: propertyGroupDescriptor.cluster.name, isCluster: true, componentId }
+
+              propertyRow = {
+                element,
+                node,
+                parent,
+                locator,
+                index,
+                siblings,
+                clusterPrefix,
+                clusterKey,
+                cluster: clusterSet,
+                clusterName: propertyGroupDescriptor.cluster.name,
+                isCluster: true,
+                componentId
+              }
             }
           } else {
-            propertyRow = { node, parent, locator, index, siblings, property: propertyGroupDescriptor, isProperty: true, componentId }
+            propertyRow = {
+              element,
+              node,
+              parent,
+              locator,
+              index,
+              siblings,
+              property: propertyGroupDescriptor,
+              isProperty: true,
+              componentId
+            }
           }
 
           headingRow.propertyRows.push(propertyRow)
@@ -2834,6 +2777,7 @@ class Timeline extends React.Component {
               position: 'absolute',
               left: 36,
               width: 5,
+              zIndex: 1005,
               borderLeft: '1px solid ' + Palette.GRAY_FIT1,
               height
             }} />
@@ -2850,12 +2794,15 @@ class Timeline extends React.Component {
           <div
             className='property-cluster-row-label no-select'
             style={{
-              right: 0,
-              width: this.state.propertiesWidth - 90,
-              height: 'inherit',
-              textAlign: 'right',
               position: 'relative',
-              paddingTop: 5
+              right: 0,
+              width: this.state.propertiesWidth - 80,
+              height: this.state.rowHeight,
+              paddingTop: 3,
+              paddingRight: 10,
+              backgroundColor: Palette.GRAY,
+              zIndex: 1004,
+              textAlign: 'right'
             }}>
             <span style={{
               textTransform: 'uppercase',
@@ -3030,77 +2977,6 @@ class Timeline extends React.Component {
       </div>
     )
   }
-}
-
-function _buildComponentAddressables (node) {
-  var addressables = _buildDOMAddressables('div') // start with dom properties?
-  for (let name in node.elementName.states) {
-    let state = node.elementName.states[name]
-
-    addressables.push({
-      name: name,
-      prefix: name,
-      suffix: undefined,
-      fallback: state.value,
-      typedef: state.type
-    })
-  }
-  return addressables
-}
-
-function _buildDOMAddressables (elementName, locator) {
-  var addressables = []
-
-  const domSchema = DOMSchema[elementName]
-  const domFallbacks = DOMFallbacks[elementName]
-
-  if (domSchema) {
-    for (var propertyName in domSchema) {
-      let propertyGroup = null
-
-      if (locator === '0') { // This indicates the top level element (the artboard)
-        if (ALLOWED_PROPS_TOP_LEVEL[propertyName]) {
-          let nameParts = propertyName.split('.')
-
-          if (propertyName === 'style.overflowX') nameParts = ['overflow', 'x']
-          if (propertyName === 'style.overflowY') nameParts = ['overflow', 'y']
-
-          propertyGroup = {
-            name: propertyName,
-            prefix: nameParts[0],
-            suffix: nameParts[1],
-            fallback: domFallbacks[propertyName],
-            typedef: domSchema[propertyName]
-          }
-        }
-      } else {
-        if (ALLOWED_PROPS[propertyName]) {
-          let nameParts = propertyName.split('.')
-          propertyGroup = {
-            name: propertyName,
-            prefix: nameParts[0],
-            suffix: nameParts[1],
-            fallback: domFallbacks[propertyName],
-            typedef: domSchema[propertyName]
-          }
-        }
-      }
-
-      if (propertyGroup) {
-        let clusterPrefix = CLUSTERED_PROPS[propertyGroup.name]
-        if (clusterPrefix) {
-          propertyGroup.cluster = {
-            prefix: clusterPrefix,
-            name: CLUSTER_NAMES[clusterPrefix]
-          }
-        }
-
-        addressables.push(propertyGroup)
-      }
-    }
-  }
-
-  return addressables
 }
 
 export default Timeline

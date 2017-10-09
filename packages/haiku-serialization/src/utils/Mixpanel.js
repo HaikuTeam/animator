@@ -34,10 +34,35 @@ mixpanel.mergeToPayload = function mergeToPayload (keepPayload) {
   return assign(defaultPayload, keepPayload)
 }
 
+function _getPayload (eventName, eventPayload) {
+  return assign({}, defaultPayload, eventPayload)
+}
+
+function _safeStringify (obj) {
+  try {
+    return JSON.stringify(obj)
+  } catch (exception) {
+    return null
+  }
+}
+
 mixpanel.haikuTrack = function haikuTrack (eventName, eventPayload) {
-  var finalPayload = assign({}, defaultPayload, eventPayload)
+  var finalPayload = _getPayload(eventName, eventPayload)
   console.info('[mixpanel]', eventName, finalPayload)
   return mixpanel.track(eventName, finalPayload)
+}
+
+var trackedEvents = {}
+
+mixpanel.haikuTrackOnce = function haikuTrackOnce (eventName, eventPayload) {
+  var candidatePayload = _getPayload(eventName, eventPayload)
+  var payloadString = _safeStringify(candidatePayload)
+  if (payloadString) {
+    if (!trackedEvents[payloadString]) {
+      trackedEvents[payloadString] = true
+      mixpanel.haikuTrack(eventName, eventPayload)
+    }
+  }
 }
 
 module.exports = mixpanel

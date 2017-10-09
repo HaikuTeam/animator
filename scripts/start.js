@@ -11,6 +11,7 @@ var groups = lodash.keyBy(allPackages, 'name')
 var ROOT = path.join(__dirname, '..')
 var plumbingPackage = groups['haiku-plumbing']
 var blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
+
 process.env.NODE_ENV = 'development'
 
 /**
@@ -22,13 +23,14 @@ var DEFAULTS = {
   mockEnvoy: '1',
   folderChoice: 'none',
   devChoice: 'everything',
-  nodeEnv: 'development',
+  nodeEnv: process.env.NODE_ENV,
   skipAutoUpdate: '1',
+  skipInitialBuild: false,
   plumbingPort: '1024',
-  releaseEnvironment: 'development', // stub
+  releaseEnvironment: process.env.NODE_ENV, // stub
   releaseBranch: 'master', // stub
   releasePlatform: 'mac', // stub
-  releaseVersion: '0.0.0', // stub
+  releaseVersion: require('./../package.json').version, // stub
   autoUpdateServer: 'http://localhost:3002',
   plumbingUrl: 'http://0.0.0.0:1024',
   remoteDebug: true,
@@ -142,6 +144,12 @@ function runInteractive () {
           name: 'dev',
           message: 'Automatically open Chrome Dev Tools?',
           default: inputs.dev
+        },
+        {
+          type: 'confirm',
+          name: 'skipInitialBuild',
+          message: 'Skip initial build of assets?',
+          default: inputs.skipInitialBuild
         }
       ]).then(function (answers) {
         lodash.assign(inputs, answers)
@@ -179,6 +187,9 @@ function runAutomatic (preset) {
     switch (preset) {
       case 'default':
         inputs.dev = false
+        break
+      case 'fast':
+        inputs.skipInitialBuild = true
         break
     }
   }
@@ -222,27 +233,29 @@ function setup () {
     fse.outputFileSync(path.join(blankProject, '.keep'), '')
   }
 
+  var watchOptions = inputs.skipInitialBuild ? ['--', '--skip-initial-build'] : ''
+
   if (inputs.devChoice === 'everything') {
     if (chosenFolder) {
       instructions.unshift(['haiku-plumbing', ['node', './HaikuHelper.js', '--folder=' + blankProject], null, 5000])
-      instructions.unshift(['haiku-plumbing', ['yarn', 'run', 'watch'], null, 10000])
+      instructions.unshift(['haiku-plumbing', ['yarn', 'run', 'watch', ...watchOptions], null, 10000])
     } else {
       instructions.unshift(['haiku-plumbing', ['node', './HaikuHelper.js'], null, 5000])
-      instructions.unshift(['haiku-plumbing', ['yarn', 'run', 'watch'], null, 10000])
+      instructions.unshift(['haiku-plumbing', ['yarn', 'run', 'watch', ...watchOptions], null, 10000])
     }
     // When developing plumbing, assume we need recompilation on the glass and timeline too
-    instructions.unshift(['haiku-glass', ['yarn', 'run', 'watch'], null, 5000])
-    instructions.unshift(['haiku-timeline', ['yarn', 'run', 'watch'], null, 5000])
-    instructions.unshift(['haiku-creator', ['yarn', 'run', 'watch'], null, 5000])
+    instructions.unshift(['haiku-glass', ['yarn', 'run', 'watch', ...watchOptions], null, 5000])
+    instructions.unshift(['haiku-timeline', ['yarn', 'run', 'watch', ...watchOptions], null, 5000])
+    instructions.unshift(['haiku-creator', ['yarn', 'run', 'watch', ...watchOptions], null, 5000])
   } else {
     // Only set the mock envoy variable if we are in an env where it will work
     process.env.MOCK_ENVOY = inputs.mockEnvoy
     if (inputs.devChoice === 'glass') {
       instructions.unshift(['haiku-glass', ['yarn', 'start'], null, 5000])
-      instructions.unshift(['haiku-glass', ['yarn', 'run', 'watch'], null, 5000])
+      instructions.unshift(['haiku-glass', ['yarn', 'run', 'watch', ...watchOptions], null, 5000])
     } else if (inputs.devChoice === 'timeline') {
       instructions.unshift(['haiku-timeline', ['yarn', 'start'], null, 5000])
-      instructions.unshift(['haiku-timeline', ['yarn', 'run', 'watch'], null, 5000])
+      instructions.unshift(['haiku-timeline', ['yarn', 'run', 'watch', ...watchOptions], null, 5000])
     }
   }
 

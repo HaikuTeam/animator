@@ -5,13 +5,13 @@ import EnvoyLogger from '../../../lib/envoy/logger.js'
 tape('envoy:multi-server', async (t) => {
     t.plan(7)
 
-    var s1 = new EnvoyServer({ logger: new EnvoyLogger("info") })
+    var s1 = new EnvoyServer({ logger: new EnvoyLogger("error") })
     s1 = await s1.ready()
 
-    var s2 = new EnvoyServer({ logger: new EnvoyLogger("info") })
+    var s2 = new EnvoyServer({ logger: new EnvoyLogger("error") })
     s2 = await s2.ready()
 
-    var s3 = new EnvoyServer({ logger: new EnvoyLogger("info") })
+    var s3 = new EnvoyServer({ logger: new EnvoyLogger("error") })
     s3 = await s3.ready()
 
     t.ok(true, 'no port collision exceptions when starting multiple servers')

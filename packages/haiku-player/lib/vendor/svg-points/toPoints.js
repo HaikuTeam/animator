@@ -77,17 +77,40 @@ var relativeCommands = [
     't',
     'v'
 ];
+var PARSING_REGEXPS = {
+    command: /^[MmLlHhVvCcSsQqTtAaZz]/g,
+    whitespace: /^[\s]+/,
+    comma: /^,/,
+    number: /^0b[01]+|^0o[0-7]+|^0x[\da-f]+|^-?\d*\.?\d+(?:e[+-]?\d+)?/i
+};
 var isRelative = function (command) { return relativeCommands.indexOf(command) !== -1; };
 var optionalArcKeys = ['xAxisRotation', 'largeArcFlag', 'sweepFlag'];
 var getCommands = function (d) { return d.match(validCommands); };
+function tokenize(d) {
+    var tokens = [];
+    var chunk = d;
+    var total = chunk.length;
+    var iterations = 0;
+    while (chunk.length > 0) {
+        for (var regexpName in PARSING_REGEXPS) {
+            var match = PARSING_REGEXPS[regexpName].exec(chunk);
+            if (match) {
+                tokens.push({ type: regexpName, raw: match[0] });
+                chunk = chunk.slice(match[0].length, chunk.length);
+                break;
+            }
+        }
+    }
+    return tokens;
+}
 var getParams = function (d) {
-    var segs = d.split(validCommands)
-        .map(function (v) {
-        return v.replace(/[0-9]+(e[+-][0-9]+)?-/g, function (m) { return m.slice(0, -1) + " -"; });
-    })
-        .map(function (v) {
-        return v.replace(/\.[0-9]+(e[+-][0-9]+)?/g, function (m) { return m + " "; });
-    })
+    var tokens = tokenize(d);
+    var fixed = tokens.filter(function (t) {
+        return t.type === 'number' || t.type === 'command' || t.type === 'comma';
+    }).map(function (t) {
+        return t.raw;
+    }).join(' ');
+    var segs = fixed.split(validCommands)
         .map(function (p) {
         return p.trim();
     })
@@ -116,11 +139,12 @@ var getPointsFromPath = function (_a) {
         var upperCaseCommand = command.toUpperCase();
         var commandLength = commandLengths[upperCaseCommand];
         var relative = isRelative(command);
-        var prevPoint = i === 0 ? null : points[points.length - 1];
+        var prevPoint = (points.length < 1) ? null : points[points.length - 1];
         if (commandLength > 0) {
             var commandParams = params.shift();
             var iterations = commandParams.length / commandLength;
             for (var j = 0; j < iterations; j++) {
+                prevPoint = (points.length < 1) ? null : points[points.length - 1];
                 switch (upperCaseCommand) {
                     case 'M':
                         var x = (relative && prevPoint ? prevPoint.x : 0) + commandParams.shift();

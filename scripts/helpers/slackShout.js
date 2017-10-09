@@ -6,8 +6,8 @@ module.exports = function shout (options, text, cb) {
   if (options && options.shout) {
     return slack.chat.postMessage({
       text: text,
-      token: deploy.slack.token,
-      channel: 'creator',
+      token: deploy.slack.legacy,
+      channel: 'engineering-feed',
       username: 'Haiku Distro',
       icon_emoji: ':robot_face:'
     }, function (err) {

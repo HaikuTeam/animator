@@ -248,7 +248,11 @@ export default class TourHandler implements Tour {
         return this.isActive
     }
 
-    start(force) {
+    getCurrentStep() {
+        return this.currentStep
+    }
+
+    start(force?) {
         if ((!didTakeTour() && !this.isActive) || force) {
             this.currentStep = 0
             this.isActive = true

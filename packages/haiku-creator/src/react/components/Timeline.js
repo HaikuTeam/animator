@@ -65,9 +65,31 @@ export default class Timeline extends React.Component {
     this.webview.setAttribute('allowpopups', true)
     this.webview.style.width = '100%'
     this.webview.style.height = '100%'
+
+    this.webview.addEventListener('console-message', (event) => {
+      switch (event.level) {
+        case 0:
+          if (event.message.slice(0, 8) === '[notice]') {
+            var msg = event.message.replace('[notice]', '').trim()
+            var notice = this.props.createNotice({ type: 'info', title: 'Notice', message: msg })
+            window.setTimeout(() => {
+              this.props.removeNotice(undefined, notice.id)
+            }, 1000)
+          }
+          break
+        // case 1:
+        //   this.props.createNotice({ type: 'warning', title: 'Warning', message: event.message })
+        //   break
+        case 2:
+          this.props.createNotice({ type: 'error', title: 'Error', message: event.message })
+          break
+      }
+    })
+
     this.webview.addEventListener('dom-ready', () => {
       if (process.env.DEV === '1') this.webview.openDevTools()
     })
+
     while (this.mount.firstChild) this.mount.removeChild(this.mount.firstChild)
     this.mount.appendChild(this.webview)
   }

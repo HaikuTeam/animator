@@ -18,8 +18,37 @@ import { client as sdkClient } from 'haiku-sdk-client'
 import StateObject from 'haiku-state-object'
 import serializeError from 'haiku-serialization/src/utils/serializeError'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
 import getNormalizedComponentModulePath from 'haiku-serialization/src/model/helpers/getNormalizedComponentModulePath'
+
+const NOTIFIABLE_ENVS = {
+  production: true,
+  staging: true,
+  // development: true
+}
+
+let Raven
+if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
+  Raven = require('./Raven')
+}
+
+// For any methods that are...
+// - noisy
+// - internal use only
+// - housekeeping
+// we'll skip Sentry for now.
+const METHODS_TO_SKIP_IN_SENTRY = {
+  setTimelineTime: true,
+  doesProjectHaveUnsavedChanges: true,
+  masterHeartbeat: true,
+  applyPropertyGroupDelta: true,
+  applyPropertyGroupValue: true,
+  moveSegmentEndpoints: true,
+  moveKeyframes: true,
+  toggleDevTools: true,
+  fetchProjectInfo: true
+}
 
 const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
@@ -104,6 +133,14 @@ process.on('SIGTERM', () => {
   process.exit()
 })
 
+function _safeErrorMessage (err) {
+  if (!err) return 'unknown error'
+  if (typeof err === 'string') return err
+  if (err.stack) return err.stack
+  if (err.message) return err.message
+  return err + ''
+}
+
 export default class Plumbing extends StateObject {
   constructor () {
     super()
@@ -119,6 +156,7 @@ export default class Plumbing extends StateObject {
     this.clients = []
     this.requests = {}
     this.caches = {}
+    this.projects = {}
 
     // Keep track of whether we got a teardown signal so we know whether we should keep trying to
     // reconnect any subprocs that seem to have disconnected. This seems useless (why not just kill
@@ -144,20 +182,30 @@ export default class Plumbing extends StateObject {
       // The reconnect logic is elsewhere
       return this.awaitFolderClientWithQuery(folder, 'proc-respawned+restartProject', { alias }, WAIT_DELAY, (err) => {
         if (err) {
-          throw new Error(`Waited too long for client ${alias} in ${folder} because ${err}`)
+          return this._handleUnrecoverableError(new Error(`Waited too long for client ${alias} in ${folder} because ${_safeErrorMessage(err)}`))
         }
 
         if (alias === 'master') {
           // This actually calls the method in question on the given client
           return this.restartProject(null/* projectName is ignored */, folder, (err) => {
             if (err) {
-              throw new Error(`Unable to finish restart on client ${alias} in ${folder} because ${err}`)
+              return this._handleUnrecoverableError(new Error(`Unable to finish restart on client ${alias} in ${folder} because ${_safeErrorMessage(err)}`))
             }
             logger.info(`[plumbing] restarted client ${alias} in ${folder}`)
           })
         }
       })
     })
+  }
+
+  _handleUnrecoverableError (err) {
+    mixpanel.haikuTrackOnce('app:crash', {
+      error: err.message
+    })
+    // Crash in the timeout to give a chance for mixpanel to transmit
+    setTimeout(() => {
+      throw err
+    }, 100)
   }
 
   /**
@@ -303,11 +351,13 @@ export default class Plumbing extends StateObject {
   }
 
   processMethodMessage (type, alias, folder, message, cb) {
-    // Certain messages aren't of a kind that we can reliably enqueue, either because they happen
-    // too fast or because they have a 'fire and forget' nature.
+    // Certain messages aren't of a kind that we can reliably enqueue - either they happen too fast or they are 'fire and forget'
     if (METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY[message.method]) {
-      if (message.type === 'action') return this.handleClientAction(type, alias, folder, message.method, message.params, cb)
-      else return this.plumbingMethod(message.method, message.params, cb)
+      if (message.type === 'action') {
+        return this.handleClientAction(type, alias, folder, message.method, message.params, cb)
+      } else {
+        return this.plumbingMethod(message.method, message.params, cb)
+      }
     } else {
       this._methodMessages.push({ type, alias, folder, message, cb })
     }
@@ -320,6 +370,20 @@ export default class Plumbing extends StateObject {
       delete message.id // Don't confuse this as a request/response
       sendMessageToClient(client, merge(message, { folder, alias }))
     })
+  }
+
+  sentryError (method, error, extras) {
+    if (!Raven) return null
+    if (method && METHODS_TO_SKIP_IN_SENTRY[method]) return null
+    if (!error) return null
+    if (typeof error === 'object' && !(error instanceof Error)) {
+      var fixed = new Error(error.message || `Plumbing.${method} error`)
+      if (error.stack) fixed.stack = error.stack
+      error = fixed
+    } else if (typeof error === 'string') {
+      error = new Error(error) // Unfortunately no good stack trace in this case
+    }
+    return Raven.captureException(error, extras)
   }
 
   plumbingMethod (method, params = [], cb) {
@@ -364,7 +428,13 @@ export default class Plumbing extends StateObject {
   sendFolderSpecificClientMethodQuery (folder, query = {}, method, params = [], cb) {
     return this.awaitFolderClientWithQuery(folder, method, query, WAIT_DELAY, (err, client) => {
       if (err) return cb(err)
-      return this.sendClientMethod(client, method, params, cb)
+      return this.sendClientMethod(client, method, params, (error, response) => {
+        if (error) {
+          this.sentryError(method, error, { tags: query })
+          return cb(error)
+        }
+        return cb(null, response)
+      })
     })
   }
 
@@ -489,29 +559,48 @@ export default class Plumbing extends StateObject {
           this.subprocs.push.apply(this.subprocs, spawned)
           return cb()
         })
-      },
-      (cb) => {
-        // QUESTION: Does this *need* to happen down here after the org fetch?
-        const gitInitializeUsername = maybeUsername || this.get('username')
-        const gitInitializePassword = maybePassword || this.get('password')
-
-        // A simpler project options to avoid passing options only used for the first pass, e.g. skipContentCreation
-        const projectOptionsAgain = {
-          organizationName: projectOptions.organizationName,
-          username: projectOptions.username,
-          password: projectOptions.password,
-          authorName
-        }
-
-        return this.initializeFolder(maybeProjectName, projectFolder, gitInitializeUsername, gitInitializePassword, projectOptionsAgain, (err) => {
-          if (err) return cb(err)
-          return cb(null, projectFolder)
-        })
       }
     ], (err) => {
-      if (err) return finish(err)
-      return finish(null, projectFolder)
+      if (err) {
+        this.sentryError('initializeProject', err)
+        return finish(err)
+      }
+
+      // QUESTION: Does this *need* to happen down here after the org fetch?
+      const gitInitializeUsername = maybeUsername || this.get('username')
+      const gitInitializePassword = maybePassword || this.get('password')
+
+      // A simpler project options to avoid passing options only used for the first pass, e.g. skipContentCreation
+      const projectOptionsAgain = {
+        organizationName: projectOptions.organizationName,
+        username: projectOptions.username,
+        password: projectOptions.password,
+        authorName
+      }
+
+      return this.initializeFolder(maybeProjectName, projectFolder, gitInitializeUsername, gitInitializePassword, projectOptionsAgain, (err) => {
+        if (err) return finish(err)
+
+        if (maybeProjectName) {
+          this.projects[maybeProjectName] = {
+            folder: projectFolder,
+            username: maybeUsername,
+            password: maybePassword,
+            organization: projectOptions.organizationName
+          }
+        }
+
+        return finish(null, projectFolder)
+      })
     })
+  }
+
+  /**
+   * Returns the absolute path of the folder of a project by name, if we are tracking one.
+   */
+  getFolderFor (projectName) {
+    if (!this.projects[projectName]) return null
+    return this.projects[projectName].folder
   }
 
   /**
@@ -519,10 +608,7 @@ export default class Plumbing extends StateObject {
    * @description Assuming we already have a folder created, an organization name, etc., now bootstrap the folder itself.
    */
   initializeFolder (maybeProjectName, folder, maybeUsername, maybePassword, projectOptions, cb) {
-    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'initializeFolder', [maybeProjectName, maybeUsername, maybePassword, projectOptions], (err) => {
-      if (err) return cb(err)
-      return cb()
-    })
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'initializeFolder', [maybeProjectName, maybeUsername, maybePassword, projectOptions], cb)
   }
 
   startProject (maybeProjectName, folder, cb) {
@@ -540,9 +626,17 @@ export default class Plumbing extends StateObject {
     }
     return this.getCurrentOrganizationName((err, organizationName) => {
       if (err) return cb(err)
+      const username = sdkClient.config.getUserId()
+      mixpanel.mergeToPayload({ distinct_id: username })
+      if (Raven) {
+        Raven.setContext({
+          user: { email: username },
+          tags: { username }
+        })
+      }
       return cb(null, {
         isAuthed: true,
-        username: sdkClient.config.getUserId(),
+        username: username,
         authToken: sdkClient.config.getAuthToken(),
         organizationName
       })
@@ -554,13 +648,31 @@ export default class Plumbing extends StateObject {
     return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
       if (authErr) return cb(authErr)
       if (httpResponse.statusCode === 401) return cb(new Error('Unauthorized'))
-      if (httpResponse.statusCode > 299) return cb(new Error(`Error status code: ${httpResponse.statusCode}`))
+
+      if (httpResponse.statusCode > 499) {
+        const serverErr = new Error(`Auth HTTP Error: ${httpResponse.statusCode}`)
+        this.sentryError('authenticateUser', serverErr)
+        return cb(serverErr)
+      }
+
+      if (httpResponse.statusCode > 299) {
+        const unexpectedError = new Error(`Auth HTTP Error: ${httpResponse.statusCode}`)
+        return cb(unexpectedError)
+      }
+
       if (!authResponse) return cb(new Error('Auth response was empty'))
       this.set('username', username)
       this.set('password', password)
       this.set('inkstoneAuthToken', authResponse.Token)
       sdkClient.config.setAuthToken(authResponse.Token)
       sdkClient.config.setUserId(username)
+      mixpanel.mergeToPayload({ distinct_id: username })
+      if (Raven) {
+        Raven.setContext({
+          user: { email: username },
+          tags: { username }
+        })
+      }
       return this.getCurrentOrganizationName((err, organizationName) => {
         if (err) return cb(err)
         return cb(null, {
@@ -594,7 +706,10 @@ export default class Plumbing extends StateObject {
     logger.info('[plumbing] listing projects')
     var authToken = sdkClient.config.getAuthToken()
     return inkstone.project.list(authToken, (projectListErr, projectsList) => {
-      if (projectListErr) return cb(projectListErr)
+      if (projectListErr) {
+        this.sentryError('listProjects', projectListErr)
+        return cb(projectListErr)
+      }
       var finalList = projectsList.map(remapProjectObjectToExpectedFormat)
       logger.info('[plumbing] fetched project list', JSON.stringify(finalList))
       return cb(null, finalList)
@@ -605,7 +720,10 @@ export default class Plumbing extends StateObject {
     logger.info('[plumbing] creating project', name)
     var authToken = sdkClient.config.getAuthToken()
     return inkstone.project.create(authToken, { Name: name }, (projectCreateErr, project) => {
-      if (projectCreateErr) return cb(projectCreateErr)
+      if (projectCreateErr) {
+        this.sentryError('createProject', projectCreateErr)
+        return cb(projectCreateErr)
+      }
       return cb(null, remapProjectObjectToExpectedFormat(project))
     })
   }
@@ -613,7 +731,13 @@ export default class Plumbing extends StateObject {
   deleteProject (name, cb) {
     logger.info('[plumbing] deleting project', name)
     var authToken = sdkClient.config.getAuthToken()
-    return inkstone.project.deleteByName(authToken, name, cb)
+    return inkstone.project.deleteByName(authToken, name, (deleteErr) => {
+      if (deleteErr) {
+        this.sentryError('deleteProject', deleteErr)
+        return cb(deleteErr)
+      }
+      return cb()
+    })
   }
 
   discardProjectChanges (folder, cb) {
@@ -656,17 +780,11 @@ export default class Plumbing extends StateObject {
   }
 
   gitUndo (folder, undoOptions, cb) {
-    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'gitUndo', [folder, undoOptions], (err) => {
-      if (err) return cb(err)
-      return cb()
-    })
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'gitUndo', [folder, undoOptions], cb)
   }
 
   gitRedo (folder, redoOptions, cb) {
-    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'gitRedo', [folder, redoOptions], (err) => {
-      if (err) return cb(err)
-      return cb()
-    })
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'gitRedo', [folder, redoOptions], cb)
   }
 
   readMetadata (folder, cb) {
@@ -855,7 +973,7 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSu
 
           this.spawnSubprocess(existingSpawnedSubprocs, folder, { name, path, args, opts }, (err, newProc) => {
             if (err) {
-              throw new Error(`Unable to respawn master for ${folder} because ${err}`)
+              return this._handleUnrecoverableError(new Error(`Unable to respawn master for ${folder} because ${_safeErrorMessage(err)}`))
             }
 
             newProc._attributes.closed = undefined
