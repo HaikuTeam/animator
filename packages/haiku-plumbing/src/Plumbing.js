@@ -32,6 +32,23 @@ if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
   Raven = require('./Raven')
 }
 
+// For any methods that are...
+// - noisy
+// - internal use only
+// - housekeeping
+// we'll skip Sentry for now.
+const METHODS_TO_SKIP_IN_SENTRY = {
+  setTimelineTime: true,
+  doesProjectHaveUnsavedChanges: true,
+  masterHeartbeat: true,
+  applyPropertyGroupDelta: true,
+  applyPropertyGroupValue: true,
+  moveSegmentEndpoints: true,
+  moveKeyframes: true,
+  toggleDevTools: true,
+  fetchProjectInfo: true
+}
+
 const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
   doesProjectHaveUnsavedChanges: true,
@@ -335,8 +352,11 @@ export default class Plumbing extends StateObject {
   processMethodMessage (type, alias, folder, message, cb) {
     // Certain messages aren't of a kind that we can reliably enqueue - either they happen too fast or they are 'fire and forget'
     if (METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY[message.method]) {
-      if (message.type === 'action') return this.handleClientAction(type, alias, folder, message.method, message.params, cb)
-      else return this.plumbingMethod(message.method, message.params, cb)
+      if (message.type === 'action') {
+        return this.handleClientAction(type, alias, folder, message.method, message.params, cb)
+      } else {
+        return this.plumbingMethod(message.method, message.params, cb)
+      }
     } else {
       this._methodMessages.push({ type, alias, folder, message, cb })
     }
@@ -349,6 +369,12 @@ export default class Plumbing extends StateObject {
       delete message.id // Don't confuse this as a request/response
       sendMessageToClient(client, merge(message, { folder, alias }))
     })
+  }
+
+  sentryError (method, error, extras) {
+    if (!Raven) return null
+    if (method && METHODS_TO_SKIP_IN_SENTRY[method]) return null
+    return Raven.captureException(error, extras)
   }
 
   plumbingMethod (method, params = [], cb) {
@@ -393,7 +419,13 @@ export default class Plumbing extends StateObject {
   sendFolderSpecificClientMethodQuery (folder, query = {}, method, params = [], cb) {
     return this.awaitFolderClientWithQuery(folder, method, query, WAIT_DELAY, (err, client) => {
       if (err) return cb(err)
-      return this.sendClientMethod(client, method, params, cb)
+      return this.sendClientMethod(client, method, params, (error, response) => {
+        if (error) {
+          this.sentryError(method, error, { tags: query })
+          return cb(error)
+        }
+        return cb(null, response)
+      })
     })
   }
 
@@ -518,38 +550,39 @@ export default class Plumbing extends StateObject {
           this.subprocs.push.apply(this.subprocs, spawned)
           return cb()
         })
-      },
-      (cb) => {
-        // QUESTION: Does this *need* to happen down here after the org fetch?
-        const gitInitializeUsername = maybeUsername || this.get('username')
-        const gitInitializePassword = maybePassword || this.get('password')
-
-        // A simpler project options to avoid passing options only used for the first pass, e.g. skipContentCreation
-        const projectOptionsAgain = {
-          organizationName: projectOptions.organizationName,
-          username: projectOptions.username,
-          password: projectOptions.password,
-          authorName
-        }
-
-        return this.initializeFolder(maybeProjectName, projectFolder, gitInitializeUsername, gitInitializePassword, projectOptionsAgain, (err) => {
-          if (err) return cb(err)
-          return cb(null, projectFolder)
-        })
       }
     ], (err) => {
-      if (err) return finish(err)
-
-      if (maybeProjectName) {
-        this.projects[maybeProjectName] = {
-          folder: projectFolder,
-          username: maybeUsername,
-          password: maybePassword,
-          organization: projectOptions.organizationName
-        }
+      if (err) {
+        this.sentryError('initializeProject', err)
+        return finish(err)
       }
 
-      return finish(null, projectFolder)
+      // QUESTION: Does this *need* to happen down here after the org fetch?
+      const gitInitializeUsername = maybeUsername || this.get('username')
+      const gitInitializePassword = maybePassword || this.get('password')
+
+      // A simpler project options to avoid passing options only used for the first pass, e.g. skipContentCreation
+      const projectOptionsAgain = {
+        organizationName: projectOptions.organizationName,
+        username: projectOptions.username,
+        password: projectOptions.password,
+        authorName
+      }
+
+      return this.initializeFolder(maybeProjectName, projectFolder, gitInitializeUsername, gitInitializePassword, projectOptionsAgain, (err) => {
+        if (err) return finish(err)
+
+        if (maybeProjectName) {
+          this.projects[maybeProjectName] = {
+            folder: projectFolder,
+            username: maybeUsername,
+            password: maybePassword,
+            organization: projectOptions.organizationName
+          }
+        }
+
+        return finish(null, projectFolder)
+      })
     })
   }
 
@@ -566,31 +599,11 @@ export default class Plumbing extends StateObject {
    * @description Assuming we already have a folder created, an organization name, etc., now bootstrap the folder itself.
    */
   initializeFolder (maybeProjectName, folder, maybeUsername, maybePassword, projectOptions, cb) {
-    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'initializeFolder', [maybeProjectName, maybeUsername, maybePassword, projectOptions], (err) => {
-      if (err) {
-        if (Raven) {
-          Raven.captureException(err, {
-            tags: { folder, projectName: maybeProjectName || 'unknown' }
-          })
-        }
-        return cb(err)
-      }
-      return cb()
-    })
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'initializeFolder', [maybeProjectName, maybeUsername, maybePassword, projectOptions], cb)
   }
 
   startProject (maybeProjectName, folder, cb) {
-    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'startProject', [], (err, response) => {
-      if (err) {
-        if (Raven) {
-          Raven.captureException(err, {
-            tags: { folder, projectName: maybeProjectName || 'unknown' }
-          })
-        }
-        return cb(err)
-      }
-      return cb(null, response)
-    })
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'startProject', [], cb)
   }
 
   restartProject (maybeProjectName, folder, cb) {
@@ -626,7 +639,18 @@ export default class Plumbing extends StateObject {
     return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
       if (authErr) return cb(authErr)
       if (httpResponse.statusCode === 401) return cb(new Error('Unauthorized'))
-      if (httpResponse.statusCode > 299) return cb(new Error(`Error status code: ${httpResponse.statusCode}`))
+
+      if (httpResponse.statusCode > 499) {
+        const serverErr = new Error(`Auth HTTP Error: ${httpResponse.statusCode}`)
+        this.sentryError('authenticateUser', serverErr)
+        return cb(serverErr)
+      }
+
+      if (httpResponse.statusCode > 299) {
+        const unexpectedError = new Error(`Auth HTTP Error: ${httpResponse.statusCode}`)
+        return cb(unexpectedError)
+      }
+
       if (!authResponse) return cb(new Error('Auth response was empty'))
       this.set('username', username)
       this.set('password', password)
@@ -673,7 +697,10 @@ export default class Plumbing extends StateObject {
     logger.info('[plumbing] listing projects')
     var authToken = sdkClient.config.getAuthToken()
     return inkstone.project.list(authToken, (projectListErr, projectsList) => {
-      if (projectListErr) return cb(projectListErr)
+      if (projectListErr) {
+        this.sentryError('listProjects', projectListErr)
+        return cb(projectListErr)
+      }
       var finalList = projectsList.map(remapProjectObjectToExpectedFormat)
       logger.info('[plumbing] fetched project list', JSON.stringify(finalList))
       return cb(null, finalList)
@@ -685,11 +712,7 @@ export default class Plumbing extends StateObject {
     var authToken = sdkClient.config.getAuthToken()
     return inkstone.project.create(authToken, { Name: name }, (projectCreateErr, project) => {
       if (projectCreateErr) {
-        if (Raven) {
-          Raven.captureException(projectCreateErr, {
-            tags: { projectName: name }
-          })
-        }
+        this.sentryError('createProject', projectCreateErr)
         return cb(projectCreateErr)
       }
       return cb(null, remapProjectObjectToExpectedFormat(project))
@@ -699,7 +722,13 @@ export default class Plumbing extends StateObject {
   deleteProject (name, cb) {
     logger.info('[plumbing] deleting project', name)
     var authToken = sdkClient.config.getAuthToken()
-    return inkstone.project.deleteByName(authToken, name, cb)
+    return inkstone.project.deleteByName(authToken, name, (deleteErr) => {
+      if (deleteErr) {
+        this.sentryError('deleteProject', deleteErr)
+        return cb(deleteErr)
+      }
+      return cb()
+    })
   }
 
   discardProjectChanges (folder, cb) {
@@ -711,17 +740,7 @@ export default class Plumbing extends StateObject {
     if (!saveOptions.authorName) saveOptions.authorName = this.get('username')
     if (!saveOptions.organizationName) saveOptions.organizationName = this.get('organizationName')
     logger.info('[plumbing] saving with options', saveOptions)
-    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions], (projectSaveErr, response) => {
-      if (projectSaveErr) {
-        if (Raven) {
-          Raven.captureException(projectSaveErr, {
-            tags: { folder, projectName }
-          })
-        }
-        return cb(projectSaveErr)
-      }
-      return cb(null, response)
-    })
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions], cb)
   }
 
   previewProject (folder, projectName, previewOptions, cb) {
@@ -752,17 +771,11 @@ export default class Plumbing extends StateObject {
   }
 
   gitUndo (folder, undoOptions, cb) {
-    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'gitUndo', [folder, undoOptions], (err) => {
-      if (err) return cb(err)
-      return cb()
-    })
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'gitUndo', [folder, undoOptions], cb)
   }
 
   gitRedo (folder, redoOptions, cb) {
-    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'gitRedo', [folder, redoOptions], (err) => {
-      if (err) return cb(err)
-      return cb()
-    })
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'gitRedo', [folder, redoOptions], cb)
   }
 
   readMetadata (folder, cb) {
