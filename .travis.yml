@@ -6,9 +6,6 @@ branches:
 os: osx
 osx_image: xcode8.3
 
-matrix:
-  fast_finish: true
-
 language: node_js
 node_js:
   - "8.4.0"
@@ -22,6 +19,7 @@ install:
   - yarn
 
 script:
+  - set -e
   - node ./scripts/distro-download-secrets.js
   - yarn relink
   - node ./scripts/distro-configure.js --non-interactive # 0m
