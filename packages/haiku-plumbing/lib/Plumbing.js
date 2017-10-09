@@ -106,8 +106,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var NOTIFIABLE_ENVS = {
   production: true,
-  staging: true,
-  development: true
+  staging: true
+  // development: true
 };
 
 var Raven = void 0;

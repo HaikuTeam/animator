@@ -25,7 +25,7 @@ import getNormalizedComponentModulePath from 'haiku-serialization/src/model/help
 const NOTIFIABLE_ENVS = {
   production: true,
   staging: true,
-  development: true
+  // development: true
 }
 
 let Raven

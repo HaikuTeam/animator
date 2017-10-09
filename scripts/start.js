@@ -23,7 +23,7 @@ var DEFAULTS = {
   mockEnvoy: '1',
   folderChoice: 'none',
   devChoice: 'everything',
-  nodeEnv: 'development',
+  nodeEnv: process.env.NODE_ENV,
   skipAutoUpdate: '1',
   skipInitialBuild: false,
   plumbingPort: '1024',
