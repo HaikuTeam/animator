@@ -24,7 +24,8 @@ import getNormalizedComponentModulePath from 'haiku-serialization/src/model/help
 
 const NOTIFIABLE_ENVS = {
   production: true,
-  staging: true
+  staging: true,
+  development: true
 }
 
 let Raven
@@ -374,6 +375,14 @@ export default class Plumbing extends StateObject {
   sentryError (method, error, extras) {
     if (!Raven) return null
     if (method && METHODS_TO_SKIP_IN_SENTRY[method]) return null
+    if (!error) return null
+    if (typeof error === 'object' && !(error instanceof Error)) {
+      var fixed = new Error(error.message || `Plumbing.${method} error`)
+      if (error.stack) fixed.stack = error.stack
+      error = fixed
+    } else if (typeof error === 'string') {
+      error = new Error(error) // Unfortunately no good stack trace in this case
+    }
     return Raven.captureException(error, extras)
   }
 
