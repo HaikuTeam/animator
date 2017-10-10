@@ -24,7 +24,7 @@ import getNormalizedComponentModulePath from 'haiku-serialization/src/model/help
 
 const NOTIFIABLE_ENVS = {
   production: true,
-  staging: true,
+  staging: true
   // development: true
 }
 
