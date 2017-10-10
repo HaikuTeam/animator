@@ -165,7 +165,7 @@ HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles() 
 };
 HaikuContext.prototype.tick = function tick() {
     var flushed = false;
-    if (!this.component._deactivated) {
+    if (!this.component._isDeactivated() && !this.component._isAsleep()) {
         if (this.component._shouldPerformFullFlush() || this.config.options.forceFlush || this._ticks < 1) {
             this.performFullFlushRender();
             flushed = true;

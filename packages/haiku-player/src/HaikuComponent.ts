@@ -162,6 +162,10 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
 
   // Flag to determine whether this component should continue doing any work
   this._deactivated = false
+
+  // Flag to indicate whether we are sleeping, an ephemeral condition where no rendering occurs
+  this._sleeping = false
+
 }
 
 HaikuComponent["PLAYER_VERSION"] = PLAYER_VERSION
@@ -552,6 +556,24 @@ HaikuComponent.prototype.getParser = function getParser(outputName, virtualEleme
 HaikuComponent.prototype._deactivate = function _deactivate() {
   this._deactivated = true
   return this
+}
+
+HaikuComponent.prototype._isDeactivated = function _isDeactivated() {
+  return this._deactivated
+}
+
+HaikuComponent.prototype._sleepOn = function _sleepOn() {
+  this._sleeping = true
+  return this
+}
+
+HaikuComponent.prototype._sleepOff = function _sleepOff() {
+  this._sleeping = false
+  return this
+}
+
+HaikuComponent.prototype._isAsleep = function _isAsleep() {
+  return this._sleeping
 }
 
 HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegisteredListenerOnElement(virtualElement, eventName, listenerFunction) {
