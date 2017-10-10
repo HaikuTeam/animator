@@ -146,11 +146,11 @@ class LibraryDrawer extends React.Component {
   }
 
   handleAssetDeletion (asset) {
-    // this.setState({isLoading: true})
+    this.setState({isLoading: true})
     return this.props.websocket.request({ method: 'unlinkAsset', params: [asset.relpath, this.props.folder] }, (error, assets) => {
       if (error) console.log(error)
       if (assets) {
-        this.setState({ assets })
+        this.setState({ assets, isLoading: false })
       }
     })
   }
