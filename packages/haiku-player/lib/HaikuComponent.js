@@ -60,6 +60,7 @@ function HaikuComponent(bytecode, context, config, metadata) {
     this._timelineInstances = {};
     this._template = _fetchAndCloneTemplate(this._bytecode.template);
     this._needsFullFlush = false;
+    this._alwaysFlush = false;
     this._lastTemplateExpansion = null;
     this._lastDeltaPatches = null;
     this._matchedElementCache = {};
@@ -532,7 +533,15 @@ HaikuComponent.prototype._unmarkForFullFlush = function _unmarkForFullFlush() {
     return this;
 };
 HaikuComponent.prototype._shouldPerformFullFlush = function _shouldPerformFullFlush() {
-    return this._needsFullFlush;
+    return this._needsFullFlush || this._alwaysFlush;
+};
+HaikuComponent.prototype._alwaysFlushYes = function _alwaysFlushYes() {
+    this._alwaysFlush = true;
+    return this;
+};
+HaikuComponent.prototype._alwaysFlushNo = function _alwaysFlushNo() {
+    this._alwaysFlush = false;
+    return this;
 };
 HaikuComponent.prototype._getEventsFired = function _getEventsFired() {
     return this._anyEventChange && this._eventsFired;
