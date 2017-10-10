@@ -432,7 +432,15 @@ ActiveComponent.prototype.deleteComponent = function deleteComponent (componentI
 }
 
 ActiveComponent.prototype.mergeDesigns = function mergeDesigns (timelineName, timelineTime, designs, metadata, cb) {
+  // Since several designs are merged, and that process occurs async, we can get into a situation
+  // where individual fragments are inserted but their parent layouts have not been appropriately
+  // populated. To fix this, we wait to do any rendering until this whole process has finished
+  this._componentInstance._sleepOn()
+
   this.fetchActiveBytecodeFile().mergeDesigns(timelineName, timelineTime, designs, (err) => {
+    // Now that we've finalized (or errored) the update, we can resume since we have no orphan fragments
+    this._componentInstance._sleepOff()
+
     if (err) {
       error(err)
       return cb(err)
