@@ -481,6 +481,7 @@ function HaikuComponent(bytecode, context, config, metadata) {
     this._timelineInstances = {};
     this._template = _fetchAndCloneTemplate(this._bytecode.template);
     this._needsFullFlush = false;
+    this._alwaysFlush = false;
     this._lastTemplateExpansion = null;
     this._lastDeltaPatches = null;
     this._matchedElementCache = {};
@@ -506,6 +507,7 @@ function HaikuComponent(bytecode, context, config, metadata) {
         config.onHaikuComponentDidInitialize(this);
     }
     this._deactivated = false;
+    this._sleeping = false;
 }
 exports["default"] = HaikuComponent;
 HaikuComponent["PLAYER_VERSION"] = PLAYER_VERSION;
@@ -792,6 +794,20 @@ HaikuComponent.prototype._deactivate = function _deactivate() {
     this._deactivated = true;
     return this;
 };
+HaikuComponent.prototype._isDeactivated = function _isDeactivated() {
+    return this._deactivated;
+};
+HaikuComponent.prototype._sleepOn = function _sleepOn() {
+    this._sleeping = true;
+    return this;
+};
+HaikuComponent.prototype._sleepOff = function _sleepOff() {
+    this._sleeping = false;
+    return this;
+};
+HaikuComponent.prototype._isAsleep = function _isAsleep() {
+    return this._sleeping;
+};
 HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegisteredListenerOnElement(virtualElement, eventName, listenerFunction) {
     var flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
     if (!flexId)
@@ -953,7 +969,15 @@ HaikuComponent.prototype._unmarkForFullFlush = function _unmarkForFullFlush() {
     return this;
 };
 HaikuComponent.prototype._shouldPerformFullFlush = function _shouldPerformFullFlush() {
-    return this._needsFullFlush;
+    return this._needsFullFlush || this._alwaysFlush;
+};
+HaikuComponent.prototype._alwaysFlushYes = function _alwaysFlushYes() {
+    this._alwaysFlush = true;
+    return this;
+};
+HaikuComponent.prototype._alwaysFlushNo = function _alwaysFlushNo() {
+    this._alwaysFlush = false;
+    return this;
 };
 HaikuComponent.prototype._getEventsFired = function _getEventsFired() {
     return this._anyEventChange && this._eventsFired;
@@ -1565,7 +1589,7 @@ HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles() 
 };
 HaikuContext.prototype.tick = function tick() {
     var flushed = false;
-    if (!this.component._deactivated) {
+    if (!this.component._isDeactivated() && !this.component._isAsleep()) {
         if (this.component._shouldPerformFullFlush() || this.config.options.forceFlush || this._ticks < 1) {
             this.performFullFlushRender();
             flushed = true;
@@ -4878,6 +4902,40 @@ var FILTER_SCHEMA = {
     filterUnits: "string",
     primitiveUnits: "string"
 };
+var RECT_SCHEMA = {
+    x: "number",
+    y: "number",
+    width: "number",
+    height: "number",
+    rx: "number",
+    ry: "number"
+};
+var CIRCLE_SCHEMA = {
+    r: "number",
+    cx: "number",
+    cy: "number"
+};
+var ELLIPSE_SCHEMA = {
+    rx: "number",
+    ry: "number",
+    cx: "number",
+    cy: "number"
+};
+var LINE_SCHEMA = {
+    x1: "number",
+    y1: "number",
+    x2: "number",
+    y2: "number"
+};
+var POLYLINE_SCHEMA = {
+    points: "string"
+};
+var POLYGON_SCHEMA = {
+    points: "string"
+};
+var PATH_SCHEMA = {
+    d: "string"
+};
 var STYLE_SCHEMA = {
     "style.alignmentBaseline": "string",
     "style.background": "string",
@@ -5041,7 +5099,7 @@ exports["default"] = {
     "canvas": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "caption": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "center": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "circle": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+    "circle": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, CIRCLE_SCHEMA),
     "cite": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "clipPath": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
     "code": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
@@ -5062,7 +5120,7 @@ exports["default"] = {
     "div": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "dl": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "dt": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "ellipse": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    "ellipse": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA, ELLIPSE_SCHEMA),
     "em": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "embed": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "feBlend": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
@@ -5132,7 +5190,7 @@ exports["default"] = {
     "label": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "legend": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "li": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "line": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+    "line": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, LINE_SCHEMA),
     "linearGradient": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
     "link": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "map": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
@@ -5158,15 +5216,15 @@ exports["default"] = {
     "output": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "p": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "param": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "path": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+    "path": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, PATH_SCHEMA),
     "pattern": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "polygon": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
-    "polyline": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+    "polygon": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, POLYGON_SCHEMA),
+    "polyline": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, POLYLINE_SCHEMA),
     "pre": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "progress": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "q": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "radialGradient": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "rect": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+    "rect": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, RECT_SCHEMA),
     "rp": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "rt": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
     "ruby": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
@@ -10006,7 +10064,7 @@ exports["default"] = parse;
 },{}],166:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.8",
+  "version": "2.3.9",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
