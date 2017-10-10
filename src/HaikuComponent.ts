@@ -97,6 +97,9 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
   this._needsFullFlush = false
 
+  // If true, will continually flush the entire tree until explicitly set to false again
+  this._alwaysFlush = false
+
   // The last output of a full re-render - I don't think this is important any more, except maybe for debugging [#LEGACY?]
   this._lastTemplateExpansion = null
 
@@ -812,7 +815,17 @@ HaikuComponent.prototype._unmarkForFullFlush = function _unmarkForFullFlush() {
 }
 
 HaikuComponent.prototype._shouldPerformFullFlush = function _shouldPerformFullFlush() {
-  return this._needsFullFlush
+  return this._needsFullFlush || this._alwaysFlush
+}
+
+HaikuComponent.prototype._alwaysFlushYes = function _alwaysFlushYes() {
+  this._alwaysFlush = true
+  return this
+}
+
+HaikuComponent.prototype._alwaysFlushNo = function _alwaysFlushNo() {
+  this._alwaysFlush = false
+  return this
 }
 
 HaikuComponent.prototype._getEventsFired = function _getEventsFired() {
@@ -925,6 +938,7 @@ HaikuComponent.prototype.render = function render(container, renderOptions, surr
     this._context,
   )
 
+  // We've done the render so we don't "need" to flush anymore
   this._needsFullFlush = false
 
   return this._lastTemplateExpansion
