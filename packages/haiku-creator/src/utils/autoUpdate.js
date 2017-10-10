@@ -9,7 +9,8 @@ const opts = {
   environment: process.env.HAIKU_RELEASE_ENVIRONMENT,
   branch: process.env.HAIKU_RELEASE_BRANCH,
   platform: process.env.HAIKU_RELEASE_PLATFORM,
-  version: process.env.HAIKU_RELEASE_VERSION
+  version: process.env.HAIKU_RELEASE_VERSION,
+  testAutoupdate: process.env.HAIKU_TEST_AUTOUPDATE
 }
 
 module.exports = {
@@ -61,13 +62,13 @@ module.exports = {
     return new Promise((resolve, reject) => {
       fetch(this.generateURL(opts))
         .then((response) => {
+          if (!response.ok) {
+            throw Error(`${response.statusText} : ${response.url}`)
+          }
+
           status = response.status
 
-          if (status === 200) {
-            return response.json()
-          } else {
-            return {}
-          }
+          return status === 200 ? response.json() : {}
         })
         .then((data) => {
           resolve({status: status, url: data.url})
