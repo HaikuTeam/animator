@@ -14,7 +14,7 @@ const tail = require("tail");
 const yargs_1 = require("yargs");
 const dedent = require("dedent");
 const banner = dedent `
-  Haiku CLI (version 2.3.8)
+  Haiku CLI (version 2.3.9)
 
   Usage:
     haiku <command> [flags]
