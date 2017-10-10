@@ -118,7 +118,8 @@ const DEFAULTS = {
   inputSelected: null,
   inputFocused: null,
   expandedPropertyClusters: {},
-  activeKeyframes: [],
+  selectedKeyframes: {},
+  selectedSegments: {},
   reifiedBytecode: null,
   serializedBytecode: null
 }
@@ -383,14 +384,14 @@ class Timeline extends React.Component {
       this.executeBytecodeActionSplitSegment(componentId, timelineName, elementName, propertyName, finalMs)
     })
     this.addEmitterListener(this.ctxmenu, 'joinKeyframes', (componentId, timelineName, elementName, propertyName, startMs, endMs, curveName) => {
-      this.tourClient.next()
-      this.executeBytecodeActionJoinKeyframes(componentId, timelineName, elementName, propertyName, startMs, endMs, curveName)
+      if (this.tourClient) this.tourClient.next()
+      this.changeMultipleSegmentCurves(componentId, timelineName, propertyName, startMs, curveName)
     })
     this.addEmitterListener(this.ctxmenu, 'deleteKeyframe', (componentId, timelineName, propertyName, startMs) => {
-      this.executeBytecodeActionDeleteKeyframe(componentId, timelineName, propertyName, startMs)
+      this.executeBytecodeActionDeleteKeyframe({componentId: {componentId, propertyName, ms: startMs}}, timelineName)
     })
     this.addEmitterListener(this.ctxmenu, 'changeSegmentCurve', (componentId, timelineName, propertyName, startMs, curveName) => {
-      this.executeBytecodeActionChangeSegmentCurve(componentId, timelineName, propertyName, startMs, curveName)
+      this.changeMultipleSegmentCurves(componentId, timelineName, propertyName, startMs, curveName)
     })
     this.addEmitterListener(this.ctxmenu, 'moveSegmentEndpoints', (componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs) => {
       this.executeBytecodeActionMoveSegmentEndpoints(componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs)
@@ -479,8 +480,11 @@ class Timeline extends React.Component {
       // case 38: // up
       // case 40: // down
       // case 46: //delete
-      // case 8: //delete
       // case 13: //enter
+      case 8: // delete
+        if (!lodash.isEmpty(this.state.selectedKeyframes)) {
+          this.executeBytecodeActionDeleteKeyframe(this.state.selectedKeyframes, this.state.currentTimelineName)
+        }
       case 16: return this.updateKeyboardState({ isShiftKeyDown: true })
       case 17: return this.updateKeyboardState({ isControlKeyDown: true })
       case 18: return this.updateKeyboardState({ isAltKeyDown: true })
@@ -786,18 +790,60 @@ class Timeline extends React.Component {
   }
 
   executeBytecodeActionSplitSegment (componentId, timelineName, elementName, propertyName, startMs) {
-    BytecodeActions.splitSegment(this.state.reifiedBytecode, componentId, timelineName, elementName, propertyName, startMs)
-    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
-    this._component._clearCaches()
-    this.setState({
-      reifiedBytecode: this.state.reifiedBytecode,
-      serializedBytecode: this._component.getSerializedBytecode()
+    lodash.each(this.state.selectedSegments, (s) => {
+      if (s.hasCurve) {
+        BytecodeActions.splitSegment(this.state.reifiedBytecode, componentId, timelineName, s.elementName, s.propertyName, s.ms)
+        clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+        this._component._clearCaches()
+        this.setState({
+          reifiedBytecode: this.state.reifiedBytecode,
+          serializedBytecode: this._component.getSerializedBytecode(),
+          selectedKeyframes: {},
+          selectedSegments: {}
+        })
+        this.props.websocket.action('splitSegment', [this.props.folder, [componentId], timelineName, s.elementName, s.propertyName, s.ms], () => {})
+      }
     })
-    this.props.websocket.action('splitSegment', [this.props.folder, [componentId], timelineName, elementName, propertyName, startMs], () => {})
   }
 
-  executeBytecodeActionJoinKeyframes (componentId, timelineName, elementName, propertyName, startMs, endMs, curveName) {
-    BytecodeActions.joinKeyframes(this.state.reifiedBytecode, componentId, timelineName, elementName, propertyName, startMs, endMs, curveName)
+  executeBytecodeActionDeleteKeyframe (keyframes, timelineName) {
+    lodash.each(keyframes, (k) => {
+      BytecodeActions.deleteKeyframe(this.state.reifiedBytecode, k.componentId, timelineName, k.propertyName, k.ms)
+      clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+      this._component._clearCaches()
+      this.setState({
+        reifiedBytecode: this.state.reifiedBytecode,
+        serializedBytecode: this._component.getSerializedBytecode(),
+        keyframeDragStartPx: false,
+        keyframeDragStartMs: false,
+        transitionBodyDragging: false
+      })
+      this.props.websocket.action('deleteKeyframe', [this.props.folder, [k.componentId], timelineName, k.propertyName, k.ms], () => {})
+    })
+    this.setState({selectedKeyframes: {}})
+  }
+
+  changeMultipleSegmentCurves (componentId, timelineName, propertyName, startMs, curveName) {
+    lodash.each(this.state.selectedSegments, (s) => {
+      if (!s.hasCurve) {
+        this.executeBytecodeActionJoinKeyframes(componentId, timelineName, s.elementName, s.propertyName, s.ms, s.endMs, curveName)
+      } else {
+        this.executeBytecodeActionChangeSegmentCurve(componentId, timelineName, s.propertyName, s.ms, curveName)
+      }
+    })
+  }
+
+  executeBytecodeActionJoinKeyframes(componentId, timelineName, elementName, propertyName, startMs, endMs, curveName) {
+    BytecodeActions.joinKeyframes(
+      this.state.reifiedBytecode,
+      componentId,
+      timelineName,
+      elementName,
+      propertyName,
+      startMs,
+      endMs,
+      curveName
+    )
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this._component._clearCaches()
     this.setState({
@@ -805,34 +851,31 @@ class Timeline extends React.Component {
       serializedBytecode: this._component.getSerializedBytecode(),
       keyframeDragStartPx: false,
       keyframeDragStartMs: false,
-      transitionBodyDragging: false
+      transitionBodyDragging: false,
+      selectedKeyframes: {},
+      selectedSegments: {}
     })
     // In the future, curve may be a function
     let curveForWire = expressionToRO(curveName)
     this.props.websocket.action('joinKeyframes', [this.props.folder, [componentId], timelineName, elementName, propertyName, startMs, endMs, curveForWire], () => {})
   }
 
-  executeBytecodeActionDeleteKeyframe (componentId, timelineName, propertyName, startMs) {
-    BytecodeActions.deleteKeyframe(this.state.reifiedBytecode, componentId, timelineName, propertyName, startMs)
+  executeBytecodeActionChangeSegmentCurve (componentId, timelineName, propertyName, startMs, curveName) {
+    BytecodeActions.changeSegmentCurve(
+      this.state.reifiedBytecode,
+      componentId,
+      timelineName,
+      propertyName,
+      startMs,
+      curveName
+    )
     clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
     this._component._clearCaches()
     this.setState({
       reifiedBytecode: this.state.reifiedBytecode,
       serializedBytecode: this._component.getSerializedBytecode(),
-      keyframeDragStartPx: false,
-      keyframeDragStartMs: false,
-      transitionBodyDragging: false
-    })
-    this.props.websocket.action('deleteKeyframe', [this.props.folder, [componentId], timelineName, propertyName, startMs], () => {})
-  }
-
-  executeBytecodeActionChangeSegmentCurve (componentId, timelineName, propertyName, startMs, curveName) {
-    BytecodeActions.changeSegmentCurve(this.state.reifiedBytecode, componentId, timelineName, propertyName, startMs, curveName)
-    clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
-    this._component._clearCaches()
-    this.setState({
-      reifiedBytecode: this.state.reifiedBytecode,
-      serializedBytecode: this._component.getSerializedBytecode()
+      selectedKeyframes: {},
+      selectedSegments: {}
     })
     // In the future, curve may be a function
     let curveForWire = expressionToRO(curveName)
@@ -896,24 +939,58 @@ class Timeline extends React.Component {
   }
 
   executeBytecodeActionMoveSegmentEndpoints (componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs) {
-    let frameInfo = this.getFrameInfo()
-    let keyframeMoves = BytecodeActions.moveSegmentEndpoints(this.state.reifiedBytecode, componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo)
-    // The 'keyframeMoves' indicate a list of changes we know occurred. Only if some occurred do we bother to update the other views
-    if (Object.keys(keyframeMoves).length > 0) {
-      clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
-      this._component._clearCaches()
-      this.setState({
-        reifiedBytecode: this.state.reifiedBytecode,
-        serializedBytecode: this._component.getSerializedBytecode()
-      })
+    /*
+    We're going to use the call from what's being dragged, because that's sometimes a transition body
+    rather than a simple keyframe.
 
-      // It's very heavy to transmit a websocket message for every single movement while updating the ui,
-      // so the values are accumulated and sent via a single batched update.
-      if (!this._keyframeMoves) this._keyframeMoves = {}
-      let movementKey = [componentId, timelineName, propertyName].join('-')
-      this._keyframeMoves[movementKey] = { componentId, timelineName, propertyName, keyframeMoves, frameInfo }
-      this.debouncedKeyframeMoveAction()
-    }
+    From there we're going to learn how far to move all other keyframes in selectedKeyframes: {}
+
+    Concerns:
+      When we need to stop one keyframe because it can't go any further, we need to stop the entire group drag.
+
+    Notes:
+      When a user drags a segment body it has the "body" handle. It
+    */
+    let selectedKeyframes = this.state.selectedKeyframes
+    const frameInfo = this.getFrameInfo()
+    const changeMs = endMs - startMs
+
+    lodash.each(selectedKeyframes, (k) => {
+      const adjustedMs = parseInt(k.ms) + changeMs
+      let keyframeMoves = BytecodeActions.moveSegmentEndpoints(
+        this.state.reifiedBytecode,
+        k.componentId,
+        timelineName,
+        k.propertyName,
+        k.handle, // todo: take a second look at this one
+        k.index,
+        k.ms,
+        adjustedMs,
+        frameInfo
+      )
+      // Update our selected keyframes start time now that we've moved them
+      // Note: This seems like there's probably a more clever way to make sure this gets
+      // updated via the BytecodeActions.moveSegmentEndpoints perhaps.
+      selectedKeyframes[k.componentId + '-' + k.propertyName + '-' + k.index].ms = Object.keys(keyframeMoves)[k.index]
+      this.setState({selectedKeyframes})
+
+      // The 'keyframeMoves' indicate a list of changes we know occurred. Only if some occurred do we bother to update the other views
+      if (Object.keys(keyframeMoves).length > 0) {
+        clearInMemoryBytecodeCaches(this.state.reifiedBytecode)
+        this._component._clearCaches()
+        this.setState({
+          reifiedBytecode: this.state.reifiedBytecode,
+          serializedBytecode: this._component.getSerializedBytecode()
+        })
+
+        // It's very heavy to transmit a websocket message for every single movement while updating the ui,
+        // so the values are accumulated and sent via a single batched update.
+        if (!this._keyframeMoves) this._keyframeMoves = {}
+        let movementKey = [componentId, timelineName, propertyName].join('-')
+        this._keyframeMoves[movementKey] = { componentId, timelineName, propertyName, keyframeMoves, frameInfo }
+        this.debouncedKeyframeMoveAction()
+      }
+    })
   }
 
   debouncedKeyframeMoveAction () {
@@ -1510,19 +1587,16 @@ class Timeline extends React.Component {
         axis='x'
         onStart={(dragEvent, dragData) => {
           this.setRowCacheActivation({ componentId, propertyName })
-          let activeKeyframes = this.state.activeKeyframes
-          activeKeyframes = [componentId + '-' + propertyName + '-' + curr.index]
           this.setState({
             inputSelected: null,
             inputFocused: null,
             keyframeDragStartPx: dragData.x,
-            keyframeDragStartMs: curr.ms,
-            activeKeyframes
+            keyframeDragStartMs: curr.ms
           })
         }}
         onStop={(dragEvent, dragData) => {
           this.unsetRowCacheActivation({ componentId, propertyName })
-          this.setState({ keyframeDragStartPx: false, keyframeDragStartMs: false, activeKeyframes: [] })
+          this.setState({ keyframeDragStartPx: false, keyframeDragStartMs: false })
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
           if (!this.state.transitionBodyDragging) {
@@ -1531,7 +1605,26 @@ class Timeline extends React.Component {
             let destMs = Math.round(this.state.keyframeDragStartMs + msChange)
             this.executeBytecodeActionMoveSegmentEndpoints(componentId, this.state.currentTimelineName, propertyName, handle, curr.index, curr.ms, destMs)
           }
-        }, THROTTLE_TIME)}>
+        }, THROTTLE_TIME)}
+        onMouseDown={(e) => {
+          e.stopPropagation()
+          let selectedKeyframes = this.state.selectedKeyframes
+          let selectedSegments = this.state.selectedSegments
+          if (!e.shiftKey) {
+            selectedKeyframes = {}
+            selectedSegments = {}
+          }
+
+          selectedKeyframes[componentId + '-' + propertyName + '-' + curr.index] = {
+            id: componentId + '-' + propertyName + '-' + curr.index,
+            index: curr.index,
+            ms: curr.ms,
+            handle,
+            componentId,
+            propertyName
+          }
+          this.setState({ selectedKeyframes, selectedSegments })
+        }}>
         <span
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
@@ -1575,9 +1668,7 @@ class Timeline extends React.Component {
 
   renderSoloKeyframe (frameInfo, componentId, elementName, propertyName, reifiedBytecode, prev, curr, next, pxOffsetLeft, pxOffsetRight, index, options) {
     let isActive = false
-    this.state.activeKeyframes.forEach((k) => {
-      if (k === componentId + '-' + propertyName + '-' + curr.index) isActive = true
-    })
+    if (this.state.selectedKeyframes[componentId + '-' + propertyName + '-' + curr.index] != undefined) isActive = true
 
     return (
       <span
@@ -1620,10 +1711,8 @@ class Timeline extends React.Component {
     const CurveSVG = CURVESVGS[curve + 'SVG']
     let firstKeyframeActive = false
     let secondKeyframeActive = false
-    this.state.activeKeyframes.forEach((k) => {
-      if (k === componentId + '-' + propertyName + '-' + curr.index) firstKeyframeActive = true
-      if (k === componentId + '-' + propertyName + '-' + (curr.index + 1)) secondKeyframeActive = true
-    })
+    if (this.state.selectedKeyframes[componentId + '-' + propertyName + '-' + curr.index] != undefined) firstKeyframeActive = true
+    if (this.state.selectedKeyframes[componentId + '-' + propertyName + '-' + (curr.index + 1)] != undefined) secondKeyframeActive = true
 
     return (
       <DraggableCore
@@ -1633,27 +1722,58 @@ class Timeline extends React.Component {
         onStart={(dragEvent, dragData) => {
           if (options.collapsed) return false
           this.setRowCacheActivation({ componentId, propertyName })
-          let activeKeyframes = this.state.activeKeyframes
-          activeKeyframes = [componentId + '-' + propertyName + '-' + curr.index, componentId + '-' + propertyName + '-' + (curr.index + 1)]
           this.setState({
             inputSelected: null,
             inputFocused: null,
             keyframeDragStartPx: dragData.x,
             keyframeDragStartMs: curr.ms,
-            transitionBodyDragging: true,
-            activeKeyframes
+            transitionBodyDragging: true
           })
         }}
         onStop={(dragEvent, dragData) => {
           this.unsetRowCacheActivation({ componentId, propertyName })
-          this.setState({ keyframeDragStartPx: false, keyframeDragStartMs: false, transitionBodyDragging: false, activeKeyframes: [] })
+          this.setState({ keyframeDragStartPx: false, keyframeDragStartMs: false, transitionBodyDragging: false })
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
           let pxChange = dragData.lastX - this.state.keyframeDragStartPx
           let msChange = (pxChange / frameInfo.pxpf) * frameInfo.mspf
           let destMs = Math.round(this.state.keyframeDragStartMs + msChange)
           this.executeBytecodeActionMoveSegmentEndpoints(componentId, this.state.currentTimelineName, propertyName, 'body', curr.index, curr.ms, destMs)
-        }, THROTTLE_TIME)}>
+        }, THROTTLE_TIME)}
+        onMouseDown={(e) => {
+          e.stopPropagation()
+          let selectedKeyframes = this.state.selectedKeyframes
+          let selectedSegments = this.state.selectedSegments
+          if (!e.shiftKey) {
+            selectedKeyframes = {}
+            selectedSegments = {}
+          }
+          selectedKeyframes[componentId + '-' + propertyName + '-' + curr.index] = {
+            id: componentId + '-' + propertyName + '-' + curr.index,
+            componentId,
+            propertyName,
+            index: curr.index,
+            ms: curr.ms,
+            handle: 'middle'
+          }
+          selectedKeyframes[componentId + '-' + propertyName + '-' + (curr.index + 1)] = {
+            id: componentId + '-' + propertyName + '-' + (curr.index + 1),
+            componentId,
+            propertyName,
+            elementName,
+            index: next.index,
+            ms: next.ms,
+            handle: 'middle'
+          }
+          selectedSegments[componentId + '-' + propertyName + '-' + curr.index] = {
+            id: componentId + '-' + propertyName + '-' + curr.index,
+            componentId,
+            propertyName,
+            ms: curr.ms,
+            hasCurve: true
+          }
+          this.setState({ selectedKeyframes, selectedSegments })
+        }}>
         <span
           className='pill-container'
           key={uniqueKey}
@@ -1832,6 +1952,8 @@ class Timeline extends React.Component {
   renderConstantBody (frameInfo, componentId, elementName, propertyName, reifiedBytecode, prev, curr, next, pxOffsetLeft, pxOffsetRight, index, options) {
     // const activeInfo = setActiveContents(propertyName, curr, next, false, this.state.timeDisplayMode === 'frames')
     const uniqueKey = `${propertyName}-${index}-${curr.ms}`
+    let isSelected = false
+    if (this.state.selectedSegments[componentId + '-' + propertyName + '-' + curr.index] != undefined) isSelected = true
 
     return (
       <span
@@ -1867,6 +1989,26 @@ class Timeline extends React.Component {
             elementName
           })
         }}
+        onMouseDown={(e) => {
+          e.stopPropagation()
+          let selectedSegments = this.state.selectedSegments
+          let selectedKeyframes = this.state.selectedKeyframes
+          if (!e.shiftKey) {
+            selectedSegments = {}
+            selectedKeyframes = {}
+          } else {
+            selectedSegments[componentId + '-' + propertyName + '-' + curr.index] = {
+              id: componentId + '-' + propertyName + '-' + curr.index,
+              componentId,
+              elementName,
+              propertyName,
+              ms: curr.ms,
+              endMs: next.ms,
+              hasCurve: false
+            }
+          }
+          this.setState({ selectedSegments, selectedKeyframes })
+        }}
         style={{
           position: 'absolute',
           left: pxOffsetLeft + 4,
@@ -1881,7 +2023,9 @@ class Timeline extends React.Component {
           width: '100%',
           backgroundColor: (options.collapsedElement)
             ? Color(Palette.GRAY).fade(0.23)
-            : Palette.DARKER_GRAY
+            : (isSelected)
+              ?  Color(Palette.LIGHTEST_PINK).fade(.5)
+              : Palette.DARKER_GRAY
         }} />
       </span>
     )
@@ -2788,6 +2932,9 @@ class Timeline extends React.Component {
             bottom: 0,
             overflowY: 'auto',
             overflowX: 'hidden'
+          }}
+          onMouseDown={() => {
+            this.setState({selectedKeyframes: {}, selectedSegments: {}})
           }}>
           {this.renderComponentRows(this.state.componentRowsData)}
         </div>
