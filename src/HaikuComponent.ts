@@ -97,6 +97,9 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
   this._needsFullFlush = false
 
+  // If true, will continually flush the entire tree until explicitly set to false again
+  this._alwaysFlush = false
+
   // The last output of a full re-render - I don't think this is important any more, except maybe for debugging [#LEGACY?]
   this._lastTemplateExpansion = null
 
@@ -159,6 +162,10 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
 
   // Flag to determine whether this component should continue doing any work
   this._deactivated = false
+
+  // Flag to indicate whether we are sleeping, an ephemeral condition where no rendering occurs
+  this._sleeping = false
+
 }
 
 HaikuComponent["PLAYER_VERSION"] = PLAYER_VERSION
@@ -551,6 +558,24 @@ HaikuComponent.prototype._deactivate = function _deactivate() {
   return this
 }
 
+HaikuComponent.prototype._isDeactivated = function _isDeactivated() {
+  return this._deactivated
+}
+
+HaikuComponent.prototype._sleepOn = function _sleepOn() {
+  this._sleeping = true
+  return this
+}
+
+HaikuComponent.prototype._sleepOff = function _sleepOff() {
+  this._sleeping = false
+  return this
+}
+
+HaikuComponent.prototype._isAsleep = function _isAsleep() {
+  return this._sleeping
+}
+
 HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegisteredListenerOnElement(virtualElement, eventName, listenerFunction) {
   let flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id
   if (!flexId) return false
@@ -812,7 +837,17 @@ HaikuComponent.prototype._unmarkForFullFlush = function _unmarkForFullFlush() {
 }
 
 HaikuComponent.prototype._shouldPerformFullFlush = function _shouldPerformFullFlush() {
-  return this._needsFullFlush
+  return this._needsFullFlush || this._alwaysFlush
+}
+
+HaikuComponent.prototype._alwaysFlushYes = function _alwaysFlushYes() {
+  this._alwaysFlush = true
+  return this
+}
+
+HaikuComponent.prototype._alwaysFlushNo = function _alwaysFlushNo() {
+  this._alwaysFlush = false
+  return this
 }
 
 HaikuComponent.prototype._getEventsFired = function _getEventsFired() {
@@ -925,6 +960,7 @@ HaikuComponent.prototype.render = function render(container, renderOptions, surr
     this._context,
   )
 
+  // We've done the render so we don't "need" to flush anymore
   this._needsFullFlush = false
 
   return this._lastTemplateExpansion
