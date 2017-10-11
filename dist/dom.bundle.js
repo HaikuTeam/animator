@@ -662,7 +662,9 @@ HaikuComponent.prototype.setState = function setState(states) {
 };
 HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
     this._states = {};
-    _bindStates(this._states, this, this.config.states);
+    if (options && options.clearStates !== false) {
+        _bindStates(this._states, this, this.config.states);
+    }
     if (options && options.clearPreviouslyRegisteredEventListeners) {
         for (var flexId in this._registeredElementEventListeners) {
             for (var eventName in this._registeredElementEventListeners[flexId]) {
@@ -674,7 +676,9 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
             }
         }
     }
-    _bindEventHandlers(this, this.config.eventHandlers);
+    if (options && options.clearEventHandlers !== false) {
+        _bindEventHandlers(this, this.config.eventHandlers);
+    }
     this._stateChanges = {};
     this._anyStateChange = false;
     this._eventsFired = {};
@@ -687,7 +691,7 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
     this._controlFlowData = {};
     this._clearDetectedEventsFired();
     this._clearDetectedInputChanges();
-    this._builder._clearCaches();
+    this._builder._clearCaches(options);
     this._context.config.options.cache = {};
     this.config.options.cache = {};
     return this;
@@ -2824,11 +2828,36 @@ function ValueBuilder(component) {
     }.bind(this));
 }
 exports["default"] = ValueBuilder;
-ValueBuilder.prototype._clearCaches = function _clearCaches() {
-    this._parsees = {};
-    this._changes = {};
-    this._summonees = {};
-    this._evaluations = {};
+function _cc(obj, timelineName, flexId, propertyKeys) {
+    if (!obj[timelineName])
+        return false;
+    if (!obj[timelineName][flexId])
+        return false;
+    if (!propertyKeys)
+        return false;
+    if (propertyKeys.length < 1)
+        return false;
+    for (var i = 0; i < propertyKeys.length; i++) {
+        obj[timelineName][flexId][propertyKeys[i]] = {};
+    }
+    return true;
+}
+ValueBuilder.prototype._clearCaches = function _clearCaches(options) {
+    if (options && options.clearOnlySpecificProperties) {
+        var timelineName = options.clearOnlySpecificProperties.timelineName;
+        var flexId = options.clearOnlySpecificProperties.componentId;
+        var propertyKeys = options.clearOnlySpecificProperties.propertyKeys;
+        _cc(this._parsees, timelineName, flexId, propertyKeys);
+        _cc(this._summonees, timelineName, flexId, propertyKeys);
+        _cc(this._evaluations, timelineName, flexId, propertyKeys);
+        _cc(this._changes, timelineName, flexId, propertyKeys);
+    }
+    else {
+        this._parsees = {};
+        this._changes = {};
+        this._summonees = {};
+        this._evaluations = {};
+    }
     return this;
 };
 ValueBuilder.prototype._clearCachedClusters = function _clearCachedClusters(timelineName, componentId) {
@@ -10064,7 +10093,7 @@ exports["default"] = parse;
 },{}],166:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.9",
+  "version": "2.3.10",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
