@@ -701,11 +701,32 @@ export default function ValueBuilder(component) {
   }.bind(this))
 }
 
-ValueBuilder.prototype._clearCaches = function _clearCaches() {
-  this._parsees = {}
-  this._changes = {}
-  this._summonees = {}
-  this._evaluations = {}
+function _cc(obj, timelineName, flexId, propertyKeys) {
+  if (!obj[timelineName]) return false
+  if (!obj[timelineName][flexId]) return false
+  if (!propertyKeys) return false
+  if (propertyKeys.length < 1) return false
+  for (let i = 0; i < propertyKeys.length; i++) {
+    obj[timelineName][flexId][propertyKeys[i]] = {}
+  }
+  return true
+}
+
+ValueBuilder.prototype._clearCaches = function _clearCaches(options) {
+  if (options && options.clearOnlySpecificProperties) {
+    let timelineName = options.clearOnlySpecificProperties.timelineName
+    let flexId = options.clearOnlySpecificProperties.componentId
+    let propertyKeys = options.clearOnlySpecificProperties.propertyKeys
+    _cc(this._parsees, timelineName, flexId, propertyKeys)
+    _cc(this._summonees, timelineName, flexId, propertyKeys)
+    _cc(this._evaluations, timelineName, flexId, propertyKeys)
+    _cc(this._changes, timelineName, flexId, propertyKeys)
+  } else {
+    this._parsees = {}
+    this._changes = {}
+    this._summonees = {}
+    this._evaluations = {}
+  }
   return this
 }
 
