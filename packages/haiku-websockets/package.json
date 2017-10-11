@@ -1,7 +1,7 @@
 {
   "name": "haiku-websockets",
   "private": true,
-  "version": "2.3.9",
+  "version": "2.3.10",
   "description": "Websocket classes and utilities",
   "main": "index.js",
   "author": "Matthew Trost <matthew@haiku.ai>",
