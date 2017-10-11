@@ -21,6 +21,10 @@ import Tour from './components/Tour/Tour'
 import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 import {
+  linkExternalAssetsOnDrop,
+  preventDefaultDrag
+} from 'haiku-serialization/src/utils/dndHelpers'
+import {
   HOMEDIR_PATH,
   HOMEDIR_LOGS_PATH
 } from 'haiku-serialization/src/utils/HaikuHomeDir'
@@ -120,6 +124,9 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:check-updates', () => {
       this.setState({ hasCheckedForUpdates: false })
     })
+
+    window.addEventListener('dragover', preventDefaultDrag, false)
+    window.addEventListener('drop', linkExternalAssetsOnDrop.bind(this), false)
   }
 
   openTerminal (folder) {

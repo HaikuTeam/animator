@@ -11,6 +11,11 @@ import BytecodeActions from 'haiku-bytecode/src/actions'
 import ActiveComponent from 'haiku-serialization/src/model/ActiveComponent'
 
 import {
+  linkExternalAssetsOnDrop,
+  preventDefaultDrag
+} from 'haiku-serialization/src/utils/dndHelpers'
+
+import {
   nextPropItem,
   getItemComponentId,
   getItemPropertyName
@@ -196,6 +201,9 @@ class Timeline extends React.Component {
     this.updateState = this.updateState.bind(this)
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
     window.timeline = this
+
+    window.addEventListener('dragover', preventDefaultDrag, false)
+    window.addEventListener('drop', linkExternalAssetsOnDrop.bind(this), false)
   }
 
   flushUpdates () {
