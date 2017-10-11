@@ -1074,7 +1074,7 @@ module.exports = {
         "sizeMode.y": { "0": { value: 1 } },
         "translation.x": { "0": { value: -0.7812309265136719, edited: true } },
         "translation.y": { "0": { value: -1.749995231628418, edited: true } },
-        "style.zIndex": { "0": { value: 12 } }
+        "style.zIndex": { "0": { value: 28 } }
       },
       "haiku:fbb7f87e4c6c": {
         stroke: { "0": { value: "none" } },
@@ -1295,7 +1295,7 @@ module.exports = {
           "1333": { value: 40, edited: true }
         },
         "translation.y": { "0": { value: 144.5, edited: true } },
-        "style.zIndex": { "0": { value: 14 } },
+        "style.zIndex": { "0": { value: 29 } },
         "scale.x": {
           "0": { value: 1, curve: "linear" },
           "1333": { value: 0.8, edited: true }
@@ -1338,7 +1338,7 @@ module.exports = {
           "500": { value: 128, edited: true }
         },
         "translation.y": { "0": { value: 120, edited: true } },
-        "style.zIndex": { "0": { value: 15 } }
+        "style.zIndex": { "0": { value: 30 } }
       },
       "haiku:da7c0da36670": {
         stroke: { "0": { value: "none" } },
@@ -1370,7 +1370,7 @@ module.exports = {
           "1333": { value: 158, edited: true }
         },
         "translation.y": { "0": { value: 145.10000000000002, edited: true } },
-        "style.zIndex": { "0": { value: 16 } },
+        "style.zIndex": { "0": { value: 31 } },
         "scale.x": {
           "0": { value: 0.8, edited: true, curve: "linear" },
           "1317": { value: 1, edited: true }
@@ -1409,7 +1409,7 @@ module.exports = {
           "1333": { value: 250, edited: true }
         },
         "translation.y": { "0": { value: 144.90000000000003, edited: true } },
-        "style.zIndex": { "0": { value: 17 } },
+        "style.zIndex": { "0": { value: 32 } },
         "scale.x": { "0": { value: 0.8, edited: true } },
         "scale.y": { "0": { value: 0.8, edited: true } }
       },
