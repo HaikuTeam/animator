@@ -30,10 +30,10 @@ module.exports = {
     })
   },
 
-  unzip (zipPath, destination) {
+  unzip (zipPath, destination, filename) {
     return new Promise((resolve, reject) => {
       exec(
-        `unzip -o -qq ${zipPath} -d ${destination} && open -a /Applications/Haiku.app $1`,
+        `unzip -o -qq ${zipPath} -d ${destination} && open -a ${destination}/${filename}.app $1`,
         {},
         err => {
           if (err) reject(err)

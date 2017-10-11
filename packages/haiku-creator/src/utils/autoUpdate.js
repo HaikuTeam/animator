@@ -35,7 +35,7 @@ module.exports = {
 
         download(url, zipPath, progressCallback)
           .then(() => {
-            unzip(zipPath, installationPath)
+            unzip(zipPath, installationPath, 'Haiku')
             electron.remote.app.exit()
           })
       }
