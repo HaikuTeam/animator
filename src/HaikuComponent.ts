@@ -376,7 +376,9 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
 
   // Don't forget to repopulate the states with originals when we cc otherwise folks
   // who depend on initial states being set will be SAD!
-  _bindStates(this._states, this, this.config.states)
+  if (options && options.clearStates !== false) {
+    _bindStates(this._states, this, this.config.states)
+  }
 
   if (options && options.clearPreviouslyRegisteredEventListeners) {
     // If specified, remove any previous registrations of event listeners so we don't get a bunch
@@ -393,7 +395,9 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
   }
 
   // Gotta bind any event handlers that may have been dynamically added
-  _bindEventHandlers(this, this.config.eventHandlers)
+  if (options && options.clearEventHandlers !== false) {
+    _bindEventHandlers(this, this.config.eventHandlers)
+  }
 
   this._stateChanges = {}
   this._anyStateChange = false
@@ -405,9 +409,11 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
   this._matchedElementCache = {}
   this._renderScopes = {}
   this._controlFlowData = {}
+
   this._clearDetectedEventsFired()
   this._clearDetectedInputChanges()
-  this._builder._clearCaches()
+
+  this._builder._clearCaches(options)
 
   // TODO: Do we _need_ to reach in and clear the caches of context?
   this._context.config.options.cache = {}
