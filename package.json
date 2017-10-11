@@ -2,6 +2,8 @@
   "name": "haiku-common",
   "version": "2.3.10",
   "main": "index.js",
-  "author": "Sasha Joseph <sasha.joseph@gmail.com>",
+  "authors": [
+    "Sasha Joseph <sasha@haiku.ai>"
+  ],
   "license": "UNLICENSED"
 }
