@@ -6,11 +6,17 @@
     "jsRules": {},
     "rules": {
       "semicolon": [true, "never"],
+      "comment-format": false,
+      "ordered-imports": false,
       "member-access": [true, "no-public"],
       "ban-types": [true],
       "curly": false,
       "forin": false,
+      "no-empty": false,
       "no-console": false,
+      "no-trailing-whitespace": false,
+      "whitespace": false,
+      "max-classes-per-file": 5,
       "no-angle-bracket-type-assertion": false,
       "interface-name": false,
       "member-ordering": false,
@@ -20,6 +26,7 @@
       "no-string-literal": false,
       "object-literal-sort-keys": false,
       "no-unused-variable": true,
+      "variable-name": false,
       "no-var-requires": false
     },
     "rulesDirectory": []

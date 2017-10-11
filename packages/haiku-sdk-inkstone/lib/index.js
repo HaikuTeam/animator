@@ -16,7 +16,7 @@ var ENDPOINTS = {
     PROJECT_DELETE_BY_NAME: "v0/project/:NAME",
 };
 var request = requestLib.defaults({
-    strictSSL: false
+    strictSSL: true
 });
 var inkstone;
 (function (inkstone) {
@@ -27,6 +27,11 @@ var inkstone;
     };
     function setConfig(newVals) {
         _.extend(_inkstoneConfig, newVals);
+        if (newVals.baseUrl.indexOf("https://localhost") === 0) {
+            request = requestLib.defaults({
+                strictSSL: false
+            });
+        }
     }
     inkstone.setConfig = setConfig;
     var user;
@@ -190,7 +195,6 @@ var inkstone;
                         setTimeout(function () { awaitSnapshotLink(id, cb, recursionIncr + 1); }, RETRY_PERIOD);
                     }
                     else {
-                        console.log("Response", snap);
                         cb(undefined, assembleSnapshotLinkFromSnapshot(snap.Snapshot), response);
                     }
                 });
