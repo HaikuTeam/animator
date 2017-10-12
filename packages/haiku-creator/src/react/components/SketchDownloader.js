@@ -16,14 +16,7 @@ class SketchDownloader extends React.Component {
     this.download = this.download.bind(this)
     this.updateProgress = this.updateProgress.bind(this)
     this.onFail = this.onFail.bind(this)
-    this.setInitialState()
-  }
 
-  componentWillReceiveProps () {
-    this.setInitialState()
-  }
-
-  setInitialState() {
     this.state = {
       status: statuses.PROMPT_USER,
       progress: 0,
@@ -31,8 +24,8 @@ class SketchDownloader extends React.Component {
     }
   }
 
-  onFail(error) {
-    this.setState({status: statuses.DOWNLOAD_FAILED})
+  componentWillReceiveProps () {
+    this.setState({status: statuses.PROMPT_USER})
   }
 
   download(url) {
@@ -41,10 +34,9 @@ class SketchDownloader extends React.Component {
     download(this.updateProgress, () => this.state.shouldCancel)
       .then(() => {
         this.props.onDownloadComplete()
-        this.hide()
       })
-      .catch((error) => {
-        error.message === 'Download cancelled' ? this.hide() : this.onFail()
+      .catch(error => {
+        error.message === 'Download cancelled' ? this.hide() : this.onFail(error)
       })
   }
 
@@ -52,8 +44,22 @@ class SketchDownloader extends React.Component {
     this.setState({progress})
   }
 
+  onFail(error) {
+    this.setState({
+      status: statuses.DOWNLOAD_FAILED,
+      progress: 0,
+      shouldCancel: false
+    })
+
+    console.error(error)
+  }
+
   hide() {
-    this.setState({status: statuses.IDLE})
+    this.setState({
+      status: statuses.IDLE,
+      progress: 0,
+      shouldCancel: false
+    })
   }
 
   renderPromptUser() {

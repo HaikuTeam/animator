@@ -148,6 +148,12 @@ class LibraryDrawer extends React.Component {
     }
   }
 
+  onSketchDownloadComplete () {
+    this.isSketchInstalled = true
+    this.openSketchFile(this.state.sketchDownloader.fileData)
+    this.setState({sketchDownloader: {isVisible: false, fileData: null}})
+  }
+
   handleAssetInstantiation (fileData) {
     switch (fileData.type) {
       case 'sketch':
@@ -327,10 +333,7 @@ class LibraryDrawer extends React.Component {
         {
           this.state.sketchDownloader.isVisible && (
             <SketchDownloader
-              onDownloadComplete={this.openSketchFile.bind(
-                this,
-                this.state.sketchDownloader.fileData
-              )}
+              onDownloadComplete={this.onSketchDownloadComplete.bind(this)}
             />
           )
         }
