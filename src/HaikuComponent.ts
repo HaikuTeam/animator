@@ -376,7 +376,7 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
 
   // Don't forget to repopulate the states with originals when we cc otherwise folks
   // who depend on initial states being set will be SAD!
-  if (options && options.clearStates !== false) {
+  if (!options || (options && options.clearStates !== false)) {
     _bindStates(this._states, this, this.config.states)
   }
 
@@ -395,7 +395,7 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
   }
 
   // Gotta bind any event handlers that may have been dynamically added
-  if (options && options.clearEventHandlers !== false) {
+  if (!options || (options && options.clearEventHandlers !== false)) {
     _bindEventHandlers(this, this.config.eventHandlers)
   }
 
