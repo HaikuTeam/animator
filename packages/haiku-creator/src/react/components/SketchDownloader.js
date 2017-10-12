@@ -5,49 +5,58 @@ import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared'
 let statuses = {
   PROMPT_USER: 'PromptUser',
   DOWNLOADING: 'Downloading',
-  DOWNLOAD_FINISHED: 'DownloadFinished',
   DOWNLOAD_FAILED: 'DownloadFailed'
 }
 
 class SketchDownloader extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.hide = this.hide.bind(this)
     this.download = this.download.bind(this)
     this.updateProgress = this.updateProgress.bind(this)
     this.onFail = this.onFail.bind(this)
+    this.setInitialState()
+  }
 
+  componentWillReceiveProps () {
+    this.setInitialState()
+  }
+
+  setInitialState() {
     this.state = {
       status: statuses.PROMPT_USER,
-      progress: 0
+      progress: 0,
+      shouldCancel: false
     }
   }
 
-  onFail (error) {
-    console.error(error)
+  onFail(error) {
     this.setState({status: statuses.DOWNLOAD_FAILED})
   }
 
-  download (url) {
+  download(url) {
     this.setState({status: statuses.DOWNLOADING})
 
-    download(this.updateProgress)
+    download(this.updateProgress, () => this.state.shouldCancel)
       .then(() => {
-        this.setState({status: statuses.DOWNLOAD_FINISHED, progress: 0})
+        this.props.onDownloadComplete()
+        this.hide()
       })
-      .catch(this.onFail)
+      .catch((error) => {
+        error.message === 'Download cancelled' ? this.hide() : this.onFail()
+      })
   }
 
-  updateProgress (progress) {
-    this.setState({ progress })
+  updateProgress(progress) {
+    this.setState({progress})
   }
 
-  hide () {
+  hide() {
     this.setState({status: statuses.IDLE})
   }
 
-  renderPromptUser () {
+  renderPromptUser() {
     return (
       <div>
         <p>
@@ -55,56 +64,58 @@ class SketchDownloader extends React.Component {
           You can install a 30-day trial for free.
         </p>
         <p>Would you like to download Sketch?</p>
-        <button style={STYLES.btn} onClick={this.hide}>No</button>
-        <button style={STYLES.btn} onClick={this.download}>Yes</button>
+        <button style={STYLES.btnSecondary} onClick={this.hide}>
+          Not now
+        </button>
+        <button style={STYLES.btn} onClick={this.download}>
+          Yes
+        </button>
       </div>
     )
   }
 
-  renderDownloading () {
+  renderDownloading() {
     const progress = this.state.progress.toFixed(1)
 
     return (
       <div>
-        <span>
-          Downloading and installing...
-        </span>
+        <span>Downloading and installing...</span>
         <p style={STYLES.progressNumber}>{progress} %</p>
-        <progress value={progress} max='100' style={STYLES.progressBar}>
+        <progress value={progress} max="100" style={STYLES.progressBar}>
           {progress} %
         </progress>
+        <button
+          style={STYLES.btn}
+          onClick={() => this.setState({shouldCancel: true})}
+        >
+          Cancel
+        </button>
       </div>
     )
   }
 
-  renderDownloadFinished () {
+  renderDownloadFailed() {
     return (
       <div>
-        Sketch is redy to use!
-        <button style={STYLES.btn} onClick={this.hide}>Ok</button>
+        <p>
+          There was an error downloading Sketch, if the problem persists, please
+          contact Haiku support.
+        </p>
+        <button style={STYLES.btn} onClick={this.hide}>
+          Ok
+        </button>
       </div>
     )
   }
 
-  renderDownloadFailed () {
-    return (
-      <div>
-        <p>There was an error downloading Sketch, if the problem persists,
-        please contact Haiku support.</p>
-        <button style={STYLES.btn} onClick={this.hide}>Ok</button>
-      </div>
-    )
-  }
-
-  render () {
-    console.log(this.state.status)
-    let content = this[`render${this.state.status}`]()
+  render() {
+    const {status} = this.state
+    if (status === statuses.IDLE) return null
+    let content = this[`render${status}`]()
 
     return (
       <div>
-        <div style={STYLES.container}>
-          {content}
-        </div>
+        <div style={STYLES.container}>{content}</div>
         <div style={STYLES.overlay} />
       </div>
     )

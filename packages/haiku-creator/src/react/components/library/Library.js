@@ -95,7 +95,10 @@ class LibraryDrawer extends React.Component {
       previewImageTime: null,
       overDropTarget: false,
       isLoading: false,
-      showSketchDownloader: false
+      sketchDownloader: {
+        isVisible: false,
+        fileData: null
+      }
     }
   }
 
@@ -132,12 +135,16 @@ class LibraryDrawer extends React.Component {
     })
   }
 
-  handleSketchInstantiation (fileData) {
+  openSketchFile (fileData) {
+    let abspath = path.join(this.props.folder, 'designs', fileData.fileName)
+    shell.openItem(abspath)
+  }
+
+  handleSketchInstantiation(fileData) {
     if (this.isSketchInstalled) {
-      let abspath = path.join(this.props.folder, 'designs', fileData.fileName)
-      shell.openItem(abspath)
+      this.openSketchFile(fileData)
     } else {
-      this.setState({showSketchDownloader: true})
+      this.setState({sketchDownloader: {isVisible: true, fileData}})
     }
   }
 
@@ -317,7 +324,16 @@ class LibraryDrawer extends React.Component {
             {this.state.isLoading ? '' : this.renderAssetsList()}
           </div>
         </div>
-        {this.state.showSketchDownloader && <SketchDownloader />}
+        {
+          this.state.sketchDownloader.isVisible && (
+            <SketchDownloader
+              onDownloadComplete={this.openSketchFile.bind(
+                this,
+                this.state.sketchDownloader.fileData
+              )}
+            />
+          )
+        }
       </div>
     )
   }

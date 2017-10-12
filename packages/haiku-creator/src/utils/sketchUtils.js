@@ -5,13 +5,13 @@ const os = require('os')
 const DOWNLOAD_URL = 'https://download.sketchapp.com/sketch.zip'
 
 module.exports = {
-  download (progressCallback) {
+  download (progressCallback, shouldCancel) {
     return new Promise((resolve, reject) => {
       const tempPath = os.tmpdir()
       const zipPath = `${tempPath}/sketch.zip`
       const installationPath = '/Applications'
 
-      download(DOWNLOAD_URL, zipPath, progressCallback)
+      download(DOWNLOAD_URL, zipPath, progressCallback, shouldCancel)
         .then(() => {
           return unzip(zipPath, installationPath, 'Sketch')
         })
