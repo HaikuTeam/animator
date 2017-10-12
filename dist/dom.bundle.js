@@ -662,7 +662,7 @@ HaikuComponent.prototype.setState = function setState(states) {
 };
 HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
     this._states = {};
-    if (options && options.clearStates !== false) {
+    if (!options || (options && options.clearStates !== false)) {
         _bindStates(this._states, this, this.config.states);
     }
     if (options && options.clearPreviouslyRegisteredEventListeners) {
@@ -676,7 +676,7 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
             }
         }
     }
-    if (options && options.clearEventHandlers !== false) {
+    if (!options || (options && options.clearEventHandlers !== false)) {
         _bindEventHandlers(this, this.config.eventHandlers);
     }
     this._stateChanges = {};
@@ -10093,7 +10093,7 @@ exports["default"] = parse;
 },{}],166:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.10",
+  "version": "2.3.11",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
