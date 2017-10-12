@@ -2,7 +2,7 @@ const {download, unzip} = require('./fileManipulation')
 const fs = require('fs')
 const os = require('os')
 
-const DOWNLOAD_URL = 'https://www.sketchapp.com/download/sketch.zip'
+const DOWNLOAD_URL = 'https://download.sketchapp.com/sketch.zip'
 
 module.exports = {
   download (progressCallback) {
