@@ -65,9 +65,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       fetch(this.generateURL(opts))
         .then((response) => {
-          if (!response.ok) {
-            throw Error(`${response.statusText} : ${response.url}`)
-          }
+          if (!response.ok) reject(Error(`${response.statusText} : ${opts}`))
 
           status = response.status
 
@@ -76,9 +74,7 @@ module.exports = {
         .then((data) => {
           resolve({status: status, url: data.url})
         })
-        .catch((error) => {
-          reject(error)
-        })
+        .catch(reject)
     })
   },
 
