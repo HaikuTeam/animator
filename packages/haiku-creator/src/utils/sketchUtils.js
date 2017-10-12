@@ -13,8 +13,10 @@ module.exports = {
 
       download(DOWNLOAD_URL, zipPath, progressCallback)
         .then(() => {
-          unzip(zipPath, installationPath, 'Sketch')
+          return unzip(zipPath, installationPath, 'Sketch')
         })
+        .then(resolve)
+        .catch(reject)
     })
   },
 
