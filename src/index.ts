@@ -14,7 +14,7 @@ import { argv } from "yargs"
 const dedent = require("dedent")
 
 const banner = dedent`
-  Haiku CLI (version 2.3.10)
+  Haiku CLI (version 2.3.11)
 
   Usage:
     haiku <command> [flags]
