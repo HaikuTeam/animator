@@ -626,19 +626,37 @@ var Master = function (_EventEmitter) {
       });
     }
   }, {
-    key: 'unlinkAsset',
-    value: function unlinkAsset(_ref8, done) {
+    key: 'bulkLinkAssets',
+    value: function bulkLinkAssets(_ref8, done) {
       var _this10 = this;
 
       var _ref8$params = _slicedToArray(_ref8.params, 1),
-          relpath = _ref8$params[0];
+          abspaths = _ref8$params[0];
+
+      return _async2.default.eachSeries(abspaths, function (path, next) {
+        return _this10.linkAsset({ params: [path] }, function (error, assets) {
+          if (error) return next(error);
+          return next();
+        });
+      }, function (error, results) {
+        if (error) return done(error);
+        return done(results);
+      });
+    }
+  }, {
+    key: 'unlinkAsset',
+    value: function unlinkAsset(_ref9, done) {
+      var _this11 = this;
+
+      var _ref9$params = _slicedToArray(_ref9.params, 1),
+          relpath = _ref9$params[0];
 
       if (!relpath || relpath.length < 2) return done(new Error('Relative path too short'));
       var abspath = _path2.default.join(this.folder, relpath);
       return _haikuFsExtra2.default.remove(abspath, function (removeErr) {
         if (removeErr) return done(removeErr);
-        delete _this10._knownDesigns[relpath];
-        return done(null, _this10.getAssetDirectoryInfo());
+        delete _this11._knownDesigns[relpath];
+        return done(null, _this11.getAssetDirectoryInfo());
       });
     }
   }, {
@@ -655,38 +673,38 @@ var Master = function (_EventEmitter) {
     }
   }, {
     key: 'setTimelineName',
-    value: function setTimelineName(_ref9, cb) {
-      var params = _ref9.params;
+    value: function setTimelineName(_ref10, cb) {
+      var params = _ref10.params;
 
       this._component.setTimelineName.apply(this._component, params);
       return cb();
     }
   }, {
     key: 'setTimelineTime',
-    value: function setTimelineTime(_ref10, cb) {
-      var params = _ref10.params;
+    value: function setTimelineTime(_ref11, cb) {
+      var params = _ref11.params;
 
       this._component.setTimelineTime.apply(this._component, params);
       return cb();
     }
   }, {
     key: 'readMetadata',
-    value: function readMetadata(_ref11, cb) {
-      var params = _ref11.params;
+    value: function readMetadata(_ref12, cb) {
+      var params = _ref12.params;
 
       return this._component.readMetadata.apply(this._component, params.concat(cb));
     }
   }, {
     key: 'readAllStateValues',
-    value: function readAllStateValues(_ref12, cb) {
-      var params = _ref12.params;
+    value: function readAllStateValues(_ref13, cb) {
+      var params = _ref13.params;
 
       return this._component.readAllStateValues.apply(this._component, params.concat(cb));
     }
   }, {
     key: 'readAllEventHandlers',
-    value: function readAllEventHandlers(_ref13, cb) {
-      var params = _ref13.params;
+    value: function readAllEventHandlers(_ref14, cb) {
+      var params = _ref14.params;
 
       return this._component.readAllEventHandlers.apply(this._component, params.concat(cb));
     }
@@ -698,11 +716,11 @@ var Master = function (_EventEmitter) {
     }
   }, {
     key: 'previewProject',
-    value: function previewProject(_ref14, cb) {
-      var _ref14$params = _slicedToArray(_ref14.params, 2),
-          projectName = _ref14$params[0],
-          _ref14$params$ = _ref14$params[1],
-          previewOptions = _ref14$params$ === undefined ? {} : _ref14$params$;
+    value: function previewProject(_ref15, cb) {
+      var _ref15$params = _slicedToArray(_ref15.params, 2),
+          projectName = _ref15$params[0],
+          _ref15$params$ = _ref15$params[1],
+          previewOptions = _ref15$params$ === undefined ? {} : _ref15$params$;
 
       // TODO: Create preview.html and launch in the user's browser
       return cb(new Error('[master] Method not yet implemented'));
@@ -723,267 +741,267 @@ var Master = function (_EventEmitter) {
     }
   }, {
     key: 'instantiateComponent',
-    value: function instantiateComponent(_ref15, cb) {
-      var params = _ref15.params;
+    value: function instantiateComponent(_ref16, cb) {
+      var params = _ref16.params;
 
       return this.bytecodeAction('instantiateComponent', params, cb);
     }
   }, {
     key: 'deleteComponent',
-    value: function deleteComponent(_ref16, cb) {
-      var params = _ref16.params;
+    value: function deleteComponent(_ref17, cb) {
+      var params = _ref17.params;
 
       return this.bytecodeAction('deleteComponent', params, cb);
     }
   }, {
     key: 'mergeDesigns',
-    value: function mergeDesigns(_ref17, cb) {
-      var params = _ref17.params;
+    value: function mergeDesigns(_ref18, cb) {
+      var params = _ref18.params;
 
       return this.bytecodeAction('mergeDesigns', params, cb);
     }
   }, {
     key: 'applyPropertyValue',
-    value: function applyPropertyValue(_ref18, cb) {
-      var params = _ref18.params;
+    value: function applyPropertyValue(_ref19, cb) {
+      var params = _ref19.params;
 
       return this.bytecodeAction('applyPropertyValue', params, cb);
     }
   }, {
     key: 'applyPropertyDelta',
-    value: function applyPropertyDelta(_ref19, cb) {
-      var params = _ref19.params;
+    value: function applyPropertyDelta(_ref20, cb) {
+      var params = _ref20.params;
 
       return this.bytecodeAction('applyPropertyDelta', params, cb);
     }
   }, {
     key: 'applyPropertyGroupValue',
-    value: function applyPropertyGroupValue(_ref20, cb) {
-      var params = _ref20.params;
+    value: function applyPropertyGroupValue(_ref21, cb) {
+      var params = _ref21.params;
 
       return this.bytecodeAction('applyPropertyGroupValue', params, cb);
     }
   }, {
     key: 'applyPropertyGroupDelta',
-    value: function applyPropertyGroupDelta(_ref21, cb) {
-      var params = _ref21.params;
+    value: function applyPropertyGroupDelta(_ref22, cb) {
+      var params = _ref22.params;
 
       return this.bytecodeAction('applyPropertyGroupDelta', params, cb);
     }
   }, {
     key: 'resizeContext',
-    value: function resizeContext(_ref22, cb) {
-      var params = _ref22.params;
+    value: function resizeContext(_ref23, cb) {
+      var params = _ref23.params;
 
       return this.bytecodeAction('resizeContext', params, cb);
     }
   }, {
     key: 'changeKeyframeValue',
-    value: function changeKeyframeValue(_ref23, cb) {
-      var params = _ref23.params;
+    value: function changeKeyframeValue(_ref24, cb) {
+      var params = _ref24.params;
 
       return this.bytecodeAction('changeKeyframeValue', params, cb);
     }
   }, {
     key: 'changePlaybackSpeed',
-    value: function changePlaybackSpeed(_ref24, cb) {
-      var params = _ref24.params;
+    value: function changePlaybackSpeed(_ref25, cb) {
+      var params = _ref25.params;
 
       return this.bytecodeAction('changePlaybackSpeed', params, cb);
     }
   }, {
     key: 'changeSegmentCurve',
-    value: function changeSegmentCurve(_ref25, cb) {
-      var params = _ref25.params;
+    value: function changeSegmentCurve(_ref26, cb) {
+      var params = _ref26.params;
 
       return this.bytecodeAction('changeSegmentCurve', params, cb);
     }
   }, {
     key: 'changeSegmentEndpoints',
-    value: function changeSegmentEndpoints(_ref26, cb) {
-      var params = _ref26.params;
+    value: function changeSegmentEndpoints(_ref27, cb) {
+      var params = _ref27.params;
 
       return this.bytecodeAction('changeSegmentEndpoints', params, cb);
     }
   }, {
     key: 'createKeyframe',
-    value: function createKeyframe(_ref27, cb) {
-      var params = _ref27.params;
+    value: function createKeyframe(_ref28, cb) {
+      var params = _ref28.params;
 
       return this.bytecodeAction('createKeyframe', params, cb);
     }
   }, {
     key: 'createTimeline',
-    value: function createTimeline(_ref28, cb) {
-      var params = _ref28.params;
+    value: function createTimeline(_ref29, cb) {
+      var params = _ref29.params;
 
       return this.bytecodeAction('createTimeline', params, cb);
     }
   }, {
     key: 'deleteKeyframe',
-    value: function deleteKeyframe(_ref29, cb) {
-      var params = _ref29.params;
+    value: function deleteKeyframe(_ref30, cb) {
+      var params = _ref30.params;
 
       return this.bytecodeAction('deleteKeyframe', params, cb);
     }
   }, {
     key: 'deleteTimeline',
-    value: function deleteTimeline(_ref30, cb) {
-      var params = _ref30.params;
+    value: function deleteTimeline(_ref31, cb) {
+      var params = _ref31.params;
 
       return this.bytecodeAction('deleteTimeline', params, cb);
     }
   }, {
     key: 'duplicateTimeline',
-    value: function duplicateTimeline(_ref31, cb) {
-      var params = _ref31.params;
+    value: function duplicateTimeline(_ref32, cb) {
+      var params = _ref32.params;
 
       return this.bytecodeAction('duplicateTimeline', params, cb);
     }
   }, {
     key: 'joinKeyframes',
-    value: function joinKeyframes(_ref32, cb) {
-      var params = _ref32.params;
+    value: function joinKeyframes(_ref33, cb) {
+      var params = _ref33.params;
 
       return this.bytecodeAction('joinKeyframes', params, cb);
     }
   }, {
     key: 'moveSegmentEndpoints',
-    value: function moveSegmentEndpoints(_ref33, cb) {
-      var params = _ref33.params;
+    value: function moveSegmentEndpoints(_ref34, cb) {
+      var params = _ref34.params;
 
       return this.bytecodeAction('moveSegmentEndpoints', params, cb);
     }
   }, {
     key: 'moveKeyframes',
-    value: function moveKeyframes(_ref34, cb) {
-      var params = _ref34.params;
+    value: function moveKeyframes(_ref35, cb) {
+      var params = _ref35.params;
 
       return this.bytecodeAction('moveKeyframes', params, cb);
     }
   }, {
     key: 'renameTimeline',
-    value: function renameTimeline(_ref35, cb) {
-      var params = _ref35.params;
+    value: function renameTimeline(_ref36, cb) {
+      var params = _ref36.params;
 
       return this.bytecodeAction('renameTimeline', params, cb);
     }
   }, {
     key: 'sliceSegment',
-    value: function sliceSegment(_ref36, cb) {
-      var params = _ref36.params;
+    value: function sliceSegment(_ref37, cb) {
+      var params = _ref37.params;
 
       return this.bytecodeAction('sliceSegment', params, cb);
     }
   }, {
     key: 'splitSegment',
-    value: function splitSegment(_ref37, cb) {
-      var params = _ref37.params;
+    value: function splitSegment(_ref38, cb) {
+      var params = _ref38.params;
 
       return this.bytecodeAction('splitSegment', params, cb);
     }
   }, {
     key: 'zMoveToFront',
-    value: function zMoveToFront(_ref38, cb) {
-      var params = _ref38.params;
+    value: function zMoveToFront(_ref39, cb) {
+      var params = _ref39.params;
 
       return this.bytecodeAction('zMoveToFront', params, cb);
     }
   }, {
     key: 'zMoveForward',
-    value: function zMoveForward(_ref39, cb) {
-      var params = _ref39.params;
+    value: function zMoveForward(_ref40, cb) {
+      var params = _ref40.params;
 
       return this.bytecodeAction('zMoveForward', params, cb);
     }
   }, {
     key: 'zMoveBackward',
-    value: function zMoveBackward(_ref40, cb) {
-      var params = _ref40.params;
+    value: function zMoveBackward(_ref41, cb) {
+      var params = _ref41.params;
 
       return this.bytecodeAction('zMoveBackward', params, cb);
     }
   }, {
     key: 'zMoveToBack',
-    value: function zMoveToBack(_ref41, cb) {
-      var params = _ref41.params;
+    value: function zMoveToBack(_ref42, cb) {
+      var params = _ref42.params;
 
       return this.bytecodeAction('zMoveToBack', params, cb);
     }
   }, {
     key: 'reorderElement',
-    value: function reorderElement(_ref42, cb) {
-      var params = _ref42.params;
+    value: function reorderElement(_ref43, cb) {
+      var params = _ref43.params;
 
       return this.bytecodeAction('reorderElement', params, cb);
     }
   }, {
     key: 'groupElements',
-    value: function groupElements(_ref43, cb) {
-      var params = _ref43.params;
+    value: function groupElements(_ref44, cb) {
+      var params = _ref44.params;
 
       return this.bytecodeAction('groupElements', params, cb);
     }
   }, {
     key: 'ungroupElements',
-    value: function ungroupElements(_ref44, cb) {
-      var params = _ref44.params;
+    value: function ungroupElements(_ref45, cb) {
+      var params = _ref45.params;
 
       return this.bytecodeAction('ungroupElements', params, cb);
     }
   }, {
     key: 'hideElements',
-    value: function hideElements(_ref45, cb) {
-      var params = _ref45.params;
+    value: function hideElements(_ref46, cb) {
+      var params = _ref46.params;
 
       return this.bytecodeAction('hideElements', params, cb);
     }
   }, {
     key: 'pasteThing',
-    value: function pasteThing(_ref46, cb) {
-      var params = _ref46.params;
+    value: function pasteThing(_ref47, cb) {
+      var params = _ref47.params;
 
       return this.bytecodeAction('pasteThing', params, cb);
     }
   }, {
     key: 'deleteThing',
-    value: function deleteThing(_ref47, cb) {
-      var params = _ref47.params;
+    value: function deleteThing(_ref48, cb) {
+      var params = _ref48.params;
 
       return this.bytecodeAction('deleteThing', params, cb);
     }
   }, {
     key: 'upsertStateValue',
-    value: function upsertStateValue(_ref48, cb) {
-      var params = _ref48.params;
+    value: function upsertStateValue(_ref49, cb) {
+      var params = _ref49.params;
 
       return this.bytecodeAction('upsertStateValue', params, cb);
     }
   }, {
     key: 'deleteStateValue',
-    value: function deleteStateValue(_ref49, cb) {
-      var params = _ref49.params;
+    value: function deleteStateValue(_ref50, cb) {
+      var params = _ref50.params;
 
       return this.bytecodeAction('deleteStateValue', params, cb);
     }
   }, {
     key: 'upsertEventHandler',
-    value: function upsertEventHandler(_ref50, cb) {
-      var params = _ref50.params;
+    value: function upsertEventHandler(_ref51, cb) {
+      var params = _ref51.params;
 
       return this.bytecodeAction('upsertEventHandler', params, cb);
     }
   }, {
     key: 'deleteEventHandler',
-    value: function deleteEventHandler(_ref51, cb) {
-      var params = _ref51.params;
+    value: function deleteEventHandler(_ref52, cb) {
+      var params = _ref52.params;
 
       return this.bytecodeAction('deleteEventHandler', params, cb);
     }
   }, {
     key: 'writeMetadata',
-    value: function writeMetadata(_ref52, cb) {
-      var params = _ref52.params;
+    value: function writeMetadata(_ref53, cb) {
+      var params = _ref53.params;
 
       return this.bytecodeAction('writeMetadata', params, cb);
     }
@@ -999,14 +1017,14 @@ var Master = function (_EventEmitter) {
 
   }, {
     key: 'initializeFolder',
-    value: function initializeFolder(_ref53, done) {
-      var _this11 = this;
+    value: function initializeFolder(_ref54, done) {
+      var _this12 = this;
 
-      var _ref53$params = _slicedToArray(_ref53.params, 4),
-          projectName = _ref53$params[0],
-          haikuUsername = _ref53$params[1],
-          haikuPassword = _ref53$params[2],
-          projectOptions = _ref53$params[3];
+      var _ref54$params = _slicedToArray(_ref54.params, 4),
+          projectName = _ref54$params[0],
+          haikuUsername = _ref54$params[1],
+          haikuPassword = _ref54$params[2],
+          projectOptions = _ref54$params[3];
 
       // We need to clear off undos in the case that somebody made an fs-based commit between sessions;
       // if we tried to reset to a previous "known" undoable, we'd miss the missing intermediate one.
@@ -1020,7 +1038,7 @@ var Master = function (_EventEmitter) {
 
       // Note: 'ensureProjectFolder' and/or 'buildProjectContent' should already have ran by this point.
       return _async2.default.series([function (cb) {
-        return _this11._git.initializeProject(projectOptions, cb);
+        return _this12._git.initializeProject(projectOptions, cb);
       },
 
       // Now that we've (maybe) cloned content, we need to create any other necessary files that _might not_ yet
@@ -1030,18 +1048,18 @@ var Master = function (_EventEmitter) {
       // the cloned content. Which means we have to be sparing with what we create on the first run, but also need
       // to create any missing remainders on the second run.
       function (cb) {
-        return ProjectFolder.buildProjectContent(null, _this11.folder, projectName, 'haiku', {
+        return ProjectFolder.buildProjectContent(null, _this12.folder, projectName, 'haiku', {
           organizationName: projectOptions.organizationName, // Important: Must set this here or the package.name will be wrong
           skipContentCreation: false,
           skipCDNBundles: true
         }, cb);
       }, function (cb) {
-        return _this11._git.commitProjectIfChanged('Initialized folder', cb);
+        return _this12._git.commitProjectIfChanged('Initialized folder', cb);
       },
 
       // Make sure we are starting with a good git history
       function (cb) {
-        return _this11._git.setUndoBaselineIfHeadCommitExists(cb);
+        return _this12._git.setUndoBaselineIfHeadCommitExists(cb);
       }], function (err, results) {
         if (err) return done(err);
         return done(null, results[results.length - 1]);
@@ -1069,7 +1087,7 @@ var Master = function (_EventEmitter) {
   }, {
     key: 'startProject',
     value: function startProject(message, done) {
-      var _this12 = this;
+      var _this13 = this;
 
       var loggingPrefix = message.restart ? 'restart project' : 'start project';
 
@@ -1085,12 +1103,12 @@ var Master = function (_EventEmitter) {
       return _async2.default.series([
       // Load the user's configuration defined in haiku.js (sort of LEGACY)
       function (cb) {
-        _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': loading configuration for ' + _this12.folder);
-        return _this12._config.load(_this12.folder, function (err) {
+        _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': loading configuration for ' + _this13.folder);
+        return _this13._config.load(_this13.folder, function (err) {
           if (err) return done(err);
           // Gotta make this available after we load the config, but before anything else, since the
           // done callback happens immediately if we've already initialized this master process once.
-          response.projectName = _this12._config.get('config.name');
+          response.projectName = _this13._config.get('config.name');
           return cb();
         });
       },
@@ -1098,13 +1116,13 @@ var Master = function (_EventEmitter) {
       // Initialize the ActiveComponent and file models
       function (cb) {
         // No need to reinitialize if already in memory
-        if (!_this12._component) {
+        if (!_this13._component) {
           _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': creating active component');
 
-          _this12._component = new _ActiveComponent2.default({
+          _this13._component = new _ActiveComponent2.default({
             alias: 'master', // Don't be fooled, this is not a branch name
-            folder: _this12.folder,
-            userconfig: _this12._config.get('config'),
+            folder: _this13.folder,
+            userconfig: _this13._config.get('config'),
             websocket: {/* websocket */},
             platform: {/* window */},
             envoy: _ProcessBase2.default.HAIKU.envoy || {
@@ -1118,11 +1136,11 @@ var Master = function (_EventEmitter) {
           });
 
           // This is required so that a hostInstance is loaded which is (required for calculations)
-          _this12._component.mountApplication();
+          _this13._component.mountApplication();
 
-          _this12._component.on('component:mounted', function () {
+          _this13._component.on('component:mounted', function () {
             // Since we aren't running in the DOM cancel the raf to avoid leaked handles
-            _this12._component._componentInstance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
+            _this13._component._componentInstance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
             return cb();
           });
         } else {
@@ -1132,23 +1150,23 @@ var Master = function (_EventEmitter) {
 
       // Take an initial commit of the starting state so we have a baseline
       function (cb) {
-        return _this12._git.commitProjectIfChanged('Project setup', cb);
+        return _this13._git.commitProjectIfChanged('Project setup', cb);
       },
 
       // Load all relevant files into memory (only JavaScript files for now)
       function (cb) {
-        _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': ingesting js files in ' + _this12.folder);
-        return _this12._component.FileModel.ingestFromFolder(_this12.folder, {
+        _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': ingesting js files in ' + _this13.folder);
+        return _this13._component.FileModel.ingestFromFolder(_this13.folder, {
           exclude: _excludeIfNotJs
         }, cb);
       },
 
       // Do any setup necessary on the in-memory bytecode object
       function (cb) {
-        var file = _this12._component.fetchActiveBytecodeFile();
+        var file = _this13._component.fetchActiveBytecodeFile();
         if (file) {
           _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': initializing bytecode');
-          file.set('substructInitialized', file.reinitializeSubstruct(_this12._config.get('config'), 'Master.startProject'));
+          file.set('substructInitialized', file.reinitializeSubstruct(_this13._config.get('config'), 'Master.startProject'));
           return file.performComponentWork(function (bytecode, mana, wrapup) {
             return wrapup();
           }, cb);
@@ -1159,20 +1177,20 @@ var Master = function (_EventEmitter) {
 
       // Take an initial commit of the starting state so we have a baseline
       function (cb) {
-        return _this12._git.commitProjectIfChanged('Code setup', cb);
+        return _this13._git.commitProjectIfChanged('Code setup', cb);
       },
 
       // Start watching the file system for changes
       function (cb) {
         // No need to reinitialize if already in memory
-        if (!_this12._watcher) {
-          _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': initializing file watcher', _this12.folder);
-          _this12._watcher = new _Watcher2.default();
-          _this12._watcher.watch(_this12.folder);
-          _this12._watcher.on('change', _this12.handleFileChange.bind(_this12));
-          _this12._watcher.on('add', _this12.handleFileAdd.bind(_this12));
-          _this12._watcher.on('remove', _this12.handleFileRemove.bind(_this12));
-          _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': file watcher is now watching', _this12.folder);
+        if (!_this13._watcher) {
+          _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': initializing file watcher', _this13.folder);
+          _this13._watcher = new _Watcher2.default();
+          _this13._watcher.watch(_this13.folder);
+          _this13._watcher.on('change', _this13.handleFileChange.bind(_this13));
+          _this13._watcher.on('add', _this13.handleFileAdd.bind(_this13));
+          _this13._watcher.on('remove', _this13.handleFileRemove.bind(_this13));
+          _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': file watcher is now watching', _this13.folder);
           return cb();
         } else {
           return cb();
@@ -1181,12 +1199,12 @@ var Master = function (_EventEmitter) {
 
       // Make sure we are starting with a good git history
       function (cb) {
-        return _this12._git.setUndoBaselineIfHeadCommitExists(cb);
+        return _this13._git.setUndoBaselineIfHeadCommitExists(cb);
       },
 
       // Finish up and signal that we are ready
       function (cb) {
-        _this12._isReadyToReceiveMethods = true;
+        _this13._isReadyToReceiveMethods = true;
         _LoggerInstance2.default.info('[master] ' + loggingPrefix + ': ready');
         return cb(null, response);
       }], function (err, results) {
@@ -1201,18 +1219,18 @@ var Master = function (_EventEmitter) {
 
   }, {
     key: 'saveProject',
-    value: function saveProject(_ref54, done) {
-      var _this13 = this;
+    value: function saveProject(_ref55, done) {
+      var _this14 = this;
 
-      var _ref54$params = _slicedToArray(_ref54.params, 4),
-          projectName = _ref54$params[0],
-          haikuUsername = _ref54$params[1],
-          haikuPassword = _ref54$params[2],
-          _ref54$params$ = _ref54$params[3],
-          saveOptions = _ref54$params$ === undefined ? {} : _ref54$params$;
+      var _ref55$params = _slicedToArray(_ref55.params, 4),
+          projectName = _ref55$params[0],
+          haikuUsername = _ref55$params[1],
+          haikuPassword = _ref55$params[2],
+          _ref55$params$ = _ref55$params[3],
+          saveOptions = _ref55$params$ === undefined ? {} : _ref55$params$;
 
       var finish = function finish(err, out) {
-        _this13._isSaving = false;
+        _this14._isSaving = false;
         return done(err, out);
       };
 
@@ -1228,7 +1246,7 @@ var Master = function (_EventEmitter) {
       return _async2.default.series([
       // Check to see if a save is even necessary, and return early if not
       function (cb) {
-        return _this13._git.getExistingShareDataIfSaveIsUnnecessary(function (err, existingShareData) {
+        return _this14._git.getExistingShareDataIfSaveIsUnnecessary(function (err, existingShareData) {
           if (err) return cb(err);
           if (existingShareData) {
             // Presence of share data means early return
@@ -1242,7 +1260,7 @@ var Master = function (_EventEmitter) {
       function (cb) {
         _LoggerInstance2.default.info('[master] project save: assigning metadata');
 
-        var _git$getFolderState = _this13._git.getFolderState(),
+        var _git$getFolderState = _this14._git.getFolderState(),
             semverVersion = _git$getFolderState.semverVersion,
             organizationName = _git$getFolderState.organizationName,
             projectName = _git$getFolderState.projectName,
@@ -1250,39 +1268,39 @@ var Master = function (_EventEmitter) {
 
         var bytecodeMetadata = {
           uuid: 'HAIKU_SHARE_UUID',
-          player: _this13._git.getHaikuPlayerLibVersion(),
+          player: _this14._git.getHaikuPlayerLibVersion(),
           version: semverVersion,
           organization: organizationName,
           project: projectName,
           branch: branchName
         };
 
-        return _this13._component.fetchActiveBytecodeFile().writeMetadata(bytecodeMetadata, cb);
+        return _this14._component.fetchActiveBytecodeFile().writeMetadata(bytecodeMetadata, cb);
       }, function (cb) {
-        return _this13._git.commitProjectIfChanged('Updated metadata', cb);
+        return _this14._git.commitProjectIfChanged('Updated metadata', cb);
       },
 
       // Build the rest of the content of the folder, including any bundles that belong on the cdn
       function (cb) {
         _LoggerInstance2.default.info('[master] project save: populating content');
 
-        var _git$getFolderState2 = _this13._git.getFolderState(),
+        var _git$getFolderState2 = _this14._git.getFolderState(),
             projectName = _git$getFolderState2.projectName;
 
-        return ProjectFolder.buildProjectContent(null, _this13.folder, projectName, 'haiku', {
+        return ProjectFolder.buildProjectContent(null, _this14.folder, projectName, 'haiku', {
           projectName: projectName,
           haikuUsername: haikuUsername,
           authorName: saveOptions.authorName,
           organizationName: saveOptions.organizationName
         }, cb);
       }, function (cb) {
-        return _this13._git.commitProjectIfChanged('Populated content', cb);
+        return _this14._git.commitProjectIfChanged('Populated content', cb);
       },
 
       // Now do all of the git/share/publish/fs operations required for the real save
       function (cb) {
         _LoggerInstance2.default.info('[master] project save: committing, pushing, publishing');
-        return _this13._git.saveProject(saveOptions, cb);
+        return _this14._git.saveProject(saveOptions, cb);
       }], function (err, results) {
         // async gives back _all_ results from each step
         if (err && err !== true) return finish(err);
