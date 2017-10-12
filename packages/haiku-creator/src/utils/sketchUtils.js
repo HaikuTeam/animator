@@ -1,10 +1,11 @@
 const {download, unzip} = require('./fileManipulation')
-const {exec} = require('child_process')
+const fs = require('fs')
+const os = require('os')
 
 const DOWNLOAD_URL = 'https://www.sketchapp.com/download/sketch.zip'
 
 module.exports = {
-  install (progressCallback) {
+  download (progressCallback) {
     return new Promise((resolve, reject) => {
       const tempPath = os.tmpdir()
       const zipPath = `${tempPath}/sketch.zip`
@@ -19,10 +20,9 @@ module.exports = {
 
   checkIfInstalled () {
     return new Promise((resolve, reject) => {
-      exec('ls /Applications | grep Sketch.app', (err, stdout) => {
-        if (err) reject(err)
-
-        resolve({isInstalled: stdout === 'Sketch.app'})
+      fs.access('/Applications/Sketch.app', fs.constants.F_OK, (err) => {
+        if (err) resolve(false)
+        resolve(true)
       })
     })
   }
