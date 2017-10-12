@@ -2,7 +2,7 @@ var cp = require('child_process')
 var path = require('path')
 var ROOT = path.join(__dirname, '..')
 
-// cp.execSync(`node ./scripts/semver.js --non-interactive`, { cwd: ROOT, stdio: 'inherit' })
+cp.execSync(`node ./scripts/semver.js --non-interactive`, { cwd: ROOT, stdio: 'inherit' })
 cp.execSync(`node ./scripts/build-player.js`, { cwd: ROOT, stdio: 'inherit' })
 cp.execSync(`node ./scripts/upload-cdn-player.js`, { cwd: ROOT, stdio: 'inherit' })
 cp.execSync(`git add --all .`, { cwd: ROOT, stdio: 'inherit' })
