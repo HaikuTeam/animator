@@ -16,13 +16,17 @@ export const DOWNLOAD_STYLES = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    maxWidth: 270
+    maxWidth: 325
   },
   btn: {
     ...DASH_STYLES.btn,
     padding: '10px 15px',
     fontSize: 16,
     float: 'right'
+  },
+  btnSecondary: {
+    textTransform: 'none',
+    color: Palette.DARK_PINK
   },
   overlay: {
     position: 'fixed',
