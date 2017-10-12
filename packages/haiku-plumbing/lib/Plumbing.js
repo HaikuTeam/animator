@@ -953,6 +953,11 @@ var Plumbing = function (_StateObject) {
       return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'linkAsset', [assetAbspath], cb);
     }
   }, {
+    key: 'bulkLinkAssets',
+    value: function bulkLinkAssets(assetsAbspaths, folder, cb) {
+      return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'bulkLinkAssets', [assetsAbspaths], cb);
+    }
+  }, {
     key: 'unlinkAsset',
     value: function unlinkAsset(assetRelpath, folder, cb) {
       return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'unlinkAsset', [assetRelpath], cb);

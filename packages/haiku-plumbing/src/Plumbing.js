@@ -776,6 +776,10 @@ export default class Plumbing extends StateObject {
     return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'linkAsset', [assetAbspath], cb)
   }
 
+  bulkLinkAssets (assetsAbspaths, folder, cb) {
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'bulkLinkAssets', [assetsAbspaths], cb)
+  }
+
   unlinkAsset (assetRelpath, folder, cb) {
     return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'unlinkAsset', [assetRelpath], cb)
   }

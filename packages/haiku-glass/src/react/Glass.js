@@ -10,6 +10,10 @@ import EventHandlerEditor from './EventHandlerEditor'
 import Comments from './models/Comments'
 import ContextMenu from './models/ContextMenu'
 import getLocalDomEventPosition from './helpers/getLocalDomEventPosition'
+import {
+  linkExternalAssetsOnDrop,
+  preventDefaultDrag
+} from 'haiku-serialization/src/utils/dndHelpers'
 
 const { clipboard } = require('electron')
 
@@ -107,6 +111,9 @@ export class Glass extends React.Component {
       this.tourClient = client
       this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
     })
+
+    window.addEventListener('dragover', preventDefaultDrag, false)
+    window.addEventListener('drop', linkExternalAssetsOnDrop.bind(this), false)
   }
 
   handleRequestElementCoordinates ({ selector, webview }) {

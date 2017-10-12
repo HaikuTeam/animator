@@ -479,6 +479,22 @@ export default class Master extends EventEmitter {
     })
   }
 
+  bulkLinkAssets ({params: [abspaths]}, done) {
+    return async.eachSeries(
+      abspaths,
+      (path, next) => {
+        return this.linkAsset({params: [path]}, (error, assets) => {
+          if (error) return next(error)
+          return next()
+        })
+      },
+      (error, results) => {
+        if (error) return done(error)
+        return done(results)
+      }
+    )
+  }
+
   unlinkAsset ({ params: [relpath] }, done) {
     if (!relpath || relpath.length < 2) return done(new Error('Relative path too short'))
     const abspath = path.join(this.folder, relpath)

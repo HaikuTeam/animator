@@ -1,7 +1,6 @@
 import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
-import async from 'async'
 import Radium from 'radium'
 import path from 'path'
 import Palette from './../Palette'
@@ -148,18 +147,17 @@ class LibraryDrawer extends React.Component {
 
   handleFileDrop (files, event) {
     this.setState({isLoading: true})
-    return async.eachSeries(files, (file, next) => {
-      return this.props.websocket.request({ method: 'linkAsset', params: [file.path, this.props.folder] }, (error, assets) => {
-        if (error) return next(error)
-        if (assets) {
-          this.setState({ assets })
-        }
-        return next()
-      })
-    }, (error) => {
-      this.setState({isLoading: false})
-      if (error) return this.setState({ error })
-    })
+
+    const filePaths = lodash.map(files, file => file.path)
+
+    this.props.websocket.request(
+      {method: 'bulkLinkAssets', params: [filePaths, this.props.folder]},
+      (error, assets) => {
+        this.setState({isLoading: false})
+        if (error) this.setState({error})
+        this.setState({assets})
+      }
+    )
   }
 
   getPrimaryAsset () {
