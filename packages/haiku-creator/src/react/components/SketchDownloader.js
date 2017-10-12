@@ -1,10 +1,9 @@
 import React from 'react'
 import {download} from '../../utils/sketchUtils'
-import STYLES from '../styles/downloadShared'
+import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared'
 
 let statuses = {
-  IDLE: 'Idle',
-  CHECKING: 'Checking',
+  PROMPT_USER: 'PromptUser',
   DOWNLOADING: 'Downloading',
   DOWNLOAD_FINISHED: 'DownloadFinished',
   DOWNLOAD_FAILED: 'DownloadFailed'
@@ -14,16 +13,15 @@ class SketchDownloader extends React.Component {
   constructor (props) {
     super(props)
 
+    this.hide = this.hide.bind(this)
+    this.download = this.download.bind(this)
     this.updateProgress = this.updateProgress.bind(this)
     this.onFail = this.onFail.bind(this)
 
     this.state = {
-      status: statuses.IDLE,
+      status: statuses.PROMPT_USER,
       progress: 0
     }
-  }
-
-  checkForUpdates () {
   }
 
   onFail (error) {
@@ -31,10 +29,10 @@ class SketchDownloader extends React.Component {
     this.setState({status: statuses.DOWNLOAD_FAILED})
   }
 
-  update (url) {
+  download (url) {
     this.setState({status: statuses.DOWNLOADING})
 
-    download(url, this.updateProgress)
+    download(this.updateProgress)
       .then(() => {
         this.setState({status: statuses.DOWNLOAD_FINISHED, progress: 0})
       })
@@ -47,6 +45,20 @@ class SketchDownloader extends React.Component {
 
   hide () {
     this.setState({status: statuses.IDLE})
+  }
+
+  renderPromptUser () {
+    return (
+      <div>
+        <p>
+          Sketch is required to edit this file. <br />
+          You can install a 30-day trial for free.
+        </p>
+        <p>Would you like to download Sketch?</p>
+        <button style={STYLES.btn} onClick={this.hide}>No</button>
+        <button style={STYLES.btn} onClick={this.download}>Yes</button>
+      </div>
+    )
   }
 
   renderDownloading () {
@@ -69,12 +81,9 @@ class SketchDownloader extends React.Component {
     return (
       <div>
         Sketch is redy to use!
+        <button style={STYLES.btn} onClick={this.hide}>Ok</button>
       </div>
     )
-  }
-
-  renderIdle () {
-    return <span>Checking...</span>
   }
 
   renderDownloadFailed () {
@@ -87,15 +96,8 @@ class SketchDownloader extends React.Component {
     )
   }
 
-  renderChecking () {
-    return (
-      <div>
-        Checking...
-      </div>
-    )
-  }
-
   render () {
+    console.log(this.state.status)
     let content = this[`render${this.state.status}`]()
 
     return (

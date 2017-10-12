@@ -6,11 +6,12 @@ import path from 'path'
 import Palette from './../Palette'
 import LibraryItem from './LibraryItem'
 import CollapseItem from './CollapseItem'
+import SketchDownloader from '../SketchDownloader'
 import RectanglePrimitiveProps from './../../primitives/Rectangle'
 import EllipsePrimitiveProps from './../../primitives/Ellipse'
 import PolygonPrimitiveProps from './../../primitives/Polygon'
 import TextPrimitiveProps from './../../primitives/Text'
-import sketchUtils from '../../../utils/sketchUtils.js'
+import sketchUtils from '../../../utils/sketchUtils'
 import { shell } from 'electron'
 
 const STYLES = {
@@ -93,7 +94,8 @@ class LibraryDrawer extends React.Component {
       assets: [],
       previewImageTime: null,
       overDropTarget: false,
-      isLoading: false
+      isLoading: false,
+      showSketchDownloader: false
     }
   }
 
@@ -135,7 +137,7 @@ class LibraryDrawer extends React.Component {
       let abspath = path.join(this.props.folder, 'designs', fileData.fileName)
       shell.openItem(abspath)
     } else {
-      console.log('prompt here')
+      this.setState({showSketchDownloader: true})
     }
   }
 
@@ -315,6 +317,7 @@ class LibraryDrawer extends React.Component {
             {this.state.isLoading ? '' : this.renderAssetsList()}
           </div>
         </div>
+        {this.state.showSketchDownloader && <SketchDownloader />}
       </div>
     )
   }
