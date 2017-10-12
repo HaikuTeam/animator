@@ -1,6 +1,6 @@
 import React from 'react'
 import autoUpdate from '../../utils/autoUpdate'
-import STYLES from '../styles/downloadShared'
+import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared'
 
 let statuses = {
   IDLE: 'Idle',
