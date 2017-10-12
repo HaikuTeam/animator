@@ -311,9 +311,14 @@ export function pushToRemote (pwd, remoteName, fullBranchName, gitRemoteUsername
       return Remote.lookup(repository, remoteName).then((remote) => {
         return fixRemoteHttpsUrl(repository, remote, gitRemoteUsername, gitRemotePassword, (err) => {
           if (err) return cb(err)
-          return remote.push(refSpecs, buildRemoteOptions(gitRemoteUsername, gitRemotePassword)).then(() => {
+          const remoteOptions = buildRemoteOptions(gitRemoteUsername, gitRemotePassword)
+          logger.info('[git] pushing content to remote', refSpecs, remoteOptions)
+          return remote.push(refSpecs, remoteOptions).then(() => {
             return cb()
-          }, cb)
+          }, (err) => {
+            logger.info('[git] error pushing content to remote', err.stack)
+            return cb(err)
+          })
         })
       }, cb)
     }, cb)
@@ -339,17 +344,22 @@ export function listRemotes (pwd, cb) {
 }
 
 function fixRemoteHttpsUrl (repository, remote, username, password, cb) {
+  const url = remote.url()
+  const name = remote.name()
+  const matches = url.match(/^(https?)/)
+  const scheme = matches && matches[1]
+  logger.info('[git] remote info:', url, name, scheme)
+  //
   // HACK? It might be necessary in some cases to fix the remote URL to include HTTPS creds?
-  // const url = remote.url()
-  // const name = remote.name()
-  // const matches = url.match(/^(https?)/)
-  // const scheme = matches && matches[1]
+  // We haven't needed this because we are using the certificateCheck credentials function
+  // to provide the credentials, but I'm leaving the code here, just in case it comes up somehow.
+  //
   // if (!scheme) return cb() // This is not https
   // // TODO: Replace the creds in the URL with new creds?
   // if (url.indexOf('@') !== -1) return cb() // Creds are already present
   // const fixed = url.replace(`${scheme}://`, `${scheme}://${encodeURIComponent(username)}:${encodeURIComponent(password)}@`)
   // const result = Remote.setUrl(repository, name, fixed)
-  // console.log(fixed, result)
+  //
   return cb()
 }
 
@@ -595,9 +605,14 @@ export function pushTagToRemote (pwd, remoteName, tagName, gitRemoteUsername, gi
         return fixRemoteHttpsUrl(repository, remote, gitRemoteUsername, gitRemotePassword, (err) => {
           if (err) return cb(err)
           const refSpecs = [`refs/tags/${tagName}`]
-          return remote.push(refSpecs, buildRemoteOptions(gitRemoteUsername, gitRemotePassword)).then(() => {
+          const remoteOptions = buildRemoteOptions(gitRemoteUsername, gitRemotePassword)
+          logger.info('[git] pushing tags to remote', refSpecs, remoteOptions)
+          return remote.push(refSpecs, remoteOptions).then(() => {
             return cb()
-          }, cb)
+          }, (err) => {
+            logger.info('[git] error pushing tags to remote', err.stack)
+            return cb(err)
+          })
         })
       }, cb)
     }, cb)

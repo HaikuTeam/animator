@@ -489,6 +489,7 @@ var Plumbing = function (_StateObject) {
   }, {
     key: 'sentryError',
     value: function sentryError(method, error, extras) {
+      _LoggerInstance2.default.info('[plumbing] error @ ' + method, error, extras);
       if (!Raven) return null;
       if (method && METHODS_TO_SKIP_IN_SENTRY[method]) return null;
       if (!error) return null;

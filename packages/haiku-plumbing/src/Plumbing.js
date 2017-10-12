@@ -373,6 +373,7 @@ export default class Plumbing extends StateObject {
   }
 
   sentryError (method, error, extras) {
+    logger.info(`[plumbing] error @ ${method}`, error, extras)
     if (!Raven) return null
     if (method && METHODS_TO_SKIP_IN_SENTRY[method]) return null
     if (!error) return null
