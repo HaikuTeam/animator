@@ -10,6 +10,7 @@ import RectanglePrimitiveProps from './../../primitives/Rectangle'
 import EllipsePrimitiveProps from './../../primitives/Ellipse'
 import PolygonPrimitiveProps from './../../primitives/Polygon'
 import TextPrimitiveProps from './../../primitives/Text'
+import sketchUtils from '../../../utils/sketchUtils.js'
 import { shell } from 'electron'
 
 const STYLES = {
@@ -104,6 +105,9 @@ class LibraryDrawer extends React.Component {
         this.setState({ assets })
       }
     })
+    sketchUtils.checkIfInstalled().then(isInstalled => {
+      this.isSketchInstalled = isInstalled
+    })
   }
 
   reloadAssetList () {
@@ -127,8 +131,12 @@ class LibraryDrawer extends React.Component {
   }
 
   handleSketchInstantiation (fileData) {
-    let abspath = path.join(this.props.folder, 'designs', fileData.fileName)
-    shell.openItem(abspath)
+    if (this.isSketchInstalled) {
+      let abspath = path.join(this.props.folder, 'designs', fileData.fileName)
+      shell.openItem(abspath)
+    } else {
+      console.log('prompt here')
+    }
   }
 
   handleAssetInstantiation (fileData) {
