@@ -27,7 +27,11 @@ class AutoUpdater extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.shouldDisplay && this.state.status === statuses.IDLE) {
+    if (
+      process.env.HAIKU_SKIP_AUTOUPDATE !== '1' &&
+      nextProps.shouldDisplay &&
+      this.state.status === statuses.IDLE
+    ) {
       this.checkForUpdates()
     }
   }
