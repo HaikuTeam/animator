@@ -11,7 +11,7 @@ const STYLES = {
   container: {
     display: 'inline-block',
     marginLeft: '8px',
-    width: '22px',
+    width: '20px',
     textAlign: 'center',
     borderRadius: '3px',
     hover: {
@@ -99,8 +99,7 @@ class ThreeDotMenu extends React.Component {
         <Popover
           onOuterAction={this.closePopover}
           isOpen={this.state.isPopoverOpen}
-          place="left"
-          tipSize={0.1}
+          place="below"
           body={this.renderMenuItems()}
         >
           <div>

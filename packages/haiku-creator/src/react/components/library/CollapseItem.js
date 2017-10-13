@@ -34,7 +34,7 @@ const STYLES = {
     marginRight: 6
   },
   header: {
-    padding: '5px 0 5px 13px',
+    padding: '4px 0 4px 13px',
     marginLeft: -13,
     ':hover': {
       backgroundColor: Palette.DARKER_GRAY
