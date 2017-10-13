@@ -341,7 +341,6 @@ export default class Master extends EventEmitter {
 
     if (extname === '.sketch' || extname === '.svg') {
       delete this._knownDesigns[relpath]
-      this.emitDesignChange(relpath)
     }
 
     return this.waitForSaveToComplete(() => {
@@ -495,14 +494,33 @@ export default class Master extends EventEmitter {
     )
   }
 
-  unlinkAsset ({ params: [relpath] }, done) {
-    if (!relpath || relpath.length < 2) return done(new Error('Relative path too short'))
+  unlinkAsset ({params: [relpath]}, done) {
+    if (!relpath || relpath.length < 2) {
+      return done(new Error('Relative path too short'))
+    }
+
     const abspath = path.join(this.folder, relpath)
-    return fse.remove(abspath, (removeErr) => {
-      if (removeErr) return done(removeErr)
-      delete this._knownDesigns[relpath]
-      return done(null, this.getAssetDirectoryInfo())
-    })
+
+    /* Remove the file and all associated assets from the in-memory registry */
+    Object.keys(this._knownDesigns)
+      .filter((path) => path.indexOf(relpath) !== -1)
+      .forEach((path) => delete this._knownDesigns[path])
+
+    return async.series(
+      [
+        /* Remove associated Sketch contents from disk */
+        (done) => {
+          Sketch.isSketchFile(abspath)
+            ? fse.remove(`${abspath}.contents`, done)
+            : done()
+        },
+        /* Remove the file itself */
+        fse.remove.bind(abspath)
+      ],
+      error => {
+        return done(error, this.getAssetDirectoryInfo())
+      }
+    )
   }
 
   selectElement (message, cb) {
