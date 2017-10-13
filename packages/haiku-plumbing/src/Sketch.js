@@ -24,6 +24,10 @@ export function looksLikePage (relpath) {
   return relpath.match(LOOKS_LIKE_PAGE)
 }
 
+export function isSketchFile (abspath) {
+  return abspath.match(IS_SKETCH_FILE_RE)
+}
+
 export function exportFolderPath (sketchRelpath) {
   const cleanBasename = path.basename(sketchRelpath, path.extname(sketchRelpath))
   const expectedExportFolderName = `${cleanBasename}.sketch.contents`
@@ -33,7 +37,7 @@ export function exportFolderPath (sketchRelpath) {
 
 export function sketchtoolPipeline (abspath) {
   // Don't bother if the file passed is not a .sketch file
-  if (!abspath.match(IS_SKETCH_FILE_RE)) return void (0)
+  if (!isSketchFile(abspath)) return void (0)
 
   // Don't bother if we detect that the user doesn't even have sketchtool installed
   if (!fse.existsSync(PARSER_CLI_PATH)) return void (0)
