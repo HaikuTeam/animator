@@ -148,10 +148,8 @@ class LibraryDrawer extends React.Component {
   handleAssetDeletion (asset) {
     this.setState({isLoading: true})
     return this.props.websocket.request({ method: 'unlinkAsset', params: [asset.relpath, this.props.folder] }, (error, assets) => {
-      if (error) console.log(error)
-      if (assets) {
-        this.setState({ assets, isLoading: false })
-      }
+      if (error) this.setState({error, isLoading: false})
+      if (assets) this.setState({ assets, isLoading: false })
     })
   }
 
@@ -228,7 +226,7 @@ class LibraryDrawer extends React.Component {
           onDragStart={this.props.onDragStart}
           websocket={this.props.websocket}
           instantiate={this.handleAssetInstantiation.bind(this, asset)}
-          delete={this.handleAssetDeletion.bind(this, asset)}/>
+          delete={this.handleAssetDeletion.bind(this, asset)} />
       )
     }
 
@@ -242,7 +240,7 @@ class LibraryDrawer extends React.Component {
         updateTime={asset.updateTime}
         websocket={this.props.websocket}
         instantiate={this.handleAssetInstantiation.bind(this, asset)}
-        delete={this.handleAssetDeletion.bind(this, asset)}/>
+        delete={this.handleAssetDeletion.bind(this, asset)} />
     )
   }
 
