@@ -1,4 +1,5 @@
 import React from 'react'
+import Radium from 'radium'
 import Palette from './Palette'
 import Popover from 'react-popover'
 
@@ -9,23 +10,38 @@ const STYLES = {
   },
   container: {
     display: 'inline-block',
-    marginLeft: '5px'
+    marginLeft: '8px',
+    width: '22px',
+    textAlign: 'center',
+    borderRadius: '3px',
+    hover: {
+      backgroundColor: Palette.GRAY
+    }
   },
   popover: {
     container: {
       listStyle: 'none',
-      padding: '15px',
+      padding: '15px 15px 5px',
       margin: '0',
-      backgroundColor: Palette.DARKER_GRAY,
-      minWidth: '150px'
+      backgroundColor: Palette.FATHER_COAL,
+      minWidth: '150px',
+      borderRadius: '3px'
     },
     item: {
+      display: 'flex',
       textAlign: 'left',
-      marginBottom: '5px',
-      color: Palette.ROCK,
-      ':hover': {
-        backgroundColor: Palette.DARK_GRAY
-      }
+      alignItems: 'center',
+      marginBottom: '10px',
+      color: Palette.ROCK
+    },
+    icon: {
+      width: '16px',
+      display: 'inline-block',
+      textAlign: 'center'
+    },
+    text: {
+      display: 'inline-block',
+      marginLeft: '8px'
     }
   }
 }
@@ -57,9 +73,13 @@ class ThreeDotMenu extends React.Component {
         {this.props.items.map(({ label, icon, onClick }, id) => {
           return (
             <li key={id} onClick={onClick}>
-              <button style={STYLES.popover.item}>
-                {icon && React.createElement(icon)}
-                {label}
+              <button style={STYLES.popover.item} key={id}>
+                <span style={STYLES.popover.icon}>
+                  {icon && React.createElement(icon)}
+                </span>
+                <span style={STYLES.popover.text}>
+                  {label}
+                </span>
               </button>
             </li>
           )
@@ -70,11 +90,16 @@ class ThreeDotMenu extends React.Component {
 
   render () {
     return (
-      <div style={STYLES.container}>
+      <div
+        style={[
+          STYLES.container,
+          this.props.isHovered ? STYLES.container.hover : {}
+        ]}
+      >
         <Popover
           onOuterAction={this.closePopover}
           isOpen={this.state.isPopoverOpen}
-          place='left'
+          place="left"
           tipSize={0.1}
           body={this.renderMenuItems()}
         >
@@ -89,4 +114,4 @@ class ThreeDotMenu extends React.Component {
   }
 }
 
-export default ThreeDotMenu
+export default Radium(ThreeDotMenu)

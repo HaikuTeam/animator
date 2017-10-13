@@ -17,7 +17,7 @@ const {shell} = require('electron')
 
 const STYLES = {
   row: {
-    marginLeft: 13,
+    paddingLeft: 13,
     userSelect: 'none',
     cursor: 'pointer',
     paddingTop: 2,
@@ -34,8 +34,19 @@ const STYLES = {
     marginRight: 6
   },
   header: {
-    ':hover': { // has to be here for the Radium.getState to work
+    padding: '5px 0 5px 13px',
+    marginLeft: -13,
+    ':hover': {
+      backgroundColor: Palette.DARKER_GRAY
     }
+  },
+  fileName: {
+    display: 'inline-block',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    width: 'calc(100% - 85px)',
+    whiteSpace: 'nowrap',
+    verticalAlign: 'middle'
   }
 }
 
@@ -184,23 +195,53 @@ class CollapseItem extends React.Component {
       })
     }
 
-    return (
+return (
       <div style={STYLES.row}>
-        <div onClick={this.handleCollapseToggle}>
+        <div
+          onClick={this.handleCollapseToggle}
+          style={file ? STYLES.header : {}}
+          key={file ? `file-header-${file.fileName}` : ''}
+        >
           {this.renderChevy()}
-          {this.props.file
-            ? <span key={`file-header-${file.fileName}`} style={STYLES.header}>
-              <span onContextMenu={this.handleContextMenu.bind(this)} onDoubleClick={this.handleSketchDoubleClick} style={STYLES.icon}>
-                <SketchIconSVG style='' color={Radium.getState(this.state, `file-header-${file.fileName}`, ':hover') ? Palette.ORANGE : Palette.DARKER_ROCK} />
+          {file ? (
+            <span>
+              <span
+                onContextMenu={this.handleContextMenu.bind(this)}
+                onDoubleClick={this.handleSketchDoubleClick}
+                style={STYLES.icon}
+              >
+                <SketchIconSVG />
               </span>
-              <span onContextMenu={this.handleContextMenu.bind(this)} onDoubleClick={this.handleSketchDoubleClick}>{this.props.file.fileName}</span>
-              <ThreeDotMenu items={this.threeDotMenuItems} />
+              <span
+                onContextMenu={this.handleContextMenu.bind(this)}
+                onDoubleClick={this.handleSketchDoubleClick}
+                style={STYLES.fileName}
+              >
+                {this.props.file.fileName}
+              </span>
+              <ThreeDotMenu
+                items={this.threeDotMenuItems}
+                isHovered={Radium.getState(
+                  this.state,
+                  `file-header-${file.fileName}`,
+                  ':hover'
+                )}
+              />
             </span>
-            : <span><span style={STYLES.icon}><FolderIconSVG /></span>{this.props.name}</span>
-          }
+          ) : (
+            <span>
+              <span style={STYLES.icon}>
+                <FolderIconSVG />
+              </span>
+              <span style={STYLES.fileName}>{this.props.name}</span>
+            </span>
+          )}
         </div>
 
-        <Collapse isOpened={isOpened} springConfig={{stiffness: 177, damping: 17}}>
+        <Collapse
+          isOpened={isOpened}
+          springConfig={{stiffness: 177, damping: 17}}
+        >
           {subLevel}
         </Collapse>
       </div>
