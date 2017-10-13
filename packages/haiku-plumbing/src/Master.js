@@ -515,7 +515,9 @@ export default class Master extends EventEmitter {
             : done()
         },
         /* Remove the file itself */
-        fse.remove.bind(abspath)
+        (done) => {
+          fse.remove(abspath, done)
+        }
       ],
       error => {
         return done(error, this.getAssetDirectoryInfo())
