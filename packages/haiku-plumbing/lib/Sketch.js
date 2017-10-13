@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.looksLikeSlice = looksLikeSlice;
 exports.looksLikeArtboard = looksLikeArtboard;
 exports.looksLikePage = looksLikePage;
+exports.isSketchFile = isSketchFile;
 exports.exportFolderPath = exportFolderPath;
 exports.sketchtoolPipeline = sketchtoolPipeline;
 
@@ -47,6 +48,10 @@ function looksLikePage(relpath) {
   return relpath.match(LOOKS_LIKE_PAGE);
 }
 
+function isSketchFile(abspath) {
+  return abspath.match(IS_SKETCH_FILE_RE);
+}
+
 function exportFolderPath(sketchRelpath) {
   var cleanBasename = _path2.default.basename(sketchRelpath, _path2.default.extname(sketchRelpath));
   var expectedExportFolderName = cleanBasename + '.sketch.contents';
@@ -56,7 +61,7 @@ function exportFolderPath(sketchRelpath) {
 
 function sketchtoolPipeline(abspath) {
   // Don't bother if the file passed is not a .sketch file
-  if (!abspath.match(IS_SKETCH_FILE_RE)) return void 0;
+  if (!isSketchFile(abspath)) return void 0;
 
   // Don't bother if we detect that the user doesn't even have sketchtool installed
   if (!_haikuFsExtra2.default.existsSync(PARSER_CLI_PATH)) return void 0;

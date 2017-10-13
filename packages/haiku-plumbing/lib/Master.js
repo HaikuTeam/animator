@@ -446,7 +446,6 @@ var Master = function (_EventEmitter) {
 
       if (extname === '.sketch' || extname === '.svg') {
         delete this._knownDesigns[relpath];
-        this.emitDesignChange(relpath);
       }
 
       return this.waitForSaveToComplete(function () {
@@ -651,12 +650,29 @@ var Master = function (_EventEmitter) {
       var _ref9$params = _slicedToArray(_ref9.params, 1),
           relpath = _ref9$params[0];
 
-      if (!relpath || relpath.length < 2) return done(new Error('Relative path too short'));
+      if (!relpath || relpath.length < 2) {
+        return done(new Error('Relative path too short'));
+      }
+
       var abspath = _path2.default.join(this.folder, relpath);
-      return _haikuFsExtra2.default.remove(abspath, function (removeErr) {
-        if (removeErr) return done(removeErr);
-        delete _this11._knownDesigns[relpath];
-        return done(null, _this11.getAssetDirectoryInfo());
+
+      /* Remove the file and all associated assets from the in-memory registry */
+      Object.keys(this._knownDesigns).filter(function (path) {
+        return path.indexOf(relpath) !== -1;
+      }).forEach(function (path) {
+        return delete _this11._knownDesigns[path];
+      });
+
+      return _async2.default.series([
+      /* Remove associated Sketch contents from disk */
+      function (done) {
+        Sketch.isSketchFile(abspath) ? _haikuFsExtra2.default.remove(abspath + '.contents', done) : done();
+      },
+      /* Remove the file itself */
+      function (done) {
+        _haikuFsExtra2.default.remove(abspath, done);
+      }], function (error) {
+        return done(error, _this11.getAssetDirectoryInfo());
       });
     }
   }, {
