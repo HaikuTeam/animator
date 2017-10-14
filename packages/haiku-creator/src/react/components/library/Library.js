@@ -6,10 +6,12 @@ import path from 'path'
 import Palette from './../Palette'
 import LibraryItem from './LibraryItem'
 import CollapseItem from './CollapseItem'
+import SketchDownloader from '../SketchDownloader'
 import RectanglePrimitiveProps from './../../primitives/Rectangle'
 import EllipsePrimitiveProps from './../../primitives/Ellipse'
 import PolygonPrimitiveProps from './../../primitives/Polygon'
 import TextPrimitiveProps from './../../primitives/Text'
+import sketchUtils from '../../../utils/sketchUtils'
 import { shell } from 'electron'
 
 const STYLES = {
@@ -92,7 +94,11 @@ class LibraryDrawer extends React.Component {
       assets: [],
       previewImageTime: null,
       overDropTarget: false,
-      isLoading: false
+      isLoading: false,
+      sketchDownloader: {
+        isVisible: false,
+        fileData: null
+      }
     }
   }
 
@@ -103,6 +109,9 @@ class LibraryDrawer extends React.Component {
       if (name === 'assets-changed') {
         this.setState({ assets })
       }
+    })
+    sketchUtils.checkIfInstalled().then(isInstalled => {
+      this.isSketchInstalled = isInstalled
     })
   }
 
@@ -126,9 +135,23 @@ class LibraryDrawer extends React.Component {
     })
   }
 
-  handleSketchInstantiation (fileData) {
+  openSketchFile (fileData) {
     let abspath = path.join(this.props.folder, 'designs', fileData.fileName)
     shell.openItem(abspath)
+  }
+
+  handleSketchInstantiation(fileData) {
+    if (this.isSketchInstalled) {
+      this.openSketchFile(fileData)
+    } else {
+      this.setState({sketchDownloader: {isVisible: true, fileData}})
+    }
+  }
+
+  onSketchDownloadComplete () {
+    this.isSketchInstalled = true
+    this.openSketchFile(this.state.sketchDownloader.fileData)
+    this.setState({sketchDownloader: {isVisible: false, fileData: null}})
   }
 
   handleAssetInstantiation (fileData) {
@@ -317,6 +340,13 @@ class LibraryDrawer extends React.Component {
             {this.state.isLoading ? '' : this.renderAssetsList()}
           </div>
         </div>
+        {
+          this.state.sketchDownloader.isVisible && (
+            <SketchDownloader
+              onDownloadComplete={this.onSketchDownloadComplete.bind(this)}
+            />
+          )
+        }
       </div>
     )
   }
