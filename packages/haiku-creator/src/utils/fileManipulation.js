@@ -17,7 +17,7 @@ module.exports = {
           if (typeof shouldCancel === 'function' && shouldCancel()) {
             request.abort()
             file.close()
-            reject(Error("Download cancelled"))
+            reject(Error('Download cancelled'))
           }
 
           progress += data.length

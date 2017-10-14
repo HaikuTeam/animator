@@ -99,7 +99,7 @@ class ThreeDotMenu extends React.Component {
         <Popover
           onOuterAction={this.closePopover}
           isOpen={this.state.isPopoverOpen}
-          place="below"
+          place='below'
           body={this.renderMenuItems()}
         >
           <div>

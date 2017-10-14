@@ -9,7 +9,7 @@ let statuses = {
 }
 
 class SketchDownloader extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props)
 
     this.hide = this.hide.bind(this)
@@ -28,7 +28,7 @@ class SketchDownloader extends React.Component {
     this.setState({status: statuses.PROMPT_USER})
   }
 
-  download(url) {
+  download (url) {
     this.setState({status: statuses.DOWNLOADING})
 
     download(this.updateProgress, () => this.state.shouldCancel)
@@ -40,11 +40,11 @@ class SketchDownloader extends React.Component {
       })
   }
 
-  updateProgress(progress) {
+  updateProgress (progress) {
     this.setState({progress})
   }
 
-  onFail(error) {
+  onFail (error) {
     this.setState({
       status: statuses.DOWNLOAD_FAILED,
       progress: 0,
@@ -54,7 +54,7 @@ class SketchDownloader extends React.Component {
     console.error(error)
   }
 
-  hide() {
+  hide () {
     this.setState({
       status: statuses.IDLE,
       progress: 0,
@@ -62,7 +62,7 @@ class SketchDownloader extends React.Component {
     })
   }
 
-  renderPromptUser() {
+  renderPromptUser () {
     return (
       <div>
         <p>
@@ -80,14 +80,14 @@ class SketchDownloader extends React.Component {
     )
   }
 
-  renderDownloading() {
+  renderDownloading () {
     const progress = this.state.progress.toFixed(1)
 
     return (
       <div>
         <span>Downloading and installing...</span>
         <p style={STYLES.progressNumber}>{progress} %</p>
-        <progress value={progress} max="100" style={STYLES.progressBar}>
+        <progress value={progress} max='100' style={STYLES.progressBar}>
           {progress} %
         </progress>
         <button
@@ -100,7 +100,7 @@ class SketchDownloader extends React.Component {
     )
   }
 
-  renderDownloadFailed() {
+  renderDownloadFailed () {
     return (
       <div>
         <p>
@@ -114,7 +114,7 @@ class SketchDownloader extends React.Component {
     )
   }
 
-  render() {
+  render () {
     const {status} = this.state
     if (status === statuses.IDLE) return null
     let content = this[`render${status}`]()

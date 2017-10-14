@@ -140,7 +140,7 @@ class LibraryDrawer extends React.Component {
     shell.openItem(abspath)
   }
 
-  handleSketchInstantiation(fileData) {
+  handleSketchInstantiation (fileData) {
     if (this.isSketchInstalled) {
       this.openSketchFile(fileData)
     } else {

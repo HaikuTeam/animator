@@ -195,7 +195,7 @@ class CollapseItem extends React.Component {
       })
     }
 
-return (
+    return (
       <div style={STYLES.row}>
         <div
           onClick={this.handleCollapseToggle}
