@@ -1,49 +1,6 @@
 import React from 'react'
 import autoUpdate from '../../utils/autoUpdate'
-import Palette from './Palette'
-import Color from 'color'
-import { DASH_STYLES } from '../styles/dashShared'
-
-const STYLES = {
-  container: {
-    fontSize: 16,
-    zIndex: 9999999,
-    backgroundColor: Palette.COAL,
-    borderRadius: 3,
-    padding: 20,
-    color: Palette.ROCK,
-    boxShadow: '0 4px 18px 0 rgba(1,28,33,0.38)',
-    position: 'fixed',
-    display: 'inline-block',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    maxWidth: 270
-  },
-  btn: {
-    ...DASH_STYLES.btn,
-    padding: '10px 15px',
-    fontSize: 16,
-    float: 'right'
-  },
-  overlay: {
-    position: 'fixed',
-    width: '100%',
-    height: '100%',
-    top: 0,
-    left: 0,
-    backgroundColor: Color(Palette.GRAY).fade(0.023),
-    zIndex: 99999,
-    pointerEvents: 'none'
-  },
-  progressNumber: {
-    fontSize: 15,
-    margin: '10px 0 0 0'
-  },
-  progressBar: {
-    width: '100%'
-  }
-}
+import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared'
 
 let statuses = {
   IDLE: 'Idle',
@@ -70,7 +27,11 @@ class AutoUpdater extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.shouldDisplay && this.state.status === statuses.IDLE) {
+    if (
+      process.env.HAIKU_SKIP_AUTOUPDATE !== '1' &&
+      nextProps.shouldDisplay &&
+      this.state.status === statuses.IDLE
+    ) {
       this.checkForUpdates()
     }
   }

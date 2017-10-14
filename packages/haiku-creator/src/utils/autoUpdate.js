@@ -35,9 +35,12 @@ module.exports = {
 
         download(url, zipPath, progressCallback)
           .then(() => {
-            unzip(zipPath, installationPath)
+            return unzip(zipPath, installationPath, 'Haiku')
+          })
+          .then(() => {
             electron.remote.app.exit()
           })
+          .catch(reject)
       }
     })
   },
@@ -62,20 +65,14 @@ module.exports = {
     return new Promise((resolve, reject) => {
       fetch(this.generateURL(opts))
         .then((response) => {
-          if (!response.ok) {
-            throw Error(`${response.statusText} : ${response.url}`)
-          }
-
+          if (!response.ok) reject(Error(`${response.statusText} : ${response.url}`))
           status = response.status
-
           return status === 200 ? response.json() : {}
         })
         .then((data) => {
           resolve({status: status, url: data.url})
         })
-        .catch((error) => {
-          reject(error)
-        })
+        .catch(reject)
     })
   },
 
