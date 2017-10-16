@@ -27,20 +27,20 @@ const STYLES = {
 }
 
 class PlaybackButtons extends React.Component {
-  playbackSkipBack() {
+  playbackSkipBack () {
     this.props.removeTimelineShadow()
     this.props.playbackSkipBack()
   }
 
-  playbackSkipForward() {
+  playbackSkipForward () {
     this.props.playbackSkipForward()
   }
 
-  playbackPlayPause() {
+  playbackPlayPause () {
     this.props.playbackPlayPause()
   }
 
-  render() {
+  render () {
     const lastFrame = this.props.lastFrame
     const currentFrame = this.props.currentFrame
     const isPlaying = this.props.isPlaying
@@ -48,23 +48,21 @@ class PlaybackButtons extends React.Component {
       <span>
         <button
           disabled={currentFrame < 1}
-          key="skipback"
+          key='skipback'
           style={[STYLES.btn, currentFrame < 1 && STYLES.disabled]}
           onClick={this.playbackSkipBack.bind(this)}
         >
           <SkipBackIconSVG />
         </button>
         <button
-          disabled={currentFrame >= lastFrame}
-          key="pause"
+          key='pause'
           onClick={this.playbackPlayPause.bind(this)}
           style={[
             STYLES.btn,
-            STYLES.btnPlayPause,
-            currentFrame >= lastFrame && STYLES.disabled
+            STYLES.btnPlayPause
           ]}
         >
-          {isPlaying ? (
+          {isPlaying && currentFrame < lastFrame ? (
             <span style={{marginLeft: 2}}>
               <PauseIconSVG />
             </span>
@@ -74,7 +72,7 @@ class PlaybackButtons extends React.Component {
         </button>
         <button
           disabled={currentFrame >= lastFrame}
-          key="skipforward"
+          key='skipforward'
           style={[STYLES.btn, currentFrame >= lastFrame && STYLES.disabled]}
           onClick={this.playbackSkipForward.bind(this)}
         >
