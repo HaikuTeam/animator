@@ -54,7 +54,7 @@ export default class TourHandler implements Tour {
         {
             selector: ".gauge-box",
             webview: "timeline",
-            component: "TweenCreator",
+            component: "CreateTween",
             display: "top",
             offset: {top: 50, left: 100},
             spotlightRadius: 8000,
@@ -63,7 +63,7 @@ export default class TourHandler implements Tour {
         {
             selector: ".gauge-box",
             webview: "timeline",
-            component: "AnimatorNotice",
+            component: "Congratulations",
             display: "top",
             offset: {top: 50, left: 100},
             spotlightRadius: 8000,
@@ -242,14 +242,6 @@ export default class TourHandler implements Tour {
         }
 
         this.requestWebviewCoordinates()
-    }
-
-    isTourActive() {
-        return this.isActive
-    }
-
-    getCurrentStep() {
-        return this.currentStep
     }
 
     start(force?) {
