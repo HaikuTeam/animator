@@ -16,7 +16,11 @@ class Tour extends React.Component {
 
     this.state = {
       component: null,
-      coordinates: null
+      coordinates: null,
+      stepData: {
+        current: 0,
+        total: undefined
+      }
     }
 
     this.hasTriggeredTourRender = false
@@ -55,11 +59,6 @@ class Tour extends React.Component {
 
   next () {
     this.tourChannel.next()
-    mixpanel.haikuTrack('tour', {
-      state: 'step completed',
-      step: this.state.stepData.current,
-      title: this.state.component
-    })
   }
 
   finish (createFile, skipped) {
@@ -75,8 +74,16 @@ class Tour extends React.Component {
     this.setState({ component: null })
   }
 
-  showStep (state) {
-    this.setState(state)
+  showStep (newState) {
+    if (this.state.stepData.current < newState.stepData.current) {
+      mixpanel.haikuTrack('tour', {
+        state: 'step completed',
+        step: this.state.stepData.current,
+        title: this.state.component
+      })
+    }
+
+    this.setState(newState)
   }
 
   openLink (e) {
