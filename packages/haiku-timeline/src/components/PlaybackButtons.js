@@ -46,16 +46,36 @@ class PlaybackButtons extends React.Component {
     const isPlaying = this.props.isPlaying
     return (
       <span>
-        <button disabled={(currentFrame < 1)} key='skipback' style={[STYLES.btn, (currentFrame < 1) && STYLES.disabled]} onClick={this.playbackSkipBack.bind(this)}>
+        <button
+          disabled={currentFrame < 1}
+          key='skipback'
+          style={[STYLES.btn, currentFrame < 1 && STYLES.disabled]}
+          onClick={this.playbackSkipBack.bind(this)}
+        >
           <SkipBackIconSVG />
         </button>
-        <button disabled={(currentFrame >= lastFrame)} key='pause' onClick={this.playbackPlayPause.bind(this)} style={[STYLES.btn, STYLES.btnPlayPause, (currentFrame >= lastFrame) && STYLES.disabled]}>
-          {(isPlaying)
-            ? <span style={{marginLeft: 2}}><PauseIconSVG /></span>
-            : <PlayIconSVG />
-          }
+        <button
+          key='pause'
+          onClick={this.playbackPlayPause.bind(this)}
+          style={[
+            STYLES.btn,
+            STYLES.btnPlayPause
+          ]}
+        >
+          {isPlaying && currentFrame < lastFrame ? (
+            <span style={{marginLeft: 2}}>
+              <PauseIconSVG />
+            </span>
+          ) : (
+            <PlayIconSVG />
+          )}
         </button>
-        <button disabled={(currentFrame >= lastFrame)} key='skipforward' style={[STYLES.btn, (currentFrame >= lastFrame) && STYLES.disabled]} onClick={this.playbackSkipForward.bind(this)}>
+        <button
+          disabled={currentFrame >= lastFrame}
+          key='skipforward'
+          style={[STYLES.btn, currentFrame >= lastFrame && STYLES.disabled]}
+          onClick={this.playbackSkipForward.bind(this)}
+        >
           <SkipForwardIconSVG />
         </button>
       </span>

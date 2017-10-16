@@ -939,7 +939,24 @@ class Timeline extends React.Component {
     }
   }
 
+  playbackSkipBack () {
+    /* this._component.getCurrentTimeline().pause() */
+    /* this.updateVisibleFrameRange(frameInfo.fri0 - frameInfo.friA) */
+    /* this.updateTime(frameInfo.fri0) */
+    let frameInfo = this.getFrameInfo()
+    this._component.getCurrentTimeline().seekAndPause(frameInfo.fri0)
+    this.setState({ isPlayerPlaying: false, currentFrame: frameInfo.fri0 })
+  }
+
+  playbackSkipForward () {
+    let frameInfo = this.getFrameInfo()
+    this.setState({ isPlayerPlaying: false, currentFrame: frameInfo.friMax })
+    this._component.getCurrentTimeline().seekAndPause(frameInfo.friMax)
+  }
+
   togglePlayback () {
+    if (this.state.currentFrame >= this.state.maxFrame) this.playbackSkipBack()
+
     if (this.state.isPlayerPlaying) {
       this.setState({
         inputFocused: null,
@@ -1449,17 +1466,10 @@ class Timeline extends React.Component {
             this.setState({ currentTimelineName })
           }}
           playbackSkipBack={() => {
-            /* this._component.getCurrentTimeline().pause() */
-            /* this.updateVisibleFrameRange(frameInfo.fri0 - frameInfo.friA) */
-            /* this.updateTime(frameInfo.fri0) */
-            let frameInfo = this.getFrameInfo()
-            this._component.getCurrentTimeline().seekAndPause(frameInfo.fri0)
-            this.setState({ isPlayerPlaying: false, currentFrame: frameInfo.fri0 })
+            this.playbackSkipBack()
           }}
           playbackSkipForward={() => {
-            let frameInfo = this.getFrameInfo()
-            this.setState({ isPlayerPlaying: false, currentFrame: frameInfo.friMax })
-            this._component.getCurrentTimeline().seekAndPause(frameInfo.friMax)
+            this.playbackSkipForward()
           }}
           playbackPlayPause={() => {
             this.togglePlayback()
