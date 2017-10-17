@@ -91,10 +91,15 @@ export default class Master extends EventEmitter {
     // IPC hook to communicate with plumbing
     this.proc = new ProcessBase('master') // 'master' is not a branch name in this context
 
+    this.proc.on('teardown', (cb) => {
+      return this.teardown(cb)
+    })
+
     this.proc.socket.on('close', () => {
       logger.info('[master] !!! socket closed')
-      this.teardown()
-      this.emit('host-disconnected')
+      this.teardown(() => {
+        this.emit('host-disconnected')
+      })
     })
 
     this.proc.socket.on('error', (err) => {
@@ -165,12 +170,18 @@ export default class Master extends EventEmitter {
     this.debouncedEmitDesignNeedsMergeRequest = debounce(this.emitDesignNeedsMergeRequest.bind(this), 500, { trailing: true })
   }
 
-  teardown () {
+  teardown (cb) {
     clearInterval(this._methodQueueInterval)
     clearInterval(this._mod._modificationsInterval)
-    if (this._git) this._git.teardown()
+
     if (this._component) this._component._envoyClient.closeConnection()
     if (this._watcher) this._watcher.stop()
+
+    if (this._git) {
+      return this._git.teardown(cb)
+    } else {
+      return cb()
+    }
   }
 
   logMethodMessage ({ method, params }) {
@@ -318,6 +329,9 @@ export default class Master extends EventEmitter {
         if (extname === '.sketch') {
           logger.info('[master] sketchtool pipeline running; please wait')
           Sketch.sketchtoolPipeline(abspath)
+          setTimeout(() => {
+            throw new Error('YAYA hey')
+          }, 1000)
           logger.info('[master] sketchtool done')
           return void (0)
         }

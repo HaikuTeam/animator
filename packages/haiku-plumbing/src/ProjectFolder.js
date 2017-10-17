@@ -221,7 +221,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       // If our player version is only a patch difference from theirs, go ahead and upgrade their player
       let upgradeDiff = semver.diff(packageJson.dependencies['@haiku/player'], haikuPlayerVersion)
       if (upgradeDiff === 'patch') {
-        logger.info('[project folder] upgraded @haiku/player to', haikuPlayerVersion)
+        logger.sacred('[project folder] upgraded @haiku/player to', haikuPlayerVersion)
         packageJson.dependencies['@haiku/player'] = haikuPlayerVersion
       }
     }

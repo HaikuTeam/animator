@@ -263,7 +263,6 @@ ActiveComponent.prototype.setTimelineTime = function setTimelineTime (timelineTi
 }
 
 ActiveComponent.prototype.setTimelineName = function setTimelineName (timelineName, metadata, cb) {
-  info('[active component] changing active timeline to ' + timelineName)
   this._currentTimelineName = timelineName
   this._componentInstance.stopAllTimelines()
   this._componentInstance.startTimeline(timelineName)
@@ -1112,17 +1111,11 @@ ActiveComponent.prototype.readAllEventHandlers = function readAllEventHandlers (
 ActiveComponent.prototype.reloadComponent = function reloadComponent (cb) {
   var modulePath = path.join(this.folder, this._getSceneDomModulePath())
 
-  info('[active component] clearing require cache')
-
   for (var key in require.cache) {
     if (!key.match(/node_modules/)) delete require.cache[key]
   }
 
-  info('[active component] overriding loaded modules')
-
   overrideModulesLoaded((stop) => {
-    info('[active component] reloading module (' + modulePath + ')')
-
     var updatedHaikuComponentFactory = require(modulePath)
 
     stop() // Tell the node hook to stop interfering since we've got what we need now

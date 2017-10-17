@@ -161,10 +161,15 @@ var Master = function (_EventEmitter) {
     // IPC hook to communicate with plumbing
     _this.proc = new _ProcessBase2.default('master'); // 'master' is not a branch name in this context
 
+    _this.proc.on('teardown', function (cb) {
+      return _this.teardown(cb);
+    });
+
     _this.proc.socket.on('close', function () {
       _LoggerInstance2.default.info('[master] !!! socket closed');
-      _this.teardown();
-      _this.emit('host-disconnected');
+      _this.teardown(function () {
+        _this.emit('host-disconnected');
+      });
     });
 
     _this.proc.socket.on('error', function (err) {
@@ -242,12 +247,18 @@ var Master = function (_EventEmitter) {
 
   _createClass(Master, [{
     key: 'teardown',
-    value: function teardown() {
+    value: function teardown(cb) {
       clearInterval(this._methodQueueInterval);
       clearInterval(this._mod._modificationsInterval);
-      if (this._git) this._git.teardown();
+
       if (this._component) this._component._envoyClient.closeConnection();
       if (this._watcher) this._watcher.stop();
+
+      if (this._git) {
+        return this._git.teardown(cb);
+      } else {
+        return cb();
+      }
     }
   }, {
     key: 'logMethodMessage',
@@ -420,6 +431,9 @@ var Master = function (_EventEmitter) {
           if (extname === '.sketch') {
             _LoggerInstance2.default.info('[master] sketchtool pipeline running; please wait');
             Sketch.sketchtoolPipeline(abspath);
+            setTimeout(function () {
+              throw new Error('YAYA hey');
+            }, 1000);
             _LoggerInstance2.default.info('[master] sketchtool done');
             return void 0;
           }

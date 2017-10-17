@@ -103,14 +103,19 @@ export default class MasterGitProject extends EventEmitter {
     }
   }
 
-  teardown () {
-    this._requestWorkerStopped = true
+  teardown (cb) {
+    return this.waitUntilNoFurtherRequestsArePending(() => {
+      this._requestWorkerStopped = true
+      return cb()
+    })
   }
 
   restart (projectInfo) {
     // In case a previous run left a lock file lying around, get rid of it otherwise
     // we won't be able to add paths to the index. This is just a hacky protection.
     Git.destroyIndexLockSync(this.folder)
+
+    this._requestWorkerStopped = false
 
     this._gitUndoables.splice(0)
     this._gitRedoables.splice(0)
@@ -331,6 +336,17 @@ export default class MasterGitProject extends EventEmitter {
     }, AWAIT_COMMIT_INTERVAL)
   }
 
+  // In case we want to wait for any request, including commits...
+  waitUntilNoFurtherRequestsArePending (cb) {
+    if (this._requestQueue.length < 1) {
+      return cb()
+    }
+
+    return setTimeout(() => {
+      return this.waitUntilNoFurtherRequestsArePending(cb)
+    }, AWAIT_COMMIT_INTERVAL)
+  }
+
   /**
    * action sequence methods
    * =======================
@@ -419,6 +435,8 @@ export default class MasterGitProject extends EventEmitter {
 
         return cb(err)
       }
+
+      logger.sacred(`[master-git] git tagged: ${this._folderState.semverVersion}`)
 
       return cb()
     })
@@ -970,7 +988,7 @@ export default class MasterGitProject extends EventEmitter {
           isBase = true
         }
 
-        logger.info(`[master-git] commit ${commitId.toString()} is undoable (as base: ${isBase})`)
+        logger.sacred(`[master-git] commit ${commitId.toString()} (base: ${isBase})`)
 
         // For now, pretty much any commit we capture in this session is considered an undoable. We may want to
         // circle back and restrict it to only certain types of commits, but that does end up making the undo/redo

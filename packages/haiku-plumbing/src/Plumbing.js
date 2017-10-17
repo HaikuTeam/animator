@@ -89,6 +89,7 @@ const Q_CREATOR = { alias: 'creator' }
 
 const AWAIT_INTERVAL = 100
 const WAIT_DELAY = 10 * 1000
+const MAX_MASTER_RESTART_ATTEMPTS = 3
 
 const HAIKU_DEFAULTS = {
   socket: {
@@ -162,6 +163,7 @@ export default class Plumbing extends StateObject {
     // reconnect any subprocs that seem to have disconnected. This seems useless (why not just kill
     // the process) but keep in mind we need to unit test this.
     this._isTornDown = false
+    this._masterRestartAttempts = {}
 
     this._methodMessages = []
     this.executeMethodMessagesWorker()
@@ -176,7 +178,7 @@ export default class Plumbing extends StateObject {
         return void (0)
       }
 
-      logger.info(`[plumbing] restarting client ${alias} in ${folder}`)
+      logger.sacred(`[plumbing] restarting client ${alias} in ${folder}`)
 
       // This just waits until we have a 'master' client available with the given name.
       // The reconnect logic is elsewhere
@@ -186,8 +188,10 @@ export default class Plumbing extends StateObject {
         }
 
         if (alias === 'master') {
+          const projectInfo = this.getProjectInfoFor(folder)
+
           // This actually calls the method in question on the given client
-          return this.restartProject(null/* projectName is ignored */, folder, (err) => {
+          return this.restartProject(folder, projectInfo, (err) => {
             if (err) {
               return this._handleUnrecoverableError(new Error(`Unable to finish restart on client ${alias} in ${folder} because ${_safeErrorMessage(err)}`))
             }
@@ -254,7 +258,7 @@ export default class Plumbing extends StateObject {
         this.servers.push(server)
 
         server.on('connected', (websocket, type, alias, folder, params) => {
-          logger.info(`[plumbing] websocket client connection opened: (${type} ${alias}) ${JSON.stringify(params)}`)
+          logger.sacred(`[plumbing] websocket opened (${type} ${alias})`)
 
           // Don't allow duplicate clients
           for (let i = this.clients.length - 1; i >= 0; i--) {
@@ -275,8 +279,15 @@ export default class Plumbing extends StateObject {
           websocket._index = index
 
           websocket.on('close', () => {
-            logger.info(`[plumbing] websocket client connection closed (${type} ${alias})`)
-            this.clients.splice(index, 1)
+            logger.sacred(`[plumbing] websocket closed (${type} ${alias})`)
+
+            // Clean up dead clients
+            for (let j = this.clients.length - 1; j >= 0; j--) {
+              let client = this.clients[j]
+              if (client === websocket) {
+                this.clients.splice(j, 1)
+              }
+            }
           })
         })
 
@@ -311,15 +322,16 @@ export default class Plumbing extends StateObject {
 
   methodMessageBeforeLog (message, alias) {
     if (!IGNORED_METHOD_MESSAGES[message.method]) {
-      logger.info(`[plumbing] ↓-------- BEGAN ${message.method} from ${alias} --------↓`)
-      logger.info(`[plumbing] ${message.method} -> ${JSON.stringify(message.params)}`)
+      logger.sacred(`[plumbing] ↓-- ${message.method} via ${alias} -> ${JSON.stringify(message.params)} --↓`)
     }
   }
 
   methodMessageAfterLog (message, err, result, alias) {
     if (!IGNORED_METHOD_MESSAGES[message.method]) {
-      logger.info(`[plumbing] ${message.method} <-`, (err && err.message) || '', (err && err.stack) || '', result)
-      logger.info(`[plumbing] ↑-------- ENDED ${message.method} from ${alias} --------↑`)
+      if ((err && err.message) || (err && err.stack)) {
+        logger.sacred(`[plumbing] ${message.method} error ${err.stack || err.message}`)
+      }
+      logger.sacred(`[plumbing] ↑-- ${message.method} via ${alias} --↑`)
     }
   }
 
@@ -373,7 +385,7 @@ export default class Plumbing extends StateObject {
   }
 
   sentryError (method, error, extras) {
-    logger.info(`[plumbing] error @ ${method}`, error, extras)
+    logger.sacred(`[plumbing] error @ ${method}`, error, extras)
     if (!Raven) return null
     if (method && METHODS_TO_SKIP_IN_SENTRY[method]) return null
     if (!error) return null
@@ -402,9 +414,6 @@ export default class Plumbing extends StateObject {
       return cb(new Error(`Timed out waiting for client ${JSON.stringify(query)} of ${folder} to connect`))
     }
 
-    // // uncomment me for insight into why a request might not be making it
-    // console.log('==== awaiting', method, query)
-
     // HACK: At the time of this writing, there is only "one" creator client, not one per folder.
     // So the method just get ssent to the one client (if available)
     if (query.alias === 'creator') {
@@ -414,6 +423,12 @@ export default class Plumbing extends StateObject {
       }
     } else {
       const clientsOfFolder = filter(this.clients, { params: { folder } })
+
+      // // uncomment me for insight into why a request might not be making it
+      // if (method !== 'masterHeartbeat') {
+      //   console.log('awaiting', method, query, folder, JSON.stringify(this.clients.map((c) => c.params.alias)))
+      // }
+
       if (clientsOfFolder && clientsOfFolder.length > 0) {
         const clientMatching = find(clientsOfFolder, { params: query })
         if (clientMatching) {
@@ -460,9 +475,11 @@ export default class Plumbing extends StateObject {
     logger.info('[plumbing] teardown method called')
     this.subprocs.forEach((subproc) => {
       if (subproc.kill) {
-        logger.info('[plumbing] sending interrupt signal')
         if (subproc.stdin) subproc.stdin.pause()
-        subproc.kill('SIGKILL')
+        // Using sigterm as opposed to kill to give the processes a chance to cleanup
+        // so we don't end up with corrupt git objects
+        logger.info('[plumbing] sending terminate signal')
+        subproc.kill('SIGTERM')
       } else if (subproc.exit) {
         logger.info('[plumbing] calling exit')
         subproc.exit()
@@ -568,27 +585,32 @@ export default class Plumbing extends StateObject {
       }
 
       // QUESTION: Does this *need* to happen down here after the org fetch?
-      const gitInitializeUsername = maybeUsername || this.get('username')
-      const gitInitializePassword = maybePassword || this.get('password')
+      const gitInitializeUsername = projectOptions.username || this.get('username')
+      const gitInitializePassword = projectOptions.password || this.get('password')
 
       // A simpler project options to avoid passing options only used for the first pass, e.g. skipContentCreation
       const projectOptionsAgain = {
         organizationName: projectOptions.organizationName,
-        username: projectOptions.username,
-        password: projectOptions.password,
+        username: gitInitializeUsername,
+        password: gitInitializePassword,
         authorName
       }
 
       return this.initializeFolder(maybeProjectName, projectFolder, gitInitializeUsername, gitInitializePassword, projectOptionsAgain, (err) => {
         if (err) return finish(err)
+        // HACK: used when restarting the process to allow us to reinitialize properly
+        this.projects[projectFolder] = {
+          name: maybeProjectName,
+          folder: projectFolder,
+          username: gitInitializePassword,
+          password: gitInitializePassword,
+          organization: projectOptionsAgain.organizationName,
+          options: projectOptionsAgain
+        }
 
         if (maybeProjectName) {
-          this.projects[maybeProjectName] = {
-            folder: projectFolder,
-            username: maybeUsername,
-            password: maybePassword,
-            organization: projectOptions.organizationName
-          }
+          // HACK: alias to allow lookup by project name
+          this.projects[maybeProjectName] = this.projects[projectFolder]
         }
 
         return finish(null, projectFolder)
@@ -600,8 +622,13 @@ export default class Plumbing extends StateObject {
    * Returns the absolute path of the folder of a project by name, if we are tracking one.
    */
   getFolderFor (projectName) {
-    if (!this.projects[projectName]) return null
-    return this.projects[projectName].folder
+    let info = this.getProjectInfoFor(projectName)
+    if (!info) return null
+    return info.folder
+  }
+
+  getProjectInfoFor (projectNameOrFolder) {
+    return this.projects[projectNameOrFolder]
   }
 
   /**
@@ -616,8 +643,14 @@ export default class Plumbing extends StateObject {
     return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'startProject', [], cb)
   }
 
-  restartProject (maybeProjectName, folder, cb) {
-    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'restartProject', [], cb)
+  restartProject (folder, projectInfo, cb) {
+    // We run initializeFolder first to ensure the Git bootstrapping works correctly, especially setting
+    // a branch name and ensuring we have a good baseline commit with which to start; we get errors on restart
+    // unless we do this so take care if you plan to re/move this
+    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'initializeFolder', [projectInfo.name, projectInfo.username, projectInfo.password, projectInfo.options], (err) => {
+      if (err) return cb(err)
+      return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'restartProject', [], cb)
+    })
   }
 
   isUserAuthenticated (cb) {
@@ -896,6 +929,11 @@ Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb)
   const subprocs = []
   // MasterProcess can only operate if a folder is defined
   if (haiku.folder) {
+    // Starting master from this point assumes it has been triggered explicitly
+    // as opposed to by an automatic restart attempt, so we reset the restart attempt
+    // counter back to zero.
+    this._masterRestartAttempts[haiku.folder] = 0
+
     subprocs.push(PROCS.master)
   }
   if (haiku.mode === 'creator') {
@@ -962,7 +1000,7 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSu
   proc._attributes = { name, folder, id: _id() }
 
   proc.on('exit', () => {
-    logger.info(`[plumbing] proc ${name} exiting`)
+    logger.sacred(`[plumbing] proc ${name} exiting`)
 
     proc._attributes.exited = true
 
@@ -973,8 +1011,16 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSu
       } else if (proc._attributes.name.match(/master/)) {
         // Avoid ending up in an endless loop of fail if we find ourselves torn down
         if (!this._isTornDown) {
+          if (!this._masterRestartAttempts[folder]) {
+            this._masterRestartAttempts[folder] = 0
+          }
+          this._masterRestartAttempts[folder] += 1
+          if (this._masterRestartAttempts[folder] > MAX_MASTER_RESTART_ATTEMPTS) {
+            return this._handleUnrecoverableError(new Error(`Cannot respawn master for ${folder} after too many attempts`))
+          }
+
           // Master should probably keep running, since it does peristence stuff, so reconnect if we detect it crashed.
-          logger.info(`[plumbing] trying to respawn master for ${folder}`)
+          logger.sacred(`[plumbing] trying to respawn master for ${folder}`)
 
           this.spawnSubprocess(existingSpawnedSubprocs, folder, { name, path, args, opts }, (err, newProc) => {
             if (err) {
@@ -1054,7 +1100,7 @@ Plumbing.prototype.launchControlServer = function launchControlServer (socketInf
   const host = (socketInfo && socketInfo.host) || '0.0.0.0'
 
   if (socketInfo && socketInfo.port) {
-    logger.info(`[plumbing] plumbing websocket server listening on specified port ${socketInfo.port}...`)
+    logger.sacred(`[plumbing] plumbing websocket server listening on specified port ${socketInfo.port}...`)
 
     const websocketServer = this.createControlSocket({ host, port: socketInfo.port })
 
@@ -1066,7 +1112,7 @@ Plumbing.prototype.launchControlServer = function launchControlServer (socketInf
   return getPort(host, (err, port) => {
     if (err) return cb(err)
 
-    logger.info(`[plumbing] plumbing websocket server listening on discovered port ${port}...`)
+    logger.sacred(`[plumbing] plumbing websocket server listening on discovered port ${port}...`)
 
     const websocketServer = this.createControlSocket({ host, port: port })
 
@@ -1077,7 +1123,7 @@ Plumbing.prototype.launchControlServer = function launchControlServer (socketInf
 Plumbing.prototype.extendEnvironment = function extendEnvironment (haiku) {
   const HAIKU_ENV = JSON.parse(process.env.HAIKU_ENV || '{}')
   merge(HAIKU_ENV, haiku)
-  logger.info('[plumbing] environment forwarding:', JSON.stringify(HAIKU_ENV, 2, null))
+  logger.sacred('[plumbing] environment forwarding:', JSON.stringify(HAIKU_ENV, 2, null))
   process.env.HAIKU_ENV = JSON.stringify(HAIKU_ENV) // Forward env to subprocesses
 }
 

@@ -10,8 +10,9 @@ tape('master.00.initializeFolder', (t) => {
     var master = new Master(folder)
     master.initializeFolder({ params: ['boobar', 'matthew+matthew@haiku.ai', 'supersecure', {}] }, (err) => {
       t.ok(true)
-      master.teardown()
-      teardown()
+      master.teardown(() => {
+        teardown()  
+      })
     })
   })
 })

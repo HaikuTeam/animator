@@ -32,8 +32,9 @@ tape('master.03.git', (t) => {
     ], (err) => {
       if (err) throw err
       t.ok(true)
-      master.teardown()
-      teardown()
+      master.teardown(() => {
+        teardown()  
+      })
     })
   })
 })

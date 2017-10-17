@@ -28,8 +28,9 @@ tape('master.04.linkAsset', (t) => {
     ], (err) => {
       if (err) throw err
       t.ok(true)
-      master.teardown()
-      teardown()
+      master.teardown(() => {
+        teardown()  
+      })
     })
   })
 })
