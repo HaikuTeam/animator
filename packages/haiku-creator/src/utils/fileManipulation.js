@@ -36,16 +36,16 @@ module.exports = {
     })
   },
 
-  unzip (zipPath, destination, filename) {
+  unzipAndOpen (zipPath, destination, filename) {
+    const unzipCommand = `unzip -o -qq ${zipPath} -d ${destination}`
+    const openCommand = filename
+      ? `open -a ${destination}/${filename}.app $1`
+      : 'echo'
+
     return new Promise((resolve, reject) => {
-      exec(
-        `unzip -o -qq ${zipPath} -d ${destination} && open -a ${destination}/${filename}.app $1`,
-        {},
-        err => {
-          if (err) reject(err)
-          resolve(true)
-        }
-      )
+      exec(`${unzipCommand} && ${openCommand}`, {}, err => {
+        err ? reject(err) : resolve(true)
+      })
     })
   }
 }
