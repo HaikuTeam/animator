@@ -82,6 +82,13 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+if (process.env.CHAOS_MONKEYS === '1') {
+  var num = Math.random() * (60 * 1000 - 5000) + 5000;
+  setTimeout(function () {
+    throw new Error('Chaos Monkeys gotcha!');
+  }, num);
+}
+
 var UNLOGGABLE_METHODS = {
   'masterHeartbeat': true
 };
@@ -431,9 +438,6 @@ var Master = function (_EventEmitter) {
           if (extname === '.sketch') {
             _LoggerInstance2.default.info('[master] sketchtool pipeline running; please wait');
             Sketch.sketchtoolPipeline(abspath);
-            setTimeout(function () {
-              throw new Error('YAYA hey');
-            }, 1000);
             _LoggerInstance2.default.info('[master] sketchtool done');
             return void 0;
           }

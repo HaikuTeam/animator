@@ -16,6 +16,13 @@ import * as ProjectFolder from './ProjectFolder'
 import MasterGitProject from './MasterGitProject'
 import MasterModuleProject from './MasterModuleProject'
 
+if (process.env.CHAOS_MONKEYS === '1') {
+  const num = Math.random() * ((60 * 1000) - 5000) + 5000
+  setTimeout(() => {
+    throw new Error(`Chaos Monkeys gotcha!`)
+  }, num)
+}
+
 const UNLOGGABLE_METHODS = {
   'masterHeartbeat': true
 }
@@ -329,9 +336,6 @@ export default class Master extends EventEmitter {
         if (extname === '.sketch') {
           logger.info('[master] sketchtool pipeline running; please wait')
           Sketch.sketchtoolPipeline(abspath)
-          setTimeout(() => {
-            throw new Error('YAYA hey')
-          }, 1000)
           logger.info('[master] sketchtool done')
           return void (0)
         }
