@@ -1,40 +1,43 @@
-var path = require('path')
-var electron = require('electron')
-var ipcMain = electron.ipcMain
-var systemPreferences = electron.systemPreferences
-var app = electron.app
-var EventEmitter = require('events').EventEmitter
-var util = require('util')
+// Third-party dependencies
+import { BrowserWindow, app, ipcMain, systemPreferences } from 'electron'
+import EventEmitter from 'events'
+import path from 'path'
+import { inherits } from 'util'
+
+// First-party dependencies
+import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
+
+// Local dependencies
+import TopMenu from './TopMenu'
 
 if (!app) {
   throw new Error('You can only run electron.js from an electron process')
 }
 
-var TopMenu = require('./TopMenu')
+app.setName('Haiku')
 
 systemPreferences.setUserDefault('NSDisabledDictationMenuItem', 'boolean', true)
 systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true)
-
-app.setName('Haiku')
 
 // See bottom
 function CreatorElectron () {
   EventEmitter.apply(this)
 }
-util.inherits(CreatorElectron, EventEmitter)
-var creator = new CreatorElectron()
+inherits(CreatorElectron, EventEmitter)
+const creator = new CreatorElectron()
 
-var BrowserWindow = electron.BrowserWindow
-var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
-
-var URL = 'file://' + path.join(__dirname, '..', 'index.html')
+const appUrl = 'file://' + path.join(__dirname, '..', 'index.html')
 
 // Plumbing starts up this process, and it uses HAIKU_ENV to forward to us data about
 // how it has been set up, e.g. what ports it is using for websocket server, envoy, etc.
 // This is sent into the DOM part of the app at did-finish load; see below.
-var haiku = JSON.parse(process.env.HAIKU_ENV || '{}')
+const haiku = global.process.env.HAIKU_ENV
+  ? JSON.parse(global.process.env.HAIKU_ENV)
+  : {}
 
-if (!haiku.folder) haiku.folder = process.env.HAIKU_PROJECT_FOLDER
+if (!haiku.folder) {
+  haiku.folder = global.process.env.HAIKU_PROJECT_FOLDER
+}
 
 let browserWindow = null
 
@@ -45,11 +48,11 @@ app.on('window-all-closed', () => {
 if (!haiku.plumbing) haiku.plumbing = {}
 
 if (!haiku.plumbing.url) {
-  if (process.env.NODE_ENV !== 'test' && !process.env.HAIKU_PLUMBING_PORT) {
+  if (global.process.env.NODE_ENV !== 'test' && !global.process.env.HAIKU_PLUMBING_PORT) {
     throw new Error(`Oops! You must define a HAIKU_PLUMBING_PORT env var!`)
   }
 
-  haiku.plumbing.url = `http://${process.env.HAIKU_PLUMBING_HOST || '0.0.0.0'}:${process.env.HAIKU_PLUMBING_PORT}/`
+  haiku.plumbing.url = `http://${global.process.env.HAIKU_PLUMBING_HOST || '0.0.0.0'}:${global.process.env.HAIKU_PLUMBING_PORT}/`
 }
 
 function different (a, b) {
@@ -59,9 +62,9 @@ function different (a, b) {
 function createWindow () {
   mixpanel.haikuTrack('app:initialize')
 
-  var topmenu = new TopMenu()
+  const topmenu = new TopMenu()
 
-  var menuspec = {
+  const menuspec = {
     undoables: [],
     redoables: [],
     projectList: [],
@@ -75,7 +78,7 @@ function createWindow () {
     // Update the global menu, but only if the data feeding it appears to have changed.
     // This is driven by a frequent heartbeat hence the reason we are checking for changes
     // before actually re-rendering the whole thing
-    var didChange = false
+    let didChange = false
 
     // The reason for all these guards is that it appears that the heartbeat either
     // (a) continues to tick despite master crashing
@@ -128,7 +131,7 @@ function createWindow () {
 
   browserWindow.setTitle('Haiku')
   browserWindow.maximize()
-  browserWindow.loadURL(URL)
+  browserWindow.loadURL(appUrl)
 
   // Sending our haiku configuration into the view so it can correctly set up
   // its own websocket connections to our plumbing server, etc.
@@ -136,51 +139,28 @@ function createWindow () {
     browserWindow.webContents.send('haiku', haiku)
   })
 
-  topmenu.on('global-menu:save', () => {
-    browserWindow.webContents.send('global-menu:save')
-  })
+  // TopMenu global-menu:-prefixed events should delegate to BrowserWindow for event handlers.
+  const globalMenuPassthroughs = [
+    'check-updates',
+    'export',
+    'open-terminal',
+    'open-text-editor',
+    'redo',
+    'save',
+    'start-tour',
+    'toggle-dev-tools',
+    'undo',
+    'zoom-in',
+    'zoom-out',
+    // Active in dev & staging only.
+    'dump-system-info',
+    'open-hacker-helper'
+  ]
 
-  topmenu.on('global-menu:undo', () => {
-    browserWindow.webContents.send('global-menu:undo')
-  })
-  topmenu.on('global-menu:redo', () => {
-    browserWindow.webContents.send('global-menu:redo')
-  })
-
-  topmenu.on('global-menu:zoom-in', () => {
-    browserWindow.webContents.send('global-menu:zoom-in')
-  })
-  topmenu.on('global-menu:zoom-out', () => {
-    browserWindow.webContents.send('global-menu:zoom-out')
-  })
-
-  topmenu.on('global-menu:open-text-editor', () => {
-    browserWindow.webContents.send('global-menu:open-text-editor')
-  })
-  topmenu.on('global-menu:open-terminal', () => {
-    browserWindow.webContents.send('global-menu:open-terminal')
-  })
-  topmenu.on('global-menu:toggle-dev-tools', () => {
-    browserWindow.webContents.send('global-menu:toggle-dev-tools')
-  })
-
-  topmenu.on('global-menu:start-tour', () => {
-    browserWindow.webContents.send('global-menu:start-tour')
-  })
-
-  topmenu.on('global-menu:check-updates', () => {
-    browserWindow.webContents.send('global-menu:check-updates')
-  })
-
-  // active in dev & staging only
-  topmenu.on('global-menu:open-hacker-helper', () => {
-    browserWindow.webContents.send('global-menu:open-hacker-helper')
-  })
-  topmenu.on('global-menu:dump-system-info', () => {
-    browserWindow.webContents.send('global-menu:dump-system-info')
-  })
-  topmenu.on('global-menu:set-tool', (tool) => {
-    browserWindow.webContents.send('global-menu:set-tool', tool)
+  globalMenuPassthroughs.forEach((command) => {
+    topmenu.on(`global-menu:${command}`, (...args) => {
+      browserWindow.webContents.send(`global-menu:${command}`, ...args)
+    })
   })
 
   browserWindow.on('closed', () => { browserWindow = null })

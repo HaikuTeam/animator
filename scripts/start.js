@@ -12,7 +12,7 @@ var ROOT = path.join(__dirname, '..')
 var plumbingPackage = groups['haiku-plumbing']
 var blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
 
-process.env.NODE_ENV = 'development'
+global.process.env.NODE_ENV = 'development'
 
 /**
  * Run this script when you want to start local development
@@ -236,6 +236,10 @@ function setup () {
   }
 
   var watchOptions = inputs.skipInitialBuild ? ['--', '--skip-initial-build'] : ''
+
+  instructions.unshift(['haiku-formats', ['yarn', 'run', 'develop']])
+  instructions.unshift(['haiku-common', ['yarn', 'run', 'develop']])
+  instructions.unshift(['haiku-testing', ['yarn', 'run', 'develop']])
 
   if (inputs.devChoice === 'everything') {
     if (chosenFolder) {

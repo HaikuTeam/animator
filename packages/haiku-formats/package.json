@@ -1,7 +1,7 @@
 {
-  "name": "haiku-common",
+  "name": "haiku-formats",
   "version": "2.3.11",
-  "description": "Common library for Haiku.",
+  "description": "Formatting-related utilities for Haiku.",
   "main": "lib/index.js",
   "directories": {
     "lib": "lib"
@@ -19,15 +19,23 @@
     "Sasha Joseph <sasha@haiku.ai>"
   ],
   "license": "UNLICENSED",
-  "dependencies": {},
+  "dependencies": {
+    "haiku-common": "HaikuTeam/common.git",
+    "haiku-sdk-creator": "HaikuTeam/sdk-creator.git",
+    "haiku-serialization": "HaikuTeam/serialization.git"
+  },
   "devDependencies": {
-    "@types/node": "^8.0.17",
+    "@types/node": "^8.0.34",
+    "@types/tape": "^4.2.30",
+    "ajv": "^5.2.3",
+    "bodymovin": "4.11.1",
     "haiku-testing": "HaikuTeam/testing.git",
     "nyc": "^11.2.1",
     "tap-spec": "^4.1.1",
     "tape": "^4.7.0",
     "tslint": "^5.7.0",
     "tslint-config-airbnb": "^5.3.0",
-    "typescript": "^2.4.2"
+    "typescript": "^2.4.2",
+    "walk-sync": "^0.3.2"
   }
 }

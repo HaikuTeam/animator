@@ -2,7 +2,7 @@
 
 Serialization utilities, including:
 
-- AST manpilation
+- AST manipulation
 - In-memory file management
 - JavaScript reflection functions
 - ActiveComponent and Element models

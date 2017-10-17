@@ -11,6 +11,7 @@ import WebSocket from 'ws'
 import { EventEmitter } from 'events'
 import EnvoyServer from 'haiku-sdk-creator/lib/envoy/server'
 import EnvoyLogger from 'haiku-sdk-creator/lib/envoy/logger'
+import { EXPORTER_CHANNEL, ExporterHandler } from 'haiku-sdk-creator/lib/exporter'
 import TimelineHandler from 'haiku-sdk-creator/lib/timeline'
 import TourHandler from 'haiku-sdk-creator/lib/tour'
 import { inkstone } from 'haiku-sdk-inkstone'
@@ -231,11 +232,13 @@ export default class Plumbing extends StateObject {
       haiku.envoy.port = envoyServer.port
       haiku.envoy.host = envoyServer.host
 
-      var envoyTimelineHandler = new TimelineHandler(envoyServer)
-      var envoyTourHandler = new TourHandler(envoyServer)
+      const envoyTimelineHandler = new TimelineHandler(envoyServer)
+      const envoyTourHandler = new TourHandler(envoyServer)
+      const envoyExporterHandler = new ExporterHandler(envoyServer)
 
       envoyServer.bindHandler('timeline', TimelineHandler, envoyTimelineHandler)
       envoyServer.bindHandler('tour', TourHandler, envoyTourHandler)
+      envoyServer.bindHandler(EXPORTER_CHANNEL, ExporterHandler, envoyExporterHandler)
 
       logger.info('[plumbing] launching plumbing control server')
 

@@ -20,6 +20,7 @@ import Toast from './components/notifications/Toast'
 import Tour from './components/Tour/Tour'
 import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
+import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import {
   linkExternalAssetsOnDrop,
   preventDefaultDrag
@@ -35,6 +36,7 @@ var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
 const electron = require('electron')
 const remote = electron.remote
+const {dialog} = remote
 const ipcRenderer = electron.ipcRenderer
 const clipboard = electron.clipboard
 
@@ -245,6 +247,30 @@ export default class Creator extends React.Component {
       port: this.props.haiku.envoy.port,
       host: this.props.haiku.envoy.host,
       WebSocket: window.WebSocket
+    })
+
+    this.envoy.get(EXPORTER_CHANNEL).then((exporterChannel) => {
+      ipcRenderer.on('global-menu:export', (event, [format]) => {
+        let extension
+        switch (format) {
+          case ExporterFormat.Bodymovin:
+            extension = 'json'
+            break
+          default:
+            throw new Error(`Unsupported format: ${format}`)
+        }
+
+        dialog.showSaveDialog(undefined, {
+          defaultPath: `*/${this.state.projectName}`,
+          filters: [{
+            name: format,
+            extensions: [extension]
+          }]
+        },
+        (filename) => {
+          exporterChannel.save({format, filename})
+        })
+      })
     })
 
     this.envoy.get('tour').then((tourChannel) => {
