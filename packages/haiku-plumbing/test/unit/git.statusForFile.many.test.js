@@ -38,8 +38,9 @@ tape('git.statusForFile.many', (t) => {
       ], (err) => {
         if (err) throw err
         t.ok(true)
-        master.teardown()
-        teardown()
+        master.teardown(() => {
+          teardown()  
+        })
       })
     })
   })

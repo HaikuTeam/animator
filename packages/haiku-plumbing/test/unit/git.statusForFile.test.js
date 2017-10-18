@@ -15,8 +15,9 @@ tape('git.statusForFile', (t) => {
         t.error(err, 'no err getting file status')
         t.ok(status, 'status is present for file')
         t.ok(status.num === 7, 'file is new (untracked)')
-        master.teardown()
-        teardown()
+        master.teardown(() => {
+          teardown()  
+        })
       })
     })
   })

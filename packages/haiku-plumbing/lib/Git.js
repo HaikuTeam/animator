@@ -322,22 +322,23 @@ function createSignature(name, email) {
 function buildCommit(pwd, username, email, message, oid, updateRef, parentRef, cb) {
   var author = createSignature(username || DEFAULT_COMMITTER_NAME, email || DEFAULT_COMMITTER_EMAIL);
   var committer = createSignature(DEFAULT_COMMITTER_NAME, DEFAULT_COMMITTER_EMAIL);
+
   return open(pwd, function (err, repository) {
     if (err) return cb(err);
-    // If no parent, assume first commit
+
+    // If no parent, assume first commit - the first commit should always use this pathway
     if (!parentRef) {
       return repository.createCommit(updateRef, author, committer, message, oid, []).then(function (commitId) {
         return cb(null, commitId);
       }, cb);
-    } else {
-      // Otherwise grab the parent id and use it
-      return referenceNameToId(pwd, parentRef, function (err, parentId) {
-        if (err) return cb(err);
-        return repository.createCommit(updateRef, author, committer, message, oid, [parentId]).then(function (commitId) {
-          return cb(null, commitId);
-        }, cb);
-      });
     }
+
+    return referenceNameToId(pwd, parentRef, function (err, parentId) {
+      if (err) return cb(err);
+      return repository.createCommit(updateRef, author, committer, message, oid, [parentId]).then(function (commitId) {
+        return cb(null, commitId);
+      }, cb);
+    });
   });
 }
 
@@ -786,7 +787,7 @@ function pushProject(folder, projectName, projectGitRemoteUrl, gitRemoteUsername
   return getCurrentBranchName(folder, function (err, partialBranchName, fullBranchName) {
     if (err) return cb(err);
 
-    _LoggerInstance2.default.info('[git] pushing ' + fullBranchName + ' to remote (' + projectName + ') ' + projectGitRemoteUrl);
+    _LoggerInstance2.default.sacred('[git] pushing ' + fullBranchName + ' to remote (' + projectName + ') ' + projectGitRemoteUrl);
 
     var doForcePush = true;
 

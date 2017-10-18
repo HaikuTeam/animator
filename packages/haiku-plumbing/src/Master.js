@@ -17,6 +17,13 @@ import MasterGitProject from './MasterGitProject'
 import MasterModuleProject from './MasterModuleProject'
 import attachListeners from './envoy/attachListeners'
 
+if (process.env.CHAOS_MONKEYS === '1') {
+  const num = Math.random() * ((60 * 1000) - 5000) + 5000
+  setTimeout(() => {
+    throw new Error(`Chaos Monkeys gotcha!`)
+  }, num)
+}
+
 const UNLOGGABLE_METHODS = {
   'masterHeartbeat': true
 }
@@ -92,10 +99,15 @@ export default class Master extends EventEmitter {
     // IPC hook to communicate with plumbing
     this.proc = new ProcessBase('master') // 'master' is not a branch name in this context
 
+    this.proc.on('teardown', (cb) => {
+      return this.teardown(cb)
+    })
+
     this.proc.socket.on('close', () => {
       logger.info('[master] !!! socket closed')
-      this.teardown()
-      this.emit('host-disconnected')
+      this.teardown(() => {
+        this.emit('host-disconnected')
+      })
     })
 
     this.proc.socket.on('error', (err) => {
@@ -166,12 +178,18 @@ export default class Master extends EventEmitter {
     this.debouncedEmitDesignNeedsMergeRequest = debounce(this.emitDesignNeedsMergeRequest.bind(this), 500, { trailing: true })
   }
 
-  teardown () {
+  teardown (cb) {
     clearInterval(this._methodQueueInterval)
     clearInterval(this._mod._modificationsInterval)
-    if (this._git) this._git.teardown()
+
     if (this._component) this._component._envoyClient.closeConnection()
     if (this._watcher) this._watcher.stop()
+
+    if (this._git) {
+      return this._git.teardown(cb)
+    } else {
+      return cb()
+    }
   }
 
   logMethodMessage ({ method, params }) {

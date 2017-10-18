@@ -171,6 +171,7 @@ var Q_CREATOR = { alias: 'creator' };
 
 var AWAIT_INTERVAL = 100;
 var WAIT_DELAY = 10 * 1000;
+var MAX_MASTER_RESTART_ATTEMPTS = 3;
 
 var HAIKU_DEFAULTS = {
   socket: {
@@ -253,6 +254,7 @@ var Plumbing = function (_StateObject) {
     // reconnect any subprocs that seem to have disconnected. This seems useless (why not just kill
     // the process) but keep in mind we need to unit test this.
     _this._isTornDown = false;
+    _this._masterRestartAttempts = {};
 
     _this._methodMessages = [];
     _this.executeMethodMessagesWorker();
@@ -267,7 +269,7 @@ var Plumbing = function (_StateObject) {
         return void 0;
       }
 
-      _LoggerInstance2.default.info('[plumbing] restarting client ' + alias + ' in ' + folder);
+      _LoggerInstance2.default.sacred('[plumbing] restarting client ' + alias + ' in ' + folder);
 
       // This just waits until we have a 'master' client available with the given name.
       // The reconnect logic is elsewhere
@@ -277,8 +279,10 @@ var Plumbing = function (_StateObject) {
         }
 
         if (alias === 'master') {
+          var projectInfo = _this.getProjectInfoFor(folder);
+
           // This actually calls the method in question on the given client
-          return _this.restartProject(null /* projectName is ignored */, folder, function (err) {
+          return _this.restartProject(folder, projectInfo, function (err) {
             if (err) {
               return _this._handleUnrecoverableError(new Error('Unable to finish restart on client ' + alias + ' in ' + folder + ' because ' + _safeErrorMessage(err)));
             }
@@ -355,7 +359,7 @@ var Plumbing = function (_StateObject) {
           _this2.servers.push(server);
 
           server.on('connected', function (websocket, type, alias, folder, params) {
-            _LoggerInstance2.default.info('[plumbing] websocket client connection opened: (' + type + ' ' + alias + ') ' + JSON.stringify(params));
+            _LoggerInstance2.default.sacred('[plumbing] websocket opened (' + type + ' ' + alias + ')');
 
             // Don't allow duplicate clients
             for (var i = _this2.clients.length - 1; i >= 0; i--) {
@@ -376,8 +380,15 @@ var Plumbing = function (_StateObject) {
             websocket._index = index;
 
             websocket.on('close', function () {
-              _LoggerInstance2.default.info('[plumbing] websocket client connection closed (' + type + ' ' + alias + ')');
-              _this2.clients.splice(index, 1);
+              _LoggerInstance2.default.sacred('[plumbing] websocket closed (' + type + ' ' + alias + ')');
+
+              // Clean up dead clients
+              for (var j = _this2.clients.length - 1; j >= 0; j--) {
+                var _client = _this2.clients[j];
+                if (_client === websocket) {
+                  _this2.clients.splice(j, 1);
+                }
+              }
             });
           });
 
@@ -415,16 +426,17 @@ var Plumbing = function (_StateObject) {
     key: 'methodMessageBeforeLog',
     value: function methodMessageBeforeLog(message, alias) {
       if (!IGNORED_METHOD_MESSAGES[message.method]) {
-        _LoggerInstance2.default.info('[plumbing] \u2193-------- BEGAN ' + message.method + ' from ' + alias + ' --------\u2193');
-        _LoggerInstance2.default.info('[plumbing] ' + message.method + ' -> ' + JSON.stringify(message.params));
+        _LoggerInstance2.default.sacred('[plumbing] \u2193-- ' + message.method + ' via ' + alias + ' -> ' + JSON.stringify(message.params) + ' --\u2193');
       }
     }
   }, {
     key: 'methodMessageAfterLog',
     value: function methodMessageAfterLog(message, err, result, alias) {
       if (!IGNORED_METHOD_MESSAGES[message.method]) {
-        _LoggerInstance2.default.info('[plumbing] ' + message.method + ' <-', err && err.message || '', err && err.stack || '', result);
-        _LoggerInstance2.default.info('[plumbing] \u2191-------- ENDED ' + message.method + ' from ' + alias + ' --------\u2191');
+        if (err && err.message || err && err.stack) {
+          _LoggerInstance2.default.sacred('[plumbing] ' + message.method + ' error ' + (err.stack || err.message));
+        }
+        _LoggerInstance2.default.sacred('[plumbing] \u2191-- ' + message.method + ' via ' + alias + ' --\u2191');
       }
     }
   }, {
@@ -489,7 +501,7 @@ var Plumbing = function (_StateObject) {
   }, {
     key: 'sentryError',
     value: function sentryError(method, error, extras) {
-      _LoggerInstance2.default.info('[plumbing] error @ ' + method, error, extras);
+      _LoggerInstance2.default.sacred('[plumbing] error @ ' + method, error, extras);
       if (!Raven) return null;
       if (method && METHODS_TO_SKIP_IN_SENTRY[method]) return null;
       if (!error) return null;
@@ -525,9 +537,6 @@ var Plumbing = function (_StateObject) {
         return cb(new Error('Timed out waiting for client ' + JSON.stringify(query) + ' of ' + folder + ' to connect'));
       }
 
-      // // uncomment me for insight into why a request might not be making it
-      // console.log('==== awaiting', method, query)
-
       // HACK: At the time of this writing, there is only "one" creator client, not one per folder.
       // So the method just get ssent to the one client (if available)
       if (query.alias === 'creator') {
@@ -537,6 +546,12 @@ var Plumbing = function (_StateObject) {
         }
       } else {
         var clientsOfFolder = (0, _lodash6.default)(this.clients, { params: { folder: folder } });
+
+        // // uncomment me for insight into why a request might not be making it
+        // if (method !== 'masterHeartbeat') {
+        //   console.log('awaiting', method, query, folder, JSON.stringify(this.clients.map((c) => c.params.alias)))
+        // }
+
         if (clientsOfFolder && clientsOfFolder.length > 0) {
           var clientMatching = (0, _lodash2.default)(clientsOfFolder, { params: query });
           if (clientMatching) {
@@ -598,9 +613,11 @@ var Plumbing = function (_StateObject) {
       _LoggerInstance2.default.info('[plumbing] teardown method called');
       this.subprocs.forEach(function (subproc) {
         if (subproc.kill) {
-          _LoggerInstance2.default.info('[plumbing] sending interrupt signal');
           if (subproc.stdin) subproc.stdin.pause();
-          subproc.kill('SIGKILL');
+          // Using sigterm as opposed to kill to give the processes a chance to cleanup
+          // so we don't end up with corrupt git objects
+          _LoggerInstance2.default.info('[plumbing] sending terminate signal');
+          subproc.kill('SIGTERM');
         } else if (subproc.exit) {
           _LoggerInstance2.default.info('[plumbing] calling exit');
           subproc.exit();
@@ -715,27 +732,32 @@ var Plumbing = function (_StateObject) {
         }
 
         // QUESTION: Does this *need* to happen down here after the org fetch?
-        var gitInitializeUsername = maybeUsername || _this6.get('username');
-        var gitInitializePassword = maybePassword || _this6.get('password');
+        var gitInitializeUsername = projectOptions.username || _this6.get('username');
+        var gitInitializePassword = projectOptions.password || _this6.get('password');
 
         // A simpler project options to avoid passing options only used for the first pass, e.g. skipContentCreation
         var projectOptionsAgain = {
           organizationName: projectOptions.organizationName,
-          username: projectOptions.username,
-          password: projectOptions.password,
+          username: gitInitializeUsername,
+          password: gitInitializePassword,
           authorName: authorName
         };
 
         return _this6.initializeFolder(maybeProjectName, projectFolder, gitInitializeUsername, gitInitializePassword, projectOptionsAgain, function (err) {
           if (err) return finish(err);
+          // HACK: used when restarting the process to allow us to reinitialize properly
+          _this6.projects[projectFolder] = {
+            name: maybeProjectName,
+            folder: projectFolder,
+            username: gitInitializePassword,
+            password: gitInitializePassword,
+            organization: projectOptionsAgain.organizationName,
+            options: projectOptionsAgain
+          };
 
           if (maybeProjectName) {
-            _this6.projects[maybeProjectName] = {
-              folder: projectFolder,
-              username: maybeUsername,
-              password: maybePassword,
-              organization: projectOptions.organizationName
-            };
+            // HACK: alias to allow lookup by project name
+            _this6.projects[maybeProjectName] = _this6.projects[projectFolder];
           }
 
           return finish(null, projectFolder);
@@ -750,8 +772,14 @@ var Plumbing = function (_StateObject) {
   }, {
     key: 'getFolderFor',
     value: function getFolderFor(projectName) {
-      if (!this.projects[projectName]) return null;
-      return this.projects[projectName].folder;
+      var info = this.getProjectInfoFor(projectName);
+      if (!info) return null;
+      return info.folder;
+    }
+  }, {
+    key: 'getProjectInfoFor',
+    value: function getProjectInfoFor(projectNameOrFolder) {
+      return this.projects[projectNameOrFolder];
     }
 
     /**
@@ -771,8 +799,16 @@ var Plumbing = function (_StateObject) {
     }
   }, {
     key: 'restartProject',
-    value: function restartProject(maybeProjectName, folder, cb) {
-      return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'restartProject', [], cb);
+    value: function restartProject(folder, projectInfo, cb) {
+      var _this7 = this;
+
+      // We run initializeFolder first to ensure the Git bootstrapping works correctly, especially setting
+      // a branch name and ensuring we have a good baseline commit with which to start; we get errors on restart
+      // unless we do this so take care if you plan to re/move this
+      return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'initializeFolder', [projectInfo.name, projectInfo.username, projectInfo.password, projectInfo.options], function (err) {
+        if (err) return cb(err);
+        return _this7.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'restartProject', [], cb);
+      });
     }
   }, {
     key: 'isUserAuthenticated',
@@ -802,7 +838,7 @@ var Plumbing = function (_StateObject) {
   }, {
     key: 'authenticateUser',
     value: function authenticateUser(username, password, cb) {
-      var _this7 = this;
+      var _this8 = this;
 
       this.set('organizationName', null); // Unset this cache to avoid writing others folders if somebody switches accounts in the middle of a session
       return _haikuSdkInkstone.inkstone.user.authenticate(username, password, function (authErr, authResponse, httpResponse) {
@@ -811,7 +847,7 @@ var Plumbing = function (_StateObject) {
 
         if (httpResponse.statusCode > 499) {
           var serverErr = new Error('Auth HTTP Error: ' + httpResponse.statusCode);
-          _this7.sentryError('authenticateUser', serverErr);
+          _this8.sentryError('authenticateUser', serverErr);
           return cb(serverErr);
         }
 
@@ -821,9 +857,9 @@ var Plumbing = function (_StateObject) {
         }
 
         if (!authResponse) return cb(new Error('Auth response was empty'));
-        _this7.set('username', username);
-        _this7.set('password', password);
-        _this7.set('inkstoneAuthToken', authResponse.Token);
+        _this8.set('username', username);
+        _this8.set('password', password);
+        _this8.set('inkstoneAuthToken', authResponse.Token);
         _haikuSdkClient.client.config.setAuthToken(authResponse.Token);
         _haikuSdkClient.client.config.setUserId(username);
         _Mixpanel2.default.mergeToPayload({ distinct_id: username });
@@ -833,7 +869,7 @@ var Plumbing = function (_StateObject) {
             tags: { username: username }
           });
         }
-        return _this7.getCurrentOrganizationName(function (err, organizationName) {
+        return _this8.getCurrentOrganizationName(function (err, organizationName) {
           if (err) return cb(err);
           return cb(null, {
             isAuthed: true,
@@ -847,7 +883,7 @@ var Plumbing = function (_StateObject) {
   }, {
     key: 'getCurrentOrganizationName',
     value: function getCurrentOrganizationName(cb) {
-      var _this8 = this;
+      var _this9 = this;
 
       if (this.get('organizationName')) return cb(null, this.get('organizationName'));
       _LoggerInstance2.default.info('[plumbing] fetching organization name for current user');
@@ -860,20 +896,20 @@ var Plumbing = function (_StateObject) {
         // Cache this since it's used to write/manage some project files
         var organizationName = orgsArray[0].Name;
         _LoggerInstance2.default.info('[plumbing] organization name:', organizationName);
-        _this8.set('organizationName', organizationName);
-        return cb(null, _this8.get('organizationName'));
+        _this9.set('organizationName', organizationName);
+        return cb(null, _this9.get('organizationName'));
       });
     }
   }, {
     key: 'listProjects',
     value: function listProjects(cb) {
-      var _this9 = this;
+      var _this10 = this;
 
       _LoggerInstance2.default.info('[plumbing] listing projects');
       var authToken = _haikuSdkClient.client.config.getAuthToken();
       return _haikuSdkInkstone.inkstone.project.list(authToken, function (projectListErr, projectsList) {
         if (projectListErr) {
-          _this9.sentryError('listProjects', projectListErr);
+          _this10.sentryError('listProjects', projectListErr);
           return cb(projectListErr);
         }
         var finalList = projectsList.map(remapProjectObjectToExpectedFormat);
@@ -884,13 +920,13 @@ var Plumbing = function (_StateObject) {
   }, {
     key: 'createProject',
     value: function createProject(name, cb) {
-      var _this10 = this;
+      var _this11 = this;
 
       _LoggerInstance2.default.info('[plumbing] creating project', name);
       var authToken = _haikuSdkClient.client.config.getAuthToken();
       return _haikuSdkInkstone.inkstone.project.create(authToken, { Name: name }, function (projectCreateErr, project) {
         if (projectCreateErr) {
-          _this10.sentryError('createProject', projectCreateErr);
+          _this11.sentryError('createProject', projectCreateErr);
           return cb(projectCreateErr);
         }
         return cb(null, remapProjectObjectToExpectedFormat(project));
@@ -899,13 +935,13 @@ var Plumbing = function (_StateObject) {
   }, {
     key: 'deleteProject',
     value: function deleteProject(name, cb) {
-      var _this11 = this;
+      var _this12 = this;
 
       _LoggerInstance2.default.info('[plumbing] deleting project', name);
       var authToken = _haikuSdkClient.client.config.getAuthToken();
       return _haikuSdkInkstone.inkstone.project.deleteByName(authToken, name, function (deleteErr) {
         if (deleteErr) {
-          _this11.sentryError('deleteProject', deleteErr);
+          _this12.sentryError('deleteProject', deleteErr);
           return cb(deleteErr);
         }
         return cb();
@@ -995,7 +1031,7 @@ var Plumbing = function (_StateObject) {
   }, {
     key: 'handleClientAction',
     value: function handleClientAction(type, alias, folder, method, params, cb) {
-      var _this12 = this;
+      var _this13 = this;
 
       // Params always arrive with the folder as the first argument, so we strip that off
       params = params.slice(1);
@@ -1039,7 +1075,7 @@ var Plumbing = function (_StateObject) {
 
         // HACK: Glass and timeline always expect some metadata as the last argument
         if (clientSpec.alias === 'glass' || clientSpec.alias === 'timeline') {
-          return _this12.sendFolderSpecificClientMethodQuery(folder, clientSpec, method, params.concat({ from: alias }), function (err, maybeOutput) {
+          return _this13.sendFolderSpecificClientMethodQuery(folder, clientSpec, method, params.concat({ from: alias }), function (err, maybeOutput) {
             if (err) return nextStep(err);
 
             // HACK: Stupidly we have to rely on glass to tell us where to position the element based on the
@@ -1056,7 +1092,7 @@ var Plumbing = function (_StateObject) {
             return nextStep();
           });
         } else {
-          return _this12.sendFolderSpecificClientMethodQuery(folder, clientSpec, method, params, function (err) {
+          return _this13.sendFolderSpecificClientMethodQuery(folder, clientSpec, method, params, function (err) {
             if (err) return nextStep(err);
             return nextStep();
           });
@@ -1090,6 +1126,11 @@ Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb)
   var subprocs = [];
   // MasterProcess can only operate if a folder is defined
   if (haiku.folder) {
+    // Starting master from this point assumes it has been triggered explicitly
+    // as opposed to by an automatic restart attempt, so we reset the restart attempt
+    // counter back to zero.
+    this._masterRestartAttempts[haiku.folder] = 0;
+
     subprocs.push(PROCS.master);
   }
   if (haiku.mode === 'creator') {
@@ -1099,11 +1140,11 @@ Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb)
 };
 
 Plumbing.prototype.spawnSubprocesses = function (existingSpawnedSubprocs, haiku, subprocs, cb) {
-  var _this13 = this;
+  var _this14 = this;
 
   this.extendEnvironment(haiku);
   return _async2.default.map(subprocs, function (subproc, next) {
-    return _this13.spawnSubprocess(existingSpawnedSubprocs, haiku.folder, subproc, next);
+    return _this14.spawnSubprocess(existingSpawnedSubprocs, haiku.folder, subproc, next);
   }, function (err, spawned) {
     if (err) return cb(err);
     return cb(null, spawned);
@@ -1111,7 +1152,7 @@ Plumbing.prototype.spawnSubprocesses = function (existingSpawnedSubprocs, haiku,
 };
 
 Plumbing.prototype.spawnSubprocess = function spawnSubprocess(existingSpawnedSubprocs, folder, _ref2, cb) {
-  var _this14 = this;
+  var _this15 = this;
 
   var name = _ref2.name,
       path = _ref2.path,
@@ -1164,7 +1205,7 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess(existingSpawnedSub
   proc._attributes = { name: name, folder: folder, id: _id() };
 
   proc.on('exit', function () {
-    _LoggerInstance2.default.info('[plumbing] proc ' + name + ' exiting');
+    _LoggerInstance2.default.sacred('[plumbing] proc ' + name + ' exiting');
 
     proc._attributes.exited = true;
 
@@ -1174,13 +1215,21 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess(existingSpawnedSub
         emitter.emit('teardown-requested');
       } else if (proc._attributes.name.match(/master/)) {
         // Avoid ending up in an endless loop of fail if we find ourselves torn down
-        if (!_this14._isTornDown) {
-          // Master should probably keep running, since it does peristence stuff, so reconnect if we detect it crashed.
-          _LoggerInstance2.default.info('[plumbing] trying to respawn master for ' + folder);
+        if (!_this15._isTornDown) {
+          if (!_this15._masterRestartAttempts[folder]) {
+            _this15._masterRestartAttempts[folder] = 0;
+          }
+          _this15._masterRestartAttempts[folder] += 1;
+          if (_this15._masterRestartAttempts[folder] > MAX_MASTER_RESTART_ATTEMPTS) {
+            return _this15._handleUnrecoverableError(new Error('Cannot respawn master for ' + folder + ' after too many attempts'));
+          }
 
-          _this14.spawnSubprocess(existingSpawnedSubprocs, folder, { name: name, path: path, args: args, opts: opts }, function (err, newProc) {
+          // Master should probably keep running, since it does peristence stuff, so reconnect if we detect it crashed.
+          _LoggerInstance2.default.sacred('[plumbing] trying to respawn master for ' + folder);
+
+          _this15.spawnSubprocess(existingSpawnedSubprocs, folder, { name: name, path: path, args: args, opts: opts }, function (err, newProc) {
             if (err) {
-              return _this14._handleUnrecoverableError(new Error('Unable to respawn master for ' + folder + ' because ' + _safeErrorMessage(err)));
+              return _this15._handleUnrecoverableError(new Error('Unable to respawn master for ' + folder + ' because ' + _safeErrorMessage(err)));
             }
 
             newProc._attributes.closed = undefined;
@@ -1253,12 +1302,12 @@ function getPort(host, cb) {
 }
 
 Plumbing.prototype.launchControlServer = function launchControlServer(socketInfo, cb) {
-  var _this15 = this;
+  var _this16 = this;
 
   var host = socketInfo && socketInfo.host || '0.0.0.0';
 
   if (socketInfo && socketInfo.port) {
-    _LoggerInstance2.default.info('[plumbing] plumbing websocket server listening on specified port ' + socketInfo.port + '...');
+    _LoggerInstance2.default.sacred('[plumbing] plumbing websocket server listening on specified port ' + socketInfo.port + '...');
 
     var websocketServer = this.createControlSocket({ host: host, port: socketInfo.port });
 
@@ -1270,9 +1319,9 @@ Plumbing.prototype.launchControlServer = function launchControlServer(socketInfo
   return getPort(host, function (err, port) {
     if (err) return cb(err);
 
-    _LoggerInstance2.default.info('[plumbing] plumbing websocket server listening on discovered port ' + port + '...');
+    _LoggerInstance2.default.sacred('[plumbing] plumbing websocket server listening on discovered port ' + port + '...');
 
-    var websocketServer = _this15.createControlSocket({ host: host, port: port });
+    var websocketServer = _this16.createControlSocket({ host: host, port: port });
 
     return cb(null, websocketServer, host, port);
   });
@@ -1281,7 +1330,7 @@ Plumbing.prototype.launchControlServer = function launchControlServer(socketInfo
 Plumbing.prototype.extendEnvironment = function extendEnvironment(haiku) {
   var HAIKU_ENV = JSON.parse(process.env.HAIKU_ENV || '{}');
   (0, _lodash4.default)(HAIKU_ENV, haiku);
-  _LoggerInstance2.default.info('[plumbing] environment forwarding:', JSON.stringify(HAIKU_ENV, 2, null));
+  _LoggerInstance2.default.sacred('[plumbing] environment forwarding:', JSON.stringify(HAIKU_ENV, 2, null));
   process.env.HAIKU_ENV = JSON.stringify(HAIKU_ENV); // Forward env to subprocesses
 };
 

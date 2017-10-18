@@ -68,7 +68,7 @@ function getCurrentShareInfo(folder, cache, extras, timeout, done) {
       // Cache this during this session so we can avoid unnecessary handshakes with inkstone
       cache[sha] = shareInfo;
 
-      _LoggerInstance2.default.info('[inkstone] share info', shareInfo);
+      _LoggerInstance2.default.sacred('[inkstone] share info', shareInfo);
 
       return done(null, shareInfo);
     });

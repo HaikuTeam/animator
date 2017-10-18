@@ -11,8 +11,9 @@ tape('master.fetchAssets', (t) => {
     var master = new Master(folder)
     master.fetchAssets({}, (err, assets) => {
       t.ok(assets[0].fileName === 'Hello.svg', 'file name correct')
-      master.teardown()
-      teardown()
+      master.teardown(() => {
+        teardown()  
+      })
     })
   })
 })

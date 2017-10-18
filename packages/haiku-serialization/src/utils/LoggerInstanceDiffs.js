@@ -29,15 +29,15 @@ logger.difflog = function (previous, current, options) {
   } else if (current === previous) {
     logger.info(`${timestamp} info: [differ] diff ${options.relpath}: current equal`.grey)
   } else {
-    logger.info(`${timestamp} info: [differ] diff of ${options.relpath}:\n`.grey)
+    logger.sacred(`${timestamp} info: [differ] diff of ${options.relpath}:\n`.grey)
     differ.set(previous, current)
     const deltas = differ.deltas()
     deltas.forEach((delta) => {
       if (delta.value.length <= MAX_LOG_LEN) {
         let color = (delta.added) ? 'green' : ((delta.removed) ? 'red' : 'grey')
-        if (color !== 'grey') logger.info(delta.value[color])
+        if (color !== 'grey') logger.sacred(delta.value[color])
       } else {
-        logger.info(`${timestamp} info: [differ] delta too long to show`.grey)
+        logger.sacred(`${timestamp} info: [differ] delta too long to show`.grey)
       }
     })
     return deltas

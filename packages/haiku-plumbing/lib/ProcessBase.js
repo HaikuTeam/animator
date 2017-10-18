@@ -14,6 +14,10 @@ var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
 
+var _async = require('async');
+
+var _async2 = _interopRequireDefault(_async);
+
 var _events = require('events');
 
 var _LoggerInstance = require('haiku-serialization/src/utils/LoggerInstance');
@@ -42,41 +46,51 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 // require('njstrace').inject()
 
-var killables = [];
-function killall() {
-  killables.forEach(function (killable) {
-    killable.kill();
-  });
-}
+Error.stackTraceLimit = Infinity; // Show long stack traces when errors are shown
 
 var pinfo = process.pid + ' ' + _path2.default.basename(__filename) + ' ' + _path2.default.basename(process.execPath);
 
-function attachProcess() {
-  Error.stackTraceLimit = Infinity; // Show long stack traces when errors are shown
-  // A handle is not present if this wasn't spawned
-  if (process.stdout._handle) {
-    process.stdout._handle.setBlocking(true); // Don't truncate output to stdout
-  }
-  // process.stdin.resume()
-  process.on('uncaughtException', function (exception) {
-    console.error(exception);
-    killall();
+var PROCESSES = [];
+
+// A handle is not present if this wasn't spawned
+if (process.stdout._handle) {
+  process.stdout._handle.setBlocking(true); // Don't truncate output to stdout
+}
+
+// process.stdin.resume()
+process.on('uncaughtException', function (exception) {
+  console.error(exception);
+  return _async2.default.eachSeries(PROCESSES, function (proc, next) {
+    return proc.teardown(next);
+  }, function () {
+    _LoggerInstance2.default.sacred('[process] ' + pinfo + ' exiting after exception');
     process.exit(1);
   });
-  process.on('SIGINT', function () {
-    _LoggerInstance2.default.info('[process] ' + pinfo + ' got interrupt signal');
-    killall();
+});
+
+process.on('SIGINT', function () {
+  _LoggerInstance2.default.info('[process] ' + pinfo + ' got interrupt signal');
+  return _async2.default.eachSeries(PROCESSES, function (proc, next) {
+    return proc.teardown(next);
+  }, function () {
+    _LoggerInstance2.default.sacred('[process] ' + pinfo + ' exiting after interrupt');
     process.exit();
   });
-  process.on('SIGTERM', function () {
-    _LoggerInstance2.default.info('[process] ' + pinfo + ' got terminate signal');
-    killall();
+});
+
+process.on('SIGTERM', function () {
+  _LoggerInstance2.default.info('[process] ' + pinfo + ' got terminate signal');
+  return _async2.default.eachSeries(PROCESSES, function (proc, next) {
+    return proc.teardown(next);
+  }, function () {
+    _LoggerInstance2.default.sacred('[process] ' + pinfo + ' exiting after termination');
     process.exit();
   });
-  process.on('error', function (error) {
-    _LoggerInstance2.default.error(error);
-  });
-}
+});
+
+process.on('error', function (error) {
+  _LoggerInstance2.default.error(error);
+});
 
 var ProcessBase = function (_EventEmitter) {
   _inherits(ProcessBase, _EventEmitter);
@@ -101,18 +115,23 @@ var ProcessBase = function (_EventEmitter) {
     _this.haiku = ProcessBase.HAIKU;
     _this.reestablishConnection();
     process.on('message', function (data) {
-      if (data === 'reestablishConnection!') _this.reestablishConnection();
+      if (data === 'reestablishConnection!') {
+        _this.reestablishConnection();
+      }
     });
     process.on('exit', function (status) {
       _this.emit('exit');
       process.exit(status);
     });
+    PROCESSES.push(_this);
     return _this;
   }
 
   _createClass(ProcessBase, [{
     key: 'reestablishConnection',
     value: function reestablishConnection() {
+      var _this2 = this;
+
       if (this.isOpen()) {
         _LoggerInstance2.default.info('[process] still connected ok; skipping reestablish');
         return void 0; // No need to reconnect
@@ -120,12 +139,22 @@ var ProcessBase = function (_EventEmitter) {
 
       if (this.haiku && this.haiku.socket) {
         var url = 'http://' + (this.haiku.socket.host || process.env.HAIKU_PLUMBING_HOST) + ':' + (this.haiku.socket.port || process.env.HAIKU_PLUMBING_PORT) + '?type=controllee&alias=' + this.alias + '&folder=' + (this.haiku.folder || process.env.HAIKU_PROJECT_FOLDER);
-        _LoggerInstance2.default.info('[process] establishing websocket connection to ' + url);
         this.socket = new _WebsocketClient2.default(new _ws2.default(url));
         this.socket.on('request', this.emit.bind(this, 'request'));
+        this.socket.on('close', function () {
+          _this2.socket.wsc.readyState = _ws2.default.CLOSED;
+        });
+        this.socket.on('error', function () {
+          _LoggerInstance2.default.info('[process] socket error (' + url + ')');
+        });
       } else {
         _LoggerInstance2.default.warn('[process] no socket info given; cannot connect to Haiku plumbing hub (via ' + this.alias + ')');
       }
+    }
+  }, {
+    key: 'teardown',
+    value: function teardown(cb) {
+      return this.emit('teardown', cb);
     }
   }, {
     key: 'getReadyState',
@@ -155,11 +184,6 @@ var ProcessBase = function (_EventEmitter) {
     value: function exit(status) {
       process.exit(status);
     }
-  }, {
-    key: 'boom',
-    value: function boom(error) {
-      throw error;
-    }
   }]);
 
   return ProcessBase;
@@ -168,6 +192,5 @@ var ProcessBase = function (_EventEmitter) {
 exports.default = ProcessBase;
 
 
-attachProcess();
 ProcessBase.HAIKU = (0, _haikuInfo2.default)();
 //# sourceMappingURL=ProcessBase.js.map

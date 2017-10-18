@@ -197,12 +197,13 @@ export class Glass extends React.Component {
 
     this._component.on('component:updated', () => {
       this.draw(true)
-    })
 
-    this._component.on('artboard:resized', (sizeDescriptor) => {
+      // This happens on almost any update because theoretically a keyframe change,
+      // a curve change, etc., could all result in the need to recalc the artboard :/
+      var updatedArtboardSize = this._component.getContextSize()
       this.setState({
-        mountWidth: sizeDescriptor.width,
-        mountHeight: sizeDescriptor.height
+        mountWidth: updatedArtboardSize.width,
+        mountHeight: updatedArtboardSize.height
       })
     })
 
@@ -216,13 +217,6 @@ export class Glass extends React.Component {
           })
         }
       }
-    })
-
-    this._component.on('artboard:size-changed', (sizeDescriptor) => {
-      this.setState({
-        mountWidth: sizeDescriptor.width,
-        mountHeight: sizeDescriptor.height
-      })
     })
 
     // Pasteable things are stored at the global level in the clipboard but we need that action to fire from the top level
