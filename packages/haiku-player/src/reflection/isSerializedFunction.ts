@@ -3,5 +3,5 @@
  */
 
 export default function isSerializedFunction(object) {
-  return object && !!object.__function
+  return object && !!object.__function;
 }

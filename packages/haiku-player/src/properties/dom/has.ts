@@ -4,13 +4,13 @@
 
 // Just a utility function for populating these objects
 export default function has(...args) {
-  let obj = {}
+  const obj = {};
   for (let i = 0; i < args.length; i++) {
-    let arg = args[i]
-    for (let name in arg) {
-      let fn = arg[name]
-      obj[name] = fn
+    const arg = args[i];
+    for (const name in arg) {
+      const fn = arg[name];
+      obj[name] = fn;
     }
   }
-  return obj
+  return obj;
 }

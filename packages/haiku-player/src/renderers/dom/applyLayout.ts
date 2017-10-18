@@ -2,19 +2,19 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import applyCssLayout from "./../../layout/applyCssLayout"
-import scopeOfElement from "./../../layout/scopeOfElement"
-import modernizr from "./../../vendor/modernizr"
-import getWindowsBrowserVersion from "./getWindowsBrowserVersion"
-import isEdge from "./isEdge"
-import isIE from "./isIE"
-import isMobile from "./isMobile"
-import isTextNode from "./isTextNode"
+import applyCssLayout from './../../layout/applyCssLayout';
+import scopeOfElement from './../../layout/scopeOfElement';
+import modernizr from './../../vendor/modernizr';
+import getWindowsBrowserVersion from './getWindowsBrowserVersion';
+import isEdge from './isEdge';
+import isIE from './isIE';
+import isMobile from './isMobile';
+import isTextNode from './isTextNode';
 
-const DEFAULT_PIXEL_RATIO = 1.0
-const SVG = "svg"
+const DEFAULT_PIXEL_RATIO = 1.0;
+const SVG = 'svg';
 
-const safeWindow = typeof window !== "undefined" && window
+const safeWindow = typeof window !== 'undefined' && window;
 const PLATFORM_INFO = {
   hasWindow: !!safeWindow,
   isMobile: isMobile(safeWindow), // Dumb navigator check
@@ -23,7 +23,7 @@ const PLATFORM_INFO = {
   windowsBrowserVersion: getWindowsBrowserVersion(safeWindow),
   hasPreserve3d: modernizr.hasPreserve3d(safeWindow), // I dunno if we actually need this
   devicePixelRatio: DEFAULT_PIXEL_RATIO,
-}
+};
 
 // console.info('[haiku player] platform info:', JSON.stringify(PLATFORM_INFO))
 
@@ -53,7 +53,7 @@ const SVG_RENDERABLES = {
   unknown: true,
   use: true,
   video: true,
-}
+};
 
 export default function applyLayout(
   domElement,
@@ -64,7 +64,7 @@ export default function applyLayout(
   isPatchOperation,
   isKeyDifferent,
 ) {
-  if (isTextNode(virtualElement)) return domElement
+  if (isTextNode(virtualElement)) return domElement;
 
   if (virtualElement.layout) {
     // Don't assign layout to things that never need it like <desc>, <title>, etc.
@@ -73,36 +73,36 @@ export default function applyLayout(
       scopeOfElement(virtualElement) === SVG &&
       !SVG_RENDERABLES[virtualElement.elementName]
     ) {
-      return domElement
+      return domElement;
     }
 
     if (!parentVirtualElement.layout || !parentVirtualElement.layout.computed) {
       _warnOnce(
-        "Cannot compute layout without parent computed size (child: <" +
+        'Cannot compute layout without parent computed size (child: <' +
           virtualElement.elementName +
-          ">; parent: <" +
+          '>; parent: <' +
           parentVirtualElement.elementName +
-          ">)",
-      )
-      return domElement
+          '>)',
+      );
+      return domElement;
     }
 
-    let devicePixelRatio =
-      (component.config.options && component.config.options.devicePixelRatio) || DEFAULT_PIXEL_RATIO
+    const devicePixelRatio =
+      (component.config.options && component.config.options.devicePixelRatio) || DEFAULT_PIXEL_RATIO;
 
-    let computedLayout = virtualElement.layout.computed
+    const computedLayout = virtualElement.layout.computed;
 
     // No computed layout means the el is not shown
     if (!computedLayout || computedLayout.invisible) {
-      if (domElement.style.display !== "none") {
-        domElement.style.display = "none"
+      if (domElement.style.display !== 'none') {
+        domElement.style.display = 'none';
       }
     } else {
-      if (domElement.style.display !== "block") {
-        domElement.style.display = "block"
+      if (domElement.style.display !== 'block') {
+        domElement.style.display = 'block';
       }
 
-      component.config.options.platform = PLATFORM_INFO
+      component.config.options.platform = PLATFORM_INFO;
 
       applyCssLayout(
         domElement,
@@ -111,17 +111,17 @@ export default function applyLayout(
         computedLayout,
         devicePixelRatio,
         component,
-      )
+      );
     }
   }
 
-  return domElement
+  return domElement;
 }
 
-const warnings = {}
+const warnings = {};
 
 function _warnOnce(warning) {
-  if (warnings[warning]) return void 0
-  warnings[warning] = true
-  console.warn("[haiku player] warning:", warning)
+  if (warnings[warning]) return void 0;
+  warnings[warning] = true;
+  console.warn('[haiku player] warning:', warning);
 }

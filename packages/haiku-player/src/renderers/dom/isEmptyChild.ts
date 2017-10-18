@@ -3,5 +3,5 @@
  */
 
 export default function isEmptyChild(thing) {
-  return thing === undefined || thing === null
+  return thing === undefined || thing === null;
 }

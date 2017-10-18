@@ -3,17 +3,17 @@
  */
 
 export default function getTimelineMaxTime(descriptor) {
-  let max = 0
-  for (let selector in descriptor) {
-    let group = descriptor[selector]
-    for (let output in group) {
-      let keyframes = group[output]
-      let keys = Object.keys(keyframes)
+  let max = 0;
+  for (const selector in descriptor) {
+    const group = descriptor[selector];
+    for (const output in group) {
+      const keyframes = group[output];
+      const keys = Object.keys(keyframes);
       for (let i = 0; i < keys.length; i++) {
-        let key = parseInt(keys[i], 10)
-        if (key > max) max = key
+        const key = parseInt(keys[i], 10);
+        if (key > max) max = key;
       }
     }
   }
-  return max
+  return max;
 }

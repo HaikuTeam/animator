@@ -1,31 +1,45 @@
 {
-    "compilerOptions": {
-        "target": "ES3",
-        "declaration": true,
-        "declarationDir": "lib",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "isolatedModules": false,
-        "allowJs": false,
-        "noImplicitAny": false,
-        "removeComments": true,
-        "noLib": false,
-        "sourceMap": true,
-        "preserveConstEnums": true,
-        "rootDir": "src",
-        "outDir": "lib",
-        "lib": ["es5", "dom"],
-        "suppressImplicitAnyIndexErrors": true,
-        "typeRoots": [
-            "node_modules/@types/"
-        ]
-    },
-    "compileOnSave": true,
-    "include": [
-        "src/**/*.ts",
-        "src/**/*.tsx"
+  "compileOnSave": true,
+  "compilerOptions": {
+    "allowJs": false,
+    "baseUrl": ".",
+    "declaration": true,
+    "declarationDir": "lib",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "isolatedModules": false,
+    "lib": [
+      "es5",
+      "dom"
     ],
-    "exclude": [
-        "node_modules"
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": false,
+    "noLib": false,
+    "outDir": "lib",
+    "paths": {
+      "*": [
+        "lib/*"
+      ]
+    },
+    "preserveConstEnums": true,
+    "removeComments": true,
+    "rootDir": "src",
+    "sourceMap": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "target": "ES3",
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "node_modules/@types/"
     ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

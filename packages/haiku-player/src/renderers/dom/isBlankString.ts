@@ -3,5 +3,5 @@
  */
 
 export default function isBlankString(thing) {
-  return thing === ""
+  return thing === '';
 }

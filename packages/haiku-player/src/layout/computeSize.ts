@@ -26,9 +26,9 @@
  * THE SOFTWARE.
  */
 
-const SIZE_PROPORTIONAL = 0 // A percentage of the parent
-const SIZE_ABSOLUTE = 1 // A fixed size in screen pixels
-const SIZING_COMPONENTS = ["x", "y", "z"]
+const SIZE_PROPORTIONAL = 0; // A percentage of the parent
+const SIZE_ABSOLUTE = 1; // A fixed size in screen pixels
+const SIZING_COMPONENTS = ['x', 'y', 'z'];
 
 export default function computeSize(
   outputSize,
@@ -37,18 +37,18 @@ export default function computeSize(
   parentsizeAbsolute,
 ) {
   for (let i = 0; i < SIZING_COMPONENTS.length; i++) {
-    let component = SIZING_COMPONENTS[i]
+    const component = SIZING_COMPONENTS[i];
     switch (sizeModeArray[component]) {
       case SIZE_PROPORTIONAL:
-        let sizeProportional = layoutSpec.sizeProportional[component]
-        let sizeDifferential = layoutSpec.sizeDifferential[component]
+        const sizeProportional = layoutSpec.sizeProportional[component];
+        const sizeDifferential = layoutSpec.sizeDifferential[component];
         outputSize[component] =
-          parentsizeAbsolute[component] * sizeProportional + sizeDifferential
-        break
+          parentsizeAbsolute[component] * sizeProportional + sizeDifferential;
+        break;
       case SIZE_ABSOLUTE:
-        outputSize[component] = layoutSpec.sizeAbsolute[component]
-        break
+        outputSize[component] = layoutSpec.sizeAbsolute[component];
+        break;
     }
   }
-  return outputSize
+  return outputSize;
 }
