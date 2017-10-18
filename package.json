@@ -1,6 +1,6 @@
 {
   "name": "haiku-common",
-  "version": "2.3.10",
+  "version": "2.3.12",
   "main": "index.js",
   "authors": [
     "Sasha Joseph <sasha@haiku.ai>"
