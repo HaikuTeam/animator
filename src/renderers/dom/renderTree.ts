@@ -2,14 +2,14 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import appendChild from "./appendChild"
-import cloneVirtualElement from "./cloneVirtualElement"
-import getFlexId from "./getFlexId"
-import isBlankString from "./isBlankString"
-import removeElement from "./removeElement"
-import replaceElement from "./replaceElement"
-import shouldElementBeReplaced from "./shouldElementBeReplaced"
-import updateElement from "./updateElement"
+import appendChild from './appendChild';
+import cloneVirtualElement from './cloneVirtualElement';
+import getFlexId from './getFlexId';
+import isBlankString from './isBlankString';
+import removeElement from './removeElement';
+import replaceElement from './replaceElement';
+import shouldElementBeReplaced from './shouldElementBeReplaced';
+import updateElement from './updateElement';
 
 export default function renderTree(
   domElement,
@@ -19,71 +19,71 @@ export default function renderTree(
   isPatchOperation,
   doSkipChildren,
 ) {
-  component._addElementToHashTable(domElement, virtualElement)
+  component._addElementToHashTable(domElement, virtualElement);
 
-  if (!domElement.haiku) domElement.haiku = {}
+  if (!domElement.haiku) domElement.haiku = {};
 
   // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
-  virtualElement.__target = domElement
-  domElement.haiku.virtual = virtualElement
+  virtualElement.__target = domElement;
+  domElement.haiku.virtual = virtualElement;
   // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-  domElement.haiku.element = cloneVirtualElement(virtualElement)
+  domElement.haiku.element = cloneVirtualElement(virtualElement);
   if (!component.config.options.cache[getFlexId(virtualElement)]) {
-    component.config.options.cache[getFlexId(virtualElement)] = {}
+    component.config.options.cache[getFlexId(virtualElement)] = {};
   }
 
   if (!Array.isArray(virtualChildren)) {
-    return domElement
+    return domElement;
   }
 
   // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
   // so the most we want to do is update the attributes and layout properties, but leave the rest alone
   if (component._isHorizonElement(virtualElement)) {
-    return domElement
+    return domElement;
   }
 
   // During patch renders we don't want to drill down and update children as
   // we're just going to end up doing a lot of unnecessary DOM writes
   if (doSkipChildren) {
-    return domElement
+    return domElement;
   }
 
   while (virtualChildren.length > 0 && isBlankString(virtualChildren[0])) {
-    virtualChildren.shift()
+    virtualChildren.shift();
   }
 
   // Store a copy of the array here, otherwise we can hit a race where as we remove
   // elements from the DOM, the childNodes array gets shifted and the indices get offset, leading
   // to removals not occurring properly
-  let domChildNodes = []
+  const domChildNodes = [];
   for (let k = 0; k < domElement.childNodes.length; k++) {
-    domChildNodes[k] = domElement.childNodes[k]
+    domChildNodes[k] = domElement.childNodes[k];
   }
 
-  let max = virtualChildren.length
+  let max = virtualChildren.length;
   if (max < domChildNodes.length) {
-    max = domChildNodes.length
+    max = domChildNodes.length;
   }
 
   for (let i = 0; i < max; i++) {
-    let virtualChild = virtualChildren[i]
-    let domChild = domChildNodes[i]
+    const virtualChild = virtualChildren[i];
+    const domChild = domChildNodes[i];
 
     if (!virtualChild && !domChild) {
       // empty
     } else if (!virtualChild && domChild) {
-      removeElement(domChild)
+      removeElement(domChild);
     } else if (virtualChild) {
       if (!domChild) {
-        let insertedElement = appendChild(
+        const insertedElement = appendChild(
           null,
           virtualChild,
           domElement,
           virtualElement,
           component,
-        )
+        );
 
-        component._addElementToHashTable(insertedElement, virtualChild)
+        component._addElementToHashTable(insertedElement, virtualChild);
       } else {
         // Circumstances in which we want to completely *replace* the element:
         // - We see that our cached target element is not the one at this location
@@ -99,7 +99,7 @@ export default function renderTree(
             domElement,
             virtualElement,
             component,
-          )
+          );
         } else {
           updateElement(
             domChild,
@@ -108,11 +108,11 @@ export default function renderTree(
             virtualElement,
             component,
             isPatchOperation,
-          )
+          );
         }
       }
     }
   }
 
-  return domElement
+  return domElement;
 }

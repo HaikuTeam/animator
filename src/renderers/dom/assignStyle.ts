@@ -3,7 +3,7 @@
  */
 
 export default function assignStyle(domElement, virtualElement, style, component, isPatchOperation) {
-  if (!domElement.__haikuExplicitStyles) domElement.__haikuExplicitStyles = {}
+  if (!domElement.__haikuExplicitStyles) domElement.__haikuExplicitStyles = {};
 
   if (!isPatchOperation) {
     // If we have an element from a previous run, remove any old styles that aren't part of the new one
@@ -13,22 +13,22 @@ export default function assignStyle(domElement, virtualElement, style, component
       domElement.haiku.element.attributes &&
       domElement.haiku.element.attributes.style
     ) {
-      for (let oldStyleKey in domElement.haiku.element.attributes.style) {
-        let newStyleValue = style[oldStyleKey]
+      for (const oldStyleKey in domElement.haiku.element.attributes.style) {
+        const newStyleValue = style[oldStyleKey];
         if (newStyleValue === null || newStyleValue === undefined) {
-          domElement.style[oldStyleKey] = null
+          domElement.style[oldStyleKey] = null;
         }
       }
     }
   }
 
-  for (let key in style) {
-    let newProp = style[key]
-    let previousProp = domElement.style[key]
+  for (const key in style) {
+    const newProp = style[key];
+    const previousProp = domElement.style[key];
     if (previousProp !== newProp) {
-      domElement.__haikuExplicitStyles[key] = true
-      domElement.style[key] = style[key]
+      domElement.__haikuExplicitStyles[key] = true;
+      domElement.style[key] = style[key];
     }
   }
-  return domElement
+  return domElement;
 }

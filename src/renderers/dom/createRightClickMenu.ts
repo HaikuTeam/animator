@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-const MENU_GLOBAL_ID = "haiku-right-click-menu"
-const WIDTH = 167
-const HEIGHT = 44
+const MENU_GLOBAL_ID = 'haiku-right-click-menu';
+const WIDTH = 167;
+const HEIGHT = 44;
 
 /* tslint:disable */
 const haikuIcon =
@@ -41,69 +41,69 @@ const sharePageIcon =
 
 // Haiku servers will substitute the _actual_ full string in any js file,
 // so it's split into pieces here to avoid that build step
-const SUBSTITUTION_STRING = "HAIKU" + "_" + "SHARE" + "_" + "UUID"
+const SUBSTITUTION_STRING = 'HAIKU' + '_' + 'SHARE' + '_' + 'UUID';
 
 function setBoxShadow(el, color) {
-  el.style["-webkit-box-shadow"] = "0 1px 4px 0 " + color
-  el.style["-moz-box-shadow"] = "0 1px 4px 0 " + color
-  el.style["box-shadow"] = "0 1px 4px 0 " + color
+  el.style['-webkit-box-shadow'] = '0 1px 4px 0 ' + color;
+  el.style['-moz-box-shadow'] = '0 1px 4px 0 ' + color;
+  el.style['box-shadow'] = '0 1px 4px 0 ' + color;
 }
 
 function px(num) {
-  return num + "px"
+  return num + 'px';
 }
 
 function findOrCreateMenuElement(doc) {
-  let menu = doc.getElementById(MENU_GLOBAL_ID)
-  if (menu) return menu
-  menu = doc.createElement("div")
-  menu.setAttribute("id", MENU_GLOBAL_ID)
-  menu.style.position = "absolute"
-  menu.style.zIndex = 2147483647
-  setBoxShadow(menu, "rgba(10,2,21,0.25)")
-  menu.style.borderRadius = px(3)
-  menu.style.display = "none"
-  menu.style.backgroundColor = "rgba(255,255,255,0.95)"
-  menu.style.overflow = "hidden"
-  menu.style.cursor = "default"
-  menu.style.fontFamily = "Helvetica, Arial, sans-serif"
-  menu.style.fontWeight = "Bold"
-  menu.style.fontSize = px(10)
-  menu.style.padding = "0 0 7px"
-  menu.style.color = "black"
-  menu.style.margin = "0"
-  menu.style.boxSizing = "content-box"
-  menu.style.textDecoration = "none"
-  menu.style.fontStyle = "none"
-  doc.body.appendChild(menu)
-  return menu
+  let menu = doc.getElementById(MENU_GLOBAL_ID);
+  if (menu) return menu;
+  menu = doc.createElement('div');
+  menu.setAttribute('id', MENU_GLOBAL_ID);
+  menu.style.position = 'absolute';
+  menu.style.zIndex = 2147483647;
+  setBoxShadow(menu, 'rgba(10,2,21,0.25)');
+  menu.style.borderRadius = px(3);
+  menu.style.display = 'none';
+  menu.style.backgroundColor = 'rgba(255,255,255,0.95)';
+  menu.style.overflow = 'hidden';
+  menu.style.cursor = 'default';
+  menu.style.fontFamily = 'Helvetica, Arial, sans-serif';
+  menu.style.fontWeight = 'Bold';
+  menu.style.fontSize = px(10);
+  menu.style.padding = '0 0 7px';
+  menu.style.color = 'black';
+  menu.style.margin = '0';
+  menu.style.boxSizing = 'content-box';
+  menu.style.textDecoration = 'none';
+  menu.style.fontStyle = 'none';
+  doc.body.appendChild(menu);
+  return menu;
 }
 
 function truncate(str, len) {
   if (str.length > len) {
-    return str.slice(0, len - 3) + "..."
+    return str.slice(0, len - 3) + '...';
   }
-  return str
+  return str;
 }
 
 export default function createRightClickMenu(domElement, component) {
-  let doc = domElement.ownerDocument
-  let menu = findOrCreateMenuElement(doc)
+  const doc = domElement.ownerDocument;
+  const menu = findOrCreateMenuElement(doc);
 
-  let escaper = doc.createElement("textarea")
+  const escaper = doc.createElement('textarea');
   function escapeHTML(html) {
-    escaper.textContent = html
-    return escaper.innerHTML.replace(/[><,{}[\]"']/gi, "")
+    escaper.textContent = html;
+    return escaper.innerHTML.replace(/[><,{}[\]"']/gi, '');
   }
 
   // revealMenu(100,100) // Uncomment me to render the menu while testing
 
   function revealMenu(mx, my) {
-    let height = HEIGHT
-    let lines = []
-    let titleLine = null
+    let height = HEIGHT;
+    const lines = [];
+    let titleLine = null;
 
-    let metadata = component._bytecode && component._bytecode.metadata
+    const metadata = component._bytecode && component._bytecode.metadata;
 
     /* tslint:disable */
     if (metadata && metadata.project) {
@@ -135,41 +135,41 @@ export default function createRightClickMenu(domElement, component) {
     )
     /* tslint:enable */
 
-    if (lines.length < 1) return undefined
+    if (lines.length < 1) return undefined;
 
-    height = lines.length > 1 ? 88 : 61
-    height = titleLine ? height : 22
+    height = lines.length > 1 ? 88 : 61;
+    height = titleLine ? height : 22;
 
-    menu.style.width = px(WIDTH)
-    menu.style.height = px(height)
-    menu.style.top = px(my)
-    menu.style.left = px(mx)
-    menu.style.pointerEvents = "auto"
-    menu.style.display = "block"
-    menu.innerHTML = titleLine ? titleLine + lines.join("\n") : lines.join("\n")
+    menu.style.width = px(WIDTH);
+    menu.style.height = px(height);
+    menu.style.top = px(my);
+    menu.style.left = px(mx);
+    menu.style.pointerEvents = 'auto';
+    menu.style.display = 'block';
+    menu.innerHTML = titleLine ? titleLine + lines.join('\n') : lines.join('\n');
   }
 
   function hideMenu() {
-    menu.style.width = px(0)
-    menu.style.height = px(0)
-    menu.style.top = px(0)
-    menu.style.left = px(0)
-    menu.style.pointerEvents = "none"
-    menu.style.display = "none"
+    menu.style.width = px(0);
+    menu.style.height = px(0);
+    menu.style.top = px(0);
+    menu.style.left = px(0);
+    menu.style.pointerEvents = 'none';
+    menu.style.display = 'none';
   }
 
-  domElement.addEventListener("contextmenu", function(contextmenuEvent) {
-    contextmenuEvent.preventDefault()
+  domElement.addEventListener('contextmenu', function (contextmenuEvent) {
+    contextmenuEvent.preventDefault();
 
-    let mx = contextmenuEvent.pageX
-    let my = contextmenuEvent.pageY
+    const mx = contextmenuEvent.pageX;
+    const my = contextmenuEvent.pageY;
 
     if (component.mixpanel) {
-      component.mixpanel.track("component:contextmenu")
+      component.mixpanel.track('component:contextmenu');
     }
 
-    revealMenu(mx, my)
-  })
+    revealMenu(mx, my);
+  });
 
-  doc.addEventListener("click", hideMenu)
+  doc.addEventListener('click', hideMenu);
 }
