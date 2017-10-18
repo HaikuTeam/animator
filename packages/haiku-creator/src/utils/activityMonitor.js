@@ -1,13 +1,15 @@
 const {debounce} = require('lodash')
 
 const REPORT_INTERVAL = 1800000 // 30mins
+const DEBOUNCE_RATIO = 1000
 
 class ActivityMonitor {
   constructor (
     context = window,
+    debounceRatio = DEBOUNCE_RATIO,
     reportCallback
   ) {
-    this.log = debounce(this.log.bind(this), 1000)
+    this.log = debounce(this.log.bind(this), debounceRatio)
     this.activity = false
     this.reportCallback = reportCallback
     this.context = context
