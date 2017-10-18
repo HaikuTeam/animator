@@ -33,10 +33,10 @@ function setContextAndAssert(assertion) {
   emitter.addEventListener = emitter.addListener
   emitter.removeEventListener = emitter.removeListener
 
-  const activityMonitor = new ActivityMonitor(emitter, 1, (userWasActive) => {
+  const activityMonitor = new ActivityMonitor(emitter, (userWasActive) => {
     assertion(userWasActive)
     activityMonitor.stopWatchers()
-  })
+  }, 1)
 
   activityMonitor.startWatchers(100)
 

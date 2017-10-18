@@ -6,8 +6,8 @@ const DEBOUNCE_RATIO = 1000
 class ActivityMonitor {
   constructor (
     context = window,
-    debounceRatio = DEBOUNCE_RATIO,
-    reportCallback
+    reportCallback,
+    debounceRatio = DEBOUNCE_RATIO
   ) {
     this.log = debounce(this.log.bind(this), debounceRatio)
     this.activity = false
