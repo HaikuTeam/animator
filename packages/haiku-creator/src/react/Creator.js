@@ -98,9 +98,13 @@ export default class Creator extends React.Component {
     })
 
     const combokeys = new Combokeys(document.documentElement)
-    combokeys.bind('command+option+i', lodash.debounce(() => {
-      this.props.websocket.send({ method: 'toggleDevTools', params: [this.state.projectFolder] })
-    }, 500, { leading: true }))
+
+    if (process.env.NODE_ENV !== 'production') {
+      combokeys.bind('command+option+i', lodash.debounce(() => {
+        this.props.websocket.send({ method: 'toggleDevTools', params: [this.state.projectFolder] })
+      }, 500, { leading: true }))
+    }
+
     combokeys.bind('command+option+0', lodash.debounce(() => {
       this.dumpSystemInfo()
     }, 500, { leading: true }))

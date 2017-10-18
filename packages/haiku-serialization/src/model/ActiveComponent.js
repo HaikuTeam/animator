@@ -568,7 +568,6 @@ ActiveComponent.prototype.resizeContext = function resizeContext (artboardIds, t
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', artboardIds, timelineName, timelineTime, ['sizeAbsolute.x', 'sizeAbsolute.y'], metadata)
-    this.emit('artboard:resized', sizeDescriptor)
 
     if (metadata.from === this.alias) {
       artboardIds.forEach((artboardId) => {
@@ -606,6 +605,7 @@ ActiveComponent.prototype.changeKeyframeValue = function (componentIds, timeline
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', componentIds, timelineName, keyframeMs, [propertyName], metadata)
+    this._clearCaches()
 
     return cb()
   })
@@ -621,6 +621,7 @@ ActiveComponent.prototype.changeSegmentCurve = function (componentIds, timelineN
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', componentIds, timelineName, null, [propertyName], metadata)
+    this._clearCaches()
 
     return cb()
   })
@@ -636,6 +637,7 @@ ActiveComponent.prototype.changeSegmentEndpoints = function (componentIds, timel
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', componentIds, timelineName, null, [propertyName], metadata)
+    this._clearCaches()
 
     return cb()
   })
@@ -666,6 +668,7 @@ ActiveComponent.prototype.createTimeline = function (timelineName, timelineDescr
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', null, timelineName, null, null, metadata)
+    this._clearCaches()
 
     return cb()
   })
@@ -681,6 +684,7 @@ ActiveComponent.prototype.deleteKeyframe = function (componentIds, timelineName,
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', componentIds, timelineName, keyframeMs, [propertyName], metadata)
+    this._clearCaches()
 
     return cb()
   })
@@ -695,6 +699,7 @@ ActiveComponent.prototype.deleteTimeline = function (timelineName, metadata, cb)
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', null, timelineName, null, null, metadata)
+    this._clearCaches()
 
     return cb()
   })
@@ -709,6 +714,7 @@ ActiveComponent.prototype.duplicateTimeline = function (timelineName, metadata, 
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', null, timelineName, null, null, metadata)
+    this._clearCaches()
 
     return cb()
   })
@@ -724,6 +730,7 @@ ActiveComponent.prototype.joinKeyframes = function (componentIds, timelineName, 
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', componentIds, timelineName, keyframeMsLeft, [propertyName], metadata)
+    this._clearCaches()
 
     return cb()
   })
@@ -739,6 +746,7 @@ ActiveComponent.prototype.moveSegmentEndpoints = function (componentIds, timelin
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', componentIds, timelineName, startMs, [propertyName], metadata)
+    this._clearCaches()
 
     return cb()
   })
@@ -754,6 +762,7 @@ ActiveComponent.prototype.moveKeyframes = function (componentIds, timelineName, 
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', componentIds, timelineName, null, [propertyName], metadata)
+    this._clearCaches()
 
     return cb()
   })
@@ -768,6 +777,7 @@ ActiveComponent.prototype.renameTimeline = function (timelineNameOld, timelineNa
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', null, null, null, null, metadata)
+    this._clearCaches()
 
     return cb()
   })
@@ -783,6 +793,7 @@ ActiveComponent.prototype.sliceSegment = function (componentIds, timelineName, e
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', componentIds, timelineName, keyframeMs, [propertyName], metadata)
+    this._clearCaches()
 
     return cb()
   })
@@ -798,6 +809,7 @@ ActiveComponent.prototype.splitSegment = function (componentIds, timelineName, e
 
     this._updateTimelineMaxes(this._currentTimelineName)
     this.emit('component:updated', componentIds, timelineName, keyframeMs, [propertyName], metadata)
+    this._clearCaches()
 
     return cb()
   })
