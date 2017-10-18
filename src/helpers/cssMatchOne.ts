@@ -3,11 +3,11 @@
  */
 
 import attrSelectorParser from './attrSelectorParser';
-import matchByAttribute from './cssMatchByAttribute';
-import matchByClass from './cssMatchByClass';
-import matchByHaiku from './cssMatchByHaiku';
-import matchById from './cssMatchById';
-import matchByTagName from './cssMatchByTagName';
+import cssMatchByAttribute from './cssMatchByAttribute';
+import cssMatchByClass from './cssMatchByClass';
+import cssMatchByHaiku from './cssMatchByHaiku';
+import cssMatchById from './cssMatchById';
+import cssMatchByTagName from './cssMatchByTagName';
 
 const ID_PREFIX = '#';
 const CLASS_PREFIX = '.';
@@ -16,21 +16,23 @@ const HAIKU_PREFIX = 'haiku:';
 
 export default function matchOne(node, piece, options) {
   if (piece.slice(0, 6) === HAIKU_PREFIX) {
-    return matchByHaiku(node, piece.slice(6), options);
+    return cssMatchByHaiku(node, piece.slice(6), options);
   }
 
   if (piece[0] === ID_PREFIX) {
-    return matchById(node, piece.slice(1, piece.length), options);
+    return cssMatchById(node, piece.slice(1, piece.length), options);
   }
 
   if (piece[0] === CLASS_PREFIX) {
-    return matchByClass(node, piece.slice(1, piece.length), options);
+    return cssMatchByClass(node, piece.slice(1, piece.length), options);
   }
 
   if (piece[0] === ATTR_PREFIX) {
     const parsedAttr = attrSelectorParser(piece);
-    if (!parsedAttr) return false;
-    return matchByAttribute(
+    if (!parsedAttr) {
+      return false;
+    }
+    return cssMatchByAttribute(
       node,
       parsedAttr.key,
       parsedAttr.operator,
@@ -39,5 +41,5 @@ export default function matchOne(node, piece, options) {
     );
   }
 
-  return matchByTagName(node, piece, options);
+  return cssMatchByTagName(node, piece, options);
 }

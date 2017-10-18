@@ -21,12 +21,15 @@ export default function renderTree(
 ) {
   component._addElementToHashTable(domElement, virtualElement);
 
-  if (!domElement.haiku) domElement.haiku = {};
+  if (!domElement.haiku) {
+    domElement.haiku = {};
+  }
 
   // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
   virtualElement.__target = domElement;
   domElement.haiku.virtual = virtualElement;
-  // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
+  // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute
+  // removals
   domElement.haiku.element = cloneVirtualElement(virtualElement);
   if (!component.config.options.cache[getFlexId(virtualElement)]) {
     component.config.options.cache[getFlexId(virtualElement)] = {};

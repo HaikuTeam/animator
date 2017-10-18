@@ -4,8 +4,8 @@
 
 import HaikuHelpers from './HaikuHelpers';
 import BasicUtils from './helpers/BasicUtils';
-import DOMValueParsers from './properties/dom/parsers';
-import DOMSchema from './properties/dom/schema';
+import parsers from './properties/dom/parsers';
+import schema from './properties/dom/schema';
 import enhance from './reflection/enhance';
 import Transitions from './Transitions';
 import assign from './vendor/assign';
@@ -73,13 +73,17 @@ if (typeof window !== 'undefined') {
       },
     },
     summon(injectees, summonSpec) {
-      if (!injectees.$window) injectees.$window = {};
+      if (!injectees.$window) {
+        injectees.$window = {};
+      }
       const out = injectees.$window;
 
       out.width = window.innerWidth;
       out.height = window.innerHeight;
       if (window.screen) {
-        if (!out.screen) out.screen = {};
+        if (!out.screen) {
+          out.screen = {};
+        }
         out.screen.availHeight = window.screen['availHeight'];
         out.screen.availLeft = window.screen['availLeft'];
         out.screen.availWidth = window.screen['availWidth'];
@@ -88,13 +92,17 @@ if (typeof window !== 'undefined') {
         out.screen.pixelDepth = window.screen['pixelDepth'];
         out.screen.width = window.screen['width'];
         if (window.screen['orientation']) {
-          if (!out.screen.orientation) out.screen.orientation = {};
+          if (!out.screen.orientation) {
+            out.screen.orientation = {};
+          }
           out.screen.orientation.angle = window.screen['orientation'].angle;
           out.screen.orientation.type = window.screen['orientation'].type;
         }
       }
       if (typeof navigator !== 'undefined') {
-        if (!out.navigator) out.navigator = {};
+        if (!out.navigator) {
+          out.navigator = {};
+        }
         out.navigator.userAgent = navigator.userAgent;
         out.navigator.appCodeName = navigator.appCodeName;
         out.navigator.appName = navigator.appName;
@@ -110,7 +118,9 @@ if (typeof window !== 'undefined') {
         out.navigator.vendor = navigator.vendor;
       }
       if (window.document) {
-        if (!out.document) out.document = {};
+        if (!out.document) {
+          out.document = {};
+        }
         out.document.charset = window.document.charset;
         out.document.compatMode = window.document.compatMode;
         out.document.contenttype = window.document['contentType'];
@@ -122,7 +132,9 @@ if (typeof window !== 'undefined') {
         out.document.title = window.document.title;
       }
       if (window.location) {
-        if (!out.location) out.location = {};
+        if (!out.location) {
+          out.location = {};
+        }
         out.location.hash = window.location.hash;
         out.location.host = window.location.host;
         out.location.hostname = window.location.hostname;
@@ -149,11 +161,15 @@ if (typeof global !== 'undefined') {
       },
     },
     summon(injectees, summonSpec) {
-      if (!injectees.$global) injectees.$global = {};
+      if (!injectees.$global) {
+        injectees.$global = {};
+      }
       const out = injectees.$global;
 
       if (typeof process !== 'undefined') {
-        if (!out.process) out.process = {};
+        if (!out.process) {
+          out.process = {};
+        }
         out.process.pid = process.pid;
         out.process.arch = process.arch;
         out.process.platform = process.platform;
@@ -202,13 +218,17 @@ INJECTABLES['$player'] = {
     },
   },
   summon(injectees, summonSpec, hostInstance, matchingElement, timelineName) {
-    if (!injectees.$player) injectees.$player = {};
+    if (!injectees.$player) {
+      injectees.$player = {};
+    }
     const out = injectees.$player;
 
     out.version = hostInstance._context.PLAYER_VERSION;
     const options = hostInstance._context.config.options;
     if (options) {
-      if (!out.options) out.options = {};
+      if (!out.options) {
+        out.options = {};
+      }
       out.options.seed = options.seed;
       out.options.loop = options.loop;
       out.options.sizing = options.sizing;
@@ -219,24 +239,34 @@ INJECTABLES['$player'] = {
     }
     const timelineInstance = hostInstance.getTimeline(timelineName);
     if (timelineInstance) {
-      if (!out.timeline) out.timeline = {};
+      if (!out.timeline) {
+        out.timeline = {};
+      }
       out.timeline.name = timelineName;
       out.timeline.duration = timelineInstance.getDuration();
       out.timeline.repeat = timelineInstance.getRepeat();
-      if (!out.timeline.time) out.timeline.time = {};
+      if (!out.timeline.time) {
+        out.timeline.time = {};
+      }
       out.timeline.time.apparent = timelineInstance.getTime();
       out.timeline.time.elapsed = timelineInstance.getElapsedTime();
       out.timeline.time.max = timelineInstance.getMaxTime();
-      if (!out.timeline.frame) out.timeline.frame = {};
+      if (!out.timeline.frame) {
+        out.timeline.frame = {};
+      }
       out.timeline.frame.apparent = timelineInstance.getFrame();
       out.timeline.frame.elapsed = timelineInstance.getUnboundedFrame();
     }
     const clockInstance = hostInstance.getClock();
     if (clockInstance) {
-      if (!out.clock) out.clock = {};
+      if (!out.clock) {
+        out.clock = {};
+      }
       out.clock.frameDuration = clockInstance.options.frameDuration;
       out.clock.frameDelay = clockInstance.options.frameDelay;
-      if (!out.clock.time) out.clock.time = {};
+      if (!out.clock.time) {
+        out.clock.time = {};
+      }
       out.clock.time.apparent = clockInstance.getExplicitTime();
       out.clock.time.elapsed = clockInstance.getRunningTime();
     }
@@ -271,7 +301,7 @@ const EVENT_SCHEMA = {
 const ELEMENT_SCHEMA = {
   // A function in the schema indicates that schema is dynamic, dependent on some external information
   properties(element) {
-    const defined = DOMSchema[element.elementName];
+    const defined = schema[element.elementName];
     if (!defined) {
       console.warn('[haiku player] element ' + element.elementName + ' has no schema defined');
       return {};
@@ -363,7 +393,9 @@ INJECTABLES['$tree'] = {
     element: ELEMENT_SCHEMA, // same as $element
   },
   summon(injectees, summonSpec, hostInstance, matchingElement) {
-    if (!injectees.$tree) injectees.$tree = {};
+    if (!injectees.$tree) {
+      injectees.$tree = {};
+    }
 
     injectees.$tree.siblings = []; // Provide an array even if no siblings in case user tries to access
 
@@ -512,7 +544,6 @@ INJECTABLES['$helpers'] = {
 const BUILTIN_INJECTABLES = {
   Infinity,
   NaN,
-  undefined: void (0),
   Object,
   Boolean,
   Math,
@@ -536,6 +567,7 @@ const BUILTIN_INJECTABLES = {
   ReferenceError,
   SyntaxError,
   TypeError,
+  undefined: void (0),
   // TODO: Determine which of the following to include. Need to test each for support.
   // 'Int8Array': Int8Array,
   // 'Uint8Array': Uint8Array,
@@ -684,6 +716,7 @@ const FORBIDDEN_EXPRESSION_TOKENS = {
 //   'short': true,
 // }
 
+// tslint:disable-next-line:function-name
 export default function ValueBuilder(component) {
   this._component = component; // ::HaikuComponent
   this._parsees = {};
@@ -691,21 +724,23 @@ export default function ValueBuilder(component) {
   this._summonees = {};
   this._evaluations = {};
 
-  HaikuHelpers.register('now', function _helperNow() {
-    return this._component._context.getDeterministicTime();
-  }.bind(this));
-
-  HaikuHelpers.register('rand', function _helperRand() {
-    // prng seeded at the HaikuContext level
-    return this._component._context.getDeterministicRand();
-  }.bind(this));
+  HaikuHelpers.register('now', () => this._component._context.getDeterministicTime());
+  HaikuHelpers.register('rand', () => this._component._context.getDeterministicRand());
 }
 
-function _cc(obj, timelineName, flexId, propertyKeys) {
-  if (!obj[timelineName]) return false;
-  if (!obj[timelineName][flexId]) return false;
-  if (!propertyKeys) return false;
-  if (propertyKeys.length < 1) return false;
+function cc(obj, timelineName, flexId, propertyKeys) {
+  if (!obj[timelineName]) {
+    return false;
+  }
+  if (!obj[timelineName][flexId]) {
+    return false;
+  }
+  if (!propertyKeys) {
+    return false;
+  }
+  if (propertyKeys.length < 1) {
+    return false;
+  }
   for (let i = 0; i < propertyKeys.length; i++) {
     obj[timelineName][flexId][propertyKeys[i]] = {};
   }
@@ -717,10 +752,10 @@ ValueBuilder.prototype._clearCaches = function _clearCaches(options) {
     const timelineName = options.clearOnlySpecificProperties.timelineName;
     const flexId = options.clearOnlySpecificProperties.componentId;
     const propertyKeys = options.clearOnlySpecificProperties.propertyKeys;
-    _cc(this._parsees, timelineName, flexId, propertyKeys);
-    _cc(this._summonees, timelineName, flexId, propertyKeys);
-    _cc(this._evaluations, timelineName, flexId, propertyKeys);
-    _cc(this._changes, timelineName, flexId, propertyKeys);
+    cc(this._parsees, timelineName, flexId, propertyKeys);
+    cc(this._summonees, timelineName, flexId, propertyKeys);
+    cc(this._evaluations, timelineName, flexId, propertyKeys);
+    cc(this._changes, timelineName, flexId, propertyKeys);
   } else {
     this._parsees = {};
     this._changes = {};
@@ -730,11 +765,10 @@ ValueBuilder.prototype._clearCaches = function _clearCaches(options) {
   return this;
 };
 
-ValueBuilder.prototype._clearCachedClusters = function _clearCachedClusters(
-  timelineName,
-  componentId,
-) {
-  if (this._parsees[timelineName]) this._parsees[timelineName][componentId] = {};
+ValueBuilder.prototype._clearCachedClusters = function _clearCachedClusters(timelineName, componentId) {
+  if (this._parsees[timelineName]) {
+    this._parsees[timelineName][componentId] = {};
+  }
   return this;
 };
 
@@ -780,7 +814,7 @@ ValueBuilder.prototype.evaluate = function _evaluate(
 
       const previousSummoneesArray = this._getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs);
 
-      if (_areSummoneesDifferent(previousSummoneesArray, summoneesArray)) {
+      if (areSummoneesDifferent(previousSummoneesArray, summoneesArray)) {
         this._cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summoneesArray);
 
         evaluation = fn.apply(hostInstance, summoneesArray);
@@ -799,32 +833,60 @@ ValueBuilder.prototype.evaluate = function _evaluate(
   return evaluation;
 };
 
-ValueBuilder.prototype._getPreviousSummonees = function _getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs) {
-  if (!this._summonees[timelineName]) return void (0);
-  if (!this._summonees[timelineName][flexId]) return void (0);
-  if (!this._summonees[timelineName][flexId][propertyName]) return void (0);
+ValueBuilder.prototype._getPreviousSummonees = function _getPreviousSummonees(
+  timelineName, flexId, propertyName, keyframeMs) {
+  if (!this._summonees[timelineName]) {
+    return void (0);
+  }
+  if (!this._summonees[timelineName][flexId]) {
+    return void (0);
+  }
+  if (!this._summonees[timelineName][flexId][propertyName]) {
+    return void (0);
+  }
   return this._summonees[timelineName][flexId][propertyName][keyframeMs];
 };
 
-ValueBuilder.prototype._cacheSummonees = function _cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summonees) {
-  if (!this._summonees[timelineName]) this._summonees[timelineName] = {};
-  if (!this._summonees[timelineName][flexId]) this._summonees[timelineName][flexId] = {};
-  if (!this._summonees[timelineName][flexId][propertyName]) this._summonees[timelineName][flexId][propertyName] = {};
+ValueBuilder.prototype._cacheSummonees = function _cacheSummonees(
+  timelineName, flexId, propertyName, keyframeMs, summonees) {
+  if (!this._summonees[timelineName]) {
+    this._summonees[timelineName] = {};
+  }
+  if (!this._summonees[timelineName][flexId]) {
+    this._summonees[timelineName][flexId] = {};
+  }
+  if (!this._summonees[timelineName][flexId][propertyName]) {
+    this._summonees[timelineName][flexId][propertyName] = {};
+  }
   this._summonees[timelineName][flexId][propertyName][keyframeMs] = summonees;
   return summonees;
 };
 
-ValueBuilder.prototype._getPreviousEvaluation = function _getPreviousEvaluation(timelineName, flexId, propertyName, keyframeMs) {
-  if (!this._evaluations[timelineName]) return void (0);
-  if (!this._evaluations[timelineName][flexId]) return void (0);
-  if (!this._evaluations[timelineName][flexId][propertyName]) return void (0);
+ValueBuilder.prototype._getPreviousEvaluation = function _getPreviousEvaluation(
+  timelineName, flexId, propertyName, keyframeMs) {
+  if (!this._evaluations[timelineName]) {
+    return void (0);
+  }
+  if (!this._evaluations[timelineName][flexId]) {
+    return void (0);
+  }
+  if (!this._evaluations[timelineName][flexId][propertyName]) {
+    return void (0);
+  }
   return this._evaluations[timelineName][flexId][propertyName][keyframeMs];
 };
 
-ValueBuilder.prototype._cacheEvaluation = function _cacheEvaluation(timelineName, flexId, propertyName, keyframeMs, evaluation) {
-  if (!this._evaluations[timelineName]) this._evaluations[timelineName] = {};
-  if (!this._evaluations[timelineName][flexId]) this._evaluations[timelineName][flexId] = {};
-  if (!this._evaluations[timelineName][flexId][propertyName]) this._evaluations[timelineName][flexId][propertyName] = {};
+ValueBuilder.prototype._cacheEvaluation = function _cacheEvaluation(
+  timelineName, flexId, propertyName, keyframeMs, evaluation) {
+  if (!this._evaluations[timelineName]) {
+    this._evaluations[timelineName] = {};
+  }
+  if (!this._evaluations[timelineName][flexId]) {
+    this._evaluations[timelineName][flexId] = {};
+  }
+  if (!this._evaluations[timelineName][flexId][propertyName]) {
+    this._evaluations[timelineName][flexId][propertyName] = {};
+  }
   this._evaluations[timelineName][flexId][propertyName][keyframeMs] = evaluation;
   return evaluation;
 };
@@ -857,8 +919,11 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables(
       if (INJECTABLES[summonsEntry]) {
         summonStorage[summonsEntry] = undefined; // Clear out the old value before populating with the new one
         INJECTABLES[summonsEntry].summon(
-          summonStorage, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they summonsKey must be added
-          summonsEntry, // The summon function should know how to handle a string and what it signifies
+          // This arg is populated with the data; it is the var 'out' in the summon function; they summonsKey must be
+          // added.
+          summonStorage,
+          // The summon function should know how to handle a string and what it signifies.
+          summonsEntry,
           hostInstance,
           matchingElement,
           timelineName,
@@ -868,18 +933,23 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables(
         summonsOutput = hostInstance.state[summonsEntry];
       }
     } else if (summonsEntry && typeof summonsEntry === 'object') {
-      // If dealing with a summon that is an object, the output will be an object
+      // If dealing with a summon that is an object, the output will be an object.
       summonsOutput = {};
 
       for (const summonsKey in summonsEntry) {
-        // If the summons structure has a falsy, just skip it - I don't see why how this could happen, but just in case
-        if (!summonsEntry[summonsKey]) continue;
+        // If the summons structure has a falsy, just skip it - I don't see why how this could happen, but just in case.
+        if (!summonsEntry[summonsKey]) {
+          continue;
+        }
 
         // If a special summonable has been defined, then call its summoner function
         if (INJECTABLES[summonsKey]) {
           INJECTABLES[summonsKey].summon(
-            summonsOutput, // <~ This arg is populated with the data; it is the var 'out' in the summon function; they summonsKey must be added
-            summonsEntry[summonsKey], // The object specifies the specific fields we want to extract
+            // This arg is populated with the data; it is the var 'out' in the summon function; they summonsKey must be
+            // added.
+            summonsOutput,
+            // The object specifies the specific fields we want to extract.
+            summonsEntry[summonsKey],
             hostInstance,
             matchingElement,
             timelineName,
@@ -906,14 +976,14 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables(
 };
 
 ValueBuilder.prototype._getSummonablesSchema = function _getSummonablesSchema() {
-  const schema = {};
+  const summonablesSchema = {};
   for (const key in INJECTABLES) {
-    schema[key] = INJECTABLES[key].schema;
+    summonablesSchema[key] = INJECTABLES[key].schema;
   }
-  return schema;
+  return summonablesSchema;
 };
 
-function _areSummoneesDifferent(previous, incoming) {
+function areSummoneesDifferent(previous, incoming) {
   // First check if either is an array, and do an el-by-el comparison
   if (Array.isArray(previous) && Array.isArray(incoming)) {
     // A good quick check is just to compare the lengths
@@ -922,7 +992,7 @@ function _areSummoneesDifferent(previous, incoming) {
     } else {
       // Do an element-by-element comparison; if any fail, it all fails
       for (let i = 0; i < incoming.length; i++) {
-        if (_areSummoneesDifferent(previous[i], incoming[i])) {
+        if (areSummoneesDifferent(previous[i], incoming[i])) {
           return true;
         }
       }
@@ -933,7 +1003,7 @@ function _areSummoneesDifferent(previous, incoming) {
     // Sub-objects detected; recurse and ask the same question
     if (previous !== null && incoming !== null) {
       for (const key in incoming) {
-        if (_areSummoneesDifferent(previous[key], incoming[key])) {
+        if (areSummoneesDifferent(previous[key], incoming[key])) {
           return true;
         }
       }
@@ -960,7 +1030,9 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
   skipCache,
 ) {
   // Establish the cache objects for this properties group within this timeline
-  if (!this._parsees[timelineName]) this._parsees[timelineName] = {};
+  if (!this._parsees[timelineName]) {
+    this._parsees[timelineName] = {};
+  }
   if (!this._parsees[timelineName][flexId]) {
     this._parsees[timelineName][flexId] = {};
   }
@@ -1036,16 +1108,24 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
 };
 
 ValueBuilder.prototype.getParser = function getParser(outputName, virtualElement) {
-  if (!virtualElement) return undefined;
+  if (!virtualElement) {
+    return undefined;
+  }
   let foundParser = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement);
-  if (!foundParser) foundParser = DOMValueParsers[virtualElement.elementName] && DOMValueParsers[virtualElement.elementName][outputName];
+  if (!foundParser) {
+    foundParser = parsers[virtualElement.elementName] && parsers[virtualElement.elementName][outputName];
+  }
   return foundParser && foundParser.parse;
 };
 
 ValueBuilder.prototype.getGenerator = function getGenerator(outputName, virtualElement) {
-  if (!virtualElement) return undefined;
+  if (!virtualElement) {
+    return undefined;
+  }
   let foundGenerator = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement);
-  if (!foundGenerator) foundGenerator = DOMValueParsers[virtualElement.elementName] && DOMValueParsers[virtualElement.elementName][outputName];
+  if (!foundGenerator) {
+    foundGenerator = parsers[virtualElement.elementName] && parsers[virtualElement.elementName][outputName];
+  }
   return foundGenerator && foundGenerator.generate;
 };
 
@@ -1092,7 +1172,8 @@ ValueBuilder.prototype.didChangeValue = function _didChangeValue(
 
 /**
  * @method build
- * @description Given an 'out' object, accumulate values into that object based on the current timeline, time, and instance state.
+ * @description Given an 'out' object, accumulate values into that object based on the current timeline, time, and
+ * instance state.
  * If we didn't make any changes, we return undefined here. The caller should account for this.
  */
 ValueBuilder.prototype.build = function _build(
@@ -1153,7 +1234,8 @@ ValueBuilder.prototype.build = function _build(
 
 /**
  * @method grabValue
- * @description Given a timeline and some current state information, return a computed value for the given property name.
+ * @description Given a timeline and some current state information, return a computed value for the given property
+ * name.
  *
  * NOTE: The 'build' method above interprets a return value of 'undefined' to mean "no change" so bear that in mind...
  *
@@ -1219,15 +1301,13 @@ ValueBuilder.prototype.grabValue = function _grabValue(
     return undefined;
   }
 
-  const finalValue = this.generateFinalValueFromParsedValue(
+  return this.generateFinalValueFromParsedValue(
     timelineName,
     flexId,
     matchingElement,
     propertyName,
     computedValueForTime,
   );
-
-  return finalValue;
 };
 
 ValueBuilder['INJECTABLES'] = INJECTABLES;

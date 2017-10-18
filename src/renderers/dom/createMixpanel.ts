@@ -3,10 +3,10 @@
  */
 
 import assign from './../../vendor/assign';
-import Mixpanel from './../../vendor/mixpanel-browser/tiny';
+import tiny from './../../vendor/mixpanel-browser/tiny';
 
 export default function createMixpanel(domElement, mixpanelToken, component) {
-  const mixpanel = Mixpanel();
+  const mixpanel = tiny();
 
   if (!mixpanel) {
     console.warn('[haiku player] mixpanel could not be initialized');
@@ -32,7 +32,7 @@ export default function createMixpanel(domElement, mixpanelToken, component) {
     },
   };
 
-  component.on('haikuComponentDidInitialize', function () {
+  component.on('haikuComponentDidInitialize', () => {
     component.mixpanel.track('component:initialize');
   });
 }

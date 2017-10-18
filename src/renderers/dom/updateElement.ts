@@ -30,14 +30,17 @@ export default function updateElement(
     return virtualElement;
   }
 
-  if (!domElement.haiku) domElement.haiku = {};
+  if (!domElement.haiku) {
+    domElement.haiku = {};
+  }
 
   if (!component.config.options.cache[getFlexId(virtualElement)]) {
     component.config.options.cache[getFlexId(virtualElement)] = {};
   }
 
   if (!domElement.haiku.element) {
-    // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
+    // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute
+    // removals
     domElement.haiku.element = cloneVirtualElement(virtualElement);
   }
 

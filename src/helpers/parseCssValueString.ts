@@ -20,8 +20,11 @@ export default function parseCssValueString(str, optionalPropertyHint) {
   let num;
   const nmatch = str.match(/([+-]?[\d|.]+)/);
 
-  if (nmatch) num = Number(nmatch[0]);
-  else num = 0;
+  if (nmatch) {
+    num = Number(nmatch[0]);
+  } else {
+    num = 0;
+  }
 
   let unit;
   const smatch = str.match(/(em|px|%|turn|deg|in)/);
@@ -35,7 +38,7 @@ export default function parseCssValueString(str, optionalPropertyHint) {
     }
   }
   return {
-    value: num,
     unit,
+    value: num,
   };
 }

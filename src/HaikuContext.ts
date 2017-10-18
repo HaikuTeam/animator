@@ -18,6 +18,7 @@ const DEFAULT_TIMELINE_NAME = 'Default';
  * A Haiku component tree may contain many components, but there is only one context.
  * The context is where information shared by all components in the tree should go, e.g. clock time.
  */
+// tslint:disable-next-line:function-name
 export default function HaikuContext(mount, renderer, platform, bytecode, config) {
   if (!renderer) {
     throw new Error('Context requires a renderer');
@@ -193,14 +194,17 @@ HaikuContext.prototype.removeTickable = function removeTickable(tickable) {
 HaikuContext.prototype.assignConfig = function assignConfig(config, options) {
   this.config = assign({}, config); // QUESTION: Why do we assign here?
 
-  // HACK: Since we run this method before the clock is initialized sometimes, we have to check whether the clock exists before assigning sub-options to it.
+  // HACK: Since we run this method before the clock is initialized sometimes, we have to check whether the clock exists
+  // before assigning sub-options to it.
   if (this.clock) {
     this.clock.assignOptions(this.config.options.clock);
   }
 
-  // HACK: Since we run this method before the component is initialized sometimes, we have to check whether the component exists before assigning options to it.
+  // HACK: Since we run this method before the component is initialized sometimes, we have to check whether the
+  // component exists before assigning options to it.
   if (this.component) {
-    // This step can optionally be skipped since this.component might be updating _us_, and we don't want to create an infinite loop
+    // This step can optionally be skipped since this.component might be updating _us_, and we don't want to create an
+    // infinite loop.
     if (!options || !options.skipComponentAssign) {
       this.component.assignConfig(this.config);
     }
@@ -402,6 +406,7 @@ HaikuContext['createComponentFactory'] = function createComponentFactory(
    * @description Creates a new HaikuComponent instance.
    * The (renderer, bytecode) pair are bootstrapped into the given mount element, and played.
    */
+  // tslint:disable-next-line:function-name
   function HaikuComponentFactory(mount, haikuConfigFromFactory) {
     // Merge any config received "late" with the config we might have already gotten during bootstrapping
     const haikuConfigMerged = Config.build(haikuConfigFromTop, haikuConfigFromFactory);

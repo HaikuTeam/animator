@@ -5,10 +5,16 @@
 import reactToMana from './reactToMana';
 
 export default function reactChildrenToMana(children) {
-  if (!children) return null;
-  if (children.length < 1) return null;
-  return children.map(function _map(child) {
-    if (typeof child === 'string') return child;
+  if (!children) {
+    return null;
+  }
+  if (children.length < 1) {
+    return null;
+  }
+  return children.map((child) => {
+    if (typeof child === 'string') {
+      return child;
+    }
     return reactToMana(child);
   });
 }

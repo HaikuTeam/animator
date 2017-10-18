@@ -4,7 +4,7 @@
 
 import parseCssTransformString from './../helpers/parseCssTransformString';
 import visitManaTree from './../helpers/visitManaTree';
-import parseCssValue from './../vendor/css-value';
+import cssValue from './../vendor/css-value';
 
 const ROOT_LOCATOR = '0';
 
@@ -31,7 +31,7 @@ const TRANSFORM_COMPONENT_WHITELIST = {
 };
 
 function determineSizingProp(sizeAxis, attributeValue) {
-  const parsedValues = parseCssValue(attributeValue);
+  const parsedValues = cssValue(attributeValue);
   const parsedValue = parsedValues[0]; // Some CSS props have multi values, but our size ones shouldn't
   switch (parsedValue.unit) {
     case '%':
@@ -58,7 +58,7 @@ function determineSizingProp(sizeAxis, attributeValue) {
 }
 
 export default function convertManaLayout(mana) {
-  visitManaTree(ROOT_LOCATOR, mana, function _visitor(
+  visitManaTree(ROOT_LOCATOR, mana, (
     name,
     attributes,
     children,
@@ -66,10 +66,12 @@ export default function convertManaLayout(mana) {
     locator,
     parent,
     index,
-  ) {
+  ) => {
     // Note the order of operations here: first we process base attributes, but then if the style
     // object has sizing attributes, those end up overriding whatever was in the base attributes.
-    if (!attributes) return void 0;
+    if (!attributes) {
+      return void 0;
+    }
 
     if (name.states) {
       const width = name.states.width;

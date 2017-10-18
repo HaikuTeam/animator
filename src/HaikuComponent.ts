@@ -6,7 +6,7 @@ import Config from './Config';
 import HaikuTimeline from './HaikuTimeline';
 import addElementToHashTable from './helpers/addElementToHashTable';
 import applyPropertyToElement from './helpers/applyPropertyToElement';
-import queryTree from './helpers/cssQueryTree';
+import cssQueryTree from './helpers/cssQueryTree';
 import scopifyElements from './helpers/scopifyElements';
 import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import upgradeBytecodeInPlace from './helpers/upgradeBytecodeInPlace';
@@ -23,6 +23,7 @@ const IDENTITY_MATRIX = Layout3D.createMatrix();
 const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 const DEFAULT_TIMELINE_NAME = 'Default';
 
+// tslint:disable-next-line:function-name
 export default function HaikuComponent(bytecode, context, config, metadata) {
   if (!bytecode) {
     throw new Error('Empty bytecode not allowed');
@@ -59,11 +60,12 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   }
 
   // First we assign the bytecode, because config assignment (see below) might effect the way it is set up!
-  this._bytecode = _clone(bytecode);
+  this._bytecode = clone(bytecode);
 
   // If the bytecode we got happens to be in an outdated format, we automatically updated it to ours
   upgradeBytecodeInPlace(this._bytecode, {
-    referenceUniqueness: Math.random().toString(36).slice(2), // Random seed for addding instance uniqueness to ids at runtime
+    // Random seed for addding instance uniqueness to ids at runtime
+    referenceUniqueness: Math.random().toString(36).slice(2),
   });
 
   this._context = context;
@@ -80,7 +82,7 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   this._anyEventChange = false;
 
   // OPTIONS
-  // Note that assignConfig calls _bindStates and _bindEventHandlers, because our incoming config, which
+  // Note that assignConfig calls bindStates and bindEventHandlers, because our incoming config, which
   // could occur at any point during runtime, e.g. in React, may need to update internal states, etc.
   this.assignConfig(config);
 
@@ -92,7 +94,7 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
 
   // TEMPLATE
   // The full version of the template gets mutated in-place by the rendering algorithm
-  this._template = _fetchAndCloneTemplate(this._bytecode.template);
+  this._template = fetchAndCloneTemplate(this._bytecode.template);
 
   // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
   this._needsFullFlush = false;
@@ -100,7 +102,8 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   // If true, will continually flush the entire tree until explicitly set to false again
   this._alwaysFlush = false;
 
-  // The last output of a full re-render - I don't think this is important any more, except maybe for debugging [#LEGACY?]
+  // The last output of a full re-render - I don't think this is important any more, except maybe for debugging
+  // [#LEGACY?]
   this._lastTemplateExpansion = null;
 
   // Similar to above, except the last individual (patch) changes - may not be important anymore. [#LEGACY?]
@@ -144,7 +147,7 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   // or repeat/if/yield
   this._controlFlowData = {};
 
-  this.on('timeline:tick', function _anyTimelineTick(timelineName, timelineFrame, timelineTime) {
+  this.on('timeline:tick', (timelineName, timelineFrame, timelineTime) => {
     if (this._frameEventListeners[timelineName]) {
       if (this._frameEventListeners[timelineName][timelineFrame]) {
         for (let i = 0; i < this._frameEventListeners[timelineName][timelineFrame].length; i++) {
@@ -152,7 +155,7 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
         }
       }
     }
-  }.bind(this));
+  });
 
   // Notify anybody who cares that we've successfully initialized their component in memory
   this.emit('haikuComponentDidInitialize', this);
@@ -165,22 +168,21 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
 
   // Flag to indicate whether we are sleeping, an ephemeral condition where no rendering occurs
   this._sleeping = false;
-
 }
 
 HaikuComponent['PLAYER_VERSION'] = PLAYER_VERSION;
 
-function _clone(thing) {
+function clone(thing) {
   if (Array.isArray(thing)) {
     const arr = [];
     for (let i = 0; i < thing.length; i++) {
-      arr[i] = _clone(thing[i]);
+      arr[i] = clone(thing[i]);
     }
     return arr;
   } else if (thing && typeof thing === 'object') {
     const obj = {};
     for (const key in thing) {
-      obj[key] = _clone(thing[key]);
+      obj[key] = clone(thing[key]);
     }
     return obj;
   } else {
@@ -210,7 +212,9 @@ HaikuComponent.prototype._isHorizonElement = function _isHorizonElement(virtualE
 };
 
 HaikuComponent.prototype._getRealElementsAtId = function _getRealElementsAtId(flexId) {
-  if (!this._hashTableOfIdsToElements[flexId]) return [];
+  if (!this._hashTableOfIdsToElements[flexId]) {
+    return [];
+  }
   return this._hashTableOfIdsToElements[flexId];
 };
 
@@ -230,29 +234,50 @@ HaikuComponent.prototype._addElementToHashTable = function _addElementToHashTabl
  * whether the element needs to be temporarily invisible to avoid a flash of content while
  * rendering occurs
  */
-HaikuComponent.prototype._didElementRenderSurrogate = function _didElementRenderSurrogate(virtualElement, surrogatePlacementKey, surrogateObject) {
-  if (!virtualElement) return false;
-  if (!virtualElement.attributes) return false;
+HaikuComponent.prototype._didElementRenderSurrogate = function _didElementRenderSurrogate(
+  virtualElement, surrogatePlacementKey, surrogateObject) {
+  if (!virtualElement) {
+    return false;
+  }
+  if (!virtualElement.attributes) {
+    return false;
+  }
   const flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id;
-  if (!flexId) return false;
-  if (!this._controlFlowData[flexId]) return false;
-  if (!this._controlFlowData[flexId].renderedSurrogates) return false;
+  if (!flexId) {
+    return false;
+  }
+  if (!this._controlFlowData[flexId]) {
+    return false;
+  }
+  if (!this._controlFlowData[flexId].renderedSurrogates) {
+    return false;
+  }
   return this._controlFlowData[flexId].renderedSurrogates[surrogatePlacementKey] === surrogateObject;
 };
 
-HaikuComponent.prototype._markElementAnticipatedSurrogates = function _markElementAnticipatedSurrogates(virtualElement, surrogatesArray) {
-  const flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id);
+HaikuComponent.prototype._markElementAnticipatedSurrogates = function _markElementAnticipatedSurrogates(
+  virtualElement, surrogatesArray) {
+  const flexId = virtualElement && virtualElement.attributes && (
+    virtualElement.attributes['haiku-id'] || virtualElement.attributes.id);
   if (flexId) {
-    if (!this._controlFlowData[flexId]) this._controlFlowData[flexId] = {};
+    if (!this._controlFlowData[flexId]) {
+      this._controlFlowData[flexId] = {};
+    }
     this._controlFlowData[flexId].anticipatedSurrogates = surrogatesArray;
   }
 };
 
-HaikuComponent.prototype._markElementSurrogateAsRendered = function _markElementSurrogateAsRendered(virtualElement, surrogatePlacementKey, surrogateObject) {
-  const flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id);
+HaikuComponent.prototype._markElementSurrogateAsRendered = function _markElementSurrogateAsRendered(
+  virtualElement, surrogatePlacementKey, surrogateObject) {
+  const flexId = virtualElement && virtualElement.attributes && (
+    virtualElement.attributes['haiku-id'] || virtualElement.attributes.id);
   if (flexId) {
-    if (!this._controlFlowData[flexId]) this._controlFlowData[flexId] = {};
-    if (!this._controlFlowData[flexId].renderedSurrogates) this._controlFlowData[flexId].renderedSurrogates = {};
+    if (!this._controlFlowData[flexId]) {
+      this._controlFlowData[flexId] = {};
+    }
+    if (!this._controlFlowData[flexId].renderedSurrogates) {
+      this._controlFlowData[flexId].renderedSurrogates = {};
+    }
     this._controlFlowData[flexId].renderedSurrogates[surrogatePlacementKey] = surrogateObject;
   }
 };
@@ -342,10 +367,10 @@ HaikuComponent.prototype.assignConfig = function _assignConfig(incomingConfig) {
   }
 
   // STATES
-  _bindStates(this._states, this, this.config.states);
+  bindStates(this._states, this, this.config.states);
 
   // EVENT HANDLERS
-  _bindEventHandlers(this, this.config.eventHandlers);
+  bindEventHandlers(this, this.config.eventHandlers);
 
   // TIMELINES
   assign(this._bytecode.timelines, this.config.timelines);
@@ -363,8 +388,12 @@ HaikuComponent.prototype.get = function get(key) {
 };
 
 HaikuComponent.prototype.setState = function setState(states) {
-  if (!states) return this;
-  if (typeof states !== 'object') return this;
+  if (!states) {
+    return this;
+  }
+  if (typeof states !== 'object') {
+    return this;
+  }
   for (const key in states) {
     this.set(key, states[key]);
   }
@@ -377,7 +406,7 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
   // Don't forget to repopulate the states with originals when we cc otherwise folks
   // who depend on initial states being set will be SAD!
   if (!options || (options && options.clearStates !== false)) {
-    _bindStates(this._states, this, this.config.states);
+    bindStates(this._states, this, this.config.states);
   }
 
   if (options && options.clearPreviouslyRegisteredEventListeners) {
@@ -396,7 +425,7 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
 
   // Gotta bind any event handlers that may have been dynamically added
   if (!options || (options && options.clearEventHandlers !== false)) {
-    _bindEventHandlers(this, this.config.eventHandlers);
+    bindEventHandlers(this, this.config.eventHandlers);
   }
 
   this._stateChanges = {};
@@ -436,7 +465,9 @@ HaikuComponent.prototype._fetchTimelines = function _fetchTimelines() {
 
   for (let i = 0; i < names.length; i++) {
     const name = names[i];
-    if (!name) continue;
+    if (!name) {
+      continue;
+    }
 
     const descriptor = this._getTimelineDescriptor(name);
     const existing = this._timelineInstances[name];
@@ -513,9 +544,7 @@ HaikuComponent.prototype.stopTimeline = function startTimeline(timelineName) {
   }
 };
 
-HaikuComponent.prototype._getTimelineDescriptor = function _getTimelineDescriptor(
-  timelineName,
-) {
+HaikuComponent.prototype._getTimelineDescriptor = function _getTimelineDescriptor(timelineName) {
   return this._bytecode.timelines[timelineName];
 };
 
@@ -535,7 +564,9 @@ HaikuComponent.prototype._getInjectables = function _getInjectables(element) {
   // Local states get precedence over global summonables, so assign them last
   for (const key in this._states) {
     let type = this._states[key].type;
-    if (!type) type = typeof this._states[key];
+    if (!type) {
+      type = typeof this._states[key];
+    }
     injectables[key] = type;
   }
 
@@ -582,16 +613,24 @@ HaikuComponent.prototype._isAsleep = function _isAsleep() {
   return this._sleeping;
 };
 
-HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegisteredListenerOnElement(virtualElement, eventName, listenerFunction) {
+HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegisteredListenerOnElement(
+  virtualElement, eventName, listenerFunction) {
   const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
-  if (!flexId) return false;
+  if (!flexId) {
+    return false;
+  }
   return this._registeredElementEventListeners[flexId] && this._registeredElementEventListeners[flexId][eventName];
 };
 
-HaikuComponent.prototype._markDidRegisterListenerOnElement = function _markDidRegisterListenerOnElement(virtualElement, domElement, eventName, listenerFunction) {
+HaikuComponent.prototype._markDidRegisterListenerOnElement = function _markDidRegisterListenerOnElement(
+  virtualElement, domElement, eventName, listenerFunction) {
   const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
-  if (!flexId) return this;
-  if (!this._registeredElementEventListeners[flexId]) this._registeredElementEventListeners[flexId] = {};
+  if (!flexId) {
+    return this;
+  }
+  if (!this._registeredElementEventListeners[flexId]) {
+    this._registeredElementEventListeners[flexId] = {};
+  }
   this._registeredElementEventListeners[flexId][eventName] = {
     handler: listenerFunction,
     target: domElement,
@@ -620,7 +659,7 @@ HaikuComponent.prototype._markDidRegisterListenerOnElement = function _markDidRe
 //   return this.template
 // }
 
-function _cloneTemplate(mana) {
+function cloneTemplate(mana) {
   if (!mana) {
     return mana;
   }
@@ -647,14 +686,14 @@ function _cloneTemplate(mana) {
     out.children = [];
 
     for (let i = 0; i < mana.children.length; i++) {
-      out.children[i] = _cloneTemplate(mana.children[i]);
+      out.children[i] = cloneTemplate(mana.children[i]);
     }
   }
 
   return out;
 }
 
-function _fetchAndCloneTemplate(template) {
+function fetchAndCloneTemplate(template) {
   if (!template) {
     throw new Error('Empty template not allowed');
   }
@@ -665,25 +704,25 @@ function _fetchAndCloneTemplate(template) {
         '[haiku player] warning: saw unexpected bytecode template format',
       );
     }
-    return _cloneTemplate(template);
+    return cloneTemplate(template);
   }
 
   throw new Error('Unknown bytecode template format');
 }
 
-function _bindEventHandlers(component, extraEventHandlers) {
+function bindEventHandlers(component, extraEventHandlers) {
   const allEventHandlers = assign({}, component._bytecode.eventHandlers, extraEventHandlers);
 
   for (const selector in allEventHandlers) {
     const handlerGroup = allEventHandlers[selector];
     for (const eventName in handlerGroup) {
       const eventHandlerDescriptor = handlerGroup[eventName];
-      _bindEventHandler(component, eventHandlerDescriptor, selector, eventName);
+      bindEventHandler(component, eventHandlerDescriptor, selector, eventName);
     }
   }
 }
 
-function _bindEventHandler(
+function bindEventHandler(
   component,
   eventHandlerDescriptor,
   selector,
@@ -727,7 +766,7 @@ function _bindEventHandler(
   };
 }
 
-function _typecheckStateSpec(stateSpec, stateSpecName) {
+function typecheckStateSpec(stateSpec, stateSpecName) {
   if (
     stateSpec.type === 'any' ||
     stateSpec.type === '*' ||
@@ -745,8 +784,8 @@ function _typecheckStateSpec(stateSpec, stateSpecName) {
     ) {
       throw new Error(
         'Property value `' +
-          stateSpecName +
-          '` must be an event listener function',
+        stateSpecName +
+        '` must be an event listener function',
       );
     }
     return void 0;
@@ -773,7 +812,7 @@ function _typecheckStateSpec(stateSpec, stateSpecName) {
   }
 }
 
-function _bindStates(statesTargetObject, component, extraStates) {
+function bindStates(statesTargetObject, component, extraStates) {
   const allStates = assign({}, component._bytecode.states, extraStates);
 
   for (const stateSpecName in allStates) {
@@ -783,20 +822,20 @@ function _bindStates(statesTargetObject, component, extraStates) {
     if (stateSpec.value === undefined) {
       throw new Error(
         'Property `' +
-          stateSpecName +
-          '` cannot be undefined; use null for empty states',
+        stateSpecName +
+        '` cannot be undefined; use null for empty states',
       );
     }
 
-    _typecheckStateSpec(stateSpec, stateSpecName);
+    typecheckStateSpec(stateSpec, stateSpecName);
 
     statesTargetObject[stateSpecName] = stateSpec.value;
 
-    _defineSettableState(component, component.state, statesTargetObject, stateSpec, stateSpecName);
+    defineSettableState(component, component.state, statesTargetObject, stateSpec, stateSpecName);
   }
 }
 
-function _defineSettableState(component, statesHostObject, statesTargetObject, stateSpec, stateSpecName) {
+function defineSettableState(component, statesHostObject, statesTargetObject, stateSpec, stateSpecName) {
   // Note: We define the getter/setter on the object itself, but the storage occurs on the pass-in statesTargetObject
   Object.defineProperty(statesHostObject, stateSpecName, {
     configurable: true,
@@ -830,9 +869,7 @@ function _defineSettableState(component, statesHostObject, statesTargetObject, s
   });
 }
 
-HaikuComponent.prototype._markForFullFlush = function _markForFullFlush(
-  doMark,
-) {
+HaikuComponent.prototype._markForFullFlush = function _markForFullFlush(doMark) {
   this._needsFullFlush = true;
   return this;
 };
@@ -900,7 +937,7 @@ HaikuComponent.prototype.patch = function patch(container, patchOptions) {
   const eventsFired = this._getEventsFired();
   const inputsChanged = this._getInputsChanged();
 
-  this._lastDeltaPatches = _gatherDeltaPatches(
+  this._lastDeltaPatches = gatherDeltaPatches(
     this,
     this._template,
     container,
@@ -950,7 +987,7 @@ HaikuComponent.prototype.render = function render(container, renderOptions, surr
   }
 
   // 1. Update the tree in place using all of the applied values we got from the timelines
-  _applyContextChanges(
+  applyContextChanges(
     this,
     this._states,
     this._template,
@@ -960,7 +997,7 @@ HaikuComponent.prototype.render = function render(container, renderOptions, surr
   );
 
   // 2. Given the above updates, 'expand' the tree to its final form (which gets flushed out to the mount element)
-  this._lastTemplateExpansion = _expandTreeElement(
+  this._lastTemplateExpansion = expandTreeElement(
     this._template,
     this,
     this._context,
@@ -973,10 +1010,10 @@ HaikuComponent.prototype.render = function render(container, renderOptions, surr
 };
 
 HaikuComponent.prototype._findElementsByHaikuId = function _findElementsByHaikuId(componentId) {
-  return _findMatchingElementsByCssSelector('haiku:' + componentId, this._template, this._matchedElementCache);
+  return findMatchingElementsByCssSelector('haiku:' + componentId, this._template, this._matchedElementCache);
 };
 
-function _applyBehaviors(
+function applyBehaviors(
   timelinesRunning,
   deltas,
   component,
@@ -995,7 +1032,8 @@ function _applyBehaviors(
         // First handle any subscriptions to internal events, like component lifecycle or frame events
         for (const eventName1 in eventHandlerGroup) {
           const eventHandlerSpec1 = eventHandlerGroup[eventName1];
-          if (!eventHandlerSpec1.handler.__subscribed && !eventHandlerSpec1.handler.__external) { // Don't subscribe twice or waste effort
+          // Don't subscribe twice or waste effort.
+          if (!eventHandlerSpec1.handler.__subscribed && !eventHandlerSpec1.handler.__external) {
             if (eventName1 === 'component:will-mount') {
               component.on('haikuComponentWillMount', eventHandlerSpec1.handler);
               eventHandlerSpec1.handler.__subscribed = true;
@@ -1017,8 +1055,12 @@ function _applyBehaviors(
               if (namePieces[0] === 'timeline') {
                 const timelineNamePiece = namePieces[1];
                 const frameValuePiece = parseInt(namePieces[2], 10);
-                if (!component._frameEventListeners[timelineNamePiece]) component._frameEventListeners[timelineNamePiece] = {};
-                if (!component._frameEventListeners[timelineNamePiece][frameValuePiece]) component._frameEventListeners[timelineNamePiece][frameValuePiece] = [];
+                if (!component._frameEventListeners[timelineNamePiece]) {
+                  component._frameEventListeners[timelineNamePiece] = {};
+                }
+                if (!component._frameEventListeners[timelineNamePiece][frameValuePiece]) {
+                  component._frameEventListeners[timelineNamePiece][frameValuePiece] = [];
+                }
                 component._frameEventListeners[timelineNamePiece][frameValuePiece].push(eventHandlerSpec1.handler);
                 eventHandlerSpec1.handler.__subscribed = true;
                 continue;
@@ -1030,7 +1072,7 @@ function _applyBehaviors(
           }
         }
 
-        const matchingElementsForEvents = _findMatchingElementsByCssSelector(
+        const matchingElementsForEvents = findMatchingElementsByCssSelector(
           eventSelector,
           template,
           component._matchedElementCache,
@@ -1045,7 +1087,8 @@ function _applyBehaviors(
             const eventHandlerSpec = eventHandlerGroup[eventName];
             // We may have already subscribed to something internally, so no point repeating actions here
             if (!eventHandlerSpec.__subscribed) {
-              _applyHandlerToElement(matchingElementsForEvents[k], eventName, eventHandlerSpec.handler, context, component);
+              applyHandlerToElement(
+                matchingElementsForEvents[k], eventName, eventHandlerSpec.handler, context, component);
             }
           }
         }
@@ -1067,7 +1110,7 @@ function _applyBehaviors(
         continue;
       }
 
-      const matchingElementsForBehavior = _findMatchingElementsByCssSelector(
+      const matchingElementsForBehavior = findMatchingElementsByCssSelector(
         behaviorSelector,
         template,
         component._matchedElementCache,
@@ -1116,7 +1159,7 @@ function _applyBehaviors(
   }
 }
 
-function _gatherDeltaPatches(
+function gatherDeltaPatches(
   component,
   template,
   container,
@@ -1127,12 +1170,13 @@ function _gatherDeltaPatches(
   inputsChanged,
   patchOptions,
 ) {
-  Layout3D.initializeTreeAttributes(template, container); // handlers/vanities depend on attributes objects existing in the first place
-  _initializeComponentTree(template, component, context);
+  // handlers/vanities depend on attributes objects existing in the first place.
+  Layout3D.initializeTreeAttributes(template, container);
+  initializeComponentTree(template, component, context);
 
   const deltas = {}; // This is what we're going to return - a dictionary of ids to elements
 
-  _applyBehaviors(
+  applyBehaviors(
     timelinesRunning,
     deltas,
     component,
@@ -1142,7 +1186,7 @@ function _gatherDeltaPatches(
   );
 
   if (patchOptions.sizing) {
-    _computeAndApplyPresetSizing(
+    computeAndApplyPresetSizing(
       template,
       container,
       patchOptions.sizing,
@@ -1154,13 +1198,13 @@ function _gatherDeltaPatches(
   // that we have already calculated among the descendants of the changed one
   for (const flexId in deltas) {
     const changedNode = deltas[flexId];
-    _computeAndApplyTreeLayouts(changedNode, changedNode.__parent, patchOptions, context);
+    computeAndApplyTreeLayouts(changedNode, changedNode.__parent, patchOptions, context);
   }
 
   return deltas;
 }
 
-function _applyContextChanges(
+function applyContextChanges(
   component,
   inputs,
   template,
@@ -1192,11 +1236,11 @@ function _applyContextChanges(
   }
 
   Layout3D.initializeTreeAttributes(template, container); // handlers/vanities depend on attributes objects existing
-  _initializeComponentTree(template, component, context);
+  initializeComponentTree(template, component, context);
 
   scopifyElements(template, null, null); // I think this only needs to happen once when we build the full tree
 
-  _applyBehaviors(
+  applyBehaviors(
     timelinesRunning,
     null,
     component,
@@ -1206,26 +1250,31 @@ function _applyContextChanges(
   );
 
   if (renderOptions.sizing) {
-    _computeAndApplyPresetSizing(template, container, renderOptions.sizing, null);
+    computeAndApplyPresetSizing(template, container, renderOptions.sizing, null);
   }
 
-  _computeAndApplyTreeLayouts(template, container, renderOptions, context);
+  computeAndApplyTreeLayouts(template, container, renderOptions, context);
 
   return template;
 }
 
-function _initializeComponentTree(element, component, context) {
+function initializeComponentTree(element, component, context) {
   // In addition to plain objects, a sub-element can also be a component,
   // which we currently detect by checking to see if it looks like 'bytecode'
   // Don't instantiate a second time if we already have the instance at this node
-  if (_isBytecode(element.elementName) && !element.__instance) {
+  if (isBytecode(element.elementName) && !element.__instance) {
     const flexId = element.attributes && (element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes.id);
-    element.__instance = new HaikuComponent(element.elementName, context, {
-      // Exclude states, etc. (everything except 'options') since those should override *only* on the root element being instantiated
-      options: context.config.options,
-    },                                      {
-      nested: true,
-    });
+    element.__instance = new HaikuComponent(
+      element.elementName,
+      context,
+      {
+        // Exclude states, etc. (everything except 'options') since those should override *only* on the root element
+        // being instantiated.
+        options: context.config.options,
+      },
+      {
+        nested: true,
+      });
 
     // We duplicate the behavior of HaikuContext and start the default timeline
     element.__instance.startTimeline(DEFAULT_TIMELINE_NAME);
@@ -1235,12 +1284,12 @@ function _initializeComponentTree(element, component, context) {
   // repeat through children
   if (element.children && element.children.length > 0) {
     for (let i = 0; i < element.children.length; i++) {
-      _initializeComponentTree(element.children[i], component, context);
+      initializeComponentTree(element.children[i], component, context);
     }
   }
 }
 
-function _expandTreeElement(element, component, context) {
+function expandTreeElement(element, component, context) {
   // Handlers attach first since they may want to respond to an immediate property setter
   if (element.__handlers) {
     for (const key in element.__handlers) {
@@ -1262,32 +1311,33 @@ function _expandTreeElement(element, component, context) {
     // Call render on the interior element to get its full subtree, and recurse
     // HaikuComponent.prototype.render = (container, renderOptions) => {...}
     // The element is the 'container' in that it should have a layout computed computed already?
-    const wrapper = _shallowCloneComponentTreeElement(element);
+    const wrapper = shallowCloneComponentTreeElement(element);
     const surrogates = wrapper.children;
     const subtree = element.__instance.render(element, element.__instance.config.options, surrogates);
-    const expansion = _expandTreeElement(subtree, element.__instance, context);
+    const expansion = expandTreeElement(subtree, element.__instance, context);
     wrapper.children = [expansion];
     return wrapper;
   }
 
   if (typeof element.elementName === STRING_TYPE) {
-    const copy = _shallowCloneComponentTreeElement(element);
+    const copy = shallowCloneComponentTreeElement(element);
 
     if (element.children && element.children.length > 0) {
       for (let i = 0; i < element.children.length; i++) {
         const child = element.children[i];
-        copy.children[i] = _expandTreeElement(child, component, context);
+        copy.children[i] = expandTreeElement(child, component, context);
       }
     }
 
     return copy;
   }
 
-  // If we got here, we've either completed recursion or there's nothing special to do - so just return the element itself
+  // If we got here, we've either completed recursion or there's nothing special to do - so just return the element
+  // itself.
   return element;
 }
 
-function _shallowCloneComponentTreeElement(element) {
+function shallowCloneComponentTreeElement(element) {
   const clone = {
     __instance: null,
     __handlers: null,
@@ -1329,27 +1379,35 @@ const CSS_QUERY_MAPPING = {
   children: 'children',
 };
 
-function _findMatchingElementsByCssSelector(selector, template, cache) {
-  if (cache[selector]) return cache[selector];
-  const matches = queryTree([], template, selector, CSS_QUERY_MAPPING);
+function findMatchingElementsByCssSelector(selector, template, cache) {
+  if (cache[selector]) {
+    return cache[selector];
+  }
+  const matches = cssQueryTree([], template, selector, CSS_QUERY_MAPPING);
   cache[selector] = matches;
   return matches;
 }
 
-function _computeAndApplyTreeLayouts(tree, container, options, context) {
-  if (!tree || typeof tree === 'string') return void 0;
+function computeAndApplyTreeLayouts(tree, container, options, context) {
+  if (!tree || typeof tree === 'string') {
+    return void 0;
+  }
 
-  _computeAndApplyNodeLayout(tree, container, options, context);
+  computeAndApplyNodeLayout(tree, container, options, context);
 
-  if (!tree.children) return void 0;
-  if (tree.children.length < 1) return void 0;
+  if (!tree.children) {
+    return void 0;
+  }
+  if (tree.children.length < 1) {
+    return void 0;
+  }
 
   for (let i = 0; i < tree.children.length; i++) {
-    _computeAndApplyTreeLayouts(tree.children[i], tree, options, context);
+    computeAndApplyTreeLayouts(tree.children[i], tree, options, context);
   }
 }
 
-function _computeAndApplyNodeLayout(element, parent, options, context) {
+function computeAndApplyNodeLayout(element, parent, options, context) {
   if (parent) {
     const parentSize = parent.layout.computed.size;
 
@@ -1368,22 +1426,21 @@ function _computeAndApplyNodeLayout(element, parent, options, context) {
         size: parentSize || {x: 0, y: 0, z: 0},
       };
     } else {
-      element.layout.computed = computedLayout || {size: parentSize}; // Need to pass some size to children, so if this element doesn't have one, use the parent's
+      // Need to pass some size to children, so if this element doesn't have one, use the parent's.
+      element.layout.computed = computedLayout || {size: parentSize};
     }
   }
 }
 
-function _applyHandlerToElement(match, name, fn, context, component) {
-  if (!match.__handlers) match.__handlers = {};
+function applyHandlerToElement(match, name, fn, context, component) {
+  if (!match.__handlers) {
+    match.__handlers = {};
+  }
   match.__handlers[name] = fn;
   return match;
 }
 
-function _computeAndApplyPresetSizing(element, container, mode, deltas) {
-  if (mode === true) {
-    mode = 'contain';
-  }
-
+function computeAndApplyPresetSizing(element, container, mode, deltas) {
   const elementWidth = element.layout.sizeAbsolute.x;
   const elementHeight = element.layout.sizeAbsolute.y;
 
@@ -1437,6 +1494,7 @@ function _computeAndApplyPresetSizing(element, container, mode, deltas) {
     // When the image and container have different dimensions, the empty areas (either top/bottom of left/right)
     // are filled with the background-color.
     case 'contain':
+    case true: // (Legacy.)
       let containScaleToUse = null;
 
       // We're looking for the larger of the two scales that still allows both dimensions to fit in the box
@@ -1545,6 +1603,6 @@ function _computeAndApplyPresetSizing(element, container, mode, deltas) {
   }
 }
 
-function _isBytecode(thing) {
+function isBytecode(thing) {
   return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines;
 }

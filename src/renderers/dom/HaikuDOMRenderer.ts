@@ -9,6 +9,7 @@ import getLocalDomEventPosition from './getLocalDomEventPosition';
 import patch from './patch';
 import render from './render';
 
+// tslint:disable-next-line:function-name
 export default function HaikuDOMRenderer() {
   this._user = {
     mouse: {
@@ -98,7 +99,9 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domElement) {
   }
 
   function clearKey() {
-    for (const which in user.keys) user.keys[which] = 0;
+    for (const which in user.keys) {
+      user.keys[which] = 0;
+    }
   }
 
   function clearMouse() {
@@ -120,35 +123,35 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domElement) {
   // MOUSE
   // -----
 
-  domElement.addEventListener('mousedown', function _mousedownandler(mouseEvent) {
+  domElement.addEventListener('mousedown', (mouseEvent) => {
     ++user.mouse.down;
     ++user.mouse.buttons[mouseEvent.button];
     setMouse(mouseEvent);
     setMouches();
   });
 
-  domElement.addEventListener('mouseup', function _mouseupHandler(mouseEvent) {
+  domElement.addEventListener('mouseup', (mouseEvent) => {
     clearMouse();
     clearMouch();
     setMouches();
   });
 
-  domElement.addEventListener('mousemove', function _mousemoveHandler(mouseEvent) {
+  domElement.addEventListener('mousemove', (mouseEvent) => {
     setMouse(mouseEvent);
     setMouches();
   });
 
-  domElement.addEventListener('mouseenter', function _mouseenterHandler(mouseEvent) {
+  domElement.addEventListener('mouseenter', (mouseEvent) => {
     clearMouse();
     clearMouch();
   });
 
-  domElement.addEventListener('mouseleave', function _mouseenterHandler(mouseEvent) {
+  domElement.addEventListener('mouseleave', (mouseEvent) => {
     clearMouse();
     clearMouch();
   });
 
-  domElement.addEventListener('wheel', function _wheelHandler(mouseEvent) {
+  domElement.addEventListener('wheel', (mouseEvent) => {
     setMouse(mouseEvent);
     setMouches();
   });
@@ -159,13 +162,17 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domElement) {
   // KEYS
   // ----
 
-  doc.addEventListener('keydown', function _keydownHandler(keyEvent) {
-    if (user.keys[keyEvent.which] === undefined) user.keys[keyEvent.which] = 0;
+  doc.addEventListener('keydown', (keyEvent) => {
+    if (user.keys[keyEvent.which] === undefined) {
+      user.keys[keyEvent.which] = 0;
+    }
     ++user.keys[keyEvent.which];
   });
 
-  doc.addEventListener('keyup', function _keyupHandler(keyEvent) {
-    if (user.keys[keyEvent.which] === undefined) user.keys[keyEvent.which] = 0;
+  doc.addEventListener('keyup', (keyEvent) => {
+    if (user.keys[keyEvent.which] === undefined) {
+      user.keys[keyEvent.which] = 0;
+    }
 
     // Known Mac "feature" where keyup never fires while meta key (91) is down
     // When right-click menu is toggled we don't get all mouseup events
@@ -178,14 +185,14 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domElement) {
 
   // WINDOW
 
-  win.addEventListener('blur', function _blurHandlers(blurEvent) {
+  win.addEventListener('blur', (blurEvent) => {
     clearKey();
     clearMouse();
     clearTouch();
     clearMouch();
   });
 
-  win.addEventListener('focus', function _blurHandlers(blurEvent) {
+  win.addEventListener('focus', (blurEvent) => {
     clearKey();
     clearMouse();
     clearTouch();
@@ -194,41 +201,45 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domElement) {
 
   // TOUCHES
   // -------
-  domElement.addEventListener('touchstart', function _touchstartHandler(touchEvent) {
+  domElement.addEventListener('touchstart', (touchEvent) => {
     setTouches(touchEvent);
     setMouches();
   });
 
-  domElement.addEventListener('touchend', function _touchsendHandler(touchEvent) {
+  domElement.addEventListener('touchend', (touchEvent) => {
     clearTouch();
     clearMouch();
   });
 
-  domElement.addEventListener('touchmove', function _touchmoveHandler(touchEvent) {
+  domElement.addEventListener('touchmove', (touchEvent) => {
     setTouches(touchEvent);
     setMouches();
   });
 
-  domElement.addEventListener('touchenter', function _touchenterHandler(touchEvent) {
+  domElement.addEventListener('touchenter', (touchEvent) => {
     clearTouch();
     clearMouch();
   });
 
-  domElement.addEventListener('touchleave', function _touchleaveHandler(touchEvent) {
+  domElement.addEventListener('touchleave', (touchEvent) => {
     clearTouch();
     clearMouch();
   });
 };
 
-function _copy(a) {
+function copy(a) {
   const b = [];
-  for (let i = 0; i < a.length; i++) b[i] = a[i];
+  for (let i = 0; i < a.length; i++) {
+    b[i] = a[i];
+  }
   return b;
 }
 
-function _clone(a) {
+function clone(a) {
   const b = {};
-  for (const key in a) b[key] = a[key];
+  for (const key in a) {
+    b[key] = a[key];
+  }
   return b;
 }
 
@@ -243,10 +254,10 @@ HaikuDOMRenderer.prototype.getUser = function getUser() {
       x: this._user.mouse.x,
       y: this._user.mouse.y,
       down: this._user.mouse.down,
-      buttons: _copy(this._user.mouse.buttons),
+      buttons: copy(this._user.mouse.buttons),
     },
-    keys: _clone(this._user.keys),
-    touches: _copy(this._user.touches),
-    mouches: _copy(this._user.mouches),
+    keys: clone(this._user.keys),
+    touches: copy(this._user.touches),
+    mouches: copy(this._user.mouches),
   };
 };

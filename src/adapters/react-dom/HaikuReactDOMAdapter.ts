@@ -62,6 +62,7 @@ for (const fwdPropKey in HAIKU_FORWARDED_PROPS) {
   VALID_PROPS[fwdPropKey] = 'object';
 }
 
+// tslint:disable-next-line:function-name
 export default function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
   const reactClass = React.createClass({
     displayName: 'HaikuComponent',
@@ -123,15 +124,18 @@ export default function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawB
             context,
             component,
           ) {
-            visit(this.mount, function visitor(node) {
+            visit(this.mount, (node) => {
               const flexId = flexIdIfSame(element, node);
               if (flexId) {
                 if (!component._didElementRenderSurrogate(element, surrogate)) {
-                  if (typeof surrogate.type === 'string' || (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
+                  if (
+                    typeof surrogate.type === 'string' ||
+                    (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
                     // What *should happen* in the Haiku Player is this new swapped DOM element will be
                     // updated (not replaced!) with the attributes of the virtual element at the same position
                     const div = document.createElement('div');
                     node.parentNode.replaceChild(div, node);
+                    // tslint:disable-next-line:no-param-reassign
                     node = div;
 
                     // We have to change the element name as well here so that the correct vanity behaviors
@@ -140,7 +144,7 @@ export default function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawB
                   }
                   node.style.visibility = 'hidden';
                   ReactDOM.render(surrogate, node);
-                  window.requestAnimationFrame(function frame() {
+                  window.requestAnimationFrame(() => {
                     component._markElementSurrogateAsRendered(element, surrogate);
                     node.style.visibility = 'visible';
                   });

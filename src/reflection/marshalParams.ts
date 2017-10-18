@@ -60,12 +60,13 @@ function stringifyParam(param, key) {
     return objectParamToString(param);
   }
 
-  return '__' + data.baddies++ + '__'; // In case we get something we just can't handle, create something unique and noticeably ugly
+  // In case we get something we just can't handle, create something unique and noticeably ugly.
+  return '__' + data.baddies++ + '__';
 }
 
 export default function marshalParams(params) {
   return params
-    .map(function _mapper(param) {
+    .map((param) => {
       // Need wrap function to avoid passing the index (key) to stringifyParam, which uses that to detect something
       return stringifyParam(param, null);
     })

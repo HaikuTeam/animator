@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import getMaxTimeFromDescriptor from './helpers/getTimelineMaxTime';
+import getTimelineMaxTime from './helpers/getTimelineMaxTime';
 import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import assign from './vendor/assign';
 
@@ -14,6 +14,7 @@ const DEFAULT_OPTIONS = {
   loop: true,
 };
 
+// tslint:disable-next-line:function-name
 export default function HaikuTimeline(component, name, descriptor, options) {
   SimpleEventEmitter.create(this);
 
@@ -26,7 +27,7 @@ export default function HaikuTimeline(component, name, descriptor, options) {
   this._globalClockTime = 0;
   this._localElapsedTime = 0;
   this._localExplicitlySetTime = null; // Only set this to a number if time is 'controlled'
-  this._maxExplicitlyDefinedTime = getMaxTimeFromDescriptor(descriptor);
+  this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
 
   this._isActive = false;
   this._isPlaying = false;
@@ -39,7 +40,9 @@ HaikuTimeline.prototype.assignOptions = function assignOptions(options) {
 
 HaikuTimeline.prototype._ensureClockIsRunning = function _ensureClockIsRunning() {
   const clock = this._component.getClock();
-  if (!clock.isRunning()) clock.start();
+  if (!clock.isRunning()) {
+    clock.start();
+  }
   return this;
 };
 
@@ -100,7 +103,7 @@ HaikuTimeline.prototype._doUpdateWithGlobalClockTime = function _doUpdateWithGlo
 HaikuTimeline.prototype._resetMaxDefinedTimeFromDescriptor = function _resetMaxDefinedTimeFromDescriptor(
   descriptor,
 ) {
-  this._maxExplicitlyDefinedTime = getMaxTimeFromDescriptor(descriptor);
+  this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
   return this;
 };
 
@@ -173,7 +176,9 @@ HaikuTimeline.prototype.getControlledTime = function getControlledTime() {
 HaikuTimeline.prototype.getBoundedTime = function getBoundedTime() {
   const max = this.getMaxTime();
   const elapsed = this.getElapsedTime();
-  if (elapsed > max) return max;
+  if (elapsed > max) {
+    return max;
+  }
   return elapsed;
 };
 
@@ -245,7 +250,9 @@ HaikuTimeline.prototype.isFrozen = function isFrozen() {
  * If this timeline is set to loop, it is never "finished".
  */
 HaikuTimeline.prototype.isFinished = function () {
-  if (this.options.loop) return false;
+  if (this.options.loop) {
+    return false;
+  }
   return ~~this.getElapsedTime() > this.getMaxTime();
 };
 
@@ -293,7 +300,7 @@ HaikuTimeline.prototype.start = function start(
   this._isActive = true;
   this._isPlaying = true;
   this._globalClockTime = maybeGlobalClockTime || 0;
-  this._maxExplicitlyDefinedTime = getMaxTimeFromDescriptor(descriptor);
+  this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
 
   this._shout('start');
 
@@ -303,7 +310,7 @@ HaikuTimeline.prototype.start = function start(
 HaikuTimeline.prototype.stop = function stop(maybeGlobalClockTime, descriptor) {
   this._isActive = false;
   this._isPlaying = false;
-  this._maxExplicitlyDefinedTime = getMaxTimeFromDescriptor(descriptor);
+  this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
 
   this._shout('stop');
 
@@ -320,8 +327,8 @@ HaikuTimeline.prototype.pause = function pause() {
   return this;
 };
 
-HaikuTimeline.prototype.play = function play(options) {
-  if (!options) options = {};
+HaikuTimeline.prototype.play = function play(requestedOptions) {
+  const options = requestedOptions || {};
 
   this._ensureClockIsRunning();
 

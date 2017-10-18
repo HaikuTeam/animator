@@ -4,37 +4,36 @@
 
 import marshalParams from './marshalParams';
 
-export default function functionSpecificationToFunction(name, params, body, type) {
-  if (!type) type = 'FunctionExpression';
-
-  params = marshalParams(params);
+export default function functionSpecificationToFunction(name, params, body, type = 'FunctionExpression') {
   let fn;
 
   if (type === 'ArrowFunctionExpression') {
-    fn = new Function( // eslint-disable-line
+    // tslint:disable-next-line:no-function-constructor-with-string-args
+    fn = new Function(
       '\n' +
-        'return ' +
-        (name || '') +
-        '(' +
-        params +
-        ') => {\n' +
-        '  ' +
-        (body || '') +
-        '\n' +
-        '}\n',
+      'return ' +
+      (name || '') +
+      '(' +
+      marshalParams(params) +
+      ') => {\n' +
+      '  ' +
+      (body || '') +
+      '\n' +
+      '}\n',
     )();
   } else {
-    fn = new Function( // eslint-disable-line
+    // tslint:disable-next-line:no-function-constructor-with-string-args
+    fn = new Function(
       '\n' +
-        'return function ' +
-        (name || '') +
-        '(' +
-        params +
-        ') {\n' +
-        '  ' +
-        (body || '') +
-        '\n' +
-        '}\n',
+      'return function ' +
+      (name || '') +
+      '(' +
+      marshalParams(params) +
+      ') {\n' +
+      '  ' +
+      (body || '') +
+      '\n' +
+      '}\n',
     )();
   }
 

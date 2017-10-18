@@ -26,12 +26,24 @@ export default function upgradeBytecodeInPlace(bytecode, options) {
     for (let i = 0; i < properties.length; i++) {
       const propertySpec = properties[i];
       const updatedSpec = {};
-      if (propertySpec.value !== undefined) updatedSpec['value'] = propertySpec.value;
-      if (propertySpec.type !== undefined) updatedSpec['type'] = propertySpec.type;
-      if (propertySpec.setter !== undefined) updatedSpec['set'] = propertySpec.setter;
-      if (propertySpec.getter !== undefined) updatedSpec['get'] = propertySpec.getter;
-      if (propertySpec.set !== undefined) updatedSpec['set'] = propertySpec.set;
-      if (propertySpec.get !== undefined) updatedSpec['get'] = propertySpec.get;
+      if (propertySpec.value !== undefined) {
+        updatedSpec['value'] = propertySpec.value;
+      }
+      if (propertySpec.type !== undefined) {
+        updatedSpec['type'] = propertySpec.type;
+      }
+      if (propertySpec.setter !== undefined) {
+        updatedSpec['set'] = propertySpec.setter;
+      }
+      if (propertySpec.getter !== undefined) {
+        updatedSpec['get'] = propertySpec.getter;
+      }
+      if (propertySpec.set !== undefined) {
+        updatedSpec['set'] = propertySpec.set;
+      }
+      if (propertySpec.get !== undefined) {
+        updatedSpec['get'] = propertySpec.get;
+      }
       bytecode.states[propertySpec.name] = updatedSpec;
     }
   }
@@ -45,7 +57,9 @@ export default function upgradeBytecodeInPlace(bytecode, options) {
     bytecode.eventHandlers = {};
     for (let j = 0; j < eventHandlers.length; j++) {
       const eventHandlerSpec = eventHandlers[j];
-      if (!bytecode.eventHandlers[eventHandlerSpec.selector]) bytecode.eventHandlers[eventHandlerSpec.selector] = {};
+      if (!bytecode.eventHandlers[eventHandlerSpec.selector]) {
+        bytecode.eventHandlers[eventHandlerSpec.selector] = {};
+      }
       bytecode.eventHandlers[eventHandlerSpec.selector][eventHandlerSpec.name] = {
         handler: eventHandlerSpec.handler,
       };
@@ -64,17 +78,23 @@ export default function upgradeBytecodeInPlace(bytecode, options) {
     const referencesToUpdate = {};
     const alreadyUpdatedReferences = {};
     if (bytecode.template) {
-      visitManaTree('0', bytecode.template, function _visitor(elementName, attributes, children, node) {
-        if (elementName === 'filter') {
-          if (attributes.id && !alreadyUpdatedReferences[attributes.id]) {
-            const prev = attributes.id;
-            const next = prev + '-' + options.referenceUniqueness;
-            attributes.id = next;
-            referencesToUpdate['url(#' + prev + ')'] = 'url(#' + next + ')';
-            alreadyUpdatedReferences[attributes.id] = true;
+      visitManaTree(
+        '0',
+        bytecode.template,
+        (elementName, attributes, children, node) => {
+          if (elementName === 'filter') {
+            if (attributes.id && !alreadyUpdatedReferences[attributes.id]) {
+              const prev = attributes.id;
+              const next = prev + '-' + options.referenceUniqueness;
+              attributes.id = next;
+              referencesToUpdate['url(#' + prev + ')'] = 'url(#' + next + ')';
+              alreadyUpdatedReferences[attributes.id] = true;
+            }
           }
-        }
-      },            null, 0);
+        },
+        null,
+        0,
+      );
     }
     if (bytecode.timelines) {
       for (const timelineName in bytecode.timelines) {
@@ -87,7 +107,9 @@ export default function upgradeBytecodeInPlace(bytecode, options) {
             for (const keyframeMs in bytecode.timelines[timelineName][selector][propertyName]) {
               const keyframeDesc = bytecode.timelines[timelineName][selector][propertyName][keyframeMs];
               if (keyframeDesc && referencesToUpdate[keyframeDesc.value]) {
-                // console.info('[haiku player] changing filter url reference ' + keyframeDesc.value + ' to ' + referencesToUpdate[keyframeDesc.value])
+                // console.info(
+                //   '[haiku player] changing filter url reference ' + keyframeDesc.value + ' to ' +
+                //   referencesToUpdate[keyframeDesc.value]);
                 keyframeDesc.value = referencesToUpdate[keyframeDesc.value];
               }
             }

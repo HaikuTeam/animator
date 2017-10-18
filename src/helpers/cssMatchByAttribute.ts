@@ -15,7 +15,9 @@ export default function matchByAttribute(
   if (attributes) {
     const attrValue = attributes[attrKeyToMatch];
     // If no operator, do a simple presence check ([foo])
-    if (!attrOperator) return !!attrValue;
+    if (!attrOperator) {
+      return !!attrValue;
+    }
     switch (attrOperator) {
       case '=':
         return attrValueToMatch === attrValue;

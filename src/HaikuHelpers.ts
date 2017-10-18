@@ -6,8 +6,8 @@ const MAIN =
   (typeof window !== 'undefined')
     ? window
     : (typeof global !== 'undefined')
-      ? global
-      : {};
+    ? global
+    : {};
 
 if (!MAIN['HaikuHelpers']) {
   MAIN['HaikuHelpers'] = {};

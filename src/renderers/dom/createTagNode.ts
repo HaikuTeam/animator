@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import SVG_EL_NAMES from './../../helpers/allSvgElementNames';
+import allSvgElementNames from './../../helpers/allSvgElementNames';
 import createSvgElement from './createSvgElement';
 import getFlexId from './getFlexId';
 import getTypeAsString from './getTypeAsString';
@@ -17,7 +17,7 @@ export default function createTagNode(
 ) {
   const tagName = normalizeName(getTypeAsString(virtualElement));
   let newDomElement;
-  if (SVG_EL_NAMES[tagName]) {
+  if (allSvgElementNames[tagName]) {
     // SVG
     newDomElement = createSvgElement(domElement, tagName);
   } else {
@@ -26,7 +26,9 @@ export default function createTagNode(
   }
 
   // This doesn't happen in renderTree because the element doesn't exist yet.
-  if (!newDomElement.haiku) newDomElement.haiku = {};
+  if (!newDomElement.haiku) {
+    newDomElement.haiku = {};
+  }
 
   if (!component.config.options.cache[getFlexId(virtualElement)]) {
     component.config.options.cache[getFlexId(virtualElement)] = {};
@@ -39,7 +41,7 @@ export default function createTagNode(
     newDomElement.haiku.key = incomingKey;
   }
 
-  // epdateElement recurses down into setAttributes, etc.
+  // updateElement recurses down into setAttributes, etc.
   updateElement(
     newDomElement,
     virtualElement,

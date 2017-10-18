@@ -3,7 +3,9 @@
  */
 
 export default function visitManaTree(locator, mana, visitor, parent, index) {
-  if (!mana) return null;
+  if (!mana) {
+    return null;
+  }
   visitor(
     mana.elementName,
     mana.attributes,
@@ -13,7 +15,9 @@ export default function visitManaTree(locator, mana, visitor, parent, index) {
     parent,
     index,
   );
-  if (!mana.children) return null;
+  if (!mana.children) {
+    return null;
+  }
   for (let i = 0; i < mana.children.length; i++) {
     const child = mana.children[i];
     visitManaTree(locator + '.' + i, child, visitor, mana, i);

@@ -26,7 +26,7 @@
  * THE SOFTWARE.
  */
 
-export default function computeOrientationFlexibly(x, y, z, w, quat) {
+export default function computeOrientationFlexibly(xIn, yIn, zIn, w, quat) {
   // If w-component was given, we are dealing with someone who is quaternion-savvy,
   // and who we assume wants to compute a rotation exactly, so we'll just return the vector
   // if (w != null) {
@@ -49,6 +49,10 @@ export default function computeOrientationFlexibly(x, y, z, w, quat) {
   // Before we move on to the actual calculations, we're going to handle the
   // case that any of the other values was omitted, which we will interpret
   // to mean we want to use the value given by the passed quaternion
+  let x = xIn;
+  let y = yIn;
+  let z = zIn;
+
   if (x == null || y == null || z == null) {
     const sp = -2 * (quat.y * quat.z - quat.w * quat.x);
 
