@@ -7,12 +7,15 @@ var allPackages = require('./helpers/allPackages')()
 var ROOT = path.join(__dirname, '..')
 
 async.eachSeries(allPackages, function (pack, next) {
-  if (pack.pkg.scripts && pack.pkg.scripts.lint) {
-    try {
-      log.log('linting ' + pack.name)
-      cp.execSync('yarn run lint', { cwd: pack.abspath, stdio: 'inherit' })
-    } catch (exception) {
-      log.err(exception.message)
+  if (pack.pkg.scripts) {
+    const command = pack.pkg.scripts.fix || pack.pkg.scripts.lint
+    if (command) {
+      try {
+        log.log('linting ' + pack.name)
+        cp.execSync(command, { cwd: pack.abspath, stdio: 'inherit' })
+      } catch (exception) {
+        log.err(exception.message)
+      }
     }
   }
   return next()

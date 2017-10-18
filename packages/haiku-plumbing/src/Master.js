@@ -15,6 +15,7 @@ import * as Sketch from './Sketch'
 import * as ProjectFolder from './ProjectFolder'
 import MasterGitProject from './MasterGitProject'
 import MasterModuleProject from './MasterModuleProject'
+import attachListeners from './envoy/attachListeners'
 
 if (process.env.CHAOS_MONKEYS === '1') {
   const num = Math.random() * ((60 * 1000) - 5000) + 5000
@@ -869,6 +870,8 @@ export default class Master extends EventEmitter {
           this._component.on('component:mounted', () => {
             // Since we aren't running in the DOM cancel the raf to avoid leaked handles
             this._component._componentInstance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+            // Attach Envoy listeners.
+            attachListeners(this._component._envoyClient, this._component)
             return cb()
           })
         } else {

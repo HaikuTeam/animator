@@ -14,8 +14,10 @@ function req (mod) {
 var remotes = {
   'haiku-bytecode': 'git@github.com:HaikuTeam/bytecode.git',
   'haiku-cli': 'git@github.com:HaikuTeam/cli.git',
+  'haiku-common': 'git@github.com:HaikuTeam/common.git',
   'haiku-creator': 'git@github.com:HaikuTeam/creator.git',
   'haiku-creator-electron': 'git@github.com:HaikuTeam/creator.git', // dupe hack
+  'haiku-formats': 'git@github.com:HaikuTeam/formats.git',
   'haiku-glass': 'git@github.com:HaikuTeam/glass.git',
   'haiku-player': 'git@github.com:HaikuTeam/player.git',
   'haiku-plumbing': 'git@github.com:HaikuTeam/plumbing.git',
@@ -24,6 +26,7 @@ var remotes = {
   'haiku-sdk-inkstone': 'git@github.com:HaikuTeam/sdk-inkstone.git',
   'haiku-serialization': 'git@github.com:HaikuTeam/serialization.git',
   'haiku-state-object': 'git@github.com:HaikuTeam/StateObject.git',
+  'haiku-testing': 'git@github.com:HaikuTeam/testing.git',
   'haiku-timeline': 'git@github.com:HaikuTeam/timeline.git',
   'haiku-websockets': 'git@github.com:HaikuTeam/websockets.git'
 }

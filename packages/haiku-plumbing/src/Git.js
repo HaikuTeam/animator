@@ -24,6 +24,7 @@ const INDEX_LOCK_INTERVAL = 0
 function _gimmeIndex (pwd, cb) {
   if (!LOCKED_INDEXES[pwd]) {
     LOCKED_INDEXES[pwd] = true
+    // eslint-disable-next-line
     return cb(() => {
       LOCKED_INDEXES[pwd] = false
     })

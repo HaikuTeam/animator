@@ -1,8 +1,12 @@
-const { EventEmitter } = require('events')
-const { Menu, app, shell } = require('electron')
+import EventEmitter from 'events'
+import { Menu, app, shell } from 'electron'
+
+import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
+import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
+
 app.setName('Haiku')
 
-class TopMenu extends EventEmitter {
+export default class TopMenu extends EventEmitter {
   create (options) {
     var developerMenuItems = [
       // {
@@ -68,23 +72,39 @@ class TopMenu extends EventEmitter {
       role: 'quit'
     })
 
+    const projectSubmenu = [
+      {
+        label: 'Publish',
+        accelerator: 'CmdOrCtrl+S',
+        enabled: !options.isSaving,
+        click: () => {
+          this.emit('global-menu:save')
+        }
+      }
+    ]
+
+    if (experimentIsEnabled(Experiment.LottieExport)) {
+      projectSubmenu.push({
+        label: 'Export',
+        submenu: [{
+          label: ExporterFormat.Bodymovin,
+          accelerator: 'Cmd+Shift+E', // TODO(sashajoseph): Remove this?
+          click: () => {
+            this.emit('global-menu:export', [ExporterFormat.Bodymovin])
+          }
+        }]
+      })
+    }
+
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       {
         label: app.getName(),
         submenu: mainMenuPieces
       },
       {
+        // TODO(xifm6diW): disable when there is no active project.
         label: 'Project',
-        submenu: [
-          {
-            label: 'Publish',
-            accelerator: 'CmdOrCtrl+S',
-            enabled: !options.isSaving,
-            click: () => {
-              this.emit('global-menu:save')
-            }
-          }
-        ]
+        submenu: projectSubmenu
       },
       {
         label: 'Edit',
@@ -224,5 +244,3 @@ class TopMenu extends EventEmitter {
     return this
   }
 }
-
-module.exports = TopMenu

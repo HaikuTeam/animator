@@ -1,7 +1,7 @@
 {
-  "name": "haiku-common",
-  "version": "2.3.12",
-  "description": "Common library for Haiku.",
+  "name": "haiku-testing",
+  "version": "2.3.11",
+  "description": "Testing utilities for Haiku.",
   "main": "lib/index.js",
   "directories": {
     "lib": "lib"
@@ -19,10 +19,13 @@
     "Sasha Joseph <sasha@haiku.ai>"
   ],
   "license": "UNLICENSED",
-  "dependencies": {},
+  "dependencies": {
+    "proxyquire": "^1.8.0",
+    "sinon": "^4.0.1"
+  },
   "devDependencies": {
-    "@types/node": "^8.0.17",
-    "haiku-testing": "HaikuTeam/testing.git",
+    "@types/node": "^8.0.34",
+    "@types/tape": "^4.2.30",
     "nyc": "^11.2.1",
     "tap-spec": "^4.1.1",
     "tape": "^4.7.0",

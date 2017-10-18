@@ -34,6 +34,7 @@
     "combokeys": "2.4.6",
     "event-emitter": "0.3.4",
     "haiku-bytecode": "HaikuTeam/bytecode.git",
+    "haiku-common": "HaikuTeam/common.git",
     "haiku-glass": "HaikuTeam/glass.git",
     "haiku-sdk-creator": "HaikuTeam/sdk-creator.git",
     "haiku-serialization": "HaikuTeam/serialization.git",
