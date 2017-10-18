@@ -45,15 +45,11 @@ class ActivityMonitor {
   }
 
   report () {
-    this.send(this.activity)
     if (typeof this.reportCallback === 'function') {
       this.reportCallback(this.activity)
     }
-    this.activity = false
-  }
 
-  send (activity) {
-    // notify inkstone
+    this.activity = false
   }
 }
 
