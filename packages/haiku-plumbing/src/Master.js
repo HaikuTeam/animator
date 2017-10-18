@@ -100,7 +100,6 @@ export default class Master extends EventEmitter {
 
     this.proc.socket.on('error', (err) => {
       logger.info('[master] !!! socket error', err)
-      logger.info('[master] !!! socket error', err)
     })
 
     this.proc.on('request', (message, cb) => {
