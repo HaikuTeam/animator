@@ -1,17 +1,15 @@
-import {debounce} from 'lodash'
+const {debounce} = require('lodash')
 
 const REPORT_INTERVAL = 1800000 // 30mins
 
 class ActivityMonitor {
   constructor (
     context = window,
-    reportInterval = REPORT_INTERVAL,
     reportCallback
   ) {
     this.log = debounce(this.log.bind(this), 1000)
     this.activity = false
     this.reportCallback = reportCallback
-    this.reportInterval = reportInterval
     this.context = context
 
     this.events = [
@@ -22,20 +20,22 @@ class ActivityMonitor {
       'mousewheel',
       'touchmove'
     ]
-
-    setInterval(this.report.bind(this), REPORT_INTERVAL)
   }
 
-  startWatchers () {
+  startWatchers (reportInterval = REPORT_INTERVAL) {
     this.events.forEach(event => {
       this.context.addEventListener(event, this.log, false)
     })
+
+    this.interval = setInterval(this.report.bind(this), reportInterval)
   }
 
-  stopWachers () {
+  stopWatchers () {
     this.events.forEach(event => {
       this.context.removeEventListener(event, this.log)
     })
+
+    clearInterval(this.interval)
   }
 
   log () {
@@ -51,8 +51,8 @@ class ActivityMonitor {
   }
 
   send (activity) {
-    console.log('User activity sent to inkstone', activity)
+    // notify inkstone
   }
 }
 
-export default ActivityMonitor
+module.exports = ActivityMonitor
