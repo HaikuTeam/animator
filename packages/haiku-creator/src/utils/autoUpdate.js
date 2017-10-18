@@ -2,7 +2,7 @@ const qs = require('qs')
 const os = require('os')
 const electron = require('electron')
 const fetch = require('node-fetch')
-const {download, unzip} = require('./fileManipulation')
+const {download, unzipAndOpen} = require('./fileManipulation')
 
 const opts = {
   server: process.env.HAIKU_AUTOUPDATE_SERVER,
@@ -24,7 +24,7 @@ module.exports = {
           !options.platform ||
           !options.version
         ) {
-          throw new Error('Missing release/autoupdate environment variables')
+          return reject(Error('Missing release/autoupdate environment variables'))
         }
 
         const tempPath = os.tmpdir()
@@ -35,13 +35,17 @@ module.exports = {
 
         download(url, zipPath, progressCallback)
           .then(() => {
-            return unzip(zipPath, installationPath, 'Haiku')
+            return unzipAndOpen(zipPath, installationPath, 'Haiku')
           })
           .then(() => {
             electron.remote.app.exit()
           })
           .catch(reject)
+      } else {
+        /* If autoupdate is intentionally skipped, just silently resolve */
+        resolve()
       }
+
     })
   },
 
