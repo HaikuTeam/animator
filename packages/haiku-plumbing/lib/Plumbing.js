@@ -58,6 +58,8 @@ var _logger = require('haiku-sdk-creator/lib/envoy/logger');
 
 var _logger2 = _interopRequireDefault(_logger);
 
+var _exporter = require('haiku-sdk-creator/lib/exporter');
+
 var _timeline = require('haiku-sdk-creator/lib/timeline');
 
 var _timeline2 = _interopRequireDefault(_timeline);
@@ -338,9 +340,11 @@ var Plumbing = function (_StateObject) {
 
         var envoyTimelineHandler = new _timeline2.default(envoyServer);
         var envoyTourHandler = new _tour2.default(envoyServer);
+        var envoyExporterHandler = new _exporter.ExporterHandler(envoyServer);
 
         envoyServer.bindHandler('timeline', _timeline2.default, envoyTimelineHandler);
         envoyServer.bindHandler('tour', _tour2.default, envoyTourHandler);
+        envoyServer.bindHandler(_exporter.EXPORTER_CHANNEL, _exporter.ExporterHandler, envoyExporterHandler);
 
         _LoggerInstance2.default.info('[plumbing] launching plumbing control server');
 

@@ -72,6 +72,10 @@ var _MasterModuleProject = require('./MasterModuleProject');
 
 var _MasterModuleProject2 = _interopRequireDefault(_MasterModuleProject);
 
+var _attachListeners = require('./envoy/attachListeners');
+
+var _attachListeners2 = _interopRequireDefault(_attachListeners);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -1175,6 +1179,8 @@ var Master = function (_EventEmitter) {
           _this13._component.on('component:mounted', function () {
             // Since we aren't running in the DOM cancel the raf to avoid leaked handles
             _this13._component._componentInstance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel();
+            // Attach Envoy listeners.
+            (0, _attachListeners2.default)(_this13._component._envoyClient, _this13._component);
             return cb();
           });
         } else {

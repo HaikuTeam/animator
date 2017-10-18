@@ -2,16 +2,16 @@
 # yarn lockfile v1
 
 
-"@haiku/player@2.3.6":
-  version "2.3.6"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.6.tgz#b8ed349dc6940bfe696160ce5905f8da5439613b"
+"@haiku/player@2.3.12":
+  version "2.3.12"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.12.tgz#a03f4340e2d84f5ca002c90bf293420799463c21"
   dependencies:
     lodash "^4.17.4"
     react "15.4.2"
 
-"@haiku/player@2.3.8":
-  version "2.3.8"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.8.tgz#0f9f0664904b7e00d68d43b5ea47b7347b9109cc"
+"@haiku/player@2.3.6":
+  version "2.3.6"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.6.tgz#b8ed349dc6940bfe696160ce5905f8da5439613b"
   dependencies:
     lodash "^4.17.4"
     react "15.4.2"
@@ -3464,6 +3464,10 @@ haiku-creator-electron@HaikuTeam/creator.git:
     react-onclickoutside "^6.4.0"
     react-popover "^0.4.8"
     react-split-pane "0.1.57"
+
+haiku-formats@HaikuTeam/formats.git:
+  version "2.3.10"
+  resolved "git+ssh://git@github.com/HaikuTeam/formats.git#63f8e35f39dc3d3065e9f6912ba21e732273dde0"
 
 haiku-fs-extra@HaikuTeam/node-fs-extra.git#master-haiku:
   version "1.0.0"

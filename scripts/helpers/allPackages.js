@@ -31,6 +31,27 @@ var remotes = {
   'haiku-websockets': 'git@github.com:HaikuTeam/websockets.git'
 }
 
+// Ordered roughly from fewest deps to most, in order to avoid
+// Typescript issues when compiling projects with compiled deps
+var order = [
+  'haiku-player',
+  'haiku-sdk-client',
+  'haiku-sdk-creator',
+  'haiku-sdk-inkstone',
+  'haiku-common',
+  'haiku-formats',
+  'haiku-state-object',
+  'haiku-websockets',
+  'haiku-testing',
+  'haiku-bytecode',
+  'haiku-serialization',
+  'haiku-cli',
+  'haiku-creator',
+  'haiku-glass',
+  'haiku-timeline',
+  'haiku-plumbing',
+]
+
 module.exports = function allPackages () {
   var names = fse.readdirSync(path.join(ROOT, 'packages'))
   names = names.filter(function (name) {
@@ -39,13 +60,14 @@ module.exports = function allPackages () {
     if (!fse.lstatSync(abspath).isDirectory()) return false
     return true
   })
-  var packages = names.map(function (name) {
+  var packages = []
+  names.forEach(function (name) {
     var abspath = path.join(ROOT, 'packages', name)
     var pkg = req(path.join(abspath, 'package.json')) || {}
     var version = pkg.version
     var remote = remotes[name]
     // var sha = getRemoteSha(remote)
-    return {
+    var obj = {
       name: name,
       abspath: abspath,
       relpath: path.join('packages', name),
@@ -56,6 +78,7 @@ module.exports = function allPackages () {
       // sha: sha,
       remote: remote
     }
+    packages[order.indexOf(name)] = obj
   })
   return packages
 }
