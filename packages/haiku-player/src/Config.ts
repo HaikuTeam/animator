@@ -56,7 +56,8 @@ const DEFAULTS = {
     clock: {},
 
     // sizing: String|null
-    // Configures the sizing mode of the component; may be 'normal', 'stretch', 'contain', or 'cover'. See HaikuComponent.js for info.
+    // Configures the sizing mode of the component; may be 'normal', 'stretch', 'contain', or 'cover'. See
+    // HaikuComponent.js for info.
     sizing: null,
 
     // preserve3d: String
@@ -64,7 +65,8 @@ const DEFAULTS = {
     preserve3d: 'auto',
 
     // contextMenu: String
-    // Whether or not the Haiku context menu should display when the component is right-clicked; may be 'enabled' or 'disabled'.
+    // Whether or not the Haiku context menu should display when the component is right-clicked; may be 'enabled' or
+    // 'disabled'.
     contextMenu: 'enabled',
 
     // position: String
@@ -72,11 +74,13 @@ const DEFAULTS = {
     position: 'relative',
 
     // overflowX: String|null
-    // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without needing a wrapper element.
+    // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without
+    // needing a wrapper element.
     overflowX: null,
 
     // overflowY: String|null
-    // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without needing a wrapper element.
+    // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without
+    // needing a wrapper element.
     overflowY: null,
 
     // overflow: String|null
@@ -84,7 +88,8 @@ const DEFAULTS = {
     overflow: null,
 
     // mixpanel: String|null
-    // If provided, a Mixpanel tracking instance will be created using this string as the API token. The default token is Haiku's production token.
+    // If provided, a Mixpanel tracking instance will be created using this string as the API token. The default token
+    // is Haiku's production token.
     mixpanel: '6f31d4f99cf71024ce27c3e404a79a61',
 
     // useWebkitPrefix: boolean
@@ -141,21 +146,37 @@ function build(...argums) {
   };
 
   const args = [];
-  for (let i = 0; i < argums.length; i++) args[i] = argums[i];
+  for (let i = 0; i < argums.length; i++) {
+    args[i] = argums[i];
+  }
 
   args.unshift(DEFAULTS);
 
   for (let j = 0; j < args.length; j++) {
     const incoming = args[j];
-    if (!incoming) continue;
-    if (typeof incoming !== 'object') continue;
+    if (!incoming) {
+      continue;
+    }
+    if (typeof incoming !== 'object') {
+      continue;
+    }
 
-    if (incoming.onHaikuComponentWillInitialize) config.onHaikuComponentWillInitialize = incoming.onHaikuComponentWillInitialize;
-    if (incoming.onHaikuComponentDidMount) config.onHaikuComponentDidMount = incoming.onHaikuComponentDidMount;
-    if (incoming.onHaikuComponentDidInitialize) config.onHaikuComponentDidInitialize = incoming.onHaikuComponentDidInitialize;
-    if (incoming.onHaikuComponentWillUnmount) config.onHaikuComponentWillUnmount = incoming.onHaikuComponentWillUnmount;
+    if (incoming.onHaikuComponentWillInitialize) {
+      config.onHaikuComponentWillInitialize = incoming.onHaikuComponentWillInitialize;
+    }
+    if (incoming.onHaikuComponentDidMount) {
+      config.onHaikuComponentDidMount = incoming.onHaikuComponentDidMount;
+    }
+    if (incoming.onHaikuComponentDidInitialize) {
+      config.onHaikuComponentDidInitialize = incoming.onHaikuComponentDidInitialize;
+    }
+    if (incoming.onHaikuComponentWillUnmount) {
+      config.onHaikuComponentWillUnmount = incoming.onHaikuComponentWillUnmount;
+    }
 
-    if (incoming.options) config.options = assign({}, config.options, incoming.options);
+    if (incoming.options) {
+      config.options = assign({}, config.options, incoming.options);
+    }
 
     // Hoist any 'options' that might have been passed at the root level up into 'options'
     // e.g. { loop: true } -> { options: { loop: true } }
@@ -165,18 +186,28 @@ function build(...argums) {
       }
     }
 
-    if (incoming.states) config.states = assign({}, config.states, incoming.states);
+    if (incoming.states) {
+      config.states = assign({}, config.states, incoming.states);
+    }
 
     // For semantic purposes, also allow 'initialStates' to be passed in
     if (incoming.initialStates && typeof incoming.initialStates === 'object') {
       assign(config.states, incoming.initialStates);
     }
 
-    if (incoming.eventHandlers) config.eventHandlers = assign({}, config.eventHandlers, incoming.eventHandlers);
-    if (incoming.timelines) config.timelines = assign({}, config.timelines, incoming.timelines);
-    if (incoming.vanities) config.vanities = assign({}, config.vanities, incoming.vanities);
+    if (incoming.eventHandlers) {
+      config.eventHandlers = assign({}, config.eventHandlers, incoming.eventHandlers);
+    }
+    if (incoming.timelines) {
+      config.timelines = assign({}, config.timelines, incoming.timelines);
+    }
+    if (incoming.vanities) {
+      config.vanities = assign({}, config.vanities, incoming.vanities);
+    }
 
-    if (incoming.children) config.children = incoming.children;
+    if (incoming.children) {
+      config.children = incoming.children;
+    }
   }
 
   // Validations:

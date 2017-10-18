@@ -55,6 +55,7 @@ export default function formatTransform(transform, format, devicePixelRatio) {
     ];
 
     // Note how we set the transform far to two here!
+    // tslint:disable-next-line:no-param-reassign
     transform = two;
 
     prefix = 'matrix(';
@@ -71,16 +72,26 @@ export default function formatTransform(transform, format, devicePixelRatio) {
   prefix += (transform[3] < 0.000001 && transform[3] > -0.000001) ? TRANSFORM_ZILCH : transform[3] + TRANSFORM_COMMA;
   prefix += (transform[4] < 0.000001 && transform[4] > -0.000001) ? TRANSFORM_ZILCH : transform[4] + TRANSFORM_COMMA;
   if (last > 5) {
-    prefix += (transform[5] < 0.000001 && transform[5] > -0.000001) ? TRANSFORM_ZILCH : transform[5] + TRANSFORM_COMMA;
-    prefix += (transform[6] < 0.000001 && transform[6] > -0.000001) ? TRANSFORM_ZILCH : transform[6] + TRANSFORM_COMMA;
-    prefix += (transform[7] < 0.000001 && transform[7] > -0.000001) ? TRANSFORM_ZILCH : transform[7] + TRANSFORM_COMMA;
-    prefix += (transform[8] < 0.000001 && transform[8] > -0.000001) ? TRANSFORM_ZILCH : transform[8] + TRANSFORM_COMMA;
-    prefix += (transform[9] < 0.000001 && transform[9] > -0.000001) ? TRANSFORM_ZILCH : transform[9] + TRANSFORM_COMMA;
-    prefix += (transform[10] < 0.000001 && transform[10] > -0.000001) ? TRANSFORM_ZILCH : transform[10] + TRANSFORM_COMMA;
-    prefix += (transform[11] < 0.000001 && transform[11] > -0.000001) ? TRANSFORM_ZILCH : transform[11] + TRANSFORM_COMMA;
-    prefix += (transform[12] < 0.000001 && transform[12] > -0.000001) ? TRANSFORM_ZILCH : transform[12] + TRANSFORM_COMMA;
-    prefix += (transform[13] < 0.000001 && transform[13] > -0.000001) ? TRANSFORM_ZILCH : transform[13] + TRANSFORM_COMMA;
-    prefix += (transform[14] < 0.000001 && transform[14] > -0.000001) ? TRANSFORM_ZILCH : transform[14] + TRANSFORM_COMMA;
+    prefix += (transform[5] < 0.000001 && transform[5] > -0.000001)
+      ? TRANSFORM_ZILCH : transform[5] + TRANSFORM_COMMA;
+    prefix += (transform[6] < 0.000001 && transform[6] > -0.000001)
+      ? TRANSFORM_ZILCH : transform[6] + TRANSFORM_COMMA;
+    prefix += (transform[7] < 0.000001 && transform[7] > -0.000001)
+      ? TRANSFORM_ZILCH : transform[7] + TRANSFORM_COMMA;
+    prefix += (transform[8] < 0.000001 && transform[8] > -0.000001)
+      ? TRANSFORM_ZILCH : transform[8] + TRANSFORM_COMMA;
+    prefix += (transform[9] < 0.000001 && transform[9] > -0.000001)
+      ? TRANSFORM_ZILCH : transform[9] + TRANSFORM_COMMA;
+    prefix += (transform[10] < 0.000001 && transform[10] > -0.000001)
+      ? TRANSFORM_ZILCH : transform[10] + TRANSFORM_COMMA;
+    prefix += (transform[11] < 0.000001 && transform[11] > -0.000001)
+      ? TRANSFORM_ZILCH : transform[11] + TRANSFORM_COMMA;
+    prefix += (transform[12] < 0.000001 && transform[12] > -0.000001)
+      ? TRANSFORM_ZILCH : transform[12] + TRANSFORM_COMMA;
+    prefix += (transform[13] < 0.000001 && transform[13] > -0.000001)
+      ? TRANSFORM_ZILCH : transform[13] + TRANSFORM_COMMA;
+    prefix += (transform[14] < 0.000001 && transform[14] > -0.000001)
+      ? TRANSFORM_ZILCH : transform[14] + TRANSFORM_COMMA;
   }
 
   prefix += transform[last] + TRANSFORM_SUFFIX;

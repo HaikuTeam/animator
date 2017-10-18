@@ -3,7 +3,9 @@
  */
 
 export default function assignStyle(domElement, virtualElement, style, component, isPatchOperation) {
-  if (!domElement.__haikuExplicitStyles) domElement.__haikuExplicitStyles = {};
+  if (!domElement.__haikuExplicitStyles) {
+    domElement.__haikuExplicitStyles = {};
+  }
 
   if (!isPatchOperation) {
     // If we have an element from a previous run, remove any old styles that aren't part of the new one

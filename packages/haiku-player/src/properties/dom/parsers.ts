@@ -9,7 +9,9 @@ import has from './has';
 function parseD(value) {
   // in case of d="" for any reason, don't try to expand this otherwise this will choke
   // #TODO: arguably we should preprocess SVGs before things get this far; try svgo?
-  if (!value) return [];
+  if (!value) {
+    return [];
+  }
   // Allow points to return an array for convenience, and let downstream marshal it
   if (Array.isArray(value)) {
     return value;
@@ -18,7 +20,9 @@ function parseD(value) {
 }
 
 function generateD(value) {
-  if (typeof value === 'string') return value;
+  if (typeof value === 'string') {
+    return value;
+  }
   return SVGPoints.pointsToPath(value);
 }
 
@@ -31,12 +35,16 @@ function generateColor(value) {
 }
 
 function parsePoints(value) {
-  if (Array.isArray(value)) return value;
+  if (Array.isArray(value)) {
+    return value;
+  }
   return SVGPoints.polyPointsStringToPoints(value);
 }
 
 function generatePoints(value) {
-  if (typeof value === 'string') return value;
+  if (typeof value === 'string') {
+    return value;
+  }
   return SVGPoints.pointsToPolyString(value);
 }
 

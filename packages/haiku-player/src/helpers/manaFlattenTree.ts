@@ -4,10 +4,7 @@
 
 import objectPath from './objectPath';
 
-export default function flattenTree(list, node, options, depth, index) {
-  if (!depth) depth = 0;
-  if (!index) index = 0;
-
+export default function flattenTree(list, node, options, depth = 0, index = 0) {
   list.push(node);
 
   if (typeof node !== 'string') {
@@ -16,8 +13,9 @@ export default function flattenTree(list, node, options, depth, index) {
   }
 
   const children = objectPath(node, options.children);
-  if (!children || children.length < 1) return list;
-  if (typeof children === 'string') return list;
+  if (!children || children.length < 1 || typeof children === 'string') {
+    return list;
+  }
   if (Array.isArray(children)) {
     for (let i = 0; i < children.length; i++) {
       flattenTree(list, children[i], options, depth + 1, i);

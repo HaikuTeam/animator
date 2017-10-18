@@ -3,7 +3,7 @@
  */
 
 import HaikuContext from './../../HaikuContext';
-import HaikuDOMRendererClass from './../../renderers/dom';
+import dom from './../../renderers/dom';
 
 const pkg = require('./../../../package.json');
 const PLAYER_VERSION = pkg.version;
@@ -23,12 +23,19 @@ const PLAYER_VERSION = pkg.version;
  * @function HaikuDOMAdapter
  * @description Given a bytecode object, return a factory function which can create a DOM-playable component.
  */
+// tslint:disable-next-line:function-name
 export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
-  if (!config) config = {};
-  if (!config.options) config.options = {};
+  if (!config) {
+    // tslint:disable-next-line:no-param-reassign
+    config = {};
+  }
+  if (!config.options) {
+    config.options = {};
+  }
 
   if (!safeWindow) {
     if (typeof window !== 'undefined') {
+      // tslint:disable-next-line:no-param-reassign
       safeWindow = window;
     }
   }
@@ -36,14 +43,12 @@ export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
   if (config.options.useWebkitPrefix === undefined) {
     // Allow headless mode, e.g. in server-side rendering or in Node.js unit tests
     if (safeWindow && safeWindow.document) {
-      const isWebKit =
-        'WebkitAppearance' in safeWindow.document.documentElement.style;
-      config.options.useWebkitPrefix = !!isWebKit;
+      config.options.useWebkitPrefix = 'WebkitAppearance' in safeWindow.document.documentElement.style;
     }
   }
 
   return HaikuContext['createComponentFactory'](
-    HaikuDOMRendererClass,
+    dom,
     bytecode,
     config, // Note: Full config object, of which options is one property!
     safeWindow,

@@ -170,15 +170,7 @@ const LAYOUT_3D_VANITIES = {
   },
 };
 
-function _clone(obj) {
-  const out = {};
-  for (const key in obj) {
-    out[key] = obj[key];
-  }
-  return out;
-}
-
-const LAYOUT_2D_VANITIES = _clone(LAYOUT_3D_VANITIES);
+const LAYOUT_2D_VANITIES = {...LAYOUT_3D_VANITIES};
 
 function styleSetter(prop) {
   return function (name, element, value) {
@@ -627,13 +619,13 @@ const STYLE_VANITIES = {
   'style.wrapThrough': styleSetter('wrapThrough'),
   'style.writingMode': styleSetter('writingMode'),
   'style.zIndex': styleSetter('zIndex'),
-  'style.WebkitTapHighlightColor'(name, element, value) {
+  'style.WebkitTapHighlightColor': (_, element, value) => {
     element.attributes.style.webkitTapHighlightColor = value;
   },
 };
 
 const TEXT_CONTENT_VANITIES = {
-  content(name, element, value) {
+  content: (_, element, value) => {
     element.children = [value + ''];
   },
 };
@@ -686,7 +678,7 @@ const PRESENTATION_VANITIES = {
   // Special snowflake opacity needs to have its opacity layout property set
   // as opposed to its element attribute so the renderer can make a decision about
   // where to put it based on the rendering medium's rules
-  opacity(name, element, value) {
+  opacity: (_, element, value) => {
     element.layout.opacity = value;
   },
   overflow: attributeSetter('overflow'),
@@ -722,10 +714,10 @@ const FILTER_VANITIES = {
 };
 
 const HTML_STYLE_SHORTHAND_VANITIES = {
-  backgroundColor(name, element, value) {
+  backgroundColor(_, element, value) {
     element.attributes.style.backgroundColor = value;
   },
-  zIndex(name, element, value) {
+  zIndex(_, element, value) {
     element.attributes.style.zIndex = value;
   },
 };
@@ -768,20 +760,24 @@ const CONTROL_FLOW_VANITIES = {
   // 'controlFlow.yield': function (name, element, value) {
   //   // TODO
   // },
-  'controlFlow.placeholder'(
+  'controlFlow.placeholder': (
     name,
     element,
     value,
     context,
     component,
-  ) {
-    if (value === null || value === undefined) return void 0;
+  ) => {
+    if (value === null || value === undefined) {
+      return void 0;
+    }
 
     if (typeof value !== 'number') {
       throw new Error('controlFlow.placeholder expects null or number');
     }
 
-    if (!context.config.children) return void 0;
+    if (!context.config.children) {
+      return void 0;
+    }
 
     const children = Array.isArray(context.config.children)
       ? context.config.children
@@ -790,7 +786,9 @@ const CONTROL_FLOW_VANITIES = {
     component._markElementAnticipatedSurrogates(element, children);
 
     const surrogate = children[value];
-    if (surrogate === null || surrogate === undefined) return void 0;
+    if (surrogate === null || surrogate === undefined) {
+      return void 0;
+    }
 
     // If we have a surrogate, then we must clear the children, otherwise we will often
     // see a flash of the default content before the injected content flows in lazily
@@ -856,9 +854,13 @@ function controlFlowPlaceholderImpl(element, surrogate, value, context, componen
     element.elementName = surrogate.elementName;
     element.children = surrogate.children || [];
     if (surrogate.attributes) {
-      if (!element.attributes) element.attributes = {};
+      if (!element.attributes) {
+        element.attributes = {};
+      }
       for (const key in surrogate.attributes) {
-        if (key === 'haiku-id') continue;
+        if (key === 'haiku-id') {
+          continue;
+        }
         element.attributes[key] = surrogate.attributes[key];
       }
     }

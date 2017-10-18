@@ -10,7 +10,9 @@ import setStyleMatrix from './setStyleMatrix';
 const SVG = 'svg';
 
 function hasExplicitStyle(domElement, key) {
-  if (!domElement.__haikuExplicitStyles) return false;
+  if (!domElement.__haikuExplicitStyles) {
+    return false;
+  }
   return !!domElement.__haikuExplicitStyles[key];
 }
 

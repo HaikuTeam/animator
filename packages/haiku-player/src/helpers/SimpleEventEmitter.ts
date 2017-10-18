@@ -7,10 +7,14 @@ function create(instance) {
   const eavesdroppers = [];
 
   instance.on = function on(key, fn) {
-    if (!registry[key]) registry[key] = [];
+    if (!registry[key]) {
+      registry[key] = [];
+    }
     // Check for dupes and ignore if this is one
     for (let i = 0; i < registry[key].length; i++) {
-      if (registry[key][i] === fn) return this;
+      if (registry[key][i] === fn) {
+        return this;
+      }
     }
     registry[key].push(fn);
     return this;
@@ -18,10 +22,15 @@ function create(instance) {
 
   instance.off = function off(key, fn) {
     const listeners = registry[key];
-    if (!listeners || listeners.length < 1) return this;
+    if (!listeners || listeners.length < 1) {
+      return this;
+    }
     for (let i = 0; i < listeners.length; i++) {
-      if (fn && listeners[i] === fn) listeners.splice(i, 1);
-      else listeners.splice(i, 1);
+      if (fn && listeners[i] === fn) {
+        listeners.splice(i, 1);
+      } else {
+        listeners.splice(i, 1);
+      }
     }
     return this;
   };

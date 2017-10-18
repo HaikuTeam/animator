@@ -3,14 +3,16 @@
  */
 
 import BasicUtils from './BasicUtils';
-import queryList from './cssQueryList';
-import flattenTree from './manaFlattenTree';
+import cssQueryList from './cssQueryList';
+import manaFlattenTree from './manaFlattenTree';
 
 const OBJECT = 'object';
 
 export default function queryTree(matches, node, query, options) {
-  if (!node || typeof node !== OBJECT) return matches;
-  const list = BasicUtils.uniq(flattenTree([], node, options, 0, 0));
-  queryList(matches, list, query, options);
+  if (!node || typeof node !== OBJECT) {
+    return matches;
+  }
+  const list = BasicUtils.uniq(manaFlattenTree([], node, options, 0, 0));
+  cssQueryList(matches, list, query, options);
   return matches;
 }

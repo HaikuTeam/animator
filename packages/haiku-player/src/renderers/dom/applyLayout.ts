@@ -64,7 +64,9 @@ export default function applyLayout(
   isPatchOperation,
   isKeyDifferent,
 ) {
-  if (isTextNode(virtualElement)) return domElement;
+  if (isTextNode(virtualElement)) {
+    return domElement;
+  }
 
   if (virtualElement.layout) {
     // Don't assign layout to things that never need it like <desc>, <title>, etc.
@@ -77,12 +79,12 @@ export default function applyLayout(
     }
 
     if (!parentVirtualElement.layout || !parentVirtualElement.layout.computed) {
-      _warnOnce(
+      warnOnce(
         'Cannot compute layout without parent computed size (child: <' +
-          virtualElement.elementName +
-          '>; parent: <' +
-          parentVirtualElement.elementName +
-          '>)',
+        virtualElement.elementName +
+        '>; parent: <' +
+        parentVirtualElement.elementName +
+        '>)',
       );
       return domElement;
     }
@@ -120,8 +122,10 @@ export default function applyLayout(
 
 const warnings = {};
 
-function _warnOnce(warning) {
-  if (warnings[warning]) return void 0;
+function warnOnce(warning) {
+  if (warnings[warning]) {
+    return void 0;
+  }
   warnings[warning] = true;
   console.warn('[haiku player] warning:', warning);
 }

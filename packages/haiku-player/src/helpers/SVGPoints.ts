@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import SVGPoints from './../vendor/svg-points';
+import svgPoints from './../vendor/svg-points';
 import parseCssValueString from './parseCssValueString';
 
 const SVG_TYPES = {
@@ -40,24 +40,36 @@ const SVG_COMMAND_TYPES = {
 };
 
 function polyPointsStringToPoints(pointsString) {
-  if (!pointsString) return [];
-  if (Array.isArray(pointsString)) return pointsString;
+  if (!pointsString) {
+    return [];
+  }
+  if (Array.isArray(pointsString)) {
+    return pointsString;
+  }
   const points = [];
   const couples = pointsString.split(/\s+/);
   for (let i = 0; i < couples.length; i++) {
     const pair = couples[i];
     const segs = pair.split(/,\s*/);
     const coord = [];
-    if (segs[0]) coord[0] = Number(segs[0]);
-    if (segs[1]) coord[1] = Number(segs[1]);
+    if (segs[0]) {
+      coord[0] = Number(segs[0]);
+    }
+    if (segs[1]) {
+      coord[1] = Number(segs[1]);
+    }
     points.push(coord);
   }
   return points;
 }
 
 function pointsToPolyString(points) {
-  if (!points) return '';
-  if (typeof points === 'string') return points;
+  if (!points) {
+    return '';
+  }
+  if (typeof points === 'string') {
+    return points;
+  }
   const arr = [];
   for (let i = 0; i < points.length; i++) {
     const point = points[i];
@@ -69,11 +81,11 @@ function pointsToPolyString(points) {
 
 function pathToPoints(pathString) {
   const shape = {type: 'path', d: pathString};
-  return SVGPoints.toPoints(shape);
+  return svgPoints.toPoints(shape);
 }
 
 function pointsToPath(pointsArray) {
-  return SVGPoints.toPath(pointsArray);
+  return svgPoints.toPath(pointsArray);
 }
 
 function manaToPoints(mana) {
@@ -96,7 +108,7 @@ function manaToPoints(mana) {
         }
       }
     }
-    return SVGPoints.toPoints(shape);
+    return svgPoints.toPoints(shape);
   } else {
     // div, rect, svg ...
     const width = parseCssValueString(
@@ -104,43 +116,47 @@ function manaToPoints(mana) {
         mana.layout.computed &&
         mana.layout.computed.size &&
         mana.layout.computed.size.x) ||
-        (mana.rect && mana.rect.width) ||
-        (mana.attributes &&
-          mana.attributes.style &&
-          mana.attributes.style.width) ||
-        (mana.attributes && mana.attributes.width) ||
-        (mana.attributes && mana.attributes.x) ||
-        0, null,
+      (mana.rect && mana.rect.width) ||
+      (mana.attributes &&
+        mana.attributes.style &&
+        mana.attributes.style.width) ||
+      (mana.attributes && mana.attributes.width) ||
+      (mana.attributes && mana.attributes.x) ||
+      0,
+      null,
     ).value;
     const height = parseCssValueString(
       (mana.layout &&
         mana.layout.computed &&
         mana.layout.computed.size &&
         mana.layout.computed.size.y) ||
-        (mana.rect && mana.rect.height) ||
-        (mana.attributes &&
-          mana.attributes.style &&
-          mana.attributes.style.height) ||
-        (mana.attributes && mana.attributes.height) ||
-        (mana.attributes && mana.attributes.y) ||
-        0, null,
+      (mana.rect && mana.rect.height) ||
+      (mana.attributes &&
+        mana.attributes.style &&
+        mana.attributes.style.height) ||
+      (mana.attributes && mana.attributes.height) ||
+      (mana.attributes && mana.attributes.y) ||
+      0,
+      null,
     ).value;
     const left = parseCssValueString(
       (mana.rect && mana.rect.left) ||
-        (mana.attributes.style && mana.attributes.style.left) ||
-        mana.attributes.x ||
-        0, null,
+      (mana.attributes.style && mana.attributes.style.left) ||
+      mana.attributes.x ||
+      0,
+      null,
     ).value;
     const top = parseCssValueString(
       (mana.rect && mana.rect.top) ||
-        (mana.attributes.style && mana.attributes.style.top) ||
-        mana.attributes.y ||
-        0, null,
+      (mana.attributes.style && mana.attributes.style.top) ||
+      mana.attributes.y ||
+      0,
+      null,
     ).value;
-    return SVGPoints.toPoints({
-      type: 'rect',
+    return svgPoints.toPoints({
       width,
       height,
+      type: 'rect',
       x: left,
       y: top,
     });

@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import ArrayUniq from './../vendor/array-unique';
+import arrayUnique from './../vendor/array-unique';
 
-const uniq = ArrayUniq.immutable;
+const uniq = arrayUnique.immutable;
 const OBJECT = 'object';
 const FUNCTION = 'function';
 
@@ -23,7 +23,9 @@ function isEmpty(value) {
 function mergeIncoming(previous, incoming) {
   for (const key in incoming) {
     // Skip if there's no incoming property
-    if (isEmpty(incoming[key])) continue;
+    if (isEmpty(incoming[key])) {
+      continue;
+    }
     // Deep merge if we have two objects
     if (isObject(previous[key]) && isObject(incoming[key])) {
       previous[key] = mergeIncoming(previous[key], incoming[key]);

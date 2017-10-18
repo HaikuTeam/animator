@@ -43,11 +43,15 @@ export default function reifyRO(robj, referenceEvaluator, skipFunctions) {
     }
     if (robj.__function) {
       // The caller might want to reassemble this on their own
-      if (skipFunctions) return robj;
+      if (skipFunctions) {
+        return robj;
+      }
       return reifyRFO(robj.__function);
     }
     if (robj.__reference) {
-      if (referenceEvaluator) return referenceEvaluator(robj.__reference);
+      if (referenceEvaluator) {
+        return referenceEvaluator(robj.__reference);
+      }
       throw new Error('Reference evaluator required');
     }
 

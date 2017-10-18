@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import Curves from './vendor/just-curves';
+import justCurves from './vendor/just-curves';
 
 const CENT = 1.0;
 const OBJECT = 'object';
@@ -13,31 +13,33 @@ const STRING = 'string';
 
 function percentOfTime(t0, t1, tnow) {
   const span = t1 - t0;
-  if (span === 0) return CENT; // No divide-by-zero
+  if (span === 0) {
+    return CENT;
+  } // No divide-by-zero
   const remaining = t1 - tnow;
-  const percent = CENT - remaining / span;
-  return percent;
+  return CENT - remaining / span;
 }
 
 function valueAtPercent(v0, v1, pc) {
   const span = v1 - v0;
   const gain = span * pc;
-  const value = v0 + gain;
-  return value;
+  return v0 + gain;
 }
 
 function valueAtTime(v0, v1, t0, t1, tnow) {
   const pc = percentOfTime(t0, t1, tnow);
-  const value = valueAtPercent(v0, v1, pc);
-  return value;
+  return valueAtPercent(v0, v1, pc);
 }
 
 function interpolateValue(v0, v1, t0, t1, tnow, curve) {
   let pc = percentOfTime(t0, t1, tnow);
-  if (pc > CENT) pc = CENT;
-  if (curve) pc = curve(pc);
-  const value = valueAtPercent(v0, v1, pc);
-  return value;
+  if (pc > CENT) {
+    pc = CENT;
+  }
+  if (curve) {
+    pc = curve(pc);
+  }
+  return valueAtPercent(v0, v1, pc);
 }
 
 function interpolate(now, curve, started, ends, origin, destination) {
@@ -106,8 +108,12 @@ function getKeyframesList(keyframeGroup, nowValue) {
     const current = sorted[i];
     const next = sorted[j];
     if (current <= nowValue) {
-      if (next > nowValue) return [current, next];
-      if (j >= sorted.length) return [current];
+      if (next > nowValue) {
+        return [current, next];
+      }
+      if (j >= sorted.length) {
+        return [current];
+      }
     }
   }
 }
@@ -121,7 +127,9 @@ function calculateValue(keyframeGroup, nowValue) {
     keyframeGroup[KEYFRAME_ZERO] = {};
   }
   const keyframesList = getKeyframesList(keyframeGroup, nowValue);
-  if (!keyframesList || keyframesList.length < 1) return;
+  if (!keyframesList || keyframesList.length < 1) {
+    return;
+  }
   const currentKeyframe = keyframesList[0];
   const currentTransition = keyframeGroup[currentKeyframe];
   const nextKeyframe = keyframesList[1];
@@ -136,20 +144,22 @@ function calculateValue(keyframeGroup, nowValue) {
   return finalValue;
 }
 
-function calculateValueAndReturnUndefinedIfNotWorthwhile(
-  keyframeGroup,
-  nowValue,
-) {
-  if (!keyframeGroup[KEYFRAME_ZERO]) keyframeGroup[KEYFRAME_ZERO] = {}; // HACK: See above
+function calculateValueAndReturnUndefinedIfNotWorthwhile(keyframeGroup, nowValue) {
+  if (!keyframeGroup[KEYFRAME_ZERO]) {
+    keyframeGroup[KEYFRAME_ZERO] = {};
+  } // HACK: See above
   const keyframesList = getKeyframesList(keyframeGroup, nowValue);
-  if (!keyframesList || keyframesList.length < 1) return void 0;
+  if (!keyframesList || keyframesList.length < 1) {
+    return void 0;
+  }
 
   const currentKeyframe = keyframesList[0];
   const nextKeyframe = keyframesList[1];
   const currentTransition = keyframeGroup[currentKeyframe];
   const nextTransition = keyframeGroup[nextKeyframe];
 
-  // If either this or the next transition came from a "machine" (function), we must recalc, since they may be time-dependant
+  // If either this or the next transition came from a "machine" (function), we must recalc, since they may be
+  // time-dependant
   if (
     (currentTransition && currentTransition.machine) ||
     (nextTransition && nextTransition.machine)
@@ -191,20 +201,20 @@ function calculateValueAndReturnUndefinedIfNotWorthwhile(
   return void 0;
 }
 
-function getTransitionValue(
-  currentKeyframe,
-  currentTransition,
-  nextKeyframe,
-  nextTransition,
-  nowValue,
-) {
+function getTransitionValue(currentKeyframe, currentTransition, nextKeyframe, nextTransition, nowValue) {
   const currentValue = currentTransition.value;
 
-  if (!currentTransition.curve) return currentValue; // No curve indicates immediate transition
-  if (!nextTransition) return currentValue; // We have gone past the final transition
+  if (!currentTransition.curve) {
+    return currentValue;
+  } // No curve indicates immediate transition
+  if (!nextTransition) {
+    return currentValue;
+  } // We have gone past the final transition
 
   let currentCurve = currentTransition.curve;
-  if (typeof currentCurve === STRING) currentCurve = Curves[currentCurve];
+  if (typeof currentCurve === STRING) {
+    currentCurve = justCurves[currentCurve];
+  }
   const nextValue = nextTransition.value;
 
   const finalValue = interpolate(

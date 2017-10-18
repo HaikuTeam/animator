@@ -46,6 +46,7 @@ if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
   HaikuGlobal.HaikuGlobalAnimationHarness.frame();
 }
 
+// tslint:disable-next-line:function-name
 export default function HaikuClock(tickables, component, options) {
   SimpleEventEmitter.create(this);
 
@@ -57,7 +58,7 @@ export default function HaikuClock(tickables, component, options) {
   this._isRunning = false;
   this._reinitialize();
 
-   // Bind to avoid `this`-detachment when called by raf
+  // Bind to avoid `this`-detachment when called by raf
   HaikuGlobal.HaikuGlobalAnimationHarness.queue.push(this.run.bind(this));
 
   // Tests and others may need this to cancel the rAF loop, to avoid leaked handles
@@ -137,7 +138,9 @@ HaikuClock.prototype.setTime = function setTime(time) {
  * clock is in control mode or not.
  */
 HaikuClock.prototype.getExplicitTime = function getExplicitTime() {
-  if (this._isTimeControlled()) return this.getControlledTime();
+  if (this._isTimeControlled()) {
+    return this.getControlledTime();
+  }
   return this.getRunningTime();
 };
 

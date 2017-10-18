@@ -42,8 +42,12 @@ const FORMATS = {
 };
 
 function initializeNodeAttributes(element, parent) {
-  if (!element.attributes) element.attributes = {};
-  if (!element.attributes.style) element.attributes.style = {};
+  if (!element.attributes) {
+    element.attributes = {};
+  }
+  if (!element.attributes.style) {
+    element.attributes.style = {};
+  }
   if (!element.layout) {
     element.layout = createLayoutSpec(null, null, null);
     element.layout.matrix = createMatrix();
@@ -55,27 +59,33 @@ function initializeNodeAttributes(element, parent) {
 }
 
 function initializeTreeAttributes(tree, container) {
-  if (!tree || typeof tree === 'string') return;
+  if (!tree || typeof tree === 'string') {
+    return;
+  }
   initializeNodeAttributes(tree, container);
   tree.__parent = container;
-  if (!tree.children) return;
-  if (tree.children.length < 1) return;
+  if (!tree.children || tree.children.length < 1) {
+    return;
+  }
   for (let i = 0; i < tree.children.length; i++) {
     initializeTreeAttributes(tree.children[i], tree);
   }
 }
 
-// The layout specification naming in createLayoutSpec is derived in part from https://github.com/Famous/engine/blob/master/core/Transform.js which is MIT licensed.
+// The layout specification naming in createLayoutSpec is derived in part from:
+// https://github.com/Famous/engine/blob/master/core/Transform.js which is MIT licensed.
 // The MIT License (MIT)
 // Copyright (c) 2015 Famous Industries Inc.
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+// documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+// to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+// the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+// NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+// EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+// ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
 function createLayoutSpec(ax, ay, az) {
   return {
     shown: true,
@@ -175,11 +185,8 @@ function isZero(num) {
 }
 
 function createBaseComputedLayout(x, y, z) {
-  if (!x) x = 0;
-  if (!y) y = 0;
-  if (!z) z = 0;
   return {
-    size: {x, y, z},
+    size: {x: x || 0, y: y || 0, z: z || 0},
     matrix: createMatrix(),
     shown: true,
     opacity: 1.0,
@@ -191,9 +198,9 @@ function computeLayout(
   layoutSpec,
   currentMatrix,
   parentMatrix,
-  parentsizeAbsolute,
+  parentsizeAbsoluteIn,
 ) {
-  if (!parentsizeAbsolute) parentsizeAbsolute = {x: 0, y: 0, z: 0};
+  const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
 
   if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
     parentsizeAbsolute.z = DEFAULT_DEPTH;
@@ -232,14 +239,14 @@ export default {
   createBaseComputedLayout,
   computeOrientationFlexibly,
   createMatrix,
-  FORMATS,
-  SIZE_ABSOLUTE,
-  SIZE_PROPORTIONAL,
-  ATTRIBUTES: createLayoutSpec(null, null, null),
   multiplyMatrices,
   transposeMatrix,
   copyMatrix,
   initializeTreeAttributes,
   initializeNodeAttributes,
   isZero,
+  FORMATS,
+  SIZE_ABSOLUTE,
+  SIZE_PROPORTIONAL,
+  ATTRIBUTES: createLayoutSpec(null, null, null),
 };

@@ -1,4 +1,4 @@
-import VANITY_HANDLERS from './../properties/dom/vanities';
+import vanities from './../properties/dom/vanities';
 
 export default function applyPropertyToElement(element, name, value, context, component) {
   let type = element.elementName;
@@ -20,10 +20,10 @@ export default function applyPropertyToElement(element, name, value, context, co
   }
 
   if (
-    VANITY_HANDLERS[type] &&
-    VANITY_HANDLERS[type][name]
+    vanities[type] &&
+    vanities[type][name]
   ) {
-    VANITY_HANDLERS[type][name](
+    vanities[type][name](
       name,
       element,
       value,

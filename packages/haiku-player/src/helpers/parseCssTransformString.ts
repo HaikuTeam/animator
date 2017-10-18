@@ -3,16 +3,16 @@
  */
 
 import Layout3D from './../Layout3D';
-import mat4compose from './../vendor/css-mat4';
-import mat4decompose from './../vendor/mat4-decompose';
-import Math3d from './../vendor/math3d';
+import cssMat4 from './../vendor/css-mat4';
+import mat4Decompose from './../vendor/mat4-decompose';
+import math3d from './../vendor/math3d';
 import MathUtils from './MathUtils';
 import parseCssValueString from './parseCssValueString';
 
 function separate(str) {
   const bits = str.split('(');
   const type = bits[0];
-  const vals = bits[1].replace(')', '').split(/,\s*?/gi).map(function (str2) {
+  const vals = bits[1].replace(')', '').split(/,\s*?/gi).map((str2) => {
     return parseCssValueString(str2, type);
   });
   return {
@@ -21,21 +21,26 @@ function separate(str) {
   };
 }
 
-export default function parseCssTransformString(str) {
+export default function parseCssTransformString(inStr) {
   const out = {};
 
-  if (!str) return out;
-  if (str === '') return out;
+  if (!inStr || inStr === '') {
+    return out;
+  }
 
-  str = str.toLowerCase().replace(';', '').trim();
-  if (str === 'none') return out;
+  const str: string = inStr.toLowerCase().replace(';', '').trim();
+  if (str === 'none') {
+    return out;
+  }
 
   const parts = str.match(/([a-zA-Z0-9]+\(.+?\))/gi);
-  if (!parts) return out;
+  if (!parts) {
+    return out;
+  }
 
   const specs = parts.map(separate);
 
-  const matrices = specs.map(function _map(spec) {
+  const matrices = specs.map((spec) => {
     const layout = {
       translate: [0, 0, 0],
       rotate: [0, 0, 0],
@@ -113,9 +118,10 @@ export default function parseCssTransformString(str) {
         layout.translate[2] = spec.values[2].value;
         break;
 
-      // Special case: If we get a matrix3d, we can just use that matrix itself instead of flowing through the layout calculator
+      // Special case: If we get a matrix3d, we can just use that matrix itself instead of flowing through the layout
+      // calculator
       case 'matrix3d':
-        return Layout3D.copyMatrix([], spec.values.map(function _mapper(val) {
+        return Layout3D.copyMatrix([], spec.values.map((val) => {
           return val.value;
         }));
 
@@ -125,7 +131,7 @@ export default function parseCssTransformString(str) {
     }
 
     // Transfer the layout specification into a full matrix so we can multiply it later
-    const matrix = mat4compose([], layout);
+    const matrix = cssMat4([], layout);
 
     return matrix;
   });
@@ -143,7 +149,7 @@ export default function parseCssTransformString(str) {
     quaternion: [0, 0, 0, 1],
     rotation: [0, 0, 0],
   };
-  mat4decompose(
+  mat4Decompose(
     product,
     components.translation,
     components.scale,
@@ -152,7 +158,7 @@ export default function parseCssTransformString(str) {
     components.quaternion,
   );
 
-  components.rotation = Math3d.getEulerAngles(
+  components.rotation = math3d.getEulerAngles(
     components.quaternion[0],
     components.quaternion[1],
     components.quaternion[2],
@@ -179,12 +185,24 @@ export default function parseCssTransformString(str) {
   if (components.translation[2] !== 0) {
     out['translation.z'] = components.translation[2];
   }
-  if (components.rotation[0] !== 0) out['rotation.x'] = components.rotation[0];
-  if (components.rotation[1] !== 0) out['rotation.y'] = components.rotation[1];
-  if (components.rotation[2] !== 0) out['rotation.z'] = components.rotation[2];
-  if (components.scale[0] !== 1) out['scale.x'] = components.scale[0];
-  if (components.scale[1] !== 1) out['scale.y'] = components.scale[1];
-  if (components.scale[2] !== 1) out['scale.z'] = components.scale[2];
+  if (components.rotation[0] !== 0) {
+    out['rotation.x'] = components.rotation[0];
+  }
+  if (components.rotation[1] !== 0) {
+    out['rotation.y'] = components.rotation[1];
+  }
+  if (components.rotation[2] !== 0) {
+    out['rotation.z'] = components.rotation[2];
+  }
+  if (components.scale[0] !== 1) {
+    out['scale.x'] = components.scale[0];
+  }
+  if (components.scale[1] !== 1) {
+    out['scale.y'] = components.scale[1];
+  }
+  if (components.scale[2] !== 1) {
+    out['scale.z'] = components.scale[2];
+  }
 
   return out;
 }

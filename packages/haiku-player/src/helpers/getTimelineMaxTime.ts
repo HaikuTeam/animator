@@ -11,7 +11,9 @@ export default function getTimelineMaxTime(descriptor) {
       const keys = Object.keys(keyframes);
       for (let i = 0; i < keys.length; i++) {
         const key = parseInt(keys[i], 10);
-        if (key > max) max = key;
+        if (key > max) {
+          max = key;
+        }
       }
     }
   }

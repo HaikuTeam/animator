@@ -136,7 +136,8 @@ export default function assignAttributes(
       continue;
     }
 
-    setAttribute(domElement, key, anotherNewValue, component, component.config.options.cache[getFlexId(virtualElement)]);
+    setAttribute(
+      domElement, key, anotherNewValue, component, component.config.options.cache[getFlexId(virtualElement)]);
   }
 
   // Any 'hidden' eventHandlers we got need to be assigned now.

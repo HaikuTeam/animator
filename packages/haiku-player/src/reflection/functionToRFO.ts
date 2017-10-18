@@ -19,8 +19,9 @@ const REGEXPS = [
 
 function nth(n, type, arr) {
   const none = {value: null, type: 'void'};
-  if (arr.length < 1) return none;
-  if (n > arr.length) return none;
+  if (arr.length < 1 || n > arr.length) {
+    return none;
+  }
   let f = 0;
   for (let i = 0; i < arr.length; i++) {
     if (arr[i].type === type) {
@@ -44,7 +45,7 @@ function tokenize(source) {
       const match = regexp.re.exec(chunk);
       if (match) {
         const value = match[0];
-        tokens.push({type: regexp.type, value});
+        tokens.push({value, type: regexp.type});
         // Need to slice the chunk at the value match length
         chunk = chunk.slice(match[0].length, chunk.length);
         break;
@@ -59,7 +60,9 @@ function tokenize(source) {
 }
 
 function tokensToParams(tokens) {
-  if (tokens.length < 1) return [];
+  if (tokens.length < 1) {
+    return [];
+  }
 
   // HACK: Rather than property ast-ize this, we're just going to go through it linearly and make JSON.
   let json = '';
