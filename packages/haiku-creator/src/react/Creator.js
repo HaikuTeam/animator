@@ -63,7 +63,7 @@ export default class Creator extends React.Component {
     this.handleFindWebviewCoordinates = this.handleFindWebviewCoordinates.bind(this)
     this.onAutoUpdateCheckComplete = this.onAutoUpdateCheckComplete.bind(this)
     this.layout = new EventEmitter()
-    this.activityMonitor = new ActivityMonitor(window, this.onActivityCheck.bind(this))
+    this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
 
     this.state = {
       error: null,
@@ -561,7 +561,7 @@ export default class Creator extends React.Component {
     this.setState({ hasCheckedForUpdates: true })
   }
 
-  onActivityCheck (wasUserActive) {
+  onActivityReport (wasUserActive) {
     // notify inkstone
   }
 
