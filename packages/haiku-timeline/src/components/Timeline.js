@@ -955,7 +955,9 @@ class Timeline extends React.Component {
   }
 
   togglePlayback () {
-    if (this.state.currentFrame >= this.state.maxFrame) this.playbackSkipBack()
+    if (this.state.currentFrame >= this.getFrameInfo().friMax) {
+      this.playbackSkipBack()
+    }
 
     if (this.state.isPlayerPlaying) {
       this.setState({
