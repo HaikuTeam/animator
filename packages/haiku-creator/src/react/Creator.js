@@ -22,6 +22,7 @@ import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
+import ActivityMonitor from './helpers/activityMonitor'
 import {
   linkExternalAssetsOnDrop,
   preventDefaultDrag
@@ -62,6 +63,7 @@ export default class Creator extends React.Component {
     this.handleFindWebviewCoordinates = this.handleFindWebviewCoordinates.bind(this)
     this.onAutoUpdateCheckComplete = this.onAutoUpdateCheckComplete.bind(this)
     this.layout = new EventEmitter()
+    this.activityMonitor = new ActivityMonitor(window)
 
     this.state = {
       error: null,
@@ -234,6 +236,8 @@ export default class Creator extends React.Component {
       }
     })
 
+    this.activityMonitor.startWatchers()
+
     this.envoy = new EnvoyClient({
       port: this.props.haiku.envoy.port,
       host: this.props.haiku.envoy.host,
@@ -361,6 +365,7 @@ export default class Creator extends React.Component {
   componentWillUnmount () {
     this.tourChannel.off('tour:requestElementCoordinates', this.handleFindElementCoordinates)
     this.tourChannel.off('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates)
+    this.activityMonitor.stopWatchers()
   }
 
   handleFindElementCoordinates ({ selector, webview }) {
