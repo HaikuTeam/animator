@@ -26,7 +26,7 @@ export const getStub = () => sinon.stub();
  *
  * `haiku-stuff/test/something.test.js`
  *
- *   import {importStub} from 'haiku-testing/lib/mock';
+ *   import {importStubs} from 'haiku-testing/lib/mock';
  *
  *   const [{doStuff}, spyDoFoo, spyBar] = importStubs('../lib/something', {'foo': 'doFoo', 'bar': 'default'});
  *   bar.returns('hello');
