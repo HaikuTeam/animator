@@ -37,9 +37,11 @@ module.exports = {
   },
 
   unzipAndOpen (zipPath, destination, filename) {
-    const unzipCommand = `unzip -o -qq ${zipPath} -d ${destination}`
+    const saneZipPath = JSON.stringify(zipPath)
+    const saneDestination = JSON.stringify(destination)
+    const unzipCommand = `unzip -o -qq ${saneZipPath} -d ${saneDestination}`
     const openCommand = filename
-      ? `open -a ${destination}/${filename}.app $1`
+      ? `open -a ${saneDestination}/${filename}.app $1`
       : 'echo'
 
     return new Promise((resolve, reject) => {
