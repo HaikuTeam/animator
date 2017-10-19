@@ -4,6 +4,7 @@ import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared'
 
 let statuses = {
   IDLE: 'Idle',
+  OPT_IN: 'OptIn',
   CHECKING: 'Checking',
   DOWNLOADING: 'Downloading',
   NO_UPDATES: 'NoUpdates',
@@ -14,12 +15,11 @@ let statuses = {
 class AutoUpdater extends React.Component {
   constructor (props) {
     super(props)
-
     this.hide = this.hide.bind(this)
     this.updateProgress = this.updateProgress.bind(this)
+    this.update = this.update.bind(this)
     this.onFail = this.onFail.bind(this)
-    this.isFirstRun = true
-
+    this.url = undefined
     this.state = {
       status: statuses.IDLE,
       progress: 0
@@ -29,8 +29,8 @@ class AutoUpdater extends React.Component {
   componentWillReceiveProps (nextProps) {
     if (
       process.env.HAIKU_SKIP_AUTOUPDATE !== '1' &&
-      nextProps.shouldDisplay &&
-      this.state.status === statuses.IDLE
+      this.state.status === statuses.IDLE &&
+      nextProps.check
     ) {
       this.checkForUpdates()
     }
@@ -41,28 +41,27 @@ class AutoUpdater extends React.Component {
 
     autoUpdate.checkUpdates()
       .then(({shouldUpdate, url}) => {
-        shouldUpdate ? this.update(url) : this.dismiss()
+        if(shouldUpdate) {
+          this.url = url
+          this.props.skipOptIn
+            ? this.update()
+            : this.setState({status: statuses.OPT_IN})
+        } else {
+          this.props.runOnBackground
+            ? this.hide()
+            : this.setState({status: statuses.NO_UPDATES})
+        }
       })
       .catch(this.onFail)
   }
 
   onFail (error) {
-    console.error(error)
     this.setState({status: statuses.DOWNLOAD_FAILED})
   }
 
-  dismiss () {
-    if (!this.isFirstRun) {
-      this.setState({status: statuses.NO_UPDATES})
-    } else {
-      this.hide()
-      this.isFirstRun = false
-    }
-  }
-
-  update (url) {
+  update () {
     this.setState({status: statuses.DOWNLOADING})
-    autoUpdate.update(url, this.updateProgress)
+    autoUpdate.update(this.url, this.updateProgress)
       .then(() => {
         this.setState({status: statuses.DOWNLOAD_FINISHED, progress: 0})
       })
@@ -75,7 +74,24 @@ class AutoUpdater extends React.Component {
 
   hide () {
     this.setState({status: statuses.IDLE})
-    this.props.onAutoUpdateCheckComplete()
+    this.props.onComplete()
+  }
+
+  renderOptIn () {
+    return (
+      <div>
+        <p>
+          There is a new version available. <br />
+        </p>
+        <p>Would you like to download it?</p>
+        <button style={STYLES.btnSecondary} onClick={this.hide}>
+          Not now
+        </button>
+        <button style={STYLES.btn} onClick={this.update}>
+          Yes
+        </button>
+      </div>
+    )
   }
 
   renderDownloading () {
@@ -84,7 +100,8 @@ class AutoUpdater extends React.Component {
     return (
       <div>
         <span>
-          An update is available. Downloading and installing...
+          {this.props.skipOptIn && 'An update is available.'}
+          Downloading and installing...
         </span>
         <p style={STYLES.progressNumber}>{progress} %</p>
         <progress value={progress} max='100' style={STYLES.progressBar}>
@@ -103,10 +120,12 @@ class AutoUpdater extends React.Component {
   }
 
   renderIdle () {
-    return <span>Checking for updates...</span>
+    return null
   }
 
   renderNoUpdates () {
+    if(this.props.runOnBackground) return null
+
     return (
       <div>
         <p>You are using the latest version</p>
@@ -126,6 +145,8 @@ class AutoUpdater extends React.Component {
   }
 
   renderChecking () {
+    if(this.props.runOnBackground) return null
+
     return (
       <div>
         Checking for updates...
@@ -134,20 +155,24 @@ class AutoUpdater extends React.Component {
   }
 
   render () {
-    if (process.env.HAIKU_SKIP_AUTOUPDATE === '1' || !this.props.shouldDisplay) {
+    if (process.env.HAIKU_SKIP_AUTOUPDATE === '1') {
       return null
     }
 
     let content = this[`render${this.state.status}`]()
 
-    return (
-      <div>
-        <div style={STYLES.container}>
-          {content}
+    if(content) {
+      return (
+        <div>
+          <div style={STYLES.container}>
+            {content}
+          </div>
+          <div style={STYLES.overlay} />
         </div>
-        <div style={STYLES.overlay} />
-      </div>
-    )
+      )
+    } else {
+      return null
+    }
   }
 }
 

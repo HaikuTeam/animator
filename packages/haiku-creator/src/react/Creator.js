@@ -74,14 +74,18 @@ export default class Creator extends React.Component {
       dashboardVisible: !this.props.folder,
       readyForAuth: false,
       isUserAuthenticated: false,
-      hasCheckedForUpdates: false,
       username: null,
       password: null,
       notices: [],
       softwareVersion: pkg.version,
       didPlumbingNoticeCrash: false,
       activeNav: 'library',
-      projectsList: []
+      projectsList: [],
+      updater: {
+        shouldCheck: false,
+        shouldRunOnBackground: true,
+        shouldSkipOptIn: true
+      }
     }
 
     const win = remote.getCurrentWindow()
@@ -131,7 +135,13 @@ export default class Creator extends React.Component {
       this.props.websocket.send({ method: 'gitRedo', params: [this.state.projectFolder, { type: 'global' }] })
     }, 500, { leading: true }))
     ipcRenderer.on('global-menu:check-updates', () => {
-      this.setState({ hasCheckedForUpdates: false })
+      this.setState({
+        updater: {
+          shouldCheck: true,
+          shouldRunOnBackground: false,
+          shouldSkipOptIn: true
+        }
+      })
     })
 
     window.addEventListener('dragover', preventDefaultDrag, false)
@@ -558,11 +568,26 @@ export default class Creator extends React.Component {
   }
 
   onAutoUpdateCheckComplete () {
-    this.setState({ hasCheckedForUpdates: true })
+    this.setState({
+      updater: {
+        ...this.state.updater,
+        shouldCheck: false
+      }
+    })
   }
 
   onActivityReport (wasUserActive) {
-    // notify inkstone
+    if (wasUserActive) {
+      // notify inkstone
+    }
+
+    this.setState({
+      updater: {
+        shouldCheck: true,
+        shouldRunOnBackground: true,
+        shouldSkipOptIn: false
+      }
+    })
   }
 
   renderStartupDefaultScreen () {
@@ -625,7 +650,12 @@ export default class Creator extends React.Component {
             envoy={this.envoy}
             {...this.props} />
           <Tour projectsList={this.state.projectsList} envoy={this.envoy} startTourOnMount />
-          <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
+          <AutoUpdater
+            onComplete={this.onAutoUpdateCheckComplete}
+            check={this.state.updater.shouldCheck}
+            skipOptIn={this.state.updater.shouldSkipOptIn}
+            runOnBackground={this.state.updater.shouldRunOnBackground}
+          />
         </div>
       )
     }
@@ -634,7 +664,12 @@ export default class Creator extends React.Component {
       return (
         <div>
           <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
-          <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
+          <AutoUpdater
+            onComplete={this.onAutoUpdateCheckComplete}
+            check={this.state.updater.shouldCheck}
+            skipOptIn={this.state.updater.shouldSkipOptIn}
+            runOnBackground={this.state.updater.shouldRunOnBackground}
+          />
           <ProjectBrowser
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
@@ -669,7 +704,12 @@ export default class Creator extends React.Component {
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
+        <AutoUpdater
+          onComplete={this.onAutoUpdateCheckComplete}
+          check={this.state.updater.shouldCheck}
+          skipOptIn={this.state.updater.shouldSkipOptIn}
+          runOnBackground={this.state.updater.shouldRunOnBackground}
+        />
         <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
           <div className='layout-box' style={{overflow: 'visible'}}>
