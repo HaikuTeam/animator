@@ -117,6 +117,7 @@ function createWindow () {
 
   ipcMain.on('renderer:projects-list-fetched', (ipcEvent, projectList) => {
     menuspec.projectList = projectList
+    menuspec.folder = null
     topmenu.create(menuspec)
   })
 
