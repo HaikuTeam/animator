@@ -576,8 +576,8 @@ export default class Creator extends React.Component {
     })
   }
 
-  onActivityReport (wasUserActive) {
-    if (wasUserActive) {
+  onActivityReport (userWasActive) {
+    if (userWasActive) {
       // notify inkstone
     }
 
