@@ -2,9 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-const STRING = "string"
-const NUMBER = "number"
-const BOOLEAN = "boolean"
+const STRING = 'string';
+const NUMBER = 'number';
+const BOOLEAN = 'boolean';
 
 export default function isSerializableScalar(value) {
   return (
@@ -12,5 +12,5 @@ export default function isSerializableScalar(value) {
     typeof value === NUMBER ||
     typeof value === STRING ||
     typeof value === BOOLEAN
-  )
+  );
 }

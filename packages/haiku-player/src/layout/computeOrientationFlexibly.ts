@@ -26,7 +26,7 @@
  * THE SOFTWARE.
  */
 
-export default function computeOrientationFlexibly(x, y, z, w, quat) {
+export default function computeOrientationFlexibly(xIn, yIn, zIn, w, quat) {
   // If w-component was given, we are dealing with someone who is quaternion-savvy,
   // and who we assume wants to compute a rotation exactly, so we'll just return the vector
   // if (w != null) {
@@ -41,7 +41,7 @@ export default function computeOrientationFlexibly(x, y, z, w, quat) {
     !quat ||
     (quat.x == null || quat.y == null || quat.z == null || quat.w == null)
   ) {
-    throw new Error("No w-component nor quaternion provided!")
+    throw new Error('No w-component nor quaternion provided!');
   }
 
   // If we got here, we are going to return a new quaternion to describe the
@@ -49,55 +49,59 @@ export default function computeOrientationFlexibly(x, y, z, w, quat) {
   // Before we move on to the actual calculations, we're going to handle the
   // case that any of the other values was omitted, which we will interpret
   // to mean we want to use the value given by the passed quaternion
+  let x = xIn;
+  let y = yIn;
+  let z = zIn;
+
   if (x == null || y == null || z == null) {
-    let sp = -2 * (quat.y * quat.z - quat.w * quat.x)
+    const sp = -2 * (quat.y * quat.z - quat.w * quat.x);
 
     if (Math.abs(sp) > 0.99999) {
-      y = y == null ? Math.PI * 0.5 * sp : y
+      y = y == null ? Math.PI * 0.5 * sp : y;
       x = x == null
         ? Math.atan2(
             -quat.x * quat.z + quat.w * quat.y,
             0.5 - quat.y * quat.y - quat.z * quat.z,
           )
-        : x
-      z = z == null ? 0 : z
+        : x;
+      z = z == null ? 0 : z;
     } else {
-      y = y == null ? Math.asin(sp) : y
+      y = y == null ? Math.asin(sp) : y;
       x = x == null
         ? Math.atan2(
             quat.x * quat.z + quat.w * quat.y,
             0.5 - quat.x * quat.x - quat.y * quat.y,
           )
-        : x
+        : x;
       z = z == null
         ? Math.atan2(
             quat.x * quat.y + quat.w * quat.z,
             0.5 - quat.x * quat.x - quat.z * quat.z,
           )
-        : z
+        : z;
     }
   }
 
-  let hx = x * 0.5
-  let hy = y * 0.5
-  let hz = z * 0.5
+  const hx = x * 0.5;
+  const hy = y * 0.5;
+  const hz = z * 0.5;
 
-  let sx = Math.sin(hx)
-  let sy = Math.sin(hy)
-  let sz = Math.sin(hz)
-  let cx = Math.cos(hx)
-  let cy = Math.cos(hy)
-  let cz = Math.cos(hz)
+  const sx = Math.sin(hx);
+  const sy = Math.sin(hy);
+  const sz = Math.sin(hz);
+  const cx = Math.cos(hx);
+  const cy = Math.cos(hy);
+  const cz = Math.cos(hz);
 
-  let sysz = sy * sz
-  let cysz = cy * sz
-  let sycz = sy * cz
-  let cycz = cy * cz
+  const sysz = sy * sz;
+  const cysz = cy * sz;
+  const sycz = sy * cz;
+  const cycz = cy * cz;
 
-  let qx = sx * cycz + cx * sysz
-  let qy = cx * sycz - sx * cysz
-  let qz = cx * cysz + sx * sycz
-  let qw = cx * cycz - sx * sysz
+  const qx = sx * cycz + cx * sysz;
+  const qy = cx * sycz - sx * cysz;
+  const qz = cx * cysz + sx * sycz;
+  const qw = cx * cycz - sx * sysz;
 
-  return { x: qx, y: qy, z: qz, w: qw }
+  return {x: qx, y: qy, z: qz, w: qw};
 }

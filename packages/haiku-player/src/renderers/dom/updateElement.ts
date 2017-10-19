@@ -2,19 +2,19 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import applyLayout from "./applyLayout"
-import assignAttributes from "./assignAttributes"
-import cloneVirtualElement from "./cloneVirtualElement"
-import getFlexId from "./getFlexId"
-import getTypeAsString from "./getTypeAsString"
-import isTextNode from "./isTextNode"
-import normalizeName from "./normalizeName"
-import renderTree from "./renderTree"
-import replaceElement from "./replaceElement"
-import replaceElementWithText from "./replaceElementWithText"
+import applyLayout from './applyLayout';
+import assignAttributes from './assignAttributes';
+import cloneVirtualElement from './cloneVirtualElement';
+import getFlexId from './getFlexId';
+import getTypeAsString from './getTypeAsString';
+import isTextNode from './isTextNode';
+import normalizeName from './normalizeName';
+import renderTree from './renderTree';
+import replaceElement from './replaceElement';
+import replaceElementWithText from './replaceElementWithText';
 
-const OBJECT = "object"
-const STRING = "string"
+const OBJECT = 'object';
+const STRING = 'string';
 
 export default function updateElement(
   domElement,
@@ -26,32 +26,35 @@ export default function updateElement(
 ) {
   // If a text node, go straight to 'replace' since we don't know the tag name
   if (isTextNode(virtualElement)) {
-    replaceElementWithText(domElement, virtualElement, component)
-    return virtualElement
+    replaceElementWithText(domElement, virtualElement, component);
+    return virtualElement;
   }
 
-  if (!domElement.haiku) domElement.haiku = {}
+  if (!domElement.haiku) {
+    domElement.haiku = {};
+  }
 
   if (!component.config.options.cache[getFlexId(virtualElement)]) {
-    component.config.options.cache[getFlexId(virtualElement)] = {}
+    component.config.options.cache[getFlexId(virtualElement)] = {};
   }
 
   if (!domElement.haiku.element) {
-    // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute removals
-    domElement.haiku.element = cloneVirtualElement(virtualElement)
+    // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute
+    // removals
+    domElement.haiku.element = cloneVirtualElement(virtualElement);
   }
 
-  let domTagName = domElement.tagName.toLowerCase().trim()
-  let elName = normalizeName(getTypeAsString(virtualElement))
-  let virtualElementTagName = elName.toLowerCase().trim()
-  let incomingKey =
+  const domTagName = domElement.tagName.toLowerCase().trim();
+  const elName = normalizeName(getTypeAsString(virtualElement));
+  const virtualElementTagName = elName.toLowerCase().trim();
+  const incomingKey =
     virtualElement.key ||
-    (virtualElement.attributes && virtualElement.attributes.key)
-  let existingKey = domElement.haiku && domElement.haiku.key
-  let isKeyDifferent =
+    (virtualElement.attributes && virtualElement.attributes.key);
+  const existingKey = domElement.haiku && domElement.haiku.key;
+  const isKeyDifferent =
     incomingKey !== null &&
     incomingKey !== undefined &&
-    incomingKey !== existingKey
+    incomingKey !== existingKey;
 
   // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
   // so the most we want to do is update the attributes and layout properties, but leave the rest alone
@@ -63,7 +66,7 @@ export default function updateElement(
         parentNode,
         parentVirtualElement,
         component,
-      )
+      );
     }
 
     if (isKeyDifferent) {
@@ -73,7 +76,7 @@ export default function updateElement(
         parentNode,
         parentVirtualElement,
         component,
-      )
+      );
     }
   }
 
@@ -87,7 +90,7 @@ export default function updateElement(
       component,
       isPatchOperation,
       isKeyDifferent,
-    )
+    );
   }
 
   applyLayout(
@@ -98,18 +101,18 @@ export default function updateElement(
     component,
     isPatchOperation,
     isKeyDifferent,
-  )
+  );
   if (incomingKey !== undefined && incomingKey !== null) {
-    domElement.haiku.key = incomingKey
+    domElement.haiku.key = incomingKey;
   }
 
-  let subcomponent = (virtualElement && virtualElement.__instance) || component
+  const subcomponent = (virtualElement && virtualElement.__instance) || component;
 
   if (Array.isArray(virtualElement.children)) {
     // For performance, we don't render children during a patch operation, except in the case
     // that we have some text content, which we (hack) need to always assume needs an update.
     // TODO: Fix this hack and make smarter
-    let doSkipChildren = isPatchOperation && (typeof virtualElement.children[0] !== STRING)
+    const doSkipChildren = isPatchOperation && (typeof virtualElement.children[0] !== STRING);
     renderTree(
       domElement,
       virtualElement,
@@ -117,7 +120,7 @@ export default function updateElement(
       subcomponent,
       isPatchOperation,
       doSkipChildren,
-    )
+    );
   } else if (!virtualElement.children) {
     // In case of falsy virtual children, we still need to remove elements that were already there
     renderTree(
@@ -127,8 +130,8 @@ export default function updateElement(
       subcomponent,
       isPatchOperation,
       null,
-    )
+    );
   }
 
-  return domElement
+  return domElement;
 }

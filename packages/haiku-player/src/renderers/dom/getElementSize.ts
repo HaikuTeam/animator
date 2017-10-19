@@ -3,18 +3,18 @@
  */
 
 export default function getElementSize(domElement) {
-  let x
-  let y
+  let x;
+  let y;
   if (domElement.offsetWidth === undefined) {
-    let rect = domElement.getBoundingClientRect()
-    x = rect.width
-    y = rect.height
+    const rect = domElement.getBoundingClientRect();
+    x = rect.width;
+    y = rect.height;
   } else {
-    x = domElement.offsetWidth
-    y = domElement.offsetHeight
+    x = domElement.offsetWidth;
+    y = domElement.offsetHeight;
   }
   return {
     x,
     y,
-  }
+  };
 }

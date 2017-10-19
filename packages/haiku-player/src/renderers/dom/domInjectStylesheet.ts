@@ -4,16 +4,16 @@
 
 export default function domInjectStylesheet(doc, css) {
   if (doc.createStyleSheet) {
-    let sheet = doc.createStyleSheet()
-    sheet.cssText = css
+    const sheet = doc.createStyleSheet();
+    sheet.cssText = css;
   } else {
-    let head = doc.getElementsByTagName("head")[0]
-    let style = doc.createElement("style")
+    const head = doc.getElementsByTagName('head')[0];
+    const style = doc.createElement('style');
     if (style.styleSheet) {
-      style.styleSheet.cssText = css
+      style.styleSheet.cssText = css;
     } else {
-      style.appendChild(doc.createTextNode(css))
+      style.appendChild(doc.createTextNode(css));
     }
-    (head || doc.documentElement).appendChild(style)
+    (head || doc.documentElement).appendChild(style);
   }
 }

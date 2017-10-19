@@ -3,39 +3,42 @@
  */
 
 export default function parseCssValueString(str, optionalPropertyHint) {
-  if (typeof str === "number") {
+  if (typeof str === 'number') {
     return {
       value: str,
       unit: null,
-    }
+    };
   }
 
   if (str === null || str === undefined) {
     return {
       value: null,
       unit: null,
-    }
+    };
   }
 
-  let num
-  let nmatch = str.match(/([+-]?[\d|.]+)/)
+  let num;
+  const nmatch = str.match(/([+-]?[\d|.]+)/);
 
-  if (nmatch) num = Number(nmatch[0])
-  else num = 0
+  if (nmatch) {
+    num = Number(nmatch[0]);
+  } else {
+    num = 0;
+  }
 
-  let unit
-  let smatch = str.match(/(em|px|%|turn|deg|in)/)
+  let unit;
+  const smatch = str.match(/(em|px|%|turn|deg|in)/);
   if (smatch) {
-    unit = smatch[0]
+    unit = smatch[0];
   } else {
     if (optionalPropertyHint && optionalPropertyHint.match(/rotate/)) {
-      unit = "deg"
+      unit = 'deg';
     } else {
-      unit = null
+      unit = null;
     }
   }
   return {
-    value: num,
     unit,
-  }
+    value: num,
+  };
 }

@@ -1,5 +1,5 @@
-const HAIKU_ID_ATTRIBUTE = "haiku-id"
-const ID_ATTRIBUTE = "id"
+const HAIKU_ID_ATTRIBUTE = 'haiku-id';
+const ID_ATTRIBUTE = 'id';
 
 /**
  * @function getFlexId
@@ -9,9 +9,9 @@ const ID_ATTRIBUTE = "id"
 export default function getFlexId(element) {
   if (element) {
     if (element.getAttribute) {
-      return element.getAttribute(HAIKU_ID_ATTRIBUTE) || element.getAttribute(ID_ATTRIBUTE)
+      return element.getAttribute(HAIKU_ID_ATTRIBUTE) || element.getAttribute(ID_ATTRIBUTE);
     } else if (element.attributes) {
-      return element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes[ID_ATTRIBUTE]
+      return element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes[ID_ATTRIBUTE];
     }
   }
 }

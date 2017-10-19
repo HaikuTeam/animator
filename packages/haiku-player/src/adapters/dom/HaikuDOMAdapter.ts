@@ -2,11 +2,11 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import HaikuContext from "./../../HaikuContext"
-import HaikuDOMRendererClass from "./../../renderers/dom"
+import HaikuContext from './../../HaikuContext';
+import dom from './../../renderers/dom';
 
-const pkg = require("./../../../package.json")
-const PLAYER_VERSION = pkg.version
+const pkg = require('./../../../package.json');
+const PLAYER_VERSION = pkg.version;
 
 /**
  * Example ways in which the export of this module is invoked:
@@ -23,42 +23,47 @@ const PLAYER_VERSION = pkg.version
  * @function HaikuDOMAdapter
  * @description Given a bytecode object, return a factory function which can create a DOM-playable component.
  */
+// tslint:disable-next-line:function-name
 export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
-  if (!config) config = {}
-  if (!config.options) config.options = {}
+  if (!config) {
+    // tslint:disable-next-line:no-param-reassign
+    config = {};
+  }
+  if (!config.options) {
+    config.options = {};
+  }
 
   if (!safeWindow) {
-    if (typeof window !== "undefined") {
-      safeWindow = window
+    if (typeof window !== 'undefined') {
+      // tslint:disable-next-line:no-param-reassign
+      safeWindow = window;
     }
   }
 
   if (config.options.useWebkitPrefix === undefined) {
     // Allow headless mode, e.g. in server-side rendering or in Node.js unit tests
     if (safeWindow && safeWindow.document) {
-      let isWebKit =
-        "WebkitAppearance" in safeWindow.document.documentElement.style
-      config.options.useWebkitPrefix = !!isWebKit
+      config.options.useWebkitPrefix = 'WebkitAppearance' in safeWindow.document.documentElement.style;
     }
   }
 
-  return HaikuContext["createComponentFactory"](
-    HaikuDOMRendererClass,
+  return HaikuContext['createComponentFactory'](
+    dom,
     bytecode,
     config, // Note: Full config object, of which options is one property!
     safeWindow,
-  )
+  );
 }
 
-HaikuDOMAdapter["defineOnWindow"] = function() {
+HaikuDOMAdapter['defineOnWindow'] = function () {
   // Allow multiple players of different versions to exist on the same page
-  if (typeof window !== "undefined") {
-    if (!window["HaikuPlayer"]) {
-      window["HaikuPlayer"] = {}
+  if (typeof window !== 'undefined') {
+    if (!window['HaikuPlayer']) {
+      window['HaikuPlayer'] = {};
     }
 
-    window["HaikuPlayer"][PLAYER_VERSION] = HaikuDOMAdapter
+    window['HaikuPlayer'][PLAYER_VERSION] = HaikuDOMAdapter;
   }
-}
+};
 
-HaikuDOMAdapter["defineOnWindow"]()
+HaikuDOMAdapter['defineOnWindow']();
