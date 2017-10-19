@@ -2,8 +2,8 @@
 exports.__esModule = true;
 var array_unique_1 = require("./../vendor/array-unique");
 var uniq = array_unique_1["default"].immutable;
-var OBJECT = "object";
-var FUNCTION = "function";
+var OBJECT = 'object';
+var FUNCTION = 'function';
 function isObject(value) {
     return value !== null && typeof value === OBJECT && !Array.isArray(value);
 }
@@ -15,8 +15,9 @@ function isEmpty(value) {
 }
 function mergeIncoming(previous, incoming) {
     for (var key in incoming) {
-        if (isEmpty(incoming[key]))
+        if (isEmpty(incoming[key])) {
             continue;
+        }
         if (isObject(previous[key]) && isObject(incoming[key])) {
             previous[key] = mergeIncoming(previous[key], incoming[key]);
             continue;

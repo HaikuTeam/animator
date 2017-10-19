@@ -1,7 +1,7 @@
 "use strict";
 exports.__esModule = true;
-var HAIKU_ID_ATTRIBUTE = "haiku-id";
-var ID_ATTRIBUTE = "id";
+var HAIKU_ID_ATTRIBUTE = 'haiku-id';
+var ID_ATTRIBUTE = 'id';
 function getFlexId(element) {
     if (element) {
         if (element.getAttribute) {

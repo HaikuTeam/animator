@@ -2,38 +2,37 @@
 exports.__esModule = true;
 var just_curves_1 = require("./vendor/just-curves");
 var CENT = 1.0;
-var OBJECT = "object";
-var NUMBER = "number";
+var OBJECT = 'object';
+var NUMBER = 'number';
 var KEYFRAME_ZERO = 0;
 var KEYFRAME_MARGIN = 16.666;
-var STRING = "string";
+var STRING = 'string';
 function percentOfTime(t0, t1, tnow) {
     var span = t1 - t0;
-    if (span === 0)
+    if (span === 0) {
         return CENT;
+    }
     var remaining = t1 - tnow;
-    var percent = CENT - remaining / span;
-    return percent;
+    return CENT - remaining / span;
 }
 function valueAtPercent(v0, v1, pc) {
     var span = v1 - v0;
     var gain = span * pc;
-    var value = v0 + gain;
-    return value;
+    return v0 + gain;
 }
 function valueAtTime(v0, v1, t0, t1, tnow) {
     var pc = percentOfTime(t0, t1, tnow);
-    var value = valueAtPercent(v0, v1, pc);
-    return value;
+    return valueAtPercent(v0, v1, pc);
 }
 function interpolateValue(v0, v1, t0, t1, tnow, curve) {
     var pc = percentOfTime(t0, t1, tnow);
-    if (pc > CENT)
+    if (pc > CENT) {
         pc = CENT;
-    if (curve)
+    }
+    if (curve) {
         pc = curve(pc);
-    var value = valueAtPercent(v0, v1, pc);
-    return value;
+    }
+    return valueAtPercent(v0, v1, pc);
 }
 function interpolate(now, curve, started, ends, origin, destination) {
     if (Array.isArray(origin)) {
@@ -79,10 +78,12 @@ function getKeyframesList(keyframeGroup, nowValue) {
         var current = sorted[i];
         var next = sorted[j];
         if (current <= nowValue) {
-            if (next > nowValue)
+            if (next > nowValue) {
                 return [current, next];
-            if (j >= sorted.length)
+            }
+            if (j >= sorted.length) {
                 return [current];
+            }
         }
     }
 }
@@ -91,8 +92,9 @@ function calculateValue(keyframeGroup, nowValue) {
         keyframeGroup[KEYFRAME_ZERO] = {};
     }
     var keyframesList = getKeyframesList(keyframeGroup, nowValue);
-    if (!keyframesList || keyframesList.length < 1)
+    if (!keyframesList || keyframesList.length < 1) {
         return;
+    }
     var currentKeyframe = keyframesList[0];
     var currentTransition = keyframeGroup[currentKeyframe];
     var nextKeyframe = keyframesList[1];
@@ -101,11 +103,13 @@ function calculateValue(keyframeGroup, nowValue) {
     return finalValue;
 }
 function calculateValueAndReturnUndefinedIfNotWorthwhile(keyframeGroup, nowValue) {
-    if (!keyframeGroup[KEYFRAME_ZERO])
+    if (!keyframeGroup[KEYFRAME_ZERO]) {
         keyframeGroup[KEYFRAME_ZERO] = {};
+    }
     var keyframesList = getKeyframesList(keyframeGroup, nowValue);
-    if (!keyframesList || keyframesList.length < 1)
+    if (!keyframesList || keyframesList.length < 1) {
         return void 0;
+    }
     var currentKeyframe = keyframesList[0];
     var nextKeyframe = keyframesList[1];
     var currentTransition = keyframeGroup[currentKeyframe];
@@ -127,13 +131,16 @@ function calculateValueAndReturnUndefinedIfNotWorthwhile(keyframeGroup, nowValue
 }
 function getTransitionValue(currentKeyframe, currentTransition, nextKeyframe, nextTransition, nowValue) {
     var currentValue = currentTransition.value;
-    if (!currentTransition.curve)
+    if (!currentTransition.curve) {
         return currentValue;
-    if (!nextTransition)
+    }
+    if (!nextTransition) {
         return currentValue;
+    }
     var currentCurve = currentTransition.curve;
-    if (typeof currentCurve === STRING)
+    if (typeof currentCurve === STRING) {
         currentCurve = just_curves_1["default"][currentCurve];
+    }
     var nextValue = nextTransition.value;
     var finalValue = interpolate(nowValue, currentCurve, currentKeyframe, nextKeyframe, currentValue, nextValue);
     return finalValue;

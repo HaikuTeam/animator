@@ -32,10 +32,12 @@ var FORMATS = {
     TWO: 2
 };
 function initializeNodeAttributes(element, parent) {
-    if (!element.attributes)
+    if (!element.attributes) {
         element.attributes = {};
-    if (!element.attributes.style)
+    }
+    if (!element.attributes.style) {
         element.attributes.style = {};
+    }
     if (!element.layout) {
         element.layout = createLayoutSpec(null, null, null);
         element.layout.matrix = createMatrix();
@@ -46,14 +48,14 @@ function initializeNodeAttributes(element, parent) {
     return element;
 }
 function initializeTreeAttributes(tree, container) {
-    if (!tree || typeof tree === "string")
+    if (!tree || typeof tree === 'string') {
         return;
+    }
     initializeNodeAttributes(tree, container);
     tree.__parent = container;
-    if (!tree.children)
+    if (!tree.children || tree.children.length < 1) {
         return;
-    if (tree.children.length < 1)
-        return;
+    }
     for (var i = 0; i < tree.children.length; i++) {
         initializeTreeAttributes(tree.children[i], tree);
     }
@@ -150,22 +152,15 @@ function isZero(num) {
     return num > -0.000001 && num < 0.000001;
 }
 function createBaseComputedLayout(x, y, z) {
-    if (!x)
-        x = 0;
-    if (!y)
-        y = 0;
-    if (!z)
-        z = 0;
     return {
-        size: { x: x, y: y, z: z },
+        size: { x: x || 0, y: y || 0, z: z || 0 },
         matrix: createMatrix(),
         shown: true,
         opacity: 1.0
     };
 }
-function computeLayout(out, layoutSpec, currentMatrix, parentMatrix, parentsizeAbsolute) {
-    if (!parentsizeAbsolute)
-        parentsizeAbsolute = { x: 0, y: 0, z: 0 };
+function computeLayout(out, layoutSpec, currentMatrix, parentMatrix, parentsizeAbsoluteIn) {
+    var parentsizeAbsolute = parentsizeAbsoluteIn || { x: 0, y: 0, z: 0 };
     if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
         parentsizeAbsolute.z = DEFAULT_DEPTH;
     }
@@ -185,15 +180,15 @@ exports["default"] = {
     createBaseComputedLayout: createBaseComputedLayout,
     computeOrientationFlexibly: computeOrientationFlexibly_1["default"],
     createMatrix: createMatrix,
-    FORMATS: FORMATS,
-    SIZE_ABSOLUTE: SIZE_ABSOLUTE,
-    SIZE_PROPORTIONAL: SIZE_PROPORTIONAL,
-    ATTRIBUTES: createLayoutSpec(null, null, null),
     multiplyMatrices: multiplyMatrices,
     transposeMatrix: transposeMatrix,
     copyMatrix: copyMatrix,
     initializeTreeAttributes: initializeTreeAttributes,
     initializeNodeAttributes: initializeNodeAttributes,
-    isZero: isZero
+    isZero: isZero,
+    FORMATS: FORMATS,
+    SIZE_ABSOLUTE: SIZE_ABSOLUTE,
+    SIZE_PROPORTIONAL: SIZE_PROPORTIONAL,
+    ATTRIBUTES: createLayoutSpec(null, null, null)
 };
 //# sourceMappingURL=Layout3D.js.map

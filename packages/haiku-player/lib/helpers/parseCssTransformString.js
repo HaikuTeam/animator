@@ -7,9 +7,9 @@ var math3d_1 = require("./../vendor/math3d");
 var MathUtils_1 = require("./MathUtils");
 var parseCssValueString_1 = require("./parseCssValueString");
 function separate(str) {
-    var bits = str.split("(");
+    var bits = str.split('(');
     var type = bits[0];
-    var vals = bits[1].replace(")", "").split(/,\s*?/gi).map(function (str2) {
+    var vals = bits[1].replace(')', '').split(/,\s*?/gi).map(function (str2) {
         return parseCssValueString_1["default"](str2, type);
     });
     return {
@@ -17,55 +17,56 @@ function separate(str) {
         values: vals
     };
 }
-function parseCssTransformString(str) {
+function parseCssTransformString(inStr) {
     var out = {};
-    if (!str)
+    if (!inStr || inStr === '') {
         return out;
-    if (str === "")
+    }
+    var str = inStr.toLowerCase().replace(';', '').trim();
+    if (str === 'none') {
         return out;
-    str = str.toLowerCase().replace(";", "").trim();
-    if (str === "none")
-        return out;
+    }
     var parts = str.match(/([a-zA-Z0-9]+\(.+?\))/gi);
-    if (!parts)
+    if (!parts) {
         return out;
+    }
     var specs = parts.map(separate);
-    var matrices = specs.map(function _map(spec) {
+    var matrices = specs.map(function (spec) {
         var layout = {
             translate: [0, 0, 0],
             rotate: [0, 0, 0],
             scale: [1, 1, 1]
         };
         switch (spec.type) {
-            case "rotatex":
+            case 'rotatex':
                 layout.rotate[0] = spec.values[0].value;
                 break;
-            case "rotatey":
+            case 'rotatey':
                 layout.rotate[1] = spec.values[0].value;
                 break;
-            case "rotatez":
+            case 'rotatez':
                 layout.rotate[2] = spec.values[0].value;
                 break;
-            case "translatex":
+            case 'translatex':
                 layout.translate[0] = spec.values[0].value;
                 break;
-            case "translatey":
+            case 'translatey':
                 layout.translate[1] = spec.values[0].value;
                 break;
-            case "translatez":
+            case 'translatez':
                 layout.translate[2] = spec.values[0].value;
                 break;
-            case "scalex":
+            case 'scalex':
                 layout.scale[0] = spec.values[0].value;
                 break;
-            case "scaley":
+            case 'scaley':
                 layout.scale[1] = spec.values[0].value;
                 break;
-            case "scalez":
+            case 'scalez':
                 layout.scale[2] = spec.values[0].value;
                 break;
-            case "rotate":
-                if (spec.values[0].unit === "deg") {
+            case 'rotate':
+                if (spec.values[0].unit === 'deg') {
                     var converted = MathUtils_1["default"].degreesToRadians(spec.values[0].value);
                     layout.rotate[2] = converted;
                 }
@@ -73,41 +74,41 @@ function parseCssTransformString(str) {
                     layout.rotate[2] = spec.values[0].value;
                 }
                 break;
-            case "scale":
+            case 'scale':
                 layout.scale[0] = spec.values[0].value;
                 layout.scale[1] = spec.values[1].value;
                 break;
-            case "translate":
+            case 'translate':
                 layout.translate[0] = spec.values[0].value;
                 layout.translate[1] = spec.values[1].value;
                 break;
-            case "matrix":
+            case 'matrix':
                 layout.scale[0] = spec.values[0].value;
                 layout.scale[1] = spec.values[3].value;
                 layout.translate[0] = spec.values[4].value;
                 layout.translate[1] = spec.values[5].value;
                 break;
-            case "rotate3d":
+            case 'rotate3d':
                 layout.rotate[0] = spec.values[0].value;
                 layout.rotate[1] = spec.values[1].value;
                 layout.rotate[2] = spec.values[2].value;
                 break;
-            case "scale3d":
+            case 'scale3d':
                 layout.scale[0] = spec.values[0].value;
                 layout.scale[1] = spec.values[1].value;
                 layout.scale[2] = spec.values[2].value;
                 break;
-            case "translate3d":
+            case 'translate3d':
                 layout.translate[0] = spec.values[0].value;
                 layout.translate[1] = spec.values[1].value;
                 layout.translate[2] = spec.values[2].value;
                 break;
-            case "matrix3d":
-                return Layout3D_1["default"].copyMatrix([], spec.values.map(function _mapper(val) {
+            case 'matrix3d':
+                return Layout3D_1["default"].copyMatrix([], spec.values.map(function (val) {
                     return val.value;
                 }));
             default:
-                console.warn("No CSS transform parser available for " + spec.type);
+                console.warn('No CSS transform parser available for ' + spec.type);
                 break;
         }
         var matrix = css_mat4_1["default"]([], layout);
@@ -133,26 +134,32 @@ function parseCssTransformString(str) {
         }
     }
     if (components.translation[0] !== 0) {
-        out["translation.x"] = components.translation[0];
+        out['translation.x'] = components.translation[0];
     }
     if (components.translation[1] !== 0) {
-        out["translation.y"] = components.translation[1];
+        out['translation.y'] = components.translation[1];
     }
     if (components.translation[2] !== 0) {
-        out["translation.z"] = components.translation[2];
+        out['translation.z'] = components.translation[2];
     }
-    if (components.rotation[0] !== 0)
-        out["rotation.x"] = components.rotation[0];
-    if (components.rotation[1] !== 0)
-        out["rotation.y"] = components.rotation[1];
-    if (components.rotation[2] !== 0)
-        out["rotation.z"] = components.rotation[2];
-    if (components.scale[0] !== 1)
-        out["scale.x"] = components.scale[0];
-    if (components.scale[1] !== 1)
-        out["scale.y"] = components.scale[1];
-    if (components.scale[2] !== 1)
-        out["scale.z"] = components.scale[2];
+    if (components.rotation[0] !== 0) {
+        out['rotation.x'] = components.rotation[0];
+    }
+    if (components.rotation[1] !== 0) {
+        out['rotation.y'] = components.rotation[1];
+    }
+    if (components.rotation[2] !== 0) {
+        out['rotation.z'] = components.rotation[2];
+    }
+    if (components.scale[0] !== 1) {
+        out['scale.x'] = components.scale[0];
+    }
+    if (components.scale[1] !== 1) {
+        out['scale.y'] = components.scale[1];
+    }
+    if (components.scale[2] !== 1) {
+        out['scale.z'] = components.scale[2];
+    }
     return out;
 }
 exports["default"] = parseCssTransformString;

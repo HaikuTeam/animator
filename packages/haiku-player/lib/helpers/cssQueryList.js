@@ -1,7 +1,7 @@
 "use strict";
 exports.__esModule = true;
 var cssMatchOne_1 = require("./cssMatchOne");
-var PIECE_SEPARATOR = ",";
+var PIECE_SEPARATOR = ',';
 function queryList(matches, list, query, options) {
     var maxdepth = options.maxdepth !== undefined
         ? parseInt(options.maxdepth, 10)

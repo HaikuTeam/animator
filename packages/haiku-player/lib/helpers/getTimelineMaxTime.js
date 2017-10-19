@@ -9,8 +9,9 @@ function getTimelineMaxTime(descriptor) {
             var keys = Object.keys(keyframes);
             for (var i = 0; i < keys.length; i++) {
                 var key = parseInt(keys[i], 10);
-                if (key > max)
+                if (key > max) {
                     max = key;
+                }
             }
         }
     }

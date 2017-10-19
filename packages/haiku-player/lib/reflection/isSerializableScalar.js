@@ -1,8 +1,8 @@
 "use strict";
 exports.__esModule = true;
-var STRING = "string";
-var NUMBER = "number";
-var BOOLEAN = "boolean";
+var STRING = 'string';
+var NUMBER = 'number';
+var BOOLEAN = 'boolean';
 function isSerializableScalar(value) {
     return (value === null ||
         typeof value === NUMBER ||

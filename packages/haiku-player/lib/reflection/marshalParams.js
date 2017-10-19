@@ -8,20 +8,20 @@ function arrayParamToString(param) {
     for (var i = 0; i < param.length; i++) {
         pieces.push(stringifyParam(param[i], null));
     }
-    return "[ " + pieces.join(", ") + " ]";
+    return '[ ' + pieces.join(', ') + ' ]';
 }
 function objectParamToString(param) {
     var pieces = [];
     if (param.__rest) {
-        return "..." + param.__rest;
+        return '...' + param.__rest;
     }
     for (var key in param) {
         pieces.push(stringifyParam(param[key], key));
     }
-    return "{ " + pieces.join(", ") + " }";
+    return '{ ' + pieces.join(', ') + ' }';
 }
 function stringifyParam(param, key) {
-    if (param && typeof param === "string") {
+    if (param && typeof param === 'string') {
         return param;
     }
     if (param && Array.isArray(param)) {
@@ -29,27 +29,27 @@ function stringifyParam(param, key) {
             return key;
         }
         if (key) {
-            return key + ", " + key + ": " + arrayParamToString(param);
+            return key + ', ' + key + ': ' + arrayParamToString(param);
         }
         return arrayParamToString(param);
     }
-    if (param && typeof param === "object") {
+    if (param && typeof param === 'object') {
         if (Object.keys(param).length < 1) {
             return key;
         }
         if (key) {
-            return key + ", " + key + ": " + objectParamToString(param);
+            return key + ', ' + key + ': ' + objectParamToString(param);
         }
         return objectParamToString(param);
     }
-    return "__" + data.baddies++ + "__";
+    return '__' + data.baddies++ + '__';
 }
 function marshalParams(params) {
     return params
-        .map(function _mapper(param) {
+        .map(function (param) {
         return stringifyParam(param, null);
     })
-        .join(", ");
+        .join(', ');
 }
 exports["default"] = marshalParams;
 //# sourceMappingURL=marshalParams.js.map

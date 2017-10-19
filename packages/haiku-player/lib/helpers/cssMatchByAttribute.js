@@ -5,13 +5,14 @@ function matchByAttribute(node, attrKeyToMatch, attrOperator, attrValueToMatch, 
     var attributes = objectPath_1["default"](node, options.attributes);
     if (attributes) {
         var attrValue = attributes[attrKeyToMatch];
-        if (!attrOperator)
+        if (!attrOperator) {
             return !!attrValue;
+        }
         switch (attrOperator) {
-            case "=":
+            case '=':
                 return attrValueToMatch === attrValue;
             default:
-                console.warn("Operator `" + attrOperator + "` not supported yet");
+                console.warn('Operator `' + attrOperator + '` not supported yet');
                 return false;
         }
     }

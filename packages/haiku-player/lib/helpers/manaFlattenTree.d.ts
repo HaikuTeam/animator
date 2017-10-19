@@ -1,1 +1,1 @@
-export default function flattenTree(list: any, node: any, options: any, depth: any, index: any): any;
+export default function flattenTree(list: any, node: any, options: any, depth?: number, index?: number): any;

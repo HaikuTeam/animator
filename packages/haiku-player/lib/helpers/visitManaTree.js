@@ -1,14 +1,16 @@
 "use strict";
 exports.__esModule = true;
 function visitManaTree(locator, mana, visitor, parent, index) {
-    if (!mana)
+    if (!mana) {
         return null;
+    }
     visitor(mana.elementName, mana.attributes, mana.children, mana, locator, parent, index);
-    if (!mana.children)
+    if (!mana.children) {
         return null;
+    }
     for (var i = 0; i < mana.children.length; i++) {
         var child = mana.children[i];
-        visitManaTree(locator + "." + i, child, visitor, mana, i);
+        visitManaTree(locator + '.' + i, child, visitor, mana, i);
     }
 }
 exports["default"] = visitManaTree;

@@ -1,2 +1,2 @@
-import HaikuReactDOMAdapter from "./HaikuReactDOMAdapter";
+import HaikuReactDOMAdapter from './HaikuReactDOMAdapter';
 export default HaikuReactDOMAdapter;

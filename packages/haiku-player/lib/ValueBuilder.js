@@ -7,97 +7,101 @@ var schema_1 = require("./properties/dom/schema");
 var enhance_1 = require("./reflection/enhance");
 var Transitions_1 = require("./Transitions");
 var assign_1 = require("./vendor/assign");
-var FUNCTION = "function";
-var OBJECT = "object";
+var FUNCTION = 'function';
+var OBJECT = 'object';
 function isFunction(value) {
     return typeof value === FUNCTION;
 }
 var INJECTABLES = {};
-if (typeof window !== "undefined") {
-    INJECTABLES["$window"] = {
+if (typeof window !== 'undefined') {
+    INJECTABLES['$window'] = {
         schema: {
-            width: "number",
-            height: "number",
+            width: 'number',
+            height: 'number',
             screen: {
-                availHeight: "number",
-                availLeft: "number",
-                availWidth: "number",
-                colorDepth: "number",
-                height: "number",
-                pixelDepth: "number",
-                width: "number",
+                availHeight: 'number',
+                availLeft: 'number',
+                availWidth: 'number',
+                colorDepth: 'number',
+                height: 'number',
+                pixelDepth: 'number',
+                width: 'number',
                 orientation: {
-                    angle: "number",
-                    type: "string"
+                    angle: 'number',
+                    type: 'string'
                 }
             },
             navigator: {
-                userAgent: "string",
-                appCodeName: "string",
-                appName: "string",
-                appVersion: "string",
-                cookieEnabled: "boolean",
-                doNotTrack: "boolean",
-                language: "string",
-                maxTouchPoints: "number",
-                onLine: "boolean",
-                platform: "string",
-                product: "string",
-                vendor: "string"
+                userAgent: 'string',
+                appCodeName: 'string',
+                appName: 'string',
+                appVersion: 'string',
+                cookieEnabled: 'boolean',
+                doNotTrack: 'boolean',
+                language: 'string',
+                maxTouchPoints: 'number',
+                onLine: 'boolean',
+                platform: 'string',
+                product: 'string',
+                vendor: 'string'
             },
             document: {
-                charset: "string",
-                compatMode: "string",
-                contentType: "string",
-                cookie: "string",
-                documentURI: "string",
-                fullscreen: "boolean",
-                readyState: "number",
-                referrer: "string",
-                title: "string"
+                charset: 'string',
+                compatMode: 'string',
+                contentType: 'string',
+                cookie: 'string',
+                documentURI: 'string',
+                fullscreen: 'boolean',
+                readyState: 'number',
+                referrer: 'string',
+                title: 'string'
             },
             location: {
-                hash: "string",
-                host: "string",
-                hostname: "string",
-                href: "string",
-                pathname: "string",
-                protocol: "string",
-                search: "string"
+                hash: 'string',
+                host: 'string',
+                hostname: 'string',
+                href: 'string',
+                pathname: 'string',
+                protocol: 'string',
+                search: 'string'
             }
         },
         summon: function (injectees, summonSpec) {
-            if (!injectees.$window)
+            if (!injectees.$window) {
                 injectees.$window = {};
+            }
             var out = injectees.$window;
             out.width = window.innerWidth;
             out.height = window.innerHeight;
             if (window.screen) {
-                if (!out.screen)
+                if (!out.screen) {
                     out.screen = {};
-                out.screen.availHeight = window.screen["availHeight"];
-                out.screen.availLeft = window.screen["availLeft"];
-                out.screen.availWidth = window.screen["availWidth"];
-                out.screen.colorDepth = window.screen["colorDepth"];
-                out.screen.height = window.screen["height"];
-                out.screen.pixelDepth = window.screen["pixelDepth"];
-                out.screen.width = window.screen["width"];
-                if (window.screen["orientation"]) {
-                    if (!out.screen.orientation)
+                }
+                out.screen.availHeight = window.screen['availHeight'];
+                out.screen.availLeft = window.screen['availLeft'];
+                out.screen.availWidth = window.screen['availWidth'];
+                out.screen.colorDepth = window.screen['colorDepth'];
+                out.screen.height = window.screen['height'];
+                out.screen.pixelDepth = window.screen['pixelDepth'];
+                out.screen.width = window.screen['width'];
+                if (window.screen['orientation']) {
+                    if (!out.screen.orientation) {
                         out.screen.orientation = {};
-                    out.screen.orientation.angle = window.screen["orientation"].angle;
-                    out.screen.orientation.type = window.screen["orientation"].type;
+                    }
+                    out.screen.orientation.angle = window.screen['orientation'].angle;
+                    out.screen.orientation.type = window.screen['orientation'].type;
                 }
             }
-            if (typeof navigator !== "undefined") {
-                if (!out.navigator)
+            if (typeof navigator !== 'undefined') {
+                if (!out.navigator) {
                     out.navigator = {};
+                }
                 out.navigator.userAgent = navigator.userAgent;
                 out.navigator.appCodeName = navigator.appCodeName;
                 out.navigator.appName = navigator.appName;
                 out.navigator.appVersion = navigator.appVersion;
                 out.navigator.cookieEnabled = navigator.cookieEnabled;
-                out.navigator.doNotTrack = navigator["doNotTrack"];
+                out.navigator.doNotTrack = navigator['doNotTrack'];
                 out.navigator.language = navigator.language;
                 out.navigator.maxTouchPoints = navigator.maxTouchPoints;
                 out.navigator.onLine = navigator.onLine;
@@ -107,21 +111,23 @@ if (typeof window !== "undefined") {
                 out.navigator.vendor = navigator.vendor;
             }
             if (window.document) {
-                if (!out.document)
+                if (!out.document) {
                     out.document = {};
+                }
                 out.document.charset = window.document.charset;
                 out.document.compatMode = window.document.compatMode;
-                out.document.contenttype = window.document["contentType"];
+                out.document.contenttype = window.document['contentType'];
                 out.document.cookie = window.document.cookie;
-                out.document.documentURI = window.document["documentURI"];
-                out.document.fullscreen = window.document["fullscreen"];
+                out.document.documentURI = window.document['documentURI'];
+                out.document.fullscreen = window.document['fullscreen'];
                 out.document.readyState = window.document.readyState;
                 out.document.referrer = window.document.referrer;
                 out.document.title = window.document.title;
             }
             if (window.location) {
-                if (!out.location)
+                if (!out.location) {
                     out.location = {};
+                }
                 out.location.hash = window.location.hash;
                 out.location.host = window.location.host;
                 out.location.hostname = window.location.hostname;
@@ -133,26 +139,28 @@ if (typeof window !== "undefined") {
         }
     };
 }
-if (typeof global !== "undefined") {
-    INJECTABLES["$global"] = {
+if (typeof global !== 'undefined') {
+    INJECTABLES['$global'] = {
         schema: {
             process: {
-                pid: "number",
-                arch: "string",
-                platform: "string",
-                argv: ["string"],
-                title: "string",
-                version: "string",
+                pid: 'number',
+                arch: 'string',
+                platform: 'string',
+                argv: ['string'],
+                title: 'string',
+                version: 'string',
                 env: {}
             }
         },
         summon: function (injectees, summonSpec) {
-            if (!injectees.$global)
+            if (!injectees.$global) {
                 injectees.$global = {};
+            }
             var out = injectees.$global;
-            if (typeof process !== "undefined") {
-                if (!out.process)
+            if (typeof process !== 'undefined') {
+                if (!out.process) {
                     out.process = {};
+                }
                 out.process.pid = process.pid;
                 out.process.arch = process.arch;
                 out.process.platform = process.platform;
@@ -164,50 +172,52 @@ if (typeof global !== "undefined") {
         }
     };
 }
-INJECTABLES["$player"] = {
+INJECTABLES['$player'] = {
     schema: {
-        version: "string",
+        version: 'string',
         options: {
-            seed: "string",
-            loop: "boolean",
-            sizing: "string",
-            preserve3d: "boolean",
-            position: "string",
-            overflowX: "string",
-            overflowY: "string"
+            seed: 'string',
+            loop: 'boolean',
+            sizing: 'string',
+            preserve3d: 'boolean',
+            position: 'string',
+            overflowX: 'string',
+            overflowY: 'string'
         },
         timeline: {
-            name: "string",
-            duration: "number",
-            repeat: "boolean",
+            name: 'string',
+            duration: 'number',
+            repeat: 'boolean',
             time: {
-                apparent: "number",
-                elapsed: "number",
-                max: "number"
+                apparent: 'number',
+                elapsed: 'number',
+                max: 'number'
             },
             frame: {
-                apparent: "number",
-                elapsed: "number"
+                apparent: 'number',
+                elapsed: 'number'
             }
         },
         clock: {
-            frameDuration: "number",
-            frameDelay: "number",
+            frameDuration: 'number',
+            frameDelay: 'number',
             time: {
-                apparent: "number",
-                elapsed: "number"
+                apparent: 'number',
+                elapsed: 'number'
             }
         }
     },
     summon: function (injectees, summonSpec, hostInstance, matchingElement, timelineName) {
-        if (!injectees.$player)
+        if (!injectees.$player) {
             injectees.$player = {};
+        }
         var out = injectees.$player;
         out.version = hostInstance._context.PLAYER_VERSION;
         var options = hostInstance._context.config.options;
         if (options) {
-            if (!out.options)
+            if (!out.options) {
                 out.options = {};
+            }
             out.options.seed = options.seed;
             out.options.loop = options.loop;
             out.options.sizing = options.sizing;
@@ -218,29 +228,34 @@ INJECTABLES["$player"] = {
         }
         var timelineInstance = hostInstance.getTimeline(timelineName);
         if (timelineInstance) {
-            if (!out.timeline)
+            if (!out.timeline) {
                 out.timeline = {};
+            }
             out.timeline.name = timelineName;
             out.timeline.duration = timelineInstance.getDuration();
             out.timeline.repeat = timelineInstance.getRepeat();
-            if (!out.timeline.time)
+            if (!out.timeline.time) {
                 out.timeline.time = {};
+            }
             out.timeline.time.apparent = timelineInstance.getTime();
             out.timeline.time.elapsed = timelineInstance.getElapsedTime();
             out.timeline.time.max = timelineInstance.getMaxTime();
-            if (!out.timeline.frame)
+            if (!out.timeline.frame) {
                 out.timeline.frame = {};
+            }
             out.timeline.frame.apparent = timelineInstance.getFrame();
             out.timeline.frame.elapsed = timelineInstance.getUnboundedFrame();
         }
         var clockInstance = hostInstance.getClock();
         if (clockInstance) {
-            if (!out.clock)
+            if (!out.clock) {
                 out.clock = {};
+            }
             out.clock.frameDuration = clockInstance.options.frameDuration;
             out.clock.frameDelay = clockInstance.options.frameDelay;
-            if (!out.clock.time)
+            if (!out.clock.time) {
                 out.clock.time = {};
+            }
             out.clock.time.apparent = clockInstance.getExplicitTime();
             out.clock.time.elapsed = clockInstance.getRunningTime();
         }
@@ -248,28 +263,28 @@ INJECTABLES["$player"] = {
 };
 var EVENT_SCHEMA = {
     mouse: {
-        x: "number",
-        y: "number",
-        isDown: "boolean"
+        x: 'number',
+        y: 'number',
+        isDown: 'boolean'
     },
     touches: [{
-            x: "number",
-            y: "number"
+            x: 'number',
+            y: 'number'
         }],
     mouches: [{
-            x: "number",
-            y: "number"
+            x: 'number',
+            y: 'number'
         }],
     keys: [{
-            which: "number",
-            code: "number"
+            which: 'number',
+            code: 'number'
         }]
 };
 var ELEMENT_SCHEMA = {
     properties: function (element) {
         var defined = schema_1["default"][element.elementName];
         if (!defined) {
-            console.warn("[haiku player] element " + element.elementName + " has no schema defined");
+            console.warn('[haiku player] element ' + element.elementName + ' has no schema defined');
             return {};
         }
         return defined;
@@ -279,7 +294,7 @@ function assignElementInjectables(obj, key, summonSpec, hostInstance, element) {
     if (!element) {
         return {};
     }
-    if (typeof element === "string") {
+    if (typeof element === 'string') {
         return {};
     }
     obj[key] = {};
@@ -308,7 +323,7 @@ function assignElementInjectables(obj, key, summonSpec, hostInstance, element) {
     out.properties.sizeProportional = element.layout.sizeProportional;
     out.properties.translation = element.layout.translation;
 }
-INJECTABLES["$tree"] = {
+INJECTABLES['$tree'] = {
     schema: {
         parent: ELEMENT_SCHEMA,
         children: [ELEMENT_SCHEMA],
@@ -318,16 +333,17 @@ INJECTABLES["$tree"] = {
         element: ELEMENT_SCHEMA
     },
     summon: function (injectees, summonSpec, hostInstance, matchingElement) {
-        if (!injectees.$tree)
+        if (!injectees.$tree) {
             injectees.$tree = {};
+        }
         injectees.$tree.siblings = [];
         injectees.$tree.parent = null;
         if (matchingElement.__parent) {
-            var subspec0 = (typeof summonSpec === "string") ? summonSpec : (summonSpec.$tree && summonSpec.$tree.parent);
-            assignElementInjectables(injectees.$tree, "parent", subspec0, hostInstance, matchingElement.__parent);
+            var subspec0 = (typeof summonSpec === 'string') ? summonSpec : (summonSpec.$tree && summonSpec.$tree.parent);
+            assignElementInjectables(injectees.$tree, 'parent', subspec0, hostInstance, matchingElement.__parent);
             for (var i = 0; i < matchingElement.__parent.children.length; i++) {
                 var sibling = matchingElement.__parent.children[i];
-                var subspec1 = (typeof summonSpec === "string")
+                var subspec1 = (typeof summonSpec === 'string')
                     ? summonSpec
                     : summonSpec.$tree && summonSpec.$tree.siblings && summonSpec.$tree.siblings[i];
                 assignElementInjectables(injectees.$tree.siblings, i, subspec1, hostInstance, sibling);
@@ -337,95 +353,95 @@ INJECTABLES["$tree"] = {
         if (matchingElement.children) {
             for (var j = 0; j < matchingElement.children.length; j++) {
                 var child = matchingElement.children[j];
-                var subspec2 = (typeof summonSpec === "string")
+                var subspec2 = (typeof summonSpec === 'string')
                     ? summonSpec
                     : summonSpec.$tree && summonSpec.$tree.children && summonSpec.$tree.children[j];
                 assignElementInjectables(injectees.$tree.children, j, subspec2, hostInstance, child);
             }
         }
         if (!injectees.$component) {
-            INJECTABLES["$component"].summon(injectees, summonSpec, hostInstance, matchingElement);
+            INJECTABLES['$component'].summon(injectees, summonSpec, hostInstance, matchingElement);
         }
         injectees.$tree.component = injectees.$component;
         if (!injectees.$root) {
-            INJECTABLES["$root"].summon(injectees, summonSpec, hostInstance, matchingElement);
+            INJECTABLES['$root'].summon(injectees, summonSpec, hostInstance, matchingElement);
         }
         injectees.$tree.root = injectees.$root;
         if (!injectees.$element) {
-            INJECTABLES["$element"].summon(injectees, summonSpec, hostInstance, matchingElement);
+            INJECTABLES['$element'].summon(injectees, summonSpec, hostInstance, matchingElement);
         }
         injectees.$tree.element = injectees.$element;
     }
 };
-INJECTABLES["$component"] = {
+INJECTABLES['$component'] = {
     schema: ELEMENT_SCHEMA,
     summon: function (injectees, summonSpec, hostInstance) {
         if (injectees.$tree && injectees.$tree.component) {
             injectees.$component = injectees.$tree.component;
         }
         else {
-            var subspec = (typeof summonSpec === "string") ? summonSpec : summonSpec.$component;
-            assignElementInjectables(injectees, "$component", subspec, hostInstance, hostInstance._getTopLevelElement());
+            var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$component;
+            assignElementInjectables(injectees, '$component', subspec, hostInstance, hostInstance._getTopLevelElement());
         }
     }
 };
-INJECTABLES["$root"] = {
+INJECTABLES['$root'] = {
     schema: ELEMENT_SCHEMA,
     summon: function (injectees, summonSpec, hostInstance, matchingElement) {
         if (injectees.$tree && injectees.$tree.root) {
             injectees.$root = injectees.$tree.root;
         }
         else {
-            var subspec = (typeof summonSpec === "string") ? summonSpec : summonSpec.$root;
-            assignElementInjectables(injectees, "$root", subspec, hostInstance, hostInstance._getTopLevelElement());
+            var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$root;
+            assignElementInjectables(injectees, '$root', subspec, hostInstance, hostInstance._getTopLevelElement());
         }
     }
 };
-INJECTABLES["$element"] = {
+INJECTABLES['$element'] = {
     schema: ELEMENT_SCHEMA,
     summon: function (injectees, summonSpec, hostInstance, matchingElement) {
         if (injectees.$tree && injectees.$tree.element) {
             injectees.$element = injectees.$tree.element;
         }
         else {
-            var subspec = (typeof summonSpec === "string") ? summonSpec : summonSpec.$element;
-            assignElementInjectables(injectees, "$element", subspec, hostInstance, matchingElement);
+            var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$element;
+            assignElementInjectables(injectees, '$element', subspec, hostInstance, matchingElement);
         }
     }
 };
-INJECTABLES["$user"] = {
+INJECTABLES['$user'] = {
     schema: assign_1["default"]({}, EVENT_SCHEMA),
     summon: function (injectees, summonSpec, hostInstance, matchingElement) {
         injectees.$user = hostInstance._context._getGlobalUserState();
     }
 };
-INJECTABLES["$flow"] = {
+INJECTABLES['$flow'] = {
     schema: {
         repeat: {
-            list: ["any"],
-            index: "number",
-            value: "any",
-            data: "any",
-            payload: "any"
+            list: ['any'],
+            index: 'number',
+            value: 'any',
+            data: 'any',
+            payload: 'any'
         },
         placeholder: {
-            node: "any"
+            node: 'any'
         }
     },
     summon: function (injectees, summonSpec, hostInstance, matchingElement) {
     }
 };
-INJECTABLES["$flow"]["schema"]["if"] = {
-    value: "any",
-    data: "any",
-    payload: "any"
+INJECTABLES['$flow']['schema']['if'] = {
+    value: 'any',
+    data: 'any',
+    payload: 'any'
 };
-INJECTABLES["$flow"]["schema"]["yield"] = {
-    value: "any",
-    data: "any",
-    payload: "any"
+INJECTABLES['$flow']['schema']['yield'] = {
+    value: 'any',
+    data: 'any',
+    payload: 'any'
 };
-INJECTABLES["$helpers"] = {
+INJECTABLES['$helpers'] = {
     schema: HaikuHelpers_1["default"].schema,
     summon: function (injectees) {
         injectees.$helpers = HaikuHelpers_1["default"].helpers;
@@ -434,7 +450,6 @@ INJECTABLES["$helpers"] = {
 var BUILTIN_INJECTABLES = {
     Infinity: Infinity,
     NaN: NaN,
-    undefined: void (0),
     Object: Object,
     Boolean: Boolean,
     Math: Math,
@@ -455,13 +470,14 @@ var BUILTIN_INJECTABLES = {
     Error: Error,
     ReferenceError: ReferenceError,
     SyntaxError: SyntaxError,
-    TypeError: TypeError
+    TypeError: TypeError,
+    undefined: void (0)
 };
 for (var builtinInjectableKey in BUILTIN_INJECTABLES) {
     (function (key, value) {
         INJECTABLES[key] = {
             builtin: true,
-            schema: "*",
+            schema: '*',
             summon: function (injectees) {
                 injectees[key] = value;
             }
@@ -516,28 +532,29 @@ var FORBIDDEN_EXPRESSION_TOKENS = {
     defineProperty: true
 };
 function ValueBuilder(component) {
+    var _this = this;
     this._component = component;
     this._parsees = {};
     this._changes = {};
     this._summonees = {};
     this._evaluations = {};
-    HaikuHelpers_1["default"].register("now", function _helperNow() {
-        return this._component._context.getDeterministicTime();
-    }.bind(this));
-    HaikuHelpers_1["default"].register("rand", function _helperRand() {
-        return this._component._context.getDeterministicRand();
-    }.bind(this));
+    HaikuHelpers_1["default"].register('now', function () { return _this._component._context.getDeterministicTime(); });
+    HaikuHelpers_1["default"].register('rand', function () { return _this._component._context.getDeterministicRand(); });
 }
 exports["default"] = ValueBuilder;
-function _cc(obj, timelineName, flexId, propertyKeys) {
-    if (!obj[timelineName])
+function cc(obj, timelineName, flexId, propertyKeys) {
+    if (!obj[timelineName]) {
         return false;
-    if (!obj[timelineName][flexId])
+    }
+    if (!obj[timelineName][flexId]) {
         return false;
-    if (!propertyKeys)
+    }
+    if (!propertyKeys) {
         return false;
-    if (propertyKeys.length < 1)
+    }
+    if (propertyKeys.length < 1) {
         return false;
+    }
     for (var i = 0; i < propertyKeys.length; i++) {
         obj[timelineName][flexId][propertyKeys[i]] = {};
     }
@@ -548,10 +565,10 @@ ValueBuilder.prototype._clearCaches = function _clearCaches(options) {
         var timelineName = options.clearOnlySpecificProperties.timelineName;
         var flexId = options.clearOnlySpecificProperties.componentId;
         var propertyKeys = options.clearOnlySpecificProperties.propertyKeys;
-        _cc(this._parsees, timelineName, flexId, propertyKeys);
-        _cc(this._summonees, timelineName, flexId, propertyKeys);
-        _cc(this._evaluations, timelineName, flexId, propertyKeys);
-        _cc(this._changes, timelineName, flexId, propertyKeys);
+        cc(this._parsees, timelineName, flexId, propertyKeys);
+        cc(this._summonees, timelineName, flexId, propertyKeys);
+        cc(this._evaluations, timelineName, flexId, propertyKeys);
+        cc(this._changes, timelineName, flexId, propertyKeys);
     }
     else {
         this._parsees = {};
@@ -562,8 +579,9 @@ ValueBuilder.prototype._clearCaches = function _clearCaches(options) {
     return this;
 };
 ValueBuilder.prototype._clearCachedClusters = function _clearCachedClusters(timelineName, componentId) {
-    if (this._parsees[timelineName])
+    if (this._parsees[timelineName]) {
         this._parsees[timelineName][componentId] = {};
+    }
     return this;
 };
 ValueBuilder.prototype.evaluate = function _evaluate(fn, timelineName, flexId, matchingElement, propertyName, keyframeMs, keyframeCluster, hostInstance) {
@@ -585,7 +603,7 @@ ValueBuilder.prototype.evaluate = function _evaluate(fn, timelineName, flexId, m
         else {
             var summoneesArray = this.summonSummonables(fn.specification.params, timelineName, flexId, matchingElement, propertyName, keyframeMs, keyframeCluster, hostInstance);
             var previousSummoneesArray = this._getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs);
-            if (_areSummoneesDifferent(previousSummoneesArray, summoneesArray)) {
+            if (areSummoneesDifferent(previousSummoneesArray, summoneesArray)) {
                 this._cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summoneesArray);
                 evaluation = fn.apply(hostInstance, summoneesArray);
             }
@@ -600,40 +618,52 @@ ValueBuilder.prototype.evaluate = function _evaluate(fn, timelineName, flexId, m
     return evaluation;
 };
 ValueBuilder.prototype._getPreviousSummonees = function _getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs) {
-    if (!this._summonees[timelineName])
+    if (!this._summonees[timelineName]) {
         return void (0);
-    if (!this._summonees[timelineName][flexId])
+    }
+    if (!this._summonees[timelineName][flexId]) {
         return void (0);
-    if (!this._summonees[timelineName][flexId][propertyName])
+    }
+    if (!this._summonees[timelineName][flexId][propertyName]) {
         return void (0);
+    }
     return this._summonees[timelineName][flexId][propertyName][keyframeMs];
 };
 ValueBuilder.prototype._cacheSummonees = function _cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summonees) {
-    if (!this._summonees[timelineName])
+    if (!this._summonees[timelineName]) {
         this._summonees[timelineName] = {};
-    if (!this._summonees[timelineName][flexId])
+    }
+    if (!this._summonees[timelineName][flexId]) {
         this._summonees[timelineName][flexId] = {};
-    if (!this._summonees[timelineName][flexId][propertyName])
+    }
+    if (!this._summonees[timelineName][flexId][propertyName]) {
         this._summonees[timelineName][flexId][propertyName] = {};
+    }
     this._summonees[timelineName][flexId][propertyName][keyframeMs] = summonees;
     return summonees;
 };
 ValueBuilder.prototype._getPreviousEvaluation = function _getPreviousEvaluation(timelineName, flexId, propertyName, keyframeMs) {
-    if (!this._evaluations[timelineName])
+    if (!this._evaluations[timelineName]) {
         return void (0);
-    if (!this._evaluations[timelineName][flexId])
+    }
+    if (!this._evaluations[timelineName][flexId]) {
         return void (0);
-    if (!this._evaluations[timelineName][flexId][propertyName])
+    }
+    if (!this._evaluations[timelineName][flexId][propertyName]) {
         return void (0);
+    }
     return this._evaluations[timelineName][flexId][propertyName][keyframeMs];
 };
 ValueBuilder.prototype._cacheEvaluation = function _cacheEvaluation(timelineName, flexId, propertyName, keyframeMs, evaluation) {
-    if (!this._evaluations[timelineName])
+    if (!this._evaluations[timelineName]) {
         this._evaluations[timelineName] = {};
-    if (!this._evaluations[timelineName][flexId])
+    }
+    if (!this._evaluations[timelineName][flexId]) {
         this._evaluations[timelineName][flexId] = {};
-    if (!this._evaluations[timelineName][flexId][propertyName])
+    }
+    if (!this._evaluations[timelineName][flexId][propertyName]) {
         this._evaluations[timelineName][flexId][propertyName] = {};
+    }
     this._evaluations[timelineName][flexId][propertyName][keyframeMs] = evaluation;
     return evaluation;
 };
@@ -643,7 +673,7 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables(paramsArr
     for (var i = 0; i < paramsArray.length; i++) {
         var summonsEntry = paramsArray[i];
         var summonsOutput = void 0;
-        if (typeof summonsEntry === "string") {
+        if (typeof summonsEntry === 'string') {
             if (INJECTABLES[summonsEntry]) {
                 summonStorage[summonsEntry] = undefined;
                 INJECTABLES[summonsEntry].summon(summonStorage, summonsEntry, hostInstance, matchingElement, timelineName);
@@ -653,11 +683,12 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables(paramsArr
                 summonsOutput = hostInstance.state[summonsEntry];
             }
         }
-        else if (summonsEntry && typeof summonsEntry === "object") {
+        else if (summonsEntry && typeof summonsEntry === 'object') {
             summonsOutput = {};
             for (var summonsKey in summonsEntry) {
-                if (!summonsEntry[summonsKey])
+                if (!summonsEntry[summonsKey]) {
                     continue;
+                }
                 if (INJECTABLES[summonsKey]) {
                     INJECTABLES[summonsKey].summon(summonsOutput, summonsEntry[summonsKey], hostInstance, matchingElement, timelineName);
                     continue;
@@ -672,20 +703,20 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables(paramsArr
     return summonablesArray;
 };
 ValueBuilder.prototype._getSummonablesSchema = function _getSummonablesSchema() {
-    var schema = {};
+    var summonablesSchema = {};
     for (var key in INJECTABLES) {
-        schema[key] = INJECTABLES[key].schema;
+        summonablesSchema[key] = INJECTABLES[key].schema;
     }
-    return schema;
+    return summonablesSchema;
 };
-function _areSummoneesDifferent(previous, incoming) {
+function areSummoneesDifferent(previous, incoming) {
     if (Array.isArray(previous) && Array.isArray(incoming)) {
         if (previous.length !== incoming.length) {
             return true;
         }
         else {
             for (var i = 0; i < incoming.length; i++) {
-                if (_areSummoneesDifferent(previous[i], incoming[i])) {
+                if (areSummoneesDifferent(previous[i], incoming[i])) {
                     return true;
                 }
             }
@@ -695,7 +726,7 @@ function _areSummoneesDifferent(previous, incoming) {
     else if (typeof previous === OBJECT && typeof incoming === OBJECT) {
         if (previous !== null && incoming !== null) {
             for (var key in incoming) {
-                if (_areSummoneesDifferent(previous[key], incoming[key])) {
+                if (areSummoneesDifferent(previous[key], incoming[key])) {
                     return true;
                 }
             }
@@ -712,8 +743,9 @@ function _areSummoneesDifferent(previous, incoming) {
     return previous !== incoming;
 }
 ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueCluster(timelineName, flexId, matchingElement, outputName, cluster, hostInstance, isPatchOperation, skipCache) {
-    if (!this._parsees[timelineName])
+    if (!this._parsees[timelineName]) {
         this._parsees[timelineName] = {};
+    }
     if (!this._parsees[timelineName][flexId]) {
         this._parsees[timelineName][flexId] = {};
     }
@@ -761,19 +793,23 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
     return parsee;
 };
 ValueBuilder.prototype.getParser = function getParser(outputName, virtualElement) {
-    if (!virtualElement)
+    if (!virtualElement) {
         return undefined;
+    }
     var foundParser = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement);
-    if (!foundParser)
+    if (!foundParser) {
         foundParser = parsers_1["default"][virtualElement.elementName] && parsers_1["default"][virtualElement.elementName][outputName];
+    }
     return foundParser && foundParser.parse;
 };
 ValueBuilder.prototype.getGenerator = function getGenerator(outputName, virtualElement) {
-    if (!virtualElement)
+    if (!virtualElement) {
         return undefined;
+    }
     var foundGenerator = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement);
-    if (!foundGenerator)
+    if (!foundGenerator) {
         foundGenerator = parsers_1["default"][virtualElement.elementName] && parsers_1["default"][virtualElement.elementName][outputName];
+    }
     return foundGenerator && foundGenerator.generate;
 };
 ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFinalValueFromParsedValue(timelineName, flexId, matchingElement, outputName, computedValue) {
@@ -845,9 +881,8 @@ ValueBuilder.prototype.grabValue = function _grabValue(timelineName, flexId, mat
     if (computedValueForTime === undefined) {
         return undefined;
     }
-    var finalValue = this.generateFinalValueFromParsedValue(timelineName, flexId, matchingElement, propertyName, computedValueForTime);
-    return finalValue;
+    return this.generateFinalValueFromParsedValue(timelineName, flexId, matchingElement, propertyName, computedValueForTime);
 };
-ValueBuilder["INJECTABLES"] = INJECTABLES;
-ValueBuilder["FORBIDDEN_EXPRESSION_TOKENS"] = FORBIDDEN_EXPRESSION_TOKENS;
+ValueBuilder['INJECTABLES'] = INJECTABLES;
+ValueBuilder['FORBIDDEN_EXPRESSION_TOKENS'] = FORBIDDEN_EXPRESSION_TOKENS;
 //# sourceMappingURL=ValueBuilder.js.map

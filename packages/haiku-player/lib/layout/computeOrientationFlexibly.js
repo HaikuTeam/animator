@@ -1,10 +1,13 @@
 "use strict";
 exports.__esModule = true;
-function computeOrientationFlexibly(x, y, z, w, quat) {
+function computeOrientationFlexibly(xIn, yIn, zIn, w, quat) {
     if (!quat ||
         (quat.x == null || quat.y == null || quat.z == null || quat.w == null)) {
-        throw new Error("No w-component nor quaternion provided!");
+        throw new Error('No w-component nor quaternion provided!');
     }
+    var x = xIn;
+    var y = yIn;
+    var z = zIn;
     if (x == null || y == null || z == null) {
         var sp = -2 * (quat.y * quat.z - quat.w * quat.x);
         if (Math.abs(sp) > 0.99999) {

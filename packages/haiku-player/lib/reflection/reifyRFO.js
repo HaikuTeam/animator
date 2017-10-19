@@ -3,7 +3,7 @@ exports.__esModule = true;
 var functionSpecificationToFunction_1 = require("./functionSpecificationToFunction");
 var inject_1 = require("./inject");
 function reifyRFO(rfo) {
-    var fn = functionSpecificationToFunction_1["default"](rfo.name || "", rfo.params, rfo.body, rfo.type);
+    var fn = functionSpecificationToFunction_1["default"](rfo.name || '', rfo.params, rfo.body, rfo.type);
     if (rfo.injectee) {
         inject_1["default"].apply(null, [fn].concat(rfo.params));
     }

@@ -10,15 +10,16 @@ var normalizeName_1 = require("./normalizeName");
 var renderTree_1 = require("./renderTree");
 var replaceElement_1 = require("./replaceElement");
 var replaceElementWithText_1 = require("./replaceElementWithText");
-var OBJECT = "object";
-var STRING = "string";
+var OBJECT = 'object';
+var STRING = 'string';
 function updateElement(domElement, virtualElement, parentNode, parentVirtualElement, component, isPatchOperation) {
     if (isTextNode_1["default"](virtualElement)) {
         replaceElementWithText_1["default"](domElement, virtualElement, component);
         return virtualElement;
     }
-    if (!domElement.haiku)
+    if (!domElement.haiku) {
         domElement.haiku = {};
+    }
     if (!component.config.options.cache[getFlexId_1["default"](virtualElement)]) {
         component.config.options.cache[getFlexId_1["default"](virtualElement)] = {};
     }

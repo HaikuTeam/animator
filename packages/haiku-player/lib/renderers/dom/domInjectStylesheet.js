@@ -6,8 +6,8 @@ function domInjectStylesheet(doc, css) {
         sheet.cssText = css;
     }
     else {
-        var head = doc.getElementsByTagName("head")[0];
-        var style = doc.createElement("style");
+        var head = doc.getElementsByTagName('head')[0];
+        var style = doc.createElement('style');
         if (style.styleSheet) {
             style.styleSheet.cssText = css;
         }

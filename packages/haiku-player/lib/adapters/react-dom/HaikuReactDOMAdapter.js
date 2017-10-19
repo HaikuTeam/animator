@@ -4,31 +4,31 @@ var lodash_1 = require("lodash");
 var React = require("react");
 var ReactDOM = require("react-dom");
 var EventsDict_1 = require("./EventsDict");
-var DEFAULT_HOST_ELEMENT_TAG_NAME = "div";
+var DEFAULT_HOST_ELEMENT_TAG_NAME = 'div';
 var HAIKU_FORWARDED_PROPS = {
-    haikuOptions: "options",
-    haikuStates: "states",
-    haikuInitialStates: "states",
-    haikuEventHandlers: "eventHandlers",
-    haikuTimelines: "timelines",
-    haikuVanities: "vanities"
+    haikuOptions: 'options',
+    haikuStates: 'states',
+    haikuInitialStates: 'states',
+    haikuEventHandlers: 'eventHandlers',
+    haikuTimelines: 'timelines',
+    haikuVanities: 'vanities'
 };
 var VALID_PROPS = {
-    tagName: "string",
-    id: "string",
-    className: "string",
-    style: "object",
-    width: "string",
-    height: "string",
-    onComponentWillMount: "func",
-    onComponentWillUnmount: "func",
-    onComponentDidMount: "func",
-    onHaikuComponentWillInitialize: "func",
-    onHaikuComponentDidMount: "func",
-    onHaikuComponentDidInitialize: "func",
-    onHaikuComponentWillUnmount: "func",
-    haikuAdapter: "func",
-    haikuCode: "object"
+    tagName: 'string',
+    id: 'string',
+    className: 'string',
+    style: 'object',
+    width: 'string',
+    height: 'string',
+    onComponentWillMount: 'func',
+    onComponentWillUnmount: 'func',
+    onComponentDidMount: 'func',
+    onHaikuComponentWillInitialize: 'func',
+    onHaikuComponentDidMount: 'func',
+    onHaikuComponentDidInitialize: 'func',
+    onHaikuComponentWillUnmount: 'func',
+    haikuAdapter: 'func',
+    haikuCode: 'object'
 };
 var REACT_ELEMENT_PROPS_TO_OMIT = {
     onComponentWillMount: true,
@@ -45,14 +45,14 @@ for (var eventKey in EventsDict_1["default"]) {
     VALID_PROPS[eventKey] = EventsDict_1["default"][eventKey];
 }
 for (var fwdPropKey in HAIKU_FORWARDED_PROPS) {
-    VALID_PROPS[fwdPropKey] = "object";
+    VALID_PROPS[fwdPropKey] = 'object';
 }
 function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
     var reactClass = React.createClass({
-        displayName: "HaikuComponent",
+        displayName: 'HaikuComponent',
         getInitialState: function () {
             return {
-                randomId: "haiku-reactroot-" + randomString(24)
+                randomId: 'haiku-reactroot-' + randomString(24)
             };
         },
         componentWillReceiveProps: function (nextPropsRaw) {
@@ -89,22 +89,23 @@ function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
             var haikuConfig = {
                 ref: this.mount,
                 vanities: {
-                    "controlFlow.placeholder": function _controlFlowPlaceholderReactVanity(element, surrogate, value, context, component) {
-                        visit(this.mount, function visitor(node) {
+                    'controlFlow.placeholder': function _controlFlowPlaceholderReactVanity(element, surrogate, value, context, component) {
+                        visit(this.mount, function (node) {
                             var flexId = flexIdIfSame(element, node);
                             if (flexId) {
                                 if (!component._didElementRenderSurrogate(element, surrogate)) {
-                                    if (typeof surrogate.type === "string" || (typeof surrogate.type === "function" && surrogate.type.isHaikuAdapter)) {
-                                        var div = document.createElement("div");
+                                    if (typeof surrogate.type === 'string' ||
+                                        (typeof surrogate.type === 'function' && surrogate.type.isHaikuAdapter)) {
+                                        var div = document.createElement('div');
                                         node.parentNode.replaceChild(div, node);
                                         node = div;
-                                        element.elementName = "div";
+                                        element.elementName = 'div';
                                     }
-                                    node.style.visibility = "hidden";
+                                    node.style.visibility = 'hidden';
                                     ReactDOM.render(surrogate, node);
-                                    window.requestAnimationFrame(function frame() {
+                                    window.requestAnimationFrame(function () {
                                         component._markElementSurrogateAsRendered(element, surrogate);
-                                        node.style.visibility = "visible";
+                                        node.style.visibility = 'visible';
                                     });
                                     component._markHorizonElement(element);
                                     component._markForFullFlush();
@@ -138,14 +139,14 @@ function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
                     haikuAdapter = rawProps.haikuAdapter(optionalRawBytecode);
                 }
                 else {
-                    throw new Error("A Haiku code object is required if you supply a Haiku adapter");
+                    throw new Error('A Haiku code object is required if you supply a Haiku adapter');
                 }
             }
             else {
                 haikuAdapter = HaikuComponentFactory;
             }
             if (!haikuAdapter) {
-                throw new Error("A Haiku adapter is required");
+                throw new Error('A Haiku adapter is required');
             }
             if (!this.haiku) {
                 this.haiku = haikuAdapter(this.mount, haikuConfig);
@@ -176,13 +177,13 @@ function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
             return lodash_1.merge({
                 id: this.state.randomId,
                 style: {
-                    position: "relative",
+                    position: 'relative',
                     margin: 0,
                     padding: 0,
                     border: 0,
-                    width: "100%",
-                    height: "100%",
-                    transform: "matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)"
+                    width: '100%',
+                    height: '100%',
+                    transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)'
                 }
             }, propsForHostElement);
         },
@@ -206,9 +207,9 @@ function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
     return reactClass;
 }
 exports["default"] = HaikuReactDOMAdapter;
-var ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+var ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
 function randomString(len) {
-    var str = "";
+    var str = '';
     while (str.length < len) {
         str += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
     }
@@ -226,13 +227,13 @@ function visit(el, visitor) {
 }
 function flexIdIfSame(virtual, dom) {
     if (virtual.attributes) {
-        if (virtual.attributes["haiku-id"]) {
-            if (dom.getAttribute("haiku-id") === virtual.attributes["haiku-id"]) {
-                return virtual.attributes["haiku-id"];
+        if (virtual.attributes['haiku-id']) {
+            if (dom.getAttribute('haiku-id') === virtual.attributes['haiku-id']) {
+                return virtual.attributes['haiku-id'];
             }
         }
         if (virtual.attributes.id) {
-            if (dom.getAttribute("id") === virtual.attributes.id) {
+            if (dom.getAttribute('id') === virtual.attributes.id) {
                 return virtual.attributes.id;
             }
         }

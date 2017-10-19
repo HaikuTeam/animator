@@ -4,8 +4,8 @@ var arrayToRO_1 = require("./arrayToRO");
 var functionToRFO_1 = require("./functionToRFO");
 var isSerializableScalar_1 = require("./isSerializableScalar");
 var objectToRO_1 = require("./objectToRO");
-var FUNCTION = "function";
-var OBJECT = "object";
+var FUNCTION = 'function';
+var OBJECT = 'object';
 function expressionToRO(exp, options) {
     if (typeof exp === FUNCTION) {
         return functionToRFO_1["default"](exp);

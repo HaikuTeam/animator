@@ -2,33 +2,31 @@
 exports.__esModule = true;
 var marshalParams_1 = require("./marshalParams");
 function functionSpecificationToFunction(name, params, body, type) {
-    if (!type)
-        type = "FunctionExpression";
-    params = marshalParams_1["default"](params);
+    if (type === void 0) { type = 'FunctionExpression'; }
     var fn;
-    if (type === "ArrowFunctionExpression") {
-        fn = new Function("\n" +
-            "return " +
-            (name || "") +
-            "(" +
-            params +
-            ") => {\n" +
-            "  " +
-            (body || "") +
-            "\n" +
-            "}\n")();
+    if (type === 'ArrowFunctionExpression') {
+        fn = new Function('\n' +
+            'return ' +
+            (name || '') +
+            '(' +
+            marshalParams_1["default"](params) +
+            ') => {\n' +
+            '  ' +
+            (body || '') +
+            '\n' +
+            '}\n')();
     }
     else {
-        fn = new Function("\n" +
-            "return function " +
-            (name || "") +
-            "(" +
-            params +
-            ") {\n" +
-            "  " +
-            (body || "") +
-            "\n" +
-            "}\n")();
+        fn = new Function('\n' +
+            'return function ' +
+            (name || '') +
+            '(' +
+            marshalParams_1["default"](params) +
+            ') {\n' +
+            '  ' +
+            (body || '') +
+            '\n' +
+            '}\n')();
     }
     return fn;
 }
