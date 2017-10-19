@@ -41,7 +41,7 @@ class AutoUpdater extends React.Component {
 
     autoUpdate.checkUpdates()
       .then(({shouldUpdate, url}) => {
-        if(shouldUpdate) {
+        if (shouldUpdate) {
           this.url = url
           this.props.skipOptIn
             ? this.update()
@@ -52,10 +52,15 @@ class AutoUpdater extends React.Component {
             : this.setState({status: statuses.NO_UPDATES})
         }
       })
-      .catch(this.onFail)
+      .catch(() => {
+        this.props.runOnBackground
+          ? this.hide()
+          : this.onFail()
+      })
   }
 
   onFail (error) {
+    console.error(error)
     this.setState({status: statuses.DOWNLOAD_FAILED})
   }
 
@@ -69,7 +74,7 @@ class AutoUpdater extends React.Component {
   }
 
   updateProgress (progress) {
-    this.setState({ progress })
+    this.setState({progress})
   }
 
   hide () {
@@ -124,7 +129,7 @@ class AutoUpdater extends React.Component {
   }
 
   renderNoUpdates () {
-    if(this.props.runOnBackground) return null
+    if (this.props.runOnBackground) return null
 
     return (
       <div>
@@ -145,7 +150,7 @@ class AutoUpdater extends React.Component {
   }
 
   renderChecking () {
-    if(this.props.runOnBackground) return null
+    if (this.props.runOnBackground) return null
 
     return (
       <div>
@@ -161,7 +166,7 @@ class AutoUpdater extends React.Component {
 
     let content = this[`render${this.state.status}`]()
 
-    if(content) {
+    if (content) {
       return (
         <div>
           <div style={STYLES.container}>
