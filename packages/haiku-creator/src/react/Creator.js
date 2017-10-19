@@ -82,7 +82,7 @@ export default class Creator extends React.Component {
       activeNav: 'library',
       projectsList: [],
       updater: {
-        shouldCheck: false,
+        shouldCheck: true,
         shouldRunOnBackground: true,
         shouldSkipOptIn: true
       }
