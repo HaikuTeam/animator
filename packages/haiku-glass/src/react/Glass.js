@@ -108,8 +108,8 @@ export class Glass extends React.Component {
     })
 
     this._component.on('envoy:glassClientReady', (glassChannel) => {
-      glassChannel.on('cut', this.handleVirtualClipboard.bind(this, 'cut'))
-      glassChannel.on('copy', this.handleVirtualClipboard.bind(this, 'copy'))
+      glassChannel.on('cut', () => {this.handleVirtualClipboard('cut')})
+      glassChannel.on('copy', () => {this.handleVirtualClipboard('copy')})
     })
 
     this._component.on('envoy:tourClientReady', (client) => {
