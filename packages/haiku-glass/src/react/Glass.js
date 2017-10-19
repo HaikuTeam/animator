@@ -239,8 +239,8 @@ export class Glass extends React.Component {
       })
     })
 
-    document.addEventListener('cut', this.handleVirtualClipboard.bind(this, 'cut'))
-    document.addEventListener('copy', this.handleVirtualClipboard.bind(this, 'copy'))
+    document.addEventListener('cut', () => {this.handleVirtualClipboard('cut')})
+    document.addEventListener('copy', () => {this.handleVirtualClipboard('copy')})
 
     // This fires when the context menu cut/copy action has been fired - not a keyboard action.
     // This fires with cut OR copy. In case of cut, the element has already been .cut()!
