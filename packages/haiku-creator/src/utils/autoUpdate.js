@@ -45,7 +45,6 @@ module.exports = {
         /* If autoupdate is intentionally skipped, just silently resolve */
         resolve()
       }
-
     })
   },
 
