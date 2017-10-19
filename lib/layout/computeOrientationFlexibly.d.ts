@@ -1,4 +1,4 @@
-export default function computeOrientationFlexibly(x: any, y: any, z: any, w: any, quat: any): {
+export default function computeOrientationFlexibly(xIn: any, yIn: any, zIn: any, w: any, quat: any): {
     x: number;
     y: number;
     z: number;

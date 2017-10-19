@@ -1,7 +1,7 @@
 declare const _default: {
     computeMatrix: (outputMatrix: any, outputNodepad: any, layoutSpec: any, currentMatrix: any, currentsizeAbsolute: any, parentMatrix: any, parentsizeAbsolute: any) => any;
     multiplyArrayOfMatrices: (arrayOfMatrices: any) => any;
-    computeLayout: (out: any, layoutSpec: any, currentMatrix: any, parentMatrix: any, parentsizeAbsolute: any) => any;
+    computeLayout: (out: any, layoutSpec: any, currentMatrix: any, parentMatrix: any, parentsizeAbsoluteIn: any) => any;
     createLayoutSpec: (ax: any, ay: any, az: any) => {
         shown: boolean;
         opacity: number;
@@ -73,13 +73,19 @@ declare const _default: {
         shown: boolean;
         opacity: number;
     };
-    computeOrientationFlexibly: (x: any, y: any, z: any, w: any, quat: any) => {
+    computeOrientationFlexibly: (xIn: any, yIn: any, zIn: any, w: any, quat: any) => {
         x: number;
         y: number;
         z: number;
         w: number;
     };
     createMatrix: () => any;
+    multiplyMatrices: (out: any, a: any, b: any) => any;
+    transposeMatrix: (out: any, a: any) => any;
+    copyMatrix: (out: any, m: any) => any;
+    initializeTreeAttributes: (tree: any, container: any) => void;
+    initializeNodeAttributes: (element: any, parent: any) => any;
+    isZero: (num: any) => boolean;
     FORMATS: {
         THREE: number;
         TWO: number;
@@ -147,11 +153,5 @@ declare const _default: {
             z: number;
         };
     };
-    multiplyMatrices: (out: any, a: any, b: any) => any;
-    transposeMatrix: (out: any, a: any) => any;
-    copyMatrix: (out: any, m: any) => any;
-    initializeTreeAttributes: (tree: any, container: any) => void;
-    initializeNodeAttributes: (element: any, parent: any) => any;
-    isZero: (num: any) => boolean;
 };
 export default _default;
