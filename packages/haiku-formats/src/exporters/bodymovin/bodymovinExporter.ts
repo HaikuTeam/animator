@@ -20,6 +20,7 @@ import {
   getFixedPropertyValue,
   hexToAfterEffectsColor,
   maybeApplyMutatorToProperty,
+  pathToInterpolationTrace,
   pointsToVertices,
 } from './bodymovinUtils';
 
@@ -294,6 +295,19 @@ export class BodymovinExporter implements Exporter {
           };
         }
         break;
+      case 'path':
+        // Note: again, we explicitly assume the path is not animated.
+        shape[ShapeKey.Type] = ShapeType.Shape;
+        if (timeline.hasOwnProperty('d')) {
+          shape[ShapeKey.Vertices] = {
+            [PropertyKey.Animated]: 0,
+            [PropertyKey.Value]: {
+              [PathKey.Closed]: true,
+              ...pathToInterpolationTrace(timeline.d[0].value),
+            },
+          };
+        }
+        break;
       default:
         throw new Error(`Unable to handle shape: ${node.elementName}`);
     }
@@ -330,6 +344,7 @@ export class BodymovinExporter implements Exporter {
         case 'circle':
         case 'ellipse':
         case 'rect':
+        case 'path':
         case 'polygon':
           this.handleShape(node);
           break;

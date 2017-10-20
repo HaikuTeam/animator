@@ -23,7 +23,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
         ...baseBytecode.template, elementName: 'span',
       },
     };
-    test.throws(rawOutput.bind(undefined, bytecode));
+    test.throws(rawOutput.bind(undefined, bytecode), 'throws if provided a span wrapper');
     test.end();
   });
 
@@ -35,25 +35,25 @@ tape('BodymovinExporter', (test: tape.Test) => {
         }],
       },
     };
-    test.throws(rawOutput.bind(undefined, bytecode));
+    test.throws(rawOutput.bind(undefined, bytecode), 'throws if provided a div child');
     test.end();
   });
 
   test.test('uses the specified version of Bodymovin', (test: tape.Test) => {
     const {v} = rawOutput(baseBytecode);
-    test.deepEqual({v}, {v: '4.11.1'});
+    test.deepEqual({v}, {v: '4.11.1'}, 'gets the Bodymovin version from package.json');
     test.end();
   });
 
   test.test('uses constant in-point and framerate', (test: tape.Test) => {
     const {ip, fr} = rawOutput(baseBytecode);
-    test.deepEqual({ip, fr}, {ip: 0, fr: 60});
+    test.deepEqual({ip, fr}, {ip: 0, fr: 60}, 'always uses in-point of 0 and 60 fps');
     test.end();
   });
 
   test.test('derives animation dimensions from wrapper element', (test: tape.Test) => {
     const {w, h} = rawOutput(baseBytecode);
-    test.deepEqual({w, h}, {w: 640, h: 480});
+    test.deepEqual({w, h}, {w: 640, h: 480}, 'gets animation width and height from stage');
     test.end();
   });
 
@@ -74,7 +74,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
         ks: {o},
       }],
     } = rawOutput(baseBytecode);
-    test.deepEqual(o, {a: 0, k: 100});
+    test.deepEqual(o, {a: 0, k: 100}, 'sets opacity to 100 if it is not explicitly provided');
     test.end();
   });
 
@@ -192,6 +192,82 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
     test.equal(ty, 'sh', 'translates polygons as shapes');
     test.deepEqual(k, {c: true, v: [[1, 2], [3, 4]]}, 'parses points into vertex chunks for closed shapes');
+    test.end();
+  });
+
+  test.test('supports paths', (test: tape.Test) => {
+    const bytecode = {...baseBytecode};
+    overrideShapeElement(bytecode, 'path');
+
+    const {
+      layers: [{
+        shapes: [{it: [{ty}]}],
+      }],
+    } = rawOutput(bytecode);
+
+    test.equal(ty, 'sh', 'translates paths as shapes');
+
+    // Scope for testing enforcement of closed paths.
+    {
+      overrideShapeAttributes(bytecode, {
+        d: {0: {value: 'M1,2'}},
+      });
+      test.throws(rawOutput.bind(undefined, bytecode), 'only supports closed paths (for now!)');
+    }
+
+    // Scope for testing moveto support.
+    {
+      overrideShapeAttributes(bytecode, {
+        d: {0: {value: 'M1,2 Z'}},
+      });
+
+      const {
+        layers: [{
+          shapes: [{it: [{ks: {k: {c, v}}}]}],
+        }],
+      } = rawOutput(bytecode);
+      test.equal(c, true, 'creates a closed shape');
+      test.deepEqual(v, [[1, 2]], 'parses moveto to a vertex');
+    }
+
+    // Scope for testing line support.
+    {
+      overrideShapeAttributes(bytecode, {
+        d: {0: {value: 'M0,0 L1,1 L0,0 Z'}},
+      });
+
+      const {
+        layers: [{
+          shapes: [{it: [{ks: {k: {v, i, o}}}]}],
+        }],
+      } = rawOutput(bytecode);
+      test.deepEqual(v, [[0, 0], [1, 1]], 'gets coordinates from line endpoints');
+      test.deepEqual(i, [[0, 0], [0, 0]], 'translates lines in relative to vertices');
+      test.deepEqual(o, [[0, 0], [0, 0]], 'translates lines out relative to vertices');
+    }
+
+    // Scope for testing cubic bezier support.
+    {
+      overrideShapeAttributes(bytecode, {
+        d: {0: {value: 'M0,0 C1,1 L0,0 Z'}},
+      });
+
+      test.throws(rawOutput.bind(undefined, bytecode), 'throws on invalid cubic beziers');
+
+      overrideShapeAttributes(bytecode, {
+        d: {0: {value: 'M0,0 C1,2 3,4 5,6 L0,0 Z'}},
+      });
+
+      const {
+        layers: [{
+          shapes: [{it: [{ks: {k: {v, i, o}}}]}],
+        }],
+      } = rawOutput(bytecode);
+      test.deepEqual(v, [[0, 0], [5, 6]], 'gets coordinates from bezier curve endpoints');
+      test.deepEqual(i, [[0, 0], [-2, -2]], 'translates lines in relative to vertices');
+      test.deepEqual(o, [[1, 2], [0, 0]], 'translates lines out relative to vertices');
+    }
+
     test.end();
   });
 

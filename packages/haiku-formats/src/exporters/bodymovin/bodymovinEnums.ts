@@ -23,6 +23,8 @@ export enum LayerType {
 
 export enum PathKey {
   Closed = 'c',
+  InterpolationIn = 'i',
+  InterpolationOut = 'o',
   Points = 'v',
 }
 
