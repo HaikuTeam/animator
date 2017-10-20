@@ -35,8 +35,7 @@ export const DOWNLOAD_STYLES = {
     top: 0,
     left: 0,
     backgroundColor: Color(Palette.GRAY).fade(0.023),
-    zIndex: 99999,
-    pointerEvents: 'none'
+    zIndex: 99999
   },
   progressNumber: {
     fontSize: 15,
