@@ -21,6 +21,11 @@ export enum LayerType {
   Shape = 4,
 }
 
+export enum PathKey {
+  Closed = 'c',
+  Points = 'v',
+}
+
 export enum PropertyKey {
   Animated = 'a',
   Value = 'k',
@@ -29,21 +34,29 @@ export enum PropertyKey {
 export enum ShapeKey {
   Type = 'ty',
   GroupItems = 'it',
+  Vertices = 'ks',
 }
 
 export enum ShapeType {
-  Group = 'gr',
+  // Proper shapes.
   Ellipse = 'el',
+  Rectangle = 'rc',
+  Shape = 'sh',
+
+  // Organizational "shapes".
+  Transform = 'tr',
+  Group = 'gr',
   Stroke = 'st',
   Fill = 'fl',
 }
 
 export enum TransformKey {
-  Opacity = 'o',
+  BorderRadius = 'r',
+  Color = 'c',
   Position = 'p',
   PositionSplit = 's',
+  Opacity = 'o',
   Scale = 's',
   Size = 's',
-  Color = 'c',
   StrokeWidth = 'w',
 }

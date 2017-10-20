@@ -7,7 +7,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "lint": "tslint -p tsconfig.json -c tslint.json --type-check 'src/**/*.ts' --format stylish",
+    "lint": "tslint -p tsconfig.json -c tslint.json --type-check --format stylish",
     "fix": "yarn lint --fix",
     "test": "tsc && tsc -p tsconfig.test.json && NODE_ENV=test tape \"~test/**/*.test.js\" | tap-spec && rm -rf ~test",
     "coverage": "nyc yarn test",

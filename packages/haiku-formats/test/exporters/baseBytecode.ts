@@ -28,11 +28,6 @@ export default {
           "0": {
             "value": 20
           }
-        },
-        "opacity": {
-          "0": {
-            "value": 0.5
-          }
         }
       },
       "haiku:shape": {
