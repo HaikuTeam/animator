@@ -17,7 +17,8 @@ export default {
       "haiku:svg": {
         "translation.x": {
           "0": {
-            "value": 0
+            "value": 0,
+            "curve": "linear"
           },
           "60": {
             "value": 10

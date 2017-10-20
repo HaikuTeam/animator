@@ -1,7 +1,9 @@
 import {Maybe} from 'haiku-common/lib/types';
+import {Curve} from 'haiku-common/lib/types/enums';
 import * as visitTemplate from 'haiku-serialization/src/model/helpers/visitTemplate';
 
 import {Exporter} from '..';
+import {getCurveInterpolationPoints} from '../curves';
 import {AnimationKey, LayerKey, LayerType, PropertyKey, ShapeKey, ShapeType, TransformKey} from './bodymovinEnums';
 import {BodymovinProperty} from './bodymovinTypes';
 
@@ -129,8 +131,6 @@ export class BodymovinExporter implements Exporter {
    * @param {Function?} mutator
    */
   private getValueAnimation(timelineProperty, startKeyframe, endKeyframe, mutator = undefined) {
-    // TODO: Use curve to support real values for i and o.
-    // TODO: Find a way to support no curve as a special edge case.
     // (Lottie assumes linear if not provided.)
     const animation = {};
     animation[AnimationKey.Time] = startKeyframe;
@@ -140,6 +140,15 @@ export class BodymovinExporter implements Exporter {
     animation[AnimationKey.End] = mutator
       ? mutator(timelineProperty[endKeyframe].value)
       : timelineProperty[endKeyframe].value;
+
+    const curve = timelineProperty[startKeyframe].curve as Curve;
+    if (curve) {
+      const [xOut, yOut, xIn, yIn] = getCurveInterpolationPoints(curve);
+      animation[AnimationKey.BezierIn] = {x: xIn, y: yIn};
+      animation[AnimationKey.BezierOut] = {x: xOut, y: yOut};
+    } else {
+      // TODO: Find a way to support no curve as a special edge case.
+    }
 
     // If we have found the new "last" keyframe, note it now.
     this.outPoint = Math.max(this.outPoint, endKeyframe);
@@ -340,7 +349,7 @@ export class BodymovinExporter implements Exporter {
    * @returns {{}}
    */
   binaryOutput() {
-    return JSON.stringify(this.rawOutput);
+    return JSON.stringify(this.rawOutput());
   }
 
   constructor(private readonly bytecode) {

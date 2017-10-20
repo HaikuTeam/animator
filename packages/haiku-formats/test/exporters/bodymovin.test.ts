@@ -66,12 +66,16 @@ tape('BodymovinExporter', (test: tape.Test) => {
   test.test('animates properties', (test: tape.Test) => {
     const {
       layers: [{
-        ks: {p: {x}},
+        ks: {p: {x: {a, k: [{t, s, e, i, o}, finalKeyframe]}}},
       }],
       op,
     } = rawOutput(baseBytecode);
+
     test.equal(op, 60, 'derives out-point from final keyframe');
-    test.deepEqual(x, {a: 1, k: [{t: 0, s: 0, e: 10}, {t: 60}]}, 'animates using keyframes');
+    test.equal(a, 1, 'knows an animation is active');
+    test.deepEqual({t, s, e}, {t: 0, s: 0, e: 10}, 'animates using keyframes');
+    test.deepEqual({i, o}, {i: {x: 1, y: 1}, o: {x: 0, y: 0}}, 'uses bezier interpolation points from the curve');
+    test.deepEqual(finalKeyframe, {t: 60}, 'provides a final keyframe with no properties');
     test.end();
   });
 
