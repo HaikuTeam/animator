@@ -205,11 +205,10 @@ class ProjectBrowser extends React.Component {
         if (err) {
           projectsList.splice(0, 1)
           this.setState({ projectsList })
-          this.state.newProjectError = err
           this.props.createNotice({
             type: 'error',
             title: 'Oh no!',
-            message: 'We couldn\'t create your project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message our servers might be having problems. Please try again in a few moments. If you still see this error, contact Haiku for support.',
+            message: 'We couldn\'t create your project. 😩 Does this project with this name already exist?',
             closeText: 'Okay',
             lightScheme: true
           })
@@ -228,7 +227,11 @@ class ProjectBrowser extends React.Component {
 
   projectsListElement () {
     if (this.state.areProjectsLoading) {
-      return <span style={DASH_STYLES.loadingWrap}><FadingCircle size={32} color={Palette.ROCK_MUTED} /></span>
+      return (
+        <span style={DASH_STYLES.loadingWrap}>
+          <FadingCircle size={32} color={Palette.ROCK_MUTED} />
+        </span>
+      )
     }
 
     return (
