@@ -8,11 +8,12 @@ app.setName('Haiku')
 
 export default class TopMenu extends EventEmitter {
   create (options) {
+    const isProjectOpen = !!options.folder
     var developerMenuItems = [
       // {
       //   label: 'Open in Text Editor',
       //   accelerator: 'CmdOrCtrl+Option+E',
-      //   enabled: !!options.folder,
+      //   enabled: isProjectOpen,
       //   click: () => {
       //     this.emit('global-menu:open-text-editor')
       //   }
@@ -20,7 +21,7 @@ export default class TopMenu extends EventEmitter {
       {
         label: 'Open in Terminal',
         accelerator: 'CmdOrCtrl+Option+T',
-        enabled: !!options.folder,
+        enabled: isProjectOpen,
         click: () => {
           this.emit('global-menu:open-terminal')
         }
@@ -72,11 +73,12 @@ export default class TopMenu extends EventEmitter {
       role: 'quit'
     })
 
+
     const projectSubmenu = [
       {
         label: 'Publish',
         accelerator: 'CmdOrCtrl+S',
-        enabled: !options.isSaving,
+        enabled: !options.isSaving && isProjectOpen,
         click: () => {
           this.emit('global-menu:save')
         }
@@ -88,6 +90,7 @@ export default class TopMenu extends EventEmitter {
         label: 'Export',
         submenu: [{
           label: ExporterFormat.Bodymovin,
+          enabled: isProjectOpen,
           accelerator: 'Cmd+Shift+E', // TODO(sashajoseph): Remove this?
           click: () => {
             this.emit('global-menu:export', [ExporterFormat.Bodymovin])
@@ -102,7 +105,6 @@ export default class TopMenu extends EventEmitter {
         submenu: mainMenuPieces
       },
       {
-        // TODO(xifm6diW): disable when there is no active project.
         label: 'Project',
         submenu: projectSubmenu
       },
@@ -158,13 +160,13 @@ export default class TopMenu extends EventEmitter {
       //         {
       //           label: 'Rectangle',
       //           accelerator: 'R',
-      //           enabled: !!options.folder,
+      //           enabled: isProjectOpen,
       //           click: () => this.emit('global-menu:set-tool', ['shape', 'Rectangle'])
       //         },
       //         {
       //           label: 'Oval',
       //           accelerator: 'O',
-      //           enabled: !!options.folder,
+      //           enabled: isProjectOpen,
       //           click: () => this.emit('global-menu:set-tool', ['shape', 'Oval'])
       //         }
       //       ]
@@ -172,20 +174,20 @@ export default class TopMenu extends EventEmitter {
       //     {
       //       label: 'Vector',
       //       accelerator: 'V',
-      //       enabled: !!options.folder,
+      //       enabled: isProjectOpen,
       //       click: () => this.emit('global-menu:set-tool', ['pen'])
       //     },
       //     {
       //       label: 'Brush',
       //       accelerator: 'B',
-      //       enabled: !!options.folder,
+      //       enabled: isProjectOpen,
       //       click: () => this.emit('global-menu:set-tool', ['brush'])
       //     },
       //     { type: 'separator' },
       //     {
       //       label: 'Text',
       //       accelerator: 'T',
-      //       enabled: !!options.folder,
+      //       enabled: isProjectOpen,
       //       click: () => this.emit('global-menu:set-tool', ['text'])
       //     }
       //   ]
@@ -196,7 +198,7 @@ export default class TopMenu extends EventEmitter {
           {
             label: 'Zoom In',
             accelerator: 'CmdOrCtrl+Plus',
-            enabled: true,
+            enabled: isProjectOpen,
             click: () => {
               this.emit('global-menu:zoom-in')
             }
@@ -204,7 +206,7 @@ export default class TopMenu extends EventEmitter {
           {
             label: 'Zoom Out',
             accelerator: 'CmdOrCtrl+-', // not 'Minus' :/
-            enabled: true,
+            enabled: isProjectOpen,
             click: () => {
               this.emit('global-menu:zoom-out')
             }
