@@ -131,29 +131,23 @@ export default class TopMenu extends EventEmitter {
           {
             label: 'Cut',
             accelerator: 'CmdOrCtrl+X',
-            // needed because of macOS limitation:
-            // https://github.com/electron/electron/issues/5860
-            role: isProjectOpen ? 'cut' : '',
-            enabled: isProjectOpen
+            role: 'cut'
           },
           {
             label: 'Copy',
             accelerator: 'CmdOrCtrl+C',
-            role: isProjectOpen ? 'copy' : '',
-            enabled: isProjectOpen
+            role: 'copy'
           },
           {
             label: 'Paste',
             accelerator: 'CmdOrCtrl+V',
-            role: isProjectOpen ? 'paste' : '',
-            enabled: isProjectOpen
+            role: 'paste'
           },
           { type: 'separator' },
           {
             label: 'Delete',
             accelerator: 'Delete',
-            role: isProjectOpen ? 'delete' : '',
-            enabled: isProjectOpen
+            role: 'delete'
           }
         ]
       },
