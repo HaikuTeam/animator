@@ -148,7 +148,8 @@ export default class TopMenu extends EventEmitter {
             label: 'Delete',
             accelerator: 'Delete',
             role: 'delete'
-          }
+          },
+          {role: 'selectall'}
         ]
       },
       // {
