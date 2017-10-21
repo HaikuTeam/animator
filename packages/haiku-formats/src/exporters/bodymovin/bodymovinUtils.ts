@@ -73,6 +73,18 @@ export const maybeApplyMutatorToProperty = (property: any, mutator: (any) => any
 };
 
 /**
+ * Translates interpolation points relative to their vertices.
+ * @param points
+ * @param vertices
+ * @private
+ */
+const translateInterpolationPoints = (points: BodymovinPathComponent, vertices: BodymovinPathComponent) => {
+  points.forEach((value, index) => {
+    points[index] = [value[0] - vertices[index][0], value[1] - vertices[index][1]];
+  });
+};
+
+/**
  * Translates an SVG path to a Bodymovin interpolation trace.
  * @param {string} path
  * @returns {[key in PathKey]: BodymovinPathComponent}
@@ -107,6 +119,8 @@ export const pathToInterpolationTrace = (path: string) => {
     }
   });
 
+  // We are at a closepath directive. We should now unshift the last in-point to the top of the stack and remove the
+  // final vertex, which is a dupe. Note: when we add support for non-closed shapes, this will become much harder!
   if (vertices.length > 1) {
     interpolationInPoints.unshift(interpolationInPoints.pop());
     vertices.pop();
@@ -119,12 +133,8 @@ export const pathToInterpolationTrace = (path: string) => {
   }
 
   // Translate all interpolation points relative to their corresponding vertices.
-  interpolationInPoints.forEach((value, index) => {
-    interpolationInPoints[index] = [value[0] - vertices[index][0], value[1] - vertices[index][1]];
-  });
-  interpolationOutPoints.forEach((value, index) => {
-    interpolationOutPoints[index] = [value[0] - vertices[index][0], value[1] - vertices[index][1]];
-  });
+  translateInterpolationPoints(interpolationInPoints, vertices);
+  translateInterpolationPoints(interpolationOutPoints, vertices);
 
   return {
     [PathKey.Points]: vertices,
