@@ -207,14 +207,6 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
     test.equal(ty, 'sh', 'translates paths as shapes');
 
-    // Scope for testing enforcement of closed paths.
-    {
-      overrideShapeAttributes(bytecode, {
-        d: {0: {value: 'M1,2'}},
-      });
-      test.throws(rawOutput.bind(undefined, bytecode), 'only supports closed paths (for now!)');
-    }
-
     // Scope for testing moveto support.
     {
       overrideShapeAttributes(bytecode, {
@@ -248,12 +240,6 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
     // Scope for testing cubic bezier support.
     {
-      overrideShapeAttributes(bytecode, {
-        d: {0: {value: 'M0,0 C1,1 L0,0 Z'}},
-      });
-
-      test.throws(rawOutput.bind(undefined, bytecode), 'throws on invalid cubic beziers');
-
       overrideShapeAttributes(bytecode, {
         d: {0: {value: 'M0,0 C1,2 3,4 5,6 L0,0 Z'}},
       });

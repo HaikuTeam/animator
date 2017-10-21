@@ -4,7 +4,9 @@
 
 import {PropertyKey} from './bodymovinEnums';
 
-export type BodymovingPathComponent = [number, number][];
+export type BodymovinCoordinates = [number, number];
+
+export type BodymovinPathComponent = BodymovinCoordinates[];
 
 export type BodymovinProperty = {
   [key in PropertyKey]: any
