@@ -12,6 +12,7 @@ var getHaikuKnownImportMatch = require('./getHaikuKnownImportMatch')
 var overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 var EnvoyClient = require('haiku-sdk-creator/lib/envoy/client').default
 var EnvoyLogger = require('haiku-sdk-creator/lib/envoy/logger').default
+var { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
 var WebSocket = require('ws')
 
 var HAIKU_ID_ATTRIBUTE = 'haiku-id'
@@ -126,6 +127,12 @@ function ActiveComponent (options) {
     this._envoyTimelineChannel = timelineChannel
 
     this.emit('envoy:timelineClientReady', this._envoyTimelineChannel)
+  })
+
+  this._envoyClient.get(GLASS_CHANNEL).then((glassChannel) => {
+    this._envoyGlassChannel = glassChannel
+
+    this.emit('envoy:glassClientReady', this._envoyGlassChannel)
   })
 
   this._envoyClient.get('tour').then((tourChannel) => {

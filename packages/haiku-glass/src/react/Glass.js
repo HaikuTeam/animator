@@ -107,6 +107,11 @@ export class Glass extends React.Component {
       timelineChannel.on('didSeek', this.handleTimelineDidSeek.bind(this))
     })
 
+    this._component.on('envoy:glassClientReady', (glassChannel) => {
+      glassChannel.on('cut', () => {this.handleVirtualClipboard('cut')})
+      glassChannel.on('copy', () => {this.handleVirtualClipboard('copy')})
+    })
+
     this._component.on('envoy:tourClientReady', (client) => {
       this.tourClient = client
       this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
@@ -234,43 +239,15 @@ export class Glass extends React.Component {
       })
     })
 
-    function handleVirtualClipboard (clipboardAction, maybeClipboardEvent) {
-      console.info('[glass] handling clipboard action', clipboardAction)
-
-      // Avoid infinite loops due to the way we leverage execCommand
-      if (this._clipboardActionLock) {
-        return false
-      }
-
-      this._clipboardActionLock = true
-
-      if (this._lastSelectedElement) {
-        // Gotta grab _before cutting_ or we'll end up with a partial object that won't work
-        let clipboardPayload = this._lastSelectedElement.getClipboardPayload('glass')
-
-        if (clipboardAction === 'cut') {
-          this._lastSelectedElement.cut()
-        }
-
-        let serializedPayload = JSON.stringify(['application/haiku', clipboardPayload])
-
-        clipboard.writeText(serializedPayload)
-
-        this._clipboardActionLock = false
-      } else {
-        this._clipboardActionLock = false
-      }
-    }
-
-    document.addEventListener('cut', handleVirtualClipboard.bind(this, 'cut'))
-    document.addEventListener('copy', handleVirtualClipboard.bind(this, 'copy'))
+    document.addEventListener('cut', () => {this.handleVirtualClipboard('cut')})
+    document.addEventListener('copy', () => {this.handleVirtualClipboard('copy')})
 
     // This fires when the context menu cut/copy action has been fired - not a keyboard action.
     // This fires with cut OR copy. In case of cut, the element has already been .cut()!
     this._component.on('element:copy', (componentId) => {
       console.info('[glass] element:copy', componentId)
       this._lastSelectedElement = this._component._elements.find(componentId)
-      handleVirtualClipboard.call(this, 'copy')
+      this.handleVirtualClipboard('copy')
     })
 
     // Since the current selected element can be deleted from the global menu, we need to keep it there
@@ -400,6 +377,34 @@ export class Glass extends React.Component {
   componentWillUnmount () {
     this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
     this._envoyClient.closeConnection()
+  }
+
+  handleVirtualClipboard (clipboardAction, maybeClipboardEvent) {
+    console.info('[glass] handling clipboard action', clipboardAction)
+
+    // Avoid infinite loops due to the way we leverage execCommand
+    if (this._clipboardActionLock) {
+      return false
+    }
+
+    this._clipboardActionLock = true
+
+    if (this._lastSelectedElement) {
+      // Gotta grab _before cutting_ or we'll end up with a partial object that won't work
+      let clipboardPayload = this._lastSelectedElement.getClipboardPayload('glass')
+
+      if (clipboardAction === 'cut') {
+        this._lastSelectedElement.cut()
+      }
+
+      let serializedPayload = JSON.stringify(['application/haiku', clipboardPayload])
+
+      clipboard.writeText(serializedPayload)
+
+      this._clipboardActionLock = false
+    } else {
+      this._clipboardActionLock = false
+    }
   }
 
   handleWindowResize () {

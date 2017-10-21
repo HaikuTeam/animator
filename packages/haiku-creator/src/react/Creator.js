@@ -21,6 +21,7 @@ import Tour from './components/Tour/Tour'
 import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
+import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
 import {
   linkExternalAssetsOnDrop,
   preventDefaultDrag
@@ -298,6 +299,11 @@ export default class Creator extends React.Component {
         tourChannel.notifyScreenResize()
         // }
       }), 300)
+    })
+
+    this.envoy.get(GLASS_CHANNEL).then((glassChannel) => {
+      document.addEventListener('cut', glassChannel.cut)
+      document.addEventListener('copy', glassChannel.copy)
     })
 
     document.addEventListener('paste', (pasteEvent) => {
