@@ -18,8 +18,8 @@ const MAX_SEMVER_TAG_ATTEMPTS = 100
 const AWAIT_COMMIT_INTERVAL = 0
 const MIN_WORKER_INTERVAL = 32
 const MAX_WORKER_INTERVAL = 32 * 20
-const MAX_CLONE_ATTEMPTS = 5
-const CLONE_RETRY_DELAY = 5000
+const MAX_CLONE_ATTEMPTS = 6
+const CLONE_RETRY_DELAY = 10000
 const CLONE_INIT_DELAY = 5000
 const DEFAULT_BRANCH_NAME = 'master' // "'master' process" has nothing to do with this :/
 const BASELINE_SEMVER_TAG = '0.0.0'
@@ -546,7 +546,7 @@ export default class MasterGitProject extends EventEmitter {
       CodeCommitHttpsPassword
     } = this._folderState.remoteProjectDescriptor
 
-    logger.info(`[master-git] cloning from remote ${GitRemoteUrl} (attempt ${this._folderState.cloneAttempts})`)
+    logger.sacred(`[master-git] cloning from remote ${GitRemoteUrl} (attempt ${this._folderState.cloneAttempts})`)
 
     return Git.cloneRepo(GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, this.folder, (err) => {
       if (err) {
