@@ -93,6 +93,12 @@ const AWAIT_INTERVAL = 100
 const WAIT_DELAY = 10 * 1000
 const MAX_MASTER_RESTART_ATTEMPTS = 3
 
+// In normal conditions CodeCommit can take up to 10 seconds to initialize a new repository,
+// and unfortunately there's no callback to detect when it's finished. So when a project is
+// first created, we add this artificial delay to make it more likely that the first clone
+// attempt made (during project initialization) goes through without requiring re-attempt.
+const CODE_COMMIT_RACE_CONDITION_DELAY = 10000
+
 const HAIKU_DEFAULTS = {
   socket: {
     port: process.env.HAIKU_CONTROL_PORT,
@@ -764,7 +770,9 @@ export default class Plumbing extends StateObject {
         this.sentryError('createProject', projectCreateErr)
         return cb(projectCreateErr)
       }
-      return cb(null, remapProjectObjectToExpectedFormat(project))
+      return setTimeout(() => {
+        return cb(null, remapProjectObjectToExpectedFormat(project))
+      }, CODE_COMMIT_RACE_CONDITION_DELAY)
     })
   }
 
