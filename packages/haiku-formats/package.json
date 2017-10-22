@@ -7,7 +7,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "lint": "tslint -p tsconfig.json -c tslint.json --type-check 'src/**/*.ts' --format stylish",
+    "lint": "tslint -p tsconfig.json -c tslint.json --type-check --format stylish",
     "fix": "yarn lint --fix",
     "test": "tsc && tsc -p tsconfig.test.json && NODE_ENV=test tape \"~test/**/*.test.js\" | tap-spec && rm -rf ~test",
     "coverage": "nyc yarn test",
@@ -22,7 +22,8 @@
   "dependencies": {
     "haiku-common": "HaikuTeam/common.git",
     "haiku-sdk-creator": "HaikuTeam/sdk-creator.git",
-    "haiku-serialization": "HaikuTeam/serialization.git"
+    "haiku-serialization": "HaikuTeam/serialization.git",
+    "haiku-player": "HaikuTeam/player.git"
   },
   "devDependencies": {
     "@types/node": "^8.0.34",

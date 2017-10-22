@@ -2090,6 +2090,13 @@ haiku-fs-extra@HaikuTeam/node-fs-extra.git#master-haiku:
     jsonfile "^2.1.0"
     klaw "^1.0.0"
 
+haiku-player@HaikuTeam/player.git:
+  version "2.3.12"
+  resolved "git+ssh://git@github.com/HaikuTeam/player.git#e383cc5a2afb0f66b51500391a526fef6fb5fdef"
+  dependencies:
+    lodash "^4.17.4"
+    react "15.4.2"
+
 haiku-sdk-creator@HaikuTeam/sdk-creator.git:
   version "2.3.7"
   resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#4a74e7504424020d074b3c74fa9aa390c0ebd5c9"
