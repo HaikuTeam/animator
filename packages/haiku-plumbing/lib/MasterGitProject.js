@@ -70,8 +70,8 @@ var MAX_SEMVER_TAG_ATTEMPTS = 100;
 var AWAIT_COMMIT_INTERVAL = 0;
 var MIN_WORKER_INTERVAL = 32;
 var MAX_WORKER_INTERVAL = 32 * 20;
-var MAX_CLONE_ATTEMPTS = 5;
-var CLONE_RETRY_DELAY = 5000;
+var MAX_CLONE_ATTEMPTS = 6;
+var CLONE_RETRY_DELAY = 10000;
 var CLONE_INIT_DELAY = 5000;
 var DEFAULT_BRANCH_NAME = 'master'; // "'master' process" has nothing to do with this :/
 var BASELINE_SEMVER_TAG = '0.0.0';
@@ -648,7 +648,7 @@ var MasterGitProject = function (_EventEmitter) {
           CodeCommitHttpsPassword = _folderState$remotePr2.CodeCommitHttpsPassword;
 
 
-      _LoggerInstance2.default.info('[master-git] cloning from remote ' + GitRemoteUrl + ' (attempt ' + this._folderState.cloneAttempts + ')');
+      _LoggerInstance2.default.sacred('[master-git] cloning from remote ' + GitRemoteUrl + ' (attempt ' + this._folderState.cloneAttempts + ')');
 
       return Git.cloneRepo(GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, this.folder, function (err) {
         if (err) {
