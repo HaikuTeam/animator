@@ -45,9 +45,10 @@
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
     "Zack Brown <zack@haiku.ai>",
-    "Taylor Poe <taylor@haiku.ai>"
+    "Taylor Poe <taylor@haiku.ai>",
+    "Sasha Joseph <sasha@haiku.ai>"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^8.0.27",
     "@types/tape": "^4.2.30",
