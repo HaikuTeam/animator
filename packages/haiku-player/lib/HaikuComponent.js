@@ -23,9 +23,6 @@ function HaikuComponent(bytecode, context, config, metadata) {
     if (!bytecode) {
         throw new Error('Empty bytecode not allowed');
     }
-    if (!bytecode.timelines) {
-        throw new Error('Bytecode must define timelines');
-    }
     if (!bytecode.template) {
         throw new Error('Bytecode must define template');
     }
@@ -37,6 +34,9 @@ function HaikuComponent(bytecode, context, config, metadata) {
     }
     if (!config.options.seed) {
         throw new Error('Seed value must be provided');
+    }
+    if (!bytecode.timelines) {
+        bytecode.timelines = {};
     }
     SimpleEventEmitter_1["default"].create(this);
     this.PLAYER_VERSION = PLAYER_VERSION;
