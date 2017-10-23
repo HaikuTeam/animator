@@ -20,7 +20,7 @@ Caution: Haiku Player is in beta. Expect turbulence until we arrive at cruising 
 
 yarn:
 
-    $ yarn install @haiku/player
+    $ yarn add @haiku/player
 
 npm:
 
@@ -120,7 +120,7 @@ Interactive:
 
 With so many great UI libraries out there, why build this engine? Haiku Player is the bedrock of [the Haiku app platform](https://haiku.ai), and although we experimented with many existing libraries to meet its needs, in each case we found the architecture or goals mismatched. We opted to build an engine that would serve our plans exactly.
 
-Conceptually, Haiku Player transforms static component definitions (see above) into animated, interactive UIs. Under the hood, it organizes designed elements into a scene graph in which every node can be moved and transformed in space. It also serves as a translation layer between [the Haiku app platform](https://haiku.ai) and various rendering APIs (e.g., the browser).
+Conceptually, Haiku Player transforms static component definitions (see above) into animated, interactive UIs. It organizes designed elements into a scene graph in which every node can be transformed in 2.5D space. It also serves as a translation layer between [the Haiku app platform](https://haiku.ai) and rendering APIs (e.g., the browser).
 
 ## API / Docs
 
