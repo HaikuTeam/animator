@@ -1,12 +1,14 @@
 # Haiku Player [![Build Status](https://travis-ci.com/HaikuTeam/player.svg?branch=master)](https://travis-ci.com/HaikuTeam/player)
 
-The Haiku Player &mdash; 
-user interface engine 
-for SVG, DOM 
+The Haiku Player &mdash;  
+user interface engine  
+for SVG, DOM  
+
 
 <p align="center">
   <img src="https://github.com/HaikuTeam/player/blob/master/haiku.png">
 </p>
+
 
 [![NPM](https://nodei.co/npm/@haiku/player.png)](https://nodei.co/npm/@haiku/player/)
 
