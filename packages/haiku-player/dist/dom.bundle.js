@@ -458,9 +458,6 @@ function HaikuComponent(bytecode, context, config, metadata) {
     if (!bytecode) {
         throw new Error('Empty bytecode not allowed');
     }
-    if (!bytecode.timelines) {
-        throw new Error('Bytecode must define timelines');
-    }
     if (!bytecode.template) {
         throw new Error('Bytecode must define template');
     }
@@ -472,6 +469,9 @@ function HaikuComponent(bytecode, context, config, metadata) {
     }
     if (!config.options.seed) {
         throw new Error('Seed value must be provided');
+    }
+    if (!bytecode.timelines) {
+        bytecode.timelines = {};
     }
     SimpleEventEmitter_1["default"].create(this);
     this.PLAYER_VERSION = PLAYER_VERSION;
@@ -10236,7 +10236,7 @@ exports["default"] = parse;
 },{}],166:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.13",
+  "version": "2.3.14",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
@@ -10281,9 +10281,10 @@ module.exports={
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
     "Zack Brown <zack@haiku.ai>",
-    "Taylor Poe <taylor@haiku.ai>"
+    "Taylor Poe <taylor@haiku.ai>",
+    "Sasha Joseph <sasha@haiku.ai>"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^8.0.27",
     "@types/tape": "^4.2.30",
