@@ -138,7 +138,7 @@ Please send contributions via [pull request](https://github.com/HaikuTeam/player
 
 To develop Haiku Player locally:
 
-1. `git clone git@github.com:HaikuTeam/player.git && cd player`
+1. Fork the repo
 2. `yarn install`
 3. `yarn add react@15.4.2 react-dom@15.4.2` (for the React adapter)
 
