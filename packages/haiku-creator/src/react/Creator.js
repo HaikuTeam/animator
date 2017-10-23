@@ -211,26 +211,12 @@ export default class Creator extends React.Component {
       } else {
         // TODO: Handle other cases where the paste data was a serialized array
         console.warn('[creator] cannot paste this content type yet (array)')
-        this.createNotice({
-          type: 'warning',
-          title: 'Hmmm',
-          message: 'We don\'t know how to paste that content yet. 😳',
-          closeText: 'Okay',
-          lightScheme: true
-        })
       }
     } else {
       // An empty string is treated as the equivalent of nothing (don't display warning if nothing to instantiate)
       if (typeof pastedData === 'string' && pastedData.length > 0) {
         // TODO: Handle the case when plain text has been pasted - SVG, HTML, etc?
         console.warn('[creator] cannot paste this content type yet (unknown string)')
-        this.createNotice({
-          type: 'warning',
-          title: 'Hmmm',
-          message: 'We don\'t know how to paste that content yet. 😳',
-          closeText: 'Okay',
-          lightScheme: true
-        })
       }
     }
   }

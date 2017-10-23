@@ -382,8 +382,12 @@ export class Glass extends React.Component {
   handleVirtualClipboard (clipboardAction, maybeClipboardEvent) {
     console.info('[glass] handling clipboard action', clipboardAction)
 
-    // Avoid infinite loops due to the way we leverage execCommand
-    if (this._clipboardActionLock) {
+    if (
+      // Avoid infinite loops due to the way we leverage execCommand
+      this._clipboardActionLock ||
+      // Avoid interfering with cut/copy events in the events editor
+      this.state.isEventHandlerEditorOpen
+    ) {
       return false
     }
 
