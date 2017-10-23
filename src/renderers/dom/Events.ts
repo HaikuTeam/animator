@@ -3,48 +3,48 @@ export default {
   mouse: {
     click: {
       menuable: true,
-      human: "Click",
+      human: 'Click',
     },
     dblclick: {
       menuable: true,
-      human: "Double Click",
+      human: 'Double Click',
     },
     mousedown: {
       menuable: true,
-      human: "Mouse Down",
+      human: 'Mouse Down',
     },
     mouseup: {
       menuable: true,
-      human: "Mouse Up",
+      human: 'Mouse Up',
     },
     mousemove: {
       menuable: true,
-      human: "Mouse Move",
+      human: 'Mouse Move',
     },
     mouseover: {
       menuable: true,
-      human: "Mouse Over",
+      human: 'Mouse Over',
     },
     mouseout: {
       menuable: true,
-      human: "Mouse Out",
+      human: 'Mouse Out',
     },
     wheel: {
       menuable: false,
     },
     scroll: {
       menuable: true,
-      human: "Scroll",
+      human: 'Scroll',
     },
   },
   keyboard: {
     keyup: {
       menuable: true,
-      human: "Key Up",
+      human: 'Key Up',
     },
     keydown: {
       menuable: true,
-      human: "Key Down",
+      human: 'Key Down',
     },
     keypress: {
       menuable: false,
@@ -76,23 +76,23 @@ export default {
   form: {
     focus: {
       menuable: true,
-      human: "Focus",
+      human: 'Focus',
     },
     blur: {
       menuable: true,
-      human: "Blur",
+      human: 'Blur',
     },
     change: {
       menuable: true,
-      human: "Change",
+      human: 'Change',
     },
     select: {
       menuable: true,
-      human: "Select",
+      human: 'Select',
     },
     submit: {
       menuable: true,
-      human: "Submit",
+      human: 'Submit',
     },
     contextmenu: {
       menuable: false,
@@ -124,15 +124,15 @@ export default {
   window: {
     resize: {
       menuable: true,
-      human: "Window Resize",
+      human: 'Window Resize',
     },
     popstate: {
       menuable: true,
-      human: "URL Change",
+      human: 'URL Change',
     },
     hashchange: {
       menuable: true,
-      human: "Anchor Change",
+      human: 'Anchor Change',
     },
     load: {
       menuable: false,
@@ -250,4 +250,4 @@ export default {
       menuable: false,
     },
   },
-}
+};

@@ -1,8 +1,10 @@
-export default function _cloneAttributes(attributes) {
-  if (!attributes) return {}
-  let clone = {}
-  for (let key in attributes) {
-    clone[key] = attributes[key]
+export default function cloneAttributes(attributes) {
+  if (!attributes) {
+    return {};
   }
-  return clone
+  const clone = {};
+  for (const key in attributes) {
+    clone[key] = attributes[key];
+  }
+  return clone;
 }

@@ -1,1 +1,1 @@
-export default function parseCssTransformString(str: any): {};
+export default function parseCssTransformString(inStr: any): {};

@@ -2,47 +2,49 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import ArrayUniq from "./../vendor/array-unique"
+import arrayUnique from './../vendor/array-unique';
 
-const uniq = ArrayUniq.immutable
-const OBJECT = "object"
-const FUNCTION = "function"
+const uniq = arrayUnique.immutable;
+const OBJECT = 'object';
+const FUNCTION = 'function';
 
 function isObject(value) {
-  return value !== null && typeof value === OBJECT && !Array.isArray(value)
+  return value !== null && typeof value === OBJECT && !Array.isArray(value);
 }
 
 function isFunction(value) {
-  return typeof value === FUNCTION
+  return typeof value === FUNCTION;
 }
 
 function isEmpty(value) {
-  return value === undefined
+  return value === undefined;
 }
 
 function mergeIncoming(previous, incoming) {
-  for (let key in incoming) {
+  for (const key in incoming) {
     // Skip if there's no incoming property
-    if (isEmpty(incoming[key])) continue
+    if (isEmpty(incoming[key])) {
+      continue;
+    }
     // Deep merge if we have two objects
     if (isObject(previous[key]) && isObject(incoming[key])) {
-      previous[key] = mergeIncoming(previous[key], incoming[key])
-      continue
+      previous[key] = mergeIncoming(previous[key], incoming[key]);
+      continue;
     }
     // In the default case, we just overwrite
-    previous[key] = incoming[key]
+    previous[key] = incoming[key];
   }
-  return previous
+  return previous;
 }
 
 function mergeValue(previous, incoming) {
   if (isFunction(previous) || isFunction(incoming)) {
-    return incoming
+    return incoming;
   }
   if (isObject(previous) && isObject(incoming)) {
-    return mergeIncoming(previous, incoming)
+    return mergeIncoming(previous, incoming);
   }
-  return incoming
+  return incoming;
 }
 
 export default {
@@ -52,4 +54,4 @@ export default {
   mergeIncoming,
   mergeValue,
   uniq,
-}
+};

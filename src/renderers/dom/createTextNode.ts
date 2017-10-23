@@ -3,5 +3,5 @@
  */
 
 export default function createTextNode(domElement, textContent) {
-  return domElement.ownerDocument.createTextNode(textContent)
+  return domElement.ownerDocument.createTextNode(textContent);
 }

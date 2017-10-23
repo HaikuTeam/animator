@@ -1,2 +1,2 @@
-import HaikuDOMAdapter from "./HaikuDOMAdapter";
+import HaikuDOMAdapter from './HaikuDOMAdapter';
 export default HaikuDOMAdapter;

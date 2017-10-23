@@ -1,19 +1,21 @@
 export default function addElementToHashTable(hash, realElement, virtualElement) {
   if (virtualElement && virtualElement.attributes) {
-    let flexId = virtualElement.attributes["haiku-id"] || virtualElement.attributes.id
+    const flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id;
 
-    if (!hash[flexId]) hash[flexId] = []
+    if (!hash[flexId]) {
+      hash[flexId] = [];
+    }
 
-    let alreadyInList = false
+    let alreadyInList = false;
     for (let i = 0; i < hash[flexId].length; i++) {
-      let elInList = hash[flexId][i]
+      const elInList = hash[flexId][i];
       if (elInList === realElement) {
-        alreadyInList = true
+        alreadyInList = true;
       }
     }
 
     if (!alreadyInList) {
-      hash[flexId].push(realElement)
+      hash[flexId].push(realElement);
     }
   }
 }

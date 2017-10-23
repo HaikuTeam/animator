@@ -1,2 +1,2 @@
-import HaikuDOMRenderer from "./HaikuDOMRenderer";
+import HaikuDOMRenderer from './HaikuDOMRenderer';
 export default HaikuDOMRenderer;

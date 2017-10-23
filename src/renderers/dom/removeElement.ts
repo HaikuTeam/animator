@@ -3,6 +3,6 @@
  */
 
 export default function removeElement(domElement) {
-  domElement.parentNode.removeChild(domElement)
-  return domElement
+  domElement.parentNode.removeChild(domElement);
+  return domElement;
 }

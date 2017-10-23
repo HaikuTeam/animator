@@ -1,4 +1,4 @@
-import assign from "./vendor/assign"
+import assign from './vendor/assign';
 
 const DEFAULTS = {
   // onHaikuComponentWillInitialize: Function|null
@@ -56,27 +56,31 @@ const DEFAULTS = {
     clock: {},
 
     // sizing: String|null
-    // Configures the sizing mode of the component; may be 'normal', 'stretch', 'contain', or 'cover'. See HaikuComponent.js for info.
+    // Configures the sizing mode of the component; may be 'normal', 'stretch', 'contain', or 'cover'. See
+    // HaikuComponent.js for info.
     sizing: null,
 
     // preserve3d: String
     // Placeholder for an option to control whether to enable preserve-3d mode in DOM environments. [UNUSED]
-    preserve3d: "auto",
+    preserve3d: 'auto',
 
     // contextMenu: String
-    // Whether or not the Haiku context menu should display when the component is right-clicked; may be 'enabled' or 'disabled'.
-    contextMenu: "enabled",
+    // Whether or not the Haiku context menu should display when the component is right-clicked; may be 'enabled' or
+    // 'disabled'.
+    contextMenu: 'enabled',
 
     // position: String
     // CSS position setting for the root of the component in DOM; recommended to keep as 'relative'.
-    position: "relative",
+    position: 'relative',
 
     // overflowX: String|null
-    // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without needing a wrapper element.
+    // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without
+    // needing a wrapper element.
     overflowX: null,
 
     // overflowY: String|null
-    // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without needing a wrapper element.
+    // CSS overflow-x setting for the component. Convenience for allows user to specify the overflow setting without
+    // needing a wrapper element.
     overflowY: null,
 
     // overflow: String|null
@@ -84,8 +88,9 @@ const DEFAULTS = {
     overflow: null,
 
     // mixpanel: String|null
-    // If provided, a Mixpanel tracking instance will be created using this string as the API token. The default token is Haiku's production token.
-    mixpanel: "6f31d4f99cf71024ce27c3e404a79a61",
+    // If provided, a Mixpanel tracking instance will be created using this string as the API token. The default token
+    // is Haiku's production token.
+    mixpanel: '6f31d4f99cf71024ce27c3e404a79a61',
 
     // useWebkitPrefix: boolean
     // Whether to prepend a webkit prefix to transform properties
@@ -97,7 +102,7 @@ const DEFAULTS = {
 
     // interactionMode: object
     // Control how this instance handles interaction, e.g. preview mode
-    interactionMode: { type: "live" },
+    interactionMode: {type: 'live'},
   },
 
   // states: Object|null
@@ -119,14 +124,14 @@ const DEFAULTS = {
   // children: Array|null
   // Children may be passed in, typically via the React adapter
   children: null,
-}
+};
 
 function seed() {
-  return Math.random().toString(36).slice(2)
+  return Math.random().toString(36).slice(2);
 }
 
 function build(...argums) {
-  let config = {
+  const config = {
     onHaikuComponentWillInitialize: null,
     onHaikuComponentDidMount: null,
     onHaikuComponentDidInitialize: null,
@@ -138,59 +143,85 @@ function build(...argums) {
     template: null,
     vanities: null,
     children: null,
+  };
+
+  const args = [];
+  for (let i = 0; i < argums.length; i++) {
+    args[i] = argums[i];
   }
 
-  let args = []
-  for (let i = 0; i < argums.length; i++) args[i] = argums[i]
-
-  args.unshift(DEFAULTS)
+  args.unshift(DEFAULTS);
 
   for (let j = 0; j < args.length; j++) {
-    let incoming = args[j]
-    if (!incoming) continue
-    if (typeof incoming !== "object") continue
+    const incoming = args[j];
+    if (!incoming) {
+      continue;
+    }
+    if (typeof incoming !== 'object') {
+      continue;
+    }
 
-    if (incoming.onHaikuComponentWillInitialize) config.onHaikuComponentWillInitialize = incoming.onHaikuComponentWillInitialize
-    if (incoming.onHaikuComponentDidMount) config.onHaikuComponentDidMount = incoming.onHaikuComponentDidMount
-    if (incoming.onHaikuComponentDidInitialize) config.onHaikuComponentDidInitialize = incoming.onHaikuComponentDidInitialize
-    if (incoming.onHaikuComponentWillUnmount) config.onHaikuComponentWillUnmount = incoming.onHaikuComponentWillUnmount
+    if (incoming.onHaikuComponentWillInitialize) {
+      config.onHaikuComponentWillInitialize = incoming.onHaikuComponentWillInitialize;
+    }
+    if (incoming.onHaikuComponentDidMount) {
+      config.onHaikuComponentDidMount = incoming.onHaikuComponentDidMount;
+    }
+    if (incoming.onHaikuComponentDidInitialize) {
+      config.onHaikuComponentDidInitialize = incoming.onHaikuComponentDidInitialize;
+    }
+    if (incoming.onHaikuComponentWillUnmount) {
+      config.onHaikuComponentWillUnmount = incoming.onHaikuComponentWillUnmount;
+    }
 
-    if (incoming.options) config.options = assign({}, config.options, incoming.options)
+    if (incoming.options) {
+      config.options = assign({}, config.options, incoming.options);
+    }
 
     // Hoist any 'options' that might have been passed at the root level up into 'options'
     // e.g. { loop: true } -> { options: { loop: true } }
-    for (let key in incoming) {
+    for (const key in incoming) {
       if (incoming[key] !== undefined && DEFAULTS.options.hasOwnProperty(key)) {
-        config.options[key] = incoming[key]
+        config.options[key] = incoming[key];
       }
     }
 
-    if (incoming.states) config.states = assign({}, config.states, incoming.states)
-
-    // For semantic purposes, also allow 'initialStates' to be passed in
-    if (incoming.initialStates && typeof incoming.initialStates === "object") {
-      assign(config.states, incoming.initialStates)
+    if (incoming.states) {
+      config.states = assign({}, config.states, incoming.states);
     }
 
-    if (incoming.eventHandlers) config.eventHandlers = assign({}, config.eventHandlers, incoming.eventHandlers)
-    if (incoming.timelines) config.timelines = assign({}, config.timelines, incoming.timelines)
-    if (incoming.vanities) config.vanities = assign({}, config.vanities, incoming.vanities)
+    // For semantic purposes, also allow 'initialStates' to be passed in
+    if (incoming.initialStates && typeof incoming.initialStates === 'object') {
+      assign(config.states, incoming.initialStates);
+    }
 
-    if (incoming.children) config.children = incoming.children
+    if (incoming.eventHandlers) {
+      config.eventHandlers = assign({}, config.eventHandlers, incoming.eventHandlers);
+    }
+    if (incoming.timelines) {
+      config.timelines = assign({}, config.timelines, incoming.timelines);
+    }
+    if (incoming.vanities) {
+      config.vanities = assign({}, config.vanities, incoming.vanities);
+    }
+
+    if (incoming.children) {
+      config.children = incoming.children;
+    }
   }
 
   // Validations:
   if (config.options.overflow && (config.options.overflowX || config.options.overflowY)) {
-    console.warn("[haiku player] `overflow` overrides `overflowY`/`overflowX`")
-    config.options.overflowX = null
-    config.options.overflowY = null
+    console.warn('[haiku player] `overflow` overrides `overflowY`/`overflowX`');
+    config.options.overflowX = null;
+    config.options.overflowY = null;
   }
 
-  return config
+  return config;
 }
 
 export default {
   build,
   seed,
   DEFAULTS,
-}
+};
