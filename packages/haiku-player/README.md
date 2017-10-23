@@ -6,7 +6,7 @@ for SVG, DOM
 
 
 <p align="center">
-  <img src="https://github.com/HaikuTeam/player/blob/master/haiku.png">
+  <img width="320" src="https://github.com/HaikuTeam/player/blob/master/haiku.png">
 </p>
 
 
