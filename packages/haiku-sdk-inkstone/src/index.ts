@@ -15,6 +15,7 @@ var ENDPOINTS = {
   SNAPSHOT_GET_BY_ID: "v0/snapshot/:ID",
   PROJECT_GET_BY_NAME: "v0/project/:NAME",
   PROJECT_DELETE_BY_NAME: "v0/project/:NAME",
+  SUPPORT_UPLOAD_GET_PRESIGNED_URL: "v0/support/upload/:UUID",
 }
 
 var request = requestLib.defaults({
@@ -47,6 +48,28 @@ export namespace inkstone {
   }
 
   export type Callback<T> = (err: string, data: T, response: requestLib.RequestResponse) => void
+
+  export namespace support {
+    export function getPresignedUrl(authToken: string, uuid: string, cb: inkstone.Callback<String>) {
+      var options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: _inkstoneConfig.baseUrl + ENDPOINTS.SUPPORT_UPLOAD_GET_PRESIGNED_URL.replace(":UUID", uuid),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `INKSTONE auth_token="${authToken}"`
+        }
+      }
+
+      request.get(options, function (err, httpResponse, body) {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          var url = body as string
+          cb(undefined, url, httpResponse)
+        } else {
+          cb("uncategorized error", null, httpResponse)
+        }
+      })
+    }
+
+  }
 
   export namespace user {
 

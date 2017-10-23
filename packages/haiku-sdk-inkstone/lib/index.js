@@ -14,6 +14,7 @@ var ENDPOINTS = {
     SNAPSHOT_GET_BY_ID: "v0/snapshot/:ID",
     PROJECT_GET_BY_NAME: "v0/project/:NAME",
     PROJECT_DELETE_BY_NAME: "v0/project/:NAME",
+    SUPPORT_UPLOAD_GET_PRESIGNED_URL: "v0/support/upload/:UUID",
 };
 var request = requestLib.defaults({
     strictSSL: true
@@ -34,6 +35,28 @@ var inkstone;
         }
     }
     inkstone.setConfig = setConfig;
+    var support;
+    (function (support) {
+        function getPresignedUrl(authToken, uuid, cb) {
+            var options = {
+                url: _inkstoneConfig.baseUrl + ENDPOINTS.SUPPORT_UPLOAD_GET_PRESIGNED_URL.replace(":UUID", uuid),
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "INKSTONE auth_token=\"" + authToken + "\""
+                }
+            };
+            request.get(options, function (err, httpResponse, body) {
+                if (httpResponse && httpResponse.statusCode === 200) {
+                    var url = body;
+                    cb(undefined, url, httpResponse);
+                }
+                else {
+                    cb("uncategorized error", null, httpResponse);
+                }
+            });
+        }
+        support.getPresignedUrl = getPresignedUrl;
+    })(support = inkstone.support || (inkstone.support = {}));
     var user;
     (function (user) {
         function authenticate(username, password, cb) {

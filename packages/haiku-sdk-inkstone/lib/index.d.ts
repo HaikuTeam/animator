@@ -8,6 +8,9 @@ export declare namespace inkstone {
     }
     function setConfig(newVals: InkstoneConfig): void;
     type Callback<T> = (err: string, data: T, response: requestLib.RequestResponse) => void;
+    namespace support {
+        function getPresignedUrl(authToken: string, uuid: string, cb: inkstone.Callback<String>): void;
+    }
     namespace user {
         interface Authentication {
             Expiration: string;
