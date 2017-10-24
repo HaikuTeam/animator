@@ -16,6 +16,8 @@ const overrideShapeElement = (bytecode, elementName) => {
   bytecode.template.children[0].children[0].elementName = elementName;
 };
 
+const baseBytecodeDeepCopy = () => JSON.parse(JSON.stringify(baseBytecode));
+
 tape('BodymovinExporter', (test: tape.Test) => {
   test.test('requires a div wrapper', (test: tape.Test) => {
     const bytecode = {
@@ -118,8 +120,86 @@ tape('BodymovinExporter', (test: tape.Test) => {
     test.end();
   });
 
+  test.test('cascades group properties down to shapes', (test: tape.Test) => {
+    const bytecode = baseBytecodeDeepCopy();
+
+    // Shim in a group to wrap our shape.
+    bytecode.timelines.Default['haiku:group'] = {
+      'stroke-width': {0: {value: 5}},
+    };
+    bytecode.template.children[0].children = [{
+      elementName: 'g',
+      attributes: {'haiku-id': 'group'},
+      children: bytecode.template.children[0].children,
+    }];
+
+    {
+      const {
+        layers: [{
+          shapes: [{it: [_, stroke, __]}],
+        }],
+      } = rawOutput(bytecode);
+      test.equal(stroke.w.k, 10, 'child shape properties override parent group properties');
+    }
+
+    {
+      delete bytecode.timelines.Default['haiku:shape']['stroke-width'];
+      const {
+        layers: [{
+          shapes: [{it: [_, stroke, __]}],
+        }],
+      } = rawOutput(bytecode);
+      test.equal(stroke.w.k, 5, 'parent group properties cascade to child shapes');
+    }
+
+    test.end();
+  });
+
+  test.test('transcludes defs down to shapes through use', (test: tape.Test) => {
+    const bytecode = baseBytecodeDeepCopy();
+
+    // Shim in <defs>, and replace our shape element with a <use>.
+    bytecode.timelines.Default['haiku:def'] = {
+      'stroke-width': {0: {value: 5}},
+    };
+    overrideShapeElement(bytecode, 'use');
+    bytecode.template.children[0].children.unshift({
+      elementName: 'defs',
+      attributes: {'haiku-id': 'unused'},
+      children: [{
+        elementName: 'ellipse',
+        attributes: {'haiku-id': 'def', id: 'my-circle'},
+        children: [],
+      }],
+    });
+    overrideShapeAttributes(
+      bytecode, {stroke: {0: {value: '#FF0000'}}, 'stroke-width': {0: {value: 10}}, href: {0: {value: '#my-circle'}}});
+
+    {
+      const {
+        layers: [{
+          shapes: [{it: [shape, stroke]}],
+        }],
+      } = rawOutput(bytecode);
+      test.equal(shape.ty, 'el', 'transcludes the correct vector element');
+      test.deepEqual(stroke.w.k, 10, 'attributes from <use> override attributes from <defs>');
+    }
+
+    {
+      delete bytecode.timelines.Default['haiku:shape']['stroke-width'];
+      const {
+        layers: [{
+          shapes: [{it: [_, stroke]}],
+        }],
+      } = rawOutput(bytecode);
+      test.deepEqual(stroke.w.k, 5, 'attributes from <defs> transclude through to <use>');
+    }
+
+    test.end();
+  });
+
   test.test('supports circles', (test: tape.Test) => {
-    const bytecode = {...baseBytecode};
+    const bytecode = baseBytecodeDeepCopy();
     overrideShapeAttributes(bytecode, {cx: {0: {value: 5}}, cy: {0: {value: 5}}, r: {0: {value: 10}}});
     overrideShapeElement(bytecode, 'circle');
 
@@ -136,7 +216,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('supports ellipses', (test: tape.Test) => {
-    const bytecode = {...baseBytecode};
+    const bytecode = baseBytecodeDeepCopy();
     overrideShapeAttributes(bytecode, {rx: {0: {value: 10}}, ry: {0: {value: 20}}});
     overrideShapeElement(bytecode, 'ellipse');
 
@@ -152,10 +232,10 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('supports rectangles', (test: tape.Test) => {
-    const bytecode = {...baseBytecode};
+    const bytecode = baseBytecodeDeepCopy();
     overrideShapeAttributes(bytecode, {
-      x: {0: {value: .5}},
-      y: {0: {value: .5}},
+      x: {0: {value: 10}},
+      y: {0: {value: 10}},
       'sizeAbsolute.x': {0: {value: 10}},
       'sizeAbsolute.y': {0: {value: 20}},
       rx: {0: {value: 20}},
@@ -173,12 +253,12 @@ tape('BodymovinExporter', (test: tape.Test) => {
     test.deepEqual(r, {a: 0, k: 20}, 'translates border radius');
 
     test.equal(transformLayer.ty, 'tr', 'creates a translation layer for transposition');
-    test.deepEqual(transformLayer.p, {a: 0, k: [5, 10]}, 'translates the rectangle based on its origin');
+    test.deepEqual(transformLayer.p, {a: 0, k: [15, 20]}, 'translates the rectangle relative to a center origin');
     test.end();
   });
 
   test.test('supports polygons', (test: tape.Test) => {
-    const bytecode = {...baseBytecode};
+    const bytecode = baseBytecodeDeepCopy();
     overrideShapeAttributes(bytecode, {
       points: {0: {value: '1,2 3,4'}},
     });
@@ -186,17 +266,20 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
     const {
       layers: [{
-        shapes: [{it: [{ty, ks: {k}}]}],
+        shapes: [{it: [{ty, ks: {k: {c, v, i, o}}}]}],
       }],
     } = rawOutput(bytecode);
 
     test.equal(ty, 'sh', 'translates polygons as shapes');
-    test.deepEqual(k, {c: true, v: [[1, 2], [3, 4]]}, 'parses points into vertex chunks for closed shapes');
+    test.equal(c, true, 'creates a closed shape');
+    test.deepEqual(v, [[1, 2], [3, 4]], 'parses points into vertex chunks for closed shapes');
+    test.deepEqual(i, [[0, 0], [0, 0]], 'uses null interpolation in-points');
+    test.deepEqual(o, [[0, 0], [0, 0]], 'uses null interpolation in-points');
     test.end();
   });
 
   test.test('supports paths', (test: tape.Test) => {
-    const bytecode = {...baseBytecode};
+    const bytecode = baseBytecodeDeepCopy();
     overrideShapeElement(bytecode, 'path');
 
     const {

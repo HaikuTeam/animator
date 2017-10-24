@@ -18,12 +18,18 @@
   "authors": [
     "Sasha Joseph <sasha@haiku.ai>"
   ],
+  "engines": {
+    "node": "8.4.0",
+    "npm": "5.3.0",
+    "yarn": "1.0.2",
+    "electron": "1.7.0"
+  },
   "license": "UNLICENSED",
   "dependencies": {
     "haiku-common": "HaikuTeam/common.git",
+    "haiku-player": "HaikuTeam/player.git",
     "haiku-sdk-creator": "HaikuTeam/sdk-creator.git",
-    "haiku-serialization": "HaikuTeam/serialization.git",
-    "haiku-player": "HaikuTeam/player.git"
+    "haiku-serialization": "HaikuTeam/serialization.git"
   },
   "devDependencies": {
     "@types/node": "^8.0.34",
