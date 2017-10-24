@@ -58,6 +58,7 @@ export enum TransformKey {
   Position = 'p',
   PositionSplit = 's',
   Opacity = 'o',
+  Rotation = 'r',
   Scale = 's',
   Size = 's',
   StrokeWidth = 'w',

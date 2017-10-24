@@ -11,3 +11,8 @@ export type BodymovinPathComponent = BodymovinCoordinates[];
 export type BodymovinProperty = {
   [key in PropertyKey]: any
 };
+
+export type SvgInheritable = {
+  parentId: string,
+  inheritFromParent: boolean,
+};
