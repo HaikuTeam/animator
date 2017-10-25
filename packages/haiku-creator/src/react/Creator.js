@@ -22,7 +22,7 @@ import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
-import ActivityMonitor from './helpers/activityMonitor'
+import ActivityMonitor from '../utils/activityMonitor.js'
 import {
   linkExternalAssetsOnDrop,
   preventDefaultDrag
