@@ -815,6 +815,11 @@ export default class Plumbing extends StateObject {
     return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'fetchProjectInfo', [projectName, maybeUsername, maybePassword, fetchOptions], cb)
   }
 
+  checkInkstoneUpdates (options = {}, cb) {
+    var authToken = sdkClient.config.getAuthToken()
+    return inkstone.updates.check(authToken, options, cb)
+  }
+
   listAssets (folder, cb) {
     return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'fetchAssets', [], cb)
   }

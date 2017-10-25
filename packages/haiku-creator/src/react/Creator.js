@@ -578,7 +578,12 @@ export default class Creator extends React.Component {
 
   onActivityReport (userWasActive) {
     if (userWasActive) {
-      // notify inkstone
+      return this.props.websocket.request(
+        {method: 'checkInkstoneUpdates', params: [{}]},
+        (err) => {
+          console.log('[creator] ping to Inkstone for updates finished', err)
+        }
+      )
     }
 
     this.setState({
