@@ -15,15 +15,25 @@ import {
   ShapeType,
   TransformKey,
 } from './bodymovinEnums';
-import {colorTransformer, opacityTransformer} from './bodymovinTransformers';
+import {
+  colorTransformer,
+  opacityTransformer,
+  rotationTransformer,
+  linecapTransformer,
+  scaleTransformer,
+} from './bodymovinTransformers';
 import {SvgInheritable} from './bodymovinTypes';
 import {
+  alwaysArray,
   compoundTimelineReducer,
+  decomposeMaybeCompoundPath,
   getBodymovinVersion,
   getFixedPropertyValue,
+  keyframesFromTimelineProperty,
   maybeApplyMutatorToProperty,
   pathToInterpolationTrace,
   pointsToInterpolationTrace,
+  timelineValuesAreEquivalent,
 } from './bodymovinUtils';
 
 let bodymovinVersion: Maybe<string>;
@@ -90,12 +100,6 @@ export class BodymovinExporter implements Exporter {
   };
 
   /**
-   * Index of the current item being parsed.
-   * @type {number}
-   */
-  private currentIndex = 0;
-
-  /**
    * Convenience method for retrieving the active layer.
    * @returns {any}
    */
@@ -146,18 +150,16 @@ export class BodymovinExporter implements Exporter {
     // (Lottie assumes linear if not provided.)
     const animation = {
       [AnimationKey.Time]: startKeyframe,
-      [AnimationKey.Start]: maybeApplyMutatorToProperty(timelineProperty[startKeyframe].value, mutator),
-      [AnimationKey.End]: maybeApplyMutatorToProperty(timelineProperty[endKeyframe].value, mutator),
+      [AnimationKey.Start]: alwaysArray(maybeApplyMutatorToProperty(timelineProperty[startKeyframe].value, mutator)),
+      [AnimationKey.End]: alwaysArray(maybeApplyMutatorToProperty(timelineProperty[endKeyframe].value, mutator)),
     };
 
+    // Note: curve is guaranteed to exist due to the work done in normalizeCurves(), which is always called before
+    // this private method.
     const curve = timelineProperty[startKeyframe].curve as Curve;
-    if (curve) {
-      const [xOut, yOut, xIn, yIn] = getCurveInterpolationPoints(curve);
-      animation[AnimationKey.BezierIn] = {x: xIn, y: yIn};
-      animation[AnimationKey.BezierOut] = {x: xOut, y: yOut};
-    } else {
-      // TODO: Find a way to support no curve as a special edge case.
-    }
+    const [xOut, yOut, xIn, yIn] = getCurveInterpolationPoints(curve);
+    animation[AnimationKey.BezierIn] = {x: [xIn], y: [yIn]};
+    animation[AnimationKey.BezierOut] = {x: [xOut], y: [yOut]};
 
     // If we have found the new "last" keyframe, note it now.
     this.outPoint = Math.max(this.outPoint, endKeyframe);
@@ -178,7 +180,7 @@ export class BodymovinExporter implements Exporter {
         .reduce(compoundTimelineReducer, {});
     }
 
-    const keyframes: number[] = Object.keys(timelineProperty).map((i) => parseInt(i, 10));
+    const keyframes: number[] = keyframesFromTimelineProperty(timelineProperty);
     if (keyframes.length === 1) {
       const property = timelineProperty[keyframes[0]].value;
       return {
@@ -205,31 +207,97 @@ export class BodymovinExporter implements Exporter {
   }
 
   /**
-   * Retrieves shape transforms from a timeline.
-   * TODO: Add support for rotation, etc.
+   * Provides standard transforms for all transformables.
+   *
+   * Currently, this method only supports opacity, which works the same way (and must be hardcoded at 100% if not
+   * explicitly set in the timeline) for all transformables.
+   *
    * @param timeline
-   * @returns {{}}
+   * @returns {[key in TransformKey]: {}}
    */
-  private shapeTransformsFromTimeline(timeline) {
-    const transforms = {};
+  private standardTransformsForTimeline(timeline) {
+    return {
+      [TransformKey.Opacity]: timeline.hasOwnProperty('opacity')
+        ? this.getValue(timeline.opacity, opacityTransformer)
+        : getFixedPropertyValue(100),
+    };
+  }
 
-    if (timeline.hasOwnProperty('opacity')) {
-      transforms[TransformKey.Opacity] = this.getValue(timeline.opacity, opacityTransformer);
-    } else {
-      transforms[TransformKey.Opacity] = getFixedPropertyValue(100);
+  /**
+   * Provides transforms for a transformable layer.
+   *
+   * Layers correspond with animated <svg> elements and are always treated as 3D layers in Bodymovin to support
+   * Haiku-style 2.5D rotation. This requires us to calculate the center (in 2D) and use it as an offset for all
+   * transformations, in addition to explicitly setting the transform-origin for Bodymovin to correctly display
+   * translations, rotations, and scale.
+   * @param timeline
+   * @returns {[key in TransformKey]: {}}
+   */
+  private transformsForLayerTimeline(timeline) {
+    const transforms = {};
+    let centerX = 0;
+    let centerY = 0;
+
+    // Calculate the 2D center for 3D transformations.
+    if (timeline.hasOwnProperty('sizeAbsolute.x') && timeline.hasOwnProperty('sizeAbsolute.y')) {
+      centerX = timeline['sizeAbsolute.x'][0].value / 2;
+      centerY = timeline['sizeAbsolute.y'][0].value / 2;
     }
+
+    transforms[TransformKey.TransformOrigin] = getFixedPropertyValue([centerX, centerY, 0]);
 
     if (timeline.hasOwnProperty('translation.x') && timeline.hasOwnProperty('translation.y')) {
       transforms[TransformKey.Position] = {
         [TransformKey.PositionSplit]: true,
-        x: this.getValue(timeline['translation.x']),
-        y: this.getValue(timeline['translation.y']),
+        x: this.getValue(timeline['translation.x'], (value) => value + centerX),
+        y: this.getValue(timeline['translation.y'], (value) => value + centerY),
       };
+    } else {
+      transforms[TransformKey.Position] = getFixedPropertyValue([0, 0, 0]);
     }
 
-    // For now, shim in 100% X-Y-Z scale for all elements and 0deg 2D rotation.
-    // TODO: Actually apply transformations for scale and rotation.
-    transforms[TransformKey.Scale] = getFixedPropertyValue([100, 100, 100]);
+    if (timeline.hasOwnProperty('rotation.x')) {
+      transforms[TransformKey.RotationX] = this.getValue(timeline['rotation.x'], rotationTransformer);
+    }
+
+    if (timeline.hasOwnProperty('rotation.y')) {
+      transforms[TransformKey.RotationY] = this.getValue(timeline['rotation.y'], rotationTransformer);
+    }
+
+    if (timeline.hasOwnProperty('rotation.z')) {
+      transforms[TransformKey.RotationZ] = this.getValue(timeline['rotation.z'], rotationTransformer);
+    }
+
+    if (timeline.hasOwnProperty('scale.x') && timeline.hasOwnProperty('scale.y')) {
+      transforms[TransformKey.Scale] = this.getValue([timeline['scale.x'], timeline['scale.y']], scaleTransformer);
+    } else {
+      transforms[TransformKey.Scale] = getFixedPropertyValue([100, 100, 100]);
+    }
+
+    return transforms;
+  }
+
+  /**
+   * Provides transforms for a transformable shape.
+   *
+   * Shapes correspond with (currently static) <svg> child elements and are always treated as 2D layers in
+   * Bodymovin.
+   * @param timeline
+   * @returns {[key in TransformKey]: {}}
+   */
+  private transformsForShapeTimeline(timeline) {
+    const transforms = {
+      [TransformKey.TransformOrigin]: getFixedPropertyValue([0, 0]),
+    };
+
+    if (timeline.hasOwnProperty('translation.x') && timeline.hasOwnProperty('translation.y')) {
+      transforms[TransformKey.Position] = this.getValue([timeline['translation.x'], timeline['translation.y']]);
+    } else {
+      transforms[TransformKey.Position] = getFixedPropertyValue([0, 0]);
+    }
+
+    // TODO: Actually apply transformations for scale and rotation, if ever appropriate.
+    transforms[TransformKey.Scale] = getFixedPropertyValue([100, 100]);
     transforms[TransformKey.Rotation] = getFixedPropertyValue(0);
 
     return transforms;
@@ -307,24 +375,184 @@ export class BodymovinExporter implements Exporter {
 
   /**
    * Transforms a shape layer, then pushes it onto the layer stack.
-   * TODO: Don't assume this is a shape layer!
-   * TODO: Handle viewBox.
+   * TODO: Handle viewBox?
    * @param node
    */
   private handleSvgLayer(node) {
     const timeline = this.timelineForId(node.attributes['haiku-id']);
-    const layer = {};
-    layer[LayerKey.Index] = ++this.currentIndex;
-    layer[LayerKey.Type] = LayerType.Shape;
-    layer[LayerKey.Transform] = this.shapeTransformsFromTimeline(timeline);
-    layer[LayerKey.Shapes] = [];
-    this.layers.push(layer);
+    this.layers.push({
+      [LayerKey.InPoint]: 0,
+      [LayerKey.StartTime]: 0,
+      [LayerKey.Index]: this.zIndexForNode(node),
+      [LayerKey.Type]: LayerType.Shape,
+      [LayerKey.Transform]: {
+        ...this.standardTransformsForTimeline(timeline),
+        ...this.transformsForLayerTimeline(timeline),
+      },
+      [LayerKey.Shapes]: [],
+    });
   }
 
   /**
-   * Mega-method to handle a shape internally.
-   * TODO: Break this out into nicer, smaller methods.
-   * TODO: Support static transformations for rotation and scale.
+   * Fetches a stroke shape from a timeline.
+   * @param timeline
+   * @returns {?{}}
+   */
+  private strokeShapeFromTimeline(timeline) {
+    // Return early if there is nothing to render.
+    if (!timeline.hasOwnProperty('stroke') || !timeline.hasOwnProperty('stroke-width')) {
+      return;
+    }
+
+    const stroke = {};
+    stroke[ShapeKey.Type] = ShapeType.Stroke;
+    stroke[TransformKey.Opacity] = getFixedPropertyValue(100);
+    stroke[TransformKey.StrokeWidth] = this.getValue(timeline['stroke-width'], parseInt);
+    stroke[TransformKey.Color] = this.getValue(timeline.stroke, colorTransformer);
+    if (timeline.hasOwnProperty('stroke-linecap')) {
+      stroke[TransformKey.StrokeLinecap] = linecapTransformer(timeline['stroke-linecap'][0].value);
+    }
+
+    return stroke;
+  }
+
+  /**
+   * Fetches a fill shape from a timeline.
+   * @param timeline
+   * @returns {?{}}
+   */
+  private fillShapeFromTimeline(timeline) {
+    if (!timeline.hasOwnProperty('fill')) {
+      return;
+    }
+
+    return {
+      [ShapeKey.Type]: ShapeType.Fill,
+      [TransformKey.Opacity]: getFixedPropertyValue(100),
+      [TransformKey.Color]: this.getValue(timeline.fill, colorTransformer),
+    };
+  }
+
+  /**
+   * Decorates an ellipse based on the attributes of a timeline.
+   * @param timeline
+   * @param shape
+   */
+  private decorateEllipse(timeline, shape) {
+    shape[ShapeKey.Type] = ShapeType.Ellipse;
+    if (timeline.hasOwnProperty('cy') && timeline.hasOwnProperty('cx')) {
+      shape[TransformKey.Position] = this.getValue([timeline.cx, timeline.cy], (s) => parseInt(s, 10));
+    }
+
+    if (timeline.hasOwnProperty('r')) {
+      shape[TransformKey.Size] = this.getValue([timeline.r, timeline.r], (r) => 2 * r);
+    } else if (timeline.hasOwnProperty('rx') && timeline.hasOwnProperty('ry')) {
+      shape[TransformKey.Size] = this.getValue([timeline.rx, timeline.ry], (r) => 2 * r);
+    }
+  }
+
+  /**
+   * Decorates a rectangle based on the attributes of a timeline.
+   *
+   * Note that because rectangles are translated from (0, 0) in SVG but Bodymovin positions rectangles relative to
+   * the object's center, we need to compensate by passing and modifying the existing transform.
+   * @param timeline
+   * @param shape
+   * @param transform
+   */
+  private decorateRectangle(timeline, shape, transform) {
+    shape[ShapeKey.Type] = ShapeType.Rectangle;
+    if (timeline.hasOwnProperty('sizeAbsolute.x') && timeline.hasOwnProperty('sizeAbsolute.y')) {
+      shape[TransformKey.Size] = this.getValue([timeline['sizeAbsolute.x'], timeline['sizeAbsolute.y']]);
+      if (timeline.hasOwnProperty('x') && timeline.hasOwnProperty('y')) {
+        transform[TransformKey.Position] = getFixedPropertyValue([
+          parseInt(timeline.x[0].value, 10) + timeline['sizeAbsolute.x'][0].value / 2,
+          parseInt(timeline.y[0].value, 10) + timeline['sizeAbsolute.y'][0].value / 2,
+        ]);
+      }
+    }
+    if (timeline.hasOwnProperty('rx')) {
+      shape[TransformKey.BorderRadius] = this.getValue(timeline.rx, (s) => parseInt(s, 10));
+    }
+  }
+
+  /**
+   * Decorates a polygon based on the attributes of a timeline.
+   * @param timeline
+   * @param shape
+   * Note: we very explicitly assume that points are not animated in this transformation. When we introduce path
+   * animations, this should be revisited.
+   */
+  private decoratePolygon(timeline, shape) {
+    shape[ShapeKey.Type] = ShapeType.Shape;
+    if (timeline.hasOwnProperty('points')) {
+      shape[ShapeKey.Vertices] = {
+        [PropertyKey.Animated]: 0,
+        [PropertyKey.Value]: {
+          [PathKey.Closed]: true,
+          ...pointsToInterpolationTrace(timeline.points[0].value),
+        },
+      };
+    }
+  }
+
+  /**
+   * Decorates a path shape based on the attributes of a timeline.
+   *
+   * Note: We explicitly assume the path is not animated in all cases.
+   * @param timeline
+   * @param shape
+   * @param originalHaikuId
+   * @param parentNode
+   */
+  private decorateShape(timeline, shape, originalHaikuId, parentNode) {
+    shape[ShapeKey.Type] = ShapeType.Shape;
+    if (!timeline.hasOwnProperty('d')) {
+      return;
+    }
+
+    const path = timeline.d[0].value;
+    const pathSegments = decomposeMaybeCompoundPath(path);
+
+    if (pathSegments.length === 1) {
+      shape[ShapeKey.Vertices] = {
+        [PropertyKey.Animated]: 0,
+        [PropertyKey.Value]: {
+          ...pathToInterpolationTrace(path),
+        },
+      };
+      return;
+    }
+
+    // We have a compound path, i.e. a path consisting of multiple singly-closed paths. Since we're in the middle of
+    // processing the current path, we have to shim in the first closed path in this method call, then recursively
+    // re-handle the successive paths as children of the same parent node.
+    shape[ShapeKey.Vertices] = {
+      [PropertyKey.Animated]: 0,
+      [PropertyKey.Value]: {
+        ...pathToInterpolationTrace(pathSegments.shift()),
+      },
+    };
+
+    pathSegments.forEach((value, index) => {
+      // Create a shallow clone of each path segment and process it in the context of the same parent node.
+      const newHaikuId = `${originalHaikuId}:${index}`;
+      this.bytecode.timelines.Default[`haiku:${newHaikuId}`] = {
+        ...timeline,
+        d: {0: {value}},
+      };
+      this.handleShape(
+        {
+          attributes: {'haiku-id': newHaikuId},
+          elementName: SvgTag.PathShape,
+        },
+        parentNode,
+      );
+    });
+  }
+
+  /**
+   * Handles a shape internally.
    * TODO: Support stroke-opacity and fill-opacity.
    * @param node
    * @param parentNode
@@ -333,94 +561,45 @@ export class BodymovinExporter implements Exporter {
     const timeline = this.timelineForId(node.attributes['haiku-id'], parentNode.attributes['haiku-id']);
     const groupItems: any[] = [];
 
-    if (timeline.hasOwnProperty('stroke') && timeline.hasOwnProperty('stroke-width')) {
-      const stroke = {};
-      stroke[ShapeKey.Type] = ShapeType.Stroke;
-      stroke[TransformKey.Opacity] = getFixedPropertyValue(100);
-      stroke[TransformKey.StrokeWidth] = this.getValue(timeline['stroke-width'], parseInt);
-      stroke[TransformKey.Color] = this.getValue(timeline.stroke, colorTransformer);
+    const stroke = this.strokeShapeFromTimeline(timeline);
+    if (stroke) {
       groupItems.push(stroke);
     }
 
-    if (timeline.hasOwnProperty('fill')) {
-      const fill = {};
-      fill[ShapeKey.Type] = ShapeType.Fill;
-      fill[TransformKey.Opacity] = getFixedPropertyValue(100);
-      fill[TransformKey.Color] = this.getValue(timeline.fill, colorTransformer);
+    const fill = this.fillShapeFromTimeline(timeline);
+    if (fill) {
       groupItems.push(fill);
     }
 
     const shape = {};
+    const transform = {
+      // Use typical shape transforms, but do not split positions as this introduces an error state.
+      ...this.standardTransformsForTimeline(timeline),
+      ...this.transformsForShapeTimeline(timeline),
+      [ShapeKey.Type]: ShapeType.Transform,
+    };
+
     switch (node.elementName) {
       case SvgTag.CircleShape:
       case SvgTag.EllipseShape:
-        shape[ShapeKey.Type] = ShapeType.Ellipse;
-        if (timeline.hasOwnProperty('cy') && timeline.hasOwnProperty('cx')) {
-          shape[TransformKey.Position] = this.getValue([timeline.cx, timeline.cy], (s) => parseInt(s, 10));
-        }
-
-        if (timeline.hasOwnProperty('r')) {
-          shape[TransformKey.Size] = this.getValue([timeline.r, timeline.r], (r) => 2 * r);
-        } else if (timeline.hasOwnProperty('rx') && timeline.hasOwnProperty('ry')) {
-          shape[TransformKey.Size] = this.getValue([timeline.rx, timeline.ry], (r) => 2 * r);
-        }
+        this.decorateEllipse(timeline, shape);
         break;
       case SvgTag.RectangleShape:
-        shape[ShapeKey.Type] = ShapeType.Rectangle;
-        shape[TransformKey.Position] = getFixedPropertyValue([0, 0]);
-        shape[TransformKey.Rotation] = getFixedPropertyValue(0);
-        if (timeline.hasOwnProperty('sizeAbsolute.x') && timeline.hasOwnProperty('sizeAbsolute.y')) {
-          shape[TransformKey.Size] = this.getValue([timeline['sizeAbsolute.x'], timeline['sizeAbsolute.y']]);
-          if (timeline.hasOwnProperty('x') && timeline.hasOwnProperty('y')) {
-            groupItems.push({
-              [ShapeKey.Type]: ShapeType.Transform,
-              [TransformKey.Position]: getFixedPropertyValue([
-                parseInt(timeline.x[0].value, 10) + timeline['sizeAbsolute.x'][0].value / 2,
-                parseInt(timeline.y[0].value, 10) + timeline['sizeAbsolute.y'][0].value / 2,
-              ]),
-              [TransformKey.Opacity]: getFixedPropertyValue(100),
-              [TransformKey.Scale]: getFixedPropertyValue([100, 100]),
-              [TransformKey.Rotation]: getFixedPropertyValue(0),
-            });
-          }
-        }
-        if (timeline.hasOwnProperty('rx')) {
-          shape[TransformKey.BorderRadius] = this.getValue(timeline.rx, (s) => parseInt(s, 10));
-        }
+        this.decorateRectangle(timeline, shape, transform);
         break;
       case SvgTag.PolygonShape:
-        // Note: we very explicitly assume that points are not animated in this transformation. When we introduce path
-        // animations, this should be revisited.
-        shape[ShapeKey.Type] = ShapeType.Shape;
-        if (timeline.hasOwnProperty('points')) {
-          shape[ShapeKey.Vertices] = {
-            [PropertyKey.Animated]: 0,
-            [PropertyKey.Value]: {
-              [PathKey.Closed]: true,
-              ...pointsToInterpolationTrace(timeline.points[0].value),
-            },
-          };
-        }
+        this.decoratePolygon(timeline, shape);
         break;
       case SvgTag.PathShape:
-        // Note: again, we explicitly assume the path is not animated.
-        shape[ShapeKey.Type] = ShapeType.Shape;
-        if (timeline.hasOwnProperty('d')) {
-          shape[ShapeKey.Vertices] = {
-            [PropertyKey.Animated]: 0,
-            [PropertyKey.Value]: {
-              [PathKey.Closed]: true,
-              ...pathToInterpolationTrace(timeline.d[0].value),
-            },
-          };
-        }
+        this.decorateShape(timeline, shape, node.attributes['haiku-id'], parentNode);
         break;
       default:
         throw new Error(`Unable to handle shape: ${node.elementName}`);
     }
 
-    // Push the shape to the top of the group stack.
+    // Push the shape to the top of the group stack, and append the transform at the end.
     groupItems.unshift(shape);
+    groupItems.push(transform);
     this.activeLayer[LayerKey.Shapes].unshift({
       [ShapeKey.Type]: ShapeType.Group,
       [ShapeKey.GroupItems]: groupItems,
@@ -464,6 +643,108 @@ export class BodymovinExporter implements Exporter {
   }
 
   /**
+   * Handles the wrapper element as a special case.
+   * TODO: Change wrapper to a precomposition so we can add support for component opacity set in the bytecode.
+   * TODO: Support animations on the wrapper color and opacity.
+   */
+  private handleWrapper() {
+    const wrapperTimeline = this.timelineForId(this.bytecode.template.attributes['haiku-id']);
+    if (wrapperTimeline.hasOwnProperty('sizeAbsolute.x') && wrapperTimeline.hasOwnProperty('sizeAbsolute.y')) {
+      const [width, height] = [wrapperTimeline['sizeAbsolute.x'][0].value, wrapperTimeline['sizeAbsolute.y'][0].value];
+      this.animationWidth = width;
+      this.animationHeight = height;
+      if (wrapperTimeline.hasOwnProperty('backgroundColor')) {
+        const color = wrapperTimeline.backgroundColor[0].value;
+        if (!color) {
+          // Nothing to do here!
+          return;
+        }
+
+        // Bodymovin won't understand background color as a directive. We will need to fake a rectangle for the
+        // equivalent effect. Start by creating a virtual node.
+        const wrapperNode = {
+          elementName: SvgTag.Svg,
+          attributes: {'haiku-id': 'wrapper'},
+          children: [{
+            elementName: SvgTag.RectangleShape,
+            attributes: {'haiku-id': 'wrapper-rectangle'},
+            children: [],
+          }],
+        };
+
+        // Next, shim in fill rule for the rectangle.
+        this.bytecode.timelines.Default['haiku:wrapper-rectangle'] = {
+          fill: {0: {value: color}},
+          x: {0: {value: 0}},
+          y: {0: {value: 0}},
+          'style.zIndex': {0: {value: 0}},
+          'sizeAbsolute.x': {0: {value: width}},
+          'sizeAbsolute.y': {0: {value: height}},
+        };
+
+        // Finally, process the node as if it were a normal shape.
+        visitTemplate(wrapperNode, null, (node, parentNode) => {
+          this.handleElement(node, parentNode);
+        });
+      }
+    }
+  }
+
+  /**
+   * Normalizes curves present in (for now wrapper-child only) transitions.
+   *
+   * Because After Effects/Bodymovin does not support "jump to" transitions (which in Haiku is the equivalent of
+   * changing a value between keyframes without adding a tween), normalization mainly consists of identifying places
+   * where jumps occur and shimming in keyframes forcing a linear transition within a single frame.
+   */
+  private normalizeCurves() {
+    this.bytecode.template.children.forEach((node) => {
+      const timeline = this.timelineForId(node.attributes['haiku-id']);
+      for (const property in timeline) {
+        const timelineProperty = timeline[property];
+        const keyframes = keyframesFromTimelineProperty(timelineProperty);
+        keyframes.forEach((keyframe, index) => {
+          if (timelineProperty[keyframe].hasOwnProperty('curve') || index === keyframes.length - 1) {
+            // Either a curve is defined or there is no next keyframe. Either way, there's nothing to normalize.
+            return;
+          }
+
+          // Create a linear tween to enforce that every transition has a curve, which is a requirement for Bodymovin.
+          timelineProperty[keyframe].curve = Curve.Linear;
+
+          if (keyframe + 1 === keyframes[index + 1] ||
+            timelineValuesAreEquivalent(
+              timelineProperty[keyframe].value,
+              timelineProperty[keyframes[index + 1]].value,
+            )) {
+            // There is either no transition to "recover", or the transition is happening inside of 0 frames. Either
+            // way, our choice of a linear "transition" is fine.
+            return;
+          }
+
+          // Insert a keyframe one frame before the next keyframe, using identical values as the current keyframe. It
+          // will transition into the next keyframe inside of 0 frames, just like our trivial cases above.
+          timelineProperty[keyframes[index + 1] - 1] = timelineProperty[keyframe];
+        });
+      }
+    });
+  }
+
+  /**
+   * Gets the z-index for a specific node.
+   * @param node
+   * @returns {number}
+   */
+  private zIndexForNode(node) {
+    const timeline = this.timelineForId(node.attributes['haiku-id']);
+    if (timeline.hasOwnProperty('style.zIndex')) {
+      return timeline['style.zIndex'][0].value;
+    }
+
+    return 0;
+  }
+
+  /**
    * Parses class-local bytecode using internal methods.
    */
   private parseBytecode() {
@@ -471,12 +752,11 @@ export class BodymovinExporter implements Exporter {
       throw new Error(`Unexpected wrapper element: ${this.bytecode.template.elementName}`);
     }
 
+    // Normalize curves to remove any problematic/noisy behavior.
+    this.normalizeCurves();
+
     // Handle the wrapper as a special case.
-    // TODO: Provide the wrapper as a layer, with all animations that come with it.
-    // TODO: Don't assume sizeAbsolute.x and sizeAbsolute.y actually exist.
-    const wrapperTimeline = this.timelineForId(this.bytecode.template.attributes['haiku-id']);
-    this.animationWidth = wrapperTimeline['sizeAbsolute.x']['0'].value;
-    this.animationHeight = wrapperTimeline['sizeAbsolute.y']['0'].value;
+    this.handleWrapper();
 
     this.bytecode.template.children.forEach((template) => {
       if (template.elementName !== SvgTag.Svg) {
@@ -487,7 +767,12 @@ export class BodymovinExporter implements Exporter {
       });
     });
 
-    // TODO: set op to the maximum frame from the timeline.
+    this.layers.forEach((layer) => {
+      layer[LayerKey.OutPoint] = this.outPoint;
+    });
+
+    // Stack elements in order of *descending* z-index.
+    this.layers.sort((layerA, layerB) => layerB[LayerKey.Index] - layerA[LayerKey.Index]);
     this.bytecodeParsed = true;
   }
 

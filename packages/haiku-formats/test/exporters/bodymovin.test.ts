@@ -70,16 +70,6 @@ tape('BodymovinExporter', (test: tape.Test) => {
     test.end();
   });
 
-  test.test('applies default opacity', (test: tape.Test) => {
-    const {
-      layers: [{
-        ks: {o},
-      }],
-    } = rawOutput(baseBytecode);
-    test.deepEqual(o, {a: 0, k: 100}, 'sets opacity to 100 if it is not explicitly provided');
-    test.end();
-  });
-
   test.test('animates properties', (test: tape.Test) => {
     const {
       layers: [{
@@ -89,9 +79,118 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
     test.equal(op, 60, 'derives out-point from final keyframe');
     test.equal(a, 1, 'knows an animation is active');
-    test.deepEqual({t, s, e}, {t: 0, s: 0, e: 10}, 'animates using keyframes');
-    test.deepEqual({i, o}, {i: {x: 1, y: 1}, o: {x: 0, y: 0}}, 'uses bezier interpolation points from the curve');
+    test.deepEqual({t, s, e}, {t: 0, s: [0], e: [10]}, 'animates using keyframes');
+    test.deepEqual({i, o}, {i: {x: [1], y: [1]}, o: {x: [0], y: [0]}}, 'derives bezier interpolation points');
     test.deepEqual(finalKeyframe, {t: 60}, 'provides a final keyframe with no properties');
+    test.end();
+  });
+
+  test.test('normalizes curves for transitions lacking tweens', (test: tape.Test) => {
+    const bytecode = baseBytecodeDeepCopy();
+    bytecode.timelines.Default['haiku:svg'].opacity = {
+      0: {value: 0},
+      10: {value: 1},
+    };
+
+    const {
+      layers: [{
+        ks: {o: {k: [initialKeyframe, injectedKeyframe, finalKeyframe]}},
+      }],
+    } = rawOutput(bytecode);
+
+    test.deepEqual(initialKeyframe.e, [0], 'forks initial keyframe to transition back to itself');
+    test.equal(injectedKeyframe.t, 9, 'injects a keyframe one frame before the jumped-to keyframe');
+    test.deepEqual(injectedKeyframe.s, [0], 'initializes the injected keyframe at the same value as the initial');
+    test.deepEqual(injectedKeyframe.e, [100], 'terminates the injected keyframe at the jumped-to value');
+    test.equal(finalKeyframe.t, 10, 'terminates the final keyframe as it originally was');
+    test.end();
+  });
+
+  test.test('provides default transforms for layers', (test: tape.Test) => {
+    const bytecode = baseBytecodeDeepCopy();
+    // Provide no information about how to transform the SVG layer.
+    delete bytecode.timelines.Default['haiku:svg'];
+    const {
+      layers: [{
+        ks: {p, o, s, a},
+      }],
+    } = rawOutput(bytecode);
+    test.deepEqual(p.k, [0, 0, 0], 'default translation is (0, 0, 0)');
+    test.equal(o.k, 100, 'default opacity is 100%');
+    test.deepEqual(s.k, [100, 100, 100], 'default scaling is 100%');
+    test.deepEqual(a.k, [0, 0, 0], 'default transform origin is (0, 0, 0)');
+    test.end();
+  });
+
+  test.test('uses necessary defaults for layers', (test: tape.Test) => {
+    const {
+      layers: [{ip, op, st}],
+    } = rawOutput(baseBytecode);
+
+    test.equal(ip, 0, 'in-point is always 0');
+    test.equal(st, 0, 'start time is always 0');
+    test.equal(op, 60, 'out-point is the same as the entire animation');
+    test.end();
+  });
+
+  test.test('transforms opacity correctly', (test: tape.Test) => {
+    const bytecode = baseBytecodeDeepCopy();
+    bytecode.timelines.Default['haiku:svg'].opacity = {0: {value: 0.2}};
+    const {layers: [{ks: {o}}]} = rawOutput(bytecode);
+    test.equal(o.k, 20, 'denormalizes opacity in [0, 100]');
+    test.end();
+  });
+
+  test.test('transforms 2.5D rotations correctly', (test: tape.Test) => {
+    const bytecode = baseBytecodeDeepCopy();
+    bytecode.timelines.Default['haiku:svg']['rotation.x'] = {0: {value: Math.PI / 2}};
+    bytecode.timelines.Default['haiku:svg']['rotation.y'] = {0: {value: -Math.PI / 6}};
+    bytecode.timelines.Default['haiku:svg']['rotation.z'] = {0: {value: Math.PI / 3}};
+    const {layers: [{ks: {rx, ry, rz}}]} = rawOutput(bytecode);
+    test.equal(Number(rx.k.toFixed(6)), 90, 'transforms rotation.x from radians to degrees');
+    test.equal(Number(ry.k.toFixed(6)), -30, 'transforms rotation.y from radians to degrees');
+    test.equal(Number(rz.k.toFixed(6)), 60, 'transforms rotation.z from radians to degrees');
+    test.end();
+  });
+
+  test.test('transforms scaling correctly', (test: tape.Test) => {
+    const bytecode = baseBytecodeDeepCopy();
+    bytecode.timelines.Default['haiku:svg']['scale.x'] = {0: {value: 0.5}};
+    bytecode.timelines.Default['haiku:svg']['scale.y'] = {0: {value: 0.8}};
+    const {layers: [{ks: {s}}]} = rawOutput(bytecode);
+    test.deepEqual(s.k, [50, 80], 'denormalizes scale in [0, 100] as an ordered pair (x, y)');
+    test.end();
+  });
+
+  test.test('animates scale as a compound animation', (test: tape.Test) => {
+    const bytecode = baseBytecodeDeepCopy();
+    bytecode.timelines.Default['haiku:svg']['scale.x'] = {0: {value: 0.5, curve: 'easeInOutQuad'}, 60: {value: 0.6}};
+    bytecode.timelines.Default['haiku:svg']['scale.y'] = {0: {value: 0.8, curve: 'easeOutExpo'}, 60: {value: 0.9}};
+    const {layers: [{ks: {s: {a, k : [keyframe]}}}]} = rawOutput(bytecode);
+
+    // The animated property reducer is responsible for both applying the standard transformations to scaling and
+    // reducing the presentation of an animation to a sequence of waypoints and bezier curve descriptions in a
+    // single package. easeInOutQuad uses interpolation points [.455, .03, .515, .955] to animate from 50% to 60%
+    // opacity, and easeOutExpo uses interpolation points [.19, 1, .22, 1] to animate from 80% to 90% opacity. The
+    // result of compound-reducing these should be be a curve with out-points x = [.455, .19], y = [.03, 1], etc.
+    test.equal(a, 1, 'knows when scale is compound-animated');
+    test.deepEqual(keyframe.s, [50, 80], 'starts at the correct compound property');
+    test.deepEqual(keyframe.e, [60, 90], 'ends at the correct compound property');
+    test.deepEqual(keyframe.o, {x: [.455, .19], y: [.03, 1]}, 'correctly reduces compound interpolation out-points');
+    test.deepEqual(keyframe.i, {x: [.515, .22], y: [.955, 1]}, 'correctly reduces compound interpolation in-points');
+    test.end();
+  });
+
+  test.test('uses the correct transform-origin for layers', (test: tape.Test) => {
+    const bytecode = baseBytecodeDeepCopy();
+    bytecode.timelines.Default['haiku:svg']['sizeAbsolute.x'] = {0: {value: 100}};
+    bytecode.timelines.Default['haiku:svg']['sizeAbsolute.y'] = {0: {value: 200}};
+    bytecode.timelines.Default['haiku:svg']['translation.x'] = {0: {value: 10}};
+    bytecode.timelines.Default['haiku:svg']['translation.y'] = {0: {value: 20}};
+    const {layers: [{ks: {a, p}}]} = rawOutput(bytecode);
+    test.deepEqual(a.k, [100 / 2, 200 / 2, 0], 'places the transform-origin at the 2D center of the layer');
+    test.equal(p.x.k, 10 + 100 / 2, 'increments translation.x by the x-coordinate of the 2D center');
+    test.equal(p.y.k, 20 + 200 / 2, 'increments translation.y by the y-coordinate of the 2D center');
     test.end();
   });
 
@@ -115,6 +214,24 @@ tape('BodymovinExporter', (test: tape.Test) => {
       const {ty, c} = fill;
       test.equal(ty, 'fl', 'identifies fill');
       test.deepEqual(c, {a: 0, k: [0, 1, 0, 1]}, 'parses fill color');
+    }
+
+    test.end();
+  });
+
+  test.test('handles non-CSS colors gracefully', (test: tape.Test) => {
+    const bytecode = baseBytecodeDeepCopy();
+
+    {
+      bytecode.timelines.Default['haiku:shape'].stroke = {0: {value: 'none'}};
+      const {layers: [{shapes: [{it: [_, stroke]}]}]} = rawOutput(bytecode);
+      test.deepEqual(stroke.c.k, [0, 0, 0, 0], '"none" is treated like "transparent"');
+    }
+
+    {
+      bytecode.timelines.Default['haiku:shape'].stroke = {0: {value: 'tomfoolery'}};
+      const {layers: [{shapes: [{it: [_, stroke]}]}]} = rawOutput(bytecode);
+      test.deepEqual(stroke.c.k, [0, 0, 0, 0], 'nonsense colors are treated like "transparent"');
     }
 
     test.end();
@@ -290,22 +407,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
     test.equal(ty, 'sh', 'translates paths as shapes');
 
-    // Scope for testing moveto support.
-    {
-      overrideShapeAttributes(bytecode, {
-        d: {0: {value: 'M1,2 Z'}},
-      });
-
-      const {
-        layers: [{
-          shapes: [{it: [{ks: {k: {c, v}}}]}],
-        }],
-      } = rawOutput(bytecode);
-      test.equal(c, true, 'creates a closed shape');
-      test.deepEqual(v, [[1, 2]], 'parses moveto to a vertex');
-    }
-
-    // Scope for testing line support.
+    // Scope for testing closed shape support.
     {
       overrideShapeAttributes(bytecode, {
         d: {0: {value: 'M0,0 L1,1 L0,0 Z'}},
@@ -313,12 +415,24 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
       const {
         layers: [{
-          shapes: [{it: [{ks: {k: {v, i, o}}}]}],
+          shapes: [{it: [{ks: {k: {c, v, i, o}}}]}],
         }],
       } = rawOutput(bytecode);
-      test.deepEqual(v, [[0, 0], [1, 1]], 'gets coordinates from line endpoints');
+      test.equal(c, true, 'creates a closed shape');
+      test.deepEqual(v, [[0, 0], [1, 1]], 'gets coordinates from movetos and line endpoints');
       test.deepEqual(i, [[0, 0], [0, 0]], 'translates lines in relative to vertices');
       test.deepEqual(o, [[0, 0], [0, 0]], 'translates lines out relative to vertices');
+    }
+
+    // Scope for testing compound shape support.
+    {
+      overrideShapeAttributes(bytecode, {
+        d: {0: {value: 'M0,0 L1,1 L0,0 Z M2,2 L3,3 L2,2 Z'}},
+      });
+
+      const {layers: [{shapes}]} = rawOutput(bytecode);
+      test.deepEqual(shapes[0].it[0].ks.k.v, [[0, 0], [1, 1]], 'creates a shape from the first closed segment');
+      test.deepEqual(shapes[1].it[0].ks.k.v, [[2, 2], [3, 3]], 'creates additional shapes from other closed segments');
     }
 
     // Scope for testing cubic bezier support.
@@ -337,6 +451,48 @@ tape('BodymovinExporter', (test: tape.Test) => {
       test.deepEqual(o, [[1, 2], [0, 0]], 'translates lines out relative to vertices');
     }
 
+    test.end();
+  });
+
+  test.test('stacks elements in order of descending z-index', (test: tape.Test) => {
+    const bytecode = baseBytecodeDeepCopy();
+    // Shim in two SVG layers.
+    bytecode.template.children = [
+      {
+        elementName: 'svg',
+        attributes: {'haiku-id': 'svg1'},
+        children: [],
+      },
+      {
+        elementName: 'svg',
+        attributes: {'haiku-id': 'svg2'},
+        children: [],
+      },
+    ];
+    bytecode.timelines.Default['haiku:svg1'] = {
+      opacity: {0: {value: .5}},
+      'style.zIndex': {0: {value: 1}},
+    };
+    bytecode.timelines.Default['haiku:svg2'] = {
+      opacity: {0: {value: 1}},
+      'style.zIndex': {0: {value: 2}},
+    };
+
+    const {layers} = rawOutput(bytecode);
+    test.equal(layers[0].ks.o.k, 100, 'elements with higher z-index come earlier');
+    test.equal(layers[1].ks.o.k, 50, 'elements with lower z-index come later');
+    test.end();
+  });
+
+  test.test('simulates wrapper div with a background color as a rectangle', (test: tape.Test) => {
+    const bytecode = baseBytecodeDeepCopy();
+    bytecode.timelines.Default['haiku:wrapper'].backgroundColor = {0: {value: '#000'}};
+    const {layers: [{ind, ty, shapes: [{it: [shape, fill]}]}]} = rawOutput(bytecode);
+    test.equal(ind, 0, 'wrapper rectangle has z-index 0');
+    test.equal(ty, 4, 'wrapper rectangle is an ordinary shape layer');
+    test.equal(shape.ty, 'rc', 'wrapper rectangle is in fact a rectangle');
+    test.deepEqual(shape.s.k, [640, 480], 'wrapper rectangle uses the animation dimensions');
+    test.deepEqual(fill.c.k, [0, 0, 0, 1], 'wrapper rectangle is filled with the wrapper backgroundColor');
     test.end();
   });
 

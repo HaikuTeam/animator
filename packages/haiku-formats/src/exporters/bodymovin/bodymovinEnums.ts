@@ -11,6 +11,9 @@ export enum AnimationKey {
 }
 
 export enum LayerKey {
+  StartTime = 'st',
+  InPoint = 'ip',
+  OutPoint = 'op',
   Shapes = 'shapes',
   Type = 'ty',
   Transform = 'ks',
@@ -53,13 +56,24 @@ export enum ShapeType {
 }
 
 export enum TransformKey {
+  TransformOrigin = 'a',
   BorderRadius = 'r',
   Color = 'c',
   Position = 'p',
   PositionSplit = 's',
   Opacity = 'o',
   Rotation = 'r',
+  RotationX = 'rx',
+  RotationY = 'ry',
+  RotationZ = 'rz',
   Scale = 's',
   Size = 's',
   StrokeWidth = 'w',
+  StrokeLinecap = 'lc',
+}
+
+export enum StrokeLinecap {
+  Butt = 1,
+  Round = 2,
+  Square = 3,
 }
