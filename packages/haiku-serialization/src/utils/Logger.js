@@ -21,7 +21,7 @@ module.exports = function _loggerConstructor (folder, filepath, options) {
     colorize: config.colorize,
     timestamp: config.timestamp,
     showLevel: config.showLevel,
-    level: 'info',
+    level: process.env.HAIKU_ECHO_ON !== '1' ? 'silly' : 'info',
     eol: config.eol
   }))
 
@@ -34,11 +34,15 @@ module.exports = function _loggerConstructor (folder, filepath, options) {
       maxsize: config.maxsize,
       maxFiles: config.maxFiles,
       colorize: config.colorize,
-      json: config.json,
-      level: 'warn',
+      json: false,
+      level: 'info',
       timestamp: config.timestamp,
       showLevel: config.showLevel,
-      eol: config.eol
+      eol: config.eol,
+      formatter: ({level, message}) => {
+        const timestamp = new Date().toISOString()
+        return `(${timestamp}) (${level.toUpperCase()}) — ${message}`
+      }
     }))
   }
 
@@ -50,22 +54,8 @@ module.exports = function _loggerConstructor (folder, filepath, options) {
     logger.stream({ start: -1 }).on('log', cb)
   }
 
-  function noopLogs (nodeEnv) {
-    logger.info = function () {}
-    logger.warn = function () {}
-    logger.error = function () {}
-    logger.log = function () {}
-    logger.sacred = console.log.bind(console)
-  }
-
-  if (typeof process !== 'undefined') {
-    if (process.env) {
-      // Skip all but the most sacred log messages, unless explicit
-      if (process.env.HAIKU_ECHO_ON !== '1') {
-        noopLogs(process.env.NODE_ENV)
-      }
-    }
-  }
+  // Legacy, use logger.info instead
+  logger.sacred = logger.info.bind(logger)
 
   return logger
 }
