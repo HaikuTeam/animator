@@ -29,4 +29,5 @@ export enum Curve {
   EaseInOutElastic = 'easeInOutElastic',
   EaseInOutQuint = 'easeInOutQuint',
   EaseInOutSine = 'easeInOutSine',
+  Linear = 'linear',
 }

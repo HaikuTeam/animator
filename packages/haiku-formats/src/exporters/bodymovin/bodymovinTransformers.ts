@@ -1,5 +1,6 @@
 /** @file Transformers for Bodymovin quirks. */
 import ColorUtils from 'haiku-player/lib/helpers/ColorUtils';
+import {StrokeLinecap} from './bodymovinEnums';
 
 /**
  * Transforms CSS opacity in [0, 1] to Bodymovin opacity in [0, 100].
@@ -8,7 +9,13 @@ import ColorUtils from 'haiku-player/lib/helpers/ColorUtils';
 export const opacityTransformer = (opacity) => 100 * opacity;
 
 /**
- * Translate a CSS color to an After Effects color.
+ * Transforms CSS scale in [0, 1] to Bodymovin scale in [0, 100].
+ * @param scale
+ */
+export const scaleTransformer = (scale) => 100 * scale;
+
+/**
+ * Translates a CSS color to an After Effects color.
  *
  * After Effects colors are a 4-element [r, g, b, a] array where each element is normalized in [0, 1].
  * TODO: Support 4- and 8-digit hex codes as well.
@@ -29,4 +36,20 @@ export const colorTransformer = (color: string) => {
     colorModel.value[2] / quotient,
     colorModel.value[3],
   ];
+};
+
+/**
+ * Translates a CSS rotation (radians) to an After Effects rotation (degrees).
+ */
+export const rotationTransformer = (radians: number) => radians * 360 / 2 / Math.PI;
+
+export const linecapTransformer = (linecap: string) => {
+  switch (linecap) {
+    case 'butt':
+      return StrokeLinecap.Butt;
+    case 'round':
+      return StrokeLinecap.Round;
+    default:
+      return StrokeLinecap.Square;
+  }
 };
