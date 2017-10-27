@@ -73,7 +73,6 @@ export default class TopMenu extends EventEmitter {
       role: 'quit'
     })
 
-
     const projectSubmenu = [
       {
         label: 'Publish',
