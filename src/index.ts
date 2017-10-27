@@ -1,4 +1,3 @@
-
 import * as requestLib from "request"
 import * as _ from "lodash"
 
@@ -16,6 +15,7 @@ var ENDPOINTS = {
   PROJECT_GET_BY_NAME: "v0/project/:NAME",
   PROJECT_DELETE_BY_NAME: "v0/project/:NAME",
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: "v0/support/upload/:UUID",
+  UPDATES: "v0/updates",
 }
 
 var request = requestLib.defaults({
@@ -402,6 +402,27 @@ export namespace inkstone {
       }
 
       request.delete(options, function (err, httpResponse, body) {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, true, httpResponse)
+        } else {
+          cb("uncategorized error", undefined, httpResponse)
+        }
+      })
+    }
+  }
+
+  export namespace updates {
+    export function check(authToken: string, query: string, cb: inkstone.Callback<boolean>) {
+
+      var options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: _inkstoneConfig.baseUrl + ENDPOINTS.UPDATES + query,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `INKSTONE auth_token="${authToken}"`
+        }
+      }
+
+      request.get(options, function (err, httpResponse, body) {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse)
         } else {
