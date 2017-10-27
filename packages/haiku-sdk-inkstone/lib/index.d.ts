@@ -93,4 +93,7 @@ export declare namespace inkstone {
         function getByName(authToken: string, name: string, cb: inkstone.Callback<ProjectAndCredentials>): void;
         function deleteByName(authToken: string, name: string, cb: inkstone.Callback<boolean>): void;
     }
+    namespace updates {
+        function check(authToken: string, query: string, cb: inkstone.Callback<boolean>): void;
+    }
 }

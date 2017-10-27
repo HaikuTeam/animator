@@ -52,11 +52,9 @@ module.exports = {
     return new Promise((resolve, reject) => {
       this.checkServer()
         .then(({status, url}) => {
-          if (status === 200 && url) {
-            resolve({shouldUpdate: true, url})
-          }
-
-          resolve({shouldUpdate: false, url: null})
+          status === 200 && url
+            ? resolve({shouldUpdate: true, url})
+            : resolve({shouldUpdate: false, url: null})
         })
         .catch(reject)
     })

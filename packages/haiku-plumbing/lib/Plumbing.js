@@ -995,6 +995,15 @@ var Plumbing = function (_StateObject) {
       return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'fetchProjectInfo', [projectName, maybeUsername, maybePassword, fetchOptions], cb);
     }
   }, {
+    key: 'checkInkstoneUpdates',
+    value: function checkInkstoneUpdates() {
+      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      var cb = arguments[1];
+
+      var authToken = _haikuSdkClient.client.config.getAuthToken();
+      return _haikuSdkInkstone.inkstone.updates.check(authToken, options, cb);
+    }
+  }, {
     key: 'listAssets',
     value: function listAssets(folder, cb) {
       return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'fetchAssets', [], cb);

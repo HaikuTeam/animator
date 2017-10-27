@@ -14,6 +14,7 @@ var ENDPOINTS = {
     SNAPSHOT_GET_BY_ID: "v0/snapshot/:ID",
     PROJECT_GET_BY_NAME: "v0/project/:NAME",
     PROJECT_DELETE_BY_NAME: "v0/project/:NAME",
+    UPDATES: "v0/updates",
 };
 var request = requestLib.defaults({
     strictSSL: false
@@ -300,5 +301,26 @@ var inkstone;
         }
         project_1.deleteByName = deleteByName;
     })(project = inkstone.project || (inkstone.project = {}));
+    var updates;
+    (function (updates) {
+        function check(authToken, query, cb) {
+            var options = {
+                url: _inkstoneConfig.baseUrl + ENDPOINTS.UPDATES + query,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "INKSTONE auth_token=\"" + authToken + "\""
+                }
+            };
+            request.get(options, function (err, httpResponse, body) {
+                if (httpResponse && httpResponse.statusCode === 200) {
+                    cb(undefined, true, httpResponse);
+                }
+                else {
+                    cb("uncategorized error", undefined, httpResponse);
+                }
+            });
+        }
+        updates.check = check;
+    })(updates = inkstone.updates || (inkstone.updates = {}));
 })(inkstone = exports.inkstone || (exports.inkstone = {}));
 //# sourceMappingURL=index.js.map
