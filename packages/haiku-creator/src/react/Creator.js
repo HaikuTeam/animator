@@ -22,6 +22,7 @@ import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
+import ActivityMonitor from '../utils/activityMonitor.js'
 import {
   linkExternalAssetsOnDrop,
   preventDefaultDrag
@@ -62,6 +63,7 @@ export default class Creator extends React.Component {
     this.handleFindWebviewCoordinates = this.handleFindWebviewCoordinates.bind(this)
     this.onAutoUpdateCheckComplete = this.onAutoUpdateCheckComplete.bind(this)
     this.layout = new EventEmitter()
+    this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
 
     this.state = {
       error: null,
@@ -72,14 +74,18 @@ export default class Creator extends React.Component {
       dashboardVisible: !this.props.folder,
       readyForAuth: false,
       isUserAuthenticated: false,
-      hasCheckedForUpdates: false,
       username: null,
       password: null,
       notices: [],
       softwareVersion: pkg.version,
       didPlumbingNoticeCrash: false,
       activeNav: 'library',
-      projectsList: []
+      projectsList: [],
+      updater: {
+        shouldCheck: true,
+        shouldRunOnBackground: true,
+        shouldSkipOptIn: true
+      }
     }
 
     const win = remote.getCurrentWindow()
@@ -129,7 +135,13 @@ export default class Creator extends React.Component {
       this.props.websocket.send({ method: 'gitRedo', params: [this.state.projectFolder, { type: 'global' }] })
     }, 500, { leading: true }))
     ipcRenderer.on('global-menu:check-updates', () => {
-      this.setState({ hasCheckedForUpdates: false })
+      this.setState({
+        updater: {
+          shouldCheck: true,
+          shouldRunOnBackground: false,
+          shouldSkipOptIn: true
+        }
+      })
     })
 
     window.addEventListener('dragover', preventDefaultDrag, false)
@@ -211,26 +223,12 @@ export default class Creator extends React.Component {
       } else {
         // TODO: Handle other cases where the paste data was a serialized array
         console.warn('[creator] cannot paste this content type yet (array)')
-        this.createNotice({
-          type: 'warning',
-          title: 'Hmmm',
-          message: 'We don\'t know how to paste that content yet. 😳',
-          closeText: 'Okay',
-          lightScheme: true
-        })
       }
     } else {
       // An empty string is treated as the equivalent of nothing (don't display warning if nothing to instantiate)
       if (typeof pastedData === 'string' && pastedData.length > 0) {
         // TODO: Handle the case when plain text has been pasted - SVG, HTML, etc?
         console.warn('[creator] cannot paste this content type yet (unknown string)')
-        this.createNotice({
-          type: 'warning',
-          title: 'Hmmm',
-          message: 'We don\'t know how to paste that content yet. 😳',
-          closeText: 'Okay',
-          lightScheme: true
-        })
       }
     }
   }
@@ -247,6 +245,8 @@ export default class Creator extends React.Component {
           return this.handleContentPaste(message.data)
       }
     })
+
+    this.activityMonitor.startWatchers()
 
     this.envoy = new EnvoyClient({
       port: this.props.haiku.envoy.port,
@@ -375,6 +375,7 @@ export default class Creator extends React.Component {
   componentWillUnmount () {
     this.tourChannel.off('tour:requestElementCoordinates', this.handleFindElementCoordinates)
     this.tourChannel.off('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates)
+    this.activityMonitor.stopWatchers()
   }
 
   handleFindElementCoordinates ({ selector, webview }) {
@@ -567,7 +568,31 @@ export default class Creator extends React.Component {
   }
 
   onAutoUpdateCheckComplete () {
-    this.setState({ hasCheckedForUpdates: true })
+    this.setState({
+      updater: {
+        ...this.state.updater,
+        shouldCheck: false
+      }
+    })
+  }
+
+  onActivityReport (userWasActive) {
+    if (userWasActive) {
+      return this.props.websocket.request(
+        {method: 'checkInkstoneUpdates', params: [{}]},
+        (err) => {
+          console.log('[creator] ping to Inkstone for updates finished', err)
+        }
+      )
+    }
+
+    this.setState({
+      updater: {
+        shouldCheck: true,
+        shouldRunOnBackground: true,
+        shouldSkipOptIn: false
+      }
+    })
   }
 
   renderStartupDefaultScreen () {
@@ -630,7 +655,12 @@ export default class Creator extends React.Component {
             envoy={this.envoy}
             {...this.props} />
           <Tour projectsList={this.state.projectsList} envoy={this.envoy} startTourOnMount />
-          <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
+          <AutoUpdater
+            onComplete={this.onAutoUpdateCheckComplete}
+            check={this.state.updater.shouldCheck}
+            skipOptIn={this.state.updater.shouldSkipOptIn}
+            runOnBackground={this.state.updater.shouldRunOnBackground}
+          />
         </div>
       )
     }
@@ -639,7 +669,12 @@ export default class Creator extends React.Component {
       return (
         <div>
           <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
-          <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
+          <AutoUpdater
+            onComplete={this.onAutoUpdateCheckComplete}
+            check={this.state.updater.shouldCheck}
+            skipOptIn={this.state.updater.shouldSkipOptIn}
+            runOnBackground={this.state.updater.shouldRunOnBackground}
+          />
           <ProjectBrowser
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
@@ -674,7 +709,12 @@ export default class Creator extends React.Component {
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        <AutoUpdater onAutoUpdateCheckComplete={this.onAutoUpdateCheckComplete} shouldDisplay={!this.state.hasCheckedForUpdates} />
+        <AutoUpdater
+          onComplete={this.onAutoUpdateCheckComplete}
+          check={this.state.updater.shouldCheck}
+          skipOptIn={this.state.updater.shouldSkipOptIn}
+          runOnBackground={this.state.updater.shouldRunOnBackground}
+        />
         <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
           <div className='layout-box' style={{overflow: 'visible'}}>

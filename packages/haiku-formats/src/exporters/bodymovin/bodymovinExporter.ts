@@ -2,6 +2,7 @@ import {Maybe} from 'haiku-common/lib/types';
 import {Curve} from 'haiku-common/lib/types/enums';
 import * as visitTemplate from 'haiku-serialization/src/model/helpers/visitTemplate';
 
+import {SvgTag} from '../../svg/enums';
 import {Exporter} from '..';
 import {getCurveInterpolationPoints} from '../curves';
 import {
@@ -14,14 +15,15 @@ import {
   ShapeType,
   TransformKey,
 } from './bodymovinEnums';
+import {colorTransformer, opacityTransformer} from './bodymovinTransformers';
+import {SvgInheritable} from './bodymovinTypes';
 import {
   compoundTimelineReducer,
   getBodymovinVersion,
   getFixedPropertyValue,
-  hexToAfterEffectsColor,
   maybeApplyMutatorToProperty,
   pathToInterpolationTrace,
-  pointsToVertices,
+  pointsToInterpolationTrace,
 } from './bodymovinUtils';
 
 let bodymovinVersion: Maybe<string>;
@@ -50,6 +52,24 @@ export class BodymovinExporter implements Exporter {
    * @type {Array}
    */
   private layers = [];
+
+  /**
+   * The group hierarchy determined during parsing.
+   * @type {[key: string]: string}
+   */
+  private groupHierarchy: {[key: string]: SvgInheritable} = {};
+
+  /**
+   * The definition transclusions we should use for ID interpolation.
+   * @type {[key: string]: {}}
+   */
+  private transclusions = {};
+
+  /**
+   * The Haiku IDs we should elide due to their association with definitions.
+   * @type {Array<string>}
+   */
+  private definitionHaikuIds = [];
 
   /**
    * Whether we have already parsed the bytecode passed to the object on construction.
@@ -94,11 +114,22 @@ export class BodymovinExporter implements Exporter {
   /**
    * Retrieves the timeline for a specific haikuId.
    * @param {string} haikuId
+   * @param {string?} parentHaikuId
    * @returns {{}}
    */
-  private timelineForId(haikuId: string) {
+  private timelineForId(haikuId: string, parentHaikuId?: string) {
     const timelineId = `haiku:${haikuId}`;
-    return this.bytecode.timelines.Default[timelineId] || {};
+    const timeline = this.bytecode.timelines.Default[timelineId] || {};
+
+    if (parentHaikuId && this.groupHierarchy.hasOwnProperty(parentHaikuId)) {
+      const inheritable = this.groupHierarchy[parentHaikuId];
+      return {
+        ...this.timelineForId(parentHaikuId, inheritable.inheritFromParent ? inheritable.parentId : undefined),
+        ...timeline,
+      };
+    }
+
+    return timeline;
   }
 
   /**
@@ -183,7 +214,7 @@ export class BodymovinExporter implements Exporter {
     const transforms = {};
 
     if (timeline.hasOwnProperty('opacity')) {
-      transforms[TransformKey.Opacity] = this.getValue(timeline.opacity, (value) => 100 * value);
+      transforms[TransformKey.Opacity] = this.getValue(timeline.opacity, opacityTransformer);
     } else {
       transforms[TransformKey.Opacity] = getFixedPropertyValue(100);
     }
@@ -196,10 +227,82 @@ export class BodymovinExporter implements Exporter {
       };
     }
 
-    // For now, shim in 100% X-Y-Z scale for all elements.
+    // For now, shim in 100% X-Y-Z scale for all elements and 0deg 2D rotation.
+    // TODO: Actually apply transformations for scale and rotation.
     transforms[TransformKey.Scale] = getFixedPropertyValue([100, 100, 100]);
+    transforms[TransformKey.Rotation] = getFixedPropertyValue(0);
 
     return transforms;
+  }
+
+  /**
+   * Stores the group hierarchy for future use, in case we find shapes inside this group.
+   * @param node
+   * @param parentNode
+   */
+  private handleGroup(node, parentNode) {
+    this.groupHierarchy[node.attributes['haiku-id']] = {
+      parentId: parentNode.attributes['haiku-id'],
+      inheritFromParent: parentNode.elementName === SvgTag.Group,
+    };
+  }
+
+  /**
+   * Writes out defs from the timeline for a single node.
+   * @param node
+   */
+  private handleDefinition(node) {
+    this.definitionHaikuIds.push(node.attributes['haiku-id']);
+    if (node.attributes.hasOwnProperty('id')) {
+      this.transclusions[node.attributes.id] = node;
+    }
+  }
+
+  /**
+   * Transcludes a node from `<defs>…</defs>` into the DOM tree, then applies the usual transformations.
+   * @param node
+   * @param parentNode
+   */
+  private handleTransclusion(node, parentNode) {
+    // Write a new haiku ID based on the result of transcluding the requested ID to this element.
+    const originalHaikuId = node.attributes['haiku-id'];
+    const originalTimeline = this.timelineForId(originalHaikuId);
+    let transcludedIdField;
+    if (originalTimeline.hasOwnProperty('href')) {
+      transcludedIdField = 'href';
+    } else if (originalTimeline.hasOwnProperty('xlink:href')) {
+      transcludedIdField = 'xlink:href';
+    }
+
+    if (!transcludedIdField) {
+      // Nothing to do, because an href was not provided. We don't know what shape this is, etc.
+      return;
+    }
+
+    const transcludedId = originalTimeline[transcludedIdField][0].value.replace(/^#/, '');
+    if (!this.transclusions.hasOwnProperty(transcludedId)) {
+      // Not good, and shouldn't happen! Do nothing.
+      return;
+    }
+
+    const newNode = this.transclusions[transcludedId];
+    const newHaikuId = `${originalHaikuId}:${transcludedId}`;
+    this.bytecode.timelines.Default[`haiku:${newHaikuId}`] = {
+      ...this.timelineForId(newNode.attributes['haiku-id']),
+      ...this.timelineForId(originalHaikuId),
+    };
+
+    this.handleElement(
+      {
+        elementName: newNode.elementName,
+        attributes: {'haiku-id': newHaikuId},
+        children: newNode.children,
+      },
+      parentNode,
+      // Do NOT elide elements from `<defs>…</defs>`, since we are now layering the transcluded content from
+      // them.
+      false,
+    );
   }
 
   /**
@@ -221,11 +324,13 @@ export class BodymovinExporter implements Exporter {
   /**
    * Mega-method to handle a shape internally.
    * TODO: Break this out into nicer, smaller methods.
-   * TODO: Support shapes other than circles.
+   * TODO: Support static transformations for rotation and scale.
+   * TODO: Support stroke-opacity and fill-opacity.
    * @param node
+   * @param parentNode
    */
-  private handleShape(node) {
-    const timeline = this.timelineForId(node.attributes['haiku-id']);
+  private handleShape(node, parentNode) {
+    const timeline = this.timelineForId(node.attributes['haiku-id'], parentNode.attributes['haiku-id']);
     const groupItems: any[] = [];
 
     if (timeline.hasOwnProperty('stroke') && timeline.hasOwnProperty('stroke-width')) {
@@ -233,8 +338,7 @@ export class BodymovinExporter implements Exporter {
       stroke[ShapeKey.Type] = ShapeType.Stroke;
       stroke[TransformKey.Opacity] = getFixedPropertyValue(100);
       stroke[TransformKey.StrokeWidth] = this.getValue(timeline['stroke-width'], parseInt);
-      // TODO: Check for and support other color modes.
-      stroke[TransformKey.Color] = this.getValue(timeline.stroke, hexToAfterEffectsColor);
+      stroke[TransformKey.Color] = this.getValue(timeline.stroke, colorTransformer);
       groupItems.push(stroke);
     }
 
@@ -242,14 +346,14 @@ export class BodymovinExporter implements Exporter {
       const fill = {};
       fill[ShapeKey.Type] = ShapeType.Fill;
       fill[TransformKey.Opacity] = getFixedPropertyValue(100);
-      fill[TransformKey.Color] = this.getValue(timeline.fill, hexToAfterEffectsColor);
+      fill[TransformKey.Color] = this.getValue(timeline.fill, colorTransformer);
       groupItems.push(fill);
     }
 
     const shape = {};
     switch (node.elementName) {
-      case 'circle':
-      case 'ellipse':
+      case SvgTag.CircleShape:
+      case SvgTag.EllipseShape:
         shape[ShapeKey.Type] = ShapeType.Ellipse;
         if (timeline.hasOwnProperty('cy') && timeline.hasOwnProperty('cx')) {
           shape[TransformKey.Position] = this.getValue([timeline.cx, timeline.cy], (s) => parseInt(s, 10));
@@ -261,19 +365,22 @@ export class BodymovinExporter implements Exporter {
           shape[TransformKey.Size] = this.getValue([timeline.rx, timeline.ry], (r) => 2 * r);
         }
         break;
-      case 'rect':
+      case SvgTag.RectangleShape:
         shape[ShapeKey.Type] = ShapeType.Rectangle;
+        shape[TransformKey.Position] = getFixedPropertyValue([0, 0]);
+        shape[TransformKey.Rotation] = getFixedPropertyValue(0);
         if (timeline.hasOwnProperty('sizeAbsolute.x') && timeline.hasOwnProperty('sizeAbsolute.y')) {
           shape[TransformKey.Size] = this.getValue([timeline['sizeAbsolute.x'], timeline['sizeAbsolute.y']]);
           if (timeline.hasOwnProperty('x') && timeline.hasOwnProperty('y')) {
             groupItems.push({
               [ShapeKey.Type]: ShapeType.Transform,
               [TransformKey.Position]: getFixedPropertyValue([
-                timeline.x[0].value * timeline['sizeAbsolute.x'][0].value,
-                timeline.y[0].value * timeline['sizeAbsolute.y'][0].value,
+                parseInt(timeline.x[0].value, 10) + timeline['sizeAbsolute.x'][0].value / 2,
+                parseInt(timeline.y[0].value, 10) + timeline['sizeAbsolute.y'][0].value / 2,
               ]),
               [TransformKey.Opacity]: getFixedPropertyValue(100),
               [TransformKey.Scale]: getFixedPropertyValue([100, 100]),
+              [TransformKey.Rotation]: getFixedPropertyValue(0),
             });
           }
         }
@@ -281,7 +388,7 @@ export class BodymovinExporter implements Exporter {
           shape[TransformKey.BorderRadius] = this.getValue(timeline.rx, (s) => parseInt(s, 10));
         }
         break;
-      case 'polygon':
+      case SvgTag.PolygonShape:
         // Note: we very explicitly assume that points are not animated in this transformation. When we introduce path
         // animations, this should be revisited.
         shape[ShapeKey.Type] = ShapeType.Shape;
@@ -290,12 +397,12 @@ export class BodymovinExporter implements Exporter {
             [PropertyKey.Animated]: 0,
             [PropertyKey.Value]: {
               [PathKey.Closed]: true,
-              [PathKey.Points]: pointsToVertices(timeline.points[0].value),
+              ...pointsToInterpolationTrace(timeline.points[0].value),
             },
           };
         }
         break;
-      case 'path':
+      case SvgTag.PathShape:
         // Note: again, we explicitly assume the path is not animated.
         shape[ShapeKey.Type] = ShapeType.Shape;
         if (timeline.hasOwnProperty('d')) {
@@ -314,44 +421,46 @@ export class BodymovinExporter implements Exporter {
 
     // Push the shape to the top of the group stack.
     groupItems.unshift(shape);
-    this.activeLayer[LayerKey.Shapes].push({
+    this.activeLayer[LayerKey.Shapes].unshift({
       [ShapeKey.Type]: ShapeType.Group,
       [ShapeKey.GroupItems]: groupItems,
     });
   }
 
   /**
-   * Parses an entire template using `visitTemplate` to traverse the DOM tree.
-   * @param template
+   * Does the actual work of pushing renderable entities onto the rendering stack for Bodymovin.
+   * @param node
+   * @param parentNode
+   * @param skipTranscludedElements
    */
-  private parseTemplate(template) {
-    visitTemplate(template, null, (node, parentNode) => {
-      // TODO: Support SVG defs!
-      if (parentNode && parentNode.elementName === 'defs') {
-        return;
-      }
+  private handleElement(node, parentNode, skipTranscludedElements = true) {
+    // If we are at a definition or a child of a definition, store it in case it's referenced later and move on.
+    if (parentNode && (parentNode.elementName === SvgTag.Defs ||
+        (skipTranscludedElements && this.definitionHaikuIds.indexOf(parentNode.attributes['haiku-id']) !== -1))) {
+      this.handleDefinition(node);
+      return;
+    }
 
-      switch (node.elementName) {
-        case 'svg':
-          this.handleSvgLayer(node);
-          break;
-        case 'use':
-          // TODO: Support use!
-          break;
-        case 'g':
-          // TODO: Support g!
-          break;
-        case 'circle':
-        case 'ellipse':
-        case 'rect':
-        case 'path':
-        case 'polygon':
-          this.handleShape(node);
-          break;
-        default:
-          console.info(`[formats] Skipping element: ${node.elementName}`);
-      }
-    });
+    switch (node.elementName) {
+      case SvgTag.Svg:
+        this.handleSvgLayer(node);
+        break;
+      case SvgTag.Use:
+        this.handleTransclusion(node, parentNode);
+        break;
+      case SvgTag.Group:
+        this.handleGroup(node, parentNode);
+        break;
+      case SvgTag.CircleShape:
+      case SvgTag.EllipseShape:
+      case SvgTag.RectangleShape:
+      case SvgTag.PathShape:
+      case SvgTag.PolygonShape:
+        this.handleShape(node, parentNode);
+        break;
+      default:
+        console.info(`[formats] Skipping element: ${node.elementName}`);
+    }
   }
 
   /**
@@ -370,10 +479,12 @@ export class BodymovinExporter implements Exporter {
     this.animationHeight = wrapperTimeline['sizeAbsolute.y']['0'].value;
 
     this.bytecode.template.children.forEach((template) => {
-      if (template.elementName !== 'svg') {
+      if (template.elementName !== SvgTag.Svg) {
         throw new Error(`Unexpected wrapper child element: ${template.elementName}`);
       }
-      this.parseTemplate(template);
+      visitTemplate(template, null, (node, parentNode) => {
+        this.handleElement(node, parentNode);
+      });
     });
 
     // TODO: set op to the maximum frame from the timeline.
@@ -416,7 +527,7 @@ export class BodymovinExporter implements Exporter {
     return JSON.stringify(this.rawOutput());
   }
 
-  constructor(private readonly bytecode) {
+  constructor(private bytecode) {
     // If not already known, get the Bodymovin version.
     if (!bodymovinVersion) {
       bodymovinVersion = getBodymovinVersion();

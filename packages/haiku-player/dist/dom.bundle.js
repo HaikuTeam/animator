@@ -204,16 +204,16 @@ var DEFAULTS = {
         frame: null,
         clock: {},
         sizing: null,
-        preserve3d: "auto",
-        contextMenu: "enabled",
-        position: "relative",
+        preserve3d: 'auto',
+        contextMenu: 'enabled',
+        position: 'relative',
         overflowX: null,
         overflowY: null,
         overflow: null,
-        mixpanel: "6f31d4f99cf71024ce27c3e404a79a61",
+        mixpanel: '6f31d4f99cf71024ce27c3e404a79a61',
         useWebkitPrefix: void (0),
         cache: {},
-        interactionMode: { type: "live" }
+        interactionMode: { type: 'live' }
     },
     states: null,
     eventHandlers: null,
@@ -243,46 +243,59 @@ function build() {
         children: null
     };
     var args = [];
-    for (var i = 0; i < argums.length; i++)
+    for (var i = 0; i < argums.length; i++) {
         args[i] = argums[i];
+    }
     args.unshift(DEFAULTS);
     for (var j = 0; j < args.length; j++) {
         var incoming = args[j];
-        if (!incoming)
+        if (!incoming) {
             continue;
-        if (typeof incoming !== "object")
+        }
+        if (typeof incoming !== 'object') {
             continue;
-        if (incoming.onHaikuComponentWillInitialize)
+        }
+        if (incoming.onHaikuComponentWillInitialize) {
             config.onHaikuComponentWillInitialize = incoming.onHaikuComponentWillInitialize;
-        if (incoming.onHaikuComponentDidMount)
+        }
+        if (incoming.onHaikuComponentDidMount) {
             config.onHaikuComponentDidMount = incoming.onHaikuComponentDidMount;
-        if (incoming.onHaikuComponentDidInitialize)
+        }
+        if (incoming.onHaikuComponentDidInitialize) {
             config.onHaikuComponentDidInitialize = incoming.onHaikuComponentDidInitialize;
-        if (incoming.onHaikuComponentWillUnmount)
+        }
+        if (incoming.onHaikuComponentWillUnmount) {
             config.onHaikuComponentWillUnmount = incoming.onHaikuComponentWillUnmount;
-        if (incoming.options)
+        }
+        if (incoming.options) {
             config.options = assign_1["default"]({}, config.options, incoming.options);
+        }
         for (var key in incoming) {
             if (incoming[key] !== undefined && DEFAULTS.options.hasOwnProperty(key)) {
                 config.options[key] = incoming[key];
             }
         }
-        if (incoming.states)
+        if (incoming.states) {
             config.states = assign_1["default"]({}, config.states, incoming.states);
-        if (incoming.initialStates && typeof incoming.initialStates === "object") {
+        }
+        if (incoming.initialStates && typeof incoming.initialStates === 'object') {
             assign_1["default"](config.states, incoming.initialStates);
         }
-        if (incoming.eventHandlers)
+        if (incoming.eventHandlers) {
             config.eventHandlers = assign_1["default"]({}, config.eventHandlers, incoming.eventHandlers);
-        if (incoming.timelines)
+        }
+        if (incoming.timelines) {
             config.timelines = assign_1["default"]({}, config.timelines, incoming.timelines);
-        if (incoming.vanities)
+        }
+        if (incoming.vanities) {
             config.vanities = assign_1["default"]({}, config.vanities, incoming.vanities);
-        if (incoming.children)
+        }
+        if (incoming.children) {
             config.children = incoming.children;
+        }
     }
     if (config.options.overflow && (config.options.overflowX || config.options.overflowY)) {
-        console.warn("[haiku player] `overflow` overrides `overflowY`/`overflowX`");
+        console.warn('[haiku player] `overflow` overrides `overflowY`/`overflowX`');
         config.options.overflowX = null;
         config.options.overflowY = null;
     }
@@ -301,7 +314,7 @@ var HaikuGlobal_1 = _dereq_("./HaikuGlobal");
 var SimpleEventEmitter_1 = _dereq_("./helpers/SimpleEventEmitter");
 var assign_1 = _dereq_("./vendor/assign");
 var raf_1 = _dereq_("./vendor/raf");
-var NUMBER = "number";
+var NUMBER = 'number';
 var DEFAULT_OPTIONS = {
     frameDuration: 16.666,
     frameDelay: 16.666,
@@ -390,8 +403,9 @@ HaikuClock.prototype.setTime = function setTime(time) {
     return this;
 };
 HaikuClock.prototype.getExplicitTime = function getExplicitTime() {
-    if (this._isTimeControlled())
+    if (this._isTimeControlled()) {
         return this.getControlledTime();
+    }
     return this.getRunningTime();
 };
 HaikuClock.prototype.getControlledTime = function getControlledTime() {
@@ -432,39 +446,40 @@ var upgradeBytecodeInPlace_1 = _dereq_("./helpers/upgradeBytecodeInPlace");
 var Layout3D_1 = _dereq_("./Layout3D");
 var ValueBuilder_1 = _dereq_("./ValueBuilder");
 var assign_1 = _dereq_("./vendor/assign");
-var pkg = _dereq_("./../package.json");
+var pkg = _dereq_('./../package.json');
 var PLAYER_VERSION = pkg.version;
-var STRING_TYPE = "string";
-var OBJECT_TYPE = "object";
+var STRING_TYPE = 'string';
+var OBJECT_TYPE = 'object';
 var IDENTITY_MATRIX = Layout3D_1["default"].createMatrix();
-var HAIKU_ID_ATTRIBUTE = "haiku-id";
-var DEFAULT_TIMELINE_NAME = "Default";
+var HAIKU_ID_ATTRIBUTE = 'haiku-id';
+var DEFAULT_TIMELINE_NAME = 'Default';
 function HaikuComponent(bytecode, context, config, metadata) {
+    var _this = this;
     if (!bytecode) {
-        throw new Error("Empty bytecode not allowed");
-    }
-    if (!bytecode.timelines) {
-        throw new Error("Bytecode must define timelines");
+        throw new Error('Empty bytecode not allowed');
     }
     if (!bytecode.template) {
-        throw new Error("Bytecode must define template");
+        throw new Error('Bytecode must define template');
     }
     if (!context) {
-        throw new Error("Component requires a context");
+        throw new Error('Component requires a context');
     }
     if (!config.options) {
-        throw new Error("Config options required");
+        throw new Error('Config options required');
     }
     if (!config.options.seed) {
-        throw new Error("Seed value must be provided");
+        throw new Error('Seed value must be provided');
+    }
+    if (!bytecode.timelines) {
+        bytecode.timelines = {};
     }
     SimpleEventEmitter_1["default"].create(this);
     this.PLAYER_VERSION = PLAYER_VERSION;
-    this.emit("haikuComponentWillInitialize", this);
+    this.emit('haikuComponentWillInitialize', this);
     if (config.onHaikuComponentWillInitialize) {
         config.onHaikuComponentWillInitialize(this);
     }
-    this._bytecode = _clone(bytecode);
+    this._bytecode = clone(bytecode);
     upgradeBytecodeInPlace_1["default"](this._bytecode, {
         referenceUniqueness: Math.random().toString(36).slice(2)
     });
@@ -479,7 +494,7 @@ function HaikuComponent(bytecode, context, config, metadata) {
     this.assignConfig(config);
     this._metadata = metadata || {};
     this._timelineInstances = {};
-    this._template = _fetchAndCloneTemplate(this._bytecode.template);
+    this._template = fetchAndCloneTemplate(this._bytecode.template);
     this._needsFullFlush = false;
     this._alwaysFlush = false;
     this._lastTemplateExpansion = null;
@@ -493,16 +508,16 @@ function HaikuComponent(bytecode, context, config, metadata) {
     this._registeredElementEventListeners = {};
     this._horizonElements = {};
     this._controlFlowData = {};
-    this.on("timeline:tick", function _anyTimelineTick(timelineName, timelineFrame, timelineTime) {
-        if (this._frameEventListeners[timelineName]) {
-            if (this._frameEventListeners[timelineName][timelineFrame]) {
-                for (var i = 0; i < this._frameEventListeners[timelineName][timelineFrame].length; i++) {
-                    this._frameEventListeners[timelineName][timelineFrame][i](timelineFrame, timelineTime);
+    this.on('timeline:tick', function (timelineName, timelineFrame, timelineTime) {
+        if (_this._frameEventListeners[timelineName]) {
+            if (_this._frameEventListeners[timelineName][timelineFrame]) {
+                for (var i = 0; i < _this._frameEventListeners[timelineName][timelineFrame].length; i++) {
+                    _this._frameEventListeners[timelineName][timelineFrame][i](timelineFrame, timelineTime);
                 }
             }
         }
-    }.bind(this));
-    this.emit("haikuComponentDidInitialize", this);
+    });
+    this.emit('haikuComponentDidInitialize', this);
     if (config.onHaikuComponentDidInitialize) {
         config.onHaikuComponentDidInitialize(this);
     }
@@ -510,19 +525,19 @@ function HaikuComponent(bytecode, context, config, metadata) {
     this._sleeping = false;
 }
 exports["default"] = HaikuComponent;
-HaikuComponent["PLAYER_VERSION"] = PLAYER_VERSION;
-function _clone(thing) {
+HaikuComponent['PLAYER_VERSION'] = PLAYER_VERSION;
+function clone(thing) {
     if (Array.isArray(thing)) {
         var arr = [];
         for (var i = 0; i < thing.length; i++) {
-            arr[i] = _clone(thing[i]);
+            arr[i] = clone(thing[i]);
         }
         return arr;
     }
-    else if (thing && typeof thing === "object") {
+    else if (thing && typeof thing === 'object') {
         var obj = {};
         for (var key in thing) {
-            obj[key] = _clone(thing[key]);
+            obj[key] = clone(thing[key]);
         }
         return obj;
     }
@@ -546,8 +561,9 @@ HaikuComponent.prototype._isHorizonElement = function _isHorizonElement(virtualE
     return false;
 };
 HaikuComponent.prototype._getRealElementsAtId = function _getRealElementsAtId(flexId) {
-    if (!this._hashTableOfIdsToElements[flexId])
+    if (!this._hashTableOfIdsToElements[flexId]) {
         return [];
+    }
     return this._hashTableOfIdsToElements[flexId];
 };
 HaikuComponent.prototype._addElementToHashTable = function _addElementToHashTable(realElement, virtualElement) {
@@ -555,39 +571,47 @@ HaikuComponent.prototype._addElementToHashTable = function _addElementToHashTabl
     return this;
 };
 HaikuComponent.prototype._didElementRenderSurrogate = function _didElementRenderSurrogate(virtualElement, surrogatePlacementKey, surrogateObject) {
-    if (!virtualElement)
+    if (!virtualElement) {
         return false;
-    if (!virtualElement.attributes)
+    }
+    if (!virtualElement.attributes) {
         return false;
-    var flexId = virtualElement.attributes["haiku-id"] || virtualElement.attributes.id;
-    if (!flexId)
+    }
+    var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id;
+    if (!flexId) {
         return false;
-    if (!this._controlFlowData[flexId])
+    }
+    if (!this._controlFlowData[flexId]) {
         return false;
-    if (!this._controlFlowData[flexId].renderedSurrogates)
+    }
+    if (!this._controlFlowData[flexId].renderedSurrogates) {
         return false;
+    }
     return this._controlFlowData[flexId].renderedSurrogates[surrogatePlacementKey] === surrogateObject;
 };
 HaikuComponent.prototype._markElementAnticipatedSurrogates = function _markElementAnticipatedSurrogates(virtualElement, surrogatesArray) {
-    var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes["haiku-id"] || virtualElement.attributes.id);
+    var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id);
     if (flexId) {
-        if (!this._controlFlowData[flexId])
+        if (!this._controlFlowData[flexId]) {
             this._controlFlowData[flexId] = {};
+        }
         this._controlFlowData[flexId].anticipatedSurrogates = surrogatesArray;
     }
 };
 HaikuComponent.prototype._markElementSurrogateAsRendered = function _markElementSurrogateAsRendered(virtualElement, surrogatePlacementKey, surrogateObject) {
-    var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes["haiku-id"] || virtualElement.attributes.id);
+    var flexId = virtualElement && virtualElement.attributes && (virtualElement.attributes['haiku-id'] || virtualElement.attributes.id);
     if (flexId) {
-        if (!this._controlFlowData[flexId])
+        if (!this._controlFlowData[flexId]) {
             this._controlFlowData[flexId] = {};
-        if (!this._controlFlowData[flexId].renderedSurrogates)
+        }
+        if (!this._controlFlowData[flexId].renderedSurrogates) {
             this._controlFlowData[flexId].renderedSurrogates = {};
+        }
         this._controlFlowData[flexId].renderedSurrogates[surrogatePlacementKey] = surrogateObject;
     }
 };
 HaikuComponent.prototype.callRemount = function _callRemount(incomingConfig, skipMarkForFullFlush) {
-    this.emit("haikuComponentWillMount", this);
+    this.emit('haikuComponentWillMount', this);
     if (this.config.onHaikuComponentWillMount) {
         this.config.onHaikuComponentWillMount(this);
     }
@@ -611,7 +635,7 @@ HaikuComponent.prototype.callRemount = function _callRemount(incomingConfig, ski
         }
     }
     this._context.contextMount();
-    this.emit("haikuComponentDidMount", this);
+    this.emit('haikuComponentDidMount', this);
     if (this.config.onHaikuComponentDidMount) {
         this.config.onHaikuComponentDidMount(this);
     }
@@ -626,7 +650,7 @@ HaikuComponent.prototype.callUnmount = function _callUnmount(incomingConfig) {
         timelineInstance.pause();
     }
     this._context.contextUnmount();
-    this.emit("haikuComponentWillUnmount", this);
+    this.emit('haikuComponentWillUnmount', this);
     if (this.config.onHaikuComponentWillUnmount) {
         this.config.onHaikuComponentWillUnmount(this);
     }
@@ -638,8 +662,8 @@ HaikuComponent.prototype.assignConfig = function _assignConfig(incomingConfig) {
         var timelineInstance = this._timelineInstances[timelineName];
         timelineInstance.assignOptions(this.config.options);
     }
-    _bindStates(this._states, this, this.config.states);
-    _bindEventHandlers(this, this.config.eventHandlers);
+    bindStates(this._states, this, this.config.states);
+    bindEventHandlers(this, this.config.eventHandlers);
     assign_1["default"](this._bytecode.timelines, this.config.timelines);
     return this;
 };
@@ -651,10 +675,12 @@ HaikuComponent.prototype.get = function get(key) {
     return this.state[key];
 };
 HaikuComponent.prototype.setState = function setState(states) {
-    if (!states)
+    if (!states) {
         return this;
-    if (typeof states !== "object")
+    }
+    if (typeof states !== 'object') {
         return this;
+    }
     for (var key in states) {
         this.set(key, states[key]);
     }
@@ -663,7 +689,7 @@ HaikuComponent.prototype.setState = function setState(states) {
 HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
     this._states = {};
     if (!options || (options && options.clearStates !== false)) {
-        _bindStates(this._states, this, this.config.states);
+        bindStates(this._states, this, this.config.states);
     }
     if (options && options.clearPreviouslyRegisteredEventListeners) {
         for (var flexId in this._registeredElementEventListeners) {
@@ -677,7 +703,7 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
         }
     }
     if (!options || (options && options.clearEventHandlers !== false)) {
-        _bindEventHandlers(this, this.config.eventHandlers);
+        bindEventHandlers(this, this.config.eventHandlers);
     }
     this._stateChanges = {};
     this._anyStateChange = false;
@@ -706,8 +732,9 @@ HaikuComponent.prototype._fetchTimelines = function _fetchTimelines() {
     var names = Object.keys(this._bytecode.timelines);
     for (var i = 0; i < names.length; i++) {
         var name_1 = names[i];
-        if (!name_1)
+        if (!name_1) {
             continue;
+        }
         var descriptor = this._getTimelineDescriptor(name_1);
         var existing = this._timelineInstances[name_1];
         if (!existing) {
@@ -779,8 +806,9 @@ HaikuComponent.prototype._getInjectables = function _getInjectables(element) {
     assign_1["default"](injectables, this._builder._getSummonablesSchema(element));
     for (var key in this._states) {
         var type = this._states[key].type;
-        if (!type)
+        if (!type) {
             type = typeof this._states[key];
+        }
         injectables[key] = type;
     }
     return injectables;
@@ -814,23 +842,26 @@ HaikuComponent.prototype._isAsleep = function _isAsleep() {
 };
 HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegisteredListenerOnElement(virtualElement, eventName, listenerFunction) {
     var flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
-    if (!flexId)
+    if (!flexId) {
         return false;
+    }
     return this._registeredElementEventListeners[flexId] && this._registeredElementEventListeners[flexId][eventName];
 };
 HaikuComponent.prototype._markDidRegisterListenerOnElement = function _markDidRegisterListenerOnElement(virtualElement, domElement, eventName, listenerFunction) {
     var flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
-    if (!flexId)
+    if (!flexId) {
         return this;
-    if (!this._registeredElementEventListeners[flexId])
+    }
+    if (!this._registeredElementEventListeners[flexId]) {
         this._registeredElementEventListeners[flexId] = {};
+    }
     this._registeredElementEventListeners[flexId][eventName] = {
         handler: listenerFunction,
         target: domElement
     };
     return this;
 };
-function _cloneTemplate(mana) {
+function cloneTemplate(mana) {
     if (!mana) {
         return mana;
     }
@@ -851,40 +882,40 @@ function _cloneTemplate(mana) {
     if (mana.children) {
         out.children = [];
         for (var i = 0; i < mana.children.length; i++) {
-            out.children[i] = _cloneTemplate(mana.children[i]);
+            out.children[i] = cloneTemplate(mana.children[i]);
         }
     }
     return out;
 }
-function _fetchAndCloneTemplate(template) {
+function fetchAndCloneTemplate(template) {
     if (!template) {
-        throw new Error("Empty template not allowed");
+        throw new Error('Empty template not allowed');
     }
     if (typeof template === OBJECT_TYPE) {
         if (!template.elementName) {
-            console.warn("[haiku player] warning: saw unexpected bytecode template format");
+            console.warn('[haiku player] warning: saw unexpected bytecode template format');
         }
-        return _cloneTemplate(template);
+        return cloneTemplate(template);
     }
-    throw new Error("Unknown bytecode template format");
+    throw new Error('Unknown bytecode template format');
 }
-function _bindEventHandlers(component, extraEventHandlers) {
+function bindEventHandlers(component, extraEventHandlers) {
     var allEventHandlers = assign_1["default"]({}, component._bytecode.eventHandlers, extraEventHandlers);
     for (var selector in allEventHandlers) {
         var handlerGroup = allEventHandlers[selector];
         for (var eventName in handlerGroup) {
             var eventHandlerDescriptor = handlerGroup[eventName];
-            _bindEventHandler(component, eventHandlerDescriptor, selector, eventName);
+            bindEventHandler(component, eventHandlerDescriptor, selector, eventName);
         }
     }
 }
-function _bindEventHandler(component, eventHandlerDescriptor, selector, eventName) {
+function bindEventHandler(component, eventHandlerDescriptor, selector, eventName) {
     if (eventHandlerDescriptor.original) {
         eventHandlerDescriptor.handler = eventHandlerDescriptor.original;
     }
     eventHandlerDescriptor.original = eventHandlerDescriptor.handler;
     eventHandlerDescriptor.handler = function _wrappedEventHandler(event, a, b, c, d, e, f, g, h, i, j, k) {
-        if (component.config.options.interactionMode.type === "live") {
+        if (component.config.options.interactionMode.type === 'live') {
             component._anyEventChange = true;
             if (!component._eventsFired[selector]) {
                 component._eventsFired[selector] = {};
@@ -895,54 +926,54 @@ function _bindEventHandler(component, eventHandlerDescriptor, selector, eventNam
         }
     };
 }
-function _typecheckStateSpec(stateSpec, stateSpecName) {
-    if (stateSpec.type === "any" ||
-        stateSpec.type === "*" ||
+function typecheckStateSpec(stateSpec, stateSpecName) {
+    if (stateSpec.type === 'any' ||
+        stateSpec.type === '*' ||
         stateSpec.type === undefined ||
         stateSpec.type === null) {
         return void 0;
     }
-    if (stateSpec.type === "event" || stateSpec.type === "listener") {
-        if (typeof stateSpec.value !== "function" &&
+    if (stateSpec.type === 'event' || stateSpec.type === 'listener') {
+        if (typeof stateSpec.value !== 'function' &&
             stateSpec.value !== null &&
             stateSpec.value !== undefined) {
-            throw new Error("Property value `" +
+            throw new Error('Property value `' +
                 stateSpecName +
-                "` must be an event listener function");
+                '` must be an event listener function');
         }
         return void 0;
     }
-    if (stateSpec.type === "array") {
+    if (stateSpec.type === 'array') {
         if (!Array.isArray(stateSpec.value)) {
-            throw new Error("Property value `" + stateSpecName + "` must be an array");
+            throw new Error('Property value `' + stateSpecName + '` must be an array');
         }
     }
-    else if (stateSpec.type === "object") {
-        if (stateSpec.value && typeof stateSpec.value !== "object") {
-            throw new Error("Property value `" + stateSpecName + "` must be an object");
+    else if (stateSpec.type === 'object') {
+        if (stateSpec.value && typeof stateSpec.value !== 'object') {
+            throw new Error('Property value `' + stateSpecName + '` must be an object');
         }
     }
     else {
         if (typeof stateSpec.value !== stateSpec.type) {
-            throw new Error("Property value `" + stateSpecName + "` must be a `" + stateSpec.type + "`");
+            throw new Error('Property value `' + stateSpecName + '` must be a `' + stateSpec.type + '`');
         }
     }
 }
-function _bindStates(statesTargetObject, component, extraStates) {
+function bindStates(statesTargetObject, component, extraStates) {
     var allStates = assign_1["default"]({}, component._bytecode.states, extraStates);
     for (var stateSpecName in allStates) {
         var stateSpec = allStates[stateSpecName];
         if (stateSpec.value === undefined) {
-            throw new Error("Property `" +
+            throw new Error('Property `' +
                 stateSpecName +
-                "` cannot be undefined; use null for empty states");
+                '` cannot be undefined; use null for empty states');
         }
-        _typecheckStateSpec(stateSpec, stateSpecName);
+        typecheckStateSpec(stateSpec, stateSpecName);
         statesTargetObject[stateSpecName] = stateSpec.value;
-        _defineSettableState(component, component.state, statesTargetObject, stateSpec, stateSpecName);
+        defineSettableState(component, component.state, statesTargetObject, stateSpec, stateSpecName);
     }
 }
-function _defineSettableState(component, statesHostObject, statesTargetObject, stateSpec, stateSpecName) {
+function defineSettableState(component, statesHostObject, statesTargetObject, stateSpec, stateSpecName) {
     Object.defineProperty(statesHostObject, stateSpecName, {
         configurable: true,
         get: function get() {
@@ -958,7 +989,7 @@ function _defineSettableState(component, statesHostObject, statesTargetObject, s
                 statesTargetObject[stateSpecName] = inputValue;
             }
             if (component._doesEmitEventsVerbosely) {
-                component.emit("state:set", stateSpecName, statesTargetObject[stateSpecName], statesTargetObject);
+                component.emit('state:set', stateSpecName, statesTargetObject[stateSpecName], statesTargetObject);
             }
             return statesTargetObject[stateSpecName];
         }
@@ -1009,14 +1040,14 @@ HaikuComponent.prototype.patch = function patch(container, patchOptions) {
         var timeline = this._timelineInstances[timelineName];
         if (timeline.isActive()) {
             timeline._doUpdateWithGlobalClockTime(time);
-            if (timelineName === "Default" || !timeline.isFinished()) {
+            if (timelineName === 'Default' || !timeline.isFinished()) {
                 timelinesRunning.push(timeline);
             }
         }
     }
     var eventsFired = this._getEventsFired();
     var inputsChanged = this._getInputsChanged();
-    this._lastDeltaPatches = _gatherDeltaPatches(this, this._template, container, this._context, this._states, timelinesRunning, eventsFired, inputsChanged, patchOptions);
+    this._lastDeltaPatches = gatherDeltaPatches(this, this._template, container, this._context, this._states, timelinesRunning, eventsFired, inputsChanged, patchOptions);
     for (var flexId in this._nestedComponentElements) {
         var compElement = this._nestedComponentElements[flexId];
         this._lastDeltaPatches[flexId] = compElement;
@@ -1043,15 +1074,15 @@ HaikuComponent.prototype.render = function render(container, renderOptions, surr
             timeline._doUpdateWithGlobalClockTime(time);
         }
     }
-    _applyContextChanges(this, this._states, this._template, container, this._context, renderOptions || {});
-    this._lastTemplateExpansion = _expandTreeElement(this._template, this, this._context);
+    applyContextChanges(this, this._states, this._template, container, this._context, renderOptions || {});
+    this._lastTemplateExpansion = expandTreeElement(this._template, this, this._context);
     this._needsFullFlush = false;
     return this._lastTemplateExpansion;
 };
 HaikuComponent.prototype._findElementsByHaikuId = function _findElementsByHaikuId(componentId) {
-    return _findMatchingElementsByCssSelector("haiku:" + componentId, this._template, this._matchedElementCache);
+    return findMatchingElementsByCssSelector('haiku:' + componentId, this._template, this._matchedElementCache);
 };
-function _applyBehaviors(timelinesRunning, deltas, component, template, context, isPatchOperation) {
+function applyBehaviors(timelinesRunning, deltas, component, template, context, isPatchOperation) {
     if (!isPatchOperation) {
         if (component._bytecode.eventHandlers) {
             for (var eventSelector in component._bytecode.eventHandlers) {
@@ -1059,30 +1090,32 @@ function _applyBehaviors(timelinesRunning, deltas, component, template, context,
                 for (var eventName1 in eventHandlerGroup) {
                     var eventHandlerSpec1 = eventHandlerGroup[eventName1];
                     if (!eventHandlerSpec1.handler.__subscribed && !eventHandlerSpec1.handler.__external) {
-                        if (eventName1 === "component:will-mount") {
-                            component.on("haikuComponentWillMount", eventHandlerSpec1.handler);
+                        if (eventName1 === 'component:will-mount') {
+                            component.on('haikuComponentWillMount', eventHandlerSpec1.handler);
                             eventHandlerSpec1.handler.__subscribed = true;
                             continue;
                         }
-                        if (eventName1 === "component:did-mount") {
-                            component.on("haikuComponentDidMount", eventHandlerSpec1.handler);
+                        if (eventName1 === 'component:did-mount') {
+                            component.on('haikuComponentDidMount', eventHandlerSpec1.handler);
                             eventHandlerSpec1.handler.__subscribed = true;
                             continue;
                         }
-                        if (eventName1 === "component:will-unmount") {
-                            component.on("haikuComponentWillUnmount", eventHandlerSpec1.handler);
+                        if (eventName1 === 'component:will-unmount') {
+                            component.on('haikuComponentWillUnmount', eventHandlerSpec1.handler);
                             eventHandlerSpec1.handler.__subscribed = true;
                             continue;
                         }
-                        var namePieces = eventName1.split(":");
+                        var namePieces = eventName1.split(':');
                         if (namePieces.length > 1) {
-                            if (namePieces[0] === "timeline") {
+                            if (namePieces[0] === 'timeline') {
                                 var timelineNamePiece = namePieces[1];
                                 var frameValuePiece = parseInt(namePieces[2], 10);
-                                if (!component._frameEventListeners[timelineNamePiece])
+                                if (!component._frameEventListeners[timelineNamePiece]) {
                                     component._frameEventListeners[timelineNamePiece] = {};
-                                if (!component._frameEventListeners[timelineNamePiece][frameValuePiece])
+                                }
+                                if (!component._frameEventListeners[timelineNamePiece][frameValuePiece]) {
                                     component._frameEventListeners[timelineNamePiece][frameValuePiece] = [];
+                                }
                                 component._frameEventListeners[timelineNamePiece][frameValuePiece].push(eventHandlerSpec1.handler);
                                 eventHandlerSpec1.handler.__subscribed = true;
                                 continue;
@@ -1091,7 +1124,7 @@ function _applyBehaviors(timelinesRunning, deltas, component, template, context,
                         eventHandlerSpec1.handler.__external = true;
                     }
                 }
-                var matchingElementsForEvents = _findMatchingElementsByCssSelector(eventSelector, template, component._matchedElementCache);
+                var matchingElementsForEvents = findMatchingElementsByCssSelector(eventSelector, template, component._matchedElementCache);
                 if (!matchingElementsForEvents || matchingElementsForEvents.length < 1) {
                     continue;
                 }
@@ -1099,7 +1132,7 @@ function _applyBehaviors(timelinesRunning, deltas, component, template, context,
                     for (var eventName in eventHandlerGroup) {
                         var eventHandlerSpec = eventHandlerGroup[eventName];
                         if (!eventHandlerSpec.__subscribed) {
-                            _applyHandlerToElement(matchingElementsForEvents[k], eventName, eventHandlerSpec.handler, context, component);
+                            applyHandlerToElement(matchingElementsForEvents[k], eventName, eventHandlerSpec.handler, context, component);
                         }
                     }
                 }
@@ -1116,7 +1149,7 @@ function _applyBehaviors(timelinesRunning, deltas, component, template, context,
             if (!propertiesGroup) {
                 continue;
             }
-            var matchingElementsForBehavior = _findMatchingElementsByCssSelector(behaviorSelector, template, component._matchedElementCache);
+            var matchingElementsForBehavior = findMatchingElementsByCssSelector(behaviorSelector, template, component._matchedElementCache);
             if (!matchingElementsForBehavior || matchingElementsForBehavior.length < 1) {
                 continue;
             }
@@ -1142,21 +1175,21 @@ function _applyBehaviors(timelinesRunning, deltas, component, template, context,
         }
     }
 }
-function _gatherDeltaPatches(component, template, container, context, states, timelinesRunning, eventsFired, inputsChanged, patchOptions) {
+function gatherDeltaPatches(component, template, container, context, states, timelinesRunning, eventsFired, inputsChanged, patchOptions) {
     Layout3D_1["default"].initializeTreeAttributes(template, container);
-    _initializeComponentTree(template, component, context);
+    initializeComponentTree(template, component, context);
     var deltas = {};
-    _applyBehaviors(timelinesRunning, deltas, component, template, context, true);
+    applyBehaviors(timelinesRunning, deltas, component, template, context, true);
     if (patchOptions.sizing) {
-        _computeAndApplyPresetSizing(template, container, patchOptions.sizing, deltas);
+        computeAndApplyPresetSizing(template, container, patchOptions.sizing, deltas);
     }
     for (var flexId in deltas) {
         var changedNode = deltas[flexId];
-        _computeAndApplyTreeLayouts(changedNode, changedNode.__parent, patchOptions, context);
+        computeAndApplyTreeLayouts(changedNode, changedNode.__parent, patchOptions, context);
     }
     return deltas;
 }
-function _applyContextChanges(component, inputs, template, container, context, renderOptions) {
+function applyContextChanges(component, inputs, template, container, context, renderOptions) {
     var timelinesRunning = [];
     if (component._bytecode.timelines) {
         for (var timelineName in component._bytecode.timelines) {
@@ -1176,17 +1209,17 @@ function _applyContextChanges(component, inputs, template, container, context, r
         }
     }
     Layout3D_1["default"].initializeTreeAttributes(template, container);
-    _initializeComponentTree(template, component, context);
+    initializeComponentTree(template, component, context);
     scopifyElements_1["default"](template, null, null);
-    _applyBehaviors(timelinesRunning, null, component, template, context, false);
+    applyBehaviors(timelinesRunning, null, component, template, context, false);
     if (renderOptions.sizing) {
-        _computeAndApplyPresetSizing(template, container, renderOptions.sizing, null);
+        computeAndApplyPresetSizing(template, container, renderOptions.sizing, null);
     }
-    _computeAndApplyTreeLayouts(template, container, renderOptions, context);
+    computeAndApplyTreeLayouts(template, container, renderOptions, context);
     return template;
 }
-function _initializeComponentTree(element, component, context) {
-    if (_isBytecode(element.elementName) && !element.__instance) {
+function initializeComponentTree(element, component, context) {
+    if (isBytecode(element.elementName) && !element.__instance) {
         var flexId = element.attributes && (element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes.id);
         element.__instance = new HaikuComponent(element.elementName, context, {
             options: context.config.options
@@ -1198,11 +1231,11 @@ function _initializeComponentTree(element, component, context) {
     }
     if (element.children && element.children.length > 0) {
         for (var i = 0; i < element.children.length; i++) {
-            _initializeComponentTree(element.children[i], component, context);
+            initializeComponentTree(element.children[i], component, context);
         }
     }
 }
-function _expandTreeElement(element, component, context) {
+function expandTreeElement(element, component, context) {
     if (element.__handlers) {
         for (var key in element.__handlers) {
             var handler = element.__handlers[key];
@@ -1217,26 +1250,26 @@ function _expandTreeElement(element, component, context) {
         }
     }
     if (element.__instance) {
-        var wrapper = _shallowCloneComponentTreeElement(element);
+        var wrapper = shallowCloneComponentTreeElement(element);
         var surrogates = wrapper.children;
         var subtree = element.__instance.render(element, element.__instance.config.options, surrogates);
-        var expansion = _expandTreeElement(subtree, element.__instance, context);
+        var expansion = expandTreeElement(subtree, element.__instance, context);
         wrapper.children = [expansion];
         return wrapper;
     }
     if (typeof element.elementName === STRING_TYPE) {
-        var copy = _shallowCloneComponentTreeElement(element);
+        var copy = shallowCloneComponentTreeElement(element);
         if (element.children && element.children.length > 0) {
             for (var i = 0; i < element.children.length; i++) {
                 var child = element.children[i];
-                copy.children[i] = _expandTreeElement(child, component, context);
+                copy.children[i] = expandTreeElement(child, component, context);
             }
         }
         return copy;
     }
     return element;
 }
-function _shallowCloneComponentTreeElement(element) {
+function shallowCloneComponentTreeElement(element) {
     var clone = {
         __instance: null,
         __handlers: null,
@@ -1265,30 +1298,34 @@ function _shallowCloneComponentTreeElement(element) {
     return clone;
 }
 var CSS_QUERY_MAPPING = {
-    name: "elementName",
-    attributes: "attributes",
-    children: "children"
+    name: 'elementName',
+    attributes: 'attributes',
+    children: 'children'
 };
-function _findMatchingElementsByCssSelector(selector, template, cache) {
-    if (cache[selector])
+function findMatchingElementsByCssSelector(selector, template, cache) {
+    if (cache[selector]) {
         return cache[selector];
+    }
     var matches = cssQueryTree_1["default"]([], template, selector, CSS_QUERY_MAPPING);
     cache[selector] = matches;
     return matches;
 }
-function _computeAndApplyTreeLayouts(tree, container, options, context) {
-    if (!tree || typeof tree === "string")
+function computeAndApplyTreeLayouts(tree, container, options, context) {
+    if (!tree || typeof tree === 'string') {
         return void 0;
-    _computeAndApplyNodeLayout(tree, container, options, context);
-    if (!tree.children)
+    }
+    computeAndApplyNodeLayout(tree, container, options, context);
+    if (!tree.children) {
         return void 0;
-    if (tree.children.length < 1)
+    }
+    if (tree.children.length < 1) {
         return void 0;
+    }
     for (var i = 0; i < tree.children.length; i++) {
-        _computeAndApplyTreeLayouts(tree.children[i], tree, options, context);
+        computeAndApplyTreeLayouts(tree.children[i], tree, options, context);
     }
 }
-function _computeAndApplyNodeLayout(element, parent, options, context) {
+function computeAndApplyNodeLayout(element, parent, options, context) {
     if (parent) {
         var parentSize = parent.layout.computed.size;
         var computedLayout = Layout3D_1["default"].computeLayout({}, element.layout, element.layout.matrix, IDENTITY_MATRIX, parentSize);
@@ -1303,28 +1340,26 @@ function _computeAndApplyNodeLayout(element, parent, options, context) {
         }
     }
 }
-function _applyHandlerToElement(match, name, fn, context, component) {
-    if (!match.__handlers)
+function applyHandlerToElement(match, name, fn, context, component) {
+    if (!match.__handlers) {
         match.__handlers = {};
+    }
     match.__handlers[name] = fn;
     return match;
 }
-function _computeAndApplyPresetSizing(element, container, mode, deltas) {
-    if (mode === true) {
-        mode = "contain";
-    }
+function computeAndApplyPresetSizing(element, container, mode, deltas) {
     var elementWidth = element.layout.sizeAbsolute.x;
     var elementHeight = element.layout.sizeAbsolute.y;
     var containerWidth = container.layout.computed.size.x;
     var containerHeight = container.layout.computed.size.y;
     var scaleDiffX = containerWidth / elementWidth;
     var scaleDiffY = containerHeight / elementHeight;
-    if (!element.attributes.style["transform-origin"]) {
-        element.attributes.style["transform-origin"] = "top left";
+    if (!element.attributes.style['transform-origin']) {
+        element.attributes.style['transform-origin'] = 'top left';
     }
     var changed = false;
     switch (mode) {
-        case "normal":
+        case 'normal':
             if (element.layout.scale.x !== 1.0) {
                 changed = true;
                 element.layout.scale.x = 1.0;
@@ -1334,7 +1369,7 @@ function _computeAndApplyPresetSizing(element, container, mode, deltas) {
                 element.layout.scale.y = 1.0;
             }
             break;
-        case "stretch":
+        case 'stretch':
             if (scaleDiffX !== element.layout.scale.x) {
                 changed = true;
                 element.layout.scale.x = scaleDiffX;
@@ -1344,7 +1379,8 @@ function _computeAndApplyPresetSizing(element, container, mode, deltas) {
                 element.layout.scale.y = scaleDiffY;
             }
             break;
-        case "contain":
+        case 'contain':
+        case true:
             var containScaleToUse = null;
             if (~~(scaleDiffX * elementWidth) <= containerWidth &&
                 ~~(scaleDiffX * elementHeight) <= containerHeight) {
@@ -1380,7 +1416,7 @@ function _computeAndApplyPresetSizing(element, container, mode, deltas) {
                 element.layout.translation.y = containTranslationOffsetY;
             }
             break;
-        case "cover":
+        case 'cover':
             var coverScaleToUse = null;
             if (~~(scaleDiffX * elementWidth) >= containerWidth &&
                 ~~(scaleDiffX * elementHeight) >= containerHeight) {
@@ -1421,7 +1457,7 @@ function _computeAndApplyPresetSizing(element, container, mode, deltas) {
         deltas[element.attributes[HAIKU_ID_ATTRIBUTE]] = element;
     }
 }
-function _isBytecode(thing) {
+function isBytecode(thing) {
     return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines;
 }
 
@@ -1433,22 +1469,22 @@ var HaikuClock_1 = _dereq_("./HaikuClock");
 var HaikuComponent_1 = _dereq_("./HaikuComponent");
 var PRNG_1 = _dereq_("./helpers/PRNG");
 var assign_1 = _dereq_("./vendor/assign");
-var pkg = _dereq_("./../package.json");
+var pkg = _dereq_('./../package.json');
 var PLAYER_VERSION = pkg.version;
-var DEFAULT_TIMELINE_NAME = "Default";
+var DEFAULT_TIMELINE_NAME = 'Default';
 function HaikuContext(mount, renderer, platform, bytecode, config) {
     if (!renderer) {
-        throw new Error("Context requires a renderer");
+        throw new Error('Context requires a renderer');
     }
     if (!bytecode) {
-        throw new Error("Context requires bytecode");
+        throw new Error('Context requires bytecode');
     }
     this.PLAYER_VERSION = PLAYER_VERSION;
     this._prng = null;
     this.assignConfig(config || {});
     this._mount = mount;
     if (!this._mount) {
-        console.info("[haiku player] mount not provided so running in headless mode");
+        console.info('[haiku player] mount not provided so running in headless mode');
     }
     if (this._mount && !this._mount.haiku) {
         this._mount.haiku = {
@@ -1461,9 +1497,9 @@ function HaikuContext(mount, renderer, platform, bytecode, config) {
     }
     this._platform = platform;
     if (!this._platform) {
-        console.warn("[haiku player] no platform (e.g. window) provided; some features may be unavailable");
+        console.warn('[haiku player] no platform (e.g. window) provided; some features may be unavailable');
     }
-    HaikuContext["contexts"].push(this);
+    HaikuContext['contexts'].push(this);
     this._tickables = [];
     this._tickables.push({ performTick: this.tick.bind(this) });
     if (this.config.options.frame) {
@@ -1473,14 +1509,14 @@ function HaikuContext(mount, renderer, platform, bytecode, config) {
     this.clock = new HaikuClock_1["default"](this._tickables, this.component, this.config.options.clock || {});
     this.clock.run();
     this.component.startTimeline(DEFAULT_TIMELINE_NAME);
-    if (this._mount && this._renderer.menuize && this.config.options.contextMenu !== "disabled") {
+    if (this._mount && this._renderer.menuize && this.config.options.contextMenu !== 'disabled') {
         this._renderer.menuize(this._mount, this.component);
     }
     if (this._mount &&
         this._platform &&
         this._platform.location &&
-        this._platform.location.hostname !== "localhost" &&
-        this._platform.location.hostname !== "0.0.0.0") {
+        this._platform.location.hostname !== 'localhost' &&
+        this._platform.location.hostname !== '0.0.0.0') {
         if (this._renderer.mixpanel && this.config.options.mixpanel) {
             this._renderer.mixpanel(this._mount, this.config.options.mixpanel, this.component);
         }
@@ -1491,8 +1527,8 @@ function HaikuContext(mount, renderer, platform, bytecode, config) {
     }
 }
 exports["default"] = HaikuContext;
-HaikuContext["contexts"] = [];
-HaikuContext["PLAYER_VERSION"] = PLAYER_VERSION;
+HaikuContext['contexts'] = [];
+HaikuContext['PLAYER_VERSION'] = PLAYER_VERSION;
 HaikuContext.prototype.getRootComponent = function getRootComponent() {
     return this.component;
 };
@@ -1620,15 +1656,15 @@ HaikuContext.prototype.getDeterministicTime = function getDeterministicTime() {
 HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState() {
     return this._renderer && this._renderer.getUser && this._renderer.getUser();
 };
-HaikuContext["createComponentFactory"] = function createComponentFactory(RendererClass, bytecode, haikuConfigFromFactoryCreator, platform) {
+HaikuContext['createComponentFactory'] = function createComponentFactory(RendererClass, bytecode, haikuConfigFromFactoryCreator, platform) {
     if (!RendererClass) {
-        throw new Error("A runtime renderer class object is required");
+        throw new Error('A runtime renderer class object is required');
     }
     if (!bytecode) {
-        throw new Error("A runtime `bytecode` object is required");
+        throw new Error('A runtime `bytecode` object is required');
     }
     if (!platform) {
-        console.warn("[haiku player] no runtime `platform` object was provided");
+        console.warn('[haiku player] no runtime `platform` object was provided');
     }
     var haikuConfigFromTop = Config_1["default"].build({
         options: {
@@ -1643,14 +1679,14 @@ HaikuContext["createComponentFactory"] = function createComponentFactory(Rendere
         var renderer = new RendererClass();
         var context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged);
         var component = context.getRootComponent();
-        HaikuComponentFactory["bytecode"] = bytecode;
-        HaikuComponentFactory["renderer"] = renderer;
-        HaikuComponentFactory["mount"] = mount;
-        HaikuComponentFactory["context"] = context;
-        HaikuComponentFactory["component"] = component;
+        HaikuComponentFactory['bytecode'] = bytecode;
+        HaikuComponentFactory['renderer'] = renderer;
+        HaikuComponentFactory['mount'] = mount;
+        HaikuComponentFactory['context'] = context;
+        HaikuComponentFactory['component'] = component;
         return component;
     }
-    HaikuComponentFactory["PLAYER_VERSION"] = PLAYER_VERSION;
+    HaikuComponentFactory['PLAYER_VERSION'] = PLAYER_VERSION;
     return HaikuComponentFactory;
 };
 
@@ -1662,24 +1698,24 @@ var enhance_1 = _dereq_("./reflection/enhance");
 var inject_1 = _dereq_("./reflection/inject");
 function buildRoot() {
     var ROOT = {};
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
         ROOT = window;
     }
-    else if (typeof global !== "undefined") {
+    else if (typeof global !== 'undefined') {
         ROOT = global;
     }
     else {
     }
-    if (!ROOT["haiku"]) {
-        ROOT["haiku"] = {};
+    if (!ROOT['haiku']) {
+        ROOT['haiku'] = {};
     }
-    if (!ROOT["haiku"]["enhance"]) {
-        ROOT["haiku"]["enhance"] = enhance_1["default"];
+    if (!ROOT['haiku']['enhance']) {
+        ROOT['haiku']['enhance'] = enhance_1["default"];
     }
-    if (!ROOT["haiku"]["inject"]) {
-        ROOT["haiku"]["inject"] = inject_1["default"];
+    if (!ROOT['haiku']['inject']) {
+        ROOT['haiku']['inject'] = inject_1["default"];
     }
-    return ROOT["haiku"];
+    return ROOT['haiku'];
 }
 var haiku = buildRoot();
 exports["default"] = haiku;
@@ -1689,26 +1725,26 @@ exports["default"] = haiku;
 (function (global){
 "use strict";
 exports.__esModule = true;
-var pkg = _dereq_("./../package.json");
+var pkg = _dereq_('./../package.json');
 var VERSION = pkg.version;
-var MAIN = (typeof window !== "undefined")
+var MAIN = (typeof window !== 'undefined')
     ? window
-    : (typeof global !== "undefined")
+    : (typeof global !== 'undefined')
         ? global
         : {};
-if (!MAIN["HaikuHelpers"]) {
-    MAIN["HaikuHelpers"] = {};
+if (!MAIN['HaikuHelpers']) {
+    MAIN['HaikuHelpers'] = {};
 }
-if (!MAIN["HaikuHelpers"][VERSION]) {
-    MAIN["HaikuHelpers"][VERSION] = {
+if (!MAIN['HaikuHelpers'][VERSION]) {
+    MAIN['HaikuHelpers'][VERSION] = {
         helpers: {},
         schema: {}
     };
 }
-var exp = MAIN["HaikuHelpers"][VERSION];
-exp["register"] = function register(name, method) {
+var exp = MAIN['HaikuHelpers'][VERSION];
+exp['register'] = function register(name, method) {
     exp.helpers[name] = method;
-    exp.schema[name] = "function";
+    exp.schema[name] = 'function';
     return exp;
 };
 exports["default"] = exp;
@@ -1720,7 +1756,7 @@ exports.__esModule = true;
 var getTimelineMaxTime_1 = _dereq_("./helpers/getTimelineMaxTime");
 var SimpleEventEmitter_1 = _dereq_("./helpers/SimpleEventEmitter");
 var assign_1 = _dereq_("./vendor/assign");
-var NUMBER = "number";
+var NUMBER = 'number';
 var DEFAULT_OPTIONS = {
     loop: true
 };
@@ -1744,8 +1780,9 @@ HaikuTimeline.prototype.assignOptions = function assignOptions(options) {
 };
 HaikuTimeline.prototype._ensureClockIsRunning = function _ensureClockIsRunning() {
     var clock = this._component.getClock();
-    if (!clock.isRunning())
+    if (!clock.isRunning()) {
         clock.start();
+    }
     return this;
 };
 HaikuTimeline.prototype._setComponent = function _setComponent(component) {
@@ -1779,9 +1816,9 @@ HaikuTimeline.prototype._doUpdateWithGlobalClockTime = function _doUpdateWithGlo
         this._updateInternalProperties(globalClockTime);
     }
     if (this.isActive() && this.isPlaying()) {
-        this._shout("tick");
+        this._shout('tick');
     }
-    this._shout("update");
+    this._shout('update');
     return this;
 };
 HaikuTimeline.prototype._resetMaxDefinedTimeFromDescriptor = function _resetMaxDefinedTimeFromDescriptor(descriptor) {
@@ -1814,8 +1851,9 @@ HaikuTimeline.prototype.getControlledTime = function getControlledTime() {
 HaikuTimeline.prototype.getBoundedTime = function getBoundedTime() {
     var max = this.getMaxTime();
     var elapsed = this.getElapsedTime();
-    if (elapsed > max)
+    if (elapsed > max) {
         return max;
+    }
     return elapsed;
 };
 HaikuTimeline.prototype.getTime = function getTime() {
@@ -1844,8 +1882,9 @@ HaikuTimeline.prototype.isFrozen = function isFrozen() {
     return !!this.options.freeze;
 };
 HaikuTimeline.prototype.isFinished = function () {
-    if (this.options.loop)
+    if (this.options.loop) {
         return false;
+    }
     return ~~this.getElapsedTime() > this.getMaxTime();
 };
 HaikuTimeline.prototype.duration = function duration() {
@@ -1874,7 +1913,7 @@ HaikuTimeline.prototype._shout = function _shout(key) {
     var time = Math.round(this.getTime());
     var name = this.getName();
     this.emit(key, frame, time);
-    this._component.emit("timeline:" + key, name, frame, time);
+    this._component.emit('timeline:' + key, name, frame, time);
     return this;
 };
 HaikuTimeline.prototype.start = function start(maybeGlobalClockTime, descriptor) {
@@ -1883,26 +1922,25 @@ HaikuTimeline.prototype.start = function start(maybeGlobalClockTime, descriptor)
     this._isPlaying = true;
     this._globalClockTime = maybeGlobalClockTime || 0;
     this._maxExplicitlyDefinedTime = getTimelineMaxTime_1["default"](descriptor);
-    this._shout("start");
+    this._shout('start');
     return this;
 };
 HaikuTimeline.prototype.stop = function stop(maybeGlobalClockTime, descriptor) {
     this._isActive = false;
     this._isPlaying = false;
     this._maxExplicitlyDefinedTime = getTimelineMaxTime_1["default"](descriptor);
-    this._shout("stop");
+    this._shout('stop');
     return this;
 };
 HaikuTimeline.prototype.pause = function pause() {
     var time = this._component.getClock().getTime();
     var descriptor = this._component._getTimelineDescriptor(this._name);
     this.stop(time, descriptor);
-    this._shout("pause");
+    this._shout('pause');
     return this;
 };
-HaikuTimeline.prototype.play = function play(options) {
-    if (!options)
-        options = {};
+HaikuTimeline.prototype.play = function play(requestedOptions) {
+    var options = requestedOptions || {};
     this._ensureClockIsRunning();
     var time = this._component.getClock().getTime();
     var descriptor = this._component._getTimelineDescriptor(this._name);
@@ -1918,7 +1956,7 @@ HaikuTimeline.prototype.play = function play(options) {
     if (!options.skipMarkForFullFlush) {
         this._component._markForFullFlush(true);
     }
-    this._shout("play");
+    this._shout('play');
     return this;
 };
 HaikuTimeline.prototype.seek = function seek(ms) {
@@ -1928,7 +1966,7 @@ HaikuTimeline.prototype.seek = function seek(ms) {
     var descriptor = this._component._getTimelineDescriptor(this._name);
     this.start(clockTime, descriptor);
     this._component._markForFullFlush(true);
-    this._shout("seek");
+    this._shout('seek');
     return this;
 };
 HaikuTimeline.prototype.gotoAndPlay = function gotoAndPlay(ms) {
@@ -1978,10 +2016,12 @@ var FORMATS = {
     TWO: 2
 };
 function initializeNodeAttributes(element, parent) {
-    if (!element.attributes)
+    if (!element.attributes) {
         element.attributes = {};
-    if (!element.attributes.style)
+    }
+    if (!element.attributes.style) {
         element.attributes.style = {};
+    }
     if (!element.layout) {
         element.layout = createLayoutSpec(null, null, null);
         element.layout.matrix = createMatrix();
@@ -1992,14 +2032,14 @@ function initializeNodeAttributes(element, parent) {
     return element;
 }
 function initializeTreeAttributes(tree, container) {
-    if (!tree || typeof tree === "string")
+    if (!tree || typeof tree === 'string') {
         return;
+    }
     initializeNodeAttributes(tree, container);
     tree.__parent = container;
-    if (!tree.children)
+    if (!tree.children || tree.children.length < 1) {
         return;
-    if (tree.children.length < 1)
-        return;
+    }
     for (var i = 0; i < tree.children.length; i++) {
         initializeTreeAttributes(tree.children[i], tree);
     }
@@ -2096,22 +2136,15 @@ function isZero(num) {
     return num > -0.000001 && num < 0.000001;
 }
 function createBaseComputedLayout(x, y, z) {
-    if (!x)
-        x = 0;
-    if (!y)
-        y = 0;
-    if (!z)
-        z = 0;
     return {
-        size: { x: x, y: y, z: z },
+        size: { x: x || 0, y: y || 0, z: z || 0 },
         matrix: createMatrix(),
         shown: true,
         opacity: 1.0
     };
 }
-function computeLayout(out, layoutSpec, currentMatrix, parentMatrix, parentsizeAbsolute) {
-    if (!parentsizeAbsolute)
-        parentsizeAbsolute = { x: 0, y: 0, z: 0 };
+function computeLayout(out, layoutSpec, currentMatrix, parentMatrix, parentsizeAbsoluteIn) {
+    var parentsizeAbsolute = parentsizeAbsoluteIn || { x: 0, y: 0, z: 0 };
     if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
         parentsizeAbsolute.z = DEFAULT_DEPTH;
     }
@@ -2131,16 +2164,16 @@ exports["default"] = {
     createBaseComputedLayout: createBaseComputedLayout,
     computeOrientationFlexibly: computeOrientationFlexibly_1["default"],
     createMatrix: createMatrix,
-    FORMATS: FORMATS,
-    SIZE_ABSOLUTE: SIZE_ABSOLUTE,
-    SIZE_PROPORTIONAL: SIZE_PROPORTIONAL,
-    ATTRIBUTES: createLayoutSpec(null, null, null),
     multiplyMatrices: multiplyMatrices,
     transposeMatrix: transposeMatrix,
     copyMatrix: copyMatrix,
     initializeTreeAttributes: initializeTreeAttributes,
     initializeNodeAttributes: initializeNodeAttributes,
-    isZero: isZero
+    isZero: isZero,
+    FORMATS: FORMATS,
+    SIZE_ABSOLUTE: SIZE_ABSOLUTE,
+    SIZE_PROPORTIONAL: SIZE_PROPORTIONAL,
+    ATTRIBUTES: createLayoutSpec(null, null, null)
 };
 
 },{"./layout/computeMatrix":40,"./layout/computeOrientationFlexibly":41,"./layout/computeSize":42}],10:[function(_dereq_,module,exports){
@@ -2148,38 +2181,37 @@ exports["default"] = {
 exports.__esModule = true;
 var just_curves_1 = _dereq_("./vendor/just-curves");
 var CENT = 1.0;
-var OBJECT = "object";
-var NUMBER = "number";
+var OBJECT = 'object';
+var NUMBER = 'number';
 var KEYFRAME_ZERO = 0;
 var KEYFRAME_MARGIN = 16.666;
-var STRING = "string";
+var STRING = 'string';
 function percentOfTime(t0, t1, tnow) {
     var span = t1 - t0;
-    if (span === 0)
+    if (span === 0) {
         return CENT;
+    }
     var remaining = t1 - tnow;
-    var percent = CENT - remaining / span;
-    return percent;
+    return CENT - remaining / span;
 }
 function valueAtPercent(v0, v1, pc) {
     var span = v1 - v0;
     var gain = span * pc;
-    var value = v0 + gain;
-    return value;
+    return v0 + gain;
 }
 function valueAtTime(v0, v1, t0, t1, tnow) {
     var pc = percentOfTime(t0, t1, tnow);
-    var value = valueAtPercent(v0, v1, pc);
-    return value;
+    return valueAtPercent(v0, v1, pc);
 }
 function interpolateValue(v0, v1, t0, t1, tnow, curve) {
     var pc = percentOfTime(t0, t1, tnow);
-    if (pc > CENT)
+    if (pc > CENT) {
         pc = CENT;
-    if (curve)
+    }
+    if (curve) {
         pc = curve(pc);
-    var value = valueAtPercent(v0, v1, pc);
-    return value;
+    }
+    return valueAtPercent(v0, v1, pc);
 }
 function interpolate(now, curve, started, ends, origin, destination) {
     if (Array.isArray(origin)) {
@@ -2225,10 +2257,12 @@ function getKeyframesList(keyframeGroup, nowValue) {
         var current = sorted[i];
         var next = sorted[j];
         if (current <= nowValue) {
-            if (next > nowValue)
+            if (next > nowValue) {
                 return [current, next];
-            if (j >= sorted.length)
+            }
+            if (j >= sorted.length) {
                 return [current];
+            }
         }
     }
 }
@@ -2237,8 +2271,9 @@ function calculateValue(keyframeGroup, nowValue) {
         keyframeGroup[KEYFRAME_ZERO] = {};
     }
     var keyframesList = getKeyframesList(keyframeGroup, nowValue);
-    if (!keyframesList || keyframesList.length < 1)
+    if (!keyframesList || keyframesList.length < 1) {
         return;
+    }
     var currentKeyframe = keyframesList[0];
     var currentTransition = keyframeGroup[currentKeyframe];
     var nextKeyframe = keyframesList[1];
@@ -2247,11 +2282,13 @@ function calculateValue(keyframeGroup, nowValue) {
     return finalValue;
 }
 function calculateValueAndReturnUndefinedIfNotWorthwhile(keyframeGroup, nowValue) {
-    if (!keyframeGroup[KEYFRAME_ZERO])
+    if (!keyframeGroup[KEYFRAME_ZERO]) {
         keyframeGroup[KEYFRAME_ZERO] = {};
+    }
     var keyframesList = getKeyframesList(keyframeGroup, nowValue);
-    if (!keyframesList || keyframesList.length < 1)
+    if (!keyframesList || keyframesList.length < 1) {
         return void 0;
+    }
     var currentKeyframe = keyframesList[0];
     var nextKeyframe = keyframesList[1];
     var currentTransition = keyframeGroup[currentKeyframe];
@@ -2273,13 +2310,16 @@ function calculateValueAndReturnUndefinedIfNotWorthwhile(keyframeGroup, nowValue
 }
 function getTransitionValue(currentKeyframe, currentTransition, nextKeyframe, nextTransition, nowValue) {
     var currentValue = currentTransition.value;
-    if (!currentTransition.curve)
+    if (!currentTransition.curve) {
         return currentValue;
-    if (!nextTransition)
+    }
+    if (!nextTransition) {
         return currentValue;
+    }
     var currentCurve = currentTransition.curve;
-    if (typeof currentCurve === STRING)
+    if (typeof currentCurve === STRING) {
         currentCurve = just_curves_1["default"][currentCurve];
+    }
     var nextValue = nextTransition.value;
     var finalValue = interpolate(nowValue, currentCurve, currentKeyframe, nextKeyframe, currentValue, nextValue);
     return finalValue;
@@ -2306,97 +2346,101 @@ var schema_1 = _dereq_("./properties/dom/schema");
 var enhance_1 = _dereq_("./reflection/enhance");
 var Transitions_1 = _dereq_("./Transitions");
 var assign_1 = _dereq_("./vendor/assign");
-var FUNCTION = "function";
-var OBJECT = "object";
+var FUNCTION = 'function';
+var OBJECT = 'object';
 function isFunction(value) {
     return typeof value === FUNCTION;
 }
 var INJECTABLES = {};
-if (typeof window !== "undefined") {
-    INJECTABLES["$window"] = {
+if (typeof window !== 'undefined') {
+    INJECTABLES['$window'] = {
         schema: {
-            width: "number",
-            height: "number",
+            width: 'number',
+            height: 'number',
             screen: {
-                availHeight: "number",
-                availLeft: "number",
-                availWidth: "number",
-                colorDepth: "number",
-                height: "number",
-                pixelDepth: "number",
-                width: "number",
+                availHeight: 'number',
+                availLeft: 'number',
+                availWidth: 'number',
+                colorDepth: 'number',
+                height: 'number',
+                pixelDepth: 'number',
+                width: 'number',
                 orientation: {
-                    angle: "number",
-                    type: "string"
+                    angle: 'number',
+                    type: 'string'
                 }
             },
             navigator: {
-                userAgent: "string",
-                appCodeName: "string",
-                appName: "string",
-                appVersion: "string",
-                cookieEnabled: "boolean",
-                doNotTrack: "boolean",
-                language: "string",
-                maxTouchPoints: "number",
-                onLine: "boolean",
-                platform: "string",
-                product: "string",
-                vendor: "string"
+                userAgent: 'string',
+                appCodeName: 'string',
+                appName: 'string',
+                appVersion: 'string',
+                cookieEnabled: 'boolean',
+                doNotTrack: 'boolean',
+                language: 'string',
+                maxTouchPoints: 'number',
+                onLine: 'boolean',
+                platform: 'string',
+                product: 'string',
+                vendor: 'string'
             },
             document: {
-                charset: "string",
-                compatMode: "string",
-                contentType: "string",
-                cookie: "string",
-                documentURI: "string",
-                fullscreen: "boolean",
-                readyState: "number",
-                referrer: "string",
-                title: "string"
+                charset: 'string',
+                compatMode: 'string',
+                contentType: 'string',
+                cookie: 'string',
+                documentURI: 'string',
+                fullscreen: 'boolean',
+                readyState: 'number',
+                referrer: 'string',
+                title: 'string'
             },
             location: {
-                hash: "string",
-                host: "string",
-                hostname: "string",
-                href: "string",
-                pathname: "string",
-                protocol: "string",
-                search: "string"
+                hash: 'string',
+                host: 'string',
+                hostname: 'string',
+                href: 'string',
+                pathname: 'string',
+                protocol: 'string',
+                search: 'string'
             }
         },
         summon: function (injectees, summonSpec) {
-            if (!injectees.$window)
+            if (!injectees.$window) {
                 injectees.$window = {};
+            }
             var out = injectees.$window;
             out.width = window.innerWidth;
             out.height = window.innerHeight;
             if (window.screen) {
-                if (!out.screen)
+                if (!out.screen) {
                     out.screen = {};
-                out.screen.availHeight = window.screen["availHeight"];
-                out.screen.availLeft = window.screen["availLeft"];
-                out.screen.availWidth = window.screen["availWidth"];
-                out.screen.colorDepth = window.screen["colorDepth"];
-                out.screen.height = window.screen["height"];
-                out.screen.pixelDepth = window.screen["pixelDepth"];
-                out.screen.width = window.screen["width"];
-                if (window.screen["orientation"]) {
-                    if (!out.screen.orientation)
+                }
+                out.screen.availHeight = window.screen['availHeight'];
+                out.screen.availLeft = window.screen['availLeft'];
+                out.screen.availWidth = window.screen['availWidth'];
+                out.screen.colorDepth = window.screen['colorDepth'];
+                out.screen.height = window.screen['height'];
+                out.screen.pixelDepth = window.screen['pixelDepth'];
+                out.screen.width = window.screen['width'];
+                if (window.screen['orientation']) {
+                    if (!out.screen.orientation) {
                         out.screen.orientation = {};
-                    out.screen.orientation.angle = window.screen["orientation"].angle;
-                    out.screen.orientation.type = window.screen["orientation"].type;
+                    }
+                    out.screen.orientation.angle = window.screen['orientation'].angle;
+                    out.screen.orientation.type = window.screen['orientation'].type;
                 }
             }
-            if (typeof navigator !== "undefined") {
-                if (!out.navigator)
+            if (typeof navigator !== 'undefined') {
+                if (!out.navigator) {
                     out.navigator = {};
+                }
                 out.navigator.userAgent = navigator.userAgent;
                 out.navigator.appCodeName = navigator.appCodeName;
                 out.navigator.appName = navigator.appName;
                 out.navigator.appVersion = navigator.appVersion;
                 out.navigator.cookieEnabled = navigator.cookieEnabled;
-                out.navigator.doNotTrack = navigator["doNotTrack"];
+                out.navigator.doNotTrack = navigator['doNotTrack'];
                 out.navigator.language = navigator.language;
                 out.navigator.maxTouchPoints = navigator.maxTouchPoints;
                 out.navigator.onLine = navigator.onLine;
@@ -2406,21 +2450,23 @@ if (typeof window !== "undefined") {
                 out.navigator.vendor = navigator.vendor;
             }
             if (window.document) {
-                if (!out.document)
+                if (!out.document) {
                     out.document = {};
+                }
                 out.document.charset = window.document.charset;
                 out.document.compatMode = window.document.compatMode;
-                out.document.contenttype = window.document["contentType"];
+                out.document.contenttype = window.document['contentType'];
                 out.document.cookie = window.document.cookie;
-                out.document.documentURI = window.document["documentURI"];
-                out.document.fullscreen = window.document["fullscreen"];
+                out.document.documentURI = window.document['documentURI'];
+                out.document.fullscreen = window.document['fullscreen'];
                 out.document.readyState = window.document.readyState;
                 out.document.referrer = window.document.referrer;
                 out.document.title = window.document.title;
             }
             if (window.location) {
-                if (!out.location)
+                if (!out.location) {
                     out.location = {};
+                }
                 out.location.hash = window.location.hash;
                 out.location.host = window.location.host;
                 out.location.hostname = window.location.hostname;
@@ -2432,26 +2478,28 @@ if (typeof window !== "undefined") {
         }
     };
 }
-if (typeof global !== "undefined") {
-    INJECTABLES["$global"] = {
+if (typeof global !== 'undefined') {
+    INJECTABLES['$global'] = {
         schema: {
             process: {
-                pid: "number",
-                arch: "string",
-                platform: "string",
-                argv: ["string"],
-                title: "string",
-                version: "string",
+                pid: 'number',
+                arch: 'string',
+                platform: 'string',
+                argv: ['string'],
+                title: 'string',
+                version: 'string',
                 env: {}
             }
         },
         summon: function (injectees, summonSpec) {
-            if (!injectees.$global)
+            if (!injectees.$global) {
                 injectees.$global = {};
+            }
             var out = injectees.$global;
-            if (typeof process !== "undefined") {
-                if (!out.process)
+            if (typeof process !== 'undefined') {
+                if (!out.process) {
                     out.process = {};
+                }
                 out.process.pid = process.pid;
                 out.process.arch = process.arch;
                 out.process.platform = process.platform;
@@ -2463,50 +2511,52 @@ if (typeof global !== "undefined") {
         }
     };
 }
-INJECTABLES["$player"] = {
+INJECTABLES['$player'] = {
     schema: {
-        version: "string",
+        version: 'string',
         options: {
-            seed: "string",
-            loop: "boolean",
-            sizing: "string",
-            preserve3d: "boolean",
-            position: "string",
-            overflowX: "string",
-            overflowY: "string"
+            seed: 'string',
+            loop: 'boolean',
+            sizing: 'string',
+            preserve3d: 'boolean',
+            position: 'string',
+            overflowX: 'string',
+            overflowY: 'string'
         },
         timeline: {
-            name: "string",
-            duration: "number",
-            repeat: "boolean",
+            name: 'string',
+            duration: 'number',
+            repeat: 'boolean',
             time: {
-                apparent: "number",
-                elapsed: "number",
-                max: "number"
+                apparent: 'number',
+                elapsed: 'number',
+                max: 'number'
             },
             frame: {
-                apparent: "number",
-                elapsed: "number"
+                apparent: 'number',
+                elapsed: 'number'
             }
         },
         clock: {
-            frameDuration: "number",
-            frameDelay: "number",
+            frameDuration: 'number',
+            frameDelay: 'number',
             time: {
-                apparent: "number",
-                elapsed: "number"
+                apparent: 'number',
+                elapsed: 'number'
             }
         }
     },
     summon: function (injectees, summonSpec, hostInstance, matchingElement, timelineName) {
-        if (!injectees.$player)
+        if (!injectees.$player) {
             injectees.$player = {};
+        }
         var out = injectees.$player;
         out.version = hostInstance._context.PLAYER_VERSION;
         var options = hostInstance._context.config.options;
         if (options) {
-            if (!out.options)
+            if (!out.options) {
                 out.options = {};
+            }
             out.options.seed = options.seed;
             out.options.loop = options.loop;
             out.options.sizing = options.sizing;
@@ -2517,29 +2567,34 @@ INJECTABLES["$player"] = {
         }
         var timelineInstance = hostInstance.getTimeline(timelineName);
         if (timelineInstance) {
-            if (!out.timeline)
+            if (!out.timeline) {
                 out.timeline = {};
+            }
             out.timeline.name = timelineName;
             out.timeline.duration = timelineInstance.getDuration();
             out.timeline.repeat = timelineInstance.getRepeat();
-            if (!out.timeline.time)
+            if (!out.timeline.time) {
                 out.timeline.time = {};
+            }
             out.timeline.time.apparent = timelineInstance.getTime();
             out.timeline.time.elapsed = timelineInstance.getElapsedTime();
             out.timeline.time.max = timelineInstance.getMaxTime();
-            if (!out.timeline.frame)
+            if (!out.timeline.frame) {
                 out.timeline.frame = {};
+            }
             out.timeline.frame.apparent = timelineInstance.getFrame();
             out.timeline.frame.elapsed = timelineInstance.getUnboundedFrame();
         }
         var clockInstance = hostInstance.getClock();
         if (clockInstance) {
-            if (!out.clock)
+            if (!out.clock) {
                 out.clock = {};
+            }
             out.clock.frameDuration = clockInstance.options.frameDuration;
             out.clock.frameDelay = clockInstance.options.frameDelay;
-            if (!out.clock.time)
+            if (!out.clock.time) {
                 out.clock.time = {};
+            }
             out.clock.time.apparent = clockInstance.getExplicitTime();
             out.clock.time.elapsed = clockInstance.getRunningTime();
         }
@@ -2547,28 +2602,28 @@ INJECTABLES["$player"] = {
 };
 var EVENT_SCHEMA = {
     mouse: {
-        x: "number",
-        y: "number",
-        isDown: "boolean"
+        x: 'number',
+        y: 'number',
+        isDown: 'boolean'
     },
     touches: [{
-            x: "number",
-            y: "number"
+            x: 'number',
+            y: 'number'
         }],
     mouches: [{
-            x: "number",
-            y: "number"
+            x: 'number',
+            y: 'number'
         }],
     keys: [{
-            which: "number",
-            code: "number"
+            which: 'number',
+            code: 'number'
         }]
 };
 var ELEMENT_SCHEMA = {
     properties: function (element) {
         var defined = schema_1["default"][element.elementName];
         if (!defined) {
-            console.warn("[haiku player] element " + element.elementName + " has no schema defined");
+            console.warn('[haiku player] element ' + element.elementName + ' has no schema defined');
             return {};
         }
         return defined;
@@ -2578,7 +2633,7 @@ function assignElementInjectables(obj, key, summonSpec, hostInstance, element) {
     if (!element) {
         return {};
     }
-    if (typeof element === "string") {
+    if (typeof element === 'string') {
         return {};
     }
     obj[key] = {};
@@ -2607,7 +2662,7 @@ function assignElementInjectables(obj, key, summonSpec, hostInstance, element) {
     out.properties.sizeProportional = element.layout.sizeProportional;
     out.properties.translation = element.layout.translation;
 }
-INJECTABLES["$tree"] = {
+INJECTABLES['$tree'] = {
     schema: {
         parent: ELEMENT_SCHEMA,
         children: [ELEMENT_SCHEMA],
@@ -2617,16 +2672,17 @@ INJECTABLES["$tree"] = {
         element: ELEMENT_SCHEMA
     },
     summon: function (injectees, summonSpec, hostInstance, matchingElement) {
-        if (!injectees.$tree)
+        if (!injectees.$tree) {
             injectees.$tree = {};
+        }
         injectees.$tree.siblings = [];
         injectees.$tree.parent = null;
         if (matchingElement.__parent) {
-            var subspec0 = (typeof summonSpec === "string") ? summonSpec : (summonSpec.$tree && summonSpec.$tree.parent);
-            assignElementInjectables(injectees.$tree, "parent", subspec0, hostInstance, matchingElement.__parent);
+            var subspec0 = (typeof summonSpec === 'string') ? summonSpec : (summonSpec.$tree && summonSpec.$tree.parent);
+            assignElementInjectables(injectees.$tree, 'parent', subspec0, hostInstance, matchingElement.__parent);
             for (var i = 0; i < matchingElement.__parent.children.length; i++) {
                 var sibling = matchingElement.__parent.children[i];
-                var subspec1 = (typeof summonSpec === "string")
+                var subspec1 = (typeof summonSpec === 'string')
                     ? summonSpec
                     : summonSpec.$tree && summonSpec.$tree.siblings && summonSpec.$tree.siblings[i];
                 assignElementInjectables(injectees.$tree.siblings, i, subspec1, hostInstance, sibling);
@@ -2636,95 +2692,95 @@ INJECTABLES["$tree"] = {
         if (matchingElement.children) {
             for (var j = 0; j < matchingElement.children.length; j++) {
                 var child = matchingElement.children[j];
-                var subspec2 = (typeof summonSpec === "string")
+                var subspec2 = (typeof summonSpec === 'string')
                     ? summonSpec
                     : summonSpec.$tree && summonSpec.$tree.children && summonSpec.$tree.children[j];
                 assignElementInjectables(injectees.$tree.children, j, subspec2, hostInstance, child);
             }
         }
         if (!injectees.$component) {
-            INJECTABLES["$component"].summon(injectees, summonSpec, hostInstance, matchingElement);
+            INJECTABLES['$component'].summon(injectees, summonSpec, hostInstance, matchingElement);
         }
         injectees.$tree.component = injectees.$component;
         if (!injectees.$root) {
-            INJECTABLES["$root"].summon(injectees, summonSpec, hostInstance, matchingElement);
+            INJECTABLES['$root'].summon(injectees, summonSpec, hostInstance, matchingElement);
         }
         injectees.$tree.root = injectees.$root;
         if (!injectees.$element) {
-            INJECTABLES["$element"].summon(injectees, summonSpec, hostInstance, matchingElement);
+            INJECTABLES['$element'].summon(injectees, summonSpec, hostInstance, matchingElement);
         }
         injectees.$tree.element = injectees.$element;
     }
 };
-INJECTABLES["$component"] = {
+INJECTABLES['$component'] = {
     schema: ELEMENT_SCHEMA,
     summon: function (injectees, summonSpec, hostInstance) {
         if (injectees.$tree && injectees.$tree.component) {
             injectees.$component = injectees.$tree.component;
         }
         else {
-            var subspec = (typeof summonSpec === "string") ? summonSpec : summonSpec.$component;
-            assignElementInjectables(injectees, "$component", subspec, hostInstance, hostInstance._getTopLevelElement());
+            var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$component;
+            assignElementInjectables(injectees, '$component', subspec, hostInstance, hostInstance._getTopLevelElement());
         }
     }
 };
-INJECTABLES["$root"] = {
+INJECTABLES['$root'] = {
     schema: ELEMENT_SCHEMA,
     summon: function (injectees, summonSpec, hostInstance, matchingElement) {
         if (injectees.$tree && injectees.$tree.root) {
             injectees.$root = injectees.$tree.root;
         }
         else {
-            var subspec = (typeof summonSpec === "string") ? summonSpec : summonSpec.$root;
-            assignElementInjectables(injectees, "$root", subspec, hostInstance, hostInstance._getTopLevelElement());
+            var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$root;
+            assignElementInjectables(injectees, '$root', subspec, hostInstance, hostInstance._getTopLevelElement());
         }
     }
 };
-INJECTABLES["$element"] = {
+INJECTABLES['$element'] = {
     schema: ELEMENT_SCHEMA,
     summon: function (injectees, summonSpec, hostInstance, matchingElement) {
         if (injectees.$tree && injectees.$tree.element) {
             injectees.$element = injectees.$tree.element;
         }
         else {
-            var subspec = (typeof summonSpec === "string") ? summonSpec : summonSpec.$element;
-            assignElementInjectables(injectees, "$element", subspec, hostInstance, matchingElement);
+            var subspec = (typeof summonSpec === 'string') ? summonSpec : summonSpec.$element;
+            assignElementInjectables(injectees, '$element', subspec, hostInstance, matchingElement);
         }
     }
 };
-INJECTABLES["$user"] = {
+INJECTABLES['$user'] = {
     schema: assign_1["default"]({}, EVENT_SCHEMA),
     summon: function (injectees, summonSpec, hostInstance, matchingElement) {
         injectees.$user = hostInstance._context._getGlobalUserState();
     }
 };
-INJECTABLES["$flow"] = {
+INJECTABLES['$flow'] = {
     schema: {
         repeat: {
-            list: ["any"],
-            index: "number",
-            value: "any",
-            data: "any",
-            payload: "any"
+            list: ['any'],
+            index: 'number',
+            value: 'any',
+            data: 'any',
+            payload: 'any'
         },
         placeholder: {
-            node: "any"
+            node: 'any'
         }
     },
     summon: function (injectees, summonSpec, hostInstance, matchingElement) {
     }
 };
-INJECTABLES["$flow"]["schema"]["if"] = {
-    value: "any",
-    data: "any",
-    payload: "any"
+INJECTABLES['$flow']['schema']['if'] = {
+    value: 'any',
+    data: 'any',
+    payload: 'any'
 };
-INJECTABLES["$flow"]["schema"]["yield"] = {
-    value: "any",
-    data: "any",
-    payload: "any"
+INJECTABLES['$flow']['schema']['yield'] = {
+    value: 'any',
+    data: 'any',
+    payload: 'any'
 };
-INJECTABLES["$helpers"] = {
+INJECTABLES['$helpers'] = {
     schema: HaikuHelpers_1["default"].schema,
     summon: function (injectees) {
         injectees.$helpers = HaikuHelpers_1["default"].helpers;
@@ -2733,7 +2789,6 @@ INJECTABLES["$helpers"] = {
 var BUILTIN_INJECTABLES = {
     Infinity: Infinity,
     NaN: NaN,
-    undefined: void (0),
     Object: Object,
     Boolean: Boolean,
     Math: Math,
@@ -2754,13 +2809,14 @@ var BUILTIN_INJECTABLES = {
     Error: Error,
     ReferenceError: ReferenceError,
     SyntaxError: SyntaxError,
-    TypeError: TypeError
+    TypeError: TypeError,
+    undefined: void (0)
 };
 for (var builtinInjectableKey in BUILTIN_INJECTABLES) {
     (function (key, value) {
         INJECTABLES[key] = {
             builtin: true,
-            schema: "*",
+            schema: '*',
             summon: function (injectees) {
                 injectees[key] = value;
             }
@@ -2815,28 +2871,29 @@ var FORBIDDEN_EXPRESSION_TOKENS = {
     defineProperty: true
 };
 function ValueBuilder(component) {
+    var _this = this;
     this._component = component;
     this._parsees = {};
     this._changes = {};
     this._summonees = {};
     this._evaluations = {};
-    HaikuHelpers_1["default"].register("now", function _helperNow() {
-        return this._component._context.getDeterministicTime();
-    }.bind(this));
-    HaikuHelpers_1["default"].register("rand", function _helperRand() {
-        return this._component._context.getDeterministicRand();
-    }.bind(this));
+    HaikuHelpers_1["default"].register('now', function () { return _this._component._context.getDeterministicTime(); });
+    HaikuHelpers_1["default"].register('rand', function () { return _this._component._context.getDeterministicRand(); });
 }
 exports["default"] = ValueBuilder;
-function _cc(obj, timelineName, flexId, propertyKeys) {
-    if (!obj[timelineName])
+function cc(obj, timelineName, flexId, propertyKeys) {
+    if (!obj[timelineName]) {
         return false;
-    if (!obj[timelineName][flexId])
+    }
+    if (!obj[timelineName][flexId]) {
         return false;
-    if (!propertyKeys)
+    }
+    if (!propertyKeys) {
         return false;
-    if (propertyKeys.length < 1)
+    }
+    if (propertyKeys.length < 1) {
         return false;
+    }
     for (var i = 0; i < propertyKeys.length; i++) {
         obj[timelineName][flexId][propertyKeys[i]] = {};
     }
@@ -2847,10 +2904,10 @@ ValueBuilder.prototype._clearCaches = function _clearCaches(options) {
         var timelineName = options.clearOnlySpecificProperties.timelineName;
         var flexId = options.clearOnlySpecificProperties.componentId;
         var propertyKeys = options.clearOnlySpecificProperties.propertyKeys;
-        _cc(this._parsees, timelineName, flexId, propertyKeys);
-        _cc(this._summonees, timelineName, flexId, propertyKeys);
-        _cc(this._evaluations, timelineName, flexId, propertyKeys);
-        _cc(this._changes, timelineName, flexId, propertyKeys);
+        cc(this._parsees, timelineName, flexId, propertyKeys);
+        cc(this._summonees, timelineName, flexId, propertyKeys);
+        cc(this._evaluations, timelineName, flexId, propertyKeys);
+        cc(this._changes, timelineName, flexId, propertyKeys);
     }
     else {
         this._parsees = {};
@@ -2861,8 +2918,9 @@ ValueBuilder.prototype._clearCaches = function _clearCaches(options) {
     return this;
 };
 ValueBuilder.prototype._clearCachedClusters = function _clearCachedClusters(timelineName, componentId) {
-    if (this._parsees[timelineName])
+    if (this._parsees[timelineName]) {
         this._parsees[timelineName][componentId] = {};
+    }
     return this;
 };
 ValueBuilder.prototype.evaluate = function _evaluate(fn, timelineName, flexId, matchingElement, propertyName, keyframeMs, keyframeCluster, hostInstance) {
@@ -2884,7 +2942,7 @@ ValueBuilder.prototype.evaluate = function _evaluate(fn, timelineName, flexId, m
         else {
             var summoneesArray = this.summonSummonables(fn.specification.params, timelineName, flexId, matchingElement, propertyName, keyframeMs, keyframeCluster, hostInstance);
             var previousSummoneesArray = this._getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs);
-            if (_areSummoneesDifferent(previousSummoneesArray, summoneesArray)) {
+            if (areSummoneesDifferent(previousSummoneesArray, summoneesArray)) {
                 this._cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summoneesArray);
                 evaluation = fn.apply(hostInstance, summoneesArray);
             }
@@ -2899,40 +2957,52 @@ ValueBuilder.prototype.evaluate = function _evaluate(fn, timelineName, flexId, m
     return evaluation;
 };
 ValueBuilder.prototype._getPreviousSummonees = function _getPreviousSummonees(timelineName, flexId, propertyName, keyframeMs) {
-    if (!this._summonees[timelineName])
+    if (!this._summonees[timelineName]) {
         return void (0);
-    if (!this._summonees[timelineName][flexId])
+    }
+    if (!this._summonees[timelineName][flexId]) {
         return void (0);
-    if (!this._summonees[timelineName][flexId][propertyName])
+    }
+    if (!this._summonees[timelineName][flexId][propertyName]) {
         return void (0);
+    }
     return this._summonees[timelineName][flexId][propertyName][keyframeMs];
 };
 ValueBuilder.prototype._cacheSummonees = function _cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summonees) {
-    if (!this._summonees[timelineName])
+    if (!this._summonees[timelineName]) {
         this._summonees[timelineName] = {};
-    if (!this._summonees[timelineName][flexId])
+    }
+    if (!this._summonees[timelineName][flexId]) {
         this._summonees[timelineName][flexId] = {};
-    if (!this._summonees[timelineName][flexId][propertyName])
+    }
+    if (!this._summonees[timelineName][flexId][propertyName]) {
         this._summonees[timelineName][flexId][propertyName] = {};
+    }
     this._summonees[timelineName][flexId][propertyName][keyframeMs] = summonees;
     return summonees;
 };
 ValueBuilder.prototype._getPreviousEvaluation = function _getPreviousEvaluation(timelineName, flexId, propertyName, keyframeMs) {
-    if (!this._evaluations[timelineName])
+    if (!this._evaluations[timelineName]) {
         return void (0);
-    if (!this._evaluations[timelineName][flexId])
+    }
+    if (!this._evaluations[timelineName][flexId]) {
         return void (0);
-    if (!this._evaluations[timelineName][flexId][propertyName])
+    }
+    if (!this._evaluations[timelineName][flexId][propertyName]) {
         return void (0);
+    }
     return this._evaluations[timelineName][flexId][propertyName][keyframeMs];
 };
 ValueBuilder.prototype._cacheEvaluation = function _cacheEvaluation(timelineName, flexId, propertyName, keyframeMs, evaluation) {
-    if (!this._evaluations[timelineName])
+    if (!this._evaluations[timelineName]) {
         this._evaluations[timelineName] = {};
-    if (!this._evaluations[timelineName][flexId])
+    }
+    if (!this._evaluations[timelineName][flexId]) {
         this._evaluations[timelineName][flexId] = {};
-    if (!this._evaluations[timelineName][flexId][propertyName])
+    }
+    if (!this._evaluations[timelineName][flexId][propertyName]) {
         this._evaluations[timelineName][flexId][propertyName] = {};
+    }
     this._evaluations[timelineName][flexId][propertyName][keyframeMs] = evaluation;
     return evaluation;
 };
@@ -2942,7 +3012,7 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables(paramsArr
     for (var i = 0; i < paramsArray.length; i++) {
         var summonsEntry = paramsArray[i];
         var summonsOutput = void 0;
-        if (typeof summonsEntry === "string") {
+        if (typeof summonsEntry === 'string') {
             if (INJECTABLES[summonsEntry]) {
                 summonStorage[summonsEntry] = undefined;
                 INJECTABLES[summonsEntry].summon(summonStorage, summonsEntry, hostInstance, matchingElement, timelineName);
@@ -2952,11 +3022,12 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables(paramsArr
                 summonsOutput = hostInstance.state[summonsEntry];
             }
         }
-        else if (summonsEntry && typeof summonsEntry === "object") {
+        else if (summonsEntry && typeof summonsEntry === 'object') {
             summonsOutput = {};
             for (var summonsKey in summonsEntry) {
-                if (!summonsEntry[summonsKey])
+                if (!summonsEntry[summonsKey]) {
                     continue;
+                }
                 if (INJECTABLES[summonsKey]) {
                     INJECTABLES[summonsKey].summon(summonsOutput, summonsEntry[summonsKey], hostInstance, matchingElement, timelineName);
                     continue;
@@ -2971,20 +3042,20 @@ ValueBuilder.prototype.summonSummonables = function _summonSummonables(paramsArr
     return summonablesArray;
 };
 ValueBuilder.prototype._getSummonablesSchema = function _getSummonablesSchema() {
-    var schema = {};
+    var summonablesSchema = {};
     for (var key in INJECTABLES) {
-        schema[key] = INJECTABLES[key].schema;
+        summonablesSchema[key] = INJECTABLES[key].schema;
     }
-    return schema;
+    return summonablesSchema;
 };
-function _areSummoneesDifferent(previous, incoming) {
+function areSummoneesDifferent(previous, incoming) {
     if (Array.isArray(previous) && Array.isArray(incoming)) {
         if (previous.length !== incoming.length) {
             return true;
         }
         else {
             for (var i = 0; i < incoming.length; i++) {
-                if (_areSummoneesDifferent(previous[i], incoming[i])) {
+                if (areSummoneesDifferent(previous[i], incoming[i])) {
                     return true;
                 }
             }
@@ -2994,7 +3065,7 @@ function _areSummoneesDifferent(previous, incoming) {
     else if (typeof previous === OBJECT && typeof incoming === OBJECT) {
         if (previous !== null && incoming !== null) {
             for (var key in incoming) {
-                if (_areSummoneesDifferent(previous[key], incoming[key])) {
+                if (areSummoneesDifferent(previous[key], incoming[key])) {
                     return true;
                 }
             }
@@ -3011,8 +3082,9 @@ function _areSummoneesDifferent(previous, incoming) {
     return previous !== incoming;
 }
 ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueCluster(timelineName, flexId, matchingElement, outputName, cluster, hostInstance, isPatchOperation, skipCache) {
-    if (!this._parsees[timelineName])
+    if (!this._parsees[timelineName]) {
         this._parsees[timelineName] = {};
+    }
     if (!this._parsees[timelineName][flexId]) {
         this._parsees[timelineName][flexId] = {};
     }
@@ -3060,19 +3132,23 @@ ValueBuilder.prototype.fetchParsedValueCluster = function _fetchParsedValueClust
     return parsee;
 };
 ValueBuilder.prototype.getParser = function getParser(outputName, virtualElement) {
-    if (!virtualElement)
+    if (!virtualElement) {
         return undefined;
+    }
     var foundParser = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement);
-    if (!foundParser)
+    if (!foundParser) {
         foundParser = parsers_1["default"][virtualElement.elementName] && parsers_1["default"][virtualElement.elementName][outputName];
+    }
     return foundParser && foundParser.parse;
 };
 ValueBuilder.prototype.getGenerator = function getGenerator(outputName, virtualElement) {
-    if (!virtualElement)
+    if (!virtualElement) {
         return undefined;
+    }
     var foundGenerator = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement);
-    if (!foundGenerator)
+    if (!foundGenerator) {
         foundGenerator = parsers_1["default"][virtualElement.elementName] && parsers_1["default"][virtualElement.elementName][outputName];
+    }
     return foundGenerator && foundGenerator.generate;
 };
 ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFinalValueFromParsedValue(timelineName, flexId, matchingElement, outputName, computedValue) {
@@ -3144,11 +3220,10 @@ ValueBuilder.prototype.grabValue = function _grabValue(timelineName, flexId, mat
     if (computedValueForTime === undefined) {
         return undefined;
     }
-    var finalValue = this.generateFinalValueFromParsedValue(timelineName, flexId, matchingElement, propertyName, computedValueForTime);
-    return finalValue;
+    return this.generateFinalValueFromParsedValue(timelineName, flexId, matchingElement, propertyName, computedValueForTime);
 };
-ValueBuilder["INJECTABLES"] = INJECTABLES;
-ValueBuilder["FORBIDDEN_EXPRESSION_TOKENS"] = FORBIDDEN_EXPRESSION_TOKENS;
+ValueBuilder['INJECTABLES'] = INJECTABLES;
+ValueBuilder['FORBIDDEN_EXPRESSION_TOKENS'] = FORBIDDEN_EXPRESSION_TOKENS;
 
 }).call(this,_dereq_('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./HaikuHelpers":7,"./Transitions":10,"./helpers/BasicUtils":14,"./properties/dom/parsers":48,"./properties/dom/schema":49,"./reflection/enhance":51,"./vendor/assign":91,"_process":1}],12:[function(_dereq_,module,exports){
@@ -3156,36 +3231,37 @@ ValueBuilder["FORBIDDEN_EXPRESSION_TOKENS"] = FORBIDDEN_EXPRESSION_TOKENS;
 exports.__esModule = true;
 var HaikuContext_1 = _dereq_("./../../HaikuContext");
 var dom_1 = _dereq_("./../../renderers/dom");
-var pkg = _dereq_("./../../../package.json");
+var pkg = _dereq_('./../../../package.json');
 var PLAYER_VERSION = pkg.version;
 function HaikuDOMAdapter(bytecode, config, safeWindow) {
-    if (!config)
+    if (!config) {
         config = {};
-    if (!config.options)
+    }
+    if (!config.options) {
         config.options = {};
+    }
     if (!safeWindow) {
-        if (typeof window !== "undefined") {
+        if (typeof window !== 'undefined') {
             safeWindow = window;
         }
     }
     if (config.options.useWebkitPrefix === undefined) {
         if (safeWindow && safeWindow.document) {
-            var isWebKit = "WebkitAppearance" in safeWindow.document.documentElement.style;
-            config.options.useWebkitPrefix = !!isWebKit;
+            config.options.useWebkitPrefix = 'WebkitAppearance' in safeWindow.document.documentElement.style;
         }
     }
-    return HaikuContext_1["default"]["createComponentFactory"](dom_1["default"], bytecode, config, safeWindow);
+    return HaikuContext_1["default"]['createComponentFactory'](dom_1["default"], bytecode, config, safeWindow);
 }
 exports["default"] = HaikuDOMAdapter;
-HaikuDOMAdapter["defineOnWindow"] = function () {
-    if (typeof window !== "undefined") {
-        if (!window["HaikuPlayer"]) {
-            window["HaikuPlayer"] = {};
+HaikuDOMAdapter['defineOnWindow'] = function () {
+    if (typeof window !== 'undefined') {
+        if (!window['HaikuPlayer']) {
+            window['HaikuPlayer'] = {};
         }
-        window["HaikuPlayer"][PLAYER_VERSION] = HaikuDOMAdapter;
+        window['HaikuPlayer'][PLAYER_VERSION] = HaikuDOMAdapter;
     }
 };
-HaikuDOMAdapter["defineOnWindow"]();
+HaikuDOMAdapter['defineOnWindow']();
 
 },{"./../../../package.json":166,"./../../HaikuContext":5,"./../../renderers/dom":75}],13:[function(_dereq_,module,exports){
 "use strict";
@@ -3198,8 +3274,8 @@ exports["default"] = HaikuDOMAdapter_1["default"];
 exports.__esModule = true;
 var array_unique_1 = _dereq_("./../vendor/array-unique");
 var uniq = array_unique_1["default"].immutable;
-var OBJECT = "object";
-var FUNCTION = "function";
+var OBJECT = 'object';
+var FUNCTION = 'function';
 function isObject(value) {
     return value !== null && typeof value === OBJECT && !Array.isArray(value);
 }
@@ -3211,8 +3287,9 @@ function isEmpty(value) {
 }
 function mergeIncoming(previous, incoming) {
     for (var key in incoming) {
-        if (isEmpty(incoming[key]))
+        if (isEmpty(incoming[key])) {
             continue;
+        }
         if (isObject(previous[key]) && isObject(incoming[key])) {
             previous[key] = mergeIncoming(previous[key], incoming[key]);
             continue;
@@ -3243,25 +3320,25 @@ exports["default"] = {
 "use strict";
 exports.__esModule = true;
 var color_string_1 = _dereq_("./../vendor/color-string");
-var STRING = "string";
-var OBJECT = "object";
+var STRING = 'string';
+var OBJECT = 'object';
 function parseString(str) {
-    if (!str)
+    if (!str) {
         return null;
-    if (typeof str === OBJECT)
+    }
+    if (typeof str === OBJECT || str.trim().slice(0, 3) === 'url') {
         return str;
-    if (str.trim().slice(0, 3) === "url")
-        return str;
-    var desc = color_string_1["default"]["get"](str);
-    return desc;
+    }
+    return color_string_1["default"]['get'](str);
 }
 function generateString(desc) {
-    if (typeof desc === STRING)
+    if (typeof desc === STRING) {
         return desc;
-    if (!desc)
-        return "none";
-    var str = color_string_1["default"]["to"][desc.model](desc.value);
-    return str;
+    }
+    if (!desc) {
+        return 'none';
+    }
+    return color_string_1["default"]['to'][desc.model](desc.value);
 }
 exports["default"] = {
     parseString: parseString,
@@ -3316,39 +3393,45 @@ var SVG_COMMAND_TYPES = {
     polygon: true
 };
 function polyPointsStringToPoints(pointsString) {
-    if (!pointsString)
+    if (!pointsString) {
         return [];
-    if (Array.isArray(pointsString))
+    }
+    if (Array.isArray(pointsString)) {
         return pointsString;
+    }
     var points = [];
     var couples = pointsString.split(/\s+/);
     for (var i = 0; i < couples.length; i++) {
         var pair = couples[i];
         var segs = pair.split(/,\s*/);
         var coord = [];
-        if (segs[0])
+        if (segs[0]) {
             coord[0] = Number(segs[0]);
-        if (segs[1])
+        }
+        if (segs[1]) {
             coord[1] = Number(segs[1]);
+        }
         points.push(coord);
     }
     return points;
 }
 function pointsToPolyString(points) {
-    if (!points)
-        return "";
-    if (typeof points === "string")
+    if (!points) {
+        return '';
+    }
+    if (typeof points === 'string') {
         return points;
+    }
     var arr = [];
     for (var i = 0; i < points.length; i++) {
         var point = points[i];
-        var seg = point.join(",");
+        var seg = point.join(',');
         arr.push(seg);
     }
-    return arr.join(" ");
+    return arr.join(' ');
 }
 function pathToPoints(pathString) {
-    var shape = { type: "path", d: pathString };
+    var shape = { type: 'path', d: pathString };
     return svg_points_1["default"].toPoints(shape);
 }
 function pointsToPath(pointsArray) {
@@ -3356,8 +3439,8 @@ function pointsToPath(pointsArray) {
 }
 function manaToPoints(mana) {
     if (SVG_TYPES[mana.elementName] &&
-        mana.elementName !== "rect" &&
-        mana.elementName !== "g") {
+        mana.elementName !== 'rect' &&
+        mana.elementName !== 'g') {
         var shape = { type: mana.elementName };
         if (SVG_COMMAND_TYPES[shape.type]) {
             for (var f2 in SVG_POINT_COMMAND_FIELDS) {
@@ -3407,9 +3490,9 @@ function manaToPoints(mana) {
             mana.attributes.y ||
             0, null).value;
         return svg_points_1["default"].toPoints({
-            type: "rect",
             width: width,
             height: height,
+            type: 'rect',
             x: left,
             y: top_1
         });
@@ -3430,24 +3513,29 @@ function create(instance) {
     var registry = {};
     var eavesdroppers = [];
     instance.on = function on(key, fn) {
-        if (!registry[key])
+        if (!registry[key]) {
             registry[key] = [];
+        }
         for (var i = 0; i < registry[key].length; i++) {
-            if (registry[key][i] === fn)
+            if (registry[key][i] === fn) {
                 return this;
+            }
         }
         registry[key].push(fn);
         return this;
     };
     instance.off = function off(key, fn) {
         var listeners = registry[key];
-        if (!listeners || listeners.length < 1)
+        if (!listeners || listeners.length < 1) {
             return this;
+        }
         for (var i = 0; i < listeners.length; i++) {
-            if (fn && listeners[i] === fn)
+            if (fn && listeners[i] === fn) {
                 listeners.splice(i, 1);
-            else
+            }
+            else {
                 listeners.splice(i, 1);
+            }
         }
         return this;
     };
@@ -3481,9 +3569,10 @@ exports["default"] = {
 exports.__esModule = true;
 function addElementToHashTable(hash, realElement, virtualElement) {
     if (virtualElement && virtualElement.attributes) {
-        var flexId = virtualElement.attributes["haiku-id"] || virtualElement.attributes.id;
-        if (!hash[flexId])
+        var flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id;
+        if (!hash[flexId]) {
             hash[flexId] = [];
+        }
         var alreadyInList = false;
         for (var i = 0; i < hash[flexId].length; i++) {
             var elInList = hash[flexId][i];
@@ -3502,87 +3591,87 @@ exports["default"] = addElementToHashTable;
 "use strict";
 exports.__esModule = true;
 exports["default"] = {
-    "a": true,
-    "altGlyph": true,
-    "altGlyphDef": true,
-    "altGlyphItem": true,
-    "animate": true,
-    "animateColor": true,
-    "animateMotion": true,
-    "animateTransform": true,
-    "circle": true,
-    "clipPath": true,
-    "color-profile": true,
-    "cursor": true,
-    "defs": true,
-    "desc": true,
-    "discard": true,
-    "ellipse": true,
-    "feBlend": true,
-    "feColorMatrix": true,
-    "feComponentTransfer": true,
-    "feComposite": true,
-    "feConvolveMatrix": true,
-    "feDiffuseLighting": true,
-    "feDisplacementMap": true,
-    "feDistantLight": true,
-    "feFlood": true,
-    "feFuncA": true,
-    "feFuncB": true,
-    "feFuncG": true,
-    "feFuncR": true,
-    "feGaussianBlur": true,
-    "feImage": true,
-    "feMerge": true,
-    "feMergeNode": true,
-    "feMorphology": true,
-    "feOffset": true,
-    "fePointLight": true,
-    "feSpecularLighting": true,
-    "feSpotLight": true,
-    "feTile": true,
-    "feTurbulence": true,
-    "filter": true,
-    "font": true,
-    "font-face": true,
-    "font-face-format": true,
-    "font-face-name": true,
-    "font-face-src": true,
-    "font-face-uri": true,
-    "foreignObject": true,
-    "g": true,
-    "glyph": true,
-    "glyphRef": true,
-    "hkern": true,
-    "image": true,
-    "line": true,
-    "linearGradient": true,
-    "marker": true,
-    "mask": true,
-    "metadata": true,
-    "missing-glyph": true,
-    "mpath": true,
-    "path": true,
-    "pattern": true,
-    "polygon": true,
-    "polyline": true,
-    "radialGradient": true,
-    "rect": true,
-    "script": true,
-    "set": true,
-    "stop": true,
-    "style": true,
-    "svg": true,
+    a: true,
+    altGlyph: true,
+    altGlyphDef: true,
+    altGlyphItem: true,
+    animate: true,
+    animateColor: true,
+    animateMotion: true,
+    animateTransform: true,
+    circle: true,
+    clipPath: true,
+    'color-profile': true,
+    cursor: true,
+    defs: true,
+    desc: true,
+    discard: true,
+    ellipse: true,
+    feBlend: true,
+    feColorMatrix: true,
+    feComponentTransfer: true,
+    feComposite: true,
+    feConvolveMatrix: true,
+    feDiffuseLighting: true,
+    feDisplacementMap: true,
+    feDistantLight: true,
+    feFlood: true,
+    feFuncA: true,
+    feFuncB: true,
+    feFuncG: true,
+    feFuncR: true,
+    feGaussianBlur: true,
+    feImage: true,
+    feMerge: true,
+    feMergeNode: true,
+    feMorphology: true,
+    feOffset: true,
+    fePointLight: true,
+    feSpecularLighting: true,
+    feSpotLight: true,
+    feTile: true,
+    feTurbulence: true,
+    filter: true,
+    font: true,
+    'font-face': true,
+    'font-face-format': true,
+    'font-face-name': true,
+    'font-face-src': true,
+    'font-face-uri': true,
+    foreignObject: true,
+    g: true,
+    glyph: true,
+    glyphRef: true,
+    hkern: true,
+    image: true,
+    line: true,
+    linearGradient: true,
+    marker: true,
+    mask: true,
+    metadata: true,
+    'missing-glyph': true,
+    mpath: true,
+    path: true,
+    pattern: true,
+    polygon: true,
+    polyline: true,
+    radialGradient: true,
+    rect: true,
+    script: true,
+    set: true,
+    stop: true,
+    style: true,
+    svg: true,
     "switch": true,
-    "symbol": true,
-    "text": true,
-    "textPath": true,
-    "title": true,
-    "tref": true,
-    "tspan": true,
-    "use": true,
-    "view": true,
-    "vkern": true
+    symbol: true,
+    text: true,
+    textPath: true,
+    title: true,
+    tref: true,
+    tspan: true,
+    use: true,
+    view: true,
+    vkern: true
 };
 
 },{}],21:[function(_dereq_,module,exports){
@@ -3597,7 +3686,7 @@ function applyPropertyToElement(element, name, value, context, component) {
             element.__instance.state[name] = value;
             return;
         }
-        type = "div";
+        type = 'div';
     }
     if (vanities_1["default"][type] &&
         vanities_1["default"][type][name]) {
@@ -3615,11 +3704,12 @@ exports.__esModule = true;
 var ATTR_EXEC_RE = /\[([a-zA-Z0-9]+)([$|^~])?(=)?"?(.+?)?"?( i)?]/;
 function attrSelectorParser(selector) {
     var matches = ATTR_EXEC_RE.exec(selector);
-    if (!matches)
+    if (!matches) {
         return null;
+    }
     return {
         key: matches[1],
-        operator: matches[3] && (matches[2] || "") + matches[3],
+        operator: matches[3] && (matches[2] || '') + matches[3],
         value: matches[4],
         insensitive: !!matches[5]
     };
@@ -3634,13 +3724,14 @@ function matchByAttribute(node, attrKeyToMatch, attrOperator, attrValueToMatch, 
     var attributes = objectPath_1["default"](node, options.attributes);
     if (attributes) {
         var attrValue = attributes[attrKeyToMatch];
-        if (!attrOperator)
+        if (!attrOperator) {
             return !!attrValue;
+        }
         switch (attrOperator) {
-            case "=":
+            case '=':
                 return attrValueToMatch === attrValue;
             default:
-                console.warn("Operator `" + attrOperator + "` not supported yet");
+                console.warn('Operator `' + attrOperator + '` not supported yet');
                 return false;
         }
     }
@@ -3651,15 +3742,16 @@ exports["default"] = matchByAttribute;
 "use strict";
 exports.__esModule = true;
 var objectPath_1 = _dereq_("./objectPath");
-var CLASS_NAME_ATTR = "class";
-var ALT_CLASS_NAME_ATTR = "className";
-var SPACE = " ";
+var CLASS_NAME_ATTR = 'class';
+var ALT_CLASS_NAME_ATTR = 'className';
+var SPACE = ' ';
 function matchByClass(node, className, options) {
     var attributes = objectPath_1["default"](node, options.attributes);
     if (attributes) {
         var foundClassName = attributes[CLASS_NAME_ATTR];
-        if (!foundClassName)
+        if (!foundClassName) {
             foundClassName = attributes[ALT_CLASS_NAME_ATTR];
+        }
         if (foundClassName) {
             var classPieces = foundClassName.split(SPACE);
             if (classPieces.indexOf(className) !== -1) {
@@ -3674,13 +3766,15 @@ exports["default"] = matchByClass;
 "use strict";
 exports.__esModule = true;
 var objectPath_1 = _dereq_("./objectPath");
-var HAIKU_ID_ATTRIBUTE = "haiku-id";
+var HAIKU_ID_ATTRIBUTE = 'haiku-id';
 function matchByHaiku(node, haikuString, options) {
     var attributes = objectPath_1["default"](node, options.attributes);
-    if (!attributes)
+    if (!attributes) {
         return false;
-    if (!attributes[HAIKU_ID_ATTRIBUTE])
+    }
+    if (!attributes[HAIKU_ID_ATTRIBUTE]) {
         return false;
+    }
     return attributes[HAIKU_ID_ATTRIBUTE] === haikuString;
 }
 exports["default"] = matchByHaiku;
@@ -3703,10 +3797,10 @@ exports["default"] = matchById;
 "use strict";
 exports.__esModule = true;
 var objectPath_1 = _dereq_("./objectPath");
-var STRING = "string";
-var OBJECT = "object";
-var FUNCTION = "function";
-function _getFnName(fn) {
+var STRING = 'string';
+var OBJECT = 'object';
+var FUNCTION = 'function';
+function getFnName(fn) {
     if (fn.name) {
         return fn.name;
     }
@@ -3722,7 +3816,7 @@ function matchByTagName(node, tagName, options) {
             return true;
         }
         else if (typeof val === FUNCTION) {
-            if (_getFnName(val) === tagName) {
+            if (getFnName(val) === tagName) {
                 return true;
             }
         }
@@ -3744,10 +3838,10 @@ var cssMatchByClass_1 = _dereq_("./cssMatchByClass");
 var cssMatchByHaiku_1 = _dereq_("./cssMatchByHaiku");
 var cssMatchById_1 = _dereq_("./cssMatchById");
 var cssMatchByTagName_1 = _dereq_("./cssMatchByTagName");
-var ID_PREFIX = "#";
-var CLASS_PREFIX = ".";
-var ATTR_PREFIX = "[";
-var HAIKU_PREFIX = "haiku:";
+var ID_PREFIX = '#';
+var CLASS_PREFIX = '.';
+var ATTR_PREFIX = '[';
+var HAIKU_PREFIX = 'haiku:';
 function matchOne(node, piece, options) {
     if (piece.slice(0, 6) === HAIKU_PREFIX) {
         return cssMatchByHaiku_1["default"](node, piece.slice(6), options);
@@ -3760,8 +3854,9 @@ function matchOne(node, piece, options) {
     }
     if (piece[0] === ATTR_PREFIX) {
         var parsedAttr = attrSelectorParser_1["default"](piece);
-        if (!parsedAttr)
+        if (!parsedAttr) {
             return false;
+        }
         return cssMatchByAttribute_1["default"](node, parsedAttr.key, parsedAttr.operator, parsedAttr.value, options);
     }
     return cssMatchByTagName_1["default"](node, piece, options);
@@ -3772,7 +3867,7 @@ exports["default"] = matchOne;
 "use strict";
 exports.__esModule = true;
 var cssMatchOne_1 = _dereq_("./cssMatchOne");
-var PIECE_SEPARATOR = ",";
+var PIECE_SEPARATOR = ',';
 function queryList(matches, list, query, options) {
     var maxdepth = options.maxdepth !== undefined
         ? parseInt(options.maxdepth, 10)
@@ -3798,10 +3893,11 @@ exports.__esModule = true;
 var BasicUtils_1 = _dereq_("./BasicUtils");
 var cssQueryList_1 = _dereq_("./cssQueryList");
 var manaFlattenTree_1 = _dereq_("./manaFlattenTree");
-var OBJECT = "object";
+var OBJECT = 'object';
 function queryTree(matches, node, query, options) {
-    if (!node || typeof node !== OBJECT)
+    if (!node || typeof node !== OBJECT) {
         return matches;
+    }
     var list = BasicUtils_1["default"].uniq(manaFlattenTree_1["default"]([], node, options, 0, 0));
     cssQueryList_1["default"](matches, list, query, options);
     return matches;
@@ -3820,8 +3916,9 @@ function getTimelineMaxTime(descriptor) {
             var keys = Object.keys(keyframes);
             for (var i = 0; i < keys.length; i++) {
                 var key = parseInt(keys[i], 10);
-                if (key > max)
+                if (key > max) {
                     max = key;
+                }
             }
         }
     }
@@ -3834,26 +3931,23 @@ exports["default"] = getTimelineMaxTime;
 exports.__esModule = true;
 var objectPath_1 = _dereq_("./objectPath");
 function flattenTree(list, node, options, depth, index) {
-    if (!depth)
-        depth = 0;
-    if (!index)
-        index = 0;
+    if (depth === void 0) { depth = 0; }
+    if (index === void 0) { index = 0; }
     list.push(node);
-    if (typeof node !== "string") {
+    if (typeof node !== 'string') {
         node.__depth = depth;
         node.__index = index;
     }
     var children = objectPath_1["default"](node, options.children);
-    if (!children || children.length < 1)
+    if (!children || children.length < 1 || typeof children === 'string') {
         return list;
-    if (typeof children === "string")
-        return list;
+    }
     if (Array.isArray(children)) {
         for (var i = 0; i < children.length; i++) {
             flattenTree(list, children[i], options, depth + 1, i);
         }
     }
-    else if (typeof children === "object") {
+    else if (typeof children === 'object') {
         children.__depth = depth + 1;
         children.__index = 0;
         list.push(children);
@@ -3866,10 +3960,11 @@ exports["default"] = flattenTree;
 },{"./objectPath":33}],33:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
-var STRING = "string";
+var STRING = 'string';
 function objectPath(obj, key) {
-    if (typeof key === STRING)
+    if (typeof key === STRING) {
         return obj[key];
+    }
     var base = obj;
     for (var i = 0; i < key.length; i++) {
         var name_1 = key[i];
@@ -3883,7 +3978,7 @@ exports["default"] = objectPath;
 "use strict";
 exports.__esModule = true;
 function parseCssValueString(str, optionalPropertyHint) {
-    if (typeof str === "number") {
+    if (typeof str === 'number') {
         return {
             value: str,
             unit: null
@@ -3897,10 +3992,12 @@ function parseCssValueString(str, optionalPropertyHint) {
     }
     var num;
     var nmatch = str.match(/([+-]?[\d|.]+)/);
-    if (nmatch)
+    if (nmatch) {
         num = Number(nmatch[0]);
-    else
+    }
+    else {
         num = 0;
+    }
     var unit;
     var smatch = str.match(/(em|px|%|turn|deg|in)/);
     if (smatch) {
@@ -3908,15 +4005,15 @@ function parseCssValueString(str, optionalPropertyHint) {
     }
     else {
         if (optionalPropertyHint && optionalPropertyHint.match(/rotate/)) {
-            unit = "deg";
+            unit = 'deg';
         }
         else {
             unit = null;
         }
     }
     return {
-        value: num,
-        unit: unit
+        unit: unit,
+        value: num
     };
 }
 exports["default"] = parseCssValueString;
@@ -3924,28 +4021,27 @@ exports["default"] = parseCssValueString;
 },{}],35:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
-var DEFAULT_SCOPE = "div";
+var DEFAULT_SCOPE = 'div';
 var SCOPE_STRATA = {
-    div: "div",
-    svg: "svg"
+    div: 'div',
+    svg: 'svg'
 };
-var STRING = "string";
+var STRING = 'string';
 function scopifyElements(mana, parent, scope) {
-    if (!mana)
+    if (!mana) {
         return mana;
-    if (typeof mana === STRING)
+    }
+    if (typeof mana === STRING) {
         return mana;
+    }
     if (parent && !mana.__parent) {
         mana.__parent = parent;
     }
     mana.__scope = scope || DEFAULT_SCOPE;
-    if (SCOPE_STRATA[mana.elementName]) {
-        scope = SCOPE_STRATA[mana.elementName];
-    }
     if (mana.children) {
         for (var i = 0; i < mana.children.length; i++) {
             var child = mana.children[i];
-            scopifyElements(child, mana, scope);
+            scopifyElements(child, mana, SCOPE_STRATA[mana.elementName] || scope);
         }
     }
 }
@@ -3956,7 +4052,7 @@ exports["default"] = scopifyElements;
 exports.__esModule = true;
 var visitManaTree_1 = _dereq_("./visitManaTree");
 var xmlToMana_1 = _dereq_("./xmlToMana");
-var STRING_TYPE = "string";
+var STRING_TYPE = 'string';
 function upgradeBytecodeInPlace(bytecode, options) {
     if (!bytecode.states) {
         bytecode.states = {};
@@ -3967,18 +4063,24 @@ function upgradeBytecodeInPlace(bytecode, options) {
         for (var i = 0; i < properties.length; i++) {
             var propertySpec = properties[i];
             var updatedSpec = {};
-            if (propertySpec.value !== undefined)
-                updatedSpec["value"] = propertySpec.value;
-            if (propertySpec.type !== undefined)
-                updatedSpec["type"] = propertySpec.type;
-            if (propertySpec.setter !== undefined)
-                updatedSpec["set"] = propertySpec.setter;
-            if (propertySpec.getter !== undefined)
-                updatedSpec["get"] = propertySpec.getter;
-            if (propertySpec.set !== undefined)
-                updatedSpec["set"] = propertySpec.set;
-            if (propertySpec.get !== undefined)
-                updatedSpec["get"] = propertySpec.get;
+            if (propertySpec.value !== undefined) {
+                updatedSpec['value'] = propertySpec.value;
+            }
+            if (propertySpec.type !== undefined) {
+                updatedSpec['type'] = propertySpec.type;
+            }
+            if (propertySpec.setter !== undefined) {
+                updatedSpec['set'] = propertySpec.setter;
+            }
+            if (propertySpec.getter !== undefined) {
+                updatedSpec['get'] = propertySpec.getter;
+            }
+            if (propertySpec.set !== undefined) {
+                updatedSpec['set'] = propertySpec.set;
+            }
+            if (propertySpec.get !== undefined) {
+                updatedSpec['get'] = propertySpec.get;
+            }
             bytecode.states[propertySpec.name] = updatedSpec;
         }
     }
@@ -3988,8 +4090,9 @@ function upgradeBytecodeInPlace(bytecode, options) {
         bytecode.eventHandlers = {};
         for (var j = 0; j < eventHandlers.length; j++) {
             var eventHandlerSpec = eventHandlers[j];
-            if (!bytecode.eventHandlers[eventHandlerSpec.selector])
+            if (!bytecode.eventHandlers[eventHandlerSpec.selector]) {
                 bytecode.eventHandlers[eventHandlerSpec.selector] = {};
+            }
             bytecode.eventHandlers[eventHandlerSpec.selector][eventHandlerSpec.name] = {
                 handler: eventHandlerSpec.handler
             };
@@ -4002,13 +4105,13 @@ function upgradeBytecodeInPlace(bytecode, options) {
         var referencesToUpdate_1 = {};
         var alreadyUpdatedReferences_1 = {};
         if (bytecode.template) {
-            visitManaTree_1["default"]("0", bytecode.template, function _visitor(elementName, attributes, children, node) {
-                if (elementName === "filter") {
+            visitManaTree_1["default"]('0', bytecode.template, function (elementName, attributes, children, node) {
+                if (elementName === 'filter') {
                     if (attributes.id && !alreadyUpdatedReferences_1[attributes.id]) {
                         var prev = attributes.id;
-                        var next = prev + "-" + options.referenceUniqueness;
+                        var next = prev + '-' + options.referenceUniqueness;
                         attributes.id = next;
-                        referencesToUpdate_1["url(#" + prev + ")"] = "url(#" + next + ")";
+                        referencesToUpdate_1['url(#' + prev + ')'] = 'url(#' + next + ')';
                         alreadyUpdatedReferences_1[attributes.id] = true;
                     }
                 }
@@ -4018,7 +4121,7 @@ function upgradeBytecodeInPlace(bytecode, options) {
             for (var timelineName in bytecode.timelines) {
                 for (var selector in bytecode.timelines[timelineName]) {
                     for (var propertyName in bytecode.timelines[timelineName][selector]) {
-                        if (propertyName !== "filter") {
+                        if (propertyName !== 'filter') {
                             continue;
                         }
                         for (var keyframeMs in bytecode.timelines[timelineName][selector][propertyName]) {
@@ -4039,14 +4142,16 @@ exports["default"] = upgradeBytecodeInPlace;
 "use strict";
 exports.__esModule = true;
 function visitManaTree(locator, mana, visitor, parent, index) {
-    if (!mana)
+    if (!mana) {
         return null;
+    }
     visitor(mana.elementName, mana.attributes, mana.children, mana, locator, parent, index);
-    if (!mana.children)
+    if (!mana.children) {
         return null;
+    }
     for (var i = 0; i < mana.children.length; i++) {
         var child = mana.children[i];
-        visitManaTree(locator + "." + i, child, visitor, mana, i);
+        visitManaTree(locator + '.' + i, child, visitor, mana, i);
     }
 }
 exports["default"] = visitManaTree;
@@ -4058,26 +4163,30 @@ var to_style_1 = _dereq_("./../vendor/to-style");
 var xml_parser_1 = _dereq_("./../vendor/xml-parser");
 var styleStringToObject = to_style_1["default"].object;
 function fixChildren(kids) {
-    if (Array.isArray(kids))
+    if (Array.isArray(kids)) {
         return kids.map(fixNode);
+    }
     return fixNode(kids);
 }
 function fixAttributes(attributes) {
     if (attributes.style) {
-        if (typeof attributes.style === "string") {
+        if (typeof attributes.style === 'string') {
             attributes.style = styleStringToObject(attributes.style, null, null, null);
         }
     }
     return attributes;
 }
 function fixNode(obj) {
-    if (!obj)
+    if (!obj) {
         return obj;
-    if (typeof obj === "string")
+    }
+    if (typeof obj === 'string') {
         return obj;
+    }
     var children = obj.children;
-    if (obj.content)
+    if (obj.content) {
         children = [obj.content];
+    }
     return {
         elementName: obj.name,
         attributes: fixAttributes(obj.attributes || {}),
@@ -4097,10 +4206,11 @@ var formatTransform_1 = _dereq_("./formatTransform");
 var isEqualTransformString_1 = _dereq_("./isEqualTransformString");
 var scopeOfElement_1 = _dereq_("./scopeOfElement");
 var setStyleMatrix_1 = _dereq_("./setStyleMatrix");
-var SVG = "svg";
+var SVG = 'svg';
 function hasExplicitStyle(domElement, key) {
-    if (!domElement.__haikuExplicitStyles)
+    if (!domElement.__haikuExplicitStyles) {
         return false;
+    }
     return !!domElement.__haikuExplicitStyles[key];
 }
 function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, pixelRatio, context) {
@@ -4111,16 +4221,16 @@ function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, 
     }
     var elementScope = scopeOfElement_1["default"](virtualElement);
     if (nodeLayout.shown === false) {
-        if (domElement.style.visibility !== "hidden") {
-            domElement.style.visibility = "hidden";
+        if (domElement.style.visibility !== 'hidden') {
+            domElement.style.visibility = 'hidden';
         }
     }
     else if (nodeLayout.shown === true) {
-        if (domElement.style.visibility !== "visible") {
-            domElement.style.visibility = "visible";
+        if (domElement.style.visibility !== 'visible') {
+            domElement.style.visibility = 'visible';
         }
     }
-    if (!hasExplicitStyle(domElement, "opacity")) {
+    if (!hasExplicitStyle(domElement, 'opacity')) {
         if (computedLayout.opacity === undefined) {
         }
         else {
@@ -4134,45 +4244,45 @@ function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, 
             else {
                 finalOpacity = computedLayout.opacity;
             }
-            var opacityString = "" + finalOpacity;
+            var opacityString = '' + finalOpacity;
             if (domElement.style.opacity !== opacityString) {
                 domElement.style.opacity = opacityString;
             }
         }
     }
-    if (!hasExplicitStyle(domElement, "width")) {
+    if (!hasExplicitStyle(domElement, 'width')) {
         if (computedLayout.size.x !== undefined) {
-            var sizeXString = parseFloat(computedLayout.size.x.toFixed(2)) + "px";
+            var sizeXString = parseFloat(computedLayout.size.x.toFixed(2)) + 'px';
             if (domElement.style.width !== sizeXString) {
                 domElement.style.width = sizeXString;
             }
             if (elementScope === SVG) {
-                if (domElement.getAttribute("width") !== sizeXString) {
-                    domElement.setAttribute("width", sizeXString);
+                if (domElement.getAttribute('width') !== sizeXString) {
+                    domElement.setAttribute('width', sizeXString);
                 }
             }
         }
     }
-    if (!hasExplicitStyle(domElement, "height")) {
+    if (!hasExplicitStyle(domElement, 'height')) {
         if (computedLayout.size.y !== undefined) {
-            var sizeYString = parseFloat(computedLayout.size.y.toFixed(2)) + "px";
+            var sizeYString = parseFloat(computedLayout.size.y.toFixed(2)) + 'px';
             if (domElement.style.height !== sizeYString) {
                 domElement.style.height = sizeYString;
             }
             if (elementScope === SVG) {
-                if (domElement.getAttribute("height") !== sizeYString) {
-                    domElement.setAttribute("height", sizeYString);
+                if (domElement.getAttribute('height') !== sizeYString) {
+                    domElement.setAttribute('height', sizeYString);
                 }
             }
         }
     }
     if (computedLayout.matrix) {
-        var attributeTransform = domElement.getAttribute("transform");
+        var attributeTransform = domElement.getAttribute('transform');
         if (context.config.options.platform.isIE || context.config.options.platform.isEdge) {
             if (elementScope === SVG) {
                 var matrixString = formatTransform_1["default"](computedLayout.matrix, nodeLayout.format, pixelRatio);
                 if (!isEqualTransformString_1["default"](attributeTransform, matrixString)) {
-                    domElement.setAttribute("transform", matrixString);
+                    domElement.setAttribute('transform', matrixString);
                 }
             }
             else {
@@ -4180,9 +4290,9 @@ function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, 
             }
         }
         else {
-            if (!hasExplicitStyle(domElement, "transform")) {
+            if (!hasExplicitStyle(domElement, 'transform')) {
                 if (!attributeTransform ||
-                    attributeTransform === "" ||
+                    attributeTransform === '' ||
                     virtualElement.__transformed) {
                     setStyleMatrix_1["default"](domElement.style, nodeLayout.format, computedLayout.matrix, context.config.options.useWebkitPrefix, pixelRatio);
                 }
@@ -4288,11 +4398,14 @@ exports["default"] = computeMatrix;
 },{}],41:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
-function computeOrientationFlexibly(x, y, z, w, quat) {
+function computeOrientationFlexibly(xIn, yIn, zIn, w, quat) {
     if (!quat ||
         (quat.x == null || quat.y == null || quat.z == null || quat.w == null)) {
-        throw new Error("No w-component nor quaternion provided!");
+        throw new Error('No w-component nor quaternion provided!');
     }
+    var x = xIn;
+    var y = yIn;
+    var z = zIn;
     if (x == null || y == null || z == null) {
         var sp = -2 * (quat.y * quat.z - quat.w * quat.x);
         if (Math.abs(sp) > 0.99999) {
@@ -4338,7 +4451,7 @@ exports["default"] = computeOrientationFlexibly;
 exports.__esModule = true;
 var SIZE_PROPORTIONAL = 0;
 var SIZE_ABSOLUTE = 1;
-var SIZING_COMPONENTS = ["x", "y", "z"];
+var SIZING_COMPONENTS = ['x', 'y', 'z'];
 function computeSize(outputSize, layoutSpec, sizeModeArray, parentsizeAbsolute) {
     for (var i = 0; i < SIZING_COMPONENTS.length; i++) {
         var component = SIZING_COMPONENTS[i];
@@ -4361,9 +4474,9 @@ exports["default"] = computeSize;
 },{}],43:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
-var TRANSFORM_SUFFIX = ")";
-var TRANSFORM_ZERO = "0";
-var TRANSFORM_COMMA = ",";
+var TRANSFORM_SUFFIX = ')';
+var TRANSFORM_ZERO = '0';
+var TRANSFORM_COMMA = ',';
 var TRANSFORM_ZILCH = TRANSFORM_ZERO + TRANSFORM_COMMA;
 var TWO = 2;
 var THREE = 3;
@@ -4384,11 +4497,11 @@ function formatTransform(transform, format, devicePixelRatio) {
             transform[13],
         ];
         transform = two;
-        prefix = "matrix(";
+        prefix = 'matrix(';
         last = 5;
     }
     else if (format === THREE) {
-        prefix = "matrix3d(";
+        prefix = 'matrix3d(';
         last = 15;
     }
     prefix += (transform[0] < 0.000001 && transform[0] > -0.000001) ? TRANSFORM_ZILCH : transform[0] + TRANSFORM_COMMA;
@@ -4397,16 +4510,26 @@ function formatTransform(transform, format, devicePixelRatio) {
     prefix += (transform[3] < 0.000001 && transform[3] > -0.000001) ? TRANSFORM_ZILCH : transform[3] + TRANSFORM_COMMA;
     prefix += (transform[4] < 0.000001 && transform[4] > -0.000001) ? TRANSFORM_ZILCH : transform[4] + TRANSFORM_COMMA;
     if (last > 5) {
-        prefix += (transform[5] < 0.000001 && transform[5] > -0.000001) ? TRANSFORM_ZILCH : transform[5] + TRANSFORM_COMMA;
-        prefix += (transform[6] < 0.000001 && transform[6] > -0.000001) ? TRANSFORM_ZILCH : transform[6] + TRANSFORM_COMMA;
-        prefix += (transform[7] < 0.000001 && transform[7] > -0.000001) ? TRANSFORM_ZILCH : transform[7] + TRANSFORM_COMMA;
-        prefix += (transform[8] < 0.000001 && transform[8] > -0.000001) ? TRANSFORM_ZILCH : transform[8] + TRANSFORM_COMMA;
-        prefix += (transform[9] < 0.000001 && transform[9] > -0.000001) ? TRANSFORM_ZILCH : transform[9] + TRANSFORM_COMMA;
-        prefix += (transform[10] < 0.000001 && transform[10] > -0.000001) ? TRANSFORM_ZILCH : transform[10] + TRANSFORM_COMMA;
-        prefix += (transform[11] < 0.000001 && transform[11] > -0.000001) ? TRANSFORM_ZILCH : transform[11] + TRANSFORM_COMMA;
-        prefix += (transform[12] < 0.000001 && transform[12] > -0.000001) ? TRANSFORM_ZILCH : transform[12] + TRANSFORM_COMMA;
-        prefix += (transform[13] < 0.000001 && transform[13] > -0.000001) ? TRANSFORM_ZILCH : transform[13] + TRANSFORM_COMMA;
-        prefix += (transform[14] < 0.000001 && transform[14] > -0.000001) ? TRANSFORM_ZILCH : transform[14] + TRANSFORM_COMMA;
+        prefix += (transform[5] < 0.000001 && transform[5] > -0.000001)
+            ? TRANSFORM_ZILCH : transform[5] + TRANSFORM_COMMA;
+        prefix += (transform[6] < 0.000001 && transform[6] > -0.000001)
+            ? TRANSFORM_ZILCH : transform[6] + TRANSFORM_COMMA;
+        prefix += (transform[7] < 0.000001 && transform[7] > -0.000001)
+            ? TRANSFORM_ZILCH : transform[7] + TRANSFORM_COMMA;
+        prefix += (transform[8] < 0.000001 && transform[8] > -0.000001)
+            ? TRANSFORM_ZILCH : transform[8] + TRANSFORM_COMMA;
+        prefix += (transform[9] < 0.000001 && transform[9] > -0.000001)
+            ? TRANSFORM_ZILCH : transform[9] + TRANSFORM_COMMA;
+        prefix += (transform[10] < 0.000001 && transform[10] > -0.000001)
+            ? TRANSFORM_ZILCH : transform[10] + TRANSFORM_COMMA;
+        prefix += (transform[11] < 0.000001 && transform[11] > -0.000001)
+            ? TRANSFORM_ZILCH : transform[11] + TRANSFORM_COMMA;
+        prefix += (transform[12] < 0.000001 && transform[12] > -0.000001)
+            ? TRANSFORM_ZILCH : transform[12] + TRANSFORM_COMMA;
+        prefix += (transform[13] < 0.000001 && transform[13] > -0.000001)
+            ? TRANSFORM_ZILCH : transform[13] + TRANSFORM_COMMA;
+        prefix += (transform[14] < 0.000001 && transform[14] > -0.000001)
+            ? TRANSFORM_ZILCH : transform[14] + TRANSFORM_COMMA;
     }
     prefix += transform[last] + TRANSFORM_SUFFIX;
     return prefix;
@@ -4416,47 +4539,20 @@ exports["default"] = formatTransform;
 },{}],44:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
-var C1 = ", ";
+var C1 = ', ';
 function isEqualTransformString(t1, t2) {
-    if (t1 === t2)
+    if (t1 === t2) {
         return true;
-    if (!t1)
+    }
+    if (!t1) {
         return false;
+    }
     var cs1 = t1.split(C1);
     var cs2 = t2.split(C1);
-    if (cs1[0] !== cs2[0])
-        return false;
-    if (cs1[1] !== cs2[1])
-        return false;
-    if (cs1[2] !== cs2[2])
-        return false;
-    if (cs1[3] !== cs2[3])
-        return false;
-    if (cs1[4] !== cs2[4])
-        return false;
-    if (cs1[5] !== cs2[5])
-        return false;
-    if (cs1[6] !== cs2[6])
-        return false;
-    if (cs1[7] !== cs2[7])
-        return false;
-    if (cs1[8] !== cs2[8])
-        return false;
-    if (cs1[9] !== cs2[9])
-        return false;
-    if (cs1[10] !== cs2[10])
-        return false;
-    if (cs1[11] !== cs2[11])
-        return false;
-    if (cs1[12] !== cs2[12])
-        return false;
-    if (cs1[13] !== cs2[13])
-        return false;
-    if (cs1[14] !== cs2[14])
-        return false;
-    if (cs1[15] !== cs2[15])
-        return false;
-    return true;
+    return !(cs1[0] !== cs2[0] || cs1[1] !== cs2[1] || cs1[2] !== cs2[2] || cs1[3] !== cs2[3] || cs1[4] !== cs2[4] ||
+        cs1[5] !== cs2[5] || cs1[6] !== cs2[6] || cs1[7] !== cs2[7] || cs1[8] !== cs2[8] || cs1[9] !== cs2[9] ||
+        cs1[10] !== cs2[10] || cs1[11] !== cs2[11] || cs1[12] !== cs2[12] || cs1[13] !== cs2[13] || cs1[14] !== cs2[14] ||
+        cs1[15] !== cs2[15]);
 }
 exports["default"] = isEqualTransformString;
 
@@ -4464,8 +4560,9 @@ exports["default"] = isEqualTransformString;
 "use strict";
 exports.__esModule = true;
 function scopeOfElement(mana) {
-    if (mana.__scope)
+    if (mana.__scope) {
         return mana.__scope;
+    }
     if (mana.__parent) {
         return scopeOfElement(mana.__parent);
     }
@@ -4521,16 +4618,18 @@ var ColorUtils_1 = _dereq_("./../../helpers/ColorUtils");
 var SVGPoints_1 = _dereq_("./../../helpers/SVGPoints");
 var has_1 = _dereq_("./has");
 function parseD(value) {
-    if (!value)
+    if (!value) {
         return [];
+    }
     if (Array.isArray(value)) {
         return value;
     }
     return SVGPoints_1["default"].pathToPoints(value);
 }
 function generateD(value) {
-    if (typeof value === "string")
+    if (typeof value === 'string') {
         return value;
+    }
     return SVGPoints_1["default"].pointsToPath(value);
 }
 function parseColor(value) {
@@ -4540,43 +4639,45 @@ function generateColor(value) {
     return ColorUtils_1["default"].generateString(value);
 }
 function parsePoints(value) {
-    if (Array.isArray(value))
+    if (Array.isArray(value)) {
         return value;
+    }
     return SVGPoints_1["default"].polyPointsStringToPoints(value);
 }
 function generatePoints(value) {
-    if (typeof value === "string")
+    if (typeof value === 'string') {
         return value;
+    }
     return SVGPoints_1["default"].pointsToPolyString(value);
 }
 var STYLE_COLOR_PARSERS = {
-    "style.stroke": { parse: parseColor, generate: generateColor },
-    "style.fill": { parse: parseColor, generate: generateColor },
-    "style.backgroundColor": { parse: parseColor, generate: generateColor },
-    "style.borderBottomColor": { parse: parseColor, generate: generateColor },
-    "style.borderColor": { parse: parseColor, generate: generateColor },
-    "style.borderLeftColor": { parse: parseColor, generate: generateColor },
-    "style.borderRightColor": { parse: parseColor, generate: generateColor },
-    "style.borderTopColor": { parse: parseColor, generate: generateColor },
-    "style.floodColor": { parse: parseColor, generate: generateColor },
-    "style.lightingColor": { parse: parseColor, generate: generateColor },
-    "style.stopColor": { parse: parseColor, generate: generateColor }
+    'style.stroke': { parse: parseColor, generate: generateColor },
+    'style.fill': { parse: parseColor, generate: generateColor },
+    'style.backgroundColor': { parse: parseColor, generate: generateColor },
+    'style.borderBottomColor': { parse: parseColor, generate: generateColor },
+    'style.borderColor': { parse: parseColor, generate: generateColor },
+    'style.borderLeftColor': { parse: parseColor, generate: generateColor },
+    'style.borderRightColor': { parse: parseColor, generate: generateColor },
+    'style.borderTopColor': { parse: parseColor, generate: generateColor },
+    'style.floodColor': { parse: parseColor, generate: generateColor },
+    'style.lightingColor': { parse: parseColor, generate: generateColor },
+    'style.stopColor': { parse: parseColor, generate: generateColor }
 };
 var SVG_COLOR_PARSERS = {
-    "stroke": { parse: parseColor, generate: generateColor },
-    "fill": { parse: parseColor, generate: generateColor },
-    "floodColor": { parse: parseColor, generate: generateColor },
-    "lightingColor": { parse: parseColor, generate: generateColor },
-    "stopColor": { parse: parseColor, generate: generateColor },
-    "backgroundColor": { parse: parseColor, generate: generateColor },
-    "animateColor": { parse: parseColor, generate: generateColor },
-    "feColor": { parse: parseColor, generate: generateColor },
-    "flood-color": { parse: parseColor, generate: generateColor },
-    "lighting-color": { parse: parseColor, generate: generateColor },
-    "stop-color": { parse: parseColor, generate: generateColor },
-    "background-color": { parse: parseColor, generate: generateColor },
-    "animate-color": { parse: parseColor, generate: generateColor },
-    "fe-color": { parse: parseColor, generate: generateColor }
+    stroke: { parse: parseColor, generate: generateColor },
+    fill: { parse: parseColor, generate: generateColor },
+    floodColor: { parse: parseColor, generate: generateColor },
+    lightingColor: { parse: parseColor, generate: generateColor },
+    stopColor: { parse: parseColor, generate: generateColor },
+    backgroundColor: { parse: parseColor, generate: generateColor },
+    animateColor: { parse: parseColor, generate: generateColor },
+    feColor: { parse: parseColor, generate: generateColor },
+    'flood-color': { parse: parseColor, generate: generateColor },
+    'lighting-color': { parse: parseColor, generate: generateColor },
+    'stop-color': { parse: parseColor, generate: generateColor },
+    'background-color': { parse: parseColor, generate: generateColor },
+    'animate-color': { parse: parseColor, generate: generateColor },
+    'fe-color': { parse: parseColor, generate: generateColor }
 };
 var SVG_PATH_PARSERS = {
     d: { parse: parseD, generate: generateD }
@@ -4585,211 +4686,211 @@ var SVG_POINT_PARSERS = {
     points: { parse: parsePoints, generate: generatePoints }
 };
 exports["default"] = {
-    "missing-glyph": has_1["default"](STYLE_COLOR_PARSERS),
-    "a": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "abbr": has_1["default"](STYLE_COLOR_PARSERS),
-    "acronym": has_1["default"](STYLE_COLOR_PARSERS),
-    "address": has_1["default"](STYLE_COLOR_PARSERS),
-    "altGlyph": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "altGlyphDef": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "altGlyphItem": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "animate": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "animateColor": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "animateMotion": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "animateTransform": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "applet": has_1["default"](STYLE_COLOR_PARSERS),
-    "area": has_1["default"](STYLE_COLOR_PARSERS),
-    "article": has_1["default"](STYLE_COLOR_PARSERS),
-    "aside": has_1["default"](STYLE_COLOR_PARSERS),
-    "audio": has_1["default"](STYLE_COLOR_PARSERS),
-    "b": has_1["default"](STYLE_COLOR_PARSERS),
-    "base": has_1["default"](STYLE_COLOR_PARSERS),
-    "basefont": has_1["default"](STYLE_COLOR_PARSERS),
-    "bdi": has_1["default"](STYLE_COLOR_PARSERS),
-    "bdo": has_1["default"](STYLE_COLOR_PARSERS),
-    "big": has_1["default"](STYLE_COLOR_PARSERS),
-    "blockquote": has_1["default"](STYLE_COLOR_PARSERS),
-    "body": has_1["default"](STYLE_COLOR_PARSERS),
-    "br": has_1["default"](STYLE_COLOR_PARSERS),
-    "button": has_1["default"](STYLE_COLOR_PARSERS),
-    "canvas": has_1["default"](STYLE_COLOR_PARSERS),
-    "caption": has_1["default"](STYLE_COLOR_PARSERS),
-    "center": has_1["default"](STYLE_COLOR_PARSERS),
-    "circle": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "cite": has_1["default"](STYLE_COLOR_PARSERS),
-    "clipPath": has_1["default"](STYLE_COLOR_PARSERS),
-    "code": has_1["default"](STYLE_COLOR_PARSERS),
-    "col": has_1["default"](STYLE_COLOR_PARSERS),
-    "colgroup": has_1["default"](STYLE_COLOR_PARSERS),
-    "color-profile": has_1["default"](STYLE_COLOR_PARSERS),
-    "command": has_1["default"](STYLE_COLOR_PARSERS),
-    "cursor": has_1["default"](STYLE_COLOR_PARSERS),
-    "datalist": has_1["default"](STYLE_COLOR_PARSERS),
-    "dd": has_1["default"](STYLE_COLOR_PARSERS),
-    "defs": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "del": has_1["default"](STYLE_COLOR_PARSERS),
-    "desc": has_1["default"](STYLE_COLOR_PARSERS),
-    "details": has_1["default"](STYLE_COLOR_PARSERS),
-    "dfn": has_1["default"](STYLE_COLOR_PARSERS),
-    "dir": has_1["default"](STYLE_COLOR_PARSERS),
-    "discard": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "div": has_1["default"](STYLE_COLOR_PARSERS),
-    "dl": has_1["default"](STYLE_COLOR_PARSERS),
-    "dt": has_1["default"](STYLE_COLOR_PARSERS),
-    "ellipse": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "em": has_1["default"](STYLE_COLOR_PARSERS),
-    "embed": has_1["default"](STYLE_COLOR_PARSERS),
-    "feBlend": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feColorMatrix": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feComponentTransfer": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feComposite": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feConvolveMatrix": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feDiffuseLighting": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feDisplacementMap": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feDistantLight": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feDropShadow": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feFlood": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feFuncA": has_1["default"](STYLE_COLOR_PARSERS),
-    "feFuncB": has_1["default"](STYLE_COLOR_PARSERS),
-    "feFuncG": has_1["default"](STYLE_COLOR_PARSERS),
-    "feFuncR": has_1["default"](STYLE_COLOR_PARSERS),
-    "feGaussianBlur": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feImage": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feMerge": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feMergeNode": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feMorphology": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feOffset": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "fePointLight": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feSpecularLighting": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feTile": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "feTurbulence": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "fieldset": has_1["default"](STYLE_COLOR_PARSERS),
-    "figcaption": has_1["default"](STYLE_COLOR_PARSERS),
-    "figure": has_1["default"](STYLE_COLOR_PARSERS),
-    "filter": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "font-face": has_1["default"](STYLE_COLOR_PARSERS),
-    "font-face-format": has_1["default"](STYLE_COLOR_PARSERS),
-    "font-face-name": has_1["default"](STYLE_COLOR_PARSERS),
-    "font-face-src": has_1["default"](STYLE_COLOR_PARSERS),
-    "font-face-uri": has_1["default"](STYLE_COLOR_PARSERS),
-    "font": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "footer": has_1["default"](STYLE_COLOR_PARSERS),
-    "foreignObject": has_1["default"](STYLE_COLOR_PARSERS),
-    "form": has_1["default"](STYLE_COLOR_PARSERS),
-    "frame": has_1["default"](STYLE_COLOR_PARSERS),
-    "frameset": has_1["default"](STYLE_COLOR_PARSERS),
-    "g": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "glyph": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "glyphRef": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "h1": has_1["default"](STYLE_COLOR_PARSERS),
-    "h2": has_1["default"](STYLE_COLOR_PARSERS),
-    "h3": has_1["default"](STYLE_COLOR_PARSERS),
-    "h4": has_1["default"](STYLE_COLOR_PARSERS),
-    "h5": has_1["default"](STYLE_COLOR_PARSERS),
-    "h6": has_1["default"](STYLE_COLOR_PARSERS),
-    "hatch": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "hatchpath": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "head": has_1["default"](STYLE_COLOR_PARSERS),
-    "header": has_1["default"](STYLE_COLOR_PARSERS),
-    "hgroup": has_1["default"](STYLE_COLOR_PARSERS),
-    "hkern": has_1["default"](STYLE_COLOR_PARSERS),
-    "hr": has_1["default"](STYLE_COLOR_PARSERS),
-    "html": has_1["default"](STYLE_COLOR_PARSERS),
-    "i": has_1["default"](STYLE_COLOR_PARSERS),
-    "iframe": has_1["default"](STYLE_COLOR_PARSERS),
-    "image": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "img": has_1["default"](STYLE_COLOR_PARSERS),
-    "input": has_1["default"](STYLE_COLOR_PARSERS),
-    "ins": has_1["default"](STYLE_COLOR_PARSERS),
-    "kbd": has_1["default"](STYLE_COLOR_PARSERS),
-    "keygen": has_1["default"](STYLE_COLOR_PARSERS),
-    "label": has_1["default"](STYLE_COLOR_PARSERS),
-    "legend": has_1["default"](STYLE_COLOR_PARSERS),
-    "li": has_1["default"](STYLE_COLOR_PARSERS),
-    "line": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "linearGradient": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "link": has_1["default"](STYLE_COLOR_PARSERS),
-    "map": has_1["default"](STYLE_COLOR_PARSERS),
-    "mark": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "marker": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "mask": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "menu": has_1["default"](STYLE_COLOR_PARSERS),
-    "mesh": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "meshgradient": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "meshpatch": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "meshrow": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "meta": has_1["default"](STYLE_COLOR_PARSERS),
-    "metadata": has_1["default"](STYLE_COLOR_PARSERS),
-    "meter": has_1["default"](STYLE_COLOR_PARSERS),
-    "mpath": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "nav": has_1["default"](STYLE_COLOR_PARSERS),
-    "noframes": has_1["default"](STYLE_COLOR_PARSERS),
-    "noscript": has_1["default"](STYLE_COLOR_PARSERS),
-    "object": has_1["default"](STYLE_COLOR_PARSERS),
-    "ol": has_1["default"](STYLE_COLOR_PARSERS),
-    "optgroup": has_1["default"](STYLE_COLOR_PARSERS),
-    "option": has_1["default"](STYLE_COLOR_PARSERS),
-    "output": has_1["default"](STYLE_COLOR_PARSERS),
-    "p": has_1["default"](STYLE_COLOR_PARSERS),
-    "param": has_1["default"](STYLE_COLOR_PARSERS),
-    "path": has_1["default"](SVG_PATH_PARSERS, SVG_COLOR_PARSERS, STYLE_COLOR_PARSERS),
-    "pattern": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "polygon": has_1["default"](SVG_POINT_PARSERS, SVG_COLOR_PARSERS, STYLE_COLOR_PARSERS),
-    "polyline": has_1["default"](SVG_POINT_PARSERS, SVG_COLOR_PARSERS, STYLE_COLOR_PARSERS),
-    "pre": has_1["default"](STYLE_COLOR_PARSERS),
-    "progress": has_1["default"](STYLE_COLOR_PARSERS),
-    "q": has_1["default"](STYLE_COLOR_PARSERS),
-    "radialGradient": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "rect": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "rp": has_1["default"](STYLE_COLOR_PARSERS),
-    "rt": has_1["default"](STYLE_COLOR_PARSERS),
-    "ruby": has_1["default"](STYLE_COLOR_PARSERS),
-    "s": has_1["default"](STYLE_COLOR_PARSERS),
-    "samp": has_1["default"](STYLE_COLOR_PARSERS),
-    "script": has_1["default"](STYLE_COLOR_PARSERS),
-    "section": has_1["default"](STYLE_COLOR_PARSERS),
-    "select": has_1["default"](STYLE_COLOR_PARSERS),
-    "set": has_1["default"](STYLE_COLOR_PARSERS),
-    "small": has_1["default"](STYLE_COLOR_PARSERS),
-    "solidcolor": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "source": has_1["default"](STYLE_COLOR_PARSERS),
-    "span": has_1["default"](STYLE_COLOR_PARSERS),
-    "stop": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "strike": has_1["default"](STYLE_COLOR_PARSERS),
-    "strong": has_1["default"](STYLE_COLOR_PARSERS),
-    "style": has_1["default"](STYLE_COLOR_PARSERS),
-    "sub": has_1["default"](STYLE_COLOR_PARSERS),
-    "summary": has_1["default"](STYLE_COLOR_PARSERS),
-    "sup": has_1["default"](STYLE_COLOR_PARSERS),
-    "svg": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    'missing-glyph': has_1["default"](STYLE_COLOR_PARSERS),
+    a: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    abbr: has_1["default"](STYLE_COLOR_PARSERS),
+    acronym: has_1["default"](STYLE_COLOR_PARSERS),
+    address: has_1["default"](STYLE_COLOR_PARSERS),
+    altGlyph: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    altGlyphDef: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    altGlyphItem: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    animate: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    animateColor: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    animateMotion: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    animateTransform: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    applet: has_1["default"](STYLE_COLOR_PARSERS),
+    area: has_1["default"](STYLE_COLOR_PARSERS),
+    article: has_1["default"](STYLE_COLOR_PARSERS),
+    aside: has_1["default"](STYLE_COLOR_PARSERS),
+    audio: has_1["default"](STYLE_COLOR_PARSERS),
+    b: has_1["default"](STYLE_COLOR_PARSERS),
+    base: has_1["default"](STYLE_COLOR_PARSERS),
+    basefont: has_1["default"](STYLE_COLOR_PARSERS),
+    bdi: has_1["default"](STYLE_COLOR_PARSERS),
+    bdo: has_1["default"](STYLE_COLOR_PARSERS),
+    big: has_1["default"](STYLE_COLOR_PARSERS),
+    blockquote: has_1["default"](STYLE_COLOR_PARSERS),
+    body: has_1["default"](STYLE_COLOR_PARSERS),
+    br: has_1["default"](STYLE_COLOR_PARSERS),
+    button: has_1["default"](STYLE_COLOR_PARSERS),
+    canvas: has_1["default"](STYLE_COLOR_PARSERS),
+    caption: has_1["default"](STYLE_COLOR_PARSERS),
+    center: has_1["default"](STYLE_COLOR_PARSERS),
+    circle: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    cite: has_1["default"](STYLE_COLOR_PARSERS),
+    clipPath: has_1["default"](STYLE_COLOR_PARSERS),
+    code: has_1["default"](STYLE_COLOR_PARSERS),
+    col: has_1["default"](STYLE_COLOR_PARSERS),
+    colgroup: has_1["default"](STYLE_COLOR_PARSERS),
+    'color-profile': has_1["default"](STYLE_COLOR_PARSERS),
+    command: has_1["default"](STYLE_COLOR_PARSERS),
+    cursor: has_1["default"](STYLE_COLOR_PARSERS),
+    datalist: has_1["default"](STYLE_COLOR_PARSERS),
+    dd: has_1["default"](STYLE_COLOR_PARSERS),
+    defs: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    del: has_1["default"](STYLE_COLOR_PARSERS),
+    desc: has_1["default"](STYLE_COLOR_PARSERS),
+    details: has_1["default"](STYLE_COLOR_PARSERS),
+    dfn: has_1["default"](STYLE_COLOR_PARSERS),
+    dir: has_1["default"](STYLE_COLOR_PARSERS),
+    discard: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    div: has_1["default"](STYLE_COLOR_PARSERS),
+    dl: has_1["default"](STYLE_COLOR_PARSERS),
+    dt: has_1["default"](STYLE_COLOR_PARSERS),
+    ellipse: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    em: has_1["default"](STYLE_COLOR_PARSERS),
+    embed: has_1["default"](STYLE_COLOR_PARSERS),
+    feBlend: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feColorMatrix: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feComponentTransfer: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feComposite: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feConvolveMatrix: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feDiffuseLighting: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feDisplacementMap: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feDistantLight: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feDropShadow: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feFlood: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feFuncA: has_1["default"](STYLE_COLOR_PARSERS),
+    feFuncB: has_1["default"](STYLE_COLOR_PARSERS),
+    feFuncG: has_1["default"](STYLE_COLOR_PARSERS),
+    feFuncR: has_1["default"](STYLE_COLOR_PARSERS),
+    feGaussianBlur: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feImage: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feMerge: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feMergeNode: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feMorphology: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feOffset: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    fePointLight: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feSpecularLighting: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feTile: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    feTurbulence: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    fieldset: has_1["default"](STYLE_COLOR_PARSERS),
+    figcaption: has_1["default"](STYLE_COLOR_PARSERS),
+    figure: has_1["default"](STYLE_COLOR_PARSERS),
+    filter: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    'font-face': has_1["default"](STYLE_COLOR_PARSERS),
+    'font-face-format': has_1["default"](STYLE_COLOR_PARSERS),
+    'font-face-name': has_1["default"](STYLE_COLOR_PARSERS),
+    'font-face-src': has_1["default"](STYLE_COLOR_PARSERS),
+    'font-face-uri': has_1["default"](STYLE_COLOR_PARSERS),
+    font: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    footer: has_1["default"](STYLE_COLOR_PARSERS),
+    foreignObject: has_1["default"](STYLE_COLOR_PARSERS),
+    form: has_1["default"](STYLE_COLOR_PARSERS),
+    frame: has_1["default"](STYLE_COLOR_PARSERS),
+    frameset: has_1["default"](STYLE_COLOR_PARSERS),
+    g: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    glyph: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    glyphRef: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    h1: has_1["default"](STYLE_COLOR_PARSERS),
+    h2: has_1["default"](STYLE_COLOR_PARSERS),
+    h3: has_1["default"](STYLE_COLOR_PARSERS),
+    h4: has_1["default"](STYLE_COLOR_PARSERS),
+    h5: has_1["default"](STYLE_COLOR_PARSERS),
+    h6: has_1["default"](STYLE_COLOR_PARSERS),
+    hatch: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    hatchpath: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    head: has_1["default"](STYLE_COLOR_PARSERS),
+    header: has_1["default"](STYLE_COLOR_PARSERS),
+    hgroup: has_1["default"](STYLE_COLOR_PARSERS),
+    hkern: has_1["default"](STYLE_COLOR_PARSERS),
+    hr: has_1["default"](STYLE_COLOR_PARSERS),
+    html: has_1["default"](STYLE_COLOR_PARSERS),
+    i: has_1["default"](STYLE_COLOR_PARSERS),
+    iframe: has_1["default"](STYLE_COLOR_PARSERS),
+    image: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    img: has_1["default"](STYLE_COLOR_PARSERS),
+    input: has_1["default"](STYLE_COLOR_PARSERS),
+    ins: has_1["default"](STYLE_COLOR_PARSERS),
+    kbd: has_1["default"](STYLE_COLOR_PARSERS),
+    keygen: has_1["default"](STYLE_COLOR_PARSERS),
+    label: has_1["default"](STYLE_COLOR_PARSERS),
+    legend: has_1["default"](STYLE_COLOR_PARSERS),
+    li: has_1["default"](STYLE_COLOR_PARSERS),
+    line: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    linearGradient: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    link: has_1["default"](STYLE_COLOR_PARSERS),
+    map: has_1["default"](STYLE_COLOR_PARSERS),
+    mark: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    marker: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    mask: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    menu: has_1["default"](STYLE_COLOR_PARSERS),
+    mesh: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    meshgradient: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    meshpatch: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    meshrow: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    meta: has_1["default"](STYLE_COLOR_PARSERS),
+    metadata: has_1["default"](STYLE_COLOR_PARSERS),
+    meter: has_1["default"](STYLE_COLOR_PARSERS),
+    mpath: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    nav: has_1["default"](STYLE_COLOR_PARSERS),
+    noframes: has_1["default"](STYLE_COLOR_PARSERS),
+    noscript: has_1["default"](STYLE_COLOR_PARSERS),
+    object: has_1["default"](STYLE_COLOR_PARSERS),
+    ol: has_1["default"](STYLE_COLOR_PARSERS),
+    optgroup: has_1["default"](STYLE_COLOR_PARSERS),
+    option: has_1["default"](STYLE_COLOR_PARSERS),
+    output: has_1["default"](STYLE_COLOR_PARSERS),
+    p: has_1["default"](STYLE_COLOR_PARSERS),
+    param: has_1["default"](STYLE_COLOR_PARSERS),
+    path: has_1["default"](SVG_PATH_PARSERS, SVG_COLOR_PARSERS, STYLE_COLOR_PARSERS),
+    pattern: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    polygon: has_1["default"](SVG_POINT_PARSERS, SVG_COLOR_PARSERS, STYLE_COLOR_PARSERS),
+    polyline: has_1["default"](SVG_POINT_PARSERS, SVG_COLOR_PARSERS, STYLE_COLOR_PARSERS),
+    pre: has_1["default"](STYLE_COLOR_PARSERS),
+    progress: has_1["default"](STYLE_COLOR_PARSERS),
+    q: has_1["default"](STYLE_COLOR_PARSERS),
+    radialGradient: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    rect: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    rp: has_1["default"](STYLE_COLOR_PARSERS),
+    rt: has_1["default"](STYLE_COLOR_PARSERS),
+    ruby: has_1["default"](STYLE_COLOR_PARSERS),
+    s: has_1["default"](STYLE_COLOR_PARSERS),
+    samp: has_1["default"](STYLE_COLOR_PARSERS),
+    script: has_1["default"](STYLE_COLOR_PARSERS),
+    section: has_1["default"](STYLE_COLOR_PARSERS),
+    select: has_1["default"](STYLE_COLOR_PARSERS),
+    set: has_1["default"](STYLE_COLOR_PARSERS),
+    small: has_1["default"](STYLE_COLOR_PARSERS),
+    solidcolor: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    source: has_1["default"](STYLE_COLOR_PARSERS),
+    span: has_1["default"](STYLE_COLOR_PARSERS),
+    stop: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    strike: has_1["default"](STYLE_COLOR_PARSERS),
+    strong: has_1["default"](STYLE_COLOR_PARSERS),
+    style: has_1["default"](STYLE_COLOR_PARSERS),
+    sub: has_1["default"](STYLE_COLOR_PARSERS),
+    summary: has_1["default"](STYLE_COLOR_PARSERS),
+    sup: has_1["default"](STYLE_COLOR_PARSERS),
+    svg: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
     "switch": has_1["default"](STYLE_COLOR_PARSERS),
-    "symbol": has_1["default"](STYLE_COLOR_PARSERS),
-    "table": has_1["default"](STYLE_COLOR_PARSERS),
-    "tbody": has_1["default"](STYLE_COLOR_PARSERS),
-    "td": has_1["default"](STYLE_COLOR_PARSERS),
-    "text": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "textarea": has_1["default"](STYLE_COLOR_PARSERS),
-    "textPath": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "tfoot": has_1["default"](STYLE_COLOR_PARSERS),
-    "th": has_1["default"](STYLE_COLOR_PARSERS),
-    "thead": has_1["default"](STYLE_COLOR_PARSERS),
-    "time": has_1["default"](STYLE_COLOR_PARSERS),
-    "title": has_1["default"](STYLE_COLOR_PARSERS),
-    "tr": has_1["default"](STYLE_COLOR_PARSERS),
-    "track": has_1["default"](STYLE_COLOR_PARSERS),
-    "tref": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "tspan": has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
-    "tt": has_1["default"](STYLE_COLOR_PARSERS),
-    "u": has_1["default"](STYLE_COLOR_PARSERS),
-    "ul": has_1["default"](STYLE_COLOR_PARSERS),
-    "unknown": has_1["default"](STYLE_COLOR_PARSERS),
-    "us": has_1["default"](STYLE_COLOR_PARSERS),
-    "use": has_1["default"](STYLE_COLOR_PARSERS),
+    symbol: has_1["default"](STYLE_COLOR_PARSERS),
+    table: has_1["default"](STYLE_COLOR_PARSERS),
+    tbody: has_1["default"](STYLE_COLOR_PARSERS),
+    td: has_1["default"](STYLE_COLOR_PARSERS),
+    text: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    textarea: has_1["default"](STYLE_COLOR_PARSERS),
+    textPath: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    tfoot: has_1["default"](STYLE_COLOR_PARSERS),
+    th: has_1["default"](STYLE_COLOR_PARSERS),
+    thead: has_1["default"](STYLE_COLOR_PARSERS),
+    time: has_1["default"](STYLE_COLOR_PARSERS),
+    title: has_1["default"](STYLE_COLOR_PARSERS),
+    tr: has_1["default"](STYLE_COLOR_PARSERS),
+    track: has_1["default"](STYLE_COLOR_PARSERS),
+    tref: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    tspan: has_1["default"](STYLE_COLOR_PARSERS, SVG_COLOR_PARSERS),
+    tt: has_1["default"](STYLE_COLOR_PARSERS),
+    u: has_1["default"](STYLE_COLOR_PARSERS),
+    ul: has_1["default"](STYLE_COLOR_PARSERS),
+    unknown: has_1["default"](STYLE_COLOR_PARSERS),
+    us: has_1["default"](STYLE_COLOR_PARSERS),
+    use: has_1["default"](STYLE_COLOR_PARSERS),
     "var": has_1["default"](STYLE_COLOR_PARSERS),
-    "video": has_1["default"](STYLE_COLOR_PARSERS),
-    "view": has_1["default"](STYLE_COLOR_PARSERS),
-    "vkern": has_1["default"](STYLE_COLOR_PARSERS),
-    "wb": has_1["default"](STYLE_COLOR_PARSERS)
+    video: has_1["default"](STYLE_COLOR_PARSERS),
+    view: has_1["default"](STYLE_COLOR_PARSERS),
+    vkern: has_1["default"](STYLE_COLOR_PARSERS),
+    wb: has_1["default"](STYLE_COLOR_PARSERS)
 };
 
 },{"./../../helpers/ColorUtils":15,"./../../helpers/SVGPoints":17,"./has":47}],49:[function(_dereq_,module,exports){
@@ -4797,1089 +4898,1090 @@ exports["default"] = {
 exports.__esModule = true;
 var has_1 = _dereq_("./has");
 var TEXT_CONTENT_SCHEMA = {
-    content: "string"
+    content: 'string'
 };
 var LAYOUT_3D_SCHEMA = {
-    "shown": "boolean",
-    "opacity": "number",
-    "mount.x": "number",
-    "mount.y": "number",
-    "mount.z": "number",
-    "align.x": "number",
-    "align.y": "number",
-    "align.z": "number",
-    "origin.x": "number",
-    "origin.y": "number",
-    "origin.z": "number",
-    "translation.x": "number",
-    "translation.y": "number",
-    "translation.z": "number",
-    "rotation.x": "number",
-    "rotation.y": "number",
-    "rotation.z": "number",
-    "rotation.w": "number",
-    "scale.x": "number",
-    "scale.y": "number",
-    "scale.z": "number",
-    "sizeAbsolute.x": "number",
-    "sizeAbsolute.y": "number",
-    "sizeAbsolute.z": "number",
-    "sizeProportional.x": "number",
-    "sizeProportional.y": "number",
-    "sizeProportional.z": "number",
-    "sizeDifferential.x": "number",
-    "sizeDifferential.y": "number",
-    "sizeDifferential.z": "number",
-    "sizeMode.x": "number",
-    "sizeMode.y": "number",
-    "sizeMode.z": "number"
+    shown: 'boolean',
+    opacity: 'number',
+    'mount.x': 'number',
+    'mount.y': 'number',
+    'mount.z': 'number',
+    'align.x': 'number',
+    'align.y': 'number',
+    'align.z': 'number',
+    'origin.x': 'number',
+    'origin.y': 'number',
+    'origin.z': 'number',
+    'translation.x': 'number',
+    'translation.y': 'number',
+    'translation.z': 'number',
+    'rotation.x': 'number',
+    'rotation.y': 'number',
+    'rotation.z': 'number',
+    'rotation.w': 'number',
+    'scale.x': 'number',
+    'scale.y': 'number',
+    'scale.z': 'number',
+    'sizeAbsolute.x': 'number',
+    'sizeAbsolute.y': 'number',
+    'sizeAbsolute.z': 'number',
+    'sizeProportional.x': 'number',
+    'sizeProportional.y': 'number',
+    'sizeProportional.z': 'number',
+    'sizeDifferential.x': 'number',
+    'sizeDifferential.y': 'number',
+    'sizeDifferential.z': 'number',
+    'sizeMode.x': 'number',
+    'sizeMode.y': 'number',
+    'sizeMode.z': 'number'
 };
 var LAYOUT_2D_SCHEMA = {
-    "shown": "boolean",
-    "opacity": "number",
-    "mount.x": "number",
-    "mount.y": "number",
-    "align.x": "number",
-    "align.y": "number",
-    "origin.x": "number",
-    "origin.y": "number",
-    "translation.x": "number",
-    "translation.y": "number",
-    "translation.z": "number",
-    "rotation.x": "number",
-    "rotation.y": "number",
-    "rotation.z": "number",
-    "scale.x": "number",
-    "scale.y": "number",
-    "sizeAbsolute.x": "number",
-    "sizeAbsolute.y": "number",
-    "sizeProportional.x": "number",
-    "sizeProportional.y": "number",
-    "sizeDifferential.x": "number",
-    "sizeDifferential.y": "number",
-    "sizeMode.x": "number",
-    "sizeMode.y": "number"
+    shown: 'boolean',
+    opacity: 'number',
+    'mount.x': 'number',
+    'mount.y': 'number',
+    'align.x': 'number',
+    'align.y': 'number',
+    'origin.x': 'number',
+    'origin.y': 'number',
+    'translation.x': 'number',
+    'translation.y': 'number',
+    'translation.z': 'number',
+    'rotation.x': 'number',
+    'rotation.y': 'number',
+    'rotation.z': 'number',
+    'scale.x': 'number',
+    'scale.y': 'number',
+    'sizeAbsolute.x': 'number',
+    'sizeAbsolute.y': 'number',
+    'sizeProportional.x': 'number',
+    'sizeProportional.y': 'number',
+    'sizeDifferential.x': 'number',
+    'sizeDifferential.y': 'number',
+    'sizeMode.x': 'number',
+    'sizeMode.y': 'number'
 };
 var PRESENTATION_SCHEMA = {
-    alignmentBaseline: "string",
-    baselineShift: "string",
-    clipPath: "string",
-    clipRule: "string",
-    clip: "string",
-    colorInterpolationFilters: "string",
-    colorInterpolation: "string",
-    colorProfile: "string",
-    colorRendering: "string",
-    color: "string",
-    cursor: "string",
-    direction: "string",
-    display: "string",
-    dominantBaseline: "string",
-    enableBackground: "string",
-    fillOpacity: "string",
-    fillRule: "string",
-    fill: "string",
-    filter: "string",
-    floodColor: "string",
-    floodOpacity: "string",
-    fontFamily: "string",
-    fontSizeAdjust: "string",
-    fontSize: "string",
-    fontStretch: "string",
-    fontStyle: "string",
-    fontVariant: "string",
-    fontWeight: "string",
-    glyphOrientationHorizontal: "string",
-    glyphOrientationVertical: "string",
-    imageRendering: "string",
-    kerning: "string",
-    letterSpacing: "string",
-    lightingColor: "string",
-    markerEnd: "string",
-    markerMid: "string",
-    markerStart: "string",
-    mask: "string",
-    overflow: "string",
-    overflowX: "string",
-    overflowY: "string",
-    pointerEvents: "string",
-    shapeRendering: "string",
-    stopColor: "string",
-    stopOpacity: "string",
-    strokeDasharray: "string",
-    strokeDashoffset: "string",
-    strokeLinecap: "string",
-    strokeLinejoin: "string",
-    strokeMiterlimit: "string",
-    strokeOpacity: "string",
-    strokeWidth: "string",
-    stroke: "string",
-    textAnchor: "string",
-    textDecoration: "string",
-    textRendering: "string",
-    unicodeBidi: "string",
-    visibility: "string",
-    wordSpacing: "string",
-    writingMode: "string"
+    alignmentBaseline: 'string',
+    baselineShift: 'string',
+    clipPath: 'string',
+    clipRule: 'string',
+    clip: 'string',
+    colorInterpolationFilters: 'string',
+    colorInterpolation: 'string',
+    colorProfile: 'string',
+    colorRendering: 'string',
+    color: 'string',
+    cursor: 'string',
+    direction: 'string',
+    display: 'string',
+    dominantBaseline: 'string',
+    enableBackground: 'string',
+    fillOpacity: 'string',
+    fillRule: 'string',
+    fill: 'string',
+    filter: 'string',
+    floodColor: 'string',
+    floodOpacity: 'string',
+    fontFamily: 'string',
+    fontSizeAdjust: 'string',
+    fontSize: 'string',
+    fontStretch: 'string',
+    fontStyle: 'string',
+    fontVariant: 'string',
+    fontWeight: 'string',
+    glyphOrientationHorizontal: 'string',
+    glyphOrientationVertical: 'string',
+    imageRendering: 'string',
+    kerning: 'string',
+    letterSpacing: 'string',
+    lightingColor: 'string',
+    markerEnd: 'string',
+    markerMid: 'string',
+    markerStart: 'string',
+    mask: 'string',
+    overflow: 'string',
+    overflowX: 'string',
+    overflowY: 'string',
+    pointerEvents: 'string',
+    shapeRendering: 'string',
+    stopColor: 'string',
+    stopOpacity: 'string',
+    strokeDasharray: 'string',
+    strokeDashoffset: 'string',
+    strokeLinecap: 'string',
+    strokeLinejoin: 'string',
+    strokeMiterlimit: 'string',
+    strokeOpacity: 'string',
+    strokeWidth: 'string',
+    stroke: 'string',
+    textAnchor: 'string',
+    textDecoration: 'string',
+    textRendering: 'string',
+    unicodeBidi: 'string',
+    visibility: 'string',
+    wordSpacing: 'string',
+    writingMode: 'string'
 };
 var FILTER_SCHEMA = {
-    x: "string",
-    y: "string",
-    width: "string",
-    height: "string",
-    filterRes: "string",
-    filterUnits: "string",
-    primitiveUnits: "string"
+    x: 'string',
+    y: 'string',
+    width: 'string',
+    height: 'string',
+    filterRes: 'string',
+    filterUnits: 'string',
+    primitiveUnits: 'string'
 };
 var RECT_SCHEMA = {
-    x: "number",
-    y: "number",
-    width: "number",
-    height: "number",
-    rx: "number",
-    ry: "number"
+    x: 'number',
+    y: 'number',
+    width: 'number',
+    height: 'number',
+    rx: 'number',
+    ry: 'number'
 };
 var CIRCLE_SCHEMA = {
-    r: "number",
-    cx: "number",
-    cy: "number"
+    r: 'number',
+    cx: 'number',
+    cy: 'number'
 };
 var ELLIPSE_SCHEMA = {
-    rx: "number",
-    ry: "number",
-    cx: "number",
-    cy: "number"
+    rx: 'number',
+    ry: 'number',
+    cx: 'number',
+    cy: 'number'
 };
 var LINE_SCHEMA = {
-    x1: "number",
-    y1: "number",
-    x2: "number",
-    y2: "number"
+    x1: 'number',
+    y1: 'number',
+    x2: 'number',
+    y2: 'number'
 };
 var POLYLINE_SCHEMA = {
-    points: "string"
+    points: 'string'
 };
 var POLYGON_SCHEMA = {
-    points: "string"
+    points: 'string'
 };
 var PATH_SCHEMA = {
-    d: "string"
+    d: 'string'
 };
 var STYLE_SCHEMA = {
-    "style.alignmentBaseline": "string",
-    "style.background": "string",
-    "style.backgroundAttachment": "string",
-    "style.backgroundColor": "string",
-    "style.backgroundImage": "string",
-    "style.backgroundPosition": "string",
-    "style.backgroundRepeat": "string",
-    "style.baselineShift": "string",
-    "style.border": "string",
-    "style.borderBottom": "string",
-    "style.borderBottomColor": "string",
-    "style.borderBottomStyle": "string",
-    "style.borderBottomWidth": "string",
-    "style.borderColor": "string",
-    "style.borderLeft": "string",
-    "style.borderLeftColor": "string",
-    "style.borderLeftStyle": "string",
-    "style.borderLeftWidth": "string",
-    "style.borderRight": "string",
-    "style.borderRightColor": "string",
-    "style.borderRightStyle": "string",
-    "style.borderRightWidth": "string",
-    "style.borderStyle": "string",
-    "style.borderTop": "string",
-    "style.borderTopColor": "string",
-    "style.borderTopStyle": "string",
-    "style.borderTopWidth": "string",
-    "style.borderWidth": "string",
-    "style.clear": "string",
-    "style.clip": "string",
-    "style.clipPath": "string",
-    "style.clipRule": "string",
-    "style.color": "string",
-    "style.colorInterpolation": "string",
-    "style.colorInterpolationFilters": "string",
-    "style.colorProfile": "string",
-    "style.colorRendering": "string",
-    "style.cssFloat": "string",
-    "style.cursor": "string",
-    "style.direction": "string",
-    "style.display": "string",
-    "style.dominantBaseline": "string",
-    "style.enableBackground": "string",
-    "style.fill": "string",
-    "style.fillOpacity": "string",
-    "style.fillRule": "string",
-    "style.filter": "string",
-    "style.floodColor": "string",
-    "style.floodOpacity": "string",
-    "style.font": "string",
-    "style.fontFamily": "string",
-    "style.fontSize": "string",
-    "style.fontSizeAdjust": "string",
-    "style.fontStretch": "string",
-    "style.fontStyle": "string",
-    "style.fontVariant": "string",
-    "style.fontWeight": "string",
-    "style.glyphOrientationHorizontal": "string",
-    "style.glyphOrientationVertical": "string",
-    "style.height": "string",
-    "style.imageRendering": "string",
-    "style.kerning": "string",
-    "style.left": "string",
-    "style.letterSpacing": "string",
-    "style.lightingColor": "string",
-    "style.lineHeight": "string",
-    "style.listStyle": "string",
-    "style.listStyleImage": "string",
-    "style.listStylePosition": "string",
-    "style.listStyleType": "string",
-    "style.margin": "string",
-    "style.marginBottom": "string",
-    "style.marginLeft": "string",
-    "style.marginRight": "string",
-    "style.marginTop": "string",
-    "style.markerEnd": "string",
-    "style.markerMid": "string",
-    "style.markerStart": "string",
-    "style.mask": "string",
-    "style.opacity": "string",
-    "style.overflow": "string",
-    "style.overflowX": "string",
-    "style.overflowY": "string",
-    "style.padding": "string",
-    "style.paddingBottom": "string",
-    "style.paddingLeft": "string",
-    "style.paddingRight": "string",
-    "style.paddingTop": "string",
-    "style.pageBreakAfter": "string",
-    "style.pageBreakBefore": "string",
-    "style.pointerEvents": "string",
-    "style.position": "string",
-    "style.shapeRendering": "string",
-    "style.stopColor": "string",
-    "style.stopOpacity": "string",
-    "style.stroke": "string",
-    "style.strokeDasharray": "string",
-    "style.strokeDashoffset": "string",
-    "style.strokeLinecap": "string",
-    "style.strokeLinejoin": "string",
-    "style.strokeMiterlimit": "string",
-    "style.strokeOpacity": "string",
-    "style.strokeWidth": "string",
-    "style.textAlign": "string",
-    "style.textAnchor": "string",
-    "style.textDecoration": "string",
-    "style.textDecorationBlink": "string",
-    "style.textDecorationLineThrough": "string",
-    "style.textDecorationNone": "string",
-    "style.textDecorationOverline": "string",
-    "style.textDecorationUnderline": "string",
-    "style.textIndent": "string",
-    "style.textRendering": "string",
-    "style.textTransform": "string",
-    "style.top": "string",
-    "style.unicodeBidi": "string",
-    "style.verticalAlign": "string",
-    "style.visibility": "string",
-    "style.width": "string",
-    "style.wordSpacing": "string",
-    "style.writingMode": "string",
-    "style.zIndex": "number",
-    "style.WebkitTapHighlightColor": "string"
+    'style.alignmentBaseline': 'string',
+    'style.background': 'string',
+    'style.backgroundAttachment': 'string',
+    'style.backgroundColor': 'string',
+    'style.backgroundImage': 'string',
+    'style.backgroundPosition': 'string',
+    'style.backgroundRepeat': 'string',
+    'style.baselineShift': 'string',
+    'style.border': 'string',
+    'style.borderBottom': 'string',
+    'style.borderBottomColor': 'string',
+    'style.borderBottomStyle': 'string',
+    'style.borderBottomWidth': 'string',
+    'style.borderColor': 'string',
+    'style.borderLeft': 'string',
+    'style.borderLeftColor': 'string',
+    'style.borderLeftStyle': 'string',
+    'style.borderLeftWidth': 'string',
+    'style.borderRight': 'string',
+    'style.borderRightColor': 'string',
+    'style.borderRightStyle': 'string',
+    'style.borderRightWidth': 'string',
+    'style.borderStyle': 'string',
+    'style.borderTop': 'string',
+    'style.borderTopColor': 'string',
+    'style.borderTopStyle': 'string',
+    'style.borderTopWidth': 'string',
+    'style.borderWidth': 'string',
+    'style.clear': 'string',
+    'style.clip': 'string',
+    'style.clipPath': 'string',
+    'style.clipRule': 'string',
+    'style.color': 'string',
+    'style.colorInterpolation': 'string',
+    'style.colorInterpolationFilters': 'string',
+    'style.colorProfile': 'string',
+    'style.colorRendering': 'string',
+    'style.cssFloat': 'string',
+    'style.cursor': 'string',
+    'style.direction': 'string',
+    'style.display': 'string',
+    'style.dominantBaseline': 'string',
+    'style.enableBackground': 'string',
+    'style.fill': 'string',
+    'style.fillOpacity': 'string',
+    'style.fillRule': 'string',
+    'style.filter': 'string',
+    'style.floodColor': 'string',
+    'style.floodOpacity': 'string',
+    'style.font': 'string',
+    'style.fontFamily': 'string',
+    'style.fontSize': 'string',
+    'style.fontSizeAdjust': 'string',
+    'style.fontStretch': 'string',
+    'style.fontStyle': 'string',
+    'style.fontVariant': 'string',
+    'style.fontWeight': 'string',
+    'style.glyphOrientationHorizontal': 'string',
+    'style.glyphOrientationVertical': 'string',
+    'style.height': 'string',
+    'style.imageRendering': 'string',
+    'style.kerning': 'string',
+    'style.left': 'string',
+    'style.letterSpacing': 'string',
+    'style.lightingColor': 'string',
+    'style.lineHeight': 'string',
+    'style.listStyle': 'string',
+    'style.listStyleImage': 'string',
+    'style.listStylePosition': 'string',
+    'style.listStyleType': 'string',
+    'style.margin': 'string',
+    'style.marginBottom': 'string',
+    'style.marginLeft': 'string',
+    'style.marginRight': 'string',
+    'style.marginTop': 'string',
+    'style.markerEnd': 'string',
+    'style.markerMid': 'string',
+    'style.markerStart': 'string',
+    'style.mask': 'string',
+    'style.opacity': 'string',
+    'style.overflow': 'string',
+    'style.overflowX': 'string',
+    'style.overflowY': 'string',
+    'style.padding': 'string',
+    'style.paddingBottom': 'string',
+    'style.paddingLeft': 'string',
+    'style.paddingRight': 'string',
+    'style.paddingTop': 'string',
+    'style.pageBreakAfter': 'string',
+    'style.pageBreakBefore': 'string',
+    'style.pointerEvents': 'string',
+    'style.position': 'string',
+    'style.shapeRendering': 'string',
+    'style.stopColor': 'string',
+    'style.stopOpacity': 'string',
+    'style.stroke': 'string',
+    'style.strokeDasharray': 'string',
+    'style.strokeDashoffset': 'string',
+    'style.strokeLinecap': 'string',
+    'style.strokeLinejoin': 'string',
+    'style.strokeMiterlimit': 'string',
+    'style.strokeOpacity': 'string',
+    'style.strokeWidth': 'string',
+    'style.textAlign': 'string',
+    'style.textAnchor': 'string',
+    'style.textDecoration': 'string',
+    'style.textDecorationBlink': 'string',
+    'style.textDecorationLineThrough': 'string',
+    'style.textDecorationNone': 'string',
+    'style.textDecorationOverline': 'string',
+    'style.textDecorationUnderline': 'string',
+    'style.textIndent': 'string',
+    'style.textRendering': 'string',
+    'style.textTransform': 'string',
+    'style.top': 'string',
+    'style.unicodeBidi': 'string',
+    'style.verticalAlign': 'string',
+    'style.visibility': 'string',
+    'style.width': 'string',
+    'style.wordSpacing': 'string',
+    'style.writingMode': 'string',
+    'style.zIndex': 'number',
+    'style.WebkitTapHighlightColor': 'string'
 };
 var HTML_STYLE_SHORTHAND_SCHEMA = {
-    backgroundColor: "string"
+    backgroundColor: 'string'
 };
 var CONTROL_FLOW_SCHEMA = {
-    "controlFlow.repeat": "any",
-    "controlFlow.placeholder": "any"
+    'controlFlow.repeat': 'any',
+    'controlFlow.placeholder': 'any'
 };
 exports["default"] = {
-    "missing-glyph": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "a": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA, STYLE_SCHEMA),
-    "abbr": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "acronym": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "address": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "altGlyph": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "altGlyphDef": has_1["default"](),
-    "altGlyphItem": has_1["default"](),
-    "animate": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "animateColor": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "animateMotion": has_1["default"](),
-    "animateTransform": has_1["default"](),
-    "applet": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "area": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "article": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "aside": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "audio": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "b": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "base": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "basefont": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "bdi": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "bdo": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "big": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "blockquote": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "body": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "br": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "button": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "canvas": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "caption": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "center": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "circle": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, CIRCLE_SCHEMA),
-    "cite": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "clipPath": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "code": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "col": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "colgroup": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "color-profile": has_1["default"](),
-    "command": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "cursor": has_1["default"](),
-    "datalist": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "dd": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "defs": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "del": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "desc": has_1["default"](),
-    "details": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "dfn": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "dir": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "discard": has_1["default"](),
-    "div": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "dl": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "dt": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "ellipse": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA, ELLIPSE_SCHEMA),
-    "em": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "embed": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "feBlend": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feColorMatrix": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feComponentTransfer": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feComposite": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feConvolveMatrix": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feDiffuseLighting": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feDisplacementMap": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feDistantLight": has_1["default"](),
-    "feDropShadow": has_1["default"](),
-    "feFlood": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feFuncA": has_1["default"](),
-    "feFuncB": has_1["default"](),
-    "feFuncG": has_1["default"](),
-    "feFuncR": has_1["default"](),
-    "feGaussianBlur": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feImage": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feMerge": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feMergeNode": has_1["default"](),
-    "feMorphology": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feOffset": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "fePointLight": has_1["default"](),
-    "feSpecularLighting": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feTile": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "feTurbulence": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "fieldset": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "figcaption": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "figure": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "filter": has_1["default"](LAYOUT_3D_SCHEMA, FILTER_SCHEMA),
-    "font-face": has_1["default"](),
-    "font-face-format": has_1["default"](),
-    "font-face-name": has_1["default"](),
-    "font-face-src": has_1["default"](),
-    "font-face-uri": has_1["default"](),
-    "font": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA, STYLE_SCHEMA),
-    "footer": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "foreignObject": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
-    "form": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "frame": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "frameset": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "g": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
-    "glyph": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "glyphRef": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "h1": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "h2": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "h3": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "h4": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "h5": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "h6": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "hatch": has_1["default"](),
-    "hatchpath": has_1["default"](),
-    "head": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "header": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "hgroup": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "hkern": has_1["default"](),
-    "hr": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "html": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "i": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "iframe": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "image": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
-    "img": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "input": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "ins": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "kbd": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "keygen": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "label": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "legend": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "li": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "line": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, LINE_SCHEMA),
-    "linearGradient": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "link": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "map": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "mark": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "marker": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "mask": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "menu": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "mesh": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA),
-    "meshgradient": has_1["default"](),
-    "meshpatch": has_1["default"](),
-    "meshrow": has_1["default"](),
-    "meta": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "metadata": has_1["default"](),
-    "meter": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "mpath": has_1["default"](),
-    "nav": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "noframes": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "noscript": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "object": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "ol": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "optgroup": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "option": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "output": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "p": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "param": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "path": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, PATH_SCHEMA),
-    "pattern": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "polygon": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, POLYGON_SCHEMA),
-    "polyline": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, POLYLINE_SCHEMA),
-    "pre": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "progress": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "q": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "radialGradient": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "rect": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, RECT_SCHEMA),
-    "rp": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "rt": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "ruby": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "s": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "samp": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "script": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "section": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "select": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "set": has_1["default"](),
-    "small": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "solidcolor": has_1["default"](),
-    "source": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "span": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "stop": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "strike": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "strong": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "style": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "sub": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "summary": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "sup": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "svg": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA, STYLE_SCHEMA),
+    'missing-glyph': has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    a: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA, STYLE_SCHEMA),
+    abbr: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    acronym: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    address: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    altGlyph: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    altGlyphDef: has_1["default"](),
+    altGlyphItem: has_1["default"](),
+    animate: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    animateColor: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    animateMotion: has_1["default"](),
+    animateTransform: has_1["default"](),
+    applet: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    area: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    article: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    aside: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    audio: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    b: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    base: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    basefont: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    bdi: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    bdo: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    big: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    blockquote: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    body: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    br: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    button: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    canvas: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    caption: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    center: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    circle: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, CIRCLE_SCHEMA),
+    cite: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    clipPath: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    code: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    col: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    colgroup: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    'color-profile': has_1["default"](),
+    command: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    cursor: has_1["default"](),
+    datalist: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    dd: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    defs: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    del: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    desc: has_1["default"](),
+    details: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    dfn: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    dir: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    discard: has_1["default"](),
+    div: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    dl: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    dt: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    ellipse: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA, ELLIPSE_SCHEMA),
+    em: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    embed: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    feBlend: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feColorMatrix: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feComponentTransfer: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feComposite: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feConvolveMatrix: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feDiffuseLighting: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feDisplacementMap: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feDistantLight: has_1["default"](),
+    feDropShadow: has_1["default"](),
+    feFlood: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feFuncA: has_1["default"](),
+    feFuncB: has_1["default"](),
+    feFuncG: has_1["default"](),
+    feFuncR: has_1["default"](),
+    feGaussianBlur: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feImage: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feMerge: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feMergeNode: has_1["default"](),
+    feMorphology: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feOffset: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    fePointLight: has_1["default"](),
+    feSpecularLighting: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feTile: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    feTurbulence: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    fieldset: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    figcaption: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    figure: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    filter: has_1["default"](LAYOUT_3D_SCHEMA, FILTER_SCHEMA),
+    'font-face': has_1["default"](),
+    'font-face-format': has_1["default"](),
+    'font-face-name': has_1["default"](),
+    'font-face-src': has_1["default"](),
+    'font-face-uri': has_1["default"](),
+    font: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA, STYLE_SCHEMA),
+    footer: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    foreignObject: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+    form: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    frame: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    frameset: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    g: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+    glyph: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    glyphRef: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    h1: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    h2: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    h3: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    h4: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    h5: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    h6: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    hatch: has_1["default"](),
+    hatchpath: has_1["default"](),
+    head: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    header: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    hgroup: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    hkern: has_1["default"](),
+    hr: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    html: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    i: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    iframe: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    image: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+    img: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    input: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    ins: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    kbd: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    keygen: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    label: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    legend: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    li: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    line: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, LINE_SCHEMA),
+    linearGradient: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    link: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    map: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    mark: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    marker: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    mask: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    menu: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    mesh: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA),
+    meshgradient: has_1["default"](),
+    meshpatch: has_1["default"](),
+    meshrow: has_1["default"](),
+    meta: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    metadata: has_1["default"](),
+    meter: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    mpath: has_1["default"](),
+    nav: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    noframes: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    noscript: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    object: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    ol: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    optgroup: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    option: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    output: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    p: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    param: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    path: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, PATH_SCHEMA),
+    pattern: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    polygon: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, POLYGON_SCHEMA),
+    polyline: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, POLYLINE_SCHEMA),
+    pre: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    progress: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    q: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    radialGradient: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    rect: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA, RECT_SCHEMA),
+    rp: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    rt: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    ruby: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    s: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    samp: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    script: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    section: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    select: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    set: has_1["default"](),
+    small: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    solidcolor: has_1["default"](),
+    source: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    span: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    stop: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    strike: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    strong: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    style: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    sub: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    summary: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    sup: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    svg: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA, STYLE_SCHEMA),
     "switch": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
-    "symbol": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
-    "table": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "tbody": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "td": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "text": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
-    "textarea": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "textPath": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
-    "tfoot": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "th": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "thead": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "time": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "title": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "tr": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "track": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "tref": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "tspan": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
-    "tt": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "u": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "ul": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "unknown": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA),
-    "us": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
-    "use": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA),
+    symbol: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+    table: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    tbody: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    td: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    text: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+    textarea: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    textPath: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+    tfoot: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    th: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    thead: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    time: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    title: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    tr: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    track: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    tref: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    tspan: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA, PRESENTATION_SCHEMA),
+    tt: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    u: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, TEXT_CONTENT_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    ul: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    unknown: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA),
+    us: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
+    use: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_2D_SCHEMA),
     "var": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "video": has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
-    "view": has_1["default"](),
-    "vkern": has_1["default"](),
-    "wb": has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA)
+    video: has_1["default"](HTML_STYLE_SHORTHAND_SCHEMA, CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
+    view: has_1["default"](),
+    vkern: has_1["default"](),
+    wb: has_1["default"](CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA)
 };
 
 },{"./has":47}],50:[function(_dereq_,module,exports){
 "use strict";
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
 exports.__esModule = true;
 var Layout3D_1 = _dereq_("./../../Layout3D");
 var has_1 = _dereq_("./has");
 var LAYOUT_3D_VANITIES = {
-    "shown": function (name, element, value) {
+    shown: function (_, element, value) {
         element.layout.shown = value;
     },
-    "opacity": function (name, element, value) {
+    opacity: function (_, element, value) {
         element.layout.opacity = value;
     },
-    "rotation.x": function (name, element, value) {
+    'rotation.x': function (name, element, value) {
         element.layout.rotation.x = value;
         element.layout.orientation = Layout3D_1["default"].computeOrientationFlexibly(element.layout.rotation.x, element.layout.rotation.y, element.layout.rotation.z, element.layout.rotation.w, element.layout.rotation);
     },
-    "rotation.y": function (name, element, value) {
+    'rotation.y': function (name, element, value) {
         element.layout.rotation.y = value;
         element.layout.orientation = Layout3D_1["default"].computeOrientationFlexibly(element.layout.rotation.x, element.layout.rotation.y, element.layout.rotation.z, element.layout.rotation.w, element.layout.orientation);
     },
-    "rotation.z": function (name, element, value) {
+    'rotation.z': function (name, element, value) {
         element.layout.rotation.z = value;
         element.layout.orientation = Layout3D_1["default"].computeOrientationFlexibly(element.layout.rotation.x, element.layout.rotation.y, element.layout.rotation.z, element.layout.rotation.w, element.layout.orientation);
     },
-    "rotation.w": function (name, element, value) {
+    'rotation.w': function (name, element, value) {
         element.layout.rotation.w = value;
         element.layout.orientation = Layout3D_1["default"].computeOrientationFlexibly(element.layout.rotation.x, element.layout.rotation.y, element.layout.rotation.z, element.layout.rotation.w, element.layout.orientation);
     },
-    "position.x": function (name, element, value) {
+    'position.x': function (name, element, value) {
         element.attributes.x = value;
     },
-    "position.y": function (name, element, value) {
+    'position.y': function (name, element, value) {
         element.attributes.y = value;
     },
-    "align.x": function (name, element, value) {
+    'align.x': function (name, element, value) {
         element.layout.align.x = value;
     },
-    "align.y": function (name, element, value) {
+    'align.y': function (name, element, value) {
         element.layout.align.y = value;
     },
-    "align.z": function (name, element, value) {
+    'align.z': function (name, element, value) {
         element.layout.align.z = value;
     },
-    "mount.x": function (name, element, value) {
+    'mount.x': function (name, element, value) {
         element.layout.mount.x = value;
     },
-    "mount.y": function (name, element, value) {
+    'mount.y': function (name, element, value) {
         element.layout.mount.y = value;
     },
-    "mount.z": function (name, element, value) {
+    'mount.z': function (name, element, value) {
         element.layout.mount.z = value;
     },
-    "origin.x": function (name, element, value) {
+    'origin.x': function (name, element, value) {
         element.layout.origin.x = value;
     },
-    "origin.y": function (name, element, value) {
+    'origin.y': function (name, element, value) {
         element.layout.origin.y = value;
     },
-    "origin.z": function (name, element, value) {
+    'origin.z': function (name, element, value) {
         element.layout.origin.z = value;
     },
-    "scale.x": function (name, element, value) {
+    'scale.x': function (name, element, value) {
         element.layout.scale.x = value;
     },
-    "scale.y": function (name, element, value) {
+    'scale.y': function (name, element, value) {
         element.layout.scale.y = value;
     },
-    "scale.z": function (name, element, value) {
+    'scale.z': function (name, element, value) {
         element.layout.scale.z = value;
     },
-    "sizeAbsolute.x": function (name, element, value) {
+    'sizeAbsolute.x': function (name, element, value) {
         element.layout.sizeAbsolute.x = value;
     },
-    "sizeAbsolute.y": function (name, element, value) {
+    'sizeAbsolute.y': function (name, element, value) {
         element.layout.sizeAbsolute.y = value;
     },
-    "sizeAbsolute.z": function (name, element, value) {
+    'sizeAbsolute.z': function (name, element, value) {
         element.layout.sizeAbsolute.z = value;
     },
-    "sizeDifferential.x": function (name, element, value) {
+    'sizeDifferential.x': function (name, element, value) {
         element.layout.sizeDifferential.x = value;
     },
-    "sizeDifferential.y": function (name, element, value) {
+    'sizeDifferential.y': function (name, element, value) {
         element.layout.sizeDifferential.y = value;
     },
-    "sizeDifferential.z": function (name, element, value) {
+    'sizeDifferential.z': function (name, element, value) {
         element.layout.sizeDifferential.z = value;
     },
-    "sizeMode.x": function (name, element, value) {
+    'sizeMode.x': function (name, element, value) {
         element.layout.sizeMode.x = value;
     },
-    "sizeMode.y": function (name, element, value) {
+    'sizeMode.y': function (name, element, value) {
         element.layout.sizeMode.y = value;
     },
-    "sizeMode.z": function (name, element, value) {
+    'sizeMode.z': function (name, element, value) {
         element.layout.sizeMode.z = value;
     },
-    "sizeProportional.x": function (name, element, value) {
+    'sizeProportional.x': function (name, element, value) {
         element.layout.sizeProportional.x = value;
     },
-    "sizeProportional.y": function (name, element, value) {
+    'sizeProportional.y': function (name, element, value) {
         element.layout.sizeProportional.y = value;
     },
-    "sizeProportional.z": function (name, element, value) {
+    'sizeProportional.z': function (name, element, value) {
         element.layout.sizeProportional.z = value;
     },
-    "translation.x": function (name, element, value) {
+    'translation.x': function (name, element, value) {
         element.layout.translation.x = value;
     },
-    "translation.y": function (name, element, value) {
+    'translation.y': function (name, element, value) {
         element.layout.translation.y = value;
     },
-    "translation.z": function (name, element, value) {
+    'translation.z': function (name, element, value) {
         element.layout.translation.z = value;
     }
 };
-function _clone(obj) {
-    var out = {};
-    for (var key in obj) {
-        out[key] = obj[key];
-    }
-    return out;
-}
-var LAYOUT_2D_VANITIES = _clone(LAYOUT_3D_VANITIES);
+var LAYOUT_2D_VANITIES = __assign({}, LAYOUT_3D_VANITIES);
 function styleSetter(prop) {
     return function (name, element, value) {
         element.attributes.style[prop] = value;
     };
 }
 var STYLE_VANITIES = {
-    "style.alignContent": styleSetter("alignContent"),
-    "style.alignItems": styleSetter("alignItems"),
-    "style.alignmentBaseline": styleSetter("alignmentBaseline"),
-    "style.alignSelf": styleSetter("alignSelf"),
-    "style.all": styleSetter("all"),
-    "style.animation": styleSetter("animation"),
-    "style.animationDelay": styleSetter("animationDelay"),
-    "style.animationDirection": styleSetter("animationDirection"),
-    "style.animationDuration": styleSetter("animationDuration"),
-    "style.animationFillMode": styleSetter("animationFillMode"),
-    "style.animationIterationCount": styleSetter("animationIterationCount"),
-    "style.animationName": styleSetter("animationName"),
-    "style.animationPlayState": styleSetter("animationPlayState"),
-    "style.animationTimingFunction": styleSetter("animationTimingFunction"),
-    "style.appearance": styleSetter("appearance"),
-    "style.azimuth": styleSetter("azimuth"),
-    "style.backfaceVisibility": styleSetter("backfaceVisibility"),
-    "style.background": styleSetter("background"),
-    "style.backgroundAttachment": styleSetter("backgroundAttachment"),
-    "style.backgroundBlendMode": styleSetter("backgroundBlendMode"),
-    "style.backgroundClip": styleSetter("backgroundClip"),
-    "style.backgroundColor": styleSetter("backgroundColor"),
-    "style.backgroundimage": styleSetter("backgroundimage"),
-    "style.backgroundorigin": styleSetter("backgroundorigin"),
-    "style.backgroundposition": styleSetter("backgroundposition"),
-    "style.backgroundRepeat": styleSetter("backgroundRepeat"),
-    "style.backgroundSize": styleSetter("backgroundSize"),
-    "style.baselineShift": styleSetter("baselineShift"),
-    "style.bookmarkLabel": styleSetter("bookmarkLabel"),
-    "style.bookmarkLevel": styleSetter("bookmarkLevel"),
-    "style.bookmarkState": styleSetter("bookmarkState"),
-    "style.border": styleSetter("border"),
-    "style.borderBottom": styleSetter("borderBottom"),
-    "style.borderBottomColor": styleSetter("borderBottomColor"),
-    "style.borderBottomLeftRadius": styleSetter("borderBottomLeftRadius"),
-    "style.borderBottomRightRadius": styleSetter("borderBottomRightRadius"),
-    "style.borderBottomStyle": styleSetter("borderBottomStyle"),
-    "style.borderBottomWidth": styleSetter("borderBottomWidth"),
-    "style.borderBoundary": styleSetter("borderBoundary"),
-    "style.borderCollapse": styleSetter("borderCollapse"),
-    "style.borderColor": styleSetter("borderColor"),
-    "style.borderImage": styleSetter("borderImage"),
-    "style.borderImageOutset": styleSetter("borderImageOutset"),
-    "style.borderImageRepeat": styleSetter("borderImageRepeat"),
-    "style.borderImageSlice": styleSetter("borderImageSlice"),
-    "style.borderImageSource": styleSetter("borderImageSource"),
-    "style.borderImageWidth": styleSetter("borderImageWidth"),
-    "style.borderLeft": styleSetter("borderLeft"),
-    "style.borderLeftColor": styleSetter("borderLeftColor"),
-    "style.borderLeftStyle": styleSetter("borderLeftStyle"),
-    "style.borderLeftWidth": styleSetter("borderLeftWidth"),
-    "style.borderRadius": styleSetter("borderRadius"),
-    "style.borderRight": styleSetter("borderRight"),
-    "style.borderRightColor": styleSetter("borderRightColor"),
-    "style.borderRightStyle": styleSetter("borderRightStyle"),
-    "style.borderRightWidth": styleSetter("borderRightWidth"),
-    "style.borderSpacing": styleSetter("borderSpacing"),
-    "style.borderStyle": styleSetter("borderStyle"),
-    "style.borderTop": styleSetter("borderTop"),
-    "style.borderTopColor": styleSetter("borderTopColor"),
-    "style.borderTopLeftRadius": styleSetter("borderTopLeftRadius"),
-    "style.borderTopRightRadius": styleSetter("borderTopRightRadius"),
-    "style.borderTopStyle": styleSetter("borderTopStyle"),
-    "style.borderTopWidth": styleSetter("borderTopWidth"),
-    "style.borderWidth": styleSetter("borderWidth"),
-    "style.bottom": styleSetter("bottom"),
-    "style.boxDecorationBreak": styleSetter("boxDecorationBreak"),
-    "style.boxShadow": styleSetter("boxShadow"),
-    "style.boxSizing": styleSetter("boxSizing"),
-    "style.boxSnap": styleSetter("boxSnap"),
-    "style.boxSuppress": styleSetter("boxSuppress"),
-    "style.breakAfter": styleSetter("breakAfter"),
-    "style.breakBefore": styleSetter("breakBefore"),
-    "style.breakInside": styleSetter("breakInside"),
-    "style.captionSide": styleSetter("captionSide"),
-    "style.caret": styleSetter("caret"),
-    "style.caretAnimation": styleSetter("caretAnimation"),
-    "style.caretColor": styleSetter("caretColor"),
-    "style.caretShape": styleSetter("caretShape"),
-    "style.chains": styleSetter("chains"),
-    "style.clear": styleSetter("clear"),
-    "style.clip": styleSetter("clip"),
-    "style.clipPath": styleSetter("clipPath"),
-    "style.clipRule": styleSetter("clipRule"),
-    "style.color": styleSetter("color"),
-    "style.colorAdjust": styleSetter("colorAdjust"),
-    "style.colorInterpolation": styleSetter("colorInterpolation"),
-    "style.colorInterpolationFilters": styleSetter("colorInterpolationFilters"),
-    "style.colorProfile": styleSetter("colorProfile"),
-    "style.colorRendering": styleSetter("colorRendering"),
-    "style.columnCount": styleSetter("columnCount"),
-    "style.columnFill": styleSetter("columnFill"),
-    "style.columnGap": styleSetter("columnGap"),
-    "style.columnRule": styleSetter("columnRule"),
-    "style.columnRuleColor": styleSetter("columnRuleColor"),
-    "style.columnRuleStyle": styleSetter("columnRuleStyle"),
-    "style.columnRuleWidth": styleSetter("columnRuleWidth"),
-    "style.columns": styleSetter("columns"),
-    "style.columnSpan": styleSetter("columnSpan"),
-    "style.columnWidth": styleSetter("columnWidth"),
-    "style.content": styleSetter("content"),
-    "style.continue": styleSetter("continue"),
-    "style.counterIncrement": styleSetter("counterIncrement"),
-    "style.counterReset": styleSetter("counterReset"),
-    "style.counterSet": styleSetter("counterSet"),
-    "style.cue": styleSetter("cue"),
-    "style.cueAfter": styleSetter("cueAfter"),
-    "style.cueBefore": styleSetter("cueBefore"),
-    "style.cursor": styleSetter("cursor"),
-    "style.direction": styleSetter("direction"),
-    "style.display": styleSetter("display"),
-    "style.dominantBaseline": styleSetter("dominantBaseline"),
-    "style.elevation": styleSetter("elevation"),
-    "style.emptyCells": styleSetter("emptyCells"),
-    "style.enableBackground": styleSetter("enableBackground"),
-    "style.fill": styleSetter("fill"),
-    "style.fillOpacity": styleSetter("fillOpacity"),
-    "style.fillRule": styleSetter("fillRule"),
-    "style.filter": styleSetter("filter"),
-    "style.flex": styleSetter("flex"),
-    "style.flexBasis": styleSetter("flexBasis"),
-    "style.flexDirection": styleSetter("flexDirection"),
-    "style.flexFlow": styleSetter("flexFlow"),
-    "style.flexGrow": styleSetter("flexGrow"),
-    "style.flexShrink": styleSetter("flexShrink"),
-    "style.flexWrap": styleSetter("flexWrap"),
-    "style.float": styleSetter("float"),
-    "style.floatDefer": styleSetter("floatDefer"),
-    "style.floatOffset": styleSetter("floatOffset"),
-    "style.floatReference": styleSetter("floatReference"),
-    "style.floodColor": styleSetter("floodColor"),
-    "style.floodOpacity": styleSetter("floodOpacity"),
-    "style.flow": styleSetter("flow"),
-    "style.flowFrom": styleSetter("flowFrom"),
-    "style.flowInto": styleSetter("flowInto"),
-    "style.font": styleSetter("font"),
-    "style.fontFamily": styleSetter("fontFamily"),
-    "style.fontFeatureSettings": styleSetter("fontFeatureSettings"),
-    "style.fontKerning": styleSetter("fontKerning"),
-    "style.fontLanguageOverride": styleSetter("fontLanguageOverride"),
-    "style.fontSize": styleSetter("fontSize"),
-    "style.fontSizeAdjust": styleSetter("fontSizeAdjust"),
-    "style.fontStretch": styleSetter("fontStretch"),
-    "style.fontStyle": styleSetter("fontStyle"),
-    "style.fontSynthesis": styleSetter("fontSynthesis"),
-    "style.fontVariant": styleSetter("fontVariant"),
-    "style.fontVariantAlternates": styleSetter("fontVariantAlternates"),
-    "style.fontVariantCaps": styleSetter("fontVariantCaps"),
-    "style.fontVariantEastAsian": styleSetter("fontVariantEastAsian"),
-    "style.fontVariantLigatures": styleSetter("fontVariantLigatures"),
-    "style.fontVariantNumeric": styleSetter("fontVariantNumeric"),
-    "style.fontVariantPosition": styleSetter("fontVariantPosition"),
-    "style.fontWeight": styleSetter("fontWeight"),
-    "style.footnoteDisplay": styleSetter("footnoteDisplay"),
-    "style.footnotePolicy": styleSetter("footnotePolicy"),
-    "style.glyphOrientationHorizontal": styleSetter("glyphOrientationHorizontal"),
-    "style.glyphOrientationVertical": styleSetter("glyphOrientationVertical"),
-    "style.grid": styleSetter("grid"),
-    "style.gridArea": styleSetter("gridArea"),
-    "style.gridAutoColumns": styleSetter("gridAutoColumns"),
-    "style.gridAutoFlow": styleSetter("gridAutoFlow"),
-    "style.gridAutoRows": styleSetter("gridAutoRows"),
-    "style.gridColumn": styleSetter("gridColumn"),
-    "style.gridColumnEnd": styleSetter("gridColumnEnd"),
-    "style.gridColumnGap": styleSetter("gridColumnGap"),
-    "style.gridColumnStart": styleSetter("gridColumnStart"),
-    "style.gridGap": styleSetter("gridGap"),
-    "style.gridRow": styleSetter("gridRow"),
-    "style.gridRowEnd": styleSetter("gridRowEnd"),
-    "style.gridRowGap": styleSetter("gridRowGap"),
-    "style.gridRowStart": styleSetter("gridRowStart"),
-    "style.gridTemplate": styleSetter("gridTemplate"),
-    "style.gridTemplateAreas": styleSetter("gridTemplateAreas"),
-    "style.gridTemplateColumns": styleSetter("gridTemplateColumns"),
-    "style.gridTemplateRows": styleSetter("gridTemplateRows"),
-    "style.hangingPunctuation": styleSetter("hangingPunctuation"),
-    "style.height": styleSetter("height"),
-    "style.hyphenateCharacter": styleSetter("hyphenateCharacter"),
-    "style.hyphenateLimitChars": styleSetter("hyphenateLimitChars"),
-    "style.hyphenateLimitLast": styleSetter("hyphenateLimitLast"),
-    "style.hyphenateLimitLines": styleSetter("hyphenateLimitLines"),
-    "style.hyphenateLimitZone": styleSetter("hyphenateLimitZone"),
-    "style.hyphens": styleSetter("hyphens"),
-    "style.imageOrientation": styleSetter("imageOrientation"),
-    "style.imageRendering": styleSetter("imageRendering"),
-    "style.imageResolution": styleSetter("imageResolution"),
-    "style.initialLetter": styleSetter("initialLetter"),
-    "style.initialLetterAlign": styleSetter("initialLetterAlign"),
-    "style.initialLetterWrap": styleSetter("initialLetterWrap"),
-    "style.isolation": styleSetter("isolation"),
-    "style.justifyContent": styleSetter("justifyContent"),
-    "style.justifyItems": styleSetter("justifyItems"),
-    "style.justifySelf": styleSetter("justifySelf"),
-    "style.kerning": styleSetter("kerning"),
-    "style.left": styleSetter("left"),
-    "style.letterSpacing": styleSetter("letterSpacing"),
-    "style.lightingColor": styleSetter("lightingColor"),
-    "style.lineBreak": styleSetter("lineBreak"),
-    "style.lineGrid": styleSetter("lineGrid"),
-    "style.lineHeight": styleSetter("lineHeight"),
-    "style.lineSnap": styleSetter("lineSnap"),
-    "style.listStyle": styleSetter("listStyle"),
-    "style.listStyleImage": styleSetter("listStyleImage"),
-    "style.listStylePosition": styleSetter("listStylePosition"),
-    "style.listStyleType": styleSetter("listStyleType"),
-    "style.margin": styleSetter("margin"),
-    "style.marginBottom": styleSetter("marginBottom"),
-    "style.marginLeft": styleSetter("marginLeft"),
-    "style.marginRight": styleSetter("marginRight"),
-    "style.marginTop": styleSetter("marginTop"),
-    "style.marker": styleSetter("marker"),
-    "style.markerEnd": styleSetter("markerEnd"),
-    "style.markerKnockoutLeft": styleSetter("markerKnockoutLeft"),
-    "style.markerKnockoutRight": styleSetter("markerKnockoutRight"),
-    "style.markerMid": styleSetter("markerMid"),
-    "style.markerPattern": styleSetter("markerPattern"),
-    "style.markerSegment": styleSetter("markerSegment"),
-    "style.markerSide": styleSetter("markerSide"),
-    "style.markerStart": styleSetter("markerStart"),
-    "style.marqueeDirection": styleSetter("marqueeDirection"),
-    "style.marqueeLoop": styleSetter("marqueeLoop"),
-    "style.marqueeSpeed": styleSetter("marqueeSpeed"),
-    "style.marqueeStyle": styleSetter("marqueeStyle"),
-    "style.mask": styleSetter("mask"),
-    "style.maskBorder": styleSetter("maskBorder"),
-    "style.maskBorderMode": styleSetter("maskBorderMode"),
-    "style.maskBorderOutset": styleSetter("maskBorderOutset"),
-    "style.maskBorderRepeat": styleSetter("maskBorderRepeat"),
-    "style.maskBorderSlice": styleSetter("maskBorderSlice"),
-    "style.maskBorderSource": styleSetter("maskBorderSource"),
-    "style.maskBorderWidth": styleSetter("maskBorderWidth"),
-    "style.maskClip": styleSetter("maskClip"),
-    "style.maskComposite": styleSetter("maskComposite"),
-    "style.maskImage": styleSetter("maskImage"),
-    "style.maskMode": styleSetter("maskMode"),
-    "style.maskOrigin": styleSetter("maskOrigin"),
-    "style.maskPosition": styleSetter("maskPosition"),
-    "style.maskRepeat": styleSetter("maskRepeat"),
-    "style.maskSize": styleSetter("maskSize"),
-    "style.maskType": styleSetter("maskType"),
-    "style.maxHeight": styleSetter("maxHeight"),
-    "style.maxLines": styleSetter("maxLines"),
-    "style.maxWidth": styleSetter("maxWidth"),
-    "style.minHeight": styleSetter("minHeight"),
-    "style.minWidth": styleSetter("minWidth"),
-    "style.mixBlendMode": styleSetter("mixBlendMode"),
-    "style.motion": styleSetter("motion"),
-    "style.motionOffset": styleSetter("motionOffset"),
-    "style.motionPath": styleSetter("motionPath"),
-    "style.motionRotation": styleSetter("motionRotation"),
-    "style.navDown": styleSetter("navDown"),
-    "style.navLeft": styleSetter("navLeft"),
-    "style.navRight": styleSetter("navRight"),
-    "style.navUp": styleSetter("navUp"),
-    "style.objectFit": styleSetter("objectFit"),
-    "style.objectPosition": styleSetter("objectPosition"),
-    "style.offset": styleSetter("offset"),
-    "style.offsetAfter": styleSetter("offsetAfter"),
-    "style.offsetAnchor": styleSetter("offsetAnchor"),
-    "style.offsetBefore": styleSetter("offsetBefore"),
-    "style.offsetDistance": styleSetter("offsetDistance"),
-    "style.offsetEnd": styleSetter("offsetEnd"),
-    "style.offsetPath": styleSetter("offsetPath"),
-    "style.offsetPosition": styleSetter("offsetPosition"),
-    "style.offsetRotate": styleSetter("offsetRotate"),
-    "style.offsetStart": styleSetter("offsetStart"),
-    "style.opacity": styleSetter("opacity"),
-    "style.order": styleSetter("order"),
-    "style.orphans": styleSetter("orphans"),
-    "style.outline": styleSetter("outline"),
-    "style.outlineColor": styleSetter("outlineColor"),
-    "style.outlineOffset": styleSetter("outlineOffset"),
-    "style.outlineStyle": styleSetter("outlineStyle"),
-    "style.outlineWidth": styleSetter("outlineWidth"),
-    "style.overflow": styleSetter("overflow"),
-    "style.overflowStyle": styleSetter("overflowStyle"),
-    "style.overflowWrap": styleSetter("overflowWrap"),
-    "style.overflowX": styleSetter("overflowX"),
-    "style.overflowY": styleSetter("overflowY"),
-    "style.padding": styleSetter("padding"),
-    "style.paddingBottom": styleSetter("paddingBottom"),
-    "style.paddingLeft": styleSetter("paddingLeft"),
-    "style.paddingRight": styleSetter("paddingRight"),
-    "style.paddingTop": styleSetter("paddingTop"),
-    "style.page": styleSetter("page"),
-    "style.pageBreakAfter": styleSetter("pageBreakAfter"),
-    "style.pageBreakBefore": styleSetter("pageBreakBefore"),
-    "style.pageBreakInside": styleSetter("pageBreakInside"),
-    "style.pause": styleSetter("pause"),
-    "style.pauseAfter": styleSetter("pauseAfter"),
-    "style.pauseBefore": styleSetter("pauseBefore"),
-    "style.perspective": styleSetter("perspective"),
-    "style.perspectiveOrigin": styleSetter("perspectiveOrigin"),
-    "style.pitch": styleSetter("pitch"),
-    "style.pitchRange": styleSetter("pitchRange"),
-    "style.placeContent": styleSetter("placeContent"),
-    "style.placeItems": styleSetter("placeItems"),
-    "style.placeSelf": styleSetter("placeSelf"),
-    "style.playDuring": styleSetter("playDuring"),
-    "style.pointerEvents": styleSetter("pointerEvents"),
-    "style.polarAnchor": styleSetter("polarAnchor"),
-    "style.polarAngle": styleSetter("polarAngle"),
-    "style.polarDistance": styleSetter("polarDistance"),
-    "style.polarOrigin": styleSetter("polarOrigin"),
-    "style.position": styleSetter("position"),
-    "style.presentationLevel": styleSetter("presentationLevel"),
-    "style.quotes": styleSetter("quotes"),
-    "style.regionFragment": styleSetter("regionFragment"),
-    "style.resize": styleSetter("resize"),
-    "style.rest": styleSetter("rest"),
-    "style.restAfter": styleSetter("restAfter"),
-    "style.restBefore": styleSetter("restBefore"),
-    "style.richness": styleSetter("richness"),
-    "style.right": styleSetter("right"),
-    "style.rotation": styleSetter("rotation"),
-    "style.rotationPoint": styleSetter("rotationPoint"),
-    "style.rubyAlign": styleSetter("rubyAlign"),
-    "style.rubyMerge": styleSetter("rubyMerge"),
-    "style.rubyPosition": styleSetter("rubyPosition"),
-    "style.running": styleSetter("running"),
-    "style.scrollBehavior": styleSetter("scrollBehavior"),
-    "style.scrollPadding": styleSetter("scrollPadding"),
-    "style.scrollPaddingBlock": styleSetter("scrollPaddingBlock"),
-    "style.scrollPaddingBlockEnd": styleSetter("scrollPaddingBlockEnd"),
-    "style.scrollPaddingBlockStart": styleSetter("scrollPaddingBlockStart"),
-    "style.scrollPaddingBottom": styleSetter("scrollPaddingBottom"),
-    "style.scrollPaddingInline": styleSetter("scrollPaddingInline"),
-    "style.scrollPaddingInlineEnd": styleSetter("scrollPaddingInlineEnd"),
-    "style.scrollPaddingInlineStart": styleSetter("scrollPaddingInlineStart"),
-    "style.scrollPaddingLeft": styleSetter("scrollPaddingLeft"),
-    "style.scrollPaddingRight": styleSetter("scrollPaddingRight"),
-    "style.scrollPaddingTop": styleSetter("scrollPaddingTop"),
-    "style.scrollSnapAlign": styleSetter("scrollSnapAlign"),
-    "style.scrollSnapMargin": styleSetter("scrollSnapMargin"),
-    "style.scrollSnapMarginBlock": styleSetter("scrollSnapMarginBlock"),
-    "style.scrollSnapMarginBlockEnd": styleSetter("scrollSnapMarginBlockEnd"),
-    "style.scrollSnapMarginBlockStart": styleSetter("scrollSnapMarginBlockStart"),
-    "style.scrollSnapMarginBottom": styleSetter("scrollSnapMarginBottom"),
-    "style.scrollSnapMarginInline": styleSetter("scrollSnapMarginInline"),
-    "style.scrollSnapMarginInlineEnd": styleSetter("scrollSnapMarginInlineEnd"),
-    "style.scrollSnapMarginInlineStart": styleSetter("scrollSnapMarginInlineStart"),
-    "style.scrollSnapMarginLeft": styleSetter("scrollSnapMarginLeft"),
-    "style.scrollSnapMarginRight": styleSetter("scrollSnapMarginRight"),
-    "style.scrollSnapMarginTop": styleSetter("scrollSnapMarginTop"),
-    "style.scrollSnapStop": styleSetter("scrollSnapStop"),
-    "style.scrollSnapType": styleSetter("scrollSnapType"),
-    "style.shapeImageThreshold": styleSetter("shapeImageThreshold"),
-    "style.shapeInside": styleSetter("shapeInside"),
-    "style.shapeMargin": styleSetter("shapeMargin"),
-    "style.shapeOutside": styleSetter("shapeOutside"),
-    "style.shapeRendering": styleSetter("shapeRendering"),
-    "style.size": styleSetter("size"),
-    "style.speak": styleSetter("speak"),
-    "style.speakAs": styleSetter("speakAs"),
-    "style.speakHeader": styleSetter("speakHeader"),
-    "style.speakNumeral": styleSetter("speakNumeral"),
-    "style.speakPunctuation": styleSetter("speakPunctuation"),
-    "style.speechRate": styleSetter("speechRate"),
-    "style.stopColor": styleSetter("stopColor"),
-    "style.stopOpacity": styleSetter("stopOpacity"),
-    "style.stress": styleSetter("stress"),
-    "style.stringSet": styleSetter("stringSet"),
-    "style.stroke": styleSetter("stroke"),
-    "style.strokeAlignment": styleSetter("strokeAlignment"),
-    "style.strokeDashadjust": styleSetter("strokeDashadjust"),
-    "style.strokeDasharray": styleSetter("strokeDasharray"),
-    "style.strokeDashcorner": styleSetter("strokeDashcorner"),
-    "style.strokeDashoffset": styleSetter("strokeDashoffset"),
-    "style.strokeLinecap": styleSetter("strokeLinecap"),
-    "style.strokeLinejoin": styleSetter("strokeLinejoin"),
-    "style.strokeMiterlimit": styleSetter("strokeMiterlimit"),
-    "style.strokeOpacity": styleSetter("strokeOpacity"),
-    "style.strokeWidth": styleSetter("strokeWidth"),
-    "style.tableLayout": styleSetter("tableLayout"),
-    "style.tabSize": styleSetter("tabSize"),
-    "style.textAlign": styleSetter("textAlign"),
-    "style.textAlignAll": styleSetter("textAlignAll"),
-    "style.textAlignLast": styleSetter("textAlignLast"),
-    "style.textAnchor": styleSetter("textAnchor"),
-    "style.textCombineUpright": styleSetter("textCombineUpright"),
-    "style.textDecoration": styleSetter("textDecoration"),
-    "style.textDecorationColor": styleSetter("textDecorationColor"),
-    "style.textDecorationLine": styleSetter("textDecorationLine"),
-    "style.textDecorationSkip": styleSetter("textDecorationSkip"),
-    "style.textDecorationStyle": styleSetter("textDecorationStyle"),
-    "style.textEmphasis": styleSetter("textEmphasis"),
-    "style.textEmphasisColor": styleSetter("textEmphasisColor"),
-    "style.textEmphasisPosition": styleSetter("textEmphasisPosition"),
-    "style.textEmphasisStyle": styleSetter("textEmphasisStyle"),
-    "style.textIndent": styleSetter("textIndent"),
-    "style.textJustify": styleSetter("textJustify"),
-    "style.textOrientation": styleSetter("textOrientation"),
-    "style.textOverflow": styleSetter("textOverflow"),
-    "style.textRendering": styleSetter("textRendering"),
-    "style.textShadow": styleSetter("textShadow"),
-    "style.textSpaceCollapse": styleSetter("textSpaceCollapse"),
-    "style.textSpaceTrim": styleSetter("textSpaceTrim"),
-    "style.textSpacing": styleSetter("textSpacing"),
-    "style.textTransform": styleSetter("textTransform"),
-    "style.textUnderlinePosition": styleSetter("textUnderlinePosition"),
-    "style.textWrap": styleSetter("textWrap"),
-    "style.top": styleSetter("top"),
-    "style.transform": styleSetter("transform"),
-    "style.transformBox": styleSetter("transformBox"),
-    "style.transformOrigin": styleSetter("transformOrigin"),
-    "style.transformStyle": styleSetter("transformStyle"),
-    "style.transition": styleSetter("transition"),
-    "style.transitionDelay": styleSetter("transitionDelay"),
-    "style.transitionDuration": styleSetter("transitionDuration"),
-    "style.transitionProperty": styleSetter("transitionProperty"),
-    "style.transitionTimingFunction": styleSetter("transitionTimingFunction"),
-    "style.unicodeBidi": styleSetter("unicodeBidi"),
-    "style.userSelect": styleSetter("userSelect"),
-    "style.verticalAlign": styleSetter("verticalAlign"),
-    "style.visibility": styleSetter("visibility"),
-    "style.voiceBalance": styleSetter("voiceBalance"),
-    "style.voiceDuration": styleSetter("voiceDuration"),
-    "style.voiceFamily": styleSetter("voiceFamily"),
-    "style.voicePitch": styleSetter("voicePitch"),
-    "style.voiceRange": styleSetter("voiceRange"),
-    "style.voiceRate": styleSetter("voiceRate"),
-    "style.voiceStress": styleSetter("voiceStress"),
-    "style.voiceVolume": styleSetter("voiceVolume"),
-    "style.volume": styleSetter("volume"),
-    "style.whiteSpace": styleSetter("whiteSpace"),
-    "style.widows": styleSetter("widows"),
-    "style.width": styleSetter("width"),
-    "style.willChange": styleSetter("willChange"),
-    "style.wordBreak": styleSetter("wordBreak"),
-    "style.wordSpacing": styleSetter("wordSpacing"),
-    "style.wordWrap": styleSetter("wordWrap"),
-    "style.wrapAfter": styleSetter("wrapAfter"),
-    "style.wrapBefore": styleSetter("wrapBefore"),
-    "style.wrapFlow": styleSetter("wrapFlow"),
-    "style.wrapInside": styleSetter("wrapInside"),
-    "style.wrapThrough": styleSetter("wrapThrough"),
-    "style.writingMode": styleSetter("writingMode"),
-    "style.zIndex": styleSetter("zIndex"),
-    "style.WebkitTapHighlightColor": function (name, element, value) {
+    'style.alignContent': styleSetter('alignContent'),
+    'style.alignItems': styleSetter('alignItems'),
+    'style.alignmentBaseline': styleSetter('alignmentBaseline'),
+    'style.alignSelf': styleSetter('alignSelf'),
+    'style.all': styleSetter('all'),
+    'style.animation': styleSetter('animation'),
+    'style.animationDelay': styleSetter('animationDelay'),
+    'style.animationDirection': styleSetter('animationDirection'),
+    'style.animationDuration': styleSetter('animationDuration'),
+    'style.animationFillMode': styleSetter('animationFillMode'),
+    'style.animationIterationCount': styleSetter('animationIterationCount'),
+    'style.animationName': styleSetter('animationName'),
+    'style.animationPlayState': styleSetter('animationPlayState'),
+    'style.animationTimingFunction': styleSetter('animationTimingFunction'),
+    'style.appearance': styleSetter('appearance'),
+    'style.azimuth': styleSetter('azimuth'),
+    'style.backfaceVisibility': styleSetter('backfaceVisibility'),
+    'style.background': styleSetter('background'),
+    'style.backgroundAttachment': styleSetter('backgroundAttachment'),
+    'style.backgroundBlendMode': styleSetter('backgroundBlendMode'),
+    'style.backgroundClip': styleSetter('backgroundClip'),
+    'style.backgroundColor': styleSetter('backgroundColor'),
+    'style.backgroundimage': styleSetter('backgroundimage'),
+    'style.backgroundorigin': styleSetter('backgroundorigin'),
+    'style.backgroundposition': styleSetter('backgroundposition'),
+    'style.backgroundRepeat': styleSetter('backgroundRepeat'),
+    'style.backgroundSize': styleSetter('backgroundSize'),
+    'style.baselineShift': styleSetter('baselineShift'),
+    'style.bookmarkLabel': styleSetter('bookmarkLabel'),
+    'style.bookmarkLevel': styleSetter('bookmarkLevel'),
+    'style.bookmarkState': styleSetter('bookmarkState'),
+    'style.border': styleSetter('border'),
+    'style.borderBottom': styleSetter('borderBottom'),
+    'style.borderBottomColor': styleSetter('borderBottomColor'),
+    'style.borderBottomLeftRadius': styleSetter('borderBottomLeftRadius'),
+    'style.borderBottomRightRadius': styleSetter('borderBottomRightRadius'),
+    'style.borderBottomStyle': styleSetter('borderBottomStyle'),
+    'style.borderBottomWidth': styleSetter('borderBottomWidth'),
+    'style.borderBoundary': styleSetter('borderBoundary'),
+    'style.borderCollapse': styleSetter('borderCollapse'),
+    'style.borderColor': styleSetter('borderColor'),
+    'style.borderImage': styleSetter('borderImage'),
+    'style.borderImageOutset': styleSetter('borderImageOutset'),
+    'style.borderImageRepeat': styleSetter('borderImageRepeat'),
+    'style.borderImageSlice': styleSetter('borderImageSlice'),
+    'style.borderImageSource': styleSetter('borderImageSource'),
+    'style.borderImageWidth': styleSetter('borderImageWidth'),
+    'style.borderLeft': styleSetter('borderLeft'),
+    'style.borderLeftColor': styleSetter('borderLeftColor'),
+    'style.borderLeftStyle': styleSetter('borderLeftStyle'),
+    'style.borderLeftWidth': styleSetter('borderLeftWidth'),
+    'style.borderRadius': styleSetter('borderRadius'),
+    'style.borderRight': styleSetter('borderRight'),
+    'style.borderRightColor': styleSetter('borderRightColor'),
+    'style.borderRightStyle': styleSetter('borderRightStyle'),
+    'style.borderRightWidth': styleSetter('borderRightWidth'),
+    'style.borderSpacing': styleSetter('borderSpacing'),
+    'style.borderStyle': styleSetter('borderStyle'),
+    'style.borderTop': styleSetter('borderTop'),
+    'style.borderTopColor': styleSetter('borderTopColor'),
+    'style.borderTopLeftRadius': styleSetter('borderTopLeftRadius'),
+    'style.borderTopRightRadius': styleSetter('borderTopRightRadius'),
+    'style.borderTopStyle': styleSetter('borderTopStyle'),
+    'style.borderTopWidth': styleSetter('borderTopWidth'),
+    'style.borderWidth': styleSetter('borderWidth'),
+    'style.bottom': styleSetter('bottom'),
+    'style.boxDecorationBreak': styleSetter('boxDecorationBreak'),
+    'style.boxShadow': styleSetter('boxShadow'),
+    'style.boxSizing': styleSetter('boxSizing'),
+    'style.boxSnap': styleSetter('boxSnap'),
+    'style.boxSuppress': styleSetter('boxSuppress'),
+    'style.breakAfter': styleSetter('breakAfter'),
+    'style.breakBefore': styleSetter('breakBefore'),
+    'style.breakInside': styleSetter('breakInside'),
+    'style.captionSide': styleSetter('captionSide'),
+    'style.caret': styleSetter('caret'),
+    'style.caretAnimation': styleSetter('caretAnimation'),
+    'style.caretColor': styleSetter('caretColor'),
+    'style.caretShape': styleSetter('caretShape'),
+    'style.chains': styleSetter('chains'),
+    'style.clear': styleSetter('clear'),
+    'style.clip': styleSetter('clip'),
+    'style.clipPath': styleSetter('clipPath'),
+    'style.clipRule': styleSetter('clipRule'),
+    'style.color': styleSetter('color'),
+    'style.colorAdjust': styleSetter('colorAdjust'),
+    'style.colorInterpolation': styleSetter('colorInterpolation'),
+    'style.colorInterpolationFilters': styleSetter('colorInterpolationFilters'),
+    'style.colorProfile': styleSetter('colorProfile'),
+    'style.colorRendering': styleSetter('colorRendering'),
+    'style.columnCount': styleSetter('columnCount'),
+    'style.columnFill': styleSetter('columnFill'),
+    'style.columnGap': styleSetter('columnGap'),
+    'style.columnRule': styleSetter('columnRule'),
+    'style.columnRuleColor': styleSetter('columnRuleColor'),
+    'style.columnRuleStyle': styleSetter('columnRuleStyle'),
+    'style.columnRuleWidth': styleSetter('columnRuleWidth'),
+    'style.columns': styleSetter('columns'),
+    'style.columnSpan': styleSetter('columnSpan'),
+    'style.columnWidth': styleSetter('columnWidth'),
+    'style.content': styleSetter('content'),
+    'style.continue': styleSetter('continue'),
+    'style.counterIncrement': styleSetter('counterIncrement'),
+    'style.counterReset': styleSetter('counterReset'),
+    'style.counterSet': styleSetter('counterSet'),
+    'style.cue': styleSetter('cue'),
+    'style.cueAfter': styleSetter('cueAfter'),
+    'style.cueBefore': styleSetter('cueBefore'),
+    'style.cursor': styleSetter('cursor'),
+    'style.direction': styleSetter('direction'),
+    'style.display': styleSetter('display'),
+    'style.dominantBaseline': styleSetter('dominantBaseline'),
+    'style.elevation': styleSetter('elevation'),
+    'style.emptyCells': styleSetter('emptyCells'),
+    'style.enableBackground': styleSetter('enableBackground'),
+    'style.fill': styleSetter('fill'),
+    'style.fillOpacity': styleSetter('fillOpacity'),
+    'style.fillRule': styleSetter('fillRule'),
+    'style.filter': styleSetter('filter'),
+    'style.flex': styleSetter('flex'),
+    'style.flexBasis': styleSetter('flexBasis'),
+    'style.flexDirection': styleSetter('flexDirection'),
+    'style.flexFlow': styleSetter('flexFlow'),
+    'style.flexGrow': styleSetter('flexGrow'),
+    'style.flexShrink': styleSetter('flexShrink'),
+    'style.flexWrap': styleSetter('flexWrap'),
+    'style.float': styleSetter('float'),
+    'style.floatDefer': styleSetter('floatDefer'),
+    'style.floatOffset': styleSetter('floatOffset'),
+    'style.floatReference': styleSetter('floatReference'),
+    'style.floodColor': styleSetter('floodColor'),
+    'style.floodOpacity': styleSetter('floodOpacity'),
+    'style.flow': styleSetter('flow'),
+    'style.flowFrom': styleSetter('flowFrom'),
+    'style.flowInto': styleSetter('flowInto'),
+    'style.font': styleSetter('font'),
+    'style.fontFamily': styleSetter('fontFamily'),
+    'style.fontFeatureSettings': styleSetter('fontFeatureSettings'),
+    'style.fontKerning': styleSetter('fontKerning'),
+    'style.fontLanguageOverride': styleSetter('fontLanguageOverride'),
+    'style.fontSize': styleSetter('fontSize'),
+    'style.fontSizeAdjust': styleSetter('fontSizeAdjust'),
+    'style.fontStretch': styleSetter('fontStretch'),
+    'style.fontStyle': styleSetter('fontStyle'),
+    'style.fontSynthesis': styleSetter('fontSynthesis'),
+    'style.fontVariant': styleSetter('fontVariant'),
+    'style.fontVariantAlternates': styleSetter('fontVariantAlternates'),
+    'style.fontVariantCaps': styleSetter('fontVariantCaps'),
+    'style.fontVariantEastAsian': styleSetter('fontVariantEastAsian'),
+    'style.fontVariantLigatures': styleSetter('fontVariantLigatures'),
+    'style.fontVariantNumeric': styleSetter('fontVariantNumeric'),
+    'style.fontVariantPosition': styleSetter('fontVariantPosition'),
+    'style.fontWeight': styleSetter('fontWeight'),
+    'style.footnoteDisplay': styleSetter('footnoteDisplay'),
+    'style.footnotePolicy': styleSetter('footnotePolicy'),
+    'style.glyphOrientationHorizontal': styleSetter('glyphOrientationHorizontal'),
+    'style.glyphOrientationVertical': styleSetter('glyphOrientationVertical'),
+    'style.grid': styleSetter('grid'),
+    'style.gridArea': styleSetter('gridArea'),
+    'style.gridAutoColumns': styleSetter('gridAutoColumns'),
+    'style.gridAutoFlow': styleSetter('gridAutoFlow'),
+    'style.gridAutoRows': styleSetter('gridAutoRows'),
+    'style.gridColumn': styleSetter('gridColumn'),
+    'style.gridColumnEnd': styleSetter('gridColumnEnd'),
+    'style.gridColumnGap': styleSetter('gridColumnGap'),
+    'style.gridColumnStart': styleSetter('gridColumnStart'),
+    'style.gridGap': styleSetter('gridGap'),
+    'style.gridRow': styleSetter('gridRow'),
+    'style.gridRowEnd': styleSetter('gridRowEnd'),
+    'style.gridRowGap': styleSetter('gridRowGap'),
+    'style.gridRowStart': styleSetter('gridRowStart'),
+    'style.gridTemplate': styleSetter('gridTemplate'),
+    'style.gridTemplateAreas': styleSetter('gridTemplateAreas'),
+    'style.gridTemplateColumns': styleSetter('gridTemplateColumns'),
+    'style.gridTemplateRows': styleSetter('gridTemplateRows'),
+    'style.hangingPunctuation': styleSetter('hangingPunctuation'),
+    'style.height': styleSetter('height'),
+    'style.hyphenateCharacter': styleSetter('hyphenateCharacter'),
+    'style.hyphenateLimitChars': styleSetter('hyphenateLimitChars'),
+    'style.hyphenateLimitLast': styleSetter('hyphenateLimitLast'),
+    'style.hyphenateLimitLines': styleSetter('hyphenateLimitLines'),
+    'style.hyphenateLimitZone': styleSetter('hyphenateLimitZone'),
+    'style.hyphens': styleSetter('hyphens'),
+    'style.imageOrientation': styleSetter('imageOrientation'),
+    'style.imageRendering': styleSetter('imageRendering'),
+    'style.imageResolution': styleSetter('imageResolution'),
+    'style.initialLetter': styleSetter('initialLetter'),
+    'style.initialLetterAlign': styleSetter('initialLetterAlign'),
+    'style.initialLetterWrap': styleSetter('initialLetterWrap'),
+    'style.isolation': styleSetter('isolation'),
+    'style.justifyContent': styleSetter('justifyContent'),
+    'style.justifyItems': styleSetter('justifyItems'),
+    'style.justifySelf': styleSetter('justifySelf'),
+    'style.kerning': styleSetter('kerning'),
+    'style.left': styleSetter('left'),
+    'style.letterSpacing': styleSetter('letterSpacing'),
+    'style.lightingColor': styleSetter('lightingColor'),
+    'style.lineBreak': styleSetter('lineBreak'),
+    'style.lineGrid': styleSetter('lineGrid'),
+    'style.lineHeight': styleSetter('lineHeight'),
+    'style.lineSnap': styleSetter('lineSnap'),
+    'style.listStyle': styleSetter('listStyle'),
+    'style.listStyleImage': styleSetter('listStyleImage'),
+    'style.listStylePosition': styleSetter('listStylePosition'),
+    'style.listStyleType': styleSetter('listStyleType'),
+    'style.margin': styleSetter('margin'),
+    'style.marginBottom': styleSetter('marginBottom'),
+    'style.marginLeft': styleSetter('marginLeft'),
+    'style.marginRight': styleSetter('marginRight'),
+    'style.marginTop': styleSetter('marginTop'),
+    'style.marker': styleSetter('marker'),
+    'style.markerEnd': styleSetter('markerEnd'),
+    'style.markerKnockoutLeft': styleSetter('markerKnockoutLeft'),
+    'style.markerKnockoutRight': styleSetter('markerKnockoutRight'),
+    'style.markerMid': styleSetter('markerMid'),
+    'style.markerPattern': styleSetter('markerPattern'),
+    'style.markerSegment': styleSetter('markerSegment'),
+    'style.markerSide': styleSetter('markerSide'),
+    'style.markerStart': styleSetter('markerStart'),
+    'style.marqueeDirection': styleSetter('marqueeDirection'),
+    'style.marqueeLoop': styleSetter('marqueeLoop'),
+    'style.marqueeSpeed': styleSetter('marqueeSpeed'),
+    'style.marqueeStyle': styleSetter('marqueeStyle'),
+    'style.mask': styleSetter('mask'),
+    'style.maskBorder': styleSetter('maskBorder'),
+    'style.maskBorderMode': styleSetter('maskBorderMode'),
+    'style.maskBorderOutset': styleSetter('maskBorderOutset'),
+    'style.maskBorderRepeat': styleSetter('maskBorderRepeat'),
+    'style.maskBorderSlice': styleSetter('maskBorderSlice'),
+    'style.maskBorderSource': styleSetter('maskBorderSource'),
+    'style.maskBorderWidth': styleSetter('maskBorderWidth'),
+    'style.maskClip': styleSetter('maskClip'),
+    'style.maskComposite': styleSetter('maskComposite'),
+    'style.maskImage': styleSetter('maskImage'),
+    'style.maskMode': styleSetter('maskMode'),
+    'style.maskOrigin': styleSetter('maskOrigin'),
+    'style.maskPosition': styleSetter('maskPosition'),
+    'style.maskRepeat': styleSetter('maskRepeat'),
+    'style.maskSize': styleSetter('maskSize'),
+    'style.maskType': styleSetter('maskType'),
+    'style.maxHeight': styleSetter('maxHeight'),
+    'style.maxLines': styleSetter('maxLines'),
+    'style.maxWidth': styleSetter('maxWidth'),
+    'style.minHeight': styleSetter('minHeight'),
+    'style.minWidth': styleSetter('minWidth'),
+    'style.mixBlendMode': styleSetter('mixBlendMode'),
+    'style.motion': styleSetter('motion'),
+    'style.motionOffset': styleSetter('motionOffset'),
+    'style.motionPath': styleSetter('motionPath'),
+    'style.motionRotation': styleSetter('motionRotation'),
+    'style.navDown': styleSetter('navDown'),
+    'style.navLeft': styleSetter('navLeft'),
+    'style.navRight': styleSetter('navRight'),
+    'style.navUp': styleSetter('navUp'),
+    'style.objectFit': styleSetter('objectFit'),
+    'style.objectPosition': styleSetter('objectPosition'),
+    'style.offset': styleSetter('offset'),
+    'style.offsetAfter': styleSetter('offsetAfter'),
+    'style.offsetAnchor': styleSetter('offsetAnchor'),
+    'style.offsetBefore': styleSetter('offsetBefore'),
+    'style.offsetDistance': styleSetter('offsetDistance'),
+    'style.offsetEnd': styleSetter('offsetEnd'),
+    'style.offsetPath': styleSetter('offsetPath'),
+    'style.offsetPosition': styleSetter('offsetPosition'),
+    'style.offsetRotate': styleSetter('offsetRotate'),
+    'style.offsetStart': styleSetter('offsetStart'),
+    'style.opacity': styleSetter('opacity'),
+    'style.order': styleSetter('order'),
+    'style.orphans': styleSetter('orphans'),
+    'style.outline': styleSetter('outline'),
+    'style.outlineColor': styleSetter('outlineColor'),
+    'style.outlineOffset': styleSetter('outlineOffset'),
+    'style.outlineStyle': styleSetter('outlineStyle'),
+    'style.outlineWidth': styleSetter('outlineWidth'),
+    'style.overflow': styleSetter('overflow'),
+    'style.overflowStyle': styleSetter('overflowStyle'),
+    'style.overflowWrap': styleSetter('overflowWrap'),
+    'style.overflowX': styleSetter('overflowX'),
+    'style.overflowY': styleSetter('overflowY'),
+    'style.padding': styleSetter('padding'),
+    'style.paddingBottom': styleSetter('paddingBottom'),
+    'style.paddingLeft': styleSetter('paddingLeft'),
+    'style.paddingRight': styleSetter('paddingRight'),
+    'style.paddingTop': styleSetter('paddingTop'),
+    'style.page': styleSetter('page'),
+    'style.pageBreakAfter': styleSetter('pageBreakAfter'),
+    'style.pageBreakBefore': styleSetter('pageBreakBefore'),
+    'style.pageBreakInside': styleSetter('pageBreakInside'),
+    'style.pause': styleSetter('pause'),
+    'style.pauseAfter': styleSetter('pauseAfter'),
+    'style.pauseBefore': styleSetter('pauseBefore'),
+    'style.perspective': styleSetter('perspective'),
+    'style.perspectiveOrigin': styleSetter('perspectiveOrigin'),
+    'style.pitch': styleSetter('pitch'),
+    'style.pitchRange': styleSetter('pitchRange'),
+    'style.placeContent': styleSetter('placeContent'),
+    'style.placeItems': styleSetter('placeItems'),
+    'style.placeSelf': styleSetter('placeSelf'),
+    'style.playDuring': styleSetter('playDuring'),
+    'style.pointerEvents': styleSetter('pointerEvents'),
+    'style.polarAnchor': styleSetter('polarAnchor'),
+    'style.polarAngle': styleSetter('polarAngle'),
+    'style.polarDistance': styleSetter('polarDistance'),
+    'style.polarOrigin': styleSetter('polarOrigin'),
+    'style.position': styleSetter('position'),
+    'style.presentationLevel': styleSetter('presentationLevel'),
+    'style.quotes': styleSetter('quotes'),
+    'style.regionFragment': styleSetter('regionFragment'),
+    'style.resize': styleSetter('resize'),
+    'style.rest': styleSetter('rest'),
+    'style.restAfter': styleSetter('restAfter'),
+    'style.restBefore': styleSetter('restBefore'),
+    'style.richness': styleSetter('richness'),
+    'style.right': styleSetter('right'),
+    'style.rotation': styleSetter('rotation'),
+    'style.rotationPoint': styleSetter('rotationPoint'),
+    'style.rubyAlign': styleSetter('rubyAlign'),
+    'style.rubyMerge': styleSetter('rubyMerge'),
+    'style.rubyPosition': styleSetter('rubyPosition'),
+    'style.running': styleSetter('running'),
+    'style.scrollBehavior': styleSetter('scrollBehavior'),
+    'style.scrollPadding': styleSetter('scrollPadding'),
+    'style.scrollPaddingBlock': styleSetter('scrollPaddingBlock'),
+    'style.scrollPaddingBlockEnd': styleSetter('scrollPaddingBlockEnd'),
+    'style.scrollPaddingBlockStart': styleSetter('scrollPaddingBlockStart'),
+    'style.scrollPaddingBottom': styleSetter('scrollPaddingBottom'),
+    'style.scrollPaddingInline': styleSetter('scrollPaddingInline'),
+    'style.scrollPaddingInlineEnd': styleSetter('scrollPaddingInlineEnd'),
+    'style.scrollPaddingInlineStart': styleSetter('scrollPaddingInlineStart'),
+    'style.scrollPaddingLeft': styleSetter('scrollPaddingLeft'),
+    'style.scrollPaddingRight': styleSetter('scrollPaddingRight'),
+    'style.scrollPaddingTop': styleSetter('scrollPaddingTop'),
+    'style.scrollSnapAlign': styleSetter('scrollSnapAlign'),
+    'style.scrollSnapMargin': styleSetter('scrollSnapMargin'),
+    'style.scrollSnapMarginBlock': styleSetter('scrollSnapMarginBlock'),
+    'style.scrollSnapMarginBlockEnd': styleSetter('scrollSnapMarginBlockEnd'),
+    'style.scrollSnapMarginBlockStart': styleSetter('scrollSnapMarginBlockStart'),
+    'style.scrollSnapMarginBottom': styleSetter('scrollSnapMarginBottom'),
+    'style.scrollSnapMarginInline': styleSetter('scrollSnapMarginInline'),
+    'style.scrollSnapMarginInlineEnd': styleSetter('scrollSnapMarginInlineEnd'),
+    'style.scrollSnapMarginInlineStart': styleSetter('scrollSnapMarginInlineStart'),
+    'style.scrollSnapMarginLeft': styleSetter('scrollSnapMarginLeft'),
+    'style.scrollSnapMarginRight': styleSetter('scrollSnapMarginRight'),
+    'style.scrollSnapMarginTop': styleSetter('scrollSnapMarginTop'),
+    'style.scrollSnapStop': styleSetter('scrollSnapStop'),
+    'style.scrollSnapType': styleSetter('scrollSnapType'),
+    'style.shapeImageThreshold': styleSetter('shapeImageThreshold'),
+    'style.shapeInside': styleSetter('shapeInside'),
+    'style.shapeMargin': styleSetter('shapeMargin'),
+    'style.shapeOutside': styleSetter('shapeOutside'),
+    'style.shapeRendering': styleSetter('shapeRendering'),
+    'style.size': styleSetter('size'),
+    'style.speak': styleSetter('speak'),
+    'style.speakAs': styleSetter('speakAs'),
+    'style.speakHeader': styleSetter('speakHeader'),
+    'style.speakNumeral': styleSetter('speakNumeral'),
+    'style.speakPunctuation': styleSetter('speakPunctuation'),
+    'style.speechRate': styleSetter('speechRate'),
+    'style.stopColor': styleSetter('stopColor'),
+    'style.stopOpacity': styleSetter('stopOpacity'),
+    'style.stress': styleSetter('stress'),
+    'style.stringSet': styleSetter('stringSet'),
+    'style.stroke': styleSetter('stroke'),
+    'style.strokeAlignment': styleSetter('strokeAlignment'),
+    'style.strokeDashadjust': styleSetter('strokeDashadjust'),
+    'style.strokeDasharray': styleSetter('strokeDasharray'),
+    'style.strokeDashcorner': styleSetter('strokeDashcorner'),
+    'style.strokeDashoffset': styleSetter('strokeDashoffset'),
+    'style.strokeLinecap': styleSetter('strokeLinecap'),
+    'style.strokeLinejoin': styleSetter('strokeLinejoin'),
+    'style.strokeMiterlimit': styleSetter('strokeMiterlimit'),
+    'style.strokeOpacity': styleSetter('strokeOpacity'),
+    'style.strokeWidth': styleSetter('strokeWidth'),
+    'style.tableLayout': styleSetter('tableLayout'),
+    'style.tabSize': styleSetter('tabSize'),
+    'style.textAlign': styleSetter('textAlign'),
+    'style.textAlignAll': styleSetter('textAlignAll'),
+    'style.textAlignLast': styleSetter('textAlignLast'),
+    'style.textAnchor': styleSetter('textAnchor'),
+    'style.textCombineUpright': styleSetter('textCombineUpright'),
+    'style.textDecoration': styleSetter('textDecoration'),
+    'style.textDecorationColor': styleSetter('textDecorationColor'),
+    'style.textDecorationLine': styleSetter('textDecorationLine'),
+    'style.textDecorationSkip': styleSetter('textDecorationSkip'),
+    'style.textDecorationStyle': styleSetter('textDecorationStyle'),
+    'style.textEmphasis': styleSetter('textEmphasis'),
+    'style.textEmphasisColor': styleSetter('textEmphasisColor'),
+    'style.textEmphasisPosition': styleSetter('textEmphasisPosition'),
+    'style.textEmphasisStyle': styleSetter('textEmphasisStyle'),
+    'style.textIndent': styleSetter('textIndent'),
+    'style.textJustify': styleSetter('textJustify'),
+    'style.textOrientation': styleSetter('textOrientation'),
+    'style.textOverflow': styleSetter('textOverflow'),
+    'style.textRendering': styleSetter('textRendering'),
+    'style.textShadow': styleSetter('textShadow'),
+    'style.textSpaceCollapse': styleSetter('textSpaceCollapse'),
+    'style.textSpaceTrim': styleSetter('textSpaceTrim'),
+    'style.textSpacing': styleSetter('textSpacing'),
+    'style.textTransform': styleSetter('textTransform'),
+    'style.textUnderlinePosition': styleSetter('textUnderlinePosition'),
+    'style.textWrap': styleSetter('textWrap'),
+    'style.top': styleSetter('top'),
+    'style.transform': styleSetter('transform'),
+    'style.transformBox': styleSetter('transformBox'),
+    'style.transformOrigin': styleSetter('transformOrigin'),
+    'style.transformStyle': styleSetter('transformStyle'),
+    'style.transition': styleSetter('transition'),
+    'style.transitionDelay': styleSetter('transitionDelay'),
+    'style.transitionDuration': styleSetter('transitionDuration'),
+    'style.transitionProperty': styleSetter('transitionProperty'),
+    'style.transitionTimingFunction': styleSetter('transitionTimingFunction'),
+    'style.unicodeBidi': styleSetter('unicodeBidi'),
+    'style.userSelect': styleSetter('userSelect'),
+    'style.verticalAlign': styleSetter('verticalAlign'),
+    'style.visibility': styleSetter('visibility'),
+    'style.voiceBalance': styleSetter('voiceBalance'),
+    'style.voiceDuration': styleSetter('voiceDuration'),
+    'style.voiceFamily': styleSetter('voiceFamily'),
+    'style.voicePitch': styleSetter('voicePitch'),
+    'style.voiceRange': styleSetter('voiceRange'),
+    'style.voiceRate': styleSetter('voiceRate'),
+    'style.voiceStress': styleSetter('voiceStress'),
+    'style.voiceVolume': styleSetter('voiceVolume'),
+    'style.volume': styleSetter('volume'),
+    'style.whiteSpace': styleSetter('whiteSpace'),
+    'style.widows': styleSetter('widows'),
+    'style.width': styleSetter('width'),
+    'style.willChange': styleSetter('willChange'),
+    'style.wordBreak': styleSetter('wordBreak'),
+    'style.wordSpacing': styleSetter('wordSpacing'),
+    'style.wordWrap': styleSetter('wordWrap'),
+    'style.wrapAfter': styleSetter('wrapAfter'),
+    'style.wrapBefore': styleSetter('wrapBefore'),
+    'style.wrapFlow': styleSetter('wrapFlow'),
+    'style.wrapInside': styleSetter('wrapInside'),
+    'style.wrapThrough': styleSetter('wrapThrough'),
+    'style.writingMode': styleSetter('writingMode'),
+    'style.zIndex': styleSetter('zIndex'),
+    'style.WebkitTapHighlightColor': function (_, element, value) {
         element.attributes.style.webkitTapHighlightColor = value;
     }
 };
 var TEXT_CONTENT_VANITIES = {
-    content: function (name, element, value) {
-        element.children = [value + ""];
+    content: function (_, element, value) {
+        element.children = [value + ''];
     }
 };
 function attributeSetter(prop) {
@@ -5888,104 +5990,107 @@ function attributeSetter(prop) {
     };
 }
 var PRESENTATION_VANITIES = {
-    alignmentBaseline: attributeSetter("alignmentBaseline"),
-    baselineShift: attributeSetter("baselineShift"),
-    clipPath: attributeSetter("clipPath"),
-    clipRule: attributeSetter("clipRule"),
-    clip: attributeSetter("clip"),
-    colorInterpolationFilters: attributeSetter("colorInterpolationFilters"),
-    colorInterpolation: attributeSetter("colorInterpolation"),
-    colorProfile: attributeSetter("colorProfile"),
-    colorRendering: attributeSetter("colorRendering"),
-    color: attributeSetter("color"),
-    cursor: attributeSetter("cursor"),
-    direction: attributeSetter("direction"),
-    display: attributeSetter("display"),
-    dominantBaseline: attributeSetter("dominantBaseline"),
-    enableBackground: attributeSetter("enableBackground"),
-    fillOpacity: attributeSetter("fillOpacity"),
-    fillRule: attributeSetter("fillRule"),
-    fill: attributeSetter("fill"),
-    filter: attributeSetter("filter"),
-    floodColor: attributeSetter("floodColor"),
-    floodOpacity: attributeSetter("floodOpacity"),
-    fontFamily: attributeSetter("fontFamily"),
-    fontSizeAdjust: attributeSetter("fontSizeAdjust"),
-    fontSize: attributeSetter("fontSize"),
-    fontStretch: attributeSetter("fontStretch"),
-    fontStyle: attributeSetter("fontStyle"),
-    fontVariant: attributeSetter("fontVariant"),
-    fontWeight: attributeSetter("fontWeight"),
-    glyphOrientationHorizontal: attributeSetter("glyphOrientationHorizontal"),
-    glyphOrientationVertical: attributeSetter("glyphOrientationVertical"),
-    imageRendering: attributeSetter("imageRendering"),
-    kerning: attributeSetter("kerning"),
-    letterSpacing: attributeSetter("letterSpacing"),
-    lightingColor: attributeSetter("lightingColor"),
-    markerEnd: attributeSetter("markerEnd"),
-    markerMid: attributeSetter("markerMid"),
-    markerStart: attributeSetter("markerStart"),
-    mask: attributeSetter("mask"),
-    opacity: function (name, element, value) {
+    alignmentBaseline: attributeSetter('alignmentBaseline'),
+    baselineShift: attributeSetter('baselineShift'),
+    clipPath: attributeSetter('clipPath'),
+    clipRule: attributeSetter('clipRule'),
+    clip: attributeSetter('clip'),
+    colorInterpolationFilters: attributeSetter('colorInterpolationFilters'),
+    colorInterpolation: attributeSetter('colorInterpolation'),
+    colorProfile: attributeSetter('colorProfile'),
+    colorRendering: attributeSetter('colorRendering'),
+    color: attributeSetter('color'),
+    cursor: attributeSetter('cursor'),
+    direction: attributeSetter('direction'),
+    display: attributeSetter('display'),
+    dominantBaseline: attributeSetter('dominantBaseline'),
+    enableBackground: attributeSetter('enableBackground'),
+    fillOpacity: attributeSetter('fillOpacity'),
+    fillRule: attributeSetter('fillRule'),
+    fill: attributeSetter('fill'),
+    filter: attributeSetter('filter'),
+    floodColor: attributeSetter('floodColor'),
+    floodOpacity: attributeSetter('floodOpacity'),
+    fontFamily: attributeSetter('fontFamily'),
+    fontSizeAdjust: attributeSetter('fontSizeAdjust'),
+    fontSize: attributeSetter('fontSize'),
+    fontStretch: attributeSetter('fontStretch'),
+    fontStyle: attributeSetter('fontStyle'),
+    fontVariant: attributeSetter('fontVariant'),
+    fontWeight: attributeSetter('fontWeight'),
+    glyphOrientationHorizontal: attributeSetter('glyphOrientationHorizontal'),
+    glyphOrientationVertical: attributeSetter('glyphOrientationVertical'),
+    imageRendering: attributeSetter('imageRendering'),
+    kerning: attributeSetter('kerning'),
+    letterSpacing: attributeSetter('letterSpacing'),
+    lightingColor: attributeSetter('lightingColor'),
+    markerEnd: attributeSetter('markerEnd'),
+    markerMid: attributeSetter('markerMid'),
+    markerStart: attributeSetter('markerStart'),
+    mask: attributeSetter('mask'),
+    opacity: function (_, element, value) {
         element.layout.opacity = value;
     },
-    overflow: attributeSetter("overflow"),
-    pointerEvents: attributeSetter("pointerEvents"),
-    shapeRendering: attributeSetter("shapeRendering"),
-    stopColor: attributeSetter("stopColor"),
-    stopOpacity: attributeSetter("stopOpacity"),
-    strokeDasharray: attributeSetter("strokeDasharray"),
-    strokeDashoffset: attributeSetter("strokeDashoffset"),
-    strokeLinecap: attributeSetter("strokeLinecap"),
-    strokeLinejoin: attributeSetter("strokeLinejoin"),
-    strokeMiterlimit: attributeSetter("strokeMiterlimit"),
-    strokeOpacity: attributeSetter("strokeOpacity"),
-    strokeWidth: attributeSetter("strokeWidth"),
-    stroke: attributeSetter("stroke"),
-    textAnchor: attributeSetter("textAnchor"),
-    textDecoration: attributeSetter("textDecoration"),
-    textRendering: attributeSetter("textRendering"),
-    unicodeBidi: attributeSetter("unicodeBidi"),
-    visibility: attributeSetter("visibility"),
-    wordSpacing: attributeSetter("wordSpacing"),
-    writingMode: attributeSetter("writingMode")
+    overflow: attributeSetter('overflow'),
+    pointerEvents: attributeSetter('pointerEvents'),
+    shapeRendering: attributeSetter('shapeRendering'),
+    stopColor: attributeSetter('stopColor'),
+    stopOpacity: attributeSetter('stopOpacity'),
+    strokeDasharray: attributeSetter('strokeDasharray'),
+    strokeDashoffset: attributeSetter('strokeDashoffset'),
+    strokeLinecap: attributeSetter('strokeLinecap'),
+    strokeLinejoin: attributeSetter('strokeLinejoin'),
+    strokeMiterlimit: attributeSetter('strokeMiterlimit'),
+    strokeOpacity: attributeSetter('strokeOpacity'),
+    strokeWidth: attributeSetter('strokeWidth'),
+    stroke: attributeSetter('stroke'),
+    textAnchor: attributeSetter('textAnchor'),
+    textDecoration: attributeSetter('textDecoration'),
+    textRendering: attributeSetter('textRendering'),
+    unicodeBidi: attributeSetter('unicodeBidi'),
+    visibility: attributeSetter('visibility'),
+    wordSpacing: attributeSetter('wordSpacing'),
+    writingMode: attributeSetter('writingMode')
 };
 var FILTER_VANITIES = {
-    x: attributeSetter("x"),
-    y: attributeSetter("y"),
-    width: attributeSetter("width"),
-    height: attributeSetter("height"),
-    filterRes: attributeSetter("filterRes"),
-    filterUnits: attributeSetter("filterUnits"),
-    primitiveUnits: attributeSetter("primitiveUnits")
+    x: attributeSetter('x'),
+    y: attributeSetter('y'),
+    width: attributeSetter('width'),
+    height: attributeSetter('height'),
+    filterRes: attributeSetter('filterRes'),
+    filterUnits: attributeSetter('filterUnits'),
+    primitiveUnits: attributeSetter('primitiveUnits')
 };
 var HTML_STYLE_SHORTHAND_VANITIES = {
-    backgroundColor: function (name, element, value) {
+    backgroundColor: function (_, element, value) {
         element.attributes.style.backgroundColor = value;
     },
-    zIndex: function (name, element, value) {
+    zIndex: function (_, element, value) {
         element.attributes.style.zIndex = value;
     }
 };
 var CONTROL_FLOW_VANITIES = {
-    "controlFlow.placeholder": function (name, element, value, context, component) {
-        if (value === null || value === undefined)
+    'controlFlow.placeholder': function (name, element, value, context, component) {
+        if (value === null || value === undefined) {
             return void 0;
-        if (typeof value !== "number") {
-            throw new Error("controlFlow.placeholder expects null or number");
         }
-        if (!context.config.children)
+        if (typeof value !== 'number') {
+            throw new Error('controlFlow.placeholder expects null or number');
+        }
+        if (!context.config.children) {
             return void 0;
+        }
         var children = Array.isArray(context.config.children)
             ? context.config.children
             : [context.config.children];
         component._markElementAnticipatedSurrogates(element, children);
         var surrogate = children[value];
-        if (surrogate === null || surrogate === undefined)
+        if (surrogate === null || surrogate === undefined) {
             return void 0;
+        }
         element.children = [];
-        if (context.config.vanities["controlFlow.placeholder"]) {
-            context.config.vanities["controlFlow.placeholder"](element, surrogate, value, context, component);
+        if (context.config.vanities['controlFlow.placeholder']) {
+            context.config.vanities['controlFlow.placeholder'](element, surrogate, value, context, component);
         }
         else {
             controlFlowPlaceholderImpl(element, surrogate, value, context, component);
@@ -5997,11 +6102,13 @@ function controlFlowPlaceholderImpl(element, surrogate, value, context, componen
         element.elementName = surrogate.elementName;
         element.children = surrogate.children || [];
         if (surrogate.attributes) {
-            if (!element.attributes)
+            if (!element.attributes) {
                 element.attributes = {};
+            }
             for (var key in surrogate.attributes) {
-                if (key === "haiku-id")
+                if (key === 'haiku-id') {
                     continue;
+                }
                 element.attributes[key] = surrogate.attributes[key];
             }
         }
@@ -6009,211 +6116,211 @@ function controlFlowPlaceholderImpl(element, surrogate, value, context, componen
     }
 }
 exports["default"] = {
-    "missing-glyph": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "a": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES, STYLE_VANITIES),
-    "abbr": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "acronym": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "address": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "altGlyph": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "altGlyphDef": has_1["default"](),
-    "altGlyphItem": has_1["default"](),
-    "animate": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "animateColor": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "animateMotion": has_1["default"](),
-    "animateTransform": has_1["default"](),
-    "applet": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "area": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "article": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "aside": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "audio": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "b": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "base": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "basefont": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "bdi": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "bdo": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "big": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "blockquote": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "body": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "br": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "button": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "canvas": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "caption": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "center": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "circle": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "cite": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "clipPath": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "code": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "col": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "colgroup": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "color-profile": has_1["default"](),
-    "command": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "cursor": has_1["default"](),
-    "datalist": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "dd": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "defs": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "del": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "desc": has_1["default"](),
-    "details": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "dfn": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "dir": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "discard": has_1["default"](),
-    "div": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "dl": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "dt": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "ellipse": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "em": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "embed": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "feBlend": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feColorMatrix": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feComponentTransfer": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feComposite": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feConvolveMatrix": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feDiffuseLighting": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feDisplacementMap": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feDistantLight": has_1["default"](),
-    "feDropShadow": has_1["default"](),
-    "feFlood": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feFuncA": has_1["default"](),
-    "feFuncB": has_1["default"](),
-    "feFuncG": has_1["default"](),
-    "feFuncR": has_1["default"](),
-    "feGaussianBlur": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feImage": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feMerge": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feMergeNode": has_1["default"](),
-    "feMorphology": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feOffset": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "fePointLight": has_1["default"](),
-    "feSpecularLighting": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feTile": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "feTurbulence": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "fieldset": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "figcaption": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "figure": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "filter": has_1["default"](LAYOUT_3D_VANITIES, FILTER_VANITIES),
-    "font-face": has_1["default"](),
-    "font-face-format": has_1["default"](),
-    "font-face-name": has_1["default"](),
-    "font-face-src": has_1["default"](),
-    "font-face-uri": has_1["default"](),
-    "font": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES, STYLE_VANITIES),
-    "footer": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "foreignObject": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "form": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "frame": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "frameset": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "g": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "glyph": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "glyphRef": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "h1": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "h2": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "h3": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "h4": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "h5": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "h6": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "hatch": has_1["default"](),
-    "hatchpath": has_1["default"](),
-    "head": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "header": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "hgroup": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "hkern": has_1["default"](),
-    "hr": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "html": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "i": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "iframe": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "image": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "img": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "input": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "ins": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "kbd": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "keygen": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "label": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "legend": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "li": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "line": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "linearGradient": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "link": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "map": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "mark": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "marker": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "mask": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "menu": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "mesh": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES),
-    "meshgradient": has_1["default"](),
-    "meshpatch": has_1["default"](),
-    "meshrow": has_1["default"](),
-    "meta": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "metadata": has_1["default"](),
-    "meter": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "mpath": has_1["default"](),
-    "nav": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "noframes": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "noscript": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "object": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "ol": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "optgroup": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "option": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "output": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "p": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "param": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "path": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "pattern": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "polygon": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "polyline": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "pre": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "progress": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "q": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "radialGradient": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "rect": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "rp": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "rt": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "ruby": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "s": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "samp": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "script": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "section": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "select": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "set": has_1["default"](),
-    "small": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "solidcolor": has_1["default"](),
-    "source": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "span": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "stop": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "strike": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "strong": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "style": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "sub": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "summary": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "sup": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "svg": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES, STYLE_VANITIES, HTML_STYLE_SHORTHAND_VANITIES),
+    'missing-glyph': has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    a: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES, STYLE_VANITIES),
+    abbr: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    acronym: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    address: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    altGlyph: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    altGlyphDef: has_1["default"](),
+    altGlyphItem: has_1["default"](),
+    animate: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    animateColor: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    animateMotion: has_1["default"](),
+    animateTransform: has_1["default"](),
+    applet: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    area: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    article: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    aside: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    audio: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    b: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    base: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    basefont: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    bdi: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    bdo: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    big: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    blockquote: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    body: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    br: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    button: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    canvas: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    caption: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    center: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    circle: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    cite: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    clipPath: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    code: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    col: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    colgroup: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    'color-profile': has_1["default"](),
+    command: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    cursor: has_1["default"](),
+    datalist: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    dd: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    defs: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    del: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    desc: has_1["default"](),
+    details: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    dfn: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    dir: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    discard: has_1["default"](),
+    div: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    dl: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    dt: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    ellipse: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    em: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    embed: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    feBlend: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feColorMatrix: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feComponentTransfer: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feComposite: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feConvolveMatrix: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feDiffuseLighting: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feDisplacementMap: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feDistantLight: has_1["default"](),
+    feDropShadow: has_1["default"](),
+    feFlood: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feFuncA: has_1["default"](),
+    feFuncB: has_1["default"](),
+    feFuncG: has_1["default"](),
+    feFuncR: has_1["default"](),
+    feGaussianBlur: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feImage: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feMerge: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feMergeNode: has_1["default"](),
+    feMorphology: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feOffset: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    fePointLight: has_1["default"](),
+    feSpecularLighting: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feTile: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    feTurbulence: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    fieldset: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    figcaption: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    figure: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    filter: has_1["default"](LAYOUT_3D_VANITIES, FILTER_VANITIES),
+    'font-face': has_1["default"](),
+    'font-face-format': has_1["default"](),
+    'font-face-name': has_1["default"](),
+    'font-face-src': has_1["default"](),
+    'font-face-uri': has_1["default"](),
+    font: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES, STYLE_VANITIES),
+    footer: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    foreignObject: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    form: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    frame: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    frameset: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    g: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    glyph: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    glyphRef: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    h1: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    h2: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    h3: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    h4: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    h5: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    h6: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    hatch: has_1["default"](),
+    hatchpath: has_1["default"](),
+    head: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    header: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    hgroup: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    hkern: has_1["default"](),
+    hr: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    html: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    i: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    iframe: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    image: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    img: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    input: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    ins: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    kbd: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    keygen: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    label: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    legend: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    li: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    line: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    linearGradient: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    link: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    map: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    mark: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    marker: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    mask: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    menu: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    mesh: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES),
+    meshgradient: has_1["default"](),
+    meshpatch: has_1["default"](),
+    meshrow: has_1["default"](),
+    meta: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    metadata: has_1["default"](),
+    meter: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    mpath: has_1["default"](),
+    nav: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    noframes: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    noscript: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    object: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    ol: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    optgroup: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    option: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    output: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    p: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    param: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    path: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    pattern: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    polygon: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    polyline: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    pre: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    progress: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    q: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    radialGradient: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    rect: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    rp: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    rt: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    ruby: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    s: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    samp: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    script: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    section: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    select: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    set: has_1["default"](),
+    small: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    solidcolor: has_1["default"](),
+    source: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    span: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    stop: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    strike: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    strong: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    style: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    sub: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    summary: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    sup: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    svg: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES, STYLE_VANITIES, HTML_STYLE_SHORTHAND_VANITIES),
     "switch": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "symbol": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "table": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "tbody": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "td": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "text": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "textarea": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "textPath": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "tfoot": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "th": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "thead": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "time": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "title": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "tr": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "track": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "tref": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "tspan": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
-    "tt": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "u": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "ul": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "unknown": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES),
-    "us": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-    "use": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES),
+    symbol: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    table: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    tbody: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    td: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    text: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    textarea: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    textPath: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    tfoot: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    th: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    thead: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    time: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    title: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    tr: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    track: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    tref: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    tspan: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+    tt: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    u: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, TEXT_CONTENT_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    ul: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    unknown: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES),
+    us: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
+    use: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES),
     "var": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "video": has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
-    "view": has_1["default"](),
-    "vkern": has_1["default"](),
-    "wb": has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES)
+    video: has_1["default"](HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
+    view: has_1["default"](),
+    vkern: has_1["default"](),
+    wb: has_1["default"](CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES)
 };
 
 },{"./../../Layout3D":9,"./has":47}],51:[function(_dereq_,module,exports){
@@ -6240,24 +6347,23 @@ exports["default"] = enhance;
 "use strict";
 exports.__esModule = true;
 var REGEXPS = [
-    { type: "whitespace", re: /^[\s]+/ },
-    { type: "paren_open", re: /^\(/ },
-    { type: "paren_close", re: /^\)/ },
-    { type: "square_open", re: /^\[/ },
-    { type: "square_close", re: /^]/ },
-    { type: "curly_open", re: /^\{/ },
-    { type: "curly_close", re: /^\}/ },
-    { type: "rest", re: /^\.\.\./ },
-    { type: "colon", re: /^:/ },
-    { type: "comma", re: /^,/ },
-    { type: "identifier", re: /^[a-zA-Z0-9_$]+/ },
+    { type: 'whitespace', re: /^[\s]+/ },
+    { type: 'paren_open', re: /^\(/ },
+    { type: 'paren_close', re: /^\)/ },
+    { type: 'square_open', re: /^\[/ },
+    { type: 'square_close', re: /^]/ },
+    { type: 'curly_open', re: /^\{/ },
+    { type: 'curly_close', re: /^\}/ },
+    { type: 'rest', re: /^\.\.\./ },
+    { type: 'colon', re: /^:/ },
+    { type: 'comma', re: /^,/ },
+    { type: 'identifier', re: /^[a-zA-Z0-9_$]+/ },
 ];
 function nth(n, type, arr) {
-    var none = { value: null, type: "void" };
-    if (arr.length < 1)
+    var none = { value: null, type: 'void' };
+    if (arr.length < 1 || n > arr.length) {
         return none;
-    if (n > arr.length)
-        return none;
+    }
     var f = 0;
     for (var i = 0; i < arr.length; i++) {
         if (arr[i].type === type) {
@@ -6280,73 +6386,74 @@ function tokenize(source) {
             var match = regexp.re.exec(chunk);
             if (match) {
                 var value = match[0];
-                tokens.push({ type: regexp.type, value: value });
+                tokens.push({ value: value, type: regexp.type });
                 chunk = chunk.slice(match[0].length, chunk.length);
                 break;
             }
         }
         if (iterations++ > total) {
-            throw new Error("Unable to tokenize expression");
+            throw new Error('Unable to tokenize expression');
         }
     }
     return tokens;
 }
 function tokensToParams(tokens) {
-    if (tokens.length < 1)
+    if (tokens.length < 1) {
         return [];
-    var json = "";
-    var frag = "";
+    }
+    var json = '';
+    var frag = '';
     var next;
     var token = tokens.shift();
     var scopes = [];
     while (token) {
         switch (token.type) {
-            case "whitespace":
-                frag = " ";
+            case 'whitespace':
+                frag = ' ';
                 break;
-            case "comma":
-                frag = ",";
+            case 'comma':
+                frag = ',';
                 break;
-            case "colon":
-                frag = ":";
+            case 'colon':
+                frag = ':';
                 break;
-            case "paren_open":
-                frag = "[";
-                scopes.push("square");
+            case 'paren_open':
+                frag = '[';
+                scopes.push('square');
                 break;
-            case "paren_close":
-                frag = "]";
+            case 'paren_close':
+                frag = ']';
                 scopes.pop();
                 break;
-            case "square_open":
-                frag = "[";
-                scopes.push("square");
+            case 'square_open':
+                frag = '[';
+                scopes.push('square');
                 break;
-            case "square_close":
-                frag = "]";
+            case 'square_close':
+                frag = ']';
                 scopes.pop();
                 break;
-            case "curly_open":
-                frag = "{";
-                scopes.push("curly");
+            case 'curly_open':
+                frag = '{';
+                scopes.push('curly');
                 break;
-            case "curly_close":
-                frag = "}";
+            case 'curly_close':
+                frag = '}';
                 scopes.pop();
                 break;
-            case "rest":
+            case 'rest':
                 next = tokens.shift();
                 frag = JSON.stringify({ __rest: next.value });
                 break;
-            case "identifier":
+            case 'identifier':
                 frag = '"' + token.value + '"';
                 if (tokens[0] &&
-                    (tokens[0].type === "comma" ||
-                        tokens[0].type === "square_close" ||
-                        tokens[0].type === "curly_close")) {
+                    (tokens[0].type === 'comma' ||
+                        tokens[0].type === 'square_close' ||
+                        tokens[0].type === 'curly_close')) {
                     var scope = scopes[scopes.length - 1];
-                    if (scope === "square") {
-                        frag += "";
+                    if (scope === 'square') {
+                        frag += '';
                     }
                     else {
                         frag += ':"' + token.value + '"';
@@ -6354,7 +6461,7 @@ function tokensToParams(tokens) {
                 }
                 break;
             default:
-                frag = "";
+                frag = '';
         }
         json += frag;
         token = tokens.shift();
@@ -6365,7 +6472,7 @@ function signatureToParams(signature) {
     var tokens = tokenize(signature);
     var clean = [];
     for (var i = 0; i < tokens.length; i++) {
-        if (tokens[i].type !== "whitespace") {
+        if (tokens[i].type !== 'whitespace') {
             clean.push(tokens[i]);
         }
     }
@@ -6373,21 +6480,21 @@ function signatureToParams(signature) {
 }
 function functionToRFO(fn) {
     var str = fn.toString();
-    if (str[str.length - 1] === ")") {
-        if (str[0] === "(") {
+    if (str[str.length - 1] === ')') {
+        if (str[0] === '(') {
             str = str.slice(1);
         }
     }
-    var pidx1 = str.indexOf("(");
-    var pidx2 = str.indexOf(")");
+    var pidx1 = str.indexOf('(');
+    var pidx2 = str.indexOf(')');
     var prefix = str.slice(0, pidx1);
     var signature = str.slice(pidx1, pidx2 + 1);
     var suffix = str.slice(pidx2 + 1, str.length);
-    var body = suffix.slice(suffix.indexOf("{") + 1, suffix.length - 1).trim();
+    var body = suffix.slice(suffix.indexOf('{') + 1, suffix.length - 1).trim();
     var type = suffix.match(/^\s*=>\s*{/)
-        ? "ArrowFunctionExpression"
-        : "FunctionExpression";
-    var name = nth(2, "identifier", tokenize(prefix)).value;
+        ? 'ArrowFunctionExpression'
+        : 'FunctionExpression';
+    var name = nth(2, 'identifier', tokenize(prefix)).value;
     var params = signatureToParams(signature);
     var spec = {
         type: type,
@@ -6411,8 +6518,8 @@ function inject() {
         args[_i] = arguments[_i];
     }
     var fn = args.shift();
-    if (typeof fn !== "function") {
-        console.warn("[haiku player] Inject expects a function as the first argument");
+    if (typeof fn !== 'function') {
+        console.warn('[haiku player] Inject expects a function as the first argument');
         return fn;
     }
     if (args.length > 0) {
@@ -6433,48 +6540,48 @@ exports["default"] = {
     mouse: {
         click: {
             menuable: true,
-            human: "Click"
+            human: 'Click'
         },
         dblclick: {
             menuable: true,
-            human: "Double Click"
+            human: 'Double Click'
         },
         mousedown: {
             menuable: true,
-            human: "Mouse Down"
+            human: 'Mouse Down'
         },
         mouseup: {
             menuable: true,
-            human: "Mouse Up"
+            human: 'Mouse Up'
         },
         mousemove: {
             menuable: true,
-            human: "Mouse Move"
+            human: 'Mouse Move'
         },
         mouseover: {
             menuable: true,
-            human: "Mouse Over"
+            human: 'Mouse Over'
         },
         mouseout: {
             menuable: true,
-            human: "Mouse Out"
+            human: 'Mouse Out'
         },
         wheel: {
             menuable: false
         },
         scroll: {
             menuable: true,
-            human: "Scroll"
+            human: 'Scroll'
         }
     },
     keyboard: {
         keyup: {
             menuable: true,
-            human: "Key Up"
+            human: 'Key Up'
         },
         keydown: {
             menuable: true,
-            human: "Key Down"
+            human: 'Key Down'
         },
         keypress: {
             menuable: false
@@ -6506,23 +6613,23 @@ exports["default"] = {
     form: {
         focus: {
             menuable: true,
-            human: "Focus"
+            human: 'Focus'
         },
         blur: {
             menuable: true,
-            human: "Blur"
+            human: 'Blur'
         },
         change: {
             menuable: true,
-            human: "Change"
+            human: 'Change'
         },
         select: {
             menuable: true,
-            human: "Select"
+            human: 'Select'
         },
         submit: {
             menuable: true,
-            human: "Submit"
+            human: 'Submit'
         },
         contextmenu: {
             menuable: false
@@ -6554,15 +6661,15 @@ exports["default"] = {
     window: {
         resize: {
             menuable: true,
-            human: "Window Resize"
+            human: 'Window Resize'
         },
         popstate: {
             menuable: true,
-            human: "URL Change"
+            human: 'URL Change'
         },
         hashchange: {
             menuable: true,
-            human: "Anchor Change"
+            human: 'Anchor Change'
         },
         load: {
             menuable: false
@@ -6750,8 +6857,9 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domElement) {
         user.mouches.push.apply(user.mouches, user.touches);
     }
     function clearKey() {
-        for (var which in user.keys)
+        for (var which in user.keys) {
             user.keys[which] = 0;
+        }
     }
     function clearMouse() {
         user.mouse.down = 0;
@@ -6766,91 +6874,95 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domElement) {
     function clearTouch() {
         user.touches.splice(0);
     }
-    domElement.addEventListener("mousedown", function _mousedownandler(mouseEvent) {
+    domElement.addEventListener('mousedown', function (mouseEvent) {
         ++user.mouse.down;
         ++user.mouse.buttons[mouseEvent.button];
         setMouse(mouseEvent);
         setMouches();
     });
-    domElement.addEventListener("mouseup", function _mouseupHandler(mouseEvent) {
+    domElement.addEventListener('mouseup', function (mouseEvent) {
         clearMouse();
         clearMouch();
         setMouches();
     });
-    domElement.addEventListener("mousemove", function _mousemoveHandler(mouseEvent) {
+    domElement.addEventListener('mousemove', function (mouseEvent) {
         setMouse(mouseEvent);
         setMouches();
     });
-    domElement.addEventListener("mouseenter", function _mouseenterHandler(mouseEvent) {
+    domElement.addEventListener('mouseenter', function (mouseEvent) {
         clearMouse();
         clearMouch();
     });
-    domElement.addEventListener("mouseleave", function _mouseenterHandler(mouseEvent) {
+    domElement.addEventListener('mouseleave', function (mouseEvent) {
         clearMouse();
         clearMouch();
     });
-    domElement.addEventListener("wheel", function _wheelHandler(mouseEvent) {
+    domElement.addEventListener('wheel', function (mouseEvent) {
         setMouse(mouseEvent);
         setMouches();
     });
     var doc = domElement.ownerDocument;
     var win = doc.defaultView || doc.parentWindow;
-    doc.addEventListener("keydown", function _keydownHandler(keyEvent) {
-        if (user.keys[keyEvent.which] === undefined)
+    doc.addEventListener('keydown', function (keyEvent) {
+        if (user.keys[keyEvent.which] === undefined) {
             user.keys[keyEvent.which] = 0;
+        }
         ++user.keys[keyEvent.which];
     });
-    doc.addEventListener("keyup", function _keyupHandler(keyEvent) {
-        if (user.keys[keyEvent.which] === undefined)
+    doc.addEventListener('keyup', function (keyEvent) {
+        if (user.keys[keyEvent.which] === undefined) {
             user.keys[keyEvent.which] = 0;
+        }
         if (keyEvent.which === 91 || keyEvent.which === 17) {
             clearKey();
         }
         user.keys[keyEvent.which] = 0;
     });
-    win.addEventListener("blur", function _blurHandlers(blurEvent) {
+    win.addEventListener('blur', function (blurEvent) {
         clearKey();
         clearMouse();
         clearTouch();
         clearMouch();
     });
-    win.addEventListener("focus", function _blurHandlers(blurEvent) {
+    win.addEventListener('focus', function (blurEvent) {
         clearKey();
         clearMouse();
         clearTouch();
         clearMouch();
     });
-    domElement.addEventListener("touchstart", function _touchstartHandler(touchEvent) {
+    domElement.addEventListener('touchstart', function (touchEvent) {
         setTouches(touchEvent);
         setMouches();
     });
-    domElement.addEventListener("touchend", function _touchsendHandler(touchEvent) {
+    domElement.addEventListener('touchend', function (touchEvent) {
         clearTouch();
         clearMouch();
     });
-    domElement.addEventListener("touchmove", function _touchmoveHandler(touchEvent) {
+    domElement.addEventListener('touchmove', function (touchEvent) {
         setTouches(touchEvent);
         setMouches();
     });
-    domElement.addEventListener("touchenter", function _touchenterHandler(touchEvent) {
+    domElement.addEventListener('touchenter', function (touchEvent) {
         clearTouch();
         clearMouch();
     });
-    domElement.addEventListener("touchleave", function _touchleaveHandler(touchEvent) {
+    domElement.addEventListener('touchleave', function (touchEvent) {
         clearTouch();
         clearMouch();
     });
 };
-function _copy(a) {
+function copy(a) {
     var b = [];
-    for (var i = 0; i < a.length; i++)
+    for (var i = 0; i < a.length; i++) {
         b[i] = a[i];
+    }
     return b;
 }
-function _clone(a) {
+function clone(a) {
     var b = {};
-    for (var key in a)
+    for (var key in a) {
         b[key] = a[key];
+    }
     return b;
 }
 HaikuDOMRenderer.prototype.removeListener = function removeListener(target, handler, eventName) {
@@ -6863,11 +6975,11 @@ HaikuDOMRenderer.prototype.getUser = function getUser() {
             x: this._user.mouse.x,
             y: this._user.mouse.y,
             down: this._user.mouse.down,
-            buttons: _copy(this._user.mouse.buttons)
+            buttons: copy(this._user.mouse.buttons)
         },
-        keys: _clone(this._user.keys),
-        touches: _copy(this._user.touches),
-        mouches: _copy(this._user.mouches)
+        keys: clone(this._user.keys),
+        touches: copy(this._user.touches),
+        mouches: copy(this._user.mouches)
     };
 };
 
@@ -6904,8 +7016,8 @@ var isIE_1 = _dereq_("./isIE");
 var isMobile_1 = _dereq_("./isMobile");
 var isTextNode_1 = _dereq_("./isTextNode");
 var DEFAULT_PIXEL_RATIO = 1.0;
-var SVG = "svg";
-var safeWindow = typeof window !== "undefined" && window;
+var SVG = 'svg';
+var safeWindow = typeof window !== 'undefined' && window;
 var PLATFORM_INFO = {
     hasWindow: !!safeWindow,
     isMobile: isMobile_1["default"](safeWindow),
@@ -6943,31 +7055,32 @@ var SVG_RENDERABLES = {
     video: true
 };
 function applyLayout(domElement, virtualElement, parentDomNode, parentVirtualElement, component, isPatchOperation, isKeyDifferent) {
-    if (isTextNode_1["default"](virtualElement))
+    if (isTextNode_1["default"](virtualElement)) {
         return domElement;
+    }
     if (virtualElement.layout) {
         if (scopeOfElement_1["default"](virtualElement) === SVG &&
             !SVG_RENDERABLES[virtualElement.elementName]) {
             return domElement;
         }
         if (!parentVirtualElement.layout || !parentVirtualElement.layout.computed) {
-            _warnOnce("Cannot compute layout without parent computed size (child: <" +
+            warnOnce('Cannot compute layout without parent computed size (child: <' +
                 virtualElement.elementName +
-                ">; parent: <" +
+                '>; parent: <' +
                 parentVirtualElement.elementName +
-                ">)");
+                '>)');
             return domElement;
         }
         var devicePixelRatio_1 = (component.config.options && component.config.options.devicePixelRatio) || DEFAULT_PIXEL_RATIO;
         var computedLayout = virtualElement.layout.computed;
         if (!computedLayout || computedLayout.invisible) {
-            if (domElement.style.display !== "none") {
-                domElement.style.display = "none";
+            if (domElement.style.display !== 'none') {
+                domElement.style.display = 'none';
             }
         }
         else {
-            if (domElement.style.display !== "block") {
-                domElement.style.display = "block";
+            if (domElement.style.display !== 'block') {
+                domElement.style.display = 'block';
             }
             component.config.options.platform = PLATFORM_INFO;
             applyCssLayout_1["default"](domElement, virtualElement, virtualElement.layout, computedLayout, devicePixelRatio_1, component);
@@ -6977,11 +7090,12 @@ function applyLayout(domElement, virtualElement, parentDomNode, parentVirtualEle
 }
 exports["default"] = applyLayout;
 var warnings = {};
-function _warnOnce(warning) {
-    if (warnings[warning])
+function warnOnce(warning) {
+    if (warnings[warning]) {
         return void 0;
+    }
     warnings[warning] = true;
-    console.warn("[haiku player] warning:", warning);
+    console.warn('[haiku player] warning:', warning);
 }
 
 },{"./../../layout/applyCssLayout":39,"./../../layout/scopeOfElement":45,"./../../vendor/modernizr":142,"./getWindowsBrowserVersion":74,"./isEdge":77,"./isIE":78,"./isMobile":79,"./isTextNode":80}],58:[function(_dereq_,module,exports){
@@ -6991,25 +7105,25 @@ var assignClass_1 = _dereq_("./assignClass");
 var assignStyle_1 = _dereq_("./assignStyle");
 var attachEventListener_1 = _dereq_("./attachEventListener");
 var getFlexId_1 = _dereq_("./getFlexId");
-var STYLE = "style";
-var OBJECT = "object";
-var FUNCTION = "function";
-var CLASS = "class";
-var CLASS_NAME = "className";
-var XLINK_XMLNS = "http://www.w3.org/1999/xlink";
-var X = "x";
-var L = "l";
-var I = "i";
-var N = "n";
-var K = "k";
-var D = "d";
-var A = "a";
-var T = "t";
-var COLON = ":";
-var M = "m";
-var G = "g";
-var E = "e";
-var FSLASH = "/";
+var STYLE = 'style';
+var OBJECT = 'object';
+var FUNCTION = 'function';
+var CLASS = 'class';
+var CLASS_NAME = 'className';
+var XLINK_XMLNS = 'http://www.w3.org/1999/xlink';
+var X = 'x';
+var L = 'l';
+var I = 'i';
+var N = 'n';
+var K = 'k';
+var D = 'd';
+var A = 'a';
+var T = 't';
+var COLON = ':';
+var M = 'm';
+var G = 'g';
+var E = 'e';
+var FSLASH = '/';
 function setAttribute(el, key, val, component, cache) {
     if (key[0] === X && key[1] === L && key[2] === I && key[3] === N && key[4] === K) {
         var ns = XLINK_XMLNS;
@@ -7037,13 +7151,13 @@ function setAttribute(el, key, val, component, cache) {
         }
     }
     else {
-        if (key === "d") {
+        if (key === 'd') {
             if (val !== cache.d) {
                 el.setAttribute(key, val);
                 cache.d = val;
             }
         }
-        else if (key === "points") {
+        else if (key === 'points') {
             if (val !== cache.points) {
                 el.setAttribute(key, val);
                 cache.points = val;
@@ -7083,8 +7197,8 @@ function assignAttributes(domElement, virtualElement, component, isPatchOperatio
             assignClass_1["default"](domElement, anotherNewValue);
             continue;
         }
-        if (key[0] === "o" &&
-            key[1] === "n" &&
+        if (key[0] === 'o' &&
+            key[1] === 'n' &&
             typeof anotherNewValue === FUNCTION) {
             attachEventListener_1["default"](virtualElement, domElement, key.slice(2).toLowerCase(), anotherNewValue, component);
             continue;
@@ -7119,8 +7233,9 @@ exports["default"] = assignClass;
 "use strict";
 exports.__esModule = true;
 function assignStyle(domElement, virtualElement, style, component, isPatchOperation) {
-    if (!domElement.__haikuExplicitStyles)
+    if (!domElement.__haikuExplicitStyles) {
         domElement.__haikuExplicitStyles = {};
+    }
     if (!isPatchOperation) {
         if (domElement.haiku &&
             domElement.haiku.element &&
@@ -7151,7 +7266,7 @@ exports["default"] = assignStyle;
 exports.__esModule = true;
 var Events_1 = _dereq_("./Events");
 function attachEventListener(virtualElement, domElement, eventName, listener, component) {
-    if (typeof listener === "function") {
+    if (typeof listener === 'function') {
         var target = void 0;
         if (Events_1["default"].window[eventName]) {
             target = domElement.ownerDocument.defaultView || domElement.ownerDocument.parentWindow;
@@ -7172,16 +7287,17 @@ exports["default"] = attachEventListener;
 },{"./Events":54}],62:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
-function _cloneAttributes(attributes) {
-    if (!attributes)
+function cloneAttributes(attributes) {
+    if (!attributes) {
         return {};
+    }
     var clone = {};
     for (var key in attributes) {
         clone[key] = attributes[key];
     }
     return clone;
 }
-exports["default"] = _cloneAttributes;
+exports["default"] = cloneAttributes;
 
 },{}],63:[function(_dereq_,module,exports){
 "use strict";
@@ -7204,19 +7320,19 @@ var tiny_1 = _dereq_("./../../vendor/mixpanel-browser/tiny");
 function createMixpanel(domElement, mixpanelToken, component) {
     var mixpanel = tiny_1["default"]();
     if (!mixpanel) {
-        console.warn("[haiku player] mixpanel could not be initialized");
+        console.warn('[haiku player] mixpanel could not be initialized');
     }
     mixpanel.init(mixpanelToken, domElement);
     component.mixpanel = {
         track: function track(eventName, eventProperties) {
             var metadata = (component._bytecode && component._bytecode.metadata) || {};
             mixpanel.track(eventName, assign_1["default"]({
-                platform: "dom"
+                platform: 'dom'
             }, metadata, eventProperties));
         }
     };
-    component.on("haikuComponentDidInitialize", function () {
-        component.mixpanel.track("component:initialize");
+    component.on('haikuComponentDidInitialize', function () {
+        component.mixpanel.track('component:initialize');
     });
 }
 exports["default"] = createMixpanel;
@@ -7224,20 +7340,20 @@ exports["default"] = createMixpanel;
 },{"./../../vendor/assign":91,"./../../vendor/mixpanel-browser/tiny":141}],65:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
-var MENU_GLOBAL_ID = "haiku-right-click-menu";
+var MENU_GLOBAL_ID = 'haiku-right-click-menu';
 var WIDTH = 167;
 var HEIGHT = 44;
-var haikuIcon = "" +
+var haikuIcon = '' +
     '<svg style="transform:translateY(3px);margin-right:3px;" width="13px" height="13px" viewBox="0 0 9 9" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
     '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">' +
     '        <g id="menu" transform="translate(-9.000000, -50.000000)" fill-rule="nonzero" fill="#899497">' +
     '            <g id="favicon" transform="translate(9.000000, 50.000000)">' +
     '                <path d="M5.74649098,4.70558699 L5.74649098,5.7788098 C5.74649098,5.91256161 5.63820821,6.02098888 5.50463465,6.02098888 C5.46594093,6.02098888 5.42936949,6.0118902 5.39693775,5.99571295 C5.39186133,5.99396865 5.38680829,5.99204493 5.38178599,5.98993877 L2.13374851,4.62783436 C2.06585827,4.62681598 2.00074372,4.59703732 1.95556434,4.54557114 C1.89645814,4.50141795 1.85818531,4.43085101 1.85818531,4.35133305 L1.85818531,1.57454768 C1.85079926,1.56515108 1.8440022,1.55516354 1.83787126,1.54461783 L1.68370002,1.48221012 L0.983781643,1.19888682 L0.983781643,7.82711613 L1.85818531,8.18107016 L1.85818531,5.95344076 C1.85818531,5.94997543 1.858258,5.94652709 1.85840193,5.9430972 C1.85672094,5.90820764 1.86258618,5.87240498 1.87695925,5.83803981 C1.92855792,5.7146704 2.07026431,5.65654454 2.19346932,5.70821207 L5.45803735,7.07733924 L5.52116709,7.10578612 C5.64702981,7.11429403 5.74649098,7.21922045 5.74649098,7.34740828 L5.74649098,7.82711613 L6.61247795,8.17766313 L6.62089465,8.18107016 L6.62089465,4.31849373 L5.74649098,4.70558699 Z M5.26277832,4.81941585 L3.49887951,4.07970322 L2.78717926,4.37673832 L5.26277832,5.41491119 L5.26277832,4.81941585 Z M2.34189798,6.29557771 L2.34189798,8.21792436 L3.21630165,7.86397033 L3.21630165,6.66226962 L2.34189798,6.29557771 Z M2.10489107,8.84091277 C2.10327842,8.84094453 2.10166189,8.84096049 2.10004164,8.84096049 C2.03531005,8.84096049 1.97651801,8.81549628 1.93311099,8.77402594 L1.68370002,8.67306569 L0.701593132,8.27551396 C0.587217854,8.25628853 0.500068976,8.15667879 0.500068976,8.03668718 L0.500068976,8.02395302 C0.499977217,8.01997372 0.499976799,8.01598483 0.500068976,8.01198924 L0.500068976,0.83309739 C0.499984517,0.829434725 0.499977444,0.825763881 0.500048734,0.822087163 C0.499977444,0.818410445 0.499984517,0.814739601 0.500068976,0.811076936 L0.500068976,0.808477267 C0.500068976,0.734695385 0.533019284,0.66861973 0.584988773,0.624200019 C0.607223642,0.603893466 0.633376716,0.587129584 0.662911804,0.575173935 L2.00126808,0.0334143141 C2.06884262,-0.00448997495 2.15253254,-0.011953956 2.22949057,0.0203769852 L3.48533098,0.547969766 C3.4886593,0.547833737 3.49200497,0.54776506 3.49536665,0.54776506 C3.62894021,0.54776506 3.73722298,0.656192325 3.73722298,0.789944134 L3.73722298,0.821385651 C3.73731302,0.82532856 3.73731342,0.829280598 3.73722298,0.833238872 L3.73722298,2.40767185 L5.26277832,1.79239207 L5.26277832,0.83309739 C5.26269386,0.829434725 5.26268678,0.825763881 5.26275807,0.822087163 C5.26268678,0.818410445 5.26269386,0.814739601 5.26277832,0.811076936 L5.26277832,0.789944134 C5.26277832,0.660231597 5.36461961,0.55433711 5.49260447,0.548059437 L6.76397742,0.0334143141 C6.83155196,-0.00448997495 6.91524188,-0.011953956 6.99219991,0.0203769852 L8.30051205,0.570013732 C8.41385044,0.590099999 8.49993232,0.689222468 8.49993232,0.808477267 L8.49993232,0.821385589 C8.50002236,0.825328562 8.50002276,0.829280602 8.49993232,0.833238878 L8.49993232,8.03668718 C8.49993232,8.12601922 8.45162927,8.20405443 8.37974945,8.24603352 C8.3570412,8.26726508 8.33012837,8.28475773 8.2996029,8.29711428 L6.99757749,8.82416735 C6.91291064,8.85844005 6.82080599,8.84496071 6.75103698,8.79637735 L6.41724228,8.661259 L5.42562114,8.25985596 C5.34756383,8.22825877 5.29312904,8.1630773 5.27221467,8.08767347 C5.26662904,8.06827265 5.26340051,8.04787145 5.26285962,8.02680084 C5.26269203,8.02187767 5.26266414,8.01693859 5.26277832,8.01198924 L5.26277832,7.52049562 L5.25953529,7.51903428 L5.26277832,7.51181809 L5.26277832,7.52048475 L3.70001431,6.86512047 L3.70001431,8.03470119 C3.70001431,8.04191065 3.69969971,8.04904653 3.6990835,8.05609582 C3.69873979,8.1589341 3.63726868,8.25619133 3.53617314,8.29711428 L2.23486815,8.82387573 C2.19216118,8.84116329 2.14756179,8.84630123 2.10489107,8.84091277 Z M7.10460732,8.21821598 L8.01621965,7.84920008 L8.01621965,1.21243815 L7.10460732,1.58145405 L7.10460732,2.39098426 C7.10460732,2.46741667 7.06924708,2.53557924 7.0140137,2.5799642 C6.98940081,2.61105066 6.95679973,2.63650623 6.91764171,2.65284921 L4.12647169,3.81777145 L5.37396115,4.34092148 L6.74176427,3.73540324 C6.86393122,3.68132067 7.00675126,3.73664611 7.06076176,3.85897608 C7.06205348,3.86190175 7.06328271,3.86483924 7.06445002,3.86778706 C7.08982637,3.90609857 7.10460732,3.95205809 7.10460732,4.00147448 L7.10460732,8.21821598 Z M6.62089465,1.57454768 C6.6135086,1.56515108 6.60671153,1.55516354 6.6005806,1.54461783 L6.44640936,1.48221012 L5.74649098,1.19888682 L5.74649098,1.76114471 L6.62089465,2.11509874 L6.62089465,1.57454768 Z M2.34189798,4.03783399 L3.25351031,3.65736362 L3.25351031,1.21243815 L2.34189798,1.58145405 L2.34189798,4.03783399 Z M3.73722298,2.92984272 L3.73722298,3.45548138 L6.10302085,2.46809239 L5.50003848,2.22400828 C5.49794123,2.22315933 5.49586104,2.22228613 5.49379809,2.22138914 L3.73722298,2.92984272 Z M6.20555471,0.822087163 L6.64164504,0.998614246 L6.89809383,1.10242338 L7.57200867,0.829626174 L6.89232837,0.544084781 L6.20555471,0.822087163 Z M1.44284537,0.822087163 L1.8789357,0.998614246 L2.13538449,1.10242338 L2.80929933,0.829626174 L2.12961903,0.544084781 L1.44284537,0.822087163 Z" id="Combined-Shape"></path>' +
-    "            </g>" +
-    "        </g>" +
-    "    </g>" +
-    "</svg>";
-var sharePageIcon = "" +
+    '            </g>' +
+    '        </g>' +
+    '    </g>' +
+    '</svg>';
+var sharePageIcon = '' +
     '<svg style="transform:translate(-1px, 3px);margin-right:3px;" width="14px" height="14px" viewBox="0 0 11 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
     '  <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">' +
     '      <g id="menu" transform="translate(-8.000000, -32.000000)">' +
@@ -7247,61 +7363,62 @@ var sharePageIcon = "" +
     '              <g id="Group" transform="translate(5.000000, 5.555556) rotate(90.000000) translate(-5.000000, -5.555556) translate(3.888889, 0.555556)" fill="#899497">' +
     '                  <rect id="Rectangle-3-Copy-3" x="0.277777778" y="0" width="1" height="1.66666667" rx="0.5"></rect>' +
     '                  <rect id="Rectangle-3-Copy-2" x="0.277777778" y="8.33333333" width="1" height="1.66666667" rx="0.5"></rect>' +
-    "              </g>" +
+    '              </g>' +
     '              <circle id="Oval" stroke="#899497" stroke-width="0.66" cx="5" cy="5" r="3.33333333"></circle>' +
     '              <circle id="Oval-2" fill="#899497" cx="5" cy="5" r="1.11111111"></circle>' +
-    "          </g>" +
-    "      </g>" +
-    "  </g>" +
-    "</svg>";
-var SUBSTITUTION_STRING = "HAIKU" + "_" + "SHARE" + "_" + "UUID";
+    '          </g>' +
+    '      </g>' +
+    '  </g>' +
+    '</svg>';
+var SUBSTITUTION_STRING = 'HAIKU' + '_' + 'SHARE' + '_' + 'UUID';
 function setBoxShadow(el, color) {
-    el.style["-webkit-box-shadow"] = "0 1px 4px 0 " + color;
-    el.style["-moz-box-shadow"] = "0 1px 4px 0 " + color;
-    el.style["box-shadow"] = "0 1px 4px 0 " + color;
+    el.style['-webkit-box-shadow'] = '0 1px 4px 0 ' + color;
+    el.style['-moz-box-shadow'] = '0 1px 4px 0 ' + color;
+    el.style['box-shadow'] = '0 1px 4px 0 ' + color;
 }
 function px(num) {
-    return num + "px";
+    return num + 'px';
 }
 function findOrCreateMenuElement(doc) {
     var menu = doc.getElementById(MENU_GLOBAL_ID);
-    if (menu)
+    if (menu) {
         return menu;
-    menu = doc.createElement("div");
-    menu.setAttribute("id", MENU_GLOBAL_ID);
-    menu.style.position = "absolute";
+    }
+    menu = doc.createElement('div');
+    menu.setAttribute('id', MENU_GLOBAL_ID);
+    menu.style.position = 'absolute';
     menu.style.zIndex = 2147483647;
-    setBoxShadow(menu, "rgba(10,2,21,0.25)");
+    setBoxShadow(menu, 'rgba(10,2,21,0.25)');
     menu.style.borderRadius = px(3);
-    menu.style.display = "none";
-    menu.style.backgroundColor = "rgba(255,255,255,0.95)";
-    menu.style.overflow = "hidden";
-    menu.style.cursor = "default";
-    menu.style.fontFamily = "Helvetica, Arial, sans-serif";
-    menu.style.fontWeight = "Bold";
+    menu.style.display = 'none';
+    menu.style.backgroundColor = 'rgba(255,255,255,0.95)';
+    menu.style.overflow = 'hidden';
+    menu.style.cursor = 'default';
+    menu.style.fontFamily = 'Helvetica, Arial, sans-serif';
+    menu.style.fontWeight = 'Bold';
     menu.style.fontSize = px(10);
-    menu.style.padding = "0 0 7px";
-    menu.style.color = "black";
-    menu.style.margin = "0";
-    menu.style.boxSizing = "content-box";
-    menu.style.textDecoration = "none";
-    menu.style.fontStyle = "none";
+    menu.style.padding = '0 0 7px';
+    menu.style.color = 'black';
+    menu.style.margin = '0';
+    menu.style.boxSizing = 'content-box';
+    menu.style.textDecoration = 'none';
+    menu.style.fontStyle = 'none';
     doc.body.appendChild(menu);
     return menu;
 }
 function truncate(str, len) {
     if (str.length > len) {
-        return str.slice(0, len - 3) + "...";
+        return str.slice(0, len - 3) + '...';
     }
     return str;
 }
 function createRightClickMenu(domElement, component) {
     var doc = domElement.ownerDocument;
     var menu = findOrCreateMenuElement(doc);
-    var escaper = doc.createElement("textarea");
+    var escaper = doc.createElement('textarea');
     function escapeHTML(html) {
         escaper.textContent = html;
-        return escaper.innerHTML.replace(/[><,{}[\]"']/gi, "");
+        return escaper.innerHTML.replace(/[><,{}[\]"']/gi, '');
     }
     function revealMenu(mx, my) {
         var height = HEIGHT;
@@ -7310,7 +7427,7 @@ function createRightClickMenu(domElement, component) {
         var metadata = component._bytecode && component._bytecode.metadata;
         if (metadata && metadata.project) {
             var who = truncate(escapeHTML(metadata.project), 25);
-            var org = "";
+            var org = '';
             if (metadata.organization) {
                 org = truncate(escapeHTML(metadata.organization), 11);
                 who = '"' + who + '" <span style="font-weight:normal;">by</span> ' + org;
@@ -7319,55 +7436,56 @@ function createRightClickMenu(domElement, component) {
             titleLine =
                 '<p style="margin:0;margin-bottom:4px;padding:12px 0 7px;line-height:12px;text-align:center;border-bottom:1px solid rgba(140,140,140,.14);">' +
                     byline +
-                    "</p>";
+                    '</p>';
         }
         if (metadata && metadata.uuid && metadata.uuid !== SUBSTITUTION_STRING) {
             lines.push('<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://share.haiku.ai/' +
                 escapeHTML(metadata.uuid) +
                 '" target="_blank">' +
                 sharePageIcon +
-                "  View Component</a>");
+                '  View Component</a>');
         }
         lines.push('<a onMouseOver="this.style.backgroundColor=\'rgba(140,140,140,.07)\'" onMouseOut="this.style.backgroundColor=\'transparent\'" style="display:block;color:black;text-decoration:none;padding: 5px 13px;line-height:12px;" href="https://www.haiku.ai" target="_blank">' +
             haikuIcon +
-            "  Crafted in Haiku</a>");
-        if (lines.length < 1)
+            '  Crafted in Haiku</a>');
+        if (lines.length < 1) {
             return undefined;
+        }
         height = lines.length > 1 ? 88 : 61;
         height = titleLine ? height : 22;
         menu.style.width = px(WIDTH);
         menu.style.height = px(height);
         menu.style.top = px(my);
         menu.style.left = px(mx);
-        menu.style.pointerEvents = "auto";
-        menu.style.display = "block";
-        menu.innerHTML = titleLine ? titleLine + lines.join("\n") : lines.join("\n");
+        menu.style.pointerEvents = 'auto';
+        menu.style.display = 'block';
+        menu.innerHTML = titleLine ? titleLine + lines.join('\n') : lines.join('\n');
     }
     function hideMenu() {
         menu.style.width = px(0);
         menu.style.height = px(0);
         menu.style.top = px(0);
         menu.style.left = px(0);
-        menu.style.pointerEvents = "none";
-        menu.style.display = "none";
+        menu.style.pointerEvents = 'none';
+        menu.style.display = 'none';
     }
-    domElement.addEventListener("contextmenu", function (contextmenuEvent) {
+    domElement.addEventListener('contextmenu', function (contextmenuEvent) {
         contextmenuEvent.preventDefault();
         var mx = contextmenuEvent.pageX;
         var my = contextmenuEvent.pageY;
         if (component.mixpanel) {
-            component.mixpanel.track("component:contextmenu");
+            component.mixpanel.track('component:contextmenu');
         }
         revealMenu(mx, my);
     });
-    doc.addEventListener("click", hideMenu);
+    doc.addEventListener('click', hideMenu);
 }
 exports["default"] = createRightClickMenu;
 
 },{}],66:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
-var SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+var SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 function createSvgElement(domElement, tagName) {
     return domElement.ownerDocument.createElementNS(SVG_NAMESPACE, tagName);
 }
@@ -7391,8 +7509,9 @@ function createTagNode(domElement, virtualElement, parentVirtualElement, compone
     else {
         newDomElement = domElement.ownerDocument.createElement(tagName);
     }
-    if (!newDomElement.haiku)
+    if (!newDomElement.haiku) {
         newDomElement.haiku = {};
+    }
     if (!component.config.options.cache[getFlexId_1["default"](virtualElement)]) {
         component.config.options.cache[getFlexId_1["default"](virtualElement)] = {};
     }
@@ -7460,8 +7579,8 @@ exports["default"] = getElementSize;
 },{}],71:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
-var HAIKU_ID_ATTRIBUTE = "haiku-id";
-var ID_ATTRIBUTE = "id";
+var HAIKU_ID_ATTRIBUTE = 'haiku-id';
+var ID_ATTRIBUTE = 'id';
 function getFlexId(element) {
     if (element) {
         if (element.getAttribute) {
@@ -7496,35 +7615,41 @@ exports["default"] = getLocalDomEventPosition;
 },{"./getDomEventPosition":69}],73:[function(_dereq_,module,exports){
 "use strict";
 exports.__esModule = true;
-var STRING = "string";
-var FUNCTION = "function";
-var OBJECT = "object";
+var STRING = 'string';
+var FUNCTION = 'function';
+var OBJECT = 'object';
 function getType(virtualElement) {
     var typeValue = virtualElement.elementName;
-    if (typeValue && typeValue["default"])
+    if (typeValue && typeValue["default"]) {
         return typeValue["default"];
+    }
     return typeValue;
 }
 function thingToTagName(thing) {
-    if (typeof thing === STRING && thing.length > 0)
+    if (typeof thing === STRING && thing.length > 0) {
         return thing;
-    if (typeof thing === FUNCTION)
+    }
+    if (typeof thing === FUNCTION) {
         return fnToTagName(thing);
-    if (thing && typeof thing === OBJECT)
+    }
+    if (thing && typeof thing === OBJECT) {
         return objToTagName(thing);
-    _warnOnce("Got blank/malformed virtual element object; falling back to <div>");
-    return "div";
+    }
+    warnOnce('Got blank/malformed virtual element object; falling back to <div>');
+    return 'div';
 }
 function objToTagName(obj) {
-    return "div";
+    return 'div';
 }
 function fnToTagName(fn) {
-    if (fn.name)
+    if (fn.name) {
         return fn.name;
-    if (fn.displayName)
+    }
+    if (fn.displayName) {
         return fn.displayName;
+    }
     if (fn.constructor) {
-        if (fn.constructor.name !== "Function") {
+        if (fn.constructor.name !== 'Function') {
             return fn.constructor.name;
         }
     }
@@ -7532,17 +7657,19 @@ function fnToTagName(fn) {
 function getTypeAsString(virtualElement) {
     var typeValue = getType(virtualElement);
     typeValue = thingToTagName(typeValue);
-    if (!typeValue)
-        throw new Error("Node has no discernable name");
+    if (!typeValue) {
+        throw new Error('Node has no discernable name');
+    }
     return typeValue;
 }
 exports["default"] = getTypeAsString;
 var warnings = {};
-function _warnOnce(warning) {
-    if (warnings[warning])
+function warnOnce(warning) {
+    if (warnings[warning]) {
         return void 0;
+    }
     warnings[warning] = true;
-    console.warn("[haiku player] warning:", warning);
+    console.warn('[haiku player] warning:', warning);
 }
 
 },{}],74:[function(_dereq_,module,exports){
@@ -7550,23 +7677,27 @@ function _warnOnce(warning) {
 exports.__esModule = true;
 function getWindowsBrowser(window) {
     var rv = -1;
-    if (!window)
+    if (!window) {
         return rv;
-    if (!window.navigator)
+    }
+    if (!window.navigator) {
         return rv;
-    if (!window.navigator.userAgent)
+    }
+    if (!window.navigator.userAgent) {
         return rv;
-    if (!window.navigator.appName)
+    }
+    if (!window.navigator.appName) {
         return rv;
-    if (window.navigator.appName === "Microsoft Internet Explorer") {
+    }
+    if (window.navigator.appName === 'Microsoft Internet Explorer') {
         var ua = window.navigator.userAgent;
-        var re = new RegExp("MSIE ([0-9]{1,}[\\.0-9]{0,})");
+        var re = new RegExp('MSIE ([0-9]{1,}[\\.0-9]{0,})');
         if (re.exec(ua) !== null) {
             rv = parseFloat(RegExp.$1);
         }
     }
-    else if (window.navigator.appName === "Netscape") {
-        rv = (window.navigator.appVersion.indexOf("Trident") === -1) ? 12 : 11;
+    else if (window.navigator.appName === 'Netscape') {
+        rv = (window.navigator.appVersion.indexOf('Trident') === -1) ? 12 : 11;
     }
     return rv;
 }
@@ -7582,7 +7713,7 @@ exports["default"] = HaikuDOMRenderer_1["default"];
 "use strict";
 exports.__esModule = true;
 function isBlankString(thing) {
-    return thing === "";
+    return thing === '';
 }
 exports["default"] = isBlankString;
 
@@ -7590,12 +7721,15 @@ exports["default"] = isBlankString;
 "use strict";
 exports.__esModule = true;
 function isEdge(window) {
-    if (!window)
+    if (!window) {
         return false;
-    if (!window.navigator)
+    }
+    if (!window.navigator) {
         return false;
-    if (!window.navigator.userAgent)
+    }
+    if (!window.navigator.userAgent) {
         return false;
+    }
     return /Edge\/\d./i.test(window.navigator.userAgent);
 }
 exports["default"] = isEdge;
@@ -7604,14 +7738,17 @@ exports["default"] = isEdge;
 "use strict";
 exports.__esModule = true;
 function isIE(window) {
-    if (!window)
+    if (!window) {
         return false;
-    if (!window.navigator)
+    }
+    if (!window.navigator) {
         return false;
-    if (!window.navigator.userAgent)
+    }
+    if (!window.navigator.userAgent) {
         return false;
-    return (window.navigator.userAgent.indexOf("MSIE") !== -1 ||
-        navigator.appVersion.indexOf("Trident") > 0);
+    }
+    return (window.navigator.userAgent.indexOf('MSIE') !== -1 ||
+        navigator.appVersion.indexOf('Trident') > 0);
 }
 exports["default"] = isIE;
 
@@ -7619,12 +7756,15 @@ exports["default"] = isIE;
 "use strict";
 exports.__esModule = true;
 function isMobile(window) {
-    if (!window)
+    if (!window) {
         return false;
-    if (!window.navigator)
+    }
+    if (!window.navigator) {
         return false;
-    if (!window.navigator.userAgent)
+    }
+    if (!window.navigator.userAgent) {
         return false;
+    }
     return /iPhone|iPad|iPod|Android/i.test(window.navigator.userAgent);
 }
 exports["default"] = isMobile;
@@ -7633,7 +7773,7 @@ exports["default"] = isMobile;
 "use strict";
 exports.__esModule = true;
 function isTextNode(virtualElement) {
-    return typeof virtualElement === "string";
+    return typeof virtualElement === 'string';
 }
 exports["default"] = isTextNode;
 
@@ -7641,8 +7781,9 @@ exports["default"] = isTextNode;
 "use strict";
 exports.__esModule = true;
 function normalizeName(tagName) {
-    if (tagName[0] === tagName[0].toUpperCase())
-        tagName = tagName + "-component";
+    if (tagName[0] === tagName[0].toUpperCase()) {
+        return tagName + '-component';
+    }
     return tagName;
 }
 exports["default"] = normalizeName;
@@ -7705,8 +7846,9 @@ var shouldElementBeReplaced_1 = _dereq_("./shouldElementBeReplaced");
 var updateElement_1 = _dereq_("./updateElement");
 function renderTree(domElement, virtualElement, virtualChildren, component, isPatchOperation, doSkipChildren) {
     component._addElementToHashTable(domElement, virtualElement);
-    if (!domElement.haiku)
+    if (!domElement.haiku) {
         domElement.haiku = {};
+    }
     virtualElement.__target = domElement;
     domElement.haiku.virtual = virtualElement;
     domElement.haiku.element = cloneVirtualElement_1["default"](virtualElement);
@@ -7826,15 +7968,16 @@ var normalizeName_1 = _dereq_("./normalizeName");
 var renderTree_1 = _dereq_("./renderTree");
 var replaceElement_1 = _dereq_("./replaceElement");
 var replaceElementWithText_1 = _dereq_("./replaceElementWithText");
-var OBJECT = "object";
-var STRING = "string";
+var OBJECT = 'object';
+var STRING = 'string';
 function updateElement(domElement, virtualElement, parentNode, parentVirtualElement, component, isPatchOperation) {
     if (isTextNode_1["default"](virtualElement)) {
         replaceElementWithText_1["default"](domElement, virtualElement, component);
         return virtualElement;
     }
-    if (!domElement.haiku)
+    if (!domElement.haiku) {
         domElement.haiku = {};
+    }
     if (!component.config.options.cache[getFlexId_1["default"](virtualElement)]) {
         component.config.options.cache[getFlexId_1["default"](virtualElement)] = {};
     }
@@ -10093,7 +10236,7 @@ exports["default"] = parse;
 },{}],166:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.12",
+  "version": "2.3.14",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
@@ -10124,22 +10267,27 @@ module.exports={
     "develop": "node ./develop.js",
     "watch": "HAIKU_PLAYER_WATCH_ONLY=1 node ./develop.js",
     "compile": "tsc",
-    "lint": "tslint -c tslint.json 'src/**/*.ts' --exclude 'src/vendor/**' --format stylish --fix",
-    "test": "yarn run test:unit && yarn run test:api && yarn run test:perf",
-    "test:perf": "yarn run compile && tape \"test/perf/**/*.test.js\" | tap-spec || true",
-    "test:api": "yarn run compile && tape \"test/api/**/*.test.js\" | tap-spec || true",
-    "test:render": "yarn run compile && tape \"test/render/**/*.test.js\" | tap-spec || true",
-    "test:unit": "yarn run compile && tape \"test/unit/**/*.test.js\" | tap-spec || true",
+    "coverage": "yarn compile && nyc yarn tape \"test/**/*.test.js\" | tap-spec",
+    "html-coverage": "yarn compile && nyc --reporter=html yarn tape \"test/**/*.test.js\" | tap-spec",
+    "lint": "tslint -p tsconfig.json -c tslint.json --type-check --exclude 'src/vendor/**' --format stylish",
+    "fix": "yarn lint --fix",
+    "test": "yarn test:unit; yarn test:api; yarn test:perf; yarn test:render",
+    "test:perf": "yarn run compile && tape \"test/perf/**/*.test.js\" | tap-spec",
+    "test:api": "yarn run compile && tape \"test/api/**/*.test.js\" | tap-spec",
+    "test:render": "yarn run compile && tape \"test/render/**/*.test.js\" | tap-spec",
+    "test:unit": "yarn run compile && tape \"test/unit/**/*.test.js\" | tap-spec",
     "depcheck": "depcheck ."
   },
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
     "Zack Brown <zack@haiku.ai>",
-    "Taylor Poe <taylor@haiku.ai>"
+    "Taylor Poe <taylor@haiku.ai>",
+    "Sasha Joseph <sasha@haiku.ai>"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^8.0.27",
+    "@types/tape": "^4.2.30",
     "async": "^2.5.0",
     "browserify": "^14.1.0",
     "chokidar": "^1.7.0",
@@ -10151,6 +10299,7 @@ module.exports={
     "jsdom": "9.11.0",
     "leaked-handles": "^5.2.0",
     "nodemon": "1.11.0",
+    "nyc": "^11.2.1",
     "opn": "^5.1.0",
     "react-dom": "15.4.2",
     "react-router-dom": "^4.1.1",
@@ -10159,6 +10308,7 @@ module.exports={
     "tap-spec": "^4.1.1",
     "tape": "^4.7.0",
     "tslint": "^5.7.0",
+    "tslint-config-airbnb": "^5.3.0",
     "typescript": "^2.5.2",
     "uglify-js": "^2.7.5"
   },
