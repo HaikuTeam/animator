@@ -1,6 +1,6 @@
 {
   "name": "haiku-bytecode",
-  "version": "2.3.15",
+  "version": "2.3.16",
   "description": "Bytecode utilities",
   "main": "index.js",
   "scripts": {
