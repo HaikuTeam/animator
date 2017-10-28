@@ -1,3 +1,4 @@
+import * as difference from 'lodash/difference';
 import * as mapKeys from 'lodash/mapKeys';
 
 import {Maybe} from 'haiku-common/lib/types';
@@ -6,7 +7,10 @@ import * as visitTemplate from 'haiku-serialization/src/model/helpers/visitTempl
 
 import {SvgTag} from '../../svg/enums';
 import {Exporter} from '..';
-import {getCurveInterpolationPoints} from '../curves';
+import {
+  getCurveInterpolationPoints,
+  injectKeyframeInTimelineProperty,
+} from '../curves';
 import {
   AnimationKey,
   LayerKey,
@@ -722,27 +726,44 @@ export class BodymovinExporter implements Exporter {
   }
 
   /**
+   * Internal method for visiting every timeline and applying a callback to it.
+   */
+  private visitAllTimelines(callback: (timeline: any) => void) {
+    for (const timelineId in this.bytecode.timelines) {
+      for (const haikuId in this.bytecode.timelines[timelineId]) {
+        callback(this.bytecode.timelines[timelineId][haikuId]);
+      }
+    }
+  }
+
+  /**
+   * Internal method for visiting every timeline property and applying a callback to it.
+   */
+  private visitAllTimelineProperties(callback: (timeline: any, property: string) => void) {
+    this.visitAllTimelines((timeline) => {
+      for (const property in timeline) {
+        callback(timeline, property);
+      }
+    });
+  }
+
+  /**
    * Normalizes keyframes so we can use 60fps without major modifications to direct parsing logic.
    *
    * Bodymovin uses keyframe-based transitions.
    */
   private normalizeKeyframes() {
-    for (const timelineId in this.bytecode.timelines) {
-      for (const haikuId in this.bytecode.timelines[timelineId]) {
-        const timeline = this.bytecode.timelines[timelineId][haikuId];
-        for (const property in timeline) {
-          const timelineProperty = timeline[property];
-          const millitimes = keyframesFromTimelineProperty(timelineProperty);
-          // Ignore the 0 keyframe.
-          millitimes.shift();
-          if (millitimes.length < 1) {
-            continue;
-          }
-
-          timeline[property] = mapKeys(timeline[property], (_, millitime) => Math.round(millitime * 6 / 1e2));
-        }
+    this.visitAllTimelineProperties((timeline, property) => {
+      const timelineProperty = timeline[property];
+      const millitimes = keyframesFromTimelineProperty(timelineProperty);
+      // Ignore the 0 keyframe.
+      millitimes.shift();
+      if (millitimes.length < 1) {
+        return;
       }
-    }
+
+      timeline[property] = mapKeys(timeline[property], (_, millitime) => Math.round(millitime * 6 / 1e2));
+    });
   }
 
   /**
@@ -786,6 +807,57 @@ export class BodymovinExporter implements Exporter {
   }
 
   /**
+   * Preprocesses curves that are incompatible with Bodymovin rendering.
+   *
+   * For now, this method is simply responsible for ensuring that misaligned keyframes for properties that are
+   * required to animate together can be realigned.
+   *
+   * TODO: Add support for decomposition of *Bounce and *Elastic curves into sequential beziers.
+   */
+  private preprocessCurves() {
+    // Store the set of coupled properties that might have to be animated together with presently disjointed keyframes.
+    // This is currently limited to scale.x and scale.y, but we may need to add more later.
+    const coupledPropertyLists = [['scale.x', 'scale.y']];
+    this.visitAllTimelines((timeline) => {
+      coupledPropertyLists.forEach((coupledPropertyList) => {
+        if (!coupledPropertyList.every((property) => property in timeline)) {
+          // We only might need to preprocess elements that are actually transformed by all coupled properties in
+          // each list.
+          return;
+        }
+
+        const keyframeLists = coupledPropertyList.map((property) => keyframesFromTimelineProperty(timeline[property]));
+        const injections = new Map();
+        for (let i = 0; i < keyframeLists.length - 1; ++i) {
+          for (let j = i + 1; j < keyframeLists.length; ++j) {
+            // Compare each set of keyframes pairwise, and note which ones are missing.
+            const iProperty = coupledPropertyList[i];
+            const jProperty = coupledPropertyList[j];
+            difference(keyframeLists[i], keyframeLists[j]).forEach((keyframe) => {
+              if (!injections.has(jProperty)) {
+                injections.set(jProperty, new Set());
+              }
+              injections.get(jProperty).add(keyframe);
+            });
+            difference(keyframeLists[j], keyframeLists[i]).forEach((keyframe) => {
+              if (!injections.has(iProperty)) {
+                injections.set(iProperty, new Set());
+              }
+              injections.get(iProperty).add(keyframe);
+            });
+          }
+        }
+
+        injections.forEach((set, property) => {
+          const keyframes = Array.from(set) as number[];
+          keyframes.sort((a, b) => a - b);
+          keyframes.forEach((keyframe) => injectKeyframeInTimelineProperty(timeline[property], keyframe));
+        });
+      });
+    });
+  }
+
+  /**
    * Gets the z-index for a specific node.
    * @param node
    * @returns {number}
@@ -812,6 +884,9 @@ export class BodymovinExporter implements Exporter {
 
     // Normalize curves to remove any problematic/noisy behavior.
     this.normalizeCurves();
+
+    // Preprocess curves that are incompatible with Bodymovin rendering.
+    this.preprocessCurves();
 
     // Handle the wrapper as a special case.
     this.handleWrapper();

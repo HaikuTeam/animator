@@ -106,6 +106,47 @@ tape('BodymovinExporter', (test: tape.Test) => {
     test.end();
   });
 
+  test.test('inserts missing keyframes for properties that must be animated together', (test: tape.Test) => {
+    // Note: We use linear curves to produce predictable/obviously correct test results. A more expressive set of
+    // tests for the calculation of the replacement beziers is in curves.test.ts.
+    const bytecode = baseBytecodeCopy();
+    bytecode.timelines.Default['haiku:svg']['scale.x'] = {
+      0: {value: 0, curve: 'linear'},
+      1000: {value: 1},
+    };
+
+    bytecode.timelines.Default['haiku:svg']['scale.y'] = {
+      0: {value: 0, curve: 'linear'},
+      500: {value: 0.5, curve: 'linear'},
+      1000: {value: 1},
+    };
+
+    const {
+      layers: [{
+        ks: {s: {k: [initialKeyframe, injectedKeyframe, finalKeyframe]}},
+      }],
+    } = rawOutput(bytecode);
+    const [iInitial, oInitial] = [initialKeyframe.i, initialKeyframe.o];
+    const [iInjected, oInjected] = [injectedKeyframe.i, injectedKeyframe.o];
+
+    // Test for correctness of the initial keyframe.
+    test.deepEqual(initialKeyframe.s, [0, 0], 'initial keyframe starts at the correct value');
+    test.deepEqual(initialKeyframe.e, [50, 50], 'initial keyframe ends at the correct value');
+    test.deepEqual(iInitial, {x: [0.5, 1], y: [0.5, 1]}, 'preserves linear interpolation  at initial in-points');
+    test.deepEqual(oInitial, {x: [0, 0], y: [0, 0]}, 'preserves linear interpolation  at initial out-points');
+
+    // Test for correctness of the (partially) injected keyframe.
+    test.equal(injectedKeyframe.t, 30, 'injected keyframe has the expected time');
+    test.deepEqual(injectedKeyframe.s, [50, 50], 'middle keyframe starts at the correct value');
+    test.deepEqual(injectedKeyframe.e, [100, 100], 'injected keyframe ends at the correct value');
+    test.deepEqual(iInjected, {x: [1, 1], y: [1, 1]}, 'preserves linear interpolation  at injected in-points');
+    test.deepEqual(oInjected, {x: [0.5, 0], y: [0.5, 0]}, 'preserves linear interpolation  at injected out-points');
+
+    // Test for preservation of the final keyframe timing.
+    test.deepEqual(finalKeyframe, {t: 60});
+    test.end();
+  });
+
   test.test('provides default transforms for layers', (test: tape.Test) => {
     const bytecode = baseBytecodeCopy();
     // Provide no information about how to transform the SVG layer.
