@@ -21,7 +21,7 @@
   "scripts": {
     "start": "electron ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
-    "compile": "babel src --out-dir lib --source-maps inline",
+    "compile": "NODE_ENV=development babel src --out-dir lib --source-maps inline",
     "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy || true",
     "test": "tape \"test/**/*.test.js\" | tap-spec || true"
   },

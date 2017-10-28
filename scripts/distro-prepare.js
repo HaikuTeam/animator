@@ -2,6 +2,7 @@ var fse = require('fs-extra')
 var cp = require('child_process')
 var path = require('path')
 var log = require('./helpers/log')
+var CompileOrder = require('./helpers/CompileOrder')
 
 require('./../config')
 
@@ -72,13 +73,19 @@ function sdir (loc) {
   return JSON.stringify(loc + '/')
 }
 
+function remapName (name) {
+  if (name === 'haiku-player') return '@haiku/player'
+  if (name === 'haiku-creator') return 'haiku-creator-electron'
+}
+
 function eachHaikuSubpackage (iteratee) {
-  for (var packageName in HAIKU_SUBPACKAGES) {
-    var packageSource = HAIKU_SUBPACKAGES[packageName]
-    if (!packageSource) continue
-    if (packageSource === true) packageSource = packageName
-    iteratee(packageName, path.join(ORIGINS_FOLDER, packageSource))
-  }
+  CompileOrder.forEach((packageName) => {
+    var packageNameFixed = remapName(packageName)
+    var packageSource = HAIKU_SUBPACKAGES[packageNameFixed]
+    if (!packageSource) return null
+    if (packageSource === true) packageSource = packageNameFixed
+    iteratee(packageNameFixed, path.join(ORIGINS_FOLDER, packageSource))
+  })
 }
 
 function eachDepType (iteratee) {
@@ -152,7 +159,10 @@ eachHaikuSubpackage(function (packageName, packageOrigin) {
     }
   })
   fse.writeJsonSync(path.join(packageInstallTarget, 'package.json'), subpackagePkg)
+})
 
+eachHaikuSubpackage(function (packageName, packageOrigin) {
+  var packageInstallTarget = path.join(PLUMBING_SOURCE_MODULES, packageName)
   installAndCompile(packageInstallTarget)
 })
 
