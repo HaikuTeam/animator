@@ -76,6 +76,7 @@ function sdir (loc) {
 function remapName (name) {
   if (name === 'haiku-player') return '@haiku/player'
   if (name === 'haiku-creator') return 'haiku-creator-electron'
+  return name
 }
 
 function eachHaikuSubpackage (iteratee) {
