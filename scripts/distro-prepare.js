@@ -131,7 +131,12 @@ logExec(ROOT, `rsync ${RSYNC_FLAGS.join(' ')} ${sdir(PLUMBING_ORIGIN)} ${sdir(PL
 
 // Remove any Haiku dependencies from the plumbing to avoid installation work
 var plumbingPkg = fse.readJsonSync(path.join(PLUMBING_SOURCE, 'package.json'))
-var haikuDepsRemovedFromPlumbing = []
+var haikuDepsRemovedFromPlumbing = [
+  // These guys aren't actually plumbing deps but need to be listed for resolution to work
+  { depName: 'haiku-common', depType: 'dependencies', depVersion: 'HaikuTeam/common.git' },
+  { depName: 'haiku-formats', depType: 'dependencies', depVersion: 'HaikuTeam/formats.git' },
+  { depName: 'haiku-testing', depType: 'dependencies', depVersion: 'HaikuTeam/testing.git' }
+]
 eachDepIn(plumbingPkg, function (depName, depVersion, depType) {
   if (isHaikuSubpackage(depName)) {
     delete plumbingPkg[depType][depName]
