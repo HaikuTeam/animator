@@ -49,7 +49,7 @@ var order = [
   'haiku-creator',
   'haiku-glass',
   'haiku-timeline',
-  'haiku-plumbing',
+  'haiku-plumbing'
 ]
 
 module.exports = function allPackages () {
