@@ -14,7 +14,9 @@ function normalizeMs (givenMs, frameInfo) {
 }
 
 module.exports = function moveSegmentEndpoints (bytecode, componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo) {
-  if (!VALID_HANDLES[handle]) throw new Error('Invalid handle ' + handle)
+  if (handle && !VALID_HANDLES[handle]) {
+    throw new Error('Invalid handle ' + handle)
+  }
 
   // This will be our return value, a description of the changes we made (if any)
   // The signature of this has to be compatible with the input to the 'moveKeyframes' function
