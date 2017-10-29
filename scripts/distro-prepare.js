@@ -90,14 +90,14 @@ function eachHaikuSubpackage (iteratee) {
 }
 
 function eachDepType (iteratee) {
-  DEP_TYPES.forEach(function (depType) {
+  DEP_TYPES.forEach((depType) => {
     iteratee(depType)
   })
 }
 
 function eachDepIn (pkg, iteratee) {
   if (!pkg) return null
-  eachDepType(function (depType) {
+  eachDepType((depType) => {
     if (!pkg[depType]) return null
     for (var depName in pkg[depType]) {
       iteratee(depName, pkg[depType][depName], depType)
@@ -131,6 +131,7 @@ logExec(ROOT, `rsync ${RSYNC_FLAGS.join(' ')} ${sdir(PLUMBING_ORIGIN)} ${sdir(PL
 
 // Remove any Haiku dependencies from the plumbing to avoid installation work
 var plumbingPkg = fse.readJsonSync(path.join(PLUMBING_SOURCE, 'package.json'))
+
 var haikuDepsRemovedFromPlumbing = [
   // These guys aren't actually plumbing deps but need to be listed for resolution to work
   { depName: 'haiku-common', depType: 'dependencies', depVersion: 'HaikuTeam/common.git' },
@@ -148,7 +149,7 @@ fse.writeJsonSync(path.join(PLUMBING_SOURCE, 'package.json'), plumbingPkg)
 installAndCompile(PLUMBING_SOURCE)
 
 // Install Haiku dependencies "manually" into plumbing from our local sources
-eachHaikuSubpackage(function (packageName, packageOrigin) {
+eachHaikuSubpackage((packageName, packageOrigin) => {
   var packageInstallTarget = path.join(PLUMBING_SOURCE_MODULES, packageName)
 
   logExec(ROOT, `rm -rf ${sdir(packageInstallTarget)}`) // Clear the installed one just in case
@@ -159,7 +160,7 @@ eachHaikuSubpackage(function (packageName, packageOrigin) {
   var subpackagePkg = fse.readJsonSync(path.join(packageInstallTarget, 'package.json'), { throws: false })
   if (!subpackagePkg) return null
 
-  eachDepIn(subpackagePkg, function (depName, depVersion, depType) {
+  eachDepIn(subpackagePkg, (depName, depVersion, depType) => {
     if (isHaikuSubpackage(depName)) {
       delete subpackagePkg[depType][depName]
     }

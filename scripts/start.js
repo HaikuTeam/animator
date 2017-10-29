@@ -39,9 +39,14 @@ var DEFAULTS = {
   doDevelopSDKInkstone: false,
   doDevelopSDKCreator: false
 }
+
 var inputs = lodash.assign({}, DEFAULTS, argv)
 delete inputs._
 delete inputs.$0
+
+// List of arguments following the command
+var args = argv._
+
 var _branch = cp.execSync('git symbolic-ref --short -q HEAD').toString().trim()
 log.log(`fyi, your current mono branch is ${JSON.stringify(_branch)}\n`)
 if (!inputs.branch) inputs.branch = _branch
@@ -66,6 +71,24 @@ var FOLDER_CHOICES = {
 // $ yarn start -- --default
 if (argv.default === true) {
   argv.preset = 'default'
+}
+
+switch (args[0]) {
+  case 'default':
+    argv.preset = 'default'
+    break
+  case 'timeline':
+    argv.preset = 'timeline'
+    break
+  case 'glass':
+    argv.preset = 'glass'
+    break
+  case 'player':
+    argv.preset = 'player'
+    break
+  case 'blank':
+    argv.preset = 'blank'
+    break
 }
 
 // $ yarn start -- --preset=default
@@ -190,8 +213,23 @@ function runAutomatic (preset) {
       case 'default':
         inputs.dev = false
         break
+      case 'timeline':
+        inputs.devChoice = 'timeline'
+        inputs.folderChoice = 'complex-timeline'
+        break
+      case 'glass':
+        inputs.devChoice = 'glass'
+        inputs.folderChoice = 'primitives-glass'
+        break
+      case 'player':
+        inputs.devChoice = 'player'
+        break
       case 'fast':
         inputs.skipInitialBuild = true
+        break
+      case 'blank':
+        inputs.devChoice = 'everything'
+        inputs.folderChoice = 'blank'
         break
     }
   }
