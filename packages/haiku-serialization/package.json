@@ -4,9 +4,10 @@
   "description": "Serialization utilities",
   "main": "index.js",
   "scripts": {
-    "test": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
-    "test:race": "tape \"test/race/**/*.test.js\" | tap-spec || true",
-    "lint": "standard src/**/*.js --fix --verbose | snazzy || true"
+    "test": "yarn test:unit && yarn test:bll",
+    "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
+    "test:bll": "tape \"test/bll/**/*.test.js\" | tap-spec || true",
+    "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true"
   },
   "author": "Matthew Trost <matthew@haiku.ai>",
   "license": "UNLICENSED",
@@ -50,6 +51,7 @@
     "lodash.merge": "4.6.0",
     "mixpanel": "0.6.0",
     "node-hook": "^0.4.0",
+    "numeral": "^2.0.6",
     "pascalcase": "0.1.1",
     "prettier": "^0.22.0",
     "pretty": "^2.0.0",

@@ -34,7 +34,8 @@
     "test:api": "yarn run compile && tape \"test/api/**/*.test.js\" | tap-spec",
     "test:render": "yarn run compile && tape \"test/render/**/*.test.js\" | tap-spec",
     "test:unit": "yarn run compile && tape \"test/unit/**/*.test.js\" | tap-spec",
-    "depcheck": "depcheck ."
+    "depcheck": "depcheck .",
+    "prepublishOnly": "yarn run lint && yarn run test && yarn run compile"
   },
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
