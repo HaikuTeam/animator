@@ -1,6 +1,6 @@
 import {Maybe} from 'haiku-common/lib/types';
 import {Curve} from 'haiku-common/lib/types/enums';
-import * as visitTemplate from 'haiku-serialization/src/model/helpers/visitTemplate';
+import * as visitTemplate from 'haiku-serialization/src/bll/helpers/visitTemplate';
 
 import {SvgTag} from '../../svg/enums';
 import {Exporter} from '..';
