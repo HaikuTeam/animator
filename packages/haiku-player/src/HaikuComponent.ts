@@ -298,7 +298,7 @@ HaikuComponent.prototype.callRemount = function _callRemount(incomingConfig, ski
     this._markForFullFlush(true);
   }
 
-  this._clearCaches();
+  this.clearCaches();
 
   // If autoplay is not wanted, stop the all timelines immediately after we've mounted
   // (We have to mount first so that the component displays, but then pause it at that state.)
@@ -400,7 +400,11 @@ HaikuComponent.prototype.setState = function setState(states) {
   return this;
 };
 
-HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
+HaikuComponent.prototype.getStates = function getStates(state) {
+  return this.state;
+};
+
+HaikuComponent.prototype.clearCaches = function clearCaches(options) {
   this._states = {};
 
   // Don't forget to repopulate the states with originals when we cc otherwise folks
@@ -442,12 +446,19 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
   this._clearDetectedEventsFired();
   this._clearDetectedInputChanges();
 
-  this._builder._clearCaches(options);
+  this._builder.clearCaches(options);
 
   // TODO: Do we _need_ to reach in and clear the caches of context?
   this._context.config.options.cache = {};
 
   this.config.options.cache = {};
+
+  // These may have been set for caching purposes
+  if (this._bytecode.timelines) {
+    for (const timelineName in this._bytecode.timelines) {
+      delete this._bytecode.timelines[timelineName].__max;
+    }
+  }
 
   return this;
 };
