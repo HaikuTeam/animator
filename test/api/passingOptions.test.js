@@ -29,7 +29,7 @@ test('passingOptions', function (t) {
     }
   }
 
-  TestHelpers.createDOM(function (err, win) {
+  TestHelpers.createDOM(function (err, win, b, HaikuGlobal) {
     // Combo passing options at root and nested
     var HaikuComponentFactory = HaikuDOMAdapter(bytecode, {
       position: 'yaya890',

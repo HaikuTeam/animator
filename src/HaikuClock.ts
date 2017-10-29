@@ -132,6 +132,10 @@ HaikuClock.prototype.setTime = function setTime(time) {
   return this;
 };
 
+HaikuClock.prototype.getFPS = function getFPS() {
+  return Math.round(1000 / this.options.frameDuration);
+};
+
 /**
  * @method getExplicitTime
  * @description Return either the running time or the controlled time, depending on whether this

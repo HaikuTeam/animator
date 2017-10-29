@@ -747,7 +747,7 @@ function cc(obj, timelineName, flexId, propertyKeys) {
   return true;
 }
 
-ValueBuilder.prototype._clearCaches = function _clearCaches(options) {
+ValueBuilder.prototype.clearCaches = function clearCaches(options) {
   if (options && options.clearOnlySpecificProperties) {
     const timelineName = options.clearOnlySpecificProperties.timelineName;
     const flexId = options.clearOnlySpecificProperties.componentId;

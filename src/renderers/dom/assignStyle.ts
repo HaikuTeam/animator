@@ -18,7 +18,7 @@ export default function assignStyle(domElement, virtualElement, style, component
       for (const oldStyleKey in domElement.haiku.element.attributes.style) {
         const newStyleValue = style[oldStyleKey];
         if (newStyleValue === null || newStyleValue === undefined) {
-          domElement.style[oldStyleKey] = null;
+          domElement.style.removeProperty(oldStyleKey);
         }
       }
     }
