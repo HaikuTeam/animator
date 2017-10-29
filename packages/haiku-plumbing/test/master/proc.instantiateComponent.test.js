@@ -18,7 +18,7 @@ tape('proc.instantiateComponent', (t) => {
           var bytecode = require(path.join(folder, 'code', 'main', 'code.js'))
           t.equal(bytecode.template.children[0].elementName, 'svg', 'svg 1 was instantiated')
           return cb()
-        }, 1000)
+        }, 5000)
       },
 
       function (cb) { return creator.action('instantiateComponent', [folder, instpath, {}], cb) },

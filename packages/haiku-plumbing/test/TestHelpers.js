@@ -44,7 +44,9 @@ function launch(ready) {
     return plumb((plumbing) => {
       function teardown() {
         plumbing.teardown()
-        if (global.haiku) global.haiku.HaikuGlobalAnimationHarness.cancel()
+        if (global.haiku && global.haiku.HaikuGlobalAnimationHarness) {
+          global.haiku.HaikuGlobalAnimationHarness.cancel()
+        }
       }
       return ready(plumbing, teardown)
     })
@@ -76,7 +78,9 @@ function setup(ready) {
         function teardown() {
           cleanup()
           plumbing.teardown()
-          if (global.haiku) global.haiku.HaikuGlobalAnimationHarness.cancel()
+          if (global.haiku && global.haiku.HaikuGlobalAnimationHarness) {
+            global.haiku.HaikuGlobalAnimationHarness.cancel()
+          }
         }
         creator.on('open', () => {
           plumbing.getCurrentOrganizationName((err, organizationName) => {

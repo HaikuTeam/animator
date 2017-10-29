@@ -4,7 +4,8 @@ import path from 'path'
 import async from 'async'
 import { debounce } from 'lodash'
 import walkFiles from 'haiku-serialization/src/utils/walkFiles'
-import ActiveComponent from 'haiku-serialization/src/model/ActiveComponent'
+import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
+import File from 'haiku-serialization/src/bll/File'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import ProcessBase from './ProcessBase'
 import * as Git from './Git'
@@ -304,12 +305,14 @@ export default class Master extends EventEmitter {
         }
 
         if (extname === '.js') {
-          return this._component.FileModel.ingestOne(this.folder, relpath, (err, file) => {
+          return File.ingestOne(this.folder, relpath, (err, file) => {
             if (err) return logger.info(err)
             logger.info('[master] file ingested:', abspath)
-            if (relpath === this._component.fetchActiveBytecodeFile().get('relpath')) {
-              file.set('substructInitialized', file.reinitializeSubstruct(this._config.get('config'), 'Master.handleFileChange'))
-              if (file.get('previous') !== file.get('contents')) {
+            if (relpath === this._component.fetchActiveBytecodeFile().relpath) {
+
+              file.substructInitialized = file.reinitializeSubstruct(this._config.get('config'), 'Master.handleFileChange')
+
+              if (file.previous !== file.contents) {
                 this._mod.handleModuleChange(file)
               }
             }
@@ -342,11 +345,11 @@ export default class Master extends EventEmitter {
         }
 
         if (extname === '.js') {
-          return this._component.FileModel.ingestOne(this.folder, relpath, (err, file) => {
+          return File.ingestOne(this.folder, relpath, (err, file) => {
             if (err) return logger.info(err)
             logger.info('[master] file ingested:', abspath)
-            if (relpath === this._component.fetchActiveBytecodeFile().get('relpath')) {
-              file.set('substructInitialized', file.reinitializeSubstruct(this._config.get('config'), 'Master.handleFileAdd'))
+            if (relpath === this._component.fetchActiveBytecodeFile().relpath) {
+              file.substructInitialized = file.reinitializeSubstruct(this._config.get('config'), 'Master.handleFileAdd')
             }
           })
         }
@@ -369,7 +372,7 @@ export default class Master extends EventEmitter {
         }
 
         if (extname === '.js') {
-          return this._component.FileModel.expelOne(relpath, (err) => {
+          return File.expelOne(relpath, (err) => {
             if (err) return logger.info(err)
             logger.info('[master] file expelled:', abspath)
           })
@@ -848,8 +851,9 @@ export default class Master extends EventEmitter {
         if (!this._component) {
           logger.info(`[master] ${loggingPrefix}: creating active component`)
 
-          this._component = new ActiveComponent({
+          this._component = ActiveComponent.upsert({
             alias: 'master', // Don't be fooled, this is not a branch name
+            uid: this.folder + '::' + this.scenename,
             folder: this.folder,
             userconfig: this._config.get('config'),
             websocket: {/* websocket */},
@@ -869,9 +873,10 @@ export default class Master extends EventEmitter {
 
           this._component.on('component:mounted', () => {
             // Since we aren't running in the DOM cancel the raf to avoid leaked handles
-            this._component._componentInstance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
-            // Attach Envoy listeners.
+            this._component.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+
             attachListeners(this._component._envoyClient, this._component)
+
             return cb()
           })
         } else {
@@ -887,7 +892,7 @@ export default class Master extends EventEmitter {
       // Load all relevant files into memory (only JavaScript files for now)
       (cb) => {
         logger.info(`[master] ${loggingPrefix}: ingesting js files in ${this.folder}`)
-        return this._component.FileModel.ingestFromFolder(this.folder, {
+        return File.ingestFromFolder(this.folder, {
           exclude: _excludeIfNotJs
         }, cb)
       },
@@ -897,7 +902,9 @@ export default class Master extends EventEmitter {
         const file = this._component.fetchActiveBytecodeFile()
         if (file) {
           logger.info(`[master] ${loggingPrefix}: initializing bytecode`)
-          file.set('substructInitialized', file.reinitializeSubstruct(this._config.get('config'), 'Master.startProject'))
+
+          file.substructInitialized = file.reinitializeSubstruct(this._config.get('config'), 'Master.startProject')
+
           return file.performComponentWork((bytecode, mana, wrapup) => wrapup(), cb)
         } else {
           return cb()

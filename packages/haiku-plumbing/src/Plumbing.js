@@ -22,7 +22,7 @@ import serializeError from 'haiku-serialization/src/utils/serializeError'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
-import getNormalizedComponentModulePath from 'haiku-serialization/src/model/helpers/getNormalizedComponentModulePath'
+import getNormalizedComponentModulePath from 'haiku-serialization/src/bll/helpers/getNormalizedComponentModulePath'
 
 const NOTIFIABLE_ENVS = {
   production: true,

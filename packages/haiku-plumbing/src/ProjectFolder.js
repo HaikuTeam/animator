@@ -9,7 +9,7 @@ import Browserify from './Browserify'
 import npm from './npm'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import normalizeBytecodeFile from 'haiku-serialization/src/ast/normalizeBytecodeFile'
-import FileModel from 'haiku-serialization/src/model/File'
+import FileModel from 'haiku-serialization/src/bll/File'
 import * as HaikuHomeDir from 'haiku-serialization/src/utils/HaikuHomeDir'
 
 const PLUMBING_DIR = path.join(__dirname, '..')

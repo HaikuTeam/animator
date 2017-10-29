@@ -43,8 +43,8 @@ export default class MasterModuleProject extends EventEmitter {
 
     // If the last time we read from the file system came after the last time we wrote to it,
     // that's a decent indication that the last known change occurred directly on the file system.
-    const lastRead = file.get('dtLastReadStart')
-    const lastWrite = file.get('dtLastWriteStart') + LAST_WRITE_MARGIN_OF_ERROR_MILLISECONDS
+    const lastRead = file.dtLastReadStart
+    const lastWrite = file.dtLastWriteStart + LAST_WRITE_MARGIN_OF_ERROR_MILLISECONDS
     if (lastRead < lastWrite) return void (0)
 
     this.emit('triggering-reload', file)
@@ -57,7 +57,7 @@ export default class MasterModuleProject extends EventEmitter {
     this.proc.socket.send({
       type: 'broadcast',
       name: 'component:reload',
-      relpath: file.get('relpath')
+      relpath: file.relpath
     })
   }
 

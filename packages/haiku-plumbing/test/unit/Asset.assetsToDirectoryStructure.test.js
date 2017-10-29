@@ -1,6 +1,5 @@
 var test = require('tape')
 var path = require('path')
-var File = require('haiku-serialization/src/model/File')()
 var Asset = require('./../../lib/Asset')
 
 test('Asset.assetsToDirectoryStructure', function(t) {
