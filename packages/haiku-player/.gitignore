@@ -6,3 +6,4 @@ build
 *.ignore.*
 .nyc_output/
 coverage/
+lib/

@@ -6,3 +6,4 @@ node_modules
 dist
 .haiku
 test/fixtures/projects/blank-project
+lib/

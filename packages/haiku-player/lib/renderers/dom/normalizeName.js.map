@@ -1,1 +1,0 @@
-{"version":3,"file":"normalizeName.js","sourceRoot":"","sources":["../../../src/renderers/dom/normalizeName.ts"],"names":[],"mappings":";;AAIA,uBAAsC,OAAO;IAC3C,EAAE,CAAC,CAAC,OAAO,CAAC,CAAC,CAAC,KAAK,OAAO,CAAC,CAAC,CAAC,CAAC,WAAW,EAAE,CAAC,CAAC,CAAC;QAC5C,MAAM,CAAC,OAAO,GAAG,YAAY,CAAC;IAChC,CAAC;IACD,MAAM,CAAC,OAAO,CAAC;AACjB,CAAC;AALD,mCAKC"}
