@@ -1,5 +1,5 @@
 var test = require('tape')
-var getNormalizedComponentModulePath = require('./../../src/model/helpers/getNormalizedComponentModulePath')
+var getNormalizedComponentModulePath = require('./../../src/bll/helpers/getNormalizedComponentModulePath')
 
 test('getNormalizedComponentModulePath', function (t) {
   t.plan(10)

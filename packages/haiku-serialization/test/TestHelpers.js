@@ -1,7 +1,8 @@
 var fse = require('haiku-fs-extra')
 var path = require('path')
-var File = require('./../src/model/File')()
-var ActiveComponent = require('./../src/model/ActiveComponent')
+var File = require('./../src/bll/File')()
+var ActiveComponent = require('./../src/bll/ActiveComponent')
+var File = require('./../src/bll/File')
 
 function createBasicProject (options, cb) {
   var folder = path.join(__dirname, 'fixtures', 'projects', options.name || 'test')
@@ -47,8 +48,6 @@ function createBasicProject (options, cb) {
     }
   })
 
-  var FileModel = component.FileModel
-
   function teardown () {
     console.log('[test] teardown called in', folder)
     setTimeout(() => { // Wait for race that may be present for commit content state
@@ -57,10 +56,10 @@ function createBasicProject (options, cb) {
     }, 1000)
   }
 
-  return FileModel.ingestFromFolder(folder, {}, (err) => {
+  return File.ingestFromFolder(folder, {}, (err) => {
     if (err) throw err
     var bytecode = ActiveComponent.fetchActiveBytecodeFile()
-    return cb(component, bytecode, FileModel, folder, config, teardown)
+    return cb(component, bytecode, File, folder, config, teardown)
   })
 }
 

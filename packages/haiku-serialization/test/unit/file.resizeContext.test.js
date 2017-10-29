@@ -1,7 +1,7 @@
 'use strict'
 
 var test = require('tape')
-var File = require('./../../src/model/File')()
+var File = require('./../../src/bll/File')
 var ValueBuilder = require('@haiku/player/lib/ValueBuilder').default
 
 test('file.resizeContext', function (t) {
@@ -156,12 +156,13 @@ test('file.resizeContext', function (t) {
     doShallowWorkOnly: true // Don't do fs, ast, or code updates in this context
   })
 
-  file.set('hostInstance', {
+  file.hostInstance = {
     _builder: new ValueBuilder({}),
+    getStates: () => { return {} },
     _findElementsByHaikuId: function () {
       return { elementName: 'div', attributes: {}, children: [] }
     }
-  })
+  }
 
   file.resizeContext(["f203a65f49c0"], 'Default', 0, { width: 123, height: 456 }, function (err, out) {
     var contextSize = file.getContextSize()

@@ -1,7 +1,7 @@
 'use strict'
 
 var test = require('tape')
-var File = require('./../../src/model/File')()
+var File = require('./../../src/bll/File')
 var ValueBuilder = require('@haiku/player/lib/ValueBuilder').default
 
 test('file.zStacking', function (t) {
@@ -22,12 +22,13 @@ test('file.zStacking', function (t) {
     doShallowWorkOnly: true // Don't do fs, ast, or code updates in this context
   })
 
-  file.set('hostInstance', {
+  file.hostInstance = {
     _builder: new ValueBuilder({}),
+    getStates: () => { return {} },
     _findElementsByHaikuId: function () {
       return { elementName: 'svg', attributes: {}, children: [] }
     }
-  })
+  }
 
   file.zMoveToFront(['bd7be1ee9784'], 'Default', 0, function (err) {
     t.equal(file.getReifiedBytecode().timelines.Default['haiku:bd7be1ee9784']['style.zIndex'][0].value, 8)

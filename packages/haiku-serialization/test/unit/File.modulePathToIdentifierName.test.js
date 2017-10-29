@@ -1,5 +1,5 @@
 var test = require('tape')
-var File = require('./../../src/model/File')()
+var File = require('./../../src/bll/File')
 
 test('File.modulePathToIdentifierName', function (t) {
   t.plan(4)

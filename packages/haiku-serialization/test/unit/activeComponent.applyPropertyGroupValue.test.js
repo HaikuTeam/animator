@@ -2,28 +2,30 @@
 
 var test = require('tape')
 var path = require('path')
-var ActiveComponent = require('./../../src/model/ActiveComponent')
+var ActiveComponent = require('./../../src/bll/ActiveComponent')
+var File = require('./../../src/bll/File')
 
 test('activeComponent.applyPropertyGroupValue', function (t) {
   t.plan(1)
   var ac = new ActiveComponent({
     alias: 'test',
+    uid: path.join(__dirname, '..', 'fixtures', 'projects', 'applypropgrouptest') + '::' + undefined,
     folder: path.join(__dirname, '..', 'fixtures', 'projects', 'applypropgrouptest'),
     userconfig: {},
-    websocket: { send: () => {}, on: () => {} },
+    websocket: { send: () => {}, on: () => {}, action: () => {} },
     platform: {},
     envoy: { mock: true }
   })
-  ac.fetchActiveBytecodeFile().set('doShallowWorkOnly', false) // We would like to see diffs of the operations during this test
-  ac.FileModel.UPDATE_OPTIONS.shouldUpdateFileSystem = false // Don't clobber the test fixtures
+  ac.fetchActiveBytecodeFile().doShallowWorkOnly = false // We would like to see diffs of the operations during this test
+  File.UPDATE_OPTIONS.shouldUpdateFileSystem = false // Don't clobber the test fixtures
   ac.mountApplication()
   ac.on('component:mounted', () => {
-    ac._componentInstance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+    ac.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
     var file = ac.fetchActiveBytecodeFile()
     file.read((err) => { // Reload the full content from the file system, including the ast so we can diff log etc
       file.on('in-memory-content-state-updated', () => {
-        var updatedContents = ac.fetchActiveBytecodeFile().get('contents')
-        t.equal(updatedContents, EXPECTED_CONTENTS)
+        var updatedContents = ac.fetchActiveBytecodeFile().contents
+        t.equal(updatedContents, EXPECTED_CONTENTS, 'updated contents are correct')
       })
       ac.applyPropertyGroupValue(['abcdefghijk'], 'Default', 0, { 'rotation.z': 0.123 }, { from: 'test' }, () => {})
     })
