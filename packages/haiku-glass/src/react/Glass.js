@@ -3,7 +3,8 @@ import lodash from 'lodash'
 import Radium from 'radium'
 import HaikuDOMRenderer from '@haiku/player/lib/renderers/dom'
 import HaikuContext from '@haiku/player/lib/HaikuContext'
-import ActiveComponent from 'haiku-serialization/src/model/ActiveComponent'
+import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
+import Element from 'haiku-serialization/src/bll/Element'
 import Palette from './Palette'
 import Comment from './Comment'
 import EventHandlerEditor from './EventHandlerEditor'
@@ -41,8 +42,8 @@ export class Glass extends React.Component {
       isAnythingScaling: false,
       isAnythingRotating: false,
       globalControlPointHandleClass: '',
-      containerHeight: 0,
-      containerWidth: 0,
+      containerHeight: document.body.clientHeight,
+      containerWidth: document.body.clientWidth,
       isStageSelected: false,
       isStageNameHovering: false,
       isMouseDown: false,
@@ -69,8 +70,9 @@ export class Glass extends React.Component {
       drawingIsModal: true
     }
 
-    this._component = new ActiveComponent({
+    this._component = ActiveComponent.upsert({
       alias: 'glass',
+      uid: this.props.folder + '::' + this.props.scenename,
       folder: this.props.folder,
       userconfig: this.props.userconfig,
       websocket: this.props.websocket,
@@ -149,35 +151,34 @@ export class Glass extends React.Component {
   handleTimelineDidSeek (frameData) {
     this._lastAuthoritativeFrame = frameData.frame
     this._stopwatch = Date.now()
-    this.draw(true)
+    this.draw()
   }
 
-  draw (forceSeek) {
-    if (this._playing || forceSeek) {
-      var seekMs = 0
-      // this._stopwatch is null unless we've received an action from the timeline.
-      // If we're developing the glass solo, i.e. without a connection to envoy which
-      // provides the system clock, we can just lock the time value to zero as a hack.
-      // TODO: Would be nice to allow full-fledged solo development of glass...
-      if (this._stopwatch !== null) {
-        var fps = 60 // TODO:  support variable
-        var baseMs = this._lastAuthoritativeFrame * 1000 / fps
-        var deltaMs = this._playing ? Date.now() - this._stopwatch : 0
-        seekMs = baseMs + deltaMs
-      }
+  draw () {
+    let seekMs = 0
 
-      // This rounding is required otherwise we'll see bizarre behavior on stage.
-      // I think it's because some part of the player's caching or transition logic
-      // which wants things to be round numbers. If we don't round this, i.e. convert
-      // 16.666 -> 17 and 33.333 -> 33, then the player won't render those frames,
-      // which means the user will have trouble moving things on stage at those times.
-      seekMs = Math.round(seekMs)
-
-      this._component._setTimelineTimeValue(seekMs, forceSeek)
+    // this._stopwatch is null unless we've received an action from the timeline.
+    // If we're developing the glass solo, i.e. without a connection to envoy which
+    // provides the system clock, we can just lock the time value to zero as a hack.
+    // TODO: Would be nice to allow full-fledged solo development of glass...
+    if (this._stopwatch !== null) {
+      const fps = 60 // TODO:  support variable
+      const baseMs = this._lastAuthoritativeFrame * 1000 / fps
+      const deltaMs = this._playing ? Date.now() - this._stopwatch : 0
+      seekMs = baseMs + deltaMs
     }
 
+    // This rounding is required otherwise we'll see bizarre behavior on stage.
+    // I think it's because some part of the player's caching or transition logic
+    // which wants things to be round numbers. If we don't round this, i.e. convert
+    // 16.666 -> 17 and 33.333 -> 33, then the player won't render those frames,
+    // which means the user will have trouble moving things on stage at those times.
+    seekMs = Math.round(seekMs)
+
+    this._component.setTimelineTimeValue(seekMs)
+
     if (this.refs.overlay) {
-      this.drawOverlays(forceSeek)
+      this.drawOverlays()
     }
   }
 
@@ -201,7 +202,7 @@ export class Glass extends React.Component {
     })
 
     this._component.on('component:updated', () => {
-      this.draw(true)
+      this.draw()
 
       // This happens on almost any update because theoretically a keyframe change,
       // a curve change, etc., could all result in the need to recalc the artboard :/
@@ -227,7 +228,6 @@ export class Glass extends React.Component {
     // Pasteable things are stored at the global level in the clipboard but we need that action to fire from the top level
     // so that all the views get the message, so we emit this as an event and then wait for the call to pasteThing
     document.addEventListener('paste', (pasteEvent) => {
-      console.info('[glass] paste heard')
       // Notify creator that we have some content that the person wishes to paste on the stage;
       // the top level needs to handle this because it does content type detection.
       pasteEvent.preventDefault()
@@ -251,16 +251,14 @@ export class Glass extends React.Component {
     })
 
     // Since the current selected element can be deleted from the global menu, we need to keep it there
-    this._component.on('element:selected', (componentId) => {
-      console.info('[glass] element:selected', componentId)
-      this._lastSelectedElement = this._component._elements.find(componentId)
+    this._component.on('element:selected', (element) => {
+      this._lastSelectedElement = element
     })
 
     // Since the current selected element can be deleted from the global menu, we need clear it there too
-    this._component.on('element:unselected', (componentId) => {
-      console.info('[glass] element:unselected', componentId)
+    this._component.on('element:unselected', (element) => {
       this._lastSelectedElement = null
-      this.draw(true)
+      this.draw()
     })
 
     this.props.websocket.on('broadcast', (message) => {
@@ -311,10 +309,6 @@ export class Glass extends React.Component {
       }
     })
 
-    this.props.websocket.on('method', (method, params, cb) => {
-      return this._component.callMethod(method, params, cb)
-    })
-
     this._comments.load((err) => {
       if (err) return void (0)
       this.setState({ comments: this._comments.comments })
@@ -347,6 +341,8 @@ export class Glass extends React.Component {
     // Pasteable things are stored at the global level in the clipboard but we need that action to fire from the top level
     // so that all the views get the message, so we emit this as an event and then wait for the call to pasteThing
     this._ctxmenu.on('current-pasteable:request-paste', (data) => {
+      // Note that if you're running 'glass only' this isn't going to work since you don't have
+      // access to the other views; TODO mock this
       this.props.websocket.send({
         type: 'broadcast',
         name: 'current-pasteable:request-paste',
@@ -456,12 +452,8 @@ export class Glass extends React.Component {
 
     var source = nativeEvent.relatedTarget || nativeEvent.toElement
     if (!source || source.nodeName === 'HTML') {
-      // this.setState({
-      //   isAnythingScaling: false,
-      //   isAnythingRotating: false,
-      //   controlActivation: null
-      // })
-      this._component._elements.hovered.dequeue()
+      // unhover?
+      // cleanup?
     }
   }
 
@@ -566,15 +558,21 @@ export class Glass extends React.Component {
       var target = mousedownEvent.nativeEvent.target
       if ((typeof target.className === 'string') && target.className.indexOf('scale-cursor') !== -1) return
 
-      while (target.hasAttribute && (!target.hasAttribute('source') || !target.hasAttribute('haiku-id') ||
-             !this._component._elements.find(target.getAttribute('haiku-id')))) {
+      while (
+        target.hasAttribute &&
+        (
+          !target.hasAttribute('source') ||
+          !target.hasAttribute('haiku-id') ||
+          !Element.findById(target.getAttribute('haiku-id'))
+        )
+      ) {
         target = target.parentNode
       }
 
       if (!target || !target.hasAttribute) {
         // If shift is down, that's constrained scaling. If cmd, that's rotation mode.
         if (!this.state.isKeyShiftDown && !this.state.isKeyCommandDown) {
-          this._component._elements.unselectAllElements({ from: 'glass' })
+          Element.unselectAllElements({ from: 'glass' })
         }
 
         return
@@ -582,14 +580,14 @@ export class Glass extends React.Component {
 
       if (target.hasAttribute('source') && target.hasAttribute('haiku-id') && target.parentNode !== this.refs.mount) {
         var haikuId = target.getAttribute('haiku-id')
-        var contained = lodash.find(this._component._elements.where({ isSelected: true }),
+        var contained = lodash.find(this._component.queryElements({ _isSelected: true }),
             (element) => element.uid === haikuId)
 
         // we check if the element being clicked on is already in the selection, if it is we don't want
         // to clear the selection since it could be a grouped selection
         // If shift is down, that's constrained scaling. If cmd, that's rotation mode.
         if (!contained && (!this.state.isKeyShiftDown && !this.state.isKeyCommandDown)) {
-          this._component._elements.unselectAllElements({ from: 'glass' })
+          Element.unselectAllElements({ from: 'glass' })
         }
 
         if (!contained) {
@@ -641,38 +639,37 @@ export class Glass extends React.Component {
   }
 
   handleKeyEscape () {
-    this._component._elements.unselectAllElements({ from: 'glass' })
+    Element.unselectAllElements({ from: 'glass' })
   }
 
   handleKeySpace (nativeEvent, isDown) {
     this.setState({ isKeySpaceDown: isDown })
-    // this._component._elements.drilldownIntoAlreadySelectedElement(this.state.mousePositionCurrent)
   }
 
   handleKeyLeftArrow (keyEvent) {
     var delta = keyEvent.shiftKey ? 5 : 1
-    this._component._elements.where({ isSelected: true }).forEach((element) => {
+    this._component.queryElements({ _isSelected: true }).forEach((element) => {
       element.move(-delta, 0, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
     })
   }
 
   handleKeyUpArrow (keyEvent) {
     var delta = keyEvent.shiftKey ? 5 : 1
-    this._component._elements.where({ isSelected: true }).forEach((element) => {
+    this._component.queryElements({ _isSelected: true }).forEach((element) => {
       element.move(0, -delta, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
     })
   }
 
   handleKeyRightArrow (keyEvent) {
     var delta = keyEvent.shiftKey ? 5 : 1
-    this._component._elements.where({ isSelected: true }).forEach((element) => {
+    this._component.queryElements({ _isSelected: true }).forEach((element) => {
       element.move(delta, 0, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
     })
   }
 
   handleKeyDownArrow (keyEvent) {
     var delta = keyEvent.shiftKey ? 5 : 1
-    this._component._elements.where({ isSelected: true }).forEach((element) => {
+    this._component.queryElements({ _isSelected: true }).forEach((element) => {
       element.move(0, delta, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
     })
   }
@@ -760,9 +757,8 @@ export class Glass extends React.Component {
   }
 
   handleClickStageName () {
-    this._component._elements.unselectAllElements({ from: 'glass' })
-    var artboard = this._component._elements.findRoots()[0]
-    this._component._elements.clicked.add(artboard)
+    Element.unselectAllElements({ from: 'glass' })
+    var artboard = Element.findRoots()[0]
     artboard.select({ from: 'glass' })
   }
 
@@ -796,7 +792,7 @@ export class Glass extends React.Component {
           mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y
         )
       } else {
-        var selected = this._component._elements.where({ isSelected: true })
+        var selected = this._component.queryElements({ _isSelected: true })
         if (selected.length > 0) {
           selected.forEach((element) => {
             element.drag(dx, dy, mousePositionCurrent, mousePositionPrevious, lastMouseDownPosition, this.state)
@@ -811,7 +807,7 @@ export class Glass extends React.Component {
     if (this.isPreviewMode()) {
       return void (0)
     }
-    this._component._elements.where({ isSelected: true }).forEach((element) => {
+    this._component.queryElements({ _isSelected: true }).forEach((element) => {
       element.remove()
     })
   }
@@ -887,12 +883,13 @@ export class Glass extends React.Component {
     return mousePositionCurrent
   }
 
-  drawOverlays (force) {
-    var selected = this._component._elements.selected.all()
-    if (force || selected.length > 0) {
-      var container = this._haikuRenderer.createContainer(this.refs.overlay)
-      var parts = this.buildDrawnOverlays()
-      var overlay = {
+  drawOverlays () {
+    const selected = this._component.queryElements({ _isSelected: true })
+
+    if (selected.length > 0) {
+      const container = this._haikuRenderer.createContainer(this.refs.overlay)
+      const parts = this.buildDrawnOverlays()
+      const overlay = {
         elementName: 'div',
         attributes: {
           id: 'haiku-glass-overlay-root',
@@ -929,7 +926,7 @@ export class Glass extends React.Component {
     if (this.isPreviewMode()) {
       return overlays
     }
-    var selected = this._component._elements.selected.all()
+    var selected = this._component.queryElements({ _isSelected: true })
     if (selected.length > 0) {
       var points
       if (selected.length === 1) {
@@ -951,7 +948,7 @@ export class Glass extends React.Component {
         selected.forEach((element) => {
           element.getBoxPointsTransformed().forEach((point) => points.push(point))
         })
-        points = this._component._elements.getBoundingBoxPoints(points)
+        points = Element.getBoundingBoxPoints(points)
         this.renderTransformBoxOverlay(points, overlays, false, this.state.isKeyCommandDown, false, 0, 1, 1)
       }
       if (this.state.isMouseDragging) {
@@ -1069,7 +1066,7 @@ export class Glass extends React.Component {
 
     var specifiedPointGroup = CLOCKWISE_CONTROL_POINTS[keyOfPointGroup]
 
-    var rotationDegrees = this._component._elements.getRotationIn360(rotationZ)
+    var rotationDegrees = Element.getRotationIn360(rotationZ)
     // Each 45 degree turn will equate to a phase change of 1, and that phase corresponds to
     // a starting index for the control points in clockwise order
     var phaseNumber = ~~((rotationDegrees + 22.5) / 45) % specifiedPointGroup.length
@@ -1101,7 +1098,7 @@ export class Glass extends React.Component {
     if (!this.state.controlActivation) return ''
     var controlIndex = this.state.controlActivation.index
     var isRotationModeOn = this.state.isKeyCommandDown
-    var selectedElements = this._component._elements.selected.all()
+    var selectedElements = this._component.queryElements({ _isSelected: true })
     if (selectedElements.length === 1) {
       var selectedElement = selectedElements[0]
       var rotationZ = selectedElement.getPropertyValue('rotation.z') || 0
@@ -1137,7 +1134,12 @@ export class Glass extends React.Component {
   }
 
   render () {
-    var drawingClassName = (this.state.activeDrawingTool !== 'pointer') ? 'draw-shape' : ''
+    const drawingClassName = (this.state.activeDrawingTool !== 'pointer') ? 'draw-shape' : ''
+
+    const pan = { x: this.state.panX, y: this.state.panY }
+    const zoom = { x: this.state.zoomXY, y: this.state.zoomXY }
+    const container = { x: 0, y: 0, w: this.state.containerWidth, h: this.state.containerHeight }
+    const mount = { x: this.state.mountX, y: this.state.mountY, w: this.state.mountWidth, h: this.state.mountHeight }
 
     return (
       <div
@@ -1147,13 +1149,13 @@ export class Glass extends React.Component {
           ? <div
             style={{
               position: 'fixed',
-              top: 5,
+              top: container.y + 5,
               right: 10,
               zIndex: 100000,
               color: '#ccc',
               fontSize: 14
             }}>
-            {Math.round(this.state.zoomXY / 1 * 100)}%
+            {Math.round(zoom.x / 1 * 100)}%
             </div>
           : ''}
 
@@ -1164,14 +1166,14 @@ export class Glass extends React.Component {
           onMouseDown={(mouseDown) => {
             if (!this.isPreviewMode()) {
               if (mouseDown.nativeEvent.target && mouseDown.nativeEvent.target.id === 'full-background') {
-                this._component._elements.unselectAllElements({ from: 'glass' })
+                Element.unselectAllElements({ from: 'glass' })
               }
               if (this.state.isEventHandlerEditorOpen) {
                 this.hideEventHandlersEditor()
               }
               this.setState({
-                originalPanX: this.state.panX,
-                originalPanY: this.state.panY,
+                originalPanX: pan.x,
+                originalPanY: pan.y,
                 stageMouseDown: {
                   x: mouseDown.nativeEvent.clientX,
                   y: mouseDown.nativeEvent.clientY
@@ -1190,13 +1192,12 @@ export class Glass extends React.Component {
             }
           }}
           style={{
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden', // TODO:  if/when we support native scrolling here,
-                                // we'll need to figure out some phantom reflowing/jitter issues
+            width: container.w,
+            height: container.h,
+            overflow: 'visible',
             position: 'absolute',
-            top: 0,
-            left: 0,
+            top: container.y,
+            left: container.x,
             transform: this.getStageTransform(),
             cursor: this.getCursorCssRule(),
             backgroundColor: (this.isPreviewMode()) ? 'white' : 'inherit'
@@ -1207,10 +1208,10 @@ export class Glass extends React.Component {
               id='haiku-glass-stage-background-live'
               style={{
                 position: 'absolute',
-                top: 0,
-                left: 0,
-                width: this.state.containerWidth,
-                height: this.state.containerHeight
+                top: container.y,
+                left: container.x,
+                width: container.w,
+                height: container.h
               }}>
               <defs>
                 <filter id='background-blur' x='-50%' y='-50%' width='200%' height='200%'>
@@ -1220,27 +1221,27 @@ export class Glass extends React.Component {
                   <feBlend in='SourceGraphic' in2='totalBlur' mode='normal' />
                 </filter>
               </defs>
-              <rect id='full-background' x='0' y='0' width='100%' height='100%' fill='transparent' />
-              <rect id='mount-background-blur' filter='url(#background-blur)' x={this.state.mountX} y={this.state.mountY} width={this.state.mountWidth} height={this.state.mountHeight} fill='white' />
-              <rect id='mount-background' x={this.state.mountX} y={this.state.mountY} width={this.state.mountWidth} height={this.state.mountHeight} fill='white' />
+              <rect id='full-background' x={container.x} y={container.y} width={container.w} height={container.w} fill='transparent' />
+              <rect id='mount-background-blur' filter='url(#background-blur)' x={mount.x} y={mount.y} width={mount.w} height={mount.h} fill='white' />
+              <rect id='mount-background' x={mount.x} y={mount.y} width={mount.w} height={mount.h} fill='white' />
             </svg>
             : <div
               id='haiku-glass-stage-background-preview'
               style={{
                 position: 'relative',
-                top: 0,
-                left: 0,
-                width: this.state.containerWidth,
-                height: this.state.containerHeight
+                top: container.y,
+                left: container.x,
+                width: container.w,
+                height: container.h
               }}>
               <div
                 id='haiku-glass-stage-background-preview-border'
                 style={{
                   position: 'absolute',
-                  top: this.state.mountY,
-                  left: this.state.mountX,
-                  width: this.state.mountWidth,
-                  height: this.state.mountHeight,
+                  top: mount.y,
+                  left: mount.x,
+                  width: mount.w,
+                  height: mount.h,
                   border: '1px dotted #bbb',
                   borderRadius: '2px'
                 }} />
@@ -1252,8 +1253,8 @@ export class Glass extends React.Component {
               style={{
                 position: 'absolute',
                 zIndex: 10,
-                top: this.state.mountY - 19,
-                left: this.state.mountX + 2,
+                top: mount.y - 19,
+                left: mount.x + 2,
                 height: 20,
                 width: 120,
                 userSelect: 'none',
@@ -1279,14 +1280,14 @@ export class Glass extends React.Component {
               id='haiku-glass-background-colorator'
               style={{
                 position: 'absolute',
-                top: 0,
-                left: 0,
+                top: container.y,
+                left: container.x,
                 zIndex: 20,
-                width: this.state.containerWidth,
-                height: this.state.containerHeight,
+                width: container.w,
+                height: container.h,
                 pointerEvents: 'none'
               }}>
-              <path d={`M0,0V${this.state.containerHeight}H${this.state.containerWidth}V0ZM${this.state.mountX + this.state.mountWidth},${this.state.mountY + this.state.mountHeight}H${this.state.mountX}V${this.state.mountY}H${this.state.mountX + this.state.mountWidth}Z`}
+              <path d={`M0,0V${container.h}H${container.w}V0ZM${mount.x + mount.w},${mount.y + mount.h}H${mount.x}V${mount.y}H${mount.x + mount.w}Z`}
                 style={{'fill': '#111', 'opacity': 0.1, 'pointerEvents': 'none'}} />
             </svg>
             : ''}
@@ -1296,24 +1297,24 @@ export class Glass extends React.Component {
               id='haiku-glass-moat-opacitator'
               style={{
                 position: 'absolute',
-                top: 0,
-                left: 0,
+                top: container.y,
+                left: container.x,
                 zIndex: 1010,
-                width: this.state.containerWidth,
-                height: this.state.containerHeight,
+                width: container.w,
+                height: container.h,
                 pointerEvents: 'none'
               }}>
-              <path d={`M0,0V${this.state.containerHeight}H${this.state.containerWidth}V0ZM${this.state.mountX + this.state.mountWidth},${this.state.mountY + this.state.mountHeight}H${this.state.mountX}V${this.state.mountY}H${this.state.mountX + this.state.mountWidth}Z`}
+              <path d={`M0,0V${container.h}H${container.w}V0ZM${mount.x + mount.w},${mount.y + mount.h}H${mount.x}V${mount.y}H${mount.x + mount.w}Z`}
                 style={{
                   'fill': '#FFF',
                   'opacity': 0.5,
                   'pointerEvents': 'none'
                 }} />
               <rect
-                x={this.state.mountX - 1}
-                y={this.state.mountY - 1}
-                width={this.state.mountWidth + 2}
-                height={this.state.mountHeight + 2}
+                x={mount.x - 1}
+                y={mount.y - 1}
+                width={mount.w + 2}
+                height={mount.h + 2}
                 style={{
                   strokeWidth: 1.5,
                   fill: 'none',
@@ -1330,8 +1331,8 @@ export class Glass extends React.Component {
               style={{
                 position: 'absolute',
                 pointerEvents: 'none',
-                top: 0,
-                left: 0,
+                top: container.y,
+                left: container.x,
                 zIndex: 2000,
                 overflow: 'hidden',
                 width: '100%',
@@ -1357,14 +1358,14 @@ export class Glass extends React.Component {
               ref='overlay'
               id='haiku-glass-overlay-mount'
               height={this.state.containerHeight}
-              width={this.state.containerWidth}
+              width={container.w}
               style={{
                 transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
                 pointerEvents: 'none', // This needs to be un-set for surface elements that take mouse interaction
                 position: 'relative',
                 overflow: 'visible',
-                top: 0,
-                left: 0,
+                top: container.y,
+                left: container.x,
                 zIndex: 1000,
                 opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
               }} />
@@ -1376,10 +1377,10 @@ export class Glass extends React.Component {
             className={drawingClassName}
             style={{
               position: 'absolute',
-              left: this.state.mountX,
-              top: this.state.mountY,
-              width: this.state.mountWidth,
-              height: this.state.mountHeight,
+              left: mount.x,
+              top: mount.y,
+              width: mount.w,
+              height: mount.h,
               overflow: 'visible',
               zIndex: 60,
               opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
