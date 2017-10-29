@@ -1,0 +1,19 @@
+const decamelize = require('decamelize')
+
+const HUMANIZED_PROP_NAMES = {
+  'rotation.z': 'Rotation Z', // Change me if we enable other types of rotation again
+  'rotation.y': 'Rotation Y',
+  'rotation.x': 'Rotation X',
+  'translation.x': 'Position X',
+  'translation.y': 'Position Y',
+  'translation.z': 'Position Z',
+  'sizeAbsolute.x': 'Size X',
+  'sizeAbsolute.y': 'Size Y',
+  'style.overflowX': 'Overflow X',
+  'style.overflowY': 'Overflow Y'
+}
+
+module.exports = function humanizePropertyName (propertyName) {
+  if (HUMANIZED_PROP_NAMES[propertyName]) return HUMANIZED_PROP_NAMES[propertyName]
+  return decamelize(propertyName).replace(/[\W_]/g, ' ')
+}
