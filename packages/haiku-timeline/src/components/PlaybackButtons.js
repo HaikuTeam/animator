@@ -27,8 +27,27 @@ const STYLES = {
 }
 
 class PlaybackButtons extends React.Component {
+  constructor (props) {
+    super(props)
+    this.handleUpdate = this.handleUpdate.bind(this)
+  }
+
+  componentWillUnmount () {
+    this.mounted = false
+    this.props.timeline.removeListener('update', this.handleUpdate)
+  }
+
+  componentDidMount () {
+    this.mounted = true
+    this.props.timeline.on('update', this.handleUpdate)
+  }
+
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    if (what === 'timeline-frame') this.forceUpdate()
+  }
+
   playbackSkipBack () {
-    this.props.removeTimelineShadow()
     this.props.playbackSkipBack()
   }
 
@@ -41,9 +60,11 @@ class PlaybackButtons extends React.Component {
   }
 
   render () {
-    const lastFrame = this.props.lastFrame
-    const currentFrame = this.props.currentFrame
-    const isPlaying = this.props.isPlaying
+    const frameInfo = this.props.timeline.getFrameInfo()
+    const lastFrame = frameInfo.friMax
+    const currentFrame = this.props.timeline.getCurrentFrame()
+    const isPlaying = this.props.timeline.isPlaying()
+
     return (
       <span>
         <button
@@ -81,6 +102,10 @@ class PlaybackButtons extends React.Component {
       </span>
     )
   }
+}
+
+PlaybackButtons.propTypes = {
+  timeline: React.PropTypes.object.isRequired,
 }
 
 export default Radium(PlaybackButtons)

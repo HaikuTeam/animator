@@ -1,29 +1,29 @@
 import React from 'react'
 import Palette from './DefaultPalette'
-import getPropertyValueDescriptor from './helpers/getPropertyValueDescriptor'
 
 export default class ClusterInputField extends React.Component {
-  getClusterValues (node, reifiedBytecode, cluster) {
-    return cluster.map((propertyDescriptor) => {
-      return getPropertyValueDescriptor(
-        node,
-        this.props.frameInfo,
-        this.props.reifiedBytecode,
-        this.props.serializedBytecode,
-        this.props.component,
-        this.props.timelineTime,
-        this.props.timelineName,
-        propertyDescriptor
-      )
-    })
+  constructor (props) {
+    super(props)
+    this.handleUpdate = this.handleUpdate.bind(this)
+  }
+
+  componentWillUnmount () {
+    this.mounted = false
+    this.props.timeline.removeListener('update', this.handleUpdate)
+  }
+
+  componentDidMount () {
+    this.mounted = true
+    this.props.timeline.on('update', this.handleUpdate)
+  }
+
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    if (what === 'timeline-frame') this.forceUpdate()
   }
 
   render () {
-    let clusterValues = this.getClusterValues(
-      this.props.item.node,
-      this.props.reifiedBytecode,
-      this.props.item.cluster
-    )
+    let clusterValues = this.props.row.getClusterValues()
 
     let valueElements = clusterValues.map((clusterVal, index) => {
       let semi = (index === (clusterValues.length - 1)) ? '' : '; '
@@ -54,4 +54,11 @@ export default class ClusterInputField extends React.Component {
       </div>
     )
   }
+}
+
+ClusterInputField.propTypes = {
+  row: React.PropTypes.object.isRequired,
+  timeline: React.PropTypes.object.isRequired,
+  rowHeight: React.PropTypes.number.isRequired,
+  $update: React.PropTypes.object.isRequired,
 }

@@ -28,6 +28,26 @@ const STYLES = {
 }
 
 export default class ControlsArea extends React.Component {
+  constructor (props) {
+    super(props)
+    this.handleUpdate = this.handleUpdate.bind(this)
+  }
+
+  componentWillUnmount () {
+    this.mounted = false
+    this.props.timeline.removeListener('update', this.handleUpdate)
+  }
+
+  componentDidMount () {
+    this.mounted = true
+    this.props.timeline.on('update', this.handleUpdate)
+  }
+
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    if (what === 'timeline-frame') this.forceUpdate()
+  }
+
   render () {
     return (
       <div style={STYLES.wrapper}>
@@ -46,10 +66,7 @@ export default class ControlsArea extends React.Component {
         </span>
         <span style={STYLES.centerWrapper}>
           <PlaybackButtons
-            removeTimelineShadow={this.props.removeTimelineShadow}
-            lastFrame={this.props.lastFrame}
-            currentFrame={this.props.currentFrame}
-            isPlaying={this.props.isPlaying}
+            timeline={this.props.timeline}
             playbackSkipBack={this.props.playbackSkipBack}
             playbackSkipForward={this.props.playbackSkipForward}
             playbackPlayPause={this.props.playbackPlayPause} />
@@ -68,4 +85,8 @@ export default class ControlsArea extends React.Component {
       </div>
     )
   }
+}
+
+ControlsArea.propTypes = {
+  timeline: React.PropTypes.object.isRequired,
 }

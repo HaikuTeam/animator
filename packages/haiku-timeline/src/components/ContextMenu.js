@@ -17,120 +17,47 @@ export default class ContextMenu extends EventEmitter {
   rebuild (options) {
     this._menu = new Menu()
 
-    if (options.type === 'keyframe') {
-      this._menu.append(new MenuItem({
-        label: 'Nudge Left',
-        click: (event) => {
-          this.emit('moveSegmentEndpoints', options.componentId, options.timelineName, options.propertyName, 'left', options.keyframeIndex, options.startMs, options.startMs - options.frameInfo.mspf)
-        }
-      }))
+    this._menu.append(new MenuItem({
+      label: 'Create Keyframe',
+      enabled: options.type === 'keyframe-segment' || options.type === 'keyframe-transition' || options.type === 'property-row' || options.type === 'cluster-row',
+      click: (event) => {
+        this.emit('createKeyframe', options.event, options.model, options.offset)
+      }
+    }))
 
-      this._menu.append(new MenuItem({
-        label: 'Nudge Right',
-        click: (event) => {
-          this.emit('moveSegmentEndpoints', options.componentId, options.timelineName, options.propertyName, 'left', options.keyframeIndex, options.startMs, options.startMs + options.frameInfo.mspf)
-        }
-      }))
+    this._menu.append(new MenuItem({ type: 'separator' }))
 
-      this._menu.append(new MenuItem({ type: 'separator' }))
+    this._menu.append(new MenuItem({
+      label: 'Delete Keyframe',
+      enabled: options.type === 'keyframe',
+      click: (event) => {
+        this.emit('deleteKeyframe')
+      }
+    }))
 
-      this._menu.append(new MenuItem({
-        label: 'Delete Keyframe',
-        click: (event) => {
-          this.emit('deleteKeyframe', options.componentId, options.timelineName, options.propertyName, options.startMs)
-        }
-      }))
-    } else if (options.type === 'keyframe-segment') {
-      this._menu.append(new MenuItem({
-        label: 'Make Tween',
-        submenu: curvesMenu(options.curve, (event, curveName) => {
-          this.emit('joinKeyframes', options.componentId, options.timelineName, options.elementName, options.propertyName, options.startMs, options.endMs, curveName)
-        })
-      }))
+    this._menu.append(new MenuItem({ type: 'separator' }))
 
-      this._menu.append(new MenuItem({
-        label: 'Create Keyframe',
-        click: (event) => {
-          this.emit('createKeyframe', options.componentId, options.timelineName, options.elementName, options.propertyName, options.clickedMs)
-        }
-      }))
-
-      this._menu.append(new MenuItem({ type: 'separator' }))
-
-      this._menu.append(new MenuItem({
-        label: 'Nudge Left',
-        click: (event) => {
-          this.emit('moveSegmentEndpoints', options.componentId, options.timelineName, options.propertyName, 'body', options.keyframeIndex, options.startMs, options.startMs - options.frameInfo.mspf)
-        }
-      }))
-
-      this._menu.append(new MenuItem({
-        label: 'Nudge Right',
-        click: (event) => {
-          this.emit('moveSegmentEndpoints', options.componentId, options.timelineName, options.propertyName, 'body', options.keyframeIndex, options.startMs, options.startMs + options.frameInfo.mspf)
-        }
-      }))
-
-      this._menu.append(new MenuItem({ type: 'separator' }))
-
-      this._menu.append(new MenuItem({
-        label: 'Delete Left Keyframe',
-        click: (event) => {
-          this.emit('deleteKeyframe', options.componentId, options.timelineName, options.propertyName, options.startMs)
-        }
-      }))
-
-      this._menu.append(new MenuItem({
-        label: 'Delete Right Keyframe',
-        click: (event) => {
-          this.emit('deleteKeyframe', options.componentId, options.timelineName, options.propertyName, options.endMs)
-        }
-      }))
-    } else if (options.type === 'keyframe-transition') {
-      this._menu.append(new MenuItem({
-        label: 'Change Curve',
-        submenu: curvesMenu(options.curve, (event, curveName) => {
-          this.emit('changeSegmentCurve', options.componentId, options.timelineName, options.propertyName, options.startMs, curveName)
-        })
-      }))
-
-      this._menu.append(new MenuItem({
-        label: 'Create Keyframe',
-        click: (event) => {
-          this.emit('createKeyframe', options.componentId, options.timelineName, options.elementName, options.propertyName, options.clickedMs)
-        }
-      }))
-
-      this._menu.append(new MenuItem({
-        label: 'Remove Tween',
-        click: (event) => {
-          this.emit('splitSegment', options.componentId, options.timelineName, options.elementName, options.propertyName, options.startMs)
-        }
-      }))
-
-      this._menu.append(new MenuItem({ type: 'separator' }))
-
-      this._menu.append(new MenuItem({
-        label: 'Nudge Left',
-        click: (event) => {
-          this.emit('moveSegmentEndpoints', options.componentId, options.timelineName, options.propertyName, 'body', options.keyframeIndex, options.startMs, options.startMs - options.frameInfo.mspf)
-        }
-      }))
-
-      this._menu.append(new MenuItem({
-        label: 'Nudge Right',
-        click: (event) => {
-          this.emit('moveSegmentEndpoints', options.componentId, options.timelineName, options.propertyName, 'body', options.keyframeIndex, options.startMs, options.startMs + options.frameInfo.mspf)
-        }
-      }))
-    } else if (options.type === 'property-row') {
-      this._menu.append(new MenuItem({
-        label: 'Create Keyframe',
-        click: (event) => {
-          this.emit('createKeyframe', options.componentId, options.timelineName, options.elementName, options.propertyName, options.clickedMs)
-        }
-      }))
-    }
+    this._menu.append(new MenuItem({
+      label: 'Make Tween',
+      enabled: options.type === 'keyframe-segment',
+      submenu: (options.type === 'keyframe-segment') && curvesMenu(options.curve, (event, curveName) => {
+        this.emit('joinKeyframes', curveName)
+      })
+    }))
+    this._menu.append(new MenuItem({
+      label: 'Change Tween',
+      enabled: options.type === 'keyframe-transition',
+      submenu: (options.type === 'keyframe-transition') && curvesMenu(options.curve, (event, curveName) => {
+        this.emit('changeSegmentCurve', curveName)
+      })
+    }))
+    this._menu.append(new MenuItem({
+      label: 'Remove Tween',
+      enabled: options.type === 'keyframe-transition',
+      click: (event) => {
+        this.emit('splitSegment', options.offset)
+      }
+    }))
   }
 
   show (options) {

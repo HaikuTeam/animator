@@ -5,9 +5,9 @@ import CodeMirror from 'codemirror'
 import stripindent from 'strip-indent'
 import marshalParams from '@haiku/player/lib/reflection/marshalParams'
 import parseExpression from 'haiku-serialization/src/ast/parseExpression'
+import mod from 'haiku-serialization/src/bll/helpers/mod'
 import Palette from './DefaultPalette'
 import AutoCompleter from './AutoCompleter'
-import { getItemPropertyId, mod } from './helpers/ItemHelpers'
 import * as EXPR_SIGNS from './helpers/ExprSigns'
 import isNumeric from './helpers/isNumeric'
 import retToEq from './helpers/retToEq'
@@ -143,12 +143,22 @@ export default class ExpressionInput extends React.Component {
       editedValue: null
     }
 
-    if (props.inputFocused) {
+    if (props.component.getFocusedRow()) {
       this.engageFocus(props)
     }
+
+    this.handleUpdate = this.handleUpdate.bind(this)
+  }
+
+  componentWillUnmount () {
+    this.mounted = false
+    this.props.component.removeListener('update', this.handleUpdate)
   }
 
   componentDidMount () {
+    this.mounted = true
+    this.props.component.on('update', this.handleUpdate)
+
     if (this._context) {
       while (this._context.firstChild) {
         this._context.removeChild(this._context.firstChild)
@@ -157,8 +167,13 @@ export default class ExpressionInput extends React.Component {
     }
   }
 
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    this.engageFocus(this.props)
+  }
+
   componentWillReceiveProps (nextProps) {
-    if (nextProps.inputFocused) {
+    if (nextProps.component.getFocusedRow()) {
       this.engageFocus(nextProps)
     }
   }
@@ -254,7 +269,7 @@ export default class ExpressionInput extends React.Component {
   }
 
   performCommit (maybeNavigationDirection, doFocusSubsequentCell) {
-    let original = this.props.reactParent.getItemValueDescriptor(this.props.inputFocused)
+    let original = this.props.component.getFocusedRow().getPropertyValueDescriptor()
 
     let committable = this.getCommitableValue(this.state.editedValue, original)
 
@@ -314,7 +329,7 @@ export default class ExpressionInput extends React.Component {
       // We'll use these both for auto-assigning function signature params and for syntax highlighting.
       // We do this first because it populates HaikuMode.keywords with vars, which we will use when
       // parsing to produce a summary that includes add'l validation information about the contents
-      let injectables = this.props.reactParent._component._componentInstance._getInjectables()
+      let injectables = this.props.reactParent.component.instance._getInjectables()
       this.resetSyntaxInjectables(injectables)
 
       // This wrapping is required for parsing to work (parens are needed to make it an expression)
@@ -637,11 +652,11 @@ export default class ExpressionInput extends React.Component {
       return true
     }
 
-    if (this.props.inputFocused) {
+    if (this.props.component.getFocusedRow()) {
       // When focused, assume we *always* handle keyboard events, no exceptions.
       // If you want to handle an input when focused, used handleEditorKeydown
       return true
-    } else if (this.props.inputSelected) {
+    } else if (this.props.component.getSelectedRow()) {
       // Up/down arrows (when selected) navigate the selection state between cells
       if (keydownEvent.which === 38) { // Up arrow
         this.requestNavigate(NAVIGATION_DIRECTIONS.PREV, false)
@@ -702,11 +717,13 @@ export default class ExpressionInput extends React.Component {
   }
 
   engageFocus (props) {
-    if (!props.inputFocused) {
-      throw new Error('[timeline] Focused input payload must be passed before calling engageFocus()')
+    if (!props.component.getFocusedRow()) {
+      this.forceUpdate()
+      // If nothing is focused, there's nothing to do
+      return null
     }
 
-    let originalDescriptor = props.reactParent.getItemValueDescriptor(props.inputFocused)
+    let originalDescriptor = props.component.getFocusedRow().getPropertyValueDescriptor()
     let originalValue = toValueDescriptor(originalDescriptor)
 
     let editingMode = EDITOR_MODES.SINGLE_LINE
@@ -838,12 +855,15 @@ export default class ExpressionInput extends React.Component {
   }
 
   getLabelString () {
-    let name = (this.props.inputFocused && this.props.inputFocused.property.name) || ''
+    let row = this.props.component.getFocusedRow()
+    let name = (row && row.getPropertyName()) || ''
     return humanizePropertyName(name)
   }
 
   getRootRect () {
-    if (!this.props.inputFocused) {
+    let row = this.props.component.getFocusedRow()
+
+    if (!row) {
       return {
         left: 0,
         top: 0
@@ -852,7 +872,7 @@ export default class ExpressionInput extends React.Component {
 
     // When we become focused, we need to move to the position of the input cell we are
     // working with, and we do so by looking up the DOM node of the cell matching our property id
-    let elid = getItemPropertyId(this.props.inputFocused)
+    let elid = row.getInputPropertyId()
     let fellow = document.getElementById(elid)
 
     // There might not be an element for the input cell if the cell was unfocused as part of accordion
@@ -887,7 +907,7 @@ export default class ExpressionInput extends React.Component {
       zIndex: 5000
     })
 
-    if (this.props.inputFocused) {
+    if (this.props.component.getFocusedRow()) {
       style.visibility = 'visible'
       let rect = this.getRootRect()
       style.left = rect.left
@@ -904,7 +924,7 @@ export default class ExpressionInput extends React.Component {
       left: 0,
       display: 'inline-flex',
       height: '100%'
-    }, this.props.inputFocused && {
+    }, this.props.component.getFocusedRow() && {
       boxShadow: '0 2px 4px 0 rgba(15,1,6,0.06), 0 6px 53px 3px rgba(7,0,3,0.37), inset 0 0 7px 0 rgba(16,0,6,0.30)'
     })
     return style
@@ -925,7 +945,7 @@ export default class ExpressionInput extends React.Component {
       textTransform: 'uppercase',
       width: 83
     }
-    lodash.assign(style, this.props.inputFocused && {
+    lodash.assign(style, this.props.component.getFocusedRow() && {
       fontSize: 10,
       display: 'inline-flex',
       alignItems: 'center',
@@ -962,7 +982,7 @@ export default class ExpressionInput extends React.Component {
       border: '1px solid ' + Color(Palette.LIGHTEST_PINK).fade(0.2),
       zIndex: 2005
     })
-    lodash.assign(style, this.props.inputFocused && {
+    lodash.assign(style, this.props.component.getFocusedRow() && {
       backgroundColor: Color('#4C434B').fade(0.1),
       border: '1px solid ' + Color(Palette.LIGHTEST_PINK).fade(0.2),
       borderBottomLeftRadius: 0,
@@ -1041,7 +1061,10 @@ export default class ExpressionInput extends React.Component {
     return (
       <div
         id='expression-input-holster'
-        style={this.getRootStyle()}>
+        style={this.getRootStyle()}
+        onClick={(clickEvent) => {
+          clickEvent.stopPropagation()
+        }}>
         <span
           id='expression-input-cols-wrapper'
           style={this.getColsWrapperStyle()}>
@@ -1077,4 +1100,14 @@ export default class ExpressionInput extends React.Component {
       </div>
     )
   }
+}
+
+ExpressionInput.propTypes = {
+  $update: React.PropTypes.object.isRequired,
+  timeline: React.PropTypes.object.isRequired,
+  component: React.PropTypes.object.isRequired,
+  reactParent: React.PropTypes.object.isRequired,
+  onNavigateRequested: React.PropTypes.func.isRequired,
+  onCommitValue: React.PropTypes.func.isRequired,
+  onFocusRequested: React.PropTypes.func.isRequired,
 }

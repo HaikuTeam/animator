@@ -17,7 +17,7 @@ module.exports = {
         'shown': { '0': { value: false, curve: 'linear' }, '80': { value: true, curve: 'linear' }, '160': { value: false }, '240': { value: false }, '320': { value: true, curve: 'linear' }, '400': { value: true }, '450': {value: true} },
         'opacity': { '200': { value: 0.0 }, '300': { value: 0.5, curve: 'linear' }, '1500': { value: 1.0 }, '1750': { value: 0 }, '5000': { value: 1.0 } },
         'sizeAbsolute.x': { '0': { value: 550 }, '150': { value: 100 }, '200': { value: 600 } },
-        'sizeAbsolute.y': { '0': { value: 400 }, '100': { value: 100 }, '300': { value: 500, curve: 'linear' }, '350': { value: 515 } },
+        'sizeAbsolute.y': { '0': { value: 400 }, '100': { value: 100 }, '300': { value: 500, curve: 'linear' }, '850': { value: 515 } },
         'sizeMode.x': { '0': { value: 1 } },
         'sizeMode.y': { '0': { value: 1 } },
         'sizeMode.z': { '0': { value: 1 } },
@@ -29,7 +29,7 @@ module.exports = {
           '0': { value: function () {
             return (Date.now() % 2 === 0) ? '#eee' : '#fff'
           } },
-          '17': {value: '#fff', curve: 'linear'},
+          '50': {value: '#fff', curve: 'linear'},
           '84': {value: '#fff'},
           '160': {value: '#eee'},
           '500': { value: '#fff' },

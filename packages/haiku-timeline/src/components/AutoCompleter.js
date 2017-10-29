@@ -31,7 +31,8 @@ export default class AutoCompleter extends React.Component {
       return (
         <div
           key={index}
-          onClick={() => {
+          onClick={(clickEvent) => {
+            clickEvent.stopPropagation()
             this.props.onClick({ name, highlighted })
           }}
           style={{

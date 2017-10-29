@@ -2,23 +2,40 @@ import React from 'react'
 import lodash from 'lodash'
 import Color from 'color'
 import Palette from './DefaultPalette'
-import getPropertyValueDescriptor from './helpers/getPropertyValueDescriptor'
-import { getItemPropertyId, isItemEqual } from './helpers/ItemHelpers'
 
 export default class PropertyInputField extends React.Component {
+  constructor (props) {
+    super(props)
+    this.handleUpdate = this.handleUpdate.bind(this)
+  }
+
+  componentWillUnmount () {
+    this.mounted = false
+    this.props.timeline.removeListener('update', this.handleUpdate)
+    this.props.row.removeListener('update', this.handleUpdate)
+  }
+
+  componentDidMount () {
+    this.mounted = true
+    this.props.timeline.on('update', this.handleUpdate)
+    this.props.row.on('update', this.handleUpdate)
+  }
+
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    if (what === 'timeline-frame') {
+      this.forceUpdate()
+    } else if (what === 'row-selected') {
+      this.forceUpdate()
+    } else if (what === 'row-deselected') {
+      this.forceUpdate()
+    }
+  }
+
   render () {
-    let propertyId = getItemPropertyId(this.props.item)
-    let valueDescriptor = getPropertyValueDescriptor(
-      this.props.item.node,
-      this.props.frameInfo,
-      this.props.reifiedBytecode,
-      this.props.serializedBytecode,
-      this.props.component,
-      this.props.timelineTime,
-      this.props.timelineName,
-      this.props.item.property,
-      { numFormat: '0,0[.]000' }
-    )
+    let propertyId = this.props.row.getInputPropertyId()
+    let valueDescriptor = this.props.row.getPropertyValueDescriptor()
+
     return (
       <div
         id={propertyId}
@@ -29,17 +46,14 @@ export default class PropertyInputField extends React.Component {
           position: 'relative',
           outline: 'none'
         }}
-        onClick={() => {
-          this.props.parent.setState({
-            inputFocused: null,
-            inputSelected: this.props.item
-          })
+        onClick={(clickEvent) => {
+          this.props.row.select()
+          clickEvent.stopPropagation()
         }}
-        onDoubleClick={() => {
-          this.props.parent.setState({
-            inputSelected: this.props.item,
-            inputFocused: this.props.item
-          })
+        onDoubleClick={(clickEvent) => {
+          this.props.row.focus()
+          this.props.row.select()
+          clickEvent.stopPropagation()
         }}>
         <div
           className='property-input-field no-select'
@@ -63,13 +77,27 @@ export default class PropertyInputField extends React.Component {
             overflow: 'hidden',
             fontFamily: 'inherit',
             cursor: 'default'
-          }, isItemEqual(this.props.inputSelected, this.props.item) && {
+          }, this.props.row.sameAs(this.props.row.component.getSelectedRow()) && {
             border: '1px solid ' + Color(Palette.LIGHTEST_PINK).fade(0.2),
             zIndex: 2005
           })}>
-          {valueDescriptor.prettyValue}
+          {remapPrettyValue(valueDescriptor.prettyValue)}
         </div>
       </div>
     )
   }
+}
+
+function remapPrettyValue (prettyValue) {
+  if (prettyValue && prettyValue.render === 'react') {
+    return <span style={prettyValue.style}>{prettyValue.text}</span>
+  }
+  return prettyValue
+}
+
+PropertyInputField.propTypes = {
+  row: React.PropTypes.object.isRequired,
+  timeline: React.PropTypes.object.isRequired,
+  rowHeight: React.PropTypes.number.isRequired,
+  $update: React.PropTypes.object.isRequired,
 }
