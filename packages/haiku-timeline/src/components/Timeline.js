@@ -737,6 +737,7 @@ class Timeline extends React.Component {
         <div
           ref='scrollview'
           id='property-rows'
+          className='no-select'
           style={{
             position: 'absolute',
             top: 35,
@@ -748,8 +749,10 @@ class Timeline extends React.Component {
             overflowY: 'auto',
             overflowX: 'hidden'
           }}
-          onMouseDown={() => {
-            this.component.unselectAllKeyframes()
+          onMouseUp={(mouseEvent) => {
+            if (!mouseEvent.shiftKey && !mouseEvent.ctrlKey) {
+              this.component.deselectAndDeactivateAllKeyframes()
+            }
           }}>
           {this.renderComponentRows(this.component.getDisplayableRows())}
         </div>

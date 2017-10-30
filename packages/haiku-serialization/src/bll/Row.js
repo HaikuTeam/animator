@@ -178,6 +178,18 @@ class Row extends BaseModel {
     return this
   }
 
+  expandAndSelect () {
+    this.expand()
+    this.select()
+    return this
+  }
+
+  collapseAndDeselect () {
+    this.collapse()
+    this.deselect()
+    return this
+  }
+
   getBaselineValueAtMillisecond (ms) {
     const { baselineValue } = getPropertyValueDescriptor(this, {
       timelineTime: ms,
@@ -264,6 +276,7 @@ class Row extends BaseModel {
     )
 
     this.emit('update', 'keyframe-create')
+    if (this.parent) this.parent.emit('update', 'keyframe-create')
 
     return created
   }
@@ -290,6 +303,7 @@ class Row extends BaseModel {
     )
 
     this.emit('update', 'keyframe-delete')
+    if (this.parent) this.parent.emit('update', 'keyframe-delete')
 
     return keyframe
   }

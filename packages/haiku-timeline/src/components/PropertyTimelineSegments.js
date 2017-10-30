@@ -9,6 +9,7 @@ export default class PropertyTimelineSegments extends React.Component {
         <RowSegments
           includeDraggables={true}
           row={this.props.row}
+          component={this.props.component}
           $update={this.props.$update}
           ctxmenu={this.props.ctxmenu}
           timeline={this.props.timeline}
@@ -21,6 +22,7 @@ export default class PropertyTimelineSegments extends React.Component {
 PropertyTimelineSegments.propTypes = {
   row: React.PropTypes.object.isRequired,
   ctxmenu: React.PropTypes.object.isRequired,
+  component: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
   $update: React.PropTypes.object.isRequired,

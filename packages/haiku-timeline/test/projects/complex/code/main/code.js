@@ -30,7 +30,7 @@ module.exports = {
             return (Date.now() % 2 === 0) ? '#eee' : '#fff'
           } },
           '50': {value: '#fff', curve: 'linear'},
-          '84': {value: '#fff'},
+          '100': {value: '#fff'},
           '160': {value: '#eee'},
           '500': { value: '#fff' },
           '1250': { value: '#cdcdcd' }

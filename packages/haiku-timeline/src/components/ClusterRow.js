@@ -20,7 +20,7 @@ export default class ClusterRow extends React.Component {
         id={`property-cluster-row-${this.props.row.getAddress()}-${componentId}-${clusterName}`}
         className='property-cluster-row'
         onClick={() => {
-          this.props.row.expand()
+          this.props.row.expandAndSelect()
         }}
         onContextMenu={(ctxMenuEvent) => {
           ctxMenuEvent.stopPropagation()
@@ -120,6 +120,7 @@ export default class ClusterRow extends React.Component {
             includeDraggables={false}
             row={this.props.row}
             $update={this.props.$update}
+            component={this.props.component}
             ctxmenu={this.props.ctxmenu}
             timeline={this.props.timeline}
             rowHeight={this.props.rowHeight} />
@@ -133,6 +134,7 @@ ClusterRow.propTypes = {
   row: React.PropTypes.object.isRequired,
   ctxmenu: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
+  component: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
   $update: React.PropTypes.object.isRequired,
 }

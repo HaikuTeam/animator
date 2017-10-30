@@ -85,13 +85,6 @@ class ActiveComponent extends BaseModel {
     })
 
     Row.on('update', (row, what) => {
-      if (what === 'row-expanded') {
-        row.element.select(this.metadata)
-      } else if (what === 'row-collapsed') {
-        if (row.isHeading()) {
-          row.element.unselect(this.metadata)
-        }
-      }
       this.emit('update', what, row, this.metadata)
     })
 
@@ -849,6 +842,9 @@ class ActiveComponent extends BaseModel {
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
       this.emit('update')
+      if (metadata.from === this.alias) {
+        this.batchedWebsocketAction('moveSegmentEndpoints', [this.folder, componentIds, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo])
+      }
 
       return cb()
     })
@@ -865,36 +861,12 @@ class ActiveComponent extends BaseModel {
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
       this.emit('update')
+      if (metadata.from === this.alias) {
+        this.batchedWebsocketAction('moveKeyframes', [this.folder, componentIds, timelineName, propertyName, keyframeMoves, frameInfo])
+      }
 
       return cb()
     })
-  }
-
-  keyframeMoveAction () {
-    for (let movementKey in this._keyframeMoves) {
-      if (!movementKey) {
-        continue
-      }
-
-      if (!this._keyframeMoves[movementKey]) {
-        continue
-      }
-
-      const {
-        componentId,
-        timelineName,
-        propertyName,
-        keyframeMoves,
-        frameInfo
-      } = this._keyframeMoves[movementKey]
-
-      // Make sure any functions get converted into their serial form before passing over the wire
-      const keyframeMovesForWire = expressionToRO(keyframeMoves)
-
-      this.batchedWebsocketAction('moveKeyframes', [this.getCurrentFolder(), [componentId], timelineName, propertyName, keyframeMovesForWire, frameInfo])
-
-      delete this._keyframeMoves[movementKey]
-    }
   }
 
   sliceSegment (componentIds, timelineName, elementName, propertyName, keyframeMs, sliceMs, metadata, cb) {
@@ -908,6 +880,9 @@ class ActiveComponent extends BaseModel {
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
       this.emit('update')
+      if (metadata.from === this.alias) {
+        this.batchedWebsocketAction('sliceSegment', [this.folder, componentIds, timelineName, elementName, propertyName, keyframeMs, sliceMs])
+      }
 
       return cb()
     })
@@ -935,6 +910,53 @@ class ActiveComponent extends BaseModel {
     const keyframes = Keyframe.where({ component: this, _selected: true })
     keyframes.forEach((keyframe) => keyframe.changeCurve(curveName, metadata))
     return this
+  }
+
+  dragStartSelectedKeyframes (dragData) {
+    const keyframes = Keyframe.where({ component: this, _selected: true })
+    keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
+    return this
+  }
+
+  dragStopSelectedKeyframes (dragData) {
+    const keyframes = Keyframe.where({ component: this, _selected: true })
+    keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
+    return this
+  }
+
+  dragSelectedKeyframes (pxpf, mspf, dragData, metadata) {
+    const keyframes = Keyframe.where({ component: this, _selected: true })
+    keyframes.forEach((keyframe) => keyframe.drag(pxpf, mspf, dragData, metadata))
+    return this
+  }
+
+  handleKeyframeMove (keyframe) {
+    this._keyframeMoves[keyframe.getPrimaryKey()] = keyframe
+    this.debouncedKeyframeMoveAction()
+    return this
+  }
+
+  keyframeMoveAction () {
+    for (const primaryKey in this._keyframeMoves) {
+      if (!primaryKey) {
+        continue
+      }
+
+      if (!this._keyframeMoves[primaryKey]) {
+        continue
+      }
+
+      const keyframe = this._keyframeMoves[primaryKey]
+
+      const frameInfo = keyframe.timeline.getFrameInfo()
+      const propertyName = keyframe.row.getPropertyNameString()
+      const timelineName = keyframe.timeline.getName()
+      const componentId = keyframe.element.getComponentId()
+
+      // TODO
+
+      delete this._keyframeMoves[primaryKey]
+    }
   }
 
   splitSegment (componentIds, timelineName, elementName, propertyName, keyframeMs, metadata, cb) {
@@ -1704,8 +1726,8 @@ class ActiveComponent extends BaseModel {
     return Keyframe.where(criteria)
   }
 
-  unselectAllKeyframes () {
-    return Keyframe.deselectAllKeyframes()
+  deselectAndDeactivateAllKeyframes () {
+    return Keyframe.deselectAndDeactivateAllKeyframes()
   }
 
   getFocusedRow () {
@@ -1747,40 +1769,3 @@ function _propertyGroupContainsRotation (propertyGroup) {
 }
 
 module.exports = ActiveComponent
-
-// handleMoveSegmentEndpoints (event, model, pxChange, metadata) {
-//   const frameInfo = this.getCurrentTimeline().getFrameInfo()
-//   const msChange = (pxChange / frameInfo.pxpf) * frameInfo.mspf
-
-//   // this.setMs(destMs)
-//   //   // startMs = this.normalizeMs(startMs)
-//   //   // endMs = this.normalizeMs(endMs)
-
-//   //   const frameInfo = this.getFrameInfo()
-
-//   //   const keyframeMoves = BytecodeActions.moveSegmentEndpoints(this.component.getReifiedBytecode(), componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo)
-
-//   //   // The 'keyframeMoves' indicate a list of changes we know occurred.
-//   //   // Only if some occurred do we bother to update the other views.
-//   //   if (Object.keys(keyframeMoves).length > 0) {
-
-//   //     // It's very heavy to transmit a websocket message for every single movement,
-//   //     // so the values are accumulated and sent via a single batched update.
-//   //     let movementKey = [componentId, timelineName, propertyName].join('-')
-
-//   //     this._keyframeMoves[movementKey] = {
-//   //       componentId,
-//   //       timelineName,
-//   //       propertyName,
-//   //       keyframeMoves,
-//   //       frameInfo
-//   //     }
-
-//   //     this.debouncedKeyframeMoveAction()
-//   //   }
-
-//   //   this.afterAction()
-//   //   this.rehydrate()
-
-//   //   return this
-// }

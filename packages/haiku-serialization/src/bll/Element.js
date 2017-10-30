@@ -60,8 +60,8 @@ class Element extends BaseModel {
 
   afterInitialize () {
     // Make sure we add to the appropriate collections to avoid unexpected state issues
-    if (this._isHovered) Element.hovered[this.getPrimaryKey()] = this
-    if (this._isSelected) Element.selected[this.getPrimaryKey()] = this
+    if (this.isHovered()) Element.hovered[this.getPrimaryKey()] = this
+    if (this.isSelected()) Element.selected[this.getPrimaryKey()] = this
   }
 
   oneListener ($el, uid, type, fn) {
@@ -771,6 +771,13 @@ class Element extends BaseModel {
 
   toJSONString () {
     return manaToJson(this.node, null, 2)
+  }
+
+  dump () {
+    let str = `${this.getNameString()}:${this.getTitle()}:${this.getComponentId()}`
+    if (this.isHovered()) str += ' {h}'
+    if (this.isSelected()) str += ' {s}'
+    return str
   }
 }
 

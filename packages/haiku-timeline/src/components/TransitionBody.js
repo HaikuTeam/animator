@@ -98,7 +98,8 @@ export default class TransitionBody extends React.Component {
       what === 'keyframe-deactivated' ||
       what === 'keyframe-selected' ||
       what === 'keyframe-deselected' ||
-      what === 'keyframe-drag'
+      what === 'keyframe-ms-set' ||
+      what === 'keyframe-neighbor-move'
     ) {
       this.forceUpdate()
     }
@@ -120,16 +121,15 @@ export default class TransitionBody extends React.Component {
       <DraggableCore
         // NOTE: We cannot use 'curr.ms' for key here because these things move around
         id={`transition-body-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
-        key={`transition-body-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
         onStart={(dragEvent, dragData) => {
-          this.props.keyframe.dragStart(dragData)
+          this.props.component.dragStartSelectedKeyframes(dragData)
         }}
         onStop={(dragEvent, dragData) => {
-          this.props.keyframe.dragStop(dragData)
+          this.props.component.dragStopSelectedKeyframes(dragData)
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
-          this.props.keyframe.drag(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
+          this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}
         onMouseDown={(mouseEvent) => {
           this.props.keyframe.selectSelfAndSurrounds(mouseEvent)
@@ -301,5 +301,6 @@ TransitionBody.propTypes = {
   keyframe: React.PropTypes.object.isRequired,
   ctxmenu: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
+  component: React.PropTypes.object.isRequired,
   $update: React.PropTypes.object.isRequired,
 }

@@ -25,7 +25,8 @@ export default class ConstantBody extends React.Component {
       what === 'keyframe-deactivated' ||
       what === 'keyframe-selected' ||
       what === 'keyframe-deselected' ||
-      what === 'keyframe-drag'
+      what === 'keyframe-ms-set' ||
+      what === 'keyframe-neighbor-move'
     ) {
       this.forceUpdate()
     }

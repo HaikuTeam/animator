@@ -1,3 +1,4 @@
+const lodash = require('lodash')
 const BaseModel = require('./BaseModel')
 const millisecondToNearestFrame = require('./helpers/millisecondToNearestFrame')
 
@@ -34,16 +35,19 @@ class Keyframe extends BaseModel {
     return this._activated
   }
 
-  select (maybeEvent) {
+  select (eventOrConfig) {
     // TODO: This logic probably doesn't belong here; move up into React?
-    if (maybeEvent) {
-      maybeEvent.stopPropagation()
+    // The object passed in here can either be an event or a config object; hack
+    if (eventOrConfig) {
+      if (eventOrConfig.stopPropagation) {
+        eventOrConfig.stopPropagation()
+      }
 
-      if (!maybeEvent.shiftKey && !maybeEvent.ctrlKey) {
-        Keyframe.deselectAllKeyframes()
+      if (!eventOrConfig.shiftKey && !eventOrConfig.ctrlKey && !eventOrConfig.skipDeselect) {
+        Keyframe.deselectAndDeactivateAllKeyframes()
       }
     } else {
-      Keyframe.deselectAllKeyframes()
+      Keyframe.deselectAndDeactivateAllKeyframes()
     }
 
     if (!this._selected || !Keyframe._selected[this.getUniqueKey()]) {
@@ -70,7 +74,15 @@ class Keyframe extends BaseModel {
   selectSelfAndSurrounds (maybeEvent) {
     this.select(maybeEvent)
     if (this.next()) {
-      this.next().select(maybeEvent)
+      // HACK: Normally selecting a keyframe deselects all others, but in this
+      // case we want to retain the one we selected in the line above, so add
+      // this property to the event/config to prevent that behavior
+      if (maybeEvent) {
+        maybeEvent.skipDeselect = true
+        this.next().select(maybeEvent)
+      } else {
+        this.next().select({ skipDeselect: true })
+      }
     }
     return this
   }
@@ -95,12 +107,50 @@ class Keyframe extends BaseModel {
 
   drag (pxpf, mspf, dragData, metadata) {
     const pxChange = dragData.lastX - this._dragStartPx
-    
-    //TODO
-    //TODO
-    //TODO
+    const msChange = Math.round(pxChange / pxpf * mspf)
 
-    this.emit('update', 'keyframe-drag')
+    this.move(msChange, this._dragStartMs, mspf)
+
+    return this
+  }
+
+  move (msChange, msOrig, mspf) {
+    const msFinal = msOrig + msChange
+    if (msFinal >= 0) {
+      this.moveTo(msFinal, mspf)
+    }
+    return this
+  }
+
+  moveTo (msFinal, mspf) {
+    // No-op the rest of this procedure if we're already at the same keyframe
+    if (this.getMs() === msFinal) {
+      return this
+    }
+
+    this.setMs(msFinal)
+
+    const msMargin = Math.round(mspf)
+
+    if (this.next()) {
+      if (this.getMs() >= (this.next().getMs() - 1)) {
+        const nextMs = this.getMs() + msMargin
+        if (nextMs >= 0) {
+          this.next().moveTo(nextMs, mspf)
+        }
+      }
+    }
+
+    if (this.prev()) {
+      if (this.getMs() <= (this.prev().getMs() + 1)) {
+        const prevMs = this.getMs() - msMargin
+        if (prevMs >= 0) {
+          this.prev().moveTo(prevMs, mspf)
+        }
+      }
+    }
+
+    return this
   }
 
   createKeyframe (value, ms, metadata) {
@@ -224,7 +274,23 @@ class Keyframe extends BaseModel {
   }
 
   setMs (ms) {
+    if (ms < 0) {
+      throw new Error('keyframes cannot be less than 0')
+    }
+
     this.ms = ms
+
+    this.emit('update', 'keyframe-ms-set')
+
+    this.component.handleKeyframeMove(this)
+
+    if (this.prev()) {
+      this.prev().emit('update', 'keyframe-neighbor-move')
+    }
+
+    if (this.next()) {
+      this.next().emit('update', 'keyframe-neighbor-move')
+    }
     return this
   }
 
@@ -326,9 +392,12 @@ BaseModel.extend(Keyframe)
 Keyframe._selected = {}
 Keyframe._activated = {}
 
-Keyframe.deselectAllKeyframes = function deselectAllKeyframes () {
+Keyframe.deselectAndDeactivateAllKeyframes = function deselectAndDeactivateAllKeyframes () {
   for (const key in Keyframe._selected) {
     Keyframe._selected[key].deselect()
+  }
+  for (const key in Keyframe._activated) {
+    Keyframe._activated[key].deactivate()
   }
 }
 

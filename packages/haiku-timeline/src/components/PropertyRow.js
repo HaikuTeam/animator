@@ -135,6 +135,7 @@ export default class PropertyRow extends React.Component {
           }}>
           <PropertyTimelineSegments
             $update={this.props.$update}
+            component={this.props.component}
             ctxmenu={this.props.ctxmenu}
             timeline={this.props.timeline}
             rowHeight={this.props.rowHeight}
@@ -149,6 +150,7 @@ PropertyRow.propTypes = {
   row: React.PropTypes.object.isRequired,
   ctxmenu: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
+  component: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
   $update: React.PropTypes.object.isRequired,
 }

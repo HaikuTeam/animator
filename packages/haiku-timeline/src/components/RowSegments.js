@@ -47,8 +47,9 @@ export default class RowSegments extends React.Component {
           if (keyframe.isTransitionSegment()) {
             segmentPieces.push(
               <TransitionBody
-                key={0}
+                key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-transition-body`}
                 $update={this.props.$update}
+                component={this.props.component}
                 ctxmenu={this.props.ctxmenu}
                 timeline={this.props.timeline}
                 rowHeight={this.props.rowHeight}
@@ -58,7 +59,7 @@ export default class RowSegments extends React.Component {
             if (keyframe.isConstantSegment()) {
               segmentPieces.push(
                 <ConstantBody
-                  key={1}
+                  key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-constant-body`}
                   $update={this.props.$update}
                   ctxmenu={this.props.ctxmenu}
                   timeline={this.props.timeline}
@@ -69,7 +70,7 @@ export default class RowSegments extends React.Component {
             if (keyframe.isSoloKeyframe()) {
               segmentPieces.push(
                 <SoloKeyframe
-                  key={2}
+                  key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-solo-keyframe`}
                   $update={this.props.$update}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
@@ -82,9 +83,10 @@ export default class RowSegments extends React.Component {
             if (keyframe.hasPreviousKeyframe()) {
               segmentPieces.push(
                 <InvisibleKeyframeDragger
-                  key={3}
+                  key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-invisible-1`}
                   offset={-10}
                   $update={this.props.$update}
+                  component={this.props.component}
                   ctxmenu={this.props.ctxmenu}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
@@ -93,9 +95,10 @@ export default class RowSegments extends React.Component {
             }
             segmentPieces.push(
               <InvisibleKeyframeDragger
-                key={4}
+                key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-invisible-2`}
                 offset={0}
                 $update={this.props.$update}
+                component={this.props.component}
                 ctxmenu={this.props.ctxmenu}
                 timeline={this.props.timeline}
                 rowHeight={this.props.rowHeight}
@@ -104,9 +107,10 @@ export default class RowSegments extends React.Component {
             if (keyframe.hasNextKeyframe()) {
               segmentPieces.push(
                 <InvisibleKeyframeDragger
-                  key={5}
+                  key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-invisible-3`}
                   offset={+10}
                   $update={this.props.$update}
+                  component={this.props.component}
                   ctxmenu={this.props.ctxmenu}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
@@ -121,7 +125,7 @@ export default class RowSegments extends React.Component {
               <div
                 id={`keyframe-container-${keyframe.getUniqueKey()}`}
                 key={`keyframe-container-${keyframe.getUniqueKey()}`}
-                className={`keyframe-container`}>
+                className={`keyframe-container no-select`}>
                 {segmentPieces}
               </div>
             )
@@ -138,6 +142,7 @@ RowSegments.propTypes = {
   row: React.PropTypes.object.isRequired,
   ctxmenu: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
+  component: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
   $update: React.PropTypes.object.isRequired,
   includeDraggables: React.PropTypes.bool.isRequired,
