@@ -2,6 +2,7 @@ var fse = require('fs-extra')
 var cp = require('child_process')
 var path = require('path')
 var log = require('./helpers/log')
+var CompileOrder = require('./helpers/CompileOrder')
 
 require('./../config')
 
@@ -26,7 +27,14 @@ var RSYNC_FLAGS = [
   '--no-links' // Exclude all symlinks - assumed to be haiku internal (we'll inject these)
 ]
 
-var YARN_INSTALL_FLAGS = [
+var YARN_INSTALL_DEV_FLAGS = [
+  '--ignore-engines', // Ignore any (spurious) engine errors
+  '--non-interactive', // Don't prompt (just in case)
+  '--prefer-offline', // Use the packages we've already installed locally
+  '--mutex file:/tmp/.yarn-mutex' // Avoid intermittent concurrency bugs in yarn
+]
+
+var YARN_INSTALL_PROD_FLAGS = [
   '--production', // Strip out dev dependencies
   '--force', // Clean out any stripped-out dependencies
   '--ignore-engines', // Ignore any (spurious) engine errors
@@ -36,13 +44,17 @@ var YARN_INSTALL_FLAGS = [
 ]
 
 if (!process.env.TRAVIS) {
-  YARN_INSTALL_FLAGS.push('--ignore-scripts') // If not in CI, don't recompile, since we already have done so locally
+  // If not in CI, don't recompile, since we already have done so locally
+  YARN_INSTALL_PROD_FLAGS.push('--ignore-scripts')
+  YARN_INSTALL_DEV_FLAGS.push('--ignore-scripts')
 }
 
 var HAIKU_SUBPACKAGES = {
   'haiku-bytecode': true,
   'haiku-cli': true,
+  'haiku-common': true,
   'haiku-creator-electron': 'haiku-creator',
+  'haiku-formats': true,
   'haiku-glass': true,
   '@haiku/player': 'haiku-player',
   'haiku-sdk-client': true,
@@ -50,6 +62,7 @@ var HAIKU_SUBPACKAGES = {
   'haiku-sdk-inkstone': true,
   'haiku-serialization': true,
   'haiku-state-object': true,
+  'haiku-testing': true,
   'haiku-timeline': true,
   'haiku-websockets': true,
   'haiku-fs-extra': false // Special unlinked snowflake, do not overwrite
@@ -60,13 +73,20 @@ function sdir (loc) {
   return JSON.stringify(loc + '/')
 }
 
+function remapName (name) {
+  if (name === 'haiku-player') return '@haiku/player'
+  if (name === 'haiku-creator') return 'haiku-creator-electron'
+  return name
+}
+
 function eachHaikuSubpackage (iteratee) {
-  for (var packageName in HAIKU_SUBPACKAGES) {
-    var packageSource = HAIKU_SUBPACKAGES[packageName]
-    if (!packageSource) continue
-    if (packageSource === true) packageSource = packageName
-    iteratee(packageName, path.join(ORIGINS_FOLDER, packageSource))
-  }
+  CompileOrder.forEach((packageName) => {
+    var packageNameFixed = remapName(packageName)
+    var packageSource = HAIKU_SUBPACKAGES[packageNameFixed]
+    if (!packageSource) return null
+    if (packageSource === true) packageSource = packageNameFixed
+    iteratee(packageNameFixed, path.join(ORIGINS_FOLDER, packageSource))
+  })
 }
 
 function eachDepType (iteratee) {
@@ -94,6 +114,14 @@ function logExec (cwd, cmd) {
   return cp.execSync(cmd, { cwd, stdio: 'inherit' })
 }
 
+function installAndCompile (cwd) {
+  var pkg = fse.readJsonSync(path.join(cwd, 'package.json'), { throws: false })
+  // Install dev dependencies, compile (if necessary), then strip dev dependencies
+  logExec(cwd, `yarn install ${YARN_INSTALL_DEV_FLAGS.join(' ')}`)
+  if (pkg && pkg.scripts && pkg.scripts.compile) logExec(cwd, `yarn run compile`)
+  logExec(cwd, `yarn install ${YARN_INSTALL_PROD_FLAGS.join(' ')}`)
+}
+
 // Clear out all the previous contents from a prevous distro run
 logExec(ROOT, `rm -rf ${JSON.stringify(DISTRO_SOURCE)}`)
 logExec(ROOT, `mkdir -p ${JSON.stringify(PLUMBING_SOURCE)}`)
@@ -103,7 +131,12 @@ logExec(ROOT, `rsync ${RSYNC_FLAGS.join(' ')} ${sdir(PLUMBING_ORIGIN)} ${sdir(PL
 
 // Remove any Haiku dependencies from the plumbing to avoid installation work
 var plumbingPkg = fse.readJsonSync(path.join(PLUMBING_SOURCE, 'package.json'))
-var haikuDepsRemovedFromPlumbing = []
+var haikuDepsRemovedFromPlumbing = [
+  // These guys aren't actually plumbing deps but need to be listed for resolution to work
+  { depName: 'haiku-common', depType: 'dependencies', depVersion: 'HaikuTeam/common.git' },
+  { depName: 'haiku-formats', depType: 'dependencies', depVersion: 'HaikuTeam/formats.git' },
+  { depName: 'haiku-testing', depType: 'dependencies', depVersion: 'HaikuTeam/testing.git' }
+]
 eachDepIn(plumbingPkg, function (depName, depVersion, depType) {
   if (isHaikuSubpackage(depName)) {
     delete plumbingPkg[depType][depName]
@@ -112,8 +145,7 @@ eachDepIn(plumbingPkg, function (depName, depVersion, depType) {
 })
 fse.writeJsonSync(path.join(PLUMBING_SOURCE, 'package.json'), plumbingPkg)
 
-// Strip any dev dependencies from the plumbing target
-logExec(PLUMBING_SOURCE, `yarn install ${YARN_INSTALL_FLAGS.join(' ')}`)
+installAndCompile(PLUMBING_SOURCE)
 
 // Install Haiku dependencies "manually" into plumbing from our local sources
 eachHaikuSubpackage(function (packageName, packageOrigin) {
@@ -133,9 +165,11 @@ eachHaikuSubpackage(function (packageName, packageOrigin) {
     }
   })
   fse.writeJsonSync(path.join(packageInstallTarget, 'package.json'), subpackagePkg)
+})
 
-  // Strip any dev dependencies from the subpackage target
-  logExec(packageInstallTarget, `yarn install ${YARN_INSTALL_FLAGS.join(' ')}`)
+eachHaikuSubpackage(function (packageName, packageOrigin) {
+  var packageInstallTarget = path.join(PLUMBING_SOURCE_MODULES, packageName)
+  installAndCompile(packageInstallTarget)
 })
 
 // Put plumbing's Haiku dependencies back in package.json so module resolution works

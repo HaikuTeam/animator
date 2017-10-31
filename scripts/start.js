@@ -291,6 +291,11 @@ function go () {
     throw new Error('[mono] no instructions found for this dev mode')
   }
 
+  if (!inputs.skipInitialBuild) {
+    log.hat(`first compiling everything`, 'cyan')
+    cp.execSync('yarn run compile-all', { cwd: ROOT, stdio: 'inherit' })
+  }
+
   log.hat(`starting local development`, 'green')
 
   log.log(JSON.stringify(instructions))

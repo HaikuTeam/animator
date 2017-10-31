@@ -1,6 +1,6 @@
 {
   "name": "haiku-glass",
-  "version": "2.3.14",
+  "version": "2.3.16",
   "private": true,
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
@@ -60,7 +60,7 @@
   "scripts": {
     "start": "electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
-    "compile": "babel src --out-dir lib --source-maps inline",
+    "compile": "NODE_ENV=development babel src --out-dir lib --source-maps inline",
     "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy || true",
     "test": "tape \"test/**/*.test.js\" | tap-spec || true"
   }

@@ -1,6 +1,6 @@
 import {AnimationKey, PathKey, PropertyKey} from './bodymovinEnums';
 import {BodymovinCoordinates, BodymovinPathComponent, BodymovinProperty} from './bodymovinTypes';
-import SVGPoints from 'haiku-player/lib/helpers/SVGPoints';
+import SVGPoints from '@haiku/player/lib/helpers/SVGPoints';
 const {pathToPoints} = SVGPoints;
 
 /**

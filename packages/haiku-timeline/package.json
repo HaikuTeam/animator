@@ -1,6 +1,6 @@
 {
   "name": "haiku-timeline",
-  "version": "2.3.14",
+  "version": "2.3.16",
   "private": true,
   "license": "UNLICENSED",
   "authors": [
@@ -11,7 +11,7 @@
   "scripts": {
     "start": "electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
-    "compile": "babel src --out-dir lib --source-maps inline",
+    "compile": "NODE_ENV=development babel src --out-dir lib --source-maps inline",
     "test": "tape \"test/**/*.test.js\" | tap-spec",
     "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy"
   },

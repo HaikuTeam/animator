@@ -23,10 +23,10 @@ script:
   - node ./scripts/distro-download-secrets.js
   - yarn relink
   - node ./scripts/distro-configure.js --non-interactive # 0m
-  - travis_wait 30 node ./scripts/distro-prepare.js # 3m
-  - travis_wait 30 node ./scripts/distro-electron-rebuild.js # 5m
+  - travis_wait 60 node ./scripts/distro-prepare.js # 3m
+  - travis_wait 60 node ./scripts/distro-electron-rebuild.js # 5m
   - node ./scripts/distro-uglify-sources.js # 1m
-  - travis_wait 30 node ./scripts/distro-build.js # 8m
+  - travis_wait 60 node ./scripts/distro-build.js # 8m
   - node ./scripts/distro-upload.js # 2m
 
 notifications:

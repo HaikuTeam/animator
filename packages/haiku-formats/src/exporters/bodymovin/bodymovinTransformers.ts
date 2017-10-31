@@ -1,5 +1,5 @@
 /** @file Transformers for Bodymovin quirks. */
-import ColorUtils from 'haiku-player/lib/helpers/ColorUtils';
+import ColorUtils from '@haiku/player/lib/helpers/ColorUtils';
 import {
   StrokeLinecap,
   StrokeLinejoin,

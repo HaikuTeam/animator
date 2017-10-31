@@ -33,24 +33,7 @@ var remotes = {
 
 // Ordered roughly from fewest deps to most, in order to avoid
 // Typescript issues when compiling projects with compiled deps
-var order = [
-  'haiku-player',
-  'haiku-sdk-client',
-  'haiku-sdk-creator',
-  'haiku-sdk-inkstone',
-  'haiku-common',
-  'haiku-formats',
-  'haiku-state-object',
-  'haiku-websockets',
-  'haiku-testing',
-  'haiku-bytecode',
-  'haiku-serialization',
-  'haiku-cli',
-  'haiku-creator',
-  'haiku-glass',
-  'haiku-timeline',
-  'haiku-plumbing',
-]
+var order = require('./CompileOrder')
 
 module.exports = function allPackages () {
   var names = fse.readdirSync(path.join(ROOT, 'packages'))

@@ -1,6 +1,6 @@
 {
   "name": "haiku-formats",
-  "version": "2.3.14",
+  "version": "2.3.16",
   "description": "Formatting-related utilities for Haiku.",
   "main": "lib/index.js",
   "directories": {
@@ -28,7 +28,7 @@
   "dependencies": {
     "bezier-easing": "^2.0.3",
     "haiku-common": "HaikuTeam/common.git",
-    "haiku-player": "HaikuTeam/player.git",
+    "@haiku/player": "HaikuTeam/player.git",
     "haiku-sdk-creator": "HaikuTeam/sdk-creator.git",
     "haiku-serialization": "HaikuTeam/serialization.git",
     "lodash": "^4.17.4"
