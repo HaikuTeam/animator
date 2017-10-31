@@ -1,2 +1,2 @@
-import { cli } from "./haiku-cli"
-cli.run()
+import {cli} from './haiku-cli';
+cli.run();
