@@ -28,6 +28,7 @@ var RSYNC_FLAGS = [
 ]
 
 var YARN_INSTALL_DEV_FLAGS = [
+  '--production=false', // Explicitly turn off in case NODE_ENV is set to production
   '--ignore-engines', // Ignore any (spurious) engine errors
   '--non-interactive', // Don't prompt (just in case)
   '--prefer-offline', // Use the packages we've already installed locally
