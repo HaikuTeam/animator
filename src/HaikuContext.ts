@@ -365,12 +365,12 @@ HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState() {
  * The created player runs using the passed-in renderer, bytecode, options, and platform.
  */
 HaikuContext['createComponentFactory'] = function createComponentFactory(
-  RendererClass,
+  rendererClass,
   bytecode,
   haikuConfigFromFactoryCreator,
   platform,
 ) {
-  if (!RendererClass) {
+  if (!rendererClass) {
     throw new Error('A runtime renderer class object is required');
   }
 
@@ -413,7 +413,7 @@ HaikuContext['createComponentFactory'] = function createComponentFactory(
 
     // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
     // an initialization/mounting issue when running in React.
-    const renderer = new RendererClass();
+    const renderer = new rendererClass();
     const context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged);
     const component = context.getRootComponent();
 
