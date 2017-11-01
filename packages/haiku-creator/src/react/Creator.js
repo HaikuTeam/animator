@@ -477,6 +477,13 @@ export default class Creator extends React.Component {
       projectName // Have to set this here, because we pass this whole object to StateTitleBar, which needs this to properly call saveProject
     }
 
+    // Add extra context to Sentry reports, this info is also used
+    // by carbonite.
+    window.Raven.setExtraContext({
+      organizationName: this.state.organizationName,
+      projectName
+    })
+
     mixpanel.haikuTrack('creator:project:launching', {
       username: this.state.username,
       project: projectName,

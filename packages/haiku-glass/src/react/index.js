@@ -5,11 +5,13 @@ import path from 'path'
 import qs from 'qs'
 import Websocket from 'haiku-serialization/src/ws/Websocket'
 import Glass from './Glass'
+import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
 
 if (process.env.HAIKU_RELEASE_ENVIRONMENT === 'production' || process.env.HAIKU_RELEASE_ENVIRONMENT === 'staging') {
   window.Raven.config('https://287e52df9cfd48aab7f6091ec17a5921@sentry.io/226362', {
     environment: process.env.HAIKU_RELEASE_ENVIRONMENT || 'development',
-    release: process.env.HAIKU_RELEASE_VERSION
+    release: process.env.HAIKU_RELEASE_VERSION,
+    dataCallback: sentryCallback
   }).install()
   window.Raven.context(function () {
     go()
@@ -31,6 +33,14 @@ function go () {
   const websocket = (config.plumbing)
     ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'glass')
     : { on: () => {}, send: () => {}, method: () => {}, request: () => {}, action: () => {} }
+
+  // Add extra context to Sentry reports, this info is also used
+  // by carbonite.
+  const folderHelper = config.folder.split('/').reverse()
+  window.Raven.setExtraContext({
+    organizationName: folderHelper[1],
+    projectName: folderHelper[0]
+  })
 
   ReactDOM.render(
     <Glass
