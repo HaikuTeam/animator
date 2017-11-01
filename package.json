@@ -82,7 +82,7 @@
       "source/plumbing/lib/**/*",
       "source/plumbing/package.json",
       "source/plumbing/node_modules/haiku-cli/*.js",
-      "source/plumbing/node_modules/haiku-cli/lib/*.js",
+      "source/plumbing/node_modules/haiku-cli/lib/**/*",
       "source/plumbing/node_modules/haiku-creator-electron/index.html",
       "source/plumbing/node_modules/haiku-creator-electron/public/**/*",
       "source/plumbing/node_modules/haiku-creator-electron/lib/**/*",
