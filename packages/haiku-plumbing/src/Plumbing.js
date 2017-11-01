@@ -622,10 +622,12 @@ export default class Plumbing extends StateObject {
           options: projectOptionsAgain
         }
 
-        Raven.setContext({
-          projectName: maybeProjectName,
-          organizationName: projectOptionsAgain.organizationName
-        })
+        if (Raven) {
+          Raven.setContext({
+            projectName: maybeProjectName,
+            organizationName: projectOptionsAgain.organizationName
+          })
+        }
 
         this.set('lastOpenedProject', maybeProjectName)
 
