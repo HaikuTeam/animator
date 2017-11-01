@@ -6,7 +6,7 @@ import {
 } from '../lib/nib';
 
 tape('haiku-cli:list', (t) => {
-  // Stub in REPLACEME.
+  // Stub in 4d48b78.
   t.plan(1);
   t.ok(true, 'UNIMPLEMENTED');
 });
