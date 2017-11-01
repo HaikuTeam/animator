@@ -34,8 +34,8 @@ export class Glass extends React.Component {
       error: null,
       mountWidth: 550,
       mountHeight: 400,
-      mountX: 0,
-      mountY: 0,
+      mountX: 550 / 2,
+      mountY: 400 / 2,
       controlActivation: null,
       mousePositionCurrent: null,
       mousePositionPrevious: null,
@@ -82,6 +82,9 @@ export class Glass extends React.Component {
     })
 
     this._component.setStageTransform({zoom: this.state.zoomXY, pan: {x: this.state.panX, y: this.state.panY}})
+
+    this._isHaikuInitiallyMounted = false
+
     this._comments = new Comments(this.props.folder)
     this._ctxmenu = new ContextMenu(window, this)
 
@@ -191,7 +194,9 @@ export class Glass extends React.Component {
     this._component.mountApplication(this.refs.mount, { options: { freeze: true, overflowX: 'visible', overflowY: 'visible', contextMenu: 'disabled' } })
 
     this._component.on('component:mounted', () => {
-      var newMountSize = this._component.getContextSize()
+      this._isHaikuInitiallyMounted = true
+
+      const newMountSize = this._component.getContextSize()
 
       this.setState({
         mountWidth: newMountSize.width,
@@ -201,12 +206,11 @@ export class Glass extends React.Component {
       this.drawLoop()
     })
 
-    this._component.on('component:updated', () => {
-      this.draw()
-
+    this._component.on('update', (what) => {
       // This happens on almost any update because theoretically a keyframe change,
       // a curve change, etc., could all result in the need to recalc the artboard :/
-      var updatedArtboardSize = this._component.getContextSize()
+      const updatedArtboardSize = this._component.getContextSize()
+
       this.setState({
         mountWidth: updatedArtboardSize.width,
         mountHeight: updatedArtboardSize.height
@@ -215,7 +219,8 @@ export class Glass extends React.Component {
 
     this._component.on('time:change', (timelineName, timelineTime) => {
       if (this._component && this._component.getMount() && !this._component.isReloadingCode) {
-        var updatedArtboardSize = this._component.getContextSize()
+        const updatedArtboardSize = this._component.getContextSize()
+
         if (updatedArtboardSize && updatedArtboardSize.width && updatedArtboardSize.height) {
           this.setState({
             mountWidth: updatedArtboardSize.width,
@@ -888,7 +893,9 @@ export class Glass extends React.Component {
 
     if (selected.length > 0) {
       const container = this._haikuRenderer.createContainer(this.refs.overlay)
-      const parts = this.buildDrawnOverlays()
+
+      const parts = this.buildDrawnOverlays(selected)
+
       const overlay = {
         elementName: 'div',
         attributes: {
@@ -911,6 +918,8 @@ export class Glass extends React.Component {
       this._haikuContext.component._registeredElementEventListeners = {}
 
       this._haikuRenderer.render(this.refs.overlay, container, overlay, this._haikuContext.component, false)
+    } else {
+      this._haikuRenderer.render(this.refs.overlay, {}, { elementName: 'div' }, this._haikuContext.component, false)
     }
   }
 
@@ -920,32 +929,35 @@ export class Glass extends React.Component {
   // and flushes updates to them on each frame. So what _this method_ does is just build those objects and then
   // these get passed into a Haiku Player render method (see above). LONG STORY SHORT: This creates a flat list of
   // nodes that get rendered to the DOM by the Haiku Player.
-  buildDrawnOverlays () {
-    var overlays = []
+  buildDrawnOverlays (selectedElements) {
+    const overlays = []
+
     // Don't show any overlays if we're in preview (aka 'live') interactionMode
     if (this.isPreviewMode()) {
       return overlays
     }
-    var selected = this._component.queryElements({ _isSelected: true })
-    if (selected.length > 0) {
-      var points
-      if (selected.length === 1) {
-        var element = selected[0]
+
+    if (selectedElements.length > 0) {
+      let points
+
+      if (selectedElements.length === 1) {
+        const element = selectedElements[0]
+
         if (element.isRenderableType()) {
           points = element.getPointsTransformed(true)
           this.renderMorphPointsOverlay(points, overlays)
         } else {
           points = element.getBoxPointsTransformed()
-          var rotationZ = element.getPropertyValue('rotation.z') || 0
-          var scaleX = element.getPropertyValue('scale.x')
+          const rotationZ = element.getPropertyValue('rotation.z') || 0
+          let scaleX = element.getPropertyValue('scale.x')
           if (scaleX === undefined || scaleX === null) scaleX = 1
-          var scaleY = element.getPropertyValue('scale.y')
+          let scaleY = element.getPropertyValue('scale.y')
           if (scaleY === undefined || scaleY === null) scaleY = 1
           this.renderTransformBoxOverlay(points, overlays, element.canRotate(), this.state.isKeyCommandDown, true, rotationZ, scaleX, scaleY)
         }
       } else {
         points = []
-        selected.forEach((element) => {
+        selectedElements.forEach((element) => {
           element.getBoxPointsTransformed().forEach((point) => points.push(point))
         })
         points = Element.getBoundingBoxPoints(points)
@@ -955,6 +967,7 @@ export class Glass extends React.Component {
         // TODO: Draw tooltip with points info
       }
     }
+
     return overlays
   }
 
@@ -1112,16 +1125,12 @@ export class Glass extends React.Component {
     }
   }
 
-  getStageTransform () {
-    var a = this.state.zoomXY || 1
-    var c = this.state.panX || 0
-    var d = this.state.panY || 0
-
+  getCSSTransform (zoom, pan) {
     return 'matrix3d(' +
-      [a, 0, 0, 0,
-        0, a, 0, 0,
+      [zoom.x, 0, 0, 0,
+        0, zoom.y, 0, 0,
         0, 0, 1, 0,
-        c, d, 0, 1].join(',') + ')'
+        pan.x, pan.y, 0, 1].join(',') + ')'
   }
 
   isPreviewMode () {
@@ -1133,6 +1142,26 @@ export class Glass extends React.Component {
     return (this.state.stageMouseDown) ? '-webkit-grabbing' : '-webkit-grab'
   }
 
+  renderHotComponentMount (mount, drawingClassName) {
+    return (
+      <div
+        ref='mount'
+        key='hot-component-mount'
+        id='hot-component-mount'
+        className={drawingClassName}
+        style={{
+          position: 'absolute',
+          left: mount.x,
+          top: mount.y,
+          width: mount.w,
+          height: mount.h,
+          overflow: 'visible',
+          zIndex: 60,
+          opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
+        }} />
+    )
+  }
+
   render () {
     const drawingClassName = (this.state.activeDrawingTool !== 'pointer') ? 'draw-shape' : ''
 
@@ -1140,16 +1169,65 @@ export class Glass extends React.Component {
     const zoom = { x: this.state.zoomXY, y: this.state.zoomXY }
     const container = { x: 0, y: 0, w: this.state.containerWidth, h: this.state.containerHeight }
     const mount = { x: this.state.mountX, y: this.state.mountY, w: this.state.mountWidth, h: this.state.mountHeight }
+    const big = 99999
 
     return (
       <div
+        id='stage-root'
+        className={this.getGlobalControlPointHandleClass()}
+        style={{
+          width: '100%',
+          height: '100%',
+          visibility: (this._isHaikuInitiallyMounted) ? 'visible' : 'hidden',
+          cursor: this.getCursorCssRule()
+        }}
+
+        onMouseDown={(mouseDown) => {
+          if (!this.isPreviewMode()) {
+            const targetId = mouseDown.nativeEvent.target && mouseDown.nativeEvent.target.id
+
+            if (
+                targetId === 'stage-root' ||
+                targetId === 'full-background' ||
+                targetId === 'haiku-glass-stage-container' ||
+                targetId === 'haiku-glass-stage-background-live' ||
+                targetId === 'haiku-glass-stage-background-preview' ||
+                targetId === 'haiku-glass-stage-background-preview-border'
+              ) {
+              Element.unselectAllElements({ from: 'glass' })
+            }
+
+            if (this.state.isEventHandlerEditorOpen) {
+              this.hideEventHandlersEditor()
+            }
+
+            this.setState({
+              originalPanX: pan.x,
+              originalPanY: pan.y,
+              stageMouseDown: {
+                x: mouseDown.nativeEvent.clientX,
+                y: mouseDown.nativeEvent.clientY
+              }
+            })
+          }
+        }}
+        onMouseUp={() => {
+          if (!this.isPreviewMode()) {
+            this.setState({ stageMouseDown: null })
+          }
+        }}
+        onMouseLeave={() => {
+          if (!this.isPreviewMode()) {
+            this.setState({ stageMouseDown: null })
+          }
+        }}
         onMouseOver={() => this.setState({ isKeyCommandDown: false })}>
 
         {(!this.isPreviewMode())
           ? <div
             style={{
               position: 'fixed',
-              top: container.y + 5,
+              top: 5,
               right: 10,
               zIndex: 100000,
               color: '#ccc',
@@ -1162,44 +1240,14 @@ export class Glass extends React.Component {
         <div
           ref='container'
           id='haiku-glass-stage-container'
-          className={this.getGlobalControlPointHandleClass()}
-          onMouseDown={(mouseDown) => {
-            if (!this.isPreviewMode()) {
-              if (mouseDown.nativeEvent.target && mouseDown.nativeEvent.target.id === 'full-background') {
-                Element.unselectAllElements({ from: 'glass' })
-              }
-              if (this.state.isEventHandlerEditorOpen) {
-                this.hideEventHandlersEditor()
-              }
-              this.setState({
-                originalPanX: pan.x,
-                originalPanY: pan.y,
-                stageMouseDown: {
-                  x: mouseDown.nativeEvent.clientX,
-                  y: mouseDown.nativeEvent.clientY
-                }
-              })
-            }
-          }}
-          onMouseUp={() => {
-            if (!this.isPreviewMode()) {
-              this.setState({ stageMouseDown: null })
-            }
-          }}
-          onMouseLeave={() => {
-            if (!this.isPreviewMode()) {
-              this.setState({ stageMouseDown: null })
-            }
-          }}
           style={{
             width: container.w,
             height: container.h,
             overflow: 'visible',
             position: 'absolute',
-            top: container.y,
-            left: container.x,
-            transform: this.getStageTransform(),
-            cursor: this.getCursorCssRule(),
+            top: 0,
+            left: 0,
+            transform: this.getCSSTransform(zoom, pan),
             backgroundColor: (this.isPreviewMode()) ? 'white' : 'inherit'
           }}>
 
@@ -1277,7 +1325,7 @@ export class Glass extends React.Component {
 
           {(!this.isPreviewMode())
             ? <svg
-              id='haiku-glass-background-colorator'
+              id='haiku-glass-opacitator'
               style={{
                 position: 'absolute',
                 top: container.y,
@@ -1285,16 +1333,35 @@ export class Glass extends React.Component {
                 zIndex: 20,
                 width: container.w,
                 height: container.h,
-                pointerEvents: 'none'
+                pointerEvents: 'none',
+                overflow: 'visible'
               }}>
-              <path d={`M0,0V${container.h}H${container.w}V0ZM${mount.x + mount.w},${mount.y + mount.h}H${mount.x}V${mount.y}H${mount.x + mount.w}Z`}
-                style={{'fill': '#111', 'opacity': 0.1, 'pointerEvents': 'none'}} />
+              {/* draw a semiopaque rect with a transparent cutout */}
+              <path
+                d={`
+                  M-${big},-${big}
+                  V${big}
+                  H${big}
+                  V-${big}
+                  Z
+                  M${mount.x + mount.w},${mount.y + mount.h}
+                  H${mount.x}
+                  V${mount.y}
+                  H${mount.x + mount.w}
+                  Z
+                `.split('\n').join('')}
+                style={{
+                  fill: '#111',
+                  opacity: 0.1,
+                  pointerEvents: 'none',
+                  overflow: 'visible'
+                }} />
             </svg>
             : ''}
 
           {(!this.isPreviewMode())
             ? <svg
-              id='haiku-glass-moat-opacitator'
+              id='haiku-glass-stage-border'
               style={{
                 position: 'absolute',
                 top: container.y,
@@ -1302,14 +1369,29 @@ export class Glass extends React.Component {
                 zIndex: 1010,
                 width: container.w,
                 height: container.h,
-                pointerEvents: 'none'
+                pointerEvents: 'none',
+                overflow: 'visible'
               }}>
-              <path d={`M0,0V${container.h}H${container.w}V0ZM${mount.x + mount.w},${mount.y + mount.h}H${mount.x}V${mount.y}H${mount.x + mount.w}Z`}
+              {/* draw a semiopaque rect with a transparent cutout */}
+              <path
+                d={`
+                  M-${big},-${big}
+                  V${big}
+                  H${big}
+                  V-${big}
+                  Z
+                  M${mount.x + mount.w},${mount.y + mount.h}
+                  H${mount.x}
+                  V${mount.y}
+                  H${mount.x + mount.w}
+                  Z
+                `.split('\n').join('')}
                 style={{
                   'fill': '#FFF',
                   'opacity': 0.5,
                   'pointerEvents': 'none'
                 }} />
+              {/* draw the red border around the stage when selected */}
               <rect
                 x={mount.x - 1}
                 y={mount.y - 1}
@@ -1319,7 +1401,8 @@ export class Glass extends React.Component {
                   strokeWidth: 1.5,
                   fill: 'none',
                   stroke: Palette.LIGHT_PINK,
-                  opacity: this.state.isStageNameHovering && !this.state.isStageSelected ? 0.75 : 0
+                  opacity: this.state.isStageNameHovering && !this.state.isStageSelected ? 0.75 : 0,
+                  overflow: 'visible'
                 }}
                 />
             </svg>
@@ -1371,20 +1454,7 @@ export class Glass extends React.Component {
               }} />
             : ''}
 
-          <div
-            ref='mount'
-            id='hot-component-mount'
-            className={drawingClassName}
-            style={{
-              position: 'absolute',
-              left: mount.x,
-              top: mount.y,
-              width: mount.w,
-              height: mount.h,
-              overflow: 'visible',
-              zIndex: 60,
-              opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
-            }} />
+          {this.renderHotComponentMount(mount, drawingClassName)}
         </div>
       </div>
     )

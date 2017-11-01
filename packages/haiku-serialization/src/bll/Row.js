@@ -428,7 +428,6 @@ class Row extends BaseModel {
     }
     if (!found) {
       this.children.push(row)
-      this.emit('update', 'row-add-child')
     }
     return this
   }
