@@ -15,6 +15,7 @@
   "scripts": {
     "watch": "babel src --out-dir lib --watch",
     "build": "babel src --out-dir lib",
+    "compile": "babel src --out-dir lib",
     "build:git": "npm run build && git add . && git commit -m \"auto: Rebuild\" && git push origin master",
     "test": "tape \"./test/*.test.js\" | tap-spec || true"
   },
