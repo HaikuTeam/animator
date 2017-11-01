@@ -772,10 +772,12 @@ var Plumbing = function (_StateObject) {
             options: projectOptionsAgain
           };
 
-          Raven.setContext({
-            projectName: maybeProjectName,
-            organizationName: projectOptionsAgain.organizationName
-          });
+          if (Raven) {
+            Raven.setContext({
+              projectName: maybeProjectName,
+              organizationName: projectOptionsAgain.organizationName
+            });
+          }
 
           _this6.set('lastOpenedProject', maybeProjectName);
 

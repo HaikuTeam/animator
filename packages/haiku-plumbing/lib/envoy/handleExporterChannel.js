@@ -16,13 +16,21 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = function (exporterChannel, activeComponent) {
   exporterChannel.on(_exporter.EXPORTER_CHANNEL + ':save', function (request) {
-    var contents = (0, _exporters.handleExporterSaveRequest)(request, activeComponent.fetchActiveBytecodeFile().getReifiedBytecode());
-    _fs2.default.writeFile(request.filename, contents, function (err) {
+    var bytecodeSnapshot = activeComponent.fetchActiveBytecodeFile().getReifiedBytecode();
+    // Re-mount the active component so mutations to the bytecode snapshot don't trickle into the project.
+    activeComponent.reloadBytecodeFromDisk(function (err) {
       if (err) {
         throw err;
       }
 
-      exporterChannel.saved(request);
+      var contents = (0, _exporters.handleExporterSaveRequest)(request, bytecodeSnapshot);
+      _fs2.default.writeFile(request.filename, contents, function (err) {
+        if (err) {
+          throw err;
+        }
+
+        exporterChannel.saved(request);
+      });
     });
   });
 };
