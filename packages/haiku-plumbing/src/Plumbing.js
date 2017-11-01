@@ -409,6 +409,7 @@ export default class Plumbing extends StateObject {
     } else if (typeof error === 'string') {
       error = new Error(error) // Unfortunately no good stack trace in this case
     }
+    crashReport(this.get('organizationName'), this.get('lastOpenedProject'))
     return Raven.captureException(error, extras)
   }
 

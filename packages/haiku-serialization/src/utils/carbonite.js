@@ -1,7 +1,7 @@
+/* global fetch */
 const {exec} = require('child_process')
 const path = require('path')
 const fs = require('fs')
-const os = require('os')
 const {inkstone} = require('haiku-sdk-inkstone')
 const {client} = require('haiku-sdk-client')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
@@ -12,20 +12,21 @@ const {
   HOMEDIR_CRASH_REPORTS_PATH
 } = require('./HaikuHomeDir')
 
-function _generateScreenshot(path) {
+function _generateScreenshot (path) {
   return new Promise((resolve, reject) => {
-  if(true) resolve()
+    resolve()
 
-  const {remote} = require('electron')
-    remote.getCurrentWindow().capturePage(function(buf) {
-      fs.writeFile(path, buf.toPng(), err => {
-        err ? reject(err) : resolve()
-      })
-    })
+  // TODO: robertodip figure out why plumbing is giving errors
+  // const {remote} = require('electron')
+  //   remote.getCurrentWindow().capturePage(function(buf) {
+  //     fs.writeFile(path, buf.toPng(), err => {
+  //       err ? reject(err) : resolve()
+  //     })
+  //   })
   })
 }
 
-function _getPreSignedURL(projectName) {
+function _getPreSignedURL (projectName) {
   const authToken = client.config.getAuthToken()
 
   return new Promise((resolve, reject) => {
@@ -35,7 +36,7 @@ function _getPreSignedURL(projectName) {
   })
 }
 
-function _upload(url, filePath) {
+function _upload (url, filePath) {
   return new Promise((resolve, reject) => {
     fs.readFile(filePath, (err, data) => {
       if (err) reject(err)
@@ -44,7 +45,7 @@ function _upload(url, filePath) {
   })
 }
 
-function _zipProjectFolders({destination, sources}) {
+function _zipProjectFolders ({destination, sources}) {
   const parsedSources = sources
     .map(source => path.relative(HOMEDIR_PATH, source))
     .join(' ')
@@ -60,7 +61,7 @@ function _zipProjectFolders({destination, sources}) {
   })
 }
 
-function _cleanup(files) {
+function _cleanup (files) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       try {
@@ -73,7 +74,7 @@ function _cleanup(files) {
   })
 }
 
-function crashReport(orgName, projectName) {
+function crashReport (orgName, projectName) {
   if (!orgName || !projectName) return
   const timestamp = new Date().getTime()
   const projectPath = path.join(HOMEDIR_PROJECTS_PATH, orgName, projectName)
@@ -81,7 +82,7 @@ function crashReport(orgName, projectName) {
   const zipName = `${projectName}-${timestamp}.zip`
   const zipPath = path.join(HOMEDIR_CRASH_REPORTS_PATH, zipName)
   const userId = client.config.getUserId()
-  const AWS3Server = "http://support.haiku.ai.s3-us-west-2.amazonaws.com"
+  const AWS3Server = 'http://support.haiku.ai.s3-us-west-2.amazonaws.com'
 
   _generateScreenshot(screenshotPath)
     .then(() =>
@@ -98,7 +99,7 @@ function crashReport(orgName, projectName) {
   return `${AWS3Server}/${orgName}/${userId}/${zipName}`
 }
 
-function sentryCallback(data) {
+function sentryCallback (data) {
   if (data && data.extra && data.extra.organizationName && data.extra.projectName) {
     const {organizationName, projectName} = data.extra
     data.extra.carbonite = crashReport(organizationName, projectName)
@@ -108,7 +109,7 @@ function sentryCallback(data) {
     }
     return data
   } else {
-    return data;
+    return data
   }
 }
 

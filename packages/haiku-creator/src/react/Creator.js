@@ -358,6 +358,7 @@ export default class Creator extends React.Component {
             username: authAnswer && authAnswer.username,
             isUserAuthenticated: authAnswer && authAnswer.isAuthed
           })
+
           if (this.props.folder) {
             // Launch folder directly - i.e. allow a 'subl' like experience without having to go
             // through the projects index

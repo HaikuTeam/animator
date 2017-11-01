@@ -98,6 +98,10 @@ var _getNormalizedComponentModulePath = require('haiku-serialization/src/model/h
 
 var _getNormalizedComponentModulePath2 = _interopRequireDefault(_getNormalizedComponentModulePath);
 
+var _carbonite = require('haiku-serialization/src/utils/carbonite');
+
+var _carbonite2 = _interopRequireDefault(_carbonite);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -526,6 +530,7 @@ var Plumbing = function (_StateObject) {
       } else if (typeof error === 'string') {
         error = new Error(error); // Unfortunately no good stack trace in this case
       }
+      (0, _carbonite2.default)(this.get('organizationName'), this.get('lastOpenedProject'));
       return Raven.captureException(error, extras);
     }
   }, {
@@ -768,6 +773,8 @@ var Plumbing = function (_StateObject) {
             organization: projectOptionsAgain.organizationName,
             options: projectOptionsAgain
           };
+
+          _this6.set('lastOpenedProject', maybeProjectName);
 
           if (maybeProjectName) {
             // HACK: alias to allow lookup by project name
