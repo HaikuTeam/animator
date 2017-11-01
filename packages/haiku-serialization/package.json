@@ -45,6 +45,7 @@
     "haiku-sdk-creator": "HaikuTeam/sdk-creator.git",
     "haiku-sdk-client": "HaikuTeam/sdk-client.git",
     "haiku-sdk-inkstone": "HaikuTeam/sdk-inkstone.git",
+    "haiku-common": "HaikuTeam/common.git",
     "lodash": "4.17.4",
     "lodash.assign": "4.2.0",
     "lodash.debounce": "4.0.8",
