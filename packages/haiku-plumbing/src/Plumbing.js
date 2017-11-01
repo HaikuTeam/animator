@@ -23,7 +23,7 @@ import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
 import getNormalizedComponentModulePath from 'haiku-serialization/src/model/helpers/getNormalizedComponentModulePath'
-import crashReport from 'haiku-serialization/src/utils/carbonite'
+import {crashReport} from 'haiku-serialization/src/utils/carbonite'
 
 const NOTIFIABLE_ENVS = {
   production: true,
@@ -621,6 +621,11 @@ export default class Plumbing extends StateObject {
           organization: projectOptionsAgain.organizationName,
           options: projectOptionsAgain
         }
+
+        Raven.setContext({
+          projectName: maybeProjectName,
+          organizationName: projectOptionsAgain.organizationName
+        })
 
         this.set('lastOpenedProject', maybeProjectName)
 
