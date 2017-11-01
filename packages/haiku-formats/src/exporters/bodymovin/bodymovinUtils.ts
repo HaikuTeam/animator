@@ -56,7 +56,7 @@ const animatedTimelineReducer = (accumulator, currentValue) => {
 
   currentValue[PropertyKey.Value].forEach((keyframe, index) => {
     if (accumulator[PropertyKey.Value][index][AnimationKey.Time] !== keyframe[AnimationKey.Time]) {
-      // This should never happen! The work done in BodymovinExporter.preprocessCurves() should guarantee keyframes
+      // This should never happen! The work done in BodymovinExporter.alignCurveKeyframes() should guarantee keyframes
       // are aligned for values that are animated together.
       throw new Error('Encountered mismatched keyframe times in an animated timeline!');
     }

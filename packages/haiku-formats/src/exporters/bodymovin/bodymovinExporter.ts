@@ -8,8 +8,10 @@ import * as visitTemplate from 'haiku-serialization/src/model/helpers/visitTempl
 import {SvgTag} from '../../svg/enums';
 import {Exporter} from '..';
 import {
+  decomposeCurveBetweenKeyframes,
   getCurveInterpolationPoints,
-  injectKeyframeInTimelineProperty,
+  isDecomposableCurve,
+  splitBezierForTimelinePropertyAtKeyframe,
 } from '../curves';
 import {
   AnimationKey,
@@ -807,14 +809,38 @@ export class BodymovinExporter implements Exporter {
   }
 
   /**
-   * Preprocesses curves that are incompatible with Bodymovin rendering.
+   * Identifies and decomposes all ...Bounce and ...Elastic curves into a chain of beziers.
    *
-   * For now, this method is simply responsible for ensuring that misaligned keyframes for properties that are
-   * required to animate together can be realigned.
-   *
-   * TODO: Add support for decomposition of *Bounce and *Elastic curves into sequential beziers.
+   * ...Bounce and ...Elastic curves can be decomposed into a sequence of continuous beziers using some shoddy
+   * heuristics, which at speed approximate the actual behavior of the discontinuous functions they're derived from.
    */
-  private preprocessCurves() {
+  private decomposeCompoundCurves() {
+    this.visitAllTimelineProperties((timeline, property) => {
+      const timelineProperty = timeline[property];
+      const keyframes = keyframesFromTimelineProperty(timelineProperty);
+      keyframes.forEach((keyframe, index) => {
+        if (!timelineProperty[keyframe].hasOwnProperty('curve') || index === keyframes.length - 1 ||
+          !isDecomposableCurve(timelineProperty[keyframe].curve)) {
+          // There's naught to decompose here!
+          return;
+        }
+
+        decomposeCurveBetweenKeyframes(timelineProperty, keyframe, keyframes[index + 1]);
+      });
+    });
+  }
+
+  /**
+   * Aligns curve keyframes for coupled properties, i.e. properties that are animated together.
+   *
+   * This method is responsible for ensuring that misaligned keyframes for properties that are required to animate
+   * together are realigned.
+   *
+   * TODO: Support ['translation.x', 'translation.y'] for the edge case that a user manually edits the bytecode to
+   * tween the elements inside an SVG container. Bodymovin does not support position-splitting for the innards of
+   * shapes.
+   */
+  private alignCurveKeyframes() {
     // Store the set of coupled properties that might have to be animated together with presently disjointed keyframes.
     // This is currently limited to scale.x and scale.y, but we may need to add more later.
     const coupledPropertyLists = [['scale.x', 'scale.y']];
@@ -851,7 +877,7 @@ export class BodymovinExporter implements Exporter {
         injections.forEach((set, property) => {
           const keyframes = Array.from(set) as number[];
           keyframes.sort((a, b) => a - b);
-          keyframes.forEach((keyframe) => injectKeyframeInTimelineProperty(timeline[property], keyframe));
+          keyframes.forEach((keyframe) => splitBezierForTimelinePropertyAtKeyframe(timeline[property], keyframe));
         });
       });
     });
@@ -879,14 +905,19 @@ export class BodymovinExporter implements Exporter {
       throw new Error(`Unexpected wrapper element: ${this.bytecode.template.elementName}`);
     }
 
-    // Rewrite timelines to use keyframes instead of millitimes, which is the Bodymovin way.
+    // Rewrite timelines to use keyframes instead of millitimes, which is the Bodymovin way. It makes sense to do
+    // this step prior to the subsequent ones, since we might end up with fewer keyframes in the later steps for a
+    // subtle runtime performance boost.
     this.normalizeKeyframes();
+
+    // Decompose non-bezier curves (i.e. ...Bounce and ...Elastic curves) into multiple bezier curves.
+    this.decomposeCompoundCurves();
 
     // Normalize curves to remove any problematic/noisy behavior.
     this.normalizeCurves();
 
     // Preprocess curves that are incompatible with Bodymovin rendering.
-    this.preprocessCurves();
+    this.alignCurveKeyframes();
 
     // Handle the wrapper as a special case.
     this.handleWrapper();
