@@ -41,11 +41,11 @@ module.exports = {
     const saneDestination = JSON.stringify(destination)
     const unzipCommand = `unzip -o -qq ${saneZipPath} -d ${saneDestination}`
     const openCommand = filename
-      ? `open -a ${saneDestination}/${filename}.app $1`
+      ? `open --fresh -a ${saneDestination}/${filename}.app $1`
       : 'echo'
 
     return new Promise((resolve, reject) => {
-      exec(`${unzipCommand} && ${openCommand}`, {}, err => {
+      exec(`${unzipCommand} && sleep 1 && ${openCommand}`, {}, err => {
         err ? reject(err) : resolve(true)
       })
     })
