@@ -12,4 +12,5 @@ Raven.config('https://4dfb3b0e4ae2479b8340019bcd1fd423:c9d508bea6294acdb97fe499d
 }).install();
 
 module.exports = Raven;
+
 //# sourceMappingURL=Raven.js.map
