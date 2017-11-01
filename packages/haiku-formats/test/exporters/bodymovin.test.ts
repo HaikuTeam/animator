@@ -106,6 +106,26 @@ tape('BodymovinExporter', (test: tape.Test) => {
     test.end();
   });
 
+  test.test('decomposes compound curves into sequential beziers', (test: tape.Test) => {
+    // Note: A more expressive set of tests for the calculation of the replacement beziers is in curves.test.ts.
+    const bytecode = baseBytecodeCopy();
+    bytecode.timelines.Default['haiku:svg'].opacity = {
+      0: {value: 0, curve: 'easeInBounce'},
+      1000: {value: 1},
+    };
+
+    const {
+      layers: [{
+        ks: {o: {k: keyframes}},
+      }],
+    } = rawOutput(bytecode);
+
+    test.equal(keyframes.length, 8, 'injects multiple keyframes to approximate a compound curve');
+    test.equal(keyframes[0].t, 0, 'begins the initial keyframe at the original time');
+    test.equal(keyframes[keyframes.length - 1].t, 60, 'terminates the final keyframe at the original time');
+    test.end();
+  });
+
   test.test('inserts missing keyframes for properties that must be animated together', (test: tape.Test) => {
     // Note: We use linear curves to produce predictable/obviously correct test results. A more expressive set of
     // tests for the calculation of the replacement beziers is in curves.test.ts.
