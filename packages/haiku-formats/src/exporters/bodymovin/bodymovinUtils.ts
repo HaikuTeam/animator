@@ -56,7 +56,8 @@ const animatedTimelineReducer = (accumulator, currentValue) => {
 
   currentValue[PropertyKey.Value].forEach((keyframe, index) => {
     if (accumulator[PropertyKey.Value][index][AnimationKey.Time] !== keyframe[AnimationKey.Time]) {
-      // TODO: Normalize tweens in compounded properties before we get here, to ensure this error never occurs.
+      // This should never happen! The work done in BodymovinExporter.preprocessCurves() should guarantee keyframes
+      // are aligned for values that are animated together.
       throw new Error('Encountered mismatched keyframe times in an animated timeline!');
     }
 
@@ -112,6 +113,11 @@ export const getFixedPropertyValue = (fixedValue: any): BodymovinProperty => {
   return value;
 };
 
+/**
+ * Force a possibly scalar value to be an array.
+ * @param maybeArray
+ * @returns {any[]}
+ */
 export const alwaysArray = (maybeArray: any): any[] => {
   if (Array.isArray(maybeArray)) {
     return maybeArray;

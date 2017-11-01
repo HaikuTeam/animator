@@ -1,6 +1,9 @@
 /** @file Transformers for Bodymovin quirks. */
 import ColorUtils from '@haiku/player/lib/helpers/ColorUtils';
-import {StrokeLinecap} from './bodymovinEnums';
+import {
+  StrokeLinecap,
+  StrokeLinejoin,
+} from './bodymovinEnums';
 
 /**
  * Transforms CSS opacity in [0, 1] to Bodymovin opacity in [0, 100].
@@ -51,5 +54,16 @@ export const linecapTransformer = (linecap: string) => {
       return StrokeLinecap.Round;
     default:
       return StrokeLinecap.Square;
+  }
+};
+
+export const linejoinTransformer = (linejoin: string) => {
+  switch (linejoin) {
+    case 'round':
+      return StrokeLinejoin.Round;
+    case 'bevel':
+      return StrokeLinejoin.Bevel;
+    default:
+      return StrokeLinejoin.Miter;
   }
 };

@@ -20,7 +20,7 @@ export default {
             "value": 0,
             "curve": "linear"
           },
-          "60": {
+          "1000": {
             "value": 10
           }
         },

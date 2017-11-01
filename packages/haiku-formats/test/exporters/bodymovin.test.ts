@@ -16,13 +16,13 @@ const overrideShapeElement = (bytecode, elementName) => {
   bytecode.template.children[0].children[0].elementName = elementName;
 };
 
-const baseBytecodeDeepCopy = () => JSON.parse(JSON.stringify(baseBytecode));
+const baseBytecodeCopy = () => JSON.parse(JSON.stringify(baseBytecode));
 
 tape('BodymovinExporter', (test: tape.Test) => {
   test.test('requires a div wrapper', (test: tape.Test) => {
     const bytecode = {
-      ...baseBytecode, template: {
-        ...baseBytecode.template, elementName: 'span',
+      ...baseBytecodeCopy(), template: {
+        ...baseBytecodeCopy().template, elementName: 'span',
       },
     };
     test.throws(rawOutput.bind(undefined, bytecode), 'throws if provided a span wrapper');
@@ -31,8 +31,8 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
   test.test('requires svg wrapper children', (test: tape.Test) => {
     const bytecode = {
-      ...baseBytecode, template: {
-        ...baseBytecode.template, children: [{
+      ...baseBytecodeCopy(), template: {
+        ...baseBytecodeCopy().template, children: [{
           elementName: 'div',
         }],
       },
@@ -42,19 +42,19 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('uses the specified version of Bodymovin', (test: tape.Test) => {
-    const {v} = rawOutput(baseBytecode);
+    const {v} = rawOutput(baseBytecodeCopy());
     test.deepEqual({v}, {v: '4.11.1'}, 'gets the Bodymovin version from package.json');
     test.end();
   });
 
   test.test('uses constant in-point and framerate', (test: tape.Test) => {
-    const {ip, fr} = rawOutput(baseBytecode);
+    const {ip, fr} = rawOutput(baseBytecodeCopy());
     test.deepEqual({ip, fr}, {ip: 0, fr: 60}, 'always uses in-point of 0 and 60 fps');
     test.end();
   });
 
   test.test('derives animation dimensions from wrapper element', (test: tape.Test) => {
-    const {w, h} = rawOutput(baseBytecode);
+    const {w, h} = rawOutput(baseBytecodeCopy());
     test.deepEqual({w, h}, {w: 640, h: 480}, 'gets animation width and height from stage');
     test.end();
   });
@@ -64,7 +64,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
       layers: [{
         ks: {p: {s, y}},
       }],
-    } = rawOutput(baseBytecode);
+    } = rawOutput(baseBytecodeCopy());
     test.equal(s, true, 'splits positionals');
     test.deepEqual(y, {a: 0, k: 20}, 'passes through scalar values');
     test.end();
@@ -75,7 +75,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
       layers: [{
         ks: {p: {x: {a, k: [{t, s, e, i, o}, finalKeyframe]}}},
       }], op,
-    } = rawOutput(baseBytecode);
+    } = rawOutput(baseBytecodeCopy());
 
     test.equal(op, 60, 'derives out-point from final keyframe');
     test.equal(a, 1, 'knows an animation is active');
@@ -86,10 +86,10 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('normalizes curves for transitions lacking tweens', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     bytecode.timelines.Default['haiku:svg'].opacity = {
       0: {value: 0},
-      10: {value: 1},
+      1000: {value: 1},
     };
 
     const {
@@ -99,15 +99,56 @@ tape('BodymovinExporter', (test: tape.Test) => {
     } = rawOutput(bytecode);
 
     test.deepEqual(initialKeyframe.e, [0], 'forks initial keyframe to transition back to itself');
-    test.equal(injectedKeyframe.t, 9, 'injects a keyframe one frame before the jumped-to keyframe');
+    test.equal(injectedKeyframe.t, 59, 'injects a keyframe one frame before the jumped-to keyframe');
     test.deepEqual(injectedKeyframe.s, [0], 'initializes the injected keyframe at the same value as the initial');
     test.deepEqual(injectedKeyframe.e, [100], 'terminates the injected keyframe at the jumped-to value');
-    test.equal(finalKeyframe.t, 10, 'terminates the final keyframe as it originally was');
+    test.equal(finalKeyframe.t, 60, 'terminates the final keyframe as it originally was');
+    test.end();
+  });
+
+  test.test('inserts missing keyframes for properties that must be animated together', (test: tape.Test) => {
+    // Note: We use linear curves to produce predictable/obviously correct test results. A more expressive set of
+    // tests for the calculation of the replacement beziers is in curves.test.ts.
+    const bytecode = baseBytecodeCopy();
+    bytecode.timelines.Default['haiku:svg']['scale.x'] = {
+      0: {value: 0, curve: 'linear'},
+      1000: {value: 1},
+    };
+
+    bytecode.timelines.Default['haiku:svg']['scale.y'] = {
+      0: {value: 0, curve: 'linear'},
+      500: {value: 0.5, curve: 'linear'},
+      1000: {value: 1},
+    };
+
+    const {
+      layers: [{
+        ks: {s: {k: [initialKeyframe, injectedKeyframe, finalKeyframe]}},
+      }],
+    } = rawOutput(bytecode);
+    const [iInitial, oInitial] = [initialKeyframe.i, initialKeyframe.o];
+    const [iInjected, oInjected] = [injectedKeyframe.i, injectedKeyframe.o];
+
+    // Test for correctness of the initial keyframe.
+    test.deepEqual(initialKeyframe.s, [0, 0], 'initial keyframe starts at the correct value');
+    test.deepEqual(initialKeyframe.e, [50, 50], 'initial keyframe ends at the correct value');
+    test.deepEqual(iInitial, {x: [0.5, 1], y: [0.5, 1]}, 'preserves linear interpolation  at initial in-points');
+    test.deepEqual(oInitial, {x: [0, 0], y: [0, 0]}, 'preserves linear interpolation  at initial out-points');
+
+    // Test for correctness of the (partially) injected keyframe.
+    test.equal(injectedKeyframe.t, 30, 'injected keyframe has the expected time');
+    test.deepEqual(injectedKeyframe.s, [50, 50], 'middle keyframe starts at the correct value');
+    test.deepEqual(injectedKeyframe.e, [100, 100], 'injected keyframe ends at the correct value');
+    test.deepEqual(iInjected, {x: [1, 1], y: [1, 1]}, 'preserves linear interpolation  at injected in-points');
+    test.deepEqual(oInjected, {x: [0.5, 0], y: [0.5, 0]}, 'preserves linear interpolation  at injected out-points');
+
+    // Test for preservation of the final keyframe timing.
+    test.deepEqual(finalKeyframe, {t: 60});
     test.end();
   });
 
   test.test('provides default transforms for layers', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     // Provide no information about how to transform the SVG layer.
     delete bytecode.timelines.Default['haiku:svg'];
     const {
@@ -125,7 +166,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   test.test('uses necessary defaults for layers', (test: tape.Test) => {
     const {
       layers: [{ip, op, st}],
-    } = rawOutput(baseBytecode);
+    } = rawOutput(baseBytecodeCopy());
 
     test.equal(ip, 0, 'in-point is always 0');
     test.equal(st, 0, 'start time is always 0');
@@ -134,7 +175,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('transforms opacity correctly', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     bytecode.timelines.Default['haiku:svg'].opacity = {0: {value: 0.2}};
     const {layers: [{ks: {o}}]} = rawOutput(bytecode);
     test.equal(o.k, 20, 'denormalizes opacity in [0, 100]');
@@ -142,7 +183,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('transforms 2.5D rotations correctly', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     bytecode.timelines.Default['haiku:svg']['rotation.x'] = {0: {value: Math.PI / 2}};
     bytecode.timelines.Default['haiku:svg']['rotation.y'] = {0: {value: -Math.PI / 6}};
     bytecode.timelines.Default['haiku:svg']['rotation.z'] = {0: {value: Math.PI / 3}};
@@ -154,7 +195,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('transforms scaling correctly', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     bytecode.timelines.Default['haiku:svg']['scale.x'] = {0: {value: 0.5}};
     bytecode.timelines.Default['haiku:svg']['scale.y'] = {0: {value: 0.8}};
     const {layers: [{ks: {s}}]} = rawOutput(bytecode);
@@ -163,9 +204,9 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('animates scale as a compound animation', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
-    bytecode.timelines.Default['haiku:svg']['scale.x'] = {0: {value: 0.5, curve: 'easeInOutQuad'}, 60: {value: 0.6}};
-    bytecode.timelines.Default['haiku:svg']['scale.y'] = {0: {value: 0.8, curve: 'easeOutExpo'}, 60: {value: 0.9}};
+    const bytecode = baseBytecodeCopy();
+    bytecode.timelines.Default['haiku:svg']['scale.x'] = {0: {value: 0.5, curve: 'easeInOutQuad'}, 1000: {value: 0.6}};
+    bytecode.timelines.Default['haiku:svg']['scale.y'] = {0: {value: 0.8, curve: 'easeOutExpo'}, 1000: {value: 0.9}};
     const {layers: [{ks: {s: {a, k : [keyframe]}}}]} = rawOutput(bytecode);
 
     // The animated property reducer is responsible for both applying the standard transformations to scaling and
@@ -182,7 +223,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('uses the correct transform-origin for layers', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     bytecode.timelines.Default['haiku:svg']['sizeAbsolute.x'] = {0: {value: 100}};
     bytecode.timelines.Default['haiku:svg']['sizeAbsolute.y'] = {0: {value: 200}};
     bytecode.timelines.Default['haiku:svg']['translation.x'] = {0: {value: 10}};
@@ -199,7 +240,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
       layers: [{
         ty, shapes: [{it: [_, stroke, fill]}],
       }],
-    } = rawOutput(baseBytecode);
+    } = rawOutput(baseBytecodeCopy());
 
     test.equal(ty, 4, 'identifies shape layers');
 
@@ -220,7 +261,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('handles non-CSS colors gracefully', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
 
     {
       bytecode.timelines.Default['haiku:shape'].stroke = {0: {value: 'none'}};
@@ -238,7 +279,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('cascades group properties down to shapes', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
 
     // Shim in a group to wrap our shape.
     bytecode.timelines.Default['haiku:group'] = {
@@ -273,7 +314,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('transcludes defs down to shapes through use', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
 
     // Shim in <defs>, and replace our shape element with a <use>.
     bytecode.timelines.Default['haiku:def'] = {
@@ -316,7 +357,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('supports circles', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     overrideShapeAttributes(bytecode, {cx: {0: {value: 5}}, cy: {0: {value: 5}}, r: {0: {value: 10}}});
     overrideShapeElement(bytecode, 'circle');
 
@@ -333,7 +374,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('supports ellipses', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     overrideShapeAttributes(bytecode, {rx: {0: {value: 10}}, ry: {0: {value: 20}}});
     overrideShapeElement(bytecode, 'ellipse');
 
@@ -349,7 +390,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('supports rectangles', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     overrideShapeAttributes(bytecode, {
       x: {0: {value: 10}},
       y: {0: {value: 10}},
@@ -361,7 +402,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
     const {
       layers: [{
-        shapes: [{it: [{ty, s, r}, transformLayer]}],
+        shapes: [{it: [{ty, s, r}, _, __, transformLayer]}],
       }],
     } = rawOutput(bytecode);
 
@@ -375,7 +416,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('supports polygons', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     overrideShapeAttributes(bytecode, {
       points: {0: {value: '1,2 3,4'}},
     });
@@ -396,7 +437,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('supports paths', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     overrideShapeElement(bytecode, 'path');
 
     const {
@@ -455,7 +496,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('stacks elements in order of descending z-index', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     // Shim in two SVG layers.
     bytecode.template.children = [
       {
@@ -485,9 +526,9 @@ tape('BodymovinExporter', (test: tape.Test) => {
   });
 
   test.test('simulates wrapper div with a background color as a rectangle', (test: tape.Test) => {
-    const bytecode = baseBytecodeDeepCopy();
+    const bytecode = baseBytecodeCopy();
     bytecode.timelines.Default['haiku:wrapper'].backgroundColor = {0: {value: '#000'}};
-    const {layers: [{ind, ty, shapes: [{it: [shape, fill]}]}]} = rawOutput(bytecode);
+    const {layers: [{ind, ty, shapes: [{it: [shape, _, fill]}]}]} = rawOutput(bytecode);
     test.equal(ind, 0, 'wrapper rectangle has z-index 0');
     test.equal(ty, 4, 'wrapper rectangle is an ordinary shape layer');
     test.equal(shape.ty, 'rc', 'wrapper rectangle is in fact a rectangle');
