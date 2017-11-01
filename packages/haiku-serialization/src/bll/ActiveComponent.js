@@ -106,7 +106,7 @@ class ActiveComponent extends BaseModel {
     // No-op callback for arbitrary websocket actions
     this._receiveWebsocketResponse = () => {}
 
-    window.setInterval(() => {
+    setInterval(() => {
       const actions = this._websocketActions.splice(0)
 
       if (actions.length < 1) {
@@ -349,7 +349,7 @@ class ActiveComponent extends BaseModel {
       this.batchedWebsocketAction('selectElement', [this.folder, componentId])
     }
 
-    this.emit('element:selected', Element.findById(componentId))
+    this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'selectElement', componentId)
   }
 
   /**
@@ -369,26 +369,7 @@ class ActiveComponent extends BaseModel {
       this.batchedWebsocketAction('unselectElement', [this.folder, componentId])
     }
 
-    this.emit('element:unselected', Element.findById(componentId))
-  }
-
-  setInteractionMode (modeOptions, metadata, cb) {
-    this._interactionMode = modeOptions || DEFAULT_INTERACTION_MODE
-
-    if (metadata.from === this.alias) {
-      this.websocket.send({ type: 'action', method: 'setInteractionMode', params: [this.folder, modeOptions] })
-    }
-
-    this.instance.assignConfig({
-      options: {
-        interactionMode: this._interactionMode
-      }
-    })
-
-    this.clearCaches()
-    this.forceFlush()
-
-    return cb()
+    this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'unselectElement', componentId)
   }
 
   selectElement (componentId, metadata, cb) {
@@ -416,6 +397,26 @@ class ActiveComponent extends BaseModel {
 
   getStageTransform () {
     return this._stageTransform
+  }
+
+  setInteractionMode (modeOptions, metadata, cb) {
+    this._interactionMode = modeOptions || DEFAULT_INTERACTION_MODE
+
+    if (metadata.from === this.alias) {
+      this.websocket.send({ type: 'action', method: 'setInteractionMode', params: [this.folder, modeOptions] })
+    }
+
+    this.instance.assignConfig({
+      options: {
+        interactionMode: this._interactionMode
+      }
+    })
+
+    this.clearCaches()
+    this.forceFlush()
+    this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'setInteractionMode')
+
+    return cb()
   }
 
   instantiateComponent (relpath, posdata, metadata, cb) {
@@ -459,7 +460,7 @@ class ActiveComponent extends BaseModel {
         }
 
         this.clearCaches()
-        this.emit('update')
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'instantiateComponent')
 
         let element = Element.where({ component: this, _isSelected: true })[0]
 
@@ -481,7 +482,7 @@ class ActiveComponent extends BaseModel {
         }
 
         this.clearCaches()
-        this.emit('update')
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteComponent')
 
         return cb()
       })
@@ -509,7 +510,7 @@ class ActiveComponent extends BaseModel {
         }
 
         this.clearCaches()
-        this.emit('update')
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'mergeDesigns')
 
         return cb()
       })
@@ -525,7 +526,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'applyPropertyValue')
 
       return cb()
     })
@@ -540,7 +541,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'applyPropertyDelta')
 
       return cb()
     })
@@ -555,7 +556,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'applyPropertyGroupValue')
 
       return cb()
     })
@@ -583,7 +584,7 @@ class ActiveComponent extends BaseModel {
         }
       })
 
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'applyPropertyGroupDelta')
 
       // If we're doing rotation, then we really *really* need to make sure we do a full flush.
       // In production mode, rotation is handled normally, but as we do live editing, we lose
@@ -617,7 +618,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'resizeContext')
 
       if (metadata.from === this.alias) {
         artboardIds.forEach((artboardId) => {
@@ -638,7 +639,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'changePlaybackSpeed')
 
       return cb()
     })
@@ -654,7 +655,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'changeKeyframeValue')
 
       return cb()
     })
@@ -670,7 +671,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'joinKeyframes')
 
       if (metadata.from === this.alias) {
         const curveForWire = expressionToRO(newCurve) // In the future, curve may be a function
@@ -691,7 +692,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'changeSegmentCurve')
 
       if (metadata.from === this.alias) {
         const curveForWire = expressionToRO(newCurve) // In the future, curve may be a function
@@ -712,7 +713,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'changeSegmentEndpoints')
       if (this.alias === metadata.from) {
         this.batchedWebsocketAction('changeSegmentEndpoints', [this.folder, componentIds, timelineName, propertyName, oldMs, newMs])
       }
@@ -731,7 +732,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'createKeyframe')
       if (this.alias === metadata.from) {
         this.batchedWebsocketAction('createKeyframe', [this.folder, componentIds, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue])
       }
@@ -750,7 +751,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteKeyframe')
       if (this.alias === metadata.from) {
         this.batchedWebsocketAction('deleteKeyframe', [this.folder, componentIds, timelineName, propertyName, keyframeMs])
       }
@@ -768,7 +769,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'createTimeline')
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('createTimeline', [this.folder, timelineName, timelineDescriptor])
       }
@@ -786,7 +787,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteTimeline')
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('deleteTimeline', [this.folder, timelineName])
       }
@@ -804,7 +805,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'duplicateTimeline')
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('duplicateTimeline', [this.folder, timelineName])
       }
@@ -822,7 +823,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'renameTimeline')
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('renameTimeline', [this.folder, timelineNameOld, timelineNameNew])
       }
@@ -841,7 +842,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'moveSegmentEndpoints')
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('moveSegmentEndpoints', [this.folder, componentIds, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo])
       }
@@ -860,7 +861,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'moveKeyframes')
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('moveKeyframes', [this.folder, componentIds, timelineName, propertyName, keyframeMoves, frameInfo])
       }
@@ -879,7 +880,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'sliceSegment')
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('sliceSegment', [this.folder, componentIds, timelineName, elementName, propertyName, keyframeMs, sliceMs])
       }
@@ -969,7 +970,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'splitSegment')
 
       if (this.alias === metadata.from) {
         this.batchedWebsocketAction('splitSegment', [this.folder, componentIds, timelineName, elementName, propertyName, keyframeMs])
@@ -988,7 +989,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'zMoveToFront')
 
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('zMoveToFront', [this.folder, componentIds, timelineName, timelineTime])
@@ -1007,7 +1008,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'zMoveForward')
 
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('zMoveForward', [this.folder, componentIds, timelineName, timelineTime])
@@ -1026,7 +1027,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'zMoveBackward')
 
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('zMoveBackward', [this.folder, componentIds, timelineName, timelineTime])
@@ -1045,7 +1046,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'zMoveToBack')
 
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('zMoveToBack', [this.folder, componentIds, timelineName, timelineTime])
@@ -1065,7 +1066,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'reorderElement')
 
       return cb()
     })
@@ -1081,7 +1082,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'groupElements')
 
       return cb()
     })
@@ -1097,7 +1098,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'ungroupElements')
 
       return cb()
     })
@@ -1113,7 +1114,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'hideElements')
 
       return cb()
     })
@@ -1139,7 +1140,7 @@ class ActiveComponent extends BaseModel {
         // cb(null, { center: coords })
         // Should this have the same logic we use for instantiation? (probably yes)
 
-        this.emit('update')
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'pasteThing')
 
         return cb()
       })
@@ -1161,7 +1162,7 @@ class ActiveComponent extends BaseModel {
       }
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteThing')
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('deleteThing', [this.folder, deletable])
       }
@@ -1189,7 +1190,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'upsertStateValue')
 
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('upsertStateValue', [this.folder, stateName, stateDescriptor])
@@ -1211,7 +1212,7 @@ class ActiveComponent extends BaseModel {
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
       this.clearCaches()
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteStateValue')
 
       if (metadata.from === this.alias) {
         this.batchedWebsocketAction('deleteStateValue', [this.folder, stateName])
@@ -1232,7 +1233,7 @@ class ActiveComponent extends BaseModel {
       }
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'upsertEventHandler')
       this.clearCaches({
         clearPreviouslyRegisteredEventListeners: true
       })
@@ -1257,7 +1258,7 @@ class ActiveComponent extends BaseModel {
       }
 
       this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.emit('update')
+      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteEventHandler')
       this.clearCaches({
         clearPreviouslyRegisteredEventListeners: true
       })
@@ -1726,8 +1727,8 @@ class ActiveComponent extends BaseModel {
     return Keyframe.where(criteria)
   }
 
-  deselectAndDeactivateAllKeyframes () {
-    return Keyframe.deselectAndDeactivateAllKeyframes()
+  deselectAndDeactivateAllKeyframes (metadata) {
+    return Keyframe.deselectAndDeactivateAllKeyframes(metadata || this.metadata)
   }
 
   getFocusedRow () {
@@ -1738,12 +1739,12 @@ class ActiveComponent extends BaseModel {
     return Row.getSelectedRow()
   }
 
-  focusCurrentlySelectedRow () {
-    return Row.focusCurrentlySelectedRow()
+  focusCurrentlySelectedRow (metadata) {
+    return Row.focusCurrentlySelectedRow(metadata || this.metadata)
   }
 
-  focusSelectNext (navDir, doFocus) {
-    return Row.focusSelectNext(navDir, doFocus)
+  focusSelectNext (navDir, doFocus, metadata) {
+    return Row.focusSelectNext(navDir, doFocus, metadata || this.metadata)
   }
 }
 

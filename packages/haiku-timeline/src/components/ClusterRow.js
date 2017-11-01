@@ -20,7 +20,7 @@ export default class ClusterRow extends React.Component {
         id={`property-cluster-row-${this.props.row.getAddress()}-${componentId}-${clusterName}`}
         className='property-cluster-row'
         onClick={() => {
-          this.props.row.expandAndSelect()
+          this.props.row.expandAndSelect({ from: 'timeline' })
         }}
         onContextMenu={(ctxMenuEvent) => {
           ctxMenuEvent.stopPropagation()

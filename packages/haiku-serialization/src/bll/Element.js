@@ -282,28 +282,28 @@ class Element extends BaseModel {
     this.component.zMoveToBack([this.uid], this.component.getCurrentTimelineName(), 0, this.component.metadata, (err) => {
       if (err) return void (0)
     })
-    thie.emit('update', 'element-send-to-back')
+    this.emit('update', 'element-send-to-back')
   }
 
   bringToFront () {
     this.component.zMoveToFront([this.uid], this.component.getCurrentTimelineName(), 0, this.component.metadata, (err) => {
       if (err) return void (0)
     })
-    thie.emit('update', 'element-bring-to-front')
+    this.emit('update', 'element-bring-to-front')
   }
 
   bringForward () {
     this.component.zMoveForward([this.uid], this.component.getCurrentTimelineName(), 0, this.component.metadata, (err) => {
       if (err) return void (0)
     })
-    thie.emit('update', 'element-bring-forward')
+    this.emit('update', 'element-bring-forward')
   }
 
   sendBackward () {
     this.component.zMoveBackward([this.uid], this.component.getCurrentTimelineName(), 0, this.component.metadata, (err) => {
       if (err) return void (0)
     })
-    thie.emit('update', 'element-send-backward')
+    this.emit('update', 'element-send-backward')
   }
 
   getBBox () {

@@ -206,7 +206,17 @@ export class Glass extends React.Component {
       this.drawLoop()
     })
 
-    this._component.on('update', (what) => {
+    const trackElementSelection = (what, componentId) => {
+      // Since the current selected element can be deleted from the global menu,
+      // we need to keep track of it there so we have a pointer to what to delete
+      if (what === 'selectElement') {
+        this._lastSelectedElement = this._component.findElementByComponentId(componentId)
+      } else if (what === 'unselectElement') {
+        this._lastSelectedElement = null
+      }
+    }
+
+    this._component.on('update', (what, ...args) => {
       // This happens on almost any update because theoretically a keyframe change,
       // a curve change, etc., could all result in the need to recalc the artboard :/
       const updatedArtboardSize = this._component.getContextSize()
@@ -215,6 +225,13 @@ export class Glass extends React.Component {
         mountWidth: updatedArtboardSize.width,
         mountHeight: updatedArtboardSize.height
       })
+
+      trackElementSelection(what, args[0])
+    })
+
+    this._component.on('remote-update', (what, ...args) => {
+      trackElementSelection(what, args[0])
+      this.draw()
     })
 
     this._component.on('time:change', (timelineName, timelineTime) => {
@@ -253,17 +270,6 @@ export class Glass extends React.Component {
       console.info('[glass] element:copy', componentId)
       this._lastSelectedElement = this._component._elements.find(componentId)
       this.handleVirtualClipboard('copy')
-    })
-
-    // Since the current selected element can be deleted from the global menu, we need to keep it there
-    this._component.on('element:selected', (element) => {
-      this._lastSelectedElement = element
-    })
-
-    // Since the current selected element can be deleted from the global menu, we need clear it there too
-    this._component.on('element:unselected', (element) => {
-      this._lastSelectedElement = null
-      this.draw()
     })
 
     this.props.websocket.on('broadcast', (message) => {

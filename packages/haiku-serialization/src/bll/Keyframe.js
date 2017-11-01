@@ -1,4 +1,3 @@
-const lodash = require('lodash')
 const BaseModel = require('./BaseModel')
 const millisecondToNearestFrame = require('./helpers/millisecondToNearestFrame')
 
@@ -311,11 +310,6 @@ class Keyframe extends BaseModel {
     return this.curve
   }
 
-  setCurve (curve) {
-    this.curve = curve
-    return this
-  }
-
   isVisible (a, b) {
     if (this.getMs() > b) {
       return false
@@ -342,7 +336,7 @@ class Keyframe extends BaseModel {
       throw new Error(`keyframe pixel offset right params missing`)
     }
     if (this.next()) {
-      return (this.next().getFrame(mspf) - base) * pxpf  
+      return (this.next().getFrame(mspf) - base) * pxpf
     } else {
       return 0
     }

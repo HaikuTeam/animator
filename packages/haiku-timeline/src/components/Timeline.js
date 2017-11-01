@@ -190,6 +190,10 @@ class Timeline extends React.Component {
       this.component.changeCurveOnSelectedKeyframes(curveName, { from: 'timeline' })
     })
 
+    this.addEmitterListener(this.component, 'remote-update', (what) => {
+      this.forceUpdate()
+    })
+
     this.addEmitterListener(Row, 'update', (row, what) => {
       if (what === 'row-collapsed' || what === 'row-expanded') {
         this.forceUpdate()  
@@ -718,7 +722,7 @@ class Timeline extends React.Component {
         id='timeline'
         className='no-select'
         onClick={(clickEvent) => {
-          Row.deselectBlurAll()
+          Row.deselectBlurAll({ from: 'timeline' })
         }}
         style={{
           position: 'absolute',
@@ -778,10 +782,10 @@ class Timeline extends React.Component {
             }
           }}
           onFocusRequested={() => {
-            this.component.focusCurrentlySelectedRow()
+            this.component.focusCurrentlySelectedRow({ from: 'timeline' })
           }}
           onNavigateRequested={(navDir, doFocus) => {
-            this.component.focusSelectNext(navDir, doFocus)
+            this.component.focusSelectNext(navDir, doFocus, { from: 'timeline' })
           }} />
       </div>
     )

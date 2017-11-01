@@ -17,9 +17,9 @@ export default class ComponentHeadingRow extends React.Component {
         onClick={(clickEvent) => {
           // Collapse/expand the entire component area when it is clicked
           if (this.props.row.isExpanded()) {
-            this.props.row.collapseAndDeselect()
+            this.props.row.collapseAndDeselect({ from: 'timeline' })
           } else {
-            this.props.row.expandAndSelect()
+            this.props.row.expandAndSelect({ from: 'timeline' })
           }
         }}
         style={{

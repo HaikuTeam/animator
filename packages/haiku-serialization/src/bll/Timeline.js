@@ -6,8 +6,6 @@ const getMaximumMs = require('./helpers/getMaximumMs')
 const BaseModel = require('./BaseModel')
 const Keyframe = require('./Keyframe')
 const lodash = require('lodash')
-const BytecodeActions = require('haiku-bytecode/src/actions')
-const expressionToRO = require('@haiku/player/lib/reflection/expressionToRO').default
 
 const DURATION_DRAG_INCREASE = 20 // Increase by this much per each duration increase
 const DURATION_DRAG_TIMEOUT = 300 // Wait this long before increasing the duration
@@ -386,8 +384,8 @@ class Timeline extends BaseModel {
     | | | | | | | | | | | | | | | | |
             <-----------> << timelines viewport
     <------->           | << properties viewport
-            pxA         pxB                     
-                                    |pxMax      
+            pxA         pxB
+                                    |pxMax
     <SCROLLBAR>
     |-------------------| << scroller viewport
         *====*            << scrollbar
@@ -417,7 +415,7 @@ class Timeline extends BaseModel {
     // The leftmost frame on the visible range
     frameInfo.friA = (this.getLeftFrameEndpoint() < frameInfo.fri0)
       ? frameInfo.fri0
-      : this.getLeftFrameEndpoint() 
+      : this.getLeftFrameEndpoint()
 
     // The maximum frame that can be reached via scrolling on the timeline
     // If the defined frame is too small, use our own virtual maximum

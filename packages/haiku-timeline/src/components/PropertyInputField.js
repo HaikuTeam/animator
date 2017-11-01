@@ -47,12 +47,12 @@ export default class PropertyInputField extends React.Component {
           outline: 'none'
         }}
         onClick={(clickEvent) => {
-          this.props.row.select()
+          this.props.row.select({ from: 'timeline' })
           clickEvent.stopPropagation()
         }}
         onDoubleClick={(clickEvent) => {
-          this.props.row.focus()
-          this.props.row.select()
+          this.props.row.focus({ from: 'timeline' })
+          this.props.row.select({ from: 'timeline' })
           clickEvent.stopPropagation()
         }}>
         <div

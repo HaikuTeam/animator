@@ -28,7 +28,7 @@ class Row extends BaseModel {
     return `${this.element.getComponentId()}-${this.getType()}-${this.getClusterNameString()}-${this.getPropertyNameString()}`
   }
 
-  select () {
+  select (metadata) {
     if (!this._isSelected || !Row._selected[this.getUniqueKey()]) {
       Row.all().forEach((row) => {
         if (row !== this) row.deselect()
@@ -36,15 +36,23 @@ class Row extends BaseModel {
       this._isSelected = true
       Row._selected[this.getUniqueKey()] = this
       this.emit('update', 'row-selected')
+
+      // if (this.isHeading()) {
+      //   this.element.select(metadata)
+      // }
     }
     return this
   }
 
-  deselect () {
+  deselect (metadata) {
     if (this._isSelected || Row._selected[this.getUniqueKey()]) {
       this._isSelected = false
       delete Row._selected[this.getUniqueKey()]
       this.emit('update', 'row-deselected')
+
+      // if (this.isHeading()) {
+      //   this.element.unselect(metadata)
+      // }
     }
     return this
   }
@@ -178,22 +186,22 @@ class Row extends BaseModel {
     return this
   }
 
-  expandAndSelect () {
-    this.expand()
-    this.select()
+  expandAndSelect (metadata) {
+    this.expand(metadata)
+    this.select(metadata)
     return this
   }
 
-  collapseAndDeselect () {
-    this.collapse()
-    this.deselect()
+  collapseAndDeselect (metadata) {
+    this.collapse(metadata)
+    this.deselect(metadata)
     return this
   }
 
   getBaselineValueAtMillisecond (ms) {
     const { baselineValue } = getPropertyValueDescriptor(this, {
       timelineTime: ms,
-      timelineName: this.timeline.getName(),
+      timelineName: this.timeline.getName()
     })
 
     return baselineValue
@@ -202,7 +210,7 @@ class Row extends BaseModel {
   createKeyframe (value, ms, metadata) {
     // If creating a keyframe on a cluster row, create one for all of the child rows
     if (this.isClusterHeading()) {
-      return this.children.forEach((child) => child.createKeyframe(value, ms, metadata))      
+      return this.children.forEach((child) => child.createKeyframe(value, ms, metadata))
     }
 
     const siblings = this.getKeyframes()
@@ -257,7 +265,7 @@ class Row extends BaseModel {
       row: this,
       element: this.element,
       timeline: this.timeline,
-      component: this.component,
+      component: this.component
     })
 
     // Update the bytecode directly via ActiveComponent, which updates Timeline UI
@@ -539,18 +547,18 @@ Row.cyclicalNav = function cyclicalNav (row, navDir) {
   return target
 }
 
-Row.focusSelectNext = function focusSelectNext (navDir, doFocus) {
+Row.focusSelectNext = function focusSelectNext (navDir, doFocus, metadata) {
   const selected = Row.getSelectedRow()
   const focused = Row.getFocusedRow()
 
   if (selected) {
-    selected.blur()
-    selected.deselect()
+    selected.blur(metadata)
+    selected.deselect(metadata)
   }
 
   if (focused) {
-    focused.blur()
-    focused.deselect()
+    focused.blur(metadata)
+    focused.deselect(metadata)
   }
 
   const previous = focused || selected
@@ -559,22 +567,22 @@ Row.focusSelectNext = function focusSelectNext (navDir, doFocus) {
     ? Row.cyclicalNav(previous, navDir)
     : Row.cyclicalNav(Row.find({ place: 0 }), navDir)
 
-  target.expand()
-  target.select()
-  if (doFocus) target.focus()
+  target.expand(metadata)
+  target.select(metadata)
+  if (doFocus) target.focus(metadata)
 
   return target
 }
 
-Row.deselectBlurAll = function deselectBlurAll () {
+Row.deselectBlurAll = function deselectBlurAll (metadata) {
   return Row.all().forEach((row) => {
-    row.deselect()
-    row.blur()
+    row.deselect(metadata)
+    row.blur(metadata)
   })
 }
 
-Row.focusCurrentlySelectedRow = function focusCurrentlySelectedRow () {
-  return Row.getSelectedRow().focus()
+Row.focusCurrentlySelectedRow = function focusCurrentlySelectedRow (metadata) {
+  return Row.getSelectedRow().focus(metadata)
 }
 
 Row.getSelectedRow = function getSelectedRow () {
