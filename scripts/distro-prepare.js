@@ -35,14 +35,10 @@ var YARN_INSTALL_DEV_FLAGS = [
   '--mutex file:/tmp/.yarn-mutex' // Avoid intermittent concurrency bugs in yarn
 ]
 
-var YARN_INSTALL_PROD_FLAGS = [
+var YARN_INSTALL_PROD_FLAGS = YARN_INSTALL_DEV_FLAGS.concat([
   '--production', // Strip out dev dependencies
-  '--force', // Clean out any stripped-out dependencies
-  '--ignore-engines', // Ignore any (spurious) engine errors
-  '--non-interactive', // Don't prompt (just in case)
-  '--prefer-offline', // Use the packages we've already installed locally
-  '--mutex file:/tmp/.yarn-mutex' // Avoid intermittent concurrency bugs in yarn
-]
+  '--force' // Clean out any stripped-out dependencies
+])
 
 if (!process.env.TRAVIS) {
   // If not in CI, don't recompile, since we already have done so locally
