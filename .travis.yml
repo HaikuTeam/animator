@@ -16,7 +16,7 @@ before_install:
   - nvm use 8.4.0
 
 install:
-  - yarn
+  - yarn install --frozen-lockfile
 
 script:
   - set -e
