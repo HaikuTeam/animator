@@ -302,5 +302,5 @@ TransitionBody.propTypes = {
   ctxmenu: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
-  $update: React.PropTypes.object.isRequired,
+  $update: React.PropTypes.object.isRequired
 }

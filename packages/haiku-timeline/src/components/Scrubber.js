@@ -121,5 +121,5 @@ export default class Scrubber extends React.Component {
 Scrubber.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   reactParent: React.PropTypes.object.isRequired,
-  $update: React.PropTypes.object.isRequired,
+  $update: React.PropTypes.object.isRequired
 }

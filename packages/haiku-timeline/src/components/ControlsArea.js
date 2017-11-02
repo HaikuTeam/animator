@@ -88,5 +88,5 @@ export default class ControlsArea extends React.Component {
 }
 
 ControlsArea.propTypes = {
-  timeline: React.PropTypes.object.isRequired,
+  timeline: React.PropTypes.object.isRequired
 }

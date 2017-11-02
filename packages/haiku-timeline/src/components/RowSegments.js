@@ -145,5 +145,5 @@ RowSegments.propTypes = {
   component: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
   $update: React.PropTypes.object.isRequired,
-  includeDraggables: React.PropTypes.bool.isRequired,
+  includeDraggables: React.PropTypes.bool.isRequired
 }

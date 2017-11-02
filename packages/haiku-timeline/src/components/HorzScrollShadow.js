@@ -25,7 +25,7 @@ export default class HorzScrollShadow extends React.Component {
     const frameInfo = this.props.timeline.getFrameInfo()
 
     if (frameInfo.scA < 1) {
-      return <span></span>
+      return <span />
     }
 
     return (
@@ -37,11 +37,11 @@ export default class HorzScrollShadow extends React.Component {
         zIndex: 2003,
         top: 0,
         boxShadow: '3px 0 6px 0 rgba(0,0,0,.22)'
-      }}></span>
+      }} />
     )
   }
 }
 
 HorzScrollShadow.propTypes = {
-  timeline: React.PropTypes.object.isRequired,
+  timeline: React.PropTypes.object.isRequired
 }

@@ -152,5 +152,5 @@ PropertyRow.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
-  $update: React.PropTypes.object.isRequired,
+  $update: React.PropTypes.object.isRequired
 }

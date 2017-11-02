@@ -107,5 +107,5 @@ export default class GaugeTimeReadout extends React.Component {
 GaugeTimeReadout.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   reactParent: React.PropTypes.object.isRequired,
-  timeDisplayMode: React.PropTypes.string.isRequired,
+  timeDisplayMode: React.PropTypes.string.isRequired
 }

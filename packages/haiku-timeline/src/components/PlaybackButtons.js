@@ -105,7 +105,7 @@ class PlaybackButtons extends React.Component {
 }
 
 PlaybackButtons.propTypes = {
-  timeline: React.PropTypes.object.isRequired,
+  timeline: React.PropTypes.object.isRequired
 }
 
 export default Radium(PlaybackButtons)

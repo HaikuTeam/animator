@@ -132,5 +132,5 @@ export default class TimelineRangeScrollbar extends React.Component {
 TimelineRangeScrollbar.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   reactParent: React.PropTypes.object.isRequired,
-  $update: React.PropTypes.object.isRequired,
+  $update: React.PropTypes.object.isRequired
 }

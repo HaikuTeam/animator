@@ -54,7 +54,7 @@ const DEFAULTS = {
   isControlKeyDown: false,
   isAltKeyDown: false,
   avoidTimelinePointerEvents: false,
-  $update: { time: Date.now() }, // legacy?
+  $update: { time: Date.now() } // legacy?
 }
 
 const THROTTLE_TIME = 32 // ms
@@ -166,7 +166,7 @@ class Timeline extends React.Component {
 
     this.addEmitterListener(this.ctxmenu, 'createKeyframe', (event, model, offset) => {
       const { ms } = this.getEventPositionInfo(event, offset)
-      // The model here might be 
+      // The model here might be
       model.createKeyframe(undefined, ms, { from: 'timeline' })
     })
 
@@ -196,7 +196,7 @@ class Timeline extends React.Component {
 
     this.addEmitterListener(Row, 'update', (row, what) => {
       if (what === 'row-collapsed' || what === 'row-expanded') {
-        this.forceUpdate()  
+        this.forceUpdate()
       }
     })
 

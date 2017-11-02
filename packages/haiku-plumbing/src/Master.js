@@ -309,7 +309,6 @@ export default class Master extends EventEmitter {
             if (err) return logger.info(err)
             logger.info('[master] file ingested:', abspath)
             if (relpath === this._component.fetchActiveBytecodeFile().relpath) {
-
               file.substructInitialized = file.reinitializeSubstruct(this._config.get('config'), 'Master.handleFileChange')
 
               if (file.previous !== file.contents) {

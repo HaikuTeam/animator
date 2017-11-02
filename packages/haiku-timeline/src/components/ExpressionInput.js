@@ -1109,5 +1109,5 @@ ExpressionInput.propTypes = {
   reactParent: React.PropTypes.object.isRequired,
   onNavigateRequested: React.PropTypes.func.isRequired,
   onCommitValue: React.PropTypes.func.isRequired,
-  onFocusRequested: React.PropTypes.func.isRequired,
+  onFocusRequested: React.PropTypes.func.isRequired
 }

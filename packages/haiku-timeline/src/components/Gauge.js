@@ -66,5 +66,5 @@ export default class Gauge extends React.Component {
 Gauge.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   timeDisplayMode: React.PropTypes.string.isRequired,
-  $update: React.PropTypes.object.isRequired,
+  $update: React.PropTypes.object.isRequired
 }
