@@ -19,7 +19,6 @@ install:
   - yarn install --frozen-lockfile
 
 script:
-  - set -e
   - ./build.sh
 
 notifications:

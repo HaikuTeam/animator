@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+set -e
 node ./scripts/distro-configure.js --non-interactive # 0m
 node ./scripts/distro-download-secrets.js
 yarn relink
