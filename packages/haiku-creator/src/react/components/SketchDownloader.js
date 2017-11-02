@@ -1,6 +1,7 @@
 import React from 'react'
 import {download} from '../../utils/sketchUtils'
 import {DOWNLOAD_STYLES as STYLES} from '../styles/downloadShared'
+import {createSketchDialogFile} from 'haiku-serialization/src/utils/HaikuHomeDir'
 
 let statuses = {
   PROMPT_USER: 'PromptUser',
@@ -30,6 +31,7 @@ class SketchDownloader extends React.Component {
 
   download (url) {
     this.setState({status: statuses.DOWNLOADING})
+    this.checkIfShouldShowAgain()
 
     download(this.updateProgress, () => this.state.shouldCancel)
       .then(() => {
@@ -60,6 +62,15 @@ class SketchDownloader extends React.Component {
       progress: 0,
       shouldCancel: false
     })
+
+    this.checkIfShouldShowAgain()
+  }
+
+  checkIfShouldShowAgain () {
+    if (this.checkInput.checked) {
+      this.props.onSketchDialogFileCreated()
+      createSketchDialogFile()
+    }
   }
 
   renderPromptUser () {
@@ -70,6 +81,17 @@ class SketchDownloader extends React.Component {
           You can install a 30-day trial for free.
         </p>
         <p>Would you like to download Sketch?</p>
+
+        <form action='#' style={STYLES.formInput}>
+          <input
+            type='checkbox'
+            name='not-show-again'
+            id='not-show-again'
+            style={STYLES.checkInput}
+            ref={(input) => { this.checkInput = input }} />
+          <label htmlFor='not-show-again'>Don't show this again.</label>
+        </form>
+
         <button style={STYLES.btnSecondary} onClick={this.hide}>
           Not now
         </button>
