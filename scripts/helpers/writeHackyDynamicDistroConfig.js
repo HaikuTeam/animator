@@ -4,10 +4,6 @@ var path = require('path')
 var ROOT = path.join(__dirname, '..', '..')
 
 module.exports = function writeHackyDynamicDistroConfig (inputs) {
-  process.env.NODE_ENV = (inputs.environment === 'production')
-    ? 'production'
-    : 'development'
-
   var src = fse.readFileSync(path.join(ROOT, '_config.js.handlebars')).toString()
   var tpl = hb.compile(src)
   var result = tpl(inputs)

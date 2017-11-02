@@ -5,13 +5,12 @@ var lodash = require('lodash')
 var inquirer = require('inquirer')
 var log = require('./helpers/log')
 var writeHackyDynamicDistroConfig = require('./helpers/writeHackyDynamicDistroConfig')
-
-if (process.env.TRAVIS) {
-  process.env.NODE_ENV = process.env.TRAVIS_BRANCH
-}
+var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
 
 var ROOT = path.join(__dirname, '..')
 var ENVS = { test: true, development: true, staging: true, production: true }
+
+forceNodeEnvProduction()
 
 var inputs = lodash.assign({
   branch: 'master',
@@ -25,12 +24,11 @@ var inputs = lodash.assign({
 delete inputs.$0
 delete inputs._
 
-if (process.env.NODE_ENV === 'production') {
-  inputs.environment = 'production'
-  inputs.uglify = true
-} else if (process.env.NODE_ENV === 'staging') {
-  inputs.environment = 'staging'
-  inputs.uglify = false
+if (process.env.TRAVIS) {
+  // Always assume the in-app NODE_ENV will be 'staging' unless this is production
+  if (process.env.TRAVIS_BRANCH === 'production') {
+    inputs.environment = 'production'
+  }
 }
 
 if (!argv['non-interactive']) {

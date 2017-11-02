@@ -1,19 +1,18 @@
 var path = require('path')
 var fse = require('fs-extra')
 var initializeAWSService = require('./helpers/initializeAWSService')
+var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
+
+var config = require('./../config')
+forceNodeEnvProduction()
+
 var deploy = require('./deploy')
-
-if (process.env.TRAVIS) {
-  process.env.NODE_ENV = process.env.TRAVIS_BRANCH
-}
-
-if (!process.env.NODE_ENV) throw new Error('NODE_ENV needs to be set')
 
 var s3 = initializeAWSService(
   'S3',
   'us-east-1',
-  deploy.deployer[process.env.NODE_ENV].key,
-  deploy.deployer[process.env.NODE_ENV].secret
+  deploy.deployer[config.environment].key,
+  deploy.deployer[config.environment].secret
 )
 
 fse.mkdirpSync(deploy.vault)

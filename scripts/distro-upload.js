@@ -1,9 +1,12 @@
-var deploy = require('./deploy')
 var log = require('./helpers/log')
 var slackShout = require('./helpers/slackShout')
 var uploadRelease = require('./helpers/uploadRelease')
+var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
 
-var config = require('./../config.js')
+var config = require('./../config')
+forceNodeEnvProduction()
+
+var deploy = require('./deploy')
 
 var platform = process.env.HAIKU_RELEASE_PLATFORM
 var branch = process.env.HAIKU_RELEASE_BRANCH

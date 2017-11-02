@@ -1,7 +1,9 @@
 var cp = require('child_process')
 var path = require('path')
+var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
 
 require('./../config')
+forceNodeEnvProduction()
 
 var ROOT = path.join(__dirname, '..')
 var DISTRO_SOURCE = path.join(ROOT, 'source')
