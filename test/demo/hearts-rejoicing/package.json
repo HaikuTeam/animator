@@ -11,11 +11,6 @@
   ],
   "license": "UNLICENSED",
   "main": "index.js",
-  "engines": {
-    "node": "6.6.0",
-    "npm": "3.10.3",
-    "electron": "1.7.0"
-  },
   "dependencies": {
     "@haiku/player": "0.16.0"
   }
