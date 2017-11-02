@@ -513,6 +513,14 @@ export default class MasterGitProject extends EventEmitter {
       return fse.copy(this.folder, this._folderState.tmpDir, (err) => {
         if (err) return cb(err)
 
+        // Don't include the git database as part of the copy since we'll be copying back into
+        // a directory that is going to contain all of the remote information, etc.
+        try {
+          fse.removeSync(path.join(this._folderState.tmpDir, '.git'))
+        } catch (exception) {
+          log.info('[master-git] could not remove .git folder from temp dir', exception)
+        }
+
         logger.info('[master-git] emptying original dir', this.folder)
 
         // Folder must be empty for a Git clone to take place
@@ -522,15 +530,6 @@ export default class MasterGitProject extends EventEmitter {
         })
       })
     })
-  }
-
-  // Before the first time we clone, add an artificial timer that waits a couple
-  // of seconds before attempting. Basically, give the cloud a chance to set things
-  // up *before* we immediately call clone, that way we don't call it prematurely
-  // and then have to wait an additional 10 seconds before trying again
-  hackyInitialDelayBeforeFirstCloneAttempt (cb) {
-    logger.info(`[master-git] waiting before first clone attempt`)
-    return setTimeout(cb, CLONE_INIT_DELAY)
   }
 
   cloneRemoteIntoFolder (cb) {
@@ -1026,12 +1025,7 @@ export default class MasterGitProject extends EventEmitter {
         if (!isGitInitialized && !isCodeCommitReady) {
           actionSequence = ['initializeGit']
         } else if (!isGitInitialized && isCodeCommitReady) {
-          actionSequence = [
-            'moveContentsToTemp',
-            'hackyInitialDelayBeforeFirstCloneAttempt',
-            'cloneRemoteIntoFolder',
-            'copyContentsFromTemp'
-          ]
+          actionSequence = ['initializeGit']
         } else if (isGitInitialized && !isCodeCommitReady) {
           actionSequence = []
         } else if (isGitInitialized && isCodeCommitReady) {
@@ -1099,6 +1093,7 @@ export default class MasterGitProject extends EventEmitter {
           ]
         } else if (!isGitInitialized && isCodeCommitReady) {
           actionSequence = [
+            'initializeGit',
             'moveContentsToTemp',
             'cloneRemoteIntoFolder',
             'copyContentsFromTemp',
