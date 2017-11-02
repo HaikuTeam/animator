@@ -328,14 +328,22 @@ export default class Creator extends React.Component {
     this.props.websocket.on('open', () => {
       this.props.websocket.request({ method: 'isUserAuthenticated', params: [] }, (error, authAnswer) => {
         if (error) {
-          console.error(error)
-          return this.createNotice({
-            type: 'error',
-            title: 'Oh no!',
-            message: 'We had a problem accessing your account. 😢 Please try closing and reopening the application. If you still see this message, contact Haiku for support.',
-            closeText: 'Okay',
-            lightScheme: true
-          })
+          if (error.message === 'Organization error') {
+            this.setState({
+              isUserAuthenticated: false,
+              username: null,
+              password: null,
+              readyForAuth: true
+            })
+          } else {
+            return this.createNotice({
+              type: 'error',
+              title: 'Oh no!',
+              message: 'We had a problem accessing your account. 😢 Please try closing and reopening the application. If you still see this message, contact Haiku for support.',
+              closeText: 'Okay',
+              lightScheme: true
+            })
+          }
         }
 
         mixpanel.mergeToPayload({ distinct_id: authAnswer && authAnswer.username })

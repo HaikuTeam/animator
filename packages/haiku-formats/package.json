@@ -20,10 +20,12 @@
   ],
   "license": "UNLICENSED",
   "dependencies": {
+    "bezier-easing": "^2.0.3",
     "haiku-common": "HaikuTeam/common.git",
     "@haiku/player": "HaikuTeam/player.git",
     "haiku-sdk-creator": "HaikuTeam/sdk-creator.git",
-    "haiku-serialization": "HaikuTeam/serialization.git"
+    "haiku-serialization": "HaikuTeam/serialization.git",
+    "lodash": "^4.17.4"
   },
   "devDependencies": {
     "@types/node": "^8.0.34",

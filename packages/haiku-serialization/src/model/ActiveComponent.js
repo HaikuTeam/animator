@@ -1234,6 +1234,15 @@ ActiveComponent.prototype.mountApplication = function mountApplication (mount, c
 }
 
 /**
+ * @method reloadBytecodeFromDisk
+ * @description Reloads bytecode from disk. This may be necessary if we want to munge on a copy of bytecode for our
+ * own purposes, e.g. during export to another format.
+ */
+ActiveComponent.prototype.reloadBytecodeFromDisk = function reloadBytecodeFromDisk (cb) {
+  this.fetchActiveBytecodeFile().read(cb)
+}
+
+/**
  * @method moduleReplace
  * @description The more severe cousin of mountApplication which also displays a message on the view
  * indicating that reloading is occurring. This is really only used in the Glass, where code reload

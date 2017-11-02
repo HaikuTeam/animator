@@ -1,10 +1,18 @@
+import * as difference from 'lodash/difference';
+import * as mapKeys from 'lodash/mapKeys';
+
 import {Maybe} from 'haiku-common/lib/types';
 import {Curve} from 'haiku-common/lib/types/enums';
 import * as visitTemplate from 'haiku-serialization/src/model/helpers/visitTemplate';
 
 import {SvgTag} from '../../svg/enums';
 import {Exporter} from '..';
-import {getCurveInterpolationPoints} from '../curves';
+import {
+  decomposeCurveBetweenKeyframes,
+  getCurveInterpolationPoints,
+  isDecomposableCurve,
+  splitBezierForTimelinePropertyAtKeyframe,
+} from '../curves';
 import {
   AnimationKey,
   LayerKey,
@@ -13,6 +21,8 @@ import {
   PropertyKey,
   ShapeKey,
   ShapeType,
+  StrokeLinecap,
+  StrokeLinejoin,
   TransformKey,
 } from './bodymovinEnums';
 import {
@@ -21,6 +31,7 @@ import {
   rotationTransformer,
   linecapTransformer,
   scaleTransformer,
+  linejoinTransformer,
 } from './bodymovinTransformers';
 import {SvgInheritable} from './bodymovinTypes';
 import {
@@ -207,6 +218,25 @@ export class BodymovinExporter implements Exporter {
   }
 
   /**
+   * Wrapper around `getValue()` which checks if a property exists on the current timeline before accessing it.
+   *
+   * If the property does exist, a fixed default value is returned instead.
+   *
+   * @param timeline
+   * @param property
+   * @param defaultValue
+   * @param {?Function} mutator
+   * @returns {any}
+   */
+  private getValueOrDefaultFromTimeline(timeline, property, defaultValue, mutator = undefined) {
+    if (timeline.hasOwnProperty(property)) {
+      return this.getValue(timeline[property], mutator);
+    }
+
+    return getFixedPropertyValue(defaultValue);
+  }
+
+  /**
    * Provides standard transforms for all transformables.
    *
    * Currently, this method only supports opacity, which works the same way (and must be hardcoded at 100% if not
@@ -217,9 +247,7 @@ export class BodymovinExporter implements Exporter {
    */
   private standardTransformsForTimeline(timeline) {
     return {
-      [TransformKey.Opacity]: timeline.hasOwnProperty('opacity')
-        ? this.getValue(timeline.opacity, opacityTransformer)
-        : getFixedPropertyValue(100),
+      [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'opacity', 100, opacityTransformer),
     };
   }
 
@@ -231,10 +259,12 @@ export class BodymovinExporter implements Exporter {
    * transformations, in addition to explicitly setting the transform-origin for Bodymovin to correctly display
    * translations, rotations, and scale.
    * @param timeline
-   * @returns {[key in TransformKey]: {}}
+   * @returns {[key in TransformKey]: any}
    */
   private transformsForLayerTimeline(timeline) {
     const transforms = {};
+    transforms[TransformKey.OuterRadius] = getFixedPropertyValue([0, 0, 0]);
+
     let centerX = 0;
     let centerY = 0;
 
@@ -256,17 +286,12 @@ export class BodymovinExporter implements Exporter {
       transforms[TransformKey.Position] = getFixedPropertyValue([0, 0, 0]);
     }
 
-    if (timeline.hasOwnProperty('rotation.x')) {
-      transforms[TransformKey.RotationX] = this.getValue(timeline['rotation.x'], rotationTransformer);
-    }
-
-    if (timeline.hasOwnProperty('rotation.y')) {
-      transforms[TransformKey.RotationY] = this.getValue(timeline['rotation.y'], rotationTransformer);
-    }
-
-    if (timeline.hasOwnProperty('rotation.z')) {
-      transforms[TransformKey.RotationZ] = this.getValue(timeline['rotation.z'], rotationTransformer);
-    }
+    transforms[TransformKey.RotationX] =
+      this.getValueOrDefaultFromTimeline(timeline, 'rotation.x', 0, rotationTransformer);
+    transforms[TransformKey.RotationY] =
+      this.getValueOrDefaultFromTimeline(timeline, 'rotation.y', 0, rotationTransformer);
+    transforms[TransformKey.RotationZ] =
+      this.getValueOrDefaultFromTimeline(timeline, 'rotation.z', 0, rotationTransformer);
 
     if (timeline.hasOwnProperty('scale.x') && timeline.hasOwnProperty('scale.y')) {
       transforms[TransformKey.Scale] = this.getValue([timeline['scale.x'], timeline['scale.y']], scaleTransformer);
@@ -288,6 +313,8 @@ export class BodymovinExporter implements Exporter {
   private transformsForShapeTimeline(timeline) {
     const transforms = {
       [TransformKey.TransformOrigin]: getFixedPropertyValue([0, 0]),
+      [TransformKey.Scale]: getFixedPropertyValue([100, 100]),
+      [TransformKey.Rotation]: getFixedPropertyValue(0),
     };
 
     if (timeline.hasOwnProperty('translation.x') && timeline.hasOwnProperty('translation.y')) {
@@ -295,10 +322,6 @@ export class BodymovinExporter implements Exporter {
     } else {
       transforms[TransformKey.Position] = getFixedPropertyValue([0, 0]);
     }
-
-    // TODO: Actually apply transformations for scale and rotation, if ever appropriate.
-    transforms[TransformKey.Scale] = getFixedPropertyValue([100, 100]);
-    transforms[TransformKey.Rotation] = getFixedPropertyValue(0);
 
     return transforms;
   }
@@ -381,6 +404,7 @@ export class BodymovinExporter implements Exporter {
   private handleSvgLayer(node) {
     const timeline = this.timelineForId(node.attributes['haiku-id']);
     this.layers.push({
+      [LayerKey.Name]: node.attributes['haiku-title'],
       [LayerKey.InPoint]: 0,
       [LayerKey.StartTime]: 0,
       [LayerKey.Index]: this.zIndexForNode(node),
@@ -400,18 +424,30 @@ export class BodymovinExporter implements Exporter {
    */
   private strokeShapeFromTimeline(timeline) {
     // Return early if there is nothing to render.
-    if (!timeline.hasOwnProperty('stroke') || !timeline.hasOwnProperty('stroke-width')) {
-      return;
+    if (!timeline.hasOwnProperty('stroke') || !timeline.hasOwnProperty('stroke-width') ||
+      timeline.stroke[0].value === 'none') {
+      return {
+        [ShapeKey.Type]: ShapeType.Stroke,
+        [TransformKey.Opacity]: getFixedPropertyValue(0),
+        [TransformKey.StrokeWidth]: getFixedPropertyValue(0),
+        [TransformKey.Color]: getFixedPropertyValue([0, 0, 0, 0]),
+        [TransformKey.StrokeLinecap]: StrokeLinecap.Square,
+        [TransformKey.StrokeLinejoin]: StrokeLinejoin.Miter,
+      };
     }
 
-    const stroke = {};
-    stroke[ShapeKey.Type] = ShapeType.Stroke;
-    stroke[TransformKey.Opacity] = getFixedPropertyValue(100);
-    stroke[TransformKey.StrokeWidth] = this.getValue(timeline['stroke-width'], parseInt);
-    stroke[TransformKey.Color] = this.getValue(timeline.stroke, colorTransformer);
-    if (timeline.hasOwnProperty('stroke-linecap')) {
-      stroke[TransformKey.StrokeLinecap] = linecapTransformer(timeline['stroke-linecap'][0].value);
-    }
+    const stroke = {
+      [ShapeKey.Type]: ShapeType.Stroke,
+      [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'stroke-opacity', 100, opacityTransformer),
+      [TransformKey.StrokeWidth]: this.getValue(timeline['stroke-width'], parseInt),
+      [TransformKey.Color]: this.getValue(timeline.stroke, colorTransformer),
+      [TransformKey.StrokeLinecap]: timeline.hasOwnProperty('stroke-linecap')
+        ? linecapTransformer(timeline['stroke-linecap'][0].value)
+        : StrokeLinecap.Square,
+      [TransformKey.StrokeLinejoin]: timeline.hasOwnProperty('stroke-linejoin')
+        ? linejoinTransformer(timeline['stroke-linejoine'][0].value)
+        : StrokeLinejoin.Miter,
+    };
 
     return stroke;
   }
@@ -422,13 +458,17 @@ export class BodymovinExporter implements Exporter {
    * @returns {?{}}
    */
   private fillShapeFromTimeline(timeline) {
-    if (!timeline.hasOwnProperty('fill')) {
-      return;
+    if (!timeline.hasOwnProperty('fill') || timeline.fill[0].value === 'none') {
+      return {
+        [ShapeKey.Type]: ShapeType.Fill,
+        [TransformKey.Opacity]: getFixedPropertyValue(0),
+        [TransformKey.Color]: getFixedPropertyValue([0, 0, 0, 0]),
+      };
     }
 
     return {
       [ShapeKey.Type]: ShapeType.Fill,
-      [TransformKey.Opacity]: getFixedPropertyValue(100),
+      [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'fill-opacity', 100, opacityTransformer),
       [TransformKey.Color]: this.getValue(timeline.fill, colorTransformer),
     };
   }
@@ -442,12 +482,17 @@ export class BodymovinExporter implements Exporter {
     shape[ShapeKey.Type] = ShapeType.Ellipse;
     if (timeline.hasOwnProperty('cy') && timeline.hasOwnProperty('cx')) {
       shape[TransformKey.Position] = this.getValue([timeline.cx, timeline.cy], (s) => parseInt(s, 10));
+    } else {
+      shape[TransformKey.Position] = getFixedPropertyValue([0, 0]);
     }
 
     if (timeline.hasOwnProperty('r')) {
       shape[TransformKey.Size] = this.getValue([timeline.r, timeline.r], (r) => 2 * r);
     } else if (timeline.hasOwnProperty('rx') && timeline.hasOwnProperty('ry')) {
       shape[TransformKey.Size] = this.getValue([timeline.rx, timeline.ry], (r) => 2 * r);
+    } else {
+      // It would be ideal to abort the shape layer here, but for now we can just shrink it to radius 0.
+      shape[TransformKey.Size] = getFixedPropertyValue([0, 0]);
     }
   }
 
@@ -462,6 +507,7 @@ export class BodymovinExporter implements Exporter {
    */
   private decorateRectangle(timeline, shape, transform) {
     shape[ShapeKey.Type] = ShapeType.Rectangle;
+    shape[TransformKey.Position] = getFixedPropertyValue([0, 0]);
     if (timeline.hasOwnProperty('sizeAbsolute.x') && timeline.hasOwnProperty('sizeAbsolute.y')) {
       shape[TransformKey.Size] = this.getValue([timeline['sizeAbsolute.x'], timeline['sizeAbsolute.y']]);
       if (timeline.hasOwnProperty('x') && timeline.hasOwnProperty('y')) {
@@ -471,9 +517,8 @@ export class BodymovinExporter implements Exporter {
         ]);
       }
     }
-    if (timeline.hasOwnProperty('rx')) {
-      shape[TransformKey.BorderRadius] = this.getValue(timeline.rx, (s) => parseInt(s, 10));
-    }
+
+    shape[TransformKey.BorderRadius] = this.getValueOrDefaultFromTimeline(timeline, 'rx', 0, parseInt);
   }
 
   /**
@@ -553,7 +598,6 @@ export class BodymovinExporter implements Exporter {
 
   /**
    * Handles a shape internally.
-   * TODO: Support stroke-opacity and fill-opacity.
    * @param node
    * @param parentNode
    */
@@ -561,15 +605,8 @@ export class BodymovinExporter implements Exporter {
     const timeline = this.timelineForId(node.attributes['haiku-id'], parentNode.attributes['haiku-id']);
     const groupItems: any[] = [];
 
-    const stroke = this.strokeShapeFromTimeline(timeline);
-    if (stroke) {
-      groupItems.push(stroke);
-    }
-
-    const fill = this.fillShapeFromTimeline(timeline);
-    if (fill) {
-      groupItems.push(fill);
-    }
+    groupItems.push(this.strokeShapeFromTimeline(timeline));
+    groupItems.push(this.fillShapeFromTimeline(timeline));
 
     const shape = {};
     const transform = {
@@ -691,6 +728,47 @@ export class BodymovinExporter implements Exporter {
   }
 
   /**
+   * Internal method for visiting every timeline and applying a callback to it.
+   */
+  private visitAllTimelines(callback: (timeline: any) => void) {
+    for (const timelineId in this.bytecode.timelines) {
+      for (const haikuId in this.bytecode.timelines[timelineId]) {
+        callback(this.bytecode.timelines[timelineId][haikuId]);
+      }
+    }
+  }
+
+  /**
+   * Internal method for visiting every timeline property and applying a callback to it.
+   */
+  private visitAllTimelineProperties(callback: (timeline: any, property: string) => void) {
+    this.visitAllTimelines((timeline) => {
+      for (const property in timeline) {
+        callback(timeline, property);
+      }
+    });
+  }
+
+  /**
+   * Normalizes keyframes so we can use 60fps without major modifications to direct parsing logic.
+   *
+   * Bodymovin uses keyframe-based transitions.
+   */
+  private normalizeKeyframes() {
+    this.visitAllTimelineProperties((timeline, property) => {
+      const timelineProperty = timeline[property];
+      const millitimes = keyframesFromTimelineProperty(timelineProperty);
+      // Ignore the 0 keyframe.
+      millitimes.shift();
+      if (millitimes.length < 1) {
+        return;
+      }
+
+      timeline[property] = mapKeys(timeline[property], (_, millitime) => Math.round(millitime * 6 / 1e2));
+    });
+  }
+
+  /**
    * Normalizes curves present in (for now wrapper-child only) transitions.
    *
    * Because After Effects/Bodymovin does not support "jump to" transitions (which in Haiku is the equivalent of
@@ -731,6 +809,81 @@ export class BodymovinExporter implements Exporter {
   }
 
   /**
+   * Identifies and decomposes all ...Bounce and ...Elastic curves into a chain of beziers.
+   *
+   * ...Bounce and ...Elastic curves can be decomposed into a sequence of continuous beziers using some shoddy
+   * heuristics, which at speed approximate the actual behavior of the discontinuous functions they're derived from.
+   */
+  private decomposeCompoundCurves() {
+    this.visitAllTimelineProperties((timeline, property) => {
+      const timelineProperty = timeline[property];
+      const keyframes = keyframesFromTimelineProperty(timelineProperty);
+      keyframes.forEach((keyframe, index) => {
+        if (!timelineProperty[keyframe].hasOwnProperty('curve') || index === keyframes.length - 1 ||
+          !isDecomposableCurve(timelineProperty[keyframe].curve)) {
+          // There's naught to decompose here!
+          return;
+        }
+
+        decomposeCurveBetweenKeyframes(timelineProperty, keyframe, keyframes[index + 1]);
+      });
+    });
+  }
+
+  /**
+   * Aligns curve keyframes for coupled properties, i.e. properties that are animated together.
+   *
+   * This method is responsible for ensuring that misaligned keyframes for properties that are required to animate
+   * together are realigned.
+   *
+   * TODO: Support ['translation.x', 'translation.y'] for the edge case that a user manually edits the bytecode to
+   * tween the elements inside an SVG container. Bodymovin does not support position-splitting for the innards of
+   * shapes.
+   */
+  private alignCurveKeyframes() {
+    // Store the set of coupled properties that might have to be animated together with presently disjointed keyframes.
+    // This is currently limited to scale.x and scale.y, but we may need to add more later.
+    const coupledPropertyLists = [['scale.x', 'scale.y']];
+    this.visitAllTimelines((timeline) => {
+      coupledPropertyLists.forEach((coupledPropertyList) => {
+        if (!coupledPropertyList.every((property) => property in timeline)) {
+          // We only might need to preprocess elements that are actually transformed by all coupled properties in
+          // each list.
+          return;
+        }
+
+        const keyframeLists = coupledPropertyList.map((property) => keyframesFromTimelineProperty(timeline[property]));
+        const injections = new Map();
+        for (let i = 0; i < keyframeLists.length - 1; ++i) {
+          for (let j = i + 1; j < keyframeLists.length; ++j) {
+            // Compare each set of keyframes pairwise, and note which ones are missing.
+            const iProperty = coupledPropertyList[i];
+            const jProperty = coupledPropertyList[j];
+            difference(keyframeLists[i], keyframeLists[j]).forEach((keyframe) => {
+              if (!injections.has(jProperty)) {
+                injections.set(jProperty, new Set());
+              }
+              injections.get(jProperty).add(keyframe);
+            });
+            difference(keyframeLists[j], keyframeLists[i]).forEach((keyframe) => {
+              if (!injections.has(iProperty)) {
+                injections.set(iProperty, new Set());
+              }
+              injections.get(iProperty).add(keyframe);
+            });
+          }
+        }
+
+        injections.forEach((set, property) => {
+          const keyframes = Array.from(set) as number[];
+          keyframes.sort((a, b) => a - b);
+          keyframes.forEach((keyframe) => splitBezierForTimelinePropertyAtKeyframe(timeline[property], keyframe));
+        });
+      });
+    });
+  }
+
+  /**
    * Gets the z-index for a specific node.
    * @param node
    * @returns {number}
@@ -752,8 +905,19 @@ export class BodymovinExporter implements Exporter {
       throw new Error(`Unexpected wrapper element: ${this.bytecode.template.elementName}`);
     }
 
+    // Rewrite timelines to use keyframes instead of millitimes, which is the Bodymovin way. It makes sense to do
+    // this step prior to the subsequent ones, since we might end up with fewer keyframes in the later steps for a
+    // subtle runtime performance boost.
+    this.normalizeKeyframes();
+
+    // Decompose non-bezier curves (i.e. ...Bounce and ...Elastic curves) into multiple bezier curves.
+    this.decomposeCompoundCurves();
+
     // Normalize curves to remove any problematic/noisy behavior.
     this.normalizeCurves();
+
+    // Preprocess curves that are incompatible with Bodymovin rendering.
+    this.alignCurveKeyframes();
 
     // Handle the wrapper as a special case.
     this.handleWrapper();

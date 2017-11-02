@@ -43,5 +43,12 @@ export const DOWNLOAD_STYLES = {
   },
   progressBar: {
     width: '100%'
+  },
+  formInput: {
+    display: 'flex',
+    marginBottom: 15
+  },
+  checkInput: {
+    marginRight: 10
   }
 }
