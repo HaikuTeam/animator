@@ -1,4 +1,11 @@
-import {AnimationKey, PathKey, PropertyKey} from './bodymovinEnums';
+import {
+  AnimationKey,
+  PathKey,
+  PropertyKey,
+  ShapeKey,
+  ShapeType,
+  TransformKey
+} from './bodymovinEnums';
 import {BodymovinCoordinates, BodymovinPathComponent, BodymovinProperty} from './bodymovinTypes';
 import SVGPoints from '@haiku/player/lib/helpers/SVGPoints';
 const {pathToPoints} = SVGPoints;
@@ -107,14 +114,14 @@ export const getBodymovinVersion = () => require('../../../package.json').devDep
  * @returns BodymovinProperty
  */
 export const getFixedPropertyValue = (fixedValue: any): BodymovinProperty => {
-  const value = {} as BodymovinProperty;
-  value[PropertyKey.Animated] = 0;
-  value[PropertyKey.Value] = fixedValue;
-  return value;
+  return {
+    [PropertyKey.Animated]: 0,
+    [PropertyKey.Value]: fixedValue,
+  } as BodymovinProperty;
 };
 
 /**
- * Force a possibly scalar value to be an array.
+ * Forces a possibly scalar value to be an array.
  * @param maybeArray
  * @returns {any[]}
  */
@@ -124,6 +131,73 @@ export const alwaysArray = (maybeArray: any): any[] => {
   }
 
   return [maybeArray];
+};
+
+/**
+ * Forces a possibly percent value to be an absolute value.
+ *
+ * We need this behavior a lot when dealing with paint server fills and strokes, since After Effects doesn't have a
+ * concept of relative gradient stops.
+ * @param {string | number} maybePercent
+ * @param {number} basis
+ * @returns {number}
+ */
+export const alwaysAbsolute = (maybePercent: string|number, basis: number): number => {
+  if (typeof maybePercent === 'string' && /^\d*\.?\d+?%$/.test(maybePercent)) {
+    return parseFloat(maybePercent.replace('%', '')) * basis / 100;
+  }
+
+  return Number(maybePercent);
+};
+
+/**
+ * Gets the initial value of a timeline property.
+ *
+ * Warning: this method uses unchecked property access, assuming that the caller has already checked the timeline
+ * property exists. In cases where there's no need to check outside the context of this property, prefer
+ * `initialValueOrNull` below.
+ * @param timeline
+ * @param {string} property
+ * @returns {any}
+ */
+export const initialValue = (timeline: any, property: string): any => timeline[property][0].value;
+
+/**
+ * Get the initial value of a timeline property, or `null` if the property is not defined.
+ * @param timeline
+ * @param {string} property
+ * @returns {any?}
+ */
+export const initialValueOrNull = (timeline: any, property: string): any =>
+  timeline.hasOwnProperty(property) ? initialValue(timeline, property) : null;
+
+/**
+ * Gets the dimensions of a shape constructed during shape-parsing.
+ * @param shape
+ * @returns {[number , number]}
+ */
+export const getShapeDimensions = (shape: any): [number, number] => {
+  switch (shape[ShapeKey.Type]) {
+    case ShapeType.Rectangle:
+    case ShapeType.Ellipse:
+      return shape[TransformKey.Size][PropertyKey.Value];
+    case ShapeType.Shape:
+      if (!shape.hasOwnProperty(ShapeKey.Vertices)) {
+        return [0, 0];
+      }
+
+      // Find the maximal X-vertex and the maximal Y-vertex. Note: this may fail to actually capture the bounding
+      // box of all shapes. It is suitable for all polygons (convex and concave), but might miss e.g. an arc or bezier
+      // curve whose path traces beyond the convex hull of the set of vertices. The upshot of missing this is
+      // currently only that we might fail to perfectly render a gradient fill, so it's not the end of the world!
+      const vertices = shape[ShapeKey.Vertices][PropertyKey.Value][PathKey.Points];
+      return [
+        Math.max(...vertices.map((vertex) => vertex[0])),
+        Math.max(...vertices.map((vertex) => vertex[1])),
+      ];
+    default:
+      throw new Error(`Invalid request to get dimensions for shape type: ${shape[ShapeKey.Type]}`);
+  }
 };
 
 /**

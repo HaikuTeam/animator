@@ -265,16 +265,180 @@ tape('BodymovinExporter', (test: tape.Test) => {
     test.equal(ty, 4, 'identifies shape layers');
 
     {
-      const {ty, w, c} = stroke;
+      const {ty, w, c, lc, lj, d} = stroke;
       test.equal(ty, 'st', 'identifies stroke');
       test.deepEqual(w, {a: 0, k: 10}, 'parses stroke width');
       test.deepEqual(c, {a: 0, k: [1, 0, 0, 1]}, 'parses stroke color');
+      test.equal(lc, 3, 'uses stroke-linecap="square" by default');
+      test.equal(lj, 1, 'uses stroke-linejoin="miter" by default');
+      test.deepEqual(d, [], 'uses no stroke-dasharray by default');
     }
 
     {
-      const {ty, c} = fill;
+      const {ty, c, r} = fill;
       test.equal(ty, 'fl', 'identifies fill');
       test.deepEqual(c, {a: 0, k: [0, 1, 0, 1]}, 'parses fill color');
+      test.equal(r, 1, 'uses fill-rule="nonzero" by default');
+    }
+
+    test.end();
+  });
+
+  test.test('handles special stroke behaviors', (test: tape.Test) => {
+    const bytecode = baseBytecodeCopy();
+    overrideShapeAttributes(bytecode, {
+      stroke: {0: {value: '#000'}},
+      'stroke-width': {0: {value: 10}},
+      'stroke-linecap': {0: {value: 'butt'}},
+      'stroke-linejoin': {0: {value: 'bevel'}},
+      'stroke-dasharray': {0: {value: '1'}},
+    });
+
+    const {
+      layers: [{
+        shapes: [{it: [_, stroke]}],
+      }],
+    } = rawOutput(bytecode);
+
+    const {lc, lj, d} = stroke;
+    test.equal(lc, 1, 'parses and transforms stroke-linecap');
+    test.equal(lj, 3, 'parses and transforms stroke-linejoin');
+    test.deepEqual(
+      d,
+      [
+        {
+          n: 'd',
+          v: {
+            a: 0,
+            k: 1,
+          },
+        },
+        {
+          n: 'g',
+          v: {
+            a: 0,
+            k: 1,
+          },
+        },
+      ],
+      'parses and transforms stroke-dasharray',
+    );
+
+    test.end();
+  });
+
+  test.test('handles special fill behaviors', (test: tape.Test) => {
+    const bytecode = baseBytecodeCopy();
+    overrideShapeAttributes(bytecode, {
+      fill: {0: {value: '#000'}},
+      'fill-rule': {0: {value: 'evenodd'}},
+    });
+
+    const {
+      layers: [{
+        shapes: [{it: [_, __, fill]}],
+      }],
+    } = rawOutput(bytecode);
+
+    const {r} = fill;
+    test.equal(r, 2, 'parses and transforms fill-rule');
+    test.end();
+  });
+
+  test.test('handles gradient fills', (test: tape.Test) => {
+    // We'll fill a 100x200 rectangle in this test.
+    const bytecode = baseBytecodeCopy();
+    overrideShapeElement(bytecode, 'rect');
+
+    bytecode.timelines.Default['haiku:stop1'] = {
+      offset: {0: {value: '0%'}},
+      'stop-color': {0: {value: '#000'}},
+    };
+
+    bytecode.timelines.Default['haiku:stop2'] = {
+      offset: {0: {value: '100%'}},
+      'stop-color': {0: {value: '#FFF'}},
+    };
+
+    // Scope for testing linear gradients.
+    {
+      overrideShapeAttributes(bytecode, {
+        'sizeAbsolute.x': {0: {value: 100}},
+        'sizeAbsolute.y': {0: {value: 200}},
+        fill: {0: {value: 'url( "#gradient" )'}},
+      });
+
+      bytecode.timelines.Default['haiku:g'] = {
+        x1: {0: {value: '50%'}},
+        y1: {0: {value: '50%'}},
+        x2: {0: {value: '75%'}},
+        y2: {0: {value: '75%'}},
+      };
+
+      bytecode.template.children[0].children.unshift({
+        elementName: 'defs',
+        attributes: {'haiku-id': 'unused'},
+        children: [{
+          elementName: 'linearGradient',
+          attributes: {'haiku-id': 'g', id: 'gradient'},
+          children: [
+            {elementName: 'stop', attributes: {'haiku-id': 'stop1'}, children: []},
+            {elementName: 'stop', attributes: {'haiku-id': 'stop2'}, children: []},
+          ],
+        }],
+      });
+
+      const {
+        layers: [{
+          shapes: [{it: [_, __, fill]}],
+        }],
+      } = rawOutput(bytecode);
+
+      const {ty, t, g, s, e} = fill;
+      test.equal(ty, 'gf', 'identifies a gradient fill for <linearGradient>');
+      test.equal(t, 1, 'identifies a linear gradient');
+      test.deepEqual(s.k, [50, 100], 'interprets percents as whole values to transform <linearGradient> (x1, y1)');
+      test.deepEqual(e.k, [75, 150], 'interprets percents as whole values to transform <linearGradient> (x2, y2)');
+      test.deepEqual(g.p, 2, 'correctly counts the number of gradient stop-points');
+      test.deepEqual(
+        g.k.k,
+        [0, 0, 0, 0, 1, 1, 1, 1],
+        'reformats the stop chain into as a flattened list: <normalizedOffset, normalizedR, normalizedG, normalizedB>',
+      );
+    }
+
+    // Scope for testing radial gradients.
+    {
+      bytecode.timelines.Default['haiku:rg'] = {
+        cx: {0: {value: '50%'}},
+        cy: {0: {value: '50%'}},
+        fx: {0: {value: '60%'}},
+        fy: {0: {value: '60%'}},
+        r: {0: {value: '50%'}},
+      };
+
+      // We can reuse most of the mutations of the base bytecode in this scope. We just need to change the name of
+      // the element to trigger the special handling.
+      bytecode.template.children[0].children[0].children[0].elementName = 'radialGradient';
+
+      const {
+        layers: [{
+          shapes: [{it: [_, __, fill]}],
+        }],
+      } = rawOutput(bytecode);
+
+      const {ty, t, g, s, e} = fill;
+      test.equal(ty, 'gf', 'identifies a gradient fill for <radialGradient>');
+      test.equal(t, 2, 'identifies a radial gradient');
+      test.deepEqual(s.k, [50, 100], 'interprets percents as whole values to transform <linearGradient> (cx, cy)');
+      // Note: Adding support for fx and fy should break the next assertion. If it doesn't, something is wrong.
+      test.deepEqual(e.k, [50, 200], 'interprets percents as whole values to transform <linearGradient> (r)');
+      test.deepEqual(g.p, 2, 'correctly counts the number of gradient stop-points');
+      test.deepEqual(
+        g.k.k,
+        [0, 0, 0, 0, 1, 1, 1, 1],
+        'reformats the stop chain into as a flattened list: <normalizedOffset, normalizedR, normalizedG, normalizedB>',
+      );
     }
 
     test.end();
@@ -494,6 +658,17 @@ tape('BodymovinExporter', (test: tape.Test) => {
       const {layers: [{shapes}]} = rawOutput(bytecode);
       test.deepEqual(shapes[0].it[0].ks.k.v, [[0, 0], [1, 1]], 'creates a shape from the first closed segment');
       test.deepEqual(shapes[1].it[0].ks.k.v, [[2, 2], [3, 3]], 'creates additional shapes from other closed segments');
+    }
+
+    // Scope for testing compound shapes painted with the evenodd fill-rule.
+    {
+      overrideShapeAttributes(bytecode, {
+        d: {0: {value: 'M0,0 L1,1 L0,0 Z M2,2 L3,3 L2,2 Z'}},
+        'fill-rule': {0: {value: 'evenodd'}},
+      });
+
+      const {layers: [{shapes}]} = rawOutput(bytecode);
+      test.equal(shapes.length, 1, 'does not split compound shapes if they use the evenodd fill-rule');
     }
 
     // Scope for testing cubic bezier support.

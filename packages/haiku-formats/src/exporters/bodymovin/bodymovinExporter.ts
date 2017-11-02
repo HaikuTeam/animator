@@ -1,4 +1,5 @@
 import * as difference from 'lodash/difference';
+import * as flatten from 'lodash/flatten';
 import * as mapKeys from 'lodash/mapKeys';
 
 import {Maybe} from 'haiku-common/lib/types';
@@ -15,6 +16,9 @@ import {
 } from '../curves';
 import {
   AnimationKey,
+  FillRule,
+  GradientKey,
+  GradientType,
   LayerKey,
   LayerType,
   PathKey,
@@ -32,19 +36,26 @@ import {
   linecapTransformer,
   scaleTransformer,
   linejoinTransformer,
+  fillruleTransformer,
+  dasharrayTransformer,
+  getValueReferenceMatchArray,
 } from './bodymovinTransformers';
 import {SvgInheritable} from './bodymovinTypes';
 import {
+  alwaysAbsolute,
   alwaysArray,
   compoundTimelineReducer,
   decomposeMaybeCompoundPath,
   getBodymovinVersion,
   getFixedPropertyValue,
+  getShapeDimensions,
+  initialValue,
+  initialValueOrNull,
   keyframesFromTimelineProperty,
   maybeApplyMutatorToProperty,
   pathToInterpolationTrace,
   pointsToInterpolationTrace,
-  timelineValuesAreEquivalent,
+  timelineValuesAreEquivalent
 } from './bodymovinUtils';
 
 let bodymovinVersion: Maybe<string>;
@@ -145,6 +156,16 @@ export class BodymovinExporter implements Exporter {
     }
 
     return timeline;
+  }
+
+  /**
+   * Retrieves the timeline for a specific node.
+   * @param node
+   * @param parentNode
+   * @returns {{}}
+   */
+  private timelineForNode(node: any, parentNode?: any) {
+    return this.timelineForId(node.attributes['haiku-id'], parentNode ? parentNode.attributes['haiku-id'] : undefined);
   }
 
   /**
@@ -270,8 +291,8 @@ export class BodymovinExporter implements Exporter {
 
     // Calculate the 2D center for 3D transformations.
     if (timeline.hasOwnProperty('sizeAbsolute.x') && timeline.hasOwnProperty('sizeAbsolute.y')) {
-      centerX = timeline['sizeAbsolute.x'][0].value / 2;
-      centerY = timeline['sizeAbsolute.y'][0].value / 2;
+      centerX = initialValue(timeline, 'sizeAbsolute.x') / 2;
+      centerY = initialValue(timeline, 'sizeAbsolute.y') / 2;
     }
 
     transforms[TransformKey.TransformOrigin] = getFixedPropertyValue([centerX, centerY, 0]);
@@ -356,8 +377,8 @@ export class BodymovinExporter implements Exporter {
    */
   private handleTransclusion(node, parentNode) {
     // Write a new haiku ID based on the result of transcluding the requested ID to this element.
+    const originalTimeline = this.timelineForNode(node);
     const originalHaikuId = node.attributes['haiku-id'];
-    const originalTimeline = this.timelineForId(originalHaikuId);
     let transcludedIdField;
     if (originalTimeline.hasOwnProperty('href')) {
       transcludedIdField = 'href';
@@ -370,7 +391,7 @@ export class BodymovinExporter implements Exporter {
       return;
     }
 
-    const transcludedId = originalTimeline[transcludedIdField][0].value.replace(/^#/, '');
+    const transcludedId = initialValue(originalTimeline, transcludedIdField).replace(/^#/, '');
     if (!this.transclusions.hasOwnProperty(transcludedId)) {
       // Not good, and shouldn't happen! Do nothing.
       return;
@@ -379,8 +400,8 @@ export class BodymovinExporter implements Exporter {
     const newNode = this.transclusions[transcludedId];
     const newHaikuId = `${originalHaikuId}:${transcludedId}`;
     this.bytecode.timelines.Default[`haiku:${newHaikuId}`] = {
-      ...this.timelineForId(newNode.attributes['haiku-id']),
-      ...this.timelineForId(originalHaikuId),
+      ...this.timelineForNode(newNode),
+      ...originalTimeline,
     };
 
     this.handleElement(
@@ -402,7 +423,7 @@ export class BodymovinExporter implements Exporter {
    * @param node
    */
   private handleSvgLayer(node) {
-    const timeline = this.timelineForId(node.attributes['haiku-id']);
+    const timeline = this.timelineForNode(node);
     this.layers.push({
       [LayerKey.Name]: node.attributes['haiku-title'],
       [LayerKey.InPoint]: 0,
@@ -421,11 +442,12 @@ export class BodymovinExporter implements Exporter {
    * Fetches a stroke shape from a timeline.
    * @param timeline
    * @returns {?{}}
+   * TODO: Support paint server strokes (i.e. gradients and patterns).
    */
   private strokeShapeFromTimeline(timeline) {
     // Return early if there is nothing to render.
     if (!timeline.hasOwnProperty('stroke') || !timeline.hasOwnProperty('stroke-width') ||
-      timeline.stroke[0].value === 'none') {
+      initialValue(timeline, 'stroke') === 'none') {
       return {
         [ShapeKey.Type]: ShapeType.Stroke,
         [TransformKey.Opacity]: getFixedPropertyValue(0),
@@ -433,6 +455,7 @@ export class BodymovinExporter implements Exporter {
         [TransformKey.Color]: getFixedPropertyValue([0, 0, 0, 0]),
         [TransformKey.StrokeLinecap]: StrokeLinecap.Square,
         [TransformKey.StrokeLinejoin]: StrokeLinejoin.Miter,
+        [TransformKey.StrokeDasharray]: [],
       };
     }
 
@@ -441,36 +464,143 @@ export class BodymovinExporter implements Exporter {
       [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'stroke-opacity', 100, opacityTransformer),
       [TransformKey.StrokeWidth]: this.getValue(timeline['stroke-width'], parseInt),
       [TransformKey.Color]: this.getValue(timeline.stroke, colorTransformer),
-      [TransformKey.StrokeLinecap]: timeline.hasOwnProperty('stroke-linecap')
-        ? linecapTransformer(timeline['stroke-linecap'][0].value)
-        : StrokeLinecap.Square,
-      [TransformKey.StrokeLinejoin]: timeline.hasOwnProperty('stroke-linejoin')
-        ? linejoinTransformer(timeline['stroke-linejoine'][0].value)
-        : StrokeLinejoin.Miter,
+      [TransformKey.StrokeLinecap]: linecapTransformer(initialValueOrNull(timeline, 'stroke-linecap')),
+      [TransformKey.StrokeLinejoin]: linejoinTransformer(initialValueOrNull(timeline, 'stroke-linejoin')),
+      [TransformKey.StrokeDasharray]: dasharrayTransformer(initialValueOrNull(timeline, 'stroke-dasharray')),
     };
 
     return stroke;
   }
 
   /**
+   * Decorates a fill with the <stop> nodes from the children of a <linearGradient> or <radialGradient> node.
+   * @param gradient
+   * @param probablyStops
+   */
+  private decorateGradientStops(gradient, probablyStops) {
+    const stops = [];
+    probablyStops.forEach((node) => {
+      if (node.elementName !== 'stop') {
+        return;
+      }
+
+      const timeline = this.timelineForNode(node);
+      if (!timeline.hasOwnProperty('stop-color') || !timeline.hasOwnProperty('offset')) {
+        return;
+      }
+
+      const color = colorTransformer(initialValue(timeline, 'stop-color'));
+      const offset = initialValue(timeline, 'offset');
+      // Bodymovin smushes together stop offsets and alpha-ignored colors using the notation:
+      // <normalizedOffset, normalizedR, normalizedG, normalizedB>
+      stops.push([
+        alwaysAbsolute(offset, 1),
+        color[0],
+        color[1],
+        color[2],
+      ]);
+    });
+
+    gradient[TransformKey.GradientStops] = {
+      [GradientKey.TotalStops]: stops.length,
+      [GradientKey.Stops]: getFixedPropertyValue(flatten(stops)),
+    };
+  }
+
+  /**
+   * Decorates a paint server fill (e.g. a gradient or pattern fill) for a
+   * @param fill
+   * @param shape
+   * @param paintServerId
+   *
+   * Note: `gradientTransform(...)` is currently elided, possibly producing obviously incorrect results, especially
+   * on radial gradients.
+   * TODO: Parse and normalize `gradientTransform` to ensure correct results.
+   * TODO: Break up this giant method into smaller methods.
+   * TODO: Support pattern fills once available in Bodymovin.
+   */
+  private decoratePaintServerFill(fill, shape, paintServerId) {
+    if (!this.transclusions.hasOwnProperty(paintServerId)) {
+      return;
+    }
+
+    const [width, height] = getShapeDimensions(shape);
+    const node = this.transclusions[paintServerId];
+    const timeline = this.timelineForNode(node);
+
+    switch (node.elementName) {
+      case SvgTag.LinearGradient:
+        fill[ShapeKey.Type] = ShapeType.GradientFill;
+        this.decorateGradientStops(fill, node.children);
+        fill[TransformKey.GradientType] = GradientType.Linear;
+
+        // Normalize the gradient in and out-points relative to the overall dimensions of the shape. Per the spec,
+        // the default vector <x1, y1, x2, y2> is <0%, 0%, 100%, 0%> when any value is not explicitly provided.
+        const [x1, x2] = [
+          initialValueOrNull(timeline, 'x1') || 0,
+          initialValueOrNull(timeline, 'x2') || width,
+        ].map((x) => alwaysAbsolute(x, width));
+
+        const [y1, y2] = [
+          initialValueOrNull(timeline, 'y1') || 0,
+          initialValueOrNull(timeline, 'y2') || 0,
+        ].map((y) => alwaysAbsolute(y, height));
+
+        fill[TransformKey.GradientStart] = getFixedPropertyValue([x1, y1]);
+        fill[TransformKey.GradientEnd] = getFixedPropertyValue([x2, y2]);
+        break;
+      case SvgTag.RadialGradient:
+        fill[ShapeKey.Type] = ShapeType.GradientFill;
+        this.decorateGradientStops(fill, node.children);
+        fill[TransformKey.GradientType] = GradientType.Radial;
+        const cx = alwaysAbsolute((initialValueOrNull(timeline, 'cx') || '50%'), width);
+        const cy = alwaysAbsolute((initialValueOrNull(timeline, 'cy') || '50%'), height);
+        const r = alwaysAbsolute((initialValueOrNull(timeline, 'r') || '50%'), Math.max(width, height));
+        fill[TransformKey.GradientStart] = getFixedPropertyValue([cx, cy]);
+        // Note: right now, we are implicitly assuming the origin of the radial gradient is the same as its
+        // transformation basis. Fixing this is quite difficult, and can be summarized as follows.
+        // TODO: Support fx and fy.
+        fill[TransformKey.GradientEnd] = getFixedPropertyValue([cx, cy + r]);
+        break;
+      default:
+        // This is probably a pattern fill, which Bodymovin doesn't seem to support.
+        console.warn(`[formats] encountered unsupported paint server: ${node.elementName}`);
+    }
+  }
+
+  /**
    * Fetches a fill shape from a timeline.
    * @param timeline
+   * @param shape
    * @returns {?{}}
    */
-  private fillShapeFromTimeline(timeline) {
-    if (!timeline.hasOwnProperty('fill') || timeline.fill[0].value === 'none') {
+  private fillShapeFromTimeline(timeline, shape) {
+    if (!timeline.hasOwnProperty('fill') || initialValue(timeline, 'fill') === 'none') {
       return {
         [ShapeKey.Type]: ShapeType.Fill,
         [TransformKey.Opacity]: getFixedPropertyValue(0),
         [TransformKey.Color]: getFixedPropertyValue([0, 0, 0, 0]),
+        [TransformKey.FillRule]: FillRule.Nonzero,
       };
     }
 
-    return {
-      [ShapeKey.Type]: ShapeType.Fill,
+    const fill = {
       [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'fill-opacity', 100, opacityTransformer),
-      [TransformKey.Color]: this.getValue(timeline.fill, colorTransformer),
+      [TransformKey.FillRule]: fillruleTransformer(initialValueOrNull(timeline, 'fill-rule')),
     };
+
+    const matches = getValueReferenceMatchArray(initialValue(timeline, 'fill'));
+
+    if (matches !== null) {
+      // We matched a value reference, e.g. something like `fill="url(#foobar)"`. This means we are dealing with a
+      // paint server fill.
+      this.decoratePaintServerFill(fill, shape, matches[1]);
+    } else {
+      fill[ShapeKey.Type] = ShapeType.Fill;
+      fill[TransformKey.Color] = this.getValue(timeline.fill, colorTransformer);
+    }
+
+    return fill;
   }
 
   /**
@@ -512,10 +642,12 @@ export class BodymovinExporter implements Exporter {
       shape[TransformKey.Size] = this.getValue([timeline['sizeAbsolute.x'], timeline['sizeAbsolute.y']]);
       if (timeline.hasOwnProperty('x') && timeline.hasOwnProperty('y')) {
         transform[TransformKey.Position] = getFixedPropertyValue([
-          parseInt(timeline.x[0].value, 10) + timeline['sizeAbsolute.x'][0].value / 2,
-          parseInt(timeline.y[0].value, 10) + timeline['sizeAbsolute.y'][0].value / 2,
+          parseFloat(initialValue(timeline, 'x')) + initialValue(timeline, 'sizeAbsolute.x') / 2,
+          parseFloat(initialValue(timeline, 'y')) + initialValue(timeline, 'sizeAbsolute.y') / 2,
         ]);
       }
+    } else {
+      shape[TransformKey.Size] = getFixedPropertyValue([0, 0]);
     }
 
     shape[TransformKey.BorderRadius] = this.getValueOrDefaultFromTimeline(timeline, 'rx', 0, parseInt);
@@ -535,7 +667,7 @@ export class BodymovinExporter implements Exporter {
         [PropertyKey.Animated]: 0,
         [PropertyKey.Value]: {
           [PathKey.Closed]: true,
-          ...pointsToInterpolationTrace(timeline.points[0].value),
+          ...pointsToInterpolationTrace(initialValue(timeline, 'points')),
         },
       };
     }
@@ -556,8 +688,10 @@ export class BodymovinExporter implements Exporter {
       return;
     }
 
-    const path = timeline.d[0].value;
-    const pathSegments = decomposeMaybeCompoundPath(path);
+    const path = initialValue(timeline, 'd');
+    const pathSegments = initialValueOrNull(timeline, 'fill-rule') === 'evenodd'
+      ? [path]
+      : decomposeMaybeCompoundPath(path);
 
     if (pathSegments.length === 1) {
       shape[ShapeKey.Vertices] = {
@@ -602,11 +736,8 @@ export class BodymovinExporter implements Exporter {
    * @param parentNode
    */
   private handleShape(node, parentNode) {
-    const timeline = this.timelineForId(node.attributes['haiku-id'], parentNode.attributes['haiku-id']);
+    const timeline = this.timelineForNode(node, parentNode);
     const groupItems: any[] = [];
-
-    groupItems.push(this.strokeShapeFromTimeline(timeline));
-    groupItems.push(this.fillShapeFromTimeline(timeline));
 
     const shape = {};
     const transform = {
@@ -635,6 +766,8 @@ export class BodymovinExporter implements Exporter {
     }
 
     // Push the shape to the top of the group stack, and append the transform at the end.
+    groupItems.push(this.strokeShapeFromTimeline(timeline));
+    groupItems.push(this.fillShapeFromTimeline(timeline, shape));
     groupItems.unshift(shape);
     groupItems.push(transform);
     this.activeLayer[LayerKey.Shapes].unshift({
@@ -685,13 +818,16 @@ export class BodymovinExporter implements Exporter {
    * TODO: Support animations on the wrapper color and opacity.
    */
   private handleWrapper() {
-    const wrapperTimeline = this.timelineForId(this.bytecode.template.attributes['haiku-id']);
+    const wrapperTimeline = this.timelineForNode(this.bytecode.template);
     if (wrapperTimeline.hasOwnProperty('sizeAbsolute.x') && wrapperTimeline.hasOwnProperty('sizeAbsolute.y')) {
-      const [width, height] = [wrapperTimeline['sizeAbsolute.x'][0].value, wrapperTimeline['sizeAbsolute.y'][0].value];
+      const [width, height] = [
+        initialValue(wrapperTimeline, 'sizeAbsolute.x'),
+        initialValue(wrapperTimeline, 'sizeAbsolute.y'),
+      ];
       this.animationWidth = width;
       this.animationHeight = height;
       if (wrapperTimeline.hasOwnProperty('backgroundColor')) {
-        const color = wrapperTimeline.backgroundColor[0].value;
+        const color = initialValue(wrapperTimeline, 'backgroundColor');
         if (!color) {
           // Nothing to do here!
           return;
@@ -777,18 +913,22 @@ export class BodymovinExporter implements Exporter {
    */
   private normalizeCurves() {
     this.bytecode.template.children.forEach((node) => {
-      const timeline = this.timelineForId(node.attributes['haiku-id']);
+      const timeline = this.timelineForNode(node);
       for (const property in timeline) {
         const timelineProperty = timeline[property];
         const keyframes = keyframesFromTimelineProperty(timelineProperty);
         keyframes.forEach((keyframe, index) => {
-          if (timelineProperty[keyframe].hasOwnProperty('curve') || index === keyframes.length - 1) {
+          if (timelineProperty[keyframe].hasOwnProperty('curve')) {
             // Either a curve is defined or there is no next keyframe. Either way, there's nothing to normalize.
             return;
           }
 
           // Create a linear tween to enforce that every transition has a curve, which is a requirement for Bodymovin.
           timelineProperty[keyframe].curve = Curve.Linear;
+
+          if (index === keyframes.length - 1) {
+            return;
+          }
 
           if (keyframe + 1 === keyframes[index + 1] ||
             timelineValuesAreEquivalent(
@@ -889,9 +1029,9 @@ export class BodymovinExporter implements Exporter {
    * @returns {number}
    */
   private zIndexForNode(node) {
-    const timeline = this.timelineForId(node.attributes['haiku-id']);
+    const timeline = this.timelineForNode(node);
     if (timeline.hasOwnProperty('style.zIndex')) {
-      return timeline['style.zIndex'][0].value;
+      return initialValue(timeline, 'style.zIndex');
     }
 
     return 0;
