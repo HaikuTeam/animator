@@ -18,6 +18,7 @@ export enum LayerKey {
   Type = 'ty',
   Transform = 'ks',
   Index = 'ind',
+  Name = 'nm',
 }
 
 export enum LayerType {
@@ -62,6 +63,7 @@ export enum TransformKey {
   Position = 'p',
   PositionSplit = 's',
   Opacity = 'o',
+  OuterRadius = 'or',
   Rotation = 'r',
   RotationX = 'rx',
   RotationY = 'ry',
@@ -70,10 +72,17 @@ export enum TransformKey {
   Size = 's',
   StrokeWidth = 'w',
   StrokeLinecap = 'lc',
+  StrokeLinejoin = 'lj',
 }
 
 export enum StrokeLinecap {
   Butt = 1,
   Round = 2,
   Square = 3,
+}
+
+export enum StrokeLinejoin {
+  Miter = 1,
+  Round = 2,
+  Bevel = 3,
 }

@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@haiku/player@2.3.16":
-  version "2.3.16"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.16.tgz#9dc477e837b03aa774f57285118f2a6da65d0409"
+"@haiku/player@2.3.17":
+  version "2.3.17"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.17.tgz#473db811e87d8ecefbce5dace733a0be9460878d"
   dependencies:
     lodash "^4.17.4"
     react "15.4.2"

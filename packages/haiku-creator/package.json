@@ -2,7 +2,7 @@
   "name": "haiku-creator-electron",
   "productName": "Haiku",
   "private": true,
-  "version": "2.3.16",
+  "version": "2.3.17",
   "description": "Haiku Creator UI",
   "main": "index.js",
   "author": "Matthew Trost <matthew@haiku.ai>",
@@ -11,12 +11,6 @@
     "presets": [
       "react-app"
     ]
-  },
-  "engines": {
-    "node": "8.4.0",
-    "npm": "5.3.0",
-    "yarn": "1.0.2",
-    "electron": "1.7.0"
   },
   "scripts": {
     "start": "electron ./lib/electron.js",

@@ -10,7 +10,7 @@ var EXEC_OPTIONS = {
 lodash.forEach(allPackages, function (pack) {
   log.log('yarn install for ' + pack.name)
 
-  cp.execSync('yarn install --mutex file:/tmp/.yarn-mutex --ignore-engines --non-interactive', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath, stdio: 'inherit' }))
+  cp.execSync('yarn install --mutex file:/tmp/.yarn-mutex --network-concurrency 1 --ignore-engines --non-interactive', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath, stdio: 'inherit' }))
 
   // special snowflake...
   if (pack.name === 'haiku-plumbing') {

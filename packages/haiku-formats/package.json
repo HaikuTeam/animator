@@ -1,6 +1,6 @@
 {
   "name": "haiku-formats",
-  "version": "2.3.16",
+  "version": "2.3.17",
   "description": "Formatting-related utilities for Haiku.",
   "main": "lib/index.js",
   "directories": {
@@ -18,18 +18,14 @@
   "authors": [
     "Sasha Joseph <sasha@haiku.ai>"
   ],
-  "engines": {
-    "node": "8.4.0",
-    "npm": "5.3.0",
-    "yarn": "1.0.2",
-    "electron": "1.7.0"
-  },
   "license": "UNLICENSED",
   "dependencies": {
+    "bezier-easing": "^2.0.3",
     "haiku-common": "HaikuTeam/common.git",
     "@haiku/player": "HaikuTeam/player.git",
     "haiku-sdk-creator": "HaikuTeam/sdk-creator.git",
-    "haiku-serialization": "HaikuTeam/serialization.git"
+    "haiku-serialization": "HaikuTeam/serialization.git",
+    "lodash": "^4.17.4"
   },
   "devDependencies": {
     "@types/node": "^8.0.34",

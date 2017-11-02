@@ -3,8 +3,10 @@ var cp = require('child_process')
 var path = require('path')
 var log = require('./helpers/log')
 var CompileOrder = require('./helpers/CompileOrder')
+var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
 
 require('./../config')
+forceNodeEnvProduction()
 
 var ROOT = path.join(__dirname, '..')
 var DISTRO_SOURCE = path.join(ROOT, 'source') // Location of distro source code to push
@@ -27,25 +29,26 @@ var RSYNC_FLAGS = [
   '--no-links' // Exclude all symlinks - assumed to be haiku internal (we'll inject these)
 ]
 
-var YARN_INSTALL_DEV_FLAGS = [
-  '--production=false', // Explicitly turn off in case NODE_ENV is set to production
+var YARN_INSTALL_FLAGS_COMMON = [
+  '--frozen-lockfile', // Force use of dependencies from yarn.lock
   '--ignore-engines', // Ignore any (spurious) engine errors
   '--non-interactive', // Don't prompt (just in case)
   '--prefer-offline', // Use the packages we've already installed locally
-  '--mutex file:/tmp/.yarn-mutex' // Avoid intermittent concurrency bugs in yarn
+  '--mutex file:/tmp/.yarn-mutex' // Try to avoid intermittent concurrency bugs in yarn
 ]
 
-var YARN_INSTALL_PROD_FLAGS = [
-  '--production', // Strip out dev dependencies
-  '--force', // Clean out any stripped-out dependencies
-  '--ignore-engines', // Ignore any (spurious) engine errors
-  '--non-interactive', // Don't prompt (just in case)
-  '--prefer-offline', // Use the packages we've already installed locally
-  '--mutex file:/tmp/.yarn-mutex' // Avoid intermittent concurrency bugs in yarn
-]
+var YARN_INSTALL_DEV_FLAGS = YARN_INSTALL_FLAGS_COMMON.concat([
+  '--production=false' // Override the NODE_ENV setting when installing dev dependencies
+])
+
+var YARN_INSTALL_PROD_FLAGS = YARN_INSTALL_FLAGS_COMMON.concat([
+  '--production=true', // Strip out dev dependencies,
+  '--force' // Clean out any stripped-out dependencies
+])
 
 if (!process.env.TRAVIS) {
-  // If not in CI, don't recompile, since we already have done so locally
+  // If not in CI, **don't** recompile, since we already have done so locally
+  // and this is more than likely going to be a waste of time
   YARN_INSTALL_PROD_FLAGS.push('--ignore-scripts')
   YARN_INSTALL_DEV_FLAGS.push('--ignore-scripts')
 }

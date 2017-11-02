@@ -18,6 +18,7 @@ const log = require('./helpers/log')
 const getDefinedKeys = require('./helpers/getDefinedKeys')
 const getHaikuKnownImportMatch = require('./helpers/getHaikuKnownImportMatch')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
+const { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
 
 const WEBSOCKET_BATCH_INTERVAL = 250
 const KEYFRAME_MOVE_THROTTLE_TIME = 250
@@ -131,8 +132,12 @@ class ActiveComponent extends BaseModel {
 
     this._envoyClient.get('timeline').then((timelineChannel) => {
       this._envoyTimelineChannel = timelineChannel
-
       this.emit('envoy:timelineClientReady', this._envoyTimelineChannel)
+    })
+
+    this._envoyClient.get(GLASS_CHANNEL).then((glassChannel) => {
+      this._envoyGlassChannel = glassChannel
+      this.emit('envoy:glassClientReady', this._envoyGlassChannel)
     })
 
     this._envoyClient.get('tour').then((tourChannel) => {
@@ -1450,6 +1455,15 @@ class ActiveComponent extends BaseModel {
       this._isMounted = true
       return this.emit('component:mounted')
     })
+  }
+
+  /**
+  * @method reloadBytecodeFromDisk
+  * @description Reloads bytecode from disk. This may be necessary if we want to munge on a copy of bytecode for our
+  * own purposes, e.g. during export to another format.
+  */
+  reloadBytecodeFromDisk (cb) {
+    return this.fetchActiveBytecodeFile().read(cb)
   }
 
   /**

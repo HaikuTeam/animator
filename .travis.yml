@@ -16,13 +16,13 @@ before_install:
   - nvm use 8.4.0
 
 install:
-  - yarn
+  - yarn install --frozen-lockfile
 
 script:
   - set -e
+  - node ./scripts/distro-configure.js --non-interactive # 0m
   - node ./scripts/distro-download-secrets.js
   - yarn relink
-  - node ./scripts/distro-configure.js --non-interactive # 0m
   - travis_wait 60 node ./scripts/distro-prepare.js # 3m
   - travis_wait 60 node ./scripts/distro-electron-rebuild.js # 5m
   - node ./scripts/distro-uglify-sources.js # 1m

@@ -1,6 +1,6 @@
 {
   "name": "haiku-sdk-inkstone",
-  "version": "2.3.16",
+  "version": "2.3.17",
   "description": "Haiku SDK for Inkstone",
   "main": "lib/index.js",
   "scripts": {
@@ -11,12 +11,6 @@
   "author": "Zack Brown <zack@haiku.ai>",
   "license": "UNLICENSED",
   "types": "./lib/index.d.ts",
-  "engines": {
-    "node": "8.4.0",
-    "npm": "5.3.0",
-    "yarn": "1.0.2",
-    "electron": "1.7.0"
-  },
   "dependencies": {
     "lodash": "^4.17.4",
     "mkdirp": "^0.5.1",

@@ -12,7 +12,9 @@ import EllipsePrimitiveProps from './../../primitives/Ellipse'
 import PolygonPrimitiveProps from './../../primitives/Polygon'
 import TextPrimitiveProps from './../../primitives/Text'
 import sketchUtils from '../../../utils/sketchUtils'
+import { didAskedForSketch } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import { shell } from 'electron'
+
 
 const STYLES = {
   scrollwrap: {
@@ -89,6 +91,7 @@ class LibraryDrawer extends React.Component {
       Polygon: PolygonPrimitiveProps(props.websocket),
       Text: TextPrimitiveProps(props.websocket)
     }
+
     this.state = {
       error: null,
       assets: [],
@@ -97,7 +100,8 @@ class LibraryDrawer extends React.Component {
       isLoading: false,
       sketchDownloader: {
         isVisible: false,
-        fileData: null
+        fileData: null,
+        shouldAskForSketch: !didAskedForSketch()
       }
     }
   }
@@ -144,14 +148,18 @@ class LibraryDrawer extends React.Component {
     if (this.isSketchInstalled) {
       this.openSketchFile(fileData)
     } else {
-      this.setState({sketchDownloader: {isVisible: true, fileData}})
+      this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: true, fileData}})
     }
   }
 
   onSketchDownloadComplete () {
     this.isSketchInstalled = true
     this.openSketchFile(this.state.sketchDownloader.fileData)
-    this.setState({sketchDownloader: {isVisible: false, fileData: null}})
+    this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, fileData: null}})
+  }
+
+  onSketchDialogFileCreated () {
+    this.setState({sketchDownloader: {...this.state.sketchDownloader, shouldAskForSketch: false}})
   }
 
   handleAssetInstantiation (fileData) {
@@ -341,9 +349,11 @@ class LibraryDrawer extends React.Component {
           </div>
         </div>
         {
-          this.state.sketchDownloader.isVisible && (
+          this.state.sketchDownloader.isVisible &&
+          this.state.sketchDownloader.shouldAskForSketch && (
             <SketchDownloader
               onDownloadComplete={this.onSketchDownloadComplete.bind(this)}
+              onSketchDialogFileCreated={this.onSketchDialogFileCreated.bind(this)}
             />
           )
         }

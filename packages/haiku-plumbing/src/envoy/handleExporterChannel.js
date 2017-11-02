@@ -5,14 +5,21 @@ import { handleExporterSaveRequest } from 'haiku-formats/lib/exporters'
 
 export default (exporterChannel, activeComponent) => {
   exporterChannel.on(`${EXPORTER_CHANNEL}:save`, (request) => {
-    const contents = handleExporterSaveRequest(
-      request, activeComponent.fetchActiveBytecodeFile().getReifiedBytecode())
-    fs.writeFile(request.filename, contents, (err) => {
+    const bytecodeSnapshot = activeComponent.fetchActiveBytecodeFile().getReifiedBytecode()
+    // Re-mount the active component so mutations to the bytecode snapshot don't trickle into the project.
+    activeComponent.reloadBytecodeFromDisk((err) => {
       if (err) {
         throw err
       }
 
-      exporterChannel.saved(request)
+      const contents = handleExporterSaveRequest(request, bytecodeSnapshot)
+      fs.writeFile(request.filename, contents, (err) => {
+        if (err) {
+          throw err
+        }
+
+        exporterChannel.saved(request)
+      })
     })
   })
 }
