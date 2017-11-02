@@ -24,9 +24,10 @@ uploadRelease(region, objkey, secret, bucket, RELEASES_FOLDER, platform, environ
   if (err) throw err
 
   var slackMessage = `
-    Distro ready (${version} ${environment})
-    Download link: ${urls.download}
-    _To syndicate to users via auto-update, sign in to S3 and remove "-pending" from the file path (https://haiku-production.signin.aws.amazon.com/console)_
+Distro ready (${version} ${environment})
+Download link: ${urls.download}
+Latest link: ${urls.latest}
+_To syndicate to users via auto-update, sign in to S3 and remove "-pending" from the file path (https://haiku-production.signin.aws.amazon.com/console)_
   `.trim()
 
   slackShout({ shout: config.shout }, slackMessage, () => {
