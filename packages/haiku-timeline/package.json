@@ -26,12 +26,6 @@
       "react-app"
     ]
   },
-  "engines": {
-    "node": "8.4.0",
-    "npm": "5.3.0",
-    "yarn": "1.0.2",
-    "electron": "1.7.0"
-  },
   "dependencies": {
     "@haiku/player": "HaikuTeam/player.git",
     "archy": "^1.0.0",
