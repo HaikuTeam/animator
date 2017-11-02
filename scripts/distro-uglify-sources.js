@@ -7,8 +7,6 @@ var fse = require('fs-extra')
 
 var ROOT = path.join(__dirname, '..')
 
-var config = require('./../config')
-
 // File globs with respect to the root of the mono project
 var GLOBS = [
   'source/plumbing/lib/*.js',
