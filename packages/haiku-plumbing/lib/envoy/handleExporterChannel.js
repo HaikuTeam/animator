@@ -4,33 +4,22 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _fs = require('fs');
-
-var _fs2 = _interopRequireDefault(_fs);
-
 var _exporter = require('haiku-sdk-creator/lib/exporter');
 
-var _exporters = require('haiku-formats/lib/exporters');
+var _saveExport = require('../publish-hooks/saveExport');
+
+var _saveExport2 = _interopRequireDefault(_saveExport);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = function (exporterChannel, activeComponent) {
   exporterChannel.on(_exporter.EXPORTER_CHANNEL + ':save', function (request) {
-    var bytecodeSnapshot = activeComponent.fetchActiveBytecodeFile().getReifiedBytecode();
-    // Re-mount the active component so mutations to the bytecode snapshot don't trickle into the project.
-    activeComponent.reloadBytecodeFromDisk(function (err) {
+    (0, _saveExport2.default)(request, activeComponent, function (err) {
       if (err) {
         throw err;
       }
 
-      var contents = (0, _exporters.handleExporterSaveRequest)(request, bytecodeSnapshot);
-      _fs2.default.writeFile(request.filename, contents, function (err) {
-        if (err) {
-          throw err;
-        }
-
-        exporterChannel.saved(request);
-      });
+      exporterChannel.saved(request);
     });
   });
 };

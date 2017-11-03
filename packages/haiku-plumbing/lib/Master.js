@@ -8,21 +8,23 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _async = require('async');
+
+var _async2 = _interopRequireDefault(_async);
+
 var _events = require('events');
-
-var _haikuFsExtra = require('haiku-fs-extra');
-
-var _haikuFsExtra2 = _interopRequireDefault(_haikuFsExtra);
 
 var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
 
-var _async = require('async');
-
-var _async2 = _interopRequireDefault(_async);
-
 var _lodash = require('lodash');
+
+var _haikuFsExtra = require('haiku-fs-extra');
+
+var _haikuFsExtra2 = _interopRequireDefault(_haikuFsExtra);
+
+var _exporter = require('haiku-sdk-creator/lib/exporter');
 
 var _walkFiles = require('haiku-serialization/src/utils/walkFiles');
 
@@ -75,6 +77,10 @@ var _MasterModuleProject2 = _interopRequireDefault(_MasterModuleProject);
 var _attachListeners = require('./envoy/attachListeners');
 
 var _attachListeners2 = _interopRequireDefault(_attachListeners);
+
+var _saveExport = require('./publish-hooks/saveExport');
+
+var _saveExport2 = _interopRequireDefault(_saveExport);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -1328,6 +1334,27 @@ var Master = function (_EventEmitter) {
         };
 
         return _this14._component.fetchActiveBytecodeFile().writeMetadata(bytecodeMetadata, cb);
+      },
+
+      // Write out any enabled exported formats.
+      function (cb) {
+        _LoggerInstance2.default.info('[master] project save: writing exported formats');
+
+        // Create a fault-tolerant async series to process all requested formats.
+        var exporterFormats = saveOptions.exporterFormats;
+
+        return _async2.default.series(exporterFormats.map(function (format) {
+          return function (done) {
+            // For now, we only support one exported format.
+            var filename = _this14._component.getAbsoluteLottieFilePath();
+            (0, _saveExport2.default)({ format: format, filename: filename }, _this14._component, function (err) {
+              if (err) {
+                _LoggerInstance2.default.warn('[master] error during export: ' + err.toString());
+              }
+              done();
+            });
+          };
+        }), cb);
       }, function (cb) {
         return _this14._git.commitProjectIfChanged('Updated metadata', cb);
       },
