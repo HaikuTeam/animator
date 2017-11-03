@@ -25,16 +25,7 @@ import * as ProjectFolder from './ProjectFolder'
 import getNormalizedComponentModulePath from 'haiku-serialization/src/model/helpers/getNormalizedComponentModulePath'
 import {crashReport} from 'haiku-serialization/src/utils/carbonite'
 
-const NOTIFIABLE_ENVS = {
-  production: true,
-  staging: true
-  // development: true
-}
-
-let Raven
-if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
-  Raven = require('./Raven')
-}
+const Raven = require('./Raven')
 
 // For any methods that are...
 // - noisy
@@ -409,7 +400,7 @@ export default class Plumbing extends StateObject {
     } else if (typeof error === 'string') {
       error = new Error(error) // Unfortunately no good stack trace in this case
     }
-    crashReport(this.get('organizationName'), this.get('lastOpenedProject'))
+    crashReport(this.get('organizationName'), this.get('lastOpenedProjectName'), this.get('lastOpenedProjectPath'))
     return Raven.captureException(error, extras)
   }
 
@@ -586,7 +577,14 @@ export default class Plumbing extends StateObject {
         })
       },
       (cb) => {
-        return this.spawnSubgroup(this.subprocs, { folder: projectFolder }, (err, spawned) => {
+        const haikuInfo = {
+          folder: projectFolder,
+          username: projectOptions.username,
+          organizationName: projectOptions.organizationName,
+          projectName: projectOptions.projectName,
+          projectPath: projectFolder
+        }
+        return this.spawnSubgroup(this.subprocs, haikuInfo, (err, spawned) => {
           if (err) return cb(err)
           this.subprocs.push.apply(this.subprocs, spawned)
           return cb()
@@ -616,20 +614,20 @@ export default class Plumbing extends StateObject {
         this.projects[projectFolder] = {
           name: maybeProjectName,
           folder: projectFolder,
-          username: gitInitializePassword,
-          password: gitInitializePassword,
+          username: projectOptionsAgain.username,
+          password: projectOptionsAgain.password,
           organization: projectOptionsAgain.organizationName,
           options: projectOptionsAgain
         }
 
         if (Raven) {
           Raven.setContext({
-            projectName: maybeProjectName,
-            organizationName: projectOptionsAgain.organizationName
+            user: { email: projectOptionsAgain.username }
           })
         }
 
-        this.set('lastOpenedProject', maybeProjectName)
+        this.set('lastOpenedProjectName', maybeProjectName)
+        this.set('lastOpenedProjectPath', projectFolder)
 
         if (maybeProjectName) {
           // HACK: alias to allow lookup by project name
@@ -687,8 +685,7 @@ export default class Plumbing extends StateObject {
       mixpanel.mergeToPayload({ distinct_id: username })
       if (Raven) {
         Raven.setContext({
-          user: { email: username },
-          tags: { username }
+          user: { email: username }
         })
       }
       return cb(null, {
@@ -726,8 +723,7 @@ export default class Plumbing extends StateObject {
       mixpanel.mergeToPayload({ distinct_id: username })
       if (Raven) {
         Raven.setContext({
-          user: { email: username },
-          tags: { username }
+          user: { email: username }
         })
       }
       return this.getCurrentOrganizationName((err, organizationName) => {

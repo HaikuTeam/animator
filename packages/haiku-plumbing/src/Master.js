@@ -17,6 +17,8 @@ import MasterGitProject from './MasterGitProject'
 import MasterModuleProject from './MasterModuleProject'
 import attachListeners from './envoy/attachListeners'
 
+const Raven = require('./Raven')
+
 if (process.env.CHAOS_MONKEYS === '1') {
   const num = Math.random() * ((60 * 1000) - 5000) + 5000
   setTimeout(() => {
@@ -768,6 +770,16 @@ export default class Master extends EventEmitter {
       haikuPassword,
       branchName: DEFAULT_BRANCH_NAME
     })
+
+    const ravenContext = {
+      user: { email: haikuUsername },
+      extra: {
+        projectName: ProjectFolder.getSafeProjectName(this.folder, projectName),
+        projectPath: this.folder,
+        organizationName: ProjectFolder.getSafeOrgName(projectOptions.organizationName)
+      }
+    }
+    Raven.setContext(ravenContext)
 
     // Note: 'ensureProjectFolder' and/or 'buildProjectContent' should already have ran by this point.
     return async.series([
