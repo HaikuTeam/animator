@@ -14,6 +14,8 @@ var _Master2 = _interopRequireDefault(_Master);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var Raven = require('./Raven');
+
 function run() {
   var master = new _Master2.default(_ProcessBase2.default.HAIKU.folder);
   master.on('host-disconnected', function () {
@@ -24,14 +26,9 @@ function run() {
 
 var master = void 0;
 
-if (process.env.HAIKU_RELEASE_ENVIRONMENT === 'production' || process.env.HAIKU_RELEASE_ENVIRONMENT === 'staging') {
-  var Raven = require('./Raven');
-  Raven.context(function () {
-    master = run();
-  });
-} else {
+Raven.context(function () {
   master = run();
-}
+});
 
 exports.default = master;
 //# sourceMappingURL=MasterProcess.js.map

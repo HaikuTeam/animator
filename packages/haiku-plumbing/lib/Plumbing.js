@@ -110,16 +110,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var NOTIFIABLE_ENVS = {
-  production: true,
-  staging: true
-  // development: true
-};
-
-var Raven = void 0;
-if (NOTIFIABLE_ENVS[process.env.HAIKU_RELEASE_ENVIRONMENT]) {
-  Raven = require('./Raven');
-}
+var Raven = require('./Raven');
 
 // For any methods that are...
 // - noisy
@@ -528,7 +519,7 @@ var Plumbing = function (_StateObject) {
       } else if (typeof error === 'string') {
         error = new Error(error); // Unfortunately no good stack trace in this case
       }
-      (0, _carbonite.crashReport)(this.get('organizationName'), this.get('lastOpenedProject'));
+      (0, _carbonite.crashReport)(this.get('organizationName'), this.get('lastOpenedProjectName'), this.get('lastOpenedProjectPath'));
       return Raven.captureException(error, extras);
     }
   }, {
@@ -737,7 +728,14 @@ var Plumbing = function (_StateObject) {
           return cb();
         });
       }, function (cb) {
-        return _this6.spawnSubgroup(_this6.subprocs, { folder: projectFolder }, function (err, spawned) {
+        var haikuInfo = {
+          folder: projectFolder,
+          username: projectOptions.username,
+          organizationName: projectOptions.organizationName,
+          projectName: projectOptions.projectName,
+          projectPath: projectFolder
+        };
+        return _this6.spawnSubgroup(_this6.subprocs, haikuInfo, function (err, spawned) {
           if (err) return cb(err);
           _this6.subprocs.push.apply(_this6.subprocs, spawned);
           return cb();
@@ -766,20 +764,20 @@ var Plumbing = function (_StateObject) {
           _this6.projects[projectFolder] = {
             name: maybeProjectName,
             folder: projectFolder,
-            username: gitInitializePassword,
-            password: gitInitializePassword,
+            username: projectOptionsAgain.username,
+            password: projectOptionsAgain.password,
             organization: projectOptionsAgain.organizationName,
             options: projectOptionsAgain
           };
 
           if (Raven) {
             Raven.setContext({
-              projectName: maybeProjectName,
-              organizationName: projectOptionsAgain.organizationName
+              user: { email: projectOptionsAgain.username }
             });
           }
 
-          _this6.set('lastOpenedProject', maybeProjectName);
+          _this6.set('lastOpenedProjectName', maybeProjectName);
+          _this6.set('lastOpenedProjectPath', projectFolder);
 
           if (maybeProjectName) {
             // HACK: alias to allow lookup by project name
@@ -849,8 +847,7 @@ var Plumbing = function (_StateObject) {
         _Mixpanel2.default.mergeToPayload({ distinct_id: username });
         if (Raven) {
           Raven.setContext({
-            user: { email: username },
-            tags: { username: username }
+            user: { email: username }
           });
         }
         return cb(null, {
@@ -891,8 +888,7 @@ var Plumbing = function (_StateObject) {
         _Mixpanel2.default.mergeToPayload({ distinct_id: username });
         if (Raven) {
           Raven.setContext({
-            user: { email: username },
-            tags: { username: username }
+            user: { email: username }
           });
         }
         return _this8.getCurrentOrganizationName(function (err, organizationName) {
@@ -1446,5 +1442,4 @@ function remapProjectObjectToExpectedFormat(projectObject) {
 function isElectronMain() {
   return typeof process !== 'undefined' && process.versions && !!process.versions.electron;
 }
-
 //# sourceMappingURL=Plumbing.js.map

@@ -86,6 +86,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var Raven = require('./Raven');
+
 if (process.env.CHAOS_MONKEYS === '1') {
   var num = Math.random() * (60 * 1000 - 5000) + 5000;
   setTimeout(function () {
@@ -1073,6 +1075,16 @@ var Master = function (_EventEmitter) {
         haikuPassword: haikuPassword,
         branchName: DEFAULT_BRANCH_NAME
       });
+
+      var ravenContext = {
+        user: { email: haikuUsername },
+        extra: {
+          projectName: ProjectFolder.getSafeProjectName(this.folder, projectName),
+          projectPath: this.folder,
+          organizationName: ProjectFolder.getSafeOrgName(projectOptions.organizationName)
+        }
+      };
+      Raven.setContext(ravenContext);
 
       // Note: 'ensureProjectFolder' and/or 'buildProjectContent' should already have ran by this point.
       return _async2.default.series([function (cb) {
