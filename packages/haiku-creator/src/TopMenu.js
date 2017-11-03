@@ -84,7 +84,7 @@ export default class TopMenu extends EventEmitter {
       }
     ]
 
-    if (experimentIsEnabled(Experiment.LottieExport)) {
+    if (experimentIsEnabled(Experiment.LottieExportInGlobalMenu)) {
       projectSubmenu.push({
         label: 'Export',
         submenu: [{

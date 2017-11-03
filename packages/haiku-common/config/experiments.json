@@ -1,6 +1,11 @@
 {
-  "LottieExport": {
+  "LottieExportInGlobalMenu": {
     "test": true,
     "development": true
+  },
+  "LottieExportOnPublish": {
+    "test": true,
+    "development": true,
+    "staging": true
   }
 }

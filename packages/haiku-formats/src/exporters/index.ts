@@ -17,7 +17,13 @@ const getExporter = (format: ExporterFormat, bytecode: HaikuBytecode): Exporter 
   }
 };
 
-export const handleExporterSaveRequest = (request: ExporterRequest, bytecode: HaikuBytecode): string => {
-  const exporter: Exporter = getExporter(request.format, bytecode);
-  return exporter.binaryOutput();
+export const handleExporterSaveRequest = (request: ExporterRequest, bytecode: HaikuBytecode): Promise<string> => {
+  return new Promise<string>((resolve, reject) => {
+    try {
+      const exporter: Exporter = getExporter(request.format, bytecode);
+      resolve(exporter.binaryOutput());
+    } catch (e) {
+      reject(e);
+    }
+  });
 };

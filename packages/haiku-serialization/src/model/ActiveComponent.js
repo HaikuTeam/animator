@@ -152,6 +152,10 @@ function ActiveComponent (options) {
 
 util.inherits(ActiveComponent, EventEmitter)
 
+ActiveComponent.prototype._getSceneCodeFolder = function _getSceneCodeFolder () {
+  return this.fetchActiveBytecodeFile().get('folder');
+}
+
 ActiveComponent.prototype._getSceneCodePath = function _getSceneCodePath () {
   return path.join('code', this.scenename, 'code.js')
 }
@@ -163,6 +167,10 @@ ActiveComponent.prototype._getSceneDomModulePath = function _getSceneDomModulePa
 ActiveComponent.prototype._setSceneName = function _setSceneName (scenename) {
   this._scenename = scenename
   return this
+}
+
+ActiveComponent.prototype.getAbsoluteLottieFilePath = function getAbsoluteLottieFilePath () {
+  return path.join(this._getSceneCodeFolder(), 'code', this.scenename, 'lottie.json')
 }
 
 ActiveComponent.prototype.fetchActiveBytecodeFile = function fetchActiveBytecodeFile () {
