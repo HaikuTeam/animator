@@ -3428,6 +3428,10 @@ haiku-cli@HaikuTeam/cli.git:
     tail "^1.2.1"
     yargs "^6.6.0"
 
+haiku-common@HaikuTeam/common.git:
+  version "2.3.10"
+  resolved "git+ssh://git@github.com/HaikuTeam/common.git#285698df9e792c242e953414f7cecb454b86af1d"
+
 haiku-creator-electron@HaikuTeam/creator.git:
   version "2.3.7"
   resolved "git+ssh://git@github.com/HaikuTeam/creator.git#8c3c5f885d9a6edb8cd5c2c5cc5b3a6f523d9905"

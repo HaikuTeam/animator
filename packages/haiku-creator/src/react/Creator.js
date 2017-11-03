@@ -358,6 +358,7 @@ export default class Creator extends React.Component {
             username: authAnswer && authAnswer.username,
             isUserAuthenticated: authAnswer && authAnswer.isAuthed
           })
+
           if (this.props.folder) {
             // Launch folder directly - i.e. allow a 'subl' like experience without having to go
             // through the projects index
@@ -476,6 +477,13 @@ export default class Creator extends React.Component {
       authorName: this.state.username,
       projectName // Have to set this here, because we pass this whole object to StateTitleBar, which needs this to properly call saveProject
     }
+
+    // Add extra context to Sentry reports, this info is also used
+    // by carbonite.
+    window.Raven.setExtraContext({
+      organizationName: this.state.organizationName,
+      projectName
+    })
 
     mixpanel.haikuTrack('creator:project:launching', {
       username: this.state.username,

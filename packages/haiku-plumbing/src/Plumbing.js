@@ -23,6 +23,7 @@ import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
 import getNormalizedComponentModulePath from 'haiku-serialization/src/model/helpers/getNormalizedComponentModulePath'
+import {crashReport} from 'haiku-serialization/src/utils/carbonite'
 
 const NOTIFIABLE_ENVS = {
   production: true,
@@ -408,6 +409,7 @@ export default class Plumbing extends StateObject {
     } else if (typeof error === 'string') {
       error = new Error(error) // Unfortunately no good stack trace in this case
     }
+    crashReport(this.get('organizationName'), this.get('lastOpenedProject'))
     return Raven.captureException(error, extras)
   }
 
@@ -619,6 +621,15 @@ export default class Plumbing extends StateObject {
           organization: projectOptionsAgain.organizationName,
           options: projectOptionsAgain
         }
+
+        if (Raven) {
+          Raven.setContext({
+            projectName: maybeProjectName,
+            organizationName: projectOptionsAgain.organizationName
+          })
+        }
+
+        this.set('lastOpenedProject', maybeProjectName)
 
         if (maybeProjectName) {
           // HACK: alias to allow lookup by project name

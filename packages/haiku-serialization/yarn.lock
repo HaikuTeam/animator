@@ -2010,6 +2010,10 @@ haiku-bytecode@HaikuTeam/bytecode.git:
     svg-parser "1.0.5"
     to-style "1.3.3"
 
+haiku-common@HaikuTeam/common.git:
+  version "2.3.10"
+  resolved "git+ssh://git@github.com/HaikuTeam/common.git#285698df9e792c242e953414f7cecb454b86af1d"
+
 haiku-fs-extra@HaikuTeam/node-fs-extra.git#master-haiku:
   version "1.0.0"
   resolved "https://codeload.github.com/HaikuTeam/node-fs-extra/tar.gz/3a90fa18a472d45071c3dce3b28785fe0ddfa12a"
@@ -2017,6 +2021,14 @@ haiku-fs-extra@HaikuTeam/node-fs-extra.git#master-haiku:
     graceful-fs "^4.1.2"
     jsonfile "^2.1.0"
     klaw "^1.0.0"
+
+haiku-sdk-client@HaikuTeam/sdk-client.git:
+  version "2.3.7"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-client.git#c9cea6ad5bfd041ba80d249d80b9e71697011f9a"
+  dependencies:
+    lodash "^4.17.4"
+    mkdirp "^0.5.1"
+    request "^2.79.0"
 
 haiku-sdk-creator@HaikuTeam/sdk-creator.git:
   version "2.3.7"
@@ -2026,6 +2038,14 @@ haiku-sdk-creator@HaikuTeam/sdk-creator.git:
     haiku-serialization HaikuTeam/serialization
     npm "^5.3.0"
     ws "^3.0.0"
+
+haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git:
+  version "2.3.7"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#48653dfe10862249980763a56a20681b85e7cec6"
+  dependencies:
+    lodash "^4.17.4"
+    mkdirp "^0.5.1"
+    request "^2.79.0"
 
 haiku-serialization@HaikuTeam/serialization:
   version "2.3.6"
@@ -3798,6 +3818,33 @@ request@2, request@^2.74.0:
     tunnel-agent "^0.6.0"
     uuid "^3.1.0"
 
+request@^2.79.0, request@^2.83.0:
+  version "2.83.0"
+  resolved "https://registry.yarnpkg.com/request/-/request-2.83.0.tgz#ca0b65da02ed62935887808e6f510381034e3356"
+  dependencies:
+    aws-sign2 "~0.7.0"
+    aws4 "^1.6.0"
+    caseless "~0.12.0"
+    combined-stream "~1.0.5"
+    extend "~3.0.1"
+    forever-agent "~0.6.1"
+    form-data "~2.3.1"
+    har-validator "~5.0.3"
+    hawk "~6.0.2"
+    http-signature "~1.2.0"
+    is-typedarray "~1.0.0"
+    isstream "~0.1.2"
+    json-stringify-safe "~5.0.1"
+    mime-types "~2.1.17"
+    oauth-sign "~0.8.2"
+    performance-now "^2.1.0"
+    qs "~6.5.1"
+    safe-buffer "^5.1.1"
+    stringstream "~0.0.5"
+    tough-cookie "~2.3.3"
+    tunnel-agent "^0.6.0"
+    uuid "^3.1.0"
+
 request@~2.81.0:
   version "2.81.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.81.0.tgz#c6928946a0e06c5f8d6f8a9333469ffda46298a0"
@@ -4420,7 +4467,7 @@ to-style@1.3.3:
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/to-style/-/to-style-1.3.3.tgz#63a2b70a6f4a7d4fdc2ed57a0be4e7235cb6699c"
 
-tough-cookie@~2.3.0, tough-cookie@~2.3.2:
+tough-cookie@~2.3.0, tough-cookie@~2.3.2, tough-cookie@~2.3.3:
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.3.3.tgz#0b618a5565b6dea90bf3425d04d55edc475a7561"
   dependencies:
