@@ -14,6 +14,22 @@ import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
     go()
   }
 
+  function _traceKitFormatErrorStack (error) {
+    if (!error) return null
+    if (typeof error.stack !== 'string') return null
+    error.stack = error.stack.split('\n').map((line) => {
+      return line.split(/ at\s+\//).join(' at (/')
+    }).join('\n')
+    return error
+  }
+
+  window.onerror = function (msg, url, line, col, error) {
+    if (process.env.HAIKU_RELEASE_ENVIRONMENT === 'production' || process.env.HAIKU_RELEASE_ENVIRONMENT === 'staging') {
+      _traceKitFormatErrorStack(error)
+      window.Raven.captureException(error)
+    }
+  }
+
   function go () {
     var electron = require('electron')
     var setup = require('./dom').default

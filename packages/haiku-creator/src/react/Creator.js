@@ -482,7 +482,11 @@ export default class Creator extends React.Component {
     // by carbonite.
     window.Raven.setExtraContext({
       organizationName: this.state.organizationName,
+      projectPath: projectObject.projectPath,
       projectName
+    })
+    window.Raven.setUserContext({
+      email: this.state.username
     })
 
     mixpanel.haikuTrack('creator:project:launching', {
@@ -493,6 +497,12 @@ export default class Creator extends React.Component {
 
     return this.props.websocket.request({ method: 'initializeProject', params: [projectName, projectObject, this.state.username, this.state.password] }, (err, projectFolder) => {
       if (err) return cb(err)
+
+      window.Raven.setExtraContext({
+        organizationName: this.state.organizationName,
+        projectPath: projectFolder, // Re-set in case it wasn't present in the above call
+        projectName
+      })
 
       return this.props.websocket.request({ method: 'startProject', params: [projectName, projectFolder] }, (err, applicationImage) => {
         if (err) return cb(err)
@@ -794,6 +804,8 @@ export default class Creator extends React.Component {
                 folder={this.state.projectFolder}
                 envoy={this.envoy}
                 haiku={this.props.haiku}
+                username={this.state.username}
+                organizationName={this.state.organizationName}
                 createNotice={this.createNotice}
                 removeNotice={this.removeNotice} />
             </SplitPane>

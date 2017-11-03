@@ -120,7 +120,7 @@ class ProjectBrowser extends React.Component {
     this.setState({ projectsList })
   }
 
-  unsetActiveProject() {
+  unsetActiveProject () {
     // Hacky way to unset current project
     this.setActiveProject()
   }
@@ -193,7 +193,7 @@ class ProjectBrowser extends React.Component {
   handleNewProjectInputKeyDown (e) {
     if (e.keyCode === 13) {
       this.handleNewProjectGo()
-    } else if(e.keyCode === 27) {
+    } else if (e.keyCode === 27) {
       this.unsetActiveProject()
     }
   }

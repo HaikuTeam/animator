@@ -32,7 +32,9 @@ export default function dom (modus, haiku) {
 
   websocket.on('close', () => {
     const currentWindow = remote.getCurrentWindow()
-    currentWindow.destroy()
+    if (currentWindow) {
+      currentWindow.destroy()
+    }
   })
 
   render(

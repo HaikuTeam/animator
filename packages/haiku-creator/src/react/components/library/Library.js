@@ -15,7 +15,6 @@ import sketchUtils from '../../../utils/sketchUtils'
 import { didAskedForSketch } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import { shell } from 'electron'
 
-
 const STYLES = {
   scrollwrap: {
     overflowY: 'auto',
