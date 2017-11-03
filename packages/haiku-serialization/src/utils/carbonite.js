@@ -38,11 +38,11 @@ function _ensureFolderExist (folder) {
   })
 }
 
-function _getPreSignedURL (projectName) {
+function _getPreSignedURL (zipName) {
   const authToken = client.config.getAuthToken()
 
   return new Promise((resolve, reject) => {
-    inkstone.support.getPresignedUrl(authToken, projectName, (err, url) => {
+    inkstone.support.getPresignedUrl(authToken, zipName, (err, url) => {
       err ? reject(err) : resolve(url)
     })
   })
@@ -80,16 +80,17 @@ function _zipProjectFolders ({destination, sources}) {
   })
 }
 
-function crashReport (orgName, projectName) {
-  if (!orgName || !projectName) return
+function crashReport (orgName, projectName, projectPath) {
+  if (!projectPath) return
+
   const timestamp = generateUUIDv4.default()
-  const projectPath = path.join(HOMEDIR_PROJECTS_PATH, orgName, projectName)
   const screenshotPath = path.join(HOMEDIR_PATH, `screenshot-${timestamp}.png`)
   const zipName = `${timestamp}.zip`
   const zipPath = path.join(HOMEDIR_CRASH_REPORTS_PATH, zipName)
   const AWS3Server = 'http://support.haiku.ai.s3-us-west-2.amazonaws.com'
 
   _ensureFolderExist(HOMEDIR_PROJECTS_PATH)
+    .then(_ensureFolderExist(HOMEDIR_CRASH_REPORTS_PATH))
     .then(_generateScreenshot(screenshotPath))
     .then(() =>
       _zipProjectFolders({
@@ -101,18 +102,17 @@ function crashReport (orgName, projectName) {
     .then(AWS3URL => _upload(AWS3URL, zipPath))
     .catch(error => console.log(error))
 
-  return `${AWS3Server}/${orgName}/${zipName}`
+  return `${AWS3Server}/${zipName}`
 }
 
 function sentryCallback (data) {
   if (
     data &&
     data.extra &&
-    data.extra.organizationName &&
-    data.extra.projectName
+    data.extra.projectPath
   ) {
-    const {organizationName, projectName} = data.extra
-    data.extra.carbonite = crashReport(organizationName, projectName)
+    const {organizationName, projectName, projectPath} = data.extra
+    data.extra.carbonite = crashReport(organizationName, projectName, projectPath)
     data.extra.experiments = {}
     for (const [key, value] of Object.entries(Experiment)) {
       data.extra.experiments[key] = experimentIsEnabled(value)
