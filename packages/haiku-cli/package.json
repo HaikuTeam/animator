@@ -1,6 +1,6 @@
 {
   "name": "haiku-cli",
-  "version": "2.3.18",
+  "version": "2.3.19",
   "description": "Haiku CLI",
   "main": "lib/index.js",
   "scripts": {

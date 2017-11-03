@@ -314,7 +314,7 @@ for (var eventKey in EventsDict_1["default"]) {
 for (var fwdPropKey in HAIKU_FORWARDED_PROPS) {
     VALID_PROPS[fwdPropKey] = 'object';
 }
-function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
+function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawBytecode) {
     var reactClass = React.createClass({
         displayName: 'HaikuComponent',
         getInitialState: function () {
@@ -410,7 +410,7 @@ function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
                 }
             }
             else {
-                haikuAdapter = HaikuComponentFactory;
+                haikuAdapter = haikuComponentFactory;
             }
             if (!haikuAdapter) {
                 throw new Error('A Haiku adapter is required');
