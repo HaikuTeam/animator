@@ -10,6 +10,7 @@ out.HOMEDIR_PATH = HOMEDIR_PATH
 out.HOMEDIR_AUTH_PATH = path.join(HOMEDIR_PATH, 'auth')
 out.HOMEDIR_PROJECTS_PATH = path.join(HOMEDIR_PATH, 'projects')
 out.HOMEDIR_LOGS_PATH = path.join(HOMEDIR_PATH, 'logs')
+out.HOMEDIR_CRASH_REPORTS_PATH = path.join(HOMEDIR_PATH, 'crash-reports')
 out.HOMEDIR_MANIFEST_PATH = path.join(HOMEDIR_PATH, 'manifest.json')
 out.HOMEDIR_TOUR_PATH = path.join(HOMEDIR_PATH, 'tour.json')
 out.HOMEDIR_SKETCH_DIALOG_PATH = path.join(HOMEDIR_PATH, 'sketch-dialog')
