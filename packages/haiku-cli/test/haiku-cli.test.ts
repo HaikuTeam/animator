@@ -1,24 +1,12 @@
-import * as tape from "tape"
+import * as tape from 'tape';
 
-import { Context, Nib } from "../src/nib"
-import { cli } from "../src/haiku-cli"
+import {
+  Context,
+  Nib,
+} from '../lib/nib';
 
-tape("haiku-cli:list", (t) => {
-  t.plan(1)
-
-//   let results = ""
-
-//   const mockContext = new Context(["list"], {}, {
-//     log: (output) => {
-//       console.log(output)
-//       results = output
-//     },
-//   }, true)
-
-//   cli.run(mockContext)
-
-//TODO:  Will probably need to mock stdin for this to work.
-//       This will require mockMode logic in the read methods of Context (using inquirer)
-  
-  t.ok(true,"UNIMPLEMENTED")
-})
+tape('haiku-cli:list', (t) => {
+  // Stub in 4d48b78.
+  t.plan(1);
+  t.ok(true, 'UNIMPLEMENTED');
+});

@@ -19,6 +19,8 @@ import {
   DangerIconSVG,
   CliboardIconSVG
 } from './Icons'
+import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
+import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 
 var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
@@ -283,7 +285,8 @@ class StageTitleBar extends React.Component {
   getProjectSaveOptions () {
     return {
       commitMessage: 'Changes saved (via Haiku Desktop)',
-      saveStrategy: SNAPSHOT_SAVE_RESOLUTION_STRATEGIES[this.state.snapshotSaveResolutionStrategyName]
+      saveStrategy: SNAPSHOT_SAVE_RESOLUTION_STRATEGIES[this.state.snapshotSaveResolutionStrategyName],
+      exporterFormats: experimentIsEnabled(Experiment.LottieExportOnPublish) ? [ExporterFormat.Bodymovin] : [],
     }
   }
 

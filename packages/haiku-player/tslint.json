@@ -1,34 +1,5 @@
 {
-  "defaultSeverity": "error",
   "extends": [
-    "tslint-config-airbnb"
-  ],
-  "jsRules": {},
-  "rules": {
-    "curly": true,
-    "interface-name": false,
-    "max-line-length": [
-      true,
-      120
-    ],
-    "member-access": [
-      true,
-      "no-public"
-    ],
-    "no-bitwise": false,
-    "no-increment-decrement": false,
-    "object-curly-spacing": [
-      true,
-      "never"
-    ],
-    "strict-boolean-expressions": false,
-    "ter-arrow-parens": [
-      true,
-      "always"
-    ],
-    "variable-name": [
-      true,
-      "allow-pascal-case"
-    ]
-  }
+    "tslint-config-haiku"
+  ]
 }
