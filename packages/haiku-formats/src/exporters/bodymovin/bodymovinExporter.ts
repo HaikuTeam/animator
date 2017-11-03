@@ -14,6 +14,7 @@ import {
   isDecomposableCurve,
   splitBezierForTimelinePropertyAtKeyframe,
 } from '../curves';
+import {evaluateInjectedFunctionInExportContext} from '../injectables';
 import {
   AnimationKey,
   FillRule,
@@ -55,7 +56,7 @@ import {
   maybeApplyMutatorToProperty,
   pathToInterpolationTrace,
   pointsToInterpolationTrace,
-  timelineValuesAreEquivalent
+  timelineValuesAreEquivalent,
 } from './bodymovinUtils';
 
 let bodymovinVersion: Maybe<string>;
@@ -905,6 +906,25 @@ export class BodymovinExporter implements Exporter {
   }
 
   /**
+   * Normalizes values inside bytecode by evaluating injected functions in the export context.
+   *
+   * This step is carried out during preprocessing to allow stateless modules to do the heavy lifting involved in
+   * certain timeline rewrites.
+   */
+  private normalizeValues() {
+    this.visitAllTimelineProperties((timeline, property) => {
+      for (const keyframe in timeline[property]) {
+        if (typeof timeline[property][keyframe].value === 'function') {
+          timeline[property][keyframe].value = evaluateInjectedFunctionInExportContext(
+            timeline[property][keyframe].value,
+            this.bytecode.states || {},
+          );
+        }
+      }
+    });
+  }
+
+  /**
    * Normalizes curves present in (for now wrapper-child only) transitions.
    *
    * Because After Effects/Bodymovin does not support "jump to" transitions (which in Haiku is the equivalent of
@@ -1049,6 +1069,9 @@ export class BodymovinExporter implements Exporter {
     // this step prior to the subsequent ones, since we might end up with fewer keyframes in the later steps for a
     // subtle runtime performance boost.
     this.normalizeKeyframes();
+
+    // Normalize timeline values so that they always will provide primitives when their value is accessed.
+    this.normalizeValues();
 
     // Decompose non-bezier curves (i.e. ...Bounce and ...Elastic curves) into multiple bezier curves.
     this.decomposeCompoundCurves();

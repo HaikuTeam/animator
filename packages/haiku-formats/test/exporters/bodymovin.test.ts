@@ -732,5 +732,37 @@ tape('BodymovinExporter', (test: tape.Test) => {
     test.end();
   });
 
+  test.test('preprocesses injectables in the context of the bytecode state tree defaults', (test: tape.Test) => {
+    const bytecode = baseBytecodeCopy();
+    bytecode.states = {
+      two: {value: 2},
+    };
+
+    // Simulate the actual result of calling `Haiku.inject`.
+    const Haiku = require('@haiku/player');
+    bytecode.timelines.Default['haiku:svg'].opacity = {
+      0: {
+        value: Haiku.inject(
+          function(two, $user, $basicMagic, $deepMagic) {
+            return .12 * two + $user.mouse.x / 100 + $basicMagic - $deepMagic.arbitrarily.nested.magic;
+          },
+          'two',
+          '$user',
+          '$basicMagic',
+          '$deepMagic',
+        ),
+      },
+    };
+
+    const {
+      layers: [{
+        ks: {o: {k}},
+      }],
+    } = rawOutput(bytecode);
+
+    test.equal(k, 24, 'resolves state variables from bytecode and zeroes summonables');
+    test.end();
+  });
+
   test.end();
 });
