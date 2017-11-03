@@ -4783,6 +4783,12 @@ tslint-config-airbnb@^5.3.0:
     tslint-microsoft-contrib "^5.0.0"
     vrsource-tslint-rules "^5.1.0"
 
+tslint-config-haiku@HaikuTeam/tslint-config-haiku.git:
+  version "1.0.0"
+  resolved "git+ssh://git@github.com/HaikuTeam/tslint-config-haiku.git#7a2473273be0104503a5d6604625b85529ae9dea"
+  dependencies:
+    tslint-config-airbnb "^5.3.0"
+
 tslint-consistent-codestyle@^1.4.0:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/tslint-consistent-codestyle/-/tslint-consistent-codestyle-1.8.0.tgz#ede0b5ec6777f8ff4426d9838bc9bf18e8174480"
