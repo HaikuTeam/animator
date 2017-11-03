@@ -64,13 +64,14 @@ function _upload (url, filePath) {
 }
 
 function _zipProjectFolders ({destination, sources}) {
+  const parsedDestination = JSON.stringify(destination)
   const parsedSources = sources
-    .map(source => path.relative(HOMEDIR_PATH, source))
+    .map(source => JSON.stringify(path.relative(HOMEDIR_PATH, source)))
     .join(' ')
 
   return new Promise((resolve, reject) => {
     exec(
-      `tar --exclude='node_modules' -rvf ${destination} -C ${HOMEDIR_PATH} ${parsedSources}`,
+      `tar --exclude='node_modules' -rvf ${parsedDestination} -C ${HOMEDIR_PATH} ${parsedSources}`,
       {},
       err => {
         err ? reject(err) : resolve()
