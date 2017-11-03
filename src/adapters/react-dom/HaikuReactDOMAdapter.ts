@@ -63,7 +63,7 @@ for (const fwdPropKey in HAIKU_FORWARDED_PROPS) {
 }
 
 // tslint:disable-next-line:function-name
-export default function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawBytecode) {
+export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawBytecode) {
   const reactClass = React.createClass({
     displayName: 'HaikuComponent',
 
@@ -191,7 +191,7 @@ export default function HaikuReactDOMAdapter(HaikuComponentFactory, optionalRawB
         }
       } else {
         // Otherwise default to the adapter which was initialized in the wrapper module
-        haikuAdapter = HaikuComponentFactory;
+        haikuAdapter = haikuComponentFactory;
       }
 
       if (!haikuAdapter) {
