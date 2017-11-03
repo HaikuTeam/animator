@@ -2,7 +2,7 @@
  * @file Bodymovin enumerations.
  */
 
-export enum AnimationKey {
+export const enum AnimationKey {
   BezierIn = 'i',
   BezierOut = 'o',
   Time = 't',
@@ -10,7 +10,7 @@ export enum AnimationKey {
   End = 'e',
 }
 
-export enum LayerKey {
+export const enum LayerKey {
   StartTime = 'st',
   InPoint = 'ip',
   OutPoint = 'op',
@@ -21,29 +21,29 @@ export enum LayerKey {
   Name = 'nm',
 }
 
-export enum LayerType {
+export const enum LayerType {
   Shape = 4,
 }
 
-export enum PathKey {
+export const enum PathKey {
   Closed = 'c',
   InterpolationIn = 'i',
   InterpolationOut = 'o',
   Points = 'v',
 }
 
-export enum PropertyKey {
+export const enum PropertyKey {
   Animated = 'a',
   Value = 'k',
 }
 
-export enum ShapeKey {
+export const enum ShapeKey {
   Type = 'ty',
   GroupItems = 'it',
   Vertices = 'ks',
 }
 
-export enum ShapeType {
+export const enum ShapeType {
   // Proper shapes.
   Ellipse = 'el',
   Rectangle = 'rc',
@@ -51,15 +51,21 @@ export enum ShapeType {
 
   // Organizational "shapes".
   Transform = 'tr',
+  GradientFill = 'gf',
   Group = 'gr',
   Stroke = 'st',
   Fill = 'fl',
 }
 
-export enum TransformKey {
+export const enum TransformKey {
   TransformOrigin = 'a',
   BorderRadius = 'r',
   Color = 'c',
+  FillRule = 'r',
+  GradientEnd = 'e',
+  GradientStart = 's',
+  GradientStops = 'g',
+  GradientType = 't',
   Position = 'p',
   PositionSplit = 's',
   Opacity = 'o',
@@ -71,18 +77,44 @@ export enum TransformKey {
   Scale = 's',
   Size = 's',
   StrokeWidth = 'w',
+  StrokeDasharray = 'd',
   StrokeLinecap = 'lc',
   StrokeLinejoin = 'lj',
 }
 
-export enum StrokeLinecap {
+export const enum StrokeLinecap {
   Butt = 1,
   Round = 2,
   Square = 3,
 }
 
-export enum StrokeLinejoin {
+export const enum StrokeLinejoin {
   Miter = 1,
   Round = 2,
   Bevel = 3,
+}
+
+export const enum FillRule {
+  Nonzero = 1,
+  Evenodd = 2,
+}
+
+export const enum DasharrayRole {
+  Dash = 'd',
+  Gap = 'g',
+}
+
+export const enum DasharrayKey {
+  Role = 'n',
+  Value = 'v',
+}
+
+export const enum GradientType {
+  Linear = 1,
+  Radial = 2,
+}
+
+export const enum GradientKey {
+  TotalStops = 'p',
+  Stops = 'k',
 }
