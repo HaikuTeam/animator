@@ -112,6 +112,17 @@ const denormalizeValue = (normalizedValue: number, from: number, to: number): nu
   from + normalizedValue * (to - from);
 
 /**
+ * Convenience method; normalizes a value in [0, 1].
+ * @param {number} value
+ * @param {number} from
+ * @param {number} to
+ * @returns {number}
+ * @private
+ */
+const normalizeValue = (value: number, from: number, to: number): number =>
+  (value - from) / (to - from);
+
+/**
  * Injects a keyframe into a timeline property using De Casteljau's algorithm.
  *
  * Due to the recursive nature of how this method may be called, we always need to find the immediately preceding
@@ -137,7 +148,7 @@ export const splitBezierForTimelinePropertyAtKeyframe = (timelineProperty, keyfr
   const [x1, y1, x2, y2] = getCurveInterpolationPoints(timelineProperty[previousKeyframe].curve);
 
   // Normalize keyframe (time) in [0, 1] to make the curve calculations work with existing tools.
-  const time = keyframe / (nextKeyframe - previousKeyframe);
+  const time = normalizeValue(keyframe, previousKeyframe, nextKeyframe);
 
   // Note: We are using the bezier-easing library for fast heuristic calculation of the value at time instead of
   // the cubic-bezier() function from the just-curves vendor package in haiku-player. This is intentional; the math
