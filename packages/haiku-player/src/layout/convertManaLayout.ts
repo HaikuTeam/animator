@@ -161,7 +161,7 @@ export default function convertManaLayout(mana) {
       delete attributes.x;
       delete attributes.y;
     }
-  },            null, null);
+  }, null, null);
 
   return mana;
 }
