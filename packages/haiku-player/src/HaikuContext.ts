@@ -243,6 +243,7 @@ HaikuContext.prototype.performPatchRender = function performPatchRender() {
   }
   const container = this._renderer.createContainer(this._mount);
   const patches = this.component.patch(container, this.config.options);
+
   this._renderer.patch(
     this._mount,
     container,
