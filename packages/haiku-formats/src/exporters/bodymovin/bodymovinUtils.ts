@@ -4,7 +4,7 @@ import {
   PropertyKey,
   ShapeKey,
   ShapeType,
-  TransformKey
+  TransformKey,
 } from './bodymovinEnums';
 import {BodymovinCoordinates, BodymovinPathComponent, BodymovinProperty} from './bodymovinTypes';
 import SVGPoints from '@haiku/player/lib/helpers/SVGPoints';
