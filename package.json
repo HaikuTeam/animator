@@ -1,15 +1,16 @@
 {
   "name": "haiku-cli",
-  "version": "2.3.17",
+  "version": "2.3.19",
   "description": "Haiku CLI",
   "main": "lib/index.js",
   "scripts": {
-    "develop": "tsc --watch",
-    "transpile": "tsc",
+    "lint": "tslint -p tsconfig.json -c tslint.json --type-check --format stylish",
+    "fix": "yarn lint --fix",
+    "test": "tsc && tsc -p tsconfig.test.json && NODE_ENV=test tape \"~test/**/*.test.js\" | tap-spec && rm -rf ~test",
+    "coverage": "nyc yarn test",
+    "html-coverage": "nyc --reporter=html yarn test",
     "compile": "tsc",
-    "tsc": "tsc",
-    "lint": "tslint --type-check --project tsconfig.json -c tslint.json 'src/**/*.ts' --format stylish --fix",
-    "test": "rm -rf ~test || true && tsc && tsc -p tsconfig.test.json && NODE_ENV=test tape \"~test/**/*.test.js\" | tap-spec"
+    "develop": "tsc --watch"
   },
   "authors": [
     "Zack Brown <zack@haiku.ai>",
@@ -43,10 +44,12 @@
     "@types/node": "^6.0.56",
     "@types/request": "^2.0.0",
     "@types/yargs": "^6.5.0",
-    "try-thread-sleep": "^1.0.0",
-    "typescript": "^2.3.2",
+    "nyc": "^11.2.1",
     "tap-spec": "^4.1.1",
     "tape": "^4.7.0",
-    "tslint": "^5.7.0"
+    "try-thread-sleep": "^1.0.0",
+    "tslint": "^5.7.0",
+    "tslint-config-haiku": "HaikuTeam/tslint-config-haiku.git",
+    "typescript": "^2.3.2"
   }
 }
