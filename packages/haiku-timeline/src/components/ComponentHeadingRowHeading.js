@@ -3,6 +3,33 @@ import truncate from './helpers/truncate'
 import Palette from './DefaultPalette'
 
 export default class ComponentHeadingRowHeading extends React.Component {
+  constructor (props) {
+    super(props)
+    this.handleUpdate = this.handleUpdate.bind(this)
+  }
+
+  componentWillUnmount () {
+    this.mounted = false
+    this.props.row.removeListener('update', this.handleUpdate)
+  }
+
+  componentDidMount () {
+    this.mounted = true
+    this.props.row.on('update', this.handleUpdate)
+  }
+
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    if (
+      what === 'row-selected' ||
+      what === 'row-expanded' ||
+      what === 'row-collapsed' ||
+      what === 'row-deselected'
+    ) {
+      this.forceUpdate()
+    }
+  }
+
   render () {
     let color = Palette.ROCK_MUTED
     if (this.props.row.isExpanded()) color = Palette.ROCK
