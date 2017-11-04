@@ -377,9 +377,9 @@ export class Glass extends React.Component {
     window.addEventListener('mouseout', this.windowMouseOutHandler.bind(this))
   }
 
-  componentDidUpdate () {
-    this.resetContainerDimensions()
-  }
+  // componentDidUpdate () {
+  //   this.resetContainerDimensions()
+  // }
 
   componentWillUnmount () {
     this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
@@ -825,12 +825,21 @@ export class Glass extends React.Component {
 
   resetContainerDimensions (cb) {
     if (!this.refs.container) return
-    var w = this.refs.container.clientWidth
-    var h = this.refs.container.clientHeight
-    var mountX = (w - this.state.mountWidth) / 2
-    var mountY = (h - this.state.mountHeight) / 2
-    if (w !== this.state.containerWidth || h !== this.state.containerHeight || mountX !== this.state.mountX || mountY !== this.state.mountY) {
-      this.setState({ containerWidth: w, containerHeight: h, mountX, mountY }, cb)
+
+    const w1 = this.refs.container.clientWidth
+    const h1 = this.refs.container.clientHeight
+
+    const w2 = this.state.mountWidth
+    const h2 = this.state.mountHeight
+
+    const mountX = (w1 - w2) / 2
+    const mountY = (h1 - h2) / 2
+
+    const cw = Math.max(w1, w2)
+    const ch = Math.max(h1, h2)
+
+    if (w1 !== this.state.containerWidth || h1 !== this.state.containerHeight || mountX !== this.state.mountX || mountY !== this.state.mountY) {
+      this.setState({ containerWidth: cw, containerHeight: ch, mountX, mountY }, cb)
     }
   }
 
