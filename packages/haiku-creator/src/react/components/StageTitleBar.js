@@ -286,7 +286,7 @@ class StageTitleBar extends React.Component {
     return {
       commitMessage: 'Changes saved (via Haiku Desktop)',
       saveStrategy: SNAPSHOT_SAVE_RESOLUTION_STRATEGIES[this.state.snapshotSaveResolutionStrategyName],
-      exporterFormats: experimentIsEnabled(Experiment.LottieExportOnPublish) ? [ExporterFormat.Bodymovin] : [],
+      exporterFormats: experimentIsEnabled(Experiment.LottieExportOnPublish) ? [ExporterFormat.Bodymovin] : []
     }
   }
 

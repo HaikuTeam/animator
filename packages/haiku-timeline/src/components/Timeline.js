@@ -171,11 +171,11 @@ class Timeline extends React.Component {
     })
 
     this.addEmitterListener(this.ctxmenu, 'splitSegment', () => {
-      this.component.splitSelectedKeyframes({ from: 'timeline '})
+      this.component.splitSelectedKeyframes({ from: 'timeline' })
     })
 
     this.addEmitterListener(this.ctxmenu, 'deleteKeyframe', () => {
-      this.component.deleteSelectedKeyframes({ from: 'timeline '})
+      this.component.deleteSelectedKeyframes({ from: 'timeline' })
     })
 
     this.addEmitterListener(this.ctxmenu, 'joinKeyframes', (curveName) => {

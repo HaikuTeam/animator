@@ -671,7 +671,7 @@ class Timeline extends BaseModel {
     const frameInfo = this.getFrameInfo()
 
     // If a frame was passed, only do this if we detect we've gone outside of the range
-    if (frame !== undefined && frame >= frameInfo.friB || frame < frameInfo.friA) {
+    if (frame !== undefined && (frame >= frameInfo.friB || frame < frameInfo.friA)) {
       const l = this.getLeftFrameEndpoint()
       const r = this.getRightFrameEndpoint()
       const span = r - l

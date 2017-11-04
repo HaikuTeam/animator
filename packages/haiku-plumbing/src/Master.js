@@ -4,7 +4,6 @@ import path from 'path'
 import { debounce } from 'lodash'
 
 import fse from 'haiku-fs-extra'
-import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import walkFiles from 'haiku-serialization/src/utils/walkFiles'
 import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
 import File from 'haiku-serialization/src/bll/File'
