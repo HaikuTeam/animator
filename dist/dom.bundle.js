@@ -1656,8 +1656,8 @@ HaikuContext.prototype.getDeterministicTime = function getDeterministicTime() {
 HaikuContext.prototype._getGlobalUserState = function _getGlobalUserState() {
     return this._renderer && this._renderer.getUser && this._renderer.getUser();
 };
-HaikuContext['createComponentFactory'] = function createComponentFactory(RendererClass, bytecode, haikuConfigFromFactoryCreator, platform) {
-    if (!RendererClass) {
+HaikuContext['createComponentFactory'] = function createComponentFactory(rendererClass, bytecode, haikuConfigFromFactoryCreator, platform) {
+    if (!rendererClass) {
         throw new Error('A runtime renderer class object is required');
     }
     if (!bytecode) {
@@ -1676,7 +1676,7 @@ HaikuContext['createComponentFactory'] = function createComponentFactory(Rendere
     }, haikuConfigFromFactoryCreator);
     function HaikuComponentFactory(mount, haikuConfigFromFactory) {
         var haikuConfigMerged = Config_1["default"].build(haikuConfigFromTop, haikuConfigFromFactory);
-        var renderer = new RendererClass();
+        var renderer = new rendererClass();
         var context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged);
         var component = context.getRootComponent();
         HaikuComponentFactory['bytecode'] = bytecode;
@@ -10236,7 +10236,7 @@ exports["default"] = parse;
 },{}],166:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.17",
+  "version": "2.3.19",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
@@ -10302,7 +10302,7 @@ module.exports={
     "tap-spec": "^4.1.1",
     "tape": "^4.7.0",
     "tslint": "^5.7.0",
-    "tslint-config-airbnb": "^5.3.0",
+    "tslint-config-haiku": "HaikuTeam/tslint-config-haiku.git",
     "typescript": "^2.5.2",
     "uglify-js": "^2.7.5"
   },

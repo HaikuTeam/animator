@@ -2,6 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
+// tslint:disable-next-line:variable-name
 const EventsDict = {};
 
 const eventsList = [
