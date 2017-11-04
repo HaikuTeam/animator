@@ -81,6 +81,9 @@ class Timeline extends React.Component {
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
 
+    // Used to calculate scroll position
+    this._renderedRows = []
+
     window.timeline = this
   }
 
@@ -197,6 +200,21 @@ class Timeline extends React.Component {
     this.addEmitterListener(Row, 'update', (row, what) => {
       if (what === 'row-collapsed' || what === 'row-expanded') {
         this.forceUpdate()
+      } else if (what === 'row-selected') {
+        setTimeout(() => {
+          if (this.refs.scrollview) {
+            let selectedRowIndex = null
+            this._renderedRows.forEach((renderedRow, rowIndex) => {
+              if (renderedRow === row) {
+                selectedRowIndex = rowIndex
+              }
+            })
+            if (selectedRowIndex) {
+              const scrollPos = selectedRowIndex * this.state.rowHeight + 35
+              this.refs.scrollview.scrollTop = scrollPos
+            }
+          }
+        }, 100)
       }
     })
 
@@ -338,41 +356,6 @@ class Timeline extends React.Component {
     this.emitters.push([eventEmitter, eventName, eventHandler])
     eventEmitter.on(eventName, eventHandler)
   }
-
-  // scrollToTop () {
-  //   if (this.refs.scrollview) {
-  //     this.refs.scrollview.scrollTop = 0
-  //   }
-  // }
-
-  // scrollToNode (componentId) {
-  //   const rows = this.component.getCurrentRows()
-
-  //   let foundIndex = null
-  //   let indexCounter = 0
-
-  //   rows.forEach((row) => {
-  //     if (row.isHeading()) {
-  //       indexCounter++
-  //     } else if (row.isProperty()) {
-  //       if (row.isExpanded()) {
-  //         indexCounter++
-  //       }
-  //     }
-
-  //     if (foundIndex === null) {
-  //       if (row.element.getComponentId() === componentId) {
-  //         foundIndex = indexCounter
-  //       }
-  //     }
-  //   })
-
-  //   if (foundIndex !== null) {
-  //     if (this.refs.scrollview) {
-  //       this.refs.scrollview.scrollTop = (foundIndex * this.state.rowHeight) - this.state.rowHeight
-  //     }
-  //   }
-  // }
 
   toggleTimeDisplayMode () {
     if (this.state.timeDisplayMode === 'frames') {
@@ -636,6 +619,8 @@ class Timeline extends React.Component {
       return <span />
     }
 
+    this._renderedRows = []
+
     return (
       <div
         className='property-row-list'
@@ -643,13 +628,9 @@ class Timeline extends React.Component {
           position: 'absolute'
         }}>
         {rows.map((row) => {
-          // Don't display any rows that are hidden by their parent being collapsed
-          if (row.isWithinCollapsedRow()) {
-            return ''
-          }
-
           // Cluster rows only display if collapsed, otherwise we show their properties
           if (row.isClusterHeading() && !row.isExpanded()) {
+            this._renderedRows.push(row)
             return (
               <ClusterRow
                 key={row.getUniqueKey()}
@@ -664,6 +645,7 @@ class Timeline extends React.Component {
           }
 
           if (row.isProperty()) {
+            this._renderedRows.push(row)
             return (
               <PropertyRow
                 key={row.getUniqueKey()}
@@ -678,6 +660,7 @@ class Timeline extends React.Component {
           }
 
           if (row.isHeading()) {
+            this._renderedRows.push(row)
             return (
               <ComponentHeadingRow
                 key={row.getUniqueKey()}
@@ -722,7 +705,9 @@ class Timeline extends React.Component {
         id='timeline'
         className='no-select'
         onClick={(clickEvent) => {
-          Row.deselectBlurAll({ from: 'timeline' })
+          Row.all().forEach((row) => {
+            row.blur({ from: 'timeline' })
+          })
         }}
         style={{
           position: 'absolute',
@@ -782,10 +767,13 @@ class Timeline extends React.Component {
             }
           }}
           onFocusRequested={() => {
-            this.component.focusCurrentlySelectedRow({ from: 'timeline' })
+            const selected = Row.getSelectedRow()
+            if (selected.isProperty()) {
+              selected.focus({ from: 'timeline' })
+            }
           }}
           onNavigateRequested={(navDir, doFocus) => {
-            this.component.focusSelectNext(navDir, doFocus, { from: 'timeline' })
+            Row.focusSelectNext(navDir, doFocus, { from: 'timeline' })
           }} />
       </div>
     )

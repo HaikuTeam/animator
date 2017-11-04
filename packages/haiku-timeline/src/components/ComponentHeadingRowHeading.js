@@ -4,7 +4,10 @@ import Palette from './DefaultPalette'
 
 export default class ComponentHeadingRowHeading extends React.Component {
   render () {
-    const color = this.props.row.isExpanded() ? Palette.ROCK : Palette.ROCK_MUTED
+    let color = Palette.ROCK_MUTED
+    if (this.props.row.isExpanded()) color = Palette.ROCK
+    if (this.props.row.isSelected()) color = Palette.SUNSTONE
+
     const elementName = this.props.row.element.getNameString()
 
     return (

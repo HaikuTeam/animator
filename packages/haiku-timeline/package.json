@@ -45,6 +45,7 @@
     "react-dom": "15.4.2",
     "react-draggable": "2.2.3",
     "react-popover": "0.4.4",
+    "react-scroll-to-component": "^1.0.1",
     "strip-indent": "^2.0.0"
   },
   "devDependencies": {

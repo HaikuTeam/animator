@@ -10,6 +10,7 @@ export default class ComponentHeadingRow extends React.Component {
     let componentId = this.props.row.element.getComponentId()
     return (
       <div
+        ref='$row'
         id={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         key={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         className='component-heading-row no-select'
