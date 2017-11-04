@@ -47,7 +47,7 @@ class ActiveComponent extends BaseModel {
     // Super hack, but it turns out we need to have this in a LOT of places in order for routing to work
     // and not end up with infinite loops of events emitted, captured, and emitted again. Beware!
     this.metadata = { from: this.alias }
-    this.scenename = DEFAULT_SCENE_NAME
+    this._scenename = DEFAULT_SCENE_NAME
 
     this.instance = null // ::HaikuComponent
     this.mount = null // Optional storage for a mount DOM element which the player needs to run
@@ -222,16 +222,28 @@ class ActiveComponent extends BaseModel {
   }
 
   getSceneCodePath () {
-    return path.join('code', this.scenename, 'code.js')
+    return path.join('code', this.getSceneName(), 'code.js')
+  }
+
+  getSceneCodeFolder () {
+    return this.fetchActiveBytecodeFile().get('folder')
   }
 
   getSceneDomModulePath () {
-    return path.join('code', this.scenename, 'dom.js')
+    return path.join('code', this.getSceneName(), 'dom.js')
   }
 
   setSceneName (scenename) {
     this._scenename = scenename
     return this
+  }
+
+  getSceneName () {
+    return this._scenename
+  }
+
+  getAbsoluteLottieFilePath () {
+    return path.join(this.getSceneCodeFolder(), 'code', this.getSceneName(), 'lottie.json')
   }
 
   fetchActiveBytecodeFile () {

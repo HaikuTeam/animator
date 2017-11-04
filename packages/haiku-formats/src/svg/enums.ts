@@ -4,6 +4,8 @@ export enum SvgTag {
   Group = 'g',
   CircleShape = 'circle',
   EllipseShape = 'ellipse',
+  LinearGradient = 'linearGradient',
+  RadialGradient = 'radialGradient',
   RectangleShape = 'rect',
   PathShape = 'path',
   PolygonShape = 'polygon',

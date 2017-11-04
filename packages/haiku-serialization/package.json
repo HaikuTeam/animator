@@ -1,6 +1,6 @@
 {
   "name": "haiku-serialization",
-  "version": "2.3.17",
+  "version": "2.3.19",
   "description": "Serialization utilities",
   "main": "index.js",
   "scripts": {
@@ -36,8 +36,11 @@
     "fs-extra": "2.0.0",
     "fuzzy-string-matching": "^1.0.2",
     "haiku-bytecode": "HaikuTeam/bytecode.git",
+    "haiku-common": "HaikuTeam/common.git",
     "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
+    "haiku-sdk-client": "HaikuTeam/sdk-client.git",
     "haiku-sdk-creator": "HaikuTeam/sdk-creator.git",
+    "haiku-sdk-inkstone": "HaikuTeam/sdk-inkstone.git",
     "lodash": "4.17.4",
     "lodash.assign": "4.2.0",
     "lodash.debounce": "4.0.8",
@@ -50,6 +53,7 @@
     "prettier": "^0.22.0",
     "pretty": "^2.0.0",
     "raf": "^3.3.2",
+    "request": "^2.83.0",
     "standard": "8.6.0",
     "winston": "^2.3.1"
   },

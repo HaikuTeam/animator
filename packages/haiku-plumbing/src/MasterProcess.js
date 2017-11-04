@@ -1,5 +1,6 @@
 import ProcessBase from './ProcessBase'
 import Master from './Master'
+const Raven = require('./Raven')
 
 function run () {
   const master = new Master(ProcessBase.HAIKU.folder)
@@ -11,13 +12,8 @@ function run () {
 
 let master
 
-if (process.env.HAIKU_RELEASE_ENVIRONMENT === 'production' || process.env.HAIKU_RELEASE_ENVIRONMENT === 'staging') {
-  const Raven = require('./Raven')
-  Raven.context(() => {
-    master = run()
-  })
-} else {
+Raven.context(() => {
   master = run()
-}
+})
 
 export default master

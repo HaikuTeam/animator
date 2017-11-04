@@ -31,7 +31,7 @@ class SketchDownloader extends React.Component {
 
   download (url) {
     this.setState({status: statuses.DOWNLOADING})
-    this.checkIfShouldShowAgain()
+    this.dismiss()
 
     download(this.updateProgress, () => this.state.shouldCancel)
       .then(() => {
@@ -63,14 +63,15 @@ class SketchDownloader extends React.Component {
       shouldCancel: false
     })
 
-    this.checkIfShouldShowAgain()
+    this.dismiss()
   }
 
-  checkIfShouldShowAgain () {
+  dismiss () {
     if (this.checkInput.checked) {
-      this.props.onSketchDialogFileCreated()
       createSketchDialogFile()
     }
+
+    this.props.onDismiss(!this.checkInput.checked)
   }
 
   renderPromptUser () {

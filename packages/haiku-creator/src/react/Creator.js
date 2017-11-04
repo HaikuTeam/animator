@@ -358,6 +358,7 @@ export default class Creator extends React.Component {
             username: authAnswer && authAnswer.username,
             isUserAuthenticated: authAnswer && authAnswer.isAuthed
           })
+
           if (this.props.folder) {
             // Launch folder directly - i.e. allow a 'subl' like experience without having to go
             // through the projects index
@@ -477,6 +478,17 @@ export default class Creator extends React.Component {
       projectName // Have to set this here, because we pass this whole object to StateTitleBar, which needs this to properly call saveProject
     }
 
+    // Add extra context to Sentry reports, this info is also used
+    // by carbonite.
+    window.Raven.setExtraContext({
+      organizationName: this.state.organizationName,
+      projectPath: projectObject.projectPath,
+      projectName
+    })
+    window.Raven.setUserContext({
+      email: this.state.username
+    })
+
     mixpanel.haikuTrack('creator:project:launching', {
       username: this.state.username,
       project: projectName,
@@ -485,6 +497,12 @@ export default class Creator extends React.Component {
 
     return this.props.websocket.request({ method: 'initializeProject', params: [projectName, projectObject, this.state.username, this.state.password] }, (err, projectFolder) => {
       if (err) return cb(err)
+
+      window.Raven.setExtraContext({
+        organizationName: this.state.organizationName,
+        projectPath: projectFolder, // Re-set in case it wasn't present in the above call
+        projectName
+      })
 
       return this.props.websocket.request({ method: 'startProject', params: [projectName, projectFolder] }, (err, applicationImage) => {
         if (err) return cb(err)
@@ -786,6 +804,8 @@ export default class Creator extends React.Component {
                 folder={this.state.projectFolder}
                 envoy={this.envoy}
                 haiku={this.props.haiku}
+                username={this.state.username}
+                organizationName={this.state.organizationName}
                 createNotice={this.createNotice}
                 removeNotice={this.removeNotice} />
             </SplitPane>

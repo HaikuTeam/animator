@@ -4,9 +4,15 @@ const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 const path = require('path')
 
+/**
+ * This file is bypassed when loaded in the full app.
+ * This is only used as a harness for developin on glass standalone.
+ */
+
 let url = `file://${path.join(__dirname, '..', 'index.html')}`
 
 const params = {
+  email: 'matthew+SENTRY-TESTING-USER@haiku.ai',
   folder: process.env.HAIKU_PROJECT_FOLDER,
   plumbing: process.env.HAIKU_PLUMBING_URL
 }

@@ -1,1 +1,1 @@
-export * from "./nib"
+export * from './nib';

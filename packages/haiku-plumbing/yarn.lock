@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@haiku/player@2.3.17":
-  version "2.3.17"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.17.tgz#473db811e87d8ecefbce5dace733a0be9460878d"
+"@haiku/player@2.3.18":
+  version "2.3.18"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.18.tgz#6de217e92802641933a844bf3937203eed899bb9"
   dependencies:
     lodash "^4.17.4"
     react "15.4.2"
@@ -3427,6 +3427,10 @@ haiku-cli@HaikuTeam/cli.git:
     request "^2.79.0"
     tail "^1.2.1"
     yargs "^6.6.0"
+
+haiku-common@HaikuTeam/common.git:
+  version "2.3.10"
+  resolved "git+ssh://git@github.com/HaikuTeam/common.git#285698df9e792c242e953414f7cecb454b86af1d"
 
 haiku-creator-electron@HaikuTeam/creator.git:
   version "2.3.7"

@@ -53,6 +53,7 @@ export default class Stage extends React.Component {
     const query = qs.stringify(assign({}, this.props.haiku, {
       plumbing: this.props.haiku.plumbing.url,
       folder: this.props.folder,
+      email: this.props.username,
       envoy: {
         host: this.props.envoy.getOption('host'),
         port: this.props.envoy.getOption('port')

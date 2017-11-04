@@ -1,6 +1,6 @@
-import * as tape from 'tape'
+import * as tape from 'tape';
 
-tape('index', async (t) => {
-  t.plan(1)
-  t.ok(true)
-})
+tape('index', (t) => {
+  t.plan(1);
+  t.ok(true);
+});

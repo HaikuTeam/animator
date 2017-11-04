@@ -1,6 +1,6 @@
 {
   "name": "haiku-plumbing",
-  "version": "2.3.17",
+  "version": "2.3.19",
   "description": "Haiku plumbing (serializer, processes, etc)",
   "authors": [
     "Zack Brown <zack@haiku.ai>",
@@ -25,7 +25,7 @@
     "zack": "node ./HaikuHelper.js --folder=/Users/zack/code/haiku/mono/packages/haiku-glass/test/projects/primitives --mode=headless --repl"
   },
   "dependencies": {
-    "@haiku/player": "2.3.17",
+    "@haiku/player": "2.3.19",
     "async": "2.1.4",
     "aws-sdk": "2.7.22",
     "babel-core": "6.21.0",
@@ -48,6 +48,7 @@
     "haiku-bytecode": "HaikuTeam/bytecode.git",
     "haiku-cli": "HaikuTeam/cli.git",
     "haiku-creator-electron": "HaikuTeam/creator.git",
+    "haiku-common": "HaikuTeam/common.git",
     "haiku-formats": "HaikuTeam/formats.git",
     "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
     "haiku-glass": "HaikuTeam/glass.git",

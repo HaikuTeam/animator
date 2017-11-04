@@ -20,7 +20,8 @@ class ProjectBrowser extends React.Component {
       showNeedsSaveDialogue: false,
       projectsList: [],
       areProjectsLoading: true,
-      launchingProject: false
+      launchingProject: false,
+      recordedNewProjectName: ''
     }
     this.handleDocumentKeyPress = this.handleDocumentKeyPress.bind(this)
     this.handleSelectProject = this.handleSelectProject.bind(this)
@@ -119,6 +120,11 @@ class ProjectBrowser extends React.Component {
     this.setState({ projectsList })
   }
 
+  unsetActiveProject () {
+    // Hacky way to unset current project
+    this.setActiveProject()
+  }
+
   handleProjectTitleChange (projectObject, changeEvent) {
     if (!this.isProjectNameBad(changeEvent.target.value)) {
       projectObject.projectName = changeEvent.target.value
@@ -184,10 +190,24 @@ class ProjectBrowser extends React.Component {
     this.refs.newProjectInput.select()
   }
 
-  handleNewProjectInputKeyPress (e) {
-    if (e.charCode === 13) {
+  handleNewProjectInputKeyDown (e) {
+    if (e.keyCode === 13) {
       this.handleNewProjectGo()
+    } else if (e.keyCode === 27) {
+      this.unsetActiveProject()
     }
+  }
+
+  handleNewProjectInputBlur () {
+    // Add a delay before closing, if the blur is lost because
+    // the input is being sumitted this will prevent UI glitches
+    setTimeout(() => {
+      this.unsetActiveProject()
+    }, 150)
+  }
+
+  handleNewProjectInputChange (event) {
+    this.setState({recordedNewProjectName: event.target.value})
   }
 
   handleNewProjectGo () {
@@ -198,7 +218,7 @@ class ProjectBrowser extends React.Component {
     if (this.isProjectNameBad(name)) {
       console.warn('bad name entered:', name)
     } else {
-      this.setState({newProjectLoading: true})
+      this.setState({newProjectLoading: true, recordedNewProjectName: ''})
       this.props.websocket.request({ method: 'createProject', params: [name] }, (err, newProject) => {
         const projectsList = this.state.projectsList
         this.setState({newProjectLoading: false})
@@ -250,8 +270,11 @@ class ProjectBrowser extends React.Component {
                   ref='newProjectInput'
                   disabled={this.state.newProjectLoading}
                   onClick={this.handleNewProjectInputClick.bind(this)}
-                  onKeyPress={this.handleNewProjectInputKeyPress.bind(this)}
+                  onKeyDown={this.handleNewProjectInputKeyDown.bind(this)}
+                  onBlur={this.handleNewProjectInputBlur.bind(this)}
                   style={[DASH_STYLES.newProjectInput]}
+                  value={this.state.recordedNewProjectName}
+                  onChange={this.handleNewProjectInputChange.bind(this)}
                   placeholder='NewProjectName' />
                 <button key='new-project-go-button' disabled={this.state.newProjectLoading} onClick={this.handleNewProjectGo.bind(this)} style={[DASH_STYLES.newProjectGoButton]}>{buttonContents}</button>
                 <span key='new-project-error' style={[DASH_STYLES.newProjectError]}>{this.state.newProjectError}</span>

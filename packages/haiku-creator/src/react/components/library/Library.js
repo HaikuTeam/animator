@@ -157,8 +157,8 @@ class LibraryDrawer extends React.Component {
     this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, fileData: null}})
   }
 
-  onSketchDialogFileCreated () {
-    this.setState({sketchDownloader: {...this.state.sketchDownloader, shouldAskForSketch: false}})
+  onSketchDialogDismiss (shouldAskForSketch) {
+    this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, shouldAskForSketch}})
   }
 
   handleAssetInstantiation (fileData) {
@@ -352,7 +352,7 @@ class LibraryDrawer extends React.Component {
           this.state.sketchDownloader.shouldAskForSketch && (
             <SketchDownloader
               onDownloadComplete={this.onSketchDownloadComplete.bind(this)}
-              onSketchDialogFileCreated={this.onSketchDialogFileCreated.bind(this)}
+              onDismiss={this.onSketchDialogDismiss.bind(this)}
             />
           )
         }

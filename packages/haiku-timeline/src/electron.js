@@ -4,6 +4,11 @@ var electron = require('electron')
 var app = electron.app
 var BrowserWindow = electron.BrowserWindow
 
+/**
+ * This file is bypassed when loaded in the full app.
+ * This is only used as a harness for developin on glass standalone.
+ */
+
 if (!app) {
   throw new Error('You can only run electron.js from an electron process')
 }
@@ -11,6 +16,7 @@ if (!app) {
 var url = 'file://' + path.join(__dirname, '..', 'index.html')
 
 var params = {
+  email: 'matthew+SENTRY-TESTING-USER@haiku.ai',
   folder: process.env.HAIKU_PROJECT_FOLDER,
   plumbing: process.env.HAIKU_PLUMBING_URL
 }

@@ -1,12 +1,15 @@
-import { EventEmitter } from 'events'
-import fse from 'haiku-fs-extra'
-import path from 'path'
 import async from 'async'
+import { EventEmitter } from 'events'
+import path from 'path'
 import { debounce } from 'lodash'
+
+import fse from 'haiku-fs-extra'
+import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import walkFiles from 'haiku-serialization/src/utils/walkFiles'
 import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
 import File from 'haiku-serialization/src/bll/File'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
+
 import ProcessBase from './ProcessBase'
 import * as Git from './Git'
 import ProjectConfiguration from './ProjectConfiguration'
@@ -17,6 +20,9 @@ import * as ProjectFolder from './ProjectFolder'
 import MasterGitProject from './MasterGitProject'
 import MasterModuleProject from './MasterModuleProject'
 import attachListeners from './envoy/attachListeners'
+import saveExport from './publish-hooks/saveExport'
+
+const Raven = require('./Raven')
 
 if (process.env.CHAOS_MONKEYS === '1') {
   const num = Math.random() * ((60 * 1000) - 5000) + 5000
@@ -771,6 +777,16 @@ export default class Master extends EventEmitter {
       branchName: DEFAULT_BRANCH_NAME
     })
 
+    const ravenContext = {
+      user: { email: haikuUsername },
+      extra: {
+        projectName: ProjectFolder.getSafeProjectName(this.folder, projectName),
+        projectPath: this.folder,
+        organizationName: ProjectFolder.getSafeOrgName(projectOptions.organizationName)
+      }
+    }
+    Raven.setContext(ravenContext)
+
     // Note: 'ensureProjectFolder' and/or 'buildProjectContent' should already have ran by this point.
     return async.series([
       (cb) => {
@@ -1000,6 +1016,24 @@ export default class Master extends EventEmitter {
         }
 
         return this._component.fetchActiveBytecodeFile().writeMetadata(bytecodeMetadata, cb)
+      },
+
+      // Write out any enabled exported formats.
+      (cb) => {
+        logger.info('[master] project save: writing exported formats')
+
+        // Create a fault-tolerant async series to process all requested formats.
+        const {exporterFormats} = saveOptions
+        return async.series(exporterFormats.map((format) => (done) => {
+          // For now, we only support one exported format.
+          const filename = this._component.getAbsoluteLottieFilePath()
+          saveExport({format, filename}, this._component, (err) => {
+            if (err) {
+              logger.warn(`[master] error during export: ${err.toString()}`)
+            }
+            done()
+          })
+        }), cb)
       },
 
       (cb) => {

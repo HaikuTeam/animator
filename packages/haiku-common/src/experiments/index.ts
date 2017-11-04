@@ -8,7 +8,8 @@ import {getExperimentConfig} from './config';
  * @enum {string}
  */
 export enum Experiment {
-  LottieExport = 'LottieExport',
+  LottieExportInGlobalMenu = 'LottieExportInGlobalMenu',
+  LottieExportOnPublish = 'LottieExportOnPublish',
 }
 
 /**
