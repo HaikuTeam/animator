@@ -9,6 +9,7 @@ const manaToHtml = require('haiku-bytecode/src/manaToHtml')
 const manaToJson = require('haiku-bytecode/src/manaToJson')
 const getStackingInfo = require('haiku-bytecode/src/getStackingInfo')
 const BaseModel = require('./BaseModel')
+const Row = require('./Row')
 const serializeElement = require('./../dom/serializeElement')
 const _assignDOMSchemaProperties = require('./helpers/assignDOMSchemaProperties')
 const _isCoordInsideRect = require('./helpers/isCoordInsideRect')
@@ -101,6 +102,12 @@ class Element extends BaseModel {
       this._isSelected = true
       Element.selected[this.getPrimaryKey()] = this
       this.emit('update', 'element-selected', metadata)
+
+      // Roundabout! Note that rows, when selected, will select their corresponding element
+      const row = this.getRow()
+      if (row && !row.isSelected()) {
+        row.select(metadata)
+      }
     }
   }
 
@@ -109,15 +116,27 @@ class Element extends BaseModel {
       this._isSelected = false
       delete Element.selected[this.getPrimaryKey()]
       this.emit('update', 'element-unselected', metadata)
+
+      // Roundabout! Note that rows, when deselected, will deselect their corresponding element
+      const row = this.getRow()
+      if (row && row.isSelected()) {
+        row.deselect(metadata)
+      }
     }
+  }
+
+  getAllAssociatedRows () {
+    return Row.where({ element: this })
+  }
+
+  getRow () {
+    const rows = this.getAllAssociatedRows()
+    // Our 'official' row is the row that represents the element heading
+    return rows.filter((row) => row.isHeading())[0]
   }
 
   isSelected () {
     return this._isSelected
-  }
-
-  isAtFirstLevel () {
-
   }
 
   canRotate () {
@@ -850,22 +869,6 @@ Element.findDomNode = function findDomNode (haikuId, platform) {
 
 Element.findByComponentId = function findByComponentId (componentId) {
   return Element.findById(componentId)
-}
-
-Element.selectElementByComponentId = function (componentId, metadata) {
-  const element = Element.findById(componentId)
-  if (element) {
-    element.select(metadata)
-  }
-  return element
-}
-
-Element.unselectElementByComponentId = function (componentId, metadata) {
-  const element = Element.findById(componentId)
-  if (element) {
-    element.unselect(metadata)
-  }
-  return element
 }
 
 Element.findRoots = function () {

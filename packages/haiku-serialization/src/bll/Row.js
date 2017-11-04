@@ -30,16 +30,20 @@ class Row extends BaseModel {
 
   select (metadata) {
     if (!this._isSelected || !Row._selected[this.getUniqueKey()]) {
+      // Deselect all other rows; currently assume only one row selected at a time
       Row.all().forEach((row) => {
-        if (row !== this) row.deselect()
+        if (row === this) return null
+        row.deselect(metadata)
       })
+
       this._isSelected = true
       Row._selected[this.getUniqueKey()] = this
-      this.emit('update', 'row-selected')
+      this.emit('update', 'row-selected', metadata)
 
-      // if (this.isHeading()) {
-      //   this.element.select(metadata)
-      // }
+      // Roundabout! Note that elements, when selected, will select their corresponding row
+      if (this.isHeading() && this.element && !this.element.isSelected()) {
+        this.element.select(metadata)
+      }
     }
     return this
   }
@@ -48,11 +52,12 @@ class Row extends BaseModel {
     if (this._isSelected || Row._selected[this.getUniqueKey()]) {
       this._isSelected = false
       delete Row._selected[this.getUniqueKey()]
-      this.emit('update', 'row-deselected')
+      this.emit('update', 'row-deselected', metadata)
 
-      // if (this.isHeading()) {
-      //   this.element.unselect(metadata)
-      // }
+      // Roundabout! Note that elements, when unselected, will unselect their corresponding row
+      if (this.isHeading() && this.element && this.element.isSelected()) {
+        this.element.unselect(metadata)
+      }
     }
     return this
   }
@@ -83,24 +88,26 @@ class Row extends BaseModel {
     return this._isActive
   }
 
-  expand () {
+  expand (metadata) {
     if (!this._isExpanded || !Row._expanded[this.getUniqueKey()]) {
       this._isExpanded = true
       Row._expanded[this.getUniqueKey()] = this
-      this.emit('update', 'row-expanded')
+      this.emit('update', 'row-expanded', metadata)
     }
+
     // If we are expanded, we also need our parent to be expanded
     if (this.parent) {
-      this.parent.expand()
+      this.parent.expand(metadata)
     }
+
     return this
   }
 
-  collapse () {
+  collapse (metadata) {
     if (this._isExpanded || Row._expanded[this.getUniqueKey()]) {
       this._isExpanded = false
       delete Row._expanded[this.getUniqueKey()]
-      this.emit('update', 'row-collapsed')
+      this.emit('update', 'row-collapsed', metadata)
     }
     return this
   }
@@ -121,23 +128,23 @@ class Row extends BaseModel {
     return this._isExpanded
   }
 
-  focus () {
+  focus (metadata) {
     if (!this._isFocused || !Row._focused[this.getUniqueKey()]) {
       Row.all().forEach((row) => {
         if (row !== this) row.blur()
       })
       this._isFocused = true
       Row._focused[this.getUniqueKey()] = this
-      this.emit('update', 'row-focused')
+      this.emit('update', 'row-focused', metadata)
     }
     return this
   }
 
-  blur () {
+  blur (metadata) {
     if (this._isFocused || Row._focused[this.getUniqueKey()]) {
       this._isFocused = false
       delete Row._focused[this.getUniqueKey()]
-      this.emit('update', 'row-blurred')
+      this.emit('update', 'row-blurred', metadata)
     }
     return this
   }
@@ -187,14 +194,22 @@ class Row extends BaseModel {
   }
 
   expandAndSelect (metadata) {
-    this.expand(metadata)
-    this.select(metadata)
+    if (!this.isExpanded()) {
+      this.expand(metadata)
+    }
+    if (!this.isSelected()) {
+      this.select(metadata)
+    }
     return this
   }
 
   collapseAndDeselect (metadata) {
-    this.collapse(metadata)
-    this.deselect(metadata)
+    if (this.isExpanded()) {
+      this.collapse(metadata)
+    }
+    if (this.isSelected()) {
+      this.deselect(metadata)
+    }
     return this
   }
 
@@ -516,6 +531,11 @@ Row.getDisplayables = function getDisplayables () {
       return false
     }
 
+    // Don't display any rows that are hidden by their parent being collapsed
+    if (row.isWithinCollapsedRow()) {
+      return false
+    }
+
     return true
   })
 }
@@ -572,17 +592,6 @@ Row.focusSelectNext = function focusSelectNext (navDir, doFocus, metadata) {
   if (doFocus) target.focus(metadata)
 
   return target
-}
-
-Row.deselectBlurAll = function deselectBlurAll (metadata) {
-  return Row.all().forEach((row) => {
-    row.deselect(metadata)
-    row.blur(metadata)
-  })
-}
-
-Row.focusCurrentlySelectedRow = function focusCurrentlySelectedRow (metadata) {
-  return Row.getSelectedRow().focus(metadata)
 }
 
 Row.getSelectedRow = function getSelectedRow () {

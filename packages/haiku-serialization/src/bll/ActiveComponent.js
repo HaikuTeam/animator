@@ -357,10 +357,6 @@ class ActiveComponent extends BaseModel {
    * Note: This gets called automatically by element.select()
    */
   handleElementSelected (componentId, metadata) {
-    const row = this.findRowByComponentId(componentId)
-    row.select()
-    row.expand()
-
     // If we originated the selection, notify all other views that it occurred
     if (metadata.from === this.alias) {
       this.batchedWebsocketAction('selectElement', [this.folder, componentId])
@@ -377,10 +373,6 @@ class ActiveComponent extends BaseModel {
    * Note: This gets called automatically by element.unselect()
    */
   handleElementUnselected (componentId, metadata) {
-    const row = this.findRowByComponentId(componentId)
-    row.deselect()
-    row.collapse()
-
     // If we originated the selection, notify all other views that it occurred
     if (metadata.from === this.alias) {
       this.batchedWebsocketAction('unselectElement', [this.folder, componentId])
@@ -390,12 +382,22 @@ class ActiveComponent extends BaseModel {
   }
 
   selectElement (componentId, metadata, cb) {
-    Element.selectElementByComponentId(componentId, metadata)
+    const element = Element.findById(componentId)
+    if (element) {
+      element.select(metadata)
+      const row = element.getRow()
+      if (row) {
+        row.expand(metadata)
+      }
+    }
     return cb() // MUST return or the websocket action circuit never completes
   }
 
   unselectElement (componentId, metadata, cb) {
-    Element.unselectElementByComponentId(componentId, metadata)
+    const element = Element.findById(componentId)
+    if (element) {
+      element.unselect(metadata)
+    }
     return cb() // MUST return or the websocket action circuit never completes
   }
 
@@ -470,7 +472,14 @@ class ActiveComponent extends BaseModel {
 
         Element.unselectAllElements(metadata)
 
-        Element.selectElementByComponentId(componentId, metadata)
+        const element = Element.findById(componentId)
+        if (element) {
+          element.select(metadata)
+          const row = element.getRow()
+          if (row) {
+            row.expand(metadata)
+          }
+        }
 
         if (metadata.from === this.alias) {
           this.batchedWebsocketAction('instantiateComponent', [this.folder, relpath, posdata])
@@ -478,8 +487,6 @@ class ActiveComponent extends BaseModel {
 
         this.clearCaches()
         this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'instantiateComponent')
-
-        let element = Element.where({ component: this, _isSelected: true })[0]
 
         cb(null, { center: coords }, element)
       })
@@ -1537,7 +1544,7 @@ class ActiveComponent extends BaseModel {
       parentElementRow.addChild(elementHeadingRow)
     }
 
-    const addressableProperties = element.getAddressableProperties(element.isAtFirstLevel())
+    const addressableProperties = element.getAddressableProperties(false)
 
     const clustersUpserted = {}
 
@@ -1763,14 +1770,6 @@ class ActiveComponent extends BaseModel {
 
   getSelectedRow () {
     return Row.getSelectedRow()
-  }
-
-  focusCurrentlySelectedRow (metadata) {
-    return Row.focusCurrentlySelectedRow(metadata || this.metadata)
-  }
-
-  focusSelectNext (navDir, doFocus, metadata) {
-    return Row.focusSelectNext(navDir, doFocus, metadata || this.metadata)
   }
 }
 
