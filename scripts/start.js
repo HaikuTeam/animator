@@ -89,6 +89,9 @@ switch (args[0]) {
   case 'blank':
     argv.preset = 'blank'
     break
+  case 'blank-noclean':
+    argv.preset = 'blank-noclean'
+    break
 }
 
 // $ yarn start -- --preset=default
@@ -230,6 +233,10 @@ function runAutomatic (preset) {
       case 'blank':
         inputs.devChoice = 'everything'
         inputs.folderChoice = 'blank'
+        break
+      case 'blank-noclean':
+        inputs.devChoice = 'everything'
+        inputs.folderChoice = 'blank-noclean'
         break
     }
   }
