@@ -226,7 +226,7 @@ class ActiveComponent extends BaseModel {
   }
 
   getSceneCodeFolder () {
-    return this.fetchActiveBytecodeFile().get('folder')
+    return this.fetchActiveBytecodeFile().folder
   }
 
   getSceneDomModulePath () {
