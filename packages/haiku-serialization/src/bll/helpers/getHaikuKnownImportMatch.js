@@ -21,14 +21,20 @@ var replacements = {
   '@haiku/player/dom/react': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom', 'react')
 }
 
+var CANONICAL_PLAYER_SOURCE_CODE_PATH = path.join(NODE_MODULES_PATH, '@haiku', 'player')
+
 /**
  * @function getHaikuKnownImportMatch
  * @description Convert a known import path to an application local installation
  */
-module.exports = function getHaikuKnownImportMatch (importPath) {
+function getHaikuKnownImportMatch (importPath) {
   var normalizedPath = importPath.trim().toLowerCase()
   if (normalizedPath in replacements) return replacements[normalizedPath]
 
   // not a good general solution, but good enough for player components
   return importPath.replace(/^@haiku\/player/, replacements['@haiku/player'])
 }
+
+getHaikuKnownImportMatch.CANONICAL_PLAYER_SOURCE_CODE_PATH = CANONICAL_PLAYER_SOURCE_CODE_PATH
+
+module.exports = getHaikuKnownImportMatch
