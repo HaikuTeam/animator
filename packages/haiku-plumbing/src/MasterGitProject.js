@@ -568,6 +568,31 @@ export default class MasterGitProject extends EventEmitter {
     return Git.upsertRemote(this.folder, this._folderState.projectName, GitRemoteUrl, cb)
   }
 
+  ensureBranch (cb) {
+    return Git.open(this.folder, (err, repository) => {
+      if (err) return cb(err)
+      return this.safeSetupBranch(repository, this._folderState.headCommitId, cb)
+    })
+  }
+
+  safeSetupBranch (repository, commitId, cb) {
+    const branchName = DEFAULT_BRANCH_NAME
+    const refSpec = `refs/heads/${branchName}`
+
+    logger.info('[master-git] remote refs: creating branch', branchName)
+
+    return repository.createBranch(branchName, commitId.toString()).then(() => {
+      return cb()
+    }, (branchErr) => {
+      // The remote already exists; there was no need to create it. Go ahead and skip
+      if (branchErr.message && branchErr.message.match(/reference with that name already exists/) && branchErr.message.split(refSpec).length > 1) {
+        logger.info('[master-git] remote refs: branch already exists; proceeding')
+        return cb(null, branchName)
+      }
+      return cb(branchErr)
+    })
+  }
+
   ensureRemoteRefs (cb) {
     logger.info('[master-git] remote refs: ensuring')
 
@@ -588,12 +613,12 @@ export default class MasterGitProject extends EventEmitter {
 
           return Git.buildCommit(this.folder, this._folderState.haikuUsername, null, `Base commit ${COMMIT_SUFFIX}`, oid, null, null, (err, commitId) => {
             if (err) return cb(err)
-            const branchName = DEFAULT_BRANCH_NAME
-            const refSpecToPush = `refs/heads/${branchName}`
 
-            logger.info('[master-git] remote refs: creating branch', branchName)
+            return this.safeSetupBranch(repository, commitId, (err, branchName) => {
+              if (err) return cb(err) // Should only be present if error is NOT about branch already existing
 
-            return repository.createBranch(branchName, commitId.toString()).then(() => {
+              const refSpecToPush = `refs/heads/${branchName}`
+
               return Git.lookupRemote(this.folder, this._folderState.projectName, (err, mainRemote) => {
                 if (err) return cb(err)
 
@@ -606,13 +631,6 @@ export default class MasterGitProject extends EventEmitter {
                   return cb()
                 }, cb)
               })
-            }, (branchErr) => {
-              // The remote already exists; there was no need to create it. Go ahead and skip
-              if (branchErr.message && branchErr.message.match(/reference with that name already exists/) && branchErr.message.split(refSpecToPush).length > 1) {
-                logger.info('[master-git] remote refs: branch already exists; proceeding')
-                return cb()
-              }
-              return cb(branchErr)
             })
           })
         })
@@ -652,7 +670,17 @@ export default class MasterGitProject extends EventEmitter {
     } = this._folderState.remoteProjectDescriptor
 
     return Git.fetchProject(this.folder, this._folderState.projectName, GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, (err) => {
-      if (err) return cb(err)
+      if (err) {
+        // Ignore the error for now since the remote might not actually exist yet
+        logger.info(`[master-git] unable to fetch because ${err}; ignoring this`)
+
+        // Just for the sake of logging the current git status
+        return this.safeGitStatus({ log: true }, () => {
+          this._folderState.didHaveConflicts = false
+          this._folderState.mergeCommitId = null
+          return cb()
+        })
+      }
 
       return Git.getCurrentBranchName(this.folder, (err, partialBranchName) => {
         if (err) return cb(err)
@@ -1074,6 +1102,7 @@ export default class MasterGitProject extends EventEmitter {
             'copyContentsFromTemp',
             'commitEverything',
             'makeTag',
+            'ensureRemoteRefs',
             'pushToRemote'
           ]
         } else if (isGitInitialized && !isCodeCommitReady) {
@@ -1086,8 +1115,10 @@ export default class MasterGitProject extends EventEmitter {
           if (doesGitHaveChanges) {
             actionSequence = [
               'commitEverything',
-              'pullRemote', // TODO: Turn off until collab?
-              'conflictResetOrContinue', // TODO: Turn off until collab?
+              'ensureBranch',
+              'ensureLocalRemote',
+              'pullRemote', // Turn on when collab is back
+              'conflictResetOrContinue', // Turn on when collab is back
               'bumpSemverAppropriately',
               'commitEverything',
               'makeTag',
@@ -1095,7 +1126,9 @@ export default class MasterGitProject extends EventEmitter {
             ]
           } else if (!doesGitHaveChanges) {
             actionSequence = [
-              'pullRemote', // TODO: Turn off until collab?
+              'ensureBranch',
+              'ensureLocalRemote',
+              'pullRemote', // Turn on when collab is back
               'bumpSemverAppropriately',
               'commitEverything',
               'makeTag',
