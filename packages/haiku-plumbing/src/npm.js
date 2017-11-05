@@ -1,6 +1,13 @@
 var logger = require('haiku-serialization/src/utils/LoggerInstance')
 var cp = require('child_process')
 var path = require('path')
+var fse = require('haiku-fs-extra')
+var CANONICAL_PLAYER_SOURCE_CODE_PATH = require('haiku-serialization/src/bll/helpers/getHaikuKnownImportMatch').CANONICAL_PLAYER_SOURCE_CODE_PATH
+
+// Rsync-safe directory that assumes transferring contents from one dir to another
+function rsyncableDir (loc) {
+  return JSON.stringify(loc + '/')
+}
 
 function dictToArr (deps) {
   var arr = []
@@ -14,6 +21,39 @@ function dictToArr (deps) {
 
 var DEBOUNCE_TIME = 60 * 1000 // Don't reinstall same deps to same folder for 1 minute
 var cache = {}
+
+function installPlayerFromLocalSource (folder, cb) {
+  // Copy our local copy of the player into their node_modules directory
+  var playerSourcePathSafe = rsyncableDir(CANONICAL_PLAYER_SOURCE_CODE_PATH)
+  var destinationDir = path.join(folder, 'node_modules', '@haiku', 'player')
+  var destinationSafe = rsyncableDir(destinationDir)
+  var playerPkg = fse.readJsonSync(path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'package.json'), { throws: false })
+  if (!playerPkg) return cb(null, new Error('Cannot find player package.json'))
+  var playerVersion = playerPkg.version
+  if (!playerVersion) return cb(null, new Error('Cannot find player version'))
+  try {
+    fse.mkdirpSync(destinationDir)
+    var rsyncCmd = `rsync --archive --quiet --recursive --no-links --exclude node_modules/ ${playerSourcePathSafe} ${destinationSafe}`
+    logger.info('[project folder]', rsyncCmd)
+    cp.execSync(rsyncCmd, { stdio: 'inherit' })
+  } catch (exception) {
+    return cb(null, exception)
+  }
+
+  // Now update their package.json with the correct player version
+  var theirPkg = fse.readJsonSync(path.join(folder, 'package.json'), { throws: false })
+  if (!theirPkg) return cb(null, new Error('Cannot read their package.json'))
+  if (!theirPkg.dependencies) theirPkg.dependencies = {}
+  theirPkg.dependencies['@haiku/player'] = playerVersion
+  try {
+    logger.info(`[project folder] updating their package.json player version to ${playerVersion}`)
+    fse.writeJsonSync(path.join(folder, 'package.json'), theirPkg)
+  } catch (exception) {
+    return cb(null, exception)
+  }
+
+  return cb()
+}
 
 function install (folder, dependencies, cb) {
   if (!dependencies) return cb()
@@ -60,6 +100,7 @@ function link (folder, linkees, cb) {
 }
 
 module.exports = {
+  installPlayerFromLocalSource: installPlayerFromLocalSource,
   install: install,
   link: link
 }

@@ -100,12 +100,32 @@ export function ensureSpecificProject (projectPath, projectName, projectType = D
   })
 }
 
-function npmActions (projectPath, projectDependencies, cb) {
+function npmInstallAndLink (projectPath, projectDependencies, cb) {
   return npm.install(projectPath, projectDependencies, (err) => {
     if (err) return cb(err)
     // We npm link *the project* so that local create-react-app can hmr from it
     return npm.link(projectPath, [projectPath], cb)
   })
+}
+
+function npmActions (projectPath, projectDependencies, cb) {
+  if (Object.keys(projectDependencies).length < 1) {
+    return cb()
+  }
+
+  // If our only dependency is the player, install it from our local copy
+  if (Object.keys(projectDependencies).length === 1 && projectDependencies['@haiku/player']) {
+    return npm.installPlayerFromLocalSource(projectPath, (err) => {
+      if (err) {
+        // If we had an error trying the local version, fallback to network install
+        logger.info('[project folder] error installing player from local source', err)
+        return npmInstallAndLink(projectPath, projectDependencies, cb)
+      }
+      return cb()
+    })
+  }
+
+  return npmInstallAndLink(projectPath, projectDependencies, cb)
 }
 
 function dir () {
