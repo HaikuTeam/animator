@@ -1019,10 +1019,13 @@ export default class Master extends EventEmitter {
 
       // Write out any enabled exported formats.
       (cb) => {
-        logger.info('[master] project save: writing exported formats')
+        const {exporterFormats} = saveOptions
+        if (!exporterFormats) {
+          return cb()
+        }
 
         // Create a fault-tolerant async series to process all requested formats.
-        const {exporterFormats} = saveOptions
+        logger.info('[master] project save: writing exported formats')
         return async.series(exporterFormats.map((format) => (done) => {
           // For now, we only support one exported format.
           const filename = this._component.getAbsoluteLottieFilePath()
