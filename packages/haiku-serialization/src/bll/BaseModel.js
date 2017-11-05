@@ -39,6 +39,7 @@ class BaseModel extends EventEmitter {
     this.__cache = {}
     this.__updated = Date.now()
     this.__checked = Date.now() - 1
+    this.__destroyed = null
 
     if (this.afterInitialize) this.afterInitialize()
   }
@@ -139,8 +140,17 @@ class BaseModel extends EventEmitter {
     if (this.beforeDestroy) this.beforeDestroy()
     this.constructor.remove(this)
     this.setPrimaryKey(undefined)
+    this.__destroyed = Date.now()
     if (this.afterDestroy) this.afterDestroy()
     return this
+  }
+
+  destroyedAt () {
+    return this.__destroyed
+  }
+
+  isDestroyed () {
+    return !!this.__destroyed
   }
 
   sameAs (other) {
@@ -226,7 +236,9 @@ function createCollection (klass, collection, opts) {
   }
 
   klass.all = () => {
-    return collection
+    return collection.filter((item) => {
+      return !item.isDestroyed()
+    })
   }
 
   klass.count = () => {
@@ -234,7 +246,7 @@ function createCollection (klass, collection, opts) {
   }
 
   klass.filter = (iteratee) => {
-    return collection.filter(iteratee)
+    return klass.all().filter(iteratee)
   }
 
   klass.where = (criteria) => {

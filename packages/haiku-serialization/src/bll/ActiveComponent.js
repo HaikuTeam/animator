@@ -385,7 +385,7 @@ class ActiveComponent extends BaseModel {
     const element = Element.findById(componentId)
     if (element) {
       element.select(metadata)
-      const row = element.getRow()
+      const row = element.getHeadingRow()
       if (row) {
         row.expand(metadata)
       }
@@ -475,7 +475,7 @@ class ActiveComponent extends BaseModel {
         const element = Element.findById(componentId)
         if (element) {
           element.select(metadata)
-          const row = element.getRow()
+          const row = element.getHeadingRow()
           if (row) {
             row.expand(metadata)
           }
@@ -1508,15 +1508,26 @@ class ActiveComponent extends BaseModel {
   }
 
   rehydrate () {
-     // If you want to call 'rehydrateFromTree' from the top, remember to reset this to 0.
+    // If you want to call 'rehydrateFromTree' from the top, remember to reset this to 0.
     this._numrows = 0
+    // We use this to help purge elements have been removed since the previous run.
+    this._timestamp = Date.now()
     this.rehydrateFromTree(this.getHotTemplate(), null, null, null, 0, 0, 0, '0')
+    this.purgeStaleEntities(this._timestamp)
+  }
+
+  purgeStaleEntities (timestamp) {
+    Row.filter((row) => row.timestamp < timestamp).forEach((row) => row.destroy())
+    Keyframe.filter((kf) => kf.timestamp < timestamp).forEach((kf) => kf.destroy())
+    Element.filter((el) => el.timestamp < timestamp).forEach((el) => el.destroy())
+    return this
   }
 
   rehydrateFromTree (virtualNode, virtualParent, parentElement, parentElementRow, rowIndex, rowDepth, indexInParent, graphAddress) {
     const element = this.upsertElementFromVirtualElement(virtualNode, virtualParent, indexInParent, graphAddress)
 
     const elementHeadingRow = Row.upsert({
+      timestamp: this._timestamp,
       uid: `${element.getComponentId()}-heading`,
       element: element,
       parent: parentElementRow,
@@ -1554,6 +1565,7 @@ class ActiveComponent extends BaseModel {
       if (!propertyGroupDescriptor.cluster) {
         // Properties represented as a single row, like 'opacity'
         const propertyRow = Row.upsert({
+          timestamp: this._timestamp,
           uid: `${element.getComponentId()}-property-${addressableName}`,
           element: element,
           parent: elementHeadingRow,
@@ -1580,6 +1592,7 @@ class ActiveComponent extends BaseModel {
         // This check is just to make sure we get a correct number for the row index
         if (!clustersUpserted[clusterId]) {
           clusterRow = Row.upsert({
+            timestamp: this._timestamp,
             uid: clusterId,
             element: element,
             parent: elementHeadingRow,
@@ -1603,6 +1616,7 @@ class ActiveComponent extends BaseModel {
         elementHeadingRow.addChild(clusterRow)
 
         const clusterMember = Row.upsert({
+          timestamp: this._timestamp,
           uid: `${element.getComponentId()}-cluster-${propertyGroupDescriptor.cluster.prefix}-property-${addressableName}`,
           element: element,
           parent: clusterRow,
@@ -1662,6 +1676,7 @@ class ActiveComponent extends BaseModel {
       }
 
       Keyframe.upsert({
+        timestamp: this._timestamp,
         uid: Keyframe.getInferredUid(row, i),
         ms: mscurr,
         index: i,
@@ -1691,6 +1706,7 @@ class ActiveComponent extends BaseModel {
     }
 
     const element = Element.upsert({
+      timestamp: this._timestamp,
       uid: uid,
       node: node,
       index: indexInParent,

@@ -19,6 +19,7 @@ class Row extends BaseModel {
     this._isActive = false
     this._isHidden = false
     this._isHovered = false
+    this._isDeleted = false
 
     // Hacky check whether we've already auto-expanded this row
     this._wasInitiallyExpanded = false
@@ -222,6 +223,27 @@ class Row extends BaseModel {
     return baselineValue
   }
 
+  isDeleted () {
+    return this._isDeleted
+  }
+
+  delete () {
+    this._isDeleted = true
+
+    // Deleting a parent row means the children also have to go
+    this.children.forEach((child) => {
+      child.delete()
+    })
+
+    this.blur()
+    this.deselect()
+    this.unhover()
+
+    this.destroy()
+
+    this.emit('update', 'row-deleted')
+  }
+
   createKeyframe (value, ms, metadata) {
     // If creating a keyframe on a cluster row, create one for all of the child rows
     if (this.isClusterHeading()) {
@@ -357,6 +379,7 @@ class Row extends BaseModel {
     return keyframes.filter((keyframe) => {
       return (
         !keyframe.isDeleted() &&
+        !keyframe.isDestroyed() &&
         keyframe.isVisible(frameInfo.msA, frameInfo.msB)
       )
     }).map(iteratee)
@@ -521,6 +544,10 @@ Row.findPropertyRowsByParentComponentId = function findPropertyRowsByParentCompo
 
 Row.getDisplayables = function getDisplayables () {
   return Row.filter((row) => {
+    if (row.isDeleted() || row.isDestroyed()) {
+      return false
+    }
+
     // Nothing after the third level of depth (elements, properties, etc)
     if (row.depth > 3) {
       return false

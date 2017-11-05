@@ -90,6 +90,12 @@ class Keyframe extends BaseModel {
     return this._isDeleted
   }
 
+  delete (metadata) {
+    this.row.deleteKeyframe(this, metadata)
+    this._isDeleted = true
+    return this
+  }
+
   dragStart (dragData) {
     this.activate()
     this._dragStartMs = this.getMs()
@@ -172,11 +178,6 @@ class Keyframe extends BaseModel {
 
     this.row.emit('update', 'keyframe-remove-curve')
 
-    return this
-  }
-
-  delete (metadata) {
-    this.row.deleteKeyframe(this, metadata)
     return this
   }
 

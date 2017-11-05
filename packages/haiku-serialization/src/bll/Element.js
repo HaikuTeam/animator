@@ -104,7 +104,7 @@ class Element extends BaseModel {
       this.emit('update', 'element-selected', metadata)
 
       // Roundabout! Note that rows, when selected, will select their corresponding element
-      const row = this.getRow()
+      const row = this.getHeadingRow()
       if (row && !row.isSelected()) {
         row.select(metadata)
       }
@@ -118,7 +118,7 @@ class Element extends BaseModel {
       this.emit('update', 'element-unselected', metadata)
 
       // Roundabout! Note that rows, when deselected, will deselect their corresponding element
-      const row = this.getRow()
+      const row = this.getHeadingRow()
       if (row && row.isSelected()) {
         row.deselect(metadata)
       }
@@ -129,7 +129,7 @@ class Element extends BaseModel {
     return Row.where({ element: this })
   }
 
-  getRow () {
+  getHeadingRow () {
     const rows = this.getAllAssociatedRows()
     // Our 'official' row is the row that represents the element heading
     return rows.filter((row) => row.isHeading())[0]
@@ -166,7 +166,7 @@ class Element extends BaseModel {
   }
 
   copy () {
-    this.emit('element:copy', this.uid)
+    this.emit('element:copy', this.getComponentId())
   }
 
   querySelectorAll (selector) {
@@ -175,7 +175,7 @@ class Element extends BaseModel {
 
   getReifiedEventHandlers () {
     const bytecode = this.component.getReifiedBytecode()
-    const selector = 'haiku:' + this.uid
+    const selector = 'haiku:' + this.getComponentId()
     if (!bytecode.eventHandlers) bytecode.eventHandlers = {}
     if (!bytecode.eventHandlers[selector]) bytecode.eventHandlers[selector] = {}
     return bytecode.eventHandlers[selector]
@@ -274,7 +274,7 @@ class Element extends BaseModel {
     return {
       from: _from, // Used to help determine who should handle a given global clipboard action
       kind: 'element',
-      componentId: this.uid,
+      componentId: this.getComponentId(),
       serializedBytecode: this.component.getSerializedBytecode()
     }
   }
@@ -287,39 +287,39 @@ class Element extends BaseModel {
 
   isAtFront () {
     const stackingInfo = this.getStackingInfo()
-    const myIndex = lodash.findIndex(stackingInfo, { haikuId: this.uid })
+    const myIndex = lodash.findIndex(stackingInfo, { haikuId: this.getComponentId() })
     return myIndex === stackingInfo.length - 1
   }
 
   isAtBack () {
     const stackingInfo = this.getStackingInfo()
-    const myIndex = lodash.findIndex(stackingInfo, { haikuId: this.uid })
+    const myIndex = lodash.findIndex(stackingInfo, { haikuId: this.getComponentId() })
     return myIndex === 0
   }
 
   sendToBack () {
-    this.component.zMoveToBack([this.uid], this.component.getCurrentTimelineName(), 0, this.component.metadata, (err) => {
+    this.component.zMoveToBack([this.getComponentId()], this.component.getCurrentTimelineName(), 0, this.component.metadata, (err) => {
       if (err) return void (0)
     })
     this.emit('update', 'element-send-to-back')
   }
 
   bringToFront () {
-    this.component.zMoveToFront([this.uid], this.component.getCurrentTimelineName(), 0, this.component.metadata, (err) => {
+    this.component.zMoveToFront([this.getComponentId()], this.component.getCurrentTimelineName(), 0, this.component.metadata, (err) => {
       if (err) return void (0)
     })
     this.emit('update', 'element-bring-to-front')
   }
 
   bringForward () {
-    this.component.zMoveForward([this.uid], this.component.getCurrentTimelineName(), 0, this.component.metadata, (err) => {
+    this.component.zMoveForward([this.getComponentId()], this.component.getCurrentTimelineName(), 0, this.component.metadata, (err) => {
       if (err) return void (0)
     })
     this.emit('update', 'element-bring-forward')
   }
 
   sendBackward () {
-    this.component.zMoveBackward([this.uid], this.component.getCurrentTimelineName(), 0, this.component.metadata, (err) => {
+    this.component.zMoveBackward([this.getComponentId()], this.component.getCurrentTimelineName(), 0, this.component.metadata, (err) => {
       if (err) return void (0)
     })
     this.emit('update', 'element-send-backward')
@@ -432,7 +432,7 @@ class Element extends BaseModel {
   getPropertyValue (propertyName, fallbackValue) {
     const bytecode = this.component.getReifiedBytecode()
     const computed = TimelineProperty.getComputedValue(
-      this.uid,
+      this.getComponentId(),
       _safeElementName(this.node),
       propertyName,
       this.component.getCurrentTimelineName(),
@@ -476,7 +476,7 @@ class Element extends BaseModel {
   move (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord) {
     if (!this.parent) return void (0) // Don't allow artboard to move
     const propertyGroup = { 'translation.x': dx, 'translation.y': dy }
-    this.component.applyPropertyGroupDelta([this.uid], this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), propertyGroup, this.component.metadata, (err) => {
+    this.component.applyPropertyGroupDelta([this.getComponentId()], this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), propertyGroup, this.component.metadata, (err) => {
       if (err) return void (0)
     })
 
@@ -546,7 +546,7 @@ class Element extends BaseModel {
       if (finalSize.width <= 1 || finalSize.height <= 1) return void (0)
 
       // Frame zero is hardcoded since artboard resizes at different times is confusing
-      return this.component.resizeContext([this.uid], this.component.getCurrentTimelineName(), 0, finalSize, this.component.metadata, (err) => {
+      return this.component.resizeContext([this.getComponentId()], this.component.getCurrentTimelineName(), 0, finalSize, this.component.metadata, (err) => {
         if (err) return void (0)
       })
     }
@@ -595,7 +595,7 @@ class Element extends BaseModel {
     let translationGroup = {'translation.x': translationOffset[0], 'translation.y': translationOffset[1]}
     let transformGroup = Object.assign(Object.assign({}, scaleGroup), translationGroup)
 
-    this.component.applyPropertyGroupDelta([this.uid], this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), transformGroup, this.component.metadata, (err) => {
+    this.component.applyPropertyGroupDelta([this.getComponentId()], this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), transformGroup, this.component.metadata, (err) => {
       if (err) return void (0)
     })
 
@@ -664,7 +664,7 @@ class Element extends BaseModel {
 
     const propertyGroup = { 'rotation.z': deltaRotationZ }
 
-    this.component.applyPropertyGroupDelta([this.uid], this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), propertyGroup, this.component.metadata, (err) => {
+    this.component.applyPropertyGroupDelta([this.getComponentId()], this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), propertyGroup, this.component.metadata, (err) => {
       if (err) return void (0)
     })
 
@@ -672,14 +672,20 @@ class Element extends BaseModel {
   }
 
   remove () {
-    this.destroy()
-
     this.unselect(this.component.metadata)
     this.hoverOff(this.component.metadata)
 
-    this.component.deleteComponent([this.uid], this.component.metadata, (err) => {
+    this.component.deleteComponent([this.getComponentId()], this.component.metadata, (err) => {
       if (err) return void (0)
     })
+
+    // Destroy after the above so we retain our UID for the necessary actions
+    this.destroy()
+
+    const row = this.getHeadingRow()
+    if (row) {
+      row.delete()
+    }
 
     this.emit('update', 'element-remove')
   }
@@ -926,6 +932,14 @@ Element.getBoundingBoxPoints = function getBoundingBoxPoints (points) {
     {x: x1, y: y1 + h / 2}, {x: x1 + w / 2, y: y1 + h / 2}, {x: x2, y: y1 + h / 2},
     {x: x1, y: y2}, {x: x1 + w / 2, y: y2}, {x: x2, y: y2}
   ]
+}
+
+Element.distanceBetweenPoints = function distanceBetweenPoints (p1, p2, zoomFactor) {
+  let distance = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2))
+  if (zoomFactor) {
+    distance *= zoomFactor
+  }
+  return distance
 }
 
 // If elementName is bytecode (i.e. a nested component) return a fallback name

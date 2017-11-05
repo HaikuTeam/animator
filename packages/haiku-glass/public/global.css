@@ -454,8 +454,7 @@ input:focus, button:focus {
 }
 
 .no-select {
-  -webkit-user-select: none;
-  cursor: default;
+  -webkit-user-select: none !important;
 }
 
 .draw-shape * {

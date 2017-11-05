@@ -97,8 +97,12 @@ class Timeline extends React.Component {
       tuple[0].removeListener(tuple[1], tuple[2])
     })
     this.mounted = false
-    this.tourClient.removeListener('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
-    this._envoyClient.closeConnection()
+
+    if (this.tourClient) {
+      this.tourClient.removeListener('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
+    }
+
+    this.component._envoyClient.closeConnection()
   }
 
   componentDidMount () {
@@ -130,14 +134,14 @@ class Timeline extends React.Component {
       }
     })
 
-    this.component.on('envoy:tourClientReady', (client) => {
-      client.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
+    this.component.on('envoy:tourClientReady', (tourClient) => {
+      tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
 
       setTimeout(() => {
-        client.next()
+        tourClient.next()
       })
 
-      this.tourClient = client
+      this.tourClient = tourClient
     })
 
     document.addEventListener('paste', (pasteEvent) => {
@@ -184,7 +188,7 @@ class Timeline extends React.Component {
     this.addEmitterListener(this.ctxmenu, 'joinKeyframes', (curveName) => {
       this.component.joinSelectedKeyframes(curveName, { from: 'timeline' })
 
-      if (!this.component._envoyClient.isInMockMode()) {
+      if (!this.component._envoyClient.isInMockMode() && this.tourClient) {
         this.tourClient.next()
       }
     })
@@ -261,7 +265,7 @@ class Timeline extends React.Component {
       let element = document.querySelector(selector)
       let { top, left } = element.getBoundingClientRect()
 
-      if (!this.component._envoyClient.isInMockMode()) {
+      if (!this.component._envoyClient.isInMockMode() && this.tourClient) {
         this.tourClient.receiveElementCoordinates('timeline', { top, left })
       }
     } catch (error) {
@@ -761,7 +765,7 @@ class Timeline extends React.Component {
             row.createKeyframe(committedValue, ms, { from: 'timeline' })
 
             if (row.element.getNameString() === 'svg' && row.getPropertyName() === 'opacity') {
-              if (!this.component._envoyClient.isInMockMode()) {
+              if (!this.component._envoyClient.isInMockMode() && this.tourClient) {
                 this.tourClient.next()
               }
             }

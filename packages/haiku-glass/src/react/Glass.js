@@ -25,13 +25,26 @@ const CLOCKWISE_CONTROL_POINTS = {
   3: [8, 7, 6, 3, 0, 1, 2, 5] // flipped horizontal + vertical
 }
 
+const POINTS_THRESHOLD_REDUCED = 65 // Display only the corner control points
+const POINTS_THRESHOLD_NONE = 35 // Display no control points nor line
+
+const POINT_DISPLAY_MODES = {
+  NORMAL: [1, 1, 1, 1, 1, 1, 1, 1, 1],
+  REDUCED: [1, 0, 1, 0, 0, 0, 1, 0, 1],
+  NONE: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+}
+
+const LINE_DISPLAY_MODES = {
+  NORMAL: 1,
+  NONE: 2
+}
+
 // The class is exported also _without_ the radium wrapper to allow jsdom testing
 export class Glass extends React.Component {
   constructor (props) {
     super(props)
 
     this.state = {
-      error: null,
       mountWidth: 550,
       mountHeight: 400,
       mountX: 550 / 2,
@@ -101,8 +114,6 @@ export class Glass extends React.Component {
     this._haikuContext = new HaikuContext(null, this._haikuRenderer, {}, { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } }, { options: { cache: {}, seed: 'abcde' } })
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
-
-    this.resetContainerDimensions()
 
     window.glass = this
 
@@ -203,18 +214,10 @@ export class Glass extends React.Component {
         mountHeight: newMountSize.height
       })
 
+      this.resetContainerDimensions()
+
       this.drawLoop()
     })
-
-    const trackElementSelection = (what, componentId) => {
-      // Since the current selected element can be deleted from the global menu,
-      // we need to keep track of it there so we have a pointer to what to delete
-      if (what === 'selectElement') {
-        this._lastSelectedElement = this._component.findElementByComponentId(componentId)
-      } else if (what === 'unselectElement') {
-        this._lastSelectedElement = null
-      }
-    }
 
     this._component.on('update', (what, ...args) => {
       // This happens on almost any update because theoretically a keyframe change,
@@ -226,11 +229,21 @@ export class Glass extends React.Component {
         mountHeight: updatedArtboardSize.height
       })
 
-      trackElementSelection(what, args[0])
+      this.resetContainerDimensions()
+
+      if (what === 'element-selected') {
+        this.setLastSelectedElement(args[0])
+      } else if (what === 'element-unselected') {
+        this.setLastSelectedElement(null)
+      }
     })
 
     this._component.on('remote-update', (what, ...args) => {
-      trackElementSelection(what, args[0])
+      if (what === 'selectElement') {
+        this.setLastSelectedElement(this._component.findElementByComponentId(args[0]))
+      } else if (what === 'unselectElement') {
+        this.setLastSelectedElement(null)
+      }
       this.draw()
     })
 
@@ -266,9 +279,8 @@ export class Glass extends React.Component {
 
     // This fires when the context menu cut/copy action has been fired - not a keyboard action.
     // This fires with cut OR copy. In case of cut, the element has already been .cut()!
-    this._component.on('element:copy', (componentId) => {
-      console.info('[glass] element:copy', componentId)
-      this._lastSelectedElement = this._component._elements.find(componentId)
+    this._component.on('element:copy', (element) => {
+      this.setLastSelectedElement(element)
       this.handleVirtualClipboard('copy')
     })
 
@@ -377,18 +389,21 @@ export class Glass extends React.Component {
     window.addEventListener('mouseout', this.windowMouseOutHandler.bind(this))
   }
 
-  // componentDidUpdate () {
-  //   this.resetContainerDimensions()
-  // }
-
   componentWillUnmount () {
     this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
     this._envoyClient.closeConnection()
   }
 
-  handleVirtualClipboard (clipboardAction, maybeClipboardEvent) {
-    console.info('[glass] handling clipboard action', clipboardAction)
+  setLastSelectedElement (el) {
+    this._lastSelectedElement = el
+    return this
+  }
 
+  getLastSelectedElement () {
+    return this._lastSelectedElement
+  }
+
+  handleVirtualClipboard (clipboardAction, maybeClipboardEvent) {
     if (
       // Avoid infinite loops due to the way we leverage execCommand
       this._clipboardActionLock ||
@@ -400,12 +415,14 @@ export class Glass extends React.Component {
 
     this._clipboardActionLock = true
 
-    if (this._lastSelectedElement) {
+    const lastSelectedElement = this.getLastSelectedElement()
+
+    if (lastSelectedElement) {
       // Gotta grab _before cutting_ or we'll end up with a partial object that won't work
-      let clipboardPayload = this._lastSelectedElement.getClipboardPayload('glass')
+      let clipboardPayload = lastSelectedElement.getClipboardPayload('glass')
 
       if (clipboardAction === 'cut') {
-        this._lastSelectedElement.cut()
+        lastSelectedElement.cut()
       }
 
       let serializedPayload = JSON.stringify(['application/haiku', clipboardPayload])
@@ -839,7 +856,12 @@ export class Glass extends React.Component {
     const ch = Math.max(h1, h2)
 
     if (w1 !== this.state.containerWidth || h1 !== this.state.containerHeight || mountX !== this.state.mountX || mountY !== this.state.mountY) {
-      this.setState({ containerWidth: cw, containerHeight: ch, mountX, mountY }, cb)
+      this.setState({
+        containerWidth: cw,
+        containerHeight: ch,
+        mountX,
+        mountY
+      }, cb)
     }
   }
 
@@ -968,15 +990,16 @@ export class Glass extends React.Component {
           if (scaleX === undefined || scaleX === null) scaleX = 1
           let scaleY = element.getPropertyValue('scale.y')
           if (scaleY === undefined || scaleY === null) scaleY = 1
-          this.renderTransformBoxOverlay(points, overlays, element.canRotate(), this.state.isKeyCommandDown, true, rotationZ, scaleX, scaleY)
+          this.renderTransformBoxOverlay(element, points, overlays, element.canRotate(), this.state.isKeyCommandDown, true, rotationZ, scaleX, scaleY)
         }
       } else {
-        points = []
-        selectedElements.forEach((element) => {
-          element.getBoxPointsTransformed().forEach((point) => points.push(point))
-        })
-        points = Element.getBoundingBoxPoints(points)
-        this.renderTransformBoxOverlay(points, overlays, false, this.state.isKeyCommandDown, false, 0, 1, 1)
+        // TODO: Render control points across multiple selected elements
+        // points = []
+        // selectedElements.forEach((element) => {
+        //   element.getBoxPointsTransformed().forEach((point) => points.push(point))
+        // })
+        // points = Element.getBoundingBoxPoints(points)
+        // this.renderTransformBoxOverlay(__, points, overlays, false, this.state.isKeyCommandDown, false, 0, 1, 1)
       }
       if (this.state.isMouseDragging) {
         // TODO: Draw tooltip with points info
@@ -1109,13 +1132,31 @@ export class Glass extends React.Component {
     }
   }
 
-  renderTransformBoxOverlay (points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
-    var corners = [points[0], points[2], points[8], points[6]]
-    corners.forEach((point, index) => {
-      var next = corners[(index + 1) % corners.length]
-      overlays.push(this.renderLine(point.x, point.y, next.x, next.y))
-    })
+  renderTransformBoxOverlay (element, points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
+    // If the size is smaller than a threshold, only display the corners.
+    // And if it is smaller even than that, don't display the points at all
+    const dx = Element.distanceBetweenPoints(points[0], points[2], this.state.zoomXY)
+    const dy = Element.distanceBetweenPoints(points[0], points[6], this.state.zoomXY)
+
+    let pointDisplayMode = POINT_DISPLAY_MODES.NORMAL
+    if (dx < POINTS_THRESHOLD_REDUCED || dy < POINTS_THRESHOLD_REDUCED) pointDisplayMode = POINT_DISPLAY_MODES.REDUCED
+    if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) pointDisplayMode = POINT_DISPLAY_MODES.NONE
+
+    let lineDisplayMode = LINE_DISPLAY_MODES.NORMAL
+    if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) lineDisplayMode = LINE_DISPLAY_MODES.NONE
+
+    if (lineDisplayMode !== LINE_DISPLAY_MODES.NONE) {
+      const corners = [points[0], points[2], points[8], points[6]]
+      corners.forEach((point, index) => {
+        const next = corners[(index + 1) % corners.length]
+        overlays.push(this.renderLine(point.x, point.y, next.x, next.y))
+      })
+    }
+
     points.forEach((point, index) => {
+      if (!pointDisplayMode[index]) {
+        return null
+      }
       if (index !== 4) {
         overlays.push(this.renderControlPoint(point.x, point.y, index, canControlHandles && this.getHandleClass(index, canRotate, isRotationModeOn, rotationZ, scaleX, scaleY)))
       }
@@ -1163,7 +1204,7 @@ export class Glass extends React.Component {
         ref='mount'
         key='hot-component-mount'
         id='hot-component-mount'
-        className={drawingClassName}
+        className={`${drawingClassName} no-select`}
         style={{
           position: 'absolute',
           left: mount.x,

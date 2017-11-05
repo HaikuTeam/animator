@@ -5,7 +5,6 @@ import { EventEmitter } from 'events'
 import semver from 'semver'
 import tmp from 'tmp'
 import lodash from 'lodash'
-import checkIsOnline from 'is-online'
 import { client as sdkClient } from 'haiku-sdk-client'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import * as Git from './Git'
@@ -23,12 +22,6 @@ const CLONE_RETRY_DELAY = 5000
 const DEFAULT_BRANCH_NAME = 'master' // "'master' process" has nothing to do with this :/
 const BASELINE_SEMVER_TAG = '0.0.0'
 const COMMIT_SUFFIX = '(via Haiku Desktop)'
-
-function _checkIsOnline (cb) {
-  return checkIsOnline().then((answer) => {
-    return cb(answer)
-  })
-}
 
 function _isCommitTypeRequest ({ type }) {
   return type === 'commit'
@@ -206,23 +199,8 @@ export default class MasterGitProject extends EventEmitter {
       },
 
       (cb) => {
-        return this.safeFetchProjectGitRemoteInfo((remoteProjectDescriptor) => {
-          this._folderState.remoteProjectDescriptor = remoteProjectDescriptor
-          this._folderState.isCodeCommitReady = !!(this._projectInfo.projectName && remoteProjectDescriptor)
-          return cb()
-        })
-      },
-
-      (cb) => {
         return this.safeListLocallyDeclaredRemotes((gitRemotesList) => {
           this._folderState.gitRemotesList = gitRemotesList
-          return cb()
-        })
-      },
-
-      (cb) => {
-        return _checkIsOnline((isOnline) => {
-          this._folderState.isOnline = isOnline
           return cb()
         })
       },
@@ -1013,26 +991,16 @@ export default class MasterGitProject extends EventEmitter {
 
       (cb) => {
         const {
-          isGitInitialized,
-          doesGitHaveChanges,
-          isCodeCommitReady
+          isGitInitialized
         } = this._folderState
 
         // Based on the above statuses, assemble a sequence of actions to take.
         let actionSequence = []
 
-        if (!isGitInitialized && !isCodeCommitReady) {
+        if (!isGitInitialized) {
           actionSequence = ['initializeGit']
-        } else if (!isGitInitialized && isCodeCommitReady) {
-          actionSequence = ['initializeGit']
-        } else if (isGitInitialized && !isCodeCommitReady) {
+        } else {
           actionSequence = []
-        } else if (isGitInitialized && isCodeCommitReady) {
-          if (doesGitHaveChanges) {
-            actionSequence = []
-          } else if (!doesGitHaveChanges) {
-            actionSequence = ['pullRemote']
-          }
         }
 
         logger.info('[master-git] action sequence:', actionSequence.map((name) => name))
@@ -1072,12 +1040,20 @@ export default class MasterGitProject extends EventEmitter {
       },
 
       (cb) => {
+        return this.safeFetchProjectGitRemoteInfo((remoteProjectDescriptor) => {
+          this._folderState.remoteProjectDescriptor = remoteProjectDescriptor
+          return cb()
+        })
+      },
+
+      (cb) => {
         logger.info('[master-git] project save: preparing action sequence')
+
+        const isCodeCommitReady = !!(this._projectInfo.projectName && this._folderState.remoteProjectDescriptor)
 
         const {
           isGitInitialized,
-          doesGitHaveChanges,
-          isCodeCommitReady
+          doesGitHaveChanges
         } = this._folderState
 
         // Based on the above statuses, assemble a sequence of actions to take.
@@ -1092,7 +1068,7 @@ export default class MasterGitProject extends EventEmitter {
           ]
         } else if (!isGitInitialized && isCodeCommitReady) {
           actionSequence = [
-            'initializeGit',
+            // 'initializeGit', Don't need this since clone does it?
             'moveContentsToTemp',
             'cloneRemoteIntoFolder',
             'copyContentsFromTemp',
@@ -1110,8 +1086,8 @@ export default class MasterGitProject extends EventEmitter {
           if (doesGitHaveChanges) {
             actionSequence = [
               'commitEverything',
-              'pullRemote',
-              'conflictResetOrContinue',
+              'pullRemote', // TODO: Turn off until collab?
+              'conflictResetOrContinue', // TODO: Turn off until collab?
               'bumpSemverAppropriately',
               'commitEverything',
               'makeTag',
@@ -1119,7 +1095,7 @@ export default class MasterGitProject extends EventEmitter {
             ]
           } else if (!doesGitHaveChanges) {
             actionSequence = [
-              'pullRemote',
+              'pullRemote', // TODO: Turn off until collab?
               'bumpSemverAppropriately',
               'commitEverything',
               'makeTag',

@@ -60,19 +60,6 @@ export default class ContextMenu extends EventEmitter {
     var selected = react._component.queryElements({ _isSelected: true })
     var top = selected[0]
 
-    if (top) {
-      if (top.node && top.node.attributes) {
-        if (top.node.attributes['haiku-title']) {
-          this._menu.append(new MenuItem({
-            label: top.node.attributes['haiku-title'],
-            enabled: false
-          }))
-
-          this._menu.append(new MenuItem({ type: 'separator' }))
-        }
-      }
-    }
-
     this._menu.append(new MenuItem({
       label: (react.state.doShowComments) ? 'Hide Comments' : 'Show Comments',
       enabled: react.state.comments && react.state.comments.length > 0,
@@ -140,7 +127,7 @@ export default class ContextMenu extends EventEmitter {
 
     this._menu.append(new MenuItem({
       label: 'Paste',
-      enabled: !!top,
+      enabled: true, // TODO: How can we determine whether we have a pasteable ready?
       click: (event) => {
         this.emit('current-pasteable:request-paste', react.state.mousePositionCurrent)
       }

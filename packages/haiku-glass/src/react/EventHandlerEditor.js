@@ -604,6 +604,7 @@ export default class EventHandlerEditor extends React.Component {
       width: '100%',
       height: 50,
       zIndex: 9000,
+      cursor: 'default',
       borderTop: '1px solid ' + Palette.LIGHTEST_GRAY
     }
   }
@@ -662,6 +663,7 @@ export default class EventHandlerEditor extends React.Component {
             margin: '0 auto',
             textAlign: 'center',
             color: '#999',
+            cursor: 'default',
             zIndex: 9000
           }}>
           {`Event Listeners for ${this.getElementTitle()}`}
