@@ -9,6 +9,8 @@ import Color from 'color'
 import { BTN_STYLES } from '../styles/btnShared'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import ToolSelector from './ToolSelector'
+import Toggle from './Toggle'
+import {InteractionMode} from 'haiku-common/lib/interaction-modes'
 import {
   PublishSnapshotSVG,
   ConnectionIconSVG,
@@ -446,6 +448,18 @@ class StageTitleBar extends React.Component {
     return BTN_STYLES.btnIconHover
   }
 
+  togglePreviewMode(checked) {
+    const interaction = checked ? InteractionMode.Edit : InteractionMode.Live
+
+    this.props.websocket.action(
+      'setInteractionMode',
+      [this.props.folder, interaction],
+      () => {
+        console.log('=== interaction mode set')
+      }
+    )
+  }
+
   render () {
     const { showSharePopover } = this.state
     const titleText = this.state.showCopied
@@ -458,6 +472,10 @@ class StageTitleBar extends React.Component {
 
     return (
       <div style={STYLES.frame} className='frame'>
+        <Toggle
+          hintText='Preview mode is'
+          onToggle={this.togglePreviewMode.bind(this)}
+        />
         <Popover
           place='below'
           isOpen={showSharePopover}
