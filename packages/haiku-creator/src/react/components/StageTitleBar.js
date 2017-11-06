@@ -11,6 +11,7 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import ToolSelector from './ToolSelector'
 import Toggle from './Toggle'
 import {InteractionMode} from 'haiku-common/lib/interaction-modes'
+import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import {
   PublishSnapshotSVG,
   ConnectionIconSVG,
@@ -472,10 +473,13 @@ class StageTitleBar extends React.Component {
 
     return (
       <div style={STYLES.frame} className='frame'>
-        <Toggle
-          hintText='Preview mode is'
-          onToggle={this.togglePreviewMode.bind(this)}
-        />
+        {
+          experimentIsEnabled(Experiment.PreviewMode) &&
+          <Toggle
+            hintText='Preview mode is'
+            onToggle={this.togglePreviewMode.bind(this)}
+          />
+        }
         <Popover
           place='below'
           isOpen={showSharePopover}
