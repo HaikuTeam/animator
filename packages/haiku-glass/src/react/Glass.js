@@ -11,6 +11,7 @@ import EventHandlerEditor from './EventHandlerEditor'
 import Comments from './models/Comments'
 import ContextMenu from './models/ContextMenu'
 import getLocalDomEventPosition from './helpers/getLocalDomEventPosition'
+import { InteractionMode } from 'haiku-common/lib/interaction-modes'
 import {
   linkExternalAssetsOnDrop,
   preventDefaultDrag
@@ -1194,7 +1195,7 @@ export class Glass extends React.Component {
   }
 
   isPreviewMode () {
-    return this._component._interactionMode.type === 'live'
+    return this._component._interactionMode.type === InteractionMode.Live.type
   }
 
   getCursorCssRule () {

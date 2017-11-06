@@ -2609,6 +2609,10 @@ haiku-bytecode@HaikuTeam/bytecode.git:
     svg-parser "1.0.5"
     to-style "1.3.3"
 
+haiku-common@HaikuTeam/common.git:
+  version "2.3.10"
+  resolved "git+ssh://git@github.com/HaikuTeam/common.git#285698df9e792c242e953414f7cecb454b86af1d"
+
 haiku-fs-extra@HaikuTeam/node-fs-extra.git#master-haiku:
   version "1.0.0"
   resolved "https://codeload.github.com/HaikuTeam/node-fs-extra/tar.gz/3a90fa18a472d45071c3dce3b28785fe0ddfa12a"
