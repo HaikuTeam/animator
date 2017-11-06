@@ -1139,6 +1139,14 @@ export class BodymovinExporter implements Exporter {
     return JSON.stringify(this.rawOutput());
   }
 
+  /**
+   * Interface method to provide failsafe binary output.
+   * @returns {{}}
+   */
+  failsafeBinaryOutput() {
+    return '{}';
+  }
+
   constructor(private bytecode) {
     // If not already known, get the Bodymovin version.
     if (!bodymovinVersion) {
