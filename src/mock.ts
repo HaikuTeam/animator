@@ -11,7 +11,7 @@ export const getStub = () => sinon.stub();
  * Generic stub importer based on proxyquire and sinon.
  *
  * Given a source module and a hashmap of targets, returns an array of stubs with an import target unshifted as the
- * first element.
+ * first element and a done callback to restore stubs at the end.
  *
  * For example, given the following module:
  *
@@ -28,26 +28,60 @@ export const getStub = () => sinon.stub();
  *
  *   import {importStubs} from 'haiku-testing/lib/mock';
  *
- *   const [{doStuff}, spyDoFoo, spyBar] = importStubs('../lib/something', {'foo': 'doFoo', 'bar': 'default'});
+ *   const [{doStuff}, spyDoFoo, spyBar, unstub] = importStubs('../lib/something', {'foo': 'doFoo', 'bar': 'default'});
  *   bar.returns('hello');
  *   doStuff();
  *   test.true(spyBar.calledOnce);
  *   test.true(spyDoFoo.calledOnce);
  *   test.true(spyDoFoo.calledWith('hello', 'world'));
+ *   unstub();
  *
  * This allows us to test all the behavior of doStuff without concern for the actual behavior of the dependencies from
  * 'foo' and 'bar'.
+ *
+ * Remember to always call `unstub()` before the end of your tests!
  */
 export const importStubs = (from: string, spyTargets: {[key: string]: string} = {}) => {
   const targets = {};
-  const spies = [];
+  const stubs = [];
+  const basePath = join(global.process.cwd(), from);
   for (const module in spyTargets) {
-    const spy = sinon.stub();
-    const spyTarget = {};
-    spyTarget[spyTargets[module]] = spy;
-    spies.push(spy);
-    targets[module] = spyTarget;
+    targets[module] = require(join(basePath, module));
+    stubs.push(sinon.stub(targets[module], spyTargets[module]));
   }
 
-  return [proxyquire(join(global.process.cwd(), from), targets), ...spies];
+  return [proxyquire(basePath, targets), ...stubs, () => {
+    stubs.forEach((stub) => stub.restore());
+  }];
+};
+
+/**
+ * A light-weight stub "applicator" for single objects.
+ *
+ * Given a source object and a hashmap of targets, returns an array of stubs with a done callback to restore stubs at
+ * the end.
+ *
+ * For example, given the following object:
+ *
+ * `haiku-stuff/lib/something.js`
+ *
+ *   export const a = {foo: () => 'bar'};
+ *
+ * We can mock the 'foo' property directly using stubs in our test:
+ *
+ * `haiku-stuff/test/something.test.js`
+ *
+ *   import {stubProperties} from 'haiku-testing/lib/mock';
+ *   import {a} from 'haiku-stuff/lib/something';
+ *
+ *   const [fooStub, unstub] = stubProperties(a, 'foo');
+ *   fooStub.returns('baz');
+ *   test.equal(a.foo(), 'baz');
+ *   unstub();
+ */
+export const stubProperties = (target: object, ...properties: string[]) => {
+  const stubs = properties.map((property) => sinon.stub(target, property));
+  return [...stubs, () => {
+    stubs.forEach((stub) => stub.restore());
+  }];
 };
