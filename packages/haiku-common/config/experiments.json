@@ -8,5 +8,9 @@
     "development": true,
     "staging": true,
     "production": true
+  },
+  "PreviewMode": {
+    "test": true,
+    "development": true
   }
 }
