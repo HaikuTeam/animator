@@ -6,6 +6,7 @@
   "LottieExportOnPublish": {
     "test": true,
     "development": true,
-    "staging": true
+    "staging": true,
+    "production": true
   }
 }
