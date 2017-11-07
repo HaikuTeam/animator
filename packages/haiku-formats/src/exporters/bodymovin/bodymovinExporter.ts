@@ -336,7 +336,6 @@ export class BodymovinExporter implements Exporter {
     const transforms = {
       [TransformKey.TransformOrigin]: getFixedPropertyValue([0, 0]),
       [TransformKey.Scale]: getFixedPropertyValue([100, 100]),
-      [TransformKey.Rotation]: getFixedPropertyValue(0),
     };
 
     if (timeline.hasOwnProperty('translation.x') && timeline.hasOwnProperty('translation.y')) {
@@ -344,6 +343,9 @@ export class BodymovinExporter implements Exporter {
     } else {
       transforms[TransformKey.Position] = getFixedPropertyValue([0, 0]);
     }
+
+    transforms[TransformKey.Rotation] =
+      this.getValueOrDefaultFromTimeline(timeline, 'rotation.z', 0, rotationTransformer);
 
     return transforms;
   }
