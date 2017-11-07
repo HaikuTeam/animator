@@ -1210,7 +1210,7 @@ export class Glass extends React.Component {
   }
 
   isPreviewMode () {
-    return this._component._interactionMode.type === InteractionMode.Live.type
+    return this._component._isPreviewMode()
   }
 
   getCursorCssRule () {
