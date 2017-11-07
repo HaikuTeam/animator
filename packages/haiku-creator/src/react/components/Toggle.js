@@ -1,9 +1,11 @@
 import React from 'react'
 import Radium from 'radium'
+import Palette from './Palette'
 
 const STYLES = {
   wrapper: {
-    display: 'inline-block'
+    display: 'inline-block',
+    marginTop: 4
   },
   checkBox: {
     display: 'none'
@@ -11,12 +13,12 @@ const STYLES = {
   btn: {
     outline: '0',
     display: 'inline-block',
-    width: '3em',
-    height: '1.5em',
+    width: '2.2em',
+    height: '1.2em',
     position: 'relative',
     cursor: 'pointer',
     userSelect: 'none',
-    background: '#f0f0f0',
+    background: Palette.DARKER_GRAY,
     borderRadius: '2em',
     padding: '2px',
     transition: 'all .4s ease',
@@ -29,11 +31,11 @@ const STYLES = {
     height: '100%',
     left: 0,
     borderRadius: '50%',
-    background: '#fff',
+    background: 'white',
     transition: 'all .2s ease'
   },
   btnChecked: {
-    background: '#9FD6AE'
+    background: Palette.LIGHTEST_PINK
   },
   btnAfterChecked: {
     left: '50%'
@@ -59,7 +61,7 @@ class Toggle extends React.Component {
 
   render() {
     return (
-      <div style={STYLES.wrapper}>
+      <div style={[this.props.style, STYLES.wrapper]}>
         {this.props.hintText && (
           <span>
             {this.props.hintText} {this.state.checked ? 'on' : 'off'}

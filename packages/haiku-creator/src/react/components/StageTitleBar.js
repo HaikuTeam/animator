@@ -116,6 +116,10 @@ const STYLES = {
     color: Palette.ROCK,
     cursor: 'default',
     fontStyle: 'italic'
+  },
+  previewToggle: {
+    float: 'right',
+    marginRight: 15
   }
 }
 
@@ -473,13 +477,6 @@ class StageTitleBar extends React.Component {
 
     return (
       <div style={STYLES.frame} className='frame'>
-        {
-          experimentIsEnabled(Experiment.PreviewMode) &&
-          <Toggle
-            hintText='Preview mode is'
-            onToggle={this.togglePreviewMode.bind(this)}
-          />
-        }
         <Popover
           place='below'
           isOpen={showSharePopover}
@@ -505,6 +502,15 @@ class StageTitleBar extends React.Component {
             {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
           </button>
         </Popover>
+
+        {
+          experimentIsEnabled(Experiment.PreviewMode) &&
+          <Toggle
+            hintText='Preview mode is'
+            onToggle={this.togglePreviewMode.bind(this)}
+            style={STYLES.previewToggle}
+          />
+        }
 
         {this.renderMergeConflictResolutionArea()}
         <button onClick={this.handleConnectionClick} style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover, STYLES.hide]} key='connect'>
