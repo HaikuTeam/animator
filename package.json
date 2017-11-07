@@ -11,6 +11,7 @@
     "setup": "node ./scripts/setup.js",
     "changelog": "node ./scripts/changelog.js",
     "start": "node ./scripts/start.js",
+    "sync": "node ./scripts/sync.js",
     "lint": "standard \"./scripts/**/*.js\" --fix --verbose | snazzy",
     "semver": "node ./scripts/semver.js",
     "lint-all": "node ./scripts/lint-all.js",

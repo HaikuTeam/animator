@@ -28,8 +28,7 @@ And add to `~/.ssh/config`:
 **git/yarn/packages setup**
 
     $ yarn install
-    $ yarn run yarn-install
-    $ yarn relink
+    $ yarn sync
 
 ## Development
 
@@ -47,15 +46,15 @@ You can also skip the interactive prompt and start with good defaults with:
 
 First lint all of the code:
 
-    $ yarn run lint-all
+    $ yarn lint-all
 
 Then run the unit tests in all of the code:
 
-    $ yarn run test-all
+    $ yarn test-all
 
 You might also want to run:
 
-    $ yarn run compile-all
+    $ yarn compile-all
 
 Assuming no lint errors or test failures, push your changes:
 
