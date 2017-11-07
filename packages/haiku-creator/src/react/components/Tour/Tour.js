@@ -1,7 +1,7 @@
 import React from 'react'
 import Tooltip from '../Tooltip'
-import { shell } from 'electron'
-import { TOUR_STYLES } from '../../styles/tourShared'
+import {shell} from 'electron'
+import {TOUR_STYLES} from '../../styles/tourShared'
 import * as steps from './Steps'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 
@@ -27,7 +27,7 @@ class Tour extends React.Component {
   }
 
   componentDidMount () {
-    this.props.envoy.get('tour').then((tourChannel) => {
+    this.props.envoy.get('tour').then(tourChannel => {
       this.tourChannel = tourChannel
       this.tourChannel.on('tour:requestShowStep', this.showStep)
       this.tourChannel.on('tour:requestFinish', this.hide)
@@ -40,7 +40,11 @@ class Tour extends React.Component {
   }
 
   componentDidUpdate () {
-    if (this.props.startTourOnMount && this.hasNecessaryProject() && !this.hasTriggeredTourRender) {
+    if (
+      this.props.startTourOnMount &&
+      this.hasNecessaryProject() &&
+      !this.hasTriggeredTourRender
+    ) {
       this.tourChannel.start()
       this.hasTriggeredTourRender = true
       mixpanel.haikuTrack('tour', {state: 'started'})
@@ -50,7 +54,7 @@ class Tour extends React.Component {
   hasNecessaryProject () {
     if (!this.props.projectsList) return false
     if (this.props.projectsList.length < 1) return false
-    const projectIdx = this.props.projectsList.findIndex((project) => {
+    const projectIdx = this.props.projectsList.findIndex(project => {
       // Hardcoded - Name of the project that will be used for the tutorial
       return project.projectName === 'CheckTutorial'
     })
@@ -71,7 +75,7 @@ class Tour extends React.Component {
   }
 
   hide () {
-    this.setState({ component: null })
+    this.setState({component: null})
   }
 
   showStep (newState) {
@@ -119,7 +123,12 @@ class Tour extends React.Component {
         stepData={stepData}
         waitUserAction={waitUserAction}
       >
-        <Step styles={TOUR_STYLES} next={this.next} finish={this.finish} openLink={this.openLink} />
+        <Step
+          styles={TOUR_STYLES}
+          next={this.next}
+          finish={this.finish}
+          openLink={this.openLink}
+        />
       </Tooltip>
     )
   }
