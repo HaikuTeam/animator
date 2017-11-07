@@ -35,17 +35,26 @@ var remotes = {
 // Typescript issues when compiling projects with compiled deps
 var order = require('./CompileOrder')
 
-module.exports = function allPackages () {
-  var names = fse.readdirSync(path.join(ROOT, 'packages'))
-  names = names.filter(function (name) {
-    if (name[0] === '.') return false
-    var abspath = path.join(ROOT, 'packages', name)
-    if (!fse.lstatSync(abspath).isDirectory()) return false
-    return true
-  })
+module.exports = function allPackages (names) {
+  if (names) {
+    if (!Array.isArray(names)) {
+      names = [names]
+    }
+  } else {
+    names = fse.readdirSync(path.join(ROOT, 'packages')).filter(function (name) {
+      if (name[0] === '.') return false
+      var abspath = path.join(ROOT, 'packages', name)
+      if (!fse.lstatSync(abspath).isDirectory()) return false
+      return true
+    })
+  }
+
   var packages = []
   names.forEach(function (name) {
     var abspath = path.join(ROOT, 'packages', name)
+    if (!fse.existsSync(abspath)) {
+      return
+    }
     var pkg = req(path.join(abspath, 'package.json')) || {}
     var version = pkg.version
     var remote = remotes[name]
@@ -61,7 +70,8 @@ module.exports = function allPackages () {
       // sha: sha,
       remote: remote
     }
-    packages[order.indexOf(name)] = obj
+    packages.push(obj)
   })
+  packages.sort((a, b) => order.indexOf(a) - order.indexOf(b))
   return packages
 }

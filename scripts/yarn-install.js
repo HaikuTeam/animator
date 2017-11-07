@@ -1,20 +1,15 @@
-var lodash = require('lodash')
-var cp = require('child_process')
-var log = require('./helpers/log')
-var allPackages = require('./helpers/allPackages')()
+const async = require('async')
+const log = require('./helpers/log')
+const allPackages = require('./helpers/allPackages')()
+const yarnInstall = require('./helpers/yarnInstall')
 
-var EXEC_OPTIONS = {
-  maxBuffer: 1024 * 1024 // bytes
-}
-
-lodash.forEach(allPackages, function (pack) {
+async.each(allPackages, (pack, next) => {
   log.log('yarn install for ' + pack.name)
-
-  cp.execSync('yarn install --mutex file:/tmp/.yarn-mutex --network-concurrency 1 --ignore-engines --non-interactive', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath, stdio: 'inherit' }))
-
-  // special snowflake...
-  if (pack.name === 'haiku-plumbing') {
-    log.log('compiling javascript for ' + pack.name)
-    return cp.execSync('yarn run compile', lodash.merge(EXEC_OPTIONS, { cwd: pack.abspath, stdio: 'inherit' }))
+  yarnInstall(pack, next)
+}, (err) => {
+  if (err) {
+    throw err
   }
+
+  log.log('yarn install complete')
 })
