@@ -452,8 +452,8 @@ class StageTitleBar extends React.Component {
     return BTN_STYLES.btnIconHover
   }
 
-  togglePreviewMode(checked) {
-    const interaction = checked ? InteractionMode.Edit : InteractionMode.Live
+  togglePreviewMode (checked) {
+    const interaction = checked ? InteractionMode.EDIT : InteractionMode.LIVE
 
     this.props.websocket.action(
       'setInteractionMode',

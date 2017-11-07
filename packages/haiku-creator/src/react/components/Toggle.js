@@ -43,7 +43,7 @@ const STYLES = {
 }
 
 class Toggle extends React.Component {
-  constructor() {
+  constructor () {
     super()
     this.onToggle = this.onToggle.bind(this)
     this.state = {
@@ -51,7 +51,7 @@ class Toggle extends React.Component {
     }
   }
 
-  onToggle() {
+  onToggle () {
     this.setState({checked: !this.state.checked})
 
     if (typeof this.props.onToggle === 'function') {
@@ -59,7 +59,7 @@ class Toggle extends React.Component {
     }
   }
 
-  render() {
+  render () {
     return (
       <div style={[this.props.style, STYLES.wrapper]}>
         {this.props.hintText && (
@@ -68,14 +68,14 @@ class Toggle extends React.Component {
           </span>
         )}
         <input
-          id="toggle"
-          type="checkbox"
+          id='toggle'
+          type='checkbox'
           checked={this.state.checked}
           onChange={this.onToggle}
           style={STYLES.checkBox}
         />
         <label
-          htmlFor="toggle"
+          htmlFor='toggle'
           style={[STYLES.btn, this.state.checked ? STYLES.btnChecked : {}]}
         >
           <span

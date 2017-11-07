@@ -11,7 +11,6 @@ import EventHandlerEditor from './EventHandlerEditor'
 import Comments from './models/Comments'
 import ContextMenu from './models/ContextMenu'
 import getLocalDomEventPosition from './helpers/getLocalDomEventPosition'
-import { InteractionMode } from 'haiku-common/lib/interaction-modes'
 import {
   linkExternalAssetsOnDrop,
   preventDefaultDrag
@@ -448,7 +447,7 @@ export class Glass extends React.Component {
   }
 
   showEventHandlersEditor (clickEvent, targetElement) {
-    if (this.isPreviewMode()) return void(0)
+    if (this.isPreviewMode()) return void (0)
 
     this.setState({
       targetElement: targetElement,
@@ -457,7 +456,7 @@ export class Glass extends React.Component {
   }
 
   hideEventHandlersEditor () {
-    if (this.isPreviewMode()) return void(0)
+    if (this.isPreviewMode()) return void (0)
 
     this.setState({
       targetElement: null,
@@ -667,13 +666,13 @@ export class Glass extends React.Component {
   }
 
   handleDragStart (cb) {
-    if (this.isPreviewMode()) return void(0)
+    if (this.isPreviewMode()) return void (0)
     this.state.isMouseDragging = true
     this.setState({ isMouseDragging: true }, cb)
   }
 
   handleDragStop (cb) {
-    if (this.isPreviewMode()) return void(0)
+    if (this.isPreviewMode()) return void (0)
     this.state.isMouseDragging = false
     this.setState({ isMouseDragging: false }, cb)
   }
