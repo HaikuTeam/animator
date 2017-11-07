@@ -11,7 +11,6 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import ToolSelector from './ToolSelector'
 import Toggle from './Toggle'
 import {InteractionMode} from 'haiku-common/lib/interaction-modes'
-import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import {
   PublishSnapshotSVG,
   ConnectionIconSVG,
@@ -459,9 +458,7 @@ class StageTitleBar extends React.Component {
     this.props.websocket.action(
       'setInteractionMode',
       [this.props.folder, interaction],
-      () => {
-        console.log('=== interaction mode set')
-      }
+      () => {}
     )
   }
 
