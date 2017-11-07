@@ -80,7 +80,7 @@ class Timeline extends BaseModel {
     this._playing = true
     this._stopwatch = Date.now()
     if (!this.component.getEnvoyClient().isInMockMode()) {
-      this.component.getEnvoyChannel().play(this.uid).then(() => {
+      this.component.getEnvoyChannel('timeline').play(this.uid).then(() => {
         this.update()
       })
     }
@@ -89,28 +89,37 @@ class Timeline extends BaseModel {
   pause () {
     this._playing = false
     if (!this.component.getEnvoyClient().isInMockMode()) {
-      this.component.getEnvoyChannel().pause(this.uid).then((finalFrame) => {
+      this.component.getEnvoyChannel('timeline').pause(this.uid).then((finalFrame) => {
         this.setCurrentFrame(finalFrame)
         this.setAuthoritativeFrame(finalFrame)
       })
     }
   }
 
-  seekToTime (time) {
-    const frame = Math.round(time / this._fps)
-    return this.seek(frame)
+  seekToTime (time, skipTransmit) {
+    const frameInfo = this.getFrameInfo()
+    const frame = Math.round(time / frameInfo.mspf)
+    return this.seek(frame, skipTransmit)
   }
 
-  seek (newFrame) {
-    this.setCurrentFrame(newFrame)
-    const id = this.uid
-    const tuple = id + '|' + newFrame
-    const last = this._lastSeek
-    if (last !== tuple) {
-      this._lastSeek = tuple
-      this.setAuthoritativeFrame(newFrame)
-      if (!this.component.getEnvoyClient().isInMockMode()) {
-        this.component.getEnvoyChannel().seekToFrame(id, newFrame)
+  seek (newFrame, skipTransmit) {
+    // Don't bother with any part of this update if we're already at this frame
+    if (this.getCurrentFrame() !== newFrame) {
+      this.setCurrentFrame(newFrame)
+      const id = this.uid
+      const tuple = id + '|' + newFrame
+      const last = this._lastSeek
+      if (last !== tuple) {
+        this._lastSeek = tuple
+        this.setAuthoritativeFrame(newFrame)
+        // If we end up calling the handler here, we end up doing this:
+        // Glass hears 'didSeek', fires its handler.
+        // Which calls draw, which in turn calls component.setTimelineTimeValue.
+        // Which in turn calls setCurrentTime, which alls Timeline.seekToTime,
+        // which in turn calls seek (this method). Beware!
+        if (!skipTransmit && !this.component.getEnvoyClient().isInMockMode()) {
+          this.component.getEnvoyChannel('timeline').seekToFrame(id, newFrame)
+        }
       }
     }
   }
@@ -133,7 +142,7 @@ class Timeline extends BaseModel {
     this.setCurrentFrame(newFrame)
     this._playing = false
     if (!this.component.getEnvoyClient().isInMockMode()) {
-      this.component.getEnvoyChannel().seekToFrameAndPause(this.uid, newFrame).then((finalFrame) => {
+      this.component.getEnvoyChannel('timeline').seekToFrameAndPause(this.uid, newFrame).then((finalFrame) => {
         this.setCurrentFrame(finalFrame)
         this.setAuthoritativeFrame(finalFrame)
       })
@@ -146,8 +155,13 @@ class Timeline extends BaseModel {
 
       const frameInfo = this.getFrameInfo()
 
-      if (this.getCurrentFrame() > frameInfo.friMax) {
-        this.seekAndPause(frameInfo.friMax)
+      // Only go as far as the maximum frame as defined in the bytecode
+      if (this.getCurrentFrame() >= frameInfo.maxf) {
+        // Need to unset this or the next seek will be treated as a a no-op
+        this._lastSeek = null
+        // For now, reset to 0 and pause the timeline. Once we have a UI
+        // for toggling UI behavior, we will likely have it loop by default
+        this.seekAndPause(frameInfo.maxf)
         this.emit('timeline-model:stop-playback')
       }
 
@@ -720,9 +734,9 @@ Timeline.DEFAULT_OPTIONS = {
 
 BaseModel.extend(Timeline)
 
-Timeline.setCurrentTime = function setCurrentTime (time) {
+Timeline.setCurrentTime = function setCurrentTime (time, skipTransmit) {
   const current = Timeline.find({ _isCurrent: true })
-  return current.seekToTime(time)
+  return current.seekToTime(time, skipTransmit)
 }
 
 Timeline.setCurrent = function setCurrent (name) {

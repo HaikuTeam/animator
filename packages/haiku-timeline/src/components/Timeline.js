@@ -92,12 +92,13 @@ class Timeline extends React.Component {
    * --------- */
 
   componentWillUnmount () {
+    this.mounted = false
+
     // Clean up subscriptions to prevent memory leaks and react warnings
     this.emitters.forEach((tuple) => {
       tuple[0].removeListener(tuple[1], tuple[2])
     })
-    this.mounted = false
-
+    
     if (this.tourClient) {
       this.tourClient.removeListener('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
     }
@@ -107,9 +108,19 @@ class Timeline extends React.Component {
 
   componentDidMount () {
     this.mounted = true
+
     this.component.mountApplication()
-    this.component.on('component:mounted', () => {
-      this.handleHaikuComponentMounted()
+
+    this.addEmitterListener(this.component, 'update', (what) => {
+      if (what === 'application-mounted') {
+        this.handleHaikuComponentMounted()
+        this.forceUpdate()
+      } else if (what === 'reloaded') {
+        this.forceUpdate()
+      }
+    })
+
+    this.addEmitterListener(this.component, 'remote-update', (what) => {
       this.forceUpdate()
     })
   }
@@ -195,10 +206,6 @@ class Timeline extends React.Component {
 
     this.addEmitterListener(this.ctxmenu, 'changeSegmentCurve', (curveName) => {
       this.component.changeCurveOnSelectedKeyframes(curveName, { from: 'timeline' })
-    })
-
-    this.addEmitterListener(this.component, 'remote-update', (what) => {
-      this.forceUpdate()
     })
 
     this.addEmitterListener(Row, 'update', (row, what) => {

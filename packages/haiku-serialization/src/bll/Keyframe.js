@@ -1,3 +1,4 @@
+const expressionToRO = require('@haiku/player/lib/reflection/expressionToRO').default
 const BaseModel = require('./BaseModel')
 const millisecondToNearestFrame = require('./helpers/millisecondToNearestFrame')
 
@@ -10,6 +11,7 @@ class Keyframe extends BaseModel {
     this._dragStartPx = null
     this._dragStartMs = null
     this._isDeleted = false
+    this._needsMove = false
   }
 
   activate () {
@@ -127,13 +129,13 @@ class Keyframe extends BaseModel {
     return this
   }
 
-  moveTo (msFinal, mspf) {
+  moveTo (ms, mspf) {
     // No-op the rest of this procedure if we're already at the same keyframe
-    if (this.getMs() === msFinal) {
+    if (this.getMs() === ms) {
       return this
     }
 
-    this.setMs(msFinal)
+    this.setMs(ms)
 
     const msMargin = Math.round(mspf)
 
@@ -266,7 +268,7 @@ class Keyframe extends BaseModel {
   }
 
   getFrame (mspf) {
-    return millisecondToNearestFrame(this.ms, mspf)
+    return millisecondToNearestFrame(this.getMs(), mspf)
   }
 
   getMs () {
@@ -278,19 +280,29 @@ class Keyframe extends BaseModel {
       throw new Error('keyframes cannot be less than 0')
     }
 
-    this.ms = ms
+    // Normalize to a millitime that lines up with a frametime
+    const normalized = this.timeline.normalizeMs(ms)
 
-    this.emit('update', 'keyframe-ms-set')
+    if (normalized !== this.getMs()) {
+      this.ms = normalized
 
-    this.component.handleKeyframeMove(this)
+      this.emit('update', 'keyframe-ms-set')
 
-    if (this.prev()) {
-      this.prev().emit('update', 'keyframe-neighbor-move')
+      // This runs a debounced move action
+      this.component.handleKeyframeMove()
+
+      // Indicate that we need to be
+      this._needsMove = true
+
+      if (this.prev()) {
+        this.prev().emit('update', 'keyframe-neighbor-move')
+      }
+
+      if (this.next()) {
+        this.next().emit('update', 'keyframe-neighbor-move')
+      }
     }
 
-    if (this.next()) {
-      this.next().emit('update', 'keyframe-neighbor-move')
-    }
     return this
   }
 
@@ -298,8 +310,27 @@ class Keyframe extends BaseModel {
     return this.index
   }
 
-  getValue () {
+  getValue (serialized) {
+    if (serialized) {
+      return expressionToRO(this.value)
+    }
     return this.value
+  }
+
+  getSpec (edited, serialized) {
+    const spec = {
+      value: this.getValue(serialized)
+    }
+
+    if (edited) {
+      spec.edited = true
+    }
+
+    if (this.getCurve()) {
+      spec.curve = this.getCurve()
+    }
+
+    return spec
   }
 
   setCurve (value) {
@@ -377,6 +408,7 @@ Keyframe.DEFAULT_OPTIONS = {
     element: true,
     row: true,
     ms: true,
+    originalMs: true,
     index: true,
     value: true
   }
@@ -398,6 +430,47 @@ Keyframe.deselectAndDeactivateAllKeyframes = function deselectAndDeactivateAllKe
 
 Keyframe.getInferredUid = function getInferredUid (row, index) {
   return `${row.getPrimaryKey()}-keyframe-${index}`
+}
+
+Keyframe.buildKeyframeMoves = function buildKeyframeMoves (serialized) {
+  // Keyframes not part of this object will be deleted from the bytecode
+  const moves = {}
+
+  const movables = Keyframe.where({ _needsMove: true })
+
+  movables.forEach((movable) => {
+    // As an optimization, skip any that we have already moved below in case of dupes
+    if (!movable._needsMove) return null
+
+    const timelineName = movable.timeline.getName()
+    const componentId = movable.element.getComponentId()
+    const propertyName = movable.row.getPropertyNameString()
+
+    if (!moves[timelineName]) moves[timelineName] = {}
+    if (!moves[timelineName][componentId]) moves[timelineName][componentId] = {}
+    if (!moves[timelineName][componentId][propertyName]) moves[timelineName][componentId][propertyName] = {}
+
+    moves[timelineName][componentId][propertyName][movable.getMs()] = movable.getSpec(true, serialized)
+
+    // Since this action resolves the move, exclude it from future calls until set again
+    movable._needsMove = false
+
+    // Because the keyframe move action interprets excluded entries as *deletes*, we have to
+    // also include all keyframes that are a part of the same timeline/component/property tuple
+    Keyframe.all().forEach((partner) => {
+      if (partner.isDeleted()) return null
+      if (partner.timeline.getName() !== timelineName) return null
+      if (partner.element.getComponentId() !== componentId) return null
+      if (partner.row.getPropertyNameString() !== propertyName) return null
+
+      moves[timelineName][componentId][propertyName][partner.getMs()] = partner.getSpec(true, serialized)
+
+      // Since this action resolves the move, exclude it from future calls until set again
+      partner._needsMove = false
+    })
+  })
+
+  return moves
 }
 
 module.exports = Keyframe

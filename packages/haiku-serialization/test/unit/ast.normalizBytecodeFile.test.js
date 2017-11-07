@@ -21,12 +21,14 @@ test('normalizeBytecodeFile', function (t) {
   ac.fetchActiveBytecodeFile().doShallowWorkOnly = false // We would like to see diffs of the operations during this test
   File.UPDATE_OPTIONS.shouldUpdateFileSystem = false // Don't clobber the test fixtures
   ac.mountApplication()
-  ac.on('component:mounted', () => {
-    ac.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
-    var file = ac.fetchActiveBytecodeFile() // File
-    file.read((err) => { // Reload the full content from the file system, including the ast so we can diff log etc
-      normalizeBytecodeFile(file.ast)
-      t.equal(generateCode(file.ast), 'var Haiku = require("@haiku/player");\n\nvar Module = require(\'module\');\nvar originalRequire = Module.prototype.require;\nModule.prototype.require = function () {return {};};\nvar FooBar = require(\'foo-bar\');\nvar HaikuMeow = require(\'@haiku/Meow\');\nvar Barf = require(\'BARF\');\nModule.prototype.require = originalRequire;\nmodule.exports = {\n  timelines: {\n    Default: {\n      \'#box\': {\n        \'rotaion.z\': {\n          0: {\n            "value": Haiku.inject(function (foo, baz, wowie) {\n              return (\n                foo.bar.baz * dee);\n\n            }, "foo", "baz", "wowie"),\n            curve: \'wakalaka\' } },\n\n\n        \'rob.x\': {\n          \'0\': {\n            value: Haiku.inject(function (foo) {\n              return [\'123\'];\n            }, "foo") } } } } },\n\n\n\n\n\n  template: {\n    elementName: \'div\',\n    attributes: { id: \'box\' },\n    children: [] } };')
-    })
+  ac.on('update', (what) => {
+    if (what === 'application-mounted') {
+      ac.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+      var file = ac.fetchActiveBytecodeFile() // File
+      file.read((err) => { // Reload the full content from the file system, including the ast so we can diff log etc
+        normalizeBytecodeFile(file.ast)
+        t.equal(generateCode(file.ast), 'var Haiku = require("@haiku/player");\n\nvar Module = require(\'module\');\nvar originalRequire = Module.prototype.require;\nModule.prototype.require = function () {return {};};\nvar FooBar = require(\'foo-bar\');\nvar HaikuMeow = require(\'@haiku/Meow\');\nvar Barf = require(\'BARF\');\nModule.prototype.require = originalRequire;\nmodule.exports = {\n  timelines: {\n    Default: {\n      \'#box\': {\n        \'rotaion.z\': {\n          0: {\n            "value": Haiku.inject(function (foo, baz, wowie) {\n              return (\n                foo.bar.baz * dee);\n\n            }, "foo", "baz", "wowie"),\n            curve: \'wakalaka\' } },\n\n\n        \'rob.x\': {\n          \'0\': {\n            value: Haiku.inject(function (foo) {\n              return [\'123\'];\n            }, "foo") } } } } },\n\n\n\n\n\n  template: {\n    elementName: \'div\',\n    attributes: { id: \'box\' },\n    children: [] } };')
+      })
+    }
   })
 })

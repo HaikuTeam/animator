@@ -885,13 +885,13 @@ export default class Master extends EventEmitter {
           // This is required so that a hostInstance is loaded which is (required for calculations)
           this._component.mountApplication()
 
-          this._component.on('component:mounted', () => {
-            // Since we aren't running in the DOM cancel the raf to avoid leaked handles
-            this._component.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
-
-            attachListeners(this._component._envoyClient, this._component)
-
-            return cb()
+          this._component.on('update', (what) => {
+            if (what === 'application-mounted') {
+              // Since we aren't running in the DOM cancel the raf to avoid leaked handles
+              this._component.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+              attachListeners(this._component._envoyClient, this._component)
+              return cb()
+            }
           })
         } else {
           return cb()

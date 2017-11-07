@@ -59,8 +59,10 @@ function createApp (folder, cb) {
     function teardown () {
       _teardown()
     }
-    window.glass._component.on('component:mounted', function () {
-      return cb(window.glass, window.glass._component, window, teardown)
+    window.glass._component.on('update', (what) => {
+      if (what === 'application-mounted') {
+        return cb(window.glass, window.glass._component, window, teardown)
+      }
     })
   })
 }

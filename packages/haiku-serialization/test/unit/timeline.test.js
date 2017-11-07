@@ -18,16 +18,18 @@ test('timeline', (t) => {
   ac.fetchActiveBytecodeFile().doShallowWorkOnly = false
   File.UPDATE_OPTIONS.shouldUpdateFileSystem = false // Don't clobber the test fixtures
   ac.mountApplication()
-  ac.on('component:mounted', () => {
-    ac.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
-    var tl = ac.getCurrentTimeline()
-    t.ok(tl, 'timeline can be got')
-    tl.play()
-    setTimeout(() => {
-      tl.pause()
-      tl.seek(100)
-      t.equal(tl.getCurrentFrame(), 100)
-      t.equal(tl.isPlaying(), false)
-    }, 100)
+  ac.on('update', (what) => {
+    if (what === 'application-mounted') {
+      ac.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+      var tl = ac.getCurrentTimeline()
+      t.ok(tl, 'timeline can be got')
+      tl.play()
+      setTimeout(() => {
+        tl.pause()
+        tl.seek(100)
+        t.equal(tl.getCurrentFrame(), 100)
+        t.equal(tl.isPlaying(), false)
+      }, 100)
+    }
   })
 })

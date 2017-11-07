@@ -163,9 +163,6 @@ class ActiveComponent extends BaseModel {
       })
     }, 100, { trailing: true })
 
-    // Key/value pairs of keyframes we are going to move on a batch-by-batch basis
-    this._keyframeMoves = {}
-
     // Debounced version of the keyframe move action handler
     this.debouncedKeyframeMoveAction = lodash.throttle(this.keyframeMoveAction.bind(this), KEYFRAME_MOVE_THROTTLE_TIME)
   }
@@ -192,8 +189,14 @@ class ActiveComponent extends BaseModel {
     return Row.findPropertyRowsByParentComponentId(parentComponentId)
   }
 
-  getEnvoyChannel () {
-    return this._envoyTimelineChannel
+  getEnvoyChannel (name) {
+    switch (name) {
+      case 'timeline': return this._envoyTimelineChannel
+      case 'glass': return this._envoyGlassChannel
+      case 'tour': return this._envoyTourChannel
+      default:
+        throw new Error('Envoy channel name required')
+    }
   }
 
   getEnvoyClient () {
@@ -320,21 +323,20 @@ class ActiveComponent extends BaseModel {
     }
   }
 
-  setTimelineTimeValue (timelineTime) {
+  setTimelineTimeValue (timelineTime, skipTransmit) {
     timelineTime = Math.round(timelineTime)
     // Note that this call reaches in and updates our instance's timeline objects
-    Timeline.setCurrentTime(timelineTime)
+    Timeline.setCurrentTime(timelineTime, skipTransmit)
   }
 
   setTimelineTime (timelineTime, metadata, cb) {
+    timelineTime = Math.round(timelineTime)
     this.setTimelineTimeValue(timelineTime)
     this.forceFlush()
     this.emit('time:change', this.getCurrentTimelineName(), this.getCurrentTimelineTime())
-
     if (metadata.from === this.alias) {
       this.batchedWebsocketAction('setTimelineTime', [this.folder, timelineTime])
     }
-
     return cb()
   }
 
@@ -465,7 +467,7 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.reload({}, null, () => {
+      return this.reload({ hardReload: true }, null, () => {
         // For instantiation, we unselect everything except the selected element.
         // Note that we do this *after* rehydrate so the element model in question exists.
         let componentId = mana.attributes[HAIKU_ID_ATTRIBUTE]
@@ -481,12 +483,10 @@ class ActiveComponent extends BaseModel {
           }
         }
 
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'instantiateComponent')
         if (metadata.from === this.alias) {
           this.batchedWebsocketAction('instantiateComponent', [this.folder, relpath, posdata])
         }
-
-        this.clearCaches()
-        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'instantiateComponent')
 
         cb(null, { center: coords }, element)
       })
@@ -500,13 +500,11 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.reload({}, null, () => {
+      return this.reload({ hardReload: true }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteComponent')
         if (metadata.from === this.alias) {
           this.batchedWebsocketAction('deleteComponent', [this.folder, componentIds])
         }
-
-        this.clearCaches()
-        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteComponent')
 
         return cb()
       })
@@ -528,13 +526,11 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.reload({}, null, () => {
+      return this.reload({ hardReload: true }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'mergeDesigns')
         if (metadata.from === this.alias) {
           this.batchedWebsocketAction('mergeDesigns', [this.folder, timelineName, timelineTime, designs])
         }
-
-        this.clearCaches()
-        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'mergeDesigns')
 
         return cb()
       })
@@ -548,11 +544,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'applyPropertyValue')
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'applyPropertyValue')
+        if (this.alias === metadata.from) {
+          this.batchedWebsocketAction('applyPropertyValue', [this.folder, componentIds, timelineName, timelineTime, propertyName, propertyValue])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -563,11 +562,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'applyPropertyDelta')
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'applyPropertyDelta')
+        if (this.alias === metadata.from) {
+          this.batchedWebsocketAction('applyPropertyDelta', [this.folder, componentIds, timelineName, timelineTime, propertyName, propertyValue])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -578,11 +580,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'applyPropertyGroupValue')
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'applyPropertyGroupValue')
+        if (this.alias === metadata.from) {
+          this.batchedWebsocketAction('applyPropertyValue', [this.folder, componentIds, timelineName, timelineTime, propertyGroup])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -593,39 +598,34 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-
-      let definedKeys = getDefinedKeys(propertyGroup)
-
-      this.clearCaches({
-        clearStates: false,
-        clearEventHandlers: false,
-        clearOnlySpecificProperties: {
-          componentId: componentIds[0],
-          timelineName: timelineName,
-          timelineTime: timelineTime,
-          propertyKeys: definedKeys
+      this.reload({
+        hardReload: metadata.from !== this.alias,
+        // If we're doing rotation, then we really *really* need to make sure we do a full flush.
+        // In production mode, rotation is handled normally, but as we do live editing, we lose
+        // 'determinism' on rotation if we update the property piecemeal, because the quaternion
+        // calc depends on passing in and mutating the previous output. This is a bug we should
+        // try to address better in the future, but for now, this seems an 'all right' way to fix.
+        onlyForceFlushIf: _propertyGroupContainsRotation(propertyGroup),
+        clearCacheOptions: {
+          clearStates: false,
+          clearEventHandlers: false,
+          clearOnlySpecificProperties: {
+            componentId: componentIds[0],
+            timelineName: timelineName,
+            timelineTime: timelineTime,
+            propertyKeys: getDefinedKeys(propertyGroup)
+          }
         }
+      }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'applyPropertyGroupDelta')
+        if (metadata.from === this.alias) {
+          componentIds.forEach((componentId) => {
+            this.batchPropertyGroupUpdate(componentId, this.getCurrentTimelineName(), this.getCurrentTimelineTime(), getDefinedKeys(propertyGroup))
+          })
+        }
+
+        return cb()
       })
-
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'applyPropertyGroupDelta')
-
-      // If we're doing rotation, then we really *really* need to make sure we do a full flush.
-      // In production mode, rotation is handled normally, but as we do live editing, we lose
-      // 'determinism' on rotation if we update the property piecemeal, because the quaternion
-      // calc depends on passing in and mutating the previous output. This is a bug we should
-      // try to address better in the future, but for now, this seems an 'all right' way to fix.
-      if (_propertyGroupContainsRotation(propertyGroup)) {
-        this.forceFlush()
-      }
-
-      if (metadata.from === this.alias) {
-        componentIds.forEach((componentId) => {
-          this.batchPropertyGroupUpdate(componentId, this.getCurrentTimelineName(), this.getCurrentTimelineTime(), getDefinedKeys(propertyGroup))
-        })
-      }
-
-      return cb()
     })
   }
 
@@ -640,17 +640,16 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'resizeContext')
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'resizeContext')
+        if (metadata.from === this.alias) {
+          artboardIds.forEach((artboardId) => {
+            this.batchPropertyGroupUpdate(artboardId, timelineName, timelineTime, ['sizeAbsolute.x', 'sizeAbsolute.y'])
+          })
+        }
 
-      if (metadata.from === this.alias) {
-        artboardIds.forEach((artboardId) => {
-          this.batchPropertyGroupUpdate(artboardId, timelineName, timelineTime, ['sizeAbsolute.x', 'sizeAbsolute.y'])
-        })
-      }
-
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -661,11 +660,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'changePlaybackSpeed')
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'changePlaybackSpeed')
+        if (this.alias === metadata.from) {
+          this.batchedWebsocketAction('changePlaybackSpeed', [this.folder, framesPerSecond])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -677,11 +679,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'changeKeyframeValue')
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'changeKeyframeValue')
+        if (this.alias === metadata.from) {
+          this.batchedWebsocketAction('changeKeyframeValue', [this.folder, componentIds, timelineName, propertyName, keyframeMs, newValue])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -693,16 +698,15 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'joinKeyframes')
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'joinKeyframes')
+        if (metadata.from === this.alias) {
+          const curveForWire = expressionToRO(newCurve) // In the future, curve may be a function
+          this.batchedWebsocketAction('joinKeyframes', [this.folder, componentIds, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, curveForWire])
+        }
 
-      if (metadata.from === this.alias) {
-        const curveForWire = expressionToRO(newCurve) // In the future, curve may be a function
-        this.batchedWebsocketAction('joinKeyframes', [this.folder, componentIds, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, curveForWire])
-      }
-
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -714,16 +718,15 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'changeSegmentCurve')
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'changeSegmentCurve')
+        if (metadata.from === this.alias) {
+          const curveForWire = expressionToRO(newCurve) // In the future, curve may be a function
+          this.batchedWebsocketAction('changeSegmentCurve', [this.folder, componentIds, timelineName, propertyName, keyframeMs, curveForWire])
+        }
 
-      if (metadata.from === this.alias) {
-        const curveForWire = expressionToRO(newCurve) // In the future, curve may be a function
-        this.batchedWebsocketAction('changeSegmentCurve', [this.folder, componentIds, timelineName, propertyName, keyframeMs, curveForWire])
-      }
-
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -735,14 +738,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'changeSegmentEndpoints')
-      if (this.alias === metadata.from) {
-        this.batchedWebsocketAction('changeSegmentEndpoints', [this.folder, componentIds, timelineName, propertyName, oldMs, newMs])
-      }
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'changeSegmentEndpoints')
+        if (this.alias === metadata.from) {
+          this.batchedWebsocketAction('changeSegmentEndpoints', [this.folder, componentIds, timelineName, propertyName, oldMs, newMs])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -754,14 +757,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'createKeyframe')
-      if (this.alias === metadata.from) {
-        this.batchedWebsocketAction('createKeyframe', [this.folder, componentIds, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue])
-      }
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'createKeyframe')
+        if (this.alias === metadata.from) {
+          this.batchedWebsocketAction('createKeyframe', [this.folder, componentIds, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -773,14 +776,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteKeyframe')
-      if (this.alias === metadata.from) {
-        this.batchedWebsocketAction('deleteKeyframe', [this.folder, componentIds, timelineName, propertyName, keyframeMs])
-      }
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteKeyframe')
+        if (this.alias === metadata.from) {
+          this.batchedWebsocketAction('deleteKeyframe', [this.folder, componentIds, timelineName, propertyName, keyframeMs])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -791,14 +794,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'createTimeline')
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('createTimeline', [this.folder, timelineName, timelineDescriptor])
-      }
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'createTimeline')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('createTimeline', [this.folder, timelineName, timelineDescriptor])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -809,14 +812,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteTimeline')
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('deleteTimeline', [this.folder, timelineName])
-      }
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteTimeline')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('deleteTimeline', [this.folder, timelineName])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -827,14 +830,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'duplicateTimeline')
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('duplicateTimeline', [this.folder, timelineName])
-      }
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'duplicateTimeline')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('duplicateTimeline', [this.folder, timelineName])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -845,14 +848,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'renameTimeline')
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('renameTimeline', [this.folder, timelineNameOld, timelineNameNew])
-      }
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'renameTimeline')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('renameTimeline', [this.folder, timelineNameOld, timelineNameNew])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -864,14 +867,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'moveSegmentEndpoints')
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('moveSegmentEndpoints', [this.folder, componentIds, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo])
-      }
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'moveSegmentEndpoints')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('moveSegmentEndpoints', [this.folder, componentIds, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -883,14 +886,14 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'moveKeyframes')
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('moveKeyframes', [this.folder, componentIds, timelineName, propertyName, keyframeMoves, frameInfo])
-      }
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'moveKeyframes')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('moveKeyframes', [this.folder, componentIds, timelineName, propertyName, keyframeMoves, frameInfo])
+        }
 
-      return cb()
+        return cb()
+      })
     })
   }
 
@@ -902,14 +905,337 @@ class ActiveComponent extends BaseModel {
         return cb(err)
       }
 
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'sliceSegment')
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('sliceSegment', [this.folder, componentIds, timelineName, elementName, propertyName, keyframeMs, sliceMs])
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'sliceSegment')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('sliceSegment', [this.folder, componentIds, timelineName, elementName, propertyName, keyframeMs, sliceMs])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  splitSegment (componentIds, timelineName, elementName, propertyName, keyframeMs, metadata, cb) {
+    componentIds.forEach((componentId) => { this.clearCachedClusters(this.getCurrentTimelineName(), componentId) })
+    return this.fetchActiveBytecodeFile().splitSegment(componentIds, timelineName, elementName, propertyName, keyframeMs, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
       }
 
-      return cb()
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'splitSegment')
+        if (this.alias === metadata.from) {
+          this.batchedWebsocketAction('splitSegment', [this.folder, componentIds, timelineName, elementName, propertyName, keyframeMs])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  zMoveToFront (componentIds, timelineName, timelineTime, metadata, cb) {
+    this.fetchActiveBytecodeFile().zMoveToFront(componentIds, timelineName, timelineTime, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'zMoveToFront')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('zMoveToFront', [this.folder, componentIds, timelineName, timelineTime])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  zMoveForward (componentIds, timelineName, timelineTime, metadata, cb) {
+    this.fetchActiveBytecodeFile().zMoveForward(componentIds, timelineName, timelineTime, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'zMoveForward')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('zMoveForward', [this.folder, componentIds, timelineName, timelineTime])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  zMoveBackward (componentIds, timelineName, timelineTime, metadata, cb) {
+    this.fetchActiveBytecodeFile().zMoveBackward(componentIds, timelineName, timelineTime, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'zMoveBackward')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('zMoveBackward', [this.folder, componentIds, timelineName, timelineTime])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  zMoveToBack (componentIds, timelineName, timelineTime, metadata, cb) {
+    this.fetchActiveBytecodeFile().zMoveToBack(componentIds, timelineName, timelineTime, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'zMoveToBack')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('zMoveToBack', [this.folder, componentIds, timelineName, timelineTime])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  reorderElement (componentId, componentIdToInsertBefore, metadata, cb) {
+    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
+    this.fetchActiveBytecodeFile().reorderElement(componentId, componentIdToInsertBefore, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'reorderElement')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('reorderElement', [this.folder, componentId, componentIdToInsertBefore])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  groupElements (componentIdsToGroup, metadata, cb) {
+    componentIdsToGroup.forEach((componentId) => { this.clearCachedClusters(this.getCurrentTimelineName(), componentId) })
+    this.fetchActiveBytecodeFile().groupElements(componentIdsToGroup, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'groupElements')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('groupElements', [this.folder, componentIdsToGroup])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  ungroupElements (groupComponentIds, metadata, cb) {
+    groupComponentIds.forEach((componentId) => { this.clearCachedClusters(this.getCurrentTimelineName(), componentId) })
+    this.fetchActiveBytecodeFile().ungroupElements(groupComponentIds, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'ungroupElements')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('ungroupElements', [this.folder, groupComponentIds])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  hideElements (componentIds, metadata, cb) {
+    componentIds.forEach((componentId) => { this.clearCachedClusters(this.getCurrentTimelineName(), componentId) })
+    this.fetchActiveBytecodeFile().hideElements(componentIds, metadata, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'hideElements')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('hideElements', [this.folder, componentIds])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  /**
+   * @method pasteThing
+   * @description Flexibly paste some content into the component. Usually the thing pasted is going to be a
+   * component, but this could theoretically handle any kind of 'pasteable' content.
+   * @param pasteable {Object} - Content of the thing to paste into the component.
+   * @param request {Object} - Optional object containing information about _how_ to paste, e.g. coords
+   * @param metadata {Object}
+   */
+  pasteThing (pasteable, request, metadata, cb) {
+    this.fetchActiveBytecodeFile().pasteThing(pasteable, request, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: true }, null, () => {
+        // QUESTION: Do we need this?:
+        // cb(null, { center: coords })
+        // Should this have the same logic we use for instantiation? (probably yes)
+
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'pasteThing')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('pasteThing', [this.folder, pasteable, request])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  /**
+   * @method deleteThing
+   * @description Flexibly delete some content. Usually the thing deleted is going to be a
+   * component, but this could theoretically handle any kind of 'deleteable' content.
+   * @param deleteable {Object} - Content of the thing to delete into the component.
+   * @param metadata {Object}
+   */
+  deleteThing (deletable, metadata, cb) {
+    this.fetchActiveBytecodeFile().deleteThing(deletable, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: true }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteThing')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('deleteThing', [this.folder, deletable])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  /**
+   * @method readAllStateValues
+   */
+  readAllStateValues (metadata, cb) {
+    return this.fetchActiveBytecodeFile().readAllStateValues(cb)
+  }
+
+  /**
+   * @method upsertStateValue
+   */
+  upsertStateValue (stateName, stateDescriptor, metadata, cb) {
+    return this.fetchActiveBytecodeFile().upsertStateValue(stateName, stateDescriptor, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'upsertStateValue')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('upsertStateValue', [this.folder, stateName, stateDescriptor])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  /**
+   * @method deleteStateValue
+   */
+  deleteStateValue (stateName, metadata, cb) {
+    return this.fetchActiveBytecodeFile().deleteStateValue(stateName, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: metadata.from !== this.alias }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteStateValue')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('deleteStateValue', [this.folder, stateName])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  /**
+   * @method upsertEventHandler
+   */
+  upsertEventHandler (selectorName, eventName, handlerDescriptor, metadata, cb) {
+    return this.fetchActiveBytecodeFile().upsertEventHandler(selectorName, eventName, handlerDescriptor, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({
+        hardReload: metadata.from !== this.alias,
+        clearCacheOptions: {
+          clearPreviouslyRegisteredEventListeners: true
+        }
+      }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'upsertEventHandler')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('upsertEventHandler', [this.folder, selectorName, eventName, handlerDescriptor])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  /**
+   * @method deleteEventHandler
+   */
+  deleteEventHandler (selectorName, eventName, metadata, cb) {
+    return this.fetchActiveBytecodeFile().deleteEventHandler(selectorName, eventName, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({
+        hardReload: metadata.from !== this.alias,
+        clearCacheOptions: {
+          clearPreviouslyRegisteredEventListeners: true
+        }
+      }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteEventHandler')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('deleteEventHandler', [this.folder, selectorName, eventName])
+        }
+
+        return cb()
+      })
     })
   }
 
@@ -955,345 +1281,31 @@ class ActiveComponent extends BaseModel {
     return this
   }
 
-  handleKeyframeMove (keyframe) {
-    this._keyframeMoves[keyframe.getPrimaryKey()] = keyframe
+  handleKeyframeMove () {
     this.debouncedKeyframeMoveAction()
     return this
   }
 
   keyframeMoveAction () {
-    for (const primaryKey in this._keyframeMoves) {
-      if (!primaryKey) {
-        continue
+    const frameInfo = this.getCurrentTimeline().getFrameInfo()
+    const moves = Keyframe.buildKeyframeMoves(true)
+
+    for (const timelineName in moves) {
+      for (const componentId in moves[timelineName]) {
+        for (const propertyName in moves[timelineName][componentId]) {
+          const keyframeMoves = moves[timelineName][componentId][propertyName]
+          this.moveKeyframes(
+            [componentId],
+            timelineName,
+            propertyName,
+            keyframeMoves,
+            frameInfo,
+            this.metadata,
+            () => {}
+          )
+        }
       }
-
-      if (!this._keyframeMoves[primaryKey]) {
-        continue
-      }
-
-      const keyframe = this._keyframeMoves[primaryKey]
-
-      const frameInfo = keyframe.timeline.getFrameInfo()
-      const propertyName = keyframe.row.getPropertyNameString()
-      const timelineName = keyframe.timeline.getName()
-      const componentId = keyframe.element.getComponentId()
-
-      // TODO
-
-      delete this._keyframeMoves[primaryKey]
     }
-  }
-
-  splitSegment (componentIds, timelineName, elementName, propertyName, keyframeMs, metadata, cb) {
-    componentIds.forEach((componentId) => { this.clearCachedClusters(this.getCurrentTimelineName(), componentId) })
-    return this.fetchActiveBytecodeFile().splitSegment(componentIds, timelineName, elementName, propertyName, keyframeMs, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'splitSegment')
-
-      if (this.alias === metadata.from) {
-        this.batchedWebsocketAction('splitSegment', [this.folder, componentIds, timelineName, elementName, propertyName, keyframeMs])
-      }
-
-      return cb()
-    })
-  }
-
-  zMoveToFront (componentIds, timelineName, timelineTime, metadata, cb) {
-    this.fetchActiveBytecodeFile().zMoveToFront(componentIds, timelineName, timelineTime, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'zMoveToFront')
-
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('zMoveToFront', [this.folder, componentIds, timelineName, timelineTime])
-      }
-
-      return cb()
-    })
-  }
-
-  zMoveForward (componentIds, timelineName, timelineTime, metadata, cb) {
-    this.fetchActiveBytecodeFile().zMoveForward(componentIds, timelineName, timelineTime, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'zMoveForward')
-
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('zMoveForward', [this.folder, componentIds, timelineName, timelineTime])
-      }
-
-      return cb()
-    })
-  }
-
-  zMoveBackward (componentIds, timelineName, timelineTime, metadata, cb) {
-    this.fetchActiveBytecodeFile().zMoveBackward(componentIds, timelineName, timelineTime, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'zMoveBackward')
-
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('zMoveBackward', [this.folder, componentIds, timelineName, timelineTime])
-      }
-
-      return cb()
-    })
-  }
-
-  zMoveToBack (componentIds, timelineName, timelineTime, metadata, cb) {
-    this.fetchActiveBytecodeFile().zMoveToBack(componentIds, timelineName, timelineTime, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'zMoveToBack')
-
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('zMoveToBack', [this.folder, componentIds, timelineName, timelineTime])
-      }
-
-      return cb()
-    })
-  }
-
-  reorderElement (componentId, componentIdToInsertBefore, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    this.fetchActiveBytecodeFile().reorderElement(componentId, componentIdToInsertBefore, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'reorderElement')
-
-      return cb()
-    })
-  }
-
-  groupElements (componentIdsToGroup, metadata, cb) {
-    componentIdsToGroup.forEach((componentId) => { this.clearCachedClusters(this.getCurrentTimelineName(), componentId) })
-    this.fetchActiveBytecodeFile().groupElements(componentIdsToGroup, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'groupElements')
-
-      return cb()
-    })
-  }
-
-  ungroupElements (groupComponentIds, metadata, cb) {
-    groupComponentIds.forEach((componentId) => { this.clearCachedClusters(this.getCurrentTimelineName(), componentId) })
-    this.fetchActiveBytecodeFile().ungroupElements(groupComponentIds, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'ungroupElements')
-
-      return cb()
-    })
-  }
-
-  hideElements (componentIds, metadata, cb) {
-    componentIds.forEach((componentId) => { this.clearCachedClusters(this.getCurrentTimelineName(), componentId) })
-    this.fetchActiveBytecodeFile().hideElements(componentIds, metadata, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'hideElements')
-
-      return cb()
-    })
-  }
-
-  /**
-   * @method pasteThing
-   * @description Flexibly paste some content into the component. Usually the thing pasted is going to be a
-   * component, but this could theoretically handle any kind of 'pasteable' content.
-   * @param pasteable {Object} - Content of the thing to paste into the component.
-   * @param request {Object} - Optional object containing information about _how_ to paste, e.g. coords
-   * @param metadata {Object}
-   */
-  pasteThing (pasteable, request, metadata, cb) {
-    this.fetchActiveBytecodeFile().pasteThing(pasteable, request, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.reload({}, null, () => {
-        // QUESTION: Do we need this?:
-        // cb(null, { center: coords })
-        // Should this have the same logic we use for instantiation? (probably yes)
-
-        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'pasteThing')
-
-        return cb()
-      })
-    })
-  }
-
-  /**
-   * @method deleteThing
-   * @description Flexibly delete some content into the component. Usually the thing deleted is going to be a
-   * component, but this could theoretically handle any kind of 'deleteable' content.
-   * @param deleteable {Object} - Content of the thing to delete into the component.
-   * @param metadata {Object}
-   */
-  deleteThing (deletable, metadata, cb) {
-    this.fetchActiveBytecodeFile().deleteThing(deletable, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteThing')
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('deleteThing', [this.folder, deletable])
-      }
-
-      return cb()
-    })
-  }
-
-  /**
-   * @method readAllStateValues
-   */
-  readAllStateValues (metadata, cb) {
-    return this.fetchActiveBytecodeFile().readAllStateValues(cb)
-  }
-
-  /**
-   * @method upsertStateValue
-   */
-  upsertStateValue (stateName, stateDescriptor, metadata, cb) {
-    return this.fetchActiveBytecodeFile().upsertStateValue(stateName, stateDescriptor, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'upsertStateValue')
-
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('upsertStateValue', [this.folder, stateName, stateDescriptor])
-      }
-
-      return cb()
-    })
-  }
-
-  /**
-   * @method deleteStateValue
-   */
-  deleteStateValue (stateName, metadata, cb) {
-    return this.fetchActiveBytecodeFile().deleteStateValue(stateName, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.clearCaches()
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteStateValue')
-
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('deleteStateValue', [this.folder, stateName])
-      }
-
-      return cb()
-    })
-  }
-
-  /**
-   * @method upsertEventHandler
-   */
-  upsertEventHandler (selectorName, eventName, handlerDescriptor, metadata, cb) {
-    return this.fetchActiveBytecodeFile().upsertEventHandler(selectorName, eventName, handlerDescriptor, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'upsertEventHandler')
-      this.clearCaches({
-        clearPreviouslyRegisteredEventListeners: true
-      })
-      this.forceFlush()
-
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('upsertEventHandler', [this.folder, selectorName, eventName, handlerDescriptor])
-      }
-
-      return cb()
-    })
-  }
-
-  /**
-   * @method deleteEventHandler
-   */
-  deleteEventHandler (selectorName, eventName, metadata, cb) {
-    return this.fetchActiveBytecodeFile().deleteEventHandler(selectorName, eventName, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      this.updateTimelineMaxes(this.getCurrentTimelineName())
-      this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'deleteEventHandler')
-      this.clearCaches({
-        clearPreviouslyRegisteredEventListeners: true
-      })
-      this.forceFlush()
-
-      if (metadata.from === this.alias) {
-        this.batchedWebsocketAction('deleteEventHandler', [this.folder, selectorName, eventName])
-      }
-
-      return cb()
-    })
   }
 
   /**
@@ -1325,6 +1337,23 @@ class ActiveComponent extends BaseModel {
   /** ------------ */
 
   reload (reloadOptions, instanceConfig, finish) {
+    if (reloadOptions.hardReload) {
+      // Also calls softReload
+      return this.hardReload(reloadOptions, instanceConfig, (err) => {
+        if (err) return finish(err)
+        this.emit('update', 'reloaded')
+        return finish()
+      })
+    } else {
+      return this.softReload(reloadOptions, instanceConfig, (err) => {
+        if (err) return finish(err)
+        this.emit('update', 'reloaded')
+        return finish()
+      })
+    }
+  }
+
+  hardReload (reloadOptions, instanceConfig, finish) {
     let updatedHaikuComponentFactory
 
     return async.series([
@@ -1342,7 +1371,7 @@ class ActiveComponent extends BaseModel {
       },
 
       (cb) => {
-        if (reloadOptions.fullReload) {
+        if (reloadOptions.fileReload) {
           const modulePath = path.join(this.folder, this.getSceneDomModulePath())
 
           // Clear the require cache so we get a full reload based on up-to-date content
@@ -1353,18 +1382,10 @@ class ActiveComponent extends BaseModel {
           return overrideModulesLoaded((stop) => {
             updatedHaikuComponentFactory = require(modulePath)
             stop() // Tell the node hook to stop interfering since we've got what we need now
-
             log.info('[active component] module reloaded (' + modulePath + ')')
-            return cb()
+            // Also need to update the content directly from the file system (legacy, fixme)
+            return this.fetchActiveBytecodeFile().read(cb)
           }, getHaikuKnownImportMatch)
-        } else {
-          return cb()
-        }
-      },
-
-      (cb) => {
-        if (reloadOptions.fullReload) {
-          return this.fetchActiveBytecodeFile().read(cb)
         } else {
           return cb()
         }
@@ -1388,15 +1409,15 @@ class ActiveComponent extends BaseModel {
               interactionMode: this._interactionMode
             }
           }, instanceConfig))
+
+          // Make sure we get notified of state updates and everything else we care about
+          this.instance._doesEmitEventsVerbosely = true
+
+          // Need to notify others any time we change our state so that it can be updated dynamically
+          this.instance.on('state:set', (stateName, stateValue) => {
+            this.websocket.send({ type: 'broadcast', name: 'state:set', params: [this.folder, stateName, stateValue] })
+          })
         }
-
-        // Make sure we get notified of state updates and everything else we care about
-        this.instance._doesEmitEventsVerbosely = true
-
-        // Need to notify others any time we change our state so that it can be updated dynamically
-        this.instance.on('state:set', (stateName, stateValue) => {
-          this.websocket.send({ type: 'broadcast', name: 'state:set', params: [this.folder, stateName, stateValue] })
-        })
 
         if (previousComponentInstance) {
           // We need to copy the in-memory timeline (NOT the data object!) over the new one so we retain
@@ -1425,35 +1446,52 @@ class ActiveComponent extends BaseModel {
         bytecodeFile.substructs[0].bytecode = this.instance._bytecode
         bytecodeFile.substructInitialized = this.fetchActiveBytecodeFile().reinitializeSubstruct(null)
 
-        // Make sure the timeline model is up to date so we can play back correctly
-        this.upsertCurrentTimeline()
-        this.updateTimelineMaxes(this.getCurrentTimelineName())
-
-        // In case properties were totally removed as a part of this update, we need to do a full re-render
-        this.clearCaches()
-
-        // We'll end up with stale attributes in the DOM unless we do this; this calls .tick()
-        this.forceFlush()
-
         return cb()
       },
 
       (cb) => {
-        // Let updates flush before proceeding with the tree rehydration, which needs the DOM
-        return raf(() => cb())
+        return this.softReload(reloadOptions, instanceConfig, cb)
       },
 
       (cb) => {
-        this.rehydrate()
-        return cb()
-      },
+        return raf(() => {
+          // Rehydrate all the view-models so our view renders correctly
+          this.rehydrate()
 
-      (cb) => {
-        // Start the clock again, as we should now be ready to flow updated component.
-        this.instance._context.clock.start()
-        return cb()
+          // Start the clock again, as we should now be ready to flow updated component.
+          this.instance._context.clock.start()
+
+          return cb()
+        })
       }
     ], finish)
+  }
+
+  softReload (reloadOptions, instanceConfig, cb) {
+    // Make sure the timeline model is up to date so we can play back correctly
+    this.upsertCurrentTimeline()
+
+    // Make sure the maximum keyframe is correctly defined for proper playback calc
+    this.updateTimelineMaxes(this.getCurrentTimelineName())
+
+    // In case properties were totally removed as a part of this update, we need to do a full re-render
+    if (reloadOptions.clearCacheOptions) {
+      this.clearCaches(reloadOptions.clearCacheOptions)
+    } else {
+      this.clearCaches()
+    }
+
+    // We'll end up with stale attributes in the DOM unless we do this; this calls .tick()
+    if (reloadOptions.onlyForceFlushIf !== undefined) {
+      if (reloadOptions.onlyForceFlushIf) {
+        this.forceFlush()
+      }
+    } else {
+      // Always force flush unless we have an explicit conditional that wants to decide
+      this.forceFlush()
+    }
+
+    return cb()
   }
 
   /**
@@ -1466,13 +1504,13 @@ class ActiveComponent extends BaseModel {
   mountApplication (mount, config) {
     // Allow headless, e.g. in plumbing or timeline
     this.setMount(mount)
-    return this.reload({ fullReload: true }, config, (err) => {
+    return this.reload({ hardReload: true, fileReload: true }, config, (err) => {
       if (err) {
         log.error(err)
         return this.emit('error', err)
       }
       this._isMounted = true
-      return this.emit('component:mounted')
+      return this.emit('update', 'application-mounted')
     })
   }
 
@@ -1496,7 +1534,7 @@ class ActiveComponent extends BaseModel {
     this._isReloadingCode = true
     let mount = this.getMount()
     if (mount) mount.style.opacity = '0.2'
-    return this.reload({ fullReload: true }, null, (err) => {
+    return this.reload({ hardReload: true, fileReload: true }, null, (err) => {
       if (err) {
         log.error(err)
         return this.emit('error', err)
@@ -1678,6 +1716,7 @@ class ActiveComponent extends BaseModel {
       Keyframe.upsert({
         timestamp: this._timestamp,
         uid: Keyframe.getInferredUid(row, i),
+        originalMs: mscurr,
         ms: mscurr,
         index: i,
         value: valueGroup[mscurr].value,

@@ -19,10 +19,12 @@ test('element.getAddressableProperties.test.js', function (t) {
   ac.fetchActiveBytecodeFile().doShallowWorkOnly = false // We would like to see diffs of the operations during this test
   File.UPDATE_OPTIONS.shouldUpdateFileSystem = false // Don't clobber the test fixtures
   ac.mountApplication()
-  ac.on('component:mounted', () => {
-    ac.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
-    var el = ac.findElementByComponentId('b7f18dbaf7ac')
-    var addressables = el.getAddressableProperties(true)
-    t.ok(addressables)
+  ac.on('update', (what) => {
+    if (what === 'application-mounted') {
+      ac.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+      var el = ac.findElementByComponentId('b7f18dbaf7ac')
+      var addressables = el.getAddressableProperties(true)
+      t.ok(addressables)
+    }
   })
 })

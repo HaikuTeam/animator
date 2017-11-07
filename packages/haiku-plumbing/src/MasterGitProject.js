@@ -686,20 +686,36 @@ export default class MasterGitProject extends EventEmitter {
         if (err) return cb(err)
         logger.info(`[master-git] current branch is '${partialBranchName}'`)
 
-        return Git.mergeProject(this.folder, this._folderState.projectName, partialBranchName, this._folderState.saveOptions, (err, didHaveConflicts, shaOrIndex) => {
+        const remoteBranchRefName = Git.getRemoteBranchRefName(this._folderState.projectName, partialBranchName)
+        return Git.getReference(this.folder, remoteBranchRefName, (err, ref) => {
           if (err) return cb(err)
 
-          if (!didHaveConflicts) {
-            logger.info(`[master-git] merge complete (${shaOrIndex})`)
-          } else {
-            logger.info(`[master-git] merge conflicts detected`)
+          // If no reference, we probably haven't pushed the remote yet, so skip the merge attempt
+          if (!ref) {
+            logger.info(`[master-git] skipping merge after pull since no ref ${remoteBranchRefName} exists`)
+            // Just for the sake of logging the current git status
+            return this.safeGitStatus({ log: true }, () => {
+              this._folderState.didHaveConflicts = false
+              this._folderState.mergeCommitId = null
+              return cb()
+            })
           }
 
-          // Just for the sake of logging the current git status
-          return this.safeGitStatus({ log: true }, () => {
-            this._folderState.didHaveConflicts = didHaveConflicts
-            this._folderState.mergeCommitId = (didHaveConflicts) ? null : shaOrIndex.toString()
-            return cb()
+          return Git.mergeProject(this.folder, this._folderState.projectName, partialBranchName, this._folderState.saveOptions, (err, didHaveConflicts, shaOrIndex) => {
+            if (err) return cb(err)
+
+            if (!didHaveConflicts) {
+              logger.info(`[master-git] merge complete (${shaOrIndex})`)
+            } else {
+              logger.info(`[master-git] merge conflicts detected`)
+            }
+
+            // Just for the sake of logging the current git status
+            return this.safeGitStatus({ log: true }, () => {
+              this._folderState.didHaveConflicts = didHaveConflicts
+              this._folderState.mergeCommitId = (didHaveConflicts) ? null : shaOrIndex.toString()
+              return cb()
+            })
           })
         })
       })

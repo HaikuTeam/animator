@@ -45,9 +45,15 @@ export default class TimelineRangeScrollbar extends React.Component {
           axis='x'
           onStart={(dragEvent, dragData) => {
             this.props.timeline.scrollbarBodyStart(dragData)
+            this.props.reactParent.setState({
+              avoidTimelinePointerEvents: true
+            })
           }}
           onStop={(dragEvent, dragData) => {
             this.props.timeline.scrollbarBodyStop(dragData)
+            this.props.reactParent.setState({
+              avoidTimelinePointerEvents: false
+            })
           }}
           onDrag={lodash.throttle((dragEvent, dragData) => {
             // Don't drag on the body if we're already dragging on the ends

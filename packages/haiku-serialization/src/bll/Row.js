@@ -295,6 +295,7 @@ class Row extends BaseModel {
     // If value is undefined, create a keyframe with the default
     const created = Keyframe.upsert({
       ms: ms,
+      originalMs: ms,
       uid: Keyframe.getInferredUid(this, indexToAssign),
       index: indexToAssign,
       value: valueToAssign,

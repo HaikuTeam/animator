@@ -21,20 +21,22 @@ test('upsertRequire', function (t) {
   ac.fetchActiveBytecodeFile().doShallowWorkOnly = false // We would like to see diffs of the operations during this test
   File.UPDATE_OPTIONS.shouldUpdateFileSystem = false // Don't clobber the test fixtures
   ac.mountApplication()
-  ac.on('component:mounted', () => {
-    ac.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
-    var file = ac.fetchActiveBytecodeFile() // File
-    file.read((err) => { // Reload the full content from the file system, including the ast so we can diff log etc
-      upsertRequire(file.ast, 'HaikuPath', '@haiku/player/components/Path')
+  ac.on('update', (what) => {
+    if (what === 'application-mounted') {
+      ac.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+      var file = ac.fetchActiveBytecodeFile() // File
+      file.read((err) => { // Reload the full content from the file system, including the ast so we can diff log etc
+        upsertRequire(file.ast, 'HaikuPath', '@haiku/player/components/Path')
 
-      var expectation = 'var HaikuPath = require("@haiku/player/components/Path");module.exports = {\n  timelines: {},\n  template: {\n    elementName: \'div\',\n    attributes: {},\n    children: [] } };'
-      var code = generateCode(file.ast)
-      t.equal(code, expectation)
+        var expectation = 'var HaikuPath = require("@haiku/player/components/Path");module.exports = {\n  timelines: {},\n  template: {\n    elementName: \'div\',\n    attributes: {},\n    children: [] } };'
+        var code = generateCode(file.ast)
+        t.equal(code, expectation)
 
-      // should be idempotent
-      upsertRequire(file.ast, 'HaikuPath', '@haiku/player/components/Path')
-      var code = generateCode(file.ast)
-      t.equal(code, expectation)
-    })
+        // should be idempotent
+        upsertRequire(file.ast, 'HaikuPath', '@haiku/player/components/Path')
+        var code = generateCode(file.ast)
+        t.equal(code, expectation)
+      })
+    }
   })
 })

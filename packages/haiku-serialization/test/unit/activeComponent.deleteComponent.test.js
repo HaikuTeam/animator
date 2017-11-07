@@ -18,7 +18,8 @@
 //   ac.fetchActiveBytecodeFile().doShallowWorkOnly = false // We would like to see diffs of the operations during this test
 //   File.UPDATE_OPTIONS.shouldUpdateFileSystem = false // Don't clobber the test fixtures
 //   ac.mountApplication()
-//   ac.on('component:mounted', () => {
+//   aac.on('update', (what) => {
+//    if (what === 'application-mounted') {
 //     ac.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
 //     var file = ac.fetchActiveBytecodeFile()
 //     file.read((err) => { // Reload the full content from the file system, including the ast so we can diff log etc

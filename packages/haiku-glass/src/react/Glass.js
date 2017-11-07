@@ -110,6 +110,7 @@ export class Glass extends React.Component {
 
     this.drawLoop = this.drawLoop.bind(this)
     this.draw = this.draw.bind(this)
+
     this._haikuRenderer = new HaikuDOMRenderer()
     this._haikuContext = new HaikuContext(null, this._haikuRenderer, {}, { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } }, { options: { cache: {}, seed: 'abcde' } })
 
@@ -165,10 +166,9 @@ export class Glass extends React.Component {
   handleTimelineDidSeek (frameData) {
     this._lastAuthoritativeFrame = frameData.frame
     this._stopwatch = Date.now()
-    this.draw()
   }
 
-  draw () {
+  handleFrameChange () {
     let seekMs = 0
 
     // this._stopwatch is null unless we've received an action from the timeline.
@@ -178,7 +178,7 @@ export class Glass extends React.Component {
     if (this._stopwatch !== null) {
       const fps = 60 // TODO:  support variable
       const baseMs = this._lastAuthoritativeFrame * 1000 / fps
-      const deltaMs = this._playing ? Date.now() - this._stopwatch : 0
+      const deltaMs = (this._playing) ? Date.now() - this._stopwatch : 0
       seekMs = baseMs + deltaMs
     }
 
@@ -189,14 +189,19 @@ export class Glass extends React.Component {
     // which means the user will have trouble moving things on stage at those times.
     seekMs = Math.round(seekMs)
 
-    this._component.setTimelineTimeValue(seekMs)
+    this._component.setTimelineTimeValue(seekMs, true)
+  }
 
+  draw () {
     if (this.refs.overlay) {
       this.drawOverlays()
     }
   }
 
   drawLoop () {
+    // We handle a frame change here since authoritative frame updates
+    // are received async and we need to update according to the delta
+    this.handleFrameChange()
     this.draw()
     window.requestAnimationFrame(this.drawLoop)
   }
@@ -204,38 +209,26 @@ export class Glass extends React.Component {
   componentDidMount () {
     this._component.mountApplication(this.refs.mount, { options: { freeze: true, overflowX: 'visible', overflowY: 'visible', contextMenu: 'disabled' } })
 
-    this._component.on('component:mounted', () => {
-      this._isHaikuInitiallyMounted = true
-
-      const newMountSize = this._component.getContextSize()
-
-      this.setState({
-        mountWidth: newMountSize.width,
-        mountHeight: newMountSize.height
-      })
-
-      this.resetContainerDimensions()
-
-      this.drawLoop()
-    })
-
     this._component.on('update', (what, ...args) => {
+      if (what === 'application-mounted') {
+        this._isHaikuInitiallyMounted = true
+        this.drawLoop()
+      } else if (what === 'element-selected') {
+        this.setLastSelectedElement(args[0])
+      } else if (what === 'element-unselected') {
+        this.setLastSelectedElement(null)
+      }
+
       // This happens on almost any update because theoretically a keyframe change,
       // a curve change, etc., could all result in the need to recalc the artboard :/
       const updatedArtboardSize = this._component.getContextSize()
-
       this.setState({
         mountWidth: updatedArtboardSize.width,
         mountHeight: updatedArtboardSize.height
       })
 
+      // And it's almost always wize to do this or the element calibration may get crazy
       this.resetContainerDimensions()
-
-      if (what === 'element-selected') {
-        this.setLastSelectedElement(args[0])
-      } else if (what === 'element-unselected') {
-        this.setLastSelectedElement(null)
-      }
     })
 
     this._component.on('remote-update', (what, ...args) => {
@@ -244,7 +237,8 @@ export class Glass extends React.Component {
       } else if (what === 'unselectElement') {
         this.setLastSelectedElement(null)
       }
-      this.draw()
+      // Not sure if we really need to call this, since this is called in a raf loop
+      // this.draw()
     })
 
     this._component.on('time:change', (timelineName, timelineTime) => {

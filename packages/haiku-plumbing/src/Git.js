@@ -731,8 +731,29 @@ export function combineHistories (folder, projectName, ourBranchName, theirBranc
   })
 }
 
+export function getReference (folder, name, cb) {
+  return open(folder, (err, repo) => {
+    if (err) return cb(err)
+    return Reference.nameToId(repo, name).then((oid) => {
+      return Reference.lookup(repo, id).then((ref) => {
+        return cb(null, ref)
+      }, (err) => {
+        if (err) logger.info('[git]', err)
+        return cb(null, false)
+      })
+    }, (err) => {
+      if (err) logger.info('[git]', err)
+      return cb(null, false)
+    })
+  })
+}
+
+export function getRemoteBranchRefName (projectName, partialBranchName) {
+  return `remotes/${projectName}/${partialBranchName}`
+}
+
 export function mergeProject (folder, projectName, partialBranchName, saveOptions = {}, cb) {
-  const remoteBranchRefName = `remotes/${projectName}/${partialBranchName}`
+  const remoteBranchRefName = getRemoteBranchRefName(projectName, partialBranchName)
   const fileFavorName = saveStrategyToFileFavorName(saveOptions && saveOptions.saveStrategy)
 
   // #IDUNNO: For some reason when this is set to `true` (in turn resulting in mergeOptions.flags getting set to 1),
