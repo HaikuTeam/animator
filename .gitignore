@@ -5,3 +5,4 @@ dist/*
 config.js
 source/*
 ~tmp
+.last-sync
