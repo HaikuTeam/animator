@@ -4,7 +4,7 @@ const lodash = require('lodash')
 
 const log = require('./log')
 
-const allDeps = lodash.map(require('./allPackages')(), (pack) => pack.name)
+const allDeps = lodash.map(require('./allPackages')(), (pack) => pack.pkgname)
 
 module.exports = {
   unlinkDeps: function yarnUnlink (packages, cb) {
