@@ -357,9 +357,8 @@ class Keyframe extends BaseModel {
 
   next () {
     return this.cacheFetch(('next'), () => {
-      return this.row.getKeyframes({ index: this.index + 1 })[0]  
+      return this.row.getKeyframes({ index: this.index + 1 })[0]
     })
-    
   }
 
   prev () {

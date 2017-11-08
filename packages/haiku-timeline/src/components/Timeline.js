@@ -98,7 +98,7 @@ class Timeline extends React.Component {
     this.emitters.forEach((tuple) => {
       tuple[0].removeListener(tuple[1], tuple[2])
     })
-    
+
     if (this.tourClient) {
       this.tourClient.removeListener('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
     }

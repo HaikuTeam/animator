@@ -599,7 +599,6 @@ Row.cyclicalNav = function cyclicalNav (row, navDir) {
     target = row && row.prev()
   }
 
-  
   if (!target && (navDir === NAVIGATION_DIRECTIONS.PREV)) {
     // Already at top, need to jump to the bottom
     target = Row.last()

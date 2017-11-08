@@ -735,7 +735,7 @@ export function getReference (folder, name, cb) {
   return open(folder, (err, repo) => {
     if (err) return cb(err)
     return Reference.nameToId(repo, name).then((oid) => {
-      return Reference.lookup(repo, id).then((ref) => {
+      return Reference.lookup(repo, oid).then((ref) => {
         return cb(null, ref)
       }, (err) => {
         if (err) logger.info('[git]', err)
