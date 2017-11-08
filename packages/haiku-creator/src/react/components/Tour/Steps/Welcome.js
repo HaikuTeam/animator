@@ -1,4 +1,7 @@
 import React from 'react'
+import {
+  didTakeTour
+} from 'haiku-serialization/src/utils/HaikuHomeDir'
 
 const STYLES = {
   input: {
@@ -19,7 +22,7 @@ export default class Welcome extends React.Component {
   }
 
   handleFinish () {
-    const createFile = this.checkInput.checked
+    const createFile = (this.checkInput && this.checkInput.checked) || false
 
     this.props.finish(createFile)
   }
@@ -31,15 +34,18 @@ export default class Welcome extends React.Component {
       <div>
         <h2 style={styles.heading}>Welcome to Haiku</h2>
         <p style={styles.text}>Would you like to take the guided tour?</p>
-        <form action='#'>
-          <input
-            type='checkbox'
-            name='not-show-again'
-            id='not-show-again'
-            style={STYLES.input}
-            ref={(input) => { this.checkInput = input }} />
-          <label htmlFor='not-show-again'>Don't show this again.</label>
-        </form>
+        {
+          !didTakeTour() &&
+          <form action='#'>
+            <input
+              type='checkbox'
+              name='not-show-again'
+              id='not-show-again'
+              style={STYLES.input}
+              ref={(input) => { this.checkInput = input }} />
+            <label htmlFor='not-show-again'>Don't show this again.</label>
+          </form>
+        }
         <div style={STYLES.buttons}>
           <button style={styles.btn} onClick={next}>Yes, please</button>
           <button style={styles.btnSecondary} onClick={this.handleFinish}>Not now</button>
