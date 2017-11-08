@@ -328,12 +328,12 @@ class ActiveComponent extends BaseModel {
     timelineTime = Math.round(timelineTime)
     // Note that this call reaches in and updates our instance's timeline objects
     Timeline.setCurrentTime(timelineTime, skipTransmit)
+    this.forceFlush()
   }
 
   setTimelineTime (timelineTime, metadata, cb) {
     timelineTime = Math.round(timelineTime)
-    this.setTimelineTimeValue(timelineTime)
-    this.forceFlush()
+    this.setTimelineTimeValue(timelineTime) // This calls forceFlush
     this.emit('time:change', this.getCurrentTimelineName(), this.getCurrentTimelineTime())
     if (metadata.from === this.alias) {
       this.batchedWebsocketAction('setTimelineTime', [this.folder, timelineTime])

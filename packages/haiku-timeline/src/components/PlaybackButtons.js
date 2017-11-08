@@ -61,7 +61,7 @@ class PlaybackButtons extends React.Component {
 
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
-    const lastFrame = frameInfo.friMax
+    const lastFrame = frameInfo.maxf
     const currentFrame = this.props.timeline.getCurrentFrame()
     const isPlaying = this.props.timeline.isPlaying()
 

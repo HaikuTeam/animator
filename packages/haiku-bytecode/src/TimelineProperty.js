@@ -85,6 +85,25 @@ function getBaselineValue (componentId, elementName, propertyName, timelineName,
   return getComputedValue(componentId, elementName, propertyName, timelineName, ms, fallbackValue, bytecode, hostInstance, states)
 }
 
+function getBaselineCurve (componentId, elementName, propertyName, timelineName, timelineTime, fallbackValue, bytecode, hostInstance, states) {
+  var ms = getAssignedBaselineKeyframeStart(componentId, elementName, timelineName, propertyName, timelineTime, bytecode)
+  return getComputedCurve(componentId, elementName, propertyName, timelineName, ms, fallbackValue, bytecode, hostInstance, states)
+}
+
+function getComputedCurve (componentId, elementName, propertyName, timelineName, timelineTime, fallbackValue, bytecode, hostInstance, states) {
+  if (!bytecode) return void (0)
+  if (!bytecode.timelines) return void (0)
+  return getPropertyCurveAtTime(bytecode.timelines, timelineName, componentId, elementName, propertyName, timelineTime, hostInstance, states)
+}
+
+function getPropertyCurveAtTime (timelinesObject, timelineName, componentId, elementName, outputName, time, hostInstance, states) {
+  var propertiesGroup = getPropertiesBase(timelinesObject, timelineName, componentId)
+  if (!propertiesGroup) return void (0)
+  if (!propertiesGroup[outputName]) return void (0)
+  if (!propertiesGroup[outputName][time]) return void (0)
+  return propertiesGroup[outputName][time].curve
+}
+
 function getComputedValue (componentId, elementName, propertyName, timelineName, timelineTime, fallbackValue, bytecode, hostInstance, states) {
   if (!bytecode) return fallbackValue
   if (!bytecode.timelines) return fallbackValue
@@ -250,6 +269,7 @@ module.exports = {
   addPropertyGroupDelta: addPropertyGroupDelta, // may require a hostInstance, states
 
   getBaselineValue: getBaselineValue, // may require a hostInstance, states
+  getBaselineCurve: getBaselineCurve, // may require a hostInstance, states
   getComputedValue: getComputedValue, // may require a hostInstance, states
   getPropertyValueAtTime: getPropertyValueAtTime // may require a hostInstance, states
 }

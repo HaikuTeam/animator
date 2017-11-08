@@ -223,6 +223,15 @@ class Row extends BaseModel {
     return baselineValue
   }
 
+  getBaselineCurveAtMillisecond (ms) {
+    const { baselineCurve } = getPropertyValueDescriptor(this, {
+      timelineTime: ms,
+      timelineName: this.timeline.getName()
+    })
+
+    return baselineCurve
+  }
+
   isDeleted () {
     return this._isDeleted
   }
@@ -247,7 +256,8 @@ class Row extends BaseModel {
   createKeyframe (value, ms, metadata) {
     // If creating a keyframe on a cluster row, create one for all of the child rows
     if (this.isClusterHeading()) {
-      return this.children.forEach((child) => child.createKeyframe(value, ms, metadata))
+      this.children.forEach((child) => child.createKeyframe(value, ms, metadata))
+      return this.expandAndSelect()
     }
 
     const siblings = this.getKeyframes()
@@ -278,15 +288,18 @@ class Row extends BaseModel {
     }
 
     let valueToAssign
+    let curveToAssign
 
     // If no value provided, we'll grab a value from existing keyframes here
     if (value === undefined) {
       // If we are replacing an existing keyframe, use the existing one's value
       if (existingAtMs) {
         valueToAssign = existingAtMs.getValue()
+        curveToAssign = existingAtMs.getCurve()
       } else {
         // Otherwise, grab the value from the previous keyframe known in the sequence
         valueToAssign = this.getBaselineValueAtMillisecond(ms)
+        curveToAssign = this.getBaselineCurveAtMillisecond(ms)
       }
     } else {
       valueToAssign = value
@@ -299,6 +312,7 @@ class Row extends BaseModel {
       uid: Keyframe.getInferredUid(this, indexToAssign),
       index: indexToAssign,
       value: valueToAssign,
+      curve: curveToAssign,
       // curve: we don't include curve so the previous curve is used if we're replacing an existing keyframe
       row: this,
       element: this.element,
@@ -323,6 +337,7 @@ class Row extends BaseModel {
 
     this.emit('update', 'keyframe-create')
     if (this.parent) this.parent.emit('update', 'keyframe-create')
+    Keyframe.deselectAndDeactivateAllKeyframes()
 
     return created
   }
@@ -350,6 +365,7 @@ class Row extends BaseModel {
 
     this.emit('update', 'keyframe-delete')
     if (this.parent) this.parent.emit('update', 'keyframe-delete')
+    Keyframe.deselectAndDeactivateAllKeyframes()
 
     return keyframe
   }

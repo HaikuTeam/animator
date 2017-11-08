@@ -271,7 +271,9 @@ class Timeline extends React.Component {
 
   handleKeyDown (nativeEvent) {
     // Give the currently active expression input a chance to capture this event and short circuit us if so
-    if (this.refs.expressionInput.willHandleExternalKeydownEvent(nativeEvent)) {
+    const willExprInputHandle = this.refs.expressionInput.willHandleExternalKeydownEvent(nativeEvent)
+    // console.log(willExprInputHandle) // Numeric reason for handling the event
+    if (willExprInputHandle) {
       return void (0)
     }
 
@@ -379,14 +381,14 @@ class Timeline extends React.Component {
 
   playbackSkipForward () {
     let frameInfo = this.component.getCurrentTimeline().getFrameInfo()
-    this.component.getCurrentTimeline().seekAndPause(frameInfo.friMax)
-    this.component.getCurrentTimeline().updateCurrentFrame(frameInfo.friMax)
-    this.component.getCurrentTimeline().tryToLeftAlignTickerInVisibleFrameRange(frameInfo.friMax)
+    this.component.getCurrentTimeline().seekAndPause(frameInfo.maxf)
+    this.component.getCurrentTimeline().updateCurrentFrame(frameInfo.maxf)
+    this.component.getCurrentTimeline().tryToLeftAlignTickerInVisibleFrameRange(frameInfo.maxf)
     this.setState({ isPlayerPlaying: false })
   }
 
   togglePlayback () {
-    if (this.state.currentFrame >= this.component.getCurrentTimeline().getFrameInfo().friMax) {
+    if (this.component.getCurrentTimeline().getCurrentFrame() >= this.component.getCurrentTimeline().getFrameInfo().maxf) {
       this.playbackSkipBack()
     }
 

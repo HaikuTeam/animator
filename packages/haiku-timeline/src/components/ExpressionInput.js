@@ -649,27 +649,30 @@ export default class ExpressionInput extends React.Component {
    */
   willHandleExternalKeydownEvent (keydownEvent) {
     if (keydownEvent._alreadyHandled) {
-      return true
+      return 1
     }
 
-    if (this.props.component.getFocusedRow()) {
+    const focusedRow = this.props.component.getFocusedRow()
+    const selectedRow = this.props.component.getSelectedRow()
+
+    if (focusedRow) {
       // When focused, assume we *always* handle keyboard events, no exceptions.
       // If you want to handle an input when focused, used handleEditorKeydown
-      return true
-    } else if (this.props.component.getSelectedRow()) {
+      return 2
+    } else if (selectedRow && selectedRow.isProperty()) {
       // Up/down arrows (when selected) navigate the selection state between cells
       if (keydownEvent.which === 38) { // Up arrow
         this.requestNavigate(NAVIGATION_DIRECTIONS.PREV, false)
-        return true
+        return 3
       } else if (keydownEvent.which === 40) { // Down arrow
         this.requestNavigate(NAVIGATION_DIRECTIONS.NEXT, false)
-        return true
+        return 4
       }
 
       // When tabbing, we navigate down by one input
       if (keydownEvent.which === 9) { // Tab
         this.requestNavigate(NAVIGATION_DIRECTIONS.NEXT, false)
-        return true
+        return 5
       }
 
       // Enter when selected brings us into a focused state
@@ -680,7 +683,7 @@ export default class ExpressionInput extends React.Component {
         keydownEvent.preventDefault()
 
         this.props.onFocusRequested()
-        return true
+        return 6
       }
 
       if (
@@ -696,12 +699,12 @@ export default class ExpressionInput extends React.Component {
       // Any mismatch of these usually indicates the key is a letter/number/symbol
       if (keydownEvent.key !== keydownEvent.code) {
         this.props.onFocusRequested(keydownEvent.key)
-        return true
+        return 7
       }
       // The delete key is also supported as a way to enter into a focused state
       if (keydownEvent.which === 46 || keydownEvent.which === 8) { // Delete
         this.props.onFocusRequested(keydownEvent.key)
-        return true
+        return 8
       }
 
       return false

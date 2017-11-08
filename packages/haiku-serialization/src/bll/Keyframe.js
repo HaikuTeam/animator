@@ -285,13 +285,14 @@ class Keyframe extends BaseModel {
     if (normalized !== this.getMs()) {
       this.ms = normalized
 
+      // Indicate that we need to be moved. Must set this before calling handleKeyframeMoves
+      // otherwise the update might not make it correctly to the serialization layer
+      this._needsMove = true
+
       this.emit('update', 'keyframe-ms-set')
 
       // This runs a debounced move action
       this.component.handleKeyframeMove()
-
-      // Indicate that we need to be
-      this._needsMove = true
 
       if (this.prev()) {
         this.prev().emit('update', 'keyframe-neighbor-move')

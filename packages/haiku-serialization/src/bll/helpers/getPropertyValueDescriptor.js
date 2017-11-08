@@ -26,7 +26,7 @@ function getPropertyValueDescriptor (timelineRow, options) {
     : timelineRow.component.getCurrentTimelineName()
 
   const currentTimelineTime = (options.timelineTime !== undefined)
-    ? (options.timelineTime !== undefined)
+    ? options.timelineTime
     : timelineRow.component.getCurrentTimelineTime()
 
   const propertyDescriptor = timelineRow.getDescriptor()
@@ -34,6 +34,18 @@ function getPropertyValueDescriptor (timelineRow, options) {
   const fallbackValue = propertyDescriptor.fallback
 
   const baselineValue = TimelineProperty.getBaselineValue(
+    componentId,
+    elementName,
+    propertyName,
+    currentTimelineName,
+    currentTimelineTime,
+    fallbackValue,
+    reifiedBytecode,
+    hostInstance,
+    hostStates
+  )
+
+  const baselineCurve = TimelineProperty.getBaselineCurve(
     componentId,
     elementName,
     propertyName,
@@ -115,6 +127,7 @@ function getPropertyValueDescriptor (timelineRow, options) {
     valueLabel,
     fallbackValue,
     baselineValue,
+    baselineCurve,
     computedValue,
     assignedValue,
     bookendValue,
