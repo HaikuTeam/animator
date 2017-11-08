@@ -5,7 +5,7 @@ const lodash = require('lodash')
 const allPackages = require('./allPackages')()
 const log = require('./log')
 
-const allDeps = lodash.map(allPackages, (pack) => pack.name)
+const allDeps = lodash.map(allPackages, (pack) => pack.pkgname)
 
 module.exports = {
   linkAllPackages: function linkPackages (cb) {

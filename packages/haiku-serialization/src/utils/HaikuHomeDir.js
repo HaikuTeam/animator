@@ -3,6 +3,7 @@ var os = require('os')
 var fse = require('fs-extra')
 
 var out = {}
+var didTakeTourCache = null
 
 var HOMEDIR_PATH = path.join(os.homedir(), '.haiku')
 
@@ -20,7 +21,11 @@ out.HOMEDIR_SKETCH_DIALOG_PATH = path.join(HOMEDIR_PATH, 'sketch-dialog')
 //
 // @returns Boolean
 out.didTakeTour = function () {
-  return fse.existsSync(out.HOMEDIR_TOUR_PATH)
+  if (didTakeTourCache === null) {
+    didTakeTourCache = fse.existsSync(out.HOMEDIR_TOUR_PATH)
+  }
+
+  return didTakeTourCache
 }
 
 // Creates a file to store tour options
