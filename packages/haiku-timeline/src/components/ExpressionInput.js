@@ -683,6 +683,15 @@ export default class ExpressionInput extends React.Component {
         return true
       }
 
+      if (
+        keydownEvent.which === 16 || // shift
+        keydownEvent.which === 17 || // control
+        keydownEvent.which === 18 || // alt
+        keydownEvent.which === 91 // command
+      ) {
+        return false
+      }
+
       // Any 'edit' key (letters, numbers, etc) brings us into a focused state
       // Any mismatch of these usually indicates the key is a letter/number/symbol
       if (keydownEvent.key !== keydownEvent.code) {
@@ -692,6 +701,7 @@ export default class ExpressionInput extends React.Component {
       // The delete key is also supported as a way to enter into a focused state
       if (keydownEvent.which === 46 || keydownEvent.which === 8) { // Delete
         this.props.onFocusRequested(keydownEvent.key)
+        return true
       }
 
       return false

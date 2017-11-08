@@ -61,7 +61,10 @@ export default class ConstantBody extends React.Component {
           })
         }}
         onMouseDown={(mouseEvent) => {
-          this.props.keyframe.select(mouseEvent)
+          mouseEvent.stopPropagation()
+          this.props.keyframe.select({
+            skipDeselect: mouseEvent.shiftKey || mouseEvent.ctrlKey
+          })
         }}
         style={{
           position: 'absolute',

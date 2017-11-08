@@ -2,7 +2,11 @@ const EventEmitter = require('events').EventEmitter
 const lodash = require('lodash')
 
 // Prevent trigger-happy MaxListenersExceededWarning
-EventEmitter.prototype._maxListeners = 100
+if (process.env.NODE_ENV === 'staging' || process.env.NODE_ENV === 'production') {
+  EventEmitter.prototype._maxListeners = Infinity
+} else {
+  EventEmitter.prototype._maxListeners = 500
+}
 
 class BaseModel extends EventEmitter {
   constructor (props, opts) {
@@ -132,6 +136,7 @@ class BaseModel extends EventEmitter {
         this[key] = props[key]
       }
     }
+    this.cacheClear()
     this.setUpdateTimestamp()
     return this
   }
@@ -139,6 +144,7 @@ class BaseModel extends EventEmitter {
   destroy () {
     if (this.beforeDestroy) this.beforeDestroy()
     this.constructor.remove(this)
+    this.constructor.clearCaches()
     this.setPrimaryKey(undefined)
     this.__destroyed = Date.now()
     if (this.afterDestroy) this.afterDestroy()
@@ -279,6 +285,7 @@ function createCollection (klass, collection, opts) {
   }
 
   klass.upsert = (props, opts) => {
+    klass.clearCaches()
     const pkey = props[klass.config.primaryKey]
     const found = klass.findById(pkey)
     if (found) {
@@ -287,7 +294,14 @@ function createCollection (klass, collection, opts) {
       if (found.afterInitialize) found.afterInitialize()
       return found
     }
-    return klass.create(props, opts)
+    const created = klass.create(props, opts)
+    return created
+  }
+
+  klass.clearCaches = () => {
+    collection.forEach((item) => {
+      item.cacheClear()
+    })
   }
 }
 

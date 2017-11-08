@@ -26,11 +26,13 @@ const CLOCKWISE_CONTROL_POINTS = {
 }
 
 const POINTS_THRESHOLD_REDUCED = 65 // Display only the corner control points
-const POINTS_THRESHOLD_NONE = 35 // Display no control points nor line
+const POINTS_THRESHOLD_NONE = 15 // Display no control points nor line
 
 const POINT_DISPLAY_MODES = {
   NORMAL: [1, 1, 1, 1, 1, 1, 1, 1, 1],
-  REDUCED: [1, 0, 1, 0, 0, 0, 1, 0, 1],
+  REDUCED_ON_TOP_BOTTOM: [1, 0, 1, 1, 0, 1, 1, 0, 1],
+  REDUCED_ON_LEFT_RIGHT: [1, 1, 1, 0, 0, 0, 1, 1, 1],
+  REDUCED_ON_BOTH: [1, 0, 1, 0, 0, 0, 1, 0, 1],
   NONE: [0, 0, 0, 0, 0, 0, 0, 0, 0]
 }
 
@@ -1133,8 +1135,16 @@ export class Glass extends React.Component {
     const dy = Element.distanceBetweenPoints(points[0], points[6], this.state.zoomXY)
 
     let pointDisplayMode = POINT_DISPLAY_MODES.NORMAL
-    if (dx < POINTS_THRESHOLD_REDUCED || dy < POINTS_THRESHOLD_REDUCED) pointDisplayMode = POINT_DISPLAY_MODES.REDUCED
-    if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) pointDisplayMode = POINT_DISPLAY_MODES.NONE
+
+    if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) {
+      pointDisplayMode = POINT_DISPLAY_MODES.NONE
+    } else if (dx < POINTS_THRESHOLD_REDUCED && dy < POINTS_THRESHOLD_REDUCED) {
+      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_BOTH
+    } else if (dx < POINTS_THRESHOLD_REDUCED && dy >= POINTS_THRESHOLD_REDUCED) {
+      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_TOP_BOTTOM
+    } else if (dx >= POINTS_THRESHOLD_REDUCED && dy < POINTS_THRESHOLD_REDUCED) {
+      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_LEFT_RIGHT
+    }
 
     let lineDisplayMode = LINE_DISPLAY_MODES.NORMAL
     if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) lineDisplayMode = LINE_DISPLAY_MODES.NONE

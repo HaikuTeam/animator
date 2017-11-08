@@ -18,7 +18,7 @@ class Keyframe extends BaseModel {
     if (!this._activated || !Keyframe._activated[this.getUniqueKey()]) {
       this._activated = true
       Keyframe._activated[this.getUniqueKey()] = this
-      this.emit('update', 'keyframe-activated')
+      this.emitWithNeighbors('update', 'keyframe-activated')
     }
     return this
   }
@@ -27,7 +27,7 @@ class Keyframe extends BaseModel {
     if (this._activated || Keyframe._activated[this.getUniqueKey()]) {
       this._activated = false
       delete Keyframe._activated[this.getUniqueKey()]
-      this.emit('update', 'keyframe-deactivated')
+      this.emitWithNeighbors('update', 'keyframe-deactivated')
     }
     return this
   }
@@ -36,15 +36,11 @@ class Keyframe extends BaseModel {
     return this._activated
   }
 
-  select (eventOrConfig) {
-    // TODO: This logic probably doesn't belong here; move up into React?
-    // The object passed in here can either be an event or a config object; hack
-    if (eventOrConfig) {
-      if (eventOrConfig.stopPropagation) {
-        eventOrConfig.stopPropagation()
-      }
-
-      if (!eventOrConfig.shiftKey && !eventOrConfig.ctrlKey && !eventOrConfig.skipDeselect) {
+  select (config) {
+    if (config) {
+      if (config.skipDeselect) {
+        // do nothing
+      } else {
         Keyframe.deselectAndDeactivateAllKeyframes()
       }
     } else {
@@ -54,8 +50,9 @@ class Keyframe extends BaseModel {
     if (!this._selected || !Keyframe._selected[this.getUniqueKey()]) {
       this._selected = true
       Keyframe._selected[this.getUniqueKey()] = this
-      this.emit('update', 'keyframe-selected')
+      this.emitWithNeighbors('update', 'keyframe-selected')
     }
+
     return this
   }
 
@@ -63,8 +60,15 @@ class Keyframe extends BaseModel {
     if (this._selected || Keyframe._selected[this.getUniqueKey()]) {
       this._selected = false
       delete Keyframe._selected[this.getUniqueKey()]
-      this.emit('update', 'keyframe-deselected')
+      this.emitWithNeighbors('update', 'keyframe-deselected')
     }
+    return this
+  }
+
+  emitWithNeighbors (what, a, b, c, d, e) {
+    this.emit(what, a, b, c, d, e)
+    if (this.next()) this.next().emit(what, a, b, c, d, e)
+    if (this.prev()) this.prev().emit(what, a, b, c, d, e)
     return this
   }
 
@@ -72,18 +76,13 @@ class Keyframe extends BaseModel {
     return this._selected
   }
 
-  selectSelfAndSurrounds (maybeEvent) {
-    this.select(maybeEvent)
+  selectSelfAndSurrounds (config) {
+    this.select(config)
     if (this.next()) {
       // HACK: Normally selecting a keyframe deselects all others, but in this
       // case we want to retain the one we selected in the line above, so add
       // this property to the event/config to prevent that behavior
-      if (maybeEvent) {
-        maybeEvent.skipDeselect = true
-        this.next().select(maybeEvent)
-      } else {
-        this.next().select({ skipDeselect: true })
-      }
+      this.next().select({ skipDeselect: true })
     }
     return this
   }
@@ -356,11 +355,16 @@ class Keyframe extends BaseModel {
   }
 
   next () {
-    return this.row.getKeyframes({ index: this.index + 1 })[0]
+    return this.cacheFetch(('next'), () => {
+      return this.row.getKeyframes({ index: this.index + 1 })[0]  
+    })
+    
   }
 
   prev () {
-    return this.row.getKeyframes({ index: this.index - 1 })[0]
+    return this.cacheFetch(('prev'), () => {
+      return this.row.getKeyframes({ index: this.index - 1 })[0]
+    })
   }
 
   getPixelOffsetRight (base, pxpf, mspf) {

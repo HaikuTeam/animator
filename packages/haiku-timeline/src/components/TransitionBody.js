@@ -132,7 +132,10 @@ export default class TransitionBody extends React.Component {
           this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}
         onMouseDown={(mouseEvent) => {
-          this.props.keyframe.selectSelfAndSurrounds(mouseEvent)
+          mouseEvent.stopPropagation()
+          this.props.keyframe.selectSelfAndSurrounds({
+            skipDeselect: mouseEvent.shiftKey || mouseEvent.ctrlKey
+          })
         }}>
         <span
           className='pill-container'
@@ -285,7 +288,12 @@ export default class TransitionBody extends React.Component {
                 ? Palette.BLUE
                 : (this.props.keyframe.isWithinCollapsedProperty())
                     ? Palette.DARK_ROCK
-                    : (this.props.keyframe.hasNextKeyframe() && (this.props.keyframe.next().isActive() || this.props.keyframe.next().isSelected()))
+                    : (
+                        this.props.keyframe.next() && (
+                          this.props.keyframe.next().isActive() ||
+                          this.props.keyframe.next().isSelected()
+                        )
+                      )
                       ? Palette.LIGHTEST_PINK
                       : Palette.ROCK
               } />

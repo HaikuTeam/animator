@@ -52,7 +52,10 @@ export default class InvisibleKeyframeDragger extends React.Component {
           this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}
         onMouseDown={(mouseEvent) => {
-          this.props.keyframe.select(mouseEvent)
+          mouseEvent.stopPropagation()
+          this.props.keyframe.select({
+            skipDeselect: mouseEvent.shiftKey || mouseEvent.ctrlKey
+          })
         }}>
         <span
           onContextMenu={(ctxMenuEvent) => {

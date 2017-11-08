@@ -111,12 +111,14 @@ class Timeline extends React.Component {
 
     this.component.mountApplication()
 
-    this.addEmitterListener(this.component, 'update', (what) => {
+    this.addEmitterListener(this.component, 'update', (what, arg) => {
       if (what === 'application-mounted') {
         this.handleHaikuComponentMounted()
         this.forceUpdate()
       } else if (what === 'reloaded') {
-        this.forceUpdate()
+        if (arg === 'hard') {
+          this.forceUpdate()
+        }
       }
     })
 
@@ -212,20 +214,7 @@ class Timeline extends React.Component {
       if (what === 'row-collapsed' || what === 'row-expanded') {
         this.forceUpdate()
       } else if (what === 'row-selected') {
-        setTimeout(() => {
-          if (this.refs.scrollview) {
-            let selectedRowIndex = null
-            this._renderedRows.forEach((renderedRow, rowIndex) => {
-              if (renderedRow === row) {
-                selectedRowIndex = rowIndex
-              }
-            })
-            if (selectedRowIndex) {
-              const scrollPos = selectedRowIndex * this.state.rowHeight + 35
-              this.refs.scrollview.scrollTop = scrollPos
-            }
-          }
-        }, 100)
+        // TODO: Handle scrolling to the correct row
       }
     })
 

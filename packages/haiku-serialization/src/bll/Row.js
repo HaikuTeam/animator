@@ -488,11 +488,15 @@ class Row extends BaseModel {
   }
 
   next () {
-    return Row.find({ place: this.place + 1 })
+    return this.cacheFetch('next', () => {
+      return Row.find({ place: this.place + 1 })
+    })
   }
 
   prev () {
-    return Row.find({ place: this.place - 1 })
+    return this.cacheFetch('prev', () => {
+      return Row.find({ place: this.place - 1 })
+    })
   }
 
   dump () {
@@ -579,9 +583,15 @@ Row.cyclicalNav = function cyclicalNav (row, navDir) {
     target = row && row.prev()
   }
 
-  // If we're at the end (or no focused), use the row at the very top
-  if (!target) {
-    target = Row.find({ place: 0 })
+  
+  if (!target && (navDir === NAVIGATION_DIRECTIONS.PREV)) {
+    // Already at top, need to jump to the bottom
+    target = Row.last()
+  } else if (!target && (navDir === NAVIGATION_DIRECTIONS.NEXT)) {
+    // Already at bottom, need to jump to the top
+    target = Row.first()
+  } else if (!target && (navDir === NAVIGATION_DIRECTIONS.SAME)) {
+    throw new Error('unable to navigate due to missing selection')
   }
 
   // Only allow navigating through rows that we can act upon in the timeline
@@ -678,6 +688,21 @@ Row.dumpHierarchyInfo = function dumpHierarchyInfo () {
   return Row.rsmap((row) => {
     return row.dump()
   })
+}
+
+// The last row is the row with the largest 'place' via the AC _numRows counter
+Row.last = function last () {
+  let max = Row.first()
+  Row.all().forEach((row) => {
+    if (row.place > max.place) {
+      max = row
+    }
+  })
+  return max
+}
+
+Row.first = function first () {
+  return Row.find({ place: 0 })
 }
 
 module.exports = Row

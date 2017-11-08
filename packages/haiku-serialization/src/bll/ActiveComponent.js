@@ -255,6 +255,7 @@ class ActiveComponent extends BaseModel {
 
   clearCaches (options) {
     this.instance.clearCaches(options) // Also clears builder sub-caches
+    this.clearEntityCaches()
     return this
   }
 
@@ -1253,13 +1254,25 @@ class ActiveComponent extends BaseModel {
 
   joinSelectedKeyframes (curveName, metadata) {
     const keyframes = Keyframe.where({ component: this, _selected: true })
-    keyframes.forEach((keyframe) => keyframe.addCurve(curveName, metadata))
+    keyframes.forEach((keyframe) => {
+      // Only keyframes that have a next keyframe should get the curve assigned,
+      // otherwise you'll see a "surprise curve" if you add a next keyframe
+      if (keyframe.next()) {
+        keyframe.addCurve(curveName, metadata)
+      }
+    })
     return this
   }
 
   changeCurveOnSelectedKeyframes (curveName, metadata) {
     const keyframes = Keyframe.where({ component: this, _selected: true })
-    keyframes.forEach((keyframe) => keyframe.changeCurve(curveName, metadata))
+    keyframes.forEach((keyframe) => {
+      // Only keyframes that have a next keyframe should get the curve assigned,
+      // otherwise you'll see a "surprise curve" if you add a next keyframe
+      if (keyframe.next()) {
+        keyframe.changeCurve(curveName, metadata)
+      }
+    })
     return this
   }
 
@@ -1341,13 +1354,13 @@ class ActiveComponent extends BaseModel {
       // Also calls softReload
       return this.hardReload(reloadOptions, instanceConfig, (err) => {
         if (err) return finish(err)
-        this.emit('update', 'reloaded')
+        this.emit('update', 'reloaded', 'hard')
         return finish()
       })
     } else {
       return this.softReload(reloadOptions, instanceConfig, (err) => {
         if (err) return finish(err)
-        this.emit('update', 'reloaded')
+        this.emit('update', 'reloaded', 'soft')
         return finish()
       })
     }
@@ -1552,6 +1565,13 @@ class ActiveComponent extends BaseModel {
     this._timestamp = Date.now()
     this.rehydrateFromTree(this.getHotTemplate(), null, null, null, 0, 0, 0, '0')
     this.purgeStaleEntities(this._timestamp)
+  }
+
+  clearEntityCaches () {
+    Row.clearCaches()
+    Keyframe.clearCaches()
+    Element.clearCaches()
+    return this
   }
 
   purgeStaleEntities (timestamp) {
