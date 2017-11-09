@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!-- Copyright (c) 2016-2017 Haiku. All rights reserved. -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{demo}} | Debug | Haiku Player</title>
+  <style>
+    html, body {
+      margin: 0;
+    }
+  </style>
+  <script src="/webpack/HaikuDOMAdapter.js"></script>
+  <script src="/webpack/bytecode.js"></script>
+</head>
+<body>
+  <div id="mount"></div>
+  <script>
+    window.HaikuDOMAdapter.default(window.bytecode)(document.getElementById('mount'));
+  </script>
+</body>
+</html>

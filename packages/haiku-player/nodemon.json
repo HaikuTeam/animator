@@ -3,11 +3,12 @@
     ".git",
     "dist",
     "src",
-    "node_modules/**/node_modules"
+    "node_modules/**/node_modules",
+    "demo/webpack"
   ],
   "verbose": true,
   "watch": [
-    "test/demo"
+    "demo"
   ],
   "delay": 1
 }
