@@ -6,7 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{demo}} | Vanilla JavaScript | Haiku Player</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <style>.mount { border: 1px solid black; height: 600px; }</style>
+  <style>
+    .mount {
+      border: 1px solid black;
+      height: 600px;
+    }
+  </style>
+  <script src="/webpack/dom.js"></script>
+  <script src="/webpack/reactDom.js"></script>
 </head>
 <body>
   <div class="container">
@@ -21,35 +28,22 @@
     <div class="row">
       <div class="col-md-6">
         <h2>vanilla</h2>
-        <div class="mount" id="vanilla"></div>
+        <div class="mount" id="dom-mount"></div>
       </div>
       <div class="col-md-6">
         <h2>react</h2>
-        <div class="mount" id="react"></div>
+        <div class="mount" id="react-dom-mount"></div>
       </div>
     </div>
   </div>
 
   <script>
-    {{#if vanilla}}
-      {{{vanilla}}}
-      if (vanilla.mount) {
-        vanilla.mount(document.getElementById('vanilla'))
-      } else {
-        vanilla(document.getElementById('vanilla'))
-      }
-    {{/if}}
-  </script>
-
-  <script>
-    {{#if react}}
-      {{{react}}}
-      if (react.mount) {
-        react.mount(document.getElementById('react'), react.React, react.ReactDOM)
-      } else {
-        react.ReactDOM.render(react.React.createElement(react), document.getElementById('react'))
-      }
-    {{/if}}
+    const domMount = document.getElementById('dom-mount');
+    dom.mount ? dom.mount(domMount) : dom(domMount);
+    const reactDomMount = document.getElementById('react-dom-mount');
+    reactDom.mount
+      ? reactDom.mount(reactDomMount, reactDom.React, reactDom.ReactDOM)
+      : reactDom.ReactDOM.render(reactDom.React.createElement(reactDom), reactDomMount);
   </script>
 </body>
 </html>
