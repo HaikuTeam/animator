@@ -690,6 +690,7 @@ export default class ExpressionInput extends React.Component {
         keydownEvent.which === 16 || // shift
         keydownEvent.which === 17 || // control
         keydownEvent.which === 18 || // alt
+        keydownEvent.which === 32 || // space - this gets annoying because it's used for playback
         keydownEvent.which === 91 // command
       ) {
         return false

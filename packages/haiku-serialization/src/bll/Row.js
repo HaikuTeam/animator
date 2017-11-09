@@ -29,13 +29,17 @@ class Row extends BaseModel {
     return `${this.element.getComponentId()}-${this.getType()}-${this.getClusterNameString()}-${this.getPropertyNameString()}`
   }
 
+  deselectOthers (metadata) {
+    // Deselect all other rows; currently assume only one row selected at a time
+    Row.all().forEach((row) => {
+      if (row === this) return null
+      row.deselect(metadata)
+    })
+  }
+
   select (metadata) {
     if (!this._isSelected || !Row._selected[this.getUniqueKey()]) {
-      // Deselect all other rows; currently assume only one row selected at a time
-      Row.all().forEach((row) => {
-        if (row === this) return null
-        row.deselect(metadata)
-      })
+      this.deselectOthers(metadata)
 
       this._isSelected = true
       Row._selected[this.getUniqueKey()] = this
@@ -129,11 +133,18 @@ class Row extends BaseModel {
     return this._isExpanded
   }
 
+  blurOthers (metadata) {
+    Row.all().forEach((row) => {
+      if (row !== this) {
+        row.blur(metadata)
+      }
+    })
+  }
+
   focus (metadata) {
     if (!this._isFocused || !Row._focused[this.getUniqueKey()]) {
-      Row.all().forEach((row) => {
-        if (row !== this) row.blur()
-      })
+      this.blurOthers(metadata)
+
       this._isFocused = true
       Row._focused[this.getUniqueKey()] = this
       this.emit('update', 'row-focused', metadata)

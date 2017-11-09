@@ -47,6 +47,7 @@ export default class PropertyInputField extends React.Component {
           outline: 'none'
         }}
         onClick={(clickEvent) => {
+          this.props.row.blurOthers({ from: 'timeline' }) // Otherwise previously blurred remains open
           this.props.row.select({ from: 'timeline' })
           clickEvent.stopPropagation()
         }}

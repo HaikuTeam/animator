@@ -709,6 +709,7 @@ class Timeline extends React.Component {
         onClick={(clickEvent) => {
           Row.all().forEach((row) => {
             row.blur({ from: 'timeline' })
+            row.deselect({ from: 'timeline' })
           })
         }}
         style={{

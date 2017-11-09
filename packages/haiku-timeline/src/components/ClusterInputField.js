@@ -27,7 +27,7 @@ export default class ClusterInputField extends React.Component {
 
     let valueElements = clusterValues.map((clusterVal, index) => {
       let semi = (index === (clusterValues.length - 1)) ? '' : '; '
-      return <span key={index}>{clusterVal.prettyValue}{semi}</span>
+      return <span key={index}>{remapPrettyValue(clusterVal.prettyValue)}{semi}</span>
     })
 
     return (
@@ -54,6 +54,13 @@ export default class ClusterInputField extends React.Component {
       </div>
     )
   }
+}
+
+function remapPrettyValue (prettyValue) {
+  if (prettyValue && prettyValue.render === 'react') {
+    return <span style={prettyValue.style}>{prettyValue.text}</span>
+  }
+  return prettyValue
 }
 
 ClusterInputField.propTypes = {
