@@ -72,6 +72,8 @@ module.exports = function allPackages (names) {
     }
     packages.push(obj)
   })
-  packages.sort((a, b) => order.indexOf(a) - order.indexOf(b))
+  packages.sort((a, b) => {
+    return order.indexOf(a.name) - order.indexOf(b.name)
+  })
   return packages
 }
