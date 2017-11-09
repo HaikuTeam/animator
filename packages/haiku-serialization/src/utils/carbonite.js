@@ -102,7 +102,7 @@ function crashReport (orgName, projectName, projectPath) {
     .then(AWS3URL => _upload(AWS3URL, zipPath))
     .catch(error => console.log(error))
 
-  return `${AWS3Server}/${zipName}`
+  return `${AWS3Server}/${orgName}/${zipName}`
 }
 
 function sentryCallback (data) {
