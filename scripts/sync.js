@@ -16,17 +16,20 @@ checkYarnVersion()
 checkNodeVersion()
 
 const lastSyncFilename = path.join(global.process.cwd(), '.last-sync')
-let afterFilter = ''
+let sinceFilter = ''
 if (fs.existsSync(lastSyncFilename)) {
-  afterFilter = `--after='${require(lastSyncFilename).lastSyncDate}'`
+  const lastSync = require(lastSyncFilename);
+  if (lastSync.hasOwnProperty('lastSyncCommit')) {
+    sinceFilter = `${lastSync.lastSyncCommit}..`
+  }
 }
 
 const INSTALL_ATTEMPTS = 10
-const lastSyncDate = cp.execSync('date').toString().trim()
+const lastSyncCommit = cp.execSync('git rev-parse HEAD').toString().trim()
 
 const packageNamesRequiringSync = lodash.uniq(
   cp.execSync(
-    `git whatchanged ${afterFilter} --pretty=format:"" --name-only packages/*/yarn.lock \
+    `git whatchanged ${sinceFilter} --pretty=format:"" --name-only packages/*/yarn.lock \
        | sed '/^\\s*$/d' | sed 's/packages\\///g' | sed 's/\\/yarn.lock//g'`
   )
     .toString()
@@ -84,7 +87,7 @@ async.each(packagesRequiringSync, (pack, next) => {
           }
 
           log.hat('sync complete!')
-          fs.writeFile(lastSyncFilename, `module.exports = ${JSON.stringify({lastSyncDate})};`, done)
+          fs.writeFile(lastSyncFilename, `module.exports = ${JSON.stringify({lastSyncCommit})};`, done)
         })
       })
     }
