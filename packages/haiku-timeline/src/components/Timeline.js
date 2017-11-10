@@ -312,7 +312,7 @@ class Timeline extends React.Component {
       // case 46: //delete
       // case 13: //enter
       // delete
-      case 8: return this.component.getCurrentTimeline().deleteSelectedKeyframes() // Only if there are any
+      case 8: return this.component.deleteSelectedKeyframes({ from: 'timeline' }) // Only if there are any
       case 16: return this.updateKeyboardState({ isShiftKeyDown: true })
       case 17: return this.updateKeyboardState({ isControlKeyDown: true })
       case 18: return this.updateKeyboardState({ isAltKeyDown: true })
