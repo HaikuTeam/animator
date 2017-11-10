@@ -38,7 +38,7 @@ export const BTN_STYLES = {
     color: Palette.ROCK,
     transform: 'scale(1)',
     cursor: 'pointer',
-    transition: 'transform 200ms ease',
+    transition: 'transform 200ms ease, border-color 200ms ease',
     backgroundColor: Palette.FATHER_COAL,
     ':active': {
       transform: 'scale(.9)'

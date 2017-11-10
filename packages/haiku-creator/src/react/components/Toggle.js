@@ -1,91 +1,112 @@
 import React from 'react'
 import Radium from 'radium'
+import {throttle} from 'lodash'
 import Palette from './Palette'
+import Popover from 'react-popover'
+import {EyeIconSVG} from './Icons'
+import {BTN_STYLES} from '../styles/btnShared'
 
 const STYLES = {
   wrapper: {
-    display: 'inline-block',
-    marginTop: 4
-  },
-  checkBox: {
-    display: 'none'
-  },
-  btn: {
-    outline: '0',
-    display: 'inline-block',
-    width: '2.2em',
-    height: '1.2em',
-    position: 'relative',
     cursor: 'pointer',
-    userSelect: 'none',
-    background: Palette.DARKER_GRAY,
-    borderRadius: '2em',
-    padding: '2px',
-    transition: 'all .4s ease',
-    marginLeft: '15px'
+    borderStyle: 'solid',
+    borderWidth: '1px',
+    borderColor: Palette.FATHER_COAL,
+    marginRight: '7px',
+    padding: '6px 5px 5px',
+    active: {
+      borderColor: Palette.LIGHTEST_PINK
+    }
   },
-  btnAfter: {
-    position: 'relative',
+  popover: {
+    padding: '3px 10px',
+    margin: '0',
+    fontSize: '11px',
+    backgroundColor: 'rgb(21, 32, 34)',
     display: 'block',
-    width: '50%',
-    height: '100%',
-    left: 0,
-    borderRadius: '50%',
-    background: 'white',
-    transition: 'all .2s ease'
+    textAlign: 'center',
+    borderRadius: '5px'
   },
-  btnChecked: {
-    background: Palette.LIGHTEST_PINK
-  },
-  btnAfterChecked: {
-    left: '50%'
+  eye: {
+    transform: 'scale(0.9)',
+    fontFamily: 'Fira Sans, Arial, sans-serif !important',
+    fontSize: '12px',
+    fontWeight: '400',
+    color: '#d1d1d1',
   }
 }
 
 class Toggle extends React.Component {
-  constructor () {
+  constructor ({tooltipOpenDelay, tooltipCloseDelay}) {
     super()
     this.onToggle = this.onToggle.bind(this)
+    this.openPopover = this.openPopover.bind(this)
+    this.closePopover = this.closePopover.bind(this)
+    this.tooltipOpenDelay = tooltipOpenDelay || 600
+    this.tooltipCloseDelay = tooltipCloseDelay || 2000
+    this.tooltipOpenTimeout = undefined
+    this.tooltipCloseTimeout = undefined
     this.state = {
-      checked: false
+      active: false
     }
   }
 
   onToggle () {
-    this.setState({checked: !this.state.checked})
+    this.setState({active: !this.state.active})
 
     if (typeof this.props.onToggle === 'function') {
-      this.props.onToggle(this.state.checked)
+      this.props.onToggle(this.state.active)
     }
   }
 
+  openPopover () {
+    this.isMouseOver = true
+
+    this.tooltipOpenTimeout = setTimeout(() => {
+      if(this.isMouseOver) {
+        this.setState({ isPopoverOpen: true })
+      }
+    }, this.tooltipOpenDelay)
+
+    this.tooltipCloseTimeout = setTimeout(() => {
+      this.closePopover()
+    }, this.tooltipCloseDelay)
+  }
+
+  closePopover () {
+    if(this.tooltipOpenTimeout) clearTimeout(this.tooltipOpenTimeout)
+    if(this.tooltipCloseTimeout) clearTimeout(this.tooltipCloseTimeout)
+    this.setState({ isPopoverOpen: false })
+    this.isMouseOver = false
+  }
+
   render () {
+    const activeStyles = this.state.active ? STYLES.wrapper.active : {}
+
     return (
-      <div style={[this.props.style, STYLES.wrapper]}>
-        {this.props.hintText && (
-          <span>
-            {this.props.hintText} {this.state.checked ? 'on' : 'off'}
-          </span>
-        )}
-        <input
-          id='toggle'
-          type='checkbox'
-          checked={this.state.checked}
-          onChange={this.onToggle}
-          style={STYLES.checkBox}
-        />
-        <label
-          htmlFor='toggle'
-          style={[STYLES.btn, this.state.checked ? STYLES.btnChecked : {}]}
+      <Popover
+        isOpen={this.state.isPopoverOpen}
+        body={<span style={STYLES.popover}>Toggle preview</span>}
+        place='below'
+        tipSize={5}
+      >
+        <a
+          href='#'
+          style={[
+            BTN_STYLES.btnText,
+            STYLES.wrapper,
+            activeStyles,
+            this.props.style
+          ]}
+          onMouseEnter={this.openPopover}
+          onMouseLeave={this.closePopover}
+          onClick={this.onToggle}
         >
-          <span
-            style={[
-              STYLES.btnAfter,
-              this.state.checked ? STYLES.btnAfterChecked : {}
-            ]}
-          />
-        </label>
-      </div>
+          <div style={STYLES.eye}>
+            <EyeIconSVG />
+          </div>
+        </a>
+      </Popover>
     )
   }
 }

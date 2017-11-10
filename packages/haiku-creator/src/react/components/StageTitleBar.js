@@ -118,7 +118,6 @@ const STYLES = {
   },
   previewToggle: {
     float: 'right',
-    marginRight: 15
   }
 }
 
@@ -504,7 +503,6 @@ class StageTitleBar extends React.Component {
         {
           experimentIsEnabled(Experiment.PreviewMode) &&
           <Toggle
-            hintText='Preview mode is'
             onToggle={this.togglePreviewMode.bind(this)}
             style={STYLES.previewToggle}
           />
