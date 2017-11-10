@@ -1241,19 +1241,19 @@ class ActiveComponent extends BaseModel {
   }
 
   splitSelectedKeyframes (metadata) {
-    const keyframes = Keyframe.where({ component: this, _selected: true })
+    const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.removeCurve(metadata))
     return this
   }
 
   deleteSelectedKeyframes (metadata) {
-    const keyframes = Keyframe.where({ component: this, _selected: true })
+    const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.delete(metadata))
     return this
   }
 
   joinSelectedKeyframes (curveName, metadata) {
-    const keyframes = Keyframe.where({ component: this, _selected: true })
+    const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => {
       // Only keyframes that have a next keyframe should get the curve assigned,
       // otherwise you'll see a "surprise curve" if you add a next keyframe
@@ -1265,7 +1265,7 @@ class ActiveComponent extends BaseModel {
   }
 
   changeCurveOnSelectedKeyframes (curveName, metadata) {
-    const keyframes = Keyframe.where({ component: this, _selected: true })
+    const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => {
       // Only keyframes that have a next keyframe should get the curve assigned,
       // otherwise you'll see a "surprise curve" if you add a next keyframe
@@ -1277,19 +1277,19 @@ class ActiveComponent extends BaseModel {
   }
 
   dragStartSelectedKeyframes (dragData) {
-    const keyframes = Keyframe.where({ component: this, _selected: true })
+    const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
     return this
   }
 
   dragStopSelectedKeyframes (dragData) {
-    const keyframes = Keyframe.where({ component: this, _selected: true })
+    const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
     return this
   }
 
   dragSelectedKeyframes (pxpf, mspf, dragData, metadata) {
-    const keyframes = Keyframe.where({ component: this, _selected: true })
+    const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.drag(pxpf, mspf, dragData, metadata))
     return this
   }
@@ -1831,6 +1831,10 @@ class ActiveComponent extends BaseModel {
 
   getDisplayableRows () {
     return Row.getDisplayables()
+  }
+
+  getSelectedKeyframes () {
+    return Keyframe.where({ component: this, _selected: true })
   }
 
   getCurrentKeyframes (criteria) {

@@ -276,22 +276,30 @@ class Row extends BaseModel {
     let indexToAssign = null
     let existingAtMs = null
 
+    // Try to find a sibling that already exists in our spot, so we can replace it
     siblings.forEach((sibling) => {
-      if (sibling.getMs() >= ms) {
-        // We're going to insert the keyframe where it belongs in sequence according to ms
-        if (indexToAssign === null) {
-          indexToAssign = sibling.getIndex()
-        }
-
-        // For uids, the previous at this location needs to have its index reflect the shift,
-        // but only if we are really inserting a new one and not replacing the existing one
-        if (sibling.getMs() !== ms) {
-          sibling.incrementIndex()
-        } else {
-          existingAtMs = sibling
-        }
+      if (sibling.getMs() === ms) {
+        existingAtMs = sibling
+        indexToAssign = existingAtMs.getIndex()
       }
     })
+
+    // If nothing at our spot, this is an insertion, and we have to update indices
+    if (!existingAtMs) {
+      siblings.forEach((sibling) => {
+        if (sibling.getMs() >= ms) {
+          // We're going to insert the keyframe where it belongs in sequence, per the ms value
+          // The first sibling we find represents the index our new keyframe will get
+          if (indexToAssign === null) {
+            indexToAssign = sibling.getIndex()
+          }
+          // For uids to work, we have to shift the index over for all extant keyframes
+          if (sibling.getMs() !== ms) {
+            sibling.incrementIndex()
+          }
+        }
+      })
+    }
 
     // If no sibling had a greater ms, we are either the first (only) or last keyframe
     if (indexToAssign === null) {
@@ -299,37 +307,48 @@ class Row extends BaseModel {
     }
 
     let valueToAssign
-    let curveToAssign
 
     // If no value provided, we'll grab a value from existing keyframes here
     if (value === undefined) {
       // If we are replacing an existing keyframe, use the existing one's value
       if (existingAtMs) {
         valueToAssign = existingAtMs.getValue()
-        curveToAssign = existingAtMs.getCurve()
       } else {
         // Otherwise, grab the value from the previous keyframe known in the sequence
         valueToAssign = this.getBaselineValueAtMillisecond(ms)
-        curveToAssign = this.getBaselineCurveAtMillisecond(ms)
       }
     } else {
       valueToAssign = value
     }
 
+    let curveToAssign
+
+    if (existingAtMs) {
+      curveToAssign = existingAtMs.getCurve()
+    } else {
+      // Otherwise, grab the value from the previous keyframe known in the sequence
+      curveToAssign = this.getBaselineCurveAtMillisecond(ms)
+    }
+
     // If value is undefined, create a keyframe with the default
-    const created = Keyframe.upsert({
+    const upsertSpec = {
       ms: ms,
       originalMs: ms,
       uid: Keyframe.getInferredUid(this, indexToAssign),
       index: indexToAssign,
       value: valueToAssign,
-      curve: curveToAssign,
-      // curve: we don't include curve so the previous curve is used if we're replacing an existing keyframe
       row: this,
       element: this.element,
       timeline: this.timeline,
       component: this.component
-    })
+    }
+
+    // We don't include curve so the previous curve is used if we're replacing an existing keyframe
+    if (curveToAssign) {
+      upsertSpec.curve = curveToAssign
+    }
+
+    const created = Keyframe.upsert(upsertSpec)
 
     // Update the bytecode directly via ActiveComponent, which updates Timeline UI
     this.component.createKeyframe(
@@ -386,7 +405,12 @@ class Row extends BaseModel {
   }
 
   getKeyframes (criteria) {
-    return this.component.getCurrentKeyframes(lodash.assign({ row: this }, criteria))
+    const keyframes = this.component.getCurrentKeyframes(lodash.assign({ row: this }, criteria))
+    return lodash.orderBy(keyframes, [(k) => k.index])
+  }
+
+  getKeyframe (idx) {
+    return this.getKeyframes()[idx]
   }
 
   mapVisibleKeyframes (iteratee) {
