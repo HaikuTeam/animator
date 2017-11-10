@@ -9,12 +9,15 @@
     html, body {
       margin: 0;
     }
+    {{{style}}}
   </style>
   <script src="/webpack/HaikuDOMAdapter.js"></script>
   <script src="/webpack/bytecode.js"></script>
 </head>
 <body>
+  {{{before}}}
   <div id="mount"></div>
+  {{{after}}}
   <script>
     window.HaikuDOMAdapter.default(window.bytecode)(document.getElementById('mount'));
   </script>
