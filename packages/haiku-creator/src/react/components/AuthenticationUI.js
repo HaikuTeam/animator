@@ -177,7 +177,7 @@ class AuthenticationUI extends React.Component {
       <div style={STYLES.inputHolster}>
         <input
           type='text'
-          placeholder='Email'
+          placeholder='Username or Email'
           key='username'
           ref='email'
           value={this.state.username}
@@ -192,7 +192,7 @@ class AuthenticationUI extends React.Component {
         </span>
         { this.state.emailValid
             ? ''
-            : <span style={STYLES.tooltip}><span style={STYLES.arrowLeft} />Invalid characters: please enter your username or email address</span> }
+            : <span style={STYLES.tooltip}><span style={STYLES.arrowLeft} />No special characters</span> }
       </div>
     )
   }
