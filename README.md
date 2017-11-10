@@ -18,17 +18,18 @@ And add to `~/.ssh/config`:
       UseKeychain yes
       IdentityFile ~/.ssh/id_rsa
 
-**node/npm/yarn installation**
+**Node/Yarn installation**
 
-    $ rm -rf /usr/local/lib/node_modules/npm
+    $ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
     $ nvm install 8.4.0
     $ nvm alias default 8.4.0
-    $ brew install yarn --without-node
+    $ curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.0.2
 
-**git/yarn/packages setup**
+**Setup**
 
-    $ yarn install
-    $ yarn sync
+After you clone the repository, simply run:
+
+    $ yarn setup
 
 ## Development
 

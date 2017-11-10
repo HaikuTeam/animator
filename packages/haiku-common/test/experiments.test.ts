@@ -17,7 +17,7 @@ tape('experimentIsEnabled', (test: tape.Test) => {
       'lib/experiments', {'./config': 'getExperimentConfig'});
     getExperimentConfig.returns({
       FooExperiment: {
-        test: true,
+        development: true,
       },
     });
     test.true(experimentIsEnabled('FooExperiment'));

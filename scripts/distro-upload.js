@@ -20,7 +20,7 @@ var bucket = deploy.deployer[environment].bucket
 
 var RELEASES_FOLDER = 'releases'
 
-uploadRelease(region, objkey, secret, bucket, RELEASES_FOLDER, platform, environment, branch, version, (err, { environment, platform, branch, countdown, version, urls }) => {
+uploadRelease(region, objkey, secret, bucket, RELEASES_FOLDER, platform, environment, branch, version, (err, { environment, version, urls }) => {
   if (err) throw err
 
   var slackMessage = `

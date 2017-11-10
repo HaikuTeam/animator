@@ -1,7 +1,6 @@
 branches:
   only:
-    - staging
-    - production
+    - release
 
 os: osx
 osx_image: xcode8.3

@@ -8,13 +8,13 @@ var writeHackyDynamicDistroConfig = require('./helpers/writeHackyDynamicDistroCo
 var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
 
 var ROOT = path.join(__dirname, '..')
-var ENVS = { test: true, development: true, staging: true, production: true }
+var ENVS = { development: true, release: true }
 
 forceNodeEnvProduction()
 
 var inputs = lodash.assign({
   branch: 'master',
-  environment: 'staging',
+  environment: 'development',
   uglify: false,
   upload: true,
   shout: true,
@@ -25,9 +25,9 @@ delete inputs.$0
 delete inputs._
 
 if (process.env.TRAVIS) {
-  // Always assume the in-app NODE_ENV will be 'staging' unless this is production
-  if (process.env.TRAVIS_BRANCH === 'production') {
-    inputs.environment = 'production'
+  // Always assume the in-app NODE_ENV will be 'development' unless this is a release
+  if (process.env.TRAVIS_BRANCH === 'release') {
+    inputs.environment = 'release'
   }
 }
 
@@ -36,13 +36,13 @@ if (!argv['non-interactive']) {
     {
       type: 'input',
       name: 'environment',
-      message: `Environment tag (helps specify the release bucket; affects autoupdate):`,
+      message: `Environment tag:`,
       default: inputs.environment
     },
     {
       type: 'confirm',
       name: 'uglify',
-      message: 'Obfuscate source code in release bundle ("yes" is required for production)?:',
+      message: 'Obfuscate source code in release bundle ("yes" is required for release)?:',
       default: inputs.uglify
     },
     {
@@ -60,8 +60,8 @@ if (!argv['non-interactive']) {
   ]).then(function (answers) {
     lodash.assign(inputs, answers)
 
-    if (inputs.uglify === false && inputs.environment === 'production') {
-      throw new Error(`refusing to create a non-obfuscated build for 'production'`)
+    if (inputs.uglify === false && inputs.environment === 'release') {
+      throw new Error(`refusing to create a non-obfuscated build for 'release'`)
     }
 
     if (!ENVS[inputs.environment]) {
