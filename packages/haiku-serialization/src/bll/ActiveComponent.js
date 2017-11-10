@@ -436,13 +436,6 @@ class ActiveComponent extends BaseModel {
   */
   setInteractionMode (modeOptions, metadata, cb) {
     this._interactionMode = modeOptions || DEFAULT_INTERACTION_MODE
-
-    this.instance.assignConfig({
-      options: {
-        interactionMode: this._interactionMode
-      }
-    })
-
     this.clearCaches()
     this.forceFlush()
     this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'setInteractionMode')
@@ -451,7 +444,7 @@ class ActiveComponent extends BaseModel {
   }
 
   instantiateComponent (relpath, posdata, metadata, cb) {
-    if (this._isPreviewMode()) return cb()
+    if (this.isPreviewMode()) return cb()
 
     const coords = {
       x: 0,
