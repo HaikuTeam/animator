@@ -1,6 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
+import Globals from './Globals'
 
 const THROTTLE_TIME = 17 // ms
 
@@ -54,7 +55,10 @@ export default class InvisibleKeyframeDragger extends React.Component {
         onMouseDown={(mouseEvent) => {
           mouseEvent.stopPropagation()
           this.props.keyframe.select({
-            skipDeselect: mouseEvent.shiftKey || mouseEvent.ctrlKey
+            skipDeselect:
+              Globals.isShiftKeyDown ||
+              Globals.isControlKeyDown ||
+              mouseEvent.nativeEvent.which === 3
           })
         }}>
         <span

@@ -4,6 +4,7 @@ import lodash from 'lodash'
 import Palette from './DefaultPalette'
 import { DraggableCore } from 'react-draggable'
 import KeyframeSVG from './icons/KeyframeSVG'
+import Globals from './Globals'
 
 import {
   EaseInBackSVG,
@@ -135,7 +136,11 @@ export default class TransitionBody extends React.Component {
         onMouseDown={(mouseEvent) => {
           mouseEvent.stopPropagation()
 
-          if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
+          if (
+            Globals.isShiftKeyDown ||
+            Globals.isControlKeyDown ||
+            mouseEvent.nativeEvent.which === 3
+          ) {
             // If others are already selected and we're doing context menu, don't deselect
             if (this.props.keyframe.areAnyOthersSelected()) {
               this.props.keyframe.select({
@@ -148,7 +153,10 @@ export default class TransitionBody extends React.Component {
           } else if (mouseEvent) {
             // But if we're e.g. dragging it, we need to select the next one so we move as a group
             this.props.keyframe.selectSelfAndSurrounds({
-              skipDeselect: mouseEvent.shiftKey || mouseEvent.ctrlKey
+              skipDeselect:
+                Globals.isShiftKeyDown ||
+                Globals.isControlKeyDown ||
+                mouseEvent.nativeEvent.which === 3
             })
           }
         }}>
