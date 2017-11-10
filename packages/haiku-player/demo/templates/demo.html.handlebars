@@ -11,6 +11,7 @@
       border: 1px solid black;
       height: 600px;
     }
+    {{{style}}}
   </style>
   <script src="/webpack/dom.js"></script>
   <script src="/webpack/reactDom.js"></script>
@@ -21,18 +22,20 @@
 
     <h1>{{demo}} | Haiku Player</h1>
 
-    {{#if note}}
-      <p>{{note}}</p>
-    {{/if}}
+    <p>{{{note}}}</p>
 
     <div class="row">
       <div class="col-md-6">
         <h2>vanilla</h2>
+        {{{before}}}
         <div class="mount" id="dom-mount"></div>
+        {{{after}}}
       </div>
       <div class="col-md-6">
         <h2>react</h2>
+        {{{before}}}
         <div class="mount" id="react-dom-mount"></div>
+        {{{after}}}
       </div>
     </div>
   </div>
