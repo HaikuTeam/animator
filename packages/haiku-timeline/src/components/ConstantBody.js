@@ -1,6 +1,7 @@
 import React from 'react'
 import Color from 'color'
 import Palette from './DefaultPalette'
+import Globals from './Globals'
 
 export default class ConstantBody extends React.Component {
   constructor (props) {
@@ -63,7 +64,10 @@ export default class ConstantBody extends React.Component {
         onMouseDown={(mouseEvent) => {
           mouseEvent.stopPropagation()
           this.props.keyframe.select({
-            skipDeselect: mouseEvent.shiftKey || mouseEvent.ctrlKey
+            skipDeselect:
+              Globals.isShiftKeyDown ||
+              Globals.isControlKeyDown ||
+              mouseEvent.nativeEvent.which === 3
           })
         }}
         style={{
