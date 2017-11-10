@@ -19,15 +19,14 @@ const getDefinedKeys = require('./helpers/getDefinedKeys')
 const getHaikuKnownImportMatch = require('./helpers/getHaikuKnownImportMatch')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 const { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
+const { InteractionMode } = require('haiku-common/lib/interaction-modes')
 
 const WEBSOCKET_BATCH_INTERVAL = 250
 const KEYFRAME_MOVE_THROTTLE_TIME = 250
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_SCENE_NAME = 'main' // e.g. code/main/*
-const DEFAULT_INTERACTION_MODE = {
-  type: 'edit' // I.e., the player shouldn't respond to events, etc. (live/edit)
-}
+const DEFAULT_INTERACTION_MODE = InteractionMode.EDIT
 
 /**
  * @class ActiveComponent
@@ -421,12 +420,22 @@ class ActiveComponent extends BaseModel {
     return this._stageTransform
   }
 
+  /**
+  * @method isPreviewMode
+  * @description Utility that returns a boolean indicating if the component
+  * is in the 'preview' editing environment
+  * @returns boolean
+  */
+   isPreviewMode () {
+     return this._interactionMode.type === InteractionMode.LIVE.type
+   }
+
+  /**
+  * @method setInteractionMode
+  * @description Changes the current interaction mode and flushes all cachés
+  */
   setInteractionMode (modeOptions, metadata, cb) {
     this._interactionMode = modeOptions || DEFAULT_INTERACTION_MODE
-
-    if (metadata.from === this.alias) {
-      this.websocket.send({ type: 'action', method: 'setInteractionMode', params: [this.folder, modeOptions] })
-    }
 
     this.instance.assignConfig({
       options: {
@@ -437,11 +446,13 @@ class ActiveComponent extends BaseModel {
     this.clearCaches()
     this.forceFlush()
     this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'setInteractionMode')
-
-    return cb()
+    if (typeof metadata === 'function') return metadata()
+    if (typeof cb === 'function') return cb()
   }
 
   instantiateComponent (relpath, posdata, metadata, cb) {
+    if (this._isPreviewMode()) return cb()
+
     const coords = {
       x: 0,
       y: 0
