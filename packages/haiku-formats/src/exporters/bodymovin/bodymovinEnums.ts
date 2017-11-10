@@ -18,6 +18,7 @@ export const enum LayerKey {
   Type = 'ty',
   Transform = 'ks',
   Index = 'ind',
+  LocalIndex = 'hix',
   Name = 'nm',
 }
 

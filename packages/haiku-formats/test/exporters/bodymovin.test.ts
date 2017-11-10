@@ -692,8 +692,13 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
   test.test('stacks elements in order of descending z-index', (test: tape.Test) => {
     const bytecode = baseBytecodeCopy();
-    // Shim in two SVG layers.
+    // Shim in three SVG layers.
     bytecode.template.children = [
+      {
+        elementName: 'svg',
+        attributes: {'haiku-id': 'svg0'},
+        children: [],
+      },
       {
         elementName: 'svg',
         attributes: {'haiku-id': 'svg1'},
@@ -705,6 +710,10 @@ tape('BodymovinExporter', (test: tape.Test) => {
         children: [],
       },
     ];
+    bytecode.timelines.Default['haiku:svg0'] = {
+      opacity: {0: {value: .25}},
+      'style.zIndex': {0: {value: 1}},
+    };
     bytecode.timelines.Default['haiku:svg1'] = {
       opacity: {0: {value: .5}},
       'style.zIndex': {0: {value: 1}},
@@ -717,13 +726,14 @@ tape('BodymovinExporter', (test: tape.Test) => {
     const {layers} = rawOutput(bytecode);
     test.equal(layers[0].ks.o.k, 100, 'elements with higher z-index come earlier');
     test.equal(layers[1].ks.o.k, 50, 'elements with lower z-index come later');
+    test.equal(layers[2].ks.o.k, 25, 'z-index conflicts are resolved based on original order');
     test.end();
   });
 
   test.test('simulates wrapper div with a background color as a rectangle', (test: tape.Test) => {
     const bytecode = baseBytecodeCopy();
     bytecode.timelines.Default['haiku:wrapper'].backgroundColor = {0: {value: '#000'}};
-    const {layers: [{ind, ty, shapes: [{it: [shape, _, fill]}]}]} = rawOutput(bytecode);
+    const {layers: [_, {ind, ty, shapes: [{it: [shape, __, fill]}]}]} = rawOutput(bytecode);
     test.equal(ind, 0, 'wrapper rectangle has z-index 0');
     test.equal(ty, 4, 'wrapper rectangle is an ordinary shape layer');
     test.equal(shape.ty, 'rc', 'wrapper rectangle is in fact a rectangle');

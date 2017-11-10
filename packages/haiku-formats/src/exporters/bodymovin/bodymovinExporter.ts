@@ -111,6 +111,12 @@ export class BodymovinExporter implements Exporter {
   private bytecodeParsed = false;
 
   /**
+   * Local layer index, for resolving z-index collisions.
+   * @type {number}
+   */
+  private localLayerIndex = 0;
+
+  /**
    * Core storage for the transformed output.
    * @type {any}
    */
@@ -432,6 +438,7 @@ export class BodymovinExporter implements Exporter {
       [LayerKey.InPoint]: 0,
       [LayerKey.StartTime]: 0,
       [LayerKey.Index]: this.zIndexForNode(node),
+      [LayerKey.LocalIndex]: ++this.localLayerIndex,
       [LayerKey.Type]: LayerType.Shape,
       [LayerKey.Transform]: {
         ...this.standardTransformsForTimeline(timeline),
@@ -1101,7 +1108,13 @@ export class BodymovinExporter implements Exporter {
     });
 
     // Stack elements in order of *descending* z-index.
-    this.layers.sort((layerA, layerB) => layerB[LayerKey.Index] - layerA[LayerKey.Index]);
+    this.layers.sort((layerA, layerB) => {
+      if (layerA[LayerKey.Index] === layerB[LayerKey.Index]) {
+        return layerB[LayerKey.LocalIndex] - layerA[LayerKey.LocalIndex];
+      }
+
+      return layerB[LayerKey.Index] - layerA[LayerKey.Index];
+    });
     this.bytecodeParsed = true;
   }
 
