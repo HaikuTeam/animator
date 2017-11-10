@@ -131,11 +131,26 @@ export default class TransitionBody extends React.Component {
         onDrag={lodash.throttle((dragEvent, dragData) => {
           this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}
+        onContextMenu
         onMouseDown={(mouseEvent) => {
           mouseEvent.stopPropagation()
-          this.props.keyframe.selectSelfAndSurrounds({
-            skipDeselect: mouseEvent.shiftKey || mouseEvent.ctrlKey
-          })
+
+          if (mouseEvent.ctrlKey || mouseEvent.shiftKey) {
+            // If others are already selected and we're doing context menu, don't deselect
+            if (this.props.keyframe.areAnyOthersSelected()) {
+              this.props.keyframe.select({
+                skipDeselect: true
+              })
+            } else {
+              // If we're just adding a curve via the menu, don't select the next guy
+              this.props.keyframe.select()
+            }
+          } else if (mouseEvent) {
+            // But if we're e.g. dragging it, we need to select the next one so we move as a group
+            this.props.keyframe.selectSelfAndSurrounds({
+              skipDeselect: mouseEvent.shiftKey || mouseEvent.ctrlKey
+            })
+          }
         }}>
         <span
           className='pill-container'
@@ -174,23 +189,6 @@ export default class TransitionBody extends React.Component {
               ? 'pointer'
               : 'move'
           }}>
-          {this.props.keyframe.isWithinCollapsedRow() &&
-            <span
-              className='pill-collapsed-backdrop'
-              style={{
-                position: 'absolute',
-                width: '100%',
-                height: '100%',
-                top: 0,
-                borderRadius: 5,
-                zIndex: 4,
-                left: 0,
-                backgroundColor: (this.props.keyframe.isWithinCollapsedRow())
-                  ? Palette.GRAY
-                  : Color(Palette.SUNSTONE).fade(0.91)
-              }}
-            />
-          }
           <span
             className='pill'
             style={{
@@ -201,13 +199,8 @@ export default class TransitionBody extends React.Component {
               top: 0,
               borderRadius: 5,
               left: 0,
-              backgroundColor: (this.props.keyframe.isWithinCollapsedRow())
-              ? (this.props.keyframe.isWithinCollapsedRow())
-                ? Color(Palette.SUNSTONE).fade(0.93)
-                : Color(Palette.SUNSTONE).fade(0.965)
-              : Color(Palette.SUNSTONE).fade(0.91)
-            }}
-          />
+              backgroundColor:  Color(Palette.SUNSTONE).fade(0.98)
+            }}/>
           <span
             style={{
               position: 'absolute',
@@ -228,11 +221,9 @@ export default class TransitionBody extends React.Component {
               }}>
               <KeyframeSVG color={(this.props.keyframe.isWithinCollapsedRow())
                   ? Palette.BLUE
-                  : (this.props.keyframe.isWithinCollapsedProperty())
-                      ? Palette.DARK_ROCK
-                      : (this.props.keyframe.isActive() || this.props.keyframe.isSelected())
-                        ? Palette.LIGHTEST_PINK
-                        : Palette.ROCK
+                  : (this.props.keyframe.isActive() || this.props.keyframe.isSelected())
+                    ? Palette.LIGHTEST_PINK
+                    : Palette.ROCK
                 } />
             </span>
           </span>

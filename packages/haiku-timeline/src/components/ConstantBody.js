@@ -72,19 +72,19 @@ export default class ConstantBody extends React.Component {
           width: pxOffsetRight - pxOffsetLeft,
           height: this.props.rowHeight
         }}>
-        <span style={{
-          height: 3,
-          top: 12,
-          position: 'absolute',
-          zIndex: 2,
-          width: '100%',
-          backgroundColor: (this.props.keyframe.isWithinCollapsedRow())
-            ? Color(Palette.GRAY).fade(0.23)
-            : (this.props.keyframe.isSelected())
-              ? Color(Palette.LIGHTEST_PINK).fade(0.5)
-              : Palette.DARKER_GRAY
-
-        }} />
+        {(this.props.keyframe.isWithinCollapsedRow())
+          ? ''
+          : <span style={{
+              height: 3,
+              top: 12,
+              position: 'absolute',
+              zIndex: 2,
+              width: '100%',
+              backgroundColor: (this.props.keyframe.isSelected())
+                ? Color(Palette.LIGHTEST_PINK).fade(0.5)
+                : Palette.DARKER_GRAY
+            }} />
+        }
       </span>
     )
   }

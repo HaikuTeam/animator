@@ -555,7 +555,7 @@ class Timeline extends React.Component {
 
                 // If the frame clicked exceeds the virtual or explicit max, allocate additional
                 // virtual frames in the view and jump the user to the new page
-                if (newFrame >= frameInfo.friB) {
+                if (newFrame > frameInfo.friB) {
                   const newMaxFrame = newFrame + pageFrameLength
                   this.component.getCurrentTimeline().setMaxFrame(newMaxFrame)
                   this.component.getCurrentTimeline().setVisibleFrameRange(newFrame, newMaxFrame)

@@ -27,12 +27,19 @@ export default class TimelineRangeScrollbar extends React.Component {
     if (what === 'timeline-frame-range' || what === 'timeline-frame') this.forceUpdate()
   }
 
+  getPlayheadPc (frameInfo) {
+    if (frameInfo.friMaxVirt < 1) return 0
+    const frame =  this.props.timeline.getCurrentFrame()
+    if (frame < 1) return 0
+    return (frame / frameInfo.friMaxVirt) * 100
+  }
+
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
 
     return (
       <div
-        className='timeline-range-scrollbar'
+        id='timeline-range-scrollbar-container'
         style={{
           width: frameInfo.scL,
           height: KNOB_RADIUS * 2,
@@ -62,12 +69,13 @@ export default class TimelineRangeScrollbar extends React.Component {
             }
           }, THROTTLE_TIME)}>
           <div
+            id='timeline-range-scrollbar'
             style={{
               position: 'absolute',
               backgroundColor: Palette.LIGHTEST_GRAY,
               height: KNOB_RADIUS * 2,
               left: frameInfo.scA,
-              width: frameInfo.scB - frameInfo.scA + 17,
+              width: frameInfo.scB - frameInfo.scA,
               borderRadius: KNOB_RADIUS,
               cursor: 'move'
             }}>
@@ -82,15 +90,17 @@ export default class TimelineRangeScrollbar extends React.Component {
               onDrag={lodash.throttle((dragEvent, dragData) => {
                 this.props.timeline.changeVisibleFrameRange(dragData.x + frameInfo.scA, 0)
               }, THROTTLE_TIME)}>
-              <div style={{
-                width: 10,
-                height: 10,
-                position: 'absolute',
-                cursor: 'ew-resize',
-                left: 0,
-                borderRadius: '50%',
-                backgroundColor: Palette.SUNSTONE
-              }} />
+              <div
+                id='timeline-range-knob-left'
+                style={{
+                  width: 10,
+                  height: 10,
+                  position: 'absolute',
+                  cursor: 'ew-resize',
+                  left: 0,
+                  borderRadius: '50%',
+                  backgroundColor: Palette.SUNSTONE
+                }} />
             </DraggableCore>
             <DraggableCore
               axis='x'
@@ -103,32 +113,37 @@ export default class TimelineRangeScrollbar extends React.Component {
               onDrag={lodash.throttle((dragEvent, dragData) => {
                 this.props.timeline.changeVisibleFrameRange(0, dragData.x + frameInfo.scA)
               }, THROTTLE_TIME)}>
-              <div style={{
-                width: 10,
-                height: 10,
-                position: 'absolute',
-                cursor: 'ew-resize',
-                right: 0,
-                borderRadius: '50%',
-                backgroundColor: Palette.SUNSTONE
-              }} />
+              <div
+                id='timeline-range-knob-right'
+                style={{
+                  width: 10,
+                  height: 10,
+                  position: 'absolute',
+                  cursor: 'ew-resize',
+                  right: 0,
+                  borderRadius: '50%',
+                  backgroundColor: Palette.SUNSTONE
+                }} />
             </DraggableCore>
           </div>
         </DraggableCore>
         <div
+          id='timeline-playhead-indicator-container'
           style={{
-            width: this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth() - 10,
+            width: this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth() - 35,
             left: 10,
             position: 'relative'
           }}>
-          <div style={{
-            position: 'absolute',
-            pointerEvents: 'none',
-            height: KNOB_RADIUS * 2,
-            width: 1,
-            backgroundColor: Palette.ROCK,
-            left: ((this.props.timeline.getCurrentFrame() / frameInfo.friMax) * 100) + '%'
-          }} />
+          <div
+            id='timeline-playhead-indicator'
+            style={{
+              position: 'absolute',
+              pointerEvents: 'none',
+              height: KNOB_RADIUS * 2,
+              width: 1,
+              backgroundColor: Palette.ROCK,
+              left: this.getPlayheadPc(frameInfo) + '%'
+            }} />
         </div>
       </div>
     )

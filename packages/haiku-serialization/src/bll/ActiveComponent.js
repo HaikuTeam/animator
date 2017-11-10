@@ -21,7 +21,7 @@ const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 const { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
 
 const WEBSOCKET_BATCH_INTERVAL = 250
-const KEYFRAME_MOVE_THROTTLE_TIME = 250
+const KEYFRAME_MOVE_DEBOUNCE_TIME = 500
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_SCENE_NAME = 'main' // e.g. code/main/*
@@ -164,7 +164,7 @@ class ActiveComponent extends BaseModel {
     }, 100, { trailing: true })
 
     // Debounced version of the keyframe move action handler
-    this.debouncedKeyframeMoveAction = lodash.throttle(this.keyframeMoveAction.bind(this), KEYFRAME_MOVE_THROTTLE_TIME)
+    this.debouncedKeyframeMoveAction = lodash.debounce(this.keyframeMoveAction.bind(this), KEYFRAME_MOVE_DEBOUNCE_TIME)
   }
 
   getCurrentFolder () {
@@ -1319,6 +1319,8 @@ class ActiveComponent extends BaseModel {
         }
       }
     }
+
+    return this
   }
 
   /**

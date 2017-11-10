@@ -16,6 +16,7 @@ export default class ComponentHeadingRow extends React.Component {
         className='component-heading-row no-select'
         data-component-id={componentId}
         onClick={(clickEvent) => {
+          clickEvent.stopPropagation()
           // Collapse/expand the entire component area when it is clicked
           if (this.props.row.isExpanded()) {
             this.props.row.collapseAndDeselect({ from: 'timeline' })

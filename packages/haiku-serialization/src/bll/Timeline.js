@@ -437,9 +437,12 @@ class Timeline extends BaseModel {
       ? this.getMaxFrame()
       : frameInfo.maxf
 
+    // Whichever max is higher: the virtual, or the assigned value
+    frameInfo.friMaxVirt = this.getMaxFrame()
+
     // The rightmost frame on the visible range
-    frameInfo.friB = (this.getRightFrameEndpoint() > frameInfo.friMax)
-      ? frameInfo.friMax
+    frameInfo.friB = (this.getRightFrameEndpoint() > frameInfo.friMaxVirt)
+      ? frameInfo.friMaxVirt
       : this.getRightFrameEndpoint()
 
     // Number of pixels per frame (rounded)
@@ -454,13 +457,13 @@ class Timeline extends BaseModel {
     }
 
     // Pixel number for friA, the leftmost frame on the visible range
-    frameInfo.pxA = Math.round(frameInfo.friA * frameInfo.pxpf)
+    frameInfo.pxA = frameInfo.friA * frameInfo.pxpf
 
     // Pixel number for friB, the rightmost frame on the visible range
-    frameInfo.pxB = Math.round(frameInfo.friB * frameInfo.pxpf)
+    frameInfo.pxB = frameInfo.friB * frameInfo.pxpf
 
     // Pixel number for friMax2, i.e. the width in pixels of the whole timeline
-    frameInfo.pxMax = frameInfo.friMax * frameInfo.pxpf
+    frameInfo.pxMax = frameInfo.friMaxVirt * frameInfo.pxpf
 
     // Millisecond number for friA, the leftmost frame in the visible range
     frameInfo.msA = Math.round(frameInfo.friA * frameInfo.mspf)
@@ -475,10 +478,10 @@ class Timeline extends BaseModel {
     frameInfo.scRatio = frameInfo.pxMax / frameInfo.scL
 
     // The pixel of the left endpoint of the scroller
-    frameInfo.scA = (frameInfo.friA * frameInfo.pxpf) / frameInfo.scRatio
+    frameInfo.scA = (frameInfo.pxA) / frameInfo.scRatio
 
     // The pixel of the right endpoint of the scroller
-    frameInfo.scB = (frameInfo.friB * frameInfo.pxpf) / frameInfo.scRatio
+    frameInfo.scB = (frameInfo.pxB) / frameInfo.scRatio
 
     return frameInfo
   }
@@ -685,7 +688,7 @@ class Timeline extends BaseModel {
     const frameInfo = this.getFrameInfo()
 
     // If a frame was passed, only do this if we detect we've gone outside of the range
-    if (frame !== undefined && (frame >= frameInfo.friB || frame < frameInfo.friA)) {
+    if (frame !== undefined && (frame > frameInfo.friB || frame < frameInfo.friA)) {
       const l = this.getLeftFrameEndpoint()
       const r = this.getRightFrameEndpoint()
       const span = r - l
@@ -706,6 +709,9 @@ class Timeline extends BaseModel {
 
   setVisibleFrameRange (l, r) {
     this._visibleFrameRange = [l, r]
+    if (r > this.getMaxFrame()) {
+      this.setMaxFrame(r)
+    }
     this.emit('update', 'timeline-frame-range')
     return this
   }

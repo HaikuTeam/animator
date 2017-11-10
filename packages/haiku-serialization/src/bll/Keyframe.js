@@ -76,6 +76,20 @@ class Keyframe extends BaseModel {
     return this._selected
   }
 
+  areAnyOthersSelected () {
+    return this.othersSelected().length > 0
+  }
+
+  othersSelected () {
+    const selected = []
+    Keyframe.where({ _selected: true }).forEach((keyframe) => {
+      if (keyframe !== this) {
+        selected.push(keyframe)
+      }
+    })
+    return selected
+  }
+
   selectSelfAndSurrounds (config) {
     this.select(config)
     if (this.next()) {
