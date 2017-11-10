@@ -4547,6 +4547,10 @@ react-copy-to-clipboard@^5.0.0:
     copy-to-clipboard "^3"
     prop-types "^15.5.8"
 
+react-dom-factories@^1.0.0:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-dom-factories/-/react-dom-factories-1.0.2.tgz#eb7705c4db36fb501b3aa38ff759616aa0ff96e0"
+
 react-dom@15.4.2:
   version "15.4.2"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-15.4.2.tgz#015363f05b0a1fd52ae9efdd3a0060d90695208f"
@@ -4603,15 +4607,16 @@ react-popover@0.4.4:
     lodash.throttle "^3.0.3"
     object.assign "^4.0.1"
 
-react-popover@^0.4.8:
-  version "0.4.16"
-  resolved "https://registry.yarnpkg.com/react-popover/-/react-popover-0.4.16.tgz#ecd592f445f3e2e0b7886969733cffd76ed622d1"
+react-popover@^0.4.18:
+  version "0.4.18"
+  resolved "https://registry.yarnpkg.com/react-popover/-/react-popover-0.4.18.tgz#c8a5aacdddf5a883068368ea1f589dfd3bdd4943"
   dependencies:
     create-react-class "^15.5.3"
     css-vendor "^0.3.1"
     debug "^2.6.8"
     lodash.throttle "^3.0.3"
     prop-types "^15.5.10"
+    react-dom-factories "^1.0.0"
 
 react-select-plus@^1.0.0-rc.5:
   version "1.0.0-rc.5"
