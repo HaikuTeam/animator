@@ -91,6 +91,7 @@ class ThreeDotMenu extends React.Component {
   render () {
     return (
       <div
+        className='three-dot-menu-popover'
         style={[
           STYLES.container,
           this.props.isHovered ? STYLES.container.hover : {}
@@ -100,6 +101,7 @@ class ThreeDotMenu extends React.Component {
           onOuterAction={this.closePopover}
           isOpen={this.state.isPopoverOpen}
           place='below'
+          className='three-dot-popover'
           body={this.renderMenuItems()}
         >
           <div>

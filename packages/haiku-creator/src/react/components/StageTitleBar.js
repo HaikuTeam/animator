@@ -478,6 +478,7 @@ class StageTitleBar extends React.Component {
           place='below'
           isOpen={showSharePopover}
           style={{zIndex: 2}}
+          className='publish-popover'
           body={
             <PopoverBodyRadiumized
               parent={this}

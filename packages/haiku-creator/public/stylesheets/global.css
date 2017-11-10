@@ -132,24 +132,50 @@ button {
   text-transform: uppercase;
 }
 
-.Popover-tip {
+/* TODO(legacy): unify this styles
+ * for some reason we were hiding the tip of the Popover library
+ * and placing the popover body in unexpected places. This was
+ * breaking the normal usage of the library and took me hours to figure
+ *
+ * In an attempt to keep the old code as-is and at the same time fix
+ * the future usage of the Popover library, I'm prefixing the affected
+ * code with a specific class (i.e. `.three-dot-popover`)
+ */
+.three-dot-popover .Popover-tip,
+.publish-popover .Popover-tip {
   display: none;
 }
 
+.publish-popover .Popover-body,
+.three-dot-popover .Popover-body {
+  position: absolute;
+  left: -12px;
+  top: -28px;
+}
+
+/* General Popover styles */
+
+/* Don't animate the popover */
 .Popover {
   transform : translateY(0) !important;
   z-index: 10;
   transition-duration: 0;
   transition-property: transform !important;
-  .Popover-tip{
-    transition: -webkit-transform 0 ease-in !important;
-  }
 }
 
+/* Don't animate the tip */
+.Popover-tip {
+  transition: -webkit-transform 0ms ease-in!important;
+}
+
+/* Set the default color for the tip and the body */
 .Popover-body {
-  position: absolute;
-  left: -12px;
-  top: -28px;
+  border-radius: 5px;
+  background-color: rgb(21, 32, 34);
+}
+
+.Popover-tipShape {
+  fill: rgb(21, 32, 34);
 }
 
 /* Basic form resets */
