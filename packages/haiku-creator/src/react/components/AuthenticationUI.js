@@ -155,7 +155,7 @@ class AuthenticationUI extends React.Component {
 
   checkSubmit (e) {
     if (e.charCode === 13) {
-      if (validEmail(this.state.username)) {
+      if (validUsername(this.state.username)) {
         this.handleSubmit()
       } else {
         this.setState({emailValid: false})
@@ -164,7 +164,7 @@ class AuthenticationUI extends React.Component {
   }
 
   validateIsEmailAddress () {
-    let isEmail = validEmail(this.refs.email.value)
+    let isEmail = validUsername(this.refs.email.value)
     if (this.refs.email.value === '') isEmail = true // to avoid showing error state if blank
 
     isEmail
@@ -192,7 +192,7 @@ class AuthenticationUI extends React.Component {
         </span>
         { this.state.emailValid
             ? ''
-            : <span style={STYLES.tooltip}><span style={STYLES.arrowLeft} />Use an email address</span> }
+            : <span style={STYLES.tooltip}><span style={STYLES.arrowLeft} />Invalid characters: please enter your username or email address</span> }
       </div>
     )
   }
@@ -267,9 +267,10 @@ class AuthenticationUI extends React.Component {
   }
 }
 
-function validEmail (email) {
-  var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-  return re.test(email)
+function validUsername (name) {
+  var regEmail = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  var regAlphaNumeric = /^[A-Za-z0-9]+$/
+  return regEmail.test(name) || regAlphaNumeric.test(name)
 }
 
 export default Radium(AuthenticationUI)
