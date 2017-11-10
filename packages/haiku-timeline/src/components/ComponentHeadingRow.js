@@ -17,11 +17,13 @@ export default class ComponentHeadingRow extends React.Component {
         data-component-id={componentId}
         onClick={(clickEvent) => {
           clickEvent.stopPropagation()
-          // Collapse/expand the entire component area when it is clicked
-          if (this.props.row.isExpanded()) {
-            this.props.row.collapseAndDeselect({ from: 'timeline' })
-          } else {
+          // Expand the entire component area when it is clicked, but note that we
+          // only collapse if the user clicked directly on the chevron
+          if (this.props.row.isCollapsed()) {
             this.props.row.expandAndSelect({ from: 'timeline' })
+          } else {
+            // Just select the row if we're already expanded, don't collapse if clicked here
+            this.props.row.select({ from: 'timeline' })
           }
         }}
         style={{
@@ -58,6 +60,15 @@ export default class ComponentHeadingRow extends React.Component {
             marginTop: -6
           }}>
             <span
+              onClick={(clickEvent) => {
+                clickEvent.stopPropagation()
+                // Collapse/expand the entire component area when it is clicked
+                if (this.props.row.isExpanded()) {
+                  this.props.row.collapseAndDeselect({ from: 'timeline' })
+                } else {
+                  this.props.row.expandAndSelect({ from: 'timeline' })
+                }
+              }}
               style={{
                 marginLeft: 10
               }}>
