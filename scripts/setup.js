@@ -1,20 +1,28 @@
-var lodash = require('lodash')
-var cp = require('child_process')
-var log = require('./helpers/log')
-var allPackages = require('./helpers/allPackages')()
-var runScript = require('./helpers/runScript')
+const child_process = require('child_process')
+const fse = require('fs-extra')
+const path = require('path')
 
-lodash.forEach(allPackages, function (pack) {
-  log.log('cleaning out npm/yarn stuff for ' + pack.name)
-  cp.execSync('rm -rf node_modules', { cwd: pack.abspath })
+const log = require('./helpers/log')
+const runFlakyCommand = require('./helpers/runFlakyCommand')
+
+const processOptions = {cwd: global.process.cwd(), stdio: 'inherit'}
+
+runFlakyCommand(() => {
+  child_process.exec('yarn install', processOptions, () => {
+    log.hat('installed dependencies')
+  })
+}, 'mono yarn install', 10)
+
+child_process.exec('yarn sync', processOptions, () => {
+  log.hat('synced packages')
 })
 
-runScript('yarn-unlink', [], function (err) {
-  if (err) throw err
-  runScript('yarn-link', [], function (err) {
-    if (err) throw err
-    runScript('yarn-install', [], function (err) {
-      if (err) throw err
-    })
-  })
+const gitHooksPath = path.join(global.process.cwd(), '.git', 'hooks')
+const repoHooksPath = path.join(global.process.cwd(), 'hooks')
+if (fse.existsSync(gitHooksPath)) {
+  fse.removeSync(gitHooksPath)
+}
+
+fse.symlink(repoHooksPath, gitHooksPath, () => {
+  log.hat('installed hooks')
 })

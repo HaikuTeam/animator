@@ -8,6 +8,7 @@ const path = require('path')
 const checkYarnVersion = require('./helpers/checkYarnVersion')
 const checkNodeVersion = require('./helpers/checkNodeVersion')
 const allPackages = require('./helpers/allPackages')
+const runFlakyCommand = require('./helpers/runFlakyCommand')
 const yarnInstall = require('./helpers/yarnInstall')
 const {linkAllPackages, linkDeps} = require('./helpers/yarnLink')
 const {unlinkDeps} = require('./helpers/yarnUnlink')
@@ -39,24 +40,6 @@ const packageNamesRequiringSync = lodash.uniq(
 
 const packagesRequiringSync = allPackages(packageNamesRequiringSync)
 
-const tryYarnInstall = (pack, cb) => {
-  log.log(`yarn install for ${pack.shortname}`)
-  let remainingTries = INSTALL_ATTEMPTS
-  while (remainingTries > 0) {
-    try {
-      yarnInstall(pack, cb)
-      break
-    } catch (e) {
-      log.err(`Encountered error during yarn install for ${pack.shortname}. Retrying....`)
-      remainingTries--
-    }
-  }
-
-  if (remainingTries === 0) {
-    throw new Error(`Unable to yarn install ${pack.shortname} after ${INSTALL_ATTEMPTS} attempts`)
-  }
-}
-
 if (packagesRequiringSync.length === 0) {
   log.hat('nothing to sync!')
   global.process.exit(0)
@@ -69,7 +52,8 @@ async.each(packagesRequiringSync, (pack, next) => {
     return
   }
 
-  tryYarnInstall(pack, next)
+  log.log(`yarn install for ${pack.shortname}`)
+  runFlakyCommand(() => { yarnInstall(pack, next) }, `yarn install for ${pack.shortname}`, INSTALL_ATTEMPTS)
 }, (err) => {
   if (err) {
     log.err(err)

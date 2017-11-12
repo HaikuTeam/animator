@@ -31,16 +31,9 @@ module.exports = {
     legacy: process.env.HAIKU_INTERNAL_SLACK_LEGACY_TOKEN
   },
   deployer: {
-    production: {
+    release: {
       region: 'us-east-1',
       bucket: 'haiku-electron-releases-production',
-      user: 'haiku-electron-releases-writer-2',
-      key: process.env.HAIKU_RELEASE_WRITER_KEY,
-      secret: process.env.HAIKU_RELEASE_WRITER_SECRET
-    },
-    staging: {
-      region: 'us-east-1',
-      bucket: 'haiku-electron-releases-staging',
       user: 'haiku-electron-releases-writer-2',
       key: process.env.HAIKU_RELEASE_WRITER_KEY,
       secret: process.env.HAIKU_RELEASE_WRITER_SECRET
@@ -48,13 +41,6 @@ module.exports = {
     development: {
       region: 'us-east-1',
       bucket: 'haiku-electron-releases-development',
-      user: 'haiku-electron-releases-writer-2',
-      key: process.env.HAIKU_RELEASE_WRITER_KEY,
-      secret: process.env.HAIKU_RELEASE_WRITER_SECRET
-    },
-    test: {
-      region: 'us-east-1',
-      bucket: 'haiku-electron-releases-test',
       user: 'haiku-electron-releases-writer-2',
       key: process.env.HAIKU_RELEASE_WRITER_KEY,
       secret: process.env.HAIKU_RELEASE_WRITER_SECRET
