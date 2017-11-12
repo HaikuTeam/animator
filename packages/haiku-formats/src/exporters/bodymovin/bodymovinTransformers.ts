@@ -4,6 +4,7 @@ import {
   DasharrayKey,
   DasharrayRole,
   FillRule,
+  LayerKey,
   StrokeLinecap,
   StrokeLinejoin,
 } from './bodymovinEnums';
@@ -134,5 +135,6 @@ export const dasharrayTransformer = (dasharray: string) => {
   return dashGaps.map((value, index) => ({
     [DasharrayKey.Role]: dasharrayRoles[index % 2],
     [DasharrayKey.Value]: getFixedPropertyValue(value),
+    [LayerKey.Name]: index.toString(),
   }));
 };
