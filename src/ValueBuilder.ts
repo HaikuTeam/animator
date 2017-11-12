@@ -4,6 +4,7 @@
 
 import HaikuHelpers from './HaikuHelpers';
 import BasicUtils from './helpers/BasicUtils';
+import {isPreviewMode} from './helpers/interactionModes';
 import parsers from './properties/dom/parsers';
 import schema from './properties/dom/schema';
 import enhance from './reflection/enhance';
@@ -250,7 +251,7 @@ INJECTABLES['$player'] = {
       }
       out.timeline.time.apparent = timelineInstance.getTime();
       out.timeline.time.elapsed =
-        hostInstance.config.options.interactionMode.type === 'live'
+        isPreviewMode(hostInstance.config.options.interactionMode)
         ? timelineInstance.getElapsedTime()
         : out.timeline.time.apparent;
       out.timeline.time.max = timelineInstance.getMaxTime();
@@ -259,7 +260,7 @@ INJECTABLES['$player'] = {
       }
       out.timeline.frame.apparent = timelineInstance.getFrame();
       out.timeline.frame.elapsed =
-        hostInstance.config.options.interactionMode.type === 'live'
+      isPreviewMode(hostInstance.config.options.interactionMode)
         ? timelineInstance.getUnboundedFrame()
         : out.timeline.frame.apparent;
     }
@@ -275,7 +276,7 @@ INJECTABLES['$player'] = {
       }
       out.clock.time.apparent = clockInstance.getExplicitTime();
       out.clock.time.elapsed =
-        hostInstance.config.options.interactionMode.type === 'live'
+        isPreviewMode(hostInstance.config.options.interactionMode)
         ? clockInstance.getRunningTime()
         : out.clock.time.apparent;
     }
@@ -506,7 +507,7 @@ INJECTABLES['$element'] = {
 INJECTABLES['$user'] = {
   schema: assign({}, EVENT_SCHEMA),
   summon(injectees, summonSpec, hostInstance, matchingElement) {
-    if (hostInstance.config.options.interactionMode.type === 'live') {
+    if (isPreviewMode(hostInstance.config.options.interactionMode)) {
       injectees.$user = hostInstance._context._getGlobalUserState();
     } else {
       injectees.$user = {
@@ -748,13 +749,13 @@ export default function ValueBuilder(component) {
   this._evaluations = {};
 
   HaikuHelpers.register('now', () => {
-    this._component.config.options.interactionMode.type === 'live'
+    isPreviewMode(this._component.config.options.interactionMode)
       ? this._component._context.getDeterministicTime()
       : 0;
   });
 
   HaikuHelpers.register('rand', () => {
-    this._component.config.options.interactionMode.type === 'live'
+    isPreviewMode(this._component.config.options.interactionMode)
       ? this._component._context.getDeterministicRand()
       : 0;
   });

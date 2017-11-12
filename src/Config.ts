@@ -1,4 +1,5 @@
 import assign from './vendor/assign';
+import {InteractionMode} from './helpers/interactionModes';
 
 const DEFAULTS = {
   // onHaikuComponentWillInitialize: Function|null
@@ -102,7 +103,7 @@ const DEFAULTS = {
 
     // interactionMode: object
     // Control how this instance handles interaction, e.g. preview mode
-    interactionMode: {type: 'live'},
+    interactionMode: InteractionMode.LIVE,
   },
 
   // states: Object|null
