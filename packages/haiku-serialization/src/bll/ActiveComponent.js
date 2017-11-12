@@ -436,6 +436,11 @@ class ActiveComponent extends BaseModel {
   */
   setInteractionMode (modeOptions, metadata, cb) {
     this._interactionMode = modeOptions || DEFAULT_INTERACTION_MODE
+    this.instance.assignConfig({
+      options: {
+        interactionMode: this._interactionMode
+      }
+    })
     this.clearCaches()
     this.forceFlush()
     this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'setInteractionMode')
@@ -1417,7 +1422,7 @@ class ActiveComponent extends BaseModel {
             previousComponentInstance._deactivate()
           }
 
-          this.instance = updatedHaikuComponentFactory(this.getMount(), lodash.assign({}, {
+          this.instance = updatedHaikuComponentFactory(this.getMount(), lodash.merge({}, {
             options: {
               contextMenu: 'disabled', // Don't show the right-click context menu since our editing tools use right-click
               overflowX: 'visible',
