@@ -19,7 +19,10 @@ const getDefinedKeys = require('./helpers/getDefinedKeys')
 const getHaikuKnownImportMatch = require('./helpers/getHaikuKnownImportMatch')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 const { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
-const { InteractionMode } = require('haiku-common/lib/interaction-modes')
+const {
+  InteractionMode,
+  isPreviewMode
+} = require('@haiku/player/lib/helpers/interactionModes')
 
 const WEBSOCKET_BATCH_INTERVAL = 250
 const KEYFRAME_MOVE_THROTTLE_TIME = 250
@@ -420,14 +423,8 @@ class ActiveComponent extends BaseModel {
     return this._stageTransform
   }
 
-  /**
-  * @method isPreviewMode
-  * @description Utility that returns a boolean indicating if the component
-  * is in the 'preview' editing environment
-  * @returns boolean
-  */
-   isPreviewMode () {
-     return this._interactionMode.type === InteractionMode.LIVE.type
+   isPreviewModeActive () {
+     return isPreviewMode(this._interactionMode)
    }
 
   /**
@@ -444,12 +441,14 @@ class ActiveComponent extends BaseModel {
     this.clearCaches()
     this.forceFlush()
     this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'setInteractionMode')
+
+    // FIXME: for some reason sometimes the `metadata` argument is missing
     if (typeof metadata === 'function') return metadata()
     if (typeof cb === 'function') return cb()
   }
 
   instantiateComponent (relpath, posdata, metadata, cb) {
-    if (this.isPreviewMode()) return cb()
+    if (this.isPreviewModeActive()) return cb()
 
     const coords = {
       x: 0,

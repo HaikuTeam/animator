@@ -1209,7 +1209,7 @@ export class Glass extends React.Component {
   }
 
   isPreviewMode () {
-    return this._component.isPreviewMode()
+    return this._component.isPreviewModeActive()
   }
 
   getCursorCssRule () {
