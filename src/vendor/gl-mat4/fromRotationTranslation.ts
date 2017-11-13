@@ -15,39 +15,39 @@
  */
 export default function fromRotationTranslation(out, q, v) {
   // Quaternion math
-  let x = q[0]
-  let y = q[1]
-  let z = q[2]
-  let w = q[3]
-  let x2 = x + x
-  let y2 = y + y
-  let z2 = z + z
-  let xx = x * x2
-  let xy = x * y2
-  let xz = x * z2
-  let yy = y * y2
-  let yz = y * z2
-  let zz = z * z2
-  let wx = w * x2
-  let wy = w * y2
-  let wz = w * z2
+  const x = q[0];
+  const y = q[1];
+  const z = q[2];
+  const w = q[3];
+  const x2 = x + x;
+  const y2 = y + y;
+  const z2 = z + z;
+  const xx = x * x2;
+  const xy = x * y2;
+  const xz = x * z2;
+  const yy = y * y2;
+  const yz = y * z2;
+  const zz = z * z2;
+  const wx = w * x2;
+  const wy = w * y2;
+  const wz = w * z2;
 
-  out[0] = 1 - (yy + zz)
-  out[1] = xy + wz
-  out[2] = xz - wy
-  out[3] = 0
-  out[4] = xy - wz
-  out[5] = 1 - (xx + zz)
-  out[6] = yz + wx
-  out[7] = 0
-  out[8] = xz + wy
-  out[9] = yz - wx
-  out[10] = 1 - (xx + yy)
-  out[11] = 0
-  out[12] = v[0]
-  out[13] = v[1]
-  out[14] = v[2]
-  out[15] = 1
+  out[0] = 1 - (yy + zz);
+  out[1] = xy + wz;
+  out[2] = xz - wy;
+  out[3] = 0;
+  out[4] = xy - wz;
+  out[5] = 1 - (xx + zz);
+  out[6] = yz + wx;
+  out[7] = 0;
+  out[8] = xz + wy;
+  out[9] = yz - wx;
+  out[10] = 1 - (xx + yy);
+  out[11] = 0;
+  out[12] = v[0];
+  out[13] = v[1];
+  out[14] = v[2];
+  out[15] = 1;
 
-  return out
+  return out;
 }

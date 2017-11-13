@@ -1,5 +1,8 @@
-import { abs, epsilon } from './index';
-import { Curve } from '../types';
+import {
+  abs,
+  epsilon,
+} from './index';
+import {Curve} from '../types';
 
 const bezier = (n1: number, n2: number, t: number) =>
   3 * n1 * (1 - t) * (1 - t) * t + 3 * n2 * (1 - t) * t * t + t * t * t;

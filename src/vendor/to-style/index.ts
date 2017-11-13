@@ -1,5 +1,5 @@
-import toStyleObject from "./toStyleObject"
+import toStyleObject from './toStyleObject';
 
 export default {
-  object: toStyleObject
-}
+  object: toStyleObject,
+};

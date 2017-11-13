@@ -1,4 +1,4 @@
-import { pow } from '../internal';
+import {pow} from '../internal';
 
 export const easeInOutQuint = (x: number): number => x < 0.5
   ? 16 * x * x * x * x * x
