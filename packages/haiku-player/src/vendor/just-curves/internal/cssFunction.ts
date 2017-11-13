@@ -1,9 +1,28 @@
-import { Curve } from '../types';
-import { cubicBezier, frames, ease, easeIn, easeOut, easeInOut, stepStart, stepEnd, linear, steps } from './index';
+import {Curve} from '../types';
+import {
+  cubicBezier,
+  frames,
+  ease,
+  easeIn,
+  easeOut,
+  easeInOut,
+  stepStart,
+  stepEnd,
+  linear,
+  steps,
+} from './index';
 
 const camelCaseRegex = /([a-z])[- ]([a-z])/ig;
 const cssFunctionRegex = /^([a-z-]+)\(([^\)]+)\)$/i;
-const cssEasings = { ease, easeIn, easeOut, easeInOut, stepStart, stepEnd, linear };
+const cssEasings = {
+  ease,
+  easeIn,
+  easeOut,
+  easeInOut,
+  stepStart,
+  stepEnd,
+  linear,
+};
 
 const camelCaseMatcher = (match: string, p1: string, p2: string) => p1 + p2.toUpperCase();
 

@@ -1,3 +1,3 @@
-import { steps } from '../internal';
+import {steps} from '../internal';
 
 export const stepStart = steps(1, 1);
