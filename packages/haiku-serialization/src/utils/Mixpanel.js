@@ -7,7 +7,7 @@ var tokens = {
   production: '6f31d4f99cf71024ce27c3e404a79a61'
 }
 
-var token = (process.env.HAIKU_RELEASE_ENVIRONMENT === 'production') ? tokens.production : tokens.development
+var token = (process.env.NODE_ENV === 'production') ? tokens.production : tokens.development
 
 var mixpanel = Mixpanel.init(token, {
   protocol: 'https'
@@ -23,7 +23,7 @@ var defaultPayload = {
   type: os.type(),
   process: (typeof window === 'undefined') ? 'renderer' : 'main',
   node_env: process.env.NODE_ENV,
-  release_environment: process.env.HAIKU_RELEASE_ENVIRONMENT,
+  release_environment: process.env.NODE_ENV,
   release_branch: process.env.HAIKU_RELEASE_BRANCH,
   release_platform: process.env.HAIKU_RELEASE_PLATFORM,
   release_version: process.env.HAIKU_RELEASE_VERSION,

@@ -15,6 +15,7 @@ forceNodeEnvProduction()
 var inputs = lodash.assign({
   branch: 'master',
   environment: 'development',
+  appenv: 'development', // sets NODE_ENV in the running app and the autoupdate release channel
   uglify: false,
   upload: true,
   shout: true,
@@ -29,6 +30,10 @@ if (process.env.TRAVIS) {
   if (process.env.TRAVIS_BRANCH === 'release') {
     inputs.environment = 'release'
   }
+}
+
+if (inputs.environment === 'release') {
+  inputs.appenv = 'production'
 }
 
 if (!argv['non-interactive']) {

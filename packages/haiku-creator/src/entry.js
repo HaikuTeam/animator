@@ -1,9 +1,9 @@
 import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
 
 (function () {
-  if (process.env.HAIKU_RELEASE_ENVIRONMENT === 'production' || process.env.HAIKU_RELEASE_ENVIRONMENT === 'staging') {
+  if (process.env.NODE_ENV === 'production') {
     window.Raven.config('https://07b703c10ea14681a29a1a870c28e84a@sentry.io/226383', {
-      environment: process.env.HAIKU_RELEASE_ENVIRONMENT || 'development',
+      environment: process.env.NODE_ENV || 'development',
       release: process.env.HAIKU_RELEASE_VERSION,
       dataCallback: sentryCallback
     }).install()
@@ -24,7 +24,7 @@ import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
   }
 
   window.onerror = function (msg, url, line, col, error) {
-    if (process.env.HAIKU_RELEASE_ENVIRONMENT === 'production' || process.env.HAIKU_RELEASE_ENVIRONMENT === 'staging') {
+    if (process.env.NODE_ENV === 'production') {
       _traceKitFormatErrorStack(error)
       window.Raven.captureException(error)
     }

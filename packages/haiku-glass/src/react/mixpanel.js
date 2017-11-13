@@ -3,7 +3,7 @@ var tokens = {
   production: '6f31d4f99cf71024ce27c3e404a79a61'
 }
 
-var token = (process.env.HAIKU_RELEASE_ENVIRONMENT === 'production') ? tokens.production : tokens.development
+var token = (process.env.NODE_ENV === 'production') ? tokens.production : tokens.development
 
 module.exports = {
   token: token

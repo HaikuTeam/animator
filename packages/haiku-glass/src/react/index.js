@@ -7,9 +7,9 @@ import Websocket from 'haiku-serialization/src/ws/Websocket'
 import Glass from './Glass'
 import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
 
-if (process.env.HAIKU_RELEASE_ENVIRONMENT === 'production' || process.env.HAIKU_RELEASE_ENVIRONMENT === 'staging') {
+if (process.env.NODE_ENV === 'production') {
   window.Raven.config('https://287e52df9cfd48aab7f6091ec17a5921@sentry.io/226362', {
-    environment: process.env.HAIKU_RELEASE_ENVIRONMENT || 'development',
+    environment: process.env.NODE_ENV || 'development',
     release: process.env.HAIKU_RELEASE_VERSION,
     dataCallback: sentryCallback
   })
@@ -30,7 +30,7 @@ function _traceKitFormatErrorStack (error) {
 }
 
 window.onerror = function (msg, url, line, col, error) {
-  if (process.env.HAIKU_RELEASE_ENVIRONMENT === 'production' || process.env.HAIKU_RELEASE_ENVIRONMENT === 'staging') {
+  if (process.env.NODE_ENV === 'production') {
     _traceKitFormatErrorStack(error)
     window.Raven.captureException(error)
   }

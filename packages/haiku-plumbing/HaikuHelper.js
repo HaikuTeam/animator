@@ -5,7 +5,7 @@ var haikuInfo = require('./lib/haikuInfo').default
 var cp = require('child_process')
 var path = require('path')
 
-if (process.env.HAIKU_RELEASE_ENVIRONMENT === 'production' || process.env.HAIKU_RELEASE_ENVIRONMENT === 'staging') {
+if (process.env.NODE_ENV === 'production') {
   var Raven = require('./lib/Raven')
   Raven.context(function () {
     go()

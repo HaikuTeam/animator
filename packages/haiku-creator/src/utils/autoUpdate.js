@@ -6,7 +6,7 @@ const {download, unzipAndOpen} = require('./fileManipulation')
 
 const opts = {
   server: process.env.HAIKU_AUTOUPDATE_SERVER,
-  environment: process.env.HAIKU_RELEASE_ENVIRONMENT,
+  environment: process.env.NODE_ENV,
   branch: process.env.HAIKU_RELEASE_BRANCH,
   platform: process.env.HAIKU_RELEASE_PLATFORM,
   version: process.env.HAIKU_RELEASE_VERSION,
