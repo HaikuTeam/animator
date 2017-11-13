@@ -237,22 +237,6 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
   });
 };
 
-function copy(a) {
-  const b = [];
-  for (let i = 0; i < a.length; i++) {
-    b[i] = a[i];
-  }
-  return b;
-}
-
-function clone(a) {
-  const b = {};
-  for (const key in a) {
-    b[key] = a[key];
-  }
-  return b;
-}
-
 HaikuDOMRenderer.prototype.removeListener = function removeListener(target, handler, eventName) {
   target.removeEventListener(eventName, handler);
   return this;
@@ -264,10 +248,10 @@ HaikuDOMRenderer.prototype.getUser = function getUser() {
       x: this._user.mouse.x,
       y: this._user.mouse.y,
       down: this._user.mouse.down,
-      buttons: copy(this._user.mouse.buttons),
+      buttons: [...this._user.mouse.buttons],
     },
-    keys: clone(this._user.keys),
-    touches: copy(this._user.touches),
-    mouches: copy(this._user.mouches),
+    keys: {...this._user.keys},
+    touches: [...this._user.touches],
+    mouches: [...this._user.mouches],
   };
 };
