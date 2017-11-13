@@ -1,4 +1,3 @@
-import assign from './vendor/assign';
 import {InteractionMode} from './helpers/interactionModes';
 
 const DEFAULTS = {
@@ -146,20 +145,12 @@ function build(...argums) {
     children: null,
   };
 
-  const args = [];
-  for (let i = 0; i < argums.length; i++) {
-    args[i] = argums[i];
-  }
+  const args = [...argums];
 
   args.unshift(DEFAULTS);
-
-  for (let j = 0; j < args.length; j++) {
-    const incoming = args[j];
-    if (!incoming) {
-      continue;
-    }
-    if (typeof incoming !== 'object') {
-      continue;
+  args.forEach((incoming) => {
+    if (!incoming || typeof incoming !== 'object') {
+      return;
     }
 
     if (incoming.onHaikuComponentWillInitialize) {
@@ -176,7 +167,10 @@ function build(...argums) {
     }
 
     if (incoming.options) {
-      config.options = assign({}, config.options, incoming.options);
+      config.options = {
+        ...config.options,
+        ...incoming.options,
+      };
     }
 
     // Hoist any 'options' that might have been passed at the root level up into 'options'
@@ -188,28 +182,43 @@ function build(...argums) {
     }
 
     if (incoming.states) {
-      config.states = assign({}, config.states, incoming.states);
+      config.states = {
+        ...config.states,
+        ...incoming.states,
+      };
     }
 
     // For semantic purposes, also allow 'initialStates' to be passed in
     if (incoming.initialStates && typeof incoming.initialStates === 'object') {
-      assign(config.states, incoming.initialStates);
+      config.states = {
+        ...config.states,
+        ...incoming.initialStates,
+      };
     }
 
     if (incoming.eventHandlers) {
-      config.eventHandlers = assign({}, config.eventHandlers, incoming.eventHandlers);
+      config.eventHandlers = {
+        ...config.eventHandlers,
+        ...incoming.eventHandlers,
+      };
     }
     if (incoming.timelines) {
-      config.timelines = assign({}, config.timelines, incoming.timelines);
+      config.timelines = {
+        ...config.timelines,
+        ...incoming.timelines,
+      };
     }
     if (incoming.vanities) {
-      config.vanities = assign({}, config.vanities, incoming.vanities);
+      config.vanities = {
+        ...config.vanities,
+        ...incoming.vanities,
+      };
     }
 
     if (incoming.children) {
       config.children = incoming.children;
     }
-  }
+  });
 
   // Validations:
   if (config.options.overflow && (config.options.overflowX || config.options.overflowY)) {

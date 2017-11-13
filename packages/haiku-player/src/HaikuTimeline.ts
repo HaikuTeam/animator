@@ -346,7 +346,7 @@ HaikuTimeline.prototype.play = function play(requestedOptions) {
   }
 
   if (!options.skipMarkForFullFlush) {
-    this._component._markForFullFlush(true);
+    this._component._markForFullFlush();
   }
 
   this._shout('play');
@@ -360,7 +360,7 @@ HaikuTimeline.prototype.seek = function seek(ms) {
   this._controlTime(ms, clockTime);
   const descriptor = this._component._getTimelineDescriptor(this._name);
   this.start(clockTime, descriptor);
-  this._component._markForFullFlush(true);
+  this._component._markForFullFlush();
 
   this._shout('seek');
 

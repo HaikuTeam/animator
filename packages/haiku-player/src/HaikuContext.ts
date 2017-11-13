@@ -8,7 +8,6 @@ import HaikuClock from './HaikuClock';
 import HaikuComponent from './HaikuComponent';
 import HaikuGlobal from './HaikuGlobal';
 import PRNG from './helpers/PRNG';
-import assign from './vendor/assign';
 
 const pkg = require('./../package.json');
 const PLAYER_VERSION = pkg.version;
@@ -196,7 +195,7 @@ HaikuContext.prototype.removeTickable = function removeTickable(tickable) {
  * This also updates the internal options for the clock instance and root component instance.
  */
 HaikuContext.prototype.assignConfig = function assignConfig(config, options) {
-  this.config = assign({}, config); // QUESTION: Why do we assign here?
+  this.config = {...config};
 
   // HACK: Since we run this method before the clock is initialized sometimes, we have to check whether the clock exists
   // before assigning sub-options to it.
