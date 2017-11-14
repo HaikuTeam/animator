@@ -1,6 +1,6 @@
 {
   "name": "@haiku/cli",
-  "version": "2.3.19",
+  "version": "2.3.21",
   "description": "Haiku CLI",
   "main": "lib/index.js",
   "scripts": {
@@ -11,6 +11,9 @@
     "html-coverage": "nyc --reporter=html yarn test",
     "compile": "tsc",
     "develop": "tsc --watch"
+  },
+  "bin": {
+    "haiku": "./lib/index.js"
   },
   "authors": [
     "Zack Brown <zack@haiku.ai>",
@@ -27,8 +30,8 @@
     "cli-color": "^1.1.0",
     "dedent": "^0.6.0",
     "fs-extra": "^4.0.2",
-    "@haiku/sdk-client": "2.3.19",
-    "@haiku/sdk-inkstone": "2.3.19",
+    "@haiku/sdk-client": "2.3.21",
+    "@haiku/sdk-inkstone": "2.3.21",
     "hasbin": "^1.2.3",
     "inquirer": "^2.0.0",
     "lodash": "^4.17.4",
