@@ -1,6 +1,7 @@
 test/
 src/
 tsconfig.test.json
+*.js.map
 
 node_modules/
 .DS_Store
