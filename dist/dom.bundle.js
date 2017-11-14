@@ -402,6 +402,9 @@ HaikuClock.prototype.setTime = function setTime(time) {
     this._localExplicitlySetTime = parseInt(time || 0, 10);
     return this;
 };
+HaikuClock.prototype.getFPS = function getFPS() {
+    return Math.round(1000 / this.options.frameDuration);
+};
 HaikuClock.prototype.getExplicitTime = function getExplicitTime() {
     if (this._isTimeControlled()) {
         return this.getControlledTime();
@@ -621,7 +624,7 @@ HaikuComponent.prototype.callRemount = function _callRemount(incomingConfig, ski
     if (!skipMarkForFullFlush) {
         this._markForFullFlush(true);
     }
-    this._clearCaches();
+    this.clearCaches();
     var timelineInstances = this.getTimelines();
     for (var timelineName in timelineInstances) {
         var timelineInstance = timelineInstances[timelineName];
@@ -686,7 +689,10 @@ HaikuComponent.prototype.setState = function setState(states) {
     }
     return this;
 };
-HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
+HaikuComponent.prototype.getStates = function getStates(state) {
+    return this.state;
+};
+HaikuComponent.prototype.clearCaches = function clearCaches(options) {
     this._states = {};
     if (!options || (options && options.clearStates !== false)) {
         bindStates(this._states, this, this.config.states);
@@ -717,9 +723,14 @@ HaikuComponent.prototype._clearCaches = function _clearCaches(options) {
     this._controlFlowData = {};
     this._clearDetectedEventsFired();
     this._clearDetectedInputChanges();
-    this._builder._clearCaches(options);
+    this._builder.clearCaches(options);
     this._context.config.options.cache = {};
     this.config.options.cache = {};
+    if (this._bytecode.timelines) {
+        for (var timelineName in this._bytecode.timelines) {
+            delete this._bytecode.timelines[timelineName].__max;
+        }
+    }
     return this;
 };
 HaikuComponent.prototype.getClock = function getClock() {
@@ -2899,7 +2910,7 @@ function cc(obj, timelineName, flexId, propertyKeys) {
     }
     return true;
 }
-ValueBuilder.prototype._clearCaches = function _clearCaches(options) {
+ValueBuilder.prototype.clearCaches = function clearCaches(options) {
     if (options && options.clearOnlySpecificProperties) {
         var timelineName = options.clearOnlySpecificProperties.timelineName;
         var flexId = options.clearOnlySpecificProperties.componentId;
@@ -7244,7 +7255,7 @@ function assignStyle(domElement, virtualElement, style, component, isPatchOperat
             for (var oldStyleKey in domElement.haiku.element.attributes.style) {
                 var newStyleValue = style[oldStyleKey];
                 if (newStyleValue === null || newStyleValue === undefined) {
-                    domElement.style[oldStyleKey] = null;
+                    domElement.style.removeProperty(oldStyleKey);
                 }
             }
         }
@@ -10236,7 +10247,7 @@ exports["default"] = parse;
 },{}],166:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.19",
+  "version": "2.3.20",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
@@ -10258,19 +10269,21 @@ module.exports={
   "repository": "https://github.com/HaikuTeam/player",
   "main": "index.js",
   "scripts": {
-    "develop": "node ./develop.js",
-    "watch": "HAIKU_PLAYER_WATCH_ONLY=1 node ./develop.js",
+    "self-link": "yarn link && yarn link @haiku/player",
+    "develop": "yarn self-link && node ./scripts/develop.js",
     "compile": "tsc",
+    "watch": "tsc --watch",
     "coverage": "yarn compile && nyc yarn tape \"test/**/*.test.js\" | tap-spec",
     "html-coverage": "yarn compile && nyc --reporter=html yarn tape \"test/**/*.test.js\" | tap-spec",
     "lint": "tslint -p tsconfig.json -c tslint.json --type-check --exclude 'src/vendor/**' --format stylish",
     "fix": "yarn lint --fix",
     "test": "yarn test:unit; yarn test:api; yarn test:perf; yarn test:render",
-    "test:perf": "yarn run compile && tape \"test/perf/**/*.test.js\" | tap-spec",
-    "test:api": "yarn run compile && tape \"test/api/**/*.test.js\" | tap-spec",
-    "test:render": "yarn run compile && tape \"test/render/**/*.test.js\" | tap-spec",
-    "test:unit": "yarn run compile && tape \"test/unit/**/*.test.js\" | tap-spec",
-    "depcheck": "depcheck ."
+    "test:perf": "yarn compile && tape \"test/perf/**/*.test.js\" | tap-spec",
+    "test:api": "yarn compile && tape \"test/api/**/*.test.js\" | tap-spec",
+    "test:render": "yarn compile && tape \"test/render/**/*.test.js\" | tap-spec",
+    "test:unit": "yarn compile && tape \"test/unit/**/*.test.js\" | tap-spec",
+    "depcheck": "depcheck .",
+    "prepublishOnly": "yarn lint && yarn test && yarn compile"
   },
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
@@ -10301,14 +10314,15 @@ module.exports={
     "standard": "8.6.0",
     "tap-spec": "^4.1.1",
     "tape": "^4.7.0",
+    "ts-loader": "^3.1.1",
     "tslint": "^5.7.0",
     "tslint-config-haiku": "HaikuTeam/tslint-config-haiku.git",
     "typescript": "^2.5.2",
-    "uglify-js": "^2.7.5"
+    "uglify-js": "^2.7.5",
+    "webpack": "^3.8.1"
   },
   "dependencies": {
-    "lodash": "^4.17.4",
-    "react": "15.4.2"
+    "lodash": "^4.17.4"
   },
   "peerDependencies": {
     "react": "15.4.2",
