@@ -38,6 +38,10 @@ if (!argv['no-remote']) {
   cp.execSync(`node ./scripts/publish-package.js --package=haiku-player`, { cwd: ROOT, stdio: 'inherit' })
   cp.execSync(`node ./scripts/publish-package.js --package=haiku-sdk-inkstone`, { cwd: ROOT, stdio: 'inherit' })
   cp.execSync(`node ./scripts/publish-package.js --package=haiku-sdk-client`, { cwd: ROOT, stdio: 'inherit' })
+  // update the cli's yarn.lock file appropriately
+  cp.execSync(`yarn install`, { cwd: path.join(ROOT, 'packages', 'haiku-cli'), stdio: 'inherit' })
+  cp.execSync(`git add --all .`, { cwd: ROOT, stdio: 'inherit' })
+  cp.execSync(`git commit -m "auto: Reinstall"`, { cwd: ROOT, stdio: 'inherit' })
   cp.execSync(`node ./scripts/publish-package.js --package=haiku-cli`, { cwd: ROOT, stdio: 'inherit' })
 }
 
