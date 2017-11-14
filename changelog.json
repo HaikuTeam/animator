@@ -3123,5 +3123,27 @@
       "label": "fix",
       "message": "Wait until other commits are finished before calling git status otherwise the status will be wrong when the thread continues"
     }
+  },
+  "2.3.21": {
+    "9a0bd464f608d221d00ae6898eef67e9460e2c46": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Add 'bin' field to package.json"
+    },
+    "ecd0dd984e65dcce53f3605ab64c18c6fa7caf97": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Commit after recompiling in case of changes"
+    },
+    "41f65c4213811d885abf9a3681ecae59170feedb": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Need to commit before subtree-pushing the changelog"
+    },
+    "f04012741181c94e821faf38bff30331661d6cbc": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Uncomment mistakenly commented-out line"
+    }
   }
 }

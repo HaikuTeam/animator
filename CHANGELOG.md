@@ -1,6 +1,15 @@
 # Changelog
 
 
+## 2.3.21
+
+### Bug Fixes
+
+ * Add 'bin' field to package.json
+ * Commit after recompiling in case of changes
+ * Need to commit before subtree-pushing the changelog
+ * Uncomment mistakenly commented-out line
+
 ## 2.3.20
 
 ### Bug Fixes
