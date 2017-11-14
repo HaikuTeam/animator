@@ -3190,5 +3190,6 @@
       "label": "feat",
       "message": "Rewrite publish flow to keep evergreen dependencies in mono."
     }
-  }
+  },
+  "2.3.27": {}
 }
