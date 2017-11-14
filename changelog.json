@@ -3166,5 +3166,22 @@
       "label": "fix",
       "message": "Missed these dependency naming changes"
     }
+  },
+  "2.3.25": {
+    "410b445555c143215f3f80f3ee4778b31e28f214": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Calc mouse position via the top element, not the mount"
+    },
+    "4d6dcc7a913fe1a3956715c546c28c5fea870cac": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Only bump actual internal deps, not e.g. haiku components"
+    },
+    "50b962a0ab1cbc606a6f26029a04a92a299c15c6": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Did not mean to upgrade this haiku component dependency"
+    }
   }
 }

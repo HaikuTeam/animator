@@ -1,6 +1,14 @@
 # Changelog
 
 
+## 2.3.25
+
+### Bug Fixes
+
+ * Calc mouse position via the top element, not the mount
+ * Only bump actual internal deps, not e.g. haiku components
+ * Did not mean to upgrade this haiku component dependency
+
 ## 2.3.24
 
 ### Bug Fixes
