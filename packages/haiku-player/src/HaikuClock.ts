@@ -63,7 +63,13 @@ export default function HaikuClock(tickables, component, options) {
 
   // Tests and others may need this to cancel the rAF loop, to avoid leaked handles
   this.GLOBAL_ANIMATION_HARNESS = HaikuGlobal.HaikuGlobalAnimationHarness;
+
+  HaikuClock['clocks'].push(this);
 }
+
+HaikuClock['clocks'] = [];
+
+HaikuGlobal['HaikuClock'] = HaikuClock;
 
 HaikuClock.prototype._reinitialize = function _reinitialize() {
   this._numLoopsRun = 0;
