@@ -1,6 +1,128 @@
 # Changelog
 
 
+## 2.3.26
+
+### Features
+
+ * Rewrite publish flow to keep evergreen dependencies in mono.
+
+## 2.3.25
+
+### Bug Fixes
+
+ * Calc mouse position via the top element, not the mount
+ * Only bump actual internal deps, not e.g. haiku components
+ * Did not mean to upgrade this haiku component dependency
+
+## 2.3.24
+
+### Bug Fixes
+
+ * Missed these dependency naming changes
+
+## 2.3.23
+
+### Bug Fixes
+
+ * Install react peer dep before running compile
+
+## 2.3.22
+
+### Bug Fixes
+
+ * Add proper bin file with necessary node shebang
+
+## 2.3.21
+
+### Bug Fixes
+
+ * Add 'bin' field to package.json
+ * Commit after recompiling in case of changes
+ * Need to commit before subtree-pushing the changelog
+ * Uncomment mistakenly commented-out line
+
+## 2.3.20
+
+### Bug Fixes
+
+ * Resolve z-index conflicts during Lottie export.
+ * Don't require collapse to select the element row
+ * Called method on wrong object for deleting keyframes (TODO TypeScript kthxbye)
+ * Upsert keyframe correctly when extant keyframe has been assigned a curve
+ * Package order sorting by name not by the object
+ * `yarn sync` should link/unlink pkgname, not name.
+ * Support 2D rotation of <svg /> subelements.
+ * fixes haiku-formats tests to resolve Promises; provide {} failsafe export handling.
+ * I failed to fix the changed syntax after the merge
+ * Make sure stage recalibrates when window starts out smaller than artboard
+ * Need to set -e in the shell script; HT @sasha.com
+ * Missing script expected by distro
+ * I think this was the intendex syntax
+ * Use a more surgical approach to reloading bytecode before munging on it during export.
+ * re-mount the ActiveComponent after extracting reified bytecode and before mutating it during Bodymovin export.
+ * Bug resizing artboard from timeline and curves reflecting on stage
+ * Badly written condition causing states not to rehydrate
+ * Sleep the player while merging design to avoid fragment bugs
+ * Fix installer path and add uploader script
+ * Don't cache if there is no id under which to cache
+ * Path offset calc was mistakenly using previous commands point instead of the previous point when using relative commands
+ * Wait until other commits are finished before calling git status otherwise the status will be wrong when the thread continues
+
+### Features
+
+ * Simplifies experiments and releases.
+ * Install player from local source, only using network as a fallback (perf improvement)
+ * Publish lottie.json in project code folder after writing out metadata.
+ * Support injectables and stubbed-out summonables when exporting bytecode.
+ * Final full support for all features of our demo (built-in) projects for Lottie.
+ * Support all ...Bounce and ...Elastic curves in Haiku.
+ * Add support for inconsistently decomposed compound animated elements, e.g. scale.x and scale.y with different keyframes.
+ * Provide final set of features required to support "80%" of Lottie Export. Can be tested with Moto, but not Move!
+ * Adds support for SVG `<g>`, `<defs>`, and `<use>`.
+ * add generate-presigned-url endpoint
+ * implement nib, refactor CLI to use nib
+ * Add support for drawing SVG `<path>` elements.
+ * Add full support for all simple shapes
+ * Add support for easings in BodyMovin export.
+ * Initial work to support Lottie export
+
+## 2.3.7
+
+### Bug Fixes
+
+ * Make sure we update the component pointer so the timeline maxes get reloaded properly
+ * Make sure NODE_ENV is set and separate distro configure step
+ * stop publish popover from shifting
+ * robustify envoy connection handling and awareness
+ * Ensure timeline component caches are cleared on updates so fields reflect correctly after deletions
+ * react warning for setting state on un-mounted component
+
+## 2.3.6
+
+### Bug Fixes
+
+ * Syntax issue which uglify was choking on
+ * Reduce ipc messages by not doing screen size notification when tour isn't happening
+ * SVG path 'd' parsing lib wasn't accounting for exponentials
+ * disable dragging of collapsed segments
+ * Remove this attempt at caching which isn't UX ideal anywa
+ * Only show the tour if we see 'CheckProject' in the list
+
+### Features
+
+ * Start new projects out with a blank sketch file
+ * finish v0 project loader
+
+## 2.3.4
+
+### Bug Fixes
+
+ * Subtree push needs the working dir not the package dir
+ * Problem with rotation flicker/corruption when roation y and z are present
+ * Remove duplicate play call and assign last authoritative frame property in constructor
+ * Move methods into helpers and address issues with timeline playback past the max frame
+
 ## 2.3.3
 
 ### Features
@@ -72,6 +194,9 @@
  * README update
  * README
  * README update
+ * generate markdown for changelog
+ * sort changelog markdown by semver desc
+ * sort changelog markdown by semver desc
  * generate markdown for changelog
 
 ## 2.3.1

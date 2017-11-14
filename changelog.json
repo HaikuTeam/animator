@@ -2824,6 +2824,371 @@
       "project": "haiku-bytecode",
       "label": "docs",
       "message": "generate markdown for changelog"
+    },
+    "1e5cef88382615c112e63fcb0c3f181f7c744bbc": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "sort changelog markdown by semver desc"
+    },
+    "55fd41152633a9689eb16cf5dc61e81d3485681b": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "sort changelog markdown by semver desc"
+    },
+    "446b669d694aadc082868ca5f76d47678f066c55": {
+      "project": "haiku-bytecode",
+      "label": "docs",
+      "message": "generate markdown for changelog"
+    }
+  },
+  "2.3.4": {
+    "a5acd7ce89e907a59380f0c5168d2ad49a90e200": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Subtree push needs the working dir not the package dir"
+    },
+    "60ba10a50f52eddc9bcd8f9e6b33fe6c90b61591": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Problem with rotation flicker/corruption when roation y and z are present"
+    },
+    "4c2b06ad87aaa5e1908ad7516f752ab27d85d2cb": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Remove duplicate play call and assign last authoritative frame property in constructor"
+    },
+    "7509f2589ab489815cb234f4f8dacb4834e89458": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Move methods into helpers and address issues with timeline playback past the max frame"
+    }
+  },
+  "2.3.6": {
+    "26e193791523e04b9d28d6a389053b9ff5c6e686": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Syntax issue which uglify was choking on"
+    },
+    "646ca4059ef7da46103972ba39f100af555b51df": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "Start new projects out with a blank sketch file"
+    },
+    "35f37ed80505fc146a9693cca70a9495db64f92e": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Reduce ipc messages by not doing screen size notification when tour isn't happening"
+    },
+    "758b072c0e7889dbc9572808aab33dcf7e251238": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "SVG path 'd' parsing lib wasn't accounting for exponentials"
+    },
+    "89d7ba45ba4abbf2b0739533c38289eec5ef0d2e": {
+      "project": "haiku-bytecode",
+      "label": "feat",
+      "message": "finish v0 project loader"
+    },
+    "4be6f9b40090cab8ba2b1e610fe9b2ec6c78dbf9": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "disable dragging of collapsed segments"
+    },
+    "13e797fa29f2ce4c9b2d476b1d1343d192d26306": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Remove this attempt at caching which isn't UX ideal anywa"
+    },
+    "da5159c7b4b28f8bf22ed296f75708e66e3bc3be": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Only show the tour if we see 'CheckProject' in the list"
+    }
+  },
+  "2.3.7": {
+    "aa6fe0370e3e6614e88cef452c13d01690cebafc": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Make sure we update the component pointer so the timeline maxes get reloaded properly"
+    },
+    "7da61868182320d1a27254e533f929efeb2547e0": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Make sure NODE_ENV is set and separate distro configure step"
+    },
+    "eecb33256edc10a36020ad733757829aad67b601": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "stop publish popover from shifting"
+    },
+    "e1e6bbe0d1627d252c528e5602bc0307f7471f69": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "robustify envoy connection handling and awareness"
+    },
+    "ee0d33d8c0ce77746f8b9caa792485b04ef28733": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "Ensure timeline component caches are cleared on updates so fields reflect correctly after deletions"
+    },
+    "eea9ec7cf4252b0473fecca71871d190da483705": {
+      "project": "haiku-bytecode",
+      "label": "fix",
+      "message": "react warning for setting state on un-mounted component"
+    }
+  },
+  "2.3.20": {
+    "f4dc34b7786b17837d58d77d3a7b6f0a12af81ce": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Resolve z-index conflicts during Lottie export."
+    },
+    "8dc8287e2d244c145f70229887b7b812b8c8121c": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Simplifies experiments and releases."
+    },
+    "d1b58446869db1583272c969800b5c73f58fb833": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Don't require collapse to select the element row"
+    },
+    "f12e59a92419497a15b79cb53463ec32c2f22f97": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Called method on wrong object for deleting keyframes (TODO TypeScript kthxbye)"
+    },
+    "9d5566478d6793274b00db5926cbb2b11928ba58": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Upsert keyframe correctly when extant keyframe has been assigned a curve"
+    },
+    "5674580a959ee1284fcbc2660b97646e11264a06": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Package order sorting by name not by the object"
+    },
+    "b0f0a05165416d60377d15876353120f1099adb9": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "`yarn sync` should link/unlink pkgname, not name."
+    },
+    "4636629beece7f286eb3419b37e97b7a6452571c": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Support 2D rotation of <svg /> subelements."
+    },
+    "958dd8578ba6561bdc4390479201fb50f83bf6fd": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "fixes haiku-formats tests to resolve Promises; provide {} failsafe export handling."
+    },
+    "123ea12237ee9cc9d141eb4998ca61d6ff0a6580": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "I failed to fix the changed syntax after the merge"
+    },
+    "16af46924daa6913fb8f3db3191b3864fb003678": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Install player from local source, only using network as a fallback (perf improvement)"
+    },
+    "b9cdd7f754b6c4a77ec52bb9bea80fb580408ddf": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Make sure stage recalibrates when window starts out smaller than artboard"
+    },
+    "ce1eeee553839004e00facd1a0f0d8e92c571905": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Publish lottie.json in project code folder after writing out metadata."
+    },
+    "2e283a867fbb2ea35fd750acf8f01cb4e0b8d58c": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Support injectables and stubbed-out summonables when exporting bytecode."
+    },
+    "71419a264167ad4222e36dd21d895c6fe890c62f": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Final full support for all features of our demo (built-in) projects for Lottie."
+    },
+    "10d5525e30aec18deadc336e013a1cb6052da979": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Need to set -e in the shell script; HT @sasha.com"
+    },
+    "76f819336a6949b84787d1af3ad5d716b7098f11": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Missing script expected by distro"
+    },
+    "fdb90aa38e0dba6c084e6d8d912bb1c2cf46aae3": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "I think this was the intendex syntax"
+    },
+    "adf69f8620ef227967a38f81ede64c9e0b8558c3": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Support all ...Bounce and ...Elastic curves in Haiku."
+    },
+    "1ffc573e22f229ce28e50b456164088241c48f9a": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Use a more surgical approach to reloading bytecode before munging on it during export."
+    },
+    "bf2ce2557f9f52264f41efbf9eac8b01361cae12": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "re-mount the ActiveComponent after extracting reified bytecode and before mutating it during Bodymovin export."
+    },
+    "81320580f7359b01f7e8a4a68e00ba5c87c28b81": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Add support for inconsistently decomposed compound animated elements, e.g. scale.x and scale.y with different keyframes."
+    },
+    "df2d25db6e59ee090c37694a3d1388e7acf98661": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Provide final set of features required to support \"80%\" of Lottie Export. Can be tested with Moto, but not Move!"
+    },
+    "d5ac8c1fd459391486e508cb605a023ea8655c6f": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Adds support for SVG `<g>`, `<defs>`, and `<use>`."
+    },
+    "f929d4525a63a30e9b5f5ae582debde67e947912": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "add generate-presigned-url endpoint"
+    },
+    "7adc9390ad99be487cf687ada2b29fb712ab128c": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "implement nib, refactor CLI to use nib"
+    },
+    "8ce97f7494211a16561b884d90f4e3c4b97b60b0": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Add support for drawing SVG `<path>` elements."
+    },
+    "906b8caa9f68b621d8c0dfa8c0689133e88bb5a0": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Add full support for all simple shapes"
+    },
+    "d94d4c72bfd6979f28b921ec672c95a5f08187ff": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Add support for easings in BodyMovin export."
+    },
+    "e52b3cc2d782e0c1da1078464601006ea8940bdc": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Bug resizing artboard from timeline and curves reflecting on stage"
+    },
+    "7aa831961bc6235c51b4a5d267217638c9c9f16a": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Initial work to support Lottie export"
+    },
+    "b1faa8597b85181c91e29ba8f99fe5d8153a0360": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Badly written condition causing states not to rehydrate"
+    },
+    "0d9583f089ecd6ed7a795dc7d9f5e64ca9bbfcbd": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Sleep the player while merging design to avoid fragment bugs"
+    },
+    "37b6f9ad2cd0e5c67f585e4ff41a8e5f505160f5": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Fix installer path and add uploader script"
+    },
+    "89a812e2345db48c5937971ab83c440923e40d77": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Don't cache if there is no id under which to cache"
+    },
+    "23a926b6d79785afc3487d9c3368ee3e85940a92": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Path offset calc was mistakenly using previous commands point instead of the previous point when using relative commands"
+    },
+    "0016faaec618cf0fde6ceeb708e5bcbcc9ed6060": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Wait until other commits are finished before calling git status otherwise the status will be wrong when the thread continues"
+    }
+  },
+  "2.3.21": {
+    "9a0bd464f608d221d00ae6898eef67e9460e2c46": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Add 'bin' field to package.json"
+    },
+    "ecd0dd984e65dcce53f3605ab64c18c6fa7caf97": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Commit after recompiling in case of changes"
+    },
+    "41f65c4213811d885abf9a3681ecae59170feedb": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Need to commit before subtree-pushing the changelog"
+    },
+    "f04012741181c94e821faf38bff30331661d6cbc": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Uncomment mistakenly commented-out line"
+    }
+  },
+  "2.3.22": {
+    "75e2bd7d191587e8904af36ca896514cd02b5045": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Add proper bin file with necessary node shebang"
+    }
+  },
+  "2.3.23": {
+    "18b3306efc5c87bc16aec0e1036121cdda6d440a": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Install react peer dep before running compile"
+    }
+  },
+  "2.3.24": {
+    "0ef9949dd91398258e8a999d57a4dc8d2a512fd2": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Missed these dependency naming changes"
+    }
+  },
+  "2.3.25": {
+    "410b445555c143215f3f80f3ee4778b31e28f214": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Calc mouse position via the top element, not the mount"
+    },
+    "4d6dcc7a913fe1a3956715c546c28c5fea870cac": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Only bump actual internal deps, not e.g. haiku components"
+    },
+    "50b962a0ab1cbc606a6f26029a04a92a299c15c6": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Did not mean to upgrade this haiku component dependency"
+    }
+  },
+  "2.3.26": {
+    "b786239a8d5632b9c183b268e97a601222ae2bd5": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Rewrite publish flow to keep evergreen dependencies in mono."
     }
   }
 }
