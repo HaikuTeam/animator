@@ -71,21 +71,31 @@ HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement
   };
 };
 
-HaikuDOMRenderer.prototype.initialize = function initialize(domElement) {
+HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
   const user = this._user;
 
   function setMouse(mouseEvent) {
-    const pos = getLocalDomEventPosition(mouseEvent, domElement);
-    user.mouse.x = pos.x;
-    user.mouse.y = pos.y;
+    // Since the mount itself might be subject to sizing styles that we cannot
+    // use to calculate appropriately, use the top element i.e. the 'artboard'
+    const topElement = domMountElement.childNodes[0];
+    if (topElement) {
+      const pos = getLocalDomEventPosition(mouseEvent, topElement);
+      user.mouse.x = pos.x;
+      user.mouse.y = pos.y;
+    }
   }
 
   function setTouches(touchEvent) {
     user.touches.splice(0);
-    for (let i = 0; i < touchEvent.touches.length; i++) {
-      const touch = touchEvent.touches[i];
-      const pos = getLocalDomEventPosition(touch, domElement);
-      user.touches.push(pos);
+    // Since the mount itself might be subject to sizing styles that we cannot
+    // use to calculate appropriately, use the top element i.e. the 'artboard'
+    const topElement = domMountElement.childNodes[0];
+    if (topElement) {
+      for (let i = 0; i < touchEvent.touches.length; i++) {
+        const touch = touchEvent.touches[i];
+        const pos = getLocalDomEventPosition(touch, topElement);
+        user.touches.push(pos);
+      }
     }
   }
 
@@ -123,40 +133,40 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domElement) {
   // MOUSE
   // -----
 
-  domElement.addEventListener('mousedown', (mouseEvent) => {
+  domMountElement.addEventListener('mousedown', (mouseEvent) => {
     ++user.mouse.down;
     ++user.mouse.buttons[mouseEvent.button];
     setMouse(mouseEvent);
     setMouches();
   });
 
-  domElement.addEventListener('mouseup', (mouseEvent) => {
+  domMountElement.addEventListener('mouseup', (mouseEvent) => {
     clearMouse();
     clearMouch();
     setMouches();
   });
 
-  domElement.addEventListener('mousemove', (mouseEvent) => {
+  domMountElement.addEventListener('mousemove', (mouseEvent) => {
     setMouse(mouseEvent);
     setMouches();
   });
 
-  domElement.addEventListener('mouseenter', (mouseEvent) => {
+  domMountElement.addEventListener('mouseenter', (mouseEvent) => {
     clearMouse();
     clearMouch();
   });
 
-  domElement.addEventListener('mouseleave', (mouseEvent) => {
+  domMountElement.addEventListener('mouseleave', (mouseEvent) => {
     clearMouse();
     clearMouch();
   });
 
-  domElement.addEventListener('wheel', (mouseEvent) => {
+  domMountElement.addEventListener('wheel', (mouseEvent) => {
     setMouse(mouseEvent);
     setMouches();
   });
 
-  const doc = domElement.ownerDocument;
+  const doc = domMountElement.ownerDocument;
   const win = doc.defaultView || doc.parentWindow;
 
   // KEYS
@@ -201,27 +211,27 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domElement) {
 
   // TOUCHES
   // -------
-  domElement.addEventListener('touchstart', (touchEvent) => {
+  domMountElement.addEventListener('touchstart', (touchEvent) => {
     setTouches(touchEvent);
     setMouches();
   });
 
-  domElement.addEventListener('touchend', (touchEvent) => {
+  domMountElement.addEventListener('touchend', (touchEvent) => {
     clearTouch();
     clearMouch();
   });
 
-  domElement.addEventListener('touchmove', (touchEvent) => {
+  domMountElement.addEventListener('touchmove', (touchEvent) => {
     setTouches(touchEvent);
     setMouches();
   });
 
-  domElement.addEventListener('touchenter', (touchEvent) => {
+  domMountElement.addEventListener('touchenter', (touchEvent) => {
     clearTouch();
     clearMouch();
   });
 
-  domElement.addEventListener('touchleave', (touchEvent) => {
+  domMountElement.addEventListener('touchleave', (touchEvent) => {
     clearTouch();
     clearMouch();
   });
