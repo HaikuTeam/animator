@@ -15,6 +15,13 @@ const DEFAULTS = {
   version: patched
 }
 
+const INTERNAL_YET_PUBLIC_DEP_NAMES = {
+  '@haiku/player': true,
+  '@haiku/cli': true,
+  '@haiku/sdk-client': true,
+  '@haiku/sdk-inkstone': true
+}
+
 const inputs = lodash.assign({}, DEFAULTS, argv)
 
 if (argv['non-interactive']) {
@@ -58,7 +65,8 @@ function go () {
         // Don't bump dep version if it's using the internal git dependency reference
         if (depVersion.match(/HaikuTeam/)) continue
         // Only bump version if referring to a public version of one of our packages
-        if (depName.slice(0, 6) !== '@haiku') continue
+        // For example, we wouldn't want to bump the version of @haiku/zack-myproject
+        if (!INTERNAL_YET_PUBLIC_DEP_NAMES[depName]) continue
         packageJson[depType][depName] = inputs.version
       }
     })
