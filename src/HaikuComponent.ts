@@ -4,9 +4,11 @@
 
 import Config from './Config';
 import HaikuTimeline from './HaikuTimeline';
+import HaikuGlobal from './HaikuGlobal';
 import addElementToHashTable from './helpers/addElementToHashTable';
 import applyPropertyToElement from './helpers/applyPropertyToElement';
 import cssQueryTree from './helpers/cssQueryTree';
+import {isPreviewMode} from './helpers/interactionModes';
 import scopifyElements from './helpers/scopifyElements';
 import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import upgradeBytecodeInPlace from './helpers/upgradeBytecodeInPlace';
@@ -168,9 +170,15 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
 
   // Flag to indicate whether we are sleeping, an ephemeral condition where no rendering occurs
   this._sleeping = false;
+
+  HaikuComponent['components'].push(this);
 }
 
 HaikuComponent['PLAYER_VERSION'] = PLAYER_VERSION;
+
+HaikuComponent['components'] = [];
+
+HaikuGlobal['HaikuComponent'] = HaikuComponent;
 
 function clone(thing) {
   if (Array.isArray(thing)) {
@@ -762,7 +770,7 @@ function bindEventHandler(
   ) {
     // Only fire the event listeners if the component is in 'live' interaction mode,
     // i.e., not currently being edited inside the Haiku authoring environment
-    if (component.config.options.interactionMode.type === 'live') {
+    if (isPreviewMode(component.config.options.interactionMode)) {
       component._anyEventChange = true;
 
       if (!component._eventsFired[selector]) {
