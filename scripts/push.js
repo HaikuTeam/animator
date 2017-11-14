@@ -102,18 +102,10 @@ openSourcePackages.forEach((pack) => {
   cp.execSync(`node ./scripts/publish-package.js --package=${pack.name}`, processOptions)
 })
 
-// Rewrite lockfiles, then revert changes in package.json.
+// Now that we have published, revert to evergreen dependencies.
 openSourcePackages.forEach((pack) => {
-  cp.execSync(
-    `yarn install --mutex file:/tmp/.yarn_mono_lock --cache-folder="/tmp/.yarn_mono_cache" --ignore-engines \
-      --non-interactive`,
-    { cwd: pack.abspath, stdio: 'inherit' }
-  )
-
   cp.execSync(`git checkout ${path.join(pack.abspath, 'package.json')}`)
 })
-cp.execSync(`git add -u`, processOptions)
-cp.execSync(`git commit -m "auto: Bump open-source dependency versions."`, processOptions)
 
 // Publish Player to CDN.
 cp.execSync(`node ./scripts/upload-cdn-player.js`, processOptions)
