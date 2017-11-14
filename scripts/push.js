@@ -18,6 +18,8 @@ cp.execSync(`git commit -m "auto: Update"`, { cwd: ROOT, stdio: 'inherit' })
 
 // regenerate changelog and push to remote
 cp.execSync(`node ./scripts/changelog.js`, { cwd: ROOT, stdio: 'inherit' })
+cp.execSync(`git add --all .`, { cwd: ROOT, stdio: 'inherit' })
+cp.execSync(`git commit -m "auto: Update changelo"`, { cwd: ROOT, stdio: 'inherit' })
 if (!argv['no-remote']) {
   cp.execSync(`node ./scripts/git-subtree-push.js --package=changelog`, { cwd: ROOT, stdio: 'inherit' })
 }
