@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.23
+
+### Bug Fixes
+
+ * Install react peer dep before running compile
+
 ## 2.3.22
 
 ### Bug Fixes
