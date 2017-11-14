@@ -10247,7 +10247,7 @@ exports["default"] = parse;
 },{}],166:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.21",
+  "version": "2.3.23",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
@@ -10283,7 +10283,7 @@ module.exports={
     "test:render": "yarn compile && tape \"test/render/**/*.test.js\" | tap-spec",
     "test:unit": "yarn compile && tape \"test/unit/**/*.test.js\" | tap-spec",
     "depcheck": "depcheck .",
-    "prepublishOnly": "yarn lint && yarn test && yarn compile"
+    "prepublishOnly": "yarn compile"
   },
   "authors": [
     "Matthew Trost <matthew@haiku.ai>",
