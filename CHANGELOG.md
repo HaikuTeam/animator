@@ -1,6 +1,51 @@
 # Changelog
 
 
+## 2.3.20
+
+### Bug Fixes
+
+ * Resolve z-index conflicts during Lottie export.
+ * Don't require collapse to select the element row
+ * Called method on wrong object for deleting keyframes (TODO TypeScript kthxbye)
+ * Upsert keyframe correctly when extant keyframe has been assigned a curve
+ * Package order sorting by name not by the object
+ * `yarn sync` should link/unlink pkgname, not name.
+ * Support 2D rotation of <svg /> subelements.
+ * fixes haiku-formats tests to resolve Promises; provide {} failsafe export handling.
+ * I failed to fix the changed syntax after the merge
+ * Make sure stage recalibrates when window starts out smaller than artboard
+ * Need to set -e in the shell script; HT @sasha.com
+ * Missing script expected by distro
+ * I think this was the intendex syntax
+ * Use a more surgical approach to reloading bytecode before munging on it during export.
+ * re-mount the ActiveComponent after extracting reified bytecode and before mutating it during Bodymovin export.
+ * Bug resizing artboard from timeline and curves reflecting on stage
+ * Badly written condition causing states not to rehydrate
+ * Sleep the player while merging design to avoid fragment bugs
+ * Fix installer path and add uploader script
+ * Don't cache if there is no id under which to cache
+ * Path offset calc was mistakenly using previous commands point instead of the previous point when using relative commands
+ * Wait until other commits are finished before calling git status otherwise the status will be wrong when the thread continues
+
+### Features
+
+ * Simplifies experiments and releases.
+ * Install player from local source, only using network as a fallback (perf improvement)
+ * Publish lottie.json in project code folder after writing out metadata.
+ * Support injectables and stubbed-out summonables when exporting bytecode.
+ * Final full support for all features of our demo (built-in) projects for Lottie.
+ * Support all ...Bounce and ...Elastic curves in Haiku.
+ * Add support for inconsistently decomposed compound animated elements, e.g. scale.x and scale.y with different keyframes.
+ * Provide final set of features required to support "80%" of Lottie Export. Can be tested with Moto, but not Move!
+ * Adds support for SVG `<g>`, `<defs>`, and `<use>`.
+ * add generate-presigned-url endpoint
+ * implement nib, refactor CLI to use nib
+ * Add support for drawing SVG `<path>` elements.
+ * Add full support for all simple shapes
+ * Add support for easings in BodyMovin export.
+ * Initial work to support Lottie export
+
 ## 2.3.7
 
 ### Bug Fixes
