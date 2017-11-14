@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.26
+
+### Features
+
+ * Rewrite publish flow to keep evergreen dependencies in mono.
+
 ## 2.3.25
 
 ### Bug Fixes

@@ -3183,5 +3183,12 @@
       "label": "fix",
       "message": "Did not mean to upgrade this haiku component dependency"
     }
+  },
+  "2.3.26": {
+    "b786239a8d5632b9c183b268e97a601222ae2bd5": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Rewrite publish flow to keep evergreen dependencies in mono."
+    }
   }
 }
