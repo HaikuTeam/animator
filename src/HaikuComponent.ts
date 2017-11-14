@@ -7,6 +7,7 @@ import HaikuTimeline from './HaikuTimeline';
 import addElementToHashTable from './helpers/addElementToHashTable';
 import applyPropertyToElement from './helpers/applyPropertyToElement';
 import cssQueryTree from './helpers/cssQueryTree';
+import {isPreviewMode} from './helpers/interactionModes';
 import scopifyElements from './helpers/scopifyElements';
 import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import upgradeBytecodeInPlace from './helpers/upgradeBytecodeInPlace';
@@ -762,7 +763,7 @@ function bindEventHandler(
   ) {
     // Only fire the event listeners if the component is in 'live' interaction mode,
     // i.e., not currently being edited inside the Haiku authoring environment
-    if (component.config.options.interactionMode.type === 'live') {
+    if (isPreviewMode(component.config.options.interactionMode)) {
       component._anyEventChange = true;
 
       if (!component._eventsFired[selector]) {
