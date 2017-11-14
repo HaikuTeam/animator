@@ -3,8 +3,10 @@
  */
 
 import Config from './Config';
+
 import HaikuClock from './HaikuClock';
 import HaikuComponent from './HaikuComponent';
+import HaikuGlobal from './HaikuGlobal';
 import PRNG from './helpers/PRNG';
 import assign from './vendor/assign';
 
@@ -115,6 +117,8 @@ HaikuContext['contexts'] = [];
 
 // Also expose so we can programatically choose a player on the page
 HaikuContext['PLAYER_VERSION'] = PLAYER_VERSION;
+
+HaikuGlobal['HaikuContext'] = HaikuContext;
 
 /**
  * @method getRootComponent
