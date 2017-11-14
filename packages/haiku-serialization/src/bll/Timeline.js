@@ -96,20 +96,20 @@ class Timeline extends BaseModel {
     }
   }
 
-  seekToTime (time, skipTransmit) {
+  seekToTime (time, skipTransmit, forceSeek) {
     const frameInfo = this.getFrameInfo()
     const frame = Math.round(time / frameInfo.mspf)
-    return this.seek(frame, skipTransmit)
+    return this.seek(frame, skipTransmit, forceSeek)
   }
 
-  seek (newFrame, skipTransmit) {
+  seek (newFrame, skipTransmit, forceSeek) {
     // Don't bother with any part of this update if we're already at this frame
-    if (this.getCurrentFrame() !== newFrame) {
+    if (forceSeek || this.getCurrentFrame() !== newFrame) {
       this.setCurrentFrame(newFrame)
       const id = this.uid
       const tuple = id + '|' + newFrame
       const last = this._lastSeek
-      if (last !== tuple) {
+      if (forceSeek || last !== tuple) {
         this._lastSeek = tuple
         this.setAuthoritativeFrame(newFrame)
         // If we end up calling the handler here, we end up doing this:
@@ -740,9 +740,10 @@ Timeline.DEFAULT_OPTIONS = {
 
 BaseModel.extend(Timeline)
 
-Timeline.setCurrentTime = function setCurrentTime (time, skipTransmit) {
-  const current = Timeline.find({ _isCurrent: true })
-  return current.seekToTime(time, skipTransmit)
+Timeline.setCurrentTime = function setCurrentTime (time, skipTransmit, forceSeek) {
+  Timeline.all().forEach((timeline) => {
+    timeline.seekToTime(time, skipTransmit, forceSeek)
+  })
 }
 
 Timeline.setCurrent = function setCurrent (name) {

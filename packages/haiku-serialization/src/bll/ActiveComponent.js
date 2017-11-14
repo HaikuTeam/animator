@@ -222,6 +222,8 @@ class ActiveComponent extends BaseModel {
   }
 
   getCurrentTimelineTime () {
+    // In case we get called before fully initialized, e.g. on stage during first load
+    if (!this.instance) return null
     // If time control hasn't been established yet, note that the controlled time may be null
     return this.instance.getTimeline(this.getCurrentTimelineName()).getControlledTime() || 0
   }
@@ -326,10 +328,10 @@ class ActiveComponent extends BaseModel {
     }
   }
 
-  setTimelineTimeValue (timelineTime, skipTransmit) {
+  setTimelineTimeValue (timelineTime, skipTransmit, forceSeek) {
     timelineTime = Math.round(timelineTime)
     // Note that this call reaches in and updates our instance's timeline objects
-    Timeline.setCurrentTime(timelineTime, skipTransmit)
+    Timeline.setCurrentTime(timelineTime, skipTransmit, forceSeek)
     this.forceFlush()
   }
 
@@ -423,9 +425,9 @@ class ActiveComponent extends BaseModel {
     return this._stageTransform
   }
 
-   isPreviewModeActive () {
-     return isPreviewMode(this._interactionMode)
-   }
+  isPreviewModeActive () {
+    return isPreviewMode(this._interactionMode)
+  }
 
   /**
   * @method setInteractionMode
@@ -1379,6 +1381,8 @@ class ActiveComponent extends BaseModel {
   hardReload (reloadOptions, instanceConfig, finish) {
     let updatedHaikuComponentFactory
 
+    const timelineTimeBeforeReload = this.getCurrentTimelineTime() || 0
+
     return async.series([
       (cb) => {
         // Wait until current work finishes before we do the heavy stuff
@@ -1401,7 +1405,6 @@ class ActiveComponent extends BaseModel {
           for (const key in require.cache) {
             if (!key.match(/node_modules/)) delete require.cache[key]
           }
-
           return overrideModulesLoaded((stop) => {
             updatedHaikuComponentFactory = require(modulePath)
             stop() // Tell the node hook to stop interfering since we've got what we need now
@@ -1451,15 +1454,6 @@ class ActiveComponent extends BaseModel {
           }
         }
 
-        // Lock the time to zero since we are inside 'control' mode
-        const globalTime = this.instance._context.clock.getExplicitTime()
-        const timelines = this.instance._timelineInstances
-        for (const timelineName in timelines) {
-          const timeline = timelines[timelineName]
-          // Whatever the previous time had been, make sure we 're-control' it to that point
-          timeline._controlTime(this.getCurrentTimelineTime(), globalTime)
-        }
-
         // HaikuComponent clones so we reattach the pointer here so file updates work
         this.instance._bytecode.template = this.instance._template
 
@@ -1483,6 +1477,11 @@ class ActiveComponent extends BaseModel {
 
           // Start the clock again, as we should now be ready to flow updated component.
           this.instance._context.clock.start()
+
+          // If we don't do this here, continued edits at this time won't work properly.
+          // We have to do this after rehydrate so we update all copies fo the models we've
+          // just loaded into memory who have reset attributes
+          this.setTimelineTimeValue(timelineTimeBeforeReload, false, true)
 
           return cb()
         })
