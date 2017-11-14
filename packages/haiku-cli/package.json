@@ -13,13 +13,14 @@
     "develop": "tsc --watch"
   },
   "bin": {
-    "haiku": "./lib/index.js"
+    "haiku": "./bin/haiku"
   },
   "authors": [
     "Zack Brown <zack@haiku.ai>",
     "Matthew Trost <matthew@haiku.ai>"
   ],
   "files": [
+    "bin/**/*",
     "lib/**/*",
     "src/**/*"
   ],
