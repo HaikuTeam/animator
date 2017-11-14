@@ -26,8 +26,8 @@ if (!argv['no-remote']) {
 
 // compile packages
 cp.execSync(`node ./scripts/build-player.js`, { cwd: ROOT, stdio: 'inherit' })
-cp.execSync(`node ./scripts/compile-package.js --package=haiku-sdk-inkstone`, { cwd: ROOT, stdio: 'inherit' })
-cp.execSync(`node ./scripts/compile-package.js --package=haiku-sdk-client`, { cwd: ROOT, stdio: 'inherit' })
+cp.execSync(`node ./scripts/compile-package.js --package=haiku-sdk-inkstone --uglify=lib/**/*.js`, { cwd: ROOT, stdio: 'inherit' })
+cp.execSync(`node ./scripts/compile-package.js --package=haiku-sdk-client --uglify=lib/**/*.js`, { cwd: ROOT, stdio: 'inherit' })
 cp.execSync(`node ./scripts/compile-package.js --package=haiku-cli`, { cwd: ROOT, stdio: 'inherit' })
 cp.execSync(`git add --all .`, { cwd: ROOT, stdio: 'inherit' })
 cp.execSync(`git commit -m "auto: Recompile libs"`, { cwd: ROOT, stdio: 'inherit' })
