@@ -4,6 +4,6 @@
   },
   "LottieExportOnPublish": {
     "development": true,
-    "release": true
+    "production": true
   }
 }
