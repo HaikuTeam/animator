@@ -1,5 +1,10 @@
-node_modules
-npm-debug.log
-npm-debug.log.*
+node_modules/
+coverage/
+.nyc_output/
+.DS_Store
+*.log
 .vscode
-tmp/
+tmp
+lib
+~test
+lib/
