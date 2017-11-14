@@ -12,6 +12,9 @@
     "compile": "tsc",
     "develop": "tsc --watch"
   },
+  "bin": {
+    "haiku": "./lib/index.js"
+  },
   "authors": [
     "Zack Brown <zack@haiku.ai>",
     "Matthew Trost <matthew@haiku.ai>"
