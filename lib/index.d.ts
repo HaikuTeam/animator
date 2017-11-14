@@ -8,6 +8,9 @@ export declare namespace inkstone {
     }
     function setConfig(newVals: InkstoneConfig): void;
     type Callback<T> = (err: string, data: T, response: requestLib.RequestResponse) => void;
+    namespace support {
+        function getPresignedUrl(authToken: string, uuid: string, cb: inkstone.Callback<String>): void;
+    }
     namespace user {
         interface Authentication {
             Expiration: string;
@@ -92,5 +95,8 @@ export declare namespace inkstone {
         function list(authToken: string, cb: inkstone.Callback<Project[]>): void;
         function getByName(authToken: string, name: string, cb: inkstone.Callback<ProjectAndCredentials>): void;
         function deleteByName(authToken: string, name: string, cb: inkstone.Callback<boolean>): void;
+    }
+    namespace updates {
+        function check(authToken: string, query: string, cb: inkstone.Callback<boolean>): void;
     }
 }

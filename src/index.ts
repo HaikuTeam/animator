@@ -1,8 +1,6 @@
-
 import * as requestLib from "request"
 import * as _ from "lodash"
 
-//TODO:  abstract out paths, env/config (env var?)
 //TODO:  make file paths cross-platform friendly
 var ENDPOINTS = {
   PROJECT_CREATE: "v0/project",
@@ -16,12 +14,12 @@ var ENDPOINTS = {
   SNAPSHOT_GET_BY_ID: "v0/snapshot/:ID",
   PROJECT_GET_BY_NAME: "v0/project/:NAME",
   PROJECT_DELETE_BY_NAME: "v0/project/:NAME",
+  SUPPORT_UPLOAD_GET_PRESIGNED_URL: "v0/support/upload/:UUID",
+  UPDATES: "v0/updates",
 }
 
-//TODO:  strictSSL => false is used for dev, where we
-//       use self-signed certs for SSL.  Maybe we should parameterize this for dev/prod use.
 var request = requestLib.defaults({
-  strictSSL: false
+  strictSSL: true
 })
 
 export namespace inkstone {
@@ -40,9 +38,38 @@ export namespace inkstone {
 
   export function setConfig(newVals: InkstoneConfig) {
     _.extend(_inkstoneConfig, newVals)
+
+    //ease SSL restrictions for dev
+    if (newVals.baseUrl.indexOf("https://localhost") === 0) {
+      request = requestLib.defaults({
+        strictSSL: false
+      })
+    }
   }
 
   export type Callback<T> = (err: string, data: T, response: requestLib.RequestResponse) => void
+
+  export namespace support {
+    export function getPresignedUrl(authToken: string, uuid: string, cb: inkstone.Callback<String>) {
+      var options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: _inkstoneConfig.baseUrl + ENDPOINTS.SUPPORT_UPLOAD_GET_PRESIGNED_URL.replace(":UUID", uuid),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `INKSTONE auth_token="${authToken}"`
+        }
+      }
+
+      request.get(options, function (err, httpResponse, body) {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          var url = body as string
+          cb(undefined, url, httpResponse)
+        } else {
+          cb("uncategorized error", null, httpResponse)
+        }
+      })
+    }
+
+  }
 
   export namespace user {
 
@@ -224,7 +251,6 @@ export namespace inkstone {
     }
   }
 
-
   export namespace snapshot {
     export interface Snapshot {
       UniqueId: string,
@@ -249,7 +275,6 @@ export namespace inkstone {
           if (response.statusCode !== 200) {
             setTimeout(() => { awaitSnapshotLink(id, cb, recursionIncr + 1) }, RETRY_PERIOD)
           } else {
-            console.log("Response", snap)
             cb(undefined, assembleSnapshotLinkFromSnapshot(snap.Snapshot), response)
           }
         })
@@ -276,15 +301,11 @@ export namespace inkstone {
       })
     }
 
-
     function assembleSnapshotLinkFromSnapshot(snapshot: Snapshot) {
       return _inkstoneConfig.baseShareUrl + snapshot.UniqueId + "/latest"
     }
 
-    //curl -k -X GET https://localhost:8080/v0/snapshot/bd73858175f10f3e0f4ac749260cc00389872033
-    //returns:  {"UniqueId":"b84a584d-5c2a-4865-96d8-be3a94def8ed","GitTag":"0.0.4","GitSha":"bd73858175f10f3e0f4ac749260cc00389872033","ProjectId":15}
   }
-
 
   export namespace project {
     export interface Project {
@@ -370,7 +391,6 @@ export namespace inkstone {
       })
     }
 
-
     export function deleteByName(authToken: string, name: string, cb: inkstone.Callback<boolean>) {
 
       var options: requestLib.UrlOptions & requestLib.CoreOptions = {
@@ -389,7 +409,26 @@ export namespace inkstone {
         }
       })
     }
+  }
 
+  export namespace updates {
+    export function check(authToken: string, query: string, cb: inkstone.Callback<boolean>) {
 
+      var options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: _inkstoneConfig.baseUrl + ENDPOINTS.UPDATES + query,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `INKSTONE auth_token="${authToken}"`
+        }
+      }
+
+      request.get(options, function (err, httpResponse, body) {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, true, httpResponse)
+        } else {
+          cb("uncategorized error", undefined, httpResponse)
+        }
+      })
+    }
   }
 }
