@@ -31,6 +31,6 @@ _To syndicate to users via auto-update, sign in to S3 and remove "-pending" from
   `.trim()
 
   slackShout({ shout: config.shout }, slackMessage, () => {
-    log.hat('success! built and uploaded release\n' + urls.download + '\n' + urls.latest)
+    log.hat('success! built and uploaded \n' + urls.download + '\n' + urls.latest)
   })
 })

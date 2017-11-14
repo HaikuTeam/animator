@@ -55,15 +55,15 @@ if (!process.env.TRAVIS) {
 
 var HAIKU_SUBPACKAGES = {
   'haiku-bytecode': true,
-  'haiku-cli': true,
+  '@haiku/cli': true,
   'haiku-common': true,
   'haiku-creator-electron': 'haiku-creator',
   'haiku-formats': true,
   'haiku-glass': true,
   '@haiku/player': 'haiku-player',
-  'haiku-sdk-client': true,
+  '@haiku/sdk-client': true,
   'haiku-sdk-creator': true,
-  'haiku-sdk-inkstone': true,
+  '@haiku/sdk-inkstone': true,
   'haiku-serialization': true,
   'haiku-state-object': true,
   'haiku-testing': true,

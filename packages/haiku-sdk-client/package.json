@@ -1,5 +1,5 @@
 {
-  "name": "haiku-sdk-client",
+  "name": "@haiku/sdk-client",
   "version": "2.3.19",
   "description": "Haiku SDK for Client",
   "main": "lib/index.js",
@@ -8,6 +8,9 @@
     "develop": "tsc --watch",
     "compile": "tsc"
   },
+  "files": [
+    "lib/**/*"
+  ],
   "author": "Zack Brown <zack@haiku.ai>",
   "license": "UNLICENSED",
   "types": "./lib/index.d.ts",

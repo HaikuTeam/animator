@@ -31,7 +31,7 @@ module.exports = {
     legacy: process.env.HAIKU_INTERNAL_SLACK_LEGACY_TOKEN
   },
   deployer: {
-    release: {
+    production: {
       region: 'us-east-1',
       bucket: 'haiku-electron-releases-production',
       user: 'haiku-electron-releases-writer-2',

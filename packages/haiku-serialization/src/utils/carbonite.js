@@ -2,8 +2,8 @@ const request = require('request')
 const {exec} = require('child_process')
 const path = require('path')
 const fs = require('fs-extra')
-const {inkstone} = require('haiku-sdk-inkstone')
-const {client} = require('haiku-sdk-client')
+const {inkstone} = require('@haiku/sdk-inkstone')
+const {client} = require('@haiku/sdk-client')
 const generateUUIDv4 = require('haiku-sdk-creator/lib/utils/generateUUIDv4')
 const {
   Experiment,

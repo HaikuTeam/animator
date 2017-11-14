@@ -7,13 +7,22 @@ var allPackages = require('./helpers/allPackages')()
 var ROOT = path.join(__dirname, '..')
 
 var branch = argv.branch || 'master'
+var pkg = argv.package
 
-log.hat(`pulling changes from all git subtrees on ${branch}`)
+if (!pkg) {
+  throw new Error('a --package argument is required')
+}
+
+log.hat(`pulling changes from git subtree for ${pkg} on ${branch}`)
 
 async.eachSeries(allPackages, function (pack, next) {
-  log.log('git subtree pulling ' + pack.name)
+  if (pack.name !== pkg) {
+    return next()
+  }
+
   try {
     var cmds = [
+      // Git subtree doesn't seem to like it unless you fetch changes first
       `git fetch ${pack.remote} ${branch}`,
       `git subtree pull --squash --prefix packages/${pack.name} ${pack.remote} ${branch}`
     ]
@@ -24,5 +33,6 @@ async.eachSeries(allPackages, function (pack, next) {
   } catch (exception) {
     log.log(exception.message)
   }
+
   return next()
 })

@@ -1,16 +1,16 @@
-var path = require('path')
-var fse = require('fs-extra')
-var lodash = require('lodash')
-var cp = require('child_process')
-var log = require('./helpers/log')
-var runScript = require('./helpers/runScript')
-var nowVersion = require('./helpers/nowVersion')
-var allPackages = require('./helpers/allPackages')()
-var groups = lodash.keyBy(allPackages, 'name')
+const path = require('path')
+const fse = require('fs-extra')
+const lodash = require('lodash')
+const cp = require('child_process')
+const log = require('./helpers/log')
+const runScript = require('./helpers/runScript')
+const nowVersion = require('./helpers/nowVersion')
+const allPackages = require('./helpers/allPackages')()
+const groups = lodash.keyBy(allPackages, 'name')
 
-var ROOT = path.join(__dirname, '..')
-var PLAYER_PATH = groups['haiku-player'].abspath
-var REACT_VERSION = require(path.join(PLAYER_PATH, 'package.json')).peerDependencies.react
+const ROOT = path.join(__dirname, '..')
+const PLAYER_PATH = groups['haiku-player'].abspath
+const REACT_VERSION = require(path.join(PLAYER_PATH, 'package.json')).peerDependencies.react
 
 log.hat(`note that the current version is ${nowVersion()}`)
 
@@ -24,10 +24,10 @@ function monobin (name) {
 fse.removeSync(path.join(PLAYER_PATH, 'dist'))
 fse.mkdirpSync(path.join(PLAYER_PATH, 'dist'))
 
-runScript('compile-player', [], (err) => {
+runScript('compile-package', ['--package=haiku-player'], (err) => {
   if (err) throw err
 
-  cp.execSync(`yarn add react@${REACT_VERSION}`, { cwd: PLAYER_PATH, stdio: 'inherit' })
+  cp.execSync(`yarn add react@${REACT_VERSION} --peer`, { cwd: PLAYER_PATH, stdio: 'inherit' })
 
   log.log('browserifying player packages and adapters')
 

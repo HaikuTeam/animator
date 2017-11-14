@@ -19,7 +19,7 @@ checkNodeVersion()
 const lastSyncFilename = path.join(global.process.cwd(), '.last-sync')
 let sinceFilter = ''
 if (fs.existsSync(lastSyncFilename)) {
-  const lastSync = require(lastSyncFilename);
+  const lastSync = require(lastSyncFilename)
   if (lastSync.hasOwnProperty('lastSyncCommit')) {
     sinceFilter = `${lastSync.lastSyncCommit}..`
   }

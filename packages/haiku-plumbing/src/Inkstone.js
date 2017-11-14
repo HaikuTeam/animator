@@ -1,5 +1,5 @@
 import lodash from 'lodash'
-import { inkstone } from 'haiku-sdk-inkstone'
+import { inkstone } from '@haiku/sdk-inkstone'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import * as Git from './Git'
 

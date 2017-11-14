@@ -1,4 +1,4 @@
-const child_process = require('child_process')
+const cp = require('child_process')
 const fse = require('fs-extra')
 const path = require('path')
 
@@ -8,12 +8,12 @@ const runFlakyCommand = require('./helpers/runFlakyCommand')
 const processOptions = {cwd: global.process.cwd(), stdio: 'inherit'}
 
 runFlakyCommand(() => {
-  child_process.exec('yarn install', processOptions, () => {
+  cp.exec('yarn install', processOptions, () => {
     log.hat('installed dependencies')
   })
 }, 'mono yarn install', 10)
 
-child_process.exec('yarn sync', processOptions, () => {
+cp.exec('yarn sync', processOptions, () => {
   log.hat('synced packages')
 })
 

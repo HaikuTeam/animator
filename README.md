@@ -78,7 +78,7 @@ Note: The following requires additional Haiku credentials. Once you're done deve
 
 **Distro**
 
-To roll a distro (public release), run:
+To roll a distro, run:
 
     $ yarn run distro
 

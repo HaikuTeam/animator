@@ -1,27 +1,21 @@
-var lodash = require('lodash')
-var fse = require('fs-extra')
-var path = require('path')
-var argv = require('yargs').argv
-var semver = require('semver')
-var inquirer = require('inquirer')
-var log = require('./helpers/log')
-var runScript = require('./helpers/runScript')
-var getSemverTop = require('./helpers/getSemverTop')
-var execSync = require('child_process').execSync
-var allPackages = require('./helpers/allPackages')()
-var groups = lodash.keyBy(allPackages, 'name')
-var haikuPlayerPath = groups['haiku-player'].abspath
-var plumbingPath = groups['haiku-plumbing'].abspath
-var cliPath = groups['haiku-cli'].abspath
+const lodash = require('lodash')
+const fse = require('fs-extra')
+const path = require('path')
+const argv = require('yargs').argv
+const semver = require('semver')
+const inquirer = require('inquirer')
+const log = require('./helpers/log')
+const getSemverTop = require('./helpers/getSemverTop')
+const allPackages = require('./helpers/allPackages')()
 
-var current = getSemverTop()
-var patched = semver.inc(current, 'patch')
+const current = getSemverTop()
+const patched = semver.inc(current, 'patch')
 
-var DEFAULTS = {
+const DEFAULTS = {
   version: patched
 }
 
-var inputs = lodash.assign({}, DEFAULTS, argv)
+const inputs = lodash.assign({}, DEFAULTS, argv)
 
 if (argv['non-interactive']) {
   go()
@@ -48,42 +42,37 @@ if (argv['non-interactive']) {
 
 function go () {
   lodash.forEach(allPackages, function (pack) {
-    var packageJsonPath = path.join(pack.abspath, 'package.json')
-    var packageJson = fse.readJsonSync(packageJsonPath)
+    const packageJsonPath = path.join(pack.abspath, 'package.json')
+    const packageJson = fse.readJsonSync(packageJsonPath)
+
     log.log('setting ' + pack.name + ' to ' + inputs.version + ' (was ' + packageJson.version + ')')
+
     packageJson.version = inputs.version
+
+    // Now make sure this package's @haiku/* dependencies match that version
+    const depTypes = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']
+    depTypes.forEach((depType) => {
+      if (!packageJson[depType]) return null
+      for (const depName in packageJson[depType]) {
+        const depVersion = packageJson[depType][depName]
+        // Don't bump dep version if it's using the internal git dependency reference
+        if (depVersion.match(/HaikuTeam/)) continue
+        // Only bump version if referring to a public version of one of our packages
+        if (depName.slice(0, 6) !== '@haiku') continue
+        packageJson[depType][depName] = inputs.version
+      }
+    })
+
     fse.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
   })
 
-  log.log('injecting version into CLI help banner')
-  execSync(`sed -i '' -E "s/(Haiku CLI \\(version )([0-9]+\\.[0-9]+\\.[0-9]+)/\\1${inputs.version}/" ${path.join(cliPath, 'src', 'index.ts')}`) // note this sed syntax is macOS-specific
-  try {
-    execSync('yarn run tsc', { cwd: cliPath, stdio: 'inherit' })
-  } catch (exception) {
-    log.log('Failed to run tsc')
-  }
+  const monoJsonPath = path.join(__dirname, '..', 'package.json')
+  const monoJson = fse.readJsonSync(monoJsonPath)
 
-  log.log('setting plumbing\'s @haiku/player dependency version to ' + inputs.version)
-  var plumbingPackageJsonPath = path.join(plumbingPath, 'package.json')
-  var plumbingPackageJson = fse.readJsonSync(plumbingPackageJsonPath)
+  log.log('setting mono to ' + inputs.version + ' (was ' + monoJson.version + ')')
 
-  var haikuPlayerPackageJsonPath = path.join(haikuPlayerPath, 'package.json')
-  var haikuPlayerPackageJson = fse.readJsonSync(haikuPlayerPackageJsonPath)
+  monoJson.version = inputs.version
+  fse.writeFileSync(monoJsonPath, JSON.stringify(monoJson, null, 2) + '\n')
 
-  plumbingPackageJson.dependencies['@haiku/player'] = haikuPlayerPackageJson.version
-  fse.outputFileSync(plumbingPackageJsonPath, JSON.stringify(plumbingPackageJson, null, 2) + '\n')
-
-  runScript('compile-player', [], (err) => {
-    if (err) throw err
-
-    var monoJsonPath = path.join(__dirname, '..', 'package.json')
-    var monoJson = fse.readJsonSync(monoJsonPath)
-
-    log.log('setting mono to ' + inputs.version + ' (was ' + monoJson.version + ')')
-
-    monoJson.version = inputs.version
-    fse.writeFileSync(monoJsonPath, JSON.stringify(monoJson, null, 2) + '\n')
-
-    log.log('done!')
-  })
+  log.log('done!')
 }

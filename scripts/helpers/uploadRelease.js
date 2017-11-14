@@ -32,7 +32,7 @@ function uploadRelease (region, key, secret, bucket, folder, platform, environme
       var key = path.join(target, entry)
 
       // Upload with a 'pending' label so squirrel server knows not to include this in
-      // the list of candidate releases. This gives us an opportunity to test before syndication.
+      // the list of candidates. This gives us an opportunity to test before syndication.
       // The idea is that we manually remove the pending flag on S3 when we're ready.
       key = key.replace(/.zip$/, '-pending.zip')
 

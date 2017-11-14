@@ -11,9 +11,11 @@ import * as prependFile from 'prepend-file';
 
 import {Nib, IContext} from './nib';
 
+const pkg = require('./../package.json');
+
 const cli = new Nib({
   name: 'haiku',
-  version: '0.0.0',
+  version: pkg.version,
   description: 'The Haiku CLI — developer utilities for automating Haiku actions and performing local and' +
     ' server-enabled actions without requiring the desktop app.',
   preAction(context: IContext) {

@@ -15,7 +15,7 @@ export const enum Environment {
  */
 export const enum EnvironmentType {
   Development = 'development',
-  Release = 'release',
+  Production = 'production',
 }
 
 /**
@@ -31,6 +31,6 @@ export const getEnvironment = () => global.process.env.NODE_ENV || Environment.P
 export const getEnvironmentType = () => {
   const environment = getEnvironment();
   return (environment === Environment.Staging || environment === Environment.Production)
-    ? EnvironmentType.Release
+    ? EnvironmentType.Production
     : EnvironmentType.Development;
 };

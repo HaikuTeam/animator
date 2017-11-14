@@ -8,14 +8,14 @@ var writeHackyDynamicDistroConfig = require('./helpers/writeHackyDynamicDistroCo
 var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
 
 var ROOT = path.join(__dirname, '..')
-var ENVS = { development: true, release: true }
+var ENVS = { development: true, production: true }
 
 forceNodeEnvProduction()
 
 var inputs = lodash.assign({
   branch: 'master',
   environment: 'development',
-  appenv: 'development', // sets NODE_ENV in the running app and the autoupdate release channel
+  appenv: 'development', // sets NODE_ENV in the running app and the autoupdate channel
   uglify: false,
   upload: true,
   shout: true,
@@ -26,13 +26,14 @@ delete inputs.$0
 delete inputs._
 
 if (process.env.TRAVIS) {
-  // Always assume the in-app NODE_ENV will be 'development' unless this is a release
+  // We specify that pushing to the branch 'release' will trigger a (pending) production build
+  // Always assume the in-app NODE_ENV will be 'development' unless this is for syndication
   if (process.env.TRAVIS_BRANCH === 'release') {
-    inputs.environment = 'release'
+    inputs.environment = 'production'
   }
 }
 
-if (inputs.environment === 'release') {
+if (inputs.environment === 'production') {
   inputs.appenv = 'production'
 }
 
@@ -47,13 +48,13 @@ if (!argv['non-interactive']) {
     {
       type: 'confirm',
       name: 'uglify',
-      message: 'Obfuscate source code in release bundle ("yes" is required for release)?:',
+      message: 'Obfuscate source code in bundle?:',
       default: inputs.uglify
     },
     {
       type: 'confirm',
       name: 'upload',
-      message: 'Upload release to public distro server?:',
+      message: 'Upload to public distro server?:',
       default: inputs.upload
     },
     {
@@ -65,8 +66,8 @@ if (!argv['non-interactive']) {
   ]).then(function (answers) {
     lodash.assign(inputs, answers)
 
-    if (inputs.uglify === false && inputs.environment === 'release') {
-      throw new Error(`refusing to create a non-obfuscated build for 'release'`)
+    if (inputs.uglify === false && inputs.environment === 'production') {
+      throw new Error(`refusing to create a non-obfuscated build for 'production'`)
     }
 
     if (!ENVS[inputs.environment]) {
