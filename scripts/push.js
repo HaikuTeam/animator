@@ -58,7 +58,12 @@ cp.execSync(`git commit -m "auto: Bumps semver."`, processOptions)
 // Regenerate changelog and push to remote.
 cp.execSync(`node ./scripts/changelog.js`, processOptions)
 cp.execSync(`git add -u`, processOptions)
-cp.execSync(`git commit -m "auto: Updates changelog."`, processOptions)
+
+// git commit might fail if there is no changelog. Not a big deal.
+try {
+  cp.execSync(`git commit -m "auto: Updates changelog."`, processOptions)
+} catch (e) {}
+
 if (!argv['no-remote']) {
   cp.execSync(`node ./scripts/git-subtree-push.js --package=changelog`, processOptions)
 }
