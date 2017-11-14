@@ -4,7 +4,7 @@ const argv = require('yargs').argv
 const ROOT = path.join(__dirname, '..')
 
 // pull standalone remotes
-if (!argv['no-remote']) {
+if (!argv['no-remote'] && !argv['no-pull']) {
   cp.execSync(`node ./scripts/git-subtree-pull.js --package=haiku-player`, { cwd: ROOT, stdio: 'inherit' })
   cp.execSync(`node ./scripts/git-subtree-pull.js --package=haiku-cli`, { cwd: ROOT, stdio: 'inherit' })
   cp.execSync(`node ./scripts/git-subtree-pull.js --package=haiku-sdk-client`, { cwd: ROOT, stdio: 'inherit' })
