@@ -83,8 +83,14 @@ app.get('/demos/:demo', (req, res) => {
 
   try {
     compiler.run((err, stats) => {
-      if (err || stats.hasErrors()) {
+      if (err) {
         throw err;
+      }
+
+      var errs = stats.hasErrors();
+      if (errs) {
+        console.log(stats);
+        throw new Error('webpack compile had errors');
       }
 
       fse.readFile(path.join(__dirname, 'templates', 'demo.html.handlebars'), (err, templateBuffer) => {
