@@ -1,14 +1,12 @@
 import React from 'react'
 import Color from 'color'
-import lodash from 'lodash'
 import CodeMirror from 'codemirror'
-import { Creatable } from 'react-select-plus'
+import {Creatable} from 'react-select-plus'
 import truncate from './helpers/truncate'
 import parseExpression from 'haiku-serialization/src/ast/parseExpression'
 import marshalParams from '@haiku/player/lib/reflection/marshalParams'
 import functionToRFO from '@haiku/player/lib/reflection/functionToRFO'
 import reifyRFO from '@haiku/player/lib/reflection/reifyRFO'
-// import AutoCompleter from './AutoCompleter'
 import Palette from './Palette'
 const HaikuMode = require('./modes/haiku')
 
@@ -31,6 +29,100 @@ const EDITOR_HEIGHT = 300
 const EDITOR_LINE_HEIGHT = 18
 
 const MAX_AUTOCOMPLETION_ENTRIES = 8
+
+const STYLES = {
+  container: {
+    width: EDITOR_WIDTH,
+    height: EDITOR_HEIGHT,
+    // overflow: 'hidden',
+    backgroundColor: Color('blue'),
+    borderRadius: '4px',
+    zIndex: 9001
+  },
+  editorContext: {
+    cursor: 'default',
+    fontFamily: 'Consolas, monospace',
+    fontSize: 12,
+    lineHeight: EDITOR_LINE_HEIGHT + 'px',
+    height: 'calc(100% - 82px)',
+    width: '100%',
+    outline: 'none',
+    paddingLeft: 7,
+    paddingTop: 20,
+    position: 'absolute',
+    textShadow: '0 0 0 ' + Color(Palette.ROCK).fade(0.3), // darkmagic
+    zIndex: 2005,
+    backgroundColor: Color('blue'),
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+    color: Palette.ROCK,
+    overflow: 'hidden', // Let codemirror do the scrolling
+    top: 44
+  },
+  title: {
+    position: 'absolute',
+    top: 5,
+    left: EDITOR_WIDTH / 2 - 200,
+    width: 400,
+    margin: '0 auto',
+    textAlign: 'center',
+    color: '#999',
+    cursor: 'default',
+    zIndex: 9000
+  },
+  tooltip: {
+    backgroundColor: Palette.FATHER_COAL,
+    borderRadius: 3,
+    boxShadow: '0 3px 7px 0 rgba(7,0,3,0.40)',
+    color: Palette.SUNSTONE,
+    fontSize: 10,
+    fontWeight: 400,
+    left: 0,
+    minHeight: 15,
+    minWidth: 24,
+    opacity: 0,
+    padding: '3px 5px 2px 5px',
+    position: 'absolute',
+    textAlign: 'center',
+    top: -24,
+    transform: 'scale(.4)',
+    transition: 'transform 182ms cubic-bezier(.175, .885, .316, 1.171)'
+  },
+  tooltipTri: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+    top: 13,
+    left: 12,
+    transform: 'translate(-8.8px, 0)',
+    borderLeft: '8.8px solid transparent',
+    borderRight: '8.8px solid transparent'
+  },
+  selectWrapper: {
+    position: 'absolute',
+    top: 28,
+    paddingTop: 6,
+    left: 0,
+    width: '100%',
+    height: 50,
+    zIndex: 9000,
+    cursor: 'default',
+    borderTop: '1px solid ' + Palette.LIGHTEST_GRAY
+  },
+  cancelButton: {
+    position: 'absolute',
+    bottom: 6,
+    right: 12,
+    height: 20,
+    color: '#999',
+    zIndex: 10000,
+    fontSize: '12px',
+    textTransform: 'none',
+    textDecoration: 'underline'
+  }
+}
 
 function mod (idx, max) {
   return (idx % max + max) % max
@@ -82,10 +174,16 @@ export default class EventHandlerEditor extends React.Component {
       // Simply cancel any change that occurs in either of those places.
       if (changeObject.origin !== 'setValue') {
         let lines = this.codemirror.getValue().split('\n')
-        if (changeObject.from.line === 0 || changeObject.from.line >= lines.length - 1) {
+        if (
+          changeObject.from.line === 0 ||
+          changeObject.from.line >= lines.length - 1
+        ) {
           return changeObject.cancel()
         }
-        this.props.element.setEventHandlerSaveStatus(this.state.selectedEventName, false)
+        this.props.element.setEventHandlerSaveStatus(
+          this.state.selectedEventName,
+          false
+        )
       }
     })
 
@@ -110,7 +208,7 @@ export default class EventHandlerEditor extends React.Component {
     }
 
     // Not really a change event, but it contains the same business logic we want...
-    this.handleChangedEventName({ value: this.state.selectedEventName }, true)
+    this.handleChangedEventName({value: this.state.selectedEventName}, true)
   }
 
   recalibrateEditor (cursor) {
@@ -122,7 +220,7 @@ export default class EventHandlerEditor extends React.Component {
     if (cursor) {
       this.codemirror.setCursor(cursor)
     } else {
-      this.codemirror.setCursor({ line: 1, ch: renderable.split('\n')[1].length })
+      this.codemirror.setCursor({line: 1, ch: renderable.split('\n')[1].length})
     }
 
     this.forceUpdate()
@@ -164,18 +262,24 @@ export default class EventHandlerEditor extends React.Component {
       })
     }
 
-    this.setState({
-      originalValue: this.state.editedValue
-    }, () => {
-      this.props.save(
-        this.props.element,
-        this.state.selectedEventName,
-        { handler: committable } // The committable is serialized, i.e. __function: {...}
-      )
+    this.setState(
+      {
+        originalValue: this.state.editedValue
+      },
+      () => {
+        this.props.save(
+          this.props.element,
+          this.state.selectedEventName,
+          {handler: committable} // The committable is serialized, i.e. __function: {...}
+        )
 
-      this.props.element.setEventHandlerSaveStatus(this.state.selectedEventName, true)
-      this.forceUpdate()
-    })
+        this.props.element.setEventHandlerSaveStatus(
+          this.state.selectedEventName,
+          true
+        )
+        this.forceUpdate()
+      }
+    )
   }
 
   doCancel () {
@@ -188,7 +292,8 @@ export default class EventHandlerEditor extends React.Component {
       return true
     }
 
-    if (this.props.element) { // <~ Possibly not needed, but this is a check to whether we're live or not
+    if (this.props.element) {
+      // <~ Possibly not needed, but this is a check to whether we're live or not
       // When focused, assume we *always* handle keyboard events, no exceptions.
       // If you want to handle an input when focused, used handleEditorKeydown
       return true
@@ -198,7 +303,8 @@ export default class EventHandlerEditor extends React.Component {
   }
 
   fetchEventHandlerValueDescriptor (eventName) {
-    let extant = this.props.element && this.props.element.getReifiedEventHandler(eventName)
+    let extant =
+      this.props.element && this.props.element.getReifiedEventHandler(eventName)
 
     let found
     if (extant && extant.handler) {
@@ -227,28 +333,33 @@ export default class EventHandlerEditor extends React.Component {
 
   handleChangedEventName (changeEvent) {
     if (changeEvent) {
-      var existingHandler = this.fetchEventHandlerValueDescriptor(changeEvent.value)
+      var existingHandler = this.fetchEventHandlerValueDescriptor(
+        changeEvent.value
+      )
 
       if (this.props.element) {
         this.storeEditedValue(changeEvent.value, existingHandler)
       }
 
-      this.setState({
-        evaluatorText: null,
-        evaluatorState: EVALUATOR_STATES.OPEN,
-        selectedEventName: changeEvent.value,
-        originalValue: existingHandler,
-        editedValue: existingHandler
-      }, () => {
-        this.recalibrateEditor()
-        this.handleEditorChange(this.codemirror, {}, true)
-      })
+      this.setState(
+        {
+          evaluatorText: null,
+          evaluatorState: EVALUATOR_STATES.OPEN,
+          selectedEventName: changeEvent.value,
+          originalValue: existingHandler,
+          editedValue: existingHandler
+        },
+        () => {
+          this.recalibrateEditor()
+          this.handleEditorChange(this.codemirror, {}, true)
+        }
+      )
     }
   }
 
   handleEditorChange (cm, changeObject, alsoSetOriginal, wasInternalCall) {
     if (changeObject.origin === 'setValue') {
-      return void (0)
+      return void 0
     }
 
     // Any change should unset the current error state of the
@@ -274,7 +385,10 @@ export default class EventHandlerEditor extends React.Component {
     // If the last entry was a space, remove autocomplete before we start parsing, which might fail
     // if we have an incomplete event-handler-in-progress inside the editor
     // Also remove any completions if the editor does not have focus
-    if (!cm.hasFocus() || (changeObject && changeObject.text && changeObject.text[0] === ' ')) {
+    if (
+      !cm.hasFocus() ||
+      (changeObject && changeObject.text && changeObject.text[0] === ' ')
+    ) {
       this.setState({
         autoCompletions: []
       })
@@ -284,14 +398,21 @@ export default class EventHandlerEditor extends React.Component {
     let wrapped = parseExpression.wrap(officialValue.body)
     let cursor1 = this.codemirror.getCursor()
 
-    let parse = parseExpression(wrapped, {}, HaikuMode.keywords, this.state, {
-      line: this.getCursorOffsetLine(cursor1),
-      ch: this.getCursorOffsetChar(cursor1)
-    }, {
-      // These checks are only needed for expressions in the timeline, so skip them here
-      skipParamsImpurityCheck: true,
-      skipForbiddensCheck: true
-    })
+    let parse = parseExpression(
+      wrapped,
+      {},
+      HaikuMode.keywords,
+      this.state,
+      {
+        line: this.getCursorOffsetLine(cursor1),
+        ch: this.getCursorOffsetChar(cursor1)
+      },
+      {
+        // These checks are only needed for expressions in the timeline, so skip them here
+        skipParamsImpurityCheck: true,
+        skipForbiddensCheck: true
+      }
+    )
 
     this._parse = parse // Caching this to make it faster to read for autocompletions
 
@@ -312,13 +433,15 @@ export default class EventHandlerEditor extends React.Component {
       }
 
       if (cm.hasFocus()) {
-        let completions = parse.completions.sort((a, b) => {
-          var na = a.name.toLowerCase()
-          var nb = b.name.toLowerCase()
-          if (na < nb) return -1
-          if (na > nb) return 1
-          return 0
-        }).slice(0, MAX_AUTOCOMPLETION_ENTRIES)
+        let completions = parse.completions
+          .sort((a, b) => {
+            var na = a.name.toLowerCase()
+            var nb = b.name.toLowerCase()
+            if (na < nb) return -1
+            if (na > nb) return 1
+            return 0
+          })
+          .slice(0, MAX_AUTOCOMPLETION_ENTRIES)
 
         // Highlight the initial completion in the list
         if (completions[0]) {
@@ -358,7 +481,9 @@ export default class EventHandlerEditor extends React.Component {
 
   doesCurrentCodeNeedSave () {
     if (!this.props.element) return false
-    var status = this.props.element.getEventHandlerSaveStatus(this.state.selectedEventName)
+    var status = this.props.element.getEventHandlerSaveStatus(
+      this.state.selectedEventName
+    )
     if (status === null || status === undefined) return false
     // If the status is false, i.e. "not saved from a change", then yes, we need a save...
     return !status
@@ -367,32 +492,41 @@ export default class EventHandlerEditor extends React.Component {
   handleEditorKeydown (cm, keydownEvent) {
     keydownEvent._alreadyHandled = true
 
-    let highlightedAutoCompletions = this.state.autoCompletions.filter((completion) => {
-      return !!completion.highlighted
-    })
+    let highlightedAutoCompletions = this.state.autoCompletions.filter(
+      completion => {
+        return !!completion.highlighted
+      }
+    )
 
     // First, handle any autocompletions if we're in an autocomplete-active state, i.e.,
     // if we are showing autocomplete and if there are any of them currently highlighted
     if (highlightedAutoCompletions.length > 0) {
-      if (keydownEvent.which === 40) { // ArrowDown
+      if (keydownEvent.which === 40) {
+        // ArrowDown
         keydownEvent.preventDefault()
         return this.navigateAutoCompletion(NAVIGATION_DIRECTIONS.NEXT)
-      } else if (keydownEvent.which === 38) { // ArrowUp
+      } else if (keydownEvent.which === 38) {
+        // ArrowUp
         keydownEvent.preventDefault()
         return this.navigateAutoCompletion(NAVIGATION_DIRECTIONS.PREV)
-      } else if (keydownEvent.which === 37) { // ArrowLeft
-        this.setState({ autoCompletions: [] })
-      } else if (keydownEvent.which === 39) { // ArrowRight
-        this.setState({ autoCompletions: [] })
-      } else if (keydownEvent.which === 13 && !keydownEvent.shiftKey) { // Enter (without Shift only!)
+      } else if (keydownEvent.which === 37) {
+        // ArrowLeft
+        this.setState({autoCompletions: []})
+      } else if (keydownEvent.which === 39) {
+        // ArrowRight
+        this.setState({autoCompletions: []})
+      } else if (keydownEvent.which === 13 && !keydownEvent.shiftKey) {
+        // Enter (without Shift only!)
         keydownEvent.preventDefault()
         return this.chooseHighlightedAutoCompletion()
-      } else if (keydownEvent.which === 9) { // Tab
+      } else if (keydownEvent.which === 9) {
+        // Tab
         keydownEvent.preventDefault()
         return this.chooseHighlightedAutoCompletion()
-      } else if (keydownEvent.which === 27) { // Escape
+      } else if (keydownEvent.which === 27) {
+        // Escape
         keydownEvent.preventDefault()
-        return this.setState({ autoCompletions: [] })
+        return this.setState({autoCompletions: []})
       }
     }
 
@@ -405,7 +539,8 @@ export default class EventHandlerEditor extends React.Component {
     }
 
     // Escape is the universal way to exit the editor without committing
-    if (keydownEvent.which === 27) { // Escape
+    if (keydownEvent.which === 27) {
+      // Escape
       return this.doCancel()
     }
   }
@@ -417,7 +552,7 @@ export default class EventHandlerEditor extends React.Component {
   navigateAutoCompletion (direction) {
     // If only one item in the list, no need to do anything, since there's nowhere to navigate
     if (this.state.autoCompletions.length < 2) {
-      return void (0)
+      return void 0
     }
 
     // Shift the currently toggled autocompletion to the next one in the list, using a wraparound.
@@ -443,18 +578,18 @@ export default class EventHandlerEditor extends React.Component {
   }
 
   chooseHighlightedAutoCompletion () {
-    let completion = this.state.autoCompletions.filter((completion) => {
+    let completion = this.state.autoCompletions.filter(completion => {
       return !!completion.highlighted
     })[0]
 
     // Not sure why we'd get here, but in case...
     if (!completion) {
-      return void (0)
+      return void 0
     }
 
     // If we don't have the parse populated, we really can't do anything
     if (!this._parse) {
-      return void (0)
+      return void 0
     }
 
     this.chooseAutoCompletion(completion)
@@ -467,11 +602,11 @@ export default class EventHandlerEditor extends React.Component {
 
     doc.replaceRange(
       completion.name,
-      { line: cur.line, ch: cur.ch - len },
+      {line: cur.line, ch: cur.ch - len},
       cur // { line: Number, ch: Number }
     )
 
-    this.setState({ autoCompletions: [] })
+    this.setState({autoCompletions: []})
   }
 
   getCursorOffsetChar (curs, src) {
@@ -488,9 +623,12 @@ export default class EventHandlerEditor extends React.Component {
 
   getEvalutatorStateColor () {
     switch (this.state.evaluatorState) {
-      case EVALUATOR_STATES.WARN: return Palette.ORANGE
-      case EVALUATOR_STATES.ERROR: return Palette.RED
-      default: return Palette.COAL
+      case EVALUATOR_STATES.WARN:
+        return Palette.ORANGE
+      case EVALUATOR_STATES.ERROR:
+        return Palette.RED
+      default:
+        return Palette.COAL
     }
   }
 
@@ -501,120 +639,15 @@ export default class EventHandlerEditor extends React.Component {
     return name.join(' ')
   }
 
-  getContainerStyle () {
-    let style = {
-      width: EDITOR_WIDTH,
-      height: EDITOR_HEIGHT,
-      // overflow: 'hidden',
-      backgroundColor: Color('#4C434B'),
-      borderRadius: '4px',
-      zIndex: 9001
-    }
-    return style
-  }
-
-  getEditorContextStyle () {
-    let style = lodash.assign({
-      cursor: 'default',
-      fontFamily: 'Consolas, monospace',
-      fontSize: 12,
-      lineHeight: EDITOR_LINE_HEIGHT + 'px',
-      height: 'calc(100% - 82px)',
-      width: '100%',
-      outline: 'none',
-      paddingLeft: 7,
-      paddingTop: 20,
-      position: 'absolute',
-      textShadow: '0 0 0 ' + Color(Palette.ROCK).fade(0.3), // darkmagic
-      zIndex: 2005,
-      backgroundColor: Color('#4C434B'),
-      borderBottomLeftRadius: 4,
-      borderBottomRightRadius: 4,
-      borderTopLeftRadius: 4,
-      borderTopRightRadius: 4,
-      color: Palette.ROCK,
-      overflow: 'hidden', // Let codemirror do the scrolling
-      top: 44
-    })
-    return style
-  }
-
-  getTooltipStyle () {
-    let style = {
-      backgroundColor: Palette.FATHER_COAL,
-      borderRadius: 3,
-      boxShadow: '0 3px 7px 0 rgba(7,0,3,0.40)',
-      color: Palette.SUNSTONE,
-      fontSize: 10,
-      fontWeight: 400,
-      left: 0,
-      minHeight: 15,
-      minWidth: 24,
-      opacity: 0,
-      padding: '3px 5px 2px 5px',
-      position: 'absolute',
-      textAlign: 'center',
-      top: -24,
-      transform: 'scale(.4)',
-      transition: 'transform 182ms cubic-bezier(.175, .885, .316, 1.171)'
-    }
-    // If we're open, we should show the evaluator tooltip
-    if (this.state.evaluatorState > EVALUATOR_STATES.NONE) {
-      lodash.assign(style, {
-        transform: 'scale(1)',
-        opacity: 1
-      })
-    }
-    // If we're info, warn, or error we have content to display
-    if (this.state.evaluatorState > EVALUATOR_STATES.OPEN) {
-      lodash.assign(style, {
-        backgroundColor: this.getEvalutatorStateColor(),
-        width: EDITOR_WIDTH
-      })
-    }
-    return style
-  }
-
-  getTooltipTriStyle () {
-    let style = {
-      position: 'absolute',
-      width: 0,
-      height: 0,
-      top: 13,
-      left: 12,
-      transform: 'translate(-8.8px, 0)',
-      borderLeft: '8.8px solid transparent',
-      borderRight: '8.8px solid transparent',
-      borderTop: '8.8px solid ' + this.getEvalutatorStateColor()
-    }
-    if (this.state.evaluatorState > EVALUATOR_STATES.OPEN) {
-      lodash.assign(style, {
-        borderTop: '8.8px solid ' + this.getEvalutatorStateColor()
-      })
-    }
-    return style
-  }
-
-  getSelectWrapperStyle () {
-    return {
-      position: 'absolute',
-      top: 28,
-      paddingTop: 6,
-      left: 0,
-      width: '100%',
-      height: 50,
-      zIndex: 9000,
-      cursor: 'default',
-      borderTop: '1px solid ' + Palette.LIGHTEST_GRAY
-    }
-  }
-
   getElementTitle () {
     if (this.props.element) {
       if (this.props.element.node) {
         if (this.props.element.node.attributes) {
           if (this.props.element.node.attributes['haiku-title']) {
-            return `${truncate(this.props.element.node.attributes['haiku-title'], 16)}`
+            return `${truncate(
+              this.props.element.node.attributes['haiku-title'],
+              16
+            )}`
           }
         }
       }
@@ -627,69 +660,58 @@ export default class EventHandlerEditor extends React.Component {
       <div
         id='event-handler-editor-container'
         className='Absolute-Center'
-        onMouseDown={(mouseEvent) => {
+        onMouseDown={mouseEvent => {
           // Prevent outer view from closing us
           mouseEvent.stopPropagation()
         }}
-        style={this.getContainerStyle()}>
-        <span
-          id='event-handler-input-tooltip'
-          style={this.getTooltipStyle()}>
+        style={STYLES.container}
+      >
+        <span id='event-handler-input-tooltip' style={STYLES.tooltip}>
           <span
             id='event-handler-input-tooltip-tri'
-            style={this.getTooltipTriStyle()} />
+            style={STYLES.tooltipTri}
+          />
           {this.getEvaluatorText()}
         </span>
         <div
           id='event-handler-select-wrapper'
-          style={this.getSelectWrapperStyle()}
-          className='no-select'>
+          style={STYLES.selectWrapper}
+          className='no-select'
+        >
           <Creatable
             name='event-name'
             placeholder='Choose Event Name...'
             clearable={false}
             value={this.state.selectedEventName}
-            options={(this.props.element && this.props.element.getApplicableEventHandlerOptionsList()) || []}
-            onChange={this.handleChangedEventName.bind(this)} />
+            options={
+              (this.props.element &&
+                this.props.element.getApplicableEventHandlerOptionsList()) ||
+              []
+            }
+            onChange={this.handleChangedEventName.bind(this)}
+          />
         </div>
         <div
           id='event-handler-element-title'
           className='no-select'
-          style={{
-            position: 'absolute',
-            top: 5,
-            left: EDITOR_WIDTH / 2 - 200,
-            width: 400,
-            margin: '0 auto',
-            textAlign: 'center',
-            color: '#999',
-            cursor: 'default',
-            zIndex: 9000
-          }}>
-          {`Event Listeners for ${this.getElementTitle()}`}
+          style={STYLES.title}
+        >
+          {`${this.getElementTitle()} Actions`}
         </div>
         <div
           id='event-handler-input-editor-context'
           className={this.getEditorContextClassName()}
-          ref={(element) => {
+          ref={element => {
             this._context = element
           }}
-          style={this.getEditorContextStyle()} />
+          style={STYLES.editorContext}
+        />
         <button
           onClick={() => {
             this.doCancel()
           }}
-          style={{
-            position: 'absolute',
-            bottom: 6,
-            right: 12,
-            height: 20,
-            color: '#999',
-            zIndex: 10000,
-            fontSize: '12px',
-            textTransform: 'none',
-            textDecoration: 'underline'
-          }}>
+          style={STYLES.cancelButton}
+        >
           Cancel
         </button>
         <button
@@ -702,24 +724,20 @@ export default class EventHandlerEditor extends React.Component {
             bottom: 6,
             right: 65,
             height: 20,
-            color: (this.doesCurrentCodeNeedSave()) ? Palette.GREEN : '#666',
-            cursor: (this.doesCurrentCodeNeedSave()) ? 'pointer' : 'not-allowed',
+            color: this.doesCurrentCodeNeedSave() ? Palette.GREEN : '#666',
+            cursor: this.doesCurrentCodeNeedSave() ? 'pointer' : 'not-allowed',
             zIndex: 10000,
             fontSize: '12px',
             textTransform: 'none',
-            border: `1px solid ${((this.doesCurrentCodeNeedSave()) ? Palette.GREEN : '#666')}`,
+            border: `1px solid ${
+              this.doesCurrentCodeNeedSave() ? Palette.GREEN : '#666'
+            }`,
             borderRadius: '2px',
             padding: '2px 12px 0px 11px'
-          }}>
+          }}
+        >
           Save
         </button>
-        {/*        <AutoCompleter
-          onClick={this.handleAutoCompleterClick.bind(this)}
-          line={this.getCursorOffsetLine(this.codemirror.getCursor()) - 2}
-          height={EDITOR_HEIGHT}
-          width={EDITOR_WIDTH}
-          lineHeight={EDITOR_LINE_HEIGHT}
-          autoCompletions={this.state.autoCompletions} /> */}
       </div>
     )
   }
