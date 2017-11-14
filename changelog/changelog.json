@@ -3152,5 +3152,12 @@
       "label": "fix",
       "message": "Add proper bin file with necessary node shebang"
     }
+  },
+  "2.3.23": {
+    "18b3306efc5c87bc16aec0e1036121cdda6d440a": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Install react peer dep before running compile"
+    }
   }
 }
