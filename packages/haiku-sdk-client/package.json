@@ -1,6 +1,6 @@
 {
   "name": "@haiku/sdk-client",
-  "version": "2.3.21",
+  "version": "2.3.22",
   "description": "Haiku SDK for Client",
   "main": "lib/index.js",
   "scripts": {
