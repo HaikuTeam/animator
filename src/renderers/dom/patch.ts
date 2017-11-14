@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import updateElement from "./updateElement"
+import updateElement from './updateElement';
 
 export default function patch(
   topLevelDomElement,
@@ -12,23 +12,24 @@ export default function patch(
 ) {
   // Just in case we get a null which might be set as a no-op signal by a component upstream
   if (!patchesDict) {
-    return topLevelDomElement
+    return topLevelDomElement;
   }
 
-  let keysToUpdate = Object.keys(patchesDict)
+  const keysToUpdate = Object.keys(patchesDict);
   if (keysToUpdate.length < 1) {
-    return topLevelDomElement
+    return topLevelDomElement;
   }
 
-  for (let flexId in patchesDict) {
-    let virtualElement = patchesDict[flexId]
+  for (const flexId in patchesDict) {
+    const virtualElement = patchesDict[flexId];
 
-    let domElements = component._getRealElementsAtId(flexId)
+    const domElements = component._getRealElementsAtId(flexId);
 
-    let nestedModuleElement = component._nestedComponentElements[flexId]
+    const nestedModuleElement = component._nestedComponentElements[flexId];
 
     for (let i = 0; i < domElements.length; i++) {
-      let domElement = domElements[i]
+      const domElement = domElements[i];
+
       updateElement(
         domElement,
         virtualElement,
@@ -36,7 +37,7 @@ export default function patch(
         virtualElement.__parent,
         component,
         true,
-      )
+      );
 
       // If there is a nested component at this location, let it patch inside its scope
       if (nestedModuleElement && nestedModuleElement.__instance) {
@@ -45,7 +46,7 @@ export default function patch(
           nestedModuleElement, // Sizing info is stored here
           nestedModuleElement.__instance._getPrecalcedPatches(),
           nestedModuleElement.__instance,
-        )
+        );
       }
     }
   }

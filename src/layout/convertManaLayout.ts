@@ -2,63 +2,64 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import parseCssTransformString from "./../helpers/parseCssTransformString"
-import visitManaTree from "./../helpers/visitManaTree"
-import parseCssValue from "./../vendor/css-value"
+import parseCssTransformString from './../helpers/parseCssTransformString';
+import visitManaTree from './../helpers/visitManaTree';
+import cssValue from './../vendor/css-value';
 
-const ROOT_LOCATOR = "0"
+const ROOT_LOCATOR = '0';
 
 const TRANSFORM_COMPONENT_WHITELIST = {
-  "rotation.x": true,
-  "rotation.y": true,
-  "rotation.z": true,
-  "rotation.w": true,
-  "scale.x": true,
-  "scale.y": true,
-  "scale.z": true,
-  "translation.x": true,
-  "translation.y": true,
-  "translation.z": true,
-  "mount.x": true,
-  "mount.y": true,
-  "mount.z": true,
-  "origin.x": true,
-  "origin.y": true,
-  "origin.z": true,
-  "align.x": true,
-  "align.y": true,
-  "align.z": true,
-}
+  'rotation.x': true,
+  'rotation.y': true,
+  'rotation.z': true,
+  'rotation.w': true,
+  'scale.x': true,
+  'scale.y': true,
+  'scale.z': true,
+  'translation.x': true,
+  'translation.y': true,
+  'translation.z': true,
+  'mount.x': true,
+  'mount.y': true,
+  'mount.z': true,
+  'origin.x': true,
+  'origin.y': true,
+  'origin.z': true,
+  'align.x': true,
+  'align.y': true,
+  'align.z': true,
+};
 
 function determineSizingProp(sizeAxis, attributeValue) {
-  let parsedValues = parseCssValue(attributeValue)
-  let parsedValue = parsedValues[0] // Some CSS props have multi values, but our size ones shouldn't
+  const parsedValues = cssValue(attributeValue);
+  const parsedValue = parsedValues[0]; // Some CSS props have multi values, but our size ones shouldn't
   switch (parsedValue.unit) {
-    case "%":
+    case '%':
       return {
-        name: "sizeProportional",
+        name: 'sizeProportional',
         value: parsedValue.value / 100,
         mode: 0,
-      }
-    case "px":
+      };
+    case 'px':
       return {
-        name: "sizeAbsolute",
+        name: 'sizeAbsolute',
         value: parsedValue.value,
         mode: 1,
-      }
-    case "":
+      };
+    case '':
       return {
-        name: "sizeAbsolute",
+        name: 'sizeAbsolute',
         value: parsedValue.value,
         mode: 1,
-      }
+      };
     default:
-      return false
+      return false;
   }
 }
 
+/* tslint:disable */
 export default function convertManaLayout(mana) {
-  visitManaTree(ROOT_LOCATOR, mana, function _visitor(
+  visitManaTree(ROOT_LOCATOR, mana, (
     name,
     attributes,
     children,
@@ -66,58 +67,60 @@ export default function convertManaLayout(mana) {
     locator,
     parent,
     index,
-  ) {
+  ) => {
     // Note the order of operations here: first we process base attributes, but then if the style
     // object has sizing attributes, those end up overriding whatever was in the base attributes.
-    if (!attributes) return void 0
+    if (!attributes) {
+      return void 0;
+    }
 
     if (name.states) {
-      let width = name.states.width
-      let height = name.states.height
+      const width = name.states.width;
+      const height = name.states.height;
       // `elementName` is an object, so this is a recursive component: try to extract width/height from state
-      if (width && width.type === "number") {
-        attributes["sizeAbsolute.x"] = width.value
-        attributes["sizeMode.x"] = 1
+      if (width && width.type === 'number') {
+        attributes['sizeAbsolute.x'] = width.value;
+        attributes['sizeMode.x'] = 1;
       }
 
-      if (height && height.type === "number") {
-        attributes["sizeAbsolute.y"] = height.value
-        attributes["sizeMode.y"] = 1
+      if (height && height.type === 'number') {
+        attributes['sizeAbsolute.y'] = height.value;
+        attributes['sizeMode.y'] = 1;
       }
     }
 
     // Convert the width attribute to our layout-friendly size property
     if (attributes.width !== undefined && attributes.width !== null) {
-      let widthProp = determineSizingProp("x", attributes.width)
+      const widthProp = determineSizingProp('x', attributes.width);
       if (widthProp) {
-        attributes[widthProp.name + ".x"] = widthProp.value
-        attributes["sizeMode.x"] = widthProp.mode
-        delete attributes.width // Strip off the old value which is no longer needed
+        attributes[widthProp.name + '.x'] = widthProp.value;
+        attributes['sizeMode.x'] = widthProp.mode;
+        delete attributes.width; // Strip off the old value which is no longer needed
       }
     }
 
     // Convert the height attribute to our layout-friendly size property
     if (attributes.height !== undefined && attributes.height !== null) {
-      let heightProp = determineSizingProp("y", attributes.height)
+      const heightProp = determineSizingProp('y', attributes.height);
       if (heightProp) {
-        attributes[heightProp.name + ".y"] = heightProp.value
-        attributes["sizeMode.y"] = heightProp.mode
-        delete attributes.height // Strip off the old value which is no longer needed
+        attributes[heightProp.name + '.y'] = heightProp.value;
+        attributes['sizeMode.y'] = heightProp.mode;
+        delete attributes.height; // Strip off the old value which is no longer needed
       }
     }
 
     // Now do the same for any sizing attributes that may be present on the style object
-    if (attributes.style && typeof attributes.style === "object") {
+    if (attributes.style && typeof attributes.style === 'object') {
       // Convert the style.width attribute to a layout-friendly size property
       if (
         attributes.style.width !== undefined &&
         attributes.style.width !== null
       ) {
-        let widthStyleProp = determineSizingProp("x", attributes.style.width)
+        const widthStyleProp = determineSizingProp('x', attributes.style.width);
         if (widthStyleProp) {
-          attributes[widthStyleProp.name + ".x"] = widthStyleProp.value
-          attributes["sizeMode.x"] = widthStyleProp.mode
-          delete attributes.style.width // Strip off the old value which is no longer needed
+          attributes[widthStyleProp.name + '.x'] = widthStyleProp.value;
+          attributes['sizeMode.x'] = widthStyleProp.mode;
+          delete attributes.style.width; // Strip off the old value which is no longer needed
         }
       }
 
@@ -126,40 +129,41 @@ export default function convertManaLayout(mana) {
         attributes.style.height !== undefined &&
         attributes.style.height !== null
       ) {
-        let heightStyleProp = determineSizingProp("y", attributes.style.height)
+        const heightStyleProp = determineSizingProp('y', attributes.style.height);
         if (heightStyleProp) {
-          attributes[heightStyleProp.name + ".y"] = heightStyleProp.value
-          attributes["sizeMode.y"] = heightStyleProp.mode
-          delete attributes.style.height // Strip off the old value which is no longer needed
+          attributes[heightStyleProp.name + '.y'] = heightStyleProp.value;
+          attributes['sizeMode.y'] = heightStyleProp.mode;
+          delete attributes.style.height; // Strip off the old value which is no longer needed
         }
       }
     }
 
     // If we have a transform attribute, we're in for a fun ride; we have to conver this to our layout system
     if (attributes.transform !== undefined && attributes.transform !== null) {
-      let transformAttributes = parseCssTransformString(attributes.transform)
+      const transformAttributes = parseCssTransformString(attributes.transform);
 
-      for (let transformAttributeName in transformAttributes) {
-        let transformValue = transformAttributes[transformAttributeName]
+      for (const transformAttributeName in transformAttributes) {
+        const transformValue = transformAttributes[transformAttributeName];
         if (!TRANSFORM_COMPONENT_WHITELIST[transformAttributeName]) {
           console.warn(
-            "Skipping transform attribute " +
+            'Skipping transform attribute ' +
               transformAttributeName +
-              " because it is not yet supported",
-          )
-          continue
+              ' because it is not yet supported',
+          );
+          continue;
         }
-        attributes[transformAttributeName] = transformValue
+        attributes[transformAttributeName] = transformValue;
       }
 
       // Strip off the old value which is no longer needed
-      delete attributes.transform
+      delete attributes.transform;
 
       // If the x/y attributes are present, they can interfere with the transform, so we strip them off
-      delete attributes.x
-      delete attributes.y
+      delete attributes.x;
+      delete attributes.y;
     }
-  }, null, null)
+  }, null, null);
 
-  return mana
+  return mana;
 }
+/* tslint:enable */

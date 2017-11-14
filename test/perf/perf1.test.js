@@ -12,7 +12,7 @@ test('perf1', function (t) {
       },
       function (done, delta) {
         console.log('[haiku player perf test] initial tick took ' + delta + ' vs baseline of 480')
-        t.equal(mount.outerHTML.length, 158806, 'html checksum ok')
+        t.equal(mount.outerHTML.length, 163438, 'html checksum ok')
         return setTimeout(done, 100)
       },
       function (done) {
@@ -21,7 +21,7 @@ test('perf1', function (t) {
       },
       function (done, delta) {
         console.log('[haiku player perf test] patch took ' + delta + ' vs baseline of 13')
-        t.equal(mount.outerHTML.length, 158806, 'html checksum ok')
+        t.equal(mount.outerHTML.length, 163438, 'html checksum ok')
         done()
       }
     ], teardown)

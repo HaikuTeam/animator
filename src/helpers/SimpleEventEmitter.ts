@@ -3,28 +3,37 @@
  */
 
 function create(instance) {
-  let registry = {}
-  let eavesdroppers = []
+  const registry = {};
+  const eavesdroppers = [];
 
   instance.on = function on(key, fn) {
-    if (!registry[key]) registry[key] = []
+    if (!registry[key]) {
+      registry[key] = [];
+    }
     // Check for dupes and ignore if this is one
     for (let i = 0; i < registry[key].length; i++) {
-      if (registry[key][i] === fn) return this
+      if (registry[key][i] === fn) {
+        return this;
+      }
     }
-    registry[key].push(fn)
-    return this
-  }
+    registry[key].push(fn);
+    return this;
+  };
 
   instance.off = function off(key, fn) {
-    let listeners = registry[key]
-    if (!listeners || listeners.length < 1) return this
-    for (let i = 0; i < listeners.length; i++) {
-      if (fn && listeners[i] === fn) listeners.splice(i, 1)
-      else listeners.splice(i, 1)
+    const listeners = registry[key];
+    if (!listeners || listeners.length < 1) {
+      return this;
     }
-    return this
-  }
+    for (let i = 0; i < listeners.length; i++) {
+      if (fn && listeners[i] === fn) {
+        listeners.splice(i, 1);
+      } else {
+        listeners.splice(i, 1);
+      }
+    }
+    return this;
+  };
 
   instance.emit = function emit(
     key,
@@ -54,7 +63,7 @@ function create(instance) {
     y,
     z,
   ) {
-    let listeners = registry[key]
+    const listeners = registry[key];
     if (listeners && listeners.length > 0) {
       for (let i = 0; i < listeners.length; i++) {
         listeners[i](
@@ -83,7 +92,7 @@ function create(instance) {
           x,
           y,
           z,
-        )
+        );
       }
     }
     if (eavesdroppers.length > 0) {
@@ -115,22 +124,22 @@ function create(instance) {
           x,
           y,
           z,
-        )
+        );
       }
     }
-    return this
-  }
+    return this;
+  };
 
   instance.hear = function hear(fn) {
-    eavesdroppers.push(fn)
-  }
+    eavesdroppers.push(fn);
+  };
 
-  instance._registry = registry
-  instance._eavesdroppers = eavesdroppers
+  instance._registry = registry;
+  instance._eavesdroppers = eavesdroppers;
 
-  return instance
+  return instance;
 }
 
 export default {
   create,
-}
+};

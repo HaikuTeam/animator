@@ -19,6 +19,7 @@ test('Layout3D.computeLayout', function (t) {
       origin: { x: 0, y: 0, z: 0 },
       translation: { x: 33, y: 0, z: 0 },
       rotation: { x: 0, y: 0, z: 0, w: 0 },
+      orientation: { x: 0, y: 0, z: 0, w: 0 },
       scale: { x: 1, y: 1, z: 1 },
       sizeProportional: { x: 0.5, y: 1, z: 1 },
       sizeMode: { x: 0, y: 0, z: 0 },

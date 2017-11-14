@@ -1,22 +1,5 @@
 {
-    "defaultSeverity": "error",
-    "extends": [
-        "tslint:recommended"
-    ],
-    "jsRules": {},
-    "rules": {
-      "semicolon": [true, "never"],
-      "curly": [false],
-      "prefer-const": [false],
-      "forin": [false],
-      "max-line-length": [true, 180],
-      "object-literal-sort-keys": [false],
-      "no-bitwise": [false],
-      "no-var-requires": [false],
-      "prefer-for-of": [false],
-      "only-arrow-functions": [false],
-      "no-console": [true, "log"],
-      "no-string-literal": [false]
-    },
-    "rulesDirectory": []
+  "extends": [
+    "tslint-config-haiku"
+  ]
 }

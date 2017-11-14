@@ -2,57 +2,69 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import getMaxTimeFromDescriptor from "./helpers/getTimelineMaxTime"
-import SimpleEventEmitter from "./helpers/SimpleEventEmitter"
-import assign from "./vendor/assign"
+import getTimelineMaxTime from './helpers/getTimelineMaxTime';
+import SimpleEventEmitter from './helpers/SimpleEventEmitter';
+import assign from './vendor/assign';
 
-const NUMBER = "number"
+const NUMBER = 'number';
 
 const DEFAULT_OPTIONS = {
   // loop: Boolean
   // Determines whether this timeline should loop (start at its beginning when finished)
   loop: true,
-}
+};
 
+// tslint:disable-next-line:function-name
 export default function HaikuTimeline(component, name, descriptor, options) {
-  SimpleEventEmitter.create(this)
+  SimpleEventEmitter.create(this);
 
-  this._component = component
-  this._name = name
-  this._descriptor = descriptor
+  this._component = component;
+  this._name = name;
+  this._descriptor = descriptor;
 
-  this.assignOptions(options || {})
+  this.assignOptions(options || {});
 
-  this._globalClockTime = 0
-  this._localElapsedTime = 0
-  this._localExplicitlySetTime = null // Only set this to a number if time is 'controlled'
-  this._maxExplicitlyDefinedTime = getMaxTimeFromDescriptor(descriptor)
+  this._globalClockTime = 0;
+  this._localElapsedTime = 0;
+  this._localExplicitlySetTime = null; // Only set this to a number if time is 'controlled'
+  this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
 
-  this._isActive = false
-  this._isPlaying = false
+  this._isActive = false;
+  this._isPlaying = false;
 }
 
 HaikuTimeline.prototype.assignOptions = function assignOptions(options) {
-  this.options = assign(this.options || {}, DEFAULT_OPTIONS, options || {})
-  return this
-}
+  this.options = assign(this.options || {}, DEFAULT_OPTIONS, options || {});
+  return this;
+};
 
 HaikuTimeline.prototype._ensureClockIsRunning = function _ensureClockIsRunning() {
-  let clock = this._component.getClock()
-  if (!clock.isRunning()) clock.start()
-  return this
-}
+  const clock = this._component.getClock();
+  if (!clock.isRunning()) {
+    clock.start();
+  }
+  return this;
+};
+
+/**
+ * @method _setComponent
+ * @description Internal hook to allow Haiku to hot swap on-stage components during editing.
+ */
+HaikuTimeline.prototype._setComponent = function _setComponent(component) {
+  this._component = component;
+  return this;
+};
 
 HaikuTimeline.prototype._updateInternalProperties = function _updateInternalProperties(
   updatedGlobalClockTime,
 ) {
-  let previousGlobalClockTime = this._globalClockTime
-  let deltaGlobalClockTime = updatedGlobalClockTime - previousGlobalClockTime
+  const previousGlobalClockTime = this._globalClockTime;
+  const deltaGlobalClockTime = updatedGlobalClockTime - previousGlobalClockTime;
 
-  this._globalClockTime = updatedGlobalClockTime
+  this._globalClockTime = updatedGlobalClockTime;
 
   if (this._isTimeControlled()) {
-    this._localElapsedTime = this._localExplicitlySetTime
+    this._localElapsedTime = this._localExplicitlySetTime;
   } else {
     // If we are a looping timeline, reset to zero once we've gone past our max
     if (
@@ -60,70 +72,70 @@ HaikuTimeline.prototype._updateInternalProperties = function _updateInternalProp
       this._localElapsedTime > this._maxExplicitlyDefinedTime
     ) {
       this._localElapsedTime =
-        0 + this._maxExplicitlyDefinedTime - this._localElapsedTime
+        0 + this._maxExplicitlyDefinedTime - this._localElapsedTime;
     }
-    this._localElapsedTime += deltaGlobalClockTime
+    this._localElapsedTime += deltaGlobalClockTime;
   }
 
   if (this.isFinished()) {
-    this._isPlaying = false
+    this._isPlaying = false;
   }
-}
+};
 
 HaikuTimeline.prototype._doUpdateWithGlobalClockTime = function _doUpdateWithGlobalClockTime(
   globalClockTime,
 ) {
   if (this.isFrozen()) {
-    this._updateInternalProperties(this._globalClockTime)
+    this._updateInternalProperties(this._globalClockTime);
   } else {
-    this._updateInternalProperties(globalClockTime)
+    this._updateInternalProperties(globalClockTime);
   }
 
   if (this.isActive() && this.isPlaying()) {
-    this._shout("tick")
+    this._shout('tick');
   }
 
-  this._shout("update")
+  this._shout('update');
 
-  return this
-}
+  return this;
+};
 
 HaikuTimeline.prototype._resetMaxDefinedTimeFromDescriptor = function _resetMaxDefinedTimeFromDescriptor(
   descriptor,
 ) {
-  this._maxExplicitlyDefinedTime = getMaxTimeFromDescriptor(descriptor)
-  return this
-}
+  this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
+  return this;
+};
 
 HaikuTimeline.prototype._isTimeControlled = function _isTimeControlled() {
-  return typeof this.getControlledTime() === NUMBER
-}
+  return typeof this.getControlledTime() === NUMBER;
+};
 
 HaikuTimeline.prototype._controlTime = function _controlTime(
   controlledTimeToSet,
   updatedGlobalClockTime,
 ) {
-  this._localExplicitlySetTime = parseInt(controlledTimeToSet || 0, 10)
+  this._localExplicitlySetTime = parseInt(controlledTimeToSet || 0, 10);
   // Need to update the properties so that accessors like .getFrame() work after this update.
-  this._updateInternalProperties(updatedGlobalClockTime)
-  return this
-}
+  this._updateInternalProperties(updatedGlobalClockTime);
+  return this;
+};
 
 /**
  * @method getName
  * @description Return the name of this timeline
  */
 HaikuTimeline.prototype.getName = function getName() {
-  return this._name
-}
+  return this._name;
+};
 
 /**
  * @method getMaxTime
  * @description Return the maximum time that this timeline will reach, in ms.
  */
 HaikuTimeline.prototype.getMaxTime = function getMaxTime() {
-  return this._maxExplicitlyDefinedTime
-}
+  return this._maxExplicitlyDefinedTime;
+};
 
 /**
  * @method getClockTime
@@ -132,8 +144,8 @@ HaikuTimeline.prototype.getMaxTime = function getMaxTime() {
  * This value is ultimately managed by the clock and passed in.
  */
 HaikuTimeline.prototype.getClockTime = function getClockTime() {
-  return this._globalClockTime
-}
+  return this._globalClockTime;
+};
 
 /**
  * @method getElapsedTime
@@ -142,8 +154,8 @@ HaikuTimeline.prototype.getClockTime = function getClockTime() {
  * Note that for inactive timelines, this value will cease increasing as of the last update.
  */
 HaikuTimeline.prototype.getElapsedTime = function getElapsedTime() {
-  return this._localElapsedTime
-}
+  return this._localElapsedTime;
+};
 
 /**
  * @method getControlledTime
@@ -151,8 +163,8 @@ HaikuTimeline.prototype.getElapsedTime = function getElapsedTime() {
  * be the number of that setting.
  */
 HaikuTimeline.prototype.getControlledTime = function getControlledTime() {
-  return this._localExplicitlySetTime
-}
+  return this._localExplicitlySetTime;
+};
 
 /**
  * @method getBoundedTime
@@ -162,11 +174,13 @@ HaikuTimeline.prototype.getControlledTime = function getControlledTime() {
  * in the renderer to determine what value to calculate "now" deterministically.
  */
 HaikuTimeline.prototype.getBoundedTime = function getBoundedTime() {
-  let max = this.getMaxTime()
-  let elapsed = this.getElapsedTime()
-  if (elapsed > max) return max
-  return elapsed
-}
+  const max = this.getMaxTime();
+  const elapsed = this.getElapsedTime();
+  if (elapsed > max) {
+    return max;
+  }
+  return elapsed;
+};
 
 /**
  * @method getTime
@@ -174,28 +188,28 @@ HaikuTimeline.prototype.getBoundedTime = function getBoundedTime() {
  * that this should return the elapsed time, though. #TODO
  */
 HaikuTimeline.prototype.getTime = function getTime() {
-  return this.getBoundedTime()
-}
+  return this.getBoundedTime();
+};
 
 /**
  * @method getBoundedFrame
  * @description Return the current frame up to the maximum frame available for this timeline's duration.
  */
 HaikuTimeline.prototype.getBoundedFrame = function getBoundedFrame() {
-  let time = this.getBoundedTime()
-  let timeStep = this._component.getClock().getFrameDuration()
-  return Math.round(time / timeStep)
-}
+  const time = this.getBoundedTime();
+  const timeStep = this._component.getClock().getFrameDuration();
+  return Math.round(time / timeStep);
+};
 
 /**
  * @method getUnboundedFrame
  * @description Return the current frame, even if it is above the maximum frame.
  */
 HaikuTimeline.prototype.getUnboundedFrame = function getUnboundedFrame() {
-  let time = this.getElapsedTime() // The elapsed time can go larger than the max time; see timeline.js
-  let timeStep = this._component.getClock().getFrameDuration()
-  return Math.round(time / timeStep)
-}
+  const time = this.getElapsedTime(); // The elapsed time can go larger than the max time; see timeline.js
+  const timeStep = this._component.getClock().getFrameDuration();
+  return Math.round(time / timeStep);
+};
 
 /**
  * @method getFrame
@@ -203,166 +217,168 @@ HaikuTimeline.prototype.getUnboundedFrame = function getUnboundedFrame() {
  * There's an argument that this should return the absolute frame. #TODO
  */
 HaikuTimeline.prototype.getFrame = function getFrame() {
-  return this.getBoundedFrame()
-}
+  return this.getBoundedFrame();
+};
 
 /**
  * @method isPlaying
  * @description Returns T/F if the timeline is playing
  */
 HaikuTimeline.prototype.isPlaying = function isPlaying() {
-  return !!this._isPlaying
-}
+  return !!this._isPlaying;
+};
 
 /**
  * @method isActive
  * @description Returns T/F if the timeline is active
  */
 HaikuTimeline.prototype.isActive = function isActive() {
-  return !!this._isActive
-}
+  return !!this._isActive;
+};
 
 /**
  * @method isFrozen
  * @description Returns T/F if the timeline is frozen
  */
 HaikuTimeline.prototype.isFrozen = function isFrozen() {
-  return !!this.options.freeze
-}
+  return !!this.options.freeze;
+};
 
 /**
  * @method isFinished
  * @description Returns T/F if the timeline is finished.
  * If this timeline is set to loop, it is never "finished".
  */
-HaikuTimeline.prototype.isFinished = function() {
-  if (this.options.loop) return false
-  return ~~this.getElapsedTime() > this.getMaxTime()
-}
+HaikuTimeline.prototype.isFinished = function () {
+  if (this.options.loop) {
+    return false;
+  }
+  return ~~this.getElapsedTime() > this.getMaxTime();
+};
 
 HaikuTimeline.prototype.duration = function duration() {
-  return this.getMaxTime() || 0
-}
+  return this.getMaxTime() || 0;
+};
 
 HaikuTimeline.prototype.getDuration = function getDuration() {
-  return this.duration()
-}
+  return this.duration();
+};
 
 HaikuTimeline.prototype.setRepeat = function setRepeat(bool) {
-  this.options.loop = bool
-  return this
-}
+  this.options.loop = bool;
+  return this;
+};
 
 HaikuTimeline.prototype.getRepeat = function getRepeat() {
-  return !!this.options.loop
-}
+  return !!this.options.loop;
+};
 
 HaikuTimeline.prototype.freeze = function freeze() {
-  this.options.freeze = true
-  return this
-}
+  this.options.freeze = true;
+  return this;
+};
 
 HaikuTimeline.prototype.unfreeze = function freeze() {
-  this.options.freeze = false
-  return this
-}
+  this.options.freeze = false;
+  return this;
+};
 
 HaikuTimeline.prototype._shout = function _shout(key) {
-  let frame = this.getFrame()
-  let time = Math.round(this.getTime())
-  let name = this.getName()
-  this.emit(key, frame, time)
-  this._component.emit("timeline:" + key, name, frame, time)
-  return this
-}
+  const frame = this.getFrame();
+  const time = Math.round(this.getTime());
+  const name = this.getName();
+  this.emit(key, frame, time);
+  this._component.emit('timeline:' + key, name, frame, time);
+  return this;
+};
 
 HaikuTimeline.prototype.start = function start(
   maybeGlobalClockTime,
   descriptor,
 ) {
-  this._localElapsedTime = 0
-  this._isActive = true
-  this._isPlaying = true
-  this._globalClockTime = maybeGlobalClockTime || 0
-  this._maxExplicitlyDefinedTime = getMaxTimeFromDescriptor(descriptor)
+  this._localElapsedTime = 0;
+  this._isActive = true;
+  this._isPlaying = true;
+  this._globalClockTime = maybeGlobalClockTime || 0;
+  this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
 
-  this._shout("start")
+  this._shout('start');
 
-  return this
-}
+  return this;
+};
 
 HaikuTimeline.prototype.stop = function stop(maybeGlobalClockTime, descriptor) {
-  this._isActive = false
-  this._isPlaying = false
-  this._maxExplicitlyDefinedTime = getMaxTimeFromDescriptor(descriptor)
+  this._isActive = false;
+  this._isPlaying = false;
+  this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
 
-  this._shout("stop")
+  this._shout('stop');
 
-  return this
-}
+  return this;
+};
 
 HaikuTimeline.prototype.pause = function pause() {
-  let time = this._component.getClock().getTime()
-  let descriptor = this._component._getTimelineDescriptor(this._name)
-  this.stop(time, descriptor)
+  const time = this._component.getClock().getTime();
+  const descriptor = this._component._getTimelineDescriptor(this._name);
+  this.stop(time, descriptor);
 
-  this._shout("pause")
+  this._shout('pause');
 
-  return this
-}
+  return this;
+};
 
-HaikuTimeline.prototype.play = function play(options) {
-  if (!options) options = {}
+HaikuTimeline.prototype.play = function play(requestedOptions) {
+  const options = requestedOptions || {};
 
-  this._ensureClockIsRunning()
+  this._ensureClockIsRunning();
 
-  let time = this._component.getClock().getTime()
-  let descriptor = this._component._getTimelineDescriptor(this._name)
-  let local = this._localElapsedTime
+  const time = this._component.getClock().getTime();
+  const descriptor = this._component._getTimelineDescriptor(this._name);
+  const local = this._localElapsedTime;
 
-  this.start(time, descriptor)
+  this.start(time, descriptor);
 
   if (this._localExplicitlySetTime !== null) {
-    this._localElapsedTime = this._localExplicitlySetTime
-    this._localExplicitlySetTime = null
+    this._localElapsedTime = this._localExplicitlySetTime;
+    this._localExplicitlySetTime = null;
   } else {
-    this._localElapsedTime = local
+    this._localElapsedTime = local;
   }
 
   if (!options.skipMarkForFullFlush) {
-    this._component._markForFullFlush(true)
+    this._component._markForFullFlush(true);
   }
 
-  this._shout("play")
+  this._shout('play');
 
-  return this
-}
+  return this;
+};
 
 HaikuTimeline.prototype.seek = function seek(ms) {
-  this._ensureClockIsRunning()
-  let clockTime = this._component.getClock().getTime()
-  this._controlTime(ms, clockTime)
-  let descriptor = this._component._getTimelineDescriptor(this._name)
-  this.start(clockTime, descriptor)
-  this._component._markForFullFlush(true)
+  this._ensureClockIsRunning();
+  const clockTime = this._component.getClock().getTime();
+  this._controlTime(ms, clockTime);
+  const descriptor = this._component._getTimelineDescriptor(this._name);
+  this.start(clockTime, descriptor);
+  this._component._markForFullFlush(true);
 
-  this._shout("seek")
+  this._shout('seek');
 
-  return this
-}
+  return this;
+};
 
 HaikuTimeline.prototype.gotoAndPlay = function gotoAndPlay(ms) {
-  this._ensureClockIsRunning()
-  this.seek(ms)
-  this.play()
-  return this
-}
+  this._ensureClockIsRunning();
+  this.seek(ms);
+  this.play();
+  return this;
+};
 
 HaikuTimeline.prototype.gotoAndStop = function gotoAndStop(ms) {
-  this._ensureClockIsRunning()
-  this.seek(ms)
-  return this
-}
+  this._ensureClockIsRunning();
+  this.seek(ms);
+  return this;
+};
 
 /**
  * TODO:

@@ -2,10 +2,10 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import applyLayout from "./applyLayout"
-import createTagNode from "./createTagNode"
-import createTextNode from "./createTextNode"
-import isTextNode from "./isTextNode"
+import applyLayout from './applyLayout';
+import createTagNode from './createTagNode';
+import createTextNode from './createTextNode';
+import isTextNode from './isTextNode';
 
 export default function appendChild(
   alreadyChildElement,
@@ -14,19 +14,19 @@ export default function appendChild(
   parentVirtualElement,
   component,
 ) {
-  let domElementToInsert
+  let domElementToInsert;
   if (isTextNode(virtualElement)) {
     domElementToInsert = createTextNode(
       parentDomElement,
       virtualElement,
-    )
+    );
   } else {
     domElementToInsert = createTagNode(
       parentDomElement,
       virtualElement,
       parentVirtualElement,
       component,
-    )
+    );
   }
 
   applyLayout(
@@ -37,8 +37,8 @@ export default function appendChild(
     component,
     null,
     null,
-  )
+  );
 
-  parentDomElement.appendChild(domElementToInsert)
-  return domElementToInsert
+  parentDomElement.appendChild(domElementToInsert);
+  return domElementToInsert;
 }

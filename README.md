@@ -1,72 +1,159 @@
-# Haiku Player
+# Haiku Player [![Build Status](https://travis-ci.com/HaikuTeam/player.svg?branch=master)](https://travis-ci.com/HaikuTeam/player)
 
-Haiku Player is a fast, flexible, and declarative JavaScript framework for building user interfaces. Inspired by some great ideas from [React](https://facebook.github.io/react/), [Famous](https://github.com/famous/famous/), and [Angular](https://angular.io), it rolls a handful of powerful concepts and techniques from modern UI development into one fast, efficient, and flexible system.
+The Haiku Player &mdash;  
+user interface engine  
+for SVG, DOM  
 
-* Component architecture: Haiku Player sees UIs as hierarchies of stateful components. Components can be built in isolation, then snapped together. Our declarative [component](#components) format makes it easy to craft and reason about UI behavior.
 
-* 2.5D layout engine + scene graph: Haiku Player follows game engines' lead and organizes your component hierarchy into a scene graph. Every element on stage, from menus to forms to primitives like lines and text, may be independently [transformed](#layout) and animated in space.
+<p align="center">
+  <img width="320" src="https://github.com/HaikuTeam/player/blob/master/haiku.png">
+</p>
 
-* Built for motion: Animation can turn an average user experience into a delightful one. So we made animation the heart of Haiku Player. Every transition is grouped into a [timeline](#timelines), allowing behavior across multiple elements and properties to be orchestrated using a clean, easy-to-grok syntax.
 
-* Integration ready: We built Haiku Player with [integrations](#integrations) in mind, and it can run within any JavaScript application, even on the server side within Node.js. We also expose a low-level [programmatic API](#programmatic-api) so you can hack or extend the player any way you wish.
+[![NPM](https://nodei.co/npm/@haiku/player.png)](https://nodei.co/npm/@haiku/player/)
 
-Haiku Player is ultimately the bedrock of [Haiku](https://haiku.ai), our Mac desktop app for crafting interactive, animated UI components for the web. Every scene built in Haiku Desktop is really a simple JavaScript component with the Haiku Player running under the hood.
+## Beta
+
+Caution: Haiku Player is in beta. Expect turbulence until we arrive at cruising altitude.
 
 ## Installation
 
-You can install Haiku Player via yarn:
+yarn:
 
-    $ yarn install @haiku/player
+    $ yarn add @haiku/player
 
-Note that `react` and `react-dom` are `peerDependencies` of Haiku Player. They are only necessary if you intend to use the React adapter (e.g., if you are importing  a Haiku component into a React codebase via `import MyComponent from '@haiku/my-component/react'`). These dependencies either need to be explicit `dependencies` of the host project, or installed manually:
+npm:
 
-    $ yarn install react@15.4.2 react-dom@15.4.2
+    $ npm install @haiku/player
 
-Warning: Haiku Player is in beta. Expect breaking changes to occur frequently and without advance notice or deprecation warnings. (We are a small team and often need to modify Haiku Player to meet the needs of [Haiku](https://haiku.ai) on the fly; we hope to be able to put more maintainance toward Haiku Player as a standalone engine in the near future.)
+cdn:
 
-## Usage / API Docs
+    <!-- latest version (use caution!) -->
+    <script src="https://code.haiku.ai/scripts/player/HaikuPlayer.latest.js"></script>
 
-Please see [docs.haiku.ai](https://docs.haiku.ai).
+    <!-- specific version -->
+    <script src="https://code.haiku.ai/scripts/player/HaikuPlayer.VERSION.js"></script>
 
-## Contributing
+Note: Haiku Player is auto-installed in every [Haiku](https://haiku.ai) project.
 
-Although contributions are always encouraged via [pull request](https://github.com/HaikuTeam/player/pulls), know that we may need to decline pull requests that we deem to be in conflict with our future plans for [Haiku](https://haiku.ai), which is always our top priority. Feel free to open a [GitHub Issue](https://github.com/HaikuTeam/player/issues) if you'd like to ask for our thoughts about adding a feature before you start.
+## Usage
 
-Before submitting a pull request, make sure to run the [tests](#tests) and [linter](#tests).
+Simple:
 
-## Development
+    import HaikuPlayer from "@haiku/player/dom";
+    const definition = { template: `<div>Hello Haiku!</div>` };
+    const factory = HaikuPlayer(definition);
+    const component = factory(document.getElementById("mount"));
 
-To develop Haiku Player locally, you should:
+Animated:
 
-1. `git clone git@github.com:HaikuTeam/player.git && cd player`
-2. `yarn install`
-3. `yarn add react@15.4.2 react-dom@15.4.2` (required for the React adapter)
-4. `yarn start`
+    import HaikuPlayer from "@haiku/player/dom";
+    const definition = {
+      timelines: {
+        Default: {
+          "#box": {
+            "style.width": { 0: { value: "100px" }},
+            "style.height": { 0: { value: "100px" }},
+            "style.backgroundColor": { 0: { value: "red" }},
+            "rotation.z": {
+              0: { value: 0, curve: "linear" },
+              1000: { value: 3.14159 },
+            },
+          },
+        },
+      },
+      template: `
+        <div id="box">Hello Animation!</div>
+      `,
+    };
+    const factory = HaikuPlayer(definition);
+    const component = factory(document.getElementById("mount"));
 
-A local development server should start running on [localhost:3000](http://localhost:3000). A listing of visual test cases should be displayed, which you can browse through to verify that features are working.
+Interactive:
 
-Compile the Typescript with:
+    import HaikuPlayer from "@haiku/player/dom";
+    const definition = {
+      options: {
+        autoplay: false,
+      },
+      states: {
+        clicks: {
+          value: 0,
+        },
+      },
+      eventHandlers: {
+        "#box": {
+          "click": {
+            handler: function () {
+              this.state.clicks += 1;
+              this.getTimeline("Default").play();
+            },
+          },
+        },
+      },
+      timelines: {
+        Default: {
+          "#box": {
+            "content": { 0: { 
+              value: function (clicks) {
+                return clicks + "";
+              },
+            }},
+            "style.width": { 0: { value: "100px" }},
+            "style.height": { 0: { value: "100px" }},
+            "style.backgroundColor": { 0: { value: "red" }},
+            "rotation.z": {
+              0: { value: 0, curve: "linear" },
+              1000: { value: 3.14159 },
+            },
+          },
+        },
+      },
+      template: `
+        <div id="box"></div>
+      `,
+    };
+    const factory = HaikuPlayer(definition);
+    const component = factory(document.getElementById("mount"));
 
-    $ yarn run compile
+## Motivation / Goals
 
-## Tests
+With so many great UI libraries out there, why build this engine? Haiku Player is the bedrock of [the Haiku app platform](https://haiku.ai), and although we experimented with many existing libraries to meet its needs, in each case we found the architecture or goals mismatched. We opted to build an engine that would serve our plans exactly.
 
-Run the tests with:
+Conceptually, Haiku Player transforms static component definitions (see above) into animated, interactive UIs. It organizes designed elements into a scene graph in which every node can be transformed in 2.5D space. It also serves as a translation layer between [the Haiku app platform](https://haiku.ai) and rendering APIs (e.g., the browser).
 
-    $ yarn test
+## API / Docs
 
-Lint (and auto-format) the code with:
+Complete docs are on the way. Until then, see [docs.haiku.ai](https://docs.haiku.ai).
 
-    $ yarn run lint
-
-## Bugs, feature requests, troubleshooting
+## Bugs / Feature Requests / Troubleshooting
 
 Please use [GitHub Issues](https://github.com/HaikuTeam/player/issues).
 
-## License
+## Contributing
 
-Please refer to LICENSE.txt.
+Please send contributions via [pull request](https://github.com/HaikuTeam/player/pulls).
 
-## Copyright
+## Development
 
-Copyright (c) 2017 Haiku. All rights reserved.
+To develop Haiku Player locally:
+
+1. Fork the repo
+2. `yarn install`
+3. `yarn add react@15.4.2 react-dom@15.4.2` (for the React adapter)
+
+Compile with:
+
+    $ yarn run compile
+
+Test with:
+
+    $ yarn test
+
+Find formatting problems with:
+
+    $ yarn run lint
+
+## License / Copyright
+
+MIT. Please refer to LICENSE.txt. Copyright (c) 2016-2017 Haiku Systems Inc.

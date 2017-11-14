@@ -3,6 +3,7 @@ var async = require('async')
 var HaikuDOMAdapter = require('./../lib/adapters/dom').default
 var HaikuDOMRenderer = require('./../lib/renderers/dom').default
 var HaikuContext = require('./../lib/HaikuContext').default
+var HaikuGlobal = require('./../lib/HaikuGlobal').default
 
 var TestHelpers = {}
 
@@ -21,7 +22,7 @@ function createDOM (cb) {
   mount.style.width = '800px'
   mount.style.height = '600px'
   global.window.document.body.appendChild(mount)
-  return cb(null, win, mount)
+  return cb(null, win, mount, HaikuGlobal)
 }
 
 function createRenderTest (template, cb) {
