@@ -13,9 +13,14 @@ const processOptions = { cwd: ROOT, stdio: 'inherit' }
 
 // The set of all projects we want to open source.
 const openSourceProjects = new Set(['haiku-player', 'haiku-cli'])
-const openSourcePackages = getPackages(Array.from(openSourceProjects))
+
+// Bump semver in all projects, plus their @haiku/* dependencies, and commit.
+cp.execSync(`node ./scripts/semver.js --non-interactive`, processOptions)
+cp.execSync(`git add -u`, processOptions)
+cp.execSync(`git commit -m "auto: Bumps semver."`, processOptions)
 
 // Pull in the set of dependencies recursively.
+const openSourcePackages = getPackages(Array.from(openSourceProjects))
 const processedDependencies = new Set()
 let foundNewDeps
 do {
@@ -49,11 +54,6 @@ if (!argv['no-pull']) {
     cp.execSync(`node ./scripts/git-subtree-pull.js --package=${pack.name}`, processOptions)
   })
 }
-
-// Bump semver in all projects, plus their @haiku/* dependencies, and commit.
-cp.execSync(`node ./scripts/semver.js --non-interactive`, processOptions)
-cp.execSync(`git add -u`, processOptions)
-cp.execSync(`git commit -m "auto: Bumps semver."`, processOptions)
 
 // Regenerate changelog and push to remote.
 cp.execSync(`node ./scripts/changelog.js`, processOptions)
