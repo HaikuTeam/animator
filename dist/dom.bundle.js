@@ -10247,7 +10247,7 @@ exports["default"] = parse;
 },{}],166:[function(_dereq_,module,exports){
 module.exports={
   "name": "@haiku/player",
-  "version": "2.3.23",
+  "version": "2.3.24",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
