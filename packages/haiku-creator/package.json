@@ -2,7 +2,7 @@
   "name": "haiku-creator-electron",
   "productName": "Haiku",
   "private": true,
-  "version": "2.3.22",
+  "version": "2.3.23",
   "description": "Haiku Creator UI",
   "main": "index.js",
   "author": "Matthew Trost <matthew@haiku.ai>",
@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@haiku/player": "HaikuTeam/player.git",
-    "@haiku/zack2-checktutorial": "2.3.22",
+    "@haiku/zack2-checktutorial": "2.3.23",
     "async": "2.1.4",
     "better-react-spinkit": "2.0.0-4",
     "color": "1.0.3",
