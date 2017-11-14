@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.22
+
+### Bug Fixes
+
+ * Add proper bin file with necessary node shebang
+
 ## 2.3.21
 
 ### Bug Fixes
