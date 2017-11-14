@@ -29,7 +29,7 @@ if (pkg === 'changelog') {
   try {
     var cmd = `git subtree push --squash --prefix ${changelog.name} ${changelog.remote} ${branch}`
     log.log(cmd)
-    // cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
+    cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
   } catch (exception) {
     log.log(exception.message)
   }
