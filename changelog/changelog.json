@@ -3159,5 +3159,12 @@
       "label": "fix",
       "message": "Install react peer dep before running compile"
     }
+  },
+  "2.3.24": {
+    "0ef9949dd91398258e8a999d57a4dc8d2a512fd2": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Missed these dependency naming changes"
+    }
   }
 }

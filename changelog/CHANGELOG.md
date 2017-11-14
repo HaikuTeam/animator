@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.24
+
+### Bug Fixes
+
+ * Missed these dependency naming changes
+
 ## 2.3.23
 
 ### Bug Fixes
