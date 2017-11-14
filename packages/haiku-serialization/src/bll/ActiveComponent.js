@@ -19,15 +19,17 @@ const getDefinedKeys = require('./helpers/getDefinedKeys')
 const getHaikuKnownImportMatch = require('./helpers/getHaikuKnownImportMatch')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 const { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
+const {
+  InteractionMode,
+  isPreviewMode
+} = require('@haiku/player/lib/helpers/interactionModes')
 
 const WEBSOCKET_BATCH_INTERVAL = 250
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 500
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_SCENE_NAME = 'main' // e.g. code/main/*
-const DEFAULT_INTERACTION_MODE = {
-  type: 'edit' // I.e., the player shouldn't respond to events, etc. (live/edit)
-}
+const DEFAULT_INTERACTION_MODE = InteractionMode.EDIT
 
 /**
  * @class ActiveComponent
@@ -421,27 +423,33 @@ class ActiveComponent extends BaseModel {
     return this._stageTransform
   }
 
+   isPreviewModeActive () {
+     return isPreviewMode(this._interactionMode)
+   }
+
+  /**
+  * @method setInteractionMode
+  * @description Changes the current interaction mode and flushes all cachés
+  */
   setInteractionMode (modeOptions, metadata, cb) {
     this._interactionMode = modeOptions || DEFAULT_INTERACTION_MODE
-
-    if (metadata.from === this.alias) {
-      this.websocket.send({ type: 'action', method: 'setInteractionMode', params: [this.folder, modeOptions] })
-    }
-
     this.instance.assignConfig({
       options: {
         interactionMode: this._interactionMode
       }
     })
-
     this.clearCaches()
     this.forceFlush()
     this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'setInteractionMode')
 
-    return cb()
+    // FIXME: for some reason sometimes the `metadata` argument is missing
+    if (typeof metadata === 'function') return metadata()
+    if (typeof cb === 'function') return cb()
   }
 
   instantiateComponent (relpath, posdata, metadata, cb) {
+    if (this.isPreviewModeActive()) return cb()
+
     const coords = {
       x: 0,
       y: 0
@@ -1415,7 +1423,7 @@ class ActiveComponent extends BaseModel {
             previousComponentInstance._deactivate()
           }
 
-          this.instance = updatedHaikuComponentFactory(this.getMount(), lodash.assign({}, {
+          this.instance = updatedHaikuComponentFactory(this.getMount(), lodash.merge({}, {
             options: {
               contextMenu: 'disabled', // Don't show the right-click context menu since our editing tools use right-click
               overflowX: 'visible',

@@ -583,14 +583,8 @@ export default class Master extends EventEmitter {
     return this._component.readAllEventHandlers.apply(this._component, params.concat(cb))
   }
 
-  setInteractionMode (message, cb) {
-    // this is a no-op in master
-    return cb()
-  }
-
-  previewProject ({ params: [projectName, previewOptions = {}] }, cb) {
-    // TODO: Create preview.html and launch in the user's browser
-    return cb(new Error('[master] Method not yet implemented'))
+  setInteractionMode ({ params }, cb) {
+    return this._component.setInteractionMode.apply(this._component, params.concat(cb))
   }
 
   /**

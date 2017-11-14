@@ -5,5 +5,9 @@
   "LottieExportOnPublish": {
     "development": true,
     "production": true
+  },
+  "PreviewMode": {
+    "test": true,
+    "development": true
   }
 }

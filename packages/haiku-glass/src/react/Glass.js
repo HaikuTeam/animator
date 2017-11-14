@@ -259,6 +259,7 @@ export class Glass extends React.Component {
     // Pasteable things are stored at the global level in the clipboard but we need that action to fire from the top level
     // so that all the views get the message, so we emit this as an event and then wait for the call to pasteThing
     document.addEventListener('paste', (pasteEvent) => {
+      if (this.isPreviewMode()) return void(0)
       // Notify creator that we have some content that the person wishes to paste on the stage;
       // the top level needs to handle this because it does content type detection.
       pasteEvent.preventDefault()
@@ -270,12 +271,17 @@ export class Glass extends React.Component {
       })
     })
 
-    document.addEventListener('cut', () => { this.handleVirtualClipboard('cut') })
-    document.addEventListener('copy', () => { this.handleVirtualClipboard('copy') })
+    document.addEventListener('cut', () => {
+      this.handleVirtualClipboard('cut')
+    })
+    document.addEventListener('copy', () => {
+      this.handleVirtualClipboard('copy')
+    })
 
     // This fires when the context menu cut/copy action has been fired - not a keyboard action.
     // This fires with cut OR copy. In case of cut, the element has already been .cut()!
     this._component.on('element:copy', (element) => {
+      if (this.isPreviewMode()) return
       this.setLastSelectedElement(element)
       this.handleVirtualClipboard('copy')
     })
@@ -360,6 +366,7 @@ export class Glass extends React.Component {
     // Pasteable things are stored at the global level in the clipboard but we need that action to fire from the top level
     // so that all the views get the message, so we emit this as an event and then wait for the call to pasteThing
     this._ctxmenu.on('current-pasteable:request-paste', (data) => {
+      if (this.isPreviewMode()) return
       // Note that if you're running 'glass only' this isn't going to work since you don't have
       // access to the other views; TODO mock this
       this.props.websocket.send({
@@ -401,6 +408,8 @@ export class Glass extends React.Component {
 
   handleVirtualClipboard (clipboardAction, maybeClipboardEvent) {
     if (
+      // Avoid any interaction in preview mode
+      this.isPreviewMode() ||
       // Avoid infinite loops due to the way we leverage execCommand
       this._clipboardActionLock ||
       // Avoid interfering with cut/copy events in the events editor
@@ -438,6 +447,8 @@ export class Glass extends React.Component {
   }
 
   showEventHandlersEditor (clickEvent, targetElement) {
+    if (this.isPreviewMode()) return void (0)
+
     this.setState({
       targetElement: targetElement,
       isEventHandlerEditorOpen: true
@@ -445,6 +456,8 @@ export class Glass extends React.Component {
   }
 
   hideEventHandlersEditor () {
+    if (this.isPreviewMode()) return void (0)
+
     this.setState({
       targetElement: null,
       isEventHandlerEditorOpen: false
@@ -653,11 +666,13 @@ export class Glass extends React.Component {
   }
 
   handleDragStart (cb) {
+    if (this.isPreviewMode()) return void (0)
     this.state.isMouseDragging = true
     this.setState({ isMouseDragging: true }, cb)
   }
 
   handleDragStop (cb) {
+    if (this.isPreviewMode()) return void (0)
     this.state.isMouseDragging = false
     this.setState({ isMouseDragging: false }, cb)
   }
@@ -1194,7 +1209,7 @@ export class Glass extends React.Component {
   }
 
   isPreviewMode () {
-    return this._component._interactionMode.type === 'live'
+    return this._component.isPreviewModeActive()
   }
 
   getCursorCssRule () {
@@ -1215,7 +1230,7 @@ export class Glass extends React.Component {
           top: mount.y,
           width: mount.w,
           height: mount.h,
-          overflow: 'visible',
+          overflow: this.isPreviewMode() ? 'hidden' : 'visible',
           zIndex: 60,
           opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
         }} />

@@ -4,6 +4,7 @@
 
 import HaikuHelpers from './HaikuHelpers';
 import BasicUtils from './helpers/BasicUtils';
+import {isPreviewMode} from './helpers/interactionModes';
 import parsers from './properties/dom/parsers';
 import schema from './properties/dom/schema';
 import enhance from './reflection/enhance';
@@ -249,13 +250,19 @@ INJECTABLES['$player'] = {
         out.timeline.time = {};
       }
       out.timeline.time.apparent = timelineInstance.getTime();
-      out.timeline.time.elapsed = timelineInstance.getElapsedTime();
+      out.timeline.time.elapsed =
+        isPreviewMode(hostInstance.config.options.interactionMode)
+        ? timelineInstance.getElapsedTime()
+        : out.timeline.time.apparent;
       out.timeline.time.max = timelineInstance.getMaxTime();
       if (!out.timeline.frame) {
         out.timeline.frame = {};
       }
       out.timeline.frame.apparent = timelineInstance.getFrame();
-      out.timeline.frame.elapsed = timelineInstance.getUnboundedFrame();
+      out.timeline.frame.elapsed =
+      isPreviewMode(hostInstance.config.options.interactionMode)
+        ? timelineInstance.getUnboundedFrame()
+        : out.timeline.frame.apparent;
     }
     const clockInstance = hostInstance.getClock();
     if (clockInstance) {
@@ -268,7 +275,10 @@ INJECTABLES['$player'] = {
         out.clock.time = {};
       }
       out.clock.time.apparent = clockInstance.getExplicitTime();
-      out.clock.time.elapsed = clockInstance.getRunningTime();
+      out.clock.time.elapsed =
+        isPreviewMode(hostInstance.config.options.interactionMode)
+        ? clockInstance.getRunningTime()
+        : out.clock.time.apparent;
     }
   },
 };
@@ -497,7 +507,21 @@ INJECTABLES['$element'] = {
 INJECTABLES['$user'] = {
   schema: assign({}, EVENT_SCHEMA),
   summon(injectees, summonSpec, hostInstance, matchingElement) {
-    injectees.$user = hostInstance._context._getGlobalUserState();
+    if (isPreviewMode(hostInstance.config.options.interactionMode)) {
+      injectees.$user = hostInstance._context._getGlobalUserState();
+    } else {
+      injectees.$user = {
+        mouse: {
+          x: 0,
+          y: 0,
+          down: 0,
+          buttons: [0, 0, 0],
+        },
+        keys: {},
+        touches: {},
+        mouches: {},
+      };
+    }
   },
 };
 
@@ -724,8 +748,17 @@ export default function ValueBuilder(component) {
   this._summonees = {};
   this._evaluations = {};
 
-  HaikuHelpers.register('now', () => this._component._context.getDeterministicTime());
-  HaikuHelpers.register('rand', () => this._component._context.getDeterministicRand());
+  HaikuHelpers.register('now', () => {
+    isPreviewMode(this._component.config.options.interactionMode)
+      ? this._component._context.getDeterministicTime()
+      : 0;
+  });
+
+  HaikuHelpers.register('rand', () => {
+    isPreviewMode(this._component.config.options.interactionMode)
+      ? this._component._context.getDeterministicRand()
+      : 0;
+  });
 }
 
 function cc(obj, timelineName, flexId, propertyKeys) {

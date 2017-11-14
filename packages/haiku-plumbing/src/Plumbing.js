@@ -799,13 +799,9 @@ export default class Plumbing extends StateObject {
     return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions], cb)
   }
 
-  previewProject (folder, projectName, previewOptions, cb) {
-    if (!previewOptions) previewOptions = {}
-    if (!previewOptions.authorName) previewOptions.authorName = this.get('username')
-    if (!previewOptions.organizationName) previewOptions.organizationName = this.get('organizationName')
-    logger.info('[plumbing] previewing with options', previewOptions)
-    return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'previewProject', [projectName, previewOptions], cb)
-  }
+  // setInteractionMode (folder, interactionMode, cb) {
+  //   return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'setInteractionMode', [interactionMode], cb)
+  // }
 
   fetchProjectInfo (folder, projectName, maybeUsername, maybePassword, fetchOptions, cb) {
     if (!fetchOptions) fetchOptions = {}

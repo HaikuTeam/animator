@@ -9,6 +9,8 @@ import Color from 'color'
 import { BTN_STYLES } from '../styles/btnShared'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import ToolSelector from './ToolSelector'
+import Toggle from './Toggle'
+import {InteractionMode} from 'haiku-common/lib/interaction-modes'
 import {
   PublishSnapshotSVG,
   ConnectionIconSVG,
@@ -113,6 +115,9 @@ const STYLES = {
     color: Palette.ROCK,
     cursor: 'default',
     fontStyle: 'italic'
+  },
+  previewToggle: {
+    float: 'right',
   }
 }
 
@@ -446,6 +451,16 @@ class StageTitleBar extends React.Component {
     return BTN_STYLES.btnIconHover
   }
 
+  togglePreviewMode (checked) {
+    const interaction = checked ? InteractionMode.EDIT : InteractionMode.LIVE
+
+    this.props.websocket.action(
+      'setInteractionMode',
+      [this.props.folder, interaction],
+      () => {}
+    )
+  }
+
   render () {
     const { showSharePopover } = this.state
     const titleText = this.state.showCopied
@@ -462,6 +477,7 @@ class StageTitleBar extends React.Component {
           place='below'
           isOpen={showSharePopover}
           style={{zIndex: 2}}
+          className='publish-popover'
           body={
             <PopoverBodyRadiumized
               parent={this}
@@ -483,6 +499,14 @@ class StageTitleBar extends React.Component {
             {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
           </button>
         </Popover>
+
+        {
+          experimentIsEnabled(Experiment.PreviewMode) &&
+          <Toggle
+            onToggle={this.togglePreviewMode.bind(this)}
+            style={STYLES.previewToggle}
+          />
+        }
 
         {this.renderMergeConflictResolutionArea()}
         <button onClick={this.handleConnectionClick} style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover, STYLES.hide]} key='connect'>
