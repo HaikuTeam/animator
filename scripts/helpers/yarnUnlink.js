@@ -23,7 +23,12 @@ module.exports = {
           }
 
           log.log('yarn unlinking ' + depName + ' from project ' + pack.name)
-          cp.exec('yarn unlink ' + depName, {cwd: pack.abspath}, nextDepType)
+          cp.exec('yarn unlink ' + depName, {cwd: pack.abspath}, (err) => {
+            if (err) {
+              console.warn(`Error during yarn unlink: ${err}`)
+            }
+            nextDepType()
+          })
         }, next)
       }, next)
     }, function (err) {
