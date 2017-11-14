@@ -4,6 +4,9 @@ node_modules
 *.*log
 build
 *.ignore.*
+
 .nyc_output/
 coverage/
+
 lib/
+dist/
