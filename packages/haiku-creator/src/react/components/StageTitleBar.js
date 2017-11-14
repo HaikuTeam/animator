@@ -10,7 +10,7 @@ import { BTN_STYLES } from '../styles/btnShared'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import ToolSelector from './ToolSelector'
 import Toggle from './Toggle'
-import {InteractionMode} from 'haiku-common/lib/interaction-modes'
+import {InteractionMode} from '@haiku/player/lib/helpers/interactionModes'
 import {
   PublishSnapshotSVG,
   ConnectionIconSVG,
