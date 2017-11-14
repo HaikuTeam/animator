@@ -2,6 +2,22 @@
 # yarn lockfile v1
 
 
+"@haiku/sdk-client@2.3.23":
+  version "2.3.23"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fsdk-client/-/sdk-client-2.3.23.tgz#0edae089d61542feee0b6a740b7d2a68b3f93c47"
+  dependencies:
+    lodash "^4.17.4"
+    mkdirp "^0.5.1"
+    request "^2.79.0"
+
+"@haiku/sdk-inkstone@2.3.23":
+  version "2.3.23"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fsdk-inkstone/-/sdk-inkstone-2.3.23.tgz#22ec1e99dfee75148485f898815fd4b05e52bd48"
+  dependencies:
+    lodash "^4.17.4"
+    mkdirp "^0.5.1"
+    request "^2.79.0"
+
 "@types/chalk@^0.4.31":
   version "0.4.31"
   resolved "https://registry.yarnpkg.com/@types/chalk/-/chalk-0.4.31.tgz#a31d74241a6b1edbb973cf36d97a2896834a51f9"
@@ -949,22 +965,6 @@ globals@^9.18.0:
 graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.6:
   version "4.1.11"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
-
-haiku-sdk-client@HaikuTeam/sdk-client.git:
-  version "2.3.7"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-client.git#c9cea6ad5bfd041ba80d249d80b9e71697011f9a"
-  dependencies:
-    lodash "^4.17.4"
-    mkdirp "^0.5.1"
-    request "^2.79.0"
-
-haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git:
-  version "2.3.7"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#48653dfe10862249980763a56a20681b85e7cec6"
-  dependencies:
-    lodash "^4.17.4"
-    mkdirp "^0.5.1"
-    request "^2.79.0"
 
 handlebars@^4.0.3:
   version "4.0.11"
@@ -2284,9 +2284,9 @@ tslint-config-airbnb@^5.3.0:
     tslint-microsoft-contrib "^5.0.0"
     vrsource-tslint-rules "^5.1.0"
 
-tslint-config-haiku@HaikuTeam/tslint-config-haiku.git:
+tslint-config-haiku@^1.0.0:
   version "1.0.0"
-  resolved "git+ssh://git@github.com/HaikuTeam/tslint-config-haiku.git#7a2473273be0104503a5d6604625b85529ae9dea"
+  resolved "https://registry.yarnpkg.com/tslint-config-haiku/-/tslint-config-haiku-1.0.0.tgz#914c3e932f280a00e02cc87d003daf0f1e4097a0"
   dependencies:
     tslint-config-airbnb "^5.3.0"
 
