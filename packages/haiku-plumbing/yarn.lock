@@ -2,12 +2,32 @@
 # yarn lockfile v1
 
 
-"@haiku/player@2.3.19":
-  version "2.3.19"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.19.tgz#0fbb5988b95ad575ecb6e7e84a5eb67e3da2b6d7"
+"@haiku/cli@HaikuTeam/cli.git":
+  version "2.3.24"
+  resolved "git+ssh://git@github.com/HaikuTeam/cli.git#34f186836dc8bbaeb735588c04f13ec7a2f2c1d3"
+  dependencies:
+    "@haiku/sdk-client" "2.3.24"
+    "@haiku/sdk-inkstone" "2.3.24"
+    async "^2.5.0"
+    chalk "^1.1.3"
+    cli-color "^1.1.0"
+    dedent "^0.6.0"
+    fs-extra "^4.0.2"
+    hasbin "^1.2.3"
+    inquirer "^2.0.0"
+    lodash "^4.17.4"
+    mkdirp "^0.5.1"
+    prepend-file "^1.3.1"
+    request "^2.79.0"
+    semver "^5.4.1"
+    tail "^1.2.1"
+    yargs "^6.6.0"
+
+"@haiku/player@2.3.24":
+  version "2.3.24"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.24.tgz#f176e50de11b17d021005674b2cacfb3d13ea990"
   dependencies:
     lodash "^4.17.4"
-    react "15.4.2"
 
 "@haiku/player@2.3.6":
   version "2.3.6"
@@ -22,6 +42,38 @@
   dependencies:
     lodash "^4.17.4"
     react "15.4.2"
+
+"@haiku/sdk-client@2.3.24":
+  version "2.3.24"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fsdk-client/-/sdk-client-2.3.24.tgz#93fa0491476b4fa080888ee1c68c28374400bb21"
+  dependencies:
+    lodash "^4.17.4"
+    mkdirp "^0.5.1"
+    request "^2.79.0"
+
+"@haiku/sdk-client@HaikuTeam/sdk-client.git":
+  version "2.3.24"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-client.git#b2f02698bd396e972759eee451a75618a06819f6"
+  dependencies:
+    lodash "^4.17.4"
+    mkdirp "^0.5.1"
+    request "^2.79.0"
+
+"@haiku/sdk-inkstone@2.3.24":
+  version "2.3.24"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fsdk-inkstone/-/sdk-inkstone-2.3.24.tgz#52802d23834c7e3e322ba48b57ac2a1feef34a5c"
+  dependencies:
+    lodash "^4.17.4"
+    mkdirp "^0.5.1"
+    request "^2.79.0"
+
+"@haiku/sdk-inkstone@HaikuTeam/sdk-inkstone.git":
+  version "2.3.24"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#0066f85b36a03d218f8bc44fc62c6f3b9aadff5f"
+  dependencies:
+    lodash "^4.17.4"
+    mkdirp "^0.5.1"
+    request "^2.79.0"
 
 "@haiku/zack2-checktutorial@0.0.19":
   version "0.0.19"
@@ -330,6 +382,12 @@ async@2.1.5:
 async@^1.4.0, async@~1.5:
   version "1.5.2"
   resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
+
+async@^2.5.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/async/-/async-2.6.0.tgz#61a29abb6fcc026fea77e56d1c6ec53a795951f4"
+  dependencies:
+    lodash "^4.14.0"
 
 async@~1.0.0:
   version "1.0.0"
@@ -2981,6 +3039,14 @@ fs-extra@^1.0.0:
     jsonfile "^2.1.0"
     klaw "^1.0.0"
 
+fs-extra@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-4.0.2.tgz#f91704c53d1b461f893452b0c307d9997647ab6b"
+  dependencies:
+    graceful-fs "^4.1.2"
+    jsonfile "^4.0.0"
+    universalify "^0.1.0"
+
 fs-extra@~0.26.2:
   version "0.26.7"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-0.26.7.tgz#9ae1fdd94897798edab76d0918cf42d0c3184fa9"
@@ -3410,24 +3476,6 @@ haiku-bytecode@HaikuTeam/bytecode.git:
     svg-parser "1.0.5"
     to-style "1.3.3"
 
-haiku-cli@HaikuTeam/cli.git:
-  version "2.3.7"
-  resolved "git+ssh://git@github.com/HaikuTeam/cli.git#ec03256d70e59e7e5511eb3b4ca5bfd38fba7761"
-  dependencies:
-    chalk "^1.1.3"
-    cli-color "^1.1.0"
-    dedent "^0.6.0"
-    haiku-sdk-client HaikuTeam/sdk-client.git
-    haiku-sdk-inkstone HaikuTeam/sdk-inkstone.git
-    hasbin "^1.2.3"
-    inquirer "^2.0.0"
-    lodash "^4.17.4"
-    mkdirp "^0.5.1"
-    prepend-file "^1.3.1"
-    request "^2.79.0"
-    tail "^1.2.1"
-    yargs "^6.6.0"
-
 haiku-common@HaikuTeam/common.git:
   version "2.3.10"
   resolved "git+ssh://git@github.com/HaikuTeam/common.git#285698df9e792c242e953414f7cecb454b86af1d"
@@ -3506,14 +3554,6 @@ haiku-glass@HaikuTeam/glass.git:
     react-select-plus "^1.0.0-rc.5"
     strip-indent "^2.0.0"
 
-haiku-sdk-client@HaikuTeam/sdk-client.git:
-  version "2.3.7"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-client.git#c9cea6ad5bfd041ba80d249d80b9e71697011f9a"
-  dependencies:
-    lodash "^4.17.4"
-    mkdirp "^0.5.1"
-    request "^2.79.0"
-
 haiku-sdk-creator@HaikuTeam/sdk-creator.git:
   version "2.3.7"
   resolved "git+ssh://git@github.com/HaikuTeam/sdk-creator.git#8229f78dbc85a3e5f3aef393f155604da061a676"
@@ -3522,14 +3562,6 @@ haiku-sdk-creator@HaikuTeam/sdk-creator.git:
     haiku-serialization HaikuTeam/serialization
     npm "^5.3.0"
     ws "^3.0.0"
-
-haiku-sdk-inkstone@HaikuTeam/sdk-inkstone.git:
-  version "2.3.7"
-  resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#48653dfe10862249980763a56a20681b85e7cec6"
-  dependencies:
-    lodash "^4.17.4"
-    mkdirp "^0.5.1"
-    request "^2.79.0"
 
 haiku-serialization@HaikuTeam/serialization:
   version "2.3.5"
@@ -4448,6 +4480,12 @@ json5@^0.5.0, json5@^0.5.1:
 jsonfile@^2.1.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-2.4.0.tgz#3736a2b428b87bbda0cc83b53fa3d633a35c2ae8"
+  optionalDependencies:
+    graceful-fs "^4.1.6"
+
+jsonfile@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-4.0.0.tgz#8771aae0799b64076b76640fca058f9c10e33ecb"
   optionalDependencies:
     graceful-fs "^4.1.6"
 
@@ -8016,6 +8054,10 @@ unique-string@^1.0.0:
   resolved "https://registry.yarnpkg.com/unique-string/-/unique-string-1.0.0.tgz#9e1057cca851abb93398f8b33ae187b99caec11a"
   dependencies:
     crypto-random-string "^1.0.0"
+
+universalify@^0.1.0:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/universalify/-/universalify-0.1.1.tgz#fa71badd4437af4c148841e3b3b165f9e9e590b7"
 
 unpipe@1.0.0, unpipe@~1.0.0:
   version "1.0.0"
