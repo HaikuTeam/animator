@@ -3145,5 +3145,12 @@
       "label": "fix",
       "message": "Uncomment mistakenly commented-out line"
     }
+  },
+  "2.3.22": {
+    "75e2bd7d191587e8904af36ca896514cd02b5045": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Add proper bin file with necessary node shebang"
+    }
   }
 }
