@@ -24,10 +24,10 @@ function monobin (name) {
 fse.removeSync(path.join(PLAYER_PATH, 'dist'))
 fse.mkdirpSync(path.join(PLAYER_PATH, 'dist'))
 
+cp.execSync(`yarn add react@${REACT_VERSION} --peer`, { cwd: PLAYER_PATH, stdio: 'inherit' })
+
 runScript('compile-package', ['--package=haiku-player'], (err) => {
   if (err) throw err
-
-  cp.execSync(`yarn add react@${REACT_VERSION} --peer`, { cwd: PLAYER_PATH, stdio: 'inherit' })
 
   log.log('browserifying player packages and adapters')
 
