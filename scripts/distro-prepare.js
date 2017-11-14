@@ -55,15 +55,15 @@ if (!process.env.TRAVIS) {
 
 var HAIKU_SUBPACKAGES = {
   'haiku-bytecode': true,
-  '@haiku/cli': true,
+  '@haiku/cli': 'haiku-cli',
   'haiku-common': true,
   'haiku-creator-electron': 'haiku-creator',
   'haiku-formats': true,
   'haiku-glass': true,
   '@haiku/player': 'haiku-player',
-  '@haiku/sdk-client': true,
+  '@haiku/sdk-client': 'haiku-sdk-client',
   'haiku-sdk-creator': true,
-  '@haiku/sdk-inkstone': true,
+  '@haiku/sdk-inkstone': 'haiku-sdk-inkstone',
   'haiku-serialization': true,
   'haiku-state-object': true,
   'haiku-testing': true,
@@ -79,6 +79,9 @@ function sdir (loc) {
 
 function remapName (name) {
   if (name === 'haiku-player') return '@haiku/player'
+  if (name === 'haiku-sdk-client') return '@haiku/sdk-client'
+  if (name === 'haiku-sdk-inkstone') return '@haiku/sdk-inkstone'
+  if (name === 'haiku-cli') return '@haiku/cli'
   if (name === 'haiku-creator') return 'haiku-creator-electron'
   return name
 }

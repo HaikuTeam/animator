@@ -16,7 +16,8 @@ var env = {
   HAIKU_RELEASE_BRANCH: '{{branch}}', // just a tag, really
   HAIKU_PLUMBING_VERSION: '{{branch}}', // plumbing branch
   HAIKU_SKIP_AUTOUPDATE: null, // '1' to skip the auto-update hook
-  HAIKU_AUTOUPDATE_SERVER: 'http://squirrel.haiku.ai:3002'
+  HAIKU_AUTOUPDATE_SERVER: 'http://squirrel.haiku.ai:3002',
+  NO_REMOTE_DEBUG: '1', // prevent debugger from crashing the app
 }
 
 for (var key in env) {
