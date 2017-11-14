@@ -1,6 +1,6 @@
 {
   "name": "@haiku/player",
-  "version": "2.3.27",
+  "version": "2.3.28",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
@@ -61,6 +61,7 @@
     "nodemon": "1.11.0",
     "nyc": "^11.2.1",
     "opn": "^5.1.0",
+    "react": "15.4.2",
     "react-dom": "15.4.2",
     "react-router-dom": "^4.1.1",
     "snazzy": "6.0.0",
