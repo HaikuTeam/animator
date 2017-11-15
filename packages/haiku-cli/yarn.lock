@@ -2,17 +2,17 @@
 # yarn lockfile v1
 
 
-"@haiku/sdk-client@2.3.24":
-  version "2.3.24"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fsdk-client/-/sdk-client-2.3.24.tgz#93fa0491476b4fa080888ee1c68c28374400bb21"
+"@haiku/sdk-client@HaikuTeam/sdk-client.git":
+  version "2.3.27"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-client.git#a002becace6a9a68198f8c93fe2f37397f1d2a23"
   dependencies:
     lodash "^4.17.4"
     mkdirp "^0.5.1"
     request "^2.79.0"
 
-"@haiku/sdk-inkstone@2.3.24":
-  version "2.3.24"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fsdk-inkstone/-/sdk-inkstone-2.3.24.tgz#52802d23834c7e3e322ba48b57ac2a1feef34a5c"
+"@haiku/sdk-inkstone@HaikuTeam/sdk-inkstone.git":
+  version "2.3.27"
+  resolved "git+ssh://git@github.com/HaikuTeam/sdk-inkstone.git#bdecf6192ece8e4bbd3f24ce57f973d69809f870"
   dependencies:
     lodash "^4.17.4"
     mkdirp "^0.5.1"

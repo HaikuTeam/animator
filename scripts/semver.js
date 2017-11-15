@@ -1,3 +1,4 @@
+const async = require('async')
 const lodash = require('lodash')
 const fse = require('fs-extra')
 const path = require('path')
@@ -13,13 +14,6 @@ const patched = semver.inc(current, 'patch')
 
 const DEFAULTS = {
   version: patched
-}
-
-const INTERNAL_YET_PUBLIC_DEP_NAMES = {
-  '@haiku/player': true,
-  '@haiku/cli': true,
-  '@haiku/sdk-client': true,
-  '@haiku/sdk-inkstone': true
 }
 
 const inputs = lodash.assign({}, DEFAULTS, argv)
@@ -48,39 +42,18 @@ if (argv['non-interactive']) {
 }
 
 function go () {
-  lodash.forEach(allPackages, function (pack) {
+  async.each(allPackages, (pack, done) => {
     const packageJsonPath = path.join(pack.abspath, 'package.json')
     const packageJson = fse.readJsonSync(packageJsonPath)
-
     log.log('setting ' + pack.name + ' to ' + inputs.version + ' (was ' + packageJson.version + ')')
-
     packageJson.version = inputs.version
-
-    // Now make sure this package's @haiku/* dependencies match that version
-    const depTypes = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']
-    depTypes.forEach((depType) => {
-      if (!packageJson[depType]) return null
-      for (const depName in packageJson[depType]) {
-        const depVersion = packageJson[depType][depName]
-        // Don't bump dep version if it's using the internal git dependency reference
-        if (depVersion.match(/HaikuTeam/)) continue
-        // Only bump version if referring to a public version of one of our packages
-        // For example, we wouldn't want to bump the version of @haiku/zack-myproject
-        if (!INTERNAL_YET_PUBLIC_DEP_NAMES[depName]) continue
-        packageJson[depType][depName] = inputs.version
-      }
-    })
-
-    fse.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
+    fse.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n', done)
+  }, () => {
+    const monoJsonPath = path.join(global.process.cwd(), 'package.json')
+    const monoJson = fse.readJsonSync(monoJsonPath)
+    log.log('setting mono to ' + inputs.version + ' (was ' + monoJson.version + ')')
+    monoJson.version = inputs.version
+    fse.writeFileSync(monoJsonPath, JSON.stringify(monoJson, null, 2) + '\n')
+    log.hat('bumped semver!')
   })
-
-  const monoJsonPath = path.join(__dirname, '..', 'package.json')
-  const monoJson = fse.readJsonSync(monoJsonPath)
-
-  log.log('setting mono to ' + inputs.version + ' (was ' + monoJson.version + ')')
-
-  monoJson.version = inputs.version
-  fse.writeFileSync(monoJsonPath, JSON.stringify(monoJson, null, 2) + '\n')
-
-  log.log('done!')
 }

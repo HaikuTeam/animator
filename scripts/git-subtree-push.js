@@ -1,13 +1,13 @@
-var async = require('async')
-var cp = require('child_process')
-var path = require('path')
-var argv = require('yargs').argv
-var log = require('./helpers/log')
-var allPackages = require('./helpers/allPackages')()
-var ROOT = path.join(__dirname, '..')
+const async = require('async')
+const cp = require('child_process')
+const path = require('path')
+const argv = require('yargs').argv
+const log = require('./helpers/log')
+const getPackage = require('./helpers/allPackages')
+const ROOT = path.join(__dirname, '..')
 
-var branch = argv.branch || 'master'
-var pkg = argv.package
+const branch = argv.branch || 'master'
+const pkg = argv.package
 
 if (!pkg) {
   throw new Error('a --package argument is required')
@@ -34,23 +34,15 @@ if (pkg === 'changelog') {
     log.log(exception.message)
   }
 } else {
-
-}
-
-async.eachSeries(allPackages, function (pack, next) {
-  if (pack.name !== pkg) {
-    return next()
-  }
+  const [pack] = getPackage(pkg)
 
   log.log('git subtree pushing ' + pack.name)
 
   try {
-    var cmd = `git subtree push --squash --prefix packages/${pack.name} ${pack.remote} ${branch}`
+    const cmd = `git subtree push --squash --prefix packages/${pack.name} ${pack.remote} ${branch}`
     log.log(cmd)
     cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
   } catch (exception) {
     log.log(exception.message)
   }
-
-  return next()
-})
+}

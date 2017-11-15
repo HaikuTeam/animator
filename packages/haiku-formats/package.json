@@ -1,6 +1,6 @@
 {
   "name": "haiku-formats",
-  "version": "2.3.24",
+  "version": "2.3.34",
   "description": "Formatting-related utilities for Haiku.",
   "main": "lib/index.js",
   "directories": {
@@ -37,7 +37,7 @@
     "tap-spec": "^4.1.1",
     "tape": "^4.7.0",
     "tslint": "^5.7.0",
-    "tslint-config-haiku": "HaikuTeam/tslint-config-haiku.git",
+    "tslint-config-haiku": "^1.0.0",
     "typescript": "^2.4.2",
     "walk-sync": "^0.3.2"
   }

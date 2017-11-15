@@ -3,6 +3,7 @@ const cp = require('child_process')
 const lodash = require('lodash')
 
 const allPackages = require('./allPackages')()
+const depTypes = require('./depTypes')
 const log = require('./log')
 
 const allDeps = lodash.map(allPackages, (pack) => pack.pkgname)
@@ -27,7 +28,6 @@ module.exports = {
         return
       }
 
-      const depTypes = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']
       async.each(allDeps, (depName, next) => {
         async.each(depTypes, (depType, nextDepType) => {
           if (!pack.pkg[depType] || !pack.pkg[depType][depName]) {
