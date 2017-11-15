@@ -1,6 +1,6 @@
 {
   "name": "haiku-sdk-creator",
-  "version": "2.3.31",
+  "version": "2.3.32",
   "description": "SDK into Haiku",
   "main": "lib/index.js",
   "directories": {
