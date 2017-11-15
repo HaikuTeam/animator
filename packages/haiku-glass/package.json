@@ -26,9 +26,9 @@
     "color": "^2.0.0",
     "combokeys": "^2.4.6",
     "haiku-bytecode": "HaikuTeam/bytecode.git",
+    "haiku-common": "HaikuTeam/common.git",
     "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
     "haiku-serialization": "HaikuTeam/serialization.git",
-    "haiku-common": "HaikuTeam/common.git",
     "lodash": "^4.17.4",
     "moment": "^2.17.1",
     "pretty": "^2.0.0",
@@ -37,8 +37,6 @@
     "raven-js": "^3.18.1",
     "react": "15.4.2",
     "react-dom": "15.4.2",
-    "react-select": "^1.0.0-rc.5",
-    "react-select-plus": "^1.0.0-rc.5",
     "strip-indent": "^2.0.0"
   },
   "devDependencies": {
@@ -47,6 +45,7 @@
     "babel-preset-react-app": "^2.2.0",
     "electron": "1.7.0",
     "jsdom": "^11.1.0",
+    "react-contextmenu": "^2.8.0",
     "snazzy": "^6.0.0",
     "standard": "^9.0.1",
     "tap-spec": "^4.1.1",
