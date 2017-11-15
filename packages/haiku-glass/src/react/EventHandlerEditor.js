@@ -1,13 +1,19 @@
 import React from 'react'
 import Color from 'color'
 import CodeMirror from 'codemirror'
-import {Creatable} from 'react-select-plus'
+import {
+  ContextMenu,
+  MenuItem,
+  ContextMenuTrigger,
+  SubMenu
+} from 'react-contextmenu'
 import truncate from './helpers/truncate'
 import parseExpression from 'haiku-serialization/src/ast/parseExpression'
 import marshalParams from '@haiku/player/lib/reflection/marshalParams'
 import functionToRFO from '@haiku/player/lib/reflection/functionToRFO'
 import reifyRFO from '@haiku/player/lib/reflection/reifyRFO'
 import Palette from './Palette'
+import {DownCarrotSVG} from './Icons.js'
 const HaikuMode = require('./modes/haiku')
 
 const EVALUATOR_STATES = {
@@ -25,7 +31,7 @@ const NAVIGATION_DIRECTIONS = {
 }
 
 const EDITOR_WIDTH = 500
-const EDITOR_HEIGHT = 400
+const EDITOR_HEIGHT = 350
 const EDITOR_LINE_HEIGHT = 18
 
 const MAX_AUTOCOMPLETION_ENTRIES = 8
@@ -47,7 +53,7 @@ const STYLES = {
   },
   preamble: {
     borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
+    borderTopRightRadius: 4
   },
   postamble: {
     borderBottomLeftRadius: 4,
@@ -62,7 +68,7 @@ const STYLES = {
     fontFamily: 'Fira Mono',
     fontSize: '11px',
     lineHeight: EDITOR_LINE_HEIGHT + 'px',
-    height: 'calc(100% - 182px)',
+    height: 'calc(100% - 200px)',
     width: '100%',
     outline: 'none',
     paddingLeft: '32px',
@@ -70,12 +76,12 @@ const STYLES = {
     backgroundColor: '#0C0C0C',
     color: Palette.ROCK,
     overflow: 'hidden', // Let codemirror do the scrolling
-    top: 44
+    position: 'relative'
   },
   title: {
     color: Palette.PALE_GRAY,
     fontFamily: 'Fira Sans',
-    fontSize: '13px',
+    fontSize: '15px',
     fontStyle: 'italic'
   },
   tooltipTri: {
@@ -88,26 +94,19 @@ const STYLES = {
     borderRight: '8.8px solid transparent'
   },
   selectWrapper: {
-    top: 28,
-    paddingTop: 6,
-    left: 0,
-    width: '100%',
-    height: 50,
-    zIndex: 9000,
-    cursor: 'default'
+    cursor: 'default',
+    margin: '25px 0 15px'
   },
   button: {
     height: '25px',
     color: Palette.PALE_GRAY,
     zIndex: 10000,
-    padding: '4px 9px',
     fontSize: '11px',
     cursor: 'pointer',
     borderRadius: '2px',
     padding: '2px 12px 0px 11px'
   },
-  cancelButton: {
-  },
+  cancelButton: {},
   doneButton: {
     background: Palette.LIGHTEST_PINK
   },
@@ -115,6 +114,19 @@ const STYLES = {
     position: 'absolute',
     bottom: '20px',
     right: '20px'
+  },
+  eventsMenuTrigger: {
+    fontSize: '12px',
+    padding: '5px 13px',
+    backgroundColor: '#122022',
+    color: Palette.PALE_GRAY,
+    borderRadius: '4px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    text: {
+      display: 'inline-block',
+      marginRight: '5px'
+    }
   }
 }
 
@@ -128,9 +140,10 @@ function setOptions (opts) {
 }
 
 function getPreamble (officialValue) {
-  const params = officialValue.params && officialValue.params.length > 0
-    ? marshalParams(officialValue.params)
-    : ''
+  const params =
+    officialValue.params && officialValue.params.length > 0
+      ? marshalParams(officialValue.params)
+      : ''
 
   return `function (${params}) {`
 }
@@ -149,7 +162,7 @@ export default class EventHandlerEditor extends React.Component {
     })
     this.codemirror.setOptions = setOptions.bind(this.codemirror)
     this.codemirror.setValue('')
-    this.codemirror.setSize(EDITOR_WIDTH - 35, EDITOR_HEIGHT - 100)
+    this.codemirror.setSize('100%', '100%')
     setTimeout(() => this.codemirror.refresh(), 10) // Must call this here or the gutter margin will be screwed up
     this.codemirror.on('change', this.handleEditorChange.bind(this))
     this.codemirror.on('keydown', this.handleEditorKeydown.bind(this))
@@ -177,7 +190,11 @@ export default class EventHandlerEditor extends React.Component {
     }
 
     // Not really a change event, but it contains the same business logic we want...
-    this.handleChangedEventName({value: this.state.selectedEventName}, true)
+    this.handleChangedEventName(
+      undefined,
+      {value: this.state.selectedEventName},
+      true
+    )
   }
 
   recalibrateEditor (cursor) {
@@ -209,7 +226,7 @@ export default class EventHandlerEditor extends React.Component {
     return false
   }
 
-  getCommitableValue (valueDescriptor, originalDescriptor) {
+  getCommitableValue (valueDescriptor) {
     // Note that extra/cached fields are stripped off of the function, like '.summary'
     return {
       __function: {
@@ -220,8 +237,8 @@ export default class EventHandlerEditor extends React.Component {
   }
 
   doSave () {
-    let original = this.state.originalValue
-    let committable = this.getCommitableValue(this.state.editedValue, original)
+    let original = this.codemirror.getValue()
+    let committable = this.getCommitableValue(this.state.editedValue)
     let invalid = this.isCommittableValueInvalid(committable, original)
 
     // If invalid, don't proceed - keep the input in a focused+selected state,
@@ -249,6 +266,7 @@ export default class EventHandlerEditor extends React.Component {
           true
         )
         this.forceUpdate()
+        this.props.close()
       }
     )
   }
@@ -302,21 +320,20 @@ export default class EventHandlerEditor extends React.Component {
     })
   }
 
-  handleChangedEventName (changeEvent) {
-    if (changeEvent) {
-      var existingHandler = this.fetchEventHandlerValueDescriptor(
-        changeEvent.value
-      )
+  handleChangedEventName (event, {value}) {
+    if (event) event.stopPropagation()
+
+    if (value) {
+      var existingHandler = this.fetchEventHandlerValueDescriptor(value)
 
       if (this.props.element) {
-        this.storeEditedValue(changeEvent.value, existingHandler)
+        this.storeEditedValue(value, existingHandler)
       }
-
       this.setState(
         {
           evaluatorText: null,
           evaluatorState: EVALUATOR_STATES.OPEN,
-          selectedEventName: changeEvent.value,
+          selectedEventName: value,
           originalValue: existingHandler,
           editedValue: existingHandler
         },
@@ -326,6 +343,8 @@ export default class EventHandlerEditor extends React.Component {
         }
       )
     }
+
+    return true
   }
 
   handleEditorChange (cm, changeObject, alsoSetOriginal, wasInternalCall) {
@@ -635,49 +654,55 @@ export default class EventHandlerEditor extends React.Component {
         style={STYLES.container}
       >
         <style>
-          {
-            `.Select-control {
-                background-color: ${Palette.COAL};
-                border-color: ${Palette.COAL};
-                border-radius: 4px;
-                border: 1px solid ${Palette.COAL};
+          {`
+            .react-contextmenu {
                 color: ${Palette.PALE_GRAY};
+                background-color: #0F171A;
+                border: none;
+                border-radius: 4px;
+                display: none;
             }
 
-            .is-open > .Select-control {
-              background: ${Palette.COAL};
-              border-color: ${Palette.COAL};
-            }
-
-            .is-focused:not(.is-open) > .Select-control {
-              border-color: ${Palette.COAL};
-            }
-
-            .Select-arrow-zone:hover > .Select-arrow {
-              border-top-color: ${Palette.COAL};
-            }
-
-            .Select-menu-outer {
-              background-color: ${Palette.COAL};
-              border-bottom: 1px solid ${Palette.COAL};
-              border-top-color: ${Palette.COAL};
-            }
-
-            .Select-option-group-label {
-              background-color: ${Palette.COAL};
-              color: ${Palette.PALE_GRAY};
-            }
-
-            .Select-option {
-              background-color: ${Palette.COAL};
-              color: ${Palette.PALE_GRAY};
+            .react-contextmenu.react-contextmenu--visible {
+              display: inline-block;
             }
 
             .cm-s-haiku .CodeMirror-cursor {
               border-left: 1px solid ${Palette.LIGHTEST_PINK};
             }
-            `
-          }
+
+            .react-contextmenu-item {
+              color: ${Palette.PALE_GRAY};
+              font-size: 12px;
+            }
+
+            .react-contextmenu-item.react-contextmenu-item--active,
+            .react-contextmenu-item.react-contextmenu-item--selected {
+                color: ${Palette.PALE_GRAY};
+                background-color: ${Palette.COAL};
+                border-color: ${Palette.COAL};
+                text-decoration: none;
+            }
+
+            .react-contextmenu-item.react-contextmenu-item--disabled,
+            .react-contextmenu-item.react-contextmenu-item--disabled:hover {
+                color: ${Palette.PALE_GRAY};
+                background-color: transparent;
+                border-color: rgba(0,0,0,.15);
+            }
+
+            .react-contextmenu-item--divider {
+                margin-bottom: 3px;
+                padding: 2px 0;
+                border-bottom: 1px solid rgba(0,0,0,.15);
+                cursor: inherit;
+            }
+
+            .react-contextmenu-item--divider:hover {
+                background-color: transparent;
+                border-color: rgba(0,0,0,.15);
+            }
+            `}
         </style>
         <div
           id='event-handler-element-title'
@@ -691,18 +716,43 @@ export default class EventHandlerEditor extends React.Component {
           style={STYLES.selectWrapper}
           className='no-select'
         >
-          <Creatable
-            name='event-name'
-            placeholder='Choose Event Name...'
-            clearable={false}
-            value={this.state.selectedEventName}
-            options={
-              (this.props.element &&
-                this.props.element.getApplicableEventHandlerOptionsList()) ||
-              []
-            }
-            onChange={this.handleChangedEventName.bind(this)}
-          />
+          <ContextMenuTrigger id='events-menu' holdToDisplay={0}>
+            <div style={STYLES.eventsMenuTrigger}>
+              <span style={STYLES.eventsMenuTrigger.text}>
+                {this.state.selectedEventName}
+              </span>
+              <DownCarrotSVG />
+            </div>
+          </ContextMenuTrigger>
+          <ContextMenu id='events-menu' hideOnLeave={false}>
+            {this.props.element
+              .getApplicableEventHandlerOptionsList()
+              .map(({label, options}) => {
+                return options.length ? (
+                  <SubMenu title={label} key={label} hoverDelay={0}>
+                    {options.map(({label, value}) => {
+                      return (
+                        <MenuItem
+                          data={{value}}
+                          key={label}
+                          onClick={this.handleChangedEventName.bind(this)}
+                        >
+                          {label}
+                        </MenuItem>
+                      )
+                    })}
+                  </SubMenu>
+                ) : (
+                  <MenuItem
+                    data={{value: label}}
+                    key={label}
+                    onClick={this.handleChangedEventName.bind(this)}
+                  >
+                    {label}
+                  </MenuItem>
+                )
+              })}
+          </ContextMenu>
         </div>
         <div style={{...STYLES.amble, ...STYLES.preamble}}>
           {this.state.preamble}
@@ -718,7 +768,12 @@ export default class EventHandlerEditor extends React.Component {
         <div style={{...STYLES.amble, ...STYLES.postamble}}>
           {this.state.postamble}
 
-          <span style={{...STYLES.postamble.errors, color: this.getEvalutatorStateColor()}}>
+          <span
+            style={{
+              ...STYLES.postamble.errors,
+              color: this.getEvalutatorStateColor()
+            }}
+          >
             {this.getEvaluatorText()}
           </span>
         </div>
@@ -734,9 +789,7 @@ export default class EventHandlerEditor extends React.Component {
           <button
             onClick={() => {
               this.doSave()
-              this.props.close()
             }}
-            disabled={!this.doesCurrentCodeNeedSave()}
             style={{...STYLES.button, ...STYLES.doneButton}}
           >
             Done
