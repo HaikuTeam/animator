@@ -99,7 +99,7 @@ openSourcePackages.forEach((pack) => {
 
   // We're using the dependencies we loaded *before* bumping semver, so will need to update it again before writing
   // it out.
-  pack.pkg = semver
+  pack.pkg.version = semver
   fse.writeFileSync(path.join(pack.abspath, 'package.json'), JSON.stringify(pack.pkg, null, 2) + '\n')
   // Publish package to NPM as is.
   cp.execSync(`node ./scripts/publish-package.js --package=${pack.name}`, processOptions)
