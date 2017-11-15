@@ -39,7 +39,7 @@
  * Text color settings:
  * There are some duplicate CSS selectors in this file to make it easier to see *just* the text color rules.
  */
-.cm-s-haiku .CodeMirror-linenumber { color: color: rgb(192, 204, 205) }
+.cm-s-haiku .CodeMirror-linenumber { color: rgb(192, 204, 205) }
 .cm-s-haiku span.cm-keyword { color: #eee; }
 .cm-s-haiku span.cm-atom { color: #e1c76e; }
 .cm-s-haiku span.cm-number { color: #6cb5d9; }
