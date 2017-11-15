@@ -149,7 +149,7 @@ class ProjectBrowser extends React.Component {
       })
       setTimeout(() => {
         this.refs.newProjectInput.select()
-      }, 50)
+      }, 200)
       this.setState({ projectsList })
     }
   }
