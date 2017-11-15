@@ -425,6 +425,10 @@ class File extends BaseModel {
         const contents = buffer.toString()
         const incoming = xmlToMana(contents)
 
+        if (!incoming.attributes) {
+          incoming.attributes = {}
+        }
+
         // #QUESTION - why not just overwrite this?
         if (!incoming.attributes[SOURCE_ATTRIBUTE]) {
           incoming.attributes[SOURCE_ATTRIBUTE] = path.normalize(filepath)
@@ -551,6 +555,9 @@ class File extends BaseModel {
         logger.info('[file] found merge root for ' + nodeSourceRelpath)
 
         let incomingMana = xmlToMana(sourceContents) // Do this here to avoid needing to clone
+        if (!incomingMana.attributes) {
+          incomingMana.attributes = {}
+        }
         if (!incomingMana.attributes[SOURCE_ATTRIBUTE]) {
           incomingMana.attributes[SOURCE_ATTRIBUTE] = path.normalize(sourceRelpath)
         }
