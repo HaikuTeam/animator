@@ -45,6 +45,11 @@ function uploadRelease (region, key, secret, bucket, folder, platform, environme
         // not used to determine syndication behavior on auto-update
         key = [latest, 'latest' + path.extname(entry)].join('-')
 
+        // Upload with a 'pending' label so squirrel server knows not to include this in
+        // the list of candidates. This gives us an opportunity to test before syndication.
+        // The idea is that we manually remove the pending flag on S3 when we're ready.
+        key = key.replace(/.zip$/, '-pending.zip')
+
         stream = fs.createReadStream(build)
 
         console.log('Uploading ' + build + ' as object ' + key + ' to bucket ' + bucket + '...')
