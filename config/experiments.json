@@ -8,6 +8,7 @@
   },
   "PreviewMode": {
     "test": true,
-    "development": true
+    "development": true,
+    "production": true
   }
 }
