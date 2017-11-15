@@ -3190,13 +3190,5 @@
       "label": "feat",
       "message": "Rewrite publish flow to keep evergreen dependencies in mono."
     }
-  },
-  "2.3.27": {},
-  "2.3.28": {},
-  "2.3.29": {},
-  "2.3.30": {},
-  "2.3.31": {},
-  "2.3.32": {},
-  "2.3.33": {},
-  "2.3.34": {}
+  }
 }
