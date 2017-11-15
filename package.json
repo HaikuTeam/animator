@@ -1,10 +1,6 @@
 {
   "name": "@haiku/player",
-<<<<<<< HEAD
   "version": "2.3.29",
-=======
-  "version": "2.3.28",
->>>>>>> c81187df3fb6f126e55643e16637831dfc9616bf
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
