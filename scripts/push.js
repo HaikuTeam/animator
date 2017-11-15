@@ -14,11 +14,6 @@ const processOptions = { cwd: ROOT, stdio: 'inherit' }
 // The set of all projects we want to open source.
 const openSourceProjects = new Set(['haiku-player', 'haiku-cli'])
 
-// Bump semver in all projects, plus their @haiku/* dependencies, and commit.
-cp.execSync(`node ./scripts/semver.js --non-interactive`, processOptions)
-cp.execSync(`git add -u`, processOptions)
-cp.execSync(`git commit -m "auto: Bumps semver."`, processOptions)
-
 // Pull in the set of dependencies recursively.
 const openSourcePackages = getPackages(Array.from(openSourceProjects))
 const processedDependencies = new Set()
@@ -54,6 +49,11 @@ if (!argv['no-pull']) {
     cp.execSync(`node ./scripts/git-subtree-pull.js --package=${pack.name}`, processOptions)
   })
 }
+
+// Bump semver in all projects, plus their @haiku/* dependencies, and commit.
+cp.execSync(`node ./scripts/semver.js --non-interactive`, processOptions)
+cp.execSync(`git add -u`, processOptions)
+cp.execSync(`git commit -m "auto: Bumps semver."`, processOptions)
 
 // Regenerate changelog and push to remote.
 cp.execSync(`node ./scripts/changelog.js`, processOptions)
@@ -97,6 +97,9 @@ openSourcePackages.forEach((pack) => {
     }
   })
 
+  // We're using the dependencies we loaded *before* bumping semver, so will need to update it again before writing
+  // it out.
+  pack.pkg = semver
   fse.writeFileSync(path.join(pack.abspath, 'package.json'), JSON.stringify(pack.pkg, null, 2) + '\n')
   // Publish package to NPM as is.
   cp.execSync(`node ./scripts/publish-package.js --package=${pack.name}`, processOptions)
