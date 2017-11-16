@@ -10,4 +10,21 @@ window.addEventListener('mousemove', (mouseMoveEvent) => {
   globals.mouse.y = mouseMoveEvent.clientY
 })
 
+window.addEventListener('keyup', (keyupEvent) => {
+  if (keyupEvent.which === 16) globals.isShiftKeyDown = false
+  if (keyupEvent.which === 17) globals.isControlKeyDown = false
+})
+
+window.addEventListener('keydown', (keydownEvent) => {
+  if (keydownEvent.which === 16) globals.isShiftKeyDown = true
+  if (keydownEvent.which === 17) globals.isControlKeyDown = true
+})
+
+window.addEventListener('click', (clickEvent) => {
+  if (globals.isControlKeyDown) {
+    globals.isControlKeyDown = false
+    globals.isShiftKeyDown = false
+  }
+})
+
 module.exports = globals

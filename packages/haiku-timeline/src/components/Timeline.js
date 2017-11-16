@@ -308,17 +308,12 @@ class Timeline extends React.Component {
 
       // case 38: // up
       // case 40: // down
-
       // case 46: //delete
       // case 13: //enter
       // delete
       case 8: return this.component.deleteSelectedKeyframes({ from: 'timeline' }) // Only if there are any
-      case 16:
-        Globals.isShiftKeyDown = true
-        return this.updateKeyboardState({ isShiftKeyDown: true })
-      case 17:
-        Globals.isControlKeyDown = true
-        return this.updateKeyboardState({ isControlKeyDown: true })
+      case 16: return this.updateKeyboardState({ isShiftKeyDown: true })
+      case 17: return this.updateKeyboardState({ isControlKeyDown: true })
       case 18: return this.updateKeyboardState({ isAltKeyDown: true })
       case 224: return this.updateKeyboardState({ isCommandKeyDown: true })
       case 91: return this.updateKeyboardState({ isCommandKeyDown: true })
@@ -337,12 +332,8 @@ class Timeline extends React.Component {
       // case 46: //delete
       // case 8: //delete
       // case 13: //enter
-      case 16:
-        Globals.isShiftKeyDown = false
-        return this.updateKeyboardState({ isShiftKeyDown: false })
-      case 17:
-        Globals.isControlKeyDown = false
-        return this.updateKeyboardState({ isControlKeyDown: false })
+      case 16: return this.updateKeyboardState({ isShiftKeyDown: false })
+      case 17: return this.updateKeyboardState({ isControlKeyDown: false })
       case 18: return this.updateKeyboardState({ isAltKeyDown: false })
       case 224: return this.updateKeyboardState({ isCommandKeyDown: false })
       case 91: return this.updateKeyboardState({ isCommandKeyDown: false })
