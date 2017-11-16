@@ -121,7 +121,7 @@ export default function parseCssTransformString(inStr) {
       // Special case: If we get a matrix3d, we can just use that matrix itself instead of flowing through the layout
       // calculator
       case 'matrix3d':
-        return Layout3D.copyMatrix([], spec.values.map((val) => {
+        return Layout3D.copyMatrix(spec.values.map((val) => {
           return val.value;
         }));
 

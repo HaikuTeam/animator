@@ -9,7 +9,7 @@
     "experimentalDecorators": true,
     "isolatedModules": false,
     "lib": [
-      "es5",
+      "es6",
       "dom"
     ],
     "module": "commonjs",
@@ -27,7 +27,7 @@
     "rootDir": "src",
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "ES3",
+    "target": "ES5",
     "types": [
       "node"
     ],
