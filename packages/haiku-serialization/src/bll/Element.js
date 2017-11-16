@@ -374,7 +374,7 @@ class Element extends BaseModel {
     const offset = this.getOriginOffsetMatrix()
     const reset = this.getOriginResetMatrix()
     const composition = this.getComposedMatrix(offset)
-    const result = Layout3D.multiplyMatrices([], composition, reset)
+    const result = Layout3D.multiplyMatrices(composition, reset)
     return result
   }
 
@@ -382,7 +382,7 @@ class Element extends BaseModel {
     const layouts = this.getLayoutAncestry()
     let i = layouts.length
     while (i--) {
-      matrix = Layout3D.multiplyMatrices([], matrix, layouts[i].computed.matrix)
+      matrix = Layout3D.multiplyMatrices(matrix, layouts[i].computed.matrix)
     }
     return matrix
   }

@@ -229,12 +229,6 @@ function getTransitionValue(currentKeyframe, currentTransition, nextKeyframe, ne
 }
 
 export default {
-  percentOfTime,
-  valueAtPercent,
-  valueAtTime,
-  interpolateValue,
-  interpolate,
   calculateValue,
-  sortedKeyframes,
   calculateValueAndReturnUndefinedIfNotWorthwhile,
 };

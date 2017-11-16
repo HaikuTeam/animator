@@ -4,13 +4,7 @@
 
 import Events from './Events';
 
-export default function attachEventListener(
-  virtualElement,
-  domElement,
-  eventName,
-  listener,
-  component,
-) {
+export default function attachEventListener(virtualElement, domElement, eventName, listener, component) {
   // FF doesn't like it if this isn't a function... this can happen if bad props are passed upstream
   if (typeof listener === 'function') {
     let target;
@@ -24,7 +18,7 @@ export default function attachEventListener(
     }
 
     if (target) {
-      if (!component._hasRegisteredListenerOnElement(virtualElement, eventName, listener)) {
+      if (!component._hasRegisteredListenerOnElement(virtualElement, eventName)) {
         component._markDidRegisterListenerOnElement(virtualElement, target, eventName, listener);
         target.addEventListener(eventName, listener);
       }

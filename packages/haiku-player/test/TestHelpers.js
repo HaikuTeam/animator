@@ -32,7 +32,7 @@ function createRenderTest (template, cb) {
     var context = new HaikuContext(null, renderer, {}, { timelines: {}, template: template }, { options: { cache: {}, seed: 'abcde' + Math.random() } })
     var component = context.component
     var container = renderer.createContainer(mount)
-    var tree = component.render(container, context.config.options, null)
+    var tree = component.render(container, context.config.options)
     renderer.render(mount, container, tree, component, false)
     function teardown () {
       component._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()

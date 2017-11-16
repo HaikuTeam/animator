@@ -393,7 +393,7 @@ HaikuComponent.prototype.setState = function setState(states) {
   return this;
 };
 
-HaikuComponent.prototype.getStates = function getStates(state) {
+HaikuComponent.prototype.getStates = function getStates() {
   return this.state;
 };
 
@@ -552,14 +552,6 @@ HaikuComponent.prototype._getTimelineDescriptor = function _getTimelineDescripto
   return this._bytecode.timelines[timelineName];
 };
 
-HaikuComponent.prototype.getBytecode = function getBytecode() {
-  return this._bytecode;
-};
-
-HaikuComponent.prototype._getRenderScopes = function _getRenderScopes() {
-  return this._renderScopes;
-};
-
 HaikuComponent.prototype._getInjectables = function _getInjectables(element) {
   const injectables = {};
 
@@ -583,10 +575,6 @@ HaikuComponent.prototype._getTopLevelElement = function _getTopLevelElement() {
 
 HaikuComponent.prototype.getAddressableProperties = function getAddressableProperties() {
   return this._bytecode.states || {};
-};
-
-HaikuComponent.prototype.getParser = function getParser(outputName, virtualElement) {
-  return this._bytecode.parsers && this._bytecode.parsers[outputName];
 };
 
 /**
@@ -618,7 +606,7 @@ HaikuComponent.prototype._isAsleep = function _isAsleep() {
 };
 
 HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegisteredListenerOnElement(
-  virtualElement, eventName, listenerFunction) {
+  virtualElement, eventName) {
   const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
   if (!flexId) {
     return false;
@@ -869,24 +857,6 @@ HaikuComponent.prototype._shouldPerformFullFlush = function _shouldPerformFullFl
   return this._needsFullFlush || this._alwaysFlush;
 };
 
-HaikuComponent.prototype._alwaysFlushYes = function _alwaysFlushYes() {
-  this._alwaysFlush = true;
-  return this;
-};
-
-HaikuComponent.prototype._alwaysFlushNo = function _alwaysFlushNo() {
-  this._alwaysFlush = false;
-  return this;
-};
-
-HaikuComponent.prototype._getEventsFired = function _getEventsFired() {
-  return this._anyEventChange && this._eventsFired;
-};
-
-HaikuComponent.prototype._getInputsChanged = function _getInputsChanged() {
-  return this._anyStateChange && this._stateChanges;
-};
-
 HaikuComponent.prototype._clearDetectedEventsFired = function _clearDetectedEventsFired() {
   this._anyEventChange = false;
   this._eventsFired = {};
@@ -949,7 +919,7 @@ HaikuComponent.prototype._getPrecalcedPatches = function _getPrecalcedPatches() 
   return this._lastDeltaPatches || {};
 };
 
-HaikuComponent.prototype.render = function render(container, renderOptions, surrogates) {
+HaikuComponent.prototype.render = function render(container, renderOptions) {
   if (this._deactivated) {
     // If deactivated, pretend like there is nothing to render
     return void 0;
@@ -969,7 +939,6 @@ HaikuComponent.prototype.render = function render(container, renderOptions, surr
   // 1. Update the tree in place using all of the applied values we got from the timelines
   applyContextChanges(
     this,
-    this._states,
     this._template,
     container,
     this._context,
@@ -1018,7 +987,7 @@ HaikuComponent.prototype._hydrateMutableTimelines = function _hydrateMutableTime
   }
 };
 
-function bindContextualEventHandlers(component, template, context) {
+function bindContextualEventHandlers(component, template) {
   // Associate any event handlers with the elements matched
   if (component._bytecode.eventHandlers) {
     for (const eventSelector in component._bytecode.eventHandlers) {
@@ -1094,7 +1063,7 @@ function applyBehaviors(timelinesRunning, deltas, component, template, context, 
   // We shouldn't need to add event handlers for patch operations since theoretically that same listener
   // would remain a constant throughout the lifetime of the component
   if (!isPatchOperation) {
-    bindContextualEventHandlers(component, template, context);
+    bindContextualEventHandlers(component, template);
   }
 
   // Apply any behaviors to the element
@@ -1190,14 +1159,7 @@ function gatherDeltaPatches(component, template, container, context, timelinesRu
   return deltas;
 }
 
-function applyContextChanges(
-  component,
-  inputs,
-  template,
-  container,
-  context,
-  renderOptions,
-) {
+function applyContextChanges(component, template, container, context, renderOptions) {
   const timelinesRunning = [];
   if (component._bytecode.timelines) {
     for (const timelineName in component._bytecode.timelines) {
@@ -1372,12 +1334,9 @@ function computeAndApplyTreeLayouts(tree, container, options, context) {
     return void 0;
   }
 
-  computeAndApplyNodeLayout(tree, container, options, context);
+  computeAndApplyNodeLayout(tree, container);
 
-  if (!tree.children) {
-    return void 0;
-  }
-  if (tree.children.length < 1) {
+  if (!tree.children || tree.children.length < 1) {
     return void 0;
   }
 
@@ -1386,17 +1345,11 @@ function computeAndApplyTreeLayouts(tree, container, options, context) {
   }
 }
 
-function computeAndApplyNodeLayout(element, parent, options, context) {
+function computeAndApplyNodeLayout(element, parent) {
   if (parent) {
     const parentSize = parent.layout.computed.size;
 
-    const computedLayout = Layout3D.computeLayout(
-      {},
-      element.layout,
-      element.layout.matrix,
-      IDENTITY_MATRIX,
-      parentSize,
-    );
+    const computedLayout = Layout3D.computeLayout(element.layout, element.layout.matrix, IDENTITY_MATRIX, parentSize);
 
     if (computedLayout === false) {
       // False indicates 'don't show

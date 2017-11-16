@@ -27,7 +27,6 @@
  */
 
 export default function computeMatrix(
-  outputMatrix,
   outputNodepad,
   layoutSpec,
   currentMatrix,
@@ -99,34 +98,22 @@ export default function computeMatrix(
   outputNodepad.origin = {x: originX, y: originY, z: originZ};
   outputNodepad.offset = {x: tx, y: ty, z: tz};
 
-  outputMatrix[0] =
-    parentMatrix[0] * rs0 + parentMatrix[4] * rs1 + parentMatrix[8] * rs2;
-  outputMatrix[1] =
-    parentMatrix[1] * rs0 + parentMatrix[5] * rs1 + parentMatrix[9] * rs2;
-  outputMatrix[2] =
-    parentMatrix[2] * rs0 + parentMatrix[6] * rs1 + parentMatrix[10] * rs2;
-  outputMatrix[3] = 0;
-  outputMatrix[4] =
-    parentMatrix[0] * rs3 + parentMatrix[4] * rs4 + parentMatrix[8] * rs5;
-  outputMatrix[5] =
-    parentMatrix[1] * rs3 + parentMatrix[5] * rs4 + parentMatrix[9] * rs5;
-  outputMatrix[6] =
-    parentMatrix[2] * rs3 + parentMatrix[6] * rs4 + parentMatrix[10] * rs5;
-  outputMatrix[7] = 0;
-  outputMatrix[8] =
-    parentMatrix[0] * rs6 + parentMatrix[4] * rs7 + parentMatrix[8] * rs8;
-  outputMatrix[9] =
-    parentMatrix[1] * rs6 + parentMatrix[5] * rs7 + parentMatrix[9] * rs8;
-  outputMatrix[10] =
-    parentMatrix[2] * rs6 + parentMatrix[6] * rs7 + parentMatrix[10] * rs8;
-  outputMatrix[11] = 0;
-  outputMatrix[12] =
-    parentMatrix[0] * tx + parentMatrix[4] * ty + parentMatrix[8] * tz;
-  outputMatrix[13] =
-    parentMatrix[1] * tx + parentMatrix[5] * ty + parentMatrix[9] * tz;
-  outputMatrix[14] =
-    parentMatrix[2] * tx + parentMatrix[6] * ty + parentMatrix[10] * tz;
-  outputMatrix[15] = 1;
-
-  return outputMatrix;
+  return [
+    parentMatrix[0] * rs0 + parentMatrix[4] * rs1 + parentMatrix[8] * rs2,
+    parentMatrix[1] * rs0 + parentMatrix[5] * rs1 + parentMatrix[9] * rs2,
+    parentMatrix[2] * rs0 + parentMatrix[6] * rs1 + parentMatrix[10] * rs2,
+    0,
+    parentMatrix[0] * rs3 + parentMatrix[4] * rs4 + parentMatrix[8] * rs5,
+    parentMatrix[1] * rs3 + parentMatrix[5] * rs4 + parentMatrix[9] * rs5,
+    parentMatrix[2] * rs3 + parentMatrix[6] * rs4 + parentMatrix[10] * rs5,
+    0,
+    parentMatrix[0] * rs6 + parentMatrix[4] * rs7 + parentMatrix[8] * rs8,
+    parentMatrix[1] * rs6 + parentMatrix[5] * rs7 + parentMatrix[9] * rs8,
+    parentMatrix[2] * rs6 + parentMatrix[6] * rs7 + parentMatrix[10] * rs8,
+    0,
+    parentMatrix[0] * tx + parentMatrix[4] * ty + parentMatrix[8] * tz,
+    parentMatrix[1] * tx + parentMatrix[5] * ty + parentMatrix[9] * tz,
+    parentMatrix[2] * tx + parentMatrix[6] * ty + parentMatrix[10] * tz,
+    1,
+  ];
 }
