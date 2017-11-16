@@ -136,11 +136,15 @@ export default class TransitionBody extends React.Component {
         onMouseDown={(mouseEvent) => {
           mouseEvent.stopPropagation()
 
-          if (
+          const skipDeselect = (
             Globals.isShiftKeyDown ||
-            Globals.isControlKeyDown ||
-            mouseEvent.nativeEvent.which === 3
-          ) {
+            (
+              (Globals.isControlKeyDown || mouseEvent.nativeEvent.which === 3) &&
+              this.props.timeline.hasMultipleSelectedKeyframes()
+            )
+          )
+
+          if (skipDeselect) {
             // If others are already selected and we're doing context menu, don't deselect
             if (this.props.keyframe.areAnyOthersSelected()) {
               this.props.keyframe.select({
@@ -152,12 +156,7 @@ export default class TransitionBody extends React.Component {
             }
           } else if (mouseEvent) {
             // But if we're e.g. dragging it, we need to select the next one so we move as a group
-            this.props.keyframe.selectSelfAndSurrounds({
-              skipDeselect:
-                Globals.isShiftKeyDown ||
-                Globals.isControlKeyDown ||
-                mouseEvent.nativeEvent.which === 3
-            })
+            this.props.keyframe.selectSelfAndSurrounds({ skipDeselect })
           }
         }}>
         <span

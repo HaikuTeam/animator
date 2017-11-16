@@ -63,12 +63,14 @@ export default class ConstantBody extends React.Component {
         }}
         onMouseDown={(mouseEvent) => {
           mouseEvent.stopPropagation()
-          this.props.keyframe.select({
-            skipDeselect:
-              Globals.isShiftKeyDown ||
-              Globals.isControlKeyDown ||
-              mouseEvent.nativeEvent.which === 3
-          })
+          const skipDeselect = (
+            Globals.isShiftKeyDown ||
+            (
+              (Globals.isControlKeyDown || mouseEvent.nativeEvent.which === 3) &&
+              this.props.timeline.hasMultipleSelectedKeyframes()
+            )
+          )
+          this.props.keyframe.select({ skipDeselect })
         }}
         style={{
           position: 'absolute',

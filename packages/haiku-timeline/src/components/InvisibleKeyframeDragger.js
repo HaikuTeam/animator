@@ -54,12 +54,14 @@ export default class InvisibleKeyframeDragger extends React.Component {
         }, THROTTLE_TIME)}
         onMouseDown={(mouseEvent) => {
           mouseEvent.stopPropagation()
-          this.props.keyframe.select({
-            skipDeselect:
-              Globals.isShiftKeyDown ||
-              Globals.isControlKeyDown ||
-              mouseEvent.nativeEvent.which === 3
-          })
+          const skipDeselect = (
+            Globals.isShiftKeyDown ||
+            (
+              (Globals.isControlKeyDown || mouseEvent.nativeEvent.which === 3) &&
+              this.props.timeline.hasMultipleSelectedKeyframes()
+            )
+          )
+          this.props.keyframe.select({ skipDeselect })
         }}>
         <span
           onContextMenu={(ctxMenuEvent) => {
