@@ -226,15 +226,11 @@ HaikuContext.prototype.performFullFlushRender = function performFullFlushRender(
   }
   const container = this._renderer.createContainer(this._mount);
   const tree = this.component.render(container, this.config.options);
+
   // The component can optionally return undefined as a signal to take no action
   // TODO: Maybe something other than undefined would be better
   if (tree !== undefined) {
-    this._renderer.render(
-      this._mount,
-      container,
-      tree,
-      this.component,
-    );
+    this._renderer.render(this._mount, container, tree, this.component);
   }
   return this;
 };

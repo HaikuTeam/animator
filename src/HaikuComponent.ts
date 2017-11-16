@@ -8,9 +8,10 @@ import HaikuGlobal from './HaikuGlobal';
 import addElementToHashTable from './helpers/addElementToHashTable';
 import applyPropertyToElement from './helpers/applyPropertyToElement';
 import clone from './helpers/clone';
-import cssQueryTree from './helpers/cssQueryTree';
+import cssQueryList from './helpers/cssQueryList';
 import {isPreviewMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
+import manaFlattenTree from './helpers/manaFlattenTree';
 import scopifyElements from './helpers/scopifyElements';
 import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import upgradeBytecodeInPlace from './helpers/upgradeBytecodeInPlace';
@@ -101,6 +102,7 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   // TEMPLATE
   // The full version of the template gets mutated in-place by the rendering algorithm
   this._template = fetchAndCloneTemplate(this._bytecode.template);
+  this._flatManaTree = manaFlattenTree(this._template, CSS_QUERY_MAPPING);
 
   // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
   this._needsFullFlush = false;
@@ -937,13 +939,7 @@ HaikuComponent.prototype.render = function render(container, renderOptions) {
   }
 
   // 1. Update the tree in place using all of the applied values we got from the timelines
-  applyContextChanges(
-    this,
-    this._template,
-    container,
-    this._context,
-    renderOptions || {},
-  );
+  applyContextChanges(this, this._template, container, this._context, renderOptions || {});
 
   // 2. Given the above updates, 'expand' the tree to its final form (which gets flushed out to the mount element)
   this._lastTemplateExpansion = expandTreeElement(
@@ -959,7 +955,7 @@ HaikuComponent.prototype.render = function render(container, renderOptions) {
 };
 
 HaikuComponent.prototype._findElementsByHaikuId = function _findElementsByHaikuId(componentId) {
-  return findMatchingElementsByCssSelector('haiku:' + componentId, this._template, this._matchedElementCache);
+  return findMatchingElementsByCssSelector('haiku:' + componentId, this._flatManaTree, this._matchedElementCache);
 };
 
 HaikuComponent.prototype._hydrateMutableTimelines = function _hydrateMutableTimelines() {
@@ -987,7 +983,7 @@ HaikuComponent.prototype._hydrateMutableTimelines = function _hydrateMutableTime
   }
 };
 
-function bindContextualEventHandlers(component, template) {
+function bindContextualEventHandlers(component) {
   // Associate any event handlers with the elements matched
   if (component._bytecode.eventHandlers) {
     for (const eventSelector in component._bytecode.eventHandlers) {
@@ -1038,7 +1034,7 @@ function bindContextualEventHandlers(component, template) {
 
       const matchingElementsForEvents = findMatchingElementsByCssSelector(
         eventSelector,
-        template,
+        component._flatManaTree,
         component._matchedElementCache,
       );
 
@@ -1059,11 +1055,11 @@ function bindContextualEventHandlers(component, template) {
   }
 }
 
-function applyBehaviors(timelinesRunning, deltas, component, template, context, isPatchOperation) {
+function applyBehaviors(timelinesRunning, deltas, component, context, isPatchOperation) {
   // We shouldn't need to add event handlers for patch operations since theoretically that same listener
   // would remain a constant throughout the lifetime of the component
   if (!isPatchOperation) {
-    bindContextualEventHandlers(component, template);
+    bindContextualEventHandlers(component);
   }
 
   // Apply any behaviors to the element
@@ -1089,7 +1085,7 @@ function applyBehaviors(timelinesRunning, deltas, component, template, context, 
 
       const matchingElementsForBehavior = findMatchingElementsByCssSelector(
         behaviorSelector,
-        template,
+        component._flatManaTree,
         component._matchedElementCache,
       );
 
@@ -1143,7 +1139,7 @@ function gatherDeltaPatches(component, template, container, context, timelinesRu
 
   const deltas = {}; // This is what we're going to return - a dictionary of ids to elements
 
-  applyBehaviors(timelinesRunning, deltas, component, template, context, /*isPatchOperation=*/true);
+  applyBehaviors(timelinesRunning, deltas, component, context, /*isPatchOperation=*/true);
 
   if (patchOptions.sizing) {
     computeAndApplyPresetSizing(template, container, patchOptions.sizing, deltas);
@@ -1188,7 +1184,7 @@ function applyContextChanges(component, template, container, context, renderOpti
 
   scopifyElements(template, null, null); // I think this only needs to happen once when we build the full tree
 
-  applyBehaviors(timelinesRunning, null, component, template, context, /*isPatchOperation=*/false);
+  applyBehaviors(timelinesRunning, null, component, context, /*isPatchOperation=*/false);
 
   if (renderOptions.sizing) {
     computeAndApplyPresetSizing(template, container, renderOptions.sizing, null);
@@ -1320,13 +1316,12 @@ const CSS_QUERY_MAPPING = {
   children: 'children',
 };
 
-function findMatchingElementsByCssSelector(selector, template, cache) {
+function findMatchingElementsByCssSelector(selector, flatManaTree, cache) {
   if (cache[selector]) {
     return cache[selector];
   }
-  const matches = cssQueryTree([], template, selector, CSS_QUERY_MAPPING);
-  cache[selector] = matches;
-  return matches;
+
+  return cache[selector] = cssQueryList(flatManaTree, selector, CSS_QUERY_MAPPING);
 }
 
 function computeAndApplyTreeLayouts(tree, container, options, context) {
