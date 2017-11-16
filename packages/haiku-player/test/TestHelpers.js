@@ -76,9 +76,14 @@ function timeBracket (steps, cb) {
   }, cb)
 }
 
+function getBytecode (projectName) {
+  return require(`../demo/projects/${projectName}/code/main/code.js`)
+}
+
 TestHelpers.createDOM = createDOM
 TestHelpers.createRenderTest = createRenderTest
 TestHelpers.createComponent = createComponent
+TestHelpers.getBytecode = getBytecode
 TestHelpers.simulateEvent = simulateEvent
 TestHelpers.timeBracket = timeBracket
 

@@ -38,7 +38,7 @@ const DELTA_ROTATION_OFFSETS = {
 }
 
 function _manaQuerySelectorAll (selector, mana) {
-  return cssQueryTree([], mana, selector, {
+  return cssQueryTree(mana, selector, {
     name: 'elementName',
     attributes: 'attributes',
     children: 'children'

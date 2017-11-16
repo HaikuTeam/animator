@@ -4,7 +4,7 @@
 
 import arrayUnique from './../vendor/array-unique';
 
-const uniq = arrayUnique.immutable;
+const uniq = arrayUnique.uniq;
 const OBJECT = 'object';
 const FUNCTION = 'function';
 

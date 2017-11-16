@@ -1,8 +1,8 @@
 const test = require('tape');
 const TestHelpers = require('../TestHelpers');
-test('perf1', function (t) {
+test('perf3', function (t) {
   t.plan(3);
-  const bytecode = TestHelpers.getBytecode('chinese-food');
+  const bytecode = TestHelpers.getBytecode('AndroidFiltersV2');
   TestHelpers.createComponent(bytecode, {}, function (component, teardown, mount) {
     t.equal(mount.outerHTML.length, 48, 'html checksum ok');
     TestHelpers.timeBracket([
@@ -11,7 +11,7 @@ test('perf1', function (t) {
         done();
       },
       function (done, delta) {
-        console.log('[haiku player perf test] initial tick took ' + delta + ' vs baseline of 250');
+        console.log('[haiku player perf test] initial tick took ' + delta + ' vs baseline of 150');
         t.true(true);
         done();
       },
@@ -20,7 +20,7 @@ test('perf1', function (t) {
         done();
       },
       function (done, delta) {
-        console.log('[haiku player perf test] patch took ' + delta + ' vs baseline of 10');
+        console.log('[haiku player perf test] patch took ' + delta + ' vs baseline of 15');
         t.true(true);
         done();
       }
