@@ -23,13 +23,21 @@ const {
   InteractionMode,
   isPreviewMode
 } = require('@haiku/player/lib/helpers/interactionModes')
+const {
+  Experiment,
+  experimentIsEnabled
+} = require('haiku-common/lib/experiments')
 
 const WEBSOCKET_BATCH_INTERVAL = 250
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 500
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_SCENE_NAME = 'main' // e.g. code/main/*
-const DEFAULT_INTERACTION_MODE = InteractionMode.EDIT
+
+// Without the preview mode feature, the everything behaves as it was 'LIVE'
+const DEFAULT_INTERACTION_MODE = experimentIsEnabled(Experiment.PreviewMode)
+  ? InteractionMode.EDIT
+  : InteractionMode.LIVE
 
 /**
  * @class ActiveComponent
@@ -426,7 +434,10 @@ class ActiveComponent extends BaseModel {
   }
 
   isPreviewModeActive () {
-    return isPreviewMode(this._interactionMode)
+    // If preview mode is disabled, let the app think that it's just deactivated
+    return experimentIsEnabled(Experiment.PreviewMode)
+      ? isPreviewMode(this._interactionMode)
+      : false
   }
 
   /**
