@@ -136,29 +136,12 @@ export default class TransitionBody extends React.Component {
         onMouseDown={(mouseEvent) => {
           mouseEvent.stopPropagation()
 
-          if (
-            Globals.isShiftKeyDown ||
-            Globals.isControlKeyDown ||
-            mouseEvent.nativeEvent.which === 3
-          ) {
-            // If others are already selected and we're doing context menu, don't deselect
-            if (this.props.keyframe.areAnyOthersSelected()) {
-              this.props.keyframe.select({
-                skipDeselect: true
-              })
-            } else {
-              // If we're just adding a curve via the menu, don't select the next guy
-              this.props.keyframe.select()
-            }
-          } else if (mouseEvent) {
-            // But if we're e.g. dragging it, we need to select the next one so we move as a group
-            this.props.keyframe.selectSelfAndSurrounds({
-              skipDeselect:
-                Globals.isShiftKeyDown ||
-                Globals.isControlKeyDown ||
-                mouseEvent.nativeEvent.which === 3
-            })
-          }
+          this.props.keyframe.selectSelfAndSurrounds({
+            skipDeselect:
+              Globals.isShiftKeyDown ||
+              Globals.isControlKeyDown ||
+              mouseEvent.nativeEvent.which === 3
+          })
         }}>
         <span
           className='pill-container'
