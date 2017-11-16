@@ -17,6 +17,7 @@ export default class CollapsedPropertyTimelineSegments extends React.Component {
         }}>
         <RowSegments
           includeDraggables={false}
+          preventDragging={true}
           row={this.props.row}
           component={this.props.component}
           $update={this.props.$update}

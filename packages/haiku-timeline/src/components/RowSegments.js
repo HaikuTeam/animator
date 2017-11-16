@@ -47,6 +47,7 @@ export default class RowSegments extends React.Component {
           if (keyframe.isTransitionSegment()) {
             segmentPieces.push(
               <TransitionBody
+                preventDragging={this.props.preventDragging}
                 key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-transition-body`}
                 $update={this.props.$update}
                 component={this.props.component}
@@ -59,6 +60,7 @@ export default class RowSegments extends React.Component {
             if (keyframe.isConstantSegment()) {
               segmentPieces.push(
                 <ConstantBody
+                  preventDragging={this.props.preventDragging}
                   key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-constant-body`}
                   $update={this.props.$update}
                   ctxmenu={this.props.ctxmenu}
@@ -70,6 +72,7 @@ export default class RowSegments extends React.Component {
             if (keyframe.isSoloKeyframe()) {
               segmentPieces.push(
                 <SoloKeyframe
+                  preventDragging={this.props.preventDragging}
                   key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-solo-keyframe`}
                   $update={this.props.$update}
                   timeline={this.props.timeline}
@@ -145,5 +148,6 @@ RowSegments.propTypes = {
   component: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
   $update: React.PropTypes.object.isRequired,
-  includeDraggables: React.PropTypes.bool.isRequired
+  includeDraggables: React.PropTypes.bool.isRequired,
+  preventDragging: React.PropTypes.bool.isRequired,
 }

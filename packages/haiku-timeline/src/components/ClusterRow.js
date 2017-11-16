@@ -118,6 +118,7 @@ export default class ClusterRow extends React.Component {
           }}>
           <RowSegments
             includeDraggables={false}
+            preventDragging={true}
             row={this.props.row}
             $update={this.props.$update}
             component={this.props.component}

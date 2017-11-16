@@ -124,13 +124,19 @@ export default class TransitionBody extends React.Component {
         id={`transition-body-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
         onStart={(dragEvent, dragData) => {
-          this.props.component.dragStartSelectedKeyframes(dragData)
+          if (!this.props.preventDragging) {
+            this.props.component.dragStartSelectedKeyframes(dragData)
+          }
         }}
         onStop={(dragEvent, dragData) => {
-          this.props.component.dragStopSelectedKeyframes(dragData)
+          if (!this.props.preventDragging) {
+            this.props.component.dragStopSelectedKeyframes(dragData)
+          }
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
-          this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
+          if (!this.props.preventDragging) {
+            this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
+          }
         }, THROTTLE_TIME)}
         onContextMenu
         onMouseDown={(mouseEvent) => {
@@ -308,5 +314,6 @@ TransitionBody.propTypes = {
   ctxmenu: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
-  $update: React.PropTypes.object.isRequired
+  $update: React.PropTypes.object.isRequired,
+  preventDragging: React.PropTypes.bool.isRequired,
 }
