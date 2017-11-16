@@ -49,6 +49,8 @@ class Keyframe extends BaseModel {
 
     if (!this._selected || !Keyframe._selected[this.getUniqueKey()]) {
       this._selected = true
+      if (config.selectConstBody) this._selectedBody = true
+      if (config.directlySelected) this._directlySelected = true
       Keyframe._selected[this.getUniqueKey()] = this
       this.emitWithNeighbors('update', 'keyframe-selected')
     }
@@ -59,6 +61,8 @@ class Keyframe extends BaseModel {
   deselect () {
     if (this._selected || Keyframe._selected[this.getUniqueKey()]) {
       this._selected = false
+      this._selectedBody = false
+      this._directlySelected = false
       delete Keyframe._selected[this.getUniqueKey()]
       this.emitWithNeighbors('update', 'keyframe-deselected')
     }
@@ -74,6 +78,14 @@ class Keyframe extends BaseModel {
 
   isSelected () {
     return this._selected
+  }
+
+  isSelectedBody () {
+    return this._selectedBody
+  }
+
+  isDirectlySelected () {
+    return this._directlySelected
   }
 
   areAnyOthersSelected () {

@@ -67,7 +67,8 @@ export default class ConstantBody extends React.Component {
             skipDeselect:
               Globals.isShiftKeyDown ||
               Globals.isControlKeyDown ||
-              mouseEvent.nativeEvent.which === 3
+              mouseEvent.nativeEvent.which === 3,
+            selectConstBody: true
           })
         }}
         style={{
@@ -84,7 +85,7 @@ export default class ConstantBody extends React.Component {
               position: 'absolute',
               zIndex: 2,
               width: '100%',
-              backgroundColor: (this.props.keyframe.isSelected())
+              backgroundColor: (this.props.keyframe.isSelectedBody())
                 ? Color(Palette.LIGHTEST_PINK).fade(0.5)
                 : Palette.DARKER_GRAY
             }} />
