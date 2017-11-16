@@ -118,7 +118,14 @@ class Timeline extends BaseModel {
         // Which in turn calls setCurrentTime, which alls Timeline.seekToTime,
         // which in turn calls seek (this method). Beware!
         if (!skipTransmit && !this.component.getEnvoyClient().isInMockMode()) {
-          this.component.getEnvoyChannel('timeline').seekToFrame(id, newFrame)
+          const timelineChannel = this.component.getEnvoyChannel('timeline')
+          // When ActiveComponent is loaded, it calls setTimelineTimeValue() -> seek(),
+          // which may occur before Envoy channels are opened, hence this check.
+          if (timelineChannel) {
+            timelineChannel.seekToFrame(id, newFrame)
+          } else {
+            console.warn(`[haiku:Timeline] envoy timeline channel not open (seekToFrame ${id}, ${newFrame})`)
+          }
         }
       }
     }
@@ -142,10 +149,17 @@ class Timeline extends BaseModel {
     this.setCurrentFrame(newFrame)
     this._playing = false
     if (!this.component.getEnvoyClient().isInMockMode()) {
-      this.component.getEnvoyChannel('timeline').seekToFrameAndPause(this.uid, newFrame).then((finalFrame) => {
-        this.setCurrentFrame(finalFrame)
-        this.setAuthoritativeFrame(finalFrame)
-      })
+      const timelineChannel = this.component.getEnvoyChannel('timeline')
+      // When ActiveComponent is loaded, it calls setTimelineTimeValue() -> seek(),
+      // which may occur before Envoy channels are opened, hence this check.
+      if (timelineChannel) {
+        timelineChannel.seekToFrameAndPause(this.uid, newFrame).then((finalFrame) => {
+          this.setCurrentFrame(finalFrame)
+          this.setAuthoritativeFrame(finalFrame)
+        })
+      } else {
+        console.warn(`[haiku:Timeline] envoy timeline channel not open (seekToFrameAndPause ${this.uid}, ${newFrame})`)
+      }
     }
   }
 
