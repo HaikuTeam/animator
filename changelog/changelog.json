@@ -3190,5 +3190,92 @@
       "label": "feat",
       "message": "Rewrite publish flow to keep evergreen dependencies in mono."
     }
+  },
+  "2.3.35": {
+    "a131158995429919fb5db6b99febf68d5687c704": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Fix logic on deselecting keyframes when other views are clicked; didn't remember that parent receives events on the webview :/"
+    },
+    "c6fc6c6a1bebbc82b39c05106f1f9274c87e8faa": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Indicate the row/frame matching the mouse position"
+    },
+    "e41f9dbe5b941e73905a4f27c643871a5d2c474a": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Correct coloring for various keyframe selection situations"
+    },
+    "9335042226fcf3f01a8b3023df2568e7f6c45244": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Deselect keyframes when other view clicked"
+    },
+    "aee01e725d45a0632a1a63559854691d0cf90e63": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "stop removing multi-selected curves if only leading keyframe is selected"
+    },
+    "8ff9d6af8435f16d9fed26706c5da56625443c28": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "continued decoupling of keyframes & segments"
+    },
+    "5ca04c0fa01dbb6e0acb9e7b1b4302b7cc6d96db": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "decouple const seg selection from their leading keyframe selection"
+    },
+    "8ecf633e814460d135b47c85832c86631486a6c4": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "support clicking & changing multiple segments (select both keyframes)"
+    },
+    "e2364f8210203afa0e84ba85ac8e2c448b843fa1": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "make clicking outside of keyframes deselects selected"
+    },
+    "5f7083764305d4a0d9e6bc0f0d8fb7464b77c382": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Prevent dragging on the element heading level"
+    },
+    "50441151301df5872ba4af6eebe0d7e7e7478934": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Better condition for when to deselect other keyframes"
+    },
+    "d3c3ee3ec3a736c728d5584652080b593cfe0d4b": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Move logic for setting globals and fix toggle that never fires when the context menu is open"
+    },
+    "561c28ecfa80127ab192e02f93d8b6d037fbfc4b": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "All setup steps should be synchronous."
+    },
+    "20da6932c2839a581249786a594f0d25b52b9676": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Don't overwrite latest automatically (use -pending)"
+    },
+    "71678360b2c35d0b64bb50472ce2961fad3131c0": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Fix CLI/SDK paths so haiku command works"
+    },
+    "9109237f8e89e784c2eae2147849b95a5c676266": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Changes required for a working build"
+    },
+    "2a503af5505a85b4af7347763406bfd999b148dc": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure we seek to the correct time after a forced code reload"
+    }
   }
 }

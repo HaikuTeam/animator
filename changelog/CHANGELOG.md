@@ -1,6 +1,31 @@
 # Changelog
 
 
+## 2.3.35
+
+### Bug Fixes
+
+ * Fix logic on deselecting keyframes when other views are clicked; didn't remember that parent receives events on the webview :/
+ * Correct coloring for various keyframe selection situations
+ * Deselect keyframes when other view clicked
+ * stop removing multi-selected curves if only leading keyframe is selected
+ * continued decoupling of keyframes & segments
+ * decouple const seg selection from their leading keyframe selection
+ * support clicking & changing multiple segments (select both keyframes)
+ * make clicking outside of keyframes deselects selected
+ * Prevent dragging on the element heading level
+ * Better condition for when to deselect other keyframes
+ * Move logic for setting globals and fix toggle that never fires when the context menu is open
+ * All setup steps should be synchronous.
+ * Don't overwrite latest automatically (use -pending)
+ * Fix CLI/SDK paths so haiku command works
+ * Changes required for a working build
+ * Ensure we seek to the correct time after a forced code reload
+
+### Features
+
+ * Indicate the row/frame matching the mouse position
+
 ## 2.3.26
 
 ### Features
