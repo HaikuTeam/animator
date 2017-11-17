@@ -194,7 +194,7 @@ class Keyframe extends BaseModel {
   }
 
   removeCurve (metadata) {
-    if (this.next() && this.next()._selected) {
+    if (this.next() && this.next().isSelected()) {
       this.setCurve(null)
       this.component.splitSegment(
         [this.element.getComponentId()],
@@ -415,7 +415,7 @@ class Keyframe extends BaseModel {
     return (this.getFrame(mspf) - base) * pxpf
   }
 
-  isWithinCollapsedProperty () {
+  isWithinCollapsedClusterHeadingRow () {
     return (
       this.row &&
       this.row.parent &&
@@ -432,44 +432,81 @@ class Keyframe extends BaseModel {
     )
   }
 
+  getElementHeadingRow () {
+    if (this.row && this.row.parent) {
+      if (this.row.parent.isClusterHeading()) {
+        return this.row.parent.parent
+      }
+      return this.row.parent
+    }
+  }
+
+  getClusterHeadingRow () {
+    if (this.row && this.row.parent) {
+      if (this.row.parent.isClusterHeading()) {
+        return this.row.parent
+      }
+    }
+  }
+
   getCurveCapitalized () {
     const curve = this.getCurve()
     return curve.charAt(0).toUpperCase() + curve.slice(1)
   }
 
+  isWithinCollapsedElementHeadingRow () {
+    const elementHeading = this.getElementHeadingRow()
+    return elementHeading.isCollapsed() || elementHeading.isWithinCollapsedRow()
+  }
+
   getLeftKeyframeColorState () {
-    return (this.isWithinCollapsedRow())
-      ? 'BLUE'
-      : (this.isWithinCollapsedProperty())
-          ? 'DARK_ROCK'
-          : (this.isActive() || this.isDirectlySelected())
-            ? 'LIGHTEST_PINK'
-            : 'ROCK'
+    if (this.isWithinCollapsedElementHeadingRow()) {
+      return 'BLUE'
+    }
+
+    if (this.isWithinCollapsedClusterHeadingRow()) {
+      return 'DARK_ROCK'
+    }
+
+    return (this.isActive() || this.isDirectlySelected())
+      ? 'LIGHTEST_PINK'
+      : 'ROCK'
   }
 
   getRightKeyframeColorState () {
-    return (this.isWithinCollapsedRow())
-      ? 'BLUE'
-      : (this.isWithinCollapsedProperty())
-          ? 'DARK_ROCK'
-          : (
-              this.next() && (
-                this.next().isActive() ||
-                this.next().isSelected()
-              )
-            )
-            ? 'LIGHTEST_PINK'
-            : 'ROCK'
+    if (this.isWithinCollapsedElementHeadingRow()) {
+      return 'BLUE'
+    }
+
+    if (this.isWithinCollapsedClusterHeadingRow()) {
+      return 'DARK_ROCK'
+    }
+
+    if (this.next() && (this.next().isActive() || this.next().isDirectlySelected())) {
+      return 'LIGHTEST_PINK'
+    } else {
+      return 'ROCK'
+    }
   }
 
   getCurveColorState () {
-    return (this.isWithinCollapsedRow())
-      ? 'BLUE'
-      : ((this.isWithinCollapsedProperty())
-          ? 'DARK_ROCK'
-          : (this.next() && (this.next().isActive() || this.next().isSelected()))
-            ? 'LIGHTEST_PINK'
-            : 'ROCK')
+    if (this.isWithinCollapsedElementHeadingRow()) {
+      return 'BLUE'
+    }
+
+    if (this.isWithinCollapsedClusterHeadingRow()) {
+      return 'DARK_ROCK'
+    }
+
+    if (this.isSelectedBody()) {
+      return 'LIGHTEST_PINK'
+    }
+
+    if (this.isSelected() && this.next() && this.next().isSelected()) {
+      return 'LIGHTEST_PINK'
+    }
+
+    return 'ROCK'
   }
 
   dump () {
