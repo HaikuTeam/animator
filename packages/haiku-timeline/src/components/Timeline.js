@@ -85,6 +85,11 @@ class Timeline extends React.Component {
     this._renderedRows = []
 
     window.timeline = this
+
+    document.addEventListener('mousedown', (nativeEvent) => {
+      // Clicking in this view may need to deactivate selections in other views
+      this.props.websocket.send({ type: 'broadcast', name: 'view:mousedown', from: 'timeline' })
+    })
   }
 
   /*
@@ -143,6 +148,8 @@ class Timeline extends React.Component {
       switch (message.name) {
         case 'component:reload':
           return this.component.moduleReplace(() => {})
+        case 'view:mousedown':
+          return this.component.deselectAndDeactivateAllKeyframes()
         default: return void (0)
       }
     })
