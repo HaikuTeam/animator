@@ -259,7 +259,7 @@ export class Glass extends React.Component {
     // Pasteable things are stored at the global level in the clipboard but we need that action to fire from the top level
     // so that all the views get the message, so we emit this as an event and then wait for the call to pasteThing
     document.addEventListener('paste', (pasteEvent) => {
-      if (this.isPreviewMode()) return void(0)
+      if (this.isPreviewMode()) return void (0)
       // Notify creator that we have some content that the person wishes to paste on the stage;
       // the top level needs to handle this because it does content type detection.
       pasteEvent.preventDefault()
@@ -1123,7 +1123,8 @@ export class Glass extends React.Component {
     else if (scaleX < 0 && scaleY < 0) keyOfPointGroup = 3 // flipped horizontally and vertically
 
     if (keyOfPointGroup === undefined) {
-      throw new Error('Unable to determine handle class due to bad scale values')
+      console.warn(`[haiku-glass] unable to determine handle class due to bad scale values ${scaleX},${scaleY}`)
+      return ''
     }
 
     var specifiedPointGroup = CLOCKWISE_CONTROL_POINTS[keyOfPointGroup]
