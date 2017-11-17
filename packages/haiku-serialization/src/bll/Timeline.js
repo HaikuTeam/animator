@@ -38,6 +38,7 @@ class Timeline extends BaseModel {
     this._scrollerBodyDragStart = 0
     this._scrollbarStart = 0
     this._scrollbarEnd = 0
+    this._hoveredFrame = 0
 
     this.debouncedRehydrate = lodash.debounce(this.rehydrate.bind(this), STANDARD_DEBOUNCE)
 
@@ -203,6 +204,16 @@ class Timeline extends BaseModel {
 
   getCurrentFrame () {
     return this._currentFrame
+  }
+
+  hoverFrame (hoveredFrame) {
+    this._hoveredFrame = hoveredFrame
+    this.emit('update', 'timeline-frame-hovered')
+    return this
+  }
+
+  getHoveredFrame () {
+    return this._hoveredFrame
   }
 
   getCurrentMs () {

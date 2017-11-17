@@ -15,6 +15,12 @@ export default class ComponentHeadingRow extends React.Component {
         key={`component-heading-row-${componentId}-${this.props.row.getAddress()}`}
         className='component-heading-row no-select'
         data-component-id={componentId}
+        onMouseOver={() => {
+          this.props.row.hoverAndUnhoverOthers()
+        }}
+        onMouseOut={() => {
+          this.props.row.unhover()
+        }}
         onClick={(clickEvent) => {
           clickEvent.stopPropagation()
           // Expand the entire component area when it is clicked, but note that we

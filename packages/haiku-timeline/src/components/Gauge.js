@@ -1,5 +1,6 @@
 import React from 'react'
 import formatSeconds from './helpers/formatSeconds'
+import Palette from './DefaultPalette'
 
 export default class Gauge extends React.Component {
   constructor (props) {
@@ -19,7 +20,12 @@ export default class Gauge extends React.Component {
 
   handleUpdate (what) {
     if (!this.mounted) return false
-    if (what === 'timeline-frame-range') this.forceUpdate()
+    if (
+      what === 'timeline-frame-range' ||
+      what === 'timeline-frame-hovered'
+    ) {
+      this.forceUpdate()
+    }
   }
 
   render () {
@@ -31,7 +37,14 @@ export default class Gauge extends React.Component {
             if (frameNumber === 0 || frameNumber % frameModulus === 0) {
               return (
                 <span key={`frame-${frameNumber}`} style={{ pointerEvents: 'none', display: 'inline-block', position: 'absolute', left: pixelOffsetLeft, transform: 'translateX(-50%)' }}>
-                  <span style={{ fontWeight: 'bold' }}>{frameNumber}</span>
+                  <span style={{
+                    fontWeight: 'bold',
+                    color: (this.props.timeline.getHoveredFrame() === frameNumber)
+                      ? Palette.ROCK
+                      : 'inherit'
+                  }}>
+                    {frameNumber}
+                  </span>
                 </span>
               )
             }

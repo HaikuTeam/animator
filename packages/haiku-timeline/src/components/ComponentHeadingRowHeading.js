@@ -1,6 +1,7 @@
 import React from 'react'
 import truncate from './helpers/truncate'
 import Palette from './DefaultPalette'
+import Color from 'color'
 
 export default class ComponentHeadingRowHeading extends React.Component {
   constructor (props) {
@@ -24,7 +25,9 @@ export default class ComponentHeadingRowHeading extends React.Component {
       what === 'row-selected' ||
       what === 'row-expanded' ||
       what === 'row-collapsed' ||
-      what === 'row-deselected'
+      what === 'row-deselected' ||
+      what === 'row-hovered' ||
+      what === 'row-unhovered'
     ) {
       this.forceUpdate()
     }
@@ -32,8 +35,18 @@ export default class ComponentHeadingRowHeading extends React.Component {
 
   render () {
     let color = Palette.ROCK_MUTED
-    if (this.props.row.isExpanded()) color = Palette.ROCK
-    if (this.props.row.isSelected()) color = Palette.SUNSTONE
+
+    if (this.props.row.isExpanded()) {
+      color = Palette.ROCK
+    }
+
+    if (this.props.row.isSelected()) {
+      color = Palette.SUNSTONE
+    }
+
+    if (this.props.row.isHovered()) {
+      color = Color(color).lighten(0.25)
+    }
 
     const elementName = this.props.row.element.getNameString()
 

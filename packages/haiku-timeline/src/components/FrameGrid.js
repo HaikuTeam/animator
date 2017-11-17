@@ -20,10 +20,17 @@ export default class FrameGrid extends React.Component {
 
   handleUpdate (what) {
     if (!this.mounted) return null
-    if (what === 'timeline-frame-range') this.forceUpdate()
+    if (
+      what === 'timeline-frame-range' ||
+      what === 'timeline-frame-hovered'
+    ) {
+      this.forceUpdate()
+    }
   }
 
   render () {
+    const borderLeftNormal = '1px solid ' + Color(Palette.COAL).fade(0.65)
+    const borderLeftHighlighted = '1px solid ' + Color(Palette.ROCK).fade(0.80)
     return (
       <div
         id='frame-grid'
@@ -37,7 +44,9 @@ export default class FrameGrid extends React.Component {
               key={`frame-${frameNumber}`}
               style={{
                 height: 9999,
-                borderLeft: '1px solid ' + Color(Palette.COAL).fade(0.65),
+                borderLeft: (this.props.timeline.getHoveredFrame() === frameNumber)
+                  ? borderLeftHighlighted
+                  : borderLeftNormal,
                 position: 'absolute',
                 left: pixelOffsetLeft,
                 top: 34

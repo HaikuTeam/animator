@@ -196,6 +196,17 @@ class Row extends BaseModel {
     return this
   }
 
+  isHovered () {
+    return this._isHovered
+  }
+
+  hoverAndUnhoverOthers () {
+    Row.all().forEach((row) => {
+      if (row !== this) row.unhover()
+    })
+    this.hover()
+  }
+
   unhover () {
     if (this._isHovered || Row._hovered[this.getUniqueKey()]) {
       this._isHovered = false

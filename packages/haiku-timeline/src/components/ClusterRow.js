@@ -6,6 +6,31 @@ import RowSegments from './RowSegments'
 import Globals from './Globals'
 
 export default class ClusterRow extends React.Component {
+  constructor (props) {
+    super(props)
+    this.handleUpdate = this.handleUpdate.bind(this)
+  }
+
+  componentWillUnmount () {
+    this.mounted = false
+    this.props.row.removeListener('update', this.handleUpdate)
+  }
+
+  componentDidMount () {
+    this.mounted = true
+    this.props.row.on('update', this.handleUpdate)
+  }
+
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    if (
+      what === 'row-hovered' ||
+      what === 'row-unhovered'
+    ) {
+      this.forceUpdate()
+    }
+  }
+
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
 
@@ -19,6 +44,12 @@ export default class ClusterRow extends React.Component {
         }}
         id={`property-cluster-row-${this.props.row.getAddress()}-${componentId}-${clusterName}`}
         className='property-cluster-row'
+        onMouseOver={() => {
+          this.props.row.hoverAndUnhoverOthers()
+        }}
+        onMouseOut={() => {
+          this.props.row.unhover()
+        }}
         onClick={() => {
           this.props.row.expandAndSelect({ from: 'timeline' })
         }}
@@ -80,7 +111,9 @@ export default class ClusterRow extends React.Component {
             <span style={{
               textTransform: 'uppercase',
               fontSize: 10,
-              color: Palette.DARK_ROCK
+              color: (this.props.row.isHovered())
+                ? Palette.ROCK
+                : Palette.DARK_ROCK
             }}>
               {clusterName}
             </span>

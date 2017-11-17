@@ -90,6 +90,15 @@ class Timeline extends React.Component {
       // Clicking in this view may need to deactivate selections in other views
       this.props.websocket.send({ type: 'broadcast', name: 'view:mousedown', from: 'timeline' })
     })
+
+    document.addEventListener('mousemove', (mouseMoveEvent) => {
+      const timeline = this.component.getCurrentTimeline()
+      const frameInfo = timeline.getFrameInfo()
+      let pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
+      if (pxInTimeline < 0) pxInTimeline = 0
+      const frameForPx = frameInfo.friA + Math.round(pxInTimeline / frameInfo.pxpf)
+      timeline.hoverFrame(frameForPx)
+    })
   }
 
   /*
