@@ -60,7 +60,7 @@ export default class SoloKeyframe extends React.Component {
             ? Palette.BLUE
             : (this.props.keyframe.isWithinCollapsedProperty())
                 ? Palette.DARK_ROCK
-                : (this.props.keyframe.isActive() || this.props.keyframe.isSelected())
+                : (this.props.keyframe.isActive() || this.props.keyframe.isDirectlySelected())
                   ? Palette.LIGHTEST_PINK
                   : Palette.ROCK
           } />

@@ -751,9 +751,9 @@ class Timeline extends React.Component {
           }}
           onMouseDown={(mouseEvent) => {
             if (
-              Globals.isShiftKeyDown ||
-              Globals.isControlKeyDown ||
-              mouseEvent.nativeEvent.which === 3
+              !Globals.isShiftKeyDown &&
+              !Globals.isControlKeyDown &&
+              mouseEvent.nativeEvent.which != 3
             ) {
               this.component.deselectAndDeactivateAllKeyframes()
             }

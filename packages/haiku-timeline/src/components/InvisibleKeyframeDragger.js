@@ -58,7 +58,8 @@ export default class InvisibleKeyframeDragger extends React.Component {
             skipDeselect:
               Globals.isShiftKeyDown ||
               Globals.isControlKeyDown ||
-              mouseEvent.nativeEvent.which === 3
+              mouseEvent.nativeEvent.which === 3,
+            directlySelected: true
           })
         }}>
         <span
