@@ -146,7 +146,6 @@ HaikuContext.prototype.contextMount = function _contextMount() {
       this.addTickable(unmounted[i]);
     }
   }
-  return this;
 };
 
 /**
@@ -154,7 +153,6 @@ HaikuContext.prototype.contextMount = function _contextMount() {
  */
 HaikuContext.prototype.contextUnmount = function _contextUnmount() {
   this._unmountedTickables = this._tickables.splice(0);
-  return this;
 };
 
 /**
@@ -173,7 +171,6 @@ HaikuContext.prototype.addTickable = function addTickable(tickable) {
   if (!alreadyAdded) {
     this._tickables.push(tickable);
   }
-  return this;
 };
 
 /**
@@ -186,7 +183,6 @@ HaikuContext.prototype.removeTickable = function removeTickable(tickable) {
       this._tickables.splice(i, 1);
     }
   }
-  return this;
 };
 
 /**
@@ -215,8 +211,6 @@ HaikuContext.prototype.assignConfig = function assignConfig(config, options) {
 
   // We assign this in the configuration step since if the seed changes we need a new prng.
   this._prng = new PRNG(this.config.options.seed);
-
-  return this;
 };
 
 // Call to completely update the entire component tree - as though it were the first time
@@ -232,7 +226,6 @@ HaikuContext.prototype.performFullFlushRender = function performFullFlushRender(
   if (tree !== undefined) {
     this._renderer.render(this._mount, container, tree, this.component);
   }
-  return this;
 };
 
 // Call to update elements of the this.component tree - but only those that we detect have changed
@@ -246,12 +239,7 @@ HaikuContext.prototype.performPatchRender = function performPatchRender() {
     : this._renderer.getLastContainer();
   const patches = this.component.patch(container, this.config.options);
 
-  this._renderer.patch(
-    this._mount,
-    patches,
-    this.component,
-  );
-  return this;
+  this._renderer.patch(this._mount, patches, this.component);
 };
 
 // Called on every frame, this function updates the mount+root elements to ensure their style settings are in accordance
@@ -298,8 +286,6 @@ HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles() 
   // ) {
   //   this._mount.style.overflow = 'hidden'
   // }
-
-  return this;
 };
 
 HaikuContext.prototype.tick = function tick() {
@@ -333,8 +319,6 @@ HaikuContext.prototype.tick = function tick() {
 
     this._ticks++;
   }
-
-  return this;
 };
 
 /**

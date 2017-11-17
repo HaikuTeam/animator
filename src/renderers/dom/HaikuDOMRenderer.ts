@@ -26,30 +26,12 @@ export default function HaikuDOMRenderer() {
   this._lastContainer = undefined;
 }
 
-HaikuDOMRenderer.prototype.render = function renderWrap(
-  domElement,
-  virtualContainer,
-  virtualTree,
-  component,
-) {
-  return render(
-    domElement,
-    virtualContainer,
-    virtualTree,
-    component,
-  );
+HaikuDOMRenderer.prototype.render = function renderWrap(domElement, virtualContainer, virtualTree, component) {
+  return render(domElement, virtualContainer, virtualTree, component);
 };
 
-HaikuDOMRenderer.prototype.patch = function patchWrap(
-  domElement,
-  patchesDict,
-  component,
-) {
-  return patch(
-    domElement,
-    patchesDict,
-    component,
-  );
+HaikuDOMRenderer.prototype.patch = function patchWrap(domElement, patchesDict, component) {
+  return patch(domElement, patchesDict, component);
 };
 
 HaikuDOMRenderer.prototype.menuize = function menuize(domElement, component) {

@@ -74,6 +74,7 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   });
 
   this._context = context;
+  this.cache = {};
   this._builder = new ValueBuilder(this);
 
   // STATES
@@ -443,10 +444,7 @@ HaikuComponent.prototype.clearCaches = function clearCaches(options) {
 
   this._builder.clearCaches(options);
 
-  // TODO: Do we _need_ to reach in and clear the caches of context?
-  this._context.config.options.cache = {};
-
-  this.config.options.cache = {};
+  this.cache = {};
 
   // These may have been set for caching purposes
   if (this._bytecode.timelines) {

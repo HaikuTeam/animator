@@ -30,8 +30,8 @@ export default function createTagNode(
     newDomElement.haiku = {};
   }
 
-  if (!component.config.options.cache[getFlexId(virtualElement)]) {
-    component.config.options.cache[getFlexId(virtualElement)] = {};
+  if (!component.cache[getFlexId(virtualElement)]) {
+    component.cache[getFlexId(virtualElement)] = {};
   }
 
   const incomingKey =
@@ -42,13 +42,6 @@ export default function createTagNode(
   }
 
   // updateElement recurses down into setAttributes, etc.
-  updateElement(
-    newDomElement,
-    virtualElement,
-    domElement,
-    parentVirtualElement,
-    component,
-    null,
-  );
+  updateElement(newDomElement, virtualElement, domElement, parentVirtualElement, component, null);
   return newDomElement;
 }
