@@ -194,19 +194,20 @@ class Keyframe extends BaseModel {
   }
 
   removeCurve (metadata) {
-    this.setCurve(null)
+    if (this.next() && this.next()._selected) {
+      this.setCurve(null)
+      this.component.splitSegment(
+        [this.element.getComponentId()],
+        this.timeline.getName(),
+        this.element.getNameString(),
+        this.row.getPropertyNameString(),
+        this.getMs(),
+        metadata,
+        () => {}
+      )
 
-    this.component.splitSegment(
-      [this.element.getComponentId()],
-      this.timeline.getName(),
-      this.element.getNameString(),
-      this.row.getPropertyNameString(),
-      this.getMs(),
-      metadata,
-      () => {}
-    )
-
-    this.row.emit('update', 'keyframe-remove-curve')
+      this.row.emit('update', 'keyframe-remove-curve')
+    }
 
     return this
   }
