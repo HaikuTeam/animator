@@ -199,8 +199,8 @@ export default class TransitionBody extends React.Component {
               top: 0,
               borderRadius: 5,
               left: 0,
-              backgroundColor:  Color(Palette.SUNSTONE).fade(0.98)
-            }}/>
+              backgroundColor: Color(Palette.SUNSTONE).fade(0.98)
+            }} />
           <span
             style={{
               position: 'absolute',
@@ -273,5 +273,5 @@ TransitionBody.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
   $update: React.PropTypes.object.isRequired,
-  preventDragging: React.PropTypes.bool.isRequired,
+  preventDragging: React.PropTypes.bool.isRequired
 }

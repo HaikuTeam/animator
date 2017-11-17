@@ -3,34 +3,10 @@ import Palette from './DefaultPalette'
 import RightCarrotSVG from './icons/RightCarrotSVG'
 import ClusterInputField from './ClusterInputField'
 import RowSegments from './RowSegments'
+import ClusterRowHeading from './ClusterRowHeading'
 import Globals from './Globals'
 
 export default class ClusterRow extends React.Component {
-  constructor (props) {
-    super(props)
-    this.handleUpdate = this.handleUpdate.bind(this)
-  }
-
-  componentWillUnmount () {
-    this.mounted = false
-    this.props.row.removeListener('update', this.handleUpdate)
-  }
-
-  componentDidMount () {
-    this.mounted = true
-    this.props.row.on('update', this.handleUpdate)
-  }
-
-  handleUpdate (what) {
-    if (!this.mounted) return null
-    if (
-      what === 'row-hovered' ||
-      what === 'row-unhovered'
-    ) {
-      this.forceUpdate()
-    }
-  }
-
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
 
@@ -44,10 +20,10 @@ export default class ClusterRow extends React.Component {
         }}
         id={`property-cluster-row-${this.props.row.getAddress()}-${componentId}-${clusterName}`}
         className='property-cluster-row'
-        onMouseOver={() => {
+        onMouseEnter={() => {
           this.props.row.hoverAndUnhoverOthers()
         }}
-        onMouseOut={() => {
+        onMouseLeave={() => {
           this.props.row.unhover()
         }}
         onClick={() => {
@@ -108,15 +84,10 @@ export default class ClusterRow extends React.Component {
               zIndex: 1004,
               textAlign: 'right'
             }}>
-            <span style={{
-              textTransform: 'uppercase',
-              fontSize: 10,
-              color: (this.props.row.isHovered())
-                ? Palette.ROCK
-                : Palette.DARK_ROCK
-            }}>
-              {clusterName}
-            </span>
+            <ClusterRowHeading
+              clusterName={clusterName}
+              row={this.props.row}
+              />
           </div>
         </div>
         <div className='property-cluster-input-field'
@@ -151,7 +122,7 @@ export default class ClusterRow extends React.Component {
           }}>
           <RowSegments
             includeDraggables={false}
-            preventDragging={true}
+            preventDragging
             row={this.props.row}
             $update={this.props.$update}
             component={this.props.component}

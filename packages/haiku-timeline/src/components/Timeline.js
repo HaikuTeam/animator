@@ -159,6 +159,7 @@ class Timeline extends React.Component {
           if (message.elid !== 'timeline-webview') {
             return this.component.deselectAndDeactivateAllKeyframes()
           }
+          break
         default: return void (0)
       }
     })
@@ -760,7 +761,7 @@ class Timeline extends React.Component {
             if (
               !Globals.isShiftKeyDown &&
               !Globals.isControlKeyDown &&
-              mouseEvent.nativeEvent.which != 3
+              mouseEvent.nativeEvent.which !== 3
             ) {
               this.component.deselectAndDeactivateAllKeyframes()
             }

@@ -4,34 +4,10 @@ import DownCarrotSVG from './icons/DownCarrotSVG'
 import PropertyInputField from './PropertyInputField'
 import Palette from './DefaultPalette'
 import PropertyTimelineSegments from './PropertyTimelineSegments'
+import PropertyRowHeading from './PropertyRowHeading'
 import Globals from './Globals'
 
 export default class PropertyRow extends React.Component {
-  constructor (props) {
-    super(props)
-    this.handleUpdate = this.handleUpdate.bind(this)
-  }
-
-  componentWillUnmount () {
-    this.mounted = false
-    this.props.row.removeListener('update', this.handleUpdate)
-  }
-
-  componentDidMount () {
-    this.mounted = true
-    this.props.row.on('update', this.handleUpdate)
-  }
-
-  handleUpdate (what) {
-    if (!this.mounted) return null
-    if (
-      what === 'row-hovered' ||
-      what === 'row-unhovered'
-    ) {
-      this.forceUpdate()
-    }
-  }
-
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
 
@@ -43,10 +19,10 @@ export default class PropertyRow extends React.Component {
       <div
         id={`property-row-${this.props.row.getAddress()}-${componentId}-${propertyName}`}
         className='property-row'
-        onMouseOver={() => {
+        onMouseEnter={() => {
           this.props.row.hoverAndUnhoverOthers()
         }}
-        onMouseOut={() => {
+        onMouseLeave={() => {
           this.props.row.unhover()
         }}
         style={{
@@ -102,20 +78,9 @@ export default class PropertyRow extends React.Component {
               paddingTop: 6,
               paddingRight: 10
             }}>
-            <div style={{
-              textTransform: 'uppercase',
-              fontSize: 10,
-              width: 91,
-              lineHeight: 1,
-              float: 'right',
-              color: (this.props.row.isHovered())
-                ? Palette.SUNSTONE
-                : Palette.ROCK,
-              transform: humanName === 'background color' ? 'translateY(-2px)' : 'translateY(3px)',
-              position: 'relative'
-            }}>
-              {humanName}
-            </div>
+            <PropertyRowHeading
+              row={this.props.row}
+              humanName={humanName} />
           </div>
         </div>
         <div className='property-input-field'

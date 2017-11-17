@@ -81,15 +81,15 @@ export default class ConstantBody extends React.Component {
         {(this.props.keyframe.isWithinCollapsedRow())
           ? ''
           : <span style={{
-              height: 3,
-              top: 12,
-              position: 'absolute',
-              zIndex: 2,
-              width: '100%',
-              backgroundColor: (this.props.keyframe.isSelectedBody())
+            height: 3,
+            top: 12,
+            position: 'absolute',
+            zIndex: 2,
+            width: '100%',
+            backgroundColor: (this.props.keyframe.isSelectedBody())
                 ? Color(Palette.LIGHTEST_PINK).fade(0.5)
                 : Palette.DARKER_GRAY
-            }} />
+          }} />
         }
       </span>
     )
@@ -102,5 +102,5 @@ ConstantBody.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
   $update: React.PropTypes.object.isRequired,
-  preventDragging: React.PropTypes.bool.isRequired,
+  preventDragging: React.PropTypes.bool.isRequired
 }

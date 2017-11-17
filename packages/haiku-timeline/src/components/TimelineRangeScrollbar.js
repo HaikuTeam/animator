@@ -29,7 +29,7 @@ export default class TimelineRangeScrollbar extends React.Component {
 
   getPlayheadPc (frameInfo) {
     if (frameInfo.friMaxVirt < 1) return 0
-    const frame =  this.props.timeline.getCurrentFrame()
+    const frame = this.props.timeline.getCurrentFrame()
     if (frame < 1) return 0
     return (frame / frameInfo.friMaxVirt) * 100
   }
