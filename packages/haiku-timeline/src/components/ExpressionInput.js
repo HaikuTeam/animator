@@ -518,9 +518,6 @@ export default class ExpressionInput extends React.Component {
         this.setState({ autoCompletions: [] })
       } else if (keydownEvent.which === 39) { // ArrowRight
         this.setState({ autoCompletions: [] })
-      } else if (keydownEvent.which === 13 && !keydownEvent.shiftKey) { // Enter (without Shift only!)
-        keydownEvent.preventDefault()
-        return this.chooseHighlightedAutoCompletion()
       } else if (keydownEvent.which === 9) { // Tab
         keydownEvent.preventDefault()
         return this.chooseHighlightedAutoCompletion()
