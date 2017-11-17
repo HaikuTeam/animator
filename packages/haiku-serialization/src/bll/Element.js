@@ -731,7 +731,7 @@ class Element extends BaseModel {
     return this.address
   }
 
-  getAddressableProperties (doGoDeep) {
+  getAddressableProperties () {
     const addressables = {}
 
     // If this element is component, then start by populating standard DOM properties
