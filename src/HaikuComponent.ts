@@ -1392,13 +1392,9 @@ function computeAndApplyPresetSizing(element, container, mode, deltas) {
   switch (mode) {
     // Make the base element its default scale, which is just a multiplier of one. This is the default.
     case 'normal':
-      if (element.layout.scale.x !== 1.0) {
+      if (element.layout.scale.x !== 1.0 || element.layout.scale.y !== 1.0) {
         changed = true;
-        element.layout.scale.x = 1.0;
-      }
-      if (element.layout.scale.y !== 1.0) {
-        changed = true;
-        element.layout.scale.y = 1.0;
+        element.layout.scale.x = element.layout.scale.y = 1.0;
       }
       break;
 
