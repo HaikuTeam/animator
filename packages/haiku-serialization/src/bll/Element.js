@@ -743,31 +743,6 @@ class Element extends BaseModel {
       _assignDOMSchemaProperties(addressables, elementName)
     }
 
-    if (doGoDeep) {
-      const primitives = []
-      Element.visitChildren(this, (descendant) => {
-        if (PRIMITIVE_SHAPES[descendant.getNameString()]) {
-          primitives.push(descendant)
-        }
-      })
-
-      // If we are dealing with an effective primitive, hoist its addressables
-      if (primitives.length === 1) {
-        let descendant = primitives[0]
-        let subaddressables = descendant.getAddressableProperties(false)
-
-        for (let subname in subaddressables) {
-          // Add this flag so the timeline knows to whom to apply updates
-          subaddressables[subname].subid = descendant.getComponentId()
-
-          // And add it to our own object if we haven't set it already
-          if (!addressables[subname]) {
-            addressables[subname] = subaddressables[subname]
-          }
-        }
-      }
-    }
-
     // If this is a component, then add any of our exposed states as addressables
     if (this.isComponent()) {
       for (let name in this.node.elementName.states) {

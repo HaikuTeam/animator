@@ -1624,7 +1624,7 @@ class ActiveComponent extends BaseModel {
       parentElementRow.addChild(elementHeadingRow)
     }
 
-    const addressableProperties = element.getAddressableProperties(false)
+    const addressableProperties = element.getAddressableProperties()
 
     const clustersUpserted = {}
 

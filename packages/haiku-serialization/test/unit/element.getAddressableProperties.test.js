@@ -23,7 +23,7 @@ test('element.getAddressableProperties.test.js', function (t) {
     if (what === 'application-mounted') {
       ac.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
       var el = ac.findElementByComponentId('b7f18dbaf7ac')
-      var addressables = el.getAddressableProperties(true)
+      var addressables = el.getAddressableProperties()
       t.ok(addressables)
     }
   })
