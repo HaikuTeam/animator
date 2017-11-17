@@ -61,7 +61,7 @@ function uploadRelease (region, key, secret, bucket, folder, platform, environme
 
       var urls = {
         download: `https://s3.amazonaws.com/${bucket}/${folder}/${environment}/${branch}/${platform}/${countdown}/${version}/Haiku-${version}-${platform}-pending.zip`,
-        latest: `https://s3.amazonaws.com/${bucket}/${folder}/${environment}-${branch}-${platform}-latest.zip`
+        latest: `https://s3.amazonaws.com/${bucket}/${folder}/${environment}-${branch}-${platform}-latest-pending.zip`
       }
 
       return cb(null, {
