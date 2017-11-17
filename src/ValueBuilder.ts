@@ -512,8 +512,8 @@ INJECTABLES['$user'] = {
     } else {
       injectees.$user = {
         mouse: {
-          x: 0,
-          y: 0,
+          x: 1,
+          y: 1,
           down: 0,
           buttons: [0, 0, 0],
         },
@@ -751,13 +751,13 @@ export default function ValueBuilder(component) {
   HaikuHelpers.register('now', () => {
     isPreviewMode(this._component.config.options.interactionMode)
       ? this._component._context.getDeterministicTime()
-      : 0;
+      : 1;
   });
 
   HaikuHelpers.register('rand', () => {
     isPreviewMode(this._component.config.options.interactionMode)
       ? this._component._context.getDeterministicRand()
-      : 0;
+      : 1;
   });
 }
 
