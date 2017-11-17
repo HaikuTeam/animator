@@ -1,6 +1,6 @@
 {
   "name": "haiku-common",
-  "version": "2.3.34",
+  "version": "2.3.35",
   "description": "Common library for Haiku.",
   "main": "lib/index.js",
   "directories": {
