@@ -1253,12 +1253,14 @@ class ActiveComponent extends BaseModel {
   splitSelectedKeyframes (metadata) {
     const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.removeCurve(metadata))
+    this.deselectAndDeactivateAllKeyframes()
     return this
   }
 
   deleteSelectedKeyframes (metadata) {
     const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.delete(metadata))
+    this.deselectAndDeactivateAllKeyframes()
     return this
   }
 
