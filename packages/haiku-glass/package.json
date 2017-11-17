@@ -45,6 +45,7 @@
     "babel-preset-react-app": "^2.2.0",
     "electron": "1.7.0",
     "jsdom": "^11.1.0",
+    "prop-types": "^15.6.0",
     "react-contextmenu": "^2.8.0",
     "snazzy": "^6.0.0",
     "standard": "^9.0.1",

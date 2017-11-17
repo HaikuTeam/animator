@@ -1,5 +1,4 @@
 import React from 'react'
-import CodeMirror from 'codemirror'
 import functionToRFO from '@haiku/player/lib/reflection/functionToRFO'
 import ElementTitle from './ElementTitle'
 import EventSelector from './EventSelector'
@@ -20,14 +19,30 @@ const STYLES = {
   }
 }
 
-export default class EventHandlerEditor extends React.Component {
+class EventHandlerEditor extends React.Component {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      selectedEventName: 'click', // Seems a good default event to work with
+      customEventOptions: [], // Allow user to type in a custom event name
+      evaluator: {
+        text: null,
+        state: EVALUATOR_STATES.NONE
+      }
+    }
+  }
+
+  setEvaluator (evaluator) {
+    this.setState({evaluator: evaluator})
+  }
 
   isCommittableValueInvalid(committable, original) {
     // If we have any error/warning in the evaluator, assume it as grounds not to commit
     // the current content of the field. Basically leveraging pre-validation we've already done.
-    if (this.state.evaluatorState > EVALUATOR_STATES.INFO) {
+    if (this.state.evaluator.state > EVALUATOR_STATES.INFO) {
       return {
-        reason: this.state.evaluatorText
+        reason: this.state.evaluator.text
       }
     }
 
@@ -53,8 +68,10 @@ export default class EventHandlerEditor extends React.Component {
     // and then show an error message in the evaluator tooltip
     if (invalid) {
       return this.setState({
-        evaluatorState: EVALUATOR_STATES.ERROR,
-        evaluatorText: invalid.reason
+        evaluator: {
+          state: EVALUATOR_STATES.ERROR,
+          text: invalid.reason
+        }
       })
     }
 
@@ -128,15 +145,13 @@ export default class EventHandlerEditor extends React.Component {
       }
       this.setState(
         {
-          evaluatorText: null,
-          evaluatorState: EVALUATOR_STATES.OPEN,
+          evaluator: {
+            state: EVALUATOR_STATES.OPEN,
+            text: null
+          },
           selectedEventName: value,
           originalValue: existingHandler,
           editedValue: existingHandler
-        },
-        () => {
-          this.recalibrateEditor()
-          // this.handleEditorChange(this.codemirror, {}, true)
         }
       )
     }
@@ -153,16 +168,25 @@ export default class EventHandlerEditor extends React.Component {
         style={STYLES.container}
       >
         <style>{CSSStyles}</style>
+
         <ElementTitle element={this.props.element} />
 
         <EventSelector
           element={this.props.element}
+          selectedEventName={this.state.selectedEventName}
           onEventChange={(eventChange) => {
             this.handleChangedEventName(eventChange)
           }}
         />
 
-        <Editor />
+        <Editor
+          element={this.props.element}
+          evaluator={this.state.evaluator}
+          onEvaluatorChange={(evaluator) => { this.setEvaluator(evaluator) }}
+          onEventChange={(eventChange) => {
+            this.handleChangedEventName(eventChange)
+          }}
+        />
 
         <EditorActions
           onCancel={() => {
@@ -176,3 +200,5 @@ export default class EventHandlerEditor extends React.Component {
     )
   }
 }
+
+export default EventHandlerEditor

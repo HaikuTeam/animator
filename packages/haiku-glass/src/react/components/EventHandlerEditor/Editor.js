@@ -1,4 +1,5 @@
 import React from 'react'
+import CodeMirror from 'codemirror'
 import Color from 'color'
 import reifyRFO from '@haiku/player/lib/reflection/reifyRFO'
 import HaikuMode from '../../modes/haiku'
@@ -68,11 +69,6 @@ class Editor extends React.Component {
     this.codemirror.on('keydown', this.handleEditorKeydown.bind(this))
 
     this.state = {
-      selectedEventName: 'click', // Seems a good default event to work with
-      customEventOptions: [], // Allow user to type in a custom event name
-      autoCompletions: [],
-      evaluatorText: null,
-      evaluatorState: EVALUATOR_STATES.NONE,
       originalValue: null,
       editedValue: null,
       preamble: '',
@@ -90,11 +86,14 @@ class Editor extends React.Component {
     }
 
     // Not really a change event, but it contains the same business logic we want...
-    this.handleChangedEventName(
-      undefined,
-      {value: this.state.selectedEventName},
-      true
+    this.props.onEventChange(
+      {value: this.state.selectedEventName}
     )
+  }
+
+  componentWillUpdate () {
+    this.recalibrateEditor()
+    this.handleEditorChange(this.codemirror, {}, true)
   }
 
   getPreamble(officialValue) {
@@ -106,20 +105,12 @@ class Editor extends React.Component {
     return `function (${params}) {`
   }
 
-  recalibrateEditor(cursor) {
+  recalibrateEditor() {
     let renderable = this.state.editedValue.body
     let preamble = this.getPreamble(this.state.editedValue)
     let postamble = '}'
 
     this.codemirror.setValue(renderable)
-
-    // If cursor explicitly passed, use it. This is used by chooseAutocompletion
-    if (cursor) {
-      this.codemirror.setCursor(cursor)
-    } else {
-      this.codemirror.setCursor({line: 1})
-    }
-
     this.setState({preamble, postamble})
   }
 
@@ -132,43 +123,28 @@ class Editor extends React.Component {
     })
   }
 
-  handleEditorChange(cm, changeObject, alsoSetOriginal, wasInternalCall) {
+  handleEditorChange(editor, changeObject, alsoSetOriginal, wasInternalCall) {
     if (changeObject.origin === 'setValue') {
       return void 0
     }
 
-    // Any change should unset the current error state of the
-    this.setState({
-      evaluatorText: null
-    })
-
-    let rawValueFromEditor = cm.getValue()
+    const evaluator = {
+      // Any change should unset the current error state,
+      text: null,
+      // By default, assume we are in an open evaluator state
+      // (will check for error in a moment)
+      state: EVALUATOR_STATES.OPEN
+    }
 
     let officialValue = {
       params: ['event'],
-      body: rawValueFromEditor
+      body: editor.getValue()
     }
 
-    // By default, assume we are in an open evaluator state (will check for error in a moment)
-    this.setState({
-      evaluatorState: EVALUATOR_STATES.OPEN
-    })
-
-    // If the last entry was a space, remove autocomplete before we start parsing, which might fail
-    // if we have an incomplete event-handler-in-progress inside the editor
-    // Also remove any completions if the editor does not have focus
-    if (
-      !cm.hasFocus() ||
-      (changeObject && changeObject.text && changeObject.text[0] === ' ')
-    ) {
-      this.setState({
-        autoCompletions: []
-      })
-    }
-
-    // This wrapping is required for parsing to work (parens are needed to make it an event-handler)
+    // This wrapping is required for parsing to work
+    // (parens are needed to make it an event-handler)
     let wrapped = parseExpression.wrap(officialValue.body)
-    let cursor1 = this.codemirror.getCursor()
+    let cursor1 = editor.getCursor()
 
     let parse = parseExpression(
       wrapped,
@@ -186,54 +162,15 @@ class Editor extends React.Component {
       }
     )
 
-    this._parse = parse // Caching this to make it faster to read for autocompletions
-
     if (parse.error) {
-      this.setState({
-        autoCompletions: [],
-        evaluatorState: EVALUATOR_STATES.ERROR,
-        evaluatorText: parse.error.message
-      })
-    }
-
-    if (!parse.error) {
+      evaluator.text = parse.error.message
+      evaluator.state = EVALUATOR_STATES.ERROR
+    } else {
       if (parse.warnings.length > 0) {
-        this.setState({
-          evaluatorState: EVALUATOR_STATES.WARN,
-          evaluatorText: parse.warnings[0].annotation
-        })
+        evaluator.text = parse.warnings[0].annotation
+        evaluator.state = EVALUATOR_STATES.WARN
       }
 
-      if (cm.hasFocus()) {
-        let completions = parse.completions
-          .sort((a, b) => {
-            var na = a.name.toLowerCase()
-            var nb = b.name.toLowerCase()
-            if (na < nb) return -1
-            if (na > nb) return 1
-            return 0
-          })
-          .slice(0, MAX_AUTOCOMPLETION_ENTRIES)
-
-        // Highlight the initial completion in the list
-        if (completions[0]) {
-          completions[0].highlighted = true
-        }
-
-        this.setState({
-          autoCompletions: completions
-        })
-      } else {
-        this.setState({
-          autoCompletions: []
-        })
-      }
-    }
-
-    // We can't store the edited value if it doesn't parse, since storing it requires that
-    // we save the reified version, which depends on `new Function`
-    if (!parse.error) {
-      // Store the edited code in memory on the element so we can retrieve it if we navigate
       this.storeEditedValue(this.state.selectedEventName, officialValue)
     }
 
@@ -249,6 +186,8 @@ class Editor extends React.Component {
         editedValue: officialValue
       })
     }
+
+    this.props.onEvaluatorChange(evaluator)
   }
 
   handleEditorKeydown(cm, keydownEvent) {
@@ -315,12 +254,8 @@ class Editor extends React.Component {
     return curs.line + 1
   }
 
-  getEvaluatorText() {
-    return this.state.evaluatorText || 'No Errors'
-  }
-
   getEvalutatorStateColor() {
-    switch (this.state.evaluatorState) {
+    switch (this.props.evaluator.state) {
       case EVALUATOR_STATES.WARN:
         return Palette.ORANGE
       case EVALUATOR_STATES.ERROR:
@@ -330,13 +265,6 @@ class Editor extends React.Component {
     }
   }
 
-  getEditorContextClassName() {
-    let name = []
-    name.push('haiku-multiline')
-    name.push('haiku-dynamic')
-    return name.join(' ')
-  }
-
   render() {
     return (
       <div>
@@ -344,8 +272,7 @@ class Editor extends React.Component {
           {this.state.preamble}
         </div>
         <div
-          id="event-handler-input-editor-context"
-          className={this.getEditorContextClassName()}
+          className='haiku-multiline haiku-dynamic'
           ref={element => {
             this._context = element
           }}
@@ -360,12 +287,18 @@ class Editor extends React.Component {
               color: this.getEvalutatorStateColor()
             }}
           >
-            {this.getEvaluatorText()}
+            {this.props.evaluator.text || 'No Errors'}
           </span>
         </div>
       </div>
     )
   }
+}
+
+Editor.propTypes = {
+  onEventChange: React.PropTypes.func.isRequired,
+  element: React.PropTypes.object.isRequired,
+  evaluator: React.PropTypes.object.isRequired
 }
 
 export default Editor

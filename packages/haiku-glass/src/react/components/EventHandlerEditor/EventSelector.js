@@ -38,18 +38,20 @@ class EventSelector extends React.PureComponent {
     )
   }
 
+  renderMenuOrSubmenu ({label, options}) {
+    return options.length ? (
+      <SubMenu title={label} key={label} hoverDelay={0}>
+        {options.map(item => { this.renderSingleMenuItem(item) })}
+      </SubMenu>
+    ) : (
+      this.renderSingleMenuItem({value: label, label})
+    )
+  }
+
   renderMenuItems() {
-    this.props.element
+    return this.props.element
       .getApplicableEventHandlerOptionsList()
-      .map(({label, options}) => {
-        return options.length ? (
-          <SubMenu title={label} key={label} hoverDelay={0}>
-            {options.map(this.renderSingleMenuItem)}
-          </SubMenu>
-        ) : (
-          this.renderSingleMenuItem({value: label, label})
-        )
-      })
+      .map((menuOrSubMenu) => { this.renderMenuOrSubmenu(menuOrSubMenu) })
   }
 
   render() {
