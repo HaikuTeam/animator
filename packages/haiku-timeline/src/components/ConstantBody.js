@@ -70,7 +70,7 @@ export default class ConstantBody extends React.Component {
               this.props.timeline.hasMultipleSelectedKeyframes()
             )
           )
-          this.props.keyframe.select({ skipDeselect })
+          this.props.keyframe.select({ skipDeselect, selectConstBody: true })
         }}
         style={{
           position: 'absolute',
@@ -86,7 +86,7 @@ export default class ConstantBody extends React.Component {
               position: 'absolute',
               zIndex: 2,
               width: '100%',
-              backgroundColor: (this.props.keyframe.isSelected())
+              backgroundColor: (this.props.keyframe.isSelectedBody())
                 ? Color(Palette.LIGHTEST_PINK).fade(0.5)
                 : Palette.DARKER_GRAY
             }} />

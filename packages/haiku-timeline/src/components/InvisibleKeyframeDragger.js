@@ -61,7 +61,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
               this.props.timeline.hasMultipleSelectedKeyframes()
             )
           )
-          this.props.keyframe.select({ skipDeselect })
+          this.props.keyframe.select({ skipDeselect, directlySelected: true })
         }}>
         <span
           onContextMenu={(ctxMenuEvent) => {

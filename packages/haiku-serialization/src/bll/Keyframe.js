@@ -47,8 +47,13 @@ class Keyframe extends BaseModel {
       Keyframe.deselectAndDeactivateAllKeyframes()
     }
 
-    if (!this._selected || !Keyframe._selected[this.getUniqueKey()]) {
+    if (
+      (!this._selected || !this._selectedBody) ||
+      !Keyframe._selected[this.getUniqueKey()]
+    ) {
       this._selected = true
+      if (config.selectConstBody) this._selectedBody = true
+      if (config.directlySelected) this._directlySelected = true
       Keyframe._selected[this.getUniqueKey()] = this
       this.emitWithNeighbors('update', 'keyframe-selected')
     }
@@ -59,6 +64,8 @@ class Keyframe extends BaseModel {
   deselect () {
     if (this._selected || Keyframe._selected[this.getUniqueKey()]) {
       this._selected = false
+      this._selectedBody = false
+      this._directlySelected = false
       delete Keyframe._selected[this.getUniqueKey()]
       this.emitWithNeighbors('update', 'keyframe-deselected')
     }
@@ -74,6 +81,14 @@ class Keyframe extends BaseModel {
 
   isSelected () {
     return this._selected
+  }
+
+  isSelectedBody () {
+    return this._selectedBody
+  }
+
+  isDirectlySelected () {
+    return this._directlySelected
   }
 
   areAnyOthersSelected () {
@@ -179,19 +194,20 @@ class Keyframe extends BaseModel {
   }
 
   removeCurve (metadata) {
-    this.setCurve(null)
+    if (this.next() && this.next()._selected) {
+      this.setCurve(null)
+      this.component.splitSegment(
+        [this.element.getComponentId()],
+        this.timeline.getName(),
+        this.element.getNameString(),
+        this.row.getPropertyNameString(),
+        this.getMs(),
+        metadata,
+        () => {}
+      )
 
-    this.component.splitSegment(
-      [this.element.getComponentId()],
-      this.timeline.getName(),
-      this.element.getNameString(),
-      this.row.getPropertyNameString(),
-      this.getMs(),
-      metadata,
-      () => {}
-    )
-
-    this.row.emit('update', 'keyframe-remove-curve')
+      this.row.emit('update', 'keyframe-remove-curve')
+    }
 
     return this
   }
@@ -426,7 +442,7 @@ class Keyframe extends BaseModel {
       ? 'BLUE'
       : (this.isWithinCollapsedProperty())
           ? 'DARK_ROCK'
-          : (this.isActive() || this.isSelected())
+          : (this.isActive() || this.isDirectlySelected())
             ? 'LIGHTEST_PINK'
             : 'ROCK'
   }

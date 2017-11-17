@@ -8,14 +8,12 @@ const runFlakyCommand = require('./helpers/runFlakyCommand')
 const processOptions = {cwd: global.process.cwd(), stdio: 'inherit'}
 
 runFlakyCommand(() => {
-  cp.exec('yarn install', processOptions, () => {
-    log.hat('installed dependencies')
-  })
+  cp.execSync('yarn install', processOptions)
+  log.hat('installed dependencies')
 }, 'mono yarn install', 10)
 
-cp.exec('yarn sync', processOptions, () => {
-  log.hat('synced packages')
-})
+cp.execSync('yarn sync', processOptions)
+log.hat('synced packages')
 
 const gitHooksPath = path.join(global.process.cwd(), '.git', 'hooks')
 const repoHooksPath = path.join(global.process.cwd(), 'hooks')
