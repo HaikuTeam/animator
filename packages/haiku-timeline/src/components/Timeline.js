@@ -86,18 +86,16 @@ class Timeline extends React.Component {
 
     window.timeline = this
 
-    document.addEventListener('mousedown', (nativeEvent) => {
-      // Clicking in this view may need to deactivate selections in other views
-      this.props.websocket.send({ type: 'broadcast', name: 'view:mousedown', from: 'timeline' })
-    })
-
     document.addEventListener('mousemove', (mouseMoveEvent) => {
       const timeline = this.component.getCurrentTimeline()
-      const frameInfo = timeline.getFrameInfo()
-      let pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
-      if (pxInTimeline < 0) pxInTimeline = 0
-      const frameForPx = frameInfo.friA + Math.round(pxInTimeline / frameInfo.pxpf)
-      timeline.hoverFrame(frameForPx)
+      // The timeline might not be initialized as of the first mouse move
+      if (timeline) {
+        const frameInfo = timeline.getFrameInfo()
+        let pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
+        if (pxInTimeline < 0) pxInTimeline = 0
+        const frameForPx = frameInfo.friA + Math.round(pxInTimeline / frameInfo.pxpf)
+        timeline.hoverFrame(frameForPx)
+      }
     })
   }
 
@@ -158,7 +156,9 @@ class Timeline extends React.Component {
         case 'component:reload':
           return this.component.moduleReplace(() => {})
         case 'view:mousedown':
-          return this.component.deselectAndDeactivateAllKeyframes()
+          if (message.elid !== 'timeline-webview') {
+            return this.component.deselectAndDeactivateAllKeyframes()
+          }
         default: return void (0)
       }
     })

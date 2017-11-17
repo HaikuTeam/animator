@@ -69,6 +69,7 @@ export default class Stage extends React.Component {
     }
 
     this.webview.setAttribute('src', url)
+    this.webview.setAttribute('id', 'glass-webview')
     this.webview.setAttribute('plugins', true)
     this.webview.setAttribute('nodeintegration', true)
     this.webview.setAttribute('disablewebsecurity', true)

@@ -107,7 +107,12 @@ export default class Creator extends React.Component {
     })
     document.addEventListener('mousedown', (nativeEvent) => {
       // Clicking in this view may need to deactivate selections in other views, e.g. keyframes
-      this.props.websocket.send({ type: 'broadcast', name: 'view:mousedown', from: 'creator' })
+      this.props.websocket.send({
+        type: 'broadcast',
+        name: 'view:mousedown',
+        elid: nativeEvent.target.id,
+        from: 'creator'
+      })
     })
 
     const combokeys = new Combokeys(document.documentElement)

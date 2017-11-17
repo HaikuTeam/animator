@@ -60,6 +60,7 @@ export default class Timeline extends React.Component {
     }
 
     this.webview.setAttribute('src', url)
+    this.webview.setAttribute('id', 'timeline-webview')
     this.webview.setAttribute('plugins', true)
     this.webview.setAttribute('nodeintegration', true)
     this.webview.setAttribute('disablewebsecurity', true)

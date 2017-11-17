@@ -138,11 +138,6 @@ export class Glass extends React.Component {
 
     window.addEventListener('dragover', preventDefaultDrag, false)
     window.addEventListener('drop', linkExternalAssetsOnDrop.bind(this), false)
-
-    document.addEventListener('mousedown', (nativeEvent) => {
-      // Clicking in this view may need to deactivate selections in other views, e.g. keyframes
-      this.props.websocket.send({ type: 'broadcast', name: 'view:mousedown', from: 'glass' })
-    })
   }
 
   handleRequestElementCoordinates ({ selector, webview }) {
