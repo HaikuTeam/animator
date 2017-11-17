@@ -56,14 +56,7 @@ export default class SoloKeyframe extends React.Component {
             left: 1,
             cursor: (this.props.keyframe.isWithinCollapsedRow()) ? 'pointer' : 'move'
           }}>
-          <KeyframeSVG color={(this.props.keyframe.isWithinCollapsedRow())
-            ? Palette.BLUE
-            : (this.props.keyframe.isWithinCollapsedProperty())
-                ? Palette.DARK_ROCK
-                : (this.props.keyframe.isActive() || this.props.keyframe.isSelected())
-                  ? Palette.LIGHTEST_PINK
-                  : Palette.ROCK
-          } />
+          <KeyframeSVG color={Palette[this.props.keyframe.getLeftKeyframeColorState()]} />
         </span>
       </span>
     )

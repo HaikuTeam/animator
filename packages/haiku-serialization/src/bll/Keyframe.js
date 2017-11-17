@@ -400,12 +400,60 @@ class Keyframe extends BaseModel {
   }
 
   isWithinCollapsedProperty () {
-    return this.row && this.row.isCollapsed()
+    return (
+      this.row &&
+      this.row.parent &&
+      this.row.parent.isClusterHeading() &&
+      this.row.parent.isCollapsed()
+    )
+  }
+
+  isClusterMember () {
+    return (
+      this.row &&
+      this.row.parent &&
+      this.row.parent.isClusterHeading()
+    )
   }
 
   getCurveCapitalized () {
     const curve = this.getCurve()
     return curve.charAt(0).toUpperCase() + curve.slice(1)
+  }
+
+  getLeftKeyframeColorState () {
+    return (this.isWithinCollapsedRow())
+      ? 'BLUE'
+      : (this.isWithinCollapsedProperty())
+          ? 'DARK_ROCK'
+          : (this.isActive() || this.isSelected())
+            ? 'LIGHTEST_PINK'
+            : 'ROCK'
+  }
+
+  getRightKeyframeColorState () {
+    return (this.isWithinCollapsedRow())
+      ? 'BLUE'
+      : (this.isWithinCollapsedProperty())
+          ? 'DARK_ROCK'
+          : (
+              this.next() && (
+                this.next().isActive() ||
+                this.next().isSelected()
+              )
+            )
+            ? 'LIGHTEST_PINK'
+            : 'ROCK'
+  }
+
+  getCurveColorState () {
+    return (this.isWithinCollapsedRow())
+      ? 'BLUE'
+      : ((this.isWithinCollapsedProperty())
+          ? 'DARK_ROCK'
+          : (this.next() && (this.next().isActive() || this.next().isSelected()))
+            ? 'LIGHTEST_PINK'
+            : 'ROCK')
   }
 
   dump () {

@@ -232,12 +232,7 @@ export default class TransitionBody extends React.Component {
                 left: 1,
                 cursor: (this.props.keyframe.isWithinCollapsedRow()) ? 'pointer' : 'move'
               }}>
-              <KeyframeSVG color={(this.props.keyframe.isWithinCollapsedRow())
-                  ? Palette.BLUE
-                  : (this.props.keyframe.isActive() || this.props.keyframe.isSelected())
-                    ? Palette.LIGHTEST_PINK
-                    : Palette.ROCK
-                } />
+              <KeyframeSVG color={Palette[this.props.keyframe.getLeftKeyframeColorState()]} />
             </span>
           </span>
           <span style={{
@@ -251,20 +246,8 @@ export default class TransitionBody extends React.Component {
           }}>
             <CurveSVG
               id={uniqueKey}
-              leftGradFill={(this.props.keyframe.isWithinCollapsedRow())
-                ? Palette.BLUE
-                : ((this.props.keyframe.isWithinCollapsedProperty())
-                    ? Palette.DARK_ROCK
-                    : (this.props.keyframe.isActive() || this.props.keyframe.isSelected())
-                      ? Palette.LIGHTEST_PINK
-                      : Palette.ROCK)}
-              rightGradFill={(this.props.keyframe.isWithinCollapsedRow())
-                ? Palette.BLUE
-                : ((this.props.keyframe.isWithinCollapsedProperty())
-                    ? Palette.DARK_ROCK
-                    : (this.props.keyframe.next() && (this.props.keyframe.next().isActive() || this.props.keyframe.next().isSelected()))
-                      ? Palette.LIGHTEST_PINK
-                      : Palette.ROCK)}
+              leftGradFill={Palette[this.props.keyframe.getCurveColorState()]}
+              rightGradFill={Palette[this.props.keyframe.getCurveColorState()]}
             />
           </span>
           <span
@@ -288,19 +271,7 @@ export default class TransitionBody extends React.Component {
                   ? 'pointer'
                   : 'move'
               }}>
-              <KeyframeSVG color={(this.props.keyframe.isWithinCollapsedRow())
-                ? Palette.BLUE
-                : (this.props.keyframe.isWithinCollapsedProperty())
-                    ? Palette.DARK_ROCK
-                    : (
-                        this.props.keyframe.next() && (
-                          this.props.keyframe.next().isActive() ||
-                          this.props.keyframe.next().isSelected()
-                        )
-                      )
-                      ? Palette.LIGHTEST_PINK
-                      : Palette.ROCK
-              } />
+              <KeyframeSVG color={Palette[this.props.keyframe.getRightKeyframeColorState()]} />
             </span>
           </span>
         </span>
