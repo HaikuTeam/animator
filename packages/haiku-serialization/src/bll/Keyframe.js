@@ -47,7 +47,10 @@ class Keyframe extends BaseModel {
       Keyframe.deselectAndDeactivateAllKeyframes()
     }
 
-    if (!this._selected || !Keyframe._selected[this.getUniqueKey()]) {
+    if (
+      (!this._selected || !this._selectedBody) ||
+      !Keyframe._selected[this.getUniqueKey()]
+    ) {
       this._selected = true
       if (config.selectConstBody) this._selectedBody = true
       if (config.directlySelected) this._directlySelected = true
