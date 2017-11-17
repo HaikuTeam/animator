@@ -22,6 +22,8 @@ export default function HaikuDOMRenderer() {
     touches: [], // [{ x: 'number', y: 'number' }]
     mouches: [], // [{ x: 'number', y: 'number' }] - Both touches and mouse cursor info
   };
+
+  this._lastContainer = undefined;
 }
 
 HaikuDOMRenderer.prototype.render = function renderWrap(
@@ -40,13 +42,11 @@ HaikuDOMRenderer.prototype.render = function renderWrap(
 
 HaikuDOMRenderer.prototype.patch = function patchWrap(
   domElement,
-  virtualContainer,
   patchesDict,
   component,
 ) {
   return patch(
     domElement,
-    virtualContainer,
     patchesDict,
     component,
   );
@@ -61,7 +61,7 @@ HaikuDOMRenderer.prototype.mixpanel = function mixpanel(domElement, mixpanelToke
 };
 
 HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement) {
-  return {
+  return this._lastContainer = {
     isContainer: true,
     layout: {
       computed: {
@@ -69,6 +69,10 @@ HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement
       },
     },
   };
+};
+
+HaikuDOMRenderer.prototype.getLastContainer = function getLastContainer() {
+  return this._lastContainer;
 };
 
 HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {

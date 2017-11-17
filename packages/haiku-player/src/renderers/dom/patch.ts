@@ -4,12 +4,7 @@
 
 import updateElement from './updateElement';
 
-export default function patch(
-  topLevelDomElement,
-  virtualContainer,
-  patchesDict,
-  component,
-) {
+export default function patch(topLevelDomElement, patchesDict, component) {
   // Just in case we get a null which might be set as a no-op signal by a component upstream
   if (!patchesDict) {
     return topLevelDomElement;
@@ -43,7 +38,6 @@ export default function patch(
       if (nestedModuleElement && nestedModuleElement.__instance) {
         patch(
           domElement,
-          nestedModuleElement, // Sizing info is stored here
           nestedModuleElement.__instance._getPrecalcedPatches(),
           nestedModuleElement.__instance,
         );
