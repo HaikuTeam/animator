@@ -4,18 +4,6 @@
 
 import renderTree from './renderTree';
 
-export default function render(
-  domElement,
-  virtualContainer,
-  virtualTree,
-  component,
-) {
-  return renderTree(
-    domElement,
-    virtualContainer,
-    [virtualTree],
-    component,
-    null,
-    null,
-  );
+export default function render(domElement, virtualContainer, virtualTree, component) {
+  return renderTree(domElement, virtualContainer, [virtualTree], component, null, null);
 }

@@ -13,9 +13,6 @@ import renderTree from './renderTree';
 import replaceElement from './replaceElement';
 import replaceElementWithText from './replaceElementWithText';
 
-const OBJECT = 'object';
-const STRING = 'string';
-
 export default function updateElement(
   domElement,
   virtualElement,
@@ -34,8 +31,8 @@ export default function updateElement(
     domElement.haiku = {};
   }
 
-  if (!component.config.options.cache[getFlexId(virtualElement)]) {
-    component.config.options.cache[getFlexId(virtualElement)] = {};
+  if (!component.cache[getFlexId(virtualElement)]) {
+    component.cache[getFlexId(virtualElement)] = {};
   }
 
   if (!domElement.haiku.element) {
@@ -47,61 +44,27 @@ export default function updateElement(
   const domTagName = domElement.tagName.toLowerCase().trim();
   const elName = normalizeName(getTypeAsString(virtualElement));
   const virtualElementTagName = elName.toLowerCase().trim();
-  const incomingKey =
-    virtualElement.key ||
-    (virtualElement.attributes && virtualElement.attributes.key);
+  const incomingKey = virtualElement.key || (virtualElement.attributes && virtualElement.attributes.key);
   const existingKey = domElement.haiku && domElement.haiku.key;
-  const isKeyDifferent =
-    incomingKey !== null &&
-    incomingKey !== undefined &&
-    incomingKey !== existingKey;
+  const isKeyDifferent = incomingKey !== null && incomingKey !== undefined && incomingKey !== existingKey;
 
   // For so-called 'horizon' elements, we assume that we've ceded control to another renderer,
   // so the most we want to do is update the attributes and layout properties, but leave the rest alone
   if (!component._isHorizonElement(virtualElement)) {
     if (domTagName !== virtualElementTagName) {
-      return replaceElement(
-        domElement,
-        virtualElement,
-        parentNode,
-        parentVirtualElement,
-        component,
-      );
+      return replaceElement(domElement, virtualElement, parentNode, parentVirtualElement, component);
     }
 
     if (isKeyDifferent) {
-      return replaceElement(
-        domElement,
-        virtualElement,
-        parentNode,
-        parentVirtualElement,
-        component,
-      );
+      return replaceElement(domElement, virtualElement, parentNode, parentVirtualElement, component);
     }
   }
 
-  if (
-    virtualElement.attributes &&
-    typeof virtualElement.attributes === OBJECT
-  ) {
-    assignAttributes(
-      domElement,
-      virtualElement,
-      component,
-      isPatchOperation,
-      isKeyDifferent,
-    );
+  if (virtualElement.attributes && typeof virtualElement.attributes === 'object') {
+    assignAttributes(domElement, virtualElement, component, isPatchOperation);
   }
 
-  applyLayout(
-    domElement,
-    virtualElement,
-    parentNode,
-    parentVirtualElement,
-    component,
-    isPatchOperation,
-    isKeyDifferent,
-  );
+  applyLayout(domElement, virtualElement, parentNode, parentVirtualElement, component, isPatchOperation);
   if (incomingKey !== undefined && incomingKey !== null) {
     domElement.haiku.key = incomingKey;
   }
@@ -112,25 +75,11 @@ export default function updateElement(
     // For performance, we don't render children during a patch operation, except in the case
     // that we have some text content, which we (hack) need to always assume needs an update.
     // TODO: Fix this hack and make smarter
-    const doSkipChildren = isPatchOperation && (typeof virtualElement.children[0] !== STRING);
-    renderTree(
-      domElement,
-      virtualElement,
-      virtualElement.children,
-      subcomponent,
-      isPatchOperation,
-      doSkipChildren,
-    );
+    const doSkipChildren = isPatchOperation && (typeof virtualElement.children[0] !== 'string');
+    renderTree(domElement, virtualElement, virtualElement.children, subcomponent, isPatchOperation, doSkipChildren);
   } else if (!virtualElement.children) {
     // In case of falsy virtual children, we still need to remove elements that were already there
-    renderTree(
-      domElement,
-      virtualElement,
-      [],
-      subcomponent,
-      isPatchOperation,
-      null,
-    );
+    renderTree(domElement, virtualElement, [], subcomponent, isPatchOperation, null);
   }
 
   return domElement;

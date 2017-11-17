@@ -14,30 +14,11 @@ export default function appendChild(
   parentVirtualElement,
   component,
 ) {
-  let domElementToInsert;
-  if (isTextNode(virtualElement)) {
-    domElementToInsert = createTextNode(
-      parentDomElement,
-      virtualElement,
-    );
-  } else {
-    domElementToInsert = createTagNode(
-      parentDomElement,
-      virtualElement,
-      parentVirtualElement,
-      component,
-    );
-  }
+  const domElementToInsert = isTextNode(virtualElement)
+    ? createTextNode(parentDomElement, virtualElement)
+    : createTagNode(parentDomElement, virtualElement, parentVirtualElement, component);
 
-  applyLayout(
-    domElementToInsert,
-    virtualElement,
-    parentDomElement,
-    parentVirtualElement,
-    component,
-    null,
-    null,
-  );
+  applyLayout(domElementToInsert, virtualElement, parentDomElement, parentVirtualElement, component, null);
 
   parentDomElement.appendChild(domElementToInsert);
   return domElementToInsert;

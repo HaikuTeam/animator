@@ -25,22 +25,11 @@ export default function patch(topLevelDomElement, patchesDict, component) {
     for (let i = 0; i < domElements.length; i++) {
       const domElement = domElements[i];
 
-      updateElement(
-        domElement,
-        virtualElement,
-        domElement.parentNode,
-        virtualElement.__parent,
-        component,
-        true,
-      );
+      updateElement(domElement, virtualElement, domElement.parentNode, virtualElement.__parent, component, true);
 
       // If there is a nested component at this location, let it patch inside its scope
       if (nestedModuleElement && nestedModuleElement.__instance) {
-        patch(
-          domElement,
-          nestedModuleElement.__instance._getPrecalcedPatches(),
-          nestedModuleElement.__instance,
-        );
+        patch(domElement, nestedModuleElement.__instance._getPrecalcedPatches(), nestedModuleElement.__instance);
       }
     }
   }

@@ -31,8 +31,8 @@ export default function renderTree(
   // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute
   // removals
   domElement.haiku.element = cloneVirtualElement(virtualElement);
-  if (!component.config.options.cache[getFlexId(virtualElement)]) {
-    component.config.options.cache[getFlexId(virtualElement)] = {};
+  if (!component.cache[getFlexId(virtualElement)]) {
+    component.cache[getFlexId(virtualElement)] = {};
   }
 
   if (!Array.isArray(virtualChildren)) {
@@ -78,13 +78,7 @@ export default function renderTree(
       removeElement(domChild);
     } else if (virtualChild) {
       if (!domChild) {
-        const insertedElement = appendChild(
-          null,
-          virtualChild,
-          domElement,
-          virtualElement,
-          component,
-        );
+        const insertedElement = appendChild(null, virtualChild, domElement, virtualElement, component);
 
         component._addElementToHashTable(insertedElement, virtualChild);
       } else {
@@ -96,22 +90,9 @@ export default function renderTree(
         // of itself and all of its children, because e.g. url(#...) references will retain pointers to
         // old elements and this is the only way to clear the DOM to get a correct render.
         if (shouldElementBeReplaced(domChild, virtualChild)) {
-          replaceElement(
-            domChild,
-            virtualChild,
-            domElement,
-            virtualElement,
-            component,
-          );
+          replaceElement(domChild, virtualChild, domElement, virtualElement, component);
         } else {
-          updateElement(
-            domChild,
-            virtualChild,
-            domElement,
-            virtualElement,
-            component,
-            isPatchOperation,
-          );
+          updateElement(domChild, virtualChild, domElement, virtualElement, component, isPatchOperation);
         }
       }
     }
