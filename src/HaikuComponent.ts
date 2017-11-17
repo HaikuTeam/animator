@@ -102,8 +102,8 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
 
   // TEMPLATE
   // The full version of the template gets mutated in-place by the rendering algorithm
+  this._flatManaTree = [];
   this._template = fetchAndCloneTemplate(this._bytecode.template);
-  this._flatManaTree = manaFlattenTree(this._template, CSS_QUERY_MAPPING);
 
   // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
   this._needsFullFlush = false;
@@ -926,6 +926,7 @@ HaikuComponent.prototype.render = function render(container, renderOptions) {
   }
 
   const time = this._context.clock.getExplicitTime();
+  this._flatManaTree = manaFlattenTree(this._template, CSS_QUERY_MAPPING);
 
   for (const timelineName in this._timelineInstances) {
     const timeline = this._timelineInstances[timelineName];
