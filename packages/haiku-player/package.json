@@ -75,9 +75,6 @@
     "uglify-js": "^2.7.5",
     "webpack": "^3.8.1"
   },
-  "dependencies": {
-    "lodash": "^4.17.4"
-  },
   "peerDependencies": {
     "react": "15.4.2",
     "react-dom": "15.4.2"
