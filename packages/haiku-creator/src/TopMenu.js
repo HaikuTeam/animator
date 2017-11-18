@@ -37,7 +37,7 @@ export default class TopMenu extends EventEmitter {
       }
     })
     mainMenuPieces.push({
-      label: 'Check for updates',
+      label: 'Check for Updates',
       click: () => {
         this.emit('global-menu:check-updates')
       }
