@@ -47,7 +47,7 @@ delete inputs.$0
 // List of arguments following the command
 var args = argv._
 
-var _branch = cp.execSync('git symbolic-ref --short -q HEAD').toString().trim()
+var _branch = cp.execSync('git symbolic-ref --short -q HEAD || git rev-parse --short HEAD').toString().trim()
 log.log(`fyi, your current mono branch is ${JSON.stringify(_branch)}\n`)
 if (!inputs.branch) inputs.branch = _branch
 
