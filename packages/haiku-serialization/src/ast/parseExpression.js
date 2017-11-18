@@ -15,32 +15,12 @@ var MATCH_WEIGHTS = {
   DECLARATIONS: 0.5
 }
 
-function copy (arr) {
-  var out = []
-  for (var i = 0; i < arr.length; i++) {
-    if (Array.isArray(arr[i])) {
-      out[i] = copy(arr[i])
-    } else {
-      out[i] = arr[i]
-    }
-  }
-  return out
-}
-
 function wrap (exprWithourWrap) {
   return '(function(){\n' + exprWithourWrap + '\n})'
 }
 
 function unwrap (exprWithWrap) {
   return exprWithWrap.slice(13, exprWithWrap.length - 3)
-}
-
-function isIdentifierToken (token) {
-  return token && token.type === 'Identifier'
-}
-
-function isDotToken (token) {
-  return token && token.type === 'Punctuator' && token.value === '.'
 }
 
 function getSegsList (list, node) {
@@ -52,31 +32,6 @@ function getSegsList (list, node) {
     list.push(node.property)
     return list
   }
-}
-
-function buildParamsFromRequestedReferences (references) {
-  if (references.length < 1) {
-    return []
-  }
-
-  var params = []
-
-  // The marshalParams function knows how to take an
-  // object like this [a,b,{a:{},b:[c:'c',...]}] and
-  // convert it into a parameters string.
-  references.forEach((arr) => {
-    var basekey = arr[0]
-
-    // If this seg was the first element in the reference array, and if it matches a known
-    // forbidden token, then don't include this in the list of injectables
-    if (FORBIDDEN_EXPRESSION_TOKENS[basekey]) {
-      return null // Skip this reference in its entirety
-    }
-
-    params.push(basekey)
-  })
-
-  return uniq(params)
 }
 
 function isTokenStreamInvalid (tokens, options) {
@@ -152,32 +107,6 @@ function isTokenStreamInvalid (tokens, options) {
   if (!foundReturn) {
     return {
       annotation: 'Expression must have a return statement'
-    }
-  }
-
-  return false
-}
-
-function areParamsImpure (params, keywords, injectables, declarations, options) {
-  if (options.skipParamsImpurityCheck) {
-    return false
-  }
-
-  if (!params) {
-    return false
-  }
-
-  if (params.length < 1) {
-    return false
-  }
-
-  // Very naive purity check that just checks the root identifiers that we gathered from params
-  // and determines whether we've referred to anything that isn't a known injectible or keyword.
-  for (var i = 0; i < params.length; i++) {
-    if (!injectables[params[i]] && !keywords[params[i]]) {
-      return {
-        annotation: `Expression identifier "${params[i]}" is unknown`
-      }
     }
   }
 
@@ -374,9 +303,15 @@ function parseExpression (expr, injectables, keywords, state, cursor, options) {
     tokens.splice(tokens.length - 4) // Slice off the "})\n\eof" tokens
 
     let candidates = [] // Going to find possible targets and select the best fit
+
     // 1. Get a list of all variables that were declared inside the scope of this expression
     // TODO: What other besides var, let, const, and const { a } = {...} is there?
     var declarations = {}
+
+    // 2. Create a list of identifiers that look like references to external things, i.e., anything
+    // not defined inside our scope, possibly a keyword or an 'injectable' the user wants to summon.
+    var references = []
+
     walk(cst, {
       enter: function enter (node) {
         if (cursor) { // If no cursor, nothing to do
@@ -405,6 +340,12 @@ function parseExpression (expr, injectables, keywords, state, cursor, options) {
             }
           }
         }
+
+        // We check for node.name since estree-walker provides duplicates from the token stream
+        // as well as the tree, and we use only the tree nodes
+        if (node.type === 'Identifier' && node.name) {
+          references.push(node)
+        }
       }
     })
 
@@ -415,48 +356,31 @@ function parseExpression (expr, injectables, keywords, state, cursor, options) {
       target = chooseTarget(candidates[i], target)
     }
 
-    // 2. Create a list of identifiers that look like references to external things, i.e., anything
-    // not defined inside our scope, possibly a keyword or an 'injectable' the user wants to summon.
-    var references = []
-    if (tokens.length > 2) { // If fewer than 3, really nothing has been typed, so there are no references
-      // We're going to build a string that looks like "foo.bar.baz|boo|lala"
-      // and then split it on the pipe character to get a list of all of the property access strings
-      // and variable identifiers we may want to summon
-      var accumulator = ''
-
-      for (var k = 0; k < tokens.length; k++) {
-        var curr = tokens[k]
-        var prev = tokens[k - 1]
-        if (isIdentifierToken(curr)) {
-          accumulator += curr.value
-        } else if (isDotToken(curr) && isIdentifierToken(prev)) {
-          accumulator += curr.value
-        } else {
-          accumulator += '\n'
-        }
-      }
-
-      // Now filter out any empty strings, and split each path into parts so we
-      // now have an array like [[foo,bar,baz],[boo],[lala]]
-      references = accumulator.split('\n').filter((piece) => {
-        return (
-          piece.length > 0 &&
-          !/^\s+$/.test(piece)
-        )
-      }).map((piece) => {
-        return piece.split('.')
-      })
-
-      // Now strip away any references that refer to any declarations that were made in scope
-      for (var j = references.length - 1; j > -1; j--) {
-        var rootref = references[j][0]
-        if (declarations[rootref]) {
-          references.splice(j, 1)
-        }
+    // Now strip away any references that refer to any declarations that were made in scope
+    for (var j = references.length - 1; j > -1; j--) {
+      var reference = references[j]
+      if (declarations[reference.name]) {
+        references.splice(j, 1)
       }
     }
 
-    var params = buildParamsFromRequestedReferences(copy(references))
+    var params = []
+    if (references.length > 0) {
+      references.forEach((reference) => {
+        // If this seg was the first element, and if it matches a forbidden
+        // token, then don't include this in the list of injectables
+        if (FORBIDDEN_EXPRESSION_TOKENS[reference.name]) {
+          return null
+        }
+        // Don't include any reference in the final params if it doesn't match
+        // a known injectable that the player can provide
+        if (!injectables[reference.name]) {
+          return null
+        }
+        params.push(reference.name)
+      })
+    }
+    params = uniq(params)
 
     // Completions is initially populated as a dict so we avoid having double entries in the list
     var completions
@@ -472,11 +396,6 @@ function parseExpression (expr, injectables, keywords, state, cursor, options) {
     var tokenInvalidity = isTokenStreamInvalid(tokens, options)
     if (tokenInvalidity) {
       warnings.push(tokenInvalidity)
-    }
-
-    var paramsImpurity = areParamsImpure(params, keywords, injectables, declarations, options)
-    if (paramsImpurity) {
-      warnings.push(paramsImpurity)
     }
 
     return {
