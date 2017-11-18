@@ -24,6 +24,7 @@ export default {
   DARK_ROCK_MUTED: 'rgba(180, 180, 180, .5)',
   DARK_ROCK_MUTED2: 'rgba(180, 180, 180, .1)',
   SHADY: 'rgba(21, 32, 34, .3)',
+  STAGE_GRAY: '#ebebeb',
 
   // Start of real scheme:
   BLUE: '#488192',

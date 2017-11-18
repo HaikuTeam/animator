@@ -4,6 +4,7 @@ import assign from 'lodash.assign'
 import path from 'path'
 import StageTitleBar from './StageTitleBar'
 import Palette from './Palette'
+import {InteractionMode} from '@haiku/player/lib/helpers/interactionModes'
 
 const STAGE_BOX_STYLE = {
   position: 'relative',
@@ -11,14 +12,17 @@ const STAGE_BOX_STYLE = {
   padding: 0,
   margin: 0,
   width: '100%',
-  height: '100%'
+  height: '100%',
+  outline: 'none',
 }
 
 export default class Stage extends React.Component {
   constructor (props) {
     super(props)
     this.webview = null
-    this.state = {}
+    this.state = {
+      interactionMode: InteractionMode.EDIT
+    }
   }
 
   componentDidMount () {
@@ -125,12 +129,22 @@ export default class Stage extends React.Component {
     }
   }
 
+  onPreviewModeToggled (interactionMode) {
+    this.setState({ interactionMode })
+  }
+
   render () {
+    const interactionModeColor = (this.state.interactionMode === InteractionMode.LIVE)
+      ? Palette.LIGHTEST_PINK
+      : Palette.STAGE_GRAY
+
     return (
       <div className='layout-box'
         onMouseOver={() => this.webview.focus()}
         onMouseOut={() => this.webview.blur()}>
-        <div className='stage-box' style={STAGE_BOX_STYLE}>
+        <div
+          className='stage-box'
+          style={STAGE_BOX_STYLE}>
           <StageTitleBar
             folder={this.props.folder}
             websocket={this.props.websocket}
@@ -142,11 +156,21 @@ export default class Stage extends React.Component {
             username={this.props.username}
             password={this.props.password}
             receiveProjectInfo={this.props.receiveProjectInfo}
-            tourClient={this.tourClient} />
+            tourClient={this.tourClient}
+            onPreviewModeToggled={this.onPreviewModeToggled.bind(this)} />
           <div
             id='stage-mount'
             ref={(element) => { this.mount = element }}
-            style={{ position: 'absolute', overflow: 'auto', width: '100%', height: 'calc(100% - 36px)', backgroundColor: Palette.GRAY }} />
+            style={{
+              position: 'absolute',
+              overflow: 'auto',
+              width: 'calc(100% - 5px)',
+              height: 'calc(100% - 41px)',
+              top: 38,
+              left: 3,
+              backgroundColor: Palette.STAGE_GRAY,
+              outline: '2px solid ' + interactionModeColor
+            }} />
         </div>
       </div>
     )

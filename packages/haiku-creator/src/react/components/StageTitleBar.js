@@ -459,6 +459,10 @@ class StageTitleBar extends React.Component {
       [this.props.folder, interaction],
       () => {}
     )
+
+    if (this.props.onPreviewModeToggled) {
+      this.props.onPreviewModeToggled(interaction)
+    }
   }
 
   render () {
