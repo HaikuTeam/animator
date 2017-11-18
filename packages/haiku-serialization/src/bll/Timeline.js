@@ -470,16 +470,7 @@ class Timeline extends BaseModel {
       ? frameInfo.friMaxVirt
       : this.getRightFrameEndpoint()
 
-    // Number of pixels per frame (rounded)
-    frameInfo.pxpf = Math.floor(this.getTimelinePixelWidth() / Math.abs(this.getRightFrameEndpoint() - this.getLeftFrameEndpoint()))
-    // Don't allow fewer than one pixel per frame
-    if (frameInfo.pxpf < 1) {
-      frameInfo.pxpf = 1
-    }
-    // Don't allow the pixel per frame to exceed our overall view width
-    if (frameInfo.pxpf > this.getTimelinePixelWidth()) {
-      frameInfo.pxpf = this.getTimelinePixelWidth()
-    }
+    frameInfo.pxpf = this.getTimelinePixelWidth() / Math.abs(this.getRightFrameEndpoint() - this.getLeftFrameEndpoint())
 
     // Pixel number for friA, the leftmost frame on the visible range
     frameInfo.pxA = frameInfo.friA * frameInfo.pxpf
@@ -488,7 +479,7 @@ class Timeline extends BaseModel {
     frameInfo.pxB = frameInfo.friB * frameInfo.pxpf
 
     // Pixel number for friMax2, i.e. the width in pixels of the whole timeline
-    frameInfo.pxMax = frameInfo.friMaxVirt * frameInfo.pxpf
+    frameInfo.pxMax = frameInfo.friMax * frameInfo.pxpf
 
     // Millisecond number for friA, the leftmost frame in the visible range
     frameInfo.msA = Math.round(frameInfo.friA * frameInfo.mspf)
@@ -511,29 +502,47 @@ class Timeline extends BaseModel {
     return frameInfo
   }
 
-  mapVisibleFrames (iteratee) {
-    const mappedOutput = []
+  getVisibleFrames () {
+    const visibleFrames = []
 
     const frameInfo = this.getFrameInfo()
     const visiblePixelWidth = this.getTimelinePixelWidth()
 
     const leftFrame = frameInfo.friA
-    const rightFrame = frameInfo.friA + Math.round(visiblePixelWidth / frameInfo.pxpf)
+    const rightFrame = frameInfo.friB
 
-    const leftMostAbsolutePixel = leftFrame * frameInfo.pxpf
+    const leftMostAbsolutePixel = Math.round(leftFrame * frameInfo.pxpf)
 
     const frameModulus = getFrameModulus(frameInfo.pxpf)
 
     for (let i = leftFrame; i <= rightFrame; i++) {
-      let pixelOffsetLeft = i * frameInfo.pxpf
+      let pixelOffsetLeft = Math.round(i * frameInfo.pxpf)
 
       if (pixelOffsetLeft >= leftMostAbsolutePixel && pixelOffsetLeft <= (leftMostAbsolutePixel + visiblePixelWidth)) {
-        let mapOutput = iteratee(i, pixelOffsetLeft - leftMostAbsolutePixel, frameInfo.pxpf, frameModulus)
-        if (mapOutput) {
-          mappedOutput.push(mapOutput)
-        }
+        visibleFrames.push({
+          pixelOffsetLeft,
+          frameModulus,
+          frameNumber: i,
+          leftMostAbsolutePixel,
+          pixelsPerFrame: frameInfo.pxpf
+        })
       }
     }
+
+    return visibleFrames
+  }
+
+  mapVisibleFrames (iteratee) {
+    const mappedOutput = []
+
+    const visibleFrames = this.getVisibleFrames()
+
+    visibleFrames.forEach(({ pixelOffsetLeft, leftMostAbsolutePixel, frameModulus, frameNumber, pixelsPerFrame }) => {
+      let mapOutput = iteratee(frameNumber, pixelOffsetLeft - leftMostAbsolutePixel, pixelsPerFrame, frameModulus)
+      if (mapOutput) {
+        mappedOutput.push(mapOutput)
+      }
+    })
 
     return mappedOutput
   }
@@ -567,7 +576,7 @@ class Timeline extends BaseModel {
       // TODO: handle the msRemainder case rather than ignoring it
       if (!msRemainder) {
         let frameOffset = nearestFrame - leftFrame
-        let pxOffset = frameOffset * frameInfo.pxpf
+        let pxOffset = Math.round(frameOffset * frameInfo.pxpf)
         let mapOutput = iteratee(msMarker, pxOffset, totalMs)
         if (mapOutput) mappedOutput.push(mapOutput)
       }

@@ -18,7 +18,6 @@ const _transformVectorByMatrix = require('./helpers/transformVectorByMatrix')
 const RENDERABLE_ELEMENTS = require('./svg/RenderableElements')
 const TOP_LEVEL_GROUP_ELEMENTS = require('./svg/TopLevelGroupElements')
 const GROUPING_ELEMENTS = require('./svg/GroupingElements')
-const PRIMITIVE_SHAPES = require('./svg/PrimitiveShapes')
 const ALLOWED_TAGNAMES = require('./element/AllowedTagNames')
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
