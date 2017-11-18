@@ -269,25 +269,31 @@ export default class ExpressionInput extends React.Component {
   }
 
   performCommit (maybeNavigationDirection, doFocusSubsequentCell) {
-    let original = this.props.component.getFocusedRow().getPropertyValueDescriptor()
+    const focusedRow = this.props.component.getFocusedRow()
 
-    let committable = this.getCommitableValue(this.state.editedValue, original)
+    // There is some race condition where this isn't present;
+    // rather than crash just do nothing #RC
+    if (focusedRow) {
+      const original = focusedRow.getPropertyValueDescriptor()
 
-    let invalid = this.isCommittableValueInvalid(committable, original)
+      const committable = this.getCommitableValue(this.state.editedValue, original)
 
-    // If invalid, don't proceed - keep the input in a focused+selected state,
-    // and then show an error message in the evaluator tooltip
-    if (invalid) {
-      return this.setState({
-        evaluatorState: EVALUATOR_STATES.ERROR,
-        evaluatorText: invalid.reason
-      })
+      const invalid = this.isCommittableValueInvalid(committable, original)
+
+      // If invalid, don't proceed - keep the input in a focused+selected state,
+      // and then show an error message in the evaluator tooltip
+      if (invalid) {
+        return this.setState({
+          evaluatorState: EVALUATOR_STATES.ERROR,
+          evaluatorText: invalid.reason
+        })
+      }
+
+      this.props.onCommitValue(committable)
+
+      // Once finished with a successful commit, navigate to 'select' the next cell
+      this.requestNavigate(maybeNavigationDirection, doFocusSubsequentCell)
     }
-
-    this.props.onCommitValue(committable)
-
-    // Once finished with a successful commit, navigate to 'select' the next cell
-    this.requestNavigate(maybeNavigationDirection, doFocusSubsequentCell)
   }
 
   handleEditorChange (cm, changeObject) {
@@ -728,13 +734,17 @@ export default class ExpressionInput extends React.Component {
   }
 
   engageFocus (props) {
-    if (!props.component.getFocusedRow()) {
+    const focusedRow = props.component.getFocusedRow()
+
+    // There may be a race condition where this isn't available,
+    // so avoid crashing and just do nothing
+    if (!focusedRow) {
       this.forceUpdate()
       // If nothing is focused, there's nothing to do
       return null
     }
 
-    let originalDescriptor = props.component.getFocusedRow().getPropertyValueDescriptor()
+    let originalDescriptor = focusedRow.getPropertyValueDescriptor()
     let originalValue = toValueDescriptor(originalDescriptor)
 
     let editingMode = EDITOR_MODES.SINGLE_LINE
