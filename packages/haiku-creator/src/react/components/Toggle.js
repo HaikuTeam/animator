@@ -32,7 +32,7 @@ const STYLES = {
     fontFamily: 'Fira Sans, Arial, sans-serif !important',
     fontSize: '12px',
     fontWeight: '400',
-    color: '#d1d1d1',
+    color: Palette.ROCK,
   }
 }
 
@@ -103,7 +103,7 @@ class Toggle extends React.Component {
           onClick={this.onToggle}
         >
           <div style={STYLES.eye}>
-            <EyeIconSVG />
+            <EyeIconSVG color={STYLES.eye.color} />
           </div>
         </a>
       </Popover>
