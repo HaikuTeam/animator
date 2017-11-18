@@ -2,7 +2,6 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
-import {merge} from 'lodash';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import EventsDict from './EventsDict';
@@ -226,7 +225,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
     },
 
     buildHostElementPropsFromRawProps(rawProps) {
-      const propsForHostElement = {};
+      const propsForHostElement = {} as any;
 
       // Build a basic props object which includes:
       //    - Standard DOM event listeners
@@ -245,8 +244,11 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
         }
       }
 
+      const stylesForHostElement = propsForHostElement.style || {};
+      delete propsForHostElement.style;
+
       // Merge our basic host props with some defaults we want to assign
-      return merge({
+      return {
         id: this.state.randomId,
         style: {
           position: 'relative',
@@ -256,8 +258,10 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
           width: '100%',
           height: '100%',
           transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
+          ...stylesForHostElement,
         },
-      },           propsForHostElement);
+        ...propsForHostElement,
+      };
     },
 
     assignMountFromRef(element) {
