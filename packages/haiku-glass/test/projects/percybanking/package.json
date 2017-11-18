@@ -1,0 +1,17 @@
+{
+  "name": "@haiku/taylor4-percybanking",
+  "version": "0.0.11",
+  "haiku": {
+    "organization": "taylor4",
+    "project": "percybanking"
+  },
+  "authors": [
+    "Haiku User",
+    "Haiku <contact@haiku.ai>"
+  ],
+  "license": "LicenseRef-LICENSE",
+  "main": "index.js",
+  "dependencies": {
+    "@haiku/player": "2.3.35"
+  }
+}
