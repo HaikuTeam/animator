@@ -117,7 +117,7 @@ const STYLES = {
     fontStyle: 'italic'
   },
   previewToggle: {
-    float: 'right',
+    float: 'right'
   }
 }
 

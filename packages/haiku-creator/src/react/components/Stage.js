@@ -13,7 +13,7 @@ const STAGE_BOX_STYLE = {
   margin: 0,
   width: '100%',
   height: '100%',
-  outline: 'none',
+  outline: 'none'
 }
 
 export default class Stage extends React.Component {

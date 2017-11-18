@@ -1,6 +1,5 @@
 import React from 'react'
 import Radium from 'radium'
-import {throttle} from 'lodash'
 import Palette from './Palette'
 import Popover from 'react-popover'
 import {EyeIconSVG} from './Icons'
@@ -32,7 +31,7 @@ const STYLES = {
     fontFamily: 'Fira Sans, Arial, sans-serif !important',
     fontSize: '12px',
     fontWeight: '400',
-    color: Palette.ROCK,
+    color: Palette.ROCK
   }
 }
 
@@ -63,7 +62,7 @@ class Toggle extends React.Component {
     this.isMouseOver = true
 
     this.tooltipOpenTimeout = setTimeout(() => {
-      if(this.isMouseOver) {
+      if (this.isMouseOver) {
         this.setState({ isPopoverOpen: true })
       }
     }, this.tooltipOpenDelay)
@@ -74,8 +73,8 @@ class Toggle extends React.Component {
   }
 
   closePopover () {
-    if(this.tooltipOpenTimeout) clearTimeout(this.tooltipOpenTimeout)
-    if(this.tooltipCloseTimeout) clearTimeout(this.tooltipCloseTimeout)
+    if (this.tooltipOpenTimeout) clearTimeout(this.tooltipOpenTimeout)
+    if (this.tooltipCloseTimeout) clearTimeout(this.tooltipCloseTimeout)
     this.setState({ isPopoverOpen: false })
     this.isMouseOver = false
   }
