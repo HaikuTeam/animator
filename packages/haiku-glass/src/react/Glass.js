@@ -238,7 +238,11 @@ export class Glass extends React.Component {
         this.setLastSelectedElement(this._component.findElementByComponentId(args[0]))
       } else if (what === 'unselectElement') {
         this.setLastSelectedElement(null)
+      } else if (what === 'setInteractionMode') {
+        // If we've toggled into preview mode, we have to force react to update the on-stage styles
+        this.forceUpdate()
       }
+
       // Not sure if we really need to call this, since this is called in a raf loop
       // this.draw()
     })
