@@ -31,7 +31,7 @@ export default class TimelineRangeScrollbar extends React.Component {
     if (frameInfo.friMaxVirt < 1) return 0
     const frame = this.props.timeline.getCurrentFrame()
     if (frame < 1) return 0
-    return (frame / frameInfo.friMaxVirt) * 100
+    return (frame / frameInfo.friMax) * 100
   }
 
   render () {
