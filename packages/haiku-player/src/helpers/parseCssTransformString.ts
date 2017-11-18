@@ -12,12 +12,9 @@ import parseCssValueString from './parseCssValueString';
 function separate(str) {
   const bits = str.split('(');
   const type = bits[0];
-  const vals = bits[1].replace(')', '').split(/,\s*?/gi).map((str2) => {
-    return parseCssValueString(str2, type);
-  });
   return {
     type,
-    values: vals,
+    values: bits[1].replace(')', '').split(/\s*,\s*/gi).map((str2) => parseCssValueString(str2, type)),
   };
 }
 
@@ -88,11 +85,11 @@ export default function parseCssTransformString(inStr) {
         break;
       case 'scale':
         layout.scale[0] = spec.values[0].value;
-        layout.scale[1] = spec.values[1].value;
+        layout.scale[1] = spec.values[1] ? spec.values[1].value : spec.values[0].value;
         break;
       case 'translate':
         layout.translate[0] = spec.values[0].value;
-        layout.translate[1] = spec.values[1].value;
+        layout.translate[1] = spec.values[1] ? spec.values[1].value : 0;
         break;
       case 'matrix':
         layout.scale[0] = spec.values[0].value;
