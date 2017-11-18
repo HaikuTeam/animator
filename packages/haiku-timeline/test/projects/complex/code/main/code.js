@@ -130,7 +130,7 @@ module.exports = {
         ry: { '0': { value: '86.5' } }
       },
       'haiku:cfef9d559b15': {
-        'translation.x': { '0': { value: 410.5, edited: true } },
+        'translation.x': { '0': { value: 410.5, curve: "linear", edited: true }, "5000": { value: 123, edited: true } },
         'translation.y': { '0': { value: 127.5, edited: true } },
         'sizeAbsolute.x': { '0': { value: 172 } },
         'sizeAbsolute.y': { '0': { value: 172 } },
