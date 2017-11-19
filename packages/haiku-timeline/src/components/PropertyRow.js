@@ -83,7 +83,7 @@ export default class PropertyRow extends React.Component {
               humanName={humanName} />
           </div>
         </div>
-        <div className='property-input-field'
+        <div className='property-input-field-row'
           style={{
             position: 'absolute',
             left: this.props.timeline.getPropertiesPixelWidth() - 82,
