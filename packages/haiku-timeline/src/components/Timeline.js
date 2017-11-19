@@ -79,6 +79,18 @@ class Timeline extends React.Component {
       WebSocket: window.WebSocket
     })
 
+    this.component.on('envoy:tourClientReady', (tourClient) => {
+      this.tourClient = tourClient
+      this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
+      // When the timeline loads, that is the indication to move from the first tour step
+      // to the next step that shows how to create animations
+      setTimeout(() => {
+        if (!this.component._envoyClient.isInMockMode() && this.tourClient) {
+          this.tourClient.next()
+        }
+      })
+    })
+
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
 
     // Used to calculate scroll position
@@ -164,16 +176,6 @@ class Timeline extends React.Component {
       }
     })
 
-    this.component.on('envoy:tourClientReady', (tourClient) => {
-      tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
-
-      setTimeout(() => {
-        tourClient.next()
-      })
-
-      this.tourClient = tourClient
-    })
-
     document.addEventListener('paste', (pasteEvent) => {
       let tagname = pasteEvent.target.tagName.toLowerCase()
       let editable = pasteEvent.target.getAttribute('contenteditable') // Our input fields are <span>s
@@ -217,7 +219,6 @@ class Timeline extends React.Component {
 
     this.addEmitterListener(this.ctxmenu, 'joinKeyframes', (curveName) => {
       this.component.joinSelectedKeyframes(curveName, { from: 'timeline' })
-
       if (!this.component._envoyClient.isInMockMode() && this.tourClient) {
         this.tourClient.next()
       }
