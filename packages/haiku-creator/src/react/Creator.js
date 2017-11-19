@@ -398,15 +398,17 @@ export default class Creator extends React.Component {
 
   handleFindElementCoordinates ({ selector, webview }) {
     if (webview !== 'creator') { return }
-
+    console.info('[creator] handleRequestElementCoordinates', selector, webview)
     try {
       // TODO: find if there is a better solution to this scape hatch
       let element = document.querySelector(selector)
       let { top, left } = element.getBoundingClientRect()
-
-      this.tourChannel.receiveElementCoordinates('creator', { top, left })
-    } catch (error) {
-      console.error(`[creator] error fetching ${selector} in webview ${webview}`)
+      if (this.tourChannel && this.envoy && !this.envoy.isInMockMode()) {
+        console.info('[creator] receive element coordinates', selector, top, left)
+        this.tourChannel.receiveElementCoordinates('creator', { top, left })
+      }
+    } catch (exception) {
+      console.error(`[creator] error fetching ${selector} in webview ${webview} (${exception})`)
     }
   }
 

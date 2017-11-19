@@ -142,15 +142,17 @@ export class Glass extends React.Component {
 
   handleRequestElementCoordinates ({ selector, webview }) {
     if (webview !== 'glass') { return }
-
+    console.info('[glass] handleRequestElementCoordinates', selector, webview)
     try {
       // TODO: find if there is a better solution to this scape hatch
       let element = document.querySelector(selector)
       let { top, left } = element.getBoundingClientRect()
-
-      this.tourClient.receiveElementCoordinates('glass', { top, left })
-    } catch (error) {
-      console.error(`Error fetching ${selector} in webview ${webview}`)
+      if (this.tourClient && this.component._envoyClient && !this.component._envoyClient.isInMockMode()) {
+        console.info('[glass] receive element coordinates', selector, top, left)
+        this.tourClient.receiveElementCoordinates('glass', { top, left })
+      }
+    } catch (exception) {
+      console.error(`[glass] Error fetching ${selector} in webview ${webview} (${exception})`)
     }
   }
 

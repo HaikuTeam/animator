@@ -272,17 +272,18 @@ class Timeline extends React.Component {
 
   handleRequestElementCoordinates ({ selector, webview }) {
     if (webview !== 'timeline') { return }
-
+    console.info('[timeline] handleRequestElementCoordinates', selector, webview)
     try {
       // TODO: find if there is a better solution to this escape hatch
       let element = document.querySelector(selector)
       let { top, left } = element.getBoundingClientRect()
 
-      if (!this.component._envoyClient.isInMockMode() && this.tourClient) {
+      if (this.tourClient && this.component._envoyClient && !this.component._envoyClient.isInMockMode()) {
+        console.info('[timeline] receive element coordinates', selector, top, left)
         this.tourClient.receiveElementCoordinates('timeline', { top, left })
       }
-    } catch (error) {
-      console.error(`Error fetching ${selector} in webview ${webview}`)
+    } catch (exception) {
+      console.error(`[timeline] Error fetching ${selector} in webview ${webview} (${exception})`)
     }
   }
 
