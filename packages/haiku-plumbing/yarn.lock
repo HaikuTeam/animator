@@ -23,12 +23,6 @@
     tail "^1.2.1"
     yargs "^6.6.0"
 
-"@haiku/player@2.3.24":
-  version "2.3.24"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.24.tgz#f176e50de11b17d021005674b2cacfb3d13ea990"
-  dependencies:
-    lodash "^4.17.4"
-
 "@haiku/player@2.3.6":
   version "2.3.6"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.6.tgz#b8ed349dc6940bfe696160ce5905f8da5439613b"
