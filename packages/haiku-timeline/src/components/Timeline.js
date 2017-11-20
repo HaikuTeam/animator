@@ -150,8 +150,11 @@ class Timeline extends React.Component {
     this.addEmitterListener(this.component, 'remote-update', (what) => {
       if (what === 'setInteractionMode') {
         // If we've toggled into preview mode
-        this.playbackSkipBack()
-        this.forceUpdate()
+        if (this.state.isPreviewModeActive) {
+          this.playbackSkipBack()
+          this.forceUpdate()
+        }
+
         this.setState({isPreviewModeActive: !this.state.isPreviewModeActive})
       }
     })
