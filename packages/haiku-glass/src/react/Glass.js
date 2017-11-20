@@ -243,7 +243,8 @@ export class Glass extends React.Component {
       } else if (what === 'setInteractionMode') {
         // If we've toggled into preview mode, we have to force react to update the on-stage styles
         this.forceUpdate()
-        this._component.getCurrentTimeline().toggleFreezeAndGotoStart()
+        this._component.getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
+
       }
 
       // Not sure if we really need to call this, since this is called in a raf loop
