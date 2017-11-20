@@ -167,6 +167,7 @@ class ProjectBrowser extends React.Component {
       this.setState({ launchingProject: projectObject })
       // projectObject.projectsHome to use project container folder
       // projectObject.projectPath to set specific project folder (no inference)
+      this.tourChannel.hide()
       return this.props.launchProject(projectObject.projectName, projectObject, (error) => {
         if (error) {
           this.props.createNotice({
