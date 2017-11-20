@@ -257,14 +257,20 @@ class Timeline extends BaseModel {
     return this
   }
 
-  toggleFreezeAndGotoStart () {
+  togglePreviewPlayback (isPreviewMode) {
     const timelineName = this.component.getCurrentTimelineName()
     const timelineInstances = this.component.instance._timelineInstances
     const timelineInstance = timelineInstances[timelineName]
-    timelineInstance.isFrozen()
-      ? timelineInstance.unfreeze()
-      : timelineInstance.freeze()
-    timelineInstance.seek(0)
+
+    if (isPreviewMode) {
+      timelineInstance.unfreeze()
+       timelineInstance.gotoAndPlay(0)
+       timelineInstance.options.loop = true
+    } else {
+      timelineInstance.freeze()
+      timelineInstance.seek(0)
+      timelineInstance.options.loop = false
+    }
   }
 
   getDurationDragStart () {
