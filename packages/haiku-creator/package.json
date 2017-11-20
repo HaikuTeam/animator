@@ -2,7 +2,7 @@
   "name": "haiku-creator-electron",
   "productName": "Haiku",
   "private": true,
-  "version": "2.3.35",
+  "version": "2.3.36",
   "description": "Haiku Creator UI",
   "main": "index.js",
   "author": "Matthew Trost <matthew@haiku.ai>",
