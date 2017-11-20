@@ -383,19 +383,24 @@ export default class Plumbing extends StateObject {
   }
 
   sentryError (method, error, extras) {
-    logger.sacred(`[plumbing] error @ ${method}`, error, extras)
-    if (!Raven) return null
-    if (method && METHODS_TO_SKIP_IN_SENTRY[method]) return null
-    if (!error) return null
-    if (typeof error === 'object' && !(error instanceof Error)) {
-      var fixed = new Error(error.message || `Plumbing.${method} error`)
-      if (error.stack) fixed.stack = error.stack
-      error = fixed
-    } else if (typeof error === 'string') {
-      error = new Error(error) // Unfortunately no good stack trace in this case
+    try {
+      logger.sacred(`[plumbing] error @ ${method}`, error, extras)
+      if (!Raven) return null
+      if (method && METHODS_TO_SKIP_IN_SENTRY[method]) return null
+      if (!error) return null
+      if (typeof error === 'object' && !(error instanceof Error)) {
+        var fixed = new Error(error.message || `Plumbing.${method} error`)
+        if (error.stack) fixed.stack = error.stack
+        error = fixed
+      } else if (typeof error === 'string') {
+        error = new Error(error) // Unfortunately no good stack trace in this case
+      }
+      crashReport(this.get('organizationName'), this.get('lastOpenedProjectName'), this.get('lastOpenedProjectPath'))
+      return Raven.captureException(error, extras)
+    } catch (exception) {
+      logger.info(`[plumbing] unable to send crash report`)
+      logger.error(exception)
     }
-    crashReport(this.get('organizationName'), this.get('lastOpenedProjectName'), this.get('lastOpenedProjectPath'))
-    return Raven.captureException(error, extras)
   }
 
   plumbingMethod (method, params = [], cb) {
