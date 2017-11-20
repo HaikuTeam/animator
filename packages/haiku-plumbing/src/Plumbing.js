@@ -466,13 +466,17 @@ export default class Plumbing extends StateObject {
   sendClientRequest (websocket, message, callback) {
     if (message.id === undefined) message.id = `${Math.random()}`
     this.requests[message.id] = { websocket, message, callback }
-    if (websocket.readyState === WebSocket.OPEN) {
-      const data = JSON.stringify(message)
-      return websocket.send(data)
-    } else {
-      logger.info(`[plumbing] websocket readyState was not open so we did not send message ${message.method || message.id}`)
-      callback() // Should this return an error or remain silent?
-    }
+    // Delay to unblock thread for websocket ready state transitions
+    setTimeout(() => {
+      if (websocket.readyState === WebSocket.OPEN) {
+        const data = JSON.stringify(message)q
+        const ret = websocket.send(data)q
+        return ret
+      } else {
+        logger.info(`[plumbing] websocket readyState was not open so we did not send message ${message.method || message.id}`)
+        callback() // Should this return an error or remain silent?
+      }
+    })
   }
 
   teardown () {
@@ -1201,10 +1205,14 @@ Plumbing.prototype.createControlSocket = function createControlSocket (socketInf
 }
 
 function sendMessageToClient (client, message) {
-  if (client.readyState === WebSocket.OPEN) {
-    const data = JSON.stringify(message)
-    return client.send(data)
-  }
+  // Delay to unblock thread for websocket ready state transitions
+  return setTimeout(() => {
+    if (client.readyState === WebSocket.OPEN) {
+      const data = JSON.stringify(message)
+      const ret = client.send(data)
+      return ret
+    }
+  })
 }
 
 function createResponder (message, websocket) {
