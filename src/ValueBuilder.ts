@@ -512,8 +512,8 @@ INJECTABLES['$user'] = {
     } else {
       injectees.$user = {
         mouse: {
-          x: 0,
-          y: 0,
+          x: 1,
+          y: 1,
           down: 0,
           buttons: [0, 0, 0],
         },
@@ -751,13 +751,13 @@ export default function ValueBuilder(component) {
   HaikuHelpers.register('now', () => {
     isPreviewMode(this._component.config.options.interactionMode)
       ? this._component._context.getDeterministicTime()
-      : 0;
+      : 1;
   });
 
   HaikuHelpers.register('rand', () => {
     isPreviewMode(this._component.config.options.interactionMode)
       ? this._component._context.getDeterministicRand()
-      : 0;
+      : 1;
   });
 }
 
@@ -805,6 +805,40 @@ ValueBuilder.prototype._clearCachedClusters = function _clearCachedClusters(time
   return this;
 };
 
+const CONSOLE_ERRORS = {};
+
+function consoleErrorOnce(err) {
+  const str = err && err.message.toString();
+  if (!CONSOLE_ERRORS[str]) {
+    CONSOLE_ERRORS[str] = true;
+    console.error(err);
+  }
+}
+
+/**
+ * When evaluating expressions written by the user, don't crash everything.
+ * Log the error (but only once, since we're animating) and then return a
+ * fairly safe all-purpose value (1).
+ */
+
+function safeCall(fn, hostInstance, hostStates) {
+  try {
+    return fn.call(hostInstance, hostStates);
+  } catch (exception) {
+    consoleErrorOnce(exception);
+    return 1;
+  }
+}
+
+function safeApply(fn, hostInstance, summoneesArray) {
+  try {
+    return fn.apply(hostInstance, summoneesArray);
+  } catch (exception) {
+    consoleErrorOnce(exception);
+    return 1;
+  }
+}
+
 ValueBuilder.prototype.evaluate = function _evaluate(
   fn,
   timelineName,
@@ -822,17 +856,17 @@ ValueBuilder.prototype.evaluate = function _evaluate(
 
   if (fn.specification === true) {
     // This function is of an unknown kind, so just evaluate it normally without magic dependency injection
-    evaluation = fn.call(hostInstance, hostInstance._states);
+    evaluation = safeCall(fn, hostInstance, hostInstance._states);
   } else if (!Array.isArray(fn.specification.params)) {
     // If for some reason we got a non-array params, just evaluate
-    evaluation = fn.call(hostInstance, hostInstance._states);
+    evaluation = safeCall(fn, hostInstance, hostInstance._states);
   } else if (fn.specification.params.length < 1) {
     // If for some reason we got 0 params, just evaluate it
-    evaluation = fn.call(hostInstance, hostInstance._states);
+    evaluation = safeCall(fn, hostInstance, hostInstance._states);
   } else {
     if (fn.specification.params.length < 1) {
       // If the summon isn't in the destructured object format, just evaluate it
-      evaluation = fn.call(hostInstance, hostInstance._states);
+      evaluation = safeCall(fn, hostInstance, hostInstance._states);
     } else {
       const summoneesArray = this.summonSummonables(
         fn.specification.params,
@@ -850,7 +884,7 @@ ValueBuilder.prototype.evaluate = function _evaluate(
       if (areSummoneesDifferent(previousSummoneesArray, summoneesArray)) {
         this._cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summoneesArray);
 
-        evaluation = fn.apply(hostInstance, summoneesArray);
+        evaluation = safeApply(fn, hostInstance, summoneesArray);
       } else {
         // Since nothing is different, return the previous evaluation
         evaluation = this._getPreviousEvaluation(timelineName, flexId, propertyName, keyframeMs);
