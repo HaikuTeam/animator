@@ -11,6 +11,7 @@ import EventHandlerEditor from './EventHandlerEditor'
 import Comments from './models/Comments'
 import ContextMenu from './models/ContextMenu'
 import getLocalDomEventPosition from './helpers/getLocalDomEventPosition'
+import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 import {
   linkExternalAssetsOnDrop,
   preventDefaultDrag
@@ -140,20 +141,17 @@ export class Glass extends React.Component {
     window.addEventListener('drop', linkExternalAssetsOnDrop.bind(this), false)
   }
 
-  handleRequestElementCoordinates ({ selector, webview }) {
-    if (webview !== 'glass') { return }
-    console.info('[glass] handleRequestElementCoordinates', selector, webview)
-    try {
-      // TODO: find if there is a better solution to this scape hatch
-      let element = document.querySelector(selector)
-      let { top, left } = element.getBoundingClientRect()
-      if (this.tourClient && this.component._envoyClient && !this.component._envoyClient.isInMockMode()) {
-        console.info('[glass] receive element coordinates', selector, top, left)
-        this.tourClient.receiveElementCoordinates('glass', { top, left })
-      }
-    } catch (exception) {
-      console.error(`[glass] Error fetching ${selector} in webview ${webview} (${exception})`)
-    }
+  handleRequestElementCoordinates({selector, webview}) {
+    requestElementCoordinates({
+      currentWebview: 'glass',
+      requestedWebview: webview,
+      selector,
+      isMockMode:
+        this.tourClient &&
+        this._component._envoyClient &&
+        !this._component._envoyClient.isInMockMode(),
+      tourClient: this.tourClient
+    })
   }
 
   handleTimelineDidPlay () {

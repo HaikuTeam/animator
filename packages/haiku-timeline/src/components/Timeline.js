@@ -6,6 +6,7 @@ import { DraggableCore } from 'react-draggable'
 import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
 import TimelineModel from 'haiku-serialization/src/bll/Timeline'
 import Row from 'haiku-serialization/src/bll/Row'
+import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 
 import Palette from './DefaultPalette'
 
@@ -284,20 +285,16 @@ class Timeline extends React.Component {
   }
 
   handleRequestElementCoordinates ({ selector, webview }) {
-    if (webview !== 'timeline') { return }
-    console.info('[timeline] handleRequestElementCoordinates', selector, webview)
-    try {
-      // TODO: find if there is a better solution to this escape hatch
-      let element = document.querySelector(selector)
-      let { top, left } = element.getBoundingClientRect()
-
-      if (this.tourClient && this.component._envoyClient && !this.component._envoyClient.isInMockMode()) {
-        console.info('[timeline] receive element coordinates', selector, top, left)
-        this.tourClient.receiveElementCoordinates('timeline', { top, left })
-      }
-    } catch (exception) {
-      console.error(`[timeline] Error fetching ${selector} in webview ${webview} (${exception})`)
-    }
+    requestElementCoordinates({
+      currentWebview: 'timeline',
+      requestedWebview: webview,
+      selector,
+      isMockMode:
+        this.tourClient &&
+        this.component._envoyClient &&
+        !this.component._envoyClient.isInMockMode(),
+      tourClient: this.tourClient
+    })
   }
 
   handleKeyDown (nativeEvent) {
