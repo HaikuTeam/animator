@@ -1,6 +1,20 @@
 # Changelog
 
 
+## 2.3.36
+
+### Bug Fixes
+
+ * Avoid EPIPE crash by unblocking the websocket ready state change
+ * Add other built-in projects to the clone routine
+ * If the project is CheckTutorial, ensure we clone the project content or else the tour doesn't work
+ * The timeline listener was registered too late, never triggering the next tour step
+ * Make expression parser more forgiving and remove flawed impurity check until we can look at this more closely
+ * Match the mini-playhead indicator to correct proportion
+ * Use unrounded pxpf value that seems to make everything better
+ * Preview mode was only toggling when the mouse entered the glass (triggering a React update); this fix forces an update when the mode is toggled
+ * Updates put at the wrong level were interrupting draggable
+
 ## 2.3.35
 
 ### Bug Fixes

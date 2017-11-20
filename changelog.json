@@ -3277,5 +3277,52 @@
       "label": "fix",
       "message": "Ensure we seek to the correct time after a forced code reload"
     }
+  },
+  "2.3.36": {
+    "e40dd920dc2960d615838e1aae4ecc5766680e6d": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Avoid EPIPE crash by unblocking the websocket ready state change"
+    },
+    "2e94131b55c3e8686d2413583ff6698df454a5bb": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Add other built-in projects to the clone routine"
+    },
+    "989780613c282e4eb3ab4a7e2ecbdc4f304032e7": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "If the project is CheckTutorial, ensure we clone the project content or else the tour doesn't work"
+    },
+    "f9808fcf3461376aa5c1be8e737079ba9f04f526": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "The timeline listener was registered too late, never triggering the next tour step"
+    },
+    "70b0db528bc10938c7dd3b7e185e615ca2d8b6db": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Make expression parser more forgiving and remove flawed impurity check until we can look at this more closely"
+    },
+    "5a8485e0a8f84c99b6f26bb078aa773baf0f2a79": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Match the mini-playhead indicator to correct proportion"
+    },
+    "ad6fbf10b5561d997e5c0eb60890a1f7f10b3176": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Use unrounded pxpf value that seems to make everything better"
+    },
+    "061f347f6e02c57d5cb23da14a0d77fb4efd87e9": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Preview mode was only toggling when the mouse entered the glass (triggering a React update); this fix forces an update when the mode is toggled"
+    },
+    "a0189cdee22796d72576b12545144c80ec068511": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Updates put at the wrong level were interrupting draggable"
+    }
   }
 }
