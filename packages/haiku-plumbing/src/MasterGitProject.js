@@ -1047,7 +1047,7 @@ export default class MasterGitProject extends EventEmitter {
 
           // HACK: If the user is opening CheckTutorialfor the first time, assume they are taking
           // the tour, and clone down the content which has been set up for them on the cloud
-          if (projectName === 'CheckTutorial') {
+          if (projectName === 'CheckTutorial' || projectName === 'Move' || projectName === 'Moto') {
             actionSequence = [
               'fetchGitRemoteInfoState',
               'moveContentsToTemp',
