@@ -877,6 +877,7 @@ HaikuComponent.prototype.patch = function patch(container, patchOptions) {
 
   const time = this._context.clock.getExplicitTime();
 
+  // TODO: Determine if controlFlow directives might necessitate recalculation of the mana tree (e.g. due to $repeat).
   const timelinesRunning = [];
   for (const timelineName in this._timelineInstances) {
     const timeline = this._timelineInstances[timelineName];
@@ -962,7 +963,7 @@ HaikuComponent.prototype._hydrateMutableTimelines = function _hydrateMutableTime
     for (const timelineName in this._bytecode.timelines) {
       for (const selector in this._bytecode.timelines[timelineName]) {
         for (const propertyName in this._bytecode.timelines[timelineName][selector]) {
-          if (isMutableProperty(this._bytecode.timelines[timelineName][selector][propertyName])) {
+          if (isMutableProperty(this._bytecode.timelines[timelineName][selector][propertyName], propertyName)) {
             const timeline = this._mutableTimelines[timelineName] || {};
             const propertyGroup = timeline[selector] || {};
             this._mutableTimelines = {
