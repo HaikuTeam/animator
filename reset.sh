@@ -33,3 +33,6 @@ cd packages/haiku-state-object && yarn install && cd ../..
 cd packages/haiku-testing && yarn install && cd ../..
 cd packages/haiku-timeline && yarn install && cd ../..
 cd packages/haiku-websockets && yarn install && cd ../..
+
+rm .last-sync 2> /dev/null
+yarn sync
