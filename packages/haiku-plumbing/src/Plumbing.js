@@ -735,32 +735,42 @@ export default class Plumbing extends StateObject {
   getCurrentOrganizationName (cb) {
     if (this.get('organizationName')) return cb(null, this.get('organizationName'))
     logger.info('[plumbing] fetching organization name for current user')
-    var authToken = sdkClient.config.getAuthToken()
-    return inkstone.organization.list(authToken, (orgErr, orgsArray, orgHttpResp) => {
-      if (orgErr) return cb(new Error('Organization error'))
-      if (orgHttpResp.statusCode === 401) return cb(new Error('Unauthorized organization'))
-      if (orgHttpResp.statusCode > 299) return cb(new Error(`Error status code: ${orgHttpResp.statusCode}`))
-      if (!orgsArray || orgsArray.length < 1) return cb(new Error('No organization found'))
-      // Cache this since it's used to write/manage some project files
-      var organizationName = orgsArray[0].Name
-      logger.info('[plumbing] organization name:', organizationName)
-      this.set('organizationName', organizationName)
-      return cb(null, this.get('organizationName'))
-    })
+    try {
+      const authToken = sdkClient.config.getAuthToken()
+      return inkstone.organization.list(authToken, (orgErr, orgsArray, orgHttpResp) => {
+        if (orgErr) return cb(new Error('Organization error'))
+        if (orgHttpResp.statusCode === 401) return cb(new Error('Unauthorized organization'))
+        if (orgHttpResp.statusCode > 299) return cb(new Error(`Error status code: ${orgHttpResp.statusCode}`))
+        if (!orgsArray || orgsArray.length < 1) return cb(new Error('No organization found'))
+        // Cache this since it's used to write/manage some project files
+        const organizationName = orgsArray[0].Name
+        logger.info('[plumbing] organization name:', organizationName)
+        this.set('organizationName', organizationName)
+        return cb(null, this.get('organizationName'))
+      })
+    } catch (exception) {
+      logger.error(exception)
+      return cb(new Error('Unable to find organization name from Haiku Cloud'))
+    }
   }
 
   listProjects (cb) {
     logger.info('[plumbing] listing projects')
-    var authToken = sdkClient.config.getAuthToken()
-    return inkstone.project.list(authToken, (projectListErr, projectsList) => {
-      if (projectListErr) {
-        this.sentryError('listProjects', projectListErr)
-        return cb(projectListErr)
-      }
-      var finalList = projectsList.map(remapProjectObjectToExpectedFormat)
-      logger.info('[plumbing] fetched project list', JSON.stringify(finalList))
-      return cb(null, finalList)
-    })
+    try {
+      const authToken = sdkClient.config.getAuthToken()
+      return inkstone.project.list(authToken, (projectListErr, projectsList) => {
+        if (projectListErr) {
+          this.sentryError('listProjects', projectListErr)
+          return cb(projectListErr)
+        }
+        const finalList = projectsList.map(remapProjectObjectToExpectedFormat)
+        logger.info('[plumbing] fetched project list', JSON.stringify(finalList))
+        return cb(null, finalList)
+      })
+    } catch (exception) {
+      logger.error(exception)
+      return cb(new Error('Unable to load projects from Haiku Cloud'))
+    }
   }
 
   createProject (name, cb) {
