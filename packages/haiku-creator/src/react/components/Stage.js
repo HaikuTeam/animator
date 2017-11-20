@@ -158,7 +158,8 @@ export default class Stage extends React.Component {
             password={this.props.password}
             receiveProjectInfo={this.props.receiveProjectInfo}
             tourClient={this.tourClient}
-            onPreviewModeToggled={this.onPreviewModeToggled.bind(this)} />
+            onPreviewModeToggled={this.onPreviewModeToggled.bind(this)}
+            isTimelineReady={this.props.isTimelineReady} />
           <div
             id='stage-mount'
             ref={(element) => { this.mount = element }}

@@ -32,6 +32,10 @@ const STYLES = {
     fontSize: '12px',
     fontWeight: '400',
     color: Palette.ROCK
+  },
+  disabled: {
+    pointerEvents: 'none',
+    opacity: 0.5
   }
 }
 
@@ -80,8 +84,6 @@ class Toggle extends React.Component {
   }
 
   render () {
-    const activeStyles = this.state.active ? STYLES.wrapper.active : {}
-
     return (
       <Popover
         isOpen={this.state.isPopoverOpen}
@@ -94,7 +96,8 @@ class Toggle extends React.Component {
           style={[
             BTN_STYLES.btnText,
             STYLES.wrapper,
-            activeStyles,
+            this.state.active && STYLES.wrapper.active,
+            this.props.disabled && STYLES.disabled,
             this.props.style
           ]}
           onMouseEnter={this.openPopover}

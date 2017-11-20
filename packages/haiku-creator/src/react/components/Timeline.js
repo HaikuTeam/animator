@@ -90,6 +90,7 @@ export default class Timeline extends React.Component {
 
     this.webview.addEventListener('dom-ready', () => {
       if (process.env.DEV === '1') this.webview.openDevTools()
+      if (typeof this.props.onReady === 'function') this.props.onReady()
     })
 
     while (this.mount.firstChild) this.mount.removeChild(this.mount.firstChild)
@@ -118,5 +119,6 @@ export default class Timeline extends React.Component {
 Timeline.propTypes = {
   folder: React.PropTypes.string.isRequired,
   haiku: React.PropTypes.object.isRequired,
-  envoy: React.PropTypes.object.isRequired
+  envoy: React.PropTypes.object.isRequired,
+  onReady: React.PropTypes.func
 }

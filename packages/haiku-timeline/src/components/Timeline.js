@@ -21,6 +21,7 @@ import Gauge from './Gauge'
 import GaugeTimeReadout from './GaugeTimeReadout'
 import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
+import {isPreviewMode} from '@haiku/player/lib/helpers/interactionModes'
 
 const Globals = require('./Globals') // Sorry, hack
 
@@ -147,15 +148,17 @@ class Timeline extends React.Component {
       }
     })
 
-    this.addEmitterListener(this.component, 'remote-update', (what) => {
+    this.addEmitterListener(this.component, 'remote-update', (what, data) => {
       if (what === 'setInteractionMode') {
         // If we've toggled into preview mode
-        if (this.state.isPreviewModeActive) {
+        const isPreviewModeActive = isPreviewMode(data.interactionMode)
+
+        if (!isPreviewModeActive) {
           this.playbackSkipBack()
           this.forceUpdate()
         }
 
-        this.setState({isPreviewModeActive: !this.state.isPreviewModeActive})
+        this.setState({isPreviewModeActive})
       }
     })
   }

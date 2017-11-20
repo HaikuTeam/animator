@@ -64,6 +64,8 @@ export default class Creator extends React.Component {
     this.handleFindElementCoordinates = this.handleFindElementCoordinates.bind(this)
     this.handleFindWebviewCoordinates = this.handleFindWebviewCoordinates.bind(this)
     this.onAutoUpdateCheckComplete = this.onAutoUpdateCheckComplete.bind(this)
+    this.onTimlineMounted = this.onTimlineMounted.bind(this)
+    this.onTimelineUnmounted = this.onTimelineUnmounted.bind(this)
     this.layout = new EventEmitter()
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
 
@@ -634,6 +636,14 @@ export default class Creator extends React.Component {
     })
   }
 
+  onTimlineMounted () {
+    this.setState({isTimelineReady: true})
+  }
+
+  onTimelineUnmounted () {
+    this.setState({isTimelineReady: false})
+  }
+
   renderStartupDefaultScreen () {
     return (
       <div style={{ position: 'absolute', width: '100%', height: '100%' }}>
@@ -771,6 +781,7 @@ export default class Creator extends React.Component {
                   <SideBar
                     setDashboardVisibility={this.setDashboardVisibility.bind(this)}
                     switchActiveNav={this.switchActiveNav.bind(this)}
+                    onNavigateToDashboard={this.onTimelineUnmounted}
                     activeNav={this.state.activeNav}>
                     {
                       isPreviewMode(this.state.interactionMode) && (
@@ -822,6 +833,7 @@ export default class Creator extends React.Component {
                       authToken={this.state.authToken}
                       username={this.state.username}
                       password={this.state.password}
+                      isTimelineReady={this.state.isTimelineReady}
                       onPreviewModeToggled={(interactionMode) => { this.setState({interactionMode}) }} />
                     {(this.state.libraryItemDragging)
                       ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />
@@ -837,7 +849,8 @@ export default class Creator extends React.Component {
                 username={this.state.username}
                 organizationName={this.state.organizationName}
                 createNotice={this.createNotice}
-                removeNotice={this.removeNotice} />
+                removeNotice={this.removeNotice}
+                onReady={this.onTimlineMounted} />
             </SplitPane>
           </div>
         </div>
