@@ -469,8 +469,8 @@ export default class Plumbing extends StateObject {
     // Delay to unblock thread for websocket ready state transitions
     setTimeout(() => {
       if (websocket.readyState === WebSocket.OPEN) {
-        const data = JSON.stringify(message)q
-        const ret = websocket.send(data)q
+        const data = JSON.stringify(message)
+        const ret = websocket.send(data)
         return ret
       } else {
         logger.info(`[plumbing] websocket readyState was not open so we did not send message ${message.method || message.id}`)
