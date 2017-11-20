@@ -442,7 +442,12 @@ class ActiveComponent extends BaseModel {
     })
     this.clearCaches()
     this.forceFlush()
-    this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'setInteractionMode')
+
+    this.emit(
+      metadata.from === this.alias ? 'update' : 'remote-update',
+      'setInteractionMode',
+      {interactionMode: this._interactionMode}
+    )
 
     // FIXME: for some reason sometimes the `metadata` argument is missing
     if (typeof metadata === 'function') return metadata()

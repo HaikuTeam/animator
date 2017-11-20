@@ -509,6 +509,7 @@ class StageTitleBar extends React.Component {
           <Toggle
             onToggle={this.togglePreviewMode.bind(this)}
             style={STYLES.previewToggle}
+            disabled={!this.props.isTimelineReady}
           />
         }
 
