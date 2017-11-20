@@ -1,20 +1,20 @@
-import * as WebSocket from 'ws'
-import EnvoyServer from '../../../lib/envoy/server'
-import EnvoyLogger from '../../../lib/envoy/logger'
-import TimelineHandler from '../../../lib/timeline/timeline'
+import * as WebSocket from 'ws';
+import EnvoyServer from '../../../lib/envoy/EnvoyServer';
+import EnvoyLogger from '../../../lib/envoy/EnvoyLogger';
+import {TimelineHandler} from '../../../lib/timeline/TimelineHandler';
 
-async function go () {
-    let envoyServer = new EnvoyServer({
-      WebSocket: WebSocket,
-      logger: new EnvoyLogger("warn")
-    })
+async function go() {
+  const envoyServer = new EnvoyServer({
+    WebSocket,
+    logger: new EnvoyLogger('warn'),
+  });
 
-    await envoyServer.ready()
+  await envoyServer.ready();
 
-    let envoyTimelineHandler = new TimelineHandler(envoyServer)
-    envoyServer.bindHandler("timeline", TimelineHandler, envoyTimelineHandler)
+  const envoyTimelineHandler = new TimelineHandler(envoyServer);
+  envoyServer.bindHandler('timeline', TimelineHandler, envoyTimelineHandler);
 
-    process.send("" + envoyServer.port)
+  process.send('' + envoyServer.port);
 }
 
-go()
+go();
