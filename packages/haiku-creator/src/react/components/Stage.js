@@ -131,6 +131,7 @@ export default class Stage extends React.Component {
 
   onPreviewModeToggled (interactionMode) {
     this.setState({ interactionMode })
+    this.props.onPreviewModeToggled(interactionMode)
   }
 
   render () {

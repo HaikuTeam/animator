@@ -257,6 +257,16 @@ class Timeline extends BaseModel {
     return this
   }
 
+  toggleFreezeAndGotoStart () {
+    const timelineName = this.component.getCurrentTimelineName()
+    const timelineInstances = this.component.instance._timelineInstances
+    const timelineInstance = timelineInstances[timelineName]
+    timelineInstance.isFrozen()
+      ? timelineInstance.unfreeze()
+      : timelineInstance.freeze()
+    timelineInstance.seek(0)
+  }
+
   getDurationDragStart () {
     return this._durationDragStart
   }

@@ -22,6 +22,8 @@ import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/client'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
+import {isPreviewMode} from '@haiku/player/lib/helpers/interactionModes'
+import Palette from './components/Palette.js'
 import ActivityMonitor from '../utils/activityMonitor.js'
 import {
   linkExternalAssetsOnDrop,
@@ -768,6 +770,22 @@ export default class Creator extends React.Component {
                     setDashboardVisibility={this.setDashboardVisibility.bind(this)}
                     switchActiveNav={this.switchActiveNav.bind(this)}
                     activeNav={this.state.activeNav}>
+                    {
+                      isPreviewMode(this.state.interactionMode) && (
+                        <div
+                          style={{
+                            opacity: 0.6,
+                            position: 'absolute',
+                            top: 34,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 999999,
+                            backgroundColor: Palette.COAL
+                          }}
+                        />
+                      )
+                    }
                     {this.state.activeNav === 'library'
                       ? <Library
                         layout={this.layout}
@@ -801,7 +819,8 @@ export default class Creator extends React.Component {
                       organizationName={this.state.organizationName}
                       authToken={this.state.authToken}
                       username={this.state.username}
-                      password={this.state.password} />
+                      password={this.state.password}
+                      onPreviewModeToggled={(interactionMode) => { this.setState({interactionMode}) }} />
                     {(this.state.libraryItemDragging)
                       ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />
                       : '' }

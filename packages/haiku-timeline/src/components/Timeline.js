@@ -54,6 +54,7 @@ const DEFAULTS = {
   isControlKeyDown: false,
   isAltKeyDown: false,
   avoidTimelinePointerEvents: false,
+  isPreviewModeActive: false,
   $update: { time: Date.now() } // legacy?
 }
 
@@ -135,7 +136,12 @@ class Timeline extends React.Component {
     })
 
     this.addEmitterListener(this.component, 'remote-update', (what) => {
-      this.forceUpdate()
+      if (what === 'setInteractionMode') {
+        // If we've toggled into preview mode
+        this.playbackSkipBack()
+        this.forceUpdate()
+        this.setState({isPreviewModeActive: !this.state.isPreviewModeActive})
+      }
     })
   }
 
@@ -737,8 +743,24 @@ class Timeline extends React.Component {
           height: 'calc(100% - 45px)',
           width: '100%',
           overflowY: 'hidden',
-          overflowX: 'hidden'
+          overflowX: 'hidden',
         }}>
+        {
+          this.state.isPreviewModeActive && (
+            <div
+              style={{
+                opacity: 0.6,
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 999999,
+                backgroundColor: Palette.COAL
+              }}
+            />
+          )
+        }
         <HorzScrollShadow
           timeline={this.component.getCurrentTimeline()} />
         {this.renderTopControls()}
