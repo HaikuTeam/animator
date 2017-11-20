@@ -105,7 +105,7 @@ class AutoUpdater extends React.Component {
     return (
       <div>
         <span>
-          {this.props.skipOptIn && 'An update is available.'}
+          {this.props.skipOptIn && 'An update is available. '}
           Downloading and installing...
         </span>
         <p style={STYLES.progressNumber}>{progress} %</p>
