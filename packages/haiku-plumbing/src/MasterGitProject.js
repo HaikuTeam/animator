@@ -1035,7 +1035,8 @@ export default class MasterGitProject extends EventEmitter {
 
       (cb) => {
         const {
-          isGitInitialized
+          isGitInitialized,
+          projectName
         } = this._folderState
 
         // Based on the above statuses, assemble a sequence of actions to take.
@@ -1043,6 +1044,17 @@ export default class MasterGitProject extends EventEmitter {
 
         if (!isGitInitialized) {
           actionSequence = ['initializeGit']
+
+          // HACK: If the user is opening CheckTutorialfor the first time, assume they are taking
+          // the tour, and clone down the content which has been set up for them on the cloud
+          if (projectName === 'CheckTutorial') {
+            actionSequence = [
+              'fetchGitRemoteInfoState',
+              'moveContentsToTemp',
+              'cloneRemoteIntoFolder',
+              'copyContentsFromTemp'
+            ]
+          }
         } else {
           actionSequence = []
         }
@@ -1057,6 +1069,13 @@ export default class MasterGitProject extends EventEmitter {
     ], (err, results) => {
       if (err) return done(err)
       return done(null, results[results.length - 1])
+    })
+  }
+
+  fetchGitRemoteInfoState (cb) {
+    return this.safeFetchProjectGitRemoteInfo((remoteProjectDescriptor) => {
+      this._folderState.remoteProjectDescriptor = remoteProjectDescriptor
+      return cb()
     })
   }
 
