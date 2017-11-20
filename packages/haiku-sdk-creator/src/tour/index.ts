@@ -1,5 +1,6 @@
 export interface Tour {
   next(): MaybeAsync<void>;
+  hide(): MaybeAsync<void>;
   start(force?: boolean): MaybeAsync<void>;
   finish(createFile?: boolean): MaybeAsync<void>;
   notifyScreenResize(): MaybeAsync<void>;

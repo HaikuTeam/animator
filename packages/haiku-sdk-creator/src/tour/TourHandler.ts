@@ -217,6 +217,13 @@ export class TourHandler implements Tour {
     });
   }
 
+  private requestHide() {
+    this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
+      payload: {},
+      name: 'tour:hide',
+    });
+  }
+
   private getState() {
     return this.states[this.currentStep];
   }
@@ -242,6 +249,10 @@ export class TourHandler implements Tour {
     }
 
     this.requestWebviewCoordinates();
+  }
+
+  hide() {
+    this.requestHide();
   }
 
   start(force?) {
