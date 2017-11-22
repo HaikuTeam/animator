@@ -7,7 +7,7 @@ module.exports = function shout (options, text, cb) {
     return slack.chat.postMessage({
       text: text,
       token: deploy.slack.legacy,
-      channel: 'engineering-feed',
+      channel: 'releases',
       username: 'Haiku Distro',
       icon_emoji: ':robot_face:'
     }, function (err) {
