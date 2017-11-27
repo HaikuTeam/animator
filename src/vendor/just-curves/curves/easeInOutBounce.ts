@@ -1,4 +1,4 @@
-import { easeOutBounce } from './index';
+import {easeOutBounce} from './index';
 
 export const easeInOutBounce = (x: number): number => x < 0.5
   ? (1 - easeOutBounce(1 - 2 * x)) / 2

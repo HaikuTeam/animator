@@ -22,34 +22,16 @@ export default function HaikuDOMRenderer() {
     touches: [], // [{ x: 'number', y: 'number' }]
     mouches: [], // [{ x: 'number', y: 'number' }] - Both touches and mouse cursor info
   };
+
+  this._lastContainer = undefined;
 }
 
-HaikuDOMRenderer.prototype.render = function renderWrap(
-  domElement,
-  virtualContainer,
-  virtualTree,
-  component,
-) {
-  return render(
-    domElement,
-    virtualContainer,
-    virtualTree,
-    component,
-  );
+HaikuDOMRenderer.prototype.render = function renderWrap(domElement, virtualContainer, virtualTree, component) {
+  return render(domElement, virtualContainer, virtualTree, component);
 };
 
-HaikuDOMRenderer.prototype.patch = function patchWrap(
-  domElement,
-  virtualContainer,
-  patchesDict,
-  component,
-) {
-  return patch(
-    domElement,
-    virtualContainer,
-    patchesDict,
-    component,
-  );
+HaikuDOMRenderer.prototype.patch = function patchWrap(domElement, patchesDict, component) {
+  return patch(domElement, patchesDict, component);
 };
 
 HaikuDOMRenderer.prototype.menuize = function menuize(domElement, component) {
@@ -61,7 +43,7 @@ HaikuDOMRenderer.prototype.mixpanel = function mixpanel(domElement, mixpanelToke
 };
 
 HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement) {
-  return {
+  return this._lastContainer = {
     isContainer: true,
     layout: {
       computed: {
@@ -69,6 +51,10 @@ HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement
       },
     },
   };
+};
+
+HaikuDOMRenderer.prototype.getLastContainer = function getLastContainer() {
+  return this._lastContainer;
 };
 
 HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
@@ -237,22 +223,6 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
   });
 };
 
-function copy(a) {
-  const b = [];
-  for (let i = 0; i < a.length; i++) {
-    b[i] = a[i];
-  }
-  return b;
-}
-
-function clone(a) {
-  const b = {};
-  for (const key in a) {
-    b[key] = a[key];
-  }
-  return b;
-}
-
 HaikuDOMRenderer.prototype.removeListener = function removeListener(target, handler, eventName) {
   target.removeEventListener(eventName, handler);
   return this;
@@ -264,10 +234,10 @@ HaikuDOMRenderer.prototype.getUser = function getUser() {
       x: this._user.mouse.x,
       y: this._user.mouse.y,
       down: this._user.mouse.down,
-      buttons: copy(this._user.mouse.buttons),
+      buttons: [...this._user.mouse.buttons],
     },
-    keys: clone(this._user.keys),
-    touches: copy(this._user.touches),
-    mouches: copy(this._user.mouches),
+    keys: {...this._user.keys},
+    touches: [...this._user.touches],
+    mouches: [...this._user.mouches],
   };
 };
