@@ -1,14 +1,16 @@
 {
-    "extends": "./tsconfig.json",
-    "compilerOptions": {
-        "target": "es5",
-         "outDir": "~test",
-         "rootDir": "test",
-         "declarationDir": "~test",
-         "lib": ["es2015"]
-    },
-    "include": [
-        "test/**/*.ts",
-        "test/**/*.tsx"
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "es5",
+    "outDir": "~test",
+    "rootDir": "test",
+    "declarationDir": "~test",
+    "lib": [
+      "es2015"
     ]
+  },
+  "include": [
+    "test/**/*.ts",
+    "test/**/*.tsx"
+  ]
 }

@@ -54,7 +54,7 @@ module.exports = function _loggerConstructor (folder, filepath, options) {
     logger.stream({ start: -1 }).on('log', cb)
   }
 
-  // Legacy, use logger.info instead
+  // Legacy, use EnvoyLogger.info instead
   logger.sacred = logger.info.bind(logger)
 
   return logger
