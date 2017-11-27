@@ -103,7 +103,7 @@ class Snippets extends React.PureComponent {
 }
 
 Snippets.propTypes = {
-  editor: React.PropTypes.object.isRequired
+  editor: React.PropTypes.object
 }
 
 export default Snippets

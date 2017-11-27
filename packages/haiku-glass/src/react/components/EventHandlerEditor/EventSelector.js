@@ -90,7 +90,7 @@ class EventSelector extends React.Component {
 EventSelector.propTypes = {
   onChange: React.PropTypes.func.isRequired,
   defaultEventName: React.PropTypes.string,
-  options: React.PropTypes.object.isRequired,
+  options: React.PropTypes.array.isRequired,
   disabledOptions: React.PropTypes.object.isRequired
 }
 

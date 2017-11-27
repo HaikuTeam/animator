@@ -210,7 +210,7 @@ Editor.propTypes = {
   onContentChange: React.PropTypes.func.isRequired,
   onEventChange: React.PropTypes.func.isRequired,
   applicableHandlers: React.PropTypes.array.isRequired,
-  appliedHandlers: React.PropTypes.array.isRequired,
+  appliedHandlers: React.PropTypes.object.isRequired,
   selectedEventName: React.PropTypes.string.isRequired,
   contents: React.PropTypes.string
 }
