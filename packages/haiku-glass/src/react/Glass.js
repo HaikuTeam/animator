@@ -16,6 +16,7 @@ import {
   linkExternalAssetsOnDrop,
   preventDefaultDrag
 } from 'haiku-serialization/src/utils/dndHelpers'
+import {EventsBoltIcon} from './Icons'
 
 const { clipboard } = require('electron')
 
@@ -1007,6 +1008,7 @@ export class Glass extends React.Component {
           let scaleY = element.getPropertyValue('scale.y')
           if (scaleY === undefined || scaleY === null) scaleY = 1
           this.renderTransformBoxOverlay(element, points, overlays, element.canRotate(), this.state.isKeyCommandDown, true, rotationZ, scaleX, scaleY)
+          this.renderEventHandlersOverlay(element, points, overlays)
         }
       } else {
         // TODO: Render control points across multiple selected elements
@@ -1147,6 +1149,70 @@ export class Glass extends React.Component {
     } else {
       return `scale-cursor-${shiftedIndex}`
     }
+  }
+
+  renderEventHandlersOverlay (element, points, overlays) {
+    // If the size is smaller than a threshold, only display the corners.
+    // And if it is smaller even than that, don't display the points at all
+    const dx = Element.distanceBetweenPoints(points[0], points[2], this.state.zoomXY)
+    const dy = Element.distanceBetweenPoints(points[0], points[6], this.state.zoomXY)
+    const {x, y} = points[5]
+
+    if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) return
+
+    const boltSvg = EventsBoltIcon({color: Palette.DARKER_ROCK2})
+    const boltPath = boltSvg.props.children
+    const bolt = {
+      elementName: 'div',
+      attributes: {
+        key: 'events-bolt-wrapper',
+        class: '',
+        onmousedown: (event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          this.showEventHandlersEditor(null, this.getLastSelectedElement())
+        },
+        style: {
+          position: 'absolute',
+          pointerEvents: 'auto',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          left: `${x + 20}px`,
+          top: `${y - 12}px`,
+          border: '1px solid ' + Palette.DARKER_ROCK2,
+          backgroundColor: 'transparent',
+          width: '30px',
+          height: '30px',
+          borderRadius: '50%',
+          cursor: 'pointer'
+        }
+      },
+      children: [
+        {
+          elementName: boltSvg.type,
+          attributes: {
+            key: 'bolt-svg',
+            width: boltSvg.props.width,
+            height: boltSvg.props.height,
+            viewBox: boltSvg.props.viewBox,
+            style: {
+            }
+          },
+          children: [
+            {
+              elementName: boltPath.type,
+              attributes: {
+                d: boltPath.props.d,
+                fill: boltPath.props.fill
+              }
+            }
+          ]
+        }
+      ]
+    }
+
+    overlays.push(bolt)
   }
 
   renderTransformBoxOverlay (element, points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {

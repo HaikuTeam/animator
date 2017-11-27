@@ -1,12 +1,11 @@
 import React from 'react'
 import functionToRFO from '@haiku/player/lib/reflection/functionToRFO'
 import ElementTitle from './ElementTitle'
-import EventSelector from './EventSelector'
 import CSSStyles from './CSSStyles'
 import Editor from './Editor'
 import EditorActions from './EditorActions'
 import Palette from '../../Palette'
-import {EVALUATOR_STATES, EDITOR_WIDTH, EDITOR_HEIGHT} from './constants'
+import {EDITOR_WIDTH, EDITOR_HEIGHT} from './constants'
 
 const STYLES = {
   container: {
@@ -14,153 +13,127 @@ const STYLES = {
     height: EDITOR_HEIGHT,
     backgroundColor: Palette.COAL,
     borderRadius: '4px',
-    padding: '20px',
+    padding: '80px 0 20px 20px',
     zIndex: 9001
+  },
+  outer: {
+    position: 'relative'
+  },
+  editorsWrapper: {
+    overflowY: 'auto',
+    overflowX: 'visible',
+    height: '240px',
+    width: '100%',
+    paddingRight: '18px'
   }
 }
 
-class EventHandlerEditor extends React.Component {
+class EventHandlerEditor extends React.PureComponent {
   constructor (props) {
     super(props)
 
-    this.state = {
-      selectedEventName: 'click', // Seems a good default event to work with
-      customEventOptions: [], // Allow user to type in a custom event name
-      evaluator: {
-        text: null,
-        state: EVALUATOR_STATES.NONE
-      }
-    }
+    this.applicableHandlers = this.props.element.getApplicableEventHandlerOptionsList()
+    this.appliedHandlers = this.getAppliedHandlers()
+
+    this.onEditorContentChange = this.onEditorContentChange.bind(this)
+    this.onEditorEventChange = this.onEditorEventChange.bind(this)
+    this.addAction = this.addAction.bind(this)
   }
 
-  setEvaluator (evaluator) {
-    this.setState({evaluator: evaluator})
-  }
+  getAppliedHandlers () {
+    let result = {}
+    const appliedHandlers = this.props.element.getReifiedEventHandlers()
+    const appliedHandlersKeys = Object.keys(appliedHandlers)
 
-  isCommittableValueInvalid(committable, original) {
-    // If we have any error/warning in the evaluator, assume it as grounds not to commit
-    // the current content of the field. Basically leveraging pre-validation we've already done.
-    if (this.state.evaluator.state > EVALUATOR_STATES.INFO) {
-      return {
-        reason: this.state.evaluator.text
-      }
-    }
-
-    return false
-  }
-
-  getCommitableValue(valueDescriptor) {
-    // Note that extra/cached fields are stripped off of the function, like '.summary'
-    return {
-      __function: {
-        params: valueDescriptor.params,
-        body: valueDescriptor.body
-      }
-    }
-  }
-
-  doSave() {
-    let original = this.codemirror.getValue()
-    let committable = this.getCommitableValue(this.state.editedValue)
-    let invalid = this.isCommittableValueInvalid(committable, original)
-
-    // If invalid, don't proceed - keep the input in a focused+selected state,
-    // and then show an error message in the evaluator tooltip
-    if (invalid) {
-      return this.setState({
-        evaluator: {
-          state: EVALUATOR_STATES.ERROR,
-          text: invalid.reason
-        }
+    if (appliedHandlersKeys.length) {
+      appliedHandlersKeys.forEach(key => {
+        const rawHandler = appliedHandlers[key]
+        const wrappedHandler = rawHandler.original || rawHandler.handler
+        result[key] = functionToRFO(wrappedHandler).__function
       })
+    } else {
+      result = this.getDefaultHandler('click')
     }
 
-    this.setState(
-      {
-        originalValue: this.state.editedValue
-      },
-      () => {
-        this.props.save(
-          this.props.element,
-          this.state.selectedEventName,
-          {handler: committable} // The committable is serialized, i.e. __function: {...}
-        )
-
-        this.props.element.setEventHandlerSaveStatus(
-          this.state.selectedEventName,
-          true
-        )
-        this.forceUpdate()
-        this.props.close()
-      }
-    )
+    return result
   }
 
-  doCancel() {
-    // #TODO: What else?
+  addAction () {
+    const availableHandler = this.getNextAvailableHandler()
+    const defaultHandler = this.getDefaultHandler(availableHandler)
+    Object.assign(this.appliedHandlers, defaultHandler)
+    this.forceUpdate()
+  }
+
+  getNextAvailableHandler () {
+    for (let handlerGroup of this.applicableHandlers) {
+      for (let {value} of handlerGroup.options) {
+        if (!(value in this.appliedHandlers)) {
+          return value
+        }
+      }
+    }
+  }
+
+  getDefaultHandler (event) {
+    return {
+      [event]: {
+        body: '// your code here',
+        params: ['event']
+      }
+    }
+  }
+
+  doSave () {
+    Object.entries(this.appliedHandlers).forEach(([event, handler]) => {
+      this.doSaveSingle(event, handler)
+    })
+    // for (let [event, handler] of Object.entries(this.editors)) {
+    //   this.doSaveSingle(handler)
+    // }
+  }
+
+  doSaveSingle (event, handler) {
+    this.props.save(this.props.element, event, {handler: {__function: handler}})
+    this.props.element.setEventHandlerSaveStatus(event, true)
     this.props.close()
   }
 
-  willHandleExternalKeydownEvent(keydownEvent) {
-    if (keydownEvent._alreadyHandled) {
-      return true
-    }
-
-    if (this.props.element) {
-      // <~ Possibly not needed, but this is a check to whether we're live or not
-      // When focused, assume we *always* handle keyboard events, no exceptions.
-      // If you want to handle an input when focused, used handleEditorKeydown
-      return true
-    }
-
-    return false
+  doCancel () {
+    this.props.close()
   }
 
-  fetchEventHandlerValueDescriptor(eventName) {
-    let extant =
-      this.props.element && this.props.element.getReifiedEventHandler(eventName)
-
-    let found
-    if (extant && extant.handler) {
-      // The player wraps 'handler' to make sure binding is correct, but we want the original
-      // function itself so we can actually access its body and parameters, etc.
-      var original = extant.original || extant.handler
-      found = functionToRFO(original).__function
-    } else {
-      found = {
-        params: ['event'],
-        body: '// "' + eventName + '" event logic goes here'
-      }
-    }
-
-    return found
+  onEditorContentChange (serializedEvent) {
+    Object.assign(this.appliedHandlers, serializedEvent)
   }
 
-  handleChangedEventName({value}) {
-    if (value) {
-      var existingHandler = this.fetchEventHandlerValueDescriptor(value)
+  onEditorEventChange (oldEventName, serializedEvent) {
+    delete this.appliedHandlers[oldEventName]
+    Object.assign(this.appliedHandlers, serializedEvent)
+    this.forceUpdate()
+  }
 
-      if (this.props.element) {
-        this.storeEditedValue(value, existingHandler)
-      }
-      this.setState(
-        {
-          evaluator: {
-            state: EVALUATOR_STATES.OPEN,
-            text: null
-          },
-          selectedEventName: value,
-          originalValue: existingHandler,
-          editedValue: existingHandler
-        }
+  renderEditors () {
+    return Object.entries(this.appliedHandlers).map(([event, handler], id) => {
+      return (
+        <Editor
+          onContentChange={this.onEditorContentChange}
+          onEventChange={this.onEditorEventChange}
+          applicableHandlers={this.applicableHandlers}
+          appliedHandlers={this.appliedHandlers}
+          selectedEventName={event}
+          params={handler.params}
+          contents={handler.body}
+          key={id}
+        />
       )
-    }
+    })
   }
 
-  render() {
+  render () {
     return (
       <div
-        className="Absolute-Center"
+        className='Absolute-Center'
         onMouseDown={mouseEvent => {
           // Prevent outer view from closing us
           mouseEvent.stopPropagation()
@@ -169,24 +142,16 @@ class EventHandlerEditor extends React.Component {
       >
         <style>{CSSStyles}</style>
 
-        <ElementTitle element={this.props.element} />
-
-        <EventSelector
+        <ElementTitle
           element={this.props.element}
-          selectedEventName={this.state.selectedEventName}
-          onEventChange={(eventChange) => {
-            this.handleChangedEventName(eventChange)
-          }}
+          onNewAction={this.addAction}
         />
 
-        <Editor
-          element={this.props.element}
-          evaluator={this.state.evaluator}
-          onEvaluatorChange={(evaluator) => { this.setEvaluator(evaluator) }}
-          onEventChange={(eventChange) => {
-            this.handleChangedEventName(eventChange)
-          }}
-        />
+        <div style={STYLES.outer}>
+          <div style={STYLES.editorsWrapper} className='haiku-scroll'>
+            {this.renderEditors()}
+          </div>
+        </div>
 
         <EditorActions
           onCancel={() => {

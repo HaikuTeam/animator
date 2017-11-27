@@ -14,15 +14,15 @@ const STYLES = {
     fontSize: '11px',
     cursor: 'pointer',
     borderRadius: '2px',
-    padding: '2px 12px 0px 11px'
+    padding: '5px 25px'
   },
   doneButton: {
-    background: Palette.LIGHTEST_PINK
+    background: Palette.BLACK
   }
 }
 
 class EditorActions extends React.PureComponent {
-  render() {
+  render () {
     return (
       <div style={STYLES.buttonsWrapper}>
         <button

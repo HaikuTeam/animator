@@ -205,7 +205,6 @@ class Element extends BaseModel {
 
   getApplicableEventHandlerOptionsList () {
     const options = []
-
     const handlers = this.getReifiedEventHandlers()
 
     // Track which ones we've already accounted for in the 'known events' lists so that
@@ -260,7 +259,7 @@ class Element extends BaseModel {
       }
     }
 
-    return options
+    return options.filter(category => category.options.length > 0)
   }
 
   /**
