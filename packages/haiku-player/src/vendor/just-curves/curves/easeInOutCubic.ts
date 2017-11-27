@@ -1,4 +1,4 @@
-import { pow } from '../internal';
+import {pow} from '../internal';
 
 export const easeInOutCubic = (x: number): number => x < 0.5
   ? 4 * x * x * x

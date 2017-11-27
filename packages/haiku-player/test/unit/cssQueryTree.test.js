@@ -17,7 +17,7 @@ test('cssQueryTree', function (t) {
       }
     ]
   }
-  var matches = queryTree([], tree, '.bar', {
+  var matches = queryTree(tree, '.bar', {
     name: 'elementName',
     attributes: 'attributes',
     children: 'children'
@@ -42,7 +42,7 @@ test('cssQueryTree', function (t) {
       }
     ]
   }
-  var matches = queryTree([], tree, 'div', {
+  var matches = queryTree(tree, 'div', {
     name: 'elementName',
     attributes: 'attributes',
     children: 'children',

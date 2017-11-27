@@ -13,41 +13,27 @@ const FUNCTION = 'function';
 const CLASS = 'class';
 const CLASS_NAME = 'className';
 
-const XLINK_XMLNS = 'http://www.w3.org/1999/xlink';
-const X = 'x';
-const L = 'l';
-const I = 'i';
-const N = 'n';
-const K = 'k';
-
 // data:image/png;base64 etc
-const D = 'd';
-const A = 'a';
-const T = 't';
-const COLON = ':';
-const M = 'm';
-const G = 'g';
-const E = 'e';
-const FSLASH = '/';
 
-function setAttribute(el, key, val, component, cache) {
-  // If key === xlink:href we are dealing with a reference and need to use a namepsace
-  if (key[0] === X && key[1] === L && key[2] === I && key[3] === N && key[4] === K) {
-    const ns = XLINK_XMLNS;
+function setAttribute(el, key, val, cache) {
+  // If key === xlink:href we are dealing with a reference and need to use a namespace.
+  if (key[0] === 'x' && key[1] === 'l' && key[2] === 'i' && key[3] === 'n' && key[4] === 'k') {
+    const ns = 'http://www.w3.org/1999/xlink';
 
     // If the value is data:image/, treat that as a special case magic string
     if (
-      val[0] === D &&
-      val[1] === A &&
-      val[2] === T &&
-      val[3] === A &&
-      val[4] === COLON &&
-      val[5] === I &&
-      val[6] === M &&
-      val[7] === A &&
-      val[8] === G &&
-      val[9] === E &&
-      val[10] === FSLASH) {
+      val[0] === 'd' &&
+      val[1] === 'a' &&
+      val[2] === 't' &&
+      val[3] === 'a' &&
+      val[4] === ':' &&
+      val[5] === 'i' &&
+      val[6] === 'm' &&
+      val[7] === 'a' &&
+      val[8] === 'g' &&
+      val[9] === 'e' &&
+      val[10] === '/'
+    ) {
       // In case of a huge image string, we don't even diff it, we just write it once and only once
       if (!cache.base64image) {
         el.setAttributeNS(ns, key, val);
@@ -80,13 +66,7 @@ function setAttribute(el, key, val, component, cache) {
   }
 }
 
-export default function assignAttributes(
-  domElement,
-  virtualElement,
-  component,
-  isPatchOperation,
-  isKeyDifferent,
-) {
+export default function assignAttributes(domElement, virtualElement, component, isPatchOperation) {
   if (!isPatchOperation) {
     // Remove any attributes from the previous run that aren't present this time around
     if (domElement.haiku && domElement.haiku.element) {
@@ -95,11 +75,7 @@ export default function assignAttributes(
         const newValue = virtualElement.attributes[oldKey];
         if (oldKey !== STYLE) {
           // Removal of old styles is handled downstream; see assignStyle()
-          if (
-            newValue === null ||
-            newValue === undefined ||
-            oldValue !== newValue
-          ) {
+          if (newValue === null || newValue === undefined || oldValue !== newValue) {
             domElement.removeAttribute(oldKey);
           }
         }
@@ -110,14 +86,13 @@ export default function assignAttributes(
   for (const key in virtualElement.attributes) {
     const anotherNewValue = virtualElement.attributes[key];
 
-    if (key === STYLE && anotherNewValue && typeof anotherNewValue === OBJECT) {
-      assignStyle(
-        domElement,
-        virtualElement,
-        anotherNewValue,
-        component,
-        isPatchOperation,
-      );
+    if (
+      key === STYLE
+      && anotherNewValue
+      && typeof anotherNewValue === OBJECT &&
+      Object.keys(anotherNewValue).length !== 0
+    ) {
+      assignStyle(domElement, anotherNewValue, component, isPatchOperation);
       continue;
     }
 
@@ -127,17 +102,12 @@ export default function assignAttributes(
     }
 
     // 'onclick', etc - Handling the chance that we got an inline event handler
-    if (
-      key[0] === 'o' &&
-      key[1] === 'n' &&
-      typeof anotherNewValue === FUNCTION
-    ) {
+    if (key[0] === 'o' && key[1] === 'n' && typeof anotherNewValue === FUNCTION) {
       attachEventListener(virtualElement, domElement, key.slice(2).toLowerCase(), anotherNewValue, component);
       continue;
     }
 
-    setAttribute(
-      domElement, key, anotherNewValue, component, component.config.options.cache[getFlexId(virtualElement)]);
+    setAttribute(domElement, key, anotherNewValue, component.cache[getFlexId(virtualElement)]);
   }
 
   // Any 'hidden' eventHandlers we got need to be assigned now.

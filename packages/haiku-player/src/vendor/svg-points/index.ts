@@ -1,5 +1,9 @@
-import toPath from "./toPath"
-import toPoints from "./toPoints"
-import valid from "./valid"
+import toPath from './toPath';
+import toPoints from './toPoints';
+import valid from './valid';
 
-export default { toPath, toPoints, valid }
+export default {
+  toPath,
+  toPoints,
+  valid,
+};

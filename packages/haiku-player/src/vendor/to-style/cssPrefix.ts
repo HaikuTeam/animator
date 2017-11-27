@@ -1,5 +1,5 @@
-import prefixer from "./prefixer"
+import prefixer from './prefixer';
 
-const cssPrefix = prefixer(null)
+const cssPrefix = prefixer(null);
 
-export default cssPrefix
+export default cssPrefix;

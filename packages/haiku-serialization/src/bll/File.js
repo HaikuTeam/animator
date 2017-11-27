@@ -45,6 +45,7 @@ const removeRequire = require('./../ast/removeRequire')
 const formatStandard = require('./../formatter/formatStandard')
 const generateCode = require('./../ast/generateCode')
 const parseCode = require('./../ast/parseCode')
+const getSvgOptimizer = require('../svg/getSvgOptimizer')
 const Logger = require('./../utils/Logger')
 const walkFiles = require('./../utils/walkFiles')
 
@@ -422,19 +423,20 @@ class File extends BaseModel {
     } else {
       return File.read(this.folder, filepath, (err, buffer) => {
         if (err) return cb(err)
-        const contents = buffer.toString()
-        const incoming = xmlToMana(contents)
+        getSvgOptimizer().optimize(buffer.toString(), {path: filepath}).then((contents) => {
+          const incoming = xmlToMana(contents.data)
 
-        if (!incoming.attributes) {
-          incoming.attributes = {}
-        }
+          if (!incoming.attributes) {
+            incoming.attributes = {}
+          }
 
-        // #QUESTION - why not just overwrite this?
-        if (!incoming.attributes[SOURCE_ATTRIBUTE]) {
-          incoming.attributes[SOURCE_ATTRIBUTE] = path.normalize(filepath)
-        }
+          // #QUESTION - why not just overwrite this?
+          if (!incoming.attributes[SOURCE_ATTRIBUTE]) {
+            incoming.attributes[SOURCE_ATTRIBUTE] = path.normalize(filepath)
+          }
 
-        return this.instantiateComponentFromMana(incoming, metadata, cb)
+          return this.instantiateComponentFromMana(incoming, metadata, cb)
+        })
       })
     }
   }

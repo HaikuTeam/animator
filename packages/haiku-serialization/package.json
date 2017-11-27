@@ -13,6 +13,8 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@haiku/player": "HaikuTeam/player.git",
+    "@haiku/sdk-client": "HaikuTeam/sdk-client.git",
+    "@haiku/sdk-inkstone": "HaikuTeam/sdk-inkstone.git",
     "async": "2.1.5",
     "babel-core": "6.23.1",
     "babel-generator": "6.23.0",
@@ -38,9 +40,7 @@
     "haiku-bytecode": "HaikuTeam/bytecode.git",
     "haiku-common": "HaikuTeam/common.git",
     "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
-    "@haiku/sdk-client": "HaikuTeam/sdk-client.git",
     "haiku-sdk-creator": "HaikuTeam/sdk-creator.git",
-    "@haiku/sdk-inkstone": "HaikuTeam/sdk-inkstone.git",
     "lodash": "4.17.4",
     "lodash.assign": "4.2.0",
     "lodash.debounce": "4.0.8",
@@ -55,6 +55,7 @@
     "raf": "^3.3.2",
     "request": "^2.83.0",
     "standard": "8.6.0",
+    "svgo": "^1.0.3",
     "winston": "^2.3.1"
   },
   "devDependencies": {

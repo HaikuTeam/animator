@@ -62,7 +62,6 @@ export default function applyLayout(
   parentVirtualElement,
   component,
   isPatchOperation,
-  isKeyDifferent,
 ) {
   if (isTextNode(virtualElement)) {
     return domElement;
@@ -106,14 +105,7 @@ export default function applyLayout(
 
       component.config.options.platform = PLATFORM_INFO;
 
-      applyCssLayout(
-        domElement,
-        virtualElement,
-        virtualElement.layout,
-        computedLayout,
-        devicePixelRatio,
-        component,
-      );
+      applyCssLayout(domElement, virtualElement, virtualElement.layout, computedLayout, devicePixelRatio, component);
     }
   }
 

@@ -6,7 +6,8 @@ import cssMatchOne from './cssMatchOne';
 
 const PIECE_SEPARATOR = ',';
 
-export default function queryList(matches, list, query, options) {
+export default function queryList(list, query, options) {
+  const matches = [];
   const maxdepth = options.maxdepth !== undefined
     ? parseInt(options.maxdepth, 10)
     : Infinity;
@@ -22,4 +23,6 @@ export default function queryList(matches, list, query, options) {
       }
     }
   }
+
+  return matches;
 }
