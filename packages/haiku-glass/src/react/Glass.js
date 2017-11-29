@@ -1325,10 +1325,6 @@ export class Glass extends React.Component {
               Element.unselectAllElements({ from: 'glass' })
             }
 
-            if (this.state.isEventHandlerEditorOpen) {
-              this.hideEventHandlersEditor()
-            }
-
             this.setState({
               originalPanX: pan.x,
               originalPanY: pan.y,
