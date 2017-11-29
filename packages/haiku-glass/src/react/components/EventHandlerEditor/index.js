@@ -33,44 +33,74 @@ class EventHandlerEditor extends React.PureComponent {
   constructor (props) {
     super(props)
 
-    this.applicableHandlers = this.props.element.getApplicableEventHandlerOptionsList()
-    this.appliedHandlers = this.getAppliedHandlers()
-
+    this.applicableHandlers = {}
+    this.appliedHandlers = new Map()
     this.onEditorContentChange = this.onEditorContentChange.bind(this)
     this.onEditorEventChange = this.onEditorEventChange.bind(this)
     this.onEditorRemoved = this.onEditorRemoved.bind(this)
     this.addAction = this.addAction.bind(this)
   }
 
-  getAppliedHandlers () {
-    let result = {}
-    const appliedHandlers = this.props.element.getReifiedEventHandlers()
+  shouldComponentUpdate ({element, visible}, nextState) {
+    if (!this.appliedHandlers.size && element) {
+      this.applicableHandlers = element.getApplicableEventHandlerOptionsList()
+      this.appliedHandlers = this.getAppliedHandlers(element)
+      return true
+    }
+
+    if(visible !== this.props.visible) {
+      return true
+    }
+
+    return false
+  }
+
+  getAppliedHandlers (element) {
+    let result = new Map()
+    const appliedHandlers = element.getReifiedEventHandlers()
     const appliedHandlersKeys = Object.keys(appliedHandlers)
 
     if (appliedHandlersKeys.length) {
       appliedHandlersKeys.forEach(key => {
         const rawHandler = appliedHandlers[key]
         const wrappedHandler = rawHandler.original || rawHandler.handler
-        result[key] = functionToRFO(wrappedHandler).__function
+        const id = this.generateID(3)
+        result.set(id, {event: key, handler: functionToRFO(wrappedHandler).__function})
       })
     } else {
-      result = this.getDefaultHandler('click')
+      const id = this.generateID(3)
+      result.set(id, this.getDefaultHandler('click'))
     }
 
     return result
   }
 
+  generateID(len) {
+    const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
+    let str = '';
+    while (str.length < len) {
+      str += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+    }
+    return str;
+  }
+
   addAction () {
     const availableHandler = this.getNextAvailableHandler()
     const defaultHandler = this.getDefaultHandler(availableHandler)
-    Object.assign(this.appliedHandlers, defaultHandler)
+    this.appliedHandlers.set(this.generateID(3), {event: availableHandler, handler: defaultHandler})
     this.forceUpdate()
   }
 
   getNextAvailableHandler () {
+    const appliedHandlers = []
+
+    for (let [editor, {event, handler}] of this.appliedHandlers) {
+      appliedHandlers.push(event)
+    }
+
     for (let handlerGroup of this.applicableHandlers) {
       for (let {value} of handlerGroup.options) {
-        if (!(value in this.appliedHandlers)) {
+        if (appliedHandlers.indexOf(value) === -1) {
           return value
         }
       }
@@ -79,7 +109,8 @@ class EventHandlerEditor extends React.PureComponent {
 
   getDefaultHandler (event) {
     return {
-      [event]: {
+      event,
+      handler: {
         body: '// your code here',
         params: ['event']
       }

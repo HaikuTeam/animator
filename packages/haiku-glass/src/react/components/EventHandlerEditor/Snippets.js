@@ -7,7 +7,7 @@ const STYLES = {
   wrapper: {
     position: 'absolute',
     top: '0',
-    right: '9%',
+    right: '6.8%',
     zIndex: 99,
     visibility: 'hidden',
     fontFamily: 'Fira Sans'
@@ -95,7 +95,7 @@ class Snippets extends React.PureComponent {
     return (
       <div style={STYLES.wrapper} ref={element => (this._plus = element)}>
         <Menu
-          fixedToTrigger={this._plus}
+          fixed={true}
           trigger={
             <div style={STYLES.button} className='js-snipet-trigger'>
               +

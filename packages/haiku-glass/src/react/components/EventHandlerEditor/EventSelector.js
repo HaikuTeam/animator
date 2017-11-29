@@ -35,7 +35,7 @@ class EventSelector extends React.Component {
   }
 
   renderSingleMenuItem ({value, label}) {
-    const isDisabled = value in this.props.disabledOptions
+    const isDisabled = this.props.disabledOptions.indexOf(value) !== -1
 
     return (
       <MenuItem
@@ -81,7 +81,12 @@ class EventSelector extends React.Component {
   render () {
     return (
       <div style={STYLES.selectWrapper}>
-        <Menu trigger={this.renderMenuTrigger()}>{this.renderMenuItems()}</Menu>
+        <Menu
+          trigger={this.renderMenuTrigger()}
+          fixed={true}
+        >
+          {this.renderMenuItems()}
+        </Menu>
       </div>
     )
   }
@@ -91,7 +96,7 @@ EventSelector.propTypes = {
   onChange: React.PropTypes.func.isRequired,
   defaultEventName: React.PropTypes.string,
   options: React.PropTypes.array.isRequired,
-  disabledOptions: React.PropTypes.object.isRequired
+  disabledOptions: React.PropTypes.array.isRequired
 }
 
 export default EventSelector

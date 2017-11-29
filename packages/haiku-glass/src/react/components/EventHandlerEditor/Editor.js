@@ -42,10 +42,11 @@ const STYLES = {
   options: {
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'center',
     svg: {
       visibility: 'hidden',
       cursor: 'pointer',
-      marginRight: '5px'
+      padding: '8px'
     },
     svgVisible: {
       visibility: 'visible',
@@ -119,15 +120,6 @@ class Editor extends React.Component {
     this.forceUpdate()
   }
 
-  getPreamble (officialValue) {
-    const params =
-      officialValue && officialValue.params && officialValue.params.length > 0
-        ? marshalParams(officialValue.params)
-        : ''
-
-    return `function (${params}) {`
-  }
-
   getDefaultEvaluator () {
     return {
       text: null,
@@ -171,8 +163,7 @@ class Editor extends React.Component {
   }
 
   eventSelectedCallback (eventName) {
-    const oldEventName = this.props.selectedEventName
-    this.props.onEventChange(oldEventName, this.serialize(eventName))
+    this.props.onEventChange(this.serialize(eventName))
   }
 
   isCommittableValueInvalid (committable, original) {
@@ -187,19 +178,25 @@ class Editor extends React.Component {
     return false
   }
 
-  serialize (eventName = this.props.selectedEventName) {
+  serialize(eventName = this.props.selectedEventName) {
     const rawContents = this.editor.getValue()
 
-    return {
-      [eventName]: {
-        params: ['event'],
-        body: rawContents
+    return [
+      this.props.id,
+      {
+        event: eventName,
+        handler: {
+          params: ['event'],
+          body: rawContents,
+          type: 'FunctionExpression',
+          name: null
+        }
       }
-    }
+    ]
   }
 
   die () {
-    this.props.onRemove(this.props.selectedEventName)
+    this.props.onRemove(this.props.id)
   }
 
   render () {
@@ -237,7 +234,7 @@ class Editor extends React.Component {
         </div>
 
         <div style={{...STYLES.amble, ...STYLES.preamble}}>
-          {this.getPreamble()}
+          {'function (event) {'}
         </div>
         <div
           className='haiku-multiline haiku-dynamic'
@@ -269,7 +266,7 @@ Editor.propTypes = {
   onEventChange: React.PropTypes.func.isRequired,
   onRemove: React.PropTypes.func.isRequired,
   applicableHandlers: React.PropTypes.array.isRequired,
-  appliedHandlers: React.PropTypes.object.isRequired,
+  appliedHandlers: React.PropTypes.array.isRequired,
   selectedEventName: React.PropTypes.string.isRequired,
   contents: React.PropTypes.string
 }
