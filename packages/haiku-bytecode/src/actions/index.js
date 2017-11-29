@@ -24,5 +24,6 @@ module.exports = {
   sliceSegment: require('./sliceSegment'),
   splitSegment: require('./splitSegment'),
   upsertEventHandler: require('./upsertEventHandler'),
+  batchUpsertEventHandler: require('./batchUpsertEventHandler'),
   upsertStateValue: require('./upsertStateValue')
 }

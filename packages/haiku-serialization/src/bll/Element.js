@@ -191,6 +191,13 @@ class Element extends BaseModel {
     return this
   }
 
+  batchUpsertEventHandler (serializedEvents) {
+    const eventHandlers = this.getReifiedEventHandlers() // pointer to substructs[0].bytecode
+    eventHandlers = serializedEvents
+    this.emit('update', 'element-event-handler-update')
+    return this
+  }
+
   getEventHandlerSaveStatus (eventName) {
     if (!this._eventHandlerSaves) this._eventHandlerSaves = {}
     return this._eventHandlerSaves[eventName]

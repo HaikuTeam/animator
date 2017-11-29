@@ -1230,6 +1230,32 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
+   * @method batchUpsertEventHandler
+   */
+  batchUpsertEventHandler (selectorName, serializedEvents, metadata, cb) {
+    return this.fetchActiveBytecodeFile().batchUpsertEventHandler(selectorName, serializedEvents, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({
+        hardReload: metadata.from !== this.alias,
+        clearCacheOptions: {
+          clearPreviouslyRegisteredEventListeners: true
+        }
+      }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'batchUpsertEventHandler')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('batchUpsertEventHandler', [this.folder, selectorName, serializedEvents])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  /**
    * @method deleteEventHandler
    */
   deleteEventHandler (selectorName, eventName, metadata, cb) {

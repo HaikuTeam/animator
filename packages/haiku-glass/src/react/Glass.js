@@ -473,9 +473,9 @@ export class Glass extends React.Component {
     })
   }
 
-  saveEventHandler (targetElement, eventName, handlerDescriptorSerialized) {
+  saveEventHandler (targetElement, serializedEvent) {
     let selectorName = 'haiku:' + targetElement.uid
-    this._component.upsertEventHandler(selectorName, eventName, handlerDescriptorSerialized, { from: 'glass' }, () => {
+    this._component.batchUpsertEventHandler(selectorName, serializedEvent, { from: 'glass' }, () => {
 
     })
   }

@@ -87,14 +87,14 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   doSave () {
-    Object.entries(this.appliedHandlers).forEach(([event, handler]) => {
-      this.doSaveSingle(event, handler)
-    })
-  }
+    const result = {}
 
-  doSaveSingle (event, handler) {
-    this.props.save(this.props.element, event, {handler: {__function: handler}})
-    this.props.element.setEventHandlerSaveStatus(event, true)
+    for (let [editor, {event, handler}] of this.appliedHandlers) {
+      result[event] = {handler: {__function: handler}}
+      this.props.element.setEventHandlerSaveStatus(event, true)
+    }
+
+    this.props.save(this.props.element, result)
     this.props.close()
   }
 
