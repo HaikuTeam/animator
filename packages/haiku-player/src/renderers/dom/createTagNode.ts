@@ -16,6 +16,7 @@ export default function createTagNode(
   component,
 ) {
   const tagName = normalizeName(getTypeAsString(virtualElement));
+  const flexId = getFlexId(virtualElement);
   let newDomElement;
   if (allSvgElementNames[tagName]) {
     // SVG
@@ -30,8 +31,8 @@ export default function createTagNode(
     newDomElement.haiku = {};
   }
 
-  if (!component.cache[getFlexId(virtualElement)]) {
-    component.cache[getFlexId(virtualElement)] = {};
+  if (!component.cache[flexId]) {
+    component.cache[flexId] = {};
   }
 
   const incomingKey =

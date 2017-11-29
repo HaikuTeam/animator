@@ -21,6 +21,8 @@ export default function updateElement(
   component,
   isPatchOperation,
 ) {
+  const flexId = getFlexId(virtualElement);
+
   // If a text node, go straight to 'replace' since we don't know the tag name
   if (isTextNode(virtualElement)) {
     replaceElementWithText(domElement, virtualElement, component);
@@ -31,8 +33,8 @@ export default function updateElement(
     domElement.haiku = {};
   }
 
-  if (!component.cache[getFlexId(virtualElement)]) {
-    component.cache[getFlexId(virtualElement)] = {};
+  if (!component.cache[flexId]) {
+    component.cache[flexId] = {};
   }
 
   if (!domElement.haiku.element) {

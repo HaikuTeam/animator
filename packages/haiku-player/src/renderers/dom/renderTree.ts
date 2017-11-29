@@ -19,6 +19,8 @@ export default function renderTree(
   isPatchOperation,
   doSkipChildren,
 ) {
+  const flexId = getFlexId(virtualElement);
+
   component._addElementToHashTable(domElement, virtualElement);
 
   if (!domElement.haiku) {
@@ -31,8 +33,8 @@ export default function renderTree(
   // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute
   // removals
   domElement.haiku.element = cloneVirtualElement(virtualElement);
-  if (!component.cache[getFlexId(virtualElement)]) {
-    component.cache[getFlexId(virtualElement)] = {};
+  if (!component.cache[flexId]) {
+    component.cache[flexId] = {};
   }
 
   if (!Array.isArray(virtualChildren)) {
@@ -75,7 +77,7 @@ export default function renderTree(
     if (!virtualChild && !domChild) {
       // empty
     } else if (!virtualChild && domChild) {
-      removeElement(domChild, virtualElement, component);
+      removeElement(domChild, flexId, component);
     } else if (virtualChild) {
       if (!domChild) {
         const insertedElement = appendChild(null, virtualChild, domElement, virtualElement, component);
