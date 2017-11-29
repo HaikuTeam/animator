@@ -5,6 +5,7 @@ import HaikuDOMRenderer from '@haiku/player/lib/renderers/dom'
 import HaikuContext from '@haiku/player/lib/HaikuContext'
 import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
 import Element from 'haiku-serialization/src/bll/Element'
+import react2haiku from 'haiku-serialization/src/utils/react2haiku'
 import Palette from './Palette'
 import Comment from './Comment'
 import EventHandlerEditor from './components/EventHandlerEditor'
@@ -42,6 +43,8 @@ const LINE_DISPLAY_MODES = {
   NORMAL: 1,
   NONE: 2
 }
+
+const BOLT_SVG = react2haiku(EventsBoltIcon({color: Palette.DARKER_ROCK2}))
 
 // The class is exported also _without_ the radium wrapper to allow jsdom testing
 export class Glass extends React.Component {
@@ -1151,22 +1154,11 @@ export class Glass extends React.Component {
     }
   }
 
-  renderEventHandlersOverlay (element, points, overlays) {
-    // If the size is smaller than a threshold, only display the corners.
-    // And if it is smaller even than that, don't display the points at all
-    const dx = Element.distanceBetweenPoints(points[0], points[2], this.state.zoomXY)
-    const dy = Element.distanceBetweenPoints(points[0], points[6], this.state.zoomXY)
-    const {x, y} = points[5]
-
-    if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) return
-
-    const boltSvg = EventsBoltIcon({color: Palette.DARKER_ROCK2})
-    const boltPath = boltSvg.props.children
-    const bolt = {
+  buildBoltInstance (x, y) {
+    return {
       elementName: 'div',
       attributes: {
-        key: 'events-bolt-wrapper',
-        class: '',
+        id: `events-bolt-wrapper`,
         onmousedown: (event) => {
           event.preventDefault()
           event.stopPropagation()
@@ -1188,31 +1180,20 @@ export class Glass extends React.Component {
           cursor: 'pointer'
         }
       },
-      children: [
-        {
-          elementName: boltSvg.type,
-          attributes: {
-            key: 'bolt-svg',
-            width: boltSvg.props.width,
-            height: boltSvg.props.height,
-            viewBox: boltSvg.props.viewBox,
-            style: {
-            }
-          },
-          children: [
-            {
-              elementName: boltPath.type,
-              attributes: {
-                d: boltPath.props.d,
-                fill: boltPath.props.fill
-              }
-            }
-          ]
-        }
-      ]
+      children: [BOLT_SVG]
     }
+  }
 
-    overlays.push(bolt)
+  renderEventHandlersOverlay (element, points, overlays) {
+    // If the size is smaller than a threshold, only display the corners.
+    // And if it is smaller even than that, don't display the points at all
+    const dx = Element.distanceBetweenPoints(points[0], points[2], this.state.zoomXY)
+    const dy = Element.distanceBetweenPoints(points[0], points[6], this.state.zoomXY)
+    const {x, y} = points[5]
+
+    if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) return
+
+    overlays.push(this.buildBoltInstance(x, y))
   }
 
   renderTransformBoxOverlay (element, points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
