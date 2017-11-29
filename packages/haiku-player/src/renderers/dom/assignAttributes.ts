@@ -67,7 +67,7 @@ function setAttribute(el, key, val, cache) {
 }
 
 export default function assignAttributes(domElement, virtualElement, component, isPatchOperation) {
-  const cache = component.cache[getFlexId(virtualElement)]
+  const cache = component.cache[getFlexId(virtualElement)];
 
   if (!isPatchOperation) {
     // Remove any attributes from the previous run that aren't present this time around
@@ -80,8 +80,8 @@ export default function assignAttributes(domElement, virtualElement, component, 
           if (newValue === null || newValue === undefined || oldValue !== newValue) {
             domElement.removeAttribute(oldKey);
 
-            if(cache[oldKey]) {
-              cache[oldKey] = null
+            if (cache[oldKey]) {
+              cache[oldKey] = null;
             }
           }
         }
