@@ -75,7 +75,7 @@ export default function renderTree(
     if (!virtualChild && !domChild) {
       // empty
     } else if (!virtualChild && domChild) {
-      removeElement(domChild);
+      removeElement(domChild, virtualElement, component);
     } else if (virtualChild) {
       if (!domChild) {
         const insertedElement = appendChild(null, virtualChild, domElement, virtualElement, component);
