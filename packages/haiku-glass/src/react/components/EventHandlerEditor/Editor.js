@@ -1,12 +1,15 @@
 /* global monaco */
 import React from 'react'
+import Radium from 'radium'
+import Color from 'color'
 import Palette from '../../Palette'
 import marshalParams from '@haiku/player/lib/reflection/marshalParams'
 import parseExpression from 'haiku-serialization/src/ast/parseExpression'
 import EventSelector from './EventSelector'
 import HaikuMode from '../../modes/haiku.js'
 import Snippets from './Snippets'
-import { EVALUATOR_STATES } from './constants'
+import {TrashIconSVG} from '../../Icons'
+import {EVALUATOR_STATES} from './constants'
 
 const STYLES = {
   amble: {
@@ -32,9 +35,26 @@ const STYLES = {
     fontFamily: 'Fira Mono',
     height: '105px',
     width: '100%',
-    paddingLeft: '22px',
+    padding: '6px 0 6px 22px',
     background: '#0F171A',
     overflow: 'hidden'
+  },
+  options: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    svg: {
+      visibility: 'hidden',
+      cursor: 'pointer',
+      marginRight: '5px'
+    },
+    svgVisible: {
+      visibility: 'visible',
+      fill: Color(Palette.ROCK).fade(0.7)
+    },
+    svgActive: {
+      visibility: 'visible',
+      fill: Palette.ROCK
+    }
   }
 }
 
@@ -44,9 +64,12 @@ class Editor extends React.Component {
 
     this.eventSelectedCallback = this.eventSelectedCallback.bind(this)
     this.handleEditorChange = this.handleEditorChange.bind(this)
+    this.die = this.die.bind(this)
 
     this.state = {
-      evaluator: this.getDefaultEvaluator()
+      evaluator: this.getDefaultEvaluator(),
+      isHovered: false,
+      isTrashHovered: false
     }
   }
 
@@ -79,7 +102,15 @@ class Editor extends React.Component {
       contextmenu: false,
       codeLens: false,
       quickSuggestions: false,
-      parameterHints: false
+      parameterHints: false,
+      /* Elements with `will-change: transform` are containing blocks
+        for all descendants, meaning that all elements,
+        *including fixed elements* are positioned against them.
+        In order for snippets and other glorious features to break the overflow
+        of the editor, they need to be fixed against the document. */
+      disableLayerHinting: true,
+      fixedOverflowWidgets: true,
+      links: false
     })
 
     this.editor.onDidChangeModelContent(this.handleEditorChange)
@@ -141,8 +172,7 @@ class Editor extends React.Component {
 
   eventSelectedCallback (eventName) {
     const oldEventName = this.props.selectedEventName
-    this.props.selectedEventName = eventName
-    this.props.onEventChange(oldEventName, this.serialize())
+    this.props.onEventChange(oldEventName, this.serialize(eventName))
   }
 
   isCommittableValueInvalid (committable, original) {
@@ -157,26 +187,54 @@ class Editor extends React.Component {
     return false
   }
 
-  serialize () {
+  serialize (eventName = this.props.selectedEventName) {
     const rawContents = this.editor.getValue()
 
     return {
-      [this.props.selectedEventName]: {
+      [eventName]: {
         params: ['event'],
         body: rawContents
       }
     }
   }
 
+  die () {
+    this.props.onRemove(this.props.selectedEventName)
+  }
+
   render () {
     return (
-      <div>
-        <EventSelector
-          options={this.props.applicableHandlers}
-          disabledOptions={this.props.appliedHandlers}
-          onChange={this.eventSelectedCallback}
-          defaultEventName={this.props.selectedEventName}
-        />
+      <div
+        onMouseEnter={() => { this.setState({isHovered: true}) }}
+        onMouseLeave={() => { this.setState({isHovered: false}) }}
+      >
+        <div style={STYLES.options}>
+          <EventSelector
+            options={this.props.applicableHandlers}
+            disabledOptions={this.props.appliedHandlers}
+            onChange={this.eventSelectedCallback}
+            defaultEventName={this.props.selectedEventName}
+          />
+
+          <div
+            onMouseEnter={() => { this.setState({isTrashHovered: true}) }}
+            onMouseLeave={() => { this.setState({isTrashHovered: false}) }}
+            onClick={this.die}
+            style={[
+              STYLES.options.svg,
+              this.state.isHovered && STYLES.options.svgVisible,
+              this.state.isTrashHovered && STYLES.options.svgActive,
+            ]}
+          >
+            <TrashIconSVG
+              color={
+                this.state.isTrashHovered
+                  ? STYLES.options.svgActive.fill
+                  : STYLES.options.svgVisible.fill
+              }
+            />
+          </div>
+        </div>
 
         <div style={{...STYLES.amble, ...STYLES.preamble}}>
           {this.getPreamble()}
@@ -209,10 +267,11 @@ class Editor extends React.Component {
 Editor.propTypes = {
   onContentChange: React.PropTypes.func.isRequired,
   onEventChange: React.PropTypes.func.isRequired,
+  onRemove: React.PropTypes.func.isRequired,
   applicableHandlers: React.PropTypes.array.isRequired,
   appliedHandlers: React.PropTypes.object.isRequired,
   selectedEventName: React.PropTypes.string.isRequired,
   contents: React.PropTypes.string
 }
 
-export default Editor
+export default Radium(Editor)

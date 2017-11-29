@@ -13,7 +13,7 @@ const STYLES = {
     height: EDITOR_HEIGHT,
     backgroundColor: Palette.COAL,
     borderRadius: '4px',
-    padding: '80px 0 20px 20px',
+    padding: '64px 0 20px 20px',
     zIndex: 9001
   },
   outer: {
@@ -22,9 +22,10 @@ const STYLES = {
   editorsWrapper: {
     overflowY: 'auto',
     overflowX: 'visible',
-    height: '240px',
+    height: '255px',
     width: '100%',
-    paddingRight: '18px'
+    paddingRight: '18px',
+    paddingTop: '23px'
   }
 }
 
@@ -37,6 +38,7 @@ class EventHandlerEditor extends React.PureComponent {
 
     this.onEditorContentChange = this.onEditorContentChange.bind(this)
     this.onEditorEventChange = this.onEditorEventChange.bind(this)
+    this.onEditorRemoved = this.onEditorRemoved.bind(this)
     this.addAction = this.addAction.bind(this)
   }
 
@@ -88,9 +90,6 @@ class EventHandlerEditor extends React.PureComponent {
     Object.entries(this.appliedHandlers).forEach(([event, handler]) => {
       this.doSaveSingle(event, handler)
     })
-    // for (let [event, handler] of Object.entries(this.editors)) {
-    //   this.doSaveSingle(handler)
-    // }
   }
 
   doSaveSingle (event, handler) {
@@ -113,18 +112,24 @@ class EventHandlerEditor extends React.PureComponent {
     this.forceUpdate()
   }
 
+  onEditorRemoved (eventName) {
+    delete this.appliedHandlers[eventName]
+    this.forceUpdate()
+  }
+
   renderEditors () {
     return Object.entries(this.appliedHandlers).map(([event, handler], id) => {
       return (
         <Editor
           onContentChange={this.onEditorContentChange}
           onEventChange={this.onEditorEventChange}
+          onRemove={this.onEditorRemoved}
           applicableHandlers={this.applicableHandlers}
           appliedHandlers={this.appliedHandlers}
           selectedEventName={event}
           params={handler.params}
           contents={handler.body}
-          key={id}
+          key={event}
         />
       )
     })

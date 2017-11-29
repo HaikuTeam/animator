@@ -1,20 +1,27 @@
 /* global monaco */
 import React from 'react'
+import {get} from 'lodash'
 import {Menu, MenuItem} from '../../Menu'
 
 const STYLES = {
   wrapper: {
-    position: 'fixed',
+    position: 'absolute',
+    top: '0',
+    right: '9%',
     zIndex: 99,
-    visibility: 'hidden'
+    visibility: 'hidden',
+    fontFamily: 'Fira Sans'
   },
   button: {
     border: '1px solid',
     borderRadius: '50%',
-    width: '20px',
-    height: '20px',
+    width: '15px',
+    height: '15px',
     textAlign: 'center',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    fontSize: '15px',
+    lineHeight: '16px',
+    marginTop: '1px'
   }
 }
 
@@ -35,30 +42,29 @@ class Snippets extends React.PureComponent {
 
   componentWillReceiveProps (newProps) {
     if (newProps.editor && !this.props.editor) {
-      newProps.editor.onMouseMove(({target}) => {
+      newProps.editor.onMouseMove(({event, target}) => {
+        if (get(event, 'browserEvent.toElement.className') === 'js-snipet-trigger') return
         let element
 
         if (target.element.className === 'view-line') {
           element = target.element
         } else {
-          element = document.querySelector('.view-line:last-of-type')
+          element = document.querySelector('.view-line')
         }
 
         this.setButtonPosition(element)
       })
 
       newProps.editor.onMouseLeave(({event}) => {
-        if (event.target.className !== 'js-snipet-trigger') {
-          // this._plus.style.visibility = 'hidden'
+        if (get(event, 'browserEvent.toElement.className') !== 'js-snipet-trigger') {
+          this._plus.style.visibility = 'hidden'
         }
       })
     }
   }
 
   setButtonPosition (element) {
-    const {top, right} = element.getBoundingClientRect()
-    this._plus.style.left = `${right - 60}px`
-    this._plus.style.top = `${top}px`
+    element.appendChild(this._plus)
     this._plus.style.visibility = 'visible'
   }
 
@@ -89,6 +95,7 @@ class Snippets extends React.PureComponent {
     return (
       <div style={STYLES.wrapper} ref={element => (this._plus = element)}>
         <Menu
+          fixedToTrigger={this._plus}
           trigger={
             <div style={STYLES.button} className='js-snipet-trigger'>
               +

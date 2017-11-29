@@ -26,19 +26,18 @@ const STYLES = {
     fontStyle: 'italic'
   },
   button: {
-    height: '25px',
     color: Palette.PALE_GRAY,
     backgroundColor: Palette.LIGHTEST_PINK,
     zIndex: 10000,
     fontSize: '11px',
     cursor: 'pointer',
     borderRadius: '2px',
-    padding: '5px 20px',
+    padding: '5px 9px',
     display: 'flex',
     alignItems: 'center'
   },
   buttonText: {
-    marginLeft: '7px'
+    marginLeft: '5px'
   }
 }
 

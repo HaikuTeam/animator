@@ -15,6 +15,8 @@ const STYLES = {
     zIndex: '99',
     top: 0,
     left: 0,
+    borderRadius: '4px',
+    boxShadow: '0 33px 40px 6px rgba(24,0,8,0.21)',
     open: {
       display: 'inline-block'
     }
@@ -31,11 +33,17 @@ const STYLES = {
     position: 'relative',
     cursor: 'pointer',
     padding: '8px 10px',
-    minWidth: '115%',
+    display: 'flex',
+    justifyContent: 'space-between',
+    whiteSpace: 'nowrap',
     backgroundColor: Palette.SPECIAL_COAL,
+    borderRadius: '4px',
     ':hover': {
       backgroundColor: 'black'
-    }
+    },
+    disabled: {
+      color: Palette.LIGHTEST_GRAY
+    },
   },
   resetList: {
     listStyle: 'none',
@@ -44,7 +52,7 @@ const STYLES = {
   },
   carrot: {
     transform: 'rotate(-90deg)',
-    float: 'right'
+    marginLeft: '15px'
   }
 }
 
@@ -75,6 +83,18 @@ class BaseMenu extends React.Component {
     if (event.target.className === closeIfSelectedClass) this.close()
   }
 
+  getWrapperStyles () {
+    if (this.props.fixedToTrigger) {
+      const { top, right, width, height } = this.props.fixedToTrigger.getBoundingClientRect()
+
+      return {
+        position: 'fixed',
+        top: `${top - height}px`,
+        left: `${right - width}px`
+      }
+    }
+  }
+
   render () {
     return (
       <div style={STYLES.wrapper} onMouseLeave={this.close}>
@@ -84,7 +104,8 @@ class BaseMenu extends React.Component {
           style={[
             STYLES.resetList,
             STYLES.menu,
-            this.state.isOpen && STYLES.menu.open
+            this.state.isOpen && STYLES.menu.open,
+            this.state.isOpen && this.getWrapperStyles()
           ]}
         >
           {this.props.children}
@@ -119,7 +140,7 @@ class BaseSubMenu extends React.Component {
 
     return (
       <li
-        style={STYLES.menuItem}
+        style={[STYLES.menuItem]}
         onMouseEnter={this.open}
         onMouseLeave={this.close}
       >
@@ -147,10 +168,10 @@ const BaseMenuItem = ({children, data, disabled, onClick}) => {
     <li
       className={closeIfSelectedClass}
       onClick={event => {
-        onClick(event, data)
+        if(!disabled) onClick(event, data)
       }}
       disabled={disabled}
-      style={STYLES.menuItem}
+      style={[STYLES.menuItem, disabled && STYLES.menuItem.disabled]}
     >
       {children}
     </li>
