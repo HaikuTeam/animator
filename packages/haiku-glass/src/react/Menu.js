@@ -37,7 +37,6 @@ const STYLES = {
     justifyContent: 'space-between',
     whiteSpace: 'nowrap',
     backgroundColor: Palette.SPECIAL_COAL,
-    borderRadius: '4px',
     ':hover': {
       backgroundColor: 'black'
     },
@@ -84,12 +83,12 @@ class BaseMenu extends React.Component {
   }
 
   getWrapperStyles () {
-    if (this.props.fixedToTrigger) {
-      const { top, right, width, height } = this.props.fixedToTrigger.getBoundingClientRect()
+    if (this.props.fixed && this.triggerRef) {
+      const { top, right, width, height } = this.triggerRef.getBoundingClientRect()
 
       return {
         position: 'fixed',
-        top: `${top - height}px`,
+        top: `${top}px`,
         left: `${right - width}px`
       }
     }
@@ -97,8 +96,23 @@ class BaseMenu extends React.Component {
 
   render () {
     return (
-      <div style={STYLES.wrapper} onMouseLeave={this.close}>
-        <div onClick={this.toggleOpen}>{this.props.trigger}</div>
+      <div style={STYLES.wrapper} onMouseLeave={this.close} className='popover-menu-custom'>
+        <style>
+          {
+            `
+              .popover-menu-custom li:first-child {
+                border-top-right-radius: 4px;
+                border-top-left-radius: 4px;
+              }
+
+              .popover-menu-custom li:last-child {
+                border-bottom-right-radius: 4px;
+                border-bottom-left-radius: 4px;
+              }
+            `
+          }
+        </style>
+        <div onClick={this.toggleOpen} ref={(trigger) => {this.triggerRef = trigger}}>{this.props.trigger}</div>
         <ul
           onClick={this.closeIfOptionSelected}
           style={[
