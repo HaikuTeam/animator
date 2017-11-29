@@ -102,40 +102,51 @@ class EventHandlerEditor extends React.PureComponent {
     this.props.close()
   }
 
-  onEditorContentChange (serializedEvent) {
-    Object.assign(this.appliedHandlers, serializedEvent)
+  onEditorContentChange ([editor, serializedEvent]) {
+    this.appliedHandlers.set(editor, serializedEvent)
   }
 
-  onEditorEventChange (oldEventName, serializedEvent) {
-    delete this.appliedHandlers[oldEventName]
-    Object.assign(this.appliedHandlers, serializedEvent)
+  onEditorEventChange ([editor, serializedEvent]) {
+    this.appliedHandlers.set(editor, serializedEvent)
     this.forceUpdate()
   }
 
-  onEditorRemoved (eventName) {
-    delete this.appliedHandlers[eventName]
+  onEditorRemoved (editor) {
+    this.appliedHandlers.delete(editor)
     this.forceUpdate()
   }
 
   renderEditors () {
-    return Object.entries(this.appliedHandlers).map(([event, handler], id) => {
-      return (
+    const appliedHandlers = []
+    const result = []
+
+    for (let [editor, {event, handler}] of this.appliedHandlers) {
+      appliedHandlers.push(event)
+    }
+
+    for (let [editor, {event, handler}] of this.appliedHandlers) {
+      result.push(
         <Editor
           onContentChange={this.onEditorContentChange}
           onEventChange={this.onEditorEventChange}
           onRemove={this.onEditorRemoved}
           applicableHandlers={this.applicableHandlers}
-          appliedHandlers={this.appliedHandlers}
+          appliedHandlers={appliedHandlers}
           selectedEventName={event}
           params={handler.params}
           contents={handler.body}
-          key={event}
+          key={editor}
+          id={editor}
         />
       )
-    })
+    }
+
+    return result
   }
 
   render () {
+    const visibilityStyles = this.props.visible ?  {} : {visibility: 'hidden'}
+
     return (
       <div
         className='Absolute-Center'
@@ -143,7 +154,10 @@ class EventHandlerEditor extends React.PureComponent {
           // Prevent outer view from closing us
           mouseEvent.stopPropagation()
         }}
-        style={STYLES.container}
+        style={{
+          ...STYLES.container,
+          ...visibilityStyles
+        }}
       >
         <style>{CSSStyles}</style>
 

@@ -1555,14 +1555,15 @@ export class Glass extends React.Component {
             </div>
             : ''}
 
-          {(!this.isPreviewMode() && this.state.isEventHandlerEditorOpen)
-            ? <EventHandlerEditor
+          {!this.isPreviewMode() &&
+            <EventHandlerEditor
               ref='eventHandlerEditor'
               element={this.state.targetElement}
               save={this.saveEventHandler.bind(this)}
               close={this.hideEventHandlersEditor.bind(this)}
-                />
-            : ''}
+              visible={this.state.isEventHandlerEditorOpen}
+            />
+          }
 
           {(!this.isPreviewMode())
             ? <div
