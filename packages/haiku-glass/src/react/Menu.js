@@ -16,7 +16,7 @@ const STYLES = {
     top: 0,
     left: 0,
     borderRadius: '4px',
-    boxShadow: '0 33px 40px 6px rgba(24,0,8,0.21)',
+    boxShadow: '0 4px 18px 0 rgba(1,28,33,0.38)',
     open: {
       display: 'inline-block'
     }

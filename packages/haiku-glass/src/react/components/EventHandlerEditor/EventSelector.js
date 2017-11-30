@@ -29,6 +29,8 @@ class EventSelector extends React.Component {
   constructor (props) {
     super(props)
 
+    this.itemMappings = {}
+
     this.state = {
       selectedEventName: props.defaultEventName
     }
@@ -36,6 +38,7 @@ class EventSelector extends React.Component {
 
   renderSingleMenuItem ({value, label}) {
     const isDisabled = this.props.disabledOptions.indexOf(value) !== -1
+    this.itemMappings[value] = label
 
     return (
       <MenuItem
@@ -48,22 +51,17 @@ class EventSelector extends React.Component {
           this.props.onChange(selectedEventName)
         }}
       >
-        {value}
+        {label}
       </MenuItem>
     )
   }
 
-  renderMenuOrSubmenu ({label, options}) {
-    return (
+
+  renderMenuItems () {
+    return this.props.options.map(({label, options}) =>
       <SubMenu title={label} key={label} hoverDelay={0}>
         {options.map(item => this.renderSingleMenuItem(item))}
       </SubMenu>
-    )
-  }
-
-  renderMenuItems () {
-    return this.props.options.map(menuOrSubMenu =>
-      this.renderMenuOrSubmenu(menuOrSubMenu)
     )
   }
 
@@ -71,7 +69,7 @@ class EventSelector extends React.Component {
     return (
       <div style={STYLES.eventsMenuTrigger}>
         <span style={STYLES.eventsMenuTrigger.text}>
-          {this.state.selectedEventName}
+          {this.itemMappings[this.state.selectedEventName]}
         </span>
         <DownCarrotSVG />
       </div>
