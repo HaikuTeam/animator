@@ -120,7 +120,8 @@ class Editor extends React.Component {
         vertical: 'hidden',
         verticalScrollbarSize: '0'
       },
-      cursorBlinking: 'smooth'
+      cursorBlinking: 'smooth',
+      scrollBeyondLastLine: false
     })
 
     this.editor.onDidChangeModelContent(this.handleEditorChange)
