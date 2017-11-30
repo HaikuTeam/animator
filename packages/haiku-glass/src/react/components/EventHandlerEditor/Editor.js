@@ -3,13 +3,10 @@ import React from 'react'
 import Radium from 'radium'
 import Color from 'color'
 import Palette from '../../Palette'
-import marshalParams from '@haiku/player/lib/reflection/marshalParams'
-import parseExpression from 'haiku-serialization/src/ast/parseExpression'
 import EventSelector from './EventSelector'
-import HaikuMode from '../../modes/haiku.js'
+import SyntaxEvaluator from './SyntaxEvaluator'
 import Snippets from './Snippets'
 import {TrashIconSVG} from '../../Icons'
-import {EVALUATOR_STATES} from './constants'
 
 const STYLES = {
   amble: {
@@ -36,7 +33,12 @@ const STYLES = {
     height: '105px',
     width: '100%',
     padding: '6px 0 6px 22px',
-    background: '#0F171A',
+    background: Palette.DARKEST_COAL,
+    overflow: 'hidden'
+  },
+  editorWrapper: {
+    width: '100%',
+    height: '100%',
     overflow: 'hidden'
   },
   options: {
@@ -60,33 +62,34 @@ const STYLES = {
 }
 
 class Editor extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.eventSelectedCallback = this.eventSelectedCallback.bind(this)
     this.handleEditorChange = this.handleEditorChange.bind(this)
-    this.die = this.die.bind(this)
+    this.remove = this.remove.bind(this)
 
     this.state = {
-      evaluator: this.getDefaultEvaluator(),
+      contents: '',
       isHovered: false,
       isTrashHovered: false
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     monaco.editor.defineTheme('haiku', {
       base: 'vs-dark',
       inherit: true,
-      rules: [{background: '122022'}],
+      // `rules` requires colors without the leading '#' ¯\_(ツ)_/¯
+      rules: [{background: Palette.SPECIAL_COAL.replace('#', '')}],
       colors: {
         'editor.foreground': Palette.PALE_GRAY,
-        'editor.background': '#0F171A',
+        'editor.background': Palette.DARKEST_COAL,
         'editorCursor.foreground': Palette.LIGHTEST_PINK,
         'list.focusBackground': Palette.BLACK,
         focusBorder: Palette.BLACK,
-        'editorWidget.background': '#0F171A',
-        'editor.lineHighlightBorder': '#0F171A'
+        'editorWidget.background': Palette.DARKEST_COAL,
+        'editor.lineHighlightBorder': Palette.DARKEST_COAL
       }
     })
 
@@ -127,62 +130,23 @@ class Editor extends React.Component {
     this.forceUpdate()
   }
 
-  getDefaultEvaluator () {
-    return {
-      text: null,
-      state: EVALUATOR_STATES.OPEN
-    }
-  }
-
-  handleEditorChange ({changes}) {
-    const value = this.editor.getValue()
-    const evaluator = this.getDefaultEvaluator()
-    const wrapped = parseExpression.wrap(value)
-    const parse = parseExpression(wrapped, {}, HaikuMode.keywords, null, null, {
-      // These checks are only needed for expressions in the timeline
-      skipParamsImpurityCheck: true,
-      skipForbiddensCheck: true
-    })
-
-    if (parse.error) {
-      evaluator.text = parse.error.message
-      evaluator.state = EVALUATOR_STATES.ERROR
-    } else {
-      if (parse.warnings.length > 0) {
-        evaluator.text = parse.warnings[0].annotation
-        evaluator.state = EVALUATOR_STATES.WARN
-      }
-    }
-
-    this.setState({evaluator})
+  handleEditorChange() {
+    this.setState({contents: this.editor.getValue()})
     this.props.onContentChange(this.serialize())
   }
 
-  getEvalutatorStateColor (state) {
-    switch (state) {
-      case EVALUATOR_STATES.WARN:
-        return Palette.ORANGE
-      case EVALUATOR_STATES.ERROR:
-        return Palette.RED
-      default:
-        return Palette.PALE_GRAY
-    }
-  }
-
-  eventSelectedCallback (eventName) {
+  eventSelectedCallback(eventName) {
     this.props.onEventChange(this.serialize(eventName))
   }
 
   serialize(eventName = this.props.selectedEventName) {
-    const rawContents = this.editor.getValue()
-
     return [
       this.props.id,
       {
         event: eventName,
         handler: {
           params: this.props.params,
-          body: rawContents,
+          body: this.state.contents,
           type: 'FunctionExpression',
           name: null
         }
@@ -190,15 +154,19 @@ class Editor extends React.Component {
     ]
   }
 
-  die () {
+  remove() {
     this.props.onRemove(this.props.id)
   }
 
-  render () {
+  render() {
     return (
       <div
-        onMouseEnter={() => { this.setState({isHovered: true}) }}
-        onMouseLeave={() => { this.setState({isHovered: false}) }}
+        onMouseEnter={() => {
+          this.setState({isHovered: true})
+        }}
+        onMouseLeave={() => {
+          this.setState({isHovered: false})
+        }}
       >
         <div style={STYLES.options}>
           <EventSelector
@@ -208,36 +176,41 @@ class Editor extends React.Component {
             defaultEventName={this.props.selectedEventName}
           />
 
-          {this.props.deleteable &&
-          <div
-            onMouseEnter={() => { this.setState({isTrashHovered: true}) }}
-            onMouseLeave={() => { this.setState({isTrashHovered: false}) }}
-            onClick={this.die}
-            style={[
-              STYLES.options.svg,
-              this.state.isHovered && STYLES.options.svgVisible,
-              this.state.isTrashHovered && STYLES.options.svgActive,
-            ]}
-          >
-            <TrashIconSVG
-              color={
-                this.state.isTrashHovered
-                  ? STYLES.options.svgActive.fill
-                  : STYLES.options.svgVisible.fill
-              }
-            />
-          </div>
-          }
+          {this.props.deleteable && (
+            <div
+              onMouseEnter={() => {
+                this.setState({isTrashHovered: true})
+              }}
+              onMouseLeave={() => {
+                this.setState({isTrashHovered: false})
+              }}
+              onClick={this.remove}
+              style={[
+                STYLES.options.svg,
+                this.state.isHovered && STYLES.options.svgVisible,
+                this.state.isTrashHovered && STYLES.options.svgActive
+              ]}
+            >
+              <TrashIconSVG
+                color={
+                  this.state.isTrashHovered
+                    ? STYLES.options.svgActive.fill
+                    : STYLES.options.svgVisible.fill
+                }
+              />
+            </div>
+          )}
         </div>
 
         <div style={{...STYLES.amble, ...STYLES.preamble}}>
           {`function (${this.props.params}) {`}
         </div>
-        <div style={STYLES.editorContext} className='haiku-multiline haiku-dynamic'>
+        <div
+          style={STYLES.editorContext}
+          className="haiku-multiline haiku-dynamic"
+        >
           <div
-            style={{    width: '100%',
-    height: '100%',
-    overflow: 'hidden'}}
+            style={STYLES.editorWrapper}
             ref={element => {
               this._context = element
             }}
@@ -247,14 +220,10 @@ class Editor extends React.Component {
         </div>
         <div style={{...STYLES.amble, ...STYLES.postamble}}>
           {'}'}
-          <span
-            style={{
-              ...STYLES.postamble.errors,
-              color: this.getEvalutatorStateColor(this.state.evaluator.state)
-            }}
-          >
-            {this.state.evaluator.text || 'No Errors'}
-          </span>
+          <SyntaxEvaluator
+            evaluate={this.state.contents}
+            style={STYLES.postamble.errors}
+          />
         </div>
       </div>
     )

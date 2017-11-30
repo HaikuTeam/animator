@@ -743,8 +743,8 @@ export default class Master extends EventEmitter {
     return this.bytecodeAction('upsertEventHandler', params, cb)
   }
 
-  batchUpsertEventHandler ({ params }, cb) {
-    return this.bytecodeAction('batchUpsertEventHandler', params, cb)
+  batchUpsertEventHandlers ({ params }, cb) {
+    return this.bytecodeAction('batchUpsertEventHandlers', params, cb)
   }
 
   deleteEventHandler ({ params }, cb) {

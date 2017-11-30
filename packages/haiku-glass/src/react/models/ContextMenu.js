@@ -78,7 +78,7 @@ export default class ContextMenu extends EventEmitter {
     this._menu.append(new MenuItem({ type: 'separator' }))
 
     this._menu.append(new MenuItem({
-      label: 'Event Listeners',
+      label: 'Edit Element Actions',
       enabled: !!top,
       click: (clickEvent) => {
         this.emit('click', 'Show Event Listeners', clickEvent, top)

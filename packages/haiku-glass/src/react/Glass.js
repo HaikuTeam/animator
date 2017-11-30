@@ -473,9 +473,9 @@ export class Glass extends React.Component {
     })
   }
 
-  saveEventHandler (targetElement, serializedEvent) {
+  saveEventHandlers (targetElement, serializedEvents) {
     let selectorName = 'haiku:' + targetElement.uid
-    this._component.batchUpsertEventHandler(selectorName, serializedEvent, { from: 'glass' }, () => {
+    this._component.batchUpsertEventHandlers(selectorName, serializedEvents, { from: 'glass' }, () => {
 
     })
   }
@@ -1549,9 +1549,8 @@ export class Glass extends React.Component {
 
           {!this.isPreviewMode() &&
             <EventHandlerEditor
-              ref='eventHandlerEditor'
               element={this.state.targetElement}
-              save={this.saveEventHandler.bind(this)}
+              save={this.saveEventHandlers.bind(this)}
               close={this.hideEventHandlersEditor.bind(this)}
               visible={this.state.isEventHandlerEditorOpen}
             />

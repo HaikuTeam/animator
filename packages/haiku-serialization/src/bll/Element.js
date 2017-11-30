@@ -191,7 +191,7 @@ class Element extends BaseModel {
     return this
   }
 
-  batchUpsertEventHandler (serializedEvents) {
+  batchUpsertEventHandlers (serializedEvents) {
     const eventHandlers = this.getReifiedEventHandlers() // pointer to substructs[0].bytecode
     eventHandlers = serializedEvents
     this.emit('update', 'element-event-handler-update')

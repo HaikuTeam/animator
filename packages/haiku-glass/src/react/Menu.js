@@ -42,7 +42,7 @@ const STYLES = {
     },
     disabled: {
       color: Palette.LIGHTEST_GRAY
-    },
+    }
   },
   resetList: {
     listStyle: 'none',
@@ -58,7 +58,7 @@ const STYLES = {
 const closeIfSelectedClass = 'js-close-on-click'
 
 class BaseMenu extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.toggleOpen = this.toggleOpen.bind(this)
@@ -70,21 +70,26 @@ class BaseMenu extends React.Component {
     }
   }
 
-  toggleOpen () {
+  toggleOpen() {
     this.setState({isOpen: !this.state.isOpen})
   }
 
-  close () {
+  close() {
     this.setState({isOpen: false})
   }
 
-  closeIfOptionSelected (event) {
+  closeIfOptionSelected(event) {
     if (event.target.className === closeIfSelectedClass) this.close()
   }
 
-  getWrapperStyles () {
+  getWrapperStyles() {
     if (this.props.fixed && this.triggerRef) {
-      const { top, right, width, height } = this.triggerRef.getBoundingClientRect()
+      const {
+        top,
+        right,
+        width,
+        height
+      } = this.triggerRef.getBoundingClientRect()
 
       return {
         position: 'fixed',
@@ -94,12 +99,15 @@ class BaseMenu extends React.Component {
     }
   }
 
-  render () {
+  render() {
     return (
-      <div style={STYLES.wrapper} onMouseLeave={this.close} className='popover-menu-custom'>
+      <div
+        style={STYLES.wrapper}
+        onMouseLeave={this.close}
+        className="popover-menu-custom"
+      >
         <style>
-          {
-            `
+          {`
               .popover-menu-custom li:first-child {
                 border-top-right-radius: 4px;
                 border-top-left-radius: 4px;
@@ -109,10 +117,16 @@ class BaseMenu extends React.Component {
                 border-bottom-right-radius: 4px;
                 border-bottom-left-radius: 4px;
               }
-            `
-          }
+            `}
         </style>
-        <div onClick={this.toggleOpen} ref={(trigger) => {this.triggerRef = trigger}}>{this.props.trigger}</div>
+        <div
+          onClick={this.toggleOpen}
+          ref={trigger => {
+            this.triggerRef = trigger
+          }}
+        >
+          {this.props.trigger}
+        </div>
         <ul
           onClick={this.closeIfOptionSelected}
           style={[
@@ -130,7 +144,7 @@ class BaseMenu extends React.Component {
 }
 
 class BaseSubMenu extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.open = this.open.bind(this)
@@ -141,15 +155,15 @@ class BaseSubMenu extends React.Component {
     }
   }
 
-  open () {
+  open() {
     this.setState({isOpen: true})
   }
 
-  close () {
+  close() {
     this.setState({isOpen: false})
   }
 
-  render () {
+  render() {
     const {title, children} = this.props
 
     return (
@@ -182,7 +196,7 @@ const BaseMenuItem = ({children, data, disabled, onClick}) => {
     <li
       className={closeIfSelectedClass}
       onClick={event => {
-        if(!disabled) onClick(event, data)
+        if (!disabled) onClick(event, data)
       }}
       disabled={disabled}
       style={[STYLES.menuItem, disabled && STYLES.menuItem.disabled]}

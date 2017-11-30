@@ -1230,10 +1230,10 @@ class ActiveComponent extends BaseModel {
   }
 
   /**
-   * @method batchUpsertEventHandler
+   * @method batchUpsertEventHandlers
    */
-  batchUpsertEventHandler (selectorName, serializedEvents, metadata, cb) {
-    return this.fetchActiveBytecodeFile().batchUpsertEventHandler(selectorName, serializedEvents, (err) => {
+  batchUpsertEventHandlers (selectorName, serializedEvents, metadata, cb) {
+    return this.fetchActiveBytecodeFile().batchUpsertEventHandlers(selectorName, serializedEvents, (err) => {
       if (err) {
         log.error(err)
         return cb(err)
@@ -1245,9 +1245,9 @@ class ActiveComponent extends BaseModel {
           clearPreviouslyRegisteredEventListeners: true
         }
       }, null, () => {
-        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'batchUpsertEventHandler')
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'batchUpsertEventHandlers')
         if (metadata.from === this.alias) {
-          this.batchedWebsocketAction('batchUpsertEventHandler', [this.folder, selectorName, serializedEvents])
+          this.batchedWebsocketAction('batchUpsertEventHandlers', [this.folder, selectorName, serializedEvents])
         }
 
         return cb()

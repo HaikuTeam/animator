@@ -37,5 +37,6 @@ export default {
   GRAY_FIT1: '#405355', // used for tree line
   PALE_GRAY: '#d1d1d1',
   BLACK: '#0C0C0C',
-  SPECIAL_COAL: '#122022'
+  SPECIAL_COAL: '#122022',
+  DARKEST_COAL: '#0F171A'
 }
