@@ -111,7 +111,14 @@ class Editor extends React.Component {
         of the editor, they need to be fixed against the document. */
       disableLayerHinting: true,
       fixedOverflowWidgets: true,
-      links: false
+      links: false,
+      wordWrap: 'wordWrapColumn',
+      wordWrapColumn: 50,
+      scrollbar: {
+        vertical: 'hidden',
+        verticalScrollbarSize: '0'
+      },
+      cursorBlinking: 'smooth'
     })
 
     this.editor.onDidChangeModelContent(this.handleEditorChange)
@@ -166,18 +173,6 @@ class Editor extends React.Component {
     this.props.onEventChange(this.serialize(eventName))
   }
 
-  isCommittableValueInvalid (committable, original) {
-    // If we have any error/warning in the evaluator, assume
-    // it as grounds not to commit the current content of the field.
-    if (this.state.evaluator.state > EVALUATOR_STATES.INFO) {
-      return {
-        reason: this.state.evaluator.text
-      }
-    }
-
-    return false
-  }
-
   serialize(eventName = this.props.selectedEventName) {
     const rawContents = this.editor.getValue()
 
@@ -186,7 +181,7 @@ class Editor extends React.Component {
       {
         event: eventName,
         handler: {
-          params: ['event'],
+          params: this.props.params,
           body: rawContents,
           type: 'FunctionExpression',
           name: null
@@ -213,6 +208,7 @@ class Editor extends React.Component {
             defaultEventName={this.props.selectedEventName}
           />
 
+          {this.props.deleteable &&
           <div
             onMouseEnter={() => { this.setState({isTrashHovered: true}) }}
             onMouseLeave={() => { this.setState({isTrashHovered: false}) }}
@@ -231,19 +227,23 @@ class Editor extends React.Component {
               }
             />
           </div>
+          }
         </div>
 
         <div style={{...STYLES.amble, ...STYLES.preamble}}>
-          {'function (event) {'}
+          {`function (${this.props.params}) {`}
         </div>
-        <div
-          className='haiku-multiline haiku-dynamic'
-          ref={element => {
-            this._context = element
-          }}
-          style={STYLES.editorContext}
-        >
-          <Snippets editor={this.editor} />
+        <div style={STYLES.editorContext} className='haiku-multiline haiku-dynamic'>
+          <div
+            style={{    width: '100%',
+    height: '100%',
+    overflow: 'hidden'}}
+            ref={element => {
+              this._context = element
+            }}
+          >
+            <Snippets editor={this.editor} />
+          </div>
         </div>
         <div style={{...STYLES.amble, ...STYLES.postamble}}>
           {'}'}
@@ -268,7 +268,8 @@ Editor.propTypes = {
   applicableHandlers: React.PropTypes.array.isRequired,
   appliedHandlers: React.PropTypes.array.isRequired,
   selectedEventName: React.PropTypes.string.isRequired,
-  contents: React.PropTypes.string
+  contents: React.PropTypes.string,
+  deleteable: React.PropTypes.bool
 }
 
 export default Radium(Editor)

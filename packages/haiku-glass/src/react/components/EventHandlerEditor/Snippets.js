@@ -7,7 +7,7 @@ const STYLES = {
   wrapper: {
     position: 'absolute',
     top: '0',
-    right: '6.8%',
+    right: '12px',
     zIndex: 99,
     visibility: 'hidden',
     fontFamily: 'Fira Sans'
@@ -21,7 +21,8 @@ const STYLES = {
     cursor: 'pointer',
     fontSize: '15px',
     lineHeight: '16px',
-    marginTop: '1px'
+    marginTop: '1px',
+    marginLeft: '80px'
   }
 }
 

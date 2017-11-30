@@ -87,7 +87,7 @@ class EventHandlerEditor extends React.PureComponent {
   addAction () {
     const availableHandler = this.getNextAvailableHandler()
     const defaultHandler = this.getDefaultHandler(availableHandler)
-    this.appliedHandlers.set(this.generateID(3), {event: availableHandler, handler: defaultHandler})
+    this.appliedHandlers.set(this.generateID(3), {event: availableHandler, ...defaultHandler})
     this.forceUpdate()
   }
 
@@ -111,8 +111,8 @@ class EventHandlerEditor extends React.PureComponent {
     return {
       event,
       handler: {
-        body: '// your code here',
-        params: ['event']
+        body: `/** ${event} event logic goes here */`,
+        params: [`${event}Event`]
       }
     }
   }
@@ -168,11 +168,12 @@ class EventHandlerEditor extends React.PureComponent {
           contents={handler.body}
           key={editor}
           id={editor}
+          deleteable={appliedHandlers.length > 1}
         />
       )
     }
 
-    return result
+    return result.reverse()
   }
 
   render () {
