@@ -5,13 +5,13 @@ import Palette from '../../Palette'
 import HaikuMode from '../../modes/haiku.js'
 
 class SyntaxEvaluator extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props)
 
     this.evaluator = this.getDefaultEvaluator()
   }
 
-  getEvalutatorStateColor(state) {
+  getEvalutatorStateColor (state) {
     switch (state) {
       case EVALUATOR_STATES.WARN:
         return Palette.ORANGE
@@ -22,14 +22,14 @@ class SyntaxEvaluator extends React.Component {
     }
   }
 
-  getDefaultEvaluator() {
+  getDefaultEvaluator () {
     return {
       text: null,
       state: EVALUATOR_STATES.OPEN
     }
   }
 
-  componentWillUpdate() {
+  componentWillUpdate () {
     const evaluator = this.getDefaultEvaluator()
     const wrapped = parseExpression.wrap(this.props.evaluate)
     const parse = parseExpression(wrapped, {}, HaikuMode.keywords, null, null, {
@@ -51,7 +51,7 @@ class SyntaxEvaluator extends React.Component {
     this.evaluator = evaluator
   }
 
-  render() {
+  render () {
     return (
       <span
         style={{

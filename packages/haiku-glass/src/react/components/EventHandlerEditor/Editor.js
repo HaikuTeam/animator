@@ -62,7 +62,7 @@ const STYLES = {
 }
 
 class Editor extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props)
 
     this.eventSelectedCallback = this.eventSelectedCallback.bind(this)
@@ -76,7 +76,7 @@ class Editor extends React.Component {
     }
   }
 
-  componentDidMount() {
+  componentDidMount () {
     monaco.editor.defineTheme('haiku', {
       base: 'vs-dark',
       inherit: true,
@@ -114,7 +114,6 @@ class Editor extends React.Component {
         of the editor, they need to be fixed against the document. */
       disableLayerHinting: true,
       fixedOverflowWidgets: true,
-      links: false,
       wordWrap: 'wordWrapColumn',
       wordWrapColumn: 50,
       scrollbar: {
@@ -130,16 +129,16 @@ class Editor extends React.Component {
     this.forceUpdate()
   }
 
-  handleEditorChange() {
+  handleEditorChange () {
     this.setState({contents: this.editor.getValue()})
     this.props.onContentChange(this.serialize())
   }
 
-  eventSelectedCallback(eventName) {
+  eventSelectedCallback (eventName) {
     this.props.onEventChange(this.serialize(eventName))
   }
 
-  serialize(eventName = this.props.selectedEventName) {
+  serialize (eventName = this.props.selectedEventName) {
     return [
       this.props.id,
       {
@@ -154,11 +153,11 @@ class Editor extends React.Component {
     ]
   }
 
-  remove() {
+  remove () {
     this.props.onRemove(this.props.id)
   }
 
-  render() {
+  render () {
     return (
       <div
         onMouseEnter={() => {
@@ -207,7 +206,7 @@ class Editor extends React.Component {
         </div>
         <div
           style={STYLES.editorContext}
-          className="haiku-multiline haiku-dynamic"
+          className='haiku-multiline haiku-dynamic'
         >
           <div
             style={STYLES.editorWrapper}

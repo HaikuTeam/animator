@@ -58,7 +58,7 @@ const STYLES = {
 const closeIfSelectedClass = 'js-close-on-click'
 
 class BaseMenu extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props)
 
     this.toggleOpen = this.toggleOpen.bind(this)
@@ -70,25 +70,24 @@ class BaseMenu extends React.Component {
     }
   }
 
-  toggleOpen() {
+  toggleOpen () {
     this.setState({isOpen: !this.state.isOpen})
   }
 
-  close() {
+  close () {
     this.setState({isOpen: false})
   }
 
-  closeIfOptionSelected(event) {
+  closeIfOptionSelected (event) {
     if (event.target.className === closeIfSelectedClass) this.close()
   }
 
-  getWrapperStyles() {
+  getWrapperStyles () {
     if (this.props.fixed && this.triggerRef) {
       const {
         top,
         right,
-        width,
-        height
+        width
       } = this.triggerRef.getBoundingClientRect()
 
       return {
@@ -99,12 +98,12 @@ class BaseMenu extends React.Component {
     }
   }
 
-  render() {
+  render () {
     return (
       <div
         style={STYLES.wrapper}
         onMouseLeave={this.close}
-        className="popover-menu-custom"
+        className='popover-menu-custom'
       >
         <style>
           {`
@@ -144,7 +143,7 @@ class BaseMenu extends React.Component {
 }
 
 class BaseSubMenu extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props)
 
     this.open = this.open.bind(this)
@@ -155,15 +154,15 @@ class BaseSubMenu extends React.Component {
     }
   }
 
-  open() {
+  open () {
     this.setState({isOpen: true})
   }
 
-  close() {
+  close () {
     this.setState({isOpen: false})
   }
 
-  render() {
+  render () {
     const {title, children} = this.props
 
     return (

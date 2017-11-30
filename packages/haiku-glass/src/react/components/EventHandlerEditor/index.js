@@ -48,7 +48,7 @@ class EventHandlerEditor extends React.PureComponent {
       return true
     }
 
-    if(visible !== this.props.visible) {
+    if (visible !== this.props.visible) {
       return true
     }
 
@@ -65,7 +65,10 @@ class EventHandlerEditor extends React.PureComponent {
         const rawHandler = appliedHandlers[key]
         const wrappedHandler = rawHandler.original || rawHandler.handler
         const id = this.generateID(3)
-        result.set(id, {event: key, handler: functionToRFO(wrappedHandler).__function})
+        result.set(id, {
+          event: key,
+          handler: functionToRFO(wrappedHandler).__function
+        })
       })
     } else {
       const id = this.generateID(3)
@@ -75,26 +78,29 @@ class EventHandlerEditor extends React.PureComponent {
     return result
   }
 
-  generateID(len) {
-    const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
-    let str = '';
+  generateID (len) {
+    const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
+    let str = ''
     while (str.length < len) {
-      str += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+      str += ALPHABET[Math.floor(Math.random() * ALPHABET.length)]
     }
-    return str;
+    return str
   }
 
   addAction () {
     const availableHandler = this.getNextAvailableHandler()
     const defaultHandler = this.getDefaultHandler(availableHandler)
-    this.appliedHandlers.set(this.generateID(3), {event: availableHandler, ...defaultHandler})
+    this.appliedHandlers.set(this.generateID(3), {
+      event: availableHandler,
+      ...defaultHandler
+    })
     this.forceUpdate()
   }
 
   getNextAvailableHandler () {
     const appliedHandlers = []
 
-    for (let [editor, {event, handler}] of this.appliedHandlers) {
+    for (let [editor, {event, handler}] of this.appliedHandlers) { // eslint-disable-line
       appliedHandlers.push(event)
     }
 
@@ -120,7 +126,7 @@ class EventHandlerEditor extends React.PureComponent {
   doSave () {
     const result = {}
 
-    for (let [editor, {event, handler}] of this.appliedHandlers) {
+    for (let [editor, {event, handler}] of this.appliedHandlers) { // eslint-disable-line
       result[event] = {handler: {__function: handler}}
       this.props.element.setEventHandlerSaveStatus(event, true)
     }
@@ -151,11 +157,11 @@ class EventHandlerEditor extends React.PureComponent {
     const appliedHandlers = []
     const result = []
 
-    for (let [editor, {event, handler}] of this.appliedHandlers) {
+    for (let [editor, {event, handler}] of this.appliedHandlers) { // eslint-disable-line
       appliedHandlers.push(event)
     }
 
-    for (let [editor, {event, handler}] of this.appliedHandlers) {
+    for (let [editor, {event, handler}] of this.appliedHandlers) { // eslint-disable-line
       result.push(
         <Editor
           onContentChange={this.onEditorContentChange}
@@ -177,7 +183,7 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   render () {
-    const visibilityStyles = this.props.visible ?  {} : {visibility: 'hidden'}
+    const visibilityStyles = this.props.visible ? {} : {visibility: 'hidden'}
 
     return (
       <div

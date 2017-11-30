@@ -96,7 +96,7 @@ class Snippets extends React.PureComponent {
     return (
       <div style={STYLES.wrapper} ref={element => (this._plus = element)}>
         <Menu
-          fixed={true}
+          fixed
           trigger={
             <div style={STYLES.button} className='js-snipet-trigger'>
               +

@@ -56,7 +56,6 @@ class EventSelector extends React.Component {
     )
   }
 
-
   renderMenuItems () {
     return this.props.options.map(({label, options}) =>
       <SubMenu title={label} key={label} hoverDelay={0}>
@@ -81,7 +80,7 @@ class EventSelector extends React.Component {
       <div style={STYLES.selectWrapper}>
         <Menu
           trigger={this.renderMenuTrigger()}
-          fixed={true}
+          fixed
         >
           {this.renderMenuItems()}
         </Menu>

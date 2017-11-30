@@ -192,8 +192,8 @@ class Element extends BaseModel {
   }
 
   batchUpsertEventHandlers (serializedEvents) {
-    const eventHandlers = this.getReifiedEventHandlers() // pointer to substructs[0].bytecode
-    eventHandlers = serializedEvents
+    let eventHandlers = this.getReifiedEventHandlers() // pointer to substructs[0].bytecode
+    eventHandlers = serializedEvents // eslint-disable-line
     this.emit('update', 'element-event-handler-update')
     return this
   }
