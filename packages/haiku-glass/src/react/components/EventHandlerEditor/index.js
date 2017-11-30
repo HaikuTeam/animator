@@ -1,4 +1,6 @@
 import React from 'react'
+import {get} from 'lodash'
+import prettier from 'prettier'
 import functionToRFO from '@haiku/player/lib/reflection/functionToRFO'
 import ElementTitle from './ElementTitle'
 import CSSStyles from './CSSStyles'
@@ -42,7 +44,7 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   shouldComponentUpdate ({element, visible}, nextState) {
-    if (!this.appliedHandlers.size && element) {
+    if (element && get(this.props, 'element.uid') !== get(element, 'uid')) {
       this.applicableHandlers = element.getApplicableEventHandlerOptionsList()
       this.appliedHandlers = this.getAppliedHandlers(element)
       return true
@@ -64,21 +66,24 @@ class EventHandlerEditor extends React.PureComponent {
       appliedHandlersKeys.forEach(key => {
         const rawHandler = appliedHandlers[key]
         const wrappedHandler = rawHandler.original || rawHandler.handler
-        const id = this.generateID(3)
+        const id = this.generateID()
+        const handler = functionToRFO(wrappedHandler).__function
+        handler.body = prettier.format(handler.body)
+
         result.set(id, {
           event: key,
-          handler: functionToRFO(wrappedHandler).__function
+          handler
         })
       })
     } else {
-      const id = this.generateID(3)
+      const id = this.generateID()
       result.set(id, this.getDefaultHandler('click'))
     }
 
     return result
   }
 
-  generateID (len) {
+  generateID (len = 3) {
     const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
     let str = ''
     while (str.length < len) {
