@@ -723,10 +723,8 @@ export class Glass extends React.Component {
   }
 
   handleKeyDown (keyEvent) {
-    if (this.refs.eventHandlerEditor) {
-      if (this.refs.eventHandlerEditor.willHandleExternalKeydownEvent(keyEvent)) {
-        return void (0)
-      }
+    if (this.state.isEventHandlerEditorOpen) {
+      return void (0)
     }
 
     switch (keyEvent.nativeEvent.which) {
@@ -750,10 +748,8 @@ export class Glass extends React.Component {
   }
 
   handleKeyUp (keyEvent) {
-    if (this.refs.eventHandlerEditor) {
-      if (this.refs.eventHandlerEditor.willHandleExternalKeydownEvent(keyEvent)) {
-        return void (0)
-      }
+    if (this.state.isEventHandlerEditorOpen) {
+      return void (0)
     }
 
     switch (keyEvent.nativeEvent.which) {
