@@ -6,8 +6,9 @@ import { FadingCircle } from 'better-react-spinkit'
 import Palette from './Palette'
 import Toast from './notifications/Toast'
 import ProjectLoader from './ProjectLoader'
-import { LogoSVG, LoadingSpinnerSVG } from './Icons'
+import { ShareSVG, StackMenuSVG, UserIconSVG } from './Icons'
 import { DASH_STYLES } from '../styles/dashShared'
+import { BTN_STYLES } from '../styles/btnShared'
 
 const HARDCODED_PROJECTS_LIMIT = 15
 
@@ -23,13 +24,11 @@ class ProjectBrowser extends React.Component {
       launchingProject: false,
       recordedNewProjectName: ''
     }
-    this.handleDocumentKeyPress = this.handleDocumentKeyPress.bind(this)
-    this.handleSelectProject = this.handleSelectProject.bind(this)
+    this.handleProjectLaunch = this.handleProjectLaunch.bind(this)
   }
 
   componentDidMount () {
     this.loadProjects()
-    document.addEventListener('keydown', this.handleDocumentKeyPress, true)
 
     this.props.envoy.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
@@ -38,47 +37,7 @@ class ProjectBrowser extends React.Component {
   }
 
   componentWillUnmount () {
-    document.removeEventListener('keydown', this.handleDocumentKeyPress, true)
     this.tourChannel.off('tour:requestSelectProject', this.handleSelectProject)
-  }
-
-  handleSelectProject () {
-    const projectIdx = this.state.projectsList.findIndex((project) => {
-      // Hardcoded - Name of the project that will be used for the tutorial
-      return project.projectName === 'CheckTutorial'
-    })
-
-    this.setActiveProject(this.state.projectsList[projectIdx], projectIdx)
-  }
-
-  handleDocumentKeyPress (evt) {
-    var projectsList = this.state.projectsList
-
-    var delta = 0
-    if (evt.code === 'ArrowUp') {
-      delta = -1
-    } else if (evt.code === 'ArrowDown') {
-      delta = 1
-    }
-
-    var found = false
-    projectsList.forEach((project, i) => {
-      if (!found && project.isActive) {
-        var proposedIndex = i + delta
-        // remove create UI if navigating away before submitting
-        if (i === 0 && delta === 1 && project.isNew && !this.state.newProjectLoading) {
-          proposedIndex = 0
-          projectsList.shift()
-        }
-
-        var newIndex = Math.min(Math.max(0, proposedIndex), projectsList.length - 1)
-
-        project.isActive = false
-        projectsList[newIndex].isActive = true
-        found = true
-      }
-    })
-    this.setState({projectsList})
   }
 
   loadProjects () {
@@ -93,65 +52,137 @@ class ProjectBrowser extends React.Component {
         })
         return this.setState({ error, areProjectsLoading: false })
       }
-      // select the first project by default
-      if (projectsList.length) {
-        projectsList[0].isActive = true
-      }
       this.setState({ projectsList, areProjectsLoading: false })
     })
   }
 
-  setActiveProject (projectObject, projectIndex) {
-    const projectsList = this.state.projectsList
-
-    // TODO: if current project has unsaved edits then show save dialogue
-    //       and return without changing projects
-    // if (false) {
-    //   this.setState({ showNeedsSaveDialogue: true })
-    //   return false
-    // }
-
-    projectsList.forEach((foundProject, foundIndex) => {
-      // remove new project if navigating away before it's complete
-      if (projectIndex !== 0 && foundIndex === 0 && foundProject.isNew && !this.state.newProjectLoading) projectsList.shift()
-      if (foundIndex === projectIndex) foundProject.isActive = true
-      else foundProject.isActive = false
-    })
-    this.setState({ projectsList })
-  }
-
-  unsetActiveProject () {
-    // Hacky way to unset current project
-    this.setActiveProject()
-  }
-
-  handleProjectTitleChange (projectObject, changeEvent) {
-    if (!this.isProjectNameBad(changeEvent.target.value)) {
-      projectObject.projectName = changeEvent.target.value
-    }
-    this.setState({ projectsList: this.state.projectsList })
-  }
-
-  launchNewProjectInput () {
-    if (this.alreadyHasTooManyProjects()) {
-      return void (0)
+  projectsListElement () {
+    if (this.state.areProjectsLoading) {
+      return (
+        <span style={DASH_STYLES.loadingWrap}>
+          <FadingCircle size={52} color={Palette.ROCK_MUTED} />
+        </span>
+      )
     }
 
-    var projectsList = this.state.projectsList
-    if (!projectsList[0] || !projectsList[0].isNew) {
-      projectsList.forEach((foundProject, foundIndex) => {
-        foundProject.isActive = false
-      })
-      projectsList.unshift({
-        isActive: true,
-        isNew: true,
-        title: ''
-      })
-      setTimeout(() => {
-        this.refs.newProjectInput.select()
-      }, 200)
-      this.setState({ projectsList })
-    }
+    return (
+      <div style={DASH_STYLES.projectsWrapper}>
+        {this.state.projectsList.map((projectObject, index) => {
+          const thumb = index % 2
+            ? 'https://source.unsplash.com/collection/19072' + index
+            : null
+
+          return (
+            <div style={DASH_STYLES.card}
+              key={index}
+              onMouseLeave={() => {
+                if (!this.state.projectsList[index].isMenuActive) return false
+                const projectsList = this.state.projectsList
+                projectsList[index].isMenuActive = false
+                this.setState({ projectsList })
+              }}>
+              <div id='thumbnail'
+                style={[
+                  DASH_STYLES.thumb,
+                  thumb && {backgroundImage: `url(${thumb})`},
+                  (this.state.projectsList[index].isMenuActive ||
+                  this.state.projectsList[index].isHovered
+                  ) && DASH_STYLES.blurred
+                ]}/>
+              <div id='scrim'
+                style={[
+                  DASH_STYLES.scrim,
+                  (this.state.projectsList[index].isMenuActive ||
+                  this.state.projectsList[index].isHovered
+                  ) && {opacity: 1}
+                ]}
+                onClick={() => {
+                  if (!this.state.projectsList[index].isMenuActive) {
+                    console.log('trying to open')
+                    this.handleProjectLaunch(projectObject)
+                  }
+                }}
+                onMouseOver={() => {
+                  const projectsList = this.state.projectsList
+                  if (projectsList[index].isMenuActive || projectsList[index].isHovered) return false
+                  projectsList[index].isHovered = true
+                  this.setState({ projectsList })
+                }}
+                onMouseLeave={() => {
+                  const projectsList = this.state.projectsList
+                  if (projectsList[index].isMenuActive || !projectsList[index].isHovered) return false
+                  projectsList[index].isHovered = false
+                  this.setState({ projectsList })
+                }}>
+                  <span key={'open' + index}
+                    style={[
+                      DASH_STYLES.menuOption,
+                      DASH_STYLES.single,
+                      !!this.state.projectsList[index].isMenuActive && DASH_STYLES.gone,
+                      !!!this.state.projectsList[index].isHovered && DASH_STYLES.gone2]}>
+                    OPEN
+                  </span>
+                  <span key={'duplicate' + index}
+                    onClick={() => {
+                      console.log('duplicate')
+                    }}
+                   style={[
+                    DASH_STYLES.menuOption,
+                    !!!this.state.projectsList[index].isMenuActive && DASH_STYLES.gone]}>
+                    DUPLICATE
+                  </span>
+                  <span key={'delete' + index}
+                    onClick={() => {
+                      console.log('delete')
+                    }}
+                    style={[
+                      DASH_STYLES.menuOption,
+                      DASH_STYLES.opt2,
+                      !!!this.state.projectsList[index].isMenuActive && DASH_STYLES.gone]}>
+                    DELETE
+                  </span>
+                  <span key={'reveal' + index}
+                    onClick={() => {
+                      console.log('reveal')
+                    }}
+                    style={[
+                      DASH_STYLES.menuOption,
+                      DASH_STYLES.opt3,
+                      !!!this.state.projectsList[index].isMenuActive && DASH_STYLES.gone]}>
+                    REVEAL IN FINDER
+                  </span>
+                </div>
+              <div style={DASH_STYLES.titleStrip}>
+                <span style={DASH_STYLES.title}>
+                  {projectObject.projectName.charAt(0).toUpperCase() + projectObject.projectName.slice(1)}
+                </span>
+                <span key={'share' + index}
+                  style={DASH_STYLES.titleOptions}>
+                  <ShareSVG color={Palette.SUNSTONE} fill={Palette.COAL} />
+                </span>
+                <span key={'menu' + index}
+                  style={[DASH_STYLES.titleOptions, {transform: 'translateY(1px)'}]}
+                  onClick={() => {
+                    const projectsList = this.state.projectsList
+                    projectsList[index].isMenuActive = !projectsList[index].isMenuActive
+                    this.setState({ projectsList })
+                  }}>
+                  <StackMenuSVG color={Palette.SUNSTONE} width='5px' height='12px' />
+                </span>
+              </div>
+            </div>
+          )
+        })}
+        {/* the following abomination is needed for the nifty flexbox resizing.
+            They are extra invisible spacers for the final row */}
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='123' />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='252' />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='332' />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='423' />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='532' />
+        <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='623' />
+      </div>
+    )
   }
 
   isProjectNameBad (projectName) {
@@ -160,7 +191,7 @@ class ProjectBrowser extends React.Component {
     return false
   }
 
-  handleProjectLaunch (projectObject) {
+  handleProjectLaunch(projectObject) {
     if (this.isProjectNameBad(projectObject.projectName)) {
       console.warn('bad name launched:', projectObject.projectName)
     } else {
@@ -183,205 +214,6 @@ class ProjectBrowser extends React.Component {
     }
   }
 
-  handleImportInputClick () {
-    this.refs.importInput.select()
-  }
-
-  handleNewProjectInputClick () {
-    this.refs.newProjectInput.select()
-  }
-
-  handleNewProjectInputKeyDown (e) {
-    if (e.keyCode === 13) {
-      this.handleNewProjectGo()
-    } else if (e.keyCode === 27) {
-      this.unsetActiveProject()
-    }
-  }
-
-  handleNewProjectInputBlur () {
-    // Add a delay before closing, if the blur is lost because
-    // the input is being sumitted this will prevent UI glitches
-    setTimeout(() => {
-      this.unsetActiveProject()
-    }, 150)
-  }
-
-  handleNewProjectInputChange (event) {
-    this.setState({recordedNewProjectName: event.target.value})
-  }
-
-  handleNewProjectGo () {
-    var raw = this.refs.newProjectInput.value
-    // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
-    var name = raw && raw.replace(/[^a-z0-9]/gi, '')
-
-    if (this.isProjectNameBad(name)) {
-      console.warn('bad name entered:', name)
-    } else {
-      this.setState({newProjectLoading: true, recordedNewProjectName: ''})
-      this.props.websocket.request({ method: 'createProject', params: [name] }, (err, newProject) => {
-        const projectsList = this.state.projectsList
-        this.setState({newProjectLoading: false})
-        if (err) {
-          projectsList.splice(0, 1)
-          this.setState({ projectsList })
-          this.props.createNotice({
-            type: 'error',
-            title: 'Oh no!',
-            message: 'We couldn\'t create your project. 😩 Does this project with this name already exist?',
-            closeText: 'Okay',
-            lightScheme: true
-          })
-        } else {
-          // strip "new" project from top of list, unshift actual new project
-          var placeholderProject = projectsList.splice(0, 1)[0]
-          newProject.isActive = placeholderProject.isActive
-          projectsList.unshift(newProject)
-          this.setState({projectList: projectsList})
-          // auto-launch newly created project
-          // this.handleProjectLaunch(newProject)
-        }
-      })
-    }
-  }
-
-  projectsListElement () {
-    if (this.state.areProjectsLoading) {
-      return (
-        <span style={DASH_STYLES.loadingWrap}>
-          <FadingCircle size={32} color={Palette.ROCK_MUTED} />
-        </span>
-      )
-    }
-
-    return (
-      <div style={{height: 'calc(100% - 70px)', overflowY: 'auto'}}>
-        {this.state.projectsList.map((projectObject, index) => {
-          var projectTitle
-          if (projectObject.isNew) {
-            // If this is the NEW PROJECT slot, show the input UI
-
-            var buttonContents = 'GO'
-            if (this.state.newProjectLoading) buttonContents = <LoadingSpinnerSVG />
-
-            projectTitle = (
-              <div style={[DASH_STYLES.projectTitleNew]}>
-                <input key='new-project-input'
-                  ref='newProjectInput'
-                  disabled={this.state.newProjectLoading}
-                  onClick={this.handleNewProjectInputClick.bind(this)}
-                  onKeyDown={this.handleNewProjectInputKeyDown.bind(this)}
-                  onBlur={this.handleNewProjectInputBlur.bind(this)}
-                  style={[DASH_STYLES.newProjectInput]}
-                  value={this.state.recordedNewProjectName}
-                  onChange={this.handleNewProjectInputChange.bind(this)}
-                  placeholder='NewProjectName' />
-                <button key='new-project-go-button' disabled={this.state.newProjectLoading} onClick={this.handleNewProjectGo.bind(this)} style={[DASH_STYLES.newProjectGoButton]}>{buttonContents}</button>
-                <span key='new-project-error' style={[DASH_STYLES.newProjectError]}>{this.state.newProjectError}</span>
-              </div>
-            )
-          } else {
-            // otherwise, show the read-only Project listing button
-            projectTitle = <span style={[DASH_STYLES.projectTitle, projectObject.isActive && DASH_STYLES.activeTitle]}>{projectObject.projectName}</span>
-          }
-
-          return (
-            <div style={[DASH_STYLES.projectWrapper, projectObject.isActive && DASH_STYLES.activeWrapper]}
-              key={index}
-              onDoubleClick={this.handleProjectLaunch.bind(this, projectObject)}
-              onClick={this.setActiveProject.bind(this, projectObject, index)}>
-              <span key={`a-${projectObject.projectName}`} style={[projectObject.isActive && DASH_STYLES.activeProject]} />
-              <span style={[DASH_STYLES.logo, projectObject.isActive && DASH_STYLES.logoActive]}><LogoSVG /></span>
-              {projectTitle}
-              <span style={[DASH_STYLES.date, projectObject.isActive && DASH_STYLES.activeDate]}>
-                <div style={DASH_STYLES.dateTitle}>{/* (projectObject.updated) ? 'UPDATED' : '' */}</div>
-                <div>{/* projectObject.updated */}</div>
-              </span>
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
-
-  alreadyHasTooManyProjects () {
-    return (
-      !this.state.areProjectsLoading &&
-      this.state.projectsList &&
-      this.state.projectsList.length >= HARDCODED_PROJECTS_LIMIT
-    )
-  }
-
-  titleWrapperElement () {
-    if (this.alreadyHasTooManyProjects()) {
-      return (
-        <div style={DASH_STYLES.titleWrapper}>
-          <span style={DASH_STYLES.projectsTitle}>Projects</span>
-          <span style={{ color: Palette.ORANGE }}>Project limit: {HARDCODED_PROJECTS_LIMIT}</span>
-        </div>
-      )
-    }
-
-    return (
-      <div style={DASH_STYLES.titleWrapper}>
-        <span style={DASH_STYLES.projectsTitle}>Projects</span>
-        <button
-          tabIndex='-1'
-          style={DASH_STYLES.btnNewProject}
-          onClick={this.launchNewProjectInput.bind(this)}>+</button>
-        { !this.state.areProjectsLoading && this.state.projectsList.length === 0
-          ? <span style={DASH_STYLES.tooltip}><span style={DASH_STYLES.arrowLeft} />Create a Project</span>
-          : null
-        }
-      </div>
-    )
-  }
-
-  projectEditButtonElement (projectObject) {
-    return (
-      <button
-        tabIndex='-1'
-        style={DASH_STYLES.editProject}
-        disabled={!!this.state.launchingProject}
-        onClick={this.handleProjectLaunch.bind(this, projectObject)}
-        id='project-edit-button'>
-        Open Editor
-      </button>
-    )
-  }
-
-  projectFormElement (projectObject) {
-    if (!projectObject) {
-      if (this.state.areProjectsLoading) {
-        return <div />
-      } else if (this.state.projectsList.length === 0 && !this.state.areProjectsLoading) {
-        return <div style={[DASH_STYLES.emptyState, DASH_STYLES.noSelect]}>Create a project to begin</div>
-      } else {
-        return <div style={[DASH_STYLES.emptyState, DASH_STYLES.noSelect]}>Select a project to begin</div>
-      }
-    }
-
-    const importUri = `${snakeize(projectObject.projectName)}`
-    const commandLineSnippet = `haiku install ${importUri}`
-    return (
-      <div>
-        <div style={DASH_STYLES.fieldTitle}>Project name</div>
-        <div style={{position: 'relative'}}>
-          <input
-            key='projectTitle'
-            value={projectObject.projectName}
-            style={DASH_STYLES.field}
-            readOnly
-            onChange={this.handleProjectTitleChange.bind(this, projectObject)} />
-        </div>
-        <div style={DASH_STYLES.fieldTitle}>Import into a codebase via command line</div>
-        <input key='projectImportUri' ref='importInput' onClick={this.handleImportInputClick.bind(this)} value={commandLineSnippet} style={[DASH_STYLES.field, DASH_STYLES.fieldMono]} readOnly />
-        {this.projectEditButtonElement(projectObject)}
-      </div>
-    )
-  }
-
   renderNotifications (content, i) {
     return (
       <Toast
@@ -397,9 +229,8 @@ class ProjectBrowser extends React.Component {
   }
 
   render () {
-    const activeProject = lodash.find(this.state.projectsList, { isActive: true })
     return (
-      <div>
+      <div style={DASH_STYLES.dashWrap}>
         <ReactCSSTransitionGroup
           transitionName='toast'
           transitionEnterTimeout={500}
@@ -408,20 +239,19 @@ class ProjectBrowser extends React.Component {
             {lodash.map(this.props.notices, this.renderNotifications)}
           </div>
         </ReactCSSTransitionGroup>
-        <div style={[DASH_STYLES.dashLevelWrapper, DASH_STYLES.appearDashLevel]}>
-          <div style={DASH_STYLES.frame} className='frame' />
-          <div style={DASH_STYLES.projectsBar}>
-            {this.titleWrapperElement()}
-            {this.projectsListElement()}
-          </div>
-          <div style={DASH_STYLES.details}>
-            <div style={DASH_STYLES.centerCol}>
-              {activeProject && activeProject.isNew
-                ? <span />
-                : this.projectFormElement(activeProject)}
-            </div>
-          </div>
+
+        <div style={DASH_STYLES.frame} className='frame' >
+          <button key='new_proj' style={[
+              BTN_STYLES.btnIcon,
+              BTN_STYLES.btnIconHovered
+            ]}><span style={{fontSize: 18}}> +</span>
+          </button>
+          <button key='user' style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}>
+            <UserIconSVG color={Palette.ROCK} height='15px' width='14px' />
+          </button>
         </div>
+
+        {this.projectsListElement()}
         {this.state.launchingProject && <ProjectLoader />}
       </div>
     )
@@ -432,12 +262,5 @@ function snakeize (str) {
   str = str || ''
   return str.replace(/ /g, '_')
 }
-
-// function uniqueProjectTitle (projectsList, title) {
-//   const matchedProjects = filter(projectsList, { title })
-//   if (matchedProjects.length < 1) return title
-//   // TODO: Please make this algorithm robust
-//   return `${title} ${projectsList.length + 1}`
-// }
 
 export default Radium(ProjectBrowser)
