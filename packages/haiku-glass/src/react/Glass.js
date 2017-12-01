@@ -1157,7 +1157,7 @@ export class Glass extends React.Component {
         id: `events-bolt-wrapper`,
         onmousedown: (event) => {
           event.preventDefault()
-          event.stopPropagation()
+          event.stopImmediatePropagation()
           this.showEventHandlersEditor(null, this.getLastSelectedElement())
         },
         style: {

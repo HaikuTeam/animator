@@ -114,13 +114,11 @@ class Editor extends React.Component {
         of the editor, they need to be fixed against the document. */
       disableLayerHinting: true,
       fixedOverflowWidgets: true,
-      wordWrap: 'wordWrapColumn',
-      wordWrapColumn: 50,
       scrollbar: {
         vertical: 'hidden',
         verticalScrollbarSize: '0'
       },
-      cursorBlinking: 'smooth',
+      cursorBlinking: 'blink',
       scrollBeyondLastLine: false
     })
 

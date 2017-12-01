@@ -102,7 +102,6 @@ class BaseMenu extends React.Component {
     return (
       <div
         style={STYLES.wrapper}
-        onMouseLeave={this.close}
         className='popover-menu-custom'
       >
         <style>
@@ -128,6 +127,7 @@ class BaseMenu extends React.Component {
         </div>
         <ul
           onClick={this.closeIfOptionSelected}
+          onMouseLeave={this.close}
           style={[
             STYLES.resetList,
             STYLES.menu,
