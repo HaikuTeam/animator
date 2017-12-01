@@ -104,7 +104,7 @@ export const DASH_STYLES = {
   },
   blurred: {
     filter: 'blur(13px)',
-    transform: 'scale(1.03) translate3d(0,0,0)'
+    transform: 'translate3d(0,0,0)'
   },
   scrim: {
     position: 'absolute',
