@@ -6,8 +6,8 @@ var gulp = require('gulp')
 var watch = require('gulp-watch')
 var path = require('path')
 var exec = require('child_process').exec
-var execSync = require('child_process').execSync
-var spawn = require('child_process').spawn
+
+const argv = require('yargs').argv
 
 var ROOT = path.join(__dirname, '..')
 var SOURCE = './src/'
@@ -31,33 +31,11 @@ function cmd(command, cb) {
   proc.stdout.pipe(process.stdout);  
 }
 
-function scmd(command, args, cb) {
-  console.log('[gulp] Spawning `' + command + ' '+ args.join(' ') +'`')
-  var proc = spawn(command, args, { cwd: ROOT })
-  proc.stdout.pipe(process.stdout);
-  return cb(null, proc)
-}
-
 function copyFile(relpath, cb) {
   console.log('[gulp] Copying `' + relpath)
   var abssrc = path.join(ROOT, SOURCE, relpath)
   var absdest = path.join(ROOT, DEST, relpath)
   return fse.copy(abssrc, absdest, cb)
-}
-
-var SAY_VOICE = process.env.SAY_VOICE || 'Alex'
-var SAY_SPEED = process.env.SAY_SPEED || 300
-function sayAudibly(message) {
-  try {
-    if (!message) return void (0)
-    message = message.split('\n')[1]
-    if (!message) return void (0)
-    message = message.split(/\s+/).slice(0, 5)
-    message = 'Air Roar! ' + message
-    execSync('say -v ' + JSON.stringify(SAY_VOICE) + ' -r ' + SAY_SPEED + ' ' + JSON.stringify(message))
-  } catch (exception) {
-    // empty
-  }
 }
 
 function compileAll(cb) {
@@ -106,24 +84,22 @@ function watchFiles(cb) {
   })
 }
 
-function flagsToArgs(flags) {
-  var args = []
-  each(flags, (value, key) => {
-    if (value === true) return args.push('--' + key)
-    else args.push('--' + key + '=' + value)
-  })
-  return args
-}
-
 gulp.task('compile', function _compile(done) {
   return compileAll(done)
 })
 
 gulp.task('watch', function _watch(done) {
+  const watch = () => watchFiles(function _watch(err) {
+    if (err) return done(err)
+  })
+
+  if (argv['skip-initial-build']) {
+    console.log('[gulp] Skipping initial build.')
+    return watch()
+  }
+
   return compileAll(function _compile(err) {
     if (err) return done(err)
-    return watchFiles(function _watch(err) {
-      if (err) return done(err)
-    })
+    return watch()
   })
 })
