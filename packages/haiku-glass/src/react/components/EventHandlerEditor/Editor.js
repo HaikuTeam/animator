@@ -129,8 +129,10 @@ class Editor extends React.Component {
   }
 
   handleEditorChange () {
-    this.setState({contents: this.editor.getValue()})
-    this.props.onContentChange(this.serialize())
+    setTimeout(() => {
+      this.setState({contents: this.editor.getValue()})
+      this.props.onContentChange(this.serialize())
+    })
   }
 
   eventSelectedCallback (eventName) {
@@ -143,7 +145,7 @@ class Editor extends React.Component {
       {
         event: eventName,
         handler: {
-          params: this.props.params,
+          params: [`${eventName}Event`],
           body: this.state.contents,
           type: 'FunctionExpression',
           name: null

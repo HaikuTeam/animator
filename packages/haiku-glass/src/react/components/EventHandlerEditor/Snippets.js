@@ -1,7 +1,9 @@
 /* global monaco */
 import React from 'react'
 import {get} from 'lodash'
+import {shell} from 'electron'
 import {Menu, MenuItem} from '../../Menu'
+import Palette from '../../Palette'
 
 const STYLES = {
   wrapper: {
@@ -9,20 +11,19 @@ const STYLES = {
     top: '0',
     right: '12px',
     zIndex: 99,
-    visibility: 'hidden',
     fontFamily: 'Fira Sans'
   },
   button: {
-    border: '1px solid',
+    border: `1px solid currentColor`,
+    color: Palette.SUNSTONE,
+    backgroundColor: Palette.DARKEST_COAL,
     borderRadius: '50%',
-    width: '15px',
-    height: '15px',
+    width: '18px',
+    height: '18px',
     textAlign: 'center',
     cursor: 'pointer',
-    fontSize: '15px',
-    lineHeight: '16px',
-    marginTop: '1px',
-    marginLeft: '80px'
+    fontSize: '20px',
+    lineHeight: '18px'
   }
 }
 
@@ -31,7 +32,10 @@ const SNIPPET_OPTIONS = {
   'Go To And Play': 'this.getDefaultTimeline.goToAndPlay(ms)',
   'Go To And Stop': 'this.getDefaultTimeline.goToAndStop(ms)',
   'Pause': 'this.getDefaultTimeline.pause()',
-  'Stop': 'this.getDefaultTimeline.stop()'
+  'Stop': 'this.getDefaultTimeline.stop()',
+  'Docs': () => {
+    shell.openExternal('https://docs.haiku.ai/using-haiku/summonables.html')
+  }
 }
 
 class Snippets extends React.PureComponent {
@@ -43,42 +47,38 @@ class Snippets extends React.PureComponent {
 
   componentWillReceiveProps (newProps) {
     if (newProps.editor && !this.props.editor) {
-      newProps.editor.onMouseMove(({event, target}) => {
-        if (get(event, 'browserEvent.toElement.className') === 'js-snipet-trigger') return
-        let element
+      newProps.editor.domElement.querySelector('.monaco-editor').appendChild(this._plus)
 
-        if (target.element.className === 'view-line') {
-          element = target.element
-        } else {
-          element = document.querySelector('.view-line')
-        }
-
-        this.setButtonPosition(element)
-      })
-
-      newProps.editor.onMouseLeave(({event}) => {
-        if (get(event, 'browserEvent.toElement.className') !== 'js-snipet-trigger') {
-          this._plus.style.visibility = 'hidden'
-        }
+      newProps.editor.onDidChangeCursorPosition((event, editor) => {
+        this._plus.style.top = `${18 * (event.position.lineNumber - 1)}px`
       })
     }
   }
 
-  setButtonPosition (element) {
-    element.appendChild(this._plus)
-    this._plus.style.visibility = 'visible'
-  }
-
   insertSnippet (event, {injectable}) {
-    var p = this.props.editor.getPosition()
+    if (typeof injectable === 'function') {
+      return injectable()
+    }
+
+    let range
+    // if (this.isEditing) {
+      const { lineNumber, column } = this.props.editor.getPosition()
+      const b = column + injectable.length
+      range = new monaco.Range(lineNumber, column, lineNumber, column)
+    // } else {
+    //   const allLines = this.props.editor.viewModel.lines.lines.length + 1
+    //   range = new monaco.Range(allLines, 0, allLines, 0)
+    //   injectable = `\n${injectable}`
+    // }
 
     this.props.editor.executeEdits('snippet-injector', [
       {
         identifier: Date.now(),
-        range: new monaco.Range(p.lineNumber, p.column, p.lineNumber, p.column),
+        range,
         text: injectable
       }
     ])
+    this.props.editor.focus()
     this.props.editor.pushUndoStop()
   }
 
@@ -97,6 +97,7 @@ class Snippets extends React.PureComponent {
       <div style={STYLES.wrapper} ref={element => (this._plus = element)}>
         <Menu
           fixed
+          offset={{left: -80, top: 0}}
           trigger={
             <div style={STYLES.button} className='js-snipet-trigger'>
               +

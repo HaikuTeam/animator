@@ -70,7 +70,7 @@ class BaseMenu extends React.Component {
     }
   }
 
-  toggleOpen () {
+  toggleOpen (event) {
     this.setState({isOpen: !this.state.isOpen})
   }
 
@@ -82,18 +82,31 @@ class BaseMenu extends React.Component {
     if (event.target.className === closeIfSelectedClass) this.close()
   }
 
+  getElementPosition (element) {
+    let left = 0
+    let top  = 0
+    let el = element
+
+    do {
+        left += el.offsetLeft
+        top  += el.offsetTop
+
+        el = el.offsetParent
+    } while( el )
+
+    return {left, top}
+  }
+
   getWrapperStyles () {
     if (this.props.fixed && this.triggerRef) {
-      const {
-        top,
-        right,
-        width
-      } = this.triggerRef.getBoundingClientRect()
+      const {left, top} = this.getElementPosition(this.triggerRef)
+      const width = this.triggerRef.offsetWidth
+      const offset = this.props.offset || { top: 0, left: 0 }
 
       return {
         position: 'fixed',
-        top: `${top}px`,
-        left: `${right - width}px`
+        top: `${top - offset.top}px`,
+        left: `${left + offset.left}px`
       }
     }
   }
