@@ -286,6 +286,7 @@ function setup () {
 
   instructions.unshift(['haiku-formats', ['yarn', 'run', 'develop']])
   instructions.unshift(['haiku-common', ['yarn', 'run', 'develop']])
+  instructions.unshift(['haiku-ui-common', ['yarn', 'run', 'develop']])
   instructions.unshift(['haiku-testing', ['yarn', 'run', 'develop']])
 
   if (inputs.devChoice === 'everything') {
