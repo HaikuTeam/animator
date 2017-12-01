@@ -4,6 +4,7 @@ module.exports = [
   'haiku-sdk-creator',
   'haiku-sdk-inkstone',
   'haiku-common',
+  'haiku-ui-common',
   'haiku-formats',
   'haiku-state-object',
   'haiku-websockets',

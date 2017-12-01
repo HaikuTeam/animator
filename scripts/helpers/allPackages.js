@@ -28,6 +28,7 @@ var remotes = {
   'haiku-state-object': 'git@github.com:HaikuTeam/StateObject.git',
   'haiku-testing': 'git@github.com:HaikuTeam/testing.git',
   'haiku-timeline': 'git@github.com:HaikuTeam/timeline.git',
+  'haiku-ui-common': 'git@github.com:HaikuTeam/ui-common.git',
   'haiku-websockets': 'git@github.com:HaikuTeam/websockets.git'
 }
 
