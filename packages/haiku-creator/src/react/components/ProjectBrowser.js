@@ -9,6 +9,7 @@ import ProjectLoader from './ProjectLoader'
 import { ShareSVG, StackMenuSVG, UserIconSVG } from './Icons'
 import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
+import Popover from 'react-popover'
 
 const HARDCODED_PROJECTS_LIMIT = 15
 
@@ -16,15 +17,18 @@ class ProjectBrowser extends React.Component {
   constructor (props) {
     super(props)
     this.renderNotifications = this.renderNotifications.bind(this)
+    this.openPopover = this.openPopover.bind(this)
+    this.closePopover = this.closePopover.bind(this)
+    this.handleProjectLaunch = this.handleProjectLaunch.bind(this)
     this.state = {
       error: null,
       showNeedsSaveDialogue: false,
       projectsList: [],
       areProjectsLoading: true,
       launchingProject: false,
-      recordedNewProjectName: ''
+      recordedNewProjectName: '',
+      isPopoverOpen: false
     }
-    this.handleProjectLaunch = this.handleProjectLaunch.bind(this)
   }
 
   componentDidMount () {
@@ -38,6 +42,15 @@ class ProjectBrowser extends React.Component {
 
   componentWillUnmount () {
     this.tourChannel.off('tour:requestSelectProject', this.handleSelectProject)
+  }
+
+  openPopover (evt) {
+    evt.stopPropagation()
+    this.setState({ isPopoverOpen: true })
+  }
+
+  closePopover () {
+    this.setState({ isPopoverOpen: false })
   }
 
   loadProjects () {
@@ -228,6 +241,14 @@ class ProjectBrowser extends React.Component {
     )
   }
 
+  renderUserMenuItems () {
+    return (
+      <div style={DASH_STYLES.popover.container} onClick={this.closePopover}>
+        hi
+      </div>
+    )
+  }
+
   render () {
     return (
       <div style={DASH_STYLES.dashWrap}>
@@ -246,9 +267,17 @@ class ProjectBrowser extends React.Component {
               BTN_STYLES.btnIconHovered
             ]}><span style={{fontSize: 18}}> +</span>
           </button>
-          <button key='user' style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}>
-            <UserIconSVG color={Palette.ROCK} height='15px' width='14px' />
-          </button>
+
+          <Popover
+            onOuterAction={this.closePopover}
+            isOpen={this.state.isPopoverOpen}
+            place='below'
+            className='three-dot-popover'
+            body={this.renderUserMenuItems()}>
+            <button key='user' onClick={this.openPopover} style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}>
+              <UserIconSVG color={Palette.ROCK} height='15px' width='14px' />
+            </button>
+          </Popover>
         </div>
 
         {this.projectsListElement()}

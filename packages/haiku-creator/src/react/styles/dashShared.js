@@ -234,5 +234,31 @@ export const DASH_STYLES = {
   noSelect: {
     WebkitUserSelect: 'none',
     cursor: 'default'
+  },
+  popover: {
+    container: {
+      listStyle: 'none',
+      padding: '15px 15px 5px',
+      margin: '0',
+      backgroundColor: Palette.FATHER_COAL,
+      minWidth: '150px',
+      borderRadius: '3px'
+    },
+    item: {
+      display: 'flex',
+      textAlign: 'left',
+      alignItems: 'center',
+      marginBottom: '10px',
+      color: Palette.ROCK
+    },
+    icon: {
+      width: '16px',
+      display: 'inline-block',
+      textAlign: 'center'
+    },
+    text: {
+      display: 'inline-block',
+      marginLeft: '8px'
+    }
   }
 }
