@@ -1,3 +1,5 @@
+import {shell} from 'electron'
+import path from 'path'
 import lodash from 'lodash'
 import React from 'react'
 import Radium from 'radium'
@@ -21,6 +23,7 @@ class ProjectBrowser extends React.Component {
     this.closePopover = this.closePopover.bind(this)
     this.handleProjectLaunch = this.handleProjectLaunch.bind(this)
     this.state = {
+      username: null,
       error: null,
       showNeedsSaveDialogue: false,
       projectsList: [],
@@ -33,7 +36,6 @@ class ProjectBrowser extends React.Component {
 
   componentDidMount () {
     this.loadProjects()
-
     this.props.envoy.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
       tourChannel.on('tour:requestSelectProject', this.handleSelectProject)
@@ -69,6 +71,20 @@ class ProjectBrowser extends React.Component {
     })
   }
 
+  showProjectDeleteConfirmation (index) {
+
+  }
+
+  deleteProject (index) {
+    console.log('deleting bro')
+    const projectsList = this.state.projectsList
+    projectsList[index].isRemoved = true
+    this.setState({ projectsList })
+    setTimeout(() => {
+      // call the real delete only after the animated removal happens in the UI
+    }, 300)
+  }
+
   projectsListElement () {
     if (this.state.areProjectsLoading) {
       return (
@@ -81,15 +97,16 @@ class ProjectBrowser extends React.Component {
     return (
       <div style={DASH_STYLES.projectsWrapper}>
         {this.state.projectsList.map((projectObject, index) => {
+          const project = this.state.projectsList[index]
           const thumb = index % 2
             ? 'https://source.unsplash.com/collection/19072' + index
             : null
 
           return (
-            <div style={DASH_STYLES.card}
+            <div style={[DASH_STYLES.card, project.isRemoved && DASH_STYLES.deleted]}
               key={index}
               onMouseLeave={() => {
-                if (!this.state.projectsList[index].isMenuActive) return false
+                if (!project.isMenuActive) return false
                 const projectsList = this.state.projectsList
                 projectsList[index].isMenuActive = false
                 this.setState({ projectsList })
@@ -98,19 +115,19 @@ class ProjectBrowser extends React.Component {
                 style={[
                   DASH_STYLES.thumb,
                   thumb && {backgroundImage: `url(${thumb})`},
-                  (this.state.projectsList[index].isMenuActive ||
-                  this.state.projectsList[index].isHovered
+                  (project.isMenuActive ||
+                  project.isHovered
                   ) && DASH_STYLES.blurred
                 ]}/>
               <div id='scrim'
                 style={[
                   DASH_STYLES.scrim,
-                  (this.state.projectsList[index].isMenuActive ||
-                  this.state.projectsList[index].isHovered
+                  (project.isMenuActive ||
+                  project.isHovered
                   ) && {opacity: 1}
                 ]}
                 onClick={() => {
-                  if (!this.state.projectsList[index].isMenuActive) {
+                  if (!project.isMenuActive) {
                     console.log('trying to open')
                     this.handleProjectLaunch(projectObject)
                   }
@@ -131,8 +148,8 @@ class ProjectBrowser extends React.Component {
                     style={[
                       DASH_STYLES.menuOption,
                       DASH_STYLES.single,
-                      !!this.state.projectsList[index].isMenuActive && DASH_STYLES.gone,
-                      !!!this.state.projectsList[index].isHovered && DASH_STYLES.gone2]}>
+                      !!project.isMenuActive && DASH_STYLES.gone,
+                      !!!project.isHovered && DASH_STYLES.gone2]}>
                     OPEN
                   </span>
                   <span key={'duplicate' + index}
@@ -141,27 +158,30 @@ class ProjectBrowser extends React.Component {
                     }}
                    style={[
                     DASH_STYLES.menuOption,
-                    !!!this.state.projectsList[index].isMenuActive && DASH_STYLES.gone]}>
+                    !!!project.isMenuActive && DASH_STYLES.gone]}>
                     DUPLICATE
                   </span>
                   <span key={'delete' + index}
-                    onClick={() => {
-                      console.log('delete')
-                    }}
+                    onClick={() => this.deleteProject(index)}
                     style={[
                       DASH_STYLES.menuOption,
                       DASH_STYLES.opt2,
-                      !!!this.state.projectsList[index].isMenuActive && DASH_STYLES.gone]}>
+                      !!!project.isMenuActive && DASH_STYLES.gone]}>
                     DELETE
                   </span>
                   <span key={'reveal' + index}
                     onClick={() => {
-                      console.log('reveal')
+                      // @taylor sez: Need userProjectsFolder to be available.
+                      // And I couldn't figure out how to get it
+                      shell.showItemInFolder('')
+
+                      // delete the following
+                      shell.openExternal(`file:///Users/taylorpoe/.haiku/projects/taylor4/${project.projectName}/`)
                     }}
                     style={[
                       DASH_STYLES.menuOption,
                       DASH_STYLES.opt3,
-                      !!!this.state.projectsList[index].isMenuActive && DASH_STYLES.gone]}>
+                      !!!project.isMenuActive && DASH_STYLES.gone]}>
                     REVEAL IN FINDER
                   </span>
                 </div>

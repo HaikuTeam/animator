@@ -86,10 +86,18 @@ export const DASH_STYLES = {
     backgroundPosition: '0 0, 5px 5px',
     boxShadow: '0 10px 40px 0 rgba(21,32,34,0.39)',
     borderRadius: 5,
-    transition: 'box-shadow 277ms ease',
+    transform: 'scale(1)',
+    transition: 'all 200ms ease',
     ':hover': {
       boxShadow: '0 10px 40px 0 rgba(21,32,34,0.69)'
     }
+  },
+  deleted: {
+    transform: 'scale(.0001)',
+    flex: '.00001',
+    minWidth: '0',
+    marginLeft: 0,
+    marginRight: 0
   },
   thumb: {
     height: 190,
