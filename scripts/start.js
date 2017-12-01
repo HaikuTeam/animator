@@ -1,16 +1,18 @@
-var async = require('async')
-var lodash = require('lodash')
-var cp = require('child_process')
-var fse = require('fs-extra')
-var inquirer = require('inquirer')
-var path = require('path')
-var argv = require('yargs').argv
-var log = require('./helpers/log')
-var allPackages = require('./helpers/allPackages')()
-var groups = lodash.keyBy(allPackages, 'name')
-var ROOT = path.join(__dirname, '..')
-var plumbingPackage = groups['haiku-plumbing']
-var blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
+const async = require('async')
+const lodash = require('lodash')
+const cp = require('child_process')
+const fse = require('fs-extra')
+const inquirer = require('inquirer')
+const path = require('path')
+const argv = require('yargs').argv
+const log = require('./helpers/log')
+
+const CompileOrder = require('./helpers/CompileOrder')
+const allPackages = require('./helpers/allPackages')()
+const groups = lodash.keyBy(allPackages, 'name')
+const ROOT = path.join(__dirname, '..')
+const plumbingPackage = groups['haiku-plumbing']
+const blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
 
 global.process.env.NODE_ENV = 'development'
 
@@ -18,44 +20,27 @@ global.process.env.NODE_ENV = 'development'
  * Run this script when you want to start local development
  */
 
-var DEFAULTS = {
+const DEFAULTS = {
   dev: false,
-  mockEnvoy: '1',
-  folderChoice: 'none',
-  devChoice: 'everything',
-  nodeEnv: process.env.NODE_ENV,
-  skipAutoUpdate: '1',
-  skipInitialBuild: false,
-  plumbingPort: '1024',
-  releaseEnvironment: process.env.NODE_ENV, // stub
-  releaseBranch: 'master', // stub
-  releasePlatform: 'mac', // stub
-  releaseVersion: require('./../package.json').version, // stub
-  autoUpdateServer: 'http://localhost:3002',
-  plumbingUrl: 'http://0.0.0.0:1024',
-  remoteDebug: true,
-  doDevelopCLI: false,
-  doDevelopSDKClient: false,
-  doDevelopSDKInkstone: false,
-  doDevelopSDKCreator: false
+  folderChoice: 'none'
 }
 
-var inputs = lodash.assign({}, DEFAULTS, argv)
+const inputs = lodash.assign({}, DEFAULTS, argv)
 delete inputs._
 delete inputs.$0
 
 // List of arguments following the command
-var args = argv._
+const args = argv._
 
-var _branch = cp.execSync('git symbolic-ref --short -q HEAD || git rev-parse --short HEAD').toString().trim()
+const _branch = cp.execSync('git symbolic-ref --short -q HEAD || git rev-parse --short HEAD').toString().trim()
 log.log(`fyi, your current mono branch is ${JSON.stringify(_branch)}\n`)
 if (!inputs.branch) inputs.branch = _branch
 
-var instructions = [] // The set of commands we're going to run
-var cancelled = false // Whether we were prematurely cancelled
-var children = [] // Child processes for cleanup later
+const instructions = [] // The set of commands we're going to run
+const children = [] // Child processes for cleanup later
 
-var FOLDER_CHOICES = {
+const FOLDER_CHOICES = {
+  'default': null,
   'none': null,
   'blank': blankProject,
   'blank-noclean': blankProject,
@@ -69,41 +54,26 @@ var FOLDER_CHOICES = {
   'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex')
 }
 
-// $ yarn start -- --default
+// Support:
+//   yarn start --default
+//   yarn start default
+//   yarn start --preset=default
 if (argv.default === true) {
   argv.preset = 'default'
+} else if (!argv.hasOwnProperty('preset') && args.length > 0) {
+  argv.preset = args[0]
 }
 
-switch (args[0]) {
-  case 'default':
-    argv.preset = 'default'
-    break
-  case 'timeline':
-    argv.preset = 'timeline'
-    break
-  case 'glass':
-    argv.preset = 'glass'
-    break
-  case 'player':
-    argv.preset = 'player'
-    break
-  case 'blank':
-    argv.preset = 'blank'
-    break
-  case 'blank-noclean':
-    argv.preset = 'blank-noclean'
-    break
-}
-
-// $ yarn start -- --preset=default
-// vs
-// $ yarn start # interactive
-if (argv.preset) {
-  if (argv.preset === true) argv.preset = 'default'
-  log.hat('running automatically with preset ' + argv.preset)
-  runAutomatic(argv.preset)
+if (FOLDER_CHOICES.hasOwnProperty(argv.preset)) {
+  inputs.folderChoice = argv.preset
 } else {
-  log.hat('running interactively')
+  delete argv.preset
+}
+
+if (argv.preset) {
+  log.hat('running automatically with preset ' + argv.preset)
+  runAutomatic()
+} else {
   runInteractive()
 }
 
@@ -113,23 +83,8 @@ function runInteractive () {
       inquirer.prompt([
         {
           type: 'list',
-          name: 'devChoice',
-          message: 'What do you want to develop?',
-          choices: [
-            { name: 'the whole enchilada', value: 'everything' },
-            { name: 'just glass', value: 'glass' },
-            { name: 'just timeline', value: 'timeline' },
-            { name: 'just the player', value: 'player' }
-          ],
-          default: inputs.devChoice
-        },
-        {
-          when: (answers) => {
-            return answers.devChoice !== 'player'
-          },
-          type: 'list',
           name: 'folderChoice',
-          message: 'Project folder (if developing "the whole enchilada", you can select "none" to use the dashboard)',
+          message: 'Project folder (select "none" to use the dashboard)',
           choices: [
             { name: 'none', value: 'none' },
             { name: 'a fresh blank project', value: 'blank' },
@@ -147,39 +102,9 @@ function runInteractive () {
         },
         {
           type: 'confirm',
-          name: 'doDevelopCLI',
-          message: 'Do you need to develop the CLI too?',
-          default: inputs.doDevelopCLI
-        },
-        {
-          type: 'confirm',
-          name: 'doDevelopSDKClient',
-          message: 'Do you need to develop the SDK client too?',
-          default: inputs.doDevelopSDKClient
-        },
-        {
-          type: 'confirm',
-          name: 'doDevelopSDKInkstone',
-          message: 'Do you need to develop the Inkstone SDK too?',
-          default: inputs.doDevelopSDKInkstone
-        },
-        {
-          type: 'confirm',
-          name: 'doDevelopSDKCreator',
-          message: 'Do you need to develop Envoy/Creator SDK too?',
-          default: inputs.doDevelopSDKCreator
-        },
-        {
-          type: 'confirm',
           name: 'dev',
           message: 'Automatically open Chrome Dev Tools?',
           default: inputs.dev
-        },
-        {
-          type: 'confirm',
-          name: 'skipInitialBuild',
-          message: 'Skip initial build of assets?',
-          default: inputs.skipInitialBuild
         }
       ]).then(function (answers) {
         lodash.assign(inputs, answers)
@@ -212,37 +137,7 @@ function runInteractive () {
   })
 }
 
-function runAutomatic (preset) {
-  if (preset) {
-    switch (preset) {
-      case 'default':
-        inputs.dev = false
-        break
-      case 'timeline':
-        inputs.devChoice = 'timeline'
-        inputs.folderChoice = 'complex-timeline'
-        break
-      case 'glass':
-        inputs.devChoice = 'glass'
-        inputs.folderChoice = 'primitives-glass'
-        break
-      case 'player':
-        inputs.devChoice = 'player'
-        break
-      case 'fast':
-        inputs.skipInitialBuild = true
-        break
-      case 'blank':
-        inputs.devChoice = 'everything'
-        inputs.folderChoice = 'blank'
-        break
-      case 'blank-noclean':
-        inputs.devChoice = 'everything'
-        inputs.folderChoice = 'blank-noclean'
-        break
-    }
-  }
-
+function runAutomatic () {
   setup()
   go()
 }
@@ -251,87 +146,66 @@ function setup () {
   log.hat(`preparing to develop locally`, 'cyan')
 
   process.env.DEV = (inputs.dev) ? '1' : undefined
-  process.env.NODE_ENV = inputs.nodeEnv
-  process.env.HAIKU_SKIP_AUTOUPDATE = inputs.skipAutoUpdate
-  process.env.HAIKU_PLUMBING_PORT = inputs.plumbingPort
-
-  if (inputs.remoteDebug === false) {
-    process.env.NO_REMOTE_DEBUG = '1'
-  }
+  process.env.HAIKU_SKIP_AUTOUPDATE = '1'
+  process.env.HAIKU_PLUMBING_PORT = '1024'
 
   // These are just stubbed out for completeness' sake
-  process.env.HAIKU_RELEASE_ENVIRONMENT = inputs.releaseEnvironment
-  process.env.HAIKU_RELEASE_BRANCH = inputs.releaseBranch
-  process.env.HAIKU_RELEASE_PLATFORM = inputs.releasePlatform
-  process.env.HAIKU_RELEASE_VERSION = inputs.releaseVersion
-  process.env.HAIKU_AUTOUPDATE_SERVER = inputs.autoUpdateServer
+  process.env.HAIKU_RELEASE_ENVIRONMENT = process.env.NODE_ENV
+  process.env.HAIKU_RELEASE_BRANCH = 'master'
+  process.env.HAIKU_RELEASE_PLATFORM = 'mac'
+  process.env.HAIKU_RELEASE_VERSION = require('./../package.json').version
+  process.env.HAIKU_AUTOUPDATE_SERVER = 'http://localhost:3002'
+  process.env.HAIKU_PLUMBING_URL = 'http://0.0.0.0:1024'
 
-  if (inputs.devChoice === 'everything') {
-    process.env.HAIKU_PLUMBING_URL = inputs.plumbingUrl
-  }
-
-  var chosenFolder = FOLDER_CHOICES[inputs.folderChoice]
-
-  if (chosenFolder) {
-    process.env.HAIKU_PROJECT_FOLDER = chosenFolder
-  }
-
-  if (inputs.devChoice === 'everything' && inputs.folderChoice === 'blank') {
+  if (inputs.folderChoice === 'blank') {
     fse.removeSync(blankProject)
     fse.mkdirpSync(blankProject)
     fse.outputFileSync(path.join(blankProject, '.keep'), '')
   }
 
-  var watchOptions = inputs.skipInitialBuild ? ['--', '--skip-initial-build'] : ''
-
-  instructions.unshift(['haiku-formats', ['yarn', 'run', 'develop']])
-  instructions.unshift(['haiku-common', ['yarn', 'run', 'develop']])
-  instructions.unshift(['haiku-ui-common', ['yarn', 'run', 'develop']])
-  instructions.unshift(['haiku-testing', ['yarn', 'run', 'develop']])
-
-  if (inputs.devChoice === 'everything') {
-    if (chosenFolder) {
-      instructions.unshift(['haiku-plumbing', ['node', './HaikuHelper.js', '--folder=' + blankProject], null, 5000])
-      instructions.unshift(['haiku-plumbing', ['yarn', 'run', 'watch', ...watchOptions], null, 10000])
-    } else {
-      instructions.unshift(['haiku-plumbing', ['node', './HaikuHelper.js'], null, 5000])
-      instructions.unshift(['haiku-plumbing', ['yarn', 'run', 'watch', ...watchOptions], null, 10000])
+  CompileOrder.forEach((shortname) => {
+    switch (shortname) {
+      case 'haiku-player':
+        // TS module, but one that uses "develop" for something different than watching.
+        instructions.push([shortname, ['yarn', 'watch']])
+        break
+      case 'haiku-websockets':
+      case 'haiku-creator':
+      case 'haiku-glass':
+      case 'haiku-timeline':
+      case 'haiku-plumbing':
+        // Babel modules where we can skip the initial (slow) build.
+        instructions.push([shortname, ['yarn', 'watch', '--skip-initial-build']])
+        break
+      case 'haiku-state-object':
+      case 'haiku-bytecode':
+      case 'haiku-serialization':
+        // These don't have watchers or need special treatment.
+        break
+      default:
+        // Standard, new way of doing things: `yarn develop`.
+        instructions.push([shortname, ['yarn', 'develop']])
+        break
     }
-    // When developing plumbing, assume we need recompilation on the glass and timeline too
-    instructions.unshift(['haiku-glass', ['yarn', 'run', 'watch', ...watchOptions], null, 5000])
-    instructions.unshift(['haiku-timeline', ['yarn', 'run', 'watch', ...watchOptions], null, 5000])
-    instructions.unshift(['haiku-creator', ['yarn', 'run', 'watch', ...watchOptions], null, 5000])
-  } else {
-    // Only set the mock envoy variable if we are in an env where it will work
-    process.env.MOCK_ENVOY = inputs.mockEnvoy
-    if (inputs.devChoice === 'glass') {
-      instructions.unshift(['haiku-glass', ['yarn', 'start'], null, 5000])
-      instructions.unshift(['haiku-glass', ['yarn', 'run', 'watch', ...watchOptions], null, 5000])
-    } else if (inputs.devChoice === 'timeline') {
-      instructions.unshift(['haiku-timeline', ['yarn', 'start'], null, 5000])
-      instructions.unshift(['haiku-timeline', ['yarn', 'run', 'watch', ...watchOptions], null, 5000])
-    }
-  }
+  })
+}
 
-  if (inputs.doDevelopCLI) {
-    instructions.push(['haiku-cli', ['yarn', 'run', 'develop']])
-  }
-  if (inputs.doDevelopSDKClient) {
-    instructions.push(['haiku-sdk-client', ['yarn', 'run', 'develop']])
-  }
-  if (inputs.doDevelopSDKInkstone) {
-    instructions.push(['haiku-sdk-inkstone', ['yarn', 'run', 'develop']])
-  }
-  if (inputs.doDevelopSDKCreator) {
-    instructions.push(['haiku-sdk-creator', ['yarn', 'run', 'develop']])
-  }
+function runInstruction (instruction) {
+  const pack = groups[instruction[0]]
+  const exec = instruction[1]
 
-  if (inputs.devChoice === 'player') {
-    instructions.unshift(['haiku-player', ['yarn', 'run', 'develop'], null, 5000])
-  } else {
-    // No matter what, assume player changes are probably needed since it's a core dependency
-    instructions.unshift(['haiku-player', ['yarn', 'run', 'watch'], null, 5000])
-  }
+  const cmd = exec[0]
+
+  const args = exec.slice(1)
+
+  log.log('running ' + cmd + ' ' + JSON.stringify(args) + ' in ' + pack.abspath)
+
+  const child = cp.spawn(cmd, args, { cwd: pack.abspath, env: process.env, stdio: 'inherit' })
+
+  children.push({
+    info: { pack, cmd },
+    proc: child
+  })
 }
 
 function go () {
@@ -339,39 +213,31 @@ function go () {
     throw new Error('[mono] no instructions found for this dev mode')
   }
 
-  if (!inputs.skipInitialBuild) {
-    log.hat(`first compiling everything`, 'cyan')
-    cp.execSync('yarn run compile-all', { cwd: ROOT, stdio: 'inherit' })
-  }
+  log.hat(`first compiling everything`, 'cyan')
+  cp.execSync('yarn run compile-all', { cwd: ROOT, stdio: 'inherit' })
 
   log.hat(`starting local development`, 'green')
 
   log.log(JSON.stringify(instructions))
 
-  async.eachSeries(instructions, function (instruction, next) {
-    if (cancelled) return next()
+  const chosenFolder = FOLDER_CHOICES[inputs.folderChoice]
+  if (chosenFolder) {
+    process.env.HAIKU_PROJECT_FOLDER = chosenFolder
+  }
 
-    var pack = groups[instruction[0]]
-    var exec = instruction[1]
-    var env = instruction[2] || {}
-    var wait = instruction[3] || 5000
-    var ignoreClose = instruction[4]
+  if (chosenFolder) {
+    runInstruction(['haiku-plumbing', ['node', './HaikuHelper.js', '--folder=' + blankProject]])
+  } else {
+    runInstruction(['haiku-plumbing', ['node', './HaikuHelper.js']])
+  }
 
-    var cmd = exec[0]
-
-    var args = exec.slice(1)
-
-    log.log('running ' + cmd + ' ' + JSON.stringify(args) + ' in ' + pack.abspath)
-
-    var child = cp.spawn(cmd, args, { cwd: pack.abspath, env: lodash.assign(process.env, env), stdio: 'inherit' })
-
-    children.push({
-      info: { pack, cmd, ignoreClose },
-      proc: child
+  // Wait 5 seconds for Plumbing to boot up, then start the watchers.
+  setTimeout(() => {
+    async.each(instructions, function (instruction, next) {
+      runInstruction(instruction)
+      next()
     })
-
-    return setTimeout(next, wait)
-  })
+  }, 5000)
 }
 
 process.on('exit', exit)
