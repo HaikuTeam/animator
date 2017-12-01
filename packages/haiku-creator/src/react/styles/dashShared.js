@@ -56,6 +56,7 @@ export const DASH_STYLES = {
     overflow: 'auto',
     display: 'flex',
     justifyContent: 'space-around',
+    alignContent: 'flex-start',
     flexWrap: 'wrap',
     marginTop: 36,
     width: '100%',
@@ -70,7 +71,6 @@ export const DASH_STYLES = {
   card: {
     position: 'relative',
     flex: '1 1 240px',
-    alignSelf: 'flex-start',
     minWidth: 200,
     height: 220,
     marginLeft: 25,
