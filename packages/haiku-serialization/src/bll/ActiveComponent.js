@@ -454,6 +454,18 @@ class ActiveComponent extends BaseModel {
     if (typeof cb === 'function') return cb()
   }
 
+  showEventHandlersEditor (elementUID, metadata, cb) {
+    this.emit(
+      metadata.from === this.alias ? 'update' : 'remote-update',
+      'showEventHandlersEditor',
+      {elementUID}
+    )
+
+    // FIXME: for some reason sometimes the `metadata` argument is missing
+    if (typeof metadata === 'function') return metadata()
+    if (typeof cb === 'function') return cb()
+  }
+
   instantiateComponent (relpath, posdata, metadata, cb) {
     if (this.isPreviewModeActive()) return cb()
 

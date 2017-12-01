@@ -95,6 +95,7 @@ class Timeline extends React.Component {
     })
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
+    this.showEventHandlersEditor = this.showEventHandlersEditor.bind(this)
 
     // Used to calculate scroll position
     this._renderedRows = []
@@ -483,6 +484,14 @@ class Timeline extends React.Component {
     return Math.round(this.component.getCurrentTimeline().getCurrentFrame() * frameInfo.mspf)
   }
 
+  showEventHandlersEditor (elementUID) {
+    this.props.websocket.action(
+      'showEventHandlersEditor',
+      [this.props.folder, elementUID],
+      () => {}
+    )
+  }
+
   renderDurationModifier () {
     var frameInfo = this.component.getCurrentTimeline().getFrameInfo()
 
@@ -699,7 +708,8 @@ class Timeline extends React.Component {
                 isPlayerPlaying={this.state.isPlayerPlaying}
                 timeline={this.component.getCurrentTimeline()}
                 component={this.component}
-                row={row} />
+                row={row}
+                onEventHandlerTriggered={this.showEventHandlersEditor}/>
             )
           }
 

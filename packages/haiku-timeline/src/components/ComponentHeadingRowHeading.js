@@ -54,7 +54,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
       (this.props.row.isRootRow())
         ? (<div style={{height: 27, display: 'inline-block', transform: 'translateY(1px)'}}>
           {truncate(this.props.row.element.getTitle() || elementName, 12)}
-        </div>)
+      </div>)
         : (<span className='no-select'>
           <span
             style={{

@@ -246,6 +246,10 @@ export class Glass extends React.Component {
         // If we've toggled into preview mode, we have to force react to update the on-stage styles
         this.forceUpdate()
         this._component.getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
+      } else if (what === 'showEventHandlersEditor') {
+        const {elementUID} = args[0]
+        this.setLastSelectedElement(this._component.findElementByComponentId(elementUID))
+        this.showEventHandlersEditor(null, this.getLastSelectedElement())
       }
 
       // Not sure if we really need to call this, since this is called in a raf loop

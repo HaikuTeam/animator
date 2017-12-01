@@ -172,6 +172,10 @@ class Element extends BaseModel {
     return _manaQuerySelectorAll(selector, this.node)
   }
 
+  hasEventHandlers () {
+    return !lodash.isEmpty(this.getReifiedEventHandlers())
+  }
+
   getReifiedEventHandlers () {
     const bytecode = this.component.getReifiedBytecode()
     const selector = 'haiku:' + this.getComponentId()
