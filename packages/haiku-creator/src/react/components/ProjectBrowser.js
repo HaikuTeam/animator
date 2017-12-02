@@ -98,9 +98,6 @@ class ProjectBrowser extends React.Component {
       <div style={DASH_STYLES.projectsWrapper}>
         {this.state.projectsList.map((projectObject, index) => {
           const project = this.state.projectsList[index]
-          const thumb = index % 2
-            ? 'https://source.unsplash.com/collection/19072' + index
-            : null
 
           return (
             <div style={[DASH_STYLES.card, project.isRemoved && DASH_STYLES.deleted]}
@@ -114,11 +111,13 @@ class ProjectBrowser extends React.Component {
               <div id='thumbnail'
                 style={[
                   DASH_STYLES.thumb,
-                  thumb && {backgroundImage: `url(${thumb})`},
                   (project.isMenuActive ||
                   project.isHovered
                   ) && DASH_STYLES.blurred
-                ]}/>
+                ]}>
+                <iframe src={`file:///Users/taylorpoe/.haiku/projects/taylor4/${project.projectName}/preview.html`}
+                  style={{marginLeft:'-20%', width: 'calc(100% + 40%)', marginTop: '-70%', height: 364}}/>
+              </div>
               <div id='scrim'
                 style={[
                   DASH_STYLES.scrim,
@@ -175,7 +174,7 @@ class ProjectBrowser extends React.Component {
                       // And I couldn't figure out how to get it
                       shell.showItemInFolder('')
 
-                      // delete the following
+                      // remove the following:
                       shell.openExternal(`file:///Users/taylorpoe/.haiku/projects/taylor4/${project.projectName}/`)
                     }}
                     style={[

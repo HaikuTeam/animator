@@ -93,7 +93,7 @@ export const DASH_STYLES = {
     }
   },
   deleted: {
-    transform: 'scale(.0001)',
+    transform: 'scale(.00001)',
     flex: '.00001',
     minWidth: '0',
     marginLeft: 0,
@@ -101,9 +101,6 @@ export const DASH_STYLES = {
   },
   thumb: {
     height: 190,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundColor: 'transparent',
     overflow: 'hidden',
     borderTopLeftRadius: 5,
     borderTopRightRadius: 5,
