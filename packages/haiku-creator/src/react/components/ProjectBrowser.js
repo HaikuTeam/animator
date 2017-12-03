@@ -12,6 +12,7 @@ import { ShareSVG, StackMenuSVG, UserIconSVG } from './Icons'
 import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
 import Popover from 'react-popover'
+import { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 
 const HARDCODED_PROJECTS_LIMIT = 15
 
@@ -98,6 +99,7 @@ class ProjectBrowser extends React.Component {
       <div style={DASH_STYLES.projectsWrapper}>
         {this.state.projectsList.map((projectObject, index) => {
           const project = this.state.projectsList[index]
+          const thumbSrc = path.join(HOMEDIR_PATH, 'projects', this.props.organizationName, project.projectName) + '/preview.html'
 
           return (
             <div style={[DASH_STYLES.card, project.isRemoved && DASH_STYLES.deleted]}
@@ -115,7 +117,7 @@ class ProjectBrowser extends React.Component {
                   project.isHovered
                   ) && DASH_STYLES.blurred
                 ]}>
-                <iframe src={`file:///Users/taylorpoe/.haiku/projects/taylor4/${project.projectName}/preview.html`}
+                <iframe src={thumbSrc}
                   style={{marginLeft:'-20%', width: 'calc(100% + 40%)', marginTop: '-70%', height: 364}}/>
               </div>
               <div id='scrim'

@@ -697,6 +697,7 @@ export default class Creator extends React.Component {
         <div>
           <ProjectBrowser
             username={this.state.username}
+            organizationName={this.state.organizationName}
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
             createNotice={this.createNotice}
