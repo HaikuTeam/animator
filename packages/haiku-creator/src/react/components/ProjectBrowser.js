@@ -99,7 +99,7 @@ class ProjectBrowser extends React.Component {
       <div style={DASH_STYLES.projectsWrapper}>
         {this.state.projectsList.map((projectObject, index) => {
           const project = this.state.projectsList[index]
-          const thumbSrc = path.join(HOMEDIR_PATH, 'projects', this.props.organizationName, project.projectName) + '/preview.html'
+          const projectPath = path.join(HOMEDIR_PATH, 'projects', this.props.organizationName, project.projectName)
 
           return (
             <div style={[DASH_STYLES.card, project.isRemoved && DASH_STYLES.deleted]}
@@ -117,7 +117,7 @@ class ProjectBrowser extends React.Component {
                   project.isHovered
                   ) && DASH_STYLES.blurred
                 ]}>
-                <iframe src={thumbSrc}
+                <iframe src={projectPath + '/preview.html'}
                   style={{marginLeft:'-20%', width: 'calc(100% + 40%)', marginTop: '-70%', height: 364}}/>
               </div>
               <div id='scrim'
@@ -171,14 +171,7 @@ class ProjectBrowser extends React.Component {
                     DELETE
                   </span>
                   <span key={'reveal' + index}
-                    onClick={() => {
-                      // @taylor sez: Need userProjectsFolder to be available.
-                      // And I couldn't figure out how to get it
-                      shell.showItemInFolder('')
-
-                      // remove the following:
-                      shell.openExternal(`file:///Users/taylorpoe/.haiku/projects/taylor4/${project.projectName}/`)
-                    }}
+                    onClick={() => shell.showItemInFolder(projectPath)}
                     style={[
                       DASH_STYLES.menuOption,
                       DASH_STYLES.opt3,
