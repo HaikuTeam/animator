@@ -1154,7 +1154,11 @@ export class Glass extends React.Component {
     }
   }
 
-  buildBoltInstance (x, y) {
+  buildBoltInstance (x, y, rotationZ) {
+    const boltSize = 30
+    const offsetLeft = (boltSize * Math.cos(rotationZ)) - boltSize / 2
+    const offsetTop = (boltSize * Math.sin(rotationZ)) - boltSize / 2
+
     return {
       elementName: 'div',
       attributes: {
@@ -1170,12 +1174,12 @@ export class Glass extends React.Component {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          left: `${x + 20}px`,
-          top: `${y - 12}px`,
+          left: `${x + offsetLeft}px`,
+          top: `${y + offsetTop}px`,
           border: '1px solid ' + Palette.DARKER_ROCK2,
           backgroundColor: 'transparent',
-          width: '30px',
-          height: '30px',
+          width: `${boltSize}px`,
+          height: `${boltSize}px`,
           borderRadius: '50%',
           cursor: 'pointer'
         }
@@ -1184,7 +1188,7 @@ export class Glass extends React.Component {
     }
   }
 
-  renderEventHandlersOverlay (element, points, overlays) {
+  renderEventHandlersOverlay (element, points, overlays, rotationZ) {
     // If the size is smaller than a threshold, only display the corners.
     // And if it is smaller even than that, don't display the points at all
     const dx = Element.distanceBetweenPoints(points[0], points[2], this.state.zoomXY)
@@ -1193,7 +1197,7 @@ export class Glass extends React.Component {
 
     if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) return
 
-    overlays.push(this.buildBoltInstance(x, y))
+    overlays.push(this.buildBoltInstance(x, y, rotationZ))
   }
 
   renderTransformBoxOverlay (element, points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
