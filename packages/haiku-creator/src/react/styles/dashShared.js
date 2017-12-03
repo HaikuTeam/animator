@@ -242,28 +242,44 @@ export const DASH_STYLES = {
   },
   popover: {
     container: {
+      position: 'absolute',
       listStyle: 'none',
-      padding: '15px 15px 5px',
+      padding: '15px 18px 5px',
       margin: '0',
       backgroundColor: Palette.FATHER_COAL,
       minWidth: '150px',
-      borderRadius: '3px'
+      borderRadius: '3px',
+      right: -26,
+      top: 26
     },
     item: {
       display: 'flex',
       textAlign: 'left',
-      alignItems: 'center',
+      justifyContent: 'left',
       marginBottom: '10px',
       color: Palette.ROCK
     },
     icon: {
       width: '16px',
       display: 'inline-block',
-      textAlign: 'center'
+      textAlign: 'center',
+      marginRight: 8,
+      marginTop: 1
     },
     text: {
       display: 'inline-block',
-      marginLeft: '8px'
+      WebkitUserSelect: 'none'
+    },
+    pointer: {
+      cursor: 'pointer',
+      color: Palette.SUNSTONE
+    },
+    mini: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      fontSize: 11,
+      marginTop: 14,
+      marginBottom: 5
     }
   }
 }

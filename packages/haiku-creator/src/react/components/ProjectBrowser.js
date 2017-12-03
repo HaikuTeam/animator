@@ -8,7 +8,7 @@ import { FadingCircle } from 'better-react-spinkit'
 import Palette from './Palette'
 import Toast from './notifications/Toast'
 import ProjectLoader from './ProjectLoader'
-import { ShareSVG, StackMenuSVG, UserIconSVG } from './Icons'
+import { ShareSVG, StackMenuSVG, UserIconSVG, LogOutSVG, LogoMicroSVG } from './Icons'
 import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
 import Popover from 'react-popover'
@@ -127,12 +127,7 @@ class ProjectBrowser extends React.Component {
                   project.isHovered
                   ) && {opacity: 1}
                 ]}
-                onClick={() => {
-                  if (!project.isMenuActive) {
-                    console.log('trying to open')
-                    this.handleProjectLaunch(projectObject)
-                  }
-                }}
+                onClick={() => !project.isMenuActive && this.handleProjectLaunch(projectObject)}
                 onMouseOver={() => {
                   const projectsList = this.state.projectsList
                   if (projectsList[index].isMenuActive || projectsList[index].isHovered) return false
@@ -258,7 +253,22 @@ class ProjectBrowser extends React.Component {
   renderUserMenuItems () {
     return (
       <div style={DASH_STYLES.popover.container} onClick={this.closePopover}>
-        hi
+        <div style={DASH_STYLES.popover.item}>
+          <span style={[DASH_STYLES.popover.text, DASH_STYLES.noSelect]}>{this.props.username}</span>
+        </div>
+        <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}
+          onClick={() => console.log('log out please')}>
+          <span style={DASH_STYLES.popover.icon}>
+            <LogOutSVG />
+          </span>
+          <span style={DASH_STYLES.popover.text}>LOG OUT</span>
+        </div>
+        <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.mini, DASH_STYLES.noSelect]}>
+          <span style={DASH_STYLES.popover.icon}>
+            <LogoMicroSVG style={{transform: 'translateY(2px)'}} />
+          </span>
+          <span style={[DASH_STYLES.popover.text, DASH_STYLES.noSelect]}>{this.props.softwareVersion}</span>
+        </div>
       </div>
     )
   }
