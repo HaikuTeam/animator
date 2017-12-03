@@ -87,9 +87,18 @@ export default class ComponentHeadingRow extends React.Component {
             <ComponentHeadingRowHeading
               $update={this.props.$update}
               row={this.props.row}
-              onEventHandlerTriggered={this.props.onEventHandlerTriggered}/>
+              onEventHandlerTriggered={this.props.onEventHandlerTriggered} />
           </div>
-          <div style={this.props.row.isExpanded() ? {marginLeft: '45px', marginTop: '7px'} : { float: 'right', marginTop: '-15px'}}>
+          <div
+            style={
+              this.props.row.isExpanded()
+                ? {
+                  marginLeft: this.props.row.isRootRow() ? '45px' : '57px',
+                  marginTop: '7px'
+                }
+                : {float: 'right', marginTop: '-15px'}
+            }
+          >
             <EventHandlerTriggerer
               element={this.props.row.element}
               onEventHandlerTriggered={this.props.onEventHandlerTriggered}

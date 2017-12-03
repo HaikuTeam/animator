@@ -96,6 +96,7 @@ class Timeline extends React.Component {
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
     this.showEventHandlersEditor = this.showEventHandlersEditor.bind(this)
+    this.showFrameActionsEditor = this.showFrameActionsEditor.bind(this)
 
     // Used to calculate scroll position
     this._renderedRows = []
@@ -555,7 +556,7 @@ class Timeline extends React.Component {
           position: 'absolute',
           top: 0,
           left: 0,
-          height: this.state.rowHeight + 10,
+          height: this.state.rowHeight + 20,
           width: this.component.getCurrentTimeline().getPropertiesPixelWidth() + this.component.getCurrentTimeline().getTimelinePixelWidth(),
           verticalAlign: 'top',
           fontSize: 10,
@@ -568,6 +569,7 @@ class Timeline extends React.Component {
             position: 'absolute',
             top: 0,
             left: 0,
+            paddingTop: '5px',
             height: 'inherit',
             width: this.component.getCurrentTimeline().getPropertiesPixelWidth()
           }}>
@@ -609,11 +611,12 @@ class Timeline extends React.Component {
             width: this.component.getCurrentTimeline().getTimelinePixelWidth(),
             height: 'inherit',
             verticalAlign: 'top',
-            paddingTop: 10,
+            paddingTop: 17,
             color: Palette.ROCK_MUTED }}>
           <FrameGrid
             $update={this.state.$update}
-            timeline={this.component.getCurrentTimeline()} />
+            timeline={this.component.getCurrentTimeline()}
+            onShowFrameActionsEditor={this.showFrameActionsEditor} />
           <Gauge
             $update={this.state.$update}
             timeDisplayMode={this.state.timeDisplayMode}
@@ -709,7 +712,7 @@ class Timeline extends React.Component {
                 timeline={this.component.getCurrentTimeline()}
                 component={this.component}
                 row={row}
-                onEventHandlerTriggered={this.showEventHandlersEditor}/>
+                onEventHandlerTriggered={this.showEventHandlersEditor} />
             )
           }
 
@@ -785,7 +788,7 @@ class Timeline extends React.Component {
           className='no-select'
           style={{
             position: 'absolute',
-            top: 35,
+            top: 45,
             left: 0,
             width: '100%',
             pointerEvents: this.state.avoidTimelinePointerEvents ? 'none' : 'auto',

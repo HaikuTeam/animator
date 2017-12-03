@@ -24,7 +24,7 @@ class EventHandlerTriggerer extends React.PureComponent {
   render () {
     return (
       <span onClick={this.triggerEventHandlers} style={STYLES.wrapper}>
-        <Bolt color={this.getBoltColor()}/>
+        <Bolt color={this.getBoltColor()} />
       </span>
     )
   }
