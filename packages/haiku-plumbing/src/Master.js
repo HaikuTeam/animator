@@ -591,6 +591,10 @@ export default class Master extends EventEmitter {
     return this._component.showEventHandlersEditor.apply(this._component, params.concat(cb))
   }
 
+  eventHandlersUpdated ({ params }, cb) {
+    return this._component.eventHandlersUpdated.apply(this._component, params.concat(cb))
+  }
+
   /**
    * bytecode actions
    * ================

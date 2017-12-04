@@ -70,7 +70,7 @@ class Editor extends React.Component {
     this.remove = this.remove.bind(this)
 
     this.state = {
-      contents: '',
+      contents: props.contents,
       isHovered: false,
       isTrashHovered: false
     }
@@ -136,26 +136,27 @@ class Editor extends React.Component {
   }
 
   eventSelectedCallback (eventName) {
-    this.props.onEventChange(this.serialize(eventName))
+    this.props.onEventChange(
+      this.serialize(eventName),
+      this.props.selectedEventName
+    )
   }
 
   serialize (eventName = this.props.selectedEventName) {
-    return [
-      this.props.id,
-      {
-        event: eventName,
-        handler: {
-          params: [`${eventName}Event`],
-          body: this.state.contents,
-          type: 'FunctionExpression',
-          name: null
-        }
+    return {
+      id: this.props.id,
+      event: eventName,
+      handler: {
+        params: this.props.params,
+        body: this.state.contents,
+        type: 'FunctionExpression',
+        name: null
       }
-    ]
+    }
   }
 
   remove () {
-    this.props.onRemove(this.props.id)
+    this.props.onRemove(this.serialize())
   }
 
   render () {
@@ -169,12 +170,14 @@ class Editor extends React.Component {
         }}
       >
         <div style={STYLES.options}>
-          <EventSelector
-            options={this.props.applicableHandlers}
-            disabledOptions={this.props.appliedHandlers}
-            onChange={this.eventSelectedCallback}
-            defaultEventName={this.props.selectedEventName}
-          />
+          {!this.props.hideEventSelector && (
+            <EventSelector
+              options={this.props.applicableHandlers}
+              disabledOptions={this.props.appliedHandlers}
+              onChange={this.eventSelectedCallback}
+              defaultEventName={this.props.selectedEventName}
+            />
+          )}
 
           {this.props.deleteable && (
             <div
@@ -235,7 +238,7 @@ Editor.propTypes = {
   onEventChange: React.PropTypes.func.isRequired,
   onRemove: React.PropTypes.func.isRequired,
   applicableHandlers: React.PropTypes.array.isRequired,
-  appliedHandlers: React.PropTypes.array.isRequired,
+  appliedHandlers: React.PropTypes.object.isRequired,
   selectedEventName: React.PropTypes.string.isRequired,
   contents: React.PropTypes.string,
   deleteable: React.PropTypes.bool

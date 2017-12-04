@@ -37,7 +37,7 @@ class EventSelector extends React.Component {
   }
 
   renderSingleMenuItem ({value, label}) {
-    const isDisabled = this.props.disabledOptions.indexOf(value) !== -1
+    const isDisabled = this.props.disabledOptions.has(value)
     this.itemMappings[value] = label
 
     return (
@@ -93,7 +93,7 @@ EventSelector.propTypes = {
   onChange: React.PropTypes.func.isRequired,
   defaultEventName: React.PropTypes.string,
   options: React.PropTypes.array.isRequired,
-  disabledOptions: React.PropTypes.array.isRequired
+  disabledOptions: React.PropTypes.object.isRequired
 }
 
 export default EventSelector

@@ -1,11 +1,10 @@
 import React from 'react'
 import {get} from 'lodash'
-import prettier from 'prettier'
-import functionToRFO from '@haiku/player/lib/reflection/functionToRFO'
 import ElementTitle from './ElementTitle'
 import CSSStyles from './CSSStyles'
 import Editor from './Editor'
 import EditorActions from './EditorActions'
+import HandlerManager from './HandlerManager'
 import Palette from '../../Palette'
 import {EDITOR_WIDTH, EDITOR_HEIGHT} from './constants'
 
@@ -35,18 +34,29 @@ class EventHandlerEditor extends React.PureComponent {
   constructor (props) {
     super(props)
 
-    this.applicableHandlers = {}
-    this.appliedHandlers = new Map()
+    this.handlerManager = null
     this.onEditorContentChange = this.onEditorContentChange.bind(this)
     this.onEditorEventChange = this.onEditorEventChange.bind(this)
     this.onEditorRemoved = this.onEditorRemoved.bind(this)
     this.addAction = this.addAction.bind(this)
   }
 
-  shouldComponentUpdate ({element, visible}, nextState) {
+  /**
+   * Since the Glass renders on every animation frame, we implemented a custom
+   * shouldComponentUpdate function for performance reasons.
+   *
+   * We should avoid at all costs:
+   *
+   * 1- Triggering a re-render
+   * 2- Instantiating a HandlerManager
+   */
+  shouldComponentUpdate ({element, visible, options}, nextState) {
     if (element && get(this.props, 'element.uid') !== get(element, 'uid')) {
-      this.applicableHandlers = element.getApplicableEventHandlerOptionsList()
-      this.appliedHandlers = this.getAppliedHandlers(element)
+      this.handlerManager = new HandlerManager(element)
+      return true
+    }
+
+    if (options && options.frame !== this.props.options.frame) {
       return true
     }
 
@@ -57,86 +67,14 @@ class EventHandlerEditor extends React.PureComponent {
     return false
   }
 
-  getAppliedHandlers (element) {
-    let result = new Map()
-    const appliedHandlers = element.getReifiedEventHandlers()
-    const appliedHandlersKeys = Object.keys(appliedHandlers)
-
-    if (appliedHandlersKeys.length) {
-      appliedHandlersKeys.forEach(key => {
-        const rawHandler = appliedHandlers[key]
-        const wrappedHandler = rawHandler.original || rawHandler.handler
-        const id = this.generateID()
-        const handler = functionToRFO(wrappedHandler).__function
-        handler.body = prettier.format(handler.body)
-
-        result.set(id, {
-          event: key,
-          handler
-        })
-      })
-    } else {
-      const id = this.generateID()
-      result.set(id, this.getDefaultHandler('click'))
-    }
-
-    return result
-  }
-
-  generateID (len = 3) {
-    const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
-    let str = ''
-    while (str.length < len) {
-      str += ALPHABET[Math.floor(Math.random() * ALPHABET.length)]
-    }
-    return str
-  }
-
   addAction () {
-    const availableHandler = this.getNextAvailableHandler()
-    const defaultHandler = this.getDefaultHandler(availableHandler)
-    this.appliedHandlers.set(this.generateID(3), {
-      event: availableHandler,
-      ...defaultHandler
-    })
+    this.handlerManager.addNextAvailableEventHandler()
     this.forceUpdate()
   }
 
-  getNextAvailableHandler () {
-    const appliedHandlers = []
-
-    for (let [editor, {event, handler}] of this.appliedHandlers) { // eslint-disable-line
-      appliedHandlers.push(event)
-    }
-
-    for (let handlerGroup of this.applicableHandlers) {
-      for (let {value} of handlerGroup.options) {
-        if (appliedHandlers.indexOf(value) === -1) {
-          return value
-        }
-      }
-    }
-  }
-
-  getDefaultHandler (event) {
-    return {
-      event,
-      handler: {
-        body: `/** ${event} event logic goes here */`,
-        params: [`${event}Event`]
-      }
-    }
-  }
-
   doSave () {
-    const result = {}
-
-    for (let [editor, {event, handler}] of this.appliedHandlers) { // eslint-disable-line
-      result[event] = {handler: {__function: handler}}
-      this.props.element.setEventHandlerSaveStatus(event, true)
-    }
-
-    this.props.save(this.props.element, result)
+    const serializedEventHandlers = this.handlerManager.serialize()
+    this.props.save(this.props.element, serializedEventHandlers)
     this.props.close()
   }
 
@@ -144,47 +82,90 @@ class EventHandlerEditor extends React.PureComponent {
     this.props.close()
   }
 
-  onEditorContentChange ([editor, serializedEvent]) {
-    this.appliedHandlers.set(editor, serializedEvent)
+  onEditorContentChange (serializedEvent, oldEvent) {
+    this.handlerManager.replaceEvent(serializedEvent, oldEvent)
   }
 
-  onEditorEventChange ([editor, serializedEvent]) {
-    this.appliedHandlers.set(editor, serializedEvent)
+  onEditorEventChange (serializedEvent, oldEvent) {
+    this.handlerManager.replaceEvent(serializedEvent, oldEvent)
     this.forceUpdate()
   }
 
-  onEditorRemoved (editor) {
-    this.appliedHandlers.delete(editor)
+  onEditorRemoved ([editor, {event}]) {
+    this.handlerManager.delete(event)
     this.forceUpdate()
+  }
+
+  renderFrameEditor (totalNumberOfHandlers, applicableEventHandlers) {
+    const event = `timeline:Default:${this.props.options.frame}`
+    const {id, handler} = this.handlerManager.getOrGenerateEventHandler(event)
+
+    return this.renderSingleEditor(
+      id,
+      event,
+      handler,
+      applicableEventHandlers,
+      totalNumberOfHandlers
+    )
+  }
+
+  renderEventsEditor (totalNumberOfHandlers, applicableEventHandlers) {
+    // If the element doesn't have any handlers, let's show a default editor
+    if (!this.handlerManager.hasDOMEvents()) {
+      this.handlerManager.addNextAvailableEventHandler()
+      totalNumberOfHandlers = 1
+    }
+
+    return this.handlerManager
+      .DOMEvents()
+      .map(({id, event, handler}) => {
+        return this.renderSingleEditor(
+          id,
+          event,
+          handler,
+          applicableEventHandlers,
+          totalNumberOfHandlers
+        )
+      })
+      .reverse()
+  }
+
+  renderSingleEditor (
+    id,
+    event,
+    handler,
+    applicableEventHandlers,
+    totalNumberOfHandlers
+  ) {
+    return (
+      <Editor
+        onContentChange={this.onEditorContentChange}
+        onEventChange={this.onEditorEventChange}
+        onRemove={this.onEditorRemoved}
+        applicableHandlers={applicableEventHandlers}
+        appliedHandlers={this.handlerManager}
+        selectedEventName={event}
+        params={handler.params}
+        contents={handler.body}
+        key={id}
+        id={id}
+        deleteable={
+          totalNumberOfHandlers > 1 && !this.props.options.isSimplified
+        }
+        hideEventSelector={this.props.options.isSimplified}
+      />
+    )
   }
 
   renderEditors () {
-    const appliedHandlers = []
-    const result = []
+    if (!this.handlerManager) return []
 
-    for (let [editor, {event, handler}] of this.appliedHandlers) { // eslint-disable-line
-      appliedHandlers.push(event)
-    }
+    let totalNumberOfHandlers = this.handlerManager.size()
+    const applicableEventHandlers = this.handlerManager.getApplicableEventHandlers()
 
-    for (let [editor, {event, handler}] of this.appliedHandlers) { // eslint-disable-line
-      result.push(
-        <Editor
-          onContentChange={this.onEditorContentChange}
-          onEventChange={this.onEditorEventChange}
-          onRemove={this.onEditorRemoved}
-          applicableHandlers={this.applicableHandlers}
-          appliedHandlers={appliedHandlers}
-          selectedEventName={event}
-          params={handler.params}
-          contents={handler.body}
-          key={editor}
-          id={editor}
-          deleteable={appliedHandlers.length > 1}
-        />
-      )
-    }
-
-    return result.reverse()
+    return this.props.options.frame
+      ? this.renderFrameEditor(totalNumberOfHandlers, applicableEventHandlers)
+      : this.renderEventsEditor(totalNumberOfHandlers, applicableEventHandlers)
   }
 
   render () {
@@ -206,6 +187,12 @@ class EventHandlerEditor extends React.PureComponent {
 
         <ElementTitle
           element={this.props.element}
+          title={
+            this.props.options.frame
+              ? `Frame ${this.props.options.frame}`
+              : null
+          }
+          hideActions={this.props.options.isSimplified}
           onNewAction={this.addAction}
         />
 
@@ -226,6 +213,10 @@ class EventHandlerEditor extends React.PureComponent {
       </div>
     )
   }
+}
+
+EventHandlerEditor.defaultProps = {
+  options: {}
 }
 
 export default EventHandlerEditor

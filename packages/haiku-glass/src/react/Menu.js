@@ -85,15 +85,15 @@ class BaseMenu extends React.Component {
 
   getElementPosition (element) {
     let left = 0
-    let top  = 0
+    let top = 0
     let el = element
 
     do {
-        left += el.offsetLeft
-        top  += el.offsetTop
+      left += el.offsetLeft
+      top += el.offsetTop
 
-        el = el.offsetParent
-    } while( el )
+      el = el.offsetParent
+    } while (el)
 
     return {left, top}
   }
@@ -101,8 +101,7 @@ class BaseMenu extends React.Component {
   getWrapperStyles () {
     if (this.props.fixed && this.triggerRef) {
       const {left, top} = this.getElementPosition(this.triggerRef)
-      const width = this.triggerRef.offsetWidth
-      const offset = this.props.offset || { top: 0, left: 0 }
+      const offset = this.props.offset
 
       return {
         position: 'fixed',
@@ -154,6 +153,10 @@ class BaseMenu extends React.Component {
       </div>
     )
   }
+}
+
+BaseMenu.defaultProps = {
+  offset: { top: 0, left: 0 }
 }
 
 class BaseSubMenu extends React.Component {

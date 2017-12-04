@@ -43,20 +43,26 @@ const STYLES = {
 
 class ElementTitle extends React.PureComponent {
   getElementTitle () {
-    const title = get(this.props, 'element.node.attributes.haiku-title')
-    return title ? truncate(title, 16) : '(unknown)'
+    if (this.props.title) {
+      return this.props.title
+    } else {
+      const title = get(this.props, 'element.node.attributes.haiku-title')
+      return title ? truncate(title, 16) : '(unknown)'
+    }
   }
 
   render () {
     return (
       <div style={STYLES.container}>
         <h3 style={STYLES.title}>{`${this.getElementTitle()} Actions`}</h3>
-        <button style={STYLES.button} onClick={this.props.onNewAction}>
-          <span>
-            <EventsBoltIcon color={Palette.PALE_GRAY} />
-          </span>
-          <span style={STYLES.buttonText}>New Action</span>
-        </button>
+        {!this.props.hideActions &&
+          <button style={STYLES.button} onClick={this.props.onNewAction}>
+            <span>
+              <EventsBoltIcon color={Palette.PALE_GRAY} />
+            </span>
+            <span style={STYLES.buttonText}>New Action</span>
+          </button>
+        }
       </div>
     )
   }

@@ -1017,7 +1017,7 @@ export class Glass extends React.Component {
           let scaleY = element.getPropertyValue('scale.y')
           if (scaleY === undefined || scaleY === null) scaleY = 1
           this.renderTransformBoxOverlay(element, points, overlays, element.canRotate(), this.state.isKeyCommandDown, true, rotationZ, scaleX, scaleY)
-          this.renderEventHandlersOverlay(element, points, overlays)
+          this.renderEventHandlersOverlay(element, points, overlays, rotationZ)
         }
       } else {
         // TODO: Render control points across multiple selected elements

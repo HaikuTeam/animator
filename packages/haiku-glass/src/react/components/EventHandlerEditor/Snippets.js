@@ -1,6 +1,5 @@
 /* global monaco */
 import React from 'react'
-import {get} from 'lodash'
 import {shell} from 'electron'
 import {Menu, MenuItem} from '../../Menu'
 import Palette from '../../Palette'
@@ -55,21 +54,26 @@ class Snippets extends React.PureComponent {
     }
   }
 
+  hasCursorPosition () {
+    const { lineNumber, column } = this.props.editor.getPosition()
+    return lineNumber !== 1 && column !== 1
+  }
+
   insertSnippet (event, {injectable}) {
     if (typeof injectable === 'function') {
       return injectable()
     }
 
     let range
-    // if (this.isEditing) {
-      const { lineNumber, column } = this.props.editor.getPosition()
-      const b = column + injectable.length
+    const { lineNumber, column } = this.props.editor.getPosition()
+
+    if (this.hasCursorPosition()) {
       range = new monaco.Range(lineNumber, column, lineNumber, column)
-    // } else {
-    //   const allLines = this.props.editor.viewModel.lines.lines.length + 1
-    //   range = new monaco.Range(allLines, 0, allLines, 0)
-    //   injectable = `\n${injectable}`
-    // }
+    } else {
+      const allLines = this.props.editor.viewModel.lines.lines.length + 1
+      range = new monaco.Range(allLines, 100, allLines, 100)
+      injectable = `\n${injectable}`
+    }
 
     this.props.editor.executeEdits('snippet-injector', [
       {
@@ -78,6 +82,7 @@ class Snippets extends React.PureComponent {
         text: injectable
       }
     ])
+
     this.props.editor.focus()
     this.props.editor.pushUndoStop()
   }
