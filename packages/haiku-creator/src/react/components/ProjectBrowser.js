@@ -147,7 +147,7 @@ class ProjectBrowser extends React.Component {
                       !!!project.isHovered && DASH_STYLES.gone2]}>
                     OPEN
                   </span>
-                  <span key={'duplicate' + index}
+                  {/*<span key={'duplicate' + index}
                     onClick={() => {
                       console.log('duplicate')
                     }}
@@ -155,12 +155,11 @@ class ProjectBrowser extends React.Component {
                     DASH_STYLES.menuOption,
                     !!!project.isMenuActive && DASH_STYLES.gone]}>
                     DUPLICATE
-                  </span>
+                  </span>*/}
                   <span key={'delete' + index}
                     onClick={() => this.deleteProject(index)}
                     style={[
                       DASH_STYLES.menuOption,
-                      DASH_STYLES.opt2,
                       !!!project.isMenuActive && DASH_STYLES.gone]}>
                     DELETE
                   </span>
@@ -168,7 +167,7 @@ class ProjectBrowser extends React.Component {
                     onClick={() => shell.showItemInFolder(projectPath)}
                     style={[
                       DASH_STYLES.menuOption,
-                      DASH_STYLES.opt3,
+                      DASH_STYLES.opt2,
                       !!!project.isMenuActive && DASH_STYLES.gone]}>
                     REVEAL IN FINDER
                   </span>
