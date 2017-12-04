@@ -117,8 +117,7 @@ class ProjectBrowser extends React.Component {
                   project.isHovered
                   ) && DASH_STYLES.blurred
                 ]}>
-                <iframe src={projectPath + '/preview.html'}
-                  style={{marginLeft:'-20%', width: 'calc(100% + 40%)', marginTop: '-70%', height: 364}}/>
+                <iframe src={projectPath + '/preview.html'}/>
               </div>
               <div id='scrim'
                 style={[
