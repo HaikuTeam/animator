@@ -3324,5 +3324,27 @@
       "label": "fix",
       "message": "Updates put at the wrong level were interrupting draggable"
     }
+  },
+  "2.3.37": {
+    "c066796ddf255aa9a6130d8b6bdc9f47e82dabd1": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Add haiku-ui-common module."
+    },
+    "a1f9efbdb03c8f79579c829af83728da8ce91955": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Add space after \"An update is available.\""
+    },
+    "8398f0d939a7e6d6a5b4417fa4cd1c94060d5840": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Always assume controlFlow properties are mutable."
+    },
+    "59a2876c1c2816bb99e82c09bbd9efeffb2183ff": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Recalculate the flat mana tree every time a full flush render is performed."
+    }
   }
 }
