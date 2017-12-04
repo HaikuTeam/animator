@@ -2,7 +2,7 @@ import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
 import Palette from './DefaultPalette'
-import { DraggableCore } from 'react-draggable'
+import TimelineDraggable from './TimelineDraggable'
 import KeyframeSVG from './icons/KeyframeSVG'
 import Globals from './Globals'
 
@@ -119,7 +119,7 @@ export default class TransitionBody extends React.Component {
     const CurveSVG = CURVESVGS[curve + 'SVG']
 
     return (
-      <DraggableCore
+      <TimelineDraggable
         // NOTE: We cannot use 'curr.ms' for key here because these things move around
         id={`transition-body-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
@@ -128,9 +128,24 @@ export default class TransitionBody extends React.Component {
             this.props.component.dragStartSelectedKeyframes(dragData)
           }
         }}
-        onStop={(dragEvent, dragData) => {
+        onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
           if (!this.props.preventDragging) {
+            // TODO: this is a very naive way to check if we have a selected tween
+            // it works for our current user case, but we should do better
+            // (shame on Roberto)
+            const hasSelectedTween =
+              this.props.timeline.getSelectedKeyframes() > 2
+            const skipDeselect =
+              Globals.isShiftKeyDown ||
+              ((Globals.isControlKeyDown || lastMouseButtonPressed === 3) &&
+                hasSelectedTween) ||
+              (wasDrag && hasSelectedTween)
+
             this.props.component.dragStopSelectedKeyframes(dragData)
+            this.props.keyframe.toggleSelectSelfAndSurrounds(
+              {skipDeselect},
+              Globals.isShiftKeyDown
+            )
           }
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
@@ -138,20 +153,7 @@ export default class TransitionBody extends React.Component {
             this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
           }
         }, THROTTLE_TIME)}
-        onContextMenu
-        onMouseDown={(mouseEvent) => {
-          mouseEvent.stopPropagation()
-
-          const skipDeselect = (
-            Globals.isShiftKeyDown ||
-            (
-              (Globals.isControlKeyDown || mouseEvent.nativeEvent.which === 3) &&
-              this.props.timeline.hasMultipleSelectedKeyframes()
-            )
-          )
-
-          this.props.keyframe.selectSelfAndSurrounds({ skipDeselect })
-        }}>
+        onContextMenu>
         <span
           className='pill-container'
           key={uniqueKey}
@@ -262,7 +264,7 @@ export default class TransitionBody extends React.Component {
             </span>
           </span>
         </span>
-      </DraggableCore>
+      </TimelineDraggable>
     )
   }
 }

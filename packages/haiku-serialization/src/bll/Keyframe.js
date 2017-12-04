@@ -72,6 +72,31 @@ class Keyframe extends BaseModel {
     return this
   }
 
+  deselectAndDeactivate () {
+    this.deselect()
+    this.deactivate()
+  }
+
+  toggleSelect (opts, isInMultiSelection) {
+    if (opts.skipDeselect && this.isSelected() && isInMultiSelection) {
+      this.deselectAndDeactivate()
+    } else {
+      this.select(opts)
+    }
+  }
+
+  toggleSelectSelfAndSurrounds (config, isInMultiSelection) {
+    this.toggleSelect(config, isInMultiSelection)
+    if (this.next()) {
+      // HACK: Normally selecting/deselecting a keyframe deselects all others,
+      // but in this case we want to retain the one we selected in the
+      // line above, so add this property to the event/config to prevent
+      // that behavior
+      this.next().toggleSelect({ skipDeselect: true }, isInMultiSelection)
+    }
+    return this
+  }
+
   emitWithNeighbors (what, a, b, c, d, e) {
     this.emit(what, a, b, c, d, e)
     if (this.next()) this.next().emit(what, a, b, c, d, e)
@@ -103,17 +128,6 @@ class Keyframe extends BaseModel {
       }
     })
     return selected
-  }
-
-  selectSelfAndSurrounds (config) {
-    this.select(config)
-    if (this.next()) {
-      // HACK: Normally selecting a keyframe deselects all others, but in this
-      // case we want to retain the one we selected in the line above, so add
-      // this property to the event/config to prevent that behavior
-      this.next().select({ skipDeselect: true })
-    }
-    return this
   }
 
   isDeleted () {

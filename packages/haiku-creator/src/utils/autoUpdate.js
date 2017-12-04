@@ -27,7 +27,6 @@ module.exports = {
           return reject(Error('Missing release/autoupdate environment variables'))
         }
 
-
         const tempPath = os.tmpdir()
         const zipPath = `${tempPath}/haiku.zip`
         // FIXME: these paths are macOS specific, it's ok for now, but
