@@ -1017,7 +1017,7 @@ export class Glass extends React.Component {
           let scaleY = element.getPropertyValue('scale.y')
           if (scaleY === undefined || scaleY === null) scaleY = 1
           this.renderTransformBoxOverlay(element, points, overlays, element.canRotate(), this.state.isKeyCommandDown, true, rotationZ, scaleX, scaleY)
-          this.renderEventHandlersOverlay(element, points, overlays, rotationZ)
+          this.renderEventHandlersOverlay(element, points, overlays, rotationZ, scaleX, scaleY)
         }
       } else {
         // TODO: Render control points across multiple selected elements
@@ -1160,10 +1160,10 @@ export class Glass extends React.Component {
     }
   }
 
-  buildBoltInstance (x, y, rotationZ) {
+  buildBoltInstance (x, y, rotationZ, scaleX, scaleY) {
     const boltSize = 30
-    const offsetLeft = (boltSize * Math.cos(rotationZ)) - boltSize / 2
-    const offsetTop = (boltSize * Math.sin(rotationZ)) - boltSize / 2
+    const offsetLeft =  Math.sign(scaleX) * (boltSize * Math.cos(rotationZ)) - boltSize / 2
+    const offsetTop = Math.sign(scaleX) * (boltSize * Math.sin(rotationZ)) - boltSize / 2
 
     return {
       elementName: 'div',
@@ -1194,7 +1194,7 @@ export class Glass extends React.Component {
     }
   }
 
-  renderEventHandlersOverlay (element, points, overlays, rotationZ) {
+  renderEventHandlersOverlay (element, points, overlays, rotationZ, scaleX, scaleY) {
     // If the size is smaller than a threshold, only display the corners.
     // And if it is smaller even than that, don't display the points at all
     const dx = Element.distanceBetweenPoints(points[0], points[2], this.state.zoomXY)
@@ -1203,7 +1203,7 @@ export class Glass extends React.Component {
 
     if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) return
 
-    overlays.push(this.buildBoltInstance(x, y, rotationZ))
+    overlays.push(this.buildBoltInstance(x, y, rotationZ, scaleX, scaleY))
   }
 
   renderTransformBoxOverlay (element, points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
