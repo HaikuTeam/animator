@@ -1,6 +1,18 @@
 # Changelog
 
 
+## 2.3.37
+
+### Features
+
+ * Add haiku-ui-common module.
+
+### Bug Fixes
+
+ * Add space after "An update is available."
+ * Always assume controlFlow properties are mutable.
+ * Recalculate the flat mana tree every time a full flush render is performed.
+
 ## 2.3.36
 
 ### Bug Fixes
