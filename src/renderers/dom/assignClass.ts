@@ -4,7 +4,7 @@
 
 export default function assignClass(domElement, className) {
   if (domElement.className !== className) {
-    domElement.className = className;
+    domElement.setAttribute('class', className);
   }
   return domElement;
 }
