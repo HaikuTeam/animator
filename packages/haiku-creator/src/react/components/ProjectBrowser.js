@@ -1,5 +1,6 @@
 import {shell} from 'electron'
 import path from 'path'
+import fs from 'fs'
 import lodash from 'lodash'
 import React from 'react'
 import Radium from 'radium'
@@ -100,6 +101,11 @@ class ProjectBrowser extends React.Component {
         {this.state.projectsList.map((projectObject, index) => {
           const project = this.state.projectsList[index]
           const projectPath = path.join(HOMEDIR_PATH, 'projects', this.props.organizationName, project.projectName)
+          const thumbnail = projectPath + '/preview.html'
+          const hasThumb = fs.existsSync(thumbnail)
+          const standalone = projectPath + '/index.standalone.js'
+          const hasStandalone = fs.existsSync(standalone)
+          if (!fs.existsSync(projectPath)) return false
 
           return (
             <div style={[DASH_STYLES.card, project.isRemoved && DASH_STYLES.deleted]}
@@ -117,7 +123,9 @@ class ProjectBrowser extends React.Component {
                   project.isHovered
                   ) && DASH_STYLES.blurred
                 ]}>
-                <iframe src={projectPath + '/preview.html'}/>
+                {(hasThumb && hasStandalone) &&
+                  <iframe src={thumbnail}/>
+                }
               </div>
               <div id='scrim'
                 style={[
