@@ -2,7 +2,7 @@ const qs = require('qs')
 const os = require('os')
 const electron = require('electron')
 const fetch = require('node-fetch')
-const {download, unzipAndOpen} = require('./fileManipulation')
+const {download, unzip} = require('./fileManipulation')
 
 const opts = {
   server: process.env.HAIKU_AUTOUPDATE_SERVER,
@@ -27,17 +27,22 @@ module.exports = {
           return reject(Error('Missing release/autoupdate environment variables'))
         }
 
+
         const tempPath = os.tmpdir()
         const zipPath = `${tempPath}/haiku.zip`
+        // FIXME: these paths are macOS specific, it's ok for now, but
+        // we should look into a cross platform solution
         const installationPath = '/Applications'
+        const execPath = '/Applications/Haiku.app/Contents/MacOS/Haiku'
 
         console.info('[autoupdater] About to download an update:', options, url)
 
         download(url, zipPath, progressCallback)
           .then(() => {
-            return unzipAndOpen(zipPath, installationPath, 'Haiku')
+            return unzip(zipPath, installationPath)
           })
           .then(() => {
+            electron.remote.app.relaunch({execPath})
             electron.remote.app.exit()
           })
           .catch(reject)
