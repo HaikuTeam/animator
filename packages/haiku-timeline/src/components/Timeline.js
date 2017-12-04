@@ -488,6 +488,7 @@ class Timeline extends React.Component {
   }
 
   showFrameActionsEditor (frame) {
+    // #FIXME in multicomponents (matthew)
     this.showEventHandlersEditor(this.component.findElementRoots()[0].uid, frame)
   }
 
