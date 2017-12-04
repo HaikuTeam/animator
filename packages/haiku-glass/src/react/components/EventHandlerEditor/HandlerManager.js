@@ -221,7 +221,7 @@ class HandlerManager {
     return {
       event,
       handler: {
-        body: `/** event logic goes here */`,
+        body: `/** action logic goes here */`,
         params: [`event`]
       }
     }
