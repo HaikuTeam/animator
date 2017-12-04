@@ -177,6 +177,10 @@ class ActiveComponent extends BaseModel {
     return Element.findByComponentId(componentId)
   }
 
+  findElementRoots () {
+    return Element.findRoots()
+  }
+
   queryElements (criteria) {
     if (!criteria) criteria = {}
     criteria.component = this // Only query elements that belong to us
@@ -454,11 +458,24 @@ class ActiveComponent extends BaseModel {
     if (typeof cb === 'function') return cb()
   }
 
-  showEventHandlersEditor (elementUID, metadata, cb) {
+  showEventHandlersEditor (elementUID, options, metadata, cb) {
     this.emit(
       metadata.from === this.alias ? 'update' : 'remote-update',
       'showEventHandlersEditor',
-      {elementUID}
+      {elementUID, options}
+    )
+
+    // FIXME: for some reason sometimes the `metadata` argument is missing
+    if (typeof metadata === 'function') return metadata()
+    if (typeof cb === 'function') return cb()
+  }
+
+  eventHandlersUpdated (metadata, cb) {
+    console.log(metadata, cb)
+    this.emit(
+      metadata.from === this.alias ? 'update' : 'remote-update',
+      'eventHandlersUpdated',
+      {}
     )
 
     // FIXME: for some reason sometimes the `metadata` argument is missing

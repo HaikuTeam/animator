@@ -8,11 +8,7 @@ export default class FrameGrid extends React.Component {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
     this.rootElement = props.timeline.component.findElementRoots()[0]
-    this.timelineEvents = Object.keys(
-      this.rootElement.getReifiedEventHandlers()
-    )
-      .filter(handler => handler.indexOf('timeline:') !== -1)
-      .map(handler => Number(handler.split(':')[2]))
+    this.upsertTimelineEvents()
   }
 
   componentWillUnmount () {
@@ -25,16 +21,48 @@ export default class FrameGrid extends React.Component {
     this.props.timeline.on('update', this.handleUpdate)
   }
 
+  upsertTimelineEvents () {
+    this.timelineEvents = this.rootElement
+      .getCustomEvents()
+      .map(handler => Number(handler.split(':')[2]))
+  }
+
   handleUpdate (what) {
     if (!this.mounted) return null
+
     if (what === 'timeline-frame-range' || what === 'timeline-frame-hovered') {
       this.forceUpdate()
+    }
+
+    if (what === 'timeline-frame-action') {
+      setTimeout(() => {
+        this.upsertTimelineEvents()
+        this.forceUpdate()
+      }, 500)
+    }
+  }
+
+  renderFrameActions (frameNumber, hoveredFrame) {
+    if (this.timelineEvents.includes(frameNumber)) {
+      return <FrameAction
+        hasActions
+        frame={frameNumber}
+        onShowFrameActionsEditor={this.props.onShowFrameActionsEditor}
+      />
+    } else if (hoveredFrame === frameNumber) {
+      return <FrameAction
+        hasActions={false}
+        frame={frameNumber}
+        onShowFrameActionsEditor={this.props.onShowFrameActionsEditor}
+      />
     }
   }
 
   render () {
     const borderLeftNormal = '1px solid ' + Color(Palette.COAL).fade(0.65)
     const borderLeftHighlighted = '1px solid ' + Color(Palette.ROCK).fade(0.8)
+    const hoveredFrame = this.props.timeline.getHoveredFrame()
+
     return (
       <div
         id='frame-grid'
@@ -51,7 +79,7 @@ export default class FrameGrid extends React.Component {
                 style={{
                   height: 9999,
                   borderLeft:
-                    this.props.timeline.getHoveredFrame() === frameNumber
+                    hoveredFrame === frameNumber
                       ? borderLeftHighlighted
                       : borderLeftNormal,
                   position: 'absolute',
@@ -59,11 +87,7 @@ export default class FrameGrid extends React.Component {
                   top: 44
                 }}
               >
-                <FrameAction
-                  hasActions={this.timelineEvents.includes(frameNumber)}
-                  frame={frameNumber}
-                  onShowFrameActionsEditor={this.props.onShowFrameActionsEditor}
-                />
+                {this.renderFrameActions(frameNumber, hoveredFrame)}
               </span>
             )
           }

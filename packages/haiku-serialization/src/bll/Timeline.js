@@ -778,6 +778,10 @@ class Timeline extends BaseModel {
     const finalMs = Math.round(nearestFrame * frameInfo.mspf)
     return finalMs
   }
+
+  notifyFrameActionChange () {
+    this.emit('update', 'timeline-frame-action')
+  }
 }
 
 Timeline.DEFAULT_OPTIONS = {

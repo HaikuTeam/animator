@@ -86,6 +86,7 @@ export class Glass extends React.Component {
       doShowComments: false,
       targetElement: null,
       isEventHandlerEditorOpen: false,
+      eventHandlerEditorOptions: {},
       activeDrawingTool: 'pointer',
       drawingIsModal: true
     }
@@ -247,9 +248,9 @@ export class Glass extends React.Component {
         this.forceUpdate()
         this._component.getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
       } else if (what === 'showEventHandlersEditor') {
-        const {elementUID} = args[0]
+        const [{elementUID, options}] = args
         this.setLastSelectedElement(this._component.findElementByComponentId(elementUID))
-        this.showEventHandlersEditor(null, this.getLastSelectedElement())
+        this.showEventHandlersEditor(null, this.getLastSelectedElement(), options)
       }
 
       // Not sure if we really need to call this, since this is called in a raf loop
@@ -459,12 +460,13 @@ export class Glass extends React.Component {
     })
   }
 
-  showEventHandlersEditor (clickEvent, targetElement) {
+  showEventHandlersEditor (clickEvent, targetElement, options) {
     if (this.isPreviewMode()) return void (0)
 
     this.setState({
       targetElement: targetElement,
-      isEventHandlerEditorOpen: true
+      isEventHandlerEditorOpen: true,
+      eventHandlerEditorOptions: options
     })
   }
 
@@ -480,7 +482,11 @@ export class Glass extends React.Component {
   saveEventHandlers (targetElement, serializedEvents) {
     let selectorName = 'haiku:' + targetElement.uid
     this._component.batchUpsertEventHandlers(selectorName, serializedEvents, { from: 'glass' }, () => {
-
+      this.props.websocket.action(
+        'eventHandlersUpdated',
+        [this.props.folder],
+        () => {}
+      )
     })
   }
 
@@ -1561,6 +1567,7 @@ export class Glass extends React.Component {
               save={this.saveEventHandlers.bind(this)}
               close={this.hideEventHandlersEditor.bind(this)}
               visible={this.state.isEventHandlerEditorOpen}
+              options={this.state.eventHandlerEditorOptions}
             />
           }
 

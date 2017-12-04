@@ -162,6 +162,8 @@ class Timeline extends React.Component {
         }
 
         this.setState({isPreviewModeActive})
+      } else if (what === 'eventHandlersUpdated') {
+        this.component.getCurrentTimeline().notifyFrameActionChange()
       }
     })
   }
@@ -485,10 +487,14 @@ class Timeline extends React.Component {
     return Math.round(this.component.getCurrentTimeline().getCurrentFrame() * frameInfo.mspf)
   }
 
-  showEventHandlersEditor (elementUID) {
+  showFrameActionsEditor (frame) {
+    this.showEventHandlersEditor(this.component.findElementRoots()[0].uid, frame)
+  }
+
+  showEventHandlersEditor (elementUID, frame) {
     this.props.websocket.action(
       'showEventHandlersEditor',
-      [this.props.folder, elementUID],
+      [this.props.folder, elementUID, {isSimplified: Boolean(frame), frame}],
       () => {}
     )
   }

@@ -108,7 +108,7 @@ export default class Scrubber extends React.Component {
               backgroundColor: Palette.SUNSTONE,
               height: 9999,
               width: 1,
-              top: 25,
+              top: 35,
               left: pxOffset,
               pointerEvents: 'none'
             }} />

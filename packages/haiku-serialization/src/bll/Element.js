@@ -23,6 +23,8 @@ const ALLOWED_TAGNAMES = require('./element/AllowedTagNames')
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 
+const CUSTOM_EVENT_PREFIX = 'timeline:'
+
 const PI_OVER_12 = Math.PI / 12
 
 const DELTA_ROTATION_OFFSETS = {
@@ -172,6 +174,18 @@ class Element extends BaseModel {
     return _manaQuerySelectorAll(selector, this.node)
   }
 
+  getDOMEvents () {
+    return Object.keys(
+      this.getReifiedEventHandlers()
+    ).filter(handler => !handler.includes(CUSTOM_EVENT_PREFIX))
+  }
+
+  getCustomEvents () {
+    return Object.keys(
+      this.getReifiedEventHandlers()
+    ).filter(handler => handler.includes(CUSTOM_EVENT_PREFIX))
+  }
+
   hasEventHandlers () {
     return !lodash.isEmpty(this.getReifiedEventHandlers())
   }
@@ -196,10 +210,12 @@ class Element extends BaseModel {
   }
 
   batchUpsertEventHandlers (serializedEvents) {
+    /* eslint-disable no-unused-vars */
     let eventHandlers = this.getReifiedEventHandlers() // pointer to substructs[0].bytecode
     eventHandlers = serializedEvents // eslint-disable-line
     this.emit('update', 'element-event-handler-update')
     return this
+    /* eslint-enable no-unused-vars */
   }
 
   getEventHandlerSaveStatus (eventName) {
@@ -253,22 +269,6 @@ class Element extends BaseModel {
       label: 'Component/Lifecycle',
       options: Element.COMPONENT_EVENTS
     })
-
-    const customs = []
-    options.push({
-      label: 'Custom',
-      options: customs
-    })
-
-    for (let key in handlers) {
-      // Only add to the custom events list if we didn't already define it above
-      if (!predefined[key]) {
-        customs.push({
-          label: key,
-          value: key
-        })
-      }
-    }
 
     return options.filter(category => category.options.length > 0)
   }

@@ -71,6 +71,7 @@ class BaseMenu extends React.Component {
   }
 
   toggleOpen (event) {
+    if (typeof this.props.onToggle === 'function') this.props.onToggle(event)
     this.setState({isOpen: !this.state.isOpen})
   }
 

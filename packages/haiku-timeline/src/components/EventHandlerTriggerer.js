@@ -14,7 +14,7 @@ class EventHandlerTriggerer extends React.PureComponent {
   }
 
   getBoltColor () {
-    return this.props.element.hasEventHandlers() ? '#4DCEDA' : '#738C8F'
+    return this.props.element.getDOMEvents().length ? '#4DCEDA' : '#738C8F'
   }
 
   triggerEventHandlers () {

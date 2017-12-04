@@ -11,16 +11,16 @@ const STYLE = {
 }
 
 class FrameAction extends React.PureComponent {
-  constructor() {
+  constructor () {
     super()
     this.openFrameActionsEditor = this.openFrameActionsEditor.bind(this)
   }
 
-  openFrameActionsEditor() {
+  openFrameActionsEditor () {
     this.props.onShowFrameActionsEditor(this.props.frame)
   }
 
-  render() {
+  render () {
     if (this.props.hasActions) {
       return (
         <div onClick={this.openFrameActionsEditor} style={STYLE.base}>
@@ -30,12 +30,12 @@ class FrameAction extends React.PureComponent {
     } else {
       return (
         <div
-          className="frame-action"
+          className='frame-action'
           onClick={this.openFrameActionsEditor}
           style={{
             ...STYLE.base,
-            padding: '0 10px',
-            left: '-16px'
+            padding: '0 8px',
+            left: '-14px'
           }}
         >
           <style>
