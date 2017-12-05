@@ -288,7 +288,7 @@ class ProjectBrowser extends React.Component {
     return false
   }
 
-  handleProjectLaunch(projectObject) {
+  handleProjectLaunch (projectObject) {
     if (this.isProjectNameBad(projectObject.projectName)) {
       console.warn('bad name launched:', projectObject.projectName)
     } else {
