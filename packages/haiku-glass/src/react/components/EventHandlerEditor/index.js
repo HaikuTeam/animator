@@ -158,8 +158,6 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   renderEditors () {
-    if (!this.handlerManager) return []
-
     let totalNumberOfHandlers = this.handlerManager.size()
     const applicableEventHandlers = this.handlerManager.getApplicableEventHandlers()
 
@@ -169,6 +167,8 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   render () {
+    if (!this.handlerManager) return null
+
     const visibilityStyles = this.props.visible ? {} : {visibility: 'hidden'}
 
     return (
@@ -192,7 +192,10 @@ class EventHandlerEditor extends React.PureComponent {
               ? `Frame ${this.props.options.frame}`
               : null
           }
-          hideActions={this.props.options.isSimplified}
+          hideActions={
+            this.props.options.isSimplified ||
+            !this.handlerManager.getNextAvailableDOMEvent()
+          }
           onNewAction={this.addAction}
         />
 

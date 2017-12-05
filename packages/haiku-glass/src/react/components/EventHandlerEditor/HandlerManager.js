@@ -57,7 +57,7 @@ class HandlerManager {
    * listener to it.
    */
   addNextAvailableEventHandler () {
-    const event = this._getNextAvailableDOMEvent()
+    const event = this.getNextAvailableDOMEvent()
     this._addEventHandler(event)
   }
 
@@ -130,6 +130,17 @@ class HandlerManager {
   }
 
   /**
+   * Finds an event that hasn't been applied to the element
+   */
+  getNextAvailableDOMEvent () {
+    for (const event of this.applicableEventHandlersList) {
+      if (!this.appliedEventHandlers.has(event)) {
+        return event
+      }
+    }
+  }
+
+  /**
    * Adds an event with a default handler to an element
    *
    * @param {String} event
@@ -163,17 +174,6 @@ class HandlerManager {
    */
   _isDOMEvent (event) {
     return this.applicableEventHandlersList.includes(event)
-  }
-
-  /**
-   * Finds an event that hasn't been applied to the element
-   */
-  _getNextAvailableDOMEvent () {
-    for (const event of this.applicableEventHandlersList) {
-      if (!this.appliedEventHandlers.has(event)) {
-        return event
-      }
-    }
   }
 
   /**
