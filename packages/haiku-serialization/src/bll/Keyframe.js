@@ -289,11 +289,11 @@ class Keyframe extends BaseModel {
   }
 
   getUniqueKey () {
-    return `${this.row.getPropertyNameString()}-${this.getIndex()}-${this.getMs()}`
+    return `${this.getUniqueKeyWithoutTimeIncluded()}-${this.getMs()}`
   }
 
   getUniqueKeyWithoutTimeIncluded () {
-    return `${this.row.getPropertyNameString()}-${this.getIndex()}`
+    return `${this.row.getUniqueKey()}-${this.getIndex()}`
   }
 
   isWithinCollapsedRow () {
