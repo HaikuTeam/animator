@@ -1475,23 +1475,12 @@ function computeAndApplyPresetSizing(element, container, mode, deltas) {
 
       // We're looking for the smaller of two scales that ensures the entire box is covered.
       // The rounding is necessary to avoid precision issues, where we end up comparing e.g. 2.0000000000001 to 2
-      if (
-        ~~(scaleDiffX * elementWidth) >= containerWidth &&
-        ~~(scaleDiffX * elementHeight) >= containerHeight
-      ) {
+      if (~~(scaleDiffX * elementHeight) >= containerHeight) {
         coverScaleToUse = scaleDiffX;
-      }
-      if (
-        ~~(scaleDiffY * elementWidth) >= containerWidth &&
-        ~~(scaleDiffY * elementHeight) >= containerHeight
-      ) {
-        if (coverScaleToUse === null) {
-          coverScaleToUse = scaleDiffY;
-        } else {
-          if (scaleDiffY <= coverScaleToUse) {
-            coverScaleToUse = scaleDiffY;
-          }
-        }
+      } else if (~~(scaleDiffY * elementWidth) >= containerWidth) {
+        coverScaleToUse = scaleDiffY;
+      } else {
+        coverScaleToUse = Math.max(scaleDiffX, scaleDiffY);
       }
 
       if (element.layout.scale.x !== coverScaleToUse) {
