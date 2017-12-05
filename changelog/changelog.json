@@ -3398,5 +3398,6 @@
       "label": "fix",
       "message": "use setAttribute() during DOM render instead of setting className directly."
     }
-  }
+  },
+  "2.3.39": {}
 }
