@@ -73,18 +73,46 @@ class ProjectBrowser extends React.Component {
     })
   }
 
+
+  handleRedoClick () {
+    return this.props.websocket.request({ method: 'gitRedo', params: [this.props.folder, { type: 'global' }] }, (err) => {
+      if (err) {
+        console.error(err)
+        return this.props.createNotice({
+          type: 'warning',
+          title: 'Uh oh!',
+          message: 'We were unable to redo your last action. 😢 Please contact Haiku for support.'
+        })
+      }
+    })
+  }
+
   showProjectDeleteConfirmation (index) {
 
   }
 
-  deleteProject (index) {
-    console.log('deleting bro')
+  deletedCB () {
+    // this seems to be called immediately when requestDeleteProject() fires
+    console.log('has reached dleeted callbacl')
+  }
+
+  performDeleteProject (index) {
     const projectsList = this.state.projectsList
+    const name = projectsList[index].projectName
     projectsList[index].isRemoved = true
     this.setState({ projectsList })
     setTimeout(() => {
       // call the real delete only after the animated removal happens in the UI
     }, 300)
+    return this.requestDeleteProject(name, (deleteError) => {
+      console.log('first callback', deleteError)
+    })
+  }
+
+  requestDeleteProject (name, cb) {
+    console.log('has callback?', cb) // does have it
+    // for some reasons the cb is null in plumbing's 'deleteProject' method
+    return this.props.websocket.request({ method: 'deleteProject', params: [name, this.deletedCB()] }, cb)
   }
 
   projectsListElement () {
@@ -165,7 +193,7 @@ class ProjectBrowser extends React.Component {
                     DUPLICATE
                   </span>*/}
                   <span key={'delete' + index}
-                    onClick={() => this.deleteProject(index)}
+                    onClick={() => this.performDeleteProject(index)}
                     style={[
                       DASH_STYLES.menuOption,
                       !!!project.isMenuActive && DASH_STYLES.gone]}>

@@ -797,12 +797,13 @@ export default class Plumbing extends StateObject {
   deleteProject (name, cb) {
     logger.info('[plumbing] deleting project', name)
     var authToken = sdkClient.config.getAuthToken()
+    console.log('cb', cb) // not sure why cb is null
     return inkstone.project.deleteByName(authToken, name, (deleteErr) => {
       if (deleteErr) {
         this.sentryError('deleteProject', deleteErr)
-        return cb(deleteErr)
+        if (cb) return cb(deleteErr)
       }
-      return cb()
+      if (cb) return cb()
     })
   }
 
