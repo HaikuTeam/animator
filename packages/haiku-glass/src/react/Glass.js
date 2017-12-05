@@ -1564,7 +1564,9 @@ export class Glass extends React.Component {
           {!this.isPreviewMode() &&
             <EventHandlerEditor
               element={this.state.targetElement}
-              save={(args) => { this.saveEventHandlers(...args) }}
+              save={(targetElement, serializedEvent) => {
+                this.saveEventHandlers(targetElement, serializedEvent)
+              }}
               close={() => { this.hideEventHandlersEditor() }}
               visible={this.state.isEventHandlerEditorOpen}
               options={this.state.eventHandlerEditorOptions}

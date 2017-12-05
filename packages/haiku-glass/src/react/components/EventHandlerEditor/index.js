@@ -15,7 +15,8 @@ const STYLES = {
     backgroundColor: Palette.COAL,
     borderRadius: '4px',
     padding: '64px 0 20px 20px',
-    zIndex: 9001
+    zIndex: 9001,
+    cursor: 'auto'
   },
   outer: {
     position: 'relative'
