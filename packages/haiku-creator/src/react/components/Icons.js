@@ -616,11 +616,11 @@ export const LogoGradientSVG = () => (
   <svg width='73px' height='95px' viewBox='475 283 73 95'>
     <defs>
       <linearGradient x1='50%' y1='0%' x2='50%' y2='100%' id='linearGradient-1'>
-        <stop stopColor='#F1D00B' offset='0%' />
+        <stop stopColor='#FFDE64' offset='0%' />
         <stop stopColor='#D62563' offset='100%' />
       </linearGradient>
       <linearGradient x1='50%' y1='0%' x2='50%' y2='165.831298%' id='linearGradient-2'>
-        <stop stopColor='#F1D00B' offset='0%' />
+        <stop stopColor='#FFDE64' offset='0%' />
         <stop stopColor='#D62563' offset='100%' />
       </linearGradient>
     </defs>
