@@ -247,6 +247,10 @@ function createCollection (klass, collection, opts) {
     })
   }
 
+  klass.collection = () => {
+    return collection
+  }
+
   klass.count = () => {
     return klass.all().length
   }
