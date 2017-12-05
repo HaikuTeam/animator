@@ -1,5 +1,5 @@
 import Palette from '../components/Palette'
-// import Color from 'color'
+import Color from 'color'
 
 export const BTN_STYLES = {
   btnIcon: {
@@ -58,5 +58,14 @@ export const BTN_STYLES = {
   btnPrimary: {
     backgroundColor: Palette.LIGHTEST_PINK,
     color: Palette.SUNSTONE
+  },
+  btnPrimaryAlt: {
+    backgroundColor: Color(Palette.FATHER_COAL).darken(.2),
+  },
+  btnCancel: {
+    letterSpacing: '1.3px',
+    marginTop: 4,
+    marginRight: 20,
+    cursor: 'pointer'
   }
 }

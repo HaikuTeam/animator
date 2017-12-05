@@ -22,17 +22,6 @@ export const DASH_STYLES = {
     justifyContent: 'flex-end',
     color: Palette.ROCK,
   },
-  btnNewProject: {
-    borderRadius: '50%',
-    backgroundColor: Palette.COAL,
-    color: Palette.ROCK,
-    width: 22,
-    height: 22,
-    marginTop: -1,
-    ':hover': {
-      backgroundColor: Palette.DARKER_GRAY
-    }
-  },
   tooltip: {
     backgroundColor: Palette.LIGHT_PINK,
     color: Palette.ROCK,
@@ -250,7 +239,8 @@ export const DASH_STYLES = {
       minWidth: '150px',
       borderRadius: '3px',
       right: -26,
-      top: 26
+      top: 26,
+      boxShadow: '0 5px 20px 0 rgba(21,32,34,0.59)'
     },
     item: {
       display: 'flex',
@@ -296,17 +286,32 @@ export const DASH_STYLES = {
     left: '50%',
     zIndex: 100,
     width: 600,
-    minHeight: 350,
+    minHeight: 231,
     borderRadius: 8,
+    padding: '30px 40px 20px',
     backgroundColor: Palette.COAL,
     transform: 'translate(-50%, -50%)',
     boxShadow: '0 12px 60px 0 rgba(21,32,34,0.79)'
   },
-  newProjectInput: {
-
+  modalTitle: {
+    color: Palette.SUNSTONE,
+    fontSize: 16,
+    marginBottom: 12
   },
-  btnCreateProj: {
-
+  inputTitle: {
+    color: Palette.ROCK,
+    fontSize: 12,
+    marginBottom: 4
+  },
+  newProjectInput: {
+    backgroundColor: Color(Palette.COAL).darken(.3),
+    width: '100%',
+    height: 53,
+    color: Palette.SUNSTONE,
+    padding: 20,
+    borderRadius: 5,
+    fontSize: 15,
+    marginBottom: 42
   },
   newProjectError: {
 

@@ -123,7 +123,11 @@ class ProjectBrowser extends React.Component {
   }
 
   showNewProjectModal () {
-    !this.alreadyHasTooManyProjects() && this.setState({ showNewProjectModal: true })
+    if (!this.alreadyHasTooManyProjects()) {
+      this.setState({ showNewProjectModal: true }, () => {
+        this.refs.newProjectInput.select()
+      })
+    }
   }
 
   projectsListElement () {
@@ -364,6 +368,40 @@ class ProjectBrowser extends React.Component {
     )
   }
 
+  renderNewProjectModal() {
+    return (
+      <div style={DASH_STYLES.overlay}
+        onClick={() => this.setState({showNewProjectModal: false})}>
+        <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
+          <div style={DASH_STYLES.modalTitle}>Name Project To Start</div>
+          <div style={DASH_STYLES.inputTitle}>PROJECT NAME</div>
+          <input key='new-project-input'
+            ref='newProjectInput'
+            disabled={this.state.newProjectLoading}
+            onKeyDown={this.handleNewProjectInputKeyDown.bind(this)}
+            style={[DASH_STYLES.newProjectInput]}
+            value={this.state.recordedNewProjectName}
+            onChange={this.handleNewProjectInputChange.bind(this)}
+            placeholder='NewProjectName' />
+          <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
+          <button key='new-project-go-button'
+            disabled={this.state.newProjectLoading}
+            onClick={() => {
+              this.handleNewProjectGo()
+              this.setState({showNewProjectModal: false})
+            }}
+            style={[BTN_STYLES.btnText, BTN_STYLES.rightBtns, BTN_STYLES.btnPrimaryAlt, {marginRight: 0}]}>
+            NAME PROJECT
+          </button>
+          <span style={[BTN_STYLES.btnCancel, BTN_STYLES.rightBtns]}
+            onClick={() => this.setState({showNewProjectModal: false})}>
+            CANCEL
+          </span>
+        </div>
+      </div>
+    )
+  }
+
   render () {
     return (
       <div style={DASH_STYLES.dashWrap}>
@@ -376,34 +414,7 @@ class ProjectBrowser extends React.Component {
           </div>
         </ReactCSSTransitionGroup>
 
-        {this.state.showNewProjectModal &&
-          <div style={DASH_STYLES.overlay}
-            onClick={() => this.setState({showNewProjectModal: false})}>
-            <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
-              <div style={DASH_STYLES.modalTitle}>Name Project To Start</div>
-              <div style={DASH_STYLES.inputTitle}>PROJECT NAME</div>
-              <input key='new-project-input'
-                ref='newProjectInput'
-                disabled={this.state.newProjectLoading}
-                onKeyDown={this.handleNewProjectInputKeyDown.bind(this)}
-                style={[DASH_STYLES.newProjectInput]}
-                value={this.state.recordedNewProjectName}
-                onChange={this.handleNewProjectInputChange.bind(this)}
-                placeholder='NewProjectName' />
-              <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
-              <span style={DASH_STYLES.btnCancel}>CANCEL</span>
-              <button key='new-project-go-button'
-                disabled={this.state.newProjectLoading}
-                onClick={() => {
-                  this.handleNewProjectGo()
-                  this.setState({showNewProjectModal: false})
-                }}
-                style={DASH_STYLES.btnCreateProj}>
-                NAME PROJECT
-              </button>
-            </div>
-          </div>
-        }
+        { this.state.showNewProjectModal && this.renderNewProjectModal() }
 
         <div style={DASH_STYLES.frame} className='frame' >
           <button key='new_proj'
