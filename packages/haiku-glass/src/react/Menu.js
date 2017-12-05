@@ -79,24 +79,9 @@ class BaseMenu extends React.Component {
     if (event.target.className === closeIfSelectedClass) this.close()
   }
 
-  getElementPosition (element) {
-    let left = 0
-    let top = 0
-    let el = element
-
-    do {
-      left += el.offsetLeft
-      top += el.offsetTop
-
-      el = el.offsetParent
-    } while (el)
-
-    return {left, top}
-  }
-
   getWrapperStyles () {
     if (this.props.fixed && this.triggerRef) {
-      const {left, top} = this.getElementPosition(this.triggerRef)
+      const {left, top} = this.triggerRef.getBoundingClientRect()
       const offset = this.props.offset
 
       return {
