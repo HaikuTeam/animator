@@ -300,12 +300,15 @@ export const DASH_STYLES = {
     borderRadius: 8,
     backgroundColor: Palette.COAL,
     transform: 'translate(-50%, -50%)',
-    boxShadow: '0 20px 80px 0 rgba(21,32,34,0.79)'
+    boxShadow: '0 12px 60px 0 rgba(21,32,34,0.79)'
   },
   newProjectInput: {
 
   },
   btnCreateProj: {
+
+  },
+  newProjectError: {
 
   }
 }

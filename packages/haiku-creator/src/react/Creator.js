@@ -66,6 +66,7 @@ export default class Creator extends React.Component {
     this.onAutoUpdateCheckComplete = this.onAutoUpdateCheckComplete.bind(this)
     this.onTimlineMounted = this.onTimlineMounted.bind(this)
     this.onTimelineUnmounted = this.onTimelineUnmounted.bind(this)
+    this.clearAuth = this.clearAuth.bind(this)
     this.layout = new EventEmitter()
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
 
@@ -676,6 +677,10 @@ export default class Creator extends React.Component {
     )
   }
 
+  clearAuth () {
+    this.setState({readyForAuth: true, isUserAuthenticated: false, username: ''})
+  }
+
   render () {
     if (this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username)) {
       return (
@@ -703,6 +708,7 @@ export default class Creator extends React.Component {
             launchProject={this.launchProject}
             createNotice={this.createNotice}
             removeNotice={this.removeNotice}
+            clearAuth={this.clearAuth}
             notices={this.state.notices}
             envoy={this.envoy}
             {...this.props} />

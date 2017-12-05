@@ -65,7 +65,8 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   openTerminal: true,
   saveProject: true,
   previewProject: true,
-  fetchProjectInfo: true
+  fetchProjectInfo: true,
+  doLogOut: true
 }
 
 const ROOT_DIR = path.join(__dirname, '..')
@@ -833,6 +834,12 @@ export default class Plumbing extends StateObject {
   checkInkstoneUpdates (options = {}, cb) {
     var authToken = sdkClient.config.getAuthToken()
     return inkstone.updates.check(authToken, options, cb)
+  }
+
+  doLogOut (cb) {
+    console.log('update')
+    sdkClient.config.setAuthToken('')
+    return cb()
   }
 
   listAssets (folder, cb) {

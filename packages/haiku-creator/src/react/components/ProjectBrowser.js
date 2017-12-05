@@ -1,4 +1,4 @@
-import {shell} from 'electron'
+import { shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import lodash from 'lodash'
@@ -114,6 +114,12 @@ class ProjectBrowser extends React.Component {
     console.log('has callback?', cb) // does have it
     // for some reasons the cb is null in plumbing's 'deleteProject' method
     return this.props.websocket.request({ method: 'deleteProject', params: [name, this.deletedCB()] }, cb)
+  }
+
+  logOut () {
+    return this.props.websocket.request({ method: 'doLogOut' }, () => {
+      this.props.clearAuth()
+    })
   }
 
   showNewProjectModal () {
@@ -342,7 +348,7 @@ class ProjectBrowser extends React.Component {
           <span style={[DASH_STYLES.popover.text, DASH_STYLES.noSelect]}>{this.props.username}</span>
         </div>
         <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}
-          onClick={() => console.log('log out please')}>
+          onClick={() => this.logOut()}>
           <span style={DASH_STYLES.popover.icon}>
             <LogOutSVG />
           </span>
