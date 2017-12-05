@@ -3346,5 +3346,57 @@
       "label": "fix",
       "message": "Recalculate the flat mana tree every time a full flush render is performed."
     }
+  },
+  "2.3.38": {
+    "05ac562b81bbb000ec7bc3928ec95c89f9ef4137": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "ensure {sizing"
+    },
+    "435354ff4319c3941af6a49d13cf9a2e5f358c17": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Use good unique key for rendering React keyframe; fixes weird copy+paste behavior in Timeline UI"
+    },
+    "1fb9277328364ac69e78e02b1c955307b2d36494": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Don't use pkey to determine BLL entity equivalence"
+    },
+    "c93e0bc5ab4613b34f5f24ee99963c9cd409006b": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure the timeline property display updates when keyframes are created/deleted"
+    },
+    "144bfd19f056687a3ca1f3c79fa0bb415b1058ec": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "After dragging keyframes, ensure a 0th keyframe for any affected rows"
+    },
+    "d1376087b7aba668cd74efd695e882133651db7d": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "When creating and deleting keyframes, make sure a 0th keyframe is also created"
+    },
+    "e4ab6ab8a3f10326be9564b3ea7215336db2d69c": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Add BLL method to return a row's property's default ('fallback') value"
+    },
+    "ce962f9b615f7cb3a1967a037cf8dd6a068edfc2": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "For debugging convenience, add method to return a BLL entity's full collection including deleted entities"
+    },
+    "e5bb50c3cb8ea4430bd841db6659d738c5658ae0": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Prevent broken logic for curve removal from prior when keyframe is deleted from bytecode"
+    },
+    "ce227c768f8ec20a4e2482a15d0a40ef0f2680be": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "use setAttribute() during DOM render instead of setting className directly."
+    }
   }
 }
