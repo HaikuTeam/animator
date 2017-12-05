@@ -30,14 +30,13 @@ module.exports = function deleteKeyframe (bytecode, componentId, timelineName, p
   }
 
   var prev = list[curr.index - 1]
+  var next = list[curr.index + 1]
 
   // First delete our keyframe
   delete property[keyframeMs]
 
-  // Remove the curve from the previous keyframe since it has nothing to attach to now.
-  // In case of a middle keyframe (between two transitions) assume the user will create a new
-  // transition manually in this case
-  if (prev) {
+  // Remove the curve from the previous keyframe if it has no subsequent keyframe to attach to
+  if (prev && !next) {
     property[prev.start] = {}
     property[prev.start].value = prev.value
     if (prev.edited) property[prev.start].edited = true

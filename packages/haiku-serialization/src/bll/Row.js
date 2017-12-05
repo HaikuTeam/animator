@@ -275,6 +275,31 @@ class Row extends BaseModel {
     this.emit('update', 'row-deleted')
   }
 
+  hasZerothKeyframe () {
+    return !!this.getZerothKeyframe()
+  }
+
+  getZerothKeyframe () {
+    return this.getKeyframes().filter((keyframe) => {
+      return keyframe.getMs() < 1
+    })[0]
+  }
+
+  ensureZerothKeyframe (metadata) {
+    if (!this.hasZerothKeyframe()) {
+      this.createKeyframe(this.getFallbackValue(), 0, metadata)
+    }
+  }
+
+  fixKeyframeIndices () {
+    const siblings = this.getKeyframes()
+    siblings.forEach((keyframe, index) => {
+      keyframe.index = index
+      keyframe.uid = Keyframe.getInferredUid(this, index)
+      keyframe.cacheClear()
+    })
+  }
+
   createKeyframe (value, ms, metadata) {
     // If creating a keyframe on a cluster row, create one for all of the child rows
     if (this.isClusterHeading()) {
@@ -376,6 +401,10 @@ class Row extends BaseModel {
       () => {}
     )
 
+    this.ensureZerothKeyframe(metadata)
+
+    this.fixKeyframeIndices()
+
     this.emit('update', 'keyframe-create')
     if (this.parent) this.parent.emit('update', 'keyframe-create')
     Keyframe.deselectAndDeactivateAllKeyframes()
@@ -403,6 +432,12 @@ class Row extends BaseModel {
       metadata,
       () => {}
     )
+
+    if (keyframe.getMs() < 1) {
+      this.ensureZerothKeyframe(metadata)
+    }
+
+    this.fixKeyframeIndices()
 
     this.emit('update', 'keyframe-delete')
     if (this.parent) this.parent.emit('update', 'keyframe-delete')
@@ -512,6 +547,15 @@ class Row extends BaseModel {
   // This is a dupe of getPropertyNameString, not sure which is preferred
   getPropertyName () {
     return this.property && this.property.name
+  }
+
+  getFallbackValue () {
+    if (this.property) {
+      if (this.property.fallback !== undefined) {
+        return this.property.fallback
+      }
+    }
+    return 1 // Possibly safer and more obvious than 0?
   }
 
   isClusterActivated (item) {
@@ -764,6 +808,15 @@ Row.last = function last () {
 
 Row.first = function first () {
   return Row.find({ place: 0 })
+}
+
+Row.fetchAndUnsetRowsToEnsureZerothKeyframe = () => {
+  const rows = []
+  Row.where({ _needsToEnsureZerothKeyframe: true }).forEach((row) => {
+    row._needsToEnsureZerothKeyframe = false
+    rows.push(row)
+  })
+  return rows
 }
 
 module.exports = Row

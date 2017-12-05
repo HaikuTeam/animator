@@ -748,7 +748,7 @@ class Timeline extends React.Component {
           height: 'calc(100% - 45px)',
           width: '100%',
           overflowY: 'hidden',
-          overflowX: 'hidden',
+          overflowX: 'hidden'
         }}>
         {
           this.state.isPreviewModeActive && (

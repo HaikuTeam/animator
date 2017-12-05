@@ -162,7 +162,6 @@ class BaseModel extends EventEmitter {
   sameAs (other) {
     if (!other) return false
     if (this === other) return true
-    if (this.getPrimaryKey() === other.getPrimaryKey()) return true
     return false
   }
 
@@ -245,6 +244,10 @@ function createCollection (klass, collection, opts) {
     return collection.filter((item) => {
       return !item.isDestroyed()
     })
+  }
+
+  klass.collection = () => {
+    return collection
   }
 
   klass.count = () => {
