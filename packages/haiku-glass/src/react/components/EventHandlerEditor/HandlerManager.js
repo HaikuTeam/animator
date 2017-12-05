@@ -26,7 +26,7 @@ class HandlerManager {
     const result = {}
 
     /* eslint-disable no-unused-vars */
-    for (let [event, {id, handler}] of this.appliedEventHandlers) {
+    for (const [event, {id, handler}] of this.appliedEventHandlers) {
       // Only save events with a handler length, in this way we support
       // deletion of events by empty body funcitons
       if (handler.body.length) {
@@ -89,7 +89,7 @@ class HandlerManager {
   DOMEvents () {
     const result = []
 
-    for (let [event, {id, handler}] of this.appliedEventHandlers) {
+    for (const [event, {id, handler}] of this.appliedEventHandlers) {
       if (this._isDOMEvent(event)) {
         result.push({id, event, handler})
       }
@@ -146,8 +146,8 @@ class HandlerManager {
   _applicableEventHandlersToList () {
     const result = []
 
-    for (let handlerGroup of this.applicableEventHandlers) {
-      for (let {value} of handlerGroup.options) {
+    for (const handlerGroup of this.applicableEventHandlers) {
+      for (const {value} of handlerGroup.options) {
         result.push(value)
       }
     }
@@ -169,7 +169,7 @@ class HandlerManager {
    * Finds an event that hasn't been applied to the element
    */
   _getNextAvailableDOMEvent () {
-    for (let event of this.applicableEventHandlersList) {
+    for (const event of this.applicableEventHandlersList) {
       if (!this.appliedEventHandlers.has(event)) {
         return event
       }
@@ -190,7 +190,7 @@ class HandlerManager {
     const result = new Map()
     const appliedEventHandlers = element.getReifiedEventHandlers()
 
-    for (let [event, rawHandler] of Object.entries(appliedEventHandlers)) {
+    for (const [event, rawHandler] of Object.entries(appliedEventHandlers)) {
       const wrappedHandler = rawHandler.original || rawHandler.handler
       const handler = functionToRFO(wrappedHandler).__function
       const id = this._generateID()

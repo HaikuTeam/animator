@@ -61,10 +61,6 @@ class BaseMenu extends React.Component {
   constructor (props) {
     super(props)
 
-    this.toggleOpen = this.toggleOpen.bind(this)
-    this.close = this.close.bind(this)
-    this.closeIfOptionSelected = this.closeIfOptionSelected.bind(this)
-
     this.state = {
       isOpen: false
     }
@@ -131,7 +127,7 @@ class BaseMenu extends React.Component {
             `}
         </style>
         <div
-          onClick={this.toggleOpen}
+          onClick={() => { this.toggleOpen() }}
           ref={trigger => {
             this.triggerRef = trigger
           }}
@@ -139,8 +135,8 @@ class BaseMenu extends React.Component {
           {this.props.trigger}
         </div>
         <ul
-          onClick={this.closeIfOptionSelected}
-          onMouseLeave={this.close}
+          onClick={() => { this.closeIfOptionSelected() }}
+          onMouseLeave={() => { this.close() }}
           style={[
             STYLES.resetList,
             STYLES.menu,

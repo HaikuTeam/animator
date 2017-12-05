@@ -576,7 +576,7 @@ class Timeline extends React.Component {
             position: 'absolute',
             top: 0,
             left: 0,
-            paddingTop: '5px',
+            paddingTop: 5,
             height: 'inherit',
             width: this.component.getCurrentTimeline().getPropertiesPixelWidth()
           }}>

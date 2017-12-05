@@ -56,7 +56,7 @@ class EventSelector extends React.Component {
     )
   }
 
-  renderMenuItems () {
+  get renderMenuItems () {
     return this.props.options.map(({label, options}) =>
       <SubMenu title={label} key={label} hoverDelay={0}>
         {options.map(item => this.renderSingleMenuItem(item))}
@@ -64,7 +64,7 @@ class EventSelector extends React.Component {
     )
   }
 
-  renderMenuTrigger () {
+  get renderMenuTrigger () {
     return (
       <div style={STYLES.eventsMenuTrigger}>
         <span style={STYLES.eventsMenuTrigger.text}>
@@ -79,10 +79,10 @@ class EventSelector extends React.Component {
     return (
       <div style={STYLES.selectWrapper}>
         <Menu
-          trigger={this.renderMenuTrigger()}
+          trigger={this.renderMenuTrigger}
           fixed
         >
-          {this.renderMenuItems()}
+          {this.renderMenuItems}
         </Menu>
       </div>
     )

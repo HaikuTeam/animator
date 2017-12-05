@@ -471,7 +471,6 @@ class ActiveComponent extends BaseModel {
   }
 
   eventHandlersUpdated (metadata, cb) {
-    console.log(metadata, cb)
     this.emit(
       metadata.from === this.alias ? 'update' : 'remote-update',
       'eventHandlersUpdated',

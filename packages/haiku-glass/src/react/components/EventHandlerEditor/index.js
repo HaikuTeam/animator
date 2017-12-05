@@ -60,7 +60,7 @@ class EventHandlerEditor extends React.PureComponent {
       return true
     }
 
-    if (visible !== this.props.visible) {
+    if (visible || this.props.visible) {
       return true
     }
 
