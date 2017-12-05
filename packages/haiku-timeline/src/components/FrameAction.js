@@ -1,5 +1,6 @@
 import React from 'react'
 import Bolt from './Icons/Bolt'
+import Palette from './DefaultPalette'
 
 const STYLE = {
   base: {
@@ -24,7 +25,7 @@ class FrameAction extends React.PureComponent {
     if (this.props.hasActions) {
       return (
         <div onClick={this.openFrameActionsEditor} style={STYLE.base}>
-          <Bolt color={'#4DCEDA'} />
+          <Bolt color={Palette.LIGHT_BLUE} />
         </div>
       )
     } else {

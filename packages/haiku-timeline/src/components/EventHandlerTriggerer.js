@@ -1,5 +1,6 @@
 import React from 'react'
 import Bolt from './icons/Bolt'
+import Palette from './DefaultPalette'
 
 const STYLES = {
   wrapper: {
@@ -14,7 +15,9 @@ class EventHandlerTriggerer extends React.PureComponent {
   }
 
   getBoltColor () {
-    return this.props.element.getDOMEvents().length ? '#4DCEDA' : '#738C8F'
+    return this.props.element.getDOMEvents().length
+      ? Palette.LIGHT_BLUE
+      : Palette.DARK_ROCK
   }
 
   triggerEventHandlers () {
