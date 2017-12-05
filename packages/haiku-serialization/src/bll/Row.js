@@ -514,6 +514,15 @@ class Row extends BaseModel {
     return this.property && this.property.name
   }
 
+  getFallbackValue () {
+    if (this.property) {
+      if (this.property.fallback !== undefined) {
+        return this.property.fallback
+      }
+    }
+    return 1 // Possibly safer and more obvious than 0?
+  }
+
   isClusterActivated (item) {
     return false // TODO
   }
