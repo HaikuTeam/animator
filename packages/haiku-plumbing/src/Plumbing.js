@@ -66,7 +66,8 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   saveProject: true,
   previewProject: true,
   fetchProjectInfo: true,
-  doLogOut: true
+  doLogOut: true,
+  deleteProject: true
 }
 
 const ROOT_DIR = path.join(__dirname, '..')
@@ -798,7 +799,6 @@ export default class Plumbing extends StateObject {
   deleteProject (name, cb) {
     logger.info('[plumbing] deleting project', name)
     var authToken = sdkClient.config.getAuthToken()
-    console.log('cb', cb) // not sure why cb is null
     return inkstone.project.deleteByName(authToken, name, (deleteErr) => {
       if (deleteErr) {
         this.sentryError('deleteProject', deleteErr)

@@ -33,7 +33,12 @@ class ProjectBrowser extends React.Component {
       launchingProject: false,
       recordedNewProjectName: '',
       isPopoverOpen: false,
-      showNewProjectModal: false
+      showNewProjectModal: false,
+      showDeleteModal: false,
+      recordedDelete: '',
+      projToDelete: '',
+      projToDeleteIndex: null,
+      confirmDeleteMatches: false
     }
   }
 
@@ -88,32 +93,44 @@ class ProjectBrowser extends React.Component {
     })
   }
 
-  showProjectDeleteConfirmation (index) {
-
+  handleDeleteInputKeyDown (e) {
+    if (e.keyCode === 13 && this.state.confirmDeleteMatches) {
+      this.performDeleteProject(this.state.projToDeleteIndex)
+      this.setState({showDeleteModal: false, projToDelete: ''})
+    }
   }
 
-  deletedCB () {
-    // this seems to be called immediately when requestDeleteProject() fires
-    console.log('has reached dleeted callbacl')
+  handleDeleteInputChange (e) {
+    this.setState({recordedDelete: e.target.value}, () => {
+      if (this.state.recordedDelete == this.state.projToDelete) {
+        this.setState({confirmDeleteMatches: true})
+      }
+    })
+  }
+
+  showDeleteModal (index) {
+    const projectsList = this.state.projectsList
+    const name = projectsList[index].projectName
+
+    this.setState({ showDeleteModal: true, projToDelete: name, projToDeleteIndex: index }, () => {
+      this.refs.deleteInput.select()
+    })
   }
 
   performDeleteProject (index) {
     const projectsList = this.state.projectsList
     const name = projectsList[index].projectName
-    projectsList[index].isRemoved = true
-    this.setState({ projectsList })
-    setTimeout(() => {
-      // call the real delete only after the animated removal happens in the UI
-    }, 300)
+
     return this.requestDeleteProject(name, (deleteError) => {
-      console.log('first callback', deleteError)
+      if (!deleteError) {
+        projectsList[index].isRemoved = true
+        this.setState({ projectsList, confirmDeleteMatches: false })
+      }
     })
   }
 
   requestDeleteProject (name, cb) {
-    console.log('has callback?', cb) // does have it
-    // for some reasons the cb is null in plumbing's 'deleteProject' method
-    return this.props.websocket.request({ method: 'deleteProject', params: [name, this.deletedCB()] }, cb)
+    return this.props.websocket.request({ method: 'deleteProject', params: [name] }, cb)
   }
 
   logOut () {
@@ -208,7 +225,7 @@ class ProjectBrowser extends React.Component {
                     DUPLICATE
                   </span>*/}
                   <span key={'delete' + index}
-                    onClick={() => this.performDeleteProject(index)}
+                    onClick={() => this.showDeleteModal(index)}
                     style={[
                       DASH_STYLES.menuOption,
                       !!!project.isMenuActive && DASH_STYLES.gone]}>
@@ -227,10 +244,11 @@ class ProjectBrowser extends React.Component {
                 <span style={DASH_STYLES.title}>
                   {projectObject.projectName.charAt(0).toUpperCase() + projectObject.projectName.slice(1)}
                 </span>
+                {/*
                 <span key={'share' + index}
                   style={DASH_STYLES.titleOptions}>
                   <ShareSVG color={Palette.SUNSTONE} fill={Palette.COAL} />
-                </span>
+                </span> */}
                 <span key={'menu' + index}
                   style={[DASH_STYLES.titleOptions, {transform: 'translateY(1px)'}]}
                   onClick={() => {
@@ -339,9 +357,8 @@ class ProjectBrowser extends React.Component {
 
   handleNewProjectInputKeyDown (e) {
     if (e.keyCode === 13) {
+      this.setState({showNewProjectModal: false})
       this.handleNewProjectGo()
-    } else if (e.keyCode === 27) {
-      this.unsetActiveProject()
     }
   }
 
@@ -402,6 +419,41 @@ class ProjectBrowser extends React.Component {
     )
   }
 
+  renderDeleteModal() {
+    return (
+      <div style={DASH_STYLES.overlay}
+        onClick={() => this.setState({showDeleteModal: false, projToDelete: ''})}>
+        <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
+          <div style={DASH_STYLES.modalTitle}>
+            Type "<span style={DASH_STYLES.projToDelete}>{this.state.projToDelete}</span>" to confirm project deletion
+          </div>
+          <div style={DASH_STYLES.inputTitle}>DELETE PROJECT</div>
+          <input key='delete-project'
+            ref='deleteInput'
+            onKeyDown={this.handleDeleteInputKeyDown.bind(this)}
+            style={[DASH_STYLES.newProjectInput]}
+            value={this.state.recordedDelete}
+            onChange={this.handleDeleteInputChange.bind(this)}
+            placeholder='Type Project Name To Delete' />
+          <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
+          <button key='delete-go-button'
+            disabled={!this.state.confirmDeleteMatches}
+            onClick={() => {
+              this.performDeleteProject(this.state.projToDeleteIndex)
+              this.setState({showDeleteModal: false, projToDelete: ''})
+            }}
+            style={[BTN_STYLES.btnText, BTN_STYLES.rightBtns, BTN_STYLES.btnPrimaryAlt, {marginRight: 0}]}>
+            DELETE PROJECT
+          </button>
+          <span style={[BTN_STYLES.btnCancel, BTN_STYLES.rightBtns]}
+            onClick={() => this.setState({showDeleteModal: false, projToDelete: ''})}>
+            CANCEL
+          </span>
+        </div>
+      </div>
+    )
+  }
+
   render () {
     return (
       <div style={DASH_STYLES.dashWrap}>
@@ -415,6 +467,7 @@ class ProjectBrowser extends React.Component {
         </ReactCSSTransitionGroup>
 
         { this.state.showNewProjectModal && this.renderNewProjectModal() }
+        { this.state.showDeleteModal && this.renderDeleteModal() }
 
         <div style={DASH_STYLES.frame} className='frame' >
           <button key='new_proj'

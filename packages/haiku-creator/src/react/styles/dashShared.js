@@ -315,5 +315,9 @@ export const DASH_STYLES = {
   },
   newProjectError: {
 
+  },
+  projToDelete: {
+    color: Palette.LIGHT_BLUE,
+    fontStyle: 'italic'
   }
 }
