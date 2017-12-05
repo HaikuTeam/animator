@@ -68,10 +68,6 @@ test('layout.parseCssTransformString', function (t) {
         "scale.z": 1
       }
     ],
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 2b962d332f52c5b0113e0d8a15767fbb4aff206e
     [
       'translate(3.14)',
       {
@@ -85,11 +81,6 @@ test('layout.parseCssTransformString', function (t) {
         "scale.y": 2.72,
       }
     ],
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 012d1149bd0b482eedc93f9d3bbbb2501f2a592d
->>>>>>> 2b962d332f52c5b0113e0d8a15767fbb4aff206e
   ]
 
   t.plan(data.length)
