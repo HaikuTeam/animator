@@ -1,6 +1,24 @@
 # Changelog
 
 
+## 2.3.38
+
+### Bug Fixes
+
+ * ensure {sizing
+ * Use good unique key for rendering React keyframe; fixes weird copy+paste behavior in Timeline UI
+ * Don't use pkey to determine BLL entity equivalence
+ * Ensure the timeline property display updates when keyframes are created/deleted
+ * After dragging keyframes, ensure a 0th keyframe for any affected rows
+ * When creating and deleting keyframes, make sure a 0th keyframe is also created
+ * Prevent broken logic for curve removal from prior when keyframe is deleted from bytecode
+ * use setAttribute() during DOM render instead of setting className directly.
+
+### Features
+
+ * Add BLL method to return a row's property's default ('fallback') value
+ * For debugging convenience, add method to return a BLL entity's full collection including deleted entities
+
 ## 2.3.37
 
 ### Features
