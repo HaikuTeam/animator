@@ -162,7 +162,6 @@ class BaseModel extends EventEmitter {
   sameAs (other) {
     if (!other) return false
     if (this === other) return true
-    if (this.getPrimaryKey() === other.getPrimaryKey()) return true
     return false
   }
 
