@@ -275,6 +275,31 @@ class Row extends BaseModel {
     this.emit('update', 'row-deleted')
   }
 
+  hasZerothKeyframe () {
+    return !!this.getZerothKeyframe()
+  }
+
+  getZerothKeyframe () {
+    return this.getKeyframes().filter((keyframe) => {
+      return keyframe.getMs() < 1
+    })[0]
+  }
+
+  ensureZerothKeyframe (metadata) {
+    if (!this.hasZerothKeyframe()) {
+      this.createKeyframe(this.getFallbackValue(), 0, metadata)
+    }
+  }
+
+  fixKeyframeIndices () {
+    const siblings = this.getKeyframes()
+    siblings.forEach((keyframe, index) => {
+      keyframe.index = index
+      keyframe.uid = Keyframe.getInferredUid(this, index)
+      keyframe.cacheClear()
+    })
+  }
+
   createKeyframe (value, ms, metadata) {
     // If creating a keyframe on a cluster row, create one for all of the child rows
     if (this.isClusterHeading()) {
@@ -376,6 +401,10 @@ class Row extends BaseModel {
       () => {}
     )
 
+    this.ensureZerothKeyframe(metadata)
+
+    this.fixKeyframeIndices()
+
     this.emit('update', 'keyframe-create')
     if (this.parent) this.parent.emit('update', 'keyframe-create')
     Keyframe.deselectAndDeactivateAllKeyframes()
@@ -403,6 +432,12 @@ class Row extends BaseModel {
       metadata,
       () => {}
     )
+
+    if (keyframe.getMs() < 1) {
+      this.ensureZerothKeyframe(metadata)
+    }
+
+    this.fixKeyframeIndices()
 
     this.emit('update', 'keyframe-delete')
     if (this.parent) this.parent.emit('update', 'keyframe-delete')
