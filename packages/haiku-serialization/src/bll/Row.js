@@ -810,4 +810,13 @@ Row.first = function first () {
   return Row.find({ place: 0 })
 }
 
+Row.fetchAndUnsetRowsToEnsureZerothKeyframe = () => {
+  const rows = []
+  Row.where({ _needsToEnsureZerothKeyframe: true }).forEach((row) => {
+    row._needsToEnsureZerothKeyframe = false
+    rows.push(row)
+  })
+  return rows
+}
+
 module.exports = Row

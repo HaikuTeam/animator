@@ -1337,6 +1337,11 @@ class ActiveComponent extends BaseModel {
       }
     }
 
+    const rowsNeedingZerothKeyframe = Row.fetchAndUnsetRowsToEnsureZerothKeyframe()
+    rowsNeedingZerothKeyframe.forEach((row) => {
+      row.ensureZerothKeyframe(this.metadata)
+    })
+
     return this
   }
 

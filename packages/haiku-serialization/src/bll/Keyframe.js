@@ -185,6 +185,10 @@ class Keyframe extends BaseModel {
       }
     }
 
+    // I'm adding the zeroth keyframe only after the keyframe move action is complete,
+    // otherwise the cleared cache in React will result in the dragging action to be stopped
+    this.row._needsToEnsureZerothKeyframe = true
+
     return this
   }
 
