@@ -215,6 +215,10 @@ input:focus, button:focus {
 	outline:0;
 }
 
+input::-webkit-input-placeholder {
+  color: rgba(254,254,254,.37);
+}
+
 .popover-input::-webkit-input-placeholder {
   color: rgb(242, 148, 29);
 }
