@@ -1,4 +1,4 @@
-module.exports = function requestElementCoordinates(
+module.exports = function requestElementCoordinates (
   {currentWebview, requestedWebview, selector, isMockMode, tourClient},
   maxNumberOfTries = 15,
   currentNumberOfTries = 0

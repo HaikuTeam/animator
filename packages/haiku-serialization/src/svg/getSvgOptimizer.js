@@ -19,7 +19,7 @@ module.exports = () => {
       'removeUselessStrokeAndFill',
       'removeNonInheritableGroupAttrs',
       'moveElemsAttrsToGroup',
-      'collapseGroups',
-    ],
+      'collapseGroups'
+    ]
   })
 }

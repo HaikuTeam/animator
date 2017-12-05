@@ -141,7 +141,7 @@ export class Glass extends React.Component {
     window.addEventListener('drop', linkExternalAssetsOnDrop.bind(this), false)
   }
 
-  handleRequestElementCoordinates({selector, webview}) {
+  handleRequestElementCoordinates ({selector, webview}) {
     requestElementCoordinates({
       currentWebview: 'glass',
       requestedWebview: webview,
@@ -242,7 +242,6 @@ export class Glass extends React.Component {
         // If we've toggled into preview mode, we have to force react to update the on-stage styles
         this.forceUpdate()
         this._component.getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
-
       }
 
       // Not sure if we really need to call this, since this is called in a raf loop

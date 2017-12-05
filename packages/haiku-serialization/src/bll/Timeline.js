@@ -264,8 +264,8 @@ class Timeline extends BaseModel {
 
     if (isPreviewMode) {
       timelineInstance.unfreeze()
-       timelineInstance.gotoAndPlay(0)
-       timelineInstance.options.loop = true
+      timelineInstance.gotoAndPlay(0)
+      timelineInstance.options.loop = true
     } else {
       timelineInstance.freeze()
       timelineInstance.seek(0)
