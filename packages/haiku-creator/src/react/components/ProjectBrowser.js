@@ -32,7 +32,8 @@ class ProjectBrowser extends React.Component {
       areProjectsLoading: true,
       launchingProject: false,
       recordedNewProjectName: '',
-      isPopoverOpen: false
+      isPopoverOpen: false,
+      showNewProjectModal: false
     }
   }
 
@@ -113,6 +114,10 @@ class ProjectBrowser extends React.Component {
     console.log('has callback?', cb) // does have it
     // for some reasons the cb is null in plumbing's 'deleteProject' method
     return this.props.websocket.request({ method: 'deleteProject', params: [name, this.deletedCB()] }, cb)
+  }
+
+  showNewProjectModal () {
+    !this.alreadyHasTooManyProjects() && this.setState({ showNewProjectModal: true })
   }
 
   projectsListElement () {
@@ -241,6 +246,14 @@ class ProjectBrowser extends React.Component {
     )
   }
 
+  alreadyHasTooManyProjects () {
+    return (
+      !this.state.areProjectsLoading &&
+      this.state.projectsList &&
+      this.state.projectsList.length >= HARDCODED_PROJECTS_LIMIT
+    )
+  }
+
   isProjectNameBad (projectName) {
     if (!projectName) return true
     if (projectName === '') return true
@@ -270,6 +283,36 @@ class ProjectBrowser extends React.Component {
     }
   }
 
+  handleNewProjectInputChange (event) {
+    this.setState({recordedNewProjectName: event.target.value})
+  }
+
+  handleNewProjectGo () {
+    var raw = this.refs.newProjectInput.value
+    // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
+    var name = raw && raw.replace(/[^a-z0-9]/gi, '')
+
+    if (this.isProjectNameBad(name)) {
+      console.warn('bad name entered:', name)
+    } else {
+      this.setState({newProjectLoading: true, recordedNewProjectName: ''})
+      this.props.websocket.request({ method: 'createProject', params: [name] }, (err, newProject) => {
+        this.setState({newProjectLoading: false})
+        if (err) {
+          this.props.createNotice({
+            type: 'error',
+            title: 'Oh no!',
+            message: 'We couldn\'t create your project. 😩 Does this project with this name already exist?',
+            closeText: 'Okay',
+            lightScheme: true
+          })
+        } else {
+          this.handleProjectLaunch(newProject)
+        }
+      })
+    }
+  }
+
   renderNotifications (content, i) {
     return (
       <Toast
@@ -282,6 +325,14 @@ class ProjectBrowser extends React.Component {
         removeNotice={this.props.removeNotice}
         lightScheme={content.lightScheme} />
     )
+  }
+
+  handleNewProjectInputKeyDown (e) {
+    if (e.keyCode === 13) {
+      this.handleNewProjectGo()
+    } else if (e.keyCode === 27) {
+      this.unsetActiveProject()
+    }
   }
 
   renderUserMenuItems () {
@@ -319,8 +370,39 @@ class ProjectBrowser extends React.Component {
           </div>
         </ReactCSSTransitionGroup>
 
+        {this.state.showNewProjectModal &&
+          <div style={DASH_STYLES.overlay}
+            onClick={() => this.setState({showNewProjectModal: false})}>
+            <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
+              <div style={DASH_STYLES.modalTitle}>Name Project To Start</div>
+              <div style={DASH_STYLES.inputTitle}>PROJECT NAME</div>
+              <input key='new-project-input'
+                ref='newProjectInput'
+                disabled={this.state.newProjectLoading}
+                onKeyDown={this.handleNewProjectInputKeyDown.bind(this)}
+                style={[DASH_STYLES.newProjectInput]}
+                value={this.state.recordedNewProjectName}
+                onChange={this.handleNewProjectInputChange.bind(this)}
+                placeholder='NewProjectName' />
+              <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
+              <span style={DASH_STYLES.btnCancel}>CANCEL</span>
+              <button key='new-project-go-button'
+                disabled={this.state.newProjectLoading}
+                onClick={() => {
+                  this.handleNewProjectGo()
+                  this.setState({showNewProjectModal: false})
+                }}
+                style={DASH_STYLES.btnCreateProj}>
+                NAME PROJECT
+              </button>
+            </div>
+          </div>
+        }
+
         <div style={DASH_STYLES.frame} className='frame' >
-          <button key='new_proj' style={[
+          <button key='new_proj'
+            onClick={() => this.showNewProjectModal()}
+            style={[
               BTN_STYLES.btnIcon,
               BTN_STYLES.btnIconHovered
             ]}><span style={{fontSize: 18}}> +</span>

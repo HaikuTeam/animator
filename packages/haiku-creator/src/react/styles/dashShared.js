@@ -281,5 +281,31 @@ export const DASH_STYLES = {
       marginTop: 14,
       marginBottom: 5
     }
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 100,
+    width: '100%',
+    height: '100%'
+  },
+  modal: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    zIndex: 100,
+    width: 600,
+    minHeight: 350,
+    borderRadius: 8,
+    backgroundColor: Palette.COAL,
+    transform: 'translate(-50%, -50%)',
+    boxShadow: '0 20px 80px 0 rgba(21,32,34,0.79)'
+  },
+  newProjectInput: {
+
+  },
+  btnCreateProj: {
+
   }
 }
