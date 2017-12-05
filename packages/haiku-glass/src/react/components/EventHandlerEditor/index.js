@@ -91,7 +91,7 @@ class EventHandlerEditor extends React.PureComponent {
     this.forceUpdate()
   }
 
-  onEditorRemoved ([editor, {event}]) {
+  onEditorRemoved ({editor, event, handler}) {
     this.handlerManager.delete(event)
     this.forceUpdate()
   }
