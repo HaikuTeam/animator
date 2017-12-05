@@ -14,11 +14,11 @@ const PROJECTS_DIRECTORY = path.resolve(__dirname, 'projects');
 const app = express();
 app.use(express.static(path.join(__dirname)));
 
-const getSimpleCompiler = (entry) => webpack({
+const getSimpleCompiler = (entry, demo) => webpack({
   entry,
   output: {
     path: path.resolve(__dirname, 'webpack'),
-    filename: '[name].js',
+    filename: `${demo}.[name].js`,
     library: '[name]',
     libraryTarget: 'window',
   },
@@ -79,7 +79,7 @@ app.get('/demos/:demo', (req, res) => {
     return res.status(404).send('Demo not found!');
   }
 
-  const compiler = getSimpleCompiler({dom, reactDom});
+  const compiler = getSimpleCompiler({dom, reactDom}, demo);
 
   try {
     compiler.run((err, stats) => {
@@ -116,7 +116,7 @@ app.get('/demos/:demo/debug', (req, res) => {
     return res.status(404).send('Demo not found!');
   }
 
-  const compiler = getSimpleCompiler({bytecode});
+  const compiler = getSimpleCompiler({bytecode}, demo);
 
   try {
     compiler.run((err, stats) => {

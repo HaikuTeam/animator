@@ -14,27 +14,11 @@ export default function replaceElement(
   parentVirtualElement,
   component,
 ) {
-  let newElement;
-  if (isTextNode(virtualElement)) {
-    newElement = createTextNode(domElement, virtualElement);
-  } else {
-    newElement = createTagNode(
-      domElement,
-      virtualElement,
-      parentVirtualElement,
-      component,
-    );
-  }
+  const newElement = isTextNode(virtualElement)
+    ? createTextNode(domElement, virtualElement)
+    : createTagNode(domElement, virtualElement, parentVirtualElement, component);
 
-  applyLayout(
-    newElement,
-    virtualElement,
-    parentDomNode,
-    parentVirtualElement,
-    component,
-    null,
-    null,
-  );
+  applyLayout(newElement, virtualElement, parentDomNode, parentVirtualElement, component, null);
 
   parentDomNode.replaceChild(newElement, domElement);
   return newElement;

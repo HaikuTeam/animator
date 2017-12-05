@@ -1,6 +1,6 @@
 {
   "name": "@haiku/player",
-  "version": "2.3.36",
+  "version": "2.3.37",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
@@ -74,9 +74,6 @@
     "typescript": "^2.5.2",
     "uglify-js": "^2.7.5",
     "webpack": "^3.8.1"
-  },
-  "dependencies": {
-    "lodash": "^4.17.4"
   },
   "peerDependencies": {
     "react": "15.4.2",

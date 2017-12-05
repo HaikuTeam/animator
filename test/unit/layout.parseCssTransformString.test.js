@@ -68,15 +68,27 @@ test('layout.parseCssTransformString', function (t) {
         "scale.z": 1
       }
     ],
+<<<<<<< HEAD
+    [
+      'translate(3.14)',
+      {
+        "translation.x": 3.14,
+      }
+    ],
+    [
+      'scale(2.72)',
+      {
+        "scale.x": 2.72,
+        "scale.y": 2.72,
+      }
+    ],
+=======
+>>>>>>> 012d1149bd0b482eedc93f9d3bbbb2501f2a592d
   ]
 
   t.plan(data.length)
 
-  data.forEach(function (tuple, idx) {
-    var a = JSON.stringify(parseCssTransformString(tuple[0]))
-    var b = JSON.stringify(tuple[1])
-    // console.log(JSON.stringify(tuple[0]))
-    // console.log(b)
-    t.equal(a, b, 'output is expected (' + idx + ')')
+  data.forEach(function ([transformString, expected], idx) {
+    t.deepEqual(parseCssTransformString(transformString), expected, 'output is expected (' + idx + ')')
   })
 })

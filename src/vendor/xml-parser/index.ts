@@ -7,12 +7,12 @@
  */
 
 export default function parse(xml) {
-  xml = xml.trim()
+  xml = xml.trim();
 
   // strip comments
-  xml = xml.replace(/<!--[\s\S]*?-->/g, "")
+  xml = xml.replace(/<!--[\s\S]*?-->/g, '');
 
-  return document()
+  return document();
 
   /**
    * XML document.
@@ -22,7 +22,7 @@ export default function parse(xml) {
     return {
       declaration: declaration(),
       root: tag(),
-    }
+    };
   }
 
   /**
@@ -30,24 +30,28 @@ export default function parse(xml) {
    */
 
   function declaration() {
-    let m = match(/^<\?xml\s*/)
-    if (!m) return
+    const m = match(/^<\?xml\s*/);
+    if (!m) {
+      return;
+    }
 
     // tag
-    let node = {
+    const node = {
       attributes: {},
-    }
+    };
 
     // attributes
-    while (!(eos() || is("?>"))) {
-      let attr = attribute()
-      if (!attr) return node
-      node.attributes[attr.name] = attr.value
+    while (!(eos() || is('?>'))) {
+      const attr = attribute();
+      if (!attr) {
+        return node;
+      }
+      node.attributes[attr.name] = attr.value;
     }
 
-    match(/\?>\s*/)
+    match(/\?>\s*/);
 
-    return node
+    return node;
   }
 
   /**
@@ -55,45 +59,49 @@ export default function parse(xml) {
    */
 
   function tag() {
-    let m = match(/^<([\w-:.]+)\s*/)
-    if (!m) return
+    const m = match(/^<([\w-:.]+)\s*/);
+    if (!m) {
+      return;
+    }
 
     // name
-    let node = {
+    const node = {
       name: m[1],
       attributes: {},
       children: [],
-      content: null
-    }
+      content: null,
+    };
 
     // attributes
-    while (!(eos() || is(">") || is("?>") || is("/>"))) {
-      let attr = attribute()
-      if (!attr) return node
-      node.attributes[attr.name] = attr.value
+    while (!(eos() || is('>') || is('?>') || is('/>'))) {
+      const attr = attribute();
+      if (!attr) {
+        return node;
+      }
+      node.attributes[attr.name] = attr.value;
     }
 
     // self closing tag
     if (match(/^\s*\/>\s*/)) {
-      return node
+      return node;
     }
 
-    match(/\??>\s*/)
+    match(/\??>\s*/);
 
     // content
-    node.content = content()
+    node.content = content();
 
     // children
-    let child = tag()
+    let child = tag();
     while (child) {
-      node.children.push(child)
-      child = tag()
+      node.children.push(child);
+      child = tag();
     }
 
     // closing
-    match(/^<\/[\w-:.]+>\s*/)
+    match(/^<\/[\w-:.]+>\s*/);
 
-    return node
+    return node;
   }
 
   /**
@@ -101,9 +109,11 @@ export default function parse(xml) {
    */
 
   function content() {
-    let m = match(/^([^<]*)/)
-    if (m) return m[1]
-    return ""
+    const m = match(/^([^<]*)/);
+    if (m) {
+      return m[1];
+    }
+    return '';
   }
 
   /**
@@ -111,9 +121,14 @@ export default function parse(xml) {
    */
 
   function attribute() {
-    let m = match(/([\w:-]+)\s*=\s*("[^"]*"|'[^']*'|\w+)\s*/)
-    if (!m) return
-    return { name: m[1], value: strip(m[2]) }
+    const m = match(/([\w:-]+)\s*=\s*("[^"]*"|'[^']*'|\w+)\s*/);
+    if (!m) {
+      return;
+    }
+    return {
+      name: m[1],
+      value: strip(m[2]),
+    };
   }
 
   /**
@@ -121,7 +136,7 @@ export default function parse(xml) {
    */
 
   function strip(val) {
-    return val.replace(/^['"]|['"]$/g, "")
+    return val.replace(/^['"]|['"]$/g, '');
   }
 
   /**
@@ -129,10 +144,12 @@ export default function parse(xml) {
    */
 
   function match(re) {
-    let m = xml.match(re)
-    if (!m) return
-    xml = xml.slice(m[0].length)
-    return m
+    const m = xml.match(re);
+    if (!m) {
+      return;
+    }
+    xml = xml.slice(m[0].length);
+    return m;
   }
 
   /**
@@ -140,7 +157,7 @@ export default function parse(xml) {
    */
 
   function eos() {
-    return xml.length === 0
+    return xml.length === 0;
   }
 
   /**
@@ -148,6 +165,6 @@ export default function parse(xml) {
    */
 
   function is(prefix) {
-    return xml.indexOf(prefix) === 0
+    return xml.indexOf(prefix) === 0;
   }
 }

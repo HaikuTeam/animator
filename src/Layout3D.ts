@@ -41,7 +41,7 @@ const FORMATS = {
   TWO: 2,
 };
 
-function initializeNodeAttributes(element, parent) {
+function initializeNodeAttributes(element) {
   if (!element.attributes) {
     element.attributes = {};
   }
@@ -62,7 +62,7 @@ function initializeTreeAttributes(tree, container) {
   if (!tree || typeof tree === 'string') {
     return;
   }
-  initializeNodeAttributes(tree, container);
+  initializeNodeAttributes(tree);
   tree.__parent = container;
   if (!tree.children || tree.children.length < 1) {
     return;
@@ -109,142 +109,71 @@ function createLayoutSpec(ax, ay, az) {
 }
 
 function createMatrix() {
-  return copyMatrix([], IDENTITY);
+  return copyMatrix(IDENTITY);
 }
 
-function copyMatrix(out, m) {
-  out[0] = m[0];
-  out[1] = m[1];
-  out[2] = m[2];
-  out[3] = m[3];
-  out[4] = m[4];
-  out[5] = m[5];
-  out[6] = m[6];
-  out[7] = m[7];
-  out[8] = m[8];
-  out[9] = m[9];
-  out[10] = m[10];
-  out[11] = m[11];
-  out[12] = m[12];
-  out[13] = m[13];
-  out[14] = m[14];
-  out[15] = m[15];
-  return out;
+function copyMatrix(m: number[]) {
+  return [...m];
 }
 
-function multiplyMatrices(out, a, b) {
-  out[0] = a[0] * b[0] + a[1] * b[4] + a[2] * b[8] + a[3] * b[12];
-  out[1] = a[0] * b[1] + a[1] * b[5] + a[2] * b[9] + a[3] * b[13];
-  out[2] = a[0] * b[2] + a[1] * b[6] + a[2] * b[10] + a[3] * b[14];
-  out[3] = a[0] * b[3] + a[1] * b[7] + a[2] * b[11] + a[3] * b[15];
-  out[4] = a[4] * b[0] + a[5] * b[4] + a[6] * b[8] + a[7] * b[12];
-  out[5] = a[4] * b[1] + a[5] * b[5] + a[6] * b[9] + a[7] * b[13];
-  out[6] = a[4] * b[2] + a[5] * b[6] + a[6] * b[10] + a[7] * b[14];
-  out[7] = a[4] * b[3] + a[5] * b[7] + a[6] * b[11] + a[7] * b[15];
-  out[8] = a[8] * b[0] + a[9] * b[4] + a[10] * b[8] + a[11] * b[12];
-  out[9] = a[8] * b[1] + a[9] * b[5] + a[10] * b[9] + a[11] * b[13];
-  out[10] = a[8] * b[2] + a[9] * b[6] + a[10] * b[10] + a[11] * b[14];
-  out[11] = a[8] * b[3] + a[9] * b[7] + a[10] * b[11] + a[11] * b[15];
-  out[12] = a[12] * b[0] + a[13] * b[4] + a[14] * b[8] + a[15] * b[12];
-  out[13] = a[12] * b[1] + a[13] * b[5] + a[14] * b[9] + a[15] * b[13];
-  out[14] = a[12] * b[2] + a[13] * b[6] + a[14] * b[10] + a[15] * b[14];
-  out[15] = a[12] * b[3] + a[13] * b[7] + a[14] * b[11] + a[15] * b[15];
-  return out;
+function multiplyMatrices(a: number[], b: number[]): number[] {
+  return [
+    a[0] * b[0] + a[1] * b[4] + a[2] * b[8] + a[3] * b[12],
+    a[0] * b[1] + a[1] * b[5] + a[2] * b[9] + a[3] * b[13],
+    a[0] * b[2] + a[1] * b[6] + a[2] * b[10] + a[3] * b[14],
+    a[0] * b[3] + a[1] * b[7] + a[2] * b[11] + a[3] * b[15],
+    a[4] * b[0] + a[5] * b[4] + a[6] * b[8] + a[7] * b[12],
+    a[4] * b[1] + a[5] * b[5] + a[6] * b[9] + a[7] * b[13],
+    a[4] * b[2] + a[5] * b[6] + a[6] * b[10] + a[7] * b[14],
+    a[4] * b[3] + a[5] * b[7] + a[6] * b[11] + a[7] * b[15],
+    a[8] * b[0] + a[9] * b[4] + a[10] * b[8] + a[11] * b[12],
+    a[8] * b[1] + a[9] * b[5] + a[10] * b[9] + a[11] * b[13],
+    a[8] * b[2] + a[9] * b[6] + a[10] * b[10] + a[11] * b[14],
+    a[8] * b[3] + a[9] * b[7] + a[10] * b[11] + a[11] * b[15],
+    a[12] * b[0] + a[13] * b[4] + a[14] * b[8] + a[15] * b[12],
+    a[12] * b[1] + a[13] * b[5] + a[14] * b[9] + a[15] * b[13],
+    a[12] * b[2] + a[13] * b[6] + a[14] * b[10] + a[15] * b[14],
+    a[12] * b[3] + a[13] * b[7] + a[14] * b[11] + a[15] * b[15],
+  ];
 }
 
-function transposeMatrix(out, a) {
-  out[0] = a[0];
-  out[1] = a[4];
-  out[2] = a[8];
-  out[3] = a[12];
-  out[4] = a[1];
-  out[5] = a[5];
-  out[6] = a[9];
-  out[7] = a[13];
-  out[8] = a[2];
-  out[9] = a[6];
-  out[10] = a[10];
-  out[11] = a[14];
-  out[12] = a[3];
-  out[13] = a[7];
-  out[14] = a[11];
-  out[15] = a[15];
-  return out;
-}
-
-function multiplyArrayOfMatrices(arrayOfMatrices) {
+function multiplyArrayOfMatrices(arrayOfMatrices: number[][]): number[] {
   let product = createMatrix();
   for (let i = 0; i < arrayOfMatrices.length; i++) {
-    product = multiplyMatrices([], product, arrayOfMatrices[i]);
+    product = multiplyMatrices(product, arrayOfMatrices[i]);
   }
   return product;
 }
 
-function isZero(num) {
-  return num > -0.000001 && num < 0.000001;
-}
-
-function createBaseComputedLayout(x, y, z) {
-  return {
-    size: {x: x || 0, y: y || 0, z: z || 0},
-    matrix: createMatrix(),
-    shown: true,
-    opacity: 1.0,
-  };
-}
-
-function computeLayout(
-  out,
-  layoutSpec,
-  currentMatrix,
-  parentMatrix,
-  parentsizeAbsoluteIn,
-) {
+function computeLayout(layoutSpec, currentMatrix, parentMatrix, parentsizeAbsoluteIn) {
   const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
 
   if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
     parentsizeAbsolute.z = DEFAULT_DEPTH;
   }
 
-  const size = computeSize(
-    {},
-    layoutSpec,
-    layoutSpec.sizeMode,
-    parentsizeAbsolute,
-  );
+  const size = computeSize(layoutSpec, layoutSpec.sizeMode, parentsizeAbsolute);
 
-  const matrix = computeMatrix(
-    [],
-    out,
-    layoutSpec,
-    currentMatrix,
-    size,
-    parentMatrix,
-    parentsizeAbsolute,
-  );
+  const outputNodepad = {} as any;
+  const matrix = computeMatrix(outputNodepad, layoutSpec, currentMatrix, size, parentMatrix, parentsizeAbsolute);
 
-  out.size = size;
-  out.matrix = matrix;
-  out.shown = layoutSpec.shown;
-  out.opacity = layoutSpec.opacity;
+  outputNodepad.size = size;
+  outputNodepad.matrix = matrix;
+  outputNodepad.shown = layoutSpec.shown;
+  outputNodepad.opacity = layoutSpec.opacity;
 
-  return out;
+  return outputNodepad;
 }
 
 export default {
-  computeMatrix,
   multiplyArrayOfMatrices,
   computeLayout,
   createLayoutSpec,
-  createBaseComputedLayout,
   computeOrientationFlexibly,
   createMatrix,
   multiplyMatrices,
-  transposeMatrix,
   copyMatrix,
   initializeTreeAttributes,
-  initializeNodeAttributes,
-  isZero,
   FORMATS,
   SIZE_ABSOLUTE,
   SIZE_PROPORTIONAL,

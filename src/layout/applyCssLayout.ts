@@ -16,20 +16,9 @@ function hasExplicitStyle(domElement, key) {
   return !!domElement.__haikuExplicitStyles[key];
 }
 
-export default function applyCssLayout(
-  domElement,
-  virtualElement,
-  nodeLayout,
-  computedLayout,
-  pixelRatio,
-  context,
-) {
+export default function applyCssLayout(domElement, virtualElement, nodeLayout, computedLayout, pixelRatio, context) {
   // No point continuing if there's no computedLayout contents
-  if (
-    computedLayout.opacity === undefined &&
-    !computedLayout.size &&
-    !computedLayout.matrix
-  ) {
+  if (computedLayout.opacity === undefined && !computedLayout.size && !computedLayout.matrix) {
     return;
   }
 
@@ -104,11 +93,7 @@ export default function applyCssLayout(
     // and if we are inside an IE context, use the transform attribute itself
     if (context.config.options.platform.isIE || context.config.options.platform.isEdge) {
       if (elementScope === SVG) {
-        const matrixString = formatTransform(
-          computedLayout.matrix,
-          nodeLayout.format,
-          pixelRatio,
-        );
+        const matrixString = formatTransform(computedLayout.matrix, nodeLayout.format, pixelRatio);
         if (!isEqualTransformString(attributeTransform, matrixString)) {
           domElement.setAttribute('transform', matrixString);
         }

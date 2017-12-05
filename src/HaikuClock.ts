@@ -92,7 +92,7 @@ HaikuClock.prototype.assignOptions = function assignOptions(options) {
 
 HaikuClock.prototype.run = function run() {
   if (this.isRunning()) {
-    // If time is "controlled" we are locked to an explicitly set local time, so no math i sneeded
+    // If time is "controlled" we are locked to an explicitly set local time, so no math is needed.
     if (this._isTimeControlled()) {
       this.tick();
     } else {

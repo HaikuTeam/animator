@@ -19,17 +19,8 @@ export default function applyPropertyToElement(element, name, value, context, co
     type = 'div'; // TODO: How will this assumption bite us later?
   }
 
-  if (
-    vanities[type] &&
-    vanities[type][name]
-  ) {
-    vanities[type][name](
-      name,
-      element,
-      value,
-      context,
-      component,
-    );
+  if (vanities[type] && vanities[type][name]) {
+    vanities[type][name](name, element, value, context, component);
   } else {
     element.attributes[name] = value;
   }
