@@ -102,7 +102,9 @@ export default class Stage extends React.Component {
     })
 
     this.webview.addEventListener('dom-ready', () => {
-      if (process.env.DEV === '1') this.webview.openDevTools()
+      if (process.env.DEV === '1') {
+        this.webview.openDevTools()
+      }
     })
 
     while (this.mount.firstChild) this.mount.removeChild(this.mount.firstChild)
