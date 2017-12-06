@@ -2,6 +2,9 @@ import Palette from '../components/Palette'
 import Color from 'color'
 
 export const DASH_STYLES = {
+  upcase: {
+    textTransform: 'uppercase'
+  },
   dashWrap: {
     position: 'absolute',
     width: '100%',

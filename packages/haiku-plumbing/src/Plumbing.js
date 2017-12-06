@@ -833,7 +833,6 @@ export default class Plumbing extends StateObject {
   }
 
   doLogOut (cb) {
-    console.log('update')
     sdkClient.config.setAuthToken('')
     return cb()
   }
