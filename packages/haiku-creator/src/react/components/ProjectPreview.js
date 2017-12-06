@@ -11,6 +11,9 @@ class ProjectPreview extends React.Component {
     this.bytecode = null
     this.mount = null
     try {
+      if (require.cache.hasOwnProperty(props.bytecodePath)) {
+        delete require.cache[props.bytecodePath]
+      }
       this.bytecode = require(props.bytecodePath)
     } catch (e) {
       // noop. Probably caught a broken project that didn't finish npm install or init correctly.
