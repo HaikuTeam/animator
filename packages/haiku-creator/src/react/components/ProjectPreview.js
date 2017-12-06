@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react'
 import HaikuDOMAdapter from '@haiku/player/dom'
+import {InteractionMode} from '@haiku/player/lib/helpers/interactionModes'
 
 class ProjectPreview extends React.Component {
   static propTypes = {
@@ -27,7 +28,8 @@ class ProjectPreview extends React.Component {
           this.mount,
           {
             sizing: 'cover',
-            loop: true
+            loop: true,
+            interactionMode: InteractionMode.EDIT
           }
         )
       } catch (e) {
