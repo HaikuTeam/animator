@@ -1,5 +1,5 @@
 import React from 'react'
-import Bolt from './Icons/Bolt'
+import Bolt from './icons/Bolt'
 import Palette from './DefaultPalette'
 
 const STYLE = {
