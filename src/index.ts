@@ -12,6 +12,7 @@ var ENDPOINTS = {
   INVITE_CHECK: "v0/invite/:CODE",
   INVITE_CLAIM: "v0/invite/claim",
   SNAPSHOT_GET_BY_ID: "v0/snapshot/:ID",
+  PROJECT_SNAPSHOT_BY_NAME_AND_SHA: "v0/project/:NAME/snapshot/:SHA",
   PROJECT_GET_BY_NAME: "v0/project/:NAME",
   PROJECT_DELETE_BY_NAME: "v0/project/:NAME",
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: "v0/support/upload/:UUID",
@@ -40,7 +41,7 @@ export namespace inkstone {
     _.extend(_inkstoneConfig, newVals)
 
     //ease SSL restrictions for dev
-    if (newVals.baseUrl.indexOf("https://localhost") === 0) {
+    if (newVals.baseUrl && newVals.baseUrl.indexOf("https://localhost") === 0) {
       request = requestLib.defaults({
         strictSSL: false
       })
@@ -255,7 +256,8 @@ export namespace inkstone {
     export interface Snapshot {
       UniqueId: string,
       GitTag?: string,
-      GitSha?: string
+      GitSha?: string,
+      Published: boolean,
     }
     export interface SnapshotAndProjectAndOrganization {
       Snapshot: Snapshot,
@@ -263,22 +265,18 @@ export namespace inkstone {
       Organization: organization.Organization
     }
 
-    //polls inkstone for a snapshot, trying RETRIES times, returns a Snapshot when found or error if retries are exceeded
-    export function awaitSnapshotLink(id: string, cb: inkstone.Callback<string>, recursionIncr = 0) {
-      var RETRIES = 120
-      var RETRY_PERIOD = 1000 // ms
-
-      if (recursionIncr >= RETRIES) {
-        cb("timed out: retries exceeded", undefined, undefined)
-      } else {
-        getSnapshotAndProject(id, (err, snap, response) => {
-          if (response.statusCode !== 200) {
-            setTimeout(() => { awaitSnapshotLink(id, cb, recursionIncr + 1) }, RETRY_PERIOD)
-          } else {
-            cb(undefined, assembleSnapshotLinkFromSnapshot(snap.Snapshot), response)
-          }
-        })
-      }
+    // Gets a snapshot from Inkstone for a snapshot.
+    export function getSnapshotLink(
+      id: string,
+      cb: inkstone.Callback<{snap: SnapshotAndProjectAndOrganization, link: string}>,
+    ) {
+      getSnapshotAndProject(id, (err, snap, response) => {
+        if (response.statusCode !== 200) {
+          cb(err, undefined, undefined)
+        } else {
+          cb(undefined, {snap, link: assembleSnapshotLinkFromSnapshot(snap.Snapshot)}, response)
+        }
+      })
     }
 
     //tries (once) to get a snapshot from inkstone for a given ID git SHA.  Optionally, can append '/latest' for UUID lookups [not for SHA lookups]
@@ -301,10 +299,9 @@ export namespace inkstone {
       })
     }
 
-    function assembleSnapshotLinkFromSnapshot(snapshot: Snapshot) {
-      return _inkstoneConfig.baseShareUrl + snapshot.UniqueId + "/latest"
+    export function assembleSnapshotLinkFromSnapshot(snapshot: Snapshot) {
+      return `${_inkstoneConfig.baseShareUrl}${snapshot.UniqueId}/latest`
     }
-
   }
 
   export namespace project {
@@ -404,6 +401,28 @@ export namespace inkstone {
       request.delete(options, function (err, httpResponse, body) {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse)
+        } else {
+          cb("uncategorized error", undefined, httpResponse)
+        }
+      })
+    }
+
+    export function createProjectSnapshotByNameAndSha(
+      authToken: string, name: string, sha: string, cb: inkstone.Callback<snapshot.Snapshot>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: _inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_SNAPSHOT_BY_NAME_AND_SHA
+          .replace(":NAME", encodeURIComponent(name))
+          .replace(":SHA", encodeURIComponent(sha)),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `INKSTONE auth_token="${authToken}"`
+        }
+      }
+
+      request.put(options, function (err, httpResponse, body) {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          const snapshot = JSON.parse(body) as snapshot.Snapshot
+          return cb(undefined, snapshot, httpResponse)
         } else {
           cb("uncategorized error", undefined, httpResponse)
         }
