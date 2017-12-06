@@ -57,11 +57,10 @@ class EventHandlerEditor extends React.PureComponent {
       return true
     }
 
-    if (options && options.frame !== this.props.options.frame) {
-      return true
-    }
-
-    if (visible || this.props.visible) {
+    if (
+      (options && options.frame !== this.props.options.frame) ||
+      visible !== this.props.visible
+    ) {
       return true
     }
 
