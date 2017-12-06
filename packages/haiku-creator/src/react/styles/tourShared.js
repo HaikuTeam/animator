@@ -6,7 +6,16 @@ export const TOUR_STYLES = {
     marginTop: 20
   },
   btn: {
-    ...DASH_STYLES.btn,
+    backgroundColor: Palette.LIGHT_PINK,
+    padding: '5px 15px',
+    borderRadius: 2,
+    color: 'white',
+    transform: 'scale(1)',
+    textTransform: 'uppercase',
+    transition: 'transform 200ms ease',
+    ':active': {
+      transform: 'scale(.8)'
+    },
     padding: '10px 15px',
     fontSize: 16
   },
