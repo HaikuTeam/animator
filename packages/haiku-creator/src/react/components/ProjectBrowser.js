@@ -159,6 +159,26 @@ class ProjectBrowser extends React.Component {
     this.setState({ showNewProjectModal: true })
   }
 
+  renderMissingLocalProjectMessage (projectName) {
+    if (projectName === 'CheckTutorial') {
+      return (
+        <p>Click to load tutorial project</p>
+      )
+    }
+
+    if (projectName === 'Move' || projectName === 'Moto') {
+      return (
+        <p>Click to load sample project</p>
+      )
+    }
+
+    // TODO: Do we want to display a message or anything else if the project isn't
+    // already present locally?
+    return (
+      <p></p>
+    )
+  }
+
   projectsListElement () {
     if (this.state.areProjectsLoading) {
       return (
@@ -174,9 +194,6 @@ class ProjectBrowser extends React.Component {
           const project = this.state.projectsList[index]
           const projectPath = path.join(HOMEDIR_PATH, 'projects', this.props.organizationName, project.projectName)
           const bytecodePath = path.join(projectPath, 'code', 'main', 'code.js')
-          if (!fs.existsSync(projectPath) && !project.successfulSessionAdd) {
-            return false
-          }
 
           return (
             <div style={[DASH_STYLES.card, project.isRemoved && DASH_STYLES.deleted]}
@@ -194,8 +211,16 @@ class ProjectBrowser extends React.Component {
                   project.isHovered
                   ) && DASH_STYLES.blurred
                 ]}>
-                {fs.existsSync(bytecodePath) &&
-                  <ProjectPreview bytecodePath={bytecodePath} />
+                {(fs.existsSync(bytecodePath))
+                  ? <ProjectPreview bytecodePath={bytecodePath} />
+                  : <div
+                      style={{
+                        margin: '85px auto 0',
+                        width: '100%',
+                        textAlign: 'center'
+                      }}>
+                      {this.renderMissingLocalProjectMessage(project.projectName)}
+                    </div>
                 }
               </div>
               <div
