@@ -5,9 +5,10 @@ import HaikuDOMRenderer from '@haiku/player/lib/renderers/dom'
 import HaikuContext from '@haiku/player/lib/HaikuContext'
 import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
 import Element from 'haiku-serialization/src/bll/Element'
+import react2haiku from 'haiku-serialization/src/utils/react2haiku'
 import Palette from './Palette'
 import Comment from './Comment'
-import EventHandlerEditor from './EventHandlerEditor'
+import EventHandlerEditor from './components/EventHandlerEditor'
 import Comments from './models/Comments'
 import ContextMenu from './models/ContextMenu'
 import getLocalDomEventPosition from './helpers/getLocalDomEventPosition'
@@ -16,6 +17,7 @@ import {
   linkExternalAssetsOnDrop,
   preventDefaultDrag
 } from 'haiku-serialization/src/utils/dndHelpers'
+import {EventsBoltIcon} from './Icons'
 
 const { clipboard } = require('electron')
 
@@ -41,6 +43,8 @@ const LINE_DISPLAY_MODES = {
   NORMAL: 1,
   NONE: 2
 }
+
+const BOLT_SVG = react2haiku(EventsBoltIcon({color: Palette.DARKER_ROCK2}))
 
 // The class is exported also _without_ the radium wrapper to allow jsdom testing
 export class Glass extends React.Component {
@@ -82,6 +86,7 @@ export class Glass extends React.Component {
       doShowComments: false,
       targetElement: null,
       isEventHandlerEditorOpen: false,
+      eventHandlerEditorOptions: {},
       activeDrawingTool: 'pointer',
       drawingIsModal: true
     }
@@ -242,6 +247,10 @@ export class Glass extends React.Component {
         // If we've toggled into preview mode, we have to force react to update the on-stage styles
         this.forceUpdate()
         this._component.getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
+      } else if (what === 'showEventHandlersEditor') {
+        const [{elementUID, options}] = args
+        this.setLastSelectedElement(this._component.findElementByComponentId(elementUID))
+        this.showEventHandlersEditor(null, this.getLastSelectedElement(), options)
       }
 
       // Not sure if we really need to call this, since this is called in a raf loop
@@ -451,12 +460,13 @@ export class Glass extends React.Component {
     })
   }
 
-  showEventHandlersEditor (clickEvent, targetElement) {
+  showEventHandlersEditor (clickEvent, targetElement, options) {
     if (this.isPreviewMode()) return void (0)
 
     this.setState({
       targetElement: targetElement,
-      isEventHandlerEditorOpen: true
+      isEventHandlerEditorOpen: true,
+      eventHandlerEditorOptions: options
     })
   }
 
@@ -469,10 +479,14 @@ export class Glass extends React.Component {
     })
   }
 
-  saveEventHandler (targetElement, eventName, handlerDescriptorSerialized) {
+  saveEventHandlers (targetElement, serializedEvents) {
     let selectorName = 'haiku:' + targetElement.uid
-    this._component.upsertEventHandler(selectorName, eventName, handlerDescriptorSerialized, { from: 'glass' }, () => {
-
+    this._component.batchUpsertEventHandlers(selectorName, serializedEvents, { from: 'glass' }, () => {
+      this.props.websocket.action(
+        'eventHandlersUpdated',
+        [this.props.folder],
+        () => {}
+      )
     })
   }
 
@@ -719,10 +733,8 @@ export class Glass extends React.Component {
   }
 
   handleKeyDown (keyEvent) {
-    if (this.refs.eventHandlerEditor) {
-      if (this.refs.eventHandlerEditor.willHandleExternalKeydownEvent(keyEvent)) {
-        return void (0)
-      }
+    if (this.state.isEventHandlerEditorOpen) {
+      return void (0)
     }
 
     switch (keyEvent.nativeEvent.which) {
@@ -746,10 +758,8 @@ export class Glass extends React.Component {
   }
 
   handleKeyUp (keyEvent) {
-    if (this.refs.eventHandlerEditor) {
-      if (this.refs.eventHandlerEditor.willHandleExternalKeydownEvent(keyEvent)) {
-        return void (0)
-      }
+    if (this.state.isEventHandlerEditorOpen) {
+      return void (0)
     }
 
     switch (keyEvent.nativeEvent.which) {
@@ -1007,6 +1017,7 @@ export class Glass extends React.Component {
           let scaleY = element.getPropertyValue('scale.y')
           if (scaleY === undefined || scaleY === null) scaleY = 1
           this.renderTransformBoxOverlay(element, points, overlays, element.canRotate(), this.state.isKeyCommandDown, true, rotationZ, scaleX, scaleY)
+          this.renderEventHandlersOverlay(element, points, overlays, rotationZ, scaleX, scaleY)
         }
       } else {
         // TODO: Render control points across multiple selected elements
@@ -1149,6 +1160,52 @@ export class Glass extends React.Component {
     }
   }
 
+  buildBoltInstance (x, y, rotationZ, scaleX, scaleY) {
+    const boltSize = 30
+    const offsetLeft =  Math.sign(scaleX) * (boltSize * Math.cos(rotationZ)) - boltSize / 2
+    const offsetTop = Math.sign(scaleX) * (boltSize * Math.sin(rotationZ)) - boltSize / 2
+
+    return {
+      elementName: 'div',
+      attributes: {
+        id: `events-bolt-wrapper`,
+        onmousedown: (event) => {
+          event.preventDefault()
+          event.stopImmediatePropagation()
+          this.showEventHandlersEditor(null, this.getLastSelectedElement())
+        },
+        style: {
+          position: 'absolute',
+          pointerEvents: 'auto',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          left: `${x + offsetLeft}px`,
+          top: `${y + offsetTop}px`,
+          border: '1px solid ' + Palette.DARKER_ROCK2,
+          backgroundColor: 'transparent',
+          width: `${boltSize}px`,
+          height: `${boltSize}px`,
+          borderRadius: '50%',
+          cursor: 'pointer'
+        }
+      },
+      children: [BOLT_SVG]
+    }
+  }
+
+  renderEventHandlersOverlay (element, points, overlays, rotationZ, scaleX, scaleY) {
+    // If the size is smaller than a threshold, only display the corners.
+    // And if it is smaller even than that, don't display the points at all
+    const dx = Element.distanceBetweenPoints(points[0], points[2], this.state.zoomXY)
+    const dy = Element.distanceBetweenPoints(points[0], points[6], this.state.zoomXY)
+    const {x, y} = points[5]
+
+    if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) return
+
+    overlays.push(this.buildBoltInstance(x, y, rotationZ, scaleX, scaleY))
+  }
+
   renderTransformBoxOverlay (element, points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
     // If the size is smaller than a threshold, only display the corners.
     // And if it is smaller even than that, don't display the points at all
@@ -1276,10 +1333,6 @@ export class Glass extends React.Component {
                 targetId === 'haiku-glass-stage-background-preview-border'
               ) {
               Element.unselectAllElements({ from: 'glass' })
-            }
-
-            if (this.state.isEventHandlerEditorOpen) {
-              this.hideEventHandlersEditor()
             }
 
             this.setState({
@@ -1508,14 +1561,17 @@ export class Glass extends React.Component {
             </div>
             : ''}
 
-          {(!this.isPreviewMode() && this.state.isEventHandlerEditorOpen)
-            ? <EventHandlerEditor
-              ref='eventHandlerEditor'
+          {!this.isPreviewMode() &&
+            <EventHandlerEditor
               element={this.state.targetElement}
-              save={this.saveEventHandler.bind(this)}
-              close={this.hideEventHandlersEditor.bind(this)}
-                />
-            : ''}
+              save={(targetElement, serializedEvent) => {
+                this.saveEventHandlers(targetElement, serializedEvent)
+              }}
+              close={() => { this.hideEventHandlersEditor() }}
+              visible={this.state.isEventHandlerEditorOpen}
+              options={this.state.eventHandlerEditorOptions}
+            />
+          }
 
           {(!this.isPreviewMode())
             ? <div

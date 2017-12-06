@@ -177,6 +177,10 @@ class ActiveComponent extends BaseModel {
     return Element.findByComponentId(componentId)
   }
 
+  findElementRoots () {
+    return Element.findRoots()
+  }
+
   queryElements (criteria) {
     if (!criteria) criteria = {}
     criteria.component = this // Only query elements that belong to us
@@ -447,6 +451,30 @@ class ActiveComponent extends BaseModel {
       metadata.from === this.alias ? 'update' : 'remote-update',
       'setInteractionMode',
       {interactionMode: this._interactionMode}
+    )
+
+    // FIXME: for some reason sometimes the `metadata` argument is missing
+    if (typeof metadata === 'function') return metadata()
+    if (typeof cb === 'function') return cb()
+  }
+
+  showEventHandlersEditor (elementUID, options, metadata, cb) {
+    this.emit(
+      metadata.from === this.alias ? 'update' : 'remote-update',
+      'showEventHandlersEditor',
+      {elementUID, options}
+    )
+
+    // FIXME: for some reason sometimes the `metadata` argument is missing
+    if (typeof metadata === 'function') return metadata()
+    if (typeof cb === 'function') return cb()
+  }
+
+  eventHandlersUpdated (metadata, cb) {
+    this.emit(
+      metadata.from === this.alias ? 'update' : 'remote-update',
+      'eventHandlersUpdated',
+      {}
     )
 
     // FIXME: for some reason sometimes the `metadata` argument is missing
@@ -1222,6 +1250,32 @@ class ActiveComponent extends BaseModel {
         this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'upsertEventHandler')
         if (metadata.from === this.alias) {
           this.batchedWebsocketAction('upsertEventHandler', [this.folder, selectorName, eventName, handlerDescriptor])
+        }
+
+        return cb()
+      })
+    })
+  }
+
+  /**
+   * @method batchUpsertEventHandlers
+   */
+  batchUpsertEventHandlers (selectorName, serializedEvents, metadata, cb) {
+    return this.fetchActiveBytecodeFile().batchUpsertEventHandlers(selectorName, serializedEvents, (err) => {
+      if (err) {
+        log.error(err)
+        return cb(err)
+      }
+
+      return this.reload({
+        hardReload: metadata.from !== this.alias,
+        clearCacheOptions: {
+          clearPreviouslyRegisteredEventListeners: true
+        }
+      }, null, () => {
+        this.emit((metadata.from === this.alias) ? 'update' : 'remote-update', 'batchUpsertEventHandlers')
+        if (metadata.from === this.alias) {
+          this.batchedWebsocketAction('batchUpsertEventHandlers', [this.folder, selectorName, serializedEvents])
         }
 
         return cb()

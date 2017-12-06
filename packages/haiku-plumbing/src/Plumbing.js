@@ -818,10 +818,6 @@ export default class Plumbing extends StateObject {
     return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions], cb)
   }
 
-  // setInteractionMode (folder, interactionMode, cb) {
-  //   return this.sendFolderSpecificClientMethodQuery(folder, Q_MASTER, 'setInteractionMode', [interactionMode], cb)
-  // }
-
   fetchProjectInfo (folder, projectName, maybeUsername, maybePassword, fetchOptions, cb) {
     if (!fetchOptions) fetchOptions = {}
     if (!fetchOptions.authorName) fetchOptions.authorName = this.get('username')

@@ -34,5 +34,9 @@ export default {
   ROCK: '#C0CCCD', // Making ROCK a bit colder
   ROCK_MUTED: Color('#C0CCCD').fade(0.37),
   SUNSTONE: 'rgb(254,254,254)', // This is our "white", use sparingly
-  GRAY_FIT1: '#405355' // used for tree line
+  GRAY_FIT1: '#405355', // used for tree line
+  PALE_GRAY: '#d1d1d1',
+  BLACK: '#0C0C0C',
+  SPECIAL_COAL: '#122022',
+  DARKEST_COAL: '#0F171A'
 }

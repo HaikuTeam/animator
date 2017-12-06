@@ -23,6 +23,8 @@ const ALLOWED_TAGNAMES = require('./element/AllowedTagNames')
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 
+const CUSTOM_EVENT_PREFIX = 'timeline:'
+
 const PI_OVER_12 = Math.PI / 12
 
 const DELTA_ROTATION_OFFSETS = {
@@ -172,6 +174,22 @@ class Element extends BaseModel {
     return _manaQuerySelectorAll(selector, this.node)
   }
 
+  getDOMEvents () {
+    return Object.keys(
+      this.getReifiedEventHandlers()
+    ).filter(handler => !handler.includes(CUSTOM_EVENT_PREFIX))
+  }
+
+  getCustomEvents () {
+    return Object.keys(
+      this.getReifiedEventHandlers()
+    ).filter(handler => handler.includes(CUSTOM_EVENT_PREFIX))
+  }
+
+  hasEventHandlers () {
+    return !lodash.isEmpty(this.getReifiedEventHandlers())
+  }
+
   getReifiedEventHandlers () {
     const bytecode = this.component.getReifiedBytecode()
     const selector = 'haiku:' + this.getComponentId()
@@ -205,7 +223,6 @@ class Element extends BaseModel {
 
   getApplicableEventHandlerOptionsList () {
     const options = []
-
     const handlers = this.getReifiedEventHandlers()
 
     // Track which ones we've already accounted for in the 'known events' lists so that
@@ -244,23 +261,7 @@ class Element extends BaseModel {
       options: Element.COMPONENT_EVENTS
     })
 
-    const customs = []
-    options.push({
-      label: 'Custom',
-      options: customs
-    })
-
-    for (let key in handlers) {
-      // Only add to the custom events list if we didn't already define it above
-      if (!predefined[key]) {
-        customs.push({
-          label: key,
-          value: key
-        })
-      }
-    }
-
-    return options
+    return options.filter(category => category.options.length > 0)
   }
 
   /**

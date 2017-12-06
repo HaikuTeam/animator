@@ -67,6 +67,8 @@ function setAttribute(el, key, val, cache) {
 }
 
 export default function assignAttributes(domElement, virtualElement, component, isPatchOperation) {
+  const cache = component.cache[getFlexId(virtualElement)];
+
   if (!isPatchOperation) {
     // Remove any attributes from the previous run that aren't present this time around
     if (domElement.haiku && domElement.haiku.element) {
@@ -77,6 +79,10 @@ export default function assignAttributes(domElement, virtualElement, component, 
           // Removal of old styles is handled downstream; see assignStyle()
           if (newValue === null || newValue === undefined || oldValue !== newValue) {
             domElement.removeAttribute(oldKey);
+
+            if (cache[oldKey]) {
+              cache[oldKey] = null;
+            }
           }
         }
       }
@@ -107,7 +113,7 @@ export default function assignAttributes(domElement, virtualElement, component, 
       continue;
     }
 
-    setAttribute(domElement, key, anotherNewValue, component.cache[getFlexId(virtualElement)]);
+    setAttribute(domElement, key, anotherNewValue, cache);
   }
 
   // Any 'hidden' eventHandlers we got need to be assigned now.

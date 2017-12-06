@@ -587,6 +587,14 @@ export default class Master extends EventEmitter {
     return this._component.setInteractionMode.apply(this._component, params.concat(cb))
   }
 
+  showEventHandlersEditor ({ params }, cb) {
+    return this._component.showEventHandlersEditor.apply(this._component, params.concat(cb))
+  }
+
+  eventHandlersUpdated ({ params }, cb) {
+    return this._component.eventHandlersUpdated.apply(this._component, params.concat(cb))
+  }
+
   /**
    * bytecode actions
    * ================
@@ -741,6 +749,10 @@ export default class Master extends EventEmitter {
 
   upsertEventHandler ({ params }, cb) {
     return this.bytecodeAction('upsertEventHandler', params, cb)
+  }
+
+  batchUpsertEventHandlers ({ params }, cb) {
+    return this.bytecodeAction('batchUpsertEventHandlers', params, cb)
   }
 
   deleteEventHandler ({ params }, cb) {

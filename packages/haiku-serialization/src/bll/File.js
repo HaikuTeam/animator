@@ -1071,6 +1071,13 @@ class File extends BaseModel {
     }, cb)
   }
 
+  batchUpsertEventHandlers (selectorName, serializedEvents, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      BytecodeActions.batchUpsertEventHandlers(bytecode, selectorName, serializedEvents)
+      done()
+    }, cb)
+  }
+
   deleteEventHandler (selectorName, eventName, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
       BytecodeActions.deleteEventHandler(bytecode, selectorName, eventName)

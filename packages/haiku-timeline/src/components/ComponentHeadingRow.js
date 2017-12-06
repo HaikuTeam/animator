@@ -4,6 +4,7 @@ import RightCarrotSVG from './icons/RightCarrotSVG'
 import Palette from './DefaultPalette'
 import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments'
+import EventHandlerTriggerer from './EventHandlerTriggerer'
 
 export default class ComponentHeadingRow extends React.Component {
   render () {
@@ -55,7 +56,7 @@ export default class ComponentHeadingRow extends React.Component {
             height: this.props.rowHeight}} />}
         <div style={{
           display: 'table-cell',
-          width: this.props.timeline.getPropertiesPixelWidth() - 150,
+          width: this.props.timeline.getPropertiesPixelWidth() - 90,
           height: 'inherit',
           position: 'absolute',
           zIndex: 3,
@@ -85,7 +86,23 @@ export default class ComponentHeadingRow extends React.Component {
             </span>
             <ComponentHeadingRowHeading
               $update={this.props.$update}
-              row={this.props.row} />
+              row={this.props.row}
+              onEventHandlerTriggered={this.props.onEventHandlerTriggered} />
+          </div>
+          <div
+            style={
+              this.props.row.isExpanded()
+                ? {
+                  marginLeft: this.props.row.isRootRow() ? '45px' : '57px',
+                  marginTop: '7px'
+                }
+                : {float: 'right', marginTop: '-15px'}
+            }
+          >
+            <EventHandlerTriggerer
+              element={this.props.row.element}
+              onEventHandlerTriggered={this.props.onEventHandlerTriggered}
+            />
           </div>
         </div>
         <div
@@ -116,5 +133,6 @@ ComponentHeadingRow.propTypes = {
   component: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
-  $update: React.PropTypes.object.isRequired
+  $update: React.PropTypes.object.isRequired,
+  onEventHandlerTriggered: React.PropTypes.func.isRequired
 }
