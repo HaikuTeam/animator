@@ -97,7 +97,9 @@ export const DASH_STYLES = {
     borderTopLeftRadius: 5,
     borderTopRightRadius: 5,
     transform: 'translate3d(0,0,0)',
-    transition: 'transform 140ms ease'
+    transition: 'transform 140ms ease',
+    margin: 0,
+    width: '100%'
   },
   blurred: {
     filter: 'blur(13px)',

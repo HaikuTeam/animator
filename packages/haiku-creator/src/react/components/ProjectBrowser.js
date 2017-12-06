@@ -9,6 +9,7 @@ import { FadingCircle } from 'better-react-spinkit'
 import Palette from './Palette'
 import Toast from './notifications/Toast'
 import ProjectLoader from './ProjectLoader'
+import ProjectPreview from './ProjectPreview'
 import { ShareSVG, StackMenuSVG, UserIconSVG, LogOutSVG, LogoMicroSVG } from './Icons'
 import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
@@ -172,10 +173,7 @@ class ProjectBrowser extends React.Component {
         {this.state.projectsList.map((projectObject, index) => {
           const project = this.state.projectsList[index]
           const projectPath = path.join(HOMEDIR_PATH, 'projects', this.props.organizationName, project.projectName)
-          const thumbnail = projectPath + '/preview.html'
-          const hasThumb = fs.existsSync(thumbnail)
-          const standalone = projectPath + '/index.standalone.js'
-          const hasStandalone = fs.existsSync(standalone)
+          const bytecodePath = path.join(projectPath, 'code', 'main', 'code.js')
           if (!fs.existsSync(projectPath) && !project.successfulSessionAdd) {
             return false
           }
@@ -189,18 +187,18 @@ class ProjectBrowser extends React.Component {
                 projectsList[index].isMenuActive = false
                 this.setState({ projectsList })
               }}>
-              <div id='thumbnail'
+              <div
                 style={[
                   DASH_STYLES.thumb,
                   (project.isMenuActive ||
                   project.isHovered
                   ) && DASH_STYLES.blurred
                 ]}>
-                {(hasThumb && hasStandalone) &&
-                  <iframe src={thumbnail} scrolling="no" />
+                {fs.existsSync(bytecodePath) &&
+                  <ProjectPreview bytecodePath={bytecodePath} />
                 }
               </div>
-              <div id='scrim'
+              <div
                 style={[
                   DASH_STYLES.scrim,
                   (project.isMenuActive ||
