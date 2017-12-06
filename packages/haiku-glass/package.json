@@ -31,6 +31,7 @@
     "lodash": "^4.17.4",
     "moment": "^2.17.1",
     "monaco-editor": "^0.10.1",
+    "prettier": "0.22.0",
     "pretty": "^2.0.0",
     "qs": "6.3.0",
     "radium": "0.18.1",
