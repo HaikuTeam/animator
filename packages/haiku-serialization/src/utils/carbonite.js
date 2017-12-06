@@ -16,6 +16,14 @@ const {
   HOMEDIR_CRASH_REPORTS_PATH
 } = require('./HaikuHomeDir')
 
+const UPLOAD_INTERVAL = 10 /* in minutes */
+let lastUploadTime = null
+
+function _hasElapsedEnoughTime () {
+  if (!lastUploadTime) return true
+  return Date.now() - lastUploadTime >= UPLOAD_INTERVAL * 60000
+}
+
 function _generateScreenshot (path) {
   return new Promise((resolve, reject) => {
     resolve()
@@ -81,13 +89,14 @@ function _zipProjectFolders ({destination, sources}) {
 }
 
 function crashReport (orgName, projectName, projectPath) {
-  if (!projectPath) return
+  if (!projectPath || !_hasElapsedEnoughTime()) return
 
   const timestamp = generateUUIDv4.default()
   const screenshotPath = path.join(HOMEDIR_PATH, `screenshot-${timestamp}.png`)
   const zipName = `${timestamp}.zip`
   const zipPath = path.join(HOMEDIR_CRASH_REPORTS_PATH, zipName)
   const AWS3Server = 'http://support.haiku.ai.s3-us-west-2.amazonaws.com'
+  lastUploadTime = Date.now()
 
   _ensureFolderExist(HOMEDIR_PROJECTS_PATH)
     .then(_ensureFolderExist(HOMEDIR_CRASH_REPORTS_PATH))
@@ -100,7 +109,7 @@ function crashReport (orgName, projectName, projectPath) {
     )
     .then(() => _getPreSignedURL(zipName))
     .then(AWS3URL => _upload(AWS3URL, zipPath))
-    .catch(error => console.log(error))
+    .catch(error => { console.log(error) })
 
   return `${AWS3Server}/${orgName}/${zipName}`
 }
