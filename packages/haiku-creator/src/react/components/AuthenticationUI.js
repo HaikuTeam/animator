@@ -13,19 +13,20 @@ const STYLES = {
     position: 'relative',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    backgroundColor: Palette.GRAY
   },
   errorShake: {
     animation: 'x 890ms',
     animationName: Radium.keyframes(shake, 'shake')
   },
   formWrap: {
-    backgroundColor: Palette.ROCK,
+    backgroundColor: Palette.COAL,
     width: 375,
     minHeight: 200,
     borderRadius: 7,
     padding: '47px 27px',
-    boxShadow: '0 33px 40px 6px rgba(24,0,8,0.21)'
+    boxShadow: '0 33px 40px 6px rgba(21,32,34,0.21)'
   },
   center: {
     textAlign: 'center'
@@ -34,7 +35,7 @@ const STYLES = {
     WebkitUserSelect: 'none',
     cursor: 'default',
     fontSize: 21,
-    color: Palette.MEDIUM_COAL,
+    color: Palette.ROCK,
     margin: '20px auto 38px auto'
   },
   inputHolster: {
@@ -69,23 +70,24 @@ const STYLES = {
     right: 25
   },
   input: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Color(Palette.COAL).darken(.2),
     width: '100%',
     height: 55,
     borderRadius: 5,
     marginBottom: 15,
-    border: '1px solid #DEDEDE',
+    border: '1px solid ' + Palette.FATHER_COAL,
     fontSize: 18,
     padding: '27px',
+    color: Palette.ROCK,
     ':focus': {
-      border: '1px solid ' + Palette.LIGHT_BLUE
+      border: '1px solid ' + Palette.DARK_GRAY
     }
   },
   errorInput: {
     border: '1px solid ' + Color(Palette.RED).fade(0.1)
   },
   btn: {
-    backgroundImage: 'linear-gradient(90deg, #D72B60 0%, #F0CC0D 100%)',
+    backgroundColor: Palette.LIGHTEST_PINK,
     borderRadius: 5,
     width: '100%',
     height: 55,
@@ -95,14 +97,14 @@ const STYLES = {
     letterSpacing: 1.5,
     textAlign: 'center',
     textTransform: 'uppercase',
-    color: Palette.ROCK,
+    color: Palette.SUNSTONE,
     ':focus': {
       border: '1px solid ' + Palette.LIGHT_BLUE
     }
   },
   btnDisabled: {
     backgroundImage: 'none',
-    backgroundColor: Palette.DARK_ROCK,
+    backgroundColor: Palette.DARK_GRAY,
     cursor: 'not-allowed'
   },
   error: {
@@ -258,9 +260,9 @@ class AuthenticationUI extends React.Component {
         <div style={{
           position: 'absolute',
           bottom: 50,
-          color: '#999'
+          color: Palette.ROCK
         }}>
-          By logging into Haiku you agree to our <span style={{ color: '#efa70d', textDecoration: 'underline', cursor: 'pointer' }} onClick={() => { require('electron').shell.openExternal('https://www.haiku.ai/terms-of-service.html') }}>terms and conditions</span>
+          By logging into Haiku you agree to our <span style={{ color: Palette.LIGHTEST_PINK, textDecoration: 'underline', cursor: 'pointer' }} onClick={() => { require('electron').shell.openExternal('https://www.haiku.ai/terms-of-service.html') }}>terms and conditions</span>
         </div>
       </div>
     )

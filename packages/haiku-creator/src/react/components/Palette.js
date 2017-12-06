@@ -28,7 +28,11 @@ export default {
 
   // Start of real scheme:
   BLUE: '#488192',
-  DARK_PINK: '#F03F82' // used in the tour (buttons and UI)
+  DARK_PINK: '#F03F82', // used in the tour (buttons and UI)
+  DARK_ROCK: '#5B7373',
+  ROCK: '#C0CCCD', // Making ROCK a bit colder
+  SUNSTONE: 'rgb(254,254,254)', // This is our "white", use sparingly
+  GRAY_FIT1: '#405355' // used for tree line
 }
 
 /* will bring in full palette & rename soon */

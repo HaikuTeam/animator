@@ -459,7 +459,8 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
           <title>${projectNameSafe} | Preview | Haiku</title>
           <style>
             .container { margin: 0 auto; width: 100%; }
-            #mount { width: 80%; margin: 0 auto; }
+            #mount { width: 100%; height: 190px; margin: 0 auto; }
+            body { margin: 0; }
           </style>
         </head>
         <body>
@@ -469,7 +470,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
           <script src="./index.standalone.js"></script>
           <script>
             ${standaloneName}(document.getElementById('mount'), {
-              sizing: 'contain',
+              sizing: 'cover',
               loop: true
             })
           </script>

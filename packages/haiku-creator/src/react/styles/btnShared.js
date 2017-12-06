@@ -1,16 +1,18 @@
 import Palette from '../components/Palette'
-// import Color from 'color'
+import Color from 'color'
 
 export const BTN_STYLES = {
   btnIcon: {
-    width: '25px',
+    minWidth: '25px',
     height: '25px',
-    padding: '4px',
-    marginRight: '5px',
-    display: 'inline-block',
+    padding: '4px 7px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: '7px',
     float: 'right',
     borderRadius: '3px',
-    color: Palette.ROCK_MUTED,
+    color: Palette.ROCK,
     transform: 'scale(1)',
     cursor: 'pointer',
     transition: 'transform 200ms ease',
@@ -52,5 +54,18 @@ export const BTN_STYLES = {
   },
   rightBtns: {
     float: 'right'
+  },
+  btnPrimary: {
+    backgroundColor: Palette.LIGHTEST_PINK,
+    color: Palette.SUNSTONE
+  },
+  btnPrimaryAlt: {
+    backgroundColor: Color(Palette.FATHER_COAL).darken(.2),
+  },
+  btnCancel: {
+    letterSpacing: '1.3px',
+    marginTop: 4,
+    marginRight: 20,
+    cursor: 'pointer'
   }
 }

@@ -65,7 +65,9 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   openTerminal: true,
   saveProject: true,
   previewProject: true,
-  fetchProjectInfo: true
+  fetchProjectInfo: true,
+  doLogOut: true,
+  deleteProject: true
 }
 
 const ROOT_DIR = path.join(__dirname, '..')
@@ -800,9 +802,9 @@ export default class Plumbing extends StateObject {
     return inkstone.project.deleteByName(authToken, name, (deleteErr) => {
       if (deleteErr) {
         this.sentryError('deleteProject', deleteErr)
-        return cb(deleteErr)
+        if (cb) return cb(deleteErr)
       }
-      return cb()
+      if (cb) return cb()
     })
   }
 
@@ -828,6 +830,12 @@ export default class Plumbing extends StateObject {
   checkInkstoneUpdates (query = '', cb) {
     var authToken = sdkClient.config.getAuthToken()
     return inkstone.updates.check(authToken, query, cb)
+  }
+
+  doLogOut (cb) {
+    console.log('update')
+    sdkClient.config.setAuthToken('')
+    return cb()
   }
 
   listAssets (folder, cb) {
