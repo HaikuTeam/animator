@@ -298,9 +298,8 @@ class StageTitleBar extends React.Component {
     if (this.state.snapshotSaveError) return void (0)
     if (this.state.isSnapshotSaveInProgress) return void (0)
     if (this.state.snapshotMergeConflicts) return void (0)
-    if (this.state.showSharePopover) return void (0)
 
-    this.setState({showSharePopover: !this.state.showSharePopover})
+    this.setState({showSharePopover: true})
 
     if (this.props.tourClient) this.props.tourClient.next()
 
@@ -319,13 +318,7 @@ class StageTitleBar extends React.Component {
           console.error('unknown problem fetching project')
         }
 
-        // We might only care about this if it comes up during a save... #FIXME ??
-        if (projectInfoFetchError.message === 'Timed out waiting for project share info') {
-          // ?
-          return void (0) // Gotta return here - don't want to fall through as though we actually got projectInfo below
-        } else {
-          return this.setState({ projectInfoFetchError })
-        }
+        return this.setState({ projectInfoFetchError })
       }
 
       this.setState({ projectInfo })
@@ -358,19 +351,11 @@ class StageTitleBar extends React.Component {
     return this.requestSaveProject((snapshotSaveError, snapshotData) => {
       if (snapshotSaveError) {
         console.error(snapshotSaveError)
-        if (snapshotSaveError.message === 'Timed out waiting for project share info') {
-          this.props.createNotice({
-            type: 'warning',
-            title: 'Hmm...',
-            message: 'Publishing your project seems to be taking a long time. 😢 Please try again in a few moments. If you see this message again, contact Haiku for support.'
-          })
-        } else {
-          this.props.createNotice({
-            type: 'danger',
-            title: 'Oh no!',
-            message: 'We were unable to publish your project. 😢 Please try again in a few moments. If you still see this error, contact Haiku for support.'
-          })
-        }
+        this.props.createNotice({
+          type: 'danger',
+          title: 'Oh no!',
+          message: 'We were unable to publish your project. 😢 Please try again in a few moments. If you still see this error, contact Haiku for support.'
+        })
         return this.setState({ isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError }, () => {
           return setTimeout(() => this.setState({ snapshotSaveError: null }), 2000)
         })

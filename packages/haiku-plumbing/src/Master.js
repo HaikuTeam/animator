@@ -432,7 +432,7 @@ export default class Master extends EventEmitter {
   fetchProjectInfo ({ params: [projectName, haikuUsername, haikuPassword, fetchOptions = {}] }, cb) {
     return this._git.fetchFolderState('fetch-info', fetchOptions, (err) => {
       if (err) return cb(err)
-      return this._git.getCurrentShareInfo(2000, cb)
+      return this._git.getCurrentShareInfo(cb)
     })
   }
 
@@ -1045,14 +1045,14 @@ export default class Master extends EventEmitter {
       },
 
       (cb) => {
-        return this._git.commitProjectIfChanged('Updated metadata', cb)
+        this._git.commitProjectIfChanged('Updated metadata', cb)
       },
 
       // Build the rest of the content of the folder, including any bundles that belong on the cdn
       (cb) => {
         logger.info('[master] project save: populating content')
         const { projectName } = this._git.getFolderState()
-        return ProjectFolder.buildProjectContent(null, this.folder, projectName, 'haiku', {
+        ProjectFolder.buildProjectContent(null, this.folder, projectName, 'haiku', {
           projectName: projectName,
           haikuUsername: haikuUsername,
           authorName: saveOptions.authorName,
@@ -1060,18 +1060,24 @@ export default class Master extends EventEmitter {
         }, cb)
       },
 
-      (cb) => {
-        return this._git.commitProjectIfChanged('Populated content', cb)
-      },
-
       // Now do all of the git/share/publish/fs operations required for the real save
       (cb) => {
-        logger.info('[master] project save: committing, pushing, publishing')
-        return this._git.saveProject(saveOptions, cb)
+        logger.info('[master] project save: creating snapshot')
+        this._git.saveProject(saveOptions, cb)
       }
     ], (err, results) => { // async gives back _all_ results from each step
-      if (err && err !== true) return finish(err)
-      return finish(null, results[results.length - 1])
+      if (err && err !== true) {
+        finish(err)
+        return
+      }
+
+      finish(null, results[results.length - 1])
+      // Silently push results to the remote.
+      this._git.pushToRemote((err) => {
+        if (err) {
+          logger.warn('[master] silent project push failed')
+        }
+      })
     })
   }
 }
