@@ -28,10 +28,10 @@ const STYLES = {
 
 const SNIPPET_OPTIONS = {
   'Change State': 'this.setState({stateName: value})',
-  'Go To And Play': 'this.getDefaultTimeline.goToAndPlay(ms)',
-  'Go To And Stop': 'this.getDefaultTimeline.goToAndStop(ms)',
-  'Pause': 'this.getDefaultTimeline.pause()',
-  'Stop': 'this.getDefaultTimeline.stop()',
+  'Go To And Play': 'this.getDefaultTimeline().gotoAndPlay(ms)',
+  'Go To And Stop': 'this.getDefaultTimeline().gotoAndStop(ms)',
+  'Pause': 'this.getDefaultTimeline().pause()',
+  'Stop': 'this.getDefaultTimeline().stop()',
   'Docs': () => {
     shell.openExternal('https://docs.haiku.ai/using-haiku/summonables.html')
   }
