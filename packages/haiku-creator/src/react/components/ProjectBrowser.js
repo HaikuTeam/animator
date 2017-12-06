@@ -115,18 +115,28 @@ class ProjectBrowser extends React.Component {
     const projectsList = this.state.projectsList
     const name = projectsList[index].projectName
 
-    this.setState({ showDeleteModal: true, projToDelete: name, projToDeleteIndex: index }, () => {
-      this.refs.deleteInput.select()
+    this.setState({
+      showDeleteModal: true,
+      projToDelete: name,
+      projToDeleteIndex: index
     })
   }
 
   performDeleteProject (index) {
     const projectsList = this.state.projectsList
     const name = projectsList[index].projectName
-    var atProjectMax
+    let atProjectMax
 
     return this.requestDeleteProject(name, (deleteError) => {
-      if (!deleteError) {
+      if (deleteError) {
+        this.props.createNotice({
+          type: 'error',
+          title: 'Oh no!',
+          message: 'We couldn\'t delete this project. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.',
+          closeText: 'Okay',
+          lightScheme: true
+        })
+      } else {
         atProjectMax = this.state.projectsList.length - 1 >= HARDCODED_PROJECTS_LIMIT
         projectsList[index].isRemoved = true
         this.setState({ projectsList, confirmDeleteMatches: false, atProjectMax })
@@ -145,9 +155,7 @@ class ProjectBrowser extends React.Component {
   }
 
   showNewProjectModal () {
-    this.setState({ showNewProjectModal: true }, () => {
-      this.refs.newProjectInput.select()
-    })
+    this.setState({ showNewProjectModal: true })
   }
 
   projectsListElement () {
@@ -189,7 +197,7 @@ class ProjectBrowser extends React.Component {
                   ) && DASH_STYLES.blurred
                 ]}>
                 {(hasThumb && hasStandalone) &&
-                  <iframe src={thumbnail}/>
+                  <iframe src={thumbnail} scrolling="no" />
                 }
               </div>
               <div id='scrim'
@@ -217,7 +225,7 @@ class ProjectBrowser extends React.Component {
                       DASH_STYLES.menuOption,
                       DASH_STYLES.single,
                       !!project.isMenuActive && DASH_STYLES.gone,
-                      !!!project.isHovered && DASH_STYLES.gone2]}>
+                      !project.isHovered && DASH_STYLES.gone2]}>
                     OPEN
                   </span>
                   {/*<span key={'duplicate' + index}
@@ -233,7 +241,7 @@ class ProjectBrowser extends React.Component {
                     onClick={() => this.showDeleteModal(index)}
                     style={[
                       DASH_STYLES.menuOption,
-                      !!!project.isMenuActive && DASH_STYLES.gone]}>
+                      !project.isMenuActive && DASH_STYLES.gone]}>
                     DELETE
                   </span>
                   <span key={'reveal' + index}
@@ -241,7 +249,7 @@ class ProjectBrowser extends React.Component {
                     style={[
                       DASH_STYLES.menuOption,
                       DASH_STYLES.opt2,
-                      !!!project.isMenuActive && DASH_STYLES.gone]}>
+                      !project.isMenuActive && DASH_STYLES.gone]}>
                     REVEAL IN FINDER
                   </span>
                 </div>
@@ -374,7 +382,7 @@ class ProjectBrowser extends React.Component {
           <span style={DASH_STYLES.popover.icon}>
             <LogOutSVG />
           </span>
-          <span style={DASH_STYLES.popover.text}>LOG OUT</span>
+          <span style={[DASH_STYLES.popover.text, DASH_STYLES.upcase]}>Log Out</span>
         </div>
         <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.mini, DASH_STYLES.noSelect]}>
           <span style={DASH_STYLES.popover.icon}>
@@ -392,15 +400,16 @@ class ProjectBrowser extends React.Component {
         onClick={() => this.setState({showNewProjectModal: false})}>
         <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
           <div style={DASH_STYLES.modalTitle}>Name Project To Start</div>
-          <div style={DASH_STYLES.inputTitle}>PROJECT NAME</div>
+          <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Project Name</div>
           <input key='new-project-input'
-            ref='newProjectInput'
+            ref={(input) => { this.newProjectInput = input }}
             disabled={this.state.newProjectLoading}
             onKeyDown={this.handleNewProjectInputKeyDown.bind(this)}
             style={[DASH_STYLES.newProjectInput]}
             value={this.state.recordedNewProjectName}
             onChange={this.handleNewProjectInputChange.bind(this)}
-            placeholder='NewProjectName' />
+            placeholder='NewProjectName'
+            autoFocus />
           <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
           <button key='new-project-go-button'
             disabled={this.state.newProjectLoading}
@@ -408,12 +417,12 @@ class ProjectBrowser extends React.Component {
               this.handleNewProjectGo()
               this.setState({showNewProjectModal: false})
             }}
-            style={[BTN_STYLES.btnText, BTN_STYLES.rightBtns, BTN_STYLES.btnPrimaryAlt, {marginRight: 0}]}>
-            NAME PROJECT
+            style={[BTN_STYLES.btnText, BTN_STYLES.rightBtns, BTN_STYLES.btnPrimaryAlt, DASH_STYLES.upcase, {marginRight: 0}]}>
+            Name Project
           </button>
-          <span style={[BTN_STYLES.btnCancel, BTN_STYLES.rightBtns]}
+          <span style={[DASH_STYLES.upcase, BTN_STYLES.btnCancel, BTN_STYLES.rightBtns]}
             onClick={() => this.setState({showNewProjectModal: false})}>
-            CANCEL
+            Cancel
           </span>
         </div>
       </div>
@@ -428,14 +437,15 @@ class ProjectBrowser extends React.Component {
           <div style={DASH_STYLES.modalTitle}>
             Type "<span style={DASH_STYLES.projToDelete}>{this.state.projToDelete}</span>" to confirm project deletion
           </div>
-          <div style={DASH_STYLES.inputTitle}>DELETE PROJECT</div>
+          <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Delete Project</div>
           <input key='delete-project'
-            ref='deleteInput'
+            ref={(input) => { this.deleteInput = input }}
             onKeyDown={this.handleDeleteInputKeyDown.bind(this)}
             style={[DASH_STYLES.newProjectInput]}
             value={this.state.recordedDelete}
             onChange={this.handleDeleteInputChange.bind(this)}
-            placeholder='Type Project Name To Delete' />
+            placeholder='Type Project Name To Delete'
+            autoFocus />
           <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
           <button key='delete-go-button'
             disabled={!this.state.confirmDeleteMatches}
@@ -443,12 +453,12 @@ class ProjectBrowser extends React.Component {
               this.performDeleteProject(this.state.projToDeleteIndex)
               this.setState({showDeleteModal: false, projToDelete: ''})
             }}
-            style={[BTN_STYLES.btnText, BTN_STYLES.rightBtns, BTN_STYLES.btnPrimaryAlt, {marginRight: 0}]}>
-            DELETE PROJECT
+            style={[BTN_STYLES.btnText, BTN_STYLES.rightBtns, BTN_STYLES.btnPrimaryAlt, DASH_STYLES.upcase, {marginRight: 0}]}>
+            Delete Project
           </button>
-          <span style={[BTN_STYLES.btnCancel, BTN_STYLES.rightBtns]}
+          <span style={[BTN_STYLES.btnCancel, BTN_STYLES.rightBtns, DASH_STYLES.upcase]}
             onClick={() => this.setState({showDeleteModal: false, projToDelete: ''})}>
-            CANCEL
+            Cancel
           </span>
         </div>
       </div>
