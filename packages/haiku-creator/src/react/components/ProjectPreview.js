@@ -8,18 +8,29 @@ class ProjectPreview extends React.Component {
 
   constructor(props) {
     super(props)
-    this.bytecode = require(props.bytecodePath)
+    this.bytecode = null
     this.mount = null
+    try {
+      this.bytecode = require(props.bytecodePath)
+    } catch (e) {
+      // noop. Probably caught a broken project that didn't finish npm install or init correctly.
+    }
   }
 
   componentDidMount() {
-    HaikuDOMAdapter(this.bytecode)(
-      this.mount,
-      {
-        sizing: 'cover',
-        loop: true
+    if (this.bytecode && this.mount) {
+      try {
+        HaikuDOMAdapter(this.bytecode)(
+          this.mount,
+          {
+            sizing: 'cover',
+            loop: true
+          }
+        )
+      } catch (e) {
+        // noop. Probably caught a backward-incompatible change that doesn't work with the current version of Player.
       }
-    )
+    }
   }
 
   render() {
