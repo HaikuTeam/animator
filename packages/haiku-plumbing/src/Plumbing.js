@@ -1,29 +1,30 @@
-import path from 'path'
-import async from 'async'
-import fse from 'haiku-fs-extra'
-import find from 'lodash.find'
-import merge from 'lodash.merge'
-import filter from 'lodash.filter'
-import net from 'net'
-import cp from 'child_process'
-import qs from 'qs'
-import WebSocket from 'ws'
-import { EventEmitter } from 'events'
-import EnvoyServer from 'haiku-sdk-creator/lib/envoy/EnvoyServer'
-import EnvoyLogger from 'haiku-sdk-creator/lib/envoy/EnvoyLogger'
-import { EXPORTER_CHANNEL, ExporterHandler } from 'haiku-sdk-creator/lib/exporter'
-import { GLASS_CHANNEL, GlassHandler } from 'haiku-sdk-creator/lib/glass'
-import { TimelineHandler } from 'haiku-sdk-creator/lib/timeline'
-import { TourHandler } from 'haiku-sdk-creator/lib/tour'
-import { inkstone } from '@haiku/sdk-inkstone'
-import { client as sdkClient } from '@haiku/sdk-client'
-import StateObject from 'haiku-state-object'
-import serializeError from 'haiku-serialization/src/utils/serializeError'
-import logger from 'haiku-serialization/src/utils/LoggerInstance'
-import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
-import * as ProjectFolder from './ProjectFolder'
-import getNormalizedComponentModulePath from 'haiku-serialization/src/bll/helpers/getNormalizedComponentModulePath'
-import {crashReport} from 'haiku-serialization/src/utils/carbonite'
+import path from 'path';
+import async from 'async';
+import fse from 'haiku-fs-extra';
+import find from 'lodash.find';
+import merge from 'lodash.merge';
+import filter from 'lodash.filter';
+import net from 'net';
+import cp from 'child_process';
+import qs from 'qs';
+import WebSocket from 'ws';
+import { EventEmitter } from 'events';
+import EnvoyServer from 'haiku-sdk-creator/lib/envoy/EnvoyServer';
+import EnvoyLogger from 'haiku-sdk-creator/lib/envoy/EnvoyLogger';
+import { EXPORTER_CHANNEL, ExporterHandler } from 'haiku-sdk-creator/lib/exporter';
+import { GLASS_CHANNEL, GlassHandler } from 'haiku-sdk-creator/lib/glass';
+import { TimelineHandler } from 'haiku-sdk-creator/lib/timeline';
+import { TourHandler } from 'haiku-sdk-creator/lib/tour';
+import { inkstone } from '@haiku/sdk-inkstone';
+import { client as sdkClient } from '@haiku/sdk-client';
+import StateObject from 'haiku-state-object';
+import serializeError from 'haiku-serialization/src/utils/serializeError';
+import logger from 'haiku-serialization/src/utils/LoggerInstance';
+import mixpanel from 'haiku-serialization/src/utils/Mixpanel';
+import * as ProjectFolder from './ProjectFolder';
+import getNormalizedComponentModulePath from 'haiku-serialization/src/bll/helpers/getNormalizedComponentModulePath';
+import { crashReport } from 'haiku-serialization/src/utils/carbonite';
+import { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir';
 
 const Raven = require('./Raven')
 
@@ -774,7 +775,10 @@ export default class Plumbing extends StateObject {
           this.sentryError('listProjects', projectListErr)
           return cb(projectListErr)
         }
-        const finalList = projectsList.map(remapProjectObjectToExpectedFormat)
+        const finalList = projectsList.map((val) => remapProjectObjectToExpectedFormat(
+          val,
+          this.get('organizationName')
+        ))
         logger.info('[plumbing] fetched project list', JSON.stringify(finalList))
         return cb(null, finalList)
       })
@@ -792,7 +796,7 @@ export default class Plumbing extends StateObject {
         this.sentryError('createProject', projectCreateErr)
         return cb(projectCreateErr)
       }
-      return cb(null, remapProjectObjectToExpectedFormat(project))
+      return cb(null, remapProjectObjectToExpectedFormat(project, this.get('organizationName')))
     })
   }
 
@@ -1230,9 +1234,16 @@ function createResponder (message, websocket) {
   }
 }
 
-function remapProjectObjectToExpectedFormat (projectObject) {
+function remapProjectObjectToExpectedFormat (projectObject, organizationName) {
   return {
-    projectName: projectObject.Name
+    projectName: projectObject.Name,
+    projectPath: path.join(
+      HOMEDIR_PATH,
+      'projects',
+      organizationName,
+      projectObject.Name
+    ),
+    projectsHome: HOMEDIR_PATH
     // GitRemoteUrl
     // GitRemoteName
     // GitRemoteArn

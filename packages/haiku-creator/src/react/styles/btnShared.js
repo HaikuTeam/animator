@@ -67,5 +67,8 @@ export const BTN_STYLES = {
     marginTop: 4,
     marginRight: 20,
     cursor: 'pointer'
+  },
+  btnDisabled: {
+    cursor: 'not-allowed'
   }
 }

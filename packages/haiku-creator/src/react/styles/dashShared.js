@@ -53,8 +53,8 @@ export const DASH_STYLES = {
     marginTop: 36,
     width: '100%',
     height: '100%',
-    PaddingLeft: 50,
-    PaddingRight: 50
+    paddingLeft: 50,
+    paddingRight: 50
   },
   dontAtMe: {
     visibility: 'hidden',
