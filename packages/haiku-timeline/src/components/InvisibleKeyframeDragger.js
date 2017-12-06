@@ -1,6 +1,6 @@
 import React from 'react'
 import lodash from 'lodash'
-import { DraggableCore } from 'react-draggable'
+import TimelineDraggable from './TimelineDraggable'
 import Globals from './Globals'
 
 const THROTTLE_TIME = 17 // ms
@@ -40,29 +40,30 @@ export default class InvisibleKeyframeDragger extends React.Component {
     const pxOffsetLeft = this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
 
     return (
-      <DraggableCore
+      <TimelineDraggable
         id={`keyframe-dragger-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
         onStart={(dragEvent, dragData) => {
           this.props.component.dragStartSelectedKeyframes(dragData)
         }}
-        onStop={(dragEvent, dragData) => {
+        onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
+          const hasMultipleSelectedKeyframes =
+            this.props.timeline.hasMultipleSelectedKeyframes()
+          const skipDeselect =
+            Globals.isShiftKeyDown ||
+            ((Globals.isControlKeyDown || lastMouseButtonPressed === 3) &&
+              hasMultipleSelectedKeyframes) ||
+            (wasDrag && hasMultipleSelectedKeyframes)
+
           this.props.component.dragStopSelectedKeyframes(dragData)
+          this.props.keyframe.toggleSelect(
+            {skipDeselect, directlySelected: true},
+            Globals.isShiftKeyDown
+          )
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
           this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
-        }, THROTTLE_TIME)}
-        onMouseDown={(mouseEvent) => {
-          mouseEvent.stopPropagation()
-          const skipDeselect = (
-            Globals.isShiftKeyDown ||
-            (
-              (Globals.isControlKeyDown || mouseEvent.nativeEvent.which === 3) &&
-              this.props.timeline.hasMultipleSelectedKeyframes()
-            )
-          )
-          this.props.keyframe.select({ skipDeselect, directlySelected: true })
-        }}>
+        }, THROTTLE_TIME)}>
         <span
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
@@ -88,7 +89,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
             zIndex: 1003,
             cursor: 'col-resize'
           }} />
-      </DraggableCore>
+      </TimelineDraggable>
     )
   }
 }
