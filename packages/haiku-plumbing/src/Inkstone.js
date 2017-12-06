@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 import { inkstone } from '@haiku/sdk-inkstone'
+import { client } from '@haiku/sdk-client'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import * as Git from './Git'
 
@@ -10,38 +11,56 @@ if (process.env.HAIKU_API) {
   })
 }
 
-export function getCurrentShareInfo (folder, cache, extras, timeout, done) {
-  return Git.referenceNameToId(folder, 'HEAD', (err, id) => {
-    if (err) return done(err)
+if (process.env.SHARE_URL) {
+  inkstone.setConfig({
+    baseShareUrl: process.env.SHARE_URL
+  })
+}
 
-    var sha = id.toString()
-
-    logger.info('[inkstone] git HEAD resolved:', sha, 'getting snapshot info...')
-
-    if (cache[sha]) {
-      logger.info(`[inkstone] found cached share info for ${sha}`)
-      return done(null, cache[sha])
+export function createSnapshot (folder, name, done) {
+  Git.referenceNameToId(folder, 'HEAD', (err, id) => {
+    if (err) {
+      done(err)
+      return
     }
 
-    return getSnapshotInfo(sha, timeout, (err, shareLink, snapshotAndProject) => {
+    const sha = id.toString()
+
+    logger.info('[inkstone] git HEAD resolved:', sha, 'creating snapshot...')
+
+    inkstone.project.createProjectSnapshotByNameAndSha(
+      client.config.getAuthToken(),
+      name,
+      sha,
+      (err) => {
+        done(err)
+      }
+    )
+  })
+}
+
+export function getCurrentShareInfo (folder, cache, extras, done) {
+  Git.referenceNameToId(folder, 'HEAD', (err, id) => {
+    if (err) {
+      done(err)
+      return
+    }
+
+    const sha = id.toString()
+
+    logger.info('[inkstone] git HEAD resolved:', sha, 'getting snapshot...')
+
+    return getSnapshotInfo(sha, (err, shareLink, snapshotAndProject) => {
       logger.info('[inkstone] snapshot info returned', err, shareLink)
 
       if (err) {
-        if (err.timeout === true) {
-          logger.info('[inkstone] timed out waiting for snapshot info')
-
-          // HEY! This error message string is used by the frontend as part of some hacky conditional logic.
-          // Make sure you understand what it's doing there before you change it here...
-          return done(new Error('Timed out waiting for project share info'), lodash.assign({ sha }, extras))
-        }
-
         logger.info('[inkstone] error getting snapshot info')
         return done(err)
       }
 
-      var projectUid = snapshotAndProject.Project.UniqueId
+      const projectUid = snapshotAndProject.Project.UniqueId
 
-      var shareInfo = lodash.assign({ sha, projectUid, shareLink }, extras)
+      const shareInfo = lodash.assign({ sha, projectUid, shareLink }, extras)
 
       // Cache this during this session so we can avoid unnecessary handshakes with inkstone
       cache[sha] = shareInfo
@@ -53,37 +72,17 @@ export function getCurrentShareInfo (folder, cache, extras, timeout, done) {
   })
 }
 
-export function getSnapshotInfo (sha, timeout, done) {
-  let alreadyReturned = false
-
-  setTimeout(() => {
-    if (!alreadyReturned) {
-      alreadyReturned = true
-      return done({ timeout: true })
+function getSnapshotInfo (sha, done) {
+  return inkstone.snapshot.getSnapshotLink(sha, (err, snapshot) => {
+    if (err) {
+      done(err)
+      return
     }
-  }, timeout)
 
-  function finish (err, shareLink, snapshotAndProject) {
-    if (!alreadyReturned) {
-      alreadyReturned = true
-      return done(err, shareLink, snapshotAndProject)
-    }
-  }
+    const {link, snap} = snapshot
 
-  logger.info('[inkstone] awaiting snapshot share link')
-
-  return inkstone.snapshot.awaitSnapshotLink(sha, (err, shareLink) => {
-    if (err) return finish(err)
-
-    logger.info('[inkstone] share link received:', shareLink)
-
-    return inkstone.snapshot.getSnapshotAndProject(sha, (err, snapshotAndProject) => {
-      if (err) return finish(err)
-
-      logger.info('[inkstone] snapshot/project info:', snapshotAndProject)
-
-      return finish(null, shareLink, snapshotAndProject)
-    })
+    logger.info('[inkstone] share link received:', link)
+    return done(null, link, snap)
   })
 }
 

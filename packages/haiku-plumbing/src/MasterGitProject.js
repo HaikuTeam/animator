@@ -441,13 +441,21 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
+  saveSnapshot (cb) {
+    Inkstone.createSnapshot(this.folder, this._folderState.projectName, (err, snapshot) => {
+      cb(err, snapshot)
+    })
+  }
+
   pushToRemote (cb) {
     if (this._folderState.saveOptions && this._folderState.saveOptions.dontPush) {
       logger.info('[master-git] skipping push to remote, per your saveOptions flag')
       return cb() // Hack: Allow consumer to skip push (e.g. for testing)
     }
 
-    if (this._folderState.wasResetPerformed) return cb() // Kinda hacky to put this here...
+    if (this._folderState.wasResetPerformed) {
+      return cb() // Kinda hacky to put this here...
+    }
 
     const {
       GitRemoteUrl,
@@ -455,10 +463,21 @@ export default class MasterGitProject extends EventEmitter {
       CodeCommitHttpsPassword
     } = this._folderState.remoteProjectDescriptor
 
-    return Git.pushProject(this.folder, this._folderState.projectName, GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, (err) => {
-      if (err) return cb(err)
-      return this.pushTag(GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, cb)
-    })
+    Git.pushProject(
+      this.folder,
+      this._folderState.projectName,
+      GitRemoteUrl,
+      CodeCommitHttpsUsername,
+      CodeCommitHttpsPassword,
+      (err) => {
+        if (err) {
+          cb(err)
+          return
+        }
+
+        this.pushTag(GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, cb)
+      }
+    )
   }
 
   initializeGit (cb) {
@@ -759,7 +778,7 @@ export default class MasterGitProject extends EventEmitter {
       }
 
       // Inkstone should return info pretty fast if it has share info, so only wait 2s
-      return this.getCurrentShareInfo(2000, (err, shareInfo) => {
+      return this.getCurrentShareInfo((err, shareInfo) => {
         // Rather than treat the error as an error, assume it indicates that we need
         // to do a full publish. For example, we don't want to "error" if this is just a network timeout.
         // #FIXME?
@@ -798,8 +817,8 @@ export default class MasterGitProject extends EventEmitter {
     return obj && obj.version
   }
 
-  getCurrentShareInfo (timeout, cb) {
-    return Inkstone.getCurrentShareInfo(this.folder, this._shareInfoPayloads, this._folderState, timeout, cb)
+  getCurrentShareInfo (cb) {
+    return Inkstone.getCurrentShareInfo(this.folder, this._shareInfoPayloads, this._folderState, cb)
   }
 
   pushTag (GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, cb) {
@@ -1138,7 +1157,7 @@ export default class MasterGitProject extends EventEmitter {
             'commitEverything',
             'makeTag',
             'ensureRemoteRefs',
-            'pushToRemote'
+            'saveSnapshot'
           ]
         } else if (isGitInitialized && !isCodeCommitReady) {
           actionSequence = [
@@ -1157,7 +1176,7 @@ export default class MasterGitProject extends EventEmitter {
               'bumpSemverAppropriately',
               'commitEverything',
               'makeTag',
-              'pushToRemote'
+              'saveSnapshot'
             ]
           } else if (!doesGitHaveChanges) {
             actionSequence = [
@@ -1167,7 +1186,7 @@ export default class MasterGitProject extends EventEmitter {
               'bumpSemverAppropriately',
               'commitEverything',
               'makeTag',
-              'pushToRemote'
+              'saveSnapshot'
             ]
           }
         }
@@ -1175,28 +1194,25 @@ export default class MasterGitProject extends EventEmitter {
         logger.info('[master-git] project save: action sequence:', actionSequence.map((name) => name))
 
         return this.runActionSequence(actionSequence, saveOptions, cb)
-      },
-
-      (cb) => {
-        logger.info('[master-git] project save: completed initial sequence')
-
-        // If we have conflicts, we can't proceed to the share step, so return early.
-        // Conflicts aren't returned as an error because the frontend expects them as part of the response payload.
-        if (this._folderState.didHaveConflicts) {
-          // A fake conflicts object for now
-          // #TODO add real thing
-          return cb(null, { conflicts: [1] })
-        }
-
-        logger.info('[master-git] project save: fetching current share info')
-
-        // TODO: it may make sense to separate the "get the share link"
-        // flow from the "save" flow
-        return this.getCurrentShareInfo(60000 * 2, cb)
       }
-    ], (err, results) => {
-      if (err) return done(err)
-      return done(null, results[results.length - 1])
+    ], (err) => {
+      if (err) {
+        logger.info('[master-git] project save: completed initial sequence')
+        done(err)
+        return
+      }
+
+      // If we have conflicts, we can't proceed to the share step, so return early.
+      // Conflicts aren't returned as an error because the frontend expects them as part of the response payload.
+      if (this._folderState.didHaveConflicts) {
+        // A fake conflicts object for now
+        // #TODO add real thing
+        done(null, { conflicts: [1] })
+        return
+      }
+
+      // TODO: We really shouldn't need to make the extra API call since the last result returned is the whole snapshot.
+      this.getCurrentShareInfo(done)
     })
   }
 }
