@@ -38,7 +38,8 @@ class ProjectBrowser extends React.Component {
       recordedDelete: '',
       projToDelete: '',
       projToDeleteIndex: null,
-      confirmDeleteMatches: false
+      confirmDeleteMatches: false,
+      atProjectMax: false
     }
   }
 
@@ -75,7 +76,9 @@ class ProjectBrowser extends React.Component {
         })
         return this.setState({ error, areProjectsLoading: false })
       }
-      this.setState({ projectsList, areProjectsLoading: false })
+      this.setState({ projectsList, areProjectsLoading: false }, () => {
+        this.setState({ atProjectMax: this.state.projectsList.length >= HARDCODED_PROJECTS_LIMIT })
+      })
     })
   }
 
@@ -120,11 +123,13 @@ class ProjectBrowser extends React.Component {
   performDeleteProject (index) {
     const projectsList = this.state.projectsList
     const name = projectsList[index].projectName
+    var atProjectMax
 
     return this.requestDeleteProject(name, (deleteError) => {
       if (!deleteError) {
+        atProjectMax = this.state.projectsList.length - 1 >= HARDCODED_PROJECTS_LIMIT
         projectsList[index].isRemoved = true
-        this.setState({ projectsList, confirmDeleteMatches: false })
+        this.setState({ projectsList, confirmDeleteMatches: false, atProjectMax })
       }
     })
   }
@@ -140,11 +145,9 @@ class ProjectBrowser extends React.Component {
   }
 
   showNewProjectModal () {
-    if (!this.alreadyHasTooManyProjects()) {
-      this.setState({ showNewProjectModal: true }, () => {
-        this.refs.newProjectInput.select()
-      })
-    }
+    this.setState({ showNewProjectModal: true }, () => {
+      this.refs.newProjectInput.select()
+    })
   }
 
   projectsListElement () {
@@ -165,7 +168,9 @@ class ProjectBrowser extends React.Component {
           const hasThumb = fs.existsSync(thumbnail)
           const standalone = projectPath + '/index.standalone.js'
           const hasStandalone = fs.existsSync(standalone)
-          if (!fs.existsSync(projectPath)) return false
+          if (!fs.existsSync(projectPath) && !project.successfulSessionAdd) {
+            return false
+          }
 
           return (
             <div style={[DASH_STYLES.card, project.isRemoved && DASH_STYLES.deleted]}
@@ -274,14 +279,6 @@ class ProjectBrowser extends React.Component {
     )
   }
 
-  alreadyHasTooManyProjects () {
-    return (
-      !this.state.areProjectsLoading &&
-      this.state.projectsList &&
-      this.state.projectsList.length >= HARDCODED_PROJECTS_LIMIT
-    )
-  }
-
   isProjectNameBad (projectName) {
     if (!projectName) return true
     if (projectName === '') return true
@@ -317,6 +314,7 @@ class ProjectBrowser extends React.Component {
 
   handleNewProjectGo () {
     var raw = this.refs.newProjectInput.value
+    const projectsList = this.state.projectsList
     // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
     var name = raw && raw.replace(/[^a-z0-9]/gi, '')
 
@@ -327,6 +325,7 @@ class ProjectBrowser extends React.Component {
       this.props.websocket.request({ method: 'createProject', params: [name] }, (err, newProject) => {
         this.setState({newProjectLoading: false})
         if (err) {
+          this.setState({showNewProjectModal: false})
           this.props.createNotice({
             type: 'error',
             title: 'Oh no!',
@@ -335,6 +334,8 @@ class ProjectBrowser extends React.Component {
             lightScheme: true
           })
         } else {
+          projectsList.unshift({projectName: name, successfulSessionAdd: true })
+          this.setState({ projectsList, atProjectMax: this.state.projectsList.length + 1 >= HARDCODED_PROJECTS_LIMIT })
           this.handleProjectLaunch(newProject)
         }
       })
@@ -470,13 +471,15 @@ class ProjectBrowser extends React.Component {
         { this.state.showDeleteModal && this.renderDeleteModal() }
 
         <div style={DASH_STYLES.frame} className='frame' >
-          <button key='new_proj'
-            onClick={() => this.showNewProjectModal()}
-            style={[
-              BTN_STYLES.btnIcon,
-              BTN_STYLES.btnIconHovered
-            ]}><span style={{fontSize: 18}}> +</span>
-          </button>
+          {!this.state.atProjectMax &&
+            <button key='new_proj'
+              onClick={() => this.showNewProjectModal()}
+              style={[
+                BTN_STYLES.btnIcon,
+                BTN_STYLES.btnIconHovered
+              ]}><span style={{fontSize: 18}}> +</span>
+            </button>
+          }
 
           <Popover
             onOuterAction={this.closePopover}
