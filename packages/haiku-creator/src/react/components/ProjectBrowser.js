@@ -321,10 +321,11 @@ class ProjectBrowser extends React.Component {
   }
 
   handleNewProjectGo () {
-    var raw = this.refs.newProjectInput.value
+    const raw = this.newProjectInput.value
     const projectsList = this.state.projectsList
+
     // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
-    var name = raw && raw.replace(/[^a-z0-9]/gi, '')
+    const name = raw && raw.replace(/[^a-z0-9]/gi, '')
 
     if (this.isProjectNameBad(name)) {
       console.warn('bad name entered:', name)
