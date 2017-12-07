@@ -140,7 +140,7 @@ class ProjectBrowser extends React.Component {
         // the project.
         setTimeout(() => {
           projectsList.splice(index, 1)
-          this.setState({ projectsList })
+          this.setState({ projectsList, atProjectMax: projectsList.length >= HARDCODED_PROJECTS_LIMIT })
         }, Math.min(200, Date.now() - deleteStart))
       })
     })
