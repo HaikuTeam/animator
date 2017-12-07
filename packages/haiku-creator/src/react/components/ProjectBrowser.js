@@ -174,7 +174,6 @@ class ProjectBrowser extends React.Component {
         {this.state.projectsList.map((projectObject, index) => (
           <ProjectThumbnail
             key={projectObject.projectName}
-            id={projectObject.projectName}
             organizationName={this.props.organizationName}
             projectName={projectObject.projectName}
             projectPath={projectObject.projectPath}

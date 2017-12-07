@@ -41,6 +41,7 @@ class ProjectThumbnail extends React.Component {
     return (
       <div
         style={[DASH_STYLES.card, this.props.isDeleted && DASH_STYLES.deleted]}
+        id={this.props.projectName}
         key='wrap'
         onMouseLeave={() => {
           this.setState({
