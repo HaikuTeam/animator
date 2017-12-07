@@ -69,7 +69,9 @@ export default class ControlsArea extends React.Component {
             timeline={this.props.timeline}
             playbackSkipBack={this.props.playbackSkipBack}
             playbackSkipForward={this.props.playbackSkipForward}
-            playbackPlayPause={this.props.playbackPlayPause} />
+            playbackPlayPause={this.props.playbackPlayPause}
+            toggleRepeat={this.props.toggleRepeat}
+            isRepeat={this.props.isRepeat} />
           <div style={{
             position: 'absolute',
             top: -63

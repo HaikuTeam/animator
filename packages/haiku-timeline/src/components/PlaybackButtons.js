@@ -5,6 +5,7 @@ import SkipBackIconSVG from 'haiku-ui-common/lib/react/icons/SkipBackIconSVG'
 import SkipForwardIconSVG from 'haiku-ui-common/lib/react/icons/SkipForwardIconSVG'
 import PlayIconSVG from 'haiku-ui-common/lib/react/icons/PlayIconSVG'
 import PauseIconSVG from 'haiku-ui-common/lib/react/icons/PauseIconSVG'
+import RepeatIconSVG from 'haiku-ui-common/lib/react/icons/RepeatIconSVG'
 
 const STYLES = {
   btn: {
@@ -19,6 +20,12 @@ const STYLES = {
     width: 30,
     borderRadius: 3,
     backgroundColor: Palette.FATHER_COAL
+  },
+  btnRepeat: {
+    transform: 'scale(0.8)',
+    ':active': {
+      transform: 'scale(0.7)'
+    }
   },
   disabled: {
     opacity: 0.5,
@@ -47,23 +54,18 @@ class PlaybackButtons extends React.Component {
     if (what === 'timeline-frame') this.forceUpdate()
   }
 
-  playbackSkipBack () {
-    this.props.playbackSkipBack()
-  }
-
-  playbackSkipForward () {
-    this.props.playbackSkipForward()
-  }
-
-  playbackPlayPause () {
-    this.props.playbackPlayPause()
-  }
-
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
     const lastFrame = frameInfo.maxf
     const currentFrame = this.props.timeline.getCurrentFrame()
     const isPlaying = this.props.timeline.isPlaying()
+    const {
+      playbackSkipBack,
+      playbackSkipForward,
+      playbackPlayPause,
+      toggleRepeat,
+      isRepeat
+    } = this.props
 
     return (
       <span>
@@ -71,13 +73,13 @@ class PlaybackButtons extends React.Component {
           disabled={currentFrame < 1}
           key='skipback'
           style={[STYLES.btn, currentFrame < 1 && STYLES.disabled]}
-          onClick={this.playbackSkipBack.bind(this)}
+          onClick={playbackSkipBack}
         >
           <SkipBackIconSVG />
         </button>
         <button
           key='pause'
-          onClick={this.playbackPlayPause.bind(this)}
+          onClick={playbackPlayPause}
           style={[
             STYLES.btn,
             STYLES.btnPlayPause
@@ -95,9 +97,19 @@ class PlaybackButtons extends React.Component {
           disabled={currentFrame >= lastFrame}
           key='skipforward'
           style={[STYLES.btn, currentFrame >= lastFrame && STYLES.disabled]}
-          onClick={this.playbackSkipForward.bind(this)}
+          onClick={playbackSkipForward}
         >
           <SkipForwardIconSVG />
+        </button>
+
+        <button
+          key='repeat'
+          style={[STYLES.btn, STYLES.btnRepeat, !isRepeat && {opacity: 0.5}]}
+          onClick={toggleRepeat}
+        >
+          <RepeatIconSVG
+            color={isRepeat ? Palette.LIGHTEST_PINK : Palette.SUNSTONE}
+          />
         </button>
       </span>
     )

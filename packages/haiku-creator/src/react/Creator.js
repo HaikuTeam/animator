@@ -21,7 +21,7 @@ import Tour from './components/Tour/Tour'
 import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
-import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/user'
+import { USER_CHANNEL } from 'haiku-sdk-creator/lib/bll/user'
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
 import { isPreviewMode } from '@haiku/player/lib/helpers/interactionModes'
 import Palette from 'haiku-ui-common/lib/Palette'
@@ -309,8 +309,8 @@ export default class Creator extends React.Component {
        */
       (user) => {
         this.user = user
-        
-        //kick off initial report
+
+        // kick off initial report
         this.onActivityReport(true)
       }
     )

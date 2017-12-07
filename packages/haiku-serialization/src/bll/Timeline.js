@@ -17,6 +17,7 @@ class Timeline extends BaseModel {
     super(props, opts)
 
     this._playing = false
+    this._isLooping = true
     this._stopwatch = Date.now()
     this._currentFrame = 0
     this._fps = 60
@@ -58,6 +59,18 @@ class Timeline extends BaseModel {
 
   isPlaying () {
     return this._playing
+  }
+
+  setRepeat (bool) {
+    this._isLooping = bool
+  }
+
+  getRepeat () {
+    return Boolean(this._isLooping)
+  }
+
+  toggleRepeat () {
+    this.setRepeat(!this.getRepeat())
   }
 
   setAuthoritativeFrame (authoritativeFrame) {
@@ -174,10 +187,14 @@ class Timeline extends BaseModel {
       if (this.getCurrentFrame() >= frameInfo.maxf) {
         // Need to unset this or the next seek will be treated as a a no-op
         this._lastSeek = null
-        // For now, reset to 0 and pause the timeline. Once we have a UI
-        // for toggling UI behavior, we will likely have it loop by default
-        this.seekAndPause(frameInfo.maxf)
-        this.emit('timeline-model:stop-playback')
+
+        if (this.getRepeat()) {
+          this.seek(0)
+          this.play()
+        } else {
+          this.seekAndPause(frameInfo.maxf)
+          this.emit('timeline-model:stop-playback')
+        }
       }
 
       if (!this.isScrubberDragging()) {
