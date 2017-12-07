@@ -167,7 +167,21 @@ export class Glass extends React.Component {
     })
 
     window.addEventListener('dragover', preventDefaultDrag, false)
-    window.addEventListener('drop', linkExternalAssetsOnDrop.bind(this), false)
+    window.addEventListener(
+      'drop',
+      (event) => {
+        linkExternalAssetsOnDrop(
+          event,
+          this.props.websocket,
+          this.props.folder,
+          (error, assets) => {
+            if (error) this.setState({error})
+            this.forceUpdate()
+          }
+        )
+      },
+      false
+    )
   }
 
   handleRequestElementCoordinates ({selector, webview}) {

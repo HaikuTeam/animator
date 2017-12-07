@@ -153,7 +153,22 @@ export default class Creator extends React.Component {
     })
 
     window.addEventListener('dragover', preventDefaultDrag, false)
-    window.addEventListener('drop', linkExternalAssetsOnDrop.bind(this), false)
+
+    window.addEventListener(
+      'drop',
+      (event) => {
+        linkExternalAssetsOnDrop(
+          event,
+          this.props.websocket,
+          this.state.projectFolder,
+          (error, assets) => {
+            if (error) this.setState({error})
+            this.forceUpdate()
+          }
+        )
+      },
+      false
+    )
   }
 
   openTerminal (folder) {
