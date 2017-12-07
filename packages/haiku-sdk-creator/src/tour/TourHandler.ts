@@ -25,12 +25,12 @@ export class TourHandler implements Tour {
       waitUserAction: true,
     },
     {
-      selector: '#project-edit-button',
+      selector: '#CheckTutorial',
       webview: 'creator',
       component: 'OpenProject',
       display: 'left',
-      offset: {top: 0, left: 60},
-      spotlightRadius: 'default',
+      offset: {top: 100, left: 0},
+      spotlightRadius: 400,
       waitUserAction: true,
     },
     {
