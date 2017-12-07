@@ -48,12 +48,7 @@ class ProjectBrowser extends React.Component {
     this.loadProjects()
     this.props.envoy.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
-      tourChannel.on('tour:requestSelectProject', this.handleSelectProject)
     })
-  }
-
-  componentWillUnmount () {
-    this.tourChannel.off('tour:requestSelectProject', this.handleSelectProject)
   }
 
   openPopover (evt) {
