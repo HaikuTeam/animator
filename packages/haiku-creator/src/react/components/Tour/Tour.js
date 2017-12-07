@@ -47,9 +47,19 @@ class Tour extends React.Component {
       this.hasNecessaryProject() &&
       !this.hasTriggeredTourRender
     ) {
+      this.tryStartTour()
+    }
+  }
+
+  tryStartTour () {
+    if (this.tourChannel) {
       this.tourChannel.start()
       this.hasTriggeredTourRender = true
       mixpanel.haikuTrack('tour', {state: 'started'})
+    } else {
+      // If envoy it's taking more than expected to return the tourChannel,
+      // try again in 500 ms
+      return setTimeout(() => { this.tryStartTour() }, 500)
     }
   }
 
