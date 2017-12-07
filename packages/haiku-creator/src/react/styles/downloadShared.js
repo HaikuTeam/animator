@@ -1,6 +1,7 @@
 import Color from 'color'
 import Palette from '../components/Palette'
 import { DASH_STYLES } from './dashShared'
+import { BTN_STYLES } from './btnShared.js'
 
 export const DOWNLOAD_STYLES = {
   container: {
@@ -19,7 +20,7 @@ export const DOWNLOAD_STYLES = {
     maxWidth: 325
   },
   btn: {
-    ...DASH_STYLES.btn,
+    ...BTN_STYLES.pinkButton,
     padding: '10px 15px',
     fontSize: 16,
     float: 'right'

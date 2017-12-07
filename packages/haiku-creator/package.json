@@ -38,7 +38,7 @@
     "lodash.assign": "4.2.0",
     "lodash.debounce": "4.0.8",
     "mixpanel": "0.6.0",
-    "node-fetch": "^1.7.3",
+    "node-fetch": "^2.0.0-alpha.9",
     "qs": "6.3.0",
     "radium": "0.18.1",
     "raven-js": "^3.18.1",

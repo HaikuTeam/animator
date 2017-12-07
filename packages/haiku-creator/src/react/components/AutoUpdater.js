@@ -52,10 +52,10 @@ class AutoUpdater extends React.Component {
             : this.setState({status: statuses.NO_UPDATES})
         }
       })
-      .catch(() => {
+      .catch((err) => {
         this.props.runOnBackground
           ? this.hide()
-          : this.onFail()
+          : this.onFail(err)
       })
   }
 

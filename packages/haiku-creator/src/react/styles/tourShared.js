@@ -1,21 +1,12 @@
 import Palette from '../components/Palette'
+import { BTN_STYLES } from './btnShared.js'
 
 export const TOUR_STYLES = {
   heading: {
     marginTop: 20
   },
   btn: {
-    backgroundColor: Palette.LIGHT_PINK,
-    borderRadius: 2,
-    color: 'white',
-    transform: 'scale(1)',
-    textTransform: 'uppercase',
-    transition: 'transform 200ms ease',
-    ':active': {
-      transform: 'scale(.8)'
-    },
-    padding: '10px 15px',
-    fontSize: 16
+    ...BTN_STYLES.pinkButton
   },
   btnSecondary: {
     textTransform: 'none',
