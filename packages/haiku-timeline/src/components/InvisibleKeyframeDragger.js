@@ -44,7 +44,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
         id={`keyframe-dragger-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
         onMouseDown={() => {
-          if(this.props.timeline.getSelectedKeyframes().length <= 1 && !Globals.isShiftKeyDown) {
+          if (this.props.timeline.getSelectedKeyframes().length <= 1 && !Globals.isShiftKeyDown) {
             this.props.keyframe.select(
               {skipDeselect: false, directlySelected: true}
             )

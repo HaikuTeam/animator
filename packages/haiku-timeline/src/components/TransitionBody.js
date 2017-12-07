@@ -125,7 +125,7 @@ export default class TransitionBody extends React.Component {
         axis='x'
         onMouseDown={() => {
           if (!this.props.preventDragging) {
-            if(this.props.timeline.getSelectedKeyframes().length <= 2 && !Globals.isShiftKeyDown) {
+            if (this.props.timeline.getSelectedKeyframes().length <= 2 && !Globals.isShiftKeyDown) {
               this.props.keyframe.selectSelfAndSurrounds(
                 {skipDeselect: false, directlySelected: true}
               )
