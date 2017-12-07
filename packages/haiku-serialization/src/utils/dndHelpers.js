@@ -30,28 +30,19 @@ module.exports = {
    * - Handling the drop event
    * - Filtering files that are not supported
    * - Linking the assets via plumbing
-   *
-   * TODO: This method assumes that will be called from a React
-   * component, this helps us to avoid a ton of boilerplate
-   * between Creator/Timeline/Glass, but looks like we
-   * should find a better solution.
    */
-  linkExternalAssetsOnDrop (event) {
+  linkExternalAssetsOnDrop (event, websocket, folder, callback) {
     if (_isInternalDrop(event)) return
 
     event.preventDefault()
 
-    const {websocket, folder} = this.props
     const files = Array.from(event.dataTransfer.items)
       .filter(_isValidFile) /* Allow only svg and sketch files */
       .map(item => item.getAsFile().path)
 
     websocket.request(
       {method: 'bulkLinkAssets', params: [files, folder]},
-      (error, assets) => {
-        if (error) this.setState({error})
-        this.forceUpdate()
-      }
+      callback
     )
   },
 
