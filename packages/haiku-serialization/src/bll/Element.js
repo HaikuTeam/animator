@@ -287,12 +287,14 @@ class Element extends BaseModel {
 
   isAtFront () {
     const stackingInfo = this.getStackingInfo()
+    if (!stackingInfo) return true
     const myIndex = lodash.findIndex(stackingInfo, { haikuId: this.getComponentId() })
     return myIndex === stackingInfo.length - 1
   }
 
   isAtBack () {
     const stackingInfo = this.getStackingInfo()
+    if (!stackingInfo) return true
     const myIndex = lodash.findIndex(stackingInfo, { haikuId: this.getComponentId() })
     return myIndex === 0
   }
