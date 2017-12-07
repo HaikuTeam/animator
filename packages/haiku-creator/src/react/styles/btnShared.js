@@ -70,5 +70,22 @@ export const BTN_STYLES = {
   },
   btnDisabled: {
     cursor: 'not-allowed'
+  },
+  /* Legacy: many UI dialogs are using this button
+   * (autoupdater, tour, sketch downloader) so we keep it until we unify
+   * the styles in the whole app
+   */
+  pinkButton: {
+    backgroundColor: Palette.LIGHT_PINK,
+    borderRadius: 2,
+    color: 'white',
+    transform: 'scale(1)',
+    textTransform: 'uppercase',
+    transition: 'transform 200ms ease',
+    ':active': {
+      transform: 'scale(.8)'
+    },
+    padding: '10px 15px',
+    fontSize: 16
   }
 }
