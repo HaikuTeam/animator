@@ -43,23 +43,31 @@ export default class InvisibleKeyframeDragger extends React.Component {
       <TimelineDraggable
         id={`keyframe-dragger-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
+        onMouseDown={() => {
+          if(this.props.timeline.getSelectedKeyframes().length <= 1 && !Globals.isShiftKeyDown) {
+            this.props.keyframe.select(
+              {skipDeselect: false, directlySelected: true}
+            )
+          }
+        }}
         onStart={(dragEvent, dragData) => {
           this.props.component.dragStartSelectedKeyframes(dragData)
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
           const hasMultipleSelectedKeyframes =
             this.props.timeline.hasMultipleSelectedKeyframes()
+
           const skipDeselect =
             Globals.isShiftKeyDown ||
             ((Globals.isControlKeyDown || lastMouseButtonPressed === 3) &&
               hasMultipleSelectedKeyframes) ||
             (wasDrag && hasMultipleSelectedKeyframes)
 
-          this.props.component.dragStopSelectedKeyframes(dragData)
           this.props.keyframe.toggleSelect(
             {skipDeselect, directlySelected: true},
             Globals.isShiftKeyDown
           )
+          this.props.component.dragStopSelectedKeyframes(dragData)
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
           this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })

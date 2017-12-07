@@ -123,6 +123,15 @@ export default class TransitionBody extends React.Component {
         // NOTE: We cannot use 'curr.ms' for key here because these things move around
         id={`transition-body-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
+        onMouseDown={() => {
+          if (!this.props.preventDragging) {
+            if(this.props.timeline.getSelectedKeyframes().length <= 2 && !Globals.isShiftKeyDown) {
+              this.props.keyframe.selectSelfAndSurrounds(
+                {skipDeselect: false, directlySelected: true}
+              )
+            }
+          }
+        }}
         onStart={(dragEvent, dragData) => {
           if (!this.props.preventDragging) {
             this.props.component.dragStartSelectedKeyframes(dragData)
@@ -134,7 +143,7 @@ export default class TransitionBody extends React.Component {
             // it works for our current user case, but we should do better
             // (shame on Roberto)
             const hasSelectedTween =
-              this.props.timeline.getSelectedKeyframes() > 2
+              this.props.timeline.getSelectedKeyframes().length > 2
             const skipDeselect =
               Globals.isShiftKeyDown ||
               ((Globals.isControlKeyDown || lastMouseButtonPressed === 3) &&

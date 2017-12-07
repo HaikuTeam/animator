@@ -85,14 +85,22 @@ class Keyframe extends BaseModel {
     }
   }
 
+  selectSelfAndSurrounds (config) {
+    this.callOnSelfAndSurrounds('select', config)
+  }
+
   toggleSelectSelfAndSurrounds (config, isInMultiSelection) {
-    this.toggleSelect(config, isInMultiSelection)
+    this.callOnSelfAndSurrounds('toggleSelect', config, isInMultiSelection)
+  }
+
+  callOnSelfAndSurrounds (method, ...args) {
+    this[method](...args)
     if (this.next()) {
       // HACK: Normally selecting/deselecting a keyframe deselects all others,
       // but in this case we want to retain the one we selected in the
       // line above, so add this property to the event/config to prevent
       // that behavior
-      this.next().toggleSelect({ skipDeselect: true }, isInMultiSelection)
+      this.next()[method]({skipDeselect: true}, args[1])
     }
     return this
   }
