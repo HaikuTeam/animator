@@ -60,7 +60,7 @@ export const BTN_STYLES = {
     color: Palette.SUNSTONE
   },
   btnPrimaryAlt: {
-    backgroundColor: Color(Palette.FATHER_COAL).darken(.2),
+    backgroundColor: Color(Palette.FATHER_COAL).darken(0.2)
   },
   btnCancel: {
     letterSpacing: '1.3px',

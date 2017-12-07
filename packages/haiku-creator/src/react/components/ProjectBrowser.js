@@ -104,7 +104,7 @@ class ProjectBrowser extends React.Component {
     const projectsList = this.state.projectsList
     const name = projectsList[index].projectName
     if (this.deleteInput) {
-      this.deleteInput.value = '';
+      this.deleteInput.value = ''
     }
 
     this.setState({
@@ -174,6 +174,7 @@ class ProjectBrowser extends React.Component {
         {this.state.projectsList.map((projectObject, index) => (
           <ProjectThumbnail
             key={projectObject.projectName}
+            id={projectObject.projectName}
             organizationName={this.props.organizationName}
             projectName={projectObject.projectName}
             projectPath={projectObject.projectPath}
@@ -293,7 +294,7 @@ class ProjectBrowser extends React.Component {
     )
   }
 
-  renderNewProjectModal() {
+  renderNewProjectModal () {
     return (
       <div style={DASH_STYLES.overlay}
         onClick={() => this.setState({showNewProjectModal: false})}>
@@ -301,7 +302,7 @@ class ProjectBrowser extends React.Component {
           <div style={DASH_STYLES.modalTitle}>Name Project To Start</div>
           <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Project Name</div>
           <input key='new-project-input'
-            ref={(input) => this.newProjectInput = input }
+            ref={(input) => this.newProjectInput = input}
             disabled={this.state.newProjectLoading}
             onKeyDown={(e) => { this.handleNewProjectInputKeyDown(e) }}
             style={[DASH_STYLES.newProjectInput]}
@@ -321,7 +322,7 @@ class ProjectBrowser extends React.Component {
               BTN_STYLES.btnPrimaryAlt,
               DASH_STYLES.upcase,
               !this.state.recordedNewProjectName && BTN_STYLES.btnDisabled,
-              {marginRight: 0},
+              {marginRight: 0}
             ]}>
             Name Project
           </button>
@@ -334,7 +335,7 @@ class ProjectBrowser extends React.Component {
     )
   }
 
-  renderDeleteModal() {
+  renderDeleteModal () {
     return (
       <div style={DASH_STYLES.overlay}
         onClick={() => { this.hideDeleteModal() }}>
@@ -344,7 +345,7 @@ class ProjectBrowser extends React.Component {
           </div>
           <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Delete Project</div>
           <input key='delete-project'
-            ref={(input) => this.deleteInput = input }
+            ref={(input) => this.deleteInput = input}
             onKeyDown={(e) => { this.handleDeleteInputKeyDown(e) }}
             style={[DASH_STYLES.newProjectInput]}
             onChange={(e) => { this.handleDeleteInputChange(e) }}

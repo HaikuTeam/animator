@@ -70,7 +70,7 @@ const STYLES = {
     right: 25
   },
   input: {
-    backgroundColor: Color(Palette.COAL).darken(.2),
+    backgroundColor: Color(Palette.COAL).darken(0.2),
     width: '100%',
     height: 55,
     borderRadius: 5,

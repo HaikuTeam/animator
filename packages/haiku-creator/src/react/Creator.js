@@ -1,32 +1,32 @@
-import React from 'react';
-import { StyleRoot } from 'radium';
-import SplitPane from 'react-split-pane';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
-import lodash from 'lodash';
-import Combokeys from 'combokeys';
-import EventEmitter from 'event-emitter';
-import cp from 'child_process';
-import os from 'os';
-import path from 'path';
-import fs from 'fs';
-import AuthenticationUI from './components/AuthenticationUI';
-import ProjectBrowser from './components/ProjectBrowser';
-import SideBar from './components/SideBar';
-import Library from './components/library/Library';
-import StateInspector from './components/StateInspector/StateInspector';
-import Stage from './components/Stage';
-import Timeline from './components/Timeline';
-import Toast from './components/notifications/Toast';
-import Tour from './components/Tour/Tour';
-import AutoUpdater from './components/AutoUpdater';
-import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
-import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter';
-import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass';
-import { isPreviewMode } from '@haiku/player/lib/helpers/interactionModes';
-import Palette from './components/Palette.js';
-import ActivityMonitor from '../utils/activityMonitor.js';
-import { linkExternalAssetsOnDrop, preventDefaultDrag } from 'haiku-serialization/src/utils/dndHelpers';
-import { HOMEDIR_LOGS_PATH, HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir';
+import React from 'react'
+import { StyleRoot } from 'radium'
+import SplitPane from 'react-split-pane'
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+import lodash from 'lodash'
+import Combokeys from 'combokeys'
+import EventEmitter from 'event-emitter'
+import cp from 'child_process'
+import os from 'os'
+import path from 'path'
+import fs from 'fs'
+import AuthenticationUI from './components/AuthenticationUI'
+import ProjectBrowser from './components/ProjectBrowser'
+import SideBar from './components/SideBar'
+import Library from './components/library/Library'
+import StateInspector from './components/StateInspector/StateInspector'
+import Stage from './components/Stage'
+import Timeline from './components/Timeline'
+import Toast from './components/notifications/Toast'
+import Tour from './components/Tour/Tour'
+import AutoUpdater from './components/AutoUpdater'
+import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
+import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
+import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
+import { isPreviewMode } from '@haiku/player/lib/helpers/interactionModes'
+import Palette from './components/Palette.js'
+import ActivityMonitor from '../utils/activityMonitor.js'
+import { linkExternalAssetsOnDrop, preventDefaultDrag } from 'haiku-serialization/src/utils/dndHelpers'
+import { HOMEDIR_LOGS_PATH, HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 
 var pkg = require('./../../package.json')
 

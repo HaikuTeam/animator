@@ -1,4 +1,3 @@
-import { DASH_STYLES } from './dashShared'
 import Palette from '../components/Palette'
 
 export const TOUR_STYLES = {
@@ -7,7 +6,6 @@ export const TOUR_STYLES = {
   },
   btn: {
     backgroundColor: Palette.LIGHT_PINK,
-    padding: '5px 15px',
     borderRadius: 2,
     color: 'white',
     transform: 'scale(1)',

@@ -33,7 +33,7 @@ class ProjectThumbnail extends React.Component {
     this.hasBytecode = fs.existsSync(this.bytecodePath)
     this.state = {
       isMenuActive: false,
-      isHovered: false,
+      isHovered: false
     }
   }
 
@@ -41,7 +41,7 @@ class ProjectThumbnail extends React.Component {
     return (
       <div
         style={[DASH_STYLES.card, this.props.isDeleted && DASH_STYLES.deleted]}
-        key="wrap"
+        key='wrap'
         onMouseLeave={() => {
           this.setState({
             isMenuActive: false
@@ -49,7 +49,7 @@ class ProjectThumbnail extends React.Component {
         }}
       >
         <div
-          key="thumb"
+          key='thumb'
           style={[
             DASH_STYLES.thumb,
             (this.state.isMenuActive || this.state.isHovered) && DASH_STYLES.blurred
@@ -57,18 +57,18 @@ class ProjectThumbnail extends React.Component {
           {this.hasBytecode
             ? <ProjectPreview bytecodePath={this.bytecodePath} />
             : <div
-                style={{
-                  margin: '85px auto 0',
-                  width: '100%',
-                  textAlign: 'center'
-                }}
+              style={{
+                margin: '85px auto 0',
+                width: '100%',
+                textAlign: 'center'
+              }}
               >
-                {renderMissingLocalProjectMessage(this.props.projectName)}
-              </div>
+              {renderMissingLocalProjectMessage(this.props.projectName)}
+            </div>
           }
         </div>
         <div
-          key="scrim"
+          key='scrim'
           style={[
             DASH_STYLES.scrim,
             (this.state.isMenuActive || this.state.isHovered) && {opacity: 1}
@@ -86,7 +86,7 @@ class ProjectThumbnail extends React.Component {
           }}
         >
           <span
-            key="open"
+            key='open'
             style={[
               DASH_STYLES.menuOption,
               DASH_STYLES.single,
@@ -97,7 +97,7 @@ class ProjectThumbnail extends React.Component {
             OPEN
           </span>
           <span
-            key="delete"
+            key='delete'
             onClick={this.props.showDeleteModal}
             style={[
               DASH_STYLES.menuOption,
@@ -107,7 +107,7 @@ class ProjectThumbnail extends React.Component {
             DELETE
           </span>
           <span
-            key="reveal"
+            key='reveal'
             onClick={() => shell.showItemInFolder(this.props.projectPath)}
             style={[
               DASH_STYLES.menuOption,
@@ -130,7 +130,7 @@ class ProjectThumbnail extends React.Component {
               })
             }}
           >
-            <StackMenuSVG color={Palette.SUNSTONE} width='5px' height='12px'/>
+            <StackMenuSVG color={Palette.SUNSTONE} width='5px' height='12px' />
           </span>
         </div>
       </div>
