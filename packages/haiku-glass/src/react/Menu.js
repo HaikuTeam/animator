@@ -55,7 +55,7 @@ const STYLES = {
   }
 }
 
-const closeIfSelectedClass = 'js-close-on-click'
+const CLOSE_IF_SELECTED_CLASS = 'js-close-on-click'
 
 class BaseMenu extends React.Component {
   constructor (props) {
@@ -76,7 +76,9 @@ class BaseMenu extends React.Component {
   }
 
   closeIfOptionSelected (event) {
-    if (event.target.className === closeIfSelectedClass) this.close()
+    if (event && event.target && event.target.className === CLOSE_IF_SELECTED_CLASS) {
+      this.close()
+    }
   }
 
   getWrapperStyles () {
@@ -120,8 +122,8 @@ class BaseMenu extends React.Component {
           {this.props.trigger}
         </div>
         <ul
-          onClick={() => { this.closeIfOptionSelected() }}
-          onMouseLeave={() => { this.close() }}
+          onClick={(event) => { this.closeIfOptionSelected(event) }}
+          onMouseLeave={(event) => { this.close(event) }}
           style={[
             STYLES.resetList,
             STYLES.menu,
@@ -191,7 +193,7 @@ class BaseSubMenu extends React.Component {
 const BaseMenuItem = ({children, data, disabled, onClick}) => {
   return (
     <li
-      className={closeIfSelectedClass}
+      className={CLOSE_IF_SELECTED_CLASS}
       onClick={event => {
         if (!disabled) onClick(event, data)
       }}
