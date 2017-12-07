@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@haiku/player": "HaikuTeam/player.git",
-    "@haiku/zack2-checktutorial": "0.0.19",
+    "@haiku/zack2-checktutorial": "0.0.20",
     "async": "2.1.4",
     "better-react-spinkit": "2.0.0-4",
     "color": "1.0.3",

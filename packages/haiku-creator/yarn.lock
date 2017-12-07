@@ -2,18 +2,22 @@
 # yarn lockfile v1
 
 
-"@haiku/player@2.3.6", "@haiku/player@HaikuTeam/player.git":
+"@haiku/player@2.3.39":
+  version "2.3.39"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.39.tgz#1ecd50302d6701b599c3e1c4eb3e255a3917f1c9"
+
+"@haiku/player@HaikuTeam/player.git":
   version "2.3.6"
   resolved "git+ssh://git@github.com/HaikuTeam/player.git#691ddfc6a789a7ad13d66dca36a73ab171aaf56a"
   dependencies:
     lodash "^4.17.4"
     react "15.4.2"
 
-"@haiku/zack2-checktutorial@0.0.19":
-  version "0.0.19"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fzack2-checktutorial/-/zack2-checktutorial-0.0.19.tgz#defae8960e2086432e096594560e7c4785740ad3"
+"@haiku/zack2-checktutorial@0.0.20":
+  version "0.0.20"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fzack2-checktutorial/-/zack2-checktutorial-0.0.20.tgz#56b3241fbda856fc3a5a7f507326a9f19468cdf5"
   dependencies:
-    "@haiku/player" "2.3.6"
+    "@haiku/player" "2.3.39"
 
 JSONStream@~1.3.1:
   version "1.3.1"
