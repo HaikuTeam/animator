@@ -1,6 +1,3 @@
-import { shell } from 'electron'
-import path from 'path'
-import fs from 'fs'
 import lodash from 'lodash'
 import React from 'react'
 import Radium from 'radium'
@@ -9,12 +6,11 @@ import { FadingCircle } from 'better-react-spinkit'
 import Palette from './Palette'
 import Toast from './notifications/Toast'
 import ProjectLoader from './ProjectLoader'
-import ProjectPreview from './ProjectPreview'
-import { ShareSVG, StackMenuSVG, UserIconSVG, LogOutSVG, LogoMicroSVG } from './Icons'
+import ProjectThumbnail from './ProjectThumbnail'
+import { UserIconSVG, LogOutSVG, LogoMicroSVG } from './Icons'
 import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
 import Popover from 'react-popover'
-import { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 
 const HARDCODED_PROJECTS_LIMIT = 15
 
@@ -31,6 +27,7 @@ class ProjectBrowser extends React.Component {
       showNeedsSaveDialogue: false,
       projectsList: [],
       areProjectsLoading: true,
+      newProjectLoading: false,
       launchingProject: false,
       recordedNewProjectName: '',
       isPopoverOpen: false,
@@ -48,12 +45,7 @@ class ProjectBrowser extends React.Component {
     this.loadProjects()
     this.props.envoy.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
-      tourChannel.on('tour:requestSelectProject', this.handleSelectProject)
     })
-  }
-
-  componentWillUnmount () {
-    this.tourChannel.off('tour:requestSelectProject', this.handleSelectProject)
   }
 
   openPopover (evt) {
@@ -75,46 +67,45 @@ class ProjectBrowser extends React.Component {
           closeText: 'Okay',
           lightScheme: true
         })
-        return this.setState({ error, areProjectsLoading: false })
+        this.setState({ error, areProjectsLoading: false })
+        return
       }
-      this.setState({ projectsList, areProjectsLoading: false }, () => {
-        this.setState({ atProjectMax: this.state.projectsList.length >= HARDCODED_PROJECTS_LIMIT })
+      this.setState({
+        projectsList,
+        areProjectsLoading: false,
+        atProjectMax: projectsList.length >= HARDCODED_PROJECTS_LIMIT
       })
     })
   }
 
-
-  handleRedoClick () {
-    return this.props.websocket.request({ method: 'gitRedo', params: [this.props.folder, { type: 'global' }] }, (err) => {
-      if (err) {
-        console.error(err)
-        return this.props.createNotice({
-          type: 'warning',
-          title: 'Uh oh!',
-          message: 'We were unable to redo your last action. 😢 Please contact Haiku for support.'
-        })
-      }
-    })
+  hideDeleteModal () {
+    this.deleteInput.value = ''
+    this.setState({showDeleteModal: false, projToDelete: ''})
   }
 
   handleDeleteInputKeyDown (e) {
     if (e.keyCode === 13 && this.state.confirmDeleteMatches) {
-      this.performDeleteProject(this.state.projToDeleteIndex)
-      this.setState({showDeleteModal: false, projToDelete: ''})
+      this.performDeleteProject()
+      this.hideDeleteModal()
+      return
     }
+
+    this.closeModalsOnEscKey(e)
   }
 
   handleDeleteInputChange (e) {
-    this.setState({recordedDelete: e.target.value}, () => {
-      if (this.state.recordedDelete == this.state.projToDelete) {
-        this.setState({confirmDeleteMatches: true})
-      }
+    this.setState({
+      recordedDelete: e.target.value,
+      confirmDeleteMatches: e.target.value === this.state.projToDelete
     })
   }
 
   showDeleteModal (index) {
     const projectsList = this.state.projectsList
     const name = projectsList[index].projectName
+    if (this.deleteInput) {
+      this.deleteInput.value = ''
+    }
 
     this.setState({
       showDeleteModal: true,
@@ -123,25 +114,35 @@ class ProjectBrowser extends React.Component {
     })
   }
 
-  performDeleteProject (index) {
+  performDeleteProject () {
+    const index = this.state.projToDeleteIndex
     const projectsList = this.state.projectsList
     const name = projectsList[index].projectName
-    let atProjectMax
+    projectsList[index].isDeleted = true
+    const deleteStart = Date.now()
+    this.setState({ projectsList }, () => {
+      this.requestDeleteProject(name, (deleteError) => {
+        if (deleteError) {
+          this.props.createNotice({
+            type: 'error',
+            title: 'Oh no!',
+            message: 'We couldn\'t delete this project. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.',
+            closeText: 'Okay',
+            lightScheme: true
+          })
+          // Oops, we actually didn't delete this project. Let's put it back.
+          projectsList[index].isDeleted = false
+          this.setState({ projectsList })
+          return
+        }
 
-    return this.requestDeleteProject(name, (deleteError) => {
-      if (deleteError) {
-        this.props.createNotice({
-          type: 'error',
-          title: 'Oh no!',
-          message: 'We couldn\'t delete this project. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.',
-          closeText: 'Okay',
-          lightScheme: true
-        })
-      } else {
-        atProjectMax = this.state.projectsList.length - 1 >= HARDCODED_PROJECTS_LIMIT
-        projectsList[index].isRemoved = true
-        this.setState({ projectsList, confirmDeleteMatches: false, atProjectMax })
-      }
+        // Make sure at least 200ms (the duration of the "delete" transition) have passed before actually removing
+        // the project.
+        setTimeout(() => {
+          projectsList.splice(index, 1)
+          this.setState({ projectsList, atProjectMax: projectsList.length >= HARDCODED_PROJECTS_LIMIT })
+        }, Math.min(200, Date.now() - deleteStart))
+      })
     })
   }
 
@@ -159,26 +160,6 @@ class ProjectBrowser extends React.Component {
     this.setState({ showNewProjectModal: true })
   }
 
-  renderMissingLocalProjectMessage (projectName) {
-    if (projectName === 'CheckTutorial') {
-      return (
-        <p>Click to load tutorial project</p>
-      )
-    }
-
-    if (projectName === 'Move' || projectName === 'Moto') {
-      return (
-        <p>Click to load sample project</p>
-      )
-    }
-
-    // TODO: Do we want to display a message or anything else if the project isn't
-    // already present locally?
-    return (
-      <p></p>
-    )
-  }
-
   projectsListElement () {
     if (this.state.areProjectsLoading) {
       return (
@@ -190,114 +171,17 @@ class ProjectBrowser extends React.Component {
 
     return (
       <div style={DASH_STYLES.projectsWrapper}>
-        {this.state.projectsList.map((projectObject, index) => {
-          const project = this.state.projectsList[index]
-          const projectPath = path.join(HOMEDIR_PATH, 'projects', this.props.organizationName, project.projectName)
-          const bytecodePath = path.join(projectPath, 'code', 'main', 'code.js')
-
-          return (
-            <div style={[DASH_STYLES.card, project.isRemoved && DASH_STYLES.deleted]}
-              key={index}
-              onMouseLeave={() => {
-                if (!project.isMenuActive) return false
-                const projectsList = this.state.projectsList
-                projectsList[index].isMenuActive = false
-                this.setState({ projectsList })
-              }}>
-              <div
-                style={[
-                  DASH_STYLES.thumb,
-                  (project.isMenuActive ||
-                  project.isHovered
-                  ) && DASH_STYLES.blurred
-                ]}>
-                {(fs.existsSync(bytecodePath))
-                  ? <ProjectPreview bytecodePath={bytecodePath} />
-                  : <div
-                      style={{
-                        margin: '85px auto 0',
-                        width: '100%',
-                        textAlign: 'center'
-                      }}>
-                      {this.renderMissingLocalProjectMessage(project.projectName)}
-                    </div>
-                }
-              </div>
-              <div
-                style={[
-                  DASH_STYLES.scrim,
-                  (project.isMenuActive ||
-                  project.isHovered
-                  ) && {opacity: 1}
-                ]}
-                onClick={() => !project.isMenuActive && this.handleProjectLaunch(projectObject)}
-                onMouseOver={() => {
-                  const projectsList = this.state.projectsList
-                  if (projectsList[index].isMenuActive || projectsList[index].isHovered) return false
-                  projectsList[index].isHovered = true
-                  this.setState({ projectsList })
-                }}
-                onMouseLeave={() => {
-                  const projectsList = this.state.projectsList
-                  if (projectsList[index].isMenuActive || !projectsList[index].isHovered) return false
-                  projectsList[index].isHovered = false
-                  this.setState({ projectsList })
-                }}>
-                  <span key={'open' + index}
-                    style={[
-                      DASH_STYLES.menuOption,
-                      DASH_STYLES.single,
-                      !!project.isMenuActive && DASH_STYLES.gone,
-                      !project.isHovered && DASH_STYLES.gone2]}>
-                    OPEN
-                  </span>
-                  {/*<span key={'duplicate' + index}
-                    onClick={() => {
-                      console.log('duplicate')
-                    }}
-                   style={[
-                    DASH_STYLES.menuOption,
-                    !!!project.isMenuActive && DASH_STYLES.gone]}>
-                    DUPLICATE
-                  </span>*/}
-                  <span key={'delete' + index}
-                    onClick={() => this.showDeleteModal(index)}
-                    style={[
-                      DASH_STYLES.menuOption,
-                      !project.isMenuActive && DASH_STYLES.gone]}>
-                    DELETE
-                  </span>
-                  <span key={'reveal' + index}
-                    onClick={() => shell.showItemInFolder(projectPath)}
-                    style={[
-                      DASH_STYLES.menuOption,
-                      DASH_STYLES.opt2,
-                      !project.isMenuActive && DASH_STYLES.gone]}>
-                    REVEAL IN FINDER
-                  </span>
-                </div>
-              <div style={DASH_STYLES.titleStrip}>
-                <span style={DASH_STYLES.title}>
-                  {projectObject.projectName.charAt(0).toUpperCase() + projectObject.projectName.slice(1)}
-                </span>
-                {/*
-                <span key={'share' + index}
-                  style={DASH_STYLES.titleOptions}>
-                  <ShareSVG color={Palette.SUNSTONE} fill={Palette.COAL} />
-                </span> */}
-                <span key={'menu' + index}
-                  style={[DASH_STYLES.titleOptions, {transform: 'translateY(1px)'}]}
-                  onClick={() => {
-                    const projectsList = this.state.projectsList
-                    projectsList[index].isMenuActive = !projectsList[index].isMenuActive
-                    this.setState({ projectsList })
-                  }}>
-                  <StackMenuSVG color={Palette.SUNSTONE} width='5px' height='12px' />
-                </span>
-              </div>
-            </div>
-          )
-        })}
+        {this.state.projectsList.map((projectObject, index) => (
+          <ProjectThumbnail
+            key={projectObject.projectName}
+            organizationName={this.props.organizationName}
+            projectName={projectObject.projectName}
+            projectPath={projectObject.projectPath}
+            isDeleted={projectObject.isDeleted}
+            launchProject={() => this.handleProjectLaunch(projectObject)}
+            showDeleteModal={() => this.showDeleteModal(index)}
+          />
+        ))}
         {/* the following abomination is needed for the nifty flexbox resizing.
             They are extra invisible spacers for the final row */}
         <div style={[DASH_STYLES.card, DASH_STYLES.dontAtMe]} key='123' />
@@ -310,33 +194,21 @@ class ProjectBrowser extends React.Component {
     )
   }
 
-  isProjectNameBad (projectName) {
-    if (!projectName) return true
-    if (projectName === '') return true
-    return false
-  }
-
   handleProjectLaunch (projectObject) {
-    if (this.isProjectNameBad(projectObject.projectName)) {
-      console.warn('bad name launched:', projectObject.projectName)
-    } else {
-      this.setState({ launchingProject: projectObject })
-      // projectObject.projectsHome to use project container folder
-      // projectObject.projectPath to set specific project folder (no inference)
-      this.tourChannel.hide()
-      return this.props.launchProject(projectObject.projectName, projectObject, (error) => {
-        if (error) {
-          this.props.createNotice({
-            type: 'error',
-            title: 'Oh no!',
-            message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
-            closeText: 'Okay',
-            lightScheme: true
-          })
-          return this.setState({ error, launchingProject: null })
-        }
-      })
-    }
+    this.setState({ launchingProject: true, newProjectLoading: false })
+    this.tourChannel.hide()
+    return this.props.launchProject(projectObject.projectName, projectObject, (error) => {
+      if (error) {
+        this.props.createNotice({
+          type: 'error',
+          title: 'Oh no!',
+          message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
+          closeText: 'Okay',
+          lightScheme: true
+        })
+        return this.setState({ error, launchingProject: null })
+      }
+    })
   }
 
   handleNewProjectInputChange (event) {
@@ -345,33 +217,25 @@ class ProjectBrowser extends React.Component {
 
   handleNewProjectGo () {
     const raw = this.newProjectInput.value
-    const projectsList = this.state.projectsList
-
     // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
     const name = raw && raw.replace(/[^a-z0-9]/gi, '')
 
-    if (this.isProjectNameBad(name)) {
-      console.warn('bad name entered:', name)
-    } else {
-      this.setState({newProjectLoading: true, recordedNewProjectName: ''})
-      this.props.websocket.request({ method: 'createProject', params: [name] }, (err, newProject) => {
+    this.setState({newProjectLoading: true, showNewProjectModal: false})
+    this.props.websocket.request({ method: 'createProject', params: [name] }, (err, newProject) => {
+      if (err) {
+        this.props.createNotice({
+          type: 'error',
+          title: 'Oh no!',
+          message: 'We couldn\'t create your project. 😩 Does a project with this name already exist?',
+          closeText: 'Okay',
+          lightScheme: true
+        })
         this.setState({newProjectLoading: false})
-        if (err) {
-          this.setState({showNewProjectModal: false})
-          this.props.createNotice({
-            type: 'error',
-            title: 'Oh no!',
-            message: 'We couldn\'t create your project. 😩 Does this project with this name already exist?',
-            closeText: 'Okay',
-            lightScheme: true
-          })
-        } else {
-          projectsList.unshift({projectName: name, successfulSessionAdd: true })
-          this.setState({ projectsList, atProjectMax: this.state.projectsList.length + 1 >= HARDCODED_PROJECTS_LIMIT })
-          this.handleProjectLaunch(newProject)
-        }
-      })
-    }
+        return
+      }
+
+      this.handleProjectLaunch(newProject)
+    })
   }
 
   renderNotifications (content, i) {
@@ -388,11 +252,22 @@ class ProjectBrowser extends React.Component {
     )
   }
 
+  closeModalsOnEscKey (e) {
+    if (e.keyCode === 27) {
+      this.setState({
+        showNewProjectModal: false,
+        showDeleteModal: false
+      })
+    }
+  }
+
   handleNewProjectInputKeyDown (e) {
     if (e.keyCode === 13) {
-      this.setState({showNewProjectModal: false})
       this.handleNewProjectGo()
+      return
     }
+
+    this.closeModalsOnEscKey(e)
   }
 
   renderUserMenuItems () {
@@ -418,7 +293,7 @@ class ProjectBrowser extends React.Component {
     )
   }
 
-  renderNewProjectModal() {
+  renderNewProjectModal () {
     return (
       <div style={DASH_STYLES.overlay}
         onClick={() => this.setState({showNewProjectModal: false})}>
@@ -426,22 +301,28 @@ class ProjectBrowser extends React.Component {
           <div style={DASH_STYLES.modalTitle}>Name Project To Start</div>
           <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Project Name</div>
           <input key='new-project-input'
-            ref={(input) => { this.newProjectInput = input }}
+            ref={(input) => this.newProjectInput = input}
             disabled={this.state.newProjectLoading}
-            onKeyDown={this.handleNewProjectInputKeyDown.bind(this)}
+            onKeyDown={(e) => { this.handleNewProjectInputKeyDown(e) }}
             style={[DASH_STYLES.newProjectInput]}
             value={this.state.recordedNewProjectName}
-            onChange={this.handleNewProjectInputChange.bind(this)}
+            onChange={(e) => { this.handleNewProjectInputChange(e) }}
             placeholder='NewProjectName'
             autoFocus />
           <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
           <button key='new-project-go-button'
-            disabled={this.state.newProjectLoading}
+            disabled={this.state.newProjectLoading || !this.state.recordedNewProjectName}
             onClick={() => {
               this.handleNewProjectGo()
-              this.setState({showNewProjectModal: false})
             }}
-            style={[BTN_STYLES.btnText, BTN_STYLES.rightBtns, BTN_STYLES.btnPrimaryAlt, DASH_STYLES.upcase, {marginRight: 0}]}>
+            style={[
+              BTN_STYLES.btnText,
+              BTN_STYLES.rightBtns,
+              BTN_STYLES.btnPrimaryAlt,
+              DASH_STYLES.upcase,
+              !this.state.recordedNewProjectName && BTN_STYLES.btnDisabled,
+              {marginRight: 0}
+            ]}>
             Name Project
           </button>
           <span style={[DASH_STYLES.upcase, BTN_STYLES.btnCancel, BTN_STYLES.rightBtns]}
@@ -453,35 +334,42 @@ class ProjectBrowser extends React.Component {
     )
   }
 
-  renderDeleteModal() {
+  renderDeleteModal () {
     return (
       <div style={DASH_STYLES.overlay}
-        onClick={() => this.setState({showDeleteModal: false, projToDelete: ''})}>
+        onClick={() => { this.hideDeleteModal() }}>
         <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
           <div style={DASH_STYLES.modalTitle}>
             Type "<span style={DASH_STYLES.projToDelete}>{this.state.projToDelete}</span>" to confirm project deletion
           </div>
           <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Delete Project</div>
           <input key='delete-project'
-            ref={(input) => { this.deleteInput = input }}
-            onKeyDown={this.handleDeleteInputKeyDown.bind(this)}
+            ref={(input) => this.deleteInput = input}
+            onKeyDown={(e) => { this.handleDeleteInputKeyDown(e) }}
             style={[DASH_STYLES.newProjectInput]}
-            value={this.state.recordedDelete}
-            onChange={this.handleDeleteInputChange.bind(this)}
+            onChange={(e) => { this.handleDeleteInputChange(e) }}
             placeholder='Type Project Name To Delete'
             autoFocus />
           <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
           <button key='delete-go-button'
             disabled={!this.state.confirmDeleteMatches}
             onClick={() => {
-              this.performDeleteProject(this.state.projToDeleteIndex)
-              this.setState({showDeleteModal: false, projToDelete: ''})
+              this.performDeleteProject()
+              this.hideDeleteModal()
             }}
-            style={[BTN_STYLES.btnText, BTN_STYLES.rightBtns, BTN_STYLES.btnPrimaryAlt, DASH_STYLES.upcase, {marginRight: 0}]}>
+            style={[
+              BTN_STYLES.btnText,
+              BTN_STYLES.rightBtns,
+              BTN_STYLES.btnPrimaryAlt,
+              DASH_STYLES.upcase,
+              !this.state.confirmDeleteMatches && BTN_STYLES.btnDisabled,
+              {marginRight: 0}
+            ]}
+          >
             Delete Project
           </button>
           <span style={[BTN_STYLES.btnCancel, BTN_STYLES.rightBtns, DASH_STYLES.upcase]}
-            onClick={() => this.setState({showDeleteModal: false, projToDelete: ''})}>
+            onClick={() => { this.hideDeleteModal() }}>
             Cancel
           </span>
         </div>
@@ -528,7 +416,7 @@ class ProjectBrowser extends React.Component {
         </div>
 
         {this.projectsListElement()}
-        {this.state.launchingProject && <ProjectLoader />}
+        {(this.state.launchingProject || this.state.newProjectLoading) && <ProjectLoader />}
       </div>
     )
   }

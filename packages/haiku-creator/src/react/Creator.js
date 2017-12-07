@@ -22,17 +22,11 @@ import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
-import {isPreviewMode} from '@haiku/player/lib/helpers/interactionModes'
+import { isPreviewMode } from '@haiku/player/lib/helpers/interactionModes'
 import Palette from './components/Palette.js'
 import ActivityMonitor from '../utils/activityMonitor.js'
-import {
-  linkExternalAssetsOnDrop,
-  preventDefaultDrag
-} from 'haiku-serialization/src/utils/dndHelpers'
-import {
-  HOMEDIR_PATH,
-  HOMEDIR_LOGS_PATH
-} from 'haiku-serialization/src/utils/HaikuHomeDir'
+import { linkExternalAssetsOnDrop, preventDefaultDrag } from 'haiku-serialization/src/utils/dndHelpers'
+import { HOMEDIR_LOGS_PATH, HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 
 var pkg = require('./../../package.json')
 
@@ -486,6 +480,7 @@ export default class Creator extends React.Component {
 
   launchProject (projectName, projectObject, cb) {
     projectObject = {
+      ...projectObject,
       skipContentCreation: true, // VERY IMPORTANT - if not set to true, we can end up in a situation where we overwrite freshly cloned content from the remote!
       projectsHome: projectObject.projectsHome,
       projectPath: projectObject.projectPath,

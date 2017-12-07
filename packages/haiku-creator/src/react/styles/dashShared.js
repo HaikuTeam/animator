@@ -23,7 +23,7 @@ export const DASH_STYLES = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    color: Palette.ROCK,
+    color: Palette.ROCK
   },
   tooltip: {
     backgroundColor: Palette.LIGHT_PINK,
@@ -53,8 +53,8 @@ export const DASH_STYLES = {
     marginTop: 36,
     width: '100%',
     height: '100%',
-    PaddingLeft: 50,
-    PaddingRight: 50
+    paddingLeft: 50,
+    paddingRight: 50
   },
   dontAtMe: {
     visibility: 'hidden',
@@ -114,17 +114,16 @@ export const DASH_STYLES = {
     fontSize: 20,
     top: 0,
     left: 0,
-    height: '100%',
     width: '100%',
     height: 190,
     opacity: 0,
     color: Palette.SUNSTONE,
-    backgroundColor: Color(Palette.FATHER_COAL).fade(.2),
+    backgroundColor: Color(Palette.FATHER_COAL).fade(0.2),
     borderTopLeftRadius: 5,
     borderTopRightRadius: 5
   },
   menuOption: {
-    opacity: .84,
+    opacity: 0.84,
     display: 'block',
     transform: 'translateY(0px)',
     transition: 'opacity 120ms ease, transform 390ms cubic-bezier(.35,.44,0,1.3)',
@@ -134,10 +133,10 @@ export const DASH_STYLES = {
     }
   },
   opt2: {
-    transition: 'opacity 120ms 62ms ease, transform 390ms 62ms cubic-bezier(.35,.44,0,1.3)',
+    transition: 'opacity 120ms 62ms ease, transform 390ms 62ms cubic-bezier(.35,.44,0,1.3)'
   },
   opt3: {
-    transition: 'opacity 120ms 124ms ease, transform 390ms 124ms cubic-bezier(.35,.44,0,1.3)',
+    transition: 'opacity 120ms 124ms ease, transform 390ms 124ms cubic-bezier(.35,.44,0,1.3)'
   },
   gone: {
     opacity: 0,
@@ -174,7 +173,7 @@ export const DASH_STYLES = {
   titleOptions: {
     paddingLeft: 5,
     paddingRight: 5,
-    opacity: .84,
+    opacity: 0.84,
     transition: 'opacity 120ms ease',
     ':hover': {
       opacity: 1
@@ -309,7 +308,7 @@ export const DASH_STYLES = {
     marginBottom: 4
   },
   newProjectInput: {
-    backgroundColor: Color(Palette.COAL).darken(.3),
+    backgroundColor: Color(Palette.COAL).darken(0.3),
     width: '100%',
     height: 53,
     color: Palette.SUNSTONE,

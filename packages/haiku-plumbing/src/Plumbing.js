@@ -23,7 +23,8 @@ import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
 import getNormalizedComponentModulePath from 'haiku-serialization/src/bll/helpers/getNormalizedComponentModulePath'
-import {crashReport} from 'haiku-serialization/src/utils/carbonite'
+import { crashReport } from 'haiku-serialization/src/utils/carbonite'
+import { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 
 const Raven = require('./Raven')
 
@@ -774,7 +775,10 @@ export default class Plumbing extends StateObject {
           this.sentryError('listProjects', projectListErr)
           return cb(projectListErr)
         }
-        const finalList = projectsList.map(remapProjectObjectToExpectedFormat)
+        const finalList = projectsList.map((val) => remapProjectObjectToExpectedFormat(
+          val,
+          this.get('organizationName')
+        ))
         logger.info('[plumbing] fetched project list', JSON.stringify(finalList))
         return cb(null, finalList)
       })
@@ -792,7 +796,7 @@ export default class Plumbing extends StateObject {
         this.sentryError('createProject', projectCreateErr)
         return cb(projectCreateErr)
       }
-      return cb(null, remapProjectObjectToExpectedFormat(project))
+      return cb(null, remapProjectObjectToExpectedFormat(project, this.get('organizationName')))
     })
   }
 
@@ -1230,9 +1234,16 @@ function createResponder (message, websocket) {
   }
 }
 
-function remapProjectObjectToExpectedFormat (projectObject) {
+function remapProjectObjectToExpectedFormat (projectObject, organizationName) {
   return {
-    projectName: projectObject.Name
+    projectName: projectObject.Name,
+    projectPath: path.join(
+      HOMEDIR_PATH,
+      'projects',
+      organizationName,
+      projectObject.Name
+    ),
+    projectsHome: HOMEDIR_PATH
     // GitRemoteUrl
     // GitRemoteName
     // GitRemoteArn
