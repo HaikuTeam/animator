@@ -212,7 +212,14 @@ class ProjectBrowser extends React.Component {
   }
 
   handleNewProjectInputChange (event) {
-    this.setState({recordedNewProjectName: event.target.value})
+    const rawValue = event.target.value || ''
+
+    const fixedValue = rawValue
+      .replace(/\W+/g, '') // Non-alphanumeric characters not allowed
+      .replace(/_/g, '') // Underscores are considered alphanumeric (?); strip them
+      .slice(0, 32) // Keep the overall name length short
+
+    this.setState({recordedNewProjectName: fixedValue})
   }
 
   handleNewProjectGo () {
