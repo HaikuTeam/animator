@@ -123,6 +123,30 @@ export class Glass extends React.Component {
     this._haikuContext = new HaikuContext(null, this._haikuRenderer, {}, { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } }, { options: { cache: {}, seed: 'abcde' } })
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
+    this.handleBoltMousedown = this.handleBoltMousedown.bind(this)
+    this.boltInstanceMana = {
+      elementName: 'div',
+      attributes: {
+        id: `events-bolt-wrapper`,
+        onmousedown: this.handleBoltMousedown,
+        style: {
+          position: 'absolute',
+          pointerEvents: 'auto',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          left: '0px',
+          top: '0px',
+          border: '1px solid ' + Palette.DARKER_ROCK2,
+          backgroundColor: 'transparent',
+          width: '0px',
+          height: '0px',
+          borderRadius: '50%',
+          cursor: 'pointer'
+        }
+      },
+      children: [BOLT_SVG]
+    }
 
     window.glass = this
 
@@ -1163,38 +1187,21 @@ export class Glass extends React.Component {
     }
   }
 
+  handleBoltMousedown (event) {
+    event.preventDefault()
+    event.stopImmediatePropagation()
+    this.showEventHandlersEditor(null, this.getLastSelectedElement())
+  }
+
   buildBoltInstance (x, y, rotationZ, scaleX, scaleY) {
     const boltSize = 30
     const offsetLeft = Math.sign(scaleX) * (boltSize * Math.cos(rotationZ)) - boltSize / 2
     const offsetTop = Math.sign(scaleX) * (boltSize * Math.sin(rotationZ)) - boltSize / 2
-
-    return {
-      elementName: 'div',
-      attributes: {
-        id: `events-bolt-wrapper`,
-        onmousedown: (event) => {
-          event.preventDefault()
-          event.stopImmediatePropagation()
-          this.showEventHandlersEditor(null, this.getLastSelectedElement())
-        },
-        style: {
-          position: 'absolute',
-          pointerEvents: 'auto',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          left: `${x + offsetLeft}px`,
-          top: `${y + offsetTop}px`,
-          border: '1px solid ' + Palette.DARKER_ROCK2,
-          backgroundColor: 'transparent',
-          width: `${boltSize}px`,
-          height: `${boltSize}px`,
-          borderRadius: '50%',
-          cursor: 'pointer'
-        }
-      },
-      children: [BOLT_SVG]
-    }
+    this.boltInstanceMana.attributes.style.left = `${x + offsetLeft}px`
+    this.boltInstanceMana.attributes.style.top = `${y + offsetTop}px`
+    this.boltInstanceMana.attributes.style.width = `${boltSize}px`
+    this.boltInstanceMana.attributes.style.height = `${boltSize}px`
+    return this.boltInstanceMana
   }
 
   renderEventHandlersOverlay (element, points, overlays, rotationZ, scaleX, scaleY) {
