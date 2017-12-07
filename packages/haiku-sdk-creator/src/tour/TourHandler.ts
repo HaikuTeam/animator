@@ -25,12 +25,12 @@ export class TourHandler implements Tour {
       waitUserAction: true,
     },
     {
-      selector: '#project-edit-button',
+      selector: '#CheckTutorial',
       webview: 'creator',
       component: 'OpenProject',
       display: 'left',
-      offset: {top: 0, left: 60},
-      spotlightRadius: 'default',
+      offset: {top: 100, left: 0},
+      spotlightRadius: 400,
       waitUserAction: true,
     },
     {
@@ -162,27 +162,12 @@ export class TourHandler implements Tour {
     this.server = server;
   }
 
-  private performStepActions() {
-    switch (this.currentStep) {
-      case 1:
-        this.requestSelectProject();
-        break;
-    }
-  }
-
   private renderCurrentStepAgain() {
     if (this.shouldRenderAgain) {
       this.currentStep--;
       this.next();
       this.shouldRenderAgain = false;
     }
-  }
-
-  private requestSelectProject() {
-    this.server.emit(TOUR_CHANNEL, <EnvoyEvent> {
-      payload: {},
-      name: 'tour:requestSelectProject',
-    });
   }
 
   private requestWebviewCoordinates() {
@@ -278,8 +263,6 @@ export class TourHandler implements Tour {
     this.currentStep++;
 
     const nextState = this.getState();
-
-    this.performStepActions();
 
     if (nextState) {
       this.requestElementCoordinates(nextState);

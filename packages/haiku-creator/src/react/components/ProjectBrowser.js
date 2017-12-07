@@ -48,12 +48,7 @@ class ProjectBrowser extends React.Component {
     this.loadProjects()
     this.props.envoy.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
-      tourChannel.on('tour:requestSelectProject', this.handleSelectProject)
     })
-  }
-
-  componentWillUnmount () {
-    this.tourChannel.off('tour:requestSelectProject', this.handleSelectProject)
   }
 
   openPopover (evt) {
@@ -198,6 +193,7 @@ class ProjectBrowser extends React.Component {
           return (
             <div style={[DASH_STYLES.card, project.isRemoved && DASH_STYLES.deleted]}
               key={index}
+              id={project.projectName}
               onMouseLeave={() => {
                 if (!project.isMenuActive) return false
                 const projectsList = this.state.projectsList
