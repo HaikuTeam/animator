@@ -229,10 +229,12 @@ export class Glass extends React.Component {
       // This happens on almost any update because theoretically a keyframe change,
       // a curve change, etc., could all result in the need to recalc the artboard :/
       const updatedArtboardSize = this._component.getContextSize()
-      this.setState({
-        mountWidth: updatedArtboardSize.width,
-        mountHeight: updatedArtboardSize.height
-      })
+      if (updatedArtboardSize && updatedArtboardSize.width && updatedArtboardSize.height) {
+        this.setState({
+          mountWidth: updatedArtboardSize.width,
+          mountHeight: updatedArtboardSize.height
+        })
+      }
 
       // And it's almost always wize to do this or the element calibration may get crazy
       this.resetContainerDimensions()
@@ -260,7 +262,6 @@ export class Glass extends React.Component {
     this._component.on('time:change', (timelineName, timelineTime) => {
       if (this._component && this._component.getMount() && !this._component.isReloadingCode) {
         const updatedArtboardSize = this._component.getContextSize()
-
         if (updatedArtboardSize && updatedArtboardSize.width && updatedArtboardSize.height) {
           this.setState({
             mountWidth: updatedArtboardSize.width,
@@ -321,11 +322,13 @@ export class Glass extends React.Component {
 
             // The artboard size may have changed as a part of that, and since there are two sources of
             // truth for this (actual artboard, React mount for artboard), we have to update it here.
-            var updatedArtboardSize = this._component.getContextSize()
-            this.setState({
-              mountWidth: updatedArtboardSize.width,
-              mountHeight: updatedArtboardSize.height
-            })
+            const updatedArtboardSize = this._component.getContextSize()
+            if (updatedArtboardSize && updatedArtboardSize.width && updatedArtboardSize.height) {
+              this.setState({
+                mountWidth: updatedArtboardSize.width,
+                mountHeight: updatedArtboardSize.height
+              })
+            }
           })
 
         case 'view:zoom-in':
@@ -1162,7 +1165,7 @@ export class Glass extends React.Component {
 
   buildBoltInstance (x, y, rotationZ, scaleX, scaleY) {
     const boltSize = 30
-    const offsetLeft =  Math.sign(scaleX) * (boltSize * Math.cos(rotationZ)) - boltSize / 2
+    const offsetLeft = Math.sign(scaleX) * (boltSize * Math.cos(rotationZ)) - boltSize / 2
     const offsetTop = Math.sign(scaleX) * (boltSize * Math.sin(rotationZ)) - boltSize / 2
 
     return {
