@@ -122,6 +122,7 @@
       "!source/plumbing/node_modules/haiku-sdk-creator/src${/*}",
       "!source/plumbing/node_modules/@haiku/sdk-inkstone/src${/*}",
       "!source/plumbing/node_modules/haiku-timeline/src${/*}",
+      "!source/plumbing/node_modules/haiku-testing${/*}",
       "!**/node_modules/@haiku/player/dist${/*}",
       "!**/node_modules/@haiku/player/src${/*}",
       "!**/node_modules/@haiku/player/test${/*}",
