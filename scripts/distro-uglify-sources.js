@@ -12,7 +12,9 @@ var GLOBS = [
   'source/plumbing/lib/*.js',
   'source/plumbing/node_modules/haiku-bytecode/src/**/*.js',
   'source/plumbing/node_modules/@haiku/cli/lib/**/*.js',
+  'source/plumbing/node_modules/haiku-common/lib/**/*.js',
   'source/plumbing/node_modules/haiku-creator-electron/lib/**/*.js',
+  'source/plumbing/node_modules/haiku-formats/lib/**/*.js',
   'source/plumbing/node_modules/haiku-glass/lib/**/*.js',
   'source/plumbing/node_modules/@haiku/sdk-client/lib/**/*.js',
   'source/plumbing/node_modules/haiku-sdk-creator/lib/**/*.js',
@@ -20,6 +22,7 @@ var GLOBS = [
   'source/plumbing/node_modules/haiku-serialization/src/**/*.js',
   'source/plumbing/node_modules/haiku-state-object/src/**/*.js',
   'source/plumbing/node_modules/haiku-timeline/lib/**/*.js',
+  'source/plumbing/node_modules/haiku-ui-common/lib/**/*.js',
   'source/plumbing/node_modules/haiku-websockets/lib/**/*.js'
 ]
 
