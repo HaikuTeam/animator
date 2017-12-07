@@ -301,7 +301,9 @@ class ProjectBrowser extends React.Component {
           <div style={DASH_STYLES.modalTitle}>Name Project To Start</div>
           <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Project Name</div>
           <input key='new-project-input'
-            ref={(input) => this.newProjectInput = input}
+            ref={(input) => {
+              this.newProjectInput = input
+            }}
             disabled={this.state.newProjectLoading}
             onKeyDown={(e) => { this.handleNewProjectInputKeyDown(e) }}
             style={[DASH_STYLES.newProjectInput]}
@@ -344,7 +346,9 @@ class ProjectBrowser extends React.Component {
           </div>
           <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Delete Project</div>
           <input key='delete-project'
-            ref={(input) => this.deleteInput = input}
+            ref={(input) => {
+              this.deleteInput = input
+            }}
             onKeyDown={(e) => { this.handleDeleteInputKeyDown(e) }}
             style={[DASH_STYLES.newProjectInput]}
             onChange={(e) => { this.handleDeleteInputChange(e) }}
@@ -420,11 +424,6 @@ class ProjectBrowser extends React.Component {
       </div>
     )
   }
-}
-
-function snakeize (str) {
-  str = str || ''
-  return str.replace(/ /g, '_')
 }
 
 export default Radium(ProjectBrowser)
