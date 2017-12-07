@@ -1,6 +1,5 @@
 import Color from 'color'
 import Palette from '../components/Palette'
-import { DASH_STYLES } from './dashShared'
 import { BTN_STYLES } from './btnShared.js'
 
 export const DOWNLOAD_STYLES = {

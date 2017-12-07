@@ -312,6 +312,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
             a: 0,
             k: 1,
           },
+          nm: '0',
         },
         {
           n: 'g',
@@ -319,6 +320,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
             a: 0,
             k: 1,
           },
+          nm: '1',
         },
       ],
       'parses and transforms stroke-dasharray',
