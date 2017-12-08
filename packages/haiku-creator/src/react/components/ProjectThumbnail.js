@@ -1,6 +1,5 @@
 import { shell } from 'electron'
 import path from 'path'
-import fs from 'fs'
 import Radium from 'radium'
 import React from 'react'
 import Palette from './Palette'
@@ -8,29 +7,10 @@ import ProjectPreview from './ProjectPreview'
 import { StackMenuSVG } from './Icons'
 import { DASH_STYLES } from '../styles/dashShared'
 
-const renderMissingLocalProjectMessage = (projectName) => {
-  switch (projectName) {
-    case 'CheckTutorial':
-      return (
-        <p>Click to load tutorial project</p>
-      )
-    case 'Move':
-    case 'Moto':
-      return (
-        <p>Click to load sample project</p>
-      )
-    default:
-      // TODO: Do we want to display a message or anything else if the project isn't
-      // already present locally?
-      return <p />
-  }
-}
-
 class ProjectThumbnail extends React.Component {
   constructor (props) {
     super(props)
     this.bytecodePath = path.join(this.props.projectPath, 'code', 'main', 'code.js')
-    this.hasBytecode = fs.existsSync(this.bytecodePath)
     this.state = {
       isMenuActive: false,
       isHovered: false
@@ -55,18 +35,7 @@ class ProjectThumbnail extends React.Component {
             DASH_STYLES.thumb,
             (this.state.isMenuActive || this.state.isHovered) && DASH_STYLES.blurred
           ]}>
-          {this.hasBytecode
-            ? <ProjectPreview bytecodePath={this.bytecodePath} />
-            : <div
-              style={{
-                margin: '85px auto 0',
-                width: '100%',
-                textAlign: 'center'
-              }}
-              >
-              {renderMissingLocalProjectMessage(this.props.projectName)}
-            </div>
-          }
+          <ProjectPreview bytecodePath={this.bytecodePath} />
         </div>
         <div
           key='scrim'
