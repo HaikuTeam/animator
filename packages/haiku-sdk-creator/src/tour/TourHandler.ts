@@ -25,7 +25,7 @@ export class TourHandler implements Tour {
       waitUserAction: true,
     },
     {
-      selector: '#CheckTutorial',
+      selector: '#js-utility-CheckTutorial',
       webview: 'creator',
       component: 'OpenProject',
       display: 'left',
