@@ -1,12 +1,23 @@
 import React from 'react'
-import CheckTutorial from '@haiku/zack2-checktutorial/react'
 
-export default function ({ styles }) {
-  return (
-    <div>
-      <CheckTutorial haikuOptions={{loop: false}} />
-      <h2 style={styles.heading}>Congratulations!</h2>
-      <p style={styles.text}>You're now an animator.</p>
-    </div>
-  )
+import HaikuDOMAdapter from '@haiku/player/dom'
+
+import TourCheckTutorial from '../../../bytecode-fixtures/TourCheckTutorial'
+
+export default class Congratulations extends React.Component {
+  componentDidMount () {
+    if (this.mount) {
+      HaikuDOMAdapter(TourCheckTutorial)(this.mount)
+    }
+  }
+
+  render () {
+    return (
+      <div>
+        <div ref={(mount) => { this.mount = mount }} />
+        <h2 style={this.props.styles.heading}>Congratulations!</h2>
+        <p style={this.props.styles.text}>You're now an animator.</p>
+      </div>
+    )
+  }
 }
