@@ -1,9 +1,26 @@
 import fs from 'fs'
-import Module from 'module'
 import React, { PropTypes } from 'react'
-
+import HaikuPlayer from '@haiku/player'
 import HaikuDOMAdapter from '@haiku/player/dom'
 import {InteractionMode} from '@haiku/player/lib/helpers/interactionModes'
+
+// Provide a way to override the default behavior of `require`
+// so we can ensure that we always load our most up-to-date
+// version of the Haiku Player, i.e., the one in our source code
+const Module = require('module')
+const requireOriginal = Module.prototype.require
+const requireOverride = (...args) => {
+  if (args[0] === '@haiku/player') return HaikuPlayer
+  return requireOriginal.apply(this, args)
+}
+
+const requireOverideStart = () => {
+  Module.prototype.require = requireOverride
+}
+
+const requireOverideStop = () => {
+  Module.prototype.require = requireOriginal
+}
 
 const renderMissingLocalProjectMessage = (projectName) => {
   switch (projectName) {
@@ -28,19 +45,22 @@ class ProjectPreview extends React.Component {
     super(props)
     this.bytecode = null
     this.mount = null
-    // TODO: Try to get the bytecode from CDN or eager clone if not yet available.
-    this.hasBytecode = fs.existsSync(props.bytecodePath)
-    if (!this.hasBytecode) {
-      return
-    }
+  }
 
+  componentWillMount () {
     try {
-      const bytecode = new Module('', module.parent)
-      bytecode.paths = Module._nodeModulePaths(global.process.cwd())
-      bytecode._compile(fs.readFileSync(props.bytecodePath).toString(), '')
-      this.bytecode = bytecode.exports
+      // TODO: Try to get the bytecode from CDN or eager clone if not yet available.
+      if (fs.existsSync(this.props.bytecodePath)) {
+        requireOverideStart()
+        // When the user navigates back to the dashboard, we want to reload the latest
+        // content that they may have changed, so we need to clear the cached bytecode
+        delete require.cache[this.props.bytecodePath]
+        this.bytecode = require(this.props.bytecodePath)
+        requireOverideStop()
+      }
     } catch (e) {
       // noop. Probably caught a project incompatible with bleeding edge player.
+      this.bytecode = null
     }
   }
 
@@ -52,17 +72,18 @@ class ProjectPreview extends React.Component {
           {
             sizing: 'cover',
             loop: true,
-            interactionMode: InteractionMode.EDIT
+            interactionMode: InteractionMode.EDIT,
+            autoplay: false
           }
         )
-      } catch (e) {
+      } catch (exception) {
         // noop. Probably caught a backward-incompatible change that doesn't work with the current version of Player.
       }
     }
   }
 
   render () {
-    if (!this.hasBytecode) {
+    if (!this.bytecode) {
       return (
         <div
           style={{
