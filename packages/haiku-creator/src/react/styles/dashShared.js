@@ -118,7 +118,7 @@ export const DASH_STYLES = {
     height: 190,
     opacity: 0,
     color: Palette.SUNSTONE,
-    backgroundColor: Color(Palette.FATHER_COAL).fade(0.2),
+    backgroundColor: Color(Palette.FATHER_COAL).fade(0.4),
     borderTopLeftRadius: 5,
     borderTopRightRadius: 5
   },
@@ -150,7 +150,7 @@ export const DASH_STYLES = {
     transform: 'translateY(0px) translateX(-50%)'
   },
   gone2: {
-    transform: 'translateY(9px) translateX(-50%)',
+    transform: 'translateY(15px) translateX(-50%)',
     transition: 'none'
   },
   titleStrip: {

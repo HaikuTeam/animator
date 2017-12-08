@@ -15,6 +15,7 @@ class ProjectPreview extends React.Component {
     super(props)
     this.bytecode = null
     this.mount = null
+    this.timeline = null
   }
 
   componentWillMount () {
@@ -34,7 +35,7 @@ class ProjectPreview extends React.Component {
   componentDidMount () {
     if (this.bytecode && this.mount) {
       try {
-        HaikuDOMAdapter(this.bytecode)(
+        this.timeline = HaikuDOMAdapter(this.bytecode)(
           this.mount,
           {
             sizing: 'cover',
@@ -42,11 +43,27 @@ class ProjectPreview extends React.Component {
             interactionMode: InteractionMode.EDIT,
             autoplay: false
           }
-        )
+        ).getDefaultTimeline()
       } catch (exception) {
         // noop. Probably caught a backward-incompatible change that doesn't work with the current version of Player.
       }
     }
+  }
+
+  componentWillReceiveProps (nextProps) {
+    if (!this.timeline || this.props.playing === nextProps.playing) {
+      return
+    }
+
+    if (nextProps.playing) {
+      this.timeline.play()
+    } else {
+      this.timeline.pause()
+    }
+  }
+
+  shouldComponentUpdate () {
+    return true
   }
 
   render () {
