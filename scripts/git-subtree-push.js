@@ -1,4 +1,3 @@
-const async = require('async')
 const cp = require('child_process')
 const path = require('path')
 const argv = require('yargs').argv

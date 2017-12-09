@@ -1,35 +1,41 @@
-var fse = require('fs-extra')
-var cp = require('child_process')
-var path = require('path')
-var log = require('./helpers/log')
-var CompileOrder = require('./helpers/CompileOrder')
-var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
+const fse = require('fs-extra')
+const cp = require('child_process')
+const path = require('path')
+const log = require('./helpers/log')
+const CompileOrder = require('./helpers/CompileOrder')
+const forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
 
 require('./../config')
 forceNodeEnvProduction()
 
-var ROOT = path.join(__dirname, '..')
-var DISTRO_SOURCE = path.join(ROOT, 'source') // Location of distro source code to push
-var PLUMBING_SOURCE = path.join(DISTRO_SOURCE, 'plumbing') // Location of plumbing source code to push
-var PLUMBING_SOURCE_MODULES = path.join(PLUMBING_SOURCE, 'node_modules')
-var ORIGINS_FOLDER = path.join(ROOT, 'packages')
-var PLUMBING_ORIGIN = path.join(ORIGINS_FOLDER, 'haiku-plumbing') // Source code to use as...source code
+const ROOT = path.join(__dirname, '..')
+const DISTRO_SOURCE = path.join(ROOT, 'source') // Location of distro source code to push
+const PLUMBING_SOURCE = path.join(DISTRO_SOURCE, 'plumbing') // Location of plumbing source code to push
+const PLUMBING_SOURCE_MODULES = path.join(PLUMBING_SOURCE, 'node_modules')
+const ORIGINS_FOLDER = path.join(ROOT, 'packages')
+const PLUMBING_ORIGIN = path.join(ORIGINS_FOLDER, 'haiku-plumbing') // Source code to use as...source code
 
-var DEP_TYPES = [
+const DEP_TYPES = [
   'dependencies',
   'devDependencies',
   'optionalDependencies',
   'peerDependencies'
 ]
 
-var RSYNC_FLAGS = [
+const RSYNC_FLAGS = [
   '--archive',
   '--quiet',
   '--recursive', // Include dirs and subdirs
   '--no-links' // Exclude all symlinks - assumed to be haiku internal (we'll inject these)
 ]
 
-var YARN_INSTALL_FLAGS_COMMON = [
+const RSYNC_FLAGS_SHALLOW = [
+  '--archive',
+  '--quiet',
+  '--no-links' // Exclude all symlinks - assumed to be haiku internal (we'll inject these)
+]
+
+const YARN_INSTALL_FLAGS_COMMON = [
   '--frozen-lockfile', // Force use of dependencies from yarn.lock
   '--ignore-engines', // Ignore any (spurious) engine errors
   '--non-interactive', // Don't prompt (just in case)
@@ -37,11 +43,11 @@ var YARN_INSTALL_FLAGS_COMMON = [
   '--mutex file:/tmp/.yarn-mutex' // Try to avoid intermittent concurrency bugs in yarn
 ]
 
-var YARN_INSTALL_DEV_FLAGS = YARN_INSTALL_FLAGS_COMMON.concat([
+const YARN_INSTALL_DEV_FLAGS = YARN_INSTALL_FLAGS_COMMON.concat([
   '--production=false' // Override the NODE_ENV setting when installing dev dependencies
 ])
 
-var YARN_INSTALL_PROD_FLAGS = YARN_INSTALL_FLAGS_COMMON.concat([
+const YARN_INSTALL_PROD_FLAGS = YARN_INSTALL_FLAGS_COMMON.concat([
   '--production=true', // Strip out dev dependencies,
   '--force' // Clean out any stripped-out dependencies
 ])
@@ -53,7 +59,7 @@ if (!process.env.TRAVIS) {
   YARN_INSTALL_DEV_FLAGS.push('--ignore-scripts')
 }
 
-var HAIKU_SUBPACKAGES = {
+const HAIKU_SUBPACKAGES = {
   'haiku-bytecode': true,
   '@haiku/cli': 'haiku-cli',
   'haiku-common': true,
@@ -88,8 +94,8 @@ function remapName (name) {
 
 function eachHaikuSubpackage (iteratee) {
   CompileOrder.forEach((packageName) => {
-    var packageNameFixed = remapName(packageName)
-    var packageSource = HAIKU_SUBPACKAGES[packageNameFixed]
+    const packageNameFixed = remapName(packageName)
+    let packageSource = HAIKU_SUBPACKAGES[packageNameFixed]
     if (!packageSource) return null
     if (packageSource === true) packageSource = packageNameFixed
     iteratee(packageNameFixed, path.join(ORIGINS_FOLDER, packageSource))
@@ -106,14 +112,10 @@ function eachDepIn (pkg, iteratee) {
   if (!pkg) return null
   eachDepType((depType) => {
     if (!pkg[depType]) return null
-    for (var depName in pkg[depType]) {
+    for (const depName in pkg[depType]) {
       iteratee(depName, pkg[depType][depName], depType)
     }
   })
-}
-
-function isHaikuSubpackage (depName) {
-  return !!HAIKU_SUBPACKAGES[depName]
 }
 
 function logExec (cwd, cmd) {
@@ -121,67 +123,95 @@ function logExec (cwd, cmd) {
   return cp.execSync(cmd, { cwd, stdio: 'inherit' })
 }
 
+function readJson (abspath) {
+  try {
+    return fse.readJsonSync(abspath, { throws: false })
+  } catch (exception) {
+    return null
+  }
+}
+
 function installAndCompile (cwd) {
-  var pkg = fse.readJsonSync(path.join(cwd, 'package.json'), { throws: false })
+  const pkg = readJson(path.join(cwd, 'package.json'))
   // Install dev dependencies, compile (if necessary), then strip dev dependencies
   logExec(cwd, `yarn install ${YARN_INSTALL_DEV_FLAGS.join(' ')}`)
   if (pkg && pkg.scripts && pkg.scripts.compile) logExec(cwd, `yarn run compile`)
   logExec(cwd, `yarn install ${YARN_INSTALL_PROD_FLAGS.join(' ')}`)
 }
 
-// Clear out all the previous contents from a prevous distro run
-logExec(ROOT, `rm -rf ${JSON.stringify(DISTRO_SOURCE)}`)
-logExec(ROOT, `mkdir -p ${JSON.stringify(PLUMBING_SOURCE)}`)
+function clearPreviousDistroContents () {
+  logExec(ROOT, `rm -rf ${JSON.stringify(DISTRO_SOURCE)}`)
+  logExec(ROOT, `mkdir -p ${JSON.stringify(PLUMBING_SOURCE)}`)
+}
 
-// Move the contents of plumbing into the target folder, sans symlinks
-logExec(ROOT, `rsync ${RSYNC_FLAGS.join(' ')} ${sdir(PLUMBING_ORIGIN)} ${sdir(PLUMBING_SOURCE)}`)
+function copyPlumbingContentIntoTargetFolder () {
+  logExec(ROOT, `rsync ${RSYNC_FLAGS.join(' ')} ${sdir(PLUMBING_ORIGIN)} ${sdir(PLUMBING_SOURCE)}`)
+}
 
-// Remove any Haiku dependencies from the plumbing to avoid installation work
-var plumbingPkg = fse.readJsonSync(path.join(PLUMBING_SOURCE, 'package.json'))
+function forceInstallPlumbingDeps () {
+  logExec(ROOT, `rm -rf ${JSON.stringify(path.join(PLUMBING_SOURCE, 'yarn.lock'))}`)
+  installAndCompile(PLUMBING_SOURCE)
+}
 
-var haikuDepsRemovedFromPlumbing = [
-  // These guys aren't actually plumbing deps but need to be listed for resolution to work
-  { depName: 'haiku-common', depType: 'dependencies', depVersion: 'HaikuTeam/common.git' },
-  { depName: 'haiku-formats', depType: 'dependencies', depVersion: 'HaikuTeam/formats.git' },
-  { depName: 'haiku-testing', depType: 'dependencies', depVersion: 'HaikuTeam/testing.git' }
-]
-eachDepIn(plumbingPkg, function (depName, depVersion, depType) {
-  if (isHaikuSubpackage(depName)) {
-    delete plumbingPkg[depType][depName]
-    haikuDepsRemovedFromPlumbing.push({ depName, depType, depVersion })
-  }
-})
-fse.writeJsonSync(path.join(PLUMBING_SOURCE, 'package.json'), plumbingPkg)
-
-installAndCompile(PLUMBING_SOURCE)
-
-// Install Haiku dependencies "manually" into plumbing from our local sources
-eachHaikuSubpackage((packageName, packageOrigin) => {
-  var packageInstallTarget = path.join(PLUMBING_SOURCE_MODULES, packageName)
-
-  logExec(ROOT, `rm -rf ${sdir(packageInstallTarget)}`) // Clear the installed one just in case
-  logExec(ROOT, `mkdir -p ${sdir(packageInstallTarget)}`) // Make sure we have the folder
-  logExec(ROOT, `rsync ${RSYNC_FLAGS.join(' ')} ${sdir(packageOrigin)} ${sdir(packageInstallTarget)}`) // Install ours
-
-  // Clean Haiku dependencies from the subpackage since they're installed one level up
-  var subpackagePkg = fse.readJsonSync(path.join(packageInstallTarget, 'package.json'), { throws: false })
-  if (!subpackagePkg) return null
-
-  eachDepIn(subpackagePkg, (depName, depVersion, depType) => {
-    if (isHaikuSubpackage(depName)) {
-      delete subpackagePkg[depType][depName]
-    }
+function overwritePlumbingHaikuDepsWithLocalSourceCode (copyShallow) {
+  const rsyncFlags = (copyShallow) ? RSYNC_FLAGS_SHALLOW : RSYNC_FLAGS
+  eachHaikuSubpackage((packageName, packageOrigin) => {
+    const packageInstallTarget = path.join(PLUMBING_SOURCE_MODULES, packageName)
+    logExec(ROOT, `rm -rf ${sdir(packageInstallTarget)}`) // Clear the installed one just in case
+    logExec(ROOT, `mkdir -p ${sdir(packageInstallTarget)}`) // Make sure we have the folder
+    logExec(ROOT, `rsync ${rsyncFlags.join(' ')} ${sdir(packageOrigin)} ${sdir(packageInstallTarget)}`) // Install ours
   })
-  fse.writeJsonSync(path.join(packageInstallTarget, 'package.json'), subpackagePkg)
-})
+}
 
-eachHaikuSubpackage(function (packageName, packageOrigin) {
-  var packageInstallTarget = path.join(PLUMBING_SOURCE_MODULES, packageName)
-  installAndCompile(packageInstallTarget)
-})
+function installAndCompileSubpackages () {
+  eachHaikuSubpackage((packageName, packageOrigin) => {
+    const packageInstallTarget = path.join(PLUMBING_SOURCE_MODULES, packageName)
+    installAndCompile(packageInstallTarget)
+  })
+}
 
-// Put plumbing's Haiku dependencies back in package.json so module resolution works
-haikuDepsRemovedFromPlumbing.forEach(({ depName, depType, depVersion }) => {
-  plumbingPkg[depType][depName] = depVersion
-})
-fse.writeJsonSync(path.join(PLUMBING_SOURCE, 'package.json'), plumbingPkg)
+function hoistSubpackageDependenciesIntoPlumbing () {
+  const plumbingPkg = fse.readJsonSync(path.join(PLUMBING_SOURCE, 'package.json'))
+  eachHaikuSubpackage((packageName, packageOrigin) => {
+    const packageInstallTarget = path.join(PLUMBING_SOURCE_MODULES, packageName)
+    const subpackagePkg = readJson(path.join(packageInstallTarget, 'package.json'))
+    eachDepIn(subpackagePkg, (depName, depVersion, depType) => {
+      if (!plumbingPkg[depType]) plumbingPkg[depType] = {}
+      plumbingPkg[depType][depName] = depVersion
+      delete subpackagePkg[depType][depName]
+    })
+    fse.writeJsonSync(path.join(packageInstallTarget, 'package.json'), subpackagePkg)
+  })
+  fse.writeJsonSync(path.join(PLUMBING_SOURCE, 'package.json'), plumbingPkg)
+}
+
+function removeAllSubpackageNodeModules () {
+  eachHaikuSubpackage((packageName, packageOrigin) => {
+    const packageInstallTarget = path.join(PLUMBING_SOURCE_MODULES, packageName)
+    const subpackageNodeModulesDir = sdir(path.join(packageInstallTarget, 'node_modules'))
+    logExec(ROOT, `rm -rf ${subpackageNodeModulesDir}`)
+  })
+}
+
+function copyHackyNodeModulesIntoRequiredLocations () {
+  logExec(ROOT, `mkdir -p ${JSON.stringify(path.join(PLUMBING_SOURCE, 'node_modules', 'haiku-glass', 'node_modules'))}`)
+  logExec(ROOT, `mkdir -p ${JSON.stringify(path.join(PLUMBING_SOURCE, 'node_modules', 'haiku-creator-electron', 'node_modules'))}`)
+  logExec(ROOT, `mkdir -p ${JSON.stringify(path.join(PLUMBING_SOURCE, 'node_modules', 'haiku-timeline', 'node_modules'))}`)
+  const ravenSource = sdir(path.join(PLUMBING_SOURCE, 'node_modules', 'raven-js'))
+  const monacoSource = sdir(path.join(PLUMBING_SOURCE, 'node_modules', 'monaco-editor'))
+  logExec(ROOT, `rsync ${RSYNC_FLAGS.join(' ')} ${ravenSource} ${sdir(path.join(PLUMBING_SOURCE, 'node_modules', 'haiku-glass', 'node_modules', 'raven-js'))}`)
+  logExec(ROOT, `rsync ${RSYNC_FLAGS.join(' ')} ${monacoSource} ${sdir(path.join(PLUMBING_SOURCE, 'node_modules', 'haiku-glass', 'node_modules', 'monaco-editor'))}`)
+  logExec(ROOT, `rsync ${RSYNC_FLAGS.join(' ')} ${ravenSource} ${sdir(path.join(PLUMBING_SOURCE, 'node_modules', 'haiku-timeline', 'node_modules', 'raven-js'))}`)
+  logExec(ROOT, `rsync ${RSYNC_FLAGS.join(' ')} ${ravenSource} ${sdir(path.join(PLUMBING_SOURCE, 'node_modules', 'haiku-creator-electron', 'node_modules', 'raven-js'))}`)
+}
+
+clearPreviousDistroContents()
+copyPlumbingContentIntoTargetFolder()
+overwritePlumbingHaikuDepsWithLocalSourceCode(true)
+hoistSubpackageDependenciesIntoPlumbing()
+forceInstallPlumbingDeps()
+overwritePlumbingHaikuDepsWithLocalSourceCode()
+installAndCompileSubpackages()
+removeAllSubpackageNodeModules()
+copyHackyNodeModulesIntoRequiredLocations()
+logExec(path.join(__dirname, '..'), 'node ./scripts/distro-electron-rebuild.js')

@@ -3,7 +3,6 @@ const fse = require('fs-extra')
 const path = require('path')
 const argv = require('yargs').argv
 
-
 const getPackages = require('./helpers/allPackages')
 const depTypes = require('./helpers/depTypes')
 const nowVersion = require('./helpers/nowVersion')
@@ -71,7 +70,7 @@ if (!argv['no-remote']) {
 // Compile packages.
 cp.execSync('yarn sync', processOptions)
 openSourcePackages.forEach((pack) => {
-  const compileCommand = `node ./scripts/compile-package.js --package=${pack.name}`;
+  const compileCommand = `node ./scripts/compile-package.js --package=${pack.name}`
   if (openSourceProjects.has(pack.name)) {
     cp.execSync(compileCommand, processOptions)
   } else {

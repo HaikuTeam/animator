@@ -72,7 +72,7 @@
     "mac": {
       "category": "public.app-category.developer-tools"
     },
-    "asar": true,
+    "asar": false,
     "asarUnpack": [
       "index.js",
       "config.js",
@@ -108,6 +108,18 @@
       "!source/**/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__,tests,powered-test,example,examples,*.d.ts}",
       "!source/plumbing/node_modules/nodegit",
       "!source/plumbing/node_modules/electron",
+      "!source/plumbing/node_modules/@haiku/player/demo",
+      "!source/plumbing/node_modules/aws-sdk",
+      "!source/plumbing/node_modules/cli-table2",
+      "!source/plumbing/node_modules/eslint",
+      "!source/plumbing/node_modules/haiku-glass/node_modules/monaco-editor/dev",
+      "!source/plumbing/node_modules/monaco-editor/dev",
+      "!source/plumbing/node_modules/mout",
+      "!source/plumbing/node_modules/node-pre-gyp",
+      "!source/plumbing/node_modules/react-split-pane/demo",
+      "!source/plumbing/node_modules/rocambole-indent",
+      "!source/plumbing/node_modules/sinon",
+      "!source/plumbing/node_modules/table",
       "source/plumbing/node_modules/nodegit/package.json",
       "source/plumbing/node_modules/nodegit/dist/**",
       "source/plumbing/node_modules/nodegit/build/Release/nodegit.node",
