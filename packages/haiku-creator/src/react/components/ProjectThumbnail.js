@@ -33,9 +33,13 @@ class ProjectThumbnail extends React.Component {
           key='thumb'
           style={[
             DASH_STYLES.thumb,
-            (this.state.isMenuActive || this.state.isHovered) && DASH_STYLES.blurred
+            this.state.isMenuActive && DASH_STYLES.blurred
           ]}>
-          <ProjectPreview bytecodePath={this.bytecodePath} />
+          <ProjectPreview
+            bytecodePath={this.bytecodePath}
+            projectName={this.props.projectName}
+            playing={this.state.isHovered && !this.state.isMenuActive}
+          />
         </div>
         <div
           key='scrim'
