@@ -9,8 +9,6 @@ import {getExperimentConfig} from './config';
  */
 export enum Experiment {
   LottieExportInGlobalMenu = 'LottieExportInGlobalMenu',
-  LottieExportOnPublish = 'LottieExportOnPublish',
-  PreviewMode = 'PreviewMode',
 }
 
 /**
