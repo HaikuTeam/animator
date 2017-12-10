@@ -199,8 +199,31 @@ class HandlerManager {
       // wrote by the user causing two issues:
       // 1. If the code only contains comments, the comments are deleted
       // 2. The format is not respected.
-      handler.body =
-        prettier.format(handler.body) || this._buildEventHandler().handler.body
+      let prettierHandlerBody = null
+      if (handler.body) {
+        try {
+          // We need to evaluate the handler body as a function body. If we wrap the contents of the function in
+          // a throwaway function () => { ... }, it will output:
+          //   () => {
+          //     <original content indented two spaces>
+          //   };
+          // To restore the formatted function body, we have to strip off the terminal lines and outdent the remainder.
+          const prettierHandlerBodyLines = prettier.format(`()=>{${handler.body}}`).trim().split('\n')
+          // Strip terminal lines. Bail if we somehow encounter an unexpected format.
+          if (prettierHandlerBodyLines.shift() === '() => {' && prettierHandlerBodyLines.pop() === '};') {
+            // Outdent by two spaces.
+            prettierHandlerBody = `${prettierHandlerBodyLines.map((s) => s.slice(2)).join('\n')}\n`
+            // If we somehow got nothing back, just restore the original body (e.g. for only comments).
+            if (prettierHandlerBody.length === 0) {
+              prettierHandlerBody = handler.body
+            }
+          }
+        } catch (e) {
+          // noop. User likely was permitted to save invalid JS.
+          console.warn(`[glass] caught exception prettying handler body: ${e.toString()}`)
+        }
+      }
+      handler.body = prettierHandlerBody || this._buildEventHandler().handler.body
 
       result.set(event, {
         id,
