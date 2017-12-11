@@ -6,7 +6,7 @@ import Editor from './Editor'
 import EditorActions from './EditorActions'
 import HandlerManager from './HandlerManager'
 import Palette from '../../Palette'
-import {EDITOR_WIDTH, EDITOR_HEIGHT} from './constants'
+import {EDITOR_WIDTH, EDITOR_HEIGHT, EVALUATOR_STATES} from './constants'
 
 const STYLES = {
   container: {
@@ -40,6 +40,10 @@ class EventHandlerEditor extends React.PureComponent {
     this.onEditorEventChange = this.onEditorEventChange.bind(this)
     this.onEditorRemoved = this.onEditorRemoved.bind(this)
     this.addAction = this.addAction.bind(this)
+
+    this.state = {
+      editorsWithErrors: []
+    }
   }
 
   /**
@@ -51,7 +55,7 @@ class EventHandlerEditor extends React.PureComponent {
    * 1- Triggering a re-render
    * 2- Instantiating a HandlerManager
    */
-  shouldComponentUpdate ({element, visible, options}, nextState) {
+  shouldComponentUpdate ({element, visible, options}, {editorsWithErrors}) {
     if (element && get(this.props, 'element.uid') !== get(element, 'uid')) {
       this.handlerManager = new HandlerManager(element)
       return true
@@ -59,7 +63,8 @@ class EventHandlerEditor extends React.PureComponent {
 
     if (
       (options && options.frame !== this.props.options.frame) ||
-      visible !== this.props.visible
+      visible !== this.props.visible ||
+      editorsWithErrors.length !== this.state.editorsWithErrors.length
     ) {
       return true
     }
@@ -73,9 +78,14 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   doSave () {
-    const serializedEventHandlers = this.handlerManager.serialize()
-    this.props.save(this.props.element, serializedEventHandlers)
-    this.props.close()
+    const result = this.handlerManager.serialize()
+
+    if (this.state.editorsWithErrors.length) {
+      this.scrollToEditor(this.state.editorsWithErrors[0])
+    } else {
+      this.props.save(this.props.element, result)
+      this.props.close()
+    }
   }
 
   doCancel () {
@@ -83,7 +93,22 @@ class EventHandlerEditor extends React.PureComponent {
   }
 
   onEditorContentChange (serializedEvent, oldEvent) {
-    this.handlerManager.replaceEvent(serializedEvent, oldEvent)
+    const {evaluator} = serializedEvent
+
+    if (evaluator && evaluator.state === EVALUATOR_STATES.ERROR) {
+      this.setState({
+        editorsWithErrors: this.state.editorsWithErrors.concat(
+          serializedEvent.id
+        )
+      })
+    } else {
+      this.handlerManager.replaceEvent(serializedEvent, oldEvent)
+      this.setState({
+        editorsWithErrors: this.state.editorsWithErrors.filter(
+          (editor) => editor !== serializedEvent.id
+        )
+      })
+    }
   }
 
   onEditorEventChange (serializedEvent, oldEvent) {
@@ -94,6 +119,11 @@ class EventHandlerEditor extends React.PureComponent {
   onEditorRemoved ({editor, event, handler}) {
     this.handlerManager.delete(event)
     this.forceUpdate()
+  }
+
+  scrollToEditor (editorId) {
+    const editor = this.wrapper.querySelector(`#${editorId}`)
+    this.wrapper.scrollTop = editor.offsetTop
   }
 
   renderFrameEditor (totalNumberOfHandlers, applicableEventHandlers) {
@@ -174,7 +204,7 @@ class EventHandlerEditor extends React.PureComponent {
     return (
       <div
         className='Absolute-Center'
-        onMouseDown={mouseEvent => {
+        onMouseDown={(mouseEvent) => {
           // Prevent outer view from closing us
           mouseEvent.stopPropagation()
         }}
@@ -200,7 +230,11 @@ class EventHandlerEditor extends React.PureComponent {
         />
 
         <div style={STYLES.outer}>
-          <div style={STYLES.editorsWrapper} className='haiku-scroll'>
+          <div
+            style={STYLES.editorsWrapper}
+            className='haiku-scroll'
+            ref={(el) => {this.wrapper = el}}
+          >
             {this.renderEditors()}
           </div>
         </div>
@@ -212,6 +246,11 @@ class EventHandlerEditor extends React.PureComponent {
           onSave={() => {
             this.doSave()
           }}
+          title={
+            this.state.editorsWithErrors.length
+              ? 'an event handler has a syntax error'
+              : ''
+          }
         />
       </div>
     )

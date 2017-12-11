@@ -67,9 +67,9 @@ class HandlerManager {
    * @param {Object} serializedEvent
    * @param {String} oldEventName
    */
-  replaceEvent ({id, event, handler}, oldEventName) {
+  replaceEvent ({id, event, handler, evaluator}, oldEventName) {
     this.appliedEventHandlers.delete(oldEventName)
-    this.appliedEventHandlers.set(event, {id, handler})
+    this.appliedEventHandlers.set(event, {id, handler, evaluator})
   }
 
   /**

@@ -72,7 +72,8 @@ class Editor extends React.Component {
     this.state = {
       contents: props.contents,
       isHovered: false,
-      isTrashHovered: false
+      isTrashHovered: false,
+      evaluator: null
     }
   }
 
@@ -151,7 +152,8 @@ class Editor extends React.Component {
         body: this.state.contents,
         type: 'FunctionExpression',
         name: null
-      }
+      },
+      evaluator: this.state.evaluator
     }
   }
 
@@ -168,6 +170,7 @@ class Editor extends React.Component {
         onMouseLeave={() => {
           this.setState({isHovered: false})
         }}
+        id={this.props.id}
       >
         <div style={STYLES.options}>
           {!this.props.hideEventSelector && (
@@ -224,6 +227,7 @@ class Editor extends React.Component {
         <div style={{...STYLES.amble, ...STYLES.postamble}}>
           {'}'}
           <SyntaxEvaluator
+            onChange={(evaluator) => { this.setState({evaluator}) }}
             evaluate={this.state.contents}
             style={STYLES.postamble.errors}
           />
