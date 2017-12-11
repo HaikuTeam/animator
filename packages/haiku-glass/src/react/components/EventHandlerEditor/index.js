@@ -233,7 +233,7 @@ class EventHandlerEditor extends React.PureComponent {
           <div
             style={STYLES.editorsWrapper}
             className='haiku-scroll'
-            ref={(el) => (this.wrapper = el)}
+            ref={(el) => {this.wrapper = el}}
           >
             {this.renderEditors()}
           </div>
