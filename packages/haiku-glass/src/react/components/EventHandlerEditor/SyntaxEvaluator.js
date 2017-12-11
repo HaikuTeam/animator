@@ -4,7 +4,7 @@ import {EVALUATOR_STATES} from './constants'
 import Palette from '../../Palette'
 import HaikuMode from '../../modes/haiku.js'
 
-class SyntaxEvaluator extends React.Component {
+class SyntaxEvaluator extends React.PureComponent {
   constructor (props) {
     super(props)
 
@@ -29,6 +29,10 @@ class SyntaxEvaluator extends React.Component {
     }
   }
 
+  shouldComponentUpdate (nextProps, nextState) {
+    return nextProps.evaluate !== this.props.evaluate
+  }
+
   componentWillUpdate () {
     const evaluator = this.getDefaultEvaluator()
     const wrapped = parseExpression.wrap(this.props.evaluate)
@@ -49,6 +53,7 @@ class SyntaxEvaluator extends React.Component {
     }
 
     this.evaluator = evaluator
+    this.props.onChange(evaluator)
   }
 
   render () {
