@@ -21,7 +21,6 @@ import {
   DangerIconSVG,
   CliboardIconSVG
 } from './Icons'
-import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 
 var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
@@ -291,7 +290,7 @@ class StageTitleBar extends React.Component {
     return {
       commitMessage: 'Changes saved (via Haiku Desktop)',
       saveStrategy: SNAPSHOT_SAVE_RESOLUTION_STRATEGIES[this.state.snapshotSaveResolutionStrategyName],
-      exporterFormats: experimentIsEnabled(Experiment.LottieExportOnPublish) ? [ExporterFormat.Bodymovin] : []
+      exporterFormats: [ExporterFormat.Bodymovin]
     }
   }
 
@@ -443,14 +442,6 @@ class StageTitleBar extends React.Component {
     )
   }
 
-  hoverStyleForSaveButton () {
-    if (this.state.isSnapshotSaveInProgress) return null
-    if (this.state.snapshotSaveError) return null
-    if (this.state.snapshotMergeConflicts) return null
-    if (this.state.snapshotSaveConfirmed) return null
-    return BTN_STYLES.btnIconHover
-  }
-
   togglePreviewMode (checked) {
     const interaction = checked ? InteractionMode.EDIT : InteractionMode.LIVE
 
@@ -504,14 +495,11 @@ class StageTitleBar extends React.Component {
           </button>
         </Popover>
 
-        {
-          experimentIsEnabled(Experiment.PreviewMode) &&
-          <Toggle
-            onToggle={this.togglePreviewMode.bind(this)}
-            style={STYLES.previewToggle}
-            disabled={!this.props.isTimelineReady}
-          />
-        }
+        <Toggle
+          onToggle={(checked) => { this.togglePreviewMode(checked) }}
+          style={STYLES.previewToggle}
+          disabled={!this.props.isTimelineReady}
+        />
 
         {this.renderMergeConflictResolutionArea()}
         <button onClick={this.handleConnectionClick} style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover, STYLES.hide]} key='connect'>
