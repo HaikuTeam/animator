@@ -1,8 +1,7 @@
 import React from 'react'
-import parseExpression from 'haiku-serialization/src/ast/parseExpression'
+import {Parser} from 'cst'
 import {EVALUATOR_STATES} from './constants'
 import Palette from '../../Palette'
-import HaikuMode from '../../modes/haiku.js'
 
 class SyntaxEvaluator extends React.PureComponent {
   constructor (props) {
@@ -33,23 +32,17 @@ class SyntaxEvaluator extends React.PureComponent {
     return nextProps.evaluate !== this.props.evaluate
   }
 
-  componentWillUpdate () {
+  componentWillUpdate ({evaluate}) {
     const evaluator = this.getDefaultEvaluator()
-    const wrapped = parseExpression.wrap(this.props.evaluate)
-    const parse = parseExpression(wrapped, {}, HaikuMode.keywords, null, null, {
-      // These checks are only needed for expressions in the timeline
-      skipParamsImpurityCheck: true,
-      skipForbiddensCheck: true
-    })
+    const parser = new Parser()
+    parser._options.sourceType = 'script'
+    parser._options.strictMode = false
 
-    if (parse.error) {
-      evaluator.text = parse.error.message
+    try {
+      parser._parseAst(evaluate)
+    } catch (exception) {
+      evaluator.text = exception.message
       evaluator.state = EVALUATOR_STATES.ERROR
-    } else {
-      if (parse.warnings.length > 0) {
-        evaluator.text = parse.warnings[0].annotation
-        evaluator.state = EVALUATOR_STATES.WARN
-      }
     }
 
     this.evaluator = evaluator
