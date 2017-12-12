@@ -285,8 +285,18 @@ export class Glass extends React.Component {
         this.setLastSelectedElement(null)
       } else if (what === 'setInteractionMode') {
         // If we've toggled into preview mode, we have to force react to update the on-stage styles
-        this.forceUpdate()
-        this._component.getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
+        const isPreviewMode = this.isPreviewMode()
+        this._component.getCurrentTimeline().togglePreviewPlayback(isPreviewMode)
+
+        // If preview mode is active, hide the events handlers editor
+        // TODO: IMO (Roberto) would be nice if we can bring the editor back once
+        // turning preview mode off, but needs discussion with the team.
+        if (isPreviewMode) {
+          this.hideEventHandlersEditor()
+        } else {
+          this.forceUpdate()
+        }
+
       } else if (what === 'showEventHandlersEditor') {
         const [{elementUID, options}] = args
         this.setLastSelectedElement(this._component.findElementByComponentId(elementUID))
@@ -512,8 +522,6 @@ export class Glass extends React.Component {
   }
 
   hideEventHandlersEditor () {
-    if (this.isPreviewMode()) return void (0)
-
     this.setState({
       targetElement: null,
       isEventHandlerEditorOpen: false
