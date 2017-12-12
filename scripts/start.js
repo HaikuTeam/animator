@@ -22,7 +22,9 @@ global.process.env.NODE_ENV = 'development'
 
 const DEFAULTS = {
   dev: false,
-  folderChoice: 'none'
+  devChoice: 'everything',
+  folderChoice: 'none',
+  skipInitialBuild: false
 }
 
 const inputs = lodash.assign({}, DEFAULTS, argv)
@@ -64,8 +66,14 @@ if (argv.default === true) {
   argv.preset = args[0]
 }
 
+const availablePresets = ['glass', 'timeline']
+
 if (FOLDER_CHOICES.hasOwnProperty(argv.preset)) {
   inputs.folderChoice = argv.preset
+} else if (availablePresets.includes(argv.preset) && process.env.HAIKU_PROJECT_FOLDER) {
+  inputs.devChoice = argv.preset
+} else if (argv.preset === 'fast') {
+  inputs.skipInitialBuild = true
 } else {
   delete argv.preset
 }
@@ -81,6 +89,17 @@ function runInteractive () {
   async.series([
     function (cb) {
       inquirer.prompt([
+        {
+          type: 'list',
+          name: 'devChoice',
+          message: 'What do you want to develop?',
+          choices: [
+            { name: 'the whole chimichanga', value: 'everything' },
+            { name: 'just glass', value: 'glass' },
+            { name: 'just timeline', value: 'timeline' }
+          ],
+          default: inputs.devChoice
+        },
         {
           type: 'list',
           name: 'folderChoice',
@@ -105,6 +124,12 @@ function runInteractive () {
           name: 'dev',
           message: 'Automatically open Chrome Dev Tools?',
           default: inputs.dev
+        },
+        {
+          type: 'confirm',
+          name: 'skipInitialBuild',
+          message: 'Skip initial build of assets?',
+          default: inputs.skipInitialBuild
         }
       ]).then(function (answers) {
         lodash.assign(inputs, answers)
@@ -155,15 +180,31 @@ function setup () {
   process.env.HAIKU_RELEASE_PLATFORM = 'mac'
   process.env.HAIKU_RELEASE_VERSION = require('./../package.json').version
   process.env.HAIKU_AUTOUPDATE_SERVER = 'http://localhost:3002'
-  process.env.HAIKU_PLUMBING_URL = 'http://0.0.0.0:1024'
 
-  if (inputs.folderChoice === 'blank') {
-    fse.removeSync(blankProject)
-    fse.mkdirpSync(blankProject)
-    fse.outputFileSync(path.join(blankProject, '.keep'), '')
+  if (inputs.devChoice === 'everything') {
+    process.env.HAIKU_PLUMBING_URL = 'http://0.0.0.0:1024'
+    if (inputs.folderChoice === 'blank') {
+      fse.removeSync(blankProject)
+      fse.mkdirpSync(blankProject)
+      fse.outputFileSync(path.join(blankProject, '.keep'), '')
+    }
+  } else {
+    process.env.MOCK_ENVOY = true
+  }
+
+  // Note the packages we would never want to develop for specific dev choices.
+  const appOwnedDeps = ['haiku-websockets', 'haiku-creator', 'haiku-plumbing']
+  const devChoiceExclusions = {
+    glass: appOwnedDeps.concat(['haiku-timeline']),
+    timeline: appOwnedDeps.concat(['haiku-glass']),
+    everything: []
   }
 
   CompileOrder.forEach((shortname) => {
+    if (devChoiceExclusions[inputs.devChoice].includes(shortname)) {
+      return
+    }
+
     switch (shortname) {
       case 'haiku-player':
         // TS module, but one that uses "develop" for something different than watching.
@@ -213,10 +254,15 @@ function go () {
     throw new Error('[mono] no instructions found for this dev mode')
   }
 
-  log.hat(`first compiling everything`, 'cyan')
-  cp.execSync('yarn run compile-all', { cwd: ROOT, stdio: 'inherit' })
 
-  log.hat(`starting local development`, 'green')
+  if (inputs.skipInitialBuild) {
+    log.hat('skipping initial build')
+  } else {
+    log.hat('first compiling everything')
+    cp.execSync('yarn run compile-all', { cwd: ROOT, stdio: 'inherit' })
+  }
+
+  log.hat('starting local development', 'green')
 
   log.log(JSON.stringify(instructions))
 
@@ -225,19 +271,37 @@ function go () {
     process.env.HAIKU_PROJECT_FOLDER = chosenFolder
   }
 
-  if (chosenFolder) {
-    runInstruction(['haiku-plumbing', ['node', './HaikuHelper.js', '--folder=' + blankProject]])
-  } else {
-    runInstruction(['haiku-plumbing', ['node', './HaikuHelper.js']])
+  let startDelay = 0
+  let startScript
+  const startCommands = []
+  switch (inputs.devChoice) {
+    case 'everything':
+      startScript = 'haiku-plumbing'
+      // Wait 5 seconds for Plumbing to boot up, then start the watchers.
+      startDelay = 5000
+      startCommands.push('node', './HaikuHelper.js')
+      if (chosenFolder) {
+        startCommands.push(`--folder=${blankProject}`)
+      }
+      break
+    case 'glass':
+      startScript = 'haiku-glass'
+      startCommands.push('yarn', 'start')
+      break
+    case 'timeline':
+      startScript = 'haiku-timeline'
+      startCommands.push('yarn', 'start')
+      break
   }
 
-  // Wait 5 seconds for Plumbing to boot up, then start the watchers.
+  runInstruction([startScript, startCommands])
+
   setTimeout(() => {
     async.each(instructions, function (instruction, next) {
       runInstruction(instruction)
       next()
     })
-  }, 5000)
+  }, startDelay)
 }
 
 process.on('exit', exit)

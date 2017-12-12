@@ -21,7 +21,7 @@ var params = {
   plumbing: process.env.HAIKU_PLUMBING_URL
 }
 
-if (process.env.MOCK_ENVOY === '1') {
+if (process.env.MOCK_ENVOY) {
   params.envoy = { mock: true }
 }
 
