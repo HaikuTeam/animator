@@ -6,3 +6,4 @@ config.js
 source/*
 ~tmp
 .last-sync
+.last-compile
