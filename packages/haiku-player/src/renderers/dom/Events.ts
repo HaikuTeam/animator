@@ -29,6 +29,14 @@ export default {
       menuable: true,
       human: 'Mouse Out',
     },
+    mouseenter: {
+      menuable: true,
+      human: 'Mouse Enter',
+    },
+    mouseleave: {
+      menuable: true,
+      human: 'Mouse Leave',
+    },
     wheel: {
       menuable: false,
     },
