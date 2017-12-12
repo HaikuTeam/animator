@@ -3399,5 +3399,107 @@
       "message": "use setAttribute() during DOM render instead of setting className directly."
     }
   },
-  "2.3.39": {}
+  "2.3.39": {},
+  "2.3.40": {
+    "a90ac712058d5507ab1bc179e1c2a2c6c4a916a3": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Evaluate handler bodies inside a function's lexical scope."
+    },
+    "967ad1113f8f01d158596b009910ae36650d3134": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Hack into Node's module loader to bypass require() in dash thumbs."
+    },
+    "66cc88dc9553a044c636e5f7a1a6eef94d06162f": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Upgrade @haiku/zack2-checktutorial to require the necessary version of player."
+    },
+    "b557c45da3df1f3ad45adca1c75c51fa7d50ef0d": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Prevent too-long project names and strip invalid chars"
+    },
+    "263955a3881ab6d5db7bc2e8935878908e328cae": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure event is passed in to handler function and guard against missing property"
+    },
+    "1b461be1670833446634d64d5bf7b6e3f1c45514": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure we don't access properties on null"
+    },
+    "f3ea6705b7fe6937fbd75243c842b3f0b375a1db": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Assume element is at front/back ('only element') if no stacking info; fixes error when accessing property length of undefined"
+    },
+    "2dd03ad1e3512aec777c00d88dfb2a56240d4398": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "recalc the atProjectLimit state value after removing a project from the list."
+    },
+    "4fdb9df5119ddeb09895b9741735401a8428aaee": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Add id to div for CheckTutorial tour, where it will actually render."
+    },
+    "d974dbf8335148aa21bcfc4c746fa0384d5f2fe2": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Tour button style was removed during Dashboard 2 work; this fixes the button style"
+    },
+    "ff396dea510e21f9741a94d116d7d27669894ba4": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Install prettier to fix prod missing module issue"
+    },
+    "7970f8b63292e16afd55f46dfd1bacfa7dd01f93": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "In prod, unlike dev, import paths are case-sensitive"
+    },
+    "01d9eb63dd3ce64b0f1cd7fdd35e56d71ded55d1": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Still display an empty thumbnail when project not cloned yet (and display message for the tut/default projects"
+    },
+    "2823310533ee52511fc46bef67f133a408ce8451": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Fail silently whenever we can't load a preview from existing bytecode."
+    },
+    "4d5eddaab888f7831524c944866456a9f12b7ec6": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure correct first rendering on Dashboard v2 thumbnails."
+    },
+    "c9551a98b0667afee207615fa6d605edb0030375": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Use ref stored in property, and use const instead of var"
+    },
+    "89275ad0e69ef4f8ceb72e83f3a8d39638b7ce6f": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "proj delete w confirm modal"
+    },
+    "1ab2d1293673ad43bd1ae7c488279c2220c00223": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "user logout"
+    },
+    "8f4de07aafb3abe688b6c15cfc164ad296906d87": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "reveal in finder path"
+    },
+    "e762b1506cb92e8ba3c36dca2dc0a2c9c9511bb3": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "flex layout"
+    }
+  }
 }

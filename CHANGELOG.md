@@ -1,6 +1,34 @@
 # Changelog
 
 
+## 2.3.40
+
+### Bug Fixes
+
+ * Evaluate handler bodies inside a function's lexical scope.
+ * Hack into Node's module loader to bypass require() in dash thumbs.
+ * Upgrade @haiku/zack2-checktutorial to require the necessary version of player.
+ * Prevent too-long project names and strip invalid chars
+ * Ensure event is passed in to handler function and guard against missing property
+ * Ensure we don't access properties on null
+ * Assume element is at front/back ('only element') if no stacking info; fixes error when accessing property length of undefined
+ * recalc the atProjectLimit state value after removing a project from the list.
+ * Add id to div for CheckTutorial tour, where it will actually render.
+ * Tour button style was removed during Dashboard 2 work; this fixes the button style
+ * Install prettier to fix prod missing module issue
+ * In prod, unlike dev, import paths are case-sensitive
+ * Still display an empty thumbnail when project not cloned yet (and display message for the tut/default projects
+ * Fail silently whenever we can't load a preview from existing bytecode.
+ * Ensure correct first rendering on Dashboard v2 thumbnails.
+ * Use ref stored in property, and use const instead of var
+ * reveal in finder path
+ * flex layout
+
+### Features
+
+ * proj delete w confirm modal
+ * user logout
+
 ## 2.3.39
 
 ## 2.3.38
