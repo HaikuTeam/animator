@@ -497,3 +497,11 @@ export const TrashIconSVG = ({color = '#93999A'}) => {
     </svg>
   )
 }
+
+export const ShareSVG = ({color = '#BDCCCD', fill = 'black'}) => (
+  <svg width='14' height='14' viewBox='0 0 12 12'>
+    <rect fill={fill} stroke={color} x='.362' y='1.862' width='9.776' height='9.776' rx='2.894' />
+    <path fill={fill} d='M6 0h6v6H6z' />
+    <path d='M4.875 7.875l6-6.75M10.875 1.125v2.25M10.125 5.625v.75M5.625 1.875h.75M10.875 1.125h-2.25' stroke={color} />
+  </svg>
+)

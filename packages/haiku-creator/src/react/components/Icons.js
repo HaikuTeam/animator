@@ -69,16 +69,10 @@ export const LogOutSVG = ({color = '#BDCCCD'}) => (
 )
 
 export const ShareSVG = ({color = '#BDCCCD', fill = 'black'}) => (
-  <svg width='14px' height='14px' viewBox='0 0 12 12'>
-    <g id='sharepageicon'>
-      <rect id='Rectangle-34' fill={fill} stroke={color} strokeWidth='0.723600028' x='0.361800014' y='1.86180001' width='9.77639997' height='9.77639997' rx='2.89440011' />
-      <rect id='Rectangle' fill={fill} x='6' y='0' width='6' height='6' />
-      <path d='M4.875,7.875 L10.875,1.125' id='Line' stroke={color} strokeWidth='0.723600028' strokeLinecap='round' />
-      <path d='M10.875,1.125 L10.875,3.375' id='Line3' stroke={color} strokeWidth='0.723600028' strokeLinecap='round' />
-      <path d='M10.125,5.625 L10.125,6.375' id='Line4' stroke={color} strokeWidth='0.723600028' strokeLinecap='round' />
-      <path d='M5.625,1.875 L6.375,1.875' id='Line-Copy-2' stroke={color} strokeWidth='0.723600028' strokeLinecap='round' />
-      <path d='M10.875,1.125 L8.625,1.125' id='Line-Copy' stroke={color} strokeWidth='0.723600028' strokeLinecap='round' />
-    </g>
+  <svg width='14' height='14' viewBox='0 0 12 12'>
+    <rect fill={fill} stroke={color} x='.362' y='1.862' width='9.776' height='9.776' rx='2.894' />
+    <path fill={fill} d='M6 0h6v6H6z' />
+    <path d='M4.875 7.875l6-6.75M10.875 1.125v2.25M10.125 5.625v.75M5.625 1.875h.75M10.875 1.125h-2.25' stroke={color} />
   </svg>
 )
 
