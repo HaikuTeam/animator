@@ -4,6 +4,7 @@
 
 import HaikuHelpers from './HaikuHelpers';
 import BasicUtils from './helpers/BasicUtils';
+import consoleErrorOnce from './helpers/consoleErrorOnce';
 import {isPreviewMode} from './helpers/interactionModes';
 import parsers from './properties/dom/parsers';
 import schema from './properties/dom/schema';
@@ -804,16 +805,6 @@ ValueBuilder.prototype._clearCachedClusters = function _clearCachedClusters(time
   }
   return this;
 };
-
-const CONSOLE_ERRORS = {};
-
-function consoleErrorOnce(err) {
-  const str = err && err.message.toString();
-  if (!CONSOLE_ERRORS[str]) {
-    CONSOLE_ERRORS[str] = true;
-    console.error(err);
-  }
-}
 
 /**
  * When evaluating expressions written by the user, don't crash everything.

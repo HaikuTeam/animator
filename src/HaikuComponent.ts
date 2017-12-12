@@ -15,6 +15,7 @@ import manaFlattenTree from './helpers/manaFlattenTree';
 import scopifyElements from './helpers/scopifyElements';
 import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import upgradeBytecodeInPlace from './helpers/upgradeBytecodeInPlace';
+import consoleErrorOnce from './helpers/consoleErrorOnce';
 
 import Layout3D from './Layout3D';
 import ValueBuilder from './ValueBuilder';
@@ -735,7 +736,12 @@ function bindEventHandler(component, eventHandlerDescriptor, selector, eventName
       component._eventsFired[selector][eventName] =
         event || true;
 
-      eventHandlerDescriptor.original.call(component, event, ...args);
+      try {
+        eventHandlerDescriptor.original.call(component, event, ...args);
+      } catch (exception) {
+        consoleErrorOnce(exception);
+        return 1;
+      }
     }
   };
 }
