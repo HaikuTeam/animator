@@ -190,7 +190,7 @@ class BaseSubMenu extends React.Component {
   }
 }
 
-const BaseMenuItem = ({children, data, disabled, onClick}) => {
+const BaseMenuItem = ({children, data, disabled, onClick, style}) => {
   return (
     <li
       className={CLOSE_IF_SELECTED_CLASS}
@@ -198,7 +198,11 @@ const BaseMenuItem = ({children, data, disabled, onClick}) => {
         if (!disabled) onClick(event, data)
       }}
       disabled={disabled}
-      style={[STYLES.menuItem, disabled && STYLES.menuItem.disabled]}
+      style={[
+        STYLES.menuItem,
+        disabled && STYLES.menuItem.disabled,
+        style
+      ]}
     >
       {children}
     </li>

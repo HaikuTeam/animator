@@ -2,6 +2,7 @@
 import React from 'react'
 import {shell} from 'electron'
 import {Menu, MenuItem} from '../../Menu'
+import {ShareSVG} from '../../Icons.js'
 import Palette from '../../Palette'
 
 const STYLES = {
@@ -27,13 +28,26 @@ const STYLES = {
 }
 
 const SNIPPET_OPTIONS = {
-  'Change State': 'this.setState({stateName: value})',
-  'Go To And Play': 'this.getDefaultTimeline().gotoAndPlay(ms)',
-  'Go To And Stop': 'this.getDefaultTimeline().gotoAndStop(ms)',
-  'Pause': 'this.getDefaultTimeline().pause()',
-  'Stop': 'this.getDefaultTimeline().stop()',
-  'Docs': () => {
-    shell.openExternal('https://docs.haiku.ai/using-haiku/summonables.html')
+  'Change State': {
+    value: 'this.setState({stateName: value})'
+  },
+  'Go To And Play': {
+    value: 'this.getDefaultTimeline().gotoAndPlay(ms)'
+  },
+  'Go To And Stop': {
+    value: 'this.getDefaultTimeline().gotoAndStop(ms)'
+  },
+  Pause: {
+    value: 'this.getDefaultTimeline().pause()'
+  },
+  Stop: {
+    value: 'this.getDefaultTimeline().stop()'
+  },
+  Docs: {
+    value: () => {
+      shell.openExternal('https://docs.haiku.ai/using-haiku/summonables.html')
+    },
+    icon: ShareSVG
   }
 }
 
@@ -46,7 +60,9 @@ class Snippets extends React.PureComponent {
 
   componentWillReceiveProps (newProps) {
     if (newProps.editor && !this.props.editor) {
-      newProps.editor.domElement.querySelector('.monaco-editor').appendChild(this._plus)
+      newProps.editor.domElement
+        .querySelector('.monaco-editor')
+        .appendChild(this._plus)
 
       newProps.editor.onDidChangeCursorPosition((event, editor) => {
         this._plus.style.top = `${18 * (event.position.lineNumber - 1)}px`
@@ -55,7 +71,7 @@ class Snippets extends React.PureComponent {
   }
 
   hasCursorPosition () {
-    const { lineNumber, column } = this.props.editor.getPosition()
+    const {lineNumber, column} = this.props.editor.getPosition()
     return lineNumber !== 1 && column !== 1
   }
 
@@ -65,7 +81,7 @@ class Snippets extends React.PureComponent {
     }
 
     let range
-    const { lineNumber, column } = this.props.editor.getPosition()
+    const {lineNumber, column} = this.props.editor.getPosition()
 
     if (this.hasCursorPosition()) {
       range = new monaco.Range(lineNumber, column, lineNumber, column)
@@ -88,10 +104,19 @@ class Snippets extends React.PureComponent {
   }
 
   renderItems () {
-    return Object.entries(SNIPPET_OPTIONS).map(([option, injectable]) => {
+    return Object.entries(SNIPPET_OPTIONS).map(([option, {value, icon}]) => {
       return (
-        <MenuItem key={option} data={{injectable}} onClick={this.insertSnippet}>
-          {option}
+        <MenuItem
+          key={option}
+          data={{injectable: value}}
+          onClick={this.insertSnippet}
+          style={{justifyContent: 'initial'}}
+        >
+          <span style={{marginRight: '8px'}}>
+            {option}
+          </span>
+
+          {icon && icon({})}
         </MenuItem>
       )
     })
