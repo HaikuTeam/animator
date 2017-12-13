@@ -14,8 +14,8 @@ forceNodeEnvProduction()
 
 var inputs = lodash.assign({
   branch: 'master',
-  environment: 'development',
-  appenv: 'development', // sets NODE_ENV in the running app and the autoupdate channel
+  environment: 'production',
+  appenv: 'production', // sets NODE_ENV in the running app and the autoupdate channel
   uglify: false,
   upload: true,
   shout: true,
@@ -24,18 +24,6 @@ var inputs = lodash.assign({
 
 delete inputs.$0
 delete inputs._
-
-if (process.env.TRAVIS) {
-  // We specify that pushing to the branch 'release' will trigger a (pending) production build
-  // Always assume the in-app NODE_ENV will be 'development' unless this is for syndication
-  if (process.env.TRAVIS_BRANCH === 'release') {
-    inputs.environment = 'production'
-  }
-}
-
-if (inputs.environment === 'production') {
-  inputs.appenv = 'production'
-}
 
 if (!argv['non-interactive']) {
   inquirer.prompt([
