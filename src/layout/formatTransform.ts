@@ -25,13 +25,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import {isMatrixableTransformArray} from '../helpers/isMatrixableTransformArray';
+import {transformValueIsEssentiallyInt} from '../helpers/transformValueIsEssentiallyInt';
+import Layout3D from '../Layout3D';
 
 const TRANSFORM_SUFFIX = ')';
 const TRANSFORM_ZERO = '0';
 const TRANSFORM_COMMA = ',';
 const TRANSFORM_ZILCH = TRANSFORM_ZERO + TRANSFORM_COMMA;
-const TWO = 2;
-const THREE = 3;
 
 export default function formatTransform(transform, format, devicePixelRatio) {
   transform[12] =
@@ -41,11 +42,14 @@ export default function formatTransform(transform, format, devicePixelRatio) {
 
   let prefix;
   let last;
-  if (format === TWO) {
+  if (format === Layout3D.FORMATS.TWO) {
     // Example: matrix(1,0,0,0,0,1)
     // 2d matrix is: matrix(scaleX(),skewY(),skewX(),scaleY(),translateX(),translateY())
     // Modify via: matrix(a,b,c,d,tx,ty) <= matrix3d(a,b,0,0,c,d,0,0,0,0,1,0,tx,ty,0,1)
-    const two = [
+
+    // Note how we set the transform far to two here!
+    // tslint:disable-next-line:no-parameter-reassignment
+    transform = [
       transform[0],
       transform[1],
       transform[4],
@@ -54,44 +58,16 @@ export default function formatTransform(transform, format, devicePixelRatio) {
       transform[13],
     ];
 
-    // Note how we set the transform far to two here!
-    // tslint:disable-next-line:no-param-reassign
-    transform = two;
-
     prefix = 'matrix(';
     last = 5;
-  } else if (format === THREE) {
+  } else {
     // Example: matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,716,243,0,1)
     prefix = 'matrix3d(';
     last = 15;
   }
 
-  prefix += (transform[0] < 0.000001 && transform[0] > -0.000001) ? TRANSFORM_ZILCH : transform[0] + TRANSFORM_COMMA;
-  prefix += (transform[1] < 0.000001 && transform[1] > -0.000001) ? TRANSFORM_ZILCH : transform[1] + TRANSFORM_COMMA;
-  prefix += (transform[2] < 0.000001 && transform[2] > -0.000001) ? TRANSFORM_ZILCH : transform[2] + TRANSFORM_COMMA;
-  prefix += (transform[3] < 0.000001 && transform[3] > -0.000001) ? TRANSFORM_ZILCH : transform[3] + TRANSFORM_COMMA;
-  prefix += (transform[4] < 0.000001 && transform[4] > -0.000001) ? TRANSFORM_ZILCH : transform[4] + TRANSFORM_COMMA;
-  if (last > 5) {
-    prefix += (transform[5] < 0.000001 && transform[5] > -0.000001)
-      ? TRANSFORM_ZILCH : transform[5] + TRANSFORM_COMMA;
-    prefix += (transform[6] < 0.000001 && transform[6] > -0.000001)
-      ? TRANSFORM_ZILCH : transform[6] + TRANSFORM_COMMA;
-    prefix += (transform[7] < 0.000001 && transform[7] > -0.000001)
-      ? TRANSFORM_ZILCH : transform[7] + TRANSFORM_COMMA;
-    prefix += (transform[8] < 0.000001 && transform[8] > -0.000001)
-      ? TRANSFORM_ZILCH : transform[8] + TRANSFORM_COMMA;
-    prefix += (transform[9] < 0.000001 && transform[9] > -0.000001)
-      ? TRANSFORM_ZILCH : transform[9] + TRANSFORM_COMMA;
-    prefix += (transform[10] < 0.000001 && transform[10] > -0.000001)
-      ? TRANSFORM_ZILCH : transform[10] + TRANSFORM_COMMA;
-    prefix += (transform[11] < 0.000001 && transform[11] > -0.000001)
-      ? TRANSFORM_ZILCH : transform[11] + TRANSFORM_COMMA;
-    prefix += (transform[12] < 0.000001 && transform[12] > -0.000001)
-      ? TRANSFORM_ZILCH : transform[12] + TRANSFORM_COMMA;
-    prefix += (transform[13] < 0.000001 && transform[13] > -0.000001)
-      ? TRANSFORM_ZILCH : transform[13] + TRANSFORM_COMMA;
-    prefix += (transform[14] < 0.000001 && transform[14] > -0.000001)
-      ? TRANSFORM_ZILCH : transform[14] + TRANSFORM_COMMA;
+  for (let i = 0; i < last; i += 1) {
+    prefix += transformValueIsEssentiallyInt(transform[i], 0) ? TRANSFORM_ZILCH : transform[i] + TRANSFORM_COMMA;
   }
 
   prefix += transform[last] + TRANSFORM_SUFFIX;

@@ -145,7 +145,7 @@ function multiplyArrayOfMatrices(arrayOfMatrices: number[][]): number[] {
   return product;
 }
 
-function computeLayout(layoutSpec, currentMatrix, parentMatrix, parentsizeAbsoluteIn) {
+function computeLayout(layoutSpec, currentMatrix, parentsizeAbsoluteIn) {
   const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
 
   if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
@@ -153,16 +153,11 @@ function computeLayout(layoutSpec, currentMatrix, parentMatrix, parentsizeAbsolu
   }
 
   const size = computeSize(layoutSpec, layoutSpec.sizeMode, parentsizeAbsolute);
-
-  const outputNodepad = {} as any;
-  const matrix = computeMatrix(outputNodepad, layoutSpec, currentMatrix, size, parentMatrix, parentsizeAbsolute);
-
-  outputNodepad.size = size;
-  outputNodepad.matrix = matrix;
-  outputNodepad.shown = layoutSpec.shown;
-  outputNodepad.opacity = layoutSpec.opacity;
-
-  return outputNodepad;
+  return {
+    ...layoutSpec,
+    size,
+    matrix: computeMatrix(layoutSpec, currentMatrix, size, parentsizeAbsolute),
+  };
 }
 
 export default {

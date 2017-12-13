@@ -26,26 +26,9 @@
  * THE SOFTWARE.
  */
 
-export default function computeMatrix(
-  outputNodepad,
-  layoutSpec,
-  currentMatrix,
-  currentsizeAbsolute,
-  parentMatrix,
-  parentsizeAbsolute,
-) {
-  const translationX = layoutSpec.translation.x;
-  const translationY = layoutSpec.translation.y;
-  const translationZ = layoutSpec.translation.z;
-  const orientationX = layoutSpec.orientation.x;
-  const orientationY = layoutSpec.orientation.y;
-  const orientationZ = layoutSpec.orientation.z;
-  const orientationW = layoutSpec.orientation.w;
-  const scaleX = layoutSpec.scale.x;
-  const scaleY = layoutSpec.scale.y;
-  const scaleZ = layoutSpec.scale.z;
-  const alignX = layoutSpec.align.x * parentsizeAbsolute.x;
+export default function computeMatrix(layoutSpec, currentMatrix, currentsizeAbsolute, parentsizeAbsolute) {
   const alignY = layoutSpec.align.y * parentsizeAbsolute.y;
+  const alignX = layoutSpec.align.x * parentsizeAbsolute.x;
   const alignZ = layoutSpec.align.z * parentsizeAbsolute.z;
   const mountPointX = layoutSpec.mount.x * currentsizeAbsolute.x;
   const mountPointY = layoutSpec.mount.y * currentsizeAbsolute.y;
@@ -54,66 +37,44 @@ export default function computeMatrix(
   const originY = layoutSpec.origin.y * currentsizeAbsolute.y;
   const originZ = layoutSpec.origin.z * currentsizeAbsolute.z;
 
-  const wx = orientationW * orientationX;
-  const wy = orientationW * orientationY;
-  const wz = orientationW * orientationZ;
-  const xx = orientationX * orientationX;
-  const yy = orientationY * orientationY;
-  const zz = orientationZ * orientationZ;
-  const xy = orientationX * orientationY;
-  const xz = orientationX * orientationZ;
-  const yz = orientationY * orientationZ;
+  const wx = layoutSpec.orientation.w * layoutSpec.orientation.x;
+  const wy = layoutSpec.orientation.w * layoutSpec.orientation.y;
+  const wz = layoutSpec.orientation.w * layoutSpec.orientation.z;
+  const xx = layoutSpec.orientation.x * layoutSpec.orientation.x;
+  const yy = layoutSpec.orientation.y * layoutSpec.orientation.y;
+  const zz = layoutSpec.orientation.z * layoutSpec.orientation.z;
+  const xy = layoutSpec.orientation.x * layoutSpec.orientation.y;
+  const xz = layoutSpec.orientation.x * layoutSpec.orientation.z;
+  const yz = layoutSpec.orientation.y * layoutSpec.orientation.z;
 
-  const rs0 = (1 - 2 * (yy + zz)) * scaleX;
-  const rs1 = 2 * (xy + wz) * scaleX;
-  const rs2 = 2 * (xz - wy) * scaleX;
-  const rs3 = 2 * (xy - wz) * scaleY;
-  const rs4 = (1 - 2 * (xx + zz)) * scaleY;
-  const rs5 = 2 * (yz + wx) * scaleY;
-  const rs6 = 2 * (xz + wy) * scaleZ;
-  const rs7 = 2 * (yz - wx) * scaleZ;
-  const rs8 = (1 - 2 * (xx + yy)) * scaleZ;
+  const rs0 = (1 - 2 * (yy + zz)) * layoutSpec.scale.x;
+  const rs1 = 2 * (xy + wz) * layoutSpec.scale.x;
+  const rs2 = 2 * (xz - wy) * layoutSpec.scale.x;
+  const rs3 = 2 * (xy - wz) * layoutSpec.scale.y;
+  const rs4 = (1 - 2 * (xx + zz)) * layoutSpec.scale.y;
+  const rs5 = 2 * (yz + wx) * layoutSpec.scale.y;
+  const rs6 = 2 * (xz + wy) * layoutSpec.scale.z;
+  const rs7 = 2 * (yz - wx) * layoutSpec.scale.z;
+  const rs8 = (1 - 2 * (xx + yy)) * layoutSpec.scale.z;
 
   const tx =
     alignX +
-    translationX -
+    layoutSpec.translation.x -
     mountPointX +
     originX -
     (rs0 * originX + rs3 * originY + rs6 * originZ);
   const ty =
     alignY +
-    translationY -
+    layoutSpec.translation.y -
     mountPointY +
     originY -
     (rs1 * originX + rs4 * originY + rs7 * originZ);
   const tz =
     alignZ +
-    translationZ -
+    layoutSpec.translation.z -
     mountPointZ +
     originZ -
     (rs2 * originX + rs5 * originY + rs8 * originZ);
 
-  outputNodepad.align = {x: alignX, y: alignY, z: alignZ};
-  outputNodepad.mount = {x: mountPointX, y: mountPointY, z: mountPointZ};
-  outputNodepad.origin = {x: originX, y: originY, z: originZ};
-  outputNodepad.offset = {x: tx, y: ty, z: tz};
-
-  return [
-    parentMatrix[0] * rs0 + parentMatrix[4] * rs1 + parentMatrix[8] * rs2,
-    parentMatrix[1] * rs0 + parentMatrix[5] * rs1 + parentMatrix[9] * rs2,
-    parentMatrix[2] * rs0 + parentMatrix[6] * rs1 + parentMatrix[10] * rs2,
-    0,
-    parentMatrix[0] * rs3 + parentMatrix[4] * rs4 + parentMatrix[8] * rs5,
-    parentMatrix[1] * rs3 + parentMatrix[5] * rs4 + parentMatrix[9] * rs5,
-    parentMatrix[2] * rs3 + parentMatrix[6] * rs4 + parentMatrix[10] * rs5,
-    0,
-    parentMatrix[0] * rs6 + parentMatrix[4] * rs7 + parentMatrix[8] * rs8,
-    parentMatrix[1] * rs6 + parentMatrix[5] * rs7 + parentMatrix[9] * rs8,
-    parentMatrix[2] * rs6 + parentMatrix[6] * rs7 + parentMatrix[10] * rs8,
-    0,
-    parentMatrix[0] * tx + parentMatrix[4] * ty + parentMatrix[8] * tz,
-    parentMatrix[1] * tx + parentMatrix[5] * ty + parentMatrix[9] * tz,
-    parentMatrix[2] * tx + parentMatrix[6] * ty + parentMatrix[10] * tz,
-    1,
-  ];
+  return [rs0, rs1, rs2, 0, rs3, rs4, rs5, 0, rs6, rs7, rs8, 0, tx, ty, tz, 1];
 }
