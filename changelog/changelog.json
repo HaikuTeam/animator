@@ -3501,5 +3501,12 @@
       "label": "fix",
       "message": "flex layout"
     }
+  },
+  "2.3.41": {
+    "cb5ab434f236e2dc38ee1c0c3e84189bfee444b9": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Publish silently, and fetch the share link as soon as we have a commit sha."
+    }
   }
 }
