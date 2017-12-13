@@ -3,10 +3,7 @@ var path = require('path')
 
 var VAULT = path.join(os.homedir(), 'Secrets')
 
-// If we're running in CircleCI these would have been set these in their web UI
-if (!process.env.TRAVIS) {
-  require(path.join(VAULT, 'haiku-distro.js'))
-}
+require(path.join(VAULT, 'haiku-distro.js'))
 
 if (!process.env.HAIKU_INTERNAL_SLACK_CLIENT_ID) throw new Error('env var missing')
 if (!process.env.HAIKU_INTERNAL_SLACK_CLIENT_SECRET) throw new Error('env var missing')

@@ -52,13 +52,6 @@ const YARN_INSTALL_PROD_FLAGS = YARN_INSTALL_FLAGS_COMMON.concat([
   '--force' // Clean out any stripped-out dependencies
 ])
 
-if (!process.env.TRAVIS) {
-  // If not in CI, **don't** recompile, since we already have done so locally
-  // and this is more than likely going to be a waste of time
-  YARN_INSTALL_PROD_FLAGS.push('--ignore-scripts')
-  YARN_INSTALL_DEV_FLAGS.push('--ignore-scripts')
-}
-
 const HAIKU_SUBPACKAGES = {
   'haiku-bytecode': true,
   '@haiku/cli': 'haiku-cli',
