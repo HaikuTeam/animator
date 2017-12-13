@@ -262,15 +262,17 @@ class Timeline extends BaseModel {
     const timelineInstances = this.component.instance._timelineInstances
     const timelineInstance = timelineInstances[timelineName]
 
-    if (isPreviewMode) {
-      timelineInstance.unfreeze()
-      timelineInstance.gotoAndPlay(0)
-      timelineInstance.options.loop = true
-    } else {
-      timelineInstance.freeze()
-      timelineInstance.seek(0)
-      timelineInstance.options.loop = false
-    }
+    window.requestAnimationFrame(() => {
+      if (isPreviewMode) {
+        timelineInstance.unfreeze()
+        timelineInstance.gotoAndPlay(0)
+        timelineInstance.options.loop = true
+      } else {
+        timelineInstance.freeze()
+        timelineInstance.seek(0)
+        timelineInstance.options.loop = false
+      }
+    })
   }
 
   getDurationDragStart () {

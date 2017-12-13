@@ -334,7 +334,7 @@ class ActiveComponent extends BaseModel {
 
   setTimelineTimeValue (timelineTime, skipTransmit, forceSeek) {
     timelineTime = Math.round(timelineTime)
-    if (timelineTime !== this.getCurrentTimelineTime()) {
+    if (this.isPreviewModeActive() || timelineTime !== this.getCurrentTimelineTime()) {
       // Note that this call reaches in and updates our instance's timeline objects
       Timeline.setCurrentTime(timelineTime, skipTransmit, forceSeek)
       this.forceFlush()
@@ -343,7 +343,7 @@ class ActiveComponent extends BaseModel {
 
   setTimelineTime (timelineTime, metadata, cb) {
     timelineTime = Math.round(timelineTime)
-    if (timelineTime !== this.getCurrentTimelineTime()) {
+    if (this.isPreviewModeActive() || timelineTime !== this.getCurrentTimelineTime()) {
       this.setTimelineTimeValue(timelineTime) // This calls forceFlush
       this.emit('time:change', this.getCurrentTimelineName(), this.getCurrentTimelineTime())
       if (metadata.from === this.alias) {
