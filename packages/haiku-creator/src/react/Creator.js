@@ -27,6 +27,7 @@ import Palette from './components/Palette.js'
 import ActivityMonitor from '../utils/activityMonitor.js'
 import { linkExternalAssetsOnDrop, preventDefaultDrag } from 'haiku-serialization/src/utils/dndHelpers'
 import { HOMEDIR_LOGS_PATH, HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
+import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 
 var pkg = require('./../../package.json')
 
@@ -411,19 +412,16 @@ export default class Creator extends React.Component {
   }
 
   handleFindElementCoordinates ({ selector, webview }) {
-    if (webview !== 'creator') { return }
-    console.info('[creator] handleRequestElementCoordinates', selector, webview)
-    try {
-      // TODO: find if there is a better solution to this scape hatch
-      let element = document.querySelector(selector)
-      let { top, left } = element.getBoundingClientRect()
-      if (this.tourChannel && this.envoy && !this.envoy.isInMockMode()) {
-        console.info('[creator] receive element coordinates', selector, top, left)
-        this.tourChannel.receiveElementCoordinates('creator', { top, left })
-      }
-    } catch (exception) {
-      console.error(`[creator] error fetching ${selector} in webview ${webview} (${exception})`)
-    }
+    requestElementCoordinates({
+      currentWebview: 'creator',
+      requestedWebview: webview,
+      selector,
+      shouldNotifyEnvoy:
+        this.tourChannel &&
+        this.envoy &&
+        !this.envoy.isInMockMode(),
+      tourClient: this.tourChannel
+    })
   }
 
   handleFindWebviewCoordinates () {
