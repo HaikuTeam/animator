@@ -1,5 +1,5 @@
 import React from 'react'
-import Palette from './DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 export default class ClusterRowHeading extends React.Component {
   constructor (props) {

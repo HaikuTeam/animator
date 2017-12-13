@@ -1,10 +1,10 @@
 import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
-import Palette from './DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import TimelineDraggable from './TimelineDraggable'
-import KeyframeSVG from './icons/KeyframeSVG'
-import Globals from './Globals'
+import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG'
+import Globals from 'haiku-ui-common/lib/Globals'
 
 import {
   EaseInBackSVG,
@@ -38,7 +38,7 @@ import {
   EaseInOutSineSVG,
   EaseOutSineSVG,
   LinearSVG
-} from './icons/CurveSVGS'
+} from 'haiku-ui-common/lib/react/icons/CurveSVGS'
 
 const CURVESVGS = {
   EaseInBackSVG,

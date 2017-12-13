@@ -3,7 +3,7 @@ import { shell, ipcRenderer } from 'electron'
 import Radium from 'radium'
 import Popover from 'react-popover'
 import assign from 'lodash.assign'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import { ThreeBounce } from 'better-react-spinkit'
 import Color from 'color'
 import { BTN_STYLES } from '../styles/btnShared'
@@ -14,13 +14,11 @@ import {InteractionMode} from '@haiku/player/lib/helpers/interactionModes'
 import {
   PublishSnapshotSVG,
   ConnectionIconSVG,
-  // UndoIconSVG,
-  // RedoIconSVG,
   WarningIconSVG,
   SuccessIconSVG,
   DangerIconSVG,
   CliboardIconSVG
-} from './Icons'
+} from 'haiku-ui-common/lib/react/OtherIcons'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 
 var mixpanel = require('haiku-serialization/src/utils/Mixpanel')

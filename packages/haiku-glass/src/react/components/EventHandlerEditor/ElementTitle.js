@@ -1,8 +1,8 @@
 import React from 'react'
 import {get} from 'lodash'
-import Palette from '../../Palette'
-import {EventsBoltIcon} from '../../Icons'
-import truncate from '../../helpers/truncate'
+import Palette from 'haiku-ui-common/lib/Palette'
+import {EventsBoltIcon} from 'haiku-ui-common/lib/react/OtherIcons'
+import truncate from 'haiku-ui-common/lib/helpers/truncate'
 
 const STYLES = {
   container: {

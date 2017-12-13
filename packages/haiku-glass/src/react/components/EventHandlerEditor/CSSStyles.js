@@ -1,4 +1,4 @@
-import Palette from '../../Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 export default `
   .haiku-scroll::-webkit-scrollbar {

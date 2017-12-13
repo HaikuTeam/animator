@@ -3,9 +3,7 @@ import Radium from 'radium'
 import lodash from 'lodash'
 import Color from 'color'
 import StateRow from './StateRow'
-import Palette from '../Palette'
-// import { StackMenuSVG } from '../Icons'
-// import { BTN_STYLES } from '../../styles/btnShared'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 const STYLES = {
   container: {

@@ -1,7 +1,7 @@
 import React from 'react'
 import {Menu, MenuItem, SubMenu} from '../../Menu'
-import Palette from '../../Palette'
-import {DownCarrotSVG} from '../../Icons.js'
+import Palette from 'haiku-ui-common/lib/Palette'
+import {DownCarrotSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 
 const STYLES = {
   selectWrapper: {

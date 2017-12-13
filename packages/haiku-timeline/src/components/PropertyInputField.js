@@ -1,7 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 import Color from 'color'
-import Palette from './DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 export default class PropertyInputField extends React.Component {
   constructor (props) {

@@ -1,5 +1,5 @@
 import React from 'react'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 const MAX_AUTOCOMPLETE_HEIGHT = 195
 

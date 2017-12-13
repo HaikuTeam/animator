@@ -7,7 +7,7 @@ import {
   PenSVG,
   BrushSVG,
   DropTriangle
-} from './Icons'
+} from 'haiku-ui-common/lib/react/OtherIcons'
 import PseudoMenuButton from './PseudoMenuButton'
 import { BTN_STYLES } from '../styles/btnShared'
 

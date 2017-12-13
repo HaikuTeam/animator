@@ -5,7 +5,7 @@ import CSSStyles from './CSSStyles'
 import Editor from './Editor'
 import EditorActions from './EditorActions'
 import HandlerManager from './HandlerManager'
-import Palette from '../../Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import {EDITOR_WIDTH, EDITOR_HEIGHT, EVALUATOR_STATES} from './constants'
 
 const STYLES = {

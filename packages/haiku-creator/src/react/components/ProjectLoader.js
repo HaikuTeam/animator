@@ -2,8 +2,8 @@ import React from 'react'
 import Radium from 'radium'
 import Color from 'color'
 import { ThreeBounce } from 'better-react-spinkit'
-import Palette from './Palette'
-import { LightIconSVG } from './Icons'
+import Palette from 'haiku-ui-common/lib/Palette'
+import { LightIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 
 const STYLES = {
   fullScreenCenterWrap: {

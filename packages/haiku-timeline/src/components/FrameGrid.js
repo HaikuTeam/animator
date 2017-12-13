@@ -1,6 +1,6 @@
 import React from 'react'
 import Color from 'color'
-import Palette from './DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import FrameAction from './FrameAction'
 
 export default class FrameGrid extends React.Component {

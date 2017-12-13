@@ -1,4 +1,4 @@
-import Palette from '../components/Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import Color from 'color'
 
 export const DASH_STYLES = {

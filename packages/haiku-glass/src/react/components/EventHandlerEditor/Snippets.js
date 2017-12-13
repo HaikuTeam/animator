@@ -2,8 +2,8 @@
 import React from 'react'
 import {shell} from 'electron'
 import {Menu, MenuItem} from '../../Menu'
-import {ShareSVG} from '../../Icons.js'
-import Palette from '../../Palette'
+import {ShareSVG} from 'haiku-ui-common/lib/react/OtherIcons'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 const STYLES = {
   wrapper: {

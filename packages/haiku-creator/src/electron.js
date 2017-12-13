@@ -171,7 +171,7 @@ function createWindow () {
   })
 
   // Uncomment me to automatically open the tools
-  // browserWindow.openDevTools()
+  browserWindow.openDevTools()
 }
 
 if (app.isReady()) {

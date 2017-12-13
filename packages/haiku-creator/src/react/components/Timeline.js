@@ -2,7 +2,7 @@ import React from 'react'
 import qs from 'qs'
 import assign from 'lodash.assign'
 import path from 'path'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 export default class Timeline extends React.Component {
   constructor (props) {

@@ -1,7 +1,7 @@
 import path from 'path'
 import React from 'react'
 import Radium from 'radium'
-import Palette from '../Palette.js'
+import Palette from 'haiku-ui-common/lib/Palette'
 import Collapse from 'react-collapse'
 import LibraryItem from './LibraryItem'
 import ContextMenu from './../../ContextMenu'
@@ -11,7 +11,7 @@ import {
   SketchIconSVG,
   FolderIconSVG,
   TrashIconSVG
-} from './../Icons'
+} from 'haiku-ui-common/lib/react/OtherIcons'
 import ThreeDotMenu from '../ThreeDotMenu'
 const {shell} = require('electron')
 

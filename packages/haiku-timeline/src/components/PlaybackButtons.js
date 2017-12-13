@@ -1,10 +1,10 @@
 import React from 'react'
 import Radium from 'radium'
-import Palette from './DefaultPalette'
-import SkipBackIconSVG from './icons/SkipBackIconSVG'
-import SkipForwardIconSVG from './icons/SkipForwardIconSVG'
-import PlayIconSVG from './icons/PlayIconSVG'
-import PauseIconSVG from './icons/PauseIconSVG'
+import Palette from 'haiku-ui-common/lib/Palette'
+import SkipBackIconSVG from 'haiku-ui-common/lib/react/icons/SkipBackIconSVG'
+import SkipForwardIconSVG from 'haiku-ui-common/lib/react/icons/SkipForwardIconSVG'
+import PlayIconSVG from 'haiku-ui-common/lib/react/icons/PlayIconSVG'
+import PauseIconSVG from 'haiku-ui-common/lib/react/icons/PauseIconSVG'
 
 const STYLES = {
   btn: {

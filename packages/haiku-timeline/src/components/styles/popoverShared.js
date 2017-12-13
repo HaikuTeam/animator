@@ -1,4 +1,4 @@
-import Palette from './../DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 const popoverWidth = 170
 const pageTransDur = 170

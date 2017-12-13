@@ -36,6 +36,7 @@
     "haiku-bytecode": "HaikuTeam/bytecode.git",
     "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
     "haiku-serialization": "HaikuTeam/serialization.git",
+    "haiku-ui-common": "HaikuTeam/ui-common.git",
     "lodash": "4.17.4",
     "numeral": "^2.0.4",
     "qs": "6.4.0",

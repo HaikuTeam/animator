@@ -2,11 +2,11 @@
 import React from 'react'
 import Radium from 'radium'
 import Color from 'color'
-import Palette from '../../Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import EventSelector from './EventSelector'
 import SyntaxEvaluator from './SyntaxEvaluator'
 import Snippets from './Snippets'
-import {TrashIconSVG} from '../../Icons'
+import {TrashIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 
 const STYLES = {
   amble: {
