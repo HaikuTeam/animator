@@ -1,4 +1,4 @@
-import decamelize from 'decamelize';
+import * as decamelize from 'decamelize';
 
 const HUMANIZED_PROP_NAMES = {
   'rotation.z': 'Rotation Z', // Change me if we enable other types of rotation again

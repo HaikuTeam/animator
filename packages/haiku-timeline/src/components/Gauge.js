@@ -1,5 +1,5 @@
 import React from 'react'
-import formatSeconds from './helpers/formatSeconds'
+import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
 import Palette from 'haiku-ui-common/lib/Palette'
 
 export default class Gauge extends React.Component {

@@ -1,6 +1,6 @@
 import * as React from 'react';
-import Radium from 'radium';
-import * as Palette from './../Palette';
+import * as assign from 'lodash.assign';
+import Palette from './../Palette';
 import {DownCarrotSVG} from './OtherIcons';
 
 const STYLES = {
@@ -10,24 +10,23 @@ const STYLES = {
   menu: {
     position: 'absolute',
     display: 'none',
-    background: Palette['SPECIAL_COAL'],
+    backgroundColor: Palette['SPECIAL_COAL'],
     color: Palette['PALE_GRAY'],
     zIndex: '99',
     top: 0,
     left: 0,
     borderRadius: '4px',
     boxShadow: '0 4px 18px 0 rgba(1,28,33,0.38)',
-    open: {
-      display: 'inline-block',
-    },
   },
-  subMenu: {
-    open: {
-      display: 'inline-block',
-      left: '100%',
-      top: '0',
-      zIndex: 999,
-    },
+  menuOpen: {
+    display: 'inline-block',
+  },
+  subMenu: {},
+  subMenuOpen: {
+    display: 'inline-block',
+    left: '100%',
+    top: '0',
+    zIndex: 999,
   },
   menuItem: {
     position: 'relative',
@@ -37,12 +36,12 @@ const STYLES = {
     justifyContent: 'space-between',
     whiteSpace: 'nowrap',
     backgroundColor: Palette['SPECIAL_COAL'],
-    ':hover': {
-      backgroundColor: 'black',
-    },
-    disabled: {
-      color: Palette['LIGHTEST_GRAY'],
-    },
+  },
+  menuItemHovered: {
+    backgroundColor: 'black',
+  },
+  menuItemDisabled: {
+    color: Palette['LIGHTEST_GRAY'],
   },
   resetList: {
     listStyle: 'none',
@@ -57,7 +56,7 @@ const STYLES = {
 
 const CLOSE_IF_SELECTED_CLASS = 'js-close-on-click';
 
-class BaseMenu extends React.Component {
+export class Menu extends React.Component {
   state;
   props;
   triggerRef;
@@ -101,7 +100,7 @@ class BaseMenu extends React.Component {
   render () {
     return (
       <div
-        style={[STYLES.wrapper]}
+        style={assign({}, STYLES.wrapper)}
         className="popover-menu-custom"
       >
         <style>
@@ -128,12 +127,13 @@ class BaseMenu extends React.Component {
         <ul
           onClick={(event) => { this.closeIfOptionSelected(event); }}
           onMouseLeave={(event) => { this.close(); }}
-          style={[
+          style={assign(
+            {}, 
             STYLES.resetList,
             STYLES.menu,
-            this.state.isOpen && STYLES.menu.open,
+            this.state.isOpen && STYLES.menuOpen,
             this.state.isOpen && this.getWrapperStyles(),
-          ]}
+          )}
         >
           {this.props.children}
         </ul>
@@ -142,11 +142,11 @@ class BaseMenu extends React.Component {
   }
 }
 
-BaseMenu['defaultProps'] = {
+Menu['defaultProps'] = {
   offset: {top: 0, left: 0},
 };
 
-class BaseSubMenu extends React.Component {
+export class SubMenu extends React.Component {
   state;
   props;
 
@@ -158,15 +158,16 @@ class BaseSubMenu extends React.Component {
 
     this.state = {
       isOpen: false,
+      isHovered: false,
     };
   }
 
   open () {
-    this.setState({isOpen: true});
+    this.setState({isOpen: true, isHovered: true});
   }
 
   close () {
-    this.setState({isOpen: false});
+    this.setState({isOpen: false, isHovered: false});
   }
 
   render () {
@@ -174,7 +175,12 @@ class BaseSubMenu extends React.Component {
 
     return (
       <li
-        style={[STYLES.menuItem]}
+        className="submenu-li"
+        style={assign(
+          {},
+          STYLES.menuItem,
+          this.state.isHovered && STYLES.menuItemHovered,
+        )}
         onMouseEnter={this.open}
         onMouseLeave={this.close}
       >
@@ -183,12 +189,14 @@ class BaseSubMenu extends React.Component {
           <DownCarrotSVG />
         </div>
         <ul
-          style={[
+          className="submenu-ul"
+          style={assign(
+            {}, 
             STYLES.resetList,
             STYLES.menu,
             STYLES.subMenu,
-            this.state.isOpen && STYLES.subMenu.open,
-          ]}
+            this.state.isOpen && STYLES.subMenuOpen,
+          )}
         >
           {children}
         </ul>
@@ -197,24 +205,21 @@ class BaseSubMenu extends React.Component {
   }
 }
 
-const BaseMenuItem = ({children, data, disabled, onClick, style}) => {
+export const MenuItem = ({children, data, disabled, onClick, style}) => {
   return (
     <li
       className={CLOSE_IF_SELECTED_CLASS}
       onClick={(event) => {
         if (!disabled) { onClick(event, data); }
       }}
-      style={[
+      style={assign(
+        {}, 
         STYLES.menuItem,
-        disabled && STYLES.menuItem.disabled,
+        disabled && STYLES.menuItemDisabled,
         style,
-      ]}
+      )}
     >
       {children}
     </li>
   );
 };
-
-export const Menu = Radium(BaseMenu);
-export const SubMenu = Radium(BaseSubMenu);
-export const MenuItem = Radium(BaseMenuItem);

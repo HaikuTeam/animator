@@ -1,7 +1,8 @@
 /* global monaco */
 import React from 'react'
+// import Radium from 'radium'
 import {shell} from 'electron'
-import {Menu, MenuItem} from '../../Menu'
+import {Menu, MenuItem} from 'haiku-ui-common/lib/react/Menu'
 import {ShareSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Palette from 'haiku-ui-common/lib/Palette'
 

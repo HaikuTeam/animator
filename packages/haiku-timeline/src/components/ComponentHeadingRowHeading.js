@@ -1,5 +1,5 @@
 import React from 'react'
-import truncate from './helpers/truncate'
+import truncate from 'haiku-ui-common/lib/helpers/truncate'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Color from 'color'
 
