@@ -8,7 +8,6 @@
     "declarationDir": "lib",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
     "isolatedModules": false,
     "module": "commonjs",
     "moduleResolution": "node",
