@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.41
+
+### Features
+
+ * Publish silently, and fetch the share link as soon as we have a commit sha.
+
 ## 2.3.40
 
 ### Bug Fixes
