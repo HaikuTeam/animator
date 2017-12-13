@@ -1,12 +1,14 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
+    "jsx": "react",
     "allowJs": false,
     "baseUrl": ".",
     "declaration": true,
     "declarationDir": "lib",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
     "isolatedModules": false,
     "module": "commonjs",
     "moduleResolution": "node",
