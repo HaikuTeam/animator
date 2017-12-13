@@ -64,8 +64,8 @@ test('layout.parseCssTransformString', function (t) {
         "rotation.y": 3.14,
         "rotation.z": 2.97,
         "scale.x": -1,
-        "scale.y": 1,
-        "scale.z": 1
+        "scale.y": -1,
+        "scale.z": -1
       }
     ],
     [
@@ -80,7 +80,7 @@ test('layout.parseCssTransformString', function (t) {
         "scale.x": 2.72,
         "scale.y": 2.72,
       }
-    ],
+    ]
   ]
 
   t.plan(data.length)
