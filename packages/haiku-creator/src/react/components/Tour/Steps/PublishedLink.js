@@ -9,7 +9,7 @@ export default function ({ styles, openLink }) {
       <h2 style={styles.heading}>Publishing</h2>
       <div style={styles.text}>
         <p>
-          Once the link generates (give it up to a minute,) share your work with teammates by giving them this link.
+          Once the link generates, share your work with teammates by giving them this link.
         </p>
         <p>
           That page includes not only your latest work, but instructions and code snippets for using your Haiku in any web codebase.

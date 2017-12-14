@@ -56,7 +56,7 @@ STYLES.TOP = {
     flexDirection: 'column-reverse'
   },
   children: {
-    bottom: 45
+    bottom: -35
   },
   spotlight: {
     top: -40
