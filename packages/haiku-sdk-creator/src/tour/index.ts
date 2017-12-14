@@ -3,7 +3,7 @@ export interface Tour {
   hide(): MaybeAsync<void>;
   start(force?: boolean): MaybeAsync<void>;
   finish(createFile?: boolean): MaybeAsync<void>;
-  notifyScreenResize(): MaybeAsync<void>;
+  updateLayout(): MaybeAsync<void>;
   receiveElementCoordinates(webview: string, position: ClientBoundingRect): MaybeAsync<void>;
   receiveWebviewCoordinates(webview: string, coordinates: ClientBoundingRect): MaybeAsync<void>;
 }

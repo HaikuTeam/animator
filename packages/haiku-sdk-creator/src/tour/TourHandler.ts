@@ -228,7 +228,7 @@ export class TourHandler implements Tour {
     this.renderCurrentStepAgain();
   }
 
-  notifyScreenResize() {
+  updateLayout() {
     if (this.currentStep > 0) {
       this.shouldRenderAgain = true;
     }
