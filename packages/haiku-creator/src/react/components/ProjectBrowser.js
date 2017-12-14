@@ -170,7 +170,12 @@ class ProjectBrowser extends React.Component {
     }
 
     return (
-      <div style={DASH_STYLES.projectsWrapper}>
+      <div
+        style={DASH_STYLES.projectsWrapper}
+        onScroll={lodash.throttle(() => {
+          this.tourChannel.updateLayout()
+        }, 50)}
+      >
         {this.state.projectsList.map((projectObject, index) => (
           <ProjectThumbnail
             key={projectObject.projectName}
