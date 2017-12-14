@@ -3,6 +3,7 @@ import Color from 'color'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
 
+import { experimentIsEnabled, Experiment } from 'haiku-common/lib/experiments';
 import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
 import TimelineModel from 'haiku-serialization/src/bll/Timeline'
 import Row from 'haiku-serialization/src/bll/Row'
@@ -321,7 +322,7 @@ class Timeline extends React.Component {
       // case 32: //space
       case 37: // left
         if (this.state.isCommandKeyDown) {
-          if (this.state.isShiftKeyDown) {
+          if (this.state.isShiftKeyDown && experimentIsEnabled(Experiment.TimelineShiftKeyBehaviors)) {
             this.component.getCurrentTimeline().setVisibleFrameRange(0, this.component.getCurrentTimeline().getRightFrameEndpoint())
             return this.component.getCurrentTimeline().updateCurrentFrame(0)
           } else {
