@@ -1,3 +1,5 @@
+import { experimentIsEnabled, Experiment } from 'haiku-common/lib/experiments';
+
 const globals = {
   mouse: { x: 0, y: 0 },
   // Control and shift keys are managed from Timeline.js
@@ -16,7 +18,9 @@ window.addEventListener('keyup', (keyupEvent) => {
 })
 
 window.addEventListener('keydown', (keydownEvent) => {
-  if (keydownEvent.which === 16) globals.isShiftKeyDown = true
+  if (keydownEvent.which === 16 && experimentIsEnabled(Experiment.TimelineShiftKeyBehaviors)) {
+    globals.isShiftKeyDown = true
+  }
   if (keydownEvent.which === 17) globals.isControlKeyDown = true
 })
 
