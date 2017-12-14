@@ -29,7 +29,7 @@ export class TourHandler implements Tour {
       webview: 'creator',
       component: 'OpenProject',
       display: 'left',
-      offset: {top: 100, left: 0},
+      offset: {top: 0, left: 0},
       spotlightRadius: 400,
       waitUserAction: true,
     },
@@ -38,7 +38,7 @@ export class TourHandler implements Tour {
       webview: 'timeline',
       component: 'OpacityIncrease',
       display: 'top',
-      offset: {top: 50, left: 20},
+      offset: {top: 0, left: 0},
       spotlightRadius: 8000,
       waitUserAction: true,
     },
@@ -47,7 +47,7 @@ export class TourHandler implements Tour {
       webview: 'timeline',
       component: 'OpacityReduce',
       display: 'top',
-      offset: {top: 50, left: 0},
+      offset: {top: 0, left: 0},
       spotlightRadius: 8000,
       waitUserAction: true,
     },
@@ -56,7 +56,7 @@ export class TourHandler implements Tour {
       webview: 'timeline',
       component: 'CreateTween',
       display: 'top',
-      offset: {top: 50, left: 100},
+      offset: {top: 0, left: 0},
       spotlightRadius: 8000,
       waitUserAction: true,
     },
@@ -65,35 +65,35 @@ export class TourHandler implements Tour {
       webview: 'timeline',
       component: 'Congratulations',
       display: 'top',
-      offset: {top: 50, left: 100},
+      offset: {top: 0, left: 0},
       spotlightRadius: 8000,
       waitUserAction: false,
     },
     {
-      selector: '#stage-mount',
+      selector: '#sidebar',
       webview: 'creator',
       component: 'LibraryStart',
       display: 'right',
-      offset: {top: 220, left: 0},
-      spotlightRadius: 'default',
+      offset: {top: 0, left: 0},
+      spotlightRadius: 1000,
       waitUserAction: true,
     },
     {
-      selector: '#state-inspector',
+      selector: '#sidebar',
       webview: 'creator',
       component: 'StatesStart',
       display: 'right',
-      offset: {top: 220, left: 50},
-      spotlightRadius: 800,
+      offset: {top: 0, left: 0},
+      spotlightRadius: 1000,
       waitUserAction: true,
     },
     {
-      selector: '#add-state-button',
+      selector: '#sidebar',
       webview: 'creator',
       component: 'AddState',
       display: 'right',
-      offset: {top: 220, left: 50},
-      spotlightRadius: 800,
+      offset: {top: 0, left: 0},
+      spotlightRadius: 1000,
       waitUserAction: true,
     },
     {
@@ -101,7 +101,7 @@ export class TourHandler implements Tour {
       webview: 'timeline',
       component: 'ReferenceState',
       display: 'right',
-      offset: {top: 0, left: 120},
+      offset: {top: 0, left: 0},
       spotlightRadius: 'default',
       waitUserAction: false,
     },
@@ -110,7 +110,7 @@ export class TourHandler implements Tour {
       webview: 'timeline',
       component: 'Summonables',
       display: 'right',
-      offset: {top: 0, left: 120},
+      offset: {top: 0, left: 0},
       spotlightRadius: 'default',
       waitUserAction: false,
     },
@@ -119,7 +119,7 @@ export class TourHandler implements Tour {
       webview: 'timeline',
       component: 'NoCodeRequired',
       display: 'right',
-      offset: {top: 0, left: 120},
+      offset: {top: 0, left: 0},
       spotlightRadius: 'default',
       waitUserAction: false,
     },
@@ -127,17 +127,17 @@ export class TourHandler implements Tour {
       selector: '#publish',
       webview: 'creator',
       component: 'Publish',
-      display: 'left',
-      offset: {top: 140, left: -50},
-      spotlightRadius: 'default',
+      display: 'bottom',
+      offset: {top: 0, left: -150},
+      spotlightRadius: 900,
       waitUserAction: true,
     },
     {
       selector: '.Popover',
       webview: 'creator',
       component: 'PublishedLink',
-      display: 'left',
-      offset: {top: 260, left: -150},
+      display: 'bottom',
+      offset: {top: 150, left: -150},
       spotlightRadius: 900,
       waitUserAction: false,
     },
@@ -146,7 +146,7 @@ export class TourHandler implements Tour {
       webview: 'creator',
       component: 'Finish',
       display: 'bottom',
-      offset: {top: 50, left: 0},
+      offset: {top: 0, left: 0},
       spotlightRadius: 'default',
       waitUserAction: true,
     },
@@ -219,8 +219,9 @@ export class TourHandler implements Tour {
     const origin = this.webviewData[webview] || fallbackPosition;
     const top = origin.top + position.top;
     const left =  origin.left + position.left;
+    const {width, height} = position;
 
-    this.requestShowStep(state, {top, left});
+    this.requestShowStep(state, {top, left, width, height});
   }
 
   receiveWebviewCoordinates(webview: string, coordinates: ClientBoundingRect) {
@@ -244,7 +245,7 @@ export class TourHandler implements Tour {
     if ((!didTakeTour() && !this.isActive) || force) {
       this.currentStep = 0;
       this.isActive = true;
-      this.requestShowStep({...this.states[this.currentStep]}, {top: '40%', left: '50%'});
+      this.requestShowStep({...this.states[this.currentStep]}, {top: '40%', left: '50%', width: 0, height: 0});
     }
   }
 

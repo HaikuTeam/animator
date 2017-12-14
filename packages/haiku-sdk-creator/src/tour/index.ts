@@ -13,7 +13,7 @@ export interface TourState {
   webview: string;
   component: string;
   display: string;
-  offset: ClientBoundingRect;
+  offset: object;
   spotlightRadius: number|string;
   waitUserAction: boolean;
 }
@@ -21,6 +21,8 @@ export interface TourState {
 export interface ClientBoundingRect {
   top: number|string;
   left: number|string;
+  width: number|string;
+  height: number|string;
 }
 
 export type MaybeAsync<T> = T | Promise<T>;

@@ -100,7 +100,7 @@ class SideBar extends React.Component {
 
   render () {
     return (
-      <div style={STYLES.container} className='layout-box'>
+      <div style={STYLES.container} className='layout-box' id='sidebar'>
         <div style={[STYLES.bar, {zIndex: 1, paddingLeft: this.state.isFullscreen ? 15 : 82}]} className='frame'>
           <LogoMiniSVG />
           <button id='go-to-dashboard' key='dashboard' onClick={() => { this.goToDashboard() }}
