@@ -293,7 +293,7 @@ class Timeline extends React.Component {
       currentWebview: 'timeline',
       requestedWebview: webview,
       selector,
-      isMockMode:
+      shouldNotifyEnvoy:
         this.tourClient &&
         this.component._envoyClient &&
         !this.component._envoyClient.isInMockMode(),
