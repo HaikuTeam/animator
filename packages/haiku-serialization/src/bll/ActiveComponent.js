@@ -1320,9 +1320,19 @@ class ActiveComponent extends BaseModel {
     return this
   }
 
-  deleteSelectedKeyframes (metadata) {
-    const keyframes = this.getSelectedKeyframes()
-    keyframes.forEach((keyframe) => keyframe.delete(metadata))
+  deleteActiveKeyframes (metadata) {
+    const keyframes = this.getActiveKeyframes()
+    keyframes.forEach((keyframe) => {
+      if (!keyframe.isTransitionSegment()) {
+        const prev = keyframe.prev()
+
+        if (prev && prev.isTransitionSegment()) {
+          prev.removeCurve(metadata)
+        }
+      }
+
+      keyframe.delete(metadata)
+    })
     this.deselectAndDeactivateAllKeyframes()
     return this
   }
@@ -1344,27 +1354,27 @@ class ActiveComponent extends BaseModel {
     keyframes.forEach((keyframe) => {
       // Only keyframes that have a next keyframe should get the curve assigned,
       // otherwise you'll see a "surprise curve" if you add a next keyframe
-      if (keyframe.isNextKeyframeSelected()) {
+      if (keyframe.isNextKeyframeActive()) {
         keyframe.changeCurve(curveName, metadata)
       }
     })
     return this
   }
 
-  dragStartSelectedKeyframes (dragData) {
-    const keyframes = this.getSelectedKeyframes()
+  dragStartActiveKeyframes (dragData) {
+    const keyframes = this.getActiveKeyframes()
     keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
     return this
   }
 
-  dragStopSelectedKeyframes (dragData) {
-    const keyframes = this.getSelectedKeyframes()
+  dragStopActiveKeyframes (dragData) {
+    const keyframes = this.getActiveKeyframes()
     keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
     return this
   }
 
-  dragSelectedKeyframes (pxpf, mspf, dragData, metadata) {
-    const keyframes = this.getSelectedKeyframes()
+  dragActiveKeyframes (pxpf, mspf, dragData, metadata) {
+    const keyframes = this.getActiveKeyframes()
     keyframes.forEach((keyframe) => keyframe.drag(pxpf, mspf, dragData, metadata))
     return this
   }
@@ -1912,6 +1922,10 @@ class ActiveComponent extends BaseModel {
 
   getSelectedKeyframes () {
     return Keyframe.where({ component: this, _selected: true })
+  }
+
+  getActiveKeyframes () {
+    return Keyframe.where({ component: this, _activated: true })
   }
 
   getCurrentKeyframes (criteria) {

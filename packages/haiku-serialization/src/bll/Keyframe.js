@@ -14,7 +14,11 @@ class Keyframe extends BaseModel {
     this._needsMove = false
   }
 
-  activate () {
+  activate (config) {
+    if (!config || !config.skipDeselect) {
+      Keyframe.deselectAndDeactivateAllKeyframes()
+    }
+
     if (!this._activated || !Keyframe._activated[this.getUniqueKey()]) {
       this._activated = true
       Keyframe._activated[this.getUniqueKey()] = this
@@ -75,43 +79,65 @@ class Keyframe extends BaseModel {
     this.deactivate()
   }
 
-  toggleSelect (opts) {
-    if (this.isSelected()) {
+  toggleActive (opts) {
+    if (this.isActive()) {
       this.deselectAndDeactivate(opts)
     } else {
-      this.select(opts)
+      const prev = this.prev()
+      const next = this.next()
+      this.activate(opts)
+
+      // Logic to select a tween if we are between
+      // two active keyframes
+      if (prev && prev.isActive()) {
+        prev.select(opts)
+      }
+
+      if (next && next.isActive()) {
+        this.select(opts)
+      }
     }
   }
 
   selectSelfAndSurrounds (config) {
-    this.callOnSelfAndSurrounds('select', config)
+    this.select(config)
+    this.callOnSelfAndSurrounds('activate', {skipDeselect: true})
   }
 
+  // When dealing with tweens we must deal with two states at the same time:
+  // selected and active.
+  //
+  // - A keyframe is active when it was clicked
+  // - A keyframe is active when the tween that belongs to him was clicked
+  //
+  // This distinction allows us to do trickery to know when we must
+  // select/deselect individual keyframes
   toggleSelectSelfAndSurrounds (config) {
-
-    // Since we are dealing with a tween, we can't just check if the keyframe
-    // is selected or not, we must peek at the next keyframe, if the next one is
-    // selected, we must _potentially_ deselect both (we are in toggle mode)
-    if (this.isSelected() && this.isNextKeyframeSelected()) {
+    // If the keyframe is selected and the next keyframe is active
+    // (ie, the tween that belongs to him is pink) we must start the deselection
+    // process.
+    // The proces is somewhat complex because besides setting the selected state
+    // of the curve, we must select/deselect sorrounding keyframes accordingly
+    if (this.isSelected() && this.isNextKeyframeActive()) {
       const next = this.next()
       const prev = this.prev()
 
-      // At this point we know the next keyframe is selected, now we peek two
-      // keyframes ahead because we must know if the next keyframe is part of
-      // a separate tween or not. If the next keyframe is part of another tween,
-      // we don't deselect it
-      if(!(next.isNextKeyframeSelected() && next.isNextKeyframeTransitionSegment())) {
-        this.next().deselectAndDeactivate(config)
+      // First deselect the curve
+      this.deselect()
+
+      // At this point we know the next keyframe is active, if is active and selected,
+      // its curve is also selected, therefore we don't want do modify it
+      if (!next.isSelected()) {
+        next.deselectAndDeactivate(config)
       }
 
-      // Now we peek for the previous keyframe, if previous and current keyframe
-      // are part of a selected tween, don't deselect current keyframe
-      if (!(this.isPreviousKeyframeSelected() && this.isPreviousKeyframeTransitionSegment())) {
+      // Now we check the previous keyframe, if its selected,
+      // its curve is also selected, therefore we don't want do modify it
+      if (!(prev && prev.isSelected())) {
         this.deselectAndDeactivate(config)
       }
     } else {
-      this.callOnSelfAndSurrounds('select', config)
-      this.callOnSelfAndSurrounds('activate', config)
+      this.selectSelfAndSurrounds(config)
     }
   }
 
@@ -163,18 +189,17 @@ class Keyframe extends BaseModel {
   delete (metadata) {
     this.row.deleteKeyframe(this, metadata)
     this._isDeleted = true
+
     return this
   }
 
   dragStart (dragData) {
-    this.activate()
     this._dragStartMs = this.getMs()
     this._dragStartPx = dragData.x
     return this
   }
 
   dragStop (dragData) {
-    this.deactivate()
     this._dragStartMs = null
     this._dragStartPx = null
     return this
@@ -238,7 +263,7 @@ class Keyframe extends BaseModel {
   }
 
   removeCurve (metadata) {
-    if (this.next() && this.next().isSelected()) {
+    if (this.next() && this.next().isActive()) {
       this.setCurve(null)
       this.component.splitSegment(
         [this.element.getComponentId()],
@@ -445,16 +470,8 @@ class Keyframe extends BaseModel {
     return this.next() && this.next().isSelected()
   }
 
-  isPreviousKeyframeSelected () {
-    return this.prev() && this.prev().isSelected()
-  }
-
-  isNextKeyframeTransitionSegment() {
-    return this.next() && this.next().isTransitionSegment()
-  }
-
-  isPreviousKeyframeTransitionSegment () {
-    return this.prev() && this.prev().isTransitionSegment()
+  isNextKeyframeActive () {
+    return this.next() && this.next().isActive()
   }
 
   getPixelOffsetRight (base, pxpf, mspf) {
@@ -562,7 +579,7 @@ class Keyframe extends BaseModel {
       return 'LIGHTEST_PINK'
     }
 
-    if (this.isSelected() && this.next() && this.next().isSelected()) {
+    if (this.isSelected() && this.isActive() && this.next() && this.next().isActive()) {
       return 'LIGHTEST_PINK'
     }
 
