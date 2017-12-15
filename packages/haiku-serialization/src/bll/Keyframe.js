@@ -106,7 +106,7 @@ class Keyframe extends BaseModel {
 
       // Now we peek for the previous keyframe, if it's selected and it's
       // a transition segment means this keyframe is part of that tween.
-      if (!this.isPreviousKeyframeSelected() && prev.isTransitionSegment()) {
+      if (!this.isPreviousKeyframeSelected() && prev && prev.isTransitionSegment()) {
         this.deselectAndDeactivate(config)
       }
     } else {
