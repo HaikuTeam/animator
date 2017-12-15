@@ -44,30 +44,33 @@ export default class InvisibleKeyframeDragger extends React.Component {
         id={`keyframe-dragger-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
         onMouseDown={() => {
+          // This logic is here to allow keyframes to be dragged without having
+          // to select them first.
           if (this.props.timeline.getSelectedKeyframes().length <= 1 && !Globals.isShiftKeyDown) {
             this.props.keyframe.select(
               {skipDeselect: false, directlySelected: true}
             )
+
+            this.performedSelection = true
           }
         }}
         onStart={(dragEvent, dragData) => {
           this.props.component.dragStartSelectedKeyframes(dragData)
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
-          const hasMultipleSelectedKeyframes =
-            this.props.timeline.hasMultipleSelectedKeyframes()
+          if (wasDrag) {
+            this.props.component.dragStopSelectedKeyframes(dragData)
+          } else if (!this.performedSelection) {
+            const skipDeselect =
+              Globals.isShiftKeyDown ||
+              (Globals.isControlKeyDown || lastMouseButtonPressed === 3)
 
-          const skipDeselect =
-            Globals.isShiftKeyDown ||
-            ((Globals.isControlKeyDown || lastMouseButtonPressed === 3) &&
-              hasMultipleSelectedKeyframes) ||
-            (wasDrag && hasMultipleSelectedKeyframes)
+            this.props.keyframe.toggleSelect(
+              {skipDeselect, directlySelected: true}
+            )
+          }
 
-          this.props.keyframe.toggleSelect(
-            {skipDeselect, directlySelected: true},
-            Globals.isShiftKeyDown
-          )
-          this.props.component.dragStopSelectedKeyframes(dragData)
+          this.performedSelection = false
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
           this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })

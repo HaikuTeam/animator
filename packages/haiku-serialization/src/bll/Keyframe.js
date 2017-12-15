@@ -37,13 +37,7 @@ class Keyframe extends BaseModel {
   }
 
   select (config) {
-    if (config) {
-      if (config.skipDeselect) {
-        // do nothing
-      } else {
-        Keyframe.deselectAndDeactivateAllKeyframes()
-      }
-    } else {
+    if (!config || !config.skipDeselect) {
       Keyframe.deselectAndDeactivateAllKeyframes()
     }
 
@@ -72,14 +66,18 @@ class Keyframe extends BaseModel {
     return this
   }
 
-  deselectAndDeactivate () {
+  deselectAndDeactivate (config) {
+    if (!config || !config.skipDeselect) {
+      Keyframe.deselectAndDeactivateAllKeyframes()
+    }
+
     this.deselect()
     this.deactivate()
   }
 
-  toggleSelect (opts, isInMultiSelection) {
-    if (opts.skipDeselect && this.isSelected() && isInMultiSelection) {
-      this.deselectAndDeactivate()
+  toggleSelect (opts) {
+    if (this.isSelected()) {
+      this.deselectAndDeactivate(opts)
     } else {
       this.select(opts)
     }
@@ -89,17 +87,37 @@ class Keyframe extends BaseModel {
     this.callOnSelfAndSurrounds('select', config)
   }
 
-  toggleSelectSelfAndSurrounds (config, isInMultiSelection) {
-    this.callOnSelfAndSurrounds('toggleSelect', config, isInMultiSelection)
+  toggleSelectSelfAndSurrounds (config) {
+
+    // Since we are dealing with a tween, we can't just check if the keyframe
+    // is selected or not, we must peek at the next keyframe, if the next one is
+    // selected, we must _potentially_ deselect both (we are in toggle mode)
+    if (this.isSelected() && this.isTransitionSegment() && this.isNextKeyframeSelected()) {
+      const next = this.next()
+      const prev = this.prev()
+
+      // At this point we know the next keyframe is selected, now we peek two
+      // keyframes ahead because we must know if the next keyframe is part of
+      // a separate tween or not. If the next keyframe is part of another tween,
+      // we don't deselect it
+      if(!next.isNextKeyframeSelected() && next.isTransitionSegment()) {
+        this.next().deselectAndDeactivate(config)
+      }
+
+      // Now we peek for the previous keyframe, if it's selected and it's
+      // a transition segment means this keyframe is part of that tween.
+      if (!this.isPreviousKeyframeSelected() && prev.isTransitionSegment()) {
+        this.deselectAndDeactivate(config)
+      }
+    } else {
+      this.callOnSelfAndSurrounds('select', config)
+      this.callOnSelfAndSurrounds('activate', config)
+    }
   }
 
   callOnSelfAndSurrounds (method, ...args) {
     this[method](...args)
     if (this.next()) {
-      // HACK: Normally selecting/deselecting a keyframe deselects all others,
-      // but in this case we want to retain the one we selected in the
-      // line above, so add this property to the event/config to prevent
-      // that behavior
       this.next()[method]({skipDeselect: true}, args[1])
     }
     return this
@@ -421,6 +439,14 @@ class Keyframe extends BaseModel {
     return this.cacheFetch(('prev'), () => {
       return this.row.getKeyframes({ index: this.index - 1 })[0]
     })
+  }
+
+  isNextKeyframeSelected () {
+    return this.next() && this.next().isSelected()
+  }
+
+  isPreviousKeyframeSelected () {
+    return this.prev() && this.prev().isSelected()
   }
 
   getPixelOffsetRight (base, pxpf, mspf) {
