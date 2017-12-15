@@ -124,11 +124,15 @@ export default class TransitionBody extends React.Component {
         id={`transition-body-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
         onMouseDown={() => {
+          // This logic is here to allow transitions to be dragged without having
+          // to select them first.
           if (!this.props.preventDragging) {
             if (this.props.timeline.getSelectedKeyframes().length <= 2 && !Globals.isShiftKeyDown) {
               this.props.keyframe.selectSelfAndSurrounds(
                 {skipDeselect: false, directlySelected: true}
               )
+
+              this.performedSelection = true
             }
           }
         }}
@@ -139,23 +143,18 @@ export default class TransitionBody extends React.Component {
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
           if (!this.props.preventDragging) {
-            // TODO: this is a very naive way to check if we have a selected tween
-            // it works for our current user case, but we should do better
-            // (shame on Roberto)
-            const hasSelectedTween =
-              this.props.timeline.getSelectedKeyframes().length > 2
-            const skipDeselect =
-              Globals.isShiftKeyDown ||
-              ((Globals.isControlKeyDown || lastMouseButtonPressed === 3) &&
-                hasSelectedTween) ||
-              (wasDrag && hasSelectedTween)
+            if (wasDrag) {
+              this.props.component.dragStopSelectedKeyframes(dragData)
+            } else if (!this.performedSelection) {
+              const skipDeselect =
+                Globals.isShiftKeyDown ||
+                (Globals.isControlKeyDown || lastMouseButtonPressed === 3)
 
-            this.props.component.dragStopSelectedKeyframes(dragData)
-            this.props.keyframe.toggleSelectSelfAndSurrounds(
-              {skipDeselect},
-              Globals.isShiftKeyDown
-            )
+              this.props.keyframe.toggleSelectSelfAndSurrounds({skipDeselect}, Globals.isShiftKeyDown)
+            }
           }
+
+          this.performedSelection = false
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
           if (!this.props.preventDragging) {
