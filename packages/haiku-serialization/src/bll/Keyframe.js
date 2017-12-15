@@ -92,7 +92,7 @@ class Keyframe extends BaseModel {
     // Since we are dealing with a tween, we can't just check if the keyframe
     // is selected or not, we must peek at the next keyframe, if the next one is
     // selected, we must _potentially_ deselect both (we are in toggle mode)
-    if (this.isSelected() && this.isTransitionSegment() && this.isNextKeyframeSelected()) {
+    if (this.isSelected() && this.isNextKeyframeSelected()) {
       const next = this.next()
       const prev = this.prev()
 
