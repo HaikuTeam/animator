@@ -127,7 +127,8 @@ export default class TransitionBody extends React.Component {
           // This logic is here to allow transitions to be dragged without having
           // to select them first.
           if (!this.props.preventDragging) {
-            if (this.props.timeline.getSelectedKeyframes().length <= 2 && !Globals.isShiftKeyDown) {
+            // console.log(!(this.props.keyframe.isSelected() && this.props.keyframe.isActive()) && !Globals.isShiftKeyDown)
+            if (!(this.props.keyframe.isSelected() && this.props.keyframe.isActive()) && !Globals.isShiftKeyDown) {
               this.props.keyframe.selectSelfAndSurrounds(
                 {skipDeselect: false, directlySelected: true}
               )
