@@ -31,7 +31,7 @@ export class TourHandler implements Tour {
       display: 'left',
       offset: {top: 0, left: 0},
       spotlightRadius: 400,
-      waitUserAction: true,
+      waitUserAction: false,
     },
     {
       selector: '.gauge-time-readout',
@@ -40,7 +40,7 @@ export class TourHandler implements Tour {
       display: 'top',
       offset: {top: 80, left: 50},
       spotlightRadius: 8000,
-      waitUserAction: true,
+      waitUserAction: false,
     },
     {
       selector: '.gauge-time-readout',
@@ -49,7 +49,7 @@ export class TourHandler implements Tour {
       display: 'top',
       offset: {top: 80, left: 50},
       spotlightRadius: 8000,
-      waitUserAction: true,
+      waitUserAction: false,
     },
     {
       selector: '.gauge-time-readout',
@@ -58,7 +58,7 @@ export class TourHandler implements Tour {
       display: 'top',
       offset: {top: 80, left: 50},
       spotlightRadius: 8000,
-      waitUserAction: true,
+      waitUserAction: false,
     },
     {
       selector: '.gauge-time-readout',
@@ -76,7 +76,7 @@ export class TourHandler implements Tour {
       display: 'right',
       offset: {top: 0, left: 0},
       spotlightRadius: 1000,
-      waitUserAction: true,
+      waitUserAction: false,
     },
     {
       selector: '#sidebar',
@@ -85,7 +85,7 @@ export class TourHandler implements Tour {
       display: 'right',
       offset: {top: 0, left: 0},
       spotlightRadius: 1000,
-      waitUserAction: true,
+      waitUserAction: false,
     },
     {
       selector: '#sidebar',
@@ -94,7 +94,7 @@ export class TourHandler implements Tour {
       display: 'right',
       offset: {top: 0, left: 0},
       spotlightRadius: 1000,
-      waitUserAction: true,
+      waitUserAction: false,
     },
     {
       selector: '.property-input-field',
@@ -148,7 +148,7 @@ export class TourHandler implements Tour {
       display: 'bottom',
       offset: {top: 0, left: 0},
       spotlightRadius: 'default',
-      waitUserAction: true,
+      waitUserAction: false,
     },
   ];
 

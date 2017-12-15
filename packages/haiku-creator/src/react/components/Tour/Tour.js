@@ -74,7 +74,16 @@ class Tour extends React.Component {
   }
 
   next () {
-    this.tourChannel.next()
+    if (this.state.stepData.current === 1) {
+      const tutorialOpener =
+        document.querySelector(`${this.state.selector} .js-utility-project-launcher`)
+
+      if (tutorialOpener) {
+        tutorialOpener.click()
+      }
+    } else {
+      this.tourChannel.next()
+    }
   }
 
   finish (createFile, skipped) {
