@@ -46,40 +46,39 @@ export default class InvisibleKeyframeDragger extends React.Component {
         onMouseDown={() => {
           // This logic is here to allow keyframes to be dragged without having
           // to select them first.
-          if (this.props.timeline.getSelectedKeyframes().length <= 1 && !Globals.isShiftKeyDown) {
-            this.props.keyframe.select(
-              {skipDeselect: false, directlySelected: true}
+          if (!this.props.keyframe.isActive() && !Globals.isShiftKeyDown) {
+            this.props.keyframe.activate(
+              {skipDeselect: false}
             )
 
             this.performedSelection = true
           }
         }}
         onStart={(dragEvent, dragData) => {
-          this.props.component.dragStartSelectedKeyframes(dragData)
+          this.props.component.dragStartActiveKeyframes(dragData)
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
-          if (wasDrag) {
-            this.props.component.dragStopSelectedKeyframes(dragData)
-          } else if (!this.performedSelection) {
+          if (!wasDrag && !this.performedSelection) {
             const skipDeselect =
               Globals.isShiftKeyDown ||
               (Globals.isControlKeyDown || lastMouseButtonPressed === 3)
 
-            this.props.keyframe.toggleSelect(
+            this.props.keyframe.toggleActive(
               {skipDeselect, directlySelected: true}
             )
           }
 
+          this.props.component.dragStopActiveKeyframes(dragData)
           this.performedSelection = false
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
-          this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
+          this.props.component.dragActiveKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}>
         <span
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
 
-            this.props.keyframe.select(
+            this.props.keyframe.activate(
               {skipDeselect: this.props.keyframe.isSelected(), directlySelected: true}
             )
 

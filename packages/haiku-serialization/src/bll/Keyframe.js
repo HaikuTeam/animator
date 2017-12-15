@@ -14,7 +14,11 @@ class Keyframe extends BaseModel {
     this._needsMove = false
   }
 
-  activate () {
+  activate (config) {
+    if (!config || !config.skipDeselect) {
+      Keyframe.deselectAndDeactivateAllKeyframes()
+    }
+
     if (!this._activated || !Keyframe._activated[this.getUniqueKey()]) {
       this._activated = true
       Keyframe._activated[this.getUniqueKey()] = this
@@ -75,23 +79,29 @@ class Keyframe extends BaseModel {
     this.deactivate()
   }
 
-  toggleSelect (opts) {
-    if (this.isSelected()) {
+  toggleActive (opts) {
+    if (this.isActive()) {
       this.deselectAndDeactivate(opts)
     } else {
       const prev = this.prev()
-      this.select(opts)
+      const next = this.next()
       this.activate(opts)
 
+      // Logic to select a tween if we are between
+      // two active keyframes
       if (prev && prev.isActive()) {
         prev.select(opts)
+      }
+
+      if (next && next.isActive()) {
+        this.select(opts)
       }
     }
   }
 
   selectSelfAndSurrounds (config) {
     this.select(config)
-    this.callOnSelfAndSurrounds('activate', config)
+    this.callOnSelfAndSurrounds('activate', {skipDeselect: true})
   }
 
   // When dealing with tweens we must deal with two states at the same time:
@@ -117,7 +127,7 @@ class Keyframe extends BaseModel {
 
       // At this point we know the next keyframe is active, if is active and selected,
       // its curve is also selected, therefore we don't want do modify it
-      if(!next.isSelected()) {
+      if (!next.isSelected()) {
         next.deselectAndDeactivate(config)
       }
 
@@ -127,8 +137,7 @@ class Keyframe extends BaseModel {
         this.deselectAndDeactivate(config)
       }
     } else {
-      this.select(config)
-      this.callOnSelfAndSurrounds('activate', config)
+      this.selectSelfAndSurrounds(config)
     }
   }
 
@@ -180,18 +189,17 @@ class Keyframe extends BaseModel {
   delete (metadata) {
     this.row.deleteKeyframe(this, metadata)
     this._isDeleted = true
+
     return this
   }
 
   dragStart (dragData) {
-    this.activate()
     this._dragStartMs = this.getMs()
     this._dragStartPx = dragData.x
     return this
   }
 
   dragStop (dragData) {
-    this.deactivate()
     this._dragStartMs = null
     this._dragStartPx = null
     return this
@@ -255,7 +263,7 @@ class Keyframe extends BaseModel {
   }
 
   removeCurve (metadata) {
-    if (this.next() && this.next().isSelected()) {
+    if (this.next() && this.next().isActive()) {
       this.setCurve(null)
       this.component.splitSegment(
         [this.element.getComponentId()],

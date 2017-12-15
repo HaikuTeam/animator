@@ -127,7 +127,6 @@ export default class TransitionBody extends React.Component {
           // This logic is here to allow transitions to be dragged without having
           // to select them first.
           if (!this.props.preventDragging) {
-            // console.log(!(this.props.keyframe.isSelected() && this.props.keyframe.isActive()) && !Globals.isShiftKeyDown)
             if (!(this.props.keyframe.isSelected() && this.props.keyframe.isActive()) && !Globals.isShiftKeyDown) {
               this.props.keyframe.selectSelfAndSurrounds(
                 {skipDeselect: false, directlySelected: true}
@@ -139,14 +138,12 @@ export default class TransitionBody extends React.Component {
         }}
         onStart={(dragEvent, dragData) => {
           if (!this.props.preventDragging) {
-            this.props.component.dragStartSelectedKeyframes(dragData)
+            this.props.component.dragStartActiveKeyframes(dragData)
           }
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
           if (!this.props.preventDragging) {
-            if (wasDrag) {
-              this.props.component.dragStopSelectedKeyframes(dragData)
-            } else if (!this.performedSelection) {
+            if (!wasDrag && !this.performedSelection) {
               const skipDeselect =
                 Globals.isShiftKeyDown ||
                 (Globals.isControlKeyDown || lastMouseButtonPressed === 3)
@@ -155,11 +152,12 @@ export default class TransitionBody extends React.Component {
             }
           }
 
+          this.props.component.dragStopActiveKeyframes(dragData)
           this.performedSelection = false
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
           if (!this.props.preventDragging) {
-            this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
+            this.props.component.dragActiveKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
           }
         }, THROTTLE_TIME)}
         onContextMenu>

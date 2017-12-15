@@ -79,7 +79,6 @@ export default class ConstantBody extends React.Component {
               selectConstBody: true
             })
           }
-
         }}
         style={{
           position: 'absolute',

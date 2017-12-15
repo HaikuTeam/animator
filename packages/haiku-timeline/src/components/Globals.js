@@ -1,4 +1,4 @@
-import { experimentIsEnabled, Experiment } from 'haiku-common/lib/experiments';
+import { experimentIsEnabled, Experiment } from 'haiku-common/lib/experiments'
 
 const globals = {
   mouse: { x: 0, y: 0 },
