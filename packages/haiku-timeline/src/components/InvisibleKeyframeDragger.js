@@ -79,6 +79,10 @@ export default class InvisibleKeyframeDragger extends React.Component {
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
 
+            this.props.keyframe.select(
+              {skipDeselect: this.props.keyframe.isSelected(), directlySelected: true}
+            )
+
             this.props.ctxmenu.show({
               type: 'keyframe',
               event: ctxMenuEvent.nativeEvent,

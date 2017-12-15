@@ -150,7 +150,7 @@ export default class TransitionBody extends React.Component {
                 Globals.isShiftKeyDown ||
                 (Globals.isControlKeyDown || lastMouseButtonPressed === 3)
 
-              this.props.keyframe.toggleSelectSelfAndSurrounds({skipDeselect}, Globals.isShiftKeyDown)
+              this.props.keyframe.toggleSelectSelfAndSurrounds({skipDeselect})
             }
           }
 
@@ -172,6 +172,10 @@ export default class TransitionBody extends React.Component {
             if (this.props.keyframe.isWithinCollapsedRow()) {
               return false
             }
+
+            this.props.keyframe.selectSelfAndSurrounds(
+              {skipDeselect: this.props.keyframe.isSelected(), directlySelected: true}
+            )
 
             ctxMenuEvent.stopPropagation()
 
