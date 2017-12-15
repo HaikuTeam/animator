@@ -3,6 +3,7 @@
     "development": true
   },
   "TimelineShiftKeyBehaviors": {
-    "development": true
+    "development": true,
+    "production": true
   }
 }
