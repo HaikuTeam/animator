@@ -100,13 +100,13 @@ class Keyframe extends BaseModel {
       // keyframes ahead because we must know if the next keyframe is part of
       // a separate tween or not. If the next keyframe is part of another tween,
       // we don't deselect it
-      if(!next.isNextKeyframeSelected() && next.isTransitionSegment()) {
+      if(!(next.isNextKeyframeSelected() && next.isNextKeyframeTransitionSegment())) {
         this.next().deselectAndDeactivate(config)
       }
 
-      // Now we peek for the previous keyframe, if it's selected and it's
-      // a transition segment means this keyframe is part of that tween.
-      if (!this.isPreviousKeyframeSelected() && prev && prev.isTransitionSegment()) {
+      // Now we peek for the previous keyframe, if previous and current keyframe
+      // are part of a selected tween, don't deselect current keyframe
+      if (!(this.isPreviousKeyframeSelected() && this.isPreviousKeyframeTransitionSegment())) {
         this.deselectAndDeactivate(config)
       }
     } else {
@@ -447,6 +447,14 @@ class Keyframe extends BaseModel {
 
   isPreviousKeyframeSelected () {
     return this.prev() && this.prev().isSelected()
+  }
+
+  isNextKeyframeTransitionSegment() {
+    return this.next() && this.next().isTransitionSegment()
+  }
+
+  isPreviousKeyframeTransitionSegment () {
+    return this.prev() && this.prev().isTransitionSegment()
   }
 
   getPixelOffsetRight (base, pxpf, mspf) {
