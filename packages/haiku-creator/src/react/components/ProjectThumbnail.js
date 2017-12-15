@@ -43,6 +43,7 @@ class ProjectThumbnail extends React.Component {
         </div>
         <div
           key='scrim'
+          className='js-utility-project-launcher'
           style={[
             DASH_STYLES.scrim,
             (this.state.isMenuActive || this.state.isHovered) && {opacity: 1}
