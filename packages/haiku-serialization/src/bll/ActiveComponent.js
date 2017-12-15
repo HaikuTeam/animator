@@ -1344,7 +1344,7 @@ class ActiveComponent extends BaseModel {
     keyframes.forEach((keyframe) => {
       // Only keyframes that have a next keyframe should get the curve assigned,
       // otherwise you'll see a "surprise curve" if you add a next keyframe
-      if (keyframe.next() && keyframe.next()._selected) {
+      if (keyframe.isNextKeyframeSelected()) {
         keyframe.changeCurve(curveName, metadata)
       }
     })
