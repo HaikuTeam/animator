@@ -14,11 +14,11 @@ https://github.com/ChromiumWebApps/chromium/blob/master/ui/gfx/transform_util.cc
 http://www.w3.org/TR/css3-transforms/#decomposing-a-3d-matrix
 */
 
-import create from './../gl-mat4/create';
-import glv3cross from './../gl-vec3/cross';
-import glv3dot from './../gl-vec3/dot';
-import glv3length from './../gl-vec3/length';
-import glv3normalize from './../gl-vec3/normalize';
+import create from '../gl-mat4/create';
+import glv3cross from '../gl-vec3/cross';
+import glv3dot from '../gl-vec3/dot';
+import glv3length from '../gl-vec3/length';
+import glv3normalize from '../gl-vec3/normalize';
 import normalize from './normalize';
 
 const vec3 = {
@@ -32,6 +32,7 @@ const tmp = create();
 const row = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
 const pdum3 = [0, 0, 0];
 
+export const roundVector = (vector: number[]): number[] => vector.map((value) => Number(value.toFixed(2)));
 export type ThreeTuple = [number, number, number];
 export type FourTuple = [number, number, number, number];
 export interface DecomposedMat4 {
@@ -46,18 +47,26 @@ export default function decomposeMat4(matrix): boolean|DecomposedMat4 {
     return false;
   }
 
-  // Next take care of translation
-  const translation = [tmp[12], tmp[13], tmp[14]].map((value) => Number(value.toFixed(2))) as ThreeTuple;
+  const translation = roundVector([tmp[12], tmp[13], tmp[14]]) as ThreeTuple;
 
-  // Now get scale and shear. 'row' is a 3 element array of 3 component vectors
+  // Now get scale. 'row' is a 3 element array of 3 component vectors
   mat3from4(row, tmp);
 
   // Compute scale factor and normalize rows.
-  const scale = [
+  const scale = roundVector([
     vec3.length(row[0]),
     vec3.length(row[1]),
     vec3.length(row[2]),
-  ].map((value) => Number(value.toFixed(2))) as ThreeTuple;
+  ]) as ThreeTuple;
+  // Return early if we have any 0 scale factors.
+  if (scale.indexOf(0) !== -1) {
+    return {
+      translation: [0, 0, 0],
+      scale: [0, 0, 0],
+      quaternion: [0, 0, 0, 0],
+    };
+  }
+
   vec3.normalize(row[0], row[0]);
   vec3.normalize(row[1], row[1]);
   vec3.normalize(row[2], row[2]);
