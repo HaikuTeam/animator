@@ -38,14 +38,7 @@ test('layout.parseCssTransformString', function (t) {
     [
       'matrix3d(1,0,0,.1,-0.2,-.22,30000,1,0,0,0,1,0.2,0,0,1) translate3d(10px,20,20) matrix(0,6,4,3,2.2,0) scale3d(0,0,0) rotate3d(0,0.5,0,0) rotateZ(1.2);',
       {
-        'translation.x': 0.2,
-        'translation.y': -0.1,
-        'translation.z': 14211.27,
-        'rotation.y': 1.57,
-        'rotation.z': 1.57,
-        'scale.x': 0,
-        'scale.y': 0,
-        'scale.z': 0
+        "scale.x": 0
       }
     ],
     [
