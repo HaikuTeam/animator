@@ -135,6 +135,13 @@ export default function parseCssTransformString(inStr) {
   }
 
   const {translation, scale, quaternion} = decomposed as DecomposedMat4;
+  if (scale.indexOf(0) !== -1) {
+    // In any dimension and axis of rotation, a single scale factor of 0 vanishes to the horizon. We can pick an
+    // arbitrary axis to scale to 0 and use this to describe the layout without loss of effect.
+    return {
+      'scale.x': 0,
+    };
+  }
 
   const rotation = math3d.getEulerAngles.apply(undefined, quaternion)
     .map((degrees) => Number(MathUtils.degreesToRadians(degrees).toFixed(2)));
