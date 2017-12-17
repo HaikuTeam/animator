@@ -12,6 +12,7 @@ import { EventEmitter } from 'events'
 import EnvoyServer from 'haiku-sdk-creator/lib/envoy/EnvoyServer'
 import EnvoyLogger from 'haiku-sdk-creator/lib/envoy/EnvoyLogger'
 import { EXPORTER_CHANNEL, ExporterHandler } from 'haiku-sdk-creator/lib/exporter'
+import { USER_CHANNEL, UserHandler } from 'haiku-sdk-creator/lib/bll/user'
 import { GLASS_CHANNEL, GlassHandler } from 'haiku-sdk-creator/lib/glass'
 import { TimelineHandler } from 'haiku-sdk-creator/lib/timeline'
 import { TourHandler } from 'haiku-sdk-creator/lib/tour'
@@ -236,10 +237,12 @@ export default class Plumbing extends StateObject {
       const envoyTourHandler = new TourHandler(envoyServer)
       const envoyExporterHandler = new ExporterHandler(envoyServer)
       const envoyGlassHandler = new GlassHandler(envoyServer)
+      const envoyUserHandler = new UserHandler(envoyServer)
 
       envoyServer.bindHandler('timeline', TimelineHandler, envoyTimelineHandler)
       envoyServer.bindHandler('tour', TourHandler, envoyTourHandler)
       envoyServer.bindHandler(EXPORTER_CHANNEL, ExporterHandler, envoyExporterHandler)
+      envoyServer.bindHandler(USER_CHANNEL, UserHandler, envoyUserHandler)
       envoyServer.bindHandler(GLASS_CHANNEL, GlassHandler, envoyGlassHandler)
 
       logger.info('[plumbing] launching plumbing control server')

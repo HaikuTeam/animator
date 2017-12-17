@@ -15,6 +15,7 @@
       true,
       "no-public"
     ],
+    "function-name": false,
     "no-bitwise": false,
     "no-increment-decrement": false,
     "object-curly-spacing": [
