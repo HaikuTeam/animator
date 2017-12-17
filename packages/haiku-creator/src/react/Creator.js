@@ -21,6 +21,7 @@ import Tour from './components/Tour/Tour'
 import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
+import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/user'
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
 import { isPreviewMode } from '@haiku/player/lib/helpers/interactionModes'
 import Palette from './components/Palette.js'
@@ -301,6 +302,18 @@ export default class Creator extends React.Component {
         })
       })
     })
+
+    this.envoy.get(USER_CHANNEL).then(
+      /**
+       * @param {User} user
+       */
+      (user) => {
+        this.user = user
+        
+        //kick off initial report
+        this.onActivityReport(true)
+      }
+    )
 
     this.envoy.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
@@ -628,12 +641,7 @@ export default class Creator extends React.Component {
 
   onActivityReport (userWasActive) {
     if (userWasActive) {
-      return this.props.websocket.request(
-        {method: 'checkInkstoneUpdates', params: [{}]},
-        (err) => {
-          console.log('[creator] ping to Inkstone for updates finished', err)
-        }
-      )
+      this.user.reportActivity()
     }
 
     this.setState({
