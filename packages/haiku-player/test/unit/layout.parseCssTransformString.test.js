@@ -36,6 +36,49 @@ test('layout.parseCssTransformString', function (t) {
     ],
     ['rotate(217) rotate(-32) rotate(56)', { 'rotation.z': 4.21 }],
     [
+      'matrix3d(1.5,0,0,0,0,1.5,0,0,0,0,1.5,0,1,1,1,1);',
+      {
+        "scale.x": 1.5,
+        "scale.y": 1.5,
+        "scale.z": 1.5,
+        "translation.x": 1,
+        "translation.y": 1,
+        "translation.z": 1
+      }
+    ],
+    [
+      'matrix(1.5,0,0,1.5,1,1);',
+      {
+        "scale.x": 1.5,
+        "scale.y": 1.5,
+        "translation.x": 1,
+        "translation.y": 1
+      }
+    ],
+    [
+      'translate3d(1,2,3);',
+      {
+        "translation.x": 1,
+        "translation.y": 2,
+        "translation.z": 3
+      }
+    ],
+    [
+      'scale3d(1,2,3);',
+      {
+        "scale.y": 2,
+        "scale.z": 3
+      }
+    ],
+    [
+      'rotate3d(0,90deg,120deg);',
+      {
+        "rotation.x": 6.28,
+        "rotation.y": 1.57, // = Math.PI / 4
+        "rotation.z": 2.09  // = 2 * Math.PI / 3
+      }
+    ],
+    [
       'matrix3d(1,0,0,.1,-0.2,-.22,30000,1,0,0,0,1,0.2,0,0,1) translate3d(10px,20,20) matrix(0,6,4,3,2.2,0) scale3d(0,0,0) rotate3d(0,0.5,0,0) rotateZ(1.2);',
       {
         "scale.x": 0
