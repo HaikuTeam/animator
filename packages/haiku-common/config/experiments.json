@@ -1,5 +1,9 @@
 {
   "LottieExportInGlobalMenu": {
     "development": true
+  },
+  "TimelineShiftKeyBehaviors": {
+    "development": true,
+    "production": true
   }
 }

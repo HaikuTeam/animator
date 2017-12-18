@@ -44,37 +44,43 @@ export default class InvisibleKeyframeDragger extends React.Component {
         id={`keyframe-dragger-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
         onMouseDown={() => {
-          if (this.props.timeline.getSelectedKeyframes().length <= 1 && !Globals.isShiftKeyDown) {
-            this.props.keyframe.select(
-              {skipDeselect: false, directlySelected: true}
+          // This logic is here to allow keyframes to be dragged without having
+          // to select them first.
+          if (!this.props.keyframe.isActive() && !Globals.isShiftKeyDown) {
+            this.props.keyframe.activate(
+              {skipDeselect: false}
             )
+
+            this.performedSelection = true
           }
         }}
         onStart={(dragEvent, dragData) => {
-          this.props.component.dragStartSelectedKeyframes(dragData)
+          this.props.component.dragStartActiveKeyframes(dragData)
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
-          const hasMultipleSelectedKeyframes =
-            this.props.timeline.hasMultipleSelectedKeyframes()
+          if (!wasDrag && !this.performedSelection) {
+            const skipDeselect =
+              Globals.isShiftKeyDown ||
+              (Globals.isControlKeyDown || lastMouseButtonPressed === 3)
 
-          const skipDeselect =
-            Globals.isShiftKeyDown ||
-            ((Globals.isControlKeyDown || lastMouseButtonPressed === 3) &&
-              hasMultipleSelectedKeyframes) ||
-            (wasDrag && hasMultipleSelectedKeyframes)
+            this.props.keyframe.toggleActive(
+              {skipDeselect, directlySelected: true}
+            )
+          }
 
-          this.props.keyframe.toggleSelect(
-            {skipDeselect, directlySelected: true},
-            Globals.isShiftKeyDown
-          )
-          this.props.component.dragStopSelectedKeyframes(dragData)
+          this.props.component.dragStopActiveKeyframes(dragData)
+          this.performedSelection = false
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
-          this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
+          this.props.component.dragActiveKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}>
         <span
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
+
+            this.props.keyframe.activate(
+              {skipDeselect: this.props.keyframe.isSelected(), directlySelected: true}
+            )
 
             this.props.ctxmenu.show({
               type: 'keyframe',

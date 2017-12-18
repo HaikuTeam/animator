@@ -1,5 +1,5 @@
 module.exports = function requestElementCoordinates (
-  {currentWebview, requestedWebview, selector, isMockMode, tourClient},
+  {currentWebview, requestedWebview, selector, shouldNotifyEnvoy, tourClient},
   maxNumberOfTries = 15,
   currentNumberOfTries = 0
 ) {
@@ -14,15 +14,15 @@ module.exports = function requestElementCoordinates (
   let element = document.querySelector(selector)
 
   if (element) {
-    let {top, left} = element.getBoundingClientRect()
-    if (isMockMode) {
+    let {top, left, width, height} = element.getBoundingClientRect()
+    if (shouldNotifyEnvoy) {
       console.info(
         `[${currentWebview}] receive element coordinates`,
         selector,
         top,
         left
       )
-      tourClient.receiveElementCoordinates(currentWebview, {top, left})
+      tourClient.receiveElementCoordinates(currentWebview, {top, left, width, height})
     }
   } else {
     // If we didn't find an element, try again in 300ms

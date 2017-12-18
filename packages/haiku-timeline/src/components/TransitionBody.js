@@ -124,42 +124,40 @@ export default class TransitionBody extends React.Component {
         id={`transition-body-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
         onMouseDown={() => {
+          // This logic is here to allow transitions to be dragged without having
+          // to select them first.
           if (!this.props.preventDragging) {
-            if (this.props.timeline.getSelectedKeyframes().length <= 2 && !Globals.isShiftKeyDown) {
+            if (!(this.props.keyframe.isSelected() && this.props.keyframe.isActive()) && !Globals.isShiftKeyDown) {
               this.props.keyframe.selectSelfAndSurrounds(
                 {skipDeselect: false, directlySelected: true}
               )
+
+              this.performedSelection = true
             }
           }
         }}
         onStart={(dragEvent, dragData) => {
           if (!this.props.preventDragging) {
-            this.props.component.dragStartSelectedKeyframes(dragData)
+            this.props.component.dragStartActiveKeyframes(dragData)
           }
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
           if (!this.props.preventDragging) {
-            // TODO: this is a very naive way to check if we have a selected tween
-            // it works for our current user case, but we should do better
-            // (shame on Roberto)
-            const hasSelectedTween =
-              this.props.timeline.getSelectedKeyframes().length > 2
-            const skipDeselect =
-              Globals.isShiftKeyDown ||
-              ((Globals.isControlKeyDown || lastMouseButtonPressed === 3) &&
-                hasSelectedTween) ||
-              (wasDrag && hasSelectedTween)
+            if (!wasDrag && !this.performedSelection) {
+              const skipDeselect =
+                Globals.isShiftKeyDown ||
+                (Globals.isControlKeyDown || lastMouseButtonPressed === 3)
 
-            this.props.component.dragStopSelectedKeyframes(dragData)
-            this.props.keyframe.toggleSelectSelfAndSurrounds(
-              {skipDeselect},
-              Globals.isShiftKeyDown
-            )
+              this.props.keyframe.toggleSelectSelfAndSurrounds({skipDeselect})
+            }
           }
+
+          this.props.component.dragStopActiveKeyframes(dragData)
+          this.performedSelection = false
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
           if (!this.props.preventDragging) {
-            this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
+            this.props.component.dragActiveKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
           }
         }, THROTTLE_TIME)}
         onContextMenu>
@@ -173,6 +171,10 @@ export default class TransitionBody extends React.Component {
             if (this.props.keyframe.isWithinCollapsedRow()) {
               return false
             }
+
+            this.props.keyframe.selectSelfAndSurrounds(
+              {skipDeselect: this.props.keyframe.isSelected(), directlySelected: true}
+            )
 
             ctxMenuEvent.stopPropagation()
 

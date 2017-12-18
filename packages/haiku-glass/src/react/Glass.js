@@ -189,7 +189,7 @@ export class Glass extends React.Component {
       currentWebview: 'glass',
       requestedWebview: webview,
       selector,
-      isMockMode:
+      shouldNotifyEnvoy:
         this.tourClient &&
         this._component._envoyClient &&
         !this._component._envoyClient.isInMockMode(),
@@ -296,7 +296,6 @@ export class Glass extends React.Component {
         } else {
           this.forceUpdate()
         }
-
       } else if (what === 'showEventHandlersEditor') {
         const [{elementUID, options}] = args
         this.setLastSelectedElement(this._component.findElementByComponentId(elementUID))

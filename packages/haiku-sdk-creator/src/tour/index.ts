@@ -3,7 +3,7 @@ export interface Tour {
   hide(): MaybeAsync<void>;
   start(force?: boolean): MaybeAsync<void>;
   finish(createFile?: boolean): MaybeAsync<void>;
-  notifyScreenResize(): MaybeAsync<void>;
+  updateLayout(): MaybeAsync<void>;
   receiveElementCoordinates(webview: string, position: ClientBoundingRect): MaybeAsync<void>;
   receiveWebviewCoordinates(webview: string, coordinates: ClientBoundingRect): MaybeAsync<void>;
 }
@@ -13,7 +13,7 @@ export interface TourState {
   webview: string;
   component: string;
   display: string;
-  offset: ClientBoundingRect;
+  offset: object;
   spotlightRadius: number|string;
   waitUserAction: boolean;
 }
@@ -21,6 +21,8 @@ export interface TourState {
 export interface ClientBoundingRect {
   top: number|string;
   left: number|string;
+  width: number|string;
+  height: number|string;
 }
 
 export type MaybeAsync<T> = T | Promise<T>;

@@ -21,12 +21,14 @@ import Tour from './components/Tour/Tour'
 import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
+import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/user'
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
 import { isPreviewMode } from '@haiku/player/lib/helpers/interactionModes'
 import Palette from './components/Palette.js'
 import ActivityMonitor from '../utils/activityMonitor.js'
 import { linkExternalAssetsOnDrop, preventDefaultDrag } from 'haiku-serialization/src/utils/dndHelpers'
 import { HOMEDIR_LOGS_PATH, HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
+import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 
 var pkg = require('./../../package.json')
 
@@ -301,6 +303,18 @@ export default class Creator extends React.Component {
       })
     })
 
+    this.envoy.get(USER_CHANNEL).then(
+      /**
+       * @param {User} user
+       */
+      (user) => {
+        this.user = user
+        
+        //kick off initial report
+        this.onActivityReport(true)
+      }
+    )
+
     this.envoy.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
 
@@ -319,7 +333,7 @@ export default class Creator extends React.Component {
 
       window.addEventListener('resize', lodash.throttle(() => {
         // if (tourChannel.isTourActive()) {
-        tourChannel.notifyScreenResize()
+        tourChannel.updateLayout()
         // }
       }), 300)
     })
@@ -411,19 +425,16 @@ export default class Creator extends React.Component {
   }
 
   handleFindElementCoordinates ({ selector, webview }) {
-    if (webview !== 'creator') { return }
-    console.info('[creator] handleRequestElementCoordinates', selector, webview)
-    try {
-      // TODO: find if there is a better solution to this scape hatch
-      let element = document.querySelector(selector)
-      let { top, left } = element.getBoundingClientRect()
-      if (this.tourChannel && this.envoy && !this.envoy.isInMockMode()) {
-        console.info('[creator] receive element coordinates', selector, top, left)
-        this.tourChannel.receiveElementCoordinates('creator', { top, left })
-      }
-    } catch (exception) {
-      console.error(`[creator] error fetching ${selector} in webview ${webview} (${exception})`)
-    }
+    requestElementCoordinates({
+      currentWebview: 'creator',
+      requestedWebview: webview,
+      selector,
+      shouldNotifyEnvoy:
+        this.tourChannel &&
+        this.envoy &&
+        !this.envoy.isInMockMode(),
+      tourClient: this.tourChannel
+    })
   }
 
   handleFindWebviewCoordinates () {
@@ -630,12 +641,7 @@ export default class Creator extends React.Component {
 
   onActivityReport (userWasActive) {
     if (userWasActive) {
-      return this.props.websocket.request(
-        {method: 'checkInkstoneUpdates', params: [{}]},
-        (err) => {
-          console.log('[creator] ping to Inkstone for updates finished', err)
-        }
-      )
+      this.user.reportActivity()
     }
 
     this.setState({
