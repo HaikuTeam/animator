@@ -1,8 +1,8 @@
 module.exports = [
   'haiku-player',
   'haiku-sdk-client',
-  'haiku-sdk-creator',
   'haiku-sdk-inkstone',
+  'haiku-sdk-creator',
   'haiku-common',
   'haiku-ui-common',
   'haiku-formats',
