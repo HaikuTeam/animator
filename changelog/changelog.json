@@ -3525,5 +3525,6 @@
       "label": "fix",
       "message": "Preserve the coordinate system for transforms on images."
     }
-  }
+  },
+  "2.3.47": {}
 }
