@@ -69,6 +69,7 @@ if (!argv['no-remote']) {
 
 // Compile packages.
 cp.execSync('yarn sync', processOptions)
+cp.execSync('yarn compile-all', processOptions)
 openSourcePackages.forEach((pack) => {
   const compileCommand = `node ./scripts/compile-package.js --package=${pack.name}`
   if (openSourceProjects.has(pack.name)) {
