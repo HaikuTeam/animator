@@ -16,6 +16,7 @@ import manaFlattenTree from './helpers/manaFlattenTree';
 import scopifyElements from './helpers/scopifyElements';
 import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import upgradeBytecodeInPlace from './helpers/upgradeBytecodeInPlace';
+import consoleErrorOnce from './helpers/consoleErrorOnce';
 
 import Layout3D from './Layout3D';
 import ValueBuilder from './ValueBuilder';
