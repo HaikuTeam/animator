@@ -65,6 +65,19 @@ class ActivityMonitor {
 
   _log () {
     this.activity = true
+    
+    //if last known activity was prior to interval, immediately report
+    //(reporting on the "rising edge" of user activity gets better results)
+    const lastActivity = this.lastActivity
+    const newActivity = Date.now()
+    this.lastActivity = newActivity
+
+    const lastPeriod = newActivity - lastActivity
+    
+    if(lastPeriod > REPORT_INTERVAL){
+      this.reportCallback(true)
+    }
+    
   }
 
   _report () {
