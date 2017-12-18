@@ -31,7 +31,8 @@
     "cli-color": "^1.1.0",
     "dedent": "^0.6.0",
     "fs-extra": "^4.0.2",
-    
+    "@haiku/sdk-client": "HaikuTeam/sdk-client.git",
+    "@haiku/sdk-inkstone": "HaikuTeam/sdk-inkstone.git",
     "hasbin": "^1.2.3",
     "inquirer": "^2.0.0",
     "lodash": "^4.17.4",
