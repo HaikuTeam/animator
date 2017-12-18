@@ -36,7 +36,7 @@ export class Registry {
   static setConfig(key: string, value: string) {
     const config = _getFileContents();
     config[key] = value;
-    Registry._setFileContents(config);
+    _setFileContents(config);
   }
 
   static getConfig(key: string): string {
