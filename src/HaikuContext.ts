@@ -234,7 +234,7 @@ HaikuContext.prototype.performPatchRender = function performPatchRender() {
     return void (0);
   }
 
-  const container = this.config.options.sizing
+  const container = this.config.options.sizing && this.config.options.sizing !== 'normal'
     ? this._renderer.createContainer(this._mount)
     : this._renderer.getLastContainer();
   const patches = this.component.patch(container, this.config.options);
