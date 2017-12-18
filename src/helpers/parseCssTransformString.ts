@@ -96,9 +96,20 @@ export default function parseCssTransformString(inStr) {
 
       // 3D
       case 'rotate3d':
-        layout.rotate[0] = spec.values[0].value;
-        layout.rotate[1] = spec.values[1].value;
-        layout.rotate[2] = spec.values[2].value;
+        if (spec.values.length !== 3) {
+          break;
+        }
+        layout.rotate = spec.values.map((axisSpec) => {
+          if (axisSpec.value === 0) {
+            return 0;
+          }
+
+          if (axisSpec.unit === 'deg') {
+            return MathUtils.degreesToRadians(axisSpec.value);
+          }
+
+          return axisSpec.value;
+        });
         break;
       case 'scale3d':
         layout.scale[0] = spec.values[0].value;
