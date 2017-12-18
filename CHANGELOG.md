@@ -1,6 +1,8 @@
 # Changelog
 
 
+## 2.3.47
+
 ## 2.3.42
 
 ### Bug Fixes
