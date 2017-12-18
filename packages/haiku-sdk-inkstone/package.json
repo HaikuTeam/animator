@@ -1,6 +1,6 @@
 {
   "name": "@haiku/sdk-inkstone",
-  "version": "2.3.44",
+  "version": "2.3.45",
   "description": "Haiku SDK for Inkstone",
   "main": "lib/index.js",
   "scripts": {
