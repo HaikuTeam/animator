@@ -1,6 +1,6 @@
 branches:
   only:
-    - release
+    - release-disabled
 
 os: osx
 osx_image: xcode8.3
