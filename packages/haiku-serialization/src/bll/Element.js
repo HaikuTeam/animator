@@ -337,8 +337,8 @@ class Element extends BaseModel {
    */
   getClipboardPayload (_from) {
     // These are cloned because we may mutate their references in place when we paste
-    const staticTemplateNode = lodash.cloneDeep(this.getStaticTemplateNode())
-    const serializedBytecode = lodash.cloneDeep(this.component.getSerializedBytecode())
+    const staticTemplateNode = lodash.cloneDeep(Template.manaWithOnlyStandardProps(this.getStaticTemplateNode()))
+    const serializedBytecode = lodash.cloneDeep(this.component.fetchActiveBytecodeFile().getReifiedDecycledBytecode())
     return {
       from: _from, // Used to help determine who should handle a given global clipboard action
       kind: 'bytecode',
@@ -354,7 +354,7 @@ class Element extends BaseModel {
     // Grab the 'host' bytecode and pull any control structures applied to us from it
     // These are cloned because we may mutate their references in place if we instantiate it
     const bytecode = lodash.cloneDeep(this.component.getReifiedBytecode())
-    const template = lodash.cloneDeep(this.getStaticTemplateNode())
+    const template = lodash.cloneDeep(Template.manaWithOnlyStandardProps(this.getStaticTemplateNode()))
     const states = Bytecode.getAppliedStatesForNode({}, bytecode, template)
     const timelines = Bytecode.getAppliedTimelinesForNode({}, bytecode, template)
     const eventHandlers = Bytecode.getAppliedEventHandlersForNode({}, bytecode, template)
@@ -364,12 +364,6 @@ class Element extends BaseModel {
       eventHandlers,
       template
     }
-  }
-
-  getClipboardPayloadWithPaddedIds (_from, padderFunction) {
-    const payload = this.getClipboardPayload(_from)
-    Bytecode.padIds(payload.data, padderFunction)
-    return payload
   }
 
   getStackingInfo () {
@@ -1349,3 +1343,4 @@ const Bytecode = require('./Bytecode')
 const MathUtils = require('./MathUtils')
 const Property = require('./Property')
 const Row = require('./Row')
+const Template = require('./Template')

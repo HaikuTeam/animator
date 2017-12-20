@@ -1359,7 +1359,21 @@ class ActiveComponent extends BaseModel {
     this.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
       switch (pasteable.kind) {
         case 'bytecode':
-          Bytecode.pasteBytecode(bytecode, pasteable.data, request)
+          // As usual, we use a hash rather than randomness because of multithreading
+          const hash = Template.getInsertionPointHash(mana, mana.children.length, 0)
+
+          const incoming = Bytecode.clone(pasteable.data)
+
+          // Pasting bytecode is implemented as a bytecode merge, so we pad all of the
+          // ids inside the bytecode and then merge it, so we end up with a new element
+          // and new timeline properties defined for it. This mutates the object.
+          Bytecode.padIds(incoming, (oldId) => {
+            return `${oldId}-${hash}`
+          })
+
+          // Paste handles "instantiating" a new template element for the incoming bytecode
+          Bytecode.pasteBytecode(bytecode, incoming, request)
+
           return done()
         default:
           log.warn('[active component] cannot paste clipboard contents of kind ' + pasteable.kind)

@@ -294,6 +294,7 @@ Bytecode.pasteBytecode = (destination, pasted, translation) => {
     }
   }
 
+  // In case of a paste, we need to add a new child rather than merging into existing elements
   if (pasted.template) {
     if (!destination.template) destination.template = { elementName: 'div', attributes: {}, children: [] }
     if (!destination.template.children) destination.template.children = []
@@ -301,6 +302,11 @@ Bytecode.pasteBytecode = (destination, pasted, translation) => {
   }
 
   return destination
+}
+
+Bytecode.clone = (bytecode) => {
+  // Eventually we may lean on a more custom-tailored clone method instead of lodash
+  return lodash.cloneDeep(bytecode)
 }
 
 module.exports = Bytecode

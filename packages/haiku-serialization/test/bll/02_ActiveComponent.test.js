@@ -250,11 +250,11 @@ tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
       return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, info, mana) => {
         if (err) throw err
         const el1 = ac0.findElementByComponentId(mana.attributes['haiku-id'])
-        const pasteable1 = el1.getClipboardPayloadWithPaddedIds('test', (oldId) => `${oldId}-test-hash`)
+        const pasteable1 = el1.getClipboardPayload('test')
         return ac0.pasteThing(pasteable1, { x: 100, y: 100 }, { from: 'test' }, (err) => {
           t.error(err, 'no err from paste')
-          t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'],`${mana.attributes['haiku-id']}-test-hash`)
-          t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}-test-hash`])
+          t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'],`${mana.attributes['haiku-id']}-f4aa2e`)
+          t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}-f4aa2e`])
           fse.removeSync(folder)
         })
       })

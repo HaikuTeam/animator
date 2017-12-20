@@ -581,7 +581,7 @@ export class Glass extends React.Component {
       const hash = this.getActiveComponent().getInsertionPointHash()
 
       // Gotta grab this content before cutting, or we'll end up with a partial object that won't work
-      let clipboardPayload = lastSelectedElement.getClipboardPayloadWithPaddedIds(
+      let clipboardPayload = lastSelectedElement.getClipboardPayload(
         'glass',
         (oldId) => {
           return `${oldId}-${hash}`

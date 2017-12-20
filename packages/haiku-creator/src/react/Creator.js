@@ -282,11 +282,13 @@ export default class Creator extends React.Component {
 
         // Command the views and master process to handle the element paste action
         // The 'pasteThing' action is intended to be able to handle multiple content types
-        return this.state.pasteThing(pastedElement, maybePasteRequest || {}, (error) => {
-          if (error) {
-            console.error(error)
-          }
-        })
+        if (this.state.projectModel) {
+          return this.state.projectModel.pasteThing(pastedElement, maybePasteRequest || {}, (error) => {
+            if (error) {
+              console.error(error)
+            }
+          })
+        }
       } else {
         // TODO: Handle other cases where the paste data was a serialized array
         console.warn('[creator] cannot paste this content type yet (array)')
