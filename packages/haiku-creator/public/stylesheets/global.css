@@ -474,3 +474,11 @@ input::-webkit-input-placeholder {
 .Droppable {
     height: 100%;
 }
+
+.react-draggable-dragged {
+  cursor: -webkit-grab;
+}
+
+.react-draggable-dragging {
+  cursor: -webkit-grabbing;
+}

@@ -49,6 +49,7 @@
     "react-copy-to-clipboard": "^5.0.0",
     "react-dom": "15.4.2",
     "react-drag-and-drop": "2.4.0",
+    "react-draggable": "2.2.3",
     "react-height": "2.2.0",
     "react-motion": "0.4.7",
     "react-onclickoutside": "^6.4.0",
