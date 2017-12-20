@@ -509,14 +509,6 @@ class ActiveComponent extends BaseModel {
     return Template.getInsertionPointHash(template, 0, 0)
   }
 
-  showEventHandlersEditor (elementUID, options, metadata) {
-    this.project.updateHook('showEventHandlersEditor', elementUID, options, metadata)
-  }
-
-  eventHandlersUpdated (metadata) {
-    this.project.updateHook('eventHandlersUpdated', {}, metadata)
-  }
-
   /**
    * @method getInstantiationCoords
    * @description Given artboard-relative position data, return the x,y coords
@@ -1474,7 +1466,12 @@ class ActiveComponent extends BaseModel {
         }
       }, null, () => {
         this.project.updateHook('batchUpsertEventHandlers', this.getSceneCodeRelpath(), selectorName, serializedEvents, metadata)
-        return this.project.eventHandlersUpdated(cb)
+
+        this.project.broadcastPayload({
+          name: 'event-handlers-updated'
+        })
+
+        return cb()
       })
     })
   }

@@ -227,9 +227,6 @@ export class Glass extends React.Component {
         case 'setInteractionMode':
           this.handleInteractionModeChange()
           break
-        case 'showEventHandlersEditor':
-          this.handleShowEventHandlersEditor(args)
-          break
       }
     })
 
@@ -292,7 +289,7 @@ export class Glass extends React.Component {
     }
   }
 
-  handleShowEventHandlersEditor (elementUID, options) {
+  handleShowEventHandlersEditor (elementUID, options, frame) {
     this.setLastSelectedElement(this.getActiveComponent().findElementByUid(elementUID))
     this.showEventHandlersEditor(null, this.getLastSelectedElement(), options)
   }
@@ -453,6 +450,14 @@ export class Glass extends React.Component {
 
         case 'drawing:setActive':
           this.getActiveComponent().getArtboard().setDrawingTool(message.params[0], message.params[1])
+          break
+
+        case 'show-event-handlers-editor':
+          this.handleShowEventHandlersEditor(
+            message.elid,
+            message.opts,
+            message.frame
+          )
           break
       }
     })

@@ -559,10 +559,6 @@ class Project extends BaseModel {
     })
   }
 
-  eventHandlersUpdated (cb) {
-    return this.websocketActionWithFolder('eventHandlersUpdated', [], cb)
-  }
-
   addActiveComponentToRegistry (activeComponent) {
     const activeComponentKey = path.join(this.getFolder(), activeComponent.getSceneCodeRelpath())
     this.ensurePlatformHaikuRegistry() // Make sure we have this.platform.haiku; race condition

@@ -175,9 +175,6 @@ class Timeline extends React.Component {
         case 'setInteractionMode':
           this.handleInteractionModeChange(data)
           break
-        case 'eventHandlersUpdated':
-          this.getActiveComponent().getCurrentTimeline().notifyFrameActionChange()
-          break
       }
     })
 
@@ -227,6 +224,9 @@ class Timeline extends React.Component {
           if (message.elid !== 'timeline-webview') {
             this.getActiveComponent().deselectAndDeactivateAllKeyframes()
           }
+          break
+        case 'event-handlers-updated':
+          this.getActiveComponent().getCurrentTimeline().notifyFrameActionChange()
           break
       }
     })
@@ -559,11 +559,22 @@ class Timeline extends React.Component {
   }
 
   showFrameActionsEditor (frame) {
-    this.showEventHandlersEditor(this.getActiveComponent().findElementRoots()[0].getPrimaryKey(), frame)
+    const elementUID = this.getActiveComponent().findElementRoots()[0].getPrimaryKey()
+    this.showEventHandlersEditor(
+      elementUID,
+      frame
+    )
   }
 
   showEventHandlersEditor (elementUID, frame) {
-    this.getActiveComponent().showEventHandlersEditor(elementUID, { isSimplified: Boolean(frame) }, { from: 'timeline' })
+    this.project.broadcastPayload({
+      name: 'show-event-handlers-editor',
+      elid: elementUID,
+      opts: {
+        isSimplified: Boolean(frame)
+      },
+      frame
+    })
   }
 
   renderDurationModifier () {
