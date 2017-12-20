@@ -34,7 +34,7 @@ class Artboard extends BaseModel {
     this._originalPanX = 0
     this._originalPanY = 0
 
-    this._zoomXY = 1
+    this._zoomXY = Artboard.DEFAULT_ZOOM
 
     this._activeDrawingTool = 'pointer'
     this._drawingIsModal = true
@@ -149,37 +149,17 @@ class Artboard extends BaseModel {
     this.emit('update', 'dimensions-changed')
   }
 
-  hookUpdateComponentStageTransform () {
-    this.component.setStageTransform({
-      zoom: this._zoomXY,
-      pan: {
-        x: this._panX,
-        y: this._panY
-      }
-    })
-  }
-
   zoomIn (factor) {
-    const oldTransform = this.component.getStageTransform()
-    oldTransform.zoom = this._zoomXY * factor
-    this.component.setStageTransform(oldTransform)
     this._zoomXY = this._zoomXY * factor
     this.emit('update', 'dimensions-changed')
   }
 
   zoomOut (factor) {
-    const oldTransform = this.component.getStageTransform()
-    oldTransform.zoom = this._zoomXY / factor
-    this.component.setStageTransform(oldTransform)
     this._zoomXY = this._zoomXY / factor
     this.emit('update', 'dimensions-changed')
   }
 
   performPan (dx, dy) {
-    const oldTransform = this.component.getStageTransform()
-    oldTransform.pan.x = this._originalPanX + dx
-    oldTransform.pan.y = this._originalPanY + dy
-    this.component.setStageTransform(oldTransform)
     this._panX = this._originalPanX + dx
     this._panY = this._originalPanY + dy
     this.emit('update', 'dimensions-changed')
@@ -228,6 +208,13 @@ class Artboard extends BaseModel {
     return this._zoomXY
   }
 
+  getPan () {
+    return {
+      x: this._panX,
+      y: this._panY
+    }
+  }
+
   getActiveDrawingTool () {
     return this._activeDrawingTool
   }
@@ -245,6 +232,7 @@ BaseModel.extend(Artboard)
 
 Artboard.DEFAULT_WIDTH = 550
 Artboard.DEFAULT_HEIGHT = 400
+Artboard.DEFAULT_ZOOM = 1
 
 module.exports = Artboard
 

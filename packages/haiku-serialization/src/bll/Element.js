@@ -557,7 +557,11 @@ class Element extends BaseModel {
   // is actually moving it in space, or rotating it, etc. This method makes the decision on what the "outcome"
   // of the drag should actually be.
   drag (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, reactState) {
-    const localTransform = {zoom: reactState.zoomXY || 1, pan: {x: reactState.panX, y: reactState.panY}}
+    const localTransform = {
+      zoom: this.component.getArtboard().getZoom(),
+      pan: this.component.getArtboard().getPan()
+    }
+
     if (reactState.isAnythingScaling) {
       if (!reactState.controlActivation.cmd) {
         return this.scale(dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, reactState.controlActivation, localTransform)

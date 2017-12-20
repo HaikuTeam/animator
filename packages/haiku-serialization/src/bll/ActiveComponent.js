@@ -113,11 +113,6 @@ class ActiveComponent extends BaseModel {
       }
     })
 
-    this._stageTransform = {
-      zoom: 1,
-      pan: { x: 0, y: 0 }
-    }
-
     // Since property group updates happen quickly, we batch them together.
     // Note that when we receive a series of applyPropertyGroupDelta calls,
     // those end up summed together into a single applyPropertyGropuValue call.
@@ -394,15 +389,6 @@ class ActiveComponent extends BaseModel {
     return cb()
   }
 
-  setStageTransform (newTransform) {
-    this._stageTransform = newTransform
-    return this
-  }
-
-  getStageTransform () {
-    return this._stageTransform
-  }
-
   isPreviewModeActive () {
     return isPreviewMode(this._interactionMode)
   }
@@ -554,8 +540,8 @@ class ActiveComponent extends BaseModel {
       if (posdata.offsetY) coords.y = posdata.offsetY - bounds.top
     }
 
-    coords.x *= 1 / this._stageTransform.zoom
-    coords.y *= 1 / this._stageTransform.zoom
+    coords.x *= 1 / this.getArtboard().getZoom()
+    coords.y *= 1 / this.getArtboard().getZoom()
 
     return coords
   }
