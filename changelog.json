@@ -3191,12 +3191,341 @@
       "message": "Rewrite publish flow to keep evergreen dependencies in mono."
     }
   },
-  "2.3.27": {},
-  "2.3.28": {},
-  "2.3.29": {},
-  "2.3.30": {},
-  "2.3.31": {},
-  "2.3.32": {},
-  "2.3.33": {},
-  "2.3.34": {}
+  "2.3.35": {
+    "a131158995429919fb5db6b99febf68d5687c704": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Fix logic on deselecting keyframes when other views are clicked; didn't remember that parent receives events on the webview :/"
+    },
+    "c6fc6c6a1bebbc82b39c05106f1f9274c87e8faa": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Indicate the row/frame matching the mouse position"
+    },
+    "e41f9dbe5b941e73905a4f27c643871a5d2c474a": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Correct coloring for various keyframe selection situations"
+    },
+    "9335042226fcf3f01a8b3023df2568e7f6c45244": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Deselect keyframes when other view clicked"
+    },
+    "aee01e725d45a0632a1a63559854691d0cf90e63": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "stop removing multi-selected curves if only leading keyframe is selected"
+    },
+    "8ff9d6af8435f16d9fed26706c5da56625443c28": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "continued decoupling of keyframes & segments"
+    },
+    "5ca04c0fa01dbb6e0acb9e7b1b4302b7cc6d96db": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "decouple const seg selection from their leading keyframe selection"
+    },
+    "8ecf633e814460d135b47c85832c86631486a6c4": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "support clicking & changing multiple segments (select both keyframes)"
+    },
+    "e2364f8210203afa0e84ba85ac8e2c448b843fa1": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "make clicking outside of keyframes deselects selected"
+    },
+    "5f7083764305d4a0d9e6bc0f0d8fb7464b77c382": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Prevent dragging on the element heading level"
+    },
+    "50441151301df5872ba4af6eebe0d7e7e7478934": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Better condition for when to deselect other keyframes"
+    },
+    "d3c3ee3ec3a736c728d5584652080b593cfe0d4b": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Move logic for setting globals and fix toggle that never fires when the context menu is open"
+    },
+    "561c28ecfa80127ab192e02f93d8b6d037fbfc4b": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "All setup steps should be synchronous."
+    },
+    "20da6932c2839a581249786a594f0d25b52b9676": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Don't overwrite latest automatically (use -pending)"
+    },
+    "71678360b2c35d0b64bb50472ce2961fad3131c0": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Fix CLI/SDK paths so haiku command works"
+    },
+    "9109237f8e89e784c2eae2147849b95a5c676266": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Changes required for a working build"
+    },
+    "2a503af5505a85b4af7347763406bfd999b148dc": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure we seek to the correct time after a forced code reload"
+    }
+  },
+  "2.3.36": {
+    "e40dd920dc2960d615838e1aae4ecc5766680e6d": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Avoid EPIPE crash by unblocking the websocket ready state change"
+    },
+    "2e94131b55c3e8686d2413583ff6698df454a5bb": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Add other built-in projects to the clone routine"
+    },
+    "989780613c282e4eb3ab4a7e2ecbdc4f304032e7": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "If the project is CheckTutorial, ensure we clone the project content or else the tour doesn't work"
+    },
+    "f9808fcf3461376aa5c1be8e737079ba9f04f526": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "The timeline listener was registered too late, never triggering the next tour step"
+    },
+    "70b0db528bc10938c7dd3b7e185e615ca2d8b6db": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Make expression parser more forgiving and remove flawed impurity check until we can look at this more closely"
+    },
+    "5a8485e0a8f84c99b6f26bb078aa773baf0f2a79": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Match the mini-playhead indicator to correct proportion"
+    },
+    "ad6fbf10b5561d997e5c0eb60890a1f7f10b3176": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Use unrounded pxpf value that seems to make everything better"
+    },
+    "061f347f6e02c57d5cb23da14a0d77fb4efd87e9": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Preview mode was only toggling when the mouse entered the glass (triggering a React update); this fix forces an update when the mode is toggled"
+    },
+    "a0189cdee22796d72576b12545144c80ec068511": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Updates put at the wrong level were interrupting draggable"
+    }
+  },
+  "2.3.37": {
+    "c066796ddf255aa9a6130d8b6bdc9f47e82dabd1": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Add haiku-ui-common module."
+    },
+    "a1f9efbdb03c8f79579c829af83728da8ce91955": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Add space after \"An update is available.\""
+    },
+    "8398f0d939a7e6d6a5b4417fa4cd1c94060d5840": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Always assume controlFlow properties are mutable."
+    },
+    "59a2876c1c2816bb99e82c09bbd9efeffb2183ff": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Recalculate the flat mana tree every time a full flush render is performed."
+    }
+  },
+  "2.3.38": {
+    "05ac562b81bbb000ec7bc3928ec95c89f9ef4137": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "ensure {sizing"
+    },
+    "435354ff4319c3941af6a49d13cf9a2e5f358c17": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Use good unique key for rendering React keyframe; fixes weird copy+paste behavior in Timeline UI"
+    },
+    "1fb9277328364ac69e78e02b1c955307b2d36494": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Don't use pkey to determine BLL entity equivalence"
+    },
+    "c93e0bc5ab4613b34f5f24ee99963c9cd409006b": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure the timeline property display updates when keyframes are created/deleted"
+    },
+    "144bfd19f056687a3ca1f3c79fa0bb415b1058ec": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "After dragging keyframes, ensure a 0th keyframe for any affected rows"
+    },
+    "d1376087b7aba668cd74efd695e882133651db7d": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "When creating and deleting keyframes, make sure a 0th keyframe is also created"
+    },
+    "e4ab6ab8a3f10326be9564b3ea7215336db2d69c": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Add BLL method to return a row's property's default ('fallback') value"
+    },
+    "ce962f9b615f7cb3a1967a037cf8dd6a068edfc2": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "For debugging convenience, add method to return a BLL entity's full collection including deleted entities"
+    },
+    "e5bb50c3cb8ea4430bd841db6659d738c5658ae0": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Prevent broken logic for curve removal from prior when keyframe is deleted from bytecode"
+    },
+    "ce227c768f8ec20a4e2482a15d0a40ef0f2680be": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "use setAttribute() during DOM render instead of setting className directly."
+    }
+  },
+  "2.3.39": {},
+  "2.3.40": {
+    "a90ac712058d5507ab1bc179e1c2a2c6c4a916a3": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Evaluate handler bodies inside a function's lexical scope."
+    },
+    "967ad1113f8f01d158596b009910ae36650d3134": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Hack into Node's module loader to bypass require() in dash thumbs."
+    },
+    "66cc88dc9553a044c636e5f7a1a6eef94d06162f": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Upgrade @haiku/zack2-checktutorial to require the necessary version of player."
+    },
+    "b557c45da3df1f3ad45adca1c75c51fa7d50ef0d": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Prevent too-long project names and strip invalid chars"
+    },
+    "263955a3881ab6d5db7bc2e8935878908e328cae": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure event is passed in to handler function and guard against missing property"
+    },
+    "1b461be1670833446634d64d5bf7b6e3f1c45514": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure we don't access properties on null"
+    },
+    "f3ea6705b7fe6937fbd75243c842b3f0b375a1db": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Assume element is at front/back ('only element') if no stacking info; fixes error when accessing property length of undefined"
+    },
+    "2dd03ad1e3512aec777c00d88dfb2a56240d4398": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "recalc the atProjectLimit state value after removing a project from the list."
+    },
+    "4fdb9df5119ddeb09895b9741735401a8428aaee": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Add id to div for CheckTutorial tour, where it will actually render."
+    },
+    "d974dbf8335148aa21bcfc4c746fa0384d5f2fe2": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Tour button style was removed during Dashboard 2 work; this fixes the button style"
+    },
+    "ff396dea510e21f9741a94d116d7d27669894ba4": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Install prettier to fix prod missing module issue"
+    },
+    "7970f8b63292e16afd55f46dfd1bacfa7dd01f93": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "In prod, unlike dev, import paths are case-sensitive"
+    },
+    "01d9eb63dd3ce64b0f1cd7fdd35e56d71ded55d1": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Still display an empty thumbnail when project not cloned yet (and display message for the tut/default projects"
+    },
+    "2823310533ee52511fc46bef67f133a408ce8451": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Fail silently whenever we can't load a preview from existing bytecode."
+    },
+    "4d5eddaab888f7831524c944866456a9f12b7ec6": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Ensure correct first rendering on Dashboard v2 thumbnails."
+    },
+    "c9551a98b0667afee207615fa6d605edb0030375": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Use ref stored in property, and use const instead of var"
+    },
+    "89275ad0e69ef4f8ceb72e83f3a8d39638b7ce6f": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "proj delete w confirm modal"
+    },
+    "1ab2d1293673ad43bd1ae7c488279c2220c00223": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "user logout"
+    },
+    "8f4de07aafb3abe688b6c15cfc164ad296906d87": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "reveal in finder path"
+    },
+    "e762b1506cb92e8ba3c36dca2dc0a2c9c9511bb3": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "flex layout"
+    }
+  },
+  "2.3.41": {
+    "cb5ab434f236e2dc38ee1c0c3e84189bfee444b9": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Publish silently, and fetch the share link as soon as we have a commit sha."
+    }
+  },
+  "2.3.42": {
+    "d8fdfa5023fa74cd3d97881578856901be1068b6": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "remove unused code"
+    },
+    "891b0278544f8223a9965d855e3e61f189865a00": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "report on rising edge of returning users' activity"
+    },
+    "429825a740e81903f911c681e5e04d1574a72c3e": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Preserve the coordinate system for transforms on images."
+    }
+  },
+  "2.3.48": {},
+  "2.3.49": {}
 }

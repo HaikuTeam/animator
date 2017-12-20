@@ -1,21 +1,125 @@
 # Changelog
 
 
-## 2.3.34
+## 2.3.49
 
-## 2.3.33
+## 2.3.48
 
-## 2.3.32
+## 2.3.42
 
-## 2.3.31
+### Bug Fixes
 
-## 2.3.30
+ * remove unused code
+ * Preserve the coordinate system for transforms on images.
 
-## 2.3.29
+### Features
 
-## 2.3.28
+ * report on rising edge of returning users' activity
 
-## 2.3.27
+## 2.3.41
+
+### Features
+
+ * Publish silently, and fetch the share link as soon as we have a commit sha.
+
+## 2.3.40
+
+### Bug Fixes
+
+ * Evaluate handler bodies inside a function's lexical scope.
+ * Hack into Node's module loader to bypass require() in dash thumbs.
+ * Upgrade @haiku/zack2-checktutorial to require the necessary version of player.
+ * Prevent too-long project names and strip invalid chars
+ * Ensure event is passed in to handler function and guard against missing property
+ * Ensure we don't access properties on null
+ * Assume element is at front/back ('only element') if no stacking info; fixes error when accessing property length of undefined
+ * recalc the atProjectLimit state value after removing a project from the list.
+ * Add id to div for CheckTutorial tour, where it will actually render.
+ * Tour button style was removed during Dashboard 2 work; this fixes the button style
+ * Install prettier to fix prod missing module issue
+ * In prod, unlike dev, import paths are case-sensitive
+ * Still display an empty thumbnail when project not cloned yet (and display message for the tut/default projects
+ * Fail silently whenever we can't load a preview from existing bytecode.
+ * Ensure correct first rendering on Dashboard v2 thumbnails.
+ * Use ref stored in property, and use const instead of var
+ * reveal in finder path
+ * flex layout
+
+### Features
+
+ * proj delete w confirm modal
+ * user logout
+
+## 2.3.39
+
+## 2.3.38
+
+### Bug Fixes
+
+ * ensure {sizing
+ * Use good unique key for rendering React keyframe; fixes weird copy+paste behavior in Timeline UI
+ * Don't use pkey to determine BLL entity equivalence
+ * Ensure the timeline property display updates when keyframes are created/deleted
+ * After dragging keyframes, ensure a 0th keyframe for any affected rows
+ * When creating and deleting keyframes, make sure a 0th keyframe is also created
+ * Prevent broken logic for curve removal from prior when keyframe is deleted from bytecode
+ * use setAttribute() during DOM render instead of setting className directly.
+
+### Features
+
+ * Add BLL method to return a row's property's default ('fallback') value
+ * For debugging convenience, add method to return a BLL entity's full collection including deleted entities
+
+## 2.3.37
+
+### Features
+
+ * Add haiku-ui-common module.
+
+### Bug Fixes
+
+ * Add space after "An update is available."
+ * Always assume controlFlow properties are mutable.
+ * Recalculate the flat mana tree every time a full flush render is performed.
+
+## 2.3.36
+
+### Bug Fixes
+
+ * Avoid EPIPE crash by unblocking the websocket ready state change
+ * Add other built-in projects to the clone routine
+ * If the project is CheckTutorial, ensure we clone the project content or else the tour doesn't work
+ * The timeline listener was registered too late, never triggering the next tour step
+ * Make expression parser more forgiving and remove flawed impurity check until we can look at this more closely
+ * Match the mini-playhead indicator to correct proportion
+ * Use unrounded pxpf value that seems to make everything better
+ * Preview mode was only toggling when the mouse entered the glass (triggering a React update); this fix forces an update when the mode is toggled
+ * Updates put at the wrong level were interrupting draggable
+
+## 2.3.35
+
+### Bug Fixes
+
+ * Fix logic on deselecting keyframes when other views are clicked; didn't remember that parent receives events on the webview :/
+ * Correct coloring for various keyframe selection situations
+ * Deselect keyframes when other view clicked
+ * stop removing multi-selected curves if only leading keyframe is selected
+ * continued decoupling of keyframes & segments
+ * decouple const seg selection from their leading keyframe selection
+ * support clicking & changing multiple segments (select both keyframes)
+ * make clicking outside of keyframes deselects selected
+ * Prevent dragging on the element heading level
+ * Better condition for when to deselect other keyframes
+ * Move logic for setting globals and fix toggle that never fires when the context menu is open
+ * All setup steps should be synchronous.
+ * Don't overwrite latest automatically (use -pending)
+ * Fix CLI/SDK paths so haiku command works
+ * Changes required for a working build
+ * Ensure we seek to the correct time after a forced code reload
+
+### Features
+
+ * Indicate the row/frame matching the mouse position
 
 ## 2.3.26
 
