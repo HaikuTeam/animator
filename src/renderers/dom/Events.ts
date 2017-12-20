@@ -45,6 +45,24 @@ export default {
       human: 'Scroll',
     },
   },
+  touch: {
+    touchstart: {
+      menuable: true,
+      human: 'Touch Start'
+    },
+    touchend: {
+      menuable: true,
+      human: 'Touch End'
+    },
+    touchmove: {
+      menuable: true,
+      human: 'Touch Move'
+    },
+    touchcancel: {
+      menuable: true,
+      human: 'Touch Cancel'
+    }
+  },
   keyboard: {
     keyup: {
       menuable: true,
