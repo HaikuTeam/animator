@@ -10,6 +10,9 @@ import {getExperimentConfig} from './config';
 export enum Experiment {
   LottieExportInGlobalMenu = 'LottieExportInGlobalMenu',
   TimelineShiftKeyBehaviors = 'TimelineShiftKeyBehaviors',
+  MultiComponentFeatures = 'MultiComponentFeatures',
+  JustInTimeProperties = 'JustInTimeProperties',
+  InstantiationOfPrimitivesAsComponents = 'InstantiationOfPrimitivesAsComponents',
 }
 
 /**
