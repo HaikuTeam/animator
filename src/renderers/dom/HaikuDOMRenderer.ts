@@ -10,7 +10,7 @@ import patch from './patch';
 import render from './render';
 
 // tslint:disable-next-line:function-name
-export default function HaikuDOMRenderer() {
+export default function HaikuDOMRenderer(config) {
   this._user = {
     mouse: {
       x: 0,
@@ -24,6 +24,9 @@ export default function HaikuDOMRenderer() {
   };
 
   this._lastContainer = undefined;
+
+  this.config = config;
+  this.shouldCreateContainer = true;
 }
 
 HaikuDOMRenderer.prototype.render = function renderWrap(domElement, virtualContainer, virtualTree, component) {
@@ -43,7 +46,7 @@ HaikuDOMRenderer.prototype.mixpanel = function mixpanel(domElement, mixpanelToke
 };
 
 HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement) {
-  return this._lastContainer = {
+  this._lastContainer = {
     isContainer: true,
     layout: {
       computed: {
@@ -51,6 +54,17 @@ HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement
       },
     },
   };
+
+  if (
+    !this.config ||
+    !this.config.options.sizing ||
+    this.config.options.sizing === 'normal' ||
+    !this.config.options.strictSizing
+  ) {
+    this.shouldCreateContainer = false;
+  }
+
+  return this._lastContainer;
 };
 
 HaikuDOMRenderer.prototype.getLastContainer = function getLastContainer() {
@@ -180,6 +194,11 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
   });
 
   // WINDOW
+  if (this.config.options.sizing && this.config.options.sizing !== 'normal' && !this.config.options.strictSizing) {
+    win.addEventListener('resize', () => {
+      this.shouldCreateContainer = true;
+    });
+  }
 
   win.addEventListener('blur', (blurEvent) => {
     clearKey();

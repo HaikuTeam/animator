@@ -1,9 +1,10 @@
 var jsdom = require('jsdom')
 var async = require('async')
-var HaikuDOMAdapter = require('./../lib/adapters/dom').default
-var HaikuDOMRenderer = require('./../lib/renderers/dom').default
-var HaikuContext = require('./../lib/HaikuContext').default
-var HaikuGlobal = require('./../lib/HaikuGlobal').default
+var Config = require('../lib/Config').default
+var HaikuDOMAdapter = require('../lib/adapters/dom').default
+var HaikuDOMRenderer = require('../lib/renderers/dom').default
+var HaikuContext = require('../lib/HaikuContext').default
+var HaikuGlobal = require('../lib/HaikuGlobal').default
 
 var TestHelpers = {}
 
@@ -28,8 +29,9 @@ function createDOM (cb) {
 function createRenderTest (template, cb) {
   return createDOM(function _createDOM (err, window, mount) {
     if (err) throw err
-    var renderer = new HaikuDOMRenderer()
-    var context = new HaikuContext(null, renderer, {}, { timelines: {}, template: template }, { options: { cache: {}, seed: 'abcde' + Math.random() } })
+    var config = Config.build({ options: { cache: {}, seed: Config.seed() } })
+    var renderer = new HaikuDOMRenderer(config)
+    var context = new HaikuContext(null, renderer, {}, { timelines: {}, template: template }, config)
     var component = context.component
     var container = renderer.createContainer(mount)
     var tree = component.render(container, context.config.options)

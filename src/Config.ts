@@ -60,6 +60,11 @@ const DEFAULTS = {
     // HaikuComponent.js for info.
     sizing: null,
 
+    // strictSizing: Boolean|null
+    // Whether we should listen for resizing events on anything other than window.resize. Here, "strictness" refers to
+    // our comfort with assuming the component might be resized by a non-window resize event.
+    strictSizing: true,
+
     // preserve3d: String
     // Placeholder for an option to control whether to enable preserve-3d mode in DOM environments. [UNUSED]
     preserve3d: 'auto',
