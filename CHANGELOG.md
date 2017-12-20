@@ -1,7 +1,13 @@
 # Changelog
 
 
-## 2.3.49
+## 2.3.50
+
+### Bug Fixes
+
+ * lock ws at version 3.2.0 in all packages.
+
+## 2.3.42
 
 ### Bug Fixes
 
