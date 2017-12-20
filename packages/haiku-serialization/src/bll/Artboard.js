@@ -133,11 +133,8 @@ class Artboard extends BaseModel {
         this._containerHeight = ch
         this._mountX = mountX
         this._mountY = mountY
-        this.emit('update', 'dimensions-changed')
-        return true // Signal to updateMountSize whether to emit the dimensions-changed event
       }
     }
-    return false // Signal to updateMountSize whether to emit the dimensions-changed event
   }
 
   updateMountSize ($container) {
@@ -148,10 +145,8 @@ class Artboard extends BaseModel {
       this._mountHeight = updatedArtboardSize.height
       didChangeMount = true
     }
-    const didChangeContainer = this.resetContainerDimensions($container)
-    if (!didChangeContainer && didChangeMount) { // Don't emit too many updates
-      this.emit('update', 'dimensions-changed')
-    }
+    this.resetContainerDimensions($container)
+    this.emit('update', 'dimensions-changed')
   }
 
   hookUpdateComponentStageTransform () {

@@ -207,6 +207,7 @@ export class Glass extends React.Component {
           this.setLastSelectedElement(null)
           break
         case 'dimensions-changed':
+          this.resetContainerDimensions()
           this.forceUpdate()
           break
       }
@@ -630,9 +631,12 @@ export class Glass extends React.Component {
       return
     }
 
-    window.requestAnimationFrame(() => {
-      this.getActiveComponent().getArtboard().resetContainerDimensions(this.refs.container)
-    })
+    this.resetContainerDimensions()
+    this.forceUpdate()
+  }
+
+  resetContainerDimensions () {
+    this.getActiveComponent().getArtboard().resetContainerDimensions(this.refs.container)
   }
 
   showEventHandlersEditor (clickEvent, targetElement, options) {
