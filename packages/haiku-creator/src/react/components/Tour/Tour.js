@@ -27,7 +27,7 @@ class Tour extends React.Component {
   }
 
   componentDidMount () {
-    this.props.envoy.get('tour').then(tourChannel => {
+    this.props.envoyClient.get('tour').then(tourChannel => {
       this.tourChannel = tourChannel
       this.tourChannel.on('tour:requestShowStep', this.showStep)
       this.tourChannel.on('tour:hide', this.hide)
@@ -153,6 +153,10 @@ class Tour extends React.Component {
       </Tooltip>
     )
   }
+}
+
+Tour.propTypes = {
+  envoyClient: React.PropTypes.object.isRequired
 }
 
 export default Tour

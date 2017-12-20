@@ -3,11 +3,11 @@ import React from 'react'
 import Radium from 'radium'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { FadingCircle } from 'better-react-spinkit'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import Toast from './notifications/Toast'
 import ProjectLoader from './ProjectLoader'
 import ProjectThumbnail from './ProjectThumbnail'
-import { UserIconSVG, LogOutSVG, LogoMicroSVG } from './Icons'
+import { UserIconSVG, LogOutSVG, LogoMicroSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 import { DASH_STYLES } from '../styles/dashShared'
 import { BTN_STYLES } from '../styles/btnShared'
 import Popover from 'react-popover'
@@ -43,7 +43,8 @@ class ProjectBrowser extends React.Component {
 
   componentDidMount () {
     this.loadProjects()
-    this.props.envoy.get('tour').then((tourChannel) => {
+
+    this.props.envoyClient.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
 
       // FIXME | HACK: since the project browser now supports scrolling, we
@@ -446,6 +447,10 @@ class ProjectBrowser extends React.Component {
       </div>
     )
   }
+}
+
+ProjectBrowser.propTypes = {
+  envoyClient: React.PropTypes.object.isRequired
 }
 
 export default Radium(ProjectBrowser)

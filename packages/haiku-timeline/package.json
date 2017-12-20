@@ -9,10 +9,10 @@
     "Zack Brown <zack@haiku.ai>"
   ],
   "scripts": {
-    "start": "electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
+    "start": "AUTOSTART=main electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
     "compile": "NODE_ENV=development babel src --out-dir lib --source-maps inline",
-    "test": "tape \"test/**/*.test.js\" | tap-spec",
+    "test": "NODE_ENV=development yarn compile && tape \"test/**/*.test.js\" | tap-spec",
     "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy"
   },
   "standard": {
@@ -37,6 +37,8 @@
     "haiku-common": "HaikuTeam/common.git",
     "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
     "haiku-serialization": "HaikuTeam/serialization.git",
+    "haiku-ui-common": "HaikuTeam/ui-common.git",
+    "jsdom": "11.1.0",
     "lodash": "4.17.4",
     "numeral": "^2.0.4",
     "qs": "6.4.0",

@@ -1,7 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 import TimelineDraggable from './TimelineDraggable'
-import Globals from './Globals'
+import Globals from 'haiku-ui-common/lib/Globals'
 
 const THROTTLE_TIME = 17 // ms
 

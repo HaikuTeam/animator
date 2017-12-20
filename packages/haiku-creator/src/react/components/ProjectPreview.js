@@ -39,6 +39,7 @@ class ProjectPreview extends React.Component {
           this.mount,
           {
             sizing: 'cover',
+            strictSizing: false,
             loop: true,
             interactionMode: InteractionMode.EDIT,
             autoplay: false

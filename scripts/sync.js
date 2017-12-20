@@ -41,6 +41,7 @@ const packageNamesRequiringSync = lodash.uniq(
 const packagesRequiringSync = allPackages(packageNamesRequiringSync)
 
 if (packagesRequiringSync.length === 0) {
+  cp.execSync('say "nothing to sync"')
   log.hat('nothing to sync!')
   global.process.exit(0)
 }
@@ -71,6 +72,7 @@ async.each(packagesRequiringSync, (pack, next) => {
           }
 
           log.hat('sync complete!')
+          cp.execSync('say "sync complete"')
           fs.writeFile(lastSyncFilename, `module.exports = ${JSON.stringify({lastSyncCommit})};`, done)
         })
       })

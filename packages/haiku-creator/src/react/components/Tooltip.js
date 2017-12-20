@@ -1,5 +1,5 @@
 import React from 'react'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import { TOUR_STYLES } from '../styles/tourShared'
 
 const STYLES = {

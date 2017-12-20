@@ -1,16 +1,42 @@
-const EventEmitter = require('events').EventEmitter
+const { EventEmitter } = require('events')
+const EmitterManager = require('./../utils/EmitterManager')
 const lodash = require('lodash')
 
-// Prevent trigger-happy MaxListenersExceededWarning
-if (process.env.NODE_ENV === 'staging' || process.env.NODE_ENV === 'production') {
-  EventEmitter.prototype._maxListeners = Infinity
-} else {
-  EventEmitter.prototype._maxListeners = 500
-}
-
+/**
+ * @class BaseModel
+ * @description
+ *.  Base model class from which all entities in haiku-serialization/src/bll inherit.
+ *.  (Note: This author does not care if we call these models "BLL" entities or not;
+ *.  the point is that these are extremely useful; call them 'Snogglegorks' if you want.)
+ *.
+ *.  Here's what BaseModel provides:
+ *.    - Upsert functionality (reuse objects with the same uid)
+ *     - Event emitter API for cross-entity communication
+ *.    - Model collection querying (Model.where, Model.find, etc.)
+ *.    - Built-in caching API
+ *.    - Handles object creation/destruction and updating the collection
+ *
+ *.  Every instance of a subclass of BaseModel has a uid which is used to determine whether
+ *.  to create a new instance or return an existing instance when MyClass.upsert({}) is called.
+ *.  It's up to the caller to provide a uid appropriate to the model.
+ *
+ *.  Author's note:
+ *
+ *.  This collection of models has begun with some mixed responsibilities, including:
+ *.    - Dealing with view-related logic (view-model layer)
+ *.    - Serialization and writing to disk (DAL)
+ *.    - Communication transport app views (transport layer)
+ *.    - App business logic (BLL)
+ *
+ *.  But keep in mind we can refactor these models to fit those divisions as we go. #TODO
+ *.  (Keep in mind that ALL of this logic used to live buried deep in a quagmire
+ *.  of tangled React-specific UI logic that had become almost impossible to work with.)
+ */
 class BaseModel extends EventEmitter {
   constructor (props, opts) {
     super()
+
+    EmitterManager.extend(this)
 
     if (!this.constructor.extended) {
       throw new Error(`You must call BaseModel.extend(${this.constructor.name})`)
@@ -40,9 +66,14 @@ class BaseModel extends EventEmitter {
 
     this.constructor.add(this)
 
+    // Generic cache object that can store 'anything' that model instances want.
     this.__cache = {}
+
+    // Tracking when we were last updated can be used to optimize UI updates
     this.__updated = Date.now()
     this.__checked = Date.now() - 1
+
+    // When a model instance is destroyed, it is kept in the collection but not included in queries.
     this.__destroyed = null
 
     if (this.afterInitialize) this.afterInitialize()
@@ -133,7 +164,9 @@ class BaseModel extends EventEmitter {
   assign (props) {
     if (props) {
       for (const key in props) {
-        this[key] = props[key]
+        if (props[key] !== undefined) {
+          this[key] = props[key]
+        }
       }
     }
     this.cacheClear()
@@ -183,6 +216,16 @@ class BaseModel extends EventEmitter {
       }
     }
     return match
+  }
+
+  /**
+   * @method off
+   * @description Synonymous with removeListener; removes an event listener
+   * @param channel {String} Channel to subscribe to
+   * @param fn {Function} Handler function to remove
+   */
+  off (channel, fn) {
+    return this.removeListener(channel, fn)
   }
 }
 
@@ -290,7 +333,7 @@ function createCollection (klass, collection, opts) {
   klass.upsert = (props, opts) => {
     klass.clearCaches()
     const pkey = props[klass.config.primaryKey]
-    const found = klass.findById(pkey)
+    const found = klass.findById(pkey) // Criteria in case of id collisions :/
     if (found) {
       found.assign(props)
       found.setOptions(opts)

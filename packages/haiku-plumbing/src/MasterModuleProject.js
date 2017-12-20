@@ -4,7 +4,7 @@ const QUEUE_INTERVAL = 64
 const LAST_WRITE_MARGIN_OF_ERROR_MILLISECONDS = 500
 
 export default class MasterModuleProject extends EventEmitter {
-  constructor (folder, proc) {
+  constructor (folder) {
     super()
 
     this.folder = folder // String
@@ -12,8 +12,6 @@ export default class MasterModuleProject extends EventEmitter {
     if (!this.folder) {
       throw new Error('[master-module] MasterModuleProject cannot launch without a folder defined')
     }
-
-    this.proc = proc // ProcessBase
 
     // Reloads that we've requested that have not finished yet
     this._pendingReloads = []
@@ -39,8 +37,6 @@ export default class MasterModuleProject extends EventEmitter {
   }
 
   maybeSendComponentReloadRequest (file) {
-    if (!this.proc.isOpen()) return void (0)
-
     // If the last time we read from the file system came after the last time we wrote to it,
     // that's a decent indication that the last known change occurred directly on the file system.
     const lastRead = file.dtLastReadStart
@@ -54,11 +50,7 @@ export default class MasterModuleProject extends EventEmitter {
     // TODO: This smartness has not been implemented yet, please implement!
     this._pendingReloads.push(file)
 
-    this.proc.socket.send({
-      type: 'broadcast',
-      name: 'component:reload',
-      relpath: file.relpath
-    })
+    this.emit('component:reload', file)
   }
 
   handleReloadComplete (message) {

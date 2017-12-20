@@ -1,6 +1,7 @@
 const { EventEmitter } = require('events')
 const { remote, clipboard, shell } = require('electron')
 const { HOMEDIR_PATH } = require('haiku-serialization/src/utils/HaikuHomeDir')
+const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const path = require('path')
 var fse = require('haiku-fs-extra')
 var moment = require('moment')
@@ -26,39 +27,11 @@ function writeHtmlSnapshot (html, react) {
 }
 
 export default class ContextMenu extends EventEmitter {
-  constructor (window, react) {
-    super()
-
-    this.window = window
-
-    window.addEventListener('contextmenu', (event) => {
-      // Don't show the context menu if our event handler editor is open
-      if (react.isPreviewMode() || react.state.isEventHandlerEditorOpen) {
-        return void (0)
-      }
-
-      event.preventDefault()
-
-      react.setState({
-        isAnythingScaling: false,
-        isAnythingRotating: false,
-        isStageSelected: false,
-        isStageNameHovering: false,
-        isMouseDown: false,
-        isMouseDragging: false
-      })
-
-      window.setTimeout(() => {
-        this.show(event, react)
-      }, 64)
-    }, false)
-  }
-
   rebuild (react) {
     this._menu = new Menu()
 
-    var selected = react._component.queryElements({ _isSelected: true })
-    var top = selected[0]
+    const selected = react.getActiveComponent().queryElements({ _isSelected: true })
+    const top = selected.length === 1 && selected[0]
 
     this._menu.append(new MenuItem({
       label: (react.state.doShowComments) ? 'Hide Comments' : 'Show Comments',
@@ -77,6 +50,27 @@ export default class ContextMenu extends EventEmitter {
 
     this._menu.append(new MenuItem({ type: 'separator' }))
 
+    if (experimentIsEnabled(Experiment.MultiComponentFeatures)) {
+      this._menu.append(new MenuItem({
+        label: 'Create Component',
+        // If a single element is already a component, we don't let it be created as one
+        enabled: selected.length > 0 && !(selected.length === 1 && top && top.isComponent()),
+        click: (clickEvent) => {
+          this.emit('click', 'Create Component', clickEvent)
+        }
+      }))
+
+      this._menu.append(new MenuItem({
+        label: 'Edit Component',
+        enabled: selected.length === 1 && top && top.isComponent(),
+        click: (clickEvent) => {
+          this.emit('click', 'Edit Component', clickEvent, top)
+        }
+      }))
+
+      this._menu.append(new MenuItem({ type: 'separator' }))
+    }
+
     this._menu.append(new MenuItem({
       label: 'Edit Element Actions',
       enabled: !!top,
@@ -87,9 +81,9 @@ export default class ContextMenu extends EventEmitter {
 
     this._menu.append(new MenuItem({ type: 'separator' }))
 
-    var source = top && top.node && top.node.attributes && top.node.attributes['source']
-    var folder = react.props.folder
-    var sketch = source && source.split(/\.sketch\.contents/)[0].concat('.sketch')
+    const source = top && top.node && top.node.attributes && top.node.attributes['source']
+    const folder = react.props.folder
+    const sketch = source && source.split(/\.sketch\.contents/)[0].concat('.sketch')
 
     this._menu.append(new MenuItem({
       label: 'Edit in Sketch',
@@ -127,7 +121,7 @@ export default class ContextMenu extends EventEmitter {
 
     this._menu.append(new MenuItem({
       label: 'Paste',
-      enabled: true, // TODO: How can we determine whether we have a pasteable ready?
+      enabled: selected.length < 1, // TODO: How can we determine whether we have a pasteable ready?
       click: (event) => {
         this.emit('current-pasteable:request-paste', react.state.mousePositionCurrent)
       }
@@ -199,7 +193,7 @@ export default class ContextMenu extends EventEmitter {
       label: 'HTML Snapshot',
       enabled: !!top,
       click: (event) => {
-        react._component.htmlSnapshot((err, html) => {
+        react.getActiveComponent().htmlSnapshot((err, html) => {
           if (err) return void (0)
           clipboard.writeText(html)
           writeHtmlSnapshot(html, react)

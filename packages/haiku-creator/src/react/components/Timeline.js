@@ -2,7 +2,7 @@ import React from 'react'
 import qs from 'qs'
 import assign from 'lodash.assign'
 import path from 'path'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 export default class Timeline extends React.Component {
   constructor (props) {
@@ -15,9 +15,9 @@ export default class Timeline extends React.Component {
   componentDidMount () {
     this.injectWebview()
 
-    const tourChannel = this.props.envoy.get('tour')
+    const tourChannel = this.props.envoyClient.get('tour')
 
-    if (!this.props.envoy.isInMockMode()) {
+    if (!this.props.envoyClient.isInMockMode()) {
       tourChannel.then((tourChannel) => {
         this.tourChannel = tourChannel
         this.tourChannel.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
@@ -46,8 +46,8 @@ export default class Timeline extends React.Component {
       folder: this.props.folder,
       email: this.props.username,
       envoy: {
-        host: this.props.envoy.getOption('host'),
-        port: this.props.envoy.getOption('port')
+        host: this.props.envoyClient.getOption('host'),
+        port: this.props.envoyClient.getOption('port')
       }
     }))
 
@@ -72,18 +72,25 @@ export default class Timeline extends React.Component {
       switch (event.level) {
         case 0:
           if (event.message.slice(0, 8) === '[notice]') {
-            var msg = event.message.replace('[notice]', '').trim()
-            var notice = this.props.createNotice({ type: 'info', title: 'Notice', message: msg })
+            const message = event.message.replace('[notice]', '').trim()
+            const noticeNotice = this.props.createNotice({ type: 'info', title: 'Notice', message })
+            // It seems nicest to just remove the notice after it's been on display for a couple of seconds
             window.setTimeout(() => {
-              this.props.removeNotice(undefined, notice.id)
-            }, 1000)
+              this.props.removeNotice(undefined, noticeNotice.id)
+            }, 2000)
           }
           break
+
         // case 1:
         //   this.props.createNotice({ type: 'warning', title: 'Warning', message: event.message })
         //   break
+
         case 2:
-          this.props.createNotice({ type: 'error', title: 'Error', message: event.message })
+          const errorEotice = this.props.createNotice({ type: 'error', title: 'Error', message: event.message })
+          // It seems nicest to just remove the error after it's been on display for a couple of seconds
+          window.setTimeout(() => {
+            this.props.removeNotice(undefined, errorEotice.id)
+          }, 2000)
           break
       }
     })
@@ -121,6 +128,6 @@ export default class Timeline extends React.Component {
 Timeline.propTypes = {
   folder: React.PropTypes.string.isRequired,
   haiku: React.PropTypes.object.isRequired,
-  envoy: React.PropTypes.object.isRequired,
+  envoyClient: React.PropTypes.object.isRequired,
   onReady: React.PropTypes.func
 }

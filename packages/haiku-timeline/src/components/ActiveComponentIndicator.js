@@ -1,5 +1,5 @@
 import React from 'react'
-import truncate from './helpers/truncate'
+import truncate from 'haiku-ui-common/lib/helpers/truncate'
 
 export default class ActiveComponentIndicator extends React.Component {
   render () {

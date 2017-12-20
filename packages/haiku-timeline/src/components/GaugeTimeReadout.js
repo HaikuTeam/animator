@@ -1,6 +1,6 @@
 import React from 'react'
-import Palette from './DefaultPalette'
-import formatSeconds from './helpers/formatSeconds'
+import Palette from 'haiku-ui-common/lib/Palette'
+import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
 
 export default class GaugeTimeReadout extends React.Component {
   constructor (props) {

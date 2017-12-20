@@ -1,11 +1,11 @@
 import React from 'react'
-import humanizePropertyName from './helpers/humanizePropertyName'
-import DownCarrotSVG from './icons/DownCarrotSVG'
+import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName'
+import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'
 import PropertyInputField from './PropertyInputField'
-import Palette from './DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
+import Globals from 'haiku-ui-common/lib/Globals'
 import PropertyTimelineSegments from './PropertyTimelineSegments'
 import PropertyRowHeading from './PropertyRowHeading'
-import Globals from './Globals'
 
 export default class PropertyRow extends React.Component {
   render () {

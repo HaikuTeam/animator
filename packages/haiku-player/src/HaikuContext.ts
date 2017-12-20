@@ -36,10 +36,6 @@ export default function HaikuContext(mount, renderer, platform, bytecode, config
 
   this._mount = mount;
 
-  if (!this._mount) {
-    console.info('[haiku player] mount not provided so running in headless mode');
-  }
-
   // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
   if (this._mount && !this._mount.haiku) {
     this._mount.haiku = {
@@ -56,11 +52,8 @@ export default function HaikuContext(mount, renderer, platform, bytecode, config
 
   this._platform = platform;
 
-  if (!this._platform) {
-    console.warn('[haiku player] no platform (e.g. window) provided; some features may be unavailable');
-  }
-
-  HaikuContext['contexts'].push(this);
+  // Useful when debugging to understand cross-component effects
+  this._entityIndex = HaikuContext['contexts'].push(this) - 1;
 
   // List of tickable objects managed by this context. These are invoked on every clock tick.
   // These are removed when context unmounts and re-added in case of re-mount
@@ -234,7 +227,7 @@ HaikuContext.prototype.performPatchRender = function performPatchRender() {
     return void (0);
   }
 
-  const container = this.config.options.sizing && this.config.options.sizing !== 'normal'
+  const container = this._renderer.shouldCreateContainer
     ? this._renderer.createContainer(this._mount)
     : this._renderer.getLastContainer();
   const patches = this.component.patch(container, this.config.options);
@@ -364,11 +357,6 @@ HaikuContext['createComponentFactory'] = function createComponentFactory(
     throw new Error('A runtime `bytecode` object is required');
   }
 
-  // Only warn on this in case we're running in headless/server/test mode
-  if (!platform) {
-    console.warn('[haiku player] no runtime `platform` object was provided');
-  }
-
   // Note that haiku Config may be passed at this level, or below at the factory invocation level.
   const haikuConfigFromTop = Config.build(
     {
@@ -399,7 +387,7 @@ HaikuContext['createComponentFactory'] = function createComponentFactory(
 
     // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
     // an initialization/mounting issue when running in React.
-    const renderer = new rendererClass();
+    const renderer = new rendererClass(haikuConfigMerged);
     const context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged);
     const component = context.getRootComponent();
 

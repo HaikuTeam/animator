@@ -5,17 +5,17 @@ import CodeMirror from 'codemirror'
 import stripindent from 'strip-indent'
 import marshalParams from '@haiku/player/lib/reflection/marshalParams'
 import parseExpression from 'haiku-serialization/src/ast/parseExpression'
-import mod from 'haiku-serialization/src/bll/helpers/mod'
-import Palette from './DefaultPalette'
+import MathUtils from 'haiku-serialization/src/bll/MathUtils'
+import Palette from 'haiku-ui-common/lib/Palette'
+import * as EXPR_SIGNS from 'haiku-ui-common/lib/helpers/ExprSigns'
+import isNumeric from 'haiku-ui-common/lib/helpers/isNumeric'
+import retToEq from 'haiku-ui-common/lib/helpers/retToEq'
+import eqToRet from 'haiku-ui-common/lib/helpers/eqToRet'
+import ensureRet from 'haiku-ui-common/lib/helpers/ensureRet'
+import ensureEq from 'haiku-ui-common/lib/helpers/ensureEq'
+import doesValueImplyExpression from 'haiku-ui-common/lib/helpers/doesValueImplyExpression'
+import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName'
 import AutoCompleter from './AutoCompleter'
-import * as EXPR_SIGNS from './helpers/ExprSigns'
-import isNumeric from './helpers/isNumeric'
-import retToEq from './helpers/retToEq'
-import eqToRet from './helpers/eqToRet'
-import ensureRet from './helpers/ensureRet'
-import ensureEq from './helpers/ensureEq'
-import doesValueImplyExpression from './helpers/doesValueImplyExpression'
-import humanizePropertyName from './helpers/humanizePropertyName'
 
 const HaikuMode = require('./modes/haiku')
 
@@ -152,12 +152,12 @@ export default class ExpressionInput extends React.Component {
 
   componentWillUnmount () {
     this.mounted = false
-    this.props.component.removeListener('update', this.handleUpdate)
+    this.unlistenToComponent(this.props.component)
   }
 
   componentDidMount () {
     this.mounted = true
-    this.props.component.on('update', this.handleUpdate)
+    this.listenToComponent(this.props.component)
 
     if (this._context) {
       while (this._context.firstChild) {
@@ -167,15 +167,28 @@ export default class ExpressionInput extends React.Component {
     }
   }
 
-  handleUpdate (what) {
-    if (!this.mounted) return null
-    this.engageFocus(this.props)
-  }
-
   componentWillReceiveProps (nextProps) {
+    if (nextProps.component !== this.props.component) {
+      this.unlistenToComponent(this.props.component)
+      this.listenToComponent(nextProps.component)
+    }
+
     if (nextProps.component.getFocusedRow()) {
       this.engageFocus(nextProps)
     }
+  }
+
+  listenToComponent (component) {
+    component.on('update', this.handleUpdate)
+  }
+
+  unlistenToComponent (component) {
+    component.removeListener('update', this.handleUpdate)
+  }
+
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    this.engageFocus(this.props)
   }
 
   isCommittableValueInvalid (committable, original) {
@@ -335,7 +348,11 @@ export default class ExpressionInput extends React.Component {
       // We'll use these both for auto-assigning function signature params and for syntax highlighting.
       // We do this first because it populates HaikuMode.keywords with vars, which we will use when
       // parsing to produce a summary that includes add'l validation information about the contents
-      let injectables = this.props.reactParent.component.instance._getInjectables()
+      //
+      // Since ActiveComponent manages multiple instances, we kind of have to choose just one
+      const instance = this.props.reactParent.getActiveComponent().getPlayerComponentInstance()
+      let injectables = (instance && instance._getInjectables()) || {}
+
       this.resetSyntaxInjectables(injectables)
 
       // This wrapping is required for parsing to work (parens are needed to make it an expression)
@@ -592,7 +609,7 @@ export default class ExpressionInput extends React.Component {
     this.state.autoCompletions.forEach((completion, index) => {
       if (!changed) {
         if (completion.highlighted) {
-          let nidx = mod(index + direction, this.state.autoCompletions.length)
+          let nidx = MathUtils.modOfIndex(index + direction, this.state.autoCompletions.length)
           // May as well check and skip if we're about to modify the current one
           if (nidx !== index) {
             let next = this.state.autoCompletions[nidx]
@@ -952,6 +969,9 @@ export default class ExpressionInput extends React.Component {
   }
 
   getInputLabelStyle () {
+    const label = this.getLabelString()
+    let fontSize = 10
+    if (label.length > 12) fontSize = 8
     let style = {
       backgroundColor: Palette.LIGHTEST_PINK,
       borderBottomLeftRadius: 4,
@@ -967,7 +987,7 @@ export default class ExpressionInput extends React.Component {
       width: 83
     }
     lodash.assign(style, this.props.component.getFocusedRow() && {
-      fontSize: 10,
+      fontSize,
       display: 'inline-flex',
       alignItems: 'center',
       justifyContent: 'center'

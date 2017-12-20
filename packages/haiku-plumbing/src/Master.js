@@ -1,20 +1,19 @@
 import async from 'async'
-import { EventEmitter } from 'events'
 import path from 'path'
 import { debounce } from 'lodash'
-
 import fse from 'haiku-fs-extra'
 import walkFiles from 'haiku-serialization/src/utils/walkFiles'
-import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
 import File from 'haiku-serialization/src/bll/File'
+import Project from 'haiku-serialization/src/bll/Project'
+import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
+import Sketch from 'haiku-serialization/src/bll/Sketch'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
-
-import ProcessBase from './ProcessBase'
+import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
+import { EventEmitter } from 'events'
+import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
 import * as Git from './Git'
 import ProjectConfiguration from './ProjectConfiguration'
-import * as Asset from './Asset'
 import Watcher from './Watcher'
-import * as Sketch from './Sketch'
 import * as ProjectFolder from './ProjectFolder'
 import MasterGitProject from './MasterGitProject'
 import MasterModuleProject from './MasterModuleProject'
@@ -22,13 +21,6 @@ import attachListeners from './envoy/attachListeners'
 import saveExport from './publish-hooks/saveExport'
 
 const Raven = require('./Raven')
-
-if (process.env.CHAOS_MONKEYS === '1') {
-  const num = Math.random() * ((60 * 1000) - 5000) + 5000
-  setTimeout(() => {
-    throw new Error(`Chaos Monkeys gotcha!`)
-  }, num)
-}
 
 const UNLOGGABLE_METHODS = {
   'masterHeartbeat': true
@@ -44,8 +36,7 @@ const METHODS_TO_RUN_IMMEDIATELY = {
 const FORBIDDEN_METHODS = {
   logMethodMessage: true,
   handleMethodMessage: true,
-  callMethodWithMessage: true,
-  handleBroadcastMessage: true
+  callMethodWithMessage: true
 }
 
 const METHOD_QUEUE_INTERVAL = 64
@@ -93,8 +84,10 @@ function _excludeIfNotJs (relpath) {
 }
 
 export default class Master extends EventEmitter {
-  constructor (folder) {
+  constructor (folder, fileOptions = {}, envoyOptions = {}) {
     super()
+
+    EmitterManager.extend(this)
 
     this.folder = folder
 
@@ -102,31 +95,16 @@ export default class Master extends EventEmitter {
       throw new Error('[master] Master cannot launch without a folder defined')
     }
 
-    // IPC hook to communicate with plumbing
-    this.proc = new ProcessBase('master') // 'master' is not a branch name in this context
+    this.fileOptions = fileOptions
 
-    this.proc.on('teardown', (cb) => {
-      return this.teardown(cb)
-    })
+    // The Project model is also configurable through 'fileOptions' (#FIXME)
+    // and it allows us to specify methods that we want to handle directly instead
+    // of being routed to internal methods it may have with the same name.
+    // Pretty much what we're saying here is: "All our methods should be ignored".
+    // This accounts for the legacy Master setup and needs a refactor.
+    this.fileOptions.methodsToIgnore = this
 
-    this.proc.socket.on('close', () => {
-      logger.info('[master] !!! socket closed')
-      this.teardown(() => {
-        this.emit('host-disconnected')
-      })
-    })
-
-    this.proc.socket.on('error', (err) => {
-      logger.info('[master] !!! socket error', err)
-    })
-
-    this.proc.on('request', (message, cb) => {
-      this.handleMethodMessage(message, cb)
-    })
-
-    this.proc.socket.on('broadcast', (message) => {
-      this.handleBroadcastMessage(message)
-    })
+    this.envoyOptions = envoyOptions
 
     // Encapsulation of the user's configuration content (haiku.js) (not loaded yet)
     this._config = new ProjectConfiguration()
@@ -139,7 +117,7 @@ export default class Master extends EventEmitter {
     })
 
     // Encapsulation of project actions that concern the live module in other views
-    this._mod = new MasterModuleProject(this.folder, this.proc)
+    this._mod = new MasterModuleProject(this.folder)
 
     this._mod.on('triggering-reload', () => {
       logger.info('[master] module replacment triggering')
@@ -149,10 +127,14 @@ export default class Master extends EventEmitter {
       logger.info('[master] module replacment finished')
     })
 
+    this._mod.on('component:reload', (file) => {
+      this.emit('component:reload', this, file)
+    })
+
     // To store a Watcher instance which will watch for changes on the file system
     this._watcher = null
 
-    // Flag denotes whether we've fully initialized and are able to handle websocket methods
+    // Flag denotes whether we've fully initialized and are able to handle methods
     this._isReadyToReceiveMethods = false
 
     // Queue of accumulated incoming methods we've received that we need to defer until ready
@@ -162,35 +144,49 @@ export default class Master extends EventEmitter {
     this._methodQueueInterval = setInterval(() => {
       if (this._isReadyToReceiveMethods) {
         const methods = this._methodQueue.splice(0)
-        methods.forEach(({ message, cb }) => this.callMethodWithMessage(message, cb))
+        methods.forEach(({ message: { method, params }, cb }) => {
+          this.callMethodWithMessage(method, params, cb)
+        })
         clearInterval(this._methodQueueInterval)
       }
     }, METHOD_QUEUE_INTERVAL)
 
-    // Dictionary of all designs in the project, mapping relpath to metadata object
-    this._knownDesigns = {}
+    // Dictionary of all library-listable assets in the project, mapping relpath to metadata object
+    this._knownLibraryAssets = {}
 
     // Designs that have changed and need merge, batched for
     this._designsPendingMerge = {}
 
-    // Store an ActiveComponent instance for method delegation
-    this._component = null
+    // Dictionary of files we've seen loaded at least once
+    this._filesLoadedOnce = {}
+
+    // Store an Project instance for method delegation into the BLL
+    this.project = null
 
     // Saving takes a while and we use this flag to avoid overlapping saves
     this._isSaving = false
 
+    // Save some expensive fs logic by tracking whether we've walked the project fs initially
+    this._wereAssetsInitiallyLoaded = false
+
     // We end up oversaturating the sockets unless we debounce this
-    this.debouncedEmitAssetsChanged = debounce(this.emitAssetsChanged.bind(this), 500, { trailing: true })
+    this.debouncedEmitAssetsChanged = debounce(this.emitAssetsChanged.bind(this), 1000, { trailing: true })
     this.debouncedEmitDesignNeedsMergeRequest = debounce(this.emitDesignNeedsMergeRequest.bind(this), 500, { trailing: true })
+  }
+
+  getActiveComponent () {
+    return this.project && this.project.getCurrentActiveComponent()
   }
 
   teardown (cb) {
     clearInterval(this._methodQueueInterval)
     clearInterval(this._mod._modificationsInterval)
-
-    if (this._component) this._component._envoyClient.closeConnection()
-    if (this._watcher) this._watcher.stop()
-
+    if (this.project) {
+      this.project.teardown()
+    }
+    if (this._watcher) {
+      this._watcher.stop()
+    }
     if (this._git) {
       return this._git.teardown(cb)
     } else {
@@ -198,38 +194,40 @@ export default class Master extends EventEmitter {
     }
   }
 
-  logMethodMessage ({ method, params }) {
+  logMethodMessage (method, params) {
     if (!UNLOGGABLE_METHODS[method]) {
       logger.info('[master]', 'calling', method, params)
     }
   }
 
-  handleMethodMessage (message, cb) {
-    const { method, params } = message
+  handleMethodMessage (method, params, cb) {
     // We stop using the queue once we're up and running; no point keeping the queue
     if (METHODS_TO_RUN_IMMEDIATELY[method] || this._isReadyToReceiveMethods) {
-      return this.callMethodWithMessage({ method, params }, cb)
+      return this.callMethodWithMessage(method, params, cb)
     } else {
-      return this._methodQueue.push({ message, cb })
+      return this._methodQueue.push({ message: { method, params }, cb })
     }
   }
 
-  callMethodWithMessage (message, cb) {
-    const { method, params } = message
-    if (typeof this[method] === 'function' && !FORBIDDEN_METHODS[method]) {
-      this.logMethodMessage({ method, params })
-      return this[method]({ method, params }, cb)
-    } else {
-      return cb(new Error(`[master] No such method ${method}`))
+  callMethodWithMessage (method, params, cb) {
+    if (FORBIDDEN_METHODS[method]) {
+      return cb(new Error(`Method ${method} forbidden`))
     }
-  }
 
-  handleBroadcastMessage (message) {
-    switch (message.name) {
-      case 'component:reload:complete':
-        this._mod.handleReloadComplete(message)
-        break
+    // We should *always* receive the metadata {from: 'alias'} object here!
+    const metadata = params.pop()
+
+    if (typeof this[method] === 'function') {
+      this.logMethodMessage(method, params)
+      // Our own API does not expect the metadata object; leave it off
+      return this[method].apply(this, params.concat(cb))
     }
+
+    return this.project.handleMethodCall(method, params.concat(metadata), { /* message */ }, (err) => {
+      if (err) return cb(err)
+      // Since the project model may return unserializable values, exclude them
+      return cb()
+    })
   }
 
   waitForSaveToComplete (cb) {
@@ -243,22 +241,17 @@ export default class Master extends EventEmitter {
   }
 
   emitAssetsChanged (assets) {
-    return this.proc.socket.send({
-      type: 'broadcast',
-      name: 'assets-changed',
-      folder: this.folder,
-      assets
-    })
+    return this.emit('assets-changed', this, assets)
   }
 
   emitDesignNeedsMergeRequest () {
-    let designs = this._designsPendingMerge
-    this._designsPendingMerge = {}
+    const designs = this._designsPendingMerge
     if (Object.keys(designs).length > 0) {
       logger.info('[master] merge designs requested')
-      this.proc.socket.request({ type: 'action', method: 'mergeDesigns', params: [this.folder, 'Default', 0, designs] }, () => {
-        // TODO: Call rest after design merge finishes?
-      })
+      if (this.project && this.project.getCurrentActiveComponent()) {
+        this._designsPendingMerge = {}
+        this.project.getCurrentActiveComponent().mergeDesigns(designs, { from: 'master' }, () => {})
+      }
     }
   }
 
@@ -267,18 +260,20 @@ export default class Master extends EventEmitter {
     return this
   }
 
+  emitComponentChange (relpath) {
+    logger.info('[master] asset changed', relpath)
+    this.debouncedEmitAssetsChanged(this._knownLibraryAssets)
+  }
+
   emitDesignChange (relpath) {
-    const assets = this.getAssetDirectoryInfo()
     const extname = path.extname(relpath)
     const abspath = path.join(this.folder, relpath)
     logger.info('[master] asset changed', relpath)
-    this.emit('design-change', relpath, assets)
-    if (this.proc.isOpen()) {
-      this.debouncedEmitAssetsChanged(assets)
-      if (extname === '.svg') {
-        this.batchDesignMergeRequest(relpath, abspath)
-        this.debouncedEmitDesignNeedsMergeRequest()
-      }
+    this.emit('design-change', relpath, this._knownLibraryAssets)
+    this.debouncedEmitAssetsChanged(this._knownLibraryAssets)
+    if (extname === '.svg') {
+      this.batchDesignMergeRequest(relpath, abspath)
+      this.debouncedEmitDesignNeedsMergeRequest()
     }
   }
 
@@ -292,8 +287,12 @@ export default class Master extends EventEmitter {
     const extname = path.extname(relpath)
 
     if (extname === '.sketch' || extname === '.svg') {
-      this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
+      this._knownLibraryAssets[relpath] = { relpath, abspath, dtModified: Date.now() }
+
       this.emitDesignChange(relpath)
+    } else if (path.basename(relpath) === 'code.js') { // Local component file
+      this._knownLibraryAssets[relpath] = { relpath, abspath, dtModified: Date.now() }
+      this.emitComponentChange(relpath)
     }
 
     return this.waitForSaveToComplete(() => {
@@ -312,12 +311,25 @@ export default class Master extends EventEmitter {
         if (extname === '.js') {
           return File.ingestOne(this.folder, relpath, (err, file) => {
             if (err) return logger.info(err)
-            logger.info('[master] file ingested:', abspath)
-            if (relpath === this._component.fetchActiveBytecodeFile().relpath) {
-              file.substructInitialized = file.reinitializeSubstruct(this._config.get('config'), 'Master.handleFileChange')
+            logger.info('[master] file ingested (changed):', abspath)
 
-              if (file.previous !== file.contents) {
+            if (!this.getActiveComponent()) {
+              return void (0)
+            }
+
+            if (relpath !== this.getActiveComponent().fetchActiveBytecodeFile().relpath) {
+              return void (0)
+            }
+
+            file.reinitializeBytecode(this._config.get('config'))
+
+            if (file.previous !== file.contents) {
+              // Don't send the first reload for this component the first time since that
+              // just represents the first time we've loaded it into memory (race condition)
+              if (this._filesLoadedOnce[file.relpath]) {
                 this._mod.handleModuleChange(file)
+              } else {
+                this._filesLoadedOnce[file.relpath] = true
               }
             }
           })
@@ -331,8 +343,11 @@ export default class Master extends EventEmitter {
     const extname = path.extname(relpath)
 
     if (extname === '.sketch' || extname === '.svg') {
-      this._knownDesigns[relpath] = { relpath, abspath, dtModified: Date.now() }
+      this._knownLibraryAssets[relpath] = { relpath, abspath, dtModified: Date.now() }
       this.emitDesignChange(relpath)
+    } else if (path.basename(relpath) === 'code.js') { // Local component file
+      this._knownLibraryAssets[relpath] = { relpath, abspath, dtModified: Date.now() }
+      this.emitComponentChange(relpath)
     }
 
     return this.waitForSaveToComplete(() => {
@@ -351,10 +366,17 @@ export default class Master extends EventEmitter {
         if (extname === '.js') {
           return File.ingestOne(this.folder, relpath, (err, file) => {
             if (err) return logger.info(err)
-            logger.info('[master] file ingested:', abspath)
-            if (relpath === this._component.fetchActiveBytecodeFile().relpath) {
-              file.substructInitialized = file.reinitializeSubstruct(this._config.get('config'), 'Master.handleFileAdd')
+            logger.info('[master] file ingested (added):', abspath)
+
+            if (!this.getActiveComponent()) {
+              return void (0)
             }
+
+            if (relpath !== this.getActiveComponent().fetchActiveBytecodeFile().relpath) {
+              return void (0)
+            }
+
+            file.reinitializeBytecode(this._config.get('config'))
           })
         }
       })
@@ -366,7 +388,9 @@ export default class Master extends EventEmitter {
     const extname = path.extname(relpath)
 
     if (extname === '.sketch' || extname === '.svg') {
-      delete this._knownDesigns[relpath]
+      delete this._knownLibraryAssets[relpath]
+    } else if (path.basename(relpath) === 'code.js') { // Local component file
+      delete this._knownLibraryAssets[relpath]
     }
 
     return this.waitForSaveToComplete(() => {
@@ -386,10 +410,26 @@ export default class Master extends EventEmitter {
   }
 
   handleSemverTagChange (tag, cb) {
-    const file = this._component.fetchActiveBytecodeFile()
-    return file.writeMetadata({ version: tag }, (err) => {
+    // Just in case this happens to get called before we initialize
+    if (!this.project) {
+      return cb(null, tag)
+    }
+
+    // Just in case we haven't initialized our active component yet
+    const acs = this.project.getAllActiveComponents()
+    if (acs.length < 1) return cb()
+
+    // Loop through all components and bump their bytecode metadata semver
+    return async.eachSeries(acs, (ac, next) => {
+      const file = ac.fetchActiveBytecodeFile()
+
+      return file.writeMetadata({ version: tag }, (err) => {
+        if (err) return next(err)
+        logger.info(`[master-git] bumped bytecode semver on ${ac.getSceneName()} to ${tag}`)
+        return next(null, tag)
+      })
+    }, (err) => {
       if (err) return cb(err)
-      logger.info(`[master-git] bumped bytecode semver to ${tag}`)
       return cb(null, tag)
     })
   }
@@ -399,19 +439,18 @@ export default class Master extends EventEmitter {
   //  * =======
   //  */
 
-  masterHeartbeat ({ params }, cb) {
+  masterHeartbeat (cb) {
     return cb(null, {
       folder: this.folder,
       isReady: this._isReadyToReceiveMethods,
       isSaving: this._isSaving,
-      websocketReadyState: this.proc.getReadyState(),
       isCommitting: this._git.hasAnyPendingCommits(),
       gitUndoables: this._git.getGitUndoablesUptoBase(),
       gitRedoables: this._git.getGitRedoablesUptoBase()
     })
   }
 
-  doesProjectHaveUnsavedChanges (message, cb) {
+  doesProjectHaveUnsavedChanges (cb) {
     return Git.status(this.folder, {}, (statusErr, statusesDict) => {
       if (statusErr) return cb(statusErr)
       if (Object.keys(statusesDict).length < 1) return cb(null, false)
@@ -419,24 +458,113 @@ export default class Master extends EventEmitter {
     })
   }
 
-  discardProjectChanges (message, done) {
+  discardProjectChanges (cb) {
     return Git.hardReset(this.folder, 'HEAD', (err) => {
-      if (err) return done(err)
+      if (err) return cb(err)
       return Git.removeUntrackedFiles(this.folder, (err) => {
-        if (err) return done(err)
-        return done()
+        if (err) return cb(err)
+        return cb()
       })
     })
   }
 
-  fetchProjectInfo ({ params: [projectName, haikuUsername, haikuPassword, fetchOptions = {}] }, cb) {
+  fetchProjectInfo (projectName, haikuUsername, haikuPassword, fetchOptions = {}, cb) {
     return this._git.fetchFolderState('fetch-info', fetchOptions, (err) => {
       if (err) return cb(err)
       return this._git.getCurrentShareInfo(cb)
     })
   }
 
-  gitUndo ({ params: [undoOptions] }, cb) {
+  getAssets (cb) {
+    return cb(null, this._knownLibraryAssets)
+  }
+
+  loadAssets (cb) {
+    return walkFiles(this.folder, (err, entries) => {
+      if (err) return cb(err)
+      entries.forEach((entry) => {
+        const extname = path.extname(entry.path)
+        const basename = path.basename(entry.path)
+        const relpath = path.normalize(path.relative(this.folder, entry.path))
+        const parts = relpath.split(path.sep)
+        if (DESIGN_EXTNAMES[extname]) {
+          this._knownLibraryAssets[relpath] = { relpath, abspath: entry.path, dtModified: Date.now() }
+        } else if (parts[0] === 'code' && basename === 'code.js') { // Component bytecode file
+          this._knownLibraryAssets[relpath] = { relpath, abspath: entry.path, dtModified: Date.now() }
+        }
+      })
+      return this.getAssets(cb)
+    })
+  }
+
+  fetchAssets (cb) {
+    if (this._wereAssetsInitiallyLoaded) {
+      return this.getAssets(cb)
+    } else {
+      this._wereAssetsInitiallyLoaded = true
+      return this.loadAssets(cb)
+    }
+  }
+
+  linkAsset (abspath, cb) {
+    const basename = path.basename(abspath)
+    const relpath = path.join('designs', basename)
+    const destination = path.join(this.folder, relpath)
+    return fse.copy(abspath, destination, (copyErr) => {
+      if (copyErr) return cb(copyErr)
+      this._knownLibraryAssets[relpath] = { relpath, abspath: destination, dtModified: Date.now() }
+      return cb(null, this._knownLibraryAssets)
+    })
+  }
+
+  bulkLinkAssets (abspaths, cb) {
+    return async.eachSeries(
+      abspaths,
+      (path, next) => {
+        return this.linkAsset(path, (error, assets) => {
+          if (error) return next(error)
+          return next()
+        })
+      },
+      (error, results) => {
+        if (error) return cb(error)
+        return cb(results)
+      }
+    )
+  }
+
+  unlinkAsset (relpath, cb) {
+    if (!relpath || relpath.length < 2) {
+      return cb(new Error('Relative path too short'))
+    }
+
+    const abspath = path.join(this.folder, relpath)
+
+    /* Remove the file and all associated assets from the in-memory registry */
+    Object.keys(this._knownLibraryAssets)
+      .filter((path) => path.indexOf(relpath) !== -1)
+      .forEach((path) => delete this._knownLibraryAssets[path])
+
+    return async.series(
+      [
+        /* Remove associated Sketch contents from disk */
+        (cb) => {
+          Sketch.isSketchFile(abspath)
+            ? fse.remove(`${abspath}.contents`, cb)
+            : cb()
+        },
+        /* Remove the file itself */
+        (cb) => {
+          fse.remove(abspath, cb)
+        }
+      ],
+      error => {
+        return cb(error, this._knownLibraryAssets)
+      }
+    )
+  }
+
+  gitUndo (undoOptions, cb) {
     // Doing an undo while we're saving probably puts us into a bad state
     if (this._isSaving) {
       logger.info('[master] cannot undo while saving')
@@ -446,7 +574,7 @@ export default class Master extends EventEmitter {
     return this._git.undo(undoOptions, cb)
   }
 
-  gitRedo ({ params: [redoOptions] }, cb) {
+  gitRedo (redoOptions, cb) {
     // Doing an redo while we're saving probably puts us into a bad state
     if (this._isSaving) {
       logger.info('[master] cannot redo while saving')
@@ -456,322 +584,36 @@ export default class Master extends EventEmitter {
     return this._git.redo(redoOptions, cb)
   }
 
-  loadAssets (done) {
-    return walkFiles(this.folder, (err, entries) => {
-      if (err) return done(err)
-      entries.forEach((entry) => {
-        const extname = path.extname(entry.path)
-        if (DESIGN_EXTNAMES[extname]) {
-          const relpath = path.normalize(path.relative(this.folder, entry.path))
-          this._knownDesigns[relpath] = { relpath, abspath: entry.path, dtModified: Date.now() }
-        }
-      })
-      return this.getAssets(done)
-    })
-  }
-
-  getAssets (done) {
-    return done(null, this.getAssetDirectoryInfo())
-  }
-
-  getAssetDirectoryInfo () {
-    const info = Asset.assetsToDirectoryStructure(this._knownDesigns)
-    const { primaryAssetPath } = ProjectFolder.getProjectNameVariations(this.folder)
-    info.forEach((asset) => {
-      if (asset.relpath && (path.normalize(asset.relpath) === primaryAssetPath)) {
-        asset.isPrimaryDesign = true
-      }
-    })
-    return info
-  }
-
-  fetchAssets (message, done) {
-    if (Object.keys(this._knownDesigns).length > 0) {
-      return this.getAssets(done)
-    } else {
-      return this.loadAssets(done)
-    }
-  }
-
-  linkAsset ({ params: [abspath] }, done) {
-    const basename = path.basename(abspath)
-    const relpath = path.join('designs', basename)
-    const destination = path.join(this.folder, relpath)
-    return fse.copy(abspath, destination, (copyErr) => {
-      if (copyErr) return done(copyErr)
-      this._knownDesigns[relpath] = { relpath, abspath: destination, dtModified: Date.now() }
-      return done(null, this.getAssetDirectoryInfo())
-    })
-  }
-
-  bulkLinkAssets ({params: [abspaths]}, done) {
-    return async.eachSeries(
-      abspaths,
-      (path, next) => {
-        return this.linkAsset({params: [path]}, (error, assets) => {
-          if (error) return next(error)
-          return next()
-        })
-      },
-      (error, results) => {
-        if (error) return done(error)
-        return done(results)
-      }
-    )
-  }
-
-  unlinkAsset ({params: [relpath]}, done) {
-    if (!relpath || relpath.length < 2) {
-      return done(new Error('Relative path too short'))
+  readAllStateValues (relpath, cb) {
+    if (!this.project) {
+      return cb(null, {})
     }
 
-    const abspath = path.join(this.folder, relpath)
+    const ac = this.project.findActiveComponentBySource(relpath)
+    if (!ac) {
+      return cb(null, {})
+    }
 
-    /* Remove the file and all associated assets from the in-memory registry */
-    Object.keys(this._knownDesigns)
-      .filter((path) => path.indexOf(relpath) !== -1)
-      .forEach((path) => delete this._knownDesigns[path])
-
-    return async.series(
-      [
-        /* Remove associated Sketch contents from disk */
-        (done) => {
-          Sketch.isSketchFile(abspath)
-            ? fse.remove(`${abspath}.contents`, done)
-            : done()
-        },
-        /* Remove the file itself */
-        (done) => {
-          fse.remove(abspath, done)
-        }
-      ],
-      error => {
-        return done(error, this.getAssetDirectoryInfo())
-      }
-    )
+    return ac.readAllStateValues({ /* unused metadata */ }, cb)
   }
 
-  selectElement (message, cb) {
-    // this is a no-op in master
-    return cb()
+  readAllEventHandlers (relpath, cb) {
+    if (!this.project) {
+      return cb(null, {})
+    }
+
+    const ac = this.project.findActiveComponentBySource(relpath)
+    if (!ac) {
+      return cb(null, {})
+    }
+
+    return ac.readAllEventHandlers({ /* unused metadata */ }, cb)
   }
-
-  unselectElement (message, cb) {
-    // this is a no-op in master
-    return cb()
-  }
-
-  setTimelineName ({ params }, cb) {
-    this._component.setTimelineName.apply(this._component, params)
-    return cb()
-  }
-
-  setTimelineTime ({ params }, cb) {
-    this._component.setTimelineTime.apply(this._component, params)
-    return cb()
-  }
-
-  readMetadata ({ params }, cb) {
-    return this._component.readMetadata.apply(this._component, params.concat(cb))
-  }
-
-  readAllStateValues ({ params }, cb) {
-    return this._component.readAllStateValues.apply(this._component, params.concat(cb))
-  }
-
-  readAllEventHandlers ({ params }, cb) {
-    return this._component.readAllEventHandlers.apply(this._component, params.concat(cb))
-  }
-
-  setInteractionMode ({ params }, cb) {
-    return this._component.setInteractionMode.apply(this._component, params.concat(cb))
-  }
-
-  showEventHandlersEditor ({ params }, cb) {
-    return this._component.showEventHandlersEditor.apply(this._component, params.concat(cb))
-  }
-
-  eventHandlersUpdated ({ params }, cb) {
-    return this._component.eventHandlersUpdated.apply(this._component, params.concat(cb))
-  }
-
-  /**
-   * bytecode actions
-   * ================
-   */
-
-  bytecodeAction (action, params, cb) {
-    if (!this._component) return cb(new Error('[master] Component not initialized'))
-    let file = this._component.fetchActiveBytecodeFile()
-    if (!file) return cb(new Error('[master] File not initialized'))
-    return file[action].apply(file, params.concat(cb))
-  }
-
-  instantiateComponent ({ params }, cb) {
-    return this.bytecodeAction('instantiateComponent', params, cb)
-  }
-
-  deleteComponent ({ params }, cb) {
-    return this.bytecodeAction('deleteComponent', params, cb)
-  }
-
-  mergeDesigns ({ params }, cb) {
-    return this.bytecodeAction('mergeDesigns', params, cb)
-  }
-
-  applyPropertyValue ({ params }, cb) {
-    return this.bytecodeAction('applyPropertyValue', params, cb)
-  }
-
-  applyPropertyDelta ({ params }, cb) {
-    return this.bytecodeAction('applyPropertyDelta', params, cb)
-  }
-
-  applyPropertyGroupValue ({ params }, cb) {
-    return this.bytecodeAction('applyPropertyGroupValue', params, cb)
-  }
-
-  applyPropertyGroupDelta ({ params }, cb) {
-    return this.bytecodeAction('applyPropertyGroupDelta', params, cb)
-  }
-
-  resizeContext ({ params }, cb) {
-    return this.bytecodeAction('resizeContext', params, cb)
-  }
-
-  changeKeyframeValue ({ params }, cb) {
-    return this.bytecodeAction('changeKeyframeValue', params, cb)
-  }
-
-  changePlaybackSpeed ({ params }, cb) {
-    return this.bytecodeAction('changePlaybackSpeed', params, cb)
-  }
-
-  changeSegmentCurve ({ params }, cb) {
-    return this.bytecodeAction('changeSegmentCurve', params, cb)
-  }
-
-  changeSegmentEndpoints ({ params }, cb) {
-    return this.bytecodeAction('changeSegmentEndpoints', params, cb)
-  }
-
-  createKeyframe ({ params }, cb) {
-    return this.bytecodeAction('createKeyframe', params, cb)
-  }
-
-  createTimeline ({ params }, cb) {
-    return this.bytecodeAction('createTimeline', params, cb)
-  }
-
-  deleteKeyframe ({ params }, cb) {
-    return this.bytecodeAction('deleteKeyframe', params, cb)
-  }
-
-  deleteTimeline ({ params }, cb) {
-    return this.bytecodeAction('deleteTimeline', params, cb)
-  }
-
-  duplicateTimeline ({ params }, cb) {
-    return this.bytecodeAction('duplicateTimeline', params, cb)
-  }
-
-  joinKeyframes ({ params }, cb) {
-    return this.bytecodeAction('joinKeyframes', params, cb)
-  }
-
-  moveSegmentEndpoints ({ params }, cb) {
-    return this.bytecodeAction('moveSegmentEndpoints', params, cb)
-  }
-
-  moveKeyframes ({ params }, cb) {
-    return this.bytecodeAction('moveKeyframes', params, cb)
-  }
-
-  renameTimeline ({ params }, cb) {
-    return this.bytecodeAction('renameTimeline', params, cb)
-  }
-
-  sliceSegment ({ params }, cb) {
-    return this.bytecodeAction('sliceSegment', params, cb)
-  }
-
-  splitSegment ({ params }, cb) {
-    return this.bytecodeAction('splitSegment', params, cb)
-  }
-
-  zMoveToFront ({ params }, cb) {
-    return this.bytecodeAction('zMoveToFront', params, cb)
-  }
-
-  zMoveForward ({ params }, cb) {
-    return this.bytecodeAction('zMoveForward', params, cb)
-  }
-
-  zMoveBackward ({ params }, cb) {
-    return this.bytecodeAction('zMoveBackward', params, cb)
-  }
-
-  zMoveToBack ({ params }, cb) {
-    return this.bytecodeAction('zMoveToBack', params, cb)
-  }
-
-  reorderElement ({ params }, cb) {
-    return this.bytecodeAction('reorderElement', params, cb)
-  }
-
-  groupElements ({ params }, cb) {
-    return this.bytecodeAction('groupElements', params, cb)
-  }
-
-  ungroupElements ({ params }, cb) {
-    return this.bytecodeAction('ungroupElements', params, cb)
-  }
-
-  hideElements ({ params }, cb) {
-    return this.bytecodeAction('hideElements', params, cb)
-  }
-
-  pasteThing ({ params }, cb) {
-    return this.bytecodeAction('pasteThing', params, cb)
-  }
-
-  deleteThing ({ params }, cb) {
-    return this.bytecodeAction('deleteThing', params, cb)
-  }
-
-  upsertStateValue ({ params }, cb) {
-    return this.bytecodeAction('upsertStateValue', params, cb)
-  }
-
-  deleteStateValue ({ params }, cb) {
-    return this.bytecodeAction('deleteStateValue', params, cb)
-  }
-
-  upsertEventHandler ({ params }, cb) {
-    return this.bytecodeAction('upsertEventHandler', params, cb)
-  }
-
-  batchUpsertEventHandlers ({ params }, cb) {
-    return this.bytecodeAction('batchUpsertEventHandlers', params, cb)
-  }
-
-  deleteEventHandler ({ params }, cb) {
-    return this.bytecodeAction('deleteEventHandler', params, cb)
-  }
-
-  writeMetadata ({ params }, cb) {
-    return this.bytecodeAction('writeMetadata', params, cb)
-  }
-
-  /**
-   * here be dragons
-   * ===============
-   */
 
   /**
    * @method initializeFolder
    */
-  initializeFolder ({ params: [projectName, haikuUsername, haikuPassword, projectOptions] }, done) {
+  initializeFolder (projectName, haikuUsername, haikuPassword, projectOptions, done) {
     // We need to clear off undos in the case that somebody made an fs-based commit between sessions;
     // if we tried to reset to a previous "known" undoable, we'd miss the missing intermediate one.
     // This has to happen in initializeFolder because it's here that we set the 'isBase' undoable.
@@ -785,7 +627,7 @@ export default class Master extends EventEmitter {
     const ravenContext = {
       user: { email: haikuUsername },
       extra: {
-        projectName: ProjectFolder.getSafeProjectName(this.folder, projectName),
+        projectName: Project.getSafeProjectName(this.folder, projectName),
         projectPath: this.folder,
         organizationName: ProjectFolder.getSafeOrgName(projectOptions.organizationName)
       }
@@ -829,19 +671,19 @@ export default class Master extends EventEmitter {
   /**
    * @method restartProject
    * Just a vanity method used to distinguish starts from restarts.
-   * Should be exactly the same as startProject since this only occurs
-   * If the MasterProcess has crashed and we need to reboot it.
+   * Should be exactly the same as startProject with the exception that
+   * the logs will indicate a restart for the sake of clarity.
    */
-  restartProject (message, done) {
-    message.restart = true
-    return this.startProject(message, done)
+  restartProject (cb) {
+    cb.restart = true
+    return this.startProject(cb)
   }
 
   /**
    * @method startProject
    */
-  startProject (message, done) {
-    const loggingPrefix = (message.restart) ? 'restart project' : 'start project'
+  startProject (done) {
+    const loggingPrefix = (done.restart) ? 'restart project' : 'start project'
 
     logger.info(`[master] ${loggingPrefix}: ${this.folder}`)
 
@@ -867,46 +709,23 @@ export default class Master extends EventEmitter {
 
       // Initialize the ActiveComponent and file models
       (cb) => {
-        // No need to reinitialize if already in memory
-        if (!this._component) {
-          logger.info(`[master] ${loggingPrefix}: creating active component`)
-
-          this._component = ActiveComponent.upsert({
-            alias: 'master', // Don't be fooled, this is not a branch name
-            uid: this.folder + '::' + this.scenename,
-            folder: this.folder,
-            userconfig: this._config.get('config'),
-            websocket: {/* websocket */},
-            platform: {/* window */},
-            envoy: ProcessBase.HAIKU.envoy || {
-              host: process.env.ENVOY_HOST,
-              port: process.env.ENVOY_PORT
-            },
-            file: {
-              doShallowWorkOnly: false, // Must override the in-memory-only defaults
-              skipDiffLogging: false // Must override the in-memory-only defaults
-            }
-          })
-
-          // This is required so that a hostInstance is loaded which is (required for calculations)
-          this._component.mountApplication()
-
-          this._component.on('update', (what) => {
-            if (what === 'application-mounted') {
-              // Since we aren't running in the DOM cancel the raf to avoid leaked handles
-              this._component.instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
-              attachListeners(this._component._envoyClient, this._component)
-              return cb()
-            }
-          })
-        } else {
-          return cb()
-        }
-      },
-
-      // Take an initial commit of the starting state so we have a baseline
-      (cb) => {
-        return this._git.commitProjectIfChanged('Project setup', cb)
+        logger.info(`[master] ${loggingPrefix}: setting up project`)
+        return Project.setup(
+          this.folder,
+          'master', // alias
+          // websocket - a mock, since in theory no Master method will originate
+          // here and need to be sent outward to the other clients automatically
+          new MockWebsocket(),
+          {}, // platform
+          this._config.get('config'), // userconfig
+          this.fileOptions,
+          this.envoyOptions,
+          (err, project) => {
+            if (err) return cb(err)
+            this.handleProjectReady(project)
+            return cb()
+          }
+        )
       },
 
       // Load all relevant files into memory (only JavaScript files for now)
@@ -917,23 +736,9 @@ export default class Master extends EventEmitter {
         }, cb)
       },
 
-      // Do any setup necessary on the in-memory bytecode object
-      (cb) => {
-        const file = this._component.fetchActiveBytecodeFile()
-        if (file) {
-          logger.info(`[master] ${loggingPrefix}: initializing bytecode`)
-
-          file.substructInitialized = file.reinitializeSubstruct(this._config.get('config'), 'Master.startProject')
-
-          return file.performComponentWork((bytecode, mana, wrapup) => wrapup(), cb)
-        } else {
-          return cb()
-        }
-      },
-
       // Take an initial commit of the starting state so we have a baseline
       (cb) => {
-        return this._git.commitProjectIfChanged('Code setup', cb)
+        return this._git.commitProjectIfChanged('Project setup', cb)
       },
 
       // Start watching the file system for changes
@@ -973,7 +778,7 @@ export default class Master extends EventEmitter {
   /**
    * @method saveProject
    */
-  saveProject ({ params: [projectName, haikuUsername, haikuPassword, saveOptions = {}] }, done) {
+  saveProject (projectName, haikuUsername, haikuPassword, saveOptions, done) {
     const finish = (err, out) => {
       this._isSaving = false
       return done(err, out)
@@ -1002,46 +807,78 @@ export default class Master extends EventEmitter {
 
       // Populate the bytecode's metadata. This may be a no-op if the file has already been saved
       (cb) => {
-        logger.info('[master] project save: assigning metadata')
-
-        const {
-          semverVersion,
-          organizationName,
-          projectName,
-          branchName
-        } = this._git.getFolderState()
-
-        const bytecodeMetadata = {
-          uuid: 'HAIKU_SHARE_UUID',
-          player: this._git.getHaikuPlayerLibVersion(),
-          version: semverVersion,
-          organization: organizationName,
-          project: projectName,
-          branch: branchName
+        // Just in case this ran somehow before we initialized the project
+        if (!this.project) {
+          return cb()
         }
 
-        return this._component.fetchActiveBytecodeFile().writeMetadata(bytecodeMetadata, cb)
+        // Just in case we haven't initialized any active components yet
+        const acs = this.project.getAllActiveComponents()
+        if (acs.length < 1) return cb()
+
+        return async.eachSeries(acs, (ac, next) => {
+          logger.info(`[master] project save: assigning metadata to ${ac.getSceneName()}`)
+
+          const {
+            semverVersion,
+            organizationName,
+            projectName,
+            branchName
+          } = this._git.getFolderState()
+
+          const bytecodeMetadata = {
+            uuid: 'HAIKU_SHARE_UUID',
+            player: this._git.getHaikuPlayerLibVersion(),
+            version: semverVersion,
+            organization: organizationName,
+            project: projectName,
+            branch: branchName
+          }
+
+          return ac.fetchActiveBytecodeFile().writeMetadata(bytecodeMetadata, next)
+        }, (err) => {
+          if (err) return cb(err)
+          return cb()
+        })
       },
 
       // Write out any enabled exported formats.
       (cb) => {
+        // This might be a save without any designated exports
         const {exporterFormats} = saveOptions
         if (!exporterFormats) {
           return cb()
         }
 
-        // Create a fault-tolerant async series to process all requested formats.
-        logger.info('[master] project save: writing exported formats')
-        return async.series(exporterFormats.map((format) => (done) => {
-          // For now, we only support one exported format.
-          const filename = this._component.getAbsoluteLottieFilePath()
-          saveExport({format, filename}, this._component, (err) => {
-            if (err) {
-              logger.warn(`[master] error during export: ${err.toString()}`)
-            }
-            done()
-          })
-        }), cb)
+        // Just in case this ran somehow before the project was initialized
+        if (!this.project) {
+          return cb()
+        }
+
+        // Just in case we haven't initialized any active components yet
+        const acs = this.project.getAllActiveComponents()
+        if (acs.length < 1) return cb()
+
+        // Create a fault-tolerant async series to process all requested formats for all components
+        return async.eachSeries(acs, (ac, nextComponent) => {
+          logger.info(`[master] project save: writing exported formats for ${ac.getSceneName()}`)
+
+          return async.series(exporterFormats.map((format) => (nextFormat) => {
+            // For now, we only support one exported format: lottie.json
+            const filename = ac.getAbsoluteLottieFilePath()
+
+            return saveExport({format, filename}, ac, (err) => {
+              if (err) {
+                logger.warn(`[master] error during export for ${ac.getSceneName()}: ${err.toString()}`)
+              }
+
+              return nextFormat()
+            })
+          }), nextComponent)
+        }, (err) => {
+          if (err) return cb(err)
+          return cb()
+        })
       },
 
       (cb) => {
@@ -1051,6 +888,7 @@ export default class Master extends EventEmitter {
       // Build the rest of the content of the folder, including any bundles that belong on the cdn
       (cb) => {
         logger.info('[master] project save: populating content')
+
         const { projectName } = this._git.getFolderState()
         ProjectFolder.buildProjectContent(null, this.folder, projectName, 'haiku', {
           projectName: projectName,
@@ -1072,12 +910,61 @@ export default class Master extends EventEmitter {
       }
 
       finish(null, results[results.length - 1])
+
       // Silently push results to the remote.
       this._git.pushToRemote((err) => {
         if (err) {
           logger.warn('[master] silent project push failed')
         }
       })
+    })
+  }
+
+  handleProjectReady (project) {
+    this.project = project
+
+    // This safely reinitializes Plumbing websockets and Envoy clients
+    // Note that we only need to do this here in Master because our process
+    // remains alive even as the user navs between projects
+    this.project.connectClients()
+
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'update', (what, ...args) => {
+      switch (what) {
+        case 'setCurrentActiveComponent': return this.handleActiveComponentReady()
+        case 'application-mounted': return this.handleHaikuComponentMounted()
+        default: return null
+      }
+    })
+
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, ...args) => {
+      switch (what) {
+        case 'setCurrentActiveComponent': return this.handleActiveComponentReady()
+        default: return null
+      }
+    })
+
+    this.emit('project-state-change', { what: 'project-ready' })
+  }
+
+  handleActiveComponentReady () {
+    attachListeners(this.project.getEnvoyClient(), this.getActiveComponent())
+
+    // I'm not actually sure this needs to run here; doesn't project do this?
+    this.getActiveComponent().mountApplication(null, {
+      options: { freeze: true },
+      reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
+    })
+  }
+
+  handleHaikuComponentMounted () {
+    // Since we aren't running in the DOM cancel the raf to avoid leaked handles
+    this.getActiveComponent().instancesOfHaikuPlayerComponent.forEach((instance) => {
+      instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+    })
+
+    this.emit('project-state-change', {
+      what: 'component:mounted',
+      scenename: this.getActiveComponent().getSceneName()
     })
   }
 }

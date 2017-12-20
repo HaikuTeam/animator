@@ -2,9 +2,9 @@ import { shell } from 'electron'
 import path from 'path'
 import Radium from 'radium'
 import React from 'react'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import ProjectPreview from './ProjectPreview'
-import { StackMenuSVG } from './Icons'
+import { StackMenuSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 import { DASH_STYLES } from '../styles/dashShared'
 
 class ProjectThumbnail extends React.Component {

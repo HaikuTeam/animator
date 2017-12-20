@@ -21,5 +21,9 @@ module.exports = function upsertEventHandler (bytecode, selectorName, eventName,
     bytecode.eventHandlers[selectorName][eventName].handler = unserValue(handlerDescriptor.handler)
   }
 
+  // The 'edited' flag is used to determine whether a property is overwriteable during a merge.
+  // In multi-component, theoretically both designs can be merged and components can be merged.
+  bytecode.eventHandlers[selectorName][eventName].edited = true
+
   return bytecode
 }

@@ -3,13 +3,15 @@ import Color from 'color'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
 
+import Project from 'haiku-serialization/src/bll/Project'
 import { experimentIsEnabled, Experiment } from 'haiku-common/lib/experiments'
-import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
 import TimelineModel from 'haiku-serialization/src/bll/Timeline'
 import Row from 'haiku-serialization/src/bll/Row'
+import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
+import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
 
-import Palette from './DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 import ControlsArea from './ControlsArea'
 import ContextMenu from './ContextMenu'
@@ -25,7 +27,7 @@ import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
 import {isPreviewMode} from '@haiku/player/lib/helpers/interactionModes'
 
-const Globals = require('./Globals') // Sorry, hack
+const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
 /* z-index guide
   keyframe: 1002
@@ -58,7 +60,8 @@ const DEFAULTS = {
   isAltKeyDown: false,
   avoidTimelinePointerEvents: false,
   isPreviewModeActive: false,
-  $update: { time: Date.now() } // legacy?
+  $update: { time: Date.now() }, // legacy?
+  isRepeat: true
 }
 
 const THROTTLE_TIME = 32 // ms
@@ -67,33 +70,27 @@ class Timeline extends React.Component {
   constructor (props) {
     super(props)
 
+    EmitterManager.extend(this)
+
     this.state = lodash.assign({}, DEFAULTS)
     this.ctxmenu = new ContextMenu(window, this)
 
-    this.emitters = [] // Array<{eventEmitter:EventEmitter, eventName:string, eventHandler:Function}>
-
-    this.component = ActiveComponent.upsert({
-      alias: 'timeline',
-      uid: this.props.folder + '::' + this.props.scenename,
-      folder: this.props.folder,
-      userconfig: this.props.userconfig,
-      websocket: this.props.websocket,
-      platform: window,
-      envoy: this.props.envoy,
-      WebSocket: window.WebSocket
-    })
-
-    this.component.on('envoy:tourClientReady', (tourClient) => {
-      this.tourClient = tourClient
-      this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
-      // When the timeline loads, that is the indication to move from the first tour step
-      // to the next step that shows how to create animations
-      setTimeout(() => {
-        if (!this.component._envoyClient.isInMockMode() && this.tourClient) {
-          this.tourClient.next()
-        }
-      })
-    })
+    Project.setup(
+      this.props.folder,
+      'timeline',
+      this.props.websocket,
+      window,
+      this.props.userconfig,
+      { // fileOptions
+        doWriteToDisk: false,
+        skipDiffLogging: true
+      },
+      this.props.envoy,
+      (err, project) => {
+        if (err) throw err
+        this.handleProjectReady(project)
+      }
+    )
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
     this.showEventHandlersEditor = this.showEventHandlersEditor.bind(this)
@@ -103,18 +100,6 @@ class Timeline extends React.Component {
     this._renderedRows = []
 
     window.timeline = this
-
-    document.addEventListener('mousemove', (mouseMoveEvent) => {
-      const timeline = this.component.getCurrentTimeline()
-      // The timeline might not be initialized as of the first mouse move
-      if (timeline) {
-        const frameInfo = timeline.getFrameInfo()
-        let pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
-        if (pxInTimeline < 0) pxInTimeline = 0
-        const frameForPx = frameInfo.friA + Math.round(pxInTimeline / frameInfo.pxpf)
-        timeline.hoverFrame(frameForPx)
-      }
-    })
   }
 
   /*
@@ -125,57 +110,109 @@ class Timeline extends React.Component {
     this.mounted = false
 
     // Clean up subscriptions to prevent memory leaks and react warnings
-    this.emitters.forEach((tuple) => {
-      tuple[0].removeListener(tuple[1], tuple[2])
-    })
+    this.removeEmitterListeners()
 
     if (this.tourClient) {
       this.tourClient.removeListener('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
     }
 
-    this.component._envoyClient.closeConnection()
+    this.project.getEnvoyClient().closeConnection()
   }
 
   componentDidMount () {
     this.mounted = true
+  }
 
-    this.component.mountApplication()
+  getActiveComponent () {
+    return this.project && this.project.getCurrentActiveComponent()
+  }
 
-    this.addEmitterListener(this.component, 'update', (what, arg) => {
-      if (what === 'application-mounted') {
-        this.handleHaikuComponentMounted()
-        this.forceUpdate()
-      } else if (what === 'reloaded') {
-        if (arg === 'hard') {
-          this.forceUpdate()
+  awaitRef (name, cb) {
+    if (this.refs[name]) {
+      return cb(this.refs[name])
+    }
+    return setTimeout(() => {
+      this.awaitRef(name, cb)
+    }, 100)
+  }
+
+  handleProjectReady (project) {
+    this.project = project
+
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'envoy:tourClientReady', (tourClient) => {
+      this.tourClient = tourClient
+      this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
+      // When the timeline loads, that is the indication to move from the first tour step
+      // to the next step that shows how to create animations
+      setTimeout(() => {
+        if (!this.project.getEnvoyClient().isInMockMode() && this.tourClient) {
+          this.tourClient.next()
         }
+      })
+    })
+
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'update', (what, arg) => {
+      switch (what) {
+        case 'setCurrentActiveComponent':
+          this.handleActiveComponentReady()
+          break
+        case 'application-mounted':
+          this.handleHaikuComponentMounted()
+          break
+        case 'reloaded':
+          if (arg === 'hard') {
+            this.forceUpdate()
+          }
+          break
       }
     })
 
-    this.addEmitterListener(this.component, 'remote-update', (what, data) => {
-      if (what === 'setInteractionMode') {
-        // If we've toggled into preview mode
-        const isPreviewModeActive = isPreviewMode(data.interactionMode)
-
-        if (!isPreviewModeActive) {
-          this.playbackSkipBack()
-          this.forceUpdate()
-        }
-
-        this.setState({isPreviewModeActive})
-      } else if (what === 'eventHandlersUpdated') {
-        this.component.getCurrentTimeline().notifyFrameActionChange()
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, data) => {
+      switch (what) {
+        case 'setCurrentActiveComponent':
+          this.handleActiveComponentReady()
+          break
+        case 'setInteractionMode':
+          this.handleInteractionModeChange(data)
+          break
+        case 'eventHandlersUpdated':
+          this.getActiveComponent().getCurrentTimeline().notifyFrameActionChange()
+          break
       }
+    })
+
+    // When all views send this, we know it's ok to initialize the 'main' component
+    this.project.broadcastPayload({
+      name: 'project-state-change',
+      what: 'project:ready'
+    })
+
+    // When developing Timeline in standalone, this env var directs it to automatically
+    // set the current active component, which is normally initiated by Creator
+    if (process.env.AUTOSTART) {
+      this.project.setCurrentActiveComponent(process.env.AUTOSTART, { from: 'timeline' }, () => {})
+    }
+  }
+
+  handleActiveComponentReady () {
+    this.mountHaikuComponent()
+  }
+
+  mountHaikuComponent () {
+    // The Timeline UI doesn't display the component, so we don't bother giving it a ref
+    this.getActiveComponent().mountApplication(null, {
+      options: { freeze: true }, // No display means no need for overflow settings, etc
+      reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
     })
   }
 
   handleHaikuComponentMounted () {
-    this.component.getCurrentTimeline().setTimelinePixelWidth(document.body.clientWidth - this.component.getCurrentTimeline().getPropertiesPixelWidth() + 20)
+    this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + 20)
 
     window.addEventListener('resize', lodash.throttle(() => {
       if (this.mounted) {
-        const pxWidth = document.body.clientWidth - this.component.getCurrentTimeline().getPropertiesPixelWidth()
-        this.component.getCurrentTimeline().setTimelinePixelWidth(pxWidth + 20)
+        const pxWidth = document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
+        this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(pxWidth + 20)
         this.forceUpdate()
       }
     }, THROTTLE_TIME))
@@ -184,13 +221,13 @@ class Timeline extends React.Component {
       if (message.folder !== this.props.folder) return void (0)
       switch (message.name) {
         case 'component:reload':
-          return this.component.moduleReplace(() => {})
+          this.getActiveComponent().moduleReplace(() => {})
+          break
         case 'view:mousedown':
           if (message.elid !== 'timeline-webview') {
-            return this.component.deselectAndDeactivateAllKeyframes()
+            this.getActiveComponent().deselectAndDeactivateAllKeyframes()
           }
           break
-        default: return void (0)
       }
     })
 
@@ -221,6 +258,18 @@ class Timeline extends React.Component {
       this.handleScroll(wheelEvent)
     }, 64), { passive: true })
 
+    document.addEventListener('mousemove', (mouseMoveEvent) => {
+      const timeline = this.getActiveComponent().getCurrentTimeline()
+      // The timeline might not be initialized as of the first mouse move
+      if (timeline) {
+        const frameInfo = timeline.getFrameInfo()
+        let pxInTimeline = mouseMoveEvent.clientX - timeline.getPropertiesPixelWidth()
+        if (pxInTimeline < 0) pxInTimeline = 0
+        const frameForPx = frameInfo.friA + Math.round(pxInTimeline / frameInfo.pxpf)
+        timeline.hoverFrame(frameForPx)
+      }
+    })
+
     this.addEmitterListener(this.ctxmenu, 'createKeyframe', (event, model, offset) => {
       const { ms } = this.getEventPositionInfo(event, offset)
       // The model here might be
@@ -228,22 +277,22 @@ class Timeline extends React.Component {
     })
 
     this.addEmitterListener(this.ctxmenu, 'splitSegment', () => {
-      this.component.splitSelectedKeyframes({ from: 'timeline' })
+      this.getActiveComponent().splitSelectedKeyframes({ from: 'timeline' })
     })
 
     this.addEmitterListener(this.ctxmenu, 'deleteKeyframe', () => {
-      this.component.deleteActiveKeyframes({ from: 'timeline' })
+      this.getActiveComponent().deleteActiveKeyframes({ from: 'timeline' })
     })
 
     this.addEmitterListener(this.ctxmenu, 'joinKeyframes', (curveName) => {
-      this.component.joinSelectedKeyframes(curveName, { from: 'timeline' })
-      if (!this.component._envoyClient.isInMockMode() && this.tourClient) {
+      this.getActiveComponent().joinSelectedKeyframes(curveName, { from: 'timeline' })
+      if (!this.project.getEnvoyClient().isInMockMode() && this.tourClient) {
         this.tourClient.next()
       }
     })
 
     this.addEmitterListener(this.ctxmenu, 'changeSegmentCurve', (curveName) => {
-      this.component.changeCurveOnSelectedKeyframes(curveName, { from: 'timeline' })
+      this.getActiveComponent().changeCurveOnSelectedKeyframes(curveName, { from: 'timeline' })
     })
 
     this.addEmitterListener(Row, 'update', (row, what) => {
@@ -257,10 +306,27 @@ class Timeline extends React.Component {
     this.addEmitterListener(TimelineModel, 'timeline-model:stop-playback', () => {
       this.setState({ isPlayerPlaying: false })
     })
+
+    this.forceUpdate()
+
+    this.project.broadcastPayload({
+      name: 'project-state-change',
+      what: 'component:mounted',
+      scenename: this.getActiveComponent().getSceneName()
+    })
+  }
+
+  handleInteractionModeChange (data) {
+    const isPreviewModeActive = isPreviewMode(data.interactionMode)
+    if (!isPreviewModeActive) {
+      this.playbackSkipBack()
+      this.forceUpdate()
+    }
+    this.setState({isPreviewModeActive})
   }
 
   getEventPositionInfo (event, extra) {
-    const frameInfo = this.component.getCurrentTimeline().getFrameInfo()
+    const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
 
     const offset = event.offsetX || 0
     const total = (extra || 0) + offset + Math.round(frameInfo.pxA / frameInfo.pxpf)
@@ -286,7 +352,7 @@ class Timeline extends React.Component {
     const absDelta = Math.abs(origDelta)
     const deltaSign = origDelta ? origDelta < 0 ? -1 : 1 : 0
     const motionDelta = Math.round(deltaSign * (Math.log(absDelta + 1) * 2))
-    this.component.getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta)
+    this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta)
   }
 
   handleRequestElementCoordinates ({ selector, webview }) {
@@ -296,8 +362,8 @@ class Timeline extends React.Component {
       selector,
       shouldNotifyEnvoy:
         this.tourClient &&
-        this.component._envoyClient &&
-        !this.component._envoyClient.isInMockMode(),
+        this.project.getEnvoyClient() &&
+        !this.project.getEnvoyClient().isInMockMode(),
       tourClient: this.tourClient
     })
   }
@@ -323,34 +389,36 @@ class Timeline extends React.Component {
       case 37: // left
         if (this.state.isCommandKeyDown) {
           if (this.state.isShiftKeyDown && experimentIsEnabled(Experiment.TimelineShiftKeyBehaviors)) {
-            this.component.getCurrentTimeline().setVisibleFrameRange(0, this.component.getCurrentTimeline().getRightFrameEndpoint())
-            return this.component.getCurrentTimeline().updateCurrentFrame(0)
+            this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(0, this.getActiveComponent().getCurrentTimeline().getRightFrameEndpoint())
+            this.getActiveComponent().getCurrentTimeline().updateCurrentFrame(0)
           } else {
-            return this.component.getCurrentTimeline().updateScrubberPositionByDelta(-1)
+            this.getActiveComponent().getCurrentTimeline().updateScrubberPositionByDelta(-1)
           }
         } else {
-          return this.component.getCurrentTimeline().updateVisibleFrameRangeByDelta(-1)
+          this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(-1)
         }
+        break
 
       case 39: // right
         if (this.state.isCommandKeyDown) {
-          return this.component.getCurrentTimeline().updateScrubberPositionByDelta(1)
+          this.getActiveComponent().getCurrentTimeline().updateScrubberPositionByDelta(1)
         } else {
-          return this.component.getCurrentTimeline().updateVisibleFrameRangeByDelta(1)
+          this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(1)
         }
+        break
 
       // case 38: // up
       // case 40: // down
       // case 46: //delete
       // case 13: //enter
       // delete
-      case 8: return this.component.deleteActiveKeyframes({ from: 'timeline' }) // Only if there are any
-      case 16: return this.updateKeyboardState({ isShiftKeyDown: true })
-      case 17: return this.updateKeyboardState({ isControlKeyDown: true })
-      case 18: return this.updateKeyboardState({ isAltKeyDown: true })
-      case 224: return this.updateKeyboardState({ isCommandKeyDown: true })
-      case 91: return this.updateKeyboardState({ isCommandKeyDown: true })
-      case 93: return this.updateKeyboardState({ isCommandKeyDown: true })
+      case 8: this.getActiveComponent().deleteActiveKeyframes({ from: 'timeline' }); break // Only if there are any
+      case 16: this.updateKeyboardState({ isShiftKeyDown: true }); break
+      case 17: this.updateKeyboardState({ isControlKeyDown: true }); break
+      case 18: this.updateKeyboardState({ isAltKeyDown: true }); break
+      case 224: this.updateKeyboardState({ isCommandKeyDown: true }); break
+      case 91: this.updateKeyboardState({ isCommandKeyDown: true }); break
+      case 93: this.updateKeyboardState({ isCommandKeyDown: true }); break
     }
   }
 
@@ -365,30 +433,25 @@ class Timeline extends React.Component {
       // case 46: //delete
       // case 8: //delete
       // case 13: //enter
-      case 16: return this.updateKeyboardState({ isShiftKeyDown: false })
-      case 17: return this.updateKeyboardState({ isControlKeyDown: false })
-      case 18: return this.updateKeyboardState({ isAltKeyDown: false })
-      case 224: return this.updateKeyboardState({ isCommandKeyDown: false })
-      case 91: return this.updateKeyboardState({ isCommandKeyDown: false })
-      case 93: return this.updateKeyboardState({ isCommandKeyDown: false })
+      case 16: this.updateKeyboardState({ isShiftKeyDown: false }); break
+      case 17: this.updateKeyboardState({ isControlKeyDown: false }); break
+      case 18: this.updateKeyboardState({ isAltKeyDown: false }); break
+      case 224: this.updateKeyboardState({ isCommandKeyDown: false }); break
+      case 91: this.updateKeyboardState({ isCommandKeyDown: false }); break
+      case 93: this.updateKeyboardState({ isCommandKeyDown: false }); break
     }
   }
 
   updateKeyboardState (updates) {
     // If the input is focused, don't allow keyboard state changes to cause a re-render, otherwise
     // the input field will switch back to its previous contents (e.g. when holding down 'shift')
-    if (!this.component.getFocusedRow()) {
+    if (!this.getActiveComponent().getFocusedRow()) {
       return this.setState(updates)
     } else {
       for (var key in updates) {
         this.state[key] = updates[key]
       }
     }
-  }
-
-  addEmitterListener (eventEmitter, eventName, eventHandler) {
-    this.emitters.push([eventEmitter, eventName, eventHandler])
-    eventEmitter.on(eventName, eventHandler)
   }
 
   toggleTimeDisplayMode () {
@@ -404,23 +467,23 @@ class Timeline extends React.Component {
   }
 
   playbackSkipBack () {
-    let frameInfo = this.component.getCurrentTimeline().getFrameInfo()
-    this.component.getCurrentTimeline().seekAndPause(frameInfo.fri0)
-    this.component.getCurrentTimeline().updateCurrentFrame(frameInfo.fri0)
-    this.component.getCurrentTimeline().tryToLeftAlignTickerInVisibleFrameRange(frameInfo.fri0)
+    let frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
+    this.getActiveComponent().getCurrentTimeline().seekAndPause(frameInfo.fri0)
+    this.getActiveComponent().getCurrentTimeline().updateCurrentFrame(frameInfo.fri0)
+    this.getActiveComponent().getCurrentTimeline().tryToLeftAlignTickerInVisibleFrameRange(frameInfo.fri0)
     this.setState({ isPlayerPlaying: false })
   }
 
   playbackSkipForward () {
-    let frameInfo = this.component.getCurrentTimeline().getFrameInfo()
-    this.component.getCurrentTimeline().seekAndPause(frameInfo.maxf)
-    this.component.getCurrentTimeline().updateCurrentFrame(frameInfo.maxf)
-    this.component.getCurrentTimeline().tryToLeftAlignTickerInVisibleFrameRange(frameInfo.maxf)
+    let frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
+    this.getActiveComponent().getCurrentTimeline().seekAndPause(frameInfo.maxf)
+    this.getActiveComponent().getCurrentTimeline().updateCurrentFrame(frameInfo.maxf)
+    this.getActiveComponent().getCurrentTimeline().tryToLeftAlignTickerInVisibleFrameRange(frameInfo.maxf)
     this.setState({ isPlayerPlaying: false })
   }
 
   togglePlayback () {
-    if (this.component.getCurrentTimeline().getCurrentFrame() >= this.component.getCurrentTimeline().getFrameInfo().maxf) {
+    if (this.getActiveComponent().getCurrentTimeline().getCurrentFrame() >= this.getActiveComponent().getCurrentTimeline().getFrameInfo().maxf) {
       this.playbackSkipBack()
     }
 
@@ -428,13 +491,13 @@ class Timeline extends React.Component {
       this.setState({
         isPlayerPlaying: false
       }, () => {
-        this.component.getCurrentTimeline().pause()
+        this.getActiveComponent().getCurrentTimeline().pause()
       })
     } else {
       this.setState({
         isPlayerPlaying: true
       }, () => {
-        this.component.getCurrentTimeline().play()
+        this.getActiveComponent().getCurrentTimeline().play()
       })
     }
   }
@@ -448,24 +511,24 @@ class Timeline extends React.Component {
         }}>
         <ControlsArea
           $update={this.state.$update}
-          timeline={this.component.getCurrentTimeline()}
+          timeline={this.getActiveComponent().getCurrentTimeline()}
           activeComponentDisplayName={this.props.userconfig.name}
-          selectedTimelineName={this.component.getCurrentTimeline().getName()}
+          selectedTimelineName={this.getActiveComponent().getCurrentTimeline().getName()}
           playbackSpeed={this.state.playerPlaybackSpeed}
           changeTimelineName={(oldTimelineName, newTimelineName) => {
-            this.component.renameTimeline(oldTimelineName, newTimelineName, { from: 'timeline' }, () => {})
+            this.getActiveComponent().renameTimeline(oldTimelineName, newTimelineName, { from: 'timeline' }, () => {})
           }}
           createTimeline={(timelineName) => {
-            this.component.createTimeline(timelineName, {}, { from: 'timeline' }, () => {})
+            this.getActiveComponent().createTimeline(timelineName, {}, { from: 'timeline' }, () => {})
           }}
           duplicateTimeline={(timelineName) => {
-            this.component.duplicateTimeline(timelineName, { from: 'timeline' }, () => {})
+            this.getActiveComponent().duplicateTimeline(timelineName, { from: 'timeline' }, () => {})
           }}
           deleteTimeline={(timelineName) => {
-            this.component.deleteTimeline(timelineName, { from: 'timeline' }, () => {})
+            this.getActiveComponent().deleteTimeline(timelineName, { from: 'timeline' }, () => {})
           }}
           selectTimeline={(currentTimelineName) => {
-            this.component.setTimelineName(currentTimelineName, { from: 'timeline' }, () => {})
+            this.getActiveComponent().setTimelineName(currentTimelineName, { from: 'timeline' }, () => {})
           }}
           playbackSkipBack={() => {
             this.playbackSkipBack()
@@ -479,45 +542,47 @@ class Timeline extends React.Component {
           changePlaybackSpeed={(inputEvent) => {
             let playerPlaybackSpeed = Number(inputEvent.target.value || 1)
             this.setState({ playerPlaybackSpeed })
-          }} />
+          }}
+          toggleRepeat={() => {
+            const timeline = this.getActiveComponent().getCurrentTimeline()
+            timeline.toggleRepeat()
+            this.setState({ isRepeat: timeline.getRepeat() })
+          }}
+          isRepeat={this.state.isRepeat}
+          />
       </div>
     )
   }
 
   getCurrentTimelineTime (frameInfo) {
-    return Math.round(this.component.getCurrentTimeline().getCurrentFrame() * frameInfo.mspf)
+    return Math.round(this.getActiveComponent().getCurrentTimeline().getCurrentFrame() * frameInfo.mspf)
   }
 
   showFrameActionsEditor (frame) {
-    // #FIXME in multicomponents (matthew)
-    this.showEventHandlersEditor(this.component.findElementRoots()[0].uid, frame)
+    this.showEventHandlersEditor(this.getActiveComponent().findElementRoots()[0].getPrimaryKey(), frame)
   }
 
   showEventHandlersEditor (elementUID, frame) {
-    this.props.websocket.action(
-      'showEventHandlersEditor',
-      [this.props.folder, elementUID, {isSimplified: Boolean(frame), frame}],
-      () => {}
-    )
+    this.getActiveComponent().showEventHandlersEditor(elementUID, { isSimplified: Boolean(frame) }, { from: 'timeline' })
   }
 
   renderDurationModifier () {
-    var frameInfo = this.component.getCurrentTimeline().getFrameInfo()
+    var frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
 
-    var pxOffset = this.component.getCurrentTimeline().getDragIsAdding() ? 0 : -this.component.getCurrentTimeline().getDurationTrim() * frameInfo.pxpf
+    var pxOffset = this.getActiveComponent().getCurrentTimeline().getDragIsAdding() ? 0 : -this.getActiveComponent().getCurrentTimeline().getDurationTrim() * frameInfo.pxpf
 
-    if (frameInfo.friB >= frameInfo.friMax || this.component.getCurrentTimeline().getDragIsAdding()) {
+    if (frameInfo.friB >= frameInfo.friMax || this.getActiveComponent().getCurrentTimeline().getDragIsAdding()) {
       return (
         <DraggableCore
           axis='x'
           onStart={(dragEvent, dragData) => {
-            this.component.getCurrentTimeline().setDurationTrim(0)
+            this.getActiveComponent().getCurrentTimeline().setDurationTrim(0)
           }}
           onStop={(dragEvent, dragData) => {
-            this.component.getCurrentTimeline().handleDurationModifierStop(dragData)
+            this.getActiveComponent().getCurrentTimeline().handleDurationModifierStop(dragData)
           }}
           onDrag={(dragEvent, dragData) => {
-            this.component.getCurrentTimeline().dragDurationModifierPosition(dragData.x)
+            this.getActiveComponent().getCurrentTimeline().dragDurationModifierPosition(dragData.x)
           }}>
           <div style={{
             position: 'absolute',
@@ -565,7 +630,7 @@ class Timeline extends React.Component {
           top: 0,
           left: 0,
           height: this.state.rowHeight + 20,
-          width: this.component.getCurrentTimeline().getPropertiesPixelWidth() + this.component.getCurrentTimeline().getTimelinePixelWidth(),
+          width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
           verticalAlign: 'top',
           fontSize: 10,
           borderBottom: '1px solid ' + Palette.FATHER_COAL,
@@ -579,35 +644,35 @@ class Timeline extends React.Component {
             left: 0,
             paddingTop: 5,
             height: 'inherit',
-            width: this.component.getCurrentTimeline().getPropertiesPixelWidth()
+            width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
           }}>
           <GaugeTimeReadout
             reactParent={this}
             timeDisplayMode={this.state.timeDisplayMode}
-            timeline={this.component.getCurrentTimeline()} />
+            timeline={this.getActiveComponent().getCurrentTimeline()} />
         </div>
         <div
           id='gauge-box'
           className='gauge-box'
           onClick={(clickEvent) => {
             if (clickEvent.nativeEvent.target.id === 'gauge-box') {
-              if (!this.component.getCurrentTimeline().isScrubberDragging()) {
-                const frameInfo = this.component.getCurrentTimeline().getFrameInfo()
+              if (!this.getActiveComponent().getCurrentTimeline().isScrubberDragging()) {
+                const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
 
                 const leftX = clickEvent.nativeEvent.offsetX
                 const frameX = Math.round(leftX / frameInfo.pxpf)
                 const newFrame = frameInfo.friA + frameX
-                const pageFrameLength = this.component.getCurrentTimeline().getVisibleFrameRangeLength()
+                const pageFrameLength = this.getActiveComponent().getCurrentTimeline().getVisibleFrameRangeLength()
 
                 // If the frame clicked exceeds the virtual or explicit max, allocate additional
                 // virtual frames in the view and jump the user to the new page
                 if (newFrame > frameInfo.friB) {
                   const newMaxFrame = newFrame + pageFrameLength
-                  this.component.getCurrentTimeline().setMaxFrame(newMaxFrame)
-                  this.component.getCurrentTimeline().setVisibleFrameRange(newFrame, newMaxFrame)
+                  this.getActiveComponent().getCurrentTimeline().setMaxFrame(newMaxFrame)
+                  this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(newFrame, newMaxFrame)
                 }
 
-                this.component.getCurrentTimeline().seek(newFrame)
+                this.getActiveComponent().getCurrentTimeline().seek(newFrame)
               }
             }
           }}
@@ -615,24 +680,24 @@ class Timeline extends React.Component {
             // display: 'table-cell',
             position: 'absolute',
             top: 0,
-            left: this.component.getCurrentTimeline().getPropertiesPixelWidth(),
-            width: this.component.getCurrentTimeline().getTimelinePixelWidth(),
+            left: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
+            width: this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
             height: 'inherit',
             verticalAlign: 'top',
             paddingTop: 17,
             color: Palette.ROCK_MUTED }}>
           <FrameGrid
             $update={this.state.$update}
-            timeline={this.component.getCurrentTimeline()}
+            timeline={this.getActiveComponent().getCurrentTimeline()}
             onShowFrameActionsEditor={this.showFrameActionsEditor} />
           <Gauge
             $update={this.state.$update}
             timeDisplayMode={this.state.timeDisplayMode}
-            timeline={this.component.getCurrentTimeline()} />
+            timeline={this.getActiveComponent().getCurrentTimeline()} />
           <Scrubber
             $update={this.state.$update}
             reactParent={this}
-            timeline={this.component.getCurrentTimeline()} />
+            timeline={this.getActiveComponent().getCurrentTimeline()} />
         </div>
         {this.renderDurationModifier()}
       </div>
@@ -656,7 +721,7 @@ class Timeline extends React.Component {
         <TimelineRangeScrollbar
           $update={this.state.$update}
           reactParent={this}
-          timeline={this.component.getCurrentTimeline()} />
+          timeline={this.getActiveComponent().getCurrentTimeline()} />
         {this.renderTimelinePlaybackControls()}
       </div>
     )
@@ -687,8 +752,8 @@ class Timeline extends React.Component {
                 ctxmenu={this.ctxmenu}
                 rowHeight={this.state.rowHeight}
                 isPlayerPlaying={this.state.isPlayerPlaying}
-                timeline={this.component.getCurrentTimeline()}
-                component={this.component}
+                timeline={this.getActiveComponent().getCurrentTimeline()}
+                component={this.getActiveComponent()}
                 row={row} />
             )
           }
@@ -702,8 +767,8 @@ class Timeline extends React.Component {
                 ctxmenu={this.ctxmenu}
                 rowHeight={this.state.rowHeight}
                 isPlayerPlaying={this.state.isPlayerPlaying}
-                timeline={this.component.getCurrentTimeline()}
-                component={this.component}
+                timeline={this.getActiveComponent().getCurrentTimeline()}
+                component={this.getActiveComponent()}
                 row={row} />
             )
           }
@@ -717,8 +782,8 @@ class Timeline extends React.Component {
                 ctxmenu={this.ctxmenu}
                 rowHeight={this.state.rowHeight}
                 isPlayerPlaying={this.state.isPlayerPlaying}
-                timeline={this.component.getCurrentTimeline()}
-                component={this.component}
+                timeline={this.getActiveComponent().getCurrentTimeline()}
+                component={this.getActiveComponent()}
                 row={row}
                 onEventHandlerTriggered={this.showEventHandlersEditor} />
             )
@@ -732,7 +797,7 @@ class Timeline extends React.Component {
   }
 
   render () {
-    if (!this.component.getCurrentTimeline()) {
+    if (!this.getActiveComponent() || !this.getActiveComponent().getCurrentTimeline()) {
       return (
         <div
           id='timeline'
@@ -755,7 +820,7 @@ class Timeline extends React.Component {
         id='timeline'
         className='no-select'
         onClick={(clickEvent) => {
-          Row.all().forEach((row) => {
+          this.getActiveComponent().getRows().forEach((row) => {
             row.blur({ from: 'timeline' })
             row.deselect({ from: 'timeline' })
           })
@@ -788,7 +853,7 @@ class Timeline extends React.Component {
           )
         }
         <HorzScrollShadow
-          timeline={this.component.getCurrentTimeline()} />
+          timeline={this.getActiveComponent().getCurrentTimeline()} />
         {this.renderTopControls()}
         <div
           ref='scrollview'
@@ -811,40 +876,40 @@ class Timeline extends React.Component {
               !Globals.isControlKeyDown &&
               mouseEvent.nativeEvent.which !== 3
             ) {
-              this.component.deselectAndDeactivateAllKeyframes()
+              this.getActiveComponent().deselectAndDeactivateAllKeyframes()
             }
           }}>
-          {this.renderComponentRows(this.component.getDisplayableRows())}
+          {this.renderComponentRows(this.getActiveComponent().getDisplayableRows())}
         </div>
         {this.renderBottomControls()}
         <ExpressionInput
           ref='expressionInput'
           $update={this.state.$update}
           reactParent={this}
-          component={this.component}
-          timeline={this.component.getCurrentTimeline()}
+          component={this.getActiveComponent()}
+          timeline={this.getActiveComponent().getCurrentTimeline()}
           onCommitValue={(committedValue) => {
-            const row = this.component.getFocusedRow()
-            const ms = this.component.getCurrentTimeline().getCurrentMs()
+            const row = this.getActiveComponent().getFocusedRow()
+            const ms = this.getActiveComponent().getCurrentTimeline().getCurrentMs()
 
             console.info('[timeline] commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump())
 
             row.createKeyframe(committedValue, ms, { from: 'timeline' })
 
             if (row.element.getNameString() === 'svg' && row.getPropertyName() === 'opacity') {
-              if (!this.component._envoyClient.isInMockMode() && this.tourClient) {
+              if (!this.project.getEnvoyClient().isInMockMode() && this.tourClient) {
                 this.tourClient.next()
               }
             }
           }}
           onFocusRequested={() => {
-            const selected = Row.getSelectedRow()
+            const selected = this.getActiveComponent().getSelectedRows()[0]
             if (selected.isProperty()) {
               selected.focus({ from: 'timeline' })
             }
           }}
           onNavigateRequested={(navDir, doFocus) => {
-            Row.focusSelectNext(navDir, doFocus, { from: 'timeline' })
+            this.getActiveComponent().focusSelectNext(navDir, doFocus, { from: 'timeline' })
           }} />
       </div>
     )

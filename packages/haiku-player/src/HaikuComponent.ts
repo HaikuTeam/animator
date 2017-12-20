@@ -16,6 +16,7 @@ import manaFlattenTree from './helpers/manaFlattenTree';
 import scopifyElements from './helpers/scopifyElements';
 import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import upgradeBytecodeInPlace from './helpers/upgradeBytecodeInPlace';
+import initializeComponentTree from './helpers/initializeComponentTree';
 
 import Layout3D from './Layout3D';
 import ValueBuilder from './ValueBuilder';
@@ -65,7 +66,13 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   }
 
   // First we assign the bytecode, because config assignment (see below) might effect the way it is set up!
-  this._bytecode = clone(bytecode);
+  // The configuration can specify 'hotEditingMode' which is used by Haiku.app to allow direct mutation of
+  // the component during runtime
+  if (!config.options.hotEditingMode) {
+    this._bytecode = clone(bytecode);
+  } else {
+    this._bytecode = bytecode;
+  }
 
   // If the bytecode we got happens to be in an outdated format, we automatically updated it to ours
   upgradeBytecodeInPlace(this._bytecode, {
@@ -103,7 +110,20 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   // TEMPLATE
   // The full version of the template gets mutated in-place by the rendering algorithm
   this._flatManaTree = [];
-  this._template = fetchAndCloneTemplate(this._bytecode.template);
+
+  if (!this._bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]) {
+    console.warn('[haiku player] bytecode template has no id');
+  }
+
+  assertTemplate(this._bytecode.template);
+
+  // The configuration can specify 'hotEditingMode' which is used by Haiku.app to allow direct mutation of
+  // the component during runtime
+  if (!config.options.hotEditingMode) {
+    this._template = cloneTemplate(this._bytecode.template);
+  } else {
+    this._template = this._bytecode.template;
+  }
 
   // Flag used internally to determine whether we need to re-render the full tree or can survive by just patching
   this._needsFullFlush = false;
@@ -178,7 +198,8 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   // Flag to indicate whether we are sleeping, an ephemeral condition where no rendering occurs
   this._sleeping = false;
 
-  HaikuComponent['components'].push(this);
+  // Useful when debugging to understand cross-component effects
+  this._entityIndex = HaikuComponent['components'].push(this) - 1;
 }
 
 HaikuComponent['PLAYER_VERSION'] = PLAYER_VERSION;
@@ -435,9 +456,15 @@ HaikuComponent.prototype.clearCaches = function clearCaches(options) {
   this._needsFullFlush = false;
   this._lastTemplateExpansion = null;
   this._lastDeltaPatches = null;
-  this._matchedElementCache = {};
+
   this._renderScopes = {};
   this._controlFlowData = {};
+
+  // We rehydrate the flat mana tree here in clearCaches instead of just emptying the array,
+  // because Haiku.app depends on querying our rendered elements in order to calculate properties
+  // and get transform information for on-stage controls.
+  this._rehydrateFlatManaTree();
+  this._matchedElementCache = {};
 
   this._clearDetectedEventsFired();
   this._clearDetectedInputChanges();
@@ -573,10 +600,6 @@ HaikuComponent.prototype._getTopLevelElement = function _getTopLevelElement() {
   return this._template;
 };
 
-HaikuComponent.prototype.getAddressableProperties = function getAddressableProperties() {
-  return this._bytecode.states || {};
-};
-
 /**
  * @method _deactivate
  * @description When hot-reloading a component during editing, this can be used to
@@ -611,6 +634,7 @@ HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegister
   if (!flexId) {
     return false;
   }
+  
   return this._registeredElementEventListeners[flexId] && this._registeredElementEventListeners[flexId][eventName];
 };
 
@@ -628,6 +652,49 @@ HaikuComponent.prototype._markDidRegisterListenerOnElement = function _markDidRe
     target: domElement,
   };
   return this;
+};
+
+/**
+ * @method dump
+ * @description Dump serializable info about this object
+ */
+HaikuComponent.prototype.dump = function dump() {
+  const metadata = this.getBytecodeMetadata();
+  return `${metadata.relpath}:${this.getComponentId()}[${this._entityIndex}]`;
+};
+
+HaikuComponent.prototype.getComponentId = function getComponentId() {
+  return this._bytecode.template.attributes[HAIKU_ID_ATTRIBUTE];
+};
+
+HaikuComponent.prototype.getBytecodeMetadata = function getBytecodeMetadata() {
+  return this._bytecode.metadata;
+};
+
+HaikuComponent.prototype.getAddressableProperties = function getAddressableProperties(out = {}) {
+  if (!this._bytecode.states) {
+    return out;
+  }
+
+  for (const name in this._bytecode.states) {
+    const state = this._bytecode.states[name];
+
+    out[name] = {
+      name,
+      type: 'state', // As opposed to a 'native' property like fill-rule
+      prefix: name, // States aren't named like rotation.x, so there is no 'prefix'
+      suffix: undefined, // States aren't named like rotation.x, so there is no 'suffix'
+      fallback: state.value, // Weird nomenclature: In Haiku.app, fallback means the default value
+      typedef: state.type, // Weird nomenclature: In Haiku.app, typedef just means the runtime type
+      mock: state.mock, // Just in case needed by someone
+      target: this, // Used for tracking convenience; may also be an 'element'; do not remove
+      value: () => { // Lazy because this may change over time and we don't want to require re-query
+        return this.state[name]; // The current live value of this state as seen by the app
+      },
+    };
+  }
+
+  return out;
 };
 
 /**
@@ -670,7 +737,14 @@ function cloneTemplate(mana) {
     out.attributes = {};
 
     for (const key in mana.attributes) {
-      out.attributes[key] = mana.attributes[key];
+      if (mana.attributes[key] && typeof mana.attributes[key] === 'object') {
+        out.attributes[key] = {};
+        for (const subkey in mana.attributes[key]) {
+          out.attributes[key][subkey] = mana.attributes[key][subkey];
+        }
+      } else {
+        out.attributes[key] = mana.attributes[key];  
+      }
     }
   }
 
@@ -685,7 +759,7 @@ function cloneTemplate(mana) {
   return out;
 }
 
-function fetchAndCloneTemplate(template) {
+function assertTemplate(template) {
   if (!template) {
     throw new Error('Empty template not allowed');
   }
@@ -696,7 +770,8 @@ function fetchAndCloneTemplate(template) {
         '[haiku player] warning: saw unexpected bytecode template format',
       );
     }
-    return cloneTemplate(template);
+
+    return template;
   }
 
   throw new Error('Unknown bytecode template format');
@@ -925,6 +1000,18 @@ HaikuComponent.prototype._getPrecalcedPatches = function _getPrecalcedPatches() 
   return this._lastDeltaPatches || {};
 };
 
+/**
+ * @method _rehydrateFlatManaTree
+ * @private
+ * @description The _flatManaTree is a cache of the flattened list of all elements in our
+ * tree; when the tree changes we need to repopulate it with the new set of elements.
+ * This method is essentially a cache invalidator.
+ */
+HaikuComponent.prototype._rehydrateFlatManaTree = function _rehydrateFlatManaTree() {
+  this._flatManaTree = manaFlattenTree(this._template, CSS_QUERY_MAPPING);
+  return this._flatManaTree;
+};
+
 HaikuComponent.prototype.render = function render(container, renderOptions) {
   if (this._deactivated) {
     // If deactivated, pretend like there is nothing to render
@@ -932,7 +1019,17 @@ HaikuComponent.prototype.render = function render(container, renderOptions) {
   }
 
   const time = this._context.clock.getExplicitTime();
-  this._flatManaTree = manaFlattenTree(this._template, CSS_QUERY_MAPPING);
+
+  const prevFlatManaTreeLen = this._flatManaTree.length;
+  this._rehydrateFlatManaTree();
+
+  // Use a changing number of elements as a heuristic to decide whether we need to
+  // force a re-query of the tree. For example, take a situation where a new component
+  // has been added to the tree post-hoc, and the element cache for its query selector
+  // had contained [], a truthy value that would be returned from the cache
+  if (prevFlatManaTreeLen.length !== this._flatManaTree.length) {
+    this._matchedElementCache = {};
+  }
 
   for (const timelineName in this._timelineInstances) {
     const timeline = this._timelineInstances[timelineName];
@@ -942,6 +1039,7 @@ HaikuComponent.prototype.render = function render(container, renderOptions) {
       timeline._doUpdateWithGlobalClockTime(time);
     }
   }
+
 
   // 1. Update the tree in place using all of the applied values we got from the timelines
   applyContextChanges(this, this._template, container, this._context, renderOptions || {});
@@ -959,7 +1057,7 @@ HaikuComponent.prototype.render = function render(container, renderOptions) {
   return this._lastTemplateExpansion;
 };
 
-HaikuComponent.prototype._findElementsByHaikuId = function _findElementsByHaikuId(componentId) {
+HaikuComponent.prototype.findElementsByHaikuId = function findElementsByHaikuId(componentId) {
   return findMatchingElementsByCssSelector('haiku:' + componentId, this._flatManaTree, this._matchedElementCache);
 };
 
@@ -1140,7 +1238,7 @@ function applyBehaviors(timelinesRunning, deltas, component, context, isPatchOpe
 function gatherDeltaPatches(component, template, container, context, timelinesRunning, patchOptions) {
   // handlers/vanities depend on attributes objects existing in the first place.
   Layout3D.initializeTreeAttributes(template, container);
-  initializeComponentTree(template, component, context);
+  initializeComponentTree(template, component, context, null);
 
   const deltas = {}; // This is what we're going to return - a dictionary of ids to elements
 
@@ -1185,7 +1283,7 @@ function applyContextChanges(component, template, container, context, renderOpti
   }
 
   Layout3D.initializeTreeAttributes(template, container); // handlers/vanities depend on attributes objects existing
-  initializeComponentTree(template, component, context);
+  initializeComponentTree(template, component, context, null);
 
   scopifyElements(template, null, null); // I think this only needs to happen once when we build the full tree
 
@@ -1198,37 +1296,6 @@ function applyContextChanges(component, template, container, context, renderOpti
   computeAndApplyTreeLayouts(template, container, renderOptions, context);
 
   return template;
-}
-
-function initializeComponentTree(element, component, context) {
-  // In addition to plain objects, a sub-element can also be a component,
-  // which we currently detect by checking to see if it looks like 'bytecode'
-  // Don't instantiate a second time if we already have the instance at this node
-  if (isBytecode(element.elementName) && !element.__instance) {
-    const flexId = element.attributes && (element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes.id);
-    element.__instance = new HaikuComponent(
-      element.elementName,
-      context,
-      {
-        // Exclude states, etc. (everything except 'options') since those should override *only* on the root element
-        // being instantiated.
-        options: context.config.options,
-      },
-      {
-        nested: true,
-      });
-
-    // We duplicate the behavior of HaikuContext and start the default timeline
-    element.__instance.startTimeline(DEFAULT_TIMELINE_NAME);
-    component._nestedComponentElements[flexId] = element;
-  }
-
-  // repeat through children
-  if (element.children && element.children.length > 0) {
-    for (let i = 0; i < element.children.length; i++) {
-      initializeComponentTree(element.children[i], component, context);
-    }
-  }
 }
 
 function expandTreeElement(element, component, context) {
@@ -1256,8 +1323,16 @@ function expandTreeElement(element, component, context) {
     const wrapper = shallowCloneComponentTreeElement(element);
     const surrogates = wrapper.children;
     const subtree = element.__instance.render(element, element.__instance.config.options, surrogates);
-    const expansion = expandTreeElement(subtree, element.__instance, context);
-    wrapper.children = [expansion];
+    
+    // No subtree usually indicates that the instance has been deactivated upstream
+    // which can occur during module replacement while editing in Haiku.app
+    if (subtree) {
+      const expansion = expandTreeElement(subtree, element.__instance, context);
+      wrapper.children = [expansion];
+    } else {
+      wrapper.children = [];
+    }
+
     return wrapper;
   }
 
@@ -1508,8 +1583,4 @@ function computeAndApplyPresetSizing(element, container, mode, deltas) {
     // The 'deltas' dictionary is passed to us from the render functions upstream of here.
     deltas[element.attributes[HAIKU_ID_ATTRIBUTE]] = element;
   }
-}
-
-function isBytecode(thing) {
-  return thing && typeof thing === OBJECT_TYPE && thing.template && thing.timelines;
 }

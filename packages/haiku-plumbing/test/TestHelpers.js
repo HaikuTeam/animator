@@ -75,6 +75,7 @@ function setup(ready) {
         const timeline = websocket(host, port, folder, 'timeline', 'controllee')
         glass.on('meow', (message) => { if (message.type !== 'broadcast') return glass.message(message) }) // Auto-respond as mock
         timeline.on('meow', (message) => { if (message.type !== 'broadcast') return timeline.message(message) }) // Auto-respond as mock
+        creator.on('meow', (message) => { if (message.type !== 'broadcast') return creator.message(message) }) // Auto-respond as mock
         function teardown() {
           cleanup()
           plumbing.teardown()
@@ -99,7 +100,7 @@ function setup(ready) {
 function tmpdir(cb) {
   return tmp.dir({ unsafeCleanup: true }, function(err, dir, cleanup) {
     if (err) throw err
-    var folder = path.join(dir, '.haiku', randomAlphabetical())
+    var folder = path.join(dir, randomAlphabetical())
     fse.mkdirpSync(folder)
     console.log('[test] created temp folder', folder)
     return cb(folder, cleanup)

@@ -1,7 +1,7 @@
 import React from 'react'
 import Color from 'color'
-import Palette from './DefaultPalette'
-import Globals from './Globals'
+import Palette from 'haiku-ui-common/lib/Palette'
+import Globals from 'haiku-ui-common/lib/Globals'
 
 export default class ConstantBody extends React.Component {
   constructor (props) {

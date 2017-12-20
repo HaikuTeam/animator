@@ -314,7 +314,7 @@ export function pushToRemote (pwd, remoteName, fullBranchName, gitRemoteUsername
         return fixRemoteHttpsUrl(repository, remote, gitRemoteUsername, gitRemotePassword, (err) => {
           if (err) return cb(err)
           const remoteOptions = buildRemoteOptions(gitRemoteUsername, gitRemotePassword)
-          logger.info('[git] pushing content to remote', refSpecs, remoteOptions)
+          logger.info('[git] pushing content to remote', refSpecs)
           return remote.push(refSpecs, remoteOptions).then(() => {
             return cb()
           }, (err) => {
@@ -405,7 +405,7 @@ export function fetchFromRemote (pwd, remoteName, gitRemoteUsername, gitRemotePa
       // Without tags, we can't detect what the next tag to bump to is
       fetchOpts.downloadTags = 3
 
-      logger.info('[git] fetching remote', remoteName, fetchOpts)
+      logger.info('[git] fetching remote', remoteName)
       logger.info('[git] remote info:', remote.name(), remote.url())
 
       return repository.fetch(remote, fetchOpts).then(() => {

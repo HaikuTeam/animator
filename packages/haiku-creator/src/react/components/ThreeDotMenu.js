@@ -1,6 +1,6 @@
 import React from 'react'
 import Radium from 'radium'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import Popover from 'react-popover'
 
 const STYLES = {
@@ -54,7 +54,8 @@ class ThreeDotMenu extends React.Component {
     this.closePopover = this.closePopover.bind(this)
 
     this.state = {
-      isPopoverOpen: false
+      isPopoverOpen: false,
+      isHovered: false
     }
   }
 
@@ -92,9 +93,15 @@ class ThreeDotMenu extends React.Component {
     return (
       <div
         className='three-dot-menu-popover'
+        onMouseOver={() => {
+          this.setState({isHovered: true})
+        }}
+        onMouseOut={() => {
+          this.setState({isHovered: false})
+        }}
         style={[
           STYLES.container,
-          this.props.isHovered ? STYLES.container.hover : {}
+          this.state.isHovered && STYLES.container.hover
         ]}
       >
         <Popover

@@ -37,5 +37,9 @@ module.exports = function upsertStateValue (bytecode, stateName, stateDescriptor
     bytecode.states[stateName].set = unserValue(stateDescriptor.set)
   }
 
+  // The 'edited' flag is used to determine whether a property is overwriteable during a merge.
+  // In multi-component, theoretically both designs can be merged and components can be merged.
+  bytecode.states[stateName].edited = true
+
   return bytecode
 }

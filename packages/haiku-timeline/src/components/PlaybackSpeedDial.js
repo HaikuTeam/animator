@@ -1,6 +1,6 @@
 import React from 'react'
 import Radium from 'radium'
-import Palette from './DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 const STYLES = {
   // Note this holster is rotated 90deg counter-clockwise

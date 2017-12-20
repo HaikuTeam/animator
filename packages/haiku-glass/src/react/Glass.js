@@ -3,21 +3,25 @@ import lodash from 'lodash'
 import Radium from 'radium'
 import HaikuDOMRenderer from '@haiku/player/lib/renderers/dom'
 import HaikuContext from '@haiku/player/lib/HaikuContext'
-import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
+import Project from 'haiku-serialization/src/bll/Project'
+import Config from '@haiku/player/lib/Config'
 import Element from 'haiku-serialization/src/bll/Element'
+import Design from 'haiku-serialization/src/bll/Design'
+import Asset from 'haiku-serialization/src/bll/Asset'
+import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
+import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
 import react2haiku from 'haiku-serialization/src/utils/react2haiku'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import Comment from './Comment'
 import EventHandlerEditor from './components/EventHandlerEditor'
 import Comments from './models/Comments'
 import ContextMenu from './models/ContextMenu'
-import getLocalDomEventPosition from './helpers/getLocalDomEventPosition'
+import getLocalDomEventPosition from 'haiku-ui-common/lib/helpers/getLocalDomEventPosition'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
-import {
-  linkExternalAssetsOnDrop,
-  preventDefaultDrag
-} from 'haiku-serialization/src/utils/dndHelpers'
-import {EventsBoltIcon} from './Icons'
+import {EventsBoltIcon} from 'haiku-ui-common/lib/react/OtherIcons'
+import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
+
+const Globals = require('haiku-ui-common/lib/Globals').default
 
 const { clipboard } = require('electron')
 
@@ -44,6 +48,10 @@ const LINE_DISPLAY_MODES = {
   NONE: 2
 }
 
+const SELECTION_TYPES = {
+  ON_STAGE_CONTROL: 'on_stage_control'
+}
+
 const BOLT_SVG = react2haiku(EventsBoltIcon({color: Palette.DARKER_ROCK2}))
 
 // The class is exported also _without_ the radium wrapper to allow jsdom testing
@@ -51,19 +59,15 @@ export class Glass extends React.Component {
   constructor (props) {
     super(props)
 
+    EmitterManager.extend(this)
+
     this.state = {
-      mountWidth: 550,
-      mountHeight: 400,
-      mountX: 550 / 2,
-      mountY: 400 / 2,
       controlActivation: null,
       mousePositionCurrent: null,
       mousePositionPrevious: null,
       isAnythingScaling: false,
       isAnythingRotating: false,
       globalControlPointHandleClass: '',
-      containerHeight: document.body.clientHeight,
-      containerWidth: document.body.clientWidth,
       isStageSelected: false,
       isStageNameHovering: false,
       isMouseDown: false,
@@ -72,39 +76,29 @@ export class Glass extends React.Component {
       lastMouseUpPosition: null,
       lastMouseUpTime: null,
       isMouseDragging: false,
-      isKeyShiftDown: false,
-      isKeyCtrlDown: false,
-      isKeyAltDown: false,
-      isKeyCommandDown: false,
-      isKeySpaceDown: false,
-      panX: 0,
-      panY: 0,
-      originalPanX: 0,
-      originalPanY: 0,
-      zoomXY: 1,
       comments: [],
       doShowComments: false,
       targetElement: null,
       isEventHandlerEditorOpen: false,
-      eventHandlerEditorOptions: {},
-      activeDrawingTool: 'pointer',
-      drawingIsModal: true
+      eventHandlerEditorOptions: {}
     }
 
-    this._component = ActiveComponent.upsert({
-      alias: 'glass',
-      uid: this.props.folder + '::' + this.props.scenename,
-      folder: this.props.folder,
-      userconfig: this.props.userconfig,
-      websocket: this.props.websocket,
-      platform: window,
-      envoy: this.props.envoy,
-      WebSocket: window.WebSocket
-    })
-
-    this._component.setStageTransform({zoom: this.state.zoomXY, pan: {x: this.state.panX, y: this.state.panY}})
-
-    this._isHaikuInitiallyMounted = false
+    Project.setup(
+      this.props.folder,
+      'glass',
+      this.props.websocket,
+      window,
+      this.props.userconfig,
+      { // fileOptions
+        doWriteToDisk: false,
+        skipDiffLogging: true
+      },
+      this.props.envoy,
+      (err, project) => {
+        if (err) throw err
+        this.handleProjectReady(project)
+      }
+    )
 
     this._comments = new Comments(this.props.folder)
     this._ctxmenu = new ContextMenu(window, this)
@@ -119,8 +113,20 @@ export class Glass extends React.Component {
     this.drawLoop = this.drawLoop.bind(this)
     this.draw = this.draw.bind(this)
 
-    this._haikuRenderer = new HaikuDOMRenderer()
-    this._haikuContext = new HaikuContext(null, this._haikuRenderer, {}, { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } }, { options: { cache: {}, seed: 'abcde' } })
+    const haikuConfig = Config.build({
+      options: {
+        seed: Config.seed(),
+        cache: {}
+      }
+    })
+    this._haikuRenderer = new HaikuDOMRenderer(haikuConfig)
+    this._haikuContext = new HaikuContext(
+      null,
+      this._haikuRenderer,
+      {},
+      { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } },
+      haikuConfig
+    )
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
     this.handleBoltMousedown = this.handleBoltMousedown.bind(this)
@@ -135,12 +141,12 @@ export class Glass extends React.Component {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          left: '0px',
-          top: '0px',
+          left: '0px', // overwritten later
+          top: '0px', // overwritten later
           border: '1px solid ' + Palette.DARKER_ROCK2,
           backgroundColor: 'transparent',
-          width: '0px',
-          height: '0px',
+          width: '0px', // overwritten later
+          height: '0px', // overwritten later
           borderRadius: '50%',
           cursor: 'pointer'
         }
@@ -150,38 +156,144 @@ export class Glass extends React.Component {
 
     window.glass = this
 
-    this._component.on('envoy:timelineClientReady', (timelineChannel) => {
+    // TODO: Is there any race condition with kicking this off immediately?
+    this.drawLoop()
+  }
+
+  awaitRef (name, cb) {
+    if (this.refs[name]) {
+      return cb(this.refs[name])
+    }
+    return setTimeout(() => {
+      this.awaitRef(name, cb)
+    }, 100)
+  }
+
+  getActiveComponent () {
+    return this.project && this.project.getCurrentActiveComponent()
+  }
+
+  handleProjectReady (project) {
+    this.project = project
+
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'envoy:timelineClientReady', (timelineChannel) => {
       timelineChannel.on('didPlay', this.handleTimelineDidPlay.bind(this))
       timelineChannel.on('didPause', this.handleTimelineDidPause.bind(this))
       timelineChannel.on('didSeek', this.handleTimelineDidSeek.bind(this))
     })
 
-    this._component.on('envoy:glassClientReady', (glassChannel) => {
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'envoy:glassClientReady', (glassChannel) => {
       glassChannel.on('cut', () => { this.handleVirtualClipboard('cut') })
       glassChannel.on('copy', () => { this.handleVirtualClipboard('copy') })
     })
 
-    this._component.on('envoy:tourClientReady', (client) => {
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'envoy:tourClientReady', (client) => {
       this.tourClient = client
       this.tourClient.on('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
     })
 
-    window.addEventListener('dragover', preventDefaultDrag, false)
-    window.addEventListener(
-      'drop',
-      (event) => {
-        linkExternalAssetsOnDrop(
-          event,
-          this.props.websocket,
-          this.props.folder,
-          (error, assets) => {
-            if (error) this.setState({error})
-            this.forceUpdate()
-          }
-        )
-      },
-      false
-    )
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'update', (what, ...args) => {
+      switch (what) {
+        case 'setCurrentActiveComponent':
+          this.handleActiveComponentReady()
+          break
+        case 'application-mounted':
+          this.handleHaikuComponentMounted()
+          break
+        case 'element-selected':
+          this.setLastSelectedElement(args[0])
+          break
+        case 'element-unselected':
+          this.setLastSelectedElement(null)
+          break
+        case 'dimensions-changed':
+          this.forceUpdate()
+          break
+      }
+    })
+
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, ...args) => {
+      switch (what) {
+        case 'setCurrentActiveComponent':
+          this.handleActiveComponentReady()
+          break
+        case 'selectElement':
+          this.setLastSelectedElement(this.getActiveComponent().findElementByComponentId(args[0]))
+          break
+        case 'unselectElement':
+          this.setLastSelectedElement(null)
+          break
+        case 'setInteractionMode':
+          this.handleInteractionModeChange()
+          break
+        case 'showEventHandlersEditor':
+          this.handleShowEventHandlersEditor(args)
+          break
+      }
+    })
+
+    // When all views send this, we know it's ok to initialize the 'main' component
+    this.project.broadcastPayload({
+      name: 'project-state-change',
+      what: 'project:ready'
+    })
+
+    // When developing Glass in standalone, this env var directs it to automatically
+    // set the current active component, which is normally initiated by Creator
+    if (process.env.AUTOSTART) {
+      this.project.setCurrentActiveComponent(process.env.AUTOSTART, { from: 'glass' }, () => {})
+    }
+  }
+
+  handleActiveComponentReady () {
+    // This fires when the context menu cut/copy action has been fired - not a keyboard action.
+    // This fires with cut OR copy. In case of cut, the element has already been .cut()!
+    this.addEmitterListener(this.getActiveComponent(), 'element:copy', (element) => {
+      if (this.isPreviewMode()) return
+      this.setLastSelectedElement(element)
+      this.handleVirtualClipboard('copy')
+    })
+
+    this.mountHaikuComponent()
+  }
+
+  mountHaikuComponent () {
+    this.awaitRef('mount', (ref) => {
+      this.getActiveComponent().mountApplication(ref, {
+        options: {
+          freeze: true,
+          overflowX: 'visible',
+          overflowY: 'visible',
+          contextMenu: 'disabled'
+        },
+        reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
+      })
+    })
+  }
+
+  handleHaikuComponentMounted () {
+    this.project.broadcastPayload({
+      name: 'project-state-change',
+      what: 'component:mounted',
+      scenename: this.getActiveComponent().getSceneName()
+    })
+  }
+
+  handleInteractionModeChange () {
+    // If preview mode is active, hide the events handlers editor
+    // TODO: IMO (Roberto) would be nice if we can bring the editor back once
+    // turning preview mode off, but needs discussion with the team.
+    if (this.isPreviewMode()) {
+      this.hideEventHandlersEditor()
+      this.getActiveComponent().getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
+    } else {
+      this.forceUpdate()
+    }
+  }
+
+  handleShowEventHandlersEditor (elementUID, options) {
+    this.setLastSelectedElement(this.getActiveComponent().findElementByUid(elementUID))
+    this.showEventHandlersEditor(null, this.getLastSelectedElement(), options)
   }
 
   handleRequestElementCoordinates ({selector, webview}) {
@@ -191,8 +303,8 @@ export class Glass extends React.Component {
       selector,
       shouldNotifyEnvoy:
         this.tourClient &&
-        this._component._envoyClient &&
-        !this._component._envoyClient.isInMockMode(),
+        this.project.getEnvoyClient() &&
+        !this.project.getEnvoyClient().isInMockMode(),
       tourClient: this.tourClient
     })
   }
@@ -234,7 +346,9 @@ export class Glass extends React.Component {
     // which means the user will have trouble moving things on stage at those times.
     seekMs = Math.round(seekMs)
 
-    this._component.setTimelineTimeValue(seekMs, true)
+    if (this.getActiveComponent()) {
+      this.getActiveComponent().setTimelineTimeValue(seekMs, true)
+    }
   }
 
   draw () {
@@ -244,79 +358,39 @@ export class Glass extends React.Component {
   }
 
   drawLoop () {
-    // We handle a frame change here since authoritative frame updates
-    // are received async and we need to update according to the delta
-    this.handleFrameChange()
-    this.draw()
-    window.requestAnimationFrame(this.drawLoop)
+    if (this.getActiveComponent()) {
+      // We handle a frame change here since authoritative frame updates
+      // are received async and we need to update according to the delta
+      this.handleFrameChange()
+      this.draw()
+    }
+    window.requestAnimationFrame(this.drawLoop.bind(this))
   }
 
   componentDidMount () {
-    this._component.mountApplication(this.refs.mount, { options: { freeze: true, overflowX: 'visible', overflowY: 'visible', contextMenu: 'disabled' } })
+    window.addEventListener('dragover', Asset.preventDefaultDrag, false)
 
-    this._component.on('update', (what, ...args) => {
-      if (what === 'application-mounted') {
-        this._isHaikuInitiallyMounted = true
-        this.drawLoop()
-      } else if (what === 'element-selected') {
-        this.setLastSelectedElement(args[0])
-      } else if (what === 'element-unselected') {
-        this.setLastSelectedElement(null)
-      }
-
-      // This happens on almost any update because theoretically a keyframe change,
-      // a curve change, etc., could all result in the need to recalc the artboard :/
-      const updatedArtboardSize = this._component.getContextSize()
-      if (updatedArtboardSize && updatedArtboardSize.width && updatedArtboardSize.height) {
-        this.setState({
-          mountWidth: updatedArtboardSize.width,
-          mountHeight: updatedArtboardSize.height
-        })
-      }
-
-      // And it's almost always wize to do this or the element calibration may get crazy
-      this.resetContainerDimensions()
-    })
-
-    this._component.on('remote-update', (what, ...args) => {
-      if (what === 'selectElement') {
-        this.setLastSelectedElement(this._component.findElementByComponentId(args[0]))
-      } else if (what === 'unselectElement') {
-        this.setLastSelectedElement(null)
-      } else if (what === 'setInteractionMode') {
-        // If we've toggled into preview mode, we have to force react to update the on-stage styles
-        const isPreviewMode = this.isPreviewMode()
-        this._component.getCurrentTimeline().togglePreviewPlayback(isPreviewMode)
-
-        // If preview mode is active, hide the events handlers editor
-        // TODO: IMO (Roberto) would be nice if we can bring the editor back once
-        // turning preview mode off, but needs discussion with the team.
-        if (isPreviewMode) {
-          this.hideEventHandlersEditor()
-        } else {
+    window.addEventListener(
+      'drop',
+      (event) => {
+        this.project.linkExternalAssetOnDrop(event, (error) => {
+          if (error) this.setState({ error })
           this.forceUpdate()
-        }
-      } else if (what === 'showEventHandlersEditor') {
-        const [{elementUID, options}] = args
-        this.setLastSelectedElement(this._component.findElementByComponentId(elementUID))
-        this.showEventHandlersEditor(null, this.getLastSelectedElement(), options)
-      }
+        })
+      },
+      false
+    )
 
-      // Not sure if we really need to call this, since this is called in a raf loop
-      // this.draw()
-    })
-
-    this._component.on('time:change', (timelineName, timelineTime) => {
-      if (this._component && this._component.getMount() && !this._component.isReloadingCode) {
-        const updatedArtboardSize = this._component.getContextSize()
-        if (updatedArtboardSize && updatedArtboardSize.width && updatedArtboardSize.height) {
-          this.setState({
-            mountWidth: updatedArtboardSize.width,
-            mountHeight: updatedArtboardSize.height
-          })
-        }
-      }
-    })
+    window.addEventListener(
+      'drop',
+      (event) => {
+        this.project.linkExternalAssetOnDrop(event, (error) => {
+          if (error) this.setState({ error })
+          this.forceUpdate()
+        })
+      },
+      false
+    )
 
     // Pasteable things are stored at the global level in the clipboard but we need that action to fire from the top level
     // so that all the views get the message, so we emit this as an event and then wait for the call to pasteThing
@@ -340,66 +414,53 @@ export class Glass extends React.Component {
       this.handleVirtualClipboard('copy')
     })
 
-    // This fires when the context menu cut/copy action has been fired - not a keyboard action.
-    // This fires with cut OR copy. In case of cut, the element has already been .cut()!
-    this._component.on('element:copy', (element) => {
-      if (this.isPreviewMode()) return
-      this.setLastSelectedElement(element)
-      this.handleVirtualClipboard('copy')
-    })
-
     this.props.websocket.on('broadcast', (message) => {
-      var oldTransform // Defined below // linter
-
       switch (message.name) {
         case 'component:reload':
-          return this._component.moduleReplace((err) => {
-            // Notify the plumbing that the module replacement here has finished, which should reactivate
-            // the undo/redo queues which should be waiting for this to finish
-            // Note how we do this whether or not we got an error from the action
-            this.props.websocket.send({
-              type: 'broadcast',
-              name: 'component:reload:complete',
-              from: 'glass'
-            })
-
-            if (err) {
-              return console.error(err)
-            }
-
-            // The artboard size may have changed as a part of that, and since there are two sources of
-            // truth for this (actual artboard, React mount for artboard), we have to update it here.
-            const updatedArtboardSize = this._component.getContextSize()
-            if (updatedArtboardSize && updatedArtboardSize.width && updatedArtboardSize.height) {
-              this.setState({
-                mountWidth: updatedArtboardSize.width,
-                mountHeight: updatedArtboardSize.height
+          // Race condition where Master emits this event during initial load of assets in
+          // a project, resulting in this message arriving before we've initialized
+          if (this.getActiveComponent()) {
+            return this.getActiveComponent().moduleReplace((err) => {
+              // Notify the plumbing that the module replacement here has finished, which should reactivate
+              // the undo/redo queues which should be waiting for this to finish
+              // Note how we do this whether or not we got an error from the action
+              this.props.websocket.send({
+                type: 'broadcast',
+                name: 'component:reload:complete',
+                from: 'glass'
               })
-            }
-          })
+
+              if (err) {
+                console.error(err)
+                return
+              }
+
+              this.getActiveComponent().getArtboard().updateMountSize(this.refs.container)
+            })
+          } else {
+            console.warn('[haiku-glass] active component not initialized; cannot reload')
+            return
+          }
 
         case 'view:zoom-in':
-          oldTransform = this._component.getStageTransform()
-          oldTransform.zoom = this.state.zoomXY * 1.25
-          this._component.setStageTransform(oldTransform)
-          return this.setState({ zoomXY: this.state.zoomXY * 1.25 })
+          this.getActiveComponent().getArtboard().zoomIn(1.25)
+          break
 
         case 'view:zoom-out':
-          oldTransform = this._component.getStageTransform()
-          oldTransform.zoom = this.state.zoomXY / 1.25
-          this._component.setStageTransform(oldTransform)
-          return this.setState({ zoomXY: this.state.zoomXY / 1.25 })
+          this.getActiveComponent().getArtboard().zoomOut(1.25)
+          break
 
         case 'drawing:setActive':
-          return this.setState({
-            activeDrawingTool: message.params[0],
-            drawingIsModal: message.params[1]
-          })
+          this.getActiveComponent().getArtboard().setDrawingTool(message.params[0], message.params[1])
+          break
       }
     })
 
     this._comments.load((err) => {
-      if (err) return void (0)
+      if (err) {
+        return
+      }
+
       this.setState({ comments: this._comments.comments })
     })
 
@@ -424,6 +485,12 @@ export class Glass extends React.Component {
         case 'Show Event Listeners':
           this.showEventHandlersEditor(event, element)
           break
+        case 'Create Component':
+          this.createComponentFromSelectedElements()
+          break
+        case 'Edit Component':
+          this.editComponentElement(element)
+          break
       }
     })
 
@@ -442,28 +509,50 @@ export class Glass extends React.Component {
     })
 
     window.addEventListener('resize', lodash.throttle(() => {
-      return this.handleWindowResize()
+      this.handleWindowResize()
     }), 64)
 
     window.addEventListener('mouseup', this.windowMouseUpHandler.bind(this))
     window.addEventListener('mousemove', this.windowMouseMoveHandler.bind(this))
-    window.addEventListener('mouseup', this.windowMouseUpHandler.bind(this))
-    window.addEventListener('mousedown', this.windowMouseDownHandler.bind(this))
-    window.addEventListener('click', this.windowClickHandler.bind(this))
     window.addEventListener('dblclick', this.windowDblClickHandler.bind(this))
     window.addEventListener('keydown', this.windowKeyDownHandler.bind(this))
     window.addEventListener('keyup', this.windowKeyUpHandler.bind(this))
     window.addEventListener('mouseout', this.windowMouseOutHandler.bind(this))
+    // When the mouse is clicked, below is the order that events fire
+    window.addEventListener('mousedown', this.windowMouseDownHandler.bind(this))
+    window.addEventListener('mouseup', this.windowMouseUpHandler.bind(this))
+    window.addEventListener('click', this.windowClickHandler.bind(this))
+    window.addEventListener('contextmenu', (contextmenuEvent) => {
+      // Don't show the context menu if our editor is open
+      if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
+        return
+      }
+
+      contextmenuEvent.preventDefault()
+
+      this.setState({
+        isAnythingScaling: false,
+        isAnythingRotating: false,
+        isStageSelected: false,
+        isStageNameHovering: false,
+        isMouseDown: false,
+        isMouseDragging: false
+      })
+
+      window.setTimeout(() => {
+        this._ctxmenu.show(contextmenuEvent, this)
+      }, 64)
+    }, false)
   }
 
   componentWillUnmount () {
+    this.removeEmitterListeners()
     this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
-    this._envoyClient.closeConnection()
+    this.project.getEnvoyClient().closeConnection()
   }
 
   setLastSelectedElement (el) {
     this._lastSelectedElement = el
-    return this
   }
 
   getLastSelectedElement () {
@@ -477,7 +566,9 @@ export class Glass extends React.Component {
       // Avoid infinite loops due to the way we leverage execCommand
       this._clipboardActionLock ||
       // Avoid interfering with cut/copy events in the events editor
-      this.state.isEventHandlerEditorOpen
+      this.state.isEventHandlerEditorOpen ||
+      // Nothing can be done if no active component
+      !this.getActiveComponent()
     ) {
       return false
     }
@@ -487,8 +578,15 @@ export class Glass extends React.Component {
     const lastSelectedElement = this.getLastSelectedElement()
 
     if (lastSelectedElement) {
-      // Gotta grab _before cutting_ or we'll end up with a partial object that won't work
-      let clipboardPayload = lastSelectedElement.getClipboardPayload('glass')
+      const hash = this.getActiveComponent().getInsertionPointHash()
+
+      // Gotta grab this content before cutting, or we'll end up with a partial object that won't work
+      let clipboardPayload = lastSelectedElement.getClipboardPayloadWithPaddedIds(
+        'glass',
+        (oldId) => {
+          return `${oldId}-${hash}`
+        }
+      )
 
       if (clipboardAction === 'cut') {
         lastSelectedElement.cut()
@@ -504,9 +602,36 @@ export class Glass extends React.Component {
     }
   }
 
+  createComponentFromSelectedElements () {
+    const selectedElements = Element.where({ _isSelected: true, component: this.getActiveComponent() })
+    // Our selection becomes invalid as soon as we call this since we're completely changing
+    // the elements that are currently on stage including our selection
+    Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+    this.getActiveComponent().createComponentFromElements(selectedElements, { from: 'glass' }, (err) => {
+      if (err) {
+        console.error(err)
+      }
+    })
+  }
+
+  editComponentElement (element) {
+    const hostedComponent = element.getHostedComponent()
+    if (hostedComponent) {
+      this.project.setCurrentActiveComponent(hostedComponent.getSceneName(), { from: 'glass' }, (err) => {
+        if (err) {
+          console.error(err)
+        }
+      })
+    }
+  }
+
   handleWindowResize () {
+    if (!this.getActiveComponent()) {
+      return
+    }
+
     window.requestAnimationFrame(() => {
-      this.resetContainerDimensions()
+      this.getActiveComponent().getArtboard().resetContainerDimensions(this.refs.container)
     })
   }
 
@@ -528,25 +653,16 @@ export class Glass extends React.Component {
   }
 
   saveEventHandlers (targetElement, serializedEvents) {
-    let selectorName = 'haiku:' + targetElement.uid
-    this._component.batchUpsertEventHandlers(selectorName, serializedEvents, { from: 'glass' }, () => {
-      this.props.websocket.action(
-        'eventHandlersUpdated',
-        [this.props.folder],
-        () => {}
-      )
-    })
+    const selectorName = 'haiku:' + targetElement.uid
+    this.getActiveComponent().batchUpsertEventHandlers(selectorName, serializedEvents, { from: 'glass' }, () => {})
   }
 
   performPan (dx, dy) {
-    var oldTransform = this._component.getStageTransform()
-    oldTransform.pan.x = this.state.originalPanX + dx
-    oldTransform.pan.y = this.state.originalPanY + dy
-    this._component.setStageTransform(oldTransform)
-    this.setState({
-      panX: this.state.originalPanX + dx,
-      panY: this.state.originalPanY + dy
-    })
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    this.getActiveComponent().getArtboard().performPan(dx, dy)
   }
 
   windowMouseOutHandler (nativeEvent) {
@@ -554,7 +670,7 @@ export class Glass extends React.Component {
       return void (0)
     }
 
-    var source = nativeEvent.relatedTarget || nativeEvent.toElement
+    const source = nativeEvent.relatedTarget || nativeEvent.toElement
     if (!source || source.nodeName === 'HTML') {
       // unhover?
       // cleanup?
@@ -623,82 +739,126 @@ export class Glass extends React.Component {
   }
 
   handleMouseDown (mousedownEvent) {
+    if (!this.getActiveComponent()) {
+      return
+    }
+
     if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
       return void (0)
     }
 
-    if (mousedownEvent.nativeEvent.button !== 0) return // left click only
-
     this.state.isMouseDown = true
     this.state.lastMouseDownTime = Date.now()
-    var mousePos = this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
+    this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
 
-    if (this.state.activeDrawingTool !== 'pointer') {
-      if (!this.state.drawingIsModal) {
-        this.props.websocket.send({ type: 'broadcast', name: 'drawing:completed', from: 'glass' })
-      }
+    // Only count left clicks
+    if (mousedownEvent.nativeEvent.button !== 0) {
+      return
+    }
 
-      this._component.instantiateComponent(this.state.activeDrawingTool, {
-        x: mousePos.x,
-        y: mousePos.y,
-        minimized: true
-      }, { from: 'glass' }, (err, metadata, element) => {
-        if (err) {
-          return console.error(err)
-        }
+    // We are panning right now, so don't un/select anything
+    if (Globals.isSpaceKeyDown) {
+      return
+    }
 
-        // if the mouse is still down begin drag scaling
-        if (this.state.isMouseDown) {
-          // activate the bottom right control point, for scaling
-          this.controlActivation({
-            index: 8,
-            event: mousedownEvent
-          })
-        }
-      })
+    if (this.getActiveComponent().getArtboard().getActiveDrawingTool() !== 'pointer') {
+      // TODO: Drawing tools
     } else {
-      // climb the target path to find if a haiku element has been selected
-      // NOTE: we want to make sure we are not selecting elements at the wrong context level
-      var target = mousedownEvent.nativeEvent.target
-      if ((typeof target.className === 'string') && target.className.indexOf('scale-cursor') !== -1) return
+      const target = this.findNearestDomSelectionTarget(mousedownEvent.nativeEvent.target)
 
-      while (
-        target.hasAttribute &&
-        (
-          !target.hasAttribute('source') ||
-          !target.hasAttribute('haiku-id') ||
-          !Element.findById(target.getAttribute('haiku-id'))
-        )
-      ) {
-        target = target.parentNode
+      if (target === SELECTION_TYPES.ON_STAGE_CONTROL) {
+        return
       }
 
       if (!target || !target.hasAttribute) {
         // If shift is down, that's constrained scaling. If cmd, that's rotation mode.
-        if (!this.state.isKeyShiftDown && !this.state.isKeyCommandDown) {
-          Element.unselectAllElements({ from: 'glass' })
+        // I.e., only unselect elements if we're not doing either of those operations
+        if (!Globals.isShiftKeyDown && !Globals.isCommandKeyDown) {
+          Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
         }
-
         return
       }
 
-      if (target.hasAttribute('source') && target.hasAttribute('haiku-id') && target.parentNode !== this.refs.mount) {
-        var haikuId = target.getAttribute('haiku-id')
-        var contained = lodash.find(this._component.queryElements({ _isSelected: true }),
-            (element) => element.uid === haikuId)
-
-        // we check if the element being clicked on is already in the selection, if it is we don't want
-        // to clear the selection since it could be a grouped selection
-        // If shift is down, that's constrained scaling. If cmd, that's rotation mode.
-        if (!contained && (!this.state.isKeyShiftDown && !this.state.isKeyCommandDown)) {
-          Element.unselectAllElements({ from: 'glass' })
+      if (
+        target.hasAttribute('source') &&
+        target.hasAttribute('haiku-id') &&
+        target.parentNode !== this.refs.mount &&
+        target.parentNode !== this.getActiveComponent().getMount().$el()
+      ) {
+        // First make sure we are grabbing the correct element based on the context.
+        // If we've landed on a component sub-element, we need to go up and select the wrapper.
+        let haikuId = target.getAttribute('haiku-id')
+        if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
+          haikuId = target.parentNode.getAttribute('haiku-id')
         }
 
-        if (!contained) {
-          this._component.selectElement(haikuId, { from: 'glass' }, () => {})
+        const elementTargeted = this.getActiveComponent().findElementByComponentId(haikuId)
+        const allSelectedElements = Element.where({ _isSelected: true, component: this.getActiveComponent() })
+
+        if (Globals.isControlKeyDown) {
+          if (allSelectedElements.length > 0) {
+            return
+          }
+          // This call also unselects all elements, so we don't need to do that work here too
+          return this.getActiveComponent().selectElement(haikuId, { from: 'glass' }, () => {})
         }
+
+        if (experimentIsEnabled(Experiment.MultiComponentFeatures)) {
+          if (Globals.isShiftKeyDown) {
+            // Shift being down indicates we are in multi-select mode
+            if (elementTargeted.isSelected()) {
+              return elementTargeted.unselectSoftly({ from: 'glass' })
+            }
+            return elementTargeted.selectSoftly({ from: 'glass' })
+          }
+        }
+
+        // This call also unselects all elements, so we don't need to do that work here too
+        this.getActiveComponent().selectElement(haikuId, { from: 'glass' }, () => {})
       }
     }
+  }
+
+  isDomNodeChildOfComponentWrapperDomNode (target) {
+    // If the user selected one of the children of a component that has been instantiated on stage
+    // we need to actually select the parent (wrapper) element since that's what our component manages
+    if (target.parentNode && target.parentNode.getAttribute('haiku-id') && target.parentNode.getAttribute('source')) {
+      const targetCodeSourceWithRespectToProjectRoot = Design.designSourceToCodeSource(target.getAttribute('source'))
+      const targetCodeSourceWithRespectToInstantiatorComponent = target.parentNode.getAttribute('source')
+      if (this.getActiveComponent().getRelpathWithRespectToProjectFromPathRelativeToUs(targetCodeSourceWithRespectToInstantiatorComponent) === targetCodeSourceWithRespectToProjectRoot) {
+        // If this element's design source is the code source of the parent, we've reached the component wrapper
+        // The element to select is the parent node (the node in the context of the active component)
+        return true
+      }
+    }
+    return false
+  }
+
+  findNearestDomSelectionTarget (target) {
+    // Don't perform element selection if the user clicked one of the transform controls
+    if (
+      (typeof target.className === 'string') &&
+      target.className.indexOf('scale-cursor') !== -1
+    ) {
+      return SELECTION_TYPES.ON_STAGE_CONTROL
+    }
+
+    // Climb the target path to find if a haiku Element has been selected
+    // We want to make sure we are not selecting elements at the wrong context level
+    while (
+      target.hasAttribute &&
+      (
+        !target.hasAttribute('source') || // Only root elements of an instantiated component have this attribute
+        !target.hasAttribute('haiku-id') || // Only haiku elements have this
+        !Element.findById(
+          Element.buildUidFromComponentAndDomElement(this.getActiveComponent(), target)
+        )
+      )
+    ) {
+      target = target.parentNode
+    }
+
+    return target
   }
 
   handleMouseUp (mouseupEvent) {
@@ -706,6 +866,7 @@ export class Glass extends React.Component {
       return void (0)
     }
 
+    this.storeAndReturnMousePosition(mouseupEvent, 'lastMouseUpPosition')
     this.state.isMouseDown = false
     this.state.lastMouseUpTime = Date.now()
     this.handleDragStop()
@@ -715,7 +876,6 @@ export class Glass extends React.Component {
       globalControlPointHandleClass: '',
       controlActivation: null
     })
-    this.storeAndReturnMousePosition(mouseupEvent, 'lastMouseUpPosition')
   }
 
   handleClick (clickEvent) {
@@ -726,10 +886,28 @@ export class Glass extends React.Component {
   }
 
   handleDoubleClick (doubleClickEvent) {
+    if (!this.getActiveComponent()) {
+      return
+    }
+
     if (this.isPreviewMode()) {
       return void (0)
     }
+
     this.storeAndReturnMousePosition(doubleClickEvent)
+
+    // Only count left clicks or natural trackpad clicks
+    if (doubleClickEvent.nativeEvent.button !== 0 || Globals.isControlKeyDown) {
+      return
+    }
+
+    const target = this.findNearestDomSelectionTarget(doubleClickEvent.nativeEvent.target)
+
+    // Double clicking in a component means we want to drill down and start editing it
+    if (this.isDomNodeChildOfComponentWrapperDomNode(target)) {
+      const element = Element.findById(Element.buildUidFromComponentAndDomElement(this.getActiveComponent(), target))
+      element.component.setAsCurrentActiveComponent({ from: 'glass' })
+    }
   }
 
   handleDragStart (cb) {
@@ -745,37 +923,53 @@ export class Glass extends React.Component {
   }
 
   handleKeyEscape () {
-    Element.unselectAllElements({ from: 'glass' })
-  }
+    if (!this.getActiveComponent()) {
+      return
+    }
 
-  handleKeySpace (nativeEvent, isDown) {
-    this.setState({ isKeySpaceDown: isDown })
+    Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
   }
 
   handleKeyLeftArrow (keyEvent) {
-    var delta = keyEvent.shiftKey ? 5 : 1
-    this._component.queryElements({ _isSelected: true }).forEach((element) => {
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    const delta = keyEvent.shiftKey ? 5 : 1
+    this.getActiveComponent().queryElements({ _isSelected: true }).forEach((element) => {
       element.move(-delta, 0, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
     })
   }
 
   handleKeyUpArrow (keyEvent) {
-    var delta = keyEvent.shiftKey ? 5 : 1
-    this._component.queryElements({ _isSelected: true }).forEach((element) => {
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    const delta = keyEvent.shiftKey ? 5 : 1
+    this.getActiveComponent().queryElements({ _isSelected: true }).forEach((element) => {
       element.move(0, -delta, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
     })
   }
 
   handleKeyRightArrow (keyEvent) {
-    var delta = keyEvent.shiftKey ? 5 : 1
-    this._component.queryElements({ _isSelected: true }).forEach((element) => {
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    const delta = keyEvent.shiftKey ? 5 : 1
+    this.getActiveComponent().queryElements({ _isSelected: true }).forEach((element) => {
       element.move(delta, 0, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
     })
   }
 
   handleKeyDownArrow (keyEvent) {
-    var delta = keyEvent.shiftKey ? 5 : 1
-    this._component.queryElements({ _isSelected: true }).forEach((element) => {
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    const delta = keyEvent.shiftKey ? 5 : 1
+    this.getActiveComponent().queryElements({ _isSelected: true }).forEach((element) => {
       element.move(0, delta, this.state.mousePositionCurrent, this.state.mousePositionPrevious)
     })
   }
@@ -786,39 +980,35 @@ export class Glass extends React.Component {
     }
 
     switch (keyEvent.nativeEvent.which) {
-      case 27: return this.handleKeyEscape()
-      case 32: return this.handleKeySpace(keyEvent.nativeEvent, true)
-      case 37: return this.handleKeyLeftArrow(keyEvent.nativeEvent)
-      case 38: return this.handleKeyUpArrow(keyEvent.nativeEvent)
-      case 39: return this.handleKeyRightArrow(keyEvent.nativeEvent)
-      case 40: return this.handleKeyDownArrow(keyEvent.nativeEvent)
-      case 46: return this.handleKeyDelete()
-      case 8: return this.handleKeyDelete()
-      case 13: return this.handleKeyEnter()
-      case 16: return this.handleKeyShift(keyEvent.nativeEvent, true)
-      case 17: return this.handleKeyCtrl(keyEvent.nativeEvent, true)
-      case 18: return this.handleKeyAlt(keyEvent.nativeEvent, true)
-      case 224: return this.handleKeyCommand(keyEvent.nativeEvent, true)
-      case 91: return this.handleKeyCommand(keyEvent.nativeEvent, true)
-      case 93: return this.handleKeyCommand(keyEvent.nativeEvent, true)
-      default: return null
+      case 27: this.handleKeyEscape(); break
+      case 37: this.handleKeyLeftArrow(keyEvent.nativeEvent); break
+      case 38: this.handleKeyUpArrow(keyEvent.nativeEvent); break
+      case 39: this.handleKeyRightArrow(keyEvent.nativeEvent); break
+      case 40: this.handleKeyDownArrow(keyEvent.nativeEvent); break
+      case 46: this.handleKeyDelete(); break
+      case 8: this.handleKeyDelete(); break
+      case 13: this.handleKeyEnter(); break
+      case 16: this.handleKeyShift(keyEvent.nativeEvent); break
+      case 17: this.handleKeyCtrl(keyEvent.nativeEvent); break
+      case 18: this.handleKeyAlt(keyEvent.nativeEvent); break
+      case 224: this.handleKeyCommand(keyEvent.nativeEvent); break
+      case 91: this.handleKeyCommand(keyEvent.nativeEvent); break
+      case 93: this.handleKeyCommand(keyEvent.nativeEvent); break
     }
   }
 
   handleKeyUp (keyEvent) {
     if (this.state.isEventHandlerEditorOpen) {
-      return void (0)
+      return
     }
 
     switch (keyEvent.nativeEvent.which) {
-      case 32: return this.handleKeySpace(keyEvent.nativeEvent, false)
-      case 16: return this.handleKeyShift(keyEvent.nativeEvent, false)
-      case 17: return this.handleKeyCtrl(keyEvent.nativeEvent, false)
-      case 18: return this.handleKeyAlt(keyEvent.nativeEvent, false)
-      case 224: return this.handleKeyCommand(keyEvent.nativeEvent, false)
-      case 91: return this.handleKeyCommand(keyEvent.nativeEvent, false)
-      case 93: return this.handleKeyCommand(keyEvent.nativeEvent, false)
-      default: return null
+      case 16: this.handleKeyShift(keyEvent.nativeEvent); break
+      case 17: this.handleKeyCtrl(keyEvent.nativeEvent); break
+      case 18: this.handleKeyAlt(keyEvent.nativeEvent); break
+      case 224: this.handleKeyCommand(keyEvent.nativeEvent); break
+      case 91: this.handleKeyCommand(keyEvent.nativeEvent); break
+      case 93: this.handleKeyCommand(keyEvent.nativeEvent); break
     }
   }
 
@@ -826,41 +1016,46 @@ export class Glass extends React.Component {
     // noop for now
   }
 
-  handleKeyCommand (nativeEvent, isDown) {
-    var controlActivation = this.state.controlActivation
+  handleKeyCommand (nativeEvent) {
+    const controlActivation = this.state.controlActivation
     if (controlActivation) {
-      controlActivation.cmd = isDown
+      controlActivation.cmd = Globals.isCommandKeyDown
     }
-    this.setState({ isKeyCommandDown: isDown, controlActivation })
+    this.setState({ controlActivation })
   }
 
-  handleKeyShift (nativeEvent, isDown) {
-    var controlActivation = this.state.controlActivation
+  handleKeyShift (nativeEvent) {
+    const controlActivation = this.state.controlActivation
     if (controlActivation) {
-      controlActivation.shift = isDown
+      controlActivation.shift = Globals.isShiftKeyDown
     }
-    this.setState({ isKeyShiftDown: isDown, controlActivation })
+    this.setState({ controlActivation })
   }
 
-  handleKeyCtrl (nativeEvent, isDown) {
-    var controlActivation = this.state.controlActivation
+  handleKeyCtrl (nativeEvent) {
+    const controlActivation = this.state.controlActivation
     if (controlActivation) {
-      controlActivation.ctrl = isDown
+      controlActivation.ctrl = Globals.isControlKeyDown
     }
-    this.setState({ isKeyCtrlDown: isDown, controlActivation })
+    this.setState({ controlActivation })
   }
 
-  handleKeyAlt (nativeEvent, isDown) {
-    var controlActivation = this.state.controlActivation
+  handleKeyAlt (nativeEvent) {
+    const controlActivation = this.state.controlActivation
     if (controlActivation) {
-      controlActivation.alt = isDown
+      controlActivation.alt = Globals.isAltKeyDown
     }
-    this.setState({ isKeyAltDown: isDown, controlActivation })
+    this.setState({ controlActivation })
   }
 
   handleClickStageName () {
-    Element.unselectAllElements({ from: 'glass' })
-    var artboard = Element.findRoots()[0]
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    // Multi-select is not allowed when selecting the stage name
+    Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+    const artboard = Element.findRoots({ component: this.getActiveComponent() })[0]
     artboard.select({ from: 'glass' })
   }
 
@@ -873,28 +1068,35 @@ export class Glass extends React.Component {
   }
 
   handleMouseMove (mousemoveEvent) {
-    const zoom = this.state.zoomXY || 1
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    const zoom = this.getActiveComponent().getArtboard().getZoom() || 1
+
     const lastMouseDownPosition = this.state.lastMouseDownPosition
     const mousePositionCurrent = this.storeAndReturnMousePosition(mousemoveEvent)
     const mousePositionPrevious = this.state.mousePositionPrevious || mousePositionCurrent
+
     let dx = (mousePositionCurrent.x - mousePositionPrevious.x) / zoom
     let dy = (mousePositionCurrent.y - mousePositionPrevious.y) / zoom
     if (dx === 0 && dy === 0) return mousePositionCurrent
 
-    // if (dx !== 0) dx = Math.round(this.state.zoomXY / dx)
-    // if (dy !== 0) dy = Math.round(this.state.zoomXY / dy)
+    // if (dx !== 0) dx = Math.round(this.getActiveComponent().getArtboard().getZoom() / dx)
+    // if (dy !== 0) dy = Math.round(this.getActiveComponent().getArtboard().getZoom() / dy)
     // If we got this far, the mouse has changed its position from the most recent mousedown
     if (this.state.isMouseDown) {
       this.handleDragStart()
     }
+
     if (this.state.isMouseDragging && this.state.isMouseDown) {
-      if (this.state.isKeySpaceDown && this.state.stageMouseDown) {
+      if (Globals.isSpaceKeyDown && this.state.stageMouseDown) {
         this.performPan(
           mousemoveEvent.nativeEvent.clientX - this.state.stageMouseDown.x,
           mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y
         )
       } else {
-        var selected = this._component.queryElements({ _isSelected: true })
+        var selected = this.getActiveComponent().queryElements({ _isSelected: true })
         if (selected.length > 0) {
           selected.forEach((element) => {
             element.drag(dx, dy, mousePositionCurrent, mousePositionPrevious, lastMouseDownPosition, this.state)
@@ -902,76 +1104,54 @@ export class Glass extends React.Component {
         }
       }
     }
+
     return mousePositionCurrent
   }
 
   handleKeyDelete () {
+    if (!this.getActiveComponent()) {
+      return
+    }
+
     if (this.isPreviewMode()) {
       return void (0)
     }
-    this._component.queryElements({ _isSelected: true }).forEach((element) => {
+
+    this.getActiveComponent().queryElements({ _isSelected: true }).forEach((element) => {
       element.remove()
     })
   }
 
-  resetContainerDimensions (cb) {
-    if (!this.refs.container) return
-
-    const w1 = this.refs.container.clientWidth
-    const h1 = this.refs.container.clientHeight
-
-    const w2 = this.state.mountWidth
-    const h2 = this.state.mountHeight
-
-    const mountX = (w1 - w2) / 2
-    const mountY = (h1 - h2) / 2
-
-    const cw = Math.max(w1, w2)
-    const ch = Math.max(h1, h2)
-
-    if (w1 !== this.state.containerWidth || h1 !== this.state.containerHeight || mountX !== this.state.mountX || mountY !== this.state.mountY) {
-      this.setState({
-        containerWidth: cw,
-        containerHeight: ch,
-        mountX,
-        mountY
-      }, cb)
-    }
-  }
-
-  getArtboardRect () {
-    return {
-      left: this.state.mountX,
-      right: this.state.mountX + this.state.mountWidth,
-      top: this.state.mountY,
-      bottom: this.state.mountY + this.state.mountHeight,
-      width: this.state.mountWidth,
-      height: this.state.mountHeight
-    }
-  }
-
   getSelectionMarqueeSize () {
-    if (!this.state.mousePositionCurrent || !this.state.lastMouseDownPosition) {
+    if (
+      !this.state.mousePositionCurrent ||
+      !this.state.lastMouseDownPosition ||
+      !this.getActiveComponent()) {
       return { x: 0, y: 0, width: 0, height: 0 }
     }
+
     return {
-      x: this.state.lastMouseDownPosition.x + this.getArtboardRect().left,
-      y: this.state.lastMouseDownPosition.y + this.getArtboardRect().top,
+      x: this.state.lastMouseDownPosition.x + this.getActiveComponent().getArtboard().getRect().left,
+      y: this.state.lastMouseDownPosition.y + this.getActiveComponent().getArtboard().getRect().top,
       width: this.state.mousePositionCurrent.x - this.state.lastMouseDownPosition.x,
       height: this.state.mousePositionCurrent.y - this.state.lastMouseDownPosition.y
     }
   }
 
   controlActivation (activationInfo) {
-    var artboard = this.getArtboardRect()
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    const artboard = this.getActiveComponent().getArtboard().getRect()
     this.setState({
-      isAnythingRotating: this.state.isKeyCommandDown,
-      isAnythingScaling: !this.state.isKeyCommandDown,
+      isAnythingRotating: Globals.isCommandKeyDown,
+      isAnythingScaling: !Globals.isCommandKeyDown,
       controlActivation: {
-        shift: this.state.isKeyShiftDown,
-        ctrl: this.state.isKeyCtrlDown,
-        cmd: this.state.isKeyCommandDown,
-        alt: this.state.isKeyAltDown,
+        shift: Globals.isShiftKeyDown,
+        ctrl: Globals.isControlKeyDown,
+        cmd: Globals.isCommandKeyDown,
+        alt: Globals.isAltKeyDown,
         index: activationInfo.index,
         arboard: artboard,
         client: {
@@ -987,20 +1167,31 @@ export class Glass extends React.Component {
   }
 
   storeAndReturnMousePosition (mouseEvent, additionalPositionTrackingState) {
-    if (!this.refs.container) return null // We haven't mounted yet, no size available
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    if (!this.refs.container) {
+      return // We haven't mounted yet, no size available
+    }
+
     this.state.mousePositionPrevious = this.state.mousePositionCurrent
     const mousePositionCurrent = getLocalDomEventPosition(mouseEvent.nativeEvent, this.refs.container)
     mousePositionCurrent.clientX = mouseEvent.nativeEvent.clientX
     mousePositionCurrent.clientY = mouseEvent.nativeEvent.clientY
-    mousePositionCurrent.x -= this.getArtboardRect().left
-    mousePositionCurrent.y -= this.getArtboardRect().top
+    mousePositionCurrent.x -= this.getActiveComponent().getArtboard().getRect().left
+    mousePositionCurrent.y -= this.getActiveComponent().getArtboard().getRect().top
     this.state.mousePositionCurrent = mousePositionCurrent
     if (additionalPositionTrackingState) this.state[additionalPositionTrackingState] = mousePositionCurrent
     return mousePositionCurrent
   }
 
   drawOverlays () {
-    const selected = this._component.queryElements({ _isSelected: true })
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    const selected = this.getActiveComponent().queryElements({ _isSelected: true })
 
     if (selected.length > 0) {
       const container = this._haikuRenderer.createContainer(this.refs.overlay)
@@ -1015,10 +1206,10 @@ export class Glass extends React.Component {
             transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
             position: 'absolute',
             overflow: 'visible',
-            left: this.state.mountX + 'px',
-            top: this.state.mountY + 'px',
-            width: this.state.mountWidth + 'px',
-            height: this.state.mountHeight + 'px'
+            left: this.getActiveComponent().getArtboard().getMountX() + 'px',
+            top: this.getActiveComponent().getArtboard().getMountY() + 'px',
+            width: this.getActiveComponent().getArtboard().getMountWidth() + 'px',
+            height: this.getActiveComponent().getArtboard().getMountHeight() + 'px'
           }
         },
         children: parts
@@ -1026,7 +1217,7 @@ export class Glass extends React.Component {
 
       // HACK! We already cache the control point listeners ourselves, so clear the cache
       // used normally by the component instance for caching/deduping listeners in production
-      this._haikuContext.component._registeredElementEventListeners = {}
+      // this._haikuContext.component._registeredElementEventListeners = {}
 
       this._haikuRenderer.render(this.refs.overlay, container, overlay, this._haikuContext.component, false)
     } else {
@@ -1049,32 +1240,28 @@ export class Glass extends React.Component {
     }
 
     if (selectedElements.length > 0) {
-      let points
-
       if (selectedElements.length === 1) {
+        let pointsForElement
+
         const element = selectedElements[0]
 
         if (element.isRenderableType()) {
-          points = element.getPointsTransformed(true)
-          this.renderMorphPointsOverlay(points, overlays)
+          pointsForElement = element.getPointsTransformed(true)
+          this.renderMorphPointsOverlay(pointsForElement, overlays)
         } else {
-          points = element.getBoxPointsTransformed()
+          pointsForElement = element.getBoxPointsTransformed()
           const rotationZ = element.getPropertyValue('rotation.z') || 0
           let scaleX = element.getPropertyValue('scale.x')
           if (scaleX === undefined || scaleX === null) scaleX = 1
           let scaleY = element.getPropertyValue('scale.y')
           if (scaleY === undefined || scaleY === null) scaleY = 1
-          this.renderTransformBoxOverlay(element, points, overlays, element.canRotate(), this.state.isKeyCommandDown, true, rotationZ, scaleX, scaleY)
-          this.renderEventHandlersOverlay(element, points, overlays, rotationZ, scaleX, scaleY)
+          this.renderTransformBoxOverlay(element, pointsForElement, overlays, element.canRotate(), Globals.isKeyCommandDown, true, rotationZ, scaleX, scaleY)
+          this.renderEventHandlersOverlay(element, pointsForElement, overlays, rotationZ, scaleX, scaleY)
         }
       } else {
         // TODO: Render control points across multiple selected elements
-        // points = []
-        // selectedElements.forEach((element) => {
-        //   element.getBoxPointsTransformed().forEach((point) => points.push(point))
-        // })
-        // points = Element.getBoundingBoxPoints(points)
-        // this.renderTransformBoxOverlay(__, points, overlays, false, this.state.isKeyCommandDown, false, 0, 1, 1)
+        const pointsForGroup = Element.getBoundingBoxPointsForElements(selectedElements)
+        this.renderTransformBoxOverlay(null, pointsForGroup, overlays, false, Globals.isCommandKeyDown, false, 0, 1, 1)
       }
       if (this.state.isMouseDragging) {
         // TODO: Draw tooltip with points info
@@ -1135,7 +1322,11 @@ export class Glass extends React.Component {
   }
 
   renderControlPoint (x, y, index, handleClass) {
-    var scale = 1 / (this.state.zoomXY || 1)
+    if (!this.getActiveComponent()) {
+      return
+    }
+
+    const scale = 1 / (this.getActiveComponent().getArtboard().getZoom() || 1)
     return {
       elementName: 'div',
       attributes: {
@@ -1237,26 +1428,41 @@ export class Glass extends React.Component {
     overlays.push(this.buildBoltInstance(x, y, rotationZ, scaleX, scaleY))
   }
 
-  renderTransformBoxOverlay (element, points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
+  renderTransformBoxOverlay (maybeElement, points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
+    if (!this.getActiveComponent()) {
+      return
+    }
+
     // If the size is smaller than a threshold, only display the corners.
     // And if it is smaller even than that, don't display the points at all
-    const dx = Element.distanceBetweenPoints(points[0], points[2], this.state.zoomXY)
-    const dy = Element.distanceBetweenPoints(points[0], points[6], this.state.zoomXY)
+    const dx = Element.distanceBetweenPoints(points[0], points[2], this.getActiveComponent().getArtboard().getZoom())
+    const dy = Element.distanceBetweenPoints(points[0], points[6], this.getActiveComponent().getArtboard().getZoom())
 
     let pointDisplayMode = POINT_DISPLAY_MODES.NORMAL
-
-    if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) {
+    // No element means we are displaying points around multi-selection
+    if (!maybeElement) {
       pointDisplayMode = POINT_DISPLAY_MODES.NONE
-    } else if (dx < POINTS_THRESHOLD_REDUCED && dy < POINTS_THRESHOLD_REDUCED) {
-      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_BOTH
-    } else if (dx < POINTS_THRESHOLD_REDUCED && dy >= POINTS_THRESHOLD_REDUCED) {
-      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_TOP_BOTTOM
-    } else if (dx >= POINTS_THRESHOLD_REDUCED && dy < POINTS_THRESHOLD_REDUCED) {
-      pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_LEFT_RIGHT
+    }
+
+    if (pointDisplayMode !== POINT_DISPLAY_MODES.NONE) {
+      if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) {
+        pointDisplayMode = POINT_DISPLAY_MODES.NONE
+      } else if (dx < POINTS_THRESHOLD_REDUCED && dy < POINTS_THRESHOLD_REDUCED) {
+        pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_BOTH
+      } else if (dx < POINTS_THRESHOLD_REDUCED && dy >= POINTS_THRESHOLD_REDUCED) {
+        pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_TOP_BOTTOM
+      } else if (dx >= POINTS_THRESHOLD_REDUCED && dy < POINTS_THRESHOLD_REDUCED) {
+        pointDisplayMode = POINT_DISPLAY_MODES.REDUCED_ON_LEFT_RIGHT
+      }
     }
 
     let lineDisplayMode = LINE_DISPLAY_MODES.NORMAL
     if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) lineDisplayMode = LINE_DISPLAY_MODES.NONE
+
+    if (lineDisplayMode !== LINE_DISPLAY_MODES.NONE) {
+      const {x, y} = points[5]
+      overlays.push(this.buildBoltInstance(x, y))
+    }
 
     if (lineDisplayMode !== LINE_DISPLAY_MODES.NONE) {
       const corners = [points[0], points[2], points[8], points[6]]
@@ -1268,7 +1474,7 @@ export class Glass extends React.Component {
 
     points.forEach((point, index) => {
       if (!pointDisplayMode[index]) {
-        return null
+        return
       }
       if (index !== 4) {
         overlays.push(this.renderControlPoint(point.x, point.y, index, canControlHandles && this.getHandleClass(index, canRotate, isRotationModeOn, rotationZ, scaleX, scaleY)))
@@ -1278,15 +1484,17 @@ export class Glass extends React.Component {
 
   getGlobalControlPointHandleClass () {
     if (!this.state.controlActivation) return ''
-    var controlIndex = this.state.controlActivation.index
-    var isRotationModeOn = this.state.isKeyCommandDown
-    var selectedElements = this._component.queryElements({ _isSelected: true })
+    if (!this.getActiveComponent()) return ''
+
+    const controlIndex = this.state.controlActivation.index
+    const isRotationModeOn = Globals.isCommandKeyDown
+    const selectedElements = this.getActiveComponent().queryElements({ _isSelected: true })
     if (selectedElements.length === 1) {
-      var selectedElement = selectedElements[0]
-      var rotationZ = selectedElement.getPropertyValue('rotation.z') || 0
-      var scaleX = selectedElement.getPropertyValue('scale.x')
+      const selectedElement = selectedElements[0]
+      const rotationZ = selectedElement.getPropertyValue('rotation.z') || 0
+      let scaleX = selectedElement.getPropertyValue('scale.x')
       if (scaleX === undefined || scaleX === null) scaleX = 1
-      var scaleY = selectedElement.getPropertyValue('scale.y')
+      let scaleY = selectedElement.getPropertyValue('scale.y')
       if (scaleY === undefined || scaleY === null) scaleY = 1
       return this.getHandleClass(controlIndex, true, isRotationModeOn, rotationZ, scaleX, scaleY)
     } else {
@@ -1303,7 +1511,10 @@ export class Glass extends React.Component {
   }
 
   isPreviewMode () {
-    return this._component.isPreviewModeActive()
+    if (!this.getActiveComponent()) {
+      return false
+    }
+    return this.getActiveComponent().isPreviewModeActive()
   }
 
   getCursorCssRule () {
@@ -1315,8 +1526,8 @@ export class Glass extends React.Component {
     return (
       <div
         ref='mount'
-        key='hot-component-mount'
-        id='hot-component-mount'
+        key='haiku-mount-container'
+        id='haiku-mount-container'
         className={`${drawingClassName} no-select`}
         style={{
           position: 'absolute',
@@ -1331,13 +1542,37 @@ export class Glass extends React.Component {
     )
   }
 
-  render () {
-    const drawingClassName = (this.state.activeDrawingTool !== 'pointer') ? 'draw-shape' : ''
+  getContainerHeight () {
+    if (!this.getActiveComponent()) return 1
+    return this.getActiveComponent().getArtboard().getContainerHeight()
+  }
 
-    const pan = { x: this.state.panX, y: this.state.panY }
-    const zoom = { x: this.state.zoomXY, y: this.state.zoomXY }
-    const container = { x: 0, y: 0, w: this.state.containerWidth, h: this.state.containerHeight }
-    const mount = { x: this.state.mountX, y: this.state.mountY, w: this.state.mountWidth, h: this.state.mountHeight }
+  getArtboardRenderInfo () {
+    if (!this.getActiveComponent()) {
+      // Pretty hack to put this here, but we have to render _something_ or else the
+      // Glass won't initialize properly due to the way it is currently set up.
+      // TODO: Make glass more accepting of situations where there is no component
+      return {
+        drawingClassName: '',
+        pan: { x: 0, y: 0 },
+        zoom: { x: 1, y: 1 },
+        container: { x: 1, y: 1, w: 1, h: 1 },
+        mount: { x: 1, y: 1, w: 1, h: 1 }
+      }
+    }
+
+    return this.getActiveComponent().getArtboard().getArtboardRenderInfo()
+  }
+
+  render () {
+    const {
+      drawingClassName,
+      pan,
+      zoom,
+      container,
+      mount
+    } = this.getArtboardRenderInfo()
+
     const big = 99999
 
     return (
@@ -1347,7 +1582,7 @@ export class Glass extends React.Component {
         style={{
           width: '100%',
           height: '100%',
-          visibility: (this._isHaikuInitiallyMounted) ? 'visible' : 'hidden',
+          visibility: (this.getActiveComponent()) ? 'visible' : 'hidden',
           cursor: this.getCursorCssRule()
         }}
 
@@ -1363,12 +1598,15 @@ export class Glass extends React.Component {
                 targetId === 'haiku-glass-stage-background-preview' ||
                 targetId === 'haiku-glass-stage-background-preview-border'
               ) {
-              Element.unselectAllElements({ from: 'glass' })
+              // If unselecting anything except an actual element, assume we want to deselect all
+              Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
+            }
+
+            if (this.getActiveComponent()) {
+              this.getActiveComponent().getArtboard().snapshotOriginalPan()
             }
 
             this.setState({
-              originalPanX: pan.x,
-              originalPanY: pan.y,
               stageMouseDown: {
                 x: mouseDown.nativeEvent.clientX,
                 y: mouseDown.nativeEvent.clientY
@@ -1385,8 +1623,7 @@ export class Glass extends React.Component {
           if (!this.isPreviewMode()) {
             this.setState({ stageMouseDown: null })
           }
-        }}
-        onMouseOver={() => this.setState({ isKeyCommandDown: false })}>
+        }}>
 
         {(!this.isPreviewMode())
           ? <div
@@ -1406,8 +1643,8 @@ export class Glass extends React.Component {
           ref='container'
           id='haiku-glass-stage-container'
           style={{
-            width: container.w,
-            height: container.h,
+            width: '100%',
+            height: '100%',
             overflow: 'visible',
             position: 'absolute',
             top: 0,
@@ -1469,7 +1706,7 @@ export class Glass extends React.Component {
                 top: mount.y - 19,
                 left: mount.x + 2,
                 height: 20,
-                width: 120,
+                width: mount.w,
                 userSelect: 'none',
                 cursor: 'default'
               }}
@@ -1483,7 +1720,9 @@ export class Glass extends React.Component {
                 fontWeight='lighter'
                 fontFamily='Fira Sans'
                 fontSize='13'>
-                {this.props.projectName}
+                {(this.getActiveComponent())
+                  ? this.getActiveComponent().getFriendlySceneName(this.props.projectName)
+                  : this.props.projectName}
               </text>
             </svg>
             : ''}
@@ -1608,7 +1847,7 @@ export class Glass extends React.Component {
             ? <div
               ref='overlay'
               id='haiku-glass-overlay-mount'
-              height={this.state.containerHeight}
+              height={this.getContainerHeight()}
               width={container.w}
               style={{
                 transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',

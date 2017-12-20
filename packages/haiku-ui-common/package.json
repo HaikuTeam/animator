@@ -21,6 +21,7 @@
   "devDependencies": {
     "@types/node": "^8.0.17",
     "haiku-testing": "HaikuTeam/testing.git",
+    "haiku-common": "HaikuTeam/common.git",
     "nyc": "^11.2.1",
     "tap-spec": "^4.1.1",
     "tape": "^4.7.0",
@@ -30,6 +31,12 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
+    "@types/react": "^16.0.29",
+    "color": "^2.0.1",
+    "decamelize": "^1.2.0",
+    "lodash.assign": "^4.2.0",
+    "numeral": "^2.0.6",
+    "radium": "0.18.1",
     "react": "15.4.2"
   }
 }

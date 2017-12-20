@@ -1,7 +1,6 @@
 const lodash = require('lodash')
-const getPropertyValueDescriptor = require('./helpers/getPropertyValueDescriptor')
+const assign = require('lodash.assign')
 const BaseModel = require('./BaseModel')
-const Keyframe = require('./Keyframe')
 
 const NAVIGATION_DIRECTIONS = {
   SAME: 0,
@@ -9,6 +8,23 @@ const NAVIGATION_DIRECTIONS = {
   PREV: -1
 }
 
+/**
+ * @class Row
+ * @description
+ *.  Abstraction over the concept of a row that appears in the Timeline UI.
+ *.  In practice this is only used in the Timeline UI for managing the display
+ *.  of rows.
+ *
+ *.  Things that can be a row:
+ *.    - A row of a single property
+ *.    - A row of a complex property's subproperty
+ *.    - The heading of a set of complex properties
+ *.    - The heading of an element (or component)
+ *
+ *.  Rows are nested per the groupings mentioned above, so you can call row.children
+ *.  to get the rows that would be displayed inside/underneath that row in question
+ *.  (presuming that they are visible per the visibility rules).
+ */
 class Row extends BaseModel {
   constructor (props, opts) {
     super(props, opts)
@@ -31,7 +47,7 @@ class Row extends BaseModel {
 
   deselectOthers (metadata) {
     // Deselect all other rows; currently assume only one row selected at a time
-    Row.all().forEach((row) => {
+    Row.where({ component: this.component }).forEach((row) => {
       if (row === this) return null
       row.deselect(metadata)
     })
@@ -134,7 +150,7 @@ class Row extends BaseModel {
   }
 
   blurOthers (metadata) {
-    Row.all().forEach((row) => {
+    Row.where({ component: this.component }).forEach((row) => {
       if (row !== this) {
         row.blur(metadata)
       }
@@ -201,7 +217,7 @@ class Row extends BaseModel {
   }
 
   hoverAndUnhoverOthers () {
-    Row.all().forEach((row) => {
+    Row.where({ component: this.component }).forEach((row) => {
       if (row !== this) row.unhover()
     })
     this.hover()
@@ -237,7 +253,7 @@ class Row extends BaseModel {
   }
 
   getBaselineValueAtMillisecond (ms) {
-    const { baselineValue } = getPropertyValueDescriptor(this, {
+    const { baselineValue } = Timeline.getPropertyValueDescriptor(this, {
       timelineTime: ms,
       timelineName: this.timeline.getName()
     })
@@ -246,7 +262,7 @@ class Row extends BaseModel {
   }
 
   getBaselineCurveAtMillisecond (ms) {
-    const { baselineCurve } = getPropertyValueDescriptor(this, {
+    const { baselineCurve } = Timeline.getPropertyValueDescriptor(this, {
       timelineTime: ms,
       timelineName: this.timeline.getName()
     })
@@ -384,11 +400,11 @@ class Row extends BaseModel {
       upsertSpec.curve = curveToAssign
     }
 
-    const created = Keyframe.upsert(upsertSpec)
+    const created = Keyframe.upsert(upsertSpec, {}, { row: this })
 
     // Update the bytecode directly via ActiveComponent, which updates Timeline UI
     this.component.createKeyframe(
-      [this.element.getComponentId()],
+      this.element.getComponentId(),
       this.timeline.getName(),
       this.element.getNameString(),
       this.getPropertyNameString(),
@@ -407,7 +423,7 @@ class Row extends BaseModel {
 
     this.emit('update', 'keyframe-create')
     if (this.parent) this.parent.emit('update', 'keyframe-create')
-    Keyframe.deselectAndDeactivateAllKeyframes()
+    Keyframe.deselectAndDeactivateAllKeyframes({ component: this.component })
 
     return created
   }
@@ -425,7 +441,7 @@ class Row extends BaseModel {
     keyframe.destroy()
 
     this.component.deleteKeyframe(
-      [this.element.getComponentId()],
+      this.element.getComponentId(),
       this.timeline.getName(),
       this.getPropertyNameString(),
       keyframe.getMs(),
@@ -441,7 +457,7 @@ class Row extends BaseModel {
 
     this.emit('update', 'keyframe-delete')
     if (this.parent) this.parent.emit('update', 'keyframe-delete')
-    Keyframe.deselectAndDeactivateAllKeyframes()
+    Keyframe.deselectAndDeactivateAllKeyframes({ component: this.component })
 
     return keyframe
   }
@@ -468,6 +484,9 @@ class Row extends BaseModel {
     // If we are a heading row (either a cluster or an element), we have no keyframes,
     // so we instead query our children for the list of keyframes within us
     if (this.isHeading() || this.isClusterHeading()) {
+      if (this.dump() === 'cluster-heading.39|1.0.14.sizeAbsolute[]') {
+        console.log(this.children)
+      }
       return lodash.flatten(this.children.map((child) => child.mapVisibleKeyframes(iteratee)))
     }
 
@@ -481,6 +500,10 @@ class Row extends BaseModel {
         keyframe.isVisible(frameInfo.msA, frameInfo.msB)
       )
     }).map(iteratee)
+  }
+
+  isState () {
+    return this.property && this.property.type === 'state'
   }
 
   isFirstRowOfPropertyCluster () {
@@ -533,7 +556,7 @@ class Row extends BaseModel {
   }
 
   getPropertyValueDescriptor () {
-    return getPropertyValueDescriptor(this, { numFormat: '0,0[.]000' })
+    return Timeline.getPropertyValueDescriptor(this, { numFormat: '0,0[.]000' })
   }
 
   getPropertyId () {
@@ -574,7 +597,8 @@ class Row extends BaseModel {
     let found = false
     for (let i = 0; i < this.children.length; i++) {
       let child = this.children[i]
-      if (child === row || child.getPrimaryKey() === row.getPrimaryKey()) {
+      if (
+        child === row || child.getPrimaryKey() === row.getPrimaryKey()) {
         found = true
         break
       }
@@ -586,7 +610,7 @@ class Row extends BaseModel {
   }
 
   representsStringNode () {
-    return typeof this.element.node === 'string'
+    return typeof this.element.getStaticTemplateNode() === 'string'
   }
 
   isPropertyOnLastComponent () {
@@ -605,6 +629,10 @@ class Row extends BaseModel {
     })
   }
 
+  /**
+   * @method dump
+   * @description When debugging, use this to log a concise shorthand of this entity.
+   */
   dump () {
     let str = `${this.getType()}.${this.place}|${this.depth}.${this.seq}.${this.index}`
     if (this.isCluster()) str += `.${this.cluster.prefix}[]`
@@ -637,48 +665,54 @@ Row._active = {}
 Row._hidden = {}
 Row._hovered = {}
 
-Row.top = function top () {
-  return Row.find({ parent: null })
+Row.top = (criteria) => {
+  return Row.find(assign({ parent: null }, criteria))
 }
 
-Row.findByComponentId = function findByComponentId (componentId) {
-  return Row.filter((row) => {
-    return row.element.getComponentId() === componentId
+Row.findByComponentAndHaikuId = (component, haikuId) => {
+  return Row.where({ component }).filter((row) => {
+    return row.element.getComponentId() === haikuId
   })[0]
 }
 
-Row.findPropertyRowsByParentComponentId = function findPropertyRowsByParentComponentId (componentId) {
-  return Row.filter((row) => {
-    return row.isProperty() && row.parent && row.parent.element.getComponentId() === componentId
+Row.findPropertyRowsByComponentAndParentHaikuId = (component, haikuId) => {
+  return Row.where({ component }).filter((row) => {
+    return row.isProperty() && row.parent && row.parent.element.getComponentId() === haikuId
   })
 }
 
-Row.getDisplayables = function getDisplayables () {
-  return Row.filter((row) => {
-    if (row.isDeleted() || row.isDestroyed()) {
-      return false
-    }
+Row.getDisplayables = (criteria) => {
+  return Row
+    .where(criteria)
+    .filter((row) => {
+      if (row.isDeleted() || row.isDestroyed()) {
+        return false
+      }
 
-    // Nothing after the third level of depth (elements, properties, etc)
-    if (row.depth > 3) {
-      return false
-    }
+      // Nothing after the third level of depth (elements, properties, etc)
+      if (row.depth > 3) {
+        return false
+      }
 
-    // No third-level elements
-    if (row.depth === 2 && row.parent.isHeading()) {
-      return false
-    }
+      // No third-level elements
+      if (row.depth === 2 && row.parent.isHeading()) {
+        return false
+      }
 
-    // Don't display any rows that are hidden by their parent being collapsed
-    if (row.isWithinCollapsedRow()) {
-      return false
-    }
+      // Don't display any rows that are hidden by their parent being collapsed
+      if (row.isWithinCollapsedRow()) {
+        return false
+      }
 
-    return true
-  })
+      return true
+    })
+    .sort((rowA, rowB) => {
+      // This is assigned when ActiveComponent rehydrates the rows
+      return rowA.place - rowB.place
+    })
 }
 
-Row.cyclicalNav = function cyclicalNav (row, navDir) {
+Row.cyclicalNav = function cyclicalNav (criteria, row, navDir) {
   let target
 
   if (navDir === undefined || navDir === null || navDir === NAVIGATION_DIRECTIONS.SAME) {
@@ -691,10 +725,10 @@ Row.cyclicalNav = function cyclicalNav (row, navDir) {
 
   if (!target && (navDir === NAVIGATION_DIRECTIONS.PREV)) {
     // Already at top, need to jump to the bottom
-    target = Row.last()
+    target = Row.last(criteria)
   } else if (!target && (navDir === NAVIGATION_DIRECTIONS.NEXT)) {
     // Already at bottom, need to jump to the top
-    target = Row.first()
+    target = Row.first(criteria)
   } else if (!target && (navDir === NAVIGATION_DIRECTIONS.SAME)) {
     throw new Error('unable to navigate due to missing selection')
   }
@@ -703,16 +737,16 @@ Row.cyclicalNav = function cyclicalNav (row, navDir) {
   if (!target.isProperty()) {
     // Endless recursion without this check
     if (navDir !== undefined && navDir !== null && navDir !== NAVIGATION_DIRECTIONS.SAME) {
-      return Row.cyclicalNav(target, navDir)
+      return Row.cyclicalNav(criteria, target, navDir)
     }
   }
 
   return target
 }
 
-Row.focusSelectNext = function focusSelectNext (navDir, doFocus, metadata) {
-  const selected = Row.getSelectedRow()
-  const focused = Row.getFocusedRow()
+Row.focusSelectNext = function focusSelectNext (criteria, navDir, doFocus, metadata) {
+  const selected = Row.getSelectedRow(criteria)
+  const focused = Row.getFocusedRow(criteria)
 
   if (selected) {
     selected.blur(metadata)
@@ -727,8 +761,8 @@ Row.focusSelectNext = function focusSelectNext (navDir, doFocus, metadata) {
   const previous = focused || selected
 
   const target = (previous)
-    ? Row.cyclicalNav(previous, navDir)
-    : Row.cyclicalNav(Row.find({ place: 0 }), navDir)
+    ? Row.cyclicalNav(criteria, previous, navDir)
+    : Row.cyclicalNav(criteria, Row.find(assign({ place: 0 }, criteria)), navDir)
 
   target.expand(metadata)
   target.select(metadata)
@@ -737,24 +771,28 @@ Row.focusSelectNext = function focusSelectNext (navDir, doFocus, metadata) {
   return target
 }
 
-Row.getSelectedRow = function getSelectedRow () {
-  return Object.values(Row._selected)[0] // TODO: many?
+Row.getSelectedRow = function getSelectedRow (criteria) {
+  return Row.where(criteria).filter((row) => {
+    return row._isSelected
+  })[0]
 }
 
-Row.getFocusedRow = function getFocusedRow () {
-  return Object.values(Row._focused)[0] // TODO: many?
+Row.getFocusedRow = function getFocusedRow (criteria) {
+  return Row.where(criteria).filter((row) => {
+    return row._isFocused
+  })[0]
 }
 
 /**
  * @function rmap
  * @description Recursively 'map' through all rows, their children, etc.
  */
-Row.rmap = function _rmap (iteratee) {
-  return rmap([Row.top()], iteratee)
+Row.rmap = function _rmap (criteria, iteratee) {
+  return rmap([Row.top(criteria)], iteratee)
 }
 
-Row.rsmap = function _rsmap (iteratee, indentation) {
-  const tree = rsmap([Row.top()], iteratee)
+Row.rsmap = function _rsmap (criteria, iteratee, indentation) {
+  const tree = rsmap([Row.top(criteria)], iteratee)
   return tlines([], '', indentation || '    ', tree).join('\n')
 }
 
@@ -789,16 +827,16 @@ function tlines (lines, indent, indentation, nodes) {
   return lines
 }
 
-Row.dumpHierarchyInfo = function dumpHierarchyInfo () {
-  return Row.rsmap((row) => {
+Row.dumpHierarchyInfo = (criteria) => {
+  return Row.rsmap(criteria, (row) => {
     return row.dump()
   })
 }
 
 // The last row is the row with the largest 'place' via the AC _numRows counter
-Row.last = function last () {
-  let max = Row.first()
-  Row.all().forEach((row) => {
+Row.last = (criteria) => {
+  let max = Row.first(criteria)
+  Row.where(criteria).forEach((row) => {
     if (row.place > max.place) {
       max = row
     }
@@ -806,13 +844,29 @@ Row.last = function last () {
   return max
 }
 
-Row.first = function first () {
-  return Row.find({ place: 0 })
+Row.first = (criteria) => {
+  return Row.find(assign({ place: 0 }, criteria))
 }
 
-Row.fetchAndUnsetRowsToEnsureZerothKeyframe = () => {
+Row.buildPropertyUid = (component, element, addressableName) => {
+  return `${component.getPrimaryKey()}::${element.getComponentId()}-property-${addressableName}`
+}
+
+Row.buildClusterUid = (component, element, propertyGroupDescriptor) => {
+  return `${component.getPrimaryKey()}::${element.getComponentId()}-cluster-${propertyGroupDescriptor.cluster.prefix}`
+}
+
+Row.buildClusterMemberUid = (component, element, propertyGroupDescriptor, addressableName) => {
+  return `${component.getPrimaryKey()}::${element.getComponentId()}-cluster-${propertyGroupDescriptor.cluster.prefix}-property-${addressableName}`
+}
+
+Row.buildHeadingUid = (component, element) => {
+  return `${component.getPrimaryKey()}::${element.getComponentId()}-heading`
+}
+
+Row.fetchAndUnsetRowsToEnsureZerothKeyframe = (criteria) => {
   const rows = []
-  Row.where({ _needsToEnsureZerothKeyframe: true }).forEach((row) => {
+  Row.where(lodash.assign({ _needsToEnsureZerothKeyframe: true }, criteria)).forEach((row) => {
     row._needsToEnsureZerothKeyframe = false
     rows.push(row)
   })
@@ -820,3 +874,7 @@ Row.fetchAndUnsetRowsToEnsureZerothKeyframe = () => {
 }
 
 module.exports = Row
+
+// Down here to avoid Node circular dependency stub objects. #FIXME
+const Keyframe = require('./Keyframe')
+const Timeline = require('./Timeline')

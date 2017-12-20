@@ -1,16 +1,14 @@
 import path from 'path'
 import fse from 'haiku-fs-extra'
 import async from 'async'
-import pascalcase from 'pascalcase'
 import dedent from 'dedent'
 import semver from 'semver'
 import moment from 'moment'
 import Browserify from './Browserify'
 import npm from './npm'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
-import normalizeBytecodeFile from 'haiku-serialization/src/ast/normalizeBytecodeFile'
-import FileModel from 'haiku-serialization/src/bll/File'
 import * as HaikuHomeDir from 'haiku-serialization/src/utils/HaikuHomeDir'
+import Project from 'haiku-serialization/src/bll/Project'
 
 const PLUMBING_DIR = path.join(__dirname, '..')
 const PLUMBING_NODE_MODULES = path.join(PLUMBING_DIR, 'node_modules')
@@ -29,12 +27,6 @@ const UNDERSCORE = '_'
 const FALLBACK_ORG_NAME = 'Unknown'
 const FALLBACK_AUTHOR_NAME = 'Haiku User'
 const FALLBACK_SEMVER_VERSION = '0.0.0'
-
-export function getSafeProjectName (maybeProjectPath, maybeProjectName) {
-  if (maybeProjectName) return maybeProjectName.replace(WHITESPACE_REGEX, UNDERSCORE)
-  if (maybeProjectPath) return pascalcase(maybeProjectPath.split(path.sep).join(UNDERSCORE))
-  throw new Error('Unable to infer a project name!')
-}
 
 export function getSafeOrgName (maybeOrgName) {
   if (!maybeOrgName || typeof maybeOrgName !== 'string') maybeOrgName = FALLBACK_ORG_NAME
@@ -62,7 +54,7 @@ export function ensureProject (projectOptions, cb) {
   return fse.mkdirp(projectsHome, (err) => {
     if (err) return cb(err)
 
-    const safeProjectName = getSafeProjectName(projectsHome, projectName)
+    const safeProjectName = Project.getSafeProjectName(projectsHome, projectName)
     const safeOrgName = getSafeOrgName(organizationName)
 
     if (!projectPath) {
@@ -135,26 +127,6 @@ function dir () {
   return location
 }
 
-export function getProjectHaikuConfig (folder) {
-  return require(dir(folder, HAIKU_CONFIG_FILE))
-}
-
-export function getProjectNameVariations (folder) {
-  const projectHaikuConfig = getProjectHaikuConfig(folder)
-  const projectNameSafe = getSafeProjectName(folder, projectHaikuConfig.name)
-  const projectNameSafeShort = projectNameSafe.slice(0, 20)
-  const projectNameLowerCase = projectNameSafe.toLowerCase()
-  const reactProjectName = `React_${projectNameSafe}`
-  const primaryAssetPath = `designs/${projectNameSafeShort}.sketch`
-  return {
-    projectNameSafe,
-    projectNameSafeShort,
-    projectNameLowerCase,
-    reactProjectName,
-    primaryAssetPath
-  }
-}
-
 export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName, projectType = DEFAULT_PROJECT_TYPE, projectOptions, finish) {
   let looksLikeBrandNewProject = false
 
@@ -169,13 +141,13 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       fse.outputFileSync(dir(projectPath, HAIKU_CONFIG_FILE), dedent`
         module.exports = {
           type: '${projectType}',
-          name: '${getSafeProjectName(projectPath, projectName)}'
+          name: '${Project.getSafeProjectName(projectPath, projectName)}'
         }
       `)
     }
 
     // Reload from the user's config in case they overrode ours
-    const projectHaikuConfig = getProjectHaikuConfig(projectPath)
+    const projectHaikuConfig = Project.getProjectHaikuConfig(projectPath)
 
     const projectSemverVersion = projectHaikuConfig.version || FALLBACK_SEMVER_VERSION
 
@@ -184,7 +156,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       projectNameLowerCase,
       reactProjectName,
       primaryAssetPath
-    } = getProjectNameVariations(projectPath)
+    } = Project.getProjectNameVariations(projectPath)
 
     const organizationName = projectOptions.organizationName || FALLBACK_ORG_NAME
     const organizationNameLowerCase = organizationName.toLowerCase()
@@ -320,36 +292,6 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
 
       logger.info('[project folder] creating files')
 
-      // Only write these files if they don't exist yet; don't overwrite the user's own content
-      if (!fse.existsSync(dir(projectPath, 'code/main/code.js'))) {
-        logger.info('[project folder] created main code file')
-
-        fse.outputFileSync(dir(projectPath, 'code/main/code.js'), dedent`
-          var Haiku = require('@haiku/player')
-          module.exports = {
-            metadata: {},
-            options: {},
-            states: {},
-            eventHandlers: {},
-            timelines: {
-              Default: {}
-            },
-            template: {
-              elementName: 'div',
-              attributes: {
-                'haiku-title': 'HaikuComponent'
-              },
-              children: []
-            }
-          }
-        `)
-      } else {
-        // If the file already exists, we can run any migration steps we might want
-        FileModel.astmod(dir(projectPath, 'code/main/code.js'), (ast) => {
-          normalizeBytecodeFile(ast)
-        })
-      }
-
       // Other user data may have been written these, so don't overwrite if they're already present
       if (!fse.existsSync(dir(projectPath, '.haiku/comments.json'))) {
         fse.outputFileSync(dir(projectPath, '.haiku/comments.json'), dedent`
@@ -410,44 +352,6 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
         var ${reactProjectName}_Bare = HaikuReactAdapter(null, require('./code/main/code'))
         if (${reactProjectName}_Bare.default) ${reactProjectName}_Bare = ${reactProjectName}_Bare.default
         module.exports = ${reactProjectName}_Bare
-      `)
-
-      fse.outputFileSync(dir(projectPath, 'code/main/dom.js'), dedent`
-        var HaikuDOMAdapter = require('@haiku/player/dom')
-        module.exports = HaikuDOMAdapter(require('./code'))
-      `)
-      fse.outputFileSync(dir(projectPath, 'code/main/dom-embed.js'), dedent`
-        var code = require('./code')
-        var adapter = window.HaikuPlayer && window.HaikuPlayer['${haikuPlayerVersion}']
-        if (adapter) {
-          module.exports = adapter(code)
-        } else  {
-          function safety () {
-            console.error(
-              '[haiku player] player version ${haikuPlayerVersion} seems to be missing. ' +
-              'index.embed.js expects it at window.HaikuPlayer["${haikuPlayerVersion}"], but we cannot find it. ' +
-              'you may need to add a <script src="path/to/HaikuPlayer.js"></script> to fix this. ' +
-              'if you really need to load the player after this script, you could try: ' +
-              'myHaikuPlayer(${embedName})(document.getElementById("myMountElement"))'
-            )
-            return code
-          }
-          for (var key in code) {
-            safety[key] = code[key]
-          }
-          module.exports = safety
-        }
-      `)
-      fse.outputFileSync(dir(projectPath, 'code/main/dom-standalone.js'), dedent`
-        module.exports = require('./dom')
-      `)
-      fse.outputFileSync(dir(projectPath, 'code/main/react-dom.js'), dedent`
-        var React = require('react') // Installed as a peer dependency of '@haiku/player'
-        var ReactDOM = require('react-dom') // Installed as a peer dependency of '@haiku/player'
-        var HaikuReactAdapter = require('@haiku/player/dom/react')
-        var ${reactProjectName} = HaikuReactAdapter(require('./dom'))
-        if (${reactProjectName}.default) ${reactProjectName} = ${reactProjectName}.default
-        module.exports = ${reactProjectName}
       `)
 
       fse.outputFileSync(dir(projectPath, 'preview.html'), dedent`

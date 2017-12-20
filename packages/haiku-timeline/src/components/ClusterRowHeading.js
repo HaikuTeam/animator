@@ -1,5 +1,5 @@
 import React from 'react'
-import Palette from './DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 export default class ClusterRowHeading extends React.Component {
   constructor (props) {
@@ -28,10 +28,13 @@ export default class ClusterRowHeading extends React.Component {
   }
 
   render () {
+    let fontSize = 10
+    if (this.props.clusterName.length > 9) fontSize = 8
+
     return (
       <span style={{
         textTransform: 'uppercase',
-        fontSize: 10,
+        fontSize,
         color: (this.props.row.isHovered())
           ? Palette.ROCK
           : Palette.DARK_ROCK

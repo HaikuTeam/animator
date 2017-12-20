@@ -9,10 +9,12 @@ import cp from 'child_process'
 import os from 'os'
 import path from 'path'
 import fs from 'fs'
+import Project from 'haiku-serialization/src/bll/Project'
+import Asset from 'haiku-serialization/src/bll/Asset'
 import AuthenticationUI from './components/AuthenticationUI'
 import ProjectBrowser from './components/ProjectBrowser'
 import SideBar from './components/SideBar'
-import Library from './components/library/Library'
+import Library from './components/Library/Library'
 import StateInspector from './components/StateInspector/StateInspector'
 import Stage from './components/Stage'
 import Timeline from './components/Timeline'
@@ -21,12 +23,11 @@ import Tour from './components/Tour/Tour'
 import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
-import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/user'
+import { USER_CHANNEL } from 'haiku-sdk-creator/lib/bll/user'
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
 import { isPreviewMode } from '@haiku/player/lib/helpers/interactionModes'
-import Palette from './components/Palette.js'
+import Palette from 'haiku-ui-common/lib/Palette'
 import ActivityMonitor from '../utils/activityMonitor.js'
-import { linkExternalAssetsOnDrop, preventDefaultDrag } from 'haiku-serialization/src/utils/dndHelpers'
 import { HOMEDIR_LOGS_PATH, HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 
@@ -60,8 +61,9 @@ export default class Creator extends React.Component {
     this.handleFindElementCoordinates = this.handleFindElementCoordinates.bind(this)
     this.handleFindWebviewCoordinates = this.handleFindWebviewCoordinates.bind(this)
     this.onAutoUpdateCheckComplete = this.onAutoUpdateCheckComplete.bind(this)
-    this.onTimlineMounted = this.onTimlineMounted.bind(this)
+    this.onTimelineMounted = this.onTimelineMounted.bind(this)
     this.onTimelineUnmounted = this.onTimelineUnmounted.bind(this)
+    this.onNavigateToDashboard = this.onNavigateToDashboard.bind(this)
     this.clearAuth = this.clearAuth.bind(this)
     this.layout = new EventEmitter()
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
@@ -71,6 +73,7 @@ export default class Creator extends React.Component {
       projectFolder: this.props.folder,
       applicationImage: null,
       projectObject: null,
+      projectModel: null, // Instance of the Project model
       projectName: null,
       dashboardVisible: !this.props.folder,
       readyForAuth: false,
@@ -86,6 +89,24 @@ export default class Creator extends React.Component {
         shouldCheck: true,
         shouldRunOnBackground: true,
         shouldSkipOptIn: true
+      }
+    }
+
+    this.envoyOptions = {
+      port: this.props.haiku.envoy.port,
+      host: this.props.haiku.envoy.host,
+      WebSocket: window.WebSocket
+    }
+
+    // fileOptions is something of a misnomer, but we pass these into Project so they
+    // can be forwarded to file. They're also used to configure the Project model itself.
+    this.fileOptions = {
+      doWriteToDisk: false,
+      skipDiffLogging: true,
+      // List of methods that should return cb() without doing anything (we are in Creator).
+      methodsToShortCircuit: {
+        // The splat is interpreted to mean 'all methods should be short-circuited'
+        '*': true
       }
     }
 
@@ -120,7 +141,9 @@ export default class Creator extends React.Component {
 
     if (process.env.NODE_ENV !== 'production') {
       combokeys.bind('command+option+i', lodash.debounce(() => {
-        this.props.websocket.send({ method: 'toggleDevTools', params: [this.state.projectFolder] })
+        if (this.state.projectModel) {
+          this.state.projectModel.toggleDevTools()
+        }
       }, 500, { leading: true }))
     }
 
@@ -130,20 +153,33 @@ export default class Creator extends React.Component {
 
     // NOTE: The TopMenu automatically binds the below keyboard shortcuts/accelerators
     ipcRenderer.on('global-menu:zoom-in', () => {
-      this.props.websocket.send({ type: 'broadcast', name: 'view:zoom-in' })
+      if (this.state.projectModel) {
+        this.state.projectModel.viewZoomIn()
+      }
     })
+
     ipcRenderer.on('global-menu:zoom-out', () => {
-      this.props.websocket.send({ type: 'broadcast', name: 'view:zoom-out' })
+      if (this.state.projectModel) {
+        this.state.projectModel.viewZoomOut()
+      }
     })
+
     ipcRenderer.on('global-menu:open-terminal', lodash.debounce(() => {
       this.openTerminal(this.state.projectFolder)
     }, 500, { leading: true }))
+
     ipcRenderer.on('global-menu:undo', lodash.debounce(() => {
-      this.props.websocket.send({ method: 'gitUndo', params: [this.state.projectFolder, { type: 'global' }] })
+      if (this.state.projectModel) {
+        this.state.projectModel.gitUndo({ type: 'global' })
+      }
     }, 500, { leading: true }))
+
     ipcRenderer.on('global-menu:redo', lodash.debounce(() => {
-      this.props.websocket.send({ method: 'gitRedo', params: [this.state.projectFolder, { type: 'global' }] })
+      if (this.state.projectModel) {
+        this.state.projectModel.gitRedo({ type: 'global' })
+      }
     }, 500, { leading: true }))
+
     ipcRenderer.on('global-menu:check-updates', () => {
       this.setState({
         updater: {
@@ -154,23 +190,36 @@ export default class Creator extends React.Component {
       })
     })
 
-    window.addEventListener('dragover', preventDefaultDrag, false)
+    window.addEventListener('dragover', Asset.preventDefaultDrag, false)
 
     window.addEventListener(
       'drop',
       (event) => {
-        linkExternalAssetsOnDrop(
-          event,
-          this.props.websocket,
-          this.state.projectFolder,
-          (error, assets) => {
+        if (this.state.projectModel) {
+          this.state.projectModel.linkExternalAssetOnDrop(event, (error) => {
             if (error) this.setState({error})
             this.forceUpdate()
-          }
-        )
+          })
+        }
       },
       false
     )
+
+    // Flexibly keep track of states in the various subviews as broadcasted to us.
+    // TODO: Move to Envoy. Put here to avoid boiling the ocean on multi-component.
+    // This is a dictionary of state changes broadcasted to us via the subviews.
+    // Structure looks like this:
+    // {
+    //   some/folder: {
+    //     someStatename: {
+    //       creator: creatorStateValue,
+    //       master: masterStateValue,
+    //       ...
+    //     }
+    //   }
+    // }
+    // With such an object, we can track all registrars for some known state name.
+    this._projectStates = {}
   }
 
   openTerminal (folder) {
@@ -233,16 +282,9 @@ export default class Creator extends React.Component {
 
         // Command the views and master process to handle the element paste action
         // The 'pasteThing' action is intended to be able to handle multiple content types
-        return this.props.websocket.request({ type: 'action', method: 'pasteThing', params: [this.state.projectFolder, pastedElement, maybePasteRequest || {}] }, (error) => {
+        return this.state.pasteThing(pastedElement, maybePasteRequest || {}, (error) => {
           if (error) {
             console.error(error)
-            return this.createNotice({
-              type: 'warning',
-              title: 'Uh oh!',
-              message: 'We couldn\'t paste that. 😢 Please contact Haiku for support.',
-              closeText: 'Okay',
-              lightScheme: true
-            })
           }
         })
       } else {
@@ -258,13 +300,13 @@ export default class Creator extends React.Component {
     }
   }
 
-  componentWillMount () {
+  componentDidMount () {
     this.props.websocket.on('broadcast', (message) => {
       switch (message.name) {
         case 'dev-tools:toggle':
-          this.toggleDevTools()
-          break
-
+          return this.toggleDevTools()
+        case 'project-state-change':
+          return this.handleConnectedProjectModelStateChange(message)
         case 'current-pasteable:request-paste':
           console.info('[creator] current-pasteable:request-paste', message.data)
           return this.handleContentPaste(message.data)
@@ -273,13 +315,9 @@ export default class Creator extends React.Component {
 
     this.activityMonitor.startWatchers()
 
-    this.envoy = new EnvoyClient({
-      port: this.props.haiku.envoy.port,
-      host: this.props.haiku.envoy.host,
-      WebSocket: window.WebSocket
-    })
+    this.envoyClient = new EnvoyClient(this.envoyOptions)
 
-    this.envoy.get(EXPORTER_CHANNEL).then((exporterChannel) => {
+    this.envoyClient.get(EXPORTER_CHANNEL).then((exporterChannel) => {
       ipcRenderer.on('global-menu:export', (event, [format]) => {
         let extension
         switch (format) {
@@ -303,19 +341,19 @@ export default class Creator extends React.Component {
       })
     })
 
-    this.envoy.get(USER_CHANNEL).then(
+    this.envoyClient.get(USER_CHANNEL).then(
       /**
        * @param {User} user
        */
       (user) => {
         this.user = user
-        
-        //kick off initial report
+
+        // kick off initial report
         this.onActivityReport(true)
       }
     )
 
-    this.envoy.get('tour').then((tourChannel) => {
+    this.envoyClient.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
 
       tourChannel.on('tour:requestElementCoordinates', this.handleFindElementCoordinates)
@@ -332,13 +370,11 @@ export default class Creator extends React.Component {
       })
 
       window.addEventListener('resize', lodash.throttle(() => {
-        // if (tourChannel.isTourActive()) {
         tourChannel.updateLayout()
-        // }
       }), 300)
     })
 
-    this.envoy.get(GLASS_CHANNEL).then((glassChannel) => {
+    this.envoyClient.get(GLASS_CHANNEL).then((glassChannel) => {
       document.addEventListener('cut', glassChannel.cut)
       document.addEventListener('copy', glassChannel.copy)
     })
@@ -353,13 +389,6 @@ export default class Creator extends React.Component {
         pasteEvent.preventDefault()
         this.handleContentPaste()
       }
-    })
-
-    this.props.websocket.on('method', (method, params, cb) => {
-      console.info('[creator] method from plumbing:', method, params)
-      // no-op; creator doesn't currently receive any methods from the other views, but we need this
-      // callback to be called to allow the action chain in plumbing to proceed
-      return cb()
     })
 
     this.props.websocket.on('open', () => {
@@ -424,6 +453,50 @@ export default class Creator extends React.Component {
     this.activityMonitor.stopWatchers()
   }
 
+  handleConnectedProjectModelStateChange ({ from, folder, what, value }) {
+    if (!this._projectStates[folder]) this._projectStates[folder] = {}
+    if (!this._projectStates[folder][what]) this._projectStates[folder][what] = {}
+    this._projectStates[folder][what][from] = (value !== undefined)
+      ? value // Let the originator specify the state...
+      : true // ...Otherwise it is simply a status of true
+  }
+
+  haveAllProjectsRegisteredStateNameForFolder (folder, what, value = true) {
+    if (!this._projectStates[folder]) return false
+    if (!this._projectStates[folder][what]) return false
+    return (
+      this._projectStates[folder][what].creator === value &&
+      this._projectStates[folder][what].glass === value &&
+      this._projectStates[folder][what].timeline === value
+      // this._projectStates[folder][what].master === value // happens too fast?
+    )
+  }
+
+  /**
+   * @methjod awaitAllProjectModelsState
+   * @description Long-poll our local registry until all of the subviews for the given folder
+   * have registered as having entered the named state.
+   */
+  awaitAllProjectModelsState (folder, what, value = true, cb) {
+    if (
+      this.state.projectModel && // Sanity check
+      this.state.projectModel.getFolder() === folder &&
+      this.haveAllProjectsRegisteredStateNameForFolder(folder, what, value)
+    ) {
+      return cb()
+    }
+
+    return setTimeout(() => {
+      return this.awaitAllProjectModelsState(folder, what, value, cb)
+    }, 100)
+  }
+
+  unsetAllProjectModelsState (folder, what) {
+    if (!this._projectStates[folder]) return null
+    // All states transition to an undefined state
+    this._projectStates[folder][what] = {}
+  }
+
   handleFindElementCoordinates ({ selector, webview }) {
     requestElementCoordinates({
       currentWebview: 'creator',
@@ -431,8 +504,8 @@ export default class Creator extends React.Component {
       selector,
       shouldNotifyEnvoy:
         this.tourChannel &&
-        this.envoy &&
-        !this.envoy.isInMockMode(),
+        this.envoyClient &&
+        !this.envoyClient.isInMockMode(),
       tourClient: this.tourChannel
     })
   }
@@ -544,20 +617,68 @@ export default class Creator extends React.Component {
       return this.props.websocket.request({ method: 'startProject', params: [projectName, projectFolder] }, (err, applicationImage) => {
         if (err) return cb(err)
 
-        // Assign, not merge, since we don't want to clobber any variables already set, like project name
-        lodash.assign(projectObject, applicationImage.project)
+        return Project.setup(
+          projectFolder,
+          'creator', // alias
+          this.props.websocket, // websocket
+          window, // platform
+          this.props.userconfig, // userconfig
+          this.fileOptions,
+          this.envoyOptions,
+          (err, projectModel) => {
+            if (err) return cb(err)
 
-        mixpanel.haikuTrack('creator:project:launched', {
-          username: this.state.username,
-          project: projectName,
-          organization: this.state.organizationName
-        })
+            // Notify... ourselves that we've successfully set up the project model for this folder
+            // Is it weird to put this here, or weirder to put a conditional hack over there?
+            this.handleConnectedProjectModelStateChange({ from: 'creator', folder: projectFolder, what: 'project:ready' })
 
-        // Now hackily change some pointers so we're referring to the correct place
-        this.props.websocket.folder = projectFolder // Do not remove this necessary hack plz
-        this.setState({ projectFolder, applicationImage, projectObject, projectName, dashboardVisible: false })
+            // Assign, not merge, since we don't want to clobber any variables already set, like project name
+            lodash.assign(projectObject, applicationImage.project)
 
-        return cb()
+            mixpanel.haikuTrack('creator:project:launched', {
+              username: this.state.username,
+              project: projectName,
+              organization: this.state.organizationName
+            })
+
+            this.setState({
+              projectModel,
+              projectFolder,
+              applicationImage,
+              projectObject,
+              projectName,
+              dashboardVisible: false
+            }, () => {
+              // Once the Timeline/Stage are being rendered, we await the point that their
+              // own Project models have loaded before initiating a switch to the current
+              // active component. This also waits for MasterProcess to be bootstrapped
+              return this.awaitAllProjectModelsState(projectFolder, 'project:ready', true, () => {
+                const ac = this.state.projectModel.getCurrentActiveComponent()
+                if (ac) {
+                  console.log('meow1')
+                  // Even if we already have an active component set up and assigned in memory,
+                  // we still need to notify Timeline/Stage since they have been completely recreated
+                  ac.setAsCurrentActiveComponent({ from: 'creator' }, () => {})
+                } else {
+                  // And if we don't have anything assigned, assume we're editing the main component
+                  this.state.projectModel.setCurrentActiveComponent('main', { from: 'creator' }, () => {})
+                }
+              })
+            })
+
+            projectModel.on('update', (what) => {
+              switch (what) {
+                // Trigger re-render of the Component Tab UI, State Inspector UI, Library UI
+                case 'setCurrentActiveComponent': return this.forceUpdate()
+              }
+            })
+
+            // This notifies ProjectBrowser that we've successfully launched
+            // Note that we don't activate any component until all views are ready
+            // (see above)
+            return cb()
+          }
+        )
       })
     })
   }
@@ -619,15 +740,15 @@ export default class Creator extends React.Component {
     return notice
   }
 
-  onLibraryDragEnd (dragEndNativeEvent, libraryItemInfo) {
-    this.setState({ libraryItemDragging: null })
-    if (libraryItemInfo && libraryItemInfo.preview) {
-      this.refs.stage.handleDrop(libraryItemInfo, this._lastMouseX, this._lastMouseY)
+  onLibraryDragEnd (dragEndNativeEvent, asset) {
+    this.setState({ assetDragging: null })
+    if (asset) {
+      this.refs.stage.handleDrop(asset, this._lastMouseX, this._lastMouseY)
     }
   }
 
-  onLibraryDragStart (dragStartNativeEvent, libraryItemInfo) {
-    this.setState({ libraryItemDragging: libraryItemInfo })
+  onLibraryDragStart (dragStartNativeEvent, asset) {
+    this.setState({ assetDragging: asset })
   }
 
   onAutoUpdateCheckComplete () {
@@ -653,12 +774,20 @@ export default class Creator extends React.Component {
     })
   }
 
-  onTimlineMounted () {
+  onTimelineMounted () {
     this.setState({isTimelineReady: true})
   }
 
   onTimelineUnmounted () {
     this.setState({isTimelineReady: false})
+  }
+
+  onNavigateToDashboard () {
+    this.setDashboardVisibility(true)
+    this.onTimelineUnmounted()
+    this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
+    this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'component:mounted')
+    this.setState({ projectModel: null })
   }
 
   renderStartupDefaultScreen () {
@@ -726,9 +855,12 @@ export default class Creator extends React.Component {
             removeNotice={this.removeNotice}
             clearAuth={this.clearAuth}
             notices={this.state.notices}
-            envoy={this.envoy}
+            envoyClient={this.envoyClient}
             {...this.props} />
-          <Tour projectsList={this.state.projectsList} envoy={this.envoy} startTourOnMount />
+          <Tour
+            projectsList={this.state.projectsList}
+            envoyClient={this.envoyClient}
+            startTourOnMount />
           <AutoUpdater
             onComplete={this.onAutoUpdateCheckComplete}
             check={this.state.updater.shouldCheck}
@@ -742,7 +874,9 @@ export default class Creator extends React.Component {
     if (!this.state.projectFolder) {
       return (
         <div>
-          <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
+          <Tour
+            projectsList={this.state.projectsList}
+            envoyClient={this.envoyClient} />
           <AutoUpdater
             onComplete={this.onAutoUpdateCheckComplete}
             check={this.state.updater.shouldCheck}
@@ -755,7 +889,7 @@ export default class Creator extends React.Component {
             createNotice={this.createNotice}
             removeNotice={this.removeNotice}
             notices={this.state.notices}
-            envoy={this.envoy}
+            envoyClient={this.envoyClient}
             {...this.props} />
         </div>
       )
@@ -789,7 +923,9 @@ export default class Creator extends React.Component {
           skipOptIn={this.state.updater.shouldSkipOptIn}
           runOnBackground={this.state.updater.shouldRunOnBackground}
         />
-        <Tour projectsList={this.state.projectsList} envoy={this.envoy} />
+        <Tour
+          projectsList={this.state.projectsList}
+          envoyClient={this.envoyClient} />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
           <div className='layout-box' style={{overflow: 'visible'}}>
             <ReactCSSTransitionGroup
@@ -804,9 +940,9 @@ export default class Creator extends React.Component {
               <div>
                 <SplitPane onDragFinished={this.handlePaneResize.bind(this)} split='vertical' minSize={300} defaultSize={300}>
                   <SideBar
-                    setDashboardVisibility={this.setDashboardVisibility.bind(this)}
+                    projectModel={this.state.projectModel}
                     switchActiveNav={this.switchActiveNav.bind(this)}
-                    onNavigateToDashboard={this.onTimelineUnmounted}
+                    onNavigateToDashboard={this.onNavigateToDashboard}
                     activeNav={this.state.activeNav}>
                     {
                       isPreviewMode(this.state.interactionMode) && (
@@ -826,6 +962,7 @@ export default class Creator extends React.Component {
                     }
                     {this.state.activeNav === 'library'
                       ? <Library
+                        projectModel={this.state.projectModel}
                         layout={this.layout}
                         folder={this.state.projectFolder}
                         haiku={this.props.haiku}
@@ -836,6 +973,7 @@ export default class Creator extends React.Component {
                         createNotice={this.createNotice}
                         removeNotice={this.removeNotice} />
                       : <StateInspector
+                        projectModel={this.state.projectModel}
                         createNotice={this.createNotice}
                         removeNotice={this.removeNotice}
                         folder={this.state.projectFolder}
@@ -847,7 +985,8 @@ export default class Creator extends React.Component {
                     <Stage
                       ref='stage'
                       folder={this.state.projectFolder}
-                      envoy={this.envoy}
+                      projectModel={this.state.projectModel}
+                      envoyClient={this.envoyClient}
                       haiku={this.props.haiku}
                       websocket={this.props.websocket}
                       project={this.state.projectObject}
@@ -860,7 +999,7 @@ export default class Creator extends React.Component {
                       password={this.state.password}
                       isTimelineReady={this.state.isTimelineReady}
                       onPreviewModeToggled={(interactionMode) => { this.setState({interactionMode}) }} />
-                    {(this.state.libraryItemDragging)
+                    {(this.state.assetDragging)
                       ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />
                       : '' }
                   </div>
@@ -869,13 +1008,13 @@ export default class Creator extends React.Component {
               <Timeline
                 ref='timeline'
                 folder={this.state.projectFolder}
-                envoy={this.envoy}
+                envoyClient={this.envoyClient}
                 haiku={this.props.haiku}
                 username={this.state.username}
                 organizationName={this.state.organizationName}
                 createNotice={this.createNotice}
                 removeNotice={this.removeNotice}
-                onReady={this.onTimlineMounted} />
+                onReady={this.onTimelineMounted} />
             </SplitPane>
           </div>
         </div>

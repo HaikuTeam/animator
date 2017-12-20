@@ -124,12 +124,6 @@ function runInteractive () {
           name: 'dev',
           message: 'Automatically open Chrome Dev Tools?',
           default: inputs.dev
-        },
-        {
-          type: 'confirm',
-          name: 'skipInitialBuild',
-          message: 'Skip initial build of assets?',
-          default: inputs.skipInitialBuild
         }
       ]).then(function (answers) {
         lodash.assign(inputs, answers)
@@ -253,7 +247,6 @@ function go () {
   if (instructions.length < 1) {
     throw new Error('[mono] no instructions found for this dev mode')
   }
-
 
   if (inputs.skipInitialBuild) {
     log.hat('skipping initial build')

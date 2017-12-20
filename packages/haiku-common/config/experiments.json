@@ -5,5 +5,17 @@
   "TimelineShiftKeyBehaviors": {
     "development": true,
     "production": true
+  },
+  "MultiComponentFeatures": {
+    "development": false,
+    "production": false
+  },
+  "JustInTimeProperties": {
+    "development": false,
+    "production": false
+  },
+  "InstantiationOfPrimitivesAsComponents": {
+    "development": false,
+    "production": false
   }
 }

@@ -2,6 +2,7 @@ import lodash from 'lodash'
 import React from 'react'
 import { render } from 'react-dom'
 import Websocket from 'haiku-serialization/src/ws/Websocket'
+import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
 import Creator from './react/Creator'
 
 var remote = require('electron').remote
@@ -28,7 +29,7 @@ export default function dom (modus, haiku) {
 
   const websocket = (haiku.plumbing)
     ? new Websocket(_fixPlumbingUrl(haiku.plumbing.url), haiku.folder, 'commander', 'creator')
-    : { on: () => {}, send: () => {}, method: () => {}, request: () => {} }
+    : new MockWebsocket()
 
   websocket.on('close', () => {
     const currentWindow = remote.getCurrentWindow()

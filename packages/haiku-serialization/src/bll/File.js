@@ -1,12 +1,9 @@
 const fse = require('fs-extra')
 const path = require('path')
 const async = require('async')
-const assign = require('lodash.assign')
-const visitManaTree = require('@haiku/player/lib/helpers/visitManaTree').default
 const xmlToMana = require('@haiku/player/lib/helpers/xmlToMana').default
 const convertManaLayout = require('@haiku/player/lib/layout/convertManaLayout').default
 const objectToRO = require('@haiku/player/lib/reflection/objectToRO').default
-const reifyRO = require('@haiku/player/lib/reflection/reifyRO').default
 const upgradeBytecodeInPlace = require('@haiku/player/lib/helpers/upgradeBytecodeInPlace').default
 const ensureManaChildrenArray = require('haiku-bytecode/src/ensureManaChildrenArray')
 const mergeTimelineStructure = require('haiku-bytecode/src/mergeTimelineStructure')
@@ -16,36 +13,8 @@ const BytecodeActions = require('haiku-bytecode/src/actions')
 const getPropertyValue = require('haiku-bytecode/src/getPropertyValue')
 const upsertPropertyValue = require('haiku-bytecode/src/upsertPropertyValue')
 const getStackingInfo = require('haiku-bytecode/src/getStackingInfo')
-const readMetadata = require('haiku-bytecode/src/readMetadata')
 const writeMetadata = require('haiku-bytecode/src/writeMetadata')
-const prettier = require('prettier')
 const BaseModel = require('./BaseModel')
-const getNormalizedComponentModulePath = require('./helpers/getNormalizedComponentModulePath')
-const _allSourceNodes = require('./helpers/allSourceNodes')
-const _buildHaikuIdSelector = require('./helpers/buildHaikuIdSelector')
-const _cleanBytecodeAndTemplate = require('./helpers/cleanBytecodeAndTemplate')
-const _ensureRootDisplayAttributes = require('./helpers/ensureRootDisplayAttributes')
-const _ensureTitleAndUidifyTree = require('./helpers/ensureTitleAndUidifyTree')
-const _ensureTopLevelDisplayAttributes = require('./helpers/ensureTopLevelDisplayAttributes')
-const _extractSubstructs = require('./helpers/extractSubstructs')
-const _fixFragmentIdentifierReferences = require('./helpers/fixFragmentIdentifierReferences')
-const _fixFragmentIdentifierReferenceValue = require('./helpers/fixFragmentIdentifierReferenceValue')
-const _fixTreeIdReferences = require('./helpers/fixTreeIdReferences')
-const _getAllElementsByHaikuId = require('./helpers/getAllElementsByHaikuId')
-const _getInsertionPointHash = require('./helpers/getInsertionPointHash')
-const _hoistTreeAttributes = require('./helpers/hoistTreeAttributes')
-const _importComponentModuleToMana = require('./helpers/importComponentModuleToMana')
-const _isHaikuIdSelector = require('./helpers/isHaikuIdSelector')
-const _manaTreeToDepthFirstArray = require('./helpers/manaTreeToDepthFirstArray')
-const _mirrorHaikuIds = require('./helpers/mirrorHaikuIds')
-const _safeElementName = require('./helpers/safeElementName')
-const _synchronizeSubstructAndAST = require('./helpers/synchronizeSubstructAndAST')
-const upsertRequire = require('./../ast/upsertRequire')
-const removeRequire = require('./../ast/removeRequire')
-const formatStandard = require('./../formatter/formatStandard')
-const generateCode = require('./../ast/generateCode')
-const parseCode = require('./../ast/parseCode')
-const getSvgOptimizer = require('../svg/getSvgOptimizer')
 const Logger = require('./../utils/Logger')
 const walkFiles = require('./../utils/walkFiles')
 
@@ -60,9 +29,7 @@ const DEFAULT_TIMELINE_NAME = 'Default'
 const DEFAULT_TIMELINE_TIME = 0
 const DEFAULT_ROOT_NODE_NAME = 'div'
 const FALLBACK_TEMPLATE = '<' + DEFAULT_ROOT_NODE_NAME + '></' + DEFAULT_ROOT_NODE_NAME + '>'
-const SOURCE_ATTRIBUTE = 'source'
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
-const ROOT_LOCATOR = '0' // e.g. the locator of the root node in a mana tree
 const DEFAULT_CONTEXT_SIZE = { width: 550, height: 400 }
 
 const FILE_TYPES = {
@@ -70,90 +37,70 @@ const FILE_TYPES = {
   code: 'code'
 }
 
+/**
+ * @class File
+ * @description
+ *.  Abstraction of Files that are contained in a project.
+ *.  WARNING: Contains a lot of legacy code which extends its responsibilities
+ *.  quite a bit further than what you would expect its purview to be.
+ *.  Worth a refactor. Many methods here belong in ActiveComponent or elsewhere.
+ */
 class File extends BaseModel {
   constructor (props, opts) {
     super(props, opts)
 
-    if (!this.substructs) {
-      this.substructs = []
-    }
+    this.mod = ModuleWrapper.upsert({
+      uid: this.getAbspath(),
+      file: this
+    })
 
-    // Keep track of components that have been removed,
-    // so when we mutate the ast we can clean up imports
-    this._unrefedModules = []
+    this.ast = AST.upsert({
+      uid: this.getAbspath(),
+      file: this
+    })
 
     this._elementsCache = {}
   }
 
-  updateContents (contents, options, cb) {
-    options = assign({}, File.UPDATE_OPTIONS, options)
-
-    if (!contents) {
-      logger.warn('[file] (updateContents) falsy contents given in ' + this.relpath)
-    }
-
-    return this.updateInMemoryContentState(contents, options, (err) => {
-      if (err) return cb(err)
-      return this.actualizeContentState(options, contents, cb)
-    })
-  }
-
-  updateInMemoryContentState (contents, options, cb) {
-    logger.info('[file] updating in-memory content state')
-
-    options = assign({}, File.UPDATE_OPTIONS, options)
-
+  updateInMemoryHotModuleOnly (bytecode, cb) {
     this.dtModified = Date.now()
-
-    const previous = this.contents
-    this.previous = previous
-
-    if (!contents) {
-      logger.warn('[file] (updateInMemoryContentState) falsy contents given in ' + this.relpath)
-    }
-
-    this.contents = contents
-
-    if (this.isCode() || path.extname(this.relpath) === '.svg') {
-      if (!this.skipDiffLogging) {
-        const relpath = this.relpath
-        // Diffs of 'snapshots' or bundled code are usually fairly useless to show and too long anyway.
-        // These files are written as part of the save process
-        if (!_looksLikeMassiveFile(relpath)) {
-          differ.difflog(previous, contents, { relpath: relpath })
-        }
-      }
-    }
-
-    if (this.isCode() && options.shouldReloadCodeStructures) {
-      return File.loadCodeStructures(this.relpath, contents, (err, ast, substructs) => {
-        if (err) return cb(err)
-
-        this.ast = ast
-        this.substructs = substructs
-
-        this.emit('in-memory-content-state-updated')
-        return cb()
-      })
-    }
-
+    this.mod.monkeypatch(bytecode)
     this.emit('in-memory-content-state-updated')
     return cb()
   }
 
-  actualizeContentState (options, resultOfPreviousOperation, cb) {
-    options = assign({}, File.UPDATE_OPTIONS, options)
+  updateInMemoryContentState (bytecode, cb) {
+    this.dtModified = Date.now()
+    this.mod.monkeypatch(bytecode)
+    const contents = this.ast.updateWithBytecodeAndReturnCode(bytecode)
+    const previous = this.contents
+    this.previous = previous
+    this.contents = contents
+    this.maybeLogDiff(previous, contents)
+    this.emit('in-memory-content-state-updated')
+    return cb()
+  }
 
-    logger.info('[file] actualizing content state (' + options.shouldUpdateFileSystem + ')')
+  maybeLogDiff (previous, contents) {
+    if (!this.options.skipDiffLogging) {
+      if (this.isCode()) {
+        // Diffs of 'snapshots' or bundled code are usually fairly useless to show and too long anyway.
+        // These files are written as part of the save process
+        if (!_looksLikeMassiveFile(this.relpath)) {
+          differ.difflog(previous, contents, { relpath: this.relpath })
+        }
+      }
+    }
+  }
 
+  actualizeContentState (resultOfPreviousOperation, cb) {
     // Allow the user calling this upstream to specify we want to hit the fs or not
-    if (options.shouldUpdateFileSystem) {
+    if (this.options.doWriteToDisk) {
       return this.write((err) => {
         if (err) return cb(err)
         return cb(null, resultOfPreviousOperation)
       })
     }
-
     return cb(null, resultOfPreviousOperation)
   }
 
@@ -185,26 +132,16 @@ class File extends BaseModel {
   performComponentWork (worker, finish) {
     try {
       // We shouldn't need to do these 'ensure X Y Z' steps more than once
-      if (!this.substructInitialized) {
-        this.substructInitialized = this.reinitializeSubstruct(null, 'performComponentWork')
-      }
+      this.reinitializeBytecode(null)
 
-      return worker(this.substructInitialized.bytecode, this.substructInitialized.bytecode.template, (err, result) => {
+      const bytecode = this.getReifiedBytecode()
+
+      return worker(bytecode, bytecode.template, (err, result) => {
         if (err) return finish(err)
         try {
-          _cleanBytecodeAndTemplate(this.substructInitialized.bytecode, this.substructInitialized.bytecode.template)
-
-          // The steps after this do heavy things like: clean the tree, update the code, mutate the AST...
-          // This flag allows these steps to be skipped in perf-critical scenarios, e.g. 'control'
-          if (this.doShallowWorkOnly) {
-            return finish(null, result, this)
-          }
-
-          if (!this.ast) {
-            return finish(new Error('AST missing'))
-          }
-
-          return this.commitContentState(this.substructInitialized, this.ast, result, finish)
+          Bytecode.cleanBytecode(bytecode)
+          Template.cleanTemplate(bytecode.template)
+          return this.commitContentState(result, bytecode, finish)
         } catch (exception) {
           return finish(exception)
         }
@@ -216,99 +153,68 @@ class File extends BaseModel {
   }
 
   /**
-   * @method reinitializeSubstruct
+   * @method reinitializeBytecode
    * @description Make sure the in-memory bytecode object has all of the correct settings, attributes, and structure.
    * This ought to get called if the bytecode has just been ingested from somewhere and you need to make sure it is right.
-   * The 'via' argument is in place for testing a race condition that is hard to debug via a normal stack trace.
    */
-  reinitializeSubstruct (config, via) {
+  reinitializeBytecode (config) {
     if (!config) config = {}
 
-    const substruct = this.substructs[0]
+    let bytecode = this.mod.fetchInMemoryExport()
 
-    if (!substruct) {
-      logger.info('[file] ' + this.relpath + ' does not have a substruct (' + (via || '?') + ')')
-      throw new Error('Substruct missing in ' + this.relpath)
+    // If no bytecode is present at all, we'll create the object here, and monkeypatch it
+    // as the export so downstream actions get access to the same object 'pointer'
+    if (!bytecode) {
+      bytecode = {}
+      this.mod.monkeypatch(bytecode)
     }
 
     let mana
-    if (typeof substruct.bytecode.template === 'string') {
-      mana = xmlToMana(substruct.bytecode.template || FALLBACK_TEMPLATE)
-    } else if (typeof substruct.bytecode.template === 'object') {
-      mana = substruct.bytecode.template || xmlToMana(FALLBACK_TEMPLATE)
+    if (typeof bytecode.template === 'string') {
+      mana = xmlToMana(bytecode.template || FALLBACK_TEMPLATE)
+    } else if (typeof bytecode.template === 'object') {
+      mana = bytecode.template || xmlToMana(FALLBACK_TEMPLATE)
     } else {
-      logger.info('[file] unexpected template format in ' + this.relpath + ' . bytecode is:', substruct.bytecode)
-      throw new Error('Template format unexpected')
+      // If nothing had been set, what is the risk of just setting it here?
+      mana = { elementName: 'div', attributes: {}, children: [] }
     }
 
-    substruct.bytecode.template = mana
+    bytecode.template = mana
 
-    upgradeBytecodeInPlace(substruct.bytecode)
-
-    // Since we may be appending a child, make sure the children is an array
-    if (!Array.isArray(mana.children)) {
-      ensureManaChildrenArray(mana)
-    }
-
-    // Force a div as the top-level for now...
-    if (_safeElementName(mana) === 'svg') {
-      if (!mana.attributes) mana.attributes = {}
-      _ensureTopLevelDisplayAttributes(mana)
-
-      mana = {
-        elementName: 'div',
-        attributes: {},
-        children: [mana]
-      }
-    }
-
-    // Hack...but helps avoid issues downstream if the template part of the bytecode was empty
-    if (!mana.elementName) mana.elementName = 'div'
-
-    // Ensure the top-level context gets the appropriate display attributes
-    _ensureRootDisplayAttributes(mana)
+    this.normalizeAndUpgradeBytecode(bytecode)
 
     // Make sure there is at least a baseline metadata objet
-    writeMetadata(substruct.bytecode, {
+    writeMetadata(bytecode, {
       uuid: 'HAIKU_SHARE_UUID', // This magic string is detected+replaced by our cloud services to produce a full share link
       type: config.type,
       name: config.name,
       relpath: this.relpath
     })
 
-    // Make sure there is an options object (can be used for playback configuration)
-    if (!substruct.bytecode.options) {
-      substruct.bytecode.options = {}
-    }
-
-    // Make sure there is always a timelines object
-    if (!substruct.bytecode.timelines) {
-      substruct.bytecode.timelines = {}
-    }
-
-    // And make sure there is always a default timelines object
-    if (!substruct.bytecode.timelines[DEFAULT_TIMELINE_NAME]) {
-      substruct.bytecode.timelines[DEFAULT_TIMELINE_NAME] = {}
-    }
+    // The same content when instantiated in a different host folder will result in a different absolute path
+    // (here called "context"), which in turn will result in the id generation algorithm, SHA256, generating
+    // different base identifiers across different projects despite the same actions.
+    const context = path.join(path.normalize(this.folder), path.normalize(this.relpath))
 
     // Make sure all elements in the tree have a haiku-id assigned
-    // [UIDIFY]
-    this.ensureTitleAndUidifyTree(mana, path.normalize(this.relpath), '0', {
-      title: config.name // If present, this will force a change to the new title
-    })
-
-    convertManaLayout(mana)
-
-    let contextHaikuId = mana.attributes[HAIKU_ID_ATTRIBUTE]
+    Template.ensureTitleAndUidifyTree(
+      bytecode.template,
+      path.normalize(this.relpath),
+      context,
+      '0',
+      { title: config.name } // If present, this will force a change to the new title
+    )
 
     // Move inline attributes at the top level into the control object
-    const timeline = _hoistTreeAttributes(
-      mana,
+    const timeline = Template.hoistTreeAttributes(
+      bytecode.template,
       DEFAULT_TIMELINE_NAME,
       DEFAULT_TIMELINE_TIME
     )
 
-    this.upsertDefaultProperties([contextHaikuId], {
+    let contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
+
+    this.upsertDefaultProperties(contextHaikuId, {
       'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)',
       'style.position': 'relative',
       'style.overflowX': 'hidden',
@@ -321,9 +227,46 @@ class File extends BaseModel {
     }, 'assign')
 
     // Inject the hoisted attributes into the actual timelines object
-    mergeTimelineStructure(substruct.bytecode, timeline, 'defaults')
+    mergeTimelineStructure(bytecode, timeline, 'defaults')
 
-    return substruct
+    return bytecode
+  }
+
+  normalizeAndUpgradeBytecode (bytecode, options) {
+    upgradeBytecodeInPlace(bytecode)
+
+    // Since we may be appending a child, make sure the children is an array
+    if (!Array.isArray(bytecode.template.children)) {
+      ensureManaChildrenArray(bytecode.template)
+    }
+
+    // We're about to mutate this, so may as well make sure it's present
+    if (!bytecode.template.attributes) bytecode.template.attributes = {}
+
+    Template.ensureTopLevelDisplayAttributes(bytecode.template)
+
+    // Hack...but helps avoid issues downstream if the template part of the bytecode was empty
+    if (!bytecode.template.elementName) bytecode.template.elementName = 'div'
+
+    // Ensure the top-level context gets the appropriate display attributes
+    Template.ensureRootDisplayAttributes(bytecode.template)
+
+    // Make sure there is an options object (can be used for playback configuration)
+    if (!bytecode.options) {
+      bytecode.options = {}
+    }
+
+    // Make sure there is always a timelines object
+    if (!bytecode.timelines) {
+      bytecode.timelines = {}
+    }
+
+    // And make sure there is always a default timelines object
+    if (!bytecode.timelines[DEFAULT_TIMELINE_NAME]) {
+      bytecode.timelines[DEFAULT_TIMELINE_NAME] = {}
+    }
+
+    convertManaLayout(bytecode.template)
   }
 
   writeMetadata (metadata, cb) {
@@ -333,62 +276,17 @@ class File extends BaseModel {
     }, cb)
   }
 
-  readMetadata () {
-    let bytecode = this.getReifiedBytecode()
-    return readMetadata(bytecode)
-  }
-
-  ensureTitleAndUidifyTree (mana, source, hash, options) {
-    // The same content when instantiated in a different host folder will result in a different absolute path
-    // (here called "context"), which in turn will result in the id generation algorithm, SHA256, generating
-    // different base identifiers across different projects despite the same actions.
-    const context = path.join(path.normalize(this.folder), path.normalize(this.relpath))
-
-    return _ensureTitleAndUidifyTree(mana, source, context, hash, options)
-  }
-
-  _mutateComponent (substruct, ast, cb) {
-    try {
-      _synchronizeSubstructAndAST(substruct)
-
-      // remove unreferenced modules
-      this._unrefedModules.forEach((mod) => {
-        removeRequire(ast, mod[0], mod[1])
-      })
-      this._unrefedModules = []
-
-      let updatedCode = generateCode(ast)
-
-      return formatStandard(updatedCode, {}, (err, formatted) => {
+  commitContentState (resultOfPreviousOperation, bytecode, cb) {
+    // If we aren't writing to disk, we don't need to update the AST (heavy)
+    if (!this.options.doWriteToDisk) {
+      return this.updateInMemoryHotModuleOnly(bytecode, (err) => {
         if (err) return cb(err)
-
-        return cb(null, formatted)
+        return cb(null, resultOfPreviousOperation)
       })
-    } catch (exception) {
-      return cb(exception)
     }
-  }
-
-  commitContentState (substruct, ast, resultOfPreviousOperation, cb) {
-    logger.info('[file] committing content state')
-
-    // substruct -> { bytecode: {...}, objectExpression: {...} }
-    // This also runs formatStandard on the code
-    return this._mutateComponent(substruct, ast, (err, code) => {
-      if (err) {
-        logger.error('[file] content state commit error', err)
-        return cb(err)
-      }
-
-      if (!code) {
-        logger.warn('[file] commit content state got blank code')
-      }
-
-      return this.updateInMemoryContentState(code, { shouldReloadCodeStructures: false }, (err) => {
-        if (err) return cb(err)
-
-        this.actualizeContentState({}, resultOfPreviousOperation, cb)
-      })
+    return this.updateInMemoryContentState(bytecode, (err) => {
+      if (err) return cb(err)
+      this.actualizeContentState(resultOfPreviousOperation, cb)
     })
   }
 
@@ -404,6 +302,10 @@ class File extends BaseModel {
   /** ------------------ */
   /** ------------------ */
 
+  setHostInstance (hostInstance) {
+    this.hostInstance = hostInstance
+  }
+
   getHostInstance () {
     return this.hostInstance
   }
@@ -412,285 +314,37 @@ class File extends BaseModel {
     return this.getHostInstance().getStates()
   }
 
-  instantiateComponent (filepath, metadata, cb) {
-    // If the file path looks like a path to a Haiku component, assume a component will be instantiated.
-    // Otherwise, fallback to default instantiation of a design asset.
-    let ourdir = path.join(this.relpath, 'code', 'main')
-    let modulepath = getNormalizedComponentModulePath(filepath, ourdir)
-
-    if (modulepath) {
-      return this.instantiateComponentFromModule(modulepath, metadata, cb)
-    } else {
-      return File.read(this.folder, filepath, (err, buffer) => {
-        if (err) return cb(err)
-        getSvgOptimizer().optimize(buffer.toString(), {path: filepath}).then((contents) => {
-          const incoming = xmlToMana(contents.data)
-
-          if (!incoming.attributes) {
-            incoming.attributes = {}
-          }
-
-          // #QUESTION - why not just overwrite this?
-          if (!incoming.attributes[SOURCE_ATTRIBUTE]) {
-            incoming.attributes[SOURCE_ATTRIBUTE] = path.normalize(filepath)
-          }
-
-          return this.instantiateComponentFromMana(incoming, metadata, cb)
-        })
-      })
-    }
-  }
-
-  /**
-   * @method _offsetInstantiateeInTimelineAttributes
-   * @description Given an instantiated element, offset its position (translation). Used to instantiate component per the user's placement.
-   * Note that the offset is halved by the width of the element so that its apparent instantiation point is the center.
-   * @param componentId {String} - Id of component being offset
-   * @param incoming {Object} - Mana object being offset
-   * @param timelines {Object} - Timelines object
-   * @param metadata {Object} - Spec containing offset values like x:0, y:0
-   */
-  _offsetInstantiateeInTimelineAttributes (componentId, incoming, timelines, metadata) {
-    const myTimeline = timelines[DEFAULT_TIMELINE_NAME][`haiku:${componentId}`] || {}
-    const myWidth = (myTimeline['sizeAbsolute.x'] && myTimeline['sizeAbsolute.x'][DEFAULT_TIMELINE_TIME] && myTimeline['sizeAbsolute.x'][DEFAULT_TIMELINE_TIME].value) || 0
-    const myHeight = (myTimeline['sizeAbsolute.y'] && myTimeline['sizeAbsolute.y'][DEFAULT_TIMELINE_TIME] && myTimeline['sizeAbsolute.y'][DEFAULT_TIMELINE_TIME].value) || 0
-    if (metadata.x || metadata.y || metadata.minimized) {
-      const tx = (metadata.x || 0) - myWidth / 2
-      const ty = (metadata.y || 0) - myHeight / 2
-      const propertyGroup = { 'translation.x': tx, 'translation.y': ty }
-      if (metadata.minimized) {
-        // calculate the smallest scale value to make width/height < 1 pixel
-        propertyGroup['scale.x'] = 1 / myWidth
-        propertyGroup['scale.y'] = 1 / myHeight
-      }
-      TimelineProperty.addPropertyGroup(timelines, DEFAULT_TIMELINE_NAME, componentId, _safeElementName(incoming), propertyGroup, DEFAULT_TIMELINE_TIME)
-    }
-  }
-
-  instantiateComponentFromModule (modulePath, metadata, cb) {
-    let identifierName = File.modulePathToIdentifierName(modulePath)
-    let freshComponentNode = _importComponentModuleToMana(modulePath, identifierName)
-
-    // If running in glass or timeline, we probably don't have an AST to mutate
-    if (this.ast) {
-      upsertRequire(this.ast, identifierName, modulePath)
-    }
-
-    return this.instantiateComponentFromMana(freshComponentNode, metadata, cb)
-  }
-
-  instantiateComponentFromMana (incoming, metadata, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      let insertionPointHash = _getInsertionPointHash(mana, mana.children.length, 0)
-      _fixFragmentIdentifierReferences(incoming, insertionPointHash) // Each url(#whatever) needs to be unique to avoid styling collisions
-      this.ensureTitleAndUidifyTree(incoming, path.normalize(incoming.attributes[SOURCE_ATTRIBUTE]), insertionPointHash)
-      _ensureTopLevelDisplayAttributes(incoming)
-      convertManaLayout(incoming)
-      mana.children.push(incoming)
-      const timelines = _hoistTreeAttributes(incoming, DEFAULT_TIMELINE_NAME, DEFAULT_TIMELINE_TIME)
-      const componentId = incoming.attributes[HAIKU_ID_ATTRIBUTE]
-      this._offsetInstantiateeInTimelineAttributes(componentId, incoming, timelines, metadata)
-      mergeTimelineStructure(bytecode, timelines, 'assign')
-      // Move the component to the very front
-      return this.zMoveToFront([componentId], DEFAULT_TIMELINE_NAME, DEFAULT_TIMELINE_TIME, (err) => {
-        if (err) return done(err)
-        return done(null, incoming)
-      })
-    }, cb)
-  }
-
-  deleteComponent (componentIds, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      visitManaTree(ROOT_LOCATOR, mana, (elementName, attributes, children, node, locator, parent, index) => {
-        if (attributes && attributes[HAIKU_ID_ATTRIBUTE] && componentIds.indexOf(attributes[HAIKU_ID_ATTRIBUTE]) !== -1) {
-          if (parent) {
-            let child = parent.children[index]
-            if (child.elementName.__module) {
-              let mod = child.elementName
-              this._unrefedModules.push([mod.__reference, mod.__module])
-            }
-
-            parent.children.splice(index, 1)
-          } else {
-            // No parent means we are at the top
-            mana.elementName = 'div'
-            mana.attributes = {}
-            mana.children = []
-          }
-        }
-      })
-      done()
-    }, cb)
-  }
-
-  mergeDesigns (timelineName, timelineTime, designs, cb) {
-    return this.performComponentTimelinesWork((bytecode, existingMana, timelines, done) => {
-      return async.eachOf(designs, (truthy, sourceRelpath, next) => {
-        return this.mergeDesign(timelineName, timelineTime, sourceRelpath, bytecode, existingMana, timelines, next)
-      }, done)
-    }, cb)
-  }
-
-  // This is normally called in a loop from the above mergeDesigns
-  mergeDesign (timelineName, timelineTime, sourceRelpath, bytecode, existingMana, timelines, cb) {
-    let didUpdate = false
-
-    logger.info('[file] maybe merging design ' + sourceRelpath + ' in timeline ' + timelineName + ' @ ' + timelineTime)
-
-    return File.read(this.folder, sourceRelpath, (err, sourceBuffer) => {
-      if (err) return cb(err)
-
-      const sourceContents = sourceBuffer.toString()
-
-      let oldTimeline = timelines[timelineName]
-
-      // Create this timeline if it doesn't exist yet
-      if (!oldTimeline) {
-        timelines[timelineName] = {}
-        oldTimeline = timelines[timelineName]
-      }
-
-      _allSourceNodes(ROOT_LOCATOR, existingMana, (existingNode, nodeSourceRelpath, existingNodeParent, nodeIndexInParent) => {
-        // Only replace nodes whose 'source' attribute matches the one we are merging
-        if (path.normalize(nodeSourceRelpath) !== path.normalize(sourceRelpath)) return void (0)
-
-        logger.info('[file] found merge root for ' + nodeSourceRelpath)
-
-        let incomingMana = xmlToMana(sourceContents) // Do this here to avoid needing to clone
-        if (!incomingMana.attributes) {
-          incomingMana.attributes = {}
-        }
-        if (!incomingMana.attributes[SOURCE_ATTRIBUTE]) {
-          incomingMana.attributes[SOURCE_ATTRIBUTE] = path.normalize(sourceRelpath)
-        }
-
-        // This is used to ensure that the merge operation is the same across runs. We can't have randomness here due to multithreading
-        let insertionPointHash = _getInsertionPointHash(existingNodeParent, nodeIndexInParent, 0)
-
-        // Each url(#whatever) needs to be unique to avoid styling collisions
-        _fixFragmentIdentifierReferences(incomingMana, insertionPointHash)
-
-        // Do this every time since any instance will have different uids
-        _mirrorHaikuIds(existingNode, incomingMana)
-
-        // Add haiku-ids to any nodes we may have missed due to structural differences
-        this.ensureTitleAndUidifyTree(incomingMana, path.normalize(sourceRelpath), insertionPointHash)
-
-        convertManaLayout(incomingMana)
-
-        let newDefaultTimeline = _hoistTreeAttributes(incomingMana, timelineName, timelineTime)[timelineName]
-
-        // Replace the old tree with the new one
-        // This ensures we get new structural changes, as well as content changes e.g. strings
-        // Note that we have kept any matching haiku-ids from the previous tree so those rules can be retained
-        existingNodeParent.children.splice(nodeIndexInParent, 1, incomingMana)
-
-        // Now add any new rules from the new timeline we created, and modify
-        // any existing ones that match
-        for (let selector in newDefaultTimeline) {
-          if (!_isHaikuIdSelector(selector)) continue // We only manage haiku-ids
-          if (!oldTimeline[selector]) oldTimeline[selector] = {}
-          let newSelectorGroup = newDefaultTimeline[selector]
-          for (let newPropertyName in newSelectorGroup) {
-            if (!oldTimeline[selector][newPropertyName]) oldTimeline[selector][newPropertyName] = {}
-            let newPropertyGroup = newSelectorGroup[newPropertyName]
-            let newBasethKeyframe = newPropertyGroup[timelineTime]
-            let keyframeWasCreated = false
-            if (!oldTimeline[selector][newPropertyName][timelineTime]) {
-              // Track whether or not we are creating a value or changing an existing one so we can
-              // decide whether to clobber the previous value or leave it alone (see below)
-              keyframeWasCreated = true
-              oldTimeline[selector][newPropertyName][timelineTime] = {}
-            }
-            let oldBasethKeyframe = oldTimeline[selector][newPropertyName][timelineTime]
-            let newBasethValue = newBasethKeyframe.value
-            let oldBasethValue = oldBasethKeyframe.value
-            if (newBasethValue !== oldBasethValue) {
-              if (keyframeWasCreated) {
-                logger.info('[file] design property created: ' + selector + ' ' + newPropertyName + ' ' + oldBasethValue + ' -> ' + newBasethValue + ' in timeline ' + timelineName + ' @ ' + timelineTime)
-                oldTimeline[selector][newPropertyName][timelineTime].value = newBasethValue
-                didUpdate = true
-              } else {
-                if (oldBasethKeyframe.lock || oldBasethKeyframe.edited) {
-                  logger.info('[file] skipped design change to edited/locked property ' + newPropertyName + ' in timeline ' + timelineName + ' @ ' + timelineTime)
-                } else {
-                  logger.info('[file] design property changed: ' + selector + ' ' + newPropertyName + ' ' + oldBasethValue + ' -> ' + newBasethValue + ' in timeline ' + timelineName + ' @ ' + timelineTime)
-                  oldTimeline[selector][newPropertyName][timelineTime].value = newBasethValue
-                  didUpdate = true
-                }
-              }
-            }
-          }
-        }
-      })
-
-      logger.info('[file] did design merge result in updates?: ' + didUpdate)
-      return cb()
-    })
-  }
-
-  applyPropertyValue (componentIds, timelineName, timelineTime, propertyName, propertyValue, cb) {
+  applyPropertyGroupValue (componentId, timelineName, timelineTime, propertyGroup, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
       let problem = false
-      componentIds.forEach((componentId) => {
-        let elementNode = this.findElementByComponentId(mana, componentId)
-        if (elementNode) TimelineProperty.addProperty(timelines, timelineName, componentId, _safeElementName(elementNode), propertyName, timelineTime, propertyValue, null, null, null)
-        else (problem = `Cannot locate element with id ${componentId}`)
-      })
-      if (problem) return done(new Error(problem))
-      return done()
-    }, cb)
-  }
-
-  applyPropertyDelta (componentIds, timelineName, timelineTime, propertyName, propertyValue, cb) {
-    return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      let problem = false
-      componentIds.forEach((componentId) => {
-        let elementNode = this.findElementByComponentId(mana, componentId)
-        if (elementNode) TimelineProperty.addPropertyDelta(timelines, timelineName, componentId, _safeElementName(elementNode), propertyName, timelineTime, propertyValue, this.getHostInstance(), this.getHostStates())
-        else (problem = `Cannot locate element with id ${componentId}`)
-      })
-      if (problem) return done(new Error(problem))
-      return done()
-    }, cb)
-  }
-
-  applyPropertyGroupValue (componentIds, timelineName, timelineTime, propertyGroup, cb) {
-    return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      let problem = false
-      componentIds.forEach((componentId) => {
-        let elementNode = this.findElementByComponentId(mana, componentId)
-        if (elementNode) TimelineProperty.addPropertyGroup(timelines, timelineName, componentId, _safeElementName(elementNode), propertyGroup, timelineTime)
-        else (problem = `Cannot locate element with id ${componentId}`)
-      })
+      let elementNode = this.findElementByComponentId(mana, componentId)
+      if (elementNode) TimelineProperty.addPropertyGroup(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime)
+      else (problem = `Cannot locate element with id ${componentId}`)
       if (problem) {
-        logger.info(JSON.stringify(mana, null, 2))
         return done(new Error(problem))
       }
       return done()
     }, cb)
   }
 
-  applyPropertyGroupDelta (componentIds, timelineName, timelineTime, propertyGroup, cb) {
+  applyPropertyGroupDelta (componentId, timelineName, timelineTime, propertyGroup, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
       let problem = false
-      componentIds.forEach((componentId) => {
-        let elementNode = this.findElementByComponentId(mana, componentId)
-        if (elementNode) {
-          TimelineProperty.addPropertyGroupDelta(timelines, timelineName, componentId, _safeElementName(elementNode), propertyGroup, timelineTime, this.getHostInstance(), this.getHostStates())
-        } else {
-          problem = `Cannot locate element with id ${componentId}`
-        }
-      })
+      let elementNode = this.findElementByComponentId(mana, componentId)
+      if (elementNode) {
+        TimelineProperty.addPropertyGroupDelta(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime, this.getHostInstance(), this.getHostStates())
+      } else {
+        problem = `Cannot locate element with id ${componentId}`
+      }
       if (problem) return done(new Error(problem))
       return done()
     }, cb)
   }
 
-  resizeContext (artboardIds, timelineName, timelineTime, sizeDescriptor, cb) {
+  resizeContext (artboardId, timelineName, timelineTime, sizeDescriptor, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
       let contextHaikuId = mana.attributes[HAIKU_ID_ATTRIBUTE]
-      this.upsertProperties(bytecode, [contextHaikuId], timelineName, timelineTime, {
+      this.upsertProperties(bytecode, contextHaikuId, timelineName, timelineTime, {
         'sizeAbsolute.x': sizeDescriptor.width,
         'sizeAbsolute.y': sizeDescriptor.height,
         'sizeMode.x': 1,
@@ -701,11 +355,9 @@ class File extends BaseModel {
     }, cb)
   }
 
-  changeKeyframeValue (componentIds, timelineName, propertyName, keyframeMs, newValue, cb) {
+  changeKeyframeValue (componentId, timelineName, propertyName, keyframeMs, newValue, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      componentIds.forEach((componentId) => {
-        BytecodeActions.changeKeyframeValue(bytecode, componentId, timelineName, propertyName, keyframeMs, newValue)
-      })
+      BytecodeActions.changeKeyframeValue(bytecode, componentId, timelineName, propertyName, keyframeMs, newValue)
       done()
     }, cb)
   }
@@ -717,29 +369,23 @@ class File extends BaseModel {
     }, cb)
   }
 
-  changeSegmentCurve (componentIds, timelineName, propertyName, keyframeMs, newCurve, cb) {
+  changeSegmentCurve (componentId, timelineName, propertyName, keyframeMs, newCurve, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      componentIds.forEach((componentId) => {
-        BytecodeActions.changeSegmentCurve(bytecode, componentId, timelineName, propertyName, keyframeMs, newCurve)
-      })
+      BytecodeActions.changeSegmentCurve(bytecode, componentId, timelineName, propertyName, keyframeMs, newCurve)
       done()
     }, cb)
   }
 
-  changeSegmentEndpoints (componentIds, timelineName, propertyName, oldMs, newMs, cb) {
+  changeSegmentEndpoints (componentId, timelineName, propertyName, oldMs, newMs, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      componentIds.forEach((componentId) => {
-        BytecodeActions.changeSegmentEndpoints(bytecode, componentId, timelineName, propertyName, oldMs, newMs)
-      })
+      BytecodeActions.changeSegmentEndpoints(bytecode, componentId, timelineName, propertyName, oldMs, newMs)
       done()
     }, cb)
   }
 
-  createKeyframe (componentIds, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, cb) {
+  createKeyframe (componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      componentIds.forEach((componentId) => {
-        BytecodeActions.createKeyframe(bytecode, componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, this.getHostInstance(), this.getHostStates())
-      })
+      BytecodeActions.createKeyframe(bytecode, componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, this.getHostInstance(), this.getHostStates())
       done()
     }, cb)
   }
@@ -751,11 +397,9 @@ class File extends BaseModel {
     }, cb)
   }
 
-  deleteKeyframe (componentIds, timelineName, propertyName, keyframeMs, cb) {
+  deleteKeyframe (componentId, timelineName, propertyName, keyframeMs, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      componentIds.forEach((componentId) => {
-        BytecodeActions.deleteKeyframe(bytecode, componentId, timelineName, propertyName, keyframeMs)
-      })
+      BytecodeActions.deleteKeyframe(bytecode, componentId, timelineName, propertyName, keyframeMs)
       done()
     }, cb)
   }
@@ -774,29 +418,23 @@ class File extends BaseModel {
     }, cb)
   }
 
-  joinKeyframes (componentIds, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, cb) {
+  joinKeyframes (componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      componentIds.forEach((componentId) => {
-        BytecodeActions.joinKeyframes(bytecode, componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve)
-      })
+      BytecodeActions.joinKeyframes(bytecode, componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve)
       done()
     }, cb)
   }
 
-  moveSegmentEndpoints (componentIds, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo, cb) {
+  moveSegmentEndpoints (componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      componentIds.forEach((componentId) => {
-        BytecodeActions.moveSegmentEndpoints(bytecode, componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo)
-      })
+      BytecodeActions.moveSegmentEndpoints(bytecode, componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo)
       done()
     }, cb)
   }
 
-  moveKeyframes (componentIds, timelineName, propertyName, keyframeMoves, frameInfo, cb) {
+  moveKeyframes (componentId, timelineName, propertyName, keyframeMoves, frameInfo, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      componentIds.forEach((componentId) => {
-        BytecodeActions.moveKeyframes(bytecode, componentId, timelineName, propertyName, keyframeMoves, frameInfo)
-      })
+      BytecodeActions.moveKeyframes(bytecode, componentId, timelineName, propertyName, keyframeMoves, frameInfo)
       done()
     }, cb)
   }
@@ -808,20 +446,16 @@ class File extends BaseModel {
     }, cb)
   }
 
-  sliceSegment (componentIds, timelineName, elementName, propertyName, keyframeMs, sliceMs, cb) {
+  sliceSegment (componentId, timelineName, elementName, propertyName, keyframeMs, sliceMs, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      componentIds.forEach((componentId) => {
-        BytecodeActions.sliceSegment(bytecode, componentId, timelineName, elementName, propertyName, keyframeMs, sliceMs)
-      })
+      BytecodeActions.sliceSegment(bytecode, componentId, timelineName, elementName, propertyName, keyframeMs, sliceMs)
       done()
     }, cb)
   }
 
-  splitSegment (componentIds, timelineName, elementName, propertyName, keyframeMs, cb) {
+  splitSegment (componentId, timelineName, elementName, propertyName, keyframeMs, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      componentIds.forEach((componentId) => {
-        BytecodeActions.splitSegment(bytecode, componentId, timelineName, elementName, propertyName, keyframeMs)
-      })
+      BytecodeActions.splitSegment(bytecode, componentId, timelineName, elementName, propertyName, keyframeMs)
       done()
     }, cb)
   }
@@ -829,202 +463,75 @@ class File extends BaseModel {
   _normalizeStackingAndReturnInfo (bytecode, mana, timelineName, timelineTime) {
     let stackingInfo = getStackingInfo(bytecode, mana, timelineName, timelineTime)
     stackingInfo.forEach(({ zIndex, haikuId }) => {
-      this.upsertProperties(bytecode, [haikuId], timelineName, timelineTime, { 'style.zIndex': zIndex }, 'merge')
+      this.upsertProperties(bytecode, haikuId, timelineName, timelineTime, { 'style.zIndex': zIndex }, 'merge')
     })
     return stackingInfo
   }
 
-  zMoveToFront (componentIds, timelineName, timelineTime, cb) {
+  zMoveToFront (componentId, timelineName, timelineTime, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
       let stackingInfo = this._normalizeStackingAndReturnInfo(bytecode, mana, timelineName, timelineTime)
-      componentIds.forEach((componentId) => {
-        let highestZ = stackingInfo[stackingInfo.length - 1].zIndex
-        let myZ = this.getComputedPropertyValue(mana, componentId, timelineName, timelineTime, 'style.zIndex')
-        if (myZ < highestZ) {
-          this.upsertProperties(bytecode, [componentId], timelineName, timelineTime, { 'style.zIndex': highestZ + 1 }, 'merge')
-        }
-      })
+      let highestZ = stackingInfo[stackingInfo.length - 1].zIndex
+      let myZ = this.getComputedPropertyValue(mana, componentId, timelineName, timelineTime, 'style.zIndex')
+      if (myZ < highestZ) {
+        this.upsertProperties(bytecode, componentId, timelineName, timelineTime, { 'style.zIndex': highestZ + 1 }, 'merge')
+      }
       done()
     }, cb)
   }
 
-  zMoveForward (componentIds, timelineName, timelineTime, cb) {
+  zMoveForward (componentId, timelineName, timelineTime, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      componentIds.forEach((componentId) => {
-        let myZ = this.getComputedPropertyValue(mana, componentId, timelineName, timelineTime, 'style.zIndex')
-        this.upsertProperties(bytecode, [componentId], timelineName, timelineTime, { 'style.zIndex': myZ + 1 })
-      })
+      let myZ = this.getComputedPropertyValue(mana, componentId, timelineName, timelineTime, 'style.zIndex')
+      this.upsertProperties(bytecode, componentId, timelineName, timelineTime, { 'style.zIndex': myZ + 1 })
       done()
     }, cb)
   }
 
-  zMoveBackward (componentIds, timelineName, timelineTime, cb) {
+  zMoveBackward (componentId, timelineName, timelineTime, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      componentIds.forEach((componentId) => {
-        let myZ = this.getComputedPropertyValue(mana, componentId, timelineName, timelineTime, 'style.zIndex')
-        this.upsertProperties(bytecode, [componentId], timelineName, timelineTime, { 'style.zIndex': myZ - 1 })
-      })
+      let myZ = this.getComputedPropertyValue(mana, componentId, timelineName, timelineTime, 'style.zIndex')
+      this.upsertProperties(bytecode, componentId, timelineName, timelineTime, { 'style.zIndex': myZ - 1 })
       done()
     }, cb)
   }
 
-  zMoveToBack (componentIds, timelineName, timelineTime, cb) {
+  zMoveToBack (componentId, timelineName, timelineTime, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
       let stackingInfo = this._normalizeStackingAndReturnInfo(bytecode, mana, timelineName, timelineTime)
-      componentIds.forEach((componentId) => {
-        let lowestZ = stackingInfo[0].zIndex
-        let myZ = this.getComputedPropertyValue(mana, componentId, timelineName, timelineTime, 'style.zIndex')
-        if (myZ <= lowestZ) return void (0)
-        // Shift all the z indices upward to make room for this one
-        if (lowestZ < 2) {
-          let zOffset = 2 - lowestZ
-          stackingInfo.forEach(({ haikuId, zIndex }) => {
-            let theirHaikuId = haikuId
-            let theirZ = zIndex
-            let finalZ = theirZ + zOffset
-            this.upsertProperties(bytecode, [theirHaikuId], timelineName, timelineTime, { 'style.zIndex': finalZ }, 'merge')
-          })
-        }
-        this.upsertProperties(bytecode, [componentId], timelineName, timelineTime, { 'style.zIndex': 1 }, 'merge')
-      })
+      let lowestZ = stackingInfo[0].zIndex
+      let myZ = this.getComputedPropertyValue(mana, componentId, timelineName, timelineTime, 'style.zIndex')
+      if (myZ <= lowestZ) return void (0)
+      // Shift all the z indices upward to make room for this one
+      if (lowestZ < 2) {
+        let zOffset = 2 - lowestZ
+        stackingInfo.forEach(({ haikuId, zIndex }) => {
+          let theirHaikuId = haikuId
+          let theirZ = zIndex
+          let finalZ = theirZ + zOffset
+          this.upsertProperties(bytecode, theirHaikuId, timelineName, timelineTime, { 'style.zIndex': finalZ }, 'merge')
+        })
+      }
+      this.upsertProperties(bytecode, componentId, timelineName, timelineTime, { 'style.zIndex': 1 }, 'merge')
       done()
     }, cb)
   }
 
   reorderElement (componentId, componentIdToInsertBefore, cb) {
-
+    return cb() // Not yet implemented
   }
 
-  groupElements (componentIdsToGroup, cb) {
-
+  groupElements (groupSpec, cb) {
+    return cb() // Not yet implemented
   }
 
-  ungroupElements (groupComponentIds, cb) {
-
+  ungroupElements (ungroupSpec, cb) {
+    return cb() // Not yet implemented
   }
 
   // Metadata could contain info on whether it is a true hide or only hiding during editing
-  hideElements (componentIds, metadata, cb) {
-
-  }
-
-  /**
-   * @method pasteThing
-   * @description Flexibly paste some content into the component. Usually the thing pasted is going to be a
-   * component, but this could theoretically handle any kind of 'pasteable' content.
-   * @param pasteable {Object} - Content of the thing to paste into the component.
-   * @param request {Object} - Optional object containing information about _how_ to paste, e.g. coords
-   */
-  pasteThing (pasteable, request, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      switch (pasteable.kind) {
-        case 'element':
-          let reified = reifyRO(pasteable.serializedBytecode, null, false)
-
-          // The caller can optionally pass coordinates at which to instantiate; if not, place at (0,0)
-          if (!request.x) request.x = 0
-          if (!request.y) request.y = 0
-
-          // We need to give the pasted element its own ids, and then copy over new control attributes
-          let base = _findElementByComponentId(pasteable.componentId, reified.template)
-          let nodes = _getAllElementsByHaikuId(base) // Keep track of the original ids so we can copy over the applied properties later
-          let hash = _getInsertionPointHash(mana, mana.children.length, 0)
-
-          this.ensureTitleAndUidifyTree(base, path.normalize(base.attributes[SOURCE_ATTRIBUTE]), hash, { forceAssignId: true })
-
-          return this.instantiateComponentFromMana(base, request, (err) => {
-            if (err) return done(err)
-
-            // Now that the element has been pasted into the new tree, with default attributes, we now have to
-            // copy over the *modified* control attributes that were present on the original element.
-            // First let's create a mapping of the old haiku-id to the new haiku-id we created above.
-            let remapping = {}
-            for (let old in nodes) {
-              let node = nodes[old]
-              // The haiku-id attribute should have been mutated in-place by ensureTitleAndUidifyTree
-              let upd = node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]
-              remapping[_buildHaikuIdSelector(old)] = _buildHaikuIdSelector(upd)
-            }
-
-            // Now loop over all the parts of the bytecode that should be copied over to the new element
-            // - Event Handlers
-            if (reified.eventHandlers) {
-              if (!bytecode.eventHandlers) bytecode.eventHandlers = {}
-              for (let oldSelector1 in reified.eventHandlers) {
-                if (!_isHaikuIdSelector(oldSelector1)) continue // We only manage haiku ids
-                let newSelector1 = remapping[oldSelector1]
-                if (!newSelector1) continue
-
-                // Add an event handler for the new element, remembering to update its selector
-                logger.info('[file] copying event handler from ' + oldSelector1 + ' to ' + newSelector1)
-                let eventHandlerGroup = reified.eventHandlers[oldSelector1]
-                bytecode.eventHandlers[newSelector1] = eventHandlerGroup
-              }
-            }
-
-            // Keep track of the id references that we modify in the properties so we can do the same in the tree, below
-            let fixedReferences = {}
-
-            // - Timelines
-            if (reified.timelines) {
-              if (!bytecode.timelines) bytecode.timelines = {}
-              for (let timelineName in reified.timelines) {
-                let timelineGroup = reified.timelines[timelineName]
-                if (!bytecode.timelines[timelineName]) bytecode.timelines[timelineName] = {}
-                for (let oldSelector2 in timelineGroup) {
-                  if (!_isHaikuIdSelector(oldSelector2)) continue // We only manage haiku ids
-
-                  let newSelector2 = remapping[oldSelector2]
-                  if (!newSelector2) continue
-                  let timelineProperties = timelineGroup[oldSelector2]
-
-                  // Create a new property set that points to the new id of the pasted element
-
-                  logger.info('[file] copying control object from ' + oldSelector2 + ' to ' + newSelector2)
-                  let newProps = {}
-                  for (let propKey in timelineProperties) {
-                    let propSpec = timelineProperties[propKey]
-                    for (let propMs in propSpec) {
-                      let propKeyframe = propSpec[propMs]
-                      let propValue = propKeyframe.value
-
-                      // If any kind of internal reference, e.g. xlink:href is detected, this function is going
-                      // to replace it with a predictably randomized version so we don't collide with other references
-                      // in copies of this tree that may have been instantiated
-                      let fixedValueSpec = _fixFragmentIdentifierReferenceValue(propKey, propValue, hash)
-                      if (fixedValueSpec !== undefined) {
-                        fixedReferences[fixedValueSpec.originalId] = fixedValueSpec.updatedId
-                        propKeyframe.value = fixedValueSpec.updatedValue
-                      }
-
-                      if (!newProps[propKey]) newProps[propKey] = {}
-                      if (!newProps[propKey][propMs]) {
-                        newProps[propKey][propMs] = propKeyframe
-                      }
-                    }
-                  }
-
-                  bytecode.timelines[timelineName][newSelector2] = newProps
-                }
-              }
-            }
-
-            // Convert all id attributes to the ones we changed in the properties
-            _fixTreeIdReferences(base, fixedReferences)
-
-            // Although the instantiateComponentFromMana method already did the offset, we ended up
-            // overwriting the translation when we copied the component data over, so we have to re-set
-            // the correct offset here again. #FIXME
-            let componentId = base.attributes[HAIKU_ID_ATTRIBUTE]
-            this._offsetInstantiateeInTimelineAttributes(componentId, base, bytecode.timelines, request)
-
-            return done()
-          })
-        default:
-          logger.warn('[file] cannot paste clipboard contents of kind ' + pasteable.kind)
-          return done(new Error('Unable to paste clipboard contents'))
-      }
-    }, cb)
+  hideElements (componentId, metadata, cb) {
+    return cb() // Not yet implemented
   }
 
   /**
@@ -1038,11 +545,6 @@ class File extends BaseModel {
       // TODO
       done()
     }, cb)
-  }
-
-  readAllStateValues (cb) {
-    let bytecode = this.getSerializedBytecode()
-    return cb(null, BytecodeActions.readAllStateValues(bytecode))
   }
 
   upsertStateValue (stateName, stateDescriptor, cb) {
@@ -1060,8 +562,13 @@ class File extends BaseModel {
   }
 
   readAllEventHandlers (cb) {
-    let bytecode = this.getSerializedBytecode()
+    const bytecode = this.getSerializedBytecode()
     return cb(null, BytecodeActions.readAllEventHandlers(bytecode))
+  }
+
+  readAllStateValues (cb) {
+    const bytecode = this.getSerializedBytecode()
+    return cb(null, BytecodeActions.readAllStateValues(bytecode))
   }
 
   upsertEventHandler (selectorName, eventName, handlerDescriptor, cb) {
@@ -1089,52 +596,56 @@ class File extends BaseModel {
   /** ------------- */
   /** ------------- */
 
+  clearElementsCache (componentId) {
+    if (componentId) {
+      delete this._elementsCache[componentId]
+    } else {
+      this._elementsCache = {}
+    }
+  }
+
   findElementByComponentId (mana, componentId) {
     if (this._elementsCache[componentId]) return this._elementsCache[componentId]
-    let nodes = _manaTreeToDepthFirstArray([], mana)
+    let nodes = Template.manaTreeToDepthFirstArray([], mana)
     let found = nodes.filter((node) => node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE] === componentId)[0]
     if (!found) return null
     this._elementsCache[componentId] = found
     return this._elementsCache[componentId]
   }
 
-  upsertDefaultProperties (componentIds, propertiesToMerge, strategy) {
-    componentIds.forEach((componentId) => {
-      if (!strategy) strategy = 'merge'
-      let haikuSelector = `haiku:${componentId}`
-      let bytecode = this.getReifiedBytecode()
-      if (!bytecode.timelines.Default[haikuSelector]) bytecode.timelines.Default[haikuSelector] = {}
-      let defaultTimeline = bytecode.timelines.Default[haikuSelector]
-      for (let propName in propertiesToMerge) {
-        if (!defaultTimeline[propName]) defaultTimeline[propName] = {}
-        if (!defaultTimeline[propName][DEFAULT_TIMELINE_TIME]) defaultTimeline[propName][DEFAULT_TIMELINE_TIME] = {}
-        switch (strategy) {
-          case 'merge':
-            defaultTimeline[propName][DEFAULT_TIMELINE_TIME].value = propertiesToMerge[propName]
-            break
-          case 'assign':
-            if (defaultTimeline[propName][DEFAULT_TIMELINE_TIME].value === undefined) defaultTimeline[propName][DEFAULT_TIMELINE_TIME].value = propertiesToMerge[propName]
-            break
-        }
+  upsertDefaultProperties (componentId, propertiesToMerge, strategy) {
+    if (!strategy) strategy = 'merge'
+    let haikuSelector = `haiku:${componentId}`
+    let bytecode = this.getReifiedBytecode()
+    if (!bytecode.timelines.Default[haikuSelector]) bytecode.timelines.Default[haikuSelector] = {}
+    let defaultTimeline = bytecode.timelines.Default[haikuSelector]
+    for (let propName in propertiesToMerge) {
+      if (!defaultTimeline[propName]) defaultTimeline[propName] = {}
+      if (!defaultTimeline[propName][DEFAULT_TIMELINE_TIME]) defaultTimeline[propName][DEFAULT_TIMELINE_TIME] = {}
+      switch (strategy) {
+        case 'merge':
+          defaultTimeline[propName][DEFAULT_TIMELINE_TIME].value = propertiesToMerge[propName]
+          break
+        case 'assign':
+          if (defaultTimeline[propName][DEFAULT_TIMELINE_TIME].value === undefined) defaultTimeline[propName][DEFAULT_TIMELINE_TIME].value = propertiesToMerge[propName]
+          break
       }
-    })
+    }
   }
 
-  upsertProperties (bytecode, componentIds, timelineName, timelineTime, propertiesToMerge, strategy) {
-    componentIds.forEach((componentId) => {
-      upsertPropertyValue(bytecode, componentId, timelineName, timelineTime, propertiesToMerge, strategy)
-    })
+  upsertProperties (bytecode, componentId, timelineName, timelineTime, propertiesToMerge, strategy) {
+    return upsertPropertyValue(bytecode, componentId, timelineName, timelineTime, propertiesToMerge, strategy)
   }
 
   getContextSize (timelineName, timelineTime) {
-    let bytecode = this.getReifiedBytecode()
+    const bytecode = this.getReifiedBytecode()
     if (!bytecode || !bytecode.template || !bytecode.template.attributes) return null
-    let contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
+    const contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
     if (!contextHaikuId) return null
-    let contextElementName = _safeElementName(bytecode.template)
+    const contextElementName = Element.safeElementName(bytecode.template)
     if (!contextElementName) return null
-    let contextWidth = TimelineProperty.getComputedValue(contextHaikuId, contextElementName, 'sizeAbsolute.x', timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, 0, bytecode, this.getHostInstance(), this.getHostStates())
-    let contextHeight = TimelineProperty.getComputedValue(contextHaikuId, contextElementName, 'sizeAbsolute.y', timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, 0, bytecode, this.getHostInstance(), this.getHostStates())
+    const contextWidth = TimelineProperty.getComputedValue(contextHaikuId, contextElementName, 'sizeAbsolute.x', timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, 0, bytecode, this.getHostInstance(), this.getHostStates())
+    const contextHeight = TimelineProperty.getComputedValue(contextHaikuId, contextElementName, 'sizeAbsolute.y', timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, 0, bytecode, this.getHostInstance(), this.getHostStates())
     return {
       width: contextWidth,
       height: contextHeight
@@ -1142,14 +653,14 @@ class File extends BaseModel {
   }
 
   getDeclaredPropertyValue (componentId, timelineName, timelineTime, propertyName) {
-    let bytecode = this.getReifiedBytecode()
+    const bytecode = this.getReifiedBytecode()
     return getPropertyValue(bytecode, componentId, timelineName, timelineTime, propertyName)
   }
 
   getComputedPropertyValue (template, componentId, timelineName, timelineTime, propertyName, fallbackValue) {
-    let bytecode = this.getReifiedBytecode()
-    let element = _findElementByComponentId(componentId, template)
-    return TimelineProperty.getComputedValue(componentId, _safeElementName(element), propertyName, timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, fallbackValue, bytecode, this.getHostInstance(), this.getHostStates())
+    const bytecode = this.getReifiedBytecode()
+    const element = _findElementByComponentId(componentId, template)
+    return TimelineProperty.getComputedValue(componentId, Element.safeElementName(element), propertyName, timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, fallbackValue, bytecode, this.getHostInstance(), this.getHostStates())
   }
 
   /**
@@ -1160,7 +671,7 @@ class File extends BaseModel {
   getReifiedBytecode () {
     // NOTE: Due to a legacy issue there used to be the assumption that the bytecode file could contain
     // multiple bytecodes, hence the [0]; that is no longer the case and this should be refactored! #FIXME
-    return this.substructs[0].bytecode
+    return this.mod.fetchInMemoryExport()
   }
 
   /**
@@ -1170,8 +681,10 @@ class File extends BaseModel {
    * reified bytecode by itself probably has a template that contains .__depth, .__parent, .layout properties, etc.
    */
   getReifiedDecycledBytecode () {
-    let reified = this.getReifiedBytecode()
-    let decycled = {}
+    const reified = this.getReifiedBytecode()
+
+    const decycled = {}
+
     if (reified.metadata) decycled.metadata = reified.metadata
     if (reified.options) decycled.options = reified.options
     if (reified.config) decycled.config = reified.config
@@ -1207,8 +720,8 @@ class File extends BaseModel {
    * mutate the returned object and expect that to affect the live in-memory bytecode, nor the file system.
    */
   getSerializedBytecode () {
-    let reified = this.getReifiedDecycledBytecode()
-    let serialized = objectToRO(reified) // This returns a *new* object
+    const reified = this.getReifiedDecycledBytecode()
+    const serialized = objectToRO(reified) // This returns a *new* object
     return serialized
   }
 
@@ -1220,19 +733,11 @@ class File extends BaseModel {
     return File.ingestOne(this.folder, this.relpath, (err) => {
       if (err) return cb(err)
 
-      // If this happens to be bytecode, make sure we get the correct things set up right off the bat
-      // This might be a race condition #RC
-      this.substructInitialized = this.reinitializeSubstruct(null, 'read')
+      // Make sure we get the correct things set up right off the bat
+      this.reinitializeBytecode(null)
 
       return cb(null, this)
     })
-  }
-}
-
-File.DEFAULT_OPTIONS = {
-  required: {
-    relpath: true,
-    folder: true
   }
 }
 
@@ -1240,9 +745,13 @@ BaseModel.extend(File)
 
 File.TYPES = FILE_TYPES
 
-File.UPDATE_OPTIONS = {
-  shouldUpdateFileSystem: true,
-  shouldReloadCodeStructures: true
+File.DEFAULT_OPTIONS = {
+  doWriteToDisk: true, // Write all actions/content updates to disk
+  skipDiffLogging: false, // Log a colorized diff of every content update
+  required: {
+    relpath: true,
+    folder: true
+  }
 }
 
 File.DEFAULT_CONTEXT_SIZE = DEFAULT_CONTEXT_SIZE
@@ -1289,22 +798,6 @@ File.isPathCode = function isPathCode (relpath) {
   return _isFileCode(relpath)
 }
 
-File.loadCodeStructures = function loadCodeStructures (relpath, contents, cb) {
-  return _parseFile(relpath, contents, (err, ast) => {
-    if (err) return cb(err)
-    return _extractSubstructs(ast, relpath, (err, substructs) => {
-      if (err) return cb(err)
-      return cb(null, ast, substructs)
-    })
-  })
-}
-
-File.findFile = function findFile (givenRelpath) {
-  const relpath = path.normalize(givenRelpath)
-  const foundFile = File.findById(relpath)
-  return foundFile
-}
-
 File.ingestOne = function ingestOne (folder, relpath, cb) {
   // This can be used to determine if an in-memory-only update occurred after or before a filesystem update.
   // Track it here so we get an accurate picture of when the ingestion routine actually began, including before
@@ -1314,38 +807,40 @@ File.ingestOne = function ingestOne (folder, relpath, cb) {
   return File.read(folder, relpath, (err, contents) => {
     if (err) return cb(err)
 
-    // Note: The only properties that should be in the object at this point should be relpath and folder,
-    // otherwise the upsert won't work correctly since it uses these props as a comparison
-    const fileAttrs = {
-      uid: path.join(folder, relpath),
-      relpath,
-      folder
-    }
+    return File.ingestContents(folder, relpath, contents, { dtLastReadStart }, cb)
+  })
+}
 
-    logger.info('[file] file was read:', relpath, contents && contents.length)
+File.ingestContents = function ingestContents (folder, relpath, contents, { dtLastReadStart }, cb) {
+  // Note: The only properties that should be in the object at this point should be relpath and folder,
+  // otherwise the upsert won't work correctly since it uses these props as a comparison
+  const fileAttrs = {
+    uid: path.normalize(path.join(folder, relpath)),
+    relpath,
+    folder
+  }
 
-    const file = File.upsert(fileAttrs)
+  const file = File.upsert(fileAttrs)
 
-    // Set this down here because see above ^^
-    file.dtLastReadStart = dtLastReadStart
+  // See the note under ingestOne to understand why this gets set here
+  file.dtLastReadStart = dtLastReadStart || Date.now()
 
-    logger.info('[file] file was upserted:', relpath)
+  if (File.isPathCode(relpath)) {
+    file.type = FILE_TYPES.code
+  } else {
+    file.type = 'other'
+  }
 
-    if (File.isPathCode(relpath)) {
-      file.type = FILE_TYPES.code
-    } else {
-      file.type = 'other'
-    }
+  const bytecode = file.mod.isolatedForceReload()
 
-    return file.updateContents(contents, { shouldUpdateFileSystem: false }, (err) => {
-      if (err) return cb(err)
+  return file.updateInMemoryHotModuleOnly(bytecode, (err) => {
+    if (err) return cb(err)
 
-      // This can be used to determine if an in-memory-only update occurred after or before a filesystem update.
-      // Useful when trying to detect e.g. whether code should reload
-      file.dtLastReadEnd = Date.now()
+    // This can be used to determine if an in-memory-only update occurred after or before a filesystem update.
+    // Useful when trying to detect e.g. whether code should reload
+    file.dtLastReadEnd = Date.now()
 
-      return cb(null, file)
-    })
+    return cb(null, file)
   })
 }
 
@@ -1382,34 +877,24 @@ File.ingestFromFolder = function ingestFromFolder (folder, options, cb) {
 }
 
 /**
- * @function modulePathToIdentifierName
- * @description Convert a module path into an identifier name for the module.
+ * @method readMana
+ * @description Given the relative path to an SVG file, read the file into
+ * memory, parse the contents, and return the respective 'mana' data object.
+ * @param relpath {String} Relative path to SVG design asset within folder
+ * @param cb {Function} Callback
  */
-File.modulePathToIdentifierName = function modulePathToIdentifierName (modulepath) {
-  let parts = modulepath.split(path.sep)
-  // We can assume we have a *normalized* module path name at this point, e.g...
-  // Haiku builtin format: @haiku/player/components/Path/code/main/code
-  if (parts[0] === '@haiku' && parts[1] === 'player') {
-    return 'Haiku' + parts[3] // e.g. HaikuPath, HaikuLine, etc.
-  }
-  // Installed Haiku format: @haiku/MyTeam/MyComponent/code/main/code
-  // MyTeam_MyComponent
-  return parts[1] + '_' + parts[2]
-}
+File.readMana = function readMana (folder, relpath, cb) {
+  return File.read(folder, relpath, (err, buffer) => {
+    if (err) return cb(err)
 
-File.astmod = function astmod (abspath, fn) {
-  try {
-    let str = fse.readFileSync(abspath).toString()
-    let ast = parseCode(str)
-    fn(ast)
-    let code = generateCode(ast)
-    let formatted = prettier.format(code)
-    fse.outputFileSync(abspath, formatted)
-    return void (0)
-  } catch (exception) {
-    console.warn('[file] Could not provide AST for ' + abspath + '; ' + exception)
-    return void (0)
-  }
+    const mana = xmlToMana(buffer.toString())
+
+    if (!mana) {
+      return cb(new Error(`We couldn't load the contents of ${relpath}; please try again`))
+    }
+
+    return cb(null, mana)
+  })
 }
 
 function _isFileCode (relpath) {
@@ -1420,18 +905,12 @@ function _readFile (abspath, cb) {
   return fse.readFile(abspath, cb)
 }
 
-function _parseFile (abspath, contents, cb) {
-  let ast = parseCode(contents)
-  if (ast instanceof Error) return cb(ast)
-  else return cb(null, ast)
-}
-
 function _writeFile (abspath, contents, cb) {
   return fse.outputFile(abspath, contents, cb)
 }
 
 function _findElementByComponentId (componentId, mana) {
-  let elementsById = _getAllElementsByHaikuId(mana)
+  let elementsById = Template.getAllElementsByHaikuId(mana)
   return elementsById[componentId]
 }
 
@@ -1440,3 +919,10 @@ function _looksLikeMassiveFile (relpath) {
 }
 
 module.exports = File
+
+// Down here to avoid Node circular dependency stub objects. #FIXME
+const AST = require('./AST')
+const Bytecode = require('./Bytecode')
+const Element = require('./Element')
+const ModuleWrapper = require('./ModuleWrapper')
+const Template = require('./Template')

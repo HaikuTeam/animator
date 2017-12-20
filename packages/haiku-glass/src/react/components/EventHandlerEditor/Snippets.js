@@ -1,9 +1,10 @@
 /* global monaco */
 import React from 'react'
+// import Radium from 'radium'
 import {shell} from 'electron'
-import {Menu, MenuItem} from '../../Menu'
-import {ShareSVG} from '../../Icons.js'
-import Palette from '../../Palette'
+import {Menu, MenuItem} from 'haiku-ui-common/lib/react/Menu'
+import {ShareSVG} from 'haiku-ui-common/lib/react/OtherIcons'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 const STYLES = {
   wrapper: {
@@ -81,7 +82,8 @@ class Snippets extends React.PureComponent {
     }
 
     let range
-    const {lineNumber, column} = this.props.editor.getPosition()
+
+    const { lineNumber, column } = this.props.editor.getPosition()
 
     if (this.hasCursorPosition()) {
       range = new monaco.Range(lineNumber, column, lineNumber, column)

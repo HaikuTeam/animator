@@ -1,3 +1,4 @@
+var Haiku = require("@haiku/player");
 module.exports = {
   options: {},
   metadata: {
@@ -9,11 +10,13 @@ module.exports = {
     branch: "master",
     name: "Primitives"
   },
+
   states: {},
   eventHandlers: {},
   timelines: {
     Default: {}
   },
+
   template: {
     elementName: "div",
     attributes: { "haiku-title": "Primitives", "haiku-id": "f203a65f49c0" },
