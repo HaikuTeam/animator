@@ -48,6 +48,7 @@ if (!argv['no-pull']) {
     cp.execSync(`node ./scripts/git-subtree-pull.js --package=${pack.name}`, processOptions)
   })
 }
+cp.execSync(`node ./scripts/git-subtree-pull.js --package=changelog`, processOptions)
 
 // Bump semver in all projects, plus their @haiku/* dependencies, and commit.
 cp.execSync(`node ./scripts/semver.js --non-interactive`, processOptions)

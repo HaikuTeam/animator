@@ -17,6 +17,23 @@ const [pack] = require('./helpers/allPackages')(packageName)
 
 log.hat(`pulling changes from git subtree for ${packageName} on ${branch}`)
 
+if (packageName === 'changelog') {
+  log.log('git subtree pulling changelog')
+  var changelog = {
+    name: 'changelog',
+    remote: 'git@github.com:HaikuTeam/changelog.git',
+    abspath: path.join(ROOT, 'changelog/')
+  }
+  try {
+    var cmd = `git subtree pull --squash --prefix ${changelog.name} ${changelog.remote} ${branch}`
+    log.log(cmd)
+    cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
+  } catch (exception) {
+    log.log(exception.message)
+  }
+  return
+}
+
 try {
   // Git subtree doesn't seem to like it unless you fetch changes first
   [
