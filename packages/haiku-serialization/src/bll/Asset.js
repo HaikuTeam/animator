@@ -213,6 +213,15 @@ Asset.ingestAssets = (project, dict) => {
     if (extname === '.sketch') {
       continue
     } else if (extname === '.svg') {
+      // Skip any Artboards/Pages that may have been previously exported by Sketchtool
+      // Our workflow only deals with Slices, so that's all we display to reduce conceptual overhead
+      if (
+        relpath.match(/\/artboards\//) ||
+        relpath.match(/\/pages\//)
+      ) {
+        continue
+      }
+
       const svgAsset = Asset.upsert({
         uid: path.join(project.getFolder(), relpath),
         type: Asset.TYPES.FILE,
