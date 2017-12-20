@@ -3,11 +3,6 @@ var path = require('path')
 
 var VAULT = path.join(os.homedir(), 'Secrets')
 
-// On CI, these are set through the web UI.
-if (!process.env.TRAVIS) {
-  require(path.join(VAULT, 'haiku-distro.js'))
-}
-
 if (!process.env.HAIKU_INTERNAL_SLACK_CLIENT_ID) throw new Error('env var missing')
 if (!process.env.HAIKU_INTERNAL_SLACK_CLIENT_SECRET) throw new Error('env var missing')
 if (!process.env.HAIKU_INTERNAL_SLACK_TOKEN) throw new Error('env var missing')
