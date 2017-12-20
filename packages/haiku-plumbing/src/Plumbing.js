@@ -1001,6 +1001,17 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
         folder: master.folder
       }, payload), () => {})
     })
+
+    master.on('merge-designs', (relpath, designs) => {
+      this.handleClientAction(
+        'controller',
+        'plumbing', // We'll delegate on Master's behalf
+        master.folder,
+        'mergeDesigns',
+        [master.folder, relpath, designs],
+        () => {}
+      )
+    })
   } else {
     master = MASTER_INSTANCES[folder]
   }

@@ -250,7 +250,11 @@ export default class Master extends EventEmitter {
       logger.info('[master] merge designs requested')
       if (this.project && this.project.getCurrentActiveComponent()) {
         this._designsPendingMerge = {}
-        this.project.getCurrentActiveComponent().mergeDesigns(designs, { from: 'master' }, () => {})
+        this.emit(
+          'merge-designs',
+          this.project.getCurrentActiveComponent().getSceneCodeRelpath(),
+          designs
+        )
       }
     }
   }
