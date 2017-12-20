@@ -9,7 +9,7 @@ export default function ({ styles }) {
       </video>
       <h2 style={styles.heading}>Sketch</h2>
       <div style={styles.text}>
-        <p>Alright, did you notice it change?  (Go ahead and drag the timeline ticker forward in time, otherwise your opacity changes in Step 1 made the check invisible.)</p>
+        <p>All right, did you notice it change?  (Go ahead and drag the timeline ticker forward in time, otherwise your opacity changes in Step 1 made the check invisible.)</p>
         <p>This is a central theme in Haiku—as a designer, you never lose your connection to your work.</p>
         <p>Let's move on to some of Haiku's features for building real apps.  Click on the icon to the left to toggle the State Inspector.</p>
       </div>

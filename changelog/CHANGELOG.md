@@ -1,6 +1,21 @@
 # Changelog
 
 
+## 2.3.49
+
+## 2.3.48
+
+## 2.3.42
+
+### Bug Fixes
+
+ * remove unused code
+ * Preserve the coordinate system for transforms on images.
+
+### Features
+
+ * report on rising edge of returning users' activity
+
 ## 2.3.41
 
 ### Features

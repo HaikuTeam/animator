@@ -45,6 +45,16 @@ class ProjectBrowser extends React.Component {
     this.loadProjects()
     this.props.envoy.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
+
+      // FIXME | HACK: since the project browser now supports scrolling, we
+      // must ensure the CheckTutorial project is in viewport when displaying
+      // the OpenProject step in the tour.
+      this.tourChannel.on('tour:requestShowStep', ({component, selector}) => {
+        if (component === 'OpenProject') {
+          const target = document.querySelector(selector)
+          target.parentNode.scrollTop = target.offsetTop - 350
+        }
+      })
     })
   }
 
@@ -170,7 +180,12 @@ class ProjectBrowser extends React.Component {
     }
 
     return (
-      <div style={DASH_STYLES.projectsWrapper}>
+      <div
+        style={DASH_STYLES.projectsWrapper}
+        onScroll={lodash.throttle(() => {
+          this.tourChannel.updateLayout()
+        }, 50)}
+      >
         {this.state.projectsList.map((projectObject, index) => (
           <ProjectThumbnail
             key={projectObject.projectName}

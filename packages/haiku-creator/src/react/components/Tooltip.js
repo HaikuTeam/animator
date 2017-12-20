@@ -99,8 +99,19 @@ STYLES.RIGHT = {
   }
 }
 
-export default function ({ coordinates, offset, spotlightRadius, display, children, next, finish, stepData, waitUserAction }) {
-  let { top, left } = coordinates
+function Tooltip (props) {
+  const {
+    coordinates,
+    offset,
+    spotlightRadius,
+    display,
+    children,
+    next,
+    finish,
+    stepData,
+    waitUserAction
+  } = props
+  let {top, left} = coordinates
   let circleDisplay = 'none'
   let positionStyles = STYLES[display.toUpperCase()] || {}
   let spotlightExtraStyles = {}
@@ -112,26 +123,31 @@ export default function ({ coordinates, offset, spotlightRadius, display, childr
   }
 
   if (display === 'left') {
-    top = top + 10
-    left = coordinates.left - STYLES.circle.width - 20
+    top = top + (coordinates.height / 2)
+    left = coordinates.left - STYLES.circle.width
+
+    if (left - 350 <= 10) {
+      return Tooltip({...props, display: 'top'})
+    }
   }
 
   if (display === 'right') {
-    top = top + 10
-    left = coordinates.left + 20
+    top = top + (coordinates.height / 2)
+    left = coordinates.left + STYLES.circle.width + coordinates.width
   }
 
   if (display === 'bottom') {
-    top = top + 10
+    top = top + coordinates.height + STYLES.circle.width
+    left = left + (coordinates.width / 2)
   }
 
   if (display === 'top') {
-    top = top - 10
-  }
+    top = coordinates.top - STYLES.circle.width
+    left = left + (coordinates.width / 2)
 
-  if (typeof top === 'number') {
-    top = top + offset.top
-    left = left + offset.left
+    if (top - 350 <= 10) {
+      return Tooltip({...props, display: 'bottom'})
+    }
   }
 
   if (spotlightRadius !== 'default') {
@@ -139,9 +155,20 @@ export default function ({ coordinates, offset, spotlightRadius, display, childr
     spotlightExtraStyles.height = spotlightRadius
   }
 
+  if (typeof top === 'number') {
+    top = top + offset.top
+    left = left + offset.left
+  }
+
   return (
     <div style={{top, left, ...STYLES.container, ...positionStyles.container}}>
-      <div style={{...STYLES.spotlight, ...positionStyles.spotlight, ...spotlightExtraStyles}} />
+      <div
+        style={{
+          ...STYLES.spotlight,
+          ...positionStyles.spotlight,
+          ...spotlightExtraStyles
+        }}
+      />
 
       <div style={{...STYLES.circle, display: circleDisplay}}>
         <div style={STYLES.circleInner} />
@@ -151,20 +178,38 @@ export default function ({ coordinates, offset, spotlightRadius, display, childr
           {children}
 
           {/* Don't show buttons on the first and last slides */}
-          {stepData.current > 0 && stepData.current < stepData.total &&
-            <div style={{display: 'flex', justifyContent: 'space-between', marginTop: 30}}>
-              <button style={TOUR_STYLES.btnSecondary} onClick={() => finish(true, true)}>Skip Tutorial</button>
-              <div>
-                <span style={{marginRight: 10}}>{stepData.current} of {stepData.total}</span>
-                {/* Show the next button if we aren't waiting for user interaction */}
-                {!waitUserAction &&
-                  <button style={TOUR_STYLES.btn} onClick={() => next()}>Next</button>
-                }
+          {stepData.current > 0 &&
+            stepData.current < stepData.total && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginTop: 30
+                }}
+              >
+                <button
+                  style={TOUR_STYLES.btnSecondary}
+                  onClick={() => finish(true, true)}
+                >
+                  Skip Tutorial
+                </button>
+                <div>
+                  <span style={{marginRight: 10}}>
+                    {stepData.current} of {stepData.total}
+                  </span>
+                  {/* Show the next button if we aren't waiting for user interaction */}
+                  {!waitUserAction && (
+                    <button style={TOUR_STYLES.btn} onClick={() => next()}>
+                      Next
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          }
+            )}
         </div>
       </div>
     </div>
   )
 }
+
+export default Tooltip

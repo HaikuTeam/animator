@@ -558,14 +558,44 @@ test('layout.convertManaLayout', function (t) {
           }
         ]
       }
+    ],
+    // Generic elements should see their x and y attributes stripped off.
+    [
+      {
+        elementName: 'svg',
+        attributes: { x: '10', y: '20', transform: 'translate(10)' },
+        children: []
+      },
+      {
+        elementName: 'svg',
+        attributes: {
+          'translation.x': 10,
+        },
+        children: []
+      }
+    ],
+    // Image elements should preserve their x and y attributes.
+    [
+      {
+        elementName: 'image',
+        attributes: { x: '10', y: '20', transform: 'translate(10)' },
+        children: []
+      },
+      {
+        elementName: 'image',
+        attributes: {
+          'x': '10',
+          'y': '20',
+          'translation.x': 10,
+        },
+        children: []
+      }
     ]
   ]
 
   t.plan(data.length)
 
-  data.forEach(datum => {
-    var a = JSON.stringify(convertManaLayout(datum[0]))
-    var b = JSON.stringify(datum[1])
-    t.equal(a, b)
+  data.forEach(([input, output]) => {
+    t.deepEqual(convertManaLayout(input), output)
   })
 })

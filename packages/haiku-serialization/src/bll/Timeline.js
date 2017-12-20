@@ -427,6 +427,12 @@ class Timeline extends BaseModel {
     })
   }
 
+  getActiveKeyframes () {
+    return Keyframe.filter((keyframe) => {
+      return keyframe.isActive()
+    })
+  }
+
   hasMultipleSelectedKeyframes () {
     const found = this.getSelectedKeyframes()
     return found.length > 1

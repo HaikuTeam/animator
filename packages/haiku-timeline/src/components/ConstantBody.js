@@ -63,17 +63,22 @@ export default class ConstantBody extends React.Component {
         }}
         onMouseDown={(mouseEvent) => {
           mouseEvent.stopPropagation()
-          const hasMultipleSelectedKeyframes =
-            this.props.timeline.hasMultipleSelectedKeyframes()
-          const skipDeselect =
-            Globals.isShiftKeyDown ||
-            ((Globals.isControlKeyDown || mouseEvent.nativeEvent.which === 3) &&
-              hasMultipleSelectedKeyframes)
 
-          this.props.keyframe.toggleSelect({
-            skipDeselect,
-            selectConstBody: true
-          }, Globals.isShiftKeyDown)
+          const isTriggeringContextMenu =
+            Globals.isControlKeyDown || mouseEvent.nativeEvent.which === 3
+          const skipDeselect = Globals.isShiftKeyDown || isTriggeringContextMenu
+
+          if (isTriggeringContextMenu) {
+            this.props.keyframe.selectSelfAndSurrounds({
+              skipDeselect,
+              selectConstBody: true
+            })
+          } else {
+            this.props.keyframe.toggleSelectSelfAndSurrounds({
+              skipDeselect,
+              selectConstBody: true
+            })
+          }
         }}
         style={{
           position: 'absolute',

@@ -1,7 +1,7 @@
 {
   "name": "haiku-mono",
   "private": true,
-  "version": "2.3.41",
+  "version": "2.3.49",
   "description": "Haiku monorepo",
   "main": "index.js",
   "author": "Matthew Trost <matthew@trost.co>",
@@ -70,7 +70,8 @@
     "forceCodeSigning": true,
     "electronVersion": "1.7.0",
     "mac": {
-      "category": "public.app-category.developer-tools"
+      "category": "public.app-category.developer-tools",
+      "target": "zip"
     },
     "asar": false,
     "asarUnpack": [

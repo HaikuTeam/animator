@@ -3508,5 +3508,24 @@
       "label": "feat",
       "message": "Publish silently, and fetch the share link as soon as we have a commit sha."
     }
-  }
+  },
+  "2.3.42": {
+    "d8fdfa5023fa74cd3d97881578856901be1068b6": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "remove unused code"
+    },
+    "891b0278544f8223a9965d855e3e61f189865a00": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "report on rising edge of returning users' activity"
+    },
+    "429825a740e81903f911c681e5e04d1574a72c3e": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Preserve the coordinate system for transforms on images."
+    }
+  },
+  "2.3.48": {},
+  "2.3.49": {}
 }

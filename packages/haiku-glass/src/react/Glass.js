@@ -189,7 +189,7 @@ export class Glass extends React.Component {
       currentWebview: 'glass',
       requestedWebview: webview,
       selector,
-      isMockMode:
+      shouldNotifyEnvoy:
         this.tourClient &&
         this._component._envoyClient &&
         !this._component._envoyClient.isInMockMode(),

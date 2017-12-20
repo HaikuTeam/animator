@@ -3,7 +3,7 @@ var path = require('path')
 
 var VAULT = path.join(os.homedir(), 'Secrets')
 
-// If we're running in CircleCI these would have been set these in their web UI
+// On CI, these are set through the web UI.
 if (!process.env.TRAVIS) {
   require(path.join(VAULT, 'haiku-distro.js'))
 }

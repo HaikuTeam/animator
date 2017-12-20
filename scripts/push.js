@@ -43,11 +43,11 @@ do {
 } while (foundNewDeps)
 
 // Pull standalone remotes.
-// if (!argv['no-pull']) {
-//   openSourcePackages.forEach((pack) => {
-//     cp.execSync(`node ./scripts/git-subtree-pull.js --package=${pack.name}`, processOptions)
-//   })
-// }
+if (!argv['no-pull']) {
+  openSourcePackages.forEach((pack) => {
+    cp.execSync(`node ./scripts/git-subtree-pull.js --package=${pack.name}`, processOptions)
+  })
+}
 
 // Bump semver in all projects, plus their @haiku/* dependencies, and commit.
 cp.execSync(`node ./scripts/semver.js --non-interactive`, processOptions)
@@ -69,6 +69,7 @@ if (!argv['no-remote']) {
 
 // Compile packages.
 cp.execSync('yarn sync', processOptions)
+cp.execSync('yarn compile-all', processOptions)
 openSourcePackages.forEach((pack) => {
   const compileCommand = `node ./scripts/compile-package.js --package=${pack.name}`
   if (openSourceProjects.has(pack.name)) {

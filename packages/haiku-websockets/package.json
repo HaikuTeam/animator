@@ -1,7 +1,7 @@
 {
   "name": "haiku-websockets",
   "private": true,
-  "version": "2.3.41",
+  "version": "2.3.49",
   "description": "Websocket classes and utilities",
   "main": "index.js",
   "author": "Matthew Trost <matthew@haiku.ai>",
@@ -19,7 +19,7 @@
     "lodash.find": "^4.6.0",
     "lodash.foreach": "^4.5.0",
     "qs": "^6.3.0",
-    "ws": "^3.2.0"
+    "ws": "3.2.0"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",

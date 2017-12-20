@@ -3,11 +3,12 @@
  */
 
 import Config from './Config';
-import HaikuTimeline from './HaikuTimeline';
 import HaikuGlobal from './HaikuGlobal';
+import HaikuTimeline from './HaikuTimeline';
 import addElementToHashTable from './helpers/addElementToHashTable';
 import applyPropertyToElement from './helpers/applyPropertyToElement';
 import clone from './helpers/clone';
+import consoleErrorOnce from './helpers/consoleErrorOnce';
 import cssQueryList from './helpers/cssQueryList';
 import {isPreviewMode} from './helpers/interactionModes';
 import isMutableProperty from './helpers/isMutableProperty';
@@ -15,7 +16,6 @@ import manaFlattenTree from './helpers/manaFlattenTree';
 import scopifyElements from './helpers/scopifyElements';
 import SimpleEventEmitter from './helpers/SimpleEventEmitter';
 import upgradeBytecodeInPlace from './helpers/upgradeBytecodeInPlace';
-import consoleErrorOnce from './helpers/consoleErrorOnce';
 
 import Layout3D from './Layout3D';
 import ValueBuilder from './ValueBuilder';
@@ -25,7 +25,6 @@ const pkg = require('./../package.json');
 const PLAYER_VERSION = pkg.version;
 const STRING_TYPE = 'string';
 const OBJECT_TYPE = 'object';
-const IDENTITY_MATRIX = Layout3D.createMatrix();
 const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 const DEFAULT_TIMELINE_NAME = 'Default';
 
@@ -1350,18 +1349,8 @@ function computeAndApplyNodeLayout(element, parent) {
   if (parent) {
     const parentSize = parent.layout.computed.size;
 
-    const computedLayout = Layout3D.computeLayout(element.layout, element.layout.matrix, IDENTITY_MATRIX, parentSize);
-
-    if (computedLayout === false) {
-      // False indicates 'don't show
-      element.layout.computed = {
-        invisible: true,
-        size: parentSize || {x: 0, y: 0, z: 0},
-      };
-    } else {
-      // Need to pass some size to children, so if this element doesn't have one, use the parent's.
-      element.layout.computed = computedLayout || {size: parentSize};
-    }
+    element.layout.computed =
+      Layout3D.computeLayout(element.layout, element.layout.matrix, parentSize);
   }
 }
 

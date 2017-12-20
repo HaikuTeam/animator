@@ -52,13 +52,6 @@ const YARN_INSTALL_PROD_FLAGS = YARN_INSTALL_FLAGS_COMMON.concat([
   '--force' // Clean out any stripped-out dependencies
 ])
 
-if (!process.env.TRAVIS) {
-  // If not in CI, **don't** recompile, since we already have done so locally
-  // and this is more than likely going to be a waste of time
-  YARN_INSTALL_PROD_FLAGS.push('--ignore-scripts')
-  YARN_INSTALL_DEV_FLAGS.push('--ignore-scripts')
-}
-
 const HAIKU_SUBPACKAGES = {
   'haiku-bytecode': true,
   '@haiku/cli': 'haiku-cli',
@@ -131,11 +124,16 @@ function readJson (abspath) {
   }
 }
 
-function installAndCompile (cwd) {
+function devCompile (cwd) {
+  // Install dev dependencies and compile (if necessary).
   const pkg = readJson(path.join(cwd, 'package.json'))
-  // Install dev dependencies, compile (if necessary), then strip dev dependencies
-  logExec(cwd, `yarn install ${YARN_INSTALL_DEV_FLAGS.join(' ')}`)
-  if (pkg && pkg.scripts && pkg.scripts.compile) logExec(cwd, `yarn run compile`)
+  if (pkg && pkg.scripts && pkg.scripts.compile) {
+    logExec(cwd, `yarn install ${YARN_INSTALL_DEV_FLAGS.join(' ')}`)
+    logExec(cwd, `yarn run compile`)
+  }
+}
+
+function prodInstall (cwd) {
   logExec(cwd, `yarn install ${YARN_INSTALL_PROD_FLAGS.join(' ')}`)
 }
 
@@ -150,7 +148,8 @@ function copyPlumbingContentIntoTargetFolder () {
 
 function forceInstallPlumbingDeps () {
   logExec(ROOT, `rm -rf ${JSON.stringify(path.join(PLUMBING_SOURCE, 'yarn.lock'))}`)
-  installAndCompile(PLUMBING_SOURCE)
+  devCompile(PLUMBING_SOURCE)
+  prodInstall(PLUMBING_SOURCE)
 }
 
 function overwritePlumbingHaikuDepsWithLocalSourceCode (copyShallow) {
@@ -166,7 +165,11 @@ function overwritePlumbingHaikuDepsWithLocalSourceCode (copyShallow) {
 function installAndCompileSubpackages () {
   eachHaikuSubpackage((packageName, packageOrigin) => {
     const packageInstallTarget = path.join(PLUMBING_SOURCE_MODULES, packageName)
-    installAndCompile(packageInstallTarget)
+    devCompile(packageInstallTarget)
+  })
+  eachHaikuSubpackage((packageName, packageOrigin) => {
+    const packageInstallTarget = path.join(PLUMBING_SOURCE_MODULES, packageName)
+    prodInstall(packageInstallTarget)
   })
 }
 

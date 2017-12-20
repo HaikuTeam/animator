@@ -14,7 +14,7 @@ export default class Congratulations extends React.Component {
   render () {
     return (
       <div>
-        <div ref={(mount) => { this.mount = mount }} />
+        <div ref={(mount) => { this.mount = mount }} style={{margin: '0 auto'}} />
         <h2 style={this.props.styles.heading}>Congratulations!</h2>
         <p style={this.props.styles.text}>You're now an animator.</p>
       </div>
