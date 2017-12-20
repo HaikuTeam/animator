@@ -3,6 +3,7 @@ import lodash from 'lodash'
 import Radium from 'radium'
 import HaikuDOMRenderer from '@haiku/player/lib/renderers/dom'
 import HaikuContext from '@haiku/player/lib/HaikuContext'
+import Config from '@haiku/player/lib/Config'
 import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
 import Element from 'haiku-serialization/src/bll/Element'
 import react2haiku from 'haiku-serialization/src/utils/react2haiku'
@@ -119,8 +120,20 @@ export class Glass extends React.Component {
     this.drawLoop = this.drawLoop.bind(this)
     this.draw = this.draw.bind(this)
 
-    this._haikuRenderer = new HaikuDOMRenderer()
-    this._haikuContext = new HaikuContext(null, this._haikuRenderer, {}, { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } }, { options: { cache: {}, seed: 'abcde' } })
+    const haikuConfig = Config.build({
+      options: {
+        seed: Config.seed(),
+        cache: {}
+      }
+    })
+    this._haikuRenderer = new HaikuDOMRenderer(haikuConfig)
+    this._haikuContext = new HaikuContext(
+      null,
+      this._haikuRenderer,
+      {},
+      { timelines: {}, template: { elementName: 'div', attributes: {}, children: [] } },
+      haikuConfig
+    )
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
     this.handleBoltMousedown = this.handleBoltMousedown.bind(this)
