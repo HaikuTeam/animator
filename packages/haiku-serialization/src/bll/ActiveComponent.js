@@ -954,6 +954,7 @@ class ActiveComponent extends BaseModel {
         log.error(err)
         return cb(err)
       }
+
       return this.reload({ hardReload: true }, null, () => {
         this.project.updateHook('mergeDesigns', this.getSceneCodeRelpath(), designs, metadata)
         return cb()
