@@ -3533,5 +3533,6 @@
       "message": "lock ws at version 3.2.0 in all packages."
     }
   },
-  "2.3.51": {}
+  "2.3.51": {},
+  "2.3.52": {}
 }
