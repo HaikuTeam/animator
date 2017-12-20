@@ -9,7 +9,7 @@ var root = (os.platform() === "win32") ? process.cwd().split(path.sep)[0] : '/'
 function getHaikuAppPackagePath(platform) {
   switch (platform) {
     case 'darwin': return path.join(root, 'Applications', 'Haiku.app', 'Contents', 'MacOS', 'Haiku')
-    case 'aix':
+    case 'aix':  
     case 'freebsd':
     case 'linux':
     case 'openbsd':
