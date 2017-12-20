@@ -234,7 +234,7 @@ HaikuContext.prototype.performPatchRender = function performPatchRender() {
     return void (0);
   }
 
-  const container = this.config.options.sizing && this.config.options.sizing !== 'normal'
+  const container = this._renderer.shouldCreateContainer
     ? this._renderer.createContainer(this._mount)
     : this._renderer.getLastContainer();
   const patches = this.component.patch(container, this.config.options);
@@ -399,7 +399,7 @@ HaikuContext['createComponentFactory'] = function createComponentFactory(
 
     // Previously these were initialized in the scope above, but I moved them here which seemed to resolve
     // an initialization/mounting issue when running in React.
-    const renderer = new rendererClass();
+    const renderer = new rendererClass(haikuConfigMerged);
     const context = new HaikuContext(mount, renderer, platform, bytecode, haikuConfigMerged);
     const component = context.getRootComponent();
 
