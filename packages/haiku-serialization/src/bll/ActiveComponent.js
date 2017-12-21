@@ -703,15 +703,37 @@ class ActiveComponent extends BaseModel {
     })
   }
 
+  createInTransitionInTimelineObject (timelineObj, propertyName, fromTime, fromValue, toTime, toValue, curveName) {
+    if (!timelineObj[propertyName]) {
+      timelineObj[propertyName] = {}
+    }
+
+    if (!timelineObj[propertyName][fromTime]) {
+      timelineObj[propertyName][fromTime] = {}
+    }
+
+    timelineObj[propertyName][fromTime].value = fromValue
+
+    if (curveName) {
+      timelineObj[propertyName][fromTime].curve = curveName
+    }
+
+    if (!timelineObj[propertyName][toTime]) {
+      timelineObj[propertyName][toTime] = {}
+    }
+
+    timelineObj[propertyName][toTime].value = toValue
+  }
+
   mutateInstantiateeDisplaySettings (componentId, timelinesObject, templateObject, maybeCoords) {
     const insertedTimeline = timelinesObject[this.getCurrentTimelineName()][`haiku:${componentId}`] || {}
 
+    const timelineTime = this.getCurrentTimelineTime()
+
     // If instantiated at a time greater than 0, make the element invisible
     // until the playhead time at which was instantiated on the stage
-    if (this.getCurrentTimelineTime() > 0) {
-      insertedTimeline['shown'] = {}
-      insertedTimeline['shown'][0] = { value: false }
-      insertedTimeline['shown'][this.getCurrentTimelineTime()] = { value: true }
+    if (timelineTime > 0) {
+      this.createInTransitionInTimelineObject(insertedTimeline, 'opacity', 0, 0, timelineTime, 1, null)
     }
 
     // If the child being instantiated has a set size, set ours to the same
@@ -720,30 +742,30 @@ class ActiveComponent extends BaseModel {
       const sizeAbsoluteX = this.fetchTimelinePropertyFromComponentElement(templateObject, 'sizeAbsolute.x')
       if (sizeAbsoluteX) {
         if (!insertedTimeline['sizeAbsolute.x']) insertedTimeline['sizeAbsolute.x'] = {}
-        if (!insertedTimeline['sizeAbsolute.x'][this.getCurrentTimelineTime()]) insertedTimeline['sizeAbsolute.x'][this.getCurrentTimelineTime()] = {}
-        insertedTimeline['sizeAbsolute.x'][this.getCurrentTimelineTime()].value = sizeAbsoluteX
+        if (!insertedTimeline['sizeAbsolute.x'][timelineTime]) insertedTimeline['sizeAbsolute.x'][timelineTime] = {}
+        insertedTimeline['sizeAbsolute.x'][timelineTime].value = sizeAbsoluteX
 
         // The default size mode is proportional, so if we received an absolute size, we have to override the mode
         if (!insertedTimeline['sizeMode.x']) insertedTimeline['sizeMode.x'] = {}
-        if (!insertedTimeline['sizeMode.x'][this.getCurrentTimelineTime()]) insertedTimeline['sizeMode.x'][this.getCurrentTimelineTime()] = {}
-        insertedTimeline['sizeMode.x'][this.getCurrentTimelineTime()].value = Layout3D.SIZE_ABSOLUTE
+        if (!insertedTimeline['sizeMode.x'][timelineTime]) insertedTimeline['sizeMode.x'][timelineTime] = {}
+        insertedTimeline['sizeMode.x'][timelineTime].value = Layout3D.SIZE_ABSOLUTE
       }
       const sizeAbsoluteY = this.fetchTimelinePropertyFromComponentElement(templateObject, 'sizeAbsolute.y')
       if (sizeAbsoluteY) {
         if (!insertedTimeline['sizeAbsolute.y']) insertedTimeline['sizeAbsolute.y'] = {}
-        if (!insertedTimeline['sizeAbsolute.y'][this.getCurrentTimelineTime()]) insertedTimeline['sizeAbsolute.y'][this.getCurrentTimelineTime()] = {}
-        insertedTimeline['sizeAbsolute.y'][this.getCurrentTimelineTime()].value = sizeAbsoluteY
+        if (!insertedTimeline['sizeAbsolute.y'][timelineTime]) insertedTimeline['sizeAbsolute.y'][timelineTime] = {}
+        insertedTimeline['sizeAbsolute.y'][timelineTime].value = sizeAbsoluteY
 
         // The default size mode is proportional, so if we received an absolute size, we have to override the mode
         if (!insertedTimeline['sizeMode.y']) insertedTimeline['sizeMode.y'] = {}
-        if (!insertedTimeline['sizeMode.y'][this.getCurrentTimelineTime()]) insertedTimeline['sizeMode.y'][this.getCurrentTimelineTime()] = {}
-        insertedTimeline['sizeMode.y'][this.getCurrentTimelineTime()].value = Layout3D.SIZE_ABSOLUTE
+        if (!insertedTimeline['sizeMode.y'][timelineTime]) insertedTimeline['sizeMode.y'][timelineTime] = {}
+        insertedTimeline['sizeMode.y'][timelineTime].value = Layout3D.SIZE_ABSOLUTE
       }
     }
 
     if (maybeCoords && (maybeCoords.x || maybeCoords.y || maybeCoords.minimized)) {
-      const instantiateeWidth = (insertedTimeline['sizeAbsolute.x'] && insertedTimeline['sizeAbsolute.x'][this.getCurrentTimelineTime()] && insertedTimeline['sizeAbsolute.x'][this.getCurrentTimelineTime()].value) || 1
-      const instantiateeHeight = (insertedTimeline['sizeAbsolute.y'] && insertedTimeline['sizeAbsolute.y'][this.getCurrentTimelineTime()] && insertedTimeline['sizeAbsolute.y'][this.getCurrentTimelineTime()].value) || 1
+      const instantiateeWidth = (insertedTimeline['sizeAbsolute.x'] && insertedTimeline['sizeAbsolute.x'][timelineTime] && insertedTimeline['sizeAbsolute.x'][timelineTime].value) || 1
+      const instantiateeHeight = (insertedTimeline['sizeAbsolute.y'] && insertedTimeline['sizeAbsolute.y'][timelineTime] && insertedTimeline['sizeAbsolute.y'][timelineTime].value) || 1
 
       const propertyGroup = {
         'translation.x': (maybeCoords.x || 0) - instantiateeWidth / 2,
@@ -762,7 +784,7 @@ class ActiveComponent extends BaseModel {
         componentId,
         Element.safeElementName(templateObject),
         propertyGroup,
-        this.getCurrentTimelineTime()
+        timelineTime
       )
     }
   }
