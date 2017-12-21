@@ -170,7 +170,7 @@ export default class Master extends EventEmitter {
     this._wereAssetsInitiallyLoaded = false
 
     // We end up oversaturating the sockets unless we debounce this
-    this.debouncedEmitAssetsChanged = debounce(this.emitAssetsChanged.bind(this), 1000, { trailing: true })
+    this.debouncedEmitAssetsChanged = debounce(this.emitAssetsChanged.bind(this), 100, { trailing: true })
     this.debouncedEmitDesignNeedsMergeRequest = debounce(this.emitDesignNeedsMergeRequest.bind(this), 500, { trailing: true })
   }
 

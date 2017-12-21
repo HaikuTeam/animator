@@ -93,24 +93,13 @@ class Library extends React.Component {
 
     this.handleAssetInstantiation = this.handleAssetInstantiation.bind(this)
     this.handleAssetDeletion = this.handleAssetDeletion.bind(this)
-    this.debouncedSetAssetsState = lodash.debounce(this.setAssetsState.bind(this), 1000, { trailing: true })
-  }
-
-  setAssetsState () {
-    // This isMounted check is a feeble attempt to solve the 'reflow' problem
-    if (this._isMounted) {
-      this.setState({ assets: this._assets })
-    }
   }
 
   handleAssetsChanged (assets) {
-    this._assets = Asset.ingestAssets(this.props.projectModel, assets)
-    this.debouncedSetAssetsState()
+    this.setState({ assets: Asset.ingestAssets(this.props.projectModel, assets) })
   }
 
   componentDidMount () {
-    this._isMounted = true
-
     this.setState({isLoading: true})
 
     this.reloadAssetList()
@@ -126,17 +115,11 @@ class Library extends React.Component {
     })
   }
 
-  componentWillUnmount () {
-    this._isMounted = false
-  }
-
   reloadAssetList () {
     return this.props.projectModel.listAssets((error, assets) => {
       if (error) return this.setState({ error })
       this.handleAssetsChanged(assets)
-      setTimeout(() => {
-        this.setState({ isLoading: false })
-      }, 1000)
+      this.setState({ isLoading: false })
     })
   }
 
