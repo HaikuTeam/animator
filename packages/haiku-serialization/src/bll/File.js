@@ -802,16 +802,12 @@ File.ingestOne = function ingestOne (folder, relpath, cb) {
   // This can be used to determine if an in-memory-only update occurred after or before a filesystem update.
   // Track it here so we get an accurate picture of when the ingestion routine actually began, including before
   // we actually talked to the real filesystem, which can take some time
-  let dtLastReadStart = Date.now()
+  const dtLastReadStart = Date.now()
 
-  return File.read(folder, relpath, (err, contents) => {
-    if (err) return cb(err)
-
-    return File.ingestContents(folder, relpath, contents, { dtLastReadStart }, cb)
-  })
+  return File.ingestContents(folder, relpath, { dtLastReadStart }, cb)
 }
 
-File.ingestContents = function ingestContents (folder, relpath, contents, { dtLastReadStart }, cb) {
+File.ingestContents = function ingestContents (folder, relpath, { dtLastReadStart }, cb) {
   // Note: The only properties that should be in the object at this point should be relpath and folder,
   // otherwise the upsert won't work correctly since it uses these props as a comparison
   const fileAttrs = {
@@ -833,7 +829,7 @@ File.ingestContents = function ingestContents (folder, relpath, contents, { dtLa
 
   const bytecode = file.mod.isolatedForceReload()
 
-  return file.updateInMemoryHotModuleOnly(bytecode, (err) => {
+  return file.updateInMemoryContentState(bytecode, (err) => {
     if (err) return cb(err)
 
     // This can be used to determine if an in-memory-only update occurred after or before a filesystem update.

@@ -298,9 +298,9 @@ class ActiveComponent extends BaseModel {
     return cb(null, pretty(html))
   }
 
-  setTimelineTimeValue (timelineTime, skipTransmit, forceSeek) {
+  setTimelineTimeValue (timelineTime, skipTransmit, forceSeek, setNoMatterWhat) {
     timelineTime = Math.round(timelineTime)
-    if (this.isPreviewModeActive() || timelineTime !== this.getCurrentTimelineTime()) {
+    if (setNoMatterWhat || this.isPreviewModeActive() || timelineTime !== this.getCurrentTimelineTime()) {
       // Note that this call reaches in and updates our instance's timeline objects
       Timeline.setCurrentTime({ component: this }, timelineTime, skipTransmit, forceSeek)
       this.forceFlush()
@@ -1668,16 +1668,6 @@ class ActiveComponent extends BaseModel {
       },
 
       (cb) => {
-        // Start the clock again, as we should now be ready to flow updated component.
-        this.instancesOfHaikuPlayerComponent.forEach((instance) => {
-          instance._context.clock.start()
-        })
-
-        // If we don't do this here, continued edits at this time won't work properly.
-        // We have to do this after rehydrate so we update all copies fo the models we've
-        // just loaded into memory who have reset attributes
-        this.setTimelineTimeValue(timelineTimeBeforeReload, false, true)
-
         return this.softReload(reloadOptions, instanceConfig, cb)
       },
 
@@ -1688,6 +1678,17 @@ class ActiveComponent extends BaseModel {
           // flush, and all the models need access to the rendered app in
           // order to compute various things properly (race condition)
           this.rehydrate()
+
+          // Start the clock again, as we should now be ready to flow updated component.
+          this.instancesOfHaikuPlayerComponent.forEach((instance) => {
+            instance._context.clock.start()
+          })
+
+          // If we don't do this here, continued edits at this time won't work properly.
+          // We have to do this after rehydrate so we update all copies fo the models we've
+          // just loaded into memory who have reset attributes
+          this.setTimelineTimeValue(timelineTimeBeforeReload, false, true, true)
+
           return cb()
         })
       }

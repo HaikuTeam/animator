@@ -327,14 +327,16 @@ export default class Master extends EventEmitter {
 
             file.reinitializeBytecode(this._config.get('config'))
 
-            if (file.previous !== file.contents) {
-              // Don't send the first reload for this component the first time since that
-              // just represents the first time we've loaded it into memory (race condition)
-              if (this._filesLoadedOnce[file.relpath]) {
+            // Don't send the first reload for this component the first time since that
+            // just represents the first time we've loaded it into memory (race condition)
+            if (this._filesLoadedOnce[file.relpath]) {
+              // Since module change results in a (heavy) stage reload, we want to do it
+              // only if we really need to, i.e. if the file contents have changed
+              if (file.previous !== file.contents) {
                 this._mod.handleModuleChange(file)
-              } else {
-                this._filesLoadedOnce[file.relpath] = true
               }
+            } else {
+              this._filesLoadedOnce[file.relpath] = true
             }
           })
         }
