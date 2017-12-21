@@ -1,10 +1,10 @@
-import * as difference from 'lodash/difference';
-import * as flatten from 'lodash/flatten';
-import * as mapKeys from 'lodash/mapKeys';
+import difference from 'lodash/difference';
+import flatten from 'lodash/flatten';
+import mapKeys from 'lodash/mapKeys';
 
 import {Maybe} from 'haiku-common/lib/types';
 import {Curve} from 'haiku-common/lib/types/enums';
-import * as visitTemplate from 'haiku-serialization/src/bll/helpers/visitTemplate';
+import visitTemplate from 'haiku-serialization/src/bll/helpers/visitTemplate';
 
 import {SvgTag} from '../../svg/enums';
 import {Exporter} from '..';
