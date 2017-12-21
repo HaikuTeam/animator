@@ -3,8 +3,8 @@ import Radium from 'radium'
 import Color from 'color'
 import { shake } from 'react-animations'
 import { FadingCircle } from 'better-react-spinkit'
-import Palette from './Palette'
-import { LogoGradientSVG, UserIconSVG, PasswordIconSVG } from './Icons'
+import Palette from 'haiku-ui-common/lib/Palette'
+import { LogoGradientSVG, UserIconSVG, PasswordIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 
 const STYLES = {
   container: {

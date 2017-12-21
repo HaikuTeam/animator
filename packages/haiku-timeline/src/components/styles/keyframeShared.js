@@ -1,4 +1,4 @@
-import Palette from './../DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import Color from 'color'
 
 export const KEYFRAME_STYLES = {

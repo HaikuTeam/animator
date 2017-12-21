@@ -1,10 +1,10 @@
 import React from 'react'
-import Palette from './DefaultPalette'
-import RightCarrotSVG from './icons/RightCarrotSVG'
+import Palette from 'haiku-ui-common/lib/Palette'
+import RightCarrotSVG from 'haiku-ui-common/lib/react/icons/RightCarrotSVG'
 import ClusterInputField from './ClusterInputField'
 import RowSegments from './RowSegments'
 import ClusterRowHeading from './ClusterRowHeading'
-import Globals from './Globals'
+import Globals from 'haiku-ui-common/lib/Globals'
 
 export default class ClusterRow extends React.Component {
   render () {

@@ -1,6 +1,6 @@
 import React from 'react'
 import Radium from 'radium'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import Popover from 'react-popover'
 
 const STYLES = {

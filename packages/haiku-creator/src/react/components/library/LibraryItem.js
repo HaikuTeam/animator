@@ -1,10 +1,10 @@
 import React from 'react'
 import Radium from 'radium'
 import Color from 'color'
-import Palette from './../Palette'
-import { truncate } from './../../helpers'
+import Palette from 'haiku-ui-common/lib/Palette'
+import truncate from 'haiku-ui-common/lib/helpers/truncate'
 import { Draggable } from 'react-drag-and-drop'
-import { PrimitiveIconSVG } from './../Icons'
+import { PrimitiveIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 
 const STYLES = {
   card: {

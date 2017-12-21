@@ -29,6 +29,7 @@
     "haiku-common": "HaikuTeam/common.git",
     "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
     "haiku-serialization": "HaikuTeam/serialization.git",
+    "haiku-ui-common": "HaikuTeam/ui-common.git",
     "lodash": "^4.17.4",
     "moment": "^2.17.1",
     "monaco-editor": "^0.10.1",

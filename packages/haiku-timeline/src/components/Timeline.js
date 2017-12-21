@@ -9,7 +9,7 @@ import TimelineModel from 'haiku-serialization/src/bll/Timeline'
 import Row from 'haiku-serialization/src/bll/Row'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 
-import Palette from './DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 import ControlsArea from './ControlsArea'
 import ContextMenu from './ContextMenu'
@@ -25,7 +25,7 @@ import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
 import {isPreviewMode} from '@haiku/player/lib/helpers/interactionModes'
 
-const Globals = require('./Globals') // Sorry, hack
+const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
 /* z-index guide
   keyframe: 1002

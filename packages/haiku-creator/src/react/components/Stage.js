@@ -3,7 +3,7 @@ import qs from 'qs'
 import assign from 'lodash.assign'
 import path from 'path'
 import StageTitleBar from './StageTitleBar'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import {InteractionMode} from '@haiku/player/lib/helpers/interactionModes'
 
 const STAGE_BOX_STYLE = {

@@ -6,18 +6,18 @@ import HaikuContext from '@haiku/player/lib/HaikuContext'
 import ActiveComponent from 'haiku-serialization/src/bll/ActiveComponent'
 import Element from 'haiku-serialization/src/bll/Element'
 import react2haiku from 'haiku-serialization/src/utils/react2haiku'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import Comment from './Comment'
 import EventHandlerEditor from './components/EventHandlerEditor'
 import Comments from './models/Comments'
 import ContextMenu from './models/ContextMenu'
-import getLocalDomEventPosition from './helpers/getLocalDomEventPosition'
+import getLocalDomEventPosition from 'haiku-ui-common/lib/helpers/getLocalDomEventPosition'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 import {
   linkExternalAssetsOnDrop,
   preventDefaultDrag
 } from 'haiku-serialization/src/utils/dndHelpers'
-import {EventsBoltIcon} from './Icons'
+import {EventsBoltIcon} from 'haiku-ui-common/lib/react/OtherIcons'
 
 const { clipboard } = require('electron')
 

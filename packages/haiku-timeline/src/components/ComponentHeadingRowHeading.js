@@ -1,6 +1,6 @@
 import React from 'react'
-import truncate from './helpers/truncate'
-import Palette from './DefaultPalette'
+import truncate from 'haiku-ui-common/lib/helpers/truncate'
+import Palette from 'haiku-ui-common/lib/Palette'
 import Color from 'color'
 
 export default class ComponentHeadingRowHeading extends React.Component {

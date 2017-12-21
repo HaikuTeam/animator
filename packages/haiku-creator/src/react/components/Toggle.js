@@ -1,8 +1,8 @@
 import React from 'react'
 import Radium from 'radium'
-import Palette from './Palette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import Popover from 'react-popover'
-import {EyeIconSVG} from './Icons'
+import {EyeIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import {BTN_STYLES} from '../styles/btnShared'
 
 const STYLES = {

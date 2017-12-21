@@ -24,7 +24,7 @@ import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter
 import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/user'
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
 import { isPreviewMode } from '@haiku/player/lib/helpers/interactionModes'
-import Palette from './components/Palette.js'
+import Palette from 'haiku-ui-common/lib/Palette'
 import ActivityMonitor from '../utils/activityMonitor.js'
 import { linkExternalAssetsOnDrop, preventDefaultDrag } from 'haiku-serialization/src/utils/dndHelpers'
 import { HOMEDIR_LOGS_PATH, HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'

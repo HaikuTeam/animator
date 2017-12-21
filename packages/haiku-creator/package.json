@@ -32,6 +32,7 @@
     "haiku-sdk-creator": "HaikuTeam/sdk-creator.git",
     "haiku-serialization": "HaikuTeam/serialization.git",
     "haiku-timeline": "HaikuTeam/timeline.git",
+    "haiku-ui-common": "HaikuTeam/ui-common.git",
     "inline-style-prefixer": "2.0.5",
     "lodash": "4.17.4",
     "lodash.assign": "4.2.0",

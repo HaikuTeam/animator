@@ -1,5 +1,5 @@
 import React from 'react'
-import Palette from './DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
 import ActiveComponentIndicator from './ActiveComponentIndicator'
 // import CurrentTimelineSelectMenu from './CurrentTimelineSelectMenu'
 import PlaybackButtons from './PlaybackButtons'

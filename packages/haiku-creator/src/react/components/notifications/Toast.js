@@ -1,8 +1,8 @@
 import React from 'react'
 import Radium from 'radium'
 import Color from 'color'
-import Palette from './../Palette'
-import { SuccessIconSVG, InfoIconSVG, WarningIconSVG, DangerIconSVG } from './../Icons'
+import Palette from 'haiku-ui-common/lib/Palette'
+import { SuccessIconSVG, InfoIconSVG, WarningIconSVG, DangerIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 
 const STYLES = {
   cap: {

@@ -1,7 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
-import Palette from './DefaultPalette'
+import Palette from 'haiku-ui-common/lib/Palette'
 
 const THROTTLE_TIME = 17 // ms
 const KNOB_RADIUS = 5
