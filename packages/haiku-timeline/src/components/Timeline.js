@@ -58,7 +58,8 @@ const DEFAULTS = {
   isAltKeyDown: false,
   avoidTimelinePointerEvents: false,
   isPreviewModeActive: false,
-  $update: { time: Date.now() } // legacy?
+  $update: { time: Date.now() }, // legacy?
+  isRepeat: true
 }
 
 const THROTTLE_TIME = 32 // ms
@@ -479,7 +480,14 @@ class Timeline extends React.Component {
           changePlaybackSpeed={(inputEvent) => {
             let playerPlaybackSpeed = Number(inputEvent.target.value || 1)
             this.setState({ playerPlaybackSpeed })
-          }} />
+          }}
+          toggleRepeat={() => {
+            const timeline = this.component.getCurrentTimeline()
+            timeline.toggleRepeat()
+            this.setState({ isRepeat: timeline.getRepeat() })
+          }}
+          isRepeat={this.state.isRepeat}
+          />
       </div>
     )
   }
