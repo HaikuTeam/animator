@@ -1,6 +1,6 @@
 {
   "name": "haiku-formats",
-  "version": "2.3.55",
+  "version": "2.3.56",
   "description": "Formatting-related utilities for Haiku.",
   "main": "lib/index.js",
   "directories": {
