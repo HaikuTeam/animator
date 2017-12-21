@@ -154,6 +154,10 @@ Property.EXCLUDE_FROM_JIT = {
   'translation.z': true // There is a bug with this
 }
 
+Property.PREFIXES_TO_EXCLUDE_FROM_ADDRESSABLES = {
+  'sizeMode': true
+}
+
 Property.PRIVATE_PROPERTY_WHEN_HOISTING_TO_STATE = {
   'transform': true,
   'transformOrigin': true,

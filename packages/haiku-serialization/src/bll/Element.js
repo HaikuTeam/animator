@@ -962,37 +962,39 @@ class Element extends BaseModel {
       for (const propertyName in unfilteredProperties) {
         const propertyObject = unfilteredProperties[propertyName]
 
-        if (this._visibleProperties[propertyName]) {
-          // Highest precedence is if the property is deemed explicitly visible
-          filtered[propertyName] = propertyObject
-        } else {
-          if (propertyObject.type === 'state') {
-            // If the property is a component state, we definitely want it
+        if (!Property.PREFIXES_TO_EXCLUDE_FROM_ADDRESSABLES[propertyObject.prefix]) {
+          if (this._visibleProperties[propertyName]) {
+            // Highest precedence is if the property is deemed explicitly visible
             filtered[propertyName] = propertyObject
           } else {
-            const keyframesObject = this.getPropertyKeyframesObject(propertyName)
+            if (propertyObject.type === 'state') {
+              // If the property is a component state, we definitely want it
+              filtered[propertyName] = propertyObject
+            } else {
+              const keyframesObject = this.getPropertyKeyframesObject(propertyName)
 
-            if (keyframesObject) {
-              if (Object.keys(keyframesObject).length > 1) {
-                // If many keyframes are defined, include the property
-                filtered[propertyName] = propertyObject
-              } else {
-                // Or if only one keyframe and that keyframe is not the 0th
-                if (!keyframesObject[0]) {
+              if (keyframesObject) {
+                if (Object.keys(keyframesObject).length > 1) {
+                  // If many keyframes are defined, include the property
                   filtered[propertyName] = propertyObject
                 } else {
-                  // If the keyframe is an internally managed prop that has been changed from its default value
-                  const fallbackValue = Element.INTERNALLY_MANAGED_PROPS_WITH_DEFAULT_VALUES[propertyName]
-                  if (fallbackValue !== undefined && keyframesObject[0].value !== fallbackValue) {
+                  // Or if only one keyframe and that keyframe is not the 0th
+                  if (!keyframesObject[0]) {
                     filtered[propertyName] = propertyObject
+                  } else {
+                    // If the keyframe is an internally managed prop that has been changed from its default value
+                    const fallbackValue = Element.INTERNALLY_MANAGED_PROPS_WITH_DEFAULT_VALUES[propertyName]
+                    if (fallbackValue !== undefined && keyframesObject[0].value !== fallbackValue) {
+                      filtered[propertyName] = propertyObject
+                    }
                   }
                 }
               }
-            }
 
-            // Finally, there are som properties that we always want to show
-            if (Element.ALWAYS_ALLOWED_PROPS[propertyName]) {
-              filtered[propertyName] = propertyObject
+              // Finally, there are som properties that we always want to show
+              if (Element.ALWAYS_ALLOWED_PROPS[propertyName]) {
+                filtered[propertyName] = propertyObject
+              }
             }
           }
         }
