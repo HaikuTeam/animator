@@ -30,7 +30,7 @@ class Timeline extends BaseModel {
     super(props, opts)
 
     this._playing = false
-    this.loop = true
+    this._isLooping = true
     this._stopwatch = Date.now()
     this._currentFrame = 0
     this._fps = 60
@@ -75,11 +75,11 @@ class Timeline extends BaseModel {
   }
 
   setRepeat (bool) {
-    this.loop = bool
+    this._isLooping = bool
   }
 
   getRepeat () {
-    return Boolean(this.loop)
+    return Boolean(this._isLooping)
   }
 
   toggleRepeat () {

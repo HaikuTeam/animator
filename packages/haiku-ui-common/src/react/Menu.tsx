@@ -130,11 +130,12 @@ export class Menu extends React.Component {
         <ul
           onClick={(event) => { this.closeIfOptionSelected(event); }}
           onMouseLeave={(event) => { this.close(); }}
-          style={assign({},
-                        STYLES.resetList,
-                        STYLES.menu,
-                        this.state.isOpen && STYLES.menuOpen,
-                        this.state.isOpen && this.getWrapperStyles(),
+          style={assign(
+            {}, 
+            STYLES.resetList,
+            STYLES.menu,
+            this.state.isOpen && STYLES.menuOpen,
+            this.state.isOpen && this.getWrapperStyles(),
           )}
         >
           {this.props.children}

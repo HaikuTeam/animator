@@ -22,7 +22,6 @@ import {EventsBoltIcon} from 'haiku-ui-common/lib/react/OtherIcons'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 
 const Globals = require('haiku-ui-common/lib/Globals').default
-
 const { clipboard } = require('electron')
 
 const CLOCKWISE_CONTROL_POINTS = {

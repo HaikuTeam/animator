@@ -1,6 +1,7 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import { TOUR_STYLES } from '../styles/tourShared'
+import Draggable from 'react-draggable'
 
 const STYLES = {
   container: {
@@ -173,41 +174,43 @@ function Tooltip (props) {
       <div style={{...STYLES.circle, display: circleDisplay}}>
         <div style={STYLES.circleInner} />
       </div>
-      <div style={{...STYLES.childrenWrapper, ...positionStyles.children}}>
-        <div style={STYLES.children}>
-          {children}
+      <Draggable key={stepData.current}>
+        <div style={{...STYLES.childrenWrapper, ...positionStyles.children}}>
+          <div style={STYLES.children}>
+            {children}
 
-          {/* Don't show buttons on the first and last slides */}
-          {stepData.current > 0 &&
-            stepData.current < stepData.total && (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  marginTop: 30
-                }}
-              >
-                <button
-                  style={TOUR_STYLES.btnSecondary}
-                  onClick={() => finish(true, true)}
+            {/* Don't show buttons on the first and last slides */}
+            {stepData.current > 0 &&
+              stepData.current < stepData.total && (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginTop: 30
+                  }}
                 >
-                  Skip Tutorial
-                </button>
-                <div>
-                  <span style={{marginRight: 10}}>
-                    {stepData.current} of {stepData.total}
-                  </span>
-                  {/* Show the next button if we aren't waiting for user interaction */}
-                  {!waitUserAction && (
-                    <button style={TOUR_STYLES.btn} onClick={() => next()}>
-                      Next
-                    </button>
-                  )}
+                  <button
+                    style={TOUR_STYLES.btnSecondary}
+                    onClick={() => finish(true, true)}
+                  >
+                    Skip Tutorial
+                  </button>
+                  <div>
+                    <span style={{marginRight: 10}}>
+                      {stepData.current} of {stepData.total}
+                    </span>
+                    {/* Show the next button if we aren't waiting for user interaction */}
+                    {!waitUserAction && (
+                      <button style={TOUR_STYLES.btn} onClick={() => next()}>
+                        Next
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+          </div>
         </div>
-      </div>
+      </Draggable>
     </div>
   )
 }

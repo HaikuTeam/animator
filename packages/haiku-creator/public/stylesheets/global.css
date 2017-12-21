@@ -490,3 +490,11 @@ input::-webkit-input-placeholder {
   display: inline-block;
   width: 90%;
 }
+
+.react-draggable-dragged {
+  cursor: -webkit-grab;
+}
+
+.react-draggable-dragging {
+  cursor: -webkit-grabbing;
+}
