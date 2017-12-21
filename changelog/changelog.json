@@ -3526,6 +3526,12 @@
       "message": "Preserve the coordinate system for transforms on images."
     }
   },
-  "2.3.48": {},
-  "2.3.49": {}
+  "2.3.50": {
+    "953af7aaabea741545d647850b6dfb0056629a3f": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "lock ws at version 3.2.0 in all packages."
+    }
+  },
+  "2.3.53": {}
 }
