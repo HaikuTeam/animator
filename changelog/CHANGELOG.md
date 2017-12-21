@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 2.3.56
+
+### Features
+
+ * Adds @haiku/sdk-inkstone endpoint for notifying inkstone a GIF has been published.
+
+### Bug Fixes
+
+ * Deal with missed import paths, remove Radium causing compile problems, and fix side effects of this
+
 ## 2.3.55
 
 ## 2.3.54
