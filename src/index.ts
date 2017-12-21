@@ -12,6 +12,7 @@ var ENDPOINTS = {
   INVITE_CHECK: "v0/invite/:CODE",
   INVITE_CLAIM: "v0/invite/claim",
   SNAPSHOT_GET_BY_ID: "v0/snapshot/:ID",
+  SNAPSHOT_SYNDICATED_BY_ID: "v0/snapshot/:ID/syndicated",
   PROJECT_SNAPSHOT_BY_NAME_AND_SHA: "v0/project/:NAME/snapshot/:SHA",
   PROJECT_GET_BY_NAME: "v0/project/:NAME",
   PROJECT_DELETE_BY_NAME: "v0/project/:NAME",
@@ -258,6 +259,7 @@ export namespace inkstone {
       GitTag?: string,
       GitSha?: string,
       Published: boolean,
+      Syndicated: boolean,
     }
     export interface SnapshotAndProjectAndOrganization {
       Snapshot: Snapshot,
@@ -293,6 +295,26 @@ export namespace inkstone {
         if (httpResponse && httpResponse.statusCode === 200) {
           var snapshotAndProject = JSON.parse(body) as SnapshotAndProjectAndOrganization
           cb(undefined, snapshotAndProject, httpResponse)
+        } else {
+          cb("uncategorized error", undefined, httpResponse)
+        }
+      })
+    }
+
+    // Notifies Inkstone that a snapshot has been syndicated.
+    export function registerSyndication(id: string, secretToken: string, cb: inkstone.Callback<string>) {
+      const url = _inkstoneConfig.baseUrl + ENDPOINTS.SNAPSHOT_SYNDICATED_BY_ID.replace(":ID", encodeURIComponent(id))
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({secret_token: secretToken})
+      }
+
+      request.post(options, function (err, httpResponse, body) {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, JSON.parse(body) as string, httpResponse)
         } else {
           cb("uncategorized error", undefined, httpResponse)
         }
