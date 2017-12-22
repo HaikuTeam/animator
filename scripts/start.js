@@ -254,7 +254,6 @@ function go () {
     throw new Error('[mono] no instructions found for this dev mode')
   }
 
-
   if (inputs.skipInitialBuild) {
     log.hat('skipping initial build')
   } else {

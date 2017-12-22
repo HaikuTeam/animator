@@ -36,7 +36,7 @@ glob(GLOBS, function (err, files) {
     var destpath = path.join(ROOT, file)
 
     try {
-      var code = Uglify2.minify(sourcepath).code
+      var code = Uglify2.minify(sourcepath, {compress: {unused: false}}).code
 
       return fse.outputFile(destpath, code, function (err) {
         if (err) return next(err)
