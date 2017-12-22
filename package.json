@@ -1,7 +1,7 @@
 {
   "name": "haiku-mono",
   "private": true,
-  "version": "2.3.57",
+  "version": "2.3.58",
   "description": "Haiku monorepo",
   "main": "index.js",
   "author": "Matthew Trost <matthew@trost.co>",
@@ -136,6 +136,7 @@
       "!source/plumbing/node_modules/@haiku/sdk-inkstone/src${/*}",
       "!source/plumbing/node_modules/haiku-timeline/src${/*}",
       "!source/plumbing/node_modules/haiku-testing${/*}",
+      "!source/plumbing/node_modules/haiku-ui-common/src${/*}",
       "!**/node_modules/@haiku/player/dist${/*}",
       "!**/node_modules/@haiku/player/src${/*}",
       "!**/node_modules/@haiku/player/test${/*}",
