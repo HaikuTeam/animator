@@ -1804,7 +1804,7 @@ class ActiveComponent extends BaseModel {
   replaceInstance (instance, index, bytecode, config) {
     // Shut down the previous instance (if any) since it no longer needs to render
     // and doing continued rendering can conflict with new renderers entering the stage
-    instance._deactivate()
+    instance.deactivate()
 
     const updated = this.createInstance(bytecode, config)
 
@@ -1925,13 +1925,13 @@ class ActiveComponent extends BaseModel {
 
   sleepComponentsOn () {
     this.instancesOfHaikuPlayerComponent.forEach((instance) => {
-      instance._sleepOn()
+      instance.sleepOn()
     })
   }
 
   sleepComponentsOff () {
     this.instancesOfHaikuPlayerComponent.forEach((instance) => {
-      instance._sleepOff()
+      instance.sleepOff()
     })
   }
 

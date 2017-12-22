@@ -193,10 +193,10 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   }
 
   // Flag to determine whether this component should continue doing any work
-  this._deactivated = false;
+  this._isDeactivated = false;
 
   // Flag to indicate whether we are sleeping, an ephemeral condition where no rendering occurs
-  this._sleeping = false;
+  this._isSleeping = false;
 
   // Useful when debugging to understand cross-component effects
   this._entityIndex = HaikuComponent['components'].push(this) - 1;
@@ -605,27 +605,27 @@ HaikuComponent.prototype._getTopLevelElement = function _getTopLevelElement() {
  * @description When hot-reloading a component during editing, this can be used to
  * ensure that this component doesn't keep updating after its replacement is loaded.
  */
-HaikuComponent.prototype._deactivate = function _deactivate() {
-  this._deactivated = true;
+HaikuComponent.prototype.deactivate = function deactivate() {
+  this._isDeactivated = true;
   return this;
 };
 
-HaikuComponent.prototype._isDeactivated = function _isDeactivated() {
-  return this._deactivated;
+HaikuComponent.prototype.isDeactivated = function isDeactivated() {
+  return this._isDeactivated;
 };
 
-HaikuComponent.prototype._sleepOn = function _sleepOn() {
-  this._sleeping = true;
+HaikuComponent.prototype.sleepOn = function sleepOn() {
+  this._isSleeping = true;
   return this;
 };
 
-HaikuComponent.prototype._sleepOff = function _sleepOff() {
-  this._sleeping = false;
+HaikuComponent.prototype.sleepOff = function sleepOff() {
+  this._isSleeping = false;
   return this;
 };
 
-HaikuComponent.prototype._isAsleep = function _isAsleep() {
-  return this._sleeping;
+HaikuComponent.prototype.isSleeping = function isSleeping() {
+  return this._isSleeping;
 };
 
 HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegisteredListenerOnElement(
@@ -950,7 +950,7 @@ HaikuComponent.prototype._clearDetectedInputChanges = function _clearDetectedInp
 };
 
 HaikuComponent.prototype.patch = function patch(container, patchOptions) {
-  if (this._deactivated) {
+  if (this.isDeactivated()) {
     // If deactivated, pretend like there is nothing to render
     return {};
   }
@@ -993,7 +993,7 @@ HaikuComponent.prototype.patch = function patch(container, patchOptions) {
 };
 
 HaikuComponent.prototype._getPrecalcedPatches = function _getPrecalcedPatches() {
-  if (this._deactivated) {
+  if (this.isDeactivated()) {
     // If deactivated, pretend like there is nothing to render
     return {};
   }
@@ -1013,7 +1013,7 @@ HaikuComponent.prototype._rehydrateFlatManaTree = function _rehydrateFlatManaTre
 };
 
 HaikuComponent.prototype.render = function render(container, renderOptions) {
-  if (this._deactivated) {
+  if (this.isDeactivated()) {
     // If deactivated, pretend like there is nothing to render
     return void 0;
   }

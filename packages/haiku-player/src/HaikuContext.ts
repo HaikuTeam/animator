@@ -286,7 +286,7 @@ HaikuContext.prototype.tick = function tick() {
 
   // Only continue ticking and updating if our root component is still activated and awake;
   // this is mainly a hacky internal hook used during hot editing inside Haiku Desktop
-  if (!this.component._isDeactivated() && !this.component._isAsleep()) {
+  if (!this.component.isDeactivated() && !this.component.isSleeping()) {
     // After we've hydrated the tree the first time, we can proceed with patches --
     // unless the component indicates it wants a full flush per its internal settings.
     if (this.component._shouldPerformFullFlush() || this.config.options.forceFlush || this._ticks < 1) {
