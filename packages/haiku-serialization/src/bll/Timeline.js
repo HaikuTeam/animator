@@ -1083,6 +1083,8 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
   }
 }
 
+Timeline.DEFAULT_NAME = 'Default'
+
 module.exports = Timeline
 
 // Down here to avoid Node circular dependency stub objects. #FIXME

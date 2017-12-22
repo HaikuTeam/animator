@@ -168,7 +168,7 @@ class ActiveComponent extends BaseModel {
   }
 
   getCurrentTimelineName () {
-    return 'Default' // TODO: Support many
+    return Timeline.DEFAULT_NAME // TODO: Support many
   }
 
   upsertCurrentTimeline () {
@@ -569,17 +569,25 @@ class ActiveComponent extends BaseModel {
       })
 
       const componentId = incomingBytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
+      const timelineName = this.getInstantiationTimelineName()
+      const timelineTime = this.getInstantiationTimelineTime()
 
-      this.mutateInstantiateeDisplaySettings(componentId, incomingBytecode.timelines, incomingBytecode.template)
+      this.mutateInstantiateeDisplaySettings(
+        componentId,
+        incomingBytecode.timelines,
+        timelineName,
+        timelineTime,
+        incomingBytecode.template
+      )
 
       if (propertyGroupToApply) {
         TimelineProperty.addPropertyGroup(
           incomingBytecode.timelines,
-          this.getCurrentTimelineName(),
+          timelineName,
           componentId,
           Element.safeElementName(incomingBytecode.template),
           propertyGroupToApply,
-          this.getCurrentTimelineTime()
+          timelineTime
         )
       }
 
@@ -587,7 +595,7 @@ class ActiveComponent extends BaseModel {
 
       Bytecode.mergeBytecodeControlStructures(existingBytecode, incomingBytecode)
 
-      return this.zMoveToFront(componentId, this.getCurrentTimelineName(), this.getCurrentTimelineTime(), metadata, (err) => {
+      return this.zMoveToFront(componentId, timelineName, timelineTime, metadata, (err) => {
         if (err) return done(err)
         return done(null, incomingBytecode.template)
       })
@@ -695,22 +703,32 @@ class ActiveComponent extends BaseModel {
     return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
       const insertionPointHash = Template.getInsertionPointHash(template, template.children.length, 0)
 
+      const timelineName = this.getInstantiationTimelineName()
+      const timelineTime = this.getInstantiationTimelineTime()
+
       const timelinesObject = Template.prepareManaAndBuildTimelinesObject(
         mana,
         insertionPointHash,
-        this.getCurrentTimelineName(),
-        this.getCurrentTimelineTime()
+        timelineName,
+        timelineTime
       )
 
       const componentId = mana.attributes[HAIKU_ID_ATTRIBUTE]
 
-      this.mutateInstantiateeDisplaySettings(componentId, timelinesObject, mana, coords)
+      this.mutateInstantiateeDisplaySettings(
+        componentId,
+        timelinesObject,
+        timelineName,
+        timelineTime,
+        mana,
+        coords
+      )
 
       template.children.push(mana)
 
       mergeTimelineStructure(bytecode, timelinesObject, 'assign')
 
-      return this.zMoveToFront(componentId, this.getCurrentTimelineName(), this.getCurrentTimelineTime(), metadata, (err) => {
+      return this.zMoveToFront(componentId, timelineName, timelineTime, metadata, (err) => {
         if (err) return done(err)
         return done(null, mana)
       })
@@ -718,6 +736,38 @@ class ActiveComponent extends BaseModel {
       if (err) return cb(err)
       return cb(null, mana)
     })
+  }
+
+  getInstantiationTimelineName () {
+    if (experimentIsEnabled(Experiment.HideInstantiatedElementUntilTimeInstantiated)) {
+      return this.getCurrentTimelineName()
+    } else {
+      return Timeline.DEFAULT_NAME
+    }
+  }
+
+  getInstantiationTimelineTime () {
+    if (experimentIsEnabled(Experiment.HideInstantiatedElementUntilTimeInstantiated)) {
+      return this.getCurrentTimelineTime()
+    } else {
+      return 0
+    }
+  }
+
+  getMergeDesignTimelineName () {
+    if (experimentIsEnabled(Experiment.MergeDesignChangesAtCurrentTime)) {
+      return this.getCurrentTimelineName()
+    } else {
+      return Timeline.DEFAULT_NAME
+    }
+  }
+
+  getMergeDesignTimelineTime () {
+    if (experimentIsEnabled(Experiment.MergeDesignChangesAtCurrentTime)) {
+      return this.getCurrentTimelineTime()
+    } else {
+      return 0
+    }
   }
 
   createInTransitionInTimelineObject (timelineObj, propertyName, fromTime, fromValue, toTime, toValue, curveName) {
@@ -742,10 +792,8 @@ class ActiveComponent extends BaseModel {
     timelineObj[propertyName][toTime].value = toValue
   }
 
-  mutateInstantiateeDisplaySettings (componentId, timelinesObject, templateObject, maybeCoords) {
+  mutateInstantiateeDisplaySettings (componentId, timelinesObject, timelineName, timelineTime, templateObject, maybeCoords) {
     const insertedTimeline = timelinesObject[this.getCurrentTimelineName()][`haiku:${componentId}`] || {}
-
-    const timelineTime = this.getCurrentTimelineTime()
 
     // If instantiated at a time greater than 0, make the element invisible
     // until the playhead time at which was instantiated on the stage
@@ -797,7 +845,7 @@ class ActiveComponent extends BaseModel {
 
       TimelineProperty.addPropertyGroup(
         timelinesObject,
-        this.getCurrentTimelineName(),
+        timelineName,
         componentId,
         Element.safeElementName(templateObject),
         propertyGroup,
@@ -925,11 +973,14 @@ class ActiveComponent extends BaseModel {
 
         const insertionPointHash = Template.getInsertionPointHash(node, node.children.length, found++)
 
+        const timelineName = this.getMergeDesignTimelineName()
+        const timelineTime = this.getMergeDesignTimelineTime()
+
         const timelinesObject = Template.prepareManaAndBuildTimelinesObject(
           safe,
           insertionPointHash,
-          this.getCurrentTimelineName(),
-          this.getCurrentTimelineTime()
+          timelineName,
+          timelineTime
         )
 
         Bytecode.mergeTimelines(bytecode.timelines, timelinesObject)
@@ -945,10 +996,6 @@ class ActiveComponent extends BaseModel {
         return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
           if (err) return next(err)
           Template.fixManaSourceAttribute(mana, relpath) // Adds source="relpath_to_file_from_project_root"
-          // const primitive = Primitive.inferPrimitiveFromMana(mana)
-          // if (primitive) {
-          //   return this.mergePrimitive(identifier, primitive, coords, metadata, finish)
-          // }
           return this.mergeMana(mana, next)
         })
       }
