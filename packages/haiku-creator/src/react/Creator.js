@@ -657,7 +657,6 @@ export default class Creator extends React.Component {
               return this.awaitAllProjectModelsState(projectFolder, 'project:ready', true, () => {
                 const ac = this.state.projectModel.getCurrentActiveComponent()
                 if (ac) {
-                  console.log('meow1')
                   // Even if we already have an active component set up and assigned in memory,
                   // we still need to notify Timeline/Stage since they have been completely recreated
                   ac.setAsCurrentActiveComponent({ from: 'creator' }, () => {})

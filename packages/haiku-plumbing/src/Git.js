@@ -238,9 +238,7 @@ export function addAllPathsToIndex (pwd, cb) {
 export function referenceNameToId (pwd, name, cb) {
   return open(pwd, (err, repository) => {
     if (err) return cb(err)
-    logger.info('[git] getting id for reference name', name)
     return Reference.nameToId(repository, name).then((id) => {
-      logger.info('[git] reference name', name, 'resolved to', id && id.toString())
       return cb(null, id)
     }, (err) => {
       logger.info('[git]', err)
@@ -685,7 +683,7 @@ export function commitProject (folder, username, useHeadAsParent, saveOptions = 
     return buildCommit(folder, user, email, message, oid, updateRef, parentRef, (err, commitId) => {
       if (err) return cb(err)
 
-      logger.info(`[git] commit done (${commitId.toString()})`)
+      // logger.info(`[git] commit done (${commitId.toString()})`)
 
       return cb(null, commitId)
     })

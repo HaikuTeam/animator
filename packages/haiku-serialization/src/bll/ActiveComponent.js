@@ -121,6 +121,7 @@ class ActiveComponent extends BaseModel {
     this.debouncedSendPropertyGroupUpdates = lodash.debounce(() => {
       const groupBatches = this._propertyGroupBatches
       this._propertyGroupBatches = {}
+
       lodash.each(groupBatches, ({ componentId, timelineName, timelineTime, groupValue }) => {
         this.project.transmitAction(
           'applyPropertyGroupValue',
