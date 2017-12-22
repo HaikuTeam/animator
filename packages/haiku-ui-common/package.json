@@ -1,6 +1,6 @@
 {
   "name": "haiku-ui-common",
-  "version": "2.3.58",
+  "version": "2.3.59",
   "description": "Common UI components for Haiku projects.",
   "main": "lib/index.js",
   "directories": {
