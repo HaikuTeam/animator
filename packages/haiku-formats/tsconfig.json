@@ -2,6 +2,7 @@
   "compileOnSave": true,
   "compilerOptions": {
     "allowJs": false,
+    "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "declaration": true,
     "declarationDir": "lib",

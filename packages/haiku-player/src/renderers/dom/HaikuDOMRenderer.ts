@@ -45,6 +45,10 @@ HaikuDOMRenderer.prototype.mixpanel = function mixpanel(domElement, mixpanelToke
   return createMixpanel(domElement, mixpanelToken, component);
 };
 
+HaikuDOMRenderer.prototype.hasSizing = function hasSizing() {
+  return this.config && this.config.options.sizing && this.config.options.sizing !== 'normal';
+};
+
 HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement) {
   this._lastContainer = {
     isContainer: true,
@@ -55,12 +59,7 @@ HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement
     },
   };
 
-  if (
-    !this.config ||
-    !this.config.options.sizing ||
-    this.config.options.sizing === 'normal' ||
-    !this.config.options.strictSizing
-  ) {
+  if (!this.hasSizing() || !this.config.options.alwaysComputeSizing) {
     this.shouldCreateContainer = false;
   }
 
@@ -202,6 +201,18 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
   // WINDOW
   if (this.config.options.sizing && this.config.options.sizing !== 'normal' && !this.config.options.strictSizing) {
     win.addEventListener('resize', () => {
+      this.shouldCreateContainer = true;
+    });
+  }
+
+  // If there's any sizing mode that requires computation of container size and alwaysComputeSizing is *disabled*, make
+  // an "overiding" assumption that we probably want to recompute the container when media queries change.
+  if (this.hasSizing() && !this.config.options.alwaysComputeSizing) {
+    win.addEventListener('resize', () => {
+      this.shouldCreateContainer = true;
+    });
+
+    win.addEventListener('orientationchange', () => {
       this.shouldCreateContainer = true;
     });
   }

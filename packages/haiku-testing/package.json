@@ -1,6 +1,6 @@
 {
   "name": "haiku-testing",
-  "version": "2.3.55",
+  "version": "2.3.57",
   "description": "Testing utilities for Haiku.",
   "main": "lib/index.js",
   "directories": {

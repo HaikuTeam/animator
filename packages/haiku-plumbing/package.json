@@ -1,6 +1,6 @@
 {
   "name": "haiku-plumbing",
-  "version": "2.3.55",
+  "version": "2.3.57",
   "description": "Haiku plumbing (serializer, processes, etc)",
   "authors": [
     "Zack Brown <zack@haiku.ai>",

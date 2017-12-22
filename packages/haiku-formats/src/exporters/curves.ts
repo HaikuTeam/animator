@@ -1,5 +1,5 @@
-import * as BezierEasing from 'bezier-easing';
-import * as flatten from 'lodash/flatten';
+import BezierEasing from 'bezier-easing';
+import flatten from 'lodash/flatten';
 
 import {Curve} from 'haiku-common/lib/types/enums';
 
