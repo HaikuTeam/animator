@@ -3535,5 +3535,17 @@
   },
   "2.3.53": {},
   "2.3.54": {},
-  "2.3.55": {}
+  "2.3.55": {},
+  "2.3.56": {
+    "2e5e2438b1eafebc8fc08700abe64278fbfb67e9": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Adds @haiku/sdk-inkstone endpoint for notifying inkstone a GIF has been published."
+    },
+    "2c49121a6665a174a0f89d44ee618f989a3cefbe": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "Deal with missed import paths, remove Radium causing compile problems, and fix side effects of this"
+    }
+  }
 }
