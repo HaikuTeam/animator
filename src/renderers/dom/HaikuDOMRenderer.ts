@@ -10,7 +10,7 @@ import patch from './patch';
 import render from './render';
 
 // tslint:disable-next-line:function-name
-export default function HaikuDOMRenderer() {
+export default function HaikuDOMRenderer(config) {
   this._user = {
     mouse: {
       x: 0,
@@ -24,6 +24,9 @@ export default function HaikuDOMRenderer() {
   };
 
   this._lastContainer = undefined;
+
+  this.config = config;
+  this.shouldCreateContainer = true;
 }
 
 HaikuDOMRenderer.prototype.render = function renderWrap(domElement, virtualContainer, virtualTree, component) {
@@ -42,8 +45,12 @@ HaikuDOMRenderer.prototype.mixpanel = function mixpanel(domElement, mixpanelToke
   return createMixpanel(domElement, mixpanelToken, component);
 };
 
+HaikuDOMRenderer.prototype.hasSizing = function hasSizing() {
+  return this.config && this.config.options.sizing && this.config.options.sizing !== 'normal';
+};
+
 HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement) {
-  return this._lastContainer = {
+  this._lastContainer = {
     isContainer: true,
     layout: {
       computed: {
@@ -51,6 +58,12 @@ HaikuDOMRenderer.prototype.createContainer = function createContainer(domElement
       },
     },
   };
+
+  if (!this.hasSizing() || !this.config.options.alwaysComputeSizing) {
+    this.shouldCreateContainer = false;
+  }
+
+  return this._lastContainer;
 };
 
 HaikuDOMRenderer.prototype.getLastContainer = function getLastContainer() {
@@ -180,6 +193,18 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
   });
 
   // WINDOW
+
+  // If there's any sizing mode that requires computation of container size and alwaysComputeSizing is *disabled*, make
+  // an "overiding" assumption that we probably want to recompute the container when media queries change.
+  if (this.hasSizing() && !this.config.options.alwaysComputeSizing) {
+    win.addEventListener('resize', () => {
+      this.shouldCreateContainer = true;
+    });
+
+    win.addEventListener('orientationchange', () => {
+      this.shouldCreateContainer = true;
+    });
+  }
 
   win.addEventListener('blur', (blurEvent) => {
     clearKey();

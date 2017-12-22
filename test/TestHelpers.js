@@ -1,9 +1,10 @@
 var jsdom = require('jsdom')
 var async = require('async')
-var HaikuDOMAdapter = require('./../lib/adapters/dom').default
-var HaikuDOMRenderer = require('./../lib/renderers/dom').default
-var HaikuContext = require('./../lib/HaikuContext').default
-var HaikuGlobal = require('./../lib/HaikuGlobal').default
+var Config = require('../lib/Config').default
+var HaikuDOMAdapter = require('../lib/adapters/dom').default
+var HaikuDOMRenderer = require('../lib/renderers/dom').default
+var HaikuContext = require('../lib/HaikuContext').default
+var HaikuGlobal = require('../lib/HaikuGlobal').default
 
 var TestHelpers = {}
 
@@ -19,17 +20,27 @@ function createDOM (cb) {
     global[key] = window[key]
   }
   var mount = global.window.document.createElement('div')
-  mount.style.width = '800px'
-  mount.style.height = '600px'
+  mount.width = 800
+  mount.height = 600
+  // Trick jsdom into giving us proper layout on mounts so we can write sizing tests.
+  Object.defineProperties(win.HTMLElement.prototype, {
+    offsetWidth: {
+      get: function() { return mount.width }
+    },
+    offsetHeight: {
+      get: function() { return mount.height }
+    }
+  })
   global.window.document.body.appendChild(mount)
   return cb(null, win, mount, HaikuGlobal)
 }
 
-function createRenderTest (template, cb) {
+function createRenderTest (template, timelines, baseConfig, cb) {
   return createDOM(function _createDOM (err, window, mount) {
     if (err) throw err
-    var renderer = new HaikuDOMRenderer()
-    var context = new HaikuContext(null, renderer, {}, { timelines: {}, template: template }, { options: { cache: {}, seed: 'abcde' + Math.random() } })
+    var config = Config.build(baseConfig, { options: { cache: {}, seed: Config.seed() } })
+    var renderer = new HaikuDOMRenderer(config)
+    var context = new HaikuContext(mount, renderer, {}, { timelines, template }, config)
     var component = context.component
     var container = renderer.createContainer(mount)
     var tree = component.render(container, context.config.options)

@@ -60,6 +60,13 @@ const DEFAULTS = {
     // HaikuComponent.js for info.
     sizing: null,
 
+    // alwaysComputeSizing: Boolean|null
+    // Whether we should always assume the size of the mount will change on every tick. There is a significant
+    // performance boost for all non-'normal' sizing modes if we *don't* always assume this, but the size of the
+    // mount might change underneath for reasons other than changes in media queries. To be safe, we leave this on
+    // by default.
+    alwaysComputeSizing: true,
+
     // preserve3d: String
     // Placeholder for an option to control whether to enable preserve-3d mode in DOM environments. [UNUSED]
     preserve3d: 'auto',
