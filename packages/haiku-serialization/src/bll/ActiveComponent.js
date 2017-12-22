@@ -183,14 +183,26 @@ class ActiveComponent extends BaseModel {
   }
 
   getCurrentTimelineTime () {
+    // Although we own multiple instances, assume that they are operating in lockstep during
+    // editing; we just need to grab a single 'canonical' one for reference
+    const canonicalPlayerInstance = this.getPlayerComponentInstance()
+
     // In case we get called before fully initialized, e.g. on stage during first load
-    if (this.instancesOfHaikuPlayerComponent.length < 1) {
+    if (!canonicalPlayerInstance) {
       return 0
     }
 
-    // If time control hasn't been established yet, note that the controlled time may be null
-    // Although we own multiple instances, assume that they are operating in lockstep during editing
-    return this.getPlayerComponentInstance().getTimeline(this.getCurrentTimelineName()).getControlledTime() || 0
+    const canonicalPlayerTimeline = canonicalPlayerInstance.getTimeline(this.getCurrentTimelineName())
+
+    // This should never happen, but just in case, fallback to 0 if no timeline with this name
+    if (!canonicalPlayerTimeline) {
+      return 0
+    }
+
+    const controlledTime = canonicalPlayerTimeline.getControlledTime()
+
+    // If time control hasn't been established yet, the controlled time may be null
+    return controlledTime || 0
   }
 
   getSceneCodeRelpath () {
