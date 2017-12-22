@@ -13,6 +13,8 @@ export enum Experiment {
   MultiComponentFeatures = 'MultiComponentFeatures',
   JustInTimeProperties = 'JustInTimeProperties',
   InstantiationOfPrimitivesAsComponents = 'InstantiationOfPrimitivesAsComponents',
+  HideInstantiatedElementUntilTimeInstantiated = 'HideInstantiatedElementUntilTimeInstantiated',
+  MergeDesignChangesAtCurrentTime = 'MergeDesignChangesAtCurrentTime',
 }
 
 /**

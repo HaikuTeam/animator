@@ -17,5 +17,13 @@
   "InstantiationOfPrimitivesAsComponents": {
     "development": false,
     "production": false
+  },
+  "HideInstantiatedElementUntilTimeInstantiated": {
+    "development": false,
+    "production": false
+  },
+  "MergeDesignChangesAtCurrentTime": {
+    "development": false,
+    "production": false
   }
 }
