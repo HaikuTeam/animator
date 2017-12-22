@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.58
+
+### Bug Fixes
+
+ * get haiku-ui-common into our release build.
+
 ## 2.3.57
 
 ### Features
