@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.61
+
+### Bug Fixes
+
+ * disable uglify compress.unused for now.
+
 ## 2.3.60
 
 ## 2.3.59
