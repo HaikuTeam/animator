@@ -238,6 +238,12 @@ class Timeline extends BaseModel {
     return this._currentFrame
   }
 
+  getCurrentTime () {
+    const frameInfo = this.getFrameInfo()
+    const frame = this.getCurrentFrame()
+    return frame * frameInfo.mspf
+  }
+
   hoverFrame (hoveredFrame) {
     this._hoveredFrame = hoveredFrame
     this.emit('update', 'timeline-frame-hovered')
