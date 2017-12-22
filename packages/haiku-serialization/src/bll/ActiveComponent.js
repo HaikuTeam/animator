@@ -1696,20 +1696,20 @@ class ActiveComponent extends BaseModel {
       (cb) => {
         return raf(() => {
           // Rehydrate all the view-models so our view renders correctly
-          // This has to happen after softReload because softReload calls
+          // This has to happen __after softReload__ because softReload calls
           // flush, and all the models need access to the rendered app in
           // order to compute various things properly (race condition)
           this.rehydrate()
+
+          // If we don't do this here, continued edits at this time won't work properly.
+          // We have to do this  __after rehydrate__ so we update all copies fo the models we've
+          // just loaded into memory who have reset attributes.
+          this.setTimelineTimeValue(timelineTimeBeforeReload, false, true, true)
 
           // Start the clock again, as we should now be ready to flow updated component.
           this.instancesOfHaikuPlayerComponent.forEach((instance) => {
             instance._context.clock.start()
           })
-
-          // If we don't do this here, continued edits at this time won't work properly.
-          // We have to do this after rehydrate so we update all copies fo the models we've
-          // just loaded into memory who have reset attributes
-          this.setTimelineTimeValue(timelineTimeBeforeReload, false, true, true)
 
           return cb()
         })
