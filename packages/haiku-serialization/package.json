@@ -1,6 +1,6 @@
 {
   "name": "haiku-serialization",
-  "version": "2.3.59",
+  "version": "2.3.60",
   "description": "Serialization utilities",
   "main": "index.js",
   "scripts": {
