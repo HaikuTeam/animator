@@ -292,10 +292,7 @@ HaikuTimeline.prototype._shout = function _shout(key) {
   return this;
 };
 
-HaikuTimeline.prototype.start = function start(
-  maybeGlobalClockTime,
-  descriptor,
-) {
+HaikuTimeline.prototype.start = function start(maybeGlobalClockTime, descriptor) {
   this._localElapsedTime = 0;
   this._isActive = true;
   this._isPlaying = true;
@@ -354,7 +351,11 @@ HaikuTimeline.prototype.play = function play(requestedOptions) {
   return this;
 };
 
-HaikuTimeline.prototype.seek = function seek(ms) {
+HaikuTimeline.prototype.frameToMs = function frameToMs(frame) {
+  return ~~(this._component.getClock().getFrameDuration() * frame);
+};
+
+HaikuTimeline.prototype.seekMs = function seekMs(ms) {
   this._ensureClockIsRunning();
   const clockTime = this._component.getClock().getTime();
   this._controlTime(ms, clockTime);
@@ -367,17 +368,29 @@ HaikuTimeline.prototype.seek = function seek(ms) {
   return this;
 };
 
-HaikuTimeline.prototype.gotoAndPlay = function gotoAndPlay(ms) {
+HaikuTimeline.prototype.seek = function seek(frame) {
+  return this.seekMs(this.frameToMs(frame));
+};
+
+HaikuTimeline.prototype.gotoAndPlayMs = function gotoAndPlayMs(ms) {
   this._ensureClockIsRunning();
   this.seek(ms);
   this.play();
   return this;
 };
 
-HaikuTimeline.prototype.gotoAndStop = function gotoAndStop(ms) {
+HaikuTimeline.prototype.gotoAndPlay = function gotoAndPlay(frame) {
+  return this.gotoAndPlayMs(this.frameToMs(frame));
+};
+
+HaikuTimeline.prototype.gotoAndStopMs = function gotoAndStopMs(ms) {
   this._ensureClockIsRunning();
   this.seek(ms);
   return this;
+};
+
+HaikuTimeline.prototype.gotoAndStop = function gotoAndStop(frame) {
+  return this.gotoAndStopMs(this.frameToMs(frame));
 };
 
 /**

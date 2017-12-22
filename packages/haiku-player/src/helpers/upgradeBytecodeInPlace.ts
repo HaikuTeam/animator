@@ -2,6 +2,9 @@
  * Copyright (c) Haiku 2016-2017. All rights reserved.
  */
 
+import functionToRFO from '../reflection/functionToRFO';
+import reifyRFO from '../reflection/reifyRFO';
+import compareSemver from './compareSemver';
 import visitManaTree from './visitManaTree';
 import xmlToMana from './xmlToMana';
 
@@ -113,6 +116,39 @@ export default function upgradeBytecodeInPlace(bytecode, options) {
                 keyframeDesc.value = referencesToUpdate[keyframeDesc.value];
               }
             }
+          }
+        }
+      }
+    }
+
+    // HACK: prior to version 2.3.62, timeline methods seek(), gotoAndPlay(), and gotoAndStop() accepted a ms argument
+    // instead of a frame argument. For backward compatibility, bind to the old methods for older versions.
+    if (
+      bytecode.eventHandlers &&
+      (
+        !bytecode.metadata ||
+        !bytecode.metadata.version ||
+        compareSemver(bytecode.metadata.version, '2.3.62') < 0
+      )
+    ) {
+      for (const selector in bytecode.eventHandlers) {
+        for (const event in bytecode.eventHandlers[selector]) {
+          const handler = bytecode.eventHandlers[selector][event];
+          const rfo = functionToRFO(handler.handler);
+          let body: string = rfo.__function.body;
+          let changed = false;
+          ['seek', 'gotoAndPlay', 'gotoAndStop'].forEach((method) => {
+            // Technically, we aren't supporting upgrading in place for constructs like this['seek']…but that is okay.
+            if (body.indexOf(`.${method}(`) !== -1) {
+              body = body.replace(`.${method}(`, `.${method}Ms(`);
+              changed = true;
+            }
+          });
+          if (changed) {
+            handler.handler = reifyRFO({
+              ...rfo.__function,
+              body,
+            });
           }
         }
       }

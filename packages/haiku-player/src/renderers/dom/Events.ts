@@ -48,20 +48,20 @@ export default {
   touch: {
     touchstart: {
       menuable: true,
-      human: 'Touch Start'
+      human: 'Touch Start',
     },
     touchend: {
       menuable: true,
-      human: 'Touch End'
+      human: 'Touch End',
     },
     touchmove: {
       menuable: true,
-      human: 'Touch Move'
+      human: 'Touch Move',
     },
     touchcancel: {
       menuable: true,
-      human: 'Touch Cancel'
-    }
+      human: 'Touch Cancel',
+    },
   },
   keyboard: {
     keyup: {
