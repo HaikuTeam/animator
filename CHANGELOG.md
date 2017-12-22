@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.57
+
+### Features
+
+ * Add a new player config option for strictSizing.
+
 ## 2.3.56
 
 ### Features

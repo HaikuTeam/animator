@@ -3547,5 +3547,12 @@
       "label": "fix",
       "message": "Deal with missed import paths, remove Radium causing compile problems, and fix side effects of this"
     }
+  },
+  "2.3.57": {
+    "fc1105bb0a9ab159b594b6acf93456cfabd30871": {
+      "project": "haiku-player",
+      "label": "feat",
+      "message": "Add a new player config option for strictSizing."
+    }
   }
 }
