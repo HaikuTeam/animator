@@ -31,6 +31,9 @@ import ActivityMonitor from '../utils/activityMonitor.js'
 import { HOMEDIR_LOGS_PATH, HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 
+// Useful debugging originator of calls in shared model code
+process.env.HAIKU_SUBPROCESS = 'creator'
+
 var pkg = require('./../../package.json')
 
 var mixpanel = require('haiku-serialization/src/utils/Mixpanel')

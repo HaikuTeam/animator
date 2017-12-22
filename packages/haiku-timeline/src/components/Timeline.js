@@ -29,6 +29,9 @@ import {isPreviewMode} from '@haiku/player/lib/helpers/interactionModes'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
+// Useful debugging originator of calls in shared model code
+process.env.HAIKU_SUBPROCESS = 'timeline'
+
 /* z-index guide
   keyframe: 1002
   transition body: 1002

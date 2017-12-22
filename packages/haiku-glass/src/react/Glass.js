@@ -24,6 +24,9 @@ import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 const Globals = require('haiku-ui-common/lib/Globals').default
 const { clipboard } = require('electron')
 
+// Useful debugging originator of calls in shared model code
+process.env.HAIKU_SUBPROCESS = 'glass'
+
 const CLOCKWISE_CONTROL_POINTS = {
   0: [0, 1, 2, 5, 8, 7, 6, 3],
   1: [6, 7, 8, 5, 2, 1, 0, 3], // flipped vertical

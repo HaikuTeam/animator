@@ -28,7 +28,8 @@ import { crashReport } from 'haiku-serialization/src/utils/carbonite'
 import { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Master from './Master'
 
-// require('njstrace').inject()
+// Useful debugging originator of calls in shared model code
+process.env.HAIKU_SUBPROCESS = 'plumbing'
 
 Error.stackTraceLimit = Infinity // Show long stack traces when errors are shown
 
