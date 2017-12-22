@@ -1019,7 +1019,6 @@ class ActiveComponent extends BaseModel {
           }
         }
       }, null, () => {
-        this.project.emitHook('applyPropertyGroupDelta', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, propertyGroup, metadata)
         if (this.project.isLocalUpdate(metadata)) {
           this.batchPropertyGroupUpdate(componentId, this.getCurrentTimelineName(), this.getCurrentTimelineTime(), getDefinedKeys(propertyGroup))
         }
