@@ -9,7 +9,7 @@ const PROJECT_MODEL_STUB = {
 }
 
 test('Asset.assetsToDirectoryStructure', (t) => {
-  t.plan(1)
+  t.plan(9)
   const assets = Asset.ingestAssets(PROJECT_MODEL_STUB, {
     'code/main/code.js': {
       relpath: 'code/main/code.js',
@@ -52,5 +52,13 @@ test('Asset.assetsToDirectoryStructure', (t) => {
       dtModified: Date.now()
     },
   })
-  t.ok(assets[0].children[1],'asset 0 has children')
+  t.ok(assets[0],'asset exists')
+  t.equal(assets[0].kind, 'folder', 'base asset is folder')
+  t.equal(assets[0].type, 'container', 'base asset is container')
+  t.equal(assets[0].children.length, 1, 'base asset has one child')
+  t.equal(assets[0].children[0].kind, 'sketch', 'child asset is sketch')
+  t.equal(assets[0].children[0].type, 'container', 'child asset is container')
+  t.equal(assets[0].children[0].children[0].relpath, 'designs/TEST.sketch.contents/slices/Dicey.svg', 'grandchild is svg')
+  t.equal(assets[0].children[0].children[0].kind, 'vector', 'grandchild is vector')
+  t.equal(assets[0].children[0].children[0].type, 'file', 'grandchild is file')
 })
