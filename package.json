@@ -20,6 +20,7 @@
   ],
   "devDependencies": {
     "@types/node": "^8.0.17",
+    "@types/react": "16.0.29",
     "haiku-testing": "HaikuTeam/testing.git",
     "nyc": "^11.2.1",
     "tap-spec": "^4.1.1",
@@ -30,7 +31,6 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "@types/react": "^16.0.29",
     "color": "^2.0.1",
     "decamelize": "^1.2.0",
     "lodash.assign": "^4.2.0",
