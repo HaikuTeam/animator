@@ -3562,5 +3562,6 @@
       "message": "get haiku-ui-common into our release build."
     }
   },
-  "2.3.59": {}
+  "2.3.59": {},
+  "2.3.60": {}
 }
