@@ -3554,5 +3554,12 @@
       "label": "feat",
       "message": "Add a new player config option for strictSizing."
     }
+  },
+  "2.3.58": {
+    "cd22c309fc3e8ea9d1e03c12127d62eaf9cf85fb": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "get haiku-ui-common into our release build."
+    }
   }
 }
