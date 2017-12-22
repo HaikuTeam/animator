@@ -286,19 +286,23 @@ class ActiveComponent extends BaseModel {
     return this
   }
 
-  getPropertyGroupValue (componentId, timelineName, timelineTime, propertyKeys) {
+  getPropertyGroupValueFromPropertyKeys (componentId, timelineName, timelineTime, propertyKeys) {
     let groupValue = {}
-    let bytecode = this.fetchActiveBytecodeFile().getReifiedBytecode()
+    let bytecode = this.getReifiedBytecode()
+
     if (!bytecode) return groupValue
     if (!bytecode.timelines) return groupValue
     if (!bytecode.timelines[timelineName]) return groupValue
     if (!bytecode.timelines[timelineName][`haiku:${componentId}`]) return groupValue
+
     let cluster = bytecode.timelines[timelineName][`haiku:${componentId}`]
+
     propertyKeys.forEach((propertyKey) => {
       if (!cluster[propertyKey]) return void (0)
       if (!cluster[propertyKey][timelineTime]) return void (0)
       groupValue[propertyKey] = cluster[propertyKey][timelineTime].value
     })
+
     return groupValue
   }
 
@@ -2202,9 +2206,19 @@ class ActiveComponent extends BaseModel {
 
   batchPropertyGroupUpdate (componentId, timelineName, timelineTime, propertyKeys) {
     const batchKey = `${componentId}-${timelineName}-${timelineTime}`
-    const groupValue = this.getPropertyGroupValue(componentId, timelineName, timelineTime, propertyKeys)
-    if (!this._propertyGroupBatches[batchKey]) this._propertyGroupBatches[batchKey] = { componentId, timelineName, timelineTime, groupValue }
-    else lodash.assign(this._propertyGroupBatches[batchKey].groupValue, groupValue)
+    const groupValue = this.getPropertyGroupValueFromPropertyKeys(componentId, timelineName, timelineTime, propertyKeys)
+
+    if (!this._propertyGroupBatches[batchKey]) {
+      this._propertyGroupBatches[batchKey] = {
+        componentId,
+        timelineName,
+        timelineTime,
+        groupValue
+      }
+    } else {
+      lodash.assign(this._propertyGroupBatches[batchKey].groupValue, groupValue)
+    }
+
     this.debouncedSendPropertyGroupUpdates()
     this.clearCachedClusters(timelineName, componentId)
   }
