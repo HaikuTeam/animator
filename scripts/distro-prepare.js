@@ -67,6 +67,7 @@ const HAIKU_SUBPACKAGES = {
   'haiku-state-object': true,
   'haiku-testing': true,
   'haiku-timeline': true,
+  'haiku-ui-common': true,
   'haiku-websockets': true,
   'haiku-fs-extra': false // Special unlinked snowflake, do not overwrite
 }
