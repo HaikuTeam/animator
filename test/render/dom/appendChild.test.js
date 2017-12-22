@@ -10,10 +10,10 @@ test('render.dom.appendChild', function (t) {
     children: []
   }
 
-  TestHelpers.createRenderTest(template, function (err, mount, renderer, context, component, teardown) {
+  TestHelpers.createRenderTest(template, {}, {}, function (err, mount, renderer, context, component, teardown) {
     if (err) throw err
-    t.equal(mount.outerHTML, '<div style="width: 800px; height: 600px;"><div haiku-id="abcde" style="display: block;' +
-      ' visibility: visible; opacity: 1; width: 0px; height: 0px;"></div></div>', 'base html render ok')
+    t.equal(mount.outerHTML, '<div><div haiku-id="abcde" style="display: block; visibility: visible; opacity: 1;' +
+      ' width: 800px; height: 600px;"></div></div>', 'base html render ok')
     teardown()
   })
 })
