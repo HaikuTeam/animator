@@ -3561,5 +3561,14 @@
       "label": "fix",
       "message": "get haiku-ui-common into our release build."
     }
+  },
+  "2.3.59": {},
+  "2.3.60": {},
+  "2.3.61": {
+    "2d7efa433540c598a794f3de09e66f04da789198": {
+      "project": "haiku-player",
+      "label": "fix",
+      "message": "disable uglify compress.unused for now."
+    }
   }
 }
