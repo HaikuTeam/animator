@@ -238,9 +238,7 @@ export function addAllPathsToIndex (pwd, cb) {
 export function referenceNameToId (pwd, name, cb) {
   return open(pwd, (err, repository) => {
     if (err) return cb(err)
-    logger.info('[git] getting id for reference name', name)
     return Reference.nameToId(repository, name).then((id) => {
-      logger.info('[git] reference name', name, 'resolved to', id && id.toString())
       return cb(null, id)
     }, (err) => {
       logger.info('[git]', err)
@@ -314,7 +312,7 @@ export function pushToRemote (pwd, remoteName, fullBranchName, gitRemoteUsername
         return fixRemoteHttpsUrl(repository, remote, gitRemoteUsername, gitRemotePassword, (err) => {
           if (err) return cb(err)
           const remoteOptions = buildRemoteOptions(gitRemoteUsername, gitRemotePassword)
-          logger.info('[git] pushing content to remote', refSpecs, remoteOptions)
+          logger.info('[git] pushing content to remote', refSpecs)
           return remote.push(refSpecs, remoteOptions).then(() => {
             return cb()
           }, (err) => {
@@ -405,7 +403,7 @@ export function fetchFromRemote (pwd, remoteName, gitRemoteUsername, gitRemotePa
       // Without tags, we can't detect what the next tag to bump to is
       fetchOpts.downloadTags = 3
 
-      logger.info('[git] fetching remote', remoteName, fetchOpts)
+      logger.info('[git] fetching remote', remoteName)
       logger.info('[git] remote info:', remote.name(), remote.url())
 
       return repository.fetch(remote, fetchOpts).then(() => {
@@ -685,7 +683,7 @@ export function commitProject (folder, username, useHeadAsParent, saveOptions = 
     return buildCommit(folder, user, email, message, oid, updateRef, parentRef, (err, commitId) => {
       if (err) return cb(err)
 
-      logger.info(`[git] commit done (${commitId.toString()})`)
+      // logger.info(`[git] commit done (${commitId.toString()})`)
 
       return cb(null, commitId)
     })

@@ -4,11 +4,11 @@ var assign = require('lodash.assign')
 var tools = require('browserify-transform-tools')
 var remapSource = require('haiku-serialization/src/ast/remapSource')
 var logger = require('haiku-serialization/src/utils/LoggerInstance')
-var getHaikuKnownImportMatch = require('haiku-serialization/src/bll/helpers/getHaikuKnownImportMatch')
+var ModuleWrapper = require('haiku-serialization/src/bll/ModuleWrapper')
 
 var haikuify = tools.makeStringTransform('haikuify', {}, function (content, options, done) {
   // TODO: Cache? Only run for some files?
-  var updated = remapSource(content, getHaikuKnownImportMatch)
+  var updated = remapSource(content, ModuleWrapper.getHaikuKnownImportMatch)
   return done(null, updated)
 })
 

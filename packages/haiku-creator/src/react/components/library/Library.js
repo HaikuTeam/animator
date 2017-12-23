@@ -4,16 +4,13 @@ import lodash from 'lodash'
 import Radium from 'radium'
 import path from 'path'
 import Palette from 'haiku-ui-common/lib/Palette'
-import LibraryItem from './LibraryItem'
-import CollapseItem from './CollapseItem'
 import SketchDownloader from '../SketchDownloader'
-import RectanglePrimitiveProps from './../../primitives/Rectangle'
-import EllipsePrimitiveProps from './../../primitives/Ellipse'
-import PolygonPrimitiveProps from './../../primitives/Polygon'
-import TextPrimitiveProps from './../../primitives/Text'
-import sketchUtils from '../../../utils/sketchUtils'
 import { didAskedForSketch } from 'haiku-serialization/src/utils/HaikuHomeDir'
+import Asset from 'haiku-serialization/src/bll/Asset'
 import { shell } from 'electron'
+import sketchUtils from '../../../utils/sketchUtils'
+import AssetList from './AssetList'
+import Loader from './Loader'
 
 const STYLES = {
   scrollwrap: {
@@ -22,19 +19,13 @@ const STYLES = {
   },
   sectionHeader: {
     cursor: 'default',
-    height: 25,
+    // height: 25, // See note in StateInspector
     textTransform: 'uppercase',
     display: 'flex',
     alignItems: 'center',
-    padding: '18px 14px 10px',
+    padding: '12px 14px 0',
     fontSize: 15,
     justifyContent: 'space-between'
-  },
-  primitivesWrapper: {
-    paddingTop: 6,
-    paddingBottom: 6,
-    position: 'relative',
-    overflow: 'hidden'
   },
   assetsWrapper: {
     paddingTop: 6,
@@ -81,15 +72,9 @@ const STYLES = {
   }
 }
 
-class LibraryDrawer extends React.Component {
+class Library extends React.Component {
   constructor (props) {
     super(props)
-    this.primitives = {
-      Rectangle: RectanglePrimitiveProps(props.websocket),
-      Ellipse: EllipsePrimitiveProps(props.websocket),
-      Polygon: PolygonPrimitiveProps(props.websocket),
-      Text: TextPrimitiveProps(props.websocket)
-    }
 
     this.state = {
       error: null,
@@ -98,241 +83,143 @@ class LibraryDrawer extends React.Component {
       overDropTarget: false,
       isLoading: false,
       sketchDownloader: {
+        asset: null,
         isVisible: false,
-        fileData: null,
         shouldAskForSketch: !didAskedForSketch()
       }
     }
+
+    this._assets = []
+
+    this.handleAssetInstantiation = this.handleAssetInstantiation.bind(this)
+    this.handleAssetDeletion = this.handleAssetDeletion.bind(this)
   }
 
-  componentWillMount () {
+  handleAssetsChanged (assets) {
+    this.setState({ assets: Asset.ingestAssets(this.props.projectModel, assets) })
+  }
+
+  componentDidMount () {
     this.setState({isLoading: true})
+
     this.reloadAssetList()
+
     this.props.websocket.on('broadcast', ({ name, assets }) => {
       if (name === 'assets-changed') {
-        this.setState({ assets })
+        this.handleAssetsChanged(assets)
       }
     })
+
     sketchUtils.checkIfInstalled().then(isInstalled => {
       this.isSketchInstalled = isInstalled
     })
   }
 
   reloadAssetList () {
-    return this.props.websocket.request({ method: 'listAssets', params: [this.props.folder] }, (error, assets) => {
+    return this.props.projectModel.listAssets((error, assets) => {
       if (error) return this.setState({ error })
-      this.setState({ assets })
-      setTimeout(() => {
-        this.setState({ isLoading: false })
-      }, 1000)
+      this.handleAssetsChanged(assets)
+      this.setState({ isLoading: false })
     })
   }
 
-  handleFileInstantiation (fileData) {
-    if (!fileData.preview) return this.props.createNotice({ type: 'warning', title: 'Oops!', message: 'File path was blank; cannot instantiate' })
-    const metadata = {}
-    this.props.websocket.request({ type: 'action', method: 'instantiateComponent', params: [this.props.folder, fileData.preview, metadata] }, (err) => {
+  handleFileInstantiation (asset) {
+    return this.props.projectModel.transmitInstantiateComponent(asset.getRelpath(), {}, (err) => {
       if (err) {
         return this.props.createNotice({ type: 'danger', title: err.name, message: err.message })
       }
     })
   }
 
-  openSketchFile (fileData) {
-    let abspath = path.join(this.props.folder, 'designs', fileData.fileName)
-    shell.openItem(abspath)
+  openSketchFile (asset) {
+    shell.openItem(asset.getAbspath())
   }
 
-  handleSketchInstantiation (fileData) {
+  handleSketchInstantiation (asset) {
     if (this.isSketchInstalled) {
-      this.openSketchFile(fileData)
+      this.openSketchFile(asset)
     } else {
-      this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: true, fileData}})
+      this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: true, asset}})
     }
   }
 
   onSketchDownloadComplete () {
     this.isSketchInstalled = true
-    this.openSketchFile(this.state.sketchDownloader.fileData)
-    this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, fileData: null}})
+    this.openSketchFile(this.state.sketchDownloader.asset)
+    this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, asset: null}})
   }
 
   onSketchDialogDismiss (shouldAskForSketch) {
     this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: false, shouldAskForSketch}})
   }
 
-  handleAssetInstantiation (fileData) {
-    switch (fileData.type) {
-      case 'sketch':
-        this.handleSketchInstantiation(fileData)
+  handleComponentInstantiation (asset) {
+    // Yes, your observation is correct - this doesn't actually instantiate!
+    // It just toggles the active component!
+    // TODO: Rename/refactor - and note that this naming issue spans several methods here.
+
+    const scenename = this.props.projectModel.relpathToSceneName(asset.getRelpath())
+    this.props.projectModel.setCurrentActiveComponent(scenename, { from: 'creator' }, () => {})
+  }
+
+  handleAssetInstantiation (asset) {
+    switch (asset.kind) {
+      case Asset.KINDS.SKETCH:
+        this.handleSketchInstantiation(asset)
         this.props.tourChannel.next()
         break
-      case 'file':
-        this.handleFileInstantiation(fileData)
+      case Asset.KINDS.VECTOR:
+        this.handleFileInstantiation(asset)
+        break
+      case Asset.KINDS.COMPONENT:
+        this.handleComponentInstantiation(asset)
         break
       default:
-        this.props.createNotice({ type: 'warning', title: 'Oops!', message: 'Couldn\'t handle that file, please contact support.' })
+        this.props.createNotice({
+          type: 'warning',
+          title: 'Oops!',
+          message: 'Couldn\'t handle that file, please contact support.'
+        })
     }
   }
 
   handleAssetDeletion (asset) {
     this.setState({isLoading: true})
-    return this.props.websocket.request({ method: 'unlinkAsset', params: [asset.relpath, this.props.folder] }, (error, assets) => {
-      if (error) this.setState({error, isLoading: false})
-      if (assets) this.setState({ assets, isLoading: false })
-    })
+    return this.props.projectModel.unlinkAsset(
+      asset.getRelpath(),
+      (error, assets) => {
+        this.setState({isLoading: false})
+        if (error) {
+          return this.setState({error})
+        }
+        this.setState({ assets, isLoading: false })
+      }
+    )
   }
 
   handleFileDrop (files, event) {
     this.setState({isLoading: true})
-
     const filePaths = lodash.map(files, file => file.path)
-
-    this.props.websocket.request(
-      {method: 'bulkLinkAssets', params: [filePaths, this.props.folder]},
+    this.props.projectModel.bulkLinkAssets(
+      filePaths,
       (error, assets) => {
         this.setState({isLoading: false})
-        if (error) this.setState({error})
-        this.setState({assets})
+        if (error) {
+          return this.setState({error})
+        }
+        this.handleAssetsChanged(assets)
       }
     )
-  }
-
-  getPrimaryAsset () {
-    if (!this.state.assets) return null
-    if (this.state.assets.length < 1) return null
-    let primary
-    this.state.assets.forEach((asset) => {
-      if (asset.isPrimaryDesign) {
-        primary = asset
-      }
-    })
-    return primary
-  }
-
-  getOtherAssets () {
-    if (!this.state.assets) return []
-    if (this.state.assets.length < 1) return []
-    let others = []
-    this.state.assets.forEach((asset) => {
-      if (!asset.isPrimaryDesign) {
-        others.push(asset)
-      }
-    })
-    return others
-  }
-
-  renderPrimaryAsset (asset) {
-    return this.renderAssetItem(asset, true)
-  }
-
-  renderPrimaryAssetHint (asset) {
-    let hasSubAssets = false
-    if (asset.artboards && asset.artboards.collection.length > 0) hasSubAssets = true
-    if (asset.pages && asset.pages.collection.length > 0) hasSubAssets = true
-    if (asset.slices && asset.slices.collection.length > 0) hasSubAssets = true
-
-    if (hasSubAssets) {
-      return ''
-    } else {
-      return (
-        <div style={STYLES.primaryAssetText}>
-          ⇧ Double click to open this file in Sketch.
-          Every slice and artboard will be synced here when you save.
-        </div>
-      )
-    }
-  }
-
-  renderAssetItem (asset, isPrimaryAsset) {
-    if (asset.type === 'sketch') {
-      return (
-        <CollapseItem
-          isPrimaryAsset={isPrimaryAsset}
-          key={asset.fileName}
-          file={asset}
-          folder={this.props.folder}
-          onDragEnd={this.props.onDragEnd}
-          onDragStart={this.props.onDragStart}
-          websocket={this.props.websocket}
-          instantiate={this.handleAssetInstantiation.bind(this, asset)}
-          delete={this.handleAssetDeletion.bind(this, asset)} />
-      )
-    }
-
-    return (
-      <LibraryItem
-        key={asset.fileName}
-        preview={asset.preview}
-        fileName={asset.fileName}
-        onDragEnd={this.props.onDragEnd}
-        onDragStart={this.props.onDragStart}
-        updateTime={asset.updateTime}
-        websocket={this.props.websocket}
-        instantiate={this.handleAssetInstantiation.bind(this, asset)}
-        delete={this.handleAssetDeletion.bind(this, asset)} />
-    )
-  }
-
-  renderOtherAssets (assets) {
-    return (
-      <div>
-        {lodash.map(assets, (file, index) => {
-          return (
-            <div key={`item-${file.fileName}-${index}`}>
-              {this.renderAssetItem(file)}
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
-
-  renderAssetsList () {
-    let primaryAsset = this.getPrimaryAsset()
-    let otherAssets = this.getOtherAssets()
-
-    if (!primaryAsset && otherAssets.length < 1) {
-      return (
-        <div style={STYLES.startText}>
-          Import a Sketch or SVG file to start
-        </div>
-      )
-    }
-
-    if (!primaryAsset && otherAssets.length > 0) {
-      return (
-        <div>
-          {this.renderOtherAssets(otherAssets)}
-        </div>
-      )
-    }
-
-    if (primaryAsset && otherAssets.length < 1) {
-      return (
-        <div>
-          {this.renderPrimaryAsset(primaryAsset)}
-          {this.renderPrimaryAssetHint(primaryAsset)}
-        </div>
-      )
-    }
-
-    return (
-      <div>
-        {this.renderPrimaryAsset(primaryAsset)}
-        {this.renderOtherAssets(otherAssets)}
-      </div>
-    )
-  }
-
-  propsForPrimitive (name) {
-    return this.primitives[name]
   }
 
   render () {
     return (
-      <div id='library-wrapper' style={{height: '100%'}}>
-        <div style={STYLES.sectionHeader}>
+      <div
+        id='library-wrapper'
+        style={{height: '100%'}}>
+        <div
+          id='library-scroll-wrap'
+          style={STYLES.sectionHeader}>
           Library
           <button style={STYLES.button} onClick={this.launchFilepicker}>+</button>
           <input
@@ -342,9 +229,20 @@ class LibraryDrawer extends React.Component {
             onChange={(e) => this.handleFileDrop(this.refs.filepicker.files, e)}
             style={{opacity: 0, position: 'absolute', right: 0, width: 90, zIndex: 3}} />
         </div>
-        <div style={STYLES.scrollwrap}>
+        <div
+          id='library-scroll-wrap'
+          style={STYLES.scrollwrap}>
           <div style={STYLES.assetsWrapper}>
-            {this.state.isLoading ? '' : this.renderAssetsList()}
+            {this.state.isLoading
+              ? <Loader />
+              : <AssetList
+                projectModel={this.props.projectModel}
+                onDragStart={this.props.onDragStart}
+                onDragEnd={this.props.onDragEnd}
+                instantiateAsset={this.handleAssetInstantiation}
+                deleteAsset={this.handleAssetDeletion}
+                indent={0}
+                assets={this.state.assets} />}
           </div>
         </div>
         {
@@ -361,4 +259,8 @@ class LibraryDrawer extends React.Component {
   }
 }
 
-export default Radium(LibraryDrawer)
+Library.propTypes = {
+  projectModel: React.PropTypes.object.isRequired
+}
+
+export default Radium(Library)

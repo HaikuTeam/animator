@@ -124,12 +124,6 @@ function runInteractive () {
           name: 'dev',
           message: 'Automatically open Chrome Dev Tools?',
           default: inputs.dev
-        },
-        {
-          type: 'confirm',
-          name: 'skipInitialBuild',
-          message: 'Skip initial build of assets?',
-          default: inputs.skipInitialBuild
         }
       ]).then(function (answers) {
         lodash.assign(inputs, answers)

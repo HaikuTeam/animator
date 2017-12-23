@@ -140,6 +140,14 @@ button {
   text-transform: uppercase;
 }
 
+/* We have a ton of elements with text content that shouldn't be selectable
+ * TODO: Move into the ui-common module?
+ */
+.no-select {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
 /* TODO(legacy): unify this styles
  * for some reason we were hiding the tip of the Popover library
  * and placing the popover body in unexpected places. This was
@@ -473,6 +481,14 @@ input::-webkit-input-placeholder {
 
 .Droppable {
     height: 100%;
+}
+
+/* Something I did during multi-component broke and I needed to add this
+ * back to get something reasonably close to the old draggable; #FIXME?
+ */
+.library-draggable {
+  display: inline-block;
+  width: 90%;
 }
 
 .react-draggable-dragged {

@@ -1,6 +1,7 @@
 import React from 'react'
 import truncate from 'haiku-ui-common/lib/helpers/truncate'
 import Palette from 'haiku-ui-common/lib/Palette'
+import {ComponentIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import Color from 'color'
 
 export default class ComponentHeadingRowHeading extends React.Component {
@@ -80,9 +81,35 @@ export default class ComponentHeadingRowHeading extends React.Component {
             style={{
               color,
               position: 'relative',
-              zIndex: 1005
+              zIndex: 1005,
+              display: 'inline-block',
+              width: 145,
+              height: 20
             }}>
-            {truncate(this.props.row.element.getTitle() || `<${elementName}>`, 8)}
+            <span
+              style={{
+                position: 'absolute',
+                display: 'inline-block',
+                height: 20,
+                left: 0,
+                top: 8
+              }}>
+              {(this.props.row.element.isComponent())
+                ? <ComponentIconSVG />
+                : ''}
+            </span>
+            <span
+              style={{
+                position: 'absolute',
+                display: 'inline-block',
+                height: 20,
+                left: (this.props.row.element.isComponent())
+                  ? 20
+                  : 0,
+                top: 7
+              }}>
+              {truncate(this.props.row.element.getTitle() || `<${elementName}>`, 8)}
+            </span>
           </span>
         </span>)
     )

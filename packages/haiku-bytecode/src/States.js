@@ -49,6 +49,7 @@ function assignDescriptor (out, stateValueDescriptor) {
   if (stateValueDescriptor.set) out.set = stateValueDescriptor.set
   if (stateValueDescriptor.get) out.get = stateValueDescriptor.get
   if (stateValueDescriptor.type) out.type = stateValueDescriptor.type
+  if (stateValueDescriptor.access) out.access = stateValueDescriptor.access
   if (stateValueDescriptor.mock !== undefined) out.mock = stateValueDescriptor.mock
   if (stateValueDescriptor.value !== undefined) out.value = stateValueDescriptor.value
   return out

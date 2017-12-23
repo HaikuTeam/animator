@@ -36,3 +36,5 @@ cd packages/haiku-websockets && yarn install && cd ../..
 
 rm .last-sync 2> /dev/null
 yarn sync
+
+cd packages/haiku-player && yarn link @haiku/player && cd ../..

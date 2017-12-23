@@ -1,5 +1,6 @@
 var paramsToFunctionASTParams = require('./paramsToFunctionASTParams')
 var functionBodyStringToFunctionBodyAST = require('./functionBodyStringToFunctionBodyAST')
+var wrapInHaikuInject = require('./wrapInHaikuInject')
 
 function RFOToFunctionAST (rfo, key) {
   var type = rfo.type || 'FunctionExpression'
@@ -21,7 +22,14 @@ function RFOToFunctionAST (rfo, key) {
       }
       break
   }
-  return ast
+
+  // If the function was labeled as an injectee, that means it's an 'expression'
+  // function that must be wrapped in a Haiku.inject to work properly at runtime
+  if (rfo.injectee) {
+    return wrapInHaikuInject(ast)
+  } else {
+    return ast
+  }
 }
 
 module.exports = RFOToFunctionAST

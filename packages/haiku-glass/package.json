@@ -55,7 +55,7 @@
     "tape": "^4.6.3"
   },
   "scripts": {
-    "start": "electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
+    "start": "AUTOSTART=main electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
     "compile": "NODE_ENV=development babel src --out-dir lib --source-maps inline",
     "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy || true",

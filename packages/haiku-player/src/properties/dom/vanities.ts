@@ -713,14 +713,7 @@ const FILTER_VANITIES = {
   primitiveUnits: attributeSetter('primitiveUnits'),
 };
 
-const HTML_STYLE_SHORTHAND_VANITIES = {
-  backgroundColor(_, element, value) {
-    element.attributes.style.backgroundColor = value;
-  },
-  zIndex(_, element, value) {
-    element.attributes.style.zIndex = value;
-  },
-};
+const HTML_STYLE_SHORTHAND_VANITIES = {};
 
 const CONTROL_FLOW_VANITIES = {
   // 'controlFlow.if': function (name, element, value) {

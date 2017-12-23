@@ -4,7 +4,7 @@ import mapKeys from 'lodash/mapKeys';
 
 import {Maybe} from 'haiku-common/lib/types';
 import {Curve} from 'haiku-common/lib/types/enums';
-import visitTemplate from 'haiku-serialization/src/bll/helpers/visitTemplate';
+import * as Template from 'haiku-serialization/src/bll/Template';
 
 import {SvgTag} from '../../svg/enums';
 import {Exporter} from '..';
@@ -866,7 +866,7 @@ export class BodymovinExporter implements Exporter {
         };
 
         // Finally, process the node as if it were a normal shape.
-        visitTemplate(wrapperNode, null, (node, parentNode) => {
+        Template.visitTemplate(wrapperNode, null, (node, parentNode) => {
           this.handleElement(node, parentNode);
         });
       }
@@ -1098,7 +1098,7 @@ export class BodymovinExporter implements Exporter {
       if (template.elementName !== SvgTag.Svg) {
         throw new Error(`Unexpected wrapper child element: ${template.elementName}`);
       }
-      visitTemplate(template, null, (node, parentNode) => {
+      Template.visitTemplate(template, null, (node, parentNode) => {
         this.handleElement(node, parentNode);
       });
     });

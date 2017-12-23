@@ -3,8 +3,10 @@ import qs from 'qs'
 import assign from 'lodash.assign'
 import path from 'path'
 import StageTitleBar from './StageTitleBar'
+import ComponentMenu from './ComponentMenu/ComponentMenu'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {InteractionMode} from '@haiku/player/lib/helpers/interactionModes'
+import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 
 const STAGE_BOX_STYLE = {
   position: 'relative',
@@ -15,6 +17,11 @@ const STAGE_BOX_STYLE = {
   height: '100%',
   outline: 'none'
 }
+
+// This may not be precisely correct; please test the UI if you enable this experiment
+const STAGE_MOUNT_HEIGHT_OFFSET = (experimentIsEnabled(Experiment.MultiComponentFeatures))
+  ? 68
+  : 38
 
 export default class Stage extends React.Component {
   constructor (props) {
@@ -28,9 +35,9 @@ export default class Stage extends React.Component {
   componentDidMount () {
     this.injectWebview()
 
-    const tourChannel = this.props.envoy.get('tour')
+    const tourChannel = this.props.envoyClient.get('tour')
 
-    if (!this.props.envoy.isInMockMode()) {
+    if (!this.props.envoyClient.isInMockMode()) {
       tourChannel.then((client) => {
         this.tourClient = client
         this.tourClient.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this))
@@ -59,8 +66,8 @@ export default class Stage extends React.Component {
       folder: this.props.folder,
       email: this.props.username,
       envoy: {
-        host: this.props.envoy.getOption('host'),
-        port: this.props.envoy.getOption('port')
+        host: this.props.envoyClient.getOption('host'),
+        port: this.props.envoyClient.getOption('port')
       }
     }))
 
@@ -118,16 +125,16 @@ export default class Stage extends React.Component {
     }
   }
 
-  handleDrop (libraryItemInfo, clientX, clientY) {
-    var stageRect = this.mount.getBoundingClientRect()
+  handleDrop (asset, clientX, clientY) {
+    const stageRect = this.mount.getBoundingClientRect()
     if (clientX > stageRect.left && clientX < stageRect.right && clientY > stageRect.top && clientY < stageRect.bottom) {
-      var offsetX = clientX - stageRect.left
-      var offsetY = clientY - stageRect.top
-      var abspath = libraryItemInfo.preview
-      const metadata = { offsetX, offsetY, glassOnly: true }
-      this.props.websocket.request({ type: 'action', method: 'instantiateComponent', params: [this.props.folder, abspath, metadata] }, (err) => {
-        if (err) return this.props.createNotice({ type: 'error', title: 'Error', message: err.message })
-      })
+      const offsetX = clientX - stageRect.left
+      const offsetY = clientY - stageRect.top
+      if (this.props.projectModel) {
+        return this.props.projectModel.transmitInstantiateComponent(asset.getRelpath(), { offsetX, offsetY }, (err) => {
+          if (err) return this.props.createNotice({ type: 'error', title: 'Error', message: err.message })
+        })
+      }
     }
   }
 
@@ -150,6 +157,7 @@ export default class Stage extends React.Component {
           style={STAGE_BOX_STYLE}>
           <StageTitleBar
             folder={this.props.folder}
+            projectModel={this.props.projectModel}
             websocket={this.props.websocket}
             project={this.props.project}
             createNotice={this.props.createNotice}
@@ -162,6 +170,11 @@ export default class Stage extends React.Component {
             tourClient={this.tourClient}
             onPreviewModeToggled={this.onPreviewModeToggled.bind(this)}
             isTimelineReady={this.props.isTimelineReady} />
+          {(experimentIsEnabled(Experiment.MultiComponentFeatures))
+            ? <ComponentMenu
+              ref='component-menu'
+              projectModel={this.props.projectModel} />
+            : ''}
           <div
             id='stage-mount'
             ref={(element) => { this.mount = element }}
@@ -169,8 +182,8 @@ export default class Stage extends React.Component {
               position: 'absolute',
               overflow: 'auto',
               width: 'calc(100% - 5px)',
-              height: 'calc(100% - 41px)',
-              top: 38,
+              height: `calc(100% - ${STAGE_MOUNT_HEIGHT_OFFSET + 3}px)`,
+              top: STAGE_MOUNT_HEIGHT_OFFSET,
               left: 3,
               backgroundColor: Palette.STAGE_GRAY,
               outline: '2px solid ' + interactionModeColor
@@ -184,7 +197,7 @@ export default class Stage extends React.Component {
 Stage.propTypes = {
   folder: React.PropTypes.string.isRequired,
   haiku: React.PropTypes.object.isRequired,
-  envoy: React.PropTypes.object.isRequired,
+  envoyClient: React.PropTypes.object.isRequired,
   websocket: React.PropTypes.object.isRequired,
   project: React.PropTypes.object.isRequired,
   createNotice: React.PropTypes.func.isRequired,

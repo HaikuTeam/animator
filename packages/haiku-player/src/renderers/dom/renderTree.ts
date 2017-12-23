@@ -19,10 +19,16 @@ export default function renderTree(
   isPatchOperation,
   doSkipChildren,
 ) {
+  const flexId = getFlexId(virtualElement);
+
   component._addElementToHashTable(domElement, virtualElement);
 
   if (!domElement.haiku) {
-    domElement.haiku = {};
+    domElement.haiku = {
+      // This is used to detect whether the element's host component has changed.
+      // Don't remove this without understanding the effect on Haiku.app.
+      component,
+    };
   }
 
   // E.g. I might want to inspect the dom node, grab the haiku source data, etc.
@@ -31,8 +37,8 @@ export default function renderTree(
   // Must clone so we get a correct picture of differences in attributes between runs, e.g. for detecting attribute
   // removals
   domElement.haiku.element = cloneVirtualElement(virtualElement);
-  if (!component.cache[getFlexId(virtualElement)]) {
-    component.cache[getFlexId(virtualElement)] = {};
+  if (!component.cache[flexId]) {
+    component.cache[flexId] = {};
   }
 
   if (!Array.isArray(virtualChildren)) {
@@ -75,11 +81,10 @@ export default function renderTree(
     if (!virtualChild && !domChild) {
       // empty
     } else if (!virtualChild && domChild) {
-      removeElement(domChild, virtualElement, component);
+      removeElement(domChild, flexId, component);
     } else if (virtualChild) {
       if (!domChild) {
         const insertedElement = appendChild(null, virtualChild, domElement, virtualElement, component);
-
         component._addElementToHashTable(insertedElement, virtualChild);
       } else {
         // Circumstances in which we want to completely *replace* the element:
@@ -89,7 +94,7 @@ export default function renderTree(
         // If we now have an element that is different, we need to trigger a full re-render
         // of itself and all of its children, because e.g. url(#...) references will retain pointers to
         // old elements and this is the only way to clear the DOM to get a correct render.
-        if (shouldElementBeReplaced(domChild, virtualChild)) {
+        if (shouldElementBeReplaced(domChild, virtualChild, component)) {
           replaceElement(domChild, virtualChild, domElement, virtualElement, component);
         } else {
           updateElement(domChild, virtualChild, domElement, virtualElement, component, isPatchOperation);

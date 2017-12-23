@@ -21,5 +21,5 @@ test('deleteKeyframe', function (t) {
     template: { elementName: 'svg', attributes: { 'haiku-id': 'abcdefghijk' } }
   }
   deleteKeyframe(bytecode, 'abcdefghijk', 'Default', 'foo', 200)
-  t.equal(JSON.stringify(bytecode.timelines.Default), '{"haiku:abcdefghijk":{"foo":{"0":{"value":1},"100":{"value":2},"300":{"value":4}}}}')
+  t.equal(JSON.stringify(bytecode.timelines.Default), '{"haiku:abcdefghijk":{"foo":{"0":{"value":1},"100":{"value":2,"curve":"linear"},"300":{"value":4}}}}')
 })

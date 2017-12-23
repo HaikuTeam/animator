@@ -4,6 +4,7 @@ import lodash from 'lodash'
 import path from 'path'
 import qs from 'qs'
 import Websocket from 'haiku-serialization/src/ws/Websocket'
+import MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket'
 import Timeline from './components/Timeline'
 import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
 
@@ -48,7 +49,7 @@ function go () {
 
   const websocket = (config.plumbing)
     ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'timeline')
-    : { on: () => {}, send: () => {}, method: () => {}, request: () => {}, sendIfConnected: () => {}, action: () => {} }
+    : new MockWebsocket()
 
   // Add extra context to Sentry reports, this info is also used
   // by carbonite.

@@ -3,16 +3,19 @@ import * as assign from 'lodash.assign';
 import Palette from './../Palette';
 import {DownCarrotSVG} from './OtherIcons';
 
+const Z = 99999;
+
 const STYLES = {
   wrapper: {
     position: 'relative',
+    zIndex: Z,
   },
   menu: {
     position: 'absolute',
     display: 'none',
     backgroundColor: Palette['SPECIAL_COAL'],
     color: Palette['PALE_GRAY'],
-    zIndex: '99',
+    zIndex: Z,
     top: 0,
     left: 0,
     borderRadius: '4px',
@@ -26,7 +29,7 @@ const STYLES = {
     display: 'inline-block',
     left: '100%',
     top: '0',
-    zIndex: 999,
+    zIndex: Z + 1,
   },
   menuItem: {
     position: 'relative',
@@ -205,6 +208,7 @@ export class SubMenu extends React.Component {
   }
 }
 
+/* tslint:disable:variable-name */
 export const MenuItem = ({children, data, disabled, onClick, style}) => {
   return (
     <li

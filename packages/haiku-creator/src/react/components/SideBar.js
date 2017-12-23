@@ -79,7 +79,7 @@ class SideBar extends React.Component {
     }
   }
 
-  componentWillMount () {
+  componentDidMount () {
     const self = this
     this.windowResizeHandler = (e) => {
       // note: using 'resize' because 'fullscreenchange' doesn't seem to work in Electron
@@ -94,11 +94,14 @@ class SideBar extends React.Component {
   }
 
   goToDashboard () {
-    this.props.setDashboardVisibility(true)
     this.props.onNavigateToDashboard()
   }
 
   render () {
+    // The State Inspector UI only makes sense in the context of a component,
+    // hence the conditional presence-check before rendering it
+    const activeComponent = this.props.projectModel && this.props.projectModel.getCurrentActiveComponent()
+
     return (
       <div style={STYLES.container} className='layout-box' id='sidebar'>
         <div style={[STYLES.bar, {zIndex: 1, paddingLeft: this.state.isFullscreen ? 15 : 82}]} className='frame'>
@@ -118,11 +121,13 @@ class SideBar extends React.Component {
             onClick={() => this.props.switchActiveNav('library')}>
             <LibraryIconSVG color={Palette.ROCK} />
           </div>
-          <div id='state-inspector' key='state_inspector'
-            style={[STYLES.btnNav, this.props.activeNav === 'state_inspector' && STYLES.activeBtnNav]}
-            onClick={() => this.props.switchActiveNav('state_inspector')}>
-            <StateInspectorIconSVG color={Palette.ROCK} />
-          </div>
+          {(activeComponent)
+            ? <div id='state-inspector' key='state_inspector'
+              style={[STYLES.btnNav, this.props.activeNav === 'state_inspector' && STYLES.activeBtnNav]}
+              onClick={() => this.props.switchActiveNav('state_inspector')}>
+              <StateInspectorIconSVG color={Palette.ROCK} />
+            </div>
+            : ''}
         </div>
         <div style={STYLES.panelWrapper}>
           {this.props.children}

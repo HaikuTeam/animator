@@ -36,5 +36,6 @@ export default function assignStyle(domElement, style, component, isPatchOperati
       domElement.style[key] = style[key];
     }
   }
+
   return domElement;
 }

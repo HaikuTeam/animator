@@ -1,7 +1,17 @@
+const assign = require('lodash.assign')
 const expressionToRO = require('@haiku/player/lib/reflection/expressionToRO').default
 const BaseModel = require('./BaseModel')
-const millisecondToNearestFrame = require('./helpers/millisecondToNearestFrame')
 
+/**
+ * @class Keyframe
+ * @description
+ *.  Abstraction over the raw representation of keyframes in bytecode.
+ *.  Helps with the following:
+ *.    - Managing state changes between keyframes: selected, dragging, etc.
+ *.    - Makes complicated actions like dragging multiple keyframes easy
+ *.    - Handling model updates like changing curves, changing the ms time, etc.
+ *.    - Has some logic for color changes that probably should be moved #FIXME
+ */
 class Keyframe extends BaseModel {
   constructor (props, opts) {
     super(props, opts)
@@ -42,7 +52,7 @@ class Keyframe extends BaseModel {
 
   select (config) {
     if (!config || !config.skipDeselect) {
-      Keyframe.deselectAndDeactivateAllKeyframes()
+      Keyframe.deselectAndDeactivateAllKeyframes({ component: this.component })
     }
 
     if (
@@ -266,7 +276,7 @@ class Keyframe extends BaseModel {
     if (this.next() && this.next().isActive()) {
       this.setCurve(null)
       this.component.splitSegment(
-        [this.element.getComponentId()],
+        this.element.getComponentId(),
         this.timeline.getName(),
         this.element.getNameString(),
         this.row.getPropertyNameString(),
@@ -285,7 +295,7 @@ class Keyframe extends BaseModel {
     this.setCurve(curveName)
 
     this.component.joinKeyframes(
-      [this.element.getComponentId()],
+      this.element.getComponentId(),
       this.timeline.getName(),
       this.element.getNameString(),
       this.row.getPropertyNameString(),
@@ -305,7 +315,7 @@ class Keyframe extends BaseModel {
     this.setCurve(curveName)
 
     this.component.changeSegmentCurve(
-      [this.element.getComponentId()],
+      this.element.getComponentId(),
       this.timeline.getName(),
       this.row.getPropertyNameString(),
       this.getMs(),
@@ -366,7 +376,7 @@ class Keyframe extends BaseModel {
   }
 
   getFrame (mspf) {
-    return millisecondToNearestFrame(this.getMs(), mspf)
+    return Timeline.millisecondToNearestFrame(this.getMs(), mspf)
   }
 
   getMs () {
@@ -455,13 +465,13 @@ class Keyframe extends BaseModel {
   }
 
   next () {
-    return this.cacheFetch(('next'), () => {
+    return this.cacheFetch('next', () => {
       return this.row.getKeyframes({ index: this.index + 1 })[0]
     })
   }
 
   prev () {
-    return this.cacheFetch(('prev'), () => {
+    return this.cacheFetch('prev', () => {
       return this.row.getKeyframes({ index: this.index - 1 })[0]
     })
   }
@@ -586,6 +596,10 @@ class Keyframe extends BaseModel {
     return 'ROCK'
   }
 
+  /**
+   * @method dump
+   * @description When debugging, use this to log a concise shorthand of this entity.
+   */
   dump () {
     let str = `${this.row.getPropertyNameString()}[${this.getIndex()}]:${this.getMs()}/${this.getCurve() || '!'}`
     if (this.isTransitionSegment()) str += ' {t}'
@@ -615,24 +629,22 @@ BaseModel.extend(Keyframe)
 Keyframe._selected = {}
 Keyframe._activated = {}
 
-Keyframe.deselectAndDeactivateAllKeyframes = function deselectAndDeactivateAllKeyframes () {
-  for (const key in Keyframe._selected) {
-    Keyframe._selected[key].deselect()
-  }
-  for (const key in Keyframe._activated) {
-    Keyframe._activated[key].deactivate()
-  }
+Keyframe.deselectAndDeactivateAllKeyframes = function deselectAndDeactivateAllKeyframes (criteria) {
+  Keyframe.where(criteria).forEach((keyframe) => {
+    keyframe.deselect()
+    keyframe.deactivate()
+  })
 }
 
 Keyframe.getInferredUid = function getInferredUid (row, index) {
   return `${row.getPrimaryKey()}-keyframe-${index}`
 }
 
-Keyframe.buildKeyframeMoves = function buildKeyframeMoves (serialized) {
+Keyframe.buildKeyframeMoves = function buildKeyframeMoves (criteria, serialized) {
   // Keyframes not part of this object will be deleted from the bytecode
   const moves = {}
 
-  const movables = Keyframe.where({ _needsMove: true })
+  const movables = Keyframe.where(assign({ _needsMove: true }, criteria))
 
   movables.forEach((movable) => {
     // As an optimization, skip any that we have already moved below in case of dupes
@@ -653,7 +665,7 @@ Keyframe.buildKeyframeMoves = function buildKeyframeMoves (serialized) {
 
     // Because the keyframe move action interprets excluded entries as *deletes*, we have to
     // also include all keyframes that are a part of the same timeline/component/property tuple
-    Keyframe.all().forEach((partner) => {
+    Keyframe.where(criteria).forEach((partner) => {
       if (partner.isDeleted()) return null
       if (partner.timeline.getName() !== timelineName) return null
       if (partner.element.getComponentId() !== componentId) return null
@@ -670,3 +682,6 @@ Keyframe.buildKeyframeMoves = function buildKeyframeMoves (serialized) {
 }
 
 module.exports = Keyframe
+
+// Down here to avoid Node circular dependency stub objects. #FIXME
+const Timeline = require('./Timeline')

@@ -1,8 +1,11 @@
 const { EventEmitter } = require('events')
 const { remote } = require('electron')
-const { Menu, MenuItem } = remote
 const { HOMEDIR_PATH } = require('haiku-serialization/src/utils/HaikuHomeDir')
-var fse = require('haiku-fs-extra')
+const fse = require('haiku-fs-extra')
+
+// Do not change this syntax; headless tests depend on it
+const Menu = remote && remote.Menu
+const MenuItem = remote && remote.MenuItem
 
 fse.mkdirpSync(HOMEDIR_PATH)
 

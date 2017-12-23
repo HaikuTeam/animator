@@ -306,9 +306,7 @@ const PATH_FALLBACKS = {
   d: '',
 };
 
-const HTML_STYLE_SHORTHAND_FALLBACKS = {
-  backgroundColor: '',
-};
+const HTML_STYLE_SHORTHAND_FALLBACKS = {};
 
 const CONTROL_FLOW_FALLBACKS = {
   // 'controlFlow.if': null,

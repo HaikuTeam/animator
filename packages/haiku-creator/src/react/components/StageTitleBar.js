@@ -181,8 +181,6 @@ class StageTitleBar extends React.Component {
   constructor (props) {
     super(props)
     this.handleConnectionClick = this.handleConnectionClick.bind(this)
-    this.handleUndoClick = this.handleUndoClick.bind(this)
-    this.handleRedoClick = this.handleRedoClick.bind(this)
     this.handleSaveSnapshotClick = this.handleSaveSnapshotClick.bind(this)
     this.handleMergeResolveOurs = this.handleMergeResolveOurs.bind(this)
     this.handleMergeResolveTheirs = this.handleMergeResolveTheirs.bind(this)
@@ -215,33 +213,35 @@ class StageTitleBar extends React.Component {
     // It's kind of weird to have this heartbeat logic buried all the way down here inside StateTitleBar;
     // it probably should be moved up to the Creator level so it's easier to find #FIXME
     this._fetchMasterStateInterval = setInterval(() => {
-      return this.props.websocket.request({ method: 'masterHeartbeat', params: [this.props.folder] }, (heartbeatErr, masterState) => {
-        if (heartbeatErr || !masterState) {
-          // If master disconnects we might not even get an error, so create a fake error in its place
-          if (!heartbeatErr) heartbeatErr = new Error('Unknown problem with master heartbeat')
-          console.error(heartbeatErr)
+      if (this.props.projectModel) {
+        return this.props.projectModel.masterHeartbeat((heartbeatErr, masterState) => {
+          if (heartbeatErr || !masterState) {
+            // If master disconnects we might not even get an error, so create a fake error in its place
+            if (!heartbeatErr) heartbeatErr = new Error('Unknown problem with master heartbeat')
+            console.error(heartbeatErr)
 
-          // If master has disconnected, stop running this interval so we don't get pulsing error messages
-          clearInterval(this._fetchMasterStateInterval)
+            // If master has disconnected, stop running this interval so we don't get pulsing error messages
+            clearInterval(this._fetchMasterStateInterval)
 
-          // But the first time we get this, display a user notice - they probably need to restart Haiku to get
-          // into a better state, at least until we can resolve what the cause of this problem is
-          return this.props.createNotice({
-            type: 'danger',
-            title: 'Uh oh!',
-            message: 'Haiku is having a problem accessing your project. 😢 Please restart Haiku. If you see this error again, contact Haiku for support.'
-          })
-        }
+            // But the first time we get this, display a user notice - they probably need to restart Haiku to get
+            // into a better state, at least until we can resolve what the cause of this problem is
+            return this.props.createNotice({
+              type: 'danger',
+              title: 'Uh oh!',
+              message: 'Haiku is having a problem accessing your project. 😢 Please restart Haiku. If you see this error again, contact Haiku for support.'
+            })
+          }
 
-        ipcRenderer.send('master:heartbeat', assign({}, masterState))
+          ipcRenderer.send('master:heartbeat', assign({}, masterState))
 
-        if (this._isMounted) {
-          this.setState({
-            gitUndoables: masterState.gitUndoables,
-            gitRedoables: masterState.gitRedoables
-          })
-        }
-      })
+          if (this._isMounted) {
+            this.setState({
+              gitUndoables: masterState.gitUndoables,
+              gitRedoables: masterState.gitRedoables
+            })
+          }
+        })
+      }
     }, 1000)
 
     ipcRenderer.on('global-menu:save', () => {
@@ -256,32 +256,6 @@ class StageTitleBar extends React.Component {
 
   handleConnectionClick () {
     // TODO
-  }
-
-  handleUndoClick () {
-    return this.props.websocket.request({ method: 'gitUndo', params: [this.props.folder, { type: 'global' }] }, (err) => {
-      if (err) {
-        console.error(err)
-        return this.props.createNotice({
-          type: 'warning',
-          title: 'Uh oh!',
-          message: 'We were unable to undo your last action. 😢 Please contact Haiku for support.'
-        })
-      }
-    })
-  }
-
-  handleRedoClick () {
-    return this.props.websocket.request({ method: 'gitRedo', params: [this.props.folder, { type: 'global' }] }, (err) => {
-      if (err) {
-        console.error(err)
-        return this.props.createNotice({
-          type: 'warning',
-          title: 'Uh oh!',
-          message: 'We were unable to redo your last action. 😢 Please contact Haiku for support.'
-        })
-      }
-    })
   }
 
   getProjectSaveOptions () {
@@ -305,24 +279,20 @@ class StageTitleBar extends React.Component {
   }
 
   performProjectInfoFetch () {
-    this.setState({ isProjectInfoFetchInProgress: true })
-    return this.props.websocket.request({ method: 'fetchProjectInfo', params: [this.props.folder, this.props.project.projectName, this.props.username, this.props.password, {}] }, (projectInfoFetchError, projectInfo) => {
-      this.setState({ isProjectInfoFetchInProgress: false })
+    if (this.props.projectModel) {
+      this.setState({ isProjectInfoFetchInProgress: true })
+      return this.props.projectModel.fetchProjectInfo(this.props.project.projectName, this.props.username, this.props.password, (projectInfoFetchError, projectInfo) => {
+        this.setState({ isProjectInfoFetchInProgress: false })
 
-      if (projectInfoFetchError) {
-        if (projectInfoFetchError.message) {
-          console.error(projectInfoFetchError.message)
-        } else {
-          console.error('unknown problem fetching project')
+        if (projectInfoFetchError) {
+          return this.setState({ projectInfoFetchError })
         }
 
-        return this.setState({ projectInfoFetchError })
-      }
-
-      this.setState({ projectInfo })
-      if (this.props.receiveProjectInfo) this.props.receiveProjectInfo(projectInfo)
-      if (projectInfo.shareLink) this.setState({ linkAddress: projectInfo.shareLink })
-    })
+        this.setState({ projectInfo })
+        if (this.props.receiveProjectInfo) this.props.receiveProjectInfo(projectInfo)
+        if (projectInfo.shareLink) this.setState({ linkAddress: projectInfo.shareLink })
+      })
+    }
   }
 
   withProjectInfo (otherObject) {
@@ -336,7 +306,9 @@ class StageTitleBar extends React.Component {
   }
 
   requestSaveProject (cb) {
-    return this.props.websocket.request({ method: 'saveProject', params: [this.props.folder, this.props.project.projectName, this.props.username, this.props.password, this.getProjectSaveOptions()] }, cb)
+    if (this.props.projectModel) {
+      return this.props.projectModel.saveProject(this.props.project.projectName, this.props.username, this.props.password, this.getProjectSaveOptions(), cb)
+    }
   }
 
   performProjectSave () {
@@ -426,16 +398,14 @@ class StageTitleBar extends React.Component {
   }
 
   togglePreviewMode (checked) {
-    const interaction = checked ? InteractionMode.EDIT : InteractionMode.LIVE
+    if (this.props.projectModel) {
+      const interactionMode = checked ? InteractionMode.EDIT : InteractionMode.LIVE
 
-    this.props.websocket.action(
-      'setInteractionMode',
-      [this.props.folder, interaction],
-      () => {}
-    )
+      this.props.projectModel.setInteractionMode(interactionMode, () => {})
 
-    if (this.props.onPreviewModeToggled) {
-      this.props.onPreviewModeToggled(interaction)
+      if (this.props.onPreviewModeToggled) {
+        this.props.onPreviewModeToggled(interactionMode)
+      }
     }
   }
 

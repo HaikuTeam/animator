@@ -2,15 +2,21 @@ process.env.NODE_ENV = 'test'
 require('babel-register')({
   presets: ['babel-preset-react-app'].map(require.resolve)
 })
-var path = require('path')
-var JSDOM = require('jsdom').JSDOM
-var React = require('react')
-var ReactDOM = require('react-dom')
+const path = require('path')
+const JSDOM = require('jsdom').JSDOM
+const React = require('react')
+const ReactDOM = require('react-dom')
 
-var TestHelpers = {}
+const TestHelpers = {}
+
+function awaitElementById (window, id, cb) {
+  const found = window.document.getElementById(id)
+  if (found) return cb(null, found)
+  return setTimeout(() => awaitElementById(window, id, cb), 1000)
+}
 
 function createDOM (folder, cb) {
-  var html = `
+  const html = `
     <!doctype html>
     <html style="width: 100%; height: 100%;">
       <body style="width: 100%; height: 100%;">
@@ -18,10 +24,10 @@ function createDOM (folder, cb) {
         <div id="root" style="width: 100%; height: 100%;"></div>
       </body>
     </html>`
-  var dom = new JSDOM(html, {
+  const dom = new JSDOM(html, {
     url: 'http://localhost:3000?folder=' + folder
   })
-  var win = dom.window
+  const win = dom.window
   global.window = win
   global.document = win.document
   for (let key in win) {
@@ -43,15 +49,14 @@ function createDOM (folder, cb) {
 function createApp (folder, cb) {
   return createDOM(folder, function (err, win, _teardown) {
     if (err) throw err
-    var Glass = require('./../lib/react/Glass').Glass
+    const Glass = require('./../lib/react/Glass').Glass
     const userconfig = require(path.join(folder, 'haiku.js'))
-    const websocket = { on: () => {}, send: () => {}, method: () => {}, request: () => {}, action: () => {} }
+    const websocket = { on: () => {}, send: () => {}, method: () => {}, request: () => {}, action: () => {}, connect: () => {} }
     ReactDOM.render(
-      React.createElement(Glass ,{
+      React.createElement(Glass, {
         userconfig: userconfig,
         websocket: websocket,
         folder: folder,
-        projectName: userconfig.name || 'untitled',
         envoy: { mock: true }
       }),
       document.getElementById('root')
@@ -59,15 +64,12 @@ function createApp (folder, cb) {
     function teardown () {
       _teardown()
     }
-    window.glass._component.on('update', (what) => {
-      if (what === 'application-mounted') {
-        return cb(window.glass, window.glass._component, window, teardown)
-      }
-    })
+    return cb(window.glass, window, teardown)
   })
 }
 
 TestHelpers.createDOM = createDOM
 TestHelpers.createApp = createApp
+TestHelpers.awaitElementById = awaitElementById
 
 module.exports = TestHelpers

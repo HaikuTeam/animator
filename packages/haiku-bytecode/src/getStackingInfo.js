@@ -1,13 +1,13 @@
 var getPropertyValue = require('./getPropertyValue')
 var HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
-module.exports = function getStackingInfo (bytecode, mana, timelineName, timelineTime) {
+module.exports = function getStackingInfo (bytecode, staticTemplateManaNode, timelineName, timelineTime) {
   var haikuIdsToZIndices = {}
 
   var zIndicesToHaikuIds = {}
 
-  for (var i = 0; i < mana.children.length; i++) {
-    var child = mana.children[i]
+  for (var i = 0; i < staticTemplateManaNode.children.length; i++) {
+    var child = staticTemplateManaNode.children[i]
     if (!child || typeof child === 'string') continue
     var haikuId = child.attributes[HAIKU_ID_ATTRIBUTE]
     var explicitZ = getPropertyValue(bytecode, haikuId, timelineName, timelineTime, 'style.zIndex')

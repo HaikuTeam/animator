@@ -1,7 +1,7 @@
 var test = require('tape')
 var TimelineProperty = require('./../src/TimelineProperty')
 var ValueBuilder = require('@haiku/player/lib/ValueBuilder').default
-function _findElementsByHaikuId () {
+function findElementsByHaikuId () {
   return { elementName: 'svg', attributes: {}, children: [] }
 }
 
@@ -10,7 +10,7 @@ test('TimelineProperty.getBaselineValue', function(t) {
 
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
-  hostInstance._findElementsByHaikuId = _findElementsByHaikuId
+  hostInstance.findElementsByHaikuId = findElementsByHaikuId
   var inputValues = {}
   var bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 123, 0.666, {
     timelines: {
@@ -32,7 +32,7 @@ test('TimelineProperty.getBaselineValue', function(t) {
 
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
-  hostInstance._findElementsByHaikuId = _findElementsByHaikuId
+  hostInstance.findElementsByHaikuId = findElementsByHaikuId
   var inputValues = {}
   var bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 0, 0.666, {
     timelines: {
@@ -55,7 +55,7 @@ test('TimelineProperty.getBaselineValue', function(t) {
   // This is the important test - ensuring we load the PREVIOUS keyframe when we have an exact fit!
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
-  hostInstance._findElementsByHaikuId = _findElementsByHaikuId
+  hostInstance.findElementsByHaikuId = findElementsByHaikuId
   var inputValues = {}
   var bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 100, 0.666, {
     timelines: {
@@ -77,7 +77,7 @@ test('TimelineProperty.getBaselineValue', function(t) {
 
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
-  hostInstance._findElementsByHaikuId = _findElementsByHaikuId
+  hostInstance.findElementsByHaikuId = findElementsByHaikuId
   var inputValues = {}
   var bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 1000000, 0.666, {
     timelines: {
@@ -100,7 +100,7 @@ test('TimelineProperty.getBaselineValue', function(t) {
   // Another important one: Ensure we use the dom.properties-defined fallback if there is no previous
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
-  hostInstance._findElementsByHaikuId = _findElementsByHaikuId
+  hostInstance.findElementsByHaikuId = findElementsByHaikuId
   var inputValues = {}
   var bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'opacity', 'Default', 99, 0.666, {
     timelines: {
@@ -123,7 +123,7 @@ test('TimelineProperty.getBaselineValue', function(t) {
   // Another important one: Ensure we use the dom.properties-defined fallback if there is no previous
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
-  hostInstance._findElementsByHaikuId = _findElementsByHaikuId
+  hostInstance.findElementsByHaikuId = findElementsByHaikuId
   var inputValues = {}
   var bv = TimelineProperty.getBaselineValue('abcde', 'svg', 'boovador', 'Default', 99, undefined, {
     timelines: {

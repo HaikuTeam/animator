@@ -1,22 +1,22 @@
-var Mixpanel = require('mixpanel')
-var assign = require('lodash.assign')
-var os = require('os')
+const Mixpanel = require('mixpanel')
+const assign = require('lodash.assign')
+const os = require('os')
 
-var tokens = {
+const tokens = {
   development: '53f3639f564804dcb710fd18511d1c0b',
   production: '6f31d4f99cf71024ce27c3e404a79a61'
 }
 
-var token = (process.env.NODE_ENV === 'production') ? tokens.production : tokens.development
+const token = (process.env.NODE_ENV === 'production') ? tokens.production : tokens.development
 
-var mixpanel = Mixpanel.init(token, {
+const mixpanel = Mixpanel.init(token, {
   protocol: 'https'
 })
 
 // Just in case somebody downstream wants to read/log this value
 mixpanel.token = token
 
-var defaultPayload = {
+const defaultPayload = {
   app: 'haiku',
   arch: os.arch(),
   platform: os.platform(),
@@ -47,16 +47,16 @@ function _safeStringify (obj) {
 }
 
 mixpanel.haikuTrack = function haikuTrack (eventName, eventPayload) {
-  var finalPayload = _getPayload(eventName, eventPayload)
-  console.info('[mixpanel]', eventName, finalPayload)
+  const finalPayload = _getPayload(eventName, eventPayload)
+  // console.info('[mixpanel]', eventName, finalPayload)
   return mixpanel.track(eventName, finalPayload)
 }
 
-var trackedEvents = {}
+const trackedEvents = {}
 
 mixpanel.haikuTrackOnce = function haikuTrackOnce (eventName, eventPayload) {
-  var candidatePayload = _getPayload(eventName, eventPayload)
-  var payloadString = _safeStringify(candidatePayload)
+  const candidatePayload = _getPayload(eventName, eventPayload)
+  const payloadString = _safeStringify(candidatePayload)
   if (payloadString) {
     if (!trackedEvents[payloadString]) {
       trackedEvents[payloadString] = true
