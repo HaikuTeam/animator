@@ -1267,7 +1267,7 @@ export class Glass extends React.Component {
           if (scaleX === undefined || scaleX === null) scaleX = 1
           let scaleY = element.getPropertyValue('scale.y')
           if (scaleY === undefined || scaleY === null) scaleY = 1
-          this.renderTransformBoxOverlay(element, pointsForElement, overlays, element.canRotate(), Globals.isKeyCommandDown, true, rotationZ, scaleX, scaleY)
+          this.renderTransformBoxOverlay(element, pointsForElement, overlays, element.canRotate(), Globals.isCommandKeyDown, true, rotationZ, scaleX, scaleY)
           this.renderEventHandlersOverlay(element, pointsForElement, overlays, rotationZ, scaleX, scaleY)
         }
       } else {
