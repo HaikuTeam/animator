@@ -414,8 +414,8 @@ class ActiveComponent extends BaseModel {
   * @method setInteractionMode
   * @description Changes the current interaction mode and flushes all cachés
   */
-  setInteractionMode (modeOptions, metadata, cb) {
-    this._interactionMode = modeOptions || DEFAULT_INTERACTION_MODE
+  setInteractionMode (interactionMode, metadata, cb) {
+    this._interactionMode = interactionMode
 
     this.instancesOfHaikuPlayerComponent.forEach((instance) => {
       instance.assignConfig({
@@ -426,7 +426,7 @@ class ActiveComponent extends BaseModel {
     })
 
     this.softReload({}, {}, () => {
-      this.project.emitHook('setInteractionMode', this.getSceneCodeRelpath(), { interactionMode: this._interactionMode }, metadata)
+      this.project.updateHook('setInteractionMode', this.getSceneCodeRelpath(), this._interactionMode, metadata)
       return cb()
     })
   }

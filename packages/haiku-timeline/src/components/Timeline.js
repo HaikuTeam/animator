@@ -170,13 +170,13 @@ class Timeline extends React.Component {
       }
     })
 
-    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, data) => {
+    this.addEmitterListenerIfNotAlreadyRegistered(this.project, 'remote-update', (what, ...args) => {
       switch (what) {
         case 'setCurrentActiveComponent':
           this.handleActiveComponentReady()
           break
         case 'setInteractionMode':
-          this.handleInteractionModeChange(data)
+          this.handleInteractionModeChange(...args)
           break
       }
     })
@@ -319,12 +319,13 @@ class Timeline extends React.Component {
     })
   }
 
-  handleInteractionModeChange (data) {
-    const isPreviewModeActive = isPreviewMode(data.interactionMode)
+  handleInteractionModeChange (relpath, interactionMode) {
+    const isPreviewModeActive = isPreviewMode(interactionMode)
+
     if (!isPreviewModeActive) {
       this.playbackSkipBack()
-      this.forceUpdate()
     }
+
     this.setState({isPreviewModeActive})
   }
 

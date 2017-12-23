@@ -285,10 +285,11 @@ export class Glass extends React.Component {
     // turning preview mode off, but needs discussion with the team.
     if (this.isPreviewMode()) {
       this.hideEventHandlersEditor()
-      this.getActiveComponent().getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
-    } else {
-      this.forceUpdate()
     }
+
+    this.getActiveComponent().getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
+
+    this.forceUpdate()
   }
 
   handleShowEventHandlersEditor (elementUID, options, frame) {

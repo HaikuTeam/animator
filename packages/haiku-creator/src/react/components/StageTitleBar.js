@@ -399,12 +399,12 @@ class StageTitleBar extends React.Component {
 
   togglePreviewMode (checked) {
     if (this.props.projectModel) {
-      const interaction = checked ? InteractionMode.EDIT : InteractionMode.LIVE
+      const interactionMode = checked ? InteractionMode.EDIT : InteractionMode.LIVE
 
-      this.props.projectModel.setInteractionMode(interaction, () => {})
+      this.props.projectModel.setInteractionMode(interactionMode, () => {})
 
       if (this.props.onPreviewModeToggled) {
-        this.props.onPreviewModeToggled(interaction)
+        this.props.onPreviewModeToggled(interactionMode)
       }
     }
   }
