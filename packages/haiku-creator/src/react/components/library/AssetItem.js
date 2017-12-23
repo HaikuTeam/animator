@@ -1,6 +1,7 @@
 import React from 'react'
 import Radium from 'radium'
 import Color from 'color'
+import lodash from 'lodash'
 import Asset from 'haiku-serialization/src/bll/Asset'
 import { Draggable } from 'react-drag-and-drop'
 import AssetList from './AssetList'
@@ -122,7 +123,7 @@ class AssetItem extends React.Component {
     }
 
     this.handleCollapseToggle = this.handleCollapseToggle.bind(this)
-    this.handleInstantiate = this.handleInstantiate.bind(this)
+    this.handleInstantiate = lodash.debounce(this.handleInstantiate.bind(this), 500, { trailing: true })
   }
 
   handleDeleteAsset () {
