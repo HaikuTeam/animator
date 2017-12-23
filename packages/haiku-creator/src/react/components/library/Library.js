@@ -132,8 +132,7 @@ class Library extends React.Component {
   }
 
   openSketchFile (asset) {
-    const abspath = path.join(this.props.folder, 'designs', asset.getAbspath())
-    shell.openItem(abspath)
+    shell.openItem(asset.getAbspath())
   }
 
   handleSketchInstantiation (asset) {
