@@ -81,7 +81,7 @@ export default class ContextMenu extends EventEmitter {
 
     this._menu.append(new MenuItem({ type: 'separator' }))
 
-    const source = top && top.node && top.node.attributes && top.node.attributes['source']
+    const source = top && top.staticTemplateNode && top.staticTemplateNode.attributes && top.staticTemplateNode.attributes['source']
     const folder = react.props.folder
     const sketch = source && source.split(/\.sketch\.contents/)[0].concat('.sketch')
 
