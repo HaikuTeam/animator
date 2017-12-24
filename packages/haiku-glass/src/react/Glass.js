@@ -382,6 +382,18 @@ export class Glass extends React.Component {
       false
     )
 
+    window.addEventListener('mousewheel', (evt) => {
+      //on mac, this is triggered by a two-finger pan
+      if (!this.getActiveComponent()) {
+        return
+      }
+
+      var artboard = this.getActiveComponent().getArtboard()
+      var {x,y} = artboard.getPan()
+      var scale = 1 / artboard.getZoom()
+      this.performPan(x - evt.deltaX * scale, y - evt.deltaY * scale)
+    })
+
     window.addEventListener(
       'drop',
       (event) => {
