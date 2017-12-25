@@ -1,0 +1,13 @@
+test/
+src/
+tsconfig.test.json
+*.js.map
+
+node_modules/
+.DS_Store
+*.log
+.vscode
+tmp
+~test
+coverage/
+.nyc_output/

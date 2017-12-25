@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+*.log
+.vscode
+tmp
+~test
+lib/
+coverage/
+.nyc_output/
