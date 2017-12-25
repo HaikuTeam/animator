@@ -21,8 +21,8 @@
   "devDependencies": {
     "@types/node": "^8.0.17",
     "@types/react": "16.0.29",
-    "haiku-testing": "HaikuTeam/testing.git",
-    "haiku-common": "HaikuTeam/common.git",
+    "haiku-testing": "2.3.61",
+    "haiku-common": "2.3.61",
     "nyc": "^11.2.1",
     "tap-spec": "^4.1.1",
     "tape": "^4.7.0",
