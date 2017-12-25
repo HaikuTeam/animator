@@ -22,7 +22,7 @@
   "dependencies": {},
   "devDependencies": {
     "@types/node": "^8.0.17",
-    "haiku-testing": "HaikuTeam/testing.git",
+    "haiku-testing": "2.3.61",
     "nyc": "^11.2.1",
     "tap-spec": "^4.1.1",
     "tape": "^4.7.0",
