@@ -1,0 +1,25 @@
+export default {
+  'border-radius': 1,
+  'border-top-left-radius': 1,
+  'border-top-right-radius': 1,
+  'border-bottom-left-radius': 1,
+  'border-bottom-right-radius': 1,
+  'box-shadow': 1,
+  order: 1,
+  flex: function flex(name, prefix) {
+    return [prefix + 'box-flex'];
+  },
+  'box-flex': 1,
+  'box-align': 1,
+  animation: 1,
+  'animation-duration': 1,
+  'animation-name': 1,
+  transition: 1,
+  'transition-duration': 1,
+  transform: 1,
+  'transform-style': 1,
+  'transform-origin': 1,
+  'backface-visibility': 1,
+  perspective: 1,
+  'box-pack': 1,
+};

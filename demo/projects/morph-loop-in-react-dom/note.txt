@@ -1,0 +1,1 @@
+In vanilla, this should NOT loop. In react-dom, this SHOULD loop.

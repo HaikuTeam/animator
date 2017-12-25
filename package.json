@@ -1,0 +1,82 @@
+{
+  "name": "@haiku/player",
+  "version": "2.3.61",
+  "description": "Haiku Player is a JavaScript library for building user interfaces",
+  "homepage": "https://haiku.ai",
+  "directories": {
+    "lib": "lib",
+    "dom": "dom",
+    "components": "components",
+    "dist": "dist"
+  },
+  "keywords": [
+    "animation",
+    "motion",
+    "component",
+    "web",
+    "browser",
+    "svg",
+    "rendering",
+    "engine"
+  ],
+  "repository": "https://github.com/HaikuTeam/player",
+  "main": "index.js",
+  "scripts": {
+    "self-link": "yarn link && yarn link @haiku/player",
+    "develop": "yarn self-link && node ./scripts/develop.js",
+    "compile": "yarn tsc",
+    "watch": "yarn tsc --watch",
+    "coverage": "yarn compile && nyc yarn tape \"test/**/*.test.js\" | yarn tap-spec",
+    "html-coverage": "yarn compile && nyc --reporter=html yarn tape \"test/**/*.test.js\" | yarn tap-spec",
+    "lint": "yarn tslint -p tsconfig.json -c tslint.json --type-check --exclude 'src/vendor/**' --format stylish",
+    "fix": "yarn lint --fix",
+    "test": "yarn test:unit; yarn test:api; yarn test:perf; yarn test:render",
+    "test:perf": "yarn compile && tape \"test/perf/**/*.test.js\" | tap-spec",
+    "test:api": "yarn compile && tape \"test/api/**/*.test.js\" | tap-spec",
+    "test:render": "yarn compile && tape \"test/render/**/*.test.js\" | tap-spec",
+    "test:unit": "yarn compile && tape \"test/unit/**/*.test.js\" | tap-spec",
+    "depcheck": "yarn depcheck .",
+    "prepublishOnly": "yarn compile"
+  },
+  "authors": [
+    "Matthew Trost <matthew@haiku.ai>",
+    "Zack Brown <zack@haiku.ai>",
+    "Taylor Poe <taylor@haiku.ai>",
+    "Sasha Joseph <sasha@haiku.ai>"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^8.0.27",
+    "@types/tape": "^4.2.30",
+    "async": "^2.5.0",
+    "browserify": "^14.1.0",
+    "chokidar": "^1.7.0",
+    "depcheck": "^0.6.7",
+    "express": "4.14.1",
+    "filesize": "3.5.10",
+    "fs-extra": "2.0.0",
+    "handlebars": "4.0.6",
+    "jsdom": "9.11.0",
+    "leaked-handles": "^5.2.0",
+    "nodemon": "1.11.0",
+    "nyc": "^11.2.1",
+    "opn": "^5.1.0",
+    "react": "15.4.2",
+    "react-dom": "15.4.2",
+    "react-router-dom": "^4.1.1",
+    "snazzy": "6.0.0",
+    "standard": "8.6.0",
+    "tap-spec": "^4.1.1",
+    "tape": "^4.7.0",
+    "ts-loader": "^3.1.1",
+    "tslint": "^5.7.0",
+    "tslint-config-haiku": "^1.0.0",
+    "typescript": "^2.5.2",
+    "uglify-js": "^2.7.5",
+    "webpack": "^3.8.1"
+  },
+  "peerDependencies": {
+    "react": "15.4.2",
+    "react-dom": "15.4.2"
+  }
+}
