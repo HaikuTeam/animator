@@ -21,10 +21,10 @@
   "license": "UNLICENSED",
   "dependencies": {
     "bezier-easing": "^2.0.3",
-    "haiku-common": "HaikuTeam/common.git",
-    "@haiku/player": "HaikuTeam/player.git",
-    "haiku-sdk-creator": "HaikuTeam/sdk-creator.git",
-    "haiku-serialization": "HaikuTeam/serialization.git",
+    "haiku-common": "2.3.61",
+    "@haiku/player": "2.3.61",
+    "haiku-sdk-creator": "2.3.61",
+    "haiku-serialization": "2.3.61",
     "lodash": "^4.17.4"
   },
   "devDependencies": {
@@ -32,7 +32,7 @@
     "@types/tape": "^4.2.30",
     "ajv": "^5.2.3",
     "bodymovin": "4.11.1",
-    "haiku-testing": "HaikuTeam/testing.git",
+    "haiku-testing": "2.3.61",
     "nyc": "^11.2.1",
     "tap-spec": "^4.1.1",
     "tape": "^4.7.0",

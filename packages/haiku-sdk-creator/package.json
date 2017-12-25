@@ -22,9 +22,9 @@
   "license": "UNLICENSED",
   "dependencies": {
     "bluebird": "^3.5.0",
-    "@haiku/sdk-client": "HaikuTeam/sdk-client.git",
-    "@haiku/sdk-inkstone": "HaikuTeam/sdk-inkstone.git",
-    "haiku-serialization": "HaikuTeam/serialization",
+    "@haiku/sdk-client": "2.3.61",
+    "@haiku/sdk-inkstone": "2.3.61",
+    "haiku-serialization": "2.3.61",
     "npm": "^5.3.0",
     "ws": "3.2.0"
   },
