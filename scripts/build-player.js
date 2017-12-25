@@ -33,7 +33,7 @@ const makeBundle = () => {
 }
 
 if (!argv['skip-compile']) {
-  cp.execSync('yarn sync', {cwd: global.process.cwd(), stdio: 'inherit'})
+  cp.execSync('yarn install', {cwd: global.process.cwd(), stdio: 'inherit'})
   runScript('compile-package', ['--package=haiku-player'], (err) => {
     if (err) {
       throw err
