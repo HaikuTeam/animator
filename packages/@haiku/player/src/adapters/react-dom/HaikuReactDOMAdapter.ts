@@ -280,7 +280,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
         hostElementProps,
       );
     },
-  });
+  }) as any;
 
   reactClass.propTypes = {};
 

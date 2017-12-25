@@ -3,18 +3,7 @@ const BaseModel = require('./BaseModel')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 
 // When building a distribution (see 'distro' repo) the node_modules folder is at a different level #FIXME matthew
-let rootdir
-if (
-  typeof process !== 'undefined' &&
-  process &&
-  process.env &&
-  process.env.HAIKU_INTERPRETER_URL_MODE === 'distro') {
-  rootdir = path.join(__dirname, '..', '..', '..', '..')
-} else {
-  rootdir = path.join(__dirname, '..', '..')
-}
-
-const NODE_MODULES_PATH = path.join(rootdir, 'node_modules')
+const NODE_MODULES_PATH = path.join(__dirname, '..', '..', '..', '..', 'node_modules')
 
 const REPLACEMENT_MODULES = {
   // legacy name (global npm)

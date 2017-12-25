@@ -11,6 +11,7 @@ if (process.env.NODE_ENV === 'production') {
     go()
   })
 } else {
+  require('longjohn')
   go()
 }
 

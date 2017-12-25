@@ -78,13 +78,13 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   deleteProject: true
 }
 
-const ROOT_DIR = path.join(__dirname, '..')
+const ROOT_DIR = path.join(__dirname, '..', '..', '..')
 
 const PROCS = {
   creator: {
     name: 'creator',
     path: require('electron'),
-    args: [path.join(ROOT_DIR, 'node_modules', 'haiku-creator-electron', 'lib', 'electron.js')],
+    args: [path.join(ROOT_DIR, 'node_modules', 'haiku-creator', 'lib', 'electron.js')],
     opts: { electron: true, spawn: true }
   }
 }

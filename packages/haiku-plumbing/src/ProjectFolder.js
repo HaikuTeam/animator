@@ -11,7 +11,7 @@ import * as HaikuHomeDir from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Project from 'haiku-serialization/src/bll/Project'
 
 const PLUMBING_DIR = path.join(__dirname, '..')
-const PLUMBING_NODE_MODULES = path.join(PLUMBING_DIR, 'node_modules')
+const PLUMBING_NODE_MODULES = path.join(PLUMBING_DIR, '..', '..', 'node_modules')
 const PLUMBING_PLAYER_INSTALL_PATH = path.join(PLUMBING_NODE_MODULES, '@haiku', 'player')
 // const PLUMBING_PKG = require('./../package.json')
 

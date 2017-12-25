@@ -28,17 +28,16 @@
     "lodash": "^4.17.4"
   },
   "devDependencies": {
-    "@types/node": "^8.0.34",
+    "@types/node": "^8.5.2",
     "@types/tape": "^4.2.30",
-    "ajv": "^5.2.3",
     "bodymovin": "4.11.1",
     "haiku-testing": "2.3.61",
-    "nyc": "^11.2.1",
+    "nyc": "^11.3.0",
     "tap-spec": "^4.1.1",
-    "tape": "^4.7.0",
+    "tape": "^4.8.0",
     "tslint": "^5.7.0",
     "tslint-config-haiku": "^1.0.0",
-    "typescript": "^2.4.2",
+    "typescript": "^2.5.2",
     "walk-sync": "^0.3.2"
   }
 }
