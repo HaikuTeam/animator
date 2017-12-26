@@ -61,7 +61,7 @@
     "babel-cli": "6.18.0",
     "babel-preset-react-app": "2.2.0",
     "babel-register": "6.24.0",
-    "electron": "1.7.0",
+    "electron": "1.7.10",
     "snazzy": "6.0.0",
     "standard": "8.6.0",
     "tap-spec": "^4.1.1",

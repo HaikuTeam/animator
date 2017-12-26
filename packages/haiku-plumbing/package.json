@@ -90,7 +90,7 @@
   "devDependencies": {
     "babel-cli": "6.18.0",
     "babel-preset-es2015": "6.18.0",
-    "electron": "1.7.0",
+    "electron": "1.7.10",
     "electron-rebuild": "1.5.7",
     "gulp": "3.9.1",
     "gulp-cli": "1.2.2",
