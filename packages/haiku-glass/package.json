@@ -46,7 +46,7 @@
     "async": "^2.5.0",
     "babel-cli": "^6.24.0",
     "babel-preset-react-app": "^2.2.0",
-    "electron": "1.7.0",
+    "electron": "1.7.10",
     "jsdom": "^11.1.0",
     "prop-types": "^15.6.0",
     "snazzy": "^6.0.0",
