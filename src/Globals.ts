@@ -35,9 +35,7 @@ window.addEventListener('keyup', (keyupEvent) => {
 });
 
 window.addEventListener('keydown', (keydownEvent) => {
-  if (keydownEvent.which === 16 && experimentIsEnabled(Experiment.TimelineShiftKeyBehaviors)) {
-    Globals.isShiftKeyDown = true;
-  }
+  if (keydownEvent.which === 16) { Globals.isShiftKeyDown = true; }
   if (keydownEvent.which === 17) { Globals.isControlKeyDown = true; }
   if (keydownEvent.which === 18) { Globals.isAltKeyDown = true; }
   if (keydownEvent.which === 224) { Globals.isCommandKeyDown = true; }
