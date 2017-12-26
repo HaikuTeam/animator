@@ -58,6 +58,18 @@ class Artboard extends BaseModel {
     })
   }
 
+  //used by at least "cmd + 0" to center and
+  //reset zoom on stage
+  resetZoomPan () {
+    this._panX = 0
+    this._panY = 0
+    this._originalPanX = 0
+    this._originalPanY = 0
+
+    this._zoomXY = Artboard.DEFAULT_ZOOM
+    this.emit('update', 'dimensions-changed')
+  }
+
   getElementHaikuId () {
     const bytecode = this.component.fetchActiveBytecodeFile().getReifiedBytecode()
     const template = bytecode && bytecode.template // If called too early this may not be present :/

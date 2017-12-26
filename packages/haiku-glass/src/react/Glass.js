@@ -1018,6 +1018,11 @@ export class Glass extends React.Component {
       return void (0)
     }
 
+    //Cmd + 0 centers & resets zoom
+    if (Globals.isCommandKeyDown && keyEvent.nativeEvent.which === 48){
+      this.getActiveComponent().getArtboard().resetZoomPan()
+    }
+
     switch (keyEvent.nativeEvent.which) {
       case 27: this.handleKeyEscape(); break
       case 37: this.handleKeyLeftArrow(keyEvent.nativeEvent); break
