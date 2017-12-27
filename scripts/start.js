@@ -111,8 +111,6 @@ function runInteractive () {
             { name: 'percybanking (glass)', value: 'percy-glass' },
             { name: 'simple (glass)', value: 'simple-gl' },
             { name: 'SuperComplex (glass)', value: 'SuperComplex-glass' },
-            { name: 'comet-rotation (glass)', value: 'comet-rotation-glass' },
-            { name: 'TicTacToe1 (glass)', value: 'ttt-glass' },
             { name: 'complex (timeline)', value: 'complex-timeline' },
             { name: 'SuperComplex (timeline)', value: 'SuperComplex-timeline' }
           ],
