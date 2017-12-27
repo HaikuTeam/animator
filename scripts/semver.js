@@ -7,7 +7,7 @@ const semver = require('semver')
 const inquirer = require('inquirer')
 const log = require('./helpers/log')
 const getSemverTop = require('./helpers/getSemverTop')
-const allPackages = require('./helpers/allPackages')()
+const allPackages = require('./helpers/packages')()
 
 const current = getSemverTop()
 const patched = semver.inc(current, 'patch')

@@ -1,6 +1,6 @@
 var fs = require('fs')
 var log = require('./log')
-var initializeAWSService = require('./initializeAWSService')
+var initializeAWSService = require('./initializeAwsService')
 var uploadObjectToS3 = require('./uploadObjectToS3')
 var DEPLOY_CONFIGS = require('./../deploy')
 

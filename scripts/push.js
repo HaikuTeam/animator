@@ -3,7 +3,7 @@ const fse = require('fs-extra')
 const path = require('path')
 const argv = require('yargs').argv
 
-const getPackages = require('./helpers/allPackages')
+const getPackages = require('./helpers/packages')
 const depTypes = require('./helpers/depTypes')
 const nowVersion = require('./helpers/nowVersion')
 

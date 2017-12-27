@@ -13,7 +13,7 @@ if (!packageName) {
   throw new Error('a --package argument is required')
 }
 
-const [pack] = require('./helpers/allPackages')(packageName)
+const [pack] = require('./helpers/packages')(packageName)
 
 log.hat(`pulling changes from git subtree for ${packageName} on ${branch}`)
 

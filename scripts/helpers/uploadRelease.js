@@ -1,7 +1,7 @@
 var fs = require('fs')
 var path = require('path')
 var async = require('async')
-var initializeAWSService = require('./initializeAWSService')
+var initializeAWSService = require('./initializeAwsService')
 var uploadObjectToS3 = require('./uploadObjectToS3')
 var ROOT = path.join(__dirname, '..', '..')
 

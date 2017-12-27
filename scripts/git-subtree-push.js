@@ -2,7 +2,7 @@ const cp = require('child_process')
 const path = require('path')
 const argv = require('yargs').argv
 const log = require('./helpers/log')
-const getPackage = require('./helpers/allPackages')
+const getPackage = require('./helpers/packages')
 const ROOT = path.join(__dirname, '..')
 
 const branch = argv.branch || 'master'

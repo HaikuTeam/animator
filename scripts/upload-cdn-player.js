@@ -4,7 +4,7 @@ var lodash = require('lodash')
 var log = require('./helpers/log')
 var uploadFileStream = require('./helpers/uploadFileStream')
 var nowVersion = require('./helpers/nowVersion')
-var allPackages = require('./helpers/allPackages')()
+var allPackages = require('./helpers/packages')()
 var groups = lodash.keyBy(allPackages, 'name')
 
 var PLAYER_PATH = groups['haiku-player'].abspath

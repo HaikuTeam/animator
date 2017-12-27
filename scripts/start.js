@@ -7,11 +7,10 @@ const path = require('path')
 const argv = require('yargs').argv
 const log = require('./helpers/log')
 
-const CompileOrder = require('./helpers/CompileOrder')
-const allPackages = require('./helpers/allPackages')()
-const groups = lodash.keyBy(allPackages, 'name')
+const allPackages = require('./helpers/packages')()
+const groups = lodash.keyBy(allPackages, 'shortname')
 const ROOT = path.join(__dirname, '..')
-const plumbingPackage = groups['haiku-plumbing']
+const plumbingPackage = groups['plumbing']
 const blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
 
 global.process.env.NODE_ENV = 'development'
@@ -194,27 +193,29 @@ function setup () {
     everything: []
   }
 
-  CompileOrder.forEach((shortname) => {
+  allPackages.forEach((pack) => {
+    const {shortname} = pack
     if (devChoiceExclusions[inputs.devChoice].includes(shortname)) {
       return
     }
 
     switch (shortname) {
-      case 'haiku-player':
+      case 'player':
         // TS module, but one that uses "develop" for something different than watching.
         instructions.push([shortname, ['yarn', 'watch']])
         break
-      case 'haiku-websockets':
-      case 'haiku-creator':
-      case 'haiku-glass':
-      case 'haiku-timeline':
-      case 'haiku-plumbing':
+      case 'websockets':
+      case 'creator':
+      case 'glass':
+      case 'timeline':
+      case 'plumbing':
         // Babel modules where we can skip the initial (slow) build.
         instructions.push([shortname, ['yarn', 'watch', '--skip-initial-build']])
         break
-      case 'haiku-state-object':
-      case 'haiku-bytecode':
-      case 'haiku-serialization':
+      case 'state-object':
+      case 'bytecode':
+      case 'serialization':
+      case 'fs-extra':
         // These don't have watchers or need special treatment.
         break
       default:
@@ -269,7 +270,7 @@ function go () {
   const startCommands = []
   switch (inputs.devChoice) {
     case 'everything':
-      startScript = 'haiku-plumbing'
+      startScript = 'plumbing'
       // Wait 5 seconds for Plumbing to boot up, then start the watchers.
       startDelay = 5000
       startCommands.push('node', './HaikuHelper.js')
@@ -278,11 +279,11 @@ function go () {
       }
       break
     case 'glass':
-      startScript = 'haiku-glass'
+      startScript = 'glass'
       startCommands.push('yarn', 'start')
       break
     case 'timeline':
-      startScript = 'haiku-timeline'
+      startScript = 'timeline'
       startCommands.push('yarn', 'start')
       break
   }

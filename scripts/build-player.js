@@ -6,7 +6,7 @@ const argv = require('yargs').argv
 const log = require('./helpers/log')
 const runScript = require('./helpers/runScript')
 const nowVersion = require('./helpers/nowVersion')
-const allPackages = require('./helpers/allPackages')()
+const allPackages = require('./helpers/packages')()
 const groups = lodash.keyBy(allPackages, 'name')
 
 const ROOT = path.join(__dirname, '..')

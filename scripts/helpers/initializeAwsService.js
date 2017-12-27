@@ -1,6 +1,6 @@
 var AWS = require('aws-sdk')
 
-function initializeAWSService (serviceName, awsRegion, awsAccessKeyId, awsSecretAccessKey, env) {
+function initializeAwsService (serviceName, awsRegion, awsAccessKeyId, awsSecretAccessKey, env) {
   var credentials = new AWS.Credentials({
     accessKeyId: awsAccessKeyId || (env && env.AWS_ACCESS_KEY_ID),
     secretAccessKey: awsSecretAccessKey || (env && env.AWS_SECRET_ACCESS_KEY)
@@ -16,4 +16,4 @@ function initializeAWSService (serviceName, awsRegion, awsAccessKeyId, awsSecret
   return instance
 }
 
-module.exports = initializeAWSService
+module.exports = initializeAwsService

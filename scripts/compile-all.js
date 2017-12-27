@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const argv = require('yargs').argv
 
-const allPackages = require('./helpers/allPackages')()
+const allPackages = require('./helpers/packages')()
 const log = require('./helpers/log')
 
 if (!process.env.NODE_ENV) {
