@@ -768,21 +768,25 @@ export class Glass extends React.Component {
     }
 
     this.state.isMouseDown = true
-    this.state.lastInitialMouseDownCoords = {x: mousedownEvent.nativeEvent.clientX, y: mousedownEvent.nativeEvent.clientY}
 
-    //TODO:  figure out how to capture intial position values for
-    //       selected elements, so that they can be used for shift + drag (locking horiz/vert pos.)
-    //       This could be a general-purpose cache on the element viewmodel
-    
     this.state.lastMouseDownTime = Date.now()
     this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
+
+    //store all elements' transforms
+    //TODO:  should we store only the selected element's transform?
+    //       this could become a bottleneck with a high number of elements
+    var elems = Element.all(); //semicolon required
+    
+    (elems || []).forEach((elem) => {
+      elem.pushCachedTransform("CONSTRAINED_DRAG") //wishlist:  enum
+    })
 
     // Only count left clicks
     if (mousedownEvent.nativeEvent.button !== 0) {
       return
     }
 
-    // We are panning right now, so don't un/select anything
+    // We are panning now, so don't un/select anything
     if (Globals.isSpaceKeyDown) {
       return
     }
@@ -1103,7 +1107,7 @@ export class Glass extends React.Component {
 
     const zoom = this.getActiveComponent().getArtboard().getZoom() || 1
     const pan = this.getActiveComponent().getArtboard().getPan() || {x: 0, y: 0}
-    const transform = {zoom, pan}
+    const viewportTransform = {zoom, pan}
 
     const lastMouseDownPosition = this.state.lastMouseDownPosition
     const mousePositionCurrent = this.storeAndReturnMousePosition(mousemoveEvent)
@@ -1128,7 +1132,7 @@ export class Glass extends React.Component {
         var selected = this.getActiveComponent().queryElements({ _isSelected: true })
         if (selected.length > 0) {
           selected.forEach((element) => {
-            element.drag(dx, dy, mousePositionCurrent, mousePositionPrevious, lastMouseDownPosition, this.state, transform, Globals)
+            element.drag(dx, dy, mousePositionCurrent, mousePositionPrevious, lastMouseDownPosition, this.state, viewportTransform, Globals)
           })
         }
       }

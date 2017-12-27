@@ -13,6 +13,7 @@ const RENDERABLE_ELEMENTS = require('./svg/RenderableElements')
 const TOP_LEVEL_GROUP_ELEMENTS = require('./svg/TopLevelGroupElements')
 const GROUPING_ELEMENTS = require('./svg/GroupingElements')
 const serializeElement = require('./../dom/serializeElement')
+const Artboard = require('./Artboard')
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
@@ -56,6 +57,7 @@ class Element extends BaseModel {
 
     this._isHovered = false
     this._isSelected = false
+    this._cachedTransforms = []
 
     // User-specified list of properties to show for this element, "just-in-time"
     this._visibleProperties = {}
@@ -556,38 +558,45 @@ class Element extends BaseModel {
   // I'm using "drag" as an abstraction over {any movement caused by the mouse dragging} whether that
   // is actually moving it in space, or rotating it, etc. This method makes the decision on what the "outcome"
   // of the drag should actually be.
-  drag (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, reactState, transform, globals) {
-    const localTransform = {
-      zoom: this.component.getArtboard().getZoom(),
-      pan: this.component.getArtboard().getPan()
-    }
+  drag (dx, dy, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord, reactState, viewportTransform, globals) {
 
     if (reactState.isAnythingScaling) {
       if (!reactState.controlActivation.cmd) {
-        return this.scale(dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, reactState.controlActivation, localTransform)
+        return this.scale(dx, dy, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord, reactState.controlActivation, viewportTransform)
       }
     } else if (reactState.isAnythingRotating) {
       if (reactState.controlActivation.cmd) {
         if (!this.parent) return void (0) // Don't allow artboard to rotate
-        return this.rotate(dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, reactState.controlActivation, localTransform)
+        return this.rotate(dx, dy, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord, reactState.controlActivation, viewportTransform)
       }
     } else {
       if (!this.parent) return void (0) // Don't allow artboard to move
+      
       if (globals.isShiftKeyDown) {
         //if shift is held, should snap translation to x/y axis
-        console.log("SHIFT IS DOWN, TRYING ABS")
-        const initial = reactState.lastInitialMouseDownCoords
-        const current = coordsCurrent
+        const transform = this.peekCachedTransform("CONSTRAINED_DRAG") //wishlist:  enum
+        const initialTransform = {x: transform.translate[0], y: transform.translate[1]}
+        
+        //TODO: there should be a better way to get a reference to the active artboard?
+        let artboard = Artboard.all()[0]
 
-        const isXAxis = Math.abs(current.x - initial.x) > Math.abs(current.y - initial.y)
+        let mouseToWorld = artboard.transformScreenToWorld(mouseCoordsCurrent) 
+        
+        const isXAxis = Math.abs(mouseCoordsCurrent.x - lastMouseDownCoord.x) > Math.abs(mouseCoordsCurrent.y - lastMouseDownCoord.y)
+        
+        const mouseDelta = {
+          x: mouseCoordsCurrent.x - lastMouseDownCoord.x,
+          y: mouseCoordsCurrent.y - lastMouseDownCoord.y
+        }
 
-        const x = isXAxis ? current.x : initial.x
-        const y = isXAxis ? initial.y : current.y
+        const mouseDeltaWorld = artboard.transformScreenToWorld(mouseDelta)
 
-        return this.moveAbsolute(x, y, coordsCurrent, coordsPrevious, lastMouseDownCoord, transform)
+        const x = isXAxis ? initialTransform.x + mouseDeltaWorld.x : initialTransform.x
+        const y = isXAxis ? initialTransform.y : initialTransform.y + mouseDeltaWorld.y
+
+        return this.moveAbsolute(x, y, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord, transform)
       } else {
-        console.log("NO SHIFT", reactState)
-        return this.move(dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord)
+        return this.move(dx, dy, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord)
       }
     }
   }
@@ -601,14 +610,7 @@ class Element extends BaseModel {
     this.emit('update', 'element-move')
   }
 
-  //Takes additional argument `transform`, which expects zoom and pan properties
-  moveAbsolute (x, y, coordsCurrent, coordsPrevious, lastMouseDownCoord, transform) {
-    //must account for transform, as these are screen-space coordinates
-    x /= transform.zoom
-    y /= transform.zoom
-    x -= transform.pan.x
-    y -= transform.pan.y
-
+  moveAbsolute (x, y, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord) {
     if (!this.parent) return void (0) // Don't allow artboard to move
     const propertyGroup = { 'translation.x': x, 'translation.y': y }
     this.component.applyPropertyGroupValue(this.getComponentId(), this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), propertyGroup, this.component.project.getMetadata(), (err) => {
@@ -617,7 +619,70 @@ class Element extends BaseModel {
     this.emit('update', 'element-move')
   }
 
-  scale (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, activationPoint, localTransform) {
+  //tracks the current transform in a stack, allowing values
+  //to be recalled on demand.  Keeps individual stacks indexed by key,
+  //so different tools can use distinct stacks.
+  //
+  //use-case:  - shift-dragging an element needs to keep track of the element's
+  //           position at the moment of mouse-click, then until the next
+  //           drag begins.  In order to do this, the pre-drag position
+  //           of that element needs to be tracked.  Other drawing tool
+  //           logic should be able to piggyback on this
+  //           - alt-dragging to duplicate an element
+  
+  pushCachedTransform(key) {
+    let stack = this._cachedTransforms[key] || []
+    
+    //TODO: is reading all of these as separate requests
+    //      going to cause a websocket bottleneck?
+    //      It'd be great if this data existed in memory, in-process
+    //      (and didn't require a websocket hop)
+    let transform = {
+      translate: [
+        this.getPropertyValue('translation.x'),
+        this.getPropertyValue('translation.y'),
+        this.getPropertyValue('translation.z')
+      ],
+      rotate: [
+        this.getPropertyValue('rotation.x'),
+        this.getPropertyValue('rotation.y'),
+        this.getPropertyValue('rotation.z')
+      ],
+      scale: [
+        this.getPropertyValue('scale.x'),
+        this.getPropertyValue('scale.y'),
+        this.getPropertyValue('scale.z')
+      ],
+      origin: [
+        this.getPropertyValue('origin.x'),
+        this.getPropertyValue('origin.y'),
+        this.getPropertyValue('origin.z')
+      ],
+      size: [
+        this.getPropertyValue('sizeAbsolute.x'),
+        this.getPropertyValue('sizeAbsolute.y'),  
+        this.getPropertyValue('sizeAbsolute.z') 
+      ] 
+    }
+
+    
+    stack.push(transform);
+    this._cachedTransforms[key] = stack
+  }
+
+  peekCachedTransform(key) {
+    let stack = this._cachedTransforms[key] || []
+    return stack[stack.length - 1]
+  }
+
+  popCachedTransform(key) {
+    let stack = this._cachedTransforms[key] || []
+    let ret = stack.pop()
+    this._cachedTransforms[key] = stack
+    return ret    
+  }
+
+  scale (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, activationPoint, viewportTransform) {
     if (!coordsPrevious) return void (0)
 
     // The activation point index corresponds to a box with this coord system:
@@ -643,8 +708,8 @@ class Element extends BaseModel {
     let x1 = coordsCurrent.clientX
     let y1 = coordsCurrent.clientY
 
-    let worldDeltaX = (x1 - x0) / localTransform.zoom
-    let worldDeltaY = (y1 - y0) / localTransform.zoom
+    let worldDeltaX = (x1 - x0) / viewportTransform.zoom
+    let worldDeltaY = (y1 - y0) / viewportTransform.zoom
 
     // assigned below
     let proportionX
@@ -736,7 +801,7 @@ class Element extends BaseModel {
     this.emit('update', 'element-scale')
   }
 
-  rotate (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, activationPoint, localTransform) {
+  rotate (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, activationPoint) {
     // If no parent, we are the artboard, and cannot be rotated
     if (!this.parent) {
       return void (0)

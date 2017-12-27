@@ -1,4 +1,6 @@
 const BaseModel = require('./BaseModel')
+const Matrix = require('gl-matrix')
+
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
@@ -212,6 +214,19 @@ class Artboard extends BaseModel {
   snapshotOriginalPan () {
     this._originalPanX = this._panX
     this._originalPanY = this._panY
+  }
+
+  // takes a point in screen space {x,y} and transforms it to 2D world space {x,y}
+  transformScreenToWorld(screenCoords) {
+    let mat = Matrix.mat2d.create()
+    let scale = Matrix.vec2.create()
+    Matrix.vec2.set(scale, 1/this._zoomXY, 1/this._zoomXY)
+    Matrix.mat2d.scale(mat, mat, scale)
+    let screenVec = Matrix.vec2.create()
+    Matrix.vec2.set(screenVec, screenCoords.x, screenCoords.y)
+    Matrix.vec2.transformMat2d(screenVec, screenVec, mat)
+    let ret = {x: screenVec[0], y: screenVec[1]}
+    return ret
   }
 
   getZoom () {
