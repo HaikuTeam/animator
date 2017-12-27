@@ -4,14 +4,14 @@ const path = require('path')
 const argv = require('yargs').argv
 
 const getPackages = require('./helpers/packages')
-const depTypes = require('./helpers/depTypes')
+const depTypes = require('./constants/depTypes')
 const nowVersion = require('./helpers/nowVersion')
 
 const ROOT = global.process.cwd()
 const processOptions = { cwd: ROOT, stdio: 'inherit' }
 
 // The set of all projects we want to open source.
-const openSourceProjects = new Set(['haiku-player', 'haiku-cli'])
+const openSourceProjects = new Set(['@haiku/player', '@haiku/cli'])
 
 // Pull in the set of dependencies recursively.
 const openSourcePackages = getPackages(Array.from(openSourceProjects))
@@ -24,19 +24,10 @@ do {
       return
     }
 
-    depTypes.forEach((depType) => {
-      if (!pack.pkg.hasOwnProperty(depType)) {
-        return
-      }
-
-      Object.values(pack.pkg[depType]).forEach((depVersion) => {
-        const matches = depVersion.match(/^HaikuTeam\/(.+)\.git$/)
-        if (matches && !processedDependencies.has(`haiku-${matches[1]}`)) {
-          foundNewDeps = true
-          openSourcePackages.push(...getPackages(`haiku-${matches[1]}`))
-        }
-      })
-    })
+    if (pack.deps.size > 0) {
+      openSourcePackages.push(...getPackages(Array.from(pack.deps)))
+      foundNewDeps = true
+    }
 
     processedDependencies.add(pack.name)
   })

@@ -5,8 +5,11 @@ const path = require('path')
 const argv = require('yargs').argv
 const semver = require('semver')
 const inquirer = require('inquirer')
+
+const depTypes = require('./constants/depTypes')
 const log = require('./helpers/log')
 const getSemverTop = require('./helpers/getSemverTop')
+const isHaikuDep = require('./helpers/isHaikuDep')
 const allPackages = require('./helpers/packages')()
 
 const current = getSemverTop()
@@ -44,9 +47,19 @@ if (argv['non-interactive']) {
 function go () {
   async.each(allPackages, (pack, done) => {
     const packageJsonPath = path.join(pack.abspath, 'package.json')
-    const packageJson = fse.readJsonSync(packageJsonPath)
+    const packageJson = pack.pkg
     log.log('setting ' + pack.name + ' to ' + inputs.version + ' (was ' + packageJson.version + ')')
     packageJson.version = inputs.version
+    depTypes.forEach((depType) => {
+      if (!packageJson[depType]) {
+        return
+      }
+      for (const dep in packageJson[depType]) {
+        if (isHaikuDep(dep)) {
+          packageJson[depType][dep] = inputs.version
+        }
+      }
+    })
     fse.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n', done)
   }, () => {
     const monoJsonPath = path.join(global.process.cwd(), 'package.json')

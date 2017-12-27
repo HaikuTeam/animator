@@ -2,12 +2,15 @@ const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
 
-const depTypes = require('./depTypes');
+const depTypes = require('../constants/depTypes');
+const packagePatterns = require('../constants/packagePatterns');
+
+const isHaikuDep = require('./isHaikuDep')
 
 const PACKAGE_ROOT = path.join(global.process.cwd(), 'packages/');
 const allPackages = {};
 
-['haiku-*', '@haiku/*'].forEach((pattern) => {
+packagePatterns.forEach((pattern) => {
   const packages = glob.sync(path.join(PACKAGE_ROOT, pattern));
   packages.forEach((packageDir) => {
     const pkgJsonPath = path.join(packageDir, 'package.json');
@@ -25,7 +28,7 @@ const allPackages = {};
     depTypes.forEach((depType) => {
       if (pkgJson[depType]) {
         for (const dep in pkgJson[depType]) {
-          if (!dep.startsWith('haiku-') && !dep.startsWith('@haiku/')) {
+          if (!isHaikuDep(dep)) {
             continue;
           }
           pkg.deps.add(dep);
@@ -45,7 +48,7 @@ module.exports = function packages(names) {
       return packages.find((val) => val.name === names);
     }
 
-    return packages.filter((val) => names.includes(val));
+    return packages.filter((val) => names.includes(val.name));
   }
   return packages;
 };

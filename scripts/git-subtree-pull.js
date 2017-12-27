@@ -3,6 +3,7 @@ const argv = require('yargs').argv
 const path = require('path')
 const log = require('./helpers/log')
 const nowVersion = require('./helpers/nowVersion')
+const getPackage = require('./helpers/packages')
 
 const ROOT = path.join(__dirname, '..')
 const branch = argv.branch || 'master'
@@ -13,7 +14,7 @@ if (!packageName) {
   throw new Error('a --package argument is required')
 }
 
-const [pack] = require('./helpers/packages')(packageName)
+const pack = getPackage(packageName)
 
 log.hat(`pulling changes from git subtree for ${packageName} on ${branch}`)
 
@@ -25,7 +26,8 @@ if (packageName === 'changelog') {
     abspath: path.join(ROOT, 'changelog/')
   }
   try {
-    var cmd = `git subtree pull --squash --prefix ${changelog.name} ${changelog.remote} ${branch}`
+    var cmd = `git subtree pull --squash --prefix ${changelog.name} ${changelog.remote} ${branch} \
+    -m 'auto: subtree pull for ${packageName} at ${semver}'`
     log.log(cmd)
     cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
   } catch (exception) {

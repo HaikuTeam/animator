@@ -33,7 +33,7 @@ if (pkg === 'changelog') {
     log.log(exception.message)
   }
 } else {
-  const [pack] = getPackage(pkg)
+  const pack = getPackage(pkg)
 
   log.log('git subtree pushing ' + pack.name)
 
