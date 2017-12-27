@@ -58,8 +58,8 @@ class Artboard extends BaseModel {
     })
   }
 
-  //used by at least "cmd + 0" to center and
-  //reset zoom on stage
+  // used by at least "cmd + 0" to center and
+  // reset zoom on stage
   resetZoomPan () {
     this._panX = 0
     this._panY = 0

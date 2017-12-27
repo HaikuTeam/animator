@@ -383,30 +383,29 @@ export class Glass extends React.Component {
     )
 
     document.addEventListener('mousewheel', (evt) => {
-      //on mac, this is triggered by a two-finger pan
+      // on mac, this is triggered by a two-finger pan
       if (!this.getActiveComponent()) {
         return
       }
 
-      var artboard = this.getActiveComponent().getArtboard()
-      const SCROLL_PAN_COEFFICIENT = .5 //1x is default, smaller is slower
+      let artboard = this.getActiveComponent().getArtboard()
+      const SCROLL_PAN_COEFFICIENT = 0.5 // 1x is default, smaller is slower
       const deltaX = evt.wheelDeltaX,
-            deltaY = evt.wheelDeltaY
+        deltaY = evt.wheelDeltaY
 
-      //HACK:  If you zoom and pan in quick succession, getZoom() will sometimes return 0 (or specifically, will return some value Y such that `1 / Y == Infinity`.)
+      // HACK:  If you zoom and pan in quick succession, getZoom() will sometimes return 0 (or specifically, will return some value Y such that `1 / Y == Infinity`.)
       //       [probably a FS-race related bug; should be fixed by decoupling FS read/write from an in-mem representation]
       //       as a result, the logic that compensates for pan 'sensitivity' based on zoom goes haywire.
       //
       //       This null-coalesce (`|| SCROLL_PAN_COEFFICIENT`) works around this bug.
       //       Ideally, Artboard#getZoom() should return a reliable value.
-      var scale = SCROLL_PAN_COEFFICIENT / ((artboard.getZoom() ^ 2) || SCROLL_PAN_COEFFICIENT)
+      let scale = SCROLL_PAN_COEFFICIENT / ((artboard.getZoom() ^ 2) || SCROLL_PAN_COEFFICIENT)
 
       const newX = deltaX * scale,
-            newY = deltaY * scale
+        newY = deltaY * scale
 
       artboard.snapshotOriginalPan()
       this.performPan(newX, newY)
-
     }, false)
 
     window.addEventListener(
@@ -1018,8 +1017,8 @@ export class Glass extends React.Component {
       return void (0)
     }
 
-    //Cmd + 0 centers & resets zoom
-    if (Globals.isCommandKeyDown && keyEvent.nativeEvent.which === 48){
+    // Cmd + 0 centers & resets zoom
+    if (Globals.isCommandKeyDown && keyEvent.nativeEvent.which === 48) {
       this.getActiveComponent().getArtboard().resetZoomPan()
     }
 
