@@ -1,6 +1,3 @@
-/* tslint:disable:variable-name */
-import {experimentIsEnabled, Experiment} from 'haiku-common/lib/experiments';
-
 const Globals = {
   mouse: {x: 0, y: 0},
   // Control and shift keys are managed from Timeline.js
