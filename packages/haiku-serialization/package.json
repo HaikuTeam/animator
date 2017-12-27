@@ -46,6 +46,7 @@
     "haiku-common": "2.3.70",
     "haiku-fs-extra": "2.3.70",
     "haiku-sdk-creator": "2.3.70",
+    "gl-matrix": "^2.4.0",
     "lodash": "^4.17.4",
     "lodash.assign": "^4.2.0",
     "lodash.debounce": "4.0.8",
@@ -72,6 +73,7 @@
     "snazzy": "^7.0.0",
     "standard": "^10.0.2",
     "tap-spec": "^4.1.1",
-    "tape": "^4.8.0"
+    "tape": "^4.8.0",
+    "@types/gl-matrix": "^2.4.0"    
   }
 }
