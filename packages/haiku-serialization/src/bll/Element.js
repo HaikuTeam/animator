@@ -556,7 +556,7 @@ class Element extends BaseModel {
   // I'm using "drag" as an abstraction over {any movement caused by the mouse dragging} whether that
   // is actually moving it in space, or rotating it, etc. This method makes the decision on what the "outcome"
   // of the drag should actually be.
-  drag (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, reactState) {
+  drag (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, reactState, transform, globals) {
     const localTransform = {
       zoom: this.component.getArtboard().getZoom(),
       pan: this.component.getArtboard().getPan()
@@ -572,8 +572,21 @@ class Element extends BaseModel {
         return this.rotate(dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, reactState.controlActivation, localTransform)
       }
     } else {
-      if (!reactState.controlActivation) {
-        if (!this.parent) return void (0) // Don't allow artboard to move
+      if (!this.parent) return void (0) // Don't allow artboard to move
+      if (globals.isShiftKeyDown) {
+        //if shift is held, should snap translation to x/y axis
+        console.log("SHIFT IS DOWN, TRYING ABS")
+        const initial = reactState.lastInitialMouseDownCoords
+        const current = coordsCurrent
+
+        const isXAxis = Math.abs(current.x - initial.x) > Math.abs(current.y - initial.y)
+
+        const x = isXAxis ? current.x : initial.x
+        const y = isXAxis ? initial.y : current.y
+
+        return this.moveAbsolute(x, y, coordsCurrent, coordsPrevious, lastMouseDownCoord, transform)
+      } else {
+        console.log("NO SHIFT", reactState)
         return this.move(dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord)
       }
     }
@@ -583,6 +596,22 @@ class Element extends BaseModel {
     if (!this.parent) return void (0) // Don't allow artboard to move
     const propertyGroup = { 'translation.x': dx, 'translation.y': dy }
     this.component.applyPropertyGroupDelta(this.getComponentId(), this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), propertyGroup, this.component.project.getMetadata(), (err) => {
+      if (err) return void (0)
+    })
+    this.emit('update', 'element-move')
+  }
+
+  //Takes additional argument `transform`, which expects zoom and pan properties
+  moveAbsolute (x, y, coordsCurrent, coordsPrevious, lastMouseDownCoord, transform) {
+    //must account for transform, as these are screen-space coordinates
+    x /= transform.zoom
+    y /= transform.zoom
+    x -= transform.pan.x
+    y -= transform.pan.y
+
+    if (!this.parent) return void (0) // Don't allow artboard to move
+    const propertyGroup = { 'translation.x': x, 'translation.y': y }
+    this.component.applyPropertyGroupValue(this.getComponentId(), this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), propertyGroup, this.component.project.getMetadata(), (err) => {
       if (err) return void (0)
     })
     this.emit('update', 'element-move')
