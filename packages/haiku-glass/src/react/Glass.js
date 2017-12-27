@@ -768,6 +768,12 @@ export class Glass extends React.Component {
     }
 
     this.state.isMouseDown = true
+    this.state.lastInitialMouseDownCoords = {x: mousedownEvent.nativeEvent.clientX, y: mousedownEvent.nativeEvent.clientY}
+
+    //TODO:  figure out how to capture intial position values for
+    //       selected elements, so that they can be used for shift + drag (locking horiz/vert pos.)
+    //       This could be a general-purpose cache on the element viewmodel
+    
     this.state.lastMouseDownTime = Date.now()
     this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
 
@@ -791,7 +797,7 @@ export class Glass extends React.Component {
       }
 
       if (!target || !target.hasAttribute) {
-        // If shift is down, that's constrained scaling. If cmd, that's rotation mode.
+        // If shift is down, that's constrained scaling or translation. If cmd, that's rotation mode.
         // I.e., only unselect elements if we're not doing either of those operations
         if (!Globals.isShiftKeyDown && !Globals.isCommandKeyDown) {
           Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
@@ -1096,6 +1102,8 @@ export class Glass extends React.Component {
     }
 
     const zoom = this.getActiveComponent().getArtboard().getZoom() || 1
+    const pan = this.getActiveComponent().getArtboard().getPan() || {x: 0, y: 0}
+    const transform = {zoom, pan}
 
     const lastMouseDownPosition = this.state.lastMouseDownPosition
     const mousePositionCurrent = this.storeAndReturnMousePosition(mousemoveEvent)
@@ -1105,8 +1113,6 @@ export class Glass extends React.Component {
     let dy = (mousePositionCurrent.y - mousePositionPrevious.y) / zoom
     if (dx === 0 && dy === 0) return mousePositionCurrent
 
-    // if (dx !== 0) dx = Math.round(this.getActiveComponent().getArtboard().getZoom() / dx)
-    // if (dy !== 0) dy = Math.round(this.getActiveComponent().getArtboard().getZoom() / dy)
     // If we got this far, the mouse has changed its position from the most recent mousedown
     if (this.state.isMouseDown) {
       this.handleDragStart()
@@ -1122,7 +1128,7 @@ export class Glass extends React.Component {
         var selected = this.getActiveComponent().queryElements({ _isSelected: true })
         if (selected.length > 0) {
           selected.forEach((element) => {
-            element.drag(dx, dy, mousePositionCurrent, mousePositionPrevious, lastMouseDownPosition, this.state)
+            element.drag(dx, dy, mousePositionCurrent, mousePositionPrevious, lastMouseDownPosition, this.state, transform, Globals)
           })
         }
       }
