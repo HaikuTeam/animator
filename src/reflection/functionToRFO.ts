@@ -188,12 +188,6 @@ export default function functionToRFO(fn) {
     body,
   };
 
-  // If the runtime function is labeled as an injectee, we *must* indicate as much
-  // in the specification so that serialization back to code wraps it properly
-  if (fn.injectee) {
-    spec['injectee'] = true;
-  }
-
   return {
     __function: spec,
   };

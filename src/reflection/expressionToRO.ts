@@ -16,11 +16,9 @@ export default function expressionToRO(exp, options) {
   if (typeof exp === FUNCTION) {
     return functionToRFO(exp);
   }
-
   if (Array.isArray(exp)) {
     return arrayToRO(exp);
   }
-
   if (exp && typeof exp === OBJECT) {
     // If we got an object that already looks like a 'RO', then pass it through unmodified
     // See 'reifyRO' for detail on how this serialization works on the opposite side
@@ -30,7 +28,6 @@ export default function expressionToRO(exp, options) {
 
     return objectToRO(exp, options);
   }
-
   if (isSerializableScalar(exp)) {
     return exp;
   }

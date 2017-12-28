@@ -19,6 +19,6 @@ test('reflection.inject', function (t) {
   var f3 = function(a,b,c) { return [a,b,c] }
   f3.injectee = true
   f3 = inject(f3, 'd','e','f') // ...And if we specify these
-  t.equal(JSON.stringify(f3.specification), '{"type":"FunctionExpression","name":null,"params":["d","e","f"],"body":"return [a,b,c]","injectee":true}')
+  t.equal(JSON.stringify(f3.specification), '{"type":"FunctionExpression","name":null,"params":["d","e","f"],"body":"return [a,b,c]"}')
   t.equal(f3.injectee, true)
 })

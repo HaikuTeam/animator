@@ -10,7 +10,6 @@ export default function inject(...args) {
     console.warn('[haiku player] Inject expects a function as the first argument');
     return fn;
   }
-
   if (args.length > 0) {
     enhance(fn, args);
   } else {

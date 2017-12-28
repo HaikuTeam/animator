@@ -705,6 +705,42 @@ const FORBIDDEN_EXPRESSION_TOKENS = {
   defineProperty: true, // Object.
 };
 
+// Just to be completionist/in case we want to whitelist instead, here is a list of keywords that we would allow.
+// var ALLOWED_EXPRESSION_KEYWORDS = {
+//   'in': true,
+//   'try': true,
+//   'var': true,
+//   'catch': true,
+//   'finally': true,
+//   'return': true,
+//   'void': true,
+//   'continue': true,
+//   'for': true,
+//   'switch': true,
+//   'while': true,
+//   'debugger': true,
+//   'function': true,
+//   'default': true,
+//   'if': true,
+//   'throw': true,
+//   'break': true,
+//   'instanceof': true,
+//   'typeof': true,
+//   'case': true,
+//   'else': true,
+//   'boolean': true,
+//   'long': true,
+//   'byte': true,
+//   'char': true,
+//   'float': true,
+//   'const': true,
+//   'volatile': true,
+//   'double': true,
+//   'enum': true,
+//   'int': true,
+//   'short': true,
+// }
+
 // tslint:disable-next-line:function-name
 export default function ValueBuilder(component) {
   this._component = component; // ::HaikuComponent
@@ -838,6 +874,7 @@ ValueBuilder.prototype.evaluate = function _evaluate(
 
       if (areSummoneesDifferent(previousSummoneesArray, summoneesArray)) {
         this._cacheSummonees(timelineName, flexId, propertyName, keyframeMs, summoneesArray);
+
         evaluation = safeApply(fn, hostInstance, summoneesArray);
       } else {
         // Since nothing is different, return the previous evaluation
@@ -850,7 +887,6 @@ ValueBuilder.prototype.evaluate = function _evaluate(
   if (fn.specification && fn.specification !== true) {
     this._cacheEvaluation(timelineName, flexId, propertyName, keyframeMs, evaluation);
   }
-
 
   return evaluation;
 };
@@ -1133,7 +1169,10 @@ ValueBuilder.prototype.getParser = function getParser(outputName, virtualElement
   if (!virtualElement) {
     return undefined;
   }
-  const foundParser = parsers[virtualElement.elementName] && parsers[virtualElement.elementName][outputName];
+  let foundParser = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement);
+  if (!foundParser) {
+    foundParser = parsers[virtualElement.elementName] && parsers[virtualElement.elementName][outputName];
+  }
   return foundParser && foundParser.parse;
 };
 
@@ -1141,7 +1180,10 @@ ValueBuilder.prototype.getGenerator = function getGenerator(outputName, virtualE
   if (!virtualElement) {
     return undefined;
   }
-  const foundGenerator = parsers[virtualElement.elementName] && parsers[virtualElement.elementName][outputName];
+  let foundGenerator = virtualElement.__instance && virtualElement.__instance.getParser(outputName, virtualElement);
+  if (!foundGenerator) {
+    foundGenerator = parsers[virtualElement.elementName] && parsers[virtualElement.elementName][outputName];
+  }
   return foundGenerator && foundGenerator.generate;
 };
 

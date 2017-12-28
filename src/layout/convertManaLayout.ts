@@ -70,7 +70,7 @@ export default function convertManaLayout(mana) {
   ) => {
     // Note the order of operations here: first we process base attributes, but then if the style
     // object has sizing attributes, those end up overriding whatever was in the base attributes.
-    if (!name || !attributes) {
+    if (!attributes) {
       return void 0;
     }
 
