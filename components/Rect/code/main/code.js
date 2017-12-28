@@ -115,7 +115,6 @@ module.exports = {
           source: "@haiku/player/components/Rect",
           "haiku-title": "HaikuRectSVGContext",
           "haiku-id": "HaikuRectSVGContext",
-          "viewBox": "0 0 100 100"
         },
         children: [
           {

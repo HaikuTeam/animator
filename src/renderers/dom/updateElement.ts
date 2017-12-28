@@ -21,6 +21,8 @@ export default function updateElement(
   component,
   isPatchOperation,
 ) {
+  const flexId = getFlexId(virtualElement);
+
   // If a text node, go straight to 'replace' since we don't know the tag name
   if (isTextNode(virtualElement)) {
     replaceElementWithText(domElement, virtualElement, component);
@@ -28,11 +30,15 @@ export default function updateElement(
   }
 
   if (!domElement.haiku) {
-    domElement.haiku = {};
+    domElement.haiku = {
+      // This is used to detect whether the element's host component has changed.
+      // Don't remove this without understanding the effect on Haiku.app.
+      component,
+    };
   }
 
-  if (!component.cache[getFlexId(virtualElement)]) {
-    component.cache[getFlexId(virtualElement)] = {};
+  if (!component.cache[flexId]) {
+    component.cache[flexId] = {};
   }
 
   if (!domElement.haiku.element) {
