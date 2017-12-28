@@ -26,7 +26,7 @@ if (packageName === 'changelog') {
     abspath: path.join(ROOT, 'changelog/')
   }
   try {
-    var cmd = `git subtree pull --squash --prefix ${changelog.name} ${changelog.remote} ${branch} \
+    var cmd = `git subtree pull --prefix ${changelog.name} ${changelog.remote} ${branch} \
     -m 'auto: subtree pull for ${packageName} at ${semver}'`
     log.log(cmd)
     cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
@@ -40,7 +40,7 @@ try {
   // Git subtree doesn't seem to like it unless you fetch changes first
   [
     `git fetch ${pack.remote} ${branch}`,
-    `git subtree pull --squash --prefix packages/${pack.name} ${pack.remote} ${branch} \
+    `git subtree pull --prefix packages/${pack.name} ${pack.remote} ${branch} \
      -m 'auto: subtree pull for ${packageName} at ${semver}'`
   ].forEach((cmd) => {
     log.log(cmd)

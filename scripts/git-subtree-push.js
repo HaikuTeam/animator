@@ -26,7 +26,7 @@ if (pkg === 'changelog') {
   }
 
   try {
-    var cmd = `git subtree push --squash --prefix ${changelog.name} ${changelog.remote} ${branch}`
+    var cmd = `git subtree push --prefix ${changelog.name} ${changelog.remote} ${branch}`
     log.log(cmd)
     cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
   } catch (exception) {
@@ -38,7 +38,7 @@ if (pkg === 'changelog') {
   log.log('git subtree pushing ' + pack.name)
 
   try {
-    const cmd = `git subtree push --squash --prefix packages/${pack.name} ${pack.remote} ${branch}`
+    const cmd = `git subtree push --prefix packages/${pack.name} ${pack.remote} ${branch}`
     log.log(cmd)
     cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
   } catch (exception) {
