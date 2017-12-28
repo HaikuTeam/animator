@@ -93,13 +93,12 @@ export default function assignAttributes(domElement, virtualElement, component, 
     const anotherNewValue = virtualElement.attributes[key];
 
     if (
-      key === STYLE &&
-      anotherNewValue &&
-      typeof anotherNewValue === OBJECT
+      key === STYLE
+      && anotherNewValue
+      && typeof anotherNewValue === OBJECT &&
+      Object.keys(anotherNewValue).length !== 0
     ) {
-      if (Object.keys(anotherNewValue).length > 0) {
-        assignStyle(domElement, anotherNewValue, component, isPatchOperation);
-      }
+      assignStyle(domElement, anotherNewValue, component, isPatchOperation);
       continue;
     }
 
