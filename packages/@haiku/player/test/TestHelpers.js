@@ -10,10 +10,10 @@ var TestHelpers = {}
 
 function createDOM (cb) {
   var html = '<!doctype html><html><body><div id="mount"></div></body></html>'
-  var doc = jsdom.jsdom(html)
-  var win = doc.defaultView
-  global.document = doc
+  var doc = new jsdom.JSDOM(html)
+  var win = doc.window
   global.window = win
+  global.document = win.document
   for (var key in win) {
     if (!win.hasOwnProperty(key)) continue
     if (key in global) continue

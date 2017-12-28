@@ -310,9 +310,7 @@ const STYLE_SCHEMA = {
   'style.WebkitTapHighlightColor': 'string',
 };
 
-const HTML_STYLE_SHORTHAND_SCHEMA = {
-  backgroundColor: 'string',
-};
+const HTML_STYLE_SHORTHAND_SCHEMA = {};
 
 const CONTROL_FLOW_SCHEMA = {
   // 'controlFlow.if': 'any',
@@ -1013,6 +1011,7 @@ export default {
   track: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, STYLE_SCHEMA),
   tref: has(CONTROL_FLOW_SCHEMA, LAYOUT_3D_SCHEMA, PRESENTATION_SCHEMA),
   tspan: has(
+    TEXT_CONTENT_SCHEMA,
     HTML_STYLE_SHORTHAND_SCHEMA,
     CONTROL_FLOW_SCHEMA,
     LAYOUT_2D_SCHEMA,

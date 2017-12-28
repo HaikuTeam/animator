@@ -2,7 +2,7 @@ var Haiku = require('@haiku/player')
 module.exports = {
   metadata: {
     type: "haiku",
-    name: "Oval"
+    name: "Ellipse"
   },
   options: {},
   states: {
@@ -17,7 +17,7 @@ module.exports = {
   eventHandlers: {},
   timelines: {
     Default: {
-      "haiku:HaikuOvalWrapper": {
+      "haiku:HaikuEllipseWrapper": {
         "style.WebkitTapHighlightColor": { "0": { value: "rgba(0,0,0,0)" } },
         "style.position": { "0": { value: "relative" } },
         "style.overflowX": { "0": { value: "hidden" } },
@@ -36,7 +36,7 @@ module.exports = {
         "sizeMode.y": { "0": { value: 1 } },
         "sizeMode.z": { "0": { value: 1 } }
       },
-      "haiku:HaikuOvalSVGContext": {
+      "haiku:HaikuEllipseSVGContext": {
         viewBox: { "0": {
           value: Haiku.inject(function (width, height) {
             return "0 0 " + width + " " + height
@@ -62,7 +62,7 @@ module.exports = {
         "translation.y": { "0": { value: 0 } },
         "style.zIndex": { "0": { value: 1 } }
       },
-      "haiku:HaikuOvalOval": {
+      "haiku:HaikuEllipseEllipse": {
         stroke: { "0": {
           value: Haiku.inject(function (stroke) {
             return stroke
@@ -99,12 +99,12 @@ module.exports = {
           }, 'height')
         } },
         "rx": { "0": {
-          value: Haiku.inject(function (width , strokeWidth) {
+          value: Haiku.inject(function (width, strokeWidth) {
             return (width / 2) - strokeWidth
           }, 'width', 'strokeWidth')
         } },
         "ry": { "0": {
-          value: Haiku.inject(function (height , strokeWidth) {
+          value: Haiku.inject(function (height, strokeWidth) {
             return (height / 2) - strokeWidth
           }, 'height', 'strokeWidth')
         } }
@@ -115,8 +115,8 @@ module.exports = {
   template: {
     elementName: "div",
     attributes: {
-      "haiku-title": "HaikuOvalWrapper",
-      "haiku-id": "HaikuOvalWrapper"
+      "haiku-title": "HaikuEllipseWrapper",
+      "haiku-id": "HaikuEllipseWrapper"
     },
     children: [
       {
@@ -125,14 +125,14 @@ module.exports = {
           version: "1.1",
           xmlns: "http://www.w3.org/2000/svg",
           "xmlns:xlink": "http://www.w3.org/1999/xlink",
-          source: "@haiku/player/components/Oval",
-          "haiku-title": "HaikuOvalSVGContext",
-          "haiku-id": "HaikuOvalSVGContext"
+          source: "@haiku/player/components/Ellipse",
+          "haiku-title": "HaikuEllipseSVGContext",
+          "haiku-id": "HaikuEllipseSVGContext"
         },
         children: [
           {
             elementName: "ellipse",
-            attributes: { id: "HaikuOvalOval", "haiku-id": "HaikuOvalOval" },
+            attributes: { id: "HaikuEllipseEllipse", "haiku-id": "HaikuEllipseEllipse" },
             children: []
           }
         ]
