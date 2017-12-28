@@ -3,22 +3,21 @@ const BaseModel = require('./BaseModel')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 
 // When building a distribution (see 'distro' repo) the node_modules folder is at a different level #FIXME matthew
-const NODE_MODULES_PATH = path.join(__dirname, '..', '..', '..', '..', 'node_modules')
+const CANONICAL_PLAYER_SOURCE_CODE_PATH = path.dirname(require.resolve('@haiku/player'))
 
 const REPLACEMENT_MODULES = {
   // legacy name (global npm)
-  'haiku.ai/player/dom': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom'),
-  'haiku.ai/player/dom/index': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom'),
-  'haiku.ai/player/dom/react': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom', 'react'),
+  'haiku.ai/player/dom': path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'dom'),
+  'haiku.ai/player/dom/index': path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'dom'),
+  'haiku.ai/player/dom/react': path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'dom', 'react'),
 
   // new name (haiku org npm)
-  '@haiku/player': path.join(NODE_MODULES_PATH, '@haiku', 'player'),
-  '@haiku/player/dom': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom'),
-  '@haiku/player/dom/index': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom'),
-  '@haiku/player/dom/react': path.join(NODE_MODULES_PATH, '@haiku', 'player', 'dom', 'react')
+  '@haiku/player': CANONICAL_PLAYER_SOURCE_CODE_PATH,
+  '@haiku/player/dom': path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'dom'),
+  '@haiku/player/dom/index': path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'dom'),
+  '@haiku/player/dom/react': path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'dom', 'react')
 }
 
-const CANONICAL_PLAYER_SOURCE_CODE_PATH = path.join(NODE_MODULES_PATH, '@haiku', 'player')
 const PLAYER_PACKAGE_JSON = require(path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'package.json'))
 const PLAYER_VERSION = PLAYER_PACKAGE_JSON.version
 

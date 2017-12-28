@@ -4,7 +4,7 @@ var test = require('tape')
 var cp = require('child_process')
 var Application = require('spectron').Application
 
-var ROOT_PATH = path.join(__dirname, '..', '..')
+var ROOT_PATH = global.process.cwd()
 var APP_PATH = path.join(ROOT_PATH, 'dist', 'mac', 'Haiku.app', 'Contents', 'MacOS', 'Haiku')
 
 test('index.spectron', (t) => {

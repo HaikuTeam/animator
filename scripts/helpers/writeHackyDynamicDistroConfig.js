@@ -1,7 +1,7 @@
 var fse = require('fs-extra')
 var hb = require('handlebars')
 var path = require('path')
-var ROOT = path.join(__dirname, '..', '..')
+var ROOT = global.process.cwd()
 
 module.exports = function writeHackyDynamicDistroConfig (inputs) {
   var src = fse.readFileSync(path.join(ROOT, '_config.js.handlebars')).toString()

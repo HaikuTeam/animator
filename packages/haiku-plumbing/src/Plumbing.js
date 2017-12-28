@@ -13,7 +13,7 @@ import { EventEmitter } from 'events'
 import EnvoyServer from 'haiku-sdk-creator/lib/envoy/EnvoyServer'
 import EnvoyLogger from 'haiku-sdk-creator/lib/envoy/EnvoyLogger'
 import { EXPORTER_CHANNEL, ExporterHandler } from 'haiku-sdk-creator/lib/exporter'
-import { USER_CHANNEL, UserHandler } from 'haiku-sdk-creator/lib/bll/user'
+import { USER_CHANNEL, UserHandler } from 'haiku-sdk-creator/lib/bll/User'
 import { GLASS_CHANNEL, GlassHandler } from 'haiku-sdk-creator/lib/glass'
 import { TimelineHandler } from 'haiku-sdk-creator/lib/timeline'
 import { TourHandler } from 'haiku-sdk-creator/lib/tour'
@@ -78,13 +78,11 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   deleteProject: true
 }
 
-const ROOT_DIR = path.join(__dirname, '..', '..', '..')
-
 const PROCS = {
   creator: {
     name: 'creator',
     path: require('electron'),
-    args: [path.join(ROOT_DIR, 'node_modules', 'haiku-creator', 'lib', 'electron.js')],
+    args: [require.resolve(path.join('haiku-creator', 'lib', 'electron.js'))],
     opts: { electron: true, spawn: true }
   }
 }

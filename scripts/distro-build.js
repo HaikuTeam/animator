@@ -1,13 +1,13 @@
-var fse = require('fs-extra')
-var cp = require('child_process')
-var path = require('path')
-var deploy = require('./deploy')
-var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
+const fse = require('fs-extra')
+const cp = require('child_process')
+const path = require('path')
+const deploy = require('./deploy')
+const forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
 
 require('./../config')
 forceNodeEnvProduction()
 
-var ROOT = path.join(__dirname, '..')
+const ROOT = global.process.cwd()
 
 process.env.CSC_LINK = `file://${deploy.vault}/${deploy.certificate}`
 process.env.CSC_KEY_PASSWORD = fse.readFileSync(path.join(deploy.vault, `${deploy.certificate}.password`)).toString().trim()

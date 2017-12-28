@@ -1,6 +1,6 @@
 var cp = require('child_process')
 var path = require('path')
-var ROOT = path.join(__dirname, '..', '..')
+var ROOT = global.process.cwd()
 
 module.exports = function runScript (name, args, cb) {
   var child = cp.fork(path.join(__dirname, '..', name + '.js'), args || [], { stdio: 'inherit', cwd: ROOT })
