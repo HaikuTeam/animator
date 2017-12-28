@@ -1,6 +1,6 @@
 {
   "name": "@haiku/cli",
-  "version": "2.3.61",
+  "version": "2.3.62",
   "description": "Haiku CLI",
   "main": "lib/index.js",
   "scripts": {
@@ -31,8 +31,8 @@
     "cli-color": "^1.2.0",
     "dedent": "^0.7.0",
     "fs-extra": "^4.0.2",
-    "@haiku/sdk-client": "2.3.61",
-    "@haiku/sdk-inkstone": "2.3.61",
+    "@haiku/sdk-client": "2.3.62",
+    "@haiku/sdk-inkstone": "2.3.62",
     "hasbin": "^1.2.3",
     "inquirer": "^3.0.6",
     "lodash": "^4.17.4",
