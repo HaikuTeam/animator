@@ -1,6 +1,27 @@
 # Changelog
 
 
+## 2.3.62
+
+### Bug Fixes
+
+ * Get `yarn push` working fully.
+ * actually place haiku-fs-extra deps.
+ * Implement topological sort correctly ¯\_(ツ)_/¯!
+ * Get push working with new package accounting system.
+ * only allow valid glass start projects.
+ * Ensure 'content' property gets written correctly to tspan elements
+ * Correct prop to indicate rot cursor
+ * Make sure preview mode messages get passed correctly
+ * Use correct path when 'instantiating' Sketch asset
+ * Use the correct property for the element node
+ * Make sure hand-edits trigger code reloading
+ * Fix regression displaying event handlers editor via frame action plus button
+ * Use the correct zoom/pan data when transforming elements on stage
+ * Recenter the artboard when it is resized
+ * Fix bugs with cut/copy/paste
+ * Propagate mergeDesign through all the views
+
 ## 2.3.61
 
 ### Bug Fixes
