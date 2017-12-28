@@ -1,6 +1,6 @@
 {
   "name": "haiku-common",
-  "version": "2.3.63",
+  "version": "2.3.64",
   "description": "Common library for Haiku.",
   "main": "lib/index.js",
   "directories": {
@@ -22,7 +22,7 @@
   "dependencies": {},
   "devDependencies": {
     "@types/node": "^8.5.2",
-    "haiku-testing": "2.3.63",
+    "haiku-testing": "2.3.64",
     "nyc": "^11.3.0",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
