@@ -61,9 +61,7 @@ cp.execSync('yarn install', processOptions)
 cp.execSync('yarn compile-all --force', processOptions)
 openSourcePackages.forEach((pack) => {
   const compileCommand = `node ./scripts/compile-package.js --package=${pack.name}`
-  if (openSourceProjects.has(pack.name)) {
-    cp.execSync(compileCommand, processOptions)
-  } else {
+  if (!openSourceProjects.has(pack.name)) {
     // Uglify pure dependencies.
     cp.execSync(`${compileCommand} --uglify=lib/**/*.js`, processOptions)
   }

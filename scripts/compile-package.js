@@ -28,7 +28,7 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development'
 }
 
-cp.execSync('yarn run compile', { cwd: PACKAGE_PATH, stdio: 'inherit' })
+cp.execSync('yarn compile', { cwd: PACKAGE_PATH, stdio: 'inherit' })
 
 if (argv.uglify) {
   var globule = path.join(PACKAGE_PATH, argv.uglify)
