@@ -171,7 +171,8 @@ Property.TEXT_FRIENDLY_SVG_ELEMENTS = {
   // Note that <desc> and <title>, while valid, are excluded to avoid noise
   text: true,
   textpath: true,
-  textPath: true
+  textPath: true,
+  tspan: true,
 }
 
 Property.TEXT_FRIENDLY_HTML_ELEMENTS = {
