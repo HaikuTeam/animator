@@ -20,7 +20,6 @@
     "request": "^2.83.0"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.45",
     "@types/mkdirp": "^0.3.29",
     "@types/node": "^8.5.2",
     "@types/request": "^2.0.0",

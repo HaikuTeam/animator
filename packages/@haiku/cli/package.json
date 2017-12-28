@@ -47,7 +47,6 @@
     "@types/chalk": "^0.4.31",
     "@types/cli-color": "^0.3.29",
     "@types/inquirer": "0.0.32",
-    "@types/lodash": "^4.14.45",
     "@types/mkdirp": "^0.3.29",
     "@types/node": "^8.5.2",
     "@types/request": "^2.0.0",
