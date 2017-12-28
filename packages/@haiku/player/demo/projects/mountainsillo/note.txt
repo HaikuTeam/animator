@@ -1,1 +1,0 @@
-This component is autoplay=false and sizing=contain. We are trying to prevent unnecessary re-renders when sizing mode is set.

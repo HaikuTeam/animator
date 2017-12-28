@@ -1,1 +1,0 @@
-The placeheld element should show 0.2 opacity.

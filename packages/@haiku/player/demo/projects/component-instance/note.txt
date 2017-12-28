@@ -1,1 +1,0 @@
-You should see a white thick line appear in the box and morph between 0 and 2500 ms.

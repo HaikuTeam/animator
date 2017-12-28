@@ -1,1 +1,0 @@
-The DOM side should be red, the React side should cycle through different colors.
