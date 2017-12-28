@@ -1,6 +1,6 @@
 {
   "name": "haiku-timeline",
-  "version": "2.3.62",
+  "version": "2.3.63",
   "private": true,
   "license": "UNLICENSED",
   "authors": [
@@ -27,17 +27,17 @@
     ]
   },
   "dependencies": {
-    "@haiku/player": "2.3.62",
+    "@haiku/player": "2.3.63",
     "archy": "^1.0.0",
     "classnames": "2.2.5",
     "codemirror": "^5.28.0",
     "color": "^2.0.1",
     "decamelize": "^1.2.0",
-    "haiku-bytecode": "2.3.62",
-    "haiku-common": "2.3.62",
-    "haiku-fs-extra": "2.3.62",
-    "haiku-serialization": "2.3.62",
-    "haiku-ui-common": "2.3.62",
+    "haiku-bytecode": "2.3.63",
+    "haiku-common": "2.3.63",
+    "haiku-fs-extra": "2.3.63",
+    "haiku-serialization": "2.3.63",
+    "haiku-ui-common": "2.3.63",
     "jsdom": "^11.1.0",
     "lodash": "^4.17.4",
     "numeral": "^2.0.6",

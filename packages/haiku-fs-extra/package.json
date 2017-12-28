@@ -1,6 +1,6 @@
 {
   "name": "haiku-fs-extra",
-  "version": "2.3.62",
+  "version": "2.3.63",
   "description": "fs-extra contains methods that aren't included in the vanilla Node.js fs package. Such as mkdir -p, cp -r, and rm -rf.",
   "homepage": "https://github.com/jprichardson/node-fs-extra",
   "repository": {
