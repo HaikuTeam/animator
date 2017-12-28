@@ -52,12 +52,15 @@ const visit = (pack, packages) => {
   packages.push(pack);
 };
 
-module.exports = function packages(names) {
+module.exports = (names) => {
   const packages = [];
   const unsortedPackages = Object.values(allPackages);
   unsortedPackages.forEach((pack) => {
     visit(pack, packages);
   });
+  for (const packageName in allPackages) {
+    allPackages[packageName].processed = false;
+  }
 
   if (names) {
     if (!Array.isArray(names)) {

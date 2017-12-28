@@ -9,8 +9,8 @@ const nowVersion = require('./helpers/nowVersion')
 const allPackages = require('./helpers/packages')()
 const groups = lodash.keyBy(allPackages, 'name')
 
-const ROOT = path.join(__dirname, '..')
-const PLAYER_PATH = groups['haiku-player'].abspath
+const ROOT = global.process.cwd()
+const PLAYER_PATH = groups['@haiku/player'].abspath
 
 log.hat(`note that the current version is ${nowVersion()}`)
 
@@ -34,7 +34,7 @@ const makeBundle = () => {
 
 if (!argv['skip-compile']) {
   cp.execSync('yarn install', {cwd: global.process.cwd(), stdio: 'inherit'})
-  runScript('compile-package', ['--package=haiku-player'], (err) => {
+  runScript('compile-package', ['--package=@haiku/player'], (err) => {
     if (err) {
       throw err
     }
