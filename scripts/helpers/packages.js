@@ -24,6 +24,7 @@ packagePatterns.forEach((pattern) => {
       version: pkgJson.version,
       remote: `git@github.com:HaikuTeam/${shortname}.git`,
       deps: new Set(),
+      processed: false,
     };
     depTypes.forEach((depType) => {
       if (pkgJson[depType]) {
@@ -39,10 +40,25 @@ packagePatterns.forEach((pattern) => {
   });
 });
 
+const visit = (pack, packages) => {
+  if (pack.processed) {
+    return;
+  }
+
+  pack.processed = true;
+  pack.deps.forEach((dep) => {
+    visit(allPackages[dep], packages);
+  });
+  packages.push(pack);
+};
+
 module.exports = function packages(names) {
-  const packages = Object.values(allPackages).sort(
-    (pkg1, pkg2) => pkg1.deps.has(pkg2.name) ? 1 : (pkg2.deps.has(pkg1.name) ? -1 : 0),
-  );
+  const packages = [];
+  const unsortedPackages = Object.values(allPackages);
+  unsortedPackages.forEach((pack) => {
+    visit(pack, packages);
+  });
+
   if (names) {
     if (!Array.isArray(names)) {
       return packages.find((val) => val.name === names);
