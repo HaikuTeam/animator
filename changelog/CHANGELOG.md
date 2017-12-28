@@ -1,6 +1,19 @@
 # Changelog
 
 
+## 2.3.64
+
+### Features
+
+ * Add a new player config option for strictSizing.
+ * Adds @haiku/sdk-inkstone endpoint for notifying inkstone a GIF has been published.
+ * Publish silently, and fetch the share link as soon as we have a commit sha.
+
+### Bug Fixes
+
+ * Preserve the coordinate system for transforms on images.
+ * ensure {sizing
+
 ## 2.3.63
 
 ## 2.3.62

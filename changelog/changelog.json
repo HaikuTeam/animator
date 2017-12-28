@@ -3653,5 +3653,32 @@
       "message": "Propagate mergeDesign through all the views"
     }
   },
-  "2.3.63": {}
+  "2.3.63": {},
+  "2.3.64": {
+    "58dbdd8fbe18beb861cf7ec7e48acd8e91390b18": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "Add a new player config option for strictSizing."
+    },
+    "af8bc378c24a450e3a2767084fbebaf00d44d3a7": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "Adds @haiku/sdk-inkstone endpoint for notifying inkstone a GIF has been published."
+    },
+    "117ef0f50c7850ed24bd1f3ca01448a2f4203086": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Preserve the coordinate system for transforms on images."
+    },
+    "c2778872833231aff2a4c6df5b516d2464a48248": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "Publish silently, and fetch the share link as soon as we have a commit sha."
+    },
+    "d39149ddb3f1465656a373bba47e626b58b7f807": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "ensure {sizing"
+    }
+  }
 }
