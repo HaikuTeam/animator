@@ -16,6 +16,7 @@ export default function createTagNode(
   component,
 ) {
   const tagName = normalizeName(getTypeAsString(virtualElement));
+  const flexId = getFlexId(virtualElement);
   let newDomElement;
   if (allSvgElementNames[tagName]) {
     // SVG
@@ -25,13 +26,17 @@ export default function createTagNode(
     newDomElement = domElement.ownerDocument.createElement(tagName);
   }
 
-  // This doesn't happen in renderTree because the element doesn't exist yet.
+  // This didn't happen in renderTree because the element didn't exist yet.
   if (!newDomElement.haiku) {
-    newDomElement.haiku = {};
+    newDomElement.haiku = {
+      // This is used to detect whether the element's host component has changed.
+      // Don't remove this without understanding the effect on Haiku.app.
+      component,
+    };
   }
 
-  if (!component.cache[getFlexId(virtualElement)]) {
-    component.cache[getFlexId(virtualElement)] = {};
+  if (!component.cache[flexId]) {
+    component.cache[flexId] = {};
   }
 
   const incomingKey =

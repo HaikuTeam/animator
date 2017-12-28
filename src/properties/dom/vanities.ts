@@ -713,14 +713,7 @@ const FILTER_VANITIES = {
   primitiveUnits: attributeSetter('primitiveUnits'),
 };
 
-const HTML_STYLE_SHORTHAND_VANITIES = {
-  backgroundColor(_, element, value) {
-    element.attributes.style.backgroundColor = value;
-  },
-  zIndex(_, element, value) {
-    element.attributes.style.zIndex = value;
-  },
-};
+const HTML_STYLE_SHORTHAND_VANITIES = {};
 
 const CONTROL_FLOW_VANITIES = {
   // 'controlFlow.if': function (name, element, value) {
@@ -1393,7 +1386,13 @@ export default {
   tr: has(HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
   track: has(CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
   tref: has(CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, PRESENTATION_VANITIES),
-  tspan: has(HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_2D_VANITIES, PRESENTATION_VANITIES),
+  tspan: has(
+    TEXT_CONTENT_VANITIES,
+    HTML_STYLE_SHORTHAND_VANITIES,
+    CONTROL_FLOW_VANITIES,
+    LAYOUT_2D_VANITIES,
+    PRESENTATION_VANITIES,
+  ),
   tt: has(HTML_STYLE_SHORTHAND_VANITIES, CONTROL_FLOW_VANITIES, LAYOUT_3D_VANITIES, STYLE_VANITIES),
   u: has(
     HTML_STYLE_SHORTHAND_VANITIES,

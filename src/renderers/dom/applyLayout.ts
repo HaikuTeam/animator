@@ -77,6 +77,7 @@ export default function applyLayout(
       return domElement;
     }
 
+
     if (!parentVirtualElement.layout || !parentVirtualElement.layout.computed) {
       warnOnce(
         'Cannot compute layout without parent computed size (child: <' +

@@ -36,10 +36,6 @@ export default function HaikuContext(mount, renderer, platform, bytecode, config
 
   this._mount = mount;
 
-  if (!this._mount) {
-    console.info('[haiku player] mount not provided so running in headless mode');
-  }
-
   // Make some Haiku internals available on the mount object for hot editing hooks, or for debugging convenience.
   if (this._mount && !this._mount.haiku) {
     this._mount.haiku = {
@@ -56,11 +52,8 @@ export default function HaikuContext(mount, renderer, platform, bytecode, config
 
   this._platform = platform;
 
-  if (!this._platform) {
-    console.warn('[haiku player] no platform (e.g. window) provided; some features may be unavailable');
-  }
-
-  HaikuContext['contexts'].push(this);
+  // Useful when debugging to understand cross-component effects
+  this._entityIndex = HaikuContext['contexts'].push(this) - 1;
 
   // List of tickable objects managed by this context. These are invoked on every clock tick.
   // These are removed when context unmounts and re-added in case of re-mount
@@ -293,7 +286,7 @@ HaikuContext.prototype.tick = function tick() {
 
   // Only continue ticking and updating if our root component is still activated and awake;
   // this is mainly a hacky internal hook used during hot editing inside Haiku Desktop
-  if (!this.component._isDeactivated() && !this.component._isAsleep()) {
+  if (!this.component.isDeactivated() && !this.component.isSleeping()) {
     // After we've hydrated the tree the first time, we can proceed with patches --
     // unless the component indicates it wants a full flush per its internal settings.
     if (this.component._shouldPerformFullFlush() || this.config.options.forceFlush || this._ticks < 1) {
@@ -362,11 +355,6 @@ HaikuContext['createComponentFactory'] = function createComponentFactory(
 
   if (!bytecode) {
     throw new Error('A runtime `bytecode` object is required');
-  }
-
-  // Only warn on this in case we're running in headless/server/test mode
-  if (!platform) {
-    console.warn('[haiku player] no runtime `platform` object was provided');
   }
 
   // Note that haiku Config may be passed at this level, or below at the factory invocation level.

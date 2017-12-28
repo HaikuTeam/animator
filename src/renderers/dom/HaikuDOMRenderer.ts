@@ -160,10 +160,16 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
     clearMouch();
   });
 
-  domMountElement.addEventListener('wheel', (mouseEvent) => {
-    setMouse(mouseEvent);
-    setMouches();
-  });
+  domMountElement.addEventListener(
+    'wheel',
+    (mouseEvent) => {
+      setMouse(mouseEvent);
+      setMouches();
+    },
+    {
+      passive: true, // Avoid perf warnings. TODO: Make configurable
+    },
+  );
 
   const doc = domMountElement.ownerDocument;
   const win = doc.defaultView || doc.parentWindow;
@@ -193,6 +199,11 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
   });
 
   // WINDOW
+  if (this.config.options.sizing && this.config.options.sizing !== 'normal' && !this.config.options.strictSizing) {
+    win.addEventListener('resize', () => {
+      this.shouldCreateContainer = true;
+    });
+  }
 
   // If there's any sizing mode that requires computation of container size and alwaysComputeSizing is *disabled*, make
   // an "overiding" assumption that we probably want to recompute the container when media queries change.
@@ -222,20 +233,32 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
 
   // TOUCHES
   // -------
-  domMountElement.addEventListener('touchstart', (touchEvent) => {
-    setTouches(touchEvent);
-    setMouches();
-  });
+  domMountElement.addEventListener(
+    'touchstart',
+    (touchEvent) => {
+      setTouches(touchEvent);
+      setMouches();
+    },
+    {
+      passive: true, // Avoid perf warnings. TODO: Make configurable
+    },
+  );
 
   domMountElement.addEventListener('touchend', (touchEvent) => {
     clearTouch();
     clearMouch();
   });
 
-  domMountElement.addEventListener('touchmove', (touchEvent) => {
-    setTouches(touchEvent);
-    setMouches();
-  });
+  domMountElement.addEventListener(
+    'touchmove',
+    (touchEvent) => {
+      setTouches(touchEvent);
+      setMouches();
+    },
+    {
+      passive: true, // Avoid perf warnings. TODO: Make configurable
+    },
+  );
 
   domMountElement.addEventListener('touchenter', (touchEvent) => {
     clearTouch();
