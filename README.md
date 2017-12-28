@@ -1,4 +1,4 @@
-# Haiku Player [![Build Status](https://travis-ci.com/HaikuTeam/player.svg?branch=master)](https://travis-ci.com/HaikuTeam/player)
+# Haiku Player
 
 The Haiku Player &mdash;  
 user interface engine  
