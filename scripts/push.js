@@ -4,6 +4,7 @@ const path = require('path')
 const argv = require('yargs').argv
 
 const getPackages = require('./helpers/packages')
+const gitRevision = require('./helpers/gitRevision')
 const depTypes = require('./constants/depTypes')
 const nowVersion = require('./helpers/nowVersion')
 
@@ -33,13 +34,17 @@ do {
   })
 } while (foundNewDeps)
 
+const currentRevision = gitRevision()
+
 // Pull standalone remotes.
-if (!argv['no-pull']) {
-  openSourcePackages.forEach((pack) => {
-    cp.execSync(`node ./scripts/git-subtree-pull.js --package=${pack.name}`, processOptions)
-  })
-}
+openSourcePackages.forEach((pack) => {
+  cp.execSync(`node ./scripts/git-subtree-pull.js --package=${pack.name}`, processOptions)
+})
+
 cp.execSync(`node ./scripts/git-subtree-pull.js --package=changelog`, processOptions)
+
+// Squash all subtree changes following subtree pulls.
+cp.execSync(`git reset --soft ${currentRevision}`)
 
 // Bump semver in all projects, plus their @haiku/* dependencies, and commit.
 cp.execSync(`node ./scripts/semver.js --non-interactive`, processOptions)
