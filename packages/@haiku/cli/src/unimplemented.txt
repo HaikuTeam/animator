@@ -1,0 +1,88 @@
+// // TODO: I'm not sure if this will work since we need to npm publish
+// // TODO: This is incomplete, I realized ^^ halfway through implementing
+// // Auth should already have been handled by the point this is called
+// function doUpgradePlayerForProject (token, projectName, cb) {
+//   return inkstone.project.getByName(token, projectName, (getByNameErr, projectAndCredentials) => {
+//     if (getByNameErr) return cb(getByNameErr)
+
+//     let gitEndpoint = projectAndCredentials.Project.GitRemoteUrl
+//     gitEndpoint = gitEndpoint.replace("https://", "https://" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ":" + encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + "@")
+
+//     // TODO: Perhaps allow the working dir to be specified?
+//     let destinationDirRel = projectName
+//     let destinationDirAbs = path.join(process.cwd(), projectName)
+
+//     return client.git.cloneRepo(gitEndpoint, destinationDirRel, (cloneErr) => {
+//       if (cloneErr) return cb(cloneErr)
+
+//       try {
+//         execSync(`git fetch`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         execSync(`npm update @haiku/player --save`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         execSync(`git add .`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         execSync(`git commit -m "auto: Upgrade @haiku/player"`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         const tag = execSync(`git describe $(git rev-list --tags --max-count=1)`, { cwd: destinationDirAbs })
+//         if (tag) {
+//           const next = semver.inc(tag, 'patch')
+//           const pkg = fse.readJsonSync(path.join(destinationDirAbs, 'package.json'), { throws: false })
+//           if (pkg) {
+//             pkg.version = next
+//             fse.outputJsonSync(path.join(destinationDirAbs, 'package.json'), pkg)
+//             execSync(`git add .`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//             execSync(`git commit -m "auto: Bump semver"`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//           }
+//           execSync(`git tag -a v${next}`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         }
+//         // execSync(`git push`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//       } catch (exception) {
+//         return cb(exception)
+//       }
+
+//       return cb()
+//     })
+//   })
+// }
+
+// function doUpgradePlayer() {
+//   let names = _.uniq(args)
+//   if (names.length < 1) {
+//     context.writeLine(chalk.red("Please pass a list of project names."))
+//     process.exit(1)
+//   }
+//   return ensureAuth((token) => {
+//     return inkstone.project.list(token, (err, projects) => {
+//       const projectsToUpgrade = []
+//       const projectsNotKnown = []
+//       names.forEach((projectName) => {
+//         let isKnown = false
+//         projects.forEach(({ Name }) => {
+//           if (Name === projectName) {
+//             isKnown = true
+//             projectsToUpgrade.push(projectName)
+//           }
+//         })
+//         if (!isKnown) {
+//           projectsNotKnown.push(projectName)
+//         }
+//       })
+//       if (projectsNotKnown.length > 0) {
+//         context.writeLine(chalk.red(`Unknown projects specified: ${projectsNotKnown.join(', ')}`))
+//         process.exit(1)
+//       }
+//       if (projectsToUpgrade.length < 1) {
+//         context.writeLine(chalk.red(`Projects to upgrade not found`))
+//         process.exit(1)
+//       }
+//       return async.each(projectsToUpgrade, (projectName, next) => {
+//         return doUpgradePlayerForProject(token, projectName, next)
+//       }, (err) => {
+//         if (err) {
+//           context.writeLine(chalk.red(err))
+//           process.exit(1)
+//         }
+
+//         context.writeLine(chalk.green(`Done!`))
+//         process.exit()
+//       })
+//     })
+//   })
+// }
