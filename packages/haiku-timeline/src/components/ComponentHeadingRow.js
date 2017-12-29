@@ -58,7 +58,7 @@ export default class ComponentHeadingRow extends React.Component {
             height: this.props.rowHeight}} />}
         <div style={{
           display: 'table-cell',
-          width: this.props.timeline.getPropertiesPixelWidth() - 90,
+          width: this.props.timeline.getPropertiesPixelWidth() - 140,
           height: 'inherit',
           position: 'absolute',
           zIndex: 3,
@@ -144,7 +144,6 @@ export default class ComponentHeadingRow extends React.Component {
             ? <CollapsedPropertyTimelineSegments
               $update={this.props.$update}
               component={this.props.component}
-              ctxmenu={this.props.ctxmenu}
               timeline={this.props.timeline}
               rowHeight={this.props.rowHeight}
               row={this.props.row} />
@@ -157,7 +156,6 @@ export default class ComponentHeadingRow extends React.Component {
 
 ComponentHeadingRow.propTypes = {
   row: React.PropTypes.object.isRequired,
-  ctxmenu: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,

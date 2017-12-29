@@ -160,6 +160,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
       // assigned among the whitelisted properties
       if (rawProps) {
         for (const verboseKeyName in rawProps) {
+
           const haikuConfigFinalKey = HAIKU_FORWARDED_PROPS[verboseKeyName];
           if (haikuConfigFinalKey) {
             haikuConfig[haikuConfigFinalKey] = rawProps[verboseKeyName];

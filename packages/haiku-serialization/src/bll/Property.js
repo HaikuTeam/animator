@@ -150,12 +150,50 @@ Property.ALWAYS_CREATE_AS_PROPERTY_NEVER_AS_STATE = {
 Property.EXCLUDE_FROM_JIT = {
   'controlFlow.if': true,
   'controlFlow.repeat': true,
-  'shown': true, // I dunno, this just always seems weird to include,
-  'translation.z': true // There is a bug with this
+  'shown': true, // I dunno, this just always seems weird to include
+  'translation.z': true, // There is a bug with this
+  'sizeMode.x': true,
+  'sizeMode.y': true,
+  'sizeMode.z': true,
+  'sizeDifferential.x': true,
+  'sizeDifferential.y': true,
+  'sizeDifferential.z': true,
+  'sizeProportional.x': true,
+  'sizeProportional.y': true,
+  'sizeProportional.z': true,
+  'align.x': true,
+  'align.y': true,
+  'align.z': true,
+  'mount.x': true,
+  'mount.y': true,
+  'mount.z': true,
+  'origin.x': true,
+  'origin.y': true,
+  'origin.z': true,
+  'scale.z': true, // Not sane until we have true 3D objects
+  'sizeAbsolute.z': true, // Not sane until we have true 3D objects
+  'rotation.w': true // Too much great power too much great responsibility
+}
+
+Property.EXCLUDE_FROM_JIT_IF_ROOT_ELEMENT = {
+  'content': true,
+  'controlFlow.placeholder': true,
+  'controlFlow.repeat': true,
+  'controlFlow.if': true,
+  'controlFlow.yield': true
 }
 
 Property.PREFIXES_TO_EXCLUDE_FROM_ADDRESSABLES = {
   'sizeMode': true
+}
+
+Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT = {
+  'content': true,
+  'shown': true
+}
+
+Property.EXCLUDE_FROM_ADDRESSABLES_IF_COMPONENT = {
+  'content': true
 }
 
 Property.PRIVATE_PROPERTY_WHEN_HOISTING_TO_STATE = {

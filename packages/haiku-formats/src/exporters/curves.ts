@@ -1,3 +1,4 @@
+/* tslint:disable:import-name */
 import BezierEasing from 'bezier-easing';
 import flatten from 'lodash/flatten';
 

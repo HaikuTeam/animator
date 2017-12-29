@@ -5,6 +5,7 @@ import ClusterInputField from './ClusterInputField'
 import RowSegments from './RowSegments'
 import ClusterRowHeading from './ClusterRowHeading'
 import Globals from 'haiku-ui-common/lib/Globals'
+import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 
 export default class ClusterRow extends React.Component {
   render () {
@@ -35,7 +36,7 @@ export default class ClusterRow extends React.Component {
           const tlOffset = Globals.mouse.x - this.props.timeline.getPropertiesPixelWidth()
           const pxOffsetLeft = (tlOffset) + this.props.timeline.getLeftFrameEndpoint() * frameInfo.pxpf
 
-          this.props.ctxmenu.show({
+          PopoverMenu.emit('show', {
             type: 'cluster-row',
             event: { offsetX: 0 },
             model: this.props.row,
@@ -126,7 +127,6 @@ export default class ClusterRow extends React.Component {
             row={this.props.row}
             $update={this.props.$update}
             component={this.props.component}
-            ctxmenu={this.props.ctxmenu}
             timeline={this.props.timeline}
             rowHeight={this.props.rowHeight} />
         </div>
@@ -137,7 +137,6 @@ export default class ClusterRow extends React.Component {
 
 ClusterRow.propTypes = {
   row: React.PropTypes.object.isRequired,
-  ctxmenu: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,

@@ -51,7 +51,6 @@ export default class RowSegments extends React.Component {
                 key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-transition-body`}
                 $update={this.props.$update}
                 component={this.props.component}
-                ctxmenu={this.props.ctxmenu}
                 timeline={this.props.timeline}
                 rowHeight={this.props.rowHeight}
                 keyframe={keyframe} />
@@ -63,7 +62,6 @@ export default class RowSegments extends React.Component {
                   preventDragging={this.props.preventDragging}
                   key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-constant-body`}
                   $update={this.props.$update}
-                  ctxmenu={this.props.ctxmenu}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
                   keyframe={keyframe} />
@@ -90,7 +88,6 @@ export default class RowSegments extends React.Component {
                   offset={-10}
                   $update={this.props.$update}
                   component={this.props.component}
-                  ctxmenu={this.props.ctxmenu}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
                   keyframe={keyframe} />
@@ -102,7 +99,6 @@ export default class RowSegments extends React.Component {
                 offset={0}
                 $update={this.props.$update}
                 component={this.props.component}
-                ctxmenu={this.props.ctxmenu}
                 timeline={this.props.timeline}
                 rowHeight={this.props.rowHeight}
                 keyframe={keyframe} />
@@ -114,7 +110,6 @@ export default class RowSegments extends React.Component {
                   offset={+10}
                   $update={this.props.$update}
                   component={this.props.component}
-                  ctxmenu={this.props.ctxmenu}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
                   keyframe={keyframe} />
@@ -143,7 +138,6 @@ export default class RowSegments extends React.Component {
 
 RowSegments.propTypes = {
   row: React.PropTypes.object.isRequired,
-  ctxmenu: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,

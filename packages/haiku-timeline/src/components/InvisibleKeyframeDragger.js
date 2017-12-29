@@ -2,6 +2,7 @@ import React from 'react'
 import lodash from 'lodash'
 import TimelineDraggable from './TimelineDraggable'
 import Globals from 'haiku-ui-common/lib/Globals'
+import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 
 const THROTTLE_TIME = 17 // ms
 
@@ -82,7 +83,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
               {skipDeselect: this.props.keyframe.isSelected(), directlySelected: true}
             )
 
-            this.props.ctxmenu.show({
+            PopoverMenu.emit('show', {
               type: 'keyframe',
               event: ctxMenuEvent.nativeEvent,
               model: this.props.keyframe,
@@ -111,7 +112,6 @@ export default class InvisibleKeyframeDragger extends React.Component {
 InvisibleKeyframeDragger.propTypes = {
   offset: React.PropTypes.number.isRequired,
   keyframe: React.PropTypes.object.isRequired,
-  ctxmenu: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,

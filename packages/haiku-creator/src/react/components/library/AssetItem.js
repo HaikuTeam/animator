@@ -6,9 +6,8 @@ import Asset from 'haiku-serialization/src/bll/Asset'
 import { Draggable } from 'react-drag-and-drop'
 import AssetList from './AssetList'
 import Collapse from 'react-collapse'
-import ContextMenu from './../../ContextMenu'
+import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import Palette from 'haiku-ui-common/lib/Palette'
-import ThreeDotMenu from '../ThreeDotMenu'
 import {
   CollapseChevronRightSVG,
   CollapseChevronDownSVG,
@@ -124,6 +123,7 @@ class AssetItem extends React.Component {
 
     this.handleCollapseToggle = this.handleCollapseToggle.bind(this)
     this.handleInstantiate = lodash.debounce(this.handleInstantiate.bind(this), 500, { trailing: true })
+    this.launchPopoverMenu = this.launchPopoverMenu.bind(this)
   }
 
   handleDeleteAsset () {
@@ -144,42 +144,6 @@ class AssetItem extends React.Component {
 
   handleShowAsset () {
     shell.showItemInFolder(this.props.asset.getAbspath())
-  }
-
-  handleContextMenu (event) {
-    let menu = new ContextMenu(this, {
-      library: true // Hacky: Used to configure what to display in the context menu; see ContextMenu.js
-    })
-
-    menu.on('context-menu:open-in-sketch', () => {
-      this.handleOpenAsset()
-    })
-
-    menu.on('context-menu:show-in-finder', () => {
-      this.handleShowAsset()
-    })
-  }
-
-  getThreeDotMenuItems () {
-    const items = []
-    if (this.props.asset.isSketchFile()) {
-      items.push({
-        label: 'Open Sketch',
-        icon: SketchIconSVG,
-        onClick: this.handleOpenAsset.bind(this)
-      })
-    }
-    items.push({
-      label: 'Show In Finder',
-      icon: FolderIconSVG,
-      onClick: this.handleShowAsset.bind(this)
-    })
-    items.push({
-      label: 'Remove',
-      icon: TrashIconSVG,
-      onClick: this.handleDeleteAsset.bind(this)
-    })
-    return items
   }
 
   renderChevy () {
@@ -211,6 +175,39 @@ class AssetItem extends React.Component {
     )
   }
 
+  launchPopoverMenu (event) {
+    PopoverMenu.launch({
+      event,
+      items: this.getAssetMenuItems()
+    })
+  }
+
+  getAssetMenuItems () {
+    const items = []
+
+    if (this.props.asset.isSketchFile()) {
+      items.push({
+        label: 'Open In Sketch',
+        icon: SketchIconSVG,
+        onClick: this.handleOpenAsset.bind(this)
+      })
+    }
+
+    items.push({
+      label: 'Show In Finder',
+      icon: FolderIconSVG,
+      onClick: this.handleShowAsset.bind(this)
+    })
+
+    items.push({
+      label: 'Delete',
+      icon: TrashIconSVG,
+      onClick: this.handleDeleteAsset.bind(this)
+    })
+
+    return items
+  }
+
   renderThreeDotMenu () {
     if (
       this.props.asset.isSketchFile() ||
@@ -221,8 +218,15 @@ class AssetItem extends React.Component {
         <span
           className='three-dot-menu-container'
           style={{ position: 'absolute', right: 10 }}>
-          <ThreeDotMenu
-            items={this.getThreeDotMenuItems()} />
+          <button
+            onClick={this.launchPopoverMenu}
+            style={{
+              padding: '0 5px',
+              backgroundColor: Palette.DARK_GRAY,
+              color: Palette.ROCK
+            }}>
+            &#5867;&#5867;&#5867;
+          </button>
         </span>
       )
     }
@@ -250,7 +254,6 @@ class AssetItem extends React.Component {
       return (
         <span
           className='sketch-icon-container'
-          onContextMenu={this.handleContextMenu.bind(this)}
           onDoubleClick={this.handleInstantiate}
           style={STYLES.cardIcon}>
           <SketchIconSVG />
@@ -305,6 +308,8 @@ class AssetItem extends React.Component {
       <span
         className='display-name-container'
         onDoubleClick={this.handleInstantiate}
+        onClick={this.launchPopoverMenu}
+        onContextMenu={this.launchPopoverMenu}
         style={[STYLES.displayName, this.isAssetOfActiveComponent() && STYLES.displayName.active]}>
         {this.props.asset.displayName}
       </span>

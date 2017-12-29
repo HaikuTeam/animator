@@ -5,6 +5,7 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import TimelineDraggable from './TimelineDraggable'
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG'
 import Globals from 'haiku-ui-common/lib/Globals'
+import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 
 import {
   EaseInBackSVG,
@@ -178,11 +179,12 @@ export default class TransitionBody extends React.Component {
 
             ctxMenuEvent.stopPropagation()
 
-            this.props.ctxmenu.show({
+            PopoverMenu.emit('show', {
               type: 'keyframe-transition',
               event: ctxMenuEvent.nativeEvent,
               model: this.props.keyframe,
-              offset: pxOffsetLeft
+              offset: pxOffsetLeft,
+              curve: this.props.keyframe.getCurve()
             })
           }}
           onMouseEnter={(reactEvent) => {
@@ -282,7 +284,6 @@ export default class TransitionBody extends React.Component {
 
 TransitionBody.propTypes = {
   keyframe: React.PropTypes.object.isRequired,
-  ctxmenu: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
   $update: React.PropTypes.object.isRequired,

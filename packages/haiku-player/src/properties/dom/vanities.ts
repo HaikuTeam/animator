@@ -764,21 +764,28 @@ const CONTROL_FLOW_VANITIES = {
       return void 0;
     }
 
-    if (typeof value !== 'number') {
-      throw new Error('controlFlow.placeholder expects null or number');
-    }
-
-    if (!context.config.children) {
+    if (typeof value !== 'number' && typeof value !== 'string') {
       return void 0;
     }
 
-    const children = Array.isArray(context.config.children)
-      ? context.config.children
-      : [context.config.children];
+    let surrogates;
 
-    component._markElementAnticipatedSurrogates(element, children);
+    // Surrogates can be passed in as React children (an array) or as an object
+    // of key/value pairs; in any event we will key-map using the passed value.
+    if (context.config.children) {
+      surrogates = Array.isArray(context.config.children)
+        ? context.config.children
+        : [context.config.children];
+    } else if (context.config.placeholder) {
+      surrogates = context.config.placeholder;
+    }
 
-    const surrogate = children[value];
+    if (!surrogates) {
+      return void 0;
+    }
+
+    const surrogate = surrogates[value];
+
     if (surrogate === null || surrogate === undefined) {
       return void 0;
     }
