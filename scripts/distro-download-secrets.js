@@ -1,36 +1,37 @@
-var path = require('path')
-var fse = require('fs-extra')
-var initializeAWSService = require('./helpers/initializeAwsService')
-var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
+const path = require('path');
+const fse = require('fs-extra');
+const initializeAWSService = require('./helpers/initializeAwsService');
+const forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction');
 
-var config = require('./../config')
-forceNodeEnvProduction()
+const config = require('./../config');
 
-var deploy = require('./deploy')
+forceNodeEnvProduction();
 
-var s3 = initializeAWSService(
+const deploy = require('./deploy');
+
+const s3 = initializeAWSService(
   'S3',
   'us-east-1',
   deploy.deployer[config.environment].key,
-  deploy.deployer[config.environment].secret
-)
+  deploy.deployer[config.environment].secret,
+);
 
-fse.mkdirpSync(deploy.vault)
+fse.mkdirpSync(deploy.vault);
 
 s3.getObject({
   Bucket: 'haiku-secrets',
-  Key: `certs/${deploy.certificate}`
+  Key: `certs/${deploy.certificate}`,
 }, (err, data) => {
-  if (err) throw err
-  console.log(`downloaded ${deploy.certificate}`)
-  fse.outputFileSync(path.join(deploy.vault, `${deploy.certificate}`), data.Body)
+  if (err) throw err;
+  console.log(`downloaded ${deploy.certificate}`);
+  fse.outputFileSync(path.join(deploy.vault, `${deploy.certificate}`), data.Body);
   s3.getObject({
     Bucket: 'haiku-secrets',
-    Key: `certs/${deploy.certificate}.password`
+    Key: `certs/${deploy.certificate}.password`,
   }, (err, data) => {
-    if (err) throw err
-    console.log(`downloaded ${deploy.certificate}.password`)
-    fse.mkdirpSync(deploy.vault)
-    fse.outputFileSync(path.join(deploy.vault, `${deploy.certificate}.password`), data.Body)
-  })
-})
+    if (err) throw err;
+    console.log(`downloaded ${deploy.certificate}.password`);
+    fse.mkdirpSync(deploy.vault);
+    fse.outputFileSync(path.join(deploy.vault, `${deploy.certificate}.password`), data.Body);
+  });
+});

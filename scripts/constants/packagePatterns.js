@@ -1,1 +1,1 @@
-module.exports = ['haiku-*', '@haiku/*']
+module.exports = ['haiku-*', '@haiku/*'];

@@ -1,19 +1,20 @@
-const async = require('async')
-const lodash = require('lodash')
-const cp = require('child_process')
-const fse = require('fs-extra')
-const inquirer = require('inquirer')
-const path = require('path')
-const argv = require('yargs').argv
-const log = require('./helpers/log')
+const async = require('async');
+const lodash = require('lodash');
+const cp = require('child_process');
+const fse = require('fs-extra');
+const inquirer = require('inquirer');
+const path = require('path');
+const {argv} = require('yargs');
+const log = require('./helpers/log');
 
-const allPackages = require('./helpers/packages')()
-const groups = lodash.keyBy(allPackages, 'shortname')
-const ROOT = path.join(__dirname, '..')
-const plumbingPackage = groups['plumbing']
-const blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
+const allPackages = require('./helpers/packages')();
 
-global.process.env.NODE_ENV = 'development'
+const groups = lodash.keyBy(allPackages, 'shortname');
+const ROOT = global.process.cwd();
+const plumbingPackage = groups.plumbing;
+const blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/');
+
+global.process.env.NODE_ENV = 'development';
 
 /**
  * Run this script when you want to start local development
@@ -23,27 +24,27 @@ const DEFAULTS = {
   dev: false,
   devChoice: 'everything',
   folderChoice: 'none',
-  skipInitialBuild: false
-}
+  skipInitialBuild: false,
+};
 
-const inputs = lodash.assign({}, DEFAULTS, argv)
-delete inputs._
-delete inputs.$0
+const inputs = lodash.assign({}, DEFAULTS, argv);
+delete inputs._;
+delete inputs.$0;
 
 // List of arguments following the command
-const args = argv._
+const args = argv._;
 
-const _branch = cp.execSync('git symbolic-ref --short -q HEAD || git rev-parse --short HEAD').toString().trim()
-log.log(`fyi, your current mono branch is ${JSON.stringify(_branch)}\n`)
-if (!inputs.branch) inputs.branch = _branch
+const branch = cp.execSync('git symbolic-ref --short -q HEAD || git rev-parse --short HEAD').toString().trim();
+log.log(`fyi, your current mono branch is ${JSON.stringify(branch)}\n`);
+if (!inputs.branch) inputs.branch = branch;
 
-const instructions = [] // The set of commands we're going to run
-const children = [] // Child processes for cleanup later
+const instructions = []; // The set of commands we're going to run
+const children = []; // Child processes for cleanup later
 
 const FOLDER_CHOICES = {
-  'default': null,
-  'none': null,
-  'blank': blankProject,
+  default: null,
+  none: null,
+  blank: blankProject,
   'blank-noclean': blankProject,
   'primitives-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/primitives'),
   'percy-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/percybanking'),
@@ -52,263 +53,264 @@ const FOLDER_CHOICES = {
   'comet-rotation-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/comet-rotation'),
   'ttt-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/TicTacToe1'),
   'complex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/complex'),
-  'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex')
-}
+  'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex'),
+};
 
 // Support:
 //   yarn start --default
 //   yarn start default
 //   yarn start --preset=default
 if (argv.default === true) {
-  argv.preset = 'default'
-} else if (!argv.hasOwnProperty('preset') && args.length > 0) {
-  argv.preset = args[0]
+  argv.preset = 'default';
+} else if (!argv.preset && args.length > 0) {
+  [argv.preset] = args;
 }
 
-const availablePresets = ['glass', 'timeline']
+const availablePresets = ['glass', 'timeline'];
 
-if (FOLDER_CHOICES.hasOwnProperty(argv.preset)) {
-  inputs.folderChoice = argv.preset
+if (FOLDER_CHOICES[argv.preset]) {
+  inputs.folderChoice = argv.preset;
 } else if (availablePresets.includes(argv.preset) && process.env.HAIKU_PROJECT_FOLDER) {
-  inputs.devChoice = argv.preset
+  inputs.devChoice = argv.preset;
 } else if (argv.preset === 'fast') {
-  inputs.skipInitialBuild = true
+  inputs.skipInitialBuild = true;
 } else {
-  delete argv.preset
+  delete argv.preset;
 }
 
-if (argv.preset) {
-  log.hat('running automatically with preset ' + argv.preset)
-  runAutomatic()
-} else {
-  runInteractive()
-}
+function setup() {
+  log.hat('preparing to develop locally', 'cyan');
 
-function runInteractive () {
-  async.series([
-    function (cb) {
-      inquirer.prompt([
-        {
-          type: 'list',
-          name: 'devChoice',
-          message: 'What do you want to develop?',
-          choices: [
-            { name: 'the whole chimichanga', value: 'everything' },
-            { name: 'just glass', value: 'glass' },
-            { name: 'just timeline', value: 'timeline' }
-          ],
-          default: inputs.devChoice
-        },
-        {
-          type: 'list',
-          name: 'folderChoice',
-          message: 'Project folder (select "none" to use the dashboard)',
-          choices: [
-            { name: 'none', value: 'none' },
-            { name: 'a fresh blank project', value: 'blank' },
-            { name: 'the previous "blank" project including content', value: 'blank-noclean' },
-            { name: 'primitives (glass)', value: 'primitives-glass' },
-            { name: 'percybanking (glass)', value: 'percy-glass' },
-            { name: 'simple (glass)', value: 'simple-gl' },
-            { name: 'SuperComplex (glass)', value: 'SuperComplex-glass' },
-            { name: 'complex (timeline)', value: 'complex-timeline' },
-            { name: 'SuperComplex (timeline)', value: 'SuperComplex-timeline' }
-          ],
-          default: inputs.folderChoice
-        },
-        {
-          type: 'confirm',
-          name: 'dev',
-          message: 'Automatically open Chrome Dev Tools?',
-          default: inputs.dev
-        }
-      ]).then(function (answers) {
-        lodash.assign(inputs, answers)
-        return cb()
-      })
-    },
-
-    function (cb) {
-      log.log(`inputs were: ${JSON.stringify(inputs, null, 2)}`)
-      inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'doProceed',
-          message: 'ok to proceed with "start"?',
-          default: true
-        }
-      ]).then(function (answers) {
-        if (answers.doProceed) {
-          log.log('ok, proceeding...')
-          return cb()
-        } else {
-          log.log('bailed')
-          process.exit()
-        }
-      })
-    }
-  ], function (err) {
-    if (err) throw err
-    runAutomatic()
-  })
-}
-
-function runAutomatic () {
-  setup()
-  go()
-}
-
-function setup () {
-  log.hat(`preparing to develop locally`, 'cyan')
-
-  process.env.DEV = (inputs.dev) ? '1' : undefined
-  process.env.HAIKU_SKIP_AUTOUPDATE = '1'
-  process.env.HAIKU_PLUMBING_PORT = '1024'
+  process.env.DEV = (inputs.dev) ? '1' : undefined;
+  process.env.HAIKU_SKIP_AUTOUPDATE = '1';
+  process.env.HAIKU_PLUMBING_PORT = '1024';
 
   // These are just stubbed out for completeness' sake
-  process.env.HAIKU_RELEASE_ENVIRONMENT = process.env.NODE_ENV
-  process.env.HAIKU_RELEASE_BRANCH = 'master'
-  process.env.HAIKU_RELEASE_PLATFORM = 'mac'
-  process.env.HAIKU_RELEASE_VERSION = require('./../package.json').version
-  process.env.HAIKU_AUTOUPDATE_SERVER = 'http://localhost:3002'
+  process.env.HAIKU_RELEASE_ENVIRONMENT = process.env.NODE_ENV;
+  process.env.HAIKU_RELEASE_BRANCH = 'master';
+  process.env.HAIKU_RELEASE_PLATFORM = 'mac';
+  process.env.HAIKU_RELEASE_VERSION = require('./../package.json').version;
+  process.env.HAIKU_AUTOUPDATE_SERVER = 'http://localhost:3002';
 
   if (inputs.devChoice === 'everything') {
-    process.env.HAIKU_PLUMBING_URL = 'http://0.0.0.0:1024'
+    process.env.HAIKU_PLUMBING_URL = 'http://0.0.0.0:1024';
     if (inputs.folderChoice === 'blank') {
-      fse.removeSync(blankProject)
-      fse.mkdirpSync(blankProject)
-      fse.outputFileSync(path.join(blankProject, '.keep'), '')
+      fse.removeSync(blankProject);
+      fse.mkdirpSync(blankProject);
+      fse.outputFileSync(path.join(blankProject, '.keep'), '');
     }
   } else {
-    process.env.MOCK_ENVOY = true
+    process.env.MOCK_ENVOY = true;
   }
 
   // Note the packages we would never want to develop for specific dev choices.
-  const appOwnedDeps = ['haiku-websockets', 'haiku-creator', 'haiku-plumbing']
+  const appOwnedDeps = ['haiku-websockets', 'haiku-creator', 'haiku-plumbing'];
   const devChoiceExclusions = {
     glass: appOwnedDeps.concat(['haiku-timeline']),
     timeline: appOwnedDeps.concat(['haiku-glass']),
-    everything: []
-  }
+    everything: [],
+  };
 
   allPackages.forEach((pack) => {
-    const {shortname} = pack
+    const {shortname} = pack;
     if (devChoiceExclusions[inputs.devChoice].includes(shortname)) {
-      return
+      return;
     }
 
     switch (shortname) {
       case 'player':
         // TS module, but one that uses "develop" for something different than watching.
-        instructions.push([shortname, ['yarn', 'watch']])
-        break
+        instructions.push([shortname, ['yarn', 'watch']]);
+        break;
       case 'websockets':
       case 'creator':
       case 'glass':
       case 'timeline':
       case 'plumbing':
         // Babel modules where we can skip the initial (slow) build.
-        instructions.push([shortname, ['yarn', 'watch', '--skip-initial-build']])
-        break
+        instructions.push([shortname, ['yarn', 'watch', '--skip-initial-build']]);
+        break;
       case 'state-object':
       case 'bytecode':
       case 'serialization':
       case 'fs-extra':
         // These don't have watchers or need special treatment.
-        break
+        break;
       default:
         // Standard, new way of doing things: `yarn develop`.
-        instructions.push([shortname, ['yarn', 'develop']])
-        break
+        instructions.push([shortname, ['yarn', 'develop']]);
+        break;
     }
-  })
+  });
 }
 
-function runInstruction (instruction) {
-  const pack = groups[instruction[0]]
-  const exec = instruction[1]
+function runInstruction(instruction) {
+  const pack = groups[instruction[0]];
+  const exec = instruction[1];
 
-  const cmd = exec[0]
+  const cmd = exec[0];
 
-  const args = exec.slice(1)
+  const instructionArgs = exec.slice(1);
 
-  log.log('running ' + cmd + ' ' + JSON.stringify(args) + ' in ' + pack.abspath)
+  log.log(`running ${cmd} ${JSON.stringify(instructionArgs)} in ${pack.abspath}`);
 
-  const child = cp.spawn(cmd, args, { cwd: pack.abspath, env: process.env, stdio: 'inherit' })
+  const child = cp.spawn(cmd, instructionArgs, {cwd: pack.abspath, env: process.env, stdio: 'inherit'});
 
   children.push({
-    info: { pack, cmd },
-    proc: child
-  })
+    info: {pack, cmd},
+    proc: child,
+  });
 }
 
-function go () {
+function go() {
   if (instructions.length < 1) {
-    throw new Error('[mono] no instructions found for this dev mode')
+    throw new Error('[mono] no instructions found for this dev mode');
   }
 
   if (inputs.skipInitialBuild) {
-    log.hat('skipping initial build')
+    log.hat('skipping initial build');
   } else {
-    log.hat('first compiling everything')
-    cp.execSync('yarn run compile-all', { cwd: ROOT, stdio: 'inherit' })
+    log.hat('first compiling everything');
+    cp.execSync('yarn run compile-all', {cwd: ROOT, stdio: 'inherit'});
   }
 
-  log.hat('starting local development', 'green')
+  log.hat('starting local development', 'green');
 
-  log.log(JSON.stringify(instructions))
+  log.log(JSON.stringify(instructions));
 
-  const chosenFolder = FOLDER_CHOICES[inputs.folderChoice]
+  const chosenFolder = FOLDER_CHOICES[inputs.folderChoice];
   if (chosenFolder) {
-    process.env.HAIKU_PROJECT_FOLDER = chosenFolder
+    process.env.HAIKU_PROJECT_FOLDER = chosenFolder;
   }
 
-  let startDelay = 0
-  let startScript
-  const startCommands = []
+  let startDelay = 0;
+  let startScript;
+  const startCommands = [];
   switch (inputs.devChoice) {
     case 'everything':
-      startScript = 'plumbing'
+      startScript = 'plumbing';
       // Wait 5 seconds for Plumbing to boot up, then start the watchers.
-      startDelay = 5000
-      startCommands.push('node', './HaikuHelper.js')
+      startDelay = 5000;
+      startCommands.push('node', './HaikuHelper.js');
       if (chosenFolder) {
-        startCommands.push(`--folder=${blankProject}`)
+        startCommands.push(`--folder=${blankProject}`);
       }
-      break
+      break;
     case 'glass':
-      startScript = 'glass'
-      startCommands.push('yarn', 'start')
-      break
+      startScript = 'glass';
+      startCommands.push('yarn', 'start');
+      break;
     case 'timeline':
-      startScript = 'timeline'
-      startCommands.push('yarn', 'start')
-      break
+      startScript = 'timeline';
+      startCommands.push('yarn', 'start');
+      break;
+    default:
+      throw new Error(`Unknown dev choice: ${inputs.devChoice}`);
   }
 
-  runInstruction([startScript, startCommands])
+  runInstruction([startScript, startCommands]);
 
   setTimeout(() => {
-    async.each(instructions, function (instruction, next) {
-      runInstruction(instruction)
-      next()
-    })
-  }, startDelay)
+    async.each(instructions, (instruction, next) => {
+      runInstruction(instruction);
+      next();
+    });
+  }, startDelay);
 }
 
-process.on('exit', exit)
-process.on('SIGINT', exit)
-process.on('SIGTERM', exit)
-process.on('uncaughtException', exit)
-
-function exit () {
-  log.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-  log.log('exiting; telling children to interrupt')
-  log.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-
-  children.forEach(function (child, index) {
-    if (child.proc.stdin) child.stdin.pause()
-    log.log('$$$$$ ' + index + ' ' + JSON.stringify(child.info))
-    child.proc.kill('SIGKILL')
-  })
+function runAutomatic() {
+  setup();
+  go();
 }
+
+function runInteractive() {
+  async.series([
+    (cb) => {
+      inquirer.prompt([
+        {
+          type: 'list',
+          name: 'devChoice',
+          message: 'What do you want to develop?',
+          choices: [
+            {name: 'the whole chimichanga', value: 'everything'},
+            {name: 'just glass', value: 'glass'},
+            {name: 'just timeline', value: 'timeline'},
+          ],
+          default: inputs.devChoice,
+        },
+        {
+          type: 'list',
+          name: 'folderChoice',
+          message: 'Project folder (select "none" to use the dashboard)',
+          choices: [
+            {name: 'none', value: 'none'},
+            {name: 'a fresh blank project', value: 'blank'},
+            {name: 'the previous "blank" project including content', value: 'blank-noclean'},
+            {name: 'primitives (glass)', value: 'primitives-glass'},
+            {name: 'percybanking (glass)', value: 'percy-glass'},
+            {name: 'simple (glass)', value: 'simple-gl'},
+            {name: 'SuperComplex (glass)', value: 'SuperComplex-glass'},
+            {name: 'complex (timeline)', value: 'complex-timeline'},
+            {name: 'SuperComplex (timeline)', value: 'SuperComplex-timeline'},
+          ],
+          default: inputs.folderChoice,
+        },
+        {
+          type: 'confirm',
+          name: 'dev',
+          message: 'Automatically open Chrome Dev Tools?',
+          default: inputs.dev,
+        },
+      ]).then((answers) => {
+        lodash.assign(inputs, answers);
+        cb();
+      });
+    },
+
+    (cb) => {
+      log.log(`inputs were: ${JSON.stringify(inputs, null, 2)}`);
+      inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'doProceed',
+          message: 'ok to proceed with "start"?',
+          default: true,
+        },
+      ]).then((answers) => {
+        if (answers.doProceed) {
+          log.log('ok, proceeding...');
+          cb();
+        }
+        log.log('bailed');
+        process.exit();
+      });
+    },
+  ], (err) => {
+    if (err) throw err;
+    runAutomatic();
+  });
+}
+
+if (argv.preset) {
+  log.hat(`running automatically with preset ${argv.preset}`);
+  runAutomatic();
+} else {
+  runInteractive();
+}
+
+function exit() {
+  log.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+  log.log('exiting; telling children to interrupt');
+  log.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+
+  children.forEach((child, index) => {
+    if (child.proc.stdin) child.stdin.pause();
+    log.log(`$$$$$ ${index} ${JSON.stringify(child.info)}`);
+    child.proc.kill('SIGKILL');
+  });
+}
+
+process.on('exit', exit);
+process.on('SIGINT', exit);
+process.on('SIGTERM', exit);
+process.on('uncaughtException', exit);

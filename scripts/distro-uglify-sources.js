@@ -20,8 +20,8 @@ glob(
       throw err;
     }
 
-    async.eachSeries(files, function (file, next) {
-      log.log('uglifying ' + file);
+    async.eachSeries(files, (file, next) => {
+      log.log(`uglifying ${file}`);
 
       const sourcePath = path.join(ROOT, file);
       fse.readFile(sourcePath, (err, data) => {
@@ -40,9 +40,9 @@ glob(
           next(err);
         });
       });
-    }, function (err) {
+    }, (err) => {
       if (err) throw err;
       log.hat('done uglifying');
     });
-  }
+  },
 );
