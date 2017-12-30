@@ -1,5 +1,5 @@
 module.exports = function react2haiku (reactInstance) {
-  const children = reactInstance.props.children
+  const children = reactInstance.props ? reactInstance.props.children : undefined
 
   return {
     elementName: reactInstance.type,
@@ -7,6 +7,6 @@ module.exports = function react2haiku (reactInstance) {
     // FIXME: we are only contemplating the case of elements with a single
     // children node, for more info on what we can do, see
     // https://github.com/HaikuTeam/mono/pull/89#discussion_r154820186
-    children: children ? [react2haiku(reactInstance.props.children)] : []
+    children: children ? [react2haiku(children)] : []
   }
 }
