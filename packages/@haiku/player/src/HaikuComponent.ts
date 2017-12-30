@@ -442,6 +442,7 @@ HaikuComponent.prototype.clearCaches = function clearCaches(options) {
         delete this._registeredElementEventListeners[flexId][eventName];
       }
     }
+    this._frameEventListeners = {};
   }
 
   // Gotta bind any event handlers that may have been dynamically added
