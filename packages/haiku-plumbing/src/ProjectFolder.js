@@ -11,11 +11,11 @@ import * as HaikuHomeDir from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Project from 'haiku-serialization/src/bll/Project'
 
 const PLUMBING_DIR = path.join(__dirname, '..')
-const PLUMBING_NODE_MODULES = path.join(PLUMBING_DIR, 'node_modules')
-const PLUMBING_PLAYER_INSTALL_PATH = path.join(PLUMBING_NODE_MODULES, '@haiku', 'player')
-// const PLUMBING_PKG = require('./../package.json')
 
-var PLAYER_PACKAGE_JSON = fse.readJsonSync(path.join(PLUMBING_PLAYER_INSTALL_PATH, 'package.json'), { throws: false })
+const PLAYER_PACKAGE_JSON = fse.readJsonSync(
+  require.resolve(path.join('@haiku/player', 'package.json')),
+  { throws: false }
+)
 if (!PLAYER_PACKAGE_JSON) {
   throw new Error('Plumbing needs its dependencies to be installed')
 }

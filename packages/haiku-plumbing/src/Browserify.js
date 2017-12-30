@@ -1,16 +1,7 @@
 var stream = require('stream')
 var browserify = require('browserify')
 var assign = require('lodash.assign')
-var tools = require('browserify-transform-tools')
-var remapSource = require('haiku-serialization/src/ast/remapSource')
 var logger = require('haiku-serialization/src/utils/LoggerInstance')
-var ModuleWrapper = require('haiku-serialization/src/bll/ModuleWrapper')
-
-var haikuify = tools.makeStringTransform('haikuify', {}, function (content, options, done) {
-  // TODO: Cache? Only run for some files?
-  var updated = remapSource(content, ModuleWrapper.getHaikuKnownImportMatch)
-  return done(null, updated)
-})
 
 function createBundle (folder, contents, standalone, options, cb) {
   logger.info('[browserify] beginning in basedir', folder)
@@ -20,8 +11,7 @@ function createBundle (folder, contents, standalone, options, cb) {
   entry.push(null)
   var opts = assign({}, {
     basedir: folder,
-    standalone: standalone,
-    transform: [haikuify]
+    standalone: standalone
   }, options)
 
   var br = browserify(entry, opts)

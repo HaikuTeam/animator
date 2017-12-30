@@ -4,10 +4,10 @@ var lodash = require('lodash')
 var log = require('./helpers/log')
 var uploadFileStream = require('./helpers/uploadFileStream')
 var nowVersion = require('./helpers/nowVersion')
-var allPackages = require('./helpers/allPackages')()
+var allPackages = require('./helpers/packages')()
 var groups = lodash.keyBy(allPackages, 'name')
 
-var PLAYER_PATH = groups['haiku-player'].abspath
+var PLAYER_PATH = groups['@haiku/player'].abspath
 
 // Note: These are hosted via the haiku-internal AWS account
 // https://code.haiku.ai/scripts/player/HaikuPlayer.${vers}.js

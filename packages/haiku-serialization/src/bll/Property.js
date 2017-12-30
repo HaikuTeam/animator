@@ -210,7 +210,7 @@ Property.TEXT_FRIENDLY_SVG_ELEMENTS = {
   text: true,
   textpath: true,
   textPath: true,
-  tspan: true,
+  tspan: true
 }
 
 Property.TEXT_FRIENDLY_HTML_ELEMENTS = {

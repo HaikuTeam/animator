@@ -2,7 +2,7 @@ var path = require('path')
 var cp = require('child_process')
 var lodash = require('lodash')
 var log = require('./helpers/log')
-var allPackages = require('./helpers/allPackages')()
+var allPackages = require('./helpers/packages')()
 var argv = require('yargs').argv
 var async = require('async')
 var Uglify2 = require('uglify-js')
@@ -28,7 +28,7 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development'
 }
 
-cp.execSync('yarn run compile', { cwd: PACKAGE_PATH, stdio: 'inherit' })
+cp.execSync('yarn compile', { cwd: PACKAGE_PATH, stdio: 'inherit' })
 
 if (argv.uglify) {
   var globule = path.join(PACKAGE_PATH, argv.uglify)

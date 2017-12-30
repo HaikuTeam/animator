@@ -59,11 +59,7 @@ export default class EnvoyServer {
           port,
           host: mergedOptions.host,
         },
-        (serverErr) => {
-          if (serverErr) {
-            throw serverErr;
-          }
-
+        () => {
           this.isServerReady = true;
           this.host = mergedOptions.host;
           this.port = port;

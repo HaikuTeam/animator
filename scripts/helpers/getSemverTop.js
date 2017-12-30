@@ -2,7 +2,7 @@ var fse = require('fs-extra')
 var semver = require('semver')
 var lodash = require('lodash')
 var path = require('path')
-var allPackages = require('./allPackages')()
+var allPackages = require('./packages')()
 
 module.exports = function getSemverTop () {
   var top

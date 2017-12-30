@@ -408,6 +408,32 @@ export class Glass extends React.Component {
       false
     )
 
+    document.addEventListener('mousewheel', (evt) => {
+      // on mac, this is triggered by a two-finger pan
+      if (!this.getActiveComponent()) {
+        return
+      }
+
+      let artboard = this.getActiveComponent().getArtboard()
+      const SCROLL_PAN_COEFFICIENT = 0.5 // 1x is default, smaller is slower
+      const deltaX = evt.wheelDeltaX
+      const deltaY = evt.wheelDeltaY
+
+      // HACK:  If you zoom and pan in quick succession, getZoom() will sometimes return 0 (or specifically, will return some value Y such that `1 / Y == Infinity`.)
+      //       [probably a FS-race related bug; should be fixed by decoupling FS read/write from an in-mem representation]
+      //       as a result, the logic that compensates for pan 'sensitivity' based on zoom goes haywire.
+      //
+      //       This null-coalesce (`|| SCROLL_PAN_COEFFICIENT`) works around this bug.
+      //       Ideally, Artboard#getZoom() should return a reliable value.
+      let scale = SCROLL_PAN_COEFFICIENT / ((artboard.getZoom() ^ 2) || SCROLL_PAN_COEFFICIENT)
+
+      const newX = deltaX * scale
+      const newY = deltaY * scale
+
+      artboard.snapshotOriginalPan()
+      this.performPan(newX, newY)
+    }, false)
+
     window.addEventListener(
       'drop',
       (event) => {
@@ -969,6 +995,11 @@ export class Glass extends React.Component {
       return void (0)
     }
 
+    // Cmd + 0 centers & resets zoom
+    if (Globals.isCommandKeyDown && keyEvent.nativeEvent.which === 48) {
+      this.getActiveComponent().getArtboard().resetZoomPan()
+    }
+
     switch (keyEvent.nativeEvent.which) {
       case 27: this.handleKeyEscape(); break
       case 37: this.handleKeyLeftArrow(keyEvent.nativeEvent); break
@@ -1209,7 +1240,7 @@ export class Glass extends React.Component {
       // used normally by the component instance for caching/deduping listeners in production.
       // If we don't do this, rendered elements that disappear and re-appear won't have the
       // event listener correctly applied to the newly created DOM node (listeners won't work)
-      this._haikuContext.component.clearRegisteredElementEventListeners();
+      this._haikuContext.component.clearRegisteredElementEventListeners()
 
       this._haikuRenderer.render(this.refs.overlay, container, overlay, this._haikuContext.component, false)
     } else {

@@ -3570,5 +3570,115 @@
       "label": "fix",
       "message": "disable uglify compress.unused for now."
     }
+  },
+  "2.3.62": {
+    "8a8a0159c5c41e3d0a749b49ac3d042898aecce3": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Get `yarn push` working fully."
+    },
+    "d6b3fd88441e1add1c236206ee72cea9ff21346f": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "actually place haiku-fs-extra deps."
+    },
+    "3b4f9df469d176c71b6d34550f01f96a352ac717": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Implement topological sort correctly ¯\\_(ツ)_/¯!"
+    },
+    "00d757d9a4753ed16167e1681044c11a14b1d9e5": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Get push working with new package accounting system."
+    },
+    "6a43ac325c796819b0d0cabf483c01594000792b": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "only allow valid glass start projects."
+    },
+    "54d5b1fca120b424a9eed8b754db8e511ef2fb84": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Ensure 'content' property gets written correctly to tspan elements"
+    },
+    "5164dde39f6a79591e0f4e0ab30bc35d485291e4": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Correct prop to indicate rot cursor"
+    },
+    "c19226127d9493fa5fbc6c04a4b96f7d0f78828f": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Make sure preview mode messages get passed correctly"
+    },
+    "29c156ebb6447a87777c1ef6e8e44b5ea5f109ab": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Use correct path when 'instantiating' Sketch asset"
+    },
+    "2719723618d741559814136698bb1d1d4663ae91": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Use the correct property for the element node"
+    },
+    "e6f7a1f32ce108d5a581c9bd4a3f58a0b45c5e2d": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Make sure hand-edits trigger code reloading"
+    },
+    "498a95671ec63497925b193d7d4139a7bc7e3485": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Fix regression displaying event handlers editor via frame action plus button"
+    },
+    "f2b5371c9b42999a2e4a25daabd4af6d728f763a": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Use the correct zoom/pan data when transforming elements on stage"
+    },
+    "dbd388ca71264c38e4654ce9f18d89b74f1b6b65": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Recenter the artboard when it is resized"
+    },
+    "da56d2e3baa3a8716701a394d088e0173a660ea2": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Fix bugs with cut/copy/paste"
+    },
+    "ce7a756b0cf62705ae9b8194659b3ed6ec9791b7": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Propagate mergeDesign through all the views"
+    }
+  },
+  "2.3.63": {},
+  "2.3.64": {
+    "58dbdd8fbe18beb861cf7ec7e48acd8e91390b18": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "Add a new player config option for strictSizing."
+    },
+    "af8bc378c24a450e3a2767084fbebaf00d44d3a7": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "Adds @haiku/sdk-inkstone endpoint for notifying inkstone a GIF has been published."
+    },
+    "117ef0f50c7850ed24bd1f3ca01448a2f4203086": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Preserve the coordinate system for transforms on images."
+    },
+    "c2778872833231aff2a4c6df5b516d2464a48248": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "Publish silently, and fetch the share link as soon as we have a commit sha."
+    },
+    "d39149ddb3f1465656a373bba47e626b58b7f807": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "ensure {sizing"
+    }
   }
 }

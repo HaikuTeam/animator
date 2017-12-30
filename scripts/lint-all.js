@@ -3,7 +3,7 @@ var cp = require('child_process')
 var path = require('path')
 var log = require('./helpers/log')
 var gitStatusInfo = require('./helpers/gitStatusInfo')
-var allPackages = require('./helpers/allPackages')()
+var allPackages = require('./helpers/packages')()
 var ROOT = path.join(__dirname, '..')
 
 async.eachSeries(allPackages, function (pack, next) {
