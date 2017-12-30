@@ -1,13 +1,12 @@
-const fse = require('fs-extra');
-const hb = require('handlebars');
-const path = require('path');
+var fse = require('fs-extra')
+var hb = require('handlebars')
+var path = require('path')
+var ROOT = global.process.cwd()
 
-const ROOT = global.process.cwd();
+module.exports = function writeHackyDynamicDistroConfig (inputs) {
+  var src = fse.readFileSync(path.join(ROOT, '_config.js.handlebars')).toString()
+  var tpl = hb.compile(src)
+  var result = tpl(inputs)
 
-module.exports = function writeHackyDynamicDistroConfig(inputs) {
-  const src = fse.readFileSync(path.join(ROOT, '_config.js.handlebars')).toString();
-  const tpl = hb.compile(src);
-  const result = tpl(inputs);
-
-  fse.writeFileSync(path.join(ROOT, 'config.js'), result);
-};
+  fse.writeFileSync(path.join(ROOT, 'config.js'), result)
+}

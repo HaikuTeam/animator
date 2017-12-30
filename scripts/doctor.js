@@ -1,9 +1,5 @@
-const checkYarnVersion = require('./helpers/checkYarnVersion');
-const checkNodeVersion = require('./helpers/checkNodeVersion');
-const allPackages = require('./helpers/packages')();
+const checkYarnVersion = require('./helpers/checkYarnVersion')
+const checkNodeVersion = require('./helpers/checkNodeVersion')
 
-checkYarnVersion();
-checkNodeVersion();
-allPackages.forEach((pack) => {
-
-});
+checkYarnVersion()
+checkNodeVersion()

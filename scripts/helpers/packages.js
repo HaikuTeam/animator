@@ -5,7 +5,7 @@ const path = require('path');
 const depTypes = require('../constants/depTypes');
 const packagePatterns = require('../constants/packagePatterns');
 
-const isHaikuDep = require('./isHaikuDep');
+const isHaikuDep = require('./isHaikuDep')
 
 const PACKAGE_ROOT = path.join(global.process.cwd(), 'packages/');
 const allPackages = {};

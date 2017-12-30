@@ -1,1 +1,1 @@
-module.exports = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'];
+module.exports = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']
