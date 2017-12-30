@@ -795,9 +795,7 @@ class Project extends BaseModel {
       fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom.js`), DOM_JS)
     }
 
-    if (!fse.existsSync(path.join(this.getFolder(), `code/${scenename}/dom-embed.js`))) {
-      fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom-embed.js`), DOM_EMBED_JS)
-    }
+    fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom-embed.js`), DOM_EMBED_JS)
 
     if (!fse.existsSync(path.join(this.getFolder(), `code/${scenename}/dom-standalone.js`))) {
       fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom-standalone.js`), DOM_STANDALONE_JS)
