@@ -1,4 +1,4 @@
-const child_process = require('child_process')
+const childProcess = require('child_process')
 const fse = require('fs-extra')
 const path = require('path')
 
@@ -16,18 +16,18 @@ const PACKAGES_DIR = 'packages'
 const RSYNC_FLAGS = [
   '--archive',
   '--quiet',
-  '--recursive', // Include dirs and subdirs
+  '--recursive' // Include dirs and subdirs
 ].join(' ')
 
 const YARN_INSTALL_FLAGS = [
   '--frozen-lockfile', // Force use of dependencies from yarn.lock
   '--non-interactive', // Don't prompt (just in case)
-  '--force', // Clean out any stripped-out dependencies
+  '--force' // Clean out any stripped-out dependencies
 ].join(' ')
 
 function logExec (cwd, cmd) {
   log.log(`${cwd} ${cmd}`)
-  return child_process.execSync(cmd, { cwd, stdio: 'inherit' })
+  return childProcess.execSync(cmd, { cwd, stdio: 'inherit' })
 }
 
 // Clear previous contents.
@@ -38,7 +38,7 @@ fse.writeJsonSync(path.join(DISTRO_DIR, 'package.json'), {
   name: 'haiku',
   description: 'Haiku for Teams',
   author: 'Haiku',
-  version: nowVersion(),
+  version: nowVersion()
 }, {spaces: 2})
 logExec(ROOT, `cp index.js config.js ${DISTRO_DIR}`)
 // Build everything, then load production dependencies.
@@ -49,14 +49,14 @@ logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production`)
 logExec(
   ROOT,
   `rsync ${RSYNC_FLAGS} --exclude=node_modules ${path.join(PACKAGES_DIR, 'haiku-plumbing')} \
-  ${path.join(DISTRO_DIR, 'packages')}`,
-);
+  ${path.join(DISTRO_DIR, 'packages')}`
+)
 // Hoist node_modules into haiku-plumbing with all workspace symlinks expanded.
 logExec(
   ROOT,
   `rsync ${RSYNC_FLAGS} -L node_modules --exclude=haiku-plumbing \
   ${path.join(DISTRO_DIR, 'packages', 'haiku-plumbing')}`
-);
+)
 // Restore dev dependencies in mono.
 logExec(ROOT, `yarn install ${YARN_INSTALL_FLAGS} --production=false`)
 // Uglify sources in release.
