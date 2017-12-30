@@ -1,6 +1,6 @@
 {
   "name": "haiku-ui-common",
-  "version": "2.3.61",
+  "version": "2.3.64",
   "description": "Common UI components for Haiku projects.",
   "main": "lib/index.js",
   "directories": {
@@ -19,16 +19,16 @@
     "Sasha Joseph <sasha@haiku.ai>"
   ],
   "devDependencies": {
-    "@types/node": "^8.0.17",
-    "@types/react": "16.0.29",
-    "haiku-testing": "HaikuTeam/testing.git",
-    "haiku-common": "HaikuTeam/common.git",
-    "nyc": "^11.2.1",
+    "@types/node": "^8.5.2",
+    "@types/react": "^15.4.2",
+    "haiku-testing": "2.3.64",
+    "haiku-common": "2.3.64",
+    "nyc": "^11.3.0",
     "tap-spec": "^4.1.1",
-    "tape": "^4.7.0",
+    "tape": "^4.8.0",
     "tslint": "^5.7.0",
     "tslint-config-haiku": "^1.0.0",
-    "typescript": "^2.4.2"
+    "typescript": "^2.5.2"
   },
   "license": "UNLICENSED",
   "dependencies": {
