@@ -1545,7 +1545,7 @@ class ActiveComponent extends BaseModel {
       }
 
       return this.reload({
-        hardReload: metadata.from !== this.alias,
+        hardReload: this.project.isRemoteRequest(metadata),
         clearCacheOptions: {
           clearPreviouslyRegisteredEventListeners: true
         }
