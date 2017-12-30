@@ -199,11 +199,6 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
   });
 
   // WINDOW
-  if (this.config.options.sizing && this.config.options.sizing !== 'normal' && !this.config.options.strictSizing) {
-    win.addEventListener('resize', () => {
-      this.shouldCreateContainer = true;
-    });
-  }
 
   // If there's any sizing mode that requires computation of container size and alwaysComputeSizing is *disabled*, make
   // an "overiding" assumption that we probably want to recompute the container when media queries change.
