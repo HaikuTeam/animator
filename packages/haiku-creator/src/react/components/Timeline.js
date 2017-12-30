@@ -15,9 +15,9 @@ export default class Timeline extends React.Component {
   componentDidMount () {
     this.injectWebview()
 
-    const tourChannel = this.props.envoy.get('tour')
+    const tourChannel = this.props.envoyClient.get('tour')
 
-    if (!this.props.envoy.isInMockMode()) {
+    if (!this.props.envoyClient.isInMockMode()) {
       tourChannel.then((tourChannel) => {
         this.tourChannel = tourChannel
         this.tourChannel.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
@@ -46,18 +46,12 @@ export default class Timeline extends React.Component {
       folder: this.props.folder,
       email: this.props.username,
       envoy: {
-        host: this.props.envoy.getOption('host'),
-        port: this.props.envoy.getOption('port')
+        host: this.props.envoyClient.getOption('host'),
+        port: this.props.envoyClient.getOption('port')
       }
     }))
 
-    // When building a distribution (see 'distro' repo) the node_modules folder is at a different level #FIXME matthew
-    let url
-    if (process.env.HAIKU_TIMELINE_URL_MODE === 'distro') {
-      url = `file://${path.join(__dirname, '..', '..', '..', '..', '..', 'node_modules', 'haiku-timeline', 'index.html')}?${query}`
-    } else {
-      url = `file://${path.join(__dirname, '..', '..', '..', 'node_modules', 'haiku-timeline', 'index.html')}?${query}`
-    }
+    const url = `file://${require.resolve(path.join('haiku-timeline', 'index.html'))}?${query}`
 
     this.webview.setAttribute('src', url)
     this.webview.setAttribute('id', 'timeline-webview')
@@ -72,18 +66,25 @@ export default class Timeline extends React.Component {
       switch (event.level) {
         case 0:
           if (event.message.slice(0, 8) === '[notice]') {
-            var msg = event.message.replace('[notice]', '').trim()
-            var notice = this.props.createNotice({ type: 'info', title: 'Notice', message: msg })
+            const message = event.message.replace('[notice]', '').trim()
+            const noticeNotice = this.props.createNotice({ type: 'info', title: 'Notice', message })
+            // It seems nicest to just remove the notice after it's been on display for a couple of seconds
             window.setTimeout(() => {
-              this.props.removeNotice(undefined, notice.id)
-            }, 1000)
+              this.props.removeNotice(undefined, noticeNotice.id)
+            }, 2000)
           }
           break
+
         // case 1:
         //   this.props.createNotice({ type: 'warning', title: 'Warning', message: event.message })
         //   break
+
         case 2:
-          this.props.createNotice({ type: 'error', title: 'Error', message: event.message })
+          const errorEotice = this.props.createNotice({ type: 'error', title: 'Error', message: event.message })
+          // It seems nicest to just remove the error after it's been on display for a couple of seconds
+          window.setTimeout(() => {
+            this.props.removeNotice(undefined, errorEotice.id)
+          }, 2000)
           break
       }
     })
@@ -121,6 +122,6 @@ export default class Timeline extends React.Component {
 Timeline.propTypes = {
   folder: React.PropTypes.string.isRequired,
   haiku: React.PropTypes.object.isRequired,
-  envoy: React.PropTypes.object.isRequired,
+  envoyClient: React.PropTypes.object.isRequired,
   onReady: React.PropTypes.func
 }

@@ -1,17 +1,30 @@
-const getMillisecondModulus = require('./helpers/getMillisecondModulus')
-const getFrameModulus = require('./helpers/getFrameModulus')
-const roundUp = require('./helpers/roundUp')
-const millisecondToNearestFrame = require('./helpers/millisecondToNearestFrame')
-const getMaximumMs = require('./helpers/getMaximumMs')
-const BaseModel = require('./BaseModel')
-const Keyframe = require('./Keyframe')
+const numeral = require('numeral')
 const lodash = require('lodash')
+const assign = require('lodash.assign')
+const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
+const getTimelineMaxTime = require('@haiku/player/lib/helpers/getTimelineMaxTime').default
+const BaseModel = require('./BaseModel')
+const MathUtils = require('./MathUtils')
 
 const DURATION_DRAG_INCREASE = 20 // Increase by this much per each duration increase
 const DURATION_DRAG_TIMEOUT = 300 // Wait this long before increasing the duration
 const DURATION_MOD_TIMEOUT = 100
 const STANDARD_DEBOUNCE = 100
 
+/**
+ * @class Timeline
+ * @description
+ *.  Representation of a Timeline of a component.
+ *.  Provides a convenient way to manage the internals of a timeline without
+ *.  being concerned with React and all the spaghetti therein.
+ *
+ *.  Allows you to manage:
+ *.    - Playback settings and state
+ *.    - Range of frames shown in the Timeline UI, zoom factor, etc.
+ *.    - Receiving updates to the current time
+ *.    - Querying for info about the state of the current frame, based on
+ *.      parameters related to the current zoom factor, offset, etc.
+ */
 class Timeline extends BaseModel {
   constructor (props, opts) {
     super(props, opts)
@@ -93,8 +106,8 @@ class Timeline extends BaseModel {
   play () {
     this._playing = true
     this._stopwatch = Date.now()
-    if (!this.component.getEnvoyClient().isInMockMode()) {
-      this.component.getEnvoyChannel('timeline').play(this.uid).then(() => {
+    if (!this.component.project.getEnvoyClient().isInMockMode()) {
+      this.component.project.getEnvoyChannel('timeline').play(this.uid).then(() => {
         this.update()
       })
     }
@@ -102,8 +115,8 @@ class Timeline extends BaseModel {
 
   pause () {
     this._playing = false
-    if (!this.component.getEnvoyClient().isInMockMode()) {
-      this.component.getEnvoyChannel('timeline').pause(this.uid).then((finalFrame) => {
+    if (!this.component.project.getEnvoyClient().isInMockMode()) {
+      this.component.project.getEnvoyChannel('timeline').pause(this.uid).then((finalFrame) => {
         this.setCurrentFrame(finalFrame)
         this.setAuthoritativeFrame(finalFrame)
       })
@@ -131,14 +144,14 @@ class Timeline extends BaseModel {
         // Which calls draw, which in turn calls component.setTimelineTimeValue.
         // Which in turn calls setCurrentTime, which alls Timeline.seekToTime,
         // which in turn calls seek (this method). Beware!
-        if (!skipTransmit && !this.component.getEnvoyClient().isInMockMode()) {
-          const timelineChannel = this.component.getEnvoyChannel('timeline')
+        if (!skipTransmit && !this.component.project.getEnvoyClient().isInMockMode()) {
+          const timelineChannel = this.component.project.getEnvoyChannel('timeline')
           // When ActiveComponent is loaded, it calls setTimelineTimeValue() -> seek(),
           // which may occur before Envoy channels are opened, hence this check.
           if (timelineChannel) {
             timelineChannel.seekToFrame(id, newFrame)
           } else {
-            console.warn(`[haiku:Timeline] envoy timeline channel not open (seekToFrame ${id}, ${newFrame})`)
+            console.warn(`[haiku:timeline] envoy timeline channel not open (seekToFrame ${id}, ${newFrame})`)
           }
         }
       }
@@ -162,8 +175,8 @@ class Timeline extends BaseModel {
   seekAndPause (newFrame) {
     this.setCurrentFrame(newFrame)
     this._playing = false
-    if (!this.component.getEnvoyClient().isInMockMode()) {
-      const timelineChannel = this.component.getEnvoyChannel('timeline')
+    if (!this.component.project.getEnvoyClient().isInMockMode()) {
+      const timelineChannel = this.component.project.getEnvoyChannel('timeline')
       // When ActiveComponent is loaded, it calls setTimelineTimeValue() -> seek(),
       // which may occur before Envoy channels are opened, hence this check.
       if (timelineChannel) {
@@ -207,7 +220,9 @@ class Timeline extends BaseModel {
   }
 
   getFPS () {
-    return this.component.instance.getClock().getFPS()
+    const instance = this.component.getPlayerComponentInstance()
+    if (!instance) return 60
+    return instance.getClock().getFPS()
   }
 
   getMaxFrame () {
@@ -221,6 +236,12 @@ class Timeline extends BaseModel {
 
   getCurrentFrame () {
     return this._currentFrame
+  }
+
+  getCurrentTime () {
+    const frameInfo = this.getFrameInfo()
+    const frame = this.getCurrentFrame()
+    return frame * frameInfo.mspf
   }
 
   hoverFrame (hoveredFrame) {
@@ -252,9 +273,10 @@ class Timeline extends BaseModel {
 
     // If we've loaded the instance, reach in and make sure its internals are up to date
     // with ours. TODO: Explore ways to avoid duplicating the source of truth
-    if (this.component.instance) {
-      const explicitTime = this.component.instance._context.clock.getExplicitTime()
-      const timelineInstances = this.component.instance._timelineInstances
+
+    this.component.eachPlayerComponentInstance((instance) => {
+      const explicitTime = instance._context.clock.getExplicitTime()
+      const timelineInstances = instance._timelineInstances
 
       for (const localTimelineName in timelineInstances) {
         if (localTimelineName !== timelineName) {
@@ -267,7 +289,7 @@ class Timeline extends BaseModel {
           timelineInstance._controlTime(timelineTime, explicitTime)
         }
       }
-    }
+    })
 
     this.emit('update', 'timeline-frame')
 
@@ -276,19 +298,22 @@ class Timeline extends BaseModel {
 
   togglePreviewPlayback (isPreviewMode) {
     const timelineName = this.component.getCurrentTimelineName()
-    const timelineInstances = this.component.instance._timelineInstances
-    const timelineInstance = timelineInstances[timelineName]
 
-    window.requestAnimationFrame(() => {
-      if (isPreviewMode) {
-        timelineInstance.unfreeze()
-        timelineInstance.gotoAndPlay(0)
-        timelineInstance.options.loop = true
-      } else {
-        timelineInstance.freeze()
-        timelineInstance.seek(0)
-        timelineInstance.options.loop = false
-      }
+    this.component.eachPlayerComponentInstance((instance) => {
+      const timelineInstances = instance._timelineInstances
+      const timelineInstance = timelineInstances[timelineName]
+
+      window.requestAnimationFrame(() => {
+        if (isPreviewMode) {
+          timelineInstance.unfreeze()
+          timelineInstance.gotoAndPlay(0)
+          timelineInstance.options.loop = true
+        } else {
+          timelineInstance.freeze()
+          timelineInstance.seek(0)
+          timelineInstance.options.loop = false
+        }
+      })
     })
   }
 
@@ -484,10 +509,10 @@ class Timeline extends BaseModel {
     frameInfo.mspf = 1000 / frameInfo.fps
 
     // The maximum milliseconds *as defined in the bytecode*
-    frameInfo.maxms = getMaximumMs(this.component.getReifiedBytecode(), this.component.getCurrentTimelineName())
+    frameInfo.maxms = Timeline.getMaximumMs(this.component.getReifiedBytecode(), this.component.getCurrentTimelineName())
 
     // The maximum frame *as defined in the bytecode*
-    frameInfo.maxf = millisecondToNearestFrame(frameInfo.maxms, frameInfo.mspf) // Maximum frame defined in the timeline
+    frameInfo.maxf = Timeline.millisecondToNearestFrame(frameInfo.maxms, frameInfo.mspf) // Maximum frame defined in the timeline
 
     // The lowest possible frame (always 0) (this is pointless but?)
     frameInfo.fri0 = 0
@@ -554,7 +579,7 @@ class Timeline extends BaseModel {
 
     const leftMostAbsolutePixel = Math.round(leftFrame * frameInfo.pxpf)
 
-    const frameModulus = getFrameModulus(frameInfo.pxpf)
+    const frameModulus = Timeline.getFrameModulus(frameInfo.pxpf)
 
     for (let i = leftFrame; i <= rightFrame; i++) {
       let pixelOffsetLeft = Math.round(i * frameInfo.pxpf)
@@ -598,9 +623,9 @@ class Timeline extends BaseModel {
     const rightMs = frameInfo.friB * frameInfo.mspf
     const totalMs = rightMs - leftMs
 
-    const msModulus = getMillisecondModulus(frameInfo.pxpf)
+    const msModulus = Timeline.getMillisecondModulus(frameInfo.pxpf)
 
-    const firstMarker = roundUp(leftMs, msModulus)
+    const firstMarker = MathUtils.roundUp(leftMs, msModulus)
 
     let msMarkerTmp = firstMarker
     const msMarkers = []
@@ -611,7 +636,7 @@ class Timeline extends BaseModel {
 
     for (let i = 0; i < msMarkers.length; i++) {
       let msMarker = msMarkers[i]
-      let nearestFrame = millisecondToNearestFrame(msMarker, frameInfo.mspf)
+      let nearestFrame = Timeline.millisecondToNearestFrame(msMarker, frameInfo.mspf)
       let msRemainder = Math.floor(nearestFrame * frameInfo.mspf - msMarker)
 
       // TODO: handle the msRemainder case rather than ignoring it
@@ -799,7 +824,7 @@ class Timeline extends BaseModel {
 
   normalizeMs (ms) {
     const frameInfo = this.getFrameInfo()
-    const nearestFrame = millisecondToNearestFrame(ms, frameInfo.mspf)
+    const nearestFrame = Timeline.millisecondToNearestFrame(ms, frameInfo.mspf)
     const finalMs = Math.round(nearestFrame * frameInfo.mspf)
     return finalMs
   }
@@ -819,19 +844,250 @@ Timeline.DEFAULT_OPTIONS = {
 
 BaseModel.extend(Timeline)
 
-Timeline.setCurrentTime = function setCurrentTime (time, skipTransmit, forceSeek) {
-  Timeline.all().forEach((timeline) => {
+Timeline.setCurrentTime = function setCurrentTime (criteria, time, skipTransmit, forceSeek) {
+  Timeline.where(criteria).forEach((timeline) => {
     timeline.seekToTime(time, skipTransmit, forceSeek)
   })
 }
 
-Timeline.setCurrent = function setCurrent (name) {
-  Timeline.all().forEach((timeline) => {
+Timeline.setCurrent = function setCurrent (criteria, name) {
+  Timeline.where(criteria).forEach((timeline) => {
     timeline._isCurrent = false
   })
-  const current = Timeline.find({ name: name })
+  const current = Timeline.find(assign({ name: name }, criteria))
   current._isCurrent = true
   return current
 }
 
+Timeline.eachTimelineKeyframeDescriptor = function eachTimelineKeyframeDescriptor (timelines, iteratee) {
+  for (const timelineName in timelines) {
+    for (const componentSelector in timelines[timelineName]) {
+      for (const propertyName in timelines[timelineName][componentSelector]) {
+        for (const keyframeMs in timelines[timelineName][componentSelector][propertyName]) {
+          iteratee(
+            timelines[timelineName][componentSelector][propertyName][keyframeMs],
+            keyframeMs,
+            propertyName,
+            componentSelector,
+            timelineName
+          )
+        }
+      }
+    }
+  }
+}
+
+Timeline.getFrameModulus = function getFrameModulus (pxpf) {
+  if (pxpf >= 20) return 1
+  if (pxpf >= 15) return 2
+  if (pxpf >= 10) return 5
+  if (pxpf >= 5) return 10
+  if (pxpf === 4) return 15
+  if (pxpf === 3) return 20
+  if (pxpf === 2) return 30
+  return 50
+}
+
+Timeline.getMillisecondModulus = function getMillisecondModulus (pxpf) {
+  if (pxpf >= 20) return 25
+  if (pxpf >= 15) return 50
+  if (pxpf >= 10) return 100
+  if (pxpf >= 5) return 200
+  if (pxpf === 4) return 250
+  if (pxpf === 3) return 500
+  if (pxpf === 2) return 1000
+  return 5000
+}
+
+Timeline.getMaximumMs = function getMaximumMs (reifiedBytecode, timelineName) {
+  if (!reifiedBytecode) {
+    return 0
+  }
+  if (!reifiedBytecode.timelines) {
+    return 0
+  }
+  if (!reifiedBytecode.timelines[timelineName]) {
+    return 0
+  }
+  return Timeline.getTimelineMaxTime(reifiedBytecode.timelines[timelineName])
+}
+
+// A cached version of the above that stores the max value so we
+// can avoid doing what is a rather expensive calculation every frame.
+// We also need to clear this cache; see `clearInMemoryBytecodeCaches`
+Timeline.getTimelineMaxTime = (timelineDescriptor) => {
+  if (timelineDescriptor.__max !== undefined) {
+    return timelineDescriptor.__max
+  }
+  timelineDescriptor.__max = getTimelineMaxTime(timelineDescriptor)
+  return timelineDescriptor.__max
+}
+
+Timeline.millisecondToNearestFrame = function millisecondToNearestFrame (msValue, mspf) {
+  return Math.round(msValue / mspf)
+}
+
+Timeline.UNIT_MAPPING = {
+  'translation.x': 'px',
+  'translation.y': 'px',
+  'translation.z': 'px',
+  'rotation.z': 'rad',
+  'rotation.y': 'rad',
+  'rotation.x': 'rad',
+  'scale.x': '',
+  'scale.y': '',
+  'opacity': '',
+  'shown': '',
+  'backgroundColor': '',
+  'color': '',
+  'fill': '',
+  'stroke': ''
+}
+
+Timeline.inferUnitOfValue = function inferUnitOfValue (propertyName) {
+  var unit = Timeline.UNIT_MAPPING[propertyName]
+  if (unit) {
+    return unit
+  }
+  return ''
+}
+
+Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timelineRow, options) {
+  const componentId = timelineRow.element.getComponentId()
+
+  const elementName = timelineRow.element.getNameString()
+
+  const propertyName = timelineRow.getPropertyNameString()
+
+  const hostInstance = timelineRow.component.fetchActiveBytecodeFile().getHostInstance()
+
+  const bytecodeFile = timelineRow.component.fetchActiveBytecodeFile()
+
+  const hostStates = bytecodeFile.getHostStates()
+
+  const serializedBytecode = bytecodeFile.getSerializedBytecode()
+
+  const reifiedBytecode = bytecodeFile.getReifiedBytecode()
+
+  const currentTimelineName = (options.timelineName)
+    ? options.timelineName
+    : timelineRow.component.getCurrentTimelineName()
+
+  const currentTimelineTime = (options.timelineTime !== undefined)
+    ? options.timelineTime
+    : timelineRow.component.getCurrentTimelineTime()
+
+  const propertyDescriptor = timelineRow.getDescriptor()
+
+  const fallbackValue = propertyDescriptor.fallback
+
+  const baselineValue = TimelineProperty.getBaselineValue(
+    componentId,
+    elementName,
+    propertyName,
+    currentTimelineName,
+    currentTimelineTime,
+    fallbackValue,
+    reifiedBytecode,
+    hostInstance,
+    hostStates
+  )
+
+  const baselineCurve = TimelineProperty.getBaselineCurve(
+    componentId,
+    elementName,
+    propertyName,
+    currentTimelineName,
+    currentTimelineTime,
+    fallbackValue,
+    reifiedBytecode,
+    hostInstance,
+    hostStates
+  )
+
+  const computedValue = TimelineProperty.getComputedValue(componentId,
+    elementName,
+    propertyName,
+    currentTimelineName,
+    currentTimelineTime,
+    fallbackValue,
+    reifiedBytecode,
+    hostInstance, hostStates
+  )
+
+  const assignedValueObject = TimelineProperty.getAssignedValueObject(componentId,
+    elementName,
+    propertyName,
+    currentTimelineName,
+    currentTimelineTime,
+    serializedBytecode
+  )
+
+  const assignedValue = assignedValueObject && assignedValueObject.value
+
+  const bookendValueObject = TimelineProperty.getAssignedBaselineValueObject(componentId,
+    elementName,
+    propertyName,
+    currentTimelineName,
+    currentTimelineTime,
+    serializedBytecode
+  )
+
+  const bookendValue = bookendValueObject && bookendValueObject.value
+
+  const valueType = propertyDescriptor.typedef || typeof baselineValue
+
+  let prettyValue
+  if (assignedValue !== undefined) {
+    if (assignedValue && typeof assignedValue === 'object' && assignedValue.__function) {
+      let cleanValue = Expression.retToEq(assignedValue.__function.body.trim())
+
+      if (cleanValue.length > 6) cleanValue = (cleanValue.slice(0, 6) + '…')
+
+      prettyValue = { text: cleanValue, style: { whiteSpace: 'nowrap' }, render: 'react' }
+    }
+  }
+
+  if (prettyValue === undefined) {
+    if (assignedValue === undefined && bookendValue !== undefined) {
+      if (bookendValue && typeof bookendValue === 'object' && bookendValue.__function) {
+        prettyValue = { text: '⚡', style: { fontSize: '11px' }, render: 'react' }
+      }
+    }
+  }
+
+  if (prettyValue === undefined) {
+    prettyValue = (valueType === 'number')
+      ? numeral(computedValue || 0).format(options.numFormat || '0,0[.]0')
+      : computedValue
+  }
+
+  const valueUnit = Timeline.inferUnitOfValue(propertyDescriptor.name)
+
+  const valueLabel = Property.humanizePropertyName(propertyName)
+
+  return {
+    timelineTime: currentTimelineTime,
+    timelineName: currentTimelineName,
+    propertyName,
+    valueType,
+    valueUnit,
+    valueLabel,
+    fallbackValue,
+    baselineValue,
+    baselineCurve,
+    computedValue,
+    assignedValue,
+    bookendValue,
+    prettyValue
+  }
+}
+
+Timeline.DEFAULT_NAME = 'Default'
+
 module.exports = Timeline
+
+// Down here to avoid Node circular dependency stub objects. #FIXME
+const Expression = require('./Expression')
+const Keyframe = require('./Keyframe')
+const Property = require('./Property')

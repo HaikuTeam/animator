@@ -2,7 +2,7 @@ const cp = require('child_process')
 
 const log = require('./log')
 
-const NODE_VERSION = '8.4.0'
+const NODE_VERSION = '8.9.3'
 
 module.exports = () => {
   const nodeVersion = cp.execSync('node --version').toString().trim()
@@ -13,5 +13,7 @@ module.exports = () => {
     log.warn(`  nvm install ${NODE_VERSION}`)
     log.warn(`  nvm alias default ${NODE_VERSION}`)
     log.warn('You have been warned!\n')
+  } else {
+    log.hat(`Using recommended version of Node (${NODE_VERSION})!`)
   }
 }

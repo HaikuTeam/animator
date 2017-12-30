@@ -43,7 +43,8 @@ class ProjectBrowser extends React.Component {
 
   componentDidMount () {
     this.loadProjects()
-    this.props.envoy.get('tour').then((tourChannel) => {
+
+    this.props.envoyClient.get('tour').then((tourChannel) => {
       this.tourChannel = tourChannel
 
       // FIXME | HACK: since the project browser now supports scrolling, we
@@ -446,6 +447,10 @@ class ProjectBrowser extends React.Component {
       </div>
     )
   }
+}
+
+ProjectBrowser.propTypes = {
+  envoyClient: React.PropTypes.object.isRequired
 }
 
 export default Radium(ProjectBrowser)

@@ -12,9 +12,6 @@ runFlakyCommand(() => {
   log.hat('installed dependencies')
 }, 'mono yarn install', 10)
 
-cp.execSync('yarn sync', processOptions)
-log.hat('synced packages')
-
 const gitHooksPath = path.join(global.process.cwd(), '.git', 'hooks')
 const repoHooksPath = path.join(global.process.cwd(), 'hooks')
 if (fse.existsSync(gitHooksPath)) {

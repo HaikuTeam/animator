@@ -1,6 +1,6 @@
 {
   "name": "haiku-timeline",
-  "version": "2.3.61",
+  "version": "2.3.64",
   "private": true,
   "license": "UNLICENSED",
   "authors": [
@@ -9,10 +9,10 @@
     "Zack Brown <zack@haiku.ai>"
   ],
   "scripts": {
-    "start": "electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
+    "start": "AUTOSTART=main electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
     "compile": "NODE_ENV=development babel src --out-dir lib --source-maps inline",
-    "test": "tape \"test/**/*.test.js\" | tap-spec",
+    "test": "NODE_ENV=development yarn compile && tape \"test/**/*.test.js\" | tap-spec",
     "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy"
   },
   "standard": {
@@ -27,36 +27,37 @@
     ]
   },
   "dependencies": {
-    "@haiku/player": "HaikuTeam/player.git",
+    "@haiku/player": "2.3.64",
     "archy": "^1.0.0",
     "classnames": "2.2.5",
     "codemirror": "^5.28.0",
-    "color": "1.0.3",
-    "decamelize": "1.2.0",
-    "haiku-bytecode": "HaikuTeam/bytecode.git",
-    "haiku-common": "HaikuTeam/common.git",
-    "haiku-fs-extra": "HaikuTeam/node-fs-extra.git#master-haiku",
-    "haiku-serialization": "HaikuTeam/serialization.git",
-    "haiku-ui-common": "HaikuTeam/ui-common.git",
-    "lodash": "4.17.4",
-    "numeral": "^2.0.4",
+    "color": "^2.0.1",
+    "decamelize": "^1.2.0",
+    "haiku-bytecode": "2.3.64",
+    "haiku-common": "2.3.64",
+    "haiku-fs-extra": "2.3.64",
+    "haiku-serialization": "2.3.64",
+    "haiku-ui-common": "2.3.64",
+    "jsdom": "^11.1.0",
+    "lodash": "^4.17.4",
+    "numeral": "^2.0.6",
     "qs": "6.4.0",
     "radium": "0.18.1",
     "raven-js": "^3.18.1",
     "react": "15.4.2",
     "react-dom": "15.4.2",
     "react-draggable": "2.2.3",
-    "react-popover": "0.4.4",
+    "react-popover": "^0.4.18",
     "react-scroll-to-component": "^1.0.1",
     "strip-indent": "^2.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
-    "babel-preset-react-app": "2.2.0",
-    "electron": "1.7.0",
+    "babel-preset-react-app": "^2.2.0",
+    "electron": "1.7.10",
     "snazzy": "^7.0.0",
     "standard": "^10.0.2",
-    "tap-spec": "4.1.1",
-    "tape": "4.6.3"
+    "tap-spec": "^4.1.1",
+    "tape": "^4.8.0"
   }
 }

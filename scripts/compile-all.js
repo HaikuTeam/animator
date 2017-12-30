@@ -2,8 +2,9 @@ const async = require('async')
 const cp = require('child_process')
 const fs = require('fs')
 const path = require('path')
+const argv = require('yargs').argv
 
-const allPackages = require('./helpers/allPackages')()
+const allPackages = require('./helpers/packages')()
 const log = require('./helpers/log')
 
 if (!process.env.NODE_ENV) {
@@ -15,7 +16,7 @@ async.each(allPackages, (pack, done) => {
   if (pack.pkg && pack.pkg.scripts && pack.pkg.scripts.compile) {
     const lastCompileFilename = path.join(pack.abspath, '.last-compile')
     let timeFilter = ''
-    if (fs.existsSync(lastCompileFilename)) {
+    if (!argv.force && fs.existsSync(lastCompileFilename)) {
       const lastCompile = require(lastCompileFilename)
       if (lastCompile.hasOwnProperty('lastCompileTime')) {
         timeFilter = `-newermt '${lastCompile.lastCompileTime}'`

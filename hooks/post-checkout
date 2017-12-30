@@ -16,7 +16,7 @@ with open(path.join('packages', 'haiku-common', 'config', 'experiments.json')) a
 
 if sys.argv[1] != sys.argv[2]:
   print 'Syncing dependencies....'
-  subprocess.call(['yarn', 'sync'])
+  subprocess.call(['yarn', 'install'])
 
 print 'NOTE: you are on a {} branch.'.format(experiment_branch)
 print 'The following experiments are enabled:'

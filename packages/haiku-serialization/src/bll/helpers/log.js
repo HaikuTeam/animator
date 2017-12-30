@@ -7,6 +7,10 @@ module.exports = {
     console.info('[notice] ' + msg)
   },
 
+  warn: function warn (msg) {
+    console.warn(msg)
+  },
+
   error: function error (err) {
     console.error(err)
   }

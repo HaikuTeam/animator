@@ -5,6 +5,8 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import ComponentHeadingRowHeading from './ComponentHeadingRowHeading'
 import CollapsedPropertyTimelineSegments from './CollapsedPropertyTimelineSegments'
 import EventHandlerTriggerer from './EventHandlerTriggerer'
+import PropertyManager from './PropertyManager'
+import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 
 export default class ComponentHeadingRow extends React.Component {
   render () {
@@ -40,7 +42,7 @@ export default class ComponentHeadingRow extends React.Component {
           width: '100%',
           cursor: 'pointer',
           position: 'relative',
-          zIndex: 1005,
+          zIndex: 1007,
           backgroundColor: this.props.row.isExpanded() ? 'transparent' : Palette.LIGHT_GRAY,
           verticalAlign: 'top',
           opacity: (this.props.row.isHidden()) ? 0.75 : 1.0
@@ -94,15 +96,41 @@ export default class ComponentHeadingRow extends React.Component {
               this.props.row.isExpanded()
                 ? {
                   marginLeft: this.props.row.isRootRow() ? '45px' : '57px',
-                  marginTop: '7px'
+                  marginTop: '7px',
+                  position: 'relative'
                 }
-                : {float: 'right', marginTop: '-15px'}
+                : {float: 'right', marginTop: '-15px', position: 'relative'}
             }
           >
-            <EventHandlerTriggerer
-              element={this.props.row.element}
-              onEventHandlerTriggered={this.props.onEventHandlerTriggered}
-            />
+            <div
+              style={{
+                width: 10,
+                position: 'absolute',
+                left: 0,
+                top: 0
+              }}>
+              <EventHandlerTriggerer
+                element={this.props.row.element}
+                onEventHandlerTriggered={this.props.onEventHandlerTriggered}
+              />
+            </div>
+
+            {(experimentIsEnabled(Experiment.JustInTimeProperties))
+              ? <div
+                style={{
+                  width: 10,
+                  position: 'absolute',
+                  left: 18,
+                  top: -1
+                }}>
+                {(this.props.row.isExpanded())
+                    ? <PropertyManager
+                      element={this.props.row.element}
+                        />
+                    : ''}
+              </div>
+              : ''}
+
           </div>
         </div>
         <div

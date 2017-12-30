@@ -236,7 +236,7 @@ export default class MasterGitProject extends EventEmitter {
       }
     ], (err) => {
       if (err) return cb(err)
-      logger.info(`[master-git] folder state fetch (${who}) done`)
+      // logger.info(`[master-git] folder state fetch (${who}) done`)
       return cb(null, this._folderState, previousState)
     })
   }

@@ -82,7 +82,8 @@ class Snippets extends React.PureComponent {
     }
 
     let range
-    const {lineNumber, column} = this.props.editor.getPosition()
+
+    const { lineNumber, column } = this.props.editor.getPosition()
 
     if (this.hasCursorPosition()) {
       range = new monaco.Range(lineNumber, column, lineNumber, column)

@@ -1,5 +1,6 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
+import StatesSVG from 'haiku-ui-common/lib/react/icons/StatesSVG'
 
 export default class PropertyRowHeading extends React.Component {
   constructor (props) {
@@ -28,22 +29,47 @@ export default class PropertyRowHeading extends React.Component {
   }
 
   render () {
+    let fontSize = 10
+    let marginTop = 0
+    if (this.props.humanName.length > 8) {
+      fontSize = 8
+      marginTop = -7
+    }
+
     return (
       <div style={{
+        position: 'relative',
         textTransform: 'uppercase',
-        fontSize: 10,
-        width: 91,
+        fontSize,
         lineHeight: 1,
-        float: 'right',
+        right: 0,
         color: (this.props.row.isHovered())
           ? Palette.SUNSTONE
           : Palette.ROCK,
         transform: this.props.humanName === 'background color'
           ? 'translateY(-2px)'
-          : 'translateY(3px)',
-        position: 'relative'
+          : 'translateY(3px)'
       }}>
-        {this.props.humanName}
+        {(this.props.row.isState())
+          ? <span
+            style={{
+              transform: 'scale(0.75)',
+              position: 'absolute',
+              top: -7,
+              left: 141
+            }}>
+            <StatesSVG color={Palette.BLUE} />
+          </span>
+          : ''}
+        <span
+          style={{
+            display: 'inline-block',
+            width: 55,
+            textAlign: 'right',
+            marginTop
+          }}>
+          {this.props.humanName}
+        </span>
       </div>
     )
   }

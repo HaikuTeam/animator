@@ -46,7 +46,7 @@ function getFallbackValue (componentId, elementName, outputName, valueAssignedIn
   if (!schema) {
     // If we don't have a value at 0, and if we are lacking an element spec, use whatever value
     // is assigned for the next keyframe (i.e. a constant segment)
-    console.warn('[bytecode] element missing fallback specification; using assignment value')
+    console.warn('[bytecode] schema for ' + elementName + ' not found; using assignment value')
     return valueAssignedInThisOperation
   }
 
@@ -54,7 +54,7 @@ function getFallbackValue (componentId, elementName, outputName, valueAssignedIn
 
   // If no property by this name, no choice but undefined
   if (!fallback) {
-    console.warn('[bytecode] element fallback missing for element ' + elementName)
+    console.warn('[bytecode] fallback for ' + elementName + ' not found; using undefined')
     return void (0)
   }
 
@@ -122,7 +122,7 @@ function getPropertyValueAtTime (timelinesObject, timelineName, componentId, ele
         var computedValue = hostInstance._builder.grabValue(
           timelineName,
           componentId,
-          hostInstance._findElementsByHaikuId(componentId)[0],
+          hostInstance.findElementsByHaikuId(componentId)[0],
           outputName, // propertyName
           propertiesGroup,
           time,

@@ -24,11 +24,18 @@ export default class ClusterInputField extends React.Component {
 
   render () {
     let clusterValues = this.props.row.getClusterValues()
+    let clusterName = this.props.row.getClusterNameString()
 
-    let valueElements = clusterValues.map((clusterVal, index) => {
-      let semi = (index === (clusterValues.length - 1)) ? '' : '; '
-      return <span key={index}>{remapPrettyValue(clusterVal.prettyValue)}{semi}</span>
-    })
+    let valueElements
+
+    if (clusterValues.length < 4 && clusterName !== 'Style') {
+      valueElements = clusterValues.map((clusterVal, index) => {
+        let semi = (index === (clusterValues.length - 1)) ? '' : '; '
+        return <span key={index}>{remapPrettyValue(clusterVal.prettyValue)}{semi}</span>
+      })
+    } else {
+      valueElements = [<span key={0}>{'{…}'}</span>]
+    }
 
     return (
       <div

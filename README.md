@@ -21,15 +21,15 @@ And add to `~/.ssh/config`:
 **Node/Yarn installation**
 
     $ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
-    $ nvm install 8.4.0
-    $ nvm alias default 8.4.0
-    $ curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.0.2
+    $ nvm install 8.9.3
+    $ nvm alias default 8.9.3
+    $ curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.3.6
 
 **Setup**
 
 After you clone the repository, simply run:
 
-    $ yarn setup
+    $ yarn install && yarn setup
 
 ## Development
 

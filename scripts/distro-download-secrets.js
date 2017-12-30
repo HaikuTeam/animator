@@ -1,6 +1,6 @@
 var path = require('path')
 var fse = require('fs-extra')
-var initializeAWSService = require('./helpers/initializeAWSService')
+var initializeAWSService = require('./helpers/initializeAwsService')
 var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
 
 var config = require('./../config')

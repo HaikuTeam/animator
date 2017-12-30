@@ -3,6 +3,7 @@ import Radium from 'radium'
 import lodash from 'lodash'
 import Color from 'color'
 import StateRow from './StateRow'
+import Loader from './Loader'
 import Palette from 'haiku-ui-common/lib/Palette'
 
 const STYLES = {
@@ -18,9 +19,9 @@ const STYLES = {
   },
   sectionHeader: {
     cursor: 'default',
-    height: 25,
+    // height: 25, // If you enable this, note that component names can be long; header may take multiple lines
     marginBottom: 8,
-    padding: '18px 14px 10px',
+    padding: '12px 14px 0px',
     textTransform: 'uppercase',
     display: 'flex',
     alignItems: 'center',
@@ -60,70 +61,68 @@ class StateInspector extends React.Component {
     }
   }
 
-  componentWillMount () {
-    this.props.websocket.request({ method: 'readAllStateValues', params: [this.props.folder] }, (err, statesData) => {
-      if (err) {
-        return this.props.createNotice({
-          title: 'Uh oh',
-          type: 'error',
-          message: 'There was a problem loading the states data for this project'
-        })
+  componentDidMount () {
+    this.props.projectModel.readAllStateValues(
+      (err, statesData) => {
+        if (err) {
+          return this.props.createNotice({
+            title: 'Uh oh',
+            type: 'error',
+            message: 'There was a problem loading the states data for this project'
+          })
+        }
+        this.setState({ statesData })
       }
-      this.setState({ statesData })
-    })
-
-    this.props.websocket.on('broadcast', (message) => {
-      if (message.name === 'state:set') {
-        // TODO: What?
-        console.info('[creator] state set', message.params[1])
-      }
-    })
+    )
   }
 
   upsertStateValue (stateName, stateDescriptor, maybeCb) {
-    console.info('[creator] inserting state', stateName, stateDescriptor)
+    this.props.projectModel.upsertStateValue(
+      stateName,
+      stateDescriptor,
+      (err) => {
+        if (err) {
+          return this.props.createNotice({
+            title: 'Uh oh',
+            type: 'error',
+            message: 'There was a problem editing that state value'
+          })
+        }
 
-    this.props.websocket.request({ type: 'action', method: 'upsertStateValue', params: [this.props.folder, stateName, stateDescriptor] }, (err) => {
-      if (err) {
-        return this.props.createNotice({
-          title: 'Uh oh',
-          type: 'error',
-          message: 'There was a problem editing that state value'
-        })
+        const statesData = this.state.statesData
+        statesData[stateName] = stateDescriptor
+        this.setState({statesData})
+
+        if (maybeCb) {
+          return maybeCb()
+        }
       }
-
-      const statesData = this.state.statesData
-      statesData[stateName] = stateDescriptor
-      this.setState({statesData})
-
-      if (maybeCb) {
-        return maybeCb()
-      }
-    })
+    )
 
     this.props.tourChannel.next()
   }
 
   deleteStateValue (stateName, maybeCb) {
-    console.info('[creator] deleting state', stateName)
+    return this.props.projectModel.deleteStateValue(
+      stateName,
+      (err) => {
+        if (err) {
+          return this.props.createNotice({
+            title: 'Uh oh',
+            type: 'error',
+            message: 'There was a problem deleting that state value'
+          })
+        }
 
-    this.props.websocket.request({ type: 'action', method: 'deleteStateValue', params: [this.props.folder, stateName] }, (err) => {
-      if (err) {
-        return this.props.createNotice({
-          title: 'Uh oh',
-          type: 'error',
-          message: 'There was a problem deleting that state value'
-        })
+        const statesData = this.state.statesData
+        delete statesData[stateName]
+        this.setState({statesData})
+
+        if (maybeCb) {
+          return maybeCb()
+        }
       }
-
-      const statesData = this.state.statesData
-      delete statesData[stateName]
-      this.setState({statesData})
-
-      if (maybeCb) {
-        return maybeCb()
-      }
-    })
+    )
   }
 
   openNewStateForm () {
@@ -136,11 +135,17 @@ class StateInspector extends React.Component {
     this.setState({addingNew: false})
   }
 
+  getHeadingText () {
+    if (!this.props.projectModel) return 'State Inspector'
+    if (!this.props.projectModel.getCurrentActiveComponent()) return 'State Inspector'
+    return `State Inspector (${this.props.projectModel.getCurrentActiveComponent().getSceneName()})`
+  }
+
   render () {
     return (
       <div style={STYLES.container}>
         <div style={STYLES.sectionHeader}>
-          State Inspector
+          {this.getHeadingText()}
           <button id='add-state-button' style={STYLES.button}
             onClick={this.openNewStateForm}>
             +
@@ -174,7 +179,7 @@ class StateInspector extends React.Component {
                   deleteStateValue={this.deleteStateValue} />
               )
             }).reverse()
-            : <div>LOADING...</div>
+            : <Loader />
           }
         </div>
       </div>

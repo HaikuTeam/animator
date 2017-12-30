@@ -18,7 +18,6 @@ const STYLES = {
     borderRadius: '4px',
     display: 'inline-flex',
     alignItems: 'center',
-
     text: {
       display: 'inline-block',
       marginRight: '5px'

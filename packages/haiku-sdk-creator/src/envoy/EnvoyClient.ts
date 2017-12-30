@@ -199,7 +199,7 @@ export default class EnvoyClient<T> {
     // If this is a response & the request id is in outstanding requests, resolve the stored promise w/ data.
     const datagram = <Datagram> JSON.parse(data);
     if (datagram.intent === DatagramIntent.RESPONSE && this.outstandingRequests.get(datagram.id)) {
-      this.logger.info('[haiku envoy client] received data', datagram.data);
+      // this.logger.info('[haiku envoy client] received data', datagram.data);
       this.outstandingRequests.get(datagram.id)(datagram.data);
       this.outstandingRequests.delete(datagram.id);
     } else if (datagram.intent === DatagramIntent.EVENT) {
@@ -223,7 +223,7 @@ export default class EnvoyClient<T> {
    */
   private flushQueue() {
     return new Promise((accept) => {
-      this.logger.info('[haiku envoy client] flushing queue');
+      // this.logger.info('[haiku envoy client] flushing queue');
       while (this.datagramQueue.length) {
         const datagram = this.datagramQueue.shift();
         this.connect(this.options).then(() => {
@@ -240,7 +240,7 @@ export default class EnvoyClient<T> {
    * @param datagram
    */
   private rawTransmit(datagram: Datagram) {
-    this.logger.info('[haiku envoy client] transmitting data', datagram);
+    // this.logger.info('[haiku envoy client] transmitting data', datagram);
     this.socket.send(JSON.stringify(datagram));
   }
 

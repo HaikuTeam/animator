@@ -1,3 +1,4 @@
+/* tslint:disable:variable-name */
 import * as React from 'react';
 
 export const EaseInOutQuartSVG = ({leftGradFill, rightGradFill, id}) => (

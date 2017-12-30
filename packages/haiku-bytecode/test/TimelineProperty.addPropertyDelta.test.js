@@ -1,7 +1,7 @@
 var test = require('tape')
 var TimelineProperty = require('./../src/TimelineProperty')
 var ValueBuilder = require('@haiku/player/lib/ValueBuilder').default
-function _findElementsByHaikuId () {
+function findElementsByHaikuId () {
   return { elementName: 'svg', attributes: {}, children: [] }
 }
 
@@ -10,7 +10,7 @@ test('TimelineProperty.addPropertyDelta', function(t) {
 
   var hostInstance = {}
   hostInstance._builder = new ValueBuilder(hostInstance)
-  hostInstance._findElementsByHaikuId = _findElementsByHaikuId
+  hostInstance.findElementsByHaikuId = findElementsByHaikuId
   var timelines =  {
     Default: {
       'haiku:abcde': {
