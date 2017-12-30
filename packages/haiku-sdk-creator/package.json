@@ -28,7 +28,7 @@
     "ws": "3.2.0"
   },
   "devDependencies": {
-    "@types/node": "^8.5.2",
+    "@types/node": "*",
     "@types/ws": "^3.0.2",
     "leaked-handles": "^5.2.0",
     "nyc": "^11.3.0",
