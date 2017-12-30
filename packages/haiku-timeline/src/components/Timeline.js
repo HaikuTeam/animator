@@ -2,18 +2,15 @@ import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
-
 import Project from 'haiku-serialization/src/bll/Project'
 import TimelineModel from 'haiku-serialization/src/bll/Timeline'
 import Row from 'haiku-serialization/src/bll/Row'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
-
 import Palette from 'haiku-ui-common/lib/Palette'
-
+import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import ControlsArea from './ControlsArea'
-import ContextMenu from './ContextMenu'
 import ExpressionInput from './ExpressionInput'
 import Scrubber from './Scrubber'
 import ClusterRow from './ClusterRow'
@@ -75,7 +72,6 @@ class Timeline extends React.Component {
     EmitterManager.extend(this)
 
     this.state = lodash.assign({}, DEFAULTS)
-    this.ctxmenu = new ContextMenu(window, this)
 
     Project.setup(
       this.props.folder,
@@ -272,29 +268,12 @@ class Timeline extends React.Component {
       }
     })
 
-    this.addEmitterListener(this.ctxmenu, 'createKeyframe', (event, model, offset) => {
-      const { ms } = this.getEventPositionInfo(event, offset)
-      // The model here might be
-      model.createKeyframe(undefined, ms, { from: 'timeline' })
-    })
-
-    this.addEmitterListener(this.ctxmenu, 'splitSegment', () => {
-      this.getActiveComponent().splitSelectedKeyframes({ from: 'timeline' })
-    })
-
-    this.addEmitterListener(this.ctxmenu, 'deleteKeyframe', () => {
-      this.getActiveComponent().deleteActiveKeyframes({ from: 'timeline' })
-    })
-
-    this.addEmitterListener(this.ctxmenu, 'joinKeyframes', (curveName) => {
-      this.getActiveComponent().joinSelectedKeyframes(curveName, { from: 'timeline' })
-      if (!this.project.getEnvoyClient().isInMockMode() && this.tourClient) {
-        this.tourClient.next()
-      }
-    })
-
-    this.addEmitterListener(this.ctxmenu, 'changeSegmentCurve', (curveName) => {
-      this.getActiveComponent().changeCurveOnSelectedKeyframes(curveName, { from: 'timeline' })
+    this.addEmitterListener(PopoverMenu, 'show', (payload) => {
+      const items = this.getPopoverMenuItems(payload)
+      PopoverMenu.launch({
+        event: payload.event,
+        items
+      })
     })
 
     this.addEmitterListener(Row, 'update', (row, what) => {
@@ -326,6 +305,184 @@ class Timeline extends React.Component {
     }
 
     this.setState({isPreviewModeActive})
+  }
+
+  getPopoverMenuItems ({ event, type, model, offset, curve }) {
+    const items = []
+
+    items.push({
+      label: 'Create Keyframe',
+      enabled: (
+        type === 'keyframe-segment' ||
+        type === 'keyframe-transition' ||
+        type === 'property-row' ||
+        type === 'cluster-row'
+      ),
+      onClick: (event) => {
+        const { ms } = this.getEventPositionInfo(event, offset)
+        // The model here might be
+        model.createKeyframe(undefined, ms, { from: 'timeline' })
+      }
+    })
+
+    items.push({ type: 'separator' })
+
+    items.push({
+      label: 'Delete Keyframe',
+      enabled: type === 'keyframe',
+      onClick: (event) => {
+        this.getActiveComponent().deleteActiveKeyframes({ from: 'timeline' })
+      }
+    })
+
+    items.push({ type: 'separator' })
+
+    items.push({
+      label: 'Make Tween',
+      enabled: type === 'keyframe-segment',
+      submenu: (type === 'keyframe-segment') && this.curvesMenu(curve, (event, curveName) => {
+        this.getActiveComponent().joinSelectedKeyframes(curveName, { from: 'timeline' })
+        if (this.tourClient && !this.project.getEnvoyClient().isInMockMode()) {
+          this.tourClient.next()
+        }
+      })
+    })
+
+    items.push({
+      label: 'Change Tween',
+      enabled: type === 'keyframe-transition',
+      submenu: (type === 'keyframe-transition') && this.curvesMenu(curve, (event, curveName) => {
+        this.getActiveComponent().changeCurveOnSelectedKeyframes(curveName, { from: 'timeline' })
+      })
+    })
+
+    items.push({
+      label: 'Remove Tween',
+      enabled: type === 'keyframe-transition',
+      onClick: (event) => {
+        this.getActiveComponent().splitSelectedKeyframes({ from: 'timeline' })
+      }
+    })
+
+    return items
+  }
+
+  curvesMenu (maybeCurve, cb) {
+    const items = []
+
+    items.push({
+      label: 'Linear',
+      enabled: (
+        maybeCurve !== 'linear' &&
+        maybeCurve !== 'Linear'
+      ),
+      onClick: (event) => {
+        return cb(event, 'linear')
+      }
+    })
+
+    items.push({
+      label: 'Ease In',
+      submenu: this.curveTypeMenu('easeIn', maybeCurve, cb)
+    })
+
+    items.push({
+      label: 'Ease Out',
+      submenu: this.curveTypeMenu('easeOut', maybeCurve, cb)
+    })
+
+    items.push({
+      label: 'Ease In Out',
+      submenu: this.curveTypeMenu('easeInOut', maybeCurve, cb)
+    })
+
+    return items
+  }
+
+  curveTypeMenu (baseCurve, maybeCurve, cb) {
+    const items = []
+
+    items.push({
+      label: 'Back',
+      enabled: maybeCurve !== baseCurve + 'Back',
+      onClick: (event) => {
+        return cb(event, baseCurve + 'Back')
+      }
+    })
+
+    items.push({
+      label: 'Bounce',
+      enabled: maybeCurve !== baseCurve + 'Bounce',
+      onClick: (event) => {
+        return cb(event, baseCurve + 'Bounce')
+      }
+    })
+
+    items.push({
+      label: 'Circ',
+      enabled: maybeCurve !== baseCurve + 'Circ',
+      onClick: (event) => {
+        return cb(event, baseCurve + 'Circ')
+      }
+    })
+
+    items.push({
+      label: 'Cubic',
+      enabled: maybeCurve !== baseCurve + 'Cubic',
+      onClick: (event) => {
+        return cb(event, baseCurve + 'Cubic')
+      }
+    })
+
+    items.push({
+      label: 'Elastic',
+      enabled: maybeCurve !== baseCurve + 'Elastic',
+      onClick: (event) => {
+        return cb(event, baseCurve + 'Elastic')
+      }
+    })
+
+    items.push({
+      label: 'Expo',
+      enabled: maybeCurve !== baseCurve + 'Expo',
+      onClick: (event) => {
+        return cb(event, baseCurve + 'Expo')
+      }
+    })
+
+    items.push({
+      label: 'Quad',
+      enabled: maybeCurve !== baseCurve + 'Quad',
+      onClick: (event) => {
+        return cb(event, baseCurve + 'Quad')
+      }
+    })
+
+    items.push({
+      label: 'Quart',
+      enabled: maybeCurve !== baseCurve + 'Quart',
+      onClick: (event) => {
+        return cb(event, baseCurve + 'Quart')
+      }
+    })
+
+    items.push({
+      label: 'Quint',
+      enabled: maybeCurve !== baseCurve + 'Quint',
+      onClick: (event) => {
+        return cb(event, baseCurve + 'Quint')
+      }
+    })
+
+    items.push({
+      label: 'Sine',
+      enabled: maybeCurve !== baseCurve + 'Sine',
+      onClick: (event) => {
+        return cb(event, baseCurve + 'Sine')
+      }
+    })
+
+    return items
   }
 
   getEventPositionInfo (event, extra) {
@@ -561,17 +718,17 @@ class Timeline extends React.Component {
   }
 
   showFrameActionsEditor (frame) {
-    const elementUID = this.getActiveComponent().findElementRoots()[0].getPrimaryKey()
+    const elementPrimaryKey = this.getActiveComponent().findElementRoots()[0].getPrimaryKey()
     this.showEventHandlersEditor(
-      elementUID,
+      elementPrimaryKey,
       frame
     )
   }
 
-  showEventHandlersEditor (elementUID, frame) {
+  showEventHandlersEditor (elementPrimaryKey, frame) {
     this.project.broadcastPayload({
       name: 'show-event-handlers-editor',
-      elid: elementUID,
+      elid: elementPrimaryKey,
       opts: {
         isSimplified: Boolean(frame)
       },
@@ -762,7 +919,6 @@ class Timeline extends React.Component {
               <ClusterRow
                 key={row.getUniqueKey()}
                 $update={this.state.$update}
-                ctxmenu={this.ctxmenu}
                 rowHeight={this.state.rowHeight}
                 isPlayerPlaying={this.state.isPlayerPlaying}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
@@ -777,7 +933,6 @@ class Timeline extends React.Component {
               <PropertyRow
                 key={row.getUniqueKey()}
                 $update={this.state.$update}
-                ctxmenu={this.ctxmenu}
                 rowHeight={this.state.rowHeight}
                 isPlayerPlaying={this.state.isPlayerPlaying}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
@@ -792,7 +947,6 @@ class Timeline extends React.Component {
               <ComponentHeadingRow
                 key={row.getUniqueKey()}
                 $update={this.state.$update}
-                ctxmenu={this.ctxmenu}
                 rowHeight={this.state.rowHeight}
                 isPlayerPlaying={this.state.isPlayerPlaying}
                 timeline={this.getActiveComponent().getCurrentTimeline()}

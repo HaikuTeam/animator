@@ -45,6 +45,13 @@ const EXPR_KINDS = {
   MACHINE: 2 // To be written as a function
 }
 
+const ANY_TYPES = {
+  '*': true,
+  'any': true
+}
+
+const SET_VALUE_ORIGIN = 'setValue'
+
 const EDITOR_LINE_HEIGHT = 24
 const MAX_EDITOR_HEIGHT = 300
 const MIN_EDITOR_WIDTH_MULTILINE = 200
@@ -68,6 +75,11 @@ function toValueDescriptor ({ bookendValue, computedValue }) {
       params: bookendValue.__function.params,
       body: bookendValue.__function.body
     }
+  }
+
+  // Don't show a literal 'null' string inside the input field
+  if (computedValue === null || computedValue === undefined) {
+    computedValue = ''
   }
 
   return {
@@ -125,7 +137,7 @@ export default class ExpressionInput extends React.Component {
     this.codemirror.on('beforeChange', (cm, changeObject) => {
       // If multiline mode, only allow a change to the function body, not the signature
       // Simply cancel any change that occurs in either of those places.
-      if (this.state.editingMode === EDITOR_MODES.MULTI_LINE && changeObject.origin !== 'setValue') {
+      if (this.state.editingMode === EDITOR_MODES.MULTI_LINE && changeObject.origin !== SET_VALUE_ORIGIN) {
         let lines = this.state.editedValue.body.split('\n')
         if (changeObject.from.line === 0 || changeObject.from.line > lines.length) {
           changeObject.cancel()
@@ -207,22 +219,24 @@ export default class ExpressionInput extends React.Component {
       let observedType = typeof committable
       let expectedType = original.valueType
 
-      if (observedType !== expectedType) {
-        return {
-          reason: `${original.valueLabel} must have type "${expectedType}"`
-        }
-      }
-
-      if (expectedType === 'number') {
-        if (Math.abs(committable) === Infinity) {
+      if (!ANY_TYPES[expectedType]) {
+        if (observedType !== expectedType) {
           return {
-            reason: 'Number cannot be infinity'
+            reason: `${original.valueLabel} must have type "${expectedType}"`
           }
         }
 
-        if (isNaN(committable)) {
-          return {
-            reason: 'Not a number!'
+        if (expectedType === 'number') {
+          if (Math.abs(committable) === Infinity) {
+            return {
+              reason: 'Number cannot be infinity'
+            }
+          }
+
+          if (isNaN(committable)) {
+            return {
+              reason: 'Not a number!'
+            }
           }
         }
       }
@@ -310,7 +324,7 @@ export default class ExpressionInput extends React.Component {
   }
 
   handleEditorChange (cm, changeObject) {
-    if (changeObject.origin === 'setValue') {
+    if (changeObject.origin === SET_VALUE_ORIGIN) {
       return void (0)
     }
 
@@ -428,8 +442,7 @@ export default class ExpressionInput extends React.Component {
       // Update the editor contents
       // We set 'skipFormatting' to true here so we don't get weird spacing issues
       let renderable = getRenderableValueMultiline(officialValue, true)
-
-      this.codemirror.setValue(renderable)
+      this.setEditorValue(renderable)
 
       // Now put the cursor where it was originally
       this.codemirror.setCursor(cursor2)
@@ -790,6 +803,10 @@ export default class ExpressionInput extends React.Component {
     })
   }
 
+  setEditorValue (value) {
+    this.codemirror.setValue(value)
+  }
+
   recalibrateEditor (cursor) {
     let renderable = ''
 
@@ -800,7 +817,7 @@ export default class ExpressionInput extends React.Component {
           scrollbarStyle: 'native'
         })
         renderable = getRenderableValueMultiline(this.state.editedValue)
-        this.codemirror.setValue(renderable)
+        this.setEditorValue(renderable)
         break
 
       default:
@@ -809,7 +826,7 @@ export default class ExpressionInput extends React.Component {
           scrollbarStyle: 'null'
         })
         renderable = getRenderableValueSingleline(this.state.editedValue)
-        this.codemirror.setValue(renderable)
+        this.setEditorValue(renderable)
     }
 
     // Must focus in order to correctly capture key events and put the curser in the field
@@ -1114,7 +1131,6 @@ export default class ExpressionInput extends React.Component {
             style={this.getInputLabelStyle()}>
             {this.getLabelString()}
           </span>
-
           <span
             id='expression-input-tooltip'
             style={this.getTooltipStyle()}>

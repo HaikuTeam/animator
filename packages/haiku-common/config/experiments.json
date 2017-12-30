@@ -7,7 +7,7 @@
     "production": false
   },
   "JustInTimeProperties": {
-    "development": false,
+    "development": true,
     "production": false
   },
   "InstantiationOfPrimitivesAsComponents": {

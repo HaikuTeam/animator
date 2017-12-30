@@ -18,8 +18,8 @@ export default function attachEventListener(virtualElement, domElement, eventNam
     }
 
     if (target) {
-      if (!component._hasRegisteredListenerOnElement(virtualElement, eventName)) {
-        component._markDidRegisterListenerOnElement(virtualElement, target, eventName, listener);
+      if (!component.hasRegisteredListenerOnElement(virtualElement, eventName)) {
+        component.markDidRegisterListenerOnElement(virtualElement, target, eventName, listener);
         target.addEventListener(eventName, listener);
       }
     }

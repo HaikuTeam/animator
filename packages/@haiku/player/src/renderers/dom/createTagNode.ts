@@ -17,6 +17,7 @@ export default function createTagNode(
 ) {
   const tagName = normalizeName(getTypeAsString(virtualElement));
   const flexId = getFlexId(virtualElement);
+
   let newDomElement;
   if (allSvgElementNames[tagName]) {
     // SVG
@@ -42,11 +43,13 @@ export default function createTagNode(
   const incomingKey =
     virtualElement.key ||
     (virtualElement.attributes && virtualElement.attributes.key);
+
   if (incomingKey !== undefined && incomingKey !== null) {
     newDomElement.haiku.key = incomingKey;
   }
 
   // updateElement recurses down into setAttributes, etc.
   updateElement(newDomElement, virtualElement, domElement, parentVirtualElement, component, null);
+
   return newDomElement;
 }

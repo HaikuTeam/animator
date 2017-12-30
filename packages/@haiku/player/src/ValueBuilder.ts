@@ -1011,17 +1011,20 @@ function areSummoneesDifferent(previous, incoming) {
     // A good quick check is just to compare the lengths
     if (previous.length !== incoming.length) {
       return true;
-    } else {
-      // Do an element-by-element comparison; if any fail, it all fails
-      for (let i = 0; i < incoming.length; i++) {
-        if (areSummoneesDifferent(previous[i], incoming[i])) {
-          return true;
-        }
-      }
-      // If we checked all elements, assume the arrays are the same
-      return false;
     }
-  } else if (typeof previous === OBJECT && typeof incoming === OBJECT) {
+
+    // Do an element-by-element comparison; if any fail, it all fails
+    for (let i = 0; i < incoming.length; i++) {
+      if (areSummoneesDifferent(previous[i], incoming[i])) {
+        return true;
+      }
+    }
+
+    // If we checked all elements, assume the arrays are the same
+    return false;
+  }
+
+  if (typeof previous === OBJECT && typeof incoming === OBJECT) {
     // Sub-objects detected; recurse and ask the same question
     if (previous !== null && incoming !== null) {
       for (const key in incoming) {
@@ -1031,13 +1034,19 @@ function areSummoneesDifferent(previous, incoming) {
       }
       // If we checked all properties, assume the objects are the same
       return false;
-    } else if (previous === null) {
-      return true;
-    } else if (incoming === null) {
+    }
+
+    if (previous === null) {
       return true;
     }
+
+    if (incoming === null) {
+      return true;
+    }
+
     return false;
   }
+
   return previous !== incoming;
 }
 
@@ -1155,9 +1164,9 @@ ValueBuilder.prototype.generateFinalValueFromParsedValue = function _generateFin
   const generator = this.getGenerator(outputName, matchingElement);
   if (generator) {
     return generator(computedValue);
-  } else {
-    return computedValue;
   }
+
+  return computedValue;
 };
 
 ValueBuilder.prototype.didChangeValue = function _didChangeValue(
@@ -1243,9 +1252,9 @@ ValueBuilder.prototype.build = function _build(
 
   if (isAnythingWorthUpdating) {
     return out;
-  } else {
-    return undefined;
   }
+
+  return undefined;
 };
 
 /**

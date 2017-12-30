@@ -2,6 +2,7 @@ import React from 'react'
 import Color from 'color'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Globals from 'haiku-ui-common/lib/Globals'
+import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 
 export default class ConstantBody extends React.Component {
   constructor (props) {
@@ -54,7 +55,7 @@ export default class ConstantBody extends React.Component {
 
           ctxMenuEvent.stopPropagation()
 
-          this.props.ctxmenu.show({
+          PopoverMenu.emit('show', {
             type: 'keyframe-segment',
             event: ctxMenuEvent.nativeEvent,
             model: this.props.keyframe,
@@ -106,7 +107,6 @@ export default class ConstantBody extends React.Component {
 
 ConstantBody.propTypes = {
   keyframe: React.PropTypes.object.isRequired,
-  ctxmenu: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
   $update: React.PropTypes.object.isRequired,

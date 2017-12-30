@@ -38,6 +38,10 @@ class Asset extends BaseModel {
 
   getSketchOriginRelpath () {
     const parts = this.relpath.split(path.sep)
+    // It's definitely not a sketch piece if its length doesn't match the pattern
+    if (parts.length !== 4) {
+      return null
+    }
     // Looking for a path like designs/Foo.sketch.contents/Slices
     const longSource = path.join(parts[0], parts[1], parts[2])
     const shortSource = path.join(parts[0], parts[1])

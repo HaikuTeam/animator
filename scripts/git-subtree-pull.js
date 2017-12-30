@@ -33,7 +33,6 @@ if (packageName === 'changelog') {
   } catch (exception) {
     log.log(exception.message)
   }
-  return
 }
 
 try {

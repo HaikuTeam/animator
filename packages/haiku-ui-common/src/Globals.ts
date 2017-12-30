@@ -1,3 +1,4 @@
+/* tslint:disable:variable-name */
 const Globals = {
   mouse: {x: 0, y: 0},
   // Control and shift keys are managed from Timeline.js

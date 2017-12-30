@@ -83,7 +83,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
               position: 'relative',
               zIndex: 1005,
               display: 'inline-block',
-              width: 145,
+              width: 100,
               height: 20
             }}>
             <span

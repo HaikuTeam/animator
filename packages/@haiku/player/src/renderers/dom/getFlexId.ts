@@ -7,11 +7,15 @@ const ID_ATTRIBUTE = 'id';
  * be either a virtual element in the mana format, or a vanilla dom node.
  */
 export default function getFlexId(element) {
+  let flexId;
+
   if (element) {
     if (element.getAttribute) {
-      return element.getAttribute(HAIKU_ID_ATTRIBUTE) || element.getAttribute(ID_ATTRIBUTE);
+      flexId = element.getAttribute(HAIKU_ID_ATTRIBUTE) || element.getAttribute(ID_ATTRIBUTE);
     } else if (element.attributes) {
-      return element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes[ID_ATTRIBUTE];
+      flexId = element.attributes[HAIKU_ID_ATTRIBUTE] || element.attributes[ID_ATTRIBUTE];
     }
   }
+
+  return flexId;
 }

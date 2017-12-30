@@ -27,12 +27,16 @@ export default function matchByTagName(node, tagName, options) {
   if (val) {
     if (typeof val === STRING && val === tagName) {
       return true;
-    } else if (typeof val === FUNCTION) {
+    }
+
+    if (typeof val === FUNCTION) {
       // Allow function constructors to act as the tag name
       if (getFnName(val) === tagName) {
         return true;
       }
-    } else if (typeof val === OBJECT) {
+    }
+
+    if (typeof val === OBJECT) {
       // Allow for things like instances to act as the tag name
       if (val.name === tagName || val.tagName === tagName) {
         return true;

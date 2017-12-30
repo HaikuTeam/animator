@@ -11,7 +11,7 @@ function createBundle (folder, contents, standalone, options, cb) {
   entry.push(null)
   var opts = assign({}, {
     basedir: folder,
-    standalone: standalone,
+    standalone: standalone
   }, options)
 
   var br = browserify(entry, opts)

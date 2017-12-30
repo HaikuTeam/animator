@@ -1,6 +1,7 @@
 import React from 'react'
 import lodash from 'lodash'
 import Radium from 'radium'
+import path from 'path'
 import HaikuDOMRenderer from '@haiku/player/lib/renderers/dom'
 import HaikuContext from '@haiku/player/lib/HaikuContext'
 import Project from 'haiku-serialization/src/bll/Project'
@@ -14,15 +15,20 @@ import react2haiku from 'haiku-serialization/src/utils/react2haiku'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Comment from './Comment'
 import EventHandlerEditor from './components/EventHandlerEditor'
-import Comments from './models/Comments'
-import ContextMenu from './models/ContextMenu'
+import Comments from './Comments'
+import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import getLocalDomEventPosition from 'haiku-ui-common/lib/helpers/getLocalDomEventPosition'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
-import {EventsBoltIcon} from 'haiku-ui-common/lib/react/OtherIcons'
+import {GearSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 
 const Globals = require('haiku-ui-common/lib/Globals').default
-const { clipboard } = require('electron')
+const { clipboard, shell } = require('electron')
+const fse = require('haiku-fs-extra')
+const moment = require('moment')
+const { HOMEDIR_PATH } = require('haiku-serialization/src/utils/HaikuHomeDir')
+
+fse.mkdirpSync(HOMEDIR_PATH)
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'glass'
@@ -54,7 +60,24 @@ const SELECTION_TYPES = {
   ON_STAGE_CONTROL: 'on_stage_control'
 }
 
-const BOLT_SVG = react2haiku(EventsBoltIcon({color: Palette.DARKER_ROCK2}))
+const BIG_NUMBER = 99999
+
+function niceTimestamp () {
+  return moment().format('YYYY-MM-DD-HHmmss')
+}
+
+function writeHtmlSnapshot (html, react) {
+  fse.mkdirpSync(path.join(HOMEDIR_PATH, 'snapshots'))
+  var filename = (react.props.projectName || 'Unknown') + '-' + niceTimestamp() + '.html'
+  var filepath = path.join(HOMEDIR_PATH, 'snapshots', filename)
+  fse.outputFile(filepath, html, (err) => {
+    if (err) return void (0)
+    shell.openItem(filepath)
+  })
+}
+
+const GEAR_REACT = GearSVG({color: Palette.DARKER_ROCK2})
+const GEAR_HAIKU = react2haiku(GEAR_REACT)
 
 // The class is exported also _without_ the radium wrapper to allow jsdom testing
 export class Glass extends React.Component {
@@ -103,7 +126,6 @@ export class Glass extends React.Component {
     )
 
     this._comments = new Comments(this.props.folder)
-    this._ctxmenu = new ContextMenu(window, this)
 
     this._playing = false
     this._stopwatch = null
@@ -131,12 +153,12 @@ export class Glass extends React.Component {
     )
 
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
-    this.handleBoltMousedown = this.handleBoltMousedown.bind(this)
-    this.boltInstanceMana = {
+    this.openContextMenu = this.openContextMenu.bind(this)
+    this.elementContextMenuButton = {
       elementName: 'div',
       attributes: {
-        id: `events-bolt-wrapper`,
-        onmousedown: this.handleBoltMousedown,
+        id: `element-menu-icon-wrapper`,
+        onmousedown: this.openContextMenu,
         style: {
           position: 'absolute',
           pointerEvents: 'auto',
@@ -147,15 +169,19 @@ export class Glass extends React.Component {
           top: '0px', // overwritten later
           border: '1px solid ' + Palette.DARKER_ROCK2,
           backgroundColor: 'transparent',
+          boxShadow: '0 2px 6px 0 ' + Palette.SHADY, // TODO: account for rotation
           width: '0px', // overwritten later
           height: '0px', // overwritten later
           borderRadius: '50%',
           cursor: 'pointer'
         }
       },
-      children: [BOLT_SVG]
+      children: [
+        GEAR_HAIKU
+      ]
     }
 
+    // For debugging
     window.glass = this
 
     // TODO: Is there any race condition with kicking this off immediately?
@@ -390,8 +416,8 @@ export class Glass extends React.Component {
 
       let artboard = this.getActiveComponent().getArtboard()
       const SCROLL_PAN_COEFFICIENT = 0.5 // 1x is default, smaller is slower
-      const deltaX = evt.wheelDeltaX,
-        deltaY = evt.wheelDeltaY
+      const deltaX = evt.wheelDeltaX
+      const deltaY = evt.wheelDeltaY
 
       // HACK:  If you zoom and pan in quick succession, getZoom() will sometimes return 0 (or specifically, will return some value Y such that `1 / Y == Infinity`.)
       //       [probably a FS-race related bug; should be fixed by decoupling FS read/write from an in-mem representation]
@@ -401,8 +427,8 @@ export class Glass extends React.Component {
       //       Ideally, Artboard#getZoom() should return a reliable value.
       let scale = SCROLL_PAN_COEFFICIENT / ((artboard.getZoom() ^ 2) || SCROLL_PAN_COEFFICIENT)
 
-      const newX = deltaX * scale,
-        newY = deltaY * scale
+      const newX = deltaX * scale
+      const newY = deltaY * scale
 
       artboard.snapshotOriginalPan()
       this.performPan(newX, newY)
@@ -499,50 +525,6 @@ export class Glass extends React.Component {
       this.setState({ comments: this._comments.comments })
     })
 
-    this._ctxmenu.on('click', (action, event, element) => {
-      switch (action) {
-        case 'Add Comment':
-          this._comments.build({ x: this._ctxmenu._menu.lastX, y: this._ctxmenu._menu.lastY })
-          this.setState({ comments: this._comments.comments, doShowComments: true }, () => {
-            this._ctxmenu.rebuild(this)
-          })
-          break
-        case 'Hide Comments':
-          this.setState({ doShowComments: !this.state.doShowComments }, () => {
-            this._ctxmenu.rebuild(this)
-          })
-          break
-        case 'Show Comments':
-          this.setState({ doShowComments: !this.state.doShowComments }, () => {
-            this._ctxmenu.rebuild(this)
-          })
-          break
-        case 'Show Event Listeners':
-          this.showEventHandlersEditor(event, element)
-          break
-        case 'Create Component':
-          this.createComponentFromSelectedElements()
-          break
-        case 'Edit Component':
-          this.editComponentElement(element)
-          break
-      }
-    })
-
-    // Pasteable things are stored at the global level in the clipboard but we need that action to fire from the top level
-    // so that all the views get the message, so we emit this as an event and then wait for the call to pasteThing
-    this._ctxmenu.on('current-pasteable:request-paste', (data) => {
-      if (this.isPreviewMode()) return
-      // Note that if you're running 'glass only' this isn't going to work since you don't have
-      // access to the other views; TODO mock this
-      this.props.websocket.send({
-        type: 'broadcast',
-        name: 'current-pasteable:request-paste',
-        from: 'glass',
-        data: data
-      })
-    })
-
     window.addEventListener('resize', lodash.throttle(() => {
       this.handleWindowResize()
     }), 64)
@@ -573,10 +555,6 @@ export class Glass extends React.Component {
         isMouseDown: false,
         isMouseDragging: false
       })
-
-      window.setTimeout(() => {
-        this._ctxmenu.show(contextmenuEvent, this)
-      }, 64)
     }, false)
   }
 
@@ -691,7 +669,7 @@ export class Glass extends React.Component {
   }
 
   saveEventHandlers (targetElement, serializedEvents) {
-    const selectorName = 'haiku:' + targetElement.uid
+    const selectorName = 'haiku:' + targetElement.getComponentId()
     this.getActiveComponent().batchUpsertEventHandlers(selectorName, serializedEvents, { from: 'glass' }, () => {})
   }
 
@@ -1259,12 +1237,14 @@ export class Glass extends React.Component {
       }
 
       // HACK! We already cache the control point listeners ourselves, so clear the cache
-      // used normally by the component instance for caching/deduping listeners in production
-      // this._haikuContext.component._registeredElementEventListeners = {}
+      // used normally by the component instance for caching/deduping listeners in production.
+      // If we don't do this, rendered elements that disappear and re-appear won't have the
+      // event listener correctly applied to the newly created DOM node (listeners won't work)
+      this._haikuContext.component.clearRegisteredElementEventListeners()
 
       this._haikuRenderer.render(this.refs.overlay, container, overlay, this._haikuContext.component, false)
     } else {
-      this._haikuRenderer.render(this.refs.overlay, {}, { elementName: 'div' }, this._haikuContext.component, false)
+      this._haikuRenderer.render(this.refs.overlay, { /* container */ }, { elementName: 'div' }, this._haikuContext.component, false)
     }
   }
 
@@ -1370,6 +1350,7 @@ export class Glass extends React.Component {
     }
 
     const scale = 1 / (this.getActiveComponent().getArtboard().getZoom() || 1)
+
     return {
       elementName: 'div',
       attributes: {
@@ -1442,21 +1423,25 @@ export class Glass extends React.Component {
     }
   }
 
-  handleBoltMousedown (event) {
+  openContextMenu (event) {
     event.preventDefault()
-    event.stopImmediatePropagation()
-    this.showEventHandlersEditor(null, this.getLastSelectedElement())
+    event.stopPropagation()
+
+    PopoverMenu.launch({
+      event,
+      items: this.getContextMenuItems()
+    })
   }
 
-  buildBoltInstance (x, y, rotationZ, scaleX, scaleY) {
+  buildElementContextMenuIcon (x, y, rotationZ, scaleX, scaleY) {
     const boltSize = 30
     const offsetLeft = Math.sign(scaleX) * (boltSize * Math.cos(rotationZ)) - boltSize / 2
     const offsetTop = Math.sign(scaleX) * (boltSize * Math.sin(rotationZ)) - boltSize / 2
-    this.boltInstanceMana.attributes.style.left = `${x + offsetLeft}px`
-    this.boltInstanceMana.attributes.style.top = `${y + offsetTop}px`
-    this.boltInstanceMana.attributes.style.width = `${boltSize}px`
-    this.boltInstanceMana.attributes.style.height = `${boltSize}px`
-    return this.boltInstanceMana
+    this.elementContextMenuButton.attributes.style.left = `${x + offsetLeft}px`
+    this.elementContextMenuButton.attributes.style.top = `${y + offsetTop}px`
+    this.elementContextMenuButton.attributes.style.width = `${boltSize}px`
+    this.elementContextMenuButton.attributes.style.height = `${boltSize}px`
+    return this.elementContextMenuButton
   }
 
   renderEventHandlersOverlay (element, points, overlays, rotationZ, scaleX, scaleY) {
@@ -1468,7 +1453,7 @@ export class Glass extends React.Component {
 
     if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) return
 
-    overlays.push(this.buildBoltInstance(x, y, rotationZ, scaleX, scaleY))
+    overlays.push(this.buildElementContextMenuIcon(x, y, rotationZ, scaleX, scaleY))
   }
 
   renderTransformBoxOverlay (maybeElement, points, overlays, canRotate, isRotationModeOn, canControlHandles, rotationZ, scaleX, scaleY) {
@@ -1501,11 +1486,6 @@ export class Glass extends React.Component {
 
     let lineDisplayMode = LINE_DISPLAY_MODES.NORMAL
     if (dx < POINTS_THRESHOLD_NONE || dy < POINTS_THRESHOLD_NONE) lineDisplayMode = LINE_DISPLAY_MODES.NONE
-
-    if (lineDisplayMode !== LINE_DISPLAY_MODES.NONE) {
-      const {x, y} = points[5]
-      overlays.push(this.buildBoltInstance(x, y))
-    }
 
     if (lineDisplayMode !== LINE_DISPLAY_MODES.NONE) {
       const corners = [points[0], points[2], points[8], points[6]]
@@ -1607,6 +1587,195 @@ export class Glass extends React.Component {
     return this.getActiveComponent().getArtboard().getArtboardRenderInfo()
   }
 
+  getContextMenuItems (menu) {
+    const items = []
+
+    const selectedElements = this.getActiveComponent().queryElements({ _isSelected: true })
+    const selectedElement = selectedElements.length === 1 && selectedElements[0]
+    const sourcePath = selectedElement && selectedElement.staticTemplateNode && selectedElement.staticTemplateNode.attributes && selectedElement.staticTemplateNode.attributes['source']
+    const sketchAssetPath = sourcePath && sourcePath.split(/\.sketch\.contents/)[0].concat('.sketch')
+
+    items.push({
+      label: (this.state.doShowComments)
+        ? 'Hide Comments'
+        : 'Show Comments',
+      enabled: this.state.comments && this.state.comments.length > 0,
+      onClick: () => {
+        this.setState({ doShowComments: !this.state.doShowComments })
+      }
+    })
+
+    items.push({
+      label: 'Add Comment',
+      onClick: () => {
+        this._comments.build({
+          x: menu.getLastX(),
+          y: menu.getLastY()
+        })
+
+        this.setState({ comments: this._comments.comments, doShowComments: true })
+      }
+    })
+
+    items.push({ type: 'separator' })
+
+    if (experimentIsEnabled(Experiment.MultiComponentFeatures)) {
+      items.push({
+        label: 'Create Component',
+        // If a single element is already a component, we don't let it be created as one
+        enabled: (
+          selectedElements.length > 0 &&
+          !(
+            selectedElements.length === 1 &&
+            selectedElement &&
+            selectedElement.isComponent()
+          )
+        ),
+        onClick: () => {
+          this.createComponentFromSelectedElements()
+        }
+      })
+
+      items.push({
+        label: 'Edit Component',
+        enabled: (
+          selectedElements.length === 1 &&
+          selectedElement &&
+          selectedElement.isComponent()
+        ),
+        onClick: () => {
+          this.editComponentElement(selectedElement)
+        }
+      })
+
+      items.push({ type: 'separator' })
+    }
+
+    items.push({
+      label: 'Edit Element Actions',
+      enabled: !!selectedElement,
+      onClick: (event) => {
+        this.showEventHandlersEditor(event, selectedElement)
+      }
+    })
+
+    items.push({ type: 'separator' })
+
+    items.push({
+      label: 'Edit in Sketch',
+      enabled: !!sourcePath,
+      onClick: () => {
+        shell.openItem(path.join(this.props.folder, sketchAssetPath))
+      }
+    })
+
+    items.push({ type: 'separator' })
+
+    items.push({
+      label: 'Cut',
+      enabled: !!selectedElement,
+      onClick: () => {
+        selectedElement.cut()
+      }
+    })
+
+    items.push({
+      label: 'Copy',
+      enabled: !!selectedElement,
+      onClick: () => {
+        selectedElement.copy()
+      }
+    })
+
+    items.push({
+      label: 'Paste',
+      enabled: selectedElements.length < 1, // TODO: How can we determine whether we have a pasteable ready?
+      onClick: (event) => {
+        if (this.isPreviewMode()) {
+          return
+        }
+
+        this.props.websocket.send({
+          type: 'broadcast',
+          name: 'current-pasteable:request-paste',
+          from: 'glass',
+          data: this.state.mousePositionCurrent
+        })
+      }
+    })
+
+    items.push({ type: 'separator' })
+
+    items.push({
+      label: 'Delete',
+      enabled: !!selectedElement,
+      onClick: () => {
+        selectedElement.remove({ from: 'glass' })
+      }
+    })
+
+    items.push({ type: 'separator' })
+
+    items.push({
+      label: 'Forward',
+      enabled: !!(selectedElement && !selectedElement.isAtFront()),
+      onClick: () => {
+        selectedElement.bringForward()
+      }
+    })
+
+    items.push({
+      label: 'Backward',
+      enabled: !!(selectedElement && !selectedElement.isAtBack()),
+      onClick: () => {
+        selectedElement.sendBackward()
+      }
+    })
+
+    items.push({
+      label: 'Bring to Front',
+      enabled: !!(selectedElement && !selectedElement.isAtFront()),
+      onClick: () => {
+        selectedElement.bringToFront()
+      }
+    })
+
+    items.push({
+      label: 'Send to Back',
+      enabled: !!(selectedElement && !selectedElement.isAtBack()),
+      onClick: () => {
+        selectedElement.sendToBack()
+      }
+    })
+
+    items.push({ type: 'separator' })
+
+    items.push({
+      label: 'Copy SVG',
+      enabled: !!selectedElement,
+      onClick: (event) => {
+        clipboard.writeText(selectedElement.toXMLString())
+      }
+    })
+
+    items.push({
+      label: 'HTML Snapshot',
+      enabled: !!selectedElement,
+      onClick: (event) => {
+        this.getActiveComponent().htmlSnapshot((err, html) => {
+          if (err) {
+            return
+          }
+
+          clipboard.writeText(html)
+          writeHtmlSnapshot(html, this)
+        })
+      }
+    })
+
+    return items
+  }
+
   render () {
     const {
       drawingClassName,
@@ -1615,8 +1784,6 @@ export class Glass extends React.Component {
       container,
       mount
     } = this.getArtboardRenderInfo()
-
-    const big = 99999
 
     return (
       <div
@@ -1656,6 +1823,9 @@ export class Glass extends React.Component {
               }
             })
           }
+        }}
+        onContextMenu={(event) => {
+          this.openContextMenu(event)
         }}
         onMouseUp={() => {
           if (!this.isPreviewMode()) {
@@ -1786,10 +1956,10 @@ export class Glass extends React.Component {
               {/* draw a semiopaque rect with a transparent cutout */}
               <path
                 d={`
-                  M-${big},-${big}
-                  V${big}
-                  H${big}
-                  V-${big}
+                  M-${BIG_NUMBER},-${BIG_NUMBER}
+                  V${BIG_NUMBER}
+                  H${BIG_NUMBER}
+                  V-${BIG_NUMBER}
                   Z
                   M${mount.x + mount.w},${mount.y + mount.h}
                   H${mount.x}
@@ -1822,10 +1992,10 @@ export class Glass extends React.Component {
               {/* draw a semiopaque rect with a transparent cutout */}
               <path
                 d={`
-                  M-${big},-${big}
-                  V${big}
-                  H${big}
-                  V-${big}
+                  M-${BIG_NUMBER},-${BIG_NUMBER}
+                  V${BIG_NUMBER}
+                  H${BIG_NUMBER}
+                  V-${BIG_NUMBER}
                   Z
                   M${mount.x + mount.w},${mount.y + mount.h}
                   H${mount.x}
@@ -1890,16 +2060,16 @@ export class Glass extends React.Component {
             ? <div
               ref='overlay'
               id='haiku-glass-overlay-mount'
-              height={this.getContainerHeight()}
-              width={container.w}
               style={{
                 transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
                 pointerEvents: 'none', // This needs to be un-set for surface elements that take mouse interaction
-                position: 'relative',
+                width: container.w,
+                height: this.getContainerHeight(),
+                position: 'absolute',
                 overflow: 'visible',
                 top: container.y,
                 left: container.x,
-                zIndex: 1000,
+                zIndex: 1999,
                 opacity: (this.state.isEventHandlerEditorOpen) ? 0.5 : 1.0
               }} />
             : ''}

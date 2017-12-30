@@ -56,7 +56,9 @@ function interpolate(now, curve, started, ends, origin, destination) {
       );
     }
     return arrayOutput;
-  } else if (typeof origin === OBJECT) {
+  }
+
+  if (typeof origin === OBJECT) {
     const objectOutput = {};
     for (const key in origin) {
       objectOutput[key] = interpolate(
@@ -69,11 +71,13 @@ function interpolate(now, curve, started, ends, origin, destination) {
       );
     }
     return objectOutput;
-  } else if (typeof origin === NUMBER) {
-    return interpolateValue(origin, destination, started, ends, now, curve);
-  } else {
-    return origin;
   }
+
+  if (typeof origin === NUMBER) {
+    return interpolateValue(origin, destination, started, ends, now, curve);
+  }
+
+  return origin;
 }
 
 function ascendingSort(a, b) {

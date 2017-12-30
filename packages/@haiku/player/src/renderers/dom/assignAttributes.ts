@@ -67,7 +67,9 @@ function setAttribute(el, key, val, cache) {
 }
 
 export default function assignAttributes(domElement, virtualElement, component, isPatchOperation) {
-  const cache = component.cache[getFlexId(virtualElement)];
+  const flexId = getFlexId(virtualElement);
+
+  const cache = component.cache[flexId];
 
   if (!isPatchOperation) {
     // Remove any attributes from the previous run that aren't present this time around
@@ -75,6 +77,7 @@ export default function assignAttributes(domElement, virtualElement, component, 
       for (const oldKey in domElement.haiku.element.attributes) {
         const oldValue = domElement.haiku.element.attributes[oldKey];
         const newValue = virtualElement.attributes[oldKey];
+
         if (oldKey !== STYLE) {
           // Removal of old styles is handled downstream; see assignStyle()
           if (newValue === null || newValue === undefined || oldValue !== newValue) {

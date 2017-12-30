@@ -21,7 +21,6 @@ export default class CollapsedPropertyTimelineSegments extends React.Component {
           row={this.props.row}
           component={this.props.component}
           $update={this.props.$update}
-          ctxmenu={this.props.ctxmenu}
           timeline={this.props.timeline}
           rowHeight={this.props.rowHeight} />
       </div>
@@ -31,7 +30,6 @@ export default class CollapsedPropertyTimelineSegments extends React.Component {
 
 CollapsedPropertyTimelineSegments.propTypes = {
   row: React.PropTypes.object.isRequired,
-  ctxmenu: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,

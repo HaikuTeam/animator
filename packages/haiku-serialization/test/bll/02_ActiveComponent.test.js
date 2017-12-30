@@ -41,7 +41,7 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
         t.equal(subtemplate.attributes['haiku-id'], mana.attributes['haiku-id'], 'template id ok')
         return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
           t.error(err, 'no err fetching code')
-          t.equal(contents.length, 6406, 'checksum of file ok')
+          t.equal(contents.length, 5952, 'checksum of file ok')
           fse.removeSync(folder)
           t.ok(true)
         })
@@ -124,7 +124,7 @@ tape('ActiveComponent.prototype.mergeDesign[1](design)', (t) => {
               })
               t.deepEqual(diffs[0],[ '        "sizeAbsolute.x": { "0": { value: 99 } },', '        "sizeAbsolute.x": { "0": { value: 777 } },' ],'diff ok')
               t.deepEqual(diffs[1],[ '        "sizeAbsolute.y": { "0": { value: 69 } },', '        "sizeAbsolute.y": { "0": { value: 111 } },' ],'diff ok')
-              t.deepEqual(diffs[2],[ '        foobar: { "0": { value: "url(#abc123-0d1946)" } },', '        foobar: { "0": { value: "url(#abc123-ec5594)" } },' ],'diff ok')
+              t.deepEqual(diffs[2],[ '        foobar: { "0": { value: "url(#abc123-0d1946)" } },', '        foobar: { "0": { value: "url(#abc123-d9e034)" } },' ],'diff ok')
               t.deepEqual(diffs[3],[ '        stroke: { "0": { value: "#979797" } },', '        stroke: { "0": { value: "#AAAAAA" } },' ],'diff ok')
               t.deepEqual(diffs[4],[ '        "translation.x": { "0": { value: -283 } },', '        "translation.x": { "0": { value: -200 } },' ],'diff ok')
               t.deepEqual(diffs[5],[ '        "translation.y": { "0": { value: -254 } }', '        "translation.y": { "0": { value: -500 } }' ],'diff ok')
@@ -253,14 +253,50 @@ tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
         const pasteable1 = el1.getClipboardPayload('test')
         return ac0.pasteThing(pasteable1, { x: 100, y: 100 }, { from: 'test' }, (err) => {
           t.error(err, 'no err from paste')
-          t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'],`${mana.attributes['haiku-id']}-f4aa2e`)
-          t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}-f4aa2e`])
+          t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'],`${mana.attributes['haiku-id']}-9dabd6`)
+          t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}-9dabd6`])
           fse.removeSync(folder)
         })
       })
     })
   })
 })
+
+tape('ActiveComponent.prototype.batchUpsertEventHandlers[1]', (t) => {
+  t.plan(1)
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'BUEH-01')
+  fse.removeSync(folder)
+  const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
+  const platform = {}
+  const userconfig = {}
+  const fileOptions = { doShallowWorkOnly: false, skipDiffLogging: true }
+  const envoyOptions = { mock: true }
+  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+    return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
+      if (err) throw err
+      const ac0 = project.getCurrentActiveComponent()
+      const haikuId = ac0.getArtboard().getElementHaikuId()
+      const selectorName = `haiku:${haikuId}`
+      return ac0.batchUpsertEventHandlers(selectorName, SERIALIZED_EVENTS, { from: 'test' }, (err) => {
+        if (err) throw err
+        t.equal(typeof ac0.getReifiedBytecode().eventHandlers[selectorName].click.handler, 'function', 'handler is fn')
+      })
+    })
+  })
+})
+
+const SERIALIZED_EVENTS = {
+  "click": {
+    "handler": {
+      "__function": {
+        "params": ["event"],
+        "body": "/** action logic goes here */\nconsole.log(12);",
+        "type":"FunctionExpression",
+        "name":null
+      }
+    }
+  }
+}
 
 const PATH_SVG_1 = `
   <?xml version="1.0" encoding="UTF-8"?>

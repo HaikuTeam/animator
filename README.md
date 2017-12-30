@@ -18,12 +18,19 @@ And add to `~/.ssh/config`:
       UseKeychain yes
       IdentityFile ~/.ssh/id_rsa
 
-**Node/Yarn installation**
+**Prerequisites**
+
+1.) nvm 0.33.6:
 
     $ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
-    $ nvm install 8.9.3
-    $ nvm alias default 8.9.3
-    $ curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.3.6
+
+2.) node 7.9.0:
+
+    $ nvm install 7.9.0 && nvm alias default 7.9.0
+
+3.) yarn 1.3.2:
+
+    $ curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.3.2
 
 **Setup**
 

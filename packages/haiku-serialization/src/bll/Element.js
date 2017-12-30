@@ -913,35 +913,88 @@ class Element extends BaseModel {
         continue
       }
 
-      if (!grouped[propertyObj.prefix]) {
-        grouped[propertyObj.prefix] = {
-          label: Property.humanizePropertyNamePart(propertyObj.prefix)
+      if (this.isRootElement() && Property.EXCLUDE_FROM_JIT_IF_ROOT_ELEMENT[propertyName]) {
+        continue
+      }
+
+      let prefix = propertyObj.prefix
+      let suffix = propertyObj.suffix
+
+      // Wrap e.g. clipPath into attributes.clipPath so the menu
+      // displays the items in a more reasonable way
+      if (prefix && !suffix) {
+        suffix = prefix
+        prefix = 'Attributes'
+      }
+
+      if (!grouped[prefix]) {
+        grouped[prefix] = {
+          prefix,
+          suffix,
+          label: Property.humanizePropertyNamePart(prefix)
         }
       }
 
-      if (propertyObj.suffix) {
-        if (!grouped[propertyObj.prefix].options) {
-          grouped[propertyObj.prefix].options = []
+      if (suffix) {
+        if (!grouped[prefix].options) {
+          grouped[prefix].options = []
         }
 
-        grouped[propertyObj.prefix].options.push({
-          label: Property.humanizePropertyNamePart(propertyObj.suffix),
+        grouped[prefix].options.push({
+          prefix,
+          suffix,
+          label: Property.humanizePropertyNamePart(suffix),
           value: propertyObj.name
         })
       } else {
-        grouped[propertyObj.prefix].value = propertyObj.name
+        grouped[prefix].value = propertyObj.name
       }
     }
 
     const options = Object.values(grouped).sort((a, b) => {
-      if (a.prefix === 'style') {
+      const ap = a.prefix.toLowerCase()
+      const bp = b.prefix.toLowerCase()
+
+      if (ap < bp) {
         return -1
       }
 
-      return a.prefix - b.prefix
+      if (ap > bp) {
+        return 1
+      }
+
+      return 0
     })
 
     return options
+  }
+
+  getJitPropertyOptionsAsMenuItems () {
+    return this.cacheFetch('getJitPropertyOptionsAsMenuItems', () => {
+      const options = this.getJITPropertyOptions()
+      return this.optionsToItems(options)
+    })
+  }
+
+  optionsToItems (options) {
+    return options.map((option) => {
+      const item = {
+        label: option.label
+      }
+
+      if (option.options) {
+        item.submenu = this.optionsToItems(option.options)
+      } else {
+        item.onClick = () => {
+          // "showing" the addressable property means to add it to our whitelist,
+          // which results in the Timeline UI displaying it even if not in the
+          // hardcoded list of always-public properties
+          this.showAddressableProperty(option.value)
+        }
+      }
+
+      return item
+    })
   }
 
   getExcludedAddressableProperties () {
@@ -962,7 +1015,11 @@ class Element extends BaseModel {
       for (const propertyName in unfilteredProperties) {
         const propertyObject = unfilteredProperties[propertyName]
 
-        if (!Property.PREFIXES_TO_EXCLUDE_FROM_ADDRESSABLES[propertyObject.prefix]) {
+        if (
+          !Property.PREFIXES_TO_EXCLUDE_FROM_ADDRESSABLES[propertyObject.prefix] &&
+          !(this.isRootElement() && Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT[propertyName]) &&
+          !(this.isComponent() && Property.EXCLUDE_FROM_ADDRESSABLES_IF_COMPONENT[propertyName])
+        ) {
           if (this._visibleProperties[propertyName]) {
             // Highest precedence is if the property is deemed explicitly visible
             filtered[propertyName] = propertyObject
@@ -1021,6 +1078,10 @@ class Element extends BaseModel {
     this._visibleProperties[propertyName] = false
     this.cacheUnset('getCollatedAddressableProperties')
     this.emit('update', 'jit-property-removed')
+  }
+
+  isRootElement () {
+    return !this.parent
   }
 
   isAtCoords (coords) {

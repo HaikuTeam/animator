@@ -273,18 +273,6 @@ HaikuComponent.prototype._didElementRenderSurrogate = function _didElementRender
   return this._controlFlowData[flexId].renderedSurrogates[surrogatePlacementKey] === surrogateObject;
 };
 
-HaikuComponent.prototype._markElementAnticipatedSurrogates = function _markElementAnticipatedSurrogates(
-  virtualElement, surrogatesArray) {
-  const flexId = virtualElement && virtualElement.attributes && (
-    virtualElement.attributes['haiku-id'] || virtualElement.attributes.id);
-  if (flexId) {
-    if (!this._controlFlowData[flexId]) {
-      this._controlFlowData[flexId] = {};
-    }
-    this._controlFlowData[flexId].anticipatedSurrogates = surrogatesArray;
-  }
-};
-
 HaikuComponent.prototype._markElementSurrogateAsRendered = function _markElementSurrogateAsRendered(
   virtualElement, surrogatePlacementKey, surrogateObject) {
   const flexId = virtualElement && virtualElement.attributes && (
@@ -433,16 +421,7 @@ HaikuComponent.prototype.clearCaches = function clearCaches(options) {
   if (options && options.clearPreviouslyRegisteredEventListeners) {
     // If specified, remove any previous registrations of event listeners so we don't get a bunch
     // of duplicate events firing when we re-register events after a reload or remount
-    for (const flexId in this._registeredElementEventListeners) {
-      for (const eventName in this._registeredElementEventListeners[flexId]) {
-        const {target, handler} = this._registeredElementEventListeners[flexId][eventName];
-        if (target && handler && this._context._renderer.removeListener) {
-          this._context._renderer.removeListener(target, handler, eventName);
-        }
-        delete this._registeredElementEventListeners[flexId][eventName];
-      }
-    }
-    this._frameEventListeners = {};
+    this.clearRegisteredElementEventListeners();
   }
 
   // Gotta bind any event handlers that may have been dynamically added
@@ -629,7 +608,23 @@ HaikuComponent.prototype.isSleeping = function isSleeping() {
   return this._isSleeping;
 };
 
-HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegisteredListenerOnElement(
+HaikuComponent.prototype.clearRegisteredElementEventListeners = function clearRegisteredElementEventListeners() {
+  for (const flexId in this._registeredElementEventListeners) {
+    for (const eventName in this._registeredElementEventListeners[flexId]) {
+      const {target, handler} = this._registeredElementEventListeners[flexId][eventName];
+
+      if (target && handler && this._context._renderer.removeListener) {
+        this._context._renderer.removeListener(target, handler, eventName);
+      }
+
+      delete this._registeredElementEventListeners[flexId][eventName];
+    }
+  }
+
+  this._frameEventListeners = {};
+};
+
+HaikuComponent.prototype.hasRegisteredListenerOnElement = function hasRegisteredListenerOnElement(
   virtualElement, eventName) {
   const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
   if (!flexId) {
@@ -639,7 +634,7 @@ HaikuComponent.prototype._hasRegisteredListenerOnElement = function _hasRegister
   return this._registeredElementEventListeners[flexId] && this._registeredElementEventListeners[flexId][eventName];
 };
 
-HaikuComponent.prototype._markDidRegisterListenerOnElement = function _markDidRegisterListenerOnElement(
+HaikuComponent.prototype.markDidRegisterListenerOnElement = function markDidRegisterListenerOnElement(
   virtualElement, domElement, eventName, listenerFunction) {
   const flexId = virtualElement.attributes[HAIKU_ID_ATTRIBUTE] || virtualElement.attributes.id;
   if (!flexId) {
