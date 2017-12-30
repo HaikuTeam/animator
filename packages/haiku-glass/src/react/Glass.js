@@ -669,7 +669,7 @@ export class Glass extends React.Component {
   }
 
   saveEventHandlers (targetElement, serializedEvents) {
-    const selectorName = 'haiku:' + targetElement.uid
+    const selectorName = 'haiku:' + targetElement.getComponentId()
     this.getActiveComponent().batchUpsertEventHandlers(selectorName, serializedEvents, { from: 'glass' }, () => {})
   }
 

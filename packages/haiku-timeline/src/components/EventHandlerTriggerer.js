@@ -21,7 +21,7 @@ class EventHandlerTriggerer extends React.PureComponent {
   }
 
   triggerEventHandlers () {
-    this.props.onEventHandlerTriggered(this.props.element.uid)
+    this.props.onEventHandlerTriggered(this.props.element.getPrimaryKey())
   }
 
   render () {

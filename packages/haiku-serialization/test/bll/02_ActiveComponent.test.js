@@ -262,6 +262,42 @@ tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
   })
 })
 
+tape('ActiveComponent.prototype.batchUpsertEventHandlers[1]', (t) => {
+  t.plan(1)
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'BUEH-01')
+  fse.removeSync(folder)
+  const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
+  const platform = {}
+  const userconfig = {}
+  const fileOptions = { doShallowWorkOnly: false, skipDiffLogging: true }
+  const envoyOptions = { mock: true }
+  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+    return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
+      if (err) throw err
+      const ac0 = project.getCurrentActiveComponent()
+      const haikuId = ac0.getArtboard().getElementHaikuId()
+      const selectorName = `haiku:${haikuId}`
+      return ac0.batchUpsertEventHandlers(selectorName, SERIALIZED_EVENTS, { from: 'test' }, (err) => {
+        if (err) throw err
+        t.equal(typeof ac0.getReifiedBytecode().eventHandlers[selectorName].click.handler, 'function', 'handler is fn')
+      })
+    })
+  })
+})
+
+const SERIALIZED_EVENTS = {
+  "click": {
+    "handler": {
+      "__function": {
+        "params": ["event"],
+        "body": "/** action logic goes here */\nconsole.log(12);",
+        "type":"FunctionExpression",
+        "name":null
+      }
+    }
+  }
+}
+
 const PATH_SVG_1 = `
   <?xml version="1.0" encoding="UTF-8"?>
   <svg width="99px" height="69px" viewBox="0 0 99 69" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">

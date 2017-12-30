@@ -718,17 +718,17 @@ class Timeline extends React.Component {
   }
 
   showFrameActionsEditor (frame) {
-    const elementUID = this.getActiveComponent().findElementRoots()[0].getPrimaryKey()
+    const elementPrimaryKey = this.getActiveComponent().findElementRoots()[0].getPrimaryKey()
     this.showEventHandlersEditor(
-      elementUID,
+      elementPrimaryKey,
       frame
     )
   }
 
-  showEventHandlersEditor (elementUID, frame) {
+  showEventHandlersEditor (elementPrimaryKey, frame) {
     this.project.broadcastPayload({
       name: 'show-event-handlers-editor',
-      elid: elementUID,
+      elid: elementPrimaryKey,
       opts: {
         isSimplified: Boolean(frame)
       },
