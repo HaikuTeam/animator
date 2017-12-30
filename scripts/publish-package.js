@@ -1,7 +1,7 @@
 var cp = require('child_process')
 var lodash = require('lodash')
 var log = require('./helpers/log')
-var allPackages = require('./helpers/allPackages')()
+var allPackages = require('./helpers/packages')()
 var argv = require('yargs').argv
 
 var groups = lodash.keyBy(allPackages, 'name')

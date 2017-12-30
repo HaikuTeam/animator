@@ -2,7 +2,7 @@ const cp = require('child_process')
 const path = require('path')
 const argv = require('yargs').argv
 const log = require('./helpers/log')
-const getPackage = require('./helpers/allPackages')
+const getPackage = require('./helpers/packages')
 const ROOT = path.join(__dirname, '..')
 
 const branch = argv.branch || 'master'
@@ -26,19 +26,19 @@ if (pkg === 'changelog') {
   }
 
   try {
-    var cmd = `git subtree push --squash --prefix ${changelog.name} ${changelog.remote} ${branch}`
+    var cmd = `git subtree push --prefix ${changelog.name} ${changelog.remote} ${branch}`
     log.log(cmd)
     cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
   } catch (exception) {
     log.log(exception.message)
   }
 } else {
-  const [pack] = getPackage(pkg)
+  const pack = getPackage(pkg)
 
   log.log('git subtree pushing ' + pack.name)
 
   try {
-    const cmd = `git subtree push --squash --prefix packages/${pack.name} ${pack.remote} ${branch}`
+    const cmd = `git subtree push --prefix packages/${pack.name} ${pack.remote} ${branch}`
     log.log(cmd)
     cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
   } catch (exception) {

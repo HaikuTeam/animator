@@ -2,7 +2,7 @@ var async = require('async')
 var cp = require('child_process')
 var argv = require('yargs').argv
 var log = require('./helpers/log')
-var allPackages = require('./helpers/allPackages')()
+var allPackages = require('./helpers/packages')()
 
 var args = argv._
 var cmd = args[0]

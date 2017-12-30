@@ -3,7 +3,7 @@ var cp = require('child_process')
 var path = require('path')
 var argv = require('yargs').argv
 var log = require('./helpers/log')
-var allPackages = require('./helpers/allPackages')()
+var allPackages = require('./helpers/packages')()
 var ROOT = path.join(__dirname, '..')
 var TMP = '~tmp'
 

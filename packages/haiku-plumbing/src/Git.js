@@ -161,7 +161,7 @@ function findExistingRemote (remotes, name) {
 
 export function maybeInit (pwd, cb) {
   return open(pwd, (err, repository) => {
-    if (err && err.message.match(/Could not find repository/)) return init(pwd, cb)
+    if (err && /could not find repository/i.test(err.message)) return init(pwd, cb)
     if (err) return cb(err)
     return cb(null, repository, true) // <~ true == wasAlreadyInitialized
   })

@@ -1,53 +1,48 @@
-var async = require('async')
-var path = require('path')
-var Uglify2 = require('uglify-js')
-var glob = require('glob-all')
-var log = require('./helpers/log')
-var fse = require('fs-extra')
+const async = require('async');
+const path = require('path');
+const UglifyES = require('uglify-es');
+const glob = require('glob-all');
+const log = require('./helpers/log');
+const fse = require('fs-extra');
 
-var ROOT = path.join(__dirname, '..')
+const ROOT = global.process.cwd();
 
-// File globs with respect to the root of the mono project
-var GLOBS = [
-  'source/plumbing/lib/*.js',
-  'source/plumbing/node_modules/haiku-bytecode/src/**/*.js',
-  'source/plumbing/node_modules/@haiku/cli/lib/**/*.js',
-  'source/plumbing/node_modules/haiku-common/lib/**/*.js',
-  'source/plumbing/node_modules/haiku-creator-electron/lib/**/*.js',
-  'source/plumbing/node_modules/haiku-formats/lib/**/*.js',
-  'source/plumbing/node_modules/haiku-glass/lib/**/*.js',
-  'source/plumbing/node_modules/@haiku/sdk-client/lib/**/*.js',
-  'source/plumbing/node_modules/haiku-sdk-creator/lib/**/*.js',
-  'source/plumbing/node_modules/@haiku/sdk-inkstone/lib/**/*.js',
-  'source/plumbing/node_modules/haiku-serialization/src/**/*.js',
-  'source/plumbing/node_modules/haiku-state-object/src/**/*.js',
-  'source/plumbing/node_modules/haiku-timeline/lib/**/*.js',
-  'source/plumbing/node_modules/haiku-ui-common/lib/**/*.js',
-  'source/plumbing/node_modules/haiku-websockets/lib/**/*.js'
-]
-
-glob(GLOBS, function (err, files) {
-  if (err) throw err
-
-  return async.eachSeries(files, function (file, next) {
-    log.log('uglifying ' + file)
-
-    var sourcepath = path.join(ROOT, file)
-    var destpath = path.join(ROOT, file)
-
-    try {
-      var code = Uglify2.minify(sourcepath, {compress: {unused: false}}).code
-
-      return fse.outputFile(destpath, code, function (err) {
-        if (err) return next(err)
-        return next()
-      })
-    } catch (exception) {
-      log.log('cannot uglify: ' + exception.message)
-      return next()
+// File globs with respect to the root of the mono project.
+glob(
+  [
+    'source/packages/haiku-plumbing/*.js',
+    'source/packages/haiku-plumbing/lib/**/*.js',
+    'source/packages/haiku-plumbing/node_modules/haiku-*/**/*.js',
+    'source/packages/haiku-plumbing/node_modules/@haiku/**/*.js',
+  ],
+  (err, files) => {
+    if (err) {
+      throw err;
     }
-  }, function (err) {
-    if (err) throw err
-    log.hat('done uglifying')
-  })
-})
+
+    async.eachSeries(files, function (file, next) {
+      log.log('uglifying ' + file);
+
+      const sourcePath = path.join(ROOT, file);
+      fse.readFile(sourcePath, (err, data) => {
+        if (err) {
+          log.log(`cannot read ${sourcePath}`);
+          next();
+          return;
+        }
+        const uglified = UglifyES.minify(data.toString(), {compress: {unused: false}});
+        if (uglified.error) {
+          log.log(`cannot uglify ${sourcePath}`);
+          next();
+          return;
+        }
+        fse.outputFile(sourcePath, uglified.code, (err) => {
+          next(err);
+        });
+      });
+    }, function (err) {
+      if (err) throw err;
+      log.hat('done uglifying');
+    });
+  }
+);

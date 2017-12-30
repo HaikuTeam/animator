@@ -71,13 +71,7 @@ export default class Stage extends React.Component {
       }
     }))
 
-    // When building a distribution (see 'distro' repo) the node_modules folder is at a different level #FIXME matthew
-    let url
-    if (process.env.HAIKU_GLASS_URL_MODE === 'distro') {
-      url = `file://${path.join(__dirname, '..', '..', '..', '..', '..', 'node_modules', 'haiku-glass', 'index.html')}?${query}`
-    } else {
-      url = `file://${path.join(__dirname, '..', '..', '..', 'node_modules', 'haiku-glass', 'index.html')}?${query}`
-    }
+    const url = `file://${require.resolve(path.join('haiku-glass', 'index.html'))}?${query}`
 
     this.webview.setAttribute('src', url)
     this.webview.setAttribute('id', 'glass-webview')
