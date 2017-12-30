@@ -14,7 +14,7 @@ export default class PropertyManager extends React.Component {
   }
 
   launchMenu (event) {
-    const items = this.props.element.getJITPropertyOptionsAsMenuItems()
+    const items = this.props.element.getJitPropertyOptionsAsMenuItems()
 
     PopoverMenu.launch({
       event,

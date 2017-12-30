@@ -969,8 +969,8 @@ class Element extends BaseModel {
     return options
   }
 
-  getJITPropertyOptionsAsMenuItems () {
-    return this.cacheFetch('getJITPropertyOptionsAsMenuItems', () => {
+  getJitPropertyOptionsAsMenuItems () {
+    return this.cacheFetch('getJitPropertyOptionsAsMenuItems', () => {
       const options = this.getJITPropertyOptions()
       return this.optionsToItems(options)
     })

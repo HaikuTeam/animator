@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@types/mkdirp": "^0.3.29",
-    "@types/node": "*",
+    "@types/node": "^8.5.2",
     "@types/request": "^2.0.0",
     "leaked-handles": "^5.2.0",
     "tape": "^4.8.0",

@@ -24,7 +24,7 @@
     "sinon": "^4.0.1"
   },
   "devDependencies": {
-    "@types/node": "*",
+    "@types/node": "^8.5.2",
     "@types/tape": "^4.2.30",
     "nyc": "^11.3.0",
     "tap-spec": "^4.1.1",
