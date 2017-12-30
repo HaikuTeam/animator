@@ -17,6 +17,7 @@ const writeMetadata = require('haiku-bytecode/src/writeMetadata')
 const BaseModel = require('./BaseModel')
 const Logger = require('./../utils/Logger')
 const walkFiles = require('./../utils/walkFiles')
+const getSvgOptimizer = require('./../svg/getSvgOptimizer')
 
 // This file also depends on '@haiku/player/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as .hostInstance here.
@@ -883,13 +884,15 @@ File.readMana = function readMana (folder, relpath, cb) {
   return File.read(folder, relpath, (err, buffer) => {
     if (err) return cb(err)
 
-    const mana = xmlToMana(buffer.toString())
+    return getSvgOptimizer().optimize(buffer.toString(), { path: path.join(folder, relpath) }).then((contents) => {
+      const mana = xmlToMana(contents.data)
 
-    if (!mana) {
-      return cb(new Error(`We couldn't load the contents of ${relpath}; please try again`))
-    }
+      if (!mana) {
+        return cb(new Error(`We couldn't load the contents of ${relpath}; please try again`))
+      }
 
-    return cb(null, mana)
+      return cb(null, mana)
+    })
   })
 }
 
