@@ -168,11 +168,10 @@ class Project extends BaseModel {
   }
 
   handleMethodCall (method, params, message, cb) {
-    log.info(`[project (${this.getAlias()})] handling method ${method}`, params, typeof cb === 'function')
-
     // Try matching a method on a given active component
     const ac = this.findActiveComponentBySource(params[0])
     if (ac && typeof ac[method] === 'function') {
+      log.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
       try {
         return ac[method].apply(ac, params.slice(1).concat(cb))
       } catch (exception) {
@@ -182,6 +181,7 @@ class Project extends BaseModel {
 
     // If we have a method here at the top, call it
     if (typeof this[method] === 'function') {
+      log.info(`[project (${this.getAlias()})] project handling method ${method}`, params, typeof cb === 'function')
       try {
         return this[method].apply(this, params.concat((err) => {
           if (err) return cb(err)
