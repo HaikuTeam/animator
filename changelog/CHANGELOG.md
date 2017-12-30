@@ -1,6 +1,42 @@
 # Changelog
 
 
+## 2.3.64
+
+### Features
+
+ * Add a new player config option for strictSizing.
+ * Adds @haiku/sdk-inkstone endpoint for notifying inkstone a GIF has been published.
+ * Publish silently, and fetch the share link as soon as we have a commit sha.
+
+### Bug Fixes
+
+ * Preserve the coordinate system for transforms on images.
+ * ensure {sizing
+
+## 2.3.63
+
+## 2.3.62
+
+### Bug Fixes
+
+ * Get `yarn push` working fully.
+ * actually place haiku-fs-extra deps.
+ * Implement topological sort correctly ¯\_(ツ)_/¯!
+ * Get push working with new package accounting system.
+ * only allow valid glass start projects.
+ * Ensure 'content' property gets written correctly to tspan elements
+ * Correct prop to indicate rot cursor
+ * Make sure preview mode messages get passed correctly
+ * Use correct path when 'instantiating' Sketch asset
+ * Use the correct property for the element node
+ * Make sure hand-edits trigger code reloading
+ * Fix regression displaying event handlers editor via frame action plus button
+ * Use the correct zoom/pan data when transforming elements on stage
+ * Recenter the artboard when it is resized
+ * Fix bugs with cut/copy/paste
+ * Propagate mergeDesign through all the views
+
 ## 2.3.61
 
 ### Bug Fixes

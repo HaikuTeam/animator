@@ -1,15 +1,16 @@
-var fse = require('fs-extra')
-var cp = require('child_process')
-var path = require('path')
-var deploy = require('./deploy')
-var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
+const fse = require('fs-extra');
+const cp = require('child_process');
+const path = require('path');
+const deploy = require('./deploy');
+const forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction');
 
-require('./../config')
-forceNodeEnvProduction()
+require('./../config');
 
-var ROOT = path.join(__dirname, '..')
+forceNodeEnvProduction();
 
-process.env.CSC_LINK = `file://${deploy.vault}/${deploy.certificate}`
-process.env.CSC_KEY_PASSWORD = fse.readFileSync(path.join(deploy.vault, `${deploy.certificate}.password`)).toString().trim()
+const ROOT = global.process.cwd();
 
-cp.execSync(`./node_modules/.bin/build --mac --publish=never`, { cwd: ROOT, stdio: 'inherit' })
+process.env.CSC_LINK = `file://${deploy.vault}/${deploy.certificate}`;
+process.env.CSC_KEY_PASSWORD = fse.readFileSync(path.join(deploy.vault, `${deploy.certificate}.password`)).toString().trim();
+
+cp.execSync('./node_modules/.bin/build --mac --publish=never', {cwd: ROOT, stdio: 'inherit'});

@@ -10,7 +10,7 @@
       // Keep a reference to node's require so we can restore it after executing the amd loader file.
       var nodeRequire = global.require;
     </script>
-    <script src="./node_modules/monaco-editor/min/vs/loader.js"></script>
+    <script src="../../node_modules/monaco-editor/min/vs/loader.js"></script>
     <script>
       // Save Monaco's amd require and restore Node's require
       var amdRequire = global.require;
@@ -27,7 +27,7 @@
         return encodeURI('file://' + pathName);
       }
       amdRequire.config({
-        baseUrl: uriFromPath(path.join(__dirname, './node_modules/monaco-editor/min'))
+        baseUrl: uriFromPath(path.join(__dirname, '../../node_modules/monaco-editor/min'))
       });
       // workaround monaco-css not understanding the environment
       self.module = undefined;
@@ -52,7 +52,7 @@
   </head>
   <body>
     <div id="root"></div>
-    <script src="./node_modules/raven-js/dist/raven.js"></script>
+    <script src="../../node_modules/raven-js/dist/raven.js"></script>
     <script>
       require('./lib/react/index')
     </script>

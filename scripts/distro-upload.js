@@ -1,36 +1,37 @@
-var log = require('./helpers/log')
-var slackShout = require('./helpers/slackShout')
-var uploadRelease = require('./helpers/uploadRelease')
-var forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction')
+const log = require('./helpers/log');
+const slackShout = require('./helpers/slackShout');
+const uploadRelease = require('./helpers/uploadRelease');
+const forceNodeEnvProduction = require('./helpers/forceNodeEnvProduction');
 
-var config = require('./../config')
-forceNodeEnvProduction()
+const config = require('./../config');
 
-var deploy = require('./deploy')
+forceNodeEnvProduction();
 
-var platform = process.env.HAIKU_RELEASE_PLATFORM
-var branch = process.env.HAIKU_RELEASE_BRANCH
-var version = process.env.HAIKU_RELEASE_VERSION
-var environment = process.env.HAIKU_RELEASE_ENVIRONMENT
+const deploy = require('./deploy');
 
-var region = deploy.deployer[environment].region
-var objkey = deploy.deployer[environment].key
-var secret = deploy.deployer[environment].secret
-var bucket = deploy.deployer[environment].bucket
+const platform = process.env.HAIKU_RELEASE_PLATFORM;
+const branch = process.env.HAIKU_RELEASE_BRANCH;
+const version = process.env.HAIKU_RELEASE_VERSION;
+const environment = process.env.HAIKU_RELEASE_ENVIRONMENT;
 
-var RELEASES_FOLDER = 'releases'
+const region = deploy.deployer[environment].region;
+const objkey = deploy.deployer[environment].key;
+const secret = deploy.deployer[environment].secret;
+const bucket = deploy.deployer[environment].bucket;
 
-uploadRelease(region, objkey, secret, bucket, RELEASES_FOLDER, platform, environment, branch, version, (err, { environment, version, urls }) => {
-  if (err) throw err
+const RELEASES_FOLDER = 'releases';
 
-  var slackMessage = `
+uploadRelease(region, objkey, secret, bucket, RELEASES_FOLDER, platform, environment, branch, version, (err, {environment, version, urls}) => {
+  if (err) throw err;
+
+  const slackMessage = `
 Distro ready (${version} ${environment})
 Download link: ${urls.download}
 Latest link: ${urls.latest}
 _To syndicate to users via auto-update, sign in to S3 and remove "-pending" from the file path (https://haiku-production.signin.aws.amazon.com/console)_
-  `.trim()
+  `.trim();
 
-  slackShout({ shout: config.shout }, slackMessage, () => {
-    log.hat('success! built and uploaded \n' + urls.download + '\n' + urls.latest)
-  })
-})
+  slackShout({shout: config.shout}, slackMessage, () => {
+    log.hat(`success! built and uploaded \n${urls.download}\n${urls.latest}`);
+  });
+});
