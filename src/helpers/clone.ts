@@ -5,13 +5,15 @@ export default function clone(thing: any) {
       arr[i] = clone(thing[i]);
     }
     return arr;
-  } else if (thing && typeof thing === 'object') {
+  }
+
+  if (thing && typeof thing === 'object') {
     const obj = {};
     for (const key in thing) {
       obj[key] = clone(thing[key]);
     }
     return obj;
-  } else {
-    return thing;
   }
+
+  return thing;
 }

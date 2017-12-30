@@ -26,16 +26,17 @@ const PLAYER_VERSION = pkg.version;
 // tslint:disable-next-line:function-name
 export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
   if (!config) {
-    // tslint:disable-next-line:no-param-reassign
+    // tslint:disable-next-line:no-parameter-reassignment
     config = {};
   }
+
   if (!config.options) {
     config.options = {};
   }
 
   if (!safeWindow) {
     if (typeof window !== 'undefined') {
-      // tslint:disable-next-line:no-param-reassign
+      // tslint:disable-next-line:no-parameter-reassignment
       safeWindow = window;
     }
   }

@@ -134,7 +134,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
                     // updated (not replaced!) with the attributes of the virtual element at the same position
                     const div = document.createElement('div');
                     node.parentNode.replaceChild(div, node);
-                    // tslint:disable-next-line:no-param-reassign
+                    // tslint:disable-next-line:no-parameter-reassignment
                     node = div;
 
                     // We have to change the element name as well here so that the correct vanity behaviors
@@ -160,6 +160,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
       // assigned among the whitelisted properties
       if (rawProps) {
         for (const verboseKeyName in rawProps) {
+
           const haikuConfigFinalKey = HAIKU_FORWARDED_PROPS[verboseKeyName];
           if (haikuConfigFinalKey) {
             haikuConfig[haikuConfigFinalKey] = rawProps[verboseKeyName];

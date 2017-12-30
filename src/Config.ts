@@ -127,6 +127,10 @@ const DEFAULTS = {
   // children: Array|null
   // Children may be passed in, typically via the React adapter
   children: null,
+
+  // placeholder: Object|null
+  // Key/values representing placeholders to inject, usually via React adapter
+  placeholder: null,
 };
 
 function seed() {
@@ -146,6 +150,7 @@ function build(...argums) {
     template: null,
     vanities: null,
     children: null,
+    placeholder: null,
   };
 
   const args = [...argums];
@@ -220,6 +225,9 @@ function build(...argums) {
 
     if (incoming.children) {
       config.children = incoming.children;
+    }
+    if (incoming.placeholder) {
+      config.placeholder = incoming.placeholder;
     }
   });
 
