@@ -16,7 +16,8 @@
     "outDir": "lib",
     "paths": {
       "*": [
-        "lib/*"
+        "lib/*",
+        "typings/*"
       ]
     },
     "preserveConstEnums": false,

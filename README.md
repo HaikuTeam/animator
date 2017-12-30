@@ -8,6 +8,7 @@ After cloning the repo:
 
 ```
 $ yarn install
+$ yarn global add @storybook/cli
 ```
 
 Then develop with:

@@ -13,17 +13,18 @@
     "coverage": "nyc yarn test",
     "html-coverage": "nyc --reporter=html yarn test",
     "compile": "tsc",
-    "develop": "tsc --watch"
+    "develop": "tsc --watch",
+    "storybook": "start-storybook -p 9001 -c .storybook"
   },
   "authors": [
     "Sasha Joseph <sasha@haiku.ai>"
   ],
   "devDependencies": {
-    "electron": "1.7.10",
-    "@types/node": "^8.5.2",
+    "@storybook/react": "^3.3.3",
+    "@types/node": "*",
     "@types/react": "^15.4.2",
-    "haiku-testing": "2.3.64",
     "haiku-common": "2.3.64",
+    "haiku-testing": "2.3.64",
     "nyc": "^11.3.0",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
@@ -33,11 +34,16 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
+    "awesome-typescript-loader": "^3.4.1",
     "color": "^2.0.1",
     "decamelize": "^1.2.0",
     "lodash.assign": "^4.2.0",
     "numeral": "^2.0.6",
     "radium": "0.18.1",
-    "react": "15.4.2"
+    "react": "15.4.2",
+    "react-dom": "15.4.2"
+  },
+  "peerDependencies": {
+    "electron": "1.7.10"
   }
 }
