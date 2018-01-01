@@ -1493,6 +1493,7 @@ class ActiveComponent extends BaseModel {
    * @param metadata {Object}
    */
   pasteThing (pasteable, request, metadata, cb) {
+    let newHaikuId = ""
     this.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
       switch (pasteable.kind) {
         case 'bytecode':
@@ -1509,14 +1510,18 @@ class ActiveComponent extends BaseModel {
           })
 
           // Paste handles "instantiating" a new template element for the incoming bytecode
+          console.log("bytecode", bytecode)
+          console.log("incoming", incoming)
+          console.log("request", request)
+          newHaikuId = incoming.template.attributes['haiku-id']
           Bytecode.pasteBytecode(bytecode, incoming, request)
 
-          return done()
+          return done(null, {haikuId: newHaikuId})
         default:
           log.warn('[active component] cannot paste clipboard contents of kind ' + pasteable.kind)
           return done(new Error('Unable to paste clipboard contents'))
       }
-    }, (err) => {
+    }, (err, data) => {
       if (err) {
         log.error(err)
         return cb(err)
@@ -1524,7 +1529,7 @@ class ActiveComponent extends BaseModel {
 
       return this.reload({ hardReload: true }, null, () => {
         this.project.updateHook('pasteThing', this.getSceneCodeRelpath(), pasteable, request, metadata)
-        return cb()
+        return cb(null, data)
       })
     })
   }

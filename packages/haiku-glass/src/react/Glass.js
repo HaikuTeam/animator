@@ -690,6 +690,10 @@ export class Glass extends React.Component {
       return void (0)
     }
 
+    this.setState({
+      duplicateDragging: false
+    })
+
     const source = nativeEvent.relatedTarget || nativeEvent.toElement
     if (!source || source.nodeName === 'HTML') {
       // unhover?
@@ -773,7 +777,7 @@ export class Glass extends React.Component {
     this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
 
     //store all elements' transforms
-    //TODO:  should we store only the selected element's transform?
+    //TODO:  should we store only the selected element's transform? (and what's the API to retrieve that element?)
     //       this could become a bottleneck with a high number of elements
     var elems = Element.all(); //semicolon required
     
@@ -803,7 +807,7 @@ export class Glass extends React.Component {
       if (!target || !target.hasAttribute) {
         // If shift is down, that's constrained scaling or translation. If cmd, that's rotation mode.
         // I.e., only unselect elements if we're not doing either of those operations
-        if (!Globals.isShiftKeyDown && !Globals.isCommandKeyDown) {
+        if (!Globals.isShiftKeyDown && !Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
           Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
         }
         return
@@ -843,8 +847,28 @@ export class Glass extends React.Component {
           }
         }
 
-        // This call also unselects all elements, so we don't need to do that work here too
-        this.getActiveComponent().selectElement(haikuId, { from: 'glass' }, () => {})
+        if(Globals.isAltKeyDown){
+          //duplicate element here and immediately select it
+          //TODO:  support multi-select here (forEach instead of single haikuId)
+          
+          let origElement = Element.findById(haikuId)
+          let proj = Project.all()[0] //TODO:  is there a better API for this?
+          let ac0 = proj.getCurrentActiveComponent()
+          
+          //HACK:  zb, patching into paste logic because this was the only way I could discover/contrive
+          //       to duplicate an element (ideally this behavior should belong to the Element view-model
+          //       but the interface between in-mem elements and persisted elements is so heterogenous and
+          //       undiscoverable that I had to resort to this.)
+          //ALSO:  this paste logic starts to get REALLY SLOW for |elements| > 8 or so
+          ac0.pasteThing(origElement.getClipboardPayload(), {}, {from: 'glass'}, (err, idObj) => {
+            Element.findById(idObj.haikuId).pushCachedTransform("CONSTRAINED_DRAG")
+            this.getActiveComponent().selectElement(idObj.haikuId, { from: 'glass' }, () => {})
+          })
+
+        }else{
+          // This call also unselects all elements, so we don't need to do that work here too
+          this.getActiveComponent().selectElement(haikuId, { from: 'glass' }, () => {})
+        }
       }
     }
   }
@@ -903,6 +927,7 @@ export class Glass extends React.Component {
     this.setState({
       isAnythingScaling: false,
       isAnythingRotating: false,
+      duplicateDragging: false,
       globalControlPointHandleClass: '',
       controlActivation: null
     })

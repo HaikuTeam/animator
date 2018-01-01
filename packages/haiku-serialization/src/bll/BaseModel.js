@@ -61,7 +61,7 @@ class BaseModel extends EventEmitter {
     this.assign(props)
 
     if (!this.getPrimaryKey()) {
-      this.setPrimaryKey(lodash.uniqueId(this.constructor.name))
+      this.setPrimaryKey(this.generateUniqueId())
     }
 
     this.constructor.add(this)
@@ -77,6 +77,10 @@ class BaseModel extends EventEmitter {
     this.__destroyed = null
 
     if (this.afterInitialize) this.afterInitialize()
+  }
+
+  generateUniqueId () {
+    return lodash.uniqueId(this.constructor.name)
   }
 
   forceUpdate () {
@@ -320,10 +324,25 @@ function createCollection (klass, collection, opts) {
     return found && found[0]
   }
 
+  //HACK:  this logic that searched by id was broken, as uids are in the format '/Users/zack/.haiku/projects/zack3/Romp::main::e4a9e4d8baa7' instead of 'e4a9e4d8baa7'
+  //       Rather than combing for the unknowable pathways where this logic is get/set (wistful sigh: types) I've hacked the findById logic to search using regex.
+  //       Should be drop-in compatible with exact id matching as well.
   klass.findById = (id) => {
-    const criteria = {}
-    criteria[klass.config.primaryKey] = id
-    return klass.find(criteria)
+    const MATCHES_ID = new RegExp(id + "$")
+    let all = klass.all().filter((elem)=>{return MATCHES_ID.test(elem[klass.config.primaryKey])})
+    return all[0] //TODO:perf could save some µs by immediately returning first found instead of filtering all
+  }
+
+  klass.cloneById = (id) => {
+    let original = klass.findById(id)
+    if(original){
+      let clone = lodash.cloneDeep(original)
+      clone.setPrimaryKey(clone.generateUniqueId())
+      klass.upsert(clone)
+      return clone
+    }else{
+      throw new Error('Tried to clone element id ' + id + ' but that element was not found.')
+    }
   }
 
   klass.create = (props, opts) => {

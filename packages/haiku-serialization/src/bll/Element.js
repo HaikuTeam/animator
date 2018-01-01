@@ -632,7 +632,7 @@ class Element extends BaseModel {
   
   pushCachedTransform(key) {
     let stack = this._cachedTransforms[key] || []
-    
+
     //TODO: is reading all of these as separate requests
     //      going to cause a websocket bottleneck?
     //      It'd be great if this data existed in memory, in-process
