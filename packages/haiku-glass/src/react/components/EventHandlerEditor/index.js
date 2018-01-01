@@ -5,18 +5,14 @@ import CSSStyles from './CSSStyles'
 import Editor from './Editor'
 import EditorActions from './EditorActions'
 import HandlerManager from './HandlerManager'
-import Palette from 'haiku-ui-common/lib/Palette'
+import {ModalWrapper, ModalHeader, ModalFooter} from 'haiku-ui-common/lib/react/Modal'
 import {EDITOR_WIDTH, EDITOR_HEIGHT, EVALUATOR_STATES} from './constants'
 
 const STYLES = {
   container: {
     width: EDITOR_WIDTH,
     height: EDITOR_HEIGHT,
-    backgroundColor: Palette.COAL,
-    borderRadius: '4px',
-    padding: '64px 0 20px 20px',
-    zIndex: 9001,
-    cursor: 'auto'
+    paddingRight: 0
   },
   outer: {
     position: 'relative'
@@ -206,57 +202,58 @@ class EventHandlerEditor extends React.PureComponent {
     const visibilityStyles = this.props.visible ? {} : {visibility: 'hidden'}
 
     return (
-      <div
-        className='Absolute-Center'
-        onMouseDown={(mouseEvent) => {
-          // Prevent outer view from closing us
-          mouseEvent.stopPropagation()
-        }}
-        style={{
-          ...STYLES.container,
-          ...visibilityStyles
-        }}
-      >
-        <style>{CSSStyles}</style>
+      <ModalWrapper style={{...visibilityStyles, ...STYLES.container}}>
+        <div
+          onMouseDown={(mouseEvent) => {
+            // Prevent outer view from closing us
+            mouseEvent.stopPropagation()
+          }}
+        >
+          <style>{CSSStyles}</style>
 
-        <ElementTitle
-          element={this.props.element}
-          title={
-            isNumeric(this.props.options.frame)
-              ? `Frame ${this.props.options.frame}`
-              : null
-          }
-          hideActions={
-            this.props.options.isSimplified ||
-            !this.handlerManager.getNextAvailableDOMEvent()
-          }
-          onNewAction={this.addAction}
-        />
+        <ModalHeader>
+          <ElementTitle
+            element={this.props.element}
+            title={
+              isNumeric(this.props.options.frame)
+                ? `Frame ${this.props.options.frame}`
+                : null
+            }
+            hideActions={
+              this.props.options.isSimplified ||
+              !this.handlerManager.getNextAvailableDOMEvent()
+            }
+            onNewAction={this.addAction}
+          />
+        </ModalHeader>
 
-        <div style={STYLES.outer}>
-          <div
-            style={STYLES.editorsWrapper}
-            className='haiku-scroll'
-            ref={(el) => { this.wrapper = el }}
-          >
-            {this.renderEditors()}
+          <div style={STYLES.outer}>
+            <div
+              style={STYLES.editorsWrapper}
+              className='haiku-scroll'
+              ref={(el) => { this.wrapper = el }}
+            >
+              {this.renderEditors()}
+            </div>
           </div>
-        </div>
 
-        <EditorActions
-          onCancel={() => {
-            this.doCancel()
-          }}
-          onSave={() => {
-            this.doSave()
-          }}
-          title={
-            this.state.editorsWithErrors.length
-              ? 'an event handler has a syntax error'
-              : ''
-          }
-        />
-      </div>
+          <ModalFooter>
+            <EditorActions
+              onCancel={() => {
+                this.doCancel()
+              }}
+              onSave={() => {
+                this.doSave()
+              }}
+              title={
+                this.state.editorsWithErrors.length
+                  ? 'an event handler has a syntax error'
+                  : ''
+              }
+            />
+          </ModalFooter>
+        </div>
+      </ModalWrapper>
     )
   }
 }

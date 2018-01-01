@@ -2,11 +2,6 @@ import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 
 const STYLES = {
-  buttonsWrapper: {
-    position: 'absolute',
-    bottom: '20px',
-    right: '20px'
-  },
   button: {
     height: '25px',
     color: Palette.PALE_GRAY,

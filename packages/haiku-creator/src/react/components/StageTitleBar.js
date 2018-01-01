@@ -11,16 +11,19 @@ import { DASH_STYLES } from '../styles/dashShared'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import ToolSelector from './ToolSelector'
 import Toggle from './Toggle'
-
+import {ShareModal} from 'haiku-ui-common/lib/react/ShareModal'
+import {InteractionMode} from '@haiku/player/lib/helpers/interactionModes'
 import {
   PublishSnapshotSVG,
   ConnectionIconSVG,
   WarningIconSVG,
   SuccessIconSVG,
   DangerIconSVG,
-  CliboardIconSVG
+  CliboardIconSVG,
+  ShareSVG
 } from 'haiku-ui-common/lib/react/OtherIcons'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
+import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 
 var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
@@ -202,6 +205,7 @@ class StageTitleBar extends React.Component {
       showSharePopover: false,
       copied: false,
       linkAddress: 'Fetching Info',
+      semverVersion: '0.0.0',
       showCopied: false,
       projectInfoFetchError: null,
       isProjectInfoFetchInProgress: false,
@@ -323,6 +327,7 @@ class StageTitleBar extends React.Component {
         this.setState({ projectInfo })
         if (this.props.receiveProjectInfo) this.props.receiveProjectInfo(projectInfo)
         if (projectInfo && projectInfo.shareLink) this.setState({ linkAddress: projectInfo.shareLink })
+        if (projectInfo.semverVersion) this.setState({ semverVersion: projectInfo.shareLink })
       })
     }
   }
@@ -389,6 +394,10 @@ class StageTitleBar extends React.Component {
           this.setState({ linkAddress: snapshotData.shareLink })
         }
 
+        if (snapshotData.semverVersion) {
+          this.setState({ semverVersion: snapshotData.semverVersion })
+        }
+
         mixpanel.haikuTrack('creator:project:saved', this.withProjectInfo({
           username: this.props.username,
           project: this.props.projectName
@@ -403,7 +412,7 @@ class StageTitleBar extends React.Component {
     if (this.state.snapshotSaveError) return <div style={{height: 18, marginRight: -5}}><DangerIconSVG fill='transparent' /></div>
     if (this.state.snapshotMergeConflicts) return <div style={{height: 19, marginRight: 0, marginTop: -2}}><WarningIconSVG fill='transparent' color={Palette.ORANGE} /></div>
     if (this.state.snapshotSaveConfirmed) return <div style={{ height: 18 }}><SuccessIconSVG viewBox='0 0 14 14' fill='transparent' /></div>
-    return <PublishSnapshotSVG />
+    return experimentIsEnabled(Experiment.NewPublishUI) ? <ShareSVG /> : <PublishSnapshotSVG />
   }
 
   handleMergeResolveOurs () {
@@ -441,32 +450,50 @@ class StageTitleBar extends React.Component {
 
     return (
       <div style={STYLES.frame} className='frame'>
-        <Popover
-          place='below'
-          isOpen={showSharePopover}
-          style={{zIndex: 2}}
-          className='publish-popover'
-          body={
-            <PopoverBodyRadiumized
-              parent={this}
-              titleText={titleText}
-              snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
-              isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
-              isProjectInfoFetchInProgress={this.state.isProjectInfoFetchInProgress}
-              linkAddress={this.state.linkAddress}
-              close={() => this.setState({ showSharePopover: false })} />
-          }>
-          <button key='save'
-            id='publish'
-            onClick={this.handleSaveSnapshotClick}
-            style={[
-              BTN_STYLES.btnText,
-              BTN_STYLES.rightBtns,
-              this.state.isSnapshotSaveInProgress && STYLES.disabled
-            ]}>
-            {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
-          </button>
-        </Popover>
+        {experimentIsEnabled(Experiment.NewPublishUI) ?
+          (
+            <button key='save'
+              id='publish'
+              onClick={this.handleSaveSnapshotClick}
+              disabled={!this.props.isTimelineReady}
+              style={[
+                BTN_STYLES.btnText,
+                BTN_STYLES.rightBtns,
+                this.state.isSnapshotSaveInProgress && STYLES.disabled,
+                !this.props.isTimelineReady && STYLES.disabled
+              ]}
+            >
+              {this.renderSnapshotSaveInnerButton()}
+            </button>
+          ) : (
+            <Popover
+              place='below'
+              isOpen={showSharePopover}
+              style={{zIndex: 2}}
+              className='publish-popover'
+              body={
+                <PopoverBodyRadiumized
+                  parent={this}
+                  titleText={titleText}
+                  snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
+                  isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
+                  isProjectInfoFetchInProgress={this.state.isProjectInfoFetchInProgress}
+                  linkAddress={this.state.linkAddress}
+                  close={() => this.setState({ showSharePopover: false })} />
+              }>
+              <button key='save'
+                id='publish'
+                onClick={this.handleSaveSnapshotClick}
+                style={[
+                  BTN_STYLES.btnText,
+                  BTN_STYLES.rightBtns,
+                  this.state.isSnapshotSaveInProgress && STYLES.disabled
+                ]}>
+                {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
+              </button>
+            </Popover>
+          )
+        }
 
         <Toggle
           onToggle={this.props.onPreviewModeToggled}
@@ -479,6 +506,17 @@ class StageTitleBar extends React.Component {
         <button onClick={this.handleConnectionClick} style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover, STYLES.hide]} key='connect'>
           <ConnectionIconSVG />
         </button>
+
+        {experimentIsEnabled(Experiment.NewPublishUI) && this.state.showSharePopover &&
+          <ShareModal
+            project={this.props.project}
+            snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
+            isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
+            isProjectInfoFetchInProgress={this.state.isProjectInfoFetchInProgress}
+            linkAddress={this.state.linkAddress}
+            semverVersion={this.state.semverVersion}
+          />
+        }
 
         { false &&
           <ToolSelector websocket={this.props.websocket} />
