@@ -24,9 +24,9 @@ And add to `~/.ssh/config`:
 
     $ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
 
-2.) node 7.9.0:
+2.) node 8.9.3:
 
-    $ nvm install 7.9.0 && nvm alias default 7.9.0
+    $ nvm install 8.9.3 && nvm alias default 8.9.3
 
 3.) yarn 1.3.2:
 
