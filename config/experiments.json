@@ -37,5 +37,9 @@
   "SvgOptimizer": {
     "development": true,
     "production": true
+  },
+  "NewPublishUI": {
+    "development": false,
+    "production": false
   }
 }
