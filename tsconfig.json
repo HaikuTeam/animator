@@ -14,6 +14,7 @@
     "noImplicitAny": false,
     "noLib": false,
     "outDir": "lib",
+    "lib": ["es2017", "dom"],
     "paths": {
       "*": [
         "lib/*",
