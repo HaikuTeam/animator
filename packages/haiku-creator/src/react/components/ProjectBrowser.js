@@ -172,6 +172,7 @@ class ProjectBrowser extends React.Component {
   }
 
   projectsListElement () {
+    const { showDeleteModal, showNewProjectModal, launchingProject } = this.state
     if (this.state.areProjectsLoading) {
       return (
         <span style={DASH_STYLES.loadingWrap}>
@@ -182,7 +183,10 @@ class ProjectBrowser extends React.Component {
 
     return (
       <div
-        style={DASH_STYLES.projectsWrapper}
+        style={[
+          DASH_STYLES.projectsWrapper,
+          (showDeleteModal || showNewProjectModal || launchingProject) && {filter: 'blur(2px)'}
+        ]}
         onScroll={lodash.throttle(() => {
           this.tourChannel.updateLayout()
         }, 50)}
