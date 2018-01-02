@@ -309,8 +309,9 @@ class Timeline extends BaseModel {
           timelineInstance.gotoAndPlay(0)
           timelineInstance.options.loop = true
         } else {
+          this.seek(this.getCurrentFrame())
           timelineInstance.freeze()
-          timelineInstance.seek(0)
+          timelineInstance.seek(this.getCurrentMs())
           timelineInstance.options.loop = false
         }
       })

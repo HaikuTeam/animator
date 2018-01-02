@@ -298,13 +298,7 @@ class Timeline extends React.Component {
   }
 
   handleInteractionModeChange (relpath, interactionMode) {
-    const isPreviewModeActive = isPreviewMode(interactionMode)
-
-    if (!isPreviewModeActive) {
-      this.playbackSkipBack()
-    }
-
-    this.setState({isPreviewModeActive})
+    this.setState({isPreviewModeActive: isPreviewMode(interactionMode)})
   }
 
   getPopoverMenuItems ({ event, type, model, offset, curve }) {
