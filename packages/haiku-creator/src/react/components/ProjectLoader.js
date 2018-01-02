@@ -10,7 +10,7 @@ const STYLES = {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    color: Palette.ROCK,
+    color: Palette.SUNSTONE,
     backgroundColor: Color(Palette.GRAY).fade(0.023),
     zIndex: 6
   },
@@ -29,7 +29,7 @@ const STYLES = {
     transform: 'translateX(-50%)',
     width: 820,
     fontSize: 16,
-    backgroundColor: Palette.ROCK,
+    backgroundColor: Palette.SUNSTONE,
     color: Palette.MEDIUM_COAL,
     borderRadius: 5,
     padding: '13px 30px',
@@ -42,7 +42,7 @@ const STYLES = {
   pretip: {
     fontStyle: 'italic',
     fontWeight: 'bold',
-    color: Palette.PINK,
+    color: Palette.LIGHT_PINK,
     marginRight: 14,
     width: 161,
     minWidth: 161,
@@ -127,7 +127,7 @@ class ProjectLoader extends React.Component {
         </div>
         <div style={STYLES.tip}>
           <span style={STYLES.pretip}>
-            <span style={STYLES.icon}><LightIconSVG color={Palette.PINK} /></span>
+            <span style={STYLES.icon}><LightIconSVG color={Palette.LIGHT_PINK} /></span>
             Tip of the Load
           </span>
           <span style={STYLES.tipText}>{tip}</span>
