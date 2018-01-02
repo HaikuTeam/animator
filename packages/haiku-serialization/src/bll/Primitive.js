@@ -1,24 +1,33 @@
 const BaseModel = require('./BaseModel')
 
-const PRIMITIVES = {
-  circle: require('@haiku/player/components/Circle/code/main/code'),
-  ellipse: require('@haiku/player/components/Ellipse/code/main/code'),
-  line: require('@haiku/player/components/Line/code/main/code'),
-  path: require('@haiku/player/components/Path/code/main/code'),
-  polygon: require('@haiku/player/components/Polygon/code/main/code'),
-  polyline: require('@haiku/player/components/Polyline/code/main/code'),
-  rect: require('@haiku/player/components/Rect/code/main/code')
-}
+// const HaikuPlayerBuiltinComponents = require('@haiku/player/components')
+const HaikuPlayerBuiltinComponents = {}
 
 /**
  * @class Primitive
  * @description
- *.  Collection of static class methods for "primitive" components (Line, Rect, etc).
+ *.  Collection of methods for "primitive" components (Line, Rectangle, etc).
  */
-class Primitive extends BaseModel {}
+class Primitive extends BaseModel {
+  getClassName () {
+    return this.classname
+  }
+
+  getRequirePath () {
+    return this.requirePath
+  }
+
+  getStates () {
+    return this.bytecode.states
+  }
+}
 
 Primitive.DEFAULT_OPTIONS = {
-  required: {}
+  required: {
+    requirePath: true,
+    bytecode: true,
+    classname: true
+  }
 }
 
 BaseModel.extend(Primitive)
@@ -28,21 +37,25 @@ BaseModel.extend(Primitive)
  * @description Give an arbitrary bytecode object, determine whether it represents
  * a known 'primitive' component (Line, Rect, Path, etc)
  * @param bytecode {Object} The bytecode object
- * @returns {Object} The bytecode of the respective primitive component
+ * @returns {Object} The Primitive instance
  */
-Primitive.inferPrimitiveFromBytecode = (bytecode) => {
-  for (const elementName in PRIMITIVES) {
-    const primitive = PRIMITIVES[elementName]
-    const areIsomorphic = Bytecode.areBytecodesIsomorphic(bytecode, primitive)
-    if (areIsomorphic) return primitive
-  }
-}
+Primitive.inferPrimitiveFromBytecode = (theirBytecode) => {
+  for (const classname in HaikuPlayerBuiltinComponents) {
+    const {
+      requirePath,
+      bytecode
+    } = HaikuPlayerBuiltinComponents[classname]
 
-Primitive.inferPrimitiveFromMana = (mana) => {
-  for (const elementName in PRIMITIVES) {
-    const primitive = PRIMITIVES[elementName]
-    const areEquivalent = Template.areTemplatesEquivalent(mana, primitive.template)
-    if (areEquivalent) return primitive
+    const areIsomorphic = Bytecode.areBytecodesIsomorphic(theirBytecode, bytecode)
+
+    if (areIsomorphic) {
+      return Primitive.upsert({
+        uid: requirePath,
+        requirePath,
+        classname,
+        bytecode
+      })
+    }
   }
 }
 
@@ -50,4 +63,3 @@ module.exports = Primitive
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Bytecode = require('./Bytecode')
-const Template = require('./Template')

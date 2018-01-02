@@ -85,7 +85,19 @@ function toValueDescriptor ({ bookendValue, computedValue }) {
   return {
     kind: EXPR_KINDS.VALUE,
     params: [],
-    body: computedValue + ''
+    body: safeDisplayableStringValue(computedValue)
+  }
+}
+
+function safeDisplayableStringValue (val) {
+  if (typeof val === 'string') {
+    return val
+  }
+
+  try {
+    return JSON.stringify(val)
+  } catch (exception) {
+    return ''
   }
 }
 
@@ -216,7 +228,13 @@ export default class ExpressionInput extends React.Component {
       // Assume that we already stored warnings about this function in the evaluator state from a change action
       return false
     } else {
-      let observedType = typeof committable
+      let observedType
+      if (Array.isArray(committable)) {
+        observedType = 'array'
+      } else {
+        observedType = typeof committable
+      }
+
       let expectedType = original.valueType
 
       if (!ANY_TYPES[expectedType]) {

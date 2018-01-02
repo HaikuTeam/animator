@@ -70,7 +70,6 @@ class ModuleWrapper extends BaseModel {
 
   isolatedForceReload () {
     this.isolatedClearCache()
-
     return this.reload()
   }
 
@@ -91,12 +90,22 @@ class ModuleWrapper extends BaseModel {
     }
   }
 
+  getModpath () {
+    return this.file.relpath
+  }
+
   getAbspath () {
+    if (this.isExternalModule) {
+      return require.resolve(this.getModpath())
+    }
+
     let abspath = path.normalize(this.file.getAbspath())
+
     // Handle Mac temporary folder discrepency so its key in require.cache is correct
     if (abspath.slice(0, 5) === '/var/') {
       abspath = `/private${abspath}`
     }
+
     return abspath
   }
 
@@ -124,14 +133,23 @@ class ModuleWrapper extends BaseModel {
     }, ModuleWrapper.getHaikuKnownImportMatch)
   }
 
-  moduleAsMana (identifierName, contextDirAbspath) {
+  moduleAsMana (identifier, contextDirAbspath) {
     const exp = this.reload()
     if (!exp) return null
-    const relpath = path.normalize(path.relative(contextDirAbspath, this.getAbspath()))
+
+    let source
+    if (this.isExternalModule) {
+      source = this.getModpath()
+    } else {
+      source = path.normalize(path.relative(contextDirAbspath, this.getAbspath()))
+    }
+
     const safe = {} // Clone to avoid clobbering/polluting with these properties
+
     for (const key in exp) safe[key] = exp[key]
-    safe.__module = relpath
-    safe.__reference = identifierName
+    safe.__module = source
+    safe.__reference = identifier
+
     return {
       // Nested components are represented thusly:
       // - The element name is the bytecode of the subcomponent
@@ -139,8 +157,9 @@ class ModuleWrapper extends BaseModel {
       // - Upon reification, it's loaded as bytecode with the appropriate __-references
       elementName: safe,
       attributes: {
-        source: relpath,
-        'haiku-title': identifierName
+        source, // This important and is used for lookups relative to the host component
+        identifier, // This is important when reloading bytecode with instantiated components from disk
+        'haiku-title': identifier // This is used for display in the Timeline, Stage, etc
       },
       children: []
     }

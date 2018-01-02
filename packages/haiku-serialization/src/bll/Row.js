@@ -634,7 +634,7 @@ class Row extends BaseModel {
    * @description When debugging, use this to log a concise shorthand of this entity.
    */
   dump () {
-    let str = `${this.getType()}.${this.place}|${this.depth}.${this.seq}.${this.index}`
+    let str = `${this.getType()}.${this.element.getComponentId()}.${this.place}|${this.depth}.${this.seq}.${this.index}`
     if (this.isCluster()) str += `.${this.cluster.prefix}[]`
     if (this.isProperty()) str += `.${this.getPropertyName()}`
     if (this.isSelected()) str += ' {s}'
