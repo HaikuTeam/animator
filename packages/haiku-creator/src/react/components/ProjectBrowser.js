@@ -437,7 +437,7 @@ class ProjectBrowser extends React.Component {
             className='three-dot-popover'
             body={this.renderUserMenuItems()}>
             <button key='user' onClick={this.openPopover} style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}>
-              <UserIconSVG color={Palette.ROCK} height='15px' width='14px' />
+              <UserIconSVG color={Palette.SUNSTONE} />
             </button>
           </Popover>
         </div>
