@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "yarn test:unit && yarn test:bll",
-    "test:unit": "tape \"test/unit/**/*.test.js\" | tap-spec || true",
-    "test:bll": "tape \"test/bll/**/*.test.js\" | tap-spec || true",
+    "test:unit": "NODE_ENV=test tape \"test/unit/**/*.test.js\" | tap-spec || true",
+    "test:bll": "NODE_ENV=test tape \"test/bll/**/*.test.js\" | tap-spec || true",
     "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true"
   },
   "author": "Matthew Trost <matthew@haiku.ai>",

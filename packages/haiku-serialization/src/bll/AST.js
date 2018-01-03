@@ -23,12 +23,16 @@ class AST extends BaseModel {
   updateWithBytecode (bytecode) {
     // Grab imports before we strip off the __module property
     const imports = AST.findImportsFromTemplate(bytecode.template)
+
     const safe = AST.safeBytecode(bytecode)
     const ro = objectToRO(safe)
+
     const ast = bytecodeObjectToAST(ro, imports)
+
     // Merge instead of replacing wholesale in case we have any pointers
     for (const k1 in this.obj) delete this.obj[k1]
     for (const k2 in ast) this.obj[k2] = ast[k2]
+
     return this.obj
   }
 
@@ -53,15 +57,35 @@ BaseModel.extend(AST)
 AST.findImportsFromTemplate = (template) => {
   // We'll build a mapping from source path to identifier name
   const imports = {}
+
   // This assumes that the module paths have been normalized and relativized
   Template.visit(template, (node) => {
-    if (node && node.elementName && typeof node.elementName === 'object' && node.elementName.__module) {
-      // See Mod.prototype.moduleAsMana to understand how this gets setup
-      const modpath = node.elementName.__module
-      const identifier = node.elementName.__reference
-      imports[modpath] = identifier
+    if (node && node.elementName && typeof node.elementName === 'object') {
+      let modpath
+      let identifier
+
+      // If we're loading from in-memory then this should be present
+      if (node.elementName.__module) {
+        // See Mod.prototype.moduleAsMana to understand how this gets setup
+        modpath = node.elementName.__module
+        identifier = node.elementName.__reference
+      } else {
+        // But if we just reloaded from disk via require, it'll be the bytecode object
+        // and we have to do a bit of hackery in case the element was a primitive
+        modpath = node.attributes && node.attributes.source
+        identifier = node.attributes && node.attributes.identifier
+      }
+
+      if (modpath && identifier) {
+        // In case these weren't set (see above), set them so downstream codegen works :/
+        node.elementName.__module = modpath
+        node.elementName.__reference = identifier
+
+        imports[modpath] = identifier
+      }
     }
   })
+
   return imports
 }
 

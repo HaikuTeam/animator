@@ -667,7 +667,7 @@ class Project extends BaseModel {
    * @param cb {Function}
    */
   componentizeDesign (relpath, options, cb) {
-    return Design.designAsCode(this.getFolder(), relpath, (err, identifier, modpath, bytecode) => {
+    return Design.designAsCode(this.getFolder(), relpath, {}, (err, identifier, modpath, bytecode) => {
       if (err) return cb(err)
 
       return this.upsertComponentBytecodeToModule(modpath, bytecode, options, (err, component) => {

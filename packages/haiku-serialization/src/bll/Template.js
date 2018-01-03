@@ -33,6 +33,7 @@ const TEMPLATE_METADATA_ATTRIBUTES = {
   'http-equiv': true,
   scheme: true,
   source: true,
+  identifier: true,
   'haiku-id': true,
   'haiku-title': true,
   'haiku-source': true
@@ -192,13 +193,12 @@ Template.manaWithOnlyStandardProps = (mana) => {
   }
 }
 
-Template.manaToDynamicBytecode = (mana, identifier, modpath) => {
-  // TODO: I'm not sure if the source of this hash is sufficient for this case
-  const hash = `${identifier}-${modpath}`
+Template.manaToDynamicBytecode = (mana, identifier, modpath, options = {}) => {
+  const referenceRandomizer = `${identifier}-${modpath.replace(/\W+/g, '-')}`
 
   const timelines = Template.prepareManaAndBuildTimelinesObject(
     mana,
-    hash,
+    referenceRandomizer,
     'Default',
     0
   )
@@ -226,31 +226,28 @@ Template.manaToDynamicBytecode = (mana, identifier, modpath) => {
       }
 
       const stateName = State.buildStateNameFromElementPropertyName(0, states, elementNode, propertyName)
+
       const stateDescriptor = States.autoCastToType({
         value: Template.fixKeyframeValue(elementNode, propertyName, keyframeDescriptor.value),
         access: Property.PRIVATE_PROPERTY_WHEN_HOISTING_TO_STATE[propertyName] ? 'private' : 'public'
       })
+
       states[stateName] = stateDescriptor
+
       keyframeDescriptor.value = Expression.buildStateInjectorFunction(stateName)
     }
   })
 
-  const metadata = {
-    uuid: 'HAIKU_SHARE_UUID',
-    type: 'haiku',
-    name: identifier,
-    relpath: modpath
-  }
-
-  const options = {}
-
-  const eventHandlers = {}
-
   const bytecode = {
-    metadata,
-    options,
+    metadata: {
+      uuid: 'HAIKU_SHARE_UUID',
+      type: 'haiku',
+      name: identifier,
+      relpath: modpath
+    },
+    options: {},
     states,
-    eventHandlers,
+    eventHandlers: {},
     timelines,
     template: mana
   }
@@ -646,6 +643,7 @@ Template.cleanTemplate = function cleanTemplate (mana) {
 /**
  * @method areTemplatesEquivalent
  * @description Determines whether two template objects have the same structure
+ * Note: This check compares element names and children (recursively), but not attributes!
  * @returns {Boolean}
  */
 Template.areTemplatesEquivalent = function areTemplatesEquivalent (t1, t2) {

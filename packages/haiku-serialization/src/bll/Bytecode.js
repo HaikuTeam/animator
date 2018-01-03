@@ -304,6 +304,33 @@ Bytecode.pasteBytecode = (destination, pasted, translation) => {
   return destination
 }
 
+Bytecode.applyOverrides = (overrides, timelinesObject, timelineName, timelineSelector, timelineTime) => {
+  if (overrides && Object.keys(overrides).length > 0) {
+    if (!timelinesObject[timelineName]) timelinesObject[timelineName] = {}
+    if (!timelinesObject[timelineName][timelineSelector]) timelinesObject[timelineName][timelineSelector] = {}
+
+    for (const propertyName in overrides) {
+      if (!timelinesObject[timelineName][timelineSelector][propertyName]) timelinesObject[timelineName][timelineSelector][propertyName] = {}
+      if (!timelinesObject[timelineName][timelineSelector][propertyName][timelineTime]) timelinesObject[timelineName][timelineSelector][propertyName][timelineTime] = {}
+      if (!timelinesObject[timelineName][timelineSelector][propertyName][timelineTime].edited) {
+        timelinesObject[timelineName][timelineSelector][propertyName][timelineTime].value = overrides[propertyName]
+      }
+    }
+  }
+}
+
+Bytecode.extractOverrides = (bytecode) => {
+  const overrides = {}
+
+  if (bytecode.states) {
+    for (const stateName in bytecode.states) {
+      overrides[stateName] = bytecode.states[stateName].value
+    }
+  }
+
+  return overrides
+}
+
 Bytecode.clone = (bytecode) => {
   // Eventually we may lean on a more custom-tailored clone method instead of lodash
   return lodash.cloneDeep(bytecode)

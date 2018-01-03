@@ -614,20 +614,21 @@ class ActiveComponent extends BaseModel {
    * @param cb {Function}
    */
   instantiateReference (subcomponent, identifier, modpath, coords, overrides, metadata, cb) {
-    const fullpath = (modpath[0] === '.')
-      ? path.join(this.project.getFolder(), modpath) // Expected to be ./*
-      : modpath // Expected to be @haiku/*
+    let fullpath
 
-    // const relpath = (modpath[0] === '.')
-    //   ? path.relative(this.getSceneCodeFolder(), fullpath)
-    //   : modpath
+    const isExternalModule = modpath[0] !== '.'
 
-    // const fulldir = path.dirname(fullpath)
+    if (!isExternalModule) {
+      fullpath = path.join(this.project.getFolder(), modpath) // Expected to be ./*
+    } else {
+      fullpath = modpath
+    }
 
     // This assumes that the file has already been written to the file system or
     // stored inside the module require.cache via an earlier hook
     const mod = ModuleWrapper.upsert({
       uid: fullpath,
+      isExternalModule,
       file: this.project.upsertFile({
         relpath: modpath,
         folder: this.project.getFolder()
@@ -664,13 +665,13 @@ class ActiveComponent extends BaseModel {
    * @description Given an identifier and the bytecode of some primitive, instantiate
    * it as a reference to that primitive instead of the whole primitive bytecode
    */
-  instantiatePrimitive (identifier, primitive, coords, metadata, cb) {
+  instantiatePrimitive (primitive, coords, overrides, metadata, cb) {
     return this.instantiateReference(
       null,
-      identifier,
-      primitive.metadata.relpath,
+      primitive.getClassName(),
+      primitive.getRequirePath(),
       coords,
-      {},
+      overrides,
       metadata,
       cb
     )
@@ -723,6 +724,8 @@ class ActiveComponent extends BaseModel {
         mana,
         coords
       )
+
+      Bytecode.applyOverrides(overrides, timelinesObject, timelineName, `haiku:${componentId}`, timelineTime)
 
       template.children.push(mana)
 
@@ -914,13 +917,21 @@ class ActiveComponent extends BaseModel {
         Template.fixManaSourceAttribute(mana, relpath) // Adds source="relpath_to_file_from_project_root"
 
         if (experimentIsEnabled(Experiment.InstantiationOfPrimitivesAsComponents)) {
-          const primitive = Primitive.inferPrimitiveFromMana(mana)
-          if (primitive) {
-            return this.instantiatePrimitive(primitive.getIdentifier(), primitive, coords, metadata, finish)
-          }
-        }
+          return Design.manaAsCode(relpath, Template.clone({}, mana), {}, (err, identifier, modpath, bytecode) => {
+            if (err) return finish(err)
 
-        return this.instantiateMana(mana, {}, coords, metadata, finish)
+            const primitive = Primitive.inferPrimitiveFromBytecode(bytecode)
+
+            if (primitive) {
+              const overrides = Bytecode.extractOverrides(bytecode)
+              return this.instantiatePrimitive(primitive, coords, overrides, metadata, finish)
+            }
+
+            return this.instantiateMana(mana, {}, coords, metadata, finish)
+          })
+        } else {
+          return this.instantiateMana(mana, {}, coords, metadata, finish)
+        }
       })
     }
 
@@ -957,12 +968,53 @@ class ActiveComponent extends BaseModel {
     })
   }
 
+  mergePrimitiveWithOverrides (primitive, overrides, cb) {
+    return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
+      Template.visit((template), (node) => {
+        // Only merge into nodes that match our source design path
+        if (node.attributes.source !== primitive.getRequirePath()) {
+          return
+        }
+
+        const timelineName = this.getMergeDesignTimelineName()
+        const timelineTime = this.getMergeDesignTimelineTime()
+        const haikuId = node.attributes[HAIKU_ID_ATTRIBUTE]
+
+        const timelineObj = (
+          bytecode.timelines &&
+          bytecode.timelines[timelineName] &&
+          bytecode.timelines[timelineName][`haiku:${haikuId}`]
+        )
+
+        if (timelineObj) {
+          for (const propertyName in timelineObj) {
+            const keyframeObj = timelineObj[propertyName][timelineTime]
+
+            // Nothing to do if no keyframe spec at this time
+            if (!keyframeObj) continue
+
+            // Nothing to do if the keyframe object was edited
+            if (keyframeObj.edited) continue
+
+            const overrideVal = overrides[propertyName]
+
+            if (overrideVal !== undefined) {
+              keyframeObj.value = overrideVal
+            }
+          }
+        }
+      })
+
+      done()
+    }, cb)
+  }
+
   mergeMana (mana, cb) {
     return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
       let found = 0
 
       Template.visit((template), (node) => {
-        // Only merge into notes that match our source design path
+        // Only merge into nodes that match our source design path
         if (node.attributes.source !== mana.attributes.source) {
           return
         }
@@ -995,8 +1047,25 @@ class ActiveComponent extends BaseModel {
       if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
         return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
           if (err) return next(err)
+
           Template.fixManaSourceAttribute(mana, relpath) // Adds source="relpath_to_file_from_project_root"
-          return this.mergeMana(mana, next)
+
+          if (experimentIsEnabled(Experiment.InstantiationOfPrimitivesAsComponents)) {
+            return Design.manaAsCode(relpath, Template.clone({}, mana), {}, (err, identifier, modpath, bytecode) => {
+              if (err) return cb(err)
+
+              const primitive = Primitive.inferPrimitiveFromBytecode(bytecode)
+
+              if (primitive) {
+                const overrides = Bytecode.extractOverrides(bytecode)
+                return this.mergePrimitiveWithOverrides(primitive, overrides, next)
+              }
+
+              return this.mergeMana(mana, next)
+            })
+          } else {
+            return this.mergeMana(mana, next)
+          }
         })
       }
 
@@ -2370,6 +2439,7 @@ module.exports = ActiveComponent
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Artboard = require('./Artboard')
+const Design = require('./Design')
 const Element = require('./Element')
 const File = require('./File')
 const Keyframe = require('./Keyframe')

@@ -38,15 +38,20 @@ Design.designSourceToCodeSource = (relpath) => {
  * @param relpath {String} Path to the design element
  * @param cb {Function}
  */
-Design.designAsCode = (folder, relpath, cb) => {
+Design.designAsCode = (folder, relpath, options = {}, cb) => {
+  // Note that readMana runs the contents through svgo
   return File.readMana(folder, relpath, (err, mana) => {
     if (err) return cb(err)
-    const identifier = Design.designSourceToIdentifierName(relpath)
-    const modpath = ModuleWrapper.identifierToLocalModpath(identifier)
-    Template.fixManaSourceAttribute(mana, relpath) // Adds source="relpath_to_file_from_project_root"
-    const bytecode = Template.manaToDynamicBytecode(mana, identifier, modpath)
-    return cb(null, identifier, modpath, bytecode)
+    return Design.manaAsCode(relpath, mana, options, cb)
   })
+}
+
+Design.manaAsCode = (relpath, mana, options = {}, cb) => {
+  const identifier = Design.designSourceToIdentifierName(relpath)
+  const modpath = ModuleWrapper.identifierToLocalModpath(identifier)
+  Template.fixManaSourceAttribute(mana, relpath) // Adds source="relpath_to_file_from_project_root"
+  const bytecode = Template.manaToDynamicBytecode(mana, identifier, modpath, options)
+  return cb(null, identifier, modpath, bytecode)
 }
 
 module.exports = Design

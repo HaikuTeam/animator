@@ -3,6 +3,8 @@ import lodash from 'lodash'
 import Color from 'color'
 import Palette from 'haiku-ui-common/lib/Palette'
 
+const CELL_WIDTH = 83
+
 export default class PropertyInputField extends React.Component {
   constructor (props) {
     super(props)
@@ -46,7 +48,7 @@ export default class PropertyInputField extends React.Component {
         className='property-input-field-box'
         style={{
           height: this.props.rowHeight - 1,
-          width: this.props.inputCellWidth,
+          width: CELL_WIDTH,
           position: 'relative',
           outline: 'none'
         }}
@@ -68,7 +70,7 @@ export default class PropertyInputField extends React.Component {
             outline: 'none',
             color: 'transparent',
             textShadow: '0 0 0 ' + Color(Palette.ROCK).fade(0.3), // darkmagic
-            minWidth: 83,
+            width: CELL_WIDTH,
             height: this.props.rowHeight + 1,
             paddingLeft: 7,
             paddingTop: 3,
@@ -94,11 +96,23 @@ export default class PropertyInputField extends React.Component {
   }
 }
 
+function safeText (textOrObj) {
+  if (typeof textOrObj === 'string') {
+    return textOrObj
+  }
+
+  try {
+    return JSON.stringify(textOrObj)
+  } catch (exception) {
+    return '?'
+  }
+}
+
 function remapPrettyValue (prettyValue) {
   if (prettyValue && prettyValue.render === 'react') {
-    return <span style={prettyValue.style}>{prettyValue.text}</span>
+    return <span style={prettyValue.style}>{safeText(prettyValue.text)}</span>
   }
-  return prettyValue
+  return safeText(prettyValue)
 }
 
 PropertyInputField.propTypes = {

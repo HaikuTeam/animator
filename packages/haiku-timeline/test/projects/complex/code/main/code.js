@@ -18,6 +18,24 @@ module.exports = {
   eventHandlers: {},
   timelines: {
     Default: {
+      "haiku:bubtonkillingsworth": {
+        opacity: {
+          "0": {
+            value: 0
+          }
+        },
+
+        bazzzleDeeBoopla: {
+          "0": {
+            value: [{ x: 0.5, y: 0.5, moveTo: true }, { x: 71.5, y: 58.5 }]
+          },
+
+          "100": {
+            value: [{ x: 0.5, y: 0.5, moveTo: true }, { x: 71.5, y: 58.5 }]
+          }
+        }
+      },
+
       "haiku:f203a65f49c0": {
         shown: {
           "0": { value: false, curve: "linear" },
@@ -30,6 +48,10 @@ module.exports = {
         },
 
         opacity: {
+          "0": {
+            value: [{ x: 0.5, y: 0.5, moveTo: true }, { x: 71.5, y: 58.5 }]
+          },
+
           "200": { value: 0.0 },
           "300": { value: 0.5, curve: "linear" },
           "1500": { value: 1.0 },
@@ -63,11 +85,17 @@ module.exports = {
         "translation.y": { "0": { value: 55 }, "3000": { value: 300 } },
         "style.outline": { "0": { value: "1px solid gray" } },
         "scale.x": {
-          "0": { value: 0 },
+          "0": {
+            value: 0
+          },
+
           "10": { value: 0 },
           "20": { value: 0 },
           "166": { value: 0 },
-          "200": { value: 0 },
+          "200": {
+            value: [{ x: 0.5, y: 0.5, moveTo: true }, { x: 71.5, y: 58.5 }]
+          },
+
           "300": { value: 0 },
           "400": { value: 0 },
           "500": { value: 0 },
@@ -92,6 +120,12 @@ module.exports = {
       },
 
       "haiku:e5e416e36283": {
+        pathInstructions: {
+          "0": {
+            value: [{ x: 0.5, y: 0.5, moveTo: true }, { x: 71.5, y: 58.5 }]
+          }
+        },
+
         "translation.x": { "0": { value: -5.5, edited: true } },
         "translation.y": { "0": { value: 67.5, edited: true } },
         "sizeAbsolute.x": { "0": { value: 172 } },
