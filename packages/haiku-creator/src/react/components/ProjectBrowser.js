@@ -243,10 +243,10 @@ class ProjectBrowser extends React.Component {
   }
 
   handleNewProjectGo () {
-    const raw = this.newProjectInput.value
-    if (!raw) return false
+    const rawNameValue = this.newProjectInput.value
+    if (!rawNameValue) return false
     // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
-    const name = raw && raw.replace(/[^a-z0-9]/gi, '')
+    const name = rawNameValue && rawNameValue.replace(/[^a-z0-9]/gi, '')
 
     this.setState({newProjectLoading: true, showNewProjectModal: false})
     this.props.websocket.request({ method: 'createProject', params: [name] }, (err, newProject) => {
