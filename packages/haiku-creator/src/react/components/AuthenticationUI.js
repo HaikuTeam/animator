@@ -109,7 +109,7 @@ const STYLES = {
   },
   error: {
     backgroundColor: Color(Palette.RED).fade(0.5),
-    color: Palette.ROCK,
+    color: Palette.SUNSTONE,
     width: 'calc(100% + 54px)',
     padding: 20,
     margin: '-27px 0 12px -27px',
