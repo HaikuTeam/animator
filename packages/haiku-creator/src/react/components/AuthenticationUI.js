@@ -248,8 +248,8 @@ class AuthenticationUI extends React.Component {
 
   render () {
     return (
-      <div style={[STYLES.container, this.state.error && STYLES.errorShake]}>
-        <div style={[STYLES.formWrap, STYLES.center]}>
+      <div style={STYLES.container}>
+        <div style={[STYLES.formWrap, STYLES.center, this.state.error && STYLES.errorShake]}>
           <LogoGradientSVG />
           <div style={STYLES.title}>Log in to Your Account</div>
           {this.errorElement()}
