@@ -264,8 +264,8 @@ input::-webkit-input-placeholder {
 }
 
 .toast-enter {
-  opacity: .1;
-  transform: translateY(-400px);
+  opacity: .01;
+  transform: translateY(-100px);
 }
 
 .toast-enter.toast-enter-active {
@@ -275,18 +275,15 @@ input::-webkit-input-placeholder {
   transition: transform 400ms cubic-bezier(.08,.53,.39,1.03), opacity 220ms linear;
 }
 
-.toast-leave {
+.toast-exit {
   opacity: 1;
 }
 
-.toast-leave.toast-leave-active {
+.toast-exit.toast-exit-active {
   opacity: 0.01;
-  transform: translateY(-400px);
+  transform: translateY(-100px);
   transition: all 250ms ease-in;
 }
-
-
-
 
 /* Glass Control Handle Cursors */
 

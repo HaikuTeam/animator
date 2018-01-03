@@ -2,6 +2,7 @@ import lodash from 'lodash'
 import React from 'react'
 import Radium from 'radium'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { FadingCircle } from 'better-react-spinkit'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Toast from './notifications/Toast'
@@ -267,15 +268,16 @@ class ProjectBrowser extends React.Component {
 
   renderNotifications (content, i) {
     return (
-      <Toast
-        toastType={content.type}
-        toastTitle={content.title}
-        toastMessage={content.message}
-        closeText={content.closeText}
-        key={i + content.title}
-        myKey={i}
-        removeNotice={this.props.removeNotice}
-        lightScheme={content.lightScheme} />
+      <CSSTransition timeout={400} classNames="toast" key={i + content.title}>
+        <Toast
+          toastType={content.type}
+          toastTitle={content.title}
+          toastMessage={content.message}
+          closeText={content.closeText}
+          myKey={i}
+          removeNotice={this.props.removeNotice}
+          lightScheme={content.lightScheme} />
+      </CSSTransition>
     )
   }
 
@@ -411,19 +413,14 @@ class ProjectBrowser extends React.Component {
   render () {
     return (
       <div style={DASH_STYLES.dashWrap}>
-        <ReactCSSTransitionGroup
-          transitionName='toast'
-          transitionEnterTimeout={500}
-          transitionLeaveTimeout={300}>
-          <div style={{position: 'absolute', right: 0, top: 0, width: 300}}>
-            {lodash.map(this.props.notices, this.renderNotifications)}
-          </div>
-        </ReactCSSTransitionGroup>
+        <TransitionGroup style={{position: 'absolute', right: 0, top: 35, width: 300, height: '100vh'}}>
+          {lodash.map(this.props.notices, this.renderNotifications)}
+        </TransitionGroup>
 
         { this.state.showNewProjectModal && this.renderNewProjectModal() }
         { this.state.showDeleteModal && this.renderDeleteModal() }
 
-        <div style={DASH_STYLES.frame} className='frame' >
+        <div style={DASH_STYLES.frame} className='frame'>
           {!this.state.atProjectMax &&
             <button key='new_proj'
               onClick={() => this.showNewProjectModal()}
