@@ -882,6 +882,9 @@ export class BodymovinExporter implements Exporter {
   private visitAllTimelines(callback: (timeline: any) => void) {
     for (const timelineId in this.bytecode.timelines) {
       for (const haikuId in this.bytecode.timelines[timelineId]) {
+        if (/^__/.test(haikuId)) {
+          continue;
+        }
         callback(this.bytecode.timelines[timelineId][haikuId]);
       }
     }
