@@ -245,6 +245,7 @@ class ProjectBrowser extends React.Component {
 
   handleNewProjectGo () {
     const raw = this.newProjectInput.value
+    if (!raw) return false
     // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
     const name = raw && raw.replace(/[^a-z0-9]/gi, '')
 
