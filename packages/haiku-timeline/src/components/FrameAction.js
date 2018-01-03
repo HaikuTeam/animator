@@ -7,7 +7,8 @@ const STYLE = {
     position: 'absolute',
     top: '-40px',
     left: '-6px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    overflow: 'hidden'
   }
 }
 
