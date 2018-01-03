@@ -1114,7 +1114,7 @@ export class Glass extends React.Component {
           mousemoveEvent.nativeEvent.clientX - this.state.stageMouseDown.x,
           mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y
         )
-      } else if(!this.isPreviewMode()) {
+      } else if (!this.isPreviewMode()) {
         var selected = this.getActiveComponent().queryElements({ _isSelected: true })
         if (selected.length > 0) {
           selected.forEach((element) => {
@@ -1825,10 +1825,10 @@ export class Glass extends React.Component {
           this.openContextMenu(event)
         }}
         onMouseUp={() => {
-            this.setState({ stageMouseDown: null })
+          this.setState({ stageMouseDown: null })
         }}
         onMouseLeave={() => {
-            this.setState({ stageMouseDown: null })
+          this.setState({ stageMouseDown: null })
         }}>
 
         {(!this.isPreviewMode())
