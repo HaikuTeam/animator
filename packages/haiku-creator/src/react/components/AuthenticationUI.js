@@ -192,7 +192,7 @@ class AuthenticationUI extends React.Component {
           onKeyPress={this.checkSubmit}
           style={[STYLES.input, !this.state.emailValid && STYLES.errorInput]} />
         <span style={STYLES.inputIcon}>
-          <UserIconSVG color={Palette.LIGHT_GRAY} width="15px" height="20px" />
+          <UserIconSVG color={Palette.LIGHT_GRAY} width='15px' height='20px' />
         </span>
         { this.state.emailValid
             ? ''

@@ -1,7 +1,6 @@
 import lodash from 'lodash'
 import React from 'react'
 import Radium from 'radium'
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { FadingCircle } from 'better-react-spinkit'
 import Palette from 'haiku-ui-common/lib/Palette'
@@ -269,7 +268,7 @@ class ProjectBrowser extends React.Component {
 
   renderNotifications (content, i) {
     return (
-      <CSSTransition timeout={400} classNames="toast" key={i + content.title}>
+      <CSSTransition timeout={400} classNames='toast' key={i + content.title}>
         <Toast
           toastType={content.type}
           toastTitle={content.title}

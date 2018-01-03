@@ -264,7 +264,7 @@ input::-webkit-input-placeholder {
 }
 
 .toast-enter {
-  opacity: .01;
+  opacity: 0.01;
   transform: translateY(-100px);
 }
 
