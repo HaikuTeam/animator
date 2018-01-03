@@ -694,7 +694,7 @@ export class Glass extends React.Component {
   }
 
   windowMouseMoveHandler (nativeEvent) {
-    if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
+    if (this.state.isEventHandlerEditorOpen) {
       return void (0)
     }
 
@@ -703,7 +703,7 @@ export class Glass extends React.Component {
   }
 
   windowMouseUpHandler (nativeEvent) {
-    if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
+    if (this.state.isEventHandlerEditorOpen) {
       return void (0)
     }
 
@@ -712,7 +712,7 @@ export class Glass extends React.Component {
   }
 
   windowMouseDownHandler (nativeEvent) {
-    if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
+    if (this.state.isEventHandlerEditorOpen) {
       return void (0)
     }
 
@@ -759,7 +759,7 @@ export class Glass extends React.Component {
       return
     }
 
-    if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
+    if (this.state.isEventHandlerEditorOpen) {
       return void (0)
     }
 
@@ -779,7 +779,7 @@ export class Glass extends React.Component {
 
     if (this.getActiveComponent().getArtboard().getActiveDrawingTool() !== 'pointer') {
       // TODO: Drawing tools
-    } else {
+    } else if (!this.isPreviewMode()) {
       const target = this.findNearestDomSelectionTarget(mousedownEvent.nativeEvent.target)
 
       if (target === SELECTION_TYPES.ON_STAGE_CONTROL) {
@@ -878,7 +878,7 @@ export class Glass extends React.Component {
   }
 
   handleMouseUp (mouseupEvent) {
-    if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
+    if (this.state.isEventHandlerEditorOpen) {
       return void (0)
     }
 
@@ -927,13 +927,11 @@ export class Glass extends React.Component {
   }
 
   handleDragStart (cb) {
-    if (this.isPreviewMode()) return void (0)
     this.state.isMouseDragging = true
     this.setState({ isMouseDragging: true }, cb)
   }
 
   handleDragStop (cb) {
-    if (this.isPreviewMode()) return void (0)
     this.state.isMouseDragging = false
     this.setState({ isMouseDragging: false }, cb)
   }
@@ -1116,7 +1114,7 @@ export class Glass extends React.Component {
           mousemoveEvent.nativeEvent.clientX - this.state.stageMouseDown.x,
           mousemoveEvent.nativeEvent.clientY - this.state.stageMouseDown.y
         )
-      } else {
+      } else if (!this.isPreviewMode()) {
         var selected = this.getActiveComponent().queryElements({ _isSelected: true })
         if (selected.length > 0) {
           selected.forEach((element) => {
@@ -1424,6 +1422,7 @@ export class Glass extends React.Component {
   }
 
   openContextMenu (event) {
+    if (this.isPreviewMode()) return void (0)
     event.preventDefault()
     event.stopPropagation()
 
@@ -1797,45 +1796,39 @@ export class Glass extends React.Component {
         }}
 
         onMouseDown={(mouseDown) => {
-          if (!this.isPreviewMode()) {
-            const targetId = mouseDown.nativeEvent.target && mouseDown.nativeEvent.target.id
+          const targetId = mouseDown.nativeEvent.target && mouseDown.nativeEvent.target.id
 
-            if (
-                targetId === 'stage-root' ||
-                targetId === 'full-background' ||
-                targetId === 'haiku-glass-stage-container' ||
-                targetId === 'haiku-glass-stage-background-live' ||
-                targetId === 'haiku-glass-stage-background-preview' ||
-                targetId === 'haiku-glass-stage-background-preview-border'
-              ) {
-              // If unselecting anything except an actual element, assume we want to deselect all
-              Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
-            }
-
-            if (this.getActiveComponent()) {
-              this.getActiveComponent().getArtboard().snapshotOriginalPan()
-            }
-
-            this.setState({
-              stageMouseDown: {
-                x: mouseDown.nativeEvent.clientX,
-                y: mouseDown.nativeEvent.clientY
-              }
-            })
+          if (
+              targetId === 'stage-root' ||
+              targetId === 'full-background' ||
+              targetId === 'haiku-glass-stage-container' ||
+              targetId === 'haiku-glass-stage-background-live' ||
+              targetId === 'haiku-glass-stage-background-preview' ||
+              targetId === 'haiku-glass-stage-background-preview-border'
+            ) {
+            // If unselecting anything except an actual element, assume we want to deselect all
+            Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
           }
+
+          if (this.getActiveComponent() && !this.isPreviewMode()) {
+            this.getActiveComponent().getArtboard().snapshotOriginalPan()
+          }
+
+          this.setState({
+            stageMouseDown: {
+              x: mouseDown.nativeEvent.clientX,
+              y: mouseDown.nativeEvent.clientY
+            }
+          })
         }}
         onContextMenu={(event) => {
           this.openContextMenu(event)
         }}
         onMouseUp={() => {
-          if (!this.isPreviewMode()) {
-            this.setState({ stageMouseDown: null })
-          }
+          this.setState({ stageMouseDown: null })
         }}
         onMouseLeave={() => {
-          if (!this.isPreviewMode()) {
-            this.setState({ stageMouseDown: null })
-          }
+          this.setState({ stageMouseDown: null })
         }}>
 
         {(!this.isPreviewMode())
