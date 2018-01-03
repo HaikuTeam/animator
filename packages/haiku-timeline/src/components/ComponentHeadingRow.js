@@ -109,10 +109,14 @@ export default class ComponentHeadingRow extends React.Component {
                 left: 0,
                 top: 0
               }}>
-              <EventHandlerTriggerer
-                element={this.props.row.element}
-                onEventHandlerTriggered={this.props.onEventHandlerTriggered}
-              />
+              {/* Only show the action's icon on collapsed rows if it has actions attached */}
+              {(this.props.row.isExpanded() || this.props.row.element.getDOMEvents().length)
+                ? <EventHandlerTriggerer
+                    element={this.props.row.element}
+                    row={this.props.row}
+                    onEventHandlerTriggered={this.props.onEventHandlerTriggered}
+                  />
+                : ''}
             </div>
 
             {(experimentIsEnabled(Experiment.JustInTimeProperties))
