@@ -22,6 +22,8 @@ const STYLES = {
   },
   formWrap: {
     backgroundColor: Palette.COAL,
+    position: 'relative',
+    zIndex: 2,
     width: 375,
     minHeight: 200,
     borderRadius: 7,
