@@ -67,7 +67,7 @@ export default class WebsocketServerWithManyClients extends EventEmitter {
   }
 }
 
-function jsonParse(str) {
+function jsonParse (str) {
   try {
     return JSON.parse(str)
   } catch (exception) {

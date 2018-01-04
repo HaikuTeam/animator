@@ -4,8 +4,11 @@
   "description": "Bytecode utilities",
   "main": "index.js",
   "scripts": {
-    "test": "tape \"test/**/*.test.js\" | tap-spec || true",
-    "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true"
+    "test": "tape \"test/**/*.test.js\" | tap-spec",
+    "test-report": "tape \"test/**/*.test.js\" > test-result.tap",
+    "lint": "eslint \"src/**/*.js\"",
+    "fix": "yarn lint --fix",
+    "lint-report": "yarn lint -f checkstyle -o checkstyle-result.xml"
   },
   "author": "Matthew Trost <matthew@haiku.ai>",
   "license": "UNLICENSED",
@@ -15,8 +18,8 @@
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-preset-es2015": "^6.24.0",
     "babel-preset-react": "^6.16.0",
-    "snazzy": "^7.0.0",
-    "standard": "^10.0.2",
+    "eslint": "^3.19.0",
+    "eslint-config-standard": "^10.2.1",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0"
   },
