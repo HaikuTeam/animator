@@ -21,7 +21,7 @@ tape('Project', (t) => {
       t.deepEqual(project.getEnvoyOptions(), envoyOptions)
       t.deepEqual(project.getFolder(), folder)
       t.deepEqual(project.getAlias(), 'test')
-      t.equal(project.buildFileUid('foo/bar/baz.js'), '/Users/matthew/Code/HaikuTeam/mono/packages/haiku-serialization/test/fixtures/projects/project-01/foo/bar/baz.js')
+      t.true(project.buildFileUid('foo/bar/baz.js').endsWith('haiku-serialization/test/fixtures/projects/project-01/foo/bar/baz.js'))
       t.ok(project.getPlatform().haiku.registry[project.buildFileUid('code/main/code.js')])
       t.ok(project.getEnvoyChannel('timeline'),'envoy timeline exists')
       t.ok(project.getEnvoyClient())

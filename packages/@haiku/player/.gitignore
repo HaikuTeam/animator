@@ -10,3 +10,5 @@ coverage/
 
 lib/
 dist/
+checkstyle-result.xml
+test-result.tap

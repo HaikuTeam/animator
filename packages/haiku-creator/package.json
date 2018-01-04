@@ -16,8 +16,11 @@
     "start": "electron ./lib/electron.js",
     "watch": "babel --watch src --out-dir lib --source-maps inline",
     "compile": "NODE_ENV=development babel src --out-dir lib --source-maps inline",
-    "lint": "standard \"./src/**/*.js\" --fix --verbose | snazzy || true",
-    "test": "tape \"test/**/*.test.js\" | tap-spec || true"
+    "lint": "eslint \"src/**/*.js\"",
+    "fix": "yarn lint --fix",
+    "lint-report": "yarn lint -f checkstyle -o checkstyle-result.xml",
+    "test": "tape \"test/**/*.test.js\" | tap-spec || true",
+    "test-report": "tape \"test/**/*.test.js\" > test-result.tap"
   },
   "dependencies": {
     "@haiku/player": "2.3.64",
@@ -62,6 +65,8 @@
     "babel-preset-react-app": "^2.2.0",
     "babel-register": "6.26.0",
     "electron": "1.7.10",
+    "eslint": "^3.19.0",
+    "eslint-config-standard-jsx": "^4.0.2",
     "snazzy": "^7.0.0",
     "standard": "^10.0.2",
     "tap-spec": "^4.1.1",

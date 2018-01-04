@@ -2,7 +2,7 @@ var test = require('tape')
 var Websocket = require('ws')
 var WebsocketServerWithManyClients = require('./../lib/WebsocketServerWithManyClients').default
 test('WebsocketServerWithManyClients.test', function(t) {
-  t.plan(5)
+  t.plan(2)
   var wswmc = new WebsocketServerWithManyClients({ port: 3002 })
   var wsfoo = new Websocket('http://localhost:3002?type=foo')
   var wsbar = new Websocket('http://localhost:3002?type=bar')

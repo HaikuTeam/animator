@@ -7,9 +7,11 @@
     "lib": "lib"
   },
   "scripts": {
-    "lint": "tslint -p tsconfig.json -c tslint.json --type-check 'src/**/*.ts' --format stylish",
+    "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' -t stylish",
+    "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
     "test": "tsc && tsc -p tsconfig.test.json && NODE_ENV=test tape \"~test/**/*.test.js\" | tap-spec && rm -rf ~test",
+    "test-report": "tsc -p tsconfig.test.json && NODE_ENV=test tape \"~test/**/*.test.js\" > test-result.tap",
     "coverage": "nyc yarn test",
     "html-coverage": "nyc --reporter=html yarn test",
     "compile": "tsc",

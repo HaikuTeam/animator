@@ -7,3 +7,4 @@ dist
 .haiku
 test/fixtures/projects/blank-project
 lib/
+checkstyle-result.xml

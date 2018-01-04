@@ -6,3 +6,5 @@ lib/
 .nyc_output/
 coverage/
 lib/
+checkstyle-result.xml
+test-result.tap

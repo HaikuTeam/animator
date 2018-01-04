@@ -3,3 +3,5 @@ node_modules
 *.log
 *.log.*
 lib/
+checkstyle-result.xml
+test-result.tap

@@ -4,7 +4,7 @@ test('perf1', function (t) {
   t.plan(3);
   const bytecode = TestHelpers.getBytecode('chinese-food');
   TestHelpers.createComponent(bytecode, {}, function (component, teardown, mount) {
-    t.equal(mount.outerHTML.length, 48, 'html checksum ok');
+    t.equal(mount.outerHTML.length, 11, 'html checksum ok');
     TestHelpers.timeBracket([
       function (done) {
         component._context.tick();

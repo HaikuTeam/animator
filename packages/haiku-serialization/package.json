@@ -7,7 +7,10 @@
     "test": "yarn test:unit && yarn test:bll",
     "test:unit": "NODE_ENV=test tape \"test/unit/**/*.test.js\" | tap-spec || true",
     "test:bll": "NODE_ENV=test tape \"test/bll/**/*.test.js\" | tap-spec || true",
-    "lint": "standard \"src/**/*.js\" --fix --verbose | snazzy || true"
+    "test-report": "tape \"test/**/*.test.js\" > test-result.tap",
+    "lint": "eslint \"src/**/*.js\"",
+    "fix": "yarn lint --fix",
+    "lint-report": "yarn lint -f checkstyle -o checkstyle-result.xml"
   },
   "author": "Matthew Trost <matthew@haiku.ai>",
   "license": "UNLICENSED",
@@ -64,6 +67,8 @@
     "winston": "^2.3.1"
   },
   "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-standard": "^10.2.1",
     "snazzy": "^7.0.0",
     "standard": "^10.0.2",
     "tap-spec": "^4.1.1",

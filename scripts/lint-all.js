@@ -1,12 +1,18 @@
-var async = require('async')
-var cp = require('child_process')
-var path = require('path')
-var log = require('./helpers/log')
-var gitStatusInfo = require('./helpers/gitStatusInfo')
-var allPackages = require('./helpers/packages')()
-var ROOT = path.join(__dirname, '..')
+const async = require('async')
+const cp = require('child_process')
+const path = require('path')
+const log = require('./helpers/log')
+const gitStatusInfo = require('./helpers/gitStatusInfo')
+const allPackages = require('./helpers/packages')()
+const unbuildables = require('./helpers/unbuildables')
+const ROOT = path.join(__dirname, '..')
 
 async.eachSeries(allPackages, function (pack, next) {
+  if (unbuildables.includes(pack.name)) {
+    next()
+    return
+  }
+
   if (pack.pkg.scripts) {
     const command = pack.pkg.scripts.fix || pack.pkg.scripts.lint
     if (command) {
@@ -18,7 +24,7 @@ async.eachSeries(allPackages, function (pack, next) {
       }
     }
   }
-  return next()
+  next()
 }, () => {
   var monoStatus = gitStatusInfo(ROOT)
   delete monoStatus.output
