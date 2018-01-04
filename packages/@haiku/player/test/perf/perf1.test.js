@@ -12,7 +12,7 @@ test('perf1', function (t) {
       },
       function (done, delta) {
         console.log('[haiku player perf test] initial tick took ' + delta + ' vs baseline of 250');
-        t.true(true);
+        t.true(false);
         done();
       },
       function (done) {
