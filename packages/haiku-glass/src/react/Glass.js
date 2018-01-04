@@ -1586,7 +1586,7 @@ export class Glass extends React.Component {
     return this.getActiveComponent().getArtboard().getArtboardRenderInfo()
   }
 
-  getContextMenuItems (menu) {
+  getContextMenuItems () {
     const items = []
 
     const selectedElements = this.getActiveComponent().queryElements({ _isSelected: true })
@@ -1608,8 +1608,8 @@ export class Glass extends React.Component {
       label: 'Add Comment',
       onClick: () => {
         this._comments.build({
-          x: menu.getLastX(),
-          y: menu.getLastY()
+          x: this.state.mousePositionCurrent.x,
+          y: this.state.mousePositionCurrent.y
         })
 
         this.setState({ comments: this._comments.comments, doShowComments: true })
@@ -2031,8 +2031,16 @@ export class Glass extends React.Component {
                 width: '100%',
                 height: '100%' }}
                 >
-              {this.state.comments.map((comment, index) => {
-                return <Comment index={index} comment={comment} key={`comment-${comment.id}`} model={this._comments} />
+              {this.getActiveComponent() && this.state.comments.map((comment, index) => {
+                return (
+                  <Comment
+                    index={index}
+                    comment={comment}
+                    x={comment.x + this.getActiveComponent().getArtboard().getMountX()}
+                    y={comment.y + this.getActiveComponent().getArtboard().getMountY()}
+                    key={`comment-${comment.id}`}
+                    model={this._comments} />
+                )
               })}
             </div>
             : ''}
