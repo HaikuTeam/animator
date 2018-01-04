@@ -289,7 +289,12 @@ export namespace inkstone {
       cb: inkstone.Callback<{snap: SnapshotAndProjectAndOrganization, link: string}>,
     ) {
       getSnapshotAndProject(id, (err, snap, response) => {
-        if (response.statusCode !== 200) {
+        if (err) {
+          cb(err, undefined, undefined)
+          return
+        }
+
+        if (response && response.statusCode !== 200) {
           cb(err, undefined, undefined)
         } else {
           cb(undefined, {snap, link: assembleSnapshotLinkFromSnapshot(snap.Snapshot)}, response)
