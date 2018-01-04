@@ -46,7 +46,8 @@ export default {
             "value": "#00FF00"
           }
         }
-      }
+      },
+      "__max": 1000
     }
   },
   "template": {

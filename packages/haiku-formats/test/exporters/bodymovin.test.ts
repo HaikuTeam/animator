@@ -271,7 +271,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
       test.deepEqual(c, {a: 0, k: [1, 0, 0, 1]}, 'parses stroke color');
       test.equal(lc, 3, 'uses stroke-linecap="square" by default');
       test.equal(lj, 1, 'uses stroke-linejoin="miter" by default');
-      test.deepEqual(d, [], 'uses no stroke-dasharray by default');
+      test.is(d, undefined, 'uses no stroke-dasharray by default');
     }
 
     {
