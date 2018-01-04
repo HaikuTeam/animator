@@ -1796,7 +1796,8 @@ export class Glass extends React.Component {
           width: '100%',
           height: '100%',
           visibility: (this.getActiveComponent()) ? 'visible' : 'hidden',
-          cursor: this.getCursorCssRule()
+          cursor: this.getCursorCssRule(),
+          backgroundColor: (this.isPreviewMode()) ? 'white' : 'inherit'
         }}
 
         onMouseDown={(mouseDown) => {
@@ -1872,7 +1873,7 @@ export class Glass extends React.Component {
             top: 0,
             left: 0,
             transform: this.getCSSTransform(zoom, pan),
-            backgroundColor: (this.isPreviewMode()) ? 'white' : 'inherit'
+            backgroundColor: 'inherit'
           }}>
 
           {(!this.isPreviewMode())
