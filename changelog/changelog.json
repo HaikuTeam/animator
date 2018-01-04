@@ -3752,5 +3752,12 @@
       "label": "fix",
       "message": "detach frame event listeners on clearPreviouslyRegisteredEventListeners."
     }
+  },
+  "2.3.66": {
+    "08861035f2d5915bf25829dff95c7ebf4256c7fa": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "move electron to a devDependency to restore \"correct\" app size."
+    }
   }
 }
