@@ -22,6 +22,8 @@ const STYLES = {
   },
   formWrap: {
     backgroundColor: Palette.COAL,
+    position: 'relative',
+    zIndex: 2,
     width: 375,
     minHeight: 200,
     borderRadius: 7,
@@ -109,7 +111,7 @@ const STYLES = {
   },
   error: {
     backgroundColor: Color(Palette.RED).fade(0.5),
-    color: Palette.ROCK,
+    color: Palette.SUNSTONE,
     width: 'calc(100% + 54px)',
     padding: 20,
     margin: '-27px 0 12px -27px',
@@ -190,7 +192,7 @@ class AuthenticationUI extends React.Component {
           onKeyPress={this.checkSubmit}
           style={[STYLES.input, !this.state.emailValid && STYLES.errorInput]} />
         <span style={STYLES.inputIcon}>
-          <UserIconSVG />
+          <UserIconSVG color={Palette.LIGHT_GRAY} width='15px' height='20px' />
         </span>
         { this.state.emailValid
             ? ''
@@ -248,8 +250,8 @@ class AuthenticationUI extends React.Component {
 
   render () {
     return (
-      <div style={[STYLES.container, this.state.error && STYLES.errorShake]}>
-        <div style={[STYLES.formWrap, STYLES.center]}>
+      <div style={STYLES.container}>
+        <div style={[STYLES.formWrap, STYLES.center, this.state.error && STYLES.errorShake]}>
           <LogoGradientSVG />
           <div style={STYLES.title}>Log in to Your Account</div>
           {this.errorElement()}

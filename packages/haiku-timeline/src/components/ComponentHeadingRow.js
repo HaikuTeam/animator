@@ -11,6 +11,9 @@ import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 export default class ComponentHeadingRow extends React.Component {
   render () {
     let componentId = this.props.row.element.getComponentId()
+    let hasAttachedActions = this.props.row.element.getDOMEvents().length
+    let boltColor = hasAttachedActions ? Palette.LIGHT_BLUE : Palette.DARK_ROCK
+
     return (
       <div
         ref='$row'
@@ -109,10 +112,14 @@ export default class ComponentHeadingRow extends React.Component {
                 left: 0,
                 top: 0
               }}>
-              <EventHandlerTriggerer
-                element={this.props.row.element}
-                onEventHandlerTriggered={this.props.onEventHandlerTriggered}
-              />
+              {(this.props.row.isExpanded() || hasAttachedActions)
+                ? <EventHandlerTriggerer
+                    element={this.props.row.element}
+                    row={this.props.row}
+                    boltColor={boltColor}
+                    onEventHandlerTriggered={this.props.onEventHandlerTriggered}
+                  />
+                : ''}
             </div>
 
             {(experimentIsEnabled(Experiment.JustInTimeProperties))

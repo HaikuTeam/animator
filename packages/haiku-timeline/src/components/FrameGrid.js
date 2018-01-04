@@ -85,7 +85,7 @@ export default class FrameGrid extends React.Component {
                       : borderLeftNormal,
                   position: 'absolute',
                   left: pixelOffsetLeft,
-                  top: 44
+                  top: 34
                 }}
               >
                 {this.renderFrameActions(frameNumber, hoveredFrame)}

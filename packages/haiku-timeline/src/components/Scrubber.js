@@ -70,41 +70,52 @@ export default class Scrubber extends React.Component {
             style={{
               position: 'absolute',
               backgroundColor: Palette.SUNSTONE,
-              height: 13,
-              width: 13,
-              top: 30,
-              left: pxOffset - 6,
+              color: Palette.FATHER_COAL,
+              textAlign: 'center',
+              height: 19,
+              width: 19,
+              top: 13,
+              left: pxOffset - 9,
               borderRadius: '50%',
               cursor: 'move',
               boxShadow: '0 0 2px 0 rgba(0, 0, 0, .9)',
-              zIndex: 1006
+              zIndex: 2006
             }}>
             <span style={{
               position: 'absolute',
-              zIndex: 1006,
+              top: 2,
+              left: 0,
+              width: '100%'
+              }}>
+              {!this.props.isScrubbing && this.props.displayTime}
+            </span>
+            <span style={{
+              position: 'absolute',
+              zIndex: 2006,
               width: 0,
               height: 0,
-              top: 8,
-              borderLeft: '6px solid transparent',
-              borderRight: '6px solid transparent',
-              borderTop: '8px solid ' + Palette.SUNSTONE
+              top: 15,
+              left: 3,
+              borderLeft: '7px solid transparent',
+              borderRight: '7px solid transparent',
+              borderTop: '9px solid ' + Palette.SUNSTONE
             }} />
             <span style={{
               position: 'absolute',
-              zIndex: 1006,
+              zIndex: 2006,
               width: 0,
               height: 0,
-              left: 1,
-              top: 8,
-              borderLeft: '6px solid transparent',
-              borderRight: '6px solid transparent',
-              borderTop: '8px solid ' + Palette.SUNSTONE
+              left: 2,
+              top: 15,
+              borderLeft: '7px solid transparent',
+              borderRight: '7px solid transparent',
+              borderTop: '9px solid ' + Palette.SUNSTONE
             }} />
           </div>
           <div
             style={{
               position: 'absolute',
-              zIndex: 1006,
+              zIndex: 2006,
               backgroundColor: Palette.SUNSTONE,
               height: 9999,
               width: 1,
@@ -121,5 +132,6 @@ export default class Scrubber extends React.Component {
 Scrubber.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   reactParent: React.PropTypes.object.isRequired,
-  $update: React.PropTypes.object.isRequired
+  $update: React.PropTypes.object.isRequired,
+  isScrubbing: React.PropTypes.bool.isRequired
 }

@@ -34,7 +34,7 @@ const STYLES = {
   },
   closer: {
     backgroundColor: Palette.GRAY,
-    color: Palette.ROCK,
+    color: Palette.SUNSTONE,
     padding: '3px 7px 2px 7px',
     borderRadius: '2px',
     textTransform: 'uppercase',
@@ -47,7 +47,7 @@ const STYLES = {
   },
   lightCloser: {
     backgroundColor: Palette.FATHER_COAL,
-    color: Palette.ROCK
+    color: Palette.SUNSTONE
   },
   container: {
     WebkitUserSelect: 'none',
@@ -60,7 +60,7 @@ const STYLES = {
     marginTop: '14px',
     marginRight: '14px',
     borderRadius: '3px',
-    color: Palette.ROCK,
+    color: Palette.SUNSTONE,
     overflow: 'hidden',
     boxShadow: '0 4px 18px 0 rgba(1,28,33,0.38)'
   },
@@ -68,13 +68,13 @@ const STYLES = {
     fontSize: '14.5px',
     fontStyle: 'italic',
     lineHeight: 1.3,
-    color: Palette.ROCK,
+    color: Palette.SUNSTONE,
     pointerEvents: 'none'
   },
   body: {
     fontSize: '12px',
     marginTop: '8px',
-    color: Palette.DARK_ROCK,
+    color: Palette.ROCK,
     pointerEvents: 'none',
     width: '190px'
   }
