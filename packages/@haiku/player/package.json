@@ -48,7 +48,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^8.5.2",
+    "@types/node": "8.5.2",
     "@types/tape": "^4.2.30",
     "async": "^2.5.0",
     "browserify": "^14.4.0",
