@@ -5,7 +5,7 @@ import Palette from 'haiku-ui-common/lib/Palette'
 const STYLE = {
   base: {
     position: 'absolute',
-    top: '-40px',
+    top: '-31px',
     left: '-6px',
     cursor: 'pointer',
     overflow: 'hidden'
@@ -58,7 +58,7 @@ class FrameAction extends React.PureComponent {
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: '50%',
-              border: '1px solid white',
+              border: '1px solid rgba(255,255,255,.2)',
               fontSize: '20px'
             }}
           >

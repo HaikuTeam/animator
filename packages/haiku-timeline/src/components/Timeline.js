@@ -22,6 +22,7 @@ import GaugeTimeReadout from './GaugeTimeReadout'
 import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
 import {isPreviewMode} from '@haiku/player/lib/helpers/interactionModes'
+import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
@@ -786,6 +787,11 @@ class Timeline extends React.Component {
   }
 
   renderTopControls () {
+    const timeline = this.getActiveComponent().getCurrentTimeline()
+    const displayTime = this.state.timeDisplayMode === 'frames'
+          ? ~~timeline.getCurrentFrame()
+          : formatSeconds(timeline.getCurrentFrame() * 1000 / timeline.getFPS() / 1000).replace(/^0+/, '')
+
     return (
       <div
         className='top-controls no-select'
@@ -793,7 +799,7 @@ class Timeline extends React.Component {
           position: 'absolute',
           top: 0,
           left: 0,
-          height: this.state.rowHeight + 20,
+          height: this.state.rowHeight + 10,
           width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
           verticalAlign: 'top',
           fontSize: 10,
@@ -806,7 +812,6 @@ class Timeline extends React.Component {
             position: 'absolute',
             top: 0,
             left: 0,
-            paddingTop: 5,
             height: 'inherit',
             width: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
           }}>
@@ -848,7 +853,7 @@ class Timeline extends React.Component {
             width: this.getActiveComponent().getCurrentTimeline().getTimelinePixelWidth(),
             height: 'inherit',
             verticalAlign: 'top',
-            paddingTop: 17,
+            paddingTop: 12,
             color: Palette.ROCK_MUTED }}>
           <FrameGrid
             $update={this.state.$update}
@@ -861,6 +866,8 @@ class Timeline extends React.Component {
           <Scrubber
             $update={this.state.$update}
             reactParent={this}
+            displayTime={displayTime}
+            isScrubbing={this.getActiveComponent().getCurrentTimeline().isScrubberDragging()}
             timeline={this.getActiveComponent().getCurrentTimeline()} />
         </div>
         {this.renderDurationModifier()}
@@ -1022,7 +1029,7 @@ class Timeline extends React.Component {
           className='no-select'
           style={{
             position: 'absolute',
-            top: 45,
+            top: 35,
             left: 0,
             width: '100%',
             pointerEvents: this.state.avoidTimelinePointerEvents ? 'none' : 'auto',
