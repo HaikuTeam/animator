@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.66
+
+### Bug Fixes
+
+ * move electron to a devDependency to restore "correct" app size.
+
 ## 2.3.65
 
 ### Bug Fixes
