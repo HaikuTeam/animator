@@ -13,25 +13,27 @@ ReactDOMComponent.mount = function (element, React, ReactDOM) {
   // Change these if you change the location of this demo
   var HOME_PATH = '/demos/react-render-via-state/'
 
-  var Nav = React.createClass({
-    render: function () {
+  class Nav extends React.Component {
+    render() {
       return React.createElement('div', {
-        style: {}
-      },
+          style: {}
+        },
         React.createElement(Link, { to: HOME_PATH }, ['Home'])
       )
     }
-  })
+  }
 
-  var Home = React.createClass({
-    getInitialState: function () {
-      return {
+  class Home extends React.Component {
+    constructor () {
+      super()
+      this.state = {
         components: [
-          React.createElement(ReactDOMComponent, { autoplay: false, loop: true, sizing: 'cover' })
+          React.createElement(ReactDOMComponent, {autoplay: false, loop: true, sizing: 'cover'})
         ]
       }
-    },
-    render: function () {
+    }
+
+    render() {
       return (
         React.createElement('div', { style: { marginTop: 500 } },
           React.createElement(Nav),
@@ -41,17 +43,17 @@ ReactDOMComponent.mount = function (element, React, ReactDOM) {
         )
       )
     }
-  })
+  }
 
-  var Index = React.createClass({
-    render: function () {
+  class Index extends React.Component {
+    render() {
       return React.createElement(BrowserRouter, {},
         React.createElement(Switch, {},
           React.createElement(Route, { exact: true, path: HOME_PATH, component: Home })
         )
       )
     }
-  })
+  }
 
   ReactDOM.render(React.createElement(Index), element)
 }

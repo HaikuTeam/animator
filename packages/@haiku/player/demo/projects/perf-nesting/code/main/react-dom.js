@@ -10,8 +10,8 @@ var React_Sect = require('./simpSectTwo/react-dom')
 var React_Particle = require('./particle/react-dom')
 
 React_Holster.mount = function (element, React, ReactDOM) {
-  var Main = React.createClass({
-    render: function () {
+  class Main extends React.Component {
+    render() {
       return React.createElement(React_Holster, { key: 'holster', name: 'holster' },
         React.createElement(React_Sect, { key: 'sect', name: 'sect' }),
         React.createElement(React_Particle, { key: 'particle1', name: 'particle1' }),
@@ -21,7 +21,7 @@ React_Holster.mount = function (element, React, ReactDOM) {
         React.createElement(React_Particle, { key: 'particle5', name: 'particle5' })
       )
     }
-  })
+  }
   ReactDOM.render(React.createElement(Main), element)
 }
 

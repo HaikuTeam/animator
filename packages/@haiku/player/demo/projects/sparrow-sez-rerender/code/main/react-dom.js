@@ -68,18 +68,19 @@ ReactDOMComponent.mount = function (element, React, ReactDOM) {
     return cards
   }
 
-  var Parent = React.createClass({
-    getInitialState: function () {
-      return {
+  class Parent extends React.Component {
+    constructor() {
+      super()
+      this.state = {
         cards: [
           randCard(),
           randCard(),
           randCard()
         ]
       }
-    },
+    }
 
-    componentDidMount: function () {
+    componentDidMount() {
       this.interval = setInterval(function () {
         var cards = makeRandCards()
         console.info('[test] rerendering with ' + cards.length + ' cards')
@@ -87,9 +88,9 @@ ReactDOMComponent.mount = function (element, React, ReactDOM) {
           cards: cards
         })
       }.bind(this), 1000)
-    },
+    }
 
-    render: function () {
+    render() {
       return React.createElement('div', {
         style: {
           overflowY: 'scroll',
@@ -97,7 +98,7 @@ ReactDOMComponent.mount = function (element, React, ReactDOM) {
         }
       }, this.state.cards.map(renderCard))
     }
-  })
+  }
 
   ReactDOM.render(
     React.createElement(Parent),
