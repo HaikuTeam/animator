@@ -61,31 +61,49 @@ for (const fwdPropKey in HAIKU_FORWARDED_PROPS) {
   VALID_PROPS[fwdPropKey] = 'object';
 }
 
-// tslint:disable-next-line:function-name
-export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawBytecode) {
-  const reactClass = React.createClass({
-    displayName: 'HaikuComponent',
+export interface HaikuComponentProps {
+  onComponentWillMount: Function;
+  onComponentWillUnmount: Function;
+  onComponentDidMount: Function;
+}
 
-    getInitialState() {
-      return {
+export interface HaikuComponentState {
+  randomId: string;
+}
+
+export interface HaikuReactComponent {}
+
+// tslint:disable-next-line:function-name
+export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawBytecode): HaikuReactComponent {
+  class HaikuReactComponentInternal extends React.Component<HaikuComponentProps, HaikuComponentState> {
+    static React = React;
+    static ReactDOM = ReactDOM;
+    // This setting is required to do proper setup for placeholder/inject vanities
+    static isHaikuAdapter = true;
+    haiku;
+    mount;
+
+    constructor(props) {
+      super(props);
+      this.state = {
         // This random id is used to give us a hook to query the DOM for our mount element,
         // even in cases where React mysteriously decides not to pass us its ref.
         randomId: 'haiku-reactroot-' + randomString(24),
       };
-    },
+    }
 
     componentWillReceiveProps(nextPropsRaw) {
       if (this.haiku) {
         const haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(nextPropsRaw);
         this.haiku.assignConfig(haikuConfig);
       }
-    },
+    }
 
     componentWillMount() {
       if (this.props.onComponentWillMount) {
         this.props.onComponentWillMount(this);
       }
-    },
+    }
 
     componentWillUnmount() {
       if (this.props.onComponentWillUnmount) {
@@ -94,11 +112,11 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
       if (this.haiku) {
         this.haiku.callUnmount();
       }
-    },
+    }
 
     componentDidMount() {
       this.attemptMount();
-    },
+    }
 
     attemptMount() {
       if (this.mount) {
@@ -108,7 +126,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
           this.props.onComponentDidMount(this, this.mount);
         }
       }
-    },
+    }
 
     buildHaikuCompatibleConfigFromRawProps(rawProps) {
       // Note that these vanities are called _after_ an initial render,
@@ -174,7 +192,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
       }
 
       return haikuConfig;
-    },
+    }
 
     createContext(rawProps) {
       const haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(rawProps);
@@ -212,7 +230,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
         // because we'll end up pausing the timelines before the first mount, resulting in a blank context.
         this.haiku.callRemount(haikuConfig);
       }
-    },
+    }
 
     createEventPropWrapper(eventListener) {
       return function _eventPropWrapper(proxy, event) {
@@ -223,7 +241,7 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
           this.haiku,
         );
       }.bind(this);
-    },
+    }
 
     buildHostElementPropsFromRawProps(rawProps) {
       const propsForHostElement = {} as any;
@@ -263,40 +281,29 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
         },
         ...propsForHostElement,
       };
-    },
+    }
 
     assignMountFromRef(element) {
       this.mount = element;
-    },
+    }
 
     render() {
       const hostElementProps = this.buildHostElementPropsFromRawProps(this.props);
 
       // Having this ref assigned like this is critical to the adapter working,
       // so we override it despite what the host element props might say
-      hostElementProps.ref = this.assignMountFromRef;
+      hostElementProps.ref = (element) => {
+        this.assignMountFromRef(element);
+      };
 
       return React.createElement(
         hostElementProps.tagName || DEFAULT_HOST_ELEMENT_TAG_NAME,
         hostElementProps,
       );
-    },
-  }) as any;
-
-  reactClass.propTypes = {};
-
-  for (const propName in VALID_PROPS) {
-    const propType = VALID_PROPS[propName];
-    reactClass.propTypes[propName] = React.PropTypes[propType];
+    }
   }
 
-  // This setting is required to do proper setup for placeholder/inject vanities
-  reactClass.isHaikuAdapter = true;
-
-  reactClass.React = React; // Used by Haiku for testing and debugging
-  reactClass.ReactDOM = ReactDOM; // Used by Haiku for testing and debugging
-
-  return reactClass;
+  return HaikuReactComponentInternal;
 }
 
 /**

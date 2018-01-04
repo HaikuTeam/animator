@@ -6,13 +6,13 @@ var React_TestForce = HaikuReactAdapter(require('./dom'))
 var React_TestMicro = require('./micro/react-dom')
 if (React_TestForce.default) React_TestForce = React_TestForce.default
 React_TestForce.mount = function (element, React, ReactDOM) {
-  var Main = React.createClass({
-    render: function () {
+  class Main extends React.Component {
+    render() {
       return React.createElement(React_TestForce, { key: 'force', name: 'force' },
         React.createElement(React_TestMicro, { key: 'micro', name: 'micro' })
       )
     }
-  })
+  }
   ReactDOM.render(React.createElement(Main), element)
 }
 module.exports = React_TestForce
