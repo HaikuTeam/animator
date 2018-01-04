@@ -822,7 +822,10 @@ class Project extends BaseModel {
   }
 
   rehydrate (cb) {
-    const entries = fse.readdirSync(this.getCodeFolderAbspath())
+    const entries = fse.readdirSync(this.getCodeFolderAbspath()).filter((entry) => {
+      // Ignore hidden files that may appear here such as everyone's favorite .DS_Store
+      return entry && entry[0] !== '.'
+    })
     return async.eachSeries(entries, this.setupScene.bind(this), cb)
   }
 }
