@@ -23,7 +23,7 @@
   "license": "UNLICENSED",
   "dependencies": {},
   "devDependencies": {
-    "@types/node": "^8.5.2",
+    "@types/node": "8.5.2",
     "haiku-testing": "2.3.65",
     "nyc": "^11.3.0",
     "tap-spec": "^4.1.1",
