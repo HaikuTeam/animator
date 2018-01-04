@@ -265,14 +265,14 @@ export default class Master extends EventEmitter {
   }
 
   emitComponentChange (relpath) {
-    logger.info('[master] asset changed', relpath)
+    logger.info('[master] component changed', relpath)
     this.debouncedEmitAssetsChanged(this._knownLibraryAssets)
   }
 
   emitDesignChange (relpath) {
     const extname = path.extname(relpath)
     const abspath = path.join(this.folder, relpath)
-    logger.info('[master] asset changed', relpath)
+    logger.info('[master] design changed', relpath)
     this.emit('design-change', relpath, this._knownLibraryAssets)
     this.debouncedEmitAssetsChanged(this._knownLibraryAssets)
     if (extname === '.svg') {
@@ -393,11 +393,7 @@ export default class Master extends EventEmitter {
     const relpath = path.relative(this.folder, abspath)
     const extname = path.extname(relpath)
 
-    if (extname === '.sketch' || extname === '.svg') {
-      delete this._knownLibraryAssets[relpath]
-    } else if (path.basename(relpath) === 'code.js') { // Local component file
-      delete this._knownLibraryAssets[relpath]
-    }
+    delete this._knownLibraryAssets[relpath]
 
     return this.waitForSaveToComplete(() => {
       return this._git.commitFileIfChanged(relpath, `Removed ${relpath}`, () => {

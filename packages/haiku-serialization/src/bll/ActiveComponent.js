@@ -1046,7 +1046,12 @@ class ActiveComponent extends BaseModel {
     return async.eachOf(designs, (truthy, relpath, next) => {
       if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
         return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
-          if (err) return next(err)
+          // There may be a race where a file is removed before this gets called;
+          // and in that case we need to skip this whole subroutine (simply don't
+          // touch whatever designs may have been instantiated
+          if (err || !mana) {
+            return next()
+          }
 
           Template.fixManaSourceAttribute(mana, relpath) // Adds source="relpath_to_file_from_project_root"
 

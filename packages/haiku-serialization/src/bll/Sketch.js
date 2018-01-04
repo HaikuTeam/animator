@@ -62,6 +62,11 @@ Sketch.sketchtoolPipeline = (abspath) => {
   // is focused on slices, so for a fairly significant optimization, I've set this up
   // to only export slices. Feel free to change back if this is a problem.
   const assetBaseFolder = abspath + '.contents/'
+
+  // Clear out all old contents that may exist in the folder, so the user doesn't see
+  // a bunch of stale assets and wonder why they didn't go away after updating Sketch
+  fse.emptyDirSync(assetBaseFolder)
+
   const sliceFolder = assetBaseFolder + 'slices/'
   fse.mkdirpSync(sliceFolder)
 
