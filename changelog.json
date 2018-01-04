@@ -3759,5 +3759,6 @@
       "label": "fix",
       "message": "move electron to a devDependency to restore \"correct\" app size."
     }
-  }
+  },
+  "2.3.67": {}
 }
