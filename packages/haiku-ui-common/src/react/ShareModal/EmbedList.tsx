@@ -12,7 +12,8 @@ const STYLES = {
   },
   subtitle: {
     textTransform: 'uppercase',
-    fontSize: '14px'
+    fontSize: '14px',
+    marginBottom: '0'
   },
   circle: {
     display: 'inline-block',

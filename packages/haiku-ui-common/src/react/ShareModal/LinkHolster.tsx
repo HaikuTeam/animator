@@ -47,7 +47,7 @@ export class LinkHolster extends React.PureComponent {
       isProjectInfoFetchInProgress,
       linkAddress
     } = this.props
-console.log(this.props)
+
     return (
       <div style={assign({}, STYLES.linkHolster)}>
         {isSnapshotSaveInProgress || isProjectInfoFetchInProgress ? (
