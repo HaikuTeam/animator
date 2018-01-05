@@ -1,6 +1,29 @@
 # Changelog
 
 
+## 2.3.70
+
+### Bug Fixes
+
+ * bypass the 'request' module's strictSSL in browser.
+ * Add frame to options to correctly configure action editor to open in frame mode
+ * Ensure comms for selecting elements works stage <-> timeline
+ * Don't crash if we see .DS_Store files where multicomponent folders live
+ * Exclude correct properties from the root element in the timeline
+ * Handle error if snapshot request fails
+ * Comments can be added to elements and components
+ * thwart clicking of guage numbers from opening actions editor
+ * immediately show bolt as blue when actions are added
+ * toasts coloring & transitions
+ * user icon coloring/style
+
+### Features
+
+ * Clear svgs of removed slices so Sketch slice changes reflect correctly in the library
+ * Enable tranform-style and perspective as CSS settings
+ * Upgrade player's react DOM adapter to be compatible with React 16
+ * Rudiments of allowing Haiku to work offline
+
 ## 2.3.69
 
 ## 2.3.68
