@@ -168,8 +168,8 @@ export default class Comment extends React.Component {
           }}
           style={{
             position: 'absolute',
-            left: this.props.comment.x || 0,
-            top: this.props.comment.y || 0,
+            left: this.props.x || 0,
+            top: this.props.y || 0,
             pointerEvents: 'auto',
             width: 50,
             height: 50,
@@ -199,8 +199,8 @@ export default class Comment extends React.Component {
         }}
         style={{
           position: 'absolute',
-          left: this.props.comment.x || 0,
-          top: this.props.comment.y || 0,
+          left: this.props.x || 0,
+          top: this.props.y || 0,
           width: this.props.comment.w || 250,
           height: this.props.comment.h || null,
           pointerEvents: 'auto',

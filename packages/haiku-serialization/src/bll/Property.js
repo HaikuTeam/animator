@@ -180,7 +180,16 @@ Property.EXCLUDE_FROM_JIT_IF_ROOT_ELEMENT = {
   'controlFlow.placeholder': true,
   'controlFlow.repeat': true,
   'controlFlow.if': true,
-  'controlFlow.yield': true
+  'controlFlow.yield': true,
+  'translation.x': true,
+  'translation.y': true,
+  'translation.z': true,
+  'rotation.x': true,
+  'rotation.y': true,
+  'rotation.z': true,
+  'scale.x': true,
+  'scale.y': true,
+  'scale.z': true
 }
 
 Property.PREFIXES_TO_EXCLUDE_FROM_ADDRESSABLES = {
@@ -189,7 +198,16 @@ Property.PREFIXES_TO_EXCLUDE_FROM_ADDRESSABLES = {
 
 Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT = {
   'content': true,
-  'shown': true
+  'shown': true,
+  'translation.x': true,
+  'translation.y': true,
+  'translation.z': true,
+  'rotation.x': true,
+  'rotation.y': true,
+  'rotation.z': true,
+  'scale.x': true,
+  'scale.y': true,
+  'scale.z': true
 }
 
 Property.EXCLUDE_FROM_ADDRESSABLES_IF_COMPONENT = {

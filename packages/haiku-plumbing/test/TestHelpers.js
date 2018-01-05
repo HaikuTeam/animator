@@ -84,7 +84,7 @@ function setup(ready) {
           }
         }
         creator.on('open', () => {
-          plumbing.getCurrentOrganizationName((err, organizationName) => {
+          plumbing.getCurrentOrganizationName('matthew+matthew@haiku.ai', (err, organizationName) => {
             if (err) throw err
             var metadata = {
               organizationName

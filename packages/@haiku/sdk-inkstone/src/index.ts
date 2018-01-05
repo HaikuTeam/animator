@@ -24,6 +24,21 @@ let request = requestLib.defaults({
   strictSSL: true,
 });
 
+const DEFAULT_TIMEOUT_MS = 5000;
+
+/**
+ * @function safeError
+ * @description Flexibly return an error in cases where we might not have
+ * received an actual error object but still need to return an error payload.
+ */
+function safeError(err: any): any {
+  if (err) {
+    return err;
+  }
+
+  return new Error('Uncategorized error');
+}
+
 export namespace inkstone {
 
   export interface InkstoneConfig {
@@ -66,7 +81,7 @@ export namespace inkstone {
           const url = body as string;
           cb(undefined, url, httpResponse);
         } else {
-          cb('uncategorized error', null, httpResponse);
+          cb(safeError(err), null, httpResponse);
         }
       });
     }
@@ -177,7 +192,7 @@ export namespace inkstone {
           const project = body as Invite;
           cb(undefined, project, httpResponse);
         } else {
-          cb('uncategorized error', undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -202,7 +217,7 @@ export namespace inkstone {
           } else if (httpResponse.statusCode === 410) {
             cb('code already claimed', {Valid: Validity.ALREADY_CLAIMED}, httpResponse);
           } else {
-            cb('uncategorized error', {Valid: Validity.ERROR}, httpResponse);
+            cb(safeError(err), {Valid: Validity.ERROR}, httpResponse);
           }
         }
       });
@@ -235,6 +250,7 @@ export namespace inkstone {
 
     export function list(authToken: string, cb: inkstone.Callback<Organization[]>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        timeout: DEFAULT_TIMEOUT_MS,
         url: inkstoneConfig.baseUrl + ENDPOINTS.ORGANIZATION_LIST,
         headers: {
           'Content-Type': 'application/json',
@@ -247,7 +263,7 @@ export namespace inkstone {
           const projects = JSON.parse(body) as Organization[];
           cb(undefined, projects, httpResponse);
         } else {
-          cb('uncategorized error', undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -273,7 +289,12 @@ export namespace inkstone {
       cb: inkstone.Callback<{snap: SnapshotAndProjectAndOrganization, link: string}>,
     ) {
       getSnapshotAndProject(id, (err, snap, response) => {
-        if (response.statusCode !== 200) {
+        if (err) {
+          cb(err, undefined, undefined);
+          return;
+        }
+
+        if (response && response.statusCode !== 200) {
           cb(err, undefined, undefined);
         } else {
           cb(undefined, {snap, link: assembleSnapshotLinkFromSnapshot(snap.Snapshot)}, response);
@@ -297,7 +318,7 @@ export namespace inkstone {
           const snapshotAndProject = JSON.parse(body) as SnapshotAndProjectAndOrganization;
           cb(undefined, snapshotAndProject, httpResponse);
         } else {
-          cb('uncategorized error', undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -317,7 +338,7 @@ export namespace inkstone {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, JSON.parse(body) as string, httpResponse);
         } else {
-          cb('uncategorized error', undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -352,6 +373,7 @@ export namespace inkstone {
 
     export function create(authToken: string, params: ProjectCreateParams, cb: inkstone.Callback<Project>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        timeout: DEFAULT_TIMEOUT_MS,
         strictSSL: false,
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_CREATE,
         headers: {
@@ -366,14 +388,14 @@ export namespace inkstone {
           const project = body as Project;
           cb(undefined, project, httpResponse);
         } else {
-          cb('uncategorized error', undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
 
     export function list(authToken: string, cb: inkstone.Callback<Project[]>) {
-
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        timeout: DEFAULT_TIMEOUT_MS,
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_LIST,
         headers: {
           'Content-Type': 'application/json',
@@ -386,14 +408,14 @@ export namespace inkstone {
           const projects = JSON.parse(body) as Project[];
           cb(undefined, projects, httpResponse);
         } else {
-          cb('uncategorized error', undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
 
     export function getByName(authToken: string, name: string, cb: inkstone.Callback<ProjectAndCredentials>) {
-
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        timeout: DEFAULT_TIMEOUT_MS,
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_GET_BY_NAME.replace(':NAME', encodeURIComponent(name)),
         headers: {
           'Content-Type': 'application/json',
@@ -406,7 +428,7 @@ export namespace inkstone {
           const project = JSON.parse(body) as ProjectAndCredentials;
           cb(undefined, project, httpResponse);
         } else {
-          cb('uncategorized error', undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -425,7 +447,7 @@ export namespace inkstone {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse);
         } else {
-          cb('uncategorized error', undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -447,7 +469,8 @@ export namespace inkstone {
           const snapshot = JSON.parse(body) as snapshot.Snapshot;
           return cb(undefined, snapshot, httpResponse);
         }
-        cb('uncategorized error', undefined, httpResponse);
+
+        cb(safeError(err), undefined, httpResponse);
       });
     }
   }
@@ -467,7 +490,7 @@ export namespace inkstone {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse);
         } else {
-          cb('uncategorized error', undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
