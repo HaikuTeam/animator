@@ -1,6 +1,43 @@
 # Changelog
 
 
+## 2.3.69
+
+## 2.3.68
+
+## 2.3.67
+
+## 2.3.66
+
+### Bug Fixes
+
+ * move electron to a devDependency to restore "correct" app size.
+
+## 2.3.65
+
+### Bug Fixes
+
+ * skip private timeline members during timeline preprocessing.
+ * Ensure event handler gets written (pkey != haiku-id after multi-component)
+ * Add svgo back to pipeline
+ * always write out dom-embed.js to ensure we don't flunk embeds for the wrong @haiku/player version
+ * with the advent of sane deps, we can remove haikuify.
+ * use case-insensitive test for all nodgit errors.
+ * update module paths to match node_modules hoisted into haiku-plumbing for build.
+ * Get build working with yarn workspaces.
+ * adjust pan sensitivity based on zoom level; also fix issue where clicking would mysteriously break panning (snapshotOriginalPan); also hack around issue where Artboard.getZoom returns an invalid result, breaking pan and zoom
+ * detach frame event listeners on clearPreviouslyRegisteredEventListeners.
+
+### Documentation
+
+ * Update README with electron-aligned Node version
+
+### Features
+
+ * Enable JIT properties; consolidate menus; fix issues
+ * support cmd+0 to reset stage zoom and pan
+ * support two-finger panning on trackpad
+
 ## 2.3.64
 
 ### Features

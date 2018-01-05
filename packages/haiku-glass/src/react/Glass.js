@@ -1845,6 +1845,18 @@ export class Glass extends React.Component {
             </div>
           : ''}
 
+        {!this.isPreviewMode() &&
+          <EventHandlerEditor
+            element={this.state.targetElement}
+            save={(targetElement, serializedEvent) => {
+              this.saveEventHandlers(targetElement, serializedEvent)
+            }}
+            close={() => { this.hideEventHandlersEditor() }}
+            visible={this.state.isEventHandlerEditorOpen}
+            options={this.state.eventHandlerEditorOptions}
+          />
+        }
+
         <div
           ref='container'
           id='haiku-glass-stage-container'
@@ -2044,18 +2056,6 @@ export class Glass extends React.Component {
               })}
             </div>
             : ''}
-
-          {!this.isPreviewMode() &&
-            <EventHandlerEditor
-              element={this.state.targetElement}
-              save={(targetElement, serializedEvent) => {
-                this.saveEventHandlers(targetElement, serializedEvent)
-              }}
-              close={() => { this.hideEventHandlersEditor() }}
-              visible={this.state.isEventHandlerEditorOpen}
-              options={this.state.eventHandlerEditorOptions}
-            />
-          }
 
           {(!this.isPreviewMode())
             ? <div

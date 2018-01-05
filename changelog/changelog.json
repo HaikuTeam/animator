@@ -3680,5 +3680,87 @@
       "label": "fix",
       "message": "ensure {sizing"
     }
-  }
+  },
+  "2.3.65": {
+    "0cd8c1a27bcf10be06e9d428c0dc5f32410e9609": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "skip private timeline members during timeline preprocessing."
+    },
+    "456babce65c99cfae8784e8c3bbb8bcebba4eeb0": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Ensure event handler gets written (pkey != haiku-id after multi-component)"
+    },
+    "ee7481a2f18e012cc1266133fd7fab7fd811d559": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Add svgo back to pipeline"
+    },
+    "4f831ef73e025d1de7597916cbd640b4bf0921df": {
+      "project": "@haiku/player",
+      "label": "docs",
+      "message": "Update README with electron-aligned Node version"
+    },
+    "57f054592e90f138b895d5d2b6fd4a99043aff94": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "always write out dom-embed.js to ensure we don't flunk embeds for the wrong @haiku/player version"
+    },
+    "850d1a904700ba9e1cc86b445e33e158e03b76f9": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "with the advent of sane deps, we can remove haikuify."
+    },
+    "34d5d15b6709334f39f8c0258eb4755f128ba6db": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "use case-insensitive test for all nodgit errors."
+    },
+    "b3fe5da0195dc017448bd691354e774a9a5dd325": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "update module paths to match node_modules hoisted into haiku-plumbing for build."
+    },
+    "fcf6b565471db18d1b9b45cea491dbf49e1f39ed": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "Enable JIT properties; consolidate menus; fix issues"
+    },
+    "107bc422c662b82e3adccbe15e3fd9a371fa2224": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Get build working with yarn workspaces."
+    },
+    "56e7f48032941c46fa93ad29c49ba68a3c339094": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "support cmd+0 to reset stage zoom and pan"
+    },
+    "0ca84eebdce3384e13388b1409f50bfa81d84f80": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "adjust pan sensitivity based on zoom level; also fix issue where clicking would mysteriously break panning (snapshotOriginalPan); also hack around issue where Artboard.getZoom returns an invalid result, breaking pan and zoom"
+    },
+    "967a3f7cff491fa3a910f1a0afcb832bcd827fad": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "support two-finger panning on trackpad"
+    },
+    "559af4059277a7ef91402727f4f746bb8bf22668": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "detach frame event listeners on clearPreviouslyRegisteredEventListeners."
+    }
+  },
+  "2.3.66": {
+    "08861035f2d5915bf25829dff95c7ebf4256c7fa": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "move electron to a devDependency to restore \"correct\" app size."
+    }
+  },
+  "2.3.67": {},
+  "2.3.68": {},
+  "2.3.69": {}
 }

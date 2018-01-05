@@ -1,12 +1,14 @@
 {
   "name": "@haiku/sdk-client",
-  "version": "2.3.64",
+  "version": "2.3.69",
   "description": "Haiku SDK for Client",
   "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "develop": "tsc --watch",
-    "compile": "tsc"
+    "compile": "tsc",
+    "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' -t stylish",
+    "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
+    "fix": "yarn lint --fix"
   },
   "files": [
     "lib/**/*"
@@ -21,12 +23,13 @@
   },
   "devDependencies": {
     "@types/mkdirp": "^0.3.29",
-    "@types/node": "^8.5.2",
+    "@types/node": "8.5.2",
     "@types/request": "^2.0.0",
     "leaked-handles": "^5.2.0",
+    "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
     "tslint": "^5.7.0",
-    "tap-spec": "^4.1.1",
+    "tslint-config-haiku": "^1.0.0",
     "typescript": "^2.5.2"
   }
 }

@@ -465,7 +465,6 @@ export class BodymovinExporter implements Exporter {
         [TransformKey.Color]: getFixedPropertyValue([0, 0, 0, 0]),
         [TransformKey.StrokeLinecap]: StrokeLinecap.Square,
         [TransformKey.StrokeLinejoin]: StrokeLinejoin.Miter,
-        [TransformKey.StrokeDasharray]: [],
       };
     }
 
@@ -476,8 +475,12 @@ export class BodymovinExporter implements Exporter {
       [TransformKey.Color]: this.getValue(timeline.stroke, colorTransformer),
       [TransformKey.StrokeLinecap]: linecapTransformer(initialValueOrNull(timeline, 'stroke-linecap')),
       [TransformKey.StrokeLinejoin]: linejoinTransformer(initialValueOrNull(timeline, 'stroke-linejoin')),
-      [TransformKey.StrokeDasharray]: dasharrayTransformer(initialValueOrNull(timeline, 'stroke-dasharray')),
     };
+
+    const dasharray = initialValueOrNull(timeline, 'stroke-dasharray');
+    if (dasharray) {
+      stroke[TransformKey.StrokeDasharray] = dasharrayTransformer(dasharray);
+    }
 
     return stroke;
   }
@@ -879,6 +882,9 @@ export class BodymovinExporter implements Exporter {
   private visitAllTimelines(callback: (timeline: any) => void) {
     for (const timelineId in this.bytecode.timelines) {
       for (const haikuId in this.bytecode.timelines[timelineId]) {
+        if (/^__/.test(haikuId)) {
+          continue;
+        }
         callback(this.bytecode.timelines[timelineId][haikuId]);
       }
     }

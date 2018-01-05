@@ -7,3 +7,5 @@ tmp
 lib/
 coverage/
 .nyc_output/
+checkstyle-result.xml
+test-result.tap

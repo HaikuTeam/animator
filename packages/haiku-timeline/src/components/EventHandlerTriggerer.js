@@ -14,12 +14,6 @@ class EventHandlerTriggerer extends React.PureComponent {
     this.triggerEventHandlers = this.triggerEventHandlers.bind(this)
   }
 
-  getBoltColor () {
-    return this.props.element.getDOMEvents().length
-      ? Palette.LIGHT_BLUE
-      : Palette.DARK_ROCK
-  }
-
   triggerEventHandlers () {
     this.props.onEventHandlerTriggered(this.props.element.getPrimaryKey())
   }
@@ -27,7 +21,7 @@ class EventHandlerTriggerer extends React.PureComponent {
   render () {
     return (
       <span onClick={this.triggerEventHandlers} style={STYLES.wrapper}>
-        <Bolt color={this.getBoltColor()} />
+        <Bolt color={this.props.boltColor} />
       </span>
     )
   }
@@ -35,7 +29,8 @@ class EventHandlerTriggerer extends React.PureComponent {
 
 EventHandlerTriggerer.propTypes = {
   element: React.PropTypes.object.isRequired,
-  onEventHandlerTriggered: React.PropTypes.func.isRequired
+  onEventHandlerTriggered: React.PropTypes.func.isRequired,
+  boltColor: React.PropTypes.string.isRequired,
 }
 
 export default EventHandlerTriggerer

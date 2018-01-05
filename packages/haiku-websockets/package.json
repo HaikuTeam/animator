@@ -1,7 +1,7 @@
 {
   "name": "haiku-websockets",
   "private": true,
-  "version": "2.3.64",
+  "version": "2.3.69",
   "description": "Websocket classes and utilities",
   "main": "index.js",
   "author": "Matthew Trost <matthew@haiku.ai>",
@@ -11,7 +11,11 @@
     "build": "babel src --out-dir lib",
     "compile": "babel src --out-dir lib",
     "build:git": "npm run build && git add . && git commit -m \"auto: Rebuild\" && git push origin master",
-    "test": "tape \"./test/*.test.js\" | tap-spec || true"
+    "test": "tape \"./test/*.test.js\" | tap-spec || true",
+    "test-report": "tape \"./test/*.test.js\" > test-result.tap",
+    "lint": "eslint \"src/**/*.js\"",
+    "fix": "yarn lint --fix",
+    "lint-report": "yarn lint -f checkstyle -o checkstyle-result.xml"
   },
   "dependencies": {
     "lodash.clone": "^4.5.0",
@@ -27,6 +31,8 @@
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-preset-es2015": "^6.24.0",
     "babel-preset-react": "^6.16.0",
+    "eslint": "^3.19.0",
+    "eslint-config-standard": "^10.2.1",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0"
   }

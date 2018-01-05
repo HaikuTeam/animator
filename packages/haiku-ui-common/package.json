@@ -1,15 +1,17 @@
 {
   "name": "haiku-ui-common",
-  "version": "2.3.64",
+  "version": "2.3.69",
   "description": "Common UI components for Haiku projects.",
   "main": "lib/index.js",
   "directories": {
     "lib": "lib"
   },
   "scripts": {
-    "lint": "tslint -p tsconfig.json -c tslint.json --type-check --format stylish",
+    "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' -t stylish",
+    "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
     "test": "tsc && tsc -p tsconfig.test.json && NODE_ENV=test tape \"~test/**/*.test.js\" | tap-spec && rm -rf ~test",
+    "test-report": "tsc -p tsconfig.test.json && NODE_ENV=test tape \"~test/**/*.test.js\" > test-result.tap",
     "coverage": "nyc yarn test",
     "html-coverage": "nyc --reporter=html yarn test",
     "compile": "tsc",
@@ -21,10 +23,11 @@
   ],
   "devDependencies": {
     "@storybook/react": "^3.3.3",
-    "@types/node": "^8.5.2",
+    "@types/node": "8.5.2",
     "@types/react": "^15.4.2",
-    "haiku-common": "2.3.64",
-    "haiku-testing": "2.3.64",
+    "electron": "1.7.10",
+    "haiku-common": "2.3.69",
+    "haiku-testing": "2.3.69",
     "nyc": "^11.3.0",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
@@ -37,7 +40,6 @@
     "awesome-typescript-loader": "^3.4.1",
     "color": "^2.0.1",
     "decamelize": "^1.2.0",
-    "electron": "1.7.10",
     "lodash.assign": "^4.2.0",
     "numeral": "^2.0.6",
     "radium": "0.18.1",
