@@ -352,7 +352,7 @@ export default class Creator extends React.Component {
        */
       (user) => {
         this.user = user
-        
+
         // kick off initial report
         this.onActivityReport(true)
       }

@@ -1,3 +1,3 @@
 {
-  "extends": "standard-jsx"
+  "extends": ["standard-jsx", "standard"]
 }

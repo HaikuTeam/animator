@@ -30,7 +30,7 @@ class EventHandlerTriggerer extends React.PureComponent {
 EventHandlerTriggerer.propTypes = {
   element: React.PropTypes.object.isRequired,
   onEventHandlerTriggered: React.PropTypes.func.isRequired,
-  boltColor: React.PropTypes.string.isRequired,
+  boltColor: React.PropTypes.string.isRequired
 }
 
 export default EventHandlerTriggerer

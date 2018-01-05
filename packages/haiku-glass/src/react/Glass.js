@@ -772,13 +772,13 @@ export class Glass extends React.Component {
     this.state.lastMouseDownTime = Date.now()
     this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
 
-    //store all elements' transforms
-    //TODO:  should we store only the selected element's transform? 
+    // store all elements' transforms
+    // TODO:  should we store only the selected element's transform?
     //       this could become a bottleneck with a high number of elements
-    var elems = Element.all(); //semicolon required
+    var elems = Element.all(); // semicolon required
 
     (elems || []).forEach((elem) => {
-      elem.pushCachedTransform("CONSTRAINED_DRAG") //wishlist:  enum
+      elem.pushCachedTransform('CONSTRAINED_DRAG') // wishlist:  enum
     })
 
     // Only count left clicks
@@ -844,25 +844,24 @@ export class Glass extends React.Component {
           }
         }
 
-        if(Globals.isAltKeyDown){
-          //duplicate element here and immediately select it
-          //TODO:  support multi-select here (forEach instead of single haikuId)
-          
+        if (Globals.isAltKeyDown) {
+          // duplicate element here and immediately select it
+          // TODO:  support multi-select here (forEach instead of single haikuId)
+
           let origElement = Element.findById(haikuId)
-          let proj = Project.all()[0] //TODO:  is there a better API for this?
+          let proj = Project.all()[0] // TODO:  is there a better API for this?
           let ac0 = proj.getCurrentActiveComponent()
-          
-          //HACK:  zb, patching into paste logic because this was the only way I could discover/contrive
+
+          // HACK:  zb, patching into paste logic because this was the only way I could discover/contrive
           //       to duplicate an element (ideally this behavior should belong to the Element view-model
           //       but the interface between in-mem elements and persisted elements is so heterogenous and
           //       undiscoverable that I had to resort to this.)
-          //ALSO:  this paste logic starts to get REALLY SLOW for |elements| > 8 or so
+          // ALSO:  this paste logic starts to get REALLY SLOW for |elements| > 8 or so
           ac0.pasteThing(origElement.getClipboardPayload(), {}, {from: 'glass'}, (err, idObj) => {
-            Element.findById(idObj.haikuId).pushCachedTransform("CONSTRAINED_DRAG")
+            Element.findById(idObj.haikuId).pushCachedTransform('CONSTRAINED_DRAG')
             this.getActiveComponent().selectElement(idObj.haikuId, { from: 'glass' }, () => {})
           })
-
-        }else{
+        } else {
           // This call also unselects all elements, so we don't need to do that work here too
           this.getActiveComponent().selectElement(haikuId, { from: 'glass' }, () => {})
         }

@@ -1,6 +1,6 @@
 // eslint-disable
 
-function kw(type) {
+function kw (type) {
   return {type: type, style: 'keyword'}
 }
 

@@ -86,7 +86,7 @@ export default class Scrubber extends React.Component {
               top: 2,
               left: 0,
               width: '100%'
-              }}>
+            }}>
               {!this.props.isScrubbing && this.props.displayTime}
             </span>
             <span style={{
