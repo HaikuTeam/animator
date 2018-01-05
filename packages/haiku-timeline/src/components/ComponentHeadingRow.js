@@ -114,10 +114,10 @@ export default class ComponentHeadingRow extends React.Component {
               }}>
               {(this.props.row.isExpanded() || hasAttachedActions)
                 ? <EventHandlerTriggerer
-                    element={this.props.row.element}
-                    row={this.props.row}
-                    boltColor={boltColor}
-                    onEventHandlerTriggered={this.props.onEventHandlerTriggered}
+                  element={this.props.row.element}
+                  row={this.props.row}
+                  boltColor={boltColor}
+                  onEventHandlerTriggered={this.props.onEventHandlerTriggered}
                   />
                 : ''}
             </div>

@@ -320,7 +320,7 @@ class Project extends BaseModel {
   emitHook (...args) {
     const method = args.shift()
     const metadata = args.pop()
-    if (metadata.from === this.getAlias()) {
+    if (metadata && metadata.from === this.getAlias()) {
       this.emit.apply(this, ['update', method].concat(args))
     } else {
       // Otherwise we received an update and may need to update ourselves
@@ -332,7 +332,7 @@ class Project extends BaseModel {
     const method = args.shift()
     const metadata = args.pop()
     // If we originated the action, notify all other views
-    if (metadata.from === this.getAlias()) {
+    if (metadata && metadata.from === this.getAlias()) {
       log.info(`[project (${this.getAlias()})] method hook: ${method}`)
       this.batchedWebsocketAction(
         method,
