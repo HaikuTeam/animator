@@ -629,7 +629,6 @@ class Element extends BaseModel {
   //           of that element needs to be tracked.  Other drawing tool
   //           logic should be able to piggyback on this
   //           - alt-dragging to duplicate an element
-  
   pushCachedTransform(key) {
     let stack = this._cachedTransforms[key] || []
 
@@ -660,9 +659,9 @@ class Element extends BaseModel {
       ],
       size: [
         this.getPropertyValue('sizeAbsolute.x'),
-        this.getPropertyValue('sizeAbsolute.y'),  
-        this.getPropertyValue('sizeAbsolute.z') 
-      ] 
+        this.getPropertyValue('sizeAbsolute.y'),
+        this.getPropertyValue('sizeAbsolute.z')
+      ]
     }
 
     
