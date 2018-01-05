@@ -324,13 +324,13 @@ function createCollection (klass, collection, opts) {
     return found && found[0]
   }
 
-  //HACK:  this logic that searched by id was broken, as uids are in the format '/Users/zack/.haiku/projects/zack3/Romp::main::e4a9e4d8baa7' instead of 'e4a9e4d8baa7'
+  // HACK:  this logic that searched by id was broken, as uids are in the format '/Users/zack/.haiku/projects/zack3/Romp::main::e4a9e4d8baa7' instead of 'e4a9e4d8baa7'
   //       Rather than combing for the unknowable pathways where this logic is get/set (wistful sigh: types) I've hacked the findById logic to search using regex.
   //       Should be drop-in compatible with exact id matching as well.
   klass.findById = (id) => {
-    const MATCHES_ID = new RegExp(id + "$")
-    let all = klass.all().filter((elem)=>{return MATCHES_ID.test(elem[klass.config.primaryKey])})
-    return all[0] //TODO:perf could save some µs by immediately returning first found instead of filtering all
+    const MATCHES_ID = new RegExp(id + '$')
+    let all = klass.all().filter((elem) => { return MATCHES_ID.test(elem[klass.config.primaryKey]) })
+    return all[0] // TODO:perf could save some µs by immediately returning first found instead of filtering all
   }
 
   klass.create = (props, opts) => {

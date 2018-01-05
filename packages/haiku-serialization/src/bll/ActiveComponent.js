@@ -1493,7 +1493,7 @@ class ActiveComponent extends BaseModel {
    * @param metadata {Object}
    */
   pasteThing (pasteable, request, metadata, cb) {
-    let newHaikuId = ""
+    let newHaikuId = ''
     this.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
       switch (pasteable.kind) {
         case 'bytecode':

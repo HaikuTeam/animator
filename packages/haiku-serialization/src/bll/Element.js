@@ -559,7 +559,6 @@ class Element extends BaseModel {
   // is actually moving it in space, or rotating it, etc. This method makes the decision on what the "outcome"
   // of the drag should actually be.
   drag (dx, dy, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord, reactState, viewportTransform, globals) {
-
     if (reactState.isAnythingScaling) {
       if (!reactState.controlActivation.cmd) {
         return this.scale(dx, dy, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord, reactState.controlActivation, viewportTransform)
@@ -571,19 +570,17 @@ class Element extends BaseModel {
       }
     } else {
       if (!this.parent) return void (0) // Don't allow artboard to move
-      
+
       if (globals.isShiftKeyDown) {
-        //if shift is held, should snap translation to x/y axis
-        const transform = this.peekCachedTransform("CONSTRAINED_DRAG") //wishlist:  enum
+        // if shift is held, should snap translation to x/y axis
+        const transform = this.peekCachedTransform('CONSTRAINED_DRAG') // wishlist:  enum
         const initialTransform = {x: transform.translate[0], y: transform.translate[1]}
-        
-        //TODO: there should be a better way to get a reference to the active artboard?
+
+        // TODO: there should be a better way to get a reference to the active artboard?
         let artboard = Artboard.all()[0]
 
-        let mouseToWorld = artboard.transformScreenToWorld(mouseCoordsCurrent) 
-        
         const isXAxis = Math.abs(mouseCoordsCurrent.x - lastMouseDownCoord.x) > Math.abs(mouseCoordsCurrent.y - lastMouseDownCoord.y)
-        
+
         const mouseDelta = {
           x: mouseCoordsCurrent.x - lastMouseDownCoord.x,
           y: mouseCoordsCurrent.y - lastMouseDownCoord.y
@@ -619,20 +616,20 @@ class Element extends BaseModel {
     this.emit('update', 'element-move')
   }
 
-  //tracks the current transform in a stack, allowing values
-  //to be recalled on demand.  Keeps individual stacks indexed by key,
-  //so different tools can use distinct stacks.
+  // tracks the current transform in a stack, allowing values
+  // to be recalled on demand.  Keeps individual stacks indexed by key,
+  // so different tools can use distinct stacks.
   //
-  //use-case:  - shift-dragging an element needs to keep track of the element's
+  // use-case:  - shift-dragging an element needs to keep track of the element's
   //           position at the moment of mouse-click, then until the next
   //           drag begins.  In order to do this, the pre-drag position
   //           of that element needs to be tracked.  Other drawing tool
   //           logic should be able to piggyback on this
   //           - alt-dragging to duplicate an element
-  pushCachedTransform(key) {
+  pushCachedTransform (key) {
     let stack = this._cachedTransforms[key] || []
 
-    //TODO: is reading all of these as separate requests
+    // TODO: is reading all of these as separate requests
     //      going to cause a websocket bottleneck?
     //      It'd be great if this data existed in memory, in-process
     //      (and didn't require a websocket hop)
@@ -664,21 +661,20 @@ class Element extends BaseModel {
       ]
     }
 
-    
-    stack.push(transform);
+    stack.push(transform)
     this._cachedTransforms[key] = stack
   }
 
-  peekCachedTransform(key) {
+  peekCachedTransform (key) {
     let stack = this._cachedTransforms[key] || []
     return stack[stack.length - 1]
   }
 
-  popCachedTransform(key) {
+  popCachedTransform (key) {
     let stack = this._cachedTransforms[key] || []
     let ret = stack.pop()
     this._cachedTransforms[key] = stack
-    return ret    
+    return ret
   }
 
   scale (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, activationPoint, viewportTransform) {
