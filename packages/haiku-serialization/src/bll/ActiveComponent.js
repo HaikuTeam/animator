@@ -91,9 +91,9 @@ class ActiveComponent extends BaseModel {
     Element.on('update', (element, what, metadata) => {
       if (element.component === this) {
         if (what === 'element-selected') {
-          this.handleElementSelected(element.getPrimaryKey(), metadata)
+          this.handleElementSelected(element.getComponentId(), metadata)
         } else if (what === 'element-unselected') {
-          this.handleElementUnselected(element.getPrimaryKey(), metadata)
+          this.handleElementUnselected(element.getComponentId(), metadata)
         } else if (what === 'jit-property-added' || what === 'jit-property-removed') {
           this.reload({ hardReload: true }, {}, () => {})
         }
