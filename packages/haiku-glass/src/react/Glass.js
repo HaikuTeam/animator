@@ -320,6 +320,10 @@ export class Glass extends React.Component {
 
   handleShowEventHandlersEditor (elementUID, options, frame) {
     this.setLastSelectedElement(this.getActiveComponent().findElementByUid(elementUID))
+
+    // The EventHandlerEditor uses this field to know whether to launch in frame mode vs event mode
+    if (frame) options.frame = frame
+
     this.showEventHandlersEditor(null, this.getLastSelectedElement(), options)
   }
 
