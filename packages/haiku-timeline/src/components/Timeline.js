@@ -21,6 +21,8 @@ import GaugeTimeReadout from './GaugeTimeReadout'
 import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
 import {isPreviewMode} from '@haiku/player/lib/helpers/interactionModes'
+import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
+import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/User'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
@@ -115,6 +117,18 @@ class Timeline extends React.Component {
 
   componentDidMount () {
     this.mounted = true
+
+    this.project.getEnvoyClient().get(USER_CHANNEL).then(
+      (user) => {
+        this.user = user
+
+        user.getConfig('timeDisplayMode').then(
+          (timeDisplayMode) => {
+            timeDisplayMode && this.setState({timeDisplayMode})
+          }
+        )
+      }
+    )
   }
 
   getActiveComponent () {
@@ -597,6 +611,12 @@ class Timeline extends React.Component {
         this.state[key] = updates[key]
       }
     }
+  }
+
+  toggleTimeDisplayMode () {
+    const mode = this.state.timeDisplayMode === 'frames' ? 'seconds' : 'frames'
+    this.setState({timeDisplayMode: mode})
+    this.user.setConfig('timeDisplayMode', mode)
   }
 
   playbackSkipBack () {
