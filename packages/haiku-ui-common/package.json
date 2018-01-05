@@ -46,6 +46,7 @@
     "radium": "0.18.1",
     "react": "15.6.2",
     "react-dom": "15.6.2",
-    "react-copy-to-clipboard": "^5.0.0"
+    "react-copy-to-clipboard": "^5.0.0",
+    "react-popover": "^0.4.18"
   }
 }
