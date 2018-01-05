@@ -1,6 +1,5 @@
 import React from 'react'
 import Bolt from 'haiku-ui-common/lib/react/icons/Bolt'
-import Palette from 'haiku-ui-common/lib/Palette'
 
 const STYLES = {
   wrapper: {

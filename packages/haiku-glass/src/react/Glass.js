@@ -858,6 +858,9 @@ export class Glass extends React.Component {
           //       undiscoverable that I had to resort to this.)
           // ALSO:  this paste logic starts to get REALLY SLOW for |elements| > 8 or so
           ac0.pasteThing(origElement.getClipboardPayload(), {}, {from: 'glass'}, (err, idObj) => {
+            if (err) {
+              throw err
+            }
             Element.findById(idObj.haikuId).pushCachedTransform('CONSTRAINED_DRAG')
             this.getActiveComponent().selectElement(idObj.haikuId, { from: 'glass' }, () => {})
           })
