@@ -23,7 +23,9 @@ import Tour from './components/Tour/Tour'
 import AutoUpdater from './components/AutoUpdater'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
-import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/User'
+// Note that `User` is imported below for type discovery
+// (which works even inside JS with supported editors, using jsdoc type annotations)
+import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/User' // eslint-disable-line no-unused-vars
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
 import { isPreviewMode } from '@haiku/player/lib/helpers/interactionModes'
 import Palette from 'haiku-ui-common/lib/Palette'
