@@ -1050,7 +1050,6 @@ export default class Plumbing extends StateObject {
         // we read and then use as the payload to the next actions in this pipeline
         if (method === 'instantiateComponent' && clientSpec.alias === 'glass') {
           if (maybeOutput && maybeOutput.center) {
-            console.log("MAYBE OUTPUT FUCKING PLUMBING", maybeOutput)
             // Called 'posdata' in the ActiveComponent method as the second arg.
             // The third arg is the more open-ended 'metadata' (API change from May 10)
             params[2] = maybeOutput.center

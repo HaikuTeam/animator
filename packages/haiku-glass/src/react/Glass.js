@@ -690,10 +690,6 @@ export class Glass extends React.Component {
       return void (0)
     }
 
-    this.setState({
-      duplicateDragging: false
-    })
-
     const source = nativeEvent.relatedTarget || nativeEvent.toElement
     if (!source || source.nodeName === 'HTML') {
       // unhover?
@@ -777,10 +773,10 @@ export class Glass extends React.Component {
     this.storeAndReturnMousePosition(mousedownEvent, 'lastMouseDownPosition')
 
     //store all elements' transforms
-    //TODO:  should we store only the selected element's transform? (and what's the API to retrieve that element?)
+    //TODO:  should we store only the selected element's transform? 
     //       this could become a bottleneck with a high number of elements
     var elems = Element.all(); //semicolon required
-    
+
     (elems || []).forEach((elem) => {
       elem.pushCachedTransform("CONSTRAINED_DRAG") //wishlist:  enum
     })
@@ -806,6 +802,7 @@ export class Glass extends React.Component {
 
       if (!target || !target.hasAttribute) {
         // If shift is down, that's constrained scaling or translation. If cmd, that's rotation mode.
+        // Alt + click + drag duplicates elements
         // I.e., only unselect elements if we're not doing either of those operations
         if (!Globals.isShiftKeyDown && !Globals.isCommandKeyDown && !Globals.isAltKeyDown) {
           Element.unselectAllElements({ component: this.getActiveComponent() }, { from: 'glass' })
@@ -927,7 +924,6 @@ export class Glass extends React.Component {
     this.setState({
       isAnythingScaling: false,
       isAnythingRotating: false,
-      duplicateDragging: false,
       globalControlPointHandleClass: '',
       controlActivation: null
     })

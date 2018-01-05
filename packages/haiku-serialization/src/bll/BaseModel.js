@@ -333,18 +333,6 @@ function createCollection (klass, collection, opts) {
     return all[0] //TODO:perf could save some µs by immediately returning first found instead of filtering all
   }
 
-  klass.cloneById = (id) => {
-    let original = klass.findById(id)
-    if(original){
-      let clone = lodash.cloneDeep(original)
-      clone.setPrimaryKey(clone.generateUniqueId())
-      klass.upsert(clone)
-      return clone
-    }else{
-      throw new Error('Tried to clone element id ' + id + ' but that element was not found.')
-    }
-  }
-
   klass.create = (props, opts) => {
     return new klass(props, opts) // eslint-disable-line
   }
