@@ -21,7 +21,11 @@ const ENDPOINTS = {
 };
 
 let request = requestLib.defaults({
-  strictSSL: true,
+  // Delegate to the browser to handle "strictSSL" if we're in a browser context. We have seen some false
+  // negatives with the 'request' Node dependency in certain contextx, and every modern browser has its own,
+  // battle-hardened strict SSL behavior which will stop requests in preflight regardless of this setting.
+  // There isn't an unspoofable way to prove we're in a browser and not Node, but the check here is perfectly valid.
+  strictSSL: typeof window === 'undefined' || Object.prototype.toString.call(window) !== '[object Window]',
 });
 
 const DEFAULT_TIMEOUT_MS = 5000;
@@ -126,7 +130,6 @@ export namespace inkstone {
 
     export function changePassword(authToken: string, params: ChangePasswordParams, cb: inkstone.Callback<string>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
-        strictSSL: false,
         url: inkstoneConfig.baseUrl + ENDPOINTS.CHANGE_PASSWORD,
         headers: {
           'Content-Type': 'application/json',
@@ -179,7 +182,6 @@ export namespace inkstone {
 
     export function getInviteFromPrefineryCode(params: PrefineryCheckParams, cb: inkstone.Callback<Invite>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
-        strictSSL: false,
         url: inkstoneConfig.baseUrl + ENDPOINTS.INVITE_PREFINERY_CHECK,
         headers: {
           'Content-Type': 'application/json',
@@ -374,7 +376,6 @@ export namespace inkstone {
     export function create(authToken: string, params: ProjectCreateParams, cb: inkstone.Callback<Project>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         timeout: DEFAULT_TIMEOUT_MS,
-        strictSSL: false,
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_CREATE,
         headers: {
           'Content-Type': 'application/json',
