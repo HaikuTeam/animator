@@ -1594,27 +1594,27 @@ export class Glass extends React.Component {
     const sourcePath = selectedElement && selectedElement.staticTemplateNode && selectedElement.staticTemplateNode.attributes && selectedElement.staticTemplateNode.attributes['source']
     const sketchAssetPath = sourcePath && sourcePath.split(/\.sketch\.contents/)[0].concat('.sketch')
 
-    items.push({
-      label: (this.state.doShowComments)
-        ? 'Hide Comments'
-        : 'Show Comments',
-      enabled: this.state.comments && this.state.comments.length > 0,
-      onClick: () => {
-        this.setState({ doShowComments: !this.state.doShowComments })
-      }
-    })
+    // items.push({
+    //   label: (this.state.doShowComments)
+    //     ? 'Hide Comments'
+    //     : 'Show Comments',
+    //   enabled: this.state.comments && this.state.comments.length > 0,
+    //   onClick: () => {
+    //     this.setState({ doShowComments: !this.state.doShowComments })
+    //   }
+    // })
 
-    items.push({
-      label: 'Add Comment',
-      onClick: () => {
-        this._comments.build({
-          x: menu.getLastX(),
-          y: menu.getLastY()
-        })
+    // items.push({
+    //   label: 'Add Comment',
+    //   onClick: () => {
+    //     this._comments.build({
+    //       x: menu.getLastX(),
+    //       y: menu.getLastY()
+    //     })
 
-        this.setState({ comments: this._comments.comments, doShowComments: true })
-      }
-    })
+    //     this.setState({ comments: this._comments.comments, doShowComments: true })
+    //   }
+    // })
 
     items.push({ type: 'separator' })
 
