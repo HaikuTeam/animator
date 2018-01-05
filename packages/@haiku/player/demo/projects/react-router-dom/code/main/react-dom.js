@@ -14,8 +14,8 @@ ReactDOMComponent.mount = function (element, React, ReactDOM) {
   var HOME_PATH = '/demos/react-router-dom/'
   var OTHER_PATH = '/demos/react-router-dom/other'
 
-  var Nav = React.createClass({
-    render: function () {
+  class Nav extends React.Component {
+    render() {
       return React.createElement('div', {
         style: {}
       },
@@ -23,19 +23,22 @@ ReactDOMComponent.mount = function (element, React, ReactDOM) {
         React.createElement(Link, { to: OTHER_PATH }, ['Other'])
       )
     }
-  })
-  var Other = React.createClass({
-    render: function () {
+  }
+
+  class Other extends React.Component {
+    render() {
       return React.createElement('div', {}, React.createElement(Nav), 'I am other')
     }
-  })
-  var Home = React.createClass({
-    render: function () {
+  }
+
+  class Home  extends React.Component {
+    render() {
       return React.createElement('div', {}, React.createElement(Nav), React.createElement(ReactDOMComponent))
     }
-  })
-  var Index = React.createClass({
-    render: function () {
+  }
+
+  class Index extends React.Component {
+    render() {
       return React.createElement(BrowserRouter, {},
         React.createElement(Switch, {},
           React.createElement(Route, { exact: true, path: HOME_PATH, component: Home }),
@@ -43,7 +46,7 @@ ReactDOMComponent.mount = function (element, React, ReactDOM) {
         )
       )
     }
-  })
+  }
 
   ReactDOM.render(React.createElement(Index), element)
 }
