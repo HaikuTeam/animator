@@ -1,6 +1,6 @@
 {
   "name": "@haiku/player",
-  "version": "2.3.64",
+  "version": "2.3.69",
   "description": "Haiku Player is a JavaScript library for building user interfaces",
   "homepage": "https://haiku.ai",
   "directories": {
@@ -28,13 +28,15 @@
     "watch": "yarn tsc --watch",
     "coverage": "yarn compile && nyc yarn tape \"test/**/*.test.js\" | yarn tap-spec",
     "html-coverage": "yarn compile && nyc --reporter=html yarn tape \"test/**/*.test.js\" | yarn tap-spec",
-    "lint": "yarn tslint -p tsconfig.json -c tslint.json --type-check --exclude 'src/vendor/**' --format stylish",
+    "lint": "tslint -p tsconfig.json -c tslint.json --exclude 'src/vendor/**' 'src/**/*.ts' -t stylish",
+    "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
     "test": "yarn test:unit; yarn test:api; yarn test:perf; yarn test:render",
     "test:perf": "yarn compile && tape \"test/perf/**/*.test.js\" | tap-spec",
     "test:api": "yarn compile && tape \"test/api/**/*.test.js\" | tap-spec",
     "test:render": "yarn compile && tape \"test/render/**/*.test.js\" | tap-spec",
     "test:unit": "yarn compile && tape \"test/unit/**/*.test.js\" | tap-spec",
+    "test-report": "tape \"test/**/*.test.js\" > test-result.tap",
     "depcheck": "yarn depcheck .",
     "prepublishOnly": "yarn compile"
   },
@@ -46,7 +48,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^8.5.2",
+    "@types/node": "8.5.2",
     "@types/tape": "^4.2.30",
     "async": "^2.5.0",
     "browserify": "^14.4.0",
