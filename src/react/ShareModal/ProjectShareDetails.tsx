@@ -7,7 +7,7 @@ const STYLES = {
   wrapper: {
     display: 'flex',
     justifyContent: 'space-between',
-    padding: '15px 20px'
+    padding: '15px 0'
   },
   title: {
     color: Palette.PALE_GRAY,
@@ -51,11 +51,11 @@ export class ProjectShareDetails extends React.PureComponent {
         <div>
           <h2 style={assign({}, STYLES.title)}>{projectName}</h2>
           <p style={assign({}, STYLES.info)}>
-            <span style={assign({}, STYLES.label)}>Version</span>{' '}
-            {semverVersion}
+            <span style={assign({}, STYLES.label)}>ID</span> {projectName}
           </p>
           <p style={assign({}, STYLES.info)}>
-            <span style={assign({}, STYLES.label)}>ID</span> {projectName}
+            <span style={assign({}, STYLES.label)}>Version</span>{' '}
+            {semverVersion}
           </p>
         </div>
 
