@@ -3762,5 +3762,82 @@
   },
   "2.3.67": {},
   "2.3.68": {},
-  "2.3.69": {}
+  "2.3.69": {},
+  "2.3.70": {
+    "8e0bb2ff65f976b63c3e70050945b22e5f24467e": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "bypass the 'request' module's strictSSL in browser."
+    },
+    "9c20a3ec8f25a9d58b07ec13cba2825ab6c33397": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Add frame to options to correctly configure action editor to open in frame mode"
+    },
+    "971b6d4c6d401b040a74d075558c9c1c51b6a4df": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Ensure comms for selecting elements works stage <-> timeline"
+    },
+    "1f5e269707879b5152680b5075f56c424ba2650f": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "Clear svgs of removed slices so Sketch slice changes reflect correctly in the library"
+    },
+    "a18436649d269f753e1668252298f9a6f4c4cc77": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "Enable tranform-style and perspective as CSS settings"
+    },
+    "6bc71b9a60c20af4959eccd39ad34b4a68e8d336": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "Upgrade player's react DOM adapter to be compatible with React 16"
+    },
+    "7473e19ac44982f636833f5544b73fb4e8562b77": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Don't crash if we see .DS_Store files where multicomponent folders live"
+    },
+    "0c836a566f78b221077251a8d71b59f3fcaaba75": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Exclude correct properties from the root element in the timeline"
+    },
+    "ec38c8cd6fa7afc4e2622fd377590e5aae9565f6": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Handle error if snapshot request fails"
+    },
+    "2a83585fc5dd9e0733245203b86c77a7b0343d92": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Comments can be added to elements and components"
+    },
+    "01eda6710798ab89cb993e164f4db835d9ffd2e9": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "Rudiments of allowing Haiku to work offline"
+    },
+    "fed416e0ed606580d46ccf632fc2d8525a777b87": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "thwart clicking of guage numbers from opening actions editor"
+    },
+    "c4a9badd27d5ad523e5b05d946f27588097e6dec": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "immediately show bolt as blue when actions are added"
+    },
+    "c82a277f6f53925d52dca852877278f1064fee3b": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "toasts coloring & transitions"
+    },
+    "a258e6c47f3d6671887e9913818bc0bcac2c48d6": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "user icon coloring/style"
+    }
+  }
 }
