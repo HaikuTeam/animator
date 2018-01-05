@@ -4,23 +4,27 @@ var HaikuReactAdapter = require('@haiku/player/dom/react')
 var ReactBare = HaikuReactAdapter(null, require('./code'))
 if (ReactBare.default) ReactBare = ReactBare.default
 ReactBare.mount = function (element, React, ReactDOM) {
-  var Wrap = React.createClass({
-    getInitialState: function () {
-      return {
+  class Wrap extends React.Component {
+    constructor() {
+      super()
+      this.state = {
         color: 'blue'
       }
-    },
-    componentWillUnmount: function () {
+    }
+
+    componentWillUnmount() {
       if (this.interval) clearInterval(this.interval)
-    },
-    componentDidMount: function () {
+    }
+
+    componentDidMount() {
       this.interval = setInterval(function () {
         this.setState({
           color: this.chooseColor()
         })
       }.bind(this), 250)
-    },
-    chooseColor: function () {
+    }
+
+    chooseColor() {
       var r = Math.random()
       if (r < 0.1) return 'blue'
       if (r < 0.2) return 'green'
@@ -28,8 +32,9 @@ ReactBare.mount = function (element, React, ReactDOM) {
       if (r < 0.4) return 'cyan'
       if (r < 0.5) return 'black'
       return 'white'
-    },
-    render: function () {
+    }
+
+    render() {
       console.log('react demo re-rendering with color', this.state.color)
       return React.createElement(ReactBare, {
         options: {
@@ -43,7 +48,7 @@ ReactBare.mount = function (element, React, ReactDOM) {
         }
       })
     }
-  })
+  }
   ReactDOM.render(React.createElement(Wrap), element)
 }
 module.exports = ReactBare

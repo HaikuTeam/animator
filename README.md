@@ -140,11 +140,10 @@ To develop Haiku Player locally:
 
 1. Fork the repo
 2. `yarn install`
-3. `yarn add react@15.4.2 react-dom@15.4.2` (for the React adapter)
 
 Compile with:
 
-    $ yarn run compile
+    $ yarn compile
 
 Test with:
 
@@ -152,7 +151,7 @@ Test with:
 
 Find formatting problems with:
 
-    $ yarn run lint
+    $ yarn lint
 
 ## License / Copyright
 

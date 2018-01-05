@@ -3,18 +3,21 @@ var HaikuDOMComponent = require('./dom')
 var ReactDOMComponent = ReactDOMAdapter(HaikuDOMComponent)
 if (ReactDOMComponent.default) ReactDOMComponent = ReactDOMComponent.default
 ReactDOMComponent.mount = function (element, React, ReactDOM) {
-  var Thing = React.createClass({
-    getInitialState: function () {
-      return { foo: 'React DOM Stateful Thing Component Was Here' }
-    },
-    render: function () {
+  class Thing extends React.Component {
+    constructor() {
+      super()
+      this.state = { foo: 'React DOM Stateful Thing Component Was Here' }
+    }
+
+    render() {
       return React.createElement(
         'div',
         { style: { color: 'green' } },
         this.state.foo + ''
       )
     }
-  })
+  }
+
   ReactDOM.render(
     React.createElement(ReactDOMComponent, {
       placeholder: {

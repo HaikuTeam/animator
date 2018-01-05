@@ -63,8 +63,8 @@
     "nodemon": "1.11.0",
     "nyc": "^11.3.0",
     "opn": "^5.1.0",
-    "react": "15.4.2",
-    "react-dom": "15.4.2",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0",
     "react-router-dom": "^4.1.1",
     "snazzy": "^7.0.0",
     "standard": "^10.0.2",
@@ -78,7 +78,7 @@
     "webpack": "^3.8.1"
   },
   "peerDependencies": {
-    "react": "15.4.2",
-    "react-dom": "15.4.2"
+    "react": "^16.0.0 || ^15.4.2",
+    "react-dom": "^16.0.0 || ^15.4.2"
   }
 }
