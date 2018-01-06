@@ -48,11 +48,13 @@ const FOLDER_CHOICES = {
   'primitives-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/primitives'),
   'percy-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/percybanking'),
   'simple-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/simple'),
+  'AliensRepro-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/AliensRepro'),
   'SuperComplex-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/SuperComplex'),
   'comet-rotation-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/comet-rotation'),
   'ttt-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/TicTacToe1'),
   'complex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/complex'),
-  'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex')
+  'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex'),
+  'AliensRepro-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/AliensRepro')
 }
 
 // Support:
@@ -108,11 +110,13 @@ function runInteractive () {
             { name: 'a fresh blank project', value: 'blank' },
             { name: 'the previous "blank" project including content', value: 'blank-noclean' },
             { name: 'primitives (glass)', value: 'primitives-glass' },
+            { name: 'AliensRepro (glass)', value: 'AliensRepro-glass' },
             { name: 'percybanking (glass)', value: 'percy-glass' },
             { name: 'simple (glass)', value: 'simple-gl' },
             { name: 'SuperComplex (glass)', value: 'SuperComplex-glass' },
             { name: 'complex (timeline)', value: 'complex-timeline' },
-            { name: 'SuperComplex (timeline)', value: 'SuperComplex-timeline' }
+            { name: 'SuperComplex (timeline)', value: 'SuperComplex-timeline' },
+            { name: 'AliensRepro (timeline)', value: 'AliensRepro-timeline' }
           ],
           default: inputs.folderChoice
         },

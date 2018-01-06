@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="138px" height="120px" viewBox="0 0 138 120" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 47 (45396) - http://www.bohemiancoding.com/sketch -->
+    <title>eye</title>
+    <desc>Created with sketchtool.</desc>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="138" height="120" rx="60"></rect>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="iPhone-8" transform="translate(-121.000000, -178.000000)">
+            <g id="eye" transform="translate(121.000000, 178.000000)">
+                <g id="eyewhite">
+                    <use fill="#FFFFFF" fill-rule="evenodd" xlink:href="#path-1"></use>
+                    <rect stroke="#979797" stroke-width="1" x="0.5" y="0.5" width="137" height="119" rx="59.5"></rect>
+                </g>
+                <g id="eyeball" transform="translate(32.000000, 25.000000)">
+                    <circle id="pupil" stroke="#979797" fill="#000000" cx="35" cy="35" r="35"></circle>
+                    <circle id="white-eye" fill="#FFFFFF" cx="35" cy="35" r="8"></circle>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

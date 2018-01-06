@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="83px" height="141px" viewBox="0 0 83 141" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 47 (45396) - http://www.bohemiancoding.com/sketch -->
+    <title>left arm</title>
+    <desc>Created with sketchtool.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="iPhone-8" transform="translate(-26.000000, -152.000000)">
+            <g id="left-arm" transform="translate(26.000000, 152.000000)">
+                <path d="M21,26 L21,62.928139 L21,62.928139 C21,97.0786272 48.6844407,124.763068 82.8349289,124.763068 L82.8349289,124.763068" stroke="#417505" stroke-width="31"></path>
+                <path d="M8,8.22431012e-12 C3.12749589,3.8457183 0,9.80439008 0,16.4935277 C0,28.0915074 9.40202025,37.4935277 21,37.4935277 C32.5979797,37.4935277 42,28.0915074 42,16.4935277 C42,9.80439008 38.8725041,3.8457183 34,9.91939864e-12 L34,16.4935277 L8,16.4935277 L8,-1.06954445e-11 Z" id="left-hand" fill="#417505"></path>
+            </g>
+        </g>
+    </g>
+</svg>

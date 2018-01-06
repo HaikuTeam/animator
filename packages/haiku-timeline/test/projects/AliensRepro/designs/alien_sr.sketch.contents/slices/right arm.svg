@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="83px" height="141px" viewBox="0 0 83 141" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 47 (45396) - http://www.bohemiancoding.com/sketch -->
+    <title>right arm</title>
+    <desc>Created with sketchtool.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="iPhone-8" transform="translate(-263.000000, -152.000000)">
+            <g id="right-arm" transform="translate(263.000000, 152.000000)">
+                <path d="M0,26 L0,62.928139 L-7.10542736e-15,62.928139 C-2.92319875e-15,97.0786272 27.6844407,124.763068 61.8349289,124.763068 L61.8349289,124.763068" stroke="#417505" stroke-width="31" transform="translate(30.917464, 75.381534) scale(-1, 1) translate(-30.917464, -75.381534) "></path>
+                <path d="M49,8.22431012e-12 C44.1274959,3.8457183 41,9.80439008 41,16.4935277 C41,28.0915074 50.4020203,37.4935277 62,37.4935277 C73.5979797,37.4935277 83,28.0915074 83,16.4935277 C83,9.80439008 79.8725041,3.8457183 75,9.91939864e-12 L75,16.4935277 L49,16.4935277 L49,-1.06954445e-11 Z" id="right-hand" fill="#417505"></path>
+            </g>
+        </g>
+    </g>
+</svg>
