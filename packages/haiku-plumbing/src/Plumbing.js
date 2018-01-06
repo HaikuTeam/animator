@@ -544,7 +544,8 @@ export default class Plumbing extends StateObject {
     // Instead, we'll generate them just-in-time when the user saves.
     projectOptions.skipCDNBundles = true
 
-    let projectFolder // To be populated momentarily...
+    let projectFolder
+    let didFolderAlreadyExist
 
     return async.series([
       (cb) => {
@@ -555,16 +556,10 @@ export default class Plumbing extends StateObject {
         })
       },
       (cb) => {
-        return ProjectFolder.ensureProject(projectOptions, (err, _projectFolder) => {
+        return ProjectFolder.ensureProject(projectOptions, (err, _projectFolder, _didFolderAlreadyExist) => {
           if (err) return cb(err)
           projectFolder = _projectFolder
-          return cb()
-        })
-      },
-      (cb) => {
-        // Just a second check to make sure we created the folder - probably not necessary
-        return fse.exists(projectFolder, (doesFolderExist) => {
-          if (!doesFolderExist) return cb(new Error('Project folder does not exist'))
+          didFolderAlreadyExist = _didFolderAlreadyExist
           return cb()
         })
       },
@@ -598,6 +593,7 @@ export default class Plumbing extends StateObject {
 
       // A simpler project options to avoid passing options only used for the first pass, e.g. skipContentCreation
       const projectOptionsAgain = {
+        didFolderAlreadyExist,
         organizationName: projectOptions.organizationName,
         username: gitInitializeUsername,
         password: gitInitializePassword,
@@ -914,10 +910,14 @@ export default class Plumbing extends StateObject {
     })
   }
 
+  createEmptyProjectFolderToHackilyAvoidInitialClone ({ projectPath }) {
+    fse.mkdirp(projectPath)
+  }
+
   createProject (name, cb) {
     logger.info('[plumbing] creating project', name)
     const authToken = sdkClient.config.getAuthToken()
-    return inkstone.project.create(authToken, { Name: name }, (projectCreateErr, project) => {
+    return inkstone.project.create(authToken, { Name: name }, (projectCreateErr, projectPayload) => {
       if (projectCreateErr) {
         this.sentryError('createProject', projectCreateErr)
 
@@ -928,10 +928,16 @@ export default class Plumbing extends StateObject {
           }
 
           // This object should already be in the expected format
+          this.createEmptyProjectFolderToHackilyAvoidInitialClone(localProjectObject)
+
           return cb(null, localProjectObject)
         })
       }
-      return cb(null, remapProjectObjectToExpectedFormat(project, this.get('organizationName')))
+
+      const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, this.get('organizationName'))
+      this.createEmptyProjectFolderToHackilyAvoidInitialClone(remoteProjectObject)
+
+      return cb(null, remoteProjectObject)
     })
   }
 

@@ -49,19 +49,23 @@ export function ensureProject (projectOptions, cb) {
     projectsHome = HaikuHomeDir.HOMEDIR_PROJECTS_PATH
   }
 
-  // Always make sure that that project home dir exists before continuing
-  logger.info('[project folder] ensuring projects home dir')
-  return fse.mkdirp(projectsHome, (err) => {
+  // Note: The project folder is created with mkdirp, so we don't need to verify that home dir exists
+
+  const safeProjectName = Project.getSafeProjectName(projectsHome, projectName)
+  const safeOrgName = getSafeOrgName(organizationName)
+
+  if (!projectPath) {
+    projectPath = path.join(projectsHome, safeOrgName, safeProjectName)
+  }
+
+  const doesFolderAlreadyExist = fse.existsSync(projectPath)
+
+  return ensureSpecificProject(projectPath, safeProjectName, 'haiku', projectOptions, (err, projectPath) => {
     if (err) return cb(err)
 
-    const safeProjectName = Project.getSafeProjectName(projectsHome, projectName)
-    const safeOrgName = getSafeOrgName(organizationName)
-
-    if (!projectPath) {
-      projectPath = path.join(projectsHome, safeOrgName, safeProjectName)
-    }
-
-    return ensureSpecificProject(projectPath, safeProjectName, 'haiku', projectOptions, cb)
+    // Downstream wants to know if the folder existed initially so it knows whether it should
+    // clone down content for the first time, i.e. during multi-workstation editing
+    return cb(null, projectPath, doesFolderAlreadyExist)
   })
 }
 
