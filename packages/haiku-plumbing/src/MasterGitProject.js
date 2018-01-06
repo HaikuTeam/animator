@@ -22,6 +22,11 @@ const CLONE_RETRY_DELAY = 5000
 const DEFAULT_BRANCH_NAME = 'master' // "'master' process" has nothing to do with this :/
 const BASELINE_SEMVER_TAG = '0.0.0'
 const COMMIT_SUFFIX = '(via Haiku Desktop)'
+const DEMO_PROJECT_NAMES = {
+  CheckTutorial: true,
+  Move: true,
+  Moto: true
+}
 
 function _isCommitTypeRequest ({ type }) {
   return type === 'commit'
@@ -560,10 +565,7 @@ export default class MasterGitProject extends EventEmitter {
 
       logger.info('[master-git] clone complete')
 
-      return this.ensureAllRemotes((err) => {
-        if (err) return cb(err)
-        return cb()
-      })
+      return cb()
     })
   }
 
@@ -1064,9 +1066,9 @@ export default class MasterGitProject extends EventEmitter {
         if (!isGitInitialized) {
           actionSequence = ['initializeGit']
 
-          // HACK: If the user is opening CheckTutorialfor the first time, assume they are taking
-          // the tour, and clone down the content which has been set up for them on the cloud
-          if (projectName === 'CheckTutorial' || projectName === 'Move' || projectName === 'Moto') {
+          const doAttemptInitialClone = this.shouldCloneProjectContents(projectName, initOptions)
+
+          if (doAttemptInitialClone) {
             actionSequence = [
               'fetchGitRemoteInfoState',
               'moveContentsToTemp',
@@ -1089,6 +1091,18 @@ export default class MasterGitProject extends EventEmitter {
       if (err) return done(err)
       return done(null, results[results.length - 1])
     })
+  }
+
+  shouldCloneProjectContents (projectName, { didFolderAlreadyExist }) {
+    // When users first launch the app, they will see that there are some tutorial projects available.
+    // However, that content is not on their machine automatically; it needs to be loaded from the cloud.
+    if (projectName in DEMO_PROJECT_NAMES) {
+      return true
+    }
+
+    // If the project exists remotely already but there is no content locally, clone down the content.
+    // The use case is wanting to develop the same projects across multiple workstations.
+    return !didFolderAlreadyExist
   }
 
   fetchGitRemoteInfoState (cb) {
