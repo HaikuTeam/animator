@@ -146,6 +146,8 @@ function multiplyArrayOfMatrices(arrayOfMatrices: number[][]): number[] {
 }
 
 function computeLayout(layoutSpec, currentMatrix, parentsizeAbsoluteIn) {
+  // Clean out the existing computed layout from the layout spec, if it exists.
+  delete layoutSpec.computed;
   const parentsizeAbsolute = parentsizeAbsoluteIn || {x: 0, y: 0, z: 0};
 
   if (parentsizeAbsolute.z === undefined || parentsizeAbsolute.z === null) {
