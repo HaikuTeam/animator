@@ -28,7 +28,7 @@ import { crashReport } from 'haiku-serialization/src/utils/carbonite'
 import { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Master from './Master'
 
-global.eval = function () {
+global.eval = function () { // eslint-disable-line
   throw new Error('Sorry, eval is forbidden')
 }
 
