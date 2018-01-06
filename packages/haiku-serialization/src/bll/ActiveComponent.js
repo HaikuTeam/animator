@@ -1108,7 +1108,7 @@ class ActiveComponent extends BaseModel {
       }
 
       return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('applyPropertyValue', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, propertyGroup, metadata)
+        this.project.updateHook('applyPropertyGroupValue', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, propertyGroup, metadata)
         return cb()
       })
     })
