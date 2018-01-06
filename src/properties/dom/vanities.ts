@@ -179,6 +179,7 @@ function styleSetter(prop) {
 }
 
 const STYLE_VANITIES = {
+  backgroundColor: styleSetter('backgroundColor'),
   'style.alignContent': styleSetter('alignContent'),
   'style.alignItems': styleSetter('alignItems'),
   'style.alignmentBaseline': styleSetter('alignmentBaseline'),
