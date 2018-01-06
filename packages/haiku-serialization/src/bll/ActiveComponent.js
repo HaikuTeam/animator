@@ -2260,11 +2260,28 @@ class ActiveComponent extends BaseModel {
       }
     }
 
-    if (virtualNode.children) {
-      for (let i = 0; i < virtualNode.children.length; i++) {
-        let virtualChild = virtualNode.children[i]
-        // Recursive call descends through and rehydrates the tree in depth-first order
-        this.rehydrateFromTree(virtualChild, virtualNode, element, elementHeadingRow, 0, rowDepth + 1, i, `${graphAddress}.${i}`)
+    // HACK: `rowDepth` is the "depth" of the row in relation to the scene graph element it corresponds to, so for example:
+    //   <a> 0
+    //     <b> 1
+    //     <c> 1
+    //       <d> 2
+    //
+    // Currently the timeline and stage only support editing to depths up to 1: the active component and its children.
+    // Since projects of even "a resonable amount of complexity" can theoretically have 1000s of elements, that means
+    // 1000s of Element entities, and a LOT of (Timeline) Row entities, since a Row represents not only the element,
+    // but properties, clusters of properties, etc. To avoid waiting a long, long time for this rehydration to happen,
+    // (think 10X num elements) any time the component reloads, we limit to only that of those entities we need to display.
+    //
+    // TODO: Instead of rehydrating, only create the entity "on demand" when the object is being edited
+    // TODO: Row is only really coherent from the POV of the Timeline UI, so only use it there
+    // TODO: Likely lots more optimizations we can do as well... or just rearchitect this to be smarter
+    if (rowDepth < 2) {
+      if (virtualNode.children) {
+        for (let i = 0; i < virtualNode.children.length; i++) {
+          let virtualChild = virtualNode.children[i]
+          // Recursive call descends through and rehydrates the tree in depth-first order
+          this.rehydrateFromTree(virtualChild, virtualNode, element, elementHeadingRow, 0, rowDepth + 1, i, `${graphAddress}.${i}`)
+        }
       }
     }
   }
