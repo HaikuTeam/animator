@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="45px" height="44px" viewBox="0 0 45 44" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 47 (45396) - http://www.bohemiancoding.com/sketch -->
+    <title>left shoe</title>
+    <desc>Created with sketchtool.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="iPhone-8" transform="translate(-124.000000, -418.000000)">
+            <g id="left-shoe" transform="translate(124.000000, 420.000000)">
+                <path d="M22.5,7 L22.5,7 L22.5,7 C34.9264069,7 45,17.0735931 45,29.5 L45,34 L0,34 L0,29.5 L0,29.5 C-1.52179594e-15,17.0735931 10.0735931,7 22.5,7 Z" id="Rectangle-2" fill="#F5A623"></path>
+                <circle id="Oval-3" stroke="#000000" stroke-width="3" cx="15" cy="7" r="7"></circle>
+                <circle id="Oval-3-Copy" stroke="#000000" stroke-width="3" cx="29" cy="7" r="7"></circle>
+                <rect id="Rectangle-3" fill="#8B572A" x="0" y="34" width="45" height="8"></rect>
+            </g>
+        </g>
+    </g>
+</svg>

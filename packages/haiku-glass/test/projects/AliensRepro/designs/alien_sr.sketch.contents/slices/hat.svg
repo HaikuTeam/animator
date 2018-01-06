@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="91px" height="62px" viewBox="0 0 91 62" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 47 (45396) - http://www.bohemiancoding.com/sketch -->
+    <title>hat</title>
+    <desc>Created with sketchtool.</desc>
+    <defs>
+        <path d="M41,0 L41,0 L41,0 C63.6436747,-4.15957557e-15 82,18.3563253 82,41 L82,52 L0,52 L0,41 L0,41 C-2.77305038e-15,18.3563253 18.3563253,4.15957557e-15 41,0 Z" id="path-1"></path>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="iPhone-8" transform="translate(-144.000000, -103.000000)">
+            <g id="hat" transform="translate(144.000000, 103.000000)">
+                <g id="Rectangle-5" transform="translate(4.000000, 0.000000)">
+                    <mask id="mask-2" fill="white">
+                        <use xlink:href="#path-1"></use>
+                    </mask>
+                    <use id="Mask" fill="#F8E71C" xlink:href="#path-1"></use>
+                    <rect fill="#E9D915" mask="url(#mask-2)" x="41" y="-2" width="42" height="61"></rect>
+                </g>
+                <rect id="Rectangle-4" fill="#F8E71C" x="0" y="52" width="91" height="10"></rect>
+            </g>
+        </g>
+    </g>
+</svg>

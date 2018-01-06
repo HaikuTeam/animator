@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="38px" height="271px" viewBox="0 0 38 271" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 47 (45396) - http://www.bohemiancoding.com/sketch -->
+    <title>lever</title>
+    <desc>Created with sketchtool.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="iPhone-8" transform="translate(-307.000000, -127.000000)">
+            <g id="lever" transform="translate(307.000000, 127.000000)">
+                <path d="M18.5,38.5 L18.5,256.520641" id="Line" stroke="#979797" stroke-width="27" stroke-linecap="square"></path>
+                <circle id="Oval-2" fill="#FF0000" cx="19" cy="19" r="19"></circle>
+            </g>
+        </g>
+    </g>
+</svg>
