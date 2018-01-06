@@ -320,7 +320,7 @@ class Row extends BaseModel {
     // If creating a keyframe on a cluster row, create one for all of the child rows
     if (this.isClusterHeading()) {
       this.children.forEach((child) => child.createKeyframe(value, ms, metadata))
-      return this.expandAndSelect()
+      return this.expandAndSelect(metadata)
     }
 
     const siblings = this.getKeyframes()
