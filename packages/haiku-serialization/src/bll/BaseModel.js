@@ -54,9 +54,11 @@ class BaseModel extends EventEmitter {
       }
     }
 
-    patchEmitter(this, (args) => {
-      this.constructor.emit(args[0], this, args[1], args[2], args[3])
-    })
+    const emit = this.emit
+    this.emit = (a, b, c, d, e, f, g, h, i) => {
+      emit.call(this, a, b, c, d, e, f, g, h, i)
+      this.constructor.emit(a, this, b, c, d, e, f, g, h, i)
+    }
 
     this.assign(props)
 
@@ -355,14 +357,6 @@ function createCollection (klass, collection, opts) {
     collection.forEach((item) => {
       item.cacheClear()
     })
-  }
-}
-
-function patchEmitter (emitter, other) {
-  const old = emitter.emit
-  emitter.emit = function emit () {
-    old.apply(emitter, arguments)
-    other(arguments)
   }
 }
 
