@@ -28,6 +28,10 @@ import { crashReport } from 'haiku-serialization/src/utils/carbonite'
 import { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Master from './Master'
 
+global.eval = function () {
+  throw new Error('Sorry, eval is forbidden')
+}
+
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'plumbing'
 

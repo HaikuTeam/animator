@@ -6,6 +6,11 @@
     <link rel="stylesheet" href="./public/global.css">
     <link rel="stylesheet" href="./public/icons.css">
     <script>
+      window.eval = global.eval = function () {
+        throw new Error('Sorry, eval is forbidden')
+      }
+    </script>
+    <script>
       // Monaco uses a custom amd loader that over-rides node's require.
       // Keep a reference to node's require so we can restore it after executing the amd loader file.
       var nodeRequire = global.require;

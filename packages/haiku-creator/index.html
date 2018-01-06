@@ -14,6 +14,11 @@
 </head>
 <body style="position:relative;">
   <div id="mount" style="width: 100%; height: 100%; overflow: hidden;"></div>
+  <script>
+    window.eval = global.eval = function () {
+      throw new Error('Sorry, eval is forbidden')
+    }
+  </script>
   <script src="../../node_modules/raven-js/dist/raven.js"></script>
   <script>
     require('./lib/entry')
