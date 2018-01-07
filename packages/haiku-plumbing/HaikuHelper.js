@@ -26,38 +26,30 @@ function go () {
 
   if (flags.mode !== 'headless') haiku.mode = 'creator'
 
-  console.log('Haiku plumbing initializing')
+  console.log('Haiku plumbing launching')
   console.log('args:', args)
   console.log('flags:', flags)
   console.log('config:', haiku)
 
-  console.log('Installing Haiku CLI executable')
-  cp.exec(path.join(__dirname, 'bins', 'install'), function (err, out) {
-    if (err) {
-      console.log('Warning: Unable to install Haiku CLI executable (' + err + ')')
-    } else {
-      console.log('Haiku CLI executable installed (' + out + ')')
+  var plumbing = new Plumbing()
+
+  if (flags.repl) {
+    startEmUp(plumbing, haiku, function (err, folder) {
+      // A quick-and-dirty 'REPL' mainly for testing the plumbing, but open to all
+      var repl = new ReplBase()
+      var prompt = 'haiku'
+      var opts = { me: plumbing, folder: folder }
+      repl.start(prompt, opts)
+    })
+  } else {
+    if (haiku.folder) {
+      if (haiku.folder[0] === path.sep) haiku.folder = haiku.folder
+      else haiku.folder = path.join(process.cwd(), haiku.folder)
     }
-    console.log('Haiku plumbing launching')
-    var plumbing = new Plumbing()
-    if (flags.repl) {
-      startEmUp(plumbing, haiku, function (err, folder) {
-        // A quick-and-dirty 'REPL' mainly for testing the plumbing, but open to all
-        var repl = new ReplBase()
-        var prompt = 'haiku'
-        var opts = { me: plumbing, folder: folder }
-        repl.start(prompt, opts)
-      })
-    } else {
-      if (haiku.folder) {
-        if (haiku.folder[0] === path.sep) haiku.folder = haiku.folder
-        else haiku.folder = path.join(process.cwd(), haiku.folder)
-      }
-      plumbing.launch(haiku, function() {
-        console.log('Haiku plumbing running')
-      })
-    }
-  })
+    plumbing.launch(haiku, function() {
+      console.log('Haiku plumbing running')
+    })
+  }
 }
 
 function startEmUp (plumbing, haiku, cb) {
