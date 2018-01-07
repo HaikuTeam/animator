@@ -14,6 +14,7 @@ export enum Experiment {
   InstantiationOfPrimitivesAsComponents = 'InstantiationOfPrimitivesAsComponents',
   HideInstantiatedElementUntilTimeInstantiated = 'HideInstantiatedElementUntilTimeInstantiated',
   MergeDesignChangesAtCurrentTime = 'MergeDesignChangesAtCurrentTime',
+  CommentsOnStage = 'CommentsOnStage',
 }
 
 /**
