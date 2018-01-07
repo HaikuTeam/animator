@@ -21,5 +21,9 @@
   "MergeDesignChangesAtCurrentTime": {
     "development": false,
     "production": false
+  },
+  "CommentsOnStage": {
+    "development": false,
+    "production": false
   }
 }
