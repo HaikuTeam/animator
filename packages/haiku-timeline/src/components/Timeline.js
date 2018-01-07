@@ -3,7 +3,6 @@ import Color from 'color'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
 import Project from 'haiku-serialization/src/bll/Project'
-import TimelineModel from 'haiku-serialization/src/bll/Timeline'
 import Row from 'haiku-serialization/src/bll/Row'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
@@ -22,7 +21,6 @@ import GaugeTimeReadout from './GaugeTimeReadout'
 import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
 import {isPreviewMode} from '@haiku/player/lib/helpers/interactionModes'
-import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
@@ -51,8 +49,6 @@ const DEFAULTS = {
   inputCellWidth: 75,
   meterHeight: 25,
   controlsHeight: 42,
-  timeDisplayMode: 'frames', // or 'seconds'
-  isPlayerPlaying: false,
   playerPlaybackSpeed: 1.0,
   isShiftKeyDown: false,
   isCommandKeyDown: false,
@@ -282,10 +278,6 @@ class Timeline extends React.Component {
       } else if (what === 'row-selected') {
         // TODO: Handle scrolling to the correct row
       }
-    })
-
-    this.addEmitterListener(TimelineModel, 'timeline-model:stop-playback', () => {
-      this.setState({ isPlayerPlaying: false })
     })
 
     this.forceUpdate()
@@ -607,52 +599,16 @@ class Timeline extends React.Component {
     }
   }
 
-  toggleTimeDisplayMode () {
-    if (this.state.timeDisplayMode === 'frames') {
-      this.setState({
-        timeDisplayMode: 'seconds'
-      })
-    } else {
-      this.setState({
-        timeDisplayMode: 'frames'
-      })
-    }
-  }
-
   playbackSkipBack () {
-    let frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
-    this.getActiveComponent().getCurrentTimeline().seekAndPause(frameInfo.fri0)
-    this.getActiveComponent().getCurrentTimeline().updateCurrentFrame(frameInfo.fri0)
-    this.getActiveComponent().getCurrentTimeline().tryToLeftAlignTickerInVisibleFrameRange(frameInfo.fri0)
-    this.setState({ isPlayerPlaying: false })
+    this.getActiveComponent().getCurrentTimeline().playbackSkipBack()
   }
 
   playbackSkipForward () {
-    let frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
-    this.getActiveComponent().getCurrentTimeline().seekAndPause(frameInfo.maxf)
-    this.getActiveComponent().getCurrentTimeline().updateCurrentFrame(frameInfo.maxf)
-    this.getActiveComponent().getCurrentTimeline().tryToLeftAlignTickerInVisibleFrameRange(frameInfo.maxf)
-    this.setState({ isPlayerPlaying: false })
+    this.getActiveComponent().getCurrentTimeline().playbackSkipForward()
   }
 
   togglePlayback () {
-    if (this.getActiveComponent().getCurrentTimeline().getCurrentFrame() >= this.getActiveComponent().getCurrentTimeline().getFrameInfo().maxf) {
-      this.playbackSkipBack()
-    }
-
-    if (this.state.isPlayerPlaying) {
-      this.setState({
-        isPlayerPlaying: false
-      }, () => {
-        this.getActiveComponent().getCurrentTimeline().pause()
-      })
-    } else {
-      this.setState({
-        isPlayerPlaying: true
-      }, () => {
-        this.getActiveComponent().getCurrentTimeline().play()
-      })
-    }
+    this.getActiveComponent().getCurrentTimeline().togglePlayback()
   }
 
   renderTimelinePlaybackControls () {
@@ -785,11 +741,6 @@ class Timeline extends React.Component {
   }
 
   renderTopControls () {
-    const timeline = this.getActiveComponent().getCurrentTimeline()
-    const displayTime = this.state.timeDisplayMode === 'frames'
-          ? ~~timeline.getCurrentFrame()
-          : formatSeconds(timeline.getCurrentFrame() * 1000 / timeline.getFPS() / 1000).replace(/^0+/, '')
-
     return (
       <div
         className='top-controls no-select'
@@ -815,7 +766,6 @@ class Timeline extends React.Component {
           }}>
           <GaugeTimeReadout
             reactParent={this}
-            timeDisplayMode={this.state.timeDisplayMode}
             timeline={this.getActiveComponent().getCurrentTimeline()} />
         </div>
         <div
@@ -857,11 +807,9 @@ class Timeline extends React.Component {
             timeline={this.getActiveComponent().getCurrentTimeline()}
             onShowFrameActionsEditor={this.showFrameActionsEditor} />
           <Gauge
-            timeDisplayMode={this.state.timeDisplayMode}
             timeline={this.getActiveComponent().getCurrentTimeline()} />
           <Scrubber
             reactParent={this}
-            displayTime={displayTime}
             isScrubbing={this.getActiveComponent().getCurrentTimeline().isScrubberDragging()}
             timeline={this.getActiveComponent().getCurrentTimeline()} />
         </div>
@@ -914,7 +862,6 @@ class Timeline extends React.Component {
               <ClusterRow
                 key={row.getUniqueKey()}
                 rowHeight={this.state.rowHeight}
-                isPlayerPlaying={this.state.isPlayerPlaying}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
                 component={this.getActiveComponent()}
                 row={row} />
@@ -927,7 +874,6 @@ class Timeline extends React.Component {
               <PropertyRow
                 key={row.getUniqueKey()}
                 rowHeight={this.state.rowHeight}
-                isPlayerPlaying={this.state.isPlayerPlaying}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
                 component={this.getActiveComponent()}
                 row={row} />
@@ -940,7 +886,6 @@ class Timeline extends React.Component {
               <ComponentHeadingRow
                 key={row.getUniqueKey()}
                 rowHeight={this.state.rowHeight}
-                isPlayerPlaying={this.state.isPlayerPlaying}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
                 component={this.getActiveComponent()}
                 row={row}

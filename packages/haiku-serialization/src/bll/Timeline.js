@@ -5,6 +5,7 @@ const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
 const getTimelineMaxTime = require('@haiku/player/lib/helpers/getTimelineMaxTime').default
 const BaseModel = require('./BaseModel')
 const MathUtils = require('./MathUtils')
+const formatSeconds = require('haiku-ui-common/lib/helpers/formatSeconds').default
 
 const DURATION_DRAG_INCREASE = 20 // Increase by this much per each duration increase
 const DURATION_DRAG_TIMEOUT = 300 // Wait this long before increasing the duration
@@ -53,6 +54,7 @@ class Timeline extends BaseModel {
     this._scrollbarStart = 0
     this._scrollbarEnd = 0
     this._hoveredFrame = 0
+    this._timeDisplayMode = Timeline.TIME_DISPLAY_MODE.FRAMES
 
     this.debouncedRehydrate = lodash.debounce(this.rehydrate.bind(this), STANDARD_DEBOUNCE)
 
@@ -82,6 +84,28 @@ class Timeline extends BaseModel {
     return Boolean(this._isLooping)
   }
 
+  getTimeDisplayMode () {
+    return this._timeDisplayMode
+  }
+
+  toggleTimeDisplayMode () {
+    if (this.getTimeDisplayMode() === Timeline.TIME_DISPLAY_MODE.FRAMES) {
+      this._timeDisplayMode = Timeline.TIME_DISPLAY_MODE.SECONDS
+    } else {
+      this._timeDisplayMode = Timeline.TIME_DISPLAY_MODE.FRAMES
+    }
+
+    this.emit('update', 'time-display-mode-change')
+  }
+
+  getDisplayTime () {
+    const displayTime = this.getTimeDisplayMode() === Timeline.TIME_DISPLAY_MODE.FRAMES
+      ? ~~this.getCurrentFrame()
+      : formatSeconds(this.getCurrentFrame() * 1000 / this.getFPS() / 1000).replace(/^0+/, '')
+
+    return displayTime
+  }
+
   toggleRepeat () {
     this.setRepeat(!this.getRepeat())
   }
@@ -100,7 +124,40 @@ class Timeline extends BaseModel {
     const spanMs = lap - this._stopwatch
     const spanS = spanMs / 1000
     const spanFrames = Math.round(spanS * this._fps)
-    return this._lastAuthoritativeFrame + spanFrames
+    const extrapolatedFrame = this._lastAuthoritativeFrame + spanFrames
+    return extrapolatedFrame
+  }
+
+  togglePlayback () {
+    const frameInfo = this.getFrameInfo()
+
+    if (this.getCurrentFrame() >= frameInfo.maxf) {
+      this.seek(frameInfo.fri0) // Don't pause here because we'll pause below
+      this.updateCurrentFrame(frameInfo.fri0)
+      this.tryToLeftAlignTickerInVisibleFrameRange(frameInfo.fri0)
+    }
+
+    if (this.isPlaying()) {
+      console.log('PAUSE')
+      this.pause()
+    } else {
+      console.log('PLAY')
+      this.play()
+    }
+  }
+
+  playbackSkipBack () {
+    let frameInfo = this.getFrameInfo()
+    this.seekAndPause(frameInfo.fri0)
+    this.updateCurrentFrame(frameInfo.fri0)
+    this.tryToLeftAlignTickerInVisibleFrameRange(frameInfo.fri0)
+  }
+
+  playbackSkipForward () {
+    let frameInfo = this.getFrameInfo()
+    this.seekAndPause(frameInfo.maxf)
+    this.updateCurrentFrame(frameInfo.maxf)
+    this.tryToLeftAlignTickerInVisibleFrameRange(frameInfo.maxf)
   }
 
   play () {
@@ -192,12 +249,20 @@ class Timeline extends BaseModel {
 
   update () {
     if (this._playing) {
-      this.updateCurrentFrame(this.getExtrapolatedCurrentFrame())
-
       const frameInfo = this.getFrameInfo()
 
+      // Prevent pointless looping
+      if (frameInfo.maxf < 1) {
+        this.seekAndPause(frameInfo.maxf)
+        return
+      }
+
+      const extrapolatedFrame = this.getExtrapolatedCurrentFrame()
+
+      this.updateCurrentFrame(extrapolatedFrame)
+
       // Only go as far as the maximum frame as defined in the bytecode
-      if (this.getCurrentFrame() >= frameInfo.maxf) {
+      if (this.getCurrentFrame() > frameInfo.maxf) {
         // Need to unset this or the next seek will be treated as a a no-op
         this._lastSeek = null
 
@@ -206,7 +271,6 @@ class Timeline extends BaseModel {
           this.play()
         } else {
           this.seekAndPause(frameInfo.maxf)
-          this.emit('timeline-model:stop-playback')
         }
       }
 
@@ -1085,6 +1149,11 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
 }
 
 Timeline.DEFAULT_NAME = 'Default'
+
+Timeline.TIME_DISPLAY_MODE = {
+  FRAMES: 'frames',
+  SECONDS: 'seconds'
+}
 
 module.exports = Timeline
 

@@ -1,6 +1,7 @@
 import React from 'react'
 import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
 import Palette from 'haiku-ui-common/lib/Palette'
+import Timeline from 'haiku-serialization/src/bll/Timeline'
 
 export default class Gauge extends React.Component {
   constructor (props) {
@@ -22,14 +23,15 @@ export default class Gauge extends React.Component {
     if (!this.mounted) return false
     if (
       what === 'timeline-frame-range' ||
-      what === 'timeline-frame-hovered'
+      what === 'timeline-frame-hovered' ||
+      what === 'time-display-mode-change'
     ) {
       this.forceUpdate()
     }
   }
 
   render () {
-    if (this.props.timeDisplayMode === 'frames') {
+    if (this.props.timeline.getTimeDisplayMode() === Timeline.TIME_DISPLAY_MODE.FRAMES) {
       return (
         <div
           className='gauge'>
@@ -51,7 +53,7 @@ export default class Gauge extends React.Component {
           })}
         </div>
       )
-    } else if (this.props.timeDisplayMode === 'seconds') { // aka time elapsed, not frames
+    } else if (this.props.timeline.getTimeDisplayMode() === Timeline.TIME_DISPLAY_MODE.SECONDS) { // aka time elapsed, not frames
       return (
         <div
           className='gauge'>
@@ -77,6 +79,5 @@ export default class Gauge extends React.Component {
 }
 
 Gauge.propTypes = {
-  timeline: React.PropTypes.object.isRequired,
-  timeDisplayMode: React.PropTypes.string.isRequired
+  timeline: React.PropTypes.object.isRequired
 }

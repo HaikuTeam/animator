@@ -25,6 +25,8 @@ export default class ScrubberInterior extends React.Component {
       this.forceUpdate()
     } else if (what === 'timeline-frame-range') {
       this.forceUpdate()
+    } else if (what === 'time-display-mode-change') {
+      this.forceUpdate()
     }
   }
 
@@ -70,7 +72,7 @@ export default class ScrubberInterior extends React.Component {
             left: 0,
             width: '100%'
           }}>
-            {!this.props.isScrubbing && this.props.displayTime}
+            {this.props.timeline.getDisplayTime()}
           </span>
           <span style={{
             position: 'absolute',
