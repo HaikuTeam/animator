@@ -7,10 +7,10 @@ class AssetList extends React.Component {
     return (
       <div
         className='assets-list'>
-        {this.props.assets.map((asset, index) => {
+        {this.props.assets.map((asset) => {
           return (
             <AssetItem
-              key={index}
+              key={asset.getPrimaryKey()}
               projectModel={this.props.projectModel}
               onDragStart={this.props.onDragStart}
               onDragEnd={this.props.onDragEnd}
