@@ -99,6 +99,5 @@ export default class FrameGrid extends React.Component {
 }
 
 FrameGrid.propTypes = {
-  timeline: React.PropTypes.object.isRequired,
-  $update: React.PropTypes.object.isRequired
+  timeline: React.PropTypes.object.isRequired
 }

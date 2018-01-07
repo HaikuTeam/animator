@@ -65,6 +65,5 @@ export default class SoloKeyframe extends React.Component {
 
 SoloKeyframe.propTypes = {
   keyframe: React.PropTypes.object.isRequired,
-  $update: React.PropTypes.object.isRequired,
   preventDragging: React.PropTypes.bool.isRequired
 }

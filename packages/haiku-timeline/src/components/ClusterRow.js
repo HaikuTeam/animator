@@ -101,7 +101,6 @@ export default class ClusterRow extends React.Component {
             textAlign: 'left'
           }}>
           <ClusterInputField
-            $update={this.props.$update}
             parent={this}
             row={this.props.row}
             index={this.props.row.getAddress()}
@@ -125,7 +124,6 @@ export default class ClusterRow extends React.Component {
             includeDraggables={false}
             preventDragging
             row={this.props.row}
-            $update={this.props.$update}
             component={this.props.component}
             timeline={this.props.timeline}
             rowHeight={this.props.rowHeight} />
@@ -139,6 +137,5 @@ ClusterRow.propTypes = {
   row: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
-  rowHeight: React.PropTypes.number.isRequired,
-  $update: React.PropTypes.object.isRequired
+  rowHeight: React.PropTypes.number.isRequired
 }

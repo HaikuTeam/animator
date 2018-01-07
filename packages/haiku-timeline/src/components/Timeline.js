@@ -60,7 +60,6 @@ const DEFAULTS = {
   isAltKeyDown: false,
   avoidTimelinePointerEvents: false,
   isPreviewModeActive: false,
-  $update: { time: Date.now() }, // legacy?
   isRepeat: true
 }
 
@@ -664,7 +663,6 @@ class Timeline extends React.Component {
           top: 17
         }}>
         <ControlsArea
-          $update={this.state.$update}
           timeline={this.getActiveComponent().getCurrentTimeline()}
           activeComponentDisplayName={this.props.userconfig.name}
           selectedTimelineName={this.getActiveComponent().getCurrentTimeline().getName()}
@@ -856,15 +854,12 @@ class Timeline extends React.Component {
             paddingTop: 12,
             color: Palette.ROCK_MUTED }}>
           <FrameGrid
-            $update={this.state.$update}
             timeline={this.getActiveComponent().getCurrentTimeline()}
             onShowFrameActionsEditor={this.showFrameActionsEditor} />
           <Gauge
-            $update={this.state.$update}
             timeDisplayMode={this.state.timeDisplayMode}
             timeline={this.getActiveComponent().getCurrentTimeline()} />
           <Scrubber
-            $update={this.state.$update}
             reactParent={this}
             displayTime={displayTime}
             isScrubbing={this.getActiveComponent().getCurrentTimeline().isScrubberDragging()}
@@ -890,7 +885,6 @@ class Timeline extends React.Component {
           zIndex: 10000
         }}>
         <TimelineRangeScrollbar
-          $update={this.state.$update}
           reactParent={this}
           timeline={this.getActiveComponent().getCurrentTimeline()} />
         {this.renderTimelinePlaybackControls()}
@@ -919,7 +913,6 @@ class Timeline extends React.Component {
             return (
               <ClusterRow
                 key={row.getUniqueKey()}
-                $update={this.state.$update}
                 rowHeight={this.state.rowHeight}
                 isPlayerPlaying={this.state.isPlayerPlaying}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
@@ -933,7 +926,6 @@ class Timeline extends React.Component {
             return (
               <PropertyRow
                 key={row.getUniqueKey()}
-                $update={this.state.$update}
                 rowHeight={this.state.rowHeight}
                 isPlayerPlaying={this.state.isPlayerPlaying}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
@@ -947,7 +939,6 @@ class Timeline extends React.Component {
             return (
               <ComponentHeadingRow
                 key={row.getUniqueKey()}
-                $update={this.state.$update}
                 rowHeight={this.state.rowHeight}
                 isPlayerPlaying={this.state.isPlayerPlaying}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
@@ -1052,7 +1043,6 @@ class Timeline extends React.Component {
         {this.renderBottomControls()}
         <ExpressionInput
           ref='expressionInput'
-          $update={this.state.$update}
           reactParent={this}
           component={this.getActiveComponent()}
           timeline={this.getActiveComponent().getCurrentTimeline()}
