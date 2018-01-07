@@ -89,7 +89,7 @@ class PlaybackButtons extends React.Component {
             STYLES.btnPlayPause
           ]}
         >
-          {isPlaying && currentFrame < lastFrame ? (
+          {(isPlaying) ? (
             <span style={{marginLeft: 2}}>
               <PauseIconSVG />
             </span>

@@ -100,7 +100,6 @@ export default class PropertyRow extends React.Component {
             height={this.props.rowHeight}
             component={this.component}
             timeline={this.props.timeline}
-            isPlayerPlaying={this.props.isPlayerPlaying}
             timelineName={this.props.timeline.getName()}
             rowHeight={this.props.rowHeight} />
         </div>

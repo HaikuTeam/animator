@@ -107,7 +107,6 @@ export default class ClusterRow extends React.Component {
             height={this.props.rowHeight}
             component={this.props.component}
             timeline={this.props.timeline}
-            isPlayerPlaying={this.props.isPlayerPlaying}
             rowHeight={this.props.rowHeight} />
         </div>
         <div
