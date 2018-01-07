@@ -775,7 +775,7 @@ export class Glass extends React.Component {
     // store all elements' transforms
     // TODO:  should we store only the selected element's transform?
     //       this could become a bottleneck with a high number of elements
-    var elems = Element.all(); // semicolon required
+    const elems = Element.where({component: this.getActiveComponent()}); // semicolon required
 
     (elems || []).forEach((elem) => {
       elem.pushCachedTransform('CONSTRAINED_DRAG') // wishlist:  enum
