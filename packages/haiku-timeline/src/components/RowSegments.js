@@ -49,7 +49,6 @@ export default class RowSegments extends React.Component {
               <TransitionBody
                 preventDragging={this.props.preventDragging}
                 key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-transition-body`}
-                $update={this.props.$update}
                 component={this.props.component}
                 timeline={this.props.timeline}
                 rowHeight={this.props.rowHeight}
@@ -61,7 +60,6 @@ export default class RowSegments extends React.Component {
                 <ConstantBody
                   preventDragging={this.props.preventDragging}
                   key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-constant-body`}
-                  $update={this.props.$update}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
                   keyframe={keyframe} />
@@ -72,7 +70,6 @@ export default class RowSegments extends React.Component {
                 <SoloKeyframe
                   preventDragging={this.props.preventDragging}
                   key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-solo-keyframe`}
-                  $update={this.props.$update}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
                   keyframe={keyframe} />
@@ -86,7 +83,6 @@ export default class RowSegments extends React.Component {
                 <InvisibleKeyframeDragger
                   key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-invisible-1`}
                   offset={-10}
-                  $update={this.props.$update}
                   component={this.props.component}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
@@ -97,7 +93,6 @@ export default class RowSegments extends React.Component {
               <InvisibleKeyframeDragger
                 key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-invisible-2`}
                 offset={0}
-                $update={this.props.$update}
                 component={this.props.component}
                 timeline={this.props.timeline}
                 rowHeight={this.props.rowHeight}
@@ -108,7 +103,6 @@ export default class RowSegments extends React.Component {
                 <InvisibleKeyframeDragger
                   key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-invisible-3`}
                   offset={+10}
-                  $update={this.props.$update}
                   component={this.props.component}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
@@ -141,7 +135,6 @@ RowSegments.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
-  $update: React.PropTypes.object.isRequired,
   includeDraggables: React.PropTypes.bool.isRequired,
   preventDragging: React.PropTypes.bool.isRequired
 }

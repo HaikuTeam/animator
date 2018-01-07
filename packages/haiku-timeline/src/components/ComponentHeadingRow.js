@@ -90,7 +90,6 @@ export default class ComponentHeadingRow extends React.Component {
                 }
             </span>
             <ComponentHeadingRowHeading
-              $update={this.props.$update}
               row={this.props.row}
               onEventHandlerTriggered={this.props.onEventHandlerTriggered} />
           </div>
@@ -149,7 +148,6 @@ export default class ComponentHeadingRow extends React.Component {
           }}>
           {(!this.props.row.isExpanded())
             ? <CollapsedPropertyTimelineSegments
-              $update={this.props.$update}
               component={this.props.component}
               timeline={this.props.timeline}
               rowHeight={this.props.rowHeight}
@@ -166,6 +164,5 @@ ComponentHeadingRow.propTypes = {
   component: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   rowHeight: React.PropTypes.number.isRequired,
-  $update: React.PropTypes.object.isRequired,
   onEventHandlerTriggered: React.PropTypes.func.isRequired
 }

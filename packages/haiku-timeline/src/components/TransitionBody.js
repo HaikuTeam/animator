@@ -286,6 +286,5 @@ TransitionBody.propTypes = {
   keyframe: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
-  $update: React.PropTypes.object.isRequired,
   preventDragging: React.PropTypes.bool.isRequired
 }

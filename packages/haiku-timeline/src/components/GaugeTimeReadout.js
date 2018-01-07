@@ -1,26 +1,16 @@
 import React from 'react'
+import lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
 import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
 
 export default class GaugeTimeReadout extends React.Component {
   constructor (props) {
     super(props)
-    this.handleUpdate = this.handleUpdate.bind(this)
+    this.handleClick = this.handleClick.bind(this)
   }
 
-  componentWillUnmount () {
-    this.mounted = false
-    this.props.timeline.removeListener('update', this.handleUpdate)
-  }
-
-  componentDidMount () {
-    this.mounted = true
-    this.props.timeline.on('update', this.handleUpdate)
-  }
-
-  handleUpdate (what) {
-    if (!this.mounted) return null
-    if (what === 'timeline-frame' || what === 'timeline-frame-range') this.forceUpdate()
+  handleClick (clickEvent) {
+    this.props.reactParent.toggleTimeDisplayMode(clickEvent)
   }
 
   render () {
@@ -38,12 +28,9 @@ export default class GaugeTimeReadout extends React.Component {
             paddingTop: 2,
             paddingRight: 10
           }}>
-          <span style={{ display: 'inline-block', height: 24, padding: 4, fontWeight: 'lighter', fontSize: 19 }}>
-            {(this.props.timeDisplayMode === 'frames')
-              ? <span>{~~this.props.timeline.getCurrentFrame()}f</span>
-              : <span>{formatSeconds(this.props.timeline.getCurrentFrame() * 1000 / this.props.timeline.getFPS() / 1000)}s</span>
-            }
-          </span>
+          <TimeReadout
+            timeline={this.props.timeline}
+            timeDisplayMode={this.props.timeDisplayMode} />
         </div>
         <div
           className='gauge-fps-readout'
@@ -60,17 +47,14 @@ export default class GaugeTimeReadout extends React.Component {
             paddingRight: 5,
             cursor: 'default'
           }}>
-          <div>
-            {(this.props.timeDisplayMode === 'frames')
-              ? <span>{formatSeconds(this.props.timeline.getCurrentFrame() * 1000 / this.props.timeline.getFPS() / 1000)}s</span>
-              : <span>{~~this.props.timeline.getCurrentFrame()}f</span>
-            }
-          </div>
+          <FpsReadout
+            timeline={this.props.timeline}
+            timeDisplayMode={this.props.timeDisplayMode} />
           <div style={{marginTop: '-4px'}}>{this.props.timeline.getFPS()}fps</div>
         </div>
         <div
           className='gauge-toggle'
-          onClick={this.props.reactParent.toggleTimeDisplayMode.bind(this.props.reactParent)}
+          onClick={this.handleClick}
           style={{
             width: 50,
             float: 'right',
@@ -104,8 +88,94 @@ export default class GaugeTimeReadout extends React.Component {
   }
 }
 
+class FpsReadout extends React.Component {
+  constructor (props) {
+    super(props)
+    this.handleUpdate = this.handleUpdate.bind(this)
+    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64)
+  }
+
+  componentWillUnmount () {
+    this.mounted = false
+    this.props.timeline.removeListener('update', this.handleUpdate)
+  }
+
+  componentDidMount () {
+    this.mounted = true
+    this.props.timeline.on('update', this.handleUpdate)
+  }
+
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    if (what === 'timeline-frame') {
+      this.throttledForceUpdate()
+    } else if (what === 'timeline-frame-range') {
+      this.forceUpdate()
+    }
+  }
+
+  render () {
+    return (
+      <div>
+        {(this.props.timeDisplayMode === 'frames')
+          ? <span>{formatSeconds(this.props.timeline.getCurrentFrame() * 1000 / this.props.timeline.getFPS() / 1000)}s</span>
+          : <span>{~~this.props.timeline.getCurrentFrame()}f</span>
+        }
+      </div>
+    )
+  }
+}
+
+class TimeReadout extends React.Component {
+  constructor (props) {
+    super(props)
+    this.handleUpdate = this.handleUpdate.bind(this)
+    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64)
+  }
+
+  componentWillUnmount () {
+    this.mounted = false
+    this.props.timeline.removeListener('update', this.handleUpdate)
+  }
+
+  componentDidMount () {
+    this.mounted = true
+    this.props.timeline.on('update', this.handleUpdate)
+  }
+
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    if (what === 'timeline-frame') {
+      this.throttledForceUpdate()
+    } else if (what === 'timeline-frame-range') {
+      this.forceUpdate()
+    }
+  }
+
+  render () {
+    return (
+      <span style={{ display: 'inline-block', height: 24, padding: 4, fontWeight: 'lighter', fontSize: 19 }}>
+        {(this.props.timeDisplayMode === 'frames')
+          ? <span>{~~this.props.timeline.getCurrentFrame()}f</span>
+          : <span>{formatSeconds(this.props.timeline.getCurrentFrame() * 1000 / this.props.timeline.getFPS() / 1000)}s</span>
+        }
+      </span>
+    )
+  }
+}
+
 GaugeTimeReadout.propTypes = {
   timeline: React.PropTypes.object.isRequired,
   reactParent: React.PropTypes.object.isRequired,
+  timeDisplayMode: React.PropTypes.string.isRequired
+}
+
+FpsReadout.propTypes = {
+  timeline: React.PropTypes.object.isRequired,
+  timeDisplayMode: React.PropTypes.string.isRequired
+}
+
+TimeReadout.propTypes = {
+  timeline: React.PropTypes.object.isRequired,
   timeDisplayMode: React.PropTypes.string.isRequired
 }
