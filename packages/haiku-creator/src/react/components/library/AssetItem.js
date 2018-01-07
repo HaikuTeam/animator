@@ -5,7 +5,6 @@ import lodash from 'lodash'
 import Asset from 'haiku-serialization/src/bll/Asset'
 import { Draggable } from 'react-drag-and-drop'
 import AssetList from './AssetList'
-import Collapse from 'react-collapse'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import Palette from 'haiku-ui-common/lib/Palette'
 import {
@@ -319,8 +318,7 @@ class AssetItem extends React.Component {
   renderSubLevel () {
     return (
       <Collapse
-        isOpened={this.state.isOpened}
-        springConfig={{stiffness: 177, damping: 17}}>
+        isOpened={this.state.isOpened}>
         <AssetList
           projectModel={this.props.projectModel}
           onDragStart={this.props.onDragStart}
@@ -398,6 +396,18 @@ class AssetItem extends React.Component {
           {this.renderSubLevel()}
         </div>
       </div>
+    )
+  }
+}
+
+class Collapse extends React.Component {
+  render () {
+    if (!this.props.isOpened) {
+      return <div />
+    }
+
+    return (
+      <div>{this.props.children}</div>
     )
   }
 }

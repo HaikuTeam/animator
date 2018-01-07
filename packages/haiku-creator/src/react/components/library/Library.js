@@ -88,14 +88,18 @@ class Library extends React.Component {
       }
     }
 
-    this._assets = []
-
     this.handleAssetInstantiation = this.handleAssetInstantiation.bind(this)
     this.handleAssetDeletion = this.handleAssetDeletion.bind(this)
+
+    // Debounced to avoid 'flicker' when multiple updates are received quickly
+    this.handleAssetsChanged = lodash.debounce(this.handleAssetsChanged.bind(this), 250)
   }
 
-  handleAssetsChanged (assets) {
-    this.setState({ assets: Asset.ingestAssets(this.props.projectModel, assets) })
+  handleAssetsChanged (assetsDictionary, otherStates) {
+    const assets = Asset.ingestAssets(this.props.projectModel, assetsDictionary)
+    const statesToSet = { assets }
+    if (otherStates) lodash.assign(statesToSet, otherStates)
+    this.setState(statesToSet)
   }
 
   componentDidMount () {
@@ -105,7 +109,7 @@ class Library extends React.Component {
 
     this.props.websocket.on('broadcast', ({ name, assets }) => {
       if (name === 'assets-changed') {
-        this.handleAssetsChanged(assets)
+        this.handleAssetsChanged(assets, {isLoading: false})
       }
     })
 
@@ -117,8 +121,7 @@ class Library extends React.Component {
   reloadAssetList () {
     return this.props.projectModel.listAssets((error, assets) => {
       if (error) return this.setState({ error })
-      this.handleAssetsChanged(assets)
-      this.setState({ isLoading: false })
+      this.handleAssetsChanged(assets, {isLoading: false})
     })
   }
 
@@ -187,11 +190,11 @@ class Library extends React.Component {
     return this.props.projectModel.unlinkAsset(
       asset.getRelpath(),
       (error, assets) => {
-        this.setState({isLoading: false})
         if (error) {
-          return this.setState({error})
+          return this.setState({error, isLoading: false})
         }
-        this.setState({ assets, isLoading: false })
+
+        this.handleAssetsChanged(assets, {isLoading: false})
       }
     )
   }
@@ -202,11 +205,11 @@ class Library extends React.Component {
     this.props.projectModel.bulkLinkAssets(
       filePaths,
       (error, assets) => {
-        this.setState({isLoading: false})
         if (error) {
-          return this.setState({error})
+          return this.setState({error, isLoading: false})
         }
-        this.handleAssetsChanged(assets)
+
+        this.handleAssetsChanged(assets, {isLoading: false})
       }
     )
   }
