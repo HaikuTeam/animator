@@ -848,9 +848,8 @@ export class Glass extends React.Component {
           // duplicate element here and immediately select it
           // TODO:  support multi-select here (forEach instead of single haikuId)
 
-          let origElement = Element.findById(haikuId)
-          let proj = Project.all()[0] // TODO:  is there a better API for this?
-          let ac0 = proj.getCurrentActiveComponent()
+          const origElement = Element.findById(haikuId)
+          const ac0 = this.getActiveComponent()
 
           // HACK:  zb, patching into paste logic because this was the only way I could discover/contrive
           //       to duplicate an element (ideally this behavior should belong to the Element view-model
