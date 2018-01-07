@@ -1,42 +1,9 @@
 import React from 'react'
+import lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
 
 export default class ClusterInputField extends React.Component {
-  constructor (props) {
-    super(props)
-    this.handleUpdate = this.handleUpdate.bind(this)
-  }
-
-  componentWillUnmount () {
-    this.mounted = false
-    this.props.timeline.removeListener('update', this.handleUpdate)
-  }
-
-  componentDidMount () {
-    this.mounted = true
-    this.props.timeline.on('update', this.handleUpdate)
-  }
-
-  handleUpdate (what) {
-    if (!this.mounted) return null
-    if (what === 'timeline-frame') this.forceUpdate()
-  }
-
   render () {
-    let clusterValues = this.props.row.getClusterValues()
-    let clusterName = this.props.row.getClusterNameString()
-
-    let valueElements
-
-    if (clusterValues.length < 4 && clusterName !== 'Style') {
-      valueElements = clusterValues.map((clusterVal, index) => {
-        let semi = (index === (clusterValues.length - 1)) ? '' : '; '
-        return <span key={index}>{remapPrettyValue(clusterVal.prettyValue)}{semi}</span>
-      })
-    } else {
-      valueElements = [<span key={0}>{'{…}'}</span>]
-    }
-
     return (
       <div
         className='property-cluster-input-field no-select'
@@ -57,9 +24,55 @@ export default class ClusterInputField extends React.Component {
           overflow: 'hidden',
           whiteSpace: 'nowrap'
         }}>
-        <span>{valueElements}</span>
+        <ClusterInputFieldValueDisplay
+          timeline={this.props.timeline}
+          row={this.props.row} />
       </div>
     )
+  }
+}
+
+class ClusterInputFieldValueDisplay extends React.Component {
+  constructor (props) {
+    super(props)
+    this.handleUpdate = this.handleUpdate.bind(this)
+    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64)
+    this.complexValueElementsEllipsis = [<span key={0}>{'{…}'}</span>]
+  }
+
+  componentWillUnmount () {
+    this.mounted = false
+    this.props.timeline.removeListener('update', this.handleUpdate)
+  }
+
+  componentDidMount () {
+    this.mounted = true
+    this.props.timeline.on('update', this.handleUpdate)
+  }
+
+  handleUpdate (what) {
+    if (!this.mounted) return null
+    if (what === 'timeline-frame') {
+      this.throttledForceUpdate()
+    }
+  }
+
+  render () {
+    let clusterValues = this.props.row.getClusterValues()
+    let clusterName = this.props.row.getClusterNameString()
+
+    let valueElements
+
+    if (clusterValues.length < 4 && clusterName !== 'Style') {
+      valueElements = clusterValues.map((clusterVal, index) => {
+        let semi = (index === (clusterValues.length - 1)) ? '' : '; '
+        return <span key={index}>{remapPrettyValue(clusterVal.prettyValue)}{semi}</span>
+      })
+    } else {
+      valueElements = this.complexValueElementsEllipsis
+    }
+
+    return <span>{valueElements}</span>
   }
 }
 
@@ -73,6 +86,10 @@ function remapPrettyValue (prettyValue) {
 ClusterInputField.propTypes = {
   row: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
-  rowHeight: React.PropTypes.number.isRequired,
-  $update: React.PropTypes.object.isRequired
+  rowHeight: React.PropTypes.number.isRequired
+}
+
+ClusterInputFieldValueDisplay.propTypes = {
+  row: React.PropTypes.object.isRequired,
+  timeline: React.PropTypes.object.isRequired
 }

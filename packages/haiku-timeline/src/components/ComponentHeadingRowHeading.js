@@ -117,6 +117,5 @@ export default class ComponentHeadingRowHeading extends React.Component {
 }
 
 ComponentHeadingRowHeading.propTypes = {
-  row: React.PropTypes.object.isRequired,
-  $update: React.PropTypes.object.isRequired
+  row: React.PropTypes.object.isRequired
 }

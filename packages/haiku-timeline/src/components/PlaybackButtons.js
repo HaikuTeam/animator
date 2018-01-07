@@ -1,5 +1,6 @@
 import React from 'react'
 import Radium from 'radium'
+import lodash from 'lodash'
 import Palette from 'haiku-ui-common/lib/Palette'
 import SkipBackIconSVG from 'haiku-ui-common/lib/react/icons/SkipBackIconSVG'
 import SkipForwardIconSVG from 'haiku-ui-common/lib/react/icons/SkipForwardIconSVG'
@@ -37,6 +38,7 @@ class PlaybackButtons extends React.Component {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
+    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64 * 2)
   }
 
   componentWillUnmount () {
@@ -51,7 +53,9 @@ class PlaybackButtons extends React.Component {
 
   handleUpdate (what) {
     if (!this.mounted) return null
-    if (what === 'timeline-frame') this.forceUpdate()
+    if (what === 'timeline-frame') {
+      this.throttledForceUpdate()
+    }
   }
 
   render () {

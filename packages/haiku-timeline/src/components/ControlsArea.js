@@ -28,26 +28,6 @@ const STYLES = {
 }
 
 export default class ControlsArea extends React.Component {
-  constructor (props) {
-    super(props)
-    this.handleUpdate = this.handleUpdate.bind(this)
-  }
-
-  componentWillUnmount () {
-    this.mounted = false
-    this.props.timeline.removeListener('update', this.handleUpdate)
-  }
-
-  componentDidMount () {
-    this.mounted = true
-    this.props.timeline.on('update', this.handleUpdate)
-  }
-
-  handleUpdate (what) {
-    if (!this.mounted) return null
-    if (what === 'timeline-frame') this.forceUpdate()
-  }
-
   render () {
     return (
       <div style={STYLES.wrapper}>

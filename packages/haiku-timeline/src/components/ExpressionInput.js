@@ -1178,7 +1178,6 @@ export default class ExpressionInput extends React.Component {
 }
 
 ExpressionInput.propTypes = {
-  $update: React.PropTypes.object.isRequired,
   timeline: React.PropTypes.object.isRequired,
   component: React.PropTypes.object.isRequired,
   reactParent: React.PropTypes.object.isRequired,

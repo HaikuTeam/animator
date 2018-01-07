@@ -2,6 +2,7 @@ import React from 'react'
 import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
 import Palette from 'haiku-ui-common/lib/Palette'
+import TimelineRangeScrollbarPlayheadIndicator from './TimelineRangeScrollbarPlayheadIndicator'
 
 const THROTTLE_TIME = 17 // ms
 const KNOB_RADIUS = 5
@@ -9,7 +10,20 @@ const KNOB_RADIUS = 5
 export default class TimelineRangeScrollbar extends React.Component {
   constructor (props) {
     super(props)
+
     this.handleUpdate = this.handleUpdate.bind(this)
+
+    this.onStartDragContainer = this.onStartDragContainer.bind(this)
+    this.onStopDragContainer = this.onStopDragContainer.bind(this)
+    this.onDragContainer = lodash.throttle(this.onDragContainer.bind(this), THROTTLE_TIME)
+
+    this.onStartDragLeft = this.onStartDragLeft.bind(this)
+    this.onStopDragLeft = this.onStopDragLeft.bind(this)
+    this.onDragLeft = lodash.throttle(this.onDragLeft.bind(this), THROTTLE_TIME)
+
+    this.onStartDragRight = this.onStartDragRight.bind(this)
+    this.onStopDragRight = this.onStopDragRight.bind(this)
+    this.onDragRight = lodash.throttle(this.onDragRight.bind(this), THROTTLE_TIME)
   }
 
   componentWillUnmount () {
@@ -24,24 +38,64 @@ export default class TimelineRangeScrollbar extends React.Component {
 
   handleUpdate (what) {
     if (!this.mounted) return null
-    if (what === 'timeline-frame-range' || what === 'timeline-frame') this.forceUpdate()
+    if (what === 'timeline-frame-range') {
+      this.forceUpdate()
+    }
   }
 
-  getPlayheadPc (frameInfo) {
-    if (frameInfo.friMaxVirt < 1) return 0
-    const frame = this.props.timeline.getCurrentFrame()
-    if (frame < 1) return 0
-    return (frame / frameInfo.friMax) * 100
+  onStartDragContainer (dragEvent, dragData) {
+    this.props.timeline.scrollbarBodyStart(dragData)
+    this.props.reactParent.setState({
+      avoidTimelinePointerEvents: true
+    })
+  }
+
+  onStopDragContainer (dragEvent, dragData) {
+    this.props.timeline.scrollbarBodyStop(dragData)
+    this.props.reactParent.setState({
+      avoidTimelinePointerEvents: false
+    })
+  }
+
+  onDragContainer (dragEvent, dragData) {
+    // Don't drag on the body if we're already dragging on the ends
+    if (!this.props.timeline.getScrollerLeftDragStart() && !this.props.timeline.getScrollerRightDragStart()) {
+      this.props.timeline.changeVisibleFrameRange(dragData.x, dragData.x)
+    }
+  }
+
+  onStartDragLeft (dragEvent, dragData) {
+    this.props.timeline.scrollbarLeftStart(dragData)
+  }
+
+  onStopDragLeft (dragEvent, dragData) {
+    this.props.timeline.scrollbarLeftStop(dragData)
+  }
+
+  onDragLeft (dragEvent, dragData) {
+    this.props.timeline.changeVisibleFrameRange(dragData.x + this.frameInfo.scA, 0)
+  }
+
+  onStartDragRight (dragEvent, dragData) {
+    this.props.timeline.scrollbarRightStart(dragData)
+  }
+
+  onStopDragRight (dragEvent, dragData) {
+    this.props.timeline.scrollbarRightStop(dragData)
+  }
+
+  onDragRight (dragEvent, dragData) {
+    this.props.timeline.changeVisibleFrameRange(0, dragData.x + this.frameInfo.scA)
   }
 
   render () {
-    const frameInfo = this.props.timeline.getFrameInfo()
+    this.frameInfo = this.props.timeline.getFrameInfo()
 
     return (
       <div
         id='timeline-range-scrollbar-container'
         style={{
-          width: frameInfo.scL,
+          width: this.frameInfo.scL,
           height: KNOB_RADIUS * 2,
           position: 'relative',
           backgroundColor: Palette.DARKER_GRAY,
@@ -50,46 +104,25 @@ export default class TimelineRangeScrollbar extends React.Component {
         }}>
         <DraggableCore
           axis='x'
-          onStart={(dragEvent, dragData) => {
-            this.props.timeline.scrollbarBodyStart(dragData)
-            this.props.reactParent.setState({
-              avoidTimelinePointerEvents: true
-            })
-          }}
-          onStop={(dragEvent, dragData) => {
-            this.props.timeline.scrollbarBodyStop(dragData)
-            this.props.reactParent.setState({
-              avoidTimelinePointerEvents: false
-            })
-          }}
-          onDrag={lodash.throttle((dragEvent, dragData) => {
-            // Don't drag on the body if we're already dragging on the ends
-            if (!this.props.timeline.getScrollerLeftDragStart() && !this.props.timeline.getScrollerRightDragStart()) {
-              this.props.timeline.changeVisibleFrameRange(dragData.x, dragData.x)
-            }
-          }, THROTTLE_TIME)}>
+          onStart={this.onStartDragContainer}
+          onStop={this.onStopDragContainer}
+          onDrag={this.onDragContainer}>
           <div
             id='timeline-range-scrollbar'
             style={{
               position: 'absolute',
               backgroundColor: Palette.LIGHTEST_GRAY,
               height: KNOB_RADIUS * 2,
-              left: frameInfo.scA,
-              width: frameInfo.scB - frameInfo.scA,
+              left: this.frameInfo.scA,
+              width: this.frameInfo.scB - this.frameInfo.scA,
               borderRadius: KNOB_RADIUS,
               cursor: 'move'
             }}>
             <DraggableCore
               axis='x'
-              onStart={(dragEvent, dragData) => {
-                this.props.timeline.scrollbarLeftStart(dragData)
-              }}
-              onStop={(dragEvent, dragData) => {
-                this.props.timeline.scrollbarLeftStop(dragData)
-              }}
-              onDrag={lodash.throttle((dragEvent, dragData) => {
-                this.props.timeline.changeVisibleFrameRange(dragData.x + frameInfo.scA, 0)
-              }, THROTTLE_TIME)}>
+              onStart={this.onStartDragLeft}
+              onStop={this.onStopDragLeft}
+              onDrag={this.onDragLeft}>
               <div
                 id='timeline-range-knob-left'
                 style={{
@@ -104,15 +137,9 @@ export default class TimelineRangeScrollbar extends React.Component {
             </DraggableCore>
             <DraggableCore
               axis='x'
-              onStart={(dragEvent, dragData) => {
-                this.props.timeline.scrollbarRightStart(dragData)
-              }}
-              onStop={(dragEvent, dragData) => {
-                this.props.timeline.scrollbarRightStop(dragData)
-              }}
-              onDrag={lodash.throttle((dragEvent, dragData) => {
-                this.props.timeline.changeVisibleFrameRange(0, dragData.x + frameInfo.scA)
-              }, THROTTLE_TIME)}>
+              onStart={this.onStartDragRight}
+              onStop={this.onStopDragRight}
+              onDrag={this.onDragRight}>
               <div
                 id='timeline-range-knob-right'
                 style={{
@@ -127,24 +154,8 @@ export default class TimelineRangeScrollbar extends React.Component {
             </DraggableCore>
           </div>
         </DraggableCore>
-        <div
-          id='timeline-playhead-indicator-container'
-          style={{
-            width: this.props.timeline.getPropertiesPixelWidth() + this.props.timeline.getTimelinePixelWidth() - 35,
-            left: 10,
-            position: 'relative'
-          }}>
-          <div
-            id='timeline-playhead-indicator'
-            style={{
-              position: 'absolute',
-              pointerEvents: 'none',
-              height: KNOB_RADIUS * 2,
-              width: 1,
-              backgroundColor: Palette.ROCK,
-              left: this.getPlayheadPc(frameInfo) + '%'
-            }} />
-        </div>
+        <TimelineRangeScrollbarPlayheadIndicator
+          timeline={this.props.timeline} />
       </div>
     )
   }
@@ -152,6 +163,5 @@ export default class TimelineRangeScrollbar extends React.Component {
 
 TimelineRangeScrollbar.propTypes = {
   timeline: React.PropTypes.object.isRequired,
-  reactParent: React.PropTypes.object.isRequired,
-  $update: React.PropTypes.object.isRequired
+  reactParent: React.PropTypes.object.isRequired
 }
