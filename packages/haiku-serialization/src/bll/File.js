@@ -94,26 +94,15 @@ class File extends BaseModel {
     }
   }
 
-  actualizeContentState (resultOfPreviousOperation, cb) {
-    // Allow the user calling this upstream to specify we want to hit the fs or not
-    if (this.options.doWriteToDisk) {
-      return this.write((err) => {
-        if (err) return cb(err)
-        return cb(null, resultOfPreviousOperation)
-      })
-    }
-    return cb(null, resultOfPreviousOperation)
-  }
-
   write (cb) {
-    this.isWriting = true
     this.dtLastWriteStart = Date.now()
-
+    logger.info(`[file] writing ${this.relpath} to disk`)
     return File.write(this.folder, this.relpath, this.contents, (err) => {
-      this.isWriting = false
       this.dtLastWriteEnd = Date.now()
-
-      if (err) return cb(err)
+      if (err) {
+        logger.info(`[file] error writing ${this.relpath} to disk`, err)
+        return cb(err)
+      }
       return cb()
     })
   }
@@ -142,7 +131,13 @@ class File extends BaseModel {
         try {
           Bytecode.cleanBytecode(bytecode)
           Template.cleanTemplate(bytecode.template)
-          return this.commitContentState(result, bytecode, finish)
+
+          return this.commitContentState(bytecode, (err) => {
+            if (err) return finish(err)
+
+            // TODO types; some callers expect to get the result of the worker
+            return finish(null, result)
+          })
         } catch (exception) {
           return finish(exception)
         }
@@ -277,17 +272,23 @@ class File extends BaseModel {
     }, cb)
   }
 
-  commitContentState (resultOfPreviousOperation, bytecode, cb) {
+  commitContentState (bytecode, cb) {
     // If we aren't writing to disk, we don't need to update the AST (heavy)
     if (!this.options.doWriteToDisk) {
-      return this.updateInMemoryHotModuleOnly(bytecode, (err) => {
-        if (err) return cb(err)
-        return cb(null, resultOfPreviousOperation)
-      })
+      return this.updateInMemoryHotModuleOnly(bytecode, cb)
     }
+
+    // This updates the in-memory module pointer and the AST
     return this.updateInMemoryContentState(bytecode, (err) => {
       if (err) return cb(err)
-      this.actualizeContentState(resultOfPreviousOperation, cb)
+
+      // Allow the user calling this upstream to specify we want to hit the fs or not
+      if (this.options.doWriteToDisk) {
+        return this.write(cb)
+      }
+
+      // If no disk write desired, it's fine to just return
+      return cb()
     })
   }
 
