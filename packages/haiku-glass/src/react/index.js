@@ -48,7 +48,7 @@ function go () {
   const userconfig = require(path.join(config.folder, 'haiku.js'))
 
   const websocket = (config.plumbing)
-    ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'glass')
+    ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'glass', null, config.socket.token)
     : new MockWebsocket()
 
   // Add extra context to Sentry reports, this info is also used

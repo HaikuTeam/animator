@@ -42,13 +42,14 @@ function go () {
   const search = (window.location.search || '').split('?')[1] || ''
   const params = qs.parse(search, { plainObjects: true })
   const config = lodash.assign({}, params)
+
   if (!config.folder) throw new Error('A folder (the absolute path to the user project) is required')
   function _fixPlumbingUrl (url) { return url.replace(/^http/, 'ws') }
 
   const userconfig = require(path.join(config.folder, 'haiku.js'))
 
   const websocket = (config.plumbing)
-    ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'timeline')
+    ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'timeline', null, config.socket.token)
     : new MockWebsocket()
 
   // Add extra context to Sentry reports, this info is also used

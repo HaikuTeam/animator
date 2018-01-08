@@ -39,6 +39,10 @@ Error.stackTraceLimit = Infinity // Show long stack traces when errors are shown
 
 const Raven = require('./Raven')
 
+// Don't allow malicious websites to connect to our websocket server (Plumbing or Envoy)
+const HAIKU_WS_SECURITY_TOKEN = Math.random().toString(36).substring(7) + Math.random().toString(36).substring(7)
+const WS_POLICY_VIOLATION_CODE = 1008
+
 // For any methods that are...
 // - noisy
 // - internal use only
@@ -195,6 +199,7 @@ export default class Plumbing extends StateObject {
     logger.info('[plumbing] launching plumbing', haiku)
 
     this.envoyServer = new EnvoyServer({
+      token: HAIKU_WS_SECURITY_TOKEN,
       WebSocket: WebSocket,
       logger: new EnvoyLogger('warn', logger)
     })
@@ -204,6 +209,7 @@ export default class Plumbing extends StateObject {
 
       haiku.envoy.port = this.envoyServer.port
       haiku.envoy.host = this.envoyServer.host
+      haiku.envoy.token = HAIKU_WS_SECURITY_TOKEN
 
       const envoyTimelineHandler = new TimelineHandler(this.envoyServer)
       const envoyTourHandler = new TourHandler(this.envoyServer)
@@ -219,12 +225,15 @@ export default class Plumbing extends StateObject {
 
       logger.info('[plumbing] launching plumbing control server')
 
+      haiku.socket.token = HAIKU_WS_SECURITY_TOKEN
+
       return this.launchControlServer(haiku.socket, (err, server, host, port) => {
         if (err) return cb(err)
 
         // Forward these env vars to creator
         process.env.HAIKU_PLUMBING_PORT = port
         process.env.HAIKU_PLUMBING_HOST = host
+        process.env.HAIKU_WS_SECURITY_TOKEN = HAIKU_WS_SECURITY_TOKEN
 
         if (!haiku.socket) haiku.socket = {}
 
@@ -576,7 +585,8 @@ export default class Plumbing extends StateObject {
           projectPath: projectFolder,
           envoy: {
             host: this.envoyServer.host,
-            port: this.envoyServer.port
+            port: this.envoyServer.port,
+            token: process.env.HAIKU_WS_SECURITY_TOKEN
           }
         }
         return this.spawnSubgroup(this.subprocs, haikuInfo, (err, spawned) => {
@@ -1181,7 +1191,8 @@ Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb)
       folder: path.normalize(haiku.folder),
       envoyOptions: lodash.assign({
         host: process.env.ENVOY_HOST,
-        port: process.env.ENVOY_PORT
+        port: process.env.ENVOY_PORT,
+        token: process.env.ENVOY_TOKEN
       }, haiku.envoy),
       fileOptions: {
         doWriteToDisk: true, // default
@@ -1328,13 +1339,21 @@ Plumbing.prototype.launchControlServer = function launchControlServer (socketInf
 
   if (socketInfo && socketInfo.port) {
     logger.info(`[plumbing] plumbing websocket server listening on specified port ${socketInfo.port}...`)
-    const websocketServer = this.createControlSocket({ host, port: socketInfo.port })
+    const websocketServer = this.createControlSocket({
+      host,
+      port: socketInfo.port,
+      token: socketInfo.token
+    })
     return cb(null, websocketServer, host, socketInfo.port)
   }
 
   return getPort(host, (err, port) => {
     if (err) return cb(err)
-    const websocketServer = this.createControlSocket({ host, port: port })
+    const websocketServer = this.createControlSocket({
+      host,
+      port,
+      token: socketInfo.token
+    })
     return cb(null, websocketServer, host, port)
   })
 }
@@ -1355,15 +1374,19 @@ function getWsParams (websocket, request) {
 }
 
 Plumbing.prototype.createControlSocket = function createControlSocket (socketInfo) {
-  const websocketServer = new WebSocket.Server({ port: socketInfo.port, host: socketInfo.host })
-
-  // Reserve this port so that OpenPort sees it as being unavailable in case other instances
-  // of plumbing happen to open. This isn't intended to do anything except that, hence the no-op listener.
-  // const httpServer = http.createServer()
-  // httpServer.listen(socketInfo.port)
+  const websocketServer = new WebSocket.Server({
+    port: socketInfo.port,
+    host: socketInfo.host
+  })
 
   websocketServer.on('connection', (websocket, request) => {
     const params = getWsParams(websocket, request)
+
+    if (socketInfo.token && params.token !== socketInfo.token) {
+      logger.info(`[plumbing] websocket connected with bad token ${params.token}`)
+      websocket.close(WS_POLICY_VIOLATION_CODE, 'forbidden')
+      return
+    }
 
     if (!params.type) params.type = 'default'
     if (!params.haiku) params.haiku = {}

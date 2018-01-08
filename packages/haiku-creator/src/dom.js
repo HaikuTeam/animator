@@ -28,7 +28,7 @@ export default function dom (modus, haiku) {
   window.addEventListener('resize', lodash.debounce(resizeHandler, 64))
 
   const websocket = (haiku.plumbing)
-    ? new Websocket(_fixPlumbingUrl(haiku.plumbing.url), haiku.folder, 'commander', 'creator')
+    ? new Websocket(_fixPlumbingUrl(haiku.plumbing.url), haiku.folder, 'commander', 'creator', null, haiku.socket.token)
     : new MockWebsocket()
 
   websocket.on('close', () => {

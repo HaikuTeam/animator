@@ -28,6 +28,7 @@ export interface EnvoyOptions {
   WebSocket?: any;
   logger?: any;
   mock?: boolean;
+  token?: string; // Access/authentication token
 }
 
 export const DEFAULT_ENVOY_OPTIONS: EnvoyOptions = {

@@ -143,10 +143,8 @@ class Timeline extends BaseModel {
     }
 
     if (this.isPlaying()) {
-      console.log('PAUSE')
       this.pause()
     } else {
-      console.log('PLAY')
       this.play()
     }
   }

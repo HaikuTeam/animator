@@ -98,6 +98,7 @@ export default class Creator extends React.Component {
     }
 
     this.envoyOptions = {
+      token: this.props.haiku.envoy.token,
       port: this.props.haiku.envoy.port,
       host: this.props.haiku.envoy.host,
       WebSocket: window.WebSocket
@@ -627,7 +628,7 @@ export default class Creator extends React.Component {
         return Project.setup(
           projectFolder,
           'creator', // alias
-          this.props.websocket, // websocket
+          this.props.websocket, // websocket (already initialized)
           window, // platform
           this.props.userconfig, // userconfig
           this.fileOptions,

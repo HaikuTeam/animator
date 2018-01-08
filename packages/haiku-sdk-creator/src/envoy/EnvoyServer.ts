@@ -1,5 +1,6 @@
 import * as Promise from 'bluebird';
 import * as WebSocket from 'ws';
+import * as qs from 'qs';
 
 import {
   Datagram,
@@ -25,11 +26,12 @@ interface HandlerTuple {
 }
 
 const AWAIT_READY_TIMEOUT = 100;
+const WS_POLICY_VIOLATION_CODE = 1008;
 
 export default class EnvoyServer {
-
   host: string;
   port: number;
+
   private server: WebSocket.Server;
   private isServerReady: boolean;
   private handlerRegistry: Map<string, HandlerTuple>;
@@ -41,6 +43,7 @@ export default class EnvoyServer {
 
     this.port = null;
     this.host = null;
+
     this.isServerReady = false;
     this.handlerRegistry = new Map<string, any>();
     this.clientRegistry = new Map<string, IdentifiableWebSocket>();
@@ -68,7 +71,15 @@ export default class EnvoyServer {
         },
       );
 
-      this.server.on('connection', (client: IdentifiableWebSocket) => {
+      this.server.on('connection', (client: IdentifiableWebSocket, request: any) => {
+        const params = getWebsocketConnectionRequestParams(client, request);
+
+        if (mergedOptions.token && params.token !== mergedOptions.token) {
+          this.logger.info(`[haiku envoy server] websocket connected with bad token ${params.token}`);
+          client.close(WS_POLICY_VIOLATION_CODE, 'forbidden');
+          return;
+        }
+
         this.logger.info(`[haiku envoy server] client connected`);
 
         client.id = generateUUIDv4();
@@ -236,4 +247,12 @@ export default class EnvoyServer {
     });
     return ret;
   }
+}
+
+function getWebsocketConnectionRequestParams(client: IdentifiableWebSocket, request: any) {
+  const url = request.url || '';
+  const query = url.split('?')[1] || '';
+  const params = qs.parse(query);
+  params['url'] = url;
+  return params;
 }
