@@ -67,7 +67,8 @@ export default class Stage extends React.Component {
       email: this.props.username,
       envoy: {
         host: this.props.envoyClient.getOption('host'),
-        port: this.props.envoyClient.getOption('port')
+        port: this.props.envoyClient.getOption('port'),
+        token: this.props.envoyClient.getOption('token')
       }
     }))
 

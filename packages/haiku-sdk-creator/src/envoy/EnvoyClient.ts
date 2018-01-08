@@ -164,7 +164,9 @@ export default class EnvoyClient<T> {
     if (this.connectingPromise) {
       return this.connectingPromise;
     }
-    const url = options.protocol + '://' + options.host + ':' + options.port + options.path;
+
+    const url = `${options.protocol}://${options.host}:${options.port}${options.path}?token=${options.token}`;
+
     this.logger.info('[haiku envoy client] connecting to websocket server %s', url);
 
     this.connectingPromise = new Promise((accept, _) => {

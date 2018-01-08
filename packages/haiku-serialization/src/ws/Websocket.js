@@ -10,7 +10,7 @@ var STATES = {
 }
 
 // Simple wrapper over an in-browser websocket client
-function Websocket (url, folder, clientType, clientAlias, WebSocket) {
+function Websocket (url, folder, clientType, clientAlias, WebSocket, token) {
   EventEmitter.call(this)
 
   this.WebSocket = WebSocket
@@ -29,6 +29,7 @@ function Websocket (url, folder, clientType, clientAlias, WebSocket) {
   // NOTE: The plumbing uses these URL query params to manage comms between clients
   this.url = url + '?type=' + clientType + '&alias=' + clientAlias
   if (folder) this.url += ('&folder=' + folder)
+  if (token) this.url += ('&token=' + token)
 
   this.folder = folder
   this.queue = []
