@@ -3,7 +3,7 @@ import Palette from './../../Palette';
 
 const STYLES = {
   backgroundColor: Palette.COAL,
-  borderRadius: '4px',
+  borderRadius: '6px',
   zIndex: 9001,
   cursor: 'auto',
   margin: 'auto',

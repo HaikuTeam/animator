@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as assign from 'lodash.assign'
 import Palette from '../../Palette'
+import {Tooltip} from '../Tooltip'
 
 const STYLES = {
   btnText: {
@@ -48,6 +49,10 @@ export class EmbedOption extends React.PureComponent {
     onClick: React.PropTypes.func
   }
 
+  get tooltipText () {
+    return this.props.disabled ? 'Coming Soon' : 'Click for details'
+  }
+
   render () {
     const {
       disabled,
@@ -56,20 +61,21 @@ export class EmbedOption extends React.PureComponent {
 
     return (
       <li>
-        <button
-          style={assign({}, {
-            ...STYLES.btnText,
-            ...STYLES.entry,
-            ...(disabled && STYLES.entry.disabled)
-          })}
-          onClick={() => {
-            this.props.onClick(this.props.entry)
-          }}
-          disabled={disabled}
-          title={disabled ? 'Coming Soon' : ''}
-        >
-          {entry}
-        </button>
+        <Tooltip text={this.tooltipText} place='above' tooltipOpenTimeout={0}>
+          <button
+            style={assign({}, {
+              ...STYLES.btnText,
+              ...STYLES.entry,
+              ...(disabled && STYLES.entry.disabled)
+            })}
+            onClick={() => {
+              this.props.onClick(this.props.entry)
+            }}
+            disabled={disabled}
+          >
+            {entry}
+          </button>
+        </Tooltip>
       </li>
     )
   }

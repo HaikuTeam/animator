@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Palette from '../../Palette'
-import {ModalWrapper, ModalHeader} from '../Modal'
+import {ModalWrapper, ModalHeader, ModalNotice} from '../Modal'
 import {RevealPanel} from '../RevealPanel'
 import {ProjectShareDetails} from './ProjectShareDetails'
 import {EmbedList} from './EmbedList'
@@ -53,6 +53,8 @@ export class ShareModal extends React.PureComponent {
 
     return (
       <ModalWrapper style={STYLES.wrapper}>
+        <ModalNotice message={'teste'} />
+
         <ModalHeader>
           <ProjectShareDetails
             semverVersion={semverVersion}

@@ -1,12 +1,13 @@
 import * as React from 'react'
 import * as Popover from 'react-popover'
+import Palette from '../Palette';
 
 const STYLES = {
   popover: {
     padding: '3px 10px',
     margin: '0',
     fontSize: '11px',
-    backgroundColor: 'rgb(21, 32, 34)',
+    backgroundColor: Palette.BLACK,
     display: 'block',
     textAlign: 'center',
     borderRadius: '5px'
@@ -75,13 +76,13 @@ export class Tooltip extends React.PureComponent {
         place={this.props.place}
         tipSize={5}
       >
-        <div
+        <span
           onMouseEnter={() => {this.openPopover()}}
           onMouseLeave={() => {this.closePopover()}}
           style={this.props.style}
         >
           {this.props.children}
-        </div>
+        </span>
       </Popover>
     )
   }
