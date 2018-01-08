@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as assign from 'lodash.assign'
 import Palette from '../../Palette'
+import {Tooltip} from '../Tooltip'
 import {ExternalLink} from '../ExternalLink'
 import {EmbedCategory} from './EmbedCategory'
 import {SHARE_OPTIONS} from './shareModalOptions'
@@ -55,13 +56,14 @@ export class EmbedList extends React.PureComponent {
         <h4 style={assign({}, STYLES.subtitle)}>
           Embed Options
 
+        <Tooltip text='Docs' place='right'>
           <ExternalLink
-            title='Embed Options Help'
             style={assign({}, STYLES.circle)}
             href='https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html'
           >
             ?
           </ExternalLink>
+        </Tooltip>
         </h4>
 
         <div style={assign({}, STYLES.categories)}>
