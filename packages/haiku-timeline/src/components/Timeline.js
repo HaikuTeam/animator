@@ -21,7 +21,6 @@ import GaugeTimeReadout from './GaugeTimeReadout'
 import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
 import {isPreviewMode} from '@haiku/player/lib/helpers/interactionModes'
-import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds'
 import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/User'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
@@ -117,18 +116,6 @@ class Timeline extends React.Component {
 
   componentDidMount () {
     this.mounted = true
-
-    this.project.getEnvoyClient().get(USER_CHANNEL).then(
-      (user) => {
-        this.user = user
-
-        user.getConfig('timeDisplayMode').then(
-          (timeDisplayMode) => {
-            timeDisplayMode && this.setState({timeDisplayMode})
-          }
-        )
-      }
-    )
   }
 
   getActiveComponent () {
@@ -212,6 +199,7 @@ class Timeline extends React.Component {
   }
 
   handleHaikuComponentMounted () {
+    this.loadUserSettings()
     this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + 20)
 
     window.addEventListener('resize', lodash.throttle(() => {
@@ -365,6 +353,25 @@ class Timeline extends React.Component {
     })
 
     return items
+  }
+
+  loadUserSettings () {
+    this.project.getEnvoyClient().get(USER_CHANNEL).then(
+      (user) => {
+        this.user = user
+        user.getConfig('timeDisplayModes').then(
+          (timeDisplayModes) => {
+            if (timeDisplayModes && timeDisplayModes[this.project.getFolder()]) {
+              this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(timeDisplayModes[this.project.getFolder()])
+            } else {
+              user.getConfig('defaultTimeDisplayMode').then((defaultTimeDisplayMode) => {
+                defaultTimeDisplayMode && this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(defaultTimeDisplayMode)
+              })
+            }
+          }
+        )
+      }
+    )
   }
 
   curvesMenu (maybeCurve, cb) {
@@ -613,10 +620,21 @@ class Timeline extends React.Component {
     }
   }
 
-  toggleTimeDisplayMode () {
-    const mode = this.state.timeDisplayMode === 'frames' ? 'seconds' : 'frames'
-    this.setState({timeDisplayMode: mode})
-    this.user.setConfig('timeDisplayMode', mode)
+  saveTimeDisplayModeSetting () {
+    const mode = this.getActiveComponent().getCurrentTimeline().getTimeDisplayMode()
+
+    this.user.getConfig('timeDisplayModes').then(
+      (timeDisplayModes) => {
+        this.user.setConfig(
+          'timeDisplayModes',
+          {
+            ...timeDisplayModes,
+            [this.project.getFolder()]: mode
+          }
+        )
+        this.user.setConfig('defaultTimeDisplayMode', mode)
+      }
+    )
   }
 
   playbackSkipBack () {

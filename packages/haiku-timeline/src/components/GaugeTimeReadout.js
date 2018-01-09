@@ -30,6 +30,7 @@ export default class GaugeTimeReadout extends React.Component {
 
   handleClick () {
     this.props.timeline.toggleTimeDisplayMode()
+    this.props.reactParent.saveTimeDisplayModeSetting()
   }
 
   render () {
