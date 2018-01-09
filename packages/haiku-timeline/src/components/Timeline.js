@@ -11,7 +11,7 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import ControlsArea from './ControlsArea'
 import ExpressionInput from './ExpressionInput'
-import Scrubber from './Scrubber'
+import Scrubber from './ScrubberInterior'
 import ClusterRow from './ClusterRow'
 import PropertyRow from './PropertyRow'
 import ComponentHeadingRow from './ComponentHeadingRow'
@@ -771,30 +771,37 @@ class Timeline extends React.Component {
         <div
           id='gauge-box'
           className='gauge-box'
-          onClick={(clickEvent) => {
-            if (clickEvent.nativeEvent.target.id === 'gauge-box') {
-              if (!this.getActiveComponent().getCurrentTimeline().isScrubberDragging()) {
-                const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
-
-                const leftX = clickEvent.nativeEvent.offsetX
-                const frameX = Math.round(leftX / frameInfo.pxpf)
-                const newFrame = frameInfo.friA + frameX
-                const pageFrameLength = this.getActiveComponent().getCurrentTimeline().getVisibleFrameRangeLength()
-
-                // If the frame clicked exceeds the virtual or explicit max, allocate additional
-                // virtual frames in the view and jump the user to the new page
-                if (newFrame > frameInfo.friB) {
-                  const newMaxFrame = newFrame + pageFrameLength
-                  this.getActiveComponent().getCurrentTimeline().setMaxFrame(newMaxFrame)
-                  this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(newFrame, newMaxFrame)
-                }
-
-                this.getActiveComponent().getCurrentTimeline().seek(newFrame)
+          onMouseDown={(event) => {
+            this.mouseMoveListener = (evt) => {
+              const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
+              const leftX = evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
+              const frameX = Math.round(leftX / frameInfo.pxpf)
+              const newFrame = frameInfo.friA + frameX
+              if (newFrame < 0) return false
+              const pageFrameLength = this.getActiveComponent().getCurrentTimeline().getVisibleFrameRangeLength()
+              this.setState({ avoidTimelinePointerEvents: true })
+              // If the frame clicked exceeds the virtual or explicit max, allocate additional
+              // virtual frames in the view and jump the user to the new page
+              if (newFrame > frameInfo.friB) {
+                const newMaxFrame = newFrame + pageFrameLength
+                this.getActiveComponent().getCurrentTimeline().setMaxFrame(newMaxFrame)
+                this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(newFrame, newMaxFrame)
               }
+
+              this.getActiveComponent().getCurrentTimeline().seek(newFrame)
             }
+
+            this.mouseUpListener = () => {
+              window.removeEventListener('mousemove', this.mouseMoveListener)
+              window.removeEventListener('mouseup', this.mouseUpListener)
+              this.setState({ avoidTimelinePointerEvents: false })
+            }
+
+            this.mouseMoveListener(event)
+            window.addEventListener('mousemove', this.mouseMoveListener)
+            window.addEventListener('mouseup', this.mouseUpListener)
           }}
           style={{
-            // display: 'table-cell',
             position: 'absolute',
             top: 0,
             left: this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth(),
