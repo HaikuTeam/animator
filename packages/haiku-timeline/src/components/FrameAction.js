@@ -18,14 +18,15 @@ class FrameAction extends React.PureComponent {
     this.openFrameActionsEditor = this.openFrameActionsEditor.bind(this)
   }
 
-  openFrameActionsEditor () {
+  openFrameActionsEditor (e) {
+    e.stopPropagation()
     this.props.onShowFrameActionsEditor(this.props.frame)
   }
 
   render () {
     if (this.props.hasActions) {
       return (
-        <div onClick={this.openFrameActionsEditor} style={STYLE.base}>
+        <div onMouseDown={(e) => this.openFrameActionsEditor(e)} style={STYLE.base}>
           <Bolt color={Palette.LIGHT_BLUE} />
         </div>
       )
@@ -33,7 +34,7 @@ class FrameAction extends React.PureComponent {
       return (
         <div
           className='frame-action'
-          onClick={this.openFrameActionsEditor}
+          onMouseDown={(e) => this.openFrameActionsEditor(e)}
           style={{
             ...STYLE.base,
             padding: '0 8px',
@@ -59,7 +60,8 @@ class FrameAction extends React.PureComponent {
               justifyContent: 'center',
               borderRadius: '50%',
               border: '1px solid rgba(255,255,255,.2)',
-              fontSize: '20px'
+              fontSize: '20px',
+              cursor: 'pointer'
             }}
           >
             +
