@@ -19,7 +19,7 @@ const ENDPOINTS = {
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: 'v0/support/upload/:UUID',
   UPDATES: 'v0/updates',
   RESET_PASSWORD: 'v0/reset-password',
-  RESET_PASSWORD_CLAIM: 'v0/reset-password/:UUID',
+  RESET_PASSWORD_CLAIM: 'v0/reset-password/:UUID/claim',
 };
 
 let request = requestLib.defaults({
@@ -170,17 +170,17 @@ export namespace inkstone {
     }
 
     export function claimResetPassword(
-      resetPasswordUUID: string, password: string, passwordConfirmation: string, cb: inkstone.Callback<boolean>) {
+      resetPasswordUUID: string, password: string, cb: inkstone.Callback<boolean>) {
 
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.RESET_PASSWORD_CLAIM.replace(':UUID', resetPasswordUUID),
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({password, passwordConfirmation}),
+        body: JSON.stringify({password}),
       };
 
-      request.put(options, (err, httpResponse, body) => {
+      request.post(options, (err, httpResponse, body) => {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, true, httpResponse);
         } else {
