@@ -89,10 +89,7 @@ class Timeline extends BaseModel {
   }
 
   setTimeDisplayMode (newMode) {
-    this._timeDisplayMode = newMode === 'seconds'
-      ? Timeline.TIME_DISPLAY_MODE.SECONDS
-      : Timeline.TIME_DISPLAY_MODE.FRAMES
-
+    this._timeDisplayMode = newMode
     this.emit('update', 'time-display-mode-change')
   }
 
