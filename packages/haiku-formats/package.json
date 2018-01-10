@@ -1,6 +1,6 @@
 {
   "name": "haiku-formats",
-  "version": "2.3.70",
+  "version": "2.3.71",
   "description": "Formatting-related utilities for Haiku.",
   "main": "lib/index.js",
   "directories": {
@@ -23,17 +23,17 @@
   "license": "UNLICENSED",
   "dependencies": {
     "bezier-easing": "^2.0.3",
-    "haiku-common": "2.3.70",
-    "@haiku/player": "2.3.70",
-    "haiku-sdk-creator": "2.3.70",
-    "haiku-serialization": "2.3.70",
+    "haiku-common": "2.3.71",
+    "@haiku/player": "2.3.71",
+    "haiku-sdk-creator": "2.3.71",
+    "haiku-serialization": "2.3.71",
     "lodash": "^4.17.4"
   },
   "devDependencies": {
     "@types/node": "8.5.2",
     "@types/tape": "^4.2.30",
     "bodymovin": "4.11.1",
-    "haiku-testing": "2.3.70",
+    "haiku-testing": "2.3.71",
     "nyc": "^11.3.0",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
