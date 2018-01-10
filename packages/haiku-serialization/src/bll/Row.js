@@ -302,7 +302,6 @@ class Row extends BaseModel {
   }
 
   ensureZerothKeyframe (metadata) {
-
     if (!this.hasZerothKeyframe()) {
       this.createKeyframe(this.getFallbackValue(), 0, metadata)
     } else {
