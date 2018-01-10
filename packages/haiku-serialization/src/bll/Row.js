@@ -302,8 +302,12 @@ class Row extends BaseModel {
   }
 
   ensureZerothKeyframe (metadata) {
+    const keyframes = this.getKeyframes()
     if (!this.hasZerothKeyframe()) {
       this.createKeyframe(this.getFallbackValue(), 0, metadata)
+    } else if (keyframes[1] && keyframes[1].ms === 0) {
+      // if a keyframe was dragged onto zero position we want to delete the zero keyframe
+      this.deleteKeyframe(keyframes[0], metadata)
     }
   }
 
