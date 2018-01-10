@@ -1,6 +1,27 @@
 # Changelog
 
 
+## 2.3.71
+
+### Features
+
+ * start scrubbing timeline instantly from any frame
+ * add endpoints to sdk-instone for password management
+ * save default and per proj timedisplay setting
+ * let user save time display mode preference
+ * support alt-click-dragging to duplicate element
+ * support shift + click + drag to snap elements to x/y axes while translating
+
+### Bug Fixes
+
+ * avoid error when creating keyframes on collapsed properties
+ * debounce absolute positioning (otherwise a lot of shift-dragging will take a really long time to get persisted to disk; effect could be lost work)
+ * update event string name to match method name (typo)
+ * Avoid memory leak in view-model instance->class emitter hack
+ * grandfather in support for plain "backgroundColor" style setter.
+ * Correct massive memory leak introduced in 783ac163.
+ * Ensure metadata is passed where needed (todo types)
+
 ## 2.3.70
 
 ### Bug Fixes

@@ -3839,5 +3839,72 @@
       "label": "fix",
       "message": "user icon coloring/style"
     }
+  },
+  "2.3.71": {
+    "719378a3ecaf82fa0c5c5c94cb49c880935e353a": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "start scrubbing timeline instantly from any frame"
+    },
+    "ce5b46409c04ee25f18ae610227214b47ced0fc2": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "add endpoints to sdk-instone for password management"
+    },
+    "bf71b274c8f82ca7ea002620d6b34a46f7c9f85b": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "save default and per proj timedisplay setting"
+    },
+    "9baf9e023f4ee281b74d4c8b111d64d724d2c277": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "avoid error when creating keyframes on collapsed properties"
+    },
+    "7245573c84de7a4541456bb4dbac5b64e800f4a0": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "let user save time display mode preference"
+    },
+    "6d891963ec030e7a6ce902da3a782a276a2662a7": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "debounce absolute positioning (otherwise a lot of shift-dragging will take a really long time to get persisted to disk; effect could be lost work)"
+    },
+    "6d7d2f675124dc904c5fbd2b50218731adcfa540": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "update event string name to match method name (typo)"
+    },
+    "a3dab5d53a3d907c613e2fc6789ceb2f0458dc44": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Avoid memory leak in view-model instance->class emitter hack"
+    },
+    "9f24ae2173e9c606339a178d936cc792dda42418": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "grandfather in support for plain \"backgroundColor\" style setter."
+    },
+    "734dc43c6e3b73c87b4ce60240b0358e6d2b34c9": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Correct massive memory leak introduced in 783ac163."
+    },
+    "5d2ac71c6aec32b59ad261243d75c03eb6f4d8cc": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Ensure metadata is passed where needed (todo types)"
+    },
+    "8fb852927b4dbdebb45d77d464021dbb2d262ee2": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "support alt-click-dragging to duplicate element"
+    },
+    "8802ff2a1d7c67a5982d6f3c4a9f6e7a81d2c6c5": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "support shift + click + drag to snap elements to x/y axes while translating"
+    }
   }
 }
