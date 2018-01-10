@@ -1,6 +1,7 @@
 import React from 'react'
 import Radium from 'radium'
 import Color from 'color'
+import { shell } from 'electron'
 import { shake } from 'react-animations'
 import { FadingCircle } from 'better-react-spinkit'
 import Palette from 'haiku-ui-common/lib/Palette'
@@ -116,6 +117,13 @@ const STYLES = {
     padding: 20,
     margin: '-27px 0 12px -27px',
     fontSize: 14
+  },
+  link: {
+    color: Palette.LIGHTEST_PINK,
+    textDecoration: 'underline',
+    cursor: 'pointer',
+    display: 'inline-block',
+    marginTop: '30px'
   }
 }
 
@@ -258,13 +266,22 @@ class AuthenticationUI extends React.Component {
           {this.usernameElement()}
           {this.passwordElement()}
           {this.submitButtonElement()}
+          <span
+            style={STYLES.link}
+            onClick={() => {
+              shell.openExternal('https://www.haiku.ai/reset-password')
+            }}
+          >
+            Forgot your password?
+          </span>
+
         </div>
         <div style={{
           position: 'absolute',
           bottom: 50,
           color: Palette.ROCK
         }}>
-          By logging into Haiku you agree to our <span style={{ color: Palette.LIGHTEST_PINK, textDecoration: 'underline', cursor: 'pointer' }} onClick={() => { require('electron').shell.openExternal('https://www.haiku.ai/terms-of-service.html') }}>terms and conditions</span>
+          By logging into Haiku you agree to our <span style={STYLES.link} onClick={() => { shell.openExternal('https://www.haiku.ai/terms-of-service.html') }}>terms and conditions</span>
         </div>
       </div>
     )
