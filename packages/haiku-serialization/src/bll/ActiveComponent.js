@@ -2270,7 +2270,7 @@ class ActiveComponent extends BaseModel {
     // TODO: Instead of rehydrating, only create the entity "on demand" when the object is being edited
     // TODO: Row is only really coherent from the POV of the Timeline UI, so only use it there
     // TODO: Likely lots more optimizations we can do as well... or just rearchitect this to be smarter
-    if (rowDepth < 2) {
+    if (rowDepth < 1) {
       if (virtualNode.children) {
         for (let i = 0; i < virtualNode.children.length; i++) {
           let virtualChild = virtualNode.children[i]
