@@ -1,7 +1,5 @@
-import {
-  abs,
-  epsilon,
-} from './index';
+import {abs} from './math';
+import {epsilon} from './constants';
 import {Curve} from '../types';
 
 const bezier = (n1: number, n2: number, t: number) =>
