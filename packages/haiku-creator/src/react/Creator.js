@@ -470,9 +470,9 @@ export default class Creator extends React.Component {
   }
 
   haveAllProjectsRegisteredStateNameForFolder (folder, what, value = true) {
-    if (!this._projectStates[folder]) return false
-    if (!this._projectStates[folder][what]) return false
     return (
+      this._projectStates[folder] &&
+      this._projectStates[folder][what] &&
       this._projectStates[folder][what].creator === value &&
       this._projectStates[folder][what].glass === value &&
       this._projectStates[folder][what].timeline === value
