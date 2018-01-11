@@ -31,3 +31,7 @@ export enum Curve {
   EaseInOutSine = 'easeInOutSine',
   Linear = 'linear',
 }
+
+export enum TourUtils {
+  ProjectName = 'percy'
+}

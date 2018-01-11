@@ -2,6 +2,7 @@ import EventEmitter from 'events'
 import { Menu, app, shell } from 'electron'
 
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
+import { TourUtils } from 'haiku-common/lib/types/enums'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 
 app.setName('Haiku')
@@ -228,7 +229,7 @@ export default class TopMenu extends EventEmitter {
           },
           {
             label: 'Take Tour',
-            enabled: !!options.projectList.find(project => project.projectName === 'CheckTutorial'),
+            enabled: !!options.projectList.find(project => project.projectName === TourUtils.ProjectName),
             click: () => {
               this.emit('global-menu:start-tour')
             }

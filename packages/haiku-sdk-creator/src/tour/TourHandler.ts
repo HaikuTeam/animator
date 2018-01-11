@@ -2,6 +2,7 @@ import {
   createTourFile,
   didTakeTour,
 } from 'haiku-serialization/src/utils/HaikuHomeDir';
+import {TourUtils} from 'haiku-common/lib/types/enums'
 import {ClientBoundingRect, MaybeAsync, Tour, TourState} from '.';
 import {EnvoyEvent} from '../envoy';
 import EnvoyServer from '../envoy/EnvoyServer';
@@ -25,7 +26,7 @@ export class TourHandler implements Tour {
       waitUserAction: true,
     },
     {
-      selector: '#js-utility-CheckTutorial',
+      selector: `#js-utility-${TourUtils.ProjectName}`,
       webview: 'creator',
       component: 'OpenProject',
       display: 'left',
