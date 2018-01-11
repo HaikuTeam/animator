@@ -11,6 +11,7 @@
   "author": "Matthew Trost <matthew@trost.co>",
   "license": "UNLICENSED",
   "scripts": {
+    "add-experiment": "node ./scripts/add-experiment.js",
     "doctor": "node ./scripts/doctor.js",
     "go": "yarn start default",
     "setup": "node ./scripts/setup.js",
@@ -57,6 +58,7 @@
     "standard": "^10.0.2",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
+    "typescript": "^2.5.2",
     "uglify-es": "^3.3.2",
     "yargs": "^6.6.0"
   },
