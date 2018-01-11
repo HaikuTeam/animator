@@ -4,7 +4,7 @@ const log = require('./helpers/log')
 const allPackages = require('./helpers/packages')()
 const unbuildables = require('./helpers/unbuildables')
 
-let hadError  = false
+let hadError = false
 async.each(allPackages, function (pack, next) {
   if (unbuildables.includes(pack.name) || !pack.pkg.scripts || !pack.pkg.scripts['lint-report']) {
     next()
