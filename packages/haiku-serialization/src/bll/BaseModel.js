@@ -273,9 +273,7 @@ function createCollection (klass, collection, opts) {
     return collection[idx]
   }
 
-  klass.has = (instance) => {
-    return !!klass.get(instance)
-  }
+  klass.has = (instance) => !!klass.get(instance)
 
   klass.add = (instance) => {
     if (!klass.has(instance)) collection.push(instance)
@@ -289,37 +287,21 @@ function createCollection (klass, collection, opts) {
     return collection
   }
 
-  klass.all = () => {
-    return collection.filter((item) => {
-      return !item.isDestroyed()
-    })
-  }
+  klass.all = () => collection.filter((item) => !item.isDestroyed())
 
-  klass.collection = () => {
-    return collection
-  }
+  klass.collection = () => collection
 
-  klass.count = () => {
-    return klass.all().length
-  }
+  klass.count = () => klass.all().length
 
-  klass.filter = (iteratee) => {
-    return klass.all().filter(iteratee)
-  }
+  klass.filter = (iteratee) => klass.all().filter(iteratee)
 
   klass.where = (criteria) => {
     if (!criteria) return klass.all()
     if (Object.keys(criteria).length < 0) return klass.all()
-    return klass.filter((instance) => {
-      return instance.hasAll(criteria)
-    })
+    return klass.filter((instance) => instance.hasAll(criteria))
   }
 
-  klass.any = (criteria) => {
-    return klass.filter((instance) => {
-      return instance.hasAny(criteria)
-    })
-  }
+  klass.any = (criteria) => klass.filter((instance) => instance.hasAny(criteria))
 
   klass.find = (criteria) => {
     const found = klass.where(criteria)
@@ -329,13 +311,10 @@ function createCollection (klass, collection, opts) {
   // HACK:  this logic that searched by id was broken, as uids are in the format '/Users/zack/.haiku/projects/zack3/Romp::main::e4a9e4d8baa7' instead of 'e4a9e4d8baa7'
   //       Rather than combing for the unknowable pathways where this logic is get/set (wistful sigh: types) I've hacked the findById logic to search using regex.
   //       Should be drop-in compatible with exact id matching as well.
-  klass.findById = (id) => {
-    return klass.all().find((elem) => elem[klass.config.primaryKey].endsWith(id))
-  }
+  klass.findById = (id) => klass.all().find((elem) => elem[klass.config.primaryKey].endsWith(id))
 
-  klass.create = (props, opts) => {
-    return new klass(props, opts) // eslint-disable-line
-  }
+  // eslint-disable-next-line
+  klass.create = (props, opts) => new klass(props, opts)
 
   klass.upsert = (props, opts) => {
     klass.clearCaches()
@@ -347,8 +326,7 @@ function createCollection (klass, collection, opts) {
       if (found.afterInitialize) found.afterInitialize()
       return found
     }
-    const created = klass.create(props, opts)
-    return created
+    return klass.create(props, opts)
   }
 
   klass.clearCaches = () => {
