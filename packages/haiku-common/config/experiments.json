@@ -25,5 +25,9 @@
   "CommentsOnStage": {
     "development": false,
     "production": false
+  },
+  "AsyncClientActions": {
+    "development": true,
+    "production": true
   }
 }

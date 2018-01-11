@@ -19,6 +19,7 @@ import { TimelineHandler } from 'haiku-sdk-creator/lib/timeline'
 import { TourHandler } from 'haiku-sdk-creator/lib/tour'
 import { inkstone } from '@haiku/sdk-inkstone'
 import { client as sdkClient } from '@haiku/sdk-client'
+import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import StateObject from 'haiku-state-object'
 import serializeError from 'haiku-serialization/src/utils/serializeError'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
@@ -1047,7 +1048,8 @@ export default class Plumbing extends StateObject {
 
     // Start with the glass, since that's most visible, then move through the rest, and end
     // with master at the end, which results in a file system update reflecting the change
-    return async.eachSeries([Q_GLASS, Q_TIMELINE, Q_CREATOR, MASTER_SPEC], (clientSpec, nextStep) => {
+    const asyncMethod = experimentIsEnabled(Experiment.AsyncClientActions) ? 'each' : 'eachSeries'
+    return async[asyncMethod]([Q_GLASS, Q_TIMELINE, Q_CREATOR, MASTER_SPEC], (clientSpec, nextStep) => {
       if (clientSpec === MASTER_SPEC) {
         logger.info(`[plumbing] -> client action ${method} being sent to master`)
         return this.awaitMasterAndCallMethod(folder, method, params.concat({ from: alias }), cb)
