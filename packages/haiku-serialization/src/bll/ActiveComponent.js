@@ -1980,12 +1980,7 @@ class ActiveComponent extends BaseModel {
     }
 
     // We'll end up with stale attributes in the DOM unless we do this; this calls .tick()
-    if (reloadOptions.onlyForceFlushIf !== undefined) {
-      if (reloadOptions.onlyForceFlushIf) {
-        this.forceFlush()
-      }
-    } else {
-      // Always force flush unless we have an explicit conditional that wants to decide
+    if (reloadOptions.onlyForceFlushIf === undefined || reloadOptions.onlyForceFlushIf) {
       this.forceFlush()
     }
 
@@ -2170,11 +2165,9 @@ class ActiveComponent extends BaseModel {
     }, {})
 
     // Expand the top row by default, only if this is the first run
-    if (elementHeadingRow.place === 0) {
-      if (!elementHeadingRow._wasInitiallyExpanded) {
-        elementHeadingRow._isExpanded = true
-        elementHeadingRow._wasInitiallyExpanded = true
-      }
+    if (elementHeadingRow.place === 0 && !elementHeadingRow._wasInitiallyExpanded) {
+      elementHeadingRow._isExpanded = true
+      elementHeadingRow._wasInitiallyExpanded = true
     }
 
     if (parentElementRow) {
