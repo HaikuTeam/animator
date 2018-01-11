@@ -11,21 +11,6 @@ const STYLES = {
     justifyContent: 'center',
     zIndex: 3
   },
-  circle: {
-    width: 30,
-    height: 30,
-    border: '1px solid #49c000',
-    borderRadius: '50%',
-    display: 'inline-block',
-    marginRight: 20
-  },
-  circleInner: {
-    width: 20,
-    height: 20,
-    background: '#49c000',
-    borderRadius: '50%',
-    margin: '4px auto 0'
-  },
   childrenWrapper: {
     position: 'absolute',
     minWidth: 340,
@@ -100,6 +85,11 @@ STYLES.RIGHT = {
   }
 }
 
+const TOOLTIP_SIZES = {
+  small: 340,
+  default: 505
+}
+
 function Tooltip (props) {
   const {
     coordinates,
@@ -110,22 +100,17 @@ function Tooltip (props) {
     next,
     finish,
     stepData,
-    waitUserAction
+    waitUserAction,
+    size
   } = props
   let {top, left} = coordinates
   let circleDisplay = 'none'
   let positionStyles = STYLES[display.toUpperCase()] || {}
   let spotlightExtraStyles = {}
 
-  if (display !== 'none') {
-    // Temporally disable the circle until we figure out placement
-    // and design
-    // circleDisplay = 'inline-block'
-  }
-
   if (display === 'left') {
     top = top + (coordinates.height / 2)
-    left = coordinates.left - STYLES.circle.width
+    left = coordinates.left
 
     if (left - 350 <= 10) {
       return Tooltip({...props, display: 'top'})
@@ -134,16 +119,16 @@ function Tooltip (props) {
 
   if (display === 'right') {
     top = top + (coordinates.height / 2)
-    left = coordinates.left + STYLES.circle.width + coordinates.width
+    left = coordinates.left + coordinates.width
   }
 
   if (display === 'bottom') {
-    top = top + coordinates.height + STYLES.circle.width
+    top = top + coordinates.height
     left = left + (coordinates.width / 2)
   }
 
   if (display === 'top') {
-    top = coordinates.top - STYLES.circle.width
+    top = coordinates.top
     left = left + (coordinates.width / 2)
 
     if (top - 350 <= 10) {
@@ -171,11 +156,14 @@ function Tooltip (props) {
         }}
       />
 
-      <div style={{...STYLES.circle, display: circleDisplay}}>
-        <div style={STYLES.circleInner} />
-      </div>
       <Draggable key={stepData.current}>
-        <div style={{...STYLES.childrenWrapper, ...positionStyles.children}}>
+        <div
+          style={{
+            ...STYLES.childrenWrapper,
+            ...positionStyles.children,
+            width: TOOLTIP_SIZES[size] || TOOLTIP_SIZES.default
+          }}
+        >
           <div style={STYLES.children}>
             {children}
 

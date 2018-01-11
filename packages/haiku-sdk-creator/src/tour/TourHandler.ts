@@ -24,6 +24,7 @@ export class TourHandler implements Tour {
       offset: {top: 0, left: 0},
       spotlightRadius: 'default',
       waitUserAction: true,
+      size: 'small'
     },
     {
       selector: `#js-utility-${TourUtils.ProjectName}`,
@@ -33,24 +34,27 @@ export class TourHandler implements Tour {
       offset: {top: 0, left: 0},
       spotlightRadius: 400,
       waitUserAction: false,
+      size: 'small'
     },
     {
       selector: '.gauge-time-readout',
       webview: 'timeline',
-      component: 'OpacityIncrease',
+      component: 'TextOffscreen',
       display: 'top',
       offset: {top: 80, left: 50},
       spotlightRadius: 8000,
       waitUserAction: false,
+      size: 'default'
     },
     {
       selector: '.gauge-time-readout',
       webview: 'timeline',
-      component: 'OpacityReduce',
+      component: 'TextOnscreen',
       display: 'top',
       offset: {top: 80, left: 50},
       spotlightRadius: 8000,
       waitUserAction: false,
+      size: 'default'
     },
     {
       selector: '.gauge-time-readout',
@@ -60,6 +64,7 @@ export class TourHandler implements Tour {
       offset: {top: 80, left: 50},
       spotlightRadius: 8000,
       waitUserAction: false,
+      size: 'default'
     },
     {
       selector: '.gauge-time-readout',
@@ -69,60 +74,7 @@ export class TourHandler implements Tour {
       offset: {top: 80, left: 50},
       spotlightRadius: 8000,
       waitUserAction: false,
-    },
-    {
-      selector: '#sidebar',
-      webview: 'creator',
-      component: 'LibraryStart',
-      display: 'right',
-      offset: {top: 0, left: 0},
-      spotlightRadius: 1000,
-      waitUserAction: false,
-    },
-    {
-      selector: '#sidebar',
-      webview: 'creator',
-      component: 'StatesStart',
-      display: 'right',
-      offset: {top: 0, left: 0},
-      spotlightRadius: 1000,
-      waitUserAction: false,
-    },
-    {
-      selector: '#sidebar',
-      webview: 'creator',
-      component: 'AddState',
-      display: 'right',
-      offset: {top: 0, left: 0},
-      spotlightRadius: 1000,
-      waitUserAction: false,
-    },
-    {
-      selector: '.property-input-field',
-      webview: 'timeline',
-      component: 'ReferenceState',
-      display: 'right',
-      offset: {top: 0, left: 0},
-      spotlightRadius: 'default',
-      waitUserAction: false,
-    },
-    {
-      selector: '.property-input-field',
-      webview: 'timeline',
-      component: 'Summonables',
-      display: 'right',
-      offset: {top: 0, left: 0},
-      spotlightRadius: 'default',
-      waitUserAction: false,
-    },
-    {
-      selector: '.property-input-field',
-      webview: 'timeline',
-      component: 'NoCodeRequired',
-      display: 'right',
-      offset: {top: 0, left: 0},
-      spotlightRadius: 'default',
-      waitUserAction: false,
+      size: 'default'
     },
     {
       selector: '#publish',
@@ -131,16 +83,38 @@ export class TourHandler implements Tour {
       display: 'bottom',
       offset: {top: 0, left: -150},
       spotlightRadius: 900,
-      waitUserAction: true,
+      waitUserAction: false,
+      size: 'default'
     },
     {
-      selector: '.Popover',
+      selector: '#sidebar',
       webview: 'creator',
-      component: 'PublishedLink',
-      display: 'bottom',
-      offset: {top: 150, left: -150},
-      spotlightRadius: 900,
+      component: 'SketchLaunch',
+      display: 'right',
+      offset: {top: 0, left: 0},
+      spotlightRadius: 1000,
       waitUserAction: false,
+      size: 'default'
+    },
+    {
+      selector: '#sidebar',
+      webview: 'creator',
+      component: 'SketchMessage',
+      display: 'right',
+      offset: {top: 0, left: 0},
+      spotlightRadius: 1000,
+      waitUserAction: false,
+      size: 'default'
+    },
+    {
+      selector: '#sidebar',
+      webview: 'creator',
+      component: 'AdvancedUsage',
+      display: 'right',
+      offset: {top: 0, left: 0},
+      spotlightRadius: 1000,
+      waitUserAction: false,
+      size: 'default'
     },
     {
       selector: '#go-to-dashboard',
@@ -150,6 +124,7 @@ export class TourHandler implements Tour {
       offset: {top: 0, left: 0},
       spotlightRadius: 'default',
       waitUserAction: false,
+      size: 'default'
     },
   ];
 

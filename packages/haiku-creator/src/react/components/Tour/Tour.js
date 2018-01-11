@@ -128,7 +128,8 @@ class Tour extends React.Component {
       component,
       spotlightRadius,
       stepData,
-      waitUserAction
+      waitUserAction,
+      size
     } = this.state
 
     const Step = steps[component]
@@ -143,6 +144,7 @@ class Tour extends React.Component {
         finish={this.finish}
         stepData={stepData}
         waitUserAction={waitUserAction}
+        size={size}
       >
         <Step
           styles={TOUR_STYLES}
