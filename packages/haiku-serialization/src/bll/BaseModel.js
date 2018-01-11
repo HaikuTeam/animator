@@ -330,9 +330,7 @@ function createCollection (klass, collection, opts) {
   //       Rather than combing for the unknowable pathways where this logic is get/set (wistful sigh: types) I've hacked the findById logic to search using regex.
   //       Should be drop-in compatible with exact id matching as well.
   klass.findById = (id) => {
-    const MATCHES_ID = new RegExp(id + '$')
-    let all = klass.all().filter((elem) => { return MATCHES_ID.test(elem[klass.config.primaryKey]) })
-    return all[0] // TODO:perf could save some µs by immediately returning first found instead of filtering all
+    return klass.all().find((elem) => elem[klass.config.primaryKey].endsWith(id))
   }
 
   klass.create = (props, opts) => {
