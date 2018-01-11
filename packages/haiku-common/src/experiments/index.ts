@@ -16,6 +16,7 @@ export enum Experiment {
   MergeDesignChangesAtCurrentTime = 'MergeDesignChangesAtCurrentTime',
   CommentsOnStage = 'CommentsOnStage',
   AsyncClientActions = 'AsyncClientActions',
+  NoNormalizeOnSetup = 'NoNormalizeOnSetup',
 }
 
 /**

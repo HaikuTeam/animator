@@ -5,6 +5,7 @@ const async = require('async')
 const WebSocket = require('ws')
 const dedent = require('dedent')
 const pascalcase = require('pascalcase')
+const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const EnvoyClient = require('haiku-sdk-creator/lib/envoy/EnvoyClient').default
 const EnvoyLogger = require('haiku-sdk-creator/lib/envoy/EnvoyLogger').default
 const { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
@@ -784,7 +785,7 @@ class Project extends BaseModel {
     // Only write these files if they don't exist yet; don't overwrite the user's own content
     if (!fse.existsSync(path.join(this.getFolder(), `code/${scenename}/code.js`))) {
       fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/code.js`), rootComponentId)
-    } else {
+    } else if (!experimentIsEnabled(Experiment.NoNormalizeOnSetup)) {
       // If the file already exists, we can run any migration steps we might want
       AST.mutateWith(path.join(this.getFolder(), `code/${scenename}/code.js`), (ast) => {
         normalizeBytecodeFile(ast)
