@@ -1,5 +1,5 @@
 const commonjs = require('rollup-plugin-commonjs')
-import json from 'rollup-plugin-json'
+const json = require('rollup-plugin-json')
 const nodeResolve = require('rollup-plugin-node-resolve')
 const rollup = require('rollup')
 const uglify = require('rollup-plugin-uglify-es')
