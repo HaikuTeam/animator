@@ -37,7 +37,7 @@ const STYLES = {
     boxShadow: '0 4px 18px 0 rgba(1,28,33,0.38)'
   },
   children: {
-    backgroundColor: Palette.COAL,
+    backgroundColor: Palette.FATHER_COAL,
     borderRadius: 3,
     padding: 20
   },
@@ -193,10 +193,10 @@ function Tooltip (props) {
                     style={TOUR_STYLES.btnSecondary}
                     onClick={() => finish(true, true)}
                   >
-                    Skip Tutorial
+                    Finish
                   </button>
-                  <div>
-                    <span style={{marginRight: 10}}>
+                  <div style={{display: 'flex', alignItems: 'center'}}>
+                    <span style={{marginRight: 10, fontStyle: 'oblique'}}>
                       {stepData.current} of {stepData.total}
                     </span>
                     {/* Show the next button if we aren't waiting for user interaction */}
