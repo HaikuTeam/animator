@@ -41,8 +41,8 @@ export default class PropertyRow extends React.Component {
               this.props.row.parent.collapse()
             }
           }}>
-          {(this.props.row.isFirstRowOfPropertyCluster())
-            ? <div
+          {(this.props.row.isFirstRowOfPropertyCluster()) &&
+            <div
               style={{
                 position: 'absolute',
                 width: 14,
@@ -53,19 +53,7 @@ export default class PropertyRow extends React.Component {
                 height: 'inherit'
               }}>
               <span className='utf-icon' style={{ top: -4, left: -3 }}><DownCarrotSVG /></span>
-            </div>
-            : ''
-          }
-          {(!this.props.row.isPropertyOnLastComponent() && humanName !== 'background color') &&
-            <div style={{
-              position: 'absolute',
-              left: 36,
-              width: 5,
-              zIndex: 1005,
-              borderLeft: '1px solid ' + Palette.GRAY_FIT1,
-              height: this.props.rowHeight
-            }} />
-          }
+            </div>}
           <div
             className='property-row-label no-select'
             style={{
