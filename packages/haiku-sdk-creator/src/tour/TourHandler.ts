@@ -2,7 +2,7 @@ import {
   createTourFile,
   didTakeTour,
 } from 'haiku-serialization/src/utils/HaikuHomeDir';
-import {TourUtils} from 'haiku-common/lib/types/enums'
+import {TourUtils} from 'haiku-common/lib/types/enums';
 import {ClientBoundingRect, MaybeAsync, Tour, TourState} from '.';
 import {EnvoyEvent} from '../envoy';
 import EnvoyServer from '../envoy/EnvoyServer';
@@ -24,7 +24,7 @@ export class TourHandler implements Tour {
       offset: {top: 0, left: 0},
       spotlightRadius: 'default',
       waitUserAction: true,
-      size: 'small'
+      size: 'small',
     },
     {
       selector: `#js-utility-${TourUtils.ProjectName}`,
@@ -34,7 +34,7 @@ export class TourHandler implements Tour {
       offset: {top: 0, left: 0},
       spotlightRadius: 400,
       waitUserAction: false,
-      size: 'small'
+      size: 'small',
     },
     {
       selector: '.gauge-time-readout',
@@ -44,7 +44,7 @@ export class TourHandler implements Tour {
       offset: {top: 80, left: 50},
       spotlightRadius: 8000,
       waitUserAction: false,
-      size: 'default'
+      size: 'default',
     },
     {
       selector: '.gauge-time-readout',
@@ -54,7 +54,7 @@ export class TourHandler implements Tour {
       offset: {top: 80, left: 50},
       spotlightRadius: 8000,
       waitUserAction: false,
-      size: 'default'
+      size: 'default',
     },
     {
       selector: '.gauge-time-readout',
@@ -64,7 +64,7 @@ export class TourHandler implements Tour {
       offset: {top: 80, left: 50},
       spotlightRadius: 8000,
       waitUserAction: false,
-      size: 'default'
+      size: 'default',
     },
     {
       selector: '.gauge-time-readout',
@@ -74,7 +74,7 @@ export class TourHandler implements Tour {
       offset: {top: 80, left: 50},
       spotlightRadius: 8000,
       waitUserAction: false,
-      size: 'default'
+      size: 'default',
     },
     {
       selector: '#publish',
@@ -84,7 +84,7 @@ export class TourHandler implements Tour {
       offset: {top: 0, left: -150},
       spotlightRadius: 900,
       waitUserAction: false,
-      size: 'default'
+      size: 'default',
     },
     {
       selector: '#sidebar',
@@ -94,7 +94,7 @@ export class TourHandler implements Tour {
       offset: {top: 0, left: 0},
       spotlightRadius: 1000,
       waitUserAction: false,
-      size: 'default'
+      size: 'default',
     },
     {
       selector: '#sidebar',
@@ -104,7 +104,7 @@ export class TourHandler implements Tour {
       offset: {top: 0, left: 0},
       spotlightRadius: 1000,
       waitUserAction: false,
-      size: 'default'
+      size: 'default',
     },
     {
       selector: '#sidebar',
@@ -114,7 +114,7 @@ export class TourHandler implements Tour {
       offset: {top: 0, left: 0},
       spotlightRadius: 1000,
       waitUserAction: false,
-      size: 'default'
+      size: 'default',
     },
     {
       selector: '#go-to-dashboard',
@@ -124,7 +124,7 @@ export class TourHandler implements Tour {
       offset: {top: 0, left: 0},
       spotlightRadius: 'default',
       waitUserAction: false,
-      size: 'default'
+      size: 'default',
     },
   ];
 

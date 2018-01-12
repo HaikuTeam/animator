@@ -33,5 +33,5 @@ export enum Curve {
 }
 
 export enum TourUtils {
-  ProjectName = 'percy'
+  ProjectName = 'percy',
 }
