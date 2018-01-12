@@ -1,6 +1,18 @@
 # Changelog
 
 
+## 2.3.72
+
+### Bug Fixes
+
+ * migrate rowDepth hack in ActiveComponent#rehydrate() to the intended functionality.
+ * delete stading-zeroth keyframe if sibling is dragged to zero
+
+### Features
+
+ * swap out browserify with rollup for generating standalones.
+ * add a reset password link to the auth ui
+
 ## 2.3.71
 
 ### Features

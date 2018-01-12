@@ -3906,5 +3906,27 @@
       "label": "feat",
       "message": "support shift + click + drag to snap elements to x/y axes while translating"
     }
+  },
+  "2.3.72": {
+    "3826be6044ec795b08f67d7ffa149966e7e613f4": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "migrate rowDepth hack in ActiveComponent#rehydrate() to the intended functionality."
+    },
+    "3796319737b0f6bc130fe8599b4bd58bde8764fe": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "swap out browserify with rollup for generating standalones."
+    },
+    "c8421633a0a90a3e730a19426bc6c5244d98c3b9": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "add a reset password link to the auth ui"
+    },
+    "43f4737e1143e7dc02256f027afad2e2f4bfba2d": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "delete stading-zeroth keyframe if sibling is dragged to zero"
+    }
   }
 }
