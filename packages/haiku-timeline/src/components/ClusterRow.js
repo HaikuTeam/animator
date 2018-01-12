@@ -52,16 +52,6 @@ export default class ClusterRow extends React.Component {
           cursor: 'pointer'
         }}>
         <div>
-          {!this.props.row.isPropertyOnLastComponent() &&
-            <div style={{
-              position: 'absolute',
-              left: 36,
-              width: 5,
-              zIndex: 1005,
-              borderLeft: '1px solid ' + Palette.GRAY_FIT1,
-              height: this.props.rowHeight
-            }} />
-          }
           <div
             style={{
               position: 'absolute',

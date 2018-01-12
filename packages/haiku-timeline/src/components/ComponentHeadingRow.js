@@ -82,11 +82,25 @@ export default class ComponentHeadingRow extends React.Component {
                 }
               }}
               style={{
-                marginLeft: 10
+                display: 'inline-block',
+                transform: this.props.row.isRootRow() ? 'translate(0, -1px)' : 'translate(15px, -1px)'
               }}>
               {(this.props.row.isExpanded())
-                  ? <span className='utf-icon' style={{ top: 1, left: -1 }}><DownCarrotSVG color={Palette.ROCK} /></span>
-                  : <span className='utf-icon' style={{ top: 3 }}><RightCarrotSVG /></span>
+                  ? <span className='utf-icon'
+                      style={{
+                        top: 1,
+                        pointerEvents: 'none',
+                        left: -1
+                      }}>
+                      <DownCarrotSVG color={Palette.ROCK} />
+                    </span>
+                  : <span className='utf-icon'
+                      style={{
+                        top: 3,
+                        pointerEvents: 'none'
+                      }}>
+                      <RightCarrotSVG />
+                    </span>
                 }
             </span>
             <ComponentHeadingRowHeading

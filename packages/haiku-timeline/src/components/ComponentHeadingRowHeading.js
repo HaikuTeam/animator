@@ -54,34 +54,17 @@ export default class ComponentHeadingRowHeading extends React.Component {
     return (
       (this.props.row.isRootRow())
         ? (<div style={{height: 27, display: 'inline-block', transform: 'translateY(1px)'}}>
+          <span style={{marginRight: 4, display: 'inline-block', transform: 'translateY(4px)'}}>
+            <ComponentIconSVG />
+          </span>
           {truncate(this.props.row.element.getTitle() || elementName, 12)}
         </div>)
-        : (<span className='no-select'>
-          <span
-            style={{
-              display: 'inline-block',
-              fontSize: 21,
-              position: 'relative',
-              zIndex: 1005,
-              verticalAlign: 'middle',
-              color: Palette.GRAY_FIT1,
-              marginRight: 7,
-              marginTop: 1
-            }}>
-            <span style={{
-              marginLeft: 5,
-              backgroundColor: Palette.GRAY_FIT1,
-              position: 'absolute',
-              width: 1,
-              height: 25
-            }} />
-            <span style={{marginLeft: 4}}>—</span>
-          </span>
-          <span
+        : (<span
             style={{
               color,
               position: 'relative',
               zIndex: 1005,
+              marginLeft: 10,
               display: 'inline-block',
               width: 100,
               height: 20
@@ -94,9 +77,8 @@ export default class ComponentHeadingRowHeading extends React.Component {
                 left: 0,
                 top: 8
               }}>
-              {(this.props.row.element.isComponent())
-                ? <ComponentIconSVG />
-                : ''}
+              {(this.props.row.element.isComponent()) &&
+                <ComponentIconSVG />}
             </span>
             <span
               style={{
@@ -104,14 +86,13 @@ export default class ComponentHeadingRowHeading extends React.Component {
                 display: 'inline-block',
                 height: 20,
                 left: (this.props.row.element.isComponent())
-                  ? 20
-                  : 0,
+                  ? 25
+                  : 5,
                 top: 7
               }}>
               {truncate(this.props.row.element.getTitle() || `<${elementName}>`, 8)}
             </span>
-          </span>
-        </span>)
+          </span>)
     )
   }
 }
