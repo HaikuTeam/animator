@@ -1,5 +1,5 @@
 import React from 'react'
-import Tooltip from '../Tooltip'
+import Tooltip from './Tooltip'
 import {shell} from 'electron'
 import {TOUR_STYLES} from '../../styles/tourShared'
 import * as steps from './Steps'
