@@ -168,7 +168,6 @@ class Library extends React.Component {
     switch (asset.kind) {
       case Asset.KINDS.SKETCH:
         this.handleSketchInstantiation(asset)
-        this.props.tourChannel.next()
         break
       case Asset.KINDS.VECTOR:
         this.handleFileInstantiation(asset)
@@ -214,6 +213,10 @@ class Library extends React.Component {
     )
   }
 
+  handleAssetOpened () {
+    this.props.tourChannel.next()
+  }
+
   render () {
     return (
       <div
@@ -244,7 +247,8 @@ class Library extends React.Component {
                 instantiateAsset={this.handleAssetInstantiation}
                 deleteAsset={this.handleAssetDeletion}
                 indent={0}
-                assets={this.state.assets} />}
+                assets={this.state.assets}
+                onAssetOpened={() => {this.handleAssetOpened()}}/>}
           </div>
         </div>
         {

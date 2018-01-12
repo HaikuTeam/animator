@@ -139,6 +139,7 @@ class AssetItem extends React.Component {
 
   handleOpenAsset () {
     shell.openItem(this.props.asset.getAbspath())
+    this.props.onAssetOpened()
   }
 
   handleShowAsset () {
@@ -324,6 +325,7 @@ class AssetItem extends React.Component {
           onDragStart={this.props.onDragStart}
           onDragEnd={this.props.onDragEnd}
           instantiateAsset={this.props.instantiateAsset}
+          onAssetOpened={this.props.onAssetOpened}
           deleteAsset={this.props.deleteAsset}
           assets={this.props.asset.getChildAssets()}
           indent={this.props.indent + 1} />
@@ -418,6 +420,7 @@ AssetItem.propTypes = {
   onDragEnd: React.PropTypes.func.isRequired,
   onDragStart: React.PropTypes.func.isRequired,
   instantiateAsset: React.PropTypes.func.isRequired,
+  onAssetOpened: React.PropTypes.func.isRequired,
   deleteAsset: React.PropTypes.func.isRequired,
   projectModel: React.PropTypes.object.isRequired
 }
