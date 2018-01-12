@@ -19,7 +19,7 @@ export default function ({ styles, finish, openLink }) {
         onClick={() => finish(true, false)}
       > Finish
       </button>
-      <div style={{clear: 'both'}}></div>
+      <div style={{clear: 'both'}} />
     </div>
   )
 }

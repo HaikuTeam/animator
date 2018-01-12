@@ -1,4 +1,5 @@
 import React from 'react'
+import EmbeddedVideo from '../EmbeddedVideo'
 
 export default function ({ styles }) {
   return (
@@ -8,6 +9,7 @@ export default function ({ styles }) {
         <p>
           Publish your project to preview on the web and view embed instructions.
         </p>
+        <EmbeddedVideo name={'Publish'} />
       </div>
     </div>
   )
