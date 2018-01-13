@@ -1,0 +1,21 @@
+OK to merge.
+
+Short review.
+
+Asana task link: …
+
+Changes in this PR:
+
+- [ ] …
+
+Notes for the reviewer:
+
+- …
+
+Completed checkin tasks:
+
+- [ ] Did manual testing of interrelated functionality
+- [ ] Did the [E2E checklist](https://haiku.quip.com/dGqeAEVSWdmg)
+- [ ] Expanded the [QA checklist](https://haiku.quip.com/rqwsAPsCGxqT)
+- [ ] Ran the automated tests and linted the code
+- [ ] Wrote an automated test covering new functionality
