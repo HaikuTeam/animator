@@ -60,39 +60,39 @@ export default class ComponentHeadingRowHeading extends React.Component {
           {truncate(this.props.row.element.getTitle() || elementName, 12)}
         </div>)
         : (<span
+          style={{
+            color,
+            position: 'relative',
+            zIndex: 1005,
+            marginLeft: 10,
+            display: 'inline-block',
+            width: 100,
+            height: 20
+          }}>
+          <span
             style={{
-              color,
-              position: 'relative',
-              zIndex: 1005,
-              marginLeft: 10,
+              position: 'absolute',
               display: 'inline-block',
-              width: 100,
-              height: 20
+              height: 20,
+              left: 0,
+              top: 8
             }}>
-            <span
-              style={{
-                position: 'absolute',
-                display: 'inline-block',
-                height: 20,
-                left: 0,
-                top: 8
-              }}>
-              {(this.props.row.element.isComponent()) &&
-                <ComponentIconSVG />}
-            </span>
-            <span
-              style={{
-                position: 'absolute',
-                display: 'inline-block',
-                height: 20,
-                left: (this.props.row.element.isComponent())
+            {(this.props.row.element.isComponent()) &&
+            <ComponentIconSVG />}
+          </span>
+          <span
+            style={{
+              position: 'absolute',
+              display: 'inline-block',
+              height: 20,
+              left: (this.props.row.element.isComponent())
                   ? 25
                   : 5,
-                top: 7
-              }}>
-              {truncate(this.props.row.element.getTitle() || `<${elementName}>`, 8)}
-            </span>
-          </span>)
+              top: 7
+            }}>
+            {truncate(this.props.row.element.getTitle() || `<${elementName}>`, 8)}
+          </span>
+        </span>)
     )
   }
 }
