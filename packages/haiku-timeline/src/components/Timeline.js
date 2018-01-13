@@ -307,7 +307,9 @@ class Timeline extends React.Component {
         type === 'cluster-row'
       ),
       onClick: (event) => {
-        const { ms } = this.getEventPositionInfo(event, offset)
+        const timeline = this.getActiveComponent().getCurrentTimeline()
+        const frameInfo = timeline.getFrameInfo()
+        const ms = Math.round(timeline.getHoveredFrame() * frameInfo.mspf)
         // The model here might be
         model.createKeyframe(undefined, ms, { from: 'timeline' })
       }
@@ -490,18 +492,6 @@ class Timeline extends React.Component {
     })
 
     return items
-  }
-
-  getEventPositionInfo (event, extra) {
-    const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
-
-    const offset = event.offsetX || 0
-    const total = (extra || 0) + offset + Math.round(frameInfo.pxA / frameInfo.pxpf)
-
-    const frame = Math.round(total / frameInfo.pxpf)
-    const ms = Math.round(frame * frameInfo.mspf)
-
-    return { offset, total, frame, ms }
   }
 
   handleScroll (scrollEvent) {
