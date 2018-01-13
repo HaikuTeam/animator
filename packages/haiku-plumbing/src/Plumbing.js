@@ -111,8 +111,6 @@ const HAIKU_DEFAULTS = {
   }
 }
 
-const ACCOUNTS_JSON_PATH = path.join(HOMEDIR_PATH, 'accounts.json')
-
 // configure inkstone, useful for testing off of dev (HAIKU_API=https://localhost:8080/)
 if (process.env.HAIKU_API) {
   inkstone.setConfig({
@@ -563,7 +561,7 @@ export default class Plumbing extends StateObject {
 
     return async.series([
       (cb) => {
-        return this.getCurrentOrganizationName(projectOptions.username, (err, organizationName) => {
+        return this.getCurrentOrganizationName((err, organizationName) => {
           if (err) return cb(err)
           projectOptions.organizationName = organizationName
           return cb()
@@ -686,23 +684,15 @@ export default class Plumbing extends StateObject {
     if (!answer) {
       return cb(null, { isAuthed: false })
     }
-
-    const username = sdkClient.config.getUserId()
-    if (!username) {
-      return cb(null, { isAuthed: false })
-    }
-
-    mixpanel.mergeToPayload({ distinct_id: username })
-
-    if (Raven) {
-      Raven.setContext({
-        user: { email: username }
-      })
-    }
-
-    return this.getCurrentOrganizationName(username, (err, organizationName) => {
+    return this.getCurrentOrganizationName((err, organizationName) => {
       if (err) return cb(err)
-
+      const username = sdkClient.config.getUserId()
+      mixpanel.mergeToPayload({ distinct_id: username })
+      if (Raven) {
+        Raven.setContext({
+          user: { email: username }
+        })
+      }
       return cb(null, {
         isAuthed: true,
         username: username,
@@ -741,7 +731,7 @@ export default class Plumbing extends StateObject {
           user: { email: username }
         })
       }
-      return this.getCurrentOrganizationName(username, (err, organizationName) => {
+      return this.getCurrentOrganizationName((err, organizationName) => {
         if (err) return cb(err)
         return cb(null, {
           isAuthed: true,
@@ -753,126 +743,26 @@ export default class Plumbing extends StateObject {
     })
   }
 
-  fetchLocalAccountInfoForUser (username, cb) {
-    if (!fse.existsSync(ACCOUNTS_JSON_PATH)) {
-      return cb() // Not an error; this file has not been set up
-    }
-
-    const allAccountInfo = fse.readJsonSync(ACCOUNTS_JSON_PATH, { throws: false })
-
-    if (!allAccountInfo) {
-      return cb() // Maybe a parsing error, but ok to ignore if we fetch from HTTP later
-    }
-
-    return cb(null, allAccountInfo[username])
-  }
-
-  writeLocalAccountInfoForUser (username, accountInfo, cb) {
-    // If somebody passed us a falsy, this is a no-op since account info is user-specific
-    if (!username) {
-      return cb()
-    }
-
-    let allAccountInfo
-    if (!fse.existsSync(ACCOUNTS_JSON_PATH)) {
-      allAccountInfo = {}
-    } else {
-      allAccountInfo = fse.readJsonSync(ACCOUNTS_JSON_PATH, { throws: false })
-      // In case read JSON failed, we'll write a fresh object to the file
-      if (!allAccountInfo) allAccountInfo = {}
-    }
-
-    if (!allAccountInfo[username]) {
-      allAccountInfo[username] = {}
-    }
-
-    lodash.assign(allAccountInfo[username], accountInfo)
-
-    try {
-      fse.outputJsonSync(ACCOUNTS_JSON_PATH, allAccountInfo)
-    } catch (exception) {
-      // Ignore this for now since it's not (at this writing) 100% critical
-      logger.error('[plumbing]', exception)
-      return cb()
-    }
-
-    return cb()
-  }
-
-  getCurrentOrganizationName (username, cb) {
-    // If we have the org name in memory, great
+  getCurrentOrganizationName (cb) {
     if (this.get('organizationName')) return cb(null, this.get('organizationName'))
-
-    // See if we've stored the org name locally, if so, use it!
-    return this.fetchLocalAccountInfoForUser(username, (err, accountInfo) => {
-      if (err) {
-        logger.error('[plumbing] unable to fetch local account info')
-      }
-
-      if (accountInfo && accountInfo.organizationName) {
-        this.set('organizationName', accountInfo.organizationName)
-        return cb(null, this.get('organizationName'))
-      }
-
-      logger.info('[plumbing] fetching organization name for current user')
-
-      try {
-        const authToken = sdkClient.config.getAuthToken()
-
-        return inkstone.organization.list(authToken, (orgErr, orgsArray, orgHttpResp) => {
-          if (orgErr) return cb(new Error('Organization error'))
-          if (orgHttpResp.statusCode === 401) return cb(new Error('Unauthorized organization'))
-          if (orgHttpResp.statusCode > 299) return cb(new Error(`Error status code: ${orgHttpResp.statusCode}`))
-          if (!orgsArray || orgsArray.length < 1) return cb(new Error('No organization found'))
-
-          // Cache this since it's used to write/manage some project files
-          const organizationName = orgsArray[0].Name
-          logger.info('[plumbing] organization name:', organizationName)
-          this.set('organizationName', organizationName)
-
-          // Store it on the fs as well so the next time we boot up we can do so offline
-          return this.writeLocalAccountInfoForUser(username, { organizationName }, () => {
-            return cb(null, this.get('organizationName'))
-          })
-        })
-      } catch (exception) {
-        logger.error(exception)
-        return cb(new Error('Unable to find organization name from Haiku Cloud'))
-      }
-    })
-  }
-
-  listProjectsByInferringFromLocalDirectories (cb) {
-    if (!this.get('organizationName')) {
-      // Although org name should be set here, it's more convenient to let downstream handle no projects
-      return cb(null, [])
-    }
-
-    let projectEntries
-
-    const orgDirPath = buildOrganizationDirPath(this.get('organizationName'))
-
+    logger.info('[plumbing] fetching organization name for current user')
     try {
-      projectEntries = fse.readdirSync(orgDirPath).filter((projectEntry) => {
-        // Strip out hidden files and other weirdness that may be present
-        return projectEntry && projectEntry[0] !== '.'
+      const authToken = sdkClient.config.getAuthToken()
+      return inkstone.organization.list(authToken, (orgErr, orgsArray, orgHttpResp) => {
+        if (orgErr) return cb(new Error('Organization error'))
+        if (orgHttpResp.statusCode === 401) return cb(new Error('Unauthorized organization'))
+        if (orgHttpResp.statusCode > 299) return cb(new Error(`Error status code: ${orgHttpResp.statusCode}`))
+        if (!orgsArray || orgsArray.length < 1) return cb(new Error('No organization found'))
+        // Cache this since it's used to write/manage some project files
+        const organizationName = orgsArray[0].Name
+        logger.info('[plumbing] organization name:', organizationName)
+        this.set('organizationName', organizationName)
+        return cb(null, this.get('organizationName'))
       })
     } catch (exception) {
-      logger.error('[plumbing]', exception)
-      // Despite the error, it's more convenient to let downstream handle no projects
-      return cb(null, [])
+      logger.error(exception)
+      return cb(new Error('Unable to find organization name from Haiku Cloud'))
     }
-
-    // We need to remap to the format that people expect to receive from listProjects
-    const projectObjects = projectEntries.map((projectEntry) => {
-      return {
-        projectPath: buildProjectDirPath(this.get('organizationName'), projectEntry),
-        projectName: projectEntry, // Is it true that the folder name exactly matches the project name?
-        projectsHome: HOMEDIR_PATH
-      }
-    })
-
-    return cb(null, projectObjects)
   }
 
   listProjects (cb) {
@@ -880,32 +770,14 @@ export default class Plumbing extends StateObject {
     try {
       const authToken = sdkClient.config.getAuthToken()
       return inkstone.project.list(authToken, (projectListErr, projectsList) => {
-        // Note: This error could be because of:
-        // - Read timeout: the server took too long
-        // - Connect timeout: the user is not connected to the internet
-        // - Other weird error: ?
-        // TODO: Do we want to be more precise here or is it always safe to fall back?
         if (projectListErr) {
-          // Try to fall back to the local listing if we don't have a network
-          return this.listProjectsByInferringFromLocalDirectories((localProjectsListErr, localProjectsList) => {
-            // Return the original network error instead of our local fallback-related error
-            if (localProjectsListErr) {
-              this.sentryError('listProjects', projectListErr)
-              return cb(projectListErr)
-            }
-
-            // Note: The local projects list has already been remapped to the expected format
-            logger.info('[plumbing] loaded project list', JSON.stringify(localProjectsList))
-
-            return cb(null, localProjectsList)
-          })
+          this.sentryError('listProjects', projectListErr)
+          return cb(projectListErr)
         }
-
         const finalList = projectsList.map((val) => remapProjectObjectToExpectedFormat(
           val,
           this.get('organizationName')
         ))
-
         logger.info('[plumbing] fetched project list', JSON.stringify(finalList))
         return cb(null, finalList)
       })
@@ -915,38 +787,13 @@ export default class Plumbing extends StateObject {
     }
   }
 
-  createProjectOnlyLocally (name, cb) {
-    // The logic to actually create and bootstrap the folder is downstream of this call
-    // We just need instruct it where to place the new project and what to call it.
-    return cb(null, {
-      projectName: name,
-      projectPath: buildProjectDirPath(this.get('organizationName'), name),
-      projectsHome: HOMEDIR_PATH
-    })
-  }
-
-  createEmptyProjectFolderToHackilyAvoidInitialClone ({ projectPath }) {
-    fse.mkdirp(projectPath)
-  }
-
   createProject (name, cb) {
     logger.info('[plumbing] creating project', name)
     const authToken = sdkClient.config.getAuthToken()
     return inkstone.project.create(authToken, { Name: name }, (projectCreateErr, projectPayload) => {
       if (projectCreateErr) {
         this.sentryError('createProject', projectCreateErr)
-
-        return this.createProjectOnlyLocally(name, (localCreateErr, localProjectObject) => {
-          // Return the original error instead of our fallback-related error
-          if (localCreateErr) {
-            return cb(projectCreateErr)
-          }
-
-          // This object should already be in the expected format
-          this.createEmptyProjectFolderToHackilyAvoidInitialClone(localProjectObject)
-
-          return cb(null, localProjectObject)
-        })
+        return cb(projectCreateErr)
       }
 
       const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, this.get('organizationName'))
@@ -1436,14 +1283,6 @@ function createResponder (message, websocket) {
     }
     sendMessageToClient(websocket, reply)
   }
-}
-
-function buildOrganizationDirPath (organizationName) {
-  return path.join(HOMEDIR_PATH, 'projects', organizationName)
-}
-
-function buildProjectDirPath (organizationName, projectName) {
-  return path.join(HOMEDIR_PATH, 'projects', organizationName, projectName)
 }
 
 function remapProjectObjectToExpectedFormat (projectObject, organizationName) {
