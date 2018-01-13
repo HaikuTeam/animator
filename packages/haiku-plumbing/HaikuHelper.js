@@ -6,7 +6,7 @@ var cp = require('child_process')
 var path = require('path')
 
 global.eval = function () {
-  throw new Error('Sorry, eval is forbidden')
+  // noop: eval is forbidden
 }
 
 if (process.env.NODE_ENV === 'production') {
