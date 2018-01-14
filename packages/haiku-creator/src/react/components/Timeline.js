@@ -117,19 +117,19 @@ export default class Timeline extends React.Component {
         onMouseOut={() => this.webview.blur()}
         ref={(element) => { this.mount = element }}
         style={{ position: 'absolute', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.GRAY }}>
-          {!this.state.finishedInjecting &&
-            <div style={{
-              position: 'absolute',
-              left: 160,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              <TimelineSkeletonState haikuOptions={{loop: true}} />
-            </div>
-          }
+        {!this.state.finishedInjecting &&
+        <div style={{
+          position: 'absolute',
+          left: 160,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          display: 'flex',
+          alignItems: 'center'
+        }}>
+          <TimelineSkeletonState haikuOptions={{loop: true}} />
         </div>
+          }
+      </div>
     )
   }
 }
