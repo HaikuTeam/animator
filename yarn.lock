@@ -22,16 +22,6 @@
     "7zip-bin-mac" "^1.0.1"
     "7zip-bin-win" "^2.1.1"
 
-"@haiku/player@2.3.49":
-  version "2.3.49"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-2.3.49.tgz#eeb83edd96cea8e4d2e488de225941585141c314"
-
-"@haiku/taylor-timelineskeletonstate@^0.0.6":
-  version "0.0.6"
-  resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-timelineskeletonstate/-/taylor-timelineskeletonstate-0.0.6.tgz#ed8d0c07cb035214a6edc45da1854cf59fafcda2"
-  dependencies:
-    "@haiku/player" "2.3.49"
-
 "@haiku/taylor-timelineskeletonstate@^0.0.7":
   version "0.0.7"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-timelineskeletonstate/-/taylor-timelineskeletonstate-0.0.7.tgz#1d32d3ec09602ff992c07310c8a2c4a48bb9d082"
