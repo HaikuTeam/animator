@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@haiku/player": "2.3.72",
+    "@haiku/taylor-timelineskeletonstate": "^0.0.7",
     "async": "^2.5.0",
     "better-react-spinkit": "2.0.0-4",
     "color": "^2.0.1",
