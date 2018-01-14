@@ -1,7 +1,6 @@
 import path from 'path'
 import async from 'async'
 import lodash from 'lodash'
-import fse from 'haiku-fs-extra'
 import find from 'lodash.find'
 import merge from 'lodash.merge'
 import filter from 'lodash.filter'
