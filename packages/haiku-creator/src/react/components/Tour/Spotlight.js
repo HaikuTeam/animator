@@ -33,7 +33,7 @@ export default class Spotlight extends React.PureComponent {
     const {display} = this.props
     let {top, left} = this.props.position
 
-    switch(display) {
+    switch (display) {
       case 'top':
         // top = top + height
         left = left - (width / 2)

@@ -248,7 +248,7 @@ class Library extends React.Component {
                 deleteAsset={this.handleAssetDeletion}
                 indent={0}
                 assets={this.state.assets}
-                onAssetOpened={() => {this.handleAssetOpened()}}/>}
+                onAssetOpened={() => { this.handleAssetOpened() }} />}
           </div>
         </div>
         {
