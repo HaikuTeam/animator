@@ -8,8 +8,6 @@ const ENDPOINTS = {
   CHANGE_PASSWORD: 'v0/user/password',
   ORGANIZATION_LIST: 'v0/organization',
   PROJECT_LIST: 'v0/project',
-  INVITE_PREFINERY_CHECK: 'v0/invite/check',
-  INVITE_CHECK: 'v0/invite/:CODE',
   INVITE_CLAIM: 'v0/invite/claim',
   SNAPSHOT_GET_BY_ID: 'v0/snapshot/:ID',
   SNAPSHOT_SYNDICATED_BY_ID: 'v0/snapshot/:ID/syndicated',
@@ -191,78 +189,11 @@ export namespace inkstone {
   }
 
   export namespace invite {
-    export interface Invite {
-      Code: string;
-    }
-
-    export interface InvitePresetDetails {
-      Valid?: Validity;
-      Email?: string;
-      OrganizationName?: string;
-    }
-
     export interface InviteClaim {
-      Code: string;
       Email: string;
       Password: string;
       OrganizationName?: string;
-    }
-
-    export interface PrefineryCheckParams {
-      Code: string;
-      Email: string;
-    }
-
-    export enum Validity {
-      VALID = 0,
-      INVALID = 1,
-      ALREADY_CLAIMED = 2,
-      ERROR = 3,
-    }
-
-    export function getInviteFromPrefineryCode(params: PrefineryCheckParams, cb: inkstone.Callback<Invite>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.INVITE_PREFINERY_CHECK,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        json: params,
-      };
-
-      request.post(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          const project = body as Invite;
-          cb(undefined, project, httpResponse);
-        } else {
-          cb(safeError(err), undefined, httpResponse);
-        }
-      });
-    }
-
-
-    export function checkValidity(code: string, cb: inkstone.Callback<InvitePresetDetails>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.INVITE_CHECK.replace(':CODE', code),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-
-      request.get(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          const invitePreset = JSON.parse(body) as InvitePresetDetails;
-          invitePreset.Valid = Validity.VALID;
-          cb(undefined, invitePreset, httpResponse);
-        } else {
-          if (httpResponse.statusCode === 404) {
-            cb('invalid code', {Valid: Validity.INVALID}, httpResponse);
-          } else if (httpResponse.statusCode === 410) {
-            cb('code already claimed', {Valid: Validity.ALREADY_CLAIMED}, httpResponse);
-          } else {
-            cb(safeError(err), {Valid: Validity.ERROR}, httpResponse);
-          }
-        }
-      });
+      NewsletterOptIn?: boolean;
     }
 
     export function claimInvite(claim: InviteClaim, cb: inkstone.Callback<boolean>) {
