@@ -131,7 +131,7 @@ function Tooltip (props) {
   }
 
   if (display === 'none') {
-    top = '50%',
+    top = '50%'
     left = '50%'
   } else {
     top = top + offset.top
