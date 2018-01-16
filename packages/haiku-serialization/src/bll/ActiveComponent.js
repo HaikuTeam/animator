@@ -1741,7 +1741,7 @@ class ActiveComponent extends BaseModel {
         for (const propertyName in moves[timelineName][componentId]) {
           const keyframeMoves = moves[timelineName][componentId][propertyName]
           this.moveKeyframes(
-            [componentId],
+            componentId,
             timelineName,
             propertyName,
             keyframeMoves,
