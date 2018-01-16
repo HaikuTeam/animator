@@ -95,7 +95,8 @@ function Tooltip (props) {
     finish,
     stepData,
     waitUserAction,
-    size
+    size,
+    isOverlayHideable
   } = props
   let {top, left} = coordinates
   let positionStyles = STYLES[display.toUpperCase()] || {}
@@ -147,6 +148,7 @@ function Tooltip (props) {
         containerStyles={STYLES.container}
         holeStyles={spotlightExtraStyles}
         display={display}
+        isOverlayHideable={isOverlayHideable}
       />
 
       <Draggable key={stepData.current}>

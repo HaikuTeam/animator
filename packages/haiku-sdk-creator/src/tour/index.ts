@@ -17,6 +17,7 @@ export interface TourState {
   spotlightRadius: number|string;
   waitUserAction: boolean;
   size: string;
+  isOverlayHideable: boolean;
 }
 
 export interface ClientBoundingRect {

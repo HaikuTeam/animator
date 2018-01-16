@@ -12,7 +12,7 @@ const STYLES = {
   }
 }
 
-export default class Spotlight extends React.PureComponent {
+class Spotlight extends React.PureComponent {
   constructor () {
     super()
 
@@ -80,7 +80,9 @@ export default class Spotlight extends React.PureComponent {
       <div style={containerStyles}>
         <div
           onClick={() => {
-            this.setState({showBackground: false})
+            if (this.props.isOverlayHideable) {
+              this.setState({showBackground: false})
+            }
           }}
           style={{
             bottom: 0,
@@ -106,3 +108,14 @@ export default class Spotlight extends React.PureComponent {
     )
   }
 }
+
+Spotlight.propTypes = {
+  offset: React.PropTypes.object,
+  position: React.PropTypes.object,
+  containerStyles: React.PropTypes.object,
+  holeStyles: React.PropTypes.object,
+  display: React.PropTypes.string,
+  isOverlayHideable: React.PropTypes.bool
+}
+
+export default Spotlight

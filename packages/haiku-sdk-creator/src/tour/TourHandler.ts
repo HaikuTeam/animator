@@ -25,6 +25,7 @@ export class TourHandler implements Tour {
       spotlightRadius: 'default',
       waitUserAction: true,
       size: 'small',
+      isOverlayHideable: false,
     },
     {
       selector: `#js-utility-${TourUtils.ProjectName}`,
@@ -35,6 +36,7 @@ export class TourHandler implements Tour {
       spotlightRadius: 400,
       waitUserAction: false,
       size: 'small',
+      isOverlayHideable: false,
     },
     {
       selector: '.gauge-time-readout',
@@ -45,6 +47,7 @@ export class TourHandler implements Tour {
       spotlightRadius: 8000,
       waitUserAction: false,
       size: 'default',
+      isOverlayHideable: true,
     },
     {
       selector: '.gauge-time-readout',
@@ -55,6 +58,7 @@ export class TourHandler implements Tour {
       spotlightRadius: 8000,
       waitUserAction: false,
       size: 'default',
+      isOverlayHideable: true,
     },
     {
       selector: '.gauge-time-readout',
@@ -65,6 +69,7 @@ export class TourHandler implements Tour {
       spotlightRadius: 8000,
       waitUserAction: false,
       size: 'default',
+      isOverlayHideable: true,
     },
     {
       selector: '.gauge-time-readout',
@@ -75,6 +80,7 @@ export class TourHandler implements Tour {
       spotlightRadius: 8000,
       waitUserAction: false,
       size: 'default',
+      isOverlayHideable: true,
     },
     {
       selector: '#publish',
@@ -85,6 +91,7 @@ export class TourHandler implements Tour {
       spotlightRadius: 900,
       waitUserAction: false,
       size: 'default',
+      isOverlayHideable: true,
     },
     {
       selector: '#sidebar',
@@ -95,6 +102,7 @@ export class TourHandler implements Tour {
       spotlightRadius: 1000,
       waitUserAction: false,
       size: 'default',
+      isOverlayHideable: true,
     },
     {
       selector: '#sidebar',
@@ -105,6 +113,7 @@ export class TourHandler implements Tour {
       spotlightRadius: 1000,
       waitUserAction: false,
       size: 'default',
+      isOverlayHideable: true,
     },
     {
       selector: '#sidebar',
@@ -115,6 +124,7 @@ export class TourHandler implements Tour {
       spotlightRadius: 1000,
       waitUserAction: false,
       size: 'default',
+      isOverlayHideable: true,
     },
     {
       selector: '#go-to-dashboard',
@@ -125,6 +135,7 @@ export class TourHandler implements Tour {
       spotlightRadius: 'default',
       waitUserAction: false,
       size: 'default',
+      isOverlayHideable: true,
     },
   ];
 
