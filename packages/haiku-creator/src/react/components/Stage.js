@@ -159,7 +159,6 @@ export default class Stage extends React.Component {
             username={this.props.username}
             password={this.props.password}
             receiveProjectInfo={this.props.receiveProjectInfo}
-            tourClient={this.tourClient}
             onPreviewModeToggled={this.onPreviewModeToggled.bind(this)}
             isTimelineReady={this.props.isTimelineReady} />
           {(experimentIsEnabled(Experiment.MultiComponentFeatures))
