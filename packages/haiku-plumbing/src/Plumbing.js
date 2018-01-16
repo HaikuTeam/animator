@@ -162,7 +162,6 @@ export default class Plumbing extends StateObject {
     this.clients = []
     this.requests = {}
     this.caches = {}
-    this.projects = {}
 
     // Avoid creating new handles if we have been explicitly torn down by a signal
     this._isTornDown = false
@@ -465,8 +464,7 @@ export default class Plumbing extends StateObject {
     setTimeout(() => {
       if (websocket.readyState === WebSocket.OPEN) {
         const data = JSON.stringify(message)
-        const ret = websocket.send(data)
-        return ret
+        return websocket.send(data)
       } else {
         logger.info(`[plumbing] websocket readyState was not open so we did not send message ${message.method || message.id}`)
         callback() // Should this return an error or remain silent?
@@ -536,12 +534,19 @@ export default class Plumbing extends StateObject {
    * We make a decision here as to where + whether to generate a new folder.
    * When it is ready, we kick off the content initialization step with initializeFolder.
    */
-  initializeProject (maybeProjectName, { projectsHome, projectPath, skipContentCreation, organizationName, authorName }, maybeUsername, maybePassword, finish) {
+  initializeProject (
+    maybeProjectName,
+    { projectsHome, projectPath, skipContentCreation, organizationName, authorName, repositoryUrl },
+    maybeUsername,
+    maybePassword,
+    finish
+  ) {
     const projectOptions = {
       projectsHome,
       projectPath,
       skipContentCreation,
       organizationName,
+      repositoryUrl,
       projectName: maybeProjectName,
       username: maybeUsername,
       password: maybePassword
@@ -560,6 +565,9 @@ export default class Plumbing extends StateObject {
 
     return async.series([
       (cb) => {
+        if (projectOptions.organizationName) {
+          return cb()
+        }
         return this.getCurrentOrganizationName((err, organizationName) => {
           if (err) return cb(err)
           projectOptions.organizationName = organizationName
@@ -607,6 +615,7 @@ export default class Plumbing extends StateObject {
       const projectOptionsAgain = {
         didFolderAlreadyExist,
         organizationName: projectOptions.organizationName,
+        repositoryUrl: projectOptions.repositoryUrl,
         username: gitInitializeUsername,
         password: gitInitializePassword,
         authorName
@@ -614,15 +623,6 @@ export default class Plumbing extends StateObject {
 
       return this.initializeFolder(maybeProjectName, projectFolder, gitInitializeUsername, gitInitializePassword, projectOptionsAgain, (err) => {
         if (err) return finish(err)
-        // HACK: used when restarting the process to allow us to reinitialize properly
-        this.projects[projectFolder] = {
-          name: maybeProjectName,
-          folder: projectFolder,
-          username: projectOptionsAgain.username,
-          password: projectOptionsAgain.password,
-          organization: projectOptionsAgain.organizationName,
-          options: projectOptionsAgain
-        }
 
         if (Raven) {
           Raven.setContext({
@@ -633,27 +633,9 @@ export default class Plumbing extends StateObject {
         this.set('lastOpenedProjectName', maybeProjectName)
         this.set('lastOpenedProjectPath', projectFolder)
 
-        if (maybeProjectName) {
-          // HACK: alias to allow lookup by project name
-          this.projects[maybeProjectName] = this.projects[projectFolder]
-        }
-
         return finish(null, projectFolder)
       })
     })
-  }
-
-  /**
-   * Returns the absolute path of the folder of a project by name, if we are tracking one.
-   */
-  getFolderFor (projectName) {
-    let info = this.getProjectInfoFor(projectName)
-    if (!info) return null
-    return info.folder
-  }
-
-  getProjectInfoFor (projectNameOrFolder) {
-    return this.projects[projectNameOrFolder]
   }
 
   /**
@@ -1290,7 +1272,8 @@ function remapProjectObjectToExpectedFormat (projectObject, organizationName) {
       organizationName,
       projectObject.Name
     ),
-    projectsHome: HOMEDIR_PATH
+    projectsHome: HOMEDIR_PATH,
+    repositoryUrl: projectObject.RepositoryUrl
     // GitRemoteUrl
     // GitRemoteName
     // GitRemoteArn

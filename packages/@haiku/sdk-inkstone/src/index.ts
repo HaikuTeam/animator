@@ -421,9 +421,13 @@ export namespace inkstone {
   export namespace project {
     export interface Project {
       Name: string;
+      // Deprecated: IAM-specific fields.
       GitRemoteUrl: string;
       GitRemoteName: string;
       GitRemoteArn: string;
+
+      // Current: GitLab-specific fields.
+      RepositoryUrl: string;
     }
     export interface Credentials {
       Username: string;

@@ -472,8 +472,7 @@ export default class Master extends EventEmitter {
 
   fetchProjectInfo (projectName, haikuUsername, haikuPassword, fetchOptions = {}, cb) {
     return this._git.fetchFolderState('fetch-info', fetchOptions, (err) => {
-      if (err) return cb(err)
-      return this._git.getCurrentShareInfo(cb)
+      cb(err)
     })
   }
 
@@ -623,6 +622,7 @@ export default class Master extends EventEmitter {
       projectName,
       haikuUsername,
       haikuPassword,
+      repositoryUrl: projectOptions.repositoryUrl,
       branchName: DEFAULT_BRANCH_NAME
     })
 

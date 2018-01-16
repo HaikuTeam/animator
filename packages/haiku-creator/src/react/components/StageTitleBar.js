@@ -290,7 +290,7 @@ class StageTitleBar extends React.Component {
 
         this.setState({ projectInfo })
         if (this.props.receiveProjectInfo) this.props.receiveProjectInfo(projectInfo)
-        if (projectInfo.shareLink) this.setState({ linkAddress: projectInfo.shareLink })
+        if (projectInfo && projectInfo.shareLink) this.setState({ linkAddress: projectInfo.shareLink })
       })
     }
   }

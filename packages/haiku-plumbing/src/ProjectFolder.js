@@ -5,7 +5,6 @@ import dedent from 'dedent'
 import semver from 'semver'
 import moment from 'moment'
 import Bundler from './Bundler'
-import npm from './npm'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import * as HaikuHomeDir from 'haiku-serialization/src/utils/HaikuHomeDir'
 import Project from 'haiku-serialization/src/bll/Project'
@@ -94,34 +93,6 @@ export function ensureSpecificProject (projectPath, projectName, projectType = D
       return cb(null, projectPath)
     })
   })
-}
-
-function npmInstallAndLink (projectPath, projectDependencies, cb) {
-  return npm.install(projectPath, projectDependencies, (err) => {
-    if (err) return cb(err)
-    // We npm link *the project* so that local create-react-app can hmr from it
-    return npm.link(projectPath, [projectPath], cb)
-  })
-}
-
-function npmActions (projectPath, projectDependencies, cb) {
-  if (Object.keys(projectDependencies).length < 1) {
-    return cb()
-  }
-
-  // If our only dependency is the player, install it from our local copy
-  if (Object.keys(projectDependencies).length === 1 && projectDependencies['@haiku/player']) {
-    return npm.installPlayerFromLocalSource(projectPath, (err) => {
-      if (err) {
-        // If we had an error trying the local version, fallback to network install
-        logger.info('[project folder] error installing player from local source', err)
-        return npmInstallAndLink(projectPath, projectDependencies, cb)
-      }
-      return cb()
-    })
-  }
-
-  return npmInstallAndLink(projectPath, projectDependencies, cb)
 }
 
 function dir () {
@@ -225,255 +196,249 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
     // Write the file assuming we may have made a change in any of the conditions above
     fse.writeJsonSync(dir(projectPath, 'package.json'), packageJson, { spaces: 2 })
 
-    // Do npm stuff here since the following steps may require the installation to be complete first
-    let projectDependencies = require(dir(projectPath, 'package.json')).dependencies
-    return npmActions(projectPath, projectDependencies, (err) => {
+    // This option is used when we initially set up a project before we've attempted to clone content that
+    // may or may not exist on the remote. Since this case involves copying into a temp folder and then back
+    // on top of the cloned content, we don't want to create anything that might inadvertently overwrite stuff.
+    if (projectOptions.skipContentCreation) {
+      logger.info('[project folder] skipping content creation (II)')
+      return finish()
+    }
+
+    logger.info('[project folder] creating folders')
+
+    fse.mkdirpSync(dir(projectPath, '.haiku'))
+    fse.mkdirpSync(dir(projectPath, 'designs'))
+    fse.mkdirpSync(dir(projectPath, 'code/main'))
+    fse.mkdirpSync(dir(projectPath, 'public'))
+
+    logger.info('[project folder] moving/updating legacy files')
+
+    // Do a bunch of fix-ups that modify the folder content from legacy naming and folder structure.
+    // We need to change this subroutine any time we make a change to the project content structure
+    let filesToMove = {
+      // Meta files
+      'readme.md': 'README.md', // LEGACY: I think we used to name it lowercase, but we want upper
+      'license.txt': 'LICENSE.txt', // LEGACY: I think we used to name it lowercase, but we want upper
+      // Core code files
+      'bytecode.js': 'code/main/code.js',
+      'interpreter.js': 'code/main/dom.js',
+      'embed.js': 'code/main/dom-embed.js',
+      'react-dom.js': 'code/main/react-dom.js'
+
+      // --
+      // TODO: Switch the bundle code files to these paths, once we're ready to make the equivalent
+      // switch inside sumi-e, inkstone, share-page, and wherever else.
+      // ALSO SEE BELOW, where paths need to be changed as well
+      // 'index.embed.js': 'public/dom-embed.bundle.js',
+      // 'index.standalone.js': 'public/dom-standalone.bundle.js'
+      // --
+    }
+    for (let formerFilePath in filesToMove) {
+      let nextFilePath = filesToMove[formerFilePath]
+      if (fse.existsSync(dir(projectPath, formerFilePath))) {
+        // I guess there is no 'moveSync', and 'copySync' acts weird, so here it is imperatively:
+        let contentsToCopy = fse.readFileSync(dir(projectPath, formerFilePath)).toString()
+        fse.outputFileSync(dir(projectPath, nextFilePath), contentsToCopy)
+        fse.removeSync(dir(projectPath, formerFilePath))
+      }
+      // Now fix any legacy content that may be present inside of the updated file, e.g. references
+      if (fse.existsSync(dir(projectPath, nextFilePath))) {
+        let fileContents = fse.readFileSync(dir(projectPath, nextFilePath)).toString()
+        fileContents.split('bytecode.js').join('code.js') // Respective to the code/main dir
+        fileContents.split('interpreter.js').join('dom.js') // Respective to the code/main dir
+        fse.outputFileSync(dir(projectPath, nextFilePath), fileContents)
+      }
+    }
+
+    logger.info('[project folder] removing unneeded files')
+
+    let filesToRemove = [
+      'index.embed.html',
+      'index.standalone.html'
+    ]
+    filesToRemove.forEach((fileToRemove) => {
+      fse.removeSync(dir(projectPath, fileToRemove))
+    })
+
+    logger.info('[project folder] creating files')
+
+    // Other user data may have been written these, so don't overwrite if they're already present
+    if (!fse.existsSync(dir(projectPath, '.haiku/comments.json'))) {
+      fse.outputFileSync(dir(projectPath, '.haiku/comments.json'), dedent`
+        []
+      `)
+    }
+
+    // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
+    if (looksLikeBrandNewProject) {
+      if (!fse.existsSync(dir(projectPath, primaryAssetPath))) {
+        fse.copySync(path.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'), dir(projectPath, primaryAssetPath))
+      }
+    }
+
+    fse.outputFileSync(dir(projectPath, 'README.md'), dedent`
+      # ${projectNameSafe}
+
+      This project was created with [Haiku](https://haiku.ai).
+
+      ## Install
+
+      \`\`\`
+      $ haiku install ${projectNameSafe}
+      \`\`\`
+
+      ## Usage
+
+      \`\`\`
+      var ${projectNameSafe} = require('${npmPackageName}')
+      \`\`\`
+
+      ## Copyright
+
+      ${copyrightNotice}
+    `)
+
+    fse.outputFileSync(dir(projectPath, 'LICENSE.txt'), dedent`
+      ${copyrightNotice}
+    `)
+
+    let embedName = `HaikuComponentEmbed_${organizationName}_${projectNameSafe}`
+    let standaloneName = `HaikuComponent_${organizationName}_${projectNameSafe}`
+
+    // But a bunch of ancillary files we take full control of and overwrite despite what the user did
+    fse.outputFileSync(dir(projectPath, 'index.js'), dedent`
+      // By default, a DOM module is exported; see code/main/* for other options
+      module.exports = require('./code/main/dom')
+    `)
+    fse.outputFileSync(dir(projectPath, 'react.js'), dedent`
+      // By default, a react-dom module is exported; see code/main/* for other options
+      module.exports = require('./code/main/react-dom')
+    `)
+    fse.outputFileSync(dir(projectPath, 'react-bare.js'), dedent`
+      // This only exports a React module into which a Haiku Player must be passed
+      var React = require('react') // Installed as a peer dependency of '@haiku/player'
+      var ReactDOM = require('react-dom') // Installed as a peer dependency of '@haiku/player'
+      var HaikuReactAdapter = require('@haiku/player/dom/react')
+      var ${reactProjectName}_Bare = HaikuReactAdapter(null, require('./code/main/code'))
+      if (${reactProjectName}_Bare.default) ${reactProjectName}_Bare = ${reactProjectName}_Bare.default
+      module.exports = ${reactProjectName}_Bare
+    `)
+
+    fse.outputFileSync(dir(projectPath, 'preview.html'), dedent`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${projectNameSafe} | Preview | Haiku</title>
+        <style>
+          .container { margin: 0 auto; width: 100%; }
+          #mount { width: 100%; margin: 0 auto; }
+          body { margin: 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div id="mount"></div>
+        </div>
+        <script src="./index.standalone.js"></script>
+        <script>
+          ${standaloneName}(document.getElementById('mount'), {
+            sizing: 'contain',
+            loop: true
+          })
+        </script>
+      </body>
+      </html>
+    `)
+
+    // Should we try to merge these if the user made any changes?
+    fse.outputFileSync(dir(projectPath, '.gitignore'), dedent`
+      .DS_Store
+      *.log
+      *.*.log
+      node_modules
+      bower_components
+      jspm_modules
+      coverage
+      build
+      dist
+      .env
+    `)
+    fse.outputFileSync(dir(projectPath, '.npmignore'), dedent`
+      .DS_Store
+      .git
+      .svn
+      *.log
+      *.*.log
+      *.ai
+      *.sketch
+      *.svg
+      .env
+      .haiku
+    `)
+    fse.outputFileSync(dir(projectPath, '.yarnignore'), dedent`
+      .DS_Store
+      .git
+      .svn
+      *.log
+      *.*.log
+      *.ai
+      *.sketch
+      *.svg
+      .env
+      .haiku
+    `)
+    fse.outputFileSync(dir(projectPath, '.npmrc'), dedent`
+      registry=https://registry.npmjs.org/
+      @haiku:registry=https://reservoir.haiku.ai:8910/
+    `)
+    fse.outputFileSync(dir(projectPath, '.yarnrc'), dedent`
+      registry "https://registry.npmjs.org/"
+      "@haiku:registry" "https://reservoir.haiku.ai:8910/"
+    `)
+
+    // Let the user skip this heavy step optionally, e.g. when just initializing the project the first time
+    if (projectOptions.skipCDNBundles) {
+      logger.info('[project folder] skipping cdn bundles')
+      return finish()
+    }
+
+    logger.info('[project folder] creating cdn bundles')
+    return async.parallel([
+      function (cb) {
+        logger.info('[project folder] bundling code/main/dom-embed.js')
+        return Bundler.createBundle(
+          dir(projectPath, 'code/main'),
+          dir(projectPath, 'code/main/dom-embed.js'),
+          embedName,
+          (err, bundledContents) => {
+            if (err) return cb(err)
+            logger.info('[project folder] bundling succeeded for', embedName)
+            let finalContent = `/** ${autoGeneratedNotice}\n${copyrightNotice}\n*/\n${bundledContents}`
+            fse.outputFileSync(dir(projectPath, 'index.embed.js'), finalContent)
+            return cb()
+          }
+        )
+      },
+      function (cb) {
+        logger.info('[project folder] bundling code/main/dom-standalone.js')
+        return Bundler.createBundle(
+          dir(projectPath, 'code/main'),
+          dir(projectPath, 'code/main/dom-standalone.js'),
+          standaloneName,
+          (err, bundledContents) => {
+            if (err) return cb(err)
+            logger.info('[project folder] bundling succeeded for', standaloneName)
+            let finalContent = `/** ${autoGeneratedNotice}\n${copyrightNotice}\n*/\n${bundledContents}`
+            fse.outputFileSync(dir(projectPath, 'index.standalone.js'), finalContent)
+            return cb()
+          }
+        )
+      }
+    ], (err, results) => {
       if (err) return finish(err)
-
-      // This option is used when we initially set up a project before we've attempted to clone content that
-      // may or may not exist on the remote. Since this case involves copying into a temp folder and then back
-      // on top of the cloned content, we don't want to create anything that might inadvertently overwrite stuff.
-      if (projectOptions.skipContentCreation) {
-        logger.info('[project folder] skipping content creation (II)')
-        return finish()
-      }
-
-      logger.info('[project folder] creating folders')
-
-      fse.mkdirpSync(dir(projectPath, '.haiku'))
-      fse.mkdirpSync(dir(projectPath, 'designs'))
-      fse.mkdirpSync(dir(projectPath, 'code/main'))
-      fse.mkdirpSync(dir(projectPath, 'public'))
-
-      logger.info('[project folder] moving/updating legacy files')
-
-      // Do a bunch of fix-ups that modify the folder content from legacy naming and folder structure.
-      // We need to change this subroutine any time we make a change to the project content structure
-      let filesToMove = {
-        // Meta files
-        'readme.md': 'README.md', // LEGACY: I think we used to name it lowercase, but we want upper
-        'license.txt': 'LICENSE.txt', // LEGACY: I think we used to name it lowercase, but we want upper
-        // Core code files
-        'bytecode.js': 'code/main/code.js',
-        'interpreter.js': 'code/main/dom.js',
-        'embed.js': 'code/main/dom-embed.js',
-        'react-dom.js': 'code/main/react-dom.js'
-
-        // --
-        // TODO: Switch the bundle code files to these paths, once we're ready to make the equivalent
-        // switch inside sumi-e, inkstone, share-page, and wherever else.
-        // ALSO SEE BELOW, where paths need to be changed as well
-        // 'index.embed.js': 'public/dom-embed.bundle.js',
-        // 'index.standalone.js': 'public/dom-standalone.bundle.js'
-        // --
-      }
-      for (let formerFilePath in filesToMove) {
-        let nextFilePath = filesToMove[formerFilePath]
-        if (fse.existsSync(dir(projectPath, formerFilePath))) {
-          // I guess there is no 'moveSync', and 'copySync' acts weird, so here it is imperatively:
-          let contentsToCopy = fse.readFileSync(dir(projectPath, formerFilePath)).toString()
-          fse.outputFileSync(dir(projectPath, nextFilePath), contentsToCopy)
-          fse.removeSync(dir(projectPath, formerFilePath))
-        }
-        // Now fix any legacy content that may be present inside of the updated file, e.g. references
-        if (fse.existsSync(dir(projectPath, nextFilePath))) {
-          let fileContents = fse.readFileSync(dir(projectPath, nextFilePath)).toString()
-          fileContents.split('bytecode.js').join('code.js') // Respective to the code/main dir
-          fileContents.split('interpreter.js').join('dom.js') // Respective to the code/main dir
-          fse.outputFileSync(dir(projectPath, nextFilePath), fileContents)
-        }
-      }
-
-      logger.info('[project folder] removing unneeded files')
-
-      let filesToRemove = [
-        'index.embed.html',
-        'index.standalone.html'
-      ]
-      filesToRemove.forEach((fileToRemove) => {
-        fse.removeSync(dir(projectPath, fileToRemove))
-      })
-
-      logger.info('[project folder] creating files')
-
-      // Other user data may have been written these, so don't overwrite if they're already present
-      if (!fse.existsSync(dir(projectPath, '.haiku/comments.json'))) {
-        fse.outputFileSync(dir(projectPath, '.haiku/comments.json'), dedent`
-          []
-        `)
-      }
-
-      // If it isn't already a part of the project, add the 'blank' sketch file to users' projects
-      if (looksLikeBrandNewProject) {
-        if (!fse.existsSync(dir(projectPath, primaryAssetPath))) {
-          fse.copySync(path.join(PLUMBING_DIR, 'bins', 'sketch-42.sketch'), dir(projectPath, primaryAssetPath))
-        }
-      }
-
-      fse.outputFileSync(dir(projectPath, 'README.md'), dedent`
-        # ${projectNameSafe}
-
-        This project was created with [Haiku](https://haiku.ai).
-
-        ## Install
-
-        \`\`\`
-        $ haiku install ${projectNameSafe}
-        \`\`\`
-
-        ## Usage
-
-        \`\`\`
-        var ${projectNameSafe} = require('${npmPackageName}')
-        \`\`\`
-
-        ## Copyright
-
-        ${copyrightNotice}
-      `)
-
-      fse.outputFileSync(dir(projectPath, 'LICENSE.txt'), dedent`
-        ${copyrightNotice}
-      `)
-
-      let embedName = `HaikuComponentEmbed_${organizationName}_${projectNameSafe}`
-      let standaloneName = `HaikuComponent_${organizationName}_${projectNameSafe}`
-
-      // But a bunch of ancillary files we take full control of and overwrite despite what the user did
-      fse.outputFileSync(dir(projectPath, 'index.js'), dedent`
-        // By default, a DOM module is exported; see code/main/* for other options
-        module.exports = require('./code/main/dom')
-      `)
-      fse.outputFileSync(dir(projectPath, 'react.js'), dedent`
-        // By default, a react-dom module is exported; see code/main/* for other options
-        module.exports = require('./code/main/react-dom')
-      `)
-      fse.outputFileSync(dir(projectPath, 'react-bare.js'), dedent`
-        // This only exports a React module into which a Haiku Player must be passed
-        var React = require('react') // Installed as a peer dependency of '@haiku/player'
-        var ReactDOM = require('react-dom') // Installed as a peer dependency of '@haiku/player'
-        var HaikuReactAdapter = require('@haiku/player/dom/react')
-        var ${reactProjectName}_Bare = HaikuReactAdapter(null, require('./code/main/code'))
-        if (${reactProjectName}_Bare.default) ${reactProjectName}_Bare = ${reactProjectName}_Bare.default
-        module.exports = ${reactProjectName}_Bare
-      `)
-
-      fse.outputFileSync(dir(projectPath, 'preview.html'), dedent`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${projectNameSafe} | Preview | Haiku</title>
-          <style>
-            .container { margin: 0 auto; width: 100%; }
-            #mount { width: 100%; margin: 0 auto; }
-            body { margin: 0; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div id="mount"></div>
-          </div>
-          <script src="./index.standalone.js"></script>
-          <script>
-            ${standaloneName}(document.getElementById('mount'), {
-              sizing: 'contain',
-              loop: true
-            })
-          </script>
-        </body>
-        </html>
-      `)
-
-      // Should we try to merge these if the user made any changes?
-      fse.outputFileSync(dir(projectPath, '.gitignore'), dedent`
-        .DS_Store
-        *.log
-        *.*.log
-        node_modules
-        bower_components
-        jspm_modules
-        coverage
-        build
-        dist
-        .env
-      `)
-      fse.outputFileSync(dir(projectPath, '.npmignore'), dedent`
-        .DS_Store
-        .git
-        .svn
-        *.log
-        *.*.log
-        *.ai
-        *.sketch
-        *.svg
-        .env
-        .haiku
-      `)
-      fse.outputFileSync(dir(projectPath, '.yarnignore'), dedent`
-        .DS_Store
-        .git
-        .svn
-        *.log
-        *.*.log
-        *.ai
-        *.sketch
-        *.svg
-        .env
-        .haiku
-      `)
-      fse.outputFileSync(dir(projectPath, '.npmrc'), dedent`
-        registry=https://registry.npmjs.org/
-        @haiku:registry=https://reservoir.haiku.ai:8910/
-      `)
-      fse.outputFileSync(dir(projectPath, '.yarnrc'), dedent`
-        registry "https://registry.npmjs.org/"
-        "@haiku:registry" "https://reservoir.haiku.ai:8910/"
-      `)
-
-      // Let the user skip this heavy step optionally, e.g. when just initializing the project the first time
-      if (projectOptions.skipCDNBundles) {
-        logger.info('[project folder] skipping cdn bundles')
-        return finish()
-      }
-
-      logger.info('[project folder] creating cdn bundles')
-      return async.parallel([
-        function (cb) {
-          logger.info('[project folder] bundling code/main/dom-embed.js')
-          return Bundler.createBundle(
-            dir(projectPath, 'code/main'),
-            dir(projectPath, 'code/main/dom-embed.js'),
-            embedName,
-            (err, bundledContents) => {
-              if (err) return cb(err)
-              logger.info('[project folder] bundling succeeded for', embedName)
-              let finalContent = `/** ${autoGeneratedNotice}\n${copyrightNotice}\n*/\n${bundledContents}`
-              fse.outputFileSync(dir(projectPath, 'index.embed.js'), finalContent)
-              return cb()
-            }
-          )
-        },
-        function (cb) {
-          logger.info('[project folder] bundling code/main/dom-standalone.js')
-          return Bundler.createBundle(
-            dir(projectPath, 'code/main'),
-            dir(projectPath, 'code/main/dom-standalone.js'),
-            standaloneName,
-            (err, bundledContents) => {
-              if (err) return cb(err)
-              logger.info('[project folder] bundling succeeded for', standaloneName)
-              let finalContent = `/** ${autoGeneratedNotice}\n${copyrightNotice}\n*/\n${bundledContents}`
-              fse.outputFileSync(dir(projectPath, 'index.standalone.js'), finalContent)
-              return cb()
-            }
-          )
-        }
-      ], (err, results) => {
-        if (err) return finish(err)
-        return finish(null, results[results.length - 1])
-      })
+      return finish(null, results[results.length - 1])
     })
   } catch (exception) {
     logger.error('[project folder] ' + exception)
