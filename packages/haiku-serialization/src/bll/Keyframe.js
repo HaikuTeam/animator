@@ -507,7 +507,7 @@ class Keyframe extends BaseModel {
       return 'LIGHTEST_PINK'
     }
 
-    if (this.isSelected() && this.isActive() && this.isDirectlySelected()) {
+    if (this.isSelected() && this.isActive() && this.isSelectedBody()) {
       return 'LIGHTEST_PINK'
     }
 
