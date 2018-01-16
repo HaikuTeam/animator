@@ -92,40 +92,6 @@ class Keyframe extends BaseModel {
     this.deactivate()
   }
 
-  /*
-   * @method toggleActive
-   * @description A keyframe should be made active when:
-   *   - It was clicked
-   *   - A tween that belongs to it was clicked
-   * Note the difference between this and selected
-   */
-  toggleActive () {
-    if (this.isActive()) {
-      this.deactivate()
-    } else {
-      this.activate()
-    }
-  }
-
-  /*
-   * @method toggleSelected
-   * @description A keyframe should be made selected when:
-   *   - It was clicked
-   * Note the difference between this and active
-   */
-  toggleSelected () {
-    if (this.isSelected()) {
-      this.deselect()
-    } else {
-      this.select()
-    }
-  }
-
-  selectSelfAndSurrounds () {
-    this.select()
-    // this.callOnSelfAndSurrounds('activate', {skipDeselect: true})
-  }
-
   emitWithNeighbors (what, a, b, c, d, e) {
     this.emit(what, a, b, c, d, e)
     if (this.next()) this.next().emit(what, a, b, c, d, e)
@@ -143,20 +109,6 @@ class Keyframe extends BaseModel {
 
   isDirectlySelected () {
     return this._directlySelected
-  }
-
-  areAnyOthersSelected () {
-    return this.othersSelected().length > 0
-  }
-
-  othersSelected () {
-    const selected = []
-    Keyframe.where({ _selected: true, component: this.component }).forEach((keyframe) => {
-      if (keyframe !== this) {
-        selected.push(keyframe)
-      }
-    })
-    return selected
   }
 
   isDeleted () {
