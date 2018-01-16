@@ -130,14 +130,17 @@ function Tooltip (props) {
     }
   }
 
+  if (display === 'none') {
+    top = '50%',
+    left = '50%'
+  } else {
+    top = top + offset.top
+    left = left + offset.left
+  }
+
   if (spotlightRadius !== 'default') {
     spotlightExtraStyles.width = spotlightRadius
     spotlightExtraStyles.height = spotlightRadius
-  }
-
-  if (typeof top === 'number') {
-    top = top + offset.top
-    left = left + offset.left
   }
 
   return (
