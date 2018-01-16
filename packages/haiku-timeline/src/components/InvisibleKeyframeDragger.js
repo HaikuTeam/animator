@@ -30,7 +30,9 @@ export default class InvisibleKeyframeDragger extends React.Component {
       what === 'keyframe-selected' ||
       what === 'keyframe-deselected' ||
       what === 'keyframe-ms-set' ||
-      what === 'keyframe-neighbor-move'
+      what === 'keyframe-neighbor-move' ||
+      what === 'keyframe-body-selected' ||
+      what === 'keyframe-body-unselected'
     ) {
       this.forceUpdate()
     }
@@ -42,53 +44,34 @@ export default class InvisibleKeyframeDragger extends React.Component {
 
     return (
       <TimelineDraggable
-        id={`keyframe-dragger-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
-        onMouseDown={() => {
-          // This logic is here to allow keyframes to be dragged without having
-          // to select them first.
-          if (!this.props.keyframe.isActive() && !Globals.isShiftKeyDown) {
-            this.props.keyframe.activate(
-              {skipDeselect: false}
-            )
-
-            this.performedSelection = true
-          }
+        onMouseDown={(mouseEvent) => {
+          this.props.keyframe.handleMouseDown(mouseEvent, {...Globals}, {isViaKeyframeDraggerView: true})
         }}
         onStart={(dragEvent, dragData) => {
           this.props.component.dragStartActiveKeyframes(dragData)
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
-          if (!wasDrag && !this.performedSelection) {
-            const skipDeselect =
-              Globals.isShiftKeyDown ||
-              (Globals.isControlKeyDown || lastMouseButtonPressed === 3)
-
-            this.props.keyframe.toggleActive(
-              {skipDeselect, directlySelected: true}
-            )
-          }
-
-          this.props.component.dragStopActiveKeyframes(dragData)
-          this.performedSelection = false
+          this.props.keyframe.handleDragStop(dragData, {wasDrag, lastMouseButtonPressed, ...Globals}, {isViaKeyframeDraggerView: true})
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
           this.props.component.dragActiveKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}>
         <span
+          id={`keyframe-dragger-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
-
-            this.props.keyframe.activate(
-              {skipDeselect: this.props.keyframe.isSelected(), directlySelected: true}
-            )
-
+            this.props.keyframe.handleContextMenu({...Globals}, {isViaKeyframeDraggerView: true})
             PopoverMenu.emit('show', {
               type: 'keyframe',
               event: ctxMenuEvent.nativeEvent,
               model: this.props.keyframe,
               offset: pxOffsetLeft
             })
+          }}
+          onMouseUp={(mouseEvent) => {
+            mouseEvent.stopPropagation()
+            this.props.keyframe.handleMouseUp(mouseEvent, {...Globals}, {isViaKeyframeDraggerView: true})
           }}
           style={{
             display: 'inline-block',

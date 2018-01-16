@@ -101,7 +101,9 @@ export default class TransitionBody extends React.Component {
       what === 'keyframe-selected' ||
       what === 'keyframe-deselected' ||
       what === 'keyframe-ms-set' ||
-      what === 'keyframe-neighbor-move'
+      what === 'keyframe-neighbor-move' ||
+      what === 'keyframe-body-selected' ||
+      what === 'keyframe-body-unselected'
     ) {
       this.forceUpdate()
     }
@@ -124,17 +126,11 @@ export default class TransitionBody extends React.Component {
         // NOTE: We cannot use 'curr.ms' for key here because these things move around
         id={`transition-body-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
-        onMouseDown={() => {
+        onMouseDown={(mouseEvent) => {
           // This logic is here to allow transitions to be dragged without having
           // to select them first.
           if (!this.props.preventDragging) {
-            if (!(this.props.keyframe.isSelected() && this.props.keyframe.isActive()) && !Globals.isShiftKeyDown) {
-              this.props.keyframe.selectSelfAndSurrounds(
-                {skipDeselect: false, directlySelected: true}
-              )
-
-              this.performedSelection = true
-            }
+            this.props.keyframe.handleMouseDown(mouseEvent, {...Globals}, {isViaTransitionBodyView: true})
           }
         }}
         onStart={(dragEvent, dragData) => {
@@ -144,24 +140,15 @@ export default class TransitionBody extends React.Component {
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
           if (!this.props.preventDragging) {
-            if (!wasDrag && !this.performedSelection) {
-              const skipDeselect =
-                Globals.isShiftKeyDown ||
-                (Globals.isControlKeyDown || lastMouseButtonPressed === 3)
-
-              this.props.keyframe.toggleSelectSelfAndSurrounds({skipDeselect})
-            }
+            this.props.keyframe.handleDragStop(dragData, {wasDrag, lastMouseButtonPressed, ...Globals}, {isViaKeyframeDraggerView: true})
           }
-
           this.props.component.dragStopActiveKeyframes(dragData)
-          this.performedSelection = false
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
           if (!this.props.preventDragging) {
             this.props.component.dragActiveKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
           }
-        }, THROTTLE_TIME)}
-        onContextMenu>
+        }, THROTTLE_TIME)}>
         <span
           className='pill-container'
           key={uniqueKey}
@@ -169,16 +156,8 @@ export default class TransitionBody extends React.Component {
             this[uniqueKey] = domElement
           }}
           onContextMenu={(ctxMenuEvent) => {
-            if (this.props.keyframe.isWithinCollapsedRow()) {
-              return false
-            }
-
-            this.props.keyframe.selectSelfAndSurrounds(
-              {skipDeselect: this.props.keyframe.isSelected(), directlySelected: true}
-            )
-
             ctxMenuEvent.stopPropagation()
-
+            this.props.keyframe.handleContextMenu({...Globals}, {isViaTransitionBodyView: true})
             PopoverMenu.emit('show', {
               type: 'keyframe-transition',
               event: ctxMenuEvent.nativeEvent,
@@ -186,6 +165,10 @@ export default class TransitionBody extends React.Component {
               offset: pxOffsetLeft,
               curve: this.props.keyframe.getCurve()
             })
+          }}
+          onMouseUp={(mouseEvent) => {
+            mouseEvent.stopPropagation()
+            this.props.keyframe.handleMouseUp(mouseEvent, {...Globals}, {isViaTransitionBodyView: true})
           }}
           onMouseEnter={(reactEvent) => {
             if (this[uniqueKey]) this[uniqueKey].style.color = Palette.GRAY

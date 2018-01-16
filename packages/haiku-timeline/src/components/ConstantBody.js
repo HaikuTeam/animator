@@ -28,7 +28,9 @@ export default class ConstantBody extends React.Component {
       what === 'keyframe-selected' ||
       what === 'keyframe-deselected' ||
       what === 'keyframe-ms-set' ||
-      what === 'keyframe-neighbor-move'
+      what === 'keyframe-neighbor-move' ||
+      what === 'keyframe-body-selected' ||
+      what === 'keyframe-body-unselected'
     ) {
       this.forceUpdate()
     }
@@ -49,12 +51,8 @@ export default class ConstantBody extends React.Component {
         id={`constant-body-${uniqueKey}`}
         className='constant-body'
         onContextMenu={(ctxMenuEvent) => {
-          if (this.props.keyframe.isWithinCollapsedRow()) {
-            return false
-          }
-
           ctxMenuEvent.stopPropagation()
-
+          this.props.keyframe.handleContextMenu({...Globals}, {isViaConstantBodyView: true})
           PopoverMenu.emit('show', {
             type: 'keyframe-segment',
             event: ctxMenuEvent.nativeEvent,
@@ -64,22 +62,11 @@ export default class ConstantBody extends React.Component {
         }}
         onMouseDown={(mouseEvent) => {
           mouseEvent.stopPropagation()
-
-          const isTriggeringContextMenu =
-            Globals.isControlKeyDown || mouseEvent.nativeEvent.which === 3
-          const skipDeselect = Globals.isShiftKeyDown || isTriggeringContextMenu
-
-          if (isTriggeringContextMenu) {
-            this.props.keyframe.selectSelfAndSurrounds({
-              skipDeselect,
-              selectConstBody: true
-            })
-          } else {
-            this.props.keyframe.toggleSelectSelfAndSurrounds({
-              skipDeselect,
-              selectConstBody: true
-            })
-          }
+          this.props.keyframe.handleMouseDown(mouseEvent, {...Globals}, {isViaConstantBodyView: true})
+        }}
+        onMouseUp={(mouseEvent) => {
+          mouseEvent.stopPropagation()
+          this.props.keyframe.handleMouseUp(mouseEvent, {...Globals}, {isViaConstantBodyView: true})
         }}
         style={{
           position: 'absolute',

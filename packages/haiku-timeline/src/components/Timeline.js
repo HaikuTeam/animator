@@ -358,22 +358,24 @@ class Timeline extends React.Component {
   }
 
   loadUserSettings () {
-    this.project.getEnvoyClient().get(USER_CHANNEL).then(
-      (user) => {
-        this.user = user
-        user.getConfig('timeDisplayModes').then(
-          (timeDisplayModes) => {
-            if (timeDisplayModes && timeDisplayModes[this.project.getFolder()]) {
-              this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(timeDisplayModes[this.project.getFolder()])
-            } else {
-              user.getConfig('defaultTimeDisplayMode').then((defaultTimeDisplayMode) => {
-                defaultTimeDisplayMode && this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(defaultTimeDisplayMode)
-              })
+    if (!this.project.getEnvoyClient().isInMockMode()) {
+      this.project.getEnvoyClient().get(USER_CHANNEL).then(
+        (user) => {
+          this.user = user
+          user.getConfig('timeDisplayModes').then(
+            (timeDisplayModes) => {
+              if (timeDisplayModes && timeDisplayModes[this.project.getFolder()]) {
+                this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(timeDisplayModes[this.project.getFolder()])
+              } else {
+                user.getConfig('defaultTimeDisplayMode').then((defaultTimeDisplayMode) => {
+                  defaultTimeDisplayMode && this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(defaultTimeDisplayMode)
+                })
+              }
             }
-          }
-        )
-      }
-    )
+          )
+        }
+      )
+    }
   }
 
   curvesMenu (maybeCurve, cb) {
@@ -613,18 +615,20 @@ class Timeline extends React.Component {
   saveTimeDisplayModeSetting () {
     const mode = this.getActiveComponent().getCurrentTimeline().getTimeDisplayMode()
 
-    this.user.getConfig('timeDisplayModes').then(
-      (timeDisplayModes) => {
-        this.user.setConfig(
-          'timeDisplayModes',
-          {
-            ...timeDisplayModes,
-            [this.project.getFolder()]: mode
-          }
-        )
-        this.user.setConfig('defaultTimeDisplayMode', mode)
-      }
-    )
+    if (!this.project.getEnvoyClient().isInMockMode()) {
+      this.user.getConfig('timeDisplayModes').then(
+        (timeDisplayModes) => {
+          this.user.setConfig(
+            'timeDisplayModes',
+            {
+              ...timeDisplayModes,
+              [this.project.getFolder()]: mode
+            }
+          )
+          this.user.setConfig('defaultTimeDisplayMode', mode)
+        }
+      )
+    }
   }
 
   playbackSkipBack () {
