@@ -91,14 +91,6 @@ class Keyframe extends BaseModel {
     this._directlySelected = false
   }
 
-  toggleDirectlySelected () {
-    if (this.isDirectlySelected()) {
-      this.unsetDirectlySelected()
-    } else {
-      this.setDirectlySelected()
-    }
-  }
-
   deselectAndDeactivate () {
     this.deselect()
     this.deactivate()
@@ -163,7 +155,7 @@ class Keyframe extends BaseModel {
 
   othersSelected () {
     const selected = []
-    Keyframe.where({ _selected: true }).forEach((keyframe) => {
+    Keyframe.where({ _selected: true, component: this.component }).forEach((keyframe) => {
       if (keyframe !== this) {
         selected.push(keyframe)
       }
@@ -659,11 +651,14 @@ class Keyframe extends BaseModel {
       isSelected: this.isSelected(),
       isSelectedBody: this.isSelectedBody(),
       isActive: this.isActive(),
+      isDirectlySelected: this.isDirectlySelected(),
       isCurveTargeted: isViaTransitionBodyView || isViaConstantBodyView,
       isPrevBodySelected: this.prev() && this.prev().isSelectedBody()
     })
 
     this.ensureIsSelected(isViaTransitionBodyView || isViaConstantBodyView)
+    Keyframe.unsetAnyDirectlySelected({ component: this.component })
+    this.setDirectlySelected()
     this.highlightNextAccordingToOurStatus()
   }
 
@@ -674,7 +669,7 @@ class Keyframe extends BaseModel {
   ) {
     if (!this.isMouseDown()) {
       // We weren't the one who received the initial mouse down
-      const otherKeyframe = Keyframe.where({ _hasMouseDown: true })[0]
+      const otherKeyframe = Keyframe.where({ _hasMouseDown: true, component: this.component })[0]
       if (otherKeyframe && otherKeyframe !== this) {
         otherKeyframe.handleMouseUp(
           {nativeEvent: {which}},
@@ -779,6 +774,8 @@ class Keyframe extends BaseModel {
     }
 
     this.ensureIsSelected(isViaTransitionBodyView || isViaConstantBodyView)
+    Keyframe.unsetAnyDirectlySelected()
+    this.setDirectlySelected()
     this.highlightNextAccordingToOurStatus()
   }
 
@@ -802,7 +799,7 @@ class Keyframe extends BaseModel {
   }
 
   clearOtherKeyframes () {
-    Keyframe.all().forEach((keyframe) => {
+    Keyframe.where({ component: this.component }).forEach((keyframe) => {
       if (keyframe !== this) keyframe.deselectAndDeactivate()
     })
   }
@@ -890,6 +887,12 @@ Keyframe.buildKeyframeMoves = function buildKeyframeMoves (criteria, serialized)
   })
 
   return moves
+}
+
+Keyframe.unsetAnyDirectlySelected = (criteria) => {
+  Keyframe.where(criteria).forEach((keyframe) => {
+    keyframe.unsetDirectlySelected()
+  })
 }
 
 module.exports = Keyframe

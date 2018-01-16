@@ -1690,7 +1690,8 @@ class ActiveComponent extends BaseModel {
     keyframes.forEach((keyframe) => {
       // Only keyframes that have a next keyframe should get the curve assigned,
       // otherwise you'll see a "surprise curve" if you add a next keyframe
-      if (keyframe.next()) {
+      // But only assign if its body is selected or it is directly selected
+      if (keyframe.next() && (keyframe.isSelectedBody() || keyframe.isDirectlySelected())) {
         keyframe.addCurve(curveName, metadata)
       }
     })
@@ -1701,8 +1702,9 @@ class ActiveComponent extends BaseModel {
     const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => {
       // Only keyframes that have a next keyframe should get the curve assigned,
-      // otherwise you'll see a "surprise curve" if you add a next keyframe
-      if (keyframe.isNextKeyframeActive()) {
+      // otherwise you'll see a "surprise curve" if you add a next keyframe.
+      // But only assign if its body is selected or it is directly selected
+      if (keyframe.next() && (keyframe.isSelectedBody() || keyframe.isDirectlySelected())) {
         keyframe.changeCurve(curveName, metadata)
       }
     })
