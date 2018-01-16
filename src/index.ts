@@ -6,7 +6,6 @@ const ENDPOINTS = {
   PROJECT_CREATE: 'v0/project',
   LOGIN: 'v0/user/auth',
   CHANGE_PASSWORD: 'v0/user/password',
-  ORGANIZATION_CREATE: 'v0/organization',
   ORGANIZATION_LIST: 'v0/organization',
   PROJECT_LIST: 'v0/project',
   INVITE_PREFINERY_CHECK: 'v0/invite/check',
@@ -19,6 +18,7 @@ const ENDPOINTS = {
   PROJECT_DELETE_BY_NAME: 'v0/project/:NAME',
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: 'v0/support/upload/:UUID',
   UPDATES: 'v0/updates',
+  USER_CREATE: 'v0/user',
   RESET_PASSWORD: 'v0/reset-password',
   RESET_PASSWORD_CLAIM: 'v0/reset-password/:UUID/claim',
 };
@@ -189,6 +189,33 @@ export namespace inkstone {
         }
       });
     }
+
+
+    export interface UserCreateParams {
+      Email: string;
+      Password: string;
+      OrganizationName: string;
+      NewsletterOptIn?: boolean;
+    }
+
+    export function create(user: UserCreateParams, cb: inkstone.Callback<boolean>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.USER_CREATE,
+        json: organization,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+
+      request.post(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, true, httpResponse);
+        } else {
+          const errMessage = body as string;
+          cb(errMessage, undefined, httpResponse);
+        }
+      });
+    }
   }
 
   export namespace invite {
@@ -307,32 +334,6 @@ export namespace inkstone {
           cb(undefined, projects, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
-        }
-      });
-    }
-
-    export interface OrganizationCreate {
-      Email: string;
-      Password: string;
-      OrganizationName: string;
-      NewsletterOptIn?: boolean;
-    }
-
-    export function create(organization: OrganizationCreate, cb: inkstone.Callback<boolean>) {
-      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.ORGANIZATION_CREATE,
-        json: organization,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      };
-
-      request.post(options, (err, httpResponse, body) => {
-        if (httpResponse && httpResponse.statusCode === 200) {
-          cb(undefined, true, httpResponse);
-        } else {
-          const errMessage = body as string;
-          cb(errMessage, undefined, httpResponse);
         }
       });
     }
