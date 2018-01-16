@@ -32,17 +32,17 @@ class Keyframe extends BaseModel {
   }
 
   activate () {
-    this._activated = true
-    Keyframe._activated[this.getUniqueKey()] = this
-    this.emitWithNeighbors('update', 'keyframe-activated')
-    return this
+    if (!this._activated) {
+      this._activated = true
+      this.emitWithNeighbors('update', 'keyframe-activated')
+    }
   }
 
   deactivate () {
-    this._activated = false
-    delete Keyframe._activated[this.getUniqueKey()]
-    this.emitWithNeighbors('update', 'keyframe-deactivated')
-    return this
+    if (this._activated) {
+      this._activated = false
+      this.emitWithNeighbors('update', 'keyframe-deactivated')
+    }
   }
 
   isActive () {
@@ -50,36 +50,32 @@ class Keyframe extends BaseModel {
   }
 
   select () {
-    this._selected = true
-    Keyframe._selected[this.getUniqueKey()] = this
-    this.emitWithNeighbors('update', 'keyframe-selected')
-    return this
+    if (!this._selected) {
+      this._selected = true
+      this.emitWithNeighbors('update', 'keyframe-selected')
+    }
   }
 
   deselect () {
     this.unsetDirectlySelected()
     this.unsetBodySelected()
-    this._selected = false
-    delete Keyframe._selected[this.getUniqueKey()]
-    this.emitWithNeighbors('update', 'keyframe-deselected')
-    return this
+    if (this._selected) {
+      this._selected = false
+      this.emitWithNeighbors('update', 'keyframe-deselected')
+    }
   }
 
   setBodySelected () {
-    this._selectedBody = true
-    this.emitWithNeighbors('update', 'keyframe-body-selected')
+    if (!this._selectedBody) {
+      this._selectedBody = true
+      this.emitWithNeighbors('update', 'keyframe-body-selected')
+    }
   }
 
   unsetBodySelected () {
-    this._selectedBody = false
-    this.emitWithNeighbors('update', 'keyframe-body-unselected')
-  }
-
-  toggleBodySelected () {
-    if (this.isSelectedBody()) {
-      this.unsetBodySelected()
-    } else {
-      this.setBodySelected()
+    if (this._selectedBody) {
+      this._selectedBody = false
+      this.emitWithNeighbors('update', 'keyframe-body-unselected')
     }
   }
 
@@ -170,7 +166,6 @@ class Keyframe extends BaseModel {
   delete (metadata) {
     this.row.deleteKeyframe(this, metadata)
     this._isDeleted = true
-
     return this
   }
 
