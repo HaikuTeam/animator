@@ -43,7 +43,7 @@ function interpolateValue(v0, v1, t0, t1, tnow, curve) {
 }
 
 function interpolate(now, curve, started, ends, origin, destination) {
-  if (Array.isArray(origin)) {
+  if (Array.isArray(origin) && Array.isArray(destination)) {
     const arrayOutput = [];
     for (let i = 0; i < origin.length; i++) {
       arrayOutput[i] = interpolate(
@@ -58,7 +58,7 @@ function interpolate(now, curve, started, ends, origin, destination) {
     return arrayOutput;
   }
 
-  if (typeof origin === OBJECT) {
+  if (origin && typeof origin === OBJECT && destination && typeof destination === OBJECT) {
     const objectOutput = {};
     for (const key in origin) {
       objectOutput[key] = interpolate(
@@ -73,7 +73,7 @@ function interpolate(now, curve, started, ends, origin, destination) {
     return objectOutput;
   }
 
-  if (typeof origin === NUMBER) {
+  if (typeof origin === NUMBER && typeof destination === NUMBER) {
     return interpolateValue(origin, destination, started, ends, now, curve);
   }
 
