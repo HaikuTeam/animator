@@ -1,12 +1,12 @@
 var code = require('./code')
-var adapter = window.HaikuPlayer && window.HaikuPlayer['2.3.69']
+var adapter = window.HaikuPlayer && window.HaikuPlayer['2.3.72']
 if (adapter) {
   module.exports = adapter(code)
 } else  {
   function safety () {
     console.error(
-      '[haiku player] player version 2.3.69 seems to be missing. ' +
-      'index.embed.js expects it at window.HaikuPlayer["2.3.69"], but we cannot find it. ' +
+      '[haiku player] player version 2.3.72 seems to be missing. ' +
+      'index.embed.js expects it at window.HaikuPlayer["2.3.72"], but we cannot find it. ' +
       'you may need to add a <script src="path/to/HaikuPlayer.js"></script> to fix this.'
     )
     return code
