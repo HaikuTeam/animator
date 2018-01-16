@@ -7,3 +7,4 @@ build
 lib/
 checkstyle-result.xml
 test-result.tap
+dom-embed.js
