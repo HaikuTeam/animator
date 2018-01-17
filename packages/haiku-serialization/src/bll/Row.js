@@ -307,8 +307,9 @@ class Row extends BaseModel {
     } else {
       // if a keyframe was dragged onto zero position we want to delete the zero keyframe
       const keyframes = this.getKeyframes()
-      while (keyframes.length > 1 && keyframes[1].ms === 0) {
-        this.deleteKeyframe(keyframes.shift(), metadata)
+      while (keyframes.length > 1 && keyframes[1].getMs() < 1) {
+        const keyframe = keyframes.shift()
+        keyframe.delete(metadata)
       }
     }
   }
