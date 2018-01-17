@@ -10,7 +10,7 @@ tape('Project', (t) => {
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
   const platform = {}
   const userconfig = {}
-  const fileOptions = { doShallowWorkOnly: false, skipDiffLogging: false }
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: false }
   const envoyOptions = { mock: true }
   Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     t.error(err, 'no err proj setup')
