@@ -434,6 +434,8 @@ class Row extends BaseModel {
   }
 
   deleteKeyframe (keyframe, metadata) {
+    keyframe.destroy()
+
     const siblings = this.getKeyframes()
 
     siblings.forEach((sibling) => {
@@ -442,8 +444,6 @@ class Row extends BaseModel {
         sibling.decrementIndex()
       }
     })
-
-    keyframe.destroy()
 
     this.component.deleteKeyframe(
       this.element.getComponentId(),
