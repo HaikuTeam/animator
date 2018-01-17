@@ -18,6 +18,7 @@ const ENDPOINTS = {
   PROJECT_DELETE_BY_NAME: 'v0/project/:NAME',
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: 'v0/support/upload/:UUID',
   UPDATES: 'v0/updates',
+  USER_CREATE: 'v0/user',
   RESET_PASSWORD: 'v0/reset-password',
   RESET_PASSWORD_CLAIM: 'v0/reset-password/:UUID/claim',
 };
@@ -185,6 +186,33 @@ export namespace inkstone {
           cb(undefined, true, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+
+    export interface UserCreateParams {
+      Email: string;
+      Password: string;
+      OrganizationName: string;
+      NewsletterOptIn?: boolean;
+    }
+
+    export function create(user: UserCreateParams, cb: inkstone.Callback<boolean>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.USER_CREATE,
+        json: organization,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+
+      request.post(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, true, httpResponse);
+        } else {
+          const errMessage = body as string;
+          cb(errMessage, undefined, httpResponse);
         }
       });
     }

@@ -794,7 +794,10 @@ export default class Creator extends React.Component {
     this.onTimelineUnmounted()
     this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
     this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'component:mounted')
-    this.setState({ projectModel: null })
+    this.setState({
+      projectModel: null,
+      activeNav: 'library' // Prevents race+crash loading StateInspector when switching projects
+    })
   }
 
   renderStartupDefaultScreen () {
