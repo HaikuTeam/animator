@@ -491,9 +491,6 @@ class Row extends BaseModel {
     // If we are a heading row (either a cluster or an element), we have no keyframes,
     // so we instead query our children for the list of keyframes within us
     if (this.isHeading() || this.isClusterHeading()) {
-      if (this.dump() === 'cluster-heading.39|1.0.14.sizeAbsolute[]') {
-        console.log(this.children)
-      }
       return lodash.flatten(this.children.map((child) => child.mapVisibleKeyframes(iteratee)))
     }
 
