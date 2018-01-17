@@ -2325,7 +2325,7 @@ class ActiveComponent extends BaseModel {
         element: row.element,
         timeline: row.timeline,
         component: row.component
-      }, {}, { component: this })
+      }, {})
     }
   }
 
