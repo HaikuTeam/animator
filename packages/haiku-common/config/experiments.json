@@ -27,8 +27,8 @@
     "production": false
   },
   "AsyncClientActions": {
-    "development": true,
-    "production": true
+    "development": false,
+    "production": false
   },
   "NoNormalizeOnSetup": {
     "development": true,
