@@ -1691,7 +1691,7 @@ class ActiveComponent extends BaseModel {
       // Only keyframes that have a next keyframe should get the curve assigned,
       // otherwise you'll see a "surprise curve" if you add a next keyframe
       // But only assign if its body is selected or it is directly selected
-      if (keyframe.next() && (keyframe.isSelectedBody() || keyframe.isDirectlySelected())) {
+      if (keyframe.next() && keyframe.isSelectedBody()) {
         keyframe.addCurve(curveName, metadata)
       }
     })
@@ -1704,7 +1704,7 @@ class ActiveComponent extends BaseModel {
       // Only keyframes that have a next keyframe should get the curve assigned,
       // otherwise you'll see a "surprise curve" if you add a next keyframe.
       // But only assign if its body is selected or it is directly selected
-      if (keyframe.next() && (keyframe.isSelectedBody() || keyframe.isDirectlySelected())) {
+      if (keyframe.next() && keyframe.isSelectedBody()) {
         keyframe.changeCurve(curveName, metadata)
       }
     })
