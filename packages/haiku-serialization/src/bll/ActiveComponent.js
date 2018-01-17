@@ -1755,12 +1755,14 @@ class ActiveComponent extends BaseModel {
       }
     }
 
+    this.postMoveZerothKeyframeHook()
+  }
+
+  postMoveZerothKeyframeHook () {
     const rowsNeedingZerothKeyframe = Row.fetchAndUnsetRowsToEnsureZerothKeyframe({ component: this })
     rowsNeedingZerothKeyframe.forEach((row) => {
       row.ensureZerothKeyframe(this.project.getMetadata())
     })
-
-    return this
   }
 
   /**
