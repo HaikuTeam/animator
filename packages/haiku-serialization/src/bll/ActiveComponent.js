@@ -1668,8 +1668,9 @@ class ActiveComponent extends BaseModel {
     return this
   }
 
-  deleteActiveKeyframes (metadata) {
-    const keyframes = this.getActiveKeyframes()
+  deleteSelectedKeyframes (metadata) {
+    const keyframes = this.getSelectedKeyframes()
+
     keyframes.forEach((keyframe) => {
       if (!keyframe.isTransitionSegment()) {
         const prev = keyframe.prev()
@@ -1711,20 +1712,20 @@ class ActiveComponent extends BaseModel {
     return this
   }
 
-  dragStartActiveKeyframes (dragData) {
-    const keyframes = this.getActiveKeyframes()
+  dragStartSelectedKeyframes (dragData) {
+    const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
     return this
   }
 
-  dragStopActiveKeyframes (dragData) {
-    const keyframes = this.getActiveKeyframes()
+  dragStopSelectedKeyframes (dragData) {
+    const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.dragStop(dragData))
     return this
   }
 
-  dragActiveKeyframes (pxpf, mspf, dragData, metadata) {
-    const keyframes = this.getActiveKeyframes()
+  dragSelectedKeyframes (pxpf, mspf, dragData, metadata) {
+    const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.drag(pxpf, mspf, dragData, metadata))
     return this
   }
@@ -2401,10 +2402,6 @@ class ActiveComponent extends BaseModel {
 
   getSelectedKeyframes () {
     return Keyframe.where({ component: this, _selected: true })
-  }
-
-  getActiveKeyframes () {
-    return Keyframe.where({ component: this, _activated: true })
   }
 
   getCurrentKeyframes (criteria) {

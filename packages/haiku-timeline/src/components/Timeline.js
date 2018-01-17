@@ -327,7 +327,7 @@ class Timeline extends React.Component {
       label: (numSelectedKeyframes < 2) ? 'Delete Keyframe' : 'Delete Keyframes',
       enabled: type === 'keyframe',
       onClick: (event) => {
-        this.getActiveComponent().deleteActiveKeyframes({ from: 'timeline' })
+        this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' })
       }
     })
 
@@ -576,7 +576,7 @@ class Timeline extends React.Component {
       // case 46: //delete
       // case 13: //enter
       // delete
-      case 8: this.getActiveComponent().deleteActiveKeyframes({ from: 'timeline' }); break // Only if there are any
+      case 8: this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' }); break // Only if there are any
       case 16: this.updateKeyboardState({ isShiftKeyDown: true }); break
       case 17: this.updateKeyboardState({ isControlKeyDown: true }); break
       case 18: this.updateKeyboardState({ isAltKeyDown: true }); break

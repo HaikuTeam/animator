@@ -726,7 +726,7 @@ class Keyframe extends BaseModel {
       keyframe.updateActivationStatesAccordingToNeighborStates()
     })
 
-    this.component.dragStopActiveKeyframes()
+    this.component.dragStopSelectedKeyframes()
   }
 
   handleContextMenu (
@@ -766,7 +766,7 @@ class Keyframe extends BaseModel {
       keyframe.updateActivationStatesAccordingToNeighborStates()
     })
 
-    this.component.dragStopActiveKeyframes()
+    this.component.dragStopSelectedKeyframes()
   }
 
   handleDragStop (
@@ -788,7 +788,7 @@ class Keyframe extends BaseModel {
     }
 
     this.setDidHandleDragStop()
-    this.component.dragStopActiveKeyframes(dragData)
+    this.component.dragStopSelectedKeyframes(dragData)
   }
 
   clearOtherKeyframes () {

@@ -49,13 +49,13 @@ export default class InvisibleKeyframeDragger extends React.Component {
           this.props.keyframe.handleMouseDown(mouseEvent, {...Globals}, {isViaKeyframeDraggerView: true})
         }}
         onStart={(dragEvent, dragData) => {
-          this.props.component.dragStartActiveKeyframes(dragData)
+          this.props.component.dragStartSelectedKeyframes(dragData)
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
           this.props.keyframe.handleDragStop(dragData, {wasDrag, lastMouseButtonPressed, ...Globals}, {isViaKeyframeDraggerView: true})
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
-          this.props.component.dragActiveKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
+          this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}>
         <span
           id={`keyframe-dragger-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
