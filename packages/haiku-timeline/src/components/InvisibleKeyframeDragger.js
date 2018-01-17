@@ -3,23 +3,24 @@ import lodash from 'lodash'
 import TimelineDraggable from './TimelineDraggable'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
+import Keyframe from 'haiku-serialization/src/bll/Keyframe'
 
 const THROTTLE_TIME = 17 // ms
 
 export default class InvisibleKeyframeDragger extends React.Component {
   constructor (props) {
     super(props)
-    this.handleUpdate = this.handleUpdate.bind(this)
+    Keyframe.on('update', (keyframe, what) => {
+      if (keyframe === this.props.keyframe && this.mounted) this.handleUpdate(what)
+    })
   }
 
   componentWillUnmount () {
     this.mounted = false
-    this.props.keyframe.removeListener('update', this.handleUpdate)
   }
 
   componentDidMount () {
     this.mounted = true
-    this.props.keyframe.on('update', this.handleUpdate)
   }
 
   handleUpdate (what) {
