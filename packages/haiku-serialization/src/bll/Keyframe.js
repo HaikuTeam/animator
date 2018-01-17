@@ -22,7 +22,6 @@ class Keyframe extends BaseModel {
     this._dragStartMs = null
     this._isDeleted = false
     this._needsMove = false
-    this._directlySelected = false
     this._selectedBody = false
     this._hasMouseDown = false
     this._lastMouseDown = 0
@@ -57,7 +56,6 @@ class Keyframe extends BaseModel {
   }
 
   deselect () {
-    this.unsetDirectlySelected()
     this.unsetBodySelected()
     if (this._selected) {
       this._selected = false
@@ -77,14 +75,6 @@ class Keyframe extends BaseModel {
       this._selectedBody = false
       this.emitWithNeighbors('update', 'keyframe-body-unselected')
     }
-  }
-
-  setDirectlySelected () {
-    this._directlySelected = true
-  }
-
-  unsetDirectlySelected () {
-    this._directlySelected = false
   }
 
   deselectAndDeactivate () {
@@ -107,10 +97,6 @@ class Keyframe extends BaseModel {
     return this._selectedBody
   }
 
-  isDirectlySelected () {
-    return this._directlySelected
-  }
-
   isDeleted () {
     return this._isDeleted
   }
@@ -127,7 +113,7 @@ class Keyframe extends BaseModel {
     return this
   }
 
-  dragStop (dragData) {
+  dragStop () {
     this._dragStartMs = null
     this._dragStartPx = null
     return this
@@ -265,6 +251,20 @@ class Keyframe extends BaseModel {
 
   isConstantSegment () {
     return this.hasNextKeyframe()
+  }
+
+  hasConstantBody () {
+    return (
+      this.next() &&
+      !this.getCurve()
+    )
+  }
+
+  hasCurveBody () {
+    return (
+      this.next() &&
+      this.getCurve()
+    )
   }
 
   isSoloKeyframe () {
@@ -473,7 +473,7 @@ class Keyframe extends BaseModel {
       return 'DARK_ROCK'
     }
 
-    return (this.isActive() || this.isDirectlySelected())
+    return (this.isActive())
       ? 'LIGHTEST_PINK'
       : 'ROCK'
   }
@@ -487,7 +487,7 @@ class Keyframe extends BaseModel {
       return 'DARK_ROCK'
     }
 
-    if (this.next() && (this.next().isActive() || this.next().isDirectlySelected())) {
+    if (this.next() && this.next().isActive()) {
       return 'LIGHTEST_PINK'
     } else {
       return 'ROCK'
@@ -532,18 +532,14 @@ class Keyframe extends BaseModel {
   }
 
   setMouseDownState ({
-    isSelected,
-    isSelectedBody,
-    isActive,
-    isCurveTargeted,
-    isPrevBodySelected
+    wasSelected,
+    wasSelectedBody,
+    wasCurveTargeted
   }) {
     this._mouseDownState = {
-      isSelected,
-      isSelectedBody,
-      isActive,
-      isCurveTargeted,
-      isPrevBodySelected
+      wasSelected,
+      wasSelectedBody,
+      wasCurveTargeted
     }
   }
 
@@ -579,12 +575,39 @@ class Keyframe extends BaseModel {
     return this._didHandleContextMenu
   }
 
+  updateActivationStatesAccordingToNeighborStates () {
+    const nextKeyframe = this.next()
+    const prevKeyframe = this.prev()
+
+    if (prevKeyframe) {
+      if (prevKeyframe.isSelected()) {
+        if (prevKeyframe.isSelectedBody()) {
+          this.select()
+        }
+      }
+    }
+
+    if (nextKeyframe) {
+      if (nextKeyframe.isSelected()) {
+        if (this.isSelected() && this.hasCurveBody()) {
+          this.setBodySelected()
+        }
+      }
+    }
+
+    if (this.isSelected()) {
+      this.activate()
+    } else {
+      this.deactivate()
+    }
+  }
+
   handleMouseDown (
     {nativeEvent: {which}},
     {isShiftKeyDown, isControlKeyDown},
     {isViaConstantBodyView, isViaTransitionBodyView}
   ) {
-    if (isControlKeyDown) {
+    if (isControlKeyDown || which === 3) {
       return this.handleContextMenu(
         {isShiftKeyDown, isControlKeyDown},
         {isViaConstantBodyView, isViaTransitionBodyView}
@@ -594,19 +617,31 @@ class Keyframe extends BaseModel {
     this.setMouseDown()
     this.unsetDidHandleDragStop()
 
+    const isCurveTargeted = (isViaTransitionBodyView || isViaConstantBodyView)
+
+    // Keeping track of this information so we can do the correct thing on mouse up
     this.setMouseDownState({
-      isSelected: this.isSelected(),
-      isSelectedBody: this.isSelectedBody(),
-      isActive: this.isActive(),
-      isDirectlySelected: this.isDirectlySelected(),
-      isCurveTargeted: isViaTransitionBodyView || isViaConstantBodyView,
-      isPrevBodySelected: this.prev() && this.prev().isSelectedBody()
+      wasSelected: this.isSelected(),
+      wasSelectedBody: this.isSelectedBody(),
+      wasCurveTargeted: isCurveTargeted
     })
 
-    this.ensureIsSelected(isViaTransitionBodyView || isViaConstantBodyView)
-    Keyframe.unsetAnyDirectlySelected({ component: this.component })
-    this.setDirectlySelected()
-    this.highlightNextAccordingToOurStatus()
+    // Unless the shift key is down, a direct click normally clear others
+    if (!isShiftKeyDown) {
+      // But only if we're touching an unrelated (unselected) set of keyframes
+      if (!this.isSelected()) {
+        this.clearOtherKeyframes()
+      }
+    }
+
+    // Ensure we and neighbors are selected and activated since this may begin a drag
+    this.select()
+    if (isCurveTargeted) this.setBodySelected()
+
+    // Loop through keyframes in this row left-to-right and update activations
+    this.row.getKeyframes().forEach((keyframe) => {
+      keyframe.updateActivationStatesAccordingToNeighborStates()
+    })
   }
 
   handleMouseUp (
@@ -634,50 +669,87 @@ class Keyframe extends BaseModel {
       return
     }
 
+    const {
+      wasSelected,
+      wasSelectedBody,
+      wasCurveTargeted
+    } = this.getMouseDownState()
+
+    this.unsetMouseDownState()
+
     if (!isShiftKeyDown) {
+      // Since mouseup commits the action, we don't check for selection state here
       this.clearOtherKeyframes()
     }
 
-    const {
-      isSelected,
-      isSelectedBody,
-      isCurveTargeted,
-      isPrevBodySelected
-    } = this.getMouseDownState()
-    this.unsetMouseDownState()
-
-    if (isCurveTargeted) {
-      if (isSelected) {
-        if (!isSelectedBody) {
-          this.setBodySelected()
-          this.activate()
-        } else {
+    // If shift is down on mouse up, we deselect current selections
+    if (isShiftKeyDown) {
+      if (wasCurveTargeted) {
+        if (wasSelectedBody) {
           this.unsetBodySelected()
+        } else {
+          this.setBodySelected()
         }
       } else {
-        this.setBodySelected()
-        this.activate()
-        this.select()
+        if (wasSelected) {
+          this.deselect()
+        } else {
+          this.select()
+        }
       }
     } else {
-      if (isSelected) {
-        if (isSelectedBody) {
-          this.unsetBodySelected()
-        } else {
-          if (isPrevBodySelected) {
-            this.prev().unsetBodySelected()
-          } else {
-            this.deactivate()
-            this.deselect()
-          }
-        }
-      } else {
-        this.select()
-        this.activate()
+      // We've explicitly activated the keyframe as opposed to the whole segment
+      if (!wasCurveTargeted) {
+        this.unsetBodySelected()
       }
     }
 
-    this.highlightNextAccordingToOurStatus()
+    // Loop through keyframes in this row left-to-right and update activations
+    this.row.getKeyframes().forEach((keyframe) => {
+      keyframe.updateActivationStatesAccordingToNeighborStates()
+    })
+
+    this.component.dragStopActiveKeyframes()
+  }
+
+  handleContextMenu (
+    {isShiftKeyDown},
+    {isViaConstantBodyView, isViaTransitionBodyView}
+  ) {
+    this.unsetMouseDown()
+    this.unsetMouseDownState()
+
+    if (this.didHandleContextMenu()) {
+      this.unsetDidHandleContextMenu()
+      return
+    }
+
+    this.setDidHandleContextMenu()
+
+    if (this.isWithinCollapsedRow()) {
+      return
+    }
+
+    const isCurveTargeted = (isViaTransitionBodyView || isViaConstantBodyView)
+
+    // Unless the shift key is down, a direct click normally clear others
+    if (!isShiftKeyDown) {
+      // But only if we're touching an unrelated (unselected) set of keyframes
+      if (!this.isSelected()) {
+        this.clearOtherKeyframes()
+      }
+    }
+
+    // Ensure we and neighbors are selected and activated since this may begin a drag
+    this.select()
+    if (isCurveTargeted) this.setBodySelected()
+
+    // Loop through keyframes in this row left-to-right and update activations
+    this.row.getKeyframes().forEach((keyframe) => {
+      keyframe.updateActivationStatesAccordingToNeighborStates()
+    })
+
+    this.component.dragStopActiveKeyframes()
   }
 
   handleDragStop (
@@ -702,52 +774,11 @@ class Keyframe extends BaseModel {
     this.component.dragStopActiveKeyframes(dragData)
   }
 
-  handleContextMenu (
-    {isShiftKeyDown},
-    {isViaConstantBodyView, isViaTransitionBodyView}
-  ) {
-    this.unsetMouseDown()
-    this.unsetMouseDownState()
-
-    if (this.didHandleContextMenu()) {
-      this.unsetDidHandleContextMenu()
-      return
-    }
-
-    this.setDidHandleContextMenu()
-
-    if (this.isWithinCollapsedRow()) {
-      return
-    }
-
-    this.ensureIsSelected(isViaTransitionBodyView || isViaConstantBodyView)
-    Keyframe.unsetAnyDirectlySelected()
-    this.setDirectlySelected()
-    this.highlightNextAccordingToOurStatus()
-  }
-
-  ensureIsSelected (isCurveTargeted) {
-    if (!this.isSelected()) this.select()
-    if (!this.isActive()) this.activate()
-    if (isCurveTargeted) {
-      if (!this.isSelectedBody()) this.setBodySelected()
-    }
-  }
-
-  highlightNextAccordingToOurStatus () {
-    // For visual consistency, highlight the next keyframe if we are on a segment
-    const nextKeyframe = this.next()
-    if (nextKeyframe) {
-      if (this.isSelected() && this.isSelectedBody()) {
-        nextKeyframe.select()
-        nextKeyframe.activate()
-      }
-    }
-  }
-
   clearOtherKeyframes () {
     Keyframe.where({ component: this.component }).forEach((keyframe) => {
-      if (keyframe !== this) keyframe.deselectAndDeactivate()
+      if (keyframe !== this) {
+        keyframe.deselectAndDeactivate()
+      }
     })
   }
 
@@ -834,12 +865,6 @@ Keyframe.buildKeyframeMoves = function buildKeyframeMoves (criteria, serialized)
   })
 
   return moves
-}
-
-Keyframe.unsetAnyDirectlySelected = (criteria) => {
-  Keyframe.where(criteria).forEach((keyframe) => {
-    keyframe.unsetDirectlySelected()
-  })
 }
 
 module.exports = Keyframe
