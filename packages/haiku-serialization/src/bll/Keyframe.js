@@ -56,7 +56,6 @@ class Keyframe extends BaseModel {
   }
 
   deselect () {
-    this.unsetBodySelected()
     if (this._selected) {
       this._selected = false
       this.emitWithNeighbors('update', 'keyframe-deselected')
@@ -78,6 +77,7 @@ class Keyframe extends BaseModel {
   }
 
   deselectAndDeactivate () {
+    this.unsetBodySelected()
     this.deselect()
     this.deactivate()
   }
@@ -503,15 +503,18 @@ class Keyframe extends BaseModel {
       return 'DARK_ROCK'
     }
 
-    if (this.isSelectedBody()) {
-      return 'LIGHTEST_PINK'
-    }
-
-    if (this.isSelected() && this.isActive() && this.isSelectedBody()) {
+    if (this.isSelected() && this.isActive() && this.isCurveSelected()) {
       return 'LIGHTEST_PINK'
     }
 
     return 'ROCK'
+  }
+
+  isCurveSelected () {
+    return (
+      this.hasCurveBody() &&
+      this.isSelectedBody()
+    )
   }
 
   setMouseDown () {
@@ -579,18 +582,28 @@ class Keyframe extends BaseModel {
     const nextKeyframe = this.next()
     const prevKeyframe = this.prev()
 
+    /**
+     * o keyframe
+     * - constant segment
+     * ~ curve segment
+     *
+     *   |<~this keyframe
+     *   |
+     *   o  
+     *   o-o <~ has next only
+     *   o~o
+     * o-o   <~ has prev only
+     * o~o  
+     * o-o-o <~ has next and prev
+     * o~o-o
+     * o-o~o
+     * o~o~o
+     */
+
     if (prevKeyframe) {
       if (prevKeyframe.isSelected()) {
         if (prevKeyframe.isSelectedBody()) {
           this.select()
-        }
-      }
-    }
-
-    if (nextKeyframe) {
-      if (nextKeyframe.isSelected()) {
-        if (this.isSelected() && this.hasCurveBody()) {
-          this.setBodySelected()
         }
       }
     }
@@ -682,6 +695,9 @@ class Keyframe extends BaseModel {
       this.clearOtherKeyframes()
     }
 
+    const nextKeyframe = this.next()
+    const prevKeyframe = this.prev()
+
     // If shift is down on mouse up, we deselect current selections
     if (isShiftKeyDown) {
       if (wasCurveTargeted) {
@@ -692,6 +708,7 @@ class Keyframe extends BaseModel {
         }
       } else {
         if (wasSelected) {
+          this.unsetBodySelected()
           this.deselect()
         } else {
           this.select()
@@ -817,6 +834,7 @@ Keyframe._activated = {}
 
 Keyframe.deselectAndDeactivateAllKeyframes = function deselectAndDeactivateAllKeyframes (criteria) {
   Keyframe.where(criteria).forEach((keyframe) => {
+    keyframe.unsetBodySelected()
     keyframe.deselect()
     keyframe.deactivate()
   })
