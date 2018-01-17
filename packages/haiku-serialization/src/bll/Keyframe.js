@@ -821,7 +821,6 @@ Keyframe.DEFAULT_OPTIONS = {
     element: true,
     row: true,
     ms: true,
-    originalMs: true,
     index: true,
     value: true
   }

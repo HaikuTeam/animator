@@ -2317,7 +2317,6 @@ class ActiveComponent extends BaseModel {
         timestamp: this._timestamp,
         // The keyframe's uid is in the context of the row, which is in turn in context of the component
         uid: Keyframe.getInferredUid(row, i),
-        originalMs: mscurr,
         ms: mscurr,
         index: i,
         value: valueGroup[mscurr].value,
