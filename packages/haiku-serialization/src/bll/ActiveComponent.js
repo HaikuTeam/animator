@@ -1719,7 +1719,7 @@ class ActiveComponent extends BaseModel {
 
   dragStopActiveKeyframes (dragData) {
     const keyframes = this.getActiveKeyframes()
-    keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
+    keyframes.forEach((keyframe) => keyframe.dragStop(dragData))
     return this
   }
 
