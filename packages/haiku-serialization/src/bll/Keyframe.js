@@ -33,14 +33,14 @@ class Keyframe extends BaseModel {
   activate () {
     if (!this._activated) {
       this._activated = true
-      this.emitWithNeighbors('update', 'keyframe-activated')
+      this.emit('update', 'keyframe-activated')
     }
   }
 
   deactivate () {
     if (this._activated) {
       this._activated = false
-      this.emitWithNeighbors('update', 'keyframe-deactivated')
+      this.emit('update', 'keyframe-deactivated')
     }
   }
 
@@ -51,28 +51,28 @@ class Keyframe extends BaseModel {
   select () {
     if (!this._selected) {
       this._selected = true
-      this.emitWithNeighbors('update', 'keyframe-selected')
+      this.emit('update', 'keyframe-selected')
     }
   }
 
   deselect () {
     if (this._selected) {
       this._selected = false
-      this.emitWithNeighbors('update', 'keyframe-deselected')
+      this.emit('update', 'keyframe-deselected')
     }
   }
 
   setBodySelected () {
     if (!this._selectedBody) {
       this._selectedBody = true
-      this.emitWithNeighbors('update', 'keyframe-body-selected')
+      this.emit('update', 'keyframe-body-selected')
     }
   }
 
   unsetBodySelected () {
     if (this._selectedBody) {
       this._selectedBody = false
-      this.emitWithNeighbors('update', 'keyframe-body-unselected')
+      this.emit('update', 'keyframe-body-unselected')
     }
   }
 
@@ -80,13 +80,6 @@ class Keyframe extends BaseModel {
     this.unsetBodySelected()
     this.deselect()
     this.deactivate()
-  }
-
-  emitWithNeighbors (what, a, b, c, d, e) {
-    this.emit(what, a, b, c, d, e)
-    if (this.next()) this.next().emit(what, a, b, c, d, e)
-    if (this.prev()) this.prev().emit(what, a, b, c, d, e)
-    return this
   }
 
   isSelected () {
