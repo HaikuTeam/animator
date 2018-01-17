@@ -301,10 +301,10 @@ class Keyframe extends BaseModel {
 
     // Normalize to a millitime that lines up with a frametime
     const normalized = this.timeline.normalizeMs(ms)
+    const previous = this.getMs()
+    this.ms = normalized
 
-    if (normalized !== this.getMs()) {
-      this.ms = normalized
-
+    if (normalized !== previous) {
       // Indicate that we need to be moved. Must set this before calling handleKeyframeMoves
       // otherwise the update might not make it correctly to the serialization layer
       this._needsMove = true
