@@ -794,10 +794,7 @@ export default class Plumbing extends StateObject {
         this.sentryError('createProject', projectCreateErr)
         return cb(projectCreateErr)
       }
-
       const remoteProjectObject = remapProjectObjectToExpectedFormat(projectPayload, this.get('organizationName'))
-      this.createEmptyProjectFolderToHackilyAvoidInitialClone(remoteProjectObject)
-
       return cb(null, remoteProjectObject)
     })
   }
