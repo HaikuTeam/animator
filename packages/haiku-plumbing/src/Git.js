@@ -35,7 +35,6 @@ if (global.process.env.NODE_ENV !== Environment.Production) {
 }
 
 // Multiton for caching already-opened repos
-const REPOS = {}
 const LOCKED_INDEXES = {}
 const INDEX_LOCK_INTERVAL = 0
 
@@ -53,15 +52,9 @@ function _gimmeIndex (pwd, cb) {
 }
 
 export function open (pwd, cb) {
-  if (REPOS[pwd]) {
-    return cb(null, REPOS[pwd])
-  }
   return forceOpen(pwd, (err, repository) => {
     if (err) return cb(err)
-    if (repository) {
-      REPOS[pwd] = repository
-    }
-    return cb(null, REPOS[pwd])
+    return cb(null, repository || undefined)
   })
 }
 

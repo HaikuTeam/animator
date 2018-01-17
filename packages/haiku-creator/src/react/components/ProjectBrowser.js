@@ -132,7 +132,7 @@ class ProjectBrowser extends React.Component {
     projectsList[index].isDeleted = true
     const deleteStart = Date.now()
     this.setState({ projectsList }, () => {
-      this.requestDeleteProject(name, (deleteError) => {
+      this.requestDeleteProject(name, projectsList[index].projectPath, (deleteError) => {
         if (deleteError) {
           this.props.createNotice({
             type: 'error',
@@ -157,8 +157,8 @@ class ProjectBrowser extends React.Component {
     })
   }
 
-  requestDeleteProject (name, cb) {
-    return this.props.websocket.request({ method: 'deleteProject', params: [name] }, cb)
+  requestDeleteProject (name, path, cb) {
+    return this.props.websocket.request({ method: 'deleteProject', params: [name, path] }, cb)
   }
 
   logOut () {

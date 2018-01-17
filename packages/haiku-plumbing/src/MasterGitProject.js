@@ -1135,6 +1135,12 @@ export default class MasterGitProject extends EventEmitter {
 
         if (isGitInitialized) {
           actionSequence.push('fetchGitRemoteInfoState', 'pullRemote')
+        } else if (
+          !this._projectInfo.repositoryUrl &&
+          !['CheckTutorial', 'Move', 'Moto', 'Percy'].includes(this._folderState.projectName)
+        ) {
+          // Legacy: Except for template projects, we won't have an initial master commit on CodeCommit.
+          actionSequence.push('initializeGit')
         } else {
           actionSequence.push(
             'fetchGitRemoteInfoState',

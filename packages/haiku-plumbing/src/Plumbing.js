@@ -1,5 +1,6 @@
 import path from 'path'
 import async from 'async'
+import fse from 'haiku-fs-extra'
 import lodash from 'lodash'
 import find from 'lodash.find'
 import merge from 'lodash.merge'
@@ -781,13 +782,22 @@ export default class Plumbing extends StateObject {
     })
   }
 
-  deleteProject (name, cb) {
+  deleteProject (name, path, cb) {
     logger.info('[plumbing] deleting project', name)
     const authToken = sdkClient.config.getAuthToken()
     return inkstone.project.deleteByName(authToken, name, (deleteErr) => {
       if (deleteErr) {
         this.sentryError('deleteProject', deleteErr)
         if (cb) return cb(deleteErr)
+      }
+      if (fse.existsSync(path)) {
+        // Delete the project locally, but in a recoverable state.
+        let archivePath = `${path}.bak`
+        if (fse.existsSync(archivePath)) {
+          let i = 0
+          while (fse.existsSync(archivePath = `${path}.bak.${i++}`)) {}
+        }
+        return fse.move(path, archivePath, cb)
       }
       if (cb) return cb()
     })
