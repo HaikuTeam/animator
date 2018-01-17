@@ -4,6 +4,7 @@ import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
 import Project from 'haiku-serialization/src/bll/Project'
 import Row from 'haiku-serialization/src/bll/Row'
+import Keyframe from 'haiku-serialization/src/bll/Keyframe'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
@@ -218,7 +219,7 @@ class Timeline extends React.Component {
           break
         case 'view:mousedown':
           if (message.elid !== 'timeline-webview') {
-            this.getActiveComponent().deselectAndDeactivateAllKeyframes()
+            Keyframe.deselectAndDeactivateAllKeyframes({ component: this.getActiveComponent() })
           }
           break
         case 'event-handlers-updated':
@@ -298,15 +299,19 @@ class Timeline extends React.Component {
   getPopoverMenuItems ({ event, type, model, offset, curve }) {
     const items = []
 
+    const numSelectedKeyframes = this.getActiveComponent().getSelectedKeyframes().length
+
     items.push({
       label: 'Create Keyframe',
       enabled: (
         // During multi-select it's weird to show "Create Keyframe" in the menu
-        this.getActiveComponent().getSelectedKeyframes().length < 3 &&
-        type === 'keyframe-segment' ||
-        type === 'keyframe-transition' ||
-        type === 'property-row' ||
-        type === 'cluster-row'
+        (numSelectedKeyframes < 3) &&
+        (
+          type === 'keyframe-segment' ||
+          type === 'keyframe-transition' ||
+          type === 'property-row' ||
+          type === 'cluster-row'
+        )
       ),
       onClick: (event) => {
         const timeline = this.getActiveComponent().getCurrentTimeline()
@@ -319,7 +324,7 @@ class Timeline extends React.Component {
     items.push({ type: 'separator' })
 
     items.push({
-      label: 'Delete Keyframe',
+      label: (numSelectedKeyframes < 2) ? 'Delete Keyframe' : 'Delete Keyframes',
       enabled: type === 'keyframe',
       onClick: (event) => {
         this.getActiveComponent().deleteActiveKeyframes({ from: 'timeline' })
@@ -329,7 +334,7 @@ class Timeline extends React.Component {
     items.push({ type: 'separator' })
 
     items.push({
-      label: 'Make Tween',
+      label: (numSelectedKeyframes < 3) ? 'Make Tween' : 'Make Tweens',
       enabled: type === 'keyframe-segment',
       submenu: (type === 'keyframe-segment') && this.curvesMenu(curve, (event, curveName) => {
         this.getActiveComponent().joinSelectedKeyframes(curveName, { from: 'timeline' })
@@ -340,7 +345,7 @@ class Timeline extends React.Component {
     })
 
     items.push({
-      label: 'Change Tween',
+      label: (numSelectedKeyframes < 3) ? 'Change Tween' : 'Change Tweens',
       enabled: type === 'keyframe-transition',
       submenu: (type === 'keyframe-transition') && this.curvesMenu(curve, (event, curveName) => {
         this.getActiveComponent().changeCurveOnSelectedKeyframes(curveName, { from: 'timeline' })
@@ -348,7 +353,7 @@ class Timeline extends React.Component {
     })
 
     items.push({
-      label: 'Remove Tween',
+      label: (numSelectedKeyframes < 3) ? 'Remove Tween' : 'Remove Tweens',
       enabled: type === 'keyframe-transition',
       onClick: (event) => {
         this.getActiveComponent().splitSelectedKeyframes({ from: 'timeline' })
@@ -1020,7 +1025,7 @@ class Timeline extends React.Component {
               !Globals.isControlKeyDown &&
               mouseEvent.nativeEvent.which !== 3
             ) {
-              this.getActiveComponent().deselectAndDeactivateAllKeyframes()
+              Keyframe.deselectAndDeactivateAllKeyframes({ component: this.getActiveComponent() })
             }
           }}>
           {this.renderComponentRows(this.getActiveComponent().getDisplayableRows())}
