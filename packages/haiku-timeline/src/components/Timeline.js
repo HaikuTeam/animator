@@ -301,6 +301,8 @@ class Timeline extends React.Component {
     items.push({
       label: 'Create Keyframe',
       enabled: (
+        // During multi-select it's weird to show "Create Keyframe" in the menu
+        this.getActiveComponent().getSelectedKeyframes().length < 3 &&
         type === 'keyframe-segment' ||
         type === 'keyframe-transition' ||
         type === 'property-row' ||
@@ -310,7 +312,6 @@ class Timeline extends React.Component {
         const timeline = this.getActiveComponent().getCurrentTimeline()
         const frameInfo = timeline.getFrameInfo()
         const ms = Math.round(timeline.getHoveredFrame() * frameInfo.mspf)
-        // The model here might be
         model.createKeyframe(undefined, ms, { from: 'timeline' })
       }
     })
