@@ -1664,7 +1664,7 @@ class ActiveComponent extends BaseModel {
   splitSelectedKeyframes (metadata) {
     const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.removeCurve(metadata))
-    this.deselectAndDeactivateAllKeyframes()
+    Keyframe.deselectAndDeactivateAllDeletedKeyframes({ component: this.component })
     return this
   }
 
@@ -1681,7 +1681,7 @@ class ActiveComponent extends BaseModel {
 
       keyframe.delete(metadata)
     })
-    this.deselectAndDeactivateAllKeyframes()
+    Keyframe.deselectAndDeactivateAllDeletedKeyframes({ component: this.component })
     return this
   }
 
@@ -2411,10 +2411,6 @@ class ActiveComponent extends BaseModel {
     if (!criteria) criteria = {}
     criteria.component = this
     return Keyframe.where(criteria)
-  }
-
-  deselectAndDeactivateAllKeyframes (metadata) {
-    return Keyframe.deselectAndDeactivateAllKeyframes({ component: this }, metadata || this.project.getMetadata())
   }
 
   getFocusedRow () {

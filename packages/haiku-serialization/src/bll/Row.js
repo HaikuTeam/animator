@@ -429,7 +429,6 @@ class Row extends BaseModel {
 
     this.emit('update', 'keyframe-create')
     if (this.parent) this.parent.emit('update', 'keyframe-create')
-    Keyframe.deselectAndDeactivateAllKeyframes({ component: this.component })
 
     return created
   }
@@ -463,7 +462,9 @@ class Row extends BaseModel {
 
     this.emit('update', 'keyframe-delete')
     if (this.parent) this.parent.emit('update', 'keyframe-delete')
-    Keyframe.deselectAndDeactivateAllKeyframes({ component: this.component })
+
+    // Make sure any deleted keyframe have been fully deselected to avoid ghost issues
+    Keyframe.deselectAndDeactivateAllDeletedKeyframes({ component: this.component })
 
     return keyframe
   }

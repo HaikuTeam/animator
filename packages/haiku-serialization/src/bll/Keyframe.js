@@ -589,11 +589,11 @@ class Keyframe extends BaseModel {
      *
      *   |<~this keyframe
      *   |
-     *   o  
+     *   o
      *   o-o <~ has next only
      *   o~o
      * o-o   <~ has prev only
-     * o~o  
+     * o~o
      * o-o-o <~ has next and prev
      * o~o-o
      * o-o~o
@@ -837,6 +837,16 @@ Keyframe.deselectAndDeactivateAllKeyframes = function deselectAndDeactivateAllKe
     keyframe.unsetBodySelected()
     keyframe.deselect()
     keyframe.deactivate()
+  })
+}
+
+Keyframe.deselectAndDeactivateAllDeletedKeyframes = (criteria) => {
+  Keyframe.where(criteria).forEach((keyframe) => {
+    if (keyframe.isDeleted()) {
+      keyframe.unsetBodySelected()
+      keyframe.deselect()
+      keyframe.deactivate()
+    }
   })
 }
 
