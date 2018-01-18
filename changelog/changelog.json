@@ -4037,5 +4037,12 @@
       "label": "fix",
       "message": "set the correct path to reset password link"
     }
+  },
+  "2.3.75": {
+    "b6259693a1d6608a344ecaea296a1ee60ba4e715": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "fix module resolution in prod for share page bundles."
+    }
   }
 }
