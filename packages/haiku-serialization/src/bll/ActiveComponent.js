@@ -1512,8 +1512,9 @@ class ActiveComponent extends BaseModel {
           })
 
           // Paste handles "instantiating" a new template element for the incoming bytecode
-          newHaikuId = incoming.template.attributes['haiku-id']
           Bytecode.pasteBytecode(bytecode, incoming, request)
+
+          newHaikuId = incoming.template.attributes['haiku-id']
 
           return done(null, {haikuId: newHaikuId})
         default:
