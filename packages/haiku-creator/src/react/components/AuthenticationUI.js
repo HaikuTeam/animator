@@ -269,7 +269,7 @@ class AuthenticationUI extends React.Component {
           <span
             style={STYLES.link}
             onClick={() => {
-              shell.openExternal('https://www.haiku.ai/reset-password')
+              shell.openExternal('https://www.haiku.ai/account/reset-password')
             }}
           >
             Forgot your password?
