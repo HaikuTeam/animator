@@ -1,9 +1,10 @@
 import React from 'react'
-import Tooltip from '../Tooltip'
+import Tooltip from './Tooltip'
 import {shell} from 'electron'
 import {TOUR_STYLES} from '../../styles/tourShared'
 import * as steps from './Steps'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
+import {TourUtils} from 'haiku-common/lib/types/enums'
 
 class Tour extends React.Component {
   constructor () {
@@ -67,8 +68,7 @@ class Tour extends React.Component {
     if (!this.props.projectsList) return false
     if (this.props.projectsList.length < 1) return false
     const projectIdx = this.props.projectsList.findIndex(project => {
-      // Hardcoded - Name of the project that will be used for the tutorial
-      return project.projectName === 'CheckTutorial'
+      return project.projectName === TourUtils.ProjectName
     })
     return projectIdx !== -1
   }
@@ -128,7 +128,9 @@ class Tour extends React.Component {
       component,
       spotlightRadius,
       stepData,
-      waitUserAction
+      waitUserAction,
+      size,
+      isOverlayHideable
     } = this.state
 
     const Step = steps[component]
@@ -143,6 +145,8 @@ class Tour extends React.Component {
         finish={this.finish}
         stepData={stepData}
         waitUserAction={waitUserAction}
+        size={size}
+        isOverlayHideable={isOverlayHideable}
       >
         <Step
           styles={TOUR_STYLES}

@@ -98,8 +98,6 @@ class StateInspector extends React.Component {
         }
       }
     )
-
-    this.props.tourChannel.next()
   }
 
   deleteStateValue (stateName, maybeCb) {

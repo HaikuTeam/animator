@@ -1,7 +1,8 @@
 import React from 'react'
-import Palette from 'haiku-ui-common/lib/Palette'
-import { TOUR_STYLES } from '../styles/tourShared'
 import Draggable from 'react-draggable'
+import Palette from 'haiku-ui-common/lib/Palette'
+import {TOUR_STYLES} from '../../styles/tourShared'
+import Spotlight from './Spotlight'
 
 const STYLES = {
   container: {
@@ -11,21 +12,6 @@ const STYLES = {
     justifyContent: 'center',
     zIndex: 3
   },
-  circle: {
-    width: 30,
-    height: 30,
-    border: '1px solid #49c000',
-    borderRadius: '50%',
-    display: 'inline-block',
-    marginRight: 20
-  },
-  circleInner: {
-    width: 20,
-    height: 20,
-    background: '#49c000',
-    borderRadius: '50%',
-    margin: '4px auto 0'
-  },
   childrenWrapper: {
     position: 'absolute',
     minWidth: 340,
@@ -33,22 +19,15 @@ const STYLES = {
     color: Palette.ROCK,
     padding: 1,
     borderRadius: 3,
-    background: 'linear-gradient(to bottom, rgba(255,221,100,1) 0%, rgba(214,37,99,1) 100%)',
-    boxShadow: '0 4px 18px 0 rgba(1,28,33,0.38)'
+    background:
+      'linear-gradient(to bottom, rgba(255,221,100,1) 0%, rgba(214,37,99,1) 100%)',
+    boxShadow: '0 4px 18px 0 rgba(1,28,33,0.38)',
+    zIndex: 9999
   },
   children: {
-    backgroundColor: Palette.COAL,
+    backgroundColor: Palette.FATHER_COAL,
     borderRadius: 3,
     padding: 20
-  },
-  spotlight: {
-    position: 'absolute',
-    width: 500,
-    height: 500,
-    boxShadow: '0 0 0 2560px rgba(0, 0, 0, 0.5), 0 0 20px 0px #000 inset',
-    borderRadius: '100%',
-    background: 'transparent',
-    pointerEvents: 'none'
   }
 }
 
@@ -100,6 +79,11 @@ STYLES.RIGHT = {
   }
 }
 
+const TOOLTIP_SIZES = {
+  small: 340,
+  default: 505
+}
+
 function Tooltip (props) {
   const {
     coordinates,
@@ -110,22 +94,17 @@ function Tooltip (props) {
     next,
     finish,
     stepData,
-    waitUserAction
+    waitUserAction,
+    size,
+    isOverlayHideable
   } = props
   let {top, left} = coordinates
-  let circleDisplay = 'none'
   let positionStyles = STYLES[display.toUpperCase()] || {}
   let spotlightExtraStyles = {}
 
-  if (display !== 'none') {
-    // Temporally disable the circle until we figure out placement
-    // and design
-    // circleDisplay = 'inline-block'
-  }
-
   if (display === 'left') {
-    top = top + (coordinates.height / 2)
-    left = coordinates.left - STYLES.circle.width
+    top = top + coordinates.height / 2
+    left = coordinates.left
 
     if (left - 350 <= 10) {
       return Tooltip({...props, display: 'top'})
@@ -133,22 +112,30 @@ function Tooltip (props) {
   }
 
   if (display === 'right') {
-    top = top + (coordinates.height / 2)
-    left = coordinates.left + STYLES.circle.width + coordinates.width
+    top = top + coordinates.height / 2
+    left = coordinates.left + coordinates.width
   }
 
   if (display === 'bottom') {
-    top = top + coordinates.height + STYLES.circle.width
-    left = left + (coordinates.width / 2)
+    top = top + coordinates.height
+    left = left + coordinates.width / 2
   }
 
   if (display === 'top') {
-    top = coordinates.top - STYLES.circle.width
-    left = left + (coordinates.width / 2)
+    top = coordinates.top
+    left = left + coordinates.width / 2
 
     if (top - 350 <= 10) {
       return Tooltip({...props, display: 'bottom'})
     }
+  }
+
+  if (display === 'none') {
+    top = '50%'
+    left = '50%'
+  } else {
+    top = top + offset.top
+    left = left + offset.left
   }
 
   if (spotlightRadius !== 'default') {
@@ -156,26 +143,25 @@ function Tooltip (props) {
     spotlightExtraStyles.height = spotlightRadius
   }
 
-  if (typeof top === 'number') {
-    top = top + offset.top
-    left = left + offset.left
-  }
-
   return (
     <div style={{top, left, ...STYLES.container, ...positionStyles.container}}>
-      <div
-        style={{
-          ...STYLES.spotlight,
-          ...positionStyles.spotlight,
-          ...spotlightExtraStyles
-        }}
+      <Spotlight
+        offset={positionStyles.spotlight}
+        position={{top, left}}
+        containerStyles={STYLES.container}
+        holeStyles={spotlightExtraStyles}
+        display={display}
+        isOverlayHideable={isOverlayHideable}
       />
 
-      <div style={{...STYLES.circle, display: circleDisplay}}>
-        <div style={STYLES.circleInner} />
-      </div>
       <Draggable key={stepData.current}>
-        <div style={{...STYLES.childrenWrapper, ...positionStyles.children}}>
+        <div
+          style={{
+            ...STYLES.childrenWrapper,
+            ...positionStyles.children,
+            width: TOOLTIP_SIZES[size] || TOOLTIP_SIZES.default
+          }}
+        >
           <div style={STYLES.children}>
             {children}
 
@@ -193,10 +179,10 @@ function Tooltip (props) {
                     style={TOUR_STYLES.btnSecondary}
                     onClick={() => finish(true, true)}
                   >
-                    Skip Tutorial
+                    Finish
                   </button>
-                  <div>
-                    <span style={{marginRight: 10}}>
+                  <div style={{display: 'flex', alignItems: 'center'}}>
+                    <span style={{marginRight: 10, fontStyle: 'oblique'}}>
                       {stepData.current} of {stepData.total}
                     </span>
                     {/* Show the next button if we aren't waiting for user interaction */}
