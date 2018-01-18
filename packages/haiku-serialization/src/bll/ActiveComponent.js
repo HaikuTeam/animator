@@ -250,8 +250,18 @@ class ActiveComponent extends BaseModel {
     return File.findById(path.join(this.project.getFolder(), this.getSceneCodeRelpath()))
   }
 
+  getActiveInstancesOfHaikuPlayerComponent () {
+    return this.instancesOfHaikuPlayerComponent.filter((instance) => {
+      return !instance.isDeactivated()
+    })
+  }
+
+  getAllInstancesOfHaikuPlayerComponent () {
+    return this.instancesOfHaikuPlayerComponent
+  }
+
   forceFlush () {
-    this.instancesOfHaikuPlayerComponent.forEach((instance) => {
+    this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
       instance._markForFullFlush(true)
       // This guard is to allow headless mode, e.g. in Haiku's timeline application
       if (instance._context && instance._context.tick) {
@@ -261,7 +271,7 @@ class ActiveComponent extends BaseModel {
   }
 
   clearCaches (options) {
-    this.instancesOfHaikuPlayerComponent.forEach((instance) => {
+    this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
       instance.clearCaches(options) // Also clears instance._builder sub-caches
     })
     this.clearEntityCaches()
@@ -269,14 +279,14 @@ class ActiveComponent extends BaseModel {
   }
 
   clearCachedClusters (timelineName, componentId) {
-    this.instancesOfHaikuPlayerComponent.forEach((instance) => {
+    this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
       instance._builder._clearCachedClusters(timelineName, componentId)
     })
     return this
   }
 
   updateTimelineMaxes (timelineName) {
-    this.instancesOfHaikuPlayerComponent.forEach((instance) => {
+    this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
       let timeline = instance._timelineInstances[timelineName]
       if (timeline) {
         let descriptor = instance._getTimelineDescriptor(timelineName)
@@ -337,7 +347,7 @@ class ActiveComponent extends BaseModel {
   setTimelineName (timelineName, metadata, cb) {
     log.info('[active component] changing active timeline to ' + timelineName)
     Timeline.setCurrent({ component: this }, timelineName)
-    this.instancesOfHaikuPlayerComponent.forEach((instance) => {
+    this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
       instance.stopAllTimelines()
       instance.startTimeline(timelineName)
     })
@@ -417,7 +427,7 @@ class ActiveComponent extends BaseModel {
   setInteractionMode (interactionMode, metadata, cb) {
     this._interactionMode = interactionMode
 
-    this.instancesOfHaikuPlayerComponent.forEach((instance) => {
+    this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
       instance.assignConfig({
         options: {
           interactionMode: this._interactionMode
@@ -653,11 +663,13 @@ class ActiveComponent extends BaseModel {
   }
 
   getPlayerComponentInstance () {
-    return this.instancesOfHaikuPlayerComponent[this.instancesOfHaikuPlayerComponent.length - 1]
+    const haikuPlayerComponentInstances = this.getActiveInstancesOfHaikuPlayerComponent()
+    return haikuPlayerComponentInstances[haikuPlayerComponentInstances.length - 1]
   }
 
   eachPlayerComponentInstance (iteratee) {
-    return this.instancesOfHaikuPlayerComponent.forEach(iteratee)
+    const haikuPlayerComponentInstances = this.getActiveInstancesOfHaikuPlayerComponent()
+    return haikuPlayerComponentInstances.forEach(iteratee)
   }
 
   /**
@@ -1808,10 +1820,12 @@ class ActiveComponent extends BaseModel {
   hardReload (reloadOptions, instanceConfig, finish) {
     const timelineTimeBeforeReload = this.getCurrentTimelineTime() || 0
 
+    const haikuPlayerComponentInstances = this.getActiveInstancesOfHaikuPlayerComponent()
+
     return async.series([
       (cb) => {
         // Stop the clock so we don't continue any animations while this update is happening
-        this.instancesOfHaikuPlayerComponent.forEach((instance) => {
+        haikuPlayerComponentInstances.forEach((instance) => {
           instance._context.clock.stop()
         })
 
@@ -1824,7 +1838,7 @@ class ActiveComponent extends BaseModel {
         }
 
         // If no instances, we need to populate at least one for everything to work
-        if (this.instancesOfHaikuPlayerComponent.length < 1) {
+        if (haikuPlayerComponentInstances.length < 1) {
           return this.moduleCreate(instanceConfig, cb)
         }
 
@@ -1849,7 +1863,7 @@ class ActiveComponent extends BaseModel {
           this.setTimelineTimeValue(timelineTimeBeforeReload, true, true, true)
 
           // Start the clock again, as we should now be ready to flow updated component.
-          this.instancesOfHaikuPlayerComponent.forEach((instance) => {
+          this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
             instance._context.clock.start()
           })
 
@@ -1861,8 +1875,8 @@ class ActiveComponent extends BaseModel {
 
   moduleReload (reloadOptions, instanceConfig, cb) {
     const reifiedBytecode = this.fetchActiveBytecodeFile().mod.configuredReload(instanceConfig)
-    this.instancesOfHaikuPlayerComponent.forEach((instance, index) => {
-      this.replaceInstance(instance, index, reifiedBytecode, instanceConfig)
+    this.getActiveInstancesOfHaikuPlayerComponent().forEach((existingActiveInstance) => {
+      this.replaceInstance(existingActiveInstance, reifiedBytecode, instanceConfig)
     })
     return cb()
   }
@@ -1876,20 +1890,26 @@ class ActiveComponent extends BaseModel {
     // if (!reifiedBytecode.template.attributes[HAIKU_ID_ATTRIBUTE]) {
     //   reifiedBytecode.template.attributes[HAIKU_ID_ATTRIBUTE] = Template.getHash(this.getSceneName(), 12)
     // }
-    this.createInstance(reifiedBytecode, instanceConfig)
+    const createdHaikuPlayerComponent = this.createInstance(reifiedBytecode, instanceConfig)
+    this.addInstanceOfHaikuPlayerComponent(createdHaikuPlayerComponent)
     return cb()
   }
 
   addInstanceOfHaikuPlayerComponent (instanceGiven) {
-    let foundInstace = false
-    this.instancesOfHaikuPlayerComponent.forEach((instanceKnown) => {
+    let foundInstance = false
+
+    const allInstances = this.getAllInstancesOfHaikuPlayerComponent()
+
+    allInstances.forEach((instanceKnown) => {
       if (instanceGiven === instanceKnown) {
-        foundInstace = true
+        foundInstance = true
       }
     })
-    if (!foundInstace) {
-      this.instancesOfHaikuPlayerComponent.push(instanceGiven)
+
+    if (!foundInstance) {
+      allInstances.push(instanceGiven)
     }
+
     // This is an easier way to trace back to its host ActiveComponent than
     // to look things up constantly using the scene id and relative pathing hacks
     instanceGiven.__activeComponent = this
@@ -1936,36 +1956,42 @@ class ActiveComponent extends BaseModel {
     // Make sure we get notified of state updates and everything else we care about
     createdHaikuPlayerComponent._doesEmitEventsVerbosely = true
 
-    this.addInstanceOfHaikuPlayerComponent(createdHaikuPlayerComponent)
-
     this.updateBytecodeFileWthInstance(createdHaikuPlayerComponent)
 
     return createdHaikuPlayerComponent
   }
 
-  replaceInstance (instance, index, bytecode, config) {
+  replaceInstance (existingActiveInstance, bytecode, config) {
     // Shut down the previous instance (if any) since it no longer needs to render
     // and doing continued rendering can conflict with new renderers entering the stage
-    instance.deactivate()
+    existingActiveInstance.deactivate()
+    console.log('isDeactivated', existingActiveInstance.isDeactivated())
 
-    const updated = this.createInstance(bytecode, config)
+    const freshInstance = this.createInstance(bytecode, config)
 
     // We need to copy the in-memory timeline (NOT the data object!) over the new one so we retain
     // the same local time/time control data that had already been set by the user
-    for (const timelineName in instance._timelineInstances) {
-      instance._timelineInstances[timelineName] = instance._timelineInstances[timelineName]
-      instance._timelineInstances[timelineName]._setComponent(updated)
+    for (const timelineName in existingActiveInstance._timelineInstances) {
+      existingActiveInstance._timelineInstances[timelineName] = existingActiveInstance._timelineInstances[timelineName]
+      existingActiveInstance._timelineInstances[timelineName]._setComponent(freshInstance)
     }
 
-    this.updateBytecodeFileWthInstance(updated)
+    this.updateBytecodeFileWthInstance(freshInstance)
 
     // Discard the old (deactivated) instance and subsume it with this one
-    this.instancesOfHaikuPlayerComponent[index] = updated
+    // Note that here we are iterating over the entire collection, not just the active ones
+    const allKnownInstances = this.getAllInstancesOfHaikuPlayerComponent()
+    allKnownInstances.forEach((existingInstanceWhichMayBeActive, index) => {
+      if (existingInstanceWhichMayBeActive === existingActiveInstance) {
+        // We replace it with our fresh active instance to keep the array small
+        allKnownInstances[index] = freshInstance
+      }
+    })
 
     // And make sure we update the tree with the new instance (and new content)
-    if (instance.__element) {
-      instance.__element.__instance = updated
-      updated.__element = instance.__element
+    if (existingActiveInstance.__element) {
+      existingActiveInstance.__element.__instance = freshInstance
+      freshInstance.__element = existingActiveInstance.__element
     }
   }
 
@@ -2061,13 +2087,13 @@ class ActiveComponent extends BaseModel {
   }
 
   sleepComponentsOn () {
-    this.instancesOfHaikuPlayerComponent.forEach((instance) => {
+    this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
       instance.sleepOn()
     })
   }
 
   sleepComponentsOff () {
-    this.instancesOfHaikuPlayerComponent.forEach((instance) => {
+    this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
       instance.sleepOff()
     })
   }
