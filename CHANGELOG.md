@@ -1,6 +1,34 @@
 # Changelog
 
 
+## 2.3.73
+
+### Bug Fixes
+
+ * Don't break reference attributes when merging designs (fixes issue where els with gradient disappear on merge design)
+ * Prevent reload from creating an exponentially growing list of player components
+ * Ensure padded id references are properly tranfers (fixes element disappearance on delete)
+ * restore a working File.expelOne() method and actually tear down watchers.
+ * ensure new project init is successful on CodeCommit-backed inkstone.
+ * Avoid updates getting out of phase by subscribing at the Keyframe class level
+ * More correct differentiation of selection states
+ * Remove call to method that doesn't exist
+ * Remove call to method that doesn't exist
+ * The opposite method was being called here
+ * Use correct logic for determining whether to highlight the curve
+ * Make curve assignment logic aware of selection state
+ * Handle type mistmatches in interpolation endpoints
+ * Missed API change caused keyframe curve assignment bug; how was this working at all?; todo types
+ * Prevent unfilled states from crashing app when switching between projects
+ * create keyframe at correct location on rt-click
+ * 86 treelien
+
+### Features
+
+ * Upgrade mono to support GitLab-backed repositories.
+ * add endpoint for self-service organization creation.
+ * add haiku as loader for timeline skeleton state
+
 ## 2.3.72
 
 ### Bug Fixes
