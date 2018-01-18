@@ -3,12 +3,13 @@ import qs from 'qs'
 import assign from 'lodash.assign'
 import path from 'path'
 import Palette from 'haiku-ui-common/lib/Palette'
+import TimelineSkeletonState from '@haiku/taylor-timelineskeletonstate/react'
 
 export default class Timeline extends React.Component {
   constructor (props) {
     super(props)
     this.webview = null
-    this.state = {}
+    this.state = { finishedInjecting: false }
     this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this)
   }
 
@@ -59,6 +60,8 @@ export default class Timeline extends React.Component {
     this.webview.setAttribute('nodeintegration', true)
     this.webview.style.width = '100%'
     this.webview.style.height = '100%'
+    this.webview.style.position = 'relative'
+    this.webview.style.zIndex = 1
 
     this.webview.addEventListener('console-message', (event) => {
       switch (event.level) {
@@ -94,7 +97,8 @@ export default class Timeline extends React.Component {
       if (typeof this.props.onReady === 'function') this.props.onReady()
     })
 
-    while (this.mount.firstChild) this.mount.removeChild(this.mount.firstChild)
+    setTimeout(() => { this.setState({ finishedInjecting: true }) }, 7000)
+
     this.mount.appendChild(this.webview)
   }
 
@@ -112,7 +116,20 @@ export default class Timeline extends React.Component {
         onMouseOver={() => this.webview.focus()}
         onMouseOut={() => this.webview.blur()}
         ref={(element) => { this.mount = element }}
-        style={{ position: 'absolute', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.GRAY }} />
+        style={{ position: 'absolute', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.GRAY }}>
+        {!this.state.finishedInjecting &&
+        <div style={{
+          position: 'absolute',
+          left: 160,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          display: 'flex',
+          alignItems: 'center'
+        }}>
+          <TimelineSkeletonState haikuOptions={{loop: true}} />
+        </div>
+          }
+      </div>
     )
   }
 }
