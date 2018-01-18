@@ -48,13 +48,12 @@ module.exports = {
         },
 
         opacity: {
-          "0": {
-            value: [{ x: 0.5, y: 0.5, moveTo: true }, { x: 71.5, y: 58.5 }]
-          },
-
-          "200": { value: 0.0 },
+          "0": { value: 0 },
+          "83": { value: 1, curve: "easeInOutBounce" },
+          "150": { value: 1, curve: "linear" },
+          "217": { value: 0.0, curve: "linear" },
           "300": { value: 0.5, curve: "linear" },
-          "1500": { value: 1.0 },
+          "350": { value: 1.0 },
           "1750": { value: 0 },
           "5000": { value: 1.0 }
         },

@@ -1664,12 +1664,13 @@ class ActiveComponent extends BaseModel {
   splitSelectedKeyframes (metadata) {
     const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.removeCurve(metadata))
-    this.deselectAndDeactivateAllKeyframes()
+    Keyframe.deselectAndDeactivateAllDeletedKeyframes({ component: this.component })
     return this
   }
 
-  deleteActiveKeyframes (metadata) {
-    const keyframes = this.getActiveKeyframes()
+  deleteSelectedKeyframes (metadata) {
+    const keyframes = this.getSelectedKeyframes()
+
     keyframes.forEach((keyframe) => {
       if (!keyframe.isTransitionSegment()) {
         const prev = keyframe.prev()
@@ -1681,7 +1682,7 @@ class ActiveComponent extends BaseModel {
 
       keyframe.delete(metadata)
     })
-    this.deselectAndDeactivateAllKeyframes()
+    Keyframe.deselectAndDeactivateAllDeletedKeyframes({ component: this.component })
     return this
   }
 
@@ -1690,7 +1691,8 @@ class ActiveComponent extends BaseModel {
     keyframes.forEach((keyframe) => {
       // Only keyframes that have a next keyframe should get the curve assigned,
       // otherwise you'll see a "surprise curve" if you add a next keyframe
-      if (keyframe.next()) {
+      // But only assign if its body is selected or it is directly selected
+      if (keyframe.next() && keyframe.isSelectedBody()) {
         keyframe.addCurve(curveName, metadata)
       }
     })
@@ -1701,28 +1703,29 @@ class ActiveComponent extends BaseModel {
     const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => {
       // Only keyframes that have a next keyframe should get the curve assigned,
-      // otherwise you'll see a "surprise curve" if you add a next keyframe
-      if (keyframe.isNextKeyframeActive()) {
+      // otherwise you'll see a "surprise curve" if you add a next keyframe.
+      // But only assign if its body is selected or it is directly selected
+      if (keyframe.next() && keyframe.isSelectedBody()) {
         keyframe.changeCurve(curveName, metadata)
       }
     })
     return this
   }
 
-  dragStartActiveKeyframes (dragData) {
-    const keyframes = this.getActiveKeyframes()
+  dragStartSelectedKeyframes (dragData) {
+    const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
     return this
   }
 
-  dragStopActiveKeyframes (dragData) {
-    const keyframes = this.getActiveKeyframes()
-    keyframes.forEach((keyframe) => keyframe.dragStart(dragData))
+  dragStopSelectedKeyframes (dragData) {
+    const keyframes = this.getSelectedKeyframes()
+    keyframes.forEach((keyframe) => keyframe.dragStop(dragData))
     return this
   }
 
-  dragActiveKeyframes (pxpf, mspf, dragData, metadata) {
-    const keyframes = this.getActiveKeyframes()
+  dragSelectedKeyframes (pxpf, mspf, dragData, metadata) {
+    const keyframes = this.getSelectedKeyframes()
     keyframes.forEach((keyframe) => keyframe.drag(pxpf, mspf, dragData, metadata))
     return this
   }
@@ -1741,7 +1744,7 @@ class ActiveComponent extends BaseModel {
         for (const propertyName in moves[timelineName][componentId]) {
           const keyframeMoves = moves[timelineName][componentId][propertyName]
           this.moveKeyframes(
-            [componentId],
+            componentId,
             timelineName,
             propertyName,
             keyframeMoves,
@@ -1753,12 +1756,14 @@ class ActiveComponent extends BaseModel {
       }
     }
 
+    this.postMoveZerothKeyframeHook()
+  }
+
+  postMoveZerothKeyframeHook () {
     const rowsNeedingZerothKeyframe = Row.fetchAndUnsetRowsToEnsureZerothKeyframe({ component: this })
     rowsNeedingZerothKeyframe.forEach((row) => {
       row.ensureZerothKeyframe(this.project.getMetadata())
     })
-
-    return this
   }
 
   /**
@@ -2312,7 +2317,6 @@ class ActiveComponent extends BaseModel {
         timestamp: this._timestamp,
         // The keyframe's uid is in the context of the row, which is in turn in context of the component
         uid: Keyframe.getInferredUid(row, i),
-        originalMs: mscurr,
         ms: mscurr,
         index: i,
         value: valueGroup[mscurr].value,
@@ -2321,7 +2325,7 @@ class ActiveComponent extends BaseModel {
         element: row.element,
         timeline: row.timeline,
         component: row.component
-      }, {}, { component: this })
+      }, {})
     }
   }
 
@@ -2399,18 +2403,10 @@ class ActiveComponent extends BaseModel {
     return Keyframe.where({ component: this, _selected: true })
   }
 
-  getActiveKeyframes () {
-    return Keyframe.where({ component: this, _activated: true })
-  }
-
   getCurrentKeyframes (criteria) {
     if (!criteria) criteria = {}
     criteria.component = this
     return Keyframe.where(criteria)
-  }
-
-  deselectAndDeactivateAllKeyframes (metadata) {
-    return Keyframe.deselectAndDeactivateAllKeyframes({ component: this }, metadata || this.project.getMetadata())
   }
 
   getFocusedRow () {

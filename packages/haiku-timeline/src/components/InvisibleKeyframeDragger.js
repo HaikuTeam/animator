@@ -3,23 +3,24 @@ import lodash from 'lodash'
 import TimelineDraggable from './TimelineDraggable'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
+import Keyframe from 'haiku-serialization/src/bll/Keyframe'
 
 const THROTTLE_TIME = 17 // ms
 
 export default class InvisibleKeyframeDragger extends React.Component {
   constructor (props) {
     super(props)
-    this.handleUpdate = this.handleUpdate.bind(this)
+    Keyframe.on('update', (keyframe, what) => {
+      if (keyframe === this.props.keyframe && this.mounted) this.handleUpdate(what)
+    })
   }
 
   componentWillUnmount () {
     this.mounted = false
-    this.props.keyframe.removeListener('update', this.handleUpdate)
   }
 
   componentDidMount () {
     this.mounted = true
-    this.props.keyframe.on('update', this.handleUpdate)
   }
 
   handleUpdate (what) {
@@ -30,7 +31,9 @@ export default class InvisibleKeyframeDragger extends React.Component {
       what === 'keyframe-selected' ||
       what === 'keyframe-deselected' ||
       what === 'keyframe-ms-set' ||
-      what === 'keyframe-neighbor-move'
+      what === 'keyframe-neighbor-move' ||
+      what === 'keyframe-body-selected' ||
+      what === 'keyframe-body-unselected'
     ) {
       this.forceUpdate()
     }
@@ -42,53 +45,34 @@ export default class InvisibleKeyframeDragger extends React.Component {
 
     return (
       <TimelineDraggable
-        id={`keyframe-dragger-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
         axis='x'
-        onMouseDown={() => {
-          // This logic is here to allow keyframes to be dragged without having
-          // to select them first.
-          if (!this.props.keyframe.isActive() && !Globals.isShiftKeyDown) {
-            this.props.keyframe.activate(
-              {skipDeselect: false}
-            )
-
-            this.performedSelection = true
-          }
+        onMouseDown={(mouseEvent) => {
+          this.props.keyframe.handleMouseDown(mouseEvent, {...Globals}, {isViaKeyframeDraggerView: true})
         }}
         onStart={(dragEvent, dragData) => {
-          this.props.component.dragStartActiveKeyframes(dragData)
+          this.props.component.dragStartSelectedKeyframes(dragData)
         }}
         onStop={(dragEvent, dragData, wasDrag, lastMouseButtonPressed) => {
-          if (!wasDrag && !this.performedSelection) {
-            const skipDeselect =
-              Globals.isShiftKeyDown ||
-              (Globals.isControlKeyDown || lastMouseButtonPressed === 3)
-
-            this.props.keyframe.toggleActive(
-              {skipDeselect, directlySelected: true}
-            )
-          }
-
-          this.props.component.dragStopActiveKeyframes(dragData)
-          this.performedSelection = false
+          this.props.keyframe.handleDragStop(dragData, {wasDrag, lastMouseButtonPressed, ...Globals}, {isViaKeyframeDraggerView: true})
         }}
         onDrag={lodash.throttle((dragEvent, dragData) => {
-          this.props.component.dragActiveKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
+          this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}>
         <span
+          id={`keyframe-dragger-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
-
-            this.props.keyframe.activate(
-              {skipDeselect: this.props.keyframe.isSelected(), directlySelected: true}
-            )
-
+            this.props.keyframe.handleContextMenu({...Globals}, {isViaKeyframeDraggerView: true})
             PopoverMenu.emit('show', {
               type: 'keyframe',
               event: ctxMenuEvent.nativeEvent,
               model: this.props.keyframe,
               offset: pxOffsetLeft
             })
+          }}
+          onMouseUp={(mouseEvent) => {
+            mouseEvent.stopPropagation()
+            this.props.keyframe.handleMouseUp(mouseEvent, {...Globals}, {isViaKeyframeDraggerView: true})
           }}
           style={{
             display: 'inline-block',

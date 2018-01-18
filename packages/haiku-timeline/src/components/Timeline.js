@@ -4,6 +4,7 @@ import lodash from 'lodash'
 import { DraggableCore } from 'react-draggable'
 import Project from 'haiku-serialization/src/bll/Project'
 import Row from 'haiku-serialization/src/bll/Row'
+import Keyframe from 'haiku-serialization/src/bll/Keyframe'
 import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
 import EmitterManager from 'haiku-serialization/src/utils/EmitterManager'
@@ -218,7 +219,7 @@ class Timeline extends React.Component {
           break
         case 'view:mousedown':
           if (message.elid !== 'timeline-webview') {
-            this.getActiveComponent().deselectAndDeactivateAllKeyframes()
+            Keyframe.deselectAndDeactivateAllKeyframes({ component: this.getActiveComponent() })
           }
           break
         case 'event-handlers-updated':
@@ -298,19 +299,24 @@ class Timeline extends React.Component {
   getPopoverMenuItems ({ event, type, model, offset, curve }) {
     const items = []
 
+    const numSelectedKeyframes = this.getActiveComponent().getSelectedKeyframes().length
+
     items.push({
       label: 'Create Keyframe',
       enabled: (
-        type === 'keyframe-segment' ||
-        type === 'keyframe-transition' ||
-        type === 'property-row' ||
-        type === 'cluster-row'
+        // During multi-select it's weird to show "Create Keyframe" in the menu
+        (numSelectedKeyframes < 3) &&
+        (
+          type === 'keyframe-segment' ||
+          type === 'keyframe-transition' ||
+          type === 'property-row' ||
+          type === 'cluster-row'
+        )
       ),
       onClick: (event) => {
         const timeline = this.getActiveComponent().getCurrentTimeline()
         const frameInfo = timeline.getFrameInfo()
         const ms = Math.round(timeline.getHoveredFrame() * frameInfo.mspf)
-        // The model here might be
         model.createKeyframe(undefined, ms, { from: 'timeline' })
       }
     })
@@ -318,17 +324,17 @@ class Timeline extends React.Component {
     items.push({ type: 'separator' })
 
     items.push({
-      label: 'Delete Keyframe',
+      label: (numSelectedKeyframes < 2) ? 'Delete Keyframe' : 'Delete Keyframes',
       enabled: type === 'keyframe',
       onClick: (event) => {
-        this.getActiveComponent().deleteActiveKeyframes({ from: 'timeline' })
+        this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' })
       }
     })
 
     items.push({ type: 'separator' })
 
     items.push({
-      label: 'Make Tween',
+      label: (numSelectedKeyframes < 3) ? 'Make Tween' : 'Make Tweens',
       enabled: type === 'keyframe-segment',
       submenu: (type === 'keyframe-segment') && this.curvesMenu(curve, (event, curveName) => {
         this.getActiveComponent().joinSelectedKeyframes(curveName, { from: 'timeline' })
@@ -339,7 +345,7 @@ class Timeline extends React.Component {
     })
 
     items.push({
-      label: 'Change Tween',
+      label: (numSelectedKeyframes < 3) ? 'Change Tween' : 'Change Tweens',
       enabled: type === 'keyframe-transition',
       submenu: (type === 'keyframe-transition') && this.curvesMenu(curve, (event, curveName) => {
         this.getActiveComponent().changeCurveOnSelectedKeyframes(curveName, { from: 'timeline' })
@@ -347,7 +353,7 @@ class Timeline extends React.Component {
     })
 
     items.push({
-      label: 'Remove Tween',
+      label: (numSelectedKeyframes < 3) ? 'Remove Tween' : 'Remove Tweens',
       enabled: type === 'keyframe-transition',
       onClick: (event) => {
         this.getActiveComponent().splitSelectedKeyframes({ from: 'timeline' })
@@ -358,22 +364,24 @@ class Timeline extends React.Component {
   }
 
   loadUserSettings () {
-    this.project.getEnvoyClient().get(USER_CHANNEL).then(
-      (user) => {
-        this.user = user
-        user.getConfig('timeDisplayModes').then(
-          (timeDisplayModes) => {
-            if (timeDisplayModes && timeDisplayModes[this.project.getFolder()]) {
-              this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(timeDisplayModes[this.project.getFolder()])
-            } else {
-              user.getConfig('defaultTimeDisplayMode').then((defaultTimeDisplayMode) => {
-                defaultTimeDisplayMode && this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(defaultTimeDisplayMode)
-              })
+    if (!this.project.getEnvoyClient().isInMockMode()) {
+      this.project.getEnvoyClient().get(USER_CHANNEL).then(
+        (user) => {
+          this.user = user
+          user.getConfig('timeDisplayModes').then(
+            (timeDisplayModes) => {
+              if (timeDisplayModes && timeDisplayModes[this.project.getFolder()]) {
+                this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(timeDisplayModes[this.project.getFolder()])
+              } else {
+                user.getConfig('defaultTimeDisplayMode').then((defaultTimeDisplayMode) => {
+                  defaultTimeDisplayMode && this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(defaultTimeDisplayMode)
+                })
+              }
             }
-          }
-        )
-      }
-    )
+          )
+        }
+      )
+    }
   }
 
   curvesMenu (maybeCurve, cb) {
@@ -568,7 +576,7 @@ class Timeline extends React.Component {
       // case 46: //delete
       // case 13: //enter
       // delete
-      case 8: this.getActiveComponent().deleteActiveKeyframes({ from: 'timeline' }); break // Only if there are any
+      case 8: this.getActiveComponent().deleteSelectedKeyframes({ from: 'timeline' }); break // Only if there are any
       case 16: this.updateKeyboardState({ isShiftKeyDown: true }); break
       case 17: this.updateKeyboardState({ isControlKeyDown: true }); break
       case 18: this.updateKeyboardState({ isAltKeyDown: true }); break
@@ -613,18 +621,20 @@ class Timeline extends React.Component {
   saveTimeDisplayModeSetting () {
     const mode = this.getActiveComponent().getCurrentTimeline().getTimeDisplayMode()
 
-    this.user.getConfig('timeDisplayModes').then(
-      (timeDisplayModes) => {
-        this.user.setConfig(
-          'timeDisplayModes',
-          {
-            ...timeDisplayModes,
-            [this.project.getFolder()]: mode
-          }
-        )
-        this.user.setConfig('defaultTimeDisplayMode', mode)
-      }
-    )
+    if (!this.project.getEnvoyClient().isInMockMode()) {
+      this.user.getConfig('timeDisplayModes').then(
+        (timeDisplayModes) => {
+          this.user.setConfig(
+            'timeDisplayModes',
+            {
+              ...timeDisplayModes,
+              [this.project.getFolder()]: mode
+            }
+          )
+          this.user.setConfig('defaultTimeDisplayMode', mode)
+        }
+      )
+    }
   }
 
   playbackSkipBack () {
@@ -1015,7 +1025,7 @@ class Timeline extends React.Component {
               !Globals.isControlKeyDown &&
               mouseEvent.nativeEvent.which !== 3
             ) {
-              this.getActiveComponent().deselectAndDeactivateAllKeyframes()
+              Keyframe.deselectAndDeactivateAllKeyframes({ component: this.getActiveComponent() })
             }
           }}>
           {this.renderComponentRows(this.getActiveComponent().getDisplayableRows())}

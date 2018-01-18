@@ -159,7 +159,6 @@ class CurrentTimelinePopover extends React.Component {
   goToPageTwo () {
     this.setState({onPageTwo: true})
     setTimeout(() => {
-      console.log(this.creationInput)
       this.creationInput.focus()
     }, pageTransDur)
   }

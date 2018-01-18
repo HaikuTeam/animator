@@ -307,8 +307,9 @@ class Row extends BaseModel {
     } else {
       // if a keyframe was dragged onto zero position we want to delete the zero keyframe
       const keyframes = this.getKeyframes()
-      while (keyframes.length > 1 && keyframes[1].ms === 0) {
-        this.deleteKeyframe(keyframes.shift(), metadata)
+      while (keyframes.length > 1 && keyframes[1].getMs() < 1) {
+        const keyframe = keyframes.shift()
+        keyframe.delete(metadata)
       }
     }
   }
@@ -391,7 +392,6 @@ class Row extends BaseModel {
     // If value is undefined, create a keyframe with the default
     const upsertSpec = {
       ms: ms,
-      originalMs: ms,
       uid: Keyframe.getInferredUid(this, indexToAssign),
       index: indexToAssign,
       value: valueToAssign,
@@ -429,12 +429,13 @@ class Row extends BaseModel {
 
     this.emit('update', 'keyframe-create')
     if (this.parent) this.parent.emit('update', 'keyframe-create')
-    Keyframe.deselectAndDeactivateAllKeyframes({ component: this.component })
 
     return created
   }
 
   deleteKeyframe (keyframe, metadata) {
+    keyframe.destroy()
+
     const siblings = this.getKeyframes()
 
     siblings.forEach((sibling) => {
@@ -443,8 +444,6 @@ class Row extends BaseModel {
         sibling.decrementIndex()
       }
     })
-
-    keyframe.destroy()
 
     this.component.deleteKeyframe(
       this.element.getComponentId(),
@@ -463,7 +462,9 @@ class Row extends BaseModel {
 
     this.emit('update', 'keyframe-delete')
     if (this.parent) this.parent.emit('update', 'keyframe-delete')
-    Keyframe.deselectAndDeactivateAllKeyframes({ component: this.component })
+
+    // Make sure any deleted keyframe have been fully deselected to avoid ghost issues
+    Keyframe.deselectAndDeactivateAllDeletedKeyframes({ component: this.component })
 
     return keyframe
   }
@@ -490,9 +491,6 @@ class Row extends BaseModel {
     // If we are a heading row (either a cluster or an element), we have no keyframes,
     // so we instead query our children for the list of keyframes within us
     if (this.isHeading() || this.isClusterHeading()) {
-      if (this.dump() === 'cluster-heading.39|1.0.14.sizeAbsolute[]') {
-        console.log(this.children)
-      }
       return lodash.flatten(this.children.map((child) => child.mapVisibleKeyframes(iteratee)))
     }
 

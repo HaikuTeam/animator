@@ -10,7 +10,7 @@ tape('Element.prototype.getAddressableProperties', (t) => {
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
   const platform = {}
   const userconfig = {}
-  const fileOptions = { doShallowWorkOnly: false, skipDiffLogging: true }
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
   const envoyOptions = { mock: true }
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {

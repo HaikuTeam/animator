@@ -13,7 +13,7 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
   const platform = {}
   const userconfig = {}
-  const fileOptions = { doShallowWorkOnly: false, skipDiffLogging: true }
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
   const envoyOptions = { mock: true }
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
@@ -58,7 +58,7 @@ tape('ActiveComponent.prototype.deleteComponent[1](design)', (t) => {
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
   const platform = {}
   const userconfig = {}
-  const fileOptions = { doShallowWorkOnly: false, skipDiffLogging: true }
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
   const envoyOptions = { mock: true }
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
@@ -97,7 +97,7 @@ tape('ActiveComponent.prototype.mergeDesign[1](design)', (t) => {
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
   const platform = {}
   const userconfig = {}
-  const fileOptions = { doShallowWorkOnly: false, skipDiffLogging: true }
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
   const envoyOptions = { mock: true }
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
@@ -147,7 +147,7 @@ tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
   const platform = {}
   const userconfig = {}
-  const fileOptions = { doShallowWorkOnly: false, skipDiffLogging: true }
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
   const envoyOptions = { mock: true }
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
@@ -201,7 +201,7 @@ tape('ActiveComponent.prototype.deleteComponent[2](component)', (t) => {
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
   const platform = {}
   const userconfig = {}
-  const fileOptions = { doShallowWorkOnly: false, skipDiffLogging: true }
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
   const envoyOptions = { mock: true }
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
@@ -241,7 +241,7 @@ tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
   const platform = {}
   const userconfig = {}
-  const fileOptions = { doShallowWorkOnly: false, skipDiffLogging: true }
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
   const envoyOptions = { mock: true }
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
@@ -270,7 +270,7 @@ tape('ActiveComponent.prototype.batchUpsertEventHandlers[1]', (t) => {
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
   const platform = {}
   const userconfig = {}
-  const fileOptions = { doShallowWorkOnly: false, skipDiffLogging: true }
+  const fileOptions = { doWriteToDisk: true, skipDiffLogging: true }
   const envoyOptions = { mock: true }
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
