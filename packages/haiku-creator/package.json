@@ -23,7 +23,7 @@
     "test-report": "tape \"test/**/*.test.js\" > test-result.tap"
   },
   "dependencies": {
-    "@haiku/player": "2.3.71",
+    "@haiku/player": "2.3.72",
     "@haiku/taylor-timelineskeletonstate": "^0.0.8",
     "async": "^2.5.0",
     "better-react-spinkit": "2.0.0-4",
