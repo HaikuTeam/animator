@@ -3928,5 +3928,107 @@
       "label": "fix",
       "message": "delete stading-zeroth keyframe if sibling is dragged to zero"
     }
+  },
+  "2.3.73": {
+    "d8809dd6c3bdf1d3c55ca0aec9c5e2a165964201": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Don't break reference attributes when merging designs (fixes issue where els with gradient disappear on merge design)"
+    },
+    "078250b4f01bdf96fd7abba51820fb9c1372af37": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Prevent reload from creating an exponentially growing list of player components"
+    },
+    "cec9e12aac655396529f829e416e6fda550f9d43": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Ensure padded id references are properly tranfers (fixes element disappearance on delete)"
+    },
+    "af3db76905566acc8aa7021434c6b387cdb5ba23": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "restore a working File.expelOne() method and actually tear down watchers."
+    },
+    "1c9b45512a6aa4ce7e60045ad7e70b7897432e65": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "ensure new project init is successful on CodeCommit-backed inkstone."
+    },
+    "200d6c77037eb0653af279d14f80355f21188d13": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "Upgrade mono to support GitLab-backed repositories."
+    },
+    "498af69d995f92ed65068ff72eb350af871ca9c8": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Avoid updates getting out of phase by subscribing at the Keyframe class level"
+    },
+    "7909f2c66767ce7c6acea1f49d9ae69a6b797637": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "More correct differentiation of selection states"
+    },
+    "3cc2ea536135efc6f914d2cf9aa7484a2a9a59e0": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Remove call to method that doesn't exist"
+    },
+    "358b67e52fa2833d59ef6dcdc76a540758893b5b": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Remove call to method that doesn't exist"
+    },
+    "42f1ebaeb5b6b4fd9da15ad32989260782202c11": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "The opposite method was being called here"
+    },
+    "2329649524ae7a6d64b750ab1fae65f6a0b89ae4": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "add endpoint for self-service organization creation."
+    },
+    "14f1df8a23fc9ad8650f5dc6ea26f0deb9d4b2cc": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Use correct logic for determining whether to highlight the curve"
+    },
+    "f84927e18beb184cfe7b5f2cc4cdd909d9bb9002": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Make curve assignment logic aware of selection state"
+    },
+    "20d332a17b9056d4fdb2cdc41739e70276b044a9": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Handle type mistmatches in interpolation endpoints"
+    },
+    "fdc38d2224a14df133b6a0effc0529a553bd835c": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Missed API change caused keyframe curve assignment bug; how was this working at all?; todo types"
+    },
+    "9b3ec8849ef8c9a5f4ea2211709df9f39df07dab": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Prevent unfilled states from crashing app when switching between projects"
+    },
+    "5121dc0f471269483aaa1c06e4a99448b18d8f14": {
+      "project": "@haiku/player",
+      "label": "feat",
+      "message": "add haiku as loader for timeline skeleton state"
+    },
+    "3974256f2094cc87f49bb0f3fd99a1555e4f36ae": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "create keyframe at correct location on rt-click"
+    },
+    "85011ee50439da557bc878c5161e1a43a08e42c0": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "86 treelien"
+    }
   }
 }
