@@ -308,10 +308,11 @@ function createCollection (klass, collection, opts) {
     return found && found[0]
   }
 
-  // HACK:  this logic that searched by id was broken, as uids are in the format '/Users/zack/.haiku/projects/zack3/Romp::main::e4a9e4d8baa7' instead of 'e4a9e4d8baa7'
-  //       Rather than combing for the unknowable pathways where this logic is get/set (wistful sigh: types) I've hacked the findById logic to search using regex.
-  //       Should be drop-in compatible with exact id matching as well.
-  klass.findById = (id) => klass.all().find((elem) => elem[klass.config.primaryKey].endsWith(id))
+  klass.findById = (id) => {
+    const criteria = {}
+    criteria[klass.config.primaryKey] = id
+    return klass.find(criteria)
+  }
 
   // eslint-disable-next-line
   klass.create = (props, opts) => new klass(props, opts)

@@ -960,7 +960,7 @@ export default class Master extends EventEmitter {
 
   handleHaikuComponentMounted () {
     // Since we aren't running in the DOM cancel the raf to avoid leaked handles
-    this.getActiveComponent().instancesOfHaikuPlayerComponent.forEach((instance) => {
+    this.getActiveComponent().getAllInstancesOfHaikuPlayerComponent().forEach((instance) => {
       instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
     })
 

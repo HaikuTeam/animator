@@ -139,7 +139,8 @@ Bytecode.padIds = (bytecode, padderFunction) => {
     if (domId) {
       const fixedDomId = padderFunction(domId)
       fixedReferences[domId] = fixedDomId
-      fixedReferences[`url(#${domId})`] = `url(#${fixedDomId})`
+      fixedReferences[`url(#${domId})`] = `url(#${fixedDomId})` // filter="url(...)"
+      fixedReferences[`#${domId}`] = `#${fixedDomId}` // xlink:href="#path-3-abc123"
       node.attributes.id = fixedReferences[domId]
     }
   })
@@ -154,19 +155,32 @@ Bytecode.padIds = (bytecode, padderFunction) => {
       for (const timelineName in bytecode.timelines) {
         const timelineObject = bytecode.timelines[timelineName]
         transferReferences(timelineObject, originalReference, updatedReference)
-      }
-    }
-
-    templateNodes.forEach((node) => {
-      for (const attrKey in node.attributes) {
-        const attrVal = node.attributes[attrKey]
-        if (typeof attrVal !== 'string') continue
-        if (fixedReferences[attrVal.trim()]) {
-          node.attributes[attrKey] = fixedReferences[attrVal.trim()]
+        for (const timelineSelector in timelineObject) {
+          for (const propertyName in timelineObject[timelineSelector]) {
+            // TODO: Only apply to attributes known to use references? Or would that be brittle?
+            //       For example, only filter, stroke, xlink:href...?
+            for (const keyframeMs in timelineObject[timelineSelector][propertyName]) {
+              const propertyValue = timelineObject[timelineSelector][propertyName][keyframeMs].value
+              const fixedValue = fixedReferences[propertyValue]
+              if (fixedValue) {
+                timelineObject[timelineSelector][propertyName][keyframeMs].value = fixedValue
+              }
+            }
+          }
         }
       }
-    })
+    }
   }
+
+  templateNodes.forEach((node) => {
+    for (const attrKey in node.attributes) {
+      const attrVal = node.attributes[attrKey]
+      if (typeof attrVal !== 'string') continue
+      if (fixedReferences[attrVal.trim()]) {
+        node.attributes[attrKey] = fixedReferences[attrVal.trim()]
+      }
+    }
+  })
 }
 
 function transferReferences (obj, originalReference, updatedReference) {
@@ -236,7 +250,7 @@ Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
   Bytecode.mergeTimelines(b1.timelines, b2.timelines)
 }
 
-Bytecode.mergeTimelines = (t1, t2) => {
+Bytecode.mergeTimelines = (t1, t2, doMergeValueFn) => {
   if (!t1 || !t2) return
   for (const timelineName in t2) {
     for (const timelineSelector in t2[timelineName]) {
@@ -252,7 +266,24 @@ Bytecode.mergeTimelines = (t1, t2) => {
             if (!t1[timelineName]) t1[timelineName] = {}
             if (!t1[timelineName][timelineSelector]) t1[timelineName][timelineSelector] = {}
             if (!t1[timelineName][timelineSelector][propertyName]) t1[timelineName][timelineSelector][propertyName] = {}
-            t1[timelineName][timelineSelector][propertyName][keyframeMs] = t2[timelineName][timelineSelector][propertyName][keyframeMs]
+            if (!t1[timelineName][timelineSelector][propertyName][keyframeMs]) t1[timelineName][timelineSelector][propertyName][keyframeMs] = {}
+
+            const targetObj = t1[timelineName][timelineSelector][propertyName][keyframeMs]
+            const sourceObj = t2[timelineName][timelineSelector][propertyName][keyframeMs]
+
+            if (sourceObj && sourceObj.curve !== undefined) {
+              targetObj.curve = sourceObj.curve
+            }
+
+            if (sourceObj && sourceObj.value !== undefined) {
+              if (doMergeValueFn) {
+                if (doMergeValueFn(propertyName, targetObj.value, sourceObj.value)) {
+                  targetObj.value = sourceObj.value
+                }
+              } else {
+                targetObj.value = sourceObj.value
+              }
+            }
           }
         }
       }
