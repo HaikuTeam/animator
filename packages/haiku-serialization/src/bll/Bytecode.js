@@ -139,7 +139,8 @@ Bytecode.padIds = (bytecode, padderFunction) => {
     if (domId) {
       const fixedDomId = padderFunction(domId)
       fixedReferences[domId] = fixedDomId
-      fixedReferences[`url(#${domId})`] = `url(#${fixedDomId})`
+      fixedReferences[`url(#${domId})`] = `url(#${fixedDomId})` // filter="url(...)"
+      fixedReferences[`#${domId}`] = `#${fixedDomId}` // xlink:href="#path-3-abc123"
       node.attributes.id = fixedReferences[domId]
     }
   })
@@ -154,19 +155,32 @@ Bytecode.padIds = (bytecode, padderFunction) => {
       for (const timelineName in bytecode.timelines) {
         const timelineObject = bytecode.timelines[timelineName]
         transferReferences(timelineObject, originalReference, updatedReference)
-      }
-    }
-
-    templateNodes.forEach((node) => {
-      for (const attrKey in node.attributes) {
-        const attrVal = node.attributes[attrKey]
-        if (typeof attrVal !== 'string') continue
-        if (fixedReferences[attrVal.trim()]) {
-          node.attributes[attrKey] = fixedReferences[attrVal.trim()]
+        for (const timelineSelector in timelineObject) {
+          for (const propertyName in timelineObject[timelineSelector]) {
+            // TODO: Only apply to attributes known to use references? Or would that be brittle?
+            //       For example, only filter, stroke, xlink:href...?
+            for (const keyframeMs in timelineObject[timelineSelector][propertyName]) {
+              const propertyValue = timelineObject[timelineSelector][propertyName][keyframeMs].value
+              const fixedValue = fixedReferences[propertyValue]
+              if (fixedValue) {
+                timelineObject[timelineSelector][propertyName][keyframeMs].value = fixedValue
+              }
+            }
+          }
         }
       }
-    })
+    }
   }
+
+  templateNodes.forEach((node) => {
+    for (const attrKey in node.attributes) {
+      const attrVal = node.attributes[attrKey]
+      if (typeof attrVal !== 'string') continue
+      if (fixedReferences[attrVal.trim()]) {
+        node.attributes[attrKey] = fixedReferences[attrVal.trim()]
+      }
+    }
+  })
 }
 
 function transferReferences (obj, originalReference, updatedReference) {
