@@ -7,7 +7,6 @@ import tmp from 'tmp'
 import lodash from 'lodash'
 import { client as sdkClient } from '@haiku/sdk-client'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
-import {TourUtils} from 'haiku-common/lib/types/enums'
 import * as Git from './Git'
 import * as ProjectFolder from './ProjectFolder'
 import * as Inkstone from './Inkstone'
@@ -23,11 +22,6 @@ const CLONE_RETRY_DELAY = 5000
 const DEFAULT_BRANCH_NAME = 'master' // "'master' process" has nothing to do with this :/
 const BASELINE_SEMVER_TAG = '0.0.0'
 const COMMIT_SUFFIX = '(via Haiku Desktop)'
-const DEMO_PROJECT_NAMES = {
-  [TourUtils.ProjectName]: true,
-  Move: true,
-  Moto: true
-}
 
 function _isCommitTypeRequest ({ type }) {
   return type === 'commit'
@@ -123,6 +117,7 @@ export default class MasterGitProject extends EventEmitter {
       this._projectInfo.haikuUsername = projectInfo.haikuUsername
       this._projectInfo.haikuPassword = projectInfo.haikuPassword
       this._projectInfo.branchName = projectInfo.branchName
+      this._projectInfo.repositoryUrl = projectInfo.repositoryUrl
     }
   }
 
@@ -189,28 +184,25 @@ export default class MasterGitProject extends EventEmitter {
       }
     }
 
-    return async.series([
+    return async.parallel([
       (cb) => {
         return this.safeHasAnyHeadCommitForCurrentBranch((hasHeadCommit) => {
           this._folderState.hasHeadCommit = hasHeadCommit
           return cb()
         })
       },
-
       (cb) => {
         return Git.referenceNameToId(this.folder, 'HEAD', (_err, headCommitId) => {
           this._folderState.headCommitId = headCommitId
           return cb()
         })
       },
-
       (cb) => {
         return this.safeListLocallyDeclaredRemotes((gitRemotesList) => {
           this._folderState.gitRemotesList = gitRemotesList
           return cb()
         })
       },
-
       (cb) => {
         return this.safeGitStatus({ log: false }, (gitStatuses) => {
           this._folderState.doesGitHaveChanges = !!(gitStatuses && Object.keys(gitStatuses).length > 0)
@@ -218,9 +210,7 @@ export default class MasterGitProject extends EventEmitter {
           return cb()
         })
       },
-
       (cb) => {
-        this._folderState.folderEntries = fse.readdirSync(this.folder)
         this._folderState.folder = this.folder
         this._folderState.projectName = this._projectInfo.projectName
         this._folderState.branchName = this._projectInfo.branchName
@@ -228,21 +218,23 @@ export default class MasterGitProject extends EventEmitter {
         this._folderState.haikuPassword = this._projectInfo.haikuPassword
         this._folderState.gitUndoables = this._gitUndoables
         this._folderState.gitRedoables = this._gitRedoables
-        return cb()
+        fse.readdir(this.folder, (_, folderEntries) => {
+          this._folderState.folderEntries = folderEntries
+          cb()
+        })
       },
-
       (cb) => {
-        const packageJsonExists = fse.existsSync(path.join(this.folder, 'package.json'))
-        if (!packageJsonExists) return cb()
-        const packageJsonObj = fse.readJsonSync(path.join(this.folder, 'package.json'), { throws: false })
-        if (!packageJsonObj) return cb()
-        this._folderState.semverVersion = packageJsonObj.version
-        this._folderState.playerVersion = packageJsonObj.dependencies && packageJsonObj.dependencies['@haiku/player']
-        return cb()
+        fse.readJson(path.join(this.folder, 'package.json'), (err, packageJsonObj) => {
+          if (err || !packageJsonObj) {
+            return cb()
+          }
+
+          this._folderState.semverVersion = packageJsonObj.version
+          this._folderState.playerVersion = packageJsonObj.dependencies && packageJsonObj.dependencies['@haiku/player']
+          cb()
+        })
       }
-    ], (err) => {
-      if (err) return cb(err)
-      // logger.info(`[master-git] folder state fetch (${who}) done`)
+    ], () => {
       return cb(null, this._folderState, previousState)
     })
   }
@@ -261,6 +253,14 @@ export default class MasterGitProject extends EventEmitter {
       return cb(null)
     }
 
+    if (this._projectInfo.repositoryUrl) {
+      return cb({ // eslint-disable-line
+        projectName: this._projectInfo.projectName,
+        repositoryUrl: this._projectInfo.repositoryUrl
+      })
+    }
+
+    // DEPRECATED: only for CodeCommit-backed projects.
     const authToken = sdkClient.config.getAuthToken()
 
     return Inkstone.project.getByName(authToken, this._projectInfo.projectName, (err, projectAndCredentials, httpResp) => {
@@ -463,6 +463,23 @@ export default class MasterGitProject extends EventEmitter {
       return cb() // Kinda hacky to put this here...
     }
 
+    const { repositoryUrl } = this._folderState.remoteProjectDescriptor
+    if (repositoryUrl) {
+      return Git.pushProjectDirectly(
+        this.folder,
+        this._folderState.projectName,
+        (err) => {
+          if (err) {
+            cb(err)
+            return
+          }
+
+          this.pushTagDirectly(cb)
+        }
+      )
+    }
+
+    // DEPRECATED: only required for non-GitLab projects.
     const {
       GitRemoteUrl,
       CodeCommitHttpsUsername,
@@ -535,6 +552,21 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   cloneRemoteIntoFolder (cb) {
+    const { repositoryUrl } = this._folderState.remoteProjectDescriptor
+    if (repositoryUrl) {
+      logger.sacred(`[master-git] directly cloning from remote ${repositoryUrl}`)
+      return Git.cloneRepoDirectly(repositoryUrl, this.folder, (err) => {
+        if (err) {
+          logger.info(`[master-git] clone error:`, err)
+          return cb(err)
+        }
+
+        logger.info('[master-git] clone complete')
+        return cb()
+      })
+    }
+
+    // DEPRECATED: only required for non-GitLab projects.
     if (!this._folderState.cloneAttempts) {
       this._folderState.cloneAttempts = 0
     }
@@ -585,7 +617,13 @@ export default class MasterGitProject extends EventEmitter {
     if (!this._folderState.remoteProjectDescriptor) {
       return cb(new Error('Cannot find remote project descriptor'))
     }
-    const { GitRemoteUrl } = this._folderState.remoteProjectDescriptor
+    const { repositoryUrl, GitRemoteUrl } = this._folderState.remoteProjectDescriptor
+    if (repositoryUrl) {
+      logger.info('[master-git] upserting remote', repositoryUrl)
+      return Git.upsertRemoteDirectly(this.folder, this._folderState.projectName, repositoryUrl, cb)
+    }
+
+    // DEPRECATED: only required for non-GitLab projects.
     logger.info('[master-git] upserting remote', GitRemoteUrl)
     return Git.upsertRemote(this.folder, this._folderState.projectName, GitRemoteUrl, cb)
   }
@@ -645,11 +683,16 @@ export default class MasterGitProject extends EventEmitter {
                 if (err) return cb(err)
 
                 const remoteRefspecs = [refSpecToPush]
-                const remoteCreds = Git.buildRemoteOptions(this._folderState.remoteProjectDescriptor.CodeCommitHttpsUsername, this._folderState.remoteProjectDescriptor.CodeCommitHttpsPassword)
+                const pushOpts = this._folderState.remoteProjectDescriptor.repositoryUrl
+                  ? Git.globalPushOpts
+                  : Git.buildRemoteOptions(
+                    this._folderState.remoteProjectDescriptor.CodeCommitHttpsUsername,
+                    this._folderState.remoteProjectDescriptor.CodeCommitHttpsPassword
+                  )
 
                 logger.info('[master-git] remote refs: pushing refspecs', remoteRefspecs, 'over https')
 
-                return mainRemote.push(remoteRefspecs, remoteCreds).then(() => {
+                return mainRemote.push(remoteRefspecs, pushOpts).then(() => {
                   return cb()
                 }, cb)
               })
@@ -684,7 +727,67 @@ export default class MasterGitProject extends EventEmitter {
     })
   }
 
+  pullRemotePostFetch (cb) {
+    return Git.getCurrentBranchName(this.folder, (err, partialBranchName) => {
+      if (err) return cb(err)
+      logger.info(`[master-git] current branch is '${partialBranchName}'`)
+
+      const remoteBranchRefName = Git.getRemoteBranchRefName(this._folderState.projectName, partialBranchName)
+      return Git.getReference(this.folder, remoteBranchRefName, (err, ref) => {
+        if (err) return cb(err)
+
+        // If no reference, we probably haven't pushed the remote yet, so skip the merge attempt
+        if (!ref) {
+          logger.info(`[master-git] skipping merge after pull since no ref ${remoteBranchRefName} exists`)
+          // Just for the sake of logging the current git status
+          return this.safeGitStatus({ log: true }, () => {
+            this._folderState.didHaveConflicts = false
+            this._folderState.mergeCommitId = null
+            return cb()
+          })
+        }
+
+        return Git.mergeProject(this.folder, this._folderState.projectName, partialBranchName, this._folderState.saveOptions, (err, didHaveConflicts, shaOrIndex) => {
+          if (err) return cb(err)
+
+          if (!didHaveConflicts) {
+            logger.info(`[master-git] merge complete (${shaOrIndex})`)
+          } else {
+            logger.info(`[master-git] merge conflicts detected`)
+          }
+
+          // Just for the sake of logging the current git status
+          return this.safeGitStatus({ log: true }, () => {
+            this._folderState.didHaveConflicts = didHaveConflicts
+            this._folderState.mergeCommitId = (didHaveConflicts) ? null : shaOrIndex.toString()
+            return cb()
+          })
+        })
+      })
+    })
+  }
+
   pullRemote (cb) {
+    const { repositoryUrl } = this._folderState.remoteProjectDescriptor
+    if (repositoryUrl) {
+      return Git.fetchProjectDirectly(this.folder, this._folderState.projectName, repositoryUrl, (err) => {
+        if (err) {
+          // Ignore the error for now since the remote might not actually exist yet
+          logger.info(`[master-git] unable to fetch because ${err}; ignoring this`)
+
+          // Just for the sake of logging the current git status
+          return this.safeGitStatus({ log: true }, () => {
+            this._folderState.didHaveConflicts = false
+            this._folderState.mergeCommitId = null
+            return cb()
+          })
+        }
+
+        return this.pullRemotePostFetch(cb)
+      })
+    }
+
+    // DEPRECATED: only required for non-GitLab projects.
     const {
       GitRemoteUrl,
       CodeCommitHttpsUsername,
@@ -704,43 +807,7 @@ export default class MasterGitProject extends EventEmitter {
         })
       }
 
-      return Git.getCurrentBranchName(this.folder, (err, partialBranchName) => {
-        if (err) return cb(err)
-        logger.info(`[master-git] current branch is '${partialBranchName}'`)
-
-        const remoteBranchRefName = Git.getRemoteBranchRefName(this._folderState.projectName, partialBranchName)
-        return Git.getReference(this.folder, remoteBranchRefName, (err, ref) => {
-          if (err) return cb(err)
-
-          // If no reference, we probably haven't pushed the remote yet, so skip the merge attempt
-          if (!ref) {
-            logger.info(`[master-git] skipping merge after pull since no ref ${remoteBranchRefName} exists`)
-            // Just for the sake of logging the current git status
-            return this.safeGitStatus({ log: true }, () => {
-              this._folderState.didHaveConflicts = false
-              this._folderState.mergeCommitId = null
-              return cb()
-            })
-          }
-
-          return Git.mergeProject(this.folder, this._folderState.projectName, partialBranchName, this._folderState.saveOptions, (err, didHaveConflicts, shaOrIndex) => {
-            if (err) return cb(err)
-
-            if (!didHaveConflicts) {
-              logger.info(`[master-git] merge complete (${shaOrIndex})`)
-            } else {
-              logger.info(`[master-git] merge conflicts detected`)
-            }
-
-            // Just for the sake of logging the current git status
-            return this.safeGitStatus({ log: true }, () => {
-              this._folderState.didHaveConflicts = didHaveConflicts
-              this._folderState.mergeCommitId = (didHaveConflicts) ? null : shaOrIndex.toString()
-              return cb()
-            })
-          })
-        })
-      })
+      return this.pullRemotePostFetch(cb)
     })
   }
 
@@ -824,6 +891,13 @@ export default class MasterGitProject extends EventEmitter {
     return Inkstone.getCurrentShareInfo(this.folder, this._shareInfoPayloads, this._folderState, cb)
   }
 
+  // Deprecates pushTag() for GitLab.
+  pushTagDirectly (cb) {
+    logger.info(`[master-git] pushing tag ${this._folderState.semverVersion} to remote (${this._folderState.projectName})`)
+    return Git.pushTagToRemoteDirectly(this.folder, this._folderState.projectName, this._folderState.semverVersion, cb)
+  }
+
+  // DEPRECATED: only required for non-GitLab projects.
   pushTag (GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, cb) {
     logger.info(`[master-git] pushing tag ${this._folderState.semverVersion} to remote (${this._folderState.projectName}) ${GitRemoteUrl}`)
     return Git.pushTagToRemote(this.folder, this._folderState.projectName, this._folderState.semverVersion, CodeCommitHttpsUsername, CodeCommitHttpsPassword, cb)
@@ -1056,32 +1130,27 @@ export default class MasterGitProject extends EventEmitter {
       },
 
       (cb) => {
-        const {
-          isGitInitialized,
-          projectName
-        } = this._folderState
+        const { isGitInitialized } = this._folderState
+        const actionSequence = []
 
-        // Based on the above statuses, assemble a sequence of actions to take.
-        let actionSequence = []
-
-        if (!isGitInitialized) {
-          actionSequence = ['initializeGit']
-
-          const doAttemptInitialClone = this.shouldCloneProjectContents(projectName, initOptions)
-
-          if (doAttemptInitialClone) {
-            actionSequence = [
-              'fetchGitRemoteInfoState',
-              'moveContentsToTemp',
-              'cloneRemoteIntoFolder',
-              'copyContentsFromTemp'
-            ]
-          }
+        if (isGitInitialized) {
+          actionSequence.push('fetchGitRemoteInfoState', 'pullRemote')
+        } else if (
+          !this._projectInfo.repositoryUrl &&
+          !['CheckTutorial', 'Move', 'Moto', 'Percy'].includes(this._folderState.projectName)
+        ) {
+          // Legacy: Except for template projects, we won't have an initial master commit on CodeCommit.
+          actionSequence.push('initializeGit')
         } else {
-          actionSequence = []
+          actionSequence.push(
+            'fetchGitRemoteInfoState',
+            'moveContentsToTemp',
+            'cloneRemoteIntoFolder',
+            'copyContentsFromTemp'
+          )
         }
 
-        logger.info('[master-git] action sequence:', actionSequence.map((name) => name))
+        logger.info('[master-git] action sequence:', actionSequence)
 
         return this.runActionSequence(actionSequence, initOptions, (err) => {
           if (err) return cb(err)
@@ -1092,18 +1161,6 @@ export default class MasterGitProject extends EventEmitter {
       if (err) return done(err)
       return done(null, results[results.length - 1])
     })
-  }
-
-  shouldCloneProjectContents (projectName, { didFolderAlreadyExist }) {
-    // When users first launch the app, they will see that there are some tutorial projects available.
-    // However, that content is not on their machine automatically; it needs to be loaded from the cloud.
-    if (projectName in DEMO_PROJECT_NAMES) {
-      return true
-    }
-
-    // If the project exists remotely already but there is no content locally, clone down the content.
-    // The use case is wanting to develop the same projects across multiple workstations.
-    return !didFolderAlreadyExist
   }
 
   fetchGitRemoteInfoState (cb) {
@@ -1146,68 +1203,31 @@ export default class MasterGitProject extends EventEmitter {
       (cb) => {
         logger.info('[master-git] project save: preparing action sequence')
 
-        const isCodeCommitReady = !!(this._projectInfo.projectName && this._folderState.remoteProjectDescriptor)
-
-        const {
-          isGitInitialized,
-          doesGitHaveChanges
-        } = this._folderState
-
-        // Based on the above statuses, assemble a sequence of actions to take.
-        let actionSequence = []
-
-        if (!isGitInitialized && !isCodeCommitReady) {
-          actionSequence = [
-            'initializeGit',
-            'commitEverything',
-            'makeTag',
-            'retryCloudSaveSetup'
-          ]
-        } else if (!isGitInitialized && isCodeCommitReady) {
-          actionSequence = [
-            // 'initializeGit', Don't need this since clone does it?
-            'moveContentsToTemp',
-            'cloneRemoteIntoFolder',
-            'copyContentsFromTemp',
-            'commitEverything',
-            'makeTag',
-            'ensureRemoteRefs',
-            'saveSnapshot'
-          ]
-        } else if (isGitInitialized && !isCodeCommitReady) {
-          actionSequence = [
-            'commitEverything',
-            'makeTag',
-            'retryCloudSaveSetup'
-          ]
-        } else if (isGitInitialized && isCodeCommitReady) {
-          if (doesGitHaveChanges) {
-            actionSequence = [
-              'commitEverything',
-              'ensureBranch',
-              'ensureLocalRemote',
-              'pullRemote', // Turn on when collab is back
-              'conflictResetOrContinue', // Turn on when collab is back
-              'bumpSemverAppropriately',
-              'commitEverything',
-              'makeTag',
-              'saveSnapshot'
-            ]
-          } else if (!doesGitHaveChanges) {
-            actionSequence = [
-              'ensureBranch',
-              'ensureLocalRemote',
-              'pullRemote', // Turn on when collab is back
-              'bumpSemverAppropriately',
-              'commitEverything',
-              'makeTag',
-              'saveSnapshot'
-            ]
-          }
+        if (!(this._projectInfo.projectName && this._folderState.remoteProjectDescriptor)) {
+          return cb(new Error('[master-git] unable to save project'))
         }
 
-        logger.info('[master-git] project save: action sequence:', actionSequence.map((name) => name))
+        const setupSteps = [
+          'ensureBranch',
+          'ensureLocalRemote',
+          'pullRemote'
+        ]
 
+        const teardownSteps = [
+          'bumpSemverAppropriately',
+          'commitEverything',
+          'makeTag',
+          'saveSnapshot'
+        ]
+
+        const actionSequence = []
+        if (this._folderState.doesGitHaveChanges) {
+          actionSequence.push('commitEverything', ...setupSteps, 'conflictResetOrContinue', ...teardownSteps)
+        } else {
+          actionSequence.push(...setupSteps, ...teardownSteps)
+        }
+
+        logger.info('[master-git] project save: action sequence:', actionSequence)
         return this.runActionSequence(actionSequence, saveOptions, cb)
       }
     ], (err) => {

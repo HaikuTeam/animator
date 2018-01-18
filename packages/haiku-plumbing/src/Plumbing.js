@@ -1,5 +1,6 @@
 import path from 'path'
 import async from 'async'
+import fse from 'haiku-fs-extra'
 import lodash from 'lodash'
 import find from 'lodash.find'
 import merge from 'lodash.merge'
@@ -83,7 +84,8 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   previewProject: true,
   fetchProjectInfo: true,
   doLogOut: true,
-  deleteProject: true
+  deleteProject: true,
+  teardownMaster: true
 }
 
 const PROCS = {
@@ -162,7 +164,6 @@ export default class Plumbing extends StateObject {
     this.clients = []
     this.requests = {}
     this.caches = {}
-    this.projects = {}
 
     // Avoid creating new handles if we have been explicitly torn down by a signal
     this._isTornDown = false
@@ -465,8 +466,7 @@ export default class Plumbing extends StateObject {
     setTimeout(() => {
       if (websocket.readyState === WebSocket.OPEN) {
         const data = JSON.stringify(message)
-        const ret = websocket.send(data)
-        return ret
+        return websocket.send(data)
       } else {
         logger.info(`[plumbing] websocket readyState was not open so we did not send message ${message.method || message.id}`)
         callback() // Should this return an error or remain silent?
@@ -536,12 +536,19 @@ export default class Plumbing extends StateObject {
    * We make a decision here as to where + whether to generate a new folder.
    * When it is ready, we kick off the content initialization step with initializeFolder.
    */
-  initializeProject (maybeProjectName, { projectsHome, projectPath, skipContentCreation, organizationName, authorName }, maybeUsername, maybePassword, finish) {
+  initializeProject (
+    maybeProjectName,
+    { projectsHome, projectPath, skipContentCreation, organizationName, authorName, repositoryUrl },
+    maybeUsername,
+    maybePassword,
+    finish
+  ) {
     const projectOptions = {
       projectsHome,
       projectPath,
       skipContentCreation,
       organizationName,
+      repositoryUrl,
       projectName: maybeProjectName,
       username: maybeUsername,
       password: maybePassword
@@ -560,6 +567,9 @@ export default class Plumbing extends StateObject {
 
     return async.series([
       (cb) => {
+        if (projectOptions.organizationName) {
+          return cb()
+        }
         return this.getCurrentOrganizationName((err, organizationName) => {
           if (err) return cb(err)
           projectOptions.organizationName = organizationName
@@ -607,6 +617,7 @@ export default class Plumbing extends StateObject {
       const projectOptionsAgain = {
         didFolderAlreadyExist,
         organizationName: projectOptions.organizationName,
+        repositoryUrl: projectOptions.repositoryUrl,
         username: gitInitializeUsername,
         password: gitInitializePassword,
         authorName
@@ -614,15 +625,6 @@ export default class Plumbing extends StateObject {
 
       return this.initializeFolder(maybeProjectName, projectFolder, gitInitializeUsername, gitInitializePassword, projectOptionsAgain, (err) => {
         if (err) return finish(err)
-        // HACK: used when restarting the process to allow us to reinitialize properly
-        this.projects[projectFolder] = {
-          name: maybeProjectName,
-          folder: projectFolder,
-          username: projectOptionsAgain.username,
-          password: projectOptionsAgain.password,
-          organization: projectOptionsAgain.organizationName,
-          options: projectOptionsAgain
-        }
 
         if (Raven) {
           Raven.setContext({
@@ -633,27 +635,9 @@ export default class Plumbing extends StateObject {
         this.set('lastOpenedProjectName', maybeProjectName)
         this.set('lastOpenedProjectPath', projectFolder)
 
-        if (maybeProjectName) {
-          // HACK: alias to allow lookup by project name
-          this.projects[maybeProjectName] = this.projects[projectFolder]
-        }
-
         return finish(null, projectFolder)
       })
     })
-  }
-
-  /**
-   * Returns the absolute path of the folder of a project by name, if we are tracking one.
-   */
-  getFolderFor (projectName) {
-    let info = this.getProjectInfoFor(projectName)
-    if (!info) return null
-    return info.folder
-  }
-
-  getProjectInfoFor (projectNameOrFolder) {
-    return this.projects[projectNameOrFolder]
   }
 
   /**
@@ -799,7 +783,7 @@ export default class Plumbing extends StateObject {
     })
   }
 
-  deleteProject (name, cb) {
+  deleteProject (name, path, cb) {
     logger.info('[plumbing] deleting project', name)
     const authToken = sdkClient.config.getAuthToken()
     return inkstone.project.deleteByName(authToken, name, (deleteErr) => {
@@ -807,8 +791,24 @@ export default class Plumbing extends StateObject {
         this.sentryError('deleteProject', deleteErr)
         if (cb) return cb(deleteErr)
       }
+      if (fse.existsSync(path)) {
+        // Delete the project locally, but in a recoverable state.
+        let archivePath = `${path}.bak`
+        if (fse.existsSync(archivePath)) {
+          let i = 0
+          while (fse.existsSync(archivePath = `${path}.bak.${i++}`)) {}
+        }
+        return fse.move(path, archivePath, cb)
+      }
       if (cb) return cb()
     })
+  }
+
+  teardownMaster (folder, cb) {
+    if (MASTER_INSTANCES[folder]) {
+      MASTER_INSTANCES[folder].watchOff()
+    }
+    cb()
   }
 
   discardProjectChanges (folder, cb) {
@@ -975,13 +975,11 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
     )
   }
 
-  let master
-
   // When the user launches a project, we create a Master instance, and we keep it
   // running even if they navigate back to the dashboard to avoid a double expense
   // of initializing file watchers, Git, etc. This is just a simple multiton dict.
   if (!MASTER_INSTANCES[folder]) {
-    master = new Master(
+    const master = new Master(
       folder,
       fileOptions,
       envoyOptions
@@ -1023,11 +1021,13 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
         () => {}
       )
     })
-  } else {
-    master = MASTER_INSTANCES[folder]
+
+    MASTER_INSTANCES[folder] = master
+    return master
   }
 
-  return master
+  MASTER_INSTANCES[folder].watchOn()
+  return MASTER_INSTANCES[folder]
 }
 
 Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb) {
@@ -1290,7 +1290,8 @@ function remapProjectObjectToExpectedFormat (projectObject, organizationName) {
       organizationName,
       projectObject.Name
     ),
-    projectsHome: HOMEDIR_PATH
+    projectsHome: HOMEDIR_PATH,
+    repositoryUrl: projectObject.RepositoryUrl
     // GitRemoteUrl
     // GitRemoteName
     // GitRemoteArn

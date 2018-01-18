@@ -191,23 +191,29 @@ function doClone(context: IContext) {
       if (getByNameErr) {
         context.writeLine(chalk.bold(`Project ${projectName} not found.`));
         process.exit(1);
+      }
+
+      let gitEndpoint;
+
+      if (projectAndCredentials.Project.RepositoryUrl) {
+        gitEndpoint = projectAndCredentials.Project.RepositoryUrl;
       } else {
-        let gitEndpoint = projectAndCredentials.Project.GitRemoteUrl;
+        gitEndpoint = projectAndCredentials.Project.GitRemoteUrl;
         // TODO: store credentials more securely than this
         gitEndpoint = gitEndpoint.replace('https://', 'https://' +
           encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsUsername) + ':' +
           encodeURIComponent(projectAndCredentials.Credentials.CodeCommitHttpsPassword) + '@');
-
-        client.git.cloneRepo(gitEndpoint, destination, (cloneErr) => {
-          if (cloneErr) {
-            context.writeLine(chalk.red('Error cloning project.  Use the --verbose flag for more information.'));
-            process.exit(1);
-          } else {
-            context.writeLine(`Project ${chalk.bold(projectName)} cloned to ${chalk.bold(destination)}`);
-            process.exit(0);
-          }
-        });
       }
+
+      client.git.cloneRepo(gitEndpoint, destination, (cloneErr) => {
+        if (cloneErr) {
+          context.writeLine(chalk.red('Error cloning project.  Use the --verbose flag for more information.'));
+          process.exit(1);
+        } else {
+          context.writeLine(`Project ${chalk.bold(projectName)} cloned to ${chalk.bold(destination)}`);
+          process.exit(0);
+        }
+      });
     });
   });
 }
