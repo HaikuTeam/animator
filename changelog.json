@@ -4030,5 +4030,12 @@
       "label": "fix",
       "message": "86 treelien"
     }
+  },
+  "2.3.74": {
+    "53f534be22fb97d044357da81571f4a2655a0a0d": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "set the correct path to reset password link"
+    }
   }
 }

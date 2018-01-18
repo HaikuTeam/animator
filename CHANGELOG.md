@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.74
+
+### Bug Fixes
+
+ * set the correct path to reset password link
+
 ## 2.3.73
 
 ### Bug Fixes
