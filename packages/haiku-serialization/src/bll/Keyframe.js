@@ -572,7 +572,6 @@ class Keyframe extends BaseModel {
   }
 
   updateActivationStatesAccordingToNeighborStates () {
-    const nextKeyframe = this.next()
     const prevKeyframe = this.prev()
 
     /**
@@ -687,9 +686,6 @@ class Keyframe extends BaseModel {
       // Since mouseup commits the action, we don't check for selection state here
       this.clearOtherKeyframes()
     }
-
-    const nextKeyframe = this.next()
-    const prevKeyframe = this.prev()
 
     // If shift is down on mouse up, we deselect current selections
     if (isShiftKeyDown) {
