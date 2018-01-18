@@ -236,6 +236,19 @@ export default class TopMenu extends EventEmitter {
           },
           { type: 'separator' },
           {
+            label: 'Terms of Service',
+            click: () => {
+              shell.openExternal('https://www.haiku.ai/terms-of-service.html')
+            }
+          },
+          {
+            label: 'Privacy Policy',
+            click: () => {
+              shell.openExternal('https://www.haiku.ai/privacy-policy.html')
+            }
+          },
+          { type: 'separator' },
+          {
             label: 'Haiku Community on Slack',
             click: () => {
               shell.openExternal('https://haiku-community.slack.com/')
