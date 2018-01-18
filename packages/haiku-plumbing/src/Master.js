@@ -178,6 +178,20 @@ export default class Master extends EventEmitter {
     return this.project && this.project.getCurrentActiveComponent()
   }
 
+  watchOff () {
+    if (this._watcher) {
+      this._watcher.stop()
+    }
+  }
+
+  watchOn () {
+    this._watcher = new Watcher()
+    this._watcher.watch(this.folder)
+    this._watcher.on('change', this.handleFileChange.bind(this))
+    this._watcher.on('add', this.handleFileAdd.bind(this))
+    this._watcher.on('remove', this.handleFileRemove.bind(this))
+  }
+
   teardown (cb) {
     clearInterval(this._methodQueueInterval)
     clearInterval(this._mod._modificationsInterval)
@@ -402,7 +416,7 @@ export default class Master extends EventEmitter {
         }
 
         if (extname === '.js') {
-          return File.expelOne(relpath, (err) => {
+          return File.expelOne(this.folder, relpath, (err) => {
             if (err) return logger.info(err)
             logger.info('[master] file expelled:', abspath)
           })
@@ -746,18 +760,10 @@ export default class Master extends EventEmitter {
       // Start watching the file system for changes
       (cb) => {
         // No need to reinitialize if already in memory
-        if (!this._watcher) {
-          logger.info(`[master] ${loggingPrefix}: initializing file watcher`, this.folder)
-          this._watcher = new Watcher()
-          this._watcher.watch(this.folder)
-          this._watcher.on('change', this.handleFileChange.bind(this))
-          this._watcher.on('add', this.handleFileAdd.bind(this))
-          this._watcher.on('remove', this.handleFileRemove.bind(this))
-          logger.info(`[master] ${loggingPrefix}: file watcher is now watching`, this.folder)
-          return cb()
-        } else {
-          return cb()
-        }
+        logger.info(`[master] ${loggingPrefix}: initializing file watcher`, this.folder)
+        this.watchOn()
+        logger.info(`[master] ${loggingPrefix}: file watcher is now watching`, this.folder)
+        return cb()
       },
 
       // Make sure we are starting with a good git history

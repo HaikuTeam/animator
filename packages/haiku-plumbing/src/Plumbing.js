@@ -84,7 +84,8 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   previewProject: true,
   fetchProjectInfo: true,
   doLogOut: true,
-  deleteProject: true
+  deleteProject: true,
+  teardownMaster: true
 }
 
 const PROCS = {
@@ -803,6 +804,13 @@ export default class Plumbing extends StateObject {
     })
   }
 
+  teardownMaster (folder, cb) {
+    if (MASTER_INSTANCES[folder]) {
+      MASTER_INSTANCES[folder].watchOff()
+    }
+    cb()
+  }
+
   discardProjectChanges (folder, cb) {
     return this.awaitMasterAndCallMethod(folder, 'discardProjectChanges', [{ from: 'master' }], cb)
   }
@@ -967,13 +975,11 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
     )
   }
 
-  let master
-
   // When the user launches a project, we create a Master instance, and we keep it
   // running even if they navigate back to the dashboard to avoid a double expense
   // of initializing file watchers, Git, etc. This is just a simple multiton dict.
   if (!MASTER_INSTANCES[folder]) {
-    master = new Master(
+    const master = new Master(
       folder,
       fileOptions,
       envoyOptions
@@ -1015,11 +1021,13 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
         () => {}
       )
     })
-  } else {
-    master = MASTER_INSTANCES[folder]
+
+    MASTER_INSTANCES[folder] = master
+    return master
   }
 
-  return master
+  MASTER_INSTANCES[folder].watchOn()
+  return MASTER_INSTANCES[folder]
 }
 
 Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb) {

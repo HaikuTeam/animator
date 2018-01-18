@@ -842,8 +842,13 @@ File.ingestContents = function ingestContents (folder, relpath, { dtLastReadStar
   })
 }
 
-File.expelOne = function expelOne (relpath, cb) {
-  return File.destroyWhere({ relpath }, cb)
+File.expelOne = function expelOne (folder, relpath, cb) {
+  // TODO
+  const file = File.findById(path.join(folder, relpath))
+  if (file) {
+    file.destroy()
+  }
+  cb()
 }
 
 File.ingestFromFolder = function ingestFromFolder (folder, options, cb) {
