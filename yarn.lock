@@ -10391,6 +10391,10 @@ rollup-plugin-commonjs@^8.2.6:
     resolve "^1.4.0"
     rollup-pluginutils "^2.0.1"
 
+rollup-plugin-includepaths@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-includepaths/-/rollup-plugin-includepaths-0.2.2.tgz#4b688f220aba88c682e3846b653ddd2eb107f1ac"
+
 rollup-plugin-json@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/rollup-plugin-json/-/rollup-plugin-json-2.3.0.tgz#3c07a452c1b5391be28006fbfff3644056ce0add"
