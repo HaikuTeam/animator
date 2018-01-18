@@ -1047,7 +1047,20 @@ class ActiveComponent extends BaseModel {
           timelineTime
         )
 
-        Bytecode.mergeTimelines(bytecode.timelines, timelinesObject)
+        Bytecode.mergeTimelines(bytecode.timelines, timelinesObject, (propertyName, oldValue, newValue) => {
+          if (typeof oldValue === 'string' && typeof newValue === 'string') {
+            // HACK: Changing URL reference breaks the reference since our merge doesn't affect
+            //       the structure of the element (TODO: Support merging structural changes too)
+            if (oldValue.slice(0, 5) === 'url(#') {
+              return false
+            }
+            // HACK: Related to the above; changing references essentially means breaking them
+            if (propertyName === 'xlink:href') {
+              return false
+            }
+          }
+          return true
+        })
       })
 
       done()

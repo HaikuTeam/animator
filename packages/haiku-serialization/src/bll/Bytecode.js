@@ -250,7 +250,7 @@ Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
   Bytecode.mergeTimelines(b1.timelines, b2.timelines)
 }
 
-Bytecode.mergeTimelines = (t1, t2) => {
+Bytecode.mergeTimelines = (t1, t2, doMergeValueFn) => {
   if (!t1 || !t2) return
   for (const timelineName in t2) {
     for (const timelineSelector in t2[timelineName]) {
@@ -266,7 +266,24 @@ Bytecode.mergeTimelines = (t1, t2) => {
             if (!t1[timelineName]) t1[timelineName] = {}
             if (!t1[timelineName][timelineSelector]) t1[timelineName][timelineSelector] = {}
             if (!t1[timelineName][timelineSelector][propertyName]) t1[timelineName][timelineSelector][propertyName] = {}
-            t1[timelineName][timelineSelector][propertyName][keyframeMs] = t2[timelineName][timelineSelector][propertyName][keyframeMs]
+            if (!t1[timelineName][timelineSelector][propertyName][keyframeMs]) t1[timelineName][timelineSelector][propertyName][keyframeMs] = {}
+
+            const targetObj = t1[timelineName][timelineSelector][propertyName][keyframeMs]
+            const sourceObj = t2[timelineName][timelineSelector][propertyName][keyframeMs]
+
+            if (sourceObj && sourceObj.curve !== undefined) {
+              targetObj.curve = sourceObj.curve
+            }
+
+            if (sourceObj && sourceObj.value !== undefined) {
+              if (doMergeValueFn) {
+                if (doMergeValueFn(propertyName, targetObj.value, sourceObj.value)) {
+                  targetObj.value = sourceObj.value
+                }
+              } else {
+                targetObj.value = sourceObj.value
+              }
+            }
           }
         }
       }
