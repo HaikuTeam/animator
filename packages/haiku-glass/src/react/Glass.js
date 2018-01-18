@@ -848,8 +848,8 @@ export class Glass extends React.Component {
           // duplicate element here and immediately select it
           // TODO:  support multi-select here (forEach instead of single haikuId)
 
-          const origElement = Element.findById(haikuId)
           const ac0 = this.getActiveComponent()
+          const origElement = Element.findByComponentAndHaikuId(ac0, haikuId)
 
           // HACK:  zb, patching into paste logic because this was the only way I could discover/contrive
           //       to duplicate an element (ideally this behavior should belong to the Element view-model
@@ -860,7 +860,8 @@ export class Glass extends React.Component {
             if (err) {
               throw err
             }
-            Element.findById(idObj.haikuId).pushCachedTransform('CONSTRAINED_DRAG')
+
+            Element.findByComponentAndHaikuId(ac0, idObj.haikuId).pushCachedTransform('CONSTRAINED_DRAG')
             this.getActiveComponent().selectElement(idObj.haikuId, { from: 'glass' }, () => {})
           })
         } else {
