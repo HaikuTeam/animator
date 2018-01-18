@@ -1,9 +1,10 @@
 import fs from 'fs'
 import path from 'path'
 import Module from 'module'
-import React, { PropTypes } from 'react'
+import React, {PropTypes} from 'react'
 import HaikuDOMAdapter from '@haiku/player/dom'
 import {InteractionMode} from '@haiku/player/lib/helpers/interactionModes'
+import {TourUtils} from 'haiku-common/lib/types/enums'
 
 const renderMissingLocalProjectMessage = () => {
   // TODO: Do we want to display a message or anything else if the project isn't already present locally?
@@ -26,7 +27,7 @@ class ProjectPreview extends React.Component {
       bytecode._compile(fs.readFileSync(this.props.bytecodePath).toString(), '')
       this.bytecode = bytecode.exports
     } catch (e) {
-      if (['Move', 'Moto', 'CheckTutorial'].indexOf(this.props.projectName) !== -1) {
+      if (['Move', 'Moto', TourUtils.ProjectName].indexOf(this.props.projectName) !== -1) {
         this.bytecode = require(path.join('..', 'bytecode-fixtures', this.props.projectName))
       }
     }

@@ -1033,8 +1033,7 @@ class Timeline extends React.Component {
             console.info('[timeline] commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump())
 
             row.createKeyframe(committedValue, ms, { from: 'timeline' })
-
-            if (row.element.getNameString() === 'svg' && row.getPropertyName() === 'opacity') {
+            if (row.element.getNameString() === 'svg' && row.getPropertyName() === 'translation.x') {
               if (!this.project.getEnvoyClient().isInMockMode() && this.tourClient) {
                 this.tourClient.next()
               }

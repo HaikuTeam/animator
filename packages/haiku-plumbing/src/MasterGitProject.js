@@ -7,6 +7,7 @@ import tmp from 'tmp'
 import lodash from 'lodash'
 import { client as sdkClient } from '@haiku/sdk-client'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
+import {TourUtils} from 'haiku-common/lib/types/enums'
 import * as Git from './Git'
 import * as ProjectFolder from './ProjectFolder'
 import * as Inkstone from './Inkstone'
@@ -23,7 +24,7 @@ const DEFAULT_BRANCH_NAME = 'master' // "'master' process" has nothing to do wit
 const BASELINE_SEMVER_TAG = '0.0.0'
 const COMMIT_SUFFIX = '(via Haiku Desktop)'
 const DEMO_PROJECT_NAMES = {
-  CheckTutorial: true,
+  [TourUtils.ProjectName]: true,
   Move: true,
   Moto: true
 }

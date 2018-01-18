@@ -48,7 +48,7 @@ class ProjectBrowser extends React.Component {
       this.tourChannel = tourChannel
 
       // FIXME | HACK: since the project browser now supports scrolling, we
-      // must ensure the CheckTutorial project is in viewport when displaying
+      // must ensure the tour project is in viewport when displaying
       // the OpenProject step in the tour.
       this.tourChannel.on('tour:requestShowStep', ({component, selector}) => {
         if (component === 'OpenProject') {

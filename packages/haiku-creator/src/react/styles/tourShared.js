@@ -1,16 +1,21 @@
 import Palette from 'haiku-ui-common/lib/Palette'
 import { BTN_STYLES } from './btnShared.js'
+import { DASH_STYLES } from './dashShared.js'
 
 export const TOUR_STYLES = {
   heading: {
-    marginTop: 20
+    marginTop: '20px',
+    fontSize: '24px'
   },
   btn: {
-    ...BTN_STYLES.pinkButton
+    ...DASH_STYLES.upcase,
+    ...BTN_STYLES.btnText,
+    ...BTN_STYLES.btnPrimary,
+    ...BTN_STYLES.rightBtns
   },
   btnSecondary: {
     textTransform: 'none',
-    color: Palette.DARK_PINK
+    color: Palette.LIGHTEST_PINK
   },
   linksWrapper: {
     margin: '20px 0'
@@ -19,14 +24,14 @@ export const TOUR_STYLES = {
     color: 'white'
   },
   text: {
-    fontSize: 16
+    fontSize: '15px'
   },
   code: {
-    padding: 17,
-    borderRadius: 3,
+    padding: '17px',
+    borderRadius: '3px',
     background: Palette.LIGHTEST_GRAY
   },
   list: {
-    paddingLeft: 15
+    paddingLeft: '15px'
   }
 }

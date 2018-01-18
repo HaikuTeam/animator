@@ -47,8 +47,8 @@ export default class Welcome extends React.Component {
           </form>
         }
         <div style={STYLES.buttons}>
-          <button style={styles.btn} onClick={next}>Yes, please</button>
           <button style={styles.btnSecondary} onClick={this.handleFinish}>Not now</button>
+          <button style={styles.btn} onClick={next}>Yes, please</button>
         </div>
       </div>
     )
