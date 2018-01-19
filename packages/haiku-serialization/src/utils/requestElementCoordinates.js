@@ -11,7 +11,7 @@ module.exports = function requestElementCoordinates (
     currentWebview
   )
 
-  let element = document.querySelector(selector)
+  const element = document.querySelector(selector)
 
   if (element) {
     let {top, left, width, height} = element.getBoundingClientRect()
