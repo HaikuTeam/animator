@@ -3,18 +3,18 @@ import Color from 'color'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
-import Keyframe from 'haiku-serialization/src/bll/Keyframe'
 
 export default class ConstantBody extends React.Component {
   constructor (props) {
     super(props)
-    Keyframe.on('update', (keyframe, what) => {
-      if (keyframe === this.props.keyframe && this.mounted) this.handleUpdate(what)
+    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver('constantBody', (what) => {
+      this.handleUpdate(what)
     })
   }
 
   componentWillUnmount () {
     this.mounted = false
+    this.teardownKeyframeUpdateReceiver()
   }
 
   componentDidMount () {

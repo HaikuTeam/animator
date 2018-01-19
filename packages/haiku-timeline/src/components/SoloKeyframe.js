@@ -1,18 +1,18 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG'
-import Keyframe from 'haiku-serialization/src/bll/Keyframe'
 
 export default class SoloKeyframe extends React.Component {
   constructor (props) {
     super(props)
-    Keyframe.on('update', (keyframe, what) => {
-      if (keyframe === this.props.keyframe && this.mounted) this.handleUpdate(what)
+    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver('soloKeyframe', (what) => {
+      this.handleUpdate(what)
     })
   }
 
   componentWillUnmount () {
     this.mounted = false
+    this.teardownKeyframeUpdateReceiver()
   }
 
   componentDidMount () {
