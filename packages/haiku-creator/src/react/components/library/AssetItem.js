@@ -308,7 +308,6 @@ class AssetItem extends React.Component {
       <span
         className='display-name-container'
         onDoubleClick={this.handleInstantiate}
-        onClick={this.launchPopoverMenu}
         onContextMenu={this.launchPopoverMenu}
         style={[STYLES.displayName, this.isAssetOfActiveComponent() && STYLES.displayName.active]}>
         {this.props.asset.displayName}
