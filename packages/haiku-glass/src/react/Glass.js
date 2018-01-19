@@ -62,6 +62,10 @@ const SELECTION_TYPES = {
 
 const BIG_NUMBER = 99999
 
+function isNumeric (n) {
+  return !isNaN(parseFloat(n)) && isFinite(n)
+}
+
 function niceTimestamp () {
   return moment().format('YYYY-MM-DD-HHmmss')
 }
@@ -322,7 +326,9 @@ export class Glass extends React.Component {
     this.setLastSelectedElement(this.getActiveComponent().findElementByUid(elementUID))
 
     // The EventHandlerEditor uses this field to know whether to launch in frame mode vs event mode
-    if (frame) options.frame = frame
+    if (isNumeric(frame)) {
+      options.frame = frame
+    }
 
     this.showEventHandlersEditor(null, this.getLastSelectedElement(), options)
   }

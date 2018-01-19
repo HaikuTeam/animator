@@ -31,6 +31,10 @@ const STYLES = {
   }
 }
 
+function isNumeric (n) {
+  return !isNaN(parseFloat(n)) && isFinite(n)
+}
+
 class EventHandlerEditor extends React.PureComponent {
   constructor (props) {
     super(props)
@@ -191,7 +195,7 @@ class EventHandlerEditor extends React.PureComponent {
     let totalNumberOfHandlers = this.handlerManager.size()
     const applicableEventHandlers = this.handlerManager.getApplicableEventHandlers()
 
-    return this.props.options.frame
+    return isNumeric(this.props.options.frame)
       ? this.renderFrameEditor(totalNumberOfHandlers, applicableEventHandlers)
       : this.renderEventsEditor(totalNumberOfHandlers, applicableEventHandlers)
   }
@@ -218,7 +222,7 @@ class EventHandlerEditor extends React.PureComponent {
         <ElementTitle
           element={this.props.element}
           title={
-            this.props.options.frame
+            isNumeric(this.props.options.frame)
               ? `Frame ${this.props.options.frame}`
               : null
           }
