@@ -1210,6 +1210,7 @@ ValueBuilder.prototype.build = function _build(
   propertiesGroup,
   isPatchOperation,
   haikuComponent,
+  skipCache = false,
 ) {
   let isAnythingWorthUpdating = false;
 
@@ -1223,6 +1224,7 @@ ValueBuilder.prototype.build = function _build(
       timelineTime,
       haikuComponent,
       isPatchOperation,
+      skipCache,
     );
 
     // We use undefined as a signal that it's not worthwhile to put this value in the list of updates.
@@ -1273,6 +1275,7 @@ ValueBuilder.prototype.build = function _build(
  * @param haikuComponent {Object} Instance of HaikuPlayer
  * @param isPatchOperation {Boolean} Is this a patch?
  * @param skipCache {Boolean} Skip caching?
+ * @param clearSortedKeyframesCache
  */
 ValueBuilder.prototype.grabValue = function _grabValue(
   timelineName,
@@ -1309,7 +1312,7 @@ ValueBuilder.prototype.grabValue = function _grabValue(
 
   let computedValueForTime;
 
-  // Important: The ActiveComponent depends on the ability to be able to get fresh values via the skipCache optino
+  // Important: The ActiveComponent depends on the ability to be able to get fresh values via the skipCache option.
   if (isPatchOperation && !skipCache) {
     computedValueForTime = Transitions.calculateValueAndReturnUndefinedIfNotWorthwhile(
       parsedValueCluster,

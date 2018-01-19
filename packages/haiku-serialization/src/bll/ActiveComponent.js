@@ -325,23 +325,23 @@ class ActiveComponent extends BaseModel {
     return cb(null, pretty(html))
   }
 
-  setTimelineTimeValue (timelineTime, skipTransmit, forceSeek, setNoMatterWhat) {
+  setTimelineTimeValue (timelineTime, skipTransmit = false, forceSeek = false, skipCache = false) {
     timelineTime = Math.round(timelineTime)
-    if (setNoMatterWhat || this.isPreviewModeActive() || timelineTime !== this.getCurrentTimelineTime()) {
+    if (timelineTime !== this.getCurrentTimelineTime()) {
       // Note that this call reaches in and updates our instance's timeline objects
       Timeline.setCurrentTime({ component: this }, timelineTime, skipTransmit, forceSeek)
-      this.forceFlush()
+      if (skipCache) {
+        // If we're supposed to skip the cache in our next tick (this is expected to happen if we have skipped more
+        // than one frame at a time), we should trigger a special "skipCache" tick for each active player component.
+        // This will essentially perform a lightweight full flush render, recomputing all values without without trying
+        // to be clever about which properties have actually changed.
+        this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
+          if (instance._context && instance._context.tick) {
+            instance._context.tick(true)
+          }
+        })
+      }
     }
-  }
-
-  setTimelineTime (timelineTime, metadata, cb) {
-    timelineTime = Math.round(timelineTime)
-    if (this.isPreviewModeActive() || timelineTime !== this.getCurrentTimelineTime()) {
-      this.setTimelineTimeValue(timelineTime) // This calls forceFlush
-      this.emit('time:change', this.getCurrentTimelineName(), this.getCurrentTimelineTime())
-      this.project.methodHook('setTimelineTime', this.getSceneCodeRelpath(), timelineTime, metadata)
-    }
-    return cb()
   }
 
   setTimelineName (timelineName, metadata, cb) {
@@ -1880,7 +1880,8 @@ class ActiveComponent extends BaseModel {
           // If we don't do this here, continued edits at this time won't work properly.
           // We have to do this  __after rehydrate__ so we update all copies fo the models we've
           // just loaded into memory who have reset attributes.
-          this.setTimelineTimeValue(timelineTimeBeforeReload, true, true, true)
+          this.setTimelineTimeValue(timelineTimeBeforeReload, true, true)
+          this.forceFlush()
 
           // Start the clock again, as we should now be ready to flow updated component.
           this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
