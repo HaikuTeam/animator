@@ -28,19 +28,46 @@ class Keyframe extends BaseModel {
     this._didHandleDragStop = false
     this._didHandleContextMenu = false
     this._mouseDownState = {}
+    this._updateReceivers = {}
+  }
+
+  /**
+   * This method returns a teardown function that decommissions the update receiver provided in its second argument as
+   * a callback.
+   *
+   * IMPORTANT: Always call the teardown function when the Keyframe is expected not to go out of scope but the update
+   * receiver is.
+   *
+   * @param source
+   * @param cb
+   * @returns {function()}
+   */
+  registerUpdateReceiver (source, cb) {
+    this._updateReceivers[source] = cb
+    return () => {
+      this._updateReceivers[source] = undefined
+    }
+  }
+
+  notifyUpdateReceivers (what) {
+    Object.keys(this._updateReceivers).forEach((receiver) => {
+      if (typeof this._updateReceivers[receiver] === 'function') {
+        this._updateReceivers[receiver](what)
+      }
+    })
   }
 
   activate () {
     if (!this._activated) {
       this._activated = true
-      this.emit('update', 'keyframe-activated')
+      this.notifyUpdateReceivers('keyframe-activated')
     }
   }
 
   deactivate () {
     if (this._activated) {
       this._activated = false
-      this.emit('update', 'keyframe-deactivated')
+      this.notifyUpdateReceivers('keyframe-deactivated')
     }
   }
 
@@ -51,28 +78,28 @@ class Keyframe extends BaseModel {
   select () {
     if (!this._selected) {
       this._selected = true
-      this.emit('update', 'keyframe-selected')
+      this.notifyUpdateReceivers('keyframe-selected')
     }
   }
 
   deselect () {
     if (this._selected) {
       this._selected = false
-      this.emit('update', 'keyframe-deselected')
+      this.notifyUpdateReceivers('keyframe-deselected')
     }
   }
 
   setBodySelected () {
     if (!this._selectedBody) {
       this._selectedBody = true
-      this.emit('update', 'keyframe-body-selected')
+      this.notifyUpdateReceivers('keyframe-body-selected')
     }
   }
 
   unsetBodySelected () {
     if (this._selectedBody) {
       this._selectedBody = false
-      this.emit('update', 'keyframe-body-unselected')
+      this.notifyUpdateReceivers('keyframe-body-unselected')
     }
   }
 
@@ -309,7 +336,7 @@ class Keyframe extends BaseModel {
       // otherwise the update might not make it correctly to the serialization layer
       this._needsMove = true
 
-      this.emit('update', 'keyframe-ms-set')
+      this.notifyUpdateReceivers('keyframe-ms-set')
 
       // This runs a debounced move action
       this.component.handleKeyframeMove()
