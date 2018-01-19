@@ -5,6 +5,7 @@ const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
 const normalizeBytecodeFile = require('./../ast/normalizeBytecodeFile')
 const generateCode = require('./../ast/generateCode')
 const formatStandardSync = require('./../formatter/formatStandardSync')
+const cleanMana = require('haiku-bytecode/src/cleanMana')
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 
@@ -365,6 +366,53 @@ Bytecode.extractOverrides = (bytecode) => {
 Bytecode.clone = (bytecode) => {
   // Eventually we may lean on a more custom-tailored clone method instead of lodash
   return lodash.cloneDeep(bytecode)
+}
+
+Bytecode.decycle = (reified, { doCleanMana }) => {
+  const decycled = {}
+
+  if (reified.metadata) decycled.metadata = reified.metadata
+  if (reified.options) decycled.options = reified.options
+  if (reified.config) decycled.config = reified.config
+  if (reified.settings) decycled.settings = reified.settings
+  if (reified.properties) decycled.properties = reified.properties
+  if (reified.states) decycled.states = reified.states
+
+  if (reified.eventHandlers) {
+    decycled.eventHandlers = {}
+    for (const componentId in reified.eventHandlers) {
+      decycled.eventHandlers[componentId] = {}
+      for (const eventListenerName in reified.eventHandlers[componentId]) {
+        // At runtime we wrap the original event handler in a wrapper function, and store
+        // the original on the 'original' property, so when serializing we need to grab the original
+        // and use it as the 'handler' or else the wrapper will be written to disk
+        const maybeOriginalFn = reified.eventHandlers[componentId][eventListenerName].original
+        const maybeHandlerFn = reified.eventHandlers[componentId][eventListenerName].handler
+
+        // If no original is present, use the handler since it shouldn't be wrapped
+        // Without this conditional, you may see event handlers get written as `null` in the code
+        const handlerToAssign = maybeOriginalFn || maybeHandlerFn
+
+        decycled.eventHandlers[componentId][eventListenerName] = {
+          handler: handlerToAssign
+        }
+      }
+    }
+  }
+
+  if (reified.timelines) decycled.timelines = reified.timelines
+
+  if (reified.template) {
+    if (doCleanMana) {
+      decycled.template = cleanMana(reified.template)
+    } else {
+      // Cleaning mana will mess with instantiated component modules, which is why
+      // doCleanMana is an option
+      decycled.template = reified.template
+    }
+  }
+
+  return decycled
 }
 
 module.exports = Bytecode

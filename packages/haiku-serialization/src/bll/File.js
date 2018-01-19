@@ -7,7 +7,6 @@ const objectToRO = require('@haiku/player/lib/reflection/objectToRO').default
 const upgradeBytecodeInPlace = require('@haiku/player/lib/helpers/upgradeBytecodeInPlace').default
 const ensureManaChildrenArray = require('haiku-bytecode/src/ensureManaChildrenArray')
 const mergeTimelineStructure = require('haiku-bytecode/src/mergeTimelineStructure')
-const cleanMana = require('haiku-bytecode/src/cleanMana')
 const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
 const BytecodeActions = require('haiku-bytecode/src/actions')
 const getPropertyValue = require('haiku-bytecode/src/getPropertyValue')
@@ -685,33 +684,7 @@ class File extends BaseModel {
    */
   getReifiedDecycledBytecode () {
     const reified = this.getReifiedBytecode()
-
-    const decycled = {}
-
-    if (reified.metadata) decycled.metadata = reified.metadata
-    if (reified.options) decycled.options = reified.options
-    if (reified.config) decycled.config = reified.config
-    if (reified.settings) decycled.settings = reified.settings
-    if (reified.properties) decycled.properties = reified.properties
-    if (reified.states) decycled.states = reified.states
-
-    // At runtime we wrap the original event handler in a wrapper function, and store
-    // the original on the 'original' property, so when serializing we need to grab the original
-    if (reified.eventHandlers) {
-      decycled.eventHandlers = {}
-      for (const componentId in reified.eventHandlers) {
-        decycled.eventHandlers[componentId] = {}
-        for (const eventListenerName in reified.eventHandlers[componentId]) {
-          decycled.eventHandlers[componentId][eventListenerName] = {
-            handler: reified.eventHandlers[componentId][eventListenerName].original
-          }
-        }
-      }
-    }
-
-    if (reified.timelines) decycled.timelines = reified.timelines
-    if (reified.template) decycled.template = cleanMana(reified.template)
-    return decycled
+    return Bytecode.decycle(reified, { doCleanMana: true })
   }
 
   /**
