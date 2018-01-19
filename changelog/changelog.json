@@ -4056,5 +4056,12 @@
       "label": "fix",
       "message": "use the correct project name for percy."
     }
+  },
+  "2.3.78": {
+    "eb6e64b4d64453ae94894a06ca5c0edd3e7637c1": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "Use numeric check instead of falsy so we open frame editor for frame 0"
+    }
   }
 }

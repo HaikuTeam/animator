@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.78
+
+### Bug Fixes
+
+ * Use numeric check instead of falsy so we open frame editor for frame 0
+
 ## 2.3.77
 
 ### Bug Fixes
