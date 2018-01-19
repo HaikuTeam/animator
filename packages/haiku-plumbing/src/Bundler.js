@@ -1,8 +1,9 @@
 const commonjs = require('rollup-plugin-commonjs')
 const json = require('rollup-plugin-json')
-const nodeResolve = require('rollup-plugin-node-resolve')
 const rollup = require('rollup')
+const nodeResolve = require('rollup-plugin-node-resolve')
 const uglify = require('rollup-plugin-uglify-es')
+const includePaths = require('rollup-plugin-includepaths')
 const logger = require('haiku-serialization/src/utils/LoggerInstance')
 
 function createBundle (moduleDirectory, input, name, cb) {
@@ -11,6 +12,12 @@ function createBundle (moduleDirectory, input, name, cb) {
   rollup.rollup({
     input,
     plugins: [
+      includePaths({
+        include: {
+          '@haiku/player': require.resolve('@haiku/player'),
+          '@haiku/player/dom': require.resolve('@haiku/player/dom')
+        }
+      }),
       nodeResolve({
         jsnext: true,
         main: true

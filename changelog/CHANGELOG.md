@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.75
+
+### Bug Fixes
+
+ * fix module resolution in prod for share page bundles.
+
 ## 2.3.74
 
 ### Bug Fixes
