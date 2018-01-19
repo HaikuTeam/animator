@@ -385,12 +385,7 @@ export class Glass extends React.Component {
     seekMs = Math.round(seekMs)
 
     if (this.getActiveComponent()) {
-      this.getActiveComponent().setTimelineTimeValue(
-        seekMs,
-        /* skipTransmit= */ true,
-        /* forceSeek= */ false,
-        /* skipCache= */ deltaMs > 16.666 // iff we have advanced by more than one frame; else regular patch is suitable
-      )
+      this.getActiveComponent().setTimelineTimeValue(seekMs, true)
     }
   }
 
