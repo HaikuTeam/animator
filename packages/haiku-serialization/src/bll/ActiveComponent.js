@@ -1177,7 +1177,9 @@ class ActiveComponent extends BaseModel {
   }
 
   getContextSize () {
-    return this.fetchActiveBytecodeFile().getContextSize(this.getCurrentTimelineName(), this.getCurrentTimelineTime())
+    const file = this.fetchActiveBytecodeFile()
+    if (file) return file.getContextSize(this.getCurrentTimelineName(), this.getCurrentTimelineTime())
+    return { width: 1, height: 1 } // In case of race where file isn't ready yet
   }
 
   resizeContext (artboardId, timelineName, timelineTime, sizeDescriptor, metadata, cb) {

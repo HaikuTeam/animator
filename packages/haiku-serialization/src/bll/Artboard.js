@@ -151,7 +151,7 @@ class Artboard extends BaseModel {
   }
 
   updateMountSize ($container) {
-    const updatedArtboardSize = this.component.getContextSize()
+    const updatedArtboardSize = this.component && this.component.getContextSize()
     if (updatedArtboardSize && updatedArtboardSize.width && updatedArtboardSize.height) {
       this._mountWidth = updatedArtboardSize.width
       this._mountHeight = updatedArtboardSize.height

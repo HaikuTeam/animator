@@ -640,12 +640,13 @@ class File extends BaseModel {
   }
 
   getContextSize (timelineName, timelineTime) {
+    const defaults = { width: 1, height: 1 } // In case of race where collateral isn't ready yet
     const bytecode = this.getReifiedBytecode()
-    if (!bytecode || !bytecode.template || !bytecode.template.attributes) return null
+    if (!bytecode || !bytecode.template || !bytecode.template.attributes) return defaults
     const contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
-    if (!contextHaikuId) return null
+    if (!contextHaikuId) return defaults
     const contextElementName = Element.safeElementName(bytecode.template)
-    if (!contextElementName) return null
+    if (!contextElementName) return defaults
     const contextWidth = TimelineProperty.getComputedValue(contextHaikuId, contextElementName, 'sizeAbsolute.x', timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, 0, bytecode, this.getHostInstance(), this.getHostStates())
     const contextHeight = TimelineProperty.getComputedValue(contextHaikuId, contextElementName, 'sizeAbsolute.y', timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, 0, bytecode, this.getHostInstance(), this.getHostStates())
     return {
