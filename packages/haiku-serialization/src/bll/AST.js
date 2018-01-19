@@ -25,7 +25,8 @@ class AST extends BaseModel {
     const imports = AST.findImportsFromTemplate(bytecode.template)
 
     const safe = AST.safeBytecode(bytecode)
-    const ro = objectToRO(safe)
+
+    const ro = objectToRO(Bytecode.decycle(safe, { doCleanMana: false }))
 
     const ast = bytecodeObjectToAST(ro, imports)
 
@@ -124,4 +125,5 @@ AST.parseFile = (folder, relpath, contents, cb) => {
 module.exports = AST
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
+const Bytecode = require('./Bytecode')
 const Template = require('./Template')
