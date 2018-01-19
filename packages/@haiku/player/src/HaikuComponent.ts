@@ -945,7 +945,7 @@ HaikuComponent.prototype._clearDetectedInputChanges = function _clearDetectedInp
   return this;
 };
 
-HaikuComponent.prototype.patch = function patch(container, patchOptions) {
+HaikuComponent.prototype.patch = function patch(container, patchOptions, skipCache = false) {
   if (this.isDeactivated()) {
     // If deactivated, pretend like there is nothing to render
     return {};
@@ -974,6 +974,7 @@ HaikuComponent.prototype.patch = function patch(container, patchOptions) {
     this._context,
     timelinesRunning,
     patchOptions,
+    skipCache,
   );
 
   for (const flexId in this._nestedComponentElements) {
@@ -1154,7 +1155,7 @@ function bindContextualEventHandlers(component) {
   }
 }
 
-function applyBehaviors(timelinesRunning, deltas, component, context, isPatchOperation) {
+function applyBehaviors(timelinesRunning, deltas, component, context, isPatchOperation, skipCache = false) {
   // We shouldn't need to add event handlers for patch operations since theoretically that same listener
   // would remain a constant throughout the lifetime of the component
   if (!isPatchOperation) {
@@ -1208,6 +1209,7 @@ function applyBehaviors(timelinesRunning, deltas, component, context, isPatchOpe
           propertiesGroup,
           isPatchOperation,
           component,
+          skipCache,
         );
 
         // [#LEGACY?]
@@ -1231,14 +1233,15 @@ function applyBehaviors(timelinesRunning, deltas, component, context, isPatchOpe
   }
 }
 
-function gatherDeltaPatches(component, template, container, context, timelinesRunning, patchOptions) {
+function gatherDeltaPatches(
+  component, template, container, context, timelinesRunning, patchOptions, skipCache = false) {
   // handlers/vanities depend on attributes objects existing in the first place.
   Layout3D.initializeTreeAttributes(template, container);
   initializeComponentTree(template, component, context, null);
 
   const deltas = {}; // This is what we're going to return - a dictionary of ids to elements
 
-  applyBehaviors(timelinesRunning, deltas, component, context, /*isPatchOperation=*/true);
+  applyBehaviors(timelinesRunning, deltas, component, context, /*isPatchOperation=*/true, skipCache);
 
   if (patchOptions.sizing) {
     computeAndApplyPresetSizing(template, container, patchOptions.sizing, deltas);

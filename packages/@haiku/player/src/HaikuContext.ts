@@ -222,7 +222,7 @@ HaikuContext.prototype.performFullFlushRender = function performFullFlushRender(
 };
 
 // Call to update elements of the this.component tree - but only those that we detect have changed
-HaikuContext.prototype.performPatchRender = function performPatchRender() {
+HaikuContext.prototype.performPatchRender = function performPatchRender(skipCache = false) {
   if (!this._mount) {
     return void (0);
   }
@@ -230,7 +230,7 @@ HaikuContext.prototype.performPatchRender = function performPatchRender() {
   const container = this._renderer.shouldCreateContainer
     ? this._renderer.createContainer(this._mount)
     : this._renderer.getLastContainer();
-  const patches = this.component.patch(container, this.config.options);
+  const patches = this.component.patch(container, this.config.options, skipCache);
 
   this._renderer.patch(this._mount, patches, this.component);
 };
@@ -281,7 +281,7 @@ HaikuContext.prototype.updateMountRootStyles = function updateMountRootStyles() 
   // }
 };
 
-HaikuContext.prototype.tick = function tick() {
+HaikuContext.prototype.tick = function tick(skipCache = false) {
   let flushed = false;
 
   // Only continue ticking and updating if our root component is still activated and awake;
@@ -294,7 +294,7 @@ HaikuContext.prototype.tick = function tick() {
 
       flushed = true;
     } else {
-      this.performPatchRender();
+      this.performPatchRender(skipCache);
     }
 
     // We update the mount root *after* we complete the render pass ^^ because configuration

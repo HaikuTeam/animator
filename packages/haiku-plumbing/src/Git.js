@@ -156,7 +156,7 @@ export function upsertRemoteDirectly (pwd, name, url, cb) {
       if (found) {
         // In case we have a project folder that was initially set up with Code Commit, ensure the remote URLs are
         // correct.
-        Remote.lookup(repository, name).then((remote) => {
+        return Remote.lookup(repository, name).then((remote) => {
           if (remote.url() !== url) {
             Remote.setUrl(repository, name, url)
           }

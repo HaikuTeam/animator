@@ -364,6 +364,7 @@ export class Glass extends React.Component {
 
   handleFrameChange () {
     let seekMs = 0
+    let deltaMs = 0
 
     // this._stopwatch is null unless we've received an action from the timeline.
     // If we're developing the glass solo, i.e. without a connection to envoy which
@@ -372,7 +373,7 @@ export class Glass extends React.Component {
     if (this._stopwatch !== null) {
       const fps = 60 // TODO:  support variable
       const baseMs = this._lastAuthoritativeFrame * 1000 / fps
-      const deltaMs = (this._playing) ? Date.now() - this._stopwatch : 0
+      deltaMs = (this._playing) ? Date.now() - this._stopwatch : 0
       seekMs = baseMs + deltaMs
     }
 
@@ -384,7 +385,12 @@ export class Glass extends React.Component {
     seekMs = Math.round(seekMs)
 
     if (this.getActiveComponent()) {
-      this.getActiveComponent().setTimelineTimeValue(seekMs, true)
+      this.getActiveComponent().setTimelineTimeValue(
+        seekMs,
+        /* skipTransmit= */ true,
+        /* forceSeek= */ false,
+        /* skipCache= */ deltaMs > 16.666 // iff we have advanced by more than one frame; else regular patch is suitable
+      )
     }
   }
 

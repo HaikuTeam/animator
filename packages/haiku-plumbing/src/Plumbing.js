@@ -880,15 +880,6 @@ export default class Plumbing extends StateObject {
     // Params always arrive with the folder as the first argument, so we strip that off
     params = params.slice(1)
 
-    // This special method gets called frequently (up to 60 times per second) so fast-path it and don't log it
-    if (method === 'setTimelineTime') {
-      if (alias === 'timeline') {
-        return this.sendFolderSpecificClientMethodQuery(folder, Q_GLASS, method, params.concat({ from: alias }), () => {})
-      } else if (alias === 'glass') {
-        return this.sendFolderSpecificClientMethodQuery(folder, Q_TIMELINE, method, params.concat({ from: alias }), () => {})
-      }
-    }
-
     // Start with the glass, since that's most visible, then move through the rest, and end
     // with master at the end, which results in a file system update reflecting the change
     const asyncMethod = experimentIsEnabled(Experiment.AsyncClientActions) ? 'each' : 'eachSeries'
