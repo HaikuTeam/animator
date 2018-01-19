@@ -91,6 +91,8 @@ class Timeline extends React.Component {
     this.handleRequestElementCoordinates = this.handleRequestElementCoordinates.bind(this)
     this.showEventHandlersEditor = this.showEventHandlersEditor.bind(this)
     this.showFrameActionsEditor = this.showFrameActionsEditor.bind(this)
+    this.mouseMoveListener = this.mouseMoveListener.bind(this)
+    this.mouseUpListener = this.mouseUpListener.bind(this)
 
     // Used to calculate scroll position
     this._renderedRows = []
@@ -210,6 +212,9 @@ class Timeline extends React.Component {
         this.forceUpdate()
       }
     }, THROTTLE_TIME))
+
+    window.addEventListener('mousemove', this.mouseMoveListener)
+    window.addEventListener('mouseup', this.mouseUpListener)
 
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       if (message.folder !== this.props.folder) return void (0)
@@ -810,34 +815,9 @@ class Timeline extends React.Component {
           id='gauge-box'
           className='gauge-box'
           onMouseDown={(event) => {
-            this.mouseMoveListener = (evt) => {
-              const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
-              const leftX = evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
-              const frameX = Math.round(leftX / frameInfo.pxpf)
-              const newFrame = frameInfo.friA + frameX
-              if (newFrame < 0) return false
-              const pageFrameLength = this.getActiveComponent().getCurrentTimeline().getVisibleFrameRangeLength()
-              this.setState({ avoidTimelinePointerEvents: true })
-              // If the frame clicked exceeds the virtual or explicit max, allocate additional
-              // virtual frames in the view and jump the user to the new page
-              if (newFrame > frameInfo.friB) {
-                const newMaxFrame = newFrame + pageFrameLength
-                this.getActiveComponent().getCurrentTimeline().setMaxFrame(newMaxFrame)
-                this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(newFrame, newMaxFrame)
-              }
-
-              this.getActiveComponent().getCurrentTimeline().seek(newFrame)
-            }
-
-            this.mouseUpListener = () => {
-              window.removeEventListener('mousemove', this.mouseMoveListener)
-              window.removeEventListener('mouseup', this.mouseUpListener)
-              this.setState({ avoidTimelinePointerEvents: false })
-            }
-
+            this.state.doHandleMouseMovesInGauge = true
+            this.state.avoidTimelinePointerEvents = true
             this.mouseMoveListener(event)
-            window.addEventListener('mousemove', this.mouseMoveListener)
-            window.addEventListener('mouseup', this.mouseUpListener)
           }}
           style={{
             position: 'absolute',
@@ -861,6 +841,38 @@ class Timeline extends React.Component {
         {this.renderDurationModifier()}
       </div>
     )
+  }
+
+  mouseMoveListener (evt) {
+    if (!this.state.doHandleMouseMovesInGauge) {
+      return
+    }
+
+    const frameInfo = this.getActiveComponent().getCurrentTimeline().getFrameInfo()
+    const leftX = evt.clientX - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
+    const frameX = Math.round(leftX / frameInfo.pxpf)
+    const newFrame = frameInfo.friA + frameX
+
+    if (newFrame < 0) {
+      return false
+    }
+
+    const pageFrameLength = this.getActiveComponent().getCurrentTimeline().getVisibleFrameRangeLength()
+
+    // If the frame clicked exceeds the virtual or explicit max, allocate additional
+    // virtual frames in the view and jump the user to the new page
+    if (newFrame > frameInfo.friB) {
+      const newMaxFrame = newFrame + pageFrameLength
+      this.getActiveComponent().getCurrentTimeline().setMaxFrame(newMaxFrame)
+      this.getActiveComponent().getCurrentTimeline().setVisibleFrameRange(newFrame, newMaxFrame)
+    }
+
+    this.getActiveComponent().getCurrentTimeline().seek(newFrame)
+  }
+
+  mouseUpListener () {
+    this.state.doHandleMouseMovesInGauge = false
+    this.state.avoidTimelinePointerEvents = false
   }
 
   renderBottomControls () {
