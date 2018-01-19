@@ -9,7 +9,7 @@ const PROJECT_MODEL_STUB = {
 }
 
 test('Asset.assetsToDirectoryStructure', (t) => {
-  t.plan(9)
+  t.plan(10)
   const assets = Asset.ingestAssets(PROJECT_MODEL_STUB, {
     'code/main/code.js': {
       relpath: 'code/main/code.js',
@@ -58,7 +58,8 @@ test('Asset.assetsToDirectoryStructure', (t) => {
   t.equal(assets[0].children.length, 1, 'base asset has one child')
   t.equal(assets[0].children[0].kind, 'sketch', 'child asset is sketch')
   t.equal(assets[0].children[0].type, 'container', 'child asset is container')
-  t.equal(assets[0].children[0].children[0].relpath, 'designs/TEST.sketch.contents/slices/Dicey.svg', 'grandchild is svg')
-  t.equal(assets[0].children[0].children[0].kind, 'vector', 'grandchild is vector')
-  t.equal(assets[0].children[0].children[0].type, 'file', 'grandchild is file')
+  t.equal(assets[0].children[0].children[0].relpath, 'designs/designs/TEST.sketch/slices', 'grandchild is slices folder')
+  t.equal(assets[0].children[0].children[0].kind, 'folder', 'grandchild is folder')
+  t.equal(assets[0].children[0].children[0].type, 'container', 'grandchild is container')
+  t.equal(assets[0].dump(), "designs\n  designs/TEST.sketch\n    designs/designs/TEST.sketch/slices\n      designs/TEST.sketch.contents/slices/Dicey.svg\n      designs/TEST.sketch.contents/slices/Slicey.svg\n    designs/designs/TEST.sketch/artboards\n      designs/TEST.sketch.contents/artboards/Another Artboard.svg\n      designs/TEST.sketch.contents/artboards/Artboard.svg",'tree looks ok')
 })

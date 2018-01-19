@@ -3,6 +3,10 @@ const toTitleCase = require('./helpers/toTitleCase')
 const BaseModel = require('./BaseModel')
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 
+const PAGES_REGEX = /\/pages\//
+const SLICES_REGEX = /\/slices\//
+const ARTBOARDS_REGEX = /\/artboards\//
+
 /**
  * @class Asset
  * @description
@@ -46,7 +50,7 @@ class Asset extends BaseModel {
     const longSource = path.join(parts[0], parts[1], parts[2])
     const shortSource = path.join(parts[0], parts[1])
     // We only want slices for now; may support Artboards and Pages later
-    if (longSource.match(/\.sketch\.contents\/slices$/)) {
+    if (longSource.match(/\.sketch\.contents\//)) {
       return shortSource.replace(/\.contents$/, '')
     }
     return null
@@ -129,6 +133,30 @@ class Asset extends BaseModel {
     const { primaryAssetPath } = this.project.getNameVariations()
     return path.normalize(this.relpath) === primaryAssetPath
   }
+
+  isSlice () {
+    return !!this.relpath.match(SLICES_REGEX)
+  }
+
+  isArtboard () {
+    return !!this.relpath.match(ARTBOARDS_REGEX)
+  }
+
+  unshiftFolderAsset (folderAsset) {
+    const foundAmongChildren = this.children.indexOf(folderAsset) !== -1
+    if (!foundAmongChildren) {
+      this.children.unshift(folderAsset)
+    }
+  }
+
+  dump () {
+    let str = `${this.relpath}`
+    this.children.forEach((child) => {
+      const sublevel = child.dump()
+      str += `\n  ${sublevel.split('\n').join('\n  ')}`
+    })
+    return str
+  }
 }
 
 Asset.DEFAULT_OPTIONS = {
@@ -185,7 +213,9 @@ Asset.ingestAssets = (project, dict) => {
     project,
     relpath: 'designs',
     displayName: 'Designs',
-    children: [],
+    children: [
+      // The artboardsFolderAsset and slicesFolderAsset will live at the top, if needed
+    ],
     dtModified: Date.now()
   })
 
@@ -198,7 +228,31 @@ Asset.ingestAssets = (project, dict) => {
   // First extract the sketch assets, which act as containers for slices
   for (const relpath in dict) {
     const extname = path.extname(relpath)
+
     if (extname !== '.sketch') continue
+
+    const artboardsFolderAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), 'designs', relpath, 'artboards'),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FOLDER,
+      project,
+      relpath: path.join('designs', relpath, 'artboards'),
+      displayName: 'Artboards',
+      children: [],
+      dtModified: Date.now()
+    })
+
+    const slicesFolderAsset = Asset.upsert({
+      uid: path.join(project.getFolder(), 'designs', relpath, 'slices'),
+      type: Asset.TYPES.CONTAINER,
+      kind: Asset.KINDS.FOLDER,
+      project,
+      relpath: path.join('designs', relpath, 'slices'),
+      displayName: 'Slices',
+      children: [],
+      dtModified: Date.now()
+    })
+
     const sketchAsset = Asset.upsert({
       uid: path.join(project.getFolder(), relpath),
       type: Asset.TYPES.CONTAINER,
@@ -207,8 +261,11 @@ Asset.ingestAssets = (project, dict) => {
       relpath,
       displayName: path.basename(relpath),
       children: [],
+      slicesFolderAsset, // Hacky, but avoids extra 'upsert' logic
+      artboardsFolderAsset,
       dtModified: dict[relpath].dtModified
     })
+
     designFolderAsset.addChild(sketchAsset)
   }
 
@@ -217,11 +274,10 @@ Asset.ingestAssets = (project, dict) => {
     if (extname === '.sketch') {
       continue
     } else if (extname === '.svg') {
-      // Skip any Artboards/Pages that may have been previously exported by Sketchtool
-      // Our workflow only deals with Slices, so that's all we display to reduce conceptual overhead
+      // Skip any Pages that may have been previously exported by Sketchtool
+      // Our workflow only deals with Artboards/Slices, so that's all we display to reduce conceptual overhead
       if (
-        relpath.match(/\/artboards\//) ||
-        relpath.match(/\/pages\//)
+        relpath.match(PAGES_REGEX)
       ) {
         continue
       }
@@ -236,11 +292,21 @@ Asset.ingestAssets = (project, dict) => {
         children: [],
         dtModified: dict[relpath].dtModified
       })
+
       const sketchOriginRelpath = svgAsset.getSketchOriginRelpath()
+
       if (sketchOriginRelpath) {
         const sketchAsset = Asset.findById(path.join(project.getFolder(), sketchOriginRelpath))
         if (sketchAsset) {
-          sketchAsset.addChild(svgAsset)
+          if (svgAsset.isSlice()) {
+            sketchAsset.slicesFolderAsset.addChild(svgAsset)
+            sketchAsset.unshiftFolderAsset(sketchAsset.slicesFolderAsset)
+          } else if (svgAsset.isArtboard()) {
+            sketchAsset.artboardsFolderAsset.addChild(svgAsset)
+            sketchAsset.unshiftFolderAsset(sketchAsset.artboardsFolderAsset)
+          } else {
+            sketchAsset.addChild(svgAsset)
+          }
         }
       } else {
         designFolderAsset.addChild(svgAsset)
