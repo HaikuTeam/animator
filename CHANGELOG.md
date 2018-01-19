@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 2.3.77
+
+### Bug Fixes
+
+ * use const instead of let to fix minification bug on requestElementCoordinates()
+ * use the correct project name for percy.
+
 ## 2.3.75
 
 ### Bug Fixes
