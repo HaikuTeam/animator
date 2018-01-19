@@ -4044,5 +4044,17 @@
       "label": "fix",
       "message": "fix module resolution in prod for share page bundles."
     }
+  },
+  "2.3.76": {
+    "b0c3f3a3751b86e15cb9028f634266773bc33fac": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "use const instead of let to fix minification bug on requestElementCoordinates()"
+    },
+    "e934d80691b7e161af84d6953721b635aa003e84": {
+      "project": "@haiku/player",
+      "label": "fix",
+      "message": "use the correct project name for percy."
+    }
   }
 }
