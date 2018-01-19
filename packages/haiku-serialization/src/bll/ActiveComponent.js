@@ -1985,7 +1985,6 @@ class ActiveComponent extends BaseModel {
     // Shut down the previous instance (if any) since it no longer needs to render
     // and doing continued rendering can conflict with new renderers entering the stage
     existingActiveInstance.deactivate()
-    console.log('isDeactivated', existingActiveInstance.isDeactivated())
 
     const freshInstance = this.createInstance(bytecode, config)
 
