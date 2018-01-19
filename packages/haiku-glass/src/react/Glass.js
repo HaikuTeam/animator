@@ -364,17 +364,14 @@ export class Glass extends React.Component {
 
   handleFrameChange () {
     let seekMs = 0
-    let deltaMs = 0
 
     // this._stopwatch is null unless we've received an action from the timeline.
     // If we're developing the glass solo, i.e. without a connection to envoy which
     // provides the system clock, we can just lock the time value to zero as a hack.
     // TODO: Would be nice to allow full-fledged solo development of glass...
     if (this._stopwatch !== null) {
-      const fps = 60 // TODO:  support variable
-      const baseMs = this._lastAuthoritativeFrame * 1000 / fps
-      deltaMs = (this._playing) ? Date.now() - this._stopwatch : 0
-      seekMs = baseMs + deltaMs
+      // TODO: support variable fps
+      seekMs = (this._lastAuthoritativeFrame * 1000 / 60) + (this._playing ? Date.now() - this._stopwatch : 0)
     }
 
     // This rounding is required otherwise we'll see bizarre behavior on stage.
