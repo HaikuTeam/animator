@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+
+var cli = require('../lib/admin-cli');
+cli.cli.run()
+
