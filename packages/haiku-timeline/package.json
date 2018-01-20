@@ -52,7 +52,8 @@
     "react-draggable": "2.2.3",
     "react-popover": "^0.4.18",
     "react-scroll-to-component": "^1.0.1",
-    "strip-indent": "^2.0.0"
+    "strip-indent": "^2.0.0",
+    "uuid": "^3.2.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

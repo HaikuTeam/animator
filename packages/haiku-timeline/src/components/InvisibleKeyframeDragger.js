@@ -1,5 +1,6 @@
 import React from 'react'
 import lodash from 'lodash'
+import uuid from 'uuid/v1'
 import TimelineDraggable from './TimelineDraggable'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
@@ -7,15 +8,6 @@ import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 const THROTTLE_TIME = 17 // ms
 
 export default class InvisibleKeyframeDragger extends React.Component {
-  constructor (props) {
-    super(props)
-    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(
-      'invisibleKeyframeDragger',
-      (what) => {
-        this.handleUpdate(what)
-      }
-    )
-  }
 
   componentWillUnmount () {
     this.mounted = false
@@ -23,6 +15,9 @@ export default class InvisibleKeyframeDragger extends React.Component {
   }
 
   componentDidMount () {
+    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(uuid(), (what) => {
+      this.handleUpdate(what)
+    })
     this.mounted = true
   }
 

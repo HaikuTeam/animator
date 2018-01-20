@@ -1,6 +1,7 @@
 import React from 'react'
 import Color from 'color'
 import lodash from 'lodash'
+import uuid from 'uuid/v1'
 import Palette from 'haiku-ui-common/lib/Palette'
 import TimelineDraggable from './TimelineDraggable'
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG'
@@ -78,12 +79,6 @@ const CURVESVGS = {
 const THROTTLE_TIME = 17 // ms
 
 export default class TransitionBody extends React.Component {
-  constructor (props) {
-    super(props)
-    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver('transitionBody', (what) => {
-      this.handleUpdate(what)
-    })
-  }
 
   componentWillUnmount () {
     this.mounted = false
@@ -91,6 +86,9 @@ export default class TransitionBody extends React.Component {
   }
 
   componentDidMount () {
+    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(uuid(), (what) => {
+      this.handleUpdate(what)
+    })
     this.mounted = true
   }
 

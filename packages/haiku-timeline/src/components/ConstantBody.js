@@ -1,16 +1,11 @@
 import React from 'react'
 import Color from 'color'
+import uuid from 'uuid/v1'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 
 export default class ConstantBody extends React.Component {
-  constructor (props) {
-    super(props)
-    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver('constantBody', (what) => {
-      this.handleUpdate(what)
-    })
-  }
 
   componentWillUnmount () {
     this.mounted = false
@@ -18,6 +13,9 @@ export default class ConstantBody extends React.Component {
   }
 
   componentDidMount () {
+    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(uuid(), (what) => {
+      this.handleUpdate(what)
+    })
     this.mounted = true
   }
 

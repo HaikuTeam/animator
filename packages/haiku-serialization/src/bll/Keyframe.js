@@ -43,17 +43,18 @@ class Keyframe extends BaseModel {
    * @returns {function()}
    */
   registerUpdateReceiver (source, cb) {
+    if (typeof cb !== 'function') {
+      return () => {}
+    }
     this._updateReceivers[source] = cb
     return () => {
-      this._updateReceivers[source] = undefined
+      delete this._updateReceivers[source]
     }
   }
 
   notifyUpdateReceivers (what) {
     Object.keys(this._updateReceivers).forEach((receiver) => {
-      if (typeof this._updateReceivers[receiver] === 'function') {
-        this._updateReceivers[receiver](what)
-      }
+      this._updateReceivers[receiver](what)
     })
   }
 
