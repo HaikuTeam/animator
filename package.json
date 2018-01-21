@@ -114,6 +114,7 @@
       "!**/@haiku/sdk-inkstone/src${/*}",
       "!**/haiku-timeline/src${/*}",
       "!**/haiku-testing${/*}",
+      "!**/haiku-admin-cli${/*}",
       "!**/haiku-ui-common/src${/*}",
       "!**/@haiku/player/dist${/*}",
       "!**/@haiku/player/src${/*}",
