@@ -84,6 +84,7 @@ const e2e = (worker) => {
     }, () => {
       plumbing.teardown(() => {
         fse.removeSync(BLANK_PROJECT_PATH)
+        fse.outputFileSync(path.join(BLANK_PROJECT_PATH, '.keep'), '')
       })
     })
   }) 
