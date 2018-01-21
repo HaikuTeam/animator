@@ -41,7 +41,6 @@ class ProjectPreview extends React.Component {
   componentDidMount () {
     if (this.bytecode && this.mount) {
       try {
-
         this.timeline = this.mountAndReturnHaikuComponent().getDefaultTimeline()
       } catch (exception) {
         // noop. Probably caught a backward-incompatible change that doesn't work with the current version of Player.
