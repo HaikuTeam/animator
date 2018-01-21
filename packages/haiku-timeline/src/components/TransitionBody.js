@@ -79,17 +79,19 @@ const CURVESVGS = {
 const THROTTLE_TIME = 17 // ms
 
 export default class TransitionBody extends React.Component {
+  componentWillMount () {
+    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(uuid(), (what) => {
+      this.handleUpdate(what)
+    })
+  }
+
+  componentDidMount () {
+    this.mounted = true
+  }
 
   componentWillUnmount () {
     this.mounted = false
     this.teardownKeyframeUpdateReceiver()
-  }
-
-  componentDidMount () {
-    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(uuid(), (what) => {
-      this.handleUpdate(what)
-    })
-    this.mounted = true
   }
 
   handleUpdate (what) {

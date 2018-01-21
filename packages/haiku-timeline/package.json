@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "start": "AUTOSTART=main electron --enable-logging --remote-debugging-port=9222 ./lib/electron.js",
-    "watch": "babel --watch src --out-dir lib --source-maps inline",
+    "watch": "NODE_ENV=development babel --watch src --out-dir lib --source-maps inline",
     "compile": "NODE_ENV=development babel src --out-dir lib --source-maps inline",
     "test": "NODE_ENV=development yarn compile && tape \"test/**/*.test.js\" | tap-spec",
     "test-report": "tape \"test/**/*.test.js\" > test-result.tap",

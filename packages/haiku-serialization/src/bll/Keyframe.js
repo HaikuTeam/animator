@@ -343,11 +343,11 @@ class Keyframe extends BaseModel {
       this.component.handleKeyframeMove()
 
       if (this.prev()) {
-        this.prev().emit('update', 'keyframe-neighbor-move')
+        this.prev().notifyUpdateReceivers('keyframe-neighbor-move')
       }
 
       if (this.next()) {
-        this.next().emit('update', 'keyframe-neighbor-move')
+        this.next().notifyUpdateReceivers('keyframe-neighbor-move')
       }
     }
 

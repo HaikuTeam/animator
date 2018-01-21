@@ -6,17 +6,19 @@ import Globals from 'haiku-ui-common/lib/Globals'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 
 export default class ConstantBody extends React.Component {
+  componentWillMount () {
+    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(uuid(), (what) => {
+      this.handleUpdate(what)
+    })
+  }
+
+  componentDidMount () {
+    this.mounted = true
+  }
 
   componentWillUnmount () {
     this.mounted = false
     this.teardownKeyframeUpdateReceiver()
-  }
-
-  componentDidMount () {
-    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(uuid(), (what) => {
-      this.handleUpdate(what)
-    })
-    this.mounted = true
   }
 
   handleUpdate (what) {
