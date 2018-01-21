@@ -780,7 +780,12 @@ class Project extends BaseModel {
   }
 
   bootstrapSceneFilesSync (scenename) {
-    const rootComponentId = getCodeJs(Template.getHash(scenename, 12))
+    const rootComponentId = getCodeJs(
+      Template.getHash(scenename, 12),
+      experimentIsEnabled(Experiment.MultiComponentFeatures)
+        ? scenename
+        : path.basename(this.getFolder())
+    )
 
     // Only write these files if they don't exist yet; don't overwrite the user's own content
     if (!fse.existsSync(path.join(this.getFolder(), `code/${scenename}/code.js`))) {
@@ -929,7 +934,7 @@ const File = require('./File')
 const ModuleWrapper = require('./ModuleWrapper')
 const Template = require('./Template')
 
-function getCodeJs (haikuId) {
+function getCodeJs (haikuId, haikuComponentName) {
   return dedent`
     var Haiku = require('@haiku/player')
     module.exports = {
@@ -944,7 +949,7 @@ function getCodeJs (haikuId) {
         elementName: 'div',
         attributes: {
           'haiku-id': '${haikuId}',
-          'haiku-title': 'HaikuComponent'
+          'haiku-title': '${haikuComponentName}'
         },
         children: []
       }
