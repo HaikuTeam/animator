@@ -104,7 +104,7 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
 
   // TIMELINES
   this._timelineInstances = {};
-  this._mutableTimelines = {};
+  this._mutableTimelines = undefined;
   this._hydrateMutableTimelines();
 
   // TEMPLATE
@@ -450,6 +450,7 @@ HaikuComponent.prototype.clearCaches = function clearCaches(options) {
   this._clearDetectedInputChanges();
 
   this._builder.clearCaches(options);
+  this._hydrateMutableTimelines();
 
   this.cache = {};
 
@@ -1059,6 +1060,7 @@ HaikuComponent.prototype.findElementsByHaikuId = function findElementsByHaikuId(
 };
 
 HaikuComponent.prototype._hydrateMutableTimelines = function _hydrateMutableTimelines() {
+  this._mutableTimelines = {};
   if (this._bytecode.timelines) {
     for (const timelineName in this._bytecode.timelines) {
       for (const selector in this._bytecode.timelines[timelineName]) {
