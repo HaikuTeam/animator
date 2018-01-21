@@ -36,17 +36,18 @@ class ClusterInputFieldValueDisplay extends React.Component {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
-    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64)
     this.complexValueElementsEllipsis = [<span key={0}>{'{…}'}</span>]
   }
 
   componentWillUnmount () {
+    this.throttledForceUpdate.cancel()
     this.mounted = false
     this.props.timeline.removeListener('update', this.handleUpdate)
   }
 
   componentDidMount () {
     this.mounted = true
+    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64)
     this.props.timeline.on('update', this.handleUpdate)
   }
 

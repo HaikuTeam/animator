@@ -103,16 +103,17 @@ class PropertyInputFieldValueDisplay extends React.Component {
   constructor (props) {
     super(props)
     this.handleUpdate = this.handleUpdate.bind(this)
-    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64)
   }
 
   componentWillUnmount () {
     this.mounted = false
+    this.throttledForceUpdate.cancel()
     this.props.timeline.removeListener('update', this.handleUpdate)
   }
 
   componentDidMount () {
     this.mounted = true
+    this.throttledForceUpdate = lodash.throttle(this.forceUpdate.bind(this), 64)
     this.props.timeline.on('update', this.handleUpdate)
   }
 
