@@ -93,6 +93,14 @@ class Library extends React.Component {
 
     // Debounced to avoid 'flicker' when multiple updates are received quickly
     this.handleAssetsChanged = lodash.debounce(this.handleAssetsChanged.bind(this), 250)
+
+    this.broadcastListener = this.broadcastListener.bind(this)
+  }
+
+  broadcastListener ({ name, assets }) {
+    if (name === 'assets-changed') {
+      this.handleAssetsChanged(assets, {isLoading: false})
+    }
   }
 
   handleAssetsChanged (assetsDictionary, otherStates) {
@@ -107,15 +115,15 @@ class Library extends React.Component {
 
     this.reloadAssetList()
 
-    this.props.websocket.on('broadcast', ({ name, assets }) => {
-      if (name === 'assets-changed') {
-        this.handleAssetsChanged(assets, {isLoading: false})
-      }
-    })
+    this.props.websocket.on('broadcast', this.broadcastListener)
 
     sketchUtils.checkIfInstalled().then(isInstalled => {
       this.isSketchInstalled = isInstalled
     })
+  }
+
+  componentWillUnmount () {
+    this.props.websocket.removeListener('broadcast', this.broadcastListener)
   }
 
   reloadAssetList () {
