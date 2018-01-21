@@ -43,6 +43,7 @@ import {
 } from './bodymovinTransformers';
 import {SvgInheritable} from './bodymovinTypes';
 import {
+  addTimelineProperties,
   alwaysAbsolute,
   alwaysArray,
   compoundTimelineReducer,
@@ -156,13 +157,50 @@ export class BodymovinExporter implements Exporter {
 
     if (parentHaikuId && this.groupHierarchy.hasOwnProperty(parentHaikuId)) {
       const inheritable = this.groupHierarchy[parentHaikuId];
-      return {
-        ...this.timelineForId(parentHaikuId, inheritable.inheritFromParent ? inheritable.parentId : undefined),
-        ...timeline,
-      };
+      return this.composeTimelines(
+        timeline,
+        this.timelineForId(parentHaikuId, inheritable.inheritFromParent ? inheritable.parentId : undefined),
+      );
     }
 
     return timeline;
+  }
+
+  /**
+   * Compose a child timeline with a parent timeline.
+   *
+   * This method currently uses a naive and broken implementation meant to cover the commonly-encountered use case that
+   * a group propagates a translation to a child element due to quirks when editing in Sketch, e.g.:
+   *
+   * <g [translation.x]=60 [translation.y]=90>
+   *   <g [translation.x]=-60 [translation.y]=-90>
+   *     <rect ... />
+   *   </g>
+   * </g>
+   *
+   * The correct/exhaustive way to do this is with Layout3D utilities currently housed in @haiku/player, but for now we
+   * expect the primary pain points from not composing group layout when collapsing group properties will come from
+   * translations, which are perfectly commutative additively, and the required Layout3D utilities have yet to be
+   * created.
+   * @param childTimeline
+   * @param parentTimeline
+   */
+  private composeTimelines(childTimeline, parentTimeline) {
+    const translationTimeline = {};
+    ['translation.x', 'translation.y', 'translation.z'].forEach((translationKey) => {
+      if (childTimeline.hasOwnProperty(translationKey) && parentTimeline.hasOwnProperty(translationKey)) {
+        translationTimeline[translationKey] = addTimelineProperties(
+          childTimeline[translationKey],
+          parentTimeline[translationKey],
+        );
+      }
+    });
+
+    return {
+      ...parentTimeline,
+      ...childTimeline,
+      ...translationTimeline,
+    };
   }
 
   /**

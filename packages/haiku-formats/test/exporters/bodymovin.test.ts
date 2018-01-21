@@ -470,7 +470,11 @@ tape('BodymovinExporter', (test: tape.Test) => {
     // Shim in a group to wrap our shape.
     bytecode.timelines.Default['haiku:group'] = {
       'stroke-width': {0: {value: 5}},
+      'translation.x': {0: {value: 10}},
+      'translation.y': {0: {value: 10}},
     };
+    bytecode.timelines.Default['haiku:shape']['translation.x'] = {0: {value: -10}};
+    bytecode.timelines.Default['haiku:shape']['translation.y'] = {0: {value: -10}};
     bytecode.template.children[0].children = [{
       elementName: 'g',
       attributes: {'haiku-id': 'group'},
@@ -480,10 +484,11 @@ tape('BodymovinExporter', (test: tape.Test) => {
     {
       const {
         layers: [{
-          shapes: [{it: [_, stroke, __]}],
+          shapes: [{it: [_, stroke, __, transform]}],
         }],
       } = rawOutput(bytecode);
       test.equal(stroke.w.k, 10, 'child shape properties override parent group properties');
+      test.deepEqual(transform.p.k, [0, 0], 'parent translations are composed with child translations');
     }
 
     {
