@@ -4,17 +4,19 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG'
 
 export default class SoloKeyframe extends React.Component {
+  componentWillMount () {
+    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(uuid(), (what) => {
+      this.handleUpdate(what)
+    })
+  }
+
+  componentDidMount () {
+    this.mounted = true
+  }
 
   componentWillUnmount () {
     this.mounted = false
     this.teardownKeyframeUpdateReceiver()
-  }
-
-  componentDidMount () {
-    this.teardownKeyframeUpdateReceiver = this.props.keyframe.registerUpdateReceiver(uuid(), (what) => {
-      this.handleUpdate(what)
-    })
-    this.mounted = true
   }
 
   handleUpdate (what) {
