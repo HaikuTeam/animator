@@ -1,13 +1,8 @@
 import * as chalk from 'chalk';
-import {execSync} from 'child_process';
-import * as fs from 'fs';
-import * as dedent from 'dedent';
 import {client} from '@haiku/sdk-client';
 import {inkstone} from '@haiku/sdk-inkstone';
-import * as hasbin from 'hasbin';
 import * as inquirer from 'inquirer';
 import * as _ from 'lodash';
-import * as prependFile from 'prepend-file';
 
 import {adminSdk} from './sdk';
 
@@ -26,18 +21,15 @@ const cli = new Nib({
   },
   commands: [
     {
-      name: 'user',
-      subcommands: [
+      name: 'user-login',
+      description: 'Allows impersonation of a user, by getting a valid auth token for that user from inkstone.  ' +
+        'Interactive, unless flags are provided.',
+      action: doUserLogin,
+      flags: [
         {
-          name: 'login',
-          action: doUserLogin,
-          args: [
-            {
-              name: 'username',
-              usage: 'haiku user login --username=cool@username.bro',
-              required: false,
-            },
-          ],
+          name: 'username',
+          defaultValue: undefined,
+          description: 'Username or email of user to impersonate',
         },
       ],
     },
@@ -46,46 +38,38 @@ const cli = new Nib({
 
 export {cli};
 
+async function doUserLogin(context: IContext, cb?: Function) {
+  let username = '';
+  if (context.flags.username) {
+    username = context.flags.username;
+  } else {
+    const answers = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'username',
+        message: 'Username or email:',
+      },
+    ]);
+    username = answers['username'];
+  }
 
-function doUserLogin(context: IContext, cb?: Function) {
-  console.log('USERNAME', context.args['username']);
-  return;
-
-  // context.writeLine('Enter username.');
-  // let username = '';
-  // let password = '';
-
-  // inquirer.prompt([
-  //   {
-  //     type: 'input',
-  //     name: 'username',
-  //     message: 'Email:',
-  //   },
-  //   {
-  //     type: 'password',
-  //     name: 'password',
-  //     message: 'Password:',
-  //   },
-  // ]).then((answers: inquirer.Answers) => {
-  //   username = answers['username'];
-  //   password = answers['password'];
-
-  //   inkstone.user.authenticate(username, password, (err, authResponse) => {
-  //     if (err !== undefined) {
-  //       context.writeLine(chalk.bold.red('Username or password incorrect.'));
-  //       if (context.flags.verbose) {
-  //         context.writeLine(err);
-  //       }
-  //     } else {
-  //       client.config.setAuthToken(authResponse.Token);
-  //       client.config.setUserId(username);
-  //       context.writeLine(chalk.bold.green(`Welcome ${username}!`));
-  //     }
-  //     if (cb) {
-  //       cb();
-  //     } else {
-  //       process.exit(0);
-  //     }
-  //   });
-  // });
+  adminSdk.user.authenticate(client.config.getAuthToken(), username, (err, authResponse, httpResponse) => {
+    if (err !== undefined) {
+      if (httpResponse.statusCode === 401) {
+        context.writeLine(chalk.bold.red('You must be logged in as an admin to do that.  (haiku login)'));
+      } else {
+        context.writeLine(chalk.bold.red('User not found'));
+      }
+    } else {
+      client.config.setAuthToken(authResponse.Token);
+      client.config.setUserId(username);
+      context.writeLine(chalk.bold.green(`Welcome ${username}!`));
+    }
+    if (cb) {
+      cb();
+    } else {
+      process.exit(0);
+    }
+  });
 }
+
