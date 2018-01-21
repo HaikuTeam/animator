@@ -17,6 +17,7 @@ class ProjectPreview extends React.Component {
     this.bytecode = null
     this.mount = null
     this.timeline = null
+    this.component = null
   }
 
   componentWillMount () {
@@ -33,19 +34,14 @@ class ProjectPreview extends React.Component {
     }
   }
 
+  componentWillUnmount () {
+    this.stopComponentClock() // Avoid wasted CPU rendering for unseen DOM nodes
+  }
+
   componentDidMount () {
     if (this.bytecode && this.mount) {
       try {
-        this.timeline = HaikuDOMAdapter(this.bytecode)(
-          this.mount,
-          {
-            sizing: 'cover',
-            alwaysComputeSizing: false,
-            loop: true,
-            interactionMode: InteractionMode.EDIT,
-            autoplay: false
-          }
-        ).getDefaultTimeline()
+        this.timeline = this.mountAndReturnHaikuComponent().getDefaultTimeline()
       } catch (exception) {
         // noop. Probably caught a backward-incompatible change that doesn't work with the current version of Player.
       }
@@ -66,6 +62,33 @@ class ProjectPreview extends React.Component {
 
   shouldComponentUpdate () {
     return true
+  }
+
+  stopComponentClock () {
+    if (!this.component) {
+      return
+    }
+
+    this.component.getClock().stop()
+  }
+
+  mountAndReturnHaikuComponent () {
+    const factory = HaikuDOMAdapter(this.bytecode)
+
+    this.stopComponentClock() // Shuts down previous one prevent wasted CPU
+
+    this.component = factory(
+      this.mount,
+      {
+        sizing: 'cover',
+        alwaysComputeSizing: false,
+        loop: true,
+        interactionMode: InteractionMode.EDIT,
+        autoplay: false
+      }
+    )
+
+    return this.component
   }
 
   render () {
