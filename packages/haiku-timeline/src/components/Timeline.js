@@ -298,6 +298,10 @@ class Timeline extends React.Component {
   }
 
   handleInteractionModeChange (relpath, interactionMode) {
+    const timeline = this.getActiveComponent().getCurrentTimeline()
+    if (timeline.isPlaying()) {
+      timeline.pause()
+    }
     this.setState({isPreviewModeActive: isPreviewMode(interactionMode)})
   }
 
