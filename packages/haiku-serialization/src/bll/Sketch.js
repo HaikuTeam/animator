@@ -57,10 +57,10 @@ Sketch.sketchtoolPipeline = (abspath) => {
 
   logger.info('[sketchtool] got', abspath)
 
-  // Note: We used to generate Artboards and Pages too (and adding those hooks back here
+  // Note: We used to generate Pages too (and adding those hooks back here
   // would obviously be easy, but we had no docs for how to use them, and all of our collateral
-  // is focused on slices, so for a fairly significant optimization, I've set this up
-  // to only export slices. Feel free to change back if this is a problem.
+  // is focused on slices, so for an optimization, I've set this up
+  // to only export slices and artboards. Feel free to change back if this is a problem.
   const assetBaseFolder = abspath + '.contents/'
 
   // Clear out all old contents that may exist in the folder, so the user doesn't see
@@ -70,11 +70,16 @@ Sketch.sketchtoolPipeline = (abspath) => {
   const sliceFolder = assetBaseFolder + 'slices/'
   fse.mkdirpSync(sliceFolder)
 
+  const artboardFolder = assetBaseFolder + 'artboards/'
+  fse.mkdirpSync(artboardFolder)
+
   // Full Command:
   // $ /Applications/Sketch.app/Contents/Resources/sketchtool/bin/sketchtool export --format=svg --output=~/TEST.sketch.export/artboards/ artboards ~/TEST.sketch
   logger.info('[sketchtool] running commands')
   const outputSlicesCmd = `${PARSER_CLI_PATH} export --format=svg --output=${_escapeShell(sliceFolder)} slices ${_escapeShell(abspath)}`
   execSync(outputSlicesCmd)
+  const outputArtboardsCmd = `${PARSER_CLI_PATH} export --format=svg --output=${_escapeShell(artboardFolder)} artboards ${_escapeShell(abspath)}`
+  execSync(outputArtboardsCmd)
 
   logger.info('[sketchtool] fix gamma correction')
 
