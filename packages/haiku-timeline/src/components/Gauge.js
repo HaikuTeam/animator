@@ -36,7 +36,7 @@ export default class Gauge extends React.Component {
         <div
           className='gauge'>
           {this.props.timeline.mapVisibleFrames((frameNumber, pixelOffsetLeft, pixelsPerFrame, frameModulus) => {
-            if (frameNumber === 0 || frameNumber % frameModulus === 0) {
+            if ((frameNumber % frameModulus) === 0) {
               return (
                 <span key={`frame-${frameNumber}`} style={{ pointerEvents: 'none', display: 'inline-block', position: 'absolute', left: pixelOffsetLeft, transform: 'translateX(-50%)' }}>
                   <span style={{
