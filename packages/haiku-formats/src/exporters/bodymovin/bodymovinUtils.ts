@@ -353,3 +353,33 @@ export const keyframesFromTimelineProperty = (timelineProperty): number[] => {
  */
 export const timelineValuesAreEquivalent = (valueA: any, valueB: any): boolean =>
   JSON.stringify(valueA) === JSON.stringify(valueB);
+
+/**
+ * Performs "addition" of two timeline properties to achieve naive composition for perfectly commutative additive
+ * properties like translation.x/y/z.
+ *
+ * This approach should be deprecated in favor of a complete solution that composes affine transformation matrices
+ * when time allows.
+ * @param childProperty
+ * @param parentProperty
+ * @returns {any}
+ */
+export const addTimelineProperties = (childProperty: any, parentProperty: any): any => {
+  const childKeyframes = keyframesFromTimelineProperty(childProperty);
+  const outProperty = {};
+  for (let i = 0; i < childKeyframes.length; i++) {
+    if (!parentProperty.hasOwnProperty(childKeyframes[i])) {
+      // If we landed on a keyframe that isn't defined on the parent, "soft panic" and let the entire childProperty
+      // win.
+      // #FIXME: Actually perform conflict resolution on parent properties, same as we do with sibling properties that
+      // need to be combined in Bodymovin such as scale.x/y/z.
+      return childProperty;
+    }
+
+    outProperty[childKeyframes[i]] = {
+      value: childProperty[childKeyframes[i]].value + parentProperty[childKeyframes[i]].value,
+    };
+  }
+
+  return outProperty;
+};
