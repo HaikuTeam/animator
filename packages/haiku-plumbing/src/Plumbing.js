@@ -473,7 +473,7 @@ export default class Plumbing extends StateObject {
     })
   }
 
-  teardown () {
+  teardown (cb) {
     logger.info('[plumbing] teardown method called')
 
     return async.eachOfSeries(this.masters, (master, folder, next) => {
@@ -509,6 +509,8 @@ export default class Plumbing extends StateObject {
       })
 
       this._isTornDown = true
+
+      if (cb) cb()
     })
   }
 
