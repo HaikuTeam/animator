@@ -14,6 +14,9 @@ packagePatterns.forEach((pattern) => {
   const packages = glob.sync(path.join(PACKAGE_ROOT, pattern))
   packages.forEach((packageDir) => {
     const pkgJsonPath = path.join(packageDir, 'package.json')
+    if (!fs.existsSync(pkgJsonPath)) {
+      return
+    }
     const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath))
     const shortname = pkgJson.name.replace('haiku-', '').replace('@haiku/', '')
     const pkg = {
