@@ -90,6 +90,13 @@ const e2e = (worker) => {
   }) 
 }
 
+const wait = (secs, cb) => {
+  return (err) => {
+    return setTimeout(() => cb(err), secs * 1000)
+  }
+}
+
 module.exports = {
-  e2e
+  e2e,
+  wait
 }
