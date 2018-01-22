@@ -33,5 +33,9 @@
   "NoNormalizeOnSetup": {
     "development": true,
     "production": true
+  },
+  "SvgOptimizer": {
+    "development": true,
+    "production": false
   }
 }
