@@ -4063,5 +4063,77 @@
       "label": "fix",
       "message": "Use numeric check instead of falsy so we open frame editor for frame 0"
     }
+  },
+  "2.3.79": {
+    "17408d7b83584644daf8d0cce4291fa5c378559c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Lottie"
+    },
+    "e2d94907b3faf408527860ca0c6e4e79c5f16b30": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Triggering preview mode during timeline playback should stop timeline playback"
+    },
+    "dbb450172d93a4120db622fe3b0ee68c1bfdc460": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Race on forceUpdate() when collapsing timeline property rows"
+    },
+    "ae52d8d2c56b6a984702e78f3c2d65ab83ca532e": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Parent label in timeline is HaikuC…mponent (HaikuComponent)"
+    },
+    "f0b4934e5fab6b404644765b8ede3037d22d1f7e": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for Gauge doesn't show enough values on longer projects"
+    },
+    "d75ccdf2cb4c55993cf9bcf3bf5b926d9ea50f01": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "avoid setState() on unmounted Library, which breaks asset library."
+    },
+    "aea9399d293e55e213dc69c960542422124261cb": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "rehydrate mutable timelines when the cache is cleared."
+    },
+    "8bcd2b604eb556e5aa3ece67eff2a89d9dda550b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow multiple update receivers of the same type on the same keyframe."
+    },
+    "040c043bdf884857079a1e5a23d85e796e122912": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "hook admin impersonation up to API"
+    },
+    "dde8946e71d22906de6b52d4f0ecef8ad1d0eb11": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "don't require Haiku.app in order to run the CLI"
+    },
+    "2d413c0c44772b922fbd6ba31c54b98b171aa21a": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add basis for Basmala (the Haiku admin CLI)"
+    },
+    "c1c06daa1564a7d29e1d666f256acf800b2bc5fc": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "replace CheckTutorial fixtures for Percy"
+    },
+    "95972d83e6e5d67bcf251ad4d64435d36b50afac": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Avoid writing event handler wrapper code to disk"
+    },
+    "a1dc9bfd46176f34f1a98a1859689b275375e0de": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Let lib asset name be double clicked"
+    }
   }
 }

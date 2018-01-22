@@ -1,6 +1,28 @@
 # Changelog
 
 
+## 2.3.79
+
+### Bug Fixes
+
+ * for Lottie
+ * for Triggering preview mode during timeline playback should stop timeline playback
+ * for Race on forceUpdate() when collapsing timeline property rows
+ * for Parent label in timeline is HaikuC…mponent (HaikuComponent)
+ * for Gauge doesn't show enough values on longer projects
+ * avoid setState() on unmounted Library, which breaks asset library.
+ * rehydrate mutable timelines when the cache is cleared.
+ * allow multiple update receivers of the same type on the same keyframe.
+ * don't require Haiku.app in order to run the CLI
+ * replace CheckTutorial fixtures for Percy
+ * Avoid writing event handler wrapper code to disk
+ * Let lib asset name be double clicked
+
+### Features
+
+ * hook admin impersonation up to API
+ * add basis for Basmala (the Haiku admin CLI)
+
 ## 2.3.78
 
 ### Bug Fixes
