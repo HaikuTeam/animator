@@ -966,7 +966,7 @@ const DOM_JS = dedent`
 
 const DOM_EMBED_JS = dedent`
   var code = require('./code')
-  var adapter = window.HaikuPlayer && window.HaikuPlayer['${ModuleWrapper.PLAYER_VERSION}']
+  var adapter = window.HaikuResolve && window.HaikuResolve('${ModuleWrapper.PLAYER_VERSION}')
   if (adapter) {
     module.exports = adapter(code)
   } else  {

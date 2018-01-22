@@ -59,6 +59,39 @@ export default function HaikuDOMAdapter(bytecode, config, safeWindow) {
 HaikuDOMAdapter['defineOnWindow'] = function () {
   // Allow multiple players of different versions to exist on the same page
   if (typeof window !== 'undefined') {
+    if (!window['HaikuResolve']) {
+      window['HaikuResolve'] = (playerVersion) => {
+        const matches = playerVersion.match(/^(\d+)\.(\d+)\.(\d+)$/);
+        if (!matches) {
+          return undefined;
+        }
+        const [_, major, minor, patch] = matches;
+        const compatibleVersions = Object.keys(window['HaikuPlayer'])
+          .map((semver) => semver.split('.'))
+          .filter((semverParts) => {
+            if (semverParts.length !== 3 || semverParts[0] !== major) {
+              return false;
+            }
+
+            return semverParts[1] >= minor && ((semverParts[1] > minor) ? true : semverParts[2] >= patch);
+          });
+        if (compatibleVersions.length === 0) {
+          return undefined;
+        }
+        compatibleVersions.sort(([_, aMinor, aPatch], [__, bMinor, bPatch]) => {
+          if (aMinor < bMinor) {
+            return -1;
+          }
+          if (aMinor > bMinor) {
+            return 1;
+          }
+          return aPatch < bPatch ? -1 : 1;
+        });
+
+        return window['HaikuPlayer'][compatibleVersions[compatibleVersions.length - 1].join('.')];
+      };
+    }
+
     if (!window['HaikuPlayer']) {
       window['HaikuPlayer'] = {};
     }
