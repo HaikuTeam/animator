@@ -77,7 +77,9 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   // If the bytecode we got happens to be in an outdated format, we automatically updated it to ours
   upgradeBytecodeInPlace(this._bytecode, {
     // Random seed for adding instance uniqueness to ids at runtime.
-    referenceUniqueness: Math.random().toString(36).slice(2),
+    referenceUniqueness: (config.options.hotEditingMode)
+      ? 'haiku' // Haiku.app requires this reference to be stable across instances
+      : Math.random().toString(36).slice(2),
   });
 
   this._context = context;
