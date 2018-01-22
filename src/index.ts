@@ -31,8 +31,6 @@ let request = requestLib.defaults({
   strictSSL: typeof window === 'undefined' || Object.prototype.toString.call(window) !== '[object Window]',
 });
 
-const DEFAULT_TIMEOUT_MS = 5000;
-
 /**
  * @function safeError
  * @description Flexibly return an error in cases where we might not have
@@ -320,7 +318,6 @@ export namespace inkstone {
 
     export function list(authToken: string, cb: inkstone.Callback<Organization[]>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
-        timeout: DEFAULT_TIMEOUT_MS,
         url: inkstoneConfig.baseUrl + ENDPOINTS.ORGANIZATION_LIST,
         headers: {
           'Content-Type': 'application/json',
@@ -447,7 +444,6 @@ export namespace inkstone {
 
     export function create(authToken: string, params: ProjectCreateParams, cb: inkstone.Callback<Project>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
-        timeout: DEFAULT_TIMEOUT_MS,
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_CREATE,
         headers: {
           'Content-Type': 'application/json',
@@ -468,7 +464,6 @@ export namespace inkstone {
 
     export function list(authToken: string, cb: inkstone.Callback<Project[]>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
-        timeout: DEFAULT_TIMEOUT_MS,
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_LIST,
         headers: {
           'Content-Type': 'application/json',
@@ -488,7 +483,6 @@ export namespace inkstone {
 
     export function getByName(authToken: string, name: string, cb: inkstone.Callback<ProjectAndCredentials>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
-        timeout: DEFAULT_TIMEOUT_MS,
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_GET_BY_NAME.replace(':NAME', encodeURIComponent(name)),
         headers: {
           'Content-Type': 'application/json',
