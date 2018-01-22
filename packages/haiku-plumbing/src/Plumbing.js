@@ -1012,7 +1012,7 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
 
 Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb) {
   if (haiku.folder) {
-    const master = this.upsertMaster({
+    this.upsertMaster({
       folder: path.normalize(haiku.folder),
       envoyOptions: lodash.assign({
         host: process.env.ENVOY_HOST,

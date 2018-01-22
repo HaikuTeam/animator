@@ -1044,7 +1044,6 @@ export default class MasterGitProject extends EventEmitter {
   commitFileIfChanged (relpath, message, cb) {
     // The call to status is sync, so we add this hook in case pending commits may alter the status
     return this.waitUntilNoFurtherChangesAreAwaitingCommit(() => {
-
       // git status is async so we lock queued commit requests until we finish
       this._isCommittingLocked = true
 
