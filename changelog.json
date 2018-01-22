@@ -4135,5 +4135,17 @@
       "label": "fix",
       "message": "Let lib asset name be double clicked"
     }
+  },
+  "2.3.80": {
+    "e91784a58c296060c010689d6a23814e00221383": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Ensure ids/hashes are stable (fixes errors after undoing changes to els with filters)"
+    },
+    "ada3d6ba0e37eb3a17572bd9648a0710a2a2cefc": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent no-change commits caused by git status race/improper lock"
+    }
   }
 }
