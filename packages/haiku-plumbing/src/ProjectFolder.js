@@ -220,10 +220,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       'readme.md': 'README.md', // LEGACY: I think we used to name it lowercase, but we want upper
       'license.txt': 'LICENSE.txt', // LEGACY: I think we used to name it lowercase, but we want upper
       // Core code files
-      'bytecode.js': 'code/main/code.js',
-      'interpreter.js': 'code/main/dom.js',
-      'embed.js': 'code/main/dom-embed.js',
-      'react-dom.js': 'code/main/react-dom.js'
+      'bytecode.js': 'code/main/code.js'
 
       // --
       // TODO: Switch the bundle code files to these paths, once we're ready to make the equivalent
@@ -254,7 +251,10 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
 
     let filesToRemove = [
       'index.embed.html',
-      'index.standalone.html'
+      'index.standalone.html',
+      'interpreter.js',
+      'embed.js',
+      'react-dom.js'
     ]
     filesToRemove.forEach((fileToRemove) => {
       fse.removeSync(dir(projectPath, fileToRemove))
