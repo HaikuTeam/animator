@@ -4,7 +4,7 @@ const electron = require('electron')
 const fetch = require('node-fetch')
 const {download, unzip} = require('./fileManipulation')
 
-const opts = {
+const DEFAULT_OPTIONS = {
   server: process.env.HAIKU_AUTOUPDATE_SERVER,
   environment: process.env.NODE_ENV,
   branch: process.env.HAIKU_RELEASE_BRANCH,
@@ -14,7 +14,7 @@ const opts = {
 }
 
 module.exports = {
-  update (url, progressCallback, options = opts) {
+  update (url, progressCallback, options = DEFAULT_OPTIONS) {
     return new Promise((resolve, reject) => {
       if (process.env.HAIKU_SKIP_AUTOUPDATE !== '1') {
         if (
@@ -68,7 +68,7 @@ module.exports = {
     let status
 
     return new Promise((resolve, reject) => {
-      fetch(this.generateURL(opts))
+      fetch(this.generateURL(DEFAULT_OPTIONS))
         .then((response) => {
           if (!response.ok) reject(Error(`${response.statusText} : ${response.url}`))
           status = response.status

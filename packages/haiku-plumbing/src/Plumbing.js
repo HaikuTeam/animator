@@ -129,7 +129,6 @@ function _id () {
 }
 
 const PLUMBING_INSTANCES = []
-const MASTER_INSTANCES = {}
 
 // In test environment these listeners may get wrapped so we begin listening
 // to them immediately in the hope that we can start listening before the
@@ -158,7 +157,7 @@ export default class Plumbing extends StateObject {
     // as tape where exit might never get called despite an exit.
     PLUMBING_INSTANCES.push(this)
 
-    this.masters = []
+    this.masters = {}
     this.subprocs = []
     this.servers = []
     this.clients = []
@@ -474,10 +473,10 @@ export default class Plumbing extends StateObject {
     })
   }
 
-  teardown () {
+  teardown (cb) {
     logger.info('[plumbing] teardown method called')
 
-    return async.eachSeries(this.masters, (master, next) => {
+    return async.eachOfSeries(this.masters, (master, folder, next) => {
       return master.teardown(next)
     }, () => {
       this.subprocs.forEach((subproc) => {
@@ -510,6 +509,8 @@ export default class Plumbing extends StateObject {
       })
 
       this._isTornDown = true
+
+      if (cb) cb()
     })
   }
 
@@ -805,8 +806,8 @@ export default class Plumbing extends StateObject {
   }
 
   teardownMaster (folder, cb) {
-    if (MASTER_INSTANCES[folder]) {
-      MASTER_INSTANCES[folder].watchOff()
+    if (this.masters[folder]) {
+      this.masters[folder].watchOff()
     }
     cb()
   }
@@ -938,19 +939,7 @@ Plumbing.prototype.awaitMasterAndCallMethod = function (folder, method, params, 
 }
 
 Plumbing.prototype.findMasterByFolder = function (folder) {
-  return this.masters.filter((master) => {
-    return master.folder === folder
-  })[0]
-}
-
-Plumbing.prototype.addMaster = function (master) {
-  let found = false
-  this.masters.forEach((candidate) => {
-    if (candidate === master) found = true
-  })
-  if (!found) {
-    this.masters.push(master)
-  }
+  return this.masters[folder]
 }
 
 Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions }) {
@@ -969,7 +958,7 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
   // When the user launches a project, we create a Master instance, and we keep it
   // running even if they navigate back to the dashboard to avoid a double expense
   // of initializing file watchers, Git, etc. This is just a simple multiton dict.
-  if (!MASTER_INSTANCES[folder]) {
+  if (!this.masters[folder]) {
     const master = new Master(
       folder,
       fileOptions,
@@ -1013,17 +1002,17 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
       )
     })
 
-    MASTER_INSTANCES[folder] = master
+    this.masters[folder] = master
     return master
   }
 
-  MASTER_INSTANCES[folder].watchOn()
-  return MASTER_INSTANCES[folder]
+  this.masters[folder].watchOn()
+  return this.masters[folder]
 }
 
 Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb) {
   if (haiku.folder) {
-    const master = this.upsertMaster({
+    this.upsertMaster({
       folder: path.normalize(haiku.folder),
       envoyOptions: lodash.assign({
         host: process.env.ENVOY_HOST,
@@ -1035,8 +1024,6 @@ Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb)
         skipDiffLogging: false // default
       }
     })
-
-    this.addMaster(master)
   }
 
   // Back when Master lived in its own MasterProcess, we had a bunch of processes,

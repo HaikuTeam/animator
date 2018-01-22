@@ -46,6 +46,9 @@ export default class MasterGitProject extends EventEmitter {
     this._requestsWorker = this._requestsWorker.bind(this) // Save object allocs
     this._requestsWorker()
 
+    // Flag to prevent git status races where a prior commit request hasn't happened yet
+    this._isCommittingLocked = false
+
     // Dictionary mapping SHA strings to share payloads, used for caching
     this._shareInfoPayloads = {}
 
@@ -306,7 +309,10 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   hasAnyPendingCommits () {
-    return this.getPendingCommitRequests().length > 0
+    return (
+      this._isCommittingLocked ||
+      this.getPendingCommitRequests().length > 0
+    )
   }
 
   waitUntilNoFurtherChangesAreAwaitingCommit (cb) {
@@ -1038,16 +1044,27 @@ export default class MasterGitProject extends EventEmitter {
   commitFileIfChanged (relpath, message, cb) {
     // The call to status is sync, so we add this hook in case pending commits may alter the status
     return this.waitUntilNoFurtherChangesAreAwaitingCommit(() => {
+      // git status is async so we lock queued commit requests until we finish
+      this._isCommittingLocked = true
+
       return this.statusForFile(relpath, (err, status) => {
-        if (err) return cb(err)
-        if (!status) return cb() // No status means no changes
+        // Everything until we commit is now sync so it's safe to turn this off
+        this._isCommittingLocked = false
+
+        if (err) {
+          return cb(err)
+        }
+        if (!status) {
+          return cb() // No status means no changes
+        }
+
         // 0 is UNMODIFIED, everything else is a change
         // See http://www.nodegit.org/api/diff/#getDelta
         if (status.num && status.num > 0) {
           return this.commit(relpath, message, cb)
-        } else {
-          return cb()
         }
+
+        return cb()
       })
     })
   }
@@ -1055,11 +1072,19 @@ export default class MasterGitProject extends EventEmitter {
   commitProjectIfChanged (message, cb) {
     // The call to status is sync, so we add this hook in case pending commits may alter the status
     return this.waitUntilNoFurtherChangesAreAwaitingCommit(() => {
+      // git status is async so we lock queued commit requests until we finish
+      this._isCommittingLocked = true
+
       return this.safeGitStatus({ log: true }, (gitStatuses) => {
+        // Everything until we commit is now sync so it's safe to turn this off
+        this._isCommittingLocked = false
+
         const doesGitHaveChanges = gitStatuses && Object.keys(gitStatuses).length > 0
+
         if (doesGitHaveChanges) { // Don't add garbage/empty commits if nothing changed
           return this.commit('.', message, cb)
         }
+
         return cb()
       })
     })

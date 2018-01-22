@@ -306,7 +306,6 @@ export default class Master extends EventEmitter {
 
     if (extname === '.sketch' || extname === '.svg') {
       this._knownLibraryAssets[relpath] = { relpath, abspath, dtModified: Date.now() }
-
       this.emitDesignChange(relpath)
     } else if (path.basename(relpath) === 'code.js') { // Local component file
       this._knownLibraryAssets[relpath] = { relpath, abspath, dtModified: Date.now() }
