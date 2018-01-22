@@ -1,6 +1,6 @@
 {
   "name": "haiku-sdk-creator",
-  "version": "2.3.78",
+  "version": "2.3.79",
   "description": "SDK into Haiku",
   "main": "lib/index.js",
   "directories": {
@@ -23,10 +23,10 @@
   ],
   "license": "UNLICENSED",
   "dependencies": {
-    "@haiku/sdk-client": "2.3.78",
-    "@haiku/sdk-inkstone": "2.3.78",
+    "@haiku/sdk-client": "2.3.79",
+    "@haiku/sdk-inkstone": "2.3.79",
     "bluebird": "^3.5.0",
-    "haiku-serialization": "2.3.78",
+    "haiku-serialization": "2.3.79",
     "qs": "6.4.0",
     "ws": "3.2.0"
   },

@@ -1,7 +1,7 @@
 {
   "name": "haiku-state-object",
   "private": true,
-  "version": "2.3.78",
+  "version": "2.3.79",
   "description": "Minimal wrapper for managing state",
   "main": "index.js",
   "author": "Matthew Trost <matthew@haiku.ai>",

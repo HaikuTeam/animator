@@ -5,7 +5,7 @@
     "packages/@haiku/*",
     "packages/haiku-*"
   ],
-  "version": "2.3.78",
+  "version": "2.3.79",
   "description": "Haiku monorepo",
   "main": "index.js",
   "author": "Matthew Trost <matthew@trost.co>",
