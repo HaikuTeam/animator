@@ -7,7 +7,7 @@ const ENDPOINTS = {
 
 let request = requestLib.defaults({
   // Delegate to the browser to handle "strictSSL" if we're in a browser context. We have seen some false
-  // negatives with the 'request' Node dependency in certain contextx, and every modern browser has its own,
+  // negatives with the 'request' Node dependency in certain context, and every modern browser has its own,
   // battle-hardened strict SSL behavior which will stop requests in preflight regardless of this setting.
   // There isn't an unspoofable way to prove we're in a browser and not Node, but the check here is perfectly valid.
   strictSSL: typeof window === 'undefined' || Object.prototype.toString.call(window) !== '[object Window]',

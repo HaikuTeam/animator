@@ -1,8 +1,6 @@
 import * as chalk from 'chalk';
 import {client} from '@haiku/sdk-client';
-import {inkstone} from '@haiku/sdk-inkstone';
 import * as inquirer from 'inquirer';
-import * as _ from 'lodash';
 
 import {adminSdk} from './sdk';
 
