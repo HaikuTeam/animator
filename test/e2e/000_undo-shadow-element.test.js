@@ -39,7 +39,7 @@ tape('undo shadow element crash fix', (t) => {
       (cb) => {
         return plumbing.method(
           'applyPropertyGroupValue',
-          [relpath, '54e59176815d', 'Default', 0,
+          [relpath, 'e57c3e5857c8', 'Default', 0,
             {'translation.x': 266, 'translation.y': 277}],
           TestHelpers.wait(1, cb)
         )
