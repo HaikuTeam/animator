@@ -17,6 +17,7 @@ export enum Experiment {
   CommentsOnStage = 'CommentsOnStage',
   AsyncClientActions = 'AsyncClientActions',
   NoNormalizeOnSetup = 'NoNormalizeOnSetup',
+  SvgOptimizer = 'SvgOptimizer',
 }
 
 /**
