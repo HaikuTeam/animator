@@ -1,5 +1,5 @@
 {
-  "name": "basmala",
+  "name": "haiku-admin-cli",
   "version": "2.3.79",
   "description": "Haiku Admin CLI",
   "main": "lib/index.js",
