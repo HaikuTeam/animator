@@ -1014,11 +1014,7 @@ const DOM_JS = dedent`
 
 const DOM_EMBED_JS = dedent`
   var code = require('./code')
-  var adapter = window.HaikuCore && window.HaikuCore['${ModuleWrapper.CORE_VERSION}']
-  if (!adapter) {
-    // See if we can find the legacy player module if HaikuCore isn't present
-    adapter = window.HaikuPlayer && window.HaikuPlayer['${ModuleWrapper.CORE_VERSION}']
-  }
+  var adapter = window.HaikuResolve && window.HaikuResolve('${ModuleWrapper.CORE_VERSION}')
   if (adapter) {
     module.exports = adapter(code)
   } else  {
