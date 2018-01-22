@@ -238,13 +238,6 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
         fse.outputFileSync(dir(projectPath, nextFilePath), contentsToCopy)
         fse.removeSync(dir(projectPath, formerFilePath))
       }
-      // Now fix any legacy content that may be present inside of the updated file, e.g. references
-      if (fse.existsSync(dir(projectPath, nextFilePath))) {
-        let fileContents = fse.readFileSync(dir(projectPath, nextFilePath)).toString()
-        fileContents.split('bytecode.js').join('code.js') // Respective to the code/main dir
-        fileContents.split('interpreter.js').join('dom.js') // Respective to the code/main dir
-        fse.outputFileSync(dir(projectPath, nextFilePath), fileContents)
-      }
     }
 
     logger.info('[project folder] removing unneeded files')
