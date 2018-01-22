@@ -78,7 +78,7 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
   upgradeBytecodeInPlace(this._bytecode, {
     // Random seed for adding instance uniqueness to ids at runtime.
     referenceUniqueness: (config.options.hotEditingMode)
-      ? 'haiku' // Haiku.app requires this reference to be stable across instances
+      ? void (0) // During editing, Haiku.app pads ids unless this is undefined
       : Math.random().toString(36).slice(2),
   });
 
