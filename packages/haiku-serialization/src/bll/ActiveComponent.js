@@ -719,7 +719,8 @@ class ActiveComponent extends BaseModel {
         mana,
         insertionPointHash,
         timelineName,
-        timelineTime
+        timelineTime,
+        { doHashWork: true }
       )
 
       const componentId = mana.attributes[HAIKU_ID_ATTRIBUTE]
@@ -1040,7 +1041,8 @@ class ActiveComponent extends BaseModel {
           safe,
           insertionPointHash,
           timelineName,
-          timelineTime
+          timelineTime,
+          { doHashWork: true }
         )
 
         Bytecode.mergeTimelines(bytecode.timelines, timelinesObject, (propertyName, oldValue, newValue) => {
