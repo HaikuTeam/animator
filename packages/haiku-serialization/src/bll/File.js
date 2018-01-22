@@ -69,10 +69,28 @@ class File extends BaseModel {
     return cb()
   }
 
+  assertContents (contents) {
+    if (typeof contents !== 'string') {
+      throw new Error(`Code was invalid ${this.getAbspath()}`)
+    }
+
+    // Returns truthy for "", " ", "   \n ", etc.
+    if (contents.match(/^\s*$/)) {
+      throw new Error(`Code was blank ${this.getAbspath()}`)
+    }
+  }
+
   updateInMemoryContentState (bytecode, cb) {
     this.dtModified = Date.now()
     this.mod.monkeypatch(bytecode)
     const contents = this.ast.updateWithBytecodeAndReturnCode(bytecode)
+
+    // In no circumstance do we want to write bad content to code.js,
+    // so instead of returning an error message, we crash the app in hope
+    // that a full restart will resolve the condition leading to this.
+    // Throwing here should also give insight into when/why this occurs.
+    this.assertContents(contents)
+
     const previous = this.contents
     this.previous = previous
     this.contents = contents
