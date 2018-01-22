@@ -133,6 +133,9 @@ Template.manaWithOnlyMinimalProps = (mana) => {
       }
     }
 
+    // Note that this mana object is the same object that the player is rendering, and
+    // since it has to mutate that template we need to omit any property that will cause
+    // hashing differences across processes. Only stable attributes are used here.
     if (mana.attributes) {
       out.attributes = {}
 
@@ -142,10 +145,6 @@ Template.manaWithOnlyMinimalProps = (mana) => {
 
       if (mana.attributes[SOURCE_ATTRIBUTE]) {
         out.attributes[SOURCE_ATTRIBUTE] = mana.attributes[SOURCE_ATTRIBUTE]
-      }
-
-      if (mana.attributes.id) {
-        out.attributes.id = mana.attributes.id
       }
     }
 

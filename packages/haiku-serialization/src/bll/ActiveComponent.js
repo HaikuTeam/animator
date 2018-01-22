@@ -115,7 +115,7 @@ class ActiveComponent extends BaseModel {
 
     // Since property group updates happen quickly, we batch them together.
     // Note that when we receive a series of applyPropertyGroupDelta calls,
-    // those end up summed together into a single applyPropertyGropuValue call.
+    // those end up summed together into a single applyPropertyGroupValue call.
     this._propertyGroupBatches = {}
 
     this.debouncedSendPropertyGroupUpdates = lodash.debounce(() => {
