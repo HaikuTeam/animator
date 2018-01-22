@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 2.3.80
+
+### Bug Fixes
+
+ * Ensure ids/hashes are stable (fixes errors after undoing changes to els with filters)
+ * Prevent no-change commits caused by git status race/improper lock
+
 ## 2.3.79
 
 ### Bug Fixes
