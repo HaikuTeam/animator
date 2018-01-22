@@ -58,4 +58,8 @@ Usage:
 
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 ...
-if (experimentIsEnabled(Experiment.${experimentName})) { ... }`)
+if (experimentIsEnabled(Experiment.${experimentName})) { ... }
+
+Don't forget to run
+$ yarn compile-all
+before continuing!`)
