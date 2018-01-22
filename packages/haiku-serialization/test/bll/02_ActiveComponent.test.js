@@ -206,6 +206,54 @@ tape('ActiveComponent.prototype.mergeDesign[2](design)', (t) => {
   })
 })
 
+tape('ActiveComponent.prototype.mergeDesign[3](design)', (t) => {
+  t.plan(2)
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'merge-design-02')
+  fse.removeSync(folder)
+  const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
+  const platform = {}
+  const userconfig = {}
+  const fileOptions = { doShallowWorkOnly: false, skipDiffLogging: true }
+  const envoyOptions = { mock: true }
+  return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
+    return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
+      if (err) throw err
+      fse.outputFileSync(path.join(folder, 'designs/PercyNose.svg'), PERCY_NOSE_1)
+      const ac0 = project.getCurrentActiveComponent()
+      return ac0.instantiateComponent('designs/PercyNose.svg', {}, { from: 'test' }, (err, info, mana) => {
+        if (err) throw err
+        return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
+          if (err) throw err
+          fse.outputFileSync(path.join(folder, 'designs/PercyNose.svg'), PERCY_NOSE_2) // Other one
+          return ac0.mergeDesigns({ 'designs/PercyNose.svg': true }, { from: 'test' }, (err) => {
+            if (err) throw err
+            return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
+              if (err) throw err
+              const diffs = []
+              const lines1 = contents1.split('\n')
+              const lines2 = contents2.split('\n')
+              lines1.forEach((line, index) => {
+                if (line !== lines2[index]) {
+                  diffs.push([line, lines2[index]])
+                }
+              })
+              t.deepEqual(
+                diffs,
+                [ [ '        fill: { "0": { value: "#FF5E87" } },',
+                  '        fill: { "0": { value: "#000000" } },' ],
+                [ '        fill: { "0": { value: "#FF5E87" } },',
+                  '        fill: { "0": { value: "#000000" } },' ] ]
+              )
+              fse.removeSync(folder)
+              t.ok(true)
+            })
+          })
+        })
+      })
+    })
+  })
+})
+
 tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
   t.plan(11)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-02')
@@ -517,6 +565,52 @@ const CIRCLE_SVG_2 = `
             <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-3"></use>
             <use fill="black" fill-opacity="1" filter="url(#filter-5)" xlink:href="#path-3"></use>
             <use stroke="url(#linearGradient-2)" stroke-width="1" xlink:href="#path-3"></use>
+        </g>
+    </g>
+</svg>
+`
+
+const PERCY_NOSE_1 = `
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="42px" height="28px" viewBox="0 0 42 28" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>nose</title>
+    <desc>Created with sketchtool.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Screen-3" transform="translate(-35.000000, -253.000000)">
+            <g id="percy" transform="translate(35.000000, 181.000000)">
+                <g id="nose" transform="translate(0.000000, 72.378378)">
+                    <rect id="Rectangle-2" fill="#FFFFFF" x="0" y="0" width="41.3401361" height="26.7027027" rx="13.3513514"></rect>
+                    <path d="M41.3401361,13.3513514 L41.3401361,13.3513514 L41.3401361,13.3513514 C41.3401361,20.7250991 35.3625324,26.7027027 27.9887847,26.7027027 L24.1967592,26.7027027 C26.8633644,22.1984406 28.1966671,17.7479901 28.1966671,13.3513514 C28.1966671,8.95471259 26.8633644,4.50426213 24.1967592,-8.41863632e-15 L27.9887847,-2.82210434e-14 L27.9887847,-2.66453526e-14 C35.3625324,-6.72951098e-14 41.3401361,5.97760361 41.3401361,13.3513514 Z" id="Rectangle-2-Copy" fill="#FEDFE6"></path>
+                    <rect id="Rectangle-2-Copy-2" stroke="#FF5E87" stroke-width="3.5" x="1.75" y="1.75" width="37.8401361" height="23.2027027" rx="11.6013514"></rect>
+                    <ellipse id="Oval-4" fill="#FF5E87" cx="10.8605442" cy="13.7027027" rx="3.15306122" ry="3.16216216"></ellipse>
+                    <ellipse id="Oval-4-Copy" fill="#FF5E87" cx="24.8741497" cy="13.7027027" rx="3.15306122" ry="3.16216216"></ellipse>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
+`
+
+const PERCY_NOSE_2 = `
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="42px" height="28px" viewBox="0 0 42 28" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 46.2 (44496) - http://www.bohemiancoding.com/sketch -->
+    <title>nose</title>
+    <desc>Created with sketchtool.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Screen-3" transform="translate(-35.000000, -253.000000)">
+            <g id="percy" transform="translate(35.000000, 181.000000)">
+                <g id="nose" transform="translate(0.000000, 72.378378)">
+                    <rect id="Rectangle-2" fill="#FFFFFF" x="0" y="0" width="41.3401361" height="26.7027027" rx="13.3513514"></rect>
+                    <path d="M41.3401361,13.3513514 L41.3401361,13.3513514 L41.3401361,13.3513514 C41.3401361,20.7250991 35.3625324,26.7027027 27.9887847,26.7027027 L24.1967592,26.7027027 C26.8633644,22.1984406 28.1966671,17.7479901 28.1966671,13.3513514 C28.1966671,8.95471259 26.8633644,4.50426213 24.1967592,-8.41863632e-15 L27.9887847,-2.82210434e-14 L27.9887847,-2.66453526e-14 C35.3625324,-6.72951098e-14 41.3401361,5.97760361 41.3401361,13.3513514 Z" id="Rectangle-2-Copy" fill="#FEDFE6"></path>
+                    <rect id="Rectangle-2-Copy-2" stroke="#FF5E87" stroke-width="3.5" x="1.75" y="1.75" width="37.8401361" height="23.2027027" rx="11.6013514"></rect>
+                    <ellipse id="Oval-4" fill="#000000" cx="10.8605442" cy="13.7027027" rx="3.15306122" ry="3.16216216"></ellipse>
+                    <ellipse id="Oval-4-Copy" fill="#000000" cx="24.8741497" cy="13.7027027" rx="3.15306122" ry="3.16216216"></ellipse>
+                </g>
+            </g>
         </g>
     </g>
 </svg>
