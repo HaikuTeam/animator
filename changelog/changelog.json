@@ -4147,5 +4147,12 @@
       "label": "fix",
       "message": "Prevent no-change commits caused by git status race/improper lock"
     }
+  },
+  "2.3.81": {
+    "af7ca7c9a083d7235d26c3f5fd0489727e2a2b5c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for GitLab"
+    }
   }
 }
