@@ -8,7 +8,7 @@ var ensureTimelineProperty = require('./ensureTimelineProperty')
 // Really this method is best used in tandem with a method like 'moveSegmentEndpoints' which will
 // RETURN a keyframeMoves object that could be fed into this method!
 
-module.exports = function moveKeyframes (bytecode, componentId, timelineName, propertyName, keyframeMoves, frameInfo) {
+module.exports = function moveKeyframes (bytecode, componentId, timelineName, propertyName, keyframeMoves) {
   let property = ensureTimelineProperty(bytecode, timelineName, componentId, propertyName)
 
   for (var oldMs in property) {

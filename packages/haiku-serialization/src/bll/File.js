@@ -452,9 +452,9 @@ class File extends BaseModel {
     }, cb)
   }
 
-  moveKeyframes (componentId, timelineName, propertyName, keyframeMoves, frameInfo, cb) {
+  moveKeyframes (componentId, timelineName, propertyName, keyframeMoves, cb) {
     return this.performComponentWork((bytecode, mana, done) => {
-      BytecodeActions.moveKeyframes(bytecode, componentId, timelineName, propertyName, keyframeMoves, frameInfo)
+      BytecodeActions.moveKeyframes(bytecode, componentId, timelineName, propertyName, keyframeMoves)
       done()
     }, cb)
   }

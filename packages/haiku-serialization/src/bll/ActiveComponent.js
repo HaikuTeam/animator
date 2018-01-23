@@ -1376,16 +1376,16 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  moveKeyframes (componentId, timelineName, propertyName, keyframeMoves, frameInfo, metadata, cb) {
+  moveKeyframes (componentId, timelineName, propertyName, keyframeMoves, metadata, cb) {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    return this.fetchActiveBytecodeFile().moveKeyframes(componentId, timelineName, propertyName, keyframeMoves, frameInfo, (err) => {
+    return this.fetchActiveBytecodeFile().moveKeyframes(componentId, timelineName, propertyName, keyframeMoves, (err) => {
       if (err) {
         log.error(err)
         return cb(err)
       }
 
       return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('moveKeyframes', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMoves, frameInfo, metadata)
+        this.project.updateHook('moveKeyframes', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMoves,  metadata)
         return cb()
       })
     })
@@ -1766,7 +1766,6 @@ class ActiveComponent extends BaseModel {
   }
 
   keyframeMoveAction () {
-    const frameInfo = this.getCurrentTimeline().getFrameInfo()
     const moves = Keyframe.buildKeyframeMoves({ component: this }, true)
 
     for (const timelineName in moves) {
@@ -1778,7 +1777,6 @@ class ActiveComponent extends BaseModel {
             timelineName,
             propertyName,
             keyframeMoves,
-            frameInfo,
             this.project.getMetadata(),
             () => {}
           )
