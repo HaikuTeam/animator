@@ -60,25 +60,21 @@ Template.DEFAULT_OPTIONS = {
 
 BaseModel.extend(Template)
 
-Template.prepareMana = (mana, hash) => {
-  // Each url(#whatever) needs to be unique to avoid styling collisions in the DOM
-  Template.fixFragmentIdentifierReferences(mana, hash)
+Template.prepareManaAndBuildTimelinesObject = (mana, hash, timelineName, timelineTime, { doHashWork }) => {
+  if (doHashWork) {
+    // Each url(#whatever) needs to be unique to avoid styling collisions in the DOM
+    Template.fixFragmentIdentifierReferences(mana, hash)
 
-  Template.ensureTitleAndUidifyTree(
-    mana,
-    path.normalize(mana.attributes[SOURCE_ATTRIBUTE]),
-    hash
-  )
+    Template.ensureTitleAndUidifyTree(
+      mana,
+      path.normalize(mana.attributes[SOURCE_ATTRIBUTE]),
+      hash
+    )
+  }
 
   Template.ensureTopLevelDisplayAttributes(mana)
 
   convertManaLayout(mana)
-
-  return mana
-}
-
-Template.prepareManaAndBuildTimelinesObject = (mana, hash, timelineName, timelineTime) => {
-  mana = Template.prepareMana(mana, hash)
 
   const timelinesObject = Template.hoistTreeAttributes(
     mana,
@@ -199,7 +195,8 @@ Template.manaToDynamicBytecode = (mana, identifier, modpath, options = {}) => {
     mana,
     referenceRandomizer,
     'Default',
-    0
+    0,
+    { doHashWork: true }
   )
 
   const states = {}

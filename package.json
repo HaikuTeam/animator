@@ -27,7 +27,7 @@
     "push": "node ./scripts/push.js",
     "compile-all": "node ./scripts/compile-all.js",
     "distro": "node ./scripts/distro.js",
-    "test": "yarn test-all && yarn compile-all && tape \"test/**/*.test.js\" | tap-spec"
+    "test": "yarn compile-all && tape \"test/**/*.test.js\" | tap-spec"
   },
   "devDependencies": {
     "async": "^2.5.0",

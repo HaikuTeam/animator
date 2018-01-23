@@ -16,6 +16,7 @@ const writeMetadata = require('haiku-bytecode/src/writeMetadata')
 const BaseModel = require('./BaseModel')
 const Logger = require('./../utils/Logger')
 const walkFiles = require('./../utils/walkFiles')
+const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const getSvgOptimizer = require('./../svg/getSvgOptimizer')
 
 // This file also depends on '@haiku/player/lib/HaikuComponent'
@@ -882,15 +883,25 @@ File.readMana = function readMana (folder, relpath, cb) {
   return File.read(folder, relpath, (err, buffer) => {
     if (err) return cb(err)
 
-    return getSvgOptimizer().optimize(buffer.toString(), { path: path.join(folder, relpath) }).then((contents) => {
-      const mana = xmlToMana(contents.data)
+    if (experimentIsEnabled(Experiment.SvgOptimizer)) {
+      return getSvgOptimizer().optimize(buffer.toString(), { path: path.join(folder, relpath) }).then((contents) => {
+        const manaOptimized = xmlToMana(contents.data)
 
-      if (!mana) {
-        return cb(new Error(`We couldn't load the contents of ${relpath}; please try again`))
+        if (!manaOptimized) {
+          return cb(new Error(`We couldn't load the contents of ${relpath}`))
+        }
+
+        return cb(null, manaOptimized)
+      })
+    } else {
+      const manaFull = xmlToMana(buffer.toString())
+
+      if (!manaFull) {
+        return cb(new Error(`We couldn't load the contents of ${relpath}`))
       }
 
-      return cb(null, mana)
-    })
+      return cb(null, manaFull)
+    }
   })
 }
 
