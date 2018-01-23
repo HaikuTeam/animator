@@ -4178,5 +4178,27 @@
       "label": "fix",
       "message": "wait until state is set to call gauge events"
     }
+  },
+  "2.3.84": {
+    "73e657f4123007c334d174a840a9ccce92763a8b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for playback state gets weird when entering preview mode during playback"
+    },
+    "f7563cab06d77ef70ed3f3030a2916359e262d2f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "also disable hot editing during normal timeline playback"
+    },
+    "72b2ddc6bdfe49ca76f5b640d03b923ce0217663": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent crash when reopening existing project"
+    },
+    "51aa8009be6236afe7ef3e2fc34e1504f951c593": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add a conditional to check for adjacent tweens on context menu"
+    }
   }
 }

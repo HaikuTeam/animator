@@ -1,6 +1,15 @@
 # Changelog
 
 
+## 2.3.84
+
+### Bug Fixes
+
+ * for playback state gets weird when entering preview mode during playback
+ * also disable hot editing during normal timeline playback
+ * Prevent crash when reopening existing project
+ * add a conditional to check for adjacent tweens on context menu
+
 ## 2.3.83
 
 ### Bug Fixes
