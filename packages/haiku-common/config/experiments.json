@@ -35,7 +35,7 @@
     "production": true
   },
   "SvgOptimizer": {
-    "development": true,
+    "development": false,
     "production": false
   }
 }
