@@ -147,6 +147,10 @@ process.on('SIGTERM', () => {
   PLUMBING_INSTANCES.forEach((plumbing) => plumbing.teardown())
   process.exit()
 })
+// Apparently there are circumstances where we won't crash (?); ensure that we do
+process.on('uncaughtException', () => {
+  process.exit(1)
+})
 
 export default class Plumbing extends StateObject {
   constructor () {
