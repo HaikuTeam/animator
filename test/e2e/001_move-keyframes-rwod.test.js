@@ -52,13 +52,11 @@ tape('move keyframes red wall of death fix', (t) => {
           }, nextPropertyName)
         }, cb)
       },
-      (cb) => {
-
-      }
     ], (err) => {
       if (err) throw err
-      t.ok(true, 'finished sequence without crashing due to "red wall of death"')
-      done()
+      done(() => {
+        t.ok(true, 'finished sequence without crashing due to "red wall of death"')
+      })
     })
   })
 })
