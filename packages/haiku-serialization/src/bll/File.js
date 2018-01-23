@@ -61,8 +61,15 @@ class File extends BaseModel {
     })
 
     this._elementsCache = {}
+  }
 
-    // Track how many times we've updated our in-memory content
+  // Hook called automatically by BaseModel during construction or upsert
+  afterInitialize () {
+    // Track how many times we've updated our in-memory content.
+    // This runs as an afterInitialize hook because when the user navigates from
+    // the dashboard to the editor, this object will be reused, meaning that the
+    // content and bytecode validity assertion will run, which depend on this
+    // value reflecting the number of the times per session that updates occurred
     this._numInMemoryContentStateUpdatesCompleted = 0
   }
 
