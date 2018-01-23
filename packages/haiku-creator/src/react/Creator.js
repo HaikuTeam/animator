@@ -383,8 +383,16 @@ export default class Creator extends React.Component {
     })
 
     this.envoyClient.get(GLASS_CHANNEL).then((glassChannel) => {
-      document.addEventListener('cut', glassChannel.cut)
-      document.addEventListener('copy', glassChannel.copy)
+      document.addEventListener('cut', (clipboardEvent) => {
+        if (!this.isShareLinkCopyEvent(clipboardEvent)) {
+          glassChannel.cut(clipboardEvent)
+        }
+      })
+      document.addEventListener('copy', (clipboardEvent) => {
+        if (!this.isShareLinkCopyEvent(clipboardEvent)) {
+          glassChannel.copy(clipboardEvent)
+        }
+      })
     })
 
     document.addEventListener('paste', (pasteEvent) => {
@@ -453,6 +461,13 @@ export default class Creator extends React.Component {
         }, 1000)
       })
     })
+  }
+
+  isShareLinkCopyEvent (clipboardEvent) {
+    return (
+      clipboardEvent &&
+      clipboardEvent.target
+    )
   }
 
   componentWillUnmount () {
