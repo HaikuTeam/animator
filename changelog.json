@@ -4154,5 +4154,22 @@
       "label": "fix",
       "message": "for GitLab"
     }
+  },
+  "2.3.82": {
+    "da2e3632eb8c13abf287f53c268170a9260badd9": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "properly disable mouse interaction on timeline when scrubbing"
+    },
+    "5b2538f908938eb851e7093fed07e983f397a067": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Make module re/loading asuync so it can participate in file locks; fixes 'RWOD' issue"
+    },
+    "c17276a1522ed7d5f78a763a7fecf3514cea5c3c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Don't 'perform work' on every single merged svg"
+    }
   }
 }

@@ -1,6 +1,14 @@
 # Changelog
 
 
+## 2.3.82
+
+### Bug Fixes
+
+ * properly disable mouse interaction on timeline when scrubbing
+ * Make module re/loading asuync so it can participate in file locks; fixes 'RWOD' issue
+ * Don't 'perform work' on every single merged svg
+
 ## 2.3.81
 
 ### Bug Fixes
