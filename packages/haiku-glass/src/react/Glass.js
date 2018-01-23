@@ -315,6 +315,7 @@ export class Glass extends React.Component {
     // turning preview mode off, but needs discussion with the team.
     if (this.isPreviewMode()) {
       this.hideEventHandlersEditor()
+      this._playing = false
     }
 
     this.getActiveComponent().getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
@@ -356,6 +357,10 @@ export class Glass extends React.Component {
   }
 
   handleTimelineDidPause (frameData) {
+    if (!this._playing) {
+      // If we have already been paused by a higher level event (e.g. toggling preview mode), do nothing.
+      return
+    }
     const ac = this.getActiveComponent()
     // Ensure preview mode is inactive before activating hot editing mode. If we toggle preview mode on during timeline
     // playback, we will typically receive the pause *after* the interaction mode change.
