@@ -165,7 +165,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
           "license": "LicenseRef-LICENSE",
           "main": "index.js",
           "dependencies": {
-            "@haiku/player": "${haikuPlayerVersion}"
+            "@haiku/player": "^${haikuPlayerVersion}"
           }
         }
       `)
@@ -180,7 +180,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       if (packageJson.name !== npmPackageName) packageJson.name = npmPackageName
       if (packageJson.dependencies) packageJson.dependencies = {}
       if (!packageJson.dependencies['@haiku/player']) {
-        packageJson.dependencies['@haiku/player'] = haikuPlayerVersion
+        packageJson.dependencies['@haiku/player'] = `^${haikuPlayerVersion}`
       }
 
       logger.info('[project folder] @haiku/player version is', packageJson.dependencies['@haiku/player'])
@@ -189,7 +189,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       let upgradeDiff = semver.diff(packageJson.dependencies['@haiku/player'], haikuPlayerVersion)
       if (upgradeDiff === 'patch') {
         logger.sacred('[project folder] upgraded @haiku/player to', haikuPlayerVersion)
-        packageJson.dependencies['@haiku/player'] = haikuPlayerVersion
+        packageJson.dependencies['@haiku/player'] = `^${haikuPlayerVersion}`
       }
     }
 
