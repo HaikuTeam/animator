@@ -1062,13 +1062,6 @@ HaikuComponent.prototype.findElementsByHaikuId = function findElementsByHaikuId(
 };
 
 HaikuComponent.prototype._hydrateMutableTimelines = function _hydrateMutableTimelines() {
-  if (this.config.options.hotEditingMode) {
-    // In hot editing mode, any timeline is fair game for mutation, even if it's not actually animated (e.g.
-    // dragging an SVG at keyframe 0).
-    this._mutableTimelines = this._bytecode.timelines;
-    return;
-  }
-
   this._mutableTimelines = {};
   if (this._bytecode.timelines) {
     for (const timelineName in this._bytecode.timelines) {
@@ -1177,7 +1170,9 @@ function applyBehaviors(timelinesRunning, deltas, component, context, isPatchOpe
   for (let i = 0; i < timelinesRunning.length; i++) {
     const timelineInstance = timelinesRunning[i];
     const timelineName = timelineInstance.getName();
-    const timelineDescriptor = isPatchOperation
+    // In hot editing mode, any timeline is fair game for mutation, even if it's not actually animated (e.g.
+    // dragging an SVG at keyframe 0).
+    const timelineDescriptor = isPatchOperation && !component.config.options.hotEditingMode
       ? component._mutableTimelines[timelineName]
       : component._bytecode.timelines[timelineName];
 
