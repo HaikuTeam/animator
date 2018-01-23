@@ -61,6 +61,9 @@ class File extends BaseModel {
     })
 
     this._elementsCache = {}
+
+    // Track how many times we've updated our in-memory content
+    this._numInMemoryContentStateUpdatesCompleted = 0
   }
 
   updateInMemoryHotModuleOnly (bytecode, cb) {
@@ -68,6 +71,16 @@ class File extends BaseModel {
     this.mod.monkeypatch(bytecode)
     this.emit('in-memory-content-state-updated')
     return cb()
+  }
+
+  assertBytecode (bytecode) {
+    // If we have a blank bytecode object after the first couple of updates,
+    // that usually means we're about to end up with a "Red Wall of Death"
+    if (this._numInMemoryContentStateUpdatesCompleted > 1) {
+      if (Object.keys(bytecode).length < 2) {
+        throw new Error(`Bytecode object was empty ${this.getAbspath()}`)
+      }
+    }
   }
 
   assertContents (contents) {
@@ -83,7 +96,15 @@ class File extends BaseModel {
 
   updateInMemoryContentState (bytecode, cb) {
     this.dtModified = Date.now()
+
+    // In no circumstance do we want to write bad bytecode to in-memory pointer.
+    // so instead of returning an error message, we crash the app in hope
+    // that a full restart will resolve the condition leading to this.
+    // Throwing here should also give insight into when/why this occurs.
+    this.assertBytecode(bytecode)
+
     this.mod.monkeypatch(bytecode)
+
     const contents = this.ast.updateWithBytecodeAndReturnCode(bytecode)
 
     // In no circumstance do we want to write bad content to code.js,
@@ -97,6 +118,9 @@ class File extends BaseModel {
     this.contents = contents
     this.maybeLogDiff(previous, contents)
     this.emit('in-memory-content-state-updated')
+
+    this._numInMemoryContentStateUpdatesCompleted++
+
     return cb()
   }
 
@@ -113,6 +137,7 @@ class File extends BaseModel {
   }
 
   write (cb) {
+    this.assertContents(this.contents)
     this.dtLastWriteStart = Date.now()
     logger.info(`[file] writing ${this.relpath} to disk`)
     return File.write(this.folder, this.relpath, this.contents, (err) => {
