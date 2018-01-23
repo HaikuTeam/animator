@@ -44,7 +44,7 @@ tape('move keyframes red wall of death fix', (t) => {
       },
       (cb) => {
         // 9 in parallel seems to be enough to raise the problem in any test run
-        const frames = ([1,2,3]).map((n) => Math.round((n * 3) * 16.666))
+        const frames = ([1,2,3,4,5,6]).map((n) => Math.round((n * 3) * 16.666))
         return async.each(Object.keys(PROP_NAMES), (propertyName, nextPropertyName) => {
           return async.eachSeries(frames, (frame, nextFrame) => {
             const moves = {}; moves[frame] = {value: PROP_NAMES[propertyName]};
