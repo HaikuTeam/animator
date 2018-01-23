@@ -426,7 +426,9 @@ class ActiveComponent extends BaseModel {
     this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
       instance.assignConfig({
         options: {
-          interactionMode: this._interactionMode
+          interactionMode: interactionMode,
+          // Disable hot editing mode during preview mode for smooth playback.
+          hotEditingMode: !this.isPreviewModeActive()
         }
       })
     })
