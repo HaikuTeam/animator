@@ -1062,6 +1062,13 @@ HaikuComponent.prototype.findElementsByHaikuId = function findElementsByHaikuId(
 };
 
 HaikuComponent.prototype._hydrateMutableTimelines = function _hydrateMutableTimelines() {
+  if (this.config.options.hotEditingMode) {
+    // In hot editing mode, any timeline is fair game for mutation, even if it's not actually animated (e.g.
+    // dragging an SVG at keyframe 0).
+    this._mutableTimelines = this._bytecode.timelines;
+    return;
+  }
+
   this._mutableTimelines = {};
   if (this._bytecode.timelines) {
     for (const timelineName in this._bytecode.timelines) {
