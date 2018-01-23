@@ -4171,5 +4171,12 @@
       "label": "fix",
       "message": "Don't 'perform work' on every single merged svg"
     }
+  },
+  "2.3.83": {
+    "e38da869514d41cf52b390af36165ff0587dedf4": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "wait until state is set to call gauge events"
+    }
   }
 }

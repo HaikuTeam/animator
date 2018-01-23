@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.83
+
+### Bug Fixes
+
+ * wait until state is set to call gauge events
+
 ## 2.3.82
 
 ### Bug Fixes
