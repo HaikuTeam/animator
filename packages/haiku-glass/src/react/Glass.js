@@ -347,11 +347,21 @@ export class Glass extends React.Component {
   }
 
   handleTimelineDidPlay () {
+    const ac = this.getActiveComponent()
+    if (ac) {
+      ac.setHotEditingMode(false)
+    }
     this._playing = true
     this._stopwatch = Date.now()
   }
 
   handleTimelineDidPause (frameData) {
+    const ac = this.getActiveComponent()
+    // Ensure preview mode is inactive before activating hot editing mode. If we toggle preview mode on during timeline
+    // playback, we will typically receive the pause *after* the interaction mode change.
+    if (ac && !ac.isPreviewModeActive()) {
+      ac.setHotEditingMode(true)
+    }
     this._playing = false
     this._lastAuthoritativeFrame = frameData.frame
     this._stopwatch = Date.now()

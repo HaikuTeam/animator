@@ -439,6 +439,12 @@ class ActiveComponent extends BaseModel {
     })
   }
 
+  setHotEditingMode (hotEditingMode) {
+    this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
+      instance.assignConfig({ options: { hotEditingMode } })
+    })
+  }
+
   createComponentFromElements (elements, metadata, cb) {
     if (elements.length < 1) return cb()
 
