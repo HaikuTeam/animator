@@ -42,7 +42,7 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
         t.equal(subtemplate.attributes['haiku-id'], mana.attributes['haiku-id'], 'template id ok')
         return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
           t.error(err, 'no err fetching code')
-          t.equal(contents.length, 5952, 'checksum of file ok')
+          t.equal(contents.length, 6406, 'checksum of file ok')
           fse.removeSync(folder)
           t.ok(true)
         })
@@ -368,8 +368,8 @@ tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
         const pasteable1 = el1.getClipboardPayload('test')
         return ac0.pasteThing(pasteable1, { x: 100, y: 100 }, { from: 'test' }, (err) => {
           t.error(err, 'no err from paste')
-          t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'],`${mana.attributes['haiku-id']}-1fd318`)
-          t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}-1fd318`])
+          t.equal(ac0.getReifiedBytecode().template.children[1].attributes['haiku-id'],`${mana.attributes['haiku-id']}-fcbce3`)
+          t.ok(ac0.getReifiedBytecode().timelines.Default[`haiku:${mana.attributes['haiku-id']}-fcbce3`])
           fse.removeSync(folder)
         })
       })
