@@ -147,6 +147,10 @@ process.on('SIGTERM', () => {
   PLUMBING_INSTANCES.forEach((plumbing) => plumbing.teardown())
   process.exit()
 })
+// Apparently there are circumstances where we won't crash (?); ensure that we do
+process.on('uncaughtException', () => {
+  process.exit(1)
+})
 
 export default class Plumbing extends StateObject {
   constructor () {
@@ -243,7 +247,7 @@ export default class Plumbing extends StateObject {
         this.servers.push(server)
 
         server.on('connected', (websocket, type, alias, folder, params) => {
-          logger.info(`[plumbing] websocket opened (${type} ${alias})`)
+          logger.info(`[plumbing] websocket connected (${type} ${alias})`)
 
           // Don't allow duplicate clients
           for (let i = this.clients.length - 1; i >= 0; i--) {

@@ -41,7 +41,6 @@ class ModuleWrapper extends BaseModel {
     this.exp = null // Safest to set to null until we really load the content
     this._hasLoadedAtLeastOnce = false
     this._hasMonkeypatchedContent = false
-    this._loadError = null
   }
 
   hasLoadedAtLeastOnce () {
@@ -63,30 +62,38 @@ class ModuleWrapper extends BaseModel {
     this._hasMonkeypatchedContent = false
   }
 
-  globalForceReload () {
+  reloadExtantModule (cb) {
+    if (this.hasLoadedAtLeastOnce() || this.hasMonkeypatchedContent()) {
+      return this.reload(cb)
+    }
+    // This may not work if the file doesn't seem to exist on disk yet, but will only warn
+    return this.isolatedForceReload(cb)
+  }
+
+  globalForceReload (cb) {
     ModuleWrapper.clearRequireCache()
-    return this.reload()
+    return this.reload(cb)
   }
 
-  isolatedForceReload () {
+  isolatedForceReload (cb) {
     this.isolatedClearCache()
-    return this.reload()
+    return this.reload(cb)
   }
 
-  configuredReload (config) {
-    if (!config) return this.isolatedForceReload()
-    if (!config.reloadMode) return this.isolatedForceReload()
+  configuredReload (config, cb) {
+    if (!config) return this.isolatedForceReload(cb)
+    if (!config.reloadMode) return this.isolatedForceReload(cb)
     switch (config.reloadMode) {
-      case ModuleWrapper.RELOAD_MODES.GLOBAL: return this.globalForceReload()
-      case ModuleWrapper.RELOAD_MODES.ISOLATED: return this.isolatedForceReload()
-      case ModuleWrapper.RELOAD_MODES.CACHE: return this.reload()
+      case ModuleWrapper.RELOAD_MODES.GLOBAL: return this.globalForceReload(cb)
+      case ModuleWrapper.RELOAD_MODES.ISOLATED: return this.isolatedForceReload(cb)
+      case ModuleWrapper.RELOAD_MODES.CACHE: return this.reload(cb)
       case ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED:
         if (this._hasMonkeypatchedContent) {
-          return this.reload()
+          return this.reload(cb)
         } else {
-          return this.isolatedForceReload()
+          return this.isolatedForceReload(cb)
         }
-      default: return this.isolatedForceReload()
+      default: return this.isolatedForceReload(cb)
     }
   }
 
@@ -109,70 +116,71 @@ class ModuleWrapper extends BaseModel {
     return abspath
   }
 
-  reload () {
-    this._loadError = null
+  awaitUnlock (cb) {
+    return File.awaitUnlock(this.getAbspath(), cb)
+  }
 
-    return overrideModulesLoaded((stop) => {
-      try {
-        this.exp = require(this.getAbspath())
+  reload (cb) {
+    if (!cb) throw new Error('poo')
+    return this.awaitUnlock(() => {
+      return overrideModulesLoaded((stop) => {
+        try {
+          this.exp = require(this.getAbspath())
+          this._hasLoadedAtLeastOnce = true
+          this.monkeypatch(this.exp) // Set whatever is in require.cache
+          stop() // Tell the node hook to stop interfering with require(...)
+        } catch (exception) {
+          console.warn('[mod] ' + this.getAbspath() + ' could not be loaded (' + exception + ')')
+          this.exp = null
+          return cb(null, exception)
+        }
 
-        // Avoid race conditions with downstream asking for the monkeypatched one
-        // which we may as well set here since we just loaded it
-        this.monkeypatch(this.exp, true)
+        return cb(null, this.exp)
+      }, ModuleWrapper.getHaikuKnownImportMatch)
+    })
+  }
 
-        this._hasLoadedAtLeastOnce = true
-      } catch (exception) {
-        console.warn('[mod] ' + this.getAbspath() + ' could not be loaded (' + exception + ')')
-        this._loadError = exception
-        this.exp = null
+  moduleAsMana (identifier, contextDirAbspath, cb) {
+    return this.reload((err, exp) => {
+      if (err) return cb(err)
+      if (!exp) return cb(null, null)
+
+      let source
+      if (this.isExternalModule) {
+        source = this.getModpath()
+      } else {
+        source = path.normalize(path.relative(contextDirAbspath, this.getAbspath()))
       }
 
-      stop() // Tell the node hook to stop interfering
+      const safe = {} // Clone to avoid clobbering/polluting with these properties
 
-      return this.exp
-    }, ModuleWrapper.getHaikuKnownImportMatch)
+      for (const key in exp) safe[key] = exp[key]
+      safe.__module = source
+      safe.__reference = identifier
+
+      return cb(null, {
+        // Nested components are represented thusly:
+        // - The element name is the bytecode of the subcomponent
+        // - When serialized the element name becomes just an identifier in the code
+        // - Upon reification, it's loaded as bytecode with the appropriate __-references
+        elementName: safe,
+        attributes: {
+          source, // This important and is used for lookups relative to the host component
+          identifier, // This is important when reloading bytecode with instantiated components from disk
+          'haiku-title': identifier // This is used for display in the Timeline, Stage, etc
+        },
+        children: []
+      })
+    })
   }
 
-  moduleAsMana (identifier, contextDirAbspath) {
-    const exp = this.reload()
-    if (!exp) return null
-
-    let source
-    if (this.isExternalModule) {
-      source = this.getModpath()
-    } else {
-      source = path.normalize(path.relative(contextDirAbspath, this.getAbspath()))
-    }
-
-    const safe = {} // Clone to avoid clobbering/polluting with these properties
-
-    for (const key in exp) safe[key] = exp[key]
-    safe.__module = source
-    safe.__reference = identifier
-
-    return {
-      // Nested components are represented thusly:
-      // - The element name is the bytecode of the subcomponent
-      // - When serialized the element name becomes just an identifier in the code
-      // - Upon reification, it's loaded as bytecode with the appropriate __-references
-      elementName: safe,
-      attributes: {
-        source, // This important and is used for lookups relative to the host component
-        identifier, // This is important when reloading bytecode with instantiated components from disk
-        'haiku-title': identifier // This is used for display in the Timeline, Stage, etc
-      },
-      children: []
-    }
-  }
-
-  monkeypatch (exportsObject, noReloadToAvoidInfiniteLoop) {
+  monkeypatch (exportsObject) {
     if (!require.cache[this.getAbspath()]) {
       require(this.getAbspath()) // Ensure it's populated if not already; kind of weird :/
     }
     this._hasMonkeypatchedContent = true
     require.cache[this.getAbspath()].exports = exportsObject
-    if (noReloadToAvoidInfiniteLoop) return exportsObject
-    return this.reload()
+    return exportsObject
   }
 }
 
@@ -270,3 +278,6 @@ ModuleWrapper.RELOAD_MODES = {
 }
 
 module.exports = ModuleWrapper
+
+// Down here to avoid Node circular dependency stub objects. #FIXME
+const File = require('./File')

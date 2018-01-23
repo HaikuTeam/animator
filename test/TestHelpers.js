@@ -81,10 +81,11 @@ const e2e = (worker) => {
       relpath: ac.getSceneCodeRelpath(),
       folder: BLANK_PROJECT_PATH,
       ac
-    }, () => {
+    }, (after) => {
       plumbing.teardown(() => {
         fse.removeSync(BLANK_PROJECT_PATH)
         fse.outputFileSync(path.join(BLANK_PROJECT_PATH, '.keep'), '')
+        after()
       })
     })
   }) 

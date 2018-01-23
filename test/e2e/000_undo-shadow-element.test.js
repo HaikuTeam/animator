@@ -46,8 +46,9 @@ tape('undo shadow element crash fix', (t) => {
       }
     ], (err) => {
       if (err) throw err
-      t.ok(true, 'finished sequence without "cannot locate element" crash')
-      done()
+      done(() => {
+        t.ok(true, 'finished sequence without "cannot locate element" crash')
+      })
     })
   })
 })
