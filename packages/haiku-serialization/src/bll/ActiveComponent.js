@@ -1018,86 +1018,90 @@ class ActiveComponent extends BaseModel {
     }, cb)
   }
 
-  mergeMana (mana, cb) {
-    return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
-      let found = 0
+  mergeMana (destinationTimelines, existingTemplate, manaIncoming) {
+    let numMatchingNodes = 0
 
-      Template.visit((template), (node) => {
-        // Only merge into nodes that match our source design path
-        if (node.attributes.source !== mana.attributes.source) {
-          return
+    Template.visit((existingTemplate), (existingNode) => {
+      // Only merge into any that match our source design path
+      if (existingNode.attributes.source !== manaIncoming.attributes.source) {
+        return
+      }
+
+      const safe = Template.clone({}, manaIncoming)
+
+      Template.mirrorHaikuUids(existingNode, safe)
+
+      const insertionPointHash = Template.getInsertionPointHash(existingNode, existingNode.children.length, numMatchingNodes++)
+
+      const timelineName = this.getMergeDesignTimelineName()
+      const timelineTime = this.getMergeDesignTimelineTime()
+
+      const timelinesObject = Template.prepareManaAndBuildTimelinesObject(
+        safe,
+        insertionPointHash,
+        timelineName,
+        timelineTime,
+        { doHashWork: true }
+      )
+
+      Bytecode.mergeTimelines(destinationTimelines, timelinesObject, (propertyName, oldValue, newValue) => {
+        if (typeof oldValue === 'string' && typeof newValue === 'string') {
+          // HACK: Changing URL reference breaks the reference since our merge doesn't affect
+          //       the structure of the element (TODO: Support merging structural changes too)
+          if (oldValue.slice(0, 5) === 'url(#') {
+            return false
+          }
+          // HACK: Related to the above; changing references essentially means breaking them
+          if (propertyName === 'xlink:href') {
+            return false
+          }
         }
 
-        const safe = Template.clone({}, mana)
-
-        Template.mirrorHaikuUids(node, safe)
-
-        const insertionPointHash = Template.getInsertionPointHash(node, node.children.length, found++)
-
-        const timelineName = this.getMergeDesignTimelineName()
-        const timelineTime = this.getMergeDesignTimelineTime()
-
-        const timelinesObject = Template.prepareManaAndBuildTimelinesObject(
-          safe,
-          insertionPointHash,
-          timelineName,
-          timelineTime,
-          { doHashWork: true }
-        )
-
-        Bytecode.mergeTimelines(bytecode.timelines, timelinesObject, (propertyName, oldValue, newValue) => {
-          if (typeof oldValue === 'string' && typeof newValue === 'string') {
-            // HACK: Changing URL reference breaks the reference since our merge doesn't affect
-            //       the structure of the element (TODO: Support merging structural changes too)
-            if (oldValue.slice(0, 5) === 'url(#') {
-              return false
-            }
-            // HACK: Related to the above; changing references essentially means breaking them
-            if (propertyName === 'xlink:href') {
-              return false
-            }
-          }
-          return true
-        })
+        return true
       })
-
-      done()
-    }, cb)
+    })
   }
 
   mergeDesignFiles (designs, cb) {
-    return async.eachOf(designs, (truthy, relpath, next) => {
-      if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
-        return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
-          // There may be a race where a file is removed before this gets called;
-          // and in that case we need to skip this whole subroutine (simply don't
-          // touch whatever designs may have been instantiated
-          if (err || !mana) {
-            return next()
-          }
+    return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
+      return async.eachOf(designs, (truthy, relpath, next) => {
+        if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
+          return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
+            // There may be a race where a file is removed before this gets called;
+            // and in that case we need to skip this whole subroutine (simply don't
+            // touch whatever designs may have been instantiated
+            if (err || !mana) {
+              return next()
+            }
 
-          Template.fixManaSourceAttribute(mana, relpath) // Adds source="relpath_to_file_from_project_root"
+            Template.fixManaSourceAttribute(mana, relpath) // Adds source="relpath_to_file_from_project_root"
 
-          if (experimentIsEnabled(Experiment.InstantiationOfPrimitivesAsComponents)) {
-            return Design.manaAsCode(relpath, Template.clone({}, mana), {}, (err, identifier, modpath, bytecode) => {
-              if (err) return cb(err)
+            if (experimentIsEnabled(Experiment.InstantiationOfPrimitivesAsComponents)) {
+              return Design.manaAsCode(relpath, Template.clone({}, mana), {}, (err, identifier, modpath, bytecode) => {
+                if (err) return next(err)
 
-              const primitive = Primitive.inferPrimitiveFromBytecode(bytecode)
+                const primitive = Primitive.inferPrimitiveFromBytecode(bytecode)
 
-              if (primitive) {
-                const overrides = Bytecode.extractOverrides(bytecode)
-                return this.mergePrimitiveWithOverrides(primitive, overrides, next)
-              }
+                if (primitive) {
+                  const overrides = Bytecode.extractOverrides(bytecode)
+                  return this.mergePrimitiveWithOverrides(primitive, overrides, next)
+                }
 
-              return this.mergeMana(mana, next)
-            })
-          } else {
-            return this.mergeMana(mana, next)
-          }
-        })
-      }
+                this.mergeMana(bytecode.timelines, template, mana)
+                return next()
+              })
+            } else {
+              this.mergeMana(bytecode.timelines, template, mana)
+              return next()
+            }
+          })
+        }
 
-      return next(new Error(`Problem merging ${relpath}`))
+        return next(new Error(`Problem merging ${relpath}`))
+      }, (err) => {
+        if (err) return cb(err)
+        return done()
+      })
     }, cb)
   }
 
