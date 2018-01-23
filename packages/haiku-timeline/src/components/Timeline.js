@@ -819,11 +819,14 @@ class Timeline extends React.Component {
           id='gauge-box'
           className='gauge-box'
           onMouseDown={(event) => {
+            event.persist()
+
             this.setState({
               doHandleMouseMovesInGauge: true,
               avoidTimelinePointerEvents: true
+            }, () => {
+              this.mouseMoveListener(event)
             })
-            this.mouseMoveListener(event)
           }}
           style={{
             position: 'absolute',
