@@ -641,21 +641,23 @@ class ActiveComponent extends BaseModel {
       })
     })
 
-    const manaForWrapperElement = mod.moduleAsMana(identifier, this.getSceneCodeFolder())
+    return mod.moduleAsMana(identifier, this.getSceneCodeFolder(), (err, manaForWrapperElement) => {
+      if (err) return cb(err)
 
-    if (!manaForWrapperElement) {
-      return cb(new Error(`Module ${fullpath} could not be imported`))
-    }
+      if (!manaForWrapperElement) {
+        return cb(new Error(`Module ${fullpath} could not be imported`))
+      }
 
-    // As usual, we can use any of our instances to stand in during editing
-    const ours = this.getPlayerComponentInstance()
+      // As usual, we can use any of our instances to stand in during editing
+      const ours = this.getPlayerComponentInstance()
 
-    // Assume the last component instantiated of their type
-    const theirs = subcomponent && subcomponent.getPlayerComponentInstance()
+      // Assume the last component instantiated of their type
+      const theirs = subcomponent && subcomponent.getPlayerComponentInstance()
 
-    initializeComponentTree(manaForWrapperElement, ours, ours._context, theirs)
+      initializeComponentTree(manaForWrapperElement, ours, ours._context, theirs)
 
-    return this.instantiateMana(manaForWrapperElement, overrides, coords, metadata, cb)
+      return this.instantiateMana(manaForWrapperElement, overrides, coords, metadata, cb)
+    })
   }
 
   getPlayerComponentInstance () {
@@ -1385,7 +1387,7 @@ class ActiveComponent extends BaseModel {
       }
 
       return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('moveKeyframes', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMoves,  metadata)
+        this.project.updateHook('moveKeyframes', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMoves, metadata)
         return cb()
       })
     })
@@ -1895,25 +1897,24 @@ class ActiveComponent extends BaseModel {
   }
 
   moduleReload (reloadOptions, instanceConfig, cb) {
-    const reifiedBytecode = this.fetchActiveBytecodeFile().mod.configuredReload(instanceConfig)
-    this.getActiveInstancesOfHaikuPlayerComponent().forEach((existingActiveInstance) => {
-      this.replaceInstance(existingActiveInstance, reifiedBytecode, instanceConfig)
+    return this.fetchActiveBytecodeFile().mod.configuredReload(instanceConfig, (err, reifiedBytecode) => {
+      if (err) return cb(err)
+      this.getActiveInstancesOfHaikuPlayerComponent().forEach((existingActiveInstance) => {
+        this.replaceInstance(existingActiveInstance, reifiedBytecode, instanceConfig)
+      })
+      return cb()
     })
-    return cb()
   }
 
   moduleCreate (instanceConfig, cb) {
-    this.fetchActiveBytecodeFile().mod.configuredReload(instanceConfig)
-    this.fetchActiveBytecodeFile().reinitializeBytecode(null) // Ensure we have ids, a template, etc.
-    const reifiedBytecode = this.getReifiedBytecode()
-    // // If the file had been written without an id (legacy), we'll add one here for consistency
-    // // We'll use the usual hash-from-known-data mechanism to avoid problems between processes
-    // if (!reifiedBytecode.template.attributes[HAIKU_ID_ATTRIBUTE]) {
-    //   reifiedBytecode.template.attributes[HAIKU_ID_ATTRIBUTE] = Template.getHash(this.getSceneName(), 12)
-    // }
-    const createdHaikuPlayerComponent = this.createInstance(reifiedBytecode, instanceConfig)
-    this.addInstanceOfHaikuPlayerComponent(createdHaikuPlayerComponent)
-    return cb()
+    return this.fetchActiveBytecodeFile().mod.configuredReload(instanceConfig, (err) => {
+      if (err) return cb(err)
+      this.fetchActiveBytecodeFile().reinitializeBytecode(null) // Ensure we have ids, a template, etc.
+      const reifiedBytecode = this.getReifiedBytecode()
+      const createdHaikuPlayerComponent = this.createInstance(reifiedBytecode, instanceConfig)
+      this.addInstanceOfHaikuPlayerComponent(createdHaikuPlayerComponent)
+      return cb()
+    })
   }
 
   addInstanceOfHaikuPlayerComponent (instanceGiven) {

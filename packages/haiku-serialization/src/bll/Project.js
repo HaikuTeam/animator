@@ -693,6 +693,22 @@ class Project extends BaseModel {
     // Note: This assumes that the basic bytecode file *has already been created*
     const ac = this.upsertActiveComponentInstance(relpath)
 
+    // This is going to be called once we finish up the async work below
+    const finalize = (cb) => {
+      // Note that this instanceConfig variable may get mutated below
+      return ac.mountApplication(null, instanceConfig, (err) => {
+        if (err) return cb(err)
+
+        return ac.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
+          // No-op; we only call this to ensure the file is bootstrapped and written to fs
+          done()
+        }, (err) => {
+          if (err) return cb(err)
+          return cb(null, ac)
+        })
+      })
+    }
+
     const file = this.upsertFile({
       relpath,
       type: File.TYPES.code
@@ -705,47 +721,33 @@ class Project extends BaseModel {
       // If we do a merge, we may swap this variable with the existing merged one in a moment
       let reified = reifyRO(bytecode)
 
-      // If we have existing bytecode, we are going to merge the incoming properties in since this
-      // pathway is used by mergeDesign in addition to with instantiateComponent
-      let extant
-      if (mod.hasLoadedAtLeastOnce() || mod.hasMonkeypatchedContent()) {
-        extant = mod.reload()
-      } else {
-        // This may not work if the file doesn't seem to exist on disk yet, but will only warn
-        extant = mod.isolatedForceReload()
-      }
+      // If we have existing bytecode, we are going to merge the incoming properties
+      return mod.reloadExtantModule((err, extant) => {
+        if (err) return cb(err)
 
-      if (extant) {
-        Bytecode.mergeBytecode(extant, reified)
-        reified = extant
-      }
+        if (extant) {
+          Bytecode.mergeBytecode(extant, reified)
+          reified = extant
+        }
 
-      // Hacky, but in situations where we don't want to have to write to the fs before being
-      // able to load the module via require() call, i.e. in the glass or timeline
-      file.mod.monkeypatch(reified)
+        // Hacky, but in situations where we don't want to have to write to the fs before being
+        // able to load the module via require() call, i.e. in the glass or timeline
+        file.mod.monkeypatch(reified)
 
-      // Because we have just monkeypatched the module, we don't need to (and shouldn't) reload
-      // from disk since at this point disk will contain stale content, which we need to update later
-      instanceConfig = lodash.assign({}, instanceConfig, {
-        reloadMode: ModuleWrapper.RELOAD_MODES.CACHE
+        // Because we have just monkeypatched the module, we don't need to (and shouldn't) reload
+        // from disk since at this point disk will contain stale content, which we need to update later
+        // Note that this ends up passed (via scope) to the mountApplication call; see above
+        instanceConfig = lodash.assign({}, instanceConfig, {
+          reloadMode: ModuleWrapper.RELOAD_MODES.CACHE
+        })
+
+        return finalize(cb)
       })
     } else {
-      // If no bytecode, that's ok because we're going to load it as part of mount application step
-      // The reload mode here should force a reload from whatever currently lives on disk, and we are
-      // assuming that said files are already created on disk
+      // If no bytecode, that's ok because we're going to load it as part of mount application step.
+      // The reload mode therein should force a reload from whatever currently lives on disk.
+      return finalize(cb)
     }
-
-    return ac.mountApplication(null, instanceConfig, (err) => {
-      if (err) return cb(err)
-
-      return ac.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
-        // No-op; we only call this to ensure the file is bootstrapped and written to fs
-        done()
-      }, (err) => {
-        if (err) return cb(err)
-        return cb(null, ac)
-      })
-    })
   }
 
   relpathToSceneName (relpath) {

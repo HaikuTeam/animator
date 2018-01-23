@@ -847,16 +847,18 @@ File.ingestContents = function ingestContents (folder, relpath, { dtLastReadStar
     file.type = 'other'
   }
 
-  const bytecode = file.mod.isolatedForceReload()
-
-  return file.updateInMemoryContentState(bytecode, (err) => {
+  return file.mod.isolatedForceReload((err, bytecode) => {
     if (err) return cb(err)
 
-    // This can be used to determine if an in-memory-only update occurred after or before a filesystem update.
-    // Useful when trying to detect e.g. whether code should reload
-    file.dtLastReadEnd = Date.now()
+    return file.updateInMemoryContentState(bytecode, (err) => {
+      if (err) return cb(err)
 
-    return cb(null, file)
+      // This can be used to determine if an in-memory-only update occurred after or before a filesystem update.
+      // Useful when trying to detect e.g. whether code should reload
+      file.dtLastReadEnd = Date.now()
+
+      return cb(null, file)
+    })
   })
 }
 
