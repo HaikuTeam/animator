@@ -769,6 +769,11 @@ class Keyframe extends BaseModel {
     // Unless the shift key is down, a direct click normally clear others
     if (!isShiftKeyDown) {
       // But only if we're touching an unrelated (unselected) set of keyframes
+
+      if (isCurveTargeted && !this.isNextKeyframeSelected()) {
+        this.clearOtherKeyframes()
+      }
+
       if (!this.isSelected()) {
         this.clearOtherKeyframes()
       }
