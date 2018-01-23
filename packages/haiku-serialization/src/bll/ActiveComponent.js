@@ -2028,7 +2028,7 @@ class ActiveComponent extends BaseModel {
     }
 
     // We'll end up with stale attributes in the DOM unless we do this; this calls .tick()
-    if (reloadOptions.onlyForceFlushIf === undefined || reloadOptions.onlyForceFlushIf) {
+    if (reloadOptions.onlyForceFlushIf) {
       this.forceFlush()
     }
 
