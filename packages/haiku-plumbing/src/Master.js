@@ -198,9 +198,7 @@ export default class Master extends EventEmitter {
     if (this.project) {
       this.project.teardown()
     }
-    if (this._watcher) {
-      this._watcher.stop()
-    }
+    this.watchOff()
     if (this._git) {
       return this._git.teardown(cb)
     } else {
@@ -211,6 +209,14 @@ export default class Master extends EventEmitter {
   logMethodMessage (method, params) {
     if (!UNLOGGABLE_METHODS[method]) {
       logger.info('[master]', 'calling', method, params)
+    }
+  }
+
+  handleBroadcastMessage (message) {
+    switch (message.name) {
+      case 'component:reload:complete':
+        this._mod.handleReloadComplete(message)
+        break
     }
   }
 
@@ -242,6 +248,10 @@ export default class Master extends EventEmitter {
       // Since the project model may return unserializable values, exclude them
       return cb()
     })
+  }
+
+  handleReloadComplete (message, cb) {
+
   }
 
   waitForSaveToComplete (cb) {

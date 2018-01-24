@@ -809,13 +809,6 @@ export default class Creator extends React.Component {
       projectModel: null,
       activeNav: 'library' // Prevents race+crash loading StateInspector when switching projects
     })
-
-    return this.props.websocket.request(
-      { method: 'teardownMaster', params: [this.state.projectModel.getFolder()] },
-      () => {
-        console.info('[creator] master teardown')
-      }
-    )
   }
 
   renderStartupDefaultScreen () {

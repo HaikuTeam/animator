@@ -27,7 +27,6 @@ import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
 import { crashReport } from 'haiku-serialization/src/utils/carbonite'
 import { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
-import Master from './Master'
 
 global.eval = function () { // eslint-disable-line
   // noop: eval is forbidden
@@ -84,8 +83,7 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   previewProject: true,
   fetchProjectInfo: true,
   doLogOut: true,
-  deleteProject: true,
-  teardownMaster: true
+  deleteProject: true
 }
 
 const PROCS = {
@@ -94,13 +92,17 @@ const PROCS = {
     path: require('electron'),
     args: [require.resolve(path.join('haiku-creator', 'lib', 'electron.js'))],
     opts: { electron: true, spawn: true }
+  },
+  master: {
+    name: 'master',
+    path: path.join(__dirname, 'MasterProcess.js')
   }
 }
 
 const Q_GLASS = { alias: 'glass' }
 const Q_TIMELINE = { alias: 'timeline' }
 const Q_CREATOR = { alias: 'creator' }
-const MASTER_SPEC = 'master' // not a separate process
+const Q_MASTER = { alias: 'master' }
 
 const AWAIT_INTERVAL = 100
 const WAIT_DELAY = 10 * 1000
@@ -123,10 +125,7 @@ const emitter = new EventEmitter()
 
 const PINFO = `${process.pid} ${path.basename(__filename)} ${path.basename(process.execPath)}`
 
-let idIncrementor = 1
-function _id () {
-  return idIncrementor++
-}
+let processSequentialId = 1
 
 const PLUMBING_INSTANCES = []
 
@@ -148,7 +147,8 @@ process.on('SIGTERM', () => {
   process.exit()
 })
 // Apparently there are circumstances where we won't crash (?); ensure that we do
-process.on('uncaughtException', () => {
+process.on('uncaughtException', (err) => {
+  console.error(err)
   process.exit(1)
 })
 
@@ -161,7 +161,8 @@ export default class Plumbing extends StateObject {
     // as tape where exit might never get called despite an exit.
     PLUMBING_INSTANCES.push(this)
 
-    this.masters = {}
+    this.masterProcesses = {}
+
     this.subprocs = []
     this.servers = []
     this.clients = []
@@ -180,7 +181,7 @@ export default class Plumbing extends StateObject {
     })
   }
 
-  _handleUnrecoverableError (err) {
+  handleUnrecoverableError (err) {
     mixpanel.haikuTrackOnce('app:crash', {
       error: err.message
     })
@@ -227,6 +228,7 @@ export default class Plumbing extends StateObject {
 
       logger.info('[plumbing] launching plumbing control server')
 
+      if (!haiku.socket) haiku.socket = {}
       haiku.socket.token = HAIKU_WS_SECURITY_TOKEN
 
       return this.launchControlServer(haiku.socket, (err, server, host, port) => {
@@ -237,12 +239,13 @@ export default class Plumbing extends StateObject {
         process.env.HAIKU_PLUMBING_HOST = host
         process.env.HAIKU_WS_SECURITY_TOKEN = HAIKU_WS_SECURITY_TOKEN
 
-        if (!haiku.socket) haiku.socket = {}
-
         haiku.socket.port = port
         haiku.socket.host = host
 
         haiku.plumbing = { url: `http://${host}:${port}` }
+
+        // HACK, sorry; cannot figure out how to pass this to the other spawnSubgroup call
+        this.plumbingUrl = haiku.plumbing.url
 
         this.servers.push(server)
 
@@ -262,10 +265,9 @@ export default class Plumbing extends StateObject {
             }
           }
 
-          websocket.params.id = _id()
-          const index = this.clients.push(websocket) - 1
+          this.clients.push(websocket)
 
-          websocket._index = index
+          websocket.params.id = processSequentialId++
 
           websocket.on('close', () => {
             logger.info(`[plumbing] websocket closed (${type} ${alias})`)
@@ -298,11 +300,6 @@ export default class Plumbing extends StateObject {
     }
 
     if (message.type === 'broadcast') {
-      // HACK: This doesn't belong here, but it's convenient while I refactor
-      if (message.name === 'component:reload:complete') {
-        return this.findMasterByFolder(folder)._mod.handleReloadComplete(message)
-      }
-
       // Give clients the chance to emit events to all others
       return this.sendBroadcastMessage(message, folder, alias, websocket)
     } else if (message.id && this.requests[message.id]) {
@@ -480,7 +477,7 @@ export default class Plumbing extends StateObject {
   teardown (cb) {
     logger.info('[plumbing] teardown method called')
 
-    return async.eachOfSeries(this.masters, (master, folder, next) => {
+    return async.eachOfSeries(this.masterProcesses, (master, folder, next) => {
       return master.teardown(next)
     }, () => {
       this.subprocs.forEach((subproc) => {
@@ -528,11 +525,11 @@ export default class Plumbing extends StateObject {
    */
 
   masterHeartbeat (folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'masterHeartbeat', [{ from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'masterHeartbeat', [{ from: 'master' }], cb)
   }
 
   doesProjectHaveUnsavedChanges (folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'doesProjectHaveUnsavedChanges', [{ from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'doesProjectHaveUnsavedChanges', [{ from: 'master' }], cb)
   }
 
   /**
@@ -596,12 +593,19 @@ export default class Plumbing extends StateObject {
           organizationName: projectOptions.organizationName,
           projectName: projectOptions.projectName,
           projectPath: projectFolder,
+          socket: {
+            token: HAIKU_WS_SECURITY_TOKEN
+          },
+          plumbing: {
+            url: this.plumbingUrl
+          },
           envoy: {
             host: this.envoyServer.host,
             port: this.envoyServer.port,
-            token: process.env.HAIKU_WS_SECURITY_TOKEN
+            token: HAIKU_WS_SECURITY_TOKEN
           }
         }
+
         return this.spawnSubgroup(this.subprocs, haikuInfo, (err, spawned) => {
           if (err) return cb(err)
           this.subprocs.push.apply(this.subprocs, spawned)
@@ -650,20 +654,20 @@ export default class Plumbing extends StateObject {
    * @description Assuming we already have a folder created, an organization name, etc., now bootstrap the folder itself.
    */
   initializeFolder (maybeProjectName, folder, maybeUsername, maybePassword, projectOptions, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'initializeFolder', [maybeProjectName, maybeUsername, maybePassword, projectOptions, { from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'initializeFolder', [maybeProjectName, maybeUsername, maybePassword, projectOptions, { from: 'master' }], cb)
   }
 
   startProject (maybeProjectName, folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'startProject', [{ from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'startProject', [{ from: 'master' }], cb)
   }
 
   restartProject (folder, projectInfo, cb) {
     // We run initializeFolder first to ensure the Git bootstrapping works correctly, especially setting
     // a branch name and ensuring we have a good baseline commit with which to start; we get errors on restart
     // unless we do this so take care if you plan to re/move this
-    return this.awaitMasterAndCallMethod(folder, 'initializeFolder', [projectInfo.name, projectInfo.username, projectInfo.password, projectInfo.options, { from: 'master' }], (err) => {
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'initializeFolder', [projectInfo.name, projectInfo.username, projectInfo.password, projectInfo.options, { from: 'master' }], (err) => {
       if (err) return cb(err)
-      return this.awaitMasterAndCallMethod(folder, 'restartProject', [{ from: 'master' }], cb)
+      return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'restartProject', [{ from: 'master' }], cb)
     })
   }
 
@@ -809,15 +813,8 @@ export default class Plumbing extends StateObject {
     })
   }
 
-  teardownMaster (folder, cb) {
-    if (this.masters[folder]) {
-      this.masters[folder].watchOff()
-    }
-    cb()
-  }
-
   discardProjectChanges (folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'discardProjectChanges', [{ from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'discardProjectChanges', [{ from: 'master' }], cb)
   }
 
   saveProject (folder, projectName, maybeUsername, maybePassword, saveOptions, cb) {
@@ -825,14 +822,14 @@ export default class Plumbing extends StateObject {
     if (!saveOptions.authorName) saveOptions.authorName = this.get('username')
     if (!saveOptions.organizationName) saveOptions.organizationName = this.get('organizationName')
     logger.info('[plumbing] saving with options', saveOptions)
-    return this.awaitMasterAndCallMethod(folder, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions, { from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions, { from: 'master' }], cb)
   }
 
   fetchProjectInfo (folder, projectName, maybeUsername, maybePassword, fetchOptions, cb) {
     if (!fetchOptions) fetchOptions = {}
     if (!fetchOptions.authorName) fetchOptions.authorName = this.get('username')
     if (!fetchOptions.organizationName) fetchOptions.organizationName = this.get('organizationName')
-    return this.awaitMasterAndCallMethod(folder, 'fetchProjectInfo', [projectName, maybeUsername, maybePassword, fetchOptions, { from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'fetchProjectInfo', [projectName, maybeUsername, maybePassword, fetchOptions, { from: 'master' }], cb)
   }
 
   checkInkstoneUpdates (query = '', cb) {
@@ -846,35 +843,35 @@ export default class Plumbing extends StateObject {
   }
 
   listAssets (folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'fetchAssets', [{ from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'fetchAssets', [{ from: 'master' }], cb)
   }
 
   linkAsset (assetAbspath, folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'linkAsset', [assetAbspath, { from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'linkAsset', [assetAbspath, { from: 'master' }], cb)
   }
 
   bulkLinkAssets (assetsAbspaths, folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'bulkLinkAssets', [assetsAbspaths, { from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'bulkLinkAssets', [assetsAbspaths, { from: 'master' }], cb)
   }
 
   unlinkAsset (assetRelpath, folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'unlinkAsset', [assetRelpath, { from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'unlinkAsset', [assetRelpath, { from: 'master' }], cb)
   }
 
   gitUndo (folder, undoOptions, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'gitUndo', [undoOptions, { from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'gitUndo', [undoOptions, { from: 'master' }], cb)
   }
 
   gitRedo (folder, redoOptions, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'gitRedo', [redoOptions, { from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'gitRedo', [redoOptions, { from: 'master' }], cb)
   }
 
   readAllStateValues (folder, relpath, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'readAllStateValues', [relpath, { from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'readAllStateValues', [relpath, { from: 'master' }], cb)
   }
 
   readAllEventHandlers (folder, relpath, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'readAllEventHandlers', [relpath, { from: 'master' }], cb)
+    return this.awaitMasterProcessWebsocketAndCallMethod(folder, 'readAllEventHandlers', [relpath, { from: 'master' }], cb)
   }
 
   /** ------------------- */
@@ -888,20 +885,14 @@ export default class Plumbing extends StateObject {
     // Start with the glass, since that's most visible, then move through the rest, and end
     // with master at the end, which results in a file system update reflecting the change
     const asyncMethod = experimentIsEnabled(Experiment.AsyncClientActions) ? 'each' : 'eachSeries'
-    return async[asyncMethod]([Q_GLASS, Q_TIMELINE, Q_CREATOR, MASTER_SPEC], (clientSpec, nextStep) => {
-      if (clientSpec === MASTER_SPEC) {
-        logger.info(`[plumbing] -> client action ${method} being sent to master`)
-        return this.awaitMasterAndCallMethod(folder, method, params.concat({ from: alias }), cb)
-      }
-
+    // #MEOW We may need to make it so the Q_MASTER step async doesn't block other responses here
+    return async[asyncMethod]([Q_GLASS, Q_TIMELINE, Q_CREATOR, Q_MASTER], (clientSpec, nextStep) => {
       if (clientSpec.alias === alias) {
         // Don't send methods that originated with ourself
         return nextStep()
       }
 
-      if (!IGNORED_METHOD_MESSAGES[method]) {
-        logger.info(`[plumbing] -> client action ${method} being sent to ${clientSpec.alias}`)
-      }
+      logActionInitiation(method, clientSpec)
 
       return this.sendFolderSpecificClientMethodQuery(folder, clientSpec, method, params.concat({ from: alias }), (err, maybeOutput) => {
         if (err) return nextStep(err)
@@ -920,104 +911,45 @@ export default class Plumbing extends StateObject {
         return nextStep()
       })
     }, (err) => {
-      if (err) {
-        if (!IGNORED_METHOD_MESSAGES[method]) {
-          logger.info(`[plumbing] <- client action ${method} from ${type}@${alias} errored`, err)
-        }
-        if (cb) return cb(err)
-        return void (0)
-      }
-      if (!IGNORED_METHOD_MESSAGES[method]) {
-        logger.info(`[plumbing] <- client action ${method} from ${type}@${alias} complete`)
-      }
-      if (cb) return cb()
+      logActionResponse(err, method, type, alias)
+      if (cb) return cb(err)
       return void (0)
     })
   }
 }
 
-Plumbing.prototype.awaitMasterAndCallMethod = function (folder, method, params, cb) {
-  const master = this.findMasterByFolder(folder)
-  if (!master) return setTimeout(() => this.awaitMasterAndCallMethod(folder, method, params, cb), AWAIT_INTERVAL)
-  return master.handleMethodMessage(method, params, cb)
+function logActionInitiation (method, clientSpec) {
+  if (!IGNORED_METHOD_MESSAGES[method]) {
+    logger.info(`[plumbing] -> client action ${method} being sent to ${clientSpec.alias}`)
+  }
 }
 
-Plumbing.prototype.findMasterByFolder = function (folder) {
-  return this.masters[folder]
+function logActionResponse (err, method, type, alias) {
+  if (!IGNORED_METHOD_MESSAGES[method]) {
+    const label = (err) ? 'errored' : 'complete'
+    logger.info(`[plumbing] <- client action ${method} from ${type}@${alias} ${label}`, err)
+  }
 }
 
-Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions }) {
-  const remote = (payload, cb) => {
-    return this.handleRemoteMessage(
-      'controllee',
-      'master',
-      folder,
-      payload,
-      null, // websocket
-      null, // server
-      cb
-    )
-  }
-
-  // When the user launches a project, we create a Master instance, and we keep it
-  // running even if they navigate back to the dashboard to avoid a double expense
-  // of initializing file watchers, Git, etc. This is just a simple multiton dict.
-  if (!this.masters[folder]) {
-    const master = new Master(
-      folder,
-      fileOptions,
-      envoyOptions
-    )
-
-    master.on('assets-changed', (master, assets) => {
-      remote({
-        type: 'broadcast',
-        name: 'assets-changed',
-        folder: master.folder,
-        assets
-      }, () => {})
-    })
-
-    master.on('component:reload', (master, file) => {
-      remote({
-        type: 'broadcast',
-        name: 'component:reload',
-        folder: master.folder,
-        relpath: file.relpath
-      }, () => {})
-    })
-
-    master.on('project-state-change', (payload) => {
-      remote(lodash.assign({
-        type: 'broadcast',
-        name: 'project-state-change',
-        folder: master.folder
-      }, payload), () => {})
-    })
-
-    master.on('merge-designs', (relpath, designs) => {
-      this.handleClientAction(
-        'controller',
-        'plumbing', // We'll delegate on Master's behalf
-        master.folder,
-        'mergeDesigns',
-        [master.folder, relpath, designs],
-        () => {}
-      )
-    })
-
-    this.masters[folder] = master
-    return master
-  }
-
-  this.masters[folder].watchOn()
-  return this.masters[folder]
+Plumbing.prototype.awaitMasterProcessWebsocketAndCallMethod = function (folder, method, params, cb) {
+  return this.sendFolderSpecificClientMethodQuery(
+    folder,
+    Q_MASTER,
+    method,
+    params, // Params are assumed to have the { from: 'foo' } part already
+    cb
+  )
 }
 
 Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb) {
+  const subprocs = []
+
   if (haiku.folder) {
-    this.upsertMaster({
+    // This env var will be set when we spawn the MasterProcess process
+    process.env.HAIKU_MASTER_PROCESS_CONFIG = JSON.stringify({
       folder: path.normalize(haiku.folder),
+      socketToken: haiku.socket.token,
+      plumbingUrl: haiku.plumbing.url,
       envoyOptions: lodash.assign({
         host: process.env.ENVOY_HOST,
         port: process.env.ENVOY_PORT,
@@ -1028,14 +960,14 @@ Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb)
         skipDiffLogging: false // default
       }
     })
+
+    subprocs.push(PROCS.master)
   }
 
-  // Back when Master lived in its own MasterProcess, we had a bunch of processes,
-  // but now we only really have Creator (Electron). I opted *not* to remove this legacy
-  // logic when removing MasterProcess just in case there were hidden dependencies here.
-  // But it should eventually be refactored out. #TODO
-  const subprocs = []
-  if (haiku.mode === 'creator') subprocs.push(PROCS.creator)
+  if (haiku.mode === 'creator') {
+    subprocs.push(PROCS.creator)
+  }
+
   return this.spawnSubprocesses(existingSpawnedSubprocs, haiku, subprocs, cb)
 }
 
@@ -1050,16 +982,18 @@ Plumbing.prototype.spawnSubprocesses = function (existingSpawnedSubprocs, haiku,
 }
 
 Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSubprocs, folder, { name, path, args, opts }, cb) {
-  const existing = find(existingSpawnedSubprocs, { _attributes: { name, folder } })
+  const existing = find(existingSpawnedSubprocs, { attributes: { name, folder } })
+
   if (existing) {
-    // Reconnection (via websocket) is only available if the process itself is still alive
-    if (existing.connected && !existing._attributes.disconnected && !existing._attributes.exited && !existing._attributes.closed) {
-      if (existing.reestablishConnection) existing.reestablishConnection()
-      else (existing.send('reestablishConnection!'))
-
+    if (
+      existing.connected &&
+      !existing.attributes.disconnected &&
+      !existing.attributes.exited &&
+      !existing.attributes.closed
+    ) {
+      // existing.send('reestablishWebsocketConnectionIfNecessary') // #MEOW
       logger.info(`[plumbing] reusing existing ${name} process`)
-      existing._attributes.reused = true
-
+      existing.attributes.reused = true
       return cb(null, existing)
     }
   }
@@ -1078,37 +1012,46 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSu
     // If we aren't in electron, start the process using the electron binary path
     if (opts && opts.spawn) {
       // Remote debugging hook only used in development; causes problems in distro
-      if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging' && process.env.NO_REMOTE_DEBUG !== '1') {
+      if (process.env.NODE_ENV !== 'production' && process.env.NO_REMOTE_DEBUG !== '1') {
         args.push('--enable-logging', '--remote-debugging-port=9222')
       }
+
       proc = cp.spawn(path, args, { stdio: [null, null, null, 'ipc'] })
     } else {
       args = args || []
+
       // Remote debugging hook only used in development; causes problems in distro
-      if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging' && process.env.NO_REMOTE_DEBUG !== '1') {
+      if (process.env.NODE_ENV !== 'production' && process.env.NO_REMOTE_DEBUG !== '1') {
         args.push('--debug=5859')
       }
+
       proc = cp.fork(path, args)
     }
 
     logger.info(`[plumbing] proc ${name} created @ ${path}`)
   }
 
-  proc._attributes = { name, folder, id: _id() }
+  proc.attributes = {
+    name,
+    folder,
+    id: processSequentialId++
+  }
 
   proc.on('exit', () => {
     logger.info(`[plumbing] proc ${name} exiting`)
 
-    proc._attributes.exited = true
+    proc.attributes.exited = true
 
-    if (proc._attributes.name) {
-      // If electron is finished, we should clean up stuff. This usually means the user has closed the view.
-      if (proc._attributes.name.match(/electron/) || name.match(/creator/)) {
+    if (proc.attributes.name) {
+      // Clean up if the user has closed the window
+      if (proc.attributes.name.match(/electron/) || name.match(/creator/)) {
         emitter.emit('teardown-requested')
+      } else if (proc.attributes.name.match(/master/)) {
+        this.handleUnrecoverableError(new Error('MasterProcess exited'))
       }
     }
 
-    // Remove the old, unused process from the list of existing ones
+    // Remove the old, unused process
     for (let i = existingSpawnedSubprocs.length - 1; i >= 0; i--) {
       let existing = existingSpawnedSubprocs[i]
       if (existing === proc) {
@@ -1118,19 +1061,15 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSu
   })
 
   proc.on('close', () => {
-    proc._attributes.closed = true
+    proc.attributes.closed = true
   })
+
   proc.on('disconnect', () => {
-    proc._attributes.disconnected = true
+    proc.attributes.disconnected = true
   })
+
   proc.on('error', (error) => {
     logger.info(`[plumbing] proc ${name} got error`, error)
-  })
-  proc.on('message', (message) => {
-    logger.info(`[plumbing] proc ${name} got message`, message)
-  })
-  proc.on('request', (message) => {
-    logger.info(`[plumbing] proc ${name} got request`, message)
   })
 
   return cb(null, proc)

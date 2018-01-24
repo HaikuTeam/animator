@@ -2,8 +2,7 @@ const Raven = require('raven')
 const {sentryCallback} = require('haiku-serialization/src/utils/carbonite')
 
 const NOTIFIABLE_ENVS = {
-  production: true,
-  staging: true
+  production: true
   // development: true
 }
 

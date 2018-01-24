@@ -9,7 +9,7 @@ tape('Plumbing', (t) => {
   t.plan(22)
   TestHelpers.launch((plumbing, teardown) => {
     const projectName = 'TestProject' + Date.now()
-    const getFolder = () => plumbing.masters[0].folder
+    let projectPath = null
     return async.series([
       (cb) => {
         return plumbing.authenticateUser('matthew+matthew@haiku.ai', 'supersecure', (err, resp) => {
@@ -44,22 +44,26 @@ tape('Plumbing', (t) => {
       (cb) => {
         // Mimicking what happens in Creator
         const projectOptions = { skipContentCreation: true, projectName }
-        return plumbing.initializeProject(projectName, projectOptions, 'matthew+matthew@haiku.ai', 'supersecure', cb)
+        return plumbing.initializeProject(projectName, projectOptions, 'matthew+matthew@haiku.ai', 'supersecure', (err, folder) => {
+          if (err) return cb(err)
+          projectPath = folder
+          cb()
+        })
       },
       (cb) => {
-        return plumbing.startProject(projectName, getFolder(), cb)
+        return plumbing.startProject(projectName, projectPath, cb)
       },
       (cb) => {
         // First save should push it all
         const saveOptions = {} // ?
-        return plumbing.saveProject(getFolder(), projectName, 'matthew+matthew@haiku.ai', 'supersecure', saveOptions, (err, shareInfo) => {
+        return plumbing.saveProject(projectPath, projectName, 'matthew+matthew@haiku.ai', 'supersecure', saveOptions, (err, shareInfo) => {
           t.error(err, 'no err saving')
           t.ok(shareInfo, 'share info present')
-          const localsha = cp.execSync(`git rev-parse --verify HEAD`, { cwd: getFolder() }).toString().trim()
+          const localsha = cp.execSync(`git rev-parse --verify HEAD`, { cwd: projectPath }).toString().trim()
           t.equal(localsha, shareInfo && shareInfo.sha, 'local sha is share info sha')
           t.ok(shareInfo && shareInfo.shareLink, 'share link present')
           t.ok(shareInfo && shareInfo.projectUid, 'share project uid present')
-          const pkg = fse.readJsonSync(path.join(getFolder(), 'package.json'))
+          const pkg = fse.readJsonSync(path.join(projectPath, 'package.json'))
           t.equal(pkg.version, '0.0.1', 'semver is 0.0.1')
           initialShareInfo = shareInfo
           return cb()
@@ -68,7 +72,7 @@ tape('Plumbing', (t) => {
       (cb) => {
         // Second save should return right away with previous share link
         const saveOptions = {} // ?
-        return plumbing.saveProject(getFolder(), projectName, 'matthew+matthew@haiku.ai', 'supersecure', saveOptions, (err, shareInfo) => {
+        return plumbing.saveProject(projectPath, projectName, 'matthew+matthew@haiku.ai', 'supersecure', saveOptions, (err, shareInfo) => {
           t.error(err, 'no err saving again')
           t.equal(initialShareInfo && initialShareInfo.sha, shareInfo && shareInfo.sha, 'new sha same as initial save because no change')
           return cb()
@@ -76,14 +80,14 @@ tape('Plumbing', (t) => {
       },
       (cb) => {
         // Third save, with a change, should push it all
-        fse.outputFileSync(path.join(getFolder(), 'test.txt'), '123')
-        return plumbing.saveProject(getFolder(), projectName, 'matthew+matthew@haiku.ai', 'supersecure', {}, (err, shareInfo) => {
+        fse.outputFileSync(path.join(projectPath, 'test.txt'), '123')
+        return plumbing.saveProject(projectPath, projectName, 'matthew+matthew@haiku.ai', 'supersecure', {}, (err, shareInfo) => {
           t.error(err, 'no err on save after file addition')
           t.ok(shareInfo, 'new share info present')
           t.ok(shareInfo && shareInfo.sha, 'share info sha present')
-          const localsha = cp.execSync(`git rev-parse --verify HEAD`, { cwd: getFolder() }).toString().trim()
+          const localsha = cp.execSync(`git rev-parse --verify HEAD`, { cwd: projectPath }).toString().trim()
           t.equal(localsha, shareInfo && shareInfo.sha, 'local sha matches')
-          const pkgjson = fse.readJsonSync(path.join(getFolder(), 'package.json'))
+          const pkgjson = fse.readJsonSync(path.join(projectPath, 'package.json'))
           t.equal(pkgjson.version, '0.0.2', 'version was bumped')
           return cb()
         })
