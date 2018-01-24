@@ -199,7 +199,7 @@ export namespace inkstone {
     export function create(user: UserCreateParams, cb: inkstone.Callback<boolean>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_CREATE,
-        json: organization,
+        json: user,
         headers: {
           'Content-Type': 'application/json',
         },
