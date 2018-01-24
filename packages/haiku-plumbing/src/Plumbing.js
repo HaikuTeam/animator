@@ -882,14 +882,17 @@ export default class Plumbing extends StateObject {
     // Params always arrive with the folder as the first argument, so we strip that off
     params = params.slice(1)
 
-    // Start with the glass, since that's most visible, then move through the rest, and end
-    // with master at the end, which results in a file system update reflecting the change
-    const asyncMethod = experimentIsEnabled(Experiment.AsyncClientActions) ? 'each' : 'eachSeries'
-    // #MEOW We may need to make it so the Q_MASTER step async doesn't block other responses here
+    const asyncMethod = (method === 'instantiateComponent')
+      ? 'eachSeries' // Run in sequence because we need Glass to tell us centerpoint
+      : 'each' // Run in parallel
+
     return async[asyncMethod]([Q_GLASS, Q_TIMELINE, Q_CREATOR, Q_MASTER], (clientSpec, nextStep) => {
       if (clientSpec.alias === alias) {
-        // Don't send methods that originated with ourself
-        return nextStep()
+        // Don't send methods that originated with ourself,
+        // unless that method is this special snowflake
+        if (method !== 'mergeDesigns') {
+          return nextStep()
+        }
       }
 
       logActionInitiation(method, clientSpec)
@@ -991,7 +994,7 @@ Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSu
       !existing.attributes.exited &&
       !existing.attributes.closed
     ) {
-      // existing.send('reestablishWebsocketConnectionIfNecessary') // #MEOW
+      existing.send('reestablishWebsocketConnectionIfNecessary')
       logger.info(`[plumbing] reusing existing ${name} process`)
       existing.attributes.reused = true
       return cb(null, existing)

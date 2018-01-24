@@ -69,6 +69,14 @@ process.on('error', (err) => {
   logger.error(err)
 })
 
+process.on('message', (message) => {
+  switch (message) {
+    case 'reestablishWebsocketConnectionIfNecessary':
+      websocketToPlumbing.connect() // Will connect only if it needs to
+      break
+  }
+})
+
 websocketToPlumbing.on('open', () => {
   logger.info(`[master process] websocket opened`)
 })
