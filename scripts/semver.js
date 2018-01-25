@@ -66,6 +66,11 @@ function go () {
     const monoJson = fse.readJsonSync(monoJsonPath)
     log.log('setting mono to ' + inputs.version + ' (was ' + monoJson.version + ')')
     monoJson.version = inputs.version
+    allPackages.forEach((pack) => {
+      if (monoJson.dependencies.hasOwnProperty(pack.pkg.name)) {
+        monoJson.dependencies[pack.pkg.name] = inputs.version
+      }
+    })
     fse.writeFileSync(monoJsonPath, JSON.stringify(monoJson, null, 2) + '\n')
     log.hat('bumped semver!')
   })
