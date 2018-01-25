@@ -16,14 +16,14 @@ const RSYNC_FLAGS = [
   '--archive',
   '--quiet',
   '--recursive', // Include dirs and subdirs
-  '-L',
+  '-L'
 ].join(' ')
 
 const YARN_INSTALL_FLAGS = [
   '--frozen-lockfile', // Force use of dependencies from yarn.lock
   '--non-interactive', // Don't prompt (just in case)
   '--force', // Clean out any stripped-out dependencies
-  '--ignore-scripts', // Don't trigger any preinstall/postinstall behaviors.
+  '--ignore-scripts' // Don't trigger any preinstall/postinstall behaviors.
 ].join(' ')
 
 function logExec (cwd, cmd) {
