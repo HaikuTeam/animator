@@ -397,7 +397,7 @@ export class Glass extends React.Component {
     seekMs = Math.round(seekMs)
 
     if (this.getActiveComponent()) {
-      this.getActiveComponent().setTimelineTimeValue(seekMs, true)
+      this.getActiveComponent().setTimelineTimeValue(seekMs)
     }
   }
 
