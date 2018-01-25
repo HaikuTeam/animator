@@ -173,45 +173,45 @@ function Tooltip (props) {
 
             {/* Don't show buttons on the first and last slides */}
             {stepData.current > 0 && (
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginTop: 30
-                  }}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginTop: 30
+              }}
                 >
-                  <button
-                    style={TOUR_STYLES.btnSecondary}
-                    onClick={() => finish(true, true)}
+              <button
+                style={TOUR_STYLES.btnSecondary}
+                onClick={() => finish(true, true)}
                   >
                     Finish
                   </button>
-                  <div style={{display: 'flex', alignItems: 'center'}}>
-                    {showPreviousButton && (
-                      <button
-                        style={{...TOUR_STYLES.btnSecondary, marginRight: 10}}
-                        onClick={() => prev(true, true)}
+              <div style={{display: 'flex', alignItems: 'center'}}>
+                {showPreviousButton && (
+                <button
+                  style={{...TOUR_STYLES.btnSecondary, marginRight: 10}}
+                  onClick={() => prev(true, true)}
                       >
                         Back
                       </button>
                     )}
 
-                    {/* Show the next button if we aren't waiting for user interaction */}
-                    {!waitUserAction && stepData.current < stepData.total && (
-                      <button style={TOUR_STYLES.btn} onClick={() => next()}>
+                {/* Show the next button if we aren't waiting for user interaction */}
+                {!waitUserAction && stepData.current < stepData.total && (
+                <button style={TOUR_STYLES.btn} onClick={() => next()}>
                         Next
                       </button>
                     )}
 
-                    {stepData.current === stepData.total && (
-                      <button
-                        style={TOUR_STYLES.btn}
-                        onClick={() => finish(true, false)}
+                {stepData.current === stepData.total && (
+                <button
+                  style={TOUR_STYLES.btn}
+                  onClick={() => finish(true, false)}
                       > Finish
                       </button>
                     )}
-                  </div>
-                </div>
+              </div>
+            </div>
               )}
           </div>
         </div>
