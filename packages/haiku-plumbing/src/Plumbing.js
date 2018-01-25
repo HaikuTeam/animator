@@ -1027,7 +1027,7 @@ Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb)
       process.send({
         message: 'launchCreator',
         haiku: haiku
-      });
+      })
     } else if (process.versions && !!process.versions.electron) {
       // We are in electron main (e.g. in a test context).
       global.process.env.HAIKU_ENV = JSON.stringify(haiku)
