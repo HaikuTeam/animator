@@ -21,6 +21,7 @@ import Timeline from './components/Timeline'
 import Toast from './components/notifications/Toast'
 import Tour from './components/Tour/Tour'
 import AutoUpdater from './components/AutoUpdater'
+import ProjectLoader from './components/ProjectLoader'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 // Note that `User` is imported below for type discovery
@@ -94,7 +95,11 @@ export default class Creator extends React.Component {
         shouldCheck: true,
         shouldRunOnBackground: true,
         shouldSkipOptIn: true
-      }
+      },
+      doShowBackToDashboardButton: false,
+      doShowProjectLoader: false,
+      launchingProject: false,
+      newProjectLoading: false
     }
 
     this.envoyOptions = {
@@ -556,7 +561,12 @@ export default class Creator extends React.Component {
   }
 
   setDashboardVisibility (dashboardVisible) {
-    this.setState({dashboardVisible})
+    this.setState({
+      dashboardVisible,
+      doShowProjectLoader: false,
+      newProjectLoading: false,
+      launchingProject: false
+    })
   }
 
   switchActiveNav (activeNav) {
@@ -666,6 +676,8 @@ export default class Creator extends React.Component {
               applicationImage,
               projectObject,
               projectName,
+              doShowProjectLoader: true,
+              doShowBackToDashboardButton: false,
               dashboardVisible: false
             }, () => {
               // Once the Timeline/Stage are being rendered, we await the point that their
@@ -686,8 +698,17 @@ export default class Creator extends React.Component {
 
             projectModel.on('update', (what) => {
               switch (what) {
-                // Trigger re-render of the Component Tab UI, State Inspector UI, Library UI
-                case 'setCurrentActiveComponent': return this.forceUpdate()
+                case 'setCurrentActiveComponent':
+                  // Hide loading screens, re-enable navigating back to dashboard but only after a
+                  // delay since we've seen race-related crashes when people nav back too early.
+                  // For mc, this triggers re-render of the Component Tab UI, State Inspector UI, Library UI
+                  // in the context of whatever the current component is
+                  return setTimeout(() => {
+                    return this.setState({
+                      doShowProjectLoader: false,
+                      doShowBackToDashboardButton: true
+                    })
+                  }, 2000)
               }
             })
 
@@ -854,6 +875,15 @@ export default class Creator extends React.Component {
     this.setState({readyForAuth: true, isUserAuthenticated: false, username: ''})
   }
 
+  setProjectLaunchStatus ({ launchingProject, newProjectLoading }) {
+    if (launchingProject !== undefined) {
+      this.setState({ launchingProject })
+    }
+    if (newProjectLoading !== undefined) {
+      this.setState({ newProjectLoading })
+    }
+  }
+
   render () {
     if (this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username)) {
       return (
@@ -870,10 +900,15 @@ export default class Creator extends React.Component {
       return this.renderStartupDefaultScreen()
     }
 
+    // The ProjectLoader is managed by the ProjectBrowser, through this hack we can
+    // force it to display the ProjectLoader even though we aren't concerned with browsing projects
     if (this.state.dashboardVisible) {
       return (
         <div>
           <ProjectBrowser
+            launchingProject={this.state.launchingProject}
+            newProjectLoading={this.state.newProjectLoading}
+            setProjectLaunchStatus={this.setProjectLaunchStatus.bind(this)}
             username={this.state.username}
             softwareVersion={this.state.softwareVersion}
             organizationName={this.state.organizationName}
@@ -884,6 +919,7 @@ export default class Creator extends React.Component {
             clearAuth={this.clearAuth}
             notices={this.state.notices}
             envoyClient={this.envoyClient}
+            doShowProjectLoader={this.state.doShowProjectLoader}
             {...this.props} />
           <Tour
             projectsList={this.state.projectsList}
@@ -895,6 +931,9 @@ export default class Creator extends React.Component {
             skipOptIn={this.state.updater.shouldSkipOptIn}
             runOnBackground={this.state.updater.shouldRunOnBackground}
           />
+          {(this.state.launchingProject || this.state.newProjectLoading || this.state.doShowProjectLoader)
+            ? <ProjectLoader />
+            : ''}
         </div>
       )
     }
@@ -919,6 +958,9 @@ export default class Creator extends React.Component {
             notices={this.state.notices}
             envoyClient={this.envoyClient}
             {...this.props} />
+          {(this.state.launchingProject || this.state.newProjectLoading || this.state.doShowProjectLoader)
+            ? <ProjectLoader />
+            : ''}
         </div>
       )
     }
@@ -968,6 +1010,7 @@ export default class Creator extends React.Component {
               <div>
                 <SplitPane onDragFinished={this.handlePaneResize.bind(this)} split='vertical' minSize={300} defaultSize={300}>
                   <SideBar
+                    doShowBackToDashboardButton={this.state.doShowBackToDashboardButton}
                     projectModel={this.state.projectModel}
                     switchActiveNav={this.switchActiveNav.bind(this)}
                     onNavigateToDashboard={this.onNavigateToDashboard}
@@ -1045,6 +1088,9 @@ export default class Creator extends React.Component {
             </SplitPane>
           </div>
         </div>
+        {(this.state.doShowProjectLoader)
+          ? <ProjectLoader />
+          : ''}
       </div>
     )
   }

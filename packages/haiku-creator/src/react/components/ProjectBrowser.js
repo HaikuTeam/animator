@@ -5,7 +5,6 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group'
 import { FadingCircle } from 'better-react-spinkit'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Toast from './notifications/Toast'
-import ProjectLoader from './ProjectLoader'
 import ProjectThumbnail from './ProjectThumbnail'
 import { UserIconSVG, LogOutSVG, LogoMicroSVG } from 'haiku-ui-common/lib/react/OtherIcons'
 import { DASH_STYLES } from '../styles/dashShared'
@@ -27,8 +26,6 @@ class ProjectBrowser extends React.Component {
       showNeedsSaveDialogue: false,
       projectsList: [],
       areProjectsLoading: true,
-      newProjectLoading: false,
-      launchingProject: false,
       recordedNewProjectName: '',
       isPopoverOpen: false,
       showNewProjectModal: false,
@@ -172,7 +169,8 @@ class ProjectBrowser extends React.Component {
   }
 
   projectsListElement () {
-    const { showDeleteModal, showNewProjectModal, launchingProject } = this.state
+    const { showDeleteModal, showNewProjectModal } = this.state
+    const { launchingProject } = this.props
     if (this.state.areProjectsLoading) {
       return (
         <span style={DASH_STYLES.loadingWrap}>
@@ -215,7 +213,7 @@ class ProjectBrowser extends React.Component {
   }
 
   handleProjectLaunch (projectObject) {
-    this.setState({ launchingProject: true, newProjectLoading: false })
+    this.props.setProjectLaunchStatus({ launchingProject: true, newProjectLoading: false })
     this.tourChannel.hide()
     return this.props.launchProject(projectObject.projectName, projectObject, (error) => {
       if (error) {
@@ -226,7 +224,8 @@ class ProjectBrowser extends React.Component {
           closeText: 'Okay',
           lightScheme: true
         })
-        return this.setState({ error, launchingProject: null })
+        this.props.setProjectLaunchStatus({ launchingProject: null })
+        return this.setState({ error })
       }
     })
   }
@@ -248,7 +247,8 @@ class ProjectBrowser extends React.Component {
     // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
     const name = rawNameValue && rawNameValue.replace(/[^a-z0-9]/gi, '')
 
-    this.setState({newProjectLoading: true, showNewProjectModal: false})
+    this.setState({showNewProjectModal: false})
+    this.props.setProjectLaunchStatus({newProjectLoading: true})
     this.props.websocket.request({ method: 'createProject', params: [name] }, (err, newProject) => {
       if (err) {
         this.props.createNotice({
@@ -258,7 +258,7 @@ class ProjectBrowser extends React.Component {
           closeText: 'Okay',
           lightScheme: true
         })
-        this.setState({newProjectLoading: false})
+        this.props.setProjectLaunchStatus({newProjectLoading: false})
         return
       }
 
@@ -333,7 +333,7 @@ class ProjectBrowser extends React.Component {
             ref={(input) => {
               this.newProjectInput = input
             }}
-            disabled={this.state.newProjectLoading}
+            disabled={this.props.newProjectLoading}
             onKeyDown={(e) => { this.handleNewProjectInputKeyDown(e) }}
             style={[DASH_STYLES.newProjectInput]}
             value={this.state.recordedNewProjectName}
@@ -342,7 +342,7 @@ class ProjectBrowser extends React.Component {
             autoFocus />
           <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
           <button key='new-project-go-button'
-            disabled={this.state.newProjectLoading || !this.state.recordedNewProjectName}
+            disabled={this.props.newProjectLoading || !this.state.recordedNewProjectName}
             onClick={() => {
               this.handleNewProjectGo()
             }}
@@ -444,14 +444,17 @@ class ProjectBrowser extends React.Component {
         </div>
 
         {this.projectsListElement()}
-        {(this.state.launchingProject || this.state.newProjectLoading) && <ProjectLoader />}
       </div>
     )
   }
 }
 
 ProjectBrowser.propTypes = {
-  envoyClient: React.PropTypes.object.isRequired
+  envoyClient: React.PropTypes.object.isRequired,
+  doShowProjectLoader: React.PropTypes.bool.isRequired,
+  setProjectLaunchStatus: React.PropTypes.func.isRequired,
+  newProjectLoading: React.PropTypes.bool.isRequired,
+  launchingProject: React.PropTypes.bool.isRequired
 }
 
 export default Radium(ProjectBrowser)
