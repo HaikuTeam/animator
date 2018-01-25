@@ -252,7 +252,13 @@ Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
 }
 
 Bytecode.mergeTimelines = (t1, t2, doMergeValueFn) => {
-  if (!t1 || !t2) return
+  // Presently used for debugging purposes, but also may be valuable for in-mem undo/redo
+  const changesMade = []
+
+  if (!t1 || !t2) {
+    return changesMade
+  }
+
   for (const timelineName in t2) {
     for (const timelineSelector in t2[timelineName]) {
       for (const propertyName in t2[timelineName][timelineSelector]) {
@@ -263,6 +269,7 @@ Bytecode.mergeTimelines = (t1, t2, doMergeValueFn) => {
             t1[timelineName][timelineSelector][propertyName] &&
             t1[timelineName][timelineSelector][propertyName][keyframeMs]
           )
+
           if (!previousKeyframe || (previousKeyframe && !previousKeyframe.edited)) {
             if (!t1[timelineName]) t1[timelineName] = {}
             if (!t1[timelineName][timelineSelector]) t1[timelineName][timelineSelector] = {}
@@ -277,12 +284,16 @@ Bytecode.mergeTimelines = (t1, t2, doMergeValueFn) => {
             }
 
             if (sourceObj && sourceObj.value !== undefined) {
-              if (doMergeValueFn) {
-                if (doMergeValueFn(propertyName, targetObj.value, sourceObj.value)) {
+              if (targetObj.value !== sourceObj.value) {
+                if (doMergeValueFn) {
+                  if (doMergeValueFn(propertyName, targetObj.value, sourceObj.value)) {
+                    changesMade.push({ timelineName, timelineSelector, propertyName, keyframeMs, value: sourceObj.value })
+                    targetObj.value = sourceObj.value
+                  }
+                } else {
+                  changesMade.push({ timelineName, timelineSelector, propertyName, keyframeMs, value: sourceObj.value })
                   targetObj.value = sourceObj.value
                 }
-              } else {
-                targetObj.value = sourceObj.value
               }
             }
           }
@@ -290,6 +301,8 @@ Bytecode.mergeTimelines = (t1, t2, doMergeValueFn) => {
       }
     }
   }
+
+  return changesMade
 }
 
 Bytecode.pasteBytecode = (destination, pasted, translation) => {

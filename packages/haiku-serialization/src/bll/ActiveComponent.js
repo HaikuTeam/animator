@@ -1054,7 +1054,7 @@ class ActiveComponent extends BaseModel {
         { doHashWork: true }
       )
 
-      Bytecode.mergeTimelines(destinationTimelines, timelinesObject, (propertyName, oldValue, newValue) => {
+      const changesMade = Bytecode.mergeTimelines(destinationTimelines, timelinesObject, (propertyName, oldValue, newValue) => {
         if (typeof oldValue === 'string' && typeof newValue === 'string') {
           // HACK: Changing URL reference breaks the reference since our merge doesn't affect
           //       the structure of the element (TODO: Support merging structural changes too)
@@ -1069,6 +1069,13 @@ class ActiveComponent extends BaseModel {
 
         return true
       })
+
+      if (changesMade.length > 0) {
+        log.info(
+          `[active component] ${existingNode.attributes.source} merged design changes`,
+          JSON.stringify(changesMade)
+        )
+      }
     })
   }
 
