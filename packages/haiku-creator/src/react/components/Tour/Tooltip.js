@@ -92,11 +92,13 @@ function Tooltip (props) {
     display,
     children,
     next,
+    prev,
     finish,
     stepData,
     waitUserAction,
     size,
-    isOverlayHideable
+    isOverlayHideable,
+    showPreviousButton
   } = props
   let {top, left} = coordinates
   let positionStyles = STYLES[display.toUpperCase()] || {}
@@ -165,6 +167,10 @@ function Tooltip (props) {
           <div style={STYLES.children}>
             {children}
 
+            <span style={{fontStyle: 'oblique', position: 'absolute', top: 50, right: 20}}>
+              {stepData.current} of {stepData.total}
+            </span>
+
             {/* Don't show buttons on the first and last slides */}
             {stepData.current > 0 && (
                 <div
@@ -181,9 +187,15 @@ function Tooltip (props) {
                     Finish
                   </button>
                   <div style={{display: 'flex', alignItems: 'center'}}>
-                    <span style={{marginRight: 10, fontStyle: 'oblique'}}>
-                      {stepData.current} of {stepData.total}
-                    </span>
+                    {showPreviousButton && (
+                      <button
+                        style={{...TOUR_STYLES.btnSecondary, marginRight: 10}}
+                        onClick={() => prev(true, true)}
+                      >
+                        Back
+                      </button>
+                    )}
+
                     {/* Show the next button if we aren't waiting for user interaction */}
                     {!waitUserAction && stepData.current < stepData.total && (
                       <button style={TOUR_STYLES.btn} onClick={() => next()}>

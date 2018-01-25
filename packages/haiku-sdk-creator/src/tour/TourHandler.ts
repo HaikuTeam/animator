@@ -26,6 +26,7 @@ export class TourHandler implements Tour {
       waitUserAction: true,
       size: 'small',
       isOverlayHideable: false,
+      showPreviousButton: false,
     },
     {
       selector: `#js-utility-${TourUtils.ProjectName}`,
@@ -37,6 +38,7 @@ export class TourHandler implements Tour {
       waitUserAction: false,
       size: 'small',
       isOverlayHideable: false,
+      showPreviousButton: false,
     },
     {
       selector: '.gauge-time-readout',
@@ -48,6 +50,7 @@ export class TourHandler implements Tour {
       waitUserAction: false,
       size: 'default',
       isOverlayHideable: true,
+      showPreviousButton: false,
     },
     {
       selector: '.gauge-time-readout',
@@ -59,6 +62,7 @@ export class TourHandler implements Tour {
       waitUserAction: false,
       size: 'default',
       isOverlayHideable: true,
+      showPreviousButton: true,
     },
     {
       selector: '.gauge-time-readout',
@@ -70,6 +74,7 @@ export class TourHandler implements Tour {
       waitUserAction: false,
       size: 'default',
       isOverlayHideable: true,
+      showPreviousButton: true,
     },
     {
       selector: '.gauge-time-readout',
@@ -81,6 +86,7 @@ export class TourHandler implements Tour {
       waitUserAction: false,
       size: 'default',
       isOverlayHideable: true,
+      showPreviousButton: true,
     },
     {
       selector: '#publish',
@@ -92,6 +98,7 @@ export class TourHandler implements Tour {
       waitUserAction: false,
       size: 'default',
       isOverlayHideable: true,
+      showPreviousButton: true,
     },
     {
       selector: '#sidebar',
@@ -103,6 +110,7 @@ export class TourHandler implements Tour {
       waitUserAction: false,
       size: 'default',
       isOverlayHideable: true,
+      showPreviousButton: true,
     },
     {
       selector: '#sidebar',
@@ -114,6 +122,7 @@ export class TourHandler implements Tour {
       waitUserAction: false,
       size: 'default',
       isOverlayHideable: true,
+      showPreviousButton: true,
     },
     {
       selector: '#sidebar',
@@ -125,6 +134,7 @@ export class TourHandler implements Tour {
       waitUserAction: false,
       size: 'default',
       isOverlayHideable: true,
+      showPreviousButton: true,
     },
     {
       selector: '#go-to-dashboard',
@@ -136,6 +146,7 @@ export class TourHandler implements Tour {
       waitUserAction: false,
       size: 'default',
       isOverlayHideable: true,
+      showPreviousButton: true,
     },
   ];
 
@@ -256,6 +267,13 @@ export class TourHandler implements Tour {
       this.requestElementCoordinates(nextState);
     } else {
       this.finish();
+    }
+  }
+
+  prev() {
+    if (this.isActive && this.currentStep-- > 0) {
+      const nextState = this.getState();
+      this.requestElementCoordinates(nextState);
     }
   }
 }
