@@ -954,24 +954,35 @@ export default class Master extends EventEmitter {
   }
 
   handleActiveComponentReady () {
-    attachListeners(this.project.getEnvoyClient(), this.getActiveComponent())
+    return this.awaitActiveComponent(() => {
+      attachListeners(this.project.getEnvoyClient(), this.getActiveComponent())
 
-    // I'm not actually sure this needs to run here; doesn't project do this?
-    this.getActiveComponent().mountApplication(null, {
-      options: { freeze: true },
-      reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
+      // I'm not actually sure this needs to run here; doesn't project do this?
+      this.getActiveComponent().mountApplication(null, {
+        options: { freeze: true },
+        reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
+      })
     })
   }
 
-  handleHaikuComponentMounted () {
-    // Since we aren't running in the DOM cancel the raf to avoid leaked handles
-    this.getActiveComponent().getAllInstancesOfHaikuPlayerComponent().forEach((instance) => {
-      instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
-    })
+  awaitActiveComponent (cb) {
+    if (!this.getActiveComponent()) {
+      return setTimeout(() => this.awaitActiveComponent(cb), 100)
+    }
+    return cb()
+  }
 
-    this.emit('project-state-change', {
-      what: 'component:mounted',
-      scenename: this.getActiveComponent().getSceneName()
+  handleHaikuComponentMounted () {
+    return this.awaitActiveComponent(() => {
+      // Since we aren't running in the DOM cancel the raf to avoid leaked handles
+      this.getActiveComponent().getAllInstancesOfHaikuPlayerComponent().forEach((instance) => {
+        instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
+      })
+
+      this.emit('project-state-change', {
+        what: 'component:mounted',
+        scenename: this.getActiveComponent().getSceneName()
+      })
     })
   }
 }
