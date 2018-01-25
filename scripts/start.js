@@ -13,7 +13,6 @@ const ROOT = path.join(__dirname, '..')
 const plumbingPackage = groups['plumbing']
 const blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
 
-let watcher
 let mainProcess
 
 global.process.env.NODE_ENV = 'development'
@@ -203,13 +202,10 @@ function go () {
     global.process.env.HAIKU_PROJECT_FOLDER = chosenFolder
   }
 
-  let startDelay = 0
   let cwd = ROOT
   let args = []
   switch (inputs.devChoice) {
     case 'everything':
-      // Wait 5 seconds for Plumbing to boot up, then start the watchers.
-      startDelay = 5000
       global.process.env.HAIKU_DEBUG = '1'
       args.push('electron', '--enable-logging', '--remote-debugging-port=9222', '.')
       break
@@ -225,34 +221,14 @@ function go () {
 
   // Allow anything in .env to override the environment variables we set here.
   require('dotenv').config()
+  log.hat('Note: NOT watching for code changes. To watch for code changes, run yarn watch-all in a new tab.')
   mainProcess = cp.spawn('yarn', args, { cwd, env: global.process.env, stdio: 'inherit' })
 
-  const watcherTimeout = setTimeout(() => {
-    watcher = cp.spawn(
-      'node',
-      ['./scripts/watch-all.js', `--devChoice=${inputs.devChoice}`],
-      { cwd: ROOT, env: global.process.env, stdio: 'inherit' }
-    )
-  }, startDelay)
-
-  const killWatcher = () => {
-    if (watcher) {
-      watcher.kill('SIGTERM')
-    } else {
-      clearTimeout(watcherTimeout)
-    }
-  }
-
   global.process.on('exit', () => {
-    if (!mainProcess) {
+    if (mainProcess && !mainProcess.killed) {
       mainProcess.kill('SIGTERM')
     }
-
-    killWatcher()
   })
 
-  mainProcess.on('exit', () => {
-    killWatcher()
-    global.process.exit()
-  })
+  mainProcess.on('exit', global.process.exit)
 }

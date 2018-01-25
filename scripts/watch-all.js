@@ -20,7 +20,7 @@ const devChoiceExclusions = {
 const devChoice = argv.devChoice || 'everything'
 const children = []
 
-const runInstruction  = (cwd, args, cb) => {
+const runInstruction = (cwd, args, cb) => {
   const cmd = 'yarn'
   const proc = cp.spawn(cmd, args, { cwd, env: process.env, stdio: 'inherit' })
   children.push({
@@ -29,6 +29,8 @@ const runInstruction  = (cwd, args, cb) => {
   })
   cb()
 }
+
+let allWatchersActive = false
 
 async.each(allPackages, (pack, done) => {
   const { shortname } = pack
@@ -55,28 +57,41 @@ async.each(allPackages, (pack, done) => {
     case 'serialization':
     case 'fs-extra':
       // These don't have watchers or need special treatment.
+      done()
       break
     default:
       // Standard, new way of doing things: `yarn develop`.
       runInstruction(pack.abspath, ['develop'], done)
       break
   }
+}, () => {
+  allWatchersActive = true
 })
 
 const exit = () => {
+  if (!allWatchersActive) {
+    setTimeout(exit, 500)
+    return
+  }
+
   log.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
   log.log('exiting; telling children to interrupt')
   log.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
 
   children.forEach(function (child, index) {
-    if (child.proc.stdin) child.stdin.pause()
     log.log('$$$$$ ' + index + ' ' + JSON.stringify(child.info))
+    if (child.proc.stdin) {
+      child.proc.stdin.end()
+    }
+    if (child.proc.stdout) {
+      child.proc.stdout.destroy()
+    }
+    if (child.proc.stderr) {
+      child.proc.stderr.destroy()
+    }
     child.proc.kill('SIGKILL')
   })
 }
 
 global.process.on('exit', exit)
-global.process.on('SIGINT', exit)
-global.process.on('SIGHUP', exit)
-global.process.on('SIGTERM', exit)
 global.process.on('uncaughtException', exit)
