@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 2.3.87
+
+### Bug Fixes
+
+ * use electron as test runner for plumbing/e2e
+ * enable local dev using electron
+
 ## 2.3.86
 
 ## 2.3.85
