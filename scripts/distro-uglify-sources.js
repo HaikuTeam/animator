@@ -10,10 +10,8 @@ const ROOT = global.process.cwd()
 // File globs with respect to the root of the mono project.
 glob(
   [
-    'source/packages/haiku-plumbing/*.js',
-    'source/packages/haiku-plumbing/lib/**/*.js',
-    'source/packages/haiku-plumbing/node_modules/haiku-*/**/*.js',
-    'source/packages/haiku-plumbing/node_modules/@haiku/**/*.js'
+    'source/node_modules/haiku-*/**/*.js',
+    'source/node_modules/@haiku/**/*.js'
   ],
   (err, files) => {
     if (err) {
