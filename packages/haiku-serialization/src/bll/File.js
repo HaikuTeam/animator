@@ -363,7 +363,12 @@ class File extends BaseModel {
   }
 
   getHostStates () {
-    return this.getHostInstance().getStates()
+    const haikuPlayerComponentInstance = this.getHostInstance()
+    // In case of race where collateral isn't ready yet
+    if (haikuPlayerComponentInstance) {
+      return haikuPlayerComponentInstance.getStates()
+    }
+    return {}
   }
 
   applyPropertyGroupValue (componentId, timelineName, timelineTime, propertyGroup, cb) {

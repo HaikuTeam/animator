@@ -148,7 +148,8 @@ process.on('SIGTERM', () => {
   process.exit()
 })
 // Apparently there are circumstances where we won't crash (?); ensure that we do
-process.on('uncaughtException', () => {
+process.on('uncaughtException', (err) => {
+  console.error(err)
   process.exit(1)
 })
 
