@@ -18,7 +18,7 @@ if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
   }
   const haikuHelper = cp.fork(
     path.join(__dirname, 'node_modules', 'haiku-plumbing', 'HaikuHelper'),
-    {stdio: 'inherit'}
+    haikuHelperArgs
   );
 
   haikuHelper.on('message', (data) => {
