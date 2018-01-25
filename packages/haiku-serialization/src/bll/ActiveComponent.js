@@ -325,9 +325,13 @@ class ActiveComponent extends BaseModel {
     return cb(null, pretty(html))
   }
 
-  setTimelineTimeValue (timelineTime, skipTransmit = false, forceSeek = false) {
+  setTimelineTimeValue (timelineTime, skipTransmit = false, forceSeek = false, forceSet = false) {
     timelineTime = Math.round(timelineTime)
-    if (timelineTime !== this.getCurrentTimelineTime()) {
+    // When doing a hardReload (in which we load a fresh component instance from disk)
+    // that component will be completely fresh and not yet in 'controlled time' mode, which
+    // means that it will initially start playing. Hard reload depends on being able to
+    // forceSet a time value to get it into 'controlled time' mode, hence this flag.
+    if (forceSet || timelineTime !== this.getCurrentTimelineTime()) {
       // Note that this call reaches in and updates our instance's timeline objects
       Timeline.setCurrentTime({ component: this }, timelineTime, skipTransmit, forceSeek)
       // Perform a lightweight full flush render, recomputing all values without without trying to be clever about
@@ -1897,7 +1901,7 @@ class ActiveComponent extends BaseModel {
           // If we don't do this here, continued edits at this time won't work properly.
           // We have to do this  __after rehydrate__ so we update all copies fo the models we've
           // just loaded into memory who have reset attributes.
-          this.setTimelineTimeValue(timelineTimeBeforeReload, true, true)
+          this.setTimelineTimeValue(timelineTimeBeforeReload, true, true, true)
           this.forceFlush()
 
           // Start the clock again, as we should now be ready to flow updated component.
