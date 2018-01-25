@@ -61,8 +61,6 @@ tape('envoy:index:schema', async (t) => {
 });
 
 tape('envoy:index:events', async (t) => {
-  t.plan(1);
-
   class TestEventHandler {
     private server: EnvoyServer;
 
@@ -89,10 +87,14 @@ tape('envoy:index:events', async (t) => {
     logger: new EnvoyLogger('error'),
   });
   client.get('foo-event').then(async (fooClient: TestEventHandler & EnvoyHandler) => {
-    fooClient.on('foo', (payload) => {
+    const handler = (payload) => {
       t.equal(payload, 'data for dayz');
       server.close();
-    });
+      fooClient.off('foo', handler);
+    };
+    fooClient.on('foo', handler);
     fooClient.doFoo('dayz');
+    fooClient.doFoo('wonthappensowontfail');
+    t.end();
   });
 });
