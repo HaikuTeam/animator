@@ -106,13 +106,16 @@ class SideBar extends React.Component {
       <div style={STYLES.container} className='layout-box' id='sidebar'>
         <div style={[STYLES.bar, {zIndex: 1, paddingLeft: this.state.isFullscreen ? 15 : 82}]} className='frame'>
           <LogoMiniSVG />
-          <button id='go-to-dashboard' key='dashboard' onClick={() => { this.goToDashboard() }}
-            style={[
-              BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover, BTN_STYLES.btnText,
-              {width: 'auto', position: 'absolute', right: 6}
-            ]}>
-            <ChevronLeftMenuIconSVG />
-          </button>
+          {(this.props.doShowBackToDashboardButton)
+             ? <button id='go-to-dashboard' key='dashboard' onClick={() => { this.goToDashboard() }}
+               style={[
+                 BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover, BTN_STYLES.btnText,
+                 {width: 'auto', position: 'absolute', right: 6}
+               ]}>
+               <ChevronLeftMenuIconSVG />
+             </button>
+            : ''
+          }
         </div>
         <div style={STYLES.nav}>
           <div style={[STYLES.activeIndicator, this.props.activeNav === 'state_inspector' && STYLES.activeSecond]} />
