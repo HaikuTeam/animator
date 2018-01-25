@@ -166,8 +166,7 @@ function Tooltip (props) {
             {children}
 
             {/* Don't show buttons on the first and last slides */}
-            {stepData.current > 0 &&
-              stepData.current < stepData.total && (
+            {stepData.current > 0 && (
                 <div
                   style={{
                     display: 'flex',
@@ -186,9 +185,17 @@ function Tooltip (props) {
                       {stepData.current} of {stepData.total}
                     </span>
                     {/* Show the next button if we aren't waiting for user interaction */}
-                    {!waitUserAction && (
+                    {!waitUserAction && stepData.current < stepData.total && (
                       <button style={TOUR_STYLES.btn} onClick={() => next()}>
                         Next
+                      </button>
+                    )}
+
+                    {stepData.current === stepData.total && (
+                      <button
+                        style={TOUR_STYLES.btn}
+                        onClick={() => finish(true, false)}
+                      > Finish
                       </button>
                     )}
                   </div>

@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function ({ styles, finish, openLink }) {
+export default function ({ styles, openLink }) {
   return (
     <div>
       <h2 style={styles.heading}>That’s a wrap!</h2>
@@ -14,12 +14,6 @@ export default function ({ styles, finish, openLink }) {
           - Email: <a onClick={openLink} href='mailto:support@haiku.ai' style={styles.link}>support@haiku.ai</a> <br />
         </div>
       </div>
-      <button
-        style={styles.btn}
-        onClick={() => finish(true, false)}
-      > Finish
-      </button>
-      <div style={{clear: 'both'}} />
     </div>
   )
 }
