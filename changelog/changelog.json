@@ -4220,5 +4220,57 @@
       "label": "fix",
       "message": "enable local dev using electron"
     }
+  },
+  "2.3.88": {
+    "93af841dd8a2f94a71f26c2e02aae647c2b86b25": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "actually pass the Plumbing debugging args to HaikuHelper if requested."
+    },
+    "db7775b052f3e4be146732c5fb23c7081ceb039b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "retry clone on GitLab too."
+    },
+    "111b377671ed3afe721bacbbb6e30d530e66c9dc": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "ensure all watchers die"
+    },
+    "40a91b984b447fcdf6899e12195c8ef8e79faa32": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use electron as test runner for plumbing/e2e"
+    },
+    "e722ceba4d5791a8b545bffc53a6f92eff6870ad": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "enable local dev using electron"
+    },
+    "513744fdde21ae3b8f59e499a10a54b4ce239df6": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Always write haiku.js and dom.js"
+    },
+    "aa9d39ca164a223b81ff78c4232b7db1bea72244": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for leaky envoy listener in timeline/tour"
+    },
+    "af876b0f4e1fd6ca9333845c0a4655f4d0644225": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Fix race conditions leading to crashes when user navs back to dash"
+    },
+    "2aaa16c29b8554cf174cd66334e8e46a846bc1cd": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Prevent stage playback from being triggered when hard reloading"
+    },
+    "a04144d202c71952d22f7b21ab2bc18e502baf71": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add logic to show a back button on the tour"
+    }
   }
 }
