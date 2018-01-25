@@ -1,13 +1,8 @@
-// Third-party dependencies
 import { BrowserWindow, app, ipcMain, systemPreferences } from 'electron'
 import EventEmitter from 'events'
 import path from 'path'
 import { inherits } from 'util'
-
-// First-party dependencies
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
-
-// Local dependencies
 import TopMenu from './TopMenu'
 
 if (!app) {
@@ -124,15 +119,16 @@ function createWindow () {
   browserWindow = new BrowserWindow({
     title: 'Haiku',
     show: false, // Don't show the window until we are ready-to-show (see below)
-    titleBarStyle: 'hidden-inset',
-    webPreferences: {
-      webSecurity: false
-    }
+    titleBarStyle: 'hidden-inset'
   })
 
   browserWindow.setTitle('Haiku')
   browserWindow.maximize()
   browserWindow.loadURL(appUrl)
+
+  if (process.env.DEV === '1') {
+    browserWindow.openDevTools()
+  }
 
   // Sending our haiku configuration into the view so it can correctly set up
   // its own websocket connections to our plumbing server, etc.
@@ -149,13 +145,9 @@ function createWindow () {
     'redo',
     'save',
     'start-tour',
-    'toggle-dev-tools',
     'undo',
     'zoom-in',
-    'zoom-out',
-    // Active in dev & staging only.
-    'dump-system-info',
-    'open-hacker-helper'
+    'zoom-out'
   ]
 
   globalMenuPassthroughs.forEach((command) => {
@@ -169,9 +161,6 @@ function createWindow () {
   browserWindow.on('ready-to-show', () => {
     browserWindow.show()
   })
-
-  // Uncomment me to automatically open the tools
-  // browserWindow.openDevTools()
 }
 
 if (app.isReady()) {
