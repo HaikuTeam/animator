@@ -1,6 +1,24 @@
 # Changelog
 
 
+## 2.3.88
+
+### Bug Fixes
+
+ * actually pass the Plumbing debugging args to HaikuHelper if requested.
+ * retry clone on GitLab too.
+ * ensure all watchers die
+ * use electron as test runner for plumbing/e2e
+ * enable local dev using electron
+ * Always write haiku.js and dom.js
+ * for leaky envoy listener in timeline/tour
+ * Fix race conditions leading to crashes when user navs back to dash
+ * Prevent stage playback from being triggered when hard reloading
+
+### Features
+
+ * add logic to show a back button on the tour
+
 ## 2.3.87
 
 ### Bug Fixes
