@@ -24,9 +24,9 @@ And add to `~/.ssh/config`:
 
     $ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
 
-2.) node 7.9.0:
+2.) node 8.9.3:
 
-    $ nvm install 7.9.0 && nvm alias default 7.9.0
+    $ nvm install 8.9.3 && nvm alias default 8.9.3
 
 3.) yarn 1.3.2:
 
@@ -50,6 +50,8 @@ You can also skip the interactive prompt and start with good defaults with:
 
     $ yarn go
 
+You can also set some overriding environment variables (e.g. `HAIKU_API`, `SHARE_URL`) by making a `.env` file in the mono root. Refer to `.env.example` for an example.
+
 #### Finishing
 
 First lint all of the code:
@@ -68,7 +70,7 @@ Assuming no lint errors or test failures, push your changes:
 
     $ git push
 
-#### Debugging (VS Code)
+#### Debugging
 
 There are configurations included here for debugging any of the UI directly from inside VS Code.
 
@@ -76,18 +78,7 @@ There are configurations included here for debugging any of the UI directly from
 
 To debug, first launch mono normally (see `Starting`) — then from VS Code's left-side Debug menu, select `attach-glass`, `attach-timeline`, or `attach-creator`.  You can then place breakpoints, explore stack traces, explore local values (and more) from inside VS Code.
 
-
-**Advanced**
-
-Note: The following requires additional Haiku credentials. Once you're done developing, and all changes have been committed and pushed, you can run the following command which will synchronize subtree repos, publish the player, and perform additional cleanup:
-
-    $ yarn run finish
-
-**Distro**
-
-To roll a distro, run:
-
-    $ yarn run distro
+In general, Plumbing can be debugged on port 9221 and Electron renderer processes can be debugged on port 9222.
 
 ## Contributing
 

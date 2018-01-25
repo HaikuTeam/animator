@@ -11,7 +11,9 @@ const ROOT = global.process.cwd()
 glob(
   [
     'source/node_modules/haiku-*/**/*.js',
-    'source/node_modules/@haiku/**/*.js'
+    'source/node_modules/@haiku/**/*.js',
+    'source/*.js',
+    'source/package.json'
   ],
   (err, files) => {
     if (err) {
