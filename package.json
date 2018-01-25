@@ -20,7 +20,7 @@
     "semver": "node ./scripts/semver.js",
     "setup": "node ./scripts/setup.js",
     "start": "node ./scripts/start.js",
-    "test": "yarn compile-all && tape \"test/**/*.test.js\" | tap-spec",
+    "test": "yarn compile-all && yarn electron ./node_modules/.bin/tape \"test/**/*.test.js\" | tap-spec",
     "compile-all": "node ./scripts/compile-all.js",
     "lint-all": "node ./scripts/lint-all.js",
     "test-all": "node ./scripts/test-all.js",

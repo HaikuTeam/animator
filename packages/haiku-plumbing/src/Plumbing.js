@@ -1021,15 +1021,18 @@ Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb)
     })
   }
 
-  // Back when Master lived in its own MasterProcess, we had a bunch of processes,
-  // but now we only really have Creator (Electron). I opted *not* to remove this legacy
-  // logic when removing MasterProcess just in case there were hidden dependencies here.
-  // But it should eventually be refactored out. #TODO
   if (haiku.mode === 'creator') {
-    process.send({
-      message: 'launchCreator',
-      haiku
-    })
+    // If we were spawned as a subprocess inside of electron main, tell our parent to launch creator.
+    if (typeof process.send === 'function') {
+      process.send({
+        message: 'launchCreator',
+        haiku: haiku
+      });
+    } else if (process.versions && !!process.versions.electron) {
+      // We are in electron main (e.g. in a test context).
+      global.process.env.HAIKU_ENV = JSON.stringify(haiku)
+      require('haiku-creator/lib/electron')
+    }
   }
   cb()
 }

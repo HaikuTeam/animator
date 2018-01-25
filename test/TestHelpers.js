@@ -1,8 +1,6 @@
-const cp = require('child_process')
 const path = require('path')
 const fse = require('fs-extra')
 const lodash = require('lodash')
-const async = require('async')
 const haikuInfo = require('../packages/haiku-plumbing/lib/haikuInfo').default()
 const Plumbing = require('../packages/haiku-plumbing/lib/Plumbing').default
 
@@ -88,7 +86,7 @@ const e2e = (worker) => {
         after()
       })
     })
-  }) 
+  })
 }
 
 const wait = (secs, cb) => {
