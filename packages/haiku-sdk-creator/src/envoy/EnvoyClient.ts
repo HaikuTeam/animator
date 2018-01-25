@@ -130,8 +130,10 @@ export default class EnvoyClient<T> {
     subject['off'] = (eventName: string, handler: Function) => {
       const handlers = this.eventHandlers.get(eventName) || [];
       const idx = handlers.indexOf(handler);
-      handlers.splice(idx, 1);
-      this.eventHandlers.set(eventName, handlers);
+      if (idx !== -1) {
+        handlers.splice(idx, 1);
+        this.eventHandlers.set(eventName, handlers);
+      }
     };
 
     return subject;

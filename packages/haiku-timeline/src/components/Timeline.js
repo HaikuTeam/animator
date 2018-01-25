@@ -111,7 +111,7 @@ class Timeline extends React.Component {
     this.removeEmitterListeners()
 
     if (this.tourClient) {
-      this.tourClient.removeListener('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
+      this.tourClient.off('tour:requestElementCoordinates', this.handleRequestElementCoordinates)
     }
 
     this.project.getEnvoyClient().closeConnection()
