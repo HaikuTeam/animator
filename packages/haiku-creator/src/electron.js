@@ -119,10 +119,7 @@ function createWindow () {
   browserWindow = new BrowserWindow({
     title: 'Haiku',
     show: false, // Don't show the window until we are ready-to-show (see below)
-    titleBarStyle: 'hidden-inset',
-    webPreferences: {
-      webSecurity: false
-    }
+    titleBarStyle: 'hidden-inset'
   })
 
   browserWindow.setTitle('Haiku')
