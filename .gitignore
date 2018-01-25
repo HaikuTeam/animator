@@ -7,3 +7,4 @@ source/*
 .last-sync
 packages/**/.last-compile
 config.js
+.env

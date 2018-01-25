@@ -23,8 +23,7 @@
     "lint": "eslint \"src/**/*.js\"",
     "fix": "yarn lint --fix",
     "lint-report": "yarn lint -f checkstyle -o checkstyle-result.xml",
-    "matthew": "node ./HaikuHelper.js --folder=/Users/matthew/Code/HaikuTeam/mono/packages/haiku-glass/test/projects/primitives --mode=headless --repl",
-    "zack": "node ./HaikuHelper.js --folder=/Users/zack/code/haiku/mono/packages/haiku-glass/test/projects/primitives --mode=headless --repl"
+    "repl": "electron ./HaikuHelper.js --folder=../haiku-glass/test/projects/primitives --mode=headless --repl"
   },
   "dependencies": {
     "@haiku/cli": "2.3.86",

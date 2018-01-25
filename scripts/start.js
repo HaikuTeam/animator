@@ -13,6 +13,9 @@ const ROOT = path.join(__dirname, '..')
 const plumbingPackage = groups['plumbing']
 const blankProject = path.join(plumbingPackage.abspath, 'test/fixtures/projects/blank-project/')
 
+let watcher
+let mainProcess
+
 global.process.env.NODE_ENV = 'development'
 
 /**
@@ -36,9 +39,6 @@ const args = argv._
 const _branch = cp.execSync('git symbolic-ref --short -q HEAD || git rev-parse --short HEAD').toString().trim()
 log.log(`fyi, your current mono branch is ${JSON.stringify(_branch)}\n`)
 if (!inputs.branch) inputs.branch = _branch
-
-const instructions = [] // The set of commands we're going to run
-const children = [] // Child processes for cleanup later
 
 const FOLDER_CHOICES = {
   'default': null,
@@ -71,7 +71,7 @@ const availablePresets = ['glass', 'timeline']
 
 if (FOLDER_CHOICES.hasOwnProperty(argv.preset)) {
   inputs.folderChoice = argv.preset
-} else if (availablePresets.includes(argv.preset) && process.env.HAIKU_PROJECT_FOLDER) {
+} else if (availablePresets.includes(argv.preset) && global.process.env.HAIKU_PROJECT_FOLDER) {
   inputs.devChoice = argv.preset
 } else if (argv.preset === 'fast') {
   inputs.skipInitialBuild = true
@@ -147,7 +147,7 @@ function runInteractive () {
           return cb()
         } else {
           log.log('bailed')
-          process.exit()
+          global.process.exit()
         }
       })
     }
@@ -165,92 +165,30 @@ function runAutomatic () {
 function setup () {
   log.hat(`preparing to develop locally`, 'cyan')
 
-  process.env.DEV = (inputs.dev) ? '1' : undefined
-  process.env.HAIKU_SKIP_AUTOUPDATE = '1'
-  process.env.HAIKU_PLUMBING_PORT = '1024'
+  global.process.env.DEV = (inputs.dev) ? '1' : undefined
+  global.process.env.HAIKU_SKIP_AUTOUPDATE = '1'
+  global.process.env.HAIKU_PLUMBING_PORT = '1024'
 
   // These are just stubbed out for completeness' sake
-  process.env.HAIKU_RELEASE_ENVIRONMENT = process.env.NODE_ENV
-  process.env.HAIKU_RELEASE_BRANCH = 'master'
-  process.env.HAIKU_RELEASE_PLATFORM = 'mac'
-  process.env.HAIKU_RELEASE_VERSION = require('./../package.json').version
-  process.env.HAIKU_AUTOUPDATE_SERVER = 'http://localhost:3002'
+  global.process.env.HAIKU_RELEASE_ENVIRONMENT = process.env.NODE_ENV
+  global.process.env.HAIKU_RELEASE_BRANCH = 'master'
+  global.process.env.HAIKU_RELEASE_PLATFORM = 'mac'
+  global.process.env.HAIKU_RELEASE_VERSION = require('./../package.json').version
+  global.process.env.HAIKU_AUTOUPDATE_SERVER = 'http://localhost:3002'
 
   if (inputs.devChoice === 'everything') {
-    process.env.HAIKU_PLUMBING_URL = 'http://0.0.0.0:1024'
+    global.process.env.HAIKU_PLUMBING_URL = 'http://0.0.0.0:1024'
     if (inputs.folderChoice === 'blank') {
       fse.removeSync(blankProject)
       fse.mkdirpSync(blankProject)
       fse.outputFileSync(path.join(blankProject, '.keep'), '')
     }
   } else {
-    process.env.MOCK_ENVOY = true
+    global.process.env.MOCK_ENVOY = true
   }
-
-  // Note the packages we would never want to develop for specific dev choices.
-  const appOwnedDeps = ['haiku-websockets', 'haiku-creator', 'haiku-plumbing']
-  const devChoiceExclusions = {
-    glass: appOwnedDeps.concat(['haiku-timeline']),
-    timeline: appOwnedDeps.concat(['haiku-glass']),
-    everything: []
-  }
-
-  allPackages.forEach((pack) => {
-    const {shortname} = pack
-    if (devChoiceExclusions[inputs.devChoice].includes(shortname)) {
-      return
-    }
-
-    switch (shortname) {
-      case 'player':
-        // TS module, but one that uses "develop" for something different than watching.
-        instructions.push([shortname, ['yarn', 'watch']])
-        break
-      case 'websockets':
-      case 'creator':
-      case 'glass':
-      case 'timeline':
-      case 'plumbing':
-        // Babel modules where we can skip the initial (slow) build.
-        instructions.push([shortname, ['yarn', 'watch', '--skip-initial-build']])
-        break
-      case 'state-object':
-      case 'bytecode':
-      case 'serialization':
-      case 'fs-extra':
-        // These don't have watchers or need special treatment.
-        break
-      default:
-        // Standard, new way of doing things: `yarn develop`.
-        instructions.push([shortname, ['yarn', 'develop']])
-        break
-    }
-  })
-}
-
-function runInstruction (instruction) {
-  const pack = groups[instruction[0]]
-  const exec = instruction[1]
-
-  const cmd = exec[0]
-
-  const args = exec.slice(1)
-
-  log.log('running ' + cmd + ' ' + JSON.stringify(args) + ' in ' + pack.abspath)
-
-  const child = cp.spawn(cmd, args, { cwd: pack.abspath, env: process.env, stdio: 'inherit' })
-
-  children.push({
-    info: { pack, cmd },
-    proc: child
-  })
 }
 
 function go () {
-  if (instructions.length < 1) {
-    throw new Error('[mono] no instructions found for this dev mode')
-  }
-
   if (inputs.skipInitialBuild) {
     log.hat('skipping initial build')
   } else {
@@ -260,59 +198,61 @@ function go () {
 
   log.hat('starting local development', 'green')
 
-  log.log(JSON.stringify(instructions))
-
   const chosenFolder = FOLDER_CHOICES[inputs.folderChoice]
   if (chosenFolder) {
-    process.env.HAIKU_PROJECT_FOLDER = chosenFolder
+    global.process.env.HAIKU_PROJECT_FOLDER = chosenFolder
   }
 
   let startDelay = 0
-  let startScript
-  const startCommands = []
+  let cwd = ROOT
+  let args = []
   switch (inputs.devChoice) {
     case 'everything':
-      startScript = 'plumbing'
       // Wait 5 seconds for Plumbing to boot up, then start the watchers.
       startDelay = 5000
-      startCommands.push('node', './HaikuHelper.js')
-      if (chosenFolder) {
-        startCommands.push(`--folder=${blankProject}`)
-      }
+      global.process.env.HAIKU_DEBUG = '1'
+      args.push('electron', '--enable-logging', '--remote-debugging-port=9222', '.')
       break
     case 'glass':
-      startScript = 'glass'
-      startCommands.push('yarn', 'start')
+      cwd = groups.glass.abspath
+      args.push('start')
       break
     case 'timeline':
-      startScript = 'timeline'
-      startCommands.push('yarn', 'start')
+      cwd = groups.timeline.abspath
+      args.push('start')
       break
   }
 
-  runInstruction([startScript, startCommands])
+  // Allow anything in .env to override the environment variables we set here.
+  require('dotenv').config()
+  mainProcess = cp.spawn('yarn', args, { cwd, env: global.process.env, stdio: 'inherit' })
 
-  setTimeout(() => {
-    async.each(instructions, function (instruction, next) {
-      runInstruction(instruction)
-      next()
-    })
+  const watcherTimeout = setTimeout(() => {
+    watcher = cp.spawn(
+      'node',
+      ['./scripts/watch-all.js', `--devChoice=${inputs.devChoice}`],
+      { cwd: ROOT, env: global.process.env, stdio: 'inherit' }
+    )
   }, startDelay)
-}
 
-process.on('exit', exit)
-process.on('SIGINT', exit)
-process.on('SIGTERM', exit)
-process.on('uncaughtException', exit)
+  const killWatcher = () => {
+    if (watcher) {
+      watcher.kill('SIGTERM')
+    } else {
+      clearTimeout(watcherTimeout)
+    }
+  }
 
-function exit () {
-  log.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-  log.log('exiting; telling children to interrupt')
-  log.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+  global.process.on('exit', () => {
+    if (!mainProcess) {
+      mainProcess.kill('SIGTERM')
+    }
 
-  children.forEach(function (child, index) {
-    if (child.proc.stdin) child.stdin.pause()
-    log.log('$$$$$ ' + index + ' ' + JSON.stringify(child.info))
-    child.proc.kill('SIGKILL')
+    killWatcher()
+  })
+
+  mainProcess.on('exit', () => {
+    killWatcher()
+    global.process.exit()
   })
 }
