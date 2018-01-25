@@ -1,13 +1,8 @@
-// Third-party dependencies
 import { BrowserWindow, app, ipcMain, systemPreferences } from 'electron'
 import EventEmitter from 'events'
 import path from 'path'
 import { inherits } from 'util'
-
-// First-party dependencies
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
-
-// Local dependencies
 import TopMenu from './TopMenu'
 
 if (!app) {
@@ -134,6 +129,10 @@ function createWindow () {
   browserWindow.maximize()
   browserWindow.loadURL(appUrl)
 
+  if (process.env.DEV === '1') {
+    browserWindow.openDevTools()
+  }
+
   // Sending our haiku configuration into the view so it can correctly set up
   // its own websocket connections to our plumbing server, etc.
   browserWindow.webContents.on('did-finish-load', () => {
@@ -169,9 +168,6 @@ function createWindow () {
   browserWindow.on('ready-to-show', () => {
     browserWindow.show()
   })
-
-  // Uncomment me to automatically open the tools
-  // browserWindow.openDevTools()
 }
 
 if (app.isReady()) {
