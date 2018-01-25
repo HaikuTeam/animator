@@ -558,12 +558,26 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   cloneRemoteIntoFolder (cb) {
+    if (!this._folderState.cloneAttempts) {
+      this._folderState.cloneAttempts = 0
+    }
+    this._folderState.cloneAttempts++
+
     const { repositoryUrl } = this._folderState.remoteProjectDescriptor
     if (repositoryUrl) {
       logger.sacred(`[master-git] directly cloning from remote ${repositoryUrl}`)
       return Git.cloneRepoDirectly(repositoryUrl, this.folder, (err) => {
         if (err) {
           logger.info(`[master-git] clone error:`, err)
+
+          if (this._folderState.cloneAttempts < MAX_CLONE_ATTEMPTS) {
+            logger.info(`[master-git] retrying clone after a brief delay...`)
+
+            return setTimeout(() => {
+              return this.cloneRemoteIntoFolder(cb)
+            }, CLONE_RETRY_DELAY)
+          }
+
           return cb(err)
         }
 
@@ -573,12 +587,6 @@ export default class MasterGitProject extends EventEmitter {
     }
 
     // DEPRECATED: only required for non-GitLab projects.
-    if (!this._folderState.cloneAttempts) {
-      this._folderState.cloneAttempts = 0
-    }
-
-    this._folderState.cloneAttempts++
-
     const {
       GitRemoteUrl,
       CodeCommitHttpsUsername,
