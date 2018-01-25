@@ -145,13 +145,9 @@ function createWindow () {
     'redo',
     'save',
     'start-tour',
-    'toggle-dev-tools',
     'undo',
     'zoom-in',
-    'zoom-out',
-    // Active in dev & staging only.
-    'dump-system-info',
-    'open-hacker-helper'
+    'zoom-out'
   ]
 
   globalMenuPassthroughs.forEach((command) => {
