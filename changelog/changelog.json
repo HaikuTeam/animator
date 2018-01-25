@@ -4208,5 +4208,17 @@
       "message": "set the correct param on sdk-inkston user::create"
     }
   },
-  "2.3.86": {}
+  "2.3.86": {},
+  "2.3.87": {
+    "5ebf2db23f2232ece4f9510a3f2da1f507523656": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use electron as test runner for plumbing/e2e"
+    },
+    "a307c1e9d1d3ba11fd513bf96a14fc13df84897c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "enable local dev using electron"
+    }
+  }
 }
