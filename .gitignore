@@ -2,8 +2,8 @@
 node_modules
 *.log
 dist/*
-config.js
 source/*
 ~tmp
 .last-sync
 packages/**/.last-compile
+config.js

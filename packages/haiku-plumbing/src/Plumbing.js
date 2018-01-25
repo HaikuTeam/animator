@@ -6,7 +6,6 @@ import find from 'lodash.find'
 import merge from 'lodash.merge'
 import filter from 'lodash.filter'
 import net from 'net'
-import cp from 'child_process'
 import qs from 'qs'
 import WebSocket from 'ws'
 import { EventEmitter } from 'events'
@@ -86,15 +85,6 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   doLogOut: true,
   deleteProject: true,
   teardownMaster: true
-}
-
-const PROCS = {
-  creator: {
-    name: 'creator',
-    path: require('electron'),
-    args: [require.resolve(path.join('haiku-creator', 'lib', 'electron.js'))],
-    opts: { electron: true, spawn: true }
-  }
 }
 
 const Q_GLASS = { alias: 'glass' }
@@ -1035,106 +1025,13 @@ Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb)
   // but now we only really have Creator (Electron). I opted *not* to remove this legacy
   // logic when removing MasterProcess just in case there were hidden dependencies here.
   // But it should eventually be refactored out. #TODO
-  const subprocs = []
-  if (haiku.mode === 'creator') subprocs.push(PROCS.creator)
-  return this.spawnSubprocesses(existingSpawnedSubprocs, haiku, subprocs, cb)
-}
-
-Plumbing.prototype.spawnSubprocesses = function (existingSpawnedSubprocs, haiku, subprocs, cb) {
-  this.extendEnvironment(haiku)
-  return async.map(subprocs, (subproc, next) => {
-    return this.spawnSubprocess(existingSpawnedSubprocs, haiku.folder, subproc, next)
-  }, (err, spawned) => {
-    if (err) return cb(err)
-    return cb(null, spawned)
-  })
-}
-
-Plumbing.prototype.spawnSubprocess = function spawnSubprocess (existingSpawnedSubprocs, folder, { name, path, args, opts }, cb) {
-  const existing = find(existingSpawnedSubprocs, { _attributes: { name, folder } })
-  if (existing) {
-    // Reconnection (via websocket) is only available if the process itself is still alive
-    if (existing.connected && !existing._attributes.disconnected && !existing._attributes.exited && !existing._attributes.closed) {
-      if (existing.reestablishConnection) existing.reestablishConnection()
-      else (existing.send('reestablishConnection!'))
-
-      logger.info(`[plumbing] reusing existing ${name} process`)
-      existing._attributes.reused = true
-
-      return cb(null, existing)
-    }
+  if (haiku.mode === 'creator') {
+    process.send({
+      message: 'launchCreator',
+      haiku
+    })
   }
-
-  let proc
-
-  if (opts && opts.electron && isElectronMain() && typeof path === 'object') {
-    // If we are *in* Electron, this 'path', which would normally be an absolute path to the
-    // Electron binary, is actually the require('electron') export object. Instead of launching
-    // the subprocess 'with' Electron binary as the command, we can just 'require' it since
-    // that is where we already are. This is condition is critical for our packaging hooks.
-    // Be aware that a change here might break the ability to create a working distribution.
-    logger.info(`[plumbing] requiring ${name} @ ${args[0]}`)
-    proc = require(args[0]).default
-  } else {
-    // If we aren't in electron, start the process using the electron binary path
-    if (opts && opts.spawn) {
-      // Remote debugging hook only used in development; causes problems in distro
-      if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging' && process.env.NO_REMOTE_DEBUG !== '1') {
-        args.push('--enable-logging', '--remote-debugging-port=9222')
-      }
-      proc = cp.spawn(path, args, { stdio: [null, null, null, 'ipc'] })
-    } else {
-      args = args || []
-      // Remote debugging hook only used in development; causes problems in distro
-      if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging' && process.env.NO_REMOTE_DEBUG !== '1') {
-        args.push('--debug=5859')
-      }
-      proc = cp.fork(path, args)
-    }
-
-    logger.info(`[plumbing] proc ${name} created @ ${path}`)
-  }
-
-  proc._attributes = { name, folder, id: _id() }
-
-  proc.on('exit', () => {
-    logger.info(`[plumbing] proc ${name} exiting`)
-
-    proc._attributes.exited = true
-
-    if (proc._attributes.name) {
-      // If electron is finished, we should clean up stuff. This usually means the user has closed the view.
-      if (proc._attributes.name.match(/electron/) || name.match(/creator/)) {
-        emitter.emit('teardown-requested')
-      }
-    }
-
-    // Remove the old, unused process from the list of existing ones
-    for (let i = existingSpawnedSubprocs.length - 1; i >= 0; i--) {
-      let existing = existingSpawnedSubprocs[i]
-      if (existing === proc) {
-        existingSpawnedSubprocs.splice(i, 1)
-      }
-    }
-  })
-
-  proc.on('close', () => {
-    proc._attributes.closed = true
-  })
-  proc.on('disconnect', () => {
-    proc._attributes.disconnected = true
-  })
-  proc.on('error', (error) => {
-    logger.info(`[plumbing] proc ${name} got error`, error)
-  })
-  proc.on('message', (message) => {
-    logger.info(`[plumbing] proc ${name} got message`, message)
-  })
-  proc.on('request', (message) => {
-    logger.info(`[plumbing] proc ${name} got request`, message)
-  })
-
-  return cb(null, proc)
+  cb()
 }
 
 let portrange = 45032
@@ -1279,8 +1176,4 @@ function remapProjectObjectToExpectedFormat (projectObject, organizationName) {
     // GitRemoteName
     // GitRemoteArn
   }
-}
-
-function isElectronMain () {
-  return typeof process !== 'undefined' && process.versions && !!process.versions.electron
 }

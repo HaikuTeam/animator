@@ -2,7 +2,6 @@ var Plumbing = require('./index')
 var ReplBase = require('./lib/ReplBase').default
 var envInfo = require('./lib/envInfo').default
 var haikuInfo = require('./lib/haikuInfo').default
-var cp = require('child_process')
 var path = require('path')
 
 global.eval = function () {
