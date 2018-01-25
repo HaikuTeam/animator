@@ -18,6 +18,7 @@ export interface TourState {
   waitUserAction: boolean;
   size: string;
   isOverlayHideable: boolean;
+  showPreviousButton: boolean;
 }
 
 export interface ClientBoundingRect {

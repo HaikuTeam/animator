@@ -11,6 +11,7 @@ class Tour extends React.Component {
     super()
 
     this.next = this.next.bind(this)
+    this.prev = this.prev.bind(this)
     this.finish = this.finish.bind(this)
     this.hide = this.hide.bind(this)
     this.showStep = this.showStep.bind(this)
@@ -86,6 +87,10 @@ class Tour extends React.Component {
     }
   }
 
+  prev () {
+    this.tourChannel.prev()
+  }
+
   finish (createFile, skipped) {
     this.tourChannel.finish(createFile)
     mixpanel.haikuTrack('tour', {
@@ -130,7 +135,8 @@ class Tour extends React.Component {
       stepData,
       waitUserAction,
       size,
-      isOverlayHideable
+      isOverlayHideable,
+      showPreviousButton
     } = this.state
 
     const Step = steps[component]
@@ -142,11 +148,13 @@ class Tour extends React.Component {
         display={display}
         spotlightRadius={spotlightRadius}
         next={this.next}
+        prev={this.prev}
         finish={this.finish}
         stepData={stepData}
         waitUserAction={waitUserAction}
         size={size}
         isOverlayHideable={isOverlayHideable}
+        showPreviousButton={showPreviousButton}
       >
         <Step
           styles={TOUR_STYLES}
