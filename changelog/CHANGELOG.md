@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 3.0.1
+
+### Bug Fixes
+
+ * watchOn is already called on startProject, so don't call it again
+ * do not show reveal in finder for nonlocal projects
+
 ## 2.3.90
 
 ### Features

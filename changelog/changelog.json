@@ -4301,5 +4301,17 @@
       "label": "feat",
       "message": "Provide comprehensive group composition support in Lottie."
     }
+  },
+  "3.0.1": {
+    "690c0655685c2b72045fc6abb2f6e51ccfa4ef82": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "watchOn is already called on startProject, so don't call it again"
+    },
+    "8a2a0413cdfec599973dfef7bb4b59ce162cd6a5": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not show reveal in finder for nonlocal projects"
+    }
   }
 }
