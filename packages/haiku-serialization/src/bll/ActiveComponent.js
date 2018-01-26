@@ -1032,54 +1032,74 @@ class ActiveComponent extends BaseModel {
     }, cb)
   }
 
-  mergeMana (destinationTimelines, existingTemplate, manaIncoming) {
+  removeChildContentFromBytecode (bytecode, mana) {
+    Template.visit(mana, (node) => {
+      // Skip the topmost node; that wrapper stays
+      if (node === mana) {
+        return
+      }
+
+      const haikuId = node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]
+
+      if (!haikuId) {
+        return
+      }
+
+      const haikuSelector = `haiku:${haikuId}`
+
+      if (bytecode.eventHandlers) {
+        delete bytecode.eventHandlers[haikuSelector]
+      }
+
+      if (bytecode.timelines) {
+        for (const timelineName in bytecode.timelines) {
+          delete bytecode.timelines[timelineName][haikuSelector]
+        }
+      }
+    })
+
+    // Remove our own children, whose content we just purged
+    mana.children.splice(0)
+  }
+
+  mergeMana (existingBytecode, manaIncoming) {
     let numMatchingNodes = 0
 
-    Template.visit((existingTemplate), (existingNode) => {
+    const timelineName = this.getMergeDesignTimelineName()
+    const timelineTime = this.getMergeDesignTimelineTime()
+
+    Template.visit((existingBytecode.template), (existingNode) => {
       // Only merge into any that match our source design path
       if (existingNode.attributes.source !== manaIncoming.attributes.source) {
         return
       }
 
-      const safe = Template.clone({}, manaIncoming)
+      const safeIncoming = Template.clone({}, manaIncoming)
 
-      Template.mirrorHaikuUids(existingNode, safe)
+      this.removeChildContentFromBytecode(existingBytecode, existingNode)
 
-      const insertionPointHash = Template.getInsertionPointHash(existingNode, existingNode.children.length, numMatchingNodes++)
-
-      const timelineName = this.getMergeDesignTimelineName()
-      const timelineTime = this.getMergeDesignTimelineTime()
+      const insertionPointHash = Template.getInsertionPointHash(
+        existingBytecode.template,
+        existingBytecode.template.children.length,
+        numMatchingNodes++
+      )
 
       const timelinesObject = Template.prepareManaAndBuildTimelinesObject(
-        safe,
+        safeIncoming,
         insertionPointHash,
         timelineName,
         timelineTime,
         { doHashWork: true }
       )
 
-      const changesMade = Bytecode.mergeTimelines(destinationTimelines, timelinesObject, (propertyName, oldValue, newValue) => {
-        if (typeof oldValue === 'string' && typeof newValue === 'string') {
-          // HACK: Changing URL reference breaks the reference since our merge doesn't affect
-          //       the structure of the element (TODO: Support merging structural changes too)
-          if (oldValue.slice(0, 5) === 'url(#') {
-            return false
-          }
-          // HACK: Related to the above; changing references essentially means breaking them
-          if (propertyName === 'xlink:href') {
-            return false
-          }
-        }
+      delete timelinesObject[timelineName][safeIncoming.attributes[HAIKU_ID_ATTRIBUTE]]
 
-        return true
-      })
-
-      if (changesMade.length > 0) {
-        log.info(
-          `[active component] ${existingNode.attributes.source} merged design changes`,
-          JSON.stringify(changesMade)
-        )
+      for (let i = 0; i < safeIncoming.children.length; i++) {
+        const incomingChild = safeIncoming.children[i]
+        existingNode.children.push(incomingChild)
       }
+
+      mergeTimelineStructure(existingBytecode, timelinesObject, 'assign')
     })
   }
 
@@ -1108,11 +1128,11 @@ class ActiveComponent extends BaseModel {
                   return this.mergePrimitiveWithOverrides(primitive, overrides, next)
                 }
 
-                this.mergeMana(bytecode.timelines, template, mana)
+                this.mergeMana(bytecode, mana)
                 return next()
               })
             } else {
-              this.mergeMana(bytecode.timelines, template, mana)
+              this.mergeMana(bytecode, mana)
               return next()
             }
           })
