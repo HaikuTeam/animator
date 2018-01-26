@@ -21,7 +21,7 @@ import has from './has';
  * }
  */
 
-const LAYOUT_3D_VANITIES = {
+export const LAYOUT_3D_VANITIES = {
   // Layout has a couple of special values that relate to display
   // but not to position:
   shown: (_, element, value) => {

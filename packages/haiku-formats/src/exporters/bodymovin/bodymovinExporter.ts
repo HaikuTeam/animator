@@ -1,13 +1,12 @@
+import {Maybe, ContextualSize} from 'haiku-common/lib/types';
+import {Curve} from 'haiku-common/lib/types/enums';
+import * as Template from 'haiku-serialization/src/bll/Template';
 import * as difference from 'lodash/difference';
 import * as flatten from 'lodash/flatten';
 import * as mapKeys from 'lodash/mapKeys';
-
-import {Maybe} from 'haiku-common/lib/types';
-import {Curve} from 'haiku-common/lib/types/enums';
-import * as Template from 'haiku-serialization/src/bll/Template';
+import {Exporter} from '..';
 
 import {SvgTag} from '../../svg/enums';
-import {Exporter} from '..';
 import {
   decomposeCurveBetweenKeyframes,
   getCurveInterpolationPoints,
@@ -15,6 +14,12 @@ import {
   splitBezierForTimelinePropertyAtKeyframe,
 } from '../curves';
 import {evaluateInjectedFunctionInExportContext} from '../injectables';
+import {composeTimelines} from '../layout';
+import {
+  initialValue,
+  initialValueOrNull,
+  initialValueOr,
+} from '../timelineUtils';
 import {
   AnimationKey,
   FillRule,
@@ -32,18 +37,17 @@ import {
 } from './bodymovinEnums';
 import {
   colorTransformer,
+  dasharrayTransformer,
+  fillruleTransformer,
+  getValueReferenceMatchArray,
+  linecapTransformer,
+  linejoinTransformer,
   opacityTransformer,
   rotationTransformer,
-  linecapTransformer,
   scaleTransformer,
-  linejoinTransformer,
-  fillruleTransformer,
-  dasharrayTransformer,
-  getValueReferenceMatchArray,
 } from './bodymovinTransformers';
 import {SvgInheritable} from './bodymovinTypes';
 import {
-  addTimelineProperties,
   alwaysAbsolute,
   alwaysArray,
   compoundTimelineReducer,
@@ -51,8 +55,6 @@ import {
   getBodymovinVersion,
   getFixedPropertyValue,
   getShapeDimensions,
-  initialValue,
-  initialValueOrNull,
   keyframesFromTimelineProperty,
   maybeApplyMutatorToProperty,
   pathToInterpolationTrace,
@@ -68,18 +70,6 @@ export class BodymovinExporter implements Exporter {
    * @type {number}
    */
   private outPoint = 0;
-
-  /**
-   * The width of the animation.
-   * @type {number}
-   */
-  private animationWidth = 0;
-
-  /**
-   * The height of the animation.
-   * @type {number}
-   */
-  private animationHeight = 0;
 
   /**
    * The composed layers from parsing the animation.
@@ -116,6 +106,26 @@ export class BodymovinExporter implements Exporter {
    * @type {number}
    */
   private localLayerIndex = 0;
+
+  /**
+   * The size of the animation.
+   * @type {ContextualSize}
+   */
+  private animationSize: ContextualSize = {
+    x: 0,
+    y: 0,
+    z: 0,
+  };
+
+  /**
+   * The size of the current layer.
+   * @type {ContextualSize}
+   */
+  private currentLayerSize: ContextualSize = {
+    x: 0,
+    y: 0,
+    z: 0,
+  };
 
   /**
    * Core storage for the transformed output.
@@ -157,50 +167,15 @@ export class BodymovinExporter implements Exporter {
 
     if (parentHaikuId && this.groupHierarchy.hasOwnProperty(parentHaikuId)) {
       const inheritable = this.groupHierarchy[parentHaikuId];
-      return this.composeTimelines(
+      return composeTimelines(
+        this.currentLayerSize,
+        this.animationSize,
         timeline,
         this.timelineForId(parentHaikuId, inheritable.inheritFromParent ? inheritable.parentId : undefined),
       );
     }
 
     return timeline;
-  }
-
-  /**
-   * Compose a child timeline with a parent timeline.
-   *
-   * This method currently uses a naive and broken implementation meant to cover the commonly-encountered use case that
-   * a group propagates a translation to a child element due to quirks when editing in Sketch, e.g.:
-   *
-   * <g [translation.x]=60 [translation.y]=90>
-   *   <g [translation.x]=-60 [translation.y]=-90>
-   *     <rect ... />
-   *   </g>
-   * </g>
-   *
-   * The correct/exhaustive way to do this is with Layout3D utilities currently housed in @haiku/player, but for now we
-   * expect the primary pain points from not composing group layout when collapsing group properties will come from
-   * translations, which are perfectly commutative additively, and the required Layout3D utilities have yet to be
-   * created.
-   * @param childTimeline
-   * @param parentTimeline
-   */
-  private composeTimelines(childTimeline, parentTimeline) {
-    const translationTimeline = {};
-    ['translation.x', 'translation.y', 'translation.z'].forEach((translationKey) => {
-      if (childTimeline.hasOwnProperty(translationKey) && parentTimeline.hasOwnProperty(translationKey)) {
-        translationTimeline[translationKey] = addTimelineProperties(
-          childTimeline[translationKey],
-          parentTimeline[translationKey],
-        );
-      }
-    });
-
-    return {
-      ...parentTimeline,
-      ...childTimeline,
-      ...translationTimeline,
-    };
   }
 
   /**
@@ -484,6 +459,9 @@ export class BodymovinExporter implements Exporter {
       },
       [LayerKey.Shapes]: [],
     });
+
+    this.currentLayerSize.x = initialValueOr(timeline, 'sizeAbsolute.x', 0);
+    this.currentLayerSize.y = initialValueOr(timeline, 'sizeAbsolute.y', 0);
   }
 
   /**
@@ -688,20 +666,24 @@ export class BodymovinExporter implements Exporter {
    */
   private decorateRectangle(timeline, shape, transform) {
     shape[ShapeKey.Type] = ShapeType.Rectangle;
-    shape[TransformKey.Position] = getFixedPropertyValue([0, 0]);
-    if (timeline.hasOwnProperty('sizeAbsolute.x') && timeline.hasOwnProperty('sizeAbsolute.y')) {
-      shape[TransformKey.Size] = this.getValue([timeline['sizeAbsolute.x'], timeline['sizeAbsolute.y']]);
-      if (timeline.hasOwnProperty('x') && timeline.hasOwnProperty('y')) {
-        transform[TransformKey.Position] = getFixedPropertyValue([
-          parseFloat(initialValue(timeline, 'x')) + initialValue(timeline, 'sizeAbsolute.x') / 2,
-          parseFloat(initialValue(timeline, 'y')) + initialValue(timeline, 'sizeAbsolute.y') / 2,
-        ]);
-      }
-    } else {
+    if (!timeline.hasOwnProperty('sizeAbsolute.x') || !timeline.hasOwnProperty('sizeAbsolute.y')) {
       shape[TransformKey.Size] = getFixedPropertyValue([0, 0]);
+      shape[TransformKey.Position] = getFixedPropertyValue([0, 0]);
+      shape[TransformKey.BorderRadius] = getFixedPropertyValue(0);
+      return;
     }
 
     shape[TransformKey.BorderRadius] = this.getValueOrDefaultFromTimeline(timeline, 'rx', 0, parseInt);
+    shape[TransformKey.Size] = this.getValue([timeline['sizeAbsolute.x'], timeline['sizeAbsolute.y']]);
+    shape[TransformKey.Position] = getFixedPropertyValue([
+      initialValue(timeline, 'sizeAbsolute.x') / 2 + parseFloat(initialValueOr(timeline, 'x', 0)),
+      initialValue(timeline, 'sizeAbsolute.y') / 2 + parseFloat(initialValueOr(timeline, 'y', 0)),
+    ]);
+
+    transform[TransformKey.Position] = getFixedPropertyValue([
+      initialValueOr(timeline, 'translation.x', 0),
+      initialValueOr(timeline, 'translation.y', 0),
+    ]);
   }
 
   /**
@@ -875,8 +857,8 @@ export class BodymovinExporter implements Exporter {
         initialValue(wrapperTimeline, 'sizeAbsolute.x'),
         initialValue(wrapperTimeline, 'sizeAbsolute.y'),
       ];
-      this.animationWidth = width;
-      this.animationHeight = height;
+      this.animationSize.x = width;
+      this.animationSize.y = height;
       if (wrapperTimeline.hasOwnProperty('backgroundColor')) {
         const color = initialValue(wrapperTimeline, 'backgroundColor');
         if (!color) {
@@ -1170,8 +1152,8 @@ export class BodymovinExporter implements Exporter {
     return {
       layers: this.layers,
       op: this.outPoint,
-      w: this.animationWidth,
-      h: this.animationHeight,
+      w: this.animationSize.x,
+      h: this.animationSize.y,
     };
   }
 

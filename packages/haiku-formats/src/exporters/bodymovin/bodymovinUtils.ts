@@ -1,3 +1,4 @@
+import SVGPoints from '@haiku/player/lib/helpers/SVGPoints';
 import {
   AnimationKey,
   PathKey,
@@ -6,8 +7,12 @@ import {
   ShapeType,
   TransformKey,
 } from './bodymovinEnums';
-import {BodymovinCoordinates, BodymovinPathComponent, BodymovinProperty} from './bodymovinTypes';
-import SVGPoints from '@haiku/player/lib/helpers/SVGPoints';
+import {
+  BodymovinCoordinates,
+  BodymovinPathComponent,
+  BodymovinProperty,
+} from './bodymovinTypes';
+
 const {pathToPoints} = SVGPoints;
 
 /**
@@ -149,27 +154,6 @@ export const alwaysAbsolute = (maybePercent: string|number, basis: number): numb
 
   return Number(maybePercent);
 };
-
-/**
- * Gets the initial value of a timeline property.
- *
- * Warning: this method uses unchecked property access, assuming that the caller has already checked the timeline
- * property exists. In cases where there's no need to check outside the context of this property, prefer
- * `initialValueOrNull` below.
- * @param timeline
- * @param {string} property
- * @returns {any}
- */
-export const initialValue = (timeline: any, property: string): any => timeline[property][0].value;
-
-/**
- * Get the initial value of a timeline property, or `null` if the property is not defined.
- * @param timeline
- * @param {string} property
- * @returns {any?}
- */
-export const initialValueOrNull = (timeline: any, property: string): any =>
-  timeline.hasOwnProperty(property) ? initialValue(timeline, property) : null;
 
 /**
  * Gets the dimensions of a shape constructed during shape-parsing.
@@ -353,33 +337,3 @@ export const keyframesFromTimelineProperty = (timelineProperty): number[] => {
  */
 export const timelineValuesAreEquivalent = (valueA: any, valueB: any): boolean =>
   JSON.stringify(valueA) === JSON.stringify(valueB);
-
-/**
- * Performs "addition" of two timeline properties to achieve naive composition for perfectly commutative additive
- * properties like translation.x/y/z.
- *
- * This approach should be deprecated in favor of a complete solution that composes affine transformation matrices
- * when time allows.
- * @param childProperty
- * @param parentProperty
- * @returns {any}
- */
-export const addTimelineProperties = (childProperty: any, parentProperty: any): any => {
-  const childKeyframes = keyframesFromTimelineProperty(childProperty);
-  const outProperty = {};
-  for (let i = 0; i < childKeyframes.length; i++) {
-    if (!parentProperty.hasOwnProperty(childKeyframes[i])) {
-      // If we landed on a keyframe that isn't defined on the parent, "soft panic" and let the entire childProperty
-      // win.
-      // #FIXME: Actually perform conflict resolution on parent properties, same as we do with sibling properties that
-      // need to be combined in Bodymovin such as scale.x/y/z.
-      return childProperty;
-    }
-
-    outProperty[childKeyframes[i]] = {
-      value: childProperty[childKeyframes[i]].value + parentProperty[childKeyframes[i]].value,
-    };
-  }
-
-  return outProperty;
-};

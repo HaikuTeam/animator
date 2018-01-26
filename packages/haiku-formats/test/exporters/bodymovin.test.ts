@@ -504,6 +504,37 @@ tape('BodymovinExporter', (test: tape.Test) => {
     test.end();
   });
 
+  test.test('composes layout correctly', (test: tape.Test) => {
+    const bytecode = baseBytecodeCopy();
+
+    // Shim in a group to wrap our shape.
+    bytecode.timelines.Default['haiku:group'] = {
+      'translation.x': {0: {value: 10}},
+      'rotation.z': {0: {value: Math.PI / 2}},
+    };
+    // Add
+    bytecode.timelines.Default['haiku:shape'] = {
+      ...bytecode.timelines.Default['haiku:shape'],
+      'translation.y': {0: {value: -10}},
+      'rotation.z': {0: {value: -Math.PI / 2}},
+    };
+    bytecode.template.children[0].children = [{
+      elementName: 'g',
+      attributes: {'haiku-id': 'group'},
+      children: bytecode.template.children[0].children,
+    }];
+
+    const {
+      layers: [{
+        shapes: [{it: [_, __, ___, {p, r}]}],
+      }],
+    } = rawOutput(bytecode);
+    test.deepEqual(p, {a: 0, k: [20, 0]}, 'position was correctly composed');
+    test.deepEqual(r, {a: 0, k: 0}, 'rotation was correctly composed');
+
+    test.end();
+  });
+
   test.test('transcludes defs down to shapes through use', (test: tape.Test) => {
     const bytecode = baseBytecodeCopy();
 
@@ -588,21 +619,24 @@ tape('BodymovinExporter', (test: tape.Test) => {
       'sizeAbsolute.x': {0: {value: 10}},
       'sizeAbsolute.y': {0: {value: 20}},
       rx: {0: {value: 20}},
+      'translation.x': {0: {value: -60}},
+      'translation.y': {0: {value: -90}},
     });
     overrideShapeElement(bytecode, 'rect');
 
     const {
       layers: [{
-        shapes: [{it: [{ty, s, r}, _, __, transformLayer]}],
+        shapes: [{it: [{ty, s, r, p}, _, __, transformLayer]}],
       }],
     } = rawOutput(bytecode);
 
     test.equal(ty, 'rc', 'translates rectangles');
     test.deepEqual(s, {a: 0, k: [10, 20]}, 'sizes rectangles based on absolute size');
     test.deepEqual(r, {a: 0, k: 20}, 'translates border radius');
+    test.deepEqual(p, {a: 0, k: [15, 20]}, 'translates the shape layer relative to a center origin');
 
     test.equal(transformLayer.ty, 'tr', 'creates a translation layer for transposition');
-    test.deepEqual(transformLayer.p, {a: 0, k: [15, 20]}, 'translates the rectangle relative to a center origin');
+    test.deepEqual(transformLayer.p, {a: 0, k: [-60, -90]}, 'translates the rectangle correctly');
     test.end();
   });
 
