@@ -233,7 +233,7 @@ class AuthenticationUI extends React.Component {
   }
 
   determineErrorColor (errorCode) {
-    switch(errorCode) {
+    switch (errorCode) {
       case 403:
         return Color(Palette.ORANGE).fade(0.5)
       default:
