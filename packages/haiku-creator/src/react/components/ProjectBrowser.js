@@ -194,6 +194,7 @@ class ProjectBrowser extends React.Component {
             key={projectObject.projectName}
             organizationName={this.props.organizationName}
             projectName={projectObject.projectName}
+            projectExistsLocally={projectObject.projectExistsLocally}
             projectPath={projectObject.projectPath}
             isDeleted={projectObject.isDeleted}
             launchProject={() => this.handleProjectLaunch(projectObject)}
