@@ -754,7 +754,6 @@ export default class Master extends EventEmitter {
 
       // Start watching the file system for changes
       (cb) => {
-        // No need to reinitialize if already in memory
         logger.info(`[master] ${loggingPrefix}: initializing file watcher`, this.folder)
         this.watchOn()
         logger.info(`[master] ${loggingPrefix}: file watcher is now watching`, this.folder)

@@ -1019,7 +1019,6 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
     return master
   }
 
-  this.masters[folder].watchOn()
   return this.masters[folder]
 }
 
