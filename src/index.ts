@@ -19,6 +19,7 @@ const ENDPOINTS = {
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: 'v0/support/upload/:UUID',
   UPDATES: 'v0/updates',
   USER_CREATE: 'v0/user',
+  USER_CONFIRM: 'v0/user/confirm',
   RESET_PASSWORD: 'v0/reset-password',
   RESET_PASSWORD_CLAIM: 'v0/reset-password/:UUID/claim',
 };
@@ -146,6 +147,20 @@ export namespace inkstone {
         } else {
           const response = body as string;
           cb(response, undefined, httpResponse);
+        }
+      });
+    }
+
+    export function confirm(token: string, cb: inkstone.Callback<Authentication>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: `${inkstoneConfig.baseUrl}${ENDPOINTS.USER_CONFIRM}/${token}`,
+      };
+
+      request.post(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, body, httpResponse);
+        } else {
+          cb(err, undefined, httpResponse);
         }
       });
     }
