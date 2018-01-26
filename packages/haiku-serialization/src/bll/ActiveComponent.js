@@ -325,15 +325,15 @@ class ActiveComponent extends BaseModel {
     return cb(null, pretty(html))
   }
 
-  setTimelineTimeValue (timelineTime, skipTransmit = false, forceSeek = false, forceSet = false) {
+  setTimelineTimeValue (timelineTime, forceSeek = false) {
     timelineTime = Math.round(timelineTime)
     // When doing a hardReload (in which we load a fresh component instance from disk)
     // that component will be completely fresh and not yet in 'controlled time' mode, which
     // means that it will initially start playing. Hard reload depends on being able to
-    // forceSet a time value to get it into 'controlled time' mode, hence this flag.
-    if (forceSet || timelineTime !== this.getCurrentTimelineTime()) {
+    // force set a time value to get it into 'controlled time' mode, hence the `forceSeek` flag.
+    if (forceSeek || timelineTime !== this.getCurrentTimelineTime()) {
       // Note that this call reaches in and updates our instance's timeline objects
-      Timeline.setCurrentTime({ component: this }, timelineTime, skipTransmit, forceSeek)
+      Timeline.setCurrentTime({ component: this }, timelineTime, /* skipTransmit= */ true, forceSeek)
       // Perform a lightweight full flush render, recomputing all values without without trying to be clever about
       // which properties have actually changed.
       this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
@@ -1904,7 +1904,7 @@ class ActiveComponent extends BaseModel {
           // If we don't do this here, continued edits at this time won't work properly.
           // We have to do this  __after rehydrate__ so we update all copies fo the models we've
           // just loaded into memory who have reset attributes.
-          this.setTimelineTimeValue(timelineTimeBeforeReload, true, true, true)
+          this.setTimelineTimeValue(timelineTimeBeforeReload, /* forceSeek= */ true)
           this.forceFlush()
 
           // Start the clock again, as we should now be ready to flow updated component.
