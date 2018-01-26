@@ -776,7 +776,7 @@ export class BodymovinExporter implements Exporter {
           attributes: {'haiku-id': newHaikuId},
           elementName: SvgTag.PathShape,
         },
-        parentNode,
+        undefined,
       );
     });
   }
