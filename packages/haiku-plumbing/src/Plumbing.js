@@ -683,9 +683,15 @@ export default class Plumbing extends StateObject {
 
   authenticateUser (username, password, cb) {
     this.set('organizationName', null) // Unset this cache to avoid writing others folders if somebody switches accounts in the middle of a session
+    inkstone.setConfig({ baseUrl: 'https://localhost:8080/' })
     return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
       if (authErr) return cb(authErr)
-      if (httpResponse.statusCode === 401) return cb(new Error('Unauthorized'))
+      if (httpResponse.statusCode === 401 || httpResponse.statusCode === 403) {
+        return cb({
+          code: httpResponse.statusCode,
+          message: httpResponse.body || 'Unauthorized'
+        })
+      }
 
       if (httpResponse.statusCode > 499) {
         const serverErr = new Error(`Auth HTTP Error: ${httpResponse.statusCode}`)

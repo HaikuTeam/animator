@@ -159,7 +159,11 @@ class AuthenticationUI extends React.Component {
   handleSubmit (submitEvent) {
     this.setState({ isSubmitting: true, error: null })
     return this.props.onSubmit(this.state.username, this.state.password, (error) => {
-      if (error) return this.setState({ error, isSubmitting: false })
+      if (error) {
+        this.refs.email.focus()
+        return this.setState({ error, isSubmitting: false })
+      }
+
       this.setState({ isSubmitting: false, isSuccess: true })
       this.props.onSubmitSuccess()
     })
@@ -228,14 +232,23 @@ class AuthenticationUI extends React.Component {
     )
   }
 
+  determineErrorColor (errorCode) {
+    switch(errorCode) {
+      case 403:
+        return Color(Palette.ORANGE).fade(0.5)
+      default:
+        return Color(Palette.RED).fade(0.5)
+    }
+  }
+
   errorElement () {
     if (this.state.error) {
-      var err = this.state.error.message
-      // hacky: special-case Unauthorized error to be a bit more friendly
-      if (err === 'Unauthorized') { err = 'Username or Password Incorrect' }
+      const {message, code} = this.state.error
+      const backgroundColor = this.determineErrorColor(code)
+
       return (
-        <div style={STYLES.error}>
-          <p>{err}</p>
+        <div style={{...STYLES.error, backgroundColor}}>
+          <p>{message}</p>
         </div>
       )
     }
