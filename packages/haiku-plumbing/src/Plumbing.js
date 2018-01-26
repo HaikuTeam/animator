@@ -753,12 +753,15 @@ export default class Plumbing extends StateObject {
           this.sentryError('listProjects', projectListErr)
           return cb(projectListErr)
         }
-        const finalList = projectsList.map((val) => remapProjectObjectToExpectedFormat(
-          val,
-          this.get('organizationName')
-        ))
-        logger.info('[plumbing] fetched project list', JSON.stringify(finalList))
-        return cb(null, finalList)
+
+        const finalList = new Array(projectsList.length)
+        async.eachOf(projectsList, (project, index, done) => {
+          finalList[index] = remapProjectObjectToExpectedFormat(project, this.get('organizationName'))
+          done()
+        }, () => {
+          logger.info('[plumbing] fetched project list', JSON.stringify(finalList))
+          cb(null, finalList)
+        })
       })
     } catch (exception) {
       logger.error(exception)
@@ -1165,14 +1168,16 @@ function createResponder (message, websocket) {
 }
 
 function remapProjectObjectToExpectedFormat (projectObject, organizationName) {
+  const projectPath = path.join(
+    HOMEDIR_PATH,
+    'projects',
+    organizationName,
+    projectObject.Name
+  )
   return {
+    projectPath,
     projectName: projectObject.Name,
-    projectPath: path.join(
-      HOMEDIR_PATH,
-      'projects',
-      organizationName,
-      projectObject.Name
-    ),
+    projectExistsLocally: fse.existsSync(projectPath),
     projectsHome: HOMEDIR_PATH,
     repositoryUrl: projectObject.RepositoryUrl
     // GitRemoteUrl
