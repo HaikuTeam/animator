@@ -1904,8 +1904,8 @@ class ActiveComponent extends BaseModel {
           // If we don't do this here, continued edits at this time won't work properly.
           // We have to do this  __after rehydrate__ so we update all copies fo the models we've
           // just loaded into memory who have reset attributes.
-          this.setTimelineTimeValue(timelineTimeBeforeReload, /* forceSeek= */ true)
           this.forceFlush()
+          this.setTimelineTimeValue(timelineTimeBeforeReload, /* forceSeek= */ true)
 
           // Start the clock again, as we should now be ready to flow updated component.
           this.getActiveInstancesOfHaikuPlayerComponent().forEach((instance) => {
