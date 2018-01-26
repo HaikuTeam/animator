@@ -19,7 +19,8 @@ const ENDPOINTS = {
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: 'v0/support/upload/:UUID',
   UPDATES: 'v0/updates',
   USER_CREATE: 'v0/user',
-  USER_CONFIRM: 'v0/user/confirm',
+  USER_CONFIRM: 'v0/user/confirm/:token',
+  USER_REQUEST_CONFIRM: '/user/resend-confirmation/:email'
   RESET_PASSWORD: 'v0/reset-password',
   RESET_PASSWORD_CLAIM: 'v0/reset-password/:UUID/claim',
 };
@@ -153,7 +154,7 @@ export namespace inkstone {
 
     export function confirm(token: string, cb: inkstone.Callback<Authentication>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
-        url: `${inkstoneConfig.baseUrl}${ENDPOINTS.USER_CONFIRM}/${token}`,
+        url: inkstoneConfig.baseUrl + ENDPOINTS.USER_CONFIRM.replace(':token', token)
       };
 
       request.post(options, (err, httpResponse, body) => {
@@ -179,6 +180,20 @@ export namespace inkstone {
           cb(undefined, true, httpResponse);
         } else {
           cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+    export function requestConfirmEmail(email: string, cb: inkstone.Callback<Authentication>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.USER_REQUEST_CONFIRM.replace(':email', email),
+      };
+
+      request.post(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          cb(undefined, body, httpResponse);
+        } else {
+          cb(err, undefined, httpResponse);
         }
       });
     }
