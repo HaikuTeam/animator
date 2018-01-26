@@ -331,7 +331,7 @@ export const pointsToInterpolationTrace = (svgPoints: string) => {
  * @returns {string[]}
  */
 export const decomposeMaybeCompoundPath = (path: string): string[] =>
-  path.split(/z/ig).filter((segment) => segment !== '');
+  path.split(/z/ig).filter((segment) => !!segment);
 
 /**
  * Derives keyframes as an array of numbers from a timeline property.
