@@ -587,7 +587,7 @@ Template.ensureTitleAndUidifyTree = function ensureTitleAndUidifyTree (mana, sou
     mana.attributes[HAIKU_TITLE_ATTRIBUTE] = title
   }
 
-  // Now make sure all elements in the tree get a preditable identifier assigned. It is critical that
+  // Now make sure all elements in the tree get a predictable identifier assigned. It is critical that
   // the UID generation be based on the existing tree's contents so that this same logic can run
   // in different processes and still give us an identical result, otherwise they will get out of sync
   Template.visitManaTreeSpecial('*', hash, mana, (node, fqa) => {

@@ -7,10 +7,6 @@ export default function assignStyle(domElement, style, component, isPatchOperati
     domElement.__haikuExplicitStyles = {};
   }
 
-  // if (domElement.haiku.element.attributes['haiku-id'] === '1fe03cab1105') {
-  //   console.log(style);
-  // }
-
   if (!isPatchOperation) {
     // If we have an element from a previous run, remove any old styles that aren't part of the new one
     if (
