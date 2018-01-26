@@ -90,7 +90,7 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
 const Q_GLASS = { alias: 'glass' }
 const Q_TIMELINE = { alias: 'timeline' }
 const Q_CREATOR = { alias: 'creator' }
-const MASTER_SPEC = 'master' // not a separate process
+const Q_MASTER = { alias: 'master' }
 
 const AWAIT_INTERVAL = 100
 const WAIT_DELAY = 10 * 1000
@@ -868,30 +868,32 @@ export default class Plumbing extends StateObject {
     return this.awaitMasterAndCallMethod(folder, 'readAllEventHandlers', [relpath, { from: 'master' }], cb)
   }
 
-  /** ------------------- */
-  /** ------------------- */
-  /** ------------------- */
-
   handleClientAction (type, alias, folder, method, params, cb) {
     // Params always arrive with the folder as the first argument, so we strip that off
     params = params.slice(1)
 
-    // Start with the glass, since that's most visible, then move through the rest, and end
-    // with master at the end, which results in a file system update reflecting the change
-    const asyncMethod = experimentIsEnabled(Experiment.AsyncClientActions) ? 'each' : 'eachSeries'
-    return async[asyncMethod]([Q_GLASS, Q_TIMELINE, Q_CREATOR, MASTER_SPEC], (clientSpec, nextStep) => {
-      if (clientSpec === MASTER_SPEC) {
-        logger.info(`[plumbing] -> client action ${method} being sent to master`)
-        return this.awaitMasterAndCallMethod(folder, method, params.concat({ from: alias }), cb)
-      }
+    const collatedOutput = {}
 
+    // Start with glass, since we depend on its handling of insantiateComponent to function correctly
+    const asyncMethod = experimentIsEnabled(Experiment.AsyncClientActions) ? 'each' : 'eachSeries'
+    return async[asyncMethod]([Q_GLASS, Q_TIMELINE, Q_CREATOR, Q_MASTER], (clientSpec, nextStep) => {
       if (clientSpec.alias === alias) {
         // Don't send methods that originated with ourself
         return nextStep()
       }
 
-      if (!IGNORED_METHOD_MESSAGES[method]) {
-        logger.info(`[plumbing] -> client action ${method} being sent to ${clientSpec.alias}`)
+      logActionInitiation(method, clientSpec)
+
+      // Master is handled differently because it's not actually a separate process
+      if (clientSpec === Q_MASTER) {
+        return this.awaitMasterAndCallMethod(folder, method, params.concat({ from: alias }), (err, maybeOutput) => {
+          if (err) return nextStep(err)
+
+          // Build accumulated output (if any) returned from each of the subviews
+          collatedOutput[clientSpec.alias] = maybeOutput
+
+          return nextStep()
+        })
       }
 
       return this.sendFolderSpecificClientMethodQuery(folder, clientSpec, method, params.concat({ from: alias }), (err, maybeOutput) => {
@@ -908,23 +910,36 @@ export default class Plumbing extends StateObject {
           }
         }
 
+        // Build accumulated output (if any) returned from each of the subviews
+        collatedOutput[clientSpec.alias] = maybeOutput
+
         return nextStep()
       })
     }, (err) => {
-      if (err) {
-        if (!IGNORED_METHOD_MESSAGES[method]) {
-          logger.info(`[plumbing] <- client action ${method} from ${type}@${alias} errored`, err)
-        }
-        if (cb) return cb(err)
-        return void (0)
-      }
-      if (!IGNORED_METHOD_MESSAGES[method]) {
-        logger.info(`[plumbing] <- client action ${method} from ${type}@${alias} complete`)
-      }
-      if (cb) return cb()
-      return void (0)
+      return logAndHandleActionResult(err, cb, collatedOutput, method, type, alias)
     })
   }
+}
+
+function logActionInitiation (method, clientSpec) {
+  if (!IGNORED_METHOD_MESSAGES[method]) {
+    logger.info(`[plumbing] -> client action ${method} being sent to ${clientSpec.alias}`)
+  }
+}
+
+function logAndHandleActionResult (err, cb, output, method, type, alias) {
+  if (!IGNORED_METHOD_MESSAGES[method]) {
+    const status = (err) ? 'errored' : 'completed'
+    logger.info(`[plumbing] <- client action ${method} from ${type}@${alias} ${status}`, err)
+  }
+
+  if (err) {
+    if (cb) return cb(err)
+    return void (0)
+  }
+
+  if (cb) return cb(null, output)
+  return void (0)
 }
 
 Plumbing.prototype.awaitMasterAndCallMethod = function (folder, method, params, cb) {

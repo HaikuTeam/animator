@@ -237,11 +237,7 @@ export default class Master extends EventEmitter {
       return this[method].apply(this, params.concat(cb))
     }
 
-    return this.project.handleMethodCall(method, params.concat(metadata), { /* message */ }, (err) => {
-      if (err) return cb(err)
-      // Since the project model may return unserializable values, exclude them
-      return cb()
-    })
+    return this.project.receiveMethodCall(method, params.concat(metadata), { /* message */ }, cb)
   }
 
   waitForSaveToComplete (cb) {

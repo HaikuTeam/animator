@@ -12,6 +12,7 @@ const { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
 const log = require('./helpers/log')
 const BaseModel = require('./BaseModel')
 const reifyRO = require('@haiku/player/lib/reflection/reifyRO').default
+const reifyRFO = require('@haiku/player/lib/reflection/reifyRFO').default
 const toTitleCase = require('./helpers/toTitleCase')
 const normalizeBytecodeFile = require('./../ast/normalizeBytecodeFile')
 
@@ -19,6 +20,7 @@ const WHITESPACE_REGEX = /\s+/
 const UNDERSCORE = '_'
 const WEBSOCKET_BATCH_INTERVAL = 250
 const HAIKU_CONFIG_FILE = 'haiku.js'
+const INSIDER_METHODS = { executeFunctionSpecification: true }
 
 /**
  * @class Project
@@ -91,16 +93,7 @@ class Project extends BaseModel {
 
       if (!this._didStartWebsocketListeners) {
         // Upon receipt of a method, route to the correct ActiveComponent
-        this.websocket.on('method', (method, params, message, cb) => {
-          if (this.isIgnoringMethodRequestsForMethod(method)) {
-            return null // Another handler will call the callback in this case
-          } else if (this.shouldShortCircuitRequestsForMethod(method)) {
-            return cb() // Skip the method and return; nobody will handle this otherwise
-          } else {
-            return this.handleMethodCall(method, params, message, cb)
-          }
-        })
-
+        this.websocket.on('method', this.receiveMethodCall.bind(this))
         this.websocket.on('close', () => log.info('[project] websocket closed'))
         this.websocket.on('error', () => log.info('[project] websocket error'))
 
@@ -168,7 +161,19 @@ class Project extends BaseModel {
     )
   }
 
-  handleMethodCall (method, params, message, cb) {
+  receiveMethodCall (method, params, message, cb) {
+    if (INSIDER_METHODS[method]) {
+      return this.handleMethodCall(method, params, message, cb, /* doReturnResult= */ true)
+    } else if (this.isIgnoringMethodRequestsForMethod(method)) {
+      return null // Another handler will call the callback in this case
+    } else if (this.shouldShortCircuitRequestsForMethod(method)) {
+      return cb() // Skip the method and return; nobody will handle this otherwise
+    } else {
+      return this.handleMethodCall(method, params, message, cb)
+    }
+  }
+
+  handleMethodCall (method, params, message, cb, doReturnResult = false) {
     // Try matching a method on a given active component
     const ac = this.findActiveComponentBySource(params[0])
     if (ac && typeof ac[method] === 'function') {
@@ -184,10 +189,10 @@ class Project extends BaseModel {
     if (typeof this[method] === 'function') {
       log.info(`[project (${this.getAlias()})] project handling method ${method}`, params, typeof cb === 'function')
       try {
-        return this[method].apply(this, params.concat((err) => {
+        return this[method].apply(this, params.concat((err, result) => {
           if (err) return cb(err)
-          // We usually return full objects, which don't play well with Websockets
-          return cb()
+          if (doReturnResult) return cb(null, result)
+          return cb() // Skip objects that don't play well with Websockets
         }))
       } catch (exception) {
         return cb(exception)
@@ -195,6 +200,35 @@ class Project extends BaseModel {
     }
 
     return cb(new Error(`Unknown project method ${method}`))
+  }
+
+  /**
+   * @method executeFunctionSpecification
+   * @description Harness to allow execution of arbitrary scripts in any view.
+   * This is an INSIDER_METHOD for dev/testing use only. :P
+   */
+  executeFunctionSpecification (_, { name, type, params, body, views }, metadata, cb) {
+    if (process.env.NODE_ENV === 'production') {
+      return cb()
+    }
+    if (views && views.indexOf(this.getAlias()) === -1) {
+      return cb()
+    }
+    try {
+      const fn = reifyRFO({ name, type, params, body })
+      return fn.call(this, (err, output) => {
+        if (err) return cb(err)
+        try {
+          return cb(null, output)
+        } catch (exception) {
+          log.error(exception)
+          return cb(exception)
+        }
+      })
+    } catch (exception) {
+      log.error(exception)
+      return cb(exception)
+    }
   }
 
   ensurePlatformHaikuRegistry () {
