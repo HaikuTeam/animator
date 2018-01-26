@@ -1,6 +1,15 @@
 # Changelog
 
 
+## 2.3.89
+
+### Bug Fixes
+
+ * for the mysterious disappearing polygon
+ * don't reapply parent transforms in a decomposed curve
+ * Smarter merge design logic
+ * for unclickable asset library
+
 ## 2.3.88
 
 ### Bug Fixes

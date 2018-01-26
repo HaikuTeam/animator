@@ -4272,5 +4272,27 @@
       "label": "feat",
       "message": "add logic to show a back button on the tour"
     }
+  },
+  "2.3.89": {
+    "768fd8a1c3bad419f8dff0bb19ba99e6d48b6d0e": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for the mysterious disappearing polygon"
+    },
+    "c46054c1e2b49de910b5f14c604de0db67202411": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "don't reapply parent transforms in a decomposed curve"
+    },
+    "1ffc4b9a63dfc75b7427c1c1794aa7a5cdb00170": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Smarter merge design logic"
+    },
+    "6d3bc7b537f5411ae9774a77ae9908c58c6724a1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for unclickable asset library"
+    }
   }
 }
