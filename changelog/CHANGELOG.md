@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 2.3.90
+
+### Features
+
+ * Provide comprehensive group composition support in Lottie.
+
 ## 2.3.89
 
 ### Bug Fixes
