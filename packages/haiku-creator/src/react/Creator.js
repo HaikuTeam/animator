@@ -28,7 +28,7 @@ import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter
 // (which works even inside JS with supported editors, using jsdoc type annotations)
 import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/User' // eslint-disable-line no-unused-vars
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
-import { isPreviewMode } from '@haiku/player/lib/helpers/interactionModes'
+import { InteractionMode, isPreviewMode } from '@haiku/player/lib/helpers/interactionModes'
 import Palette from 'haiku-ui-common/lib/Palette'
 import ActivityMonitor from '../utils/activityMonitor.js'
 import { HOMEDIR_LOGS_PATH, HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
@@ -828,7 +828,8 @@ export default class Creator extends React.Component {
     this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'component:mounted')
     this.setState({
       projectModel: null,
-      activeNav: 'library' // Prevents race+crash loading StateInspector when switching projects
+      activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects
+      interactionMode: InteractionMode.EDIT // So that the asset library will not be obscured on reentry
     })
 
     return this.props.websocket.request(
