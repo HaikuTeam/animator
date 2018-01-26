@@ -4294,5 +4294,12 @@
       "label": "fix",
       "message": "for unclickable asset library"
     }
+  },
+  "2.3.90": {
+    "8fc39d3739f5f8f223acbce7d9cbbad5648fe410": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Provide comprehensive group composition support in Lottie."
+    }
   }
 }
