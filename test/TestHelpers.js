@@ -1,6 +1,7 @@
 const path = require('path')
 const fse = require('fs-extra')
 const lodash = require('lodash')
+const functionToRFO = require('@haiku/player/lib/reflection/functionToRFO').default
 const haikuInfo = require('../packages/haiku-plumbing/lib/haikuInfo').default()
 const Plumbing = require('../packages/haiku-plumbing/lib/Plumbing').default
 
@@ -44,6 +45,10 @@ const startHaiku = (folder, cb) => {
     if (err) throw err
 
     awaitReady(0, folder, plumbing, () => {
+      /**
+       * @method method
+       * @description Run a plumbing method.
+       */
       plumbing.method = (method, params, done) => {
         params.unshift(folder)
         return plumbing.handleClientAction(
@@ -54,6 +59,25 @@ const startHaiku = (folder, cb) => {
           params,
           done
         )
+      }
+
+      /**
+       * @method exec
+       * @description Execute an arbitrary function.
+       * The this-binding of the fn will be an instance of Project.
+       */
+      plumbing.exec = (fn, { views }, done) => {
+        const rfo = functionToRFO(fn).__function
+        rfo.views = views
+        return plumbing.method('executeFunctionSpecification', ['', rfo], (err, output) => {
+          if (err) return done(err)
+          try {
+            return done(null, output)
+          } catch (exception) {
+            console.error(exception)
+            return done(exception)
+          }
+        })
       }
 
       cb(null, plumbing)
@@ -95,7 +119,15 @@ const wait = (secs, cb) => {
   }
 }
 
+const stripUnstableIdsFromHtml = (html) => {
+  return html.replace(/haiku-id=".{12}"/g, '')
+             .replace(/xlink:href=".+?"/g, '')
+             .replace(/id=".+?"/g, '')
+             .replace(/url\(#.+?\)/g, '')
+}
+
 module.exports = {
   e2e,
-  wait
+  wait,
+  stripUnstableIdsFromHtml
 }
