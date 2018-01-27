@@ -4330,5 +4330,6 @@
       "label": "feat",
       "message": "expose X-Haiku-Version header in all sdk-inkstone requests"
     }
-  }
+  },
+  "3.0.3": {}
 }
