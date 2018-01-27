@@ -104,6 +104,9 @@
     "asarUnpack": [
       "node_modules/haiku-plumbing/bins/*"
     ],
+    "extraResources": [
+      "app/index.js"
+    ],
     "files": [
       "package.json",
       "node_modules/**/*",
