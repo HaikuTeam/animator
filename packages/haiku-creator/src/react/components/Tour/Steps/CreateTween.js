@@ -9,7 +9,7 @@ export default function ({ styles }) {
         <p>Now let’s make the smoothly transition using using tweens:</p>
         <EmbeddedVideo name={'CreateTween'} />
         <p>Right (or CTRL+) click the space between keyframes and choose <strong>‘Make Tween —> Ease Out —> Back’</strong>.</p>
-        <p>That’ll give the animation a spring in it’s step— you’ll be able to experiment with the entire tween library later!</p>
+        <p>That’ll give the animation a spring in its step— you’ll be able to experiment with the entire tween library later!</p>
       </div>
     </div>
   )
