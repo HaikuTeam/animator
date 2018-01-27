@@ -1,6 +1,6 @@
 {
   "name": "haiku-bytecode",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Bytecode utilities",
   "main": "index.js",
   "scripts": {
@@ -24,7 +24,7 @@
     "tape": "^4.8.0"
   },
   "dependencies": {
-    "@haiku/player": "3.0.3",
+    "@haiku/player": "3.0.4",
     "camelcase": "^4.1.0",
     "handlebars": "^4.0.8",
     "lodash.assign": "^4.2.0",
