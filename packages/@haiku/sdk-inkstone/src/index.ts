@@ -1,5 +1,6 @@
 import * as requestLib from 'request';
 import * as _ from 'lodash';
+const packageJson = require('../package.json');
 
 // TODO: make file paths cross-platform friendly
 const ENDPOINTS = {
@@ -44,6 +45,9 @@ function safeError(err: any): any {
   return new Error('Uncategorized error');
 }
 
+
+
+
 export namespace inkstone {
 
   export interface InkstoneConfig {
@@ -69,16 +73,22 @@ export namespace inkstone {
     }
   }
 
+  const baseHeaders = {
+    'X-Haiku-Version' : packageJson.version,
+    'Content-Type': 'application/json',
+  };
+
   export type Callback<T> = (err: string, data: T, response: requestLib.RequestResponse) => void;
 
   export namespace support {
     export function getPresignedUrl(authToken: string, uuid: string, cb: inkstone.Callback<String>) {
+
+
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.SUPPORT_UPLOAD_GET_PRESIGNED_URL.replace(':UUID', uuid),
-        headers: {
-          'Content-Type': 'application/json',
+        headers: _.extend(baseHeaders, {
           Authorization: `INKSTONE auth_token="${authToken}"`,
-        },
+        }),
       };
 
       request.get(options, (err, httpResponse, body) => {
@@ -114,9 +124,7 @@ export namespace inkstone {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.LOGIN,
         json: formData,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: baseHeaders,
       };
 
       request.post(options, (err, httpResponse, body) => {
@@ -132,10 +140,9 @@ export namespace inkstone {
     export function changePassword(authToken: string, params: ChangePasswordParams, cb: inkstone.Callback<string>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.CHANGE_PASSWORD,
-        headers: {
-          'Content-Type': 'application/json',
+        headers: _.extend(baseHeaders, {
           Authorization: `INKSTONE auth_token="${authToken}"`,
-        },
+        }),
         json: params,
       };
 
@@ -153,9 +160,7 @@ export namespace inkstone {
     export function requestResetPassword(email: string, cb: inkstone.Callback<boolean>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.RESET_PASSWORD,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: baseHeaders,
         body: JSON.stringify({email}),
       };
 
@@ -173,9 +178,7 @@ export namespace inkstone {
 
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.RESET_PASSWORD_CLAIM.replace(':UUID', resetPasswordUUID),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: baseHeaders,
         body: JSON.stringify({password}),
       };
 
@@ -200,9 +203,7 @@ export namespace inkstone {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_CREATE,
         json: user,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: baseHeaders,
       };
 
       request.post(options, (err, httpResponse, body) => {
@@ -249,9 +250,7 @@ export namespace inkstone {
     export function getInviteFromPrefineryCode(params: PrefineryCheckParams, cb: inkstone.Callback<Invite>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.INVITE_PREFINERY_CHECK,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: baseHeaders,
         json: params,
       };
 
@@ -269,9 +268,7 @@ export namespace inkstone {
     export function checkValidity(code: string, cb: inkstone.Callback<InvitePresetDetails>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.INVITE_CHECK.replace(':CODE', code),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: baseHeaders,
       };
 
       request.get(options, (err, httpResponse, body) => {
@@ -295,9 +292,7 @@ export namespace inkstone {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.INVITE_CLAIM,
         json: claim,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: baseHeaders,
       };
 
       request.post(options, (err, httpResponse, body) => {
@@ -319,10 +314,9 @@ export namespace inkstone {
     export function list(authToken: string, cb: inkstone.Callback<Organization[]>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.ORGANIZATION_LIST,
-        headers: {
-          'Content-Type': 'application/json',
+        headers: _.extend(baseHeaders, {
           Authorization: `INKSTONE auth_token="${authToken}"`,
-        },
+        }),
       };
 
       request.get(options, (err, httpResponse, body) => {
@@ -375,9 +369,7 @@ export namespace inkstone {
       const url = inkstoneConfig.baseUrl + ENDPOINTS.SNAPSHOT_GET_BY_ID.replace(':ID', encodeURIComponent(id));
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: baseHeaders,
       };
 
       request.get(options, (err, httpResponse, body) => {
@@ -395,9 +387,7 @@ export namespace inkstone {
       const url = inkstoneConfig.baseUrl + ENDPOINTS.SNAPSHOT_SYNDICATED_BY_ID.replace(':ID', encodeURIComponent(id));
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: baseHeaders,
         body: JSON.stringify({secret_token: secretToken}),
       };
 
@@ -445,10 +435,9 @@ export namespace inkstone {
     export function create(authToken: string, params: ProjectCreateParams, cb: inkstone.Callback<Project>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_CREATE,
-        headers: {
-          'Content-Type': 'application/json',
+        headers: _.extend(baseHeaders, {
           Authorization: `INKSTONE auth_token="${authToken}"`,
-        },
+        }),
         json: params,
       };
 
@@ -465,10 +454,9 @@ export namespace inkstone {
     export function list(authToken: string, cb: inkstone.Callback<Project[]>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_LIST,
-        headers: {
-          'Content-Type': 'application/json',
+        headers: _.extend(baseHeaders, {
           Authorization: `INKSTONE auth_token="${authToken}"`,
-        },
+        }),
       };
 
       request.get(options, (err, httpResponse, body) => {
@@ -484,10 +472,9 @@ export namespace inkstone {
     export function getByName(authToken: string, name: string, cb: inkstone.Callback<ProjectAndCredentials>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_GET_BY_NAME.replace(':NAME', encodeURIComponent(name)),
-        headers: {
-          'Content-Type': 'application/json',
+        headers: _.extend(baseHeaders, {
           Authorization: `INKSTONE auth_token="${authToken}"`,
-        },
+        }),
       };
 
       request.get(options, (err, httpResponse, body) => {
@@ -504,10 +491,9 @@ export namespace inkstone {
 
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_DELETE_BY_NAME.replace(':NAME', encodeURIComponent(name)),
-        headers: {
-          'Content-Type': 'application/json',
+        headers: _.extend(baseHeaders, {
           Authorization: `INKSTONE auth_token="${authToken}"`,
-        },
+        }),
       };
 
       request.delete(options, (err, httpResponse, body) => {
@@ -525,10 +511,9 @@ export namespace inkstone {
         url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_SNAPSHOT_BY_NAME_AND_SHA
           .replace(':NAME', encodeURIComponent(name))
           .replace(':SHA', encodeURIComponent(sha)),
-        headers: {
-          'Content-Type': 'application/json',
+        headers: _.extend(baseHeaders, {
           Authorization: `INKSTONE auth_token="${authToken}"`,
-        },
+        }),
       };
 
       request.put(options, (err, httpResponse, body) => {
@@ -547,10 +532,9 @@ export namespace inkstone {
 
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.UPDATES + query,
-        headers: {
-          'Content-Type': 'application/json',
+        headers: _.extend(baseHeaders, {
           Authorization: `INKSTONE auth_token="${authToken}"`,
-        },
+        }),
       };
 
       request.get(options, (err, httpResponse, body) => {
