@@ -1,6 +1,17 @@
 # Changelog
 
 
+## 3.0.2
+
+### Bug Fixes
+
+ * don't show autoupdate prompt on start
+ * use a 3.0.x version of TimelineSkeletonState
+
+### Features
+
+ * expose X-Haiku-Version header in all sdk-inkstone requests
+
 ## 3.0.1
 
 ### Bug Fixes

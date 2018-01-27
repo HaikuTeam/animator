@@ -4313,5 +4313,22 @@
       "label": "fix",
       "message": "do not show reveal in finder for nonlocal projects"
     }
+  },
+  "3.0.2": {
+    "c89d9a7c156312d93020947d5cddba0e5173d92c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "don't show autoupdate prompt on start"
+    },
+    "4104fe15ac16faf98b5e07a343e5114969a6563d": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use a 3.0.x version of TimelineSkeletonState"
+    },
+    "9c5553ed156fb3ef899d4b9cb7f0dbf992dcedf3": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "expose X-Haiku-Version header in all sdk-inkstone requests"
+    }
   }
 }
