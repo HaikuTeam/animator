@@ -362,7 +362,7 @@ export default class Creator extends React.Component {
         this.user = user
 
         // kick off initial report
-        this.onActivityReport(true)
+        this.onActivityReport(true, true)
       }
     )
 
@@ -799,7 +799,7 @@ export default class Creator extends React.Component {
     })
   }
 
-  onActivityReport (userWasActive) {
+  onActivityReport (userWasActive, shouldSkipOptIn = false) {
     if (userWasActive) {
       this.user.reportActivity()
     }
@@ -808,7 +808,7 @@ export default class Creator extends React.Component {
       updater: {
         shouldCheck: true,
         shouldRunOnBackground: true,
-        shouldSkipOptIn: false
+        shouldSkipOptIn
       }
     })
   }
