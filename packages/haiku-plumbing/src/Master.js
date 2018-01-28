@@ -334,8 +334,6 @@ export default class Master extends EventEmitter {
               return void (0)
             }
 
-            file.reinitializeBytecode(this._config.get('config'))
-
             // Don't send the first reload for this component the first time since that
             // just represents the first time we've loaded it into memory (race condition)
             if (this._filesLoadedOnce[file.relpath]) {
@@ -390,8 +388,6 @@ export default class Master extends EventEmitter {
             if (relpath !== this.getActiveComponent().fetchActiveBytecodeFile().relpath) {
               return void (0)
             }
-
-            file.reinitializeBytecode(this._config.get('config'))
           })
         }
       })
