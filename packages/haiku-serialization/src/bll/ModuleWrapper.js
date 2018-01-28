@@ -41,6 +41,7 @@ class ModuleWrapper extends BaseModel {
     this.exp = null // Safest to set to null until we really load the content
     this._hasLoadedAtLeastOnce = false
     this._hasMonkeypatchedContent = false
+    this._projectConfig = null
   }
 
   hasLoadedAtLeastOnce () {
@@ -120,15 +121,43 @@ class ModuleWrapper extends BaseModel {
     return File.awaitUnlock(this.getAbspath(), cb)
   }
 
+  getProjectConfig () {
+    if (this._projectConfig) {
+      return this._projectConfig
+    }
+    try {
+      this._projectConfig = require(path.join(this.file.folder, 'haiku.js'))
+      return this._projectConfig
+    } catch (exception) {
+      console.warn('[module wrapper] Cannot load haiku.js')
+      return {}
+    }
+  }
+
   reload (cb) {
-    if (!cb) throw new Error('poo')
+    const config = this.getProjectConfig()
+
     return this.awaitUnlock(() => {
       return overrideModulesLoaded((stop) => {
         try {
           this.exp = require(this.getAbspath())
+
           this._hasLoadedAtLeastOnce = true
-          this.monkeypatch(this.exp) // Set whatever is in require.cache
-          stop() // Tell the node hook to stop interfering with require(...)
+
+          // Reassign in case our bytecode was empty and we created a new object
+          this.exp = Bytecode.reinitialize(
+            this.file.folder,
+            path.normalize(this.file.relpath),
+            this.exp,
+            config
+          )
+
+          // Set whatever is in require.cache and make sure that everybody
+          // else is using the same bytecode we have just updated in place
+          this.monkeypatch(this.exp)
+
+          // Tell the node hook to stop interfering with require(...)
+          stop()
         } catch (exception) {
           console.warn('[mod] ' + this.getAbspath() + ' could not be loaded (' + exception + ')')
           this.exp = null
@@ -280,4 +309,5 @@ ModuleWrapper.RELOAD_MODES = {
 module.exports = ModuleWrapper
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
+const Bytecode = require('./Bytecode')
 const File = require('./File')

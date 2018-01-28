@@ -1,13 +1,24 @@
 const lodash = require('lodash')
 const assign = require('lodash.assign')
+const path = require('path')
 const BaseModel = require('./BaseModel')
 const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
 const normalizeBytecodeFile = require('./../ast/normalizeBytecodeFile')
 const generateCode = require('./../ast/generateCode')
 const formatStandardSync = require('./../formatter/formatStandardSync')
+const xmlToMana = require('@haiku/player/lib/helpers/xmlToMana').default
 const cleanMana = require('haiku-bytecode/src/cleanMana')
+const ensureManaChildrenArray = require('haiku-bytecode/src/ensureManaChildrenArray')
+const writeMetadata = require('haiku-bytecode/src/writeMetadata')
+const convertManaLayout = require('@haiku/player/lib/layout/convertManaLayout').default
+const mergeTimelineStructure = require('haiku-bytecode/src/mergeTimelineStructure')
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
+const DEFAULT_TIMELINE_NAME = 'Default'
+const DEFAULT_TIMELINE_TIME = 0
+const DEFAULT_ROOT_NODE_NAME = 'div'
+const FALLBACK_TEMPLATE = '<' + DEFAULT_ROOT_NODE_NAME + '></' + DEFAULT_ROOT_NODE_NAME + '>'
+const DEFAULT_CONTEXT_SIZE = { width: 550, height: 400 }
 
 /**
  * @class Bytecode
@@ -426,6 +437,134 @@ Bytecode.decycle = (reified, { doCleanMana }) => {
   }
 
   return decycled
+}
+
+/**
+ * @method reinitializeBytecode
+ * @description Make sure the in-memory bytecode object has all of the correct settings,
+ * attributes, and structure. This ought to get called if the bytecode has just been
+ * ingested from somewhere and you need to make sure it is right.
+ */
+Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
+  let mana
+  if (typeof bytecode.template === 'string') {
+    mana = xmlToMana(bytecode.template || FALLBACK_TEMPLATE)
+  } else if (typeof bytecode.template === 'object') {
+    mana = bytecode.template || xmlToMana(FALLBACK_TEMPLATE)
+  } else {
+    // If nothing had been set, what is the risk of just setting it here?
+    mana = { elementName: 'div', attributes: {}, children: [] }
+  }
+
+  bytecode.template = mana
+
+  // Since we may be appending a child, make sure the children is an array
+  if (!Array.isArray(bytecode.template.children)) {
+    ensureManaChildrenArray(bytecode.template)
+  }
+
+  // We're about to mutate this, so may as well make sure it's present
+  if (!bytecode.template.attributes) bytecode.template.attributes = {}
+
+  Template.ensureTopLevelDisplayAttributes(bytecode.template)
+
+  // Hack...but helps avoid issues downstream if the template part of the bytecode was empty
+  if (!bytecode.template.elementName) bytecode.template.elementName = 'div'
+
+  // Ensure the top-level context gets the appropriate display attributes
+  Template.ensureRootDisplayAttributes(bytecode.template)
+
+  // Make sure there is an options object (can be used for playback configuration)
+  if (!bytecode.options) {
+    bytecode.options = {}
+  }
+
+  // Make sure there is always a timelines object
+  if (!bytecode.timelines) {
+    bytecode.timelines = {}
+  }
+
+  // And make sure there is always a default timelines object
+  if (!bytecode.timelines[DEFAULT_TIMELINE_NAME]) {
+    bytecode.timelines[DEFAULT_TIMELINE_NAME] = {}
+  }
+
+  convertManaLayout(bytecode.template)
+
+  // Make sure there is at least a baseline metadata objet
+  writeMetadata(bytecode, {
+    uuid: 'HAIKU_SHARE_UUID', // This magic string is detected+replaced by our cloud services to produce a full share link
+    type: 'haiku',
+    name: config.name,
+    relpath: relpath
+  })
+
+  // The same content when instantiated in a different host folder will result in a different absolute path
+  // (here called "context"), which in turn will result in the id generation algorithm, SHA256, generating
+  // different base identifiers across different projects despite the same actions.
+  const context = path.join(path.normalize(folder), path.normalize(relpath))
+
+  // Make sure all elements in the tree have a haiku-id assigned
+  Template.ensureTitleAndUidifyTree(
+    bytecode.template,
+    path.normalize(relpath),
+    context,
+    '0',
+    { title: config.name }
+  )
+
+  // Move inline attributes at the top level into the control object
+  const timeline = Template.hoistTreeAttributes(
+    bytecode.template,
+    DEFAULT_TIMELINE_NAME,
+    DEFAULT_TIMELINE_TIME
+  )
+
+  let contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
+
+  Bytecode.upsertDefaultProperties(bytecode, contextHaikuId, {
+    'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)',
+    'style.position': 'relative',
+    'style.overflowX': 'hidden',
+    'style.overflowY': 'hidden',
+    'sizeAbsolute.x': DEFAULT_CONTEXT_SIZE.width,
+    'sizeAbsolute.y': DEFAULT_CONTEXT_SIZE.height,
+    'sizeMode.x': 1,
+    'sizeMode.y': 1,
+    'sizeMode.z': 1
+  }, 'assign')
+
+  // Inject the hoisted attributes into the actual timelines object
+  mergeTimelineStructure(bytecode, timeline, 'defaults')
+
+  return bytecode
+}
+
+Bytecode.upsertDefaultProperties = (bytecode, componentId, propertiesToMerge, strategy) => {
+  if (!strategy) strategy = 'merge'
+
+  let haikuSelector = `haiku:${componentId}`
+
+  if (!bytecode.timelines.Default[haikuSelector]) bytecode.timelines.Default[haikuSelector] = {}
+
+  let defaultTimeline = bytecode.timelines.Default[haikuSelector]
+
+  for (let propName in propertiesToMerge) {
+    if (!defaultTimeline[propName]) defaultTimeline[propName] = {}
+
+    if (!defaultTimeline[propName][DEFAULT_TIMELINE_TIME]) {
+      defaultTimeline[propName][DEFAULT_TIMELINE_TIME] = {}
+    }
+
+    switch (strategy) {
+      case 'merge':
+        defaultTimeline[propName][DEFAULT_TIMELINE_TIME].value = propertiesToMerge[propName]
+        break
+      case 'assign':
+        if (defaultTimeline[propName][DEFAULT_TIMELINE_TIME].value === undefined) defaultTimeline[propName][DEFAULT_TIMELINE_TIME].value = propertiesToMerge[propName]
+        break
+    }
+  }
 }
 
 module.exports = Bytecode

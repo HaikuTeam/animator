@@ -1951,7 +1951,6 @@ class ActiveComponent extends BaseModel {
   moduleCreate (instanceConfig, cb) {
     return this.fetchActiveBytecodeFile().mod.configuredReload(instanceConfig, (err) => {
       if (err) return cb(err)
-      this.fetchActiveBytecodeFile().reinitializeBytecode(null) // Ensure we have ids, a template, etc.
       const reifiedBytecode = this.getReifiedBytecode()
       const createdHaikuPlayerComponent = this.createInstance(reifiedBytecode, instanceConfig)
       this.addInstanceOfHaikuPlayerComponent(createdHaikuPlayerComponent)
@@ -1995,14 +1994,6 @@ class ActiveComponent extends BaseModel {
     }
   }
 
-  updateBytecodeFileWthInstance (haikuPlayerComponent) {
-    // Update a bunch of pointers necessary for the bytecode file to work propertly
-    const bytecodeFile = this.fetchActiveBytecodeFile()
-    bytecodeFile.setHostInstance(haikuPlayerComponent)
-    bytecodeFile.hostInstance = haikuPlayerComponent
-    this.fetchActiveBytecodeFile().reinitializeBytecode(null)
-  }
-
   createInstance (bytecode, config) {
     const factory = HaikuDOMAdapter(bytecode, null, null)
 
@@ -2020,7 +2011,10 @@ class ActiveComponent extends BaseModel {
     // Make sure we get notified of state updates and everything else we care about
     createdHaikuPlayerComponent._doesEmitEventsVerbosely = true
 
-    this.updateBytecodeFileWthInstance(createdHaikuPlayerComponent)
+    // Update a bunch of pointers necessary for the bytecode file to work propertly
+    const bytecodeFile = this.fetchActiveBytecodeFile()
+    bytecodeFile.setHostInstance(createdHaikuPlayerComponent)
+    bytecodeFile.hostInstance = createdHaikuPlayerComponent
 
     return createdHaikuPlayerComponent
   }
@@ -2038,8 +2032,6 @@ class ActiveComponent extends BaseModel {
       existingActiveInstance._timelineInstances[timelineName] = existingActiveInstance._timelineInstances[timelineName]
       existingActiveInstance._timelineInstances[timelineName]._setComponent(freshInstance)
     }
-
-    this.updateBytecodeFileWthInstance(freshInstance)
 
     // Discard the old (deactivated) instance and subsume it with this one
     // Note that here we are iterating over the entire collection, not just the active ones
