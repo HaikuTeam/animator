@@ -373,27 +373,30 @@ class File extends BaseModel {
 
   applyPropertyGroupValue (componentId, timelineName, timelineTime, propertyGroup, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      let problem = false
       let elementNode = this.findElementByComponentId(mana, componentId)
-      if (elementNode) TimelineProperty.addPropertyGroup(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime)
-      else (problem = `Cannot locate element with id ${componentId}`)
-      if (problem) {
-        return done(new Error(problem))
+
+      if (elementNode) {
+        TimelineProperty.addPropertyGroup(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime)
+      } else {
+        // Things are badly broken if this happens; to avoid lost work, it's best to crash
+        throw new Error(`Cannot find element ${componentId}`)
       }
+
       return done()
     }, cb)
   }
 
   applyPropertyGroupDelta (componentId, timelineName, timelineTime, propertyGroup, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      let problem = false
       let elementNode = this.findElementByComponentId(mana, componentId)
+
       if (elementNode) {
         TimelineProperty.addPropertyGroupDelta(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime, this.getHostInstance(), this.getHostStates())
       } else {
-        problem = `Cannot locate element with id ${componentId}`
+        // Things are badly broken if this happens; to avoid lost work, it's best to crash
+        throw new Error(`Cannot find element ${componentId}`)
       }
-      if (problem) return done(new Error(problem))
+
       return done()
     }, cb)
   }
