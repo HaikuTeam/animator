@@ -38,6 +38,9 @@ do {
   })
 } while (foundNewDeps)
 
+// Perform hard reset.
+cp.execSync(`git reset --hard origin/master`)
+
 // Pull standalone remotes.
 openSourcePackages.forEach((pack) => {
   cp.execSync(`node ./scripts/git-subtree-pull.js --package=${pack.name}`, processOptions)
