@@ -790,7 +790,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
     };
 
     // Simulate the actual result of calling `Haiku.inject`.
-    const Haiku = require('@haiku/player');
+    const Haiku = require('@haiku/core');
     bytecode.timelines.Default['haiku:svg'].opacity = {
       0: {
         value: Haiku.inject(

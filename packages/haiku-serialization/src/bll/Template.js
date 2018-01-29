@@ -2,9 +2,9 @@ const path = require('path')
 const find = require('lodash.find')
 const merge = require('lodash.merge')
 const pascalcase = require('pascalcase')
-const SVGPoints = require('@haiku/player/lib/helpers/SVGPoints').default
-const convertManaLayout = require('@haiku/player/lib/layout/convertManaLayout').default
-const visitManaTree = require('@haiku/player/lib/helpers/visitManaTree').default
+const SVGPoints = require('@haiku/core/lib/helpers/SVGPoints').default
+const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
+const visitManaTree = require('@haiku/core/lib/helpers/visitManaTree').default
 const insertAttributesIntoTimelineGroup = require('haiku-bytecode/src/insertAttributesIntoTimelineGroup')
 const extractReferenceIdFromUrlReference = require('haiku-bytecode/src/extractReferenceIdFromUrlReference')
 const States = require('haiku-bytecode/src/States')
@@ -128,7 +128,7 @@ Template.manaWithOnlyMinimalProps = (mana) => {
       }
     }
 
-    // Note that this mana object is the same object that the player is rendering, and
+    // Note that this mana object is the same object that the core is rendering, and
     // since it has to mutate that template we need to omit any property that will cause
     // hashing differences across processes. Only stable attributes are used here.
     if (mana.attributes) {

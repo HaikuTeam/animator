@@ -13,7 +13,10 @@ const ROOT = global.process.cwd()
 const processOptions = { cwd: ROOT, stdio: 'inherit' }
 
 // The set of all projects we want to open source.
-const openSourceProjects = new Set(['@haiku/player', '@haiku/cli'])
+const openSourceProjects = new Set([
+  '@haiku/core',
+  '@haiku/cli'
+])
 
 // Pull in the set of dependencies recursively.
 const openSourcePackages = getPackages(Array.from(openSourceProjects))
@@ -67,8 +70,8 @@ openSourcePackages.forEach((pack) => {
   }
 })
 
-// Player needs a special build.
-cp.execSync(`node ./scripts/build-player.js --skip-compile=1`, processOptions)
+// @haiku/core needs a special build.
+cp.execSync(`node ./scripts/build-core.js --skip-compile=1`, processOptions)
 
 // Push up before we begin the actual work of publishing. This ensures that unmergeable changes are never published to
 // our standalones.
@@ -81,8 +84,8 @@ openSourcePackages.forEach((pack) => {
   cp.execSync(`node ./scripts/publish-package.js --package=${pack.name}`, processOptions)
 })
 
-// Publish Player to CDN.
-cp.execSync(`node ./scripts/upload-cdn-player.js`, processOptions)
+// Publish @haiku/core to CDN.
+cp.execSync(`node ./scripts/upload-cdn-core.js`, processOptions)
 
 // Push standalone remotes.
 openSourcePackages.forEach((pack) => {

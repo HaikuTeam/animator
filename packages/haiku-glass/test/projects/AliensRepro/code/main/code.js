@@ -1,4 +1,4 @@
-var Haiku = require("@haiku/player");
+var Haiku = require("@haiku/core");
 module.exports = {
   metadata: {
     uuid: "HAIKU_SHARE_UUID",

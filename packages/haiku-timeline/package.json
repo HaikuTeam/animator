@@ -30,7 +30,7 @@
     ]
   },
   "dependencies": {
-    "@haiku/player": "3.0.4",
+    "@haiku/core": "3.0.4",
     "archy": "^1.0.0",
     "classnames": "2.2.5",
     "codemirror": "^5.28.0",

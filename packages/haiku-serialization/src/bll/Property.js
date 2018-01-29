@@ -1,7 +1,7 @@
 const decamelize = require('decamelize')
 const titlecase = require('titlecase')
-const DOMSchema = require('@haiku/player/lib/properties/dom/schema').default
-const DOMFallbacks = require('@haiku/player/lib/properties/dom/fallbacks').default
+const DOMSchema = require('@haiku/core/lib/properties/dom/schema').default
+const DOMFallbacks = require('@haiku/core/lib/properties/dom/fallbacks').default
 const BaseModel = require('./BaseModel')
 
 /**
@@ -35,7 +35,7 @@ Property.assignDOMSchemaProperties = (out, element) => {
       typedef: schema[name],
       mock: void (0),
       target: element, // For internal filtering convenience; do not remove
-      value: void (0) // The player provides this, but we don't (or should we???)
+      value: void (0) // The component instance provides this, but we don't (or should we???)
     }
 
     // If we successfully created a property group, push it onto the list

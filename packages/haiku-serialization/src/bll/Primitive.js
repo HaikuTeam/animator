@@ -1,7 +1,7 @@
 const BaseModel = require('./BaseModel')
 
-// const HaikuPlayerBuiltinComponents = require('@haiku/player/components')
-const HaikuPlayerBuiltinComponents = {}
+// const HaikuCoreBuiltinComponents = require('@haiku/core/components')
+const HaikuCoreBuiltinComponents = {}
 
 /**
  * @class Primitive
@@ -40,11 +40,11 @@ BaseModel.extend(Primitive)
  * @returns {Object} The Primitive instance
  */
 Primitive.inferPrimitiveFromBytecode = (theirBytecode) => {
-  for (const classname in HaikuPlayerBuiltinComponents) {
+  for (const classname in HaikuCoreBuiltinComponents) {
     const {
       requirePath,
       bytecode
-    } = HaikuPlayerBuiltinComponents[classname]
+    } = HaikuCoreBuiltinComponents[classname]
 
     const areIsomorphic = Bytecode.areBytecodesIsomorphic(theirBytecode, bytecode)
 

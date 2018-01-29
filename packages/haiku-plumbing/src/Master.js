@@ -826,7 +826,8 @@ export default class Master extends EventEmitter {
 
           const bytecodeMetadata = {
             uuid: 'HAIKU_SHARE_UUID',
-            player: this._git.getHaikuPlayerLibVersion(),
+            core: this._git.getHaikuCoreLibVersion(),
+            player: this._git.getHaikuCoreLibVersion(), // #LEGACY
             version: semverVersion,
             organization: organizationName,
             project: projectName,
@@ -966,7 +967,7 @@ export default class Master extends EventEmitter {
   handleHaikuComponentMounted () {
     return this.awaitActiveComponent(() => {
       // Since we aren't running in the DOM cancel the raf to avoid leaked handles
-      this.getActiveComponent().getAllInstancesOfHaikuPlayerComponent().forEach((instance) => {
+      this.getActiveComponent().getAllInstancesOfHaikuCoreComponent().forEach((instance) => {
         instance._context.clock.GLOBAL_ANIMATION_HARNESS.cancel()
       })
 

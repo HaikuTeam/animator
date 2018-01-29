@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@haiku/cli": "3.0.4",
-    "@haiku/player": "3.0.4",
+    "@haiku/core": "3.0.4",
     "@haiku/sdk-client": "3.0.4",
     "@haiku/sdk-inkstone": "3.0.4",
     "async": "^2.5.0",

@@ -1,4 +1,4 @@
-var visitManaTree = require('@haiku/player/lib/helpers/visitManaTree').default
+var visitManaTree = require('@haiku/core/lib/helpers/visitManaTree').default
 
 function allElementsByName (mana) {
   var elements = {}

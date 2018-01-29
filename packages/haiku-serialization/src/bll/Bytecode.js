@@ -6,11 +6,11 @@ const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
 const normalizeBytecodeFile = require('./../ast/normalizeBytecodeFile')
 const generateCode = require('./../ast/generateCode')
 const formatStandardSync = require('./../formatter/formatStandardSync')
-const xmlToMana = require('@haiku/player/lib/helpers/xmlToMana').default
+const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const cleanMana = require('haiku-bytecode/src/cleanMana')
 const ensureManaChildrenArray = require('haiku-bytecode/src/ensureManaChildrenArray')
 const writeMetadata = require('haiku-bytecode/src/writeMetadata')
-const convertManaLayout = require('@haiku/player/lib/layout/convertManaLayout').default
+const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
 const mergeTimelineStructure = require('haiku-bytecode/src/mergeTimelineStructure')
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'

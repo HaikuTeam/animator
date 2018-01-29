@@ -71,7 +71,7 @@ const reticulations = [
   'Preparing design files',
   'Preparing code files',
   'Installing dependencies',
-  'Checking for Haiku Player updates',
+  'Checking for Haiku Core updates',
   'Watching source files for changes',
   'Initializing component'
 ]

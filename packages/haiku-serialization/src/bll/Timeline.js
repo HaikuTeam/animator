@@ -2,7 +2,7 @@ const numeral = require('numeral')
 const lodash = require('lodash')
 const assign = require('lodash.assign')
 const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
-const getTimelineMaxTime = require('@haiku/player/lib/helpers/getTimelineMaxTime').default
+const getTimelineMaxTime = require('@haiku/core/lib/helpers/getTimelineMaxTime').default
 const BaseModel = require('./BaseModel')
 const MathUtils = require('./MathUtils')
 const formatSeconds = require('haiku-ui-common/lib/helpers/formatSeconds').default
@@ -287,7 +287,7 @@ class Timeline extends BaseModel {
   }
 
   getFPS () {
-    const instance = this.component.getPlayerComponentInstance()
+    const instance = this.component.getCoreComponentInstance()
     if (!instance) return 60
     return instance.getClock().getFPS()
   }
@@ -341,7 +341,7 @@ class Timeline extends BaseModel {
     // If we've loaded the instance, reach in and make sure its internals are up to date
     // with ours. TODO: Explore ways to avoid duplicating the source of truth
 
-    this.component.eachPlayerComponentInstance((instance) => {
+    this.component.eachCoreComponentInstance((instance) => {
       const explicitTime = instance._context.clock.getExplicitTime()
       const timelineInstances = instance._timelineInstances
 
@@ -366,7 +366,7 @@ class Timeline extends BaseModel {
   togglePreviewPlayback (isPreviewMode) {
     const timelineName = this.component.getCurrentTimelineName()
 
-    this.component.eachPlayerComponentInstance((instance) => {
+    this.component.eachCoreComponentInstance((instance) => {
       const timelineInstances = instance._timelineInstances
       const timelineInstance = timelineInstances[timelineName]
 

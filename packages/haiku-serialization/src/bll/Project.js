@@ -11,8 +11,8 @@ const EnvoyLogger = require('haiku-sdk-creator/lib/envoy/EnvoyLogger').default
 const { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
 const log = require('./helpers/log')
 const BaseModel = require('./BaseModel')
-const reifyRO = require('@haiku/player/lib/reflection/reifyRO').default
-const reifyRFO = require('@haiku/player/lib/reflection/reifyRFO').default
+const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
+const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
 const toTitleCase = require('./helpers/toTitleCase')
 const normalizeBytecodeFile = require('./../ast/normalizeBytecodeFile')
 
@@ -969,7 +969,7 @@ const Template = require('./Template')
 
 function getCodeJs (haikuId, haikuComponentName) {
   return dedent`
-    var Haiku = require('@haiku/player')
+    var Haiku = require('@haiku/core')
     module.exports = {
       metadata: {},
       options: {},
@@ -991,21 +991,25 @@ function getCodeJs (haikuId, haikuComponentName) {
 }
 
 const DOM_JS = dedent`
-  var HaikuDOMAdapter = require('@haiku/player/dom')
+  var HaikuDOMAdapter = require('@haiku/core/dom')
   module.exports = HaikuDOMAdapter(require('./code'))
 `.trim()
 
 const DOM_EMBED_JS = dedent`
   var code = require('./code')
-  var adapter = window.HaikuPlayer && window.HaikuPlayer['${ModuleWrapper.PLAYER_VERSION}']
+  var adapter = window.HaikuCore && window.HaikuCore['${ModuleWrapper.CORE_VERSION}']
+  if (!adapter) {
+    // See if we can find the legacy player module if HaikuCore isn't present
+    adapter = window.HaikuPlayer && window.HaikuPlayer['${ModuleWrapper.CORE_VERSION}']
+  }
   if (adapter) {
     module.exports = adapter(code)
   } else  {
     function safety () {
       console.error(
-        '[haiku player] player version ${ModuleWrapper.PLAYER_VERSION} seems to be missing. ' +
-        'index.embed.js expects it at window.HaikuPlayer["${ModuleWrapper.PLAYER_VERSION}"], but we cannot find it. ' +
-        'you may need to add a <script src="path/to/HaikuPlayer.js"></script> to fix this.'
+        '[haiku core] core version ${ModuleWrapper.CORE_VERSION} seems to be missing. ' +
+        'index.embed.js expects it at window.HaikuCore["${ModuleWrapper.CORE_VERSION}"], but we cannot find it. ' +
+        'you may need to add a <script src="path/to/HaikuCore.js"></script> to fix this.'
       )
       return code
     }
@@ -1021,9 +1025,9 @@ const DOM_STANDALONE_JS = dedent`
 `.trim()
 
 const REACT_DOM_JS = dedent`
-  var React = require('react') // Installed as a peer dependency of '@haiku/player'
-  var ReactDOM = require('react-dom') // Installed as a peer dependency of '@haiku/player'
-  var HaikuReactAdapter = require('@haiku/player/dom/react')
+  var React = require('react') // Installed as a peer dependency of '@haiku/core'
+  var ReactDOM = require('react-dom') // Installed as a peer dependency of '@haiku/core'
+  var HaikuReactAdapter = require('@haiku/core/dom/react')
   var HaikuReactComponent = HaikuReactAdapter(require('./dom'))
   if (HaikuReactComponent.default) HaikuReactComponent = HaikuReactComponent.default
   module.exports = HaikuReactComponent

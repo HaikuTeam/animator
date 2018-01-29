@@ -1,8 +1,8 @@
-var DOMSchema = require('@haiku/player/lib/properties/dom/schema').default
-var DOMFallbacks = require('@haiku/player/lib/properties/dom/fallbacks').default
+var DOMSchema = require('@haiku/core/lib/properties/dom/schema').default
+var DOMFallbacks = require('@haiku/core/lib/properties/dom/fallbacks').default
 var computeNumericDelta = require('./computeNumericDelta')
 
-// This module also "sort of" depends on @haiku/player/ValueBuilder even though the instance of that
+// This module also "sort of" depends on @haiku/core/ValueBuilder even though the instance of that
 // module is dependency injected as part of the getPropertyValueAtTime operation
 
 function getSelectorForComponentId (componentId) {
@@ -116,7 +116,7 @@ function getPropertyValueAtTime (timelinesObject, timelineName, componentId, ele
 
   if (propertiesGroup) {
     try {
-      // The hostInstance, which should be a HaikuPlayer, should have a 'ValueBuilder' attached to it under the property name 'builder'
+      // The hostInstance, which should be a HaikuCore, should have a 'ValueBuilder' attached to it under the property name 'builder'
       // This instance is responsible for dependency injection, caching, and recalc of transitioning values on the fly. (Pardon the dumb name.)
       if (hostInstance && hostInstance._builder) {
         var computedValue = hostInstance._builder.grabValue(

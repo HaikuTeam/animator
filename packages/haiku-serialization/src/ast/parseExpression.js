@@ -2,7 +2,7 @@ var Parser = require('cst').Parser
 var walk = require('estree-walker').walk
 var fsm = require('fuzzy-string-matching')
 var uniq = require('lodash').uniq
-var FORBIDDEN_EXPRESSION_TOKENS = require('@haiku/player/lib/ValueBuilder').default.FORBIDDEN_EXPRESSION_TOKENS
+var FORBIDDEN_EXPRESSION_TOKENS = require('@haiku/core/lib/ValueBuilder').default.FORBIDDEN_EXPRESSION_TOKENS
 
 var PARSER = new Parser()
 PARSER._options.sourceType = 'script'
@@ -373,7 +373,7 @@ function parseExpression (expr, injectables, keywords, state, cursor, options) {
           return null
         }
         // Don't include any reference in the final params if it doesn't match
-        // a known injectable that the player can provide
+        // a known injectable that core can provide
         if (!injectables[reference.name]) {
           return null
         }

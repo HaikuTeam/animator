@@ -1,5 +1,5 @@
 import prettier from 'prettier'
-import functionToRFO from '@haiku/player/lib/reflection/functionToRFO'
+import functionToRFO from '@haiku/core/lib/reflection/functionToRFO'
 
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 

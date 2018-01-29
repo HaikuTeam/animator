@@ -1,5 +1,5 @@
 /** @file Generic handling for injectables through export. */
-import functionToRFO from '@haiku/player/lib/reflection/functionToRFO';
+import functionToRFO from '@haiku/core/lib/reflection/functionToRFO';
 
 /**
  * A class we can instantiate to act as a stub for injectables that can't be evaluated sensibly during export.

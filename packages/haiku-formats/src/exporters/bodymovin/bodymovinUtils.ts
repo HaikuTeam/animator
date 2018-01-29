@@ -1,4 +1,4 @@
-import SVGPoints from '@haiku/player/lib/helpers/SVGPoints';
+import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {
   AnimationKey,
   PathKey,

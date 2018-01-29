@@ -1,9 +1,9 @@
 const lodash = require('lodash')
-const SVGPoints = require('@haiku/player/lib/helpers/SVGPoints').default
-const Layout3D = require('@haiku/player/lib/Layout3D').default
-const cssQueryTree = require('@haiku/player/lib/helpers/cssQueryTree').default
-const KnownDOMEvents = require('@haiku/player/lib/renderers/dom/Events').default
-const DOMSchema = require('@haiku/player/lib/properties/dom/schema').default
+const SVGPoints = require('@haiku/core/lib/helpers/SVGPoints').default
+const Layout3D = require('@haiku/core/lib/Layout3D').default
+const cssQueryTree = require('@haiku/core/lib/helpers/cssQueryTree').default
+const KnownDOMEvents = require('@haiku/core/lib/renderers/dom/Events').default
+const DOMSchema = require('@haiku/core/lib/properties/dom/schema').default
 const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
 const manaToHtml = require('haiku-bytecode/src/manaToHtml')
 const manaToJson = require('haiku-bytecode/src/manaToJson')
@@ -184,11 +184,11 @@ class Element extends BaseModel {
     return this.staticTemplateNode
   }
 
-  getPlayerHostComponentInstance () {
-    return this.component.getPlayerComponentInstance()
+  getCoreHostComponentInstance () {
+    return this.component.getCoreComponentInstance()
   }
 
-  getPlayerTargetComponentInstance () {
+  getCoreTargetComponentInstance () {
     if (!this.isComponent()) return null
     const liveRenderedNode = this.getLiveRenderedNode()
     if (!liveRenderedNode) return null
@@ -198,7 +198,7 @@ class Element extends BaseModel {
   getLiveRenderedNode () {
     // We query our "host" instance to get our wrapper node that it "hosts"
     // Note the difference from the target instance
-    const instance = this.getPlayerHostComponentInstance()
+    const instance = this.getCoreHostComponentInstance()
     const element = instance.findElementsByHaikuId(this.getComponentId())[0]
     return element
   }
@@ -551,7 +551,7 @@ class Element extends BaseModel {
       this.component.fetchActiveBytecodeFile().getHostStates()
     )
     // Re: the scale NaN/Infinity issue on a freshly instantiated component module,
-    // The problem is probably upstream of here in the player or ActiveComponent
+    // The problem is probably upstream of here in core or ActiveComponent
     return computed
   }
 
@@ -915,8 +915,8 @@ class Element extends BaseModel {
   getHostedComponent () {
     if (!this.isComponent()) return null
     const staticTemplateNode = this.getStaticTemplateNode()
-    const playerComponentInstance = staticTemplateNode && staticTemplateNode.__instance
-    const activeComponent = playerComponentInstance && playerComponentInstance.__activeComponent
+    const coreComponentInstance = staticTemplateNode && staticTemplateNode.__instance
+    const activeComponent = coreComponentInstance && coreComponentInstance.__activeComponent
     return activeComponent
   }
 
@@ -960,7 +960,7 @@ class Element extends BaseModel {
 
     // If this is a component, then add any of our exposed states as addressables
     if (this.isComponent()) {
-      const component = this.getPlayerTargetComponentInstance()
+      const component = this.getCoreTargetComponentInstance()
       if (component) {
         // The addressables are mutated in place
         // Note that the states also contain .value() for lazy evaluation of current state

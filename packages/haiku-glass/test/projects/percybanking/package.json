@@ -12,6 +12,6 @@
   "license": "LicenseRef-LICENSE",
   "main": "index.js",
   "dependencies": {
-    "@haiku/player": "2.3.35"
+    "@haiku/core": "2.3.35"
   }
 }
