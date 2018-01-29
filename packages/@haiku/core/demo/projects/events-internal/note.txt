@@ -1,0 +1,1 @@
+Open your JavaScript console. You should see some events logged.
