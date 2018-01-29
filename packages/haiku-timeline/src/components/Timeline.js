@@ -21,7 +21,7 @@ import Gauge from './Gauge'
 import GaugeTimeReadout from './GaugeTimeReadout'
 import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
-import {isPreviewMode} from '@haiku/player/lib/helpers/interactionModes'
+import {isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
 import { USER_CHANNEL } from 'haiku-sdk-creator/lib/bll/User'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack

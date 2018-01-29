@@ -3,7 +3,7 @@ import Color from 'color'
 import lodash from 'lodash'
 import CodeMirror from 'codemirror'
 import stripindent from 'strip-indent'
-import marshalParams from '@haiku/player/lib/reflection/marshalParams'
+import marshalParams from '@haiku/core/lib/reflection/marshalParams'
 import parseExpression from 'haiku-serialization/src/ast/parseExpression'
 import MathUtils from 'haiku-serialization/src/bll/MathUtils'
 import Palette from 'haiku-ui-common/lib/Palette'
@@ -385,7 +385,7 @@ export default class ExpressionInput extends React.Component {
       // parsing to produce a summary that includes add'l validation information about the contents
       //
       // Since ActiveComponent manages multiple instances, we kind of have to choose just one
-      const instance = this.props.reactParent.getActiveComponent().getPlayerComponentInstance()
+      const instance = this.props.reactParent.getActiveComponent().getCoreComponentInstance()
       let injectables = (instance && instance._getInjectables()) || {}
 
       this.resetSyntaxInjectables(injectables)
