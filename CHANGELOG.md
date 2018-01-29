@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.8
+
+### Bug Fixes
+
+ * set correct params for inkstone.user#requestConfirmation
+
 ## 3.0.7
 
 ### Features
