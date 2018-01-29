@@ -1,6 +1,7 @@
 const path = require('path')
 const lodash = require('lodash')
 const cp = require('child_process')
+const fse = require('fs-extra')
 const argv = require('yargs').argv
 
 const log = require('./helpers/log')
@@ -22,6 +23,7 @@ function monobin (name) {
 
 const makeBundle = () => {
   log.log('browserifying core packages and adapters')
+  fse.mkdirp(path.join(CORE_PATH, 'dist'))
 
   log.log(cp.execSync(`${monobin('browserify')} ${JSON.stringify(path.join(CORE_PATH, 'lib', 'adapters', 'dom', 'index.js'))} --standalone HaikuDOMAdapter | ${monobin('derequire')} > ${JSON.stringify(path.join(CORE_PATH, 'dist', 'dom.bundle.js'))}`).toString())
   log.log(cp.execSync(`${monobin('browserify')} ${JSON.stringify(path.join(CORE_PATH, 'lib', 'adapters', 'react-dom', 'index.js'))} --standalone HaikuReactAdapter --external react --external react-test-renderer --external lodash.merge | ${monobin('derequire')} > ${JSON.stringify(path.join(CORE_PATH, 'dist', 'react-dom.bundle.js'))} && sed -i '' -E -e "s/_dereq_[(]'(react|react-test-renderer|lodash\\.merge)'[)]/require('\\1')/g" ${JSON.stringify(path.join(CORE_PATH, 'dist', 'react-dom.bundle.js'))}`).toString())
