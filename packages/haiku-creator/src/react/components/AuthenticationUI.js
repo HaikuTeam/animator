@@ -6,6 +6,7 @@ import { shake } from 'react-animations'
 import { FadingCircle } from 'better-react-spinkit'
 import Palette from 'haiku-ui-common/lib/Palette'
 import { LogoGradientSVG, UserIconSVG, PasswordIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
+import { inkstone } from '@haiku/sdk-inkstone'
 
 const STYLES = {
   container: {
@@ -140,7 +141,8 @@ class AuthenticationUI extends React.Component {
       isSuccess: false,
       username: '',
       password: '',
-      emailValid: true
+      emailValid: true,
+      lastSentUsername: null
     }
   }
 
@@ -157,7 +159,7 @@ class AuthenticationUI extends React.Component {
   }
 
   handleSubmit (submitEvent) {
-    this.setState({ isSubmitting: true, error: null })
+    this.setState({ isSubmitting: true, error: null, lastSentUsername: this.state.username })
     return this.props.onSubmit(this.state.username, this.state.password, (error) => {
       if (error) {
         this.refs.email.focus()
@@ -232,28 +234,46 @@ class AuthenticationUI extends React.Component {
     )
   }
 
-  determineErrorColor (errorCode) {
-    switch (errorCode) {
+  generateErrorSpec () {
+    const {message, code} = this.state.error
+
+    switch (code) {
       case 403:
-        return Color(Palette.ORANGE).fade(0.5)
+        return {
+          backgroundColor: Color(Palette.ORANGE).fade(0.5),
+          message: (
+            <p>
+              {message} <br />
+              <span
+                style={{...STYLES.link, color: Palette.COAL, marginTop: 0}}
+                ref={(span) => { this.verificationText = span }}
+                onClick={() => {
+                  if (this.state.lastSentUsername) {
+                    inkstone.user.requestConfirmEmail(this.state.lastSentUsername, () => {})
+                    this.verificationText.innerHTML = 'Sent!'
+                  }
+                }}
+              >
+                Send verification again.
+              </span>
+            </p>
+          )
+        }
       default:
-        return Color(Palette.RED).fade(0.5)
+        return {
+          backgroundColor: Color(Palette.RED).fade(0.5),
+          message
+        }
     }
   }
 
   errorElement () {
     if (this.state.error) {
-      const {message, code} = this.state.error
-      const backgroundColor = this.determineErrorColor(code)
+      const {message, backgroundColor} = this.generateErrorSpec()
 
-      return (
-        <div style={{...STYLES.error, backgroundColor}}>
-          <p>{message}</p>
-        </div>
-      )
+      return <div style={{...STYLES.error, backgroundColor}}>{message}</div>
     }
   }
-
   submitButtonElement () {
     let submitButtonMessage
     if (this.state.isSubmitting) submitButtonMessage = <FadingCircle size={22} color={Palette.ROCK} />
