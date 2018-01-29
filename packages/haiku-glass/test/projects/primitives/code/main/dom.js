@@ -1,2 +1,2 @@
-var HaikuCreation = require('@haiku/player/dom')
+var HaikuCreation = require('@haiku/core/dom')
 module.exports = HaikuCreation(require('./code.js'))

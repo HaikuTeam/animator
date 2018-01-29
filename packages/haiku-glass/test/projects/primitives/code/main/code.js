@@ -1,4 +1,4 @@
-var Haiku = require("@haiku/player");
+var Haiku = require("@haiku/core");
 var designs_ted_sketch_contents_artboards_ted_svg = require("../designs_ted_sketch_contents_artboards_ted_svg/code.js");
 module.exports = {
   metadata: {

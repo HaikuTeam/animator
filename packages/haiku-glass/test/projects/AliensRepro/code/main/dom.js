@@ -1,2 +1,2 @@
-var HaikuDOMAdapter = require('@haiku/player/dom')
+var HaikuDOMAdapter = require('@haiku/core/dom')
 module.exports = HaikuDOMAdapter(require('./code'))
