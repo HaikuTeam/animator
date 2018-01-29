@@ -4411,5 +4411,27 @@
       "label": "fix",
       "message": "update the error handling logic in sign up"
     }
+  },
+  "3.0.7": {
+    "2ee169a33ff7772453a1b8efd2fe0201d2d7000e": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add a link to resend verification"
+    },
+    "fff070e8ff65766b1d7627f5f95dbb939a1b5a3c": {
+      "project": "@haiku/sdk-client",
+      "label": "docs",
+      "message": "Add roadmap section to README"
+    },
+    "e449d89cb87c05adb95d33ce8beb4721d280314f": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add inkstone endpoints for resending email verification"
+    },
+    "1dd9997c1bf36dddea5348c72e79435c27a24c05": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add sdk-inkstone endpoint to verify users"
+    }
   }
 }
