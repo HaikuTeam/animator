@@ -1,2 +1,0 @@
-Try clicking between Home and Other and ensure that the Haiku component stays there.
-The component should pause at the place it was, and resume when toggled back.

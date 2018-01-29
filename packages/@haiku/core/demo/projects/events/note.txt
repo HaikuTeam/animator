@@ -1,1 +1,0 @@
-Open your console. Resize the window. Click the boxes. You should see things logged.
