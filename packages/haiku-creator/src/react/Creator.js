@@ -800,7 +800,7 @@ export default class Creator extends React.Component {
   }
 
   onActivityReport (userWasActive, shouldSkipOptIn = false) {
-    if (userWasActive) {
+    if (userWasActive && this.user) {
       this.user.reportActivity()
     }
 
