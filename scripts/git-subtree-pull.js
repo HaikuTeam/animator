@@ -22,9 +22,11 @@ const pack = packageName === 'changelog'
   }
   : getPackage(packageName)
 
+const prefix = packageName === 'changelog' ? 'changelog' : `packages/${pack.name}`
+
 log.hat(`pulling changes from git subtree for ${packageName} on ${branch}`)
 
-const cmd = `git subtree pull --prefix ${pack.name} ${pack.remote} ${branch} \
+const cmd = `git subtree pull --prefix ${prefix} ${pack.remote} ${branch} \
   -m 'auto: subtree pull for ${packageName} at ${semver}'`
 log.log(cmd)
 cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
