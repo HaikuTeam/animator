@@ -686,6 +686,7 @@ export default class Plumbing extends StateObject {
     return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
       if (authErr) return cb(authErr)
       if (httpResponse.statusCode === 401 || httpResponse.statusCode === 403) {
+        // eslint-disable-next-line standard/no-callback-literal
         return cb({
           code: httpResponse.statusCode,
           message: httpResponse.body || 'Unauthorized'
