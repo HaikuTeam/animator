@@ -22,6 +22,10 @@
     "7zip-bin-mac" "^1.0.1"
     "7zip-bin-win" "^2.1.1"
 
+"@haiku/player@^3.0.1":
+  version "3.0.4"
+  resolved "https://reservoir.haiku.ai:8910/@haiku%2fplayer/-/player-3.0.4.tgz#dd0bb8fbdea4751c8825adbd6b8ec528a781abaa"
+
 "@haiku/taylor-timelineskeletonstate@^0.0.9":
   version "0.0.9"
   resolved "https://reservoir.haiku.ai:8910/@haiku%2ftaylor-timelineskeletonstate/-/taylor-timelineskeletonstate-0.0.9.tgz#7c4bac2b361ab0ffdf267045a70720f19396602c"

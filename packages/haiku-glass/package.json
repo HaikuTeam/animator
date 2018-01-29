@@ -18,7 +18,7 @@
     ]
   },
   "dependencies": {
-    "@haiku/player": "3.0.4",
+    "@haiku/core": "3.0.4",
     "babel-register": "6.26.0",
     "bluebird": "^3.5.0",
     "capitalize": "^1.0.0",
