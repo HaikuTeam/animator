@@ -17,10 +17,6 @@ Haiku Core is the JavaScript engine that runs [Haiku for Mac](https://haiku.ai).
 
 ### Inteprets Haiku-designed components for rendering on the web
 
-<p align="center">
-  <img width="600" src='docs/assets/visual-of-ui-code.png' />
-</p>
-
 The Haiku app turns your designs into components and Haiku Core renders them. Since Haiku Core is built on pure and open web standards (HTML, CSS, JavaScript), your users won't ever need to install a plugin.
 
 <br>
