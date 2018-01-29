@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2018. All rights reserved.
+ */
+
 import getDomEventPosition from './getDomEventPosition';
 
 export default function getLocalDomEventPosition(event, element) {

@@ -1,4 +1,8 @@
 /**
+ * Copyright (c) Haiku 2016-2018. All rights reserved.
+ */
+
+/**
  * Just a dictionary of all JavaScript reserved words (current and future).
  * This is used during code generation to ensure that neither element attributes
  * nor user-defined states collide with known keywords which will cause problems
