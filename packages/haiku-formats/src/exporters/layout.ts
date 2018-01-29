@@ -1,7 +1,7 @@
-import composedTransformsToTimelineProperties from '@haiku/player/lib/helpers/composedTransformsToTimelineProperties';
-import computeMatrix from '@haiku/player/lib/layout/computeMatrix';
-import Layout3D from '@haiku/player/lib/Layout3D';
-import {LAYOUT_3D_VANITIES} from '@haiku/player/lib/properties/dom/vanities';
+import composedTransformsToTimelineProperties from '@haiku/core/lib/helpers/composedTransformsToTimelineProperties';
+import computeMatrix from '@haiku/core/lib/layout/computeMatrix';
+import Layout3D from '@haiku/core/lib/Layout3D';
+import {LAYOUT_3D_VANITIES} from '@haiku/core/lib/properties/dom/vanities';
 import {ContextualSize} from 'haiku-common/lib/types';
 import {initialValueOr} from './timelineUtils';
 
@@ -27,7 +27,7 @@ const supportedMultiplicativeLayoutProperties = [
 ];
 
 /**
- * Hacks into @haiku/player vanities to splice our official "layout spec" into a virtual element.
+ * Hacks into @haiku/core vanities to splice our official "layout spec" into a virtual element.
  *
  * TODO: isolate the timeline -> layout spec algorithm more cleanly.
  * @param timeline
@@ -50,7 +50,7 @@ const shimLayoutForPseudoElement = (timeline, element) => {
 /**
  * Composes a child timeline with a parent timeline.
  *
- * This function hijacks some @haiku/player-owned code for consistency and to avoid duplication. In most Haiku, we
+ * This function hijacks some @haiku/core-owned code for consistency and to avoid duplication. In most Haiku, we
  * get free layout composition via nested <g> elements in an <svg>. Lottie and potentially other formats do not support
  * layout composition on shapes (or grouping in general), so we have to collapse layout properties down to the
  * visible primitive element (e.g. <rect>), which can get very mathy depending on how parent groups are transformed.

@@ -151,7 +151,7 @@ export const splitBezierForTimelinePropertyAtKeyframe = (timelineProperty, keyfr
   const time = normalizeValue(keyframe, previousKeyframe, nextKeyframe);
 
   // Note: We are using the bezier-easing library for fast heuristic calculation of the value at time instead of
-  // the cubic-bezier() function from the just-curves vendor package in haiku-player. This is intentional; the math
+  // the cubic-bezier() function from the just-curves vendor package in @haiku/core. This is intentional; the math
   // is the same in both libraries, but the bezier-easing library is significantly speedier. Note also that since
   // the canonical timing function moves from [0, 0] to [1, 1], we have to denormalize between the start and end
   // points to get the actual value.
@@ -209,7 +209,7 @@ const composeBezierBreakpoints = (
  * Gets bezier breakpoints for a decomposable curve.
  *
  * This method uses pre-calculated BezierBreakpoint[]s derived from the curve definitions in
- * haiku-player/lib/vendor/just-curves using #math.
+ * @haiku/core/lib/vendor/just-curves using #math.
  *
  * Note: we could write some ugly code to express easeOutBounce and easeOutElastic in terms of easeInBounce and
  * easeInElastic respectively, but the overhead isn't quite worth it. Note that the "Out" variant of a set of "In"
