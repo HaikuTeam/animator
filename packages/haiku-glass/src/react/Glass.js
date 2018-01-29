@@ -2,10 +2,10 @@ import React from 'react'
 import lodash from 'lodash'
 import Radium from 'radium'
 import path from 'path'
-import HaikuDOMRenderer from '@haiku/player/lib/renderers/dom'
-import HaikuContext from '@haiku/player/lib/HaikuContext'
+import HaikuDOMRenderer from '@haiku/core/lib/renderers/dom'
+import HaikuContext from '@haiku/core/lib/HaikuContext'
 import Project from 'haiku-serialization/src/bll/Project'
-import Config from '@haiku/player/lib/Config'
+import Config from '@haiku/core/lib/Config'
 import Element from 'haiku-serialization/src/bll/Element'
 import Design from 'haiku-serialization/src/bll/Design'
 import Asset from 'haiku-serialization/src/bll/Asset'
@@ -1302,12 +1302,12 @@ export class Glass extends React.Component {
     }
   }
 
-  // This method creates objects which represent Haiku Player rendering instructions for displaying all of
-  // the visual effects that sit above the stage. (Transform controls, etc.) The Haiku Player is sort of a
+  // This method creates objects which represent Haiku Core rendering instructions for displaying all of
+  // the visual effects that sit above the stage. (Transform controls, etc.) The Haiku Core is sort of a
   // hybrid of React Fiber and Famous Engine. It has a virtual DOM tree of elements like {elementName: 'div', attributes: {}, []},
   // and flushes updates to them on each frame. So what _this method_ does is just build those objects and then
-  // these get passed into a Haiku Player render method (see above). LONG STORY SHORT: This creates a flat list of
-  // nodes that get rendered to the DOM by the Haiku Player.
+  // these get passed into a Haiku Core render method (see above). LONG STORY SHORT: This creates a flat list of
+  // nodes that get rendered to the DOM by the Haiku Core.
   buildDrawnOverlays (selectedElements) {
     const overlays = []
 
