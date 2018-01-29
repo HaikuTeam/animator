@@ -1,4 +1,5 @@
 var upsertRequire = require('./upsertRequire')
+var removeRequire = require('./removeRequire')
 var traverseAST = require('./traverseAST')
 var wrapInHaikuInject = require('./wrapInHaikuInject')
 
@@ -8,8 +9,11 @@ var wrapInHaikuInject = require('./wrapInHaikuInject')
  * uses all of the up-to-date constructs expected for the output file.
  */
 module.exports = function normalizeBytecodeFile (ast) {
-  // Make sure that the bytecode file requires the Haiku Player as 'Haiku'
-  upsertRequire(ast, 'Haiku', '@haiku/player')
+  // Make sure we get rid of any legacy references to @haiku/player
+  removeRequire(ast, 'Haiku', '@haiku/player')
+
+  // Make sure that the bytecode file requires the Haiku Core as 'Haiku'
+  upsertRequire(ast, 'Haiku', '@haiku/core')
 
   // Remove all comments at the top level since they cause more problems than they solve
   ast.program.body.forEach((node) => {

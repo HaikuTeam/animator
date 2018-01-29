@@ -62,7 +62,7 @@ function OASTToRO (oast) {
       if (oast.callee.object.name === 'Haiku' && oast.callee.property.name === 'inject') {
         if (oast.arguments[0]) {
           var rfo = OASTToRO(oast.arguments[0])
-          // Add this flag so the @haiku/player knows it needs to wrap the reified function
+          // Add this flag so the Haiku Core knows it needs to wrap the reified function
           // inside a Haiku.inject call so it is correctly bootstrapped during editing runtime
           if (rfo && rfo.__function) rfo.__function.injectee = true
           return rfo

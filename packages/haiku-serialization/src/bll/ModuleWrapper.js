@@ -3,23 +3,29 @@ const BaseModel = require('./BaseModel')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
 
 // When building a distribution (see 'distro' repo) the node_modules folder is at a different level #FIXME matthew
-const CANONICAL_PLAYER_SOURCE_CODE_PATH = path.dirname(require.resolve('@haiku/player'))
+const CANONICAL_CORE_SOURCE_CODE_PATH = path.dirname(require.resolve('@haiku/core'))
 
 const REPLACEMENT_MODULES = {
-  // legacy name (global npm)
-  'haiku.ai/player/dom': path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'dom'),
-  'haiku.ai/player/dom/index': path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'dom'),
-  'haiku.ai/player/dom/react': path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'dom', 'react'),
+  // legacy name
+  'haiku.ai/player/dom': path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'dom'), // <~ Note how this points to @haiku/core
+  'haiku.ai/player/dom/index': path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'dom'), // <~ Note how this points to @haiku/core
+  'haiku.ai/player/dom/react': path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'dom', 'react'), // <~ Note how this points to @haiku/core
 
-  // new name (haiku org npm)
-  '@haiku/player': CANONICAL_PLAYER_SOURCE_CODE_PATH,
-  '@haiku/player/dom': path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'dom'),
-  '@haiku/player/dom/index': path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'dom'),
-  '@haiku/player/dom/react': path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'dom', 'react')
+  // legacy name
+  '@haiku/player': CANONICAL_CORE_SOURCE_CODE_PATH,
+  '@haiku/player/dom': path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'dom'), // <~ Note how this points to @haiku/core
+  '@haiku/player/dom/index': path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'dom'), // <~ Note how this points to @haiku/core
+  '@haiku/player/dom/react': path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'dom', 'react'), // <~ Note how this points to @haiku/core
+
+  // current name
+  '@haiku/core': CANONICAL_CORE_SOURCE_CODE_PATH,
+  '@haiku/core/dom': path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'dom'),
+  '@haiku/core/dom/index': path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'dom'),
+  '@haiku/core/dom/react': path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'dom', 'react')
 }
 
-const PLAYER_PACKAGE_JSON = require(path.join(CANONICAL_PLAYER_SOURCE_CODE_PATH, 'package.json'))
-const PLAYER_VERSION = PLAYER_PACKAGE_JSON.version
+const CORE_PACKAGE_JSON = require(path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'package.json'))
+const CORE_VERSION = CORE_PACKAGE_JSON.version
 
 /**
  * @class Mod
@@ -229,8 +235,12 @@ ModuleWrapper.modulePathToIdentifierName = (modulepath) => {
   const parts = modulepath.split(path.sep)
 
   // We can assume we have a *normalized* module path name at this point, e.g...
-  // Haiku builtin format: @haiku/player/components/Path/code/main/code
+  // Haiku builtin format: @haiku/player/components/Path/code/main/code // #LEGACY
   if (parts[0] === '@haiku' && parts[1] === 'player') {
+    return 'Haiku' + parts[3] // e.g. HaikuPath, HaikuLine, etc.
+  }
+  // Haiku builtin format: @haiku/core/components/Path/code/main/code
+  if (parts[0] === '@haiku' && parts[1] === 'core') {
     return 'Haiku' + parts[3] // e.g. HaikuPath, HaikuLine, etc.
   }
 
@@ -264,6 +274,7 @@ ModuleWrapper.getHaikuKnownImportMatch = (importPath) => {
 
   // not a good general solution, but good enough for player components
   return importPath.replace(/^@haiku\/player/, REPLACEMENT_MODULES['@haiku/player'])
+                   .replace(/^@haiku\/core/, REPLACEMENT_MODULES['@haiku/core'])
 }
 
 ModuleWrapper.clearRequireCache = (dirname) => {
@@ -296,8 +307,7 @@ ModuleWrapper.doesRelpathLookLikeInstalledComponent = (relpath) => {
   return parts[0] === '@haiku'
 }
 
-ModuleWrapper.CANONICAL_PLAYER_SOURCE_CODE_PATH = CANONICAL_PLAYER_SOURCE_CODE_PATH
-ModuleWrapper.PLAYER_VERSION = PLAYER_VERSION
+ModuleWrapper.CORE_VERSION = CORE_VERSION
 
 ModuleWrapper.RELOAD_MODES = {
   GLOBAL: 1, // Completely clear the require cache

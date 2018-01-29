@@ -1,8 +1,8 @@
 const fse = require('fs-extra')
 const path = require('path')
 const async = require('async')
-const xmlToMana = require('@haiku/player/lib/helpers/xmlToMana').default
-const objectToRO = require('@haiku/player/lib/reflection/objectToRO').default
+const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
+const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
 const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
 const BytecodeActions = require('haiku-bytecode/src/actions')
 const getPropertyValue = require('haiku-bytecode/src/getPropertyValue')
@@ -15,7 +15,7 @@ const walkFiles = require('./../utils/walkFiles')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const getSvgOptimizer = require('./../svg/getSvgOptimizer')
 
-// This file also depends on '@haiku/player/lib/HaikuComponent'
+// This file also depends on '@haiku/core/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as .hostInstance here.
 // ^^ Leave this message in this file so we can grep for it if necessary
 
@@ -237,10 +237,10 @@ class File extends BaseModel {
   }
 
   getHostStates () {
-    const haikuPlayerComponentInstance = this.getHostInstance()
+    const haikuCoreComponentInstance = this.getHostInstance()
     // In case of race where collateral isn't ready yet
-    if (haikuPlayerComponentInstance) {
-      return haikuPlayerComponentInstance.getStates()
+    if (haikuCoreComponentInstance) {
+      return haikuCoreComponentInstance.getStates()
     }
     return {}
   }

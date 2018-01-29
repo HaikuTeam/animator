@@ -1,5 +1,5 @@
 const camelcase = require('camelcase')
-const ReservedWords = require('@haiku/player/lib/reflection/ReservedWords').default
+const ReservedWords = require('@haiku/core/lib/reflection/ReservedWords').default
 const BaseModel = require('./BaseModel')
 
 /**

@@ -1,5 +1,5 @@
 const assign = require('lodash.assign')
-const expressionToRO = require('@haiku/player/lib/reflection/expressionToRO').default
+const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
 const BaseModel = require('./BaseModel')
 
 /**

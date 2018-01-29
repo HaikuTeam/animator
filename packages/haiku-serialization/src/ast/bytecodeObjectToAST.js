@@ -26,7 +26,7 @@ function buildRequireStatement (identifier, modpath) {
 }
 
 function buildRequireStatementsFromImports (imports) {
-  const statements = [buildRequireStatement('Haiku', '@haiku/player')]
+  const statements = [buildRequireStatement('Haiku', '@haiku/core')]
   for (const modpath in imports) {
     const identifier = imports[modpath]
     statements.push(buildRequireStatement(identifier, modpath))

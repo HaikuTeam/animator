@@ -42,7 +42,7 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
         t.equal(subtemplate.attributes['haiku-id'], mana.attributes['haiku-id'], 'template id ok')
         return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
           t.error(err, 'no err fetching code')
-          t.equal(contents.length, 5981, 'checksum of file ok')
+          t.equal(contents.length, 5979, 'checksum of file ok')
           fse.removeSync(folder)
           t.ok(true)
         })
@@ -72,14 +72,14 @@ tape('ActiveComponent.prototype.deleteComponent[1](design)', (t) => {
         return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
           t.error(err, 'no err reading file after inst')
           const lines = contents.split('\n')
-          t.equal(lines[0],'var Haiku = require("@haiku/player");','haiku require is in place')
+          t.equal(lines[0],'var Haiku = require("@haiku/core");','haiku require is in place')
           return ac0.deleteComponent(mana.attributes['haiku-id'], { from: 'test' }, (err) => {
             t.error(err, 'no err deleting')
             t.equal(ac0.getReifiedBytecode().template.children.length,0,'correct number of children')
             return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
               t.error(err, 'no err reading file after del')
               const lines = contents.split('\n')
-              t.equal(lines[0],'var Haiku = require("@haiku/player");','haiku require is in place at line 0')
+              t.equal(lines[0],'var Haiku = require("@haiku/core");','haiku require is in place at line 0')
               fse.removeSync(folder)
               t.ok(true)
             })
@@ -258,9 +258,9 @@ tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
             t.deepEqual(subtemplate.attributes, { source: '../designs_path_svg/code.js', identifier: 'designs_path_svg', 'haiku-title': 'designs_path_svg', 'haiku-id': '76fc778dc382' }, 'el attrs ok')
             return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
               if (err) throw err
-              t.equal(contents.length, 1747, 'checksum ok')
+              t.equal(contents.length, 1745, 'checksum ok')
               var lines = contents.split('\n')
-              t.equal(lines[0], 'var Haiku = require("@haiku/player");', 'first line is haiku require')
+              t.equal(lines[0], 'var Haiku = require("@haiku/core");', 'first line is haiku require')
               t.equal(lines[1], 'var designs_path_svg = require("../designs_path_svg/code.js");', 'first line is component require')
               fse.removeSync(folder)
               t.ok(true)
@@ -299,7 +299,7 @@ tape('ActiveComponent.prototype.deleteComponent[2](component)', (t) => {
               return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
                 t.error(err, 'no err reading file after del')
                 const lines = contents.split('\n')
-                t.equal(lines[0],'var Haiku = require("@haiku/player");','haiku require is in place at line 0', 'first line ok')
+                t.equal(lines[0],'var Haiku = require("@haiku/core");','haiku require is in place at line 0', 'first line ok')
                 t.equal(lines[1],'module.exports = {', '2nd line ok')
                 fse.removeSync(folder)
                 t.ok(true)
