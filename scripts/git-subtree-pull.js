@@ -33,18 +33,18 @@ if (packageName === 'changelog') {
   } catch (exception) {
     log.log(exception.message)
   }
-}
-
-try {
-  // Git subtree doesn't seem to like it unless you fetch changes first
-  [
-    `git fetch ${pack.remote} ${branch}`,
-    `git subtree pull --prefix packages/${pack.name} ${pack.remote} ${branch} \
+} else {
+  try {
+    // Git subtree doesn't seem to like it unless you fetch changes first
+    [
+      `git fetch ${pack.remote} ${branch}`,
+      `git subtree pull --prefix packages/${pack.name} ${pack.remote} ${branch} \
      -m 'auto: subtree pull for ${packageName} at ${semver}'`
-  ].forEach((cmd) => {
-    log.log(cmd)
-    cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
-  })
-} catch (exception) {
-  log.log(exception.message)
+    ].forEach((cmd) => {
+      log.log(cmd)
+      cp.execSync(cmd, { cwd: ROOT, stdio: 'inherit' })
+    })
+  } catch (exception) {
+    log.log(exception.message)
+  }
 }
