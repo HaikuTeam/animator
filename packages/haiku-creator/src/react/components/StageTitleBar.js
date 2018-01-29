@@ -115,6 +115,12 @@ const STYLES = {
   },
   previewToggle: {
     float: 'right'
+  },
+  popupNotice: {
+    display: 'inline-block',
+    marginTop: '10px',
+    fontSize: '13px',
+    fontStyle: 'oblique'
   }
 }
 
@@ -169,6 +175,7 @@ class PopoverBody extends React.Component {
               : <span style={STYLES.copy}><CliboardIconSVG /></span>}
           </CopyToClipboard>
         </div>
+        <span style={STYLES.popupNotice}>Anyone with the link can <strong>view &amp; embed</strong> your project.</span>
         {/* todo: show last updated? <div style={STYLES.footer}>UPDATED<span style={STYLES.time}>{'9:00am Jun 15, 2017'}</span></div> */}
       </div>
     )
