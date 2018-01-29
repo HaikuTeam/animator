@@ -77,7 +77,6 @@ export default class TopMenu extends EventEmitter {
     const projectSubmenu = [
       {
         label: 'Publish',
-        accelerator: 'CmdOrCtrl+S',
         enabled: !options.isSaving && isProjectOpen,
         click: () => {
           this.emit('global-menu:save')
