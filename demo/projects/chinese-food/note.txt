@@ -1,0 +1,1 @@
+This demo is slow probably because of the breadth of updates that need to happen in the dumplings. Each of those has a ton of paths that need to be updated, which gets pricey.

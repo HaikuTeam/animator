@@ -1,0 +1,1 @@
+Testing that triggering repeated state changes actually ends up rendering components without requiring direct interaction on the part of the user.
