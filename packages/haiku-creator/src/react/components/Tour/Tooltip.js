@@ -9,8 +9,7 @@ const STYLES = {
     position: 'absolute',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 3
+    justifyContent: 'center'
   },
   childrenWrapper: {
     position: 'absolute',
@@ -146,7 +145,7 @@ function Tooltip (props) {
   }
 
   return (
-    <div style={{top, left, ...STYLES.container, ...positionStyles.container}}>
+    <div style={{top, left, ...STYLES.container, ...positionStyles.container, zIndex: 9999999}}>
       <Spotlight
         offset={positionStyles.spotlight}
         position={{top, left}}
