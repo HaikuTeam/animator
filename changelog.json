@@ -4379,5 +4379,37 @@
       "label": "fix",
       "message": "set the correct param on sdk-inkston user::create"
     }
+  },
+  "3.0.6": {
+    "37f33317c0b661528caf21b218f6f521e7faae80": {
+      "project": "@haiku/sdk-client",
+      "label": "docs",
+      "message": "Add roadmap section to README"
+    },
+    "724cd2846552a596ed005efcef63c23f9c188f13": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "actually remove a tour listener on the stage"
+    },
+    "6a52bf5cd6229cbb668e185f64d22364d0a37309": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "remove a localhost hardcoded config"
+    },
+    "e8db06dae39ff0b409e1660071b74b7315cd1a85": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add inkstone endpoints for resending email verification"
+    },
+    "2a36ff6ca9d5e8309f09dc6bb977a67f05bdf8b9": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add sdk-inkstone endpoint to verify users"
+    },
+    "aaee76f1ddac08d5d7d2336773d8c7ef81049c2f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update the error handling logic in sign up"
+    }
   }
 }

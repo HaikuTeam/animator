@@ -1,6 +1,23 @@
 # Changelog
 
 
+## 3.0.6
+
+### Documentation
+
+ * Add roadmap section to README
+
+### Bug Fixes
+
+ * actually remove a tour listener on the stage
+ * remove a localhost hardcoded config
+ * update the error handling logic in sign up
+
+### Features
+
+ * add inkstone endpoints for resending email verification
+ * add sdk-inkstone endpoint to verify users
+
 ## 3.0.5
 
 ### Bug Fixes
