@@ -233,7 +233,7 @@ export default class MasterGitProject extends EventEmitter {
           }
 
           this._folderState.semverVersion = packageJsonObj.version
-          this._folderState.playerVersion = packageJsonObj.dependencies && packageJsonObj.dependencies['@haiku/player']
+
           cb()
         })
       }
@@ -895,7 +895,7 @@ export default class MasterGitProject extends EventEmitter {
    * =======
    */
 
-  getHaikuPlayerLibVersion () {
+  getHaikuCoreLibVersion () {
     if (!fse.existsSync(PLUMBING_PKG_JSON_PATH)) return null
     var obj = fse.readJsonSync(PLUMBING_PKG_JSON_PATH, { throws: false })
     return obj && obj.version

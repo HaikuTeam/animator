@@ -14,8 +14,10 @@ function createBundle (moduleDirectory, input, name, cb) {
     plugins: [
       includePaths({
         include: {
-          '@haiku/player': require.resolve('@haiku/player'),
-          '@haiku/player/dom': require.resolve('@haiku/player/dom')
+          '@haiku/core': require.resolve('@haiku/core'),
+          '@haiku/core/dom': require.resolve('@haiku/core/dom'),
+          '@haiku/player': require.resolve('@haiku/core'), // <~ Note how we're pointing legacy player to core here
+          '@haiku/player/dom': require.resolve('@haiku/core/dom') // <~ Note how we're pointing legacy player to core here
         }
       }),
       nodeResolve({
