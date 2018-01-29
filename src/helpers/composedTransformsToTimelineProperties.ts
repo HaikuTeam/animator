@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2018. All rights reserved.
+ */
+
 import Layout3D from '../Layout3D';
 import mat4Decompose, {DecomposedMat4} from '../vendor/mat4-decompose';
 import math3d from '../vendor/math3d';

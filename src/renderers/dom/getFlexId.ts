@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2018. All rights reserved.
+ */
+
 const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 const ID_ATTRIBUTE = 'id';
 

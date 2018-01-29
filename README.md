@@ -1,43 +1,55 @@
 # Haiku Core
 
-## Developer Preview
-
-Haiku Core is the JavaScript engine that runs [Haiku](https://haiku.ai). It both powers the Haiku editing experience and renders the designs you create as animated, interactive components anywhere on the web.
-
-<p align="center">
-  <img width="320" src="gif-of-animated-or-interactive-haiku-component.gif">
-</p>
-
 [![NPM](https://nodei.co/npm/@haiku/core.png)](https://nodei.co/npm/@haiku/core/)
 
+Haiku Core is the JavaScript engine that runs [Haiku for Mac](https://haiku.ai). It helps power the Haiku editing experience and also renders the designs you create as animated, interactive components anywhere on the web.
+
+<p align="center">
+  <img width="600" src="docs/assets/gif-of-animated-or-interactive-haiku-component.gif">
+</p>
+<br>
+
+## Developer Preview
+
+[Haiku for Mac](https://haiku.ai) gives designers the power to create web-ready animations, but that's only half the story. The other half is what happens to that animation in your codebase — and that's where Haiku Core comes in.
+
+<br>
 
 ### Inteprets Haiku-designed components for rendering on the web
 
-<img src='visual-of-code-in-ui-out.png' />
+<p align="center">
+  <img width="600" src='docs/assets/visual-of-ui-code.png' />
+</p>
 
 The Haiku app turns your designs into components and Haiku Core renders them. Since Haiku Core is built on pure and open web standards (HTML, CSS, JavaScript), your users won't ever need to install a plugin.
 
+<br>
 
 ### Compatible with modern browsers
 
-<img src='browser-logos.png' />
+<p align="center">
+  <img width="400" src='docs/assets/browser-logos.png' />
+</p>
 
-Haiku Core is compatible with all major modern web browsers: Firefox, Chrome, Safari, and Edge. We are working on making browser support comprehensive.
+Haiku Core is compatible with all major modern web browsers: Firefox, Chrome, Safari, and Edge.
 
+<br>
 
 ### Native support with Lottie
 
-<img src='lottie-and-browser-logos.png' />
+<p align="center">
+  <img width="400" src='docs/assets/lottie-and-mobile-logos.png' />
+</p>
 
-The [Haiku app](https://haiku.ai) supports exporting to Lottie for native rendering of animations[1] on iOS and Android. For Haiku's iOS and Android support through Lottie, read more in [our Lottie docs](`link`).
+[Haiku for Mac](https://haiku.ai) supports exporting to Lottie for native rendering of animations on iOS and Android. Technical details on this are coming soon; for now, please read [our blog post on Lottie](https://medium.com/haiku-blog/lottie-without-after-effects-9c5a8e74c239) and stay tuned. (Note: Interactions and dynamic components aren't currently supported by Lottie.)
 
-[1] Note: Interactions and dynamic components aren't currently supported by Lottie.
-
+<br>
 
 ### Hackable + compatible with existing codebases
 
-Haiku Core provides a simple and familiar API for runtime manipulation of components that you've built in Haiku. You can play and pause animations and even pass in dynamic data. (See the [docs](`link`) for more info.) And it's compatible with any modern JavaScript codebase.
+Haiku Core provides a simple and familiar API for runtime manipulation of components that were built in Haiku. You can play and pause animations, react to events, and even pass in dynamic data. (See the [docs](https://docs.haiku.ai) for more info.)
 
+<br>
 
 ### Getting started
 
@@ -50,6 +62,7 @@ Creating a Haiku component begins in the Haiku app:
 
 **Dev tip:** If you have Haiku for Mac installed, you can also `$ npm link` or `$ yarn link` your Haiku components to make them available to your codebase toolchain's hot reloading hooks. Haiku projects live in `~/.haiku/projects`.
 
+<br>
 
 #### Direct installation
 
@@ -63,17 +76,16 @@ Or via yarn:
 
 Haiku Core is also available via Haiku's CDN:
 
-    <!-- latest version (caution — breaking changes may occur!) -->
-    <script src="https://code.haiku.ai/scripts/core/HaikuCore.latest.js"></script>
-
     <!-- specific version -->
     <script src="https://code.haiku.ai/scripts/core/HaikuCore.VERSION.js"></script>
 
+<br>
 
 ### API / Docs
 
 For our full documentation (a work in progress), please see [docs.haiku.ai](https://docs.haiku.ai). We welcome your contributions [on Github](https://github.com/HaikuTeam/docs).
 
+<br>
 
 ### Usage examples
 
@@ -155,16 +167,19 @@ Interactive:
     const factory = HaikuCore(definition);
     const component = factory(document.getElementById("mount"));
 
+<br>
 
 ## Bugs / Feature Requests / Troubleshooting
 
 Please use [GitHub Issues](https://github.com/HaikuTeam/core/issues).
 
+<br>
 
 ## Contributing
 
 Please send contributions via [pull request](https://github.com/HaikuTeam/core/pulls).
 
+<br>
 
 ## Development
 
@@ -185,6 +200,7 @@ Find formatting problems with:
 
     $ yarn lint
 
+<br>
 
 ## License / Copyright
 

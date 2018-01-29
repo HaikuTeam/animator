@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2018. All rights reserved.
+ */
+
 import enhance from './reflection/enhance';
 import inject from './reflection/inject';
 
