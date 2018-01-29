@@ -1,0 +1,1 @@
+The passed-in placeholder should fade in from opacity 0 to 1. The bug is that the placeholder seems to just end up with its own opacity set instead of using the one applied to it via the renderer.

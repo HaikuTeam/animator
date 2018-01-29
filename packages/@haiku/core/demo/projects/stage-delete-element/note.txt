@@ -1,0 +1,1 @@
+The middle (blue) element should be deleted after 1sec. The other elements should remain the same.

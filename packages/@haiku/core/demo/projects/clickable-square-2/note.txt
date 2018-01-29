@@ -1,0 +1,1 @@
+Should show a gray square that opacitates based on mouse position, which rotates when you click it, and which jumps in position at frame 22.
