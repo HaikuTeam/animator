@@ -27,6 +27,7 @@ export default class Stage extends React.Component {
   constructor (props) {
     super(props)
     this.webview = null
+    this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this)
     this.state = {
       interactionMode: InteractionMode.EDIT
     }
@@ -40,7 +41,7 @@ export default class Stage extends React.Component {
     if (!this.props.envoyClient.isInMockMode()) {
       tourChannel.then((client) => {
         this.tourClient = client
-        this.tourClient.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates.bind(this))
+        this.tourClient.on('tour:requestWebviewCoordinates', this.onRequestWebviewCoordinates)
       })
     }
   }
