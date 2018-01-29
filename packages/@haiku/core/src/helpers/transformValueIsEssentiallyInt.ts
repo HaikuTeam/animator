@@ -1,4 +1,8 @@
 /**
+ * Copyright (c) Haiku 2016-2018. All rights reserved.
+ */
+
+/**
  * Returns true iff a transform value is "essentially" a specified basis int.
  */
 export const transformValueIsEssentiallyInt =
