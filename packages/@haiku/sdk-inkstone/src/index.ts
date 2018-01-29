@@ -21,7 +21,7 @@ const ENDPOINTS = {
   UPDATES: 'v0/updates',
   USER_CREATE: 'v0/user',
   USER_CONFIRM: 'v0/user/confirm/:token',
-  USER_REQUEST_CONFIRM: '/user/resend-confirmation/:email',
+  USER_REQUEST_CONFIRM: 'v0/user/resend-confirmation/:email',
   RESET_PASSWORD: 'v0/reset-password',
   RESET_PASSWORD_CLAIM: 'v0/reset-password/:UUID/claim',
 };
@@ -192,6 +192,7 @@ export namespace inkstone {
     export function requestConfirmEmail(email: string, cb: inkstone.Callback<Authentication>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.USER_REQUEST_CONFIRM.replace(':email', email),
+        headers: baseHeaders,
       };
 
       request.post(options, (err, httpResponse, body) => {
