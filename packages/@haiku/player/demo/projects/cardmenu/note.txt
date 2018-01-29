@@ -1,1 +1,0 @@
-This should display a facebook "Like" button with a counter that drops down.
