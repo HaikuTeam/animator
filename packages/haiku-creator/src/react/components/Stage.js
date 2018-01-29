@@ -5,7 +5,7 @@ import path from 'path'
 import StageTitleBar from './StageTitleBar'
 import ComponentMenu from './ComponentMenu/ComponentMenu'
 import Palette from 'haiku-ui-common/lib/Palette'
-import {InteractionMode} from '@haiku/player/lib/helpers/interactionModes'
+import {InteractionMode} from '@haiku/core/lib/helpers/interactionModes'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 
 const STAGE_BOX_STYLE = {

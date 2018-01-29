@@ -20,9 +20,9 @@ class ToolSelector extends React.Component {
   constructor (props) {
     super(props)
     this.shapes = [
-      { name: 'Rectangle', path: '@haiku/player/components/Rect' },
-      { name: 'Line', path: '@haiku/player/components/Line' },
-      { name: 'Oval', path: '@haiku/player/components/Oval' }
+      { name: 'Rectangle', path: '@haiku/core/components/Rect' },
+      { name: 'Line', path: '@haiku/core/components/Line' },
+      { name: 'Oval', path: '@haiku/core/components/Oval' }
     ]
     this.state = {
       currentTool: 'pointer',

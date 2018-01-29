@@ -2,8 +2,8 @@ import fs from 'fs'
 import path from 'path'
 import Module from 'module'
 import React, {PropTypes} from 'react'
-import HaikuDOMAdapter from '@haiku/player/dom'
-import {InteractionMode} from '@haiku/player/lib/helpers/interactionModes'
+import HaikuDOMAdapter from '@haiku/core/dom'
+import {InteractionMode} from '@haiku/core/lib/helpers/interactionModes'
 import {TourUtils} from 'haiku-common/lib/types/enums'
 
 const renderMissingLocalProjectMessage = () => {
@@ -43,7 +43,7 @@ class ProjectPreview extends React.Component {
       try {
         this.timeline = this.mountAndReturnHaikuComponent().getDefaultTimeline()
       } catch (exception) {
-        // noop. Probably caught a backward-incompatible change that doesn't work with the current version of Player.
+        // noop. Probably caught a backward-incompatible change that doesn't work with the current version of Core.
       }
     }
   }
