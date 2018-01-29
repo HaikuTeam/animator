@@ -1,6 +1,18 @@
 # Changelog
 
 
+## 3.0.7
+
+### Features
+
+ * add a link to resend verification
+ * add inkstone endpoints for resending email verification
+ * add sdk-inkstone endpoint to verify users
+
+### Documentation
+
+ * Add roadmap section to README
+
 ## 3.0.6
 
 ### Documentation
