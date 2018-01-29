@@ -1,6 +1,13 @@
 const cp = require('child_process')
 
 const getPackages = require('./helpers/packages')
+const log = require('./helpers/log')
+
+const branch = cp.execSync('git symbolic-ref --short -q HEAD || git rev-parse --short HEAD').toString().trim()
+if (branch !== 'master') {
+  log.err('Push is only permitted from the master branch.')
+  global.process.exit(1)
+}
 
 const ROOT = global.process.cwd()
 const processOptions = { cwd: ROOT, stdio: 'inherit' }
@@ -62,6 +69,12 @@ openSourcePackages.forEach((pack) => {
 
 // Player needs a special build.
 cp.execSync(`node ./scripts/build-player.js --skip-compile=1`, processOptions)
+
+// Push up before we begin the actual work of publishing. This ensures that unmergeable changes are never published to
+// our standalones.
+cp.execSync(`git fetch`)
+cp.execSync(`git merge origin/master`)
+cp.execSync(`git push -u origin master`)
 
 openSourcePackages.forEach((pack) => {
   // Publish package to NPM as is.
