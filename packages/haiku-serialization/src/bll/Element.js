@@ -33,6 +33,14 @@ const DELTA_ROTATION_OFFSETS = {
   8: 4 * PI_OVER_12
 }
 
+const FAKE_POINTS = [
+  {x: 1, y: 1, moveTo: true},
+  {x: 2, y: 1},
+  {x: 2, y: 2},
+  {x: 1, y: 2},
+  {x: 1, y: 1}
+]
+
 function getAncestry (ancestors, elementInstance) {
   ancestors.unshift(elementInstance)
   if (elementInstance.parent) {
@@ -502,7 +510,12 @@ class Element extends BaseModel {
   }
 
   getPoints () {
-    return SVGPoints.manaToPoints(this.getLiveRenderedNode()) // TODO: Use bytecode overrides?
+    const node = this.getLiveRenderedNode()
+    // FIXME: Race condition when node isn't present
+    if (!node) {
+      return FAKE_POINTS
+    }
+    return SVGPoints.manaToPoints(node) // TODO: Use bytecode overrides?
   }
 
   getBoxPoints () {
