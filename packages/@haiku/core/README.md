@@ -177,6 +177,24 @@ Please send contributions via [pull request](https://github.com/HaikuTeam/core/p
 
 <br>
 
+## Roadmap
+
+**Code improvements**
+
+- Use ES6 classes throughout
+- Use arrow functions throughout
+- Improve test coverage
+- Inline source code docs
+- Types
+
+**Features**
+
+- Alternative component formats
+- Improved Lottie integration
+- More comprehensive programmatic API
+
+<br>
+
 ## Development
 
 To develop Haiku Core locally:
