@@ -4433,5 +4433,12 @@
       "label": "feat",
       "message": "add sdk-inkstone endpoint to verify users"
     }
+  },
+  "3.0.8": {
+    "5cbee343bccdde58526e15fb4e3969e416cbc93e": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "set correct params for inkstone.user#requestConfirmation"
+    }
   }
 }
