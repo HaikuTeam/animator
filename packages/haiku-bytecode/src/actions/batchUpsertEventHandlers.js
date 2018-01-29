@@ -1,14 +1,10 @@
 var unserValue = require('./unserValue')
-var upgradeBytecodeInPlace = require('@haiku/player/lib/helpers/upgradeBytecodeInPlace').default
 
 module.exports = function batchUpsertEventHandlers (
   bytecode,
   selectorName,
   serializedEvents
 ) {
-  // To convert legacy event handlers array to object
-  upgradeBytecodeInPlace(bytecode)
-
   if (!bytecode.eventHandlers) {
     bytecode.eventHandlers = {}
   }

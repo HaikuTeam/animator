@@ -196,10 +196,6 @@ export default class ExpressionInput extends React.Component {
       this.unlistenToComponent(this.props.component)
       this.listenToComponent(nextProps.component)
     }
-
-    if (nextProps.component.getFocusedRow()) {
-      this.engageFocus(nextProps)
-    }
   }
 
   listenToComponent (component) {
@@ -212,7 +208,14 @@ export default class ExpressionInput extends React.Component {
 
   handleUpdate (what) {
     if (!this.mounted) return null
-    this.engageFocus(this.props)
+    if (
+      what === 'row-focused' ||
+      what === 'row-selected' ||
+      what === 'row-blurred' ||
+      what === 'row-deselected'
+    ) {
+      this.engageFocus(this.props)
+    }
   }
 
   isCommittableValueInvalid (committable, original) {

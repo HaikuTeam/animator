@@ -53,7 +53,8 @@ const FOLDER_CHOICES = {
   'ttt-glass': path.join(ROOT, 'packages/haiku-glass/test/projects/TicTacToe1'),
   'complex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/complex'),
   'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex'),
-  'AliensRepro-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/AliensRepro')
+  'AliensRepro-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/AliensRepro'),
+  'Move-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/Move')
 }
 
 // Support:
@@ -115,7 +116,8 @@ function runInteractive () {
             { name: 'SuperComplex (glass)', value: 'SuperComplex-glass' },
             { name: 'complex (timeline)', value: 'complex-timeline' },
             { name: 'SuperComplex (timeline)', value: 'SuperComplex-timeline' },
-            { name: 'AliensRepro (timeline)', value: 'AliensRepro-timeline' }
+            { name: 'AliensRepro (timeline)', value: 'AliensRepro-timeline' },
+            { name: 'Move (timeline)', value: 'Move-timeline' }
           ],
           default: inputs.folderChoice
         },

@@ -42,7 +42,7 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
         t.equal(subtemplate.attributes['haiku-id'], mana.attributes['haiku-id'], 'template id ok')
         return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
           t.error(err, 'no err fetching code')
-          t.equal(contents.length, 5952, 'checksum of file ok')
+          t.equal(contents.length, 5981, 'checksum of file ok')
           fse.removeSync(folder)
           t.ok(true)
         })
@@ -258,7 +258,7 @@ tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
             t.deepEqual(subtemplate.attributes, { source: '../designs_path_svg/code.js', identifier: 'designs_path_svg', 'haiku-title': 'designs_path_svg', 'haiku-id': '76fc778dc382' }, 'el attrs ok')
             return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
               if (err) throw err
-              t.equal(contents.length, 1718, 'checksum ok')
+              t.equal(contents.length, 1747, 'checksum ok')
               var lines = contents.split('\n')
               t.equal(lines[0], 'var Haiku = require("@haiku/player");', 'first line is haiku require')
               t.equal(lines[1], 'var designs_path_svg = require("../designs_path_svg/code.js");', 'first line is component require')

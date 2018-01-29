@@ -1130,7 +1130,7 @@ class Element extends BaseModel {
                   } else {
                     // If the keyframe is an internally managed prop that has been changed from its default value
                     const fallbackValue = Element.INTERNALLY_MANAGED_PROPS_WITH_DEFAULT_VALUES[propertyName]
-                    if (fallbackValue !== undefined && keyframesObject[0].value !== fallbackValue) {
+                    if (keyframesObject[0].value !== undefined && keyframesObject[0].value !== fallbackValue) {
                       filtered[propertyName] = propertyObject
                     }
                   }
@@ -1449,6 +1449,7 @@ Element.INTERNALLY_MANAGED_PROPS_WITH_DEFAULT_VALUES = {
   'style.overflowX': 'hidden',
   'style.overflowY': 'hidden',
   'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)',
+  'style.backgroundColor': 'rgba(255,255,255,0)',
   'style.zIndex': 0 // Managed via stacking UI
 }
 

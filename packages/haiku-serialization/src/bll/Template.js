@@ -4,7 +4,6 @@ const merge = require('lodash.merge')
 const pascalcase = require('pascalcase')
 const SVGPoints = require('@haiku/player/lib/helpers/SVGPoints').default
 const convertManaLayout = require('@haiku/player/lib/layout/convertManaLayout').default
-const upgradeBytecodeInPlace = require('@haiku/player/lib/helpers/upgradeBytecodeInPlace').default
 const visitManaTree = require('@haiku/player/lib/helpers/visitManaTree').default
 const insertAttributesIntoTimelineGroup = require('haiku-bytecode/src/insertAttributesIntoTimelineGroup')
 const extractReferenceIdFromUrlReference = require('haiku-bytecode/src/extractReferenceIdFromUrlReference')
@@ -247,8 +246,6 @@ Template.manaToDynamicBytecode = (mana, identifier, modpath, options = {}) => {
     timelines,
     template: mana
   }
-
-  upgradeBytecodeInPlace(bytecode)
 
   return bytecode
 }

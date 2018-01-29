@@ -2,11 +2,7 @@ const fse = require('fs-extra')
 const path = require('path')
 const async = require('async')
 const xmlToMana = require('@haiku/player/lib/helpers/xmlToMana').default
-const convertManaLayout = require('@haiku/player/lib/layout/convertManaLayout').default
 const objectToRO = require('@haiku/player/lib/reflection/objectToRO').default
-const upgradeBytecodeInPlace = require('@haiku/player/lib/helpers/upgradeBytecodeInPlace').default
-const ensureManaChildrenArray = require('haiku-bytecode/src/ensureManaChildrenArray')
-const mergeTimelineStructure = require('haiku-bytecode/src/mergeTimelineStructure')
 const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
 const BytecodeActions = require('haiku-bytecode/src/actions')
 const getPropertyValue = require('haiku-bytecode/src/getPropertyValue')
@@ -28,8 +24,6 @@ const differ = require('./../utils/LoggerInstanceDiffs')
 
 const DEFAULT_TIMELINE_NAME = 'Default'
 const DEFAULT_TIMELINE_TIME = 0
-const DEFAULT_ROOT_NODE_NAME = 'div'
-const FALLBACK_TEMPLATE = '<' + DEFAULT_ROOT_NODE_NAME + '></' + DEFAULT_ROOT_NODE_NAME + '>'
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_CONTEXT_SIZE = { width: 550, height: 400 }
 
@@ -171,9 +165,6 @@ class File extends BaseModel {
 
   performComponentWork (worker, finish) {
     try {
-      // We shouldn't need to do these 'ensure X Y Z' steps more than once
-      this.reinitializeBytecode(null)
-
       const bytecode = this.getReifiedBytecode()
 
       return worker(bytecode, bytecode.template, (err, result) => {
@@ -196,123 +187,6 @@ class File extends BaseModel {
       logger.error('[file] ' + exception)
       return finish(exception)
     }
-  }
-
-  /**
-   * @method reinitializeBytecode
-   * @description Make sure the in-memory bytecode object has all of the correct settings, attributes, and structure.
-   * This ought to get called if the bytecode has just been ingested from somewhere and you need to make sure it is right.
-   */
-  reinitializeBytecode (config) {
-    if (!config) config = {}
-
-    let bytecode = this.mod.fetchInMemoryExport()
-
-    // If no bytecode is present at all, we'll create the object here, and monkeypatch it
-    // as the export so downstream actions get access to the same object 'pointer'
-    if (!bytecode) {
-      bytecode = {}
-      this.mod.monkeypatch(bytecode)
-    }
-
-    let mana
-    if (typeof bytecode.template === 'string') {
-      mana = xmlToMana(bytecode.template || FALLBACK_TEMPLATE)
-    } else if (typeof bytecode.template === 'object') {
-      mana = bytecode.template || xmlToMana(FALLBACK_TEMPLATE)
-    } else {
-      // If nothing had been set, what is the risk of just setting it here?
-      mana = { elementName: 'div', attributes: {}, children: [] }
-    }
-
-    bytecode.template = mana
-
-    this.normalizeAndUpgradeBytecode(bytecode)
-
-    // Make sure there is at least a baseline metadata objet
-    writeMetadata(bytecode, {
-      uuid: 'HAIKU_SHARE_UUID', // This magic string is detected+replaced by our cloud services to produce a full share link
-      type: config.type,
-      name: config.name,
-      relpath: this.relpath
-    })
-
-    // The same content when instantiated in a different host folder will result in a different absolute path
-    // (here called "context"), which in turn will result in the id generation algorithm, SHA256, generating
-    // different base identifiers across different projects despite the same actions.
-    const context = path.join(path.normalize(this.folder), path.normalize(this.relpath))
-
-    // Make sure all elements in the tree have a haiku-id assigned
-    Template.ensureTitleAndUidifyTree(
-      bytecode.template,
-      path.normalize(this.relpath),
-      context,
-      '0',
-      { title: config.name } // If present, this will force a change to the new title
-    )
-
-    // Move inline attributes at the top level into the control object
-    const timeline = Template.hoistTreeAttributes(
-      bytecode.template,
-      DEFAULT_TIMELINE_NAME,
-      DEFAULT_TIMELINE_TIME
-    )
-
-    let contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
-
-    this.upsertDefaultProperties(contextHaikuId, {
-      'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)',
-      'style.position': 'relative',
-      'style.overflowX': 'hidden',
-      'style.overflowY': 'hidden',
-      'sizeAbsolute.x': DEFAULT_CONTEXT_SIZE.width,
-      'sizeAbsolute.y': DEFAULT_CONTEXT_SIZE.height,
-      'sizeMode.x': 1,
-      'sizeMode.y': 1,
-      'sizeMode.z': 1
-    }, 'assign')
-
-    // Inject the hoisted attributes into the actual timelines object
-    mergeTimelineStructure(bytecode, timeline, 'defaults')
-
-    return bytecode
-  }
-
-  normalizeAndUpgradeBytecode (bytecode, options) {
-    upgradeBytecodeInPlace(bytecode)
-
-    // Since we may be appending a child, make sure the children is an array
-    if (!Array.isArray(bytecode.template.children)) {
-      ensureManaChildrenArray(bytecode.template)
-    }
-
-    // We're about to mutate this, so may as well make sure it's present
-    if (!bytecode.template.attributes) bytecode.template.attributes = {}
-
-    Template.ensureTopLevelDisplayAttributes(bytecode.template)
-
-    // Hack...but helps avoid issues downstream if the template part of the bytecode was empty
-    if (!bytecode.template.elementName) bytecode.template.elementName = 'div'
-
-    // Ensure the top-level context gets the appropriate display attributes
-    Template.ensureRootDisplayAttributes(bytecode.template)
-
-    // Make sure there is an options object (can be used for playback configuration)
-    if (!bytecode.options) {
-      bytecode.options = {}
-    }
-
-    // Make sure there is always a timelines object
-    if (!bytecode.timelines) {
-      bytecode.timelines = {}
-    }
-
-    // And make sure there is always a default timelines object
-    if (!bytecode.timelines[DEFAULT_TIMELINE_NAME]) {
-      bytecode.timelines[DEFAULT_TIMELINE_NAME] = {}
-    }
-
-    convertManaLayout(bytecode.template)
   }
 
   writeMetadata (metadata, cb) {
@@ -373,27 +247,30 @@ class File extends BaseModel {
 
   applyPropertyGroupValue (componentId, timelineName, timelineTime, propertyGroup, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      let problem = false
       let elementNode = this.findElementByComponentId(mana, componentId)
-      if (elementNode) TimelineProperty.addPropertyGroup(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime)
-      else (problem = `Cannot locate element with id ${componentId}`)
-      if (problem) {
-        return done(new Error(problem))
+
+      if (elementNode) {
+        TimelineProperty.addPropertyGroup(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime)
+      } else {
+        // Things are badly broken if this happens; to avoid lost work, it's best to crash
+        throw new Error(`Cannot find element ${componentId}`)
       }
+
       return done()
     }, cb)
   }
 
   applyPropertyGroupDelta (componentId, timelineName, timelineTime, propertyGroup, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      let problem = false
       let elementNode = this.findElementByComponentId(mana, componentId)
+
       if (elementNode) {
         TimelineProperty.addPropertyGroupDelta(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime, this.getHostInstance(), this.getHostStates())
       } else {
-        problem = `Cannot locate element with id ${componentId}`
+        // Things are badly broken if this happens; to avoid lost work, it's best to crash
+        throw new Error(`Cannot find element ${componentId}`)
       }
-      if (problem) return done(new Error(problem))
+
       return done()
     }, cb)
   }
@@ -670,26 +547,6 @@ class File extends BaseModel {
     return this._elementsCache[componentId]
   }
 
-  upsertDefaultProperties (componentId, propertiesToMerge, strategy) {
-    if (!strategy) strategy = 'merge'
-    let haikuSelector = `haiku:${componentId}`
-    let bytecode = this.getReifiedBytecode()
-    if (!bytecode.timelines.Default[haikuSelector]) bytecode.timelines.Default[haikuSelector] = {}
-    let defaultTimeline = bytecode.timelines.Default[haikuSelector]
-    for (let propName in propertiesToMerge) {
-      if (!defaultTimeline[propName]) defaultTimeline[propName] = {}
-      if (!defaultTimeline[propName][DEFAULT_TIMELINE_TIME]) defaultTimeline[propName][DEFAULT_TIMELINE_TIME] = {}
-      switch (strategy) {
-        case 'merge':
-          defaultTimeline[propName][DEFAULT_TIMELINE_TIME].value = propertiesToMerge[propName]
-          break
-        case 'assign':
-          if (defaultTimeline[propName][DEFAULT_TIMELINE_TIME].value === undefined) defaultTimeline[propName][DEFAULT_TIMELINE_TIME].value = propertiesToMerge[propName]
-          break
-      }
-    }
-  }
-
   upsertProperties (bytecode, componentId, timelineName, timelineTime, propertiesToMerge, strategy) {
     return upsertPropertyValue(bytecode, componentId, timelineName, timelineTime, propertiesToMerge, strategy)
   }
@@ -764,10 +621,6 @@ class File extends BaseModel {
   read (cb) {
     return File.ingestOne(this.folder, this.relpath, (err) => {
       if (err) return cb(err)
-
-      // Make sure we get the correct things set up right off the bat
-      this.reinitializeBytecode(null)
-
       return cb(null, this)
     })
   }
