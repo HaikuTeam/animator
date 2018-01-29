@@ -17,9 +17,9 @@
 
 //       try {
 //         execSync(`git fetch`, { cwd: destinationDirAbs, stdio: 'inherit' })
-//         execSync(`npm update @haiku/player --save`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         execSync(`npm update @haiku/core --save`, { cwd: destinationDirAbs, stdio: 'inherit' })
 //         execSync(`git add .`, { cwd: destinationDirAbs, stdio: 'inherit' })
-//         execSync(`git commit -m "auto: Upgrade @haiku/player"`, { cwd: destinationDirAbs, stdio: 'inherit' })
+//         execSync(`git commit -m "auto: Upgrade @haiku/core"`, { cwd: destinationDirAbs, stdio: 'inherit' })
 //         const tag = execSync(`git describe $(git rev-list --tags --max-count=1)`, { cwd: destinationDirAbs })
 //         if (tag) {
 //           const next = semver.inc(tag, 'patch')
