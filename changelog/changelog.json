@@ -4332,5 +4332,52 @@
     }
   },
   "3.0.3": {},
-  "3.0.4": {}
+  "3.0.4": {},
+  "3.0.5": {
+    "aeab9aac9342140adc1087c3d0a7f8b47ac93c86": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "perform hard reset to fix working tree before beginning git subtree pull."
+    },
+    "87d7168a03616ddd9cebed5d62ea3bf594859d09": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "always push to mono during `yarn push` before splitting to standalones."
+    },
+    "70fe48e63c30e8530e481476018d13aefe626e31": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "ensure git-subtree-pull does not fail for changelog."
+    },
+    "e7ff2813a44d72ac8bc93a9f7844f6ad1b91040c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "don't try to track activity if no user is present"
+    },
+    "bdde936c7fb6e61511756da6ecbb19996d7c3545": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Ensure properties show up in timeline if they have a valid value"
+    },
+    "911c115f072dd62d628262ab3ead738d64076f22": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Convert legacy backgroundColor to style.backgroundColor now that we have JIT"
+    },
+    "63cd8f4fbc988a40ea919c2d214470807bee6418": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Don't update Expression UI on every change; fixes text selection issues"
+    },
+    "5412eea9863324447a27db1eb0319567bdc151ac": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "expose X-Haiku-Version header in all sdk-inkstone requests"
+    },
+    "c595925aa26760f55eb62ad9a7fef69b77a21dc6": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "set the correct param on sdk-inkston user::create"
+    }
+  }
 }

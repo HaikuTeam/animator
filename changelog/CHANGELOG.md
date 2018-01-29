@@ -1,6 +1,23 @@
 # Changelog
 
 
+## 3.0.5
+
+### Bug Fixes
+
+ * perform hard reset to fix working tree before beginning git subtree pull.
+ * always push to mono during `yarn push` before splitting to standalones.
+ * ensure git-subtree-pull does not fail for changelog.
+ * don't try to track activity if no user is present
+ * Ensure properties show up in timeline if they have a valid value
+ * Convert legacy backgroundColor to style.backgroundColor now that we have JIT
+ * Don't update Expression UI on every change; fixes text selection issues
+ * set the correct param on sdk-inkston user::create
+
+### Features
+
+ * expose X-Haiku-Version header in all sdk-inkstone requests
+
 ## 3.0.4
 
 ## 3.0.3
