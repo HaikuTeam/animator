@@ -1,8 +1,8 @@
 /**
  * Usage:
- * node ./scripts/internal/upgrade-player.js --username=me --password=123 --projects=foo1,foo2
+ * node ./scripts/internal/upgrade-core.js --username=me --password=123 --projects=foo1,foo2
  * Description:
- * Upgrades the @haiku/player version for all projects specified, then saves+publishes them.
+ * Upgrades the @haiku/core version for all projects specified, then saves+publishes them.
  */
 var async = require('async')
 var argv = require('yargs').argv
@@ -51,7 +51,7 @@ plumbing.launch({ mode: 'headless' }, (err, host, port, server, spawned, envoy) 
               return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, argv.username, argv.password, done)
             },
             function (done) {
-              // Simply starting the project should have the effect of upgrading the @haiku/player version
+              // Simply starting the project should have the effect of upgrading the @haiku/core version
               return plumbing.startProject(projectName, plumbing.getFolderFor(projectName), done)
             },
             function (done) {
