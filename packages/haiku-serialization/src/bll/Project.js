@@ -207,28 +207,8 @@ class Project extends BaseModel {
    * @description Harness to allow execution of arbitrary scripts in any view.
    * This is an INSIDER_METHOD for dev/testing use only. :P
    */
-  executeFunctionSpecification (_, { name, type, params, body, views }, metadata, cb) {
-    if (process.env.NODE_ENV === 'production') {
-      return cb()
-    }
-    if (views && views.indexOf(this.getAlias()) === -1) {
-      return cb()
-    }
-    try {
-      const fn = reifyRFO({ name, type, params, body })
-      return fn.call(this, (err, output) => {
-        if (err) return cb(err)
-        try {
-          return cb(null, output)
-        } catch (exception) {
-          log.error(exception)
-          return cb(exception)
-        }
-      })
-    } catch (exception) {
-      log.error(exception)
-      return cb(exception)
-    }
+  executeFunctionSpecification (_, { name, type, params, body, views, info }, metadata, cb) {
+    return Project.executeFunctionSpecification(this, this.getAlias(), { name, type, params, body, views, info }, cb)
   }
 
   ensurePlatformHaikuRegistry () {
@@ -940,6 +920,35 @@ Project.getSafeProjectName = (maybeProjectPath, maybeProjectName) => {
   if (maybeProjectName) return maybeProjectName.replace(WHITESPACE_REGEX, UNDERSCORE)
   if (maybeProjectPath) return pascalcase(maybeProjectPath.split(path.sep).join(UNDERSCORE))
   throw new Error('Unable to infer a project name!')
+}
+
+Project.executeFunctionSpecification = (binding, alias, { name, type, params, body, views, info }, cb) => {
+  if (process.env.NODE_ENV === 'production') {
+    return cb()
+  }
+
+  if (views && views.indexOf(alias) === -1) {
+    return cb()
+  }
+
+  console.log(binding, alias, { name, type, params, body, views, info }, cb)
+
+  try {
+    const fn = reifyRFO({ name, type, params, body })
+
+    return fn.call(binding, info, (err, output) => {
+      if (err) return cb(err)
+      try {
+        return cb(null, output)
+      } catch (exception) {
+        log.error(exception)
+        return cb(exception)
+      }
+    })
+  } catch (exception) {
+    log.error(exception)
+    return cb(exception)
+  }
 }
 
 // Sorry, hacky. We route some methods to this object dynamically, and in order

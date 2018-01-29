@@ -402,8 +402,8 @@ export default class Plumbing extends StateObject {
   }
 
   awaitFolderClientWithQuery (folder, method, query, timeout, cb) {
-    if (!folder) return cb(new Error('Folder argument was missing'))
     if (!query) return cb(new Error('Query argument was missing'))
+
     if (timeout <= 0) {
       return cb(new Error(`Timed out waiting for client ${JSON.stringify(query)} of ${folder} to connect`))
     }
@@ -450,6 +450,7 @@ export default class Plumbing extends StateObject {
 
   sendClientMethod (websocket, method, params = [], callback) {
     const message = { method, params }
+    console.log('sendClientMethod',method, params, callback)
     return this.sendClientRequest(websocket, message, callback)
   }
 
@@ -872,6 +873,7 @@ export default class Plumbing extends StateObject {
   }
 
   handleClientAction (type, alias, folder, method, params, cb) {
+    console.log('handleClientAction',type, alias, folder, method, params, cb)
     // Params always arrive with the folder as the first argument, so we strip that off
     params = params.slice(1)
 

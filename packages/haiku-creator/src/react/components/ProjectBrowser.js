@@ -306,7 +306,9 @@ class ProjectBrowser extends React.Component {
         <div style={DASH_STYLES.popover.item}>
           <span style={[DASH_STYLES.popover.text, DASH_STYLES.noSelect]}>{this.props.username}</span>
         </div>
-        <div style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}
+        <div
+          id='haiku-button-logout'
+          style={[DASH_STYLES.popover.item, DASH_STYLES.popover.pointer]}
           onClick={() => this.logOut()}>
           <span style={DASH_STYLES.popover.icon}>
             <LogOutSVG />
@@ -330,7 +332,8 @@ class ProjectBrowser extends React.Component {
         <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
           <div style={DASH_STYLES.modalTitle}>Name Project To Start</div>
           <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Project Name</div>
-          <input key='new-project-input'
+          <input
+            key='new-project-input'
             ref={(input) => {
               this.newProjectInput = input
             }}
@@ -385,7 +388,9 @@ class ProjectBrowser extends React.Component {
             placeholder='Type Project Name To Delete'
             autoFocus />
           <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
-          <button key='delete-go-button'
+          <button
+            id='delete-go-button'
+            key='delete-go-button'
             disabled={!this.state.confirmDeleteMatches}
             onClick={() => {
               this.performDeleteProject()
@@ -423,7 +428,9 @@ class ProjectBrowser extends React.Component {
 
         <div style={DASH_STYLES.frame} className='frame'>
           {!this.state.atProjectMax &&
-            <button key='new_proj'
+            <button
+              id='haiku-button-show-new-project-modal'
+              key='new_proj'
               onClick={() => this.showNewProjectModal()}
               style={[
                 BTN_STYLES.btnIcon,
@@ -438,7 +445,11 @@ class ProjectBrowser extends React.Component {
             place='below'
             className='three-dot-popover'
             body={this.renderUserMenuItems()}>
-            <button key='user' onClick={this.openPopover} style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}>
+            <button
+              id='haiku-button-show-account-popover'
+              key='user'
+              onClick={this.openPopover}
+              style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}>
               <UserIconSVG color={Palette.SUNSTONE} />
             </button>
           </Popover>

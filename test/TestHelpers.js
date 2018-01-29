@@ -1,6 +1,8 @@
 const path = require('path')
 const fse = require('fs-extra')
 const lodash = require('lodash')
+const os = require('os')
+const async = require('async')
 const functionToRFO = require('@haiku/player/lib/reflection/functionToRFO').default
 const haikuInfo = require('../packages/haiku-plumbing/lib/haikuInfo').default()
 const Plumbing = require('../packages/haiku-plumbing/lib/Plumbing').default
@@ -16,100 +18,150 @@ const HAIKU_HELPER_PATH = path.join(
   'HaikuHelper.js'
 )
 
-const BLANK_PROJECT_PATH = path.join(
-  MONO_ROOT_DIR,
-  'packages/haiku-plumbing',
-  'test/fixtures/projects/blank-project/'
-)
-
-const AWAIT_TIMEOUT = 1000
-const MAX_READY_ATTEMPTS = 30
-
-const awaitReady = (attempts, folder, plumbing, cb) => {
-  if (attempts > MAX_READY_ATTEMPTS) throw new Error('Gave up waiting')
-  setTimeout(() => {
-    if (plumbing.clients.length < 3) return awaitReady(attempts + 1, folder, plumbing, cb)
-    if (!plumbing.masters[folder]) return awaitReady(attempts + 1, folder, plumbing, cb)
-    if (!plumbing.masters[folder].project) return awaitReady(attempts + 1, folder, plumbing, cb)
-    if (!plumbing.masters[folder].project.getCurrentActiveComponent()) return awaitReady(attempts + 1, folder, plumbing, cb)
-    return cb()
-  }, AWAIT_TIMEOUT)
-}
+const ACTION_WAIT = 10000
 
 const startHaiku = (folder, cb) => {
   const haiku = lodash.assign({}, haikuInfo, { folder, mode: 'creator' })
 
   const plumbing = new Plumbing()
 
-  plumbing.launch(haiku, (err) => {
+  return plumbing.launch(haiku, (err) => {
     if (err) throw err
 
-    awaitReady(0, folder, plumbing, () => {
-      /**
-       * @method method
-       * @description Run a plumbing method.
-       */
-      plumbing.method = (method, params, done) => {
-        params.unshift(folder)
-        return plumbing.handleClientAction(
-          'controller',
-          'plumbing',
-          folder,
-          method,
-          params,
-          done
-        )
+    /**
+     * @method method
+     * @description Run a plumbing method.
+     */
+    plumbing.method = (folder, method, params, done) => {
+      params.unshift(folder)
+      return plumbing.handleClientAction(
+        'controller',
+        'plumbing',
+        folder,
+        method,
+        params,
+        done
+      )
+    }
+
+    /**
+     * @method exec
+     * @description Execute an arbitrary function.
+     * The this-binding of the fn will be an instance of Project.
+     */
+    plumbing.exec = (folder, fn, {views, info}, done) => {
+      const rfo = functionToRFO(fn).__function
+      rfo.views = views
+      rfo.info = info
+
+      const method = 'executeFunctionSpecification'
+      const params = ['', rfo]
+
+      // If only sending to creator, just route straight there instead of the action loop
+      if (!folder && views && views.length === 1 && views[0] === 'creator') {
+        // Note that plumbing already knows to ignore the folder arg when routing to creator
+        return plumbing.sendFolderSpecificClientMethodQuery(folder, {alias: 'creator'}, method, params, done)
       }
 
-      /**
-       * @method exec
-       * @description Execute an arbitrary function.
-       * The this-binding of the fn will be an instance of Project.
-       */
-      plumbing.exec = (fn, { views }, done) => {
-        const rfo = functionToRFO(fn).__function
-        rfo.views = views
-        return plumbing.method('executeFunctionSpecification', ['', rfo], (err, output) => {
-          if (err) return done(err)
-          try {
-            return done(null, output)
-          } catch (exception) {
-            console.error(exception)
-            return done(exception)
-          }
+      return plumbing.method(folder, method, params, done)
+    }
+
+    plumbing.loginWithUI = (cb) => {
+      return plumbing.exec(null, function(info, fin) {
+        const username = 'matthew+matthew@haiku.ai'
+        const password = 'supersecure'
+        return this.refs.AuthenticationUI.setState({username, password}, function() {
+          document.getElementById('haiku-button-login').click()
+          return setTimeout(() => { return fin() }, 10000)
         })
-      }
+      }, {views: ['creator']}, cb)
+    }
 
-      cb(null, plumbing)
-    })
+    plumbing.logoutWithUI = (cb) => {
+      return plumbing.exec(null, function(info, fin) {
+        document.getElementById('haiku-button-show-account-popover').click()
+        return setTimeout(() => {
+          document.getElementById('haiku-button-logout').click()
+          return setTimeout(() => { return fin() }, 10000)
+        }, 1000)
+      }, {views: ['creator']}, cb)
+    }
+
+    plumbing.createProjectWithUI = (name, cb) => {
+      return plumbing.exec(null, function(info, fin) {
+        document.getElementById('haiku-button-show-new-project-modal').click()
+        return setTimeout(() => {
+          this.refs.ProjectBrowser.handleNewProjectInputChange({target: {value: info.name}})
+          return setTimeout(() => {
+            this.refs.ProjectBrowser.handleNewProjectInputKeyDown({keyCode: 13})
+            return setTimeout(() => { return fin() }, 10000 * 2)
+          }, 1000)
+        }, 1000)
+      }, {views: ['creator'], info: {name}}, cb)
+    }
+
+    plumbing.deleteProjectWithUI = (name, cb) => {
+      return plumbing.exec(null, function(info, fin) {
+        this.refs.ProjectBrowser.showDeleteModal(0)
+        return setTimeout(() => {
+          this.refs.ProjectBrowser.handleDeleteInputChange({target: {value: info.name}})
+          return setTimeout(() => {
+            this.refs.ProjectBrowser.handleDeleteInputKeyDown({keyCode: 13})
+            return setTimeout(() => { return fin() }, 10000)
+          }, 1000)
+        }, 1000)
+      }, {views: ['creator'], info: {name}}, cb)
+    }
+
+    plumbing.backToDashboardWithUI = (cb) => {
+      return plumbing.exec(null, function(info, fin) {
+        document.getElementById('go-to-dashboard').click()
+        return setTimeout(() => { return fin() }, 10000)
+      }, {views: ['creator']}, cb)
+    }
+
+    return cb(null, plumbing)
   })
 }
 
-const e2e = (worker) => {
-  fse.removeSync(BLANK_PROJECT_PATH)
-  fse.mkdirpSync(BLANK_PROJECT_PATH)
+const logout = () => {
+  const authToken = path.join(os.homedir(), '.haiku', 'auth')
+  fse.removeSync(authToken)
+}
 
-  startHaiku(BLANK_PROJECT_PATH, (err, plumbing) => {
+const start = (worker) => {
+  logout()
+  
+  return startHaiku(null, (err, plumbing) => {
     if (err) throw err
 
-    const master = plumbing.masters[BLANK_PROJECT_PATH]
-    const project = master.project
-    const ac = project.getCurrentActiveComponent()
-
-    worker({
-      plumbing,
-      master,
-      project,
-      relpath: ac.getSceneCodeRelpath(),
-      folder: BLANK_PROJECT_PATH,
-      ac
-    }, (after) => {
-      plumbing.teardown(() => {
-        fse.removeSync(BLANK_PROJECT_PATH)
-        fse.outputFileSync(path.join(BLANK_PROJECT_PATH, '.keep'), '')
-        after()
+    // A bit of extra time for the Electron window to open up and show the login screen
+    return setTimeout(() => {
+      // We assume every test sequence begins by logging in and creating a fresh project
+      return async.series([
+        (cb) => { return plumbing.loginWithUI(cb) },
+        (cb) => { return plumbing.createProjectWithUI('e2etest', cb) },
+        (cb) => {
+          const folder = Object.keys(plumbing.masters)[0]
+          return worker({plumbing, folder}, (after) => {
+            // And that the project ends by deleting the project and logging out
+            return async.series([
+              (cb) => { return plumbing.backToDashboardWithUI(cb) },
+              (cb) => { return plumbing.deleteProjectWithUI('e2etest', cb) },
+              (cb) => { return plumbing.logoutWithUI(cb) }
+            ], (err) => {
+              if (err) throw err
+              return plumbing.teardown(() => {
+                after()
+                return cb()
+              })
+            })
+          })
+        }
+      ], (err) => {
+        if (err) throw err
       })
-    })
+    }, 5000)
   })
 }
 
@@ -127,7 +179,7 @@ const stripUnstableIdsFromHtml = (html) => {
 }
 
 module.exports = {
-  e2e,
-  wait,
-  stripUnstableIdsFromHtml
+  start,
+  stripUnstableIdsFromHtml,
+  wait
 }
