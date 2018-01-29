@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Haiku 2016-2017. All rights reserved.
+ * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';

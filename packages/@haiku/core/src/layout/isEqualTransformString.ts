@@ -1,8 +1,6 @@
 /**
- * Copyright (c) Haiku 2016-2017. All rights reserved.
+ * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
-
-// var CIDENT = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)'
 
 const C1 = ', ';
 

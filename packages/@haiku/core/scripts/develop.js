@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2018. All rights reserved.
+ */
+
 const child_process = require('child_process');
 const opn = require('opn');
 
