@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.15
+
+### Features
+
+ * add a toast when the user presses cmd+s
+
 ## 3.0.14
 
 ### Bug Fixes
