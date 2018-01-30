@@ -83,7 +83,7 @@ export default class TopMenu extends EventEmitter {
         }
       },
       {
-        label: 'Reveal in finder',
+        label: 'Save',
         enabled: isProjectOpen,
         accelerator: 'CmdOrCtrl+S',
         click: () => {
