@@ -1193,7 +1193,10 @@ export class Glass extends React.Component {
     }
 
     this.getActiveComponent().queryElements({ _isSelected: true }).forEach((element) => {
-      element.remove()
+      // Don't let folks delete the artboard; things get bad if this happens
+      if (!element.isRootElement()) {
+        element.remove()
+      }
     })
   }
 
@@ -1765,7 +1768,7 @@ export class Glass extends React.Component {
 
     items.push({
       label: 'Delete',
-      enabled: !!selectedElement,
+      enabled: selectedElement && !selectedElement.isRootElement(),
       onClick: () => {
         selectedElement.remove({ from: 'glass' })
       }
