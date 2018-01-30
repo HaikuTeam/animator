@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.10
+
+### Documentation
+
+ * Comments summarize
+
 ## 3.0.9
 
 ### Bug Fixes

@@ -4452,5 +4452,12 @@
       "label": "fix",
       "message": "set correct params for inkstone.user#requestConfirmation"
     }
+  },
+  "3.0.10": {
+    "9faf691b4d85f04e6db27db59ceca3623caa2047": {
+      "project": "@haiku/sdk-client",
+      "label": "docs",
+      "message": "Comments summarize"
+    }
   }
 }
