@@ -1,6 +1,6 @@
 {
   "name": "haiku-admin-cli",
-  "version": "3.0.14",
+  "version": "3.0.15",
   "description": "Haiku Admin CLI",
   "main": "lib/index.js",
   "scripts": {
@@ -32,9 +32,9 @@
     "cli-color": "^1.2.0",
     "dedent": "^0.7.0",
     "fs-extra": "^4.0.2",
-    "@haiku/cli": "3.0.14",
-    "@haiku/sdk-client": "3.0.14",
-    "@haiku/sdk-inkstone": "3.0.14",
+    "@haiku/cli": "3.0.15",
+    "@haiku/sdk-client": "3.0.15",
+    "@haiku/sdk-inkstone": "3.0.15",
     "hasbin": "^1.2.3",
     "inquirer": "^3.0.6",
     "lodash": "^4.17.4",
