@@ -4440,5 +4440,17 @@
       "label": "fix",
       "message": "set correct params for inkstone.user#requestConfirmation"
     }
+  },
+  "3.0.9": {
+    "021bd3c0b4a15e9c375dec3a9c4bcf73b919afa3": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "make sdk-instone calls via plumbing"
+    },
+    "5af311d15f8c6e44a5e289a0ef70f9be0af5cbe9": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "set correct params for inkstone.user#requestConfirmation"
+    }
   }
 }

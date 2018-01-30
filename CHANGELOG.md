@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 3.0.9
+
+### Bug Fixes
+
+ * make sdk-instone calls via plumbing
+ * set correct params for inkstone.user#requestConfirmation
+
 ## 3.0.8
 
 ### Bug Fixes
