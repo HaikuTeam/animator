@@ -1,6 +1,19 @@
 # Changelog
 
 
+## 3.0.13
+
+### Documentation
+
+ * Further tweaks to image styles in README
+ * Styled images in README
+ * Updated image and integrated with README
+
+### Bug Fixes
+
+ * lulz, we need @haiku/player as a dep so legacy projects can load and be migrated to @haiku/core
+ * use public-read ACL on syndicated files.
+
 ## 3.0.12
 
 ### Bug Fixes

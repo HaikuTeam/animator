@@ -4467,5 +4467,32 @@
       "label": "fix",
       "message": "Ensure cut/copy work from top menu"
     }
+  },
+  "3.0.13": {
+    "1ce845790ed9343592c2a5f122f33997312aec4f": {
+      "project": "@haiku/sdk-client",
+      "label": "docs",
+      "message": "Further tweaks to image styles in README"
+    },
+    "5bb833f7f5e6181e92adf14f2f5497d60b310e91": {
+      "project": "@haiku/sdk-client",
+      "label": "docs",
+      "message": "Styled images in README"
+    },
+    "6a120215140bedc9e2d3ee8c964c032595042962": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "lulz, we need @haiku/player as a dep so legacy projects can load and be migrated to @haiku/core"
+    },
+    "d1a41b0eb6d836e1248b884eaae71010268a7ee2": {
+      "project": "@haiku/sdk-client",
+      "label": "docs",
+      "message": "Updated image and integrated with README"
+    },
+    "d0cfc8bf102492767e17b94459741e02d46981d7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use public-read ACL on syndicated files."
+    }
   }
 }
