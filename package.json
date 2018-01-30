@@ -31,6 +31,7 @@
   "dependencies": {
     "@haiku/cli": "3.0.11",
     "@haiku/core": "3.0.11",
+    "@haiku/player": "^3.0.4",
     "@haiku/sdk-client": "3.0.11",
     "@haiku/sdk-inkstone": "3.0.11",
     "haiku-bytecode": "3.0.11",
