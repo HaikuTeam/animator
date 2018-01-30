@@ -472,7 +472,8 @@ export default class Creator extends React.Component {
   isShareLinkCopyEvent (clipboardEvent) {
     return (
       clipboardEvent &&
-      clipboardEvent.target
+      clipboardEvent.target &&
+      clipboardEvent.target.tagName === 'SPAN' // Match the element target used by react-copy-paste
     )
   }
 
