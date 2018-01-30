@@ -164,29 +164,21 @@ class File extends BaseModel {
   }
 
   performComponentWork (worker, finish) {
-    try {
-      const bytecode = this.getReifiedBytecode()
+    const bytecode = this.getReifiedBytecode()
 
-      return worker(bytecode, bytecode.template, (err, result) => {
+    return worker(bytecode, bytecode.template, (err, result) => {
+      if (err) return finish(err)
+
+      Bytecode.cleanBytecode(bytecode)
+      Template.cleanTemplate(bytecode.template)
+
+      return this.commitContentState(bytecode, (err) => {
         if (err) return finish(err)
-        try {
-          Bytecode.cleanBytecode(bytecode)
-          Template.cleanTemplate(bytecode.template)
 
-          return this.commitContentState(bytecode, (err) => {
-            if (err) return finish(err)
-
-            // TODO types; some callers expect to get the result of the worker
-            return finish(null, result)
-          })
-        } catch (exception) {
-          return finish(exception)
-        }
+        // TODO types; some callers expect to get the result of the worker
+        return finish(null, result)
       })
-    } catch (exception) {
-      logger.error('[file] ' + exception)
-      return finish(exception)
-    }
+    })
   }
 
   writeMetadata (metadata, cb) {

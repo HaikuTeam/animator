@@ -177,25 +177,17 @@ class Project extends BaseModel {
     const ac = this.findActiveComponentBySource(params[0])
     if (ac && typeof ac[method] === 'function') {
       log.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
-      try {
-        return ac[method].apply(ac, params.slice(1).concat(cb))
-      } catch (exception) {
-        return cb(exception)
-      }
+      return ac[method].apply(ac, params.slice(1).concat(cb))
     }
 
     // If we have a method here at the top, call it
     if (typeof this[method] === 'function') {
       log.info(`[project (${this.getAlias()})] project handling method ${method}`, params, typeof cb === 'function')
-      try {
-        return this[method].apply(this, params.concat((err, result) => {
-          if (err) return cb(err)
-          if (doReturnResult) return cb(null, result)
-          return cb() // Skip objects that don't play well with Websockets
-        }))
-      } catch (exception) {
-        return cb(exception)
-      }
+      return this[method].apply(this, params.concat((err, result) => {
+        if (err) return cb(err)
+        if (doReturnResult) return cb(null, result)
+        return cb() // Skip objects that don't play well with Websockets
+      }))
     }
 
     return cb(new Error(`Unknown project method ${method}`))

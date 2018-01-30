@@ -473,7 +473,10 @@ class Element extends BaseModel {
 
   getLayoutAncestry () {
     return this.getAncestry().map((ancestor) => {
-      return ancestor.getLiveRenderedNode().layout
+      const node = ancestor && ancestor.getLiveRenderedNode()
+      // FIXME: Race condition can occur when things are deleted
+      if (node && node.layout) return node.layout
+      return {computed: {matrix: Layout3D.createMatrix()}}
     })
   }
 
