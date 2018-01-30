@@ -50,7 +50,10 @@ class ProjectBrowser extends React.Component {
       this.tourChannel.on('tour:requestShowStep', ({component, selector}) => {
         if (component === 'OpenProject') {
           const target = document.querySelector(selector)
-          target.parentNode.scrollTop = target.offsetTop - 350
+          // HACK: Unsure why, but sometimes this isn't present
+          if (target && target.parentNode) {
+            target.parentNode.scrollTop = target.offsetTop - 350
+          }
         }
       })
     })

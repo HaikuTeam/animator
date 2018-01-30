@@ -11,8 +11,11 @@ module.exports = function getStackingInfo (bytecode, staticTemplateManaNode, tim
     if (!child || typeof child === 'string') continue
     var haikuId = child.attributes[HAIKU_ID_ATTRIBUTE]
     var explicitZ = getPropertyValue(bytecode, haikuId, timelineName, timelineTime, 'style.zIndex')
-    var foundZ = parseInt(explicitZ || (i + 1), 10)
+
+    // NaN would cause an endless loop, so fallback to 0
+    var foundZ = parseInt(explicitZ || (i + 1), 10) || 0
     var finalZ = _uniqueZ(foundZ, zIndicesToHaikuIds)
+
     haikuIdsToZIndices[haikuId] = finalZ
     zIndicesToHaikuIds[finalZ] = haikuId
   }

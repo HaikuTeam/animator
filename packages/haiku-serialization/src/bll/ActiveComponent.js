@@ -2390,6 +2390,11 @@ class ActiveComponent extends BaseModel {
         continue
       }
 
+      // Unknown why, but sometimes this isn't present and we crash
+      if (!valueGroup[mscurr] || valueGroup[mscurr].value === undefined) {
+        continue
+      }
+
       Keyframe.upsert({
         timestamp: this._timestamp,
         // The keyframe's uid is in the context of the row, which is in turn in context of the component
