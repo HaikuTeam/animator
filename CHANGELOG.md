@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.12
+
+### Bug Fixes
+
+ * Ensure cut/copy work from top menu
+
 ## 3.0.11
 
 ## 3.0.10
