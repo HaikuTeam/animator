@@ -14,7 +14,7 @@ const cli = new Nib({
   description: 'The Haiku Admin CLI — Enables Haiku administrative access and actions from the command line.',
   preAction(context: IContext) {
     adminSdk.setConfig({
-      baseUrl: context.flags.api || 'https://inkstone.haiku.ai/',
+      baseUrl: process.env.HAIKU_API || context.flags.api || 'https://inkstone.haiku.ai/',
     });
   },
   commands: [

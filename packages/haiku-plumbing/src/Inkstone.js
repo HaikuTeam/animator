@@ -4,19 +4,6 @@ import { client } from '@haiku/sdk-client'
 import logger from 'haiku-serialization/src/utils/LoggerInstance'
 import * as Git from './Git'
 
-// Configure inkstone, useful for testing off of dev (HAIKU_API=https://localhost:8080/)
-if (process.env.HAIKU_API) {
-  inkstone.setConfig({
-    baseUrl: process.env.HAIKU_API
-  })
-}
-
-if (process.env.SHARE_URL) {
-  inkstone.setConfig({
-    baseShareUrl: process.env.SHARE_URL
-  })
-}
-
 export function createSnapshot (folder, name, done) {
   Git.referenceNameToId(folder, 'HEAD', (err, id) => {
     if (err) {
