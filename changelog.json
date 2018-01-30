@@ -4501,5 +4501,12 @@
       "label": "fix",
       "message": "address weird interactions between preview mode and the tour"
     }
+  },
+  "3.0.15": {
+    "d8855221d6126625e2f613d6c7a49cf67d8faeb7": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add a toast when the user presses cmd+s"
+    }
   }
 }
