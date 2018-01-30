@@ -324,5 +324,11 @@ export const DASH_STYLES = {
   projToDelete: {
     color: Palette.LIGHT_BLUE,
     fontStyle: 'italic'
+  },
+  link: {
+    color: Palette.LIGHTEST_PINK,
+    textDecoration: 'underline',
+    cursor: 'pointer',
+    display: 'inline-block'
   }
 }

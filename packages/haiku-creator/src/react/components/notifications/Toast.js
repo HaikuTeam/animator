@@ -75,7 +75,6 @@ const STYLES = {
     fontSize: '12px',
     marginTop: '8px',
     color: Palette.ROCK,
-    pointerEvents: 'none',
     width: '190px'
   }
 }
