@@ -254,20 +254,17 @@ export default class Plumbing extends StateObject {
           }
 
           websocket.params.id = _id()
-          const index = this.clients.push(websocket) - 1
-
-          websocket._index = index
+          this.clients.push(websocket)
 
           websocket.on('close', () => {
             logger.info(`[plumbing] websocket closed (${type} ${alias})`)
+            this.removeWebsocketClient(websocket)
+          })
 
-            // Clean up dead clients
-            for (let j = this.clients.length - 1; j >= 0; j--) {
-              let client = this.clients[j]
-              if (client === websocket) {
-                this.clients.splice(j, 1)
-              }
-            }
+          // Allegedly this prevents uncatchable EPIPE crashes
+          websocket.on('error', (err) => {
+            logger.info(`[plumbing] websocket error (${type} ${alias})`, err)
+            this.removeWebsocketClient(websocket)
           })
         })
 
@@ -280,6 +277,15 @@ export default class Plumbing extends StateObject {
         })
       })
     })
+  }
+
+  removeWebsocketClient (websocket) {
+    for (let j = this.clients.length - 1; j >= 0; j--) {
+      let client = this.clients[j]
+      if (client === websocket) {
+        this.clients.splice(j, 1)
+      }
+    }
   }
 
   handleRemoteMessage (type, alias, folder, message, websocket, server, responder) {
@@ -460,7 +466,15 @@ export default class Plumbing extends StateObject {
     setTimeout(() => {
       if (websocket.readyState === WebSocket.OPEN) {
         const data = JSON.stringify(message)
-        return websocket.send(data)
+        return websocket.send(data, (err) => {
+          if (err) {
+            logger.error(`[plumbing] websocket client request error`, err)
+            // In case the websocket disconnects, just remove the client instead of crashing
+            if (err.message.match(/not opened/) || err.message.match(/EPIPE/)) {
+              this.removeWebsocketClient(websocket)
+            }
+          }
+        })
       } else {
         logger.info(`[plumbing] websocket readyState was not open so we did not send message ${message.method || message.id}`)
         callback() // Should this return an error or remain silent?
