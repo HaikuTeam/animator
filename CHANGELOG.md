@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.14
+
+### Bug Fixes
+
+ * address weird interactions between preview mode and the tour
+
 ## 3.0.13
 
 ### Documentation
