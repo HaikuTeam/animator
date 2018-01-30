@@ -49,16 +49,11 @@ class Toggle extends React.Component {
     this.tooltipCloseDelay = tooltipCloseDelay || 2000
     this.tooltipOpenTimeout = undefined
     this.tooltipCloseTimeout = undefined
-    this.state = {
-      active: false
-    }
   }
 
   onToggle () {
-    this.setState({active: !this.state.active})
-
     if (typeof this.props.onToggle === 'function') {
-      this.props.onToggle(this.state.active)
+      this.props.onToggle()
     }
   }
 
@@ -96,7 +91,7 @@ class Toggle extends React.Component {
           style={[
             BTN_STYLES.btnText,
             STYLES.wrapper,
-            this.state.active && STYLES.wrapper.active,
+            this.props.active && STYLES.wrapper.active,
             this.props.disabled && STYLES.disabled,
             this.props.style
           ]}

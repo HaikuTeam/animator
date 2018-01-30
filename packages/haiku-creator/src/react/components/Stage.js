@@ -5,7 +5,6 @@ import path from 'path'
 import StageTitleBar from './StageTitleBar'
 import ComponentMenu from './ComponentMenu/ComponentMenu'
 import Palette from 'haiku-ui-common/lib/Palette'
-import {InteractionMode} from '@haiku/core/lib/helpers/interactionModes'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 
 const STAGE_BOX_STYLE = {
@@ -28,9 +27,6 @@ export default class Stage extends React.Component {
     super(props)
     this.webview = null
     this.onRequestWebviewCoordinates = this.onRequestWebviewCoordinates.bind(this)
-    this.state = {
-      interactionMode: InteractionMode.EDIT
-    }
   }
 
   componentDidMount () {
@@ -131,13 +127,8 @@ export default class Stage extends React.Component {
     }
   }
 
-  onPreviewModeToggled (interactionMode) {
-    this.setState({ interactionMode })
-    this.props.onPreviewModeToggled(interactionMode)
-  }
-
   render () {
-    const interactionModeColor = (this.state.interactionMode === InteractionMode.LIVE)
+    const interactionModeColor = this.props.isPreviewMode
       ? Palette.LIGHTEST_PINK
       : Palette.STAGE_GRAY
 
@@ -160,8 +151,11 @@ export default class Stage extends React.Component {
             username={this.props.username}
             password={this.props.password}
             receiveProjectInfo={this.props.receiveProjectInfo}
-            onPreviewModeToggled={this.onPreviewModeToggled.bind(this)}
-            isTimelineReady={this.props.isTimelineReady} />
+            onPreviewModeToggled={this.props.onPreviewModeToggled}
+            isPreviewMode={this.props.isPreviewMode}
+            isTimelineReady={this.props.isTimelineReady}
+            envoyClient={this.props.envoyClient}
+          />
           {(experimentIsEnabled(Experiment.MultiComponentFeatures))
             ? <ComponentMenu
               ref='component-menu'
