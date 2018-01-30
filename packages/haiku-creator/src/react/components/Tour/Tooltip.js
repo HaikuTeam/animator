@@ -102,6 +102,7 @@ function Tooltip (props) {
   let {top, left} = coordinates
   let positionStyles = STYLES[display.toUpperCase()] || {}
   let spotlightExtraStyles = {}
+  let renderSpotlight = true
 
   if (display === 'left') {
     top = top + coordinates.height / 2
@@ -139,21 +140,30 @@ function Tooltip (props) {
     left = left + offset.left
   }
 
-  if (spotlightRadius !== 'default') {
-    spotlightExtraStyles.width = spotlightRadius
-    spotlightExtraStyles.height = spotlightRadius
+  switch (spotlightRadius) {
+    case 'default':
+      break
+    case 'hidden':
+      renderSpotlight = false
+      break
+    default:
+      spotlightExtraStyles.width = spotlightRadius
+      spotlightExtraStyles.height = spotlightRadius
+      break
   }
 
   return (
     <div style={{top, left, ...STYLES.container, ...positionStyles.container, zIndex: 9999999}}>
-      <Spotlight
-        offset={positionStyles.spotlight}
-        position={{top, left}}
-        containerStyles={STYLES.container}
-        holeStyles={spotlightExtraStyles}
-        display={display}
-        isOverlayHideable={isOverlayHideable}
-      />
+      {(renderSpotlight &&
+        <Spotlight
+          offset={positionStyles.spotlight}
+          position={{top, left}}
+          containerStyles={STYLES.container}
+          holeStyles={spotlightExtraStyles}
+          display={display}
+          isOverlayHideable={isOverlayHideable}
+        />
+      )}
 
       <Draggable key={stepData.current}>
         <div

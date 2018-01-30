@@ -21,7 +21,7 @@ import Gauge from './Gauge'
 import GaugeTimeReadout from './GaugeTimeReadout'
 import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
-import {isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
+import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
 import { USER_CHANNEL } from 'haiku-sdk-creator/lib/bll/User'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
@@ -886,6 +886,10 @@ class Timeline extends React.Component {
     })
   }
 
+  disablePreviewMode () {
+    this.project.setInteractionMode(InteractionMode.EDIT, () => {})
+  }
+
   renderBottomControls () {
     return (
       <div
@@ -1021,6 +1025,7 @@ class Timeline extends React.Component {
                 zIndex: 999999,
                 backgroundColor: Palette.COAL
               }}
+              onClick={() => { this.disablePreviewMode() }}
             />
           )
         }

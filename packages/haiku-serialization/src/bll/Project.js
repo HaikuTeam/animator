@@ -153,10 +153,9 @@ class Project extends BaseModel {
     const fileOptions = this.getFileOptions()
     return (
       fileOptions &&
-      fileOptions.methodsToShortCircuit &&
+      fileOptions.whitelistedMethods &&
       (
-        fileOptions.methodsToShortCircuit[method] ||
-        fileOptions.methodsToShortCircuit['*']
+        !fileOptions.whitelistedMethods[method]
       )
     )
   }

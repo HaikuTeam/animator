@@ -71,6 +71,7 @@ export default class Creator extends React.Component {
     this.onTimelineMounted = this.onTimelineMounted.bind(this)
     this.onTimelineUnmounted = this.onTimelineUnmounted.bind(this)
     this.onNavigateToDashboard = this.onNavigateToDashboard.bind(this)
+    this.disablePreviewMode = this.disablePreviewMode.bind(this)
     this.clearAuth = this.clearAuth.bind(this)
     this.layout = new EventEmitter()
     this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this))
@@ -100,7 +101,8 @@ export default class Creator extends React.Component {
       doShowBackToDashboardButton: false,
       doShowProjectLoader: false,
       launchingProject: false,
-      newProjectLoading: false
+      newProjectLoading: false,
+      interactionMode: InteractionMode.EDIT
     }
 
     this.envoyOptions = {
@@ -116,9 +118,8 @@ export default class Creator extends React.Component {
       doWriteToDisk: false,
       skipDiffLogging: true,
       // List of methods that should return cb() without doing anything (we are in Creator).
-      methodsToShortCircuit: {
-        // The splat is interpreted to mean 'all methods should be short-circuited'
-        '*': true
+      whitelistedMethods: {
+        setInteractionMode: true
       }
     }
 
@@ -374,6 +375,8 @@ export default class Creator extends React.Component {
 
       tourChannel.on('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates)
 
+      tourChannel.on('tour:requestShowStep', this.disablePreviewMode)
+
       ipcRenderer.on('global-menu:start-tour', () => {
         this.setDashboardVisibility(true)
 
@@ -480,6 +483,7 @@ export default class Creator extends React.Component {
   componentWillUnmount () {
     this.tourChannel.off('tour:requestElementCoordinates', this.handleFindElementCoordinates)
     this.tourChannel.off('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates)
+    this.tourChannel.off('tour:requestShowStep', this.disablePreviewMode)
     this.activityMonitor.stopWatchers()
   }
 
@@ -560,6 +564,25 @@ export default class Creator extends React.Component {
         removeNotice={this.removeNotice}
         lightScheme={content.lightScheme} />
     )
+  }
+
+  setPreviewMode (interactionMode) {
+    if (this.state.projectModel) {
+      this.state.projectModel.setInteractionMode(interactionMode, () => {})
+      this.setState({interactionMode})
+    }
+  }
+
+  togglePreviewMode () {
+    const interactionMode = this.state.interactionMode === InteractionMode.EDIT
+      ? InteractionMode.LIVE
+      : InteractionMode.EDIT
+
+    this.setPreviewMode(interactionMode)
+  }
+
+  disablePreviewMode () {
+    this.setPreviewMode(InteractionMode.EDIT)
   }
 
   setDashboardVisibility (dashboardVisible) {
@@ -715,6 +738,13 @@ export default class Creator extends React.Component {
                       doShowBackToDashboardButton: true
                     })
                   }, 2000)
+              }
+            })
+
+            projectModel.on('remote-update', (what, ...args) => {
+              switch (what) {
+                case 'setInteractionMode':
+                  return this.setPreviewMode(args[1])
               }
             })
 
@@ -1036,6 +1066,7 @@ export default class Creator extends React.Component {
                             zIndex: 999999,
                             backgroundColor: Palette.COAL
                           }}
+                          onClick={() => { this.disablePreviewMode() }}
                         />
                       )
                     }
@@ -1076,7 +1107,9 @@ export default class Creator extends React.Component {
                       username={this.state.username}
                       password={this.state.password}
                       isTimelineReady={this.state.isTimelineReady}
-                      onPreviewModeToggled={(interactionMode) => { this.setState({interactionMode}) }} />
+                      isPreviewMode={isPreviewMode(this.state.interactionMode)}
+                      onPreviewModeToggled={() => { this.togglePreviewMode() }}
+                    />
                     {(this.state.assetDragging)
                       ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />
                       : '' }
