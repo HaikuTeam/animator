@@ -735,10 +735,10 @@ export default class Creator extends React.Component {
               }
             })
 
-            projectModel.on('remote-update', (what) => {
+            projectModel.on('remote-update', (what, ...args) => {
               switch (what) {
                 case 'setInteractionMode':
-                  return this.disablePreviewMode()
+                  return this.setPreviewMode(args[1])
               }
             })
 
