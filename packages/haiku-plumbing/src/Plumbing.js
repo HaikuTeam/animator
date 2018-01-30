@@ -102,13 +102,6 @@ const HAIKU_DEFAULTS = {
   }
 }
 
-// configure inkstone, useful for testing off of dev (HAIKU_API=https://localhost:8080/)
-if (process.env.HAIKU_API) {
-  inkstone.setConfig({
-    baseUrl: process.env.HAIKU_API
-  })
-}
-
 const emitter = new EventEmitter()
 
 const PINFO = `${process.pid} ${path.basename(__filename)} ${path.basename(process.execPath)}`

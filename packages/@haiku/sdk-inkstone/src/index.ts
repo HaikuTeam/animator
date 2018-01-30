@@ -59,7 +59,7 @@ export namespace inkstone {
   }
 
   const inkstoneConfig: InkstoneConfig = {
-    baseUrl: 'https://inkstone.haiku.ai/',
+    baseUrl: process.env.HAIKU_API || 'https://inkstone.haiku.ai/',
     baseShareUrl: 'https://share.haiku.ai/',
     haikuBinaryPath: '/Applications/Haiku.app/Contents/MacOS/Haiku',
   };

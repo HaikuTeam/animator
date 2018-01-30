@@ -20,7 +20,7 @@ const cli = new Nib({
     ' server-enabled actions without requiring the desktop app.',
   preAction(context: IContext) {
     inkstone.setConfig({
-      baseUrl: context.flags.api || 'https://inkstone.haiku.ai/',
+      baseUrl: process.env.HAIKU_API || context.flags.api || 'https://inkstone.haiku.ai/',
       baseShareUrl: context.flags.share || 'https://share.haiku.ai/',
     });
   },
