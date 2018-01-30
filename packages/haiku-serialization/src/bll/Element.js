@@ -1044,8 +1044,10 @@ class Element extends BaseModel {
       // Wrap e.g. clipPath into attributes.clipPath so the menu
       // displays the items in a more reasonable way
       if (prefix && !suffix) {
-        suffix = prefix
-        prefix = 'Attributes'
+        // suffix = prefix
+        // prefix = 'Attributes'
+        // HACK: Without controll deep into the tree, attributes are more confusing than useful, so exclude them
+        continue
       }
 
       if (!grouped[prefix]) {
@@ -1162,7 +1164,10 @@ class Element extends BaseModel {
                   } else {
                     // If the keyframe is an internally managed prop that has been changed from its default value
                     const fallbackValue = Element.INTERNALLY_MANAGED_PROPS_WITH_DEFAULT_VALUES[propertyName]
-                    if (keyframesObject[0].value !== undefined && keyframesObject[0].value !== fallbackValue) {
+                    if (
+                      keyframesObject[0].value !== undefined &&
+                      keyframesObject[0].value !== fallbackValue
+                    ) {
                       filtered[propertyName] = propertyObject
                     }
                   }
