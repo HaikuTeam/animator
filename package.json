@@ -29,6 +29,7 @@
     "test-report": "node ./scripts/test-report.js"
   },
   "dependencies": {
+    "@haiku/player": "^3.0.4",
     "@haiku/cli": "3.0.12",
     "@haiku/core": "3.0.12",
     "@haiku/sdk-client": "3.0.12",

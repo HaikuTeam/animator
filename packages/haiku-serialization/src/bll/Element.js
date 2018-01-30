@@ -41,6 +41,8 @@ const FAKE_POINTS = [
   {x: 1, y: 1}
 ]
 
+const EMPTY_ELEMENT = {elementName: 'div', attributes: {}, children: []}
+
 function getAncestry (ancestors, elementInstance) {
   ancestors.unshift(elementInstance)
   if (elementInstance.parent) {
@@ -207,6 +209,10 @@ class Element extends BaseModel {
     // We query our "host" instance to get our wrapper node that it "hosts"
     // Note the difference from the target instance
     const instance = this.getCoreHostComponentInstance()
+    // FIXME: Handle race when component instance isn't present
+    if (!instance) {
+      return null
+    }
     const element = instance.findElementsByHaikuId(this.getComponentId())[0]
     return element
   }
@@ -215,8 +221,11 @@ class Element extends BaseModel {
     const offset = Layout3D.createMatrix()
     if (this.isTextNode()) return offset
     const size = this.getComputedSize()
-    offset[12] = -size.x * (0.5 - this.getLiveRenderedNode().layout.origin.x)
-    offset[13] = -size.y * (0.5 - this.getLiveRenderedNode().layout.origin.y)
+    const node = this.getLiveRenderedNode()
+    if (node) {
+      offset[12] = -size.x * (0.5 - node.layout.origin.x)
+      offset[13] = -size.y * (0.5 - node.layout.origin.y)
+    }
     return offset
   }
 
@@ -238,7 +247,7 @@ class Element extends BaseModel {
   }
 
   querySelectorAll (selector) {
-    return Element.querySelectorAll(selector, this.getLiveRenderedNode())
+    return Element.querySelectorAll(selector, this.getLiveRenderedNode() || EMPTY_ELEMENT)
   }
 
   getDOMEvents () {
@@ -495,17 +504,27 @@ class Element extends BaseModel {
     if (this.isTextNode()) {
       return Layout3D.createMatrix()
     }
-    return this.getLiveRenderedNode().layout.computed.matrix
+    const node = this.getLiveRenderedNode()
+    // FIXME: Race condition when node isn't present
+    if (!node) {
+      return Layout3D.createMatrix() // Identity matrix
+    }
+    return node.layout.computed.matrix
   }
 
   getComputedSize () {
     if (this.isTextNode()) {
       return this.parent.getComputedSize()
     }
+    const node = this.getLiveRenderedNode()
+    // FIXME: Race condition when node isn't present
+    if (!node) {
+      return {x: 1, y: 1, z: 1}
+    }
     return {
-      x: this.getLiveRenderedNode().layout.computed.size.x,
-      y: this.getLiveRenderedNode().layout.computed.size.y,
-      z: this.getLiveRenderedNode().layout.computed.size.z
+      x: node.layout.computed.size.x,
+      y: node.layout.computed.size.y,
+      z: node.layout.computed.size.z
     }
   }
 
@@ -1025,8 +1044,10 @@ class Element extends BaseModel {
       // Wrap e.g. clipPath into attributes.clipPath so the menu
       // displays the items in a more reasonable way
       if (prefix && !suffix) {
-        suffix = prefix
-        prefix = 'Attributes'
+        // suffix = prefix
+        // prefix = 'Attributes'
+        // HACK: Without controll deep into the tree, attributes are more confusing than useful, so exclude them
+        continue
       }
 
       if (!grouped[prefix]) {
@@ -1143,7 +1164,10 @@ class Element extends BaseModel {
                   } else {
                     // If the keyframe is an internally managed prop that has been changed from its default value
                     const fallbackValue = Element.INTERNALLY_MANAGED_PROPS_WITH_DEFAULT_VALUES[propertyName]
-                    if (keyframesObject[0].value !== undefined && keyframesObject[0].value !== fallbackValue) {
+                    if (
+                      keyframesObject[0].value !== undefined &&
+                      keyframesObject[0].value !== fallbackValue
+                    ) {
                       filtered[propertyName] = propertyObject
                     }
                   }
@@ -1192,11 +1216,11 @@ class Element extends BaseModel {
   }
 
   toXMLString () {
-    return manaToHtml('', this.getLiveRenderedNode())
+    return manaToHtml('', this.getLiveRenderedNode() || EMPTY_ELEMENT)
   }
 
   toJSONString () {
-    return manaToJson(this.getLiveRenderedNode(), null, 2)
+    return manaToJson(this.getLiveRenderedNode() || EMPTY_ELEMENT, null, 2)
   }
 
   /**
