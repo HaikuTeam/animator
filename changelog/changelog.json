@@ -4494,5 +4494,12 @@
       "label": "fix",
       "message": "use public-read ACL on syndicated files."
     }
+  },
+  "3.0.14": {
+    "a2ea6f82bfd87493ee35a578476ca65c4b081c8a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "address weird interactions between preview mode and the tour"
+    }
   }
 }
