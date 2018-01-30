@@ -30,6 +30,7 @@ module.exports = {
       region: 'us-east-1',
       bucket: 'haiku-electron-releases-production',
       user: 'haiku-electron-releases-writer-2',
+      distribution: 'E29RYBWU7AU9',
       key: process.env.HAIKU_RELEASE_WRITER_KEY,
       secret: process.env.HAIKU_RELEASE_WRITER_SECRET
     },

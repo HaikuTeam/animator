@@ -9,7 +9,7 @@ module.exports = function shout (options, text, cb) {
       token: deploy.slack.legacy,
       channel: 'releases',
       username: 'Haiku Distro',
-      icon_emoji: ':robot_face:'
+      icon_emoji: ':jenkins:'
     }, function (err) {
       if (err) log.err(err)
       return cb()
