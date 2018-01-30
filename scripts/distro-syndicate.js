@@ -25,14 +25,20 @@ const latestKey = `releases/${environment}-${branch}-${platform}-latest.zip`
 
 const syndicate = (patchKey) => {
   // Make a backup of our latest in case we need to roll back.
+  //  e.g. /haiku-electron-releases-production/releases/production-master-mac-latest.zip - copy to ->
+  //       /haiku-electron-releases-production/releases/production-master-mac-previous.zip
   s3.copyObject({Bucket: bucket, CopySource: `/${bucket}/${latestKey}`, Key: latestKey.replace('-latest', '-previous')})
     .promise()
     .then(() => {
       // Deploy the patch update to catch in-app users.
+      //  e.g. /haiku-electron-releases-production/releases/releases/production/master/mac/12345/1.2.3/Haiku-1.2.3-mac-pending.zip - copy to ->
+      //       /haiku-electron-releases-production/releases/releases/production/master/mac/12345/1.2.3/Haiku-1.2.3-mac.zip
       s3.copyObject({Bucket: bucket, CopySource: `/${bucket}/${patchKey}`, Key: patchKey.replace('-pending', '')})
         .promise()
         .then(() => {
           // Deploy the Inkstone update to catch new users.
+          //  e.g. /haiku-electron-releases-production/releases/releases/production/master/mac/12345/1.2.3/Haiku-1.2.3-mac-pending.zip - copy to ->
+          //       /haiku-electron-releases-production/releases/production-master-mac-latest.zip
           s3.copyObject({Bucket: bucket, CopySource: `/${bucket}/${patchKey}`, Key: latestKey})
             .promise()
             .then(() => {
