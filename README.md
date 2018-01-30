@@ -4,8 +4,9 @@
 
 Haiku Core is the JavaScript engine that runs [Haiku for Mac](https://haiku.ai). It helps power the Haiku editing experience and also renders the designs you create as animated, interactive components anywhere on the web.
 
+<br>
 <p align="center">
-  <img width="600" src="docs/assets/gif-of-animated-or-interactive-haiku-component.gif">
+  <img width="80%" src="docs/assets/gif-of-animated-or-interactive-haiku-component.gif">
 </p>
 <br>
 
@@ -17,15 +18,23 @@ Haiku Core is the JavaScript engine that runs [Haiku for Mac](https://haiku.ai).
 
 ### Inteprets Haiku-designed components for rendering on the web
 
+<br>
+<p align="center">
+  <img width="80%" src='docs/assets/visual-of-ui-code.png' />
+</p>
+<br>
+
 The Haiku app turns your designs into components and Haiku Core renders them. Since Haiku Core is built on pure and open web standards (HTML, CSS, JavaScript), your users won't ever need to install a plugin.
 
 <br>
 
 ### Compatible with modern browsers
 
+<br>
 <p align="center">
-  <img width="400" src='docs/assets/browser-logos.png' />
+  <img width="40%" src='docs/assets/browser-logos.png' />
 </p>
+<br>
 
 Haiku Core is compatible with all major modern web browsers: Firefox, Chrome, Safari, and Edge.
 
@@ -33,8 +42,8 @@ Haiku Core is compatible with all major modern web browsers: Firefox, Chrome, Sa
 
 ### Native support with Lottie
 
-<p align="center">
-  <img width="400" src='docs/assets/lottie-and-mobile-logos.png' />
+<p align="center" style="padding:30px">
+  <img width="60%" src='docs/assets/lottie-and-mobile-logos.png' />
 </p>
 
 [Haiku for Mac](https://haiku.ai) supports exporting to Lottie for native rendering of animations on iOS and Android. Technical details on this are coming soon; for now, please read [our blog post on Lottie](https://medium.com/haiku-blog/lottie-without-after-effects-9c5a8e74c239) and stay tuned. (Note: Interactions and dynamic components aren't currently supported by Lottie.)
