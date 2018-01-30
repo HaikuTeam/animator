@@ -4460,5 +4460,12 @@
       "message": "Comments summarize"
     }
   },
-  "3.0.11": {}
+  "3.0.11": {},
+  "3.0.12": {
+    "da065c3478994ef7991f6ed68969c835b5e05adf": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Ensure cut/copy work from top menu"
+    }
+  }
 }
