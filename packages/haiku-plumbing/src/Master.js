@@ -157,9 +157,6 @@ export default class Master extends EventEmitter {
     // Designs that have changed and need merge, batched for
     this._designsPendingMerge = {}
 
-    // Dictionary of files we've seen loaded at least once
-    this._filesLoadedOnce = {}
-
     // Store an Project instance for method delegation into the BLL
     this.project = null
 
@@ -334,16 +331,10 @@ export default class Master extends EventEmitter {
               return void (0)
             }
 
-            // Don't send the first reload for this component the first time since that
-            // just represents the first time we've loaded it into memory (race condition)
-            if (this._filesLoadedOnce[file.relpath]) {
-              // Since module change results in a (heavy) stage reload, we want to do it
-              // only if we really need to, i.e. if the file contents have changed
-              if (file.previous !== file.contents) {
-                this._mod.handleModuleChange(file)
-              }
-            } else {
-              this._filesLoadedOnce[file.relpath] = true
+            // Since module change results in a (heavy) stage reload, we want to do it
+            // only if we really need to, i.e. if the file contents have changed
+            if (file.previous !== file.contents) {
+              this._mod.handleModuleChange(file)
             }
           })
         }

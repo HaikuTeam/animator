@@ -37,10 +37,12 @@ export default class MasterModuleProject extends EventEmitter {
   }
 
   maybeSendComponentReloadRequest (file) {
+    const lastWrite = (parseInt(file.dtLastWriteStart) || 0) + LAST_WRITE_MARGIN_OF_ERROR_MILLISECONDS
+
     // If the last time we read from the file system came after the last time we wrote to it,
     // that's a decent indication that the last known change occurred directly on the file system.
     const lastRead = file.dtLastReadStart
-    const lastWrite = file.dtLastWriteStart + LAST_WRITE_MARGIN_OF_ERROR_MILLISECONDS
+
     if (lastRead < lastWrite) return void (0)
 
     this.emit('triggering-reload', file)
