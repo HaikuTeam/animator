@@ -681,6 +681,10 @@ export default class Plumbing extends StateObject {
     })
   }
 
+  resendEmailConfirmation (username, cb) {
+    return inkstone.user.requestConfirmEmail(username, cb)
+  }
+
   authenticateUser (username, password, cb) {
     this.set('organizationName', null) // Unset this cache to avoid writing others folders if somebody switches accounts in the middle of a session
     return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {

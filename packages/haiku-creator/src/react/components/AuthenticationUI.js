@@ -6,7 +6,6 @@ import { shake } from 'react-animations'
 import { FadingCircle } from 'better-react-spinkit'
 import Palette from 'haiku-ui-common/lib/Palette'
 import { LogoGradientSVG, UserIconSVG, PasswordIconSVG } from 'haiku-ui-common/lib/react/OtherIcons'
-import { inkstone } from '@haiku/sdk-inkstone'
 
 const STYLES = {
   container: {
@@ -249,7 +248,7 @@ class AuthenticationUI extends React.Component {
                 ref={(span) => { this.verificationText = span }}
                 onClick={() => {
                   if (this.state.lastSentUsername) {
-                    inkstone.user.requestConfirmEmail(this.state.lastSentUsername, () => {})
+                    this.props.resendEmailConfirmation(this.state.lastSentUsername)
                     this.verificationText.innerHTML = 'Sent!'
                   }
                 }}

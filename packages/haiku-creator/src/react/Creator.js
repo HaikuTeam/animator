@@ -57,6 +57,7 @@ export default class Creator extends React.Component {
   constructor (props) {
     super(props)
     this.authenticateUser = this.authenticateUser.bind(this)
+    this.resendEmailConfirmation = this.resendEmailConfirmation.bind(this)
     this.authenticationComplete = this.authenticationComplete.bind(this)
     this.loadProjects = this.loadProjects.bind(this)
     this.launchProject = this.launchProject.bind(this)
@@ -589,6 +590,10 @@ export default class Creator extends React.Component {
     })
   }
 
+  resendEmailConfirmation (username, password, cb) {
+    return this.props.websocket.request({ method: 'resendEmailConfirmation', params: [username] }, () => {})
+  }
+
   authenticationComplete () {
     return this.setState({ isUserAuthenticated: true })
   }
@@ -892,6 +897,7 @@ export default class Creator extends React.Component {
           <AuthenticationUI
             onSubmit={this.authenticateUser}
             onSubmitSuccess={this.authenticationComplete}
+            resendEmailConfirmation={this.resendEmailConfirmation}
             {...this.props} />
         </StyleRoot>
       )
