@@ -3,7 +3,7 @@ import qs from 'qs'
 import assign from 'lodash.assign'
 import path from 'path'
 import Palette from 'haiku-ui-common/lib/Palette'
-import TimelineSkeletonState from '@haiku/taylor-timelineskeletonstate/react'
+// import TimelineSkeletonState from '@haiku/taylor-timelineskeletonstate/react'
 
 export default class Timeline extends React.Component {
   constructor (props) {
@@ -126,7 +126,7 @@ export default class Timeline extends React.Component {
           display: 'flex',
           alignItems: 'center'
         }}>
-          <TimelineSkeletonState haikuOptions={{loop: true}} />
+          {/* <TimelineSkeletonState haikuOptions={{loop: true}} /> */}
         </div>
           }
       </div>
