@@ -209,6 +209,10 @@ class Element extends BaseModel {
     // We query our "host" instance to get our wrapper node that it "hosts"
     // Note the difference from the target instance
     const instance = this.getCoreHostComponentInstance()
+    // FIXME: Handle race when component instance isn't present
+    if (!instance) {
+      return null
+    }
     const element = instance.findElementsByHaikuId(this.getComponentId())[0]
     return element
   }
