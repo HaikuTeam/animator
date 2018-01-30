@@ -31,13 +31,20 @@ const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 const DEFAULT_TIMELINE_NAME = 'Default';
 
 // tslint:disable-next-line:function-name
-export default function HaikuComponent(bytecode, context, config, metadata) {
-  if (!bytecode) {
-    throw new Error('Empty bytecode not allowed');
+export default function HaikuComponent(bytecode: any, context, config, metadata) {
+  if (!bytecode.template) {
+    console.warn('Adding missing template object to bytecode');
+    bytecode.template = {elementName: 'div', attributes: {}, children: []};
   }
 
-  if (!bytecode.template) {
-    throw new Error('Bytecode must define template');
+  if (!bytecode.timelines) {
+    console.warn('Adding missing timeline object to bytecode');
+    bytecode.timelines = {};
+  }
+
+  if (!bytecode.timelines[DEFAULT_TIMELINE_NAME]) {
+    console.warn('Adding missing default timeline to bytecode');
+    bytecode.timelines[DEFAULT_TIMELINE_NAME] = {};
   }
 
   if (!context) {
@@ -50,10 +57,6 @@ export default function HaikuComponent(bytecode, context, config, metadata) {
 
   if (!config.options.seed) {
     throw new Error('Seed value must be provided');
-  }
-
-  if (!bytecode.timelines) {
-    bytecode.timelines = {};
   }
 
   SimpleEventEmitter.create(this);
