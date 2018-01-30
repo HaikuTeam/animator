@@ -163,6 +163,7 @@ function addPropertyGroup (timelinesObject, timelineName, componentId, elementNa
  */
 function getPropertySegmentsBase (timelinesObject, timelineName, componentId, outputName) {
   const selector = getSelectorForComponentId(componentId)
+  if (!timelinesObject) return null
   if (!timelinesObject[timelineName]) return null
   if (!timelinesObject[timelineName][selector]) return null
   return timelinesObject[timelineName][selector][outputName]
@@ -175,6 +176,7 @@ function getPropertySegmentsBase (timelinesObject, timelineName, componentId, ou
  */
 function getPropertiesBase (timelinesObject, timelineName, componentId) {
   const selector = getSelectorForComponentId(componentId)
+  if (!timelinesObject) return null
   if (!timelinesObject[timelineName]) return null
   return timelinesObject[timelineName][selector]
 }
