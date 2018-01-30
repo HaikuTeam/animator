@@ -21,7 +21,7 @@ const cli = new Nib({
   preAction(context: IContext) {
     inkstone.setConfig({
       baseUrl: process.env.HAIKU_API || context.flags.api || 'https://inkstone.haiku.ai/',
-      baseShareUrl: context.flags.share || 'https://share.haiku.ai/',
+      baseShareUrl: process.env.SHARE_URL || context.flags.share || 'https://share.haiku.ai/',
     });
   },
   commands: [
