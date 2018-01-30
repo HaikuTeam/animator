@@ -24,40 +24,49 @@ const cloudFront = initializeAWSService('CloudFront', region, key, secret)
 const latestKey = `releases/${environment}-${branch}-${platform}-latest.zip`
 
 const syndicate = (patchKey) => {
-  // Deploy the patch update to catch in-app users.
-  s3.copyObject({Bucket: bucket, CopySource: `/${bucket}/${patchKey}`, Key: patchKey.replace('-pending', '')})
+  // Make a backup of our latest in case we need to roll back.
+  s3.copyObject({Bucket: bucket, CopySource: `/${bucket}/${latestKey}`, Key: latestKey.replace('-latest', '-previous')})
     .promise()
     .then(() => {
-      // Deploy the Inkstone update to catch new users.
-      s3.copyObject({Bucket: bucket, CopySource: `/${bucket}/${patchKey}`, Key: latestKey})
+      // Deploy the patch update to catch in-app users.
+      s3.copyObject({Bucket: bucket, CopySource: `/${bucket}/${patchKey}`, Key: patchKey.replace('-pending', '')})
         .promise()
         .then(() => {
-          cloudFront.createInvalidation({
-            DistributionId: distribution,
-            InvalidationBatch: {
-              CallerReference: Date.now().toString(),
-              Paths: {
-                Quantity: 1,
-                Items: [`/${latestKey}`]
-              }
-            }
-          })
+          // Deploy the Inkstone update to catch new users.
+          s3.copyObject({Bucket: bucket, CopySource: `/${bucket}/${patchKey}`, Key: latestKey})
             .promise()
             .then(() => {
-              log.hat('Syndication complete!')
+              cloudFront.createInvalidation({
+                DistributionId: distribution,
+                InvalidationBatch: {
+                  CallerReference: Date.now().toString(),
+                  Paths: {
+                    Quantity: 1,
+                    Items: [`/${latestKey}`]
+                  }
+                }
+              })
+                .promise()
+                .then(() => {
+                  log.hat('Syndication complete!')
+                })
+                .catch(() => {
+                  log.err('Unable to create CloudFront invalidation!')
+                  global.process.exit(1)
+                })
             })
             .catch(() => {
-              log.err('Unable to create CloudFront invalidation!')
+              log.err(`Unable to syndicate latest key (${latestKey})`)
               global.process.exit(1)
             })
         })
         .catch(() => {
-          log.err(`Unable to syndicate latest key (${latestKey})`)
+          log.err(`Unable to syndicate patch key (${patchKey})`)
           global.process.exit(1)
         })
     })
     .catch(() => {
-      log.err(`Unable to syndicate patch key (${patchKey})`)
+      log.err(`Unable to back up latest release! Aborting.`)
       global.process.exit(1)
     })
 }
