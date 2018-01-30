@@ -144,6 +144,7 @@ function createWindow () {
     'open-text-editor',
     'redo',
     'save',
+    'show-project-location-toast',
     'start-tour',
     'undo',
     'zoom-in',

@@ -81,6 +81,14 @@ export default class TopMenu extends EventEmitter {
         click: () => {
           this.emit('global-menu:save')
         }
+      },
+      {
+        label: 'Save',
+        enabled: isProjectOpen,
+        accelerator: 'CmdOrCtrl+S',
+        click: () => {
+          this.emit('global-menu:show-project-location-toast')
+        }
       }
     ]
 
