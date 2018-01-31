@@ -46,8 +46,12 @@ class Artboard extends BaseModel {
       }
     })
 
-    this.project.on('update', (what) => {
-      if (what === 'reload' || what === 'application-mounted' || what === 'resizeContext') {
+    this.project.on('update', (what, arg) => {
+      if (
+        what === 'application-mounted' ||
+        what === 'resizeContext' ||
+        (what === 'reloaded' && arg === 'hard')
+      ) {
         this.updateMountSize()
       }
     })

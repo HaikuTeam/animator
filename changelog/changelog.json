@@ -4520,5 +4520,24 @@
       "label": "fix",
       "message": "smarter compound path handling for Lottie."
     }
+  },
+  "3.0.17": {
+    "23c6a8878d0794e611be356e14eb7caba63d9f79": {
+      "project": "@haiku/sdk-client",
+      "label": "docs",
+      "message": "Updated image in README"
+    },
+    "97071996b2a6672ec56f55564040e103f4db0ab1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "always write code/scene/react-dom.js"
+    }
+  },
+  "3.0.18": {
+    "8f7fe9367d3555b2f20b1f539a4b09e1bed33188": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update the stage when resized from timeline:"
+    }
   }
 }
