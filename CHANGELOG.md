@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 3.0.16
+
+### Bug Fixes
+
+ * Don't register to ipcRenderer events every time this mounts
+ * smarter compound path handling for Lottie.
+
 ## 3.0.15
 
 ### Features
