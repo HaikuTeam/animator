@@ -19,3 +19,6 @@ log.log(JSON.stringify({
   email,
   password
 }, null, 2))
+
+// While in staging: Check your email, grab the token, and run this:
+// curl --verbose -X POST https://inkstone.haiku.ai/v0/user/confirm/TOKEN
