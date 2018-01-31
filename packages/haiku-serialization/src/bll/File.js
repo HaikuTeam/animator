@@ -26,6 +26,8 @@ const DEFAULT_TIMELINE_NAME = 'Default'
 const DEFAULT_TIMELINE_TIME = 0
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_CONTEXT_SIZE = { width: 550, height: 400 }
+const DISK_FLUSH_TIMEOUT = 32
+const DISK_FLUSH_INTERVAL = 500
 
 const FILE_TYPES = {
   design: 'design',
@@ -54,7 +56,10 @@ class File extends BaseModel {
       file: this
     })
 
-    this._elementsCache = {}
+    // Kick off a timer loop that checks for updates and writes to disk if necessary
+    this.flushContentInterval()
+
+    // Important: Please see afterInitialize for assigned properties
   }
 
   // Hook called automatically by BaseModel during construction or upsert
@@ -64,20 +69,93 @@ class File extends BaseModel {
     // the dashboard to the editor, this object will be reused, meaning that the
     // content and bytecode validity assertion will run, which depend on this
     // value reflecting the number of the times per session that updates occurred
-    this._numInMemoryContentStateUpdatesCompleted = 0
+    this._numBytecodeUpdates = 0
+    this._elementsCache = {}
+    this._flushContentIntervalOn = true
+    this._needsContentFlush = false
   }
 
-  updateInMemoryHotModuleOnly (bytecode, cb) {
+  updateInMemoryHotModule (bytecode) {
+    // In no circumstance do we want to write bad bytecode to in-memory pointer.
+    // so instead of returning an error message, we crash the app in hope
+    // that a full restart will resolve the condition leading to this.
+    // Throwing here should also give insight into when/why this occurs.
+    this.assertBytecode(bytecode)
+
     this.dtModified = Date.now()
+
     this.mod.monkeypatch(bytecode)
-    this.emit('in-memory-content-state-updated')
-    return cb()
+
+    // Helps detect whether we need to assert that bytecode is present
+    this._numBytecodeUpdates++
+  }
+
+  unsetNeedsContentFlush () {
+    this._needsContentFlush = false
+  }
+
+  setNeedsContentFlush () {
+    this._needsContentFlush = true
+  }
+
+  doesNeedContentFlush () {
+    return this._needsContentFlush
+  }
+
+  flushContent (cb) {
+    const bytecode = this.mod.fetchInMemoryExport()
+    const incoming = this.ast.updateWithBytecodeAndReturnCode(bytecode)
+
+    this.assertContents(incoming)
+
+    this.previous = this.contents
+    this.contents = incoming
+
+    this.maybeLogDiff(this.previous, this.contents)
+
+    return this.write(cb)
+  }
+
+  flushContentWhenNeeded (cb) {
+    // Avoid accidentally running this twice at the same time
+    if (!this.doesNeedContentFlush()) {
+      return this.setTimeout(
+        () => this.flushContentWhenNeeded(cb),
+        DISK_FLUSH_TIMEOUT
+      )
+    }
+
+    return this.flushContent((err) => {
+      if (err) return cb(err)
+
+      // Unlock disk flushes so further requests can proceed
+      this.unsetNeedsContentFlush()
+
+      return cb()
+    })
+  }
+
+  flushContentInterval () {
+    if (
+      this.options.doWriteToDisk &&
+      this.doesNeedContentFlush() &&
+      this._flushContentIntervalOn
+    ) {
+      return this.flushContentWhenNeeded(() => {
+        return this.flushContentInterval()
+      })
+    }
+
+    // If nothing to do, wait until the next tick and then try again
+    return setTimeout(() => {
+      return this.flushContentInterval()
+    }, DISK_FLUSH_INTERVAL)
   }
 
   assertBytecode (bytecode) {
     // If we have a blank bytecode object after the first couple of updates,
     // that usually means we're about to end up with a "Red Wall of Death"
-    if (this._numInMemoryContentStateUpdatesCompleted > 1) {
+    if (this._numBytecodeUpdates > 1) {
       if (Object.keys(bytecode).length < 2) {
         throw new Error(`Bytecode object was empty ${this.getAbspath()}`)
       }
@@ -93,36 +171,6 @@ class File extends BaseModel {
     if (contents.match(/^\s*$/)) {
       throw new Error(`Code was blank ${this.getAbspath()}`)
     }
-  }
-
-  updateInMemoryContentState (bytecode, cb) {
-    this.dtModified = Date.now()
-
-    // In no circumstance do we want to write bad bytecode to in-memory pointer.
-    // so instead of returning an error message, we crash the app in hope
-    // that a full restart will resolve the condition leading to this.
-    // Throwing here should also give insight into when/why this occurs.
-    this.assertBytecode(bytecode)
-
-    this.mod.monkeypatch(bytecode)
-
-    const contents = this.ast.updateWithBytecodeAndReturnCode(bytecode)
-
-    // In no circumstance do we want to write bad content to code.js,
-    // so instead of returning an error message, we crash the app in hope
-    // that a full restart will resolve the condition leading to this.
-    // Throwing here should also give insight into when/why this occurs.
-    this.assertContents(contents)
-
-    const previous = this.contents
-    this.previous = previous
-    this.contents = contents
-    this.maybeLogDiff(previous, contents)
-    this.emit('in-memory-content-state-updated')
-
-    this._numInMemoryContentStateUpdatesCompleted++
-
-    return cb()
   }
 
   maybeLogDiff (previous, contents) {
@@ -167,44 +215,19 @@ class File extends BaseModel {
     const bytecode = this.getReifiedBytecode()
 
     return worker(bytecode, bytecode.template, (err, result) => {
-      if (err) return finish(err)
+      if (err) {
+        return finish(err)
+      }
 
       Bytecode.cleanBytecode(bytecode)
       Template.cleanTemplate(bytecode.template)
 
-      return this.commitContentState(bytecode, (err) => {
-        if (err) return finish(err)
+      this.updateInMemoryHotModule(bytecode)
 
-        // TODO types; some callers expect to get the result of the worker
-        return finish(null, result)
-      })
-    })
-  }
+      // We just received a change and we want to write the delta to disk
+      this.setNeedsContentFlush()
 
-  writeMetadata (metadata, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      writeMetadata(bytecode, metadata)
-      done()
-    }, cb)
-  }
-
-  commitContentState (bytecode, cb) {
-    // If we aren't writing to disk, we don't need to update the AST (heavy)
-    if (!this.options.doWriteToDisk) {
-      return this.updateInMemoryHotModuleOnly(bytecode, cb)
-    }
-
-    // This updates the in-memory module pointer and the AST
-    return this.updateInMemoryContentState(bytecode, (err) => {
-      if (err) return cb(err)
-
-      // Allow the user calling this upstream to specify we want to hit the fs or not
-      if (this.options.doWriteToDisk) {
-        return this.write(cb)
-      }
-
-      // If no disk write desired, it's fine to just return
-      return cb()
+      return finish(null, result)
     })
   }
 
@@ -219,6 +242,13 @@ class File extends BaseModel {
   /** ------------------ */
   /** ------------------ */
   /** ------------------ */
+
+  writeMetadata (metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      writeMetadata(bytecode, metadata)
+      done()
+    }, cb)
+  }
 
   setHostInstance (hostInstance) {
     this.hostInstance = hostInstance
@@ -707,15 +737,16 @@ File.ingestContents = function ingestContents (folder, relpath, { dtLastReadStar
   return file.mod.isolatedForceReload((err, bytecode) => {
     if (err) return cb(err)
 
-    return file.updateInMemoryContentState(bytecode, (err) => {
-      if (err) return cb(err)
+    file.updateInMemoryHotModule(bytecode)
 
-      // This can be used to determine if an in-memory-only update occurred after or before a filesystem update.
-      // Useful when trying to detect e.g. whether code should reload
-      file.dtLastReadEnd = Date.now()
+    // Having just loaded from disk, we shouldn't need to write to disk again
+    file.unsetNeedsContentFlush()
 
-      return cb(null, file)
-    })
+    // This can be used to determine if an in-memory-only update occurred
+    // after or before a filesystem update. Use to decid whether to code reload
+    file.dtLastReadEnd = Date.now()
+
+    return cb(null, file)
   })
 }
 
