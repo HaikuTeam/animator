@@ -1,4 +1,6 @@
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
+import {PathPoint} from 'haiku-common/lib/types';
+
 import {
   AnimationKey,
   PathKey,
@@ -219,13 +221,12 @@ const translateInterpolationPoints = (points: BodymovinPathComponent, vertices: 
  * @param {string} path
  * @returns {[key in PathKey]: BodymovinPathComponent}
  */
-export const pathToInterpolationTrace = (path: string) => {
+export const pathToInterpolationTrace = (points: PathPoint[]) => {
   const vertices: BodymovinPathComponent = [];
   const interpolationInPoints: BodymovinPathComponent = [];
   const interpolationOutPoints: BodymovinPathComponent = [];
 
   let closed = true;
-  const points = pathToPoints(path);
 
   // Force the last vertex to be the same as the first so we can use the same algorithm for closed and open paths.
   // The renderer will respect the value of "closed" we pass below.
@@ -307,15 +308,126 @@ export const pointsToInterpolationTrace = (svgPoints: string) => {
 };
 
 /**
+ * Private helper enum for decomposePath. Colinear orientation is elided for simplicity.
+ */
+enum Orientation {
+  Clockwise = 0,
+  Counterclockwise = 1,
+}
+
+/**
+ * Private helper method for decomposePath. Given three PathPoints, determines their "close enough" orientation
+ * (colinearity is cast to "CounterClockwise" without loss of effect).
+ *
+ * @see {@link https://www.geeksforgeeks.org/orientation-3-ordered-points/}
+ * @param {PathPoint} p1
+ * @param {PathPoint} p2
+ * @param {PathPoint} p3
+ * @returns {Orientation}
+ */
+const getOrientation = (p1: PathPoint, p2: PathPoint, p3: PathPoint): Orientation => {
+  const orientationCoefficient = ((p2.y - p1.y) * (p3.x - p2.x) || 0) - ((p2.x - p1.x) * (p3.y - p2.y) || 0);
+  return (orientationCoefficient > 0) ? Orientation.Clockwise : Orientation.Counterclockwise;
+};
+
+/**
+ * Private helper method for decomposePath. Determines if a polygon nontrivially contains a point, which is used as
+ * a rough proxy for whether we should detach or conjoin chained paths. Because we are only concerned with correct
+ * rendering, we don't have use for a notion of "colinearity", which makes the work here slightly more efficient.
+ *
+ * We use a shoddy implementation of the "Ray casting algorithm", a standard test for polygonal "insideness": count the
+ * number of times the ray from [p.x, p.y] to [+Infinity, p.y] intersects a side of the polygon. If odd, the point is
+ * "inside"; else, the point is "outside".
+ * @see {@link https://en.wikipedia.org/wiki/Point_in_polygon#Ray_casting_algorithm}
+ * @param {PathPoint[]} polygon
+ * @param {PathPoint} p
+ * @returns {boolean}
+ */
+const polygonContainsPoint = (polygon: PathPoint[], p: PathPoint): boolean => {
+  // Trivial case: a polygon with < 2 vertices is always safe to split off.
+  if (polygon.length < 3) {
+    return false;
+  }
+
+  const pInf = {x: Infinity, y: p.y} as PathPoint;
+
+  let intersections = 0;
+  let cursor = 0;
+
+  while (cursor < polygon.length) {
+    const [polygon1, polygon2] = (cursor === polygon.length - 1)
+      ? [polygon[cursor], polygon[0]]
+      : [polygon[cursor], polygon[cursor + 1]];
+    cursor++;
+
+    // Tests if the line segment <polygon1, polygon2> is intersected by the ray <p, pInf>.
+    if (
+      getOrientation(polygon1, polygon2, p) !== getOrientation(polygon1, polygon2, pInf)
+      && getOrientation(p, pInf, polygon1) !== getOrientation(p, pInf, polygon2)
+    ) {
+      intersections++;
+    }
+  }
+
+  return intersections % 2 === 1;
+};
+
+/**
  * Decomposes a path, which might be compound, into singly-closed paths which might not be contiguous.
  *
- * This is achieved by splitting the path on all occurences of z (or Z, which means the same thing), then filtering
- * out trivial segments.
+ * This is achieved by splitting the path into groups of closed paths, then applying a naive (but frequently correct)
+ * algorithm that assumes if the first point of the next path we encounter is *outside* the polygon traced by the
+ * vertices of the prior shape, we have jumped into a noncontiguous shape. In these scenarios, which are most common
+ * in SVGs generated in Sketch, evenodd/nonzero fill rules do the same thing and.
  * @param {string} path
  * @returns {string[]}
  */
-export const decomposeMaybeCompoundPath = (path: string): string[] =>
-  path.split(/z/ig).filter((segment) => !!segment);
+export const decomposePath = (path: string): PathPoint[][] => {
+  const allClosedPaths = path.split(/z/ig).filter((segment) => !!segment).map(pathToPoints);
+  const closureEndpoints: [number, number][] = [];
+  let cursorIndex = 0;
+  let enclosureIndex = undefined;
+  let enclosure: PathPoint[] = [];
+  if (allClosedPaths.length < 2) {
+    return allClosedPaths;
+  }
+
+  while (cursorIndex < allClosedPaths.length) {
+    // Check if the first point of the current path is contained within the current enclosure. (This is trivially
+    // false for the first point of the first path.)
+    const chosenPoint = allClosedPaths[cursorIndex][0];
+    if (polygonContainsPoint(enclosure, chosenPoint)) {
+      cursorIndex++;
+      continue;
+    }
+
+    // We have started a new shape! Capture the union of the polygons from enclosureIndex->cursorIndex in
+    // decomposed, then reset.
+    if (enclosureIndex !== undefined) {
+      closureEndpoints.push([enclosureIndex, cursorIndex]);
+    }
+
+    enclosure = allClosedPaths[cursorIndex];
+    enclosureIndex = cursorIndex;
+    cursorIndex++;
+  }
+
+  closureEndpoints.push([enclosureIndex, cursorIndex]);
+
+  // We now have an array like [[0, 1], [1, 2], [2, 5]] of non-contiguous junctures in a compound path. As the final
+  // step, collapse these into their final PathPoint[][] form.
+  return closureEndpoints.map(
+    ([start, end]) => allClosedPaths
+      .slice(start, end)
+      .reduce(
+        (collation, vertices) => {
+          collation.push(...vertices);
+          return collation;
+        },
+        [],
+      ),
+  );
+};
 
 /**
  * Derives keyframes as an array of numbers from a timeline property.

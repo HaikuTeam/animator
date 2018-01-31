@@ -9,6 +9,23 @@ export type ContextualSize = {
   z: number;
 };
 
+export type CubicCurve = {
+  type: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  x: number;
+  y: number;
+};
+
+export type PathPoint = {
+  moveTo: boolean;
+  curve?: CubicCurve;
+  x: number;
+  y: number;
+};
+
 export type TemplateElement<T> = {
   elementName: string;
   attributes: TemplateElementAttributes;
