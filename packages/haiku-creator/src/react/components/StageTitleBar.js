@@ -209,13 +209,43 @@ class StageTitleBar extends React.Component {
       gitUndoables: [],
       gitRedoables: []
     }
-  }
 
-  componentWillMount () {
-    this._isMounted = true
+    ipcRenderer.on('global-menu:show-project-location-toast', () => {
+      if (!this._isMounted) {
+        return
+      }
+
+      this.props.createNotice({
+        type: 'info',
+        title: 'Notice',
+        message: (
+          <p>
+            Snapshot saved —{' '}
+            <span
+              style={DASH_STYLES.link}
+              onClick={() => {
+                shell.showItemInFolder(this.props.folder)
+              }}
+            >
+              View in Finder
+            </span>
+          </p>
+        )
+      })
+    })
+
+    ipcRenderer.on('global-menu:save', () => {
+      if (!this._isMounted) {
+        return
+      }
+
+      this.handleSaveSnapshotClick()
+    })
   }
 
   componentDidMount () {
+    this._isMounted = true
+
     this.performProjectInfoFetch()
 
     // It's kind of weird to have this heartbeat logic buried all the way down here inside StateTitleBar;
@@ -251,30 +281,6 @@ class StageTitleBar extends React.Component {
         })
       }
     }, 1000)
-
-    ipcRenderer.on('global-menu:show-project-location-toast', () => {
-      this.props.createNotice({
-        type: 'info',
-        title: 'Notice',
-        message: (
-          <p>
-            Snapshot saved —{' '}
-            <span
-              style={DASH_STYLES.link}
-              onClick={() => {
-                shell.showItemInFolder(this.props.folder)
-              }}
-            >
-              View in Finder
-            </span>
-          </p>
-        )
-      })
-    })
-
-    ipcRenderer.on('global-menu:save', () => {
-      this.handleSaveSnapshotClick()
-    })
   }
 
   componentWillUnmount () {
