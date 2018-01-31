@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.18
+
+### Bug Fixes
+
+ * update the stage when resized from timeline:
+
 ## 3.0.17
 
 ### Documentation
