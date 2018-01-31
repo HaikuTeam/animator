@@ -1,3 +1,4 @@
+import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {Maybe, ContextualSize} from 'haiku-common/lib/types';
 import {Curve} from 'haiku-common/lib/types/enums';
 import * as Template from 'haiku-serialization/src/bll/Template';
@@ -51,7 +52,7 @@ import {
   alwaysAbsolute,
   alwaysArray,
   compoundTimelineReducer,
-  decomposeMaybeCompoundPath,
+  decomposePath,
   getBodymovinVersion,
   getFixedPropertyValue,
   getShapeDimensions,
@@ -714,27 +715,16 @@ export class BodymovinExporter implements Exporter {
    * @param shape
    * @param originalHaikuId
    * @param parentNode
+   * @param decomposePaths
    */
-  private decorateShape(timeline, shape, originalHaikuId, parentNode) {
+  private decorateShape(timeline, shape, originalHaikuId, parentNode, decomposePaths = true) {
     shape[ShapeKey.Type] = ShapeType.Shape;
     if (!timeline.hasOwnProperty('d')) {
       return;
     }
 
     const path = initialValue(timeline, 'd');
-    const pathSegments = initialValueOrNull(timeline, 'fill-rule') === 'evenodd'
-      ? [path]
-      : decomposeMaybeCompoundPath(path);
-
-    if (pathSegments.length === 1) {
-      shape[ShapeKey.Vertices] = {
-        [PropertyKey.Animated]: 0,
-        [PropertyKey.Value]: {
-          ...pathToInterpolationTrace(path),
-        },
-      };
-      return;
-    }
+    const pathSegments = decomposePaths ? decomposePath(path) : [path];
 
     // We have a compound path, i.e. a path consisting of multiple singly-closed paths. Since we're in the middle of
     // processing the current path, we have to shim in the first closed path in this method call, then recursively
@@ -759,6 +749,7 @@ export class BodymovinExporter implements Exporter {
           elementName: SvgTag.PathShape,
         },
         undefined,
+        false, // Do *not* decompose paths, as this is already done.
       );
     });
   }
@@ -767,8 +758,9 @@ export class BodymovinExporter implements Exporter {
    * Handles a shape internally.
    * @param node
    * @param parentNode
+   * @param decomposePaths
    */
-  private handleShape(node, parentNode) {
+  private handleShape(node, parentNode, decomposePaths = true) {
     const timeline = this.timelineForNode(node, parentNode);
     const groupItems: any[] = [];
 
@@ -792,7 +784,7 @@ export class BodymovinExporter implements Exporter {
         this.decoratePolygon(timeline, shape);
         break;
       case SvgTag.PathShape:
-        this.decorateShape(timeline, shape, node.attributes['haiku-id'], parentNode);
+        this.decorateShape(timeline, shape, node.attributes['haiku-id'], parentNode, decomposePaths);
         break;
       default:
         throw new Error(`Unable to handle shape: ${node.elementName}`);

@@ -1,6 +1,5 @@
-import * as tape from 'tape';
-
 import {HaikuBytecode} from 'haiku-common/lib/types';
+import * as tape from 'tape';
 
 import {BodymovinExporter} from '../../lib/exporters/bodymovin/bodymovinExporter';
 import baseBytecode from './baseBytecode';
@@ -701,15 +700,20 @@ tape('BodymovinExporter', (test: tape.Test) => {
       test.deepEqual(shapes[1].it[0].ks.k.v, [[2, 2], [3, 3]], 'creates additional shapes from other closed segments');
     }
 
-    // Scope for testing compound shapes painted with the evenodd fill-rule.
+    // Scope for testing compound shapes that are not actually compound.
     {
       overrideShapeAttributes(bytecode, {
-        d: {0: {value: 'M0,0 L1,1 L0,0 Z M2,2 L3,3 L2,2 Z'}},
+        d: {0: {value: 'M0,0 L10,0 L10,10 L0,10 L0,0 Z M2,2 L8,2 L8,8 L2,8 L2,2 Z'}},
         'fill-rule': {0: {value: 'evenodd'}},
       });
 
       const {layers: [{shapes}]} = rawOutput(bytecode);
-      test.equal(shapes.length, 1, 'does not split compound shapes if they use the evenodd fill-rule');
+      test.equal(shapes.length, 1, 'does not create additional shapes out of contained paths');
+      test.deepEqual(
+        shapes[0].it[0].ks.k.v,
+        [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0], [2, 2], [8, 2], [8, 8], [2, 8], [2, 2]],
+        'collates vertices from inner paths',
+      );
     }
 
     // Scope for testing cubic bezier support.
