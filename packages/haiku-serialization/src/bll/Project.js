@@ -957,7 +957,7 @@ const Template = require('./Template')
 
 function getCodeJs (haikuId, haikuComponentName) {
   return dedent`
-    var Haiku = require('@haiku/core')
+    var Haiku = require("@haiku/core");
     module.exports = {
       metadata: {},
       options: {},
@@ -967,14 +967,14 @@ function getCodeJs (haikuId, haikuComponentName) {
         Default: {}
       },
       template: {
-        elementName: 'div',
+        elementName: "div",
         attributes: {
-          'haiku-id': '${haikuId}',
-          'haiku-title': '${haikuComponentName}'
+          "haiku-id": "${haikuId}",
+          "haiku-title": "${haikuComponentName}"
         },
         children: []
       }
-    }
+    };
   `.trim()
 }
 
