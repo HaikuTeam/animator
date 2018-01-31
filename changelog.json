@@ -4532,5 +4532,12 @@
       "label": "fix",
       "message": "always write code/scene/react-dom.js"
     }
+  },
+  "3.0.18": {
+    "8f7fe9367d3555b2f20b1f539a4b09e1bed33188": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update the stage when resized from timeline:"
+    }
   }
 }
