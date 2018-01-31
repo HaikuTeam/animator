@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 3.0.17
+
+### Documentation
+
+ * Updated image in README
+
+### Bug Fixes
+
+ * always write code/scene/react-dom.js
+
 ## 3.0.16
 
 ### Bug Fixes
