@@ -463,7 +463,13 @@ export default class Plumbing extends StateObject {
     if (message.id === undefined) message.id = `${Math.random()}`
     this.requests[message.id] = { websocket, message, callback }
     const data = JSON.stringify(message)
-    return websocket.send(data)
+    // In case we get an error here, log it and then throw so we can see context
+    return websocket.send(data, (err) => {
+      if (err) {
+        logger.error(err)
+        throw err
+      }
+    })
   }
 
   teardown (cb) {
@@ -1173,6 +1179,12 @@ Plumbing.prototype.createControlSocket = function createControlSocket (socketInf
 
       websocketServer.emit('message', type, alias, folder, message, websocket, websocketServer, createResponder(message, websocket))
     })
+
+    // // In case we get an error here, log it and then throw so we can see context
+    websocket.on('error', (err) => {
+      logger.error(err)
+      throw err
+    })
   })
 
   return websocketServer
@@ -1180,7 +1192,13 @@ Plumbing.prototype.createControlSocket = function createControlSocket (socketInf
 
 function sendMessageToClient (client, message) {
   const data = JSON.stringify(message)
-  return client.send(data)
+  // In case we get an error here, log it and then throw so we can see context
+  return client.send(data, (err) => {
+    if (err) {
+      logger.error(err)
+      throw err
+    }
+  })
 }
 
 function createResponder (message, websocket) {
