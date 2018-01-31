@@ -4508,5 +4508,17 @@
       "label": "feat",
       "message": "add a toast when the user presses cmd+s"
     }
+  },
+  "3.0.16": {
+    "66a9ffc060de4f1648cf19b47a0dd2d51781dbcd": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Don't register to ipcRenderer events every time this mounts"
+    },
+    "b6cf87a49e20bae241186d3f48dc4bf908e76a05": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "smarter compound path handling for Lottie."
+    }
   }
 }
