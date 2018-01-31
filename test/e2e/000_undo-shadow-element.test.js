@@ -33,7 +33,7 @@ tape('undo shadow element crash fix', (t) => {
         return plumbing.method(
           'instantiateComponent',
           [relpath, 'Circle.svg', { x: 200, y: 200 }],
-          TestHelpers.wait(1, cb)
+          TestHelpers.wait(5, cb)
         )
       },
       (cb) => {
