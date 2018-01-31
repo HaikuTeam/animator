@@ -260,12 +260,6 @@ export default class Plumbing extends StateObject {
             logger.info(`[plumbing] websocket closed (${type} ${alias})`)
             this.removeWebsocketClient(websocket)
           })
-
-          // Allegedly this prevents uncatchable EPIPE crashes
-          websocket.on('error', (err) => {
-            logger.info(`[plumbing] websocket error (${type} ${alias})`, err)
-            this.removeWebsocketClient(websocket)
-          })
         })
 
         server.on('message', this.handleRemoteMessage.bind(this))
@@ -408,10 +402,16 @@ export default class Plumbing extends StateObject {
   }
 
   awaitFolderClientWithQuery (folder, method, query, timeout, cb) {
-    if (!folder) return cb(new Error('Folder argument was missing'))
-    if (!query) return cb(new Error('Query argument was missing'))
+    // These throw since there's no circumstance where we'd want to continue if for
+    // some reason the query was wrong or the request timed out
+    if (!folder) {
+      throw new Error(`Folder argument was missing (${method})`)
+    }
+    if (!query) {
+      throw new Error(`Query argument was missing (${method})`)
+    }
     if (timeout <= 0) {
-      return cb(new Error(`Timed out waiting for client ${JSON.stringify(query)} of ${folder} to connect`))
+      throw new Error(`Timed out waiting for client ${JSON.stringify(query)} of ${folder} to connect`)
     }
 
     // HACK: At the time of this writing, there is only "one" creator client, not one per folder.
@@ -462,24 +462,8 @@ export default class Plumbing extends StateObject {
   sendClientRequest (websocket, message, callback) {
     if (message.id === undefined) message.id = `${Math.random()}`
     this.requests[message.id] = { websocket, message, callback }
-    // Delay to unblock thread for websocket ready state transitions
-    setTimeout(() => {
-      if (websocket.readyState === WebSocket.OPEN) {
-        const data = JSON.stringify(message)
-        return websocket.send(data, (err) => {
-          if (err) {
-            logger.error(`[plumbing] websocket client request error`, err)
-            // In case the websocket disconnects, just remove the client instead of crashing
-            if (err.message.match(/not opened/) || err.message.match(/EPIPE/)) {
-              this.removeWebsocketClient(websocket)
-            }
-          }
-        })
-      } else {
-        logger.info(`[plumbing] websocket readyState was not open so we did not send message ${message.method || message.id}`)
-        callback() // Should this return an error or remain silent?
-      }
-    })
+    const data = JSON.stringify(message)
+    return websocket.send(data)
   }
 
   teardown (cb) {
@@ -831,6 +815,18 @@ export default class Plumbing extends StateObject {
     if (this.masters[folder]) {
       this.masters[folder].watchOff()
     }
+
+    // Since we're about to nav back to the dashboard, we're also about to drop the
+    // connection to the websockets, so here we close them to avoid crashes
+    const clientsOfFolder = filter(this.clients, { params: { folder } })
+    clientsOfFolder.forEach((clientOfFolder) => {
+      const alias = clientOfFolder.params.alias
+      if (alias === 'glass' || alias === 'timeline') {
+        clientOfFolder.close()
+        this.removeWebsocketClient(clientOfFolder)
+      }
+    })
+
     cb()
   }
 
@@ -1183,14 +1179,8 @@ Plumbing.prototype.createControlSocket = function createControlSocket (socketInf
 }
 
 function sendMessageToClient (client, message) {
-  // Delay to unblock thread for websocket ready state transitions
-  return setTimeout(() => {
-    if (client.readyState === WebSocket.OPEN) {
-      const data = JSON.stringify(message)
-      const ret = client.send(data)
-      return ret
-    }
-  })
+  const data = JSON.stringify(message)
+  return client.send(data)
 }
 
 function createResponder (message, websocket) {
