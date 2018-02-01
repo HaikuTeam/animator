@@ -139,6 +139,9 @@ class ActiveComponent extends BaseModel {
       this.keyframeMoveAction.bind(this),
       KEYFRAME_MOVE_DEBOUNCE_TIME
     )
+
+    // Avoid races during reloads by locking so only one occurs at a time
+    this._isReloadLocked = false
   }
 
   findElementRoots () {
@@ -437,7 +440,7 @@ class ActiveComponent extends BaseModel {
       })
     })
 
-    this.softReload({}, {}, () => {
+    this.reload({ hardReload: false }, null, () => {
       this.project.updateHook('setInteractionMode', this.getSceneCodeRelpath(), this._interactionMode, metadata)
       return cb()
     })
@@ -984,6 +987,7 @@ class ActiveComponent extends BaseModel {
         log.error(err)
         return cb(err)
       }
+
       return this.reload({ hardReload: true }, null, () => {
         this.project.updateHook('deleteComponent', this.getSceneCodeRelpath(), componentId, metadata)
         return cb()
@@ -1864,21 +1868,40 @@ class ActiveComponent extends BaseModel {
   /** ------------ */
   /** ------------ */
 
-  reload (reloadOptions, instanceConfig, finish) {
-    if (reloadOptions.hardReload) {
-      // Also calls softReload
-      return this.hardReload(reloadOptions, instanceConfig, (err) => {
-        if (err) return finish(err)
-        this.emit('update', 'reloaded', 'hard')
-        return finish()
-      })
-    } else {
-      return this.softReload(reloadOptions, instanceConfig, (err) => {
-        if (err) return finish(err)
-        this.emit('update', 'reloaded', 'soft')
-        return finish()
-      })
-    }
+  awaitReloadUnlock (cb) {
+    if (!this._isReloadLocked) return cb() // Continue immediately if no lock
+    return setTimeout(() => this.awaitReloadUnlock(cb), 32)
+  }
+
+  setReloadLock () {
+    this._isReloadLocked = true
+  }
+
+  setReloadUnlock () {
+    this._isReloadLocked = false
+  }
+
+  reload (reloadOptions, instanceConfig, cb) {
+    // Note that this lock only occurs in .reload(); if you ever call hardReload or
+    // softReload a la carte, you might get a race condition!
+    return this.awaitReloadUnlock(() => {
+      this.setReloadLock()
+
+      const finish = (err) => {
+        this.setReloadUnlock() // Make sure we unlock since this action is now done
+        if (err) return cb(err)
+        // Note: The hard/soft signal may affect how the views decide to refresh
+        this.emit('update', 'reloaded', (reloadOptions.hardReload) ? 'hard' : 'soft')
+        return cb()
+      }
+
+      if (reloadOptions.hardReload) {
+        // Note: hardReload also calls softReload
+        return this.hardReload(reloadOptions, instanceConfig, finish)
+      } else {
+        return this.softReload(reloadOptions, instanceConfig, finish)
+      }
+    })
   }
 
   hardReload (reloadOptions, instanceConfig, finish) {
