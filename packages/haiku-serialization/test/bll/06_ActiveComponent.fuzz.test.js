@@ -32,9 +32,7 @@ tape('ActiveComponent#applyPropertyGroupValue-fuzz', (t) => {
         return async.eachSeries(ids, (componentId, nextId) => {
           const moves = [0,1,2,3,4,5,6,7,8,9]
           return async.eachSeries(moves, (n, nextMove) => {
-            return setTimeout(() => {
-              return ac0.applyPropertyGroupValue(componentId, 'Default', 0, {'translation.x': n * 50}, {from: 'test'}, nextMove)
-            })
+            return ac0.applyPropertyGroupValue(componentId, 'Default', 0, {'translation.x': n * 50}, {from: 'test'}, nextMove)
           }, nextId)
         }, (err) => {
           if (err) throw err
