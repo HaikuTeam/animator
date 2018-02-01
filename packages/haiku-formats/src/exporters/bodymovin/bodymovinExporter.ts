@@ -851,8 +851,12 @@ export class BodymovinExporter implements Exporter {
       ];
       this.animationSize.x = width;
       this.animationSize.y = height;
-      if (wrapperTimeline.hasOwnProperty('backgroundColor')) {
-        const color = initialValue(wrapperTimeline, 'backgroundColor');
+      if (
+        wrapperTimeline.hasOwnProperty('style.backgroundColor') ||
+        wrapperTimeline.hasOwnProperty('backgroundColor')
+      ) {
+        const color = initialValueOrNull(wrapperTimeline, 'style.backgroundColor') ||
+          initialValueOrNull(wrapperTimeline, 'backgroundColor');
         if (!color) {
           // Nothing to do here!
           return;
