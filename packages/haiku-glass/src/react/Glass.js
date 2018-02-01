@@ -318,7 +318,10 @@ export class Glass extends React.Component {
       this._playing = false
     }
 
-    this.getActiveComponent().getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
+    // There is a race we've seen in production where the ac might not be ready yet
+    if (this.getActiveComponent()) {
+      this.getActiveComponent().getCurrentTimeline().togglePreviewPlayback(this.isPreviewMode())
+    }
 
     this.forceUpdate()
   }
