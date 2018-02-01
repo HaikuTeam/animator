@@ -2092,7 +2092,7 @@ class ActiveComponent extends BaseModel {
     // It's assumed that soft reload occurs after mutation operations, so we can do this here
     this.ingestInstantiatedSubcomponentsInTemplate()
 
-    return this.softReloadInstantiatedSubcomponents(reloadOptions, cb)
+    return this.reloadInstantiatedSubcomponentsSoftly(reloadOptions, cb)
   }
 
   getInstantiatedActiveComponents () {
@@ -2116,12 +2116,12 @@ class ActiveComponent extends BaseModel {
     return Object.values(activeComponents)
   }
 
-  softReloadInstantiatedSubcomponents (reloadOptions, cb) {
+  reloadInstantiatedSubcomponentsSoftly (reloadOptions, cb) {
     const activeComponents = this.getInstantiatedActiveComponents()
     return async.each(activeComponents, (activeComponent, next) => {
       // Just in case one of ourselves is nested inside us, avoid an infinite loop
       if (activeComponent === this) return next()
-      return activeComponent.softReload(reloadOptions, {}, next)
+      return activeComponent.reload(lodash.assign({ hardReload: false }, reloadOptions), null, next)
     }, cb)
   }
 
