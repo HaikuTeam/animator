@@ -473,12 +473,16 @@ export default class Plumbing extends StateObject {
     this.requests[message.id] = { websocket, message, callback }
     const data = JSON.stringify(message)
     // In case we get an error here, log it and then throw so we can see context
-    return websocket.send(data, (err) => {
-      if (err) {
-        logger.error(err)
-        throw err
-      }
-    })
+    if (websocket.readyState === WebSocket.OPEN) {
+      return websocket.send(data, (err) => {
+        if (err) {
+          logger.error(err)
+          throw err
+        }
+      })
+    } else {
+      throw new Error('WebSocket is not OPEN')
+    }
   }
 
   teardown (cb) {
