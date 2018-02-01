@@ -582,6 +582,10 @@ class ActiveComponent extends BaseModel {
   }
 
   instantiateBytecode (incomingBytecode, propertyGroupToApply, metadata, cb) {
+    const timelineName = this.getInstantiationTimelineName()
+    const timelineTime = this.getInstantiationTimelineTime()
+    let componentId
+
     return this.fetchActiveBytecodeFile().performComponentWork((existingBytecode, existingTemplate, done) => {
       const insertionPointHash = Template.getInsertionPointHash(existingTemplate, existingTemplate.children.length, 0)
 
@@ -589,9 +593,8 @@ class ActiveComponent extends BaseModel {
         return Template.getHash(`${oldId}-${insertionPointHash}`, 12)
       })
 
-      const componentId = incomingBytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
-      const timelineName = this.getInstantiationTimelineName()
-      const timelineTime = this.getInstantiationTimelineTime()
+      // Has to happen after the above line in case an id was generated
+      componentId = incomingBytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
 
       this.mutateInstantiateeDisplaySettings(
         componentId,
@@ -616,11 +619,18 @@ class ActiveComponent extends BaseModel {
 
       Bytecode.mergeBytecodeControlStructures(existingBytecode, incomingBytecode)
 
+      // Unlock performComponent work so zMoveToFront can proceed
+      done()
+    }, (err) => {
+      if (err) return cb(err)
+
       return this.zMoveToFront(componentId, timelineName, timelineTime, metadata, (err) => {
-        if (err) return done(err)
-        return done(null, incomingBytecode.template)
+        if (err) return cb(err)
+
+        // Downstream may depend on getting this mana object returned
+        return cb(null, incomingBytecode.template)
       })
-    }, cb)
+    })
   }
 
   /**
@@ -726,11 +736,12 @@ class ActiveComponent extends BaseModel {
    * @param cb {Function}
    */
   instantiateMana (mana, overrides, coords, metadata, cb) {
+    const timelineName = this.getInstantiationTimelineName()
+    const timelineTime = this.getInstantiationTimelineTime()
+    let componentId
+
     return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
       const insertionPointHash = Template.getInsertionPointHash(template, template.children.length, 0)
-
-      const timelineName = this.getInstantiationTimelineName()
-      const timelineTime = this.getInstantiationTimelineTime()
 
       const timelinesObject = Template.prepareManaAndBuildTimelinesObject(
         mana,
@@ -740,7 +751,8 @@ class ActiveComponent extends BaseModel {
         { doHashWork: true }
       )
 
-      const componentId = mana.attributes[HAIKU_ID_ATTRIBUTE]
+      // Has to happen after the above stanza in case an id was generated
+      componentId = mana.attributes[HAIKU_ID_ATTRIBUTE]
 
       this.mutateInstantiateeDisplaySettings(
         componentId,
@@ -757,13 +769,17 @@ class ActiveComponent extends BaseModel {
 
       mergeTimelineStructure(bytecode, timelinesObject, 'assign')
 
-      return this.zMoveToFront(componentId, timelineName, timelineTime, metadata, (err) => {
-        if (err) return done(err)
-        return done(null, mana)
-      })
+      // Unlock performComponent work so zMoveToFront can proceed
+      done()
     }, (err) => {
       if (err) return cb(err)
-      return cb(null, mana)
+
+      return this.zMoveToFront(componentId, timelineName, timelineTime, metadata, (err) => {
+        if (err) return cb(err)
+
+        // Downstream may depend on getting this mana object returned
+        return cb(null, mana)
+      })
     })
   }
 
