@@ -167,19 +167,27 @@ class Timeline extends BaseModel {
     this._playing = true
     this._stopwatch = Date.now()
     if (!this.component.project.getEnvoyClient().isInMockMode()) {
-      this.component.project.getEnvoyChannel('timeline').play(this.uid).then(() => {
-        this.update()
-      })
+      const channel = this.component.project.getEnvoyChannel('timeline')
+      // Don't know why, but this can be undefined in some edge case/race
+      if (channel) {
+        channel.play(this.uid).then(() => {
+          this.update()
+        })
+      }
     }
   }
 
   pause () {
     this._playing = false
     if (!this.component.project.getEnvoyClient().isInMockMode()) {
-      this.component.project.getEnvoyChannel('timeline').pause(this.uid).then((finalFrame) => {
-        this.setCurrentFrame(finalFrame)
-        this.setAuthoritativeFrame(finalFrame)
-      })
+      const channel = this.component.project.getEnvoyChannel('timeline')
+      // Don't know why, but this can be undefined in some edge case/race
+      if (channel) {
+        channel.pause(this.uid).then((finalFrame) => {
+          this.setCurrentFrame(finalFrame)
+          this.setAuthoritativeFrame(finalFrame)
+        })
+      }
     }
   }
 
