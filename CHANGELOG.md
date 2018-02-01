@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.19
+
+### Bug Fixes
+
+ * support style.backgroundColor in addition to backgroundColor
+
 ## 3.0.18
 
 ### Bug Fixes

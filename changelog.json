@@ -4539,5 +4539,12 @@
       "label": "fix",
       "message": "update the stage when resized from timeline:"
     }
+  },
+  "3.0.19": {
+    "1b1eae301859e80c7a01b13812b9bcc75516ee1a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "support style.backgroundColor in addition to backgroundColor"
+    }
   }
 }
