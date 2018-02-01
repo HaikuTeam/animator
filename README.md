@@ -190,8 +190,8 @@ Please send contributions via [pull request](https://github.com/HaikuTeam/core/p
 
 **Code improvements**
 
-- Use ES6 classes throughout
-- Use arrow functions throughout
+- Use modern class syntax throughout _(in progress!)_
+- Use arrow functions throughout _(in progress!)_
 - Improve test coverage
 - Inline source code docs
 - Types
