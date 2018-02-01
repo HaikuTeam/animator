@@ -71,6 +71,9 @@ class File extends BaseModel {
     // value reflecting the number of the times per session that updates occurred
     this._numBytecodeUpdates = 0
     this._elementsCache = {}
+
+    // Avoid races during "component work" by locking so only one occurs at a time
+    this._isWorkLocked = false
   }
 
   updateInMemoryHotModule (bytecode) {
@@ -164,23 +167,46 @@ class File extends BaseModel {
     return this.type === FILE_TYPES.design
   }
 
-  performComponentWork (worker, finish) {
-    const bytecode = this.getReifiedBytecode()
-    return worker(bytecode, bytecode.template, (err, result) => {
-      if (err) {
-        return finish(err)
+  awaitWorkUnlock (cb) {
+    if (!this._isWorkLocked) return cb() // Go immediately if not locked
+    return setTimeout(() => this.awaitWorkUnlock(cb), 32)
+  }
+
+  workLock () {
+    this._isWorkLocked = true
+  }
+
+  workUnlock () {
+    this._isWorkLocked = false
+  }
+
+  performComponentWork (worker, cb) {
+    return this.awaitWorkUnlock(() => {
+      this.workLock() // Lock immediately until work is done
+
+      const finish = (err, result) => {
+        this.workUnlock() // Unlock now that we're finished
+        return cb(err, result)
       }
 
-      Bytecode.cleanBytecode(bytecode)
-      Template.cleanTemplate(bytecode.template)
+      const bytecode = this.getReifiedBytecode()
 
-      this.updateInMemoryHotModule(bytecode)
+      return worker(bytecode, bytecode.template, (err, result) => {
+        if (err) {
+          return finish(err)
+        }
 
-      if (this.options.doWriteToDisk) {
-        this.debouncedFlushContent()
-      }
+        Bytecode.cleanBytecode(bytecode)
+        Template.cleanTemplate(bytecode.template)
 
-      return finish(null, result)
+        this.updateInMemoryHotModule(bytecode)
+
+        if (this.options.doWriteToDisk) {
+          this.debouncedFlushContent()
+        }
+
+        return finish(null, result)
+      })
     })
   }
 
