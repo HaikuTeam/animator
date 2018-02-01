@@ -260,6 +260,11 @@ export default class Plumbing extends StateObject {
             logger.info(`[plumbing] websocket closed (${type} ${alias})`)
             this.removeWebsocketClient(websocket)
           })
+
+          websocket.on('error', (err) => {
+            logger.error(`[plumbing] websocket error ${err}`)
+            throw err
+          })
         })
 
         server.on('message', this.handleRemoteMessage.bind(this))
@@ -404,8 +409,12 @@ export default class Plumbing extends StateObject {
   awaitFolderClientWithQuery (folder, method, query, timeout, cb) {
     // These throw since there's no circumstance where we'd want to continue if for
     // some reason the query was wrong or the request timed out
+
     if (!folder) {
       throw new Error(`Folder argument was missing (${method})`)
+    }
+    if (!this.masters[folder] || !this.masters[folder].active) {
+      return cb(new Error('[plumbing] folder inactive'))
     }
     if (!query) {
       throw new Error(`Query argument was missing (${method})`)
@@ -819,6 +828,7 @@ export default class Plumbing extends StateObject {
 
   teardownMaster (folder, cb) {
     if (this.masters[folder]) {
+      this.masters[folder].active = false
       this.masters[folder].watchOff()
     }
 
@@ -1042,8 +1052,9 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
     })
 
     this.masters[folder] = master
-    return master
   }
+
+  this.masters[folder].active = true
 
   return this.masters[folder]
 }
@@ -1192,13 +1203,16 @@ Plumbing.prototype.createControlSocket = function createControlSocket (socketInf
 
 function sendMessageToClient (client, message) {
   const data = JSON.stringify(message)
-  // In case we get an error here, log it and then throw so we can see context
-  return client.send(data, (err) => {
-    if (err) {
-      logger.error(err)
-      throw err
-    }
-  })
+  if (client.readyState === WebSocket.OPEN) {
+    return client.send(data, (err) => {
+      if (err) {
+        // This should never happen.
+        throw new Error(`[plumbing] got error during send: ${err}`)
+      }
+    })
+  } else {
+    throw new Error(`[plumbing] attempted to send message to non-OPEN ws: ${data}`)
+  }
 }
 
 function createResponder (message, websocket) {

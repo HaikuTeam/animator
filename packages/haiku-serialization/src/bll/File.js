@@ -1,6 +1,7 @@
-const fse = require('fs-extra')
-const path = require('path')
 const async = require('async')
+const fse = require('fs-extra')
+const {debounce} = require('lodash')
+const path = require('path')
 const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
 const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
@@ -26,8 +27,7 @@ const DEFAULT_TIMELINE_NAME = 'Default'
 const DEFAULT_TIMELINE_TIME = 0
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_CONTEXT_SIZE = { width: 550, height: 400 }
-const DISK_FLUSH_TIMEOUT = 32
-const DISK_FLUSH_INTERVAL = 500
+const DISK_FLUSH_TIMEOUT = 500
 
 const FILE_TYPES = {
   design: 'design',
@@ -56,9 +56,9 @@ class File extends BaseModel {
       file: this
     })
 
-    // Kick off a timer loop that checks for updates and writes to disk if necessary
-    this.flushContentInterval()
-
+    this.debouncedFlushContent = debounce(() => {
+      this.flushContent()
+    }, DISK_FLUSH_TIMEOUT)
     // Important: Please see afterInitialize for assigned properties
   }
 
@@ -71,8 +71,6 @@ class File extends BaseModel {
     // value reflecting the number of the times per session that updates occurred
     this._numBytecodeUpdates = 0
     this._elementsCache = {}
-    this._flushContentIntervalOn = true
-    this._needsContentFlush = false
   }
 
   updateInMemoryHotModule (bytecode) {
@@ -90,19 +88,7 @@ class File extends BaseModel {
     this._numBytecodeUpdates++
   }
 
-  unsetNeedsContentFlush () {
-    this._needsContentFlush = false
-  }
-
-  setNeedsContentFlush () {
-    this._needsContentFlush = true
-  }
-
-  doesNeedContentFlush () {
-    return this._needsContentFlush
-  }
-
-  flushContent (cb) {
+  flushContent () {
     const bytecode = this.mod.fetchInMemoryExport()
     const incoming = this.ast.updateWithBytecodeAndReturnCode(bytecode)
 
@@ -112,44 +98,11 @@ class File extends BaseModel {
     this.contents = incoming
 
     this.maybeLogDiff(this.previous, this.contents)
-
-    return this.write(cb)
-  }
-
-  flushContentWhenNeeded (cb) {
-    // Avoid accidentally running this twice at the same time
-    if (!this.doesNeedContentFlush()) {
-      return this.setTimeout(
-        () => this.flushContentWhenNeeded(cb),
-        DISK_FLUSH_TIMEOUT
-      )
-    }
-
-    return this.flushContent((err) => {
-      if (err) return cb(err)
-
-      // Unlock disk flushes so further requests can proceed
-      this.unsetNeedsContentFlush()
-
-      return cb()
+    return this.write((err) => {
+      if (err) {
+        throw err
+      }
     })
-  }
-
-  flushContentInterval () {
-    if (
-      this.options.doWriteToDisk &&
-      this.doesNeedContentFlush() &&
-      this._flushContentIntervalOn
-    ) {
-      return this.flushContentWhenNeeded(() => {
-        return this.flushContentInterval()
-      })
-    }
-
-    // If nothing to do, wait until the next tick and then try again
-    return setTimeout(() => {
-      return this.flushContentInterval()
-    }, DISK_FLUSH_INTERVAL)
   }
 
   assertBytecode (bytecode) {
@@ -213,7 +166,6 @@ class File extends BaseModel {
 
   performComponentWork (worker, finish) {
     const bytecode = this.getReifiedBytecode()
-
     return worker(bytecode, bytecode.template, (err, result) => {
       if (err) {
         return finish(err)
@@ -224,8 +176,9 @@ class File extends BaseModel {
 
       this.updateInMemoryHotModule(bytecode)
 
-      // We just received a change and we want to write the delta to disk
-      this.setNeedsContentFlush()
+      if (this.options.doWriteToDisk) {
+        this.debouncedFlushContent()
+      }
 
       return finish(null, result)
     })
@@ -738,9 +691,6 @@ File.ingestContents = function ingestContents (folder, relpath, { dtLastReadStar
     if (err) return cb(err)
 
     file.updateInMemoryHotModule(bytecode)
-
-    // Having just loaded from disk, we shouldn't need to write to disk again
-    file.unsetNeedsContentFlush()
 
     // This can be used to determine if an in-memory-only update occurred
     // after or before a filesystem update. Use to decid whether to code reload

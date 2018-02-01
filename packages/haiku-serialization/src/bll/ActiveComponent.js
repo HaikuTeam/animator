@@ -132,7 +132,7 @@ class ActiveComponent extends BaseModel {
           groupValue
         )
       })
-    }, 100, { trailing: true })
+    }, 500, { leading: true })
 
     // Debounced version of the keyframe move action handler
     this.debouncedKeyframeMoveAction = lodash.debounce(
