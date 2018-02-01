@@ -777,7 +777,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
   test.test('simulates wrapper div with a background color as a rectangle', (test: tape.Test) => {
     const bytecode = baseBytecodeCopy();
-    bytecode.timelines.Default['haiku:wrapper'].backgroundColor = {0: {value: '#000'}};
+    bytecode.timelines.Default['haiku:wrapper']['style.backgroundColor'] = {0: {value: '#000'}};
     const {layers: [_, {ind, ty, shapes: [{it: [shape, __, fill]}]}]} = rawOutput(bytecode);
     test.equal(ind, 0, 'wrapper rectangle has z-index 0');
     test.equal(ty, 4, 'wrapper rectangle is an ordinary shape layer');
