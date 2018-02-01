@@ -24,7 +24,7 @@ Haiku Core is the JavaScript engine that runs [Haiku for Mac](https://haiku.ai).
 </p>
 <br>
 
-The Haiku app turns your designs into components and Haiku Core renders them. Since Haiku Core is built on pure and open web standards (HTML, CSS, JavaScript), your users won't ever need to install a plugin.
+Haiku for Mac turns your designs into components and Haiku Core renders them. Since Haiku Core is built on pure and open web standards (HTML, CSS, JavaScript), your users won't ever need to install a plugin.
 
 <br>
 
@@ -58,7 +58,7 @@ Haiku Core provides a simple and familiar API for runtime manipulation of compon
 
 ### Getting started
 
-Creating a Haiku component begins in the Haiku app:
+Creating a Haiku component begins in Haiku for Mac:
 
 1. Design a component in Haiku for Mac — or ask your designer for a component's Haiku share URL
 2. Install the Haiku CLI: `$ yarn global add @haiku/cli` or `$ npm i @haiku/cli --global`
