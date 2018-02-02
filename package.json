@@ -1,6 +1,6 @@
 {
   "name": "haiku-ui-common",
-  "version": "3.0.20",
+  "version": "3.0.21",
   "description": "Common UI components for Haiku projects.",
   "main": "lib/index.js",
   "directories": {
@@ -26,8 +26,8 @@
     "@types/node": "8.5.2",
     "@types/react": "^15.4.2",
     "electron": "1.7.11",
-    "haiku-common": "3.0.20",
-    "haiku-testing": "3.0.20",
+    "haiku-common": "3.0.21",
+    "haiku-testing": "3.0.21",
     "nyc": "^11.3.0",
     "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
