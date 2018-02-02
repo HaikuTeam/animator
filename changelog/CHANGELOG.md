@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 3.0.20
+
+### Bug Fixes
+
+ * short-circuit all timeline keyboard events on preview mode
+
+### Documentation
+
+ * Renamed Haiku App to Haiku for Mac
+
 ## 3.0.19
 
 ### Bug Fixes
