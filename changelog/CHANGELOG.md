@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.21
+
+### Features
+
+ * add a signup link in the login form
+
 ## 3.0.20
 
 ### Bug Fixes
