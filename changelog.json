@@ -4546,5 +4546,17 @@
       "label": "fix",
       "message": "support style.backgroundColor in addition to backgroundColor"
     }
+  },
+  "3.0.20": {
+    "c36f7f9da12c7518679dbadc768bb91ff71b79b1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "short-circuit all timeline keyboard events on preview mode"
+    },
+    "2f2e94f8abc3cabc924294574cf5841125d9d74b": {
+      "project": "@haiku/sdk-client",
+      "label": "docs",
+      "message": "Renamed Haiku App to Haiku for Mac"
+    }
   }
 }
