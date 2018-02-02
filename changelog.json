@@ -4558,5 +4558,12 @@
       "label": "docs",
       "message": "Renamed Haiku App to Haiku for Mac"
     }
+  },
+  "3.0.21": {
+    "294df5ccb2624ae1529643c588a7ba83bac70308": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add a signup link in the login form"
+    }
   }
 }
