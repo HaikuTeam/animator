@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as assign from 'lodash.assign'
 import Palette from '../../Palette'
+import {LoadingTopBar} from '../../LoadingTopBar'
 import {Tooltip} from '../Tooltip'
 
 const STYLES = {
@@ -32,47 +33,97 @@ const STYLES = {
     width: '100%',
     marginBottom: '8px',
     justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
     disabled: {
       backgroundColor: 'transparent',
       color: Palette.BLACK,
       border: `1px solid ${Palette.DARKEST_COAL}`
+    },
+    loading: {
+      opacity: 0.7
     }
   }
 }
 
 export class EmbedOption extends React.PureComponent {
-  props;
+  props
 
   static propTypes = {
     disabled: React.PropTypes.bool,
+    template: React.PropTypes.string,
     entry: React.PropTypes.string.isRequired,
-    onClick: React.PropTypes.func
+    onClick: React.PropTypes.func,
+    isSnapshotSaveInProgress: React.PropTypes.bool
   }
 
-  get tooltipText () {
+  state = {
+    progress: 0,
+    speed: '2s',
+    done: false
+  }
+
+  get tooltipText() {
     return this.props.disabled ? 'Coming Soon' : 'Click for details'
   }
 
-  render () {
+  componentDidMount() {
+    if (this.props.isSnapshotSaveInProgress) {
+      setTimeout(() => {
+        this.setState({progress: 80, speed: '15s', done: false})
+      }, 100)
+    }
+  }
+
+  componentWillReceiveProps({isSnapshotSaveInProgress}, nextState) {
+    if (!isSnapshotSaveInProgress && this.props.isSnapshotSaveInProgress) {
+      this.setState({progress: 100, speed: '0.5s'}, () => {
+        setTimeout(() => {
+          this.setState({done: true})
+          this.state.progress = 0
+        }, 1000)
+      })
+    } else if (isSnapshotSaveInProgress && !this.props.isSnapshotSaveInProgress) {
+      this.setState({progress: 80, speed: '4s', done: false})
+    }
+  }
+
+  render() {
     const {
       disabled,
-      entry
+      entry,
+      isSnapshotSaveInProgress,
+      done,
+      onClick,
+      template
     } = this.props
 
     return (
       <li>
-        <Tooltip text={this.tooltipText} place='above' tooltipOpenTimeout={0}>
+        <Tooltip content={this.tooltipText} place="above">
           <button
-            style={assign({}, {
-              ...STYLES.btnText,
-              ...STYLES.entry,
-              ...(disabled && STYLES.entry.disabled)
-            })}
+            style={assign(
+              {},
+              {
+                ...STYLES.btnText,
+                ...STYLES.entry,
+                ...(disabled && STYLES.entry.disabled),
+                ...(isSnapshotSaveInProgress && STYLES.entry.loading)
+              }
+            )}
             onClick={() => {
-              this.props.onClick(this.props.entry)
+              if (!disabled && !isSnapshotSaveInProgress) {
+                onClick({entry, template})
+              }
             }}
-            disabled={disabled}
           >
+            {!disabled && (
+              <LoadingTopBar
+                progress={this.state.progress}
+                speed={this.state.speed}
+                done={this.state.done}
+              />
+            )}
             {entry}
           </button>
         </Tooltip>

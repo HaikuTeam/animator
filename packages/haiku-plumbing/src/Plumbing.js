@@ -57,8 +57,7 @@ const METHODS_TO_SKIP_IN_SENTRY = {
   applyPropertyGroupValue: true,
   moveSegmentEndpoints: true,
   moveKeyframes: true,
-  toggleDevTools: true,
-  fetchProjectInfo: true
+  toggleDevTools: true
 }
 
 const IGNORED_METHOD_MESSAGES = {
@@ -81,10 +80,11 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   openTextEditor: true,
   openTerminal: true,
   saveProject: true,
-  fetchProjectInfo: true,
+  previewProject: true,
   doLogOut: true,
   deleteProject: true,
-  teardownMaster: true
+  teardownMaster: true,
+  getProjectPublishStatus: true
 }
 
 const Q_GLASS = { alias: 'glass' }
@@ -925,11 +925,8 @@ export default class Plumbing extends StateObject {
     return this.awaitMasterAndCallMethod(folder, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions, { from: 'master' }], cb)
   }
 
-  fetchProjectInfo (folder, projectName, maybeUsername, maybePassword, fetchOptions, cb) {
-    if (!fetchOptions) fetchOptions = {}
-    if (!fetchOptions.authorName) fetchOptions.authorName = this.get('username')
-    if (!fetchOptions.organizationName) fetchOptions.organizationName = this.get('organizationName')
-    return this.awaitMasterAndCallMethod(folder, 'fetchProjectInfo', [projectName, maybeUsername, maybePassword, fetchOptions, { from: 'master' }], cb)
+  getProjectPublishStatus (folder, cb) {
+    return this.awaitMasterAndCallMethod(folder, 'getProjectPublishStatus', [], {from: 'master'}, cb)
   }
 
   checkInkstoneUpdates (query = '', cb) {

@@ -211,21 +211,21 @@ class EventHandlerEditor extends React.PureComponent {
         >
           <style>{CSSStyles}</style>
 
-        <ModalHeader>
-          <ElementTitle
-            element={this.props.element}
-            title={
+          <ModalHeader>
+            <ElementTitle
+              element={this.props.element}
+              title={
               isNumeric(this.props.options.frame)
                 ? `Frame ${this.props.options.frame}`
                 : null
             }
-            hideActions={
+              hideActions={
               this.props.options.isSimplified ||
               !this.handlerManager.getNextAvailableDOMEvent()
             }
-            onNewAction={this.addAction}
+              onNewAction={this.addAction}
           />
-        </ModalHeader>
+          </ModalHeader>
 
           <div style={STYLES.outer}>
             <div

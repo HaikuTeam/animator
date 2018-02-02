@@ -1,14 +1,14 @@
 import * as React from 'react'
-import * as assign from 'lodash.assign'
 import Palette from '../../Palette'
 import {LinkHolster} from './LinkHolster'
+import {ProjectPublisher} from './ProjectPublisher'
 
 const STYLES = {
   wrapper: {
     display: 'flex',
     justifyContent: 'space-between',
     padding: '15px 0'
-  },
+  } as React.CSSProperties,
   title: {
     color: Palette.PALE_GRAY,
     fontSize: '18px',
@@ -19,7 +19,7 @@ const STYLES = {
     fontSize: '10px',
     margin: '0',
     fontStyle: 'italic'
-  },
+  } as React.CSSProperties,
   label: {
     textTransform: 'uppercase',
     color: Palette.DARK_ROCK
@@ -27,14 +27,14 @@ const STYLES = {
 }
 
 export class ProjectShareDetails extends React.PureComponent {
-  props;
+  props
 
   static propTypes = {
     semverVersion: React.PropTypes.string,
     projectName: React.PropTypes.string,
     linkAddress: React.PropTypes.string,
     isSnapshotSaveInProgress: React.PropTypes.bool,
-    isProjectInfoFetchInProgress: React.PropTypes.bool,
+    isProjectInfoFetchInProgress: React.PropTypes.bool
   }
 
   render() {
@@ -47,16 +47,20 @@ export class ProjectShareDetails extends React.PureComponent {
     } = this.props
 
     return (
-      <div style={assign({}, STYLES.wrapper)}>
+      <div style={STYLES.wrapper}>
         <div>
-          <h2 style={assign({}, STYLES.title)}>{projectName}</h2>
-          <p style={assign({}, STYLES.info)}>
-            <span style={assign({}, STYLES.label)}>ID</span> {projectName}
+          <h2 style={STYLES.title}>{projectName}</h2>
+          <p style={STYLES.info}>
+            <span style={STYLES.label}>ID</span> {projectName}
           </p>
-          <p style={assign({}, STYLES.info)}>
-            <span style={assign({}, STYLES.label)}>Version</span>{' '}
-            {semverVersion}
-          </p>
+          {!(isSnapshotSaveInProgress || isProjectInfoFetchInProgress) ? (
+            <p style={STYLES.info}>
+              <span style={STYLES.label}>Version</span>{' '}
+              {semverVersion}
+            </p>
+          ) : (
+            <p style={{height: 16, ...STYLES.info}} />
+          )}
         </div>
 
         <div style={{width: '50%'}}>
@@ -65,11 +69,7 @@ export class ProjectShareDetails extends React.PureComponent {
             isProjectInfoFetchInProgress={isProjectInfoFetchInProgress}
             linkAddress={linkAddress}
           />
-
-          <p style={assign({textAlign: 'right'}, STYLES.info)}>
-            <span style={assign({}, STYLES.label)}>Last Published</span> Nov.
-            10, 2017
-          </p>
+          <p style={STYLES.info}>Anyone with the link can <strong>view and install</strong> your project.</p>
         </div>
       </div>
     )

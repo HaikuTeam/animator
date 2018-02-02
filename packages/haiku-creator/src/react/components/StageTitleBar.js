@@ -12,7 +12,6 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import ToolSelector from './ToolSelector'
 import Toggle from './Toggle'
 import {ShareModal} from 'haiku-ui-common/lib/react/ShareModal'
-import {InteractionMode} from '@haiku/player/lib/helpers/interactionModes'
 import {
   PublishSnapshotSVG,
   ConnectionIconSVG,
@@ -140,8 +139,7 @@ class PopoverBody extends React.Component {
       this.props.titleText !== nextProps.titleText ||
       this.props.linkAddress !== nextProps.linkAddress ||
       this.props.isSnapshotSaveInProgress !== nextProps.isSnapshotSaveInProgress ||
-      this.props.snapshotSaveConfirmed !== nextProps.snapshotSaveConfirmed ||
-      this.props.isProjectInfoFetchInProgress !== nextProps.isProjectInfoFetchInProgress
+      this.props.snapshotSaveConfirmed !== nextProps.snapshotSaveConfirmed
     )
   }
 
@@ -161,7 +159,7 @@ class PopoverBody extends React.Component {
         <button style={STYLES.popoverClose} onClick={this.props.close}>x</button>
         {this.props.titleText}
         <div style={STYLES.linkHolster}>
-          {(this.props.isSnapshotSaveInProgress || this.props.isProjectInfoFetchInProgress)
+          {this.props.isSnapshotSaveInProgress
             ? <span style={[STYLES.link, STYLES.generatingLink]}>Updating Share Page</span>
             : <span style={STYLES.link} onClick={() => shell.openExternal(this.props.linkAddress)}>{this.props.linkAddress.substring(0, 33)}</span>}
           <CopyToClipboard
@@ -174,7 +172,7 @@ class PopoverBody extends React.Component {
                 }, 1900)
               })
             }}>
-            {(this.props.isSnapshotSaveInProgress || this.props.isProjectInfoFetchInProgress)
+            {(this.props.isSnapshotSaveInProgress)
               ? <span style={[STYLES.copy, STYLES.copyLoading]}><ThreeBounce size={3} color={Palette.ROCK} /></span>
               : <span style={STYLES.copy}><CliboardIconSVG /></span>}
           </CopyToClipboard>
@@ -207,8 +205,6 @@ class StageTitleBar extends React.Component {
       linkAddress: 'Fetching Info',
       semverVersion: '0.0.0',
       showCopied: false,
-      projectInfoFetchError: null,
-      isProjectInfoFetchInProgress: false,
       projectInfo: null,
       gitUndoables: [],
       gitRedoables: []
@@ -249,8 +245,6 @@ class StageTitleBar extends React.Component {
 
   componentDidMount () {
     this._isMounted = true
-
-    this.performProjectInfoFetch()
 
     // It's kind of weird to have this heartbeat logic buried all the way down here inside StateTitleBar;
     // it probably should be moved up to the Creator level so it's easier to find #FIXME
@@ -314,24 +308,6 @@ class StageTitleBar extends React.Component {
     return this.performProjectSave()
   }
 
-  performProjectInfoFetch () {
-    if (this.props.projectModel) {
-      this.setState({ isProjectInfoFetchInProgress: true })
-      return this.props.projectModel.fetchProjectInfo(this.props.project.projectName, this.props.username, this.props.password, (projectInfoFetchError, projectInfo) => {
-        this.setState({ isProjectInfoFetchInProgress: false })
-
-        if (projectInfoFetchError) {
-          return this.setState({ projectInfoFetchError })
-        }
-
-        this.setState({ projectInfo })
-        if (this.props.receiveProjectInfo) this.props.receiveProjectInfo(projectInfo)
-        if (projectInfo && projectInfo.shareLink) this.setState({ linkAddress: projectInfo.shareLink })
-        if (projectInfo.semverVersion) this.setState({ semverVersion: projectInfo.shareLink })
-      })
-    }
-  }
-
   withProjectInfo (otherObject) {
     let proj = this.state.projectInfo || {}
     return assign({}, otherObject, {
@@ -358,17 +334,16 @@ class StageTitleBar extends React.Component {
     return this.requestSaveProject((snapshotSaveError, snapshotData) => {
       if (snapshotSaveError) {
         console.error(snapshotSaveError)
-        this.props.createNotice({
-          type: 'danger',
-          title: 'Oh no!',
-          message: 'We were unable to publish your project. 😢 Please try again in a few moments. If you still see this error, contact Haiku for support.'
-        })
         return this.setState({ isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError }, () => {
           return setTimeout(() => this.setState({ snapshotSaveError: null }), 2000)
         })
       }
 
-      this.setState({ isSnapshotSaveInProgress: false, snapshotSaveConfirmed: true })
+      this.setState({
+        isSnapshotSaveInProgress: false,
+        snapshotSaveConfirmed: true,
+        projectInfo: snapshotData
+      })
 
       if (snapshotData) {
         if (snapshotData.conflicts) {
@@ -450,8 +425,8 @@ class StageTitleBar extends React.Component {
 
     return (
       <div style={STYLES.frame} className='frame'>
-        {experimentIsEnabled(Experiment.NewPublishUI) ?
-          (
+        {experimentIsEnabled(Experiment.NewPublishUI)
+          ? (
             <button key='save'
               id='publish'
               onClick={this.handleSaveSnapshotClick}
@@ -477,7 +452,6 @@ class StageTitleBar extends React.Component {
                   titleText={titleText}
                   snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
                   isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
-                  isProjectInfoFetchInProgress={this.state.isProjectInfoFetchInProgress}
                   linkAddress={this.state.linkAddress}
                   close={() => this.setState({ showSharePopover: false })} />
               }>
@@ -512,9 +486,9 @@ class StageTitleBar extends React.Component {
             project={this.props.project}
             snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
             isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
-            isProjectInfoFetchInProgress={this.state.isProjectInfoFetchInProgress}
             linkAddress={this.state.linkAddress}
             semverVersion={this.state.semverVersion}
+            error={this.state.snapshotSaveError}
           />
         }
 

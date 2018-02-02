@@ -14,11 +14,13 @@ const STYLES = {
 }
 
 export class ShareModal extends React.PureComponent {
-  state;
-  props;
+  state
+  props
+  error
 
   static propTypes = {
     project: React.PropTypes.object,
+    error: React.PropTypes.object,
     linkAddress: React.PropTypes.string,
     snapshotSaveConfirmed: React.PropTypes.bool,
     isSnapshotSaveInProgress: React.PropTypes.bool,
@@ -31,6 +33,16 @@ export class ShareModal extends React.PureComponent {
 
     this.state = {
       showDetail: false
+    }
+  }
+
+  componentWillReceiveProps({error, isSnapshotSaveInProgress}) {
+    if(error) {
+      this.error = error
+    }
+
+    if (isSnapshotSaveInProgress) {
+      this.error = null
     }
   }
 
@@ -53,7 +65,7 @@ export class ShareModal extends React.PureComponent {
 
     return (
       <ModalWrapper style={STYLES.wrapper}>
-        <ModalNotice message={'teste'} />
+        {this.error && <ModalNotice message={'Publish was unsuccessful. Please try again momentarily.'} />}
 
         <ModalHeader>
           <ProjectShareDetails
@@ -69,6 +81,7 @@ export class ShareModal extends React.PureComponent {
           showDetail={this.state.showDetail}
           leftPanel={
             <EmbedList
+              isSnapshotSaveInProgress={isSnapshotSaveInProgress}
               onOptionClicked={(selectedEntry) => {
                 this.showDetails(selectedEntry)
               }}

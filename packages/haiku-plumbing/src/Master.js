@@ -462,12 +462,6 @@ export default class Master extends EventEmitter {
     })
   }
 
-  fetchProjectInfo (projectName, haikuUsername, haikuPassword, fetchOptions = {}, cb) {
-    return this._git.fetchFolderState('fetch-info', fetchOptions, (err) => {
-      cb(err)
-    })
-  }
-
   getAssets (cb) {
     return cb(null, this._knownLibraryAssets)
   }

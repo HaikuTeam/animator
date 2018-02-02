@@ -1,12 +1,12 @@
 export const SHARE_OPTIONS = {
   Web: {
-    'Basic HTML': {
+    'Vanilla JS': {
       disabled: false,
-      template: '',
+      template: 'VanillaJS',
     },
     React: {
       disabled: false,
-      template: '',
+      template: 'React',
     },
     Vue: {
       disabled: true,
@@ -16,25 +16,29 @@ export const SHARE_OPTIONS = {
       disabled: true,
       template: '',
     },
+    'HTML + CDN': {
+      disabled: false,
+      template: 'Embed',
+    },
   },
   Mobile: {
     iOS: {
       disabled: false,
-      template: '',
+      template: 'Lottie',
     },
-    Angular: {
-      disabled: true,
-      template: '',
+    Android: {
+      disabled: false,
+      template: 'Lottie',
     },
     'React Native': {
       disabled: false,
-      template: '',
+      template: 'Lottie',
     },
   },
   Other: {
     GIF: {
       disabled: false,
-      template: '',
+      template: 'Gif',
     },
     Video: {
       disabled: true,

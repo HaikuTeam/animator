@@ -34,12 +34,6 @@ class Toggle extends React.Component {
   constructor () {
     super()
     this.onToggle = this.onToggle.bind(this)
-    this.openPopover = this.openPopover.bind(this)
-    this.closePopover = this.closePopover.bind(this)
-    this.tooltipOpenDelay = tooltipOpenDelay || 600
-    this.tooltipCloseDelay = tooltipCloseDelay || 2000
-    this.tooltipOpenTimeout = undefined
-    this.tooltipCloseTimeout = undefined
   }
 
   onToggle () {
@@ -50,7 +44,7 @@ class Toggle extends React.Component {
 
   render () {
     return (
-      <Tooltip text='Toggle preview' style={this.props.style}>
+      <Tooltip content='Toggle preview' style={this.props.style}>
         <a
           href='#'
           style={[

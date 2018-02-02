@@ -7,7 +7,6 @@ const STYLES = {
     padding: '3px 10px',
     margin: '0',
     fontSize: '11px',
-    backgroundColor: Palette.BLACK,
     display: 'block',
     textAlign: 'center',
     borderRadius: '5px'
@@ -28,18 +27,20 @@ export class Tooltip extends React.PureComponent {
   }
 
   static propTypes = {
-    text: React.PropTypes.string,
+    content: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
     disabled: React.PropTypes.bool,
     tooltipCloseDelay: React.PropTypes.number,
     tooltipOpenDelay: React.PropTypes.number,
     place: React.PropTypes.string,
-    style: React.PropTypes.object
+    style: React.PropTypes.object,
+    tooltipBackground: React.PropTypes.string
   }
 
   static defaultProps = {
     tooltipOpenDelay: 600,
     tooltipCloseDelay: 2000,
-    place: 'below'
+    place: 'below',
+    tooltipBackground: Palette.BLACK
   }
 
   openPopover () {
@@ -57,28 +58,30 @@ export class Tooltip extends React.PureComponent {
   }
 
   closePopover () {
+    this.isMouseOver = false
+    this.setState({ isPopoverOpen: false })
     if (this.tooltipOpenTimeout) clearTimeout(this.tooltipOpenTimeout)
     if (this.tooltipCloseTimeout) clearTimeout(this.tooltipCloseTimeout)
-    this.setState({ isPopoverOpen: false })
-    this.isMouseOver = false
   }
 
   render () {
     const {
-      text,
-      disabled
+      content,
+      disabled,
+      tooltipBackground,
     } = this.props
 
     return (
       <Popover
         isOpen={this.state.isPopoverOpen}
-        body={<span style={STYLES.popover}>{text}</span>}
+        body={<div style={{...STYLES.popover, backgroundColor: tooltipBackground}}>{content}</div>}
         place={this.props.place}
         tipSize={5}
       >
         <span
           onMouseEnter={() => {this.openPopover()}}
           onMouseLeave={() => {this.closePopover()}}
+          onClick={() => {this.closePopover()}}
           style={this.props.style}
         >
           {this.props.children}

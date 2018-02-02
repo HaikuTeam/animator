@@ -27,16 +27,19 @@ export class EmbedCategory extends React.PureComponent {
   static propTypes = {
     category: React.PropTypes.string.isRequired,
     options: React.PropTypes.object.isRequired,
-    onOptionClicked: React.PropTypes.func
+    onOptionClicked: React.PropTypes.func,
+    isSnapshotSaveInProgress: React.PropTypes.bool
   }
 
   renderCategoryOptions (options: Object) {
-    return Object.entries(options).map(([entry, {disabled}]) => (
+    return Object.entries(options).map(([entry, {disabled, template}]) => (
       <EmbedOption
         key={entry}
         entry={entry}
         disabled={disabled}
+        template={template}
         onClick={this.props.onOptionClicked}
+        isSnapshotSaveInProgress={this.props.isSnapshotSaveInProgress}
       />
     ))
   }

@@ -39,7 +39,7 @@
     "production": true
   },
   "NewPublishUI": {
-    "development": false,
+    "development": true,
     "production": false
   }
 }

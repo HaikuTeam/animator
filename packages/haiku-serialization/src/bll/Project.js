@@ -443,18 +443,16 @@ class Project extends BaseModel {
     })
   }
 
-  fetchProjectInfo (projectName, username, password, cb) {
-    return this.websocket.request({
-      folder: this.getFolder(),
-      method: 'fetchProjectInfo',
-      params: [
-        this.getFolder(),
-        projectName,
-        username,
-        password,
-        {}
-      ]
-    }, cb)
+  pasteThing (pastedElement, maybePasteRequest = {}, cb) {
+    return this.websocketActionWithFolder(
+      'pasteThing',
+      [
+        this.getCurrentActiveComponentRelpath(),
+        pastedElement,
+        maybePasteRequest
+      ],
+      cb
+    )
   }
 
   saveProject (projectName, username, password, saveOptions = {}, cb) {
