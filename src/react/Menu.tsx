@@ -9,7 +9,7 @@ const STYLES = {
   wrapper: {
     position: 'relative',
     zIndex: Z,
-  },
+  } as React.CSSProperties,
   menu: {
     position: 'absolute',
     display: 'none',
@@ -103,7 +103,7 @@ export class Menu extends React.Component {
   render () {
     return (
       <div
-        style={assign({}, STYLES.wrapper)}
+        style={STYLES.wrapper}
         className="popover-menu-custom"
       >
         <style>
@@ -131,7 +131,7 @@ export class Menu extends React.Component {
           onClick={(event) => { this.closeIfOptionSelected(event); }}
           onMouseLeave={(event) => { this.close(); }}
           style={assign(
-            {}, 
+            {},
             STYLES.resetList,
             STYLES.menu,
             this.state.isOpen && STYLES.menuOpen,
@@ -194,7 +194,7 @@ export class SubMenu extends React.Component {
         <ul
           className="submenu-ul"
           style={assign(
-            {}, 
+            {},
             STYLES.resetList,
             STYLES.menu,
             STYLES.subMenu,
@@ -217,7 +217,7 @@ export const MenuItem = ({children, data, disabled, onClick, style}) => {
         if (!disabled) { onClick(event, data); }
       }}
       style={assign(
-        {}, 
+        {},
         STYLES.menuItem,
         disabled && STYLES.menuItemDisabled,
         style,

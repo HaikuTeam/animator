@@ -10,7 +10,7 @@ const STYLES = {
   categories: {
     display: 'flex',
     justifyContent: 'space-between'
-  },
+  } as React.CSSProperties,
   subtitle: {
     textTransform: 'uppercase',
     fontSize: '14px',
@@ -36,7 +36,8 @@ export class EmbedList extends React.PureComponent {
   props;
 
   static propTypes = {
-    onOptionClicked: React.PropTypes.func
+    onOptionClicked: React.PropTypes.func,
+    isSnapshotSaveInProgress: React.PropTypes.bool
   }
 
   renderShareOptions () {
@@ -46,6 +47,7 @@ export class EmbedList extends React.PureComponent {
         category={category}
         options={options}
         onOptionClicked={this.props.onOptionClicked}
+        isSnapshotSaveInProgress={this.props.isSnapshotSaveInProgress}
       />
     ))
   }
@@ -53,12 +55,12 @@ export class EmbedList extends React.PureComponent {
   render () {
     return (
       <div>
-        <h4 style={assign({}, STYLES.subtitle)}>
-          Embed Options
+        <h4 style={STYLES.subtitle}>
+          Install Options
 
-        <Tooltip text='Docs' place='right'>
+        <Tooltip content='Docs' place='right'>
           <ExternalLink
-            style={assign({}, STYLES.circle)}
+            style={STYLES.circle}
             href='https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html'
           >
             ?
@@ -66,7 +68,7 @@ export class EmbedList extends React.PureComponent {
         </Tooltip>
         </h4>
 
-        <div style={assign({}, STYLES.categories)}>
+        <div style={STYLES.categories}>
           {this.renderShareOptions()}
          </div>
       </div>

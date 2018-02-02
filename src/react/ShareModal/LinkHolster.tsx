@@ -18,7 +18,7 @@ const STYLES = {
     marginBottom: '5px',
     borderRadius: '3px',
     overflow: 'hidden',
-  },
+  } as React.CSSProperties,
   link: {
     color: Palette.BLUE,
     fontSize: '10px',
@@ -29,7 +29,7 @@ const STYLES = {
     padding: '0 8px',
     display: 'flex',
     alignItems: 'center',
-  }
+  } as React.CSSProperties,
 }
 
 export class LinkHolster extends React.PureComponent {
@@ -49,12 +49,12 @@ export class LinkHolster extends React.PureComponent {
     } = this.props
 
     return (
-      <div style={assign({}, STYLES.linkHolster)}>
+      <div style={STYLES.linkHolster}>
         {isSnapshotSaveInProgress || isProjectInfoFetchInProgress ? (
-          <span style={assign({}, STYLES.link)}>Updating Share Page</span>
+          <span style={STYLES.link}>New share link being generated</span>
         ) : (
           <span
-            style={assign({}, STYLES.link)}
+            style={STYLES.link}
             onClick={() => shell.openExternal(linkAddress)}
           >
             {linkAddress ? linkAddress.substring(0, 33) : ''}
@@ -63,11 +63,11 @@ export class LinkHolster extends React.PureComponent {
         <CopyToClipboard text={this.props.linkAddress}>
           {this.props.isSnapshotSaveInProgress ||
           this.props.isProjectInfoFetchInProgress ? (
-            <span style={assign({}, STYLES.linkCopyBtn)}>
+            <span style={STYLES.linkCopyBtn}>
               <ThreeBounce size={3} color={Palette.ROCK} />
             </span>
           ) : (
-            <span style={assign({}, STYLES.linkCopyBtn)}>
+            <span style={STYLES.linkCopyBtn}>
               <CliboardIconSVG />
             </span>
           )}
