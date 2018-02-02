@@ -545,7 +545,8 @@ class Timeline extends React.Component {
   handleKeyDown (nativeEvent) {
     // Give the currently active expression input a chance to capture this event and short circuit us if so
     const willExprInputHandle = this.refs.expressionInput.willHandleExternalKeydownEvent(nativeEvent)
-    if (willExprInputHandle) {
+
+    if (willExprInputHandle || this.state.isPreviewModeActive) {
       return void (0)
     }
 
