@@ -28,7 +28,7 @@ const STYLES = {
     width: 375,
     minHeight: 200,
     borderRadius: 7,
-    padding: '47px 27px',
+    padding: '47px 27px 20px',
     boxShadow: '0 33px 40px 6px rgba(21,32,34,0.21)'
   },
   center: {
@@ -122,8 +122,7 @@ const STYLES = {
     color: Palette.LIGHTEST_PINK,
     textDecoration: 'underline',
     cursor: 'pointer',
-    display: 'inline-block',
-    marginTop: '30px'
+    display: 'inline-block'
   }
 }
 
@@ -244,7 +243,7 @@ class AuthenticationUI extends React.Component {
             <p>
               {message} <br />
               <span
-                style={{...STYLES.link, color: Palette.COAL, marginTop: 0}}
+                style={{...STYLES.link, color: Palette.COAL}}
                 ref={(span) => { this.verificationText = span }}
                 onClick={() => {
                   if (this.state.lastSentUsername) {
@@ -298,14 +297,28 @@ class AuthenticationUI extends React.Component {
           {this.usernameElement()}
           {this.passwordElement()}
           {this.submitButtonElement()}
-          <span
-            style={STYLES.link}
-            onClick={() => {
-              shell.openExternal('https://www.haiku.ai/account/reset-password')
-            }}
-          >
-            Forgot your password?
-          </span>
+          <p style={{marginTop: '22px', marginBottom: '6px'}}>
+            Don't have an account?{' '}
+            <span
+              style={STYLES.link}
+              onClick={() => {
+                shell.openExternal('https://www.haiku.ai/account/new')
+              }}
+            >
+              Sign up
+            </span>
+          </p>
+          <p style={{margin: 0}}>
+            Or {' '}
+            <span
+              style={STYLES.link}
+              onClick={() => {
+                shell.openExternal('https://www.haiku.ai/account/reset-password')
+              }}
+            >
+              forgot your password?
+            </span>
+          </p>
 
         </div>
         <div style={{
@@ -313,7 +326,7 @@ class AuthenticationUI extends React.Component {
           bottom: 50,
           color: Palette.ROCK
         }}>
-          By logging into Haiku you agree to our <span style={STYLES.link} onClick={() => { shell.openExternal('https://www.haiku.ai/terms-of-service.html') }}>terms and conditions</span>
+          By logging into Haiku you agree to our <span style={{...STYLES.link, marginTop: '30px'}} onClick={() => { shell.openExternal('https://www.haiku.ai/terms-of-service.html') }}>terms and conditions</span>
         </div>
       </div>
     )
