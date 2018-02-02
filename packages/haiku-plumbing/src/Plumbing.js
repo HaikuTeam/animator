@@ -409,7 +409,6 @@ export default class Plumbing extends StateObject {
   awaitFolderClientWithQuery (folder, method, query, timeout, cb) {
     // These throw since there's no circumstance where we'd want to continue if for
     // some reason the query was wrong or the request timed out
-
     if (!folder) {
       throw new Error(`Folder argument was missing (${method})`)
     }
@@ -465,6 +464,7 @@ export default class Plumbing extends StateObject {
 
   sendClientMethod (websocket, method, params = [], callback) {
     const message = { method, params }
+    console.log('sendClientMethod',method, params, callback)
     return this.sendClientRequest(websocket, message, callback)
   }
 
@@ -912,6 +912,7 @@ export default class Plumbing extends StateObject {
   }
 
   handleClientAction (type, alias, folder, method, params, cb) {
+    console.log('handleClientAction',type, alias, folder, method, params, cb)
     // Params always arrive with the folder as the first argument, so we strip that off
     params = params.slice(1)
 
