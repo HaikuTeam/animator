@@ -25,6 +25,14 @@ export const DASH_STYLES = {
     justifyContent: 'flex-end',
     color: Palette.ROCK
   },
+  bannerNotice: {
+    marginRight: 14,
+    border: '1px solid' + Palette.BLUE,
+    borderRadius: 3,
+    padding: '0 8px',
+    fontStyle: 'italic',
+    color: Palette.LIGHT_BLUE
+  },
   tooltip: {
     backgroundColor: Palette.LIGHT_PINK,
     color: Palette.ROCK,

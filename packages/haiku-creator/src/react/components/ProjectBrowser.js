@@ -425,14 +425,17 @@ class ProjectBrowser extends React.Component {
         { this.state.showDeleteModal && this.renderDeleteModal() }
 
         <div style={DASH_STYLES.frame} className='frame'>
-          {!this.state.atProjectMax &&
-            <button key='new_proj'
-              onClick={() => this.showNewProjectModal()}
-              style={[
-                BTN_STYLES.btnIcon,
-                BTN_STYLES.btnIconHovered
-              ]}><span style={{fontSize: 18}}> +</span>
-            </button>
+          {this.state.atProjectMax
+            ? (<span style={DASH_STYLES.bannerNotice}>
+                You've reached the project maximum. Contact support@haiku.ai to add more projects.
+              </span>)
+            : (<button key='new_proj'
+                onClick={() => this.showNewProjectModal()}
+                style={[
+                  BTN_STYLES.btnIcon,
+                  BTN_STYLES.btnIconHovered
+                ]}><span style={{fontSize: 18}}> +</span>
+              </button>)
           }
 
           <Popover
