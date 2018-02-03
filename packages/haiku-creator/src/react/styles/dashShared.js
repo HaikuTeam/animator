@@ -181,7 +181,8 @@ export const DASH_STYLES = {
     }
   },
   loadingWrap: {
-    height: 'calc(100% - 113px)',
+    height: 'calc(100% - 36px)',
+    marginTop: 36,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'
