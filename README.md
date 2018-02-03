@@ -52,6 +52,12 @@ You can also skip the interactive prompt and start with good defaults with:
 
 You can also set some overriding environment variables (e.g. `HAIKU_API`, `SHARE_URL`) by making a `.env` file in the mono root. Refer to `.env.example` for an example.
 
+#### Developing
+
+For the compiler to watch for changes as you develop, run the following command in a separate Terminal tab:
+
+    $ yarn watch-all
+
 #### Finishing
 
 First lint all of the code:
