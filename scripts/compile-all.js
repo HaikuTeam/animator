@@ -34,7 +34,8 @@ async.each(allPackages, (pack, done) => {
     }
 
     const lastCompileTime = cp.execSync('date').toString().trim()
-    fs.writeFile(lastCompileFilename, `module.exports = ${JSON.stringify({lastCompileTime})};`, done)
+    fs.writeFileSync(lastCompileFilename, `module.exports = ${JSON.stringify({lastCompileTime})};`)
+    done()
   } else {
     done()
   }
