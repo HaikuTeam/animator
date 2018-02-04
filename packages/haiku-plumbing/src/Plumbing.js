@@ -513,7 +513,19 @@ export default class Plumbing extends StateObject {
     return this.awaitClientWithQuery(query, WAIT_DELAY, (err, client) => {
       if (err) return cb(err)
 
+      // Give a maximum of 10 seconds before forcing a crash if the client doesn't respond.
+      // If the page crashes before sending the result, we might not find out and could lose work.
+      let responseReceived = false
+
+      setTimeout(() => {
+        if (!responseReceived) {
+          throw new Error(`Timed out sending ${method} to client ${JSON.stringify(query)}`)
+        }
+      }, WAIT_DELAY)
+
       return this.sendClientMethod(client, method, params, (error, response) => {
+        responseReceived = true
+
         if (error) {
           this.sentryError(method, error, { tags: query })
           return cb(error)
