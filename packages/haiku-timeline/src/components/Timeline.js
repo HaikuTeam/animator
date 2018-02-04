@@ -119,6 +119,24 @@ class Timeline extends React.Component {
 
   componentDidMount () {
     this.mounted = true
+
+    this.addEmitterListener(this.props.websocket, 'method', (method, params, message, cb) => {
+      // Harness to enable cross-subview integration testing
+      if (method === 'executeFunctionSpecification') {
+        return Project.executeFunctionSpecification(
+          { timeline: this },
+          'timeline',
+          lodash.assign(
+            {
+              timeline: this,
+              project: this.state.projectModel
+            },
+            params[0]
+          ),
+          cb
+        )
+      }
+    })
   }
 
   getActiveComponent () {

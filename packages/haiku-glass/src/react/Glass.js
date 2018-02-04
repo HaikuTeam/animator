@@ -493,7 +493,25 @@ export class Glass extends React.Component {
       this.handleVirtualClipboard('copy')
     })
 
-    this.props.websocket.on('broadcast', (message) => {
+    this.addEmitterListener(this.props.websocket, 'method', (method, params, message, cb) => {
+      // Harness to enable cross-subview integration testing
+      if (method === 'executeFunctionSpecification') {
+        return Project.executeFunctionSpecification(
+          { glass: this },
+          'glass',
+          lodash.assign(
+            {
+              glass: this,
+              project: this.project
+            },
+            params[0]
+          ),
+          cb
+        )
+      }
+    })
+
+    this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       switch (message.name) {
         case 'component:reload':
           // Race condition where Master emits this event during initial load of assets in

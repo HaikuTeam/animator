@@ -329,9 +329,20 @@ export default class Creator extends React.Component {
     })
 
     this.props.websocket.on('method', (method, params, message, cb) => {
-      // Used as a harness for testing. Project instance handles this instead when ready
-      if (!this.state.projectModel && method === 'executeFunctionSpecification') {
-        return Project.executeFunctionSpecification(this, 'creator', params[1], cb)
+      // Harness to enable cross-subview integration testing
+      if (method === 'executeFunctionSpecification') {
+        return Project.executeFunctionSpecification(
+          { creator: this },
+          'creator',
+          lodash.assign(
+            {
+              creator: this,
+              project: this.state.projectModel
+            },
+            params[0]
+          ),
+          cb
+        )
       }
     })
 
@@ -936,7 +947,7 @@ export default class Creator extends React.Component {
       return (
         <StyleRoot>
           <AuthenticationUI
-            ref="AuthenticationUI"
+            ref='AuthenticationUI'
             onSubmit={this.authenticateUser}
             onSubmitSuccess={this.authenticationComplete}
             resendEmailConfirmation={this.resendEmailConfirmation}
@@ -955,7 +966,7 @@ export default class Creator extends React.Component {
       return (
         <div>
           <ProjectBrowser
-            ref="ProjectBrowser"
+            ref='ProjectBrowser'
             launchingProject={this.state.launchingProject}
             newProjectLoading={this.state.newProjectLoading}
             setProjectLaunchStatus={this.setProjectLaunchStatus.bind(this)}
@@ -1001,7 +1012,7 @@ export default class Creator extends React.Component {
             runOnBackground={this.state.updater.shouldRunOnBackground}
           />
           <ProjectBrowser
-            ref="ProjectBrowser"
+            ref='ProjectBrowser'
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
             createNotice={this.createNotice}

@@ -20,7 +20,11 @@ const WHITESPACE_REGEX = /\s+/
 const UNDERSCORE = '_'
 const WEBSOCKET_BATCH_INTERVAL = 250
 const HAIKU_CONFIG_FILE = 'haiku.js'
-const INSIDER_METHODS = { executeFunctionSpecification: true }
+
+const ALWAYS_IGNORED_METHODS = {
+  // Handled upstream, by Creator, Glass, Timeline, etc.
+  executeFunctionSpecification: true
+}
 
 /**
  * @class Project
@@ -141,6 +145,7 @@ class Project extends BaseModel {
   }
 
   isIgnoringMethodRequestsForMethod (method) {
+    if (ALWAYS_IGNORED_METHODS[method]) return true
     // HACK: This probably doesn't/shouldn't belong as a part of 'fileOptions'
     // It's a hacky way for MasterProcess to handle certain methods it cares about
     const fileOptions = this.getFileOptions()
@@ -161,9 +166,7 @@ class Project extends BaseModel {
   }
 
   receiveMethodCall (method, params, message, cb) {
-    if (INSIDER_METHODS[method]) {
-      return this.handleMethodCall(method, params, message, cb, /* doReturnResult= */ true)
-    } else if (this.isIgnoringMethodRequestsForMethod(method)) {
+    if (this.isIgnoringMethodRequestsForMethod(method)) {
       return null // Another handler will call the callback in this case
     } else if (this.shouldShortCircuitRequestsForMethod(method)) {
       return cb() // Skip the method and return; nobody will handle this otherwise
@@ -191,15 +194,6 @@ class Project extends BaseModel {
     }
 
     return cb(new Error(`Unknown project method ${method}`))
-  }
-
-  /**
-   * @method executeFunctionSpecification
-   * @description Harness to allow execution of arbitrary scripts in any view.
-   * This is an INSIDER_METHOD for dev/testing use only. :P
-   */
-  executeFunctionSpecification (_, { name, type, params, body, views, info }, metadata, cb) {
-    return Project.executeFunctionSpecification(this, this.getAlias(), { name, type, params, body, views, info }, cb)
   }
 
   ensurePlatformHaikuRegistry () {
@@ -910,33 +904,11 @@ Project.getSafeProjectName = (maybeProjectPath, maybeProjectName) => {
   throw new Error('Unable to infer a project name!')
 }
 
-Project.executeFunctionSpecification = (binding, alias, { name, type, params, body, views, info }, cb) => {
-  if (process.env.NODE_ENV === 'production') {
-    return cb()
-  }
-
-  if (views && views.indexOf(alias) === -1) {
-    return cb()
-  }
-
-  console.log(binding, alias, { name, type, params, body, views, info }, cb)
-
-  try {
-    const fn = reifyRFO({ name, type, params, body })
-
-    return fn.call(binding, info, (err, output) => {
-      if (err) return cb(err)
-      try {
-        return cb(null, output)
-      } catch (exception) {
-        log.error(exception)
-        return cb(exception)
-      }
-    })
-  } catch (exception) {
-    log.error(exception)
-    return cb(exception)
-  }
+Project.executeFunctionSpecification = (binding, alias, payload, cb) => {
+  if (process.env.NODE_ENV === 'production') return cb()
+  if (payload.views && payload.views.indexOf(alias) === -1) return cb()
+  const fn = reifyRFO(payload)
+  return fn.call(binding, payload, cb)
 }
 
 // Sorry, hacky. We route some methods to this object dynamically, and in order
