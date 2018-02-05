@@ -4565,5 +4565,22 @@
       "label": "feat",
       "message": "add a signup link in the login form"
     }
+  },
+  "3.0.22": {
+    "8a17c3a7d443bdddd89a69f79127487b159f4878": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add at max projects banner"
+    },
+    "48b3d3aa7524d6d68c29fbc2748a55c1c0ce953b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "proj loading spinner positioning"
+    },
+    "dcf80a7db30c30ac821428f11fd17fa069592dba": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "ping the tour channel to shut down if going back to dashboard"
+    }
   }
 }
