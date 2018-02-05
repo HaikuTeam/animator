@@ -248,6 +248,8 @@ export class TourHandler implements Tour {
   }
 
   finish(createFile?) {
+    if (!this.isActive) { return; }
+
     if (createFile) {
       createTourFile();
     }
