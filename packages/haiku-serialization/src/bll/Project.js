@@ -176,10 +176,11 @@ class Project extends BaseModel {
     }
   }
 
-  handleMethodCall (method, params, message, cb, doReturnResult = false) {
+  handleMethodCall (method, params, message, cb) {
     return Lock.request(Lock.LOCKS.ProjectMethodHandler, (release) => {
       // Try matching a method on a given active component
       const ac = this.findActiveComponentBySource(params[0])
+
       if (ac && typeof ac[method] === 'function') {
         log.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
         return ac[method].apply(ac, params.slice(1).concat((err, out) => {
@@ -194,7 +195,6 @@ class Project extends BaseModel {
         return this[method].apply(this, params.concat((err, result) => {
           release()
           if (err) return cb(err)
-          if (doReturnResult) return cb(null, result)
           return cb() // Skip objects that don't play well with Websockets
         }))
       }
