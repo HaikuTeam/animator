@@ -200,7 +200,8 @@ class Project extends BaseModel {
       }
 
       release()
-      return cb(new Error(`Unknown project method ${method}`))
+
+      throw new Error(`Unknown project method ${method}`)
     })
   }
 
