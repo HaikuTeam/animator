@@ -1,6 +1,17 @@
 # Changelog
 
 
+## 3.0.22
+
+### Features
+
+ * add at max projects banner
+
+### Bug Fixes
+
+ * proj loading spinner positioning
+ * ping the tour channel to shut down if going back to dashboard
+
 ## 3.0.21
 
 ### Features
