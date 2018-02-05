@@ -1,6 +1,33 @@
 # Changelog
 
 
+## 3.0.22
+
+### Features
+
+ * add at max projects banner
+
+### Bug Fixes
+
+ * proj loading spinner positioning
+ * ping the tour channel to shut down if going back to dashboard
+
+## 3.0.21
+
+### Features
+
+ * add a signup link in the login form
+
+## 3.0.20
+
+### Bug Fixes
+
+ * short-circuit all timeline keyboard events on preview mode
+
+### Documentation
+
+ * Renamed Haiku App to Haiku for Mac
+
 ## 3.0.19
 
 ### Bug Fixes

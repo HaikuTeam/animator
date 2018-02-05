@@ -4546,5 +4546,41 @@
       "label": "fix",
       "message": "support style.backgroundColor in addition to backgroundColor"
     }
+  },
+  "3.0.20": {
+    "c36f7f9da12c7518679dbadc768bb91ff71b79b1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "short-circuit all timeline keyboard events on preview mode"
+    },
+    "2f2e94f8abc3cabc924294574cf5841125d9d74b": {
+      "project": "@haiku/sdk-client",
+      "label": "docs",
+      "message": "Renamed Haiku App to Haiku for Mac"
+    }
+  },
+  "3.0.21": {
+    "294df5ccb2624ae1529643c588a7ba83bac70308": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add a signup link in the login form"
+    }
+  },
+  "3.0.22": {
+    "8a17c3a7d443bdddd89a69f79127487b159f4878": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add at max projects banner"
+    },
+    "48b3d3aa7524d6d68c29fbc2748a55c1c0ce953b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "proj loading spinner positioning"
+    },
+    "dcf80a7db30c30ac821428f11fd17fa069592dba": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "ping the tour channel to shut down if going back to dashboard"
+    }
   }
 }
