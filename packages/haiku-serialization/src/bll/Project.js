@@ -15,6 +15,7 @@ const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
 const toTitleCase = require('./helpers/toTitleCase')
 const normalizeBytecodeFile = require('./../ast/normalizeBytecodeFile')
+const Lock = require('./Lock')
 
 const WHITESPACE_REGEX = /\s+/
 const UNDERSCORE = '_'
@@ -176,24 +177,31 @@ class Project extends BaseModel {
   }
 
   handleMethodCall (method, params, message, cb, doReturnResult = false) {
-    // Try matching a method on a given active component
-    const ac = this.findActiveComponentBySource(params[0])
-    if (ac && typeof ac[method] === 'function') {
-      log.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
-      return ac[method].apply(ac, params.slice(1).concat(cb))
-    }
+    return Lock.request(Lock.LOCKS.ProjectMethodHandler, (release) => {
+      // Try matching a method on a given active component
+      const ac = this.findActiveComponentBySource(params[0])
+      if (ac && typeof ac[method] === 'function') {
+        log.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
+        return ac[method].apply(ac, params.slice(1).concat((err, out) => {
+          release()
+          return cb(err, out)
+        }))
+      }
 
-    // If we have a method here at the top, call it
-    if (typeof this[method] === 'function') {
-      log.info(`[project (${this.getAlias()})] project handling method ${method}`, params, typeof cb === 'function')
-      return this[method].apply(this, params.concat((err, result) => {
-        if (err) return cb(err)
-        if (doReturnResult) return cb(null, result)
-        return cb() // Skip objects that don't play well with Websockets
-      }))
-    }
+      // If we have a method here at the top, call it
+      if (typeof this[method] === 'function') {
+        log.info(`[project (${this.getAlias()})] project handling method ${method}`, params, typeof cb === 'function')
+        return this[method].apply(this, params.concat((err, result) => {
+          release()
+          if (err) return cb(err)
+          if (doReturnResult) return cb(null, result)
+          return cb() // Skip objects that don't play well with Websockets
+        }))
+      }
 
-    return cb(new Error(`Unknown project method ${method}`))
+      release()
+      return cb(new Error(`Unknown project method ${method}`))
+    })
   }
 
   ensurePlatformHaikuRegistry () {
@@ -301,17 +309,6 @@ class Project extends BaseModel {
     this._websocketActions.push({ method, params, callback })
   }
 
-  transmitAction (...args) {
-    const method = args.shift()
-    this.websocket.send({
-      folder: this.getFolder(),
-      type: 'action',
-      from: this.getAlias(),
-      method,
-      params: [this.getFolder()].concat(args)
-    })
-  }
-
   updateHook (...args) {
     this.methodHook.apply(this, args)
     this.emitHook.apply(this, args)
@@ -333,7 +330,7 @@ class Project extends BaseModel {
     const metadata = args.pop()
     // If we originated the action, notify all other views
     if (metadata && metadata.from === this.getAlias()) {
-      log.info(`[project (${this.getAlias()})] method hook: ${method}`)
+      log.info(`[project (${this.getAlias()})] sending method hook: ${method}`)
       this.batchedWebsocketAction(
         method,
         [this.getFolder()].concat(args),

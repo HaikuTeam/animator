@@ -1,6 +1,7 @@
 const path = require('path')
 const BaseModel = require('./BaseModel')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
+const Lock = require('./Lock')
 
 // When building a distribution (see 'distro' repo) the node_modules folder is at a different level #FIXME matthew
 const CANONICAL_CORE_SOURCE_CODE_PATH = path.dirname(require.resolve('@haiku/core'))
@@ -123,10 +124,6 @@ class ModuleWrapper extends BaseModel {
     return abspath
   }
 
-  awaitUnlock (cb) {
-    return File.awaitUnlock(this.getAbspath(), cb)
-  }
-
   getProjectConfig () {
     if (this._projectConfig) {
       return this._projectConfig
@@ -143,7 +140,7 @@ class ModuleWrapper extends BaseModel {
   reload (cb) {
     const config = this.getProjectConfig()
 
-    return this.awaitUnlock(() => {
+    return Lock.request(Lock.LOCKS.FileReadWrite(this.getAbspath()), (release) => {
       return overrideModulesLoaded((stop) => {
         try {
           this.exp = require(this.getAbspath())
@@ -167,9 +164,11 @@ class ModuleWrapper extends BaseModel {
         } catch (exception) {
           console.warn('[mod] ' + this.getAbspath() + ' could not be loaded (' + exception + ')')
           this.exp = null
+          release()
           return cb(null, exception)
         }
 
+        release()
         return cb(null, this.exp)
       }, ModuleWrapper.getHaikuKnownImportMatch)
     })
@@ -320,4 +319,3 @@ module.exports = ModuleWrapper
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Bytecode = require('./Bytecode')
-const File = require('./File')

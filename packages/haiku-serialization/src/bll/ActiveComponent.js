@@ -16,6 +16,7 @@ const log = require('./helpers/log')
 const getDefinedKeys = require('./helpers/getDefinedKeys')
 const toTitleCase = require('./helpers/toTitleCase')
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
+const Lock = require('./Lock')
 
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 500
 
@@ -123,13 +124,16 @@ class ActiveComponent extends BaseModel {
       this._propertyGroupBatches = {}
 
       lodash.each(groupBatches, ({ componentId, timelineName, timelineTime, groupValue }) => {
-        this.project.transmitAction(
+        this.project.batchedWebsocketAction(
           'applyPropertyGroupValue',
-          this.getSceneCodeRelpath(),
-          componentId,
-          timelineName,
-          timelineTime,
-          groupValue
+          [
+            this.project.getFolder(),
+            componentId,
+            timelineName,
+            timelineTime,
+            groupValue
+          ],
+          () => {}
         )
       })
     }, 500, { leading: true })
@@ -139,9 +143,6 @@ class ActiveComponent extends BaseModel {
       this.keyframeMoveAction.bind(this),
       KEYFRAME_MOVE_DEBOUNCE_TIME
     )
-
-    // Avoid races during reloads by locking so only one occurs at a time
-    this._isReloadLocked = false
   }
 
   findElementRoots () {
@@ -383,32 +384,40 @@ class ActiveComponent extends BaseModel {
   }
 
   selectElement (componentId, metadata, cb) {
-    // Assuming the update occurs remotely, we want to unselect everything but the selected one
-    Element.unselectAllElements({ component: this }, metadata)
+    return Lock.request(Lock.LOCKS.FilePerformComponentWork, (release) => {
+      // Assuming the update occurs remotely, we want to unselect everything but the selected one
+      Element.unselectAllElements({ component: this }, metadata)
 
-    const element = Element.findByComponentAndHaikuId(this, componentId)
+      const element = Element.findByComponentAndHaikuId(this, componentId)
 
-    if (element) {
-      element.select(metadata)
+      if (element) {
+        element.select(metadata)
 
-      const row = element.getHeadingRow()
+        const row = element.getHeadingRow()
 
-      if (row) {
-        row.expand(metadata)
+        if (row) {
+          row.expand(metadata)
+        }
       }
-    }
 
-    return cb() // Must return or the plumbing action circuit never completes
+      release()
+
+      return cb() // Must return or the plumbing action circuit never completes
+    })
   }
 
   unselectElement (componentId, metadata, cb) {
-    const element = Element.findByComponentAndHaikuId(this, componentId)
+    return Lock.request(Lock.LOCKS.FilePerformComponentWork, (release) => {
+      const element = Element.findByComponentAndHaikuId(this, componentId)
 
-    if (element) {
-      element.unselect(metadata)
-    }
+      if (element) {
+        element.unselect(metadata)
+      }
 
-    return cb() // Must return or the plumbing action circuit never completes
+      release()
+
+      return cb() // Must return or the plumbing action circuit never completes
+    })
   }
 
   gitUndo (options, metadata, cb) {
@@ -1884,39 +1893,35 @@ class ActiveComponent extends BaseModel {
   /** ------------ */
   /** ------------ */
 
-  awaitReloadUnlock (cb) {
-    if (!this._isReloadLocked) return cb() // Continue immediately if no lock
-    return setTimeout(() => this.awaitReloadUnlock(cb), 32)
-  }
-
-  setReloadLock () {
-    this._isReloadLocked = true
-  }
-
-  setReloadUnlock () {
-    this._isReloadLocked = false
-  }
-
   reload (reloadOptions, instanceConfig, cb) {
+    const runReload = (done) => {
+      if (reloadOptions.hardReload) {
+        // Note: hardReload also calls softReload
+        return this.hardReload(reloadOptions, instanceConfig, done)
+      } else {
+        return this.softReload(reloadOptions, instanceConfig, done)
+      }
+    }
+
+    if (reloadOptions.skipReloadLock) {
+      return runReload(cb)
+    }
+
     // Note that this lock only occurs in .reload(); if you ever call hardReload or
     // softReload a la carte, you might get a race condition!
-    return this.awaitReloadUnlock(() => {
-      this.setReloadLock()
-
+    return Lock.request(Lock.LOCKS.ActiveComponentReload, (release) => {
       const finish = (err) => {
-        this.setReloadUnlock() // Make sure we unlock since this action is now done
+        release()
+
         if (err) return cb(err)
+
         // Note: The hard/soft signal may affect how the views decide to refresh
         this.emit('update', 'reloaded', (reloadOptions.hardReload) ? 'hard' : 'soft')
+
         return cb()
       }
 
-      if (reloadOptions.hardReload) {
-        // Note: hardReload also calls softReload
-        return this.hardReload(reloadOptions, instanceConfig, finish)
-      } else {
-        return this.softReload(reloadOptions, instanceConfig, finish)
-      }
+      return runReload(finish)
     })
   }
 
@@ -2134,11 +2139,14 @@ class ActiveComponent extends BaseModel {
 
   reloadInstantiatedSubcomponentsSoftly (reloadOptions, cb) {
     const activeComponents = this.getInstantiatedActiveComponents()
-    return async.each(activeComponents, (activeComponent, next) => {
+    return async.eachSeries(activeComponents, (activeComponent, next) => {
       // Just in case one of ourselves is nested inside us, avoid an infinite loop
       if (activeComponent === this) return next()
-      return activeComponent.reload(lodash.assign({ hardReload: false }, reloadOptions), null, next)
-    }, cb)
+      return activeComponent.reload(lodash.assign({ hardReload: false, skipReloadLock: true }, reloadOptions), null, next)
+    }, (err) => {
+      if (err) return cb(err)
+      return cb()
+    })
   }
 
   /**

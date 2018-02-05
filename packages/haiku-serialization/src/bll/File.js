@@ -15,6 +15,7 @@ const Logger = require('./../utils/Logger')
 const walkFiles = require('./../utils/walkFiles')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const getSvgOptimizer = require('./../svg/getSvgOptimizer')
+const Lock = require('./Lock')
 
 // This file also depends on '@haiku/core/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as .hostInstance here.
@@ -71,9 +72,6 @@ class File extends BaseModel {
     // value reflecting the number of the times per session that updates occurred
     this._numBytecodeUpdates = 0
     this._elementsCache = {}
-
-    // Avoid races during "component work" by locking so only one occurs at a time
-    this._isWorkLocked = false
   }
 
   updateInMemoryHotModule (bytecode) {
@@ -167,25 +165,10 @@ class File extends BaseModel {
     return this.type === FILE_TYPES.design
   }
 
-  awaitWorkUnlock (cb) {
-    if (!this._isWorkLocked) return cb() // Go immediately if not locked
-    return setTimeout(() => this.awaitWorkUnlock(cb), 32)
-  }
-
-  workLock () {
-    this._isWorkLocked = true
-  }
-
-  workUnlock () {
-    this._isWorkLocked = false
-  }
-
   performComponentWork (worker, cb) {
-    return this.awaitWorkUnlock(() => {
-      this.workLock() // Lock immediately until work is done
-
+    return Lock.request(Lock.LOCKS.FilePerformComponentWork, (release) => {
       const finish = (err, result) => {
-        this.workUnlock() // Unlock now that we're finished
+        release()
         return cb(err, result)
       }
 
@@ -642,26 +625,11 @@ File.DEFAULT_OPTIONS = {
 
 File.DEFAULT_CONTEXT_SIZE = DEFAULT_CONTEXT_SIZE
 
-// Dictionary of files currently in the process of being read/written.
-// Used as a kind of mutex where reading-while-writing causes a problem.
-File.lockees = {}
-
-File.awaitUnlock = function awaitUnlock (abspath, cb) {
-  return setTimeout(() => {
-    // Continue waiting if the file is still flagged as being written
-    if (File.lockees[abspath]) {
-      return File.awaitUnlock(abspath, cb)
-    }
-    return cb()
-  }, 0)
-}
-
 File.write = function write (folder, relpath, contents, cb) {
   let abspath = path.join(folder, relpath)
-  return File.awaitUnlock(abspath, () => {
-    File.lockees[abspath] = true
+  return Lock.request(Lock.LOCKS.FileReadWrite(abspath), (release) => {
     return _writeFile(abspath, contents, (err) => {
-      File.lockees[abspath] = false
+      release()
       if (err) return cb(err)
       return cb()
     })
@@ -670,10 +638,9 @@ File.write = function write (folder, relpath, contents, cb) {
 
 File.read = function read (folder, relpath, cb) {
   let abspath = path.join(folder, relpath)
-  return File.awaitUnlock(abspath, () => {
-    File.lockees[abspath] = true
+  return Lock.request(Lock.LOCKS.FileReadWrite(abspath), (release) => {
     return _readFile(abspath, (err, buffer) => {
-      File.lockees[abspath] = false
+      release()
       if (err) return cb(err)
       return cb(null, buffer.toString())
     })
