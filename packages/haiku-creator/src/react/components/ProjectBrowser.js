@@ -430,12 +430,12 @@ class ProjectBrowser extends React.Component {
                 You've reached the project maximum. Contact support@haiku.ai to add more projects.
               </span>)
             : (<button key='new_proj'
-                onClick={() => this.showNewProjectModal()}
-                style={[
-                  BTN_STYLES.btnIcon,
-                  BTN_STYLES.btnIconHovered
-                ]}><span style={{fontSize: 18}}> +</span>
-              </button>)
+              onClick={() => this.showNewProjectModal()}
+              style={[
+                BTN_STYLES.btnIcon,
+                BTN_STYLES.btnIconHovered
+              ]}><span style={{fontSize: 18}}> +</span>
+            </button>)
           }
 
           <Popover
