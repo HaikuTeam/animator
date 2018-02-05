@@ -28,6 +28,16 @@ const REPLACEMENT_MODULES = {
 const CORE_PACKAGE_JSON = require(path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'package.json'))
 const CORE_VERSION = CORE_PACKAGE_JSON.version
 
+// In race conditions where the project node_modules is changed while monkeypatch
+// is occurring, this allows project dependencies to be loaded without crashing
+const haikuCore = require('@haiku/core')
+const Module = require('module')
+const originalRequire = Module.prototype.require
+Module.prototype.require = function (request) {
+  if (request === '@haiku/core') return haikuCore
+  return originalRequire.apply(this, arguments)
+}
+
 /**
  * @class Mod
  * @description
@@ -45,7 +55,9 @@ const CORE_VERSION = CORE_PACKAGE_JSON.version
 class ModuleWrapper extends BaseModel {
   constructor (props, opts) {
     super(props, opts)
+
     this.exp = null // Safest to set to null until we really load the content
+
     this._hasLoadedAtLeastOnce = false
     this._hasMonkeypatchedContent = false
     this._projectConfig = null
@@ -210,8 +222,11 @@ class ModuleWrapper extends BaseModel {
 
   monkeypatch (exportsObject) {
     if (!require.cache[this.getAbspath()]) {
-      require(this.getAbspath()) // Ensure it's populated if not already; kind of weird :/
+      // We ensure the full require.cache is populated with our entry;
+      // since the cache entry is complex, we use require's own mechanism
+      require(this.getAbspath())
     }
+
     this._hasMonkeypatchedContent = true
     require.cache[this.getAbspath()].exports = exportsObject
     return exportsObject
