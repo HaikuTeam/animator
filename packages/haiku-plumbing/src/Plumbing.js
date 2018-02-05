@@ -517,11 +517,14 @@ export default class Plumbing extends StateObject {
       // If the page crashes before sending the result, we might not find out and could lose work.
       let responseReceived = false
 
-      setTimeout(() => {
-        if (!responseReceived) {
-          throw new Error(`Timed out sending ${method} to client ${JSON.stringify(query)}`)
-        }
-      }, WAIT_DELAY)
+      // In dev, we may use a debugger in which case we don't want to force a timeout
+      if (process.env.NODE_ENV === 'production') {
+        setTimeout(() => {
+          if (!responseReceived) {
+            throw new Error(`Timed out sending ${method} to client ${JSON.stringify(query)}`)
+          }
+        }, WAIT_DELAY)
+      }
 
       return this.sendClientMethod(client, method, params, (error, response) => {
         responseReceived = true
