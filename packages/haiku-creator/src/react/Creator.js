@@ -328,6 +328,24 @@ export default class Creator extends React.Component {
       }
     })
 
+    this.props.websocket.on('method', (method, params, message, cb) => {
+      // Harness to enable cross-subview integration testing
+      if (method === 'executeFunctionSpecification') {
+        return Project.executeFunctionSpecification(
+          { creator: this },
+          'creator',
+          lodash.assign(
+            {
+              creator: this,
+              project: this.state.projectModel
+            },
+            params[0]
+          ),
+          cb
+        )
+      }
+    })
+
     this.activityMonitor.startWatchers()
 
     this.envoyClient = new EnvoyClient(this.envoyOptions)
@@ -858,21 +876,24 @@ export default class Creator extends React.Component {
   }
 
   onNavigateToDashboard () {
-    this.setDashboardVisibility(true)
-    this.onTimelineUnmounted()
-    this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
-    this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'component:mounted')
-    this.tourChannel.finish(false)
-    this.setState({
-      projectModel: null,
-      activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects
-      interactionMode: InteractionMode.EDIT // So that the asset library will not be obscured on reentry
-    })
-
+    // We teardownMaster FIRST because we want to close the websocket connections before
+    // destroying the webviews, which leads to EPIPE/"not opened" crashes.
+    // Previously we were relying on dropped connections to deallocate websockets,
+    // which made it difficult to know how to handle actual errors
     return this.props.websocket.request(
       { method: 'teardownMaster', params: [this.state.projectModel.getFolder()] },
       () => {
         console.info('[creator] master teardown')
+        this.setDashboardVisibility(true)
+        this.onTimelineUnmounted()
+        this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
+        this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'component:mounted')
+        this.tourChannel.finish(false)
+        this.setState({
+          projectModel: null,
+          activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects
+          interactionMode: InteractionMode.EDIT // So that the asset library will not be obscured on reentry
+        })
       }
     )
   }
@@ -927,6 +948,7 @@ export default class Creator extends React.Component {
       return (
         <StyleRoot>
           <AuthenticationUI
+            ref='AuthenticationUI'
             onSubmit={this.authenticateUser}
             onSubmitSuccess={this.authenticationComplete}
             resendEmailConfirmation={this.resendEmailConfirmation}
@@ -945,6 +967,7 @@ export default class Creator extends React.Component {
       return (
         <div>
           <ProjectBrowser
+            ref='ProjectBrowser'
             launchingProject={this.state.launchingProject}
             newProjectLoading={this.state.newProjectLoading}
             setProjectLaunchStatus={this.setProjectLaunchStatus.bind(this)}
@@ -990,6 +1013,7 @@ export default class Creator extends React.Component {
             runOnBackground={this.state.updater.shouldRunOnBackground}
           />
           <ProjectBrowser
+            ref='ProjectBrowser'
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
             createNotice={this.createNotice}

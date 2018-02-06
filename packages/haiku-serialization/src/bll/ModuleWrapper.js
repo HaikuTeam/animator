@@ -1,6 +1,7 @@
 const path = require('path')
 const BaseModel = require('./BaseModel')
 const overrideModulesLoaded = require('./../utils/overrideModulesLoaded')
+const Lock = require('./Lock')
 
 // When building a distribution (see 'distro' repo) the node_modules folder is at a different level #FIXME matthew
 const CANONICAL_CORE_SOURCE_CODE_PATH = path.dirname(require.resolve('@haiku/core'))
@@ -27,6 +28,16 @@ const REPLACEMENT_MODULES = {
 const CORE_PACKAGE_JSON = require(path.join(CANONICAL_CORE_SOURCE_CODE_PATH, 'package.json'))
 const CORE_VERSION = CORE_PACKAGE_JSON.version
 
+// In race conditions where the project node_modules is changed while monkeypatch
+// is occurring, this allows project dependencies to be loaded without crashing
+const haikuCore = require('@haiku/core')
+const Module = require('module')
+const originalRequire = Module.prototype.require
+Module.prototype.require = function (request) {
+  if (request === '@haiku/core') return haikuCore
+  return originalRequire.apply(this, arguments)
+}
+
 /**
  * @class Mod
  * @description
@@ -44,7 +55,9 @@ const CORE_VERSION = CORE_PACKAGE_JSON.version
 class ModuleWrapper extends BaseModel {
   constructor (props, opts) {
     super(props, opts)
+
     this.exp = null // Safest to set to null until we really load the content
+
     this._hasLoadedAtLeastOnce = false
     this._hasMonkeypatchedContent = false
     this._projectConfig = null
@@ -123,10 +136,6 @@ class ModuleWrapper extends BaseModel {
     return abspath
   }
 
-  awaitUnlock (cb) {
-    return File.awaitUnlock(this.getAbspath(), cb)
-  }
-
   getProjectConfig () {
     if (this._projectConfig) {
       return this._projectConfig
@@ -143,7 +152,7 @@ class ModuleWrapper extends BaseModel {
   reload (cb) {
     const config = this.getProjectConfig()
 
-    return this.awaitUnlock(() => {
+    return Lock.request(Lock.LOCKS.FileReadWrite(this.getAbspath()), (release) => {
       return overrideModulesLoaded((stop) => {
         try {
           this.exp = require(this.getAbspath())
@@ -167,9 +176,11 @@ class ModuleWrapper extends BaseModel {
         } catch (exception) {
           console.warn('[mod] ' + this.getAbspath() + ' could not be loaded (' + exception + ')')
           this.exp = null
+          release()
           return cb(null, exception)
         }
 
+        release()
         return cb(null, this.exp)
       }, ModuleWrapper.getHaikuKnownImportMatch)
     })
@@ -211,8 +222,11 @@ class ModuleWrapper extends BaseModel {
 
   monkeypatch (exportsObject) {
     if (!require.cache[this.getAbspath()]) {
-      require(this.getAbspath()) // Ensure it's populated if not already; kind of weird :/
+      // We ensure the full require.cache is populated with our entry;
+      // since the cache entry is complex, we use require's own mechanism
+      require(this.getAbspath())
     }
+
     this._hasMonkeypatchedContent = true
     require.cache[this.getAbspath()].exports = exportsObject
     return exportsObject
@@ -320,4 +334,3 @@ module.exports = ModuleWrapper
 
 // Down here to avoid Node circular dependency stub objects. #FIXME
 const Bytecode = require('./Bytecode')
-const File = require('./File')

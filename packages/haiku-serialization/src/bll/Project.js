@@ -15,12 +15,16 @@ const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
 const toTitleCase = require('./helpers/toTitleCase')
 const normalizeBytecodeFile = require('./../ast/normalizeBytecodeFile')
+const Lock = require('./Lock')
 
 const WHITESPACE_REGEX = /\s+/
 const UNDERSCORE = '_'
-const WEBSOCKET_BATCH_INTERVAL = 250
 const HAIKU_CONFIG_FILE = 'haiku.js'
-const INSIDER_METHODS = { executeFunctionSpecification: true }
+
+const ALWAYS_IGNORED_METHODS = {
+  // Handled upstream, by Creator, Glass, Timeline, etc.
+  executeFunctionSpecification: true
+}
 
 /**
  * @class Project
@@ -57,14 +61,7 @@ class Project extends BaseModel {
     // No-op callback for arbitrary websocket actions
     this._receiveWebsocketResponse = () => {}
 
-    // Queue processor that invokes any pending websocket actions
-    setInterval(() => {
-      const actions = this._websocketActions.splice(0)
-      if (actions.length < 1) return void (0)
-      actions.forEach(({ method, params, callback }) => {
-        this.websocket.action(method, params, callback, this.getFolder())
-      })
-    }, WEBSOCKET_BATCH_INTERVAL)
+    this.processWebsocketActions()
 
     // Setup the Plumbing websocket and Envoy connections if necessary
     this._didStartWebsocketListeners = false
@@ -79,6 +76,25 @@ class Project extends BaseModel {
 
     // List of components we are tracking as part of the component tabs
     this._multiComponentTabs = []
+  }
+
+  processWebsocketActions () {
+    const nextAction = this._websocketActions.shift()
+    if (!nextAction) {
+      return setTimeout(() => this.processWebsocketActions(), 64)
+    }
+
+    const {
+      method,
+      params,
+      callback
+    } = nextAction
+
+    // Only proceed with the next action once ours is finished
+    return this.websocket.action(method, params, (err, out) => {
+      callback(err, out)
+      return this.processWebsocketActions()
+    }, this.getFolder())
   }
 
   teardown () {
@@ -141,6 +157,7 @@ class Project extends BaseModel {
   }
 
   isIgnoringMethodRequestsForMethod (method) {
+    if (ALWAYS_IGNORED_METHODS[method]) return true
     // HACK: This probably doesn't/shouldn't belong as a part of 'fileOptions'
     // It's a hacky way for MasterProcess to handle certain methods it cares about
     const fileOptions = this.getFileOptions()
@@ -161,9 +178,7 @@ class Project extends BaseModel {
   }
 
   receiveMethodCall (method, params, message, cb) {
-    if (INSIDER_METHODS[method]) {
-      return this.handleMethodCall(method, params, message, cb, /* doReturnResult= */ true)
-    } else if (this.isIgnoringMethodRequestsForMethod(method)) {
+    if (this.isIgnoringMethodRequestsForMethod(method)) {
       return null // Another handler will call the callback in this case
     } else if (this.shouldShortCircuitRequestsForMethod(method)) {
       return cb() // Skip the method and return; nobody will handle this otherwise
@@ -172,54 +187,33 @@ class Project extends BaseModel {
     }
   }
 
-  handleMethodCall (method, params, message, cb, doReturnResult = false) {
-    // Try matching a method on a given active component
-    const ac = this.findActiveComponentBySource(params[0])
-    if (ac && typeof ac[method] === 'function') {
-      log.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
-      return ac[method].apply(ac, params.slice(1).concat(cb))
-    }
+  handleMethodCall (method, params, message, cb) {
+    return Lock.request(Lock.LOCKS.ProjectMethodHandler, (release) => {
+      // Try matching a method on a given active component
+      const ac = this.findActiveComponentBySource(params[0])
 
-    // If we have a method here at the top, call it
-    if (typeof this[method] === 'function') {
-      log.info(`[project (${this.getAlias()})] project handling method ${method}`, params, typeof cb === 'function')
-      return this[method].apply(this, params.concat((err, result) => {
-        if (err) return cb(err)
-        if (doReturnResult) return cb(null, result)
-        return cb() // Skip objects that don't play well with Websockets
-      }))
-    }
+      if (ac && typeof ac[method] === 'function') {
+        log.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
+        return ac[method].apply(ac, params.slice(1).concat((err, out) => {
+          release()
+          return cb(err, out)
+        }))
+      }
 
-    return cb(new Error(`Unknown project method ${method}`))
-  }
+      // If we have a method here at the top, call it
+      if (typeof this[method] === 'function') {
+        log.info(`[project (${this.getAlias()})] project handling method ${method}`, params, typeof cb === 'function')
+        return this[method].apply(this, params.concat((err, result) => {
+          release()
+          if (err) return cb(err)
+          return cb() // Skip objects that don't play well with Websockets
+        }))
+      }
 
-  /**
-   * @method executeFunctionSpecification
-   * @description Harness to allow execution of arbitrary scripts in any view.
-   * This is an INSIDER_METHOD for dev/testing use only. :P
-   */
-  executeFunctionSpecification (_, { name, type, params, body, views }, metadata, cb) {
-    if (process.env.NODE_ENV === 'production') {
-      return cb()
-    }
-    if (views && views.indexOf(this.getAlias()) === -1) {
-      return cb()
-    }
-    try {
-      const fn = reifyRFO({ name, type, params, body })
-      return fn.call(this, (err, output) => {
-        if (err) return cb(err)
-        try {
-          return cb(null, output)
-        } catch (exception) {
-          log.error(exception)
-          return cb(exception)
-        }
-      })
-    } catch (exception) {
-      log.error(exception)
-      return cb(exception)
-    }
+      release()
+
+      throw new Error(`Unknown project method ${method}`)
+    })
   }
 
   ensurePlatformHaikuRegistry () {
@@ -327,17 +321,6 @@ class Project extends BaseModel {
     this._websocketActions.push({ method, params, callback })
   }
 
-  transmitAction (...args) {
-    const method = args.shift()
-    this.websocket.send({
-      folder: this.getFolder(),
-      type: 'action',
-      from: this.getAlias(),
-      method,
-      params: [this.getFolder()].concat(args)
-    })
-  }
-
   updateHook (...args) {
     this.methodHook.apply(this, args)
     this.emitHook.apply(this, args)
@@ -359,7 +342,7 @@ class Project extends BaseModel {
     const metadata = args.pop()
     // If we originated the action, notify all other views
     if (metadata && metadata.from === this.getAlias()) {
-      log.info(`[project (${this.getAlias()})] method hook: ${method}`)
+      log.info(`[project (${this.getAlias()})] sending method hook: ${method}`)
       this.batchedWebsocketAction(
         method,
         [this.getFolder()].concat(args),
@@ -380,15 +363,6 @@ class Project extends BaseModel {
   broadcastPayload (mainPayload) {
     const fullPayloadWithMetadata = lodash.assign(this.getWebsocketBroadcastDefaults(), mainPayload)
     this.websocket.send(fullPayloadWithMetadata)
-  }
-
-  broadcastMethod (...args) {
-    const method = args.shift()
-    const relpath = args.shift()
-    this.websocket.send(lodash.assign(this.getWebsocketBroadcastDefaults(), {
-      method,
-      params: [this.getFolder(), relpath].concat(args)
-    }))
   }
 
   upsertFile ({ relpath, type }) {
@@ -930,6 +904,13 @@ Project.getSafeProjectName = (maybeProjectPath, maybeProjectName) => {
   throw new Error('Unable to infer a project name!')
 }
 
+Project.executeFunctionSpecification = (binding, alias, payload, cb) => {
+  if (process.env.NODE_ENV === 'production') return cb()
+  if (payload.views && payload.views.indexOf(alias) === -1) return cb()
+  const fn = reifyRFO(payload)
+  return fn.call(binding, payload, cb)
+}
+
 // Sorry, hacky. We route some methods to this object dynamically, and in order
 // to detect which should receive the metadata parameter, we use this
 Project.PUBLIC_METHODS = {
@@ -957,7 +938,7 @@ const Template = require('./Template')
 
 function getCodeJs (haikuId, haikuComponentName) {
   return dedent`
-    var Haiku = require('@haiku/core')
+    var Haiku = require("@haiku/core");
     module.exports = {
       metadata: {},
       options: {},
@@ -967,14 +948,14 @@ function getCodeJs (haikuId, haikuComponentName) {
         Default: {}
       },
       template: {
-        elementName: 'div',
+        elementName: "div",
         attributes: {
-          'haiku-id': '${haikuId}',
-          'haiku-title': '${haikuComponentName}'
+          "haiku-id": "${haikuId}",
+          "haiku-title": "${haikuComponentName}"
         },
         children: []
       }
-    }
+    };
   `.trim()
 }
 

@@ -50,7 +50,7 @@ class Artboard extends BaseModel {
       if (
         what === 'application-mounted' ||
         what === 'resizeContext' ||
-        (what === 'reloaded' && arg === 'hard')
+        what === 'reloaded'
       ) {
         this.updateMountSize()
       }

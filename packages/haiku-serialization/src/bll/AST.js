@@ -26,7 +26,12 @@ class AST extends BaseModel {
 
     const safe = AST.safeBytecode(bytecode)
 
-    const ro = objectToRO(Bytecode.decycle(safe, { doCleanMana: false }))
+    const decycled = Bytecode.decycle(safe, { doCleanMana: false })
+
+    // Strip off `__max` and other cruft editor/core may have added
+    Bytecode.cleanBytecode(decycled)
+
+    const ro = objectToRO(decycled)
 
     const ast = bytecodeObjectToAST(ro, imports)
 
