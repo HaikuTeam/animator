@@ -29,6 +29,7 @@ const DEFAULT_TIMELINE_TIME = 0
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_CONTEXT_SIZE = { width: 550, height: 400 }
 const DISK_FLUSH_TIMEOUT = 500
+const AWAIT_CONTENT_FLUSH_TIMEOUT = 0
 
 const FILE_TYPES = {
   design: 'design',
@@ -60,6 +61,11 @@ class File extends BaseModel {
     this.debouncedFlushContent = debounce(() => {
       this.flushContent()
     }, DISK_FLUSH_TIMEOUT)
+
+    // We don't reassign this on every initialize because that would make this
+    // pointless to track given that ingestOne would reset this value
+    this._pendingContentFlushes = []
+
     // Important: Please see afterInitialize for assigned properties
   }
 
@@ -71,7 +77,6 @@ class File extends BaseModel {
     // content and bytecode validity assertion will run, which depend on this
     // value reflecting the number of the times per session that updates occurred
     this._numBytecodeUpdates = 0
-    this._elementsCache = {}
   }
 
   updateInMemoryHotModule (bytecode) {
@@ -89,7 +94,28 @@ class File extends BaseModel {
     this._numBytecodeUpdates++
   }
 
+  requestAsyncContentFlush (flushSpec) {
+    this._pendingContentFlushes.push(flushSpec)
+    this.debouncedFlushContent()
+  }
+
+  awaitNoFurtherContentFlushes (cb) {
+    if (this._pendingContentFlushes.length > 0) {
+      return setTimeout(
+        () => this.awaitNoFurtherContentFlushes(cb),
+        AWAIT_CONTENT_FLUSH_TIMEOUT
+      )
+    }
+
+    return cb()
+  }
+
   flushContent () {
+    // We're about to flush content for all requests received up to this point
+    // If more occur during async, that's fine; we'll just get called again,
+    // but those who need to wait can read the list to know what's still pending
+    this._pendingContentFlushes.splice(0)
+
     const bytecode = this.mod.fetchInMemoryExport()
     const incoming = this.ast.updateWithBytecodeAndReturnCode(bytecode)
 
@@ -99,10 +125,9 @@ class File extends BaseModel {
     this.contents = incoming
 
     this.maybeLogDiff(this.previous, this.contents)
+
     return this.write((err) => {
-      if (err) {
-        throw err
-      }
+      if (err) throw err
     })
   }
 
@@ -185,7 +210,7 @@ class File extends BaseModel {
         this.updateInMemoryHotModule(bytecode)
 
         if (this.options.doWriteToDisk) {
-          this.debouncedFlushContent()
+          this.requestAsyncContentFlush({ who: 'performComponentWork' })
         }
 
         return finish(null, result)
@@ -231,12 +256,16 @@ class File extends BaseModel {
 
   applyPropertyGroupValue (componentId, timelineName, timelineTime, propertyGroup, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      let elementNode = this.findElementByComponentId(mana, componentId)
+      let elementNode = this.findTopLevelElementByComponentId(mana, componentId)
 
       if (elementNode) {
         TimelineProperty.addPropertyGroup(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime)
       } else {
         // Things are badly broken if this happens; to avoid lost work, it's best to crash
+
+        console.log(mana.children.map((n) => n.attributes[HAIKU_ID_ATTRIBUTE]))
+        console.log(componentId)
+
         throw new Error(`Cannot find element ${componentId}`)
       }
 
@@ -246,7 +275,7 @@ class File extends BaseModel {
 
   applyPropertyGroupDelta (componentId, timelineName, timelineTime, propertyGroup, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      let elementNode = this.findElementByComponentId(mana, componentId)
+      let elementNode = this.findTopLevelElementByComponentId(mana, componentId)
 
       if (elementNode) {
         TimelineProperty.addPropertyGroupDelta(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime, this.getHostInstance(), this.getHostStates())
@@ -510,25 +539,25 @@ class File extends BaseModel {
     }, cb)
   }
 
-  /** ------------- */
-  /** ------------- */
-  /** ------------- */
+  findTopLevelElementByComponentId (mana, componentId) {
+    let foundNode
 
-  clearElementsCache (componentId) {
-    if (componentId) {
-      delete this._elementsCache[componentId]
-    } else {
-      this._elementsCache = {}
+    if (mana && Array.isArray(mana.children)) {
+      for (let i = 0; i < mana.children.length; i++) {
+        const node = mana.children[i]
+
+        if (
+          node &&
+          node.attributes &&
+          node.attributes[HAIKU_ID_ATTRIBUTE] === componentId
+        ) {
+          foundNode = node
+          break
+        }
+      }
     }
-  }
 
-  findElementByComponentId (mana, componentId) {
-    if (this._elementsCache[componentId]) return this._elementsCache[componentId]
-    let nodes = Template.manaTreeToDepthFirstArray([], mana)
-    let found = nodes.filter((node) => node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE] === componentId)[0]
-    if (!found) return null
-    this._elementsCache[componentId] = found
-    return this._elementsCache[componentId]
+    return foundNode
   }
 
   upsertProperties (bytecode, componentId, timelineName, timelineTime, propertiesToMerge, strategy) {
@@ -671,25 +700,30 @@ File.ingestContents = function ingestContents (folder, relpath, { dtLastReadStar
 
   const file = File.upsert(fileAttrs)
 
-  // See the note under ingestOne to understand why this gets set here
-  file.dtLastReadStart = dtLastReadStart || Date.now()
+  // Let what's happening in-memory have higher precedence than on-disk changes
+  // since it's more likely that we'll be loading in stale content during fast updates,
+  // which leads to races such as with copy/paste, undo/redo, etc
+  return file.awaitNoFurtherContentFlushes(() => {
+    // See the note under ingestOne to understand why this gets set here
+    file.dtLastReadStart = dtLastReadStart || Date.now()
 
-  if (File.isPathCode(relpath)) {
-    file.type = FILE_TYPES.code
-  } else {
-    file.type = 'other'
-  }
+    if (File.isPathCode(relpath)) {
+      file.type = FILE_TYPES.code
+    } else {
+      file.type = 'other'
+    }
 
-  return file.mod.isolatedForceReload((err, bytecode) => {
-    if (err) return cb(err)
+    return file.mod.isolatedForceReload((err, bytecode) => {
+      if (err) return cb(err)
 
-    file.updateInMemoryHotModule(bytecode)
+      file.updateInMemoryHotModule(bytecode)
 
-    // This can be used to determine if an in-memory-only update occurred
-    // after or before a filesystem update. Use to decid whether to code reload
-    file.dtLastReadEnd = Date.now()
+      // This can be used to determine if an in-memory-only update occurred
+      // after or before a filesystem update. Use to decid whether to code reload
+      file.dtLastReadEnd = Date.now()
 
-    return cb(null, file)
+      return cb(null, file)
+    })
   })
 }
 

@@ -19,7 +19,6 @@ const Lock = require('./Lock')
 
 const WHITESPACE_REGEX = /\s+/
 const UNDERSCORE = '_'
-const WEBSOCKET_BATCH_INTERVAL = 250
 const HAIKU_CONFIG_FILE = 'haiku.js'
 
 const ALWAYS_IGNORED_METHODS = {
@@ -62,14 +61,7 @@ class Project extends BaseModel {
     // No-op callback for arbitrary websocket actions
     this._receiveWebsocketResponse = () => {}
 
-    // Queue processor that invokes any pending websocket actions
-    setInterval(() => {
-      const actions = this._websocketActions.splice(0)
-      if (actions.length < 1) return void (0)
-      actions.forEach(({ method, params, callback }) => {
-        this.websocket.action(method, params, callback, this.getFolder())
-      })
-    }, WEBSOCKET_BATCH_INTERVAL)
+    this.processWebsocketActions()
 
     // Setup the Plumbing websocket and Envoy connections if necessary
     this._didStartWebsocketListeners = false
@@ -84,6 +76,25 @@ class Project extends BaseModel {
 
     // List of components we are tracking as part of the component tabs
     this._multiComponentTabs = []
+  }
+
+  processWebsocketActions () {
+    const nextAction = this._websocketActions.shift()
+    if (!nextAction) {
+      return setTimeout(() => this.processWebsocketActions(), 64)
+    }
+
+    const {
+      method,
+      params,
+      callback
+    } = nextAction
+
+    // Only proceed with the next action once ours is finished
+    return this.websocket.action(method, params, (err, out) => {
+      callback(err, out)
+      return this.processWebsocketActions()
+    }, this.getFolder())
   }
 
   teardown () {
@@ -352,15 +363,6 @@ class Project extends BaseModel {
   broadcastPayload (mainPayload) {
     const fullPayloadWithMetadata = lodash.assign(this.getWebsocketBroadcastDefaults(), mainPayload)
     this.websocket.send(fullPayloadWithMetadata)
-  }
-
-  broadcastMethod (...args) {
-    const method = args.shift()
-    const relpath = args.shift()
-    this.websocket.send(lodash.assign(this.getWebsocketBroadcastDefaults(), {
-      method,
-      params: [this.getFolder(), relpath].concat(args)
-    }))
   }
 
   upsertFile ({ relpath, type }) {

@@ -4,7 +4,7 @@ const fse = require('haiku-fs-extra')
 const Project = require('./../../src/bll/Project')
 
 tape('Project', (t) => {
-  t.plan(31)
+  t.plan(24)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'project-01')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -38,17 +38,6 @@ tape('Project', (t) => {
       })
       project.emitHook('meowMeow',1,2,{from:'luna'})
       project.emitHook('ruffRuff',3,4,{from:'test'})
-
-      websocket.send = (data) => {
-        t.equal(data.type,'broadcast')
-        t.equal(data.method,'hi:bye')
-        t.equal(data.params[1],'moo/cow.txt')
-        t.equal(data.params[2],'hey')
-        t.equal(data.params[3],100)
-        t.ok(data.time)
-        t.ok(data.folder)
-      }
-      project.broadcastMethod('hi:bye','moo/cow.txt','hey',100)
       websocket.send = () => {}
 
       websocket.action = (a,b,c,d) => {
