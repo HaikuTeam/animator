@@ -1151,7 +1151,15 @@ class ActiveComponent extends BaseModel {
 
   mergeDesignFiles (designs, cb) {
     return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
-      return async.eachOf(designs, (truthy, relpath, next) => {
+      // Ensure order is the same across processes otherwise we'll end up with different insertion point hashes
+      const designsAsArray = Object.keys(designs).sort((a, b) => {
+        if (a < b) return -1
+        if (a > b) return 1
+        return 0
+      })
+
+      // Each series is important so we don't inadvertently create a race and thus unstable insertion point hashes
+      return async.eachSeries(designsAsArray, (relpath, next) => {
         if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
           return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
             // There may be a race where a file is removed before this gets called;
