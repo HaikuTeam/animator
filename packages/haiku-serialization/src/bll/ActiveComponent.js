@@ -414,8 +414,9 @@ class ActiveComponent extends BaseModel {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
       const element = Element.findByComponentAndHaikuId(this, componentId)
 
-      if (element) {
-        element.unselect(metadata)
+      // In what circumstances could this happen that we would want to continue?
+      if (!element) {
+        throw new Error(`Cannot unselect element ${componentId}`)
       }
 
       release()
