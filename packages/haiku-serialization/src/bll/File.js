@@ -262,10 +262,6 @@ class File extends BaseModel {
         TimelineProperty.addPropertyGroup(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime)
       } else {
         // Things are badly broken if this happens; to avoid lost work, it's best to crash
-
-        console.log(mana.children.map((n) => n.attributes[HAIKU_ID_ATTRIBUTE]))
-        console.log(componentId)
-
         throw new Error(`Cannot find element ${componentId}`)
       }
 
