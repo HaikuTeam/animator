@@ -81,7 +81,6 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   openTextEditor: true,
   openTerminal: true,
   saveProject: true,
-  previewProject: true,
   fetchProjectInfo: true,
   doLogOut: true,
   deleteProject: true,
@@ -426,7 +425,8 @@ export default class Plumbing extends StateObject {
   }
 
   processMethodMessage (type, alias, folder, message, cb) {
-    // Certain messages aren't of a kind that we can reliably enqueue - either they happen too fast or they are 'fire and forget'
+    // Certain messages aren't of a kind that we can reliably enqueue -
+    // either they happen too fast or they are 'fire and forget'
     if (METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY[message.method]) {
       if (message.type === 'action') {
         return this.handleClientAction(type, alias, folder, message.method, message.params, cb)
@@ -1096,13 +1096,20 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
     })
 
     master.on('merge-designs', (relpath, designs) => {
-      this.handleClientAction(
+      // Important that we enqueue this like all other actions, otherwise we'll have a race
+      this.processMethodMessage(
         'controller',
         'plumbing', // We'll delegate on Master's behalf
         master.folder,
-        'mergeDesigns',
-        [master.folder, relpath, designs],
-        () => {}
+        {
+          folder: master.folder,
+          type: 'action',
+          method: 'mergeDesigns',
+          params: [master.folder, relpath, designs]
+        },
+        () => {
+          logger.info(`[plumbing] finished merge designs`)
+        }
       )
     })
 
