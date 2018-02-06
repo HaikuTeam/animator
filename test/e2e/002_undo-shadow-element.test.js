@@ -1,55 +1,70 @@
-const tape = require('tape')
 const fse = require('fs-extra')
 const path = require('path')
 const async = require('async')
 const TestHelpers = require('../TestHelpers')
 
-tape('undo shadow element crash fix', (t) => {
+TestHelpers.run(
+  'undo shadow element crash fix',
+  {},
+  (t) => {
   t.plan(1)
 
-  TestHelpers.e2e(({ plumbing, folder, relpath }, done) => {
+  t.step((cb) => {
+    const folder = Object.keys(t.plumbing.masters)[0]
     fse.outputFileSync(path.join(folder, 'Circle.svg'), CIRCLE_WITH_SHADOW)
+    cb()
+  })
 
-    async.series([
-      (cb) => {
-        return plumbing.method(
-          'instantiateComponent',
-          [relpath, 'Circle.svg', { x: 100, y: 100 }],
-          TestHelpers.wait(1, cb)
-        )
-      },
-      (cb) => {
-        return plumbing.method(
-          'applyPropertyGroupValue',
-          [relpath, '8fc0f74f9211', 'Default', 0,
-            {'translation.x': 144, 'translation.y': 155}],
-          TestHelpers.wait(5, cb)
-        )
-      },
-      (cb) => {
-        return plumbing.gitUndo(folder, { type: 'global' }, TestHelpers.wait(5, cb))
-      },
-      (cb) => {
-        return plumbing.method(
-          'instantiateComponent',
-          [relpath, 'Circle.svg', { x: 200, y: 200 }],
-          TestHelpers.wait(1, cb)
-        )
-      },
-      (cb) => {
-        return plumbing.method(
-          'applyPropertyGroupValue',
-          [relpath, 'e1217d76783b', 'Default', 0,
-            {'translation.x': 266, 'translation.y': 277}],
-          TestHelpers.wait(1, cb)
-        )
-      }
-    ], (err) => {
-      if (err) throw err
-      done(() => {
-        t.ok(true, 'finished sequence without "cannot locate element" crash')
-      })
-    })
+  t.step((cb) => {
+    const folder = Object.keys(t.plumbing.masters)[0]
+    return t.plumbing.invokeAction(
+      folder,
+      'instantiateComponent',
+      ['code/main/code.js', 'Circle.svg', { x: 100, y: 100 }],
+      TestHelpers.wait(5, cb)
+    )
+  })
+
+  t.step((cb) => {
+    const folder = Object.keys(t.plumbing.masters)[0]
+    return t.plumbing.invokeAction(
+      folder,
+      'applyPropertyGroupValue',
+      ['code/main/code.js', '8fc0f74f9211', 'Default', 0,
+        {'translation.x': 144, 'translation.y': 155}],
+      TestHelpers.wait(5, cb)
+    )
+  })
+
+  t.step((cb) => {
+    const folder = Object.keys(t.plumbing.masters)[0]
+    return t.plumbing.gitUndo(folder, { type: 'global' }, TestHelpers.wait(5, cb))
+  })
+
+  t.step((cb) => {
+    const folder = Object.keys(t.plumbing.masters)[0]
+    return t.plumbing.invokeAction(
+      folder,
+      'instantiateComponent',
+      ['code/main/code.js', 'Circle.svg', { x: 200, y: 200 }],
+      TestHelpers.wait(5, cb)
+    )
+  })
+
+  t.step((cb) => {
+    const folder = Object.keys(t.plumbing.masters)[0]
+    return t.plumbing.invokeAction(
+      folder,
+      'applyPropertyGroupValue',
+      ['code/main/code.js', 'e57c3e5857c8', 'Default', 0,
+        {'translation.x': 266, 'translation.y': 277}],
+      TestHelpers.wait(5, cb)
+    )
+  })
+
+  t.step((cb) => {
+    t.ok(true, 'finished without crashing')
+    cb()
   })
 })
 

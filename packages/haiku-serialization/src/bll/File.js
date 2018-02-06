@@ -1,6 +1,7 @@
-const fse = require('fs-extra')
-const path = require('path')
 const async = require('async')
+const fse = require('fs-extra')
+const {debounce} = require('lodash')
+const path = require('path')
 const xmlToMana = require('@haiku/core/lib/helpers/xmlToMana').default
 const objectToRO = require('@haiku/core/lib/reflection/objectToRO').default
 const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
@@ -14,6 +15,7 @@ const Logger = require('./../utils/Logger')
 const walkFiles = require('./../utils/walkFiles')
 const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 const getSvgOptimizer = require('./../svg/getSvgOptimizer')
+const Lock = require('./Lock')
 
 // This file also depends on '@haiku/core/lib/HaikuComponent'
 // in the sense that one of those instances is assigned as .hostInstance here.
@@ -26,6 +28,8 @@ const DEFAULT_TIMELINE_NAME = 'Default'
 const DEFAULT_TIMELINE_TIME = 0
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_CONTEXT_SIZE = { width: 550, height: 400 }
+const DISK_FLUSH_TIMEOUT = 500
+const AWAIT_CONTENT_FLUSH_TIMEOUT = 0
 
 const FILE_TYPES = {
   design: 'design',
@@ -54,7 +58,15 @@ class File extends BaseModel {
       file: this
     })
 
-    this._elementsCache = {}
+    this.debouncedFlushContent = debounce(() => {
+      this.flushContent()
+    }, DISK_FLUSH_TIMEOUT)
+
+    // We don't reassign this on every initialize because that would make this
+    // pointless to track given that ingestOne would reset this value
+    this._pendingContentFlushes = []
+
+    // Important: Please see afterInitialize for assigned properties
   }
 
   // Hook called automatically by BaseModel during construction or upsert
@@ -64,20 +76,65 @@ class File extends BaseModel {
     // the dashboard to the editor, this object will be reused, meaning that the
     // content and bytecode validity assertion will run, which depend on this
     // value reflecting the number of the times per session that updates occurred
-    this._numInMemoryContentStateUpdatesCompleted = 0
+    this._numBytecodeUpdates = 0
   }
 
-  updateInMemoryHotModuleOnly (bytecode, cb) {
+  updateInMemoryHotModule (bytecode) {
+    // In no circumstance do we want to write bad bytecode to in-memory pointer.
+    // so instead of returning an error message, we crash the app in hope
+    // that a full restart will resolve the condition leading to this.
+    // Throwing here should also give insight into when/why this occurs.
+    this.assertBytecode(bytecode)
+
     this.dtModified = Date.now()
+
     this.mod.monkeypatch(bytecode)
-    this.emit('in-memory-content-state-updated')
+
+    // Helps detect whether we need to assert that bytecode is present
+    this._numBytecodeUpdates++
+  }
+
+  requestAsyncContentFlush (flushSpec) {
+    this._pendingContentFlushes.push(flushSpec)
+    this.debouncedFlushContent()
+  }
+
+  awaitNoFurtherContentFlushes (cb) {
+    if (this._pendingContentFlushes.length > 0) {
+      return setTimeout(
+        () => this.awaitNoFurtherContentFlushes(cb),
+        AWAIT_CONTENT_FLUSH_TIMEOUT
+      )
+    }
+
     return cb()
+  }
+
+  flushContent () {
+    // We're about to flush content for all requests received up to this point
+    // If more occur during async, that's fine; we'll just get called again,
+    // but those who need to wait can read the list to know what's still pending
+    this._pendingContentFlushes.splice(0)
+
+    const bytecode = this.mod.fetchInMemoryExport()
+    const incoming = this.ast.updateWithBytecodeAndReturnCode(bytecode)
+
+    this.assertContents(incoming)
+
+    this.previous = this.contents
+    this.contents = incoming
+
+    this.maybeLogDiff(this.previous, this.contents)
+
+    return this.write((err) => {
+      if (err) throw err
+    })
   }
 
   assertBytecode (bytecode) {
     // If we have a blank bytecode object after the first couple of updates,
     // that usually means we're about to end up with a "Red Wall of Death"
-    if (this._numInMemoryContentStateUpdatesCompleted > 1) {
+    if (this._numBytecodeUpdates > 1) {
       if (Object.keys(bytecode).length < 2) {
         throw new Error(`Bytecode object was empty ${this.getAbspath()}`)
       }
@@ -93,36 +150,6 @@ class File extends BaseModel {
     if (contents.match(/^\s*$/)) {
       throw new Error(`Code was blank ${this.getAbspath()}`)
     }
-  }
-
-  updateInMemoryContentState (bytecode, cb) {
-    this.dtModified = Date.now()
-
-    // In no circumstance do we want to write bad bytecode to in-memory pointer.
-    // so instead of returning an error message, we crash the app in hope
-    // that a full restart will resolve the condition leading to this.
-    // Throwing here should also give insight into when/why this occurs.
-    this.assertBytecode(bytecode)
-
-    this.mod.monkeypatch(bytecode)
-
-    const contents = this.ast.updateWithBytecodeAndReturnCode(bytecode)
-
-    // In no circumstance do we want to write bad content to code.js,
-    // so instead of returning an error message, we crash the app in hope
-    // that a full restart will resolve the condition leading to this.
-    // Throwing here should also give insight into when/why this occurs.
-    this.assertContents(contents)
-
-    const previous = this.contents
-    this.previous = previous
-    this.contents = contents
-    this.maybeLogDiff(previous, contents)
-    this.emit('in-memory-content-state-updated')
-
-    this._numInMemoryContentStateUpdatesCompleted++
-
-    return cb()
   }
 
   maybeLogDiff (previous, contents) {
@@ -163,48 +190,31 @@ class File extends BaseModel {
     return this.type === FILE_TYPES.design
   }
 
-  performComponentWork (worker, finish) {
-    const bytecode = this.getReifiedBytecode()
-
-    return worker(bytecode, bytecode.template, (err, result) => {
-      if (err) return finish(err)
-
-      Bytecode.cleanBytecode(bytecode)
-      Template.cleanTemplate(bytecode.template)
-
-      return this.commitContentState(bytecode, (err) => {
-        if (err) return finish(err)
-
-        // TODO types; some callers expect to get the result of the worker
-        return finish(null, result)
-      })
-    })
-  }
-
-  writeMetadata (metadata, cb) {
-    return this.performComponentWork((bytecode, mana, done) => {
-      writeMetadata(bytecode, metadata)
-      done()
-    }, cb)
-  }
-
-  commitContentState (bytecode, cb) {
-    // If we aren't writing to disk, we don't need to update the AST (heavy)
-    if (!this.options.doWriteToDisk) {
-      return this.updateInMemoryHotModuleOnly(bytecode, cb)
-    }
-
-    // This updates the in-memory module pointer and the AST
-    return this.updateInMemoryContentState(bytecode, (err) => {
-      if (err) return cb(err)
-
-      // Allow the user calling this upstream to specify we want to hit the fs or not
-      if (this.options.doWriteToDisk) {
-        return this.write(cb)
+  performComponentWork (worker, cb) {
+    return Lock.request(Lock.LOCKS.FilePerformComponentWork, (release) => {
+      const finish = (err, result) => {
+        release()
+        return cb(err, result)
       }
 
-      // If no disk write desired, it's fine to just return
-      return cb()
+      const bytecode = this.getReifiedBytecode()
+
+      return worker(bytecode, bytecode.template, (err, result) => {
+        if (err) {
+          return finish(err)
+        }
+
+        Bytecode.cleanBytecode(bytecode)
+        Template.cleanTemplate(bytecode.template)
+
+        this.updateInMemoryHotModule(bytecode)
+
+        if (this.options.doWriteToDisk) {
+          this.requestAsyncContentFlush({ who: 'performComponentWork' })
+        }
+
+        return finish(null, result)
+      })
     })
   }
 
@@ -219,6 +229,13 @@ class File extends BaseModel {
   /** ------------------ */
   /** ------------------ */
   /** ------------------ */
+
+  writeMetadata (metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      writeMetadata(bytecode, metadata)
+      done()
+    }, cb)
+  }
 
   setHostInstance (hostInstance) {
     this.hostInstance = hostInstance
@@ -239,12 +256,16 @@ class File extends BaseModel {
 
   applyPropertyGroupValue (componentId, timelineName, timelineTime, propertyGroup, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      let elementNode = this.findElementByComponentId(mana, componentId)
+      let elementNode = this.findTopLevelElementByComponentId(mana, componentId)
 
       if (elementNode) {
         TimelineProperty.addPropertyGroup(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime)
       } else {
         // Things are badly broken if this happens; to avoid lost work, it's best to crash
+
+        console.log(mana.children.map((n) => n.attributes[HAIKU_ID_ATTRIBUTE]))
+        console.log(componentId)
+
         throw new Error(`Cannot find element ${componentId}`)
       }
 
@@ -254,7 +275,7 @@ class File extends BaseModel {
 
   applyPropertyGroupDelta (componentId, timelineName, timelineTime, propertyGroup, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      let elementNode = this.findElementByComponentId(mana, componentId)
+      let elementNode = this.findTopLevelElementByComponentId(mana, componentId)
 
       if (elementNode) {
         TimelineProperty.addPropertyGroupDelta(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime, this.getHostInstance(), this.getHostStates())
@@ -518,25 +539,25 @@ class File extends BaseModel {
     }, cb)
   }
 
-  /** ------------- */
-  /** ------------- */
-  /** ------------- */
+  findTopLevelElementByComponentId (mana, componentId) {
+    let foundNode
 
-  clearElementsCache (componentId) {
-    if (componentId) {
-      delete this._elementsCache[componentId]
-    } else {
-      this._elementsCache = {}
+    if (mana && Array.isArray(mana.children)) {
+      for (let i = 0; i < mana.children.length; i++) {
+        const node = mana.children[i]
+
+        if (
+          node &&
+          node.attributes &&
+          node.attributes[HAIKU_ID_ATTRIBUTE] === componentId
+        ) {
+          foundNode = node
+          break
+        }
+      }
     }
-  }
 
-  findElementByComponentId (mana, componentId) {
-    if (this._elementsCache[componentId]) return this._elementsCache[componentId]
-    let nodes = Template.manaTreeToDepthFirstArray([], mana)
-    let found = nodes.filter((node) => node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE] === componentId)[0]
-    if (!found) return null
-    this._elementsCache[componentId] = found
-    return this._elementsCache[componentId]
+    return foundNode
   }
 
   upsertProperties (bytecode, componentId, timelineName, timelineTime, propertiesToMerge, strategy) {
@@ -633,26 +654,11 @@ File.DEFAULT_OPTIONS = {
 
 File.DEFAULT_CONTEXT_SIZE = DEFAULT_CONTEXT_SIZE
 
-// Dictionary of files currently in the process of being read/written.
-// Used as a kind of mutex where reading-while-writing causes a problem.
-File.lockees = {}
-
-File.awaitUnlock = function awaitUnlock (abspath, cb) {
-  return setTimeout(() => {
-    // Continue waiting if the file is still flagged as being written
-    if (File.lockees[abspath]) {
-      return File.awaitUnlock(abspath, cb)
-    }
-    return cb()
-  }, 0)
-}
-
 File.write = function write (folder, relpath, contents, cb) {
   let abspath = path.join(folder, relpath)
-  return File.awaitUnlock(abspath, () => {
-    File.lockees[abspath] = true
+  return Lock.request(Lock.LOCKS.FileReadWrite(abspath), (release) => {
     return _writeFile(abspath, contents, (err) => {
-      File.lockees[abspath] = false
+      release()
       if (err) return cb(err)
       return cb()
     })
@@ -661,10 +667,9 @@ File.write = function write (folder, relpath, contents, cb) {
 
 File.read = function read (folder, relpath, cb) {
   let abspath = path.join(folder, relpath)
-  return File.awaitUnlock(abspath, () => {
-    File.lockees[abspath] = true
+  return Lock.request(Lock.LOCKS.FileReadWrite(abspath), (release) => {
     return _readFile(abspath, (err, buffer) => {
-      File.lockees[abspath] = false
+      release()
       if (err) return cb(err)
       return cb(null, buffer.toString())
     })
@@ -695,23 +700,26 @@ File.ingestContents = function ingestContents (folder, relpath, { dtLastReadStar
 
   const file = File.upsert(fileAttrs)
 
-  // See the note under ingestOne to understand why this gets set here
-  file.dtLastReadStart = dtLastReadStart || Date.now()
+  // Let what's happening in-memory have higher precedence than on-disk changes
+  // since it's more likely that we'll be loading in stale content during fast updates,
+  // which leads to races such as with copy/paste, undo/redo, etc
+  return file.awaitNoFurtherContentFlushes(() => {
+    // See the note under ingestOne to understand why this gets set here
+    file.dtLastReadStart = dtLastReadStart || Date.now()
 
-  if (File.isPathCode(relpath)) {
-    file.type = FILE_TYPES.code
-  } else {
-    file.type = 'other'
-  }
+    if (File.isPathCode(relpath)) {
+      file.type = FILE_TYPES.code
+    } else {
+      file.type = 'other'
+    }
 
-  return file.mod.isolatedForceReload((err, bytecode) => {
-    if (err) return cb(err)
-
-    return file.updateInMemoryContentState(bytecode, (err) => {
+    return file.mod.isolatedForceReload((err, bytecode) => {
       if (err) return cb(err)
 
-      // This can be used to determine if an in-memory-only update occurred after or before a filesystem update.
-      // Useful when trying to detect e.g. whether code should reload
+      file.updateInMemoryHotModule(bytecode)
+
+      // This can be used to determine if an in-memory-only update occurred
+      // after or before a filesystem update. Use to decid whether to code reload
       file.dtLastReadEnd = Date.now()
 
       return cb(null, file)

@@ -279,6 +279,7 @@ class AuthenticationUI extends React.Component {
     else submitButtonMessage = 'Log In'
     return (
       <button
+        id='haiku-button-login'
         style={[STYLES.btn, !this.state.emailValid && STYLES.btnDisabled]}
         onClick={this.handleSubmit}
         disabled={this.state.isSubmitting || this.state.isSuccess || !this.state.emailValid}>
