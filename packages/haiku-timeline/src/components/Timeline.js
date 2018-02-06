@@ -176,9 +176,7 @@ class Timeline extends React.Component {
           this.handleHaikuComponentMounted()
           break
         case 'reloaded':
-          if (arg === 'hard') {
-            this.forceUpdate()
-          }
+          this.forceUpdate()
           break
       }
     })
