@@ -26,6 +26,7 @@ import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import * as ProjectFolder from './ProjectFolder'
 import { crashReport } from 'haiku-serialization/src/utils/carbonite'
 import { HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
+import functionToRFO from '@haiku/core/lib/reflection/functionToRFO'
 import Master from './Master'
 
 global.eval = function () { // eslint-disable-line
@@ -80,7 +81,6 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   openTextEditor: true,
   openTerminal: true,
   saveProject: true,
-  previewProject: true,
   fetchProjectInfo: true,
   doLogOut: true,
   deleteProject: true,
@@ -112,11 +112,6 @@ if (process.env.HAIKU_API) {
 const emitter = new EventEmitter()
 
 const PINFO = `${process.pid} ${path.basename(__filename)} ${path.basename(process.execPath)}`
-
-let idIncrementor = 1
-function _id () {
-  return idIncrementor++
-}
 
 const PLUMBING_INSTANCES = []
 
@@ -152,12 +147,10 @@ export default class Plumbing extends StateObject {
     // as tape where exit might never get called despite an exit.
     PLUMBING_INSTANCES.push(this)
 
-    this.masters = {}
-    this.subprocs = []
-    this.servers = []
-    this.clients = []
-    this.requests = {}
-    this.caches = {}
+    this.masters = {} // Instances of Master, keyed by folder
+    this.servers = [] // Websocket servers (there is usually only one)
+    this.clients = [] // Websocket clients
+    this.requests = {} // Websocket requests, keyed by id
 
     // Avoid creating new handles if we have been explicitly torn down by a signal
     this._isTornDown = false
@@ -166,9 +159,7 @@ export default class Plumbing extends StateObject {
 
     this.executeMethodMessagesWorker()
 
-    emitter.on('teardown-requested', () => {
-      this.teardown()
-    })
+    emitter.on('teardown-requested', () => this.teardown())
   }
 
   _handleUnrecoverableError (err) {
@@ -237,43 +228,70 @@ export default class Plumbing extends StateObject {
 
         this.servers.push(server)
 
-        server.on('connected', (websocket, type, alias, folder, params) => {
-          logger.info(`[plumbing] websocket connected (${type} ${alias})`)
+        server.on('connection', (websocket, request) => {
+          const params = getWsParams(websocket, request)
 
-          // Don't allow duplicate clients
+          if (haiku.socket.token && params.token !== haiku.socket.token) {
+            logger.info(`[plumbing] websocket connected with bad token ${params.token}`)
+            websocket.close(WS_POLICY_VIOLATION_CODE, 'forbidden')
+            return
+          }
+
+          if (!params.type) params.type = 'default'
+          if (!params.haiku) params.haiku = {}
+          if (!websocket.params) websocket.params = params
+
+          const type = websocket.params && websocket.params.type
+          const alias = websocket.params && websocket.params.alias
+          const folder = websocket.params && websocket.params.folder
+
+          logger.info(`[plumbing] websocket for ${folder} connected (${type} ${alias})`)
+
+          // Don't allow multiple clients of the same alias and folder
           for (let i = this.clients.length - 1; i >= 0; i--) {
-            let client = this.clients[i]
+            const client = this.clients[i]
+
             if (client.params) {
               if (client.params.alias === alias && client.params.folder === folder) {
                 if (client.readyState === WebSocket.OPEN) {
                   client.close()
                 }
+
                 this.clients.splice(i, 1)
               }
             }
           }
 
-          websocket.params.id = _id()
           this.clients.push(websocket)
 
           websocket.on('close', () => {
-            logger.info(`[plumbing] websocket closed (${type} ${alias})`)
+            logger.info(`[plumbing] websocket  for ${folder} closed (${type} ${alias})`)
             this.removeWebsocketClient(websocket)
           })
 
-          // Allegedly this prevents uncatchable EPIPE crashes
           websocket.on('error', (err) => {
-            logger.info(`[plumbing] websocket error (${type} ${alias})`, err)
-            this.removeWebsocketClient(websocket)
+            logger.error(`[plumbing] websocket for ${folder} errored (${type} ${alias})`, err)
+            throw err
+          })
+
+          websocket.on('message', (data) => {
+            const message = JSON.parse(data)
+
+            this.handleRemoteMessage(
+              type,
+              alias,
+              message.folder || folder,
+              message,
+              websocket,
+              server,
+              createResponder(message, websocket)
+            )
           })
         })
 
-        server.on('message', this.handleRemoteMessage.bind(this))
-
-        this.spawnSubgroup(this.subprocs, haiku, (err, spawned) => {
+        this.spawnSubgroup(haiku, (err) => {
           if (err) return cb(err)
-          this.subprocs.push.apply(this.subprocs, spawned)
-          return cb(null, host, port, server, spawned, haiku.envoy)
+          return cb(null, host, port, server, null, haiku.envoy)
         })
       })
     })
@@ -286,6 +304,56 @@ export default class Plumbing extends StateObject {
         this.clients.splice(j, 1)
       }
     }
+  }
+
+  /**
+   * @method executeFunction
+   * @param views {Array} List of all views in which to execute the function
+   * @param data {Object} Data object to pass to the function on each execution
+   * @param fn {Function} The function to execute
+   * @param cb {Function} The callback to call when finished
+   * @description Execute an arbitrary function in all of the subviews.
+   * The this-binding of the function will be an instance of Project, if available.
+   */
+  executeFunction (views, data, fn, cb) {
+    const outputs = {}
+    return async.eachSeries(views, (alias, next) => {
+      const finish = (err, result) => {
+        if (err) return next(err)
+        outputs[alias] = result
+        return next()
+      }
+      if (alias === 'plumbing') {
+        return fn.call({ plumbing: this }, data, finish)
+      }
+      const rfo = lodash.assign(functionToRFO(fn).__function, data)
+      return this.sendQueriedClientMethod(
+        lodash.assign({alias}, data),
+        'executeFunctionSpecification',
+        [rfo, {from: 'plumbing'}],
+        finish
+      )
+    }, (err) => {
+      if (err) return cb(err)
+      return cb(null, outputs)
+    })
+  }
+
+  /**
+   * @method invokeAction
+   * @description Convenience wrapper around making a generic action call
+   */
+  invokeAction (folder, method, params, cb) {
+    params.unshift(folder)
+    return this.handleRemoteMessage(
+      'controller',
+      'plumbing',
+      folder,
+      { method, params, folder, type: 'action' },
+      null,
+      null,
+      cb
+    )
   }
 
   handleRemoteMessage (type, alias, folder, message, websocket, server, responder) {
@@ -357,7 +425,8 @@ export default class Plumbing extends StateObject {
   }
 
   processMethodMessage (type, alias, folder, message, cb) {
-    // Certain messages aren't of a kind that we can reliably enqueue - either they happen too fast or they are 'fire and forget'
+    // Certain messages aren't of a kind that we can reliably enqueue -
+    // either they happen too fast or they are 'fire and forget'
     if (METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY[message.method]) {
       if (message.type === 'action') {
         return this.handleClientAction(type, alias, folder, message.method, message.params, cb)
@@ -407,48 +476,64 @@ export default class Plumbing extends StateObject {
     }))
   }
 
-  awaitFolderClientWithQuery (folder, method, query, timeout, cb) {
-    if (!folder) return cb(new Error('Folder argument was missing'))
-    if (!query) return cb(new Error('Query argument was missing'))
+  awaitClientWithQuery (query, timeout, cb) {
+    if (!query) {
+      throw new Error('Query is required')
+    }
+
+    const fixed = {alias: query.alias}
+
+    // The creator socket doesn't have a folder param, so omit the folder
+    // from the query otherwise we won't find the socket in the collection
+    if (fixed.alias !== 'creator') {
+      if (query.folder) {
+        fixed.folder = query.folder
+      }
+    }
+
     if (timeout <= 0) {
-      return cb(new Error(`Timed out waiting for client ${JSON.stringify(query)} of ${folder} to connect`))
+      throw new Error(`Timed out waiting for client ${JSON.stringify(fixed)}`)
     }
 
-    // HACK: At the time of this writing, there is only "one" creator client, not one per folder.
-    // So the method just get ssent to the one client (if available)
-    if (query.alias === 'creator') {
-      const creatorClient = find(this.clients, { params: query })
-      if (creatorClient) {
-        return cb(null, creatorClient)
-      }
-    } else {
-      const clientsOfFolder = filter(this.clients, { params: { folder } })
+    const clientMatching = find(
+      this.clients,
+      {params: fixed}
+    )
 
-      // // uncomment me for insight into why a request might not be making it
-      // if (method !== 'masterHeartbeat') {
-      //   console.log('awaiting', method, query, folder, JSON.stringify(this.clients.map((c) => c.params.alias)))
-      // }
-
-      if (clientsOfFolder && clientsOfFolder.length > 0) {
-        const clientMatching = find(clientsOfFolder, { params: query })
-        if (clientMatching) {
-          return cb(null, clientMatching)
-        }
-      }
+    if (clientMatching) {
+      return cb(null, clientMatching)
     }
+
     return setTimeout(() => {
-      return this.awaitFolderClientWithQuery(folder, method, query, timeout - AWAIT_INTERVAL, cb)
+      return this.awaitClientWithQuery(query, timeout - AWAIT_INTERVAL, cb)
     }, AWAIT_INTERVAL)
   }
 
-  sendFolderSpecificClientMethodQuery (folder, query = {}, method, params = [], cb) {
-    return this.awaitFolderClientWithQuery(folder, method, query, WAIT_DELAY, (err, client) => {
+  sendQueriedClientMethod (query = {}, method, params = [], cb) {
+    return this.awaitClientWithQuery(query, WAIT_DELAY, (err, client) => {
       if (err) return cb(err)
+
+      // Give a maximum of 10 seconds before forcing a crash if the client doesn't respond.
+      // If the page crashes before sending the result, we might not find out and could lose work.
+      let responseReceived = false
+
+      // In dev, we may use a debugger in which case we don't want to force a timeout
+      if (process.env.NODE_ENV === 'production') {
+        setTimeout(() => {
+          if (!responseReceived) {
+            throw new Error(`Timed out sending ${method} to client ${JSON.stringify(query)}`)
+          }
+        }, WAIT_DELAY)
+      }
+
       return this.sendClientMethod(client, method, params, (error, response) => {
+        responseReceived = true
+
         if (error) {
           this.sentryError(method, error, { tags: query })
           return cb(error)
         }
+
         return cb(null, response)
       })
     })
@@ -462,24 +547,18 @@ export default class Plumbing extends StateObject {
   sendClientRequest (websocket, message, callback) {
     if (message.id === undefined) message.id = `${Math.random()}`
     this.requests[message.id] = { websocket, message, callback }
-    // Delay to unblock thread for websocket ready state transitions
-    setTimeout(() => {
-      if (websocket.readyState === WebSocket.OPEN) {
-        const data = JSON.stringify(message)
-        return websocket.send(data, (err) => {
-          if (err) {
-            logger.error(`[plumbing] websocket client request error`, err)
-            // In case the websocket disconnects, just remove the client instead of crashing
-            if (err.message.match(/not opened/) || err.message.match(/EPIPE/)) {
-              this.removeWebsocketClient(websocket)
-            }
-          }
-        })
-      } else {
-        logger.info(`[plumbing] websocket readyState was not open so we did not send message ${message.method || message.id}`)
-        callback() // Should this return an error or remain silent?
-      }
-    })
+    const data = JSON.stringify(message)
+    // In case we get an error here, log it and then throw so we can see context
+    if (websocket.readyState === WebSocket.OPEN) {
+      return websocket.send(data, (err) => {
+        if (err) {
+          logger.error(err)
+          throw err
+        }
+      })
+    } else {
+      throw new Error('WebSocket is not OPEN')
+    }
   }
 
   teardown (cb) {
@@ -488,19 +567,6 @@ export default class Plumbing extends StateObject {
     return async.eachOfSeries(this.masters, (master, folder, next) => {
       return master.teardown(next)
     }, () => {
-      this.subprocs.forEach((subproc) => {
-        if (subproc.kill) {
-          if (subproc.stdin) subproc.stdin.pause()
-          // Using sigterm as opposed to kill to give the processes a chance to cleanup
-          // so we don't end up with corrupt git objects
-          logger.info('[plumbing] sending terminate signal')
-          subproc.kill('SIGTERM')
-        } else if (subproc.exit) {
-          logger.info('[plumbing] calling exit')
-          subproc.exit()
-        }
-      })
-
       if (this.envoyServer) {
         logger.info('[plumbing] closing envoy server')
         this.envoyServer.close()
@@ -607,9 +673,8 @@ export default class Plumbing extends StateObject {
             token: process.env.HAIKU_WS_SECURITY_TOKEN
           }
         }
-        return this.spawnSubgroup(this.subprocs, haikuInfo, (err, spawned) => {
+        return this.spawnSubgroup(haikuInfo, (err) => {
           if (err) return cb(err)
-          this.subprocs.push.apply(this.subprocs, spawned)
           return cb()
         })
       }
@@ -829,8 +894,22 @@ export default class Plumbing extends StateObject {
 
   teardownMaster (folder, cb) {
     if (this.masters[folder]) {
+      this.masters[folder].active = false
       this.masters[folder].watchOff()
     }
+
+    // Since we're about to nav back to the dashboard, we're also about to drop the
+    // connection to the websockets, so here we close them to avoid crashes
+    const clientsOfFolder = filter(this.clients, { params: { folder } })
+
+    clientsOfFolder.forEach((clientOfFolder) => {
+      const alias = clientOfFolder.params.alias
+      if (alias === 'glass' || alias === 'timeline') {
+        clientOfFolder.close()
+        this.removeWebsocketClient(clientOfFolder)
+      }
+    })
+
     cb()
   }
 
@@ -899,8 +978,6 @@ export default class Plumbing extends StateObject {
     // Params always arrive with the folder as the first argument, so we strip that off
     params = params.slice(1)
 
-    const collatedOutput = {}
-
     // Start with glass, since we depend on its handling of insantiateComponent to function correctly
     const asyncMethod = experimentIsEnabled(Experiment.AsyncClientActions) ? 'each' : 'eachSeries'
     return async[asyncMethod]([Q_GLASS, Q_TIMELINE, Q_CREATOR, Q_MASTER], (clientSpec, nextStep) => {
@@ -913,17 +990,10 @@ export default class Plumbing extends StateObject {
 
       // Master is handled differently because it's not actually a separate process
       if (clientSpec === Q_MASTER) {
-        return this.awaitMasterAndCallMethod(folder, method, params.concat({ from: alias }), (err, maybeOutput) => {
-          if (err) return nextStep(err)
-
-          // Build accumulated output (if any) returned from each of the subviews
-          collatedOutput[clientSpec.alias] = maybeOutput
-
-          return nextStep()
-        })
+        return this.awaitMasterAndCallMethod(folder, method, params.concat({ from: alias }), nextStep)
       }
 
-      return this.sendFolderSpecificClientMethodQuery(folder, clientSpec, method, params.concat({ from: alias }), (err, maybeOutput) => {
+      return this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params.concat({ from: alias }), (err, maybeOutput) => {
         if (err) return nextStep(err)
 
         // HACK: Stupidly we have to rely on glass to tell us where to position the element based on the
@@ -937,13 +1007,10 @@ export default class Plumbing extends StateObject {
           }
         }
 
-        // Build accumulated output (if any) returned from each of the subviews
-        collatedOutput[clientSpec.alias] = maybeOutput
-
         return nextStep()
       })
     }, (err) => {
-      return logAndHandleActionResult(err, cb, collatedOutput, method, type, alias)
+      return logAndHandleActionResult(err, cb, method, type, alias)
     })
   }
 }
@@ -954,7 +1021,7 @@ function logActionInitiation (method, clientSpec) {
   }
 }
 
-function logAndHandleActionResult (err, cb, output, method, type, alias) {
+function logAndHandleActionResult (err, cb, method, type, alias) {
   if (!IGNORED_METHOD_MESSAGES[method]) {
     const status = (err) ? 'errored' : 'completed'
     logger.info(`[plumbing] <- client action ${method} from ${type}@${alias} ${status}`, err)
@@ -965,7 +1032,7 @@ function logAndHandleActionResult (err, cb, output, method, type, alias) {
     return void (0)
   }
 
-  if (cb) return cb(null, output)
+  if (cb) return cb()
   return void (0)
 }
 
@@ -1029,24 +1096,32 @@ Plumbing.prototype.upsertMaster = function ({ folder, fileOptions, envoyOptions 
     })
 
     master.on('merge-designs', (relpath, designs) => {
-      this.handleClientAction(
+      // Important that we enqueue this like all other actions, otherwise we'll have a race
+      this.processMethodMessage(
         'controller',
         'plumbing', // We'll delegate on Master's behalf
         master.folder,
-        'mergeDesigns',
-        [master.folder, relpath, designs],
-        () => {}
+        {
+          folder: master.folder,
+          type: 'action',
+          method: 'mergeDesigns',
+          params: [master.folder, relpath, designs]
+        },
+        () => {
+          logger.info(`[plumbing] finished merge designs`)
+        }
       )
     })
 
     this.masters[folder] = master
-    return master
   }
+
+  this.masters[folder].active = true
 
   return this.masters[folder]
 }
 
-Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb) {
+Plumbing.prototype.spawnSubgroup = function (haiku, cb) {
   if (haiku.folder) {
     this.upsertMaster({
       folder: path.normalize(haiku.folder),
@@ -1075,6 +1150,7 @@ Plumbing.prototype.spawnSubgroup = function (existingSpawnedSubprocs, haiku, cb)
       require('haiku-creator/lib/electron')
     }
   }
+
   cb()
 }
 
@@ -1108,21 +1184,23 @@ Plumbing.prototype.launchControlServer = function launchControlServer (socketInf
 
   if (socketInfo && socketInfo.port) {
     logger.info(`[plumbing] plumbing websocket server listening on specified port ${socketInfo.port}...`)
+
     const websocketServer = this.createControlSocket({
       host,
-      port: socketInfo.port,
-      token: socketInfo.token
+      port: socketInfo.port
     })
+
     return cb(null, websocketServer, host, socketInfo.port)
   }
 
   return getPort(host, (err, port) => {
     if (err) return cb(err)
+
     const websocketServer = this.createControlSocket({
       host,
-      port,
-      token: socketInfo.token
+      port
     })
+
     return cb(null, websocketServer, host, port)
   })
 }
@@ -1143,54 +1221,24 @@ function getWsParams (websocket, request) {
 }
 
 Plumbing.prototype.createControlSocket = function createControlSocket (socketInfo) {
-  const websocketServer = new WebSocket.Server({
+  return new WebSocket.Server({
     port: socketInfo.port,
     host: socketInfo.host
   })
-
-  websocketServer.on('connection', (websocket, request) => {
-    const params = getWsParams(websocket, request)
-
-    if (socketInfo.token && params.token !== socketInfo.token) {
-      logger.info(`[plumbing] websocket connected with bad token ${params.token}`)
-      websocket.close(WS_POLICY_VIOLATION_CODE, 'forbidden')
-      return
-    }
-
-    if (!params.type) params.type = 'default'
-    if (!params.haiku) params.haiku = {}
-    if (!websocket.params) websocket.params = params
-
-    const type = websocket.params && websocket.params.type
-    const alias = websocket.params && websocket.params.alias
-
-    let folder = websocket.params && websocket.params.folder
-
-    websocketServer.emit('connected', websocket, type, alias, folder, params)
-
-    websocket.on('message', (data) => {
-      const message = JSON.parse(data)
-
-      // Allow explicit override; Creator uses this!
-      // Also some tests use this.
-      if (message.folder) folder = message.folder
-
-      websocketServer.emit('message', type, alias, folder, message, websocket, websocketServer, createResponder(message, websocket))
-    })
-  })
-
-  return websocketServer
 }
 
 function sendMessageToClient (client, message) {
-  // Delay to unblock thread for websocket ready state transitions
-  return setTimeout(() => {
-    if (client.readyState === WebSocket.OPEN) {
-      const data = JSON.stringify(message)
-      const ret = client.send(data)
-      return ret
-    }
-  })
+  const data = JSON.stringify(message)
+  if (client.readyState === WebSocket.OPEN) {
+    return client.send(data, (err) => {
+      if (err) {
+        // This should never happen.
+        throw new Error(`[plumbing] got error during send: ${err}`)
+      }
+    })
+  } else {
+    throw new Error(`[plumbing] attempted to send message to non-OPEN ws: ${data}`)
+  }
 }
 
 function createResponder (message, websocket) {

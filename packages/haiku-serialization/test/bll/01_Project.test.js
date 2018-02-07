@@ -4,7 +4,7 @@ const fse = require('haiku-fs-extra')
 const Project = require('./../../src/bll/Project')
 
 tape('Project', (t) => {
-  t.plan(40)
+  t.plan(24)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'project-01')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -23,7 +23,6 @@ tape('Project', (t) => {
       t.deepEqual(project.getAlias(), 'test')
       t.true(project.buildFileUid('foo/bar/baz.js').endsWith('haiku-serialization/test/fixtures/projects/project-01/foo/bar/baz.js'))
       t.ok(project.getPlatform().haiku.registry[project.buildFileUid('code/main/code.js')])
-      t.ok(project.getEnvoyChannel('timeline'),'envoy timeline exists')
       t.ok(project.getEnvoyClient())
       project.once('remote-update', (a,b,c,d) => {
         t.equal(a,'meowMeow')
@@ -39,17 +38,6 @@ tape('Project', (t) => {
       })
       project.emitHook('meowMeow',1,2,{from:'luna'})
       project.emitHook('ruffRuff',3,4,{from:'test'})
-
-      websocket.send = (data) => {
-        t.equal(data.type,'broadcast')
-        t.equal(data.method,'hi:bye')
-        t.equal(data.params[1],'moo/cow.txt')
-        t.equal(data.params[2],'hey')
-        t.equal(data.params[3],100)
-        t.ok(data.time)
-        t.ok(data.folder)
-      }
-      project.broadcastMethod('hi:bye','moo/cow.txt','hey',100)
       websocket.send = () => {}
 
       websocket.action = (a,b,c,d) => {
@@ -66,19 +54,6 @@ tape('Project', (t) => {
       t.ok(ac1)
       const ac2 = project.getCurrentActiveComponent()
       t.ok(ac2)
-
-      websocket.send = (data) => {
-        t.equal(data.type,'action')
-        t.equal(data.from,'test')
-        t.equal(data.method,'applyPropertyGroupValue')
-        t.equal(data.params[1],'code/main/code.js')
-        t.equal(data.params[2],'zyx987')
-        t.equal(data.params[3],'Default')
-        t.equal(data.params[4],0)
-        t.deepEqual(data.params[5],{'translation.x':101})
-      }
-      project.transmitAction('applyPropertyGroupValue',ac1.getSceneCodeRelpath(),'zyx987','Default',0,{'translation.x':101})
-      websocket.send = () => {}
 
       project.setCurrentActiveComponent('meow_meow', { from: 'test' }, (err, ac) => {
         t.error(err, 'no error creating + setting ac')

@@ -5,7 +5,7 @@ const Project = require('./../../src/bll/Project')
 
 tape('Element.prototype.getAddressableProperties', (t) => {
   t.plan(11)
-  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-01')
+  const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'element-getaddressables-01')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
   const platform = {}

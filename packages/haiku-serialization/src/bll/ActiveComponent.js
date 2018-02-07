@@ -16,6 +16,7 @@ const log = require('./helpers/log')
 const getDefinedKeys = require('./helpers/getDefinedKeys')
 const toTitleCase = require('./helpers/toTitleCase')
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
+const Lock = require('./Lock')
 
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 500
 
@@ -123,16 +124,20 @@ class ActiveComponent extends BaseModel {
       this._propertyGroupBatches = {}
 
       lodash.each(groupBatches, ({ componentId, timelineName, timelineTime, groupValue }) => {
-        this.project.transmitAction(
+        this.project.batchedWebsocketAction(
           'applyPropertyGroupValue',
-          this.getSceneCodeRelpath(),
-          componentId,
-          timelineName,
-          timelineTime,
-          groupValue
+          [
+            this.project.getFolder(),
+            this.getSceneCodeRelpath(),
+            componentId,
+            timelineName,
+            timelineTime,
+            groupValue
+          ],
+          () => {}
         )
       })
-    }, 100, { trailing: true })
+    }, 500, { leading: true })
 
     // Debounced version of the keyframe move action handler
     this.debouncedKeyframeMoveAction = lodash.debounce(
@@ -380,12 +385,17 @@ class ActiveComponent extends BaseModel {
   }
 
   selectElement (componentId, metadata, cb) {
-    // Assuming the update occurs remotely, we want to unselect everything but the selected one
-    Element.unselectAllElements({ component: this }, metadata)
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      // Assuming the update occurs remotely, we want to unselect everything but the selected one
+      Element.unselectAllElements({ component: this }, metadata)
 
-    const element = Element.findByComponentAndHaikuId(this, componentId)
+      const element = Element.findByComponentAndHaikuId(this, componentId)
 
-    if (element) {
+      // In what circumstances could this happen that we would want to continue?
+      if (!element) {
+        throw new Error(`Cannot select element ${componentId}`)
+      }
+
       element.select(metadata)
 
       const row = element.getHeadingRow()
@@ -393,19 +403,26 @@ class ActiveComponent extends BaseModel {
       if (row) {
         row.expand(metadata)
       }
-    }
 
-    return cb() // Must return or the plumbing action circuit never completes
+      release()
+
+      return cb() // Must return or the plumbing action circuit never completes
+    })
   }
 
   unselectElement (componentId, metadata, cb) {
-    const element = Element.findByComponentAndHaikuId(this, componentId)
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      const element = Element.findByComponentAndHaikuId(this, componentId)
 
-    if (element) {
-      element.unselect(metadata)
-    }
+      // In what circumstances could this happen that we would want to continue?
+      if (!element) {
+        throw new Error(`Cannot unselect element ${componentId}`)
+      }
 
-    return cb() // Must return or the plumbing action circuit never completes
+      release()
+
+      return cb() // Must return or the plumbing action circuit never completes
+    })
   }
 
   gitUndo (options, metadata, cb) {
@@ -425,21 +442,24 @@ class ActiveComponent extends BaseModel {
   * @description Changes the current interaction mode and flushes all cachés
   */
   setInteractionMode (interactionMode, metadata, cb) {
-    this._interactionMode = interactionMode
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      this._interactionMode = interactionMode
 
-    this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
-      instance.assignConfig({
-        options: {
-          interactionMode: interactionMode,
-          // Disable hot editing mode during preview mode for smooth playback.
-          hotEditingMode: !this.isPreviewModeActive()
-        }
+      this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
+        instance.assignConfig({
+          options: {
+            interactionMode: interactionMode,
+            // Disable hot editing mode during preview mode for smooth playback.
+            hotEditingMode: !this.isPreviewModeActive()
+          }
+        })
       })
-    })
 
-    this.softReload({}, {}, () => {
-      this.project.updateHook('setInteractionMode', this.getSceneCodeRelpath(), this._interactionMode, metadata)
-      return cb()
+      this.reload({ hardReload: false }, null, () => {
+        release()
+        this.project.updateHook('setInteractionMode', this.getSceneCodeRelpath(), this._interactionMode, metadata)
+        return cb()
+      })
     })
   }
 
@@ -579,6 +599,10 @@ class ActiveComponent extends BaseModel {
   }
 
   instantiateBytecode (incomingBytecode, propertyGroupToApply, metadata, cb) {
+    const timelineName = this.getInstantiationTimelineName()
+    const timelineTime = this.getInstantiationTimelineTime()
+    let componentId
+
     return this.fetchActiveBytecodeFile().performComponentWork((existingBytecode, existingTemplate, done) => {
       const insertionPointHash = Template.getInsertionPointHash(existingTemplate, existingTemplate.children.length, 0)
 
@@ -586,9 +610,8 @@ class ActiveComponent extends BaseModel {
         return Template.getHash(`${oldId}-${insertionPointHash}`, 12)
       })
 
-      const componentId = incomingBytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
-      const timelineName = this.getInstantiationTimelineName()
-      const timelineTime = this.getInstantiationTimelineTime()
+      // Has to happen after the above line in case an id was generated
+      componentId = incomingBytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
 
       this.mutateInstantiateeDisplaySettings(
         componentId,
@@ -613,11 +636,18 @@ class ActiveComponent extends BaseModel {
 
       Bytecode.mergeBytecodeControlStructures(existingBytecode, incomingBytecode)
 
+      // Unlock performComponent work so zMoveToFront can proceed
+      done()
+    }, (err) => {
+      if (err) return cb(err)
+
       return this.zMoveToFront(componentId, timelineName, timelineTime, metadata, (err) => {
-        if (err) return done(err)
-        return done(null, incomingBytecode.template)
+        if (err) return cb(err)
+
+        // Downstream may depend on getting this mana object returned
+        return cb(null, incomingBytecode.template)
       })
-    }, cb)
+    })
   }
 
   /**
@@ -723,11 +753,12 @@ class ActiveComponent extends BaseModel {
    * @param cb {Function}
    */
   instantiateMana (mana, overrides, coords, metadata, cb) {
+    const timelineName = this.getInstantiationTimelineName()
+    const timelineTime = this.getInstantiationTimelineTime()
+    let componentId
+
     return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
       const insertionPointHash = Template.getInsertionPointHash(template, template.children.length, 0)
-
-      const timelineName = this.getInstantiationTimelineName()
-      const timelineTime = this.getInstantiationTimelineTime()
 
       const timelinesObject = Template.prepareManaAndBuildTimelinesObject(
         mana,
@@ -737,7 +768,8 @@ class ActiveComponent extends BaseModel {
         { doHashWork: true }
       )
 
-      const componentId = mana.attributes[HAIKU_ID_ATTRIBUTE]
+      // Has to happen after the above stanza in case an id was generated
+      componentId = mana.attributes[HAIKU_ID_ATTRIBUTE]
 
       this.mutateInstantiateeDisplaySettings(
         componentId,
@@ -754,13 +786,17 @@ class ActiveComponent extends BaseModel {
 
       mergeTimelineStructure(bytecode, timelinesObject, 'assign')
 
-      return this.zMoveToFront(componentId, timelineName, timelineTime, metadata, (err) => {
-        if (err) return done(err)
-        return done(null, mana)
-      })
+      // Unlock performComponent work so zMoveToFront can proceed
+      done()
     }, (err) => {
       if (err) return cb(err)
-      return cb(null, mana)
+
+      return this.zMoveToFront(componentId, timelineName, timelineTime, metadata, (err) => {
+        if (err) return cb(err)
+
+        // Downstream may depend on getting this mana object returned
+        return cb(null, mana)
+      })
     })
   }
 
@@ -890,103 +926,113 @@ class ActiveComponent extends BaseModel {
    * @param cb {Function}
    */
   instantiateComponent (relpath, posdata, metadata, cb) {
-    const coords = this.getInstantiationCoords(posdata)
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      const coords = this.getInstantiationCoords(posdata)
 
-    // Since there are a few pathways to account for, the callback is defined up here
-    const finish = (err, manaForWrapperElement) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: true }, null, () => {
-        this.selectElement(manaForWrapperElement.attributes[HAIKU_ID_ATTRIBUTE], metadata, () => {
-          this.project.updateHook(
-            'instantiateComponent',
-            this.getSceneCodeRelpath(),
-            relpath,
-            posdata,
-            metadata
-          )
-
-          cb(null, { center: coords }, manaForWrapperElement)
-        })
-      })
-    }
-
-    // We'll treat an installed module path strictly as a reference and not copy it into our folder
-    if (ModuleWrapper.doesRelpathLookLikeInstalledComponent(relpath)) {
-      // This identifier is going to be something like HaikuLine or MyOrg_MyName
-      const installedComponentIdentifier = ModuleWrapper.modulePathToIdentifierName(relpath)
-      return this.instantiateReference(null, installedComponentIdentifier, relpath, coords, {}, metadata, finish)
-    }
-
-    // For local modules, the only caveat is that the component must be known in memory already
-    if (ModuleWrapper.doesRelpathLookLikeLocalComponent(relpath)) {
-      const subcomponent = this.project.findActiveComponentBySource(relpath)
-      if (subcomponent) {
-        // This identifier is going to be something like foo_svg_blah
-        const localComponentIdentifier = ModuleWrapper.getScenenameFromRelpath(relpath)
-        return this.instantiateReference(subcomponent, localComponentIdentifier, relpath, coords, {}, metadata, finish)
-      } else {
-        return finish(new Error(`Cannot find component ${relpath}`))
-      }
-    }
-
-    if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
-      return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
-        if (err) return finish(err)
-
-        Template.fixManaSourceAttribute(mana, relpath) // Adds source="relpath_to_file_from_project_root"
-
-        if (experimentIsEnabled(Experiment.InstantiationOfPrimitivesAsComponents)) {
-          return Design.manaAsCode(relpath, Template.clone({}, mana), {}, (err, identifier, modpath, bytecode) => {
-            if (err) return finish(err)
-
-            const primitive = Primitive.inferPrimitiveFromBytecode(bytecode)
-
-            if (primitive) {
-              const overrides = Bytecode.extractOverrides(bytecode)
-              return this.instantiatePrimitive(primitive, coords, overrides, metadata, finish)
-            }
-
-            return this.instantiateMana(mana, {}, coords, metadata, finish)
-          })
-        } else {
-          return this.instantiateMana(mana, {}, coords, metadata, finish)
+      // Since there are a few pathways to account for, the callback is defined up here
+      const finish = (err, manaForWrapperElement) => {
+        if (err) {
+          release()
+          log.error(err)
+          return cb(err)
         }
-      })
-    }
 
-    return finish(new Error(`Problem instantiating ${relpath}`))
+        return this.reload({ hardReload: true }, null, () => {
+          release() // Must happen before select element since it uses the same lock
+
+          this.selectElement(manaForWrapperElement.attributes[HAIKU_ID_ATTRIBUTE], metadata, () => {
+            this.project.updateHook(
+              'instantiateComponent',
+              this.getSceneCodeRelpath(),
+              relpath,
+              posdata,
+              metadata
+            )
+
+            cb(null, { center: coords }, manaForWrapperElement)
+          })
+        })
+      }
+
+      // We'll treat an installed module path strictly as a reference and not copy it into our folder
+      if (ModuleWrapper.doesRelpathLookLikeInstalledComponent(relpath)) {
+        // This identifier is going to be something like HaikuLine or MyOrg_MyName
+        const installedComponentIdentifier = ModuleWrapper.modulePathToIdentifierName(relpath)
+        return this.instantiateReference(null, installedComponentIdentifier, relpath, coords, {}, metadata, finish)
+      }
+
+      // For local modules, the only caveat is that the component must be known in memory already
+      if (ModuleWrapper.doesRelpathLookLikeLocalComponent(relpath)) {
+        const subcomponent = this.project.findActiveComponentBySource(relpath)
+        if (subcomponent) {
+          // This identifier is going to be something like foo_svg_blah
+          const localComponentIdentifier = ModuleWrapper.getScenenameFromRelpath(relpath)
+          return this.instantiateReference(subcomponent, localComponentIdentifier, relpath, coords, {}, metadata, finish)
+        } else {
+          return finish(new Error(`Cannot find component ${relpath}`))
+        }
+      }
+
+      if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
+        return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
+          if (err) return finish(err)
+
+          Template.fixManaSourceAttribute(mana, relpath) // Adds source="relpath_to_file_from_project_root"
+
+          if (experimentIsEnabled(Experiment.InstantiationOfPrimitivesAsComponents)) {
+            return Design.manaAsCode(relpath, Template.clone({}, mana), {}, (err, identifier, modpath, bytecode) => {
+              if (err) return finish(err)
+
+              const primitive = Primitive.inferPrimitiveFromBytecode(bytecode)
+
+              if (primitive) {
+                const overrides = Bytecode.extractOverrides(bytecode)
+                return this.instantiatePrimitive(primitive, coords, overrides, metadata, finish)
+              }
+
+              return this.instantiateMana(mana, {}, coords, metadata, finish)
+            })
+          } else {
+            return this.instantiateMana(mana, {}, coords, metadata, finish)
+          }
+        })
+      }
+
+      return finish(new Error(`Problem instantiating ${relpath}`))
+    })
   }
 
   deleteComponent (componentId, metadata, cb) {
-    return this.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
-      Template.visitManaTree(mana, (elementName, attributes, children, node, locator, parent, index) => {
-        if (!attributes) return null
-        if (!attributes[HAIKU_ID_ATTRIBUTE]) return null
-        if (componentId !== attributes[HAIKU_ID_ATTRIBUTE]) return null
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      return this.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
+        Template.visitManaTree(mana, (elementName, attributes, children, node, locator, parent, index) => {
+          if (!attributes) return null
+          if (!attributes[HAIKU_ID_ATTRIBUTE]) return null
+          if (componentId !== attributes[HAIKU_ID_ATTRIBUTE]) return null
 
-        if (parent) {
-          // Where the magic happens ^_^
-          parent.children.splice(index, 1)
-        } else {
-          // No parent means we are at the top
-          mana.elementName = 'div'
-          mana.attributes = {}
-          mana.children = []
+          if (parent) {
+            // Where the magic happens ^_^
+            parent.children.splice(index, 1)
+          } else {
+            // No parent means we are at the top
+            mana.elementName = 'div'
+            mana.attributes = {}
+            mana.children = []
+          }
+        })
+        done()
+      }, (err) => {
+        if (err) {
+          release()
+          log.error(err)
+          return cb(err)
         }
-      })
-      done()
-    }, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-      return this.reload({ hardReload: true }, null, () => {
-        this.project.updateHook('deleteComponent', this.getSceneCodeRelpath(), componentId, metadata)
-        return cb()
+
+        return this.reload({ hardReload: true }, null, () => {
+          release()
+          this.project.updateHook('deleteComponent', this.getSceneCodeRelpath(), componentId, metadata)
+          return cb()
+        })
       })
     })
   }
@@ -1105,7 +1151,15 @@ class ActiveComponent extends BaseModel {
 
   mergeDesignFiles (designs, cb) {
     return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
-      return async.eachOf(designs, (truthy, relpath, next) => {
+      // Ensure order is the same across processes otherwise we'll end up with different insertion point hashes
+      const designsAsArray = Object.keys(designs).sort((a, b) => {
+        if (a < b) return -1
+        if (a > b) return 1
+        return 0
+      })
+
+      // Each series is important so we don't inadvertently create a race and thus unstable insertion point hashes
+      return async.eachSeries(designsAsArray, (relpath, next) => {
         if (ModuleWrapper.doesRelpathLookLikeSVGDesign(relpath)) {
           return File.readMana(this.project.getFolder(), relpath, (err, mana) => {
             // There may be a race where a file is removed before this gets called;
@@ -1147,74 +1201,87 @@ class ActiveComponent extends BaseModel {
   }
 
   mergeDesigns (designs, metadata, cb) {
-    // Since several designs are merged, and that process occurs async, we can get into a situation
-    // where individual fragments are inserted but their parent layouts have not been appropriately
-    // populated. To fix this, we wait to do any rendering until this whole process has finished
-    this.codeReloadingOn()
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      // Since several designs are merged, and that process occurs async, we can get into a situation
+      // where individual fragments are inserted but their parent layouts have not been appropriately
+      // populated. To fix this, we wait to do any rendering until this whole process has finished
+      this.codeReloadingOn()
 
-    this.mergeDesignFiles(designs, (err) => {
-      // Now that we've finalized (or errored) the update, we can resume since we have no orphan fragments
-      this.codeReloadingOff()
+      this.mergeDesignFiles(designs, (err) => {
+        // Now that we've finalized (or errored) the update, we can resume since we have no orphan fragments
+        this.codeReloadingOff()
 
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
+        if (err) {
+          release()
+          log.error(err)
+          return cb(err)
+        }
 
-      return this.reload({ hardReload: true }, null, () => {
-        this.project.updateHook('mergeDesigns', this.getSceneCodeRelpath(), designs, metadata)
-        return cb()
+        return this.reload({ hardReload: true }, null, () => {
+          release()
+          this.project.updateHook('mergeDesigns', this.getSceneCodeRelpath(), designs, metadata)
+          return cb()
+        })
       })
     })
   }
 
   applyPropertyGroupValue (componentId, timelineName, timelineTime, propertyGroup, metadata, cb) {
-    this.fetchActiveBytecodeFile().applyPropertyGroupValue(componentId, timelineName, timelineTime, propertyGroup, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        if (this.project.isLocalUpdate(metadata)) {
-          this.batchPropertyGroupUpdate(componentId, this.getCurrentTimelineName(), this.getCurrentTimelineTime(), getDefinedKeys(propertyGroup))
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      this.fetchActiveBytecodeFile().applyPropertyGroupValue(componentId, timelineName, timelineTime, propertyGroup, (err) => {
+        if (err) {
+          release()
+          log.error(err)
+          return cb(err)
         }
-        return cb()
+
+        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+          release()
+          if (this.project.isLocalUpdate(metadata)) {
+            this.batchPropertyGroupUpdate(componentId, this.getCurrentTimelineName(), this.getCurrentTimelineTime(), getDefinedKeys(propertyGroup))
+          }
+          return cb()
+        })
       })
     })
   }
 
   applyPropertyGroupDelta (componentId, timelineName, timelineTime, propertyGroup, metadata, cb) {
-    this.fetchActiveBytecodeFile().applyPropertyGroupDelta(componentId, timelineName, timelineTime, propertyGroup, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      this.fetchActiveBytecodeFile().applyPropertyGroupDelta(componentId, timelineName, timelineTime, propertyGroup, (err) => {
+        if (err) {
+          release()
+          log.error(err)
+          return cb(err)
+        }
 
-      this.reload({
-        hardReload: this.project.isRemoteRequest(metadata),
-        // If we're doing rotation, then we really *really* need to make sure we do a full flush.
-        // In production mode, rotation is handled normally, but as we do live editing, we lose
-        // 'determinism' on rotation if we update the property piecemeal, because the quaternion
-        // calc depends on passing in and mutating the previous output. This is a bug we should
-        // try to address better in the future, but for now, this seems an 'all right' way to fix.
-        onlyForceFlushIf: Property.doesPropertyGroupContainRotation(propertyGroup),
-        clearCacheOptions: {
-          clearStates: false,
-          clearEventHandlers: false,
-          clearOnlySpecificProperties: {
-            componentId: componentId,
-            timelineName: timelineName,
-            timelineTime: timelineTime,
-            propertyKeys: getDefinedKeys(propertyGroup)
+        this.reload({
+          hardReload: this.project.isRemoteRequest(metadata),
+          // If we're doing rotation, then we really *really* need to make sure we do a full flush.
+          // In production mode, rotation is handled normally, but as we do live editing, we lose
+          // 'determinism' on rotation if we update the property piecemeal, because the quaternion
+          // calc depends on passing in and mutating the previous output. This is a bug we should
+          // try to address better in the future, but for now, this seems an 'all right' way to fix.
+          onlyForceFlushIf: Property.doesPropertyGroupContainRotation(propertyGroup),
+          clearCacheOptions: {
+            clearStates: false,
+            clearEventHandlers: false,
+            clearOnlySpecificProperties: {
+              componentId: componentId,
+              timelineName: timelineName,
+              timelineTime: timelineTime,
+              propertyKeys: getDefinedKeys(propertyGroup)
+            }
           }
-        }
-      }, null, () => {
-        if (this.project.isLocalUpdate(metadata)) {
-          this.batchPropertyGroupUpdate(componentId, this.getCurrentTimelineName(), this.getCurrentTimelineTime(), getDefinedKeys(propertyGroup))
-        }
+        }, null, () => {
+          release()
 
-        return cb()
+          if (this.project.isLocalUpdate(metadata)) {
+            this.batchPropertyGroupUpdate(componentId, this.getCurrentTimelineName(), this.getCurrentTimelineTime(), getDefinedKeys(propertyGroup))
+          }
+
+          return cb()
+        })
       })
     })
   }
@@ -1229,18 +1296,25 @@ class ActiveComponent extends BaseModel {
   }
 
   resizeContext (artboardId, timelineName, timelineTime, sizeDescriptor, metadata, cb) {
-    this.fetchActiveBytecodeFile().resizeContext(artboardId, timelineName, timelineTime, sizeDescriptor, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.emitHook('resizeContext', this.getSceneCodeRelpath(), artboardId, timelineName, timelineTime, sizeDescriptor, metadata)
-        if (this.project.isLocalUpdate(metadata)) {
-          this.batchPropertyGroupUpdate(artboardId, timelineName, timelineTime, ['sizeAbsolute.x', 'sizeAbsolute.y'])
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      this.fetchActiveBytecodeFile().resizeContext(artboardId, timelineName, timelineTime, sizeDescriptor, (err) => {
+        if (err) {
+          release()
+          log.error(err)
+          return cb(err)
         }
-        return cb()
+
+        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+          release()
+
+          this.project.emitHook('resizeContext', this.getSceneCodeRelpath(), artboardId, timelineName, timelineTime, sizeDescriptor, metadata)
+
+          if (this.project.isLocalUpdate(metadata)) {
+            this.batchPropertyGroupUpdate(artboardId, timelineName, timelineTime, ['sizeAbsolute.x', 'sizeAbsolute.y'])
+          }
+
+          return cb()
+        })
       })
     })
   }
@@ -1568,41 +1642,48 @@ class ActiveComponent extends BaseModel {
    * @param metadata {Object}
    */
   pasteThing (pasteable, request, metadata, cb) {
-    let newHaikuId = ''
-    this.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
-      switch (pasteable.kind) {
-        case 'bytecode':
-          // As usual, we use a hash rather than randomness because of multithreading
-          const hash = Template.getInsertionPointHash(mana, mana.children.length, 0)
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      let newHaikuId = ''
 
-          const incoming = Bytecode.clone(pasteable.data)
+      return this.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
+        switch (pasteable.kind) {
+          case 'bytecode':
+            // As usual, we use a hash rather than randomness because of multithreading
+            const hash = Template.getInsertionPointHash(mana, mana.children.length, 0)
 
-          // Pasting bytecode is implemented as a bytecode merge, so we pad all of the
-          // ids inside the bytecode and then merge it, so we end up with a new element
-          // and new timeline properties defined for it. This mutates the object.
-          Bytecode.padIds(incoming, (oldId) => {
-            return `${oldId}-${hash}`
-          })
+            const incoming = Bytecode.clone(pasteable.data)
 
-          // Paste handles "instantiating" a new template element for the incoming bytecode
-          Bytecode.pasteBytecode(bytecode, incoming, request)
+            // Pasting bytecode is implemented as a bytecode merge, so we pad all of the
+            // ids inside the bytecode and then merge it, so we end up with a new element
+            // and new timeline properties defined for it. This mutates the object.
+            Bytecode.padIds(incoming, (oldId) => {
+              return `${oldId}-${hash}`
+            })
 
-          newHaikuId = incoming.template.attributes['haiku-id']
+            // Paste handles "instantiating" a new template element for the incoming bytecode
+            Bytecode.pasteBytecode(bytecode, incoming, request)
 
-          return done(null, {haikuId: newHaikuId})
-        default:
-          log.warn('[active component] cannot paste clipboard contents of kind ' + pasteable.kind)
-          return done(new Error('Unable to paste clipboard contents'))
-      }
-    }, (err, data) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
+            newHaikuId = incoming.template.attributes['haiku-id']
 
-      return this.reload({ hardReload: true }, null, () => {
-        this.project.updateHook('pasteThing', this.getSceneCodeRelpath(), pasteable, request, metadata)
-        return cb(null, data)
+            return done(null, {haikuId: newHaikuId})
+          default:
+            log.warn('[active component] cannot paste clipboard contents of kind ' + pasteable.kind)
+            return done(new Error('Unable to paste clipboard contents'))
+        }
+      }, (err, data) => {
+        if (err) {
+          release()
+          log.error(err)
+          return cb(err)
+        }
+
+        return this.reload({ hardReload: true }, null, () => {
+          release()
+
+          this.project.updateHook('pasteThing', this.getSceneCodeRelpath(), pasteable, request, metadata)
+
+          return cb(null, data)
+        })
       })
     })
   }
@@ -1615,15 +1696,17 @@ class ActiveComponent extends BaseModel {
    * @param metadata {Object}
    */
   deleteThing (deletable, metadata, cb) {
-    this.fetchActiveBytecodeFile().deleteThing(deletable, (err) => {
-      if (err) {
-        log.error(err)
-        return cb(err)
-      }
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      return this.fetchActiveBytecodeFile().deleteThing(deletable, (err) => {
+        if (err) {
+          log.error(err)
+          return cb(err)
+        }
 
-      return this.reload({ hardReload: true }, null, () => {
-        this.project.updateHook('deleteThing', this.getSceneCodeRelpath(), deletable, metadata)
-        return cb()
+        return this.reload({ hardReload: true }, null, () => {
+          this.project.updateHook('deleteThing', this.getSceneCodeRelpath(), deletable, metadata)
+          return cb()
+        })
       })
     })
   }
@@ -1864,21 +1947,36 @@ class ActiveComponent extends BaseModel {
   /** ------------ */
   /** ------------ */
 
-  reload (reloadOptions, instanceConfig, finish) {
-    if (reloadOptions.hardReload) {
-      // Also calls softReload
-      return this.hardReload(reloadOptions, instanceConfig, (err) => {
-        if (err) return finish(err)
-        this.emit('update', 'reloaded', 'hard')
-        return finish()
-      })
-    } else {
-      return this.softReload(reloadOptions, instanceConfig, (err) => {
-        if (err) return finish(err)
-        this.emit('update', 'reloaded', 'soft')
-        return finish()
-      })
+  reload (reloadOptions, instanceConfig, cb) {
+    const runReload = (done) => {
+      if (reloadOptions.hardReload) {
+        // Note: hardReload also calls softReload
+        return this.hardReload(reloadOptions, instanceConfig, done)
+      } else {
+        return this.softReload(reloadOptions, instanceConfig, done)
+      }
     }
+
+    if (reloadOptions.skipReloadLock) {
+      return runReload(cb)
+    }
+
+    // Note that this lock only occurs in .reload(); if you ever call hardReload or
+    // softReload a la carte, you might get a race condition!
+    return Lock.request(Lock.LOCKS.ActiveComponentReload, (release) => {
+      const finish = (err) => {
+        release()
+
+        if (err) return cb(err)
+
+        // Note: The hard/soft signal may affect how the views decide to refresh
+        this.emit('update', 'reloaded', (reloadOptions.hardReload) ? 'hard' : 'soft')
+
+        return cb()
+      }
+
+      return runReload(finish)
+    })
   }
 
   hardReload (reloadOptions, instanceConfig, finish) {
@@ -2069,7 +2167,7 @@ class ActiveComponent extends BaseModel {
     // It's assumed that soft reload occurs after mutation operations, so we can do this here
     this.ingestInstantiatedSubcomponentsInTemplate()
 
-    return this.softReloadInstantiatedSubcomponents(reloadOptions, cb)
+    return this.reloadInstantiatedSubcomponentsSoftly(reloadOptions, cb)
   }
 
   getInstantiatedActiveComponents () {
@@ -2093,13 +2191,16 @@ class ActiveComponent extends BaseModel {
     return Object.values(activeComponents)
   }
 
-  softReloadInstantiatedSubcomponents (reloadOptions, cb) {
+  reloadInstantiatedSubcomponentsSoftly (reloadOptions, cb) {
     const activeComponents = this.getInstantiatedActiveComponents()
-    return async.each(activeComponents, (activeComponent, next) => {
+    return async.eachSeries(activeComponents, (activeComponent, next) => {
       // Just in case one of ourselves is nested inside us, avoid an infinite loop
       if (activeComponent === this) return next()
-      return activeComponent.softReload(reloadOptions, {}, next)
-    }, cb)
+      return activeComponent.reload(lodash.assign({ hardReload: false, skipReloadLock: true }, reloadOptions), null, next)
+    }, (err) => {
+      if (err) return cb(err)
+      return cb()
+    })
   }
 
   /**
@@ -2110,25 +2211,29 @@ class ActiveComponent extends BaseModel {
    * by the Glass.
    */
   mountApplication ($el, instanceConfig, cb) {
-    this.getMount().remountInto($el)
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      this.getMount().remountInto($el)
 
-    this.codeReloadingOn()
+      this.codeReloadingOn()
 
-    return this.reload({ hardReload: true, fileReload: true }, instanceConfig, (err) => {
-      this.codeReloadingOff()
+      return this.reload({ hardReload: true, fileReload: true }, instanceConfig, (err) => {
+        release()
 
-      if (err) {
-        log.error(err)
-        this.emit('error', err)
-        if (cb) return cb(err)
+        this.codeReloadingOff()
+
+        if (err) {
+          log.error(err)
+          this.emit('error', err)
+          if (cb) return cb(err)
+          return null
+        }
+
+        this._isMounted = true
+        this.emit('update', 'application-mounted')
+
+        if (cb) return cb()
         return null
-      }
-
-      this._isMounted = true
-      this.emit('update', 'application-mounted')
-
-      if (cb) return cb()
-      return null
+      })
     })
   }
 
@@ -2176,17 +2281,21 @@ class ActiveComponent extends BaseModel {
    * events can interfere with what the user is doing and a UI lock of some kind is required.
    */
   moduleReplace (cb) {
-    this.codeReloadingOn()
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      this.codeReloadingOn()
 
-    return this.reload({ hardReload: true, fileReload: true }, null, (err) => {
-      this.codeReloadingOff()
+      return this.reload({ hardReload: true, fileReload: true }, null, (err) => {
+        release()
 
-      if (err) {
-        log.error(err)
-        return this.emit('error', err)
-      }
+        this.codeReloadingOff()
 
-      return cb()
+        if (err) {
+          log.error(err)
+          return this.emit('error', err)
+        }
+
+        return cb()
+      })
     })
   }
 

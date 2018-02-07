@@ -1,4 +1,3 @@
-const tape = require('tape')
 const fse = require('fs-extra')
 const path = require('path')
 const async = require('async')
@@ -16,48 +15,64 @@ const PROP_NAMES = {
   'style.backgroundColor': 'gray'
 }
 
-tape('move keyframes red wall of death fix', (t) => {
+TestHelpers.run(
+  'move keyframes red wall of death fix',
+  {},
+  (t) => {
   t.plan(1)
 
-  TestHelpers.e2e(({ plumbing, folder, relpath }, done) => {
+  t.step((cb) => {
+    const folder = Object.keys(t.plumbing.masters)[0]
     fse.outputFileSync(path.join(folder, 'Path.svg'), PATH_SVG_1)
+    cb()
+  })
 
-    async.series([
-      (cb) => {
-        // File size contributes to the problem, so first make a big component file
-        const posdatas = ([0,1,2,3,4,5,6,7,8,9]).map((n) => { return {x: n * 50, y: n * 50}})
-        return async.eachSeries(posdatas, (posdata, next) => {
-          return plumbing.method(
-            'instantiateComponent',
-            [relpath, 'Path.svg', posdata],
-            next
-          )
-        }, cb)
-      },
-      (cb) => {
-        // Add some keyframes that we can move in order to raise the issue
-        return plumbing.method(
-          'applyPropertyGroupValue',
-          [relpath, 'd7e12f40e778', 'Default', 0, PROP_NAMES],
-          TestHelpers.wait(1, cb)
+  // File size contributes to the problem, so first make a big component file
+  t.step((cb) => {
+    const folder = Object.keys(t.plumbing.masters)[0]
+    const posdatas = ([0,1,2,3,4,5,6,7,8,9]).map((n) => { return {x: n * 50, y: n * 50}})
+    return async.eachSeries(posdatas, (posdata, next) => {
+      return t.plumbing.invokeAction(
+        folder,
+        'instantiateComponent',
+        ['code/main/code.js', 'Path.svg', posdata],
+        next
+      )
+    }, cb)
+  })
+
+  // Add some keyframes that we can move in order to raise the issue
+  t.step((cb) => {
+    const folder = Object.keys(t.plumbing.masters)[0]
+    return t.plumbing.invokeAction(
+      folder,
+      'applyPropertyGroupValue',
+      ['code/main/code.js', 'd7e12f40e778', 'Default', 0, PROP_NAMES],
+      TestHelpers.wait(1, cb)
+    )
+  })
+
+  // Move a bunch of keyframes in parallel to raise the issue
+  t.step((cb) => {
+    const folder = Object.keys(t.plumbing.masters)[0]
+    const frames = ([1,2,3,4,5,6]).map((n) => Math.round((n * 3) * 16.666))
+    return async.each(Object.keys(PROP_NAMES), (propertyName, nextPropertyName) => {
+      return async.eachSeries(frames, (frame, nextFrame) => {
+        const moves = {}; moves[frame] = {value: PROP_NAMES[propertyName]};
+        return t.plumbing.invokeAction(
+          folder,
+          'moveKeyframes',
+          ['code/main/code.js', 'd7e12f40e778', 'Default', propertyName, moves],
+          nextFrame
         )
-      },
-      (cb) => {
-        // 9 in parallel seems to be enough to raise the problem in any test run
-        const frames = ([1,2,3,4,5,6]).map((n) => Math.round((n * 3) * 16.666))
-        return async.each(Object.keys(PROP_NAMES), (propertyName, nextPropertyName) => {
-          return async.eachSeries(frames, (frame, nextFrame) => {
-            const moves = {}; moves[frame] = {value: PROP_NAMES[propertyName]};
-            return plumbing.method('moveKeyframes', [relpath, 'd7e12f40e778', 'Default', propertyName, moves], nextFrame)
-          }, nextPropertyName)
-        }, cb)
-      },
-    ], (err) => {
-      if (err) throw err
-      done(() => {
-        t.ok(true, 'finished sequence without crashing due to "red wall of death"')
-      })
-    })
+      }, nextPropertyName)
+    }, cb)
+  })
+
+  // Check that we got to the end of the test without crashing
+  t.step((cb) => {
+    t.ok(true, 'finished without crashing')
+    cb()
   })
 })
 
