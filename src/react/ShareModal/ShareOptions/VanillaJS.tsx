@@ -18,15 +18,16 @@ const STYLES = {
     color: Palette.ROCK,
     textAlign: 'center',
     display: 'inline-block',
-    width: '25px',
-    height: '25px',
-    lineHeight: '24px',
+    width: '18px',
+    height: '18px',
+    lineHeight: '18px',
     fontWeight: 'bold',
+    fontSize: '11px',
   } as React.CSSProperties,
   block: {
     display: 'inline-block',
     verticalAlign: 'top',
-    fontSize: 15,
+    fontSize: 14,
   },
   nav: {
     width: 190,
@@ -61,7 +62,7 @@ const STYLES = {
     backgroundColor: Palette.LIGHTER_GRAY,
   },
   code: {
-    background: Palette.COAL,
+    background: Palette.FATHER_COAL,
     borderRadius: 5,
     padding: '12px 20px',
     display: 'block',
@@ -90,8 +91,6 @@ export default class VanillaJS extends React.PureComponent {
   render() {
     return (
       <div style={STYLES.block}>
-        <div style={STYLES.title}>Installation</div>
-
         <div style={STYLES.instructionsRow}>
           <div style={STYLES.instructionsCol1}>
             <span style={STYLES.bullet}>1</span>
@@ -122,6 +121,20 @@ export default class VanillaJS extends React.PureComponent {
           <div style={STYLES.instructionsCol2}>
             <code style={STYLES.code}>haiku install percy</code>
           </div>
+        </div>
+
+        <div style={STYLES.instructionsRow}>
+          <div style={STYLES.instructionsCol1}>
+            <span style={STYLES.bullet}>3</span>
+          </div>
+          <div style={STYLES.instructionsCol2}>
+            <div style={{marginTop: 19}}>
+              Example use: <br />
+            </div>
+          </div>
+        </div>
+        <div style={STYLES.instructionsRow}>
+          <div style={STYLES.instructionsCol1}>&nbsp;</div>
           <div style={STYLES.instructionsCol2}>
             <code style={STYLES.code}>
               {

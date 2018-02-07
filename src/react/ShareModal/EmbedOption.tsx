@@ -54,7 +54,8 @@ export class EmbedOption extends React.PureComponent {
     template: React.PropTypes.string,
     entry: React.PropTypes.string.isRequired,
     onClick: React.PropTypes.func,
-    isSnapshotSaveInProgress: React.PropTypes.bool
+    isSnapshotSaveInProgress: React.PropTypes.bool,
+    snapshotSyndicated: React.PropTypes.bool
   }
 
   state = {
@@ -69,23 +70,45 @@ export class EmbedOption extends React.PureComponent {
 
   componentDidMount() {
     if (this.props.isSnapshotSaveInProgress) {
-      setTimeout(() => {
-        this.setState({progress: 80, speed: '15s', done: false})
-      }, 100)
+      this.start()
     }
   }
 
-  componentWillReceiveProps({isSnapshotSaveInProgress}, nextState) {
-    if (!isSnapshotSaveInProgress && this.props.isSnapshotSaveInProgress) {
+  shouldComponentUpdate(nextProps, nextState) {
+    return (
+      nextProps.isSnapshotSaveInProgress !== this.props.isSnapshotSaveInProgress ||
+      nextProps.snapshotSyndicated !== this.props.snapshotSyndicated ||
+      nextState.progress !== this.state.progress ||
+      nextState.done !== this.state.done
+    )
+  }
+
+  componentWillReceiveProps({isSnapshotSaveInProgress, snapshotSyndicated}) {
+    if (isSnapshotSaveInProgress) {
+      this.start()
+    } else {
+      if (this.isGIF && !snapshotSyndicated) return
+
       this.setState({progress: 100, speed: '0.5s'}, () => {
         setTimeout(() => {
-          this.setState({done: true})
-          this.state.progress = 0
+          this.setState({done: true, progress: 0, speed: '1ms'})
         }, 1000)
       })
-    } else if (isSnapshotSaveInProgress && !this.props.isSnapshotSaveInProgress) {
-      this.setState({progress: 80, speed: '4s', done: false})
     }
+  }
+
+  start() {
+    setTimeout(() => {
+      this.setState({progress: 80, speed: this.startSpeed, done: false})
+    }, 10)
+  }
+
+  get startSpeed() {
+    return this.isGIF ? '30s' : '15s'
+  }
+
+  get isGIF() {
+    return this.props.entry === 'GIF'
   }
 
   render() {
@@ -108,11 +131,11 @@ export class EmbedOption extends React.PureComponent {
                 ...STYLES.btnText,
                 ...STYLES.entry,
                 ...(disabled && STYLES.entry.disabled),
-                ...(isSnapshotSaveInProgress && STYLES.entry.loading)
+                ...(!this.state.done && STYLES.entry.loading)
               }
             )}
             onClick={() => {
-              if (!disabled && !isSnapshotSaveInProgress) {
+              if (!disabled && this.state.done) {
                 onClick({entry, template})
               }
             }}
