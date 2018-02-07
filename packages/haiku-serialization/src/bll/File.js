@@ -256,7 +256,7 @@ class File extends BaseModel {
 
   applyPropertyGroupValue (componentId, timelineName, timelineTime, propertyGroup, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      let elementNode = this.findTopLevelElementByComponentId(mana, componentId)
+      let elementNode = this.findElementByComponentId(mana, componentId)
 
       if (elementNode) {
         TimelineProperty.addPropertyGroup(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime)
@@ -271,7 +271,7 @@ class File extends BaseModel {
 
   applyPropertyGroupDelta (componentId, timelineName, timelineTime, propertyGroup, cb) {
     return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
-      let elementNode = this.findTopLevelElementByComponentId(mana, componentId)
+      let elementNode = this.findElementByComponentId(mana, componentId)
 
       if (elementNode) {
         TimelineProperty.addPropertyGroupDelta(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime, this.getHostInstance(), this.getHostStates())
@@ -535,8 +535,12 @@ class File extends BaseModel {
     }, cb)
   }
 
-  findTopLevelElementByComponentId (mana, componentId) {
+  findElementByComponentId (mana, componentId) {
     let foundNode
+
+    if (mana.attributes && mana.attributes[HAIKU_ID_ATTRIBUTE] === componentId) {
+      return mana
+    }
 
     if (mana && Array.isArray(mana.children)) {
       for (let i = 0; i < mana.children.length; i++) {
@@ -583,7 +587,8 @@ class File extends BaseModel {
 
   getComputedPropertyValue (template, componentId, timelineName, timelineTime, propertyName, fallbackValue) {
     const bytecode = this.getReifiedBytecode()
-    const element = _findElementByComponentId(componentId, template)
+    const elementsById = Template.getAllElementsByHaikuId(template)
+    const element = elementsById[componentId]
     return TimelineProperty.getComputedValue(componentId, Element.safeElementName(element), propertyName, timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, fallbackValue, bytecode, this.getHostInstance(), this.getHostStates())
   }
 
@@ -803,11 +808,6 @@ function _readFile (abspath, cb) {
 
 function _writeFile (abspath, contents, cb) {
   return fse.outputFile(abspath, contents, cb)
-}
-
-function _findElementByComponentId (componentId, mana) {
-  let elementsById = Template.getAllElementsByHaikuId(mana)
-  return elementsById[componentId]
 }
 
 function _looksLikeMassiveFile (relpath) {
