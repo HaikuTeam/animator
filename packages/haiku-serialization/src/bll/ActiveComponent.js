@@ -114,31 +114,6 @@ class ActiveComponent extends BaseModel {
       }
     })
 
-    // Since property group updates happen quickly, we batch them together.
-    // Note that when we receive a series of applyPropertyGroupDelta calls,
-    // those end up summed together into a single applyPropertyGroupValue call.
-    this._propertyGroupBatches = {}
-
-    this.debouncedSendPropertyGroupUpdates = lodash.debounce(() => {
-      const groupBatches = this._propertyGroupBatches
-      this._propertyGroupBatches = {}
-
-      lodash.each(groupBatches, ({ componentId, timelineName, timelineTime, groupValue }) => {
-        this.project.batchedWebsocketAction(
-          'applyPropertyGroupValue',
-          [
-            this.project.getFolder(),
-            this.getSceneCodeRelpath(),
-            componentId,
-            timelineName,
-            timelineTime,
-            groupValue
-          ],
-          () => {}
-        )
-      })
-    }, 500, { leading: true })
-
     // Debounced version of the keyframe move action handler
     this.debouncedKeyframeMoveAction = lodash.debounce(
       this.keyframeMoveAction.bind(this),
@@ -1285,11 +1260,9 @@ class ActiveComponent extends BaseModel {
           }
         }, null, () => {
           release()
-
           if (this.project.isLocalUpdate(metadata)) {
             this.batchPropertyGroupUpdate(componentId, this.getCurrentTimelineName(), this.getCurrentTimelineTime(), getDefinedKeys(propertyGroup))
           }
-
           return cb()
         })
       })
@@ -1316,13 +1289,10 @@ class ActiveComponent extends BaseModel {
 
         return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
           release()
-
           this.project.emitHook('resizeContext', this.getSceneCodeRelpath(), artboardId, timelineName, timelineTime, sizeDescriptor, metadata)
-
           if (this.project.isLocalUpdate(metadata)) {
             this.batchPropertyGroupUpdate(artboardId, timelineName, timelineTime, ['sizeAbsolute.x', 'sizeAbsolute.y'])
           }
-
           return cb()
         })
       })
@@ -2544,21 +2514,29 @@ class ActiveComponent extends BaseModel {
   }
 
   batchPropertyGroupUpdate (componentId, timelineName, timelineTime, propertyKeys) {
-    const batchKey = `${componentId}-${timelineName}-${timelineTime}`
-    const groupValue = this.getPropertyGroupValueFromPropertyKeys(componentId, timelineName, timelineTime, propertyKeys)
+    const groupValue = this.getPropertyGroupValueFromPropertyKeys(
+      componentId,
+      timelineName,
+      timelineTime,
+      propertyKeys
+    )
 
-    if (!this._propertyGroupBatches[batchKey]) {
-      this._propertyGroupBatches[batchKey] = {
+    // The Project model handles accumulating these to avoid excessive websocket calls
+    this.project.batchedWebsocketAction(
+      'applyPropertyGroupValue',
+      [
+        this.project.getFolder(),
+        this.getSceneCodeRelpath(),
         componentId,
         timelineName,
         timelineTime,
         groupValue
+      ],
+      () => {
+        // no-op
       }
-    } else {
-      lodash.assign(this._propertyGroupBatches[batchKey].groupValue, groupValue)
-    }
+    )
 
-    this.debouncedSendPropertyGroupUpdates()
     this.clearCachedClusters(timelineName, componentId)
   }
 

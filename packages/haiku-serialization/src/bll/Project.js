@@ -83,12 +83,26 @@ class Project extends BaseModel {
     if (!nextAction) {
       return setTimeout(() => this.processWebsocketActions(), 64)
     }
+    return this.processWebsocketAction(nextAction)
+  }
 
+  processWebsocketAction (action) {
     const {
+      timestamp,
       method,
       params,
       callback
-    } = nextAction
+    } = action
+
+    // Psuedo-"debounce" the fast action to avoid stuttering on stage
+    if (method === 'applyPropertyGroupValue') {
+      // If the last update to this group occurred less than .25 seconds ago, wait a bit
+      // longer for more updates to accumulate before actually sending them
+      if (timestamp && (Date.now() - timestamp) < 250) {
+        // Early return is important here so we don't transmit the action yet
+        return setTimeout(() => this.processWebsocketAction(action), 50)
+      }
+    }
 
     log.info(`[project (${this.getAlias()})] sending action: ${method}`)
 
@@ -316,7 +330,39 @@ class Project extends BaseModel {
   }
 
   batchedWebsocketAction (method, params, callback) {
-    this._websocketActions.push({ method, params, callback })
+    // Special casing an action that happens very quickly. We don't want to fire
+    // a message for every single one, but we can't debounce either since we rely on
+    // the order in which these are requested (consider what happens if we send a property
+    // update call to an element that has been deleted). So we basically accumulate
+    // method calls that occur together and which have the same tuple
+    if (method === 'applyPropertyGroupValue') {
+      // If no last entry, it might mean the previous call was transmitted already,
+      // which is fine. The key is that we accumulate what we can while retaining sequence
+      const last = this._websocketActions[this._websocketActions.length - 1]
+      // If the previous payload matches ours, then we'll accumulate our group value
+      // into it, so we end up with just once command for a fast sequence of commands
+      if (last && last.method === 'applyPropertyGroupValue') {
+        if (
+          last.params[0] === params[0] && // folder
+          last.params[1] === params[1] && // relpath
+          last.params[2] === params[2] && // component id
+          last.params[3] === params[3] && // timeline name
+          last.params[4] === params[4] // timeline time
+        ) {
+          // Merge entries from the incoming groupValue parameter into the existing one
+          // In this way, the most recent values for all attributes are all used when
+          // this method is finally transmitted
+          lodash.assign(last.params[5], params[5])
+          // Use this to decide whether to transmit immediately or wait for more to accumulate
+          last.timestamp = Date.now()
+          // Important to early return since we don't want to enqueue a new action
+          return
+        }
+      }
+    }
+
+    // Otherwise, the default behavior is just to enqueue an action to run
+    this._websocketActions.push({ method, params, callback, timestamp: Date.now() })
   }
 
   updateHook (...args) {
