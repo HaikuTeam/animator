@@ -6,7 +6,7 @@ export const SHARE_OPTIONS = {
     },
     React: {
       disabled: false,
-      template: 'React',
+      template: 'ReactHaiku',
     },
     Vue: {
       disabled: true,

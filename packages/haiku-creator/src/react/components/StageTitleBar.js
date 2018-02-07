@@ -133,6 +133,9 @@ const SNAPSHOT_SAVE_RESOLUTION_STRATEGIES = {
   theirs: { strategy: 'theirs' }
 }
 
+const MAX_SYNDICATION_CHECKS = 10
+const SYNDICATION_CHECK_INTERVAL = 2500
+
 class PopoverBody extends React.Component {
   shouldComponentUpdate (nextProps) {
     return (
@@ -207,7 +210,8 @@ class StageTitleBar extends React.Component {
       showCopied: false,
       projectInfo: null,
       gitUndoables: [],
-      gitRedoables: []
+      gitRedoables: [],
+      snapshotSyndicated: false
     }
 
     ipcRenderer.on('global-menu:show-project-location-toast', () => {
@@ -284,6 +288,7 @@ class StageTitleBar extends React.Component {
   componentWillUnmount () {
     this._isMounted = false
     clearInterval(this._fetchMasterStateInterval)
+    this.clearSyndicationChecks()
   }
 
   handleConnectionClick () {
@@ -324,12 +329,35 @@ class StageTitleBar extends React.Component {
     }
   }
 
+  clearSyndicationChecks () {
+    clearInterval(this._performSyndicationCheckInterval)
+    this.syndicationChecks = 0
+  }
+
+  performSyndicationCheck () {
+    if (this.props.projectModel) {
+      return this.props.projectModel.requestSyndicationInfo((error, {status}) => {
+        if (status.errored || this.syndicationChecks >= MAX_SYNDICATION_CHECKS) {
+          return this.setState({snapshotSaveError: true}, () => {
+            return setTimeout(() => this.setState({ snapshotSaveError: null }), 2000)
+          })
+          this.clearSyndicationChecks()
+        }
+
+        if (status.syndicated) {
+          this.setState({snapshotSyndicated: true})
+          this.clearSyndicationChecks()
+        }
+      })
+    }
+  }
+
   performProjectSave () {
     mixpanel.haikuTrack('creator:project:saving', this.withProjectInfo({
       username: this.props.username,
       project: this.props.projectName
     }))
-    this.setState({ isSnapshotSaveInProgress: true })
+    this.setState({ isSnapshotSaveInProgress: true, snapshotSyndicated: false })
 
     return this.requestSaveProject((snapshotSaveError, snapshotData) => {
       if (snapshotSaveError) {
@@ -371,6 +399,14 @@ class StageTitleBar extends React.Component {
 
         if (snapshotData.semverVersion) {
           this.setState({ semverVersion: snapshotData.semverVersion })
+        }
+
+        if (snapshotData.status && snapshotData.status.syndicated) {
+          this.setState({ snapshotSyndicated: snapshotData.status.syndicated })
+        } else {
+          this._performSyndicationCheckInterval = setInterval(() => {
+            this.performSyndicationCheck()
+          }, SYNDICATION_CHECK_INTERVAL)
         }
 
         mixpanel.haikuTrack('creator:project:saved', this.withProjectInfo({
@@ -489,6 +525,7 @@ class StageTitleBar extends React.Component {
             linkAddress={this.state.linkAddress}
             semverVersion={this.state.semverVersion}
             error={this.state.snapshotSaveError}
+            snapshotSyndicated={this.state.snapshotSyndicated}
           />
         }
 

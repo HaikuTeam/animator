@@ -57,7 +57,8 @@ const METHODS_TO_SKIP_IN_SENTRY = {
   applyPropertyGroupValue: true,
   moveSegmentEndpoints: true,
   moveKeyframes: true,
-  toggleDevTools: true
+  toggleDevTools: true,
+  requestSyndicationInfo: true
 }
 
 const IGNORED_METHOD_MESSAGES = {
@@ -84,7 +85,7 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   doLogOut: true,
   deleteProject: true,
   teardownMaster: true,
-  getProjectPublishStatus: true
+  requestSyndicationInfo: true
 }
 
 const Q_GLASS = { alias: 'glass' }
@@ -925,8 +926,8 @@ export default class Plumbing extends StateObject {
     return this.awaitMasterAndCallMethod(folder, 'saveProject', [projectName, maybeUsername, maybePassword, saveOptions, { from: 'master' }], cb)
   }
 
-  getProjectPublishStatus (folder, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'getProjectPublishStatus', [], {from: 'master'}, cb)
+  requestSyndicationInfo (folder, cb) {
+    return this.awaitMasterAndCallMethod(folder, 'requestSyndicationInfo', [{ from: 'master' }], cb)
   }
 
   checkInkstoneUpdates (query = '', cb) {

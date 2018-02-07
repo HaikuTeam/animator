@@ -455,6 +455,14 @@ class Project extends BaseModel {
     )
   }
 
+  requestSyndicationInfo (cb) {
+    return this.websocket.request({
+      folder: this.getFolder(),
+      method: 'requestSyndicationInfo',
+      params: [this.getFolder()]
+    }, cb)
+  }
+
   saveProject (projectName, username, password, saveOptions = {}, cb) {
     return this.websocket.request({
       folder: this.getFolder(),

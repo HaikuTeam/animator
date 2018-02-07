@@ -755,6 +755,13 @@ export default class Master extends EventEmitter {
   }
 
   /**
+   * @method requestSyndicationInfo
+   */
+  requestSyndicationInfo (done) {
+    return this._git.getCurrentShareInfo(done)
+  }
+
+  /**
    * @method saveProject
    */
   saveProject (projectName, haikuUsername, haikuPassword, saveOptions, done) {

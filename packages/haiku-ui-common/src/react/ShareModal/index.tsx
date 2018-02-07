@@ -25,6 +25,7 @@ export class ShareModal extends React.PureComponent {
     snapshotSaveConfirmed: React.PropTypes.bool,
     isSnapshotSaveInProgress: React.PropTypes.bool,
     isProjectInfoFetchInProgress: React.PropTypes.bool,
+    snapshotSyndicated: React.PropTypes.bool,
     semverVersion: React.PropTypes.string,
   }
 
@@ -61,6 +62,7 @@ export class ShareModal extends React.PureComponent {
       semverVersion,
       isProjectInfoFetchInProgress,
       isSnapshotSaveInProgress,
+      snapshotSyndicated,
     } = this.props
 
     return (
@@ -82,6 +84,7 @@ export class ShareModal extends React.PureComponent {
           leftPanel={
             <EmbedList
               isSnapshotSaveInProgress={isSnapshotSaveInProgress}
+              snapshotSyndicated={snapshotSyndicated}
               onOptionClicked={(selectedEntry) => {
                 this.showDetails(selectedEntry)
               }}

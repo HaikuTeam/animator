@@ -28,7 +28,8 @@ export class EmbedCategory extends React.PureComponent {
     category: React.PropTypes.string.isRequired,
     options: React.PropTypes.object.isRequired,
     onOptionClicked: React.PropTypes.func,
-    isSnapshotSaveInProgress: React.PropTypes.bool
+    isSnapshotSaveInProgress: React.PropTypes.bool,
+    snapshotSyndicated: React.PropTypes.bool,
   }
 
   renderCategoryOptions (options: Object) {
@@ -40,6 +41,7 @@ export class EmbedCategory extends React.PureComponent {
         template={template}
         onClick={this.props.onOptionClicked}
         isSnapshotSaveInProgress={this.props.isSnapshotSaveInProgress}
+        snapshotSyndicated={this.props.snapshotSyndicated}
       />
     ))
   }
