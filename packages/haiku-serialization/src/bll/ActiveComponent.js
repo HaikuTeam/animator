@@ -384,6 +384,16 @@ class ActiveComponent extends BaseModel {
     return this
   }
 
+  getTopLevelElementHaikuIds () {
+    const template = this.getReifiedBytecode().template
+    const children = (template && template.children) || []
+    return children.map((child) => {
+      return child && child.attributes && child.attributes[HAIKU_ID_ATTRIBUTE]
+    }).filter((id) => {
+      return !!id
+    })
+  }
+
   selectElement (componentId, metadata, cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
       // Assuming the update occurs remotely, we want to unselect everything but the selected one
@@ -393,7 +403,7 @@ class ActiveComponent extends BaseModel {
 
       // In what circumstances could this happen that we would want to continue?
       if (!element) {
-        throw new Error(`Cannot select element ${componentId}`)
+        throw new Error(`Cannot select element ${componentId} in ${JSON.stringify(this.getTopLevelElementHaikuIds())}`)
       }
 
       element.select(metadata)
@@ -416,7 +426,7 @@ class ActiveComponent extends BaseModel {
 
       // In what circumstances could this happen that we would want to continue?
       if (!element) {
-        throw new Error(`Cannot unselect element ${componentId}`)
+        throw new Error(`Cannot unselect element ${componentId} in ${JSON.stringify(this.getTopLevelElementHaikuIds())}`)
       }
 
       release()
