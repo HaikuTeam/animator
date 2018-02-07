@@ -119,14 +119,6 @@ export default class Master extends EventEmitter {
     // Encapsulation of project actions that concern the live module in other views
     this._mod = new MasterModuleProject(this.folder)
 
-    this._mod.on('triggering-reload', () => {
-      logger.info('[master] module replacment triggering')
-    })
-
-    this._mod.on('reload-complete', () => {
-      logger.info('[master] module replacment finished')
-    })
-
     this._mod.on('component:reload', (file) => {
       this.emit('component:reload', this, file)
     })

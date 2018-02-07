@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import logger from 'haiku-serialization/src/utils/LoggerInstance'
 
 const QUEUE_INTERVAL = 64
 const LAST_WRITE_MARGIN_OF_ERROR_MILLISECONDS = 500
@@ -45,7 +46,7 @@ export default class MasterModuleProject extends EventEmitter {
 
     if (lastRead < lastWrite) return void (0)
 
-    this.emit('triggering-reload', file)
+    logger.info('[master module] module replacment triggering')
 
     // This is currently only used to detect whether we are in the midst of reloading so
     // that the master undo/redo queue can be smarter about whether to activate or not.
@@ -59,7 +60,8 @@ export default class MasterModuleProject extends EventEmitter {
     // We remove a pending reload only if the glass told us it completed a reload,
     // since that is the place it counts (and we only want to do this once per reload).
     if (message.from === 'glass') {
-      this.emit('reload-complete', this._pendingReloads.shift())
+      this._pendingReloads.shift()
+      logger.info('[master module] module replacment finished')
     }
   }
 
