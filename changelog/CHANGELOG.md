@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.26
+
+### Bug Fixes
+
+ * do not pan the stage when scrolling the actions editor
+
 ## 3.0.25
 
 ### Bug Fixes
