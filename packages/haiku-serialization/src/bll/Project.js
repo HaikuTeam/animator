@@ -152,10 +152,6 @@ class Project extends BaseModel {
     }
   }
 
-  websocketActionWithFolder (method, params, cb) {
-    return this.batchedWebsocketAction(method, [this.getFolder()].concat(params), cb)
-  }
-
   isIgnoringMethodRequestsForMethod (method) {
     if (ALWAYS_IGNORED_METHODS[method]) return true
     // HACK: This probably doesn't/shouldn't belong as a part of 'fileOptions'
@@ -414,18 +410,6 @@ class Project extends BaseModel {
     }, cb)
   }
 
-  pasteThing (pastedElement, maybePasteRequest = {}, cb) {
-    return this.websocketActionWithFolder(
-      'pasteThing',
-      [
-        this.getCurrentActiveComponentRelpath(),
-        pastedElement,
-        maybePasteRequest
-      ],
-      cb
-    )
-  }
-
   saveProject (projectName, username, password, saveOptions = {}, cb) {
     return this.websocket.request({
       folder: this.getFolder(),
@@ -500,10 +484,37 @@ class Project extends BaseModel {
     )
   }
 
+  pasteThing (pastedElement, maybePasteRequest = {}, cb) {
+    return this.batchedWebsocketAction(
+      'pasteThing',
+      [
+        this.getFolder(),
+        this.getCurrentActiveComponentRelpath(),
+        pastedElement,
+        maybePasteRequest
+      ],
+      cb
+    )
+  }
+
+  transmitInstantiateComponent (relpath, posdata, cb) {
+    return this.batchedWebsocketAction(
+      'instantiateComponent',
+      [
+        this.getFolder(),
+        this.getCurrentActiveComponentRelpath(),
+        relpath,
+        posdata
+      ],
+      cb
+    )
+  }
+
   upsertStateValue (stateName, stateValue, cb) {
-    return this.websocketActionWithFolder(
+    return this.batchedWebsocketAction(
       'upsertStateValue',
       [
+        this.getFolder(),
         this.getCurrentActiveComponentRelpath(),
         stateName,
         stateValue
@@ -513,23 +524,12 @@ class Project extends BaseModel {
   }
 
   deleteStateValue (stateName, cb) {
-    return this.websocketActionWithFolder(
+    return this.batchedWebsocketAction(
       'deleteStateValue',
       [
+        this.getFolder(),
         this.getCurrentActiveComponentRelpath(),
         stateName
-      ],
-      cb
-    )
-  }
-
-  transmitInstantiateComponent (relpath, posdata, cb) {
-    return this.websocketActionWithFolder(
-      'instantiateComponent',
-      [
-        this.getCurrentActiveComponentRelpath(),
-        relpath,
-        posdata
       ],
       cb
     )
