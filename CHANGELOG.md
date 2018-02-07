@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 3.0.25
+
+### Bug Fixes
+
+ * Instead of racing debounce, use sequence with delay for property group updates
+ * Master needs to participate in component reloads too
+
 ## 3.0.24
 
 ### Bug Fixes

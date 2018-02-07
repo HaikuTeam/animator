@@ -4606,5 +4606,17 @@
       "label": "fix",
       "message": "Broke artboard resizing when making other fixes"
     }
+  },
+  "3.0.25": {
+    "0a75504cfcc65f613e566b7b0b462b46dc2e4e32": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Instead of racing debounce, use sequence with delay for property group updates"
+    },
+    "4b4debc574af73ee63dc976adfea32935cf48903": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Master needs to participate in component reloads too"
+    }
   }
 }
