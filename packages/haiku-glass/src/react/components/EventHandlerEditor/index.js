@@ -238,6 +238,9 @@ class EventHandlerEditor extends React.PureComponent {
             style={STYLES.editorsWrapper}
             className='haiku-scroll'
             ref={(el) => { this.wrapper = el }}
+            onWheel={(wheelEvent) => {
+              wheelEvent.nativeEvent.stopImmediatePropagation()
+            }}
           >
             {this.renderEditors()}
           </div>
