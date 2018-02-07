@@ -731,7 +731,7 @@ class Project extends BaseModel {
 
         // Hacky, but in situations where we don't want to have to write to the fs before being
         // able to load the module via require() call, i.e. in the glass or timeline
-        file.mod.monkeypatch(reified)
+        file.mod.update(reified)
 
         // Because we have just monkeypatched the module, we don't need to (and shouldn't) reload
         // from disk since at this point disk will contain stale content, which we need to update later

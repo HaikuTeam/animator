@@ -88,7 +88,7 @@ class File extends BaseModel {
 
     this.dtModified = Date.now()
 
-    this.mod.monkeypatch(bytecode)
+    this.mod.update(bytecode)
 
     // Helps detect whether we need to assert that bytecode is present
     this._numBytecodeUpdates++
