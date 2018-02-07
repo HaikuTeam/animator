@@ -4599,5 +4599,12 @@
       "label": "feat",
       "message": "Disk i/o improvments, locks to prevent async collisions, e2e test improvements"
     }
+  },
+  "3.0.24": {
+    "8df590f3e555adf015412a76ee7fc87cd19ea12c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Broke artboard resizing when making other fixes"
+    }
   }
 }
