@@ -1,6 +1,17 @@
 # Changelog
 
 
+## 3.0.23
+
+### Bug Fixes
+
+ * Ensure merge designs occur in sequence and in stable order
+ * Ensure mergeDesign occurs in order
+
+### Features
+
+ * Disk i/o improvments, locks to prevent async collisions, e2e test improvements
+
 ## 3.0.22
 
 ### Features
