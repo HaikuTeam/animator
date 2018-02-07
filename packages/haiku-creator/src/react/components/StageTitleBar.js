@@ -387,7 +387,7 @@ class StageTitleBar extends React.Component {
     if (this.state.snapshotSaveError) return <div style={{height: 18, marginRight: -5}}><DangerIconSVG fill='transparent' /></div>
     if (this.state.snapshotMergeConflicts) return <div style={{height: 19, marginRight: 0, marginTop: -2}}><WarningIconSVG fill='transparent' color={Palette.ORANGE} /></div>
     if (this.state.snapshotSaveConfirmed) return <div style={{ height: 18 }}><SuccessIconSVG viewBox='0 0 14 14' fill='transparent' /></div>
-    return experimentIsEnabled(Experiment.NewPublishUI) ? <ShareSVG /> : <PublishSnapshotSVG />
+    return <PublishSnapshotSVG />
   }
 
   handleMergeResolveOurs () {
@@ -438,7 +438,7 @@ class StageTitleBar extends React.Component {
                 !this.props.isTimelineReady && STYLES.disabled
               ]}
             >
-              {this.renderSnapshotSaveInnerButton()}
+              {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
             </button>
           ) : (
             <Popover
