@@ -120,7 +120,11 @@ export default class Master extends EventEmitter {
     this._mod = new MasterModuleProject(this.folder)
 
     this._mod.on('component:reload', (file) => {
-      this.emit('component:reload', this, file)
+      // Our bytecode and models have to be up to date before we can receive actions
+      // We update ours first since we need to reflect what will get committed to disk
+      this.getActiveComponent().moduleReplace(() => {
+        this.emit('component:reload', this, file)
+      })
     })
 
     // To store a Watcher instance which will watch for changes on the file system
