@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.24
+
+### Bug Fixes
+
+ * Broke artboard resizing when making other fixes
+
 ## 3.0.23
 
 ### Bug Fixes
