@@ -90,6 +90,8 @@ class Project extends BaseModel {
       callback
     } = nextAction
 
+    log.info(`[project (${this.getAlias()})] sending action: ${method}`)
+
     // Only proceed with the next action once ours is finished
     return this.websocket.action(method, params, (err, out) => {
       callback(err, out)
@@ -338,7 +340,6 @@ class Project extends BaseModel {
     const metadata = args.pop()
     // If we originated the action, notify all other views
     if (metadata && metadata.from === this.getAlias()) {
-      log.info(`[project (${this.getAlias()})] sending method hook: ${method}`)
       this.batchedWebsocketAction(
         method,
         [this.getFolder()].concat(args),
