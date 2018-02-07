@@ -4618,5 +4618,12 @@
       "label": "fix",
       "message": "Master needs to participate in component reloads too"
     }
+  },
+  "3.0.26": {
+    "662ca9d8ab06962fc52d8b519522827bc42cace1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not pan the stage when scrolling the actions editor"
+    }
   }
 }
