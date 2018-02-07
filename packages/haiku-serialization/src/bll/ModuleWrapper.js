@@ -150,8 +150,6 @@ class ModuleWrapper extends BaseModel {
   }
 
   reload (cb) {
-    const config = this.getProjectConfig()
-
     return Lock.request(Lock.LOCKS.FileReadWrite(this.getAbspath()), (release) => {
       return overrideModulesLoaded((stop) => {
         try {
@@ -159,17 +157,7 @@ class ModuleWrapper extends BaseModel {
 
           this._hasLoadedAtLeastOnce = true
 
-          // Reassign in case our bytecode was empty and we created a new object
-          this.exp = Bytecode.reinitialize(
-            this.file.folder,
-            path.normalize(this.file.relpath),
-            this.exp,
-            config
-          )
-
-          // Set whatever is in require.cache and make sure that everybody
-          // else is using the same bytecode we have just updated in place
-          this.monkeypatch(this.exp)
+          this.update(this.exp)
 
           // Tell the node hook to stop interfering with require(...)
           stop()
@@ -220,6 +208,22 @@ class ModuleWrapper extends BaseModel {
     })
   }
 
+  update (bytecode) {
+    const config = this.getProjectConfig()
+
+    // Reassign in case our bytecode was empty and we created a new object
+    this.exp = Bytecode.reinitialize(
+      this.file.folder,
+      path.normalize(this.file.relpath),
+      bytecode,
+      config
+    )
+
+    // Set whatever is in require.cache and make sure that everybody
+    // else is using the same bytecode we have just updated in place
+    this.monkeypatch(this.exp)
+  }
+
   monkeypatch (exportsObject) {
     if (!require.cache[this.getAbspath()]) {
       // We ensure the full require.cache is populated with our entry;
@@ -229,6 +233,7 @@ class ModuleWrapper extends BaseModel {
 
     this._hasMonkeypatchedContent = true
     require.cache[this.getAbspath()].exports = exportsObject
+
     return exportsObject
   }
 }
