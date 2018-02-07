@@ -145,7 +145,8 @@ class ModuleWrapper extends BaseModel {
       return this._projectConfig
     } catch (exception) {
       console.warn('[module wrapper] Cannot load haiku.js')
-      return {}
+      this._projectConfig = {}
+      return this._projectConfig
     }
   }
 
