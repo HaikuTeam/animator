@@ -4625,5 +4625,6 @@
       "label": "fix",
       "message": "do not pan the stage when scrolling the actions editor"
     }
-  }
+  },
+  "3.0.27": {}
 }

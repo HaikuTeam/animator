@@ -1,6 +1,8 @@
 # Changelog
 
 
+## 3.0.27
+
 ## 3.0.26
 
 ### Bug Fixes
