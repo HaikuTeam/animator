@@ -4582,5 +4582,22 @@
       "label": "fix",
       "message": "ping the tour channel to shut down if going back to dashboard"
     }
+  },
+  "3.0.23": {
+    "0e83f8df73beaa36604baf58e5b6d41a40dc129b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Ensure merge designs occur in sequence and in stable order"
+    },
+    "2c033eb02f9d4d37ae2bb0702105fd9348956fff": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Ensure mergeDesign occurs in order"
+    },
+    "92eee3d81f76f26b88ea7251cbb37226c90818d9": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Disk i/o improvments, locks to prevent async collisions, e2e test improvements"
+    }
   }
 }
