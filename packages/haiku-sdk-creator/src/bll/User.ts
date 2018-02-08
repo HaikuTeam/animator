@@ -37,4 +37,12 @@ export class UserHandler implements User {
     return sdkClient.config.getUserId();
   }
 
+  getUserDetails(): Promise<inkstone.user.User> {
+    return new Promise<inkstone.user.User>((resolve) => {
+      inkstone.user.getDetails(this.getAuthToken(), (err, user, response) => {
+        resolve(user);
+      });
+    });
+  }
+
 }
