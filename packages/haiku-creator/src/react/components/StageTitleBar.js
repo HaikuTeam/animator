@@ -40,7 +40,8 @@ const STYLES = {
   },
   disabled: {
     opacity: 0.5,
-    cursor: 'not-allowed'
+    cursor: 'not-allowed',
+    pointerEvents: 'none'
   },
   sharePopover: {
     position: 'absolute',
@@ -211,7 +212,7 @@ class StageTitleBar extends React.Component {
       projectInfo: null,
       gitUndoables: [],
       gitRedoables: [],
-      snapshotSyndicated: false
+      snapshotSyndicated: true
     }
 
     ipcRenderer.on('global-menu:show-project-location-toast', () => {
@@ -442,7 +443,7 @@ class StageTitleBar extends React.Component {
   renderSnapshotSaveInnerButton () {
     if (this.state.snapshotSaveError) return <div style={{height: 18, marginRight: -5}}><DangerIconSVG fill='transparent' /></div>
     if (this.state.snapshotMergeConflicts) return <div style={{height: 19, marginRight: 0, marginTop: -2}}><WarningIconSVG fill='transparent' color={Palette.ORANGE} /></div>
-    if (this.state.snapshotSaveConfirmed) return <div style={{ height: 18 }}><SuccessIconSVG viewBox='0 0 14 14' fill='transparent' /></div>
+    if (this.state.snapshotSaveConfirmed && this.state.snapshotSyndicated) return <div style={{ height: 18 }}><SuccessIconSVG viewBox='0 0 14 14' fill='transparent' /></div>
     return <PublishSnapshotSVG />
   }
 
@@ -476,8 +477,11 @@ class StageTitleBar extends React.Component {
       : 'Share & Embed'
 
     let btnText = 'PUBLISH'
-    if (this.state.snapshotSaveConfirmed) btnText = 'PUBLISHED'
-    if (this.state.isSnapshotSaveInProgress) btnText = 'PUBLISHING'
+    if (!this.state.snapshotSyndicated) {
+      btnText = 'PUBLISHING'
+    } else if (this.state.snapshotSaveConfirmed) {
+      btnText = 'PUBLISHED'
+    }
 
     return (
       <div style={STYLES.frame} className='frame'>
@@ -486,11 +490,11 @@ class StageTitleBar extends React.Component {
             <button key='save'
               id='publish'
               onClick={this.handleSaveSnapshotClick}
-              disabled={!this.props.isTimelineReady}
+              disabled={!this.props.isTimelineReady && !this.state.snapshotSyndicated}
               style={[
                 BTN_STYLES.btnText,
                 BTN_STYLES.rightBtns,
-                this.state.isSnapshotSaveInProgress && STYLES.disabled,
+                !this.state.snapshotSyndicated && STYLES.disabled,
                 !this.props.isTimelineReady && STYLES.disabled
               ]}
             >
