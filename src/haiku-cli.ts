@@ -409,9 +409,13 @@ function doLogin(context: IContext, cb?: Function) {
     username = answers['username'];
     password = answers['password'];
 
-    inkstone.user.authenticate(username, password, (err, authResponse) => {
+    inkstone.user.authenticate(username, password, (err, authResponse, httpResponse) => {
       if (err !== undefined) {
-        context.writeLine(chalk.bold.red('Username or password incorrect.'));
+        if (httpResponse.statusCode === 403) {
+          context.writeLine(chalk.bold.yellow('You must verify your email address before logging in.'));
+        } else {
+          context.writeLine(chalk.bold.red('Username or password incorrect.'));
+        }
         if (context.flags.verbose) {
           context.writeLine(err);
         }
