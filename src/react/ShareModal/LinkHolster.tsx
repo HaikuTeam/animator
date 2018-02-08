@@ -36,6 +36,7 @@ const STYLES = {
 
 export class LinkHolster extends React.PureComponent {
   props
+  updateTimeout
 
   static propTypes = {
     isSnapshotSaveInProgress: React.PropTypes.bool,
@@ -43,14 +44,32 @@ export class LinkHolster extends React.PureComponent {
   }
 
   state = {
-    done: false
+    done: false,
+    progress: 0
+  }
+
+  componentWillMount () {
+    setTimeout(() => {
+      this.setState({progress: 0})
+    }, 100)
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.isSnapshotSaveInProgress !== this.props.isSnapshotSaveInProgress) {
-      setTimeout(() => {
-        this.setState({done: !nextProps.isSnapshotSaveInProgress})
+    if (nextProps.isSnapshotSaveInProgress) {
+      this.updateTimeout = setTimeout(() => {
+        if (this.updateTimeout) {
+          this.setState({done: false, progress: 80})
+        }
       }, 1000)
+    } else {
+      this.setState({done: true, progress: 100})
+    }
+  }
+
+  componentWillUnmount () {
+    if (this.updateTimeout) {
+      clearTimeout(this.updateTimeout)
+      this.updateTimeout = null
     }
   }
 
@@ -63,7 +82,7 @@ export class LinkHolster extends React.PureComponent {
     return (
       <div style={STYLES.linkHolster}>
         <LoadingTopBar
-          progress={this.props.isSnapshotSaveInProgress ? 100 : 0}
+          progress={this.state.progress}
           speed={this.props.isSnapshotSaveInProgress ? '15s' : '1ms'}
           done={this.state.done}
         />

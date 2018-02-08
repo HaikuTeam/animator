@@ -13,7 +13,7 @@ const STYLES = {
   }
 }
 
-export class ShareModal extends React.PureComponent {
+export class ShareModal extends React.Component {
   state
   props
   error

@@ -1,6 +1,6 @@
-import * as React from 'react'
-import * as Color from 'color'
-import Palette from '../../../Palette'
+import * as React from 'react';
+import * as Color from 'color';
+import Palette from '../../../Palette';
 
 export const PUBLISH_SHARED = {
   codebox: {

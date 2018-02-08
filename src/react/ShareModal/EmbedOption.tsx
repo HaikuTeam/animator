@@ -48,6 +48,8 @@ const STYLES = {
 
 export class EmbedOption extends React.PureComponent {
   props
+  startTimeout
+  updateTimeout
 
   static propTypes = {
     disabled: React.PropTypes.bool,
@@ -81,15 +83,30 @@ export class EmbedOption extends React.PureComponent {
       if (this.isGIF && !snapshotSyndicated) return
 
       this.setState({progress: 100, speed: '0.5s'}, () => {
-        setTimeout(() => {
-          this.setState({done: true, progress: 0, speed: '1ms'})
+        this.updateTimeout = setTimeout(() => {
+          if (this.updateTimeout) {
+            this.setState({done: true, progress: 0, speed: '1ms'})
+          }
         }, 1000)
       })
     }
   }
 
+  componentWillUnmount () {
+    console.log(this.updateTimeout)
+    if (this.updateTimeout) {
+      clearTimeout(this.updateTimeout)
+      this.updateTimeout = null
+    }
+
+    if (this.startTimeout) {
+      clearTimeout(this.startTimeout)
+      this.startTimeout = null
+    }
+  }
+
   start() {
-    setTimeout(() => {
+    this.startTimeout = setTimeout(() => {
       this.setState({progress: 80, speed: this.startSpeed, done: false})
     }, 10)
   }
