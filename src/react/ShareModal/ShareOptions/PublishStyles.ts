@@ -66,7 +66,6 @@ export const PUBLISH_SHARED = {
     borderRadius: 5,
     padding: '12px 20px',
     display: 'block',
-    marginRight: 40,
     overflowX: 'auto',
     MozUserSelect: 'text',
     WebkitUserSelect: 'text',
