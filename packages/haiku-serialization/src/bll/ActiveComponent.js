@@ -394,14 +394,8 @@ class ActiveComponent extends BaseModel {
     // Race conditions with instantiate can cause this to happen
     if (!element) {
       if (waitTime <= 0) {
-        // HACK: The glass is the only place where it's critical that we toggle a correct
-        // selection state, so we don't throw an error in any of the other views
-        if (this.project.getAlias() !== 'glass') {
-          return cb()
-        }
-
-        // In what circumstances could this happen that we would want to continue?
-        throw new Error(`Cannot select element ${componentId} in ${JSON.stringify(this.getTopLevelElementHaikuIds())}`)
+        // Is it better to throw here?
+        return cb()
       }
 
       return setTimeout(() => {
@@ -437,7 +431,7 @@ class ActiveComponent extends BaseModel {
 
     if (!element) {
       if (waitTime <= 0) {
-        // Is it better to throw here, like we do with selectElement?
+        // Is it better to throw here?
         return cb()
       }
 
