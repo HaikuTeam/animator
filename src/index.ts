@@ -202,7 +202,7 @@ export namespace inkstone {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.RESET_PASSWORD,
         headers: baseHeaders,
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({email}),
       };
 
       request.post(options, (err, httpResponse, body) => {
@@ -235,7 +235,7 @@ export namespace inkstone {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.RESET_PASSWORD_CLAIM.replace(':UUID', resetPasswordUUID),
         headers: baseHeaders,
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({password}),
       };
 
       request.post(options, (err, httpResponse, body) => {
@@ -334,11 +334,11 @@ export namespace inkstone {
           cb(undefined, invitePreset, httpResponse);
         } else {
           if (httpResponse.statusCode === 404) {
-            cb('invalid code', { Valid: Validity.INVALID }, httpResponse);
+            cb('invalid code', {Valid: Validity.INVALID}, httpResponse);
           } else if (httpResponse.statusCode === 410) {
-            cb('code already claimed', { Valid: Validity.ALREADY_CLAIMED }, httpResponse);
+            cb('code already claimed', {Valid: Validity.ALREADY_CLAIMED}, httpResponse);
           } else {
-            cb(safeError(err), { Valid: Validity.ERROR }, httpResponse);
+            cb(safeError(err), {Valid: Validity.ERROR}, httpResponse);
           }
         }
       });
@@ -414,7 +414,7 @@ export namespace inkstone {
         if (response && response.statusCode !== 200) {
           cb(err, undefined, undefined);
         } else {
-          cb(undefined, { snap, link: assembleSnapshotLinkFromSnapshot(snap.Snapshot) }, response);
+          cb(undefined, {snap, link: assembleSnapshotLinkFromSnapshot(snap.Snapshot)}, response);
         }
       });
     }
@@ -444,7 +444,7 @@ export namespace inkstone {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url,
         headers: baseHeaders,
-        body: JSON.stringify({ secret_token: secretToken }),
+        body: JSON.stringify({secret_token: secretToken}),
       };
 
       request.post(options, (err, httpResponse, body) => {
