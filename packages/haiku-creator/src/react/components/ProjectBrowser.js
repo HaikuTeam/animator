@@ -15,11 +15,10 @@ const HARDCODED_PROJECTS_LIMIT = 15
 
 const STYLES = {
   adminButton: {
-    //TODO: make this a bit more subdued? 
-    background: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
+    // TODO: make this a bit more subdued?
+    background: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))'
   }
 }
-
 
 class ProjectBrowser extends React.Component {
   constructor (props) {
