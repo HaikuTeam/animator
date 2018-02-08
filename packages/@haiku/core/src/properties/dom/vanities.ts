@@ -3,6 +3,7 @@
  */
 
 import Layout3D from './../../Layout3D';
+import cssMatchOne from './../../helpers/cssMatchOne';
 import has from './has';
 
 /**
@@ -716,6 +717,93 @@ const FILTER_VANITIES = {
 
 const HTML_STYLE_SHORTHAND_VANITIES = {};
 
+function isNumeric(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+function isInteger(x) {
+  return x % 1 === 0;
+}
+
+const REACT_MATCHING_OPTIONS = {
+  name: 'type',
+  attributes: 'props',
+};
+
+const HAIKU_MATCHING_OPTIONS = {
+  name: 'elementName',
+  attributes: 'attributes',
+};
+
+function querySelectSubtree(surrogate: any, value: any): any {
+  // First try the Haiku format
+  if (cssMatchOne(surrogate, value, HAIKU_MATCHING_OPTIONS)) {
+    return surrogate;
+  }
+
+  // If no match yet, try the React format (TODO: Does this belong here?)
+  if (cssMatchOne(surrogate, value, REACT_MATCHING_OPTIONS)) {
+    return surrogate;
+  }
+
+  // Visit the descendants (if any) and see if we have a match there
+  const children = (
+    surrogate.children || // Haiku's format
+    (surrogate.props && surrogate.props.children) // React's format
+  );
+
+  // If no children, we definitely don't have a match in this subtree
+  if (!children) {
+    return null;
+  }
+
+  // Check for arrays first since arrays pass the typeof object check
+  if (Array.isArray(children)) {
+    for (let i = 0; i < children.length; i++) {
+      const found = querySelectSubtree(children[i], value);
+
+      // First time a match is found, break the loop and return it
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  // React may store 'children' as a single object
+  if (typeof children === 'object') {
+    return querySelectSubtree(children, value);
+  }
+}
+
+function querySelectSurrogates(surrogates: any, value: string): any {
+  if (Array.isArray(surrogates)) {
+    // Return the first match we locate in the collection
+    return surrogates.map((surrogate) => querySelectSurrogates(surrogate, value))[0];
+  }
+
+  if (surrogates && typeof surrogates === 'object') {
+    return querySelectSubtree(surrogates, value);
+  }
+}
+
+function selectSurrogate(surrogates: any, value: any): any {
+  // If the placeholder value is intended as an array index
+  if (Array.isArray(surrogates) && isNumeric(value) && isInteger(value)) {
+    if (surrogates[value]) {
+      return surrogates[value];
+    }
+  }
+
+  // If the placeholder value is intended as a key
+  if (surrogates && typeof surrogates === 'object' && typeof value === 'string') {
+    if (surrogates[value]) {
+      return surrogates[value];
+    }
+  }
+
+  return querySelectSurrogates(surrogates, value + '');
+}
+
 const CONTROL_FLOW_VANITIES = {
   // 'controlFlow.if': function (name, element, value) {
   //   // TODO
@@ -771,12 +859,13 @@ const CONTROL_FLOW_VANITIES = {
 
     let surrogates;
 
-    // Surrogates can be passed in as React children (an array) or as an object
-    // of key/value pairs; in any event we will key-map using the passed value.
+    // Surrogates can be passed in as:
+    //   - React children (an array)
+    //   - A React subtree (we'll use query selectors to match)
+    //   - A Haiku subtree (we'll use query selectors to match)
+    //   - Key/value pairs
     if (context.config.children) {
-      surrogates = Array.isArray(context.config.children)
-        ? context.config.children
-        : [context.config.children];
+      surrogates = context.config.children;
     } else if (context.config.placeholder) {
       surrogates = context.config.placeholder;
     }
@@ -785,7 +874,7 @@ const CONTROL_FLOW_VANITIES = {
       return void 0;
     }
 
-    const surrogate = surrogates[value];
+    const surrogate = selectSurrogate(surrogates, value);
 
     if (surrogate === null || surrogate === undefined) {
       return void 0;
