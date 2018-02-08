@@ -320,13 +320,12 @@ export default class Creator extends React.Component {
     // kick off initial report
     this.onActivityReport(true, true)
 
-    this.user.getUserDetails().then((details) => {
-      let deets = JSON.parse(details)
-      // update UI with whether this user is an admin
-      // alert("Admin " + details)
-      // alert("Admin " + JSON.parse(details))
-
-      // this.setState({isAdmin: deets.IsAdmin})
+    //check admin status
+    this.user.getUserDetails().then((stringData) => {
+      let userInfo = JSON.parse(stringData)
+      if(userInfo && userInfo.IsAdmin){
+        this.setState({isAdmin: userInfo.IsAdmin})
+      }
     })
   }
 

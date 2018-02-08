@@ -174,10 +174,10 @@ export default class EnvoyServer {
           if (returnValue && returnValue.then) {
             //assume this is a promise, and unwrap it before sending response
             returnValue.then((unwrapped) => {
-              const unwrappedString = JSON.stringify(unwrapped);
+              // const unwrappedString = JSON.stringify(unwrapped);
               const response = <Datagram>{
                 channel: data.channel,
-                data: unwrappedString,
+                data: unwrapped,
                 id: data.id,
                 intent: DatagramIntent.RESPONSE,
               };
