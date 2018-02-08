@@ -73,6 +73,12 @@ const cli = new Nib({
       ],
     },
     {
+      name: 'init',
+      action: doInit,
+      description: 'Inits a project for installing @haiku modules. ' + 
+        'Will write or append to a .npmrc in this directory.',
+    },
+    {
       name: 'install',
       action: doInstall,
       description: 'Install a Haiku project as an npm module, requires a package.json',
@@ -257,6 +263,27 @@ function doDelete(context: IContext) {
   });
 }
 
+function doInit(context: IContext) {
+  // Set up @haiku scope for this project if it doesn't exist
+  let npmrc = '';
+  try {
+    npmrc = fs.readFileSync('.npmrc').toString();
+  } catch (exception) {
+    if (exception.code === 'ENOENT') {
+      // file not found, this is fine
+    } else {
+      // different error, should throw
+      throw (exception);
+    }
+  }
+  if (npmrc.indexOf('@haiku') === -1) {
+    prependFile.sync('.npmrc', dedent`
+      //reservoir.haiku.ai:8910/:_authToken=
+      @haiku:registry=https://reservoir.haiku.ai:8910/
+    `);
+  }
+}
+
 function doInstall(context: IContext) {
   const projectName = context.args['project-name'];
   ensureAuth(context, (token) => {
@@ -306,23 +333,7 @@ function doInstall(context: IContext) {
               packageJson.dependencies[projectString] = 'latest';
 
               // Set up @haiku scope for this project if it doesn't exist
-              let npmrc = '';
-              try {
-                npmrc = fs.readFileSync('.npmrc').toString();
-              } catch (exception) {
-                if (exception.code === 'ENOENT') {
-                  // file not found, this is fine
-                } else {
-                  // different error, should throw
-                  throw (exception);
-                }
-              }
-              if (npmrc.indexOf('@haiku') === -1) {
-                prependFile.sync('.npmrc', dedent`
-                  //reservoir.haiku.ai:8910/:_authToken=
-                  @haiku:registry=https://reservoir.haiku.ai:8910/
-                `);
-              }
+              doInit(context);
 
               client.npm.writePackageJson(packageJson);
               try {
