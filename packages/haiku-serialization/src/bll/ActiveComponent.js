@@ -399,9 +399,11 @@ class ActiveComponent extends BaseModel {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
       const element = Element.findByComponentAndHaikuId(this, componentId)
 
-      // In what circumstances could this happen that we would want to continue?
-      if (!element) {
-        throw new Error(`Cannot unselect element ${componentId} in ${JSON.stringify(this.getTopLevelElementHaikuIds())}`)
+      if (element) {
+        element.unselect(metadata)
+      } else {
+        // In what circumstances could this happen that we would want to continue?
+        // throw new Error(`Cannot unselect element ${componentId} in ${JSON.stringify(this.getTopLevelElementHaikuIds())}`)
       }
 
       release()
