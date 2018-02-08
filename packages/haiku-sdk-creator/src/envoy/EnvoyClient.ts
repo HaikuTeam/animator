@@ -51,16 +51,16 @@ export default class EnvoyClient<T> {
     // Since mock mode skips the connection, there's nothing to retrieve, and
     // we will just go ahead and return ourselves early instead of schema discovery
     if (this.isInMockMode()) {
-      let mockMe = <T> {};
+      let mockMe = <T>{};
       mockMe = this.addEventLogic(mockMe); // Only adds an 'on' method
       return Promise.resolve(mockMe);
     }
 
     return this.getRemoteSchema(channel).then((schema: Schema) => {
-      let returnMe = <T> {};
+      let returnMe = <T>{};
 
       for (const key in schema) {
-        const property = <string> key;
+        const property = <string>key;
         // TODO:  if we want to support other topologies (vs. only-top-level-functions,) we
         // can implement deserialization/handling logic here
         if (schema[key] === 'function') {
@@ -71,7 +71,7 @@ export default class EnvoyClient<T> {
 
               // Ask server for a response.
               // For now, return only first response received.
-              const datagram = <Datagram> {
+              const datagram = <Datagram>{
                 channel,
                 intent: DatagramIntent.REQUEST,
                 method: prop,
@@ -201,14 +201,24 @@ export default class EnvoyClient<T> {
    */
   private handleRawReceivedData(data: string) {
     // If this is a response & the request id is in outstanding requests, resolve the stored promise w/ data.
-    const datagram = <Datagram> JSON.parse(data);
+    const datagram = <Datagram>JSON.parse(data);
     if (datagram.intent === DatagramIntent.RESPONSE && this.outstandingRequests.get(datagram.id)) {
       // this.logger.info('[haiku envoy client] received data', datagram.data);
+
+      //parse this for the client if it's JSON
+      // let payload = undefined;
+      // try {
+      //   payload = JSON.parse(datagram.data);
+      // } catch (e) {
+      //   payload = datagram.data;
+      // }
+
       this.outstandingRequests.get(datagram.id)(datagram.data);
       this.outstandingRequests.delete(datagram.id);
     } else if (datagram.intent === DatagramIntent.EVENT) {
-      const event = <EnvoyEvent> JSON.parse(datagram.data);
+      const event = <EnvoyEvent>JSON.parse(datagram.data);
       const handlers = this.eventHandlers.get(event.name);
+
       if (handlers && handlers.length) {
         for (let i = 0; i < handlers.length; i++) {
           ((handler) => {
@@ -283,17 +293,17 @@ export default class EnvoyClient<T> {
         return Promise
           .race([timeout, success])
           .then(
-            (data) => {
-              // SUCCESS
-              accept(data);
-            },
-            () => {
-              // TIMEOUT
-              this.logger.warn(
-                '[haiku envoy client] response timed out [configured @ ' + mergedOptions.timeout + 'ms]');
-              this.outstandingRequests.delete(requestId);
-            },
-          );
+          (data) => {
+            // SUCCESS
+            accept(data);
+          },
+          () => {
+            // TIMEOUT
+            this.logger.warn(
+              '[haiku envoy client] response timed out [configured @ ' + mergedOptions.timeout + 'ms]');
+            this.outstandingRequests.delete(requestId);
+          },
+        );
       }
 
       accept();
@@ -309,14 +319,14 @@ export default class EnvoyClient<T> {
       return Promise.resolve(foundSchema);
     }
 
-    return this.send(<Datagram> {
+    return this.send(<Datagram>{
       channel,
       id: generateUUIDv4(),
       intent: DatagramIntent.SCHEMA_REQUEST,
       method: '',
       params: [],
     }).then((data) => {
-      const loadedSchema = <Schema> JSON.parse(data);
+      const loadedSchema = <Schema>JSON.parse(data);
       if (loadedSchema) {
         this.schemaCache.set(channel, loadedSchema);
       }

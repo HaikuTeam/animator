@@ -43,7 +43,7 @@ var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
 const electron = require('electron')
 const remote = electron.remote
-const {dialog} = remote
+const { dialog } = remote
 const ipcRenderer = electron.ipcRenderer
 const clipboard = electron.clipboard
 
@@ -211,7 +211,7 @@ export default class Creator extends React.Component {
       (event) => {
         if (this.state.projectModel) {
           this.state.projectModel.linkExternalAssetOnDrop(event, (error) => {
-            if (error) this.setState({error})
+            if (error) this.setState({ error })
             this.forceUpdate()
           })
         }
@@ -316,6 +316,20 @@ export default class Creator extends React.Component {
     }
   }
 
+  handleEnvoyUserReady () {
+    // kick off initial report
+    this.onActivityReport(true, true)
+
+    this.user.getUserDetails().then((details) => {
+      let deets = JSON.parse(details)
+      // update UI with whether this user is an admin
+      // alert("Admin " + details)
+      // alert("Admin " + JSON.parse(details))
+
+      // this.setState({isAdmin: deets.IsAdmin})
+    })
+  }
+
   componentDidMount () {
     this.props.websocket.on('broadcast', (message) => {
       switch (message.name) {
@@ -369,9 +383,9 @@ export default class Creator extends React.Component {
             extensions: [extension]
           }]
         },
-        (filename) => {
-          exporterChannel.save({format, filename})
-        })
+          (filename) => {
+            exporterChannel.save({ format, filename })
+          })
       })
     })
 
@@ -381,9 +395,7 @@ export default class Creator extends React.Component {
        */
       (user) => {
         this.user = user
-
-        // kick off initial report
-        this.onActivityReport(true, true)
+        this.handleEnvoyUserReady()
       }
     )
 
@@ -587,8 +599,8 @@ export default class Creator extends React.Component {
 
   setPreviewMode (interactionMode) {
     if (this.state.projectModel) {
-      this.state.projectModel.setInteractionMode(interactionMode, () => {})
-      this.setState({interactionMode})
+      this.state.projectModel.setInteractionMode(interactionMode, () => { })
+      this.setState({ interactionMode })
     }
   }
 
@@ -614,7 +626,7 @@ export default class Creator extends React.Component {
   }
 
   switchActiveNav (activeNav) {
-    this.setState({activeNav})
+    this.setState({ activeNav })
   }
 
   authenticateUser (username, password, cb) {
@@ -634,7 +646,7 @@ export default class Creator extends React.Component {
   }
 
   resendEmailConfirmation (username, password, cb) {
-    return this.props.websocket.request({ method: 'resendEmailConfirmation', params: [username] }, () => {})
+    return this.props.websocket.request({ method: 'resendEmailConfirmation', params: [username] }, () => { })
   }
 
   authenticationComplete () {
@@ -736,10 +748,10 @@ export default class Creator extends React.Component {
                 if (ac) {
                   // Even if we already have an active component set up and assigned in memory,
                   // we still need to notify Timeline/Stage since they have been completely recreated
-                  ac.setAsCurrentActiveComponent({ from: 'creator' }, () => {})
+                  ac.setAsCurrentActiveComponent({ from: 'creator' }, () => { })
                 } else {
                   // And if we don't have anything assigned, assume we're editing the main component
-                  this.state.projectModel.setCurrentActiveComponent('main', { from: 'creator' }, () => {})
+                  this.state.projectModel.setCurrentActiveComponent('main', { from: 'creator' }, () => { })
                 }
               })
             })
@@ -869,11 +881,11 @@ export default class Creator extends React.Component {
   }
 
   onTimelineMounted () {
-    this.setState({isTimelineReady: true})
+    this.setState({ isTimelineReady: true })
   }
 
   onTimelineUnmounted () {
-    this.setState({isTimelineReady: false})
+    this.setState({ isTimelineReady: false })
   }
 
   onNavigateToDashboard () {
@@ -906,7 +918,7 @@ export default class Creator extends React.Component {
           transitionName='toast'
           transitionEnterTimeout={500}
           transitionLeaveTimeout={300}>
-          <div style={{position: 'absolute', right: 0, top: 0, width: 300}}>
+          <div style={{ position: 'absolute', right: 0, top: 0, width: 300 }}>
             {lodash.map(this.state.notices, this.renderNotifications)}
           </div>
         </ReactCSSTransitionGroup>
@@ -932,7 +944,7 @@ export default class Creator extends React.Component {
   }
 
   clearAuth () {
-    this.setState({readyForAuth: true, isUserAuthenticated: false, username: ''})
+    this.setState({ readyForAuth: true, isUserAuthenticated: false, username: '' })
   }
 
   setProjectLaunchStatus ({ launchingProject, newProjectLoading }) {
@@ -1037,7 +1049,7 @@ export default class Creator extends React.Component {
             transitionName='toast'
             transitionEnterTimeout={500}
             transitionLeaveTimeout={300}>
-            <div style={{position: 'absolute', right: 0, top: 0, width: 300}}>
+            <div style={{ position: 'absolute', right: 0, top: 0, width: 300 }}>
               {lodash.map(this.state.notices, this.renderNotifications)}
             </div>
           </ReactCSSTransitionGroup>
@@ -1062,12 +1074,12 @@ export default class Creator extends React.Component {
           projectsList={this.state.projectsList}
           envoyClient={this.envoyClient} />
         <div style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
-          <div className='layout-box' style={{overflow: 'visible'}}>
+          <div className='layout-box' style={{ overflow: 'visible' }}>
             <ReactCSSTransitionGroup
               transitionName='toast'
               transitionEnterTimeout={500}
               transitionLeaveTimeout={300}>
-              <div style={{position: 'absolute', right: 0, top: 0, width: 300}}>
+              <div style={{ position: 'absolute', right: 0, top: 0, width: 300 }}>
                 {lodash.map(this.state.notices, this.renderNotifications)}
               </div>
             </ReactCSSTransitionGroup>
@@ -1115,9 +1127,9 @@ export default class Creator extends React.Component {
                         removeNotice={this.removeNotice}
                         folder={this.state.projectFolder}
                         websocket={this.props.websocket} />
-                      }
+                    }
                   </SideBar>
-                  <div style={{position: 'relative', width: '100%', height: '100%'}}>
+                  <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                     <Stage
                       ref='stage'
                       folder={this.state.projectFolder}
@@ -1139,7 +1151,7 @@ export default class Creator extends React.Component {
                     />
                     {(this.state.assetDragging)
                       ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />
-                      : '' }
+                      : ''}
                   </div>
                 </SplitPane>
               </div>

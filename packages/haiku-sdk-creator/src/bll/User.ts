@@ -9,6 +9,7 @@ export interface User {
   setConfig: MaybeAsync<(key: string, value: string) => void>;
   getConfig: MaybeAsync<(key: string) => string>;
   getAuthToken: MaybeAsync<() => string>;
+  getUserDetails: MaybeAsync<() => MaybeAsync<inkstone.user.User>>;
 }
 
 export const USER_CHANNEL = 'user';

@@ -153,7 +153,7 @@ class ProjectBrowser extends React.Component {
           projectsList.splice(index, 1)
           this.setState({
             projectsList,
-            atProjectMax: !this.props.isAdmin &&  projectsList.length >= HARDCODED_PROJECTS_LIMIT
+            atProjectMax: !this.props.isAdmin && projectsList.length >= HARDCODED_PROJECTS_LIMIT
           })
         }, Math.min(200, Date.now() - deleteStart))
       })
