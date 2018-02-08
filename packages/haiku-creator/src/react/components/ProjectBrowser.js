@@ -13,6 +13,14 @@ import Popover from 'react-popover'
 
 const HARDCODED_PROJECTS_LIMIT = 15
 
+const STYLES = {
+  adminButton: {
+    //TODO: make this a bit more subdued? 
+    background: 'linear-gradient(180deg, rgb(247,183,89), rgb(229,116,89) 50%, rgb(213,53,89))',
+  }
+}
+
+
 class ProjectBrowser extends React.Component {
   constructor (props) {
     super(props)
@@ -458,7 +466,7 @@ class ProjectBrowser extends React.Component {
               id='haiku-button-show-account-popover'
               key='user'
               onClick={this.openPopover}
-              style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered]}>
+              style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHovered, this.props.isAdmin && STYLES.adminButton]}>
               <UserIconSVG color={Palette.SUNSTONE} />
             </button>
           </Popover>
