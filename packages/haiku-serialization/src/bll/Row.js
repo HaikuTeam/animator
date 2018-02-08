@@ -303,7 +303,7 @@ class Row extends BaseModel {
 
   ensureZerothKeyframe (metadata) {
     if (!this.hasZerothKeyframe()) {
-      this.createKeyframe(this.getFallbackValue(), 0, metadata)
+      this.createKeyframe(this.getZerothValue(), 0, metadata)
     } else {
       // if a keyframe was dragged onto zero position we want to delete the zero keyframe
       const keyframes = this.getKeyframes()
@@ -576,12 +576,21 @@ class Row extends BaseModel {
     return this.property && this.property.name
   }
 
-  getFallbackValue () {
+  getZerothValue () {
+    // When creating a zeroth keyframe, assign to it the value of the first keyframe
+    // so when keyframes are dragged from zero, they retain the value they used to have
+    const keyframes = this.getKeyframes()
+    if (keyframes && keyframes.length > 0) {
+      const first = keyframes[0]
+      return first.getValue()
+    }
+
     if (this.property) {
       if (this.property.fallback !== undefined) {
         return this.property.fallback
       }
     }
+
     return 1 // Possibly safer and more obvious than 0?
   }
 
