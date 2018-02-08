@@ -46,7 +46,7 @@ Haiku Core is compatible with all major modern web browsers: Firefox, Chrome, Sa
   <img width="60%" src='docs/assets/lottie-and-mobile-logos.png' />
 </p>
 
-[Haiku for Mac](https://haiku.ai) supports exporting to Lottie for native rendering of animations on iOS and Android. Technical details on this are coming soon; for now, please read [our blog post on Lottie](https://medium.com/haiku-blog/lottie-without-after-effects-9c5a8e74c239) and stay tuned. (Note: Interactions and dynamic components aren't currently supported by Lottie.)
+[Haiku for Mac](https://haiku.ai) supports exporting to Lottie for native rendering of animations on iOS and Android. Check out [our blog post on Lottie](https://medium.com/haiku-blog/lottie-without-after-effects-9c5a8e74c239) or read more in [our docs.](https://docs.haiku.ai/embedding-and-using-haiku/lottie.html) (Note: Interactions and dynamic components aren't currently supported by Lottie.)
 
 <br>
 
