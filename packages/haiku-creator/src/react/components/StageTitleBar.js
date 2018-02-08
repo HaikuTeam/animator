@@ -134,7 +134,7 @@ const SNAPSHOT_SAVE_RESOLUTION_STRATEGIES = {
 }
 
 const MAX_SYNDICATION_CHECKS = 10
-const SYNDICATION_CHECK_INTERVAL = 2500
+const SYNDICATION_CHECK_INTERVAL = 3500
 
 class PopoverBody extends React.Component {
   shouldComponentUpdate (nextProps) {
@@ -334,24 +334,34 @@ class StageTitleBar extends React.Component {
     this.syndicationChecks = 0
   }
 
-  performSyndicationCheck () {
+  performSyndicationCheck() {
     if (this.props.projectModel) {
-      return this.props.projectModel.requestSyndicationInfo((error, {status}) => {
-        if (status.errored || this.syndicationChecks >= MAX_SYNDICATION_CHECKS) {
-          return this.setState({snapshotSaveError: true}, () => {
-            return setTimeout(() => this.setState({ snapshotSaveError: null }), 2000)
+      // Note: we are ignoring the first parameter (error) because it is expected
+      // from inkstone calls to fail while the project is being syndicated,
+      // instead we check in `info.status` for errors
+      return this.props.projectModel.requestSyndicationInfo((_, info) => {
+        if (!info) return
+
+        if (
+          info.status.errored ||
+          this.syndicationChecks >= MAX_SYNDICATION_CHECKS
+        ) {
+          return this.setState({snapshotSaveError: {}}, () => {
+            return setTimeout(
+              () => this.setState({snapshotSaveError: null}),
+              2000
+            )
           })
           this.clearSyndicationChecks()
         }
 
-        if (status.syndicated) {
+        if (info.status.syndicated) {
           this.setState({snapshotSyndicated: true})
           this.clearSyndicationChecks()
         }
       })
     }
   }
-
   performProjectSave () {
     mixpanel.haikuTrack('creator:project:saving', this.withProjectInfo({
       username: this.props.username,

@@ -74,15 +74,6 @@ export class EmbedOption extends React.PureComponent {
     }
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    return (
-      nextProps.isSnapshotSaveInProgress !== this.props.isSnapshotSaveInProgress ||
-      nextProps.snapshotSyndicated !== this.props.snapshotSyndicated ||
-      nextState.progress !== this.state.progress ||
-      nextState.done !== this.state.done
-    )
-  }
-
   componentWillReceiveProps({isSnapshotSaveInProgress, snapshotSyndicated}) {
     if (isSnapshotSaveInProgress) {
       this.start()

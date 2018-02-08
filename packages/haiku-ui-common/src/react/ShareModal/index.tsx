@@ -52,7 +52,7 @@ export class ShareModal extends React.PureComponent {
   }
 
   hideDetails () {
-    this.setState({showDetail: false})
+    this.setState({showDetail: false, selectedEntry: null})
   }
 
   render () {

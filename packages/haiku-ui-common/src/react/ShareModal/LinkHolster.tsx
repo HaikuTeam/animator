@@ -1,10 +1,11 @@
-import * as React from 'react';
-import * as assign from 'lodash.assign';
+import * as React from 'react'
+import * as assign from 'lodash.assign'
 import {shell} from 'electron'
 import * as CopyToClipboard from 'react-copy-to-clipboard'
 import {ThreeBounce} from 'better-react-spinkit'
 import Palette from '../../Palette'
-import {CliboardIconSVG} from '../OtherIcons';
+import {CliboardIconSVG} from '../OtherIcons'
+import {LoadingTopBar} from '../../LoadingTopBar'
 
 const STYLES = {
   linkHolster: {
@@ -18,39 +19,55 @@ const STYLES = {
     marginBottom: '5px',
     borderRadius: '3px',
     overflow: 'hidden',
+    position: 'relative'
   } as React.CSSProperties,
   link: {
     color: Palette.BLUE,
-    fontSize: '10px',
+    fontSize: '10px'
   },
   linkCopyBtn: {
     height: '100%',
     background: Palette.COAL,
     padding: '0 8px',
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'center'
   } as React.CSSProperties,
 }
 
 export class LinkHolster extends React.PureComponent {
-  props;
+  props
 
   static propTypes = {
     isSnapshotSaveInProgress: React.PropTypes.bool,
-    isProjectInfoFetchInProgress: React.PropTypes.bool,
-    linkAddress: React.PropTypes.string,
+    linkAddress: React.PropTypes.string
   }
 
-  render () {
+  state = {
+    done: false
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.isSnapshotSaveInProgress !== this.props.isSnapshotSaveInProgress) {
+      setTimeout(() => {
+        this.setState({done: !nextProps.isSnapshotSaveInProgress})
+      }, 1000)
+    }
+  }
+
+  render() {
     const {
       isSnapshotSaveInProgress,
-      isProjectInfoFetchInProgress,
       linkAddress
     } = this.props
 
     return (
       <div style={STYLES.linkHolster}>
-        {isSnapshotSaveInProgress || isProjectInfoFetchInProgress ? (
+        <LoadingTopBar
+          progress={this.props.isSnapshotSaveInProgress ? 100 : 0}
+          speed={this.props.isSnapshotSaveInProgress ? '15s' : '1ms'}
+          done={this.state.done}
+        />
+        {isSnapshotSaveInProgress ? (
           <span style={STYLES.link}>New share link being generated</span>
         ) : (
           <span
@@ -61,16 +78,9 @@ export class LinkHolster extends React.PureComponent {
           </span>
         )}
         <CopyToClipboard text={this.props.linkAddress}>
-          {this.props.isSnapshotSaveInProgress ||
-          this.props.isProjectInfoFetchInProgress ? (
-            <span style={STYLES.linkCopyBtn}>
-              <ThreeBounce size={3} color={Palette.ROCK} />
-            </span>
-          ) : (
-            <span style={STYLES.linkCopyBtn}>
-              <CliboardIconSVG />
-            </span>
-          )}
+          <span style={STYLES.linkCopyBtn}>
+            <CliboardIconSVG />
+          </span>
         </CopyToClipboard>
       </div>
     )

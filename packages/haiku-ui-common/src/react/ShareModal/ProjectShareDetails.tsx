@@ -33,8 +33,7 @@ export class ProjectShareDetails extends React.PureComponent {
     semverVersion: React.PropTypes.string,
     projectName: React.PropTypes.string,
     linkAddress: React.PropTypes.string,
-    isSnapshotSaveInProgress: React.PropTypes.bool,
-    isProjectInfoFetchInProgress: React.PropTypes.bool
+    isSnapshotSaveInProgress: React.PropTypes.bool
   }
 
   render() {
@@ -43,7 +42,6 @@ export class ProjectShareDetails extends React.PureComponent {
       semverVersion,
       linkAddress,
       isSnapshotSaveInProgress,
-      isProjectInfoFetchInProgress
     } = this.props
 
     return (
@@ -53,7 +51,7 @@ export class ProjectShareDetails extends React.PureComponent {
           <p style={STYLES.info}>
             <span style={STYLES.label}>ID</span> {projectName}
           </p>
-          {!(isSnapshotSaveInProgress || isProjectInfoFetchInProgress) ? (
+          {!isSnapshotSaveInProgress ? (
             <p style={STYLES.info}>
               <span style={STYLES.label}>Version</span>{' '}
               {semverVersion}
@@ -66,7 +64,6 @@ export class ProjectShareDetails extends React.PureComponent {
         <div style={{width: '50%'}}>
           <LinkHolster
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
-            isProjectInfoFetchInProgress={isProjectInfoFetchInProgress}
             linkAddress={linkAddress}
           />
           <p style={STYLES.info}>Anyone with the link can <strong>view and install</strong> your project.</p>
