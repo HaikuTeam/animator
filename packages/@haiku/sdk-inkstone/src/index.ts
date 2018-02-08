@@ -20,6 +20,7 @@ const ENDPOINTS = {
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: 'v0/support/upload/:UUID',
   UPDATES: 'v0/updates',
   USER_CREATE: 'v0/user',
+  USER_DETAIL: 'v0/user/detail',
   USER_CONFIRM: 'v0/user/confirm/:token',
   USER_REQUEST_CONFIRM: 'v0/user/resend-confirmation/:email',
   RESET_PASSWORD: 'v0/reset-password',
@@ -76,7 +77,7 @@ export namespace inkstone {
   }
 
   const baseHeaders = {
-    'X-Haiku-Version' : packageJson.version,
+    'X-Haiku-Version': packageJson.version,
     'Content-Type': 'application/json',
   };
 
@@ -117,6 +118,11 @@ export namespace inkstone {
       NewPassword: string;
     }
 
+    export interface User {
+      Username: string;
+      IsAdmin: boolean;
+    }
+
     export function authenticate(username, password, cb: inkstone.Callback<Authentication>) {
       const formData = {
         username,
@@ -134,7 +140,26 @@ export namespace inkstone {
           const auth = body as Authentication;
           cb(undefined, auth, httpResponse);
         } else {
-          cb(err, undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
+        }
+      });
+    }
+
+    export function getDetails(authToken: string, cb: inkstone.Callback<User>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.USER_DETAIL,
+        headers: _.extend(baseHeaders, {
+          Authorization: `INKSTONE auth_token="${authToken}"`,
+        }),
+      };
+
+      request.get(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          const response = body as User;
+          cb(undefined, response, httpResponse);
+        } else {
+          const response = body as string;
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -154,7 +179,7 @@ export namespace inkstone {
           cb(undefined, response, httpResponse);
         } else {
           const response = body as string;
-          cb(response, undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -168,7 +193,7 @@ export namespace inkstone {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, body, httpResponse);
         } else {
-          cb(err, undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -199,7 +224,7 @@ export namespace inkstone {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, body, httpResponse);
         } else {
-          cb(err, undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -378,7 +403,7 @@ export namespace inkstone {
     // Gets a snapshot from Inkstone for a snapshot.
     export function getSnapshotLink(
       id: string,
-      cb: inkstone.Callback<{snap: SnapshotAndProjectAndOrganization, link: string}>,
+      cb: inkstone.Callback<{ snap: SnapshotAndProjectAndOrganization, link: string }>,
     ) {
       getSnapshotAndProject(id, (err, snap, response) => {
         if (err) {
