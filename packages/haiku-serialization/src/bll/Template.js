@@ -1,6 +1,7 @@
 const path = require('path')
 const find = require('lodash.find')
 const merge = require('lodash.merge')
+const assign = require('lodash.assign')
 const pascalcase = require('pascalcase')
 const SVGPoints = require('@haiku/core/lib/helpers/SVGPoints').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
@@ -508,7 +509,7 @@ Template.visitManaTreeSpecial = function visitManaTreeSpecial (address, hash, ma
   }
 }
 
-Template.visit = function visit (node, visitor) {
+Template.visit = (node, visitor) => {
   if (node) {
     visitor(node, null)
     if (!node.children) return
@@ -516,6 +517,18 @@ Template.visit = function visit (node, visitor) {
       const child = node.children[i]
       if (typeof child === 'string') continue
       Template.visit(child, visitor)
+    }
+  }
+}
+
+Template.visitNodes = (node, parent, index, visitor) => {
+  if (node) {
+    visitor(node, parent, index)
+    if (!node.children) return
+    for (let i = 0; i < node.children.length; i++) {
+      const child = node.children[i]
+      if (typeof child === 'string') continue
+      Template.visitNodes(child, node, i, visitor)
     }
   }
 }
@@ -668,6 +681,93 @@ Template.allSourceNodes = function allSourceNodes (rootLocator, mana, iteratee) 
 
 Template.visitManaTree = (mana, iteratee) => {
   return visitManaTree(ROOT_LOCATOR, mana, iteratee)
+}
+
+Template.normalize = (mana) => {
+  try {
+    const normed = Template.clone({}, mana)
+    Template.substitueSvgUseReferences(normed)
+    return normed
+  } catch (exception) {
+    // Unsure what input we might get, so to be safe, catch errors and return the original
+    // if we hit a problem while attempting to normalize their content
+    console.warn(exception)
+    return mana
+  }
+}
+
+Template.substitueSvgUseReferences = (mana) => {
+  // Mapping from ids to elements
+  const substitutes = {}
+
+  Template.visitNodes(mana, null, 0, (node, parent, index) => {
+    if (node.attributes && node.attributes.id) {
+      // Is there ever a use that doesn't reference what's in defs?
+      // Can a reference ever be beneath the top level inside defs?
+      if (parent && parent.elementName === 'defs') {
+        substitutes[node.attributes.id] = { node, parent, index }
+      }
+    }
+  })
+
+  // Mapping from href to element requesting the substitution
+  const references = {}
+
+  Template.visitNodes(mana, null, 0, (node, parent, index) => {
+    // According to MDN, xlink:href is deprecated, but it seems more common so use it
+    // and fallback to plain old href if it's present. Maybe an SVG 2.0 thing?
+    const href = node.attributes && (node.attributes['xlink:href'] || node.attributes.href)
+
+    // Will we ever see anything except id-selector references?
+    const id = href && href[0] === '#' && href.slice(1)
+
+    if (id && node.elementName === 'use' && parent) {
+      if (!references[id]) references[id] = []
+      references[id].push({ node, parent, index })
+    }
+  })
+
+  // Tracking elements that we can now remove
+  const substitutions = {}
+
+  for (const referenceId in references) {
+    for (let i = 0; i < references[referenceId].length; i++) {
+      const use = references[referenceId][i]
+      const substitution = substitutes[referenceId]
+
+      if (substitution) {
+        // Replace the use element with the substitution element, copying over our attributes
+        // on top of whatever the substitution had
+        use.parent.children[use.index] = {
+          elementName: substitution.node.elementName,
+          attributes: assign({}, substitution.node.attributes, use.node.attributes),
+          children: substitution.node.children && substitution.node.children.map((child) => {
+            return Template.clone({}, child)
+          })
+        }
+
+        // Clean out the old reference which is now no longer needed and could cause issues
+        delete use.parent.children[use.index].attributes.href
+        delete use.parent.children[use.index].attributes['xlink:href']
+
+        // To avoid duplicate ids, add the index number of this substitution at the end
+        if (use.parent.children[use.index].attributes.id) {
+          use.parent.children[use.index].attributes.id += `-${i}`
+        }
+
+        // Keep track of the substitution so we know what we can remove from defs
+        substitutions[referenceId] = substitution
+      }
+    }
+  }
+
+  // Remove any substitutions that have been made from the defs
+  for (const substitutionId in substitutions) {
+    const substitution = substitutions[substitutionId]
+    substitution.parent.children.splice(substitution.index, 1)
+  }
+
+  return mana
 }
 
 Template.clone = (out, mana) => {
