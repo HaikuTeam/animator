@@ -1,4 +1,5 @@
 import React from 'react'
+import ReactDOM from 'react-dom'
 import { shell, ipcRenderer } from 'electron'
 import Radium from 'radium'
 import Popover from 'react-popover'
@@ -18,8 +19,7 @@ import {
   WarningIconSVG,
   SuccessIconSVG,
   DangerIconSVG,
-  CliboardIconSVG,
-  ShareSVG
+  CliboardIconSVG
 } from 'haiku-ui-common/lib/react/OtherIcons'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
@@ -283,6 +283,16 @@ class StageTitleBar extends React.Component {
         })
       }
     }, 1000)
+
+    document.addEventListener('mouseup', (e) => {
+      if (this._shareModal && this.state.showSharePopover) {
+        const node = ReactDOM.findDOMNode(this._shareModal)
+        const pnode = ReactDOM.findDOMNode(this)
+        if (!node.contains(e.target) && !pnode.contains(e.target)) {
+          this.setState({showSharePopover: false})
+        }
+      }
+    })
   }
 
   componentWillUnmount () {
@@ -334,7 +344,7 @@ class StageTitleBar extends React.Component {
     this.syndicationChecks = 0
   }
 
-  performSyndicationCheck() {
+  performSyndicationCheck () {
     if (this.props.projectModel) {
       // Note: we are ignoring the first parameter (error) because it is expected
       // from inkstone calls to fail while the project is being syndicated,
@@ -346,7 +356,7 @@ class StageTitleBar extends React.Component {
           info.status.errored ||
           this.syndicationChecks >= MAX_SYNDICATION_CHECKS
         ) {
-          return this.setState({snapshotSaveError: {}}, () => {
+          this.setState({snapshotSaveError: {}}, () => {
             return setTimeout(
               () => this.setState({snapshotSaveError: null}),
               2000
@@ -527,7 +537,7 @@ class StageTitleBar extends React.Component {
           <ConnectionIconSVG />
         </button>
 
-        {experimentIsEnabled(Experiment.NewPublishUI) && this.state.showSharePopover &&
+        {experimentIsEnabled(Experiment.NewPublishUI) && this.state.showSharePopover && !this.props.isPreviewMode &&
           <ShareModal
             project={this.props.project}
             snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
@@ -536,6 +546,7 @@ class StageTitleBar extends React.Component {
             semverVersion={this.state.semverVersion}
             error={this.state.snapshotSaveError}
             snapshotSyndicated={this.state.snapshotSyndicated}
+            ref={(el) => { this._shareModal = el }}
           />
         }
 

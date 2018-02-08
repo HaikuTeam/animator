@@ -33,7 +33,7 @@ export class ProjectShareDetails extends React.PureComponent {
     semverVersion: React.PropTypes.string,
     projectName: React.PropTypes.string,
     linkAddress: React.PropTypes.string,
-    isSnapshotSaveInProgress: React.PropTypes.bool
+    isSnapshotSaveInProgress: React.PropTypes.bool,
   }
 
   render() {
@@ -42,6 +42,7 @@ export class ProjectShareDetails extends React.PureComponent {
       semverVersion,
       linkAddress,
       isSnapshotSaveInProgress,
+      onHide,
     } = this.props
 
     return (

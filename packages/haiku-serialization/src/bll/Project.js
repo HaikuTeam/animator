@@ -443,18 +443,6 @@ class Project extends BaseModel {
     })
   }
 
-  pasteThing (pastedElement, maybePasteRequest = {}, cb) {
-    return this.websocketActionWithFolder(
-      'pasteThing',
-      [
-        this.getCurrentActiveComponentRelpath(),
-        pastedElement,
-        maybePasteRequest
-      ],
-      cb
-    )
-  }
-
   requestSyndicationInfo (cb) {
     return this.websocket.request({
       folder: this.getFolder(),
