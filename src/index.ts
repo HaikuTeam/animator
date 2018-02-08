@@ -20,6 +20,7 @@ const ENDPOINTS = {
   SUPPORT_UPLOAD_GET_PRESIGNED_URL: 'v0/support/upload/:UUID',
   UPDATES: 'v0/updates',
   USER_CREATE: 'v0/user',
+  USER_DETAIL: 'v0/user/detail',
   USER_CONFIRM: 'v0/user/confirm/:token',
   USER_REQUEST_CONFIRM: 'v0/user/resend-confirmation/:email',
   RESET_PASSWORD: 'v0/reset-password',
@@ -76,7 +77,7 @@ export namespace inkstone {
   }
 
   const baseHeaders = {
-    'X-Haiku-Version' : packageJson.version,
+    'X-Haiku-Version': packageJson.version,
     'Content-Type': 'application/json',
   };
 
@@ -117,6 +118,11 @@ export namespace inkstone {
       NewPassword: string;
     }
 
+    export interface User {
+      Username: string;
+      IsAdmin: boolean;
+    }
+
     export function authenticate(username, password, cb: inkstone.Callback<Authentication>) {
       const formData = {
         username,
@@ -135,6 +141,25 @@ export namespace inkstone {
           cb(undefined, auth, httpResponse);
         } else {
           cb(err, undefined, httpResponse);
+        }
+      });
+    }
+
+    export function getDetails(authToken: string, cb: inkstone.Callback<User>) {
+      const options: requestLib.UrlOptions & requestLib.CoreOptions = {
+        url: inkstoneConfig.baseUrl + ENDPOINTS.USER_DETAIL,
+        headers: _.extend(baseHeaders, {
+          Authorization: `INKSTONE auth_token="${authToken}"`,
+        }),
+      };
+
+      request.get(options, (err, httpResponse, body) => {
+        if (httpResponse && httpResponse.statusCode === 200) {
+          const response = body as User;
+          cb(undefined, response, httpResponse);
+        } else {
+          const response = body as string;
+          cb(response, undefined, httpResponse);
         }
       });
     }
@@ -177,7 +202,7 @@ export namespace inkstone {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.RESET_PASSWORD,
         headers: baseHeaders,
-        body: JSON.stringify({email}),
+        body: JSON.stringify({ email }),
       };
 
       request.post(options, (err, httpResponse, body) => {
@@ -210,7 +235,7 @@ export namespace inkstone {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url: inkstoneConfig.baseUrl + ENDPOINTS.RESET_PASSWORD_CLAIM.replace(':UUID', resetPasswordUUID),
         headers: baseHeaders,
-        body: JSON.stringify({password}),
+        body: JSON.stringify({ password }),
       };
 
       request.post(options, (err, httpResponse, body) => {
@@ -309,11 +334,11 @@ export namespace inkstone {
           cb(undefined, invitePreset, httpResponse);
         } else {
           if (httpResponse.statusCode === 404) {
-            cb('invalid code', {Valid: Validity.INVALID}, httpResponse);
+            cb('invalid code', { Valid: Validity.INVALID }, httpResponse);
           } else if (httpResponse.statusCode === 410) {
-            cb('code already claimed', {Valid: Validity.ALREADY_CLAIMED}, httpResponse);
+            cb('code already claimed', { Valid: Validity.ALREADY_CLAIMED }, httpResponse);
           } else {
-            cb(safeError(err), {Valid: Validity.ERROR}, httpResponse);
+            cb(safeError(err), { Valid: Validity.ERROR }, httpResponse);
           }
         }
       });
@@ -378,7 +403,7 @@ export namespace inkstone {
     // Gets a snapshot from Inkstone for a snapshot.
     export function getSnapshotLink(
       id: string,
-      cb: inkstone.Callback<{snap: SnapshotAndProjectAndOrganization, link: string}>,
+      cb: inkstone.Callback<{ snap: SnapshotAndProjectAndOrganization, link: string }>,
     ) {
       getSnapshotAndProject(id, (err, snap, response) => {
         if (err) {
@@ -389,7 +414,7 @@ export namespace inkstone {
         if (response && response.statusCode !== 200) {
           cb(err, undefined, undefined);
         } else {
-          cb(undefined, {snap, link: assembleSnapshotLinkFromSnapshot(snap.Snapshot)}, response);
+          cb(undefined, { snap, link: assembleSnapshotLinkFromSnapshot(snap.Snapshot) }, response);
         }
       });
     }
@@ -419,7 +444,7 @@ export namespace inkstone {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
         url,
         headers: baseHeaders,
-        body: JSON.stringify({secret_token: secretToken}),
+        body: JSON.stringify({ secret_token: secretToken }),
       };
 
       request.post(options, (err, httpResponse, body) => {
