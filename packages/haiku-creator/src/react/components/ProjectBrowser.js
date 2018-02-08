@@ -84,7 +84,7 @@ class ProjectBrowser extends React.Component {
       this.setState({
         projectsList,
         areProjectsLoading: false,
-        atProjectMax: projectsList.length >= HARDCODED_PROJECTS_LIMIT
+        atProjectMax: !this.props.isAdmin && projectsList.length >= HARDCODED_PROJECTS_LIMIT
       })
     })
   }
@@ -151,7 +151,10 @@ class ProjectBrowser extends React.Component {
         // the project.
         setTimeout(() => {
           projectsList.splice(index, 1)
-          this.setState({ projectsList, atProjectMax: projectsList.length >= HARDCODED_PROJECTS_LIMIT })
+          this.setState({
+            projectsList,
+            atProjectMax: !this.props.isAdmin &&  projectsList.length >= HARDCODED_PROJECTS_LIMIT
+          })
         }, Math.min(200, Date.now() - deleteStart))
       })
     })

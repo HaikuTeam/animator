@@ -88,6 +88,7 @@ export default class Creator extends React.Component {
       isUserAuthenticated: false,
       username: null,
       password: null,
+      isAdmin: false,
       notices: [],
       softwareVersion: pkg.version,
       didPlumbingNoticeCrash: false,
@@ -974,6 +975,7 @@ export default class Creator extends React.Component {
             username={this.state.username}
             softwareVersion={this.state.softwareVersion}
             organizationName={this.state.organizationName}
+            isAdmin={this.state.isAdmin}
             loadProjects={this.loadProjects}
             launchProject={this.launchProject}
             createNotice={this.createNotice}
