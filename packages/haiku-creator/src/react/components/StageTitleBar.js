@@ -34,7 +34,6 @@ const STYLES = {
     backgroundColor: Palette.COAL,
     position: 'relative',
     top: 0,
-    zIndex: 1,
     height: '36px',
     padding: '6px'
   },

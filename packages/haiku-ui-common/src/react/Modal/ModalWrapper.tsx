@@ -7,7 +7,7 @@ const STYLES = {
   zIndex: 9001,
   cursor: 'auto',
   margin: 'auto',
-  position: 'absolute',
+  position: 'fixed',
   top: '40px',
   left: '0',
   right: '0'
