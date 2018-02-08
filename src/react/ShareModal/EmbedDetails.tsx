@@ -18,6 +18,7 @@ const STYLES = {
     cursor: 'pointer',
     transition: 'transform 200ms ease, border-color 200ms ease',
     backgroundColor: Palette.FATHER_COAL,
+    marginBottom: '20px',
     ':active': {
       transform: 'scale(.9)'
     },
@@ -50,7 +51,7 @@ export class EmbedDetails extends React.PureComponent {
           &lt; ALL OPTIONS
         </button>
 
-        <Template />
+        <Template entry={this.props.entry.entry} />
       </div>
     )
   }

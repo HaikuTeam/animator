@@ -8,7 +8,7 @@ const STYLES = {
   cursor: 'auto',
   margin: 'auto',
   position: 'absolute',
-  top: '80px',
+  top: '40px',
   left: '0',
   right: '0'
 }

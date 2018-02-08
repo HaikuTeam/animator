@@ -24,9 +24,16 @@ export class LoadingTopBar extends React.PureComponent {
     done: React.PropTypes.bool
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    return (
+      nextProps.progress !== this.props.progress ||
+      nextProps.done !== this.props.done
+    )
+  }
+
   static defaultProps = {
     progress: 0,
-    speed: '4s',
+    speed: '15s',
     done: false
   }
 
