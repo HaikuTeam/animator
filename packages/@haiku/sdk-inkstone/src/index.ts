@@ -140,7 +140,7 @@ export namespace inkstone {
           const auth = body as Authentication;
           cb(undefined, auth, httpResponse);
         } else {
-          cb(err, undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -159,7 +159,7 @@ export namespace inkstone {
           cb(undefined, response, httpResponse);
         } else {
           const response = body as string;
-          cb(response, undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -179,7 +179,7 @@ export namespace inkstone {
           cb(undefined, response, httpResponse);
         } else {
           const response = body as string;
-          cb(response, undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -193,7 +193,7 @@ export namespace inkstone {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, body, httpResponse);
         } else {
-          cb(err, undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
@@ -224,7 +224,7 @@ export namespace inkstone {
         if (httpResponse && httpResponse.statusCode === 200) {
           cb(undefined, body, httpResponse);
         } else {
-          cb(err, undefined, httpResponse);
+          cb(safeError(err), undefined, httpResponse);
         }
       });
     }
