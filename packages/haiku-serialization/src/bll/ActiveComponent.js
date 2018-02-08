@@ -227,7 +227,25 @@ class ActiveComponent extends BaseModel {
   }
 
   fetchActiveBytecodeFile () {
-    return File.findById(path.join(this.project.getFolder(), this.getSceneCodeRelpath()))
+    const folder = this.project.getFolder()
+    const relpath = this.getSceneCodeRelpath()
+    const uid = path.join(folder, relpath)
+
+    let file = File.findById(uid)
+
+    // There is a race where the file might not be ready, so we upsert
+    if (!file) {
+      file = File.upsert({
+        uid,
+        relpath,
+        folder
+      })
+
+      // This calls require, which might introduce its own race ¯\_(ツ)_/¯
+      file.mod.load()
+    }
+
+    return file
   }
 
   getActiveInstancesOfHaikuCoreComponent () {
@@ -547,7 +565,7 @@ class ActiveComponent extends BaseModel {
   }
 
   getInsertionPointHash () {
-    const template = this.fetchActiveBytecodeFile().getReifiedBytecode().template
+    const template = this.getReifiedBytecode().template
     return Template.getInsertionPointHash(template, 0, 0)
   }
 
