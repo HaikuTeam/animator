@@ -15,9 +15,9 @@ export default function HaikuVueDOMAdapter(haikuComponentFactory): HaikuVueCompo
       eventHandlers: Object,
       timelines: Object,
       vanities: Object,
-      placeholder: Object
+      placeholder: Object,
     },
-    mounted: function() {
+    mounted() {
       this.haiku = haikuComponentFactory(this.$el, {
         ref: this.$el,
         options: this.$props.haikuOptions,
@@ -27,35 +27,35 @@ export default function HaikuVueDOMAdapter(haikuComponentFactory): HaikuVueCompo
         vanities: this.$props.vanities,
         placeholder: this.$props.placeholder,
         onHaikuComponentWillInitialize: (component) => {
-          this.$emit('haikuComponentWillInitialize', component)
+          this.$emit('haikuComponentWillInitialize', component);
         },
         onHaikuComponentDidMount: (component) => {
-          this.$emit('haikuComponentDidMount', component)
+          this.$emit('haikuComponentDidMount', component);
         },
         onHaikuComponentWillMount: (component) => {
-          this.$emit('haikuComponentWillMount', component)
+          this.$emit('haikuComponentWillMount', component);
         },
         onHaikuComponentDidInitialize: (component) => {
-          this.$emit('haikuComponentDidInitialize', component)
+          this.$emit('haikuComponentDidInitialize', component);
         },
         onHaikuComponentWillUnmount: (component) => {
-          this.$emit('haikuComponentWillUnmount', component)
-        }
-      })
+          this.$emit('haikuComponentWillUnmount', component);
+        },
+      });
     },
-    updated: function() {
+    updated() {
       this.haiku.assignConfig({
         options: this.$props.haikuOptions,
-        states: this.$props.haikuStates
-      })
+        states: this.$props.haikuStates,
+      });
     },
-    destroyed: function() {
-      this.haiku.callUnmount()
+    destroyed() {
+      this.haiku.callUnmount();
     },
-    render: function(createElement) {
+    render(createElement) {
       return createElement('div', {
         attrs: {
-          id: 'haiku-vueroot-' + randomString(24)
+          id: 'haiku-vueroot-' + randomString(24),
         },
         style: {
           position: 'relative',
@@ -64,9 +64,9 @@ export default function HaikuVueDOMAdapter(haikuComponentFactory): HaikuVueCompo
           border: 0,
           width: '100%',
           height: '100%',
-          transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)'
-        }
-      })
-    }
-  }
+          transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
+        },
+      });
+    },
+  };
 }
