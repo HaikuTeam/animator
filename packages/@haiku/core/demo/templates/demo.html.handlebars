@@ -15,6 +15,8 @@
   </style>
   <script src="/webpack/{{demo}}.dom.js"></script>
   <script src="/webpack/{{demo}}.reactDom.js"></script>
+  <script src="/webpack/{{demo}}.vueDom.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js"></script>
 </head>
 <body>
   <div class="container">
@@ -25,18 +27,27 @@
     <p>{{{note}}}</p>
 
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-4">
         <h2>vanilla</h2>
         {{{before}}}
         <div class="mount" id="dom-mount"></div>
         {{{after}}}
       </div>
-      <div class="col-md-6">
+      <div class="col-md-4">
         <h2>react</h2>
         {{{before}}}
         <div class="mount" id="react-dom-mount"></div>
         {{{after}}}
       </div>
+      <div class="col-md-4">
+        <h2>vue</h2>
+        {{{before}}}
+        <div class="mount">
+          <div id="vue-dom-mount"></div>
+        </div>
+        {{{after}}}
+      </div>
+     </div>
     </div>
   </div>
 
@@ -47,6 +58,14 @@
     reactDom.mount
       ? reactDom.mount(reactDomMount, reactDom.React, reactDom.ReactDOM)
       : reactDom.ReactDOM.render(reactDom.React.createElement(reactDom), reactDomMount);
+
+    new Vue({
+      el: '#vue-dom-mount',
+      template: `<{{demo}}></{{demo}}>`,
+      components: {
+        '{{demo}}': vueDom
+      }
+    });
   </script>
 </body>
 </html>
