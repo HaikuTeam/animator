@@ -1,5 +1,14 @@
 import * as React from 'react'
 import {LinkHolster} from '../LinkHolster'
+import Palette from '../../../Palette'
+
+const STYLES = {
+  imgWrapper: {
+    width: '100%',
+    minHeight: '200px',
+    background: Palette.GRAY,
+  }
+}
 
 export default class Gif extends React.PureComponent {
   props
@@ -22,7 +31,9 @@ export default class Gif extends React.PureComponent {
 
     return (
       <div style={{textAlign: 'center'}}>
-        <img src={gif} />
+        <div style={STYLES.imgWrapper}>
+          <img src={gif} />
+        </div>
         <LinkHolster linkAddress={gif} showLoadingBar={false} dark={true} linkLenght={75} />
       </div>
     )
