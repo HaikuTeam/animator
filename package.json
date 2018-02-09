@@ -41,12 +41,14 @@
     "better-react-spinkit": "2.0.0-4",
     "color": "^2.0.1",
     "decamelize": "^1.2.0",
+    "dedent": "^0.7.0",
     "lodash.assign": "^4.2.0",
     "numeral": "^2.0.6",
     "radium": "0.18.1",
     "react": "15.6.2",
-    "react-dom": "15.6.2",
     "react-copy-to-clipboard": "^5.0.0",
-    "react-popover": "^0.4.18"
+    "react-dom": "15.6.2",
+    "react-popover": "^0.4.18",
+    "react-syntax-highlighter": "^7.0.0"
   }
 }

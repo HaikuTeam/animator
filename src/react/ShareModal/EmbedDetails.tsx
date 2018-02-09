@@ -1,31 +1,8 @@
 import * as React from 'react'
 import * as ShareTemplates from './ShareOptions'
-import Palette from '../../Palette'
+import {SHARED_STYLES} from '../../SharedStyles'
 
 const STYLES = {
-  btnText: {
-    height: '25px',
-    padding: '4px 9px',
-    fontSize: 11,
-    letterSpacing: '1.3px',
-    marginRight: '5px',
-    lineHeight: 1,
-    display: 'flex',
-    alignItems: 'center',
-    borderRadius: '3px',
-    color: Palette.ROCK,
-    transform: 'scale(1)',
-    cursor: 'pointer',
-    transition: 'transform 200ms ease, border-color 200ms ease',
-    backgroundColor: Palette.FATHER_COAL,
-    marginBottom: '20px',
-    ':active': {
-      transform: 'scale(.9)'
-    },
-    ':hover': {
-      color: Palette.ROCK
-    }
-  } as React.CSSProperties,
   wrapper: {
     padding: '20px',
     color: 'white'
@@ -37,7 +14,11 @@ export class EmbedDetails extends React.PureComponent {
 
   static propTypes = {
     entry: React.PropTypes.object,
-    onHide: React.PropTypes.func.isRequired
+    projectName: React.PropTypes.string,
+    userName: React.PropTypes.string,
+    onHide: React.PropTypes.func.isRequired,
+    projectUid: React.PropTypes.string,
+    sha: React.PropTypes.string,
   }
 
   render () {
@@ -47,11 +28,17 @@ export class EmbedDetails extends React.PureComponent {
 
     return (
       <div style={STYLES.wrapper}>
-        <button onClick={this.props.onHide} style={STYLES.btnText}>
+        <button onClick={this.props.onHide} style={SHARED_STYLES.btn}>
           &lt; ALL OPTIONS
         </button>
 
-        <Template entry={this.props.entry.entry} />
+        <Template
+          entry={this.props.entry.entry}
+          projectName={this.props.projectName}
+          userName={this.props.userName}
+          projectUid={this.props.projectUid}
+          sha={this.props.sha}
+        />
       </div>
     )
   }

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Palette from '../../Palette'
 import {LinkHolster} from './LinkHolster'
-import {ProjectPublisher} from './ProjectPublisher'
 
 const STYLES = {
   wrapper: {

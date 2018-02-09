@@ -9,7 +9,7 @@ const STYLES = {
     marginBottom: '30px'
   },
   item: {
-    flex: 1
+    width: '50%',
   }
 }
 
