@@ -27,7 +27,8 @@ export const PUBLISH_SHARED = {
   block: {
     display: 'inline-block',
     verticalAlign: 'top',
-    fontSize: 14,
+    // fontSize: 14,
+    width: '100%',
   },
   nav: {
     width: 190,
@@ -41,7 +42,6 @@ export const PUBLISH_SHARED = {
   link: {
     padding: '2px 16px',
     cursor: 'pointer',
-    userSelect: 'none',
     color: Color(Palette.ROCK).fade(0.5),
     ':hover': {
       color: Color(Palette.ROCK).fade(0.2),
@@ -83,5 +83,6 @@ export const PUBLISH_SHARED = {
   instructionsCol2: {
     width: 'calc(100% - 35px)',
     display: 'inline-block',
+    userSelect: 'initial',
   },
 };

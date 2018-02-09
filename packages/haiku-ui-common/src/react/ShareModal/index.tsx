@@ -27,6 +27,9 @@ export class ShareModal extends React.Component {
     isProjectInfoFetchInProgress: React.PropTypes.bool,
     snapshotSyndicated: React.PropTypes.bool,
     semverVersion: React.PropTypes.string,
+    userName: React.PropTypes.string,
+    projectUid: React.PropTypes.string,
+    sha: React.PropTypes.string,
   }
 
   constructor () {
@@ -63,6 +66,9 @@ export class ShareModal extends React.Component {
       isProjectInfoFetchInProgress,
       isSnapshotSaveInProgress,
       snapshotSyndicated,
+      userName,
+      sha,
+      projectUid,
     } = this.props
 
     return (
@@ -93,6 +99,10 @@ export class ShareModal extends React.Component {
           rightPanel={
             <EmbedDetails
               entry={this.state.selectedEntry}
+              projectName={project.projectName}
+              userName={userName}
+              projectUid={projectUid}
+              sha={sha}
               onHide={() => {
                 this.hideDetails()
               }}

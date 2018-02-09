@@ -1,8 +1,29 @@
 import * as React from 'react'
+import * as dedent from 'dedent'
 import {PUBLISH_SHARED} from './PublishStyles'
+import {CodeBox} from '../../CodeBox'
 
 export default class Embed extends React.PureComponent {
+  props
+
+  static propTypes = {
+    projectName: React.PropTypes.string,
+    userName: React.PropTypes.string,
+    projectUid: React.PropTypes.string,
+    sha: React.PropTypes.string,
+  }
+
+  get cdnBase() {
+    let cdnBase = 'https://cdn.haiku.ai/';
+
+    return `${cdnBase + this.props.projectUid}/${this.props.sha}/`;
+  }
+
   render () {
+    const {userName, projectName, sha} = this.props
+    const scriptPath = `${this.cdnBase}index.standalone.js`;
+    const embedPath = `${this.cdnBase}index.embed.js`;
+
     return (
       <div style={PUBLISH_SHARED.block}>
         <div style={PUBLISH_SHARED.instructionsRow}>
@@ -15,19 +36,19 @@ export default class Embed extends React.PureComponent {
         <div style={PUBLISH_SHARED.instructionsRow}>
           <div style={PUBLISH_SHARED.instructionsCol1}>&nbsp;</div>
           <div style={PUBLISH_SHARED.instructionsCol2}>
-            <code style={PUBLISH_SHARED.code}>
-              {`
-                <div id="mount-b0d5e758-77d4-48df-a966-a168bdfad0b7"></div>
-                <script src="https://code.haiku.ai/scripts/core/HaikuCore.3.0.21.min.js"></script>
-                <script src="https://cdn.haiku.ai/0f8a24de-4f24-4b51-9c4c-da30ff838caa/7dd870deef3f287f9c030404190f2ee89e8000b3/index.embed.js"></script>
+            <CodeBox>
+              {dedent`
+                <div id="mount-${sha}"></div>
+                <script src="${scriptPath}"></script>
+                <script src="${embedPath}"></script>
                 <script>
-                  HaikuComponentEmbed_ash_shik2(
-                    document.getElementById('mount-b0d5e758-77d4-48df-a966-a168bdfad0b7'),
+                  HaikuComponentEmbed_${userName.toLowerCase()}_${projectName}(
+                    document.getElementById('mount-${sha}'),
                     {loop: true}
                   );
                 </script>
               `}
-            </code>
+            </CodeBox>
           </div>
         </div>
        </div>

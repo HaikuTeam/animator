@@ -2,28 +2,50 @@ import * as React from 'react'
 import * as Color from 'color'
 import Palette from '../../../Palette'
 import {PUBLISH_SHARED} from './PublishStyles'
+import {ExternalLink} from '../../ExternalLink'
+import {SHARED_STYLES} from '../../../SharedStyles'
+
+const STYLES = {
+  light: {
+    backgroundColor: Palette.ROCK,
+    opacity: 0.87,
+    color: Palette.BLUE,
+    ':hover': {
+      opacity: 1,
+    },
+  },
+}
 
 export default class Lottie extends React.PureComponent {
   props
 
   static propTypes = {
-    entry: React.PropTypes.string
+    entry: React.PropTypes.string,
+    userName: React.PropTypes.string,
+    projectUid: React.PropTypes.string,
+    sha: React.PropTypes.string,
+  }
+
+  get cdnBase() {
+    let cdnBase = 'https://cdn.haiku.ai/';
+
+    return `${cdnBase + this.props.projectUid}/${this.props.sha}/`;
   }
 
   render () {
+    const lottiePath = `${this.cdnBase}code/main/lottie.json`
+
     return (
       <div style={[PUBLISH_SHARED.block, {width: 450}]}>
       <div style={PUBLISH_SHARED.instructionsRow}>
         Native rendering for {this.props.entry} is supported with {' '}
-        <a
+        <ExternalLink
           key="1"
           style={PUBLISH_SHARED.inlineLink}
-          target="_blank"
           href="https://airbnb.design/lottie/"
-          rel="noopener noreferrer"
         >
           Lottie
-        </a>.
+        </ExternalLink>.
       </div>
       <div style={PUBLISH_SHARED.instructionsRow}>
         <div style={PUBLISH_SHARED.instructionsCol1}>
@@ -35,10 +57,10 @@ export default class Lottie extends React.PureComponent {
       </div>
       <div style={PUBLISH_SHARED.instructionsRow}>
         <div style={PUBLISH_SHARED.instructionsCol1} />
-        <div style={[PUBLISH_SHARED.instructionsCol2, {textAlign: 'center'}]}>
-          <a download>
+        <div style={{...PUBLISH_SHARED.instructionsCol2}}>
+          <ExternalLink style={SHARED_STYLES.btn}  href={lottiePath}>
             Download JSON
-          </a>
+          </ExternalLink>
         </div>
       </div>
       <div style={PUBLISH_SHARED.instructionsRow}>
@@ -53,43 +75,35 @@ export default class Lottie extends React.PureComponent {
         <div style={PUBLISH_SHARED.instructionsCol1} />
         <div style={PUBLISH_SHARED.instructionsCol2}>
           See Lottie's instructions for {' '}
-          <a
+          <ExternalLink
             key="3"
             href="http://airbnb.io/lottie/android/android.html"
             style={PUBLISH_SHARED.inlineLink}
-            target="_blank"
-            rel="noopener noreferrer"
           >
             Android
-          </a>, {' '}
-          <a
+          </ExternalLink>, {' '}
+          <ExternalLink
             key="4"
             href="http://airbnb.io/lottie/ios.html"
             style={PUBLISH_SHARED.inlineLink}
-            target="_blank"
-            rel="noopener noreferrer"
           >
             iOS
-          </a>,
+          </ExternalLink>,
           and {' '}
-          <a
+          <ExternalLink
             key="5"
             href="http://airbnb.io/lottie/react-native/react-native.html"
             style={PUBLISH_SHARED.inlineLink}
-            target="_blank"
-            rel="noopener noreferrer"
           >
             React Native
-          </a>, and check {' '}
-          <a
+          </ExternalLink>, and check {' '}
+          <ExternalLink
             key="6"
             href="https://docs.haiku.ai/embedding-and-using-haiku/lottie.html"
             style={PUBLISH_SHARED.inlineLink}
-            target="_blank"
-            rel="noopener noreferrer"
           >
             Haiku docs
-          </a> for supported Lottie versions.
+          </ExternalLink> for supported Lottie versions.
         </div>
       </div>
     </div>

@@ -3,31 +3,9 @@ import * as assign from 'lodash.assign'
 import Palette from '../../Palette'
 import {LoadingTopBar} from '../../LoadingTopBar'
 import {Tooltip} from '../Tooltip'
+import {SHARED_STYLES} from '../../SharedStyles'
 
 const STYLES = {
-  btnText: {
-    height: '25px',
-    padding: '4px 9px',
-    fontSize: 11,
-    letterSpacing: '1.3px',
-    marginRight: '5px',
-    lineHeight: 1,
-    display: 'flex',
-    alignItems: 'center',
-    float: 'right',
-    borderRadius: '3px',
-    color: Palette.ROCK,
-    transform: 'scale(1)',
-    cursor: 'pointer',
-    transition: 'transform 200ms ease, border-color 200ms ease',
-    backgroundColor: Palette.FATHER_COAL,
-    ':active': {
-      transform: 'scale(.9)'
-    },
-    ':hover': {
-      color: Palette.ROCK
-    }
-  },
   entry: {
     float: 'none',
     width: '100%',
@@ -93,7 +71,6 @@ export class EmbedOption extends React.PureComponent {
   }
 
   componentWillUnmount () {
-    console.log(this.updateTimeout)
     if (this.updateTimeout) {
       clearTimeout(this.updateTimeout)
       this.updateTimeout = null
@@ -136,7 +113,7 @@ export class EmbedOption extends React.PureComponent {
             style={assign(
               {},
               {
-                ...STYLES.btnText,
+                ...SHARED_STYLES.btn,
                 ...STYLES.entry,
                 ...(disabled && STYLES.entry.disabled),
                 ...(!this.state.done && STYLES.entry.loading)

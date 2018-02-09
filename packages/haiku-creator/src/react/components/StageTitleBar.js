@@ -208,7 +208,7 @@ class StageTitleBar extends React.Component {
       linkAddress: 'Fetching Info',
       semverVersion: '0.0.0',
       showCopied: false,
-      projectInfo: null,
+      projectInfo: {},
       gitUndoables: [],
       gitRedoables: [],
       snapshotSyndicated: true
@@ -549,7 +549,10 @@ class StageTitleBar extends React.Component {
             semverVersion={this.state.semverVersion}
             error={this.state.snapshotSaveError}
             snapshotSyndicated={this.state.snapshotSyndicated}
+            userName={this.props.username}
             ref={(el) => { this._shareModal = el }}
+            projectUid={this.state.projectInfo.projectUid}
+            sha={this.state.projectInfo.sha}
           />
         }
 

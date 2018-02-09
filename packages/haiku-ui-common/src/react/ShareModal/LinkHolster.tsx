@@ -27,7 +27,6 @@ const STYLES = {
   },
   linkCopyBtn: {
     height: '100%',
-    background: Palette.COAL,
     padding: '0 8px',
     display: 'flex',
     alignItems: 'center'
@@ -36,11 +35,19 @@ const STYLES = {
 
 export class LinkHolster extends React.PureComponent {
   props
-  updateTimeout
 
   static propTypes = {
     isSnapshotSaveInProgress: React.PropTypes.bool,
-    linkAddress: React.PropTypes.string
+    linkAddress: React.PropTypes.string,
+    showLoadingBar: React.PropTypes.bool,
+    dark: React.PropTypes.bool,
+    linkLenght: React.PropTypes.number,
+  }
+
+  static defaultProps = {
+    showLoadingBar: true,
+    dark: false,
+    linkLenght: 33,
   }
 
   state = {
@@ -57,36 +64,29 @@ export class LinkHolster extends React.PureComponent {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.isSnapshotSaveInProgress) {
-      // this.updateTimeout = setTimeout(() => {
-        // if (this.updateTimeout) {
-          this.setState({done: false, progress: 80, speed: '15s'})
-        // }
-      // }, 1000)
+        this.setState({done: false, progress: 80, speed: '15s'})
     } else {
       this.setState({done: true, progress: 0, speed: '1ms'})
     }
   }
 
-  componentWillUnmount () {
-    if (this.updateTimeout) {
-      clearTimeout(this.updateTimeout)
-      this.updateTimeout = null
-    }
-  }
 
   render() {
     const {
       isSnapshotSaveInProgress,
-      linkAddress
+      linkAddress,
+      showLoadingBar,
+      dark,
+      linkLenght,
     } = this.props
 
     return (
       <div style={STYLES.linkHolster}>
-        <LoadingTopBar
+        {showLoadingBar && <LoadingTopBar
           progress={this.state.progress}
           speed={this.state.speed}
           done={this.state.done}
-        />
+        />}
         {isSnapshotSaveInProgress ? (
           <span style={STYLES.link}>New share link being generated</span>
         ) : (
@@ -94,11 +94,11 @@ export class LinkHolster extends React.PureComponent {
             style={STYLES.link}
             onClick={() => shell.openExternal(linkAddress)}
           >
-            {linkAddress ? linkAddress.substring(0, 33) : ''}
+            {linkAddress ? linkAddress.substring(0, linkLenght) : ''}
           </span>
         )}
         <CopyToClipboard text={this.props.linkAddress}>
-          <span style={STYLES.linkCopyBtn}>
+          <span style={{...STYLES.linkCopyBtn, background: dark ? Palette.BLACK : Palette.COAL }}>
             <CliboardIconSVG />
           </span>
         </CopyToClipboard>

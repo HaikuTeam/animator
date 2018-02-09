@@ -13,6 +13,8 @@ export class ExternalLink extends React.PureComponent {
   render () {
     return (
       <a
+        target="_blank"
+        rel="noopener noreferrer"
         title={this.props.title}
         style={this.props.style}
         onClick={(clickEvent) => {

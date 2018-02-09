@@ -9,8 +9,8 @@ export const SHARE_OPTIONS = {
       template: 'ReactHaiku',
     },
     Vue: {
-      disabled: true,
-      template: '',
+      disabled: false,
+      template: 'VueHaiku',
     },
     Angular: {
       disabled: true,
