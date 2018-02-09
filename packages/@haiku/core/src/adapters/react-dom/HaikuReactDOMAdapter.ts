@@ -5,6 +5,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import EventsDict from './EventsDict';
+import {randomString} from '../../helpers/StringUtils';
 
 const DEFAULT_HOST_ELEMENT_TAG_NAME = 'div';
 
@@ -305,20 +306,6 @@ export default function HaikuReactDOMAdapter(haikuComponentFactory, optionalRawB
   }
 
   return HaikuReactComponentInternal;
-}
-
-/**
- * Quick-and-dirty way to generate unique DOM-friendly ids on the fly...
- */
-
-const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
-
-function randomString(len) {
-  let str = '';
-  while (str.length < len) {
-    str += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
-  }
-  return str;
 }
 
 function visit(el, visitor) {

@@ -848,6 +848,7 @@ class Project extends BaseModel {
     fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom.js`), DOM_JS)
     fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom-embed.js`), DOM_EMBED_JS)
     fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/react-dom.js`), REACT_DOM_JS)
+    fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/vue-dom.js`), VUE_DOM_JS)
 
     if (!fse.existsSync(path.join(this.getFolder(), `code/${scenename}/dom-standalone.js`))) {
       fse.outputFileSync(path.join(this.getFolder(), `code/${scenename}/dom-standalone.js`), DOM_STANDALONE_JS)
@@ -1047,4 +1048,11 @@ const REACT_DOM_JS = dedent`
   var HaikuReactComponent = HaikuReactAdapter(require('./dom'))
   if (HaikuReactComponent.default) HaikuReactComponent = HaikuReactComponent.default
   module.exports = HaikuReactComponent
+`.trim()
+
+const VUE_DOM_JS = dedent`
+  var HaikuVueAdapter = require('@haiku/core/dom/vue')
+  var HaikuVueComponent = HaikuVueAdapter(require('./dom'))
+  if (HaikuVueComponent.default) HaikuVueComponent = HaikuVueComponent.default
+  module.exports = HaikuVueComponent
 `.trim()
