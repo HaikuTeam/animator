@@ -9,6 +9,7 @@ export interface User {
   setConfig: MaybeAsync<(key: string, value: string) => void>;
   getConfig: MaybeAsync<(key: string) => string>;
   getAuthToken: MaybeAsync<() => string>;
+  getUserDetails: MaybeAsync<() => MaybeAsync<inkstone.user.User>>;
 }
 
 export const USER_CHANNEL = 'user';
@@ -35,6 +36,14 @@ export class UserHandler implements User {
 
   getUserId(): string {
     return sdkClient.config.getUserId();
+  }
+
+  getUserDetails(): Promise<inkstone.user.User> {
+    return new Promise<inkstone.user.User>((resolve) => {
+      inkstone.user.getDetails(this.getAuthToken(), (err, user, response) => {
+        resolve(user);
+      });
+    });
   }
 
 }

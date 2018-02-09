@@ -170,16 +170,34 @@ export default class EnvoyServer {
         const method = handler.instance[data.method];
         if (method && typeof method === 'function') {
           const returnValue = method.apply(handler.instance, data.params);
-          const response = <Datagram> {
-            channel: data.channel,
-            data: returnValue,
-            id: data.id,
-            intent: DatagramIntent.RESPONSE,
 
-          };
-          // TODO: could reply directly to the client that requested instead of broadcasting to all
-          //       would require identifying the client (via datagram) & then tracking clientId in future datagrams
-          this.broadcast(response);
+          if (returnValue && returnValue.then) {
+            //assume this is a promise, and unwrap it before sending response
+            returnValue.then((unwrapped) => {
+              // const unwrappedString = JSON.stringify(unwrapped);
+              const response = <Datagram>{
+                channel: data.channel,
+                data: unwrapped,
+                id: data.id,
+                intent: DatagramIntent.RESPONSE,
+              };
+              // TODO: could reply directly to the client that requested instead of broadcasting to all
+              //       would require identifying the client (via datagram) & then tracking clientId in future datagrams
+              this.broadcast(response);
+            });
+
+          } else {
+            const response = <Datagram>{
+              channel: data.channel,
+              data: returnValue,
+              id: data.id,
+              intent: DatagramIntent.RESPONSE,
+
+            };
+            // TODO: could reply directly to the client that requested instead of broadcasting to all
+            //       would require identifying the client (via datagram) & then tracking clientId in future datagrams
+            this.broadcast(response);
+          }
 
         } else {
           this.logger.warn('Not Found', `Method ${method} not found at ${data.channel}`);
@@ -189,7 +207,7 @@ export default class EnvoyServer {
       const handler = this.handlerRegistry.get(data.channel);
       if (handler) {
         const schema = this.discoverSchemaOfHandlerPrototype(handler);
-        const response = <Datagram> {
+        const response = <Datagram>{
           channel: data.channel,
           data: JSON.stringify(schema),
           id: data.id,
@@ -236,7 +254,7 @@ export default class EnvoyServer {
    * populates into a schema object.
    */
   private discoverSchemaOfHandlerPrototype(handlerTuple: HandlerTuple): Schema {
-    const ret = <Schema> {};
+    const ret = <Schema>{};
     const proto = handlerTuple.proto;
     const instance = handlerTuple.instance;
     Object.getOwnPropertyNames(proto).forEach((name) => {
