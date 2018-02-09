@@ -366,7 +366,7 @@ class StageTitleBar extends React.Component {
         }
 
         if (info.status.syndicated) {
-          this.setState({snapshotSyndicated: true})
+          this.setState({snapshotSyndicated: true, projectInfo: info})
           this.clearSyndicationChecks()
         }
       })
