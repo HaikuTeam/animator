@@ -47,6 +47,10 @@ export default function HaikuVueDOMAdapter(haikuComponentFactory): HaikuVueCompo
       this.haiku.assignConfig({
         options: this.$props.haikuOptions,
         states: this.$props.haikuStates,
+        eventHandlers: this.$props.eventHandlers,
+        timelines: this.$props.timelines,
+        vanities: this.$props.vanities,
+        placeholder: this.$props.placeholder,
       });
     },
     destroyed() {
