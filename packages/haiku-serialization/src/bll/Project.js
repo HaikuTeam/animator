@@ -1049,3 +1049,10 @@ const REACT_DOM_JS = dedent`
   if (HaikuReactComponent.default) HaikuReactComponent = HaikuReactComponent.default
   module.exports = HaikuReactComponent
 `.trim()
+
+const VUE_DOM_JS = dedent`
+  var HaikuVueAdapter = require('@haiku/core/dom/vue')
+  var HaikuVueComponent = HaikuVueAdapter(require('./dom'))
+  if (HaikuVueComponent.default) HaikuVueComponent = HaikuVueComponent.default
+  module.exports = HaikuVueComponent
+`.trim()
