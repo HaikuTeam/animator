@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.31
+
+### Bug Fixes
+
+ * Case-sensitive require paths required in distro
+
 ## 3.0.30
 
 ### Features
