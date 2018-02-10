@@ -22,7 +22,7 @@ import Toast from './components/notifications/Toast'
 import Tour from './components/Tour/Tour'
 import AutoUpdater from './components/AutoUpdater'
 import ProjectLoader from './components/ProjectLoader'
-import OfflineModePage from './Components/OfflineModePage'
+import OfflineModePage from './components/OfflineModePage'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 // Note that `User` is imported below for type discovery
