@@ -53,7 +53,8 @@ export class LinkHolster extends React.PureComponent {
   state = {
     done: false,
     progress: 0,
-    speed: '15s'
+    speed: '15s',
+    copied: false,
   }
 
   componentDidMount () {
@@ -70,14 +71,45 @@ export class LinkHolster extends React.PureComponent {
     }
   }
 
+  setCopyText () {
+    this.setState({copied: true}, () => {
+      setTimeout(() => {this.setState({copied: false})}, 1900)
+    })
+  }
 
-  render() {
+  get text () {
     const {
       isSnapshotSaveInProgress,
       linkAddress,
+      linkLenght,
+    } = this.props
+
+    if (this.props.isSnapshotSaveInProgress) {
+      return <span style={STYLES.link}>New share link being generated</span>
+    }
+
+    if (this.state.copied) {
+      return <span style={STYLES.link}>Copied!</span>
+    }
+
+    if (linkAddress) {
+      return (
+          <span
+            style={STYLES.link}
+            onClick={() => shell.openExternal(linkAddress)}
+          >
+            {linkAddress.substring(0, linkLenght)}
+          </span>
+      )
+    }
+
+    return ''
+  }
+
+  render() {
+    const {
       showLoadingBar,
       dark,
-      linkLenght,
     } = this.props
 
     return (
@@ -87,17 +119,8 @@ export class LinkHolster extends React.PureComponent {
           speed={this.state.speed}
           done={this.state.done}
         />}
-        {isSnapshotSaveInProgress ? (
-          <span style={STYLES.link}>New share link being generated</span>
-        ) : (
-          <span
-            style={STYLES.link}
-            onClick={() => shell.openExternal(linkAddress)}
-          >
-            {linkAddress ? linkAddress.substring(0, linkLenght) : ''}
-          </span>
-        )}
-        <CopyToClipboard text={this.props.linkAddress}>
+          {this.text}
+        <CopyToClipboard text={this.props.linkAddress} onCopy={() => {this.setCopyText()}}>
           <span style={{...STYLES.linkCopyBtn, background: dark ? Palette.BLACK : Palette.COAL }}>
             <CliboardIconSVG />
           </span>
