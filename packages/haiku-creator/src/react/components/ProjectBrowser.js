@@ -228,7 +228,11 @@ class ProjectBrowser extends React.Component {
 
   handleProjectLaunch (projectObject) {
     this.props.setProjectLaunchStatus({ launchingProject: true, newProjectLoading: false })
-    this.tourChannel.hide()
+
+    if (this.tourChannel) {
+      this.tourChannel.hide()
+    }
+
     return this.props.launchProject(projectObject.projectName, projectObject, (error) => {
       if (error) {
         this.props.createNotice({
