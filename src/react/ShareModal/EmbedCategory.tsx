@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as assign from 'lodash.assign'
-import {SHARE_OPTIONS} from './shareModalOptions'
+import {SHARE_OPTIONS} from './ShareModalOptions'
 import {EmbedOption} from './EmbedOption'
 
 const STYLES = {

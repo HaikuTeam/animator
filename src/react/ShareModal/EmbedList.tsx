@@ -4,7 +4,7 @@ import Palette from '../../Palette'
 import {Tooltip} from '../Tooltip'
 import {ExternalLink} from '../ExternalLink'
 import {EmbedCategory} from './EmbedCategory'
-import {SHARE_OPTIONS} from './shareModalOptions'
+import {SHARE_OPTIONS} from './ShareModalOptions'
 
 const STYLES = {
   categories: {
