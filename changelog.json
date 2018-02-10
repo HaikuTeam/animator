@@ -4756,5 +4756,12 @@
       "label": "feat",
       "message": "add init command to CLI"
     }
+  },
+  "3.0.31": {
+    "427d1c5bebe8db793d345a943c621f78073d9d9c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Case-sensitive require paths required in distro"
+    }
   }
 }
