@@ -37,6 +37,7 @@
     "haiku-timeline": "3.0.29",
     "haiku-ui-common": "3.0.29",
     "inline-style-prefixer": "2.0.5",
+    "is-online": "^7.0.0",
     "lodash": "^4.17.4",
     "lodash.assign": "^4.2.0",
     "lodash.debounce": "4.0.8",
