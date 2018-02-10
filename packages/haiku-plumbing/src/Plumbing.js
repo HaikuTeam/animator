@@ -272,7 +272,7 @@ export default class Plumbing extends StateObject {
           this.clients.push(websocket)
 
           websocket.on('close', () => {
-            logger.info(`[plumbing] websocket  for ${folder} closed (${type} ${alias})`)
+            logger.info(`[plumbing] websocket for ${folder} closed (${type} ${alias})`)
             this.removeWebsocketClient(websocket)
           })
 
