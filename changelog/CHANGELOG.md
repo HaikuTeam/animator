@@ -1,6 +1,29 @@
 # Changelog
 
 
+## 3.0.30
+
+### Features
+
+ * Method to enumerate projects from the home directory
+ * Let Websocket#request accept a timeout and retry param
+ * update demos to support Vue.js
+ * implement the barebones of the Vue.js adapter
+ * publish ui implementation
+ * Allow placeholder elements to be targeted via basic CSS selectors
+ * abstract the tooltip logic into a component
+ * Publish UI V2
+ * add init command to CLI
+
+### Bug Fixes
+
+ * Since username can be an email address, share snippets need to use the org name
+ * improve the look and feel of the gifs
+ * add missing assignations on vue component update
+ * ui inconsistencies and possible crashes
+ * avoid crashes and errors due to timeouts and listeners
+ * add a missing dependency to creator
+
 ## 3.0.29
 
 ### Bug Fixes

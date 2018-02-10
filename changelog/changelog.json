@@ -4679,5 +4679,82 @@
       "label": "fix",
       "message": "do not scroll glass when the actions editor is open"
     }
+  },
+  "3.0.30": {
+    "e5768f794a955fa2569228c45681e1c6ae228197": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Method to enumerate projects from the home directory"
+    },
+    "5248b44200074eb2613d8379d2826144be3b0f88": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Since username can be an email address, share snippets need to use the org name"
+    },
+    "42715d2d913435245a4e0fa06b4262f55286548b": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Let Websocket#request accept a timeout and retry param"
+    },
+    "3e98441717ceb489e8fd2f8678937dd296bbfdc1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "improve the look and feel of the gifs"
+    },
+    "baba76e09b62e4b63a8276260461ac71ec051184": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add missing assignations on vue component update"
+    },
+    "4de063fbaa85e1d46b3be0a97da0a8accf000160": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "update demos to support Vue.js"
+    },
+    "cb7f5bd7c473e56f9d18ee45638282de17a187b2": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "implement the barebones of the Vue.js adapter"
+    },
+    "c0309b31f92712080316a5870afcda48653d6423": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "ui inconsistencies and possible crashes"
+    },
+    "4bd154309442e42be6fa6b32fbe6a25163dfc6ad": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "avoid crashes and errors due to timeouts and listeners"
+    },
+    "9bf3e44e44b056ec8b998fd9279460e537dec633": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "publish ui implementation"
+    },
+    "c32173e4edb22ede6d68e718a05eac1d8ccc75ad": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Allow placeholder elements to be targeted via basic CSS selectors"
+    },
+    "a2e2a92efd33a27fbfe0ca55bdba66e1e13aabe3": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "abstract the tooltip logic into a component"
+    },
+    "d46108ef2ab8e22517686d3486fbefcd792dc411": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add a missing dependency to creator"
+    },
+    "9ad7532eff189cd3c43e5bb3d0e36f0ae5c05673": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Publish UI V2"
+    },
+    "fecf348e517b44377ead8d7274b6751761c79151": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add init command to CLI"
+    }
   }
 }
