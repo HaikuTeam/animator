@@ -956,6 +956,16 @@ export default class Plumbing extends StateObject {
       }
     })
 
+    // Any messages destined for the folder need to be cleared since there's now
+    // nobody who is able to receive them
+    for (let i = this._methodMessages.length - 1; i >= 0; i--) {
+      const message = this._methodMessages[i]
+      if (message.folder === folder) {
+        logger.info(`[plumbing] clearing message`, message)
+        this._methodMessages.splice(i, 1)
+      }
+    }
+
     cb()
   }
 
