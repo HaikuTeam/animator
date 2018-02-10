@@ -75,11 +75,12 @@ app.get('/demos/:demo', (req, res) => {
 
   const dom = path.join(PROJECTS_DIRECTORY, demo, 'code', 'main', 'dom.js');
   const reactDom = path.join(PROJECTS_DIRECTORY, demo, 'code', 'main', 'react-dom.js');
-  if (!fse.existsSync(dom) || !fse.existsSync(reactDom)) {
+  const vueDom = path.join(PROJECTS_DIRECTORY, demo, 'code', 'main', 'vue-dom.js');
+  if (!fse.existsSync(dom) || !fse.existsSync(reactDom) || !fse.existsSync(vueDom)) {
     return res.status(404).send('Demo not found!');
   }
 
-  const compiler = getSimpleCompiler({dom, reactDom}, demo);
+  const compiler = getSimpleCompiler({dom, reactDom, vueDom}, demo);
 
   try {
     compiler.run((err, stats) => {

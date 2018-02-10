@@ -4627,5 +4627,57 @@
     }
   },
   "3.0.27": {},
-  "3.0.28": {}
+  "3.0.28": {},
+  "3.0.29": {
+    "8b426fca0f2bde05ad1ccb13083681f99da000d7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add missing assignations on vue component update"
+    },
+    "8c8176fb9d1c846ee5e428c79231c65edeb2106a": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "update haiku-serialization to include Vue.js boilerplate"
+    },
+    "a41ce25cbeb6231d896e3144d55fbe9bea365707": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "update demos to support Vue.js"
+    },
+    "a352208b69f5643ecc03c657ac624423287c4eff": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "implement the barebones of the Vue.js adapter"
+    },
+    "75c31a905bd8b689873c709871b41dfa01c194a8": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "When creating 0th keyframe, use the previous 0th's value"
+    },
+    "83586bfb9a1f1b5a6d5c6b2c7ba442faa9d31412": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Allow placeholder elements to be targeted via basic CSS selectors"
+    },
+    "9ebe7f457afeec2da900ad668926405e923c49a0": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add init command to CLI"
+    },
+    "5885161e1a1222ae7cd17e311cf5125aca6ecc39": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "don't doubly serialize JSON; hook up server-fetched admin status to react state"
+    },
+    "ba164ddc01313117dabd3697350854c7ef3e1c64": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "don't hold admin accounts to nomral proj limit"
+    },
+    "1635c0ab4447e521b5aa39e912659f6e552f8527": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "do not scroll glass when the actions editor is open"
+    }
+  }
 }
