@@ -19,6 +19,7 @@ export enum Experiment {
   NoNormalizeOnSetup = 'NoNormalizeOnSetup',
   SvgOptimizer = 'SvgOptimizer',
   NewPublishUI = 'NewPublishUI',
+  NormalizeSvgContent = 'NormalizeSvgContent',
 }
 
 /**
