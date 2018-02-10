@@ -4763,5 +4763,12 @@
       "label": "fix",
       "message": "Case-sensitive require paths required in distro"
     }
+  },
+  "3.0.32": {
+    "f752b9aa2ca53f9d64a2054a96bcb85a12854b28": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Case-sens"
+    }
   }
 }

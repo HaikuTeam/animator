@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.32
+
+### Bug Fixes
+
+ * Case-sens
+
 ## 3.0.31
 
 ### Bug Fixes
