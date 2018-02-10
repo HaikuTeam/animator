@@ -1,4 +1,5 @@
 import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
+import {remote} from 'electron'
 
 (function () {
   if (process.env.NODE_ENV === 'production') {
@@ -28,6 +29,11 @@ import {sentryCallback} from 'haiku-serialization/src/utils/carbonite'
       _traceKitFormatErrorStack(error)
       window.Raven.captureException(error)
     }
+
+    // Give Raven some time to send a crash report before we close
+    setTimeout(() => {
+      remote.getCurrentWindow().close()
+    }, 500)
   }
 
   function go () {
