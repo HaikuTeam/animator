@@ -825,14 +825,14 @@ function bindEventHandler(component, eventHandlerDescriptor, selector, eventName
   };
 }
 
-function typecheckStateSpec(stateSpec, stateSpecName) {
+function stateSpecValidityCheck(stateSpec: any, stateSpecName: string): boolean {
   if (
     stateSpec.type === 'any' ||
     stateSpec.type === '*' ||
     stateSpec.type === undefined ||
     stateSpec.type === null
   ) {
-    return void 0;
+    return true;
   }
 
   if (stateSpec.type === 'event' || stateSpec.type === 'listener') {
@@ -841,34 +841,45 @@ function typecheckStateSpec(stateSpec, stateSpecName) {
       stateSpec.value !== null &&
       stateSpec.value !== undefined
     ) {
-      throw new Error(
+      console.error(
         'Property value `' +
         stateSpecName +
         '` must be an event listener function',
       );
+
+      return false;
     }
-    return void 0;
+
+    return true;
   }
 
   if (stateSpec.type === 'array') {
     if (!Array.isArray(stateSpec.value)) {
-      throw new Error(
+      console.error(
         'Property value `' + stateSpecName + '` must be an array',
       );
+
+      return false;
     }
   } else if (stateSpec.type === 'object') {
     if (stateSpec.value && typeof stateSpec.value !== 'object') {
-      throw new Error(
+      console.error(
         'Property value `' + stateSpecName + '` must be an object',
       );
+
+      return false;
     }
   } else {
     if (typeof stateSpec.value !== stateSpec.type) {
-      throw new Error(
+      console.error(
         'Property value `' + stateSpecName + '` must be a `' + stateSpec.type + '`',
       );
+
+      return false;
     }
   }
+
+  return true;
 }
 
 function bindStates(statesTargetObject, component, extraStates) {
@@ -879,18 +890,22 @@ function bindStates(statesTargetObject, component, extraStates) {
 
     // 'null' is the signal for an empty prop, not undefined.
     if (stateSpec.value === undefined) {
-      throw new Error(
+      console.error(
         'Property `' +
         stateSpecName +
         '` cannot be undefined; use null for empty states',
       );
+
+      continue;
     }
 
-    typecheckStateSpec(stateSpec, stateSpecName);
+    const isValid = stateSpecValidityCheck(stateSpec, stateSpecName);
 
-    statesTargetObject[stateSpecName] = stateSpec.value;
+    if (isValid) {
+      statesTargetObject[stateSpecName] = stateSpec.value;
 
-    defineSettableState(component, component.state, statesTargetObject, stateSpec, stateSpecName);
+      defineSettableState(component, component.state, statesTargetObject, stateSpec, stateSpecName);
+    }
   }
 }
 
