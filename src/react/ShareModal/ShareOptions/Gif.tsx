@@ -21,6 +21,7 @@ export default class Gif extends React.PureComponent {
   static propTypes = {
     entry: React.PropTypes.string,
     userName: React.PropTypes.string,
+    organizationName: React.PropTypes.string,
     projectUid: React.PropTypes.string,
     sha: React.PropTypes.string
   }

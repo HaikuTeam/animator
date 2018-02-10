@@ -28,6 +28,7 @@ export class ShareModal extends React.Component {
     snapshotSyndicated: React.PropTypes.bool,
     semverVersion: React.PropTypes.string,
     userName: React.PropTypes.string,
+    organizationName: React.PropTypes.string,
     projectUid: React.PropTypes.string,
     sha: React.PropTypes.string,
   }
@@ -67,6 +68,7 @@ export class ShareModal extends React.Component {
       isSnapshotSaveInProgress,
       snapshotSyndicated,
       userName,
+      organizationName,
       sha,
       projectUid,
     } = this.props
@@ -101,6 +103,7 @@ export class ShareModal extends React.Component {
               entry={this.state.selectedEntry}
               projectName={project.projectName}
               userName={userName}
+              organizationName={organizationName}
               projectUid={projectUid}
               sha={sha}
               onHide={() => {
