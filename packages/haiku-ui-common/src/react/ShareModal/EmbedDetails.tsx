@@ -16,6 +16,7 @@ export class EmbedDetails extends React.PureComponent {
     entry: React.PropTypes.object,
     projectName: React.PropTypes.string,
     userName: React.PropTypes.string,
+    organizationName: React.PropTypes.string,
     onHide: React.PropTypes.func.isRequired,
     projectUid: React.PropTypes.string,
     sha: React.PropTypes.string,
@@ -36,6 +37,7 @@ export class EmbedDetails extends React.PureComponent {
           entry={this.props.entry.entry}
           projectName={this.props.projectName}
           userName={this.props.userName}
+          organizationName={this.props.organizationName}
           projectUid={this.props.projectUid}
           sha={this.props.sha}
         />

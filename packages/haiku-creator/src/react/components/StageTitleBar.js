@@ -550,6 +550,7 @@ class StageTitleBar extends React.Component {
             error={this.state.snapshotSaveError}
             snapshotSyndicated={this.state.snapshotSyndicated}
             userName={this.props.username}
+            organizationName={this.props.organizationName}
             ref={(el) => { this._shareModal = el }}
             projectUid={this.state.projectInfo.projectUid}
             sha={this.state.projectInfo.sha}
@@ -570,6 +571,7 @@ StageTitleBar.propTypes = {
   projectName: React.PropTypes.string,
   username: React.PropTypes.string,
   password: React.PropTypes.string,
+  organizationName: React.PropTypes.string,
   websocket: React.PropTypes.object.isRequired,
   createNotice: React.PropTypes.func.isRequired,
   removeNotice: React.PropTypes.func.isRequired,

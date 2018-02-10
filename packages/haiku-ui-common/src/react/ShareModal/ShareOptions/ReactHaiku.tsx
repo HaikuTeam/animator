@@ -8,17 +8,18 @@ export default class VanillaJS extends React.PureComponent {
 
   static propTypes = {
     projectName: React.PropTypes.string,
-    userName: React.PropTypes.string
+    userName: React.PropTypes.string,
+    organizationName: React.PropTypes.string
   }
 
   render() {
-    const {projectName, userName} = this.props
+    const {projectName, userName, organizationName} = this.props
 
     return (
       <NpmInstallable>
         <CodeBox>
           {dedent`
-          import ${projectName} from '@haiku/${userName.toLowerCase()}-${projectName}/react';
+          import ${projectName} from '@haiku/${organizationName.toLowerCase()}-${projectName}/react';
 
           /*...*/
 

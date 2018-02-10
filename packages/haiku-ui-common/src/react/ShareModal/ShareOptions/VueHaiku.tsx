@@ -12,12 +12,12 @@ export default class VueHaiku extends React.PureComponent {
   }
 
   render() {
-    const {projectName, userName} = this.props
+    const {projectName, userName, organizationName} = this.props
     return (
       <NpmInstallable>
         <CodeBox>
           {dedent`
-          import ${projectName} from '@haiku/${userName.toLowerCase()}-${projectName}/vue';
+          import ${projectName} from '@haiku/${organizationName.toLowerCase()}-${projectName}/vue';
 
           new Vue({
             el: '#vue-dom-mount',

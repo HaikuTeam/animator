@@ -9,6 +9,7 @@ export default class Embed extends React.PureComponent {
   static propTypes = {
     projectName: React.PropTypes.string,
     userName: React.PropTypes.string,
+    organizationName: React.PropTypes.string,
     projectUid: React.PropTypes.string,
     sha: React.PropTypes.string,
   }
@@ -20,7 +21,7 @@ export default class Embed extends React.PureComponent {
   }
 
   render () {
-    const {userName, projectName, sha} = this.props
+    const {userName, projectName, organizationName, sha} = this.props
     const scriptPath = `${this.cdnBase}index.standalone.js`;
     const embedPath = `${this.cdnBase}index.embed.js`;
 
@@ -42,7 +43,7 @@ export default class Embed extends React.PureComponent {
                 <script src="${scriptPath}"></script>
                 <script src="${embedPath}"></script>
                 <script>
-                  HaikuComponentEmbed_${userName.toLowerCase()}_${projectName}(
+                  HaikuComponentEmbed_${organizationName}_${projectName}(
                     document.getElementById('mount-${sha}'),
                     {loop: true}
                   );
