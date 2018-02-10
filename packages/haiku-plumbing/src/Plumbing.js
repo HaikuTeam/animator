@@ -740,18 +740,24 @@ export default class Plumbing extends StateObject {
 
   isUserAuthenticated (cb) {
     const answer = sdkClient.config.isAuthenticated()
+
     if (!answer) {
       return cb(null, { isAuthed: false })
     }
+
     return this.getCurrentOrganizationName((err, organizationName) => {
       if (err) return cb(err)
+
       const username = sdkClient.config.getUserId()
+
       mixpanel.mergeToPayload({ distinct_id: username })
+
       if (Raven) {
         Raven.setContext({
           user: { email: username }
         })
       }
+
       return cb(null, {
         isAuthed: true,
         username: username,
@@ -769,6 +775,7 @@ export default class Plumbing extends StateObject {
     this.set('organizationName', null) // Unset this cache to avoid writing others folders if somebody switches accounts in the middle of a session
     return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
       if (authErr) return cb(authErr)
+
       if (httpResponse.statusCode === 401 || httpResponse.statusCode === 403) {
         // eslint-disable-next-line standard/no-callback-literal
         return cb({
@@ -789,19 +796,25 @@ export default class Plumbing extends StateObject {
       }
 
       if (!authResponse) return cb(new Error('Auth response was empty'))
+
       this.set('username', username)
       this.set('password', password)
       this.set('inkstoneAuthToken', authResponse.Token)
+
       sdkClient.config.setAuthToken(authResponse.Token)
       sdkClient.config.setUserId(username)
+
       mixpanel.mergeToPayload({ distinct_id: username })
+
       if (Raven) {
         Raven.setContext({
           user: { email: username }
         })
       }
+
       return this.getCurrentOrganizationName((err, organizationName) => {
         if (err) return cb(err)
+
         return cb(null, {
           isAuthed: true,
           username: username,
