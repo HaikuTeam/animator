@@ -1293,7 +1293,11 @@ function sendMessageToClient (client, message) {
       }
     })
   } else {
-    throw new Error(`[plumbing] attempted to send message to non-OPEN ws: ${data}`)
+    // Only throw if the message has request content; responses can be ignored
+    // safely since the requester has been closed down
+    if (data.type || data.name || data.method) {
+      throw new Error(`Attempted message to non-open WebSocket: ${data}`)
+    }
   }
 }
 
