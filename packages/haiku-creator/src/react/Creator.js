@@ -657,12 +657,20 @@ export default class Creator extends React.Component {
   }
 
   loadProjects (cb) {
-    return this.props.websocket.request({ method: 'listProjects', params: [] }, (error, projectsList) => {
-      if (error) return cb(error)
-      this.setState({ projectsList })
-      ipcRenderer.send('renderer:projects-list-fetched', projectsList)
-      return cb(null, projectsList)
-    })
+    return this.props.websocket.request(
+      {
+        method: 'listProjects',
+        params: [],
+        timeout: 5000,
+        retry: 5
+      },
+      (error, projectsList) => {
+        if (error) return cb(error)
+        this.setState({ projectsList })
+        ipcRenderer.send('renderer:projects-list-fetched', projectsList)
+        return cb(null, projectsList)
+      }
+    )
   }
 
   launchProject (projectName, projectObject, cb) {
@@ -895,7 +903,7 @@ export default class Creator extends React.Component {
     return this.props.websocket.request(
       { method: 'teardownMaster', params: [this.state.projectModel.getFolder()] },
       () => {
-        console.info('[creator] master teardown')
+        console.info('[creator] master torn down')
         this.setDashboardVisibility(true)
         this.onTimelineUnmounted()
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
