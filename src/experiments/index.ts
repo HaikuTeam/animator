@@ -20,6 +20,7 @@ export enum Experiment {
   SvgOptimizer = 'SvgOptimizer',
   NewPublishUI = 'NewPublishUI',
   NormalizeSvgContent = 'NormalizeSvgContent',
+  BasicOfflineMode = 'BasicOfflineMode',
 }
 
 /**
