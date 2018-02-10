@@ -85,8 +85,19 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   requestSyndicationInfo: true
 }
 
-const METHOD_MESSAGES_TIMEOUT = 10000
-const METHODS_TO_AWAIT_FOREVER = {}
+const METHOD_MESSAGES_TIMEOUT = 15000
+const METHODS_TO_AWAIT_FOREVER = {
+  initializeProject: true,
+  startProject: true,
+  restartProject: true,
+  initializeFolder: true,
+  isUserAuthenticated: true,
+  authenticateUser: true,
+  saveProject: true,
+  teardownMaster: true,
+  requestSyndicationInfo: true,
+  deleteProject: true
+}
 
 const Q_GLASS = { alias: 'glass' }
 const Q_TIMELINE = { alias: 'timeline' }
