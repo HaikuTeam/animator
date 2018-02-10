@@ -35,6 +35,11 @@ window.onerror = function (msg, url, line, col, error) {
     _traceKitFormatErrorStack(error)
     window.Raven.captureException(error)
   }
+
+  // Give Raven some time to transmit an error report before we crash
+  setTimeout(() => {
+    throw error
+  }, 500)
 }
 
 function go () {

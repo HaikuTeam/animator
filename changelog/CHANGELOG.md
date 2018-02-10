@@ -1,6 +1,34 @@
 # Changelog
 
 
+## 3.0.29
+
+### Bug Fixes
+
+ * add missing assignations on vue component update
+ * don't doubly serialize JSON; hook up server-fetched admin status to react state
+ * do not scroll glass when the actions editor is open
+
+### Features
+
+ * update haiku-serialization to include Vue.js boilerplate
+ * update demos to support Vue.js
+ * implement the barebones of the Vue.js adapter
+ * When creating 0th keyframe, use the previous 0th's value
+ * Allow placeholder elements to be targeted via basic CSS selectors
+ * add init command to CLI
+ * don't hold admin accounts to nomral proj limit
+
+## 3.0.28
+
+## 3.0.27
+
+## 3.0.26
+
+### Bug Fixes
+
+ * do not pan the stage when scrolling the actions editor
+
 ## 3.0.25
 
 ### Bug Fixes

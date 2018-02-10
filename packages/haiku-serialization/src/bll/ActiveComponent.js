@@ -227,7 +227,25 @@ class ActiveComponent extends BaseModel {
   }
 
   fetchActiveBytecodeFile () {
-    return File.findById(path.join(this.project.getFolder(), this.getSceneCodeRelpath()))
+    const folder = this.project.getFolder()
+    const relpath = this.getSceneCodeRelpath()
+    const uid = path.join(folder, relpath)
+
+    let file = File.findById(uid)
+
+    // There is a race where the file might not be ready, so we upsert
+    if (!file) {
+      file = File.upsert({
+        uid,
+        relpath,
+        folder
+      })
+
+      // This calls require, which might introduce its own race ¯\_(ツ)_/¯
+      file.mod.load()
+    }
+
+    return file
   }
 
   getActiveInstancesOfHaikuCoreComponent () {
@@ -369,44 +387,70 @@ class ActiveComponent extends BaseModel {
     })
   }
 
+  selectElementWithinTime (waitTime, componentId, metadata, cb) {
+    const element = Element.findByComponentAndHaikuId(this, componentId)
+
+    // If we don't initially find the element, wait up to `waitTime` to see if it appears
+    // Race conditions with instantiate can cause this to happen
+    if (!element) {
+      if (waitTime <= 0) {
+        // Is it better to throw here?
+        return cb()
+      }
+
+      return setTimeout(() => {
+        return this.selectElementWithinTime(waitTime - 250, componentId, metadata, cb)
+      }, 250)
+    }
+
+    element.select(metadata)
+
+    const row = element.getHeadingRow()
+
+    if (row) {
+      row.expand(metadata)
+    }
+
+    cb()
+  }
+
   selectElement (componentId, metadata, cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
       // Assuming the update occurs remotely, we want to unselect everything but the selected one
       Element.unselectAllElements({ component: this }, metadata)
 
-      const element = Element.findByComponentAndHaikuId(this, componentId)
-
-      // In what circumstances could this happen that we would want to continue?
-      if (!element) {
-        throw new Error(`Cannot select element ${componentId} in ${JSON.stringify(this.getTopLevelElementHaikuIds())}`)
-      }
-
-      element.select(metadata)
-
-      const row = element.getHeadingRow()
-
-      if (row) {
-        row.expand(metadata)
-      }
-
-      release()
-
-      return cb() // Must return or the plumbing action circuit never completes
+      return this.selectElementWithinTime(1000, componentId, metadata, () => {
+        release()
+        return cb() // Must return or the plumbing action circuit never completes
+      })
     })
+  }
+
+  unselectElementWithinTime (waitTime, componentId, metadata, cb) {
+    const element = Element.findByComponentAndHaikuId(this, componentId)
+
+    if (!element) {
+      if (waitTime <= 0) {
+        // Is it better to throw here?
+        return cb()
+      }
+
+      return setTimeout(() => {
+        return this.unselectElementWithinTime(waitTime - 250, componentId, metadata, cb)
+      }, 250)
+    }
+
+    element.unselect(metadata)
+
+    return cb()
   }
 
   unselectElement (componentId, metadata, cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
-      const element = Element.findByComponentAndHaikuId(this, componentId)
-
-      // In what circumstances could this happen that we would want to continue?
-      if (!element) {
-        throw new Error(`Cannot unselect element ${componentId} in ${JSON.stringify(this.getTopLevelElementHaikuIds())}`)
-      }
-
-      release()
-
-      return cb() // Must return or the plumbing action circuit never completes
+      return this.unselectElementWithinTime(1000, componentId, metadata, () => {
+        release()
+        return cb() // Must return or the plumbing action circuit never completes
+      })
     })
   }
 
@@ -545,7 +589,7 @@ class ActiveComponent extends BaseModel {
   }
 
   getInsertionPointHash () {
-    const template = this.fetchActiveBytecodeFile().getReifiedBytecode().template
+    const template = this.getReifiedBytecode().template
     return Template.getInsertionPointHash(template, 0, 0)
   }
 

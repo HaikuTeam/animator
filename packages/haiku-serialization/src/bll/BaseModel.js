@@ -48,7 +48,7 @@ class BaseModel extends EventEmitter {
 
     if (this.options.required) {
       for (let requirement in this.options.required) {
-        if (props[requirement] === undefined || props[requirement] === null) {
+        if (props[requirement] === undefined) {
           throw new Error(`Property '${requirement}' is required`)
         }
       }

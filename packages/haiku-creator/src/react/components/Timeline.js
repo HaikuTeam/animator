@@ -3,6 +3,7 @@ import qs from 'qs'
 import assign from 'lodash.assign'
 import path from 'path'
 import Palette from 'haiku-ui-common/lib/Palette'
+import { remote } from 'electron'
 // import TimelineSkeletonState from '@haiku/taylor-timelineskeletonstate/react'
 
 export default class Timeline extends React.Component {
@@ -76,16 +77,28 @@ export default class Timeline extends React.Component {
           }
           break
 
-        // case 1:
-        //   this.props.createNotice({ type: 'warning', title: 'Warning', message: event.message })
-        //   break
-
         case 2:
-          const errorEotice = this.props.createNotice({ type: 'error', title: 'Error', message: event.message })
+          // 'Uncaught' indicates an unrecoverable error in Timeline, so we need to crash too
+          if (event.message.slice(0, 8) === 'Uncaught') {
+            // Give the webview's Raven instance time to transmit its crash report
+            return setTimeout(() => {
+              remote.getCurrentWindow().close()
+            }, 500)
+          }
+
+          console.error(event.message)
+
+          const errorNotice = this.props.createNotice({
+            type: 'error',
+            title: 'Error',
+            message: event.message
+          })
+
           // It seems nicest to just remove the error after it's been on display for a couple of seconds
           window.setTimeout(() => {
-            this.props.removeNotice(undefined, errorEotice.id)
+            this.props.removeNotice(undefined, errorNotice.id)
           }, 2000)
+
           break
       }
     })

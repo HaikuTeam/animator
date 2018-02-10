@@ -11,7 +11,7 @@ function safeJsonParse (str) {
   try {
     return JSON.parse(str)
   } catch (exception) {
-    console.error(exception)
+    console.warn(exception)
     return null
   }
 }

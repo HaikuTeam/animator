@@ -6,7 +6,6 @@ class MockWebsocket {
   method () {}
   request () {}
   action () {}
-  sendIfConnected () {}
 }
 
 module.exports = MockWebsocket

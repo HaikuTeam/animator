@@ -32,21 +32,15 @@ function Websocket (url, folder, clientType, clientAlias, WebSocket, token) {
   if (token) this.url += ('&token=' + token)
 
   this.folder = folder
-  this.queue = []
   this.requests = {}
 
   this.workers = {
-    queue: setInterval(function _queueWorker () {
-      if (this._isPermanentlyDisconnected) return null
-      this.flushQueue()
-    }.bind(this), 32),
-
-    connection: setInterval(function _connectionWorker () {
+    connection: setInterval(() => {
       if (this._isPermanentlyDisconnected) return null
       if (this.ws.readyState === STATES.CLOSING || this.ws.readyState === STATES.CLOSED) {
         this.connect()
       }
-    }.bind(this), 1000)
+    }, 1000)
   }
 
   this._isPermanentlyDisconnected = false
@@ -60,8 +54,6 @@ Websocket.prototype.disconnect = function disconnect () {
   // Stop the worker from attempting to reconnect until explicitly requested to do so
   this._isPermanentlyDisconnected = true
 
-  // May as well clear the queue since there's not a safe way to deal with these requests
-  this.queue.splice(0)
   this.requests = {}
 
   if (this.ws) {
@@ -98,25 +90,25 @@ Websocket.prototype.connect = function connect (cb) {
 Websocket.prototype.setupSocket = function setupSocket () {
   console.info('[websocket] connecting to ' + this.url + ' (' + (this.folder || '?') + ')')
 
-  this.ws.onopen = function _onopen () {
+  this.ws.onopen = () => {
     console.info('[websocket] connection opened (' + this.url + ')')
     this.emit('open')
-  }.bind(this)
+  }
 
-  this.ws.onclose = function _onclose () {
+  this.ws.onclose = () => {
     console.info('[websocket] connection closed (' + this.url + ')')
     // Sometimes it seems this change happens on a delay so we set it right away
     this.ws.readyState = this.WebSocket.CLOSED
     this.emit('close')
-  }.bind(this)
+  }
 
-  this.ws.onerror = function _onerror (error) {
+  this.ws.onerror = (error) => {
     if (error && error.message) console.error('[websocket] error: ' + error && error.message)
     else console.error('[websocket] error: ', error || 'Unknown')
     this.emit('error', error)
-  }.bind(this)
+  }
 
-  this.ws.onmessage = function _onmessage (event) {
+  this.ws.onmessage = (event) => {
     var message = JSON.parse(event.data)
 
     if (message.type === 'broadcast') {
@@ -138,18 +130,18 @@ Websocket.prototype.setupSocket = function setupSocket () {
     }
 
     if (typeof message.method === 'string') {
-      return this.emit('method', message.method, message.params || [], message, function _cb (error, result) {
+      return this.emit('method', message.method, message.params || [], message, (error, result) => {
         return this.sendWhenConnected({
           id: message.id,
           folder: message.folder || this.folder,
           result: (result !== undefined) ? result : void (0),
           error: (error) ? serializeError(error) : void (0)
         })
-      }.bind(this))
+      })
     }
 
     return this.emit('message', message)
-  }.bind(this)
+  }
 
   return this.ws
 }
@@ -157,41 +149,28 @@ Websocket.prototype.setupSocket = function setupSocket () {
 // Fire the callback as soon as we detect the connection is open
 Websocket.prototype.whenConnected = function whenConnected (cb) {
   if (this.ws.readyState === STATES.OPEN) return cb()
-  return setTimeout(function _timer () {
+  return setTimeout(() => {
     return this.whenConnected(cb)
-  }.bind(this), 100)
+  }, 100)
 }
 
 // Send the given message once the connection is open
 Websocket.prototype.sendWhenConnected = function sendWhenConnected (message) {
-  if (this.ws.readyState === STATES.OPEN) return this.sendImmediate(message)
-  return this.whenConnected(function _when () {
+  if (this.ws.readyState === STATES.OPEN) {
+    return this.sendImmediate(message)
+  }
+
+  return this.whenConnected(() => {
     return this.sendImmediate(message)
   })
 }
 
-// Send the give message if the connection is open, but don't wait (don't send later) if it's not
-Websocket.prototype.sendIfConnected = function sendWhenConnected (message) {
-  if (this.ws.readyState === STATES.OPEN) return this.sendImmediate(message)
-  return void (0)
-}
-
-// Pull all messages out of the queue and send them once we are connected
-Websocket.prototype.flushQueue = function flushQueue () {
-  var messages = this.queue.splice(0)
-  if (messages.length < 1) return void (0)
-  this.whenConnected(function _when () {
-    for (var i = 0; i < messages.length; i++) {
-      this.sendWhenConnected(messages[i])
-    }
-  }.bind(this))
-  return messages
-}
-
 // Attempt to send the given message immediately, without checking if we are connected
 Websocket.prototype.sendImmediate = function sendImmediate (message) {
-  if (this.ws.readyState === STATES.OPEN) return this.sendPayload(message)
-  else console.warn('[websocket] connection not open (state: ' + this.ws.readyState + ')!')
+  if (this.ws.readyState === STATES.OPEN) {
+    return this.sendPayload(message)
+  }
+  console.warn('[websocket] connection not open (state: ' + this.ws.readyState + ')!')
 }
 
 // Flexibly send the given message, serializing it if necessary
@@ -202,20 +181,64 @@ Websocket.prototype.sendPayload = function sendPayload (message) {
     }
     message = JSON.stringify(message)
   }
+
   return this.ws.send(message)
 }
 
-// Doesn't actually 'send' the message, but puts it in the outbox queue
+// Sends the message once we detect that we are connected
 Websocket.prototype.send = function send (message) {
   if (!message.folder) message.folder = this.folder // The plumbing uses the folder property to route messages to clients
   if (!message.alias) message.alias = this.alias // The plumbing uses this alias property to route messages
-  return this.queue.push(message)
+  return this.sendWhenConnected(message)
 }
 
 // Request-like wrapper for sending a message that expects a response with a callback
 Websocket.prototype.request = function request (message, callback) {
-  if (message.id === undefined) message.id = ('request-' + Math.random()) // This id associates responses (if any) to our messages
-  this.requests[message.id] = { callback: callback }
+  // The message id associates responses (if any) to our requests
+  if (message.id === undefined) {
+    message.id = ('request-' + Math.random())
+  }
+
+  let gotResponse = false
+  let timedOut = false
+  let timeoutInstance = null
+
+  if (message.timeout) {
+    timeoutInstance = setTimeout(() => {
+      // In case we are running despite having been cleared check if we got a response
+      if (!gotResponse) {
+        timedOut = true
+
+        // If retry is specified, we'll try again and decrement the number of remaining retries
+        if (typeof message.retry === 'number' && message.retry > 0) {
+          message.retry -= 1
+          return this.request(message, callback)
+        }
+
+        const error = new Error('Timed out waiting for response')
+        error.code = 'ETIMEOUT'
+        callback(error)
+      }
+    }, message.timeout)
+  }
+
+  this.requests[message.id] = {
+    callback: (err, a, b, c, d, e, f) => {
+      gotResponse = true
+
+      // If we're waiting for a timeout, we may as well clear it
+      if (timeoutInstance) {
+        clearTimeout(timeoutInstance)
+      }
+
+      // If we timed out, we already returned a timeout error to the callback
+      // The timedOut variable should only be falsy if a timeout was specified
+      if (!timedOut) {
+        callback(err, a, b, c, d, e, f)
+      }
+    }
+  }
+
   return this.send(message)
 }
 

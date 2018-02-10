@@ -435,8 +435,10 @@ export class Glass extends React.Component {
     )
 
     document.addEventListener('mousewheel', (evt) => {
-      // on mac, this is triggered by a two-finger pan
-      if (!this.getActiveComponent()) {
+      if (
+        !this.getActiveComponent() || // on mac, this is triggered by a two-finger pan
+        this.state.isEventHandlerEditorOpen
+      ) {
         return
       }
 

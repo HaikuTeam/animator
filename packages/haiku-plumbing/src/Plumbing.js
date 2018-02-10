@@ -65,11 +65,6 @@ const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
   doesProjectHaveUnsavedChanges: true,
   masterHeartbeat: true
-  // These are noisy, maybe not worth including?
-  // applyPropertyGroupDelta: true,
-  // applyPropertyGroupValue: true,
-  // moveSegmentEndpoints: true,
-  // moveKeyframes: true
 }
 
 // See note under 'processMethodMessage' for the purpose of this
@@ -82,11 +77,16 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   openTerminal: true,
   saveProject: true,
   previewProject: true,
+  listProjects: true,
+  fetchProjectInfo: true,
   doLogOut: true,
   deleteProject: true,
   teardownMaster: true,
   requestSyndicationInfo: true
 }
+
+const METHOD_MESSAGES_TIMEOUT = 10000
+const METHODS_TO_AWAIT_FOREVER = {}
 
 const Q_GLASS = { alias: 'glass' }
 const Q_TIMELINE = { alias: 'timeline' }
@@ -116,27 +116,46 @@ const PINFO = `${process.pid} ${path.basename(__filename)} ${path.basename(proce
 
 const PLUMBING_INSTANCES = []
 
+const teardownPlumbings = (cb) => {
+  return async.each(PLUMBING_INSTANCES, (plumbing, next) => {
+    return plumbing.teardown(next)
+  }, cb)
+}
+
 // In test environment these listeners may get wrapped so we begin listening
 // to them immediately in the hope that we can start listening before the
 // test wrapper steps in and interferes
 process.on('exit', () => {
   logger.info(`[plumbing] plumbing process (${PINFO}) exiting`)
-  PLUMBING_INSTANCES.forEach((plumbing) => plumbing.teardown())
+  teardownPlumbings(() => {})
 })
 process.on('SIGINT', () => {
   logger.info(`[plumbing] plumbing process (${PINFO}) SIGINT`)
-  PLUMBING_INSTANCES.forEach((plumbing) => plumbing.teardown())
-  process.exit()
+  teardownPlumbings(() => {
+    process.exit()
+  })
 })
 process.on('SIGTERM', () => {
   logger.info(`[plumbing] plumbing process (${PINFO}) SIGTERM`)
-  PLUMBING_INSTANCES.forEach((plumbing) => plumbing.teardown())
-  process.exit()
+  teardownPlumbings(() => {
+    process.exit()
+  })
 })
+
 // Apparently there are circumstances where we won't crash (?); ensure that we do
 process.on('uncaughtException', (err) => {
   console.error(err)
-  process.exit(1)
+
+  // Notify mixpanel so we can track improvements to the app over time
+  mixpanel.haikuTrackOnce('app:crash', { error: err.message })
+
+  // Exit after timeout to give a chance for mixpanel to transmit
+  setTimeout(() => {
+    // Wait for teardown so we don't interrupt e.g. an important disk-write
+    teardownPlumbings(() => {
+      process.exit(1)
+    })
+  }, 100)
 })
 
 export default class Plumbing extends StateObject {
@@ -161,17 +180,6 @@ export default class Plumbing extends StateObject {
     this.executeMethodMessagesWorker()
 
     emitter.on('teardown-requested', () => this.teardown())
-  }
-
-  _handleUnrecoverableError (err) {
-    mixpanel.haikuTrackOnce('app:crash', {
-      error: err.message
-    })
-
-    // Crash in the timeout to give a chance for mixpanel to transmit
-    setTimeout(() => {
-      throw err
-    }, 100)
   }
 
   /**
@@ -266,7 +274,7 @@ export default class Plumbing extends StateObject {
           this.clients.push(websocket)
 
           websocket.on('close', () => {
-            logger.info(`[plumbing] websocket  for ${folder} closed (${type} ${alias})`)
+            logger.info(`[plumbing] websocket for ${folder} closed (${type} ${alias})`)
             this.removeWebsocketClient(websocket)
           })
 
@@ -371,12 +379,16 @@ export default class Plumbing extends StateObject {
 
       // Give clients the chance to emit events to all others
       return this.sendBroadcastMessage(message, folder, alias, websocket)
-    } else if (message.id && this.requests[message.id]) {
+    }
+
+    if (message.id && this.requests[message.id]) {
       // If we have an entry in this.requests, that means this is a reply
       const { callback } = this.requests[message.id]
       delete this.requests[message.id]
       return callback(message.error, message.result, message)
-    } else if (message.method) { // This condition MUST happen before the one above since .method is present on that one too
+    }
+
+    if (message.method) {
       // Ensure that actions/methods occur in order by using a queue
       return this.processMethodMessage(type, alias, folder, message, responder)
     }
@@ -400,28 +412,62 @@ export default class Plumbing extends StateObject {
   executeMethodMessagesWorker () {
     if (this._isTornDown) return void (0) // Avoid leaking a handle
 
-    let nextMethodMessage = this._methodMessages.shift()
-    if (!nextMethodMessage) return setTimeout(this.executeMethodMessagesWorker.bind(this), 64)
+    const nextMethodMessage = this._methodMessages.shift()
 
-    let { type, alias, folder, message, cb } = nextMethodMessage
+    if (!nextMethodMessage) {
+      return setTimeout(this.executeMethodMessagesWorker.bind(this), 64)
+    }
+
+    const { type, alias, folder, message, cb } = nextMethodMessage
 
     this.methodMessageBeforeLog(message, alias)
+
+    // If it takes too long for us to get a response for a method, kick start the queue
+    // again so we don't hang when important new messages are being received
+    let timedOut = false
+    let gotResponse = false
+
+    if (!METHODS_TO_AWAIT_FOREVER[message.method]) {
+      setTimeout(() => {
+        timedOut = true
+        if (!gotResponse) {
+          logger.warn(`[plumbing] timed out waiting for ${message.method}; restarting worker`)
+          this.executeMethodMessagesWorker()
+        }
+      }, METHOD_MESSAGES_TIMEOUT)
+    }
 
     // Actions are a special case of methods that end up routed through all of the clients,
     // glass -> timeline -> master before returning. They go through one handler as opposed
     // to the normal 'methods' which plumbing handles on a more a la carte basis
     if (message.type === 'action') {
       return this.handleClientAction(type, alias, folder, message.method, message.params, (err, result) => {
+        if (timedOut) {
+          logger.warn(`[plumbing] received late response from timed out action ${message.method}`)
+        }
+
         this.methodMessageAfterLog(message, err, result, alias)
         cb(err, result)
-        this.executeMethodMessagesWorker() // Continue with the next queue entry (if any)
+
+        if (!timedOut) {
+          gotResponse = true
+          this.executeMethodMessagesWorker() // Continue with the next queue entry (if any)
+        }
       })
     }
 
     return this.plumbingMethod(message.method, message.params || [], (err, result) => {
+      if (timedOut) {
+        logger.warn(`[plumbing] received late response from timed out method ${message.method}`)
+      }
+
       this.methodMessageAfterLog(message, err, result, alias)
       cb(err, result)
-      this.executeMethodMessagesWorker() // Continue with the next queue entry (if any)
+
+      if (!timedOut) {
+        gotResponse = true
+        this.executeMethodMessagesWorker() // Continue with the next queue entry (if any)
+      }
     })
   }
 
@@ -493,7 +539,8 @@ export default class Plumbing extends StateObject {
     }
 
     if (timeout <= 0) {
-      throw new Error(`Timed out waiting for client ${JSON.stringify(fixed)}`)
+      logger.warn(`[plumbing] timed out waiting for client ${JSON.stringify(fixed)}`)
+      return null
     }
 
     const clientMatching = find(
@@ -517,25 +564,28 @@ export default class Plumbing extends StateObject {
       // Give a maximum of 10 seconds before forcing a crash if the client doesn't respond.
       // If the page crashes before sending the result, we might not find out and could lose work.
       let responseReceived = false
+      let timedOut = false
 
       // In dev, we may use a debugger in which case we don't want to force a timeout
-      if (process.env.NODE_ENV === 'production') {
-        setTimeout(() => {
-          if (!responseReceived) {
-            throw new Error(`Timed out sending ${method} to client ${JSON.stringify(query)}`)
-          }
-        }, WAIT_DELAY)
-      }
+      setTimeout(() => {
+        timedOut = true
+
+        if (!responseReceived) {
+          logger.warn(`[plumbing] timed out sending ${method} to client ${JSON.stringify(query)}`)
+        }
+      }, WAIT_DELAY)
 
       return this.sendClientMethod(client, method, params, (error, response) => {
         responseReceived = true
 
-        if (error) {
-          this.sentryError(method, error, { tags: query })
-          return cb(error)
-        }
+        if (!timedOut) {
+          if (error) {
+            this.sentryError(method, error, { tags: query })
+            return cb(error)
+          }
 
-        return cb(null, response)
+          return cb(null, response)
+        }
       })
     })
   }
@@ -558,7 +608,7 @@ export default class Plumbing extends StateObject {
         }
       })
     } else {
-      throw new Error('WebSocket is not OPEN')
+      throw new Error('WebSocket is not open')
     }
   }
 
@@ -576,12 +626,6 @@ export default class Plumbing extends StateObject {
       this.servers.forEach((server) => {
         logger.info('[plumbing] closing server')
         server.close()
-      })
-
-      this.clients.forEach((client) => {
-        if (client.readyState !== WebSocket.OPEN) return void (0)
-        logger.info('[plumbing] sending crash signal to client')
-        sendMessageToClient(client, { signal: 'CRASH' })
       })
 
       this._isTornDown = true
@@ -907,6 +951,8 @@ export default class Plumbing extends StateObject {
   }
 
   teardownMaster (folder, cb) {
+    logger.info(`[plumbing] tearing down master ${folder}`)
+
     if (this.masters[folder]) {
       this.masters[folder].active = false
       this.masters[folder].watchOff()
@@ -919,10 +965,21 @@ export default class Plumbing extends StateObject {
     clientsOfFolder.forEach((clientOfFolder) => {
       const alias = clientOfFolder.params.alias
       if (alias === 'glass' || alias === 'timeline') {
+        logger.info(`[plumbing] closing client ${alias} of ${folder}`)
         clientOfFolder.close()
         this.removeWebsocketClient(clientOfFolder)
       }
     })
+
+    // Any messages destined for the folder need to be cleared since there's now
+    // nobody who is able to receive them
+    for (let i = this._methodMessages.length - 1; i >= 0; i--) {
+      const message = this._methodMessages[i]
+      if (message.folder === folder) {
+        logger.info(`[plumbing] clearing message`, message)
+        this._methodMessages.splice(i, 1)
+      }
+    }
 
     cb()
   }
@@ -1244,11 +1301,15 @@ function sendMessageToClient (client, message) {
     return client.send(data, (err) => {
       if (err) {
         // This should never happen.
-        throw new Error(`[plumbing] got error during send: ${err}`)
+        throw new Error(`Error during send: ${err}`)
       }
     })
   } else {
-    throw new Error(`[plumbing] attempted to send message to non-OPEN ws: ${data}`)
+    // Only throw if the message has request content; responses can be ignored
+    // safely since the requester has been closed down
+    if (data.type || data.name || data.method) {
+      throw new Error(`Attempted message to non-open WebSocket: ${data}`)
+    }
   }
 }
 

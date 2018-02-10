@@ -784,6 +784,10 @@ File.readMana = function readMana (folder, relpath, cb) {
           return cb(new Error(`We couldn't load the contents of ${relpath}`))
         }
 
+        if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
+          return cb(null, Template.normalize(manaOptimized))
+        }
+
         return cb(null, manaOptimized)
       })
     } else {
@@ -791,6 +795,10 @@ File.readMana = function readMana (folder, relpath, cb) {
 
       if (!manaFull) {
         return cb(new Error(`We couldn't load the contents of ${relpath}`))
+      }
+
+      if (experimentIsEnabled(Experiment.NormalizeSvgContent)) {
+        return cb(null, Template.normalize(manaFull))
       }
 
       return cb(null, manaFull)

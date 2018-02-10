@@ -150,28 +150,33 @@ class ModuleWrapper extends BaseModel {
     }
   }
 
+  load () {
+    overrideModulesLoaded(
+      (stop) => {
+        this.exp = require(this.getAbspath())
+        this._hasLoadedAtLeastOnce = true
+        this.update(this.exp)
+
+        // Tell the node hook to stop interfering with require(...)
+        stop()
+      },
+      ModuleWrapper.getHaikuKnownImportMatch
+    )
+  }
+
   reload (cb) {
     return Lock.request(Lock.LOCKS.FileReadWrite(this.getAbspath()), (release) => {
-      return overrideModulesLoaded((stop) => {
-        try {
-          this.exp = require(this.getAbspath())
-
-          this._hasLoadedAtLeastOnce = true
-
-          this.update(this.exp)
-
-          // Tell the node hook to stop interfering with require(...)
-          stop()
-        } catch (exception) {
-          console.warn('[mod] ' + this.getAbspath() + ' could not be loaded (' + exception + ')')
-          this.exp = null
-          release()
-          return cb(null, exception)
-        }
-
+      try {
+        this.load()
+      } catch (exception) {
+        console.warn('[mod] ' + this.getAbspath() + ' could not be loaded (' + exception + ')')
+        this.exp = null
         release()
-        return cb(null, this.exp)
-      }, ModuleWrapper.getHaikuKnownImportMatch)
+        return cb()
+      }
+
+      release()
+      return cb(null, this.exp)
     })
   }
 
