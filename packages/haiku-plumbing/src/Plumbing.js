@@ -114,27 +114,46 @@ const PINFO = `${process.pid} ${path.basename(__filename)} ${path.basename(proce
 
 const PLUMBING_INSTANCES = []
 
+const teardownPlumbings = (cb) => {
+  return async.each(PLUMBING_INSTANCES, (plumbing, next) => {
+    return plumbing.teardown(next)
+  }, cb)
+}
+
 // In test environment these listeners may get wrapped so we begin listening
 // to them immediately in the hope that we can start listening before the
 // test wrapper steps in and interferes
 process.on('exit', () => {
   logger.info(`[plumbing] plumbing process (${PINFO}) exiting`)
-  PLUMBING_INSTANCES.forEach((plumbing) => plumbing.teardown())
+  teardownPlumbings(() => {})
 })
 process.on('SIGINT', () => {
   logger.info(`[plumbing] plumbing process (${PINFO}) SIGINT`)
-  PLUMBING_INSTANCES.forEach((plumbing) => plumbing.teardown())
-  process.exit()
+  teardownPlumbings(() => {
+    process.exit()
+  })
 })
 process.on('SIGTERM', () => {
   logger.info(`[plumbing] plumbing process (${PINFO}) SIGTERM`)
-  PLUMBING_INSTANCES.forEach((plumbing) => plumbing.teardown())
-  process.exit()
+  teardownPlumbings(() => {
+    process.exit()
+  })
 })
+
 // Apparently there are circumstances where we won't crash (?); ensure that we do
 process.on('uncaughtException', (err) => {
   console.error(err)
-  process.exit(1)
+
+  // Notify mixpanel so we can track improvements to the app over time
+  mixpanel.haikuTrackOnce('app:crash', { error: err.message })
+
+  // Exit after timeout to give a chance for mixpanel to transmit
+  setTimeout(() => {
+    // Wait for teardown so we don't interrupt e.g. an important disk-write
+    teardownPlumbings(() => {
+      process.exit(1)
+    })
+  }, 100)
 })
 
 export default class Plumbing extends StateObject {
@@ -159,17 +178,6 @@ export default class Plumbing extends StateObject {
     this.executeMethodMessagesWorker()
 
     emitter.on('teardown-requested', () => this.teardown())
-  }
-
-  _handleUnrecoverableError (err) {
-    mixpanel.haikuTrackOnce('app:crash', {
-      error: err.message
-    })
-
-    // Crash in the timeout to give a chance for mixpanel to transmit
-    setTimeout(() => {
-      throw err
-    }, 100)
   }
 
   /**
