@@ -22,6 +22,7 @@ import Toast from './components/notifications/Toast'
 import Tour from './components/Tour/Tour'
 import AutoUpdater from './components/AutoUpdater'
 import ProjectLoader from './components/ProjectLoader'
+import OfflineModePage from './Components/OfflineModePage'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 // Note that `User` is imported below for type discovery
@@ -33,6 +34,8 @@ import Palette from 'haiku-ui-common/lib/Palette'
 import ActivityMonitor from '../utils/activityMonitor.js'
 import { HOMEDIR_LOGS_PATH, HOMEDIR_PATH } from 'haiku-serialization/src/utils/HaikuHomeDir'
 import requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates'
+import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments'
+import isOnline from 'is-online'
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator'
@@ -84,6 +87,7 @@ export default class Creator extends React.Component {
       projectModel: null, // Instance of the Project model
       projectName: null,
       dashboardVisible: !this.props.folder,
+      isOffline: false,
       readyForAuth: false,
       isUserAuthenticated: false,
       username: null,
@@ -234,6 +238,24 @@ export default class Creator extends React.Component {
     // }
     // With such an object, we can track all registrars for some known state name.
     this._projectStates = {}
+
+    if (experimentIsEnabled(Experiment.BasicOfflineMode)) {
+      try {
+        // Note that this can take a few seconds to resolve
+        isOnline().then((answer) => {
+          if (answer === false) {
+            // Only set offline mode if we haven't already loaded projects
+            if (this.state.projectsList.length < 1) {
+              this.setState({ isOffline: true }, () => {
+                this.clearAuth()
+              })
+            }
+          }
+        })
+      } catch (exception) {
+        console.warn(exception)
+      }
+    }
   }
 
   openTerminal (folder) {
@@ -968,21 +990,52 @@ export default class Creator extends React.Component {
   }
 
   render () {
-    if (this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username)) {
-      return (
-        <StyleRoot>
-          <AuthenticationUI
-            ref='AuthenticationUI'
-            onSubmit={this.authenticateUser}
-            onSubmitSuccess={this.authenticationComplete}
-            resendEmailConfirmation={this.resendEmailConfirmation}
-            {...this.props} />
-        </StyleRoot>
-      )
-    }
+    if (experimentIsEnabled(Experiment.BasicOfflineMode)) {
+      if (
+        this.state.isOffline &&
+        this.state.dashboardVisible &&
+        !(this.state.launchingProject || this.state.newProjectLoading || this.state.doShowProjectLoader)
+      ) {
+        return (
+          <OfflineModePage
+            setProjectLaunchStatus={this.setProjectLaunchStatus.bind(this)}
+            launchFolder={this.launchFolder.bind(this)} />
+        )
+      }
 
-    if (!this.state.isUserAuthenticated || !this.state.username) {
-      return this.renderStartupDefaultScreen()
+      if (!this.state.isOffline && this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username)) {
+        return (
+          <StyleRoot>
+            <AuthenticationUI
+              ref='AuthenticationUI'
+              onSubmit={this.authenticateUser}
+              onSubmitSuccess={this.authenticationComplete}
+              resendEmailConfirmation={this.resendEmailConfirmation}
+              {...this.props} />
+          </StyleRoot>
+        )
+      }
+
+      if (!this.state.isOffline && (!this.state.isUserAuthenticated || !this.state.username)) {
+        return this.renderStartupDefaultScreen()
+      }
+    } else {
+      if (this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username)) {
+        return (
+          <StyleRoot>
+            <AuthenticationUI
+              ref='AuthenticationUI'
+              onSubmit={this.authenticateUser}
+              onSubmitSuccess={this.authenticationComplete}
+              resendEmailConfirmation={this.resendEmailConfirmation}
+              {...this.props} />
+          </StyleRoot>
+        )
+      }
+
+      if (!this.state.isUserAuthenticated || !this.state.username) {
+        return this.renderStartupDefaultScreen()
+      }
     }
 
     // The ProjectLoader is managed by the ProjectBrowser, through this hack we can

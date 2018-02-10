@@ -703,7 +703,14 @@ export default class Plumbing extends StateObject {
           return cb()
         }
         return this.getCurrentOrganizationName((err, organizationName) => {
-          if (err) return cb(err)
+          if (experimentIsEnabled(Experiment.BasicOfflineMode)) {
+            // Lacking an organization doesn't prevent launching a folder
+            if (err) logger.error(err)
+          } else {
+            // Lacking an organization prevents launching a folder
+            return cb(err)
+          }
+
           projectOptions.organizationName = organizationName
           return cb()
         })
