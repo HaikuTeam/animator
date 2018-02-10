@@ -38,6 +38,10 @@
     "development": true,
     "production": true
   },
+  "NewPublishUI": {
+    "development": true,
+    "production": true
+  },
   "NormalizeSvgContent": {
     "development": true,
     "production": false

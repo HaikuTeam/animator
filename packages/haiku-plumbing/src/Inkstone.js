@@ -59,8 +59,15 @@ export function getCurrentShareInfo (folder, cache, extras, done) {
       }
 
       const projectUid = snapshotAndProject.Project.UniqueId
+      const status = snapshotAndProject.Snapshot && {
+        locked: snapshotAndProject.Snapshot.Locked,
+        published: snapshotAndProject.Snapshot.Published,
+        npmPublished: snapshotAndProject.Snapshot.NpmPublished,
+        errored: snapshotAndProject.Snapshot.Errored,
+        syndicated: snapshotAndProject.Snapshot.Syndicated
+      }
 
-      const shareInfo = lodash.assign({ sha, projectUid, shareLink }, extras)
+      const shareInfo = lodash.assign({ sha, projectUid, shareLink, status }, extras)
 
       // Cache this during this session so we can avoid unnecessary handshakes with inkstone
       cache[sha] = shareInfo

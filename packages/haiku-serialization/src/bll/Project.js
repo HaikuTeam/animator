@@ -443,17 +443,11 @@ class Project extends BaseModel {
     })
   }
 
-  fetchProjectInfo (projectName, username, password, cb) {
+  requestSyndicationInfo (cb) {
     return this.websocket.request({
       folder: this.getFolder(),
-      method: 'fetchProjectInfo',
-      params: [
-        this.getFolder(),
-        projectName,
-        username,
-        password,
-        {}
-      ]
+      method: 'requestSyndicationInfo',
+      params: [this.getFolder()]
     }, cb)
   }
 

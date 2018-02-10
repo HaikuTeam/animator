@@ -1,7 +1,7 @@
 import React from 'react'
 import Radium from 'radium'
 import Palette from 'haiku-ui-common/lib/Palette'
-import Popover from 'react-popover'
+import {Tooltip} from 'haiku-ui-common/lib/react/Tooltip'
 import {EyeIconSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import {BTN_STYLES} from '../styles/btnShared'
 
@@ -17,15 +17,6 @@ const STYLES = {
       borderColor: Palette.LIGHTEST_PINK
     }
   },
-  popover: {
-    padding: '3px 10px',
-    margin: '0',
-    fontSize: '11px',
-    backgroundColor: 'rgb(21, 32, 34)',
-    display: 'block',
-    textAlign: 'center',
-    borderRadius: '5px'
-  },
   eye: {
     transform: 'scale(0.9)',
     fontFamily: 'Fira Sans, Arial, sans-serif !important',
@@ -40,15 +31,9 @@ const STYLES = {
 }
 
 class Toggle extends React.Component {
-  constructor ({tooltipOpenDelay, tooltipCloseDelay}) {
+  constructor () {
     super()
     this.onToggle = this.onToggle.bind(this)
-    this.openPopover = this.openPopover.bind(this)
-    this.closePopover = this.closePopover.bind(this)
-    this.tooltipOpenDelay = tooltipOpenDelay || 600
-    this.tooltipCloseDelay = tooltipCloseDelay || 2000
-    this.tooltipOpenTimeout = undefined
-    this.tooltipCloseTimeout = undefined
   }
 
   onToggle () {
@@ -57,35 +42,9 @@ class Toggle extends React.Component {
     }
   }
 
-  openPopover () {
-    this.isMouseOver = true
-
-    this.tooltipOpenTimeout = setTimeout(() => {
-      if (this.isMouseOver) {
-        this.setState({ isPopoverOpen: true })
-      }
-    }, this.tooltipOpenDelay)
-
-    this.tooltipCloseTimeout = setTimeout(() => {
-      this.closePopover()
-    }, this.tooltipCloseDelay)
-  }
-
-  closePopover () {
-    if (this.tooltipOpenTimeout) clearTimeout(this.tooltipOpenTimeout)
-    if (this.tooltipCloseTimeout) clearTimeout(this.tooltipCloseTimeout)
-    this.setState({ isPopoverOpen: false })
-    this.isMouseOver = false
-  }
-
   render () {
     return (
-      <Popover
-        isOpen={this.state.isPopoverOpen}
-        body={<span style={STYLES.popover}>Toggle preview</span>}
-        place='below'
-        tipSize={5}
-      >
+      <Tooltip content='Toggle preview' style={this.props.style}>
         <a
           href='#'
           style={[
@@ -95,15 +54,13 @@ class Toggle extends React.Component {
             this.props.disabled && STYLES.disabled,
             this.props.style
           ]}
-          onMouseEnter={this.openPopover}
-          onMouseLeave={this.closePopover}
           onClick={this.onToggle}
         >
           <div style={STYLES.eye}>
             <EyeIconSVG color={STYLES.eye.color} />
           </div>
         </a>
-      </Popover>
+      </Tooltip>
     )
   }
 }

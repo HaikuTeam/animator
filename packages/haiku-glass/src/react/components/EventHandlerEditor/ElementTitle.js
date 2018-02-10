@@ -1,29 +1,14 @@
 import React from 'react'
 import {get} from 'lodash'
-import Palette from 'haiku-ui-common/lib/Palette'
 import {EventsBoltIcon} from 'haiku-ui-common/lib/react/OtherIcons'
+import Palette from 'haiku-ui-common/lib/Palette'
 import truncate from 'haiku-ui-common/lib/helpers/truncate'
 
 const STYLES = {
-  container: {
-    position: 'absolute',
-    top: '0',
-    left: '0',
-    width: '100%',
-    background: Palette.BLACK,
-    borderTopRightRadius: '7px',
-    borderTopLeftRadius: '7px',
-    padding: '5px 20px',
-    zIndex: 999999,
+  wrapper: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center'
-  },
-  title: {
-    color: Palette.PALE_GRAY,
-    fontFamily: 'Fira Sans',
-    fontSize: '15px',
-    fontStyle: 'italic'
   },
   button: {
     color: Palette.PALE_GRAY,
@@ -38,6 +23,12 @@ const STYLES = {
   },
   buttonText: {
     marginLeft: '5px'
+  },
+  title: {
+    color: Palette.PALE_GRAY,
+    fontFamily: 'Fira Sans',
+    fontSize: '15px',
+    fontStyle: 'italic'
   }
 }
 
@@ -53,7 +44,7 @@ class ElementTitle extends React.PureComponent {
 
   render () {
     return (
-      <div style={STYLES.container}>
+      <div style={STYLES.wrapper}>
         <h3 style={STYLES.title}>{`${this.getElementTitle()} Actions`}</h3>
         {!this.props.hideActions &&
           <button style={STYLES.button} onClick={this.props.onNewAction}>

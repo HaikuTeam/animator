@@ -1,4 +1,5 @@
 import React from 'react'
+import ReactDOM from 'react-dom'
 import { shell, ipcRenderer } from 'electron'
 import Radium from 'radium'
 import Popover from 'react-popover'
@@ -11,7 +12,7 @@ import { DASH_STYLES } from '../styles/dashShared'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import ToolSelector from './ToolSelector'
 import Toggle from './Toggle'
-
+import {ShareModal} from 'haiku-ui-common/lib/react/ShareModal'
 import {
   PublishSnapshotSVG,
   ConnectionIconSVG,
@@ -21,6 +22,7 @@ import {
   CliboardIconSVG
 } from 'haiku-ui-common/lib/react/OtherIcons'
 import { ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
+import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 
 var mixpanel = require('haiku-serialization/src/utils/Mixpanel')
 
@@ -32,13 +34,13 @@ const STYLES = {
     backgroundColor: Palette.COAL,
     position: 'relative',
     top: 0,
-    zIndex: 1,
     height: '36px',
     padding: '6px'
   },
   disabled: {
     opacity: 0.5,
-    cursor: 'not-allowed'
+    cursor: 'not-allowed',
+    pointerEvents: 'none'
   },
   sharePopover: {
     position: 'absolute',
@@ -131,14 +133,16 @@ const SNAPSHOT_SAVE_RESOLUTION_STRATEGIES = {
   theirs: { strategy: 'theirs' }
 }
 
+const MAX_SYNDICATION_CHECKS = 10
+const SYNDICATION_CHECK_INTERVAL = 3500
+
 class PopoverBody extends React.Component {
   shouldComponentUpdate (nextProps) {
     return (
       this.props.titleText !== nextProps.titleText ||
       this.props.linkAddress !== nextProps.linkAddress ||
       this.props.isSnapshotSaveInProgress !== nextProps.isSnapshotSaveInProgress ||
-      this.props.snapshotSaveConfirmed !== nextProps.snapshotSaveConfirmed ||
-      this.props.isProjectInfoFetchInProgress !== nextProps.isProjectInfoFetchInProgress
+      this.props.snapshotSaveConfirmed !== nextProps.snapshotSaveConfirmed
     )
   }
 
@@ -158,7 +162,7 @@ class PopoverBody extends React.Component {
         <button style={STYLES.popoverClose} onClick={this.props.close}>x</button>
         {this.props.titleText}
         <div style={STYLES.linkHolster}>
-          {(this.props.isSnapshotSaveInProgress || this.props.isProjectInfoFetchInProgress)
+          {this.props.isSnapshotSaveInProgress
             ? <span style={[STYLES.link, STYLES.generatingLink]}>Updating Share Page</span>
             : <span style={STYLES.link} onClick={() => shell.openExternal(this.props.linkAddress)}>{this.props.linkAddress.substring(0, 33)}</span>}
           <CopyToClipboard
@@ -171,7 +175,7 @@ class PopoverBody extends React.Component {
                 }, 1900)
               })
             }}>
-            {(this.props.isSnapshotSaveInProgress || this.props.isProjectInfoFetchInProgress)
+            {(this.props.isSnapshotSaveInProgress)
               ? <span style={[STYLES.copy, STYLES.copyLoading]}><ThreeBounce size={3} color={Palette.ROCK} /></span>
               : <span style={STYLES.copy}><CliboardIconSVG /></span>}
           </CopyToClipboard>
@@ -202,12 +206,12 @@ class StageTitleBar extends React.Component {
       showSharePopover: false,
       copied: false,
       linkAddress: 'Fetching Info',
+      semverVersion: '0.0.0',
       showCopied: false,
-      projectInfoFetchError: null,
-      isProjectInfoFetchInProgress: false,
-      projectInfo: null,
+      projectInfo: {},
       gitUndoables: [],
-      gitRedoables: []
+      gitRedoables: [],
+      snapshotSyndicated: true
     }
 
     ipcRenderer.on('global-menu:show-project-location-toast', () => {
@@ -246,8 +250,6 @@ class StageTitleBar extends React.Component {
   componentDidMount () {
     this._isMounted = true
 
-    this.performProjectInfoFetch()
-
     // It's kind of weird to have this heartbeat logic buried all the way down here inside StateTitleBar;
     // it probably should be moved up to the Creator level so it's easier to find #FIXME
     this._fetchMasterStateInterval = setInterval(() => {
@@ -281,11 +283,22 @@ class StageTitleBar extends React.Component {
         })
       }
     }, 1000)
+
+    document.addEventListener('mouseup', (e) => {
+      if (this._shareModal && this.state.showSharePopover) {
+        const node = ReactDOM.findDOMNode(this._shareModal)
+        const pnode = ReactDOM.findDOMNode(this)
+        if (!node.contains(e.target) && !pnode.contains(e.target)) {
+          this.setState({showSharePopover: false})
+        }
+      }
+    })
   }
 
   componentWillUnmount () {
     this._isMounted = false
     clearInterval(this._fetchMasterStateInterval)
+    this.clearSyndicationChecks()
   }
 
   handleConnectionClick () {
@@ -310,23 +323,6 @@ class StageTitleBar extends React.Component {
     return this.performProjectSave()
   }
 
-  performProjectInfoFetch () {
-    if (this.props.projectModel) {
-      this.setState({ isProjectInfoFetchInProgress: true })
-      return this.props.projectModel.fetchProjectInfo(this.props.project.projectName, this.props.username, this.props.password, (projectInfoFetchError, projectInfo) => {
-        this.setState({ isProjectInfoFetchInProgress: false })
-
-        if (projectInfoFetchError) {
-          return this.setState({ projectInfoFetchError })
-        }
-
-        this.setState({ projectInfo })
-        if (this.props.receiveProjectInfo) this.props.receiveProjectInfo(projectInfo)
-        if (projectInfo && projectInfo.shareLink) this.setState({ linkAddress: projectInfo.shareLink })
-      })
-    }
-  }
-
   withProjectInfo (otherObject) {
     let proj = this.state.projectInfo || {}
     return assign({}, otherObject, {
@@ -343,27 +339,59 @@ class StageTitleBar extends React.Component {
     }
   }
 
+  clearSyndicationChecks () {
+    clearInterval(this._performSyndicationCheckInterval)
+    this.syndicationChecks = 0
+  }
+
+  performSyndicationCheck () {
+    if (this.props.projectModel) {
+      // Note: we are ignoring the first parameter (error) because it is expected
+      // from inkstone calls to fail while the project is being syndicated,
+      // instead we check in `info.status` for errors
+      return this.props.projectModel.requestSyndicationInfo((_, info) => {
+        if (!info) return
+
+        if (
+          info.status.errored ||
+          this.syndicationChecks >= MAX_SYNDICATION_CHECKS
+        ) {
+          this.setState({snapshotSaveError: {}}, () => {
+            return setTimeout(
+              () => this.setState({snapshotSaveError: null}),
+              2000
+            )
+          })
+          this.clearSyndicationChecks()
+        }
+
+        if (info.status.syndicated) {
+          this.setState({snapshotSyndicated: true, projectInfo: info})
+          this.clearSyndicationChecks()
+        }
+      })
+    }
+  }
   performProjectSave () {
     mixpanel.haikuTrack('creator:project:saving', this.withProjectInfo({
       username: this.props.username,
       project: this.props.projectName
     }))
-    this.setState({ isSnapshotSaveInProgress: true })
+    this.setState({ isSnapshotSaveInProgress: true, snapshotSyndicated: false })
 
     return this.requestSaveProject((snapshotSaveError, snapshotData) => {
       if (snapshotSaveError) {
         console.error(snapshotSaveError)
-        this.props.createNotice({
-          type: 'danger',
-          title: 'Oh no!',
-          message: 'We were unable to publish your project. 😢 Please try again in a few moments. If you still see this error, contact Haiku for support.'
-        })
         return this.setState({ isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError }, () => {
           return setTimeout(() => this.setState({ snapshotSaveError: null }), 2000)
         })
       }
 
-      this.setState({ isSnapshotSaveInProgress: false, snapshotSaveConfirmed: true })
+      this.setState({
+        isSnapshotSaveInProgress: false,
+        snapshotSaveConfirmed: true,
+        projectInfo: snapshotData
+      })
 
       if (snapshotData) {
         if (snapshotData.conflicts) {
@@ -389,6 +417,18 @@ class StageTitleBar extends React.Component {
           this.setState({ linkAddress: snapshotData.shareLink })
         }
 
+        if (snapshotData.semverVersion) {
+          this.setState({ semverVersion: snapshotData.semverVersion })
+        }
+
+        if (snapshotData.status && snapshotData.status.syndicated) {
+          this.setState({ snapshotSyndicated: snapshotData.status.syndicated })
+        } else {
+          this._performSyndicationCheckInterval = setInterval(() => {
+            this.performSyndicationCheck()
+          }, SYNDICATION_CHECK_INTERVAL)
+        }
+
         mixpanel.haikuTrack('creator:project:saved', this.withProjectInfo({
           username: this.props.username,
           project: this.props.projectName
@@ -402,7 +442,7 @@ class StageTitleBar extends React.Component {
   renderSnapshotSaveInnerButton () {
     if (this.state.snapshotSaveError) return <div style={{height: 18, marginRight: -5}}><DangerIconSVG fill='transparent' /></div>
     if (this.state.snapshotMergeConflicts) return <div style={{height: 19, marginRight: 0, marginTop: -2}}><WarningIconSVG fill='transparent' color={Palette.ORANGE} /></div>
-    if (this.state.snapshotSaveConfirmed) return <div style={{ height: 18 }}><SuccessIconSVG viewBox='0 0 14 14' fill='transparent' /></div>
+    if (this.state.snapshotSaveConfirmed && this.state.snapshotSyndicated) return <div style={{ height: 18 }}><SuccessIconSVG viewBox='0 0 14 14' fill='transparent' /></div>
     return <PublishSnapshotSVG />
   }
 
@@ -436,37 +476,57 @@ class StageTitleBar extends React.Component {
       : 'Share & Embed'
 
     let btnText = 'PUBLISH'
-    if (this.state.snapshotSaveConfirmed) btnText = 'PUBLISHED'
-    if (this.state.isSnapshotSaveInProgress) btnText = 'PUBLISHING'
+    if (!this.state.snapshotSyndicated) {
+      btnText = 'PUBLISHING'
+    } else if (this.state.snapshotSaveConfirmed) {
+      btnText = 'PUBLISHED'
+    }
 
     return (
       <div style={STYLES.frame} className='frame'>
-        <Popover
-          place='below'
-          isOpen={showSharePopover}
-          style={{zIndex: 2}}
-          className='publish-popover'
-          body={
-            <PopoverBodyRadiumized
-              parent={this}
-              titleText={titleText}
-              snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
-              isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
-              isProjectInfoFetchInProgress={this.state.isProjectInfoFetchInProgress}
-              linkAddress={this.state.linkAddress}
-              close={() => this.setState({ showSharePopover: false })} />
-          }>
-          <button key='save'
-            id='publish'
-            onClick={this.handleSaveSnapshotClick}
-            style={[
-              BTN_STYLES.btnText,
-              BTN_STYLES.rightBtns,
-              this.state.isSnapshotSaveInProgress && STYLES.disabled
-            ]}>
-            {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
-          </button>
-        </Popover>
+        {experimentIsEnabled(Experiment.NewPublishUI)
+          ? (
+            <button key='save'
+              id='publish'
+              onClick={this.handleSaveSnapshotClick}
+              disabled={!this.props.isTimelineReady && !this.state.snapshotSyndicated}
+              style={[
+                BTN_STYLES.btnText,
+                BTN_STYLES.rightBtns,
+                !this.state.snapshotSyndicated && STYLES.disabled,
+                !this.props.isTimelineReady && STYLES.disabled
+              ]}
+            >
+              {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
+            </button>
+          ) : (
+            <Popover
+              place='below'
+              isOpen={showSharePopover}
+              style={{zIndex: 2}}
+              className='publish-popover'
+              body={
+                <PopoverBodyRadiumized
+                  parent={this}
+                  titleText={titleText}
+                  snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
+                  isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
+                  linkAddress={this.state.linkAddress}
+                  close={() => this.setState({ showSharePopover: false })} />
+              }>
+              <button key='save'
+                id='publish'
+                onClick={this.handleSaveSnapshotClick}
+                style={[
+                  BTN_STYLES.btnText,
+                  BTN_STYLES.rightBtns,
+                  this.state.isSnapshotSaveInProgress && STYLES.disabled
+                ]}>
+                {this.renderSnapshotSaveInnerButton()}<span style={{marginLeft: 7}}>{btnText}</span>
+              </button>
+            </Popover>
+          )
+        }
 
         <Toggle
           onToggle={this.props.onPreviewModeToggled}
@@ -479,6 +539,23 @@ class StageTitleBar extends React.Component {
         <button onClick={this.handleConnectionClick} style={[BTN_STYLES.btnIcon, BTN_STYLES.btnIconHover, STYLES.hide]} key='connect'>
           <ConnectionIconSVG />
         </button>
+
+        {experimentIsEnabled(Experiment.NewPublishUI) && this.state.showSharePopover && !this.props.isPreviewMode &&
+          <ShareModal
+            project={this.props.project}
+            snapshotSaveConfirmed={this.state.snapshotSaveConfirmed}
+            isSnapshotSaveInProgress={this.state.isSnapshotSaveInProgress}
+            linkAddress={this.state.linkAddress}
+            semverVersion={this.state.semverVersion}
+            error={this.state.snapshotSaveError}
+            snapshotSyndicated={this.state.snapshotSyndicated}
+            userName={this.props.username}
+            organizationName={this.props.organizationName}
+            ref={(el) => { this._shareModal = el }}
+            projectUid={this.state.projectInfo.projectUid}
+            sha={this.state.projectInfo.sha}
+          />
+        }
 
         { false &&
           <ToolSelector websocket={this.props.websocket} />
@@ -494,6 +571,7 @@ StageTitleBar.propTypes = {
   projectName: React.PropTypes.string,
   username: React.PropTypes.string,
   password: React.PropTypes.string,
+  organizationName: React.PropTypes.string,
   websocket: React.PropTypes.object.isRequired,
   createNotice: React.PropTypes.func.isRequired,
   removeNotice: React.PropTypes.func.isRequired,

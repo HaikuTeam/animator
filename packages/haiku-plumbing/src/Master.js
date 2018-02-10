@@ -462,12 +462,6 @@ export default class Master extends EventEmitter {
     })
   }
 
-  fetchProjectInfo (projectName, haikuUsername, haikuPassword, fetchOptions = {}, cb) {
-    return this._git.fetchFolderState('fetch-info', fetchOptions, (err) => {
-      cb(err)
-    })
-  }
-
   getAssets (cb) {
     return cb(null, this._knownLibraryAssets)
   }
@@ -758,6 +752,13 @@ export default class Master extends EventEmitter {
       if (err) return done(err)
       return done(null, results[results.length - 1])
     })
+  }
+
+  /**
+   * @method requestSyndicationInfo
+   */
+  requestSyndicationInfo (done) {
+    return this._git.getCurrentShareInfo(done)
   }
 
   /**
