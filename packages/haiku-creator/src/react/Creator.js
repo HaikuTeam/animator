@@ -322,9 +322,13 @@ export default class Creator extends React.Component {
 
     // check admin status
     this.user.getUserDetails().then((stringData) => {
-      let userInfo = JSON.parse(stringData)
-      if (userInfo && userInfo.IsAdmin) {
-        this.setState({isAdmin: userInfo.IsAdmin})
+      // Rough check that the string data is JSON-parseable before contining;
+      // this can be undefined if the user has no internet connection
+      if (stringData && typeof stringData === 'string') {
+        let userInfo = JSON.parse(stringData)
+        if (userInfo && userInfo.IsAdmin) {
+          this.setState({isAdmin: userInfo.IsAdmin})
+        }
       }
     })
   }
