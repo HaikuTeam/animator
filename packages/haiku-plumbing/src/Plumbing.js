@@ -65,11 +65,6 @@ const IGNORED_METHOD_MESSAGES = {
   setTimelineTime: true,
   doesProjectHaveUnsavedChanges: true,
   masterHeartbeat: true
-  // These are noisy, maybe not worth including?
-  // applyPropertyGroupDelta: true,
-  // applyPropertyGroupValue: true,
-  // moveSegmentEndpoints: true,
-  // moveKeyframes: true
 }
 
 // See note under 'processMethodMessage' for the purpose of this
@@ -81,11 +76,15 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   openTextEditor: true,
   openTerminal: true,
   saveProject: true,
+  listProjects: true,
   fetchProjectInfo: true,
   doLogOut: true,
   deleteProject: true,
   teardownMaster: true
 }
+
+const METHOD_MESSAGES_TIMEOUT = 10000
+const METHODS_TO_AWAIT_FOREVER = {}
 
 const Q_GLASS = { alias: 'glass' }
 const Q_TIMELINE = { alias: 'timeline' }
@@ -399,28 +398,62 @@ export default class Plumbing extends StateObject {
   executeMethodMessagesWorker () {
     if (this._isTornDown) return void (0) // Avoid leaking a handle
 
-    let nextMethodMessage = this._methodMessages.shift()
-    if (!nextMethodMessage) return setTimeout(this.executeMethodMessagesWorker.bind(this), 64)
+    const nextMethodMessage = this._methodMessages.shift()
 
-    let { type, alias, folder, message, cb } = nextMethodMessage
+    if (!nextMethodMessage) {
+      return setTimeout(this.executeMethodMessagesWorker.bind(this), 64)
+    }
+
+    const { type, alias, folder, message, cb } = nextMethodMessage
 
     this.methodMessageBeforeLog(message, alias)
+
+    // If it takes too long for us to get a response for a method, kick start the queue
+    // again so we don't hang when important new messages are being received
+    let timedOut = false
+    let gotResponse = false
+
+    if (!METHODS_TO_AWAIT_FOREVER[message.method]) {
+      setTimeout(() => {
+        timedOut = true
+        if (!gotResponse) {
+          logger.warn(`[plumbing] timed out waiting for ${message.method}; restarting worker`)
+          this.executeMethodMessagesWorker()
+        }
+      }, METHOD_MESSAGES_TIMEOUT)
+    }
 
     // Actions are a special case of methods that end up routed through all of the clients,
     // glass -> timeline -> master before returning. They go through one handler as opposed
     // to the normal 'methods' which plumbing handles on a more a la carte basis
     if (message.type === 'action') {
       return this.handleClientAction(type, alias, folder, message.method, message.params, (err, result) => {
+        if (timedOut) {
+          logger.warn(`[plumbing] received late response from timed out action ${message.method}`)
+        }
+
         this.methodMessageAfterLog(message, err, result, alias)
         cb(err, result)
-        this.executeMethodMessagesWorker() // Continue with the next queue entry (if any)
+
+        if (!timedOut) {
+          gotResponse = true
+          this.executeMethodMessagesWorker() // Continue with the next queue entry (if any)
+        }
       })
     }
 
     return this.plumbingMethod(message.method, message.params || [], (err, result) => {
+      if (timedOut) {
+        logger.warn(`[plumbing] received late response from timed out method ${message.method}`)
+      }
+
       this.methodMessageAfterLog(message, err, result, alias)
       cb(err, result)
-      this.executeMethodMessagesWorker() // Continue with the next queue entry (if any)
+
+      if (!timedOut) {
+        gotResponse = true
+        this.executeMethodMessagesWorker() // Continue with the next queue entry (if any)
+      }
     })
   }
 
@@ -492,7 +525,8 @@ export default class Plumbing extends StateObject {
     }
 
     if (timeout <= 0) {
-      throw new Error(`Timed out waiting for client ${JSON.stringify(fixed)}`)
+      logger.warn(`[plumbing] timed out waiting for client ${JSON.stringify(fixed)}`)
+      return null
     }
 
     const clientMatching = find(
@@ -516,25 +550,28 @@ export default class Plumbing extends StateObject {
       // Give a maximum of 10 seconds before forcing a crash if the client doesn't respond.
       // If the page crashes before sending the result, we might not find out and could lose work.
       let responseReceived = false
+      let timedOut = false
 
       // In dev, we may use a debugger in which case we don't want to force a timeout
-      if (process.env.NODE_ENV === 'production') {
-        setTimeout(() => {
-          if (!responseReceived) {
-            throw new Error(`Timed out sending ${method} to client ${JSON.stringify(query)}`)
-          }
-        }, WAIT_DELAY)
-      }
+      setTimeout(() => {
+        timedOut = true
+
+        if (!responseReceived) {
+          logger.warn(`[plumbing] timed out sending ${method} to client ${JSON.stringify(query)}`)
+        }
+      }, WAIT_DELAY)
 
       return this.sendClientMethod(client, method, params, (error, response) => {
         responseReceived = true
 
-        if (error) {
-          this.sentryError(method, error, { tags: query })
-          return cb(error)
-        }
+        if (!timedOut) {
+          if (error) {
+            this.sentryError(method, error, { tags: query })
+            return cb(error)
+          }
 
-        return cb(null, response)
+          return cb(null, response)
+        }
       })
     })
   }
