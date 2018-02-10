@@ -782,7 +782,15 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   pullRemote (cb) {
+    // We can't pull the remote if we don't have any remote info;
+    // this can happen if there's a connection problem;
+    // instead of crashing, we just silently skip this step
+    if (!this._folderState.remoteProjectDescriptor) {
+      return cb()
+    }
+
     const { repositoryUrl } = this._folderState.remoteProjectDescriptor
+
     if (repositoryUrl) {
       return Git.fetchProjectDirectly(this.folder, this._folderState.projectName, repositoryUrl, (err) => {
         if (err) {
