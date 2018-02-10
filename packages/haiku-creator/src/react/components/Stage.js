@@ -6,6 +6,7 @@ import StageTitleBar from './StageTitleBar'
 import ComponentMenu from './ComponentMenu/ComponentMenu'
 import Palette from 'haiku-ui-common/lib/Palette'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
+import { remote } from 'electron'
 
 const STAGE_BOX_STYLE = {
   position: 'relative',
@@ -88,11 +89,29 @@ export default class Stage extends React.Component {
             }, 1000)
           }
           break
-        // case 1:
-        //   this.props.createNotice({ type: 'warning', title: 'Warning', message: event.message })
-        //   break
+
         case 2:
-          this.props.createNotice({ type: 'error', title: 'Error', message: event.message })
+          // 'Uncaught' indicates an unrecoverable error in Glass, so we need to crash too
+          if (event.message.slice(0, 8) === 'Uncaught') {
+            // Give the webview's Raven instance time to transmit its crash report
+            return setTimeout(() => {
+              remote.getCurrentWindow().close()
+            }, 500)
+          }
+
+          console.error(event.message)
+
+          const errorNotice = this.props.createNotice({
+            type: 'error',
+            title: 'Error',
+            message: event.message
+          })
+
+          // It seems nicest to just remove the error after it's been on display for a couple of seconds
+          window.setTimeout(() => {
+            this.props.removeNotice(undefined, errorNotice.id)
+          }, 2000)
+
           break
       }
     })
