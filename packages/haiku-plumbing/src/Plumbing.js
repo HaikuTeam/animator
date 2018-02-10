@@ -377,12 +377,16 @@ export default class Plumbing extends StateObject {
 
       // Give clients the chance to emit events to all others
       return this.sendBroadcastMessage(message, folder, alias, websocket)
-    } else if (message.id && this.requests[message.id]) {
+    }
+
+    if (message.id && this.requests[message.id]) {
       // If we have an entry in this.requests, that means this is a reply
       const { callback } = this.requests[message.id]
       delete this.requests[message.id]
       return callback(message.error, message.result, message)
-    } else if (message.method) { // This condition MUST happen before the one above since .method is present on that one too
+    }
+
+    if (message.method) {
       // Ensure that actions/methods occur in order by using a queue
       return this.processMethodMessage(type, alias, folder, message, responder)
     }
@@ -602,7 +606,7 @@ export default class Plumbing extends StateObject {
         }
       })
     } else {
-      throw new Error('WebSocket is not OPEN')
+      throw new Error('WebSocket is not open')
     }
   }
 
@@ -620,12 +624,6 @@ export default class Plumbing extends StateObject {
       this.servers.forEach((server) => {
         logger.info('[plumbing] closing server')
         server.close()
-      })
-
-      this.clients.forEach((client) => {
-        if (client.readyState !== WebSocket.OPEN) return void (0)
-        logger.info('[plumbing] sending crash signal to client')
-        sendMessageToClient(client, { signal: 'CRASH' })
       })
 
       this._isTornDown = true
@@ -938,6 +936,8 @@ export default class Plumbing extends StateObject {
   }
 
   teardownMaster (folder, cb) {
+    logger.info(`[plumbing] tearing down master ${folder}`)
+
     if (this.masters[folder]) {
       this.masters[folder].active = false
       this.masters[folder].watchOff()
@@ -950,6 +950,7 @@ export default class Plumbing extends StateObject {
     clientsOfFolder.forEach((clientOfFolder) => {
       const alias = clientOfFolder.params.alias
       if (alias === 'glass' || alias === 'timeline') {
+        logger.info(`[plumbing] closing client ${alias} of ${folder}`)
         clientOfFolder.close()
         this.removeWebsocketClient(clientOfFolder)
       }
@@ -1278,7 +1279,7 @@ function sendMessageToClient (client, message) {
     return client.send(data, (err) => {
       if (err) {
         // This should never happen.
-        throw new Error(`[plumbing] got error during send: ${err}`)
+        throw new Error(`Error during send: ${err}`)
       }
     })
   } else {
