@@ -4770,5 +4770,22 @@
       "label": "fix",
       "message": "Case-sens"
     }
+  },
+  "3.0.33": {
+    "b0b60767ed1b58568598fa4d702b50f340c1c8ed": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update the copy to installing npm published projects"
+    },
+    "ed872f74897a2e32c76ae1ea5a3628220b9e862c": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update the haiku slack community link"
+    },
+    "1288a9a2425c56359814cd751e0c1e3d9df0a4a1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Stabilize template hashing and improve logging"
+    }
   }
 }

@@ -1,6 +1,14 @@
 # Changelog
 
 
+## 3.0.33
+
+### Bug Fixes
+
+ * update the copy to installing npm published projects
+ * update the haiku slack community link
+ * Stabilize template hashing and improve logging
+
 ## 3.0.32
 
 ### Bug Fixes
