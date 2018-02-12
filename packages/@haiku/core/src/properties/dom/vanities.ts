@@ -632,6 +632,15 @@ const TEXT_CONTENT_VANITIES = {
   },
 };
 
+const CONTENT_VANITIES = {
+  children: (_, element, value) => {
+    element.children = value;
+  },
+  insert: (_, element, value) => {
+    CONTENT_VANITIES.children(_, element, [value]);
+  },
+};
+
 function attributeSetter(prop) {
   return function (name, element, value) {
     element.attributes[prop] = value;
@@ -1096,6 +1105,7 @@ export default {
   discard: has(),
   div: has(
     HTML_STYLE_SHORTHAND_VANITIES,
+    CONTENT_VANITIES,
     TEXT_CONTENT_VANITIES,
     CONTROL_FLOW_VANITIES,
     LAYOUT_3D_VANITIES,

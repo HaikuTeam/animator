@@ -12,7 +12,7 @@ const initializeComponentTree = require('@haiku/core/lib/helpers/initializeCompo
 const Layout3D = require('@haiku/core/lib/Layout3D').default
 const BaseModel = require('./BaseModel')
 const Bytecode = require('./Bytecode')
-const log = require('./helpers/log')
+const logger = require('./../utils/LoggerInstance')
 const getDefinedKeys = require('./helpers/getDefinedKeys')
 const toTitleCase = require('./helpers/toTitleCase')
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
@@ -343,7 +343,7 @@ class ActiveComponent extends BaseModel {
   }
 
   setTimelineName (timelineName, metadata, cb) {
-    log.info('[active component] changing active timeline to ' + timelineName)
+    logger.info(`[active component (${this.project.getAlias()})] changing active timeline to ` + timelineName)
     Timeline.setCurrent({ component: this }, timelineName)
     this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
       instance.stopAllTimelines()
@@ -507,7 +507,7 @@ class ActiveComponent extends BaseModel {
       this.codeReloadingOff()
 
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -590,7 +590,7 @@ class ActiveComponent extends BaseModel {
 
   getInsertionPointHash () {
     const template = this.getReifiedBytecode().template
-    return Template.getInsertionPointHash(template, 0, 0)
+    return Template.getInsertionPointInfo(template, 0, 0).hash
   }
 
   /**
@@ -633,14 +633,18 @@ class ActiveComponent extends BaseModel {
     let componentId
 
     return this.fetchActiveBytecodeFile().performComponentWork((existingBytecode, existingTemplate, done) => {
-      const insertionPointHash = Template.getInsertionPointHash(existingTemplate, existingTemplate.children.length, 0)
+      const {
+        hash
+      } = Template.getInsertionPointInfo(existingTemplate, existingTemplate.children.length, 0)
 
       Bytecode.padIds(incomingBytecode, (oldId) => {
-        return Template.getHash(`${oldId}-${insertionPointHash}`, 12)
+        return Template.getHash(`${oldId}-${hash}`, 12)
       })
 
       // Has to happen after the above line in case an id was generated
       componentId = incomingBytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
+
+      logger.info(`[active component (${this.project.getAlias()})] instantiatee (bytecode) ${componentId} via ${hash}`)
 
       this.mutateInstantiateeDisplaySettings(
         componentId,
@@ -787,11 +791,13 @@ class ActiveComponent extends BaseModel {
     let componentId
 
     return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
-      const insertionPointHash = Template.getInsertionPointHash(template, template.children.length, 0)
+      const {
+        hash
+      } = Template.getInsertionPointInfo(template, template.children.length, 0)
 
       const timelinesObject = Template.prepareManaAndBuildTimelinesObject(
         mana,
-        insertionPointHash,
+        hash,
         timelineName,
         timelineTime,
         { doHashWork: true }
@@ -799,6 +805,8 @@ class ActiveComponent extends BaseModel {
 
       // Has to happen after the above stanza in case an id was generated
       componentId = mana.attributes[HAIKU_ID_ATTRIBUTE]
+
+      logger.info(`[active component (${this.project.getAlias()})] instantiatee (mana) ${componentId} via ${hash}`)
 
       this.mutateInstantiateeDisplaySettings(
         componentId,
@@ -962,7 +970,7 @@ class ActiveComponent extends BaseModel {
       const finish = (err, manaForWrapperElement) => {
         if (err) {
           release()
-          log.error(err)
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
         }
 
@@ -1053,7 +1061,7 @@ class ActiveComponent extends BaseModel {
       }, (err) => {
         if (err) {
           release()
-          log.error(err)
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
         }
 
@@ -1153,7 +1161,9 @@ class ActiveComponent extends BaseModel {
 
       this.removeChildContentFromBytecode(existingBytecode, existingNode)
 
-      const insertionPointHash = Template.getInsertionPointHash(
+      const {
+        hash
+      } = Template.getInsertionPointInfo(
         existingBytecode.template,
         existingBytecode.template.children.length,
         numMatchingNodes++
@@ -1161,7 +1171,7 @@ class ActiveComponent extends BaseModel {
 
       const timelinesObject = Template.prepareManaAndBuildTimelinesObject(
         safeIncoming,
-        insertionPointHash,
+        hash,
         timelineName,
         timelineTime,
         { doHashWork: true }
@@ -1242,7 +1252,7 @@ class ActiveComponent extends BaseModel {
 
         if (err) {
           release()
-          log.error(err)
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
         }
 
@@ -1260,7 +1270,7 @@ class ActiveComponent extends BaseModel {
       this.fetchActiveBytecodeFile().applyPropertyGroupValue(componentId, timelineName, timelineTime, propertyGroup, (err) => {
         if (err) {
           release()
-          log.error(err)
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
         }
 
@@ -1280,7 +1290,7 @@ class ActiveComponent extends BaseModel {
       this.fetchActiveBytecodeFile().applyPropertyGroupDelta(componentId, timelineName, timelineTime, propertyGroup, (err) => {
         if (err) {
           release()
-          log.error(err)
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
         }
 
@@ -1327,7 +1337,7 @@ class ActiveComponent extends BaseModel {
       this.fetchActiveBytecodeFile().resizeContext(artboardId, timelineName, timelineTime, sizeDescriptor, (err) => {
         if (err) {
           release()
-          log.error(err)
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
         }
 
@@ -1346,7 +1356,7 @@ class ActiveComponent extends BaseModel {
   changePlaybackSpeed (framesPerSecond, metadata, cb) {
     return this.fetchActiveBytecodeFile().changePlaybackSpeed(framesPerSecond, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1361,7 +1371,7 @@ class ActiveComponent extends BaseModel {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
     return this.fetchActiveBytecodeFile().changeKeyframeValue(componentId, timelineName, propertyName, keyframeMs, newValue, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1376,7 +1386,7 @@ class ActiveComponent extends BaseModel {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
     return this.fetchActiveBytecodeFile().joinKeyframes(componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1391,7 +1401,7 @@ class ActiveComponent extends BaseModel {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
     return this.fetchActiveBytecodeFile().changeSegmentCurve(componentId, timelineName, propertyName, keyframeMs, newCurve, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1406,7 +1416,7 @@ class ActiveComponent extends BaseModel {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
     return this.fetchActiveBytecodeFile().changeSegmentEndpoints(componentId, timelineName, propertyName, oldMs, newMs, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1421,7 +1431,7 @@ class ActiveComponent extends BaseModel {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
     return this.fetchActiveBytecodeFile().createKeyframe(componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1436,7 +1446,7 @@ class ActiveComponent extends BaseModel {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
     return this.fetchActiveBytecodeFile().deleteKeyframe(componentId, timelineName, propertyName, keyframeMs, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1450,7 +1460,7 @@ class ActiveComponent extends BaseModel {
   createTimeline (timelineName, timelineDescriptor, metadata, cb) {
     return this.fetchActiveBytecodeFile().createTimeline(timelineName, timelineDescriptor, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1464,7 +1474,7 @@ class ActiveComponent extends BaseModel {
   deleteTimeline (timelineName, metadata, cb) {
     return this.fetchActiveBytecodeFile().deleteTimeline(timelineName, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1478,7 +1488,7 @@ class ActiveComponent extends BaseModel {
   duplicateTimeline (timelineName, metadata, cb) {
     return this.fetchActiveBytecodeFile().duplicateTimeline(timelineName, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1492,7 +1502,7 @@ class ActiveComponent extends BaseModel {
   renameTimeline (timelineNameOld, timelineNameNew, metadata, cb) {
     return this.fetchActiveBytecodeFile().renameTimeline(timelineNameOld, timelineNameNew, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1507,7 +1517,7 @@ class ActiveComponent extends BaseModel {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
     return this.fetchActiveBytecodeFile().moveSegmentEndpoints(componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1522,7 +1532,7 @@ class ActiveComponent extends BaseModel {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
     return this.fetchActiveBytecodeFile().moveKeyframes(componentId, timelineName, propertyName, keyframeMoves, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1537,7 +1547,7 @@ class ActiveComponent extends BaseModel {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
     return this.fetchActiveBytecodeFile().sliceSegment(componentId, timelineName, elementName, propertyName, keyframeMs, sliceMs, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1552,7 +1562,7 @@ class ActiveComponent extends BaseModel {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
     return this.fetchActiveBytecodeFile().splitSegment(componentId, timelineName, elementName, propertyName, keyframeMs, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1566,7 +1576,7 @@ class ActiveComponent extends BaseModel {
   zMoveToFront (componentId, timelineName, timelineTime, metadata, cb) {
     this.fetchActiveBytecodeFile().zMoveToFront(componentId, timelineName, timelineTime, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1580,7 +1590,7 @@ class ActiveComponent extends BaseModel {
   zMoveForward (componentId, timelineName, timelineTime, metadata, cb) {
     this.fetchActiveBytecodeFile().zMoveForward(componentId, timelineName, timelineTime, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1594,7 +1604,7 @@ class ActiveComponent extends BaseModel {
   zMoveBackward (componentId, timelineName, timelineTime, metadata, cb) {
     this.fetchActiveBytecodeFile().zMoveBackward(componentId, timelineName, timelineTime, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1608,7 +1618,7 @@ class ActiveComponent extends BaseModel {
   zMoveToBack (componentId, timelineName, timelineTime, metadata, cb) {
     this.fetchActiveBytecodeFile().zMoveToBack(componentId, timelineName, timelineTime, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1623,7 +1633,7 @@ class ActiveComponent extends BaseModel {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
     this.fetchActiveBytecodeFile().reorderElement(componentId, componentIdToInsertBefore, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1646,7 +1656,7 @@ class ActiveComponent extends BaseModel {
     this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
     this.fetchActiveBytecodeFile().hideElements(componentId, metadata, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1673,7 +1683,9 @@ class ActiveComponent extends BaseModel {
         switch (pasteable.kind) {
           case 'bytecode':
             // As usual, we use a hash rather than randomness because of multithreading
-            const hash = Template.getInsertionPointHash(mana, mana.children.length, 0)
+            const {
+              hash
+            } = Template.getInsertionPointInfo(mana, mana.children.length, 0)
 
             const incoming = Bytecode.clone(pasteable.data)
 
@@ -1689,15 +1701,17 @@ class ActiveComponent extends BaseModel {
 
             newHaikuId = incoming.template.attributes['haiku-id']
 
+            logger.info(`[active component (${this.project.getAlias()})] pastee (bytecode) ${newHaikuId} via ${hash}`)
+
             return done(null, {haikuId: newHaikuId})
           default:
-            log.warn('[active component] cannot paste clipboard contents of kind ' + pasteable.kind)
+            logger.warn(`[active component (${this.project.getAlias()})] cannot paste clipboard contents of kind ` + pasteable.kind)
             return done(new Error('Unable to paste clipboard contents'))
         }
       }, (err, data) => {
         if (err) {
           release()
-          log.error(err)
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
         }
 
@@ -1723,7 +1737,7 @@ class ActiveComponent extends BaseModel {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
       return this.fetchActiveBytecodeFile().deleteThing(deletable, (err) => {
         if (err) {
-          log.error(err)
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
           return cb(err)
         }
 
@@ -1742,7 +1756,7 @@ class ActiveComponent extends BaseModel {
     stateDescriptor.edited = true
     return this.fetchActiveBytecodeFile().upsertStateValue(stateName, stateDescriptor, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1759,7 +1773,7 @@ class ActiveComponent extends BaseModel {
   deleteStateValue (stateName, metadata, cb) {
     return this.fetchActiveBytecodeFile().deleteStateValue(stateName, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1777,7 +1791,7 @@ class ActiveComponent extends BaseModel {
     handlerDescriptor.edited = true
     return this.fetchActiveBytecodeFile().upsertEventHandler(selectorName, eventName, handlerDescriptor, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1799,7 +1813,7 @@ class ActiveComponent extends BaseModel {
   batchUpsertEventHandlers (selectorName, serializedEvents, metadata, cb) {
     return this.fetchActiveBytecodeFile().batchUpsertEventHandlers(selectorName, serializedEvents, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -1826,7 +1840,7 @@ class ActiveComponent extends BaseModel {
   deleteEventHandler (selectorName, eventName, metadata, cb) {
     return this.fetchActiveBytecodeFile().deleteEventHandler(selectorName, eventName, (err) => {
       if (err) {
-        log.error(err)
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
         return cb(err)
       }
 
@@ -2246,7 +2260,7 @@ class ActiveComponent extends BaseModel {
         this.codeReloadingOff()
 
         if (err) {
-          log.error(err)
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
           this.emit('error', err)
           if (cb) return cb(err)
           return null
@@ -2314,7 +2328,7 @@ class ActiveComponent extends BaseModel {
         this.codeReloadingOff()
 
         if (err) {
-          log.error(err)
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
           return this.emit('error', err)
         }
 

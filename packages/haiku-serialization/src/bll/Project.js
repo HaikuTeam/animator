@@ -9,7 +9,7 @@ const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiment
 const EnvoyClient = require('haiku-sdk-creator/lib/envoy/EnvoyClient').default
 const EnvoyLogger = require('haiku-sdk-creator/lib/envoy/EnvoyLogger').default
 const { GLASS_CHANNEL } = require('haiku-sdk-creator/lib/glass')
-const log = require('./helpers/log')
+const logger = require('./../utils/LoggerInstance')
 const BaseModel = require('./BaseModel')
 const reifyRO = require('@haiku/core/lib/reflection/reifyRO').default
 const reifyRFO = require('@haiku/core/lib/reflection/reifyRFO').default
@@ -104,7 +104,7 @@ class Project extends BaseModel {
       }
     }
 
-    log.info(`[project (${this.getAlias()})] sending action: ${method}`)
+    logger.info(`[project (${this.getAlias()})] sending action: ${method}`)
 
     // Only proceed with the next action once ours is finished
     return this.websocket.action(method, params, (err, out) => {
@@ -126,8 +126,8 @@ class Project extends BaseModel {
       if (!this._didStartWebsocketListeners) {
         // Upon receipt of a method, route to the correct ActiveComponent
         this.websocket.on('method', this.receiveMethodCall.bind(this))
-        this.websocket.on('close', () => log.info('[project] websocket closed'))
-        this.websocket.on('error', () => log.info('[project] websocket error'))
+        this.websocket.on('close', () => logger.info(`[project (${this.getAlias()})] websocket closed`))
+        this.websocket.on('error', () => logger.info(`[project (${this.getAlias()})] websocket error`))
 
         this._didStartWebsocketListeners = true
       }
@@ -205,7 +205,7 @@ class Project extends BaseModel {
       const ac = this.findActiveComponentBySource(params[0])
 
       if (ac && typeof ac[method] === 'function') {
-        log.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
+        logger.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
         return ac[method].apply(ac, params.slice(1).concat((err, out) => {
           release()
           return cb(err, out)
@@ -214,7 +214,7 @@ class Project extends BaseModel {
 
       // If we have a method here at the top, call it
       if (typeof this[method] === 'function') {
-        log.info(`[project (${this.getAlias()})] project handling method ${method}`, params, typeof cb === 'function')
+        logger.info(`[project (${this.getAlias()})] project handling method ${method}`, params, typeof cb === 'function')
         return this[method].apply(this, params.concat((err, result) => {
           release()
           if (err) return cb(err)

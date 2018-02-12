@@ -190,7 +190,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       // If our core version is only a patch difference from theirs, go ahead and upgrade their core
       let upgradeDiff = semver.diff(packageJson.dependencies['@haiku/core'], haikuCoreVersion)
       if (upgradeDiff === 'patch') {
-        logger.sacred('[project folder] upgraded @haiku/core to', haikuCoreVersion)
+        logger.info('[project folder] upgraded @haiku/core to', haikuCoreVersion)
         packageJson.dependencies['@haiku/core'] = haikuCoreVersion
       }
     }

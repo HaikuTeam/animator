@@ -114,6 +114,7 @@ const PRESENTATION_SCHEMA = {
   markerMid: 'string',
   markerStart: 'string',
   mask: 'string',
+  offset: 'string',
   // opacity omitted - is part of layout algorithm
   overflow: 'string',
   overflowX: 'string',

@@ -33,7 +33,7 @@ import {remote} from 'electron'
     // Give Raven some time to send a crash report before we close
     setTimeout(() => {
       remote.getCurrentWindow().close()
-    }, 500)
+    }, (process.env.NODE_ENV === 'production') ? 500 : 50000)
   }
 
   function go () {

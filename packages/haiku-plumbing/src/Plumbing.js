@@ -155,7 +155,7 @@ process.on('SIGTERM', () => {
 
 // Apparently there are circumstances where we won't crash (?); ensure that we do
 process.on('uncaughtException', (err) => {
-  console.error(err)
+  logger.error(err)
 
   // Notify mixpanel so we can track improvements to the app over time
   mixpanel.haikuTrackOnce('app:crash', { error: err.message })
@@ -166,7 +166,7 @@ process.on('uncaughtException', (err) => {
     teardownPlumbings(() => {
       process.exit(1)
     })
-  }, 100)
+  }, 1000)
 })
 
 export default class Plumbing extends StateObject {

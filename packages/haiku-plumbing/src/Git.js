@@ -827,7 +827,7 @@ export function pushProjectDirectly (folder, projectName, cb) {
   return getCurrentBranchName(folder, (err, partialBranchName, fullBranchName) => {
     if (err) return cb(err)
 
-    logger.sacred(`[git] pushing ${fullBranchName} to remote (${projectName})`)
+    logger.info(`[git] pushing ${fullBranchName} to remote (${projectName})`)
 
     const doForcePush = true
 
@@ -844,7 +844,7 @@ export function pushProject (folder, projectName, projectGitRemoteUrl, gitRemote
   return getCurrentBranchName(folder, (err, partialBranchName, fullBranchName) => {
     if (err) return cb(err)
 
-    logger.sacred(`[git] pushing ${fullBranchName} to remote (${projectName}) ${projectGitRemoteUrl}`)
+    logger.info(`[git] pushing ${fullBranchName} to remote (${projectName}) ${projectGitRemoteUrl}`)
 
     const doForcePush = true
 
