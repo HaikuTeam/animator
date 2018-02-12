@@ -1,17 +1,17 @@
-import * as React from 'react'
-import Palette from '../../Palette'
+import * as React from 'react';
+import Palette from '../../Palette';
 
 export class ModalNotice extends React.PureComponent {
-  props
+  props;
 
   static propTypes = {
     color: React.PropTypes.string,
-    message: React.PropTypes.string
-  }
+    message: React.PropTypes.string,
+  };
 
   static defaultProps = {
-    color: Palette.RED
-  }
+    color: Palette.RED,
+  };
 
   render () {
     return (
@@ -22,10 +22,10 @@ export class ModalNotice extends React.PureComponent {
         padding: '3px',
         textAlign: 'center',
         color: Palette.SUNSTONE,
-        backgroundColor: this.props.color
+        backgroundColor: this.props.color,
       }}>
         {this.props.message}
       </div>
-    )
+    );
   }
 }

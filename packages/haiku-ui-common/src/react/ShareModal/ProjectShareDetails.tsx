@@ -1,39 +1,39 @@
-import * as React from 'react'
-import Palette from '../../Palette'
-import {LinkHolster} from './LinkHolster'
+import * as React from 'react';
+import Palette from '../../Palette';
+import {LinkHolster} from './LinkHolster';
 
 const STYLES = {
   wrapper: {
     display: 'flex',
     justifyContent: 'space-between',
-    padding: '15px 0'
+    padding: '15px 0',
   } as React.CSSProperties,
   title: {
     color: Palette.PALE_GRAY,
     fontSize: '18px',
-    margin: '0'
+    margin: '0',
   },
   info: {
     color: Palette.PALE_GRAY,
     fontSize: '10px',
     margin: '0',
-    fontStyle: 'italic'
+    fontStyle: 'italic',
   } as React.CSSProperties,
   label: {
     textTransform: 'uppercase',
-    color: Palette.DARK_ROCK
-  }
-}
+    color: Palette.DARK_ROCK,
+  },
+};
 
 export class ProjectShareDetails extends React.PureComponent {
-  props
+  props;
 
   static propTypes = {
     semverVersion: React.PropTypes.string,
     projectName: React.PropTypes.string,
     linkAddress: React.PropTypes.string,
     isSnapshotSaveInProgress: React.PropTypes.bool,
-  }
+  };
 
   render() {
     const {
@@ -42,7 +42,7 @@ export class ProjectShareDetails extends React.PureComponent {
       linkAddress,
       isSnapshotSaveInProgress,
       onHide,
-    } = this.props
+    } = this.props;
 
     return (
       <div style={STYLES.wrapper}>
@@ -69,6 +69,6 @@ export class ProjectShareDetails extends React.PureComponent {
           <p style={STYLES.info}>Anyone with the link can <strong>view and install</strong> your project.</p>
         </div>
       </div>
-    )
+    );
   }
 }

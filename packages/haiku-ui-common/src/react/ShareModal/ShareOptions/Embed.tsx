@@ -1,10 +1,10 @@
-import * as React from 'react'
-import * as dedent from 'dedent'
-import {PUBLISH_SHARED} from './PublishStyles'
-import {CodeBox} from '../../CodeBox'
+import * as React from 'react';
+import * as dedent from 'dedent';
+import {PUBLISH_SHARED} from './PublishStyles';
+import {CodeBox} from '../../CodeBox';
 
 export default class Embed extends React.PureComponent {
-  props
+  props;
 
   static propTypes = {
     projectName: React.PropTypes.string,
@@ -12,16 +12,16 @@ export default class Embed extends React.PureComponent {
     organizationName: React.PropTypes.string,
     projectUid: React.PropTypes.string,
     sha: React.PropTypes.string,
-  }
+  };
 
   get cdnBase() {
-    let cdnBase = 'https://cdn.haiku.ai/';
+    const cdnBase = 'https://cdn.haiku.ai/';
 
     return `${cdnBase + this.props.projectUid}/${this.props.sha}/`;
   }
 
   render () {
-    const {userName, projectName, organizationName, sha} = this.props
+    const {userName, projectName, organizationName, sha} = this.props;
     const scriptPath = `${this.cdnBase}index.standalone.js`;
     const embedPath = `${this.cdnBase}index.embed.js`;
 
@@ -53,6 +53,6 @@ export default class Embed extends React.PureComponent {
           </div>
         </div>
        </div>
-    )
+    );
   }
 }

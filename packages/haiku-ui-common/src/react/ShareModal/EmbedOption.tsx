@@ -1,9 +1,9 @@
-import * as React from 'react'
-import * as assign from 'lodash.assign'
-import Palette from '../../Palette'
-import {LoadingTopBar} from '../../LoadingTopBar'
-import {Tooltip} from '../Tooltip'
-import {SHARED_STYLES} from '../../SharedStyles'
+import * as React from 'react';
+import * as assign from 'lodash.assign';
+import Palette from '../../Palette';
+import {LoadingTopBar} from '../../LoadingTopBar';
+import {Tooltip} from '../Tooltip';
+import {SHARED_STYLES} from '../../SharedStyles';
 
 const STYLES = {
   entry: {
@@ -16,18 +16,18 @@ const STYLES = {
     disabled: {
       backgroundColor: 'transparent',
       color: Palette.BLACK,
-      border: `1px solid ${Palette.DARKEST_COAL}`
+      border: `1px solid ${Palette.DARKEST_COAL}`,
     },
     loading: {
-      opacity: 0.7
-    }
-  }
-}
+      opacity: 0.7,
+    },
+  },
+};
 
 export class EmbedOption extends React.PureComponent {
-  props
-  startTimeout
-  updateTimeout
+  props;
+  startTimeout;
+  updateTimeout;
 
   static propTypes = {
     disabled: React.PropTypes.bool,
@@ -35,65 +35,65 @@ export class EmbedOption extends React.PureComponent {
     entry: React.PropTypes.string.isRequired,
     onClick: React.PropTypes.func,
     isSnapshotSaveInProgress: React.PropTypes.bool,
-    snapshotSyndicated: React.PropTypes.bool
-  }
+    snapshotSyndicated: React.PropTypes.bool,
+  };
 
   state = {
     progress: 0,
     speed: '2s',
-    done: false
-  }
+    done: false,
+  };
 
   get tooltipText() {
-    return this.props.disabled ? 'Coming Soon' : 'Click for details'
+    return this.props.disabled ? 'Coming Soon' : 'Click for details';
   }
 
   componentDidMount() {
     if (this.props.isSnapshotSaveInProgress) {
-      this.start()
+      this.start();
     }
   }
 
   componentWillReceiveProps({isSnapshotSaveInProgress, snapshotSyndicated}) {
     if (isSnapshotSaveInProgress) {
-      this.start()
+      this.start();
     } else {
-      if (this.isGIF && !snapshotSyndicated) return
+      if (this.isGIF && !snapshotSyndicated) { return; }
 
       this.setState({progress: 100, speed: '0.5s'}, () => {
         this.updateTimeout = setTimeout(() => {
           if (this.updateTimeout) {
-            this.setState({done: true, progress: 0, speed: '1ms'})
+            this.setState({done: true, progress: 0, speed: '1ms'});
           }
-        }, 1000)
-      })
+        },                              1000);
+      });
     }
   }
 
   componentWillUnmount () {
     if (this.updateTimeout) {
-      clearTimeout(this.updateTimeout)
-      this.updateTimeout = null
+      clearTimeout(this.updateTimeout);
+      this.updateTimeout = null;
     }
 
     if (this.startTimeout) {
-      clearTimeout(this.startTimeout)
-      this.startTimeout = null
+      clearTimeout(this.startTimeout);
+      this.startTimeout = null;
     }
   }
 
   start() {
     this.startTimeout = setTimeout(() => {
-      this.setState({progress: 80, speed: this.startSpeed, done: false})
-    }, 10)
+      this.setState({progress: 80, speed: this.startSpeed, done: false});
+    },                             10);
   }
 
   get startSpeed() {
-    return this.isGIF ? '30s' : '15s'
+    return this.isGIF ? '30s' : '15s';
   }
 
   get isGIF() {
-    return this.props.entry === 'GIF'
+    return this.props.entry === 'GIF';
   }
 
   render() {
@@ -103,8 +103,8 @@ export class EmbedOption extends React.PureComponent {
       isSnapshotSaveInProgress,
       done,
       onClick,
-      template
-    } = this.props
+      template,
+    } = this.props;
 
     return (
       <li>
@@ -116,12 +116,12 @@ export class EmbedOption extends React.PureComponent {
                 ...SHARED_STYLES.btn,
                 ...STYLES.entry,
                 ...(disabled && STYLES.entry.disabled),
-                ...(!this.state.done && STYLES.entry.loading)
-              }
+                ...(!this.state.done && STYLES.entry.loading),
+              },
             )}
             onClick={() => {
               if (!disabled && this.state.done) {
-                onClick({entry, template})
+                onClick({entry, template});
               }
             }}
           >
@@ -136,6 +136,6 @@ export class EmbedOption extends React.PureComponent {
           </button>
         </Tooltip>
       </li>
-    )
+    );
   }
 }

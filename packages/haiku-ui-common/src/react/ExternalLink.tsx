@@ -1,5 +1,5 @@
-import * as React from 'react'
-import {shell} from 'electron'
+import * as React from 'react';
+import {shell} from 'electron';
 
 export class ExternalLink extends React.PureComponent {
   props;
@@ -7,8 +7,8 @@ export class ExternalLink extends React.PureComponent {
   static propTypes = {
     style: React.PropTypes.object,
     title: React.PropTypes.string,
-    href: React.PropTypes.string.isRequired
-  }
+    href: React.PropTypes.string.isRequired,
+  };
 
   render () {
     return (
@@ -18,12 +18,12 @@ export class ExternalLink extends React.PureComponent {
         title={this.props.title}
         style={this.props.style}
         onClick={(clickEvent) => {
-          clickEvent.preventDefault()
-          shell.openExternal(this.props.href)
+          clickEvent.preventDefault();
+          shell.openExternal(this.props.href);
         }}
       >
         {this.props.children}
       </a>
-    )
+    );
   }
 }

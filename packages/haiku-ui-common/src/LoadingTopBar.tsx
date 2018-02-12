@@ -1,6 +1,6 @@
-import * as React from 'react'
-import * as assign from 'lodash.assign'
-import Palette from './Palette'
+import * as React from 'react';
+import * as assign from 'lodash.assign';
+import Palette from './Palette';
 
 const STYLES = {
   bar: {
@@ -8,34 +8,34 @@ const STYLES = {
     top: '0',
     left: '0',
     height: '3px',
-    backgroundColor: Palette.PINK
-  }
-}
+    backgroundColor: Palette.PINK,
+  },
+};
 
 export class LoadingTopBar extends React.PureComponent {
-  props
+  props;
 
   static propTypes = {
     progress: React.PropTypes.number,
     speed: React.PropTypes.oneOfType([
       React.PropTypes.number,
-      React.PropTypes.string
+      React.PropTypes.string,
     ]).isRequired,
-    done: React.PropTypes.bool
-  }
+    done: React.PropTypes.bool,
+  };
 
   shouldComponentUpdate(nextProps, nextState) {
     return (
       nextProps.progress !== this.props.progress ||
       nextProps.done !== this.props.done
-    )
+    );
   }
 
   static defaultProps = {
     progress: 0,
     speed: '15s',
-    done: false
-  }
+    done: false,
+  };
 
   render() {
     return (
@@ -44,11 +44,11 @@ export class LoadingTopBar extends React.PureComponent {
           {
             width: `${this.props.progress}%`,
             transition: `width ${this.props.speed} cubic-bezier(0.4, 0, 1, 1), opacity 300ms ease`,
-            opacity: this.props.done ? 0 : 1
+            opacity: this.props.done ? 0 : 1,
           },
-          STYLES.bar
+          STYLES.bar,
         )}
       />
-    )
+    );
   }
 }

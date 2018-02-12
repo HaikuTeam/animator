@@ -1,20 +1,20 @@
-import * as React from 'react'
-import * as assign from 'lodash.assign'
-import Palette from '../../Palette'
-import {Tooltip} from '../Tooltip'
-import {ExternalLink} from '../ExternalLink'
-import {EmbedCategory} from './EmbedCategory'
-import {SHARE_OPTIONS} from './ShareModalOptions'
+import * as React from 'react';
+import * as assign from 'lodash.assign';
+import Palette from '../../Palette';
+import {Tooltip} from '../Tooltip';
+import {ExternalLink} from '../ExternalLink';
+import {EmbedCategory} from './EmbedCategory';
+import {SHARE_OPTIONS} from './ShareModalOptions';
 
 const STYLES = {
   categories: {
     display: 'flex',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   } as React.CSSProperties,
   subtitle: {
     textTransform: 'uppercase',
     fontSize: '14px',
-    marginBottom: '0'
+    marginBottom: '0',
   },
   circle: {
     display: 'inline-block',
@@ -28,9 +28,9 @@ const STYLES = {
     fontSize: '0.7em',
     cursor: 'pointer',
     textAlign: 'center',
-    lineHeight: '1.3em'
-  }
-}
+    lineHeight: '1.3em',
+  },
+};
 
 export class EmbedList extends React.PureComponent {
   props;
@@ -39,7 +39,7 @@ export class EmbedList extends React.PureComponent {
     onOptionClicked: React.PropTypes.func,
     isSnapshotSaveInProgress: React.PropTypes.bool,
     snapshotSyndicated: React.PropTypes.bool,
-  }
+  };
 
   renderShareOptions () {
     return Object.entries(SHARE_OPTIONS).map(([category, options]) => (
@@ -51,7 +51,7 @@ export class EmbedList extends React.PureComponent {
         isSnapshotSaveInProgress={this.props.isSnapshotSaveInProgress}
         snapshotSyndicated={this.props.snapshotSyndicated}
       />
-    ))
+    ));
   }
 
   render () {
@@ -60,10 +60,10 @@ export class EmbedList extends React.PureComponent {
         <h4 style={STYLES.subtitle}>
           Install Options
 
-        <Tooltip content='Docs' place='right'>
+        <Tooltip content="Docs" place="right">
           <ExternalLink
             style={STYLES.circle}
-            href='https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html'
+            href="https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html"
           >
             ?
           </ExternalLink>
@@ -74,6 +74,6 @@ export class EmbedList extends React.PureComponent {
           {this.renderShareOptions()}
          </div>
       </div>
-    )
+    );
   }
 }
