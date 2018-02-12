@@ -72,7 +72,7 @@ export function getCurrentShareInfo (folder, cache, extras, done) {
       // Cache this during this session so we can avoid unnecessary handshakes with inkstone
       cache[sha] = shareInfo
 
-      logger.sacred('[inkstone] share info', shareInfo)
+      logger.info('[inkstone] share info', shareInfo)
 
       return done(null, shareInfo)
     })

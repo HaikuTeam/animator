@@ -9,6 +9,7 @@ const visitManaTree = require('@haiku/core/lib/helpers/visitManaTree').default
 const insertAttributesIntoTimelineGroup = require('haiku-bytecode/src/insertAttributesIntoTimelineGroup')
 const extractReferenceIdFromUrlReference = require('haiku-bytecode/src/extractReferenceIdFromUrlReference')
 const States = require('haiku-bytecode/src/States')
+const jsonStableStringify = require('json-stable-stringify')
 
 const BaseModel = require('./BaseModel')
 
@@ -121,6 +122,8 @@ Template.manaWithOnlyMinimalProps = (mana) => {
 
     out.elementName = mana.elementName
 
+    // When the element name is an object, that's a sub-component and we need to
+    // swap it out for the reference, which should be a string
     if (typeof mana.elementName === 'object') {
       // When written to the file, we should end up with `elementName: fooBar,...`
       // This assumes that a require() statement gets added to the AST later
@@ -144,7 +147,16 @@ Template.manaWithOnlyMinimalProps = (mana) => {
       }
     }
 
-    out.children = mana.children && mana.children.map(Template.manaWithOnlyMinimalProps)
+    if (mana.children) {
+      out.children = mana.children.filter((child) => {
+        // Exclude any empty or content-string elements.
+        // This sidesteps the problem where one process shows e.g. children:["BLAH"]
+        // but another process shows children:[], which results in unstable hashes
+        return child && typeof child !== 'string'
+      }).map(Template.manaWithOnlyMinimalProps)
+    } else {
+      out.children = []
+    }
 
     return out
   } else if (typeof mana === 'string') {
@@ -343,10 +355,15 @@ Template.haikuSelectorToHaikuId = function haikuSelectorToHaikuId (selector) {
   return selector.split(':')[1]
 }
 
-Template.getInsertionPointHash = function getInsertionPointHash (mana, index, depth, len = 6) {
-  const str = JSON.stringify(Template.manaWithOnlyMinimalProps(mana)) + '-' + index + '-' + depth
-  const hash = Template.getHash(str, len)
-  return hash
+Template.getInsertionPointInfo = function getInsertionPointInfo (mana, index, depth, len = 6) {
+  const template = Template.manaWithOnlyMinimalProps(mana)
+  const source = jsonStableStringify(template) + '-' + index + '-' + depth
+  const hash = Template.getHash(source, len)
+  return {
+    template,
+    source,
+    hash
+  }
 }
 
 Template.getHash = function getHash (str, len = 6) {

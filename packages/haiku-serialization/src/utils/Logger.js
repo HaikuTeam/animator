@@ -50,12 +50,9 @@ module.exports = function _loggerConstructor (folder, filepath, options) {
     transports: transports
   })
 
-  logger.capture = function _capture (cb) {
+  logger.capture = (cb) => {
     logger.stream({ start: -1 }).on('log', cb)
   }
-
-  // Legacy, use EnvoyLogger.info instead
-  logger.sacred = logger.info.bind(logger)
 
   return logger
 }

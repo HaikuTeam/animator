@@ -425,7 +425,7 @@ export default class MasterGitProject extends EventEmitter {
         return cb(err)
       }
 
-      logger.sacred(`[master-git] git tagged: ${this._folderState.semverVersion}`)
+      logger.info(`[master-git] git tagged: ${this._folderState.semverVersion}`)
 
       return cb()
     })
@@ -565,7 +565,7 @@ export default class MasterGitProject extends EventEmitter {
 
     const { repositoryUrl } = this._folderState.remoteProjectDescriptor
     if (repositoryUrl) {
-      logger.sacred(`[master-git] directly cloning from remote ${repositoryUrl}`)
+      logger.info(`[master-git] directly cloning from remote ${repositoryUrl}`)
       return Git.cloneRepoDirectly(repositoryUrl, this.folder, (err) => {
         if (err) {
           logger.info(`[master-git] clone error:`, err)
@@ -593,7 +593,7 @@ export default class MasterGitProject extends EventEmitter {
       CodeCommitHttpsPassword
     } = this._folderState.remoteProjectDescriptor
 
-    logger.sacred(`[master-git] cloning from remote ${GitRemoteUrl} (attempt ${this._folderState.cloneAttempts})`)
+    logger.info(`[master-git] cloning from remote ${GitRemoteUrl} (attempt ${this._folderState.cloneAttempts})`)
 
     return Git.cloneRepo(GitRemoteUrl, CodeCommitHttpsUsername, CodeCommitHttpsPassword, this.folder, (err) => {
       if (err) {
@@ -1145,7 +1145,7 @@ export default class MasterGitProject extends EventEmitter {
           isBase = true
         }
 
-        logger.sacred(`[master-git] commit ${commitId.toString()} (base: ${isBase})`)
+        logger.info(`[master-git] commit ${commitId.toString()} (base: ${isBase})`)
 
         // For now, pretty much any commit we capture in this session is considered an undoable. We may want to
         // circle back and restrict it to only certain types of commits, but that does end up making the undo/redo
