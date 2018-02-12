@@ -10,8 +10,8 @@ const STYLES = {
   position: 'fixed',
   top: '40px',
   left: '0',
-  right: '0'
-}
+  right: '0',
+};
 
 export class ModalWrapper extends React.PureComponent {
   props;
@@ -21,6 +21,6 @@ export class ModalWrapper extends React.PureComponent {
       <div style={{...STYLES, ...this.props.style}}>
         {this.props.children}
       </div>
-    )
+    );
   }
 }

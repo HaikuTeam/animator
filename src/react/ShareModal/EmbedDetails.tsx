@@ -1,13 +1,13 @@
-import * as React from 'react'
-import * as ShareTemplates from './ShareOptions'
-import {SHARED_STYLES} from '../../SharedStyles'
+import * as React from 'react';
+import * as ShareTemplates from './ShareOptions';
+import {SHARED_STYLES} from '../../SharedStyles';
 
 const STYLES = {
   wrapper: {
     padding: '20px',
-    color: 'white'
-  }
-}
+    color: 'white',
+  },
+};
 
 export class EmbedDetails extends React.PureComponent {
   props;
@@ -20,12 +20,13 @@ export class EmbedDetails extends React.PureComponent {
     onHide: React.PropTypes.func.isRequired,
     projectUid: React.PropTypes.string,
     sha: React.PropTypes.string,
-  }
+  };
 
   render () {
-    if(!this.props.entry) return null
+    if (!this.props.entry) { return null; }
 
-    const Template = ShareTemplates[this.props.entry.template]
+    // tslint:disable-next-line:variable-name
+    const Template = ShareTemplates[this.props.entry.template];
 
     return (
       <div style={STYLES.wrapper}>
@@ -42,6 +43,6 @@ export class EmbedDetails extends React.PureComponent {
           sha={this.props.sha}
         />
       </div>
-    )
+    );
   }
 }

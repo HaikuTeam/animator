@@ -1,5 +1,5 @@
-import {CSSProperties} from 'react'
-import Palette from './Palette'
+import {CSSProperties} from 'react';
+import Palette from './Palette';
 
 export const SHARED_STYLES = {
   btn: {
@@ -18,10 +18,10 @@ export const SHARED_STYLES = {
     backgroundColor: Palette.FATHER_COAL,
     marginBottom: '20px',
     ':active': {
-      transform: 'scale(.9)'
+      transform: 'scale(.9)',
     },
     ':hover': {
-      color: Palette.ROCK
-    }
+      color: Palette.ROCK,
+    },
   } as CSSProperties,
-}
+};

@@ -1,39 +1,39 @@
-import * as React from 'react'
-import {LinkHolster} from '../LinkHolster'
-import Palette from '../../../Palette'
+import * as React from 'react';
+import {LinkHolster} from '../LinkHolster';
+import Palette from '../../../Palette';
 
 const STYLES = {
   imgWrapper: {
     width: '100%',
     minHeight: '200px',
     background: Palette.GRAY,
-    overflow: 'hidden'
+    overflow: 'hidden',
   } as React.CSSProperties,
   image: {
-    maxWidth: '100%'
-  }
-}
+    maxWidth: '100%',
+  },
+};
 
 export default class Gif extends React.PureComponent {
-  props
-  imgEl
+  props;
+  imgEl;
 
   static propTypes = {
     entry: React.PropTypes.string,
     userName: React.PropTypes.string,
     organizationName: React.PropTypes.string,
     projectUid: React.PropTypes.string,
-    sha: React.PropTypes.string
-  }
+    sha: React.PropTypes.string,
+  };
 
   get cdnBase() {
-    let cdnBase = 'https://cdn.haiku.ai/'
+    const cdnBase = 'https://cdn.haiku.ai/';
 
-    return `${cdnBase + this.props.projectUid}/${this.props.sha}/`
+    return `${cdnBase + this.props.projectUid}/${this.props.sha}/`;
   }
 
   render() {
-    const gif = `${this.cdnBase}animation.gif`
+    const gif = `${this.cdnBase}animation.gif`;
 
     return (
       <div style={{textAlign: 'center'}}>
@@ -47,6 +47,6 @@ export default class Gif extends React.PureComponent {
           linkLenght={75}
         />
       </div>
-    )
+    );
   }
 }
