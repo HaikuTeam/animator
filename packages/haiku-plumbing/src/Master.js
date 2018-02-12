@@ -791,6 +791,11 @@ export default class Master extends EventEmitter {
         })
       },
 
+      // Ensure we bump the semver before proceeding.
+      (cb) => {
+        return this._git.bumpSemverAppropriately(cb)
+      },
+
       // Populate the bytecode's metadata. This may be a no-op if the file has already been saved
       (cb) => {
         // Just in case this ran somehow before we initialized the project
@@ -822,7 +827,11 @@ export default class Master extends EventEmitter {
             branch: branchName
           }
 
-          return ac.fetchActiveBytecodeFile().writeMetadata(bytecodeMetadata, next)
+          return ac.fetchActiveBytecodeFile().writeMetadata(bytecodeMetadata, (err) => {
+            if (err) return next(err)
+            // #FIXME: we should have a mechanism to force flush in cases where we actually want I/O to be blocking.
+            return ac.fetchActiveBytecodeFile().awaitNoFurtherContentFlushes(next)
+          })
         }, (err) => {
           if (err) return cb(err)
           return cb()
@@ -868,10 +877,6 @@ export default class Master extends EventEmitter {
         })
       },
 
-      (cb) => {
-        this._git.commitProjectIfChanged('Updated metadata', cb)
-      },
-
       // Build the rest of the content of the folder, including any bundles that belong on the cdn
       (cb) => {
         logger.info('[master] project save: populating content')
@@ -883,6 +888,10 @@ export default class Master extends EventEmitter {
           authorName: saveOptions.authorName,
           organizationName: saveOptions.organizationName
         }, cb)
+      },
+
+      (cb) => {
+        this._git.commitProjectIfChanged('Updated metadata', cb)
       },
 
       // Now do all of the git/share/publish/fs operations required for the real save
