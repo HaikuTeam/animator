@@ -44,7 +44,6 @@ export default class Gif extends React.PureComponent {
           linkAddress={gif}
           showLoadingBar={false}
           dark={true}
-          linkLenght={75}
         />
       </div>
     );

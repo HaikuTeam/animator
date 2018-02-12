@@ -24,7 +24,12 @@ const STYLES = {
   link: {
     color: Palette.BLUE,
     fontSize: '10px',
-  },
+    whiteSpace: 'nowrap',
+    width: 'calc(100% - 35px)',
+    display: 'inline-block',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  } as React.CSSProperties,
   linkCopyBtn: {
     height: '100%',
     padding: '0 8px',
@@ -41,13 +46,11 @@ export class LinkHolster extends React.PureComponent {
     linkAddress: React.PropTypes.string,
     showLoadingBar: React.PropTypes.bool,
     dark: React.PropTypes.bool,
-    linkLenght: React.PropTypes.number,
   };
 
   static defaultProps = {
     showLoadingBar: true,
     dark: false,
-    linkLenght: 33,
   };
 
   state = {
@@ -81,7 +84,6 @@ export class LinkHolster extends React.PureComponent {
     const {
       isSnapshotSaveInProgress,
       linkAddress,
-      linkLenght,
     } = this.props;
 
     if (this.props.isSnapshotSaveInProgress) {
@@ -98,7 +100,7 @@ export class LinkHolster extends React.PureComponent {
             style={STYLES.link}
             onClick={() => shell.openExternal(linkAddress)}
           >
-            {linkAddress.substring(0, linkLenght)}
+            {linkAddress}
           </span>
       );
     }
