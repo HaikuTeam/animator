@@ -4799,5 +4799,12 @@
       "label": "fix",
       "message": "enable linting of jsx files in ui-common and fix lint issues"
     }
+  },
+  "3.0.35": {
+    "81195cd3f91ef31848b31b817c84a93f838c3be8": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow splitpane to be resized"
+    }
   }
 }
