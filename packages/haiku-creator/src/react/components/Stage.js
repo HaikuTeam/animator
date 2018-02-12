@@ -96,7 +96,7 @@ export default class Stage extends React.Component {
             // Give the webview's Raven instance time to transmit its crash report
             return setTimeout(() => {
               remote.getCurrentWindow().close()
-            }, 500)
+            }, (process.env.NODE_ENV === 'production') ? 500 : 50000)
           }
 
           console.error(event.message)
