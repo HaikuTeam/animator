@@ -7,8 +7,8 @@ const STYLES = {
   borderTopRightRadius: '7px',
   borderTopLeftRadius: '7px',
   padding: '5px 20px',
-  zIndex: 999999
-}
+  zIndex: 999999,
+};
 
 export class ModalHeader extends React.PureComponent {
   props;
@@ -18,6 +18,6 @@ export class ModalHeader extends React.PureComponent {
       <div style={{...STYLES, ...this.props.style}}>
         {this.props.children}
       </div>
-    )
+    );
   }
 }

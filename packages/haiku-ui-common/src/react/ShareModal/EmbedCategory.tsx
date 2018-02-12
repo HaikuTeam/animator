@@ -1,25 +1,25 @@
-import * as React from 'react'
-import * as assign from 'lodash.assign'
-import {SHARE_OPTIONS} from './ShareModalOptions'
-import {EmbedOption} from './EmbedOption'
+import * as React from 'react';
+import * as assign from 'lodash.assign';
+import {SHARE_OPTIONS} from './ShareModalOptions';
+import {EmbedOption} from './EmbedOption';
 
 const STYLES = {
   categoryWrapper: {
     flexGrow: 1,
     flexBasis: 0,
-    paddingRight: '20px'
+    paddingRight: '20px',
   },
   categoryOptions: {
     margin: '0',
     padding: '0',
     listStyle: 'none',
-    width: '85%'
+    width: '85%',
   },
   categoryTitle: {
     fontSize: '16px',
-    textTransform: 'uppercase'
-  }
-}
+    textTransform: 'uppercase',
+  },
+};
 
 export class EmbedCategory extends React.PureComponent {
   props;
@@ -30,7 +30,7 @@ export class EmbedCategory extends React.PureComponent {
     onOptionClicked: React.PropTypes.func,
     isSnapshotSaveInProgress: React.PropTypes.bool,
     snapshotSyndicated: React.PropTypes.bool,
-  }
+  };
 
   renderCategoryOptions (options: Object) {
     return Object.entries(options).map(([entry, {disabled, template}]) => (
@@ -43,7 +43,7 @@ export class EmbedCategory extends React.PureComponent {
         isSnapshotSaveInProgress={this.props.isSnapshotSaveInProgress}
         snapshotSyndicated={this.props.snapshotSyndicated}
       />
-    ))
+    ));
   }
 
   render () {
@@ -54,6 +54,6 @@ export class EmbedCategory extends React.PureComponent {
           {this.renderCategoryOptions(this.props.options)}
         </ul>
       </div>
-    )
+    );
   }
 }

@@ -1,5 +1,5 @@
-import * as React from 'react'
-import * as Popover from 'react-popover'
+import * as React from 'react';
+import * as Popover from 'react-popover';
 import Palette from '../Palette';
 
 const STYLES = {
@@ -9,22 +9,22 @@ const STYLES = {
     fontSize: '11px',
     display: 'block',
     textAlign: 'center',
-    borderRadius: '5px'
-  }
-}
+    borderRadius: '5px',
+  },
+};
 
 export class Tooltip extends React.PureComponent {
-  props
+  props;
 
-  tooltipOpenTimeout
+  tooltipOpenTimeout;
 
-  tooltipCloseTimeout
+  tooltipCloseTimeout;
 
-  isMouseOver = false
+  isMouseOver = false;
 
   state = {
-    isPopoverOpen: false
-  }
+    isPopoverOpen: false,
+  };
 
   static propTypes = {
     content: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
@@ -33,35 +33,35 @@ export class Tooltip extends React.PureComponent {
     tooltipOpenDelay: React.PropTypes.number,
     place: React.PropTypes.string,
     style: React.PropTypes.object,
-    tooltipBackground: React.PropTypes.string
-  }
+    tooltipBackground: React.PropTypes.string,
+  };
 
   static defaultProps = {
     tooltipOpenDelay: 600,
     tooltipCloseDelay: 2000,
     place: 'below',
-    tooltipBackground: Palette.BLACK
-  }
+    tooltipBackground: Palette.BLACK,
+  };
 
   openPopover () {
-    this.isMouseOver = true
+    this.isMouseOver = true;
 
     this.tooltipOpenTimeout = setTimeout(() => {
       if (this.isMouseOver) {
-        this.setState({ isPopoverOpen: true })
+        this.setState({isPopoverOpen: true});
       }
-    }, this.props.tooltipOpenDelay)
+    },                                   this.props.tooltipOpenDelay);
 
     this.tooltipCloseTimeout = setTimeout(() => {
-      this.closePopover()
-    }, this.props.tooltipCloseDelay)
+      this.closePopover();
+    },                                    this.props.tooltipCloseDelay);
   }
 
   closePopover () {
-    this.isMouseOver = false
-    this.setState({ isPopoverOpen: false })
-    if (this.tooltipOpenTimeout) clearTimeout(this.tooltipOpenTimeout)
-    if (this.tooltipCloseTimeout) clearTimeout(this.tooltipCloseTimeout)
+    this.isMouseOver = false;
+    this.setState({isPopoverOpen: false});
+    if (this.tooltipOpenTimeout) { clearTimeout(this.tooltipOpenTimeout); }
+    if (this.tooltipCloseTimeout) { clearTimeout(this.tooltipCloseTimeout); }
   }
 
   render () {
@@ -69,7 +69,7 @@ export class Tooltip extends React.PureComponent {
       content,
       disabled,
       tooltipBackground,
-    } = this.props
+    } = this.props;
 
     return (
       <Popover
@@ -79,14 +79,14 @@ export class Tooltip extends React.PureComponent {
         tipSize={5}
       >
         <span
-          onMouseEnter={() => {this.openPopover()}}
-          onMouseLeave={() => {this.closePopover()}}
-          onClick={() => {this.closePopover()}}
+          onMouseEnter={() => {this.openPopover();}}
+          onMouseLeave={() => {this.closePopover();}}
+          onClick={() => {this.closePopover();}}
           style={this.props.style}
         >
           {this.props.children}
         </span>
       </Popover>
-    )
+    );
   }
 }

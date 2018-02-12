@@ -1,19 +1,19 @@
-import * as React from 'react'
-import * as Color from 'color'
-import * as dedent from 'dedent'
-import {PUBLISH_SHARED} from './PublishStyles'
+import * as React from 'react';
+import * as Color from 'color';
+import * as dedent from 'dedent';
+import {PUBLISH_SHARED} from './PublishStyles';
 
 export class NpmInstallable extends React.PureComponent {
-  props
+  props;
 
   static propTypes = {
     projectName: React.PropTypes.string,
     userName: React.PropTypes.string,
-    organizationName: React.PropTypes.string
-  }
+    organizationName: React.PropTypes.string,
+  };
 
   render() {
-    const {projectName, userName, organizationName} = this.props
+    const {projectName, userName, organizationName} = this.props;
 
     return (
       <div style={PUBLISH_SHARED.block}>
@@ -71,6 +71,6 @@ export class NpmInstallable extends React.PureComponent {
           </div>
         </div>
       </div>
-    )
+    );
   }
 }

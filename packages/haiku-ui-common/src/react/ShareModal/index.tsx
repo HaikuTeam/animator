@@ -1,22 +1,22 @@
-import * as React from 'react'
-import Palette from '../../Palette'
-import {ModalWrapper, ModalHeader, ModalNotice} from '../Modal'
-import {RevealPanel} from '../RevealPanel'
-import {ProjectShareDetails} from './ProjectShareDetails'
-import {EmbedList} from './EmbedList'
-import {EmbedDetails} from './EmbedDetails'
+import * as React from 'react';
+import Palette from '../../Palette';
+import {ModalWrapper, ModalHeader, ModalNotice} from '../Modal';
+import {RevealPanel} from '../RevealPanel';
+import {ProjectShareDetails} from './ProjectShareDetails';
+import {EmbedList} from './EmbedList';
+import {EmbedDetails} from './EmbedDetails';
 
 const STYLES = {
   wrapper: {
     width: 500,
-    overflow: 'hidden'
-  }
-}
+    overflow: 'hidden',
+  },
+};
 
 export class ShareModal extends React.Component {
-  state
-  props
-  error
+  state;
+  props;
+  error;
 
   static propTypes = {
     project: React.PropTypes.object,
@@ -31,32 +31,32 @@ export class ShareModal extends React.Component {
     organizationName: React.PropTypes.string,
     projectUid: React.PropTypes.string,
     sha: React.PropTypes.string,
-  }
+  };
 
   constructor () {
-    super()
+    super();
 
     this.state = {
-      showDetail: false
-    }
+      showDetail: false,
+    };
   }
 
   componentWillReceiveProps({error, isSnapshotSaveInProgress}) {
-    if(error) {
-      this.error = error
+    if (error) {
+      this.error = error;
     }
 
     if (isSnapshotSaveInProgress) {
-      this.error = null
+      this.error = null;
     }
   }
 
   showDetails (selectedEntry: String) {
-    this.setState({showDetail: true, selectedEntry})
+    this.setState({selectedEntry, showDetail: true});
   }
 
   hideDetails () {
-    this.setState({showDetail: false, selectedEntry: null})
+    this.setState({showDetail: false, selectedEntry: null});
   }
 
   render () {
@@ -71,7 +71,7 @@ export class ShareModal extends React.Component {
       organizationName,
       sha,
       projectUid,
-    } = this.props
+    } = this.props;
 
     return (
       <ModalWrapper style={STYLES.wrapper}>
@@ -94,7 +94,7 @@ export class ShareModal extends React.Component {
               isSnapshotSaveInProgress={isSnapshotSaveInProgress}
               snapshotSyndicated={snapshotSyndicated}
               onOptionClicked={(selectedEntry) => {
-                this.showDetails(selectedEntry)
+                this.showDetails(selectedEntry);
               }}
             />
           }
@@ -107,12 +107,12 @@ export class ShareModal extends React.Component {
               projectUid={projectUid}
               sha={sha}
               onHide={() => {
-                this.hideDetails()
+                this.hideDetails();
               }}
             />
           }
         />
       </ModalWrapper>
-    )
+    );
   }
 }
