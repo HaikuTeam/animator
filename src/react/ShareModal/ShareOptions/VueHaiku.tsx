@@ -14,7 +14,7 @@ export default class VueHaiku extends React.PureComponent {
   render() {
     const {projectName, userName, organizationName} = this.props;
     return (
-      <NpmInstallable>
+      <NpmInstallable projectName={projectName} userName={userName} organizationName={organizationName}>
         <CodeBox>
           {dedent`
           import ${projectName} from '@haiku/${organizationName.toLowerCase()}-${projectName}/vue';
