@@ -33,6 +33,11 @@ export class ShareModal extends React.Component {
     sha: React.PropTypes.string,
   };
 
+  static defaultProps = {
+    projectUid: '',
+    sha: '',
+  };
+
   constructor () {
     super();
 

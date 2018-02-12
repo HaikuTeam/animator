@@ -17,7 +17,6 @@ import {
   PublishSnapshotSVG,
   ConnectionIconSVG,
   WarningIconSVG,
-  SuccessIconSVG,
   DangerIconSVG,
   CliboardIconSVG
 } from 'haiku-ui-common/lib/react/OtherIcons'
@@ -289,7 +288,12 @@ class StageTitleBar extends React.Component {
         const node = ReactDOM.findDOMNode(this._shareModal)
         const pnode = ReactDOM.findDOMNode(this)
         if (!node.contains(e.target) && !pnode.contains(e.target)) {
-          this.setState({showSharePopover: false})
+          this.setState({
+            showSharePopover: false,
+            isSnapshotSaveInProgress: false,
+            snapshotSyndicated: true
+          })
+          this.clearSyndicationChecks()
         }
       }
     })
@@ -442,7 +446,6 @@ class StageTitleBar extends React.Component {
   renderSnapshotSaveInnerButton () {
     if (this.state.snapshotSaveError) return <div style={{height: 18, marginRight: -5}}><DangerIconSVG fill='transparent' /></div>
     if (this.state.snapshotMergeConflicts) return <div style={{height: 19, marginRight: 0, marginTop: -2}}><WarningIconSVG fill='transparent' color={Palette.ORANGE} /></div>
-    if (this.state.snapshotSaveConfirmed && this.state.snapshotSyndicated) return <div style={{ height: 18 }}><SuccessIconSVG viewBox='0 0 14 14' fill='transparent' /></div>
     return <PublishSnapshotSVG />
   }
 
@@ -474,12 +477,11 @@ class StageTitleBar extends React.Component {
     const titleText = this.state.showCopied
       ? 'Copied'
       : 'Share & Embed'
+    const projectInfo = this.withProjectInfo({})
 
     let btnText = 'PUBLISH'
     if (!this.state.snapshotSyndicated) {
       btnText = 'PUBLISHING'
-    } else if (this.state.snapshotSaveConfirmed) {
-      btnText = 'PUBLISHED'
     }
 
     return (
@@ -552,8 +554,8 @@ class StageTitleBar extends React.Component {
             userName={this.props.username}
             organizationName={this.props.organizationName}
             ref={(el) => { this._shareModal = el }}
-            projectUid={this.state.projectInfo.projectUid}
-            sha={this.state.projectInfo.sha}
+            projectUid={projectInfo.projectUid}
+            sha={projectInfo.sha}
           />
         }
 
