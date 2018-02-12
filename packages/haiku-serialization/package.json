@@ -6,7 +6,7 @@
   "scripts": {
     "test": "yarn test:unit && yarn test:bll",
     "test:unit": "NODE_ENV=test tape \"test/unit/**/*.test.js\" | tap-spec || true",
-    "test:bll": "NODE_ENV=test tape \"test/bll/**/04*.test.js\" | tap-spec || true",
+    "test:bll": "NODE_ENV=test tape \"test/bll/**/*.test.js\" | tap-spec || true",
     "test-report": "tape \"test/**/*.test.js\" > test-result.tap",
     "lint": "eslint \"src/**/*.js\"",
     "fix": "yarn lint --fix",

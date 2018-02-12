@@ -1683,7 +1683,9 @@ class ActiveComponent extends BaseModel {
         switch (pasteable.kind) {
           case 'bytecode':
             // As usual, we use a hash rather than randomness because of multithreading
-            const hash = Template.getInsertionPointHash(mana, mana.children.length, 0)
+            const {
+              hash
+            } = Template.getInsertionPointInfo(mana, mana.children.length, 0)
 
             const incoming = Bytecode.clone(pasteable.data)
 
