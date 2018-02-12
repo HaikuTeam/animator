@@ -386,7 +386,10 @@ export default class MasterGitProject extends EventEmitter {
         // The main master process and component need to handle this too since the
         // bytecode contains the version which we use to render in the right-click menu
         this.emit('semver-bumped', nextTag, () => {
-          return cb(null, nextTag)
+          return this.fetchFolderState('semver-bumped', {}, (err) => {
+            if (err) return cb(err)
+            return cb(null, nextTag)
+          })
         })
       })
     })
@@ -1255,7 +1258,6 @@ export default class MasterGitProject extends EventEmitter {
         ]
 
         const teardownSteps = [
-          'bumpSemverAppropriately',
           'commitEverything',
           'makeTag',
           'saveSnapshot'
