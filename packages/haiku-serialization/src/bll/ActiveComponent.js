@@ -792,7 +792,6 @@ class ActiveComponent extends BaseModel {
 
     return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
       const {
-        source,
         hash
       } = Template.getInsertionPointInfo(template, template.children.length, 0)
 
