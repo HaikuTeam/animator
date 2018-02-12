@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 3.0.34
+
+### Bug Fixes
+
+ * add missing props to npminstallable items
+ * enable linting of jsx files in ui-common and fix lint issues
+
 ## 3.0.33
 
 ### Bug Fixes

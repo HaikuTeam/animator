@@ -4787,5 +4787,17 @@
       "label": "fix",
       "message": "Stabilize template hashing and improve logging"
     }
+  },
+  "3.0.34": {
+    "f40c149ee64ebe2b403588e58679028f8374c79b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add missing props to npminstallable items"
+    },
+    "62bb56430b0183bce113738aa51cd6bde302f7b8": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "enable linting of jsx files in ui-common and fix lint issues"
+    }
   }
 }
