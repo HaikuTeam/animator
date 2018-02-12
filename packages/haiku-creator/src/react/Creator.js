@@ -1147,9 +1147,9 @@ export default class Creator extends React.Component {
                 {lodash.map(this.state.notices, this.renderNotifications)}
               </div>
             </ReactCSSTransitionGroup>
-            <SplitPane allowResize={false} onDragFinished={this.handlePaneResize.bind(this)} split='horizontal' minSize={300} defaultSize={this.props.height * 0.62}>
+            <SplitPane onDragFinished={this.handlePaneResize.bind(this)} split='horizontal' minSize={300} defaultSize={this.props.height * 0.62}>
               <div>
-                <SplitPane allowResize={false} onDragFinished={this.handlePaneResize.bind(this)} split='vertical' minSize={300} defaultSize={300}>
+                <SplitPane onDragFinished={this.handlePaneResize.bind(this)} split='vertical' minSize={300} defaultSize={300}>
                   <SideBar
                     doShowBackToDashboardButton={this.state.doShowBackToDashboardButton}
                     projectModel={this.state.projectModel}
