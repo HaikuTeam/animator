@@ -258,7 +258,7 @@ export default class TopMenu extends EventEmitter {
           {
             label: 'Haiku Community on Slack',
             click: () => {
-              shell.openExternal('https://haiku-community.slack.com/')
+              shell.openExternal('https://join.slack.com/t/haiku-community/shared_invite/enQtMjU0NzExMzQzMjIxLTA3NjgzZDYzYmNjYzcxNmUwY2NhMTE0YTE2OGVjZGE0MDhmNGIxOWUzOTk5OTI5MmQ0ZjA5MDAwNGY1Yjk1OTg')
             }
           }
         ]
