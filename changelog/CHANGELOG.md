@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.35
+
+### Bug Fixes
+
+ * allow splitpane to be resized
+
 ## 3.0.34
 
 ### Bug Fixes
