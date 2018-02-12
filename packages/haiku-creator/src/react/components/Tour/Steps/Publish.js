@@ -1,7 +1,7 @@
 import React from 'react'
 import EmbeddedVideo from '../EmbeddedVideo'
 
-export default function({styles}) {
+export default function ({styles}) {
   return (
     <div>
       <h2 style={styles.heading}>Publishing and Installing</h2>

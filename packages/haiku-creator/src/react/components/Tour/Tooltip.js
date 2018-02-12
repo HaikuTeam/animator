@@ -153,8 +153,16 @@ function Tooltip (props) {
   }
 
   return (
-    <div style={{top, left, ...STYLES.container, ...positionStyles.container, zIndex: 9999999}}>
-      {(renderSpotlight &&
+    <div
+      style={{
+        top,
+        left,
+        ...STYLES.container,
+        ...positionStyles.container,
+        zIndex: 9999999
+      }}
+    >
+      {renderSpotlight && (
         <Spotlight
           offset={positionStyles.spotlight}
           position={{top, left}}
@@ -176,52 +184,65 @@ function Tooltip (props) {
           <div style={STYLES.children}>
             {children}
 
-            <span style={{fontStyle: 'oblique', position: 'absolute', top: 50, right: 20}}>
-              {stepData.current} of {stepData.total}
-            </span>
-
-            {/* Don't show buttons on the first and last slides */}
             {stepData.current > 0 && (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginTop: 30
-              }}
-                >
-              <button
-                style={TOUR_STYLES.btnSecondary}
-                onClick={() => finish(true, true)}
-                  >
-                    Finish
-                  </button>
-              <div style={{display: 'flex', alignItems: 'center'}}>
-                {showPreviousButton && (
-                <button
-                  style={{...TOUR_STYLES.btnSecondary, marginRight: 10}}
-                  onClick={() => prev(true, true)}
-                      >
-                        Back
-                      </button>
-                    )}
+              <span
+                style={{
+                  fontStyle: 'oblique',
+                  position: 'absolute',
+                  top: 50,
+                  right: 20
+                }}
+              >
+                {stepData.current} of {stepData.total}
+              </span>
+            )}
 
-                {/* Show the next button if we aren't waiting for user interaction */}
-                {!waitUserAction && stepData.current < stepData.total && (
-                <button style={TOUR_STYLES.btn} onClick={() => next()}>
+            {stepData.current > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginTop: 30
+                }}
+              >
+                <button
+                  style={TOUR_STYLES.btnSecondary}
+                  onClick={() => finish(true, true)}
+                  >
+                  {stepData.current < stepData.total && (
+                      'Finish'
+                    )}
+                </button>
+                <div style={{display: 'flex', alignItems: 'center'}}>
+                  {showPreviousButton && (
+                    <button
+                      style={{...TOUR_STYLES.btnSecondary, marginRight: 10}}
+                      onClick={() => prev(true, true)}
+                    >
+                      Back
+                    </button>
+                  )}
+
+                  {/* Show the next button if we aren't waiting for user interaction */}
+                  {!waitUserAction &&
+                    stepData.current < stepData.total && (
+                      <button style={TOUR_STYLES.btn} onClick={() => next()}>
                         Next
                       </button>
                     )}
 
-                {stepData.current === stepData.total && (
-                <button
-                  style={TOUR_STYLES.btn}
-                  onClick={() => finish(true, false)}
-                      > Finish
-                      </button>
-                    )}
+                  {stepData.current === stepData.total && (
+                    <button
+                      style={TOUR_STYLES.btn}
+                      onClick={() => finish(true, false)}
+                    >
+                      {' '}
+                      Finish
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-              )}
+            )}
           </div>
         </div>
       </Draggable>
