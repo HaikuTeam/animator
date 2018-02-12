@@ -1006,34 +1006,33 @@ ValueBuilder.prototype._getSummonablesSchema = function _getSummonablesSchema() 
   return summonablesSchema;
 };
 
-function areSummoneesDifferent(previous, incoming) {
-  // First check if either is an array, and do an el-by-el comparison
+function areSummoneesDifferent(previous: any, incoming: any): boolean {
   if (Array.isArray(previous) && Array.isArray(incoming)) {
-    // A good quick check is just to compare the lengths
     if (previous.length !== incoming.length) {
       return true;
     }
 
-    // Do an element-by-element comparison; if any fail, it all fails
-    for (let i = 0; i < incoming.length; i++) {
-      if (areSummoneesDifferent(previous[i], incoming[i])) {
+    // Do a shallow comparison of elements. We don't go deep because:
+    //   - It easily becomes too expensive to do this while rendering
+    //   - We can avoid needing to check for recursion
+
+    for (let i = 0; i < previous.length; i++) {
+      if (previous[i] !== incoming[i]) {
         return true;
       }
     }
 
-    // If we checked all elements, assume the arrays are the same
+    for (let j = 0; j < previous.length; j++) {
+      if (incoming[j] !== previous[j]) {
+        return true;
+      }
+    }
+
     return false;
   }
 
   if (typeof previous === OBJECT && typeof incoming === OBJECT) {
-    // Sub-objects detected; recurse and ask the same question
-    if (previous !== null && incoming !== null) {
-      for (const key in incoming) {
-        if (areSummoneesDifferent(previous[key], incoming[key])) {
-          return true;
-        }
-      }
-      // If we checked all properties, assume the objects are the same
+    if (previous === null && incoming === null) {
       return false;
     }
 
@@ -1043,6 +1042,22 @@ function areSummoneesDifferent(previous, incoming) {
 
     if (incoming === null) {
       return true;
+    }
+
+    // Do a shallow comparison of properties. We don't go deep because:
+    //   - It easily becomes too expensive to do this while rendering
+    //   - We can avoid needing to check for recursion
+
+    for (const pkey in previous) {
+      if (previous[pkey] !== incoming[pkey]) {
+        return true;
+      }
+    }
+
+    for (const ikey in incoming) {
+      if (incoming[ikey] !== previous[ikey]) {
+        return true;
+      }
     }
 
     return false;
