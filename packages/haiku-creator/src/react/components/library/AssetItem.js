@@ -7,6 +7,7 @@ import { Draggable } from 'react-drag-and-drop'
 import AssetList from './AssetList'
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu'
 import Palette from 'haiku-ui-common/lib/Palette'
+import Popover from 'react-popover'
 import {
   CollapseChevronRightSVG,
   CollapseChevronDownSVG,
@@ -101,7 +102,7 @@ const STYLES = {
     alignItems: 'center',
     justifyContent: 'center',
     pointerEvents: 'none',
-    transform: 'translateX(-10px)',
+    transform: 'translateY(50%)',
     transition: 'transform 270ms ease',
     shown: {
       opacity: 1,
@@ -284,14 +285,15 @@ class AssetItem extends React.Component {
           onMouseOut={() => {
             this.setState({isHovered: false})
           }}>
-          <img style={STYLES.cardImage} src={`file://${imageSrc}`} />
-          <img
-            style={[
-              STYLES.cardPreview,
-              this.state.isHovered && STYLES.cardPreview.shown,
-              this.state.isDragging && {display: 'none'}
-            ]}
-            src={`file://${imageSrc}`} />
+          <Popover
+            isOpen={this.state.isHovered && !this.state.isDragging}
+            style={STYLES.cardPreview}
+            preferPlace={'right'}
+            body={<img src={`file://${imageSrc}`} style={{width: '170px', height: '170px'}} />}
+            tipSize={0.01}
+          >
+            <img style={STYLES.cardImage} src={`file://${imageSrc}`} />
+          </Popover>
         </span>
       )
     }
