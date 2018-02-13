@@ -26,6 +26,7 @@ export class ShareModal extends React.Component {
     isSnapshotSaveInProgress: React.PropTypes.bool,
     isProjectInfoFetchInProgress: React.PropTypes.bool,
     snapshotSyndicated: React.PropTypes.bool,
+    snapshotPublished: React.PropTypes.bool,
     semverVersion: React.PropTypes.string,
     userName: React.PropTypes.string,
     organizationName: React.PropTypes.string,
@@ -72,6 +73,7 @@ export class ShareModal extends React.Component {
       isProjectInfoFetchInProgress,
       isSnapshotSaveInProgress,
       snapshotSyndicated,
+      snapshotPublished,
       userName,
       organizationName,
       sha,
@@ -98,6 +100,7 @@ export class ShareModal extends React.Component {
             <EmbedList
               isSnapshotSaveInProgress={isSnapshotSaveInProgress}
               snapshotSyndicated={snapshotSyndicated}
+              snapshotPublished={snapshotPublished}
               onOptionClicked={(selectedEntry) => {
                 this.showDetails(selectedEntry);
               }}

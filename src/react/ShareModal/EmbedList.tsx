@@ -39,6 +39,7 @@ export class EmbedList extends React.PureComponent {
     onOptionClicked: React.PropTypes.func,
     isSnapshotSaveInProgress: React.PropTypes.bool,
     snapshotSyndicated: React.PropTypes.bool,
+    snapshotPublished: React.PropTypes.bool,
   };
 
   renderShareOptions () {
@@ -50,6 +51,7 @@ export class EmbedList extends React.PureComponent {
         onOptionClicked={this.props.onOptionClicked}
         isSnapshotSaveInProgress={this.props.isSnapshotSaveInProgress}
         snapshotSyndicated={this.props.snapshotSyndicated}
+        snapshotPublished={this.props.snapshotPublished}
       />
     ));
   }

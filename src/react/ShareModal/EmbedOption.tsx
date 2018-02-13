@@ -4,6 +4,7 @@ import Palette from '../../Palette';
 import {LoadingTopBar} from '../../LoadingTopBar';
 import {Tooltip} from '../Tooltip';
 import {SHARED_STYLES} from '../../SharedStyles';
+import {ShareCategory} from './ShareModalOptions';
 
 const STYLES = {
   entry: {
@@ -20,6 +21,7 @@ const STYLES = {
     },
     loading: {
       opacity: 0.7,
+      cursor: 'not-allowed',
     },
   },
 };
@@ -33,15 +35,18 @@ export class EmbedOption extends React.PureComponent {
     disabled: React.PropTypes.bool,
     template: React.PropTypes.string,
     entry: React.PropTypes.string.isRequired,
+    category: React.PropTypes.string.isRequired,
     onClick: React.PropTypes.func,
     isSnapshotSaveInProgress: React.PropTypes.bool,
     snapshotSyndicated: React.PropTypes.bool,
+    snapshotPublished: React.PropTypes.bool,
   };
 
   state = {
     progress: 0,
     speed: '2s',
     done: false,
+    abandoned: false,
   };
 
   get tooltipText() {
@@ -54,20 +59,36 @@ export class EmbedOption extends React.PureComponent {
     }
   }
 
-  componentWillReceiveProps({isSnapshotSaveInProgress, snapshotSyndicated}) {
+  componentWillReceiveProps({isSnapshotSaveInProgress, snapshotSyndicated, snapshotPublished}) {
     if (isSnapshotSaveInProgress) {
       this.start();
-    } else {
-      if (this.isGIF && !snapshotSyndicated) { return; }
+      return;
+    }
 
-      this.setState({progress: 100, speed: '0.5s'}, () => {
-        this.updateTimeout = setTimeout(() => {
+    // Use `snapshotPublished` as a marker for completion for all non-GIF options. StageTitleBar will pass down a
+    // special value, `undefined`, for these markers when it has given up checking for completion.
+    if (this.requiresSyndication) {
+      if (!snapshotSyndicated) {
+        this.setState({abandoned: snapshotSyndicated === undefined});
+        return;
+      }
+    } else if (this.requiresPublished) {
+      if (!snapshotPublished) {
+        this.setState({abandoned: snapshotPublished === undefined});
+        return;
+      }
+    }
+
+    this.setState({progress: 100, speed: '0.5s'}, () => {
+      this.updateTimeout = setTimeout(
+        () => {
           if (this.updateTimeout) {
             this.setState({done: true, progress: 0, speed: '1ms'});
           }
-        },                              1000);
-      });
-    }
+        },
+        1000,
+      );
+    });
   }
 
   componentWillUnmount () {
@@ -83,28 +104,43 @@ export class EmbedOption extends React.PureComponent {
   }
 
   start() {
-    this.startTimeout = setTimeout(() => {
-      this.setState({progress: 80, speed: this.startSpeed, done: false});
-    },                             10);
+    this.startTimeout = setTimeout(
+      () => {
+        this.setState({progress: 80, speed: this.startSpeed, done: false, abandoned: false});
+      },
+      10,
+    );
   }
 
   get startSpeed() {
-    return this.isGIF ? '30s' : '15s';
+    if (this.requiresSyndication) {
+      return '60s';
+    }
+
+    if (this.requiresPublished) {
+      return '30s';
+    }
+
+    return '15s';
   }
 
-  get isGIF() {
-    return this.props.entry === 'GIF';
+  get requiresSyndication() {
+    return this.props.category === ShareCategory.Other;
+  }
+
+  get requiresPublished() {
+    return this.props.category === ShareCategory.Mobile;
   }
 
   render() {
     const {
       disabled,
       entry,
-      isSnapshotSaveInProgress,
-      done,
       onClick,
       template,
     } = this.props;
+
+    const effectivelyDisabled = disabled || this.state.abandoned;
 
     return (
       <li>
@@ -115,17 +151,16 @@ export class EmbedOption extends React.PureComponent {
               {
                 ...SHARED_STYLES.btn,
                 ...STYLES.entry,
-                ...(disabled && STYLES.entry.disabled),
+                ...(effectivelyDisabled && STYLES.entry.disabled),
                 ...(!this.state.done && STYLES.entry.loading),
               },
             )}
+            disabled={effectivelyDisabled || !this.state.done}
             onClick={() => {
-              if (!disabled && this.state.done) {
-                onClick({entry, template});
-              }
+              onClick({entry, template});
             }}
           >
-            {!disabled && (
+            {!effectivelyDisabled && (
               <LoadingTopBar
                 progress={this.state.progress}
                 speed={this.state.speed}

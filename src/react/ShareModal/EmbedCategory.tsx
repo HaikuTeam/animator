@@ -1,6 +1,4 @@
 import * as React from 'react';
-import * as assign from 'lodash.assign';
-import {SHARE_OPTIONS} from './ShareModalOptions';
 import {EmbedOption} from './EmbedOption';
 
 const STYLES = {
@@ -30,18 +28,21 @@ export class EmbedCategory extends React.PureComponent {
     onOptionClicked: React.PropTypes.func,
     isSnapshotSaveInProgress: React.PropTypes.bool,
     snapshotSyndicated: React.PropTypes.bool,
+    snapshotPublished: React.PropTypes.bool,
   };
 
   renderCategoryOptions (options: Object) {
     return Object.entries(options).map(([entry, {disabled, template}]) => (
       <EmbedOption
         key={entry}
+        category={this.props.category}
         entry={entry}
         disabled={disabled}
         template={template}
         onClick={this.props.onOptionClicked}
         isSnapshotSaveInProgress={this.props.isSnapshotSaveInProgress}
         snapshotSyndicated={this.props.snapshotSyndicated}
+        snapshotPublished={this.props.snapshotPublished}
       />
     ));
   }

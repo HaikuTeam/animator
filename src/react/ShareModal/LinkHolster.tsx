@@ -30,6 +30,9 @@ const STYLES = {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   } as React.CSSProperties,
+  linkDisabled: {
+    cursor: 'not-allowed',
+  } as React.CSSProperties,
   linkCopyBtn: {
     height: '100%',
     padding: '0 8px',
@@ -87,7 +90,7 @@ export class LinkHolster extends React.PureComponent {
     } = this.props;
 
     if (this.props.isSnapshotSaveInProgress) {
-      return <span style={STYLES.link}>New share link being generated</span>;
+      return <span style={{...STYLES.link, ...STYLES.linkDisabled}}>New share link being generated</span>;
     }
 
     if (this.state.copied) {
