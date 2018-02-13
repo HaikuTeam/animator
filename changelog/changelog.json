@@ -4823,5 +4823,12 @@
       "label": "fix",
       "message": "for various races affecting publish UI"
     }
+  },
+  "3.0.37": {
+    "8f927a05bac2ec42dbd8474ea0264072b499d529": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for incorrect access of project UUID in react prop."
+    }
   }
 }

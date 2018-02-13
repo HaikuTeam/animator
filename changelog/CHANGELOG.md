@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.37
+
+### Bug Fixes
+
+ * for incorrect access of project UUID in react prop.
+
 ## 3.0.36
 
 ### Bug Fixes
