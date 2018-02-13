@@ -1,5 +1,11 @@
+export const enum ShareCategory {
+  Web = 'Web',
+  Mobile = 'Mobile',
+  Other = 'Other',
+}
+
 export const SHARE_OPTIONS = {
-  Web: {
+  [ShareCategory.Web]: {
     'Vanilla JS': {
       disabled: false,
       template: 'VanillaJS',
@@ -21,7 +27,7 @@ export const SHARE_OPTIONS = {
       template: 'Embed',
     },
   },
-  Mobile: {
+  [ShareCategory.Mobile]: {
     iOS: {
       disabled: false,
       template: 'Lottie',
@@ -35,7 +41,7 @@ export const SHARE_OPTIONS = {
       template: 'Lottie',
     },
   },
-  Other: {
+  [ShareCategory.Other]: {
     GIF: {
       disabled: false,
       template: 'Gif',
