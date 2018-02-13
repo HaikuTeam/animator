@@ -31,8 +31,16 @@ do {
     }
 
     if (pack.deps.size > 0) {
-      openSourcePackages.push(...getPackages(Array.from(pack.deps)))
-      foundNewDeps = true
+      getPackages(Array.from(pack.deps)).forEach((openSourcePackage) => {
+        // Only push a new package onto the stack if it hasn't already been counted. It's possible for multiple packages
+        // to depend on the same package which is not explicitly open sourced.
+        if (
+          openSourcePackages.find((exisitingPackage) => exisitingPackage.name === openSourcePackage.name) === undefined
+        ) {
+          openSourcePackages.push(openSourcePackage)
+          foundNewDeps = true
+        }
+      })
     }
 
     processedDependencies.add(pack.name)
