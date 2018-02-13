@@ -184,16 +184,6 @@ button {
   transition: -webkit-transform 0ms ease-in!important;
 }
 
-/* Set the default color for the tip and the body */
-.Popover-body {
-  border-radius: 5px;
-  background-color: rgb(21, 32, 34);
-}
-
-.Popover-tipShape {
-  fill: rgb(21, 32, 34);
-}
-
 /* Basic form resets */
 input,
 label,
