@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.38
+
+### Bug Fixes
+
+ * only show install options after CDN is available.
+
 ## 3.0.37
 
 ### Bug Fixes
