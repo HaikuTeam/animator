@@ -221,10 +221,6 @@ class Library extends React.Component {
     )
   }
 
-  handleAssetOpened () {
-    this.props.tourChannel.next()
-  }
-
   render () {
     return (
       <div
@@ -255,8 +251,7 @@ class Library extends React.Component {
                 instantiateAsset={this.handleAssetInstantiation}
                 deleteAsset={this.handleAssetDeletion}
                 indent={0}
-                assets={this.state.assets}
-                onAssetOpened={() => { this.handleAssetOpened() }} />}
+                assets={this.state.assets} />}
           </div>
         </div>
         {

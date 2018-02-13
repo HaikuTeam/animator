@@ -15,7 +15,6 @@ export interface TourState {
   display: string;
   offset: object;
   spotlightRadius: number|string;
-  waitUserAction: boolean;
   size: string;
   isOverlayHideable: boolean;
   showPreviousButton: boolean;

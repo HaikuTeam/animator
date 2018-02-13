@@ -133,7 +133,6 @@ class Tour extends React.Component {
       component,
       spotlightRadius,
       stepData,
-      waitUserAction,
       size,
       isOverlayHideable,
       showPreviousButton
@@ -151,7 +150,6 @@ class Tour extends React.Component {
         prev={this.prev}
         finish={this.finish}
         stepData={stepData}
-        waitUserAction={waitUserAction}
         size={size}
         isOverlayHideable={isOverlayHideable}
         showPreviousButton={showPreviousButton}

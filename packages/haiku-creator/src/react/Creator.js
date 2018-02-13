@@ -1180,7 +1180,6 @@ export default class Creator extends React.Component {
                         folder={this.state.projectFolder}
                         haiku={this.props.haiku}
                         websocket={this.props.websocket}
-                        tourChannel={this.tourChannel}
                         onDragEnd={this.onLibraryDragEnd.bind(this)}
                         onDragStart={this.onLibraryDragStart.bind(this)}
                         createNotice={this.createNotice}
