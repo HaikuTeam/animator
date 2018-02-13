@@ -554,7 +554,7 @@ class StageTitleBar extends React.Component {
             userName={this.props.username}
             organizationName={this.props.organizationName}
             ref={(el) => { this._shareModal = el }}
-            projectUid={projectInfo.projectUid}
+            projectUid={projectInfo.uuid}
             sha={projectInfo.sha}
           />
         }
