@@ -1,8 +1,0 @@
-{
-  "extends": [
-    "tslint-config-haiku"
-  ],
-  "rules": {
-    "max-line-length": 180
-  }
-}
