@@ -15,7 +15,8 @@ const processOptions = { cwd: ROOT, stdio: 'inherit' }
 // The set of all projects we want to open source.
 const openSourceProjects = new Set([
   '@haiku/core',
-  '@haiku/cli'
+  '@haiku/cli',
+  'haiku-ui-common'
 ])
 
 // Pull in the set of dependencies recursively.
@@ -67,7 +68,7 @@ cp.execSync('yarn install --frozen-lockfile', processOptions)
 cp.execSync('yarn compile-all --force', processOptions)
 openSourcePackages.forEach((pack) => {
   const compileCommand = `node ./scripts/compile-package.js --package=${pack.name}`
-  if (!openSourceProjects.has(pack.name)) {
+  if (!openSourceProjects.has(pack.name) || pack.name.startsWith('haiku-')) {
     // Uglify pure dependencies.
     cp.execSync(`${compileCommand} --uglify=lib/**/*.js`, processOptions)
   }
