@@ -132,8 +132,8 @@ const SNAPSHOT_SAVE_RESOLUTION_STRATEGIES = {
   theirs: { strategy: 'theirs' }
 }
 
-const MAX_SYNDICATION_CHECKS = 10
-const SYNDICATION_CHECK_INTERVAL = 3500
+const MAX_SYNDICATION_CHECKS = 48
+const SYNDICATION_CHECK_INTERVAL = 2500
 
 class PopoverBody extends React.Component {
   shouldComponentUpdate (nextProps) {
@@ -210,7 +210,8 @@ class StageTitleBar extends React.Component {
       projectInfo: {},
       gitUndoables: [],
       gitRedoables: [],
-      snapshotSyndicated: true
+      snapshotSyndicated: true,
+      snapshotPublished: true
     }
 
     ipcRenderer.on('global-menu:show-project-location-toast', () => {
@@ -291,7 +292,8 @@ class StageTitleBar extends React.Component {
           this.setState({
             showSharePopover: false,
             isSnapshotSaveInProgress: false,
-            snapshotSyndicated: true
+            snapshotSyndicated: true,
+            snapshotPublished: true
           })
           this.clearSyndicationChecks()
         }
@@ -345,45 +347,68 @@ class StageTitleBar extends React.Component {
 
   clearSyndicationChecks () {
     clearInterval(this._performSyndicationCheckInterval)
-    this.syndicationChecks = 0
   }
 
   performSyndicationCheck () {
+    this.syndicationChecks++
     if (this.props.projectModel) {
-      // Note: we are ignoring the first parameter (error) because it is expected
-      // from inkstone calls to fail while the project is being syndicated,
-      // instead we check in `info.status` for errors
-      return this.props.projectModel.requestSyndicationInfo((_, info) => {
-        if (!info) return
-
-        if (
-          info.status.errored ||
-          this.syndicationChecks >= MAX_SYNDICATION_CHECKS
-        ) {
-          this.setState({snapshotSaveError: {}}, () => {
-            return setTimeout(
-              () => this.setState({snapshotSaveError: null}),
-              2000
-            )
+      return this.props.projectModel.requestSyndicationInfo((err, info) => {
+        if (err || !info || info.status.errored) {
+          this.props.createNotice({
+            type: 'danger',
+            title: 'Uh oh!',
+            message: 'We were unable to publish your project. 😢 Please try again in a bit. If you see this error again, contact Haiku for support.'
           })
           this.clearSyndicationChecks()
+          return this.setState({
+            showSharePopover: false
+          })
+        }
+
+        // Avoid races with button display while aborting publish by only setting values that have become true.
+        const newState = {
+          projectInfo: info
         }
 
         if (info.status.syndicated) {
-          this.setState({snapshotSyndicated: true, projectInfo: info})
+          newState.snapshotSyndicated = true
+        }
+
+        if (info.status.published) {
+          newState.snapshotPublished = true
+        }
+
+        this.setState(newState)
+
+        if ((info.status.syndicated && info.status.published) || this.syndicationChecks >= MAX_SYNDICATION_CHECKS) {
           this.clearSyndicationChecks()
+        }
+
+        if (this.syndicationChecks >= MAX_SYNDICATION_CHECKS && (!info.status.syndicated || !info.status.published)) {
+          // If we timed out without noting syndication or publication, set these values to `undefined` so we can lower
+          // expectations in the downstream UI.
+          this.setState({
+            snapshotSyndicated: info.status.syndicated || undefined,
+            snapshotPublished: info.status.published || undefined
+          })
         }
       })
     }
   }
+
   performProjectSave () {
     mixpanel.haikuTrack('creator:project:saving', this.withProjectInfo({
       username: this.props.username,
       project: this.props.projectName
     }))
-    this.setState({ isSnapshotSaveInProgress: true, snapshotSyndicated: false })
+    this.setState({ isSnapshotSaveInProgress: true, snapshotSyndicated: false, snapshotPublished: false })
 
     return this.requestSaveProject((snapshotSaveError, snapshotData) => {
+      // If we aborted early, don't start polling.
+      if (!this.state.showSharePopover) {
+        return
+      }
+
       if (snapshotSaveError) {
         console.error(snapshotSaveError)
         return this.setState({ isSnapshotSaveInProgress: false, snapshotSaveResolutionStrategyName: 'normal', snapshotSaveError }, () => {
@@ -425,9 +450,14 @@ class StageTitleBar extends React.Component {
           this.setState({ semverVersion: snapshotData.semverVersion })
         }
 
+        if (snapshotData.status && snapshotData.status.published) {
+          this.setState({ snapshotPublished: true })
+        }
+
         if (snapshotData.status && snapshotData.status.syndicated) {
-          this.setState({ snapshotSyndicated: snapshotData.status.syndicated })
+          this.setState({ snapshotSyndicated: true })
         } else {
+          this.syndicationChecks = 0
           this._performSyndicationCheckInterval = setInterval(() => {
             this.performSyndicationCheck()
           }, SYNDICATION_CHECK_INTERVAL)
@@ -480,7 +510,7 @@ class StageTitleBar extends React.Component {
     const projectInfo = this.withProjectInfo({})
 
     let btnText = 'PUBLISH'
-    if (!this.state.snapshotSyndicated) {
+    if (this.state.snapshotSyndicated === false || this.state.snapshotPublished === false) {
       btnText = 'PUBLISHING'
     }
 
@@ -551,6 +581,7 @@ class StageTitleBar extends React.Component {
             semverVersion={this.state.semverVersion}
             error={this.state.snapshotSaveError}
             snapshotSyndicated={this.state.snapshotSyndicated}
+            snapshotPublished={this.state.snapshotPublished}
             userName={this.props.username}
             organizationName={this.props.organizationName}
             ref={(el) => { this._shareModal = el }}
