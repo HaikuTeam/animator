@@ -4837,5 +4837,87 @@
       "label": "fix",
       "message": "only show install options after CDN is available."
     }
+  },
+  "3.0.39": {
+    "84b5f57b666f79bb83dbbfd0fa5f16212542f131": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "only show install options after CDN is available."
+    },
+    "f0faf130a1ebfec4a95ed04ed91337b62f3d7662": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "cancel polling and enable the publish button on modal close"
+    },
+    "81a17769e9db480aa65aa6ae5719732244c255f6": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add missing spaces in code examples"
+    },
+    "10024af2ab0626ed32b360f91aaf9cbda0698d64": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add missing props to npminstallable items"
+    },
+    "b2f08dde869e16a7b8e32d7721b81955a2cbf44f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "enable linting of jsx files in ui-common and fix lint issues"
+    },
+    "4f10b56151a1a90aabf8332748218011d0c997d6": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "update the copy to installing npm published projects"
+    },
+    "801a5f55c89bd431f86ecd866ebdcaea46d7f5ca": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Case-sensitive require paths required in distro"
+    },
+    "54c20dc40ef239a4f4c3ef5f7ea70383f8645914": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Since username can be an email address, share snippets need to use the org name"
+    },
+    "60e9fc889ec54864b61d0b5840bb80d2de31d29f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "improve the look and feel of the gifs"
+    },
+    "e80d71543f9cec977f9ee02715b5382ac10a6abd": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "ui inconsistencies and possible crashes"
+    },
+    "eb43fcfb236de318bee62071b50a368a8bf8c689": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "avoid crashes and errors due to timeouts and listeners"
+    },
+    "2a0217c65a49a30d4b14a2b75553852841ad59b8": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "publish ui implementation"
+    },
+    "847ecadda0d419f6e4cc88e0c0a14c6b26425ed1": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "publish ui implementation"
+    },
+    "c87480e561cab8f792c7663988bf470d4f64e23b": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Publish UI V2"
+    },
+    "2bebe5cd95d7dfec543fde38cc59a437f74f65a8": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "abstract the tooltip logic into a component"
+    },
+    "682e1d992db6c0f163bdaa64238288a6449d6186": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Publish UI V2"
+    }
   }
 }
