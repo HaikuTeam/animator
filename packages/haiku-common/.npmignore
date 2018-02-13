@@ -1,8 +1,0 @@
-node_modules
-src/
-*.js.map
-test/
-tsconfig.json
-tslint.json
-tsconfig.test.json
-README.md
