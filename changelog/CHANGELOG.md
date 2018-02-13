@@ -1,6 +1,30 @@
 # Changelog
 
 
+## 3.0.39
+
+### Bug Fixes
+
+ * only show install options after CDN is available.
+ * cancel polling and enable the publish button on modal close
+ * add missing spaces in code examples
+ * add missing props to npminstallable items
+ * enable linting of jsx files in ui-common and fix lint issues
+ * update the copy to installing npm published projects
+ * Case-sensitive require paths required in distro
+ * Since username can be an email address, share snippets need to use the org name
+ * improve the look and feel of the gifs
+ * ui inconsistencies and possible crashes
+ * avoid crashes and errors due to timeouts and listeners
+
+### Features
+
+ * publish ui implementation
+ * publish ui implementation
+ * Publish UI V2
+ * abstract the tooltip logic into a component
+ * Publish UI V2
+
 ## 3.0.38
 
 ### Bug Fixes
