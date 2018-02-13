@@ -1,0 +1,53 @@
+{
+  "LottieExportInGlobalMenu": {
+    "development": true
+  },
+  "MultiComponentFeatures": {
+    "development": false,
+    "production": false
+  },
+  "JustInTimeProperties": {
+    "development": true,
+    "production": true
+  },
+  "InstantiationOfPrimitivesAsComponents": {
+    "development": false,
+    "production": false
+  },
+  "HideInstantiatedElementUntilTimeInstantiated": {
+    "development": false,
+    "production": false
+  },
+  "MergeDesignChangesAtCurrentTime": {
+    "development": false,
+    "production": false
+  },
+  "CommentsOnStage": {
+    "development": false,
+    "production": false
+  },
+  "AsyncClientActions": {
+    "development": false,
+    "production": false
+  },
+  "NoNormalizeOnSetup": {
+    "development": true,
+    "production": true
+  },
+  "SvgOptimizer": {
+    "development": true,
+    "production": true
+  },
+  "NewPublishUI": {
+    "development": true,
+    "production": true
+  },
+  "NormalizeSvgContent": {
+    "development": true,
+    "production": false
+  },
+  "BasicOfflineMode": {
+    "development": true,
+    "production": false
+  }
+}
