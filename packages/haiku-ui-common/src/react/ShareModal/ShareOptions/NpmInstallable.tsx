@@ -45,12 +45,14 @@ export class NpmInstallable extends React.PureComponent {
         <div style={PUBLISH_SHARED.instructionsRow}>
           <div style={PUBLISH_SHARED.instructionsCol1}>&nbsp;</div>
           <div style={PUBLISH_SHARED.instructionsCol2}>
-            <code style={PUBLISH_SHARED.code}>
-              {dedent`
-                haiku init
-                npm i --save @haiku/${organizationName.toLowerCase()}-${projectName}
-              `}
-            </code>
+            <pre>
+              <code style={PUBLISH_SHARED.code}>
+                {dedent`
+                  haiku init
+                  npm i --save @haiku/${organizationName.toLowerCase()}-${projectName}
+                `}
+              </code>
+            </pre>
           </div>
         </div>
 
