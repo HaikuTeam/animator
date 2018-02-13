@@ -1,6 +1,8 @@
 # Changelog
 
 
+## 3.0.40
+
 ## 3.0.39
 
 ### Bug Fixes
