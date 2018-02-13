@@ -4830,5 +4830,12 @@
       "label": "fix",
       "message": "for incorrect access of project UUID in react prop."
     }
+  },
+  "3.0.38": {
+    "10bd4ffe7526d95125b2613c90fd3fb7f9347c16": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "only show install options after CDN is available."
+    }
   }
 }
