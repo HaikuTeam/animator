@@ -1,6 +1,14 @@
 # Changelog
 
 
+## 3.0.36
+
+### Bug Fixes
+
+ * cancel polling and enable the publish button on modal close
+ * add missing spaces in code examples
+ * for various races affecting publish UI
+
 ## 3.0.35
 
 ### Bug Fixes

@@ -4806,5 +4806,22 @@
       "label": "fix",
       "message": "allow splitpane to be resized"
     }
+  },
+  "3.0.36": {
+    "9299814f7904ee1e06af1d7841e8d4ea24c1181a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "cancel polling and enable the publish button on modal close"
+    },
+    "cb2399defb962dc1d6031ba53918b455cf37a2ee": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "add missing spaces in code examples"
+    },
+    "e370927314037068e9b812c5823da6d181e70e74": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for various races affecting publish UI"
+    }
   }
 }
