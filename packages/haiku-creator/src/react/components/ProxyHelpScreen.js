@@ -12,10 +12,7 @@ const STYLES = {
   },
   modalWrapper: {
     maxWidth: '600px',
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translateY(-50%) translateX(-50%)'
+    transform: 'translateY(60%)'
   },
   modalBody: {
     padding: '20px',
