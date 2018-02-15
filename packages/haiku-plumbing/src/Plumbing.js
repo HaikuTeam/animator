@@ -110,7 +110,7 @@ const WAIT_DELAY = 10 * 1000
 const HAIKU_DEFAULTS = {
   socket: {
     port: process.env.HAIKU_CONTROL_PORT,
-    host: process.env.HAIKU_CONTROL_HOST || '0.0.0.0'
+    host: process.env.HAIKU_CONTROL_HOST || 'loopback.haiku.ai'
   }
 }
 
@@ -1290,7 +1290,7 @@ function getPort (host, cb) {
 }
 
 Plumbing.prototype.launchControlServer = function launchControlServer (socketInfo, cb) {
-  const host = (socketInfo && socketInfo.host) || '0.0.0.0'
+  const host = (socketInfo && socketInfo.host) || 'loopback.haiku.ai'
 
   if (socketInfo && socketInfo.port) {
     logger.info(`[plumbing] plumbing websocket server listening on specified port ${socketInfo.port}...`)

@@ -47,7 +47,7 @@ if (!haiku.plumbing.url) {
     throw new Error(`Oops! You must define a HAIKU_PLUMBING_PORT env var!`)
   }
 
-  haiku.plumbing.url = `http://${global.process.env.HAIKU_PLUMBING_HOST || '0.0.0.0'}:${global.process.env.HAIKU_PLUMBING_PORT}/?token=${process.env.HAIKU_WS_SECURITY_TOKEN}`
+  haiku.plumbing.url = `http://${global.process.env.HAIKU_PLUMBING_HOST || 'loopback.haiku.ai'}:${global.process.env.HAIKU_PLUMBING_PORT}/?token=${process.env.HAIKU_WS_SECURITY_TOKEN}`
 }
 
 function different (a, b) {

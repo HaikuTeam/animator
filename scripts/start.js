@@ -178,7 +178,7 @@ function setup () {
   global.process.env.HAIKU_AUTOUPDATE_SERVER = 'http://localhost:3002'
 
   if (inputs.devChoice === 'everything') {
-    global.process.env.HAIKU_PLUMBING_URL = 'http://0.0.0.0:1024'
+    global.process.env.HAIKU_PLUMBING_URL = 'http://loopback.haiku.ai:1024'
     if (inputs.folderChoice === 'blank') {
       fse.removeSync(blankProject)
       fse.mkdirpSync(blankProject)

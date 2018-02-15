@@ -32,7 +32,7 @@ export interface EnvoyOptions {
 }
 
 export const DEFAULT_ENVOY_OPTIONS: EnvoyOptions = {
-  host: '0.0.0.0',
+  host: 'loopback.haiku.ai',
   logger: console,
   mock: false, // In mock mode, clients don't try to connect to the server
   path: '/',
