@@ -474,3 +474,33 @@ export function semverBumpPackageJson (projectPath, maybeVersionToBumpTo, cb) {
     return cb(exception)
   }
 }
+
+export function duplicateProject (destinationProject, sourceProject, cb) {
+  try {
+    const scenes = fse.readdirSync(path.join(sourceProject.projectPath, 'code'))
+    scenes.forEach((sceneName) => {
+      const destinationScenePath = path.join(destinationProject.projectPath, 'code', sceneName)
+      fse.mkdirpSync(destinationScenePath)
+
+      const bytecode = fse.readFileSync(path.join(sourceProject.projectPath, 'code', sceneName, 'code.js'))
+        .toString()
+        .replace(`${sourceProject.projectName}.sketch`, `${destinationProject.projectName}.sketch`)
+      fse.outputFileSync(path.join(destinationScenePath, 'code.js'), bytecode)
+    })
+
+    const designAssets = fse.readdirSync(path.join(sourceProject.projectPath, 'designs'))
+    designAssets.forEach((designAssetName) => {
+      const destinationDesignAsset = designAssetName.startsWith(`${sourceProject.projectName}.sketch`)
+        ? designAssetName.replace(`${sourceProject.projectName}.sketch`, `${destinationProject.projectName}.sketch`)
+        : designAssetName
+      fse.copySync(
+        path.join(sourceProject.projectPath, 'designs', designAssetName),
+        path.join(destinationProject.projectPath, 'designs', destinationDesignAsset)
+      )
+    })
+
+    cb()
+  } catch (err) {
+    return cb(err)
+  }
+}
