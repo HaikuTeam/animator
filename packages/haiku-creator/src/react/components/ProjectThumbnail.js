@@ -71,16 +71,17 @@ class ProjectThumbnail extends React.Component {
           >
             OPEN
           </span>
-          <span
-            key='delete'
-            onClick={this.props.showDeleteModal}
+          {this.props.projectExistsLocally && !this.props.atProjectMax && <span
+            key='duplicate'
+            onClick={this.props.showDuplicateProjectModal}
             style={[
               DASH_STYLES.menuOption,
+              DASH_STYLES.opt2,
               !this.state.isMenuActive && DASH_STYLES.gone
             ]}
           >
-            DELETE
-          </span>
+            DUPLICATE
+          </span>}
           {this.props.projectExistsLocally && <span
             key='reveal'
             onClick={() => shell.showItemInFolder(this.props.projectPath)}
@@ -92,6 +93,17 @@ class ProjectThumbnail extends React.Component {
           >
             REVEAL IN FINDER
           </span>}
+          <span
+            key='delete'
+            onClick={this.props.showDeleteModal}
+            style={[
+              DASH_STYLES.menuOption,
+              DASH_STYLES.opt2,
+              !this.state.isMenuActive && DASH_STYLES.gone
+            ]}
+          >
+            DELETE
+          </span>
         </div>
         <div style={DASH_STYLES.titleStrip}>
           <span style={DASH_STYLES.title}>

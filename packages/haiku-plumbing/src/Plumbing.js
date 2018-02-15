@@ -947,6 +947,30 @@ export default class Plumbing extends StateObject {
     })
   }
 
+  duplicateProject (destinationProject, sourceProject, cb) {
+    if (!sourceProject.projectExistsLocally) {
+      logger.info(`[plumbing] source project did not exist during duplicate: ${sourceProject.projectName}`)
+      // Unable to proceed; there is nothing from the source project that we could possibly copy.
+      return cb()
+    }
+
+    if (destinationProject.projectExistsLocally) {
+      // We don't actually need to return early here—but we should warn in logs in case something else bad happens
+      // as a result.
+      logger.warn(`[plumbing] source project existed locally during duplicate: ${destinationProject.projectName}`)
+    }
+
+    // Duplicate project folder content from source to destination.
+    ProjectFolder.duplicateProject(destinationProject, sourceProject, (err) => {
+      // Note: we don't pass errors forward to Creator here. It wouldn't know what to do with it.
+      if (err) {
+        logger.warn(`[plumbing] error during project duplication: ${err}`)
+      }
+
+      cb()
+    })
+  }
+
   deleteProject (name, path, cb) {
     logger.info('[plumbing] deleting project', name)
     const authToken = sdkClient.config.getAuthToken()

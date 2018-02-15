@@ -120,7 +120,7 @@ class ProjectLoader extends React.Component {
       <div style={STYLES.fullScreenCenterWrap}>
         <div style={STYLES.contentHolster}>
           <div style={STYLES.reticulator}>
-            {reticulations[this.state.retic]}
+            {reticulations[this.state.retic]}…
           </div>
         </div>
         <div style={STYLES.tip}>

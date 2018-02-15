@@ -30,18 +30,20 @@ class ProjectBrowser extends React.Component {
     this.state = {
       username: null,
       error: null,
-      showNeedsSaveDialogue: false,
       projectsList: [],
       areProjectsLoading: true,
-      recordedNewProjectName: '',
       isPopoverOpen: false,
       showNewProjectModal: false,
+      showDuplicateProjectModal: false,
       showDeleteModal: false,
       recordedDelete: '',
+      recordedNewProjectName: '',
       projToDelete: '',
       projToDeleteIndex: null,
+      projToDuplicateIndex: null,
       confirmDeleteMatches: false,
-      atProjectMax: false
+      atProjectMax: false,
+      newProjectError: null
     }
   }
 
@@ -98,7 +100,8 @@ class ProjectBrowser extends React.Component {
 
   hideDeleteModal () {
     this.deleteInput.value = ''
-    this.setState({showDeleteModal: false, projToDelete: ''})
+    this.closeModals()
+    this.setState({projToDelete: ''})
   }
 
   handleDeleteInputKeyDown (e) {
@@ -178,7 +181,22 @@ class ProjectBrowser extends React.Component {
   }
 
   showNewProjectModal () {
-    this.setState({ showNewProjectModal: true })
+    this.setState({ showNewProjectModal: true, newProjectError: null })
+  }
+
+  showDuplicateProjectModal (projToDuplicateIndex) {
+    const duplicateNameBase = `${this.state.projectsList[projToDuplicateIndex].projectName}Copy`
+    let recordedNewProjectName = duplicateNameBase
+    let iteration = 1
+    while (this.state.projectsList.find((project) => project.projectName === recordedNewProjectName) !== undefined) {
+      recordedNewProjectName = `${duplicateNameBase}${iteration}`
+    }
+    this.setState({
+      projToDuplicateIndex,
+      recordedNewProjectName,
+      showDuplicateProjectModal: true,
+      newProjectError: null
+    })
   }
 
   projectsListElement () {
@@ -212,6 +230,8 @@ class ProjectBrowser extends React.Component {
             isDeleted={projectObject.isDeleted}
             launchProject={() => this.handleProjectLaunch(projectObject)}
             showDeleteModal={() => this.showDeleteModal(index)}
+            showDuplicateProjectModal={() => this.showDuplicateProjectModal(index)}
+            atProjectMax={this.state.atProjectMax}
           />
         ))}
         {/* the following abomination is needed for the nifty flexbox resizing.
@@ -233,7 +253,7 @@ class ProjectBrowser extends React.Component {
       this.tourChannel.hide()
     }
 
-    return this.props.launchProject(projectObject.projectName, projectObject, (error) => {
+    this.props.launchProject(projectObject.projectName, projectObject, (error) => {
       if (error) {
         this.props.createNotice({
           type: 'error',
@@ -251,36 +271,71 @@ class ProjectBrowser extends React.Component {
   handleNewProjectInputChange (event) {
     const rawValue = event.target.value || ''
 
-    const fixedValue = rawValue
+    const recordedNewProjectName = rawValue
       .replace(/\W+/g, '') // Non-alphanumeric characters not allowed
       .replace(/_/g, '') // Underscores are considered alphanumeric (?); strip them
       .slice(0, 32) // Keep the overall name length short
 
-    this.setState({recordedNewProjectName: fixedValue})
+    // Check for any projects with the exact same name.
+    const equivalentNameMatcher = new RegExp(`^${recordedNewProjectName}$`, 'i')
+    const newProjectError = this.state.projectsList.find((project) => equivalentNameMatcher.test(project.projectName))
+      ? 'A project with that name already exists'
+      : null
+
+    this.setState({ recordedNewProjectName, newProjectError })
   }
 
-  handleNewProjectGo () {
+  handleNewProjectGo (duplicate = false) {
     const rawNameValue = this.newProjectInput.value
     if (!rawNameValue) return false
     // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
     const name = rawNameValue && rawNameValue.replace(/[^a-z0-9]/gi, '')
+    if (duplicate) {
+      this.setState({ areProjectsLoading: true })
+    } else {
+      this.props.setProjectLaunchStatus({newProjectLoading: true})
+    }
 
-    this.setState({showNewProjectModal: false})
-    this.props.setProjectLaunchStatus({newProjectLoading: true})
+    this.closeModals()
     this.props.websocket.request({ method: 'createProject', params: [name] }, (err, newProject) => {
       if (err) {
         this.props.createNotice({
           type: 'error',
           title: 'Oh no!',
-          message: 'We couldn\'t create your project. 😩 Does a project with this name already exist?',
+          message: 'We couldn\'t create your project. 😩 If this problem occurs again, please contact Haiku support.',
           closeText: 'Okay',
           lightScheme: true
         })
-        this.props.setProjectLaunchStatus({newProjectLoading: false})
+        if (duplicate) {
+          this.setState({ areProjectsLoading: false })
+        } else {
+          this.props.setProjectLaunchStatus({newProjectLoading: false})
+        }
         return
       }
 
-      this.handleProjectLaunch(newProject)
+      if (duplicate && this.state.projToDuplicateIndex !== null) {
+        this.props.websocket.request(
+          {
+            method: 'duplicateProject',
+            params: [newProject, this.state.projectsList[this.state.projToDuplicateIndex]]
+          },
+          () => {
+            // Note: we are intentionally logging but not forwarding errors from project duplication. Attempting to
+            // launch an unlaunchable project should throw at that stage, and we know that we have already at least
+            // succeeded in creating a local project now.
+            this.setState({
+              projectsList: [
+                newProject,
+                ...this.state.projectsList
+              ],
+              areProjectsLoading: false
+            })
+          }
+        )
+      } else {
+        this.handleProjectLaunch(newProject)
+      }
     })
   }
 
@@ -299,18 +354,25 @@ class ProjectBrowser extends React.Component {
     )
   }
 
+  closeModals () {
+    this.setState({
+      showNewProjectModal: false,
+      showDuplicateProjectModal: false,
+      showDeleteModal: false,
+      recordedNewProjectName: '',
+      recordedDelete: ''
+    })
+  }
+
   closeModalsOnEscKey (e) {
     if (e.keyCode === 27) {
-      this.setState({
-        showNewProjectModal: false,
-        showDeleteModal: false
-      })
+      this.closeModals()
     }
   }
 
-  handleNewProjectInputKeyDown (e) {
+  handleNewProjectInputKeyDown (e, duplicate = false) {
     if (e.keyCode === 13) {
-      this.handleNewProjectGo()
+      this.handleNewProjectGo(duplicate)
       return
     }
 
@@ -342,12 +404,15 @@ class ProjectBrowser extends React.Component {
     )
   }
 
-  renderNewProjectModal () {
+  renderNewProjectModal (duplicate = false) {
     return (
       <div style={DASH_STYLES.overlay}
-        onClick={() => this.setState({showNewProjectModal: false})}>
+        onClick={() => {
+          this.closeModals()
+        }}
+      >
         <div style={DASH_STYLES.modal} onClick={(e) => e.stopPropagation()}>
-          <div style={DASH_STYLES.modalTitle}>Name Project To Start</div>
+          <div style={DASH_STYLES.modalTitle}>{duplicate ? 'Name Duplicated Project' : 'Name Project To Start'}</div>
           <div style={[DASH_STYLES.inputTitle, DASH_STYLES.upcase]}>Project Name</div>
           <input
             key='new-project-input'
@@ -355,7 +420,7 @@ class ProjectBrowser extends React.Component {
               this.newProjectInput = input
             }}
             disabled={this.props.newProjectLoading}
-            onKeyDown={(e) => { this.handleNewProjectInputKeyDown(e) }}
+            onKeyDown={(e) => { this.handleNewProjectInputKeyDown(e, duplicate) }}
             style={[DASH_STYLES.newProjectInput]}
             value={this.state.recordedNewProjectName}
             onChange={(e) => { this.handleNewProjectInputChange(e) }}
@@ -363,22 +428,25 @@ class ProjectBrowser extends React.Component {
             autoFocus />
           <span key='new-project-error' style={DASH_STYLES.newProjectError}>{this.state.newProjectError}</span>
           <button key='new-project-go-button'
-            disabled={this.props.newProjectLoading || !this.state.recordedNewProjectName}
+            disabled={this.props.newProjectLoading || !this.state.recordedNewProjectName || this.state.newProjectError}
             onClick={() => {
-              this.handleNewProjectGo()
+              this.handleNewProjectGo(duplicate)
             }}
             style={[
               BTN_STYLES.btnText,
               BTN_STYLES.rightBtns,
               BTN_STYLES.btnPrimaryAlt,
               DASH_STYLES.upcase,
-              !this.state.recordedNewProjectName && BTN_STYLES.btnDisabled,
+              (!this.state.recordedNewProjectName || this.state.newProjectError) && BTN_STYLES.btnDisabled,
               {marginRight: 0}
             ]}>
-            Name Project
+            {duplicate ? 'Duplicate Project' : 'Name Project'}
           </button>
           <span style={[DASH_STYLES.upcase, BTN_STYLES.btnCancel, BTN_STYLES.rightBtns]}
-            onClick={() => this.setState({showNewProjectModal: false})}>
+            onClick={() => {
+              this.closeModals()
+            }}
+          >
             Cancel
           </span>
         </div>
@@ -442,6 +510,7 @@ class ProjectBrowser extends React.Component {
 
         { this.state.showNewProjectModal && this.renderNewProjectModal() }
         { this.state.showDeleteModal && this.renderDeleteModal() }
+        { this.state.showDuplicateProjectModal && this.renderNewProjectModal(true) }
 
         <div style={DASH_STYLES.frame} className='frame'>
           {this.state.atProjectMax
