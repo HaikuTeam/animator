@@ -20,28 +20,9 @@ const STYLES = {
   modalBody: {
     padding: '20px',
   },
-  list: {
-    // listStyle: 'none',
-    // paddingLeft: 0,
-  },
   listItem: {
     marginBottom: '8px',
   },
-  number: {
-    verticalAlign: 'middle',
-    backgroundColor: Palette.LIGHT_PINK,
-    width: '20px',
-    textAlign: 'center',
-    height: '20px',
-    verticalAlign: 'top',
-    borderRadius: '13px',
-    backgroundClip: 'padding-box',
-    color: Palette.SUNSTONE,
-    display: 'inline-block',
-    fontWeight: '700',
-    marginRight: '10px',
-    fontSize: '14px'
-  }
 }
 
 const HELP_STEPS = [
@@ -65,7 +46,7 @@ class ProxyHelpScreen extends React.PureComponent {
         <div style={STYLES.modalBody}>
           Proxies and firewalls can sometimes interfere with your connection to
           Haiku. If you’re struggling to connect, here are a few steps that can resolve the problem:
-          <ul style={STYLES.list}>
+          <ul>
             {HELP_STEPS.map((step, idx) => {
               return (
                 <li key={idx} style={STYLES.listItem}>
