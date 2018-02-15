@@ -449,3 +449,25 @@ export const keyframesFromTimelineProperty = (timelineProperty): number[] => {
  */
 export const timelineValuesAreEquivalent = (valueA: any, valueB: any): boolean =>
   JSON.stringify(valueA) === JSON.stringify(valueB);
+
+/**
+ * toJSON() implementation, made safe for the lottie-android streaming parser.
+ *
+ * That streaming parser always skips keys until it encounters the `ty` key, so we need to force it to come first.
+ * @returns {Object}
+ */
+export const lottieAndroidStreamSafeToJson = function lottieAndroidStreamSafeToJson() {
+  if (!this.hasOwnProperty(ShapeKey.Type)) {
+    return this;
+  }
+
+  const clone = {...this};
+  const type = clone[ShapeKey.Type];
+
+  // Foist the `ty` key to artificially be placed first during stringification.
+  delete clone[ShapeKey.Type];
+  return {
+    [ShapeKey.Type]: type,
+    ...clone,
+  };
+};
