@@ -1,6 +1,6 @@
 import React from 'react'
 import Palette from 'haiku-ui-common/lib/Palette'
-import {ModalWrapper, ModalHeader, ModalFooter} from 'haiku-ui-common/lib/react/Modal'
+import {ModalWrapper, ModalHeader} from 'haiku-ui-common/lib/react/Modal'
 
 const STYLES = {
   wrapper: {
@@ -12,14 +12,15 @@ const STYLES = {
   },
   modalWrapper: {
     maxWidth: '600px',
-    transform: 'translateY(60%)'
+    top: '50%',
+    transform: 'translateY(-50%)'
   },
   modalBody: {
-    padding: '20px',
+    padding: '20px'
   },
   listItem: {
-    marginBottom: '8px',
-  },
+    marginBottom: '8px'
+  }
 }
 
 const HELP_STEPS = [
@@ -33,14 +34,14 @@ const HELP_STEPS = [
 ]
 
 class ProxyHelpScreen extends React.PureComponent {
-  render() {
+  render () {
     return (
       <div style={STYLES.wrapper}>
-      <ModalWrapper style={STYLES.modalWrapper}>
-        <ModalHeader>
-          <h2>Please adjust your proxy or firewall settings</h2>
-        </ModalHeader>
-        <div style={STYLES.modalBody}>
+        <ModalWrapper style={STYLES.modalWrapper}>
+          <ModalHeader>
+            <h2>Please adjust your proxy or firewall settings</h2>
+          </ModalHeader>
+          <div style={STYLES.modalBody}>
           Proxies and firewalls can sometimes interfere with your connection to
           Haiku. If you’re struggling to connect, here are a few steps that can resolve the problem:
           <ul>
@@ -56,7 +57,7 @@ class ProxyHelpScreen extends React.PureComponent {
           confusing: please contact your trusted IT professional for additional
           assistance.
         </div>
-      </ModalWrapper>
+        </ModalWrapper>
       </div>
     )
   }

@@ -38,7 +38,6 @@ export default function dom (modus, haiku) {
       )
     : new MockWebsocket()
 
-
   websocket.on('close', () => {
     const currentWindow = remote.getCurrentWindow()
     if (currentWindow) {
