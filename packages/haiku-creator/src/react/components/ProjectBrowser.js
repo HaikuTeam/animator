@@ -188,8 +188,9 @@ class ProjectBrowser extends React.Component {
     const duplicateNameBase = `${this.state.projectsList[projToDuplicateIndex].projectName}Copy`
     let recordedNewProjectName = duplicateNameBase
     let iteration = 1
-    while (this.state.projectsList.find((project) => project.projectName === recordedNewProjectName) !== undefined) {
+    while (this.doesProjectNameExist(recordedNewProjectName) !== undefined) {
       recordedNewProjectName = `${duplicateNameBase}${iteration}`
+      iteration++
     }
     this.setState({
       projToDuplicateIndex,
@@ -268,6 +269,11 @@ class ProjectBrowser extends React.Component {
     })
   }
 
+  doesProjectNameExist (projectName) {
+    const equivalentNameMatcher = new RegExp(`^${projectName}$`, 'i')
+    return this.state.projectsList.find((project) => equivalentNameMatcher.test(project.projectName)) !== undefined
+  }
+
   handleNewProjectInputChange (event) {
     const rawValue = event.target.value || ''
 
@@ -277,8 +283,7 @@ class ProjectBrowser extends React.Component {
       .slice(0, 32) // Keep the overall name length short
 
     // Check for any projects with the exact same name.
-    const equivalentNameMatcher = new RegExp(`^${recordedNewProjectName}$`, 'i')
-    const newProjectError = this.state.projectsList.find((project) => equivalentNameMatcher.test(project.projectName))
+    const newProjectError = this.doesProjectNameExist(recordedNewProjectName)
       ? 'A project with that name already exists'
       : null
 

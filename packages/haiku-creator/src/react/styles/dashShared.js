@@ -330,7 +330,7 @@ export const DASH_STYLES = {
   newProjectError: {
     display: 'block',
     float: 'left',
-    marginTop: 2
+    marginTop: 4
   },
   projToDelete: {
     color: Palette.LIGHT_BLUE,
