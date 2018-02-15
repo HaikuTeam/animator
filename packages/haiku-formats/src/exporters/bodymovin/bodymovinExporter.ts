@@ -1,4 +1,3 @@
-import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {Maybe, ContextualSize} from 'haiku-common/lib/types';
 import {Curve} from 'haiku-common/lib/types/enums';
 import * as Template from 'haiku-serialization/src/bll/Template';
@@ -57,6 +56,7 @@ import {
   getFixedPropertyValue,
   getShapeDimensions,
   keyframesFromTimelineProperty,
+  lottieAndroidStreamSafeToJson,
   maybeApplyMutatorToProperty,
   pathToInterpolationTrace,
   pointsToInterpolationTrace,
@@ -448,12 +448,12 @@ export class BodymovinExporter implements Exporter {
   private handleSvgLayer(node) {
     const timeline = this.timelineForNode(node);
     this.layers.push({
+      [LayerKey.Type]: LayerType.Shape,
       [LayerKey.Name]: node.attributes['haiku-title'],
       [LayerKey.InPoint]: 0,
       [LayerKey.StartTime]: 0,
       [LayerKey.Index]: this.zIndexForNode(node),
       [LayerKey.LocalIndex]: ++this.localLayerIndex,
-      [LayerKey.Type]: LayerType.Shape,
       [LayerKey.Transform]: {
         ...this.standardTransformsForTimeline(timeline),
         ...this.transformsForLayerTimeline(timeline),
@@ -617,6 +617,9 @@ export class BodymovinExporter implements Exporter {
     const fill = {
       [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'fill-opacity', 100, opacityTransformer),
       [TransformKey.FillRule]: fillruleTransformer(initialValueOrNull(timeline, 'fill-rule')),
+      // Important: we will fill the unknown fill type later, so ensure the resulting fill object is lottie-android
+      // safe.
+      toJSON: lottieAndroidStreamSafeToJson,
     };
 
     const matches = getValueReferenceMatchArray(initialValue(timeline, 'fill'));
@@ -764,12 +767,16 @@ export class BodymovinExporter implements Exporter {
     const timeline = this.timelineForNode(node, parentNode);
     const groupItems: any[] = [];
 
-    const shape = {};
+    // Important: all shapes use the `ShapeKey.Type` key, so require lottie-android safe JSON-ification.
+    const shape = {
+      toJSON: lottieAndroidStreamSafeToJson,
+    };
+
     const transform = {
       // Use typical shape transforms, but do not split positions as this introduces an error state.
+      [ShapeKey.Type]: ShapeType.Transform,
       ...this.standardTransformsForTimeline(timeline),
       ...this.transformsForShapeTimeline(timeline),
-      [ShapeKey.Type]: ShapeType.Transform,
     };
 
     switch (node.elementName) {
