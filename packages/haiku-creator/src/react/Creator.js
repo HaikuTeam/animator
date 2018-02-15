@@ -161,6 +161,8 @@ export default class Creator extends React.Component {
       combokeys.bind('command+option+i', lodash.debounce(() => {
         if (this.state.projectModel) {
           this.state.projectModel.toggleDevTools()
+        } else {
+          this.toggleDevTools()
         }
       }, 500, { leading: true }))
     }
