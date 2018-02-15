@@ -23,6 +23,7 @@ import Tour from './components/Tour/Tour'
 import AutoUpdater from './components/AutoUpdater'
 import ProjectLoader from './components/ProjectLoader'
 import OfflineModePage from './components/OfflineModePage'
+import ProxyHelpScreen from './components/ProxyHelpScreen'
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient'
 import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter'
 // Note that `User` is imported below for type discovery
@@ -947,6 +948,10 @@ export default class Creator extends React.Component {
   }
 
   renderStartupDefaultScreen () {
+    if (this.props.haiku.proxy.active) {
+      return <ProxyHelpScreen />
+    }
+
     return (
       <div style={{ position: 'absolute', width: '100%', height: '100%' }}>
         <ReactCSSTransitionGroup

@@ -3,6 +3,7 @@ import Palette from './../../Palette';
 
 const STYLES = {
   backgroundColor: Palette.COAL,
+  boxShadow: 'rgba(21, 32, 34, 0.9) 0px 12px 60px 0px',
   borderRadius: '6px',
   zIndex: 9001,
   cursor: 'auto',
