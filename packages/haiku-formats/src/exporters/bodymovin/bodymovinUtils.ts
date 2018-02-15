@@ -113,7 +113,7 @@ export const compoundTimelineReducer = (accumulator, currentValue) => {
 /**
  * Lazy getter for the Bodymovin version. Only called if the exporter is requested.
  */
-export const getBodymovinVersion = () => require('../../../package.json').devDependencies.bodymovin;
+export const getBodymovinVersion = () => require('../../../package.json').devDependencies['lottie-web'];
 
 /**
  * Produce a fixed property for a transform.

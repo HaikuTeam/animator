@@ -42,7 +42,7 @@ tape('BodymovinExporter', (test: tape.Test) => {
 
   test.test('uses the specified version of Bodymovin', (test: tape.Test) => {
     const {v} = rawOutput(baseBytecodeCopy());
-    test.deepEqual({v}, {v: '4.11.1'}, 'gets the Bodymovin version from package.json');
+    test.deepEqual({v}, {v: '5.1.7'}, 'gets the Bodymovin version from package.json');
     test.end();
   });
 
