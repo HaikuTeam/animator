@@ -17,11 +17,12 @@ const STYLES = {
     disabled: {
       backgroundColor: 'transparent',
       color: Palette.BLACK,
+      cursor: 'not-allowed',
       border: `1px solid ${Palette.DARKEST_COAL}`,
     },
     loading: {
       opacity: 0.7,
-      cursor: 'not-allowed',
+      cursor: 'wait',
     },
   },
 };
@@ -151,8 +152,8 @@ export class EmbedOption extends React.PureComponent {
               {
                 ...SHARED_STYLES.btn,
                 ...STYLES.entry,
-                ...(effectivelyDisabled && STYLES.entry.disabled),
                 ...(!this.state.done && STYLES.entry.loading),
+                ...(effectivelyDisabled && STYLES.entry.disabled),
               },
             )}
             disabled={effectivelyDisabled || !this.state.done}
