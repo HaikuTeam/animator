@@ -1,7 +1,7 @@
 import * as net from 'net';
 
 const DEFAULT_PORT_SEARCH_START = 45032;
-const DEFAULT_HOST = 'loopback.haiku.ai';
+const DEFAULT_HOST = '0.0.0.0';
 const ADDRESS_IN_USE_CODE = 'EADDRINUSE';
 
 /**
