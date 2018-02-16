@@ -8,7 +8,7 @@ const STYLES = {
     top: '0',
     left: '0',
     height: '3px',
-    backgroundColor: Palette.PINK,
+    backgroundColor: Palette.LIGHT_PINK,
   },
 };
 
