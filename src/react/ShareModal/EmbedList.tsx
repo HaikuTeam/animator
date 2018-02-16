@@ -15,21 +15,23 @@ const STYLES = {
     textTransform: 'uppercase',
     fontSize: '14px',
     marginBottom: '0',
-  },
+    fontWeight: 400
+  } as React.CSSProperties,
   circle: {
     display: 'inline-block',
     border: '1px solid currentColor',
     borderRadius: '50%',
-    width: '1.3em',
-    height: '1.3em',
+    width: '1.1em',
+    height: '1.2em',
     verticalAlign: 'middle',
     marginLeft: '5px',
     color: Palette.DARK_ROCK,
     fontSize: '0.7em',
     cursor: 'pointer',
     textAlign: 'center',
-    lineHeight: '1.3em',
-  },
+    lineHeight: '1.2em',
+    marginTop: '-2px',
+  } as React.CSSProperties,
 };
 
 export class EmbedList extends React.PureComponent {

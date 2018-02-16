@@ -10,6 +10,10 @@ export const SHARE_OPTIONS = {
       disabled: false,
       template: 'VanillaJS',
     },
+    'HTML + CDN': {
+      disabled: false,
+      template: 'Embed',
+    },
     React: {
       disabled: false,
       template: 'ReactHaiku',
@@ -17,10 +21,6 @@ export const SHARE_OPTIONS = {
     Vue: {
       disabled: false,
       template: 'VueHaiku',
-    },
-    'HTML + CDN': {
-      disabled: false,
-      template: 'Embed',
     },
     Angular: {
       disabled: true,
