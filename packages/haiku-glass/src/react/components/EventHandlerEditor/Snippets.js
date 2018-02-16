@@ -23,8 +23,9 @@ const STYLES = {
     height: '18px',
     textAlign: 'center',
     cursor: 'pointer',
-    fontSize: '20px',
-    lineHeight: '18px'
+    fontSize: '18px',
+    lineHeight: '18px',
+    paddingLeft: '1px',
   }
 }
 
