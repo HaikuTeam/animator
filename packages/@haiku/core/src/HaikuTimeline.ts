@@ -377,6 +377,10 @@ HaikuTimeline.prototype.gotoAndPlay = function gotoAndPlay(ms) {
 HaikuTimeline.prototype.gotoAndStop = function gotoAndStop(ms) {
   this._ensureClockIsRunning();
   this.seek(ms);
+  if (this._component && this._component._context && this._component._context.tick) {
+    this._component._context.tick();
+  }
+  this.pause();
   return this;
 };
 
