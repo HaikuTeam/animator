@@ -3,7 +3,7 @@
  * @enum {string}
  */
 export const enum ProxyType {
-  Proxyed = 'PROXY',
+  Proxied = 'PROXY',
   Direct = 'DIRECT',
 }
 
