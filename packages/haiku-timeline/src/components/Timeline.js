@@ -365,9 +365,6 @@ class Timeline extends React.Component {
       enabled: type === 'keyframe-segment',
       submenu: (type === 'keyframe-segment') && this.curvesMenu(curve, (event, curveName) => {
         this.getActiveComponent().joinSelectedKeyframes(curveName, { from: 'timeline' })
-        if (this.tourClient && !this.project.getEnvoyClient().isInMockMode()) {
-          this.tourClient.next()
-        }
       })
     })
 
@@ -1090,11 +1087,6 @@ class Timeline extends React.Component {
             console.info('[timeline] commit', JSON.stringify(committedValue), 'at', ms, 'on', row.dump())
 
             row.createKeyframe(committedValue, ms, { from: 'timeline' })
-            if (row.element.getNameString() === 'svg' && row.getPropertyName() === 'translation.x') {
-              if (!this.project.getEnvoyClient().isInMockMode() && this.tourClient) {
-                this.tourClient.next()
-              }
-            }
           }}
           onFocusRequested={() => {
             const selected = this.getActiveComponent().getSelectedRows()[0]

@@ -94,7 +94,6 @@ function Tooltip (props) {
     prev,
     finish,
     stepData,
-    waitUserAction,
     size,
     isOverlayHideable,
     showPreviousButton
@@ -223,10 +222,8 @@ function Tooltip (props) {
                     </button>
                   )}
 
-                  {/* Show the next button if we aren't waiting for user interaction */}
-                  {!waitUserAction &&
-                    stepData.current < stepData.total && (
-                      <button style={TOUR_STYLES.btn} onClick={() => next()}>
+                  {stepData.current < stepData.total && (
+                  <button style={TOUR_STYLES.btn} onClick={() => next()}>
                         Next
                       </button>
                     )}
