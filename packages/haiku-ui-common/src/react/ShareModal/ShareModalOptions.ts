@@ -18,13 +18,13 @@ export const SHARE_OPTIONS = {
       disabled: false,
       template: 'VueHaiku',
     },
-    Angular: {
-      disabled: true,
-      template: '',
-    },
     'HTML + CDN': {
       disabled: false,
       template: 'Embed',
+    },
+    Angular: {
+      disabled: true,
+      template: '',
     },
   },
   [ShareCategory.Mobile]: {
