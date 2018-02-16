@@ -434,7 +434,9 @@ export default class Creator extends React.Component {
       tourChannel.on('tour:requestShowStep', this.disablePreviewMode)
 
       ipcRenderer.on('global-menu:start-tour', () => {
-        this.setDashboardVisibility(true)
+        if (this.state.projectModel) {
+          this.teardownMaster({ shouldFinishTour: false })
+        }
 
         // Put it at the bottom of the event loop
         setTimeout(() => {
@@ -922,6 +924,10 @@ export default class Creator extends React.Component {
   }
 
   onNavigateToDashboard () {
+    this.teardownMaster({ shouldFinishTour: true })
+  }
+
+  teardownMaster ({shouldFinishTour}) {
     // We teardownMaster FIRST because we want to close the websocket connections before
     // destroying the webviews, which leads to EPIPE/"not opened" crashes.
     // Previously we were relying on dropped connections to deallocate websockets,
@@ -934,7 +940,7 @@ export default class Creator extends React.Component {
         this.onTimelineUnmounted()
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'project:ready')
         this.unsetAllProjectModelsState(this.state.projectModel.getFolder(), 'component:mounted')
-        this.tourChannel.finish(false)
+        if (shouldFinishTour) this.tourChannel.finish(false)
         this.setState({
           projectModel: null,
           activeNav: 'library', // Prevents race+crash loading StateInspector when switching projects
