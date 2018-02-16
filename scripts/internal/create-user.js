@@ -11,7 +11,7 @@ cp.execSync([
   `--verbose`,
   `-X POST`,
   `https://inkstonestaging.haiku.ai/v0/user`,
-  `--data '{"OrganizationName": "${organization}", "Email": "${email}", "Password" : "${password}"}'`,
+  `--data '{"OrganizationName": "${organization}", "Email": "${email}", "Password" : "${password}"}'`
 ].join(' '))
 
 log.log(JSON.stringify({
