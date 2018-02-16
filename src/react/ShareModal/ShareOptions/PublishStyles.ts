@@ -51,6 +51,7 @@ export const PUBLISH_SHARED = {
   inlineLink: {
     color: Color(Palette.ROCK).fade(0.2),
     fontWeight: 'bold',
+    cursor: 'pointer',
     textDecoration: 'underline',
     ':hover': {
       color: Color(Palette.ROCK).fade(0.3),
