@@ -436,6 +436,8 @@ export default class Creator extends React.Component {
       ipcRenderer.on('global-menu:start-tour', () => {
         if (this.state.projectModel) {
           this.teardownMaster({ shouldFinishTour: false })
+        } else {
+          this.setDashboardVisibility(true)
         }
 
         // Put it at the bottom of the event loop
