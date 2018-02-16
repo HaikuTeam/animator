@@ -18,6 +18,8 @@ const STYLES = {
     fontSize: '10px',
     margin: '0',
     fontStyle: 'italic',
+    lineHeight: '1.2em',
+    paddingRight: 33,
   } as React.CSSProperties,
   label: {
     textTransform: 'uppercase',

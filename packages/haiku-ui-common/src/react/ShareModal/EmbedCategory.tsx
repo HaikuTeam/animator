@@ -16,6 +16,7 @@ const STYLES = {
   categoryTitle: {
     fontSize: '16px',
     textTransform: 'uppercase',
+    marginBottom: 6
   },
 };
 
