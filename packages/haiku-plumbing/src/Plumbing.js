@@ -109,8 +109,8 @@ const WAIT_DELAY = 10 * 1000
 
 const HAIKU_DEFAULTS = {
   socket: {
-    port: process.env.HAIKU_CONTROL_PORT,
-    host: process.env.HAIKU_CONTROL_HOST || '0.0.0.0'
+    port: process.env.HAIKU_PLUMBING_PORT,
+    host: process.env.HAIKU_PLUMBING_HOST || '0.0.0.0'
   }
 }
 

@@ -1,9 +1,10 @@
-import { BrowserWindow, app, ipcMain, systemPreferences } from 'electron'
+import { BrowserWindow, app, ipcMain, systemPreferences, session } from 'electron'
 import EventEmitter from 'events'
 import path from 'path'
 import { inherits } from 'util'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import TopMenu from './TopMenu'
+import { isProxied } from 'haiku-common/lib/proxies'
 
 if (!app) {
   throw new Error('You can only run electron.js from an electron process')
@@ -133,7 +134,16 @@ function createWindow () {
   // Sending our haiku configuration into the view so it can correctly set up
   // its own websocket connections to our plumbing server, etc.
   browserWindow.webContents.on('did-finish-load', () => {
-    browserWindow.webContents.send('haiku', haiku)
+    const ses = session.fromPartition('persist:name')
+
+    ses.resolveProxy(haiku.plumbing.url, (proxy) => {
+      haiku.proxy = {
+        url: proxy,
+        active: isProxied(proxy)
+      }
+
+      browserWindow.webContents.send('haiku', haiku)
+    })
   })
 
   // TopMenu global-menu:-prefixed events should delegate to BrowserWindow for event handlers.
