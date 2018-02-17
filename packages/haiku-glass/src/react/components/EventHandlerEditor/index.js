@@ -23,6 +23,7 @@ const STYLES = {
     height: '255px',
     width: '100%',
     paddingRight: '18px',
+    paddingLeft: '18px',
     paddingTop: '23px'
   }
 }
