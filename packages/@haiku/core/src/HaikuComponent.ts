@@ -28,8 +28,6 @@ const OBJECT_TYPE = 'object';
 const HAIKU_ID_ATTRIBUTE = 'haiku-id';
 const DEFAULT_TIMELINE_NAME = 'Default';
 
-const GENERIC_SELECTOR = '*';
-
 const CSS_QUERY_MAPPING = {
   name: 'elementName',
   attributes: 'attributes',
