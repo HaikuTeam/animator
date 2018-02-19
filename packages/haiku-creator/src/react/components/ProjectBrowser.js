@@ -188,7 +188,7 @@ class ProjectBrowser extends React.Component {
     const duplicateNameBase = `${this.state.projectsList[projToDuplicateIndex].projectName}Copy`
     let recordedNewProjectName = duplicateNameBase
     let iteration = 1
-    while (this.doesProjectNameExist(recordedNewProjectName) !== undefined) {
+    while (this.doesProjectNameExist(recordedNewProjectName)) {
       recordedNewProjectName = `${duplicateNameBase}${iteration}`
       iteration++
     }
