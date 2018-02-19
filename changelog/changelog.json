@@ -5011,5 +5011,12 @@
       "label": "fix",
       "message": "allow duplicate modal to ever open."
     }
+  },
+  "3.0.44": {
+    "ea64545f399d1b7f5c9e29eac0bf1e86648650b7": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "prevent Enter-submission of new/dupe project if there is an error."
+    }
   }
 }
