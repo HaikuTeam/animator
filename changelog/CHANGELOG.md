@@ -1,6 +1,25 @@
 # Changelog
 
 
+## 3.0.41
+
+### Features
+
+ * allow negative and out-of-container values for mouse/touch events
+ * Add ability to duplicate a project.
+
+### Bug Fixes
+
+ * switch coming soon tooltips to basic version (no popover)
+ * for timeline.gotoAndStop() goes to, but doesn't stop
+ * set correct variable names for haiku plumbing host
+ * un-break lottie-android 2.5.x by implementing keys in the newly required order.
+ * teardown master when taking the tour with an open project
+ * correct typo in ProxyType enum
+ * use react-popover to show previews on library items
+ * allow devtools to be toggled without having a project open
+ * increment iterator while hunting for a suitable duplicate name
+
 ## 3.0.40
 
 ## 3.0.39
