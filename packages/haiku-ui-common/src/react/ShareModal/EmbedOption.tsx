@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as assign from 'lodash.assign';
 import Palette from '../../Palette';
 import {LoadingTopBar} from '../../LoadingTopBar';
-import {Tooltip} from '../Tooltip';
+import {TooltipBasic} from '../TooltipBasic';
 import {SHARED_STYLES} from '../../SharedStyles';
 import {ShareCategory} from './ShareModalOptions';
 
@@ -17,11 +17,12 @@ const STYLES = {
     disabled: {
       backgroundColor: 'transparent',
       color: Palette.BLACK,
+      cursor: 'auto',
       border: `1px solid ${Palette.DARKEST_COAL}`,
     },
     loading: {
       opacity: 0.7,
-      cursor: 'not-allowed',
+      cursor: 'wait',
     },
   },
 };
@@ -47,6 +48,7 @@ export class EmbedOption extends React.PureComponent {
     speed: '2s',
     done: false,
     abandoned: false,
+    showTooltip: false
   };
 
   get tooltipText() {
@@ -143,33 +145,39 @@ export class EmbedOption extends React.PureComponent {
     const effectivelyDisabled = disabled || this.state.abandoned;
 
     return (
-      <li>
-        <Tooltip content={this.tooltipText} place="above">
-          <button
-            style={assign(
-              {},
-              {
-                ...SHARED_STYLES.btn,
-                ...STYLES.entry,
-                ...(effectivelyDisabled && STYLES.entry.disabled),
-                ...(!this.state.done && STYLES.entry.loading),
-              },
-            )}
-            disabled={effectivelyDisabled || !this.state.done}
-            onClick={() => {
-              onClick({entry, template});
-            }}
-          >
-            {!effectivelyDisabled && (
-              <LoadingTopBar
-                progress={this.state.progress}
-                speed={this.state.speed}
-                done={this.state.done}
-              />
-            )}
-            {entry}
-          </button>
-        </Tooltip>
+      <li style={{position: 'relative'}}>
+        <button
+          style={assign(
+            {},
+            {
+              ...SHARED_STYLES.btn,
+              ...STYLES.entry,
+              ...(!this.state.done && STYLES.entry.loading),
+              ...(effectivelyDisabled && STYLES.entry.disabled),
+            },
+          )}
+          disabled={!this.state.done}
+          onMouseOver={() => {
+            if (effectivelyDisabled) this.setState({showTooltip: true})
+          }}onMouseOut={() => {
+            if (effectivelyDisabled) this.setState({showTooltip: false})
+          }}
+          onClick={() => {
+            if (!effectivelyDisabled) onClick({entry, template});
+          }}
+        >
+          {!effectivelyDisabled && (
+            <LoadingTopBar
+              progress={this.state.progress}
+              speed={this.state.speed}
+              done={this.state.done}
+            />
+          )}
+          {entry}
+        </button>
+        {this.state.showTooltip &&
+          <TooltipBasic>{this.tooltipText}</TooltipBasic>
+        }
       </li>
     );
   }

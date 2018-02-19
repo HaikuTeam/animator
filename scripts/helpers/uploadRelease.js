@@ -42,7 +42,7 @@ function uploadRelease (region, key, secret, bucket, folder, platform, environme
       if (err) return cb(err)
 
       var urls = {
-        download: `https://s3.amazonaws.com/${bucket}/${folder}/${environment}/${branch}/${platform}/${countdown}/${version}/Haiku-${version}-${platform}-pending.zip`,
+        download: `https://s3.amazonaws.com/${bucket}/${folder}/${environment}/${branch}/${platform}/${countdown}/${version}/Haiku-${version}-${platform}-pending.zip`
       }
 
       return cb(null, {

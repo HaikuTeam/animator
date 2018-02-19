@@ -31,7 +31,7 @@ class EditorActions extends React.PureComponent {
           style={{...STYLES.button, ...STYLES.doneButton}}
           title={this.props.title}
         >
-          Done
+          Save
         </button>
       </div>
     )

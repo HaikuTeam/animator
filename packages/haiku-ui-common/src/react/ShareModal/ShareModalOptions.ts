@@ -10,6 +10,10 @@ export const SHARE_OPTIONS = {
       disabled: false,
       template: 'VanillaJS',
     },
+    'HTML + CDN': {
+      disabled: false,
+      template: 'Embed',
+    },
     React: {
       disabled: false,
       template: 'ReactHaiku',
@@ -21,10 +25,6 @@ export const SHARE_OPTIONS = {
     Angular: {
       disabled: true,
       template: '',
-    },
-    'HTML + CDN': {
-      disabled: false,
-      template: 'Embed',
     },
   },
   [ShareCategory.Mobile]: {
