@@ -1,6 +1,19 @@
 # Changelog
 
 
+## 3.0.42
+
+### Bug Fixes
+
+ * login error message regression
+ * switch coming soon tooltips to basic version (no popover)
+ * for timeline.gotoAndStop() goes to, but doesn't stop
+ * correct typo in ProxyType enum
+
+### Features
+
+ * allow negative and out-of-container values for mouse/touch events
+
 ## 3.0.41
 
 ### Features
