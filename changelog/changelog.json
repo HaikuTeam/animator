@@ -5004,5 +5004,12 @@
       "label": "fix",
       "message": "correct typo in ProxyType enum"
     }
+  },
+  "3.0.43": {
+    "00c69f59dc32145e23d6fc7488c20337af519fc3": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow duplicate modal to ever open."
+    }
   }
 }

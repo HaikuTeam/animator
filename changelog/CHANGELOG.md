@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.43
+
+### Bug Fixes
+
+ * allow duplicate modal to ever open.
+
 ## 3.0.42
 
 ### Bug Fixes
