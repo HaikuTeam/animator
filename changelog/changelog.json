@@ -4977,5 +4977,32 @@
       "label": "feat",
       "message": "Add ability to duplicate a project."
     }
+  },
+  "3.0.42": {
+    "d4b17bf059bfb3e10620e5c98005e1791df381c3": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "login error message regression"
+    },
+    "ce71deac6788da3ff39b363cd9804c424f17ba34": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "allow negative and out-of-container values for mouse/touch events"
+    },
+    "27ac451d1267c56a843dab4f08179eeb115ca46d": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "switch coming soon tooltips to basic version (no popover)"
+    },
+    "0a7b464c0538bfa0550d03b4ea6eb442c0578244": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for timeline.gotoAndStop() goes to, but doesn't stop"
+    },
+    "7d70e661c5e7ba3d5a0ca15ed1a7ccc49167701a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "correct typo in ProxyType enum"
+    }
   }
 }
