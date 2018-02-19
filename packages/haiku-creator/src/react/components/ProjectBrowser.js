@@ -291,6 +291,7 @@ class ProjectBrowser extends React.Component {
   }
 
   handleNewProjectGo (duplicate = false) {
+    if (this.state.newProjectError) return false
     const rawNameValue = this.newProjectInput.value
     if (!rawNameValue) return false
     // HACK:  strip all non-alphanumeric chars for now.  something more user-friendly would be ideal
