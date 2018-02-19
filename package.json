@@ -58,7 +58,7 @@
     "dependency-graph": "^0.5.0",
     "derequire": "^2.0.6",
     "dotenv": "^4.0.0",
-    "electron": "1.7.11",
+    "electron": "1.8.2",
     "electron-builder": "19.49.0",
     "electron-rebuild": "^1.6.0",
     "fs-extra": "^4.0.2",
