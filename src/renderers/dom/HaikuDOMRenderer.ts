@@ -132,6 +132,9 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
   // MOUSE
   // -----
 
+  const doc = domMountElement.ownerDocument;
+  const win = doc.defaultView || doc.parentWindow;
+
   domMountElement.addEventListener('mousedown', (mouseEvent) => {
     ++user.mouse.down;
     ++user.mouse.buttons[mouseEvent.button];
@@ -145,17 +148,20 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
     setMouches();
   });
 
-  domMountElement.addEventListener('mousemove', (mouseEvent) => {
+  // NOTE: if there are perf or interop issues that arise from
+  //       attaching event listeners directly to host window,
+  //       could expose a haikuOption for reverting to "attach to mount" behavior
+  win.addEventListener('mousemove', (mouseEvent) => {
     setMouse(mouseEvent);
     setMouches();
   });
 
-  domMountElement.addEventListener('mouseenter', (mouseEvent) => {
+  win.addEventListener('mouseenter', (mouseEvent) => {
     clearMouse();
     clearMouch();
   });
 
-  domMountElement.addEventListener('mouseleave', (mouseEvent) => {
+  win.addEventListener('mouseleave', (mouseEvent) => {
     clearMouse();
     clearMouch();
   });
@@ -171,8 +177,6 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
     },
   );
 
-  const doc = domMountElement.ownerDocument;
-  const win = doc.defaultView || doc.parentWindow;
 
   // KEYS
   // ----
@@ -228,7 +232,7 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
 
   // TOUCHES
   // -------
-  domMountElement.addEventListener(
+  win.addEventListener(
     'touchstart',
     (touchEvent) => {
       setTouches(touchEvent);
@@ -239,12 +243,12 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
     },
   );
 
-  domMountElement.addEventListener('touchend', (touchEvent) => {
+  win.addEventListener('touchend', (touchEvent) => {
     clearTouch();
     clearMouch();
   });
 
-  domMountElement.addEventListener(
+  win.addEventListener(
     'touchmove',
     (touchEvent) => {
       setTouches(touchEvent);
@@ -255,12 +259,12 @@ HaikuDOMRenderer.prototype.initialize = function initialize(domMountElement) {
     },
   );
 
-  domMountElement.addEventListener('touchenter', (touchEvent) => {
+  win.addEventListener('touchenter', (touchEvent) => {
     clearTouch();
     clearMouch();
   });
 
-  domMountElement.addEventListener('touchleave', (touchEvent) => {
+  win.addEventListener('touchleave', (touchEvent) => {
     clearTouch();
     clearMouch();
   });
