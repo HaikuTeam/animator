@@ -4920,5 +4920,62 @@
       "message": "Publish UI V2"
     }
   },
-  "3.0.40": {}
+  "3.0.40": {},
+  "3.0.41": {
+    "2db6a585431316859b947e2e667e73d2c6976631": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "allow negative and out-of-container values for mouse/touch events"
+    },
+    "0485ce77debebd48faf177fd85e3a4a0e8b81b10": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "switch coming soon tooltips to basic version (no popover)"
+    },
+    "495befb24b4497e2c01957aba614d6278be206aa": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for timeline.gotoAndStop() goes to, but doesn't stop"
+    },
+    "4347c2d5f072835c7830d1bf3948db771e627eba": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "set correct variable names for haiku plumbing host"
+    },
+    "eb07788edad4c6be96249771d667f9e8a82a4736": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "un-break lottie-android 2.5.x by implementing keys in the newly required order."
+    },
+    "6a0700644e13b963fd33506a9502aa9605166500": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "teardown master when taking the tour with an open project"
+    },
+    "97f9df12e5634553ea504ba4a4ddc76e121581d4": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "correct typo in ProxyType enum"
+    },
+    "ce12922a855ea8be2a71390d4a434199e3e91361": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use react-popover to show previews on library items"
+    },
+    "54e9e7bf309077c4a98540eaaa58950797166698": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "allow devtools to be toggled without having a project open"
+    },
+    "0ec793b195480dd477effbacf70d5e0d6bbf4859": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "increment iterator while hunting for a suitable duplicate name"
+    },
+    "ad725c0f826ea670b291a04c88727b6eaaf286b2": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Add ability to duplicate a project."
+    }
+  }
 }
