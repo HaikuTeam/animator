@@ -1,3 +1,5 @@
+import {LayoutPropertyType} from './layout';
+
 /**
  * Gets the initial value of a timeline property.
  *
@@ -28,3 +30,26 @@ export const initialValueOrNull = (timeline: any, property: string): any => time
  */
 export const initialValueOr = (timeline: any, property: string, value: any): any => timeline.hasOwnProperty(property)
   ? initialValue(timeline, property) : value;
+
+/**
+ * Private helper method for `simulateLayoutProperty`.
+ * @param value
+ * @returns {{'0': {value: number}}}
+ */
+const getShimLayoutTimeline = (value) => ({0: {value, curve: 'linear'}});
+
+/**
+ * Simulate a layout property that was not explicitly provided in a timeline.
+ * @param {LayoutPropertyType} propertyType
+ * @returns {{'0': {value: number}}}
+ */
+export const simulateLayoutProperty = (propertyType: LayoutPropertyType) => {
+  switch (propertyType) {
+    case LayoutPropertyType.Additive:
+      return getShimLayoutTimeline(0);
+    case LayoutPropertyType.Multiplicative:
+      return getShimLayoutTimeline(1);
+    default:
+      throw new Error('Unable to simulate layout property.');
+  }
+};

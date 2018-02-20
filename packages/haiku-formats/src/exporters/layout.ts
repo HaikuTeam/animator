@@ -7,6 +7,12 @@ import {initialValueOr} from './timelineUtils';
 
 const {createLayoutSpec, createMatrix} = Layout3D;
 
+export const enum LayoutPropertyType {
+  Unknown = 0,
+  Additive = 1,
+  Multiplicative = 2,
+}
+
 /**
  * The small set of composable additive layout properties that Lottie actually supports.
  * @type {string[]}

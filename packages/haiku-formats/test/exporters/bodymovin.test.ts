@@ -264,6 +264,51 @@ tape('BodymovinExporter', (test: tape.Test) => {
     test.equal(ty, 4, 'identifies shape layers');
 
     {
+      const bytecode = baseBytecodeCopy();
+      delete bytecode.timelines.Default['haiku:svg']['translation.x'];
+      delete bytecode.timelines.Default['haiku:svg']['translation.y'];
+      const {layers: [{ks}]} = rawOutput(bytecode);
+      const {p: {k}} = ks;
+      test.deepEqual(k, [0, 0, 0], 'provides a default transform with translation <0, 0>');
+    }
+
+    {
+      const bytecode = baseBytecodeCopy();
+      bytecode.timelines.Default['haiku:svg']['translation.x'] = {0: {value: 10}};
+      delete bytecode.timelines.Default['haiku:svg']['translation.y'];
+      const {layers: [{ks}]} = rawOutput(bytecode);
+      const {p: {x, y}} = ks;
+      test.equal(x.k, 10, 'parses translation.x');
+      test.equal(y.k, 0, 'default translation.y is 0');
+    }
+
+    {
+      const bytecode = baseBytecodeCopy();
+      bytecode.timelines.Default['haiku:svg']['translation.y'] = {0: {value: 10}};
+      delete bytecode.timelines.Default['haiku:svg']['translation.x'];
+      const {layers: [{ks}]} = rawOutput(bytecode);
+      const {p: {x, y}} = ks;
+      test.equal(y.k, 10, 'parses translation.y');
+      test.equal(x.k, 0, 'default translation.x is 0');
+    }
+
+    {
+      const bytecode = baseBytecodeCopy();
+      bytecode.timelines.Default['haiku:svg']['scale.x'] = {0: {value: 2}};
+      const {layers: [{ks}]} = rawOutput(bytecode);
+      const {s: {k}} = ks;
+      test.deepEqual(k, [200, 100], 'parses scale.x');
+    }
+
+    {
+      const bytecode = baseBytecodeCopy();
+      bytecode.timelines.Default['haiku:svg']['scale.y'] = {0: {value: 2}};
+      const {layers: [{ks}]} = rawOutput(bytecode);
+      const {s: {k}} = ks;
+      test.deepEqual(k, [100, 200], 'parses scale.y');
+    }
+
+    {
       const {ty, w, c, lc, lj, d} = stroke;
       test.equal(ty, 'st', 'identifies stroke');
       test.deepEqual(w, {a: 0, k: 10}, 'parses stroke width');
