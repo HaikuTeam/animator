@@ -1,4 +1,7 @@
-import {Maybe, ContextualSize} from 'haiku-common/lib/types';
+import {
+  ContextualSize,
+  Maybe,
+} from 'haiku-common/lib/types';
 import {Curve} from 'haiku-common/lib/types/enums';
 import * as Template from 'haiku-serialization/src/bll/Template';
 import * as difference from 'lodash/difference';
@@ -14,11 +17,15 @@ import {
   splitBezierForTimelinePropertyAtKeyframe,
 } from '../curves';
 import {evaluateInjectedFunctionInExportContext} from '../injectables';
-import {composeTimelines} from '../layout';
+import {
+  composeTimelines,
+  LayoutPropertyType,
+} from '../layout';
 import {
   initialValue,
-  initialValueOrNull,
   initialValueOr,
+  initialValueOrNull,
+  simulateLayoutProperty,
 } from '../timelineUtils';
 import {
   AnimationKey,
@@ -318,11 +325,17 @@ export class BodymovinExporter implements Exporter {
 
     transforms[TransformKey.TransformOrigin] = getFixedPropertyValue([centerX, centerY, 0]);
 
-    if (timeline.hasOwnProperty('translation.x') && timeline.hasOwnProperty('translation.y')) {
+    if (timeline.hasOwnProperty('translation.x') || timeline.hasOwnProperty('translation.y')) {
       transforms[TransformKey.Position] = {
         [TransformKey.PositionSplit]: true,
-        x: this.getValue(timeline['translation.x'], (value) => value + centerX),
-        y: this.getValue(timeline['translation.y'], (value) => value + centerY),
+        x: this.getValue(
+          timeline['translation.x'] || simulateLayoutProperty(LayoutPropertyType.Additive),
+          (value) => value + centerX,
+        ),
+        y: this.getValue(
+          timeline['translation.y'] || simulateLayoutProperty(LayoutPropertyType.Additive),
+          (value) => value + centerY,
+        ),
       };
     } else {
       transforms[TransformKey.Position] = getFixedPropertyValue([0, 0, 0]);
@@ -336,7 +349,13 @@ export class BodymovinExporter implements Exporter {
       this.getValueOrDefaultFromTimeline(timeline, 'rotation.z', 0, rotationTransformer);
 
     if (timeline.hasOwnProperty('scale.x') && timeline.hasOwnProperty('scale.y')) {
-      transforms[TransformKey.Scale] = this.getValue([timeline['scale.x'], timeline['scale.y']], scaleTransformer);
+      transforms[TransformKey.Scale] = this.getValue(
+        [
+          timeline['scale.x'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative),
+          timeline['scale.y'] || simulateLayoutProperty(LayoutPropertyType.Multiplicative),
+        ],
+        scaleTransformer,
+      );
     } else {
       transforms[TransformKey.Scale] = getFixedPropertyValue([100, 100, 100]);
     }
@@ -358,8 +377,11 @@ export class BodymovinExporter implements Exporter {
       [TransformKey.Scale]: getFixedPropertyValue([100, 100]),
     };
 
-    if (timeline.hasOwnProperty('translation.x') && timeline.hasOwnProperty('translation.y')) {
-      transforms[TransformKey.Position] = this.getValue([timeline['translation.x'], timeline['translation.y']]);
+    if (timeline.hasOwnProperty('translation.x') || timeline.hasOwnProperty('translation.y')) {
+      transforms[TransformKey.Position] = this.getValue([
+        timeline['translation.x'] || simulateLayoutProperty(LayoutPropertyType.Additive),
+        timeline['translation.y'] || simulateLayoutProperty(LayoutPropertyType.Additive),
+      ]);
     } else {
       transforms[TransformKey.Position] = getFixedPropertyValue([0, 0]);
     }
@@ -1044,11 +1066,16 @@ export class BodymovinExporter implements Exporter {
     const coupledPropertyLists = [['scale.x', 'scale.y']];
     this.visitAllTimelines((timeline) => {
       coupledPropertyLists.forEach((coupledPropertyList) => {
-        if (!coupledPropertyList.every((property) => property in timeline)) {
-          // We only might need to preprocess elements that are actually transformed by all coupled properties in
-          // each list.
+        if (coupledPropertyList.find((property) => property in timeline) === undefined) {
+          // We only need to preprocess elements that are actually transformed by some coupled properties in each list.
           return;
         }
+
+        // Shim in defaults for coupled properties that are not explicitly provided. Because we only currently
+        // support multiplicative coupled properties (scale), this is straightforward.
+        coupledPropertyList.filter((property) => !(property in timeline)).forEach((property) => {
+          timeline[property] = simulateLayoutProperty(LayoutPropertyType.Multiplicative);
+        });
 
         const keyframeLists = coupledPropertyList.map((property) => keyframesFromTimelineProperty(timeline[property]));
         const injections = new Map();
