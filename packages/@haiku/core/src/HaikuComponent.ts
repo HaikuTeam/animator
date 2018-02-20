@@ -514,21 +514,6 @@ HaikuComponent.prototype.getDefaultTimeline = function getDefaultTimeline() {
   return timelines[DEFAULT_TIMELINE_NAME];
 };
 
-HaikuComponent.prototype.getActiveTimelines = function getActiveTimelines() {
-  const activeTimelines = {};
-
-  const timelines = this.getTimelines();
-
-  for (const timelineName in timelines) {
-    const timelineInstance = timelines[timelineName];
-    if (timelineInstance.isActive()) {
-      activeTimelines[timelineName] = timelineInstance;
-    }
-  }
-
-  return activeTimelines;
-};
-
 HaikuComponent.prototype.stopAllTimelines = function stopAllTimelines() {
   for (const timelineName in this._timelineInstances) {
     this.stopTimeline(timelineName);
@@ -981,13 +966,13 @@ HaikuComponent.prototype.patch = function patch(container, patchOptions, skipCac
   const timelinesRunning = [];
   for (const timelineName in this._timelineInstances) {
     const timeline = this._timelineInstances[timelineName];
-    if (timeline.isActive()) {
+    if (timeline.isPlaying()) {
       timeline._doUpdateWithGlobalClockTime(time);
+    }
 
-      // The default timeline is always considered to be running
-      if (timelineName === 'Default' || !timeline.isFinished()) {
-        timelinesRunning.push(timeline);
-      }
+    // The default timeline is always considered to be running
+    if (timelineName === 'Default' || !timeline.isFinished()) {
+      timelinesRunning.push(timeline);
     }
   }
 
@@ -1054,13 +1039,10 @@ HaikuComponent.prototype.render = function render(container, renderOptions) {
 
   for (const timelineName in this._timelineInstances) {
     const timeline = this._timelineInstances[timelineName];
-
-    // QUESTION: What differentiates an active timeline from a playing one?
-    if (timeline.isActive()) {
+    if (timeline.isPlaying()) {
       timeline._doUpdateWithGlobalClockTime(time);
     }
   }
-
 
   // 1. Update the tree in place using all of the applied values we got from the timelines
   applyContextChanges(this, this._template, container, this._context, renderOptions || {});
@@ -1292,17 +1274,12 @@ function applyContextChanges(component, template, container, context, renderOpti
       if (!timeline) {
         continue;
       }
-      // No need to execute behaviors on timelines that aren't active
-      if (!timeline.isActive()) {
+
+      // For any timeline other than the default, shut it down if it has gone past
+      // its final keyframe. The default timeline is a special case which provides
+      // fallbacks/behavior that is essentially true throughout the lifespan of the component
+      if (timeline.isFinished() && timelineName !== DEFAULT_TIMELINE_NAME) {
         continue;
-      }
-      if (timeline.isFinished()) {
-        // For any timeline other than the default, shut it down if it has gone past
-        // its final keyframe. The default timeline is a special case which provides
-        // fallbacks/behavior that is essentially true throughout the lifespan of the component
-        if (timelineName !== DEFAULT_TIMELINE_NAME) {
-          continue;
-        }
       }
       timelinesRunning.push(timeline);
     }
