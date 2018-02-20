@@ -29,7 +29,6 @@ export default function HaikuTimeline(component, name, descriptor, options) {
   this._localExplicitlySetTime = null; // Only set this to a number if time is 'controlled'
   this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
 
-  this._isActive = false;
   this._isPlaying = false;
 }
 
@@ -91,7 +90,7 @@ HaikuTimeline.prototype._doUpdateWithGlobalClockTime = function _doUpdateWithGlo
     this._updateInternalProperties(globalClockTime);
   }
 
-  if (this.isActive() && this.isPlaying()) {
+  if (this.isPlaying()) {
     this._shout('tick');
   }
 
@@ -229,14 +228,6 @@ HaikuTimeline.prototype.isPlaying = function isPlaying() {
 };
 
 /**
- * @method isActive
- * @description Returns T/F if the timeline is active
- */
-HaikuTimeline.prototype.isActive = function isActive() {
-  return !!this._isActive;
-};
-
-/**
  * @method isFrozen
  * @description Returns T/F if the timeline is frozen
  */
@@ -250,7 +241,7 @@ HaikuTimeline.prototype.isFrozen = function isFrozen() {
  * If this timeline is set to loop, it is never "finished".
  */
 HaikuTimeline.prototype.isFinished = function () {
-  if (this.options.loop) {
+  if (this.options.loop || this._isTimeControlled()) {
     return false;
   }
   return ~~this.getElapsedTime() > this.getMaxTime();
@@ -297,7 +288,6 @@ HaikuTimeline.prototype.start = function start(
   descriptor,
 ) {
   this._localElapsedTime = 0;
-  this._isActive = true;
   this._isPlaying = true;
   this._globalClockTime = maybeGlobalClockTime || 0;
   this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
@@ -308,7 +298,6 @@ HaikuTimeline.prototype.start = function start(
 };
 
 HaikuTimeline.prototype.stop = function stop(maybeGlobalClockTime, descriptor) {
-  this._isActive = false;
   this._isPlaying = false;
   this._maxExplicitlyDefinedTime = getTimelineMaxTime(descriptor);
 
