@@ -299,7 +299,7 @@ class StateRow extends React.Component {
                 ref={(nameInput) => { this.nameInput = nameInput }}
                 style={[STYLES.pill, STYLES.input]}
                 defaultValue={this.props.stateName}
-                placeholder="STATE NAME"
+                placeholder='STATE NAME'
                 onKeyUp={(event) => this.handleChange(event, 'name')}
                 onKeyDown={(event) => this.handleTabSwitch(event, 'name')}
                 autoFocus />
@@ -309,7 +309,7 @@ class StateRow extends React.Component {
                 ref={(valueInput) => { this.valueInput = valueInput }}
                 style={[STYLES.pill, STYLES.input, STYLES.input2]}
                 defaultValue={this.getEditableStateValue()}
-                placeholder="STATE VALUE"
+                placeholder='STATE VALUE'
                 onKeyUp={(event) => this.handleChange(event, 'value')}
                 onKeyDown={(event) => this.handleTabSwitch(event, 'value')} />
               <span key={`${this.props.stateName}-menu`}
