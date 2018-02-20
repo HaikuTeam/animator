@@ -24,6 +24,7 @@ export enum Experiment {
   MultiComponentControlsLibrary = 'MultiComponentControlsLibrary',
   ShowSubElementsInJitMenu = 'ShowSubElementsInJitMenu',
   ElementMultiSelectAndTransform = 'ElementMultiSelectAndTransform',
+  BaseModelQueryCache = 'BaseModelQueryCache',
 }
 
 /**

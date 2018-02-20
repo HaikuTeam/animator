@@ -59,6 +59,7 @@
     "dotenv": "^4.0.0",
     "electron": "1.8.2",
     "electron-builder": "20.0.8",
+    "electron-react-devtools": "^0.5.3",
     "electron-rebuild": "^1.6.0",
     "fs-extra": "^4.0.2",
     "git-branch": "0.3.0",

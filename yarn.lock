@@ -3836,6 +3836,10 @@ electron-publish@20.0.6:
     lazy-val "^1.0.3"
     mime "^2.2.0"
 
+electron-react-devtools@^0.5.3:
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/electron-react-devtools/-/electron-react-devtools-0.5.3.tgz#c74edb1245dc1cfe1380b93016cd4eb588ed00b7"
+
 electron-rebuild@^1.6.0:
   version "1.7.3"
   resolved "https://registry.yarnpkg.com/electron-rebuild/-/electron-rebuild-1.7.3.tgz#24ae06ad9dd61cb7e4d688961f49118c40a110eb"

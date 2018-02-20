@@ -3,8 +3,6 @@ const path = require('path')
 const fse = require('haiku-fs-extra')
 const async = require('async')
 const Project = require('./../../src/bll/Project')
-const File = require('./../../src/bll/File')
-const Element = require('./../../src/bll/Element')
 const Keyframe = require('./../../src/bll/Keyframe')
 
 tape('Keyframe.01', (t) => {

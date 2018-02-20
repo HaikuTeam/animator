@@ -1,5 +1,6 @@
 const lodash = require('lodash')
 const assign = require('lodash.assign')
+const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const BaseModel = require('./BaseModel')
 
 const NAVIGATION_DIRECTIONS = {
@@ -318,7 +319,7 @@ class Row extends BaseModel {
     const siblings = this.getKeyframes()
     siblings.forEach((keyframe, index) => {
       keyframe.index = index
-      keyframe.uid = Keyframe.getInferredUid(this, index)
+      Keyframe.setInstancePrimaryKey(keyframe, Keyframe.getInferredUid(this, keyframe.index))
       keyframe.cacheClear()
     })
   }
@@ -345,18 +346,13 @@ class Row extends BaseModel {
 
     // If nothing at our spot, this is an insertion, and we have to update indices
     if (!existingAtMs) {
-      siblings.forEach((sibling) => {
-        if (sibling.getMs() >= ms) {
-          // We're going to insert the keyframe where it belongs in sequence, per the ms value
-          // The first sibling we find represents the index our new keyframe will get
-          if (indexToAssign === null) {
-            indexToAssign = sibling.getIndex()
-          }
-          // For uids to work, we have to shift the index over for all extant keyframes
-          if (sibling.getMs() !== ms) {
-            sibling.incrementIndex()
-          }
-        }
+      siblings.filter((sibling) => sibling.getMs() > ms).reverse().forEach((sibling) => {
+        // IMPORTANT: Work in reverse order to preserve our fast lookup by ID capability.
+        // We're going to insert the keyframe where it belongs in sequence, per the ms value.
+        // Working in reverse order, the final value of `indexToAssign` will be the correct one.
+        indexToAssign = sibling.getIndex()
+        // For uids to work, we have to shift the index over for all extant keyframes
+        sibling.incrementIndex()
       })
     }
 
@@ -438,11 +434,9 @@ class Row extends BaseModel {
 
     const siblings = this.getKeyframes()
 
-    siblings.forEach((sibling) => {
+    siblings.filter((sibling) => sibling.getMs() > keyframe.getMs()).forEach((sibling) => {
       // Shift the indices of all those that come after this one
-      if (sibling.getMs() > keyframe.getMs()) {
-        sibling.decrementIndex()
-      }
+      sibling.decrementIndex()
     })
 
     this.component.deleteKeyframe(
@@ -473,13 +467,8 @@ class Row extends BaseModel {
     return this.property
   }
 
-  getKeyframes (criteria) {
-    const keyframes = this.component.getCurrentKeyframes(lodash.assign({ row: this }, criteria))
-    return lodash.orderBy(keyframes, [(k) => k.index])
-  }
-
-  getKeyframe (idx) {
-    return this.getKeyframes()[idx]
+  getKeyframes () {
+    return Keyframe.where({ row: this }).sort((a, b) => a.index - b.index)
   }
 
   mapVisibleKeyframes (iteratee) {
@@ -497,13 +486,7 @@ class Row extends BaseModel {
     const keyframes = this.getKeyframes()
     const frameInfo = this.timeline.getFrameInfo()
 
-    return keyframes.filter((keyframe) => {
-      return (
-        !keyframe.isDeleted() &&
-        !keyframe.isDestroyed() &&
-        keyframe.isVisible(frameInfo.msA, frameInfo.msB)
-      )
-    }).map(iteratee)
+    return keyframes.filter((keyframe) => keyframe.isVisible(frameInfo.msA, frameInfo.msB)).map(iteratee)
   }
 
   isState () {
@@ -669,7 +652,7 @@ Row.DEFAULT_OPTIONS = {
   }
 }
 
-BaseModel.extend(Row)
+BaseModel.extend(Row, { useQueryCache: experimentIsEnabled(Experiment.BaseModelQueryCache) })
 
 Row._selected = {}
 Row._focused = {}

@@ -54,7 +54,8 @@ const FOLDER_CHOICES = {
   'complex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/complex'),
   'SuperComplex-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/SuperComplex'),
   'AliensRepro-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/AliensRepro'),
-  'Move-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/Move')
+  'Move-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/Move'),
+  'metapoem2-timeline': path.join(ROOT, 'packages/haiku-timeline/test/projects/metapoem2')
 }
 
 // Support:
@@ -123,7 +124,8 @@ function runInteractive () {
             { name: 'complex (timeline)', value: 'complex-timeline' },
             { name: 'SuperComplex (timeline)', value: 'SuperComplex-timeline' },
             { name: 'AliensRepro (timeline)', value: 'AliensRepro-timeline' },
-            { name: 'Move (timeline)', value: 'Move-timeline' }
+            { name: 'Move (timeline)', value: 'Move-timeline' },
+            { name: 'metapoem2 (timeline)', value: 'metapoem2-timeline' }
           ],
           default: inputs.folderChoice
         },

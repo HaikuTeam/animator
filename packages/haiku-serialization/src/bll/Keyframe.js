@@ -1,5 +1,6 @@
 const assign = require('lodash.assign')
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
+const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const BaseModel = require('./BaseModel')
 
 /**
@@ -255,14 +256,12 @@ class Keyframe extends BaseModel {
   }
 
   incrementIndex () {
-    this.index += 1
-    this.uid = Keyframe.getInferredUid(this.row, this.index)
+    Keyframe.setInstancePrimaryKey(this, Keyframe.getInferredUid(this.row, ++this.index))
     return this
   }
 
   decrementIndex () {
-    this.index -= 1
-    this.uid = Keyframe.getInferredUid(this.row, this.index)
+    Keyframe.setInstancePrimaryKey(this, Keyframe.getInferredUid(this.row, --this.index))
     return this
   }
 
@@ -404,23 +403,15 @@ class Keyframe extends BaseModel {
   }
 
   next () {
-    return this.cacheFetch('next', () => {
-      return this.row.getKeyframes({ index: this.index + 1 })[0]
-    })
+    return Keyframe.findById(Keyframe.getInferredUid(this.row, this.index + 1))
   }
 
   prev () {
-    return this.cacheFetch('prev', () => {
-      return this.row.getKeyframes({ index: this.index - 1 })[0]
-    })
+    return Keyframe.findById(Keyframe.getInferredUid(this.row, this.index - 1))
   }
 
   isNextKeyframeSelected () {
     return this.next() && this.next().isSelected()
-  }
-
-  isNextKeyframeActive () {
-    return this.next() && this.next().isActive()
   }
 
   getPixelOffsetRight (base, pxpf, mspf) {
@@ -848,7 +839,7 @@ Keyframe.DEFAULT_OPTIONS = {
   }
 }
 
-BaseModel.extend(Keyframe)
+BaseModel.extend(Keyframe, { useQueryCache: experimentIsEnabled(Experiment.BaseModelQueryCache) })
 
 Keyframe._selected = {}
 Keyframe._activated = {}

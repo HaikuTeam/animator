@@ -1,6 +1,7 @@
 const { EventEmitter } = require('events')
-const EmitterManager = require('./../utils/EmitterManager')
 const lodash = require('lodash')
+
+const EmitterManager = require('./../utils/EmitterManager')
 
 /**
  * @class BaseModel
@@ -54,19 +55,11 @@ class BaseModel extends EventEmitter {
       }
     }
 
-    const emit = this.emit
-    this.emit = (a, b, c, d, e, f, g, h, i) => {
-      emit.call(this, a, b, c, d, e, f, g, h, i)
-      this.constructor.emit(a, this, b, c, d, e, f, g, h, i)
-    }
-
     this.assign(props)
 
     if (!this.getPrimaryKey()) {
       this.setPrimaryKey(this.generateUniqueId())
     }
-
-    this.constructor.add(this)
 
     // Generic cache object that can store 'anything' that model instances want.
     this.__cache = {}
@@ -79,10 +72,30 @@ class BaseModel extends EventEmitter {
     this.__initialized = Date.now()
     this.__marked = false
 
-    // When a model instance is destroyed, it is kept in the collection but not included in queries.
+    // When a model instance is destroyed, it may not be immediately garbage collected.
     this.__destroyed = null
 
     if (this.afterInitialize) this.afterInitialize()
+
+    if (this.constructor.config.useQueryCache) {
+      this.__proxy = new Proxy(this, {
+        set: (object, property, value) => {
+          this.constructor.dirtyQueryCacheKeys.add(property)
+          object[property] = value
+          return true
+        }
+      })
+    } else {
+      this.__proxy = this
+    }
+
+    this.constructor.add(this.__proxy)
+    return this.__proxy
+  }
+
+  emit (...args) {
+    super.emit.call(this.__proxy, ...args)
+    this.constructor.emit(args[0], this.__proxy, ...args.slice(1))
   }
 
   getEchoInfo () {
@@ -111,7 +124,7 @@ class BaseModel extends EventEmitter {
   }
 
   forceUpdate () {
-    this.setUpdate()
+    this.setUpdateTimestamp()
     this.cacheClear()
     return this
   }
@@ -147,14 +160,6 @@ class BaseModel extends EventEmitter {
     return this
   }
 
-  getUpdateTimestamp () {
-    return this.__updated
-  }
-
-  didUpdateSince (time) {
-    return time <= this.__updated
-  }
-
   didUpdateSinceLastCheck () {
     const answer = this.__checked < this.__updated
     this.__checked = Date.now()
@@ -169,27 +174,17 @@ class BaseModel extends EventEmitter {
     return this[this.constructor.config.primaryKey]
   }
 
+  toString () {
+    return this.getPrimaryKey()
+  }
+
   setPrimaryKey (value) {
     this[this.constructor.config.primaryKey] = value
     return this
   }
 
-  getOptions () {
-    return this.options
-  }
-
   setOptions (opts) {
-    lodash.assign(this.options, this.constructor.DEFAULT_OPTIONS, opts)
-    return this
-  }
-
-  getOption (key) {
-    return this.options[key]
-  }
-
-  setOption (key, value) {
-    this.options[key] = value
-    return this
+    Object.assign(this.options, this.constructor.DEFAULT_OPTIONS, opts)
   }
 
   assign (props) {
@@ -206,47 +201,36 @@ class BaseModel extends EventEmitter {
   }
 
   destroy () {
-    if (this.beforeDestroy) this.beforeDestroy()
     this.constructor.remove(this)
     this.constructor.clearCaches()
-    this.setPrimaryKey(undefined)
     this.__destroyed = Date.now()
-    if (this.afterDestroy) this.afterDestroy()
     return this
-  }
-
-  destroyedAt () {
-    return this.__destroyed
   }
 
   isDestroyed () {
     return !!this.__destroyed
   }
 
-  sameAs (other) {
-    if (!other) return false
-    if (this === other) return true
-    return false
-  }
-
   hasAll (criteria) {
-    let match = true
+    if (!criteria) {
+      return true
+    }
+
     for (const key in criteria) {
       if (criteria[key] !== this[key]) {
-        match = false
+        return false
       }
     }
-    return match
+    return true
   }
 
   hasAny (criteria) {
-    let match = false
     for (const key in criteria) {
       if (criteria[key] === this[key]) {
-        match = true
+        return true
       }
     }
-    return match
+    return false
   }
 
   insertChild (entity) {
@@ -300,7 +284,7 @@ BaseModel.DEFAULT_OPTIONS = {}
 
 BaseModel.extend = function extend (klass, opts) {
   if (!klass.extended) {
-    createCollection(klass, [], opts)
+    createCollection(klass, opts)
 
     klass.emitter = new EventEmitter()
     klass.emit = klass.emitter.emit.bind(klass.emitter)
@@ -312,68 +296,131 @@ BaseModel.extend = function extend (klass, opts) {
   }
 }
 
-function createCollection (klass, collection, opts) {
-  klass.config = lodash.assign({
-    primaryKey: 'uid'
-  }, opts)
+const getStableCacheKey = (prefix, criteria) => {
+  if (typeof criteria !== 'object') {
+    return false
+  }
 
-  klass.configure = (config) => {
-    lodash.assign(klass.config, config)
+  const cacheKeyComponents = [prefix]
+  for (const key in criteria) {
+    cacheKeyComponents.push(key, criteria[key].toString())
+  }
+
+  return cacheKeyComponents.join('|')
+}
+
+const createCollection = (klass, opts) => {
+  klass.config = {
+    primaryKey: 'uid'
+  }
+  Object.assign(klass.config, opts)
+
+  // Use two internal representations of the full table: an array collection for querying where order matters, and a
+  // hashmap collection for fast primary key lookups.
+  const arrayCollection = []
+  const hashmapCollection = {}
+
+  let queryCache = {}
+  klass.dirtyQueryCacheKeys = new Set()
+
+  const purgeDirtyQueryCacheKeys = (keys) => {
+    keys.forEach((dirtyKey) => {
+      if (klass.dirtyQueryCacheKeys.has(dirtyKey)) {
+        klass.dirtyQueryCacheKeys.delete(dirtyKey)
+        Object.keys(queryCache).filter((name) => name.includes(dirtyKey)).forEach((dirtyCacheKey) => {
+          delete queryCache[dirtyCacheKey]
+        })
+      }
+    })
+  }
+
+  const cachedQuery = (prefix, criteria, iteratee) => {
+    const cacheKey = getStableCacheKey(prefix, criteria)
+    if (cacheKey === false) {
+      return klass.filter(iteratee)
+    }
+
+    purgeDirtyQueryCacheKeys(Object.keys(criteria))
+    if (!queryCache[cacheKey]) {
+      queryCache[cacheKey] = klass.filter(iteratee)
+    }
+
+    return queryCache[cacheKey]
+  }
+
+  const clearQueryCache = () => {
+    if (klass.config.useQueryCache) {
+      queryCache = {}
+      klass.dirtyQueryCacheKeys.clear()
+    }
   }
 
   klass.idx = (instance) => {
-    for (let i = 0; i < collection.length; i++) {
-      if (collection[i].sameAs(instance)) return i
+    for (let i = 0; i < arrayCollection.length; i++) {
+      if (arrayCollection[i] === instance) return i
     }
     return -1
   }
 
-  klass.get = (instance) => {
-    const idx = klass.idx(instance)
-    if (idx === -1) return null
-    return collection[idx]
+  klass.setInstancePrimaryKey = (instance, primaryKey) => {
+    if (klass.has(instance)) {
+      delete hashmapCollection[instance.getPrimaryKey()]
+      instance.setPrimaryKey(primaryKey)
+      hashmapCollection[instance.getPrimaryKey()] = instance
+    }
   }
 
-  klass.has = (instance) => !!klass.get(instance)
+  klass.get = (instance) => {
+    return hashmapCollection[instance.getPrimaryKey()] || null
+  }
+
+  klass.has = (instance) => hashmapCollection[instance.getPrimaryKey()] !== undefined
 
   klass.add = (instance) => {
-    if (!klass.has(instance)) collection.push(instance)
-    return collection
+    if (!klass.has(instance)) {
+      clearQueryCache()
+      arrayCollection.push(instance)
+      hashmapCollection[instance.getPrimaryKey()] = instance
+    }
   }
 
   klass.remove = (instance) => {
-    const idx = klass.idx(instance)
-    if (idx === -1) return null
-    collection.splice(idx, 1)
-    return collection
+    if (klass.has(instance)) {
+      clearQueryCache()
+      const idx = klass.idx(instance)
+      arrayCollection.splice(idx, 1)
+      delete hashmapCollection[instance.getPrimaryKey()]
+    }
   }
 
-  klass.all = () => collection.filter((item) => !item.isDestroyed())
-
-  klass.collection = () => collection
+  klass.all = () => arrayCollection
 
   klass.count = () => klass.all().length
 
   klass.filter = (iteratee) => klass.all().filter(iteratee)
 
   klass.where = (criteria) => {
-    if (!criteria) return klass.all()
-    if (Object.keys(criteria).length < 0) return klass.all()
+    if (klass.config.useQueryCache) {
+      return cachedQuery('where', criteria, (instance) => instance.hasAll(criteria))
+    }
+
     return klass.filter((instance) => instance.hasAll(criteria))
   }
 
-  klass.any = (criteria) => klass.filter((instance) => instance.hasAny(criteria))
+  klass.any = (criteria) => {
+    if (klass.config.useQueryCache) {
+      cachedQuery('any', criteria, (instance) => instance.hasAny(criteria))
+    }
+
+    return klass.filter((instance) => instance.hasAll(criteria))
+  }
 
   klass.find = (criteria) => {
     const found = klass.where(criteria)
     return found && found[0]
   }
 
-  klass.findById = (id) => {
-    const criteria = {}
-    criteria[klass.config.primaryKey] = id
-    return klass.find(criteria)
-  }
+  klass.findById = (id) => hashmapCollection[id]
 
   // eslint-disable-next-line
   klass.create = (props, opts) => new klass(props, opts)
@@ -397,7 +444,7 @@ function createCollection (klass, collection, opts) {
   }
 
   klass.clearCaches = () => {
-    collection.forEach((item) => {
+    arrayCollection.forEach((item) => {
       item.cacheClear()
     })
   }

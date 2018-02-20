@@ -61,5 +61,9 @@
   "ElementMultiSelectAndTransform": {
     "development": true,
     "production": false
+  },
+  "BaseModelQueryCache": {
+    "development": true,
+    "production": false
   }
 }
