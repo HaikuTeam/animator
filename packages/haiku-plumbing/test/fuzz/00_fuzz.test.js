@@ -1,18 +1,15 @@
 /**
  * Proves that a bunch of rapid async undo/redo actions don't cause a crash.
  */
-var tape = require('tape')
-var async = require('async')
-var fse = require('haiku-fs-extra')
-var cp = require('child_process')
-var path = require('path')
-var TestHelpers = require('./../TestHelpers')
-var Master = require('./../../lib/Master').default
-var MasterGitProject = require('./../../lib/MasterGitProject').default
-var Git = require('./../../lib/Git')
+const tape = require('tape')
+const async = require('async')
+const fse = require('haiku-fs-extra')
+const path = require('path')
+const TestHelpers = require('./../TestHelpers')
+const MasterGitProject = require('./../../lib/MasterGitProject').default
 tape('other.00', (t) => {
   t.plan(2)
-  var changes = {}
+  const changes = {}
   function change (relpath) {
     if (!changes[relpath]) changes[relpath] = 0
     changes[relpath] += 1
@@ -20,10 +17,10 @@ tape('other.00', (t) => {
   }
   return TestHelpers.setup(function(folder, creator, glass, timeline, metadata, teardown) {
     t.ok(true)
-    var relpath = 'hello.txt'
-    var abspath = path.join(folder, relpath)
+    const relpath = 'hello.txt'
+    const abspath = path.join(folder, relpath)
     fse.outputFileSync(abspath, `${change(relpath)}`)
-    var mgp = new MasterGitProject(folder)
+    const mgp = new MasterGitProject(folder)
     mgp.restart({ branchName: 'master' })
     return async.series([
       function (cb) { return mgp.initializeProject({}, cb)  },
@@ -151,9 +148,12 @@ tape('other.00', (t) => {
         mgp.redo({}, () => {})
         setTimeout(cb, 2000)
       },
+
+      function (cb) {
+        mgp.teardown(cb)
+      }
     ], (err) => {
       t.error(err, 'finished without error')
-      mgp.teardown()
       teardown()
     })
   })

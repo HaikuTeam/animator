@@ -8,3 +8,4 @@ dist
 test/fixtures/projects/blank-project
 lib/
 checkstyle-result.xml
+test-result.tap

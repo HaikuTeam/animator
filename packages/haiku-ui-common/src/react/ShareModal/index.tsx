@@ -13,8 +13,8 @@ const STYLES = {
     left: 'calc(50% + 150px)',
     transform: 'translateX(-50%)',
     top: 110,
-    margin: 0
-  }
+    margin: 0,
+  },
 };
 
 export class ShareModal extends React.Component {

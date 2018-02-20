@@ -41,7 +41,7 @@ Error.stackTraceLimit = Infinity // Show long stack traces when errors are shown
 const Raven = require('./Raven')
 
 // Don't allow malicious websites to connect to our websocket server (Plumbing or Envoy)
-const HAIKU_WS_SECURITY_TOKEN = Math.random().toString(36).substring(7) + Math.random().toString(36).substring(7)
+export const HAIKU_WS_SECURITY_TOKEN = Math.random().toString(36).substring(7) + Math.random().toString(36).substring(7)
 const WS_POLICY_VIOLATION_CODE = 1008
 
 // For any methods that are...
@@ -627,7 +627,9 @@ export default class Plumbing extends StateObject {
     logger.info('[plumbing] teardown method called')
 
     return async.eachOfSeries(this.masters, (master, folder, next) => {
-      return master.teardown(next)
+      this.teardownMaster(folder, () => {
+        master.teardown(next)
+      })
     }, () => {
       if (this.envoyServer) {
         logger.info('[plumbing] closing envoy server')
@@ -836,7 +838,6 @@ export default class Plumbing extends StateObject {
   authenticateUser (username, password, cb) {
     this.set('organizationName', null) // Unset this cache to avoid writing others folders if somebody switches accounts in the middle of a session
     return inkstone.user.authenticate(username, password, (authErr, authResponse, httpResponse) => {
-
       if (httpResponse.statusCode === 401 || httpResponse.statusCode === 403) {
         // eslint-disable-next-line standard/no-callback-literal
         return cb({
@@ -844,7 +845,7 @@ export default class Plumbing extends StateObject {
           message: httpResponse.body || 'Unauthorized'
         })
       } else if (authErr) {
-         return cb(authErr)
+        return cb(authErr)
       }
 
       if (httpResponse.statusCode > 499) {
