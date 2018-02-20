@@ -8,7 +8,7 @@ const {randomString} = require('@haiku/core/lib/helpers/StringUtils')
 const TestHelpers = require('./../TestHelpers')
 
 tape('Plumbing', (t) => {
-  TestHelpers.launch((plumbing, teardown) => {
+  TestHelpers.launch((plumbing, _, teardown) => {
     const projectName = 'TestProject' + randomString(9)
     const duplicateProjectName = `${projectName}Copy`
     return async.waterfall([
@@ -144,9 +144,13 @@ tape('Plumbing', (t) => {
       (project, cb) => {
         // We should have backed up the project contents when we deleted them locally.
         plumbing.teardownMaster(project.projectPath, () => cb(null, project))
+      },
+      (project, cb) => {
+        teardown(() => {
+          cb(null, project)
+        })
       }
-    ], (err) => {
-      teardown()
+    ], () => {
       t.end()
     })
   })

@@ -25,7 +25,7 @@ const STYLES = {
     cursor: 'pointer',
     fontSize: '18px',
     lineHeight: '18px',
-    paddingLeft: '1px',
+    paddingLeft: '1px'
   }
 }
 

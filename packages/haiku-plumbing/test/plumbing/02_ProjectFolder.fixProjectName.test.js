@@ -11,7 +11,7 @@ tape('ProjectFolder.fixProjectName', (t) => {
       function (cb) { return creator.request('initializeProject', ['test', { projectPath: folder }, 'matthew+test@haiku.ai', 'quitesecure'], cb) },
 
       function (cb) {
-        var pkg = fse.readJsonSync(path.join(folder, 'package.json'))
+        const pkg = fse.readJsonSync(path.join(folder, 'package.json'))
         // Make sure the setting is correct at the outset
         t.equal(pkg.name, `@haiku/${metadata.organizationName.toLowerCase()}-test`, 'package name was set correctly')
         // Set to an incorrect name to check that we fix it correctly later
@@ -24,7 +24,7 @@ tape('ProjectFolder.fixProjectName', (t) => {
       function (cb) { return creator.request('initializeProject', ['test', { projectPath: folder }, 'matthew+test@haiku.ai', 'quitesecure'], cb) },
 
       function (cb) {
-        var pkg = fse.readJsonSync(path.join(folder, 'package.json'))
+        const pkg = fse.readJsonSync(path.join(folder, 'package.json'))
         t.equal(pkg.name, `@haiku/${metadata.organizationName.toLowerCase()}-test`, 'package name was set correctly')
         return cb()
       }

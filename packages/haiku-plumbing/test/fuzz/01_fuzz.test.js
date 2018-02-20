@@ -1,18 +1,17 @@
 /**
  * Proves that a bunch of rapid project initializations don't cause a crash
  */
-var tape = require('tape')
-var async = require('async')
-var lodash = require('lodash')
-var fse = require('haiku-fs-extra')
-var cp = require('child_process')
-var path = require('path')
-var TestHelpers = require('./../TestHelpers')
+const tape = require('tape')
+const async = require('async')
+const fse = require('haiku-fs-extra')
+const path = require('path')
+const TestHelpers = require('./../TestHelpers')
+
 tape('other.01', (t) => {
   t.plan(1)
-  var projectName = 'UnitTestProj' + Date.now()
-  TestHelpers.launch((plumbing, teardown) => {
-    var folder = () => { return plumbing.subprocs[0]._attributes.folder }
+  const projectName = 'UnitTestProj' + Date.now()
+  TestHelpers.launch((plumbing, teardownMaster, teardown) => {
+    const folder = () => Object.keys(plumbing.masters)[0]
     return async.series([
       function (cb) { return plumbing.authenticateUser('matthew+matthew@haiku.ai', 'supersecure', cb) },
       function (cb) { return plumbing.createProject(projectName, cb) },
@@ -39,11 +38,20 @@ tape('other.01', (t) => {
       // as though we had gone back and forth
       // between the dash and editor
       function (cb) {
+        teardownMaster(folder(), cb)
+      },
+
+      function (cb) {
         return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
       },
+
+      function (cb) {
+        teardownMaster(folder(), cb)
+      },
+
       function (cb) {
         return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
@@ -62,11 +70,9 @@ tape('other.01', (t) => {
       },
 
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
-          if (err) return cb(err)
-          return plumbing.startProject(projectName, folder(), cb)
-        })
+        teardownMaster(folder(), cb)
       },
+
       function (cb) {
         return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
@@ -74,6 +80,16 @@ tape('other.01', (t) => {
         })
       },
 
+      function (cb) {
+        teardownMaster(folder(), cb)
+      },
+
+      function (cb) {
+        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
+          if (err) return cb(err)
+          return plumbing.startProject(projectName, folder(), cb)
+        })
+      },
 
       // Update some content
       function (cb) {
@@ -83,6 +99,10 @@ tape('other.01', (t) => {
         fse.outputFileSync(path.join(folder(), 'Quatro.txt'), '444')
         fse.outputFileSync(path.join(folder(), 'Cinco.txt'), '555')
         return cb()
+      },
+
+      function (cb) {
+        teardownMaster(folder(), cb)
       },
 
       function (cb) {
@@ -108,18 +128,33 @@ tape('other.01', (t) => {
           return plumbing.startProject(projectName, folder(), cb)
         })
       },
+
+      function (cb) {
+        teardownMaster(folder(), cb)
+      },
+
       function (cb) {
         return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
       },
+
+      function (cb) {
+        teardownMaster(folder(), cb)
+      },
+
       function (cb) {
         return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
           return plumbing.startProject(projectName, folder(), cb)
         })
       },
+
+      function (cb) {
+        teardownMaster(folder(), cb)
+      },
+
       function (cb) {
         return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
@@ -138,11 +173,9 @@ tape('other.01', (t) => {
       },
 
       function (cb) {
-        return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
-          if (err) return cb(err)
-          return plumbing.startProject(projectName, folder(), cb)
-        })
+        teardownMaster(folder(), cb)
       },
+
       function (cb) {
         return plumbing.initializeProject(projectName, { projectName, skipContentCreation: true }, 'matthew+matthew@haiku.ai', 'supersecure', (err) => {
           if (err) return cb(err)
@@ -150,11 +183,16 @@ tape('other.01', (t) => {
         })
       },
 
-      function (cb) { return plumbing.deleteProject(projectName, cb) }
+      function (cb) {
+        teardownMaster(folder(), () => {
+          teardown(cb)
+        })
+      },
+
+      function (cb) { return plumbing.deleteProject(projectName, folder(), cb) }
     ], (err) => {
       if (err) throw err
       t.ok(true)
-      teardown()
     })
   })
 })

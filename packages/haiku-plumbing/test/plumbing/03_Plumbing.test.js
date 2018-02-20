@@ -1,15 +1,12 @@
 const tape = require('tape')
 const async = require('async')
-const fse = require('haiku-fs-extra')
 const cp = require('child_process')
 const path = require('path')
-const lodash = require('lodash')
 const TestHelpers = require('./../TestHelpers')
-const BLUE_SVG_1 = path.join(__dirname, '..', 'fixtures', 'files', 'designs', 'bef', 'Blue.svg')
 const DEF_SVG_1 = path.join(__dirname, '..', 'fixtures', 'files', 'designs', 'bef', 'Default.svg')
 tape('Plumbing', (t) => {
-  t.plan(34)
-  TestHelpers.setup(function(folder, creator, glass, timeline, metadata, teardown, plumbing) {
+  t.plan(18)
+  TestHelpers.setup((folder, creator, glass, timeline, metadata, teardown, plumbing) => {
     return async.series([
       (cb) => {
         return plumbing.authenticateUser('matthew+matthew@haiku.ai', 'supersecure', (err, resp) => {
@@ -33,8 +30,8 @@ tape('Plumbing', (t) => {
         return plumbing.initializeProject(null, projectOptions, 'matthew+matthew@haiku.ai', 'supersecure', (err, folder) => {
           t.error(err, 'no err initializing')
           t.ok(folder, 'folder created and path returned')
-          t.equal(plumbing.masters.length, 1, 'only one master so far')
-          t.equal(plumbing.masters[0].folder, folder, 'master has folder name')
+          t.equal(Object.keys(plumbing.masters).length, 1, 'only one master so far')
+          t.equal(Object.keys(plumbing.masters)[0], folder, 'master has folder name')
           const gitloglines = cp.execSync('git log --pretty=oneline', { cwd: folder }).toString().split('\n')
           t.equal(gitloglines.length, 2, 'git log has two entries')
           return cb()
@@ -51,7 +48,7 @@ tape('Plumbing', (t) => {
       (cb) => {
         return plumbing.awaitMasterAndCallMethod(folder, 'setCurrentActiveComponent', ['main', { from: 'test' }], (err) => {
           t.error(err, 'no error setting ac')
-          return setTimeout(() => cb(), 1000)
+          return setTimeout(cb, 1000)
         })
       },
       (cb) => {
@@ -61,8 +58,9 @@ tape('Plumbing', (t) => {
           return cb()
         })
       },
-    ], (err) => {
-      // teardown()
-    })
+      (cb) => {
+        teardown(cb)
+      }
+    ])
   })
 })

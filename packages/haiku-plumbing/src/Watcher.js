@@ -14,6 +14,7 @@ export default class Watcher extends EventEmitter {
       alwaysStat: true
     })
 
+    this.watcher.on('ready', this.emit.bind(this, 'ready'))
     this.watcher.on('add', this.emit.bind(this, 'add'))
     this.watcher.on('change', (path, maybeStats) => {
       this.emit('change', path, maybeStats)

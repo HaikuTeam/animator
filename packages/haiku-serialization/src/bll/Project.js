@@ -76,12 +76,14 @@ class Project extends BaseModel {
 
     // List of components we are tracking as part of the component tabs
     this._multiComponentTabs = []
+
+    this._isTornDown = false
   }
 
   processWebsocketActions () {
     const nextAction = this._websocketActions.shift()
     if (!nextAction) {
-      return setTimeout(() => this.processWebsocketActions(), 64)
+      return this._isTornDown ? null : setTimeout(() => this.processWebsocketActions(), 64)
     }
     return this.processWebsocketAction(nextAction)
   }
@@ -116,6 +118,7 @@ class Project extends BaseModel {
   teardown () {
     this.getEnvoyClient().closeConnection()
     if (this.websocket) this.websocket.disconnect()
+    this._isTornDown = true
   }
 
   connectClients () {

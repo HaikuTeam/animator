@@ -11,7 +11,7 @@ const STYLES = {
     width: '100%',
     textAlign: 'center',
     backgroundColor: Palette.DARKEST_COAL,
-    boxShadow: '0 2px 7px 0 rgba(0,0,0,.3)'
+    boxShadow: '0 2px 7px 0 rgba(0,0,0,.3)',
   } as React.CSSProperties,
   tip: {
     position: 'absolute',

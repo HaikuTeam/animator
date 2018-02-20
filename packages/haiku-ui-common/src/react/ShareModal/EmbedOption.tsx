@@ -48,7 +48,7 @@ export class EmbedOption extends React.PureComponent {
     speed: '2s',
     done: false,
     abandoned: false,
-    showTooltip: false
+    showTooltip: false,
   };
 
   get tooltipText() {
@@ -158,12 +158,12 @@ export class EmbedOption extends React.PureComponent {
           )}
           disabled={!this.state.done}
           onMouseOver={() => {
-            if (effectivelyDisabled) this.setState({showTooltip: true})
+            if (effectivelyDisabled) { this.setState({showTooltip: true}); }
           }}onMouseOut={() => {
-            if (effectivelyDisabled) this.setState({showTooltip: false})
+            if (effectivelyDisabled) { this.setState({showTooltip: false}); }
           }}
           onClick={() => {
-            if (!effectivelyDisabled) onClick({entry, template});
+            if (!effectivelyDisabled) { onClick({entry, template}); }
           }}
         >
           {!effectivelyDisabled && (

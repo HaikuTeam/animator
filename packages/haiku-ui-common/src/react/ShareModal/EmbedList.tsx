@@ -15,7 +15,7 @@ const STYLES = {
     textTransform: 'uppercase',
     fontSize: '14px',
     marginBottom: '0',
-    fontWeight: 400
+    fontWeight: 400,
   } as React.CSSProperties,
   circle: {
     display: 'inline-block',
