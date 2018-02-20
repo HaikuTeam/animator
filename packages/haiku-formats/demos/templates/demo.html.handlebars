@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!-- Copyright (c) 2016-2018 Haiku. All rights reserved. -->
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{demo}} | Haiku Formats</title>
+    <style>
+        html, body {
+            margin: 0;
+        }
+
+        .wrapper {
+            display: flex;
+            flex-wrap: wrap;
+        }
+    </style>
+    <script src="/webpack/HaikuDOMAdapter.js"></script>
+    <script src="/webpack/{{demo}}.bytecode.js"></script>
+    <script src="/webpack/LottieWeb.js"></script>
+    <script src="/webpack/{{demo}}.bodymovin.js"></script>
+</head>
+<body>
+<div class="wrapper">
+    <div id="core-mount"></div>
+    <div id="bodymovin-mount"></div>
+</div>
+<script>
+  const setDimensions = (elements) => {
+    const functionalWidth = window.innerWidth / 2;
+    elements.forEach((element) => {
+      element.style.width = `${functionalWidth}px`;
+      element.style.height = `${functionalWidth * window.bodymovin.h / window.bodymovin.w}px`;
+    });
+  };
+
+  // Create mounts for all our adapters.
+  const coreMount = document.getElementById('core-mount');
+  const bodymovinMount = document.getElementById('bodymovin-mount');
+  const allMounts = [coreMount, bodymovinMount];
+
+  // Set dimensions once now and again on resize.
+  setDimensions(allMounts);
+  window.addEventListener('resize', () => {
+    setDimensions(allMounts);
+  });
+
+  // Initialize animations.
+  window.haikuComponent = window.HaikuDOMAdapter.default(window.bytecode)(
+    coreMount,
+    {loop: true, autoplay: false, sizing: 'contain'}
+  );
+
+  window.bodymovinAnimation = window.lottie.loadAnimation({
+    container: bodymovinMount,
+    renderer: 'svg',
+    autoplay: false,
+    loop: true,
+    animationData: window.bodymovin,
+  });
+
+  window.document.addEventListener('click', () => {
+    const timeline = window.haikuComponent.getDefaultTimeline();
+    if (timeline.isPlaying()) {
+      timeline.pause();
+      window.bodymovinAnimation.pause();
+    } else {
+      timeline.play();
+      window.bodymovinAnimation.play();
+    }
+  });
+</script>
+</body>
+</html>
