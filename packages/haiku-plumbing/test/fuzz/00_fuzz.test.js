@@ -15,7 +15,7 @@ tape('other.00', (t) => {
     changes[relpath] += 1
     return changes[relpath]
   }
-  return TestHelpers.setup(function(folder, creator, glass, timeline, metadata, teardown) {
+  return TestHelpers.setup(function (folder, creator, glass, timeline, metadata, teardown, plumbing) {
     t.ok(true)
     const relpath = 'hello.txt'
     const abspath = path.join(folder, relpath)
@@ -23,7 +23,8 @@ tape('other.00', (t) => {
     const mgp = new MasterGitProject(folder)
     mgp.restart({ branchName: 'master' })
     return async.series([
-      function (cb) { return mgp.initializeProject({}, cb)  },
+      function (cb) { return plumbing.authenticateUser('matthew+matthew@haiku.ai', 'supersecure', cb) },
+      function (cb) { return mgp.initializeProject({}, cb) },
       function (cb) { return mgp.commitProjectIfChanged('Initialized test folder', cb) },
       function (cb) { return mgp.setUndoBaselineIfHeadCommitExists(cb) },
       function (cb) {
