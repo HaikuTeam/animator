@@ -1,6 +1,5 @@
 import React from 'react'
 import { StyleRoot } from 'radium'
-import SplitPane from 'react-split-pane'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import lodash from 'lodash'
 import Combokeys from 'combokeys'
@@ -16,6 +15,7 @@ import ProjectBrowser from './components/ProjectBrowser'
 import SideBar from './components/SideBar'
 import Library from './components/library/Library'
 import StateInspector from './components/StateInspector/StateInspector'
+import SplitPanel from './components/SplitPanel'
 import Stage from './components/Stage'
 import Timeline from './components/Timeline'
 import Toast from './components/notifications/Toast'
@@ -611,10 +611,6 @@ export default class Creator extends React.Component {
     this.tourChannel.receiveWebviewCoordinates('creator', { top: 0, left: 0 })
   }
 
-  handlePaneResize () {
-    // this.layout.emit('resize')
-  }
-
   renderNotifications (content, i) {
     return (
       <Toast
@@ -1162,77 +1158,75 @@ export default class Creator extends React.Component {
                 {lodash.map(this.state.notices, this.renderNotifications)}
               </div>
             </ReactCSSTransitionGroup>
-            <SplitPane onDragFinished={this.handlePaneResize.bind(this)} split='horizontal' minSize={300} defaultSize={this.props.height * 0.62}>
-              <div>
-                <SplitPane onDragFinished={this.handlePaneResize.bind(this)} split='vertical' minSize={300} defaultSize={300}>
-                  <SideBar
-                    doShowBackToDashboardButton={this.state.doShowBackToDashboardButton}
-                    projectModel={this.state.projectModel}
-                    switchActiveNav={this.switchActiveNav.bind(this)}
-                    onNavigateToDashboard={this.onNavigateToDashboard}
-                    activeNav={this.state.activeNav}>
-                    {
-                      isPreviewMode(this.state.interactionMode) && (
-                        <div
-                          style={{
-                            opacity: 0.6,
-                            position: 'absolute',
-                            top: 34,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            zIndex: 999999,
-                            backgroundColor: Palette.COAL
-                          }}
-                          onClick={() => { this.disablePreviewMode() }}
-                        />
-                      )
-                    }
-                    {this.state.activeNav === 'library'
-                      ? <Library
-                        projectModel={this.state.projectModel}
-                        layout={this.layout}
-                        folder={this.state.projectFolder}
-                        haiku={this.props.haiku}
-                        websocket={this.props.websocket}
-                        onDragEnd={this.onLibraryDragEnd.bind(this)}
-                        onDragStart={this.onLibraryDragStart.bind(this)}
-                        createNotice={this.createNotice}
-                        removeNotice={this.removeNotice} />
-                      : <StateInspector
-                        projectModel={this.state.projectModel}
-                        createNotice={this.createNotice}
-                        removeNotice={this.removeNotice}
-                        folder={this.state.projectFolder}
-                        websocket={this.props.websocket} />
-                    }
-                  </SideBar>
-                  <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                    <Stage
-                      ref='stage'
-                      folder={this.state.projectFolder}
+            <SplitPanel split='horizontal' minSize={300} defaultSize={this.props.height * 0.62}>
+              <SplitPanel split='vertical' minSize={300} defaultSize={300}>
+                <SideBar
+                  doShowBackToDashboardButton={this.state.doShowBackToDashboardButton}
+                  projectModel={this.state.projectModel}
+                  switchActiveNav={this.switchActiveNav.bind(this)}
+                  onNavigateToDashboard={this.onNavigateToDashboard}
+                  activeNav={this.state.activeNav}>
+                  {
+                    isPreviewMode(this.state.interactionMode) && (
+                      <div
+                        style={{
+                          opacity: 0.6,
+                          position: 'absolute',
+                          top: 34,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          zIndex: 999999,
+                          backgroundColor: Palette.COAL
+                        }}
+                        onClick={() => { this.disablePreviewMode() }}
+                      />
+                    )
+                  }
+                  {this.state.activeNav === 'library'
+                    ? <Library
                       projectModel={this.state.projectModel}
-                      envoyClient={this.envoyClient}
+                      layout={this.layout}
+                      folder={this.state.projectFolder}
                       haiku={this.props.haiku}
                       websocket={this.props.websocket}
-                      project={this.state.projectObject}
+                      onDragEnd={this.onLibraryDragEnd.bind(this)}
+                      onDragStart={this.onLibraryDragStart.bind(this)}
+                      createNotice={this.createNotice}
+                      removeNotice={this.removeNotice} />
+                    : <StateInspector
+                      projectModel={this.state.projectModel}
                       createNotice={this.createNotice}
                       removeNotice={this.removeNotice}
-                      receiveProjectInfo={this.receiveProjectInfo}
-                      organizationName={this.state.organizationName}
-                      authToken={this.state.authToken}
-                      username={this.state.username}
-                      password={this.state.password}
-                      isTimelineReady={this.state.isTimelineReady}
-                      isPreviewMode={isPreviewMode(this.state.interactionMode)}
-                      onPreviewModeToggled={() => { this.togglePreviewMode() }}
-                    />
-                    {(this.state.assetDragging)
-                      ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />
-                      : ''}
-                  </div>
-                </SplitPane>
-              </div>
+                      folder={this.state.projectFolder}
+                      websocket={this.props.websocket} />
+                  }
+                </SideBar>
+                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                  <Stage
+                    ref='stage'
+                    folder={this.state.projectFolder}
+                    projectModel={this.state.projectModel}
+                    envoyClient={this.envoyClient}
+                    haiku={this.props.haiku}
+                    websocket={this.props.websocket}
+                    project={this.state.projectObject}
+                    createNotice={this.createNotice}
+                    removeNotice={this.removeNotice}
+                    receiveProjectInfo={this.receiveProjectInfo}
+                    organizationName={this.state.organizationName}
+                    authToken={this.state.authToken}
+                    username={this.state.username}
+                    password={this.state.password}
+                    isTimelineReady={this.state.isTimelineReady}
+                    isPreviewMode={isPreviewMode(this.state.interactionMode)}
+                    onPreviewModeToggled={() => { this.togglePreviewMode() }}
+                  />
+                  {(this.state.assetDragging)
+                    ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />
+                    : ''}
+                </div>
+              </SplitPanel>
               <Timeline
                 ref='timeline'
                 folder={this.state.projectFolder}
@@ -1243,7 +1237,7 @@ export default class Creator extends React.Component {
                 createNotice={this.createNotice}
                 removeNotice={this.removeNotice}
                 onReady={this.onTimelineMounted} />
-            </SplitPane>
+            </SplitPanel>
           </div>
         </div>
         {(this.state.doShowProjectLoader)
