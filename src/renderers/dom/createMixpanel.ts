@@ -32,7 +32,5 @@ export default function createMixpanel(domElement, mixpanelToken, component) {
     },
   };
 
-  component.on('haikuComponentDidInitialize', () => {
-    component.mixpanel.track('component:initialize');
-  });
+  component.mixpanel.track('component:initialize');
 }

@@ -68,6 +68,7 @@ export default function HaikuContext(mount, renderer, platform, bytecode, config
   }
 
   this.component = new HaikuComponent(bytecode, this, this.config, null);
+
   this.clock = new HaikuClock(this._tickables, this.component, this.config.options.clock || {});
   // We need to start the loop even if we aren't autoplaying,
   // because we still need time to be calculated even if we don't 'tick'.
@@ -79,8 +80,10 @@ export default function HaikuContext(mount, renderer, platform, bytecode, config
     this._renderer.menuize(this._mount, this.component);
   }
 
-  // Don't set up mixpanel if we're running on localhost since we don't want test data to be tracked
-  // TODO: What other heuristics should we use to decide whether to use mixpanel or not?
+  // By default, Haiku tracks usage by transmitting component metadata to Mixpanel when initialized.
+  // Developers can disable this by setting the `mixpanel` option to a falsy value.
+  // To transmit metadata to your own Mixpanel account, set the `mixpanel` option to your Mixpanel API token.
+  // Don't set up Mixpanel if we're running on localhost since we don't want test data to be tracked
   if (
     this._mount &&
     this._platform &&
