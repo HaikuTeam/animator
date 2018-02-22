@@ -174,6 +174,20 @@ Interactive:
 
 <br>
 
+## Tracking / Analytics
+
+By default, Haiku tracks usage of published components by transmitting metadata to Haiku's Mixpanel account when components are initialized on the page. We send only public information: your component's name, its Haiku account username, the software version it was built with, and its share identifier.
+
+To disable this, set the `mixpanel` option to falsy:
+
+    // ...
+    const factory = HaikuCore(definition);
+    const component = factory(document.getElementById("mount"), {
+      mixpanel: false // Or the string of your own Mixpanel API token
+    })
+
+<br>
+
 ## Bugs / Feature Requests / Troubleshooting
 
 Please use [GitHub Issues](https://github.com/HaikuTeam/core/issues).
