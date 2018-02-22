@@ -84,7 +84,8 @@ class ProjectPreview extends React.Component {
         alwaysComputeSizing: false,
         loop: true,
         interactionMode: InteractionMode.EDIT,
-        autoplay: false
+        autoplay: false,
+        mixpanel: false
       }
     )
 
