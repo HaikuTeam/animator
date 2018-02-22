@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 3.0.46
+
+### Bug Fixes
+
+ * upgrade electron build chain
+ * Initialize optional Mixpanel instrument and mention tracking in README (#315)
+ * for "keyframes should still listen to expressions while paused()"
+ * get all tests passing/terminating.
+ * get all tests passing/terminating.
+
 ## 3.0.45
 
 ### Bug Fixes
