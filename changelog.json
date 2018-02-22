@@ -5055,5 +5055,32 @@
       "label": "fix",
       "message": "get all tests passing/terminating."
     }
+  },
+  "3.0.46": {
+    "d6ccc1f12fc5f0ab309db0d2eb95b622af086de2": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "upgrade electron build chain"
+    },
+    "fe722e84d57d5967a952ce92630469b6c2ae0820": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Initialize optional Mixpanel instrument and mention tracking in README (#315)"
+    },
+    "7dc20ffe8faf89b36f204c8f02594d86ecf0b356": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for \"keyframes should still listen to expressions while paused()\""
+    },
+    "30f194eb67190adc9389e1854785f1045c14640d": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "get all tests passing/terminating."
+    },
+    "f2e49a29ce34b45b0bcb8279798be0cd1114d52d": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "get all tests passing/terminating."
+    }
   }
 }
