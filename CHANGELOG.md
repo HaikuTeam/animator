@@ -1,6 +1,21 @@
 # Changelog
 
 
+## 3.0.45
+
+### Bug Fixes
+
+ * Initialize optional Mixpanel instrument and mention tracking in README (#315)
+ * for "keyframes should still listen to expressions while paused()"
+ * cast all SVG text font declarations to a default sans-serif chain.
+ * for "Lottie bug
+ * kick off plumbing tests by authenticating.
+ * get all tests passing/terminating.
+
+### Features
+
+ * Add basic demo server for haiku-formats
+
 ## 3.0.44
 
 ### Bug Fixes
