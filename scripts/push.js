@@ -87,9 +87,15 @@ cp.execSync(`node ./scripts/build-core.js --skip-compile=1`, processOptions)
 
 // Push up before we begin the actual work of publishing. This ensures that unmergeable changes are never published to
 // our standalones.
-cp.execSync(`git fetch`)
-cp.execSync(`git merge origin/master`)
-cp.execSync(`git push -u origin master`)
+cp.execSync('git fetch')
+cp.execSync('git merge origin/master')
+cp.execSync('git push -u origin master')
+// Sync these changes down to development before continuing.
+cp.execSync('git fetch origin development:development')
+cp.execSync('git checkout development')
+cp.execSync('git merge master')
+cp.execSync('git push -u origin development')
+cp.execSync('git checkout master')
 
 openSourcePackages.forEach((pack) => {
   // Publish package to NPM as is.
