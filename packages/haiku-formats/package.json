@@ -1,6 +1,6 @@
 {
   "name": "haiku-formats",
-  "version": "3.0.44",
+  "version": "3.0.45",
   "description": "Formatting-related utilities for Haiku.",
   "main": "lib/index.js",
   "directories": {
@@ -25,18 +25,18 @@
   "license": "UNLICENSED",
   "dependencies": {
     "bezier-easing": "^2.0.3",
-    "haiku-common": "3.0.44",
-    "@haiku/core": "3.0.44",
-    "haiku-sdk-creator": "3.0.44",
-    "haiku-serialization": "3.0.44",
+    "haiku-common": "3.0.45",
+    "@haiku/core": "3.0.45",
+    "haiku-sdk-creator": "3.0.45",
+    "haiku-serialization": "3.0.45",
     "lodash": "^4.17.4"
   },
   "devDependencies": {
     "@types/node": "8.5.2",
     "@types/tape": "^4.2.30",
     "async": "^2.5.0",
-    "haiku-fs-extra": "3.0.44",
-    "haiku-testing": "3.0.44",
+    "haiku-fs-extra": "3.0.45",
+    "haiku-testing": "3.0.45",
     "lottie-web": "5.1.7",
     "nodemon": "1.11.0",
     "nyc": "^11.3.0",
