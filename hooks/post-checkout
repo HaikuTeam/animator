@@ -10,7 +10,7 @@ if is_branch_checkout == '0':
   sys.exit(0)
 
 current_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()
-experiment_branch = current_branch if current_branch == 'release' else 'development'
+experiment_branch = 'production' if current_branch == 'master' else 'development'
 with open(path.join('packages', 'haiku-common', 'config', 'experiments.json')) as experiments_file:
   experiments = json.load(experiments_file)
 
