@@ -21,7 +21,7 @@ export default class VueHaiku extends React.PureComponent {
 
           new Vue({
             el: '#vue-dom-mount',
-            template: \`<${projectName} haikuOptions={{loop: true}}></${projectName}>\`,
+            template: \`<${projectName} haikuOptions="{{loop: true}}"></${projectName}>\`,
             components: {
               ${projectName}
             }
