@@ -5018,5 +5018,42 @@
       "label": "fix",
       "message": "prevent Enter-submission of new/dupe project if there is an error."
     }
+  },
+  "3.0.45": {
+    "4076d46a122014d33000363f7c4d73aafde7bb0b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Initialize optional Mixpanel instrument and mention tracking in README (#315)"
+    },
+    "7f14b594c4b58968d02a413496825295508aa205": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for \"keyframes should still listen to expressions while paused()\""
+    },
+    "8af64b9dfe16425ca6e5f0efbf93812eb70cb726": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "cast all SVG text font declarations to a default sans-serif chain."
+    },
+    "5cd157a650f079cd9d432a22742d3c5083aa3986": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "Add basic demo server for haiku-formats"
+    },
+    "b396e4aef4333e4c45f10d36053f08ba7076d36f": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "for \"Lottie bug"
+    },
+    "0ac3dc246230e60623868414c01f855fd93050fd": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "kick off plumbing tests by authenticating."
+    },
+    "8bf9eaa346072c44f036c9a6f30aa8eb91ecfeaa": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "get all tests passing/terminating."
+    }
   }
 }
