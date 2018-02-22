@@ -5089,5 +5089,22 @@
       "label": "fix",
       "message": "Initialize optional Mixpanel tracking correctly; use official snippet instead of our broken unrolled one"
     }
+  },
+  "3.0.48": {
+    "ef80682e4aa3f59743846e64b38a7ff021cff0da": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "wrap haikuOptions in quotes in the Vue.js example (#317)"
+    },
+    "e085fda0dd7233a287921bb29fa0699d6211fc87": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "make all adapter bundles available on the CDN. (#316)"
+    },
+    "c1410a67807f281dae2eab726ce78b7a48000f55": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Initialize optional Mixpanel tracking correctly; use official snippet instead of our broken unrolled one"
+    }
   }
 }
