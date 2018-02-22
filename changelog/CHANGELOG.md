@@ -1,6 +1,17 @@
 # Changelog
 
 
+## 3.0.48
+
+### Bug Fixes
+
+ * wrap haikuOptions in quotes in the Vue.js example (#317)
+ * Initialize optional Mixpanel tracking correctly; use official snippet instead of our broken unrolled one
+
+### Features
+
+ * make all adapter bundles available on the CDN. (#316)
+
 ## 3.0.47
 
 ### Bug Fixes
