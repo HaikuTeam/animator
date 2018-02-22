@@ -5082,5 +5082,12 @@
       "label": "fix",
       "message": "get all tests passing/terminating."
     }
+  },
+  "3.0.47": {
+    "d59cc4807357fe6b8e53dd1fa19a578684ff6c83": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "Initialize optional Mixpanel tracking correctly; use official snippet instead of our broken unrolled one"
+    }
   }
 }

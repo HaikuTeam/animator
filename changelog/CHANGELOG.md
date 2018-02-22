@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 3.0.47
+
+### Bug Fixes
+
+ * Initialize optional Mixpanel tracking correctly; use official snippet instead of our broken unrolled one
+
 ## 3.0.46
 
 ### Bug Fixes
