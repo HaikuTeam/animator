@@ -93,7 +93,7 @@ export default function HaikuContext(mount, renderer, platform, bytecode, config
   ) {
     // If configured, initialize Mixpanel with the given API token
     if (this._renderer.mixpanel && this.config.options.mixpanel) {
-      this._renderer.mixpanel(this._mount, this.config.options.mixpanel, this.component);
+      this._renderer.mixpanel(this.config.options.mixpanel, this.component);
     }
   }
 

@@ -2,7 +2,7 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
-import createMixpanel from './createMixpanel';
+import mixpanelInit from './mixpanelInit';
 import createRightClickMenu from './createRightClickMenu';
 import getElementSize from './getElementSize';
 import getLocalDomEventPosition from './getLocalDomEventPosition';
@@ -41,8 +41,8 @@ HaikuDOMRenderer.prototype.menuize = function menuize(domElement, component) {
   return createRightClickMenu(domElement, component);
 };
 
-HaikuDOMRenderer.prototype.mixpanel = function mixpanel(domElement, mixpanelToken, component) {
-  return createMixpanel(domElement, mixpanelToken, component);
+HaikuDOMRenderer.prototype.mixpanel = function mixpanel(mixpanelToken, component) {
+  return mixpanelInit(mixpanelToken, component);
 };
 
 HaikuDOMRenderer.prototype.hasSizing = function hasSizing() {
