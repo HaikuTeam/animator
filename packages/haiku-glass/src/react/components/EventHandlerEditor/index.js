@@ -120,6 +120,10 @@ class EventHandlerEditor extends React.PureComponent {
   onEditorRemoved ({editor, event, handler}) {
     this.handlerManager.delete(event)
     this.forceUpdate()
+
+    if (this.handlerManager.size() === 0) {
+      this.doSave()
+    }
   }
 
   scrollToEditor (editorId) {
@@ -180,9 +184,6 @@ class EventHandlerEditor extends React.PureComponent {
         contents={handler.body}
         key={id}
         id={id}
-        deleteable={
-          totalNumberOfHandlers > 1 && !this.props.options.isSimplified
-        }
         hideEventSelector={this.props.options.isSimplified}
       />
     )
