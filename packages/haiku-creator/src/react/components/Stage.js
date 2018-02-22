@@ -9,7 +9,6 @@ import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 import { remote } from 'electron'
 
 const STAGE_BOX_STYLE = {
-  position: 'relative',
   overflow: 'hidden',
   padding: 0,
   margin: 0,

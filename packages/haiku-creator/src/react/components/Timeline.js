@@ -129,7 +129,7 @@ export default class Timeline extends React.Component {
         onMouseOver={() => this.webview.focus()}
         onMouseOut={() => this.webview.blur()}
         ref={(element) => { this.mount = element }}
-        style={{ position: 'absolute', overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.GRAY }}>
+        style={{ overflow: 'auto', width: '100%', height: '100%', backgroundColor: Palette.GRAY }}>
         {!this.state.finishedInjecting &&
         <div style={{
           position: 'absolute',
