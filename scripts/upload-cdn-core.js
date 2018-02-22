@@ -1,13 +1,12 @@
-var path = require('path')
-var async = require('async')
-var lodash = require('lodash')
-var log = require('./helpers/log')
-var uploadFileStream = require('./helpers/uploadFileStream')
-var nowVersion = require('./helpers/nowVersion')
-var allPackages = require('./helpers/packages')()
-var groups = lodash.keyBy(allPackages, 'name')
+const path = require('path')
+const async = require('async')
+const log = require('./helpers/log')
+const uploadFileStream = require('./helpers/uploadFileStream')
+const s3CopyObject = require('./helpers/s3CopyObject')
+const nowVersion = require('./helpers/nowVersion')
+const core = require('./helpers/packages')('@haiku/core')
 
-var CORE_PATH = groups['@haiku/core'].abspath
+const CORE_PATH = core.abspath
 
 // Note: These are hosted via the haiku-internal AWS account
 // https://code.haiku.ai/scripts/core/HaikuCore.${vers}.js
@@ -22,67 +21,87 @@ log.log(`uploading cdn core ${nowVersion()}`)
 
 // Note that the S3 object keys should NOT begin with a slash, or the S3 path will get weird
 
+const bundles = [
+  ['dom', 'HaikuCore'],
+  ['dom', 'HaikuPlayer'], // Legacy
+  ['react-dom', 'HaikuReact'],
+  ['vue-dom', 'HaikuVue'],
+];
+
 async.series([
-  // "Core" - the current hotness
-  function (cb) {
-    log.log('uploading core dom bundle to code.haiku.ai')
-    return uploadFileStream(path.join(CORE_PATH, 'dist', 'dom.bundle.js'), `scripts/core/HaikuCore.${nowVersion()}.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
-  },
+  // Full bundles.
+  ...bundles.map(([bundleType, name]) => (cb) => {
+    log.log(`uploading core ${bundleType} bundle to code.haiku.ai`)
+    const destinationKey = `scripts/core/${name}.${nowVersion()}.js`
+    return uploadFileStream(
+      path.join(CORE_PATH, 'dist', `${bundleType}.bundle.js`),
+      destinationKey,
+      'us-east-1',
+      'code.haiku.ai',
+      'production',
+      'code.haiku.ai',
+      'public-read',
+      (err) => {
+        if (err) {
+          throw err
+        }
 
-  function (cb) {
-    log.log('uploading core dom bundle to code.haiku.ai (as "latest")')
-    return uploadFileStream(path.join(CORE_PATH, 'dist', 'dom.bundle.js'), `scripts/core/HaikuCore.latest.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
-  },
+        // Alias to ".latest.js" as well.
+        s3CopyObject(
+          destinationKey,
+          `scripts/core/${name}.latest.js`,
+          'us-east-1',
+          'code.haiku.ai',
+          'production',
+          'code.haiku.ai',
+          'public-read',
+           cb
+        )
+      }
+    )
+  }),
 
-  function (cb) {
-    log.log('uploading core dom bundle to code.haiku.ai (minified)')
-    return uploadFileStream(path.join(CORE_PATH, 'dist', 'dom.bundle.min.js'), `scripts/core/HaikuCore.${nowVersion()}.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
-  },
+  // Minified bundles.
+  ...bundles.map(([bundleType, name]) => (cb) => {
+    log.log(`uploading core ${bundleType} minified bundle to code.haiku.ai`)
+    const destinationKey = `scripts/core/${name}.${nowVersion()}.min.js`
+    return uploadFileStream(
+      path.join(CORE_PATH, 'dist', `${bundleType}.bundle.min.js`),
+      destinationKey,
+      'us-east-1',
+      'code.haiku.ai',
+      'production',
+      'code.haiku.ai',
+      'public-read',
+      (err) => {
+        if (err) {
+          throw err
+        }
 
-  function (cb) {
-    log.log('uploading core dom bundle to code.haiku.ai (minified, as "latest")')
-    return uploadFileStream(path.join(CORE_PATH, 'dist', 'dom.bundle.min.js'), `scripts/core/HaikuCore.latest.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
-  },
-
-  // "Player" - the legacy name
-  function (cb) {
-    log.log('uploading player dom bundle to code.haiku.ai')
-    return uploadFileStream(path.join(CORE_PATH, 'dist', 'dom.bundle.js'), `scripts/player/HaikuPlayer.${nowVersion()}.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
-  },
-
-  function (cb) {
-    log.log('uploading player dom bundle to code.haiku.ai (as "latest")')
-    return uploadFileStream(path.join(CORE_PATH, 'dist', 'dom.bundle.js'), `scripts/player/HaikuPlayer.latest.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
-  },
-
-  function (cb) {
-    log.log('uploading player dom bundle to code.haiku.ai (minified)')
-    return uploadFileStream(path.join(CORE_PATH, 'dist', 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.${nowVersion()}.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
-  },
-
-  function (cb) {
-    log.log('uploading player dom bundle to code.haiku.ai (minified, as "latest")')
-    return uploadFileStream(path.join(CORE_PATH, 'dist', 'dom.bundle.min.js'), `scripts/player/HaikuPlayer.latest.min.js`, 'us-east-1', 'code.haiku.ai', 'production', 'code.haiku.ai', 'public-read', cb)
-  },
-
-  function (cb) {
-    log.hat(`      our provided 3rd-party scripts:
-      https://code.haiku.ai/scripts/core/HaikuCore.${nowVersion()}.js
-      https://code.haiku.ai/scripts/core/HaikuCore.${nowVersion()}.min.js
-      https://code.haiku.ai/scripts/player/HaikuPlayer.${nowVersion()}.js
-      https://code.haiku.ai/scripts/player/HaikuPlayer.${nowVersion()}.min.js
-
-      and for convenience:
-      https://code.haiku.ai/scripts/core/HaikuCore.latest.js
-      https://code.haiku.ai/scripts/core/HaikuCore.latest.min.js
-      https://code.haiku.ai/scripts/player/HaikuPlayer.latest.js
-      https://code.haiku.ai/scripts/player/HaikuPlayer.latest.min.js
-
-      ^^ you probably need to invalidate cloudfront for the "latest" files to update ^^`)
-
-    return cb()
-  }
+        // Alias to ".latest.js" as well.
+        s3CopyObject(
+          destinationKey,
+          `scripts/core/${name}.latest.min.js`,
+          'us-east-1',
+          'code.haiku.ai',
+          'production',
+          'code.haiku.ai',
+          'public-read',
+          cb
+        )
+      }
+    )
+  })
 ], (err) => {
   if (err) throw err
+  log.hat(`      our provided 3rd-party scripts:${bundles.map(([_, name]) => `
+      https://code.haiku.ai/scripts/core/${name}.${nowVersion()}.js`).join('')}${bundles.map(([_, name]) => `
+      https://code.haiku.ai/scripts/core/${name}.${nowVersion()}.min.js`).join('')}
+
+      and for convenience:${bundles.map(([_, name]) => `
+      https://code.haiku.ai/scripts/core/${name}.latest.js`).join('')}${bundles.map(([_, name]) => `
+      https://code.haiku.ai/scripts/core/${name}.latest.min.js`).join('')}
+
+      ^^ you probably need to invalidate cloudfront for the "latest" files to update ^^`)
   log.log('done uploading cdn core')
 })
