@@ -25,7 +25,7 @@
     "@storybook/react": "^3.3.3",
     "@types/node": "8.5.2",
     "@types/react": "^15.4.2",
-    "electron": "1.8.2",
+    "electron": "1.7.11",
     "haiku-common": "3.1.1",
     "haiku-testing": "3.1.1",
     "nyc": "^11.3.0",
