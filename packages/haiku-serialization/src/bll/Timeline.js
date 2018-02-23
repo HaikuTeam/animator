@@ -359,10 +359,7 @@ class Timeline extends BaseModel {
         }
 
         const timelineInstance = timelineInstances[timelineName]
-
-        if (timelineInstance.isPlaying()) {
-          timelineInstance._controlTime(timelineTime, explicitTime)
-        }
+        timelineInstance._controlTime(timelineTime, explicitTime)
       }
     })
 
