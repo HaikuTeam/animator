@@ -173,14 +173,14 @@ class Editor extends React.Component {
         id={this.props.id}
       >
         <div style={STYLES.options}>
-          {!this.props.hideEventSelector ? (
+          {!this.props.isSimplified && (
             <EventSelector
               options={this.props.applicableHandlers}
               disabledOptions={this.props.appliedHandlers}
               onChange={this.eventSelectedCallback}
               defaultEventName={this.props.selectedEventName}
             />
-          ) : <span />}
+          )}
 
           <div
             onMouseEnter={() => {
@@ -196,6 +196,7 @@ class Editor extends React.Component {
               this.state.isTrashHovered && STYLES.options.svgActive
             ]}
           >
+            {!this.props.isSimplified &&
             <TrashIconSVG
               color={
                 this.state.isTrashHovered
@@ -203,6 +204,7 @@ class Editor extends React.Component {
                   : STYLES.options.svgVisible.fill
               }
             />
+          }
           </div>
         </div>
 

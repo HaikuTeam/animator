@@ -15,6 +15,17 @@ class HandlerManager {
     this.applicableEventHandlersList = this._applicableEventHandlersToList()
   }
 
+  /**
+   * Format a frame in a standarized event name
+   *
+   * @param {number} frame
+   * @returns {string}
+   */
+
+  static frameToEvent (frame) {
+    return `timeline:Default:${frame}`
+  }
+
   /*
    * Returns a serialized object which represents the new state of event
    * listeners in a element. This object can be used direcly by bytecode methods
