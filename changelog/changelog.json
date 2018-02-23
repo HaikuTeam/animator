@@ -5128,5 +5128,6 @@
       "label": "feat",
       "message": "make all adapter bundles available on the CDN. (#316)"
     }
-  }
+  },
+  "3.1.1": {}
 }
