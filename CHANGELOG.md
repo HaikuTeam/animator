@@ -1,6 +1,18 @@
 # Changelog
 
 
+## 3.0.49
+
+### Features
+
+ * add a custom implementation to resize panels
+ * make all adapter bundles available on the CDN. (#316)
+
+### Bug Fixes
+
+ * create a merge commit down to development branch after we push autochanges.
+ * wrap haikuOptions in quotes in the Vue.js example (#317)
+
 ## 3.0.48
 
 ### Bug Fixes
