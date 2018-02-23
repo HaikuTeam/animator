@@ -5922,7 +5922,7 @@ inline-style-prefix-all@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/inline-style-prefix-all/-/inline-style-prefix-all-2.0.2.tgz#44e23c00d3521a36041e07c9b1e81bf36770b08c"
 
-inline-style-prefixer@2.0.5, inline-style-prefixer@^2.0.4, inline-style-prefixer@^2.0.5:
+inline-style-prefixer@2.0.5, inline-style-prefixer@^2.0.5:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/inline-style-prefixer/-/inline-style-prefixer-2.0.5.tgz#c153c7e88fd84fef5c602e95a8168b2770671fe7"
   dependencies:
@@ -9372,13 +9372,6 @@ react-scroll-to-component@^1.0.1:
   dependencies:
     scroll-to "0.0.2"
 
-react-split-pane@0.1.57:
-  version "0.1.57"
-  resolved "https://registry.yarnpkg.com/react-split-pane/-/react-split-pane-0.1.57.tgz#7cc2d30841ae6a3e246ee613a9858012528d894f"
-  dependencies:
-    inline-style-prefixer "^2.0.4"
-    react-style-proptype "^1.4.0"
-
 react-split-pane@^0.1.74:
   version "0.1.74"
   resolved "https://registry.yarnpkg.com/react-split-pane/-/react-split-pane-0.1.74.tgz#cf79fc98b51ab0763fdc778749b810a102b036ca"
@@ -9388,10 +9381,6 @@ react-split-pane@^0.1.74:
     inline-style-prefixer "^3.0.6"
     prop-types "^15.5.10"
     react-style-proptype "^3.0.0"
-
-react-style-proptype@^1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/react-style-proptype/-/react-style-proptype-1.4.0.tgz#d82c4093b73767e3efaacba013cea22a50e7b5ee"
 
 react-style-proptype@^3.0.0:
   version "3.1.0"
