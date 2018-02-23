@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 3.1.3
+
+### Bug Fixes
+
+ * always control time in Timeline model.
+ * watch-all script should watch core, not player
+
 ## 3.1.2
 
 ## 3.1.1
