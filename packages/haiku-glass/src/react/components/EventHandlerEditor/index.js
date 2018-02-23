@@ -41,6 +41,7 @@ class EventHandlerEditor extends React.PureComponent {
     this.onEditorEventChange = this.onEditorEventChange.bind(this)
     this.onEditorRemoved = this.onEditorRemoved.bind(this)
     this.addAction = this.addAction.bind(this)
+    this.onFrameEditorRemoved = this.onFrameEditorRemoved.bind(this)
 
     this.state = {
       editorsWithErrors: []
@@ -126,13 +127,21 @@ class EventHandlerEditor extends React.PureComponent {
     }
   }
 
+  onFrameEditorRemoved () {
+    if (isNumeric(this.props.options.frame)) {
+      const event = HandlerManager.frameToEvent(this.props.options.frame)
+      this.handlerManager.delete(event)
+      this.doSave()
+    }
+  }
+
   scrollToEditor (editorId) {
     const editor = this.wrapper.querySelector(`#${editorId}`)
     this.wrapper.scrollTop = editor.offsetTop
   }
 
   renderFrameEditor (totalNumberOfHandlers, applicableEventHandlers) {
-    const event = `timeline:Default:${this.props.options.frame}`
+    const event = HandlerManager.frameToEvent(this.props.options.frame)
     const {id, handler} = this.handlerManager.getOrGenerateEventHandler(event)
 
     return this.renderSingleEditor(
@@ -184,7 +193,7 @@ class EventHandlerEditor extends React.PureComponent {
         contents={handler.body}
         key={id}
         id={id}
-        hideEventSelector={this.props.options.isSimplified}
+        isSimplified={this.props.options.isSimplified}
       />
     )
   }
@@ -217,15 +226,17 @@ class EventHandlerEditor extends React.PureComponent {
             <ElementTitle
               element={this.props.element}
               title={
-              isNumeric(this.props.options.frame)
-                ? `Frame ${this.props.options.frame}`
-                : null
-            }
+                isNumeric(this.props.options.frame)
+                  ? `Frame ${this.props.options.frame}`
+                  : null
+              }
               hideActions={
-              this.props.options.isSimplified ||
-              !this.handlerManager.getNextAvailableDOMEvent()
-            }
+                this.props.options.isSimplified ||
+                !this.handlerManager.getNextAvailableDOMEvent()
+              }
               onNewAction={this.addAction}
+              isSimplified={this.props.options.isSimplified}
+              onFrameEditorRemoved={this.onFrameEditorRemoved}
           />
           </ModalHeader>
 
