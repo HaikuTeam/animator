@@ -19,7 +19,7 @@ export default class VanillaJS extends React.PureComponent {
       <NpmInstallable projectName={projectName} userName={userName} organizationName={organizationName}>
         <CodeBox>
           {dedent`
-          import ${projectName} from '@haiku/${organizationName.toLowerCase()}-${projectName}/react';
+          import ${projectName} from '@haiku/${organizationName.toLowerCase()}-${projectName.toLowerCase()}/react';
 
           /*...*/
 
