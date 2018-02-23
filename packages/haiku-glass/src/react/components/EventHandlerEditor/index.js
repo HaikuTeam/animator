@@ -4,7 +4,7 @@ import ElementTitle from './ElementTitle'
 import CSSStyles from './CSSStyles'
 import Editor from './Editor'
 import EditorActions from './EditorActions'
-import HandlerManager from './HandlerManager'
+import HandlerManager from 'haiku-serialization/src/utils/HandlerManager'
 import {ModalWrapper, ModalHeader, ModalFooter} from 'haiku-ui-common/lib/react/Modal'
 import {EDITOR_WIDTH, EDITOR_HEIGHT, EVALUATOR_STATES} from './constants'
 

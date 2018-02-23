@@ -16,6 +16,7 @@ import ensureEq from 'haiku-ui-common/lib/helpers/ensureEq'
 import doesValueImplyExpression from 'haiku-ui-common/lib/helpers/doesValueImplyExpression'
 import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName'
 import AutoCompleter from './AutoCompleter'
+import HandlerManager from 'haiku-serialization/src/utils/HandlerManager'
 
 const HaikuMode = require('./modes/haiku')
 
@@ -115,16 +116,18 @@ function getRenderableValueMultiline (valueDescriptor, skipFormatting) {
   // During editing, when we dynamically change the signature, formatting can
   // mess things up, giving us extra spaces, and also mess with the cursor
   // position resetting, so we return it as-is.
+
   if (skipFormatting) {
     return `function (${params}) {
 ${valueDescriptor.body}
 }`
   } else {
+    const body = HandlerManager.prettifyHandlerBody(valueDescriptor.body, {outdentBy: 0}) || valueDescriptor.body
     // We don't 'ensureRet' because in case of a multiline function, we can't be assured that
     // the user didn't return on a later line. However, we do a sanity check for the initial equal
     // sign in case the current case is converting from single to multi.
     return `function (${params}) {
-  ${eqToRet(valueDescriptor.body)}
+${eqToRet(body)}
 }`
   }
 }
@@ -461,8 +464,7 @@ export default class ExpressionInput extends React.Component {
       let cursor2 = this.codemirror.getCursor()
 
       // Update the editor contents
-      // We set 'skipFormatting' to true here so we don't get weird spacing issues
-      let renderable = getRenderableValueMultiline(officialValue, true)
+      let renderable = getRenderableValueMultiline(officialValue, false)
       this.setEditorValue(renderable)
 
       // Now put the cursor where it was originally
@@ -837,7 +839,7 @@ export default class ExpressionInput extends React.Component {
           lineNumbers: true,
           scrollbarStyle: 'native'
         })
-        renderable = getRenderableValueMultiline(this.state.editedValue)
+        renderable = getRenderableValueMultiline(this.state.editedValue, true)
         this.setEditorValue(renderable)
         break
 
