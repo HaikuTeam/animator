@@ -5106,5 +5106,27 @@
       "label": "fix",
       "message": "Initialize optional Mixpanel tracking correctly; use official snippet instead of our broken unrolled one"
     }
+  },
+  "3.0.49": {
+    "9acaad05a3213ac6085a715eac388a1193392118": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "add a custom implementation to resize panels"
+    },
+    "7c886dbbb0ec2ab1b6f574030985f3ff38a8a1a3": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "create a merge commit down to development branch after we push autochanges."
+    },
+    "2b9c466e6e7df3fc2ea1922deaa9a571d8b5bb8d": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "wrap haikuOptions in quotes in the Vue.js example (#317)"
+    },
+    "2b1d492a835147bfeb86fee3f6f72e805bed5516": {
+      "project": "@haiku/sdk-client",
+      "label": "feat",
+      "message": "make all adapter bundles available on the CDN. (#316)"
+    }
   }
 }
