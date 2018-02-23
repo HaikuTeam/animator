@@ -17,7 +17,7 @@ export default class VueHaiku extends React.PureComponent {
       <NpmInstallable projectName={projectName} userName={userName} organizationName={organizationName}>
         <CodeBox>
           {dedent`
-          import ${projectName} from '@haiku/${organizationName.toLowerCase()}-${projectName}/vue';
+          import ${projectName} from '@haiku/${organizationName.toLowerCase()}-${projectName.toLowerCase()}/vue';
 
           new Vue({
             el: '#vue-dom-mount',
