@@ -5130,5 +5130,17 @@
     }
   },
   "3.1.1": {},
-  "3.1.2": {}
+  "3.1.2": {},
+  "3.1.3": {
+    "55471e3c2b211196ed86eafaceff836aae0e27b1": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "always control time in Timeline model."
+    },
+    "ed41a5ab55d76ce4f8175677a026177864b0fc34": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "watch-all script should watch core, not player"
+    }
+  }
 }
