@@ -249,7 +249,8 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       'index.standalone.html',
       'interpreter.js',
       'embed.js',
-      'react-dom.js'
+      'react-dom.js',
+      'vue-dom.js'
     ]
     filesToRemove.forEach((fileToRemove) => {
       fse.removeSync(dir(projectPath, fileToRemove))
