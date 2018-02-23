@@ -1034,6 +1034,20 @@ export default class ExpressionInput extends React.Component {
     return style
   }
 
+  getSaveButtonStyle () {
+    return {
+      fontSize: '10px',
+      background: Palette.PINK,
+      padding: '2px 8px',
+      borderRadius: '4px',
+      color: Palette.SUNSTONE,
+      position: 'absolute',
+      bottom: '5px',
+      left: '50%',
+      transform: 'translateX(-50%)'
+    }
+  }
+
   getEditorContextStyle () {
     let style = lodash.assign({
       backgroundColor: Palette.LIGHT_GRAY,
@@ -1147,11 +1161,22 @@ export default class ExpressionInput extends React.Component {
         <span
           id='expression-input-cols-wrapper'
           style={this.getColsWrapperStyle()}>
-          <span
+          <div
             id='expression-input-label'
             style={this.getInputLabelStyle()}>
             {this.getLabelString()}
-          </span>
+            {
+              this.state.editingMode === EDITOR_MODES.MULTI_LINE &&
+              <button
+                style={this.getSaveButtonStyle()}
+                onClick={() => {
+                  this.performCommit(NAVIGATION_DIRECTIONS.NEXT, false)
+                }}
+              >
+                SAVE
+              </button>
+            }
+          </div>
           <span
             id='expression-input-tooltip'
             style={this.getTooltipStyle()}>
