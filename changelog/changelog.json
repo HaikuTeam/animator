@@ -5142,5 +5142,17 @@
       "label": "fix",
       "message": "watch-all script should watch core, not player"
     }
+  },
+  "3.1.4": {
+    "dd08c80a5a6274b471b03def95e3dcaeb4df8f9a": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "use correct import path for code samples in publish UI"
+    },
+    "8a82379486310670703579824b607930416bb41b": {
+      "project": "@haiku/sdk-client",
+      "label": "fix",
+      "message": "list vue-dom.js in various plumbing lists"
+    }
   }
 }
