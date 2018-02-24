@@ -34,7 +34,7 @@ const STYLES = {
     textAlign: 'right',
     marginTop: 10,
     position: 'relative',
-    userSelect: 'none'
+    userSelect: 'none',
   },
   label: {
     textTransform: 'uppercase',
@@ -89,7 +89,7 @@ export class ProjectShareDetails extends React.PureComponent {
       isPublic,
       togglePublic,
       showTooltip,
-      toggleTooltip
+      toggleTooltip,
     } = this.props;
 
     return (

@@ -38,7 +38,7 @@ const STYLES = {
     borderBottom: '5px solid ' + Palette.DARKEST_COAL,
   } as React.CSSProperties,
   light: {
-    backgroundColor: Palette.BLUE
+    backgroundColor: Palette.BLUE,
   } as React.CSSProperties,
   tipLight: {
     borderBottom: '5px solid ' + Palette.BLUE,
@@ -59,7 +59,7 @@ export class TooltipBasic extends React.PureComponent {
         assign({}, {
           ...STYLES.tooltip,
           ...(this.props.light && STYLES.light),
-          ...{top: this.props.top}
+          ...{top: this.props.top},
         })}>
         <span style={assign({}, {...STYLES.tip, ...(this.props.light && STYLES.tipLight)})} />
         {this.props.children}
