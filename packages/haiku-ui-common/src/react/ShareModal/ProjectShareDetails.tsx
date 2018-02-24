@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as assign from 'lodash.assign';
 import Palette from '../../Palette';
 import {LinkHolster} from './LinkHolster';
 
@@ -19,12 +20,49 @@ const STYLES = {
     margin: '0',
     fontStyle: 'italic',
     lineHeight: '1.2em',
-    paddingRight: 33,
   } as React.CSSProperties,
+  infoSpecial: {
+    width: '120%',
+    float: 'right',
+    textAlign: 'right'
+  },
+  infoSpecial2: {
+    width: '62%',
+    float: 'right',
+    textAlign: 'right',
+    marginTop: 10
+  },
   label: {
     textTransform: 'uppercase',
     color: Palette.DARK_ROCK,
   },
+  toggle: {
+    display: 'inline-block',
+    float: 'right',
+    cursor: 'pointer',
+    width: 34,
+    height: 16,
+    backgroundColor: Palette.GRAY,
+    borderRadius: 16,
+    position: 'relative',
+    marginTop: 8,
+    marginLeft: 7
+  } as React.CSSProperties,
+  knob: {
+    display: 'inline-block',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 16,
+    height: 16,
+    borderRadius: 16,
+    backgroundColor: Palette.DARKER_ROCK,
+    transition: 'transform 220ms cubic-bezier(0.25, 0.1, 0.29, 1.45)'
+  } as React.CSSProperties,
+  knobActive: {
+    backgroundColor: Palette.LIGHTEST_PINK,
+    transform: 'translateX(-18px)'
+  }
 };
 
 export class ProjectShareDetails extends React.PureComponent {
@@ -44,6 +82,8 @@ export class ProjectShareDetails extends React.PureComponent {
       linkAddress,
       isSnapshotSaveInProgress,
       onHide,
+      isPublic,
+      togglePublic
     } = this.props;
 
     return (
@@ -68,7 +108,16 @@ export class ProjectShareDetails extends React.PureComponent {
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             linkAddress={linkAddress}
           />
-          <p style={STYLES.info}>Anyone with the link can <strong>view and install</strong> your project.</p>
+          <p style={assign({}, {...STYLES.info, ...STYLES.infoSpecial})}>
+            Anyone with the link can <strong>view and install</strong> your project.
+          </p>
+
+          <span style={STYLES.toggle} onClick={togglePublic}>
+            <span style={assign({}, {...STYLES.knob, ...(isPublic && STYLES.knobActive)})}/>
+          </span>
+          <span style={assign({}, {...STYLES.info, ...STYLES.infoSpecial2})}>
+            Display on community profile
+          </span>
         </div>
       </div>
     );
