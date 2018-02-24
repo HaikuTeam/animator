@@ -48,9 +48,9 @@ export class ShareModal extends React.Component {
 
     this.state = {
       showDetail: false,
-      isPublic: false
+      isPublic: false,
     };
-    this.togglePublic = this.togglePublic.bind(this)
+    this.togglePublic = this.togglePublic.bind(this);
   }
 
   componentWillReceiveProps({error, isSnapshotSaveInProgress}) {
@@ -72,7 +72,7 @@ export class ShareModal extends React.Component {
   }
 
   togglePublic () {
-    this.setState({isPublic: !this.state.isPublic})
+    this.setState({isPublic: !this.state.isPublic});
   }
 
   render () {

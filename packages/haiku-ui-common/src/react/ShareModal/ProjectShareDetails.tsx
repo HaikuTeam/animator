@@ -24,13 +24,13 @@ const STYLES = {
   infoSpecial: {
     width: '120%',
     float: 'right',
-    textAlign: 'right'
+    textAlign: 'right',
   },
   infoSpecial2: {
     width: '62%',
     float: 'right',
     textAlign: 'right',
-    marginTop: 10
+    marginTop: 10,
   },
   label: {
     textTransform: 'uppercase',
@@ -46,7 +46,7 @@ const STYLES = {
     borderRadius: 16,
     position: 'relative',
     marginTop: 8,
-    marginLeft: 7
+    marginLeft: 7,
   } as React.CSSProperties,
   knob: {
     display: 'inline-block',
@@ -57,12 +57,12 @@ const STYLES = {
     height: 16,
     borderRadius: 16,
     backgroundColor: Palette.DARKER_ROCK,
-    transition: 'transform 220ms cubic-bezier(0.25, 0.1, 0.29, 1.45)'
+    transition: 'transform 220ms cubic-bezier(0.25, 0.1, 0.29, 1.45)',
   } as React.CSSProperties,
   knobActive: {
     backgroundColor: Palette.LIGHTEST_PINK,
-    transform: 'translateX(-18px)'
-  }
+    transform: 'translateX(-18px)',
+  },
 };
 
 export class ProjectShareDetails extends React.PureComponent {
@@ -83,7 +83,7 @@ export class ProjectShareDetails extends React.PureComponent {
       isSnapshotSaveInProgress,
       onHide,
       isPublic,
-      togglePublic
+      togglePublic,
     } = this.props;
 
     return (
