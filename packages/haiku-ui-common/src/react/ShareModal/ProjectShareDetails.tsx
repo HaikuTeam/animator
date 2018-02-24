@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as assign from 'lodash.assign';
 import Palette from '../../Palette';
+import {TooltipBasic} from '../TooltipBasic';
 import {LinkHolster} from './LinkHolster';
 
 const STYLES = {
@@ -16,6 +17,7 @@ const STYLES = {
   },
   info: {
     color: Palette.PALE_GRAY,
+    cursor: 'default',
     fontSize: '10px',
     margin: '0',
     fontStyle: 'italic',
@@ -31,6 +33,8 @@ const STYLES = {
     float: 'right',
     textAlign: 'right',
     marginTop: 10,
+    position: 'relative',
+    userSelect: 'none'
   },
   label: {
     textTransform: 'uppercase',
@@ -84,6 +88,8 @@ export class ProjectShareDetails extends React.PureComponent {
       onHide,
       isPublic,
       togglePublic,
+      showTooltip,
+      toggleTooltip
     } = this.props;
 
     return (
@@ -115,8 +121,23 @@ export class ProjectShareDetails extends React.PureComponent {
           <span style={STYLES.toggle} onClick={togglePublic}>
             <span style={assign({}, {...STYLES.knob, ...(isPublic && STYLES.knobActive)})}/>
           </span>
-          <span style={assign({}, {...STYLES.info, ...STYLES.infoSpecial2})}>
+          <span
+            style={assign({}, {...STYLES.info, ...STYLES.infoSpecial2})}
+            onMouseEnter={toggleTooltip}
+            onMouseLeave={toggleTooltip}>
             Display on community profile
+            {showTooltip &&
+              <TooltipBasic light={true} top={17}>
+                {isPublic
+                  ? (<p style={{fontStyle: 'normal'}}>Project is visible on your public profile (coming soon),
+                    and may be selected to be featured on the Haiku Community.
+                    </p>)
+                  : (<p style={{fontStyle: 'normal'}}>Project is not visible on your public profile (coming soon),
+                    nor eligible to be featured on the Haiku Community.
+                    </p>)
+                 }
+              </TooltipBasic>
+            }
           </span>
         </div>
       </div>
