@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 3.1.4
+
+### Bug Fixes
+
+ * use correct import path for code samples in publish UI
+ * list vue-dom.js in various plumbing lists
+
 ## 3.1.3
 
 ### Bug Fixes
