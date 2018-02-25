@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as assign from 'lodash.assign';
 import Palette from '../../Palette';
-import {TooltipBasic} from '../TooltipBasic';
 import {LinkHolster} from './LinkHolster';
 
 const STYLES = {
@@ -23,15 +22,23 @@ const STYLES = {
     fontStyle: 'italic',
     lineHeight: '1.2em',
   } as React.CSSProperties,
+  infoHeading: {
+    float: 'left',
+    textAlign: 'left',
+    width: '100%',
+    fontSize: '12px',
+    marginBottom: 4,
+    display: 'block',
+  },
   infoSpecial: {
     width: '120%',
-    float: 'right',
-    textAlign: 'right',
+    float: 'left',
+    textAlign: 'left',
   },
   infoSpecial2: {
-    width: '62%',
-    float: 'right',
-    textAlign: 'right',
+    float: 'left',
+    fontSize: 14,
+    textAlign: 'left',
     marginTop: 10,
     position: 'relative',
     userSelect: 'none',
@@ -42,15 +49,15 @@ const STYLES = {
   },
   toggle: {
     display: 'inline-block',
-    float: 'right',
+    float: 'left',
     cursor: 'pointer',
     width: 34,
     height: 16,
     backgroundColor: Palette.GRAY,
     borderRadius: 16,
     position: 'relative',
-    marginTop: 8,
-    marginLeft: 7,
+    marginTop: 10,
+    marginLeft: 10,
   } as React.CSSProperties,
   knob: {
     display: 'inline-block',
@@ -66,6 +73,9 @@ const STYLES = {
   knobActive: {
     backgroundColor: Palette.LIGHTEST_PINK,
     transform: 'translateX(-18px)',
+  },
+  disabledToggle: {
+    opacity: .5,
   },
 };
 
@@ -88,8 +98,6 @@ export class ProjectShareDetails extends React.PureComponent {
       onHide,
       isPublic,
       togglePublic,
-      showTooltip,
-      toggleTooltip,
     } = this.props;
 
     return (
@@ -107,38 +115,41 @@ export class ProjectShareDetails extends React.PureComponent {
           ) : (
             <p style={{height: 16, ...STYLES.info}} />
           )}
+          
+          <span
+            style={assign({}, {...STYLES.info, ...STYLES.infoSpecial2})} >
+            <span id="public-private-label" style={this.props.isDisabled ? STYLES.disabledToggle : {}}>
+              {this.props.isPublic ? 'Public' : 'Private'}
+            </span>
+            
+           
+          </span>
+          <span style={STYLES.toggle} onClick={() => {!this.props.isDisabled && togglePublic();}}>
+              <span style={assign({}, {...STYLES.knob, ...(isPublic && STYLES.knobActive)})}/>
+          </span>
         </div>
 
         <div style={{width: '50%'}}>
+          <p style={assign({}, {...STYLES.info, ...STYLES.infoHeading})}>
+            <strong>Shareable link:</strong>
+          </p>
           <LinkHolster
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             linkAddress={linkAddress}
           />
-          <p style={assign({}, {...STYLES.info, ...STYLES.infoSpecial})}>
-            Anyone with the link can <strong>view and install</strong> your project.
-          </p>
-
-          <span style={STYLES.toggle} onClick={togglePublic}>
-            <span style={assign({}, {...STYLES.knob, ...(isPublic && STYLES.knobActive)})}/>
-          </span>
-          <span
-            style={assign({}, {...STYLES.info, ...STYLES.infoSpecial2})}
-            onMouseEnter={toggleTooltip}
-            onMouseLeave={toggleTooltip}>
-            Display on community profile
-            {showTooltip &&
-              <TooltipBasic light={true} top={17}>
-                {isPublic
-                  ? (<p style={{fontStyle: 'normal'}}>Project is visible on your public profile (coming soon),
-                    and may be selected to be featured on the Haiku Community.
-                    </p>)
-                  : (<p style={{fontStyle: 'normal'}}>Project is not visible on your public profile (coming soon),
-                    nor eligible to be featured on the Haiku Community.
-                    </p>)
-                 }
-              </TooltipBasic>
-            }
-          </span>
+          {
+            !this.props.isDisabled &&
+            <p style={assign({}, {...STYLES.info, ...STYLES.infoSpecial})}>
+              Anyone&nbsp;
+              {
+                !this.props.isPublic && <span>with the link&nbsp;</span>
+              }
+              <strong>can view and install</strong> your project&nbsp;
+              {
+                this.props.isPublic && <span><br />from your public profile</span> /*TODO: link to public profile */
+              }
+            </p>
+          }
         </div>
       </div>
     );

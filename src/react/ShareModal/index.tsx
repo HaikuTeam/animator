@@ -5,6 +5,8 @@ import {RevealPanel} from '../RevealPanel';
 import {ProjectShareDetails} from './ProjectShareDetails';
 import {EmbedList} from './EmbedList';
 import {EmbedDetails} from './EmbedDetails';
+import {Project} from 'haiku-sdk-creator/lib/bll/Project';
+import {inkstone} from '@haiku/sdk-inkstone';
 
 const STYLES = {
   wrapper: {
@@ -17,55 +19,79 @@ const STYLES = {
   },
 };
 
-export class ShareModal extends React.Component {
+export interface PropTypes {
+  envoyProject: Project;
+  project: any;
+  error: any;
+  linkAddress: string;
+  snapshotSaveConfirmed: boolean;
+  isSnapshotSaveInProgress: boolean;
+  isProjectInfoFetchInProgress: boolean;
+  snapshotSyndicated: boolean;
+  snapshotPublished: boolean;
+  semverVersion: string;
+  userName: string;
+  organizationName: string;
+  projectUid: string;
+  sha: string;
+}
+
+export interface StateTypes {
+  showDetail: boolean;
+  isPublic: boolean;
+  showTooltip: boolean;
+  selectedEntry: string;
+  isPublicKnown: boolean;
+}
+
+export class ShareModal extends React.Component<PropTypes, StateTypes> {
   state;
   props;
   error;
 
-  static propTypes = {
-    project: React.PropTypes.object,
-    error: React.PropTypes.object,
-    linkAddress: React.PropTypes.string,
-    snapshotSaveConfirmed: React.PropTypes.bool,
-    isSnapshotSaveInProgress: React.PropTypes.bool,
-    isProjectInfoFetchInProgress: React.PropTypes.bool,
-    snapshotSyndicated: React.PropTypes.bool,
-    snapshotPublished: React.PropTypes.bool,
-    semverVersion: React.PropTypes.string,
-    userName: React.PropTypes.string,
-    organizationName: React.PropTypes.string,
-    projectUid: React.PropTypes.string,
-    sha: React.PropTypes.string,
-  };
-
   static defaultProps = {
     projectUid: '',
     sha: '',
-  };
+  } as PropTypes;
 
-  constructor () {
+  constructor (props:PropTypes) {
     super();
 
     this.state = {
       showDetail: false,
-      isPublic: false,
+      isPublic: true, // default true so we don't ever accidentally tell the user their projects are more private than they are
       showTooltip: false,
+      isPublicKnown: false,
     };
     this.togglePublic = this.togglePublic.bind(this);
     this.toggleTooltip = this.toggleTooltip.bind(this);
   }
 
-  componentWillReceiveProps({error, isSnapshotSaveInProgress}) {
-    if (error) {
-      this.error = error;
+  componentWillReceiveProps(nextProps:PropTypes) {
+    if (nextProps.error) {
+      this.error = nextProps.error;
     }
 
-    if (isSnapshotSaveInProgress) {
+    if (nextProps.isSnapshotSaveInProgress) {
       this.error = null;
+    }
+
+    if (nextProps.envoyProject && nextProps.projectUid && !this.state.isPublicKnown) {
+      (nextProps.envoyProject.getProjectDetail(nextProps.projectUid) as Promise<inkstone.project.Project>).then((proj: inkstone.project.Project) => {
+
+        // if IsPublic is undefined, it's never been published before.  toggle it true on first publish.
+        if (proj.IsPublic === null || proj.IsPublic === undefined) {
+          (nextProps.envoyProject.setIsPublic(nextProps.projectUid, true) as Promise<inkstone.project.Project>).then((updatedProj) => {
+            this.setState({isPublic: updatedProj.IsPublic});
+          });
+        } else {
+          this.setState({isPublic: proj.IsPublic, isPublicKnown: true});
+        }
+      });
     }
   }
 
-  showDetails (selectedEntry: String) {
+  showDetails (selectedEntry: string) {
     this.setState({selectedEntry, showDetail: true});
   }
 
@@ -74,7 +100,19 @@ export class ShareModal extends React.Component {
   }
 
   togglePublic () {
-    this.setState({isPublic: !this.state.isPublic});
+    const props = this.props as PropTypes;
+    if (props.envoyProject) {
+      const desiredState = !this.state.isPublic;
+      const project = props.envoyProject;
+
+      (project.setIsPublic(props.projectUid, desiredState) as Promise<inkstone.project.Project>).then((proj : inkstone.project.Project) => {
+        this.setState({isPublic: proj.IsPublic, isPublicKnown: true});
+      });
+
+    } else {
+      // TODO:  trigger toast
+      console.error('Could not set project privacy settings.  Please contact support@haiku.ai');
+    }
   }
 
   toggleTooltip () {
@@ -104,6 +142,7 @@ export class ShareModal extends React.Component {
           <ProjectShareDetails
             semverVersion={semverVersion}
             projectName={project.projectName}
+            isDisabled={!this.state.isPublicKnown}
             linkAddress={linkAddress}
             isProjectInfoFetchInProgress={isProjectInfoFetchInProgress}
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
