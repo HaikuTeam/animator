@@ -524,6 +524,8 @@ Bytecode.reinitialize = (folder, relpath, bytecode = {}, config = {}) => {
 
   Bytecode.upsertDefaultProperties(bytecode, contextHaikuId, {
     'style.WebkitTapHighlightColor': 'rgba(0,0,0,0)',
+    'style.transformStyle': 'preserve-3d',
+    'style.perspective': '500px',
     'style.position': 'relative',
     'style.overflowX': 'hidden',
     'style.overflowY': 'hidden',
