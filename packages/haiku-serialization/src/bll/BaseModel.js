@@ -75,10 +75,35 @@ class BaseModel extends EventEmitter {
     this.__updated = Date.now()
     this.__checked = Date.now() - 1
 
+    // Fresh objects are not candidates for sweep
+    this.__initialized = Date.now()
+    this.__marked = false
+
     // When a model instance is destroyed, it is kept in the collection but not included in queries.
     this.__destroyed = null
 
     if (this.afterInitialize) this.afterInitialize()
+  }
+
+  getEchoInfo () {
+    return `${this.getClassName()}[${this.getPrimaryKey()}](${(this.dump && this.dump()) || '#'})`
+  }
+
+  echoInfo () {
+    console.info(this.getEchoInfo())
+  }
+
+  mark () {
+    // This gets set to `false` whenever we are upserted (constructed or initialized)
+    this.__marked = true
+  }
+
+  sweep () {
+    if (this.__marked) {
+      this.destroy()
+      // This is safe to call even if the entity doesn't have a `.parent`
+      this.removeFromParent()
+    }
   }
 
   generateUniqueId () {
@@ -224,6 +249,42 @@ class BaseModel extends EventEmitter {
     return match
   }
 
+  insertChild (entity) {
+    if (!this.children) {
+      this.children = []
+    }
+
+    let found = false
+
+    this.children.forEach((child) => {
+      if (child === entity) {
+        found = true
+      }
+    })
+
+    if (!found) {
+      this.children.push(entity)
+    }
+  }
+
+  removeChild (entity) {
+    if (!this.children) {
+      return
+    }
+
+    for (let i = this.children.length - 1; i >= 0; i--) {
+      if (this.children[i] === entity) {
+        this.children.splice(i, 1)
+      }
+    }
+  }
+
+  removeFromParent () {
+    if (this.parent) {
+      this.parent.removeChild(this)
+    }
+  }
+
   /**
    * @method off
    * @description Synonymous with removeListener; removes an event listener
@@ -324,6 +385,11 @@ function createCollection (klass, collection, opts) {
     if (found) {
       found.assign(props)
       found.setOptions(opts)
+
+      // The object is fresh again and no longer a candidate for sweep
+      found.__initialized = Date.now()
+      found.__marked = false
+
       if (found.afterInitialize) found.afterInitialize()
       return found
     }
