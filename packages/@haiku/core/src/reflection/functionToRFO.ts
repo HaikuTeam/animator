@@ -2,6 +2,8 @@
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
 
+import tokenize from './tokenize';
+
 // Order matters
 const REGEXPS = [
   {type: 'whitespace', re: /^[\s]+/},
@@ -32,31 +34,6 @@ function nth(n, type, arr) {
     }
   }
   return none;
-}
-
-function tokenize(source) {
-  const tokens = [];
-  let chunk = source;
-  const total = chunk.length;
-  let iterations = 0;
-  while (chunk.length > 0) {
-    for (let i = 0; i < REGEXPS.length; i++) {
-      const regexp = REGEXPS[i];
-      const match = regexp.re.exec(chunk);
-      if (match) {
-        const value = match[0];
-        tokens.push({value, type: regexp.type});
-        // Need to slice the chunk at the value match length
-        chunk = chunk.slice(match[0].length, chunk.length);
-        break;
-      }
-    }
-    // We've probably failed to parse correctly if we get here
-    if (iterations++ > total) {
-      throw new Error('Unable to tokenize expression');
-    }
-  }
-  return tokens;
 }
 
 function tokensToParams(tokens) {
@@ -149,7 +126,7 @@ function tokensToParams(tokens) {
 }
 
 function signatureToParams(signature) {
-  const tokens = tokenize(signature);
+  const tokens = tokenize(signature, REGEXPS);
   const clean = [];
   for (let i = 0; i < tokens.length; i++) {
     if (tokens[i].type !== 'whitespace') {
@@ -178,7 +155,7 @@ export default function functionToRFO(fn) {
   const type = suffix.match(/^\s*=>\s*{/)
     ? 'ArrowFunctionExpression'
     : 'FunctionExpression';
-  const name = nth(2, 'identifier', tokenize(prefix)).value;
+  const name = nth(2, 'identifier', tokenize(prefix, REGEXPS)).value;
   const params = signatureToParams(signature);
 
   const spec = {
