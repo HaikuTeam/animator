@@ -81,7 +81,19 @@ class MountElement extends BaseModel {
 
   getBoundingClientRect () {
     if (this.$el()) {
-      return this.$el().getBoundingClientRect()
+      const rect = this.$el().getBoundingClientRect()
+
+      // Wrap in an object so it's serializable
+      return {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        top: rect.top,
+        bottom: rect.bottom,
+        left: rect.left,
+        right: rect.right
+      }
     } else {
       // TODO: Is it better to just return null here?
       // Use 1s instead of 0s to make div-by-zero errors less likely downstream
