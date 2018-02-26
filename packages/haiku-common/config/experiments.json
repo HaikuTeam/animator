@@ -55,11 +55,11 @@
     "production": false
   },
   "ShowSubElementsInJitMenu": {
-    "development": true,
+    "development": false,
     "production": false
   },
   "ElementMultiSelectAndTransform": {
-    "development": true,
+    "development": false,
     "production": false
   }
 }
