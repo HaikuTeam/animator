@@ -24,7 +24,7 @@ class EmitterManager {
     if (eventEmitter.on) {
       eventEmitter.on(eventName, eventHandler)
     } else if (eventEmitter.addEventListener) {
-      eventEmitter.addEmitterListener(eventName, eventHandler)
+      eventEmitter.addEventListener(eventName, eventHandler)
     }
   }
 
