@@ -1,3 +1,7 @@
+const {
+  toText
+} = require('@haiku/core/lib/reflection/JavaScriptIdentifier')
+
 module.exports = function wrapInHaikuInject (node) {
   return {
     type: 'CallExpression',
@@ -16,7 +20,10 @@ module.exports = function wrapInHaikuInject (node) {
     arguments: [node].concat(node.params.map((param) => {
       return {
         type: 'StringLiteral',
-        value: param.name
+        // If the parameter was a referenced state value like 'foo.bar.baz',
+        // we should have converted it to the identifier foo_$dot$_bar_$dot$_baz;
+        // but we still want to refer to its original name in the injectees list
+        value: toText(param.name)
       }
     }))
   }
