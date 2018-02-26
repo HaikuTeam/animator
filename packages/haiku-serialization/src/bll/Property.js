@@ -1,6 +1,5 @@
 const decamelize = require('decamelize')
 const titlecase = require('titlecase')
-const DOMSchema = require('@haiku/core/lib/properties/dom/schema').default
 const DOMFallbacks = require('@haiku/core/lib/properties/dom/fallbacks').default
 const BaseModel = require('./BaseModel')
 
@@ -18,10 +17,23 @@ Property.DEFAULT_OPTIONS = {
 BaseModel.extend(Property)
 
 Property.assignDOMSchemaProperties = (out, element) => {
-  const schema = DOMSchema[element.getSafeDomFriendlyName()]
+  const schema = Property.BUILTIN_DOM_SCHEMAS[element.getSafeDomFriendlyName()] || {}
+
   const fallbacks = DOMFallbacks[element.getSafeDomFriendlyName()]
 
   for (const name in schema) {
+    if (name === 'content') {
+      // Don't make 'content' part of the schema if we have children that don't
+      // look like what we typically expect for text content
+      if (element.children && element.children.length > 1) {
+        continue
+      }
+
+      if (element.children && element.children[0] && !element.children[0].isTextNode()) {
+        continue
+      }
+    }
+
     let propertyGroup = null
 
     let nameParts = name.split('.')
@@ -172,134 +184,7 @@ Property.EXCLUDE_FROM_JIT = {
   'origin.z': true,
   'scale.z': true, // Not sane until we have true 3D objects
   'sizeAbsolute.z': true, // Not sane until we have true 3D objects
-  'rotation.w': true, // Too much great power too much great responsibility
-
-  // COMMENT OUT any items you want to INCLUDE in the JIT list
-  'style.alignmentBaseline': true,
-  // 'style.background': true,
-  'style.backgroundAttachment': true,
-  // 'style.backgroundColor': true,
-  'style.backgroundImage': true,
-  'style.backgroundPosition': true,
-  'style.backgroundRepeat': true,
-  'style.baselineShift': true,
-  // 'style.border': true,
-  // 'style.borderBottom': true,
-  'style.borderBottomColor': true,
-  'style.borderBottomStyle': true,
-  'style.borderBottomWidth': true,
-  // 'style.borderColor': true,
-  // 'style.borderLeft': true,
-  'style.borderLeftColor': true,
-  'style.borderLeftStyle': true,
-  'style.borderLeftWidth': true,
-  // 'style.borderRight': true,
-  'style.borderRightColor': true,
-  'style.borderRightStyle': true,
-  'style.borderRightWidth': true,
-  'style.borderStyle': true,
-  // 'style.borderTop': true,
-  'style.borderTopColor': true,
-  'style.borderTopStyle': true,
-  'style.borderTopWidth': true,
-  // 'style.borderWidth': true,
-  'style.clear': true,
-  'style.clip': true,
-  'style.clipPath': true,
-  'style.clipRule': true,
-  // 'style.color': true,
-  'style.colorInterpolation': true,
-  'style.colorInterpolationFilters': true,
-  'style.colorProfile': true,
-  'style.colorRendering': true,
-  'style.cssFloat': true,
-  // 'style.cursor': true,
-  'style.direction': true,
-  'style.display': true,
-  'style.dominantBaseline': true,
-  'style.enableBackground': true,
-  'style.fill': true,
-  'style.fillOpacity': true,
-  'style.fillRule': true,
-  'style.filter': true,
-  'style.floodColor': true,
-  'style.floodOpacity': true,
-  // 'style.font': true,
-  // 'style.fontFamily': true,
-  // 'style.fontSize': true,
-  'style.fontSizeAdjust': true,
-  'style.fontStretch': true,
-  // 'style.fontStyle': true,
-  'style.fontVariant': true,
-  // 'style.fontWeight': true,
-  'style.glyphOrientationHorizontal': true,
-  'style.glyphOrientationVertical': true,
-  'style.height': true,
-  'style.imageRendering': true,
-  'style.kerning': true,
-  'style.left': true,
-  // 'style.letterSpacing': true,
-  'style.lightingColor': true,
-  // 'style.lineHeight': true,
-  'style.listStyle': true,
-  'style.listStyleImage': true,
-  'style.listStylePosition': true,
-  'style.listStyleType': true,
-  'style.margin': true,
-  'style.marginBottom': true,
-  'style.marginLeft': true,
-  'style.marginRight': true,
-  'style.marginTop': true,
-  'style.markerEnd': true,
-  'style.markerMid': true,
-  'style.markerStart': true,
-  'style.mask': true,
-  // 'style.opacity': true,
-  'style.overflow': true,
-  'style.overflowX': true,
-  'style.overflowY': true,
-  'style.padding': true,
-  'style.paddingBottom': true,
-  'style.paddingLeft': true,
-  'style.paddingRight': true,
-  'style.paddingTop': true,
-  'style.pageBreakAfter': true,
-  'style.pageBreakBefore': true,
-  // 'style.pointerEvents': true,
-  'style.position': true,
-  // 'style.perspective': true,
-  'style.shapeRendering': true,
-  'style.stopColor': true,
-  'style.stopOpacity': true,
-  'style.stroke': true,
-  'style.strokeDasharray': true,
-  'style.strokeDashoffset': true,
-  'style.strokeLinecap': true,
-  'style.strokeLinejoin': true,
-  'style.strokeMiterlimit': true,
-  'style.strokeOpacity': true,
-  'style.strokeWidth': true,
-  'style.textAlign': true,
-  'style.textAnchor': true,
-  'style.textDecoration': true,
-  'style.textDecorationBlink': true,
-  'style.textDecorationLineThrough': true,
-  'style.textDecorationNone': true,
-  'style.textDecorationOverline': true,
-  'style.textDecorationUnderline': true,
-  'style.textIndent': true,
-  'style.textRendering': true,
-  // 'style.textTransform': true,
-  // 'style.transformStyle': true,
-  'style.top': true,
-  'style.unicodeBidi': true,
-  // 'style.verticalAlign': true,
-  // 'style.visibility': true,
-  'style.width': true,
-  'style.wordSpacing': true,
-  'style.writingMode': true
-  // 'style.zIndex': 'number',
-  // 'style.WebkitTapHighlightColor': true,
+  'rotation.w': true // Too much great power too much great responsibility
 }
 
 Property.EXCLUDE_FROM_JIT_IF_ROOT_ELEMENT = {
@@ -319,8 +204,187 @@ Property.EXCLUDE_FROM_JIT_IF_ROOT_ELEMENT = {
   'scale.z': true
 }
 
-Property.PREFIXES_TO_EXCLUDE_FROM_ADDRESSABLES = {
-  'sizeMode': true
+Property.BUILTIN_DOM_SCHEMAS = {
+  div: {
+    'sizeAbsolute.x': 'number',
+    'sizeAbsolute.y': 'number',
+    'controlFlow.placeholder': 'any',
+    opacity: 'number',
+    'translation.x': 'number',
+    'translation.y': 'number',
+    'translation.z': 'number',
+    'rotation.x': 'number',
+    'rotation.y': 'number',
+    'rotation.z': 'number',
+    'scale.x': 'number',
+    'scale.y': 'number',
+    'style.background': 'string',
+    'style.backgroundColor': 'string',
+    'style.border': 'string',
+    'style.borderBottom': 'string',
+    'style.borderLeft': 'string',
+    'style.borderRight': 'string',
+    'style.borderTop': 'string',
+    'style.color': 'string',
+    'style.cursor': 'string',
+    'style.fontFamily': 'string',
+    'style.fontSize': 'string',
+    'style.fontStyle': 'string',
+    'style.fontWeight': 'string',
+    'style.textTransform': 'string',
+    'style.pointerEvents': 'string',
+    'style.perspective': 'string',
+    'style.transformStyle': 'string',
+    'style.verticalAlign': 'string',
+    'style.zIndex': 'number',
+    'style.WebkitTapHighlightColor': 'string'
+  },
+  svg: {
+    fill: 'string',
+    'sizeAbsolute.x': 'number',
+    'sizeAbsolute.y': 'number',
+    'controlFlow.placeholder': 'any',
+    opacity: 'number',
+    'translation.x': 'number',
+    'translation.y': 'number',
+    'translation.z': 'number',
+    'rotation.x': 'number',
+    'rotation.y': 'number',
+    'rotation.z': 'number',
+    'scale.x': 'number',
+    'scale.y': 'number',
+    'style.border': 'string',
+    'style.borderBottom': 'string',
+    'style.borderLeft': 'string',
+    'style.borderRight': 'string',
+    'style.borderTop': 'string',
+    'style.color': 'string',
+    'style.cursor': 'string',
+    'style.pointerEvents': 'string',
+    'style.zIndex': 'number',
+    'style.WebkitTapHighlightColor': 'string'
+  },
+  g: {},
+  circle: {
+    r: 'string',
+    cx: 'string',
+    cy: 'string',
+    stroke: 'string',
+    strokeWidth: 'string',
+    strokeOpacity: 'string',
+    fill: 'string',
+    fillRule: 'string',
+    fillOpacity: 'string'
+  },
+  ellipse: {
+    rx: 'string',
+    ry: 'string',
+    cx: 'string',
+    cy: 'string',
+    stroke: 'string',
+    strokeWidth: 'string',
+    strokeOpacity: 'string',
+    fill: 'string',
+    fillRule: 'string',
+    fillOpacity: 'string'
+  },
+  rect: {
+    rx: 'string',
+    ry: 'string',
+    stroke: 'string',
+    strokeWidth: 'string',
+    strokeOpacity: 'string',
+    fill: 'string',
+    fillRule: 'string',
+    fillOpacity: 'string'
+  },
+  line: {
+    x1: 'string',
+    y1: 'string',
+    x2: 'string',
+    y2: 'string',
+    stroke: 'string',
+    strokeWidth: 'string',
+    strokeOpacity: 'string'
+  },
+  polyline: {
+    points: 'string',
+    stroke: 'string',
+    strokeWidth: 'string',
+    strokeOpacity: 'string',
+    fill: 'string',
+    fillRule: 'string',
+    fillOpacity: 'string'
+  },
+  polygon: {
+    points: 'string',
+    stroke: 'string',
+    strokeWidth: 'string',
+    strokeOpacity: 'string',
+    fill: 'string',
+    fillRule: 'string',
+    fillOpacity: 'string'
+  },
+  path: {
+    d: 'string',
+    stroke: 'string',
+    strokeWidth: 'string',
+    strokeOpacity: 'string',
+    fill: 'string',
+    fillRule: 'string',
+    fillOpacity: 'string'
+  },
+  text: {
+    stroke: 'string',
+    strokeWidth: 'string',
+    strokeOpacity: 'string',
+    fill: 'string',
+    fillRule: 'string',
+    fillOpacity: 'string',
+    fontFamily: 'string',
+    fontSize: 'string',
+    fontVariant: 'string',
+    fontWeight: 'string',
+    fontStyle: 'string',
+    alignmentBaseline: 'string',
+    textAnchor: 'string',
+    letterSpacing: 'string',
+    wordSpacing: 'string',
+    kerning: 'string',
+    content: 'string'
+  },
+  tspan: {
+    stroke: 'string',
+    strokeWidth: 'string',
+    strokeOpacity: 'string',
+    fill: 'string',
+    fillRule: 'string',
+    fillOpacity: 'string',
+    fontFamily: 'string',
+    fontSize: 'string',
+    fontVariant: 'string',
+    fontWeight: 'string',
+    fontStyle: 'string',
+    alignmentBaseline: 'string',
+    textAnchor: 'string',
+    letterSpacing: 'string',
+    wordSpacing: 'string',
+    kerning: 'string',
+    content: 'string'
+  },
+  image: {
+    href: 'string'
+  },
+  linearGradient: {
+    x1: 'string',
+    y1: 'string',
+    x2: 'string',
+    y2: 'string'
+  },
+  stop: {
+    stopColor: 'string',
+    offset: 'string'
+  }
 }
 
 Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT = {
@@ -337,8 +401,31 @@ Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT = {
   'scale.z': true
 }
 
-Property.EXCLUDE_FROM_ADDRESSABLES_IF_COMPONENT = {
-  'content': true
+Property.EXCLUDE_FROM_ADDRESSABLES_IF_CHILD_ELEMENT = {
+  'sizeAbsolute.x': true,
+  'sizeAbsolute.y': true,
+  'sizeAbsolute.z': true
+}
+
+Property.shouldBasicallyIncludeProperty = (propertyName, propertyObject, element) => {
+  if (propertyObject.prefix === 'sizeMode') {
+    return false
+  }
+
+  if (element.isRootElement()) { // Artboard
+    if (Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT[propertyName]) {
+      return false
+    }
+  } else if (element.isComponent()) {
+    // Assume that we display everything for components
+    return true
+  } else {
+    if (Property.EXCLUDE_FROM_ADDRESSABLES_IF_CHILD_ELEMENT[propertyName]) {
+      return false
+    }
+  }
+
+  return true
 }
 
 Property.PRIVATE_PROPERTY_WHEN_HOISTING_TO_STATE = {
