@@ -17,6 +17,18 @@ import {
   ComponentIconSVG
 } from 'haiku-ui-common/lib/react/OtherIcons'
 
+import ControlImage from 'haiku-ui-common/lib/react/icons/ControlImage'
+import ControlText from 'haiku-ui-common/lib/react/icons/ControlText'
+import ControlHTML from 'haiku-ui-common/lib/react/icons/ControlHTML'
+// import ControlInput from 'haiku-ui-common/lib/react/icons/ControlInput'
+
+const ASSET_ICONS = {
+  ControlImage: () => { return <ControlImage /> },
+  ControlText: () => { return <ControlText /> },
+  ControlHTML: () => { return <ControlHTML /> }
+  // ControlInput
+}
+
 const {shell} = require('electron')
 
 const STYLES = {
@@ -193,22 +205,30 @@ class AssetItem extends React.Component {
       })
     }
 
-    items.push({
-      label: 'Show In Finder',
-      icon: FolderIconSVG,
-      onClick: this.handleShowAsset.bind(this)
-    })
+    // Things like built-in components can't be deleted or shown in finder
+    if (!this.props.asset.isRemoteAsset()) {
+      items.push({
+        label: 'Show In Finder',
+        icon: FolderIconSVG,
+        onClick: this.handleShowAsset.bind(this)
+      })
 
-    items.push({
-      label: 'Delete',
-      icon: TrashIconSVG,
-      onClick: this.handleDeleteAsset.bind(this)
-    })
+      items.push({
+        label: 'Delete',
+        icon: TrashIconSVG,
+        onClick: this.handleDeleteAsset.bind(this)
+      })
+    }
 
     return items
   }
 
   renderThreeDotMenu () {
+    // For now, don't show any menu for built-in components
+    if (this.props.asset.isRemoteAsset()) {
+      return ''
+    }
+
     if (
       this.props.asset.isSketchFile() ||
       this.props.asset.isOrphanSvg() ||
@@ -241,11 +261,14 @@ class AssetItem extends React.Component {
           className='component-icon-container'
           onDoubleClick={this.handleInstantiate}
           style={STYLES.cardIcon}>
-          <ComponentIconSVG
-            color={(this.isAssetOfActiveComponent())
-              ? Palette.BLUE
-              : void (0)}
-            />
+
+          {(this.props.asset.icon)
+            ? ASSET_ICONS[this.props.asset.icon]()
+            : <ComponentIconSVG
+              color={(this.isAssetOfActiveComponent())
+                ? Palette.BLUE
+                : void (0)}
+              />}
         </span>
       )
     }

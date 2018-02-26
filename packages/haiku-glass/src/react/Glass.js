@@ -421,9 +421,15 @@ export class Glass extends React.Component {
   }
 
   componentDidMount () {
-    window.addEventListener('dragover', Asset.preventDefaultDrag, false)
+    // If the user e.g. Cmd+tabs away from the window
+    this.addEmitterListener(window, 'blur', () => {
+      Globals.allKeysUp()
+    })
 
-    window.addEventListener(
+    this.addEmitterListener(window, 'dragover', Asset.preventDefaultDrag, false)
+
+    this.addEmitterListener(
+      window,
       'drop',
       (event) => {
         this.project.linkExternalAssetOnDrop(event, (error) => {
@@ -434,7 +440,7 @@ export class Glass extends React.Component {
       false
     )
 
-    document.addEventListener('mousewheel', (evt) => {
+    this.addEmitterListener(document, 'mousewheel', (evt) => {
       if (
         !this.getActiveComponent() || // on mac, this is triggered by a two-finger pan
         this.state.isEventHandlerEditorOpen
@@ -462,7 +468,8 @@ export class Glass extends React.Component {
       this.performPan(newX, newY)
     }, false)
 
-    window.addEventListener(
+    this.addEmitterListener(
+      window,
       'drop',
       (event) => {
         this.project.linkExternalAssetOnDrop(event, (error) => {
@@ -475,7 +482,7 @@ export class Glass extends React.Component {
 
     // Pasteable things are stored at the global level in the clipboard but we need that action to fire from the top level
     // so that all the views get the message, so we emit this as an event and then wait for the call to pasteThing
-    document.addEventListener('paste', (pasteEvent) => {
+    this.addEmitterListener(document, 'paste', (pasteEvent) => {
       if (this.isPreviewMode()) return void (0)
       // Notify creator that we have some content that the person wishes to paste on the stage;
       // the top level needs to handle this because it does content type detection.
@@ -488,10 +495,11 @@ export class Glass extends React.Component {
       })
     })
 
-    document.addEventListener('cut', () => {
+    this.addEmitterListener(document, 'cut', () => {
       this.handleVirtualClipboard('cut')
     })
-    document.addEventListener('copy', () => {
+
+    this.addEmitterListener(document, 'copy', () => {
       this.handleVirtualClipboard('copy')
     })
 
@@ -571,21 +579,21 @@ export class Glass extends React.Component {
       this.setState({ comments: this._comments.comments })
     })
 
-    window.addEventListener('resize', lodash.throttle(() => {
+    this.addEmitterListener(window, 'resize', lodash.throttle(() => {
       this.handleWindowResize()
     }), 64)
 
-    window.addEventListener('mouseup', this.windowMouseUpHandler.bind(this))
-    window.addEventListener('mousemove', this.windowMouseMoveHandler.bind(this))
-    window.addEventListener('dblclick', this.windowDblClickHandler.bind(this))
-    window.addEventListener('keydown', this.windowKeyDownHandler.bind(this))
-    window.addEventListener('keyup', this.windowKeyUpHandler.bind(this))
-    window.addEventListener('mouseout', this.windowMouseOutHandler.bind(this))
+    this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this))
+    this.addEmitterListener(window, 'mousemove', this.windowMouseMoveHandler.bind(this))
+    this.addEmitterListener(window, 'dblclick', this.windowDblClickHandler.bind(this))
+    this.addEmitterListener(window, 'keydown', this.windowKeyDownHandler.bind(this))
+    this.addEmitterListener(window, 'keyup', this.windowKeyUpHandler.bind(this))
+    this.addEmitterListener(window, 'mouseout', this.windowMouseOutHandler.bind(this))
     // When the mouse is clicked, below is the order that events fire
-    window.addEventListener('mousedown', this.windowMouseDownHandler.bind(this))
-    window.addEventListener('mouseup', this.windowMouseUpHandler.bind(this))
-    window.addEventListener('click', this.windowClickHandler.bind(this))
-    window.addEventListener('contextmenu', (contextmenuEvent) => {
+    this.addEmitterListener(window, 'mousedown', this.windowMouseDownHandler.bind(this))
+    this.addEmitterListener(window, 'mouseup', this.windowMouseUpHandler.bind(this))
+    this.addEmitterListener(window, 'click', this.windowClickHandler.bind(this))
+    this.addEmitterListener(window, 'contextmenu', (contextmenuEvent) => {
       // Don't show the context menu if our editor is open
       if (this.isPreviewMode() || this.state.isEventHandlerEditorOpen) {
         return

@@ -755,7 +755,11 @@ export default class Creator extends React.Component {
 
             // Notify... ourselves that we've successfully set up the project model for this folder
             // Is it weird to put this here, or weirder to put a conditional hack over there?
-            this.handleConnectedProjectModelStateChange({ from: 'creator', folder: projectFolder, what: 'project:ready' })
+            this.handleConnectedProjectModelStateChange({
+              from: 'creator',
+              folder: projectFolder,
+              what: 'project:ready'
+            })
 
             // Assign, not merge, since we don't want to clobber any variables already set, like project name
             lodash.assign(projectObject, applicationImage.project)

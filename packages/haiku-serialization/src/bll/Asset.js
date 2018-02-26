@@ -75,6 +75,10 @@ class Asset extends BaseModel {
     return this.kind === Asset.KINDS.SKETCH
   }
 
+  isRemoteAsset () {
+    return this.proximity === Asset.PROXIMITIES.REMOTE
+  }
+
   isOrphanSvg () {
     return (this.isVector() && this.parent.kind !== Asset.KINDS.SKETCH)
   }
@@ -189,6 +193,11 @@ Asset.KINDS = {
   HACKY_MESSAGE: 'hacky_message'
 }
 
+Asset.PROXIMITIES = {
+  LOCAL: 'local',
+  REMOTE: 'remote'
+}
+
 const PRIMARY_ASSET_MESSAGE = `
 ⇧ Double click to open this file in Sketch.
 Every slice and artboard will be synced here when you save.
@@ -199,6 +208,7 @@ Asset.ingestAssets = (project, dict) => {
     uid: path.join(project.getFolder(), 'code'),
     type: Asset.TYPES.CONTAINER,
     kind: Asset.KINDS.FOLDER,
+    proximity: Asset.PROXIMITIES.LOCAL,
     project,
     relpath: 'code',
     displayName: 'Components',
@@ -206,10 +216,27 @@ Asset.ingestAssets = (project, dict) => {
     dtModified: Date.now()
   })
 
+  const controlsFolderAsset = Asset.upsert({
+    uid: '@haiku/core/components/controls',
+    type: Asset.TYPES.CONTAINER,
+    kind: Asset.KINDS.FOLDER,
+    proximity: Asset.PROXIMITIES.REMOTE,
+    project,
+    relpath: 'controls',
+    displayName: 'Controls',
+    children: [
+      controlComponentAsset(project, 'Image', 'controls/Image'),
+      controlComponentAsset(project, 'Text', 'controls/Text'),
+      controlComponentAsset(project, 'HTML', 'controls/HTML')
+    ],
+    dtModified: Date.now()
+  })
+
   const designFolderAsset = Asset.upsert({
     uid: path.join(project.getFolder(), 'designs'),
     type: Asset.TYPES.CONTAINER,
     kind: Asset.KINDS.FOLDER,
+    proximity: Asset.PROXIMITIES.LOCAL,
     project,
     relpath: 'designs',
     displayName: 'Designs',
@@ -220,6 +247,10 @@ Asset.ingestAssets = (project, dict) => {
   })
 
   const rootAssets = [designFolderAsset]
+
+  if (experimentIsEnabled(Experiment.MultiComponentControlsLibrary)) {
+    rootAssets.unshift(controlsFolderAsset)
+  }
 
   if (experimentIsEnabled(Experiment.MultiComponentFeatures)) {
     rootAssets.unshift(componentFolderAsset)
@@ -235,6 +266,7 @@ Asset.ingestAssets = (project, dict) => {
       uid: path.join(project.getFolder(), 'designs', relpath, 'artboards'),
       type: Asset.TYPES.CONTAINER,
       kind: Asset.KINDS.FOLDER,
+      proximity: Asset.PROXIMITIES.LOCAL,
       project,
       relpath: path.join('designs', relpath, 'artboards'),
       displayName: 'Artboards',
@@ -246,6 +278,7 @@ Asset.ingestAssets = (project, dict) => {
       uid: path.join(project.getFolder(), 'designs', relpath, 'slices'),
       type: Asset.TYPES.CONTAINER,
       kind: Asset.KINDS.FOLDER,
+      proximity: Asset.PROXIMITIES.LOCAL,
       project,
       relpath: path.join('designs', relpath, 'slices'),
       displayName: 'Slices',
@@ -257,6 +290,7 @@ Asset.ingestAssets = (project, dict) => {
       uid: path.join(project.getFolder(), relpath),
       type: Asset.TYPES.CONTAINER,
       kind: Asset.KINDS.SKETCH,
+      proximity: Asset.PROXIMITIES.LOCAL,
       project,
       relpath,
       displayName: path.basename(relpath),
@@ -286,6 +320,7 @@ Asset.ingestAssets = (project, dict) => {
         uid: path.join(project.getFolder(), relpath),
         type: Asset.TYPES.FILE,
         kind: Asset.KINDS.VECTOR,
+        proximity: Asset.PROXIMITIES.LOCAL,
         project,
         relpath,
         displayName: path.basename(relpath, extname),
@@ -318,6 +353,7 @@ Asset.ingestAssets = (project, dict) => {
         uid: path.join(project.getFolder(), relpath),
         type: Asset.TYPES.FILE,
         kind: Asset.KINDS.COMPONENT,
+        proximity: Asset.PROXIMITIES.LOCAL,
         project,
         relpath,
         displayName: toTitleCase(namePart),
@@ -329,6 +365,22 @@ Asset.ingestAssets = (project, dict) => {
   }
 
   return rootAssets
+}
+
+function controlComponentAsset (project, displayName, partial) {
+  const relpath = path.join('@haiku/core/components', partial, 'code/main/code.js')
+  return Asset.upsert({
+    uid: relpath,
+    type: Asset.TYPES.FILE,
+    kind: Asset.KINDS.COMPONENT,
+    icon: `Control${displayName}`,
+    proximity: Asset.PROXIMITIES.REMOTE,
+    project,
+    relpath,
+    displayName,
+    children: [],
+    dtModified: 1
+  })
 }
 
 /*

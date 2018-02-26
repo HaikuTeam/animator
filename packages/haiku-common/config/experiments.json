@@ -51,7 +51,7 @@
     "production": false
   },
   "MultiComponentControlsLibrary": {
-    "development": true,
+    "development": false,
     "production": false
   },
   "ShowSubElementsInJitMenu": {
