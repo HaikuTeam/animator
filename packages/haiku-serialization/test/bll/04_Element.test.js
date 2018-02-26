@@ -1,12 +1,15 @@
 const tape = require('tape')
 const path = require('path')
+const async = require('async')
 const fse = require('haiku-fs-extra')
 const Project = require('./../../src/bll/Project')
+const Row = require('./../../src/bll/Row')
 
-tape('Element.prototype.getAddressableProperties', (t) => {
-  t.plan(11)
+tape('Element', (t) => {
+  t.plan(16)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'element-getaddressables-01')
   fse.removeSync(folder)
+  const bytecode = require(path.join(__dirname, '..', '..', '..', 'haiku-timeline', 'test', 'projects', 'complex', 'code', 'main', 'code.js'))
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
   const platform = {}
   const userconfig = {}
@@ -15,24 +18,73 @@ tape('Element.prototype.getAddressableProperties', (t) => {
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', { from: 'test' }, (err) => {
       if (err) throw err
-      fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1)
       const ac0 = project.getCurrentActiveComponent()
-      return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, info, mana) => {
-        if (err) throw err
-        const el0 = ac0.findElementByComponentId(mana.attributes['haiku-id'])
-        const a1 = el0.getAddressableProperties()
-        t.ok(a1, 'addressables are present')
-        t.ok(a1['translation.x'],'standard prop present')
-      	t.equal(a1['translation.x'].type, 'native')
-      	t.equal(a1['translation.x'].name, 'translation.x')
-      	t.equal(a1['translation.x'].prefix, 'translation')
-      	t.equal(a1['translation.x'].suffix, 'x')
-      	t.equal(a1['translation.x'].fallback, 0)
-      	t.equal(a1['translation.x'].typedef, 'number')
-      	t.equal(a1['translation.x'].mock, undefined)
-      	t.equal(a1['translation.x'].value, undefined)
-      	t.deepEqual(a1['translation.x'].cluster, { prefix: 'translation', name: 'Position' })
-        fse.removeSync(folder)
+      ac0.fetchActiveBytecodeFile().mod.update(bytecode)
+      return ac0.hardReload({}, {}, () => {
+        return async.series([
+          (cb) => {
+            t.deepEqual(ac0.getDisplayableRows().map((r) => r.getUniqueKey()), [ 'f203a65f49c0+f203a65f49c0-element-heading-null-null', 'f203a65f49c0+f203a65f49c0-cluster-heading-Size-null', 'f203a65f49c0+f203a65f49c0-property-null-opacity', 'f203a65f49c0+f203a65f49c0-cluster-heading-Style-null', 'e5e416e36283+e5e416e36283-element-heading-null-null', 'bubtonkillingsworth+bubtonkillingsworth-element-heading-null-null', 'ff46fa758156+ff46fa758156-element-heading-null-null', 'd96344f002ed+d96344f002ed-element-heading-null-null', 'cfef9d559b15+cfef9d559b15-element-heading-null-null', 'f4a5c879f6d5+f4a5c879f6d5-element-heading-null-null', '92a15d09b679+92a15d09b679-element-heading-null-null', '751d264dd836+751d264dd836-element-heading-null-null', '2f2e55f6a44e+2f2e55f6a44e-element-heading-null-null' ])
+            ac0.getElements()[1].getHeadingRow().expand()
+            return setTimeout(() => cb(), 100)
+          },
+          (cb) => {
+            t.deepEqual(ac0.getDisplayableRows().map((r) => r.getUniqueKey()), [ 'f203a65f49c0+f203a65f49c0-element-heading-null-null', 'f203a65f49c0+f203a65f49c0-cluster-heading-Size-null', 'f203a65f49c0+f203a65f49c0-property-null-opacity', 'f203a65f49c0+f203a65f49c0-cluster-heading-Style-null', 'e5e416e36283+e5e416e36283-element-heading-null-null', 'e5e416e36283+e5e416e36283-property-null-opacity', 'e5e416e36283+e5e416e36283-cluster-heading-Position-null', 'e5e416e36283+e5e416e36283-cluster-heading-Rotation-null', 'e5e416e36283+e5e416e36283-cluster-heading-Scale-null', '32fa8857ae54+e5e416e36283-property-null-stroke', '32fa8857ae54+e5e416e36283-property-null-strokeWidth', 'bubtonkillingsworth+bubtonkillingsworth-element-heading-null-null', 'ff46fa758156+ff46fa758156-element-heading-null-null', 'd96344f002ed+d96344f002ed-element-heading-null-null', 'cfef9d559b15+cfef9d559b15-element-heading-null-null', 'f4a5c879f6d5+f4a5c879f6d5-element-heading-null-null', '92a15d09b679+92a15d09b679-element-heading-null-null', '751d264dd836+751d264dd836-element-heading-null-null', '2f2e55f6a44e+2f2e55f6a44e-element-heading-null-null' ])
+            const m1 = ac0.getElements()[1].getJITPropertyOptionsAsMenuItems()
+            m1[4].submenu[0].submenu[0].onClick() // Click the 'Stroke' property
+            return setTimeout(() => cb(), 100)
+          },
+          (cb) => {
+            t.deepEqual(ac0.getDisplayableRows().map((r) => r.getUniqueKey()), [ 'f203a65f49c0+f203a65f49c0-element-heading-null-null', 'f203a65f49c0+f203a65f49c0-cluster-heading-Size-null', 'f203a65f49c0+f203a65f49c0-property-null-opacity', 'f203a65f49c0+f203a65f49c0-cluster-heading-Style-null', 'e5e416e36283+e5e416e36283-element-heading-null-null', 'e5e416e36283+e5e416e36283-property-null-opacity', 'e5e416e36283+e5e416e36283-cluster-heading-Position-null', 'e5e416e36283+e5e416e36283-cluster-heading-Rotation-null', 'e5e416e36283+e5e416e36283-cluster-heading-Scale-null', '32fa8857ae54+e5e416e36283-property-null-stroke', '32fa8857ae54+e5e416e36283-property-null-strokeWidth', '32fa8857ae54+e5e416e36283-property-null-strokeOpacity', 'bubtonkillingsworth+bubtonkillingsworth-element-heading-null-null', 'ff46fa758156+ff46fa758156-element-heading-null-null', 'd96344f002ed+d96344f002ed-element-heading-null-null', 'cfef9d559b15+cfef9d559b15-element-heading-null-null', 'f4a5c879f6d5+f4a5c879f6d5-element-heading-null-null', '92a15d09b679+92a15d09b679-element-heading-null-null', '751d264dd836+751d264dd836-element-heading-null-null', '2f2e55f6a44e+2f2e55f6a44e-element-heading-null-null' ])
+            return cb()
+          },
+          (cb) => {
+            return ac0.createKeyframe('32fa8857ae54', 'Default', 'polygon', 'stroke', 0, 'red', null, null, null, {from: 'test'}, (err) => {
+              if (err) throw err
+              return setTimeout(() => cb(), 100)
+            })
+          },
+          (cb) => {
+            const m1 = ac0.getElements()[1].getJITPropertyOptionsAsMenuItems()
+            m1[4].submenu[0].submenu[0].onClick() // Click the 'StrokeWidth' property
+            setTimeout(() => cb(), 100) // Because onClick -> jit-property-added -> hardReload (raf)
+          },
+          (cb) => {
+            t.deepEqual(ac0.getDisplayableRows().map((r) => r.getUniqueKey()), [ 'f203a65f49c0+f203a65f49c0-element-heading-null-null', 'f203a65f49c0+f203a65f49c0-cluster-heading-Size-null', 'f203a65f49c0+f203a65f49c0-property-null-opacity', 'f203a65f49c0+f203a65f49c0-cluster-heading-Style-null', 'e5e416e36283+e5e416e36283-element-heading-null-null', 'e5e416e36283+e5e416e36283-property-null-opacity', 'e5e416e36283+e5e416e36283-cluster-heading-Position-null', 'e5e416e36283+e5e416e36283-cluster-heading-Rotation-null', 'e5e416e36283+e5e416e36283-cluster-heading-Scale-null', '32fa8857ae54+e5e416e36283-property-null-stroke', '32fa8857ae54+e5e416e36283-property-null-strokeWidth', '32fa8857ae54+e5e416e36283-property-null-strokeOpacity', '32fa8857ae54+e5e416e36283-property-null-fill', 'bubtonkillingsworth+bubtonkillingsworth-element-heading-null-null', 'ff46fa758156+ff46fa758156-element-heading-null-null', 'd96344f002ed+d96344f002ed-element-heading-null-null', 'cfef9d559b15+cfef9d559b15-element-heading-null-null', 'f4a5c879f6d5+f4a5c879f6d5-element-heading-null-null', '92a15d09b679+92a15d09b679-element-heading-null-null', '751d264dd836+751d264dd836-element-heading-null-null', '2f2e55f6a44e+2f2e55f6a44e-element-heading-null-null' ])
+            return cb()
+          },
+          (cb) => {
+            return ac0.createKeyframe('32fa8857ae54', 'Default', 'polygon', 'strokeWidth', 0, '2', null, null, null, {from: 'test'}, (err) => {
+              if (err) throw err
+              return setTimeout(() => cb(), 100)
+            })
+          },
+          (cb) => {
+            return ac0.createKeyframe('ba79df30e026', 'Default', 'polygon', 'stroke', 0, 'red', null, null, null, {from: 'test'}, (err) => {
+              if (err) throw err
+              return setTimeout(() => cb(), 100)
+            })
+          },
+          (cb) => {
+            t.deepEqual(ac0.getDisplayableRows().map((r) => r.getUniqueKey()), [ 'f203a65f49c0+f203a65f49c0-element-heading-null-null', 'f203a65f49c0+f203a65f49c0-cluster-heading-Size-null', 'f203a65f49c0+f203a65f49c0-property-null-opacity', 'f203a65f49c0+f203a65f49c0-cluster-heading-Style-null', 'e5e416e36283+e5e416e36283-element-heading-null-null', 'e5e416e36283+e5e416e36283-property-null-opacity', 'e5e416e36283+e5e416e36283-cluster-heading-Position-null', 'e5e416e36283+e5e416e36283-cluster-heading-Rotation-null', 'e5e416e36283+e5e416e36283-cluster-heading-Scale-null', '32fa8857ae54+e5e416e36283-property-null-stroke', '32fa8857ae54+e5e416e36283-property-null-strokeWidth', '32fa8857ae54+e5e416e36283-property-null-strokeOpacity', '32fa8857ae54+e5e416e36283-property-null-fill', 'bubtonkillingsworth+bubtonkillingsworth-element-heading-null-null', 'ff46fa758156+ff46fa758156-element-heading-null-null', 'd96344f002ed+d96344f002ed-element-heading-null-null', 'cfef9d559b15+cfef9d559b15-element-heading-null-null', 'f4a5c879f6d5+f4a5c879f6d5-element-heading-null-null', '92a15d09b679+92a15d09b679-element-heading-null-null', '751d264dd836+751d264dd836-element-heading-null-null', '2f2e55f6a44e+2f2e55f6a44e-element-heading-null-null' ])
+            return cb()
+          }
+        ], (err) => {
+          if (err) throw err
+           const el0 = ac0.findElementByComponentId(bytecode.template.attributes['haiku-id'])
+           const a1 = el0.getCompleteAddressableProperties()
+           t.ok(a1, 'addressables are present')
+           t.ok(a1['translation.x'],'standard prop present')
+           t.equal(a1['translation.x'].type, 'native')
+           t.equal(a1['translation.x'].name, 'translation.x')
+           t.equal(a1['translation.x'].prefix, 'translation')
+           t.equal(a1['translation.x'].suffix, 'x')
+           t.equal(a1['translation.x'].fallback, 0)
+           t.equal(a1['translation.x'].typedef, 'number')
+           t.equal(a1['translation.x'].mock, undefined)
+           t.equal(a1['translation.x'].value, undefined)
+           t.deepEqual(a1['translation.x'].cluster, { prefix: 'translation', name: 'Position' })
+           fse.removeSync(folder)
+        })
       })
     })
   })

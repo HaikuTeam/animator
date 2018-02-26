@@ -1,6 +1,8 @@
 import React from 'react'
 import humanizePropertyName from 'haiku-ui-common/lib/helpers/humanizePropertyName'
+import truncate from 'haiku-ui-common/lib/helpers/truncate'
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG'
+import FamilySVG from 'haiku-ui-common/lib/react/icons/FamilySVG'
 import PropertyInputField from './PropertyInputField'
 import Palette from 'haiku-ui-common/lib/Palette'
 import Globals from 'haiku-ui-common/lib/Globals'
@@ -9,6 +11,34 @@ import PropertyTimelineSegments from './PropertyTimelineSegments'
 import PropertyRowHeading from './PropertyRowHeading'
 
 export default class PropertyRow extends React.Component {
+  maybeRenderFamilySvg () {
+    if (!this.props.prev) return false
+    if (this.props.row.doesTargetHostElement()) return false
+    if (!this.props.row.isFirstRowOfSubElementSet()) return false
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          top: 4,
+          left: 50,
+          zIndex: 10000
+        }}>
+        <FamilySVG color={Palette.BLUE} />
+        <span
+          style={{
+            position: 'absolute',
+            fontSize: '8px',
+            marginLeft: 6,
+            color: Palette.BLUE,
+            top: 4,
+            whiteSpace: 'nowrap'
+          }}>
+          {truncate(this.props.row.element.getFriendlyLabel(), 7)}
+        </span>
+      </div>
+    )
+  }
+
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
 
@@ -54,19 +84,33 @@ export default class PropertyRow extends React.Component {
               }}>
               <span className='utf-icon' style={{ top: -4, left: -3 }}><DownCarrotSVG /></span>
             </div>}
+          {this.maybeRenderFamilySvg()}
           <div
             className='property-row-label no-select'
             style={{
               right: 0,
-              width: this.props.timeline.getPropertiesPixelWidth() - 80,
+              width: this.props.timeline.getPropertiesPixelWidth() - 120,
               height: this.props.rowHeight,
               textAlign: 'right',
-              backgroundColor: Palette.GRAY,
+              borderTop: (this.props.row.isFirstRowOfSubElementSet()) ? `1px solid ${Palette.GRAY}` : 'none',
+              backgroundColor: (this.props.row.doesTargetHostElement()) ? Palette.GRAY : 'rgb(46, 59, 62)',
+              borderTopLeftRadius: (this.props.row.isFirstRowOfSubElementSet()) ? 4 : 0,
+              borderBottomLeftRadius: (this.props.row.isLastRowOfSubElementSet()) ? 4 : 0,
               zIndex: 1004,
               position: 'relative',
               paddingTop: 6,
-              paddingRight: 10
+              paddingRight: 10,
+              marginLeft: 40
             }}>
+            <div
+              className='hacky-property-row-coverup'
+              style={{
+                position: 'absolute',
+                left: -40,
+                height: '100%',
+                width: 40,
+                backgroundColor: Palette.GRAY
+              }} />
             <PropertyRowHeading
               row={this.props.row}
               humanName={humanName} />

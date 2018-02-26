@@ -77,9 +77,10 @@ class StateInspector extends React.Component {
   }
 
   upsertStateValue (stateName, stateDescriptor, maybeCb) {
-    this.props.projectModel.upsertStateValue(
+    this.props.projectModel.getCurrentActiveComponent().upsertStateValue(
       stateName,
       stateDescriptor,
+      {from: 'creator'},
       (err) => {
         if (err) {
           return this.props.createNotice({
@@ -101,8 +102,9 @@ class StateInspector extends React.Component {
   }
 
   deleteStateValue (stateName, maybeCb) {
-    return this.props.projectModel.deleteStateValue(
+    return this.props.projectModel.getCurrentActiveComponent().deleteStateValue(
       stateName,
+      {from: 'creator'},
       (err) => {
         if (err) {
           return this.props.createNotice({

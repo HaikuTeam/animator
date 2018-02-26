@@ -212,27 +212,28 @@ function transferReferences (obj, originalReference, updatedReference) {
  * incorporating default state changes etc.
  */
 Bytecode.mergeBytecode = (b1, b2) => {
-  if (b2.metadata && !b1.metadata) b1.metadata = {}
+  if (b2.metadata && !b1.metadata) {
+    b1.metadata = {}
+  }
   assign(b1.metadata, b2.metadata)
 
-  if (b2.options && !b1.options) b1.options = {}
+  if (b2.options && !b1.options) {
+    b1.options = {}
+  }
   assign(b1.options, b2.options)
 
   Bytecode.mergeBytecodeControlStructures(b1, b2)
 
-  // TODO: I have no idea of what the smartest way to do this is
-  if (b2.template && !b1.template) b1.template = {}
-  if (b2.template) {
-    for (const key in b2.template) {
-      b1.template[key] = b2.template[key]
-    }
-  }
+  b1.template = Template.clone({}, b2.template)
 
   return b1
 }
 
-Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
-  if (b2.states && !b1.states) b1.states = {}
+Bytecode.mergeBytecodeStates = (b1, b2) => {
+  if (b2.states && !b1.states) {
+    b1.states = {}
+  }
+
   if (b2.states) {
     for (const stateKey in b2.states) {
       const previousState = b1.states[stateKey]
@@ -241,8 +242,13 @@ Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
       }
     }
   }
+}
 
-  if (b2.eventHandlers && !b1.eventHandlers) b1.eventHandlers = {}
+Bytecode.mergeBytecodeEventHandlers = (b1, b2) => {
+  if (b2.eventHandlers && !b1.eventHandlers) {
+    b1.eventHandlers = {}
+  }
+
   if (b2.eventHandlers) {
     for (const eventSelector in b2.eventHandlers) {
       for (const eventName in b2.eventHandlers[eventSelector]) {
@@ -257,9 +263,6 @@ Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
       }
     }
   }
-
-  if (b2.timelines && !b1.timelines) b1.timelines = {}
-  Bytecode.mergeTimelines(b1.timelines, b2.timelines)
 }
 
 Bytecode.mergeTimelines = (t1, t2, doMergeValueFn) => {
@@ -314,6 +317,13 @@ Bytecode.mergeTimelines = (t1, t2, doMergeValueFn) => {
   }
 
   return changesMade
+}
+
+Bytecode.mergeBytecodeControlStructures = (b1, b2) => {
+  Bytecode.mergeBytecodeStates(b1, b2)
+  Bytecode.mergeBytecodeEventHandlers(b1, b2)
+  if (b2.timelines && !b1.timelines) b1.timelines = {}
+  Bytecode.mergeTimelines(b1.timelines, b2.timelines)
 }
 
 Bytecode.pasteBytecode = (destination, pasted, translation) => {
@@ -388,8 +398,7 @@ Bytecode.extractOverrides = (bytecode) => {
 }
 
 Bytecode.clone = (bytecode) => {
-  // Eventually we may lean on a more custom-tailored clone method instead of lodash
-  return lodash.cloneDeep(bytecode)
+  return Bytecode.mergeBytecode({}, bytecode)
 }
 
 Bytecode.decycle = (reified, { doCleanMana }) => {

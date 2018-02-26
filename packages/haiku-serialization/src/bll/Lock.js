@@ -5,7 +5,8 @@ const LOCKS = {
   ActiveComponentReload: 'ActiveComponentReload',
   FilePerformComponentWork: 'FilePerformComponentWork',
   FileReadWrite: (abspath) => { return `FileReadWrite:${abspath}` },
-  ProjectMethodHandler: 'ProjectMethodHandler'
+  ProjectMethodHandler: 'ProjectMethodHandler',
+  FileUndoRedo: 'FileUndoRedo'
 }
 
 const request = (key, cb) => {

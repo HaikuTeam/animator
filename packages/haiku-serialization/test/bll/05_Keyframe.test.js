@@ -124,7 +124,7 @@ tape('Keyframe.01', (t) => {
 })
 
 tape('Keyframe.02', (t) => {
-  t.plan(6)
+  t.plan(10)
   return setupTest('keyframe-02', (err, ac, rows, done) => {
     if (err) throw err
     const kfs = rows[0].getKeyframes()
@@ -158,10 +158,14 @@ tape('Keyframe.03', (t) => {
     t.equal(kfs.length, 6, 'kfs len ok')
 
     // I am able to delete a keyframe
+    let one = false
     ac.on('update', (what, row) => {
       if (what !== 'keyframe-delete') return
       if (row.isHeading()) return
-      t.equal(row.getKeyframes().length, 5, 'kfs len ok after delete')
+      if (!one) {
+        one = true
+        t.equal(row.getKeyframes().length, 5, 'kfs len ok after delete')
+      }
     })
     rows[0].deleteKeyframe(kfs[2], { from: 'test' })
 

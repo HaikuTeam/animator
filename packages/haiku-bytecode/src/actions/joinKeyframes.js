@@ -8,6 +8,7 @@ module.exports = function joinKeyframes (bytecode, componentId, timelineName, el
   // May not be here due to a race condition with large projects
   if (property[keyframeMsLeft]) {
     property[keyframeMsLeft].curve = unserValue(newCurve)
+    property[keyframeMsLeft].edited = true
   }
 
   return property

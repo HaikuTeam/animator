@@ -94,9 +94,6 @@ class Timeline extends React.Component {
     this.mouseMoveListener = this.mouseMoveListener.bind(this)
     this.mouseUpListener = this.mouseUpListener.bind(this)
 
-    // Used to calculate scroll position
-    this._renderedRows = []
-
     window.timeline = this
   }
 
@@ -119,6 +116,11 @@ class Timeline extends React.Component {
 
   componentDidMount () {
     this.mounted = true
+
+    // If the user e.g. Cmd+tabs away from the window
+    this.addEmitterListener(window, 'blur', () => {
+      Globals.allKeysUp()
+    })
 
     this.addEmitterListener(this.props.websocket, 'method', (method, params, message, cb) => {
       // Harness to enable cross-subview integration testing
@@ -223,7 +225,7 @@ class Timeline extends React.Component {
     this.loadUserSettings()
     this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() + 20)
 
-    window.addEventListener('resize', lodash.throttle(() => {
+    this.addEmitterListener(window, 'resize', lodash.throttle(() => {
       if (this.mounted) {
         const pxWidth = document.body.clientWidth - this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth()
         this.getActiveComponent().getCurrentTimeline().setTimelinePixelWidth(pxWidth + 20)
@@ -231,8 +233,8 @@ class Timeline extends React.Component {
       }
     }, THROTTLE_TIME))
 
-    window.addEventListener('mousemove', this.mouseMoveListener)
-    window.addEventListener('mouseup', this.mouseUpListener)
+    this.addEmitterListener(window, 'mousemove', this.mouseMoveListener)
+    this.addEmitterListener(window, 'mouseup', this.mouseUpListener)
 
     this.addEmitterListener(this.props.websocket, 'broadcast', (message) => {
       if (message.folder !== this.props.folder) return void (0)
@@ -251,7 +253,7 @@ class Timeline extends React.Component {
       }
     })
 
-    document.addEventListener('paste', (pasteEvent) => {
+    this.addEmitterListener(document, 'paste', (pasteEvent) => {
       let tagname = pasteEvent.target.tagName.toLowerCase()
       let editable = pasteEvent.target.getAttribute('contenteditable') // Our input fields are <span>s
       if (tagname === 'input' || tagname === 'textarea' || editable) {
@@ -270,15 +272,15 @@ class Timeline extends React.Component {
       }
     })
 
-    document.body.addEventListener('keydown', this.handleKeyDown.bind(this))
+    this.addEmitterListener(document.body, 'keydown', this.handleKeyDown.bind(this))
 
-    document.body.addEventListener('keyup', this.handleKeyUp.bind(this))
+    this.addEmitterListener(document.body, 'keyup', this.handleKeyUp.bind(this))
 
-    document.body.addEventListener('mousewheel', lodash.throttle((wheelEvent) => {
+    this.addEmitterListener(document.body, 'mousewheel', lodash.throttle((wheelEvent) => {
       this.handleScroll(wheelEvent)
     }, 64), { passive: true })
 
-    document.addEventListener('mousemove', (mouseMoveEvent) => {
+    this.addEmitterListener(document, 'mousemove', (mouseMoveEvent) => {
       const timeline = this.getActiveComponent().getCurrentTimeline()
       // The timeline might not be initialized as of the first mouse move
       if (timeline) {
@@ -929,47 +931,43 @@ class Timeline extends React.Component {
   }
 
   // Creates a virtual list of all the component rows (includes headings and property rows)
-  renderComponentRows (rows) {
-    if (!this.mounted) {
-      return <span />
-    }
-
-    this._renderedRows = []
-
+  renderComponentRows () {
+    if (!this.mounted) return <span />
+    const rows = this.getActiveComponent().getDisplayableRows()
     return (
       <div
         className='property-row-list'
         style={{
           position: 'absolute'
         }}>
-        {rows.map((row) => {
+        {rows.map((row, index) => {
+          const prev = rows[index - 1]
           // Cluster rows only display if collapsed, otherwise we show their properties
           if (row.isClusterHeading() && !row.isExpanded()) {
-            this._renderedRows.push(row)
             return (
               <ClusterRow
                 key={row.getUniqueKey()}
                 rowHeight={this.state.rowHeight}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
                 component={this.getActiveComponent()}
+                prev={prev}
                 row={row} />
             )
           }
 
           if (row.isProperty()) {
-            this._renderedRows.push(row)
             return (
               <PropertyRow
                 key={row.getUniqueKey()}
                 rowHeight={this.state.rowHeight}
                 timeline={this.getActiveComponent().getCurrentTimeline()}
                 component={this.getActiveComponent()}
+                prev={prev}
                 row={row} />
             )
           }
 
           if (row.isHeading()) {
-            this._renderedRows.push(row)
             return (
               <ComponentHeadingRow
                 key={row.getUniqueKey()}
@@ -977,6 +975,7 @@ class Timeline extends React.Component {
                 timeline={this.getActiveComponent().getCurrentTimeline()}
                 component={this.getActiveComponent()}
                 row={row}
+                prev={prev}
                 onEventHandlerTriggered={this.showEventHandlersEditor} />
             )
           }
@@ -1072,7 +1071,7 @@ class Timeline extends React.Component {
               Keyframe.deselectAndDeactivateAllKeyframes({ component: this.getActiveComponent() })
             }
           }}>
-          {this.renderComponentRows(this.getActiveComponent().getDisplayableRows())}
+          {this.renderComponentRows()}
         </div>
         {this.renderBottomControls()}
         <ExpressionInput
