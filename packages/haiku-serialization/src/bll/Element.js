@@ -1465,7 +1465,7 @@ Element.ALWAYS_ALLOWED_PROPS = {
   'sizeAbsolute.y': true,
   'translation.x': true,
   'translation.y': true,
-  // 'translation.z': true, // This doesn't work for some reason, so leaving it out
+  'translation.z': true, // This only works if `transform-style: preserve-3d` is set
   'rotation.z': true,
   'rotation.x': true,
   'rotation.y': true,
