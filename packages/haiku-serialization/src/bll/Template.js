@@ -351,7 +351,7 @@ Template.isHaikuIdSelector = function isHaikuIdSelector (selector) {
   return selector && selector.slice(0, 5) === HAIKU_SELECTOR_PREFIX && selector[5] === ':'
 }
 
-Template.haikuSelectorToHaikuId = function haikuSelectorToHaikuId (selector) {
+Template.haikuSelectorToHaikuId = (selector) => {
   return selector.split(':')[1]
 }
 
@@ -788,10 +788,17 @@ Template.substitueSvgUseReferences = (mana) => {
 }
 
 Template.clone = (out, mana) => {
-  if (!mana) return mana
+  // No point continuing if null or false
+  if (!mana) {
+    return mana
+  }
 
-  if (typeof mana !== 'object') return mana
+  // The child node might represent text, so a string or number
+  if (typeof mana !== 'object') {
+    return mana
+  }
 
+  // Note that `elementName` is an object in case of a component instance
   out.elementName = mana.elementName
 
   if (mana.attributes) {
