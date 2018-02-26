@@ -18,6 +18,6 @@ module.exports = function s3CopyObject (sourceKey, destKey, region, deployer, en
     Bucket: bucket,
     CopySource: `/${bucket}/${sourceKey}`,
     Key: destKey,
-    ACL: acl,
+    ACL: acl
   }, cb)
 }
