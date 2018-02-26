@@ -295,21 +295,26 @@ export default class ExpressionInput extends React.Component {
       out = valueDescriptor.body + ''
     }
 
-    if (isNumeric(out)) {
-      out = Number(out)
-    }
-
-    if (originalDescriptor.valueType === 'boolean') {
-      if (out === 'true') {
-        out = true
-      } else if (out === 'false') {
-        out = false
+    // If the value type is string, stringify, and don't cast to another format
+    if (originalDescriptor.valueType === 'string') {
+      out = out + ''
+    } else {
+      if (isNumeric(out)) {
+        out = Number(out)
       }
-    } else if (originalDescriptor.propertyName === 'opacity') {
-      if (out > 1) {
-        out = 1
-      } else if (out < 0) {
-        out = 0
+
+      if (originalDescriptor.valueType === 'boolean') {
+        if (out === 'true') {
+          out = true
+        } else if (out === 'false') {
+          out = false
+        }
+      } else if (originalDescriptor.propertyName === 'opacity') {
+        if (out > 1) {
+          out = 1
+        } else if (out < 0) {
+          out = 0
+        }
       }
     }
 
