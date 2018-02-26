@@ -1141,11 +1141,7 @@ class Element extends BaseModel {
       for (const propertyName in unfilteredProperties) {
         const propertyObject = unfilteredProperties[propertyName]
 
-        if (
-          !Property.PREFIXES_TO_EXCLUDE_FROM_ADDRESSABLES[propertyObject.prefix] &&
-          !(this.isRootElement() && Property.EXCLUDE_FROM_ADDRESSABLES_IF_ROOT_ELEMENT[propertyName]) &&
-          !(this.isComponent() && Property.EXCLUDE_FROM_ADDRESSABLES_IF_COMPONENT[propertyName])
-        ) {
+        if (Property.shouldBasicallyIncludeProperty(propertyName, propertyObject, this)) {
           if (this._visibleProperties[propertyName]) {
             // Highest precedence is if the property is deemed explicitly visible
             filtered[propertyName] = propertyObject
