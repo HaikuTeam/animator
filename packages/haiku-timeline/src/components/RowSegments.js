@@ -37,8 +37,6 @@ export default class RowSegments extends React.Component {
   }
 
   render () {
-    const renders = {}
-
     return (
       <div>
         {this.props.row.mapVisibleKeyframes((keyframe) => {
@@ -48,7 +46,7 @@ export default class RowSegments extends React.Component {
             segmentPieces.push(
               <TransitionBody
                 preventDragging={this.props.preventDragging}
-                key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-transition-body`}
+                key={`keyframe-${keyframe.getPrimaryKey()}-transition-body`}
                 component={this.props.component}
                 timeline={this.props.timeline}
                 rowHeight={this.props.rowHeight}
@@ -59,7 +57,7 @@ export default class RowSegments extends React.Component {
               segmentPieces.push(
                 <ConstantBody
                   preventDragging={this.props.preventDragging}
-                  key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-constant-body`}
+                  key={`keyframe-${keyframe.getPrimaryKey()}-constant-body`}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
                   keyframe={keyframe} />
@@ -69,7 +67,7 @@ export default class RowSegments extends React.Component {
               segmentPieces.push(
                 <SoloKeyframe
                   preventDragging={this.props.preventDragging}
-                  key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-solo-keyframe`}
+                  key={`keyframe-${keyframe.getPrimaryKey()}-solo-keyframe`}
                   timeline={this.props.timeline}
                   rowHeight={this.props.rowHeight}
                   keyframe={keyframe} />
@@ -81,7 +79,7 @@ export default class RowSegments extends React.Component {
             if (keyframe.hasPreviousKeyframe()) {
               segmentPieces.push(
                 <InvisibleKeyframeDragger
-                  key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-invisible-1`}
+                  key={`keyframe-${keyframe.getPrimaryKey()}-invisible-1`}
                   offset={-10}
                   component={this.props.component}
                   timeline={this.props.timeline}
@@ -91,7 +89,7 @@ export default class RowSegments extends React.Component {
             }
             segmentPieces.push(
               <InvisibleKeyframeDragger
-                key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-invisible-2`}
+                key={`keyframe-${keyframe.getPrimaryKey()}-invisible-2`}
                 offset={0}
                 component={this.props.component}
                 timeline={this.props.timeline}
@@ -101,7 +99,7 @@ export default class RowSegments extends React.Component {
             if (keyframe.hasNextKeyframe()) {
               segmentPieces.push(
                 <InvisibleKeyframeDragger
-                  key={`keyframe-${keyframe.getUniqueKeyWithoutTimeIncluded()}-invisible-3`}
+                  key={`keyframe-${keyframe.getPrimaryKey()}-invisible-3`}
                   offset={+10}
                   component={this.props.component}
                   timeline={this.props.timeline}
@@ -111,19 +109,14 @@ export default class RowSegments extends React.Component {
             }
           }
 
-          if (!renders[keyframe.getUniqueKey()]) {
-            renders[keyframe.getUniqueKey()] = true
-            return (
-              <div
-                id={`keyframe-container-${keyframe.getUniqueKey()}`}
-                key={`keyframe-container-${keyframe.getUniqueKey()}`}
-                className={`keyframe-container no-select`}>
-                {segmentPieces}
-              </div>
-            )
-          } else {
-            return ''
-          }
+          return (
+            <div
+              id={`keyframe-container-${keyframe.getPrimaryKey()}`}
+              key={`keyframe-container-${keyframe.getPrimaryKey()}`}
+              className={`keyframe-container no-select`}>
+              {segmentPieces}
+            </div>
+          )
         })}
       </div>
     )

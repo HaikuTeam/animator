@@ -59,7 +59,7 @@ export default class InvisibleKeyframeDragger extends React.Component {
           this.props.component.dragSelectedKeyframes(frameInfo.pxpf, frameInfo.mspf, dragData, { alias: 'timeline' })
         }, THROTTLE_TIME)}>
         <span
-          id={`keyframe-dragger-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
+          id={`keyframe-dragger-${this.props.keyframe.getPrimaryKey()}`}
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
             this.props.keyframe.handleContextMenu({...Globals}, {isViaKeyframeDraggerView: true})

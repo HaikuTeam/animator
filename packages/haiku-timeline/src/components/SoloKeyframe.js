@@ -38,7 +38,7 @@ export default class SoloKeyframe extends React.Component {
     const leftPx = this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
     return (
       <span
-        id={`solo-keyframe-${this.props.keyframe.getUniqueKey()}`}
+        id={`solo-keyframe-${this.props.keyframe.getPrimaryKey()}`}
         style={{
           position: 'absolute',
           left: leftPx,

@@ -40,16 +40,16 @@ export default class ConstantBody extends React.Component {
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
 
-    const uniqueKey = this.props.keyframe.getUniqueKey()
+    const primaryKey = this.props.keyframe.getPrimaryKey()
     const pxOffsetLeft = this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
     const pxOffsetRight = this.props.keyframe.getPixelOffsetRight(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
 
     return (
       <span
         ref={(domElement) => {
-          this[uniqueKey] = domElement
+          this[primaryKey] = domElement
         }}
-        id={`constant-body-${uniqueKey}`}
+        id={`constant-body-${primaryKey}`}
         className='constant-body'
         onContextMenu={(ctxMenuEvent) => {
           ctxMenuEvent.stopPropagation()

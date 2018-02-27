@@ -113,7 +113,7 @@ export default class TransitionBody extends React.Component {
   render () {
     const frameInfo = this.props.timeline.getFrameInfo()
 
-    const uniqueKey = this.props.keyframe.getUniqueKey()
+    const primaryKey = this.props.keyframe.getPrimaryKey()
     const pxOffsetLeft = this.props.keyframe.getPixelOffsetLeft(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
     const pxOffsetRight = this.props.keyframe.getPixelOffsetRight(frameInfo.friA, frameInfo.pxpf, frameInfo.mspf)
 
@@ -125,7 +125,7 @@ export default class TransitionBody extends React.Component {
     return (
       <TimelineDraggable
         // NOTE: We cannot use 'curr.ms' for key here because these things move around
-        id={`transition-body-${this.props.keyframe.getUniqueKeyWithoutTimeIncluded()}`}
+        id={`transition-body-${this.props.keyframe.getPrimaryKey()}`}
         axis='x'
         onMouseDown={(mouseEvent) => {
           // This logic is here to allow transitions to be dragged without having
@@ -152,9 +152,9 @@ export default class TransitionBody extends React.Component {
         }, THROTTLE_TIME)}>
         <span
           className='pill-container'
-          key={uniqueKey}
+          key={primaryKey}
           ref={(domElement) => {
-            this[uniqueKey] = domElement
+            this[primaryKey] = domElement
           }}
           onContextMenu={(ctxMenuEvent) => {
             ctxMenuEvent.stopPropagation()
@@ -172,10 +172,10 @@ export default class TransitionBody extends React.Component {
             this.props.keyframe.handleMouseUp(mouseEvent, {...Globals}, {isViaTransitionBodyView: true})
           }}
           onMouseEnter={(reactEvent) => {
-            if (this[uniqueKey]) this[uniqueKey].style.color = Palette.GRAY
+            if (this[primaryKey]) this[primaryKey].style.color = Palette.GRAY
           }}
           onMouseLeave={(reactEvent) => {
-            if (this[uniqueKey]) this[uniqueKey].style.color = 'transparent'
+            if (this[primaryKey]) this[primaryKey].style.color = 'transparent'
           }}
           style={{
             position: 'absolute',
@@ -231,7 +231,7 @@ export default class TransitionBody extends React.Component {
             overflow: breakingBounds ? 'visible' : 'hidden'
           }}>
             <CurveSVG
-              id={uniqueKey}
+              id={primaryKey}
               leftGradFill={Palette[this.props.keyframe.getCurveColorState()]}
               rightGradFill={Palette[this.props.keyframe.getCurveColorState()]}
             />

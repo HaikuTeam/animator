@@ -301,14 +301,6 @@ class Keyframe extends BaseModel {
     return !!this.next()
   }
 
-  getUniqueKey () {
-    return `${this.getUniqueKeyWithoutTimeIncluded()}-${this.getMs()}`
-  }
-
-  getUniqueKeyWithoutTimeIncluded () {
-    return `${this.row.getUniqueKey()}-${this.getIndex()}`
-  }
-
   isWithinCollapsedRow () {
     return this.row.isCollapsed() || this.row.isWithinCollapsedRow()
   }
