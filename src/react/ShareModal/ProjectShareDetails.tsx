@@ -14,7 +14,7 @@ const STYLES = {
     margin: '0',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-  },
+  } as React.CSSProperties,
   info: {
     color: Palette.PALE_GRAY,
     fontSize: '10px',
