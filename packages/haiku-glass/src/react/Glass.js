@@ -417,9 +417,27 @@ export class Glass extends React.Component {
   }
 
   componentDidMount () {
+    combokeys.bind('command+z', lodash.debounce(this.handleUndo.bind(this), 500, {leading: true}))
+    combokeys.bind('command+shift+z', lodash.debounce(this.handleRedo.bind(this), 500, {leading: true}))
+    combokeys.bind('command+x', lodash.debounce(this.handleCut.bind(this), 500, {leading: true}))
+    combokeys.bind('command+c', lodash.debounce(this.handleCopy.bind(this), 500, {leading: true}))
+    combokeys.bind('command+v', lodash.debounce(this.handlePaste.bind(this), 500, {leading: true}))
+    combokeys.bind('command+a', lodash.debounce(this.handleSelectAll.bind(this), 500, {leading: true}))
+
     // If the user e.g. Cmd+tabs away from the window
     this.addEmitterListener(window, 'blur', () => {
       Globals.allKeysUp()
+      this.setState({
+        controlActivation: null,
+        isAnythingScaling: false,
+        isAnythingRotating: false,
+        globalControlPointHandleClass: '',
+        isStageSelected: false,
+        isStageNameHovering: false,
+        isMouseDown: false,
+        isMouseDragging: false,
+        targetElement: null
+      })
     })
 
     this.addEmitterListener(window, 'dragover', Asset.preventDefaultDrag, false)

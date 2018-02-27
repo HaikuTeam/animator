@@ -120,6 +120,14 @@ class Timeline extends React.Component {
     // If the user e.g. Cmd+tabs away from the window
     this.addEmitterListener(window, 'blur', () => {
       Globals.allKeysUp()
+      this.setState({
+        isShiftKeyDown: false,
+        isCommandKeyDown: false,
+        isControlKeyDown: false,
+        isAltKeyDown: false,
+        avoidTimelinePointerEvents: false,
+        isRepeat: true
+      })
     })
 
     this.addEmitterListener(this.props.websocket, 'method', (method, params, message, cb) => {
