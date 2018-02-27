@@ -226,6 +226,17 @@ export default class TopMenu extends EventEmitter {
         submenu: developerMenuItems
       },
       {
+        label: 'Community',
+        submenu: [
+          {
+            label: 'Haiku Community on Slack',
+            click: () => {
+              shell.openExternal('https://join.slack.com/t/haiku-community/shared_invite/enQtMjU0NzExMzQzMjIxLTA3NjgzZDYzYmNjYzcxNmUwY2NhMTE0YTE2OGVjZGE0MDhmNGIxOWUzOTk5OTI5MmQ0ZjA5MDAwNGY1Yjk1OTg')
+            }
+          }
+        ]
+      },
+      {
         label: 'Help',
         submenu: [
           {
@@ -252,13 +263,6 @@ export default class TopMenu extends EventEmitter {
             label: 'Privacy Policy',
             click: () => {
               shell.openExternal('https://www.haiku.ai/privacy-policy.html')
-            }
-          },
-          { type: 'separator' },
-          {
-            label: 'Haiku Community on Slack',
-            click: () => {
-              shell.openExternal('https://join.slack.com/t/haiku-community/shared_invite/enQtMjU0NzExMzQzMjIxLTA3NjgzZDYzYmNjYzcxNmUwY2NhMTE0YTE2OGVjZGE0MDhmNGIxOWUzOTk5OTI5MmQ0ZjA5MDAwNGY1Yjk1OTg')
             }
           }
         ]

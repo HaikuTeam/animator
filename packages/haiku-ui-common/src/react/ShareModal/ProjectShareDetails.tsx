@@ -12,7 +12,9 @@ const STYLES = {
     color: Palette.PALE_GRAY,
     fontSize: '18px',
     margin: '0',
-  },
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  } as React.CSSProperties,
   info: {
     color: Palette.PALE_GRAY,
     fontSize: '10px',
@@ -48,7 +50,7 @@ export class ProjectShareDetails extends React.PureComponent {
 
     return (
       <div style={STYLES.wrapper}>
-        <div>
+        <div style={{maxWidth: '50%'}}>
           <h2 style={STYLES.title}>{projectName}</h2>
           <p style={STYLES.info}>
             <span style={STYLES.label}>ID</span> {projectName}
