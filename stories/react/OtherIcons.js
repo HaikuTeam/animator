@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import { LoadingSpinnerSVG } from '../../src/react/OtherIcons';
+import { ChevronDownIconSVG } from '../../src/react/OtherIcons';
 
-storiesOf('LoadingSpinnerSVG', module)
+storiesOf('ChevronDownIconSVG', module)
   .add('default', () => (
-    <LoadingSpinnerSVG color="red" />
+    <ChevronDownIconSVG color="red" />
   ))
