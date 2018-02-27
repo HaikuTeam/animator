@@ -1991,22 +1991,27 @@ class ActiveComponent extends BaseModel {
   }
 
   fetchRootElement () {
+    const staticTemplateNode = this.getReifiedBytecode().template
+
     const uid = Element.makeUid(
       this,
       null,
       0,
-      this.getReifiedBytecode().template
+      staticTemplateNode
     )
 
     const found = Element.findById(uid)
 
     if (found) {
+      // Without this, the element instance in 'master' can end up with a stale node
+      found.staticTemplateNode = staticTemplateNode
+
       return found
     }
 
     return Element.upsertElementFromVirtualElement(
       this, // component
-      this.getReifiedBytecode().template, // static template node
+      staticTemplateNode,
       null, // parent element
       0, // index in parent
       '0' // graph address
