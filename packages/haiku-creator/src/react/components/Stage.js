@@ -184,7 +184,7 @@ export default class Stage extends React.Component {
             })
           }
 
-          const componentId = ac.getLastTemplateNodeHaikuId()
+          const componentId = ac.getFirstTemplateNodeHaikuId()
 
           if (!componentId) {
             console.warn('[creator] instantiatee had no component id')

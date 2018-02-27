@@ -902,7 +902,9 @@ class ActiveComponent extends BaseModel {
 
       Bytecode.applyOverrides(overrides, timelinesObject, timelineName, `haiku:${componentId}`, timelineTime)
 
-      template.children.push(mana)
+      // Used to be `.push` but it makes more sense to put at the top of the list,
+      // so that it displays in front of other elements by default and in stacking order
+      template.children.unshift(mana)
 
       mergeTimelineStructure(bytecode, timelinesObject, 'assign')
 
@@ -2210,8 +2212,23 @@ class ActiveComponent extends BaseModel {
     )
   }
 
+  getFirstTemplateNode () {
+    const bytecode = this.getReifiedBytecode()
+    return (
+      bytecode &&
+      bytecode.template &&
+      bytecode.template.children &&
+      bytecode.template.children[0]
+    )
+  }
+
   getLastTemplateNodeHaikuId () {
     const node = this.getLastTemplateNode()
+    return node && node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]
+  }
+
+  getFirstTemplateNodeHaikuId () {
+    const node = this.getFirstTemplateNode()
     return node && node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]
   }
 
