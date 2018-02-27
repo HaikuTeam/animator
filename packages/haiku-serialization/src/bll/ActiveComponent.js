@@ -2300,10 +2300,8 @@ class ActiveComponent extends BaseModel {
         // Let un/redo specify which stack its inverse belongs in
         if (doable) {
           if (this._doability === DOABILITIES.undo) {
-            console.log('pushed undoable', doable)
             this.pushUndoable(doable)
           } else if (this._doability === DOABILITIES.redo) {
-            console.log('pushed redoable', doable)
             this.pushRedoable(doable)
           }
         }

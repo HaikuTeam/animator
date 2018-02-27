@@ -2,7 +2,7 @@ const tape = require('tape')
 const BaseModel = require('./../../src/bll/BaseModel')
 
 tape('BaseModel', (t) => {
-  t.plan(28)
+  t.plan(25)
   t.ok(BaseModel, 'base model exists')
   class Foo extends BaseModel {}
   BaseModel.extend(Foo)
@@ -58,9 +58,6 @@ tape('BaseModel', (t) => {
   class Bop extends BaseModel {}
   BaseModel.extend(Bop)
   const bop1 = new Bop()
-  t.equal(bop1.didUpdateSinceLastCheck(), true, 'first time did update')
-  t.equal(bop1.didUpdateSinceLastCheck(), false, 'second times did not')
-  t.equal(bop1.didUpdateSinceLastCheck(), false, 'second times did not')
   const roygbiv1 = bop1.cacheFetch('roy.g.biv', () => 123)
   t.equal(roygbiv1, 123, 'cache can fetch')
   bop1.cacheClear()

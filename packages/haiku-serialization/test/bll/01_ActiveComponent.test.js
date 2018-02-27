@@ -11,7 +11,7 @@ const waitUntilFileProbablyWroteToDisk = (fn) => {
 }
 
 tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
-  t.plan(8)
+  t.plan(7)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-01')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -25,18 +25,17 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
       fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1)
       const ac0 = project.getCurrentActiveComponent()
       t.ok(ac0, 'ac present')
-      return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, info, mana) => {
+      return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, mana) => {
         if (err) throw err
-        t.equal(info.center.x, 0, 'info center is returned')
         t.equal(mana.attributes.source, 'designs/Path.svg', 'rel source is in mana attribute')
         const timeline = ac0.getReifiedBytecode().timelines.Default['haiku:' + mana.attributes['haiku-id']]
-        t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeAbsolute.x': { 0: { value: 99 } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeAbsolute.y': { 0: { value: 69 } }, 'sizeMode.y': { 0: { value: 1 } }, 'style.zIndex': { 0: { value: 1 } } }, 'timeline is ok')
+        t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeAbsolute.x': { 0: { value: 99 } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeAbsolute.y': { 0: { value: 69 } }, 'sizeMode.y': { 0: { value: 1 } } }, 'timeline is ok')
         const subtemplate = ac0.getReifiedBytecode().template.children[0]
         t.equal(subtemplate.attributes['haiku-id'], mana.attributes['haiku-id'], 'template id ok')
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
             t.error(err, 'no err fetching code')
-            t.equal(contents.length, 6054, 'checksum of file ok')
+            t.equal(contents.length, 6007, 'checksum of file ok')
             fse.removeSync(folder)
             t.ok(true)
           })
@@ -60,7 +59,7 @@ tape('ActiveComponent.prototype.deleteComponent[1](design)', (t) => {
       if (err) throw err
       fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1)
       const ac0 = project.getCurrentActiveComponent()
-      return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, info, mana) => {
+      return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, mana) => {
         if (err) throw err
         t.equal(ac0.getReifiedBytecode().template.children.length,1,'has one child')
         t.equal(ac0.getReifiedBytecode().template.children[0].attributes['haiku-id'],mana.attributes['haiku-id'],'instantiatee id correct')
@@ -101,47 +100,50 @@ tape('ActiveComponent.prototype.mergeDesign[1](design)', (t) => {
       if (err) throw err
       fse.outputFileSync(path.join(folder, 'designs/Oval.svg'), OVAL_UNO) // Circle in group
       const ac0 = project.getCurrentActiveComponent()
-      return ac0.instantiateComponent('designs/Oval.svg', {}, { from: 'test' }, (err, info, mana) => {
+      return ac0.instantiateComponent('designs/Oval.svg', {}, {from: 'test'}, (err, mana) => {
         if (err) throw err
-        // Verifying that explicit changes to deep elements are retained and stale entities cleared
-        const m1 = ac0.getElements()[1].getJITPropertyOptionsAsMenuItems()
-        t.equal(JSON.stringify(ac0.getDisplayableRows().map((r) => r.getUniqueKey())), '["e4a9e4d8baa7+e4a9e4d8baa7-element-heading-null-null","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Size-null","e4a9e4d8baa7+e4a9e4d8baa7-property-null-opacity","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Style-null","fcfa0ce997b3+fcfa0ce997b3-element-heading-null-null","fcfa0ce997b3+fcfa0ce997b3-property-null-opacity","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Position-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Rotation-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Scale-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Style-null"]', 'rows ok 1')
-        m1[4].submenu[0].submenu[0].onClick() // Click the 'Stroke' property
-        return setTimeout(() => {
-          t.equal(JSON.stringify(ac0.getDisplayableRows().map((r) => r.getUniqueKey())), '["e4a9e4d8baa7+e4a9e4d8baa7-element-heading-null-null","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Size-null","e4a9e4d8baa7+e4a9e4d8baa7-property-null-opacity","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Style-null","fcfa0ce997b3+fcfa0ce997b3-element-heading-null-null","fcfa0ce997b3+fcfa0ce997b3-property-null-opacity","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Position-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Rotation-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Scale-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Style-null","88c011ac942e+fcfa0ce997b3-property-null-stroke"]', 'rows ok 2')
-          return waitUntilFileProbablyWroteToDisk(() => {
-            return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
-              if (err) throw err
-              t.ok(contents1, 'contents present')
-              const circleId = ac0.getReifiedBytecode().template.children[0].children[0].children[0].attributes['haiku-id']
-              return ac0.createKeyframe(circleId, 'Default', 'circle', 'fill', 0, 'blue', 'linear', null, null, {from: 'test'}, (err) => {
+        return ac0.selectElement(mana.attributes['haiku-id'], {from: 'test'}, (err) => {
+          if (err) throw err
+          // Verifying that explicit changes to deep elements are retained and stale entities cleared
+          const m1 = ac0.getElements()[1].getJITPropertyOptionsAsMenuItems()
+          t.equal(JSON.stringify(ac0.getDisplayableRows().map((r) => r.getUniqueKey())), '["e4a9e4d8baa7+e4a9e4d8baa7-element-heading-null-null","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Size-null","e4a9e4d8baa7+e4a9e4d8baa7-property-null-opacity","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Style-null","fcfa0ce997b3+fcfa0ce997b3-element-heading-null-null","fcfa0ce997b3+fcfa0ce997b3-property-null-opacity","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Position-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Rotation-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Scale-null"]', 'rows ok 1')
+          m1[4].submenu[0].submenu[0].onClick() // Click the 'Stroke' property
+          return setTimeout(() => {
+            t.equal(JSON.stringify(ac0.getDisplayableRows().map((r) => r.getUniqueKey())), '["e4a9e4d8baa7+e4a9e4d8baa7-element-heading-null-null","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Size-null","e4a9e4d8baa7+e4a9e4d8baa7-property-null-opacity","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Style-null","fcfa0ce997b3+fcfa0ce997b3-element-heading-null-null","fcfa0ce997b3+fcfa0ce997b3-property-null-opacity","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Position-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Rotation-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Scale-null","88c011ac942e+fcfa0ce997b3-property-null-stroke"]', 'rows ok 2')
+            return waitUntilFileProbablyWroteToDisk(() => {
+              return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
                 if (err) throw err
-                fse.outputFileSync(path.join(folder, 'designs/Oval.svg'), OVAL_DOS) // Ellipse in extra group
-                return ac0.mergeDesigns({ 'designs/Oval.svg': true }, { from: 'test' }, (err) => {
+                t.ok(contents1, 'contents present')
+                const circleId = ac0.getReifiedBytecode().template.children[0].children[0].children[0].attributes['haiku-id']
+                return ac0.createKeyframe(circleId, 'Default', 'circle', 'fill', 0, 'blue', 'linear', null, null, {from: 'test'}, (err) => {
                   if (err) throw err
-                  t.equal(JSON.stringify(ac0.getDisplayableRows().map((r) => r.getUniqueKey())), '["e4a9e4d8baa7+e4a9e4d8baa7-element-heading-null-null","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Size-null","e4a9e4d8baa7+e4a9e4d8baa7-property-null-opacity","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Style-null","fcfa0ce997b3+fcfa0ce997b3-element-heading-null-null","fcfa0ce997b3+fcfa0ce997b3-property-null-opacity","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Position-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Rotation-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Scale-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Style-null"]', 'rows ok 3')
-                  return waitUntilFileProbablyWroteToDisk(() => {
-                    return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
-                      if (err) throw err
-                      t.ok(contents2)
-                      const diffs = []
-                      const lines1 = contents1.split('\n')
-                      const lines2 = contents2.split('\n')
-                      lines1.forEach((line, index) => {
-                        if (line !== lines2[index]) {
-                          diffs.push([line, lines2[index]])
-                        }
+                  fse.outputFileSync(path.join(folder, 'designs/Oval.svg'), OVAL_DOS) // Ellipse in extra group
+                  return ac0.mergeDesigns({ 'designs/Oval.svg': true }, { from: 'test' }, (err) => {
+                    if (err) throw err
+                    t.equal(JSON.stringify(ac0.getDisplayableRows().map((r) => r.getUniqueKey())), '["e4a9e4d8baa7+e4a9e4d8baa7-element-heading-null-null","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Size-null","e4a9e4d8baa7+e4a9e4d8baa7-property-null-opacity","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Style-null","fcfa0ce997b3+fcfa0ce997b3-element-heading-null-null","fcfa0ce997b3+fcfa0ce997b3-property-null-opacity","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Position-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Rotation-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Scale-null"]', 'rows ok 3')
+                    return waitUntilFileProbablyWroteToDisk(() => {
+                      return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
+                        if (err) throw err
+                        t.ok(contents2)
+                        const diffs = []
+                        const lines1 = contents1.split('\n')
+                        const lines2 = contents2.split('\n')
+                        lines1.forEach((line, index) => {
+                          if (line !== lines2[index]) {
+                            diffs.push([line, lines2[index]])
+                          }
+                        })
+                        t.equal(JSON.stringify(diffs), JSON.stringify([["      \"haiku:fc91c13c20f4\": {","      \"haiku:7c32034eb4c1\": {"],["      \"haiku:88c011ac942e\": {","      \"haiku:a3f81f2a0816\": {"],["        fill: { \"0\": { value: \"#D8D8D8\" } },","        \"translation.x\": { \"0\": { value: -189 } },"],["        cx: { \"0\": { value: \"61\" } },","        \"translation.y\": { \"0\": { value: -622 } }"],["        cy: { \"0\": { value: \"61\" } },","      },"],["        r: { \"0\": { value: \"61\" } }","      \"haiku:49fc30c5fddf\": {"],["      }","        fill: { \"0\": { value: \"#57787E\" } },"],["    }","        cx: { \"0\": { value: \"239.5\" } },"],["  },","        cy: { \"0\": { value: \"690.5\" } },"],["  template: {","        rx: { \"0\": { value: \"57.5\" } },"],["    elementName: \"div\",","        ry: { \"0\": { value: \"40.5\" } }"],["    attributes: { \"haiku-id\": \"e4a9e4d8baa7\", \"haiku-title\": \"merge-01\" },","      }"],["    children: [","    }"],["      {","  },"],["        elementName: \"svg\",","  template: {"],["        attributes: {","    elementName: \"div\","],["          version: \"1.1\",","    attributes: { \"haiku-id\": \"e4a9e4d8baa7\", \"haiku-title\": \"merge-01\" },"],["          xmlns: \"http://www.w3.org/2000/svg\",","    children: ["],["          \"xmlns:xlink\": \"http://www.w3.org/1999/xlink\",","      {"],["          source: \"designs/Oval.svg\",","        elementName: \"svg\","],["          \"haiku-id\": \"fcfa0ce997b3\",","        attributes: {"],["          \"haiku-title\": \"Oval\"","          version: \"1.1\","],["        },","          xmlns: \"http://www.w3.org/2000/svg\","],["        children: [","          \"xmlns:xlink\": \"http://www.w3.org/1999/xlink\","],["          {","          source: \"designs/Oval.svg\","],["            elementName: \"g\",","          \"haiku-id\": \"fcfa0ce997b3\","],["            attributes: { \"haiku-id\": \"fc91c13c20f4\", id: \"Page-1\" },","          \"haiku-title\": \"Oval\""],["            children: [","        },"],["              {","        children: ["],["                elementName: \"circle\",","          {"],["                attributes: { \"haiku-id\": \"88c011ac942e\", id: \"Oval\" },","            elementName: \"g\","],["                children: []","            attributes: { \"haiku-id\": \"7c32034eb4c1\", id: \"Page-1\" },"],["              }","            children: ["],["            ]","              {"],["          }","                elementName: \"g\","],["        ]","                attributes: { \"haiku-id\": \"a3f81f2a0816\", id: \"Tutorial\" },"],["      }","                children: ["],["    ]","                  {"],["  }","                    elementName: \"ellipse\","],["};","                    attributes: { \"haiku-id\": \"49fc30c5fddf\", id: \"Oval\" },"],["","                    children: []"]]))
+                        fse.removeSync(folder)
+                        t.ok(true)
                       })
-                      t.equal(JSON.stringify(diffs), JSON.stringify([["      \"haiku:fc91c13c20f4\": {","      \"haiku:7c32034eb4c1\": {"],["      \"haiku:88c011ac942e\": {","      \"haiku:a3f81f2a0816\": {"],["        fill: { \"0\": { value: \"#D8D8D8\" } },","        \"translation.x\": { \"0\": { value: -189 } },"],["        cx: { \"0\": { value: \"61\" } },","        \"translation.y\": { \"0\": { value: -622 } }"],["        cy: { \"0\": { value: \"61\" } },","      },"],["        r: { \"0\": { value: \"61\" } }","      \"haiku:49fc30c5fddf\": {"],["      }","        fill: { \"0\": { value: \"#57787E\" } },"],["    }","        cx: { \"0\": { value: \"239.5\" } },"],["  },","        cy: { \"0\": { value: \"690.5\" } },"],["  template: {","        rx: { \"0\": { value: \"57.5\" } },"],["    elementName: \"div\",","        ry: { \"0\": { value: \"40.5\" } }"],["    attributes: { \"haiku-id\": \"e4a9e4d8baa7\", \"haiku-title\": \"merge-01\" },","      }"],["    children: [","    }"],["      {","  },"],["        elementName: \"svg\",","  template: {"],["        attributes: {","    elementName: \"div\","],["          version: \"1.1\",","    attributes: { \"haiku-id\": \"e4a9e4d8baa7\", \"haiku-title\": \"merge-01\" },"],["          xmlns: \"http://www.w3.org/2000/svg\",","    children: ["],["          \"xmlns:xlink\": \"http://www.w3.org/1999/xlink\",","      {"],["          source: \"designs/Oval.svg\",","        elementName: \"svg\","],["          \"haiku-id\": \"fcfa0ce997b3\",","        attributes: {"],["          \"haiku-title\": \"Oval\"","          version: \"1.1\","],["        },","          xmlns: \"http://www.w3.org/2000/svg\","],["        children: [","          \"xmlns:xlink\": \"http://www.w3.org/1999/xlink\","],["          {","          source: \"designs/Oval.svg\","],["            elementName: \"g\",","          \"haiku-id\": \"fcfa0ce997b3\","],["            attributes: { \"haiku-id\": \"fc91c13c20f4\", id: \"Page-1\" },","          \"haiku-title\": \"Oval\""],["            children: [","        },"],["              {","        children: ["],["                elementName: \"circle\",","          {"],["                attributes: { \"haiku-id\": \"88c011ac942e\", id: \"Oval\" },","            elementName: \"g\","],["                children: []","            attributes: { \"haiku-id\": \"7c32034eb4c1\", id: \"Page-1\" },"],["              }","            children: ["],["            ]","              {"],["          }","                elementName: \"g\","],["        ]","                attributes: { \"haiku-id\": \"a3f81f2a0816\", id: \"Tutorial\" },"],["      }","                children: ["],["    ]","                  {"],["  }","                    elementName: \"ellipse\","],["};","                    attributes: { \"haiku-id\": \"49fc30c5fddf\", id: \"Oval\" },"],["","                    children: []"]]))
-                      fse.removeSync(folder)
-                      t.ok(true)
                     })
                   })
                 })
               })
             })
-          })
-        }, 1000)
+          }, 1000)
+        })
       })
     })
   })
@@ -161,47 +163,50 @@ tape('ActiveComponent.prototype.mergeDesign[4](design)', (t) => {
       if (err) throw err
       fse.outputFileSync(path.join(folder, 'designs/Oval.svg'), OVAL_UNO) // Circle in group
       const ac0 = project.getCurrentActiveComponent()
-      return ac0.instantiateComponent('designs/Oval.svg', {}, { from: 'test' }, (err, info, mana) => {
+      return ac0.instantiateComponent('designs/Oval.svg', {}, { from: 'test' }, (err, mana) => {
         if (err) throw err
-        // Verifying that explicit changes to deep elements are retained and stale entities cleared
-        const m1 = ac0.getElements()[1].getJITPropertyOptionsAsMenuItems()
-        t.equal(JSON.stringify(ac0.getDisplayableRows().map((r) => r.getUniqueKey())), '["e4a9e4d8baa7+e4a9e4d8baa7-element-heading-null-null","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Size-null","e4a9e4d8baa7+e4a9e4d8baa7-property-null-opacity","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Style-null","fcfa0ce997b3+fcfa0ce997b3-element-heading-null-null","fcfa0ce997b3+fcfa0ce997b3-property-null-opacity","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Position-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Rotation-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Scale-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Style-null"]', 'rows ok 1')
-        m1[4].submenu[0].submenu[0].onClick() // Click the 'Stroke' property
-        return setTimeout(() => {
-          t.equal(JSON.stringify(ac0.getDisplayableRows().map((r) => r.getUniqueKey())), '["e4a9e4d8baa7+e4a9e4d8baa7-element-heading-null-null","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Size-null","e4a9e4d8baa7+e4a9e4d8baa7-property-null-opacity","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Style-null","fcfa0ce997b3+fcfa0ce997b3-element-heading-null-null","fcfa0ce997b3+fcfa0ce997b3-property-null-opacity","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Position-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Rotation-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Scale-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Style-null","88c011ac942e+fcfa0ce997b3-property-null-stroke"]', 'rows ok 2')
-          return waitUntilFileProbablyWroteToDisk(() => {
-            return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
-              if (err) throw err
-              t.ok(contents1, 'contents present')
-              const circleId = ac0.getReifiedBytecode().template.children[0].children[0].children[0].attributes['haiku-id']
-              return ac0.createKeyframe(circleId, 'Default', 'circle', 'fill', 0, 'blue', 'linear', null, null, {from: 'test'}, (err) => {
+        return ac0.selectElement(mana.attributes['haiku-id'], {from: 'test'}, (err) => {
+          if (err) throw err
+          // Verifying that explicit changes to deep elements are retained and stale entities cleared
+          const m1 = ac0.getElements()[1].getJITPropertyOptionsAsMenuItems()
+          t.equal(JSON.stringify(ac0.getDisplayableRows().map((r) => r.getUniqueKey())), '["e4a9e4d8baa7+e4a9e4d8baa7-element-heading-null-null","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Size-null","e4a9e4d8baa7+e4a9e4d8baa7-property-null-opacity","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Style-null","fcfa0ce997b3+fcfa0ce997b3-element-heading-null-null","fcfa0ce997b3+fcfa0ce997b3-property-null-opacity","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Position-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Rotation-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Scale-null"]', 'rows ok 1')
+          m1[4].submenu[0].submenu[0].onClick() // Click the 'Stroke' property
+          return setTimeout(() => {
+            t.equal(JSON.stringify(ac0.getDisplayableRows().map((r) => r.getUniqueKey())), '["e4a9e4d8baa7+e4a9e4d8baa7-element-heading-null-null","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Size-null","e4a9e4d8baa7+e4a9e4d8baa7-property-null-opacity","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Style-null","fcfa0ce997b3+fcfa0ce997b3-element-heading-null-null","fcfa0ce997b3+fcfa0ce997b3-property-null-opacity","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Position-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Rotation-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Scale-null","88c011ac942e+fcfa0ce997b3-property-null-stroke"]', 'rows ok 2')
+            return waitUntilFileProbablyWroteToDisk(() => {
+              return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
                 if (err) throw err
-                fse.outputFileSync(path.join(folder, 'designs/Oval.svg'), OVAL_TRES) // Modified version of same circle
-                return ac0.mergeDesigns({ 'designs/Oval.svg': true }, { from: 'test' }, (err) => {
+                t.ok(contents1, 'contents present')
+                const circleId = ac0.getReifiedBytecode().template.children[0].children[0].children[0].attributes['haiku-id']
+                return ac0.createKeyframe(circleId, 'Default', 'circle', 'fill', 0, 'blue', 'linear', null, null, {from: 'test'}, (err) => {
                   if (err) throw err
-                  t.equal(JSON.stringify(ac0.getDisplayableRows().map((r) => r.getUniqueKey())), '["e4a9e4d8baa7+e4a9e4d8baa7-element-heading-null-null","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Size-null","e4a9e4d8baa7+e4a9e4d8baa7-property-null-opacity","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Style-null","fcfa0ce997b3+fcfa0ce997b3-element-heading-null-null","fcfa0ce997b3+fcfa0ce997b3-property-null-opacity","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Position-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Rotation-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Scale-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Style-null","ed6c8148557c+fcfa0ce997b3-property-null-stroke"]', 'rows ok 3')
-                  return waitUntilFileProbablyWroteToDisk(() => {
-                    return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
-                      if (err) throw err
-                      t.ok(contents2)
-                      const diffs = []
-                      const lines1 = contents1.split('\n')
-                      const lines2 = contents2.split('\n')
-                      lines1.forEach((line, index) => {
-                        if (line !== lines2[index]) {
-                          diffs.push([line, lines2[index]])
-                        }
+                  fse.outputFileSync(path.join(folder, 'designs/Oval.svg'), OVAL_TRES) // Modified version of same circle
+                  return ac0.mergeDesigns({ 'designs/Oval.svg': true }, { from: 'test' }, (err) => {
+                    if (err) throw err
+                    t.equal(JSON.stringify(ac0.getDisplayableRows().map((r) => r.getUniqueKey())), '["e4a9e4d8baa7+e4a9e4d8baa7-element-heading-null-null","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Size-null","e4a9e4d8baa7+e4a9e4d8baa7-property-null-opacity","e4a9e4d8baa7+e4a9e4d8baa7-cluster-heading-Style-null","fcfa0ce997b3+fcfa0ce997b3-element-heading-null-null","fcfa0ce997b3+fcfa0ce997b3-property-null-opacity","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Position-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Rotation-null","fcfa0ce997b3+fcfa0ce997b3-cluster-heading-Scale-null","ed6c8148557c+fcfa0ce997b3-property-null-stroke"]', 'rows ok 3')
+                    return waitUntilFileProbablyWroteToDisk(() => {
+                      return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents2) => {
+                        if (err) throw err
+                        t.ok(contents2)
+                        const diffs = []
+                        const lines1 = contents1.split('\n')
+                        const lines2 = contents2.split('\n')
+                        lines1.forEach((line, index) => {
+                          if (line !== lines2[index]) {
+                            diffs.push([line, lines2[index]])
+                          }
+                        })
+                        t.equal(JSON.stringify(diffs), JSON.stringify([["      \"haiku:fc91c13c20f4\": {","      \"haiku:7c32034eb4c1\": {"],["      \"haiku:88c011ac942e\": {","      \"haiku:ed6c8148557c\": {"],["        fill: { \"0\": { value: \"#D8D8D8\" } },","        fill: { \"0\": { value: \"blue\", curve: \"linear\", edited: true } },"],["            attributes: { \"haiku-id\": \"fc91c13c20f4\", id: \"Page-1\" },","            attributes: { \"haiku-id\": \"7c32034eb4c1\", id: \"Page-1\" },"],["                attributes: { \"haiku-id\": \"88c011ac942e\", id: \"Oval\" },","                attributes: { \"haiku-id\": \"ed6c8148557c\", id: \"Oval\" },"]]))
+                        fse.removeSync(folder)
+                        t.ok(true)
                       })
-                      t.equal(JSON.stringify(diffs), JSON.stringify([["      \"haiku:fc91c13c20f4\": {","      \"haiku:7c32034eb4c1\": {"],["      \"haiku:88c011ac942e\": {","      \"haiku:ed6c8148557c\": {"],["        fill: { \"0\": { value: \"#D8D8D8\" } },","        fill: { \"0\": { value: \"blue\", curve: \"linear\", edited: true } },"],["            attributes: { \"haiku-id\": \"fc91c13c20f4\", id: \"Page-1\" },","            attributes: { \"haiku-id\": \"7c32034eb4c1\", id: \"Page-1\" },"],["                attributes: { \"haiku-id\": \"88c011ac942e\", id: \"Oval\" },","                attributes: { \"haiku-id\": \"ed6c8148557c\", id: \"Oval\" },"]]))
-                      fse.removeSync(folder)
-                      t.ok(true)
                     })
                   })
                 })
               })
             })
-          })
-        }, 1000)
+          }, 1000)
+        })
       })
     })
   })
@@ -221,7 +226,7 @@ tape('ActiveComponent.prototype.mergeDesign[2](design)', (t) => {
       if (err) throw err
       fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_1)
       const ac0 = project.getCurrentActiveComponent()
-      return ac0.instantiateComponent('designs/Circle.svg', {}, { from: 'test' }, (err, info, mana) => {
+      return ac0.instantiateComponent('designs/Circle.svg', {}, { from: 'test' }, (err, mana) => {
         if (err) throw err
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
@@ -267,7 +272,7 @@ tape('ActiveComponent.prototype.mergeDesign[3](design)', (t) => {
       if (err) throw err
       fse.outputFileSync(path.join(folder, 'designs/PercyNose.svg'), PERCY_NOSE_1)
       const ac0 = project.getCurrentActiveComponent()
-      return ac0.instantiateComponent('designs/PercyNose.svg', {}, { from: 'test' }, (err, info, mana) => {
+      return ac0.instantiateComponent('designs/PercyNose.svg', {}, { from: 'test' }, (err, mana) => {
         if (err) throw err
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents1) => {
@@ -300,7 +305,7 @@ tape('ActiveComponent.prototype.mergeDesign[3](design)', (t) => {
 })
 
 tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
-  t.plan(11)
+  t.plan(10)
   const folder = path.join(__dirname, '..', 'fixtures', 'projects', 'instantiate-02')
   fse.removeSync(folder)
   const websocket = { on: () => {}, send: () => {}, action: () => {}, connect: () => {} }
@@ -319,29 +324,18 @@ tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
           return File.read(folder, modpath, (err, contents) => {
             if (err) throw err
             t.ok(contents.length,15402,'content checksum ok')
-            return ac0.instantiateComponent(`./${modpath}`, {}, { from: 'test' }, (err, info, mana) => {
+            return ac0.instantiateComponent(`./${modpath}`, {}, { from: 'test' }, (err, mana) => {
               t.error(err, 'no err upon instantiation')
-              t.equal(info.center.x, 0, 'info center is returned')
               t.equal(mana.attributes.source, '../designs_path_svg/code.js', 'rel source is in mana attribute')
               const timeline = ac0.getReifiedBytecode().timelines.Default['haiku:' + mana.attributes['haiku-id']]
-              t.deepEqual(timeline, {
-                'style.position': { '0': { value: 'absolute' } },
-                'style.margin': { '0': { value: '0' } },
-                'style.padding': { '0': { value: '0' } },
-                'style.border': { '0': { value: '0' } },
-                'sizeAbsolute.x': { '0': { value: 99 } },
-                'sizeMode.x': { '0': { value: 1 } },
-                'sizeAbsolute.y': { '0': { value: 69 } },
-                'sizeMode.y': { '0': { value: 1 } },
-                'style.zIndex': { '0': { value: 1 } }
-              }, 'timeline is ok')
+              t.deepEqual(timeline, { 'style.position': { 0: { value: 'absolute' } }, 'style.margin': { 0: { value: '0' } }, 'style.padding': { 0: { value: '0' } }, 'style.border': { 0: { value: '0' } }, 'sizeAbsolute.x': { 0: { value: 99 } }, 'sizeMode.x': { 0: { value: 1 } }, 'sizeAbsolute.y': { 0: { value: 69 } }, 'sizeMode.y': { 0: { value: 1 } } }, 'timeline is ok')
               const subtemplate = ac0.getReifiedBytecode().template.children[0]
               t.equal(subtemplate.elementName.metadata.relpath, 'code/designs_path_svg/code.js', 'el name is bytecode')
               t.deepEqual(subtemplate.attributes, { source: '../designs_path_svg/code.js', identifier: 'designs_path_svg', 'haiku-title': 'designs_path_svg', 'haiku-id': 'b97c697fa7d6' }, 'el attrs ok')
               return waitUntilFileProbablyWroteToDisk(() => {
                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
                   if (err) throw err
-                  t.equal(contents.length, 1870, 'checksum ok')
+                  t.equal(contents.length, 1823, 'checksum ok')
                   var lines = contents.split('\n')
                   t.equal(lines[0], 'var Haiku = require("@haiku/core");', 'first line is haiku require')
                   t.equal(lines[1], 'var designs_path_svg = require("../designs_path_svg/code.js");', 'first line is component require')
@@ -377,7 +371,7 @@ tape('ActiveComponent.prototype.deleteComponent[2](component)', (t) => {
           return File.read(folder, modpath, (err, contents) => {
             if (err) throw err
             t.equal(ac0.getReifiedBytecode().template.children.length,0)
-            return ac0.instantiateComponent(`./${modpath}`, {}, { from: 'test' }, (err, info, mana) => {
+            return ac0.instantiateComponent(`./${modpath}`, {}, { from: 'test' }, (err, mana) => {
               if (err) throw err
               return ac0.deleteComponent(mana.attributes['haiku-id'], { from: 'test' }, (err) => {
                 if (err) throw err
@@ -415,7 +409,7 @@ tape('ActiveComponent.prototype.pasteThing[1]', (t) => {
       if (err) throw err
       fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1)
       const ac0 = project.getCurrentActiveComponent()
-      return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, info, mana) => {
+      return ac0.instantiateComponent('designs/Path.svg', {}, { from: 'test' }, (err, mana) => {
         if (err) throw err
         const el1 = ac0.findElementByComponentId(mana.attributes['haiku-id'])
         const pasteable1 = el1.clip({from: 'test'})

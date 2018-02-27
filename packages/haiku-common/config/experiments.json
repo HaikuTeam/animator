@@ -51,15 +51,15 @@
     "production": false
   },
   "MultiComponentControlsLibrary": {
-    "development": false,
+    "development": true,
     "production": false
   },
   "ShowSubElementsInJitMenu": {
-    "development": false,
+    "development": true,
     "production": false
   },
   "ElementMultiSelectAndTransform": {
-    "development": false,
+    "development": true,
     "production": false
   }
 }

@@ -25,7 +25,7 @@ tape('ModuleWrapper', (t) => {
       if (err) throw err
       fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_1)
       const ac0 = project.getCurrentActiveComponent()
-      return ac0.instantiateComponent('designs/Circle.svg', {}, { from: 'test' }, (err, info, mana) => {
+      return ac0.instantiateComponent('designs/Circle.svg', {}, { from: 'test' }, (err, mana) => {
         if (err) throw err
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {

@@ -24,5 +24,5 @@ test('joinKeyframes', function (t) {
   }
   t.equal(JSON.stringify(bytecode.timelines.Default), '{"haiku:abcdefghijk":{"opacity":{"0":{"value":0},"150":{"value":1}}}}')
   joinKeyframes(bytecode, 'abcdefghijk', 'Default', 'svg', 'opacity', 0, 150, 'easeOutBounce')
-  t.equal(JSON.stringify(bytecode.timelines.Default), '{"haiku:abcdefghijk":{"opacity":{"0":{"value":0,"curve":"easeOutBounce"},"150":{"value":1}}}}')
+  t.equal(JSON.stringify(bytecode.timelines.Default), '{"haiku:abcdefghijk":{"opacity":{"0":{"value":0,"curve":"easeOutBounce","edited":true},"150":{"value":1}}}}')
 })
