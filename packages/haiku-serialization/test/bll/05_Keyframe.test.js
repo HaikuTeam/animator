@@ -158,12 +158,12 @@ tape('Keyframe.03', (t) => {
     t.equal(kfs.length, 6, 'kfs len ok')
 
     // I am able to delete a keyframe
-    let one = false
+    let once = true
     ac.on('update', (what, row) => {
       if (what !== 'keyframe-delete') return
       if (row.isHeading()) return
-      if (!one) {
-        one = true
+      if (once) {
+        once = false
         t.equal(row.getKeyframes().length, 5, 'kfs len ok after delete')
       }
     })

@@ -308,6 +308,8 @@ export default class ExpressionInput extends React.Component {
           out = true
         } else if (out === 'false') {
           out = false
+        } else {
+          out = !!out
         }
       } else if (originalDescriptor.propertyName === 'opacity') {
         if (out > 1) {
