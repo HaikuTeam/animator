@@ -193,7 +193,8 @@ class Project extends BaseModel {
         logger.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
         return ac[method].apply(ac, params.slice(1).concat((err, out) => {
           release()
-          return cb(err, out)
+          if (err) return cb(err)
+          return cb() // Skip objects that don't play well with Websockets
         }))
       }
 
