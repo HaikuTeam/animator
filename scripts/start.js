@@ -67,12 +67,18 @@ if (argv.default === true) {
   argv.preset = args[0]
 }
 
-const availablePresets = ['glass', 'timeline']
+const availablePresets = {
+  glass: 'primitives-glass',
+  timeline: 'complex-timeline',
+  blank: 'blank',
+  'blank-noclean': 'blank-noclean'
+}
 
 if (FOLDER_CHOICES.hasOwnProperty(argv.preset)) {
   inputs.folderChoice = argv.preset
-} else if (availablePresets.includes(argv.preset) && global.process.env.HAIKU_PROJECT_FOLDER) {
+} else if (availablePresets[argv.preset]) {
   inputs.devChoice = argv.preset
+  inputs.folderChoice = availablePresets[argv.preset] || global.process.env.HAIKU_PROJECT_FOLDER
 } else if (argv.preset === 'fast') {
   inputs.skipInitialBuild = true
 } else {

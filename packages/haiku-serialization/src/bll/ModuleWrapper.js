@@ -257,21 +257,15 @@ BaseModel.extend(ModuleWrapper)
  * @description Convert a module path into an identifier name for the module.
  */
 ModuleWrapper.modulePathToIdentifierName = (modulepath) => {
-  const parts = modulepath.split(path.sep)
+  // @haiku/blah/foo.js -> @haiku/blah/foo
+  const nicepath = path.dirname(modulepath) + path.sep + path.basename(modulepath, path.extname(modulepath))
 
-  // We can assume we have a *normalized* module path name at this point, e.g...
-  // Haiku builtin format: @haiku/player/components/Path/code/main/code // #LEGACY
-  if (parts[0] === '@haiku' && parts[1] === 'player') {
-    return 'Haiku' + parts[3] // e.g. HaikuPath, HaikuLine, etc.
-  }
-  // Haiku builtin format: @haiku/core/components/Path/code/main/code
-  if (parts[0] === '@haiku' && parts[1] === 'core') {
-    return 'Haiku' + parts[3] // e.g. HaikuPath, HaikuLine, etc.
-  }
+  const parts = nicepath.split(path.sep)
 
-  // Installed Haiku format: @haiku/MyTeam/MyComponent/code/main/code
-  // MyTeam_MyComponent
-  return parts[1] + '_' + parts[2]
+  // Underscoreize the path, so @haiku/core/blah/blah -> haiku_core_blah_blah
+  return parts.map((part) => {
+    return part.replace(/\W+/g, '_')
+  }).join('_').slice(1) // Remove leading `_`
 }
 
 ModuleWrapper.getScenenameFromRelpath = (relpath) => {

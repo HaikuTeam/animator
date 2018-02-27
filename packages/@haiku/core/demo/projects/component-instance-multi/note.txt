@@ -1,1 +1,0 @@
-You should see multiple nested components without any attribute application collisions. There should be three lines, a blue, a green, and a white, each with different stroke widths. They should be positioned a bit differently and animate independently.

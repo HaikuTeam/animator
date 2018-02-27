@@ -21,6 +21,9 @@ export enum Experiment {
   NewPublishUI = 'NewPublishUI',
   NormalizeSvgContent = 'NormalizeSvgContent',
   BasicOfflineMode = 'BasicOfflineMode',
+  MultiComponentControlsLibrary = 'MultiComponentControlsLibrary',
+  ShowSubElementsInJitMenu = 'ShowSubElementsInJitMenu',
+  ElementMultiSelectAndTransform = 'ElementMultiSelectAndTransform',
 }
 
 /**

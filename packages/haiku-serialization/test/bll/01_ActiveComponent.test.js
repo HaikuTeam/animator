@@ -30,8 +30,7 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
         t.equal(info.center.x, 0, 'info center is returned')
         t.equal(mana.attributes.source, 'designs/Path.svg', 'rel source is in mana attribute')
         const timeline = ac0.getReifiedBytecode().timelines.Default['haiku:' + mana.attributes['haiku-id']]
-        t.deepEqual(timeline, { 
-          viewBox: { '0': { value: '0 0 99 69' } },
+        t.deepEqual(timeline, {
           'style.position': { '0': { value: 'absolute' } },
           'style.margin': { '0': { value: '0' } },
           'style.padding': { '0': { value: '0' } },
@@ -47,7 +46,7 @@ tape('ActiveComponent.prototype.instantiateComponent[1](design)', (t) => {
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
             t.error(err, 'no err fetching code')
-            t.equal(contents.length, 5979, 'checksum of file ok')
+            t.equal(contents.length, 6054, 'checksum of file ok')
             fse.removeSync(folder)
             t.ok(true)
           })
@@ -280,7 +279,7 @@ tape('ActiveComponent.prototype.instantiateComponent[2](component)', (t) => {
               return waitUntilFileProbablyWroteToDisk(() => {
                 return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
                   if (err) throw err
-                  t.equal(contents.length, 1745, 'checksum ok')
+                  t.equal(contents.length, 1870, 'checksum ok')
                   var lines = contents.split('\n')
                   t.equal(lines[0], 'var Haiku = require("@haiku/core");', 'first line is haiku require')
                   t.equal(lines[1], 'var designs_path_svg = require("../designs_path_svg/code.js");', 'first line is component require')

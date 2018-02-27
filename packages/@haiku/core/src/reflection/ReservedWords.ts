@@ -68,6 +68,7 @@ const WORDS = {
   true: true,
   try: true,
   typeof: true,
+  undefined: true, // This should be reserved.
   var: true,
   void: true,
   volatile: true,
@@ -81,4 +82,5 @@ const isReserved = (word) => {
 
 export default {
   isReserved,
+  WORDS,
 };
