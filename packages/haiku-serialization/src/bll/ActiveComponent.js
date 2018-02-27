@@ -1065,7 +1065,7 @@ class ActiveComponent extends BaseModel {
             metadata
           )
 
-          return cb()
+          return cb(null, manaForWrapperElement)
         })
       }
 
