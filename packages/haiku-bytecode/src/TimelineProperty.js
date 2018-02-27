@@ -111,9 +111,8 @@ function getComputedValue (componentId, elementName, propertyName, timelineName,
   return (value === undefined) ? fallbackValue : value
 }
 
-function getPropertyValueAtTime (timelinesObject, timelineName, componentId, elementName, outputName, time, hostInstance, states) {
+function getPropertyValueAtTime (timelinesObject, timelineName, componentId, elementName, outputName, time, hostInstance) {
   var propertiesGroup = getPropertiesBase(timelinesObject, timelineName, componentId)
-
   if (propertiesGroup) {
     try {
       // The hostInstance, which should be a HaikuCore, should have a 'ValueBuilder' attached to it under the property name 'builder'
@@ -127,9 +126,8 @@ function getPropertyValueAtTime (timelinesObject, timelineName, componentId, ele
           propertiesGroup,
           time,
           hostInstance, // haikuComponent
-          false, // isPatchOperation
-          true, // skipCache,
-          true // clearSortedKeyframesCache
+          !hostInstance._shouldPerformFullFlush(), // isPatchOperation
+          true // skipCache
         )
 
         if (computedValue !== undefined && computedValue !== null) {

@@ -148,7 +148,8 @@ class ActiveComponent extends BaseModel {
   }
 
   getCurrentTimelineName () {
-    return Timeline.DEFAULT_NAME // TODO: Support many
+    // TODO: Support many. When the timeline changes, clear Timeline (bll collection) caches.
+    return Timeline.DEFAULT_NAME
   }
 
   upsertCurrentTimeline () {

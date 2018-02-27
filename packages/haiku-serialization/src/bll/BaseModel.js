@@ -135,12 +135,12 @@ class BaseModel extends EventEmitter {
   }
 
   cacheGet (key) {
-    return lodash.get(this.__cache, key)
+    return this.__cache[key]
   }
 
   cacheSet (key, value) {
     this.setUpdateTimestamp()
-    return lodash.set(this.__cache, key, value)
+    this.__cache[key] = value
   }
 
   cacheFetch (key, provider) {
@@ -152,7 +152,7 @@ class BaseModel extends EventEmitter {
   }
 
   cacheUnset (key) {
-    return lodash.set(this.__cache, key, undefined)
+    this.__cache[key] = undefined
   }
 
   setUpdateTimestamp () {

@@ -56,8 +56,6 @@ class Timeline extends BaseModel {
     this._hoveredFrame = 0
     this._timeDisplayMode = Timeline.TIME_DISPLAY_MODE.FRAMES
 
-    this.debouncedRehydrate = lodash.debounce(this.rehydrate.bind(this), STANDARD_DEBOUNCE)
-
     this.raf = null // Store raf so it can be cancelled
     this.update = this.update.bind(this)
     this.update()
@@ -306,6 +304,7 @@ class Timeline extends BaseModel {
 
   setMaxFrame (maxFrame) {
     this._maxFrame = maxFrame
+    this.cacheUnset('frameInfo')
     return this
   }
 
@@ -411,17 +410,12 @@ class Timeline extends BaseModel {
   setTimelinePixelWidth (pxWidth) {
     this._timelinePixelWidth = pxWidth
     this.emit('update', 'timeline-timeline-pixel-width')
+    this.cacheUnset('frameInfo')
     return this
   }
 
   getPropertiesPixelWidth () {
     return this._propertiesPixelWidth
-  }
-
-  setPropertiesPixelWidth (pxWidth) {
-    this._propertiesPixelWidth = pxWidth
-    this.emit('update', 'timeline-properties-pixel-width')
-    return this
   }
 
   getVisibleFrameRangeLength () {
@@ -567,72 +561,73 @@ class Timeline extends BaseModel {
              |scB
   */
   getFrameInfo () {
-    const frameInfo = {}
+    return this.cacheFetch('frameInfo', () => {
+      const frameInfo = {}
 
-    // Number of frames per second
-    frameInfo.fps = this.getFPS()
+      // Number of frames per second
+      frameInfo.fps = this.getFPS()
 
-    // Milliseconds per frame
-    frameInfo.mspf = 1000 / frameInfo.fps
+      // Milliseconds per frame
+      frameInfo.mspf = 1000 / frameInfo.fps
 
-    // The maximum milliseconds *as defined in the bytecode*
-    frameInfo.maxms = Timeline.getMaximumMs(this.component.getReifiedBytecode(), this.component.getCurrentTimelineName())
+      // The maximum milliseconds *as defined in the bytecode*
+      frameInfo.maxms = Timeline.getMaximumMs(this.component.getReifiedBytecode(), this.component.getCurrentTimelineName())
 
-    // The maximum frame *as defined in the bytecode*
-    frameInfo.maxf = Timeline.millisecondToNearestFrame(frameInfo.maxms, frameInfo.mspf) // Maximum frame defined in the timeline
+      // The maximum frame *as defined in the bytecode*
+      frameInfo.maxf = Timeline.millisecondToNearestFrame(frameInfo.maxms, frameInfo.mspf) // Maximum frame defined in the timeline
 
-    // The lowest possible frame (always 0) (this is pointless but?)
-    frameInfo.fri0 = 0
+      // The lowest possible frame (always 0) (this is pointless but?)
+      frameInfo.fri0 = 0
 
-    // The leftmost frame on the visible range
-    frameInfo.friA = (this.getLeftFrameEndpoint() < frameInfo.fri0)
-      ? frameInfo.fri0
-      : this.getLeftFrameEndpoint()
+      // The leftmost frame on the visible range
+      frameInfo.friA = (this.getLeftFrameEndpoint() < frameInfo.fri0)
+        ? frameInfo.fri0
+        : this.getLeftFrameEndpoint()
 
-    // The maximum frame that can be reached via scrolling on the timeline
-    // If the defined frame is too small, use our own virtual maximum
-    frameInfo.friMax = (frameInfo.maxf < this.getMaxFrame())
-      ? this.getMaxFrame()
-      : frameInfo.maxf
+      // The maximum frame that can be reached via scrolling on the timeline
+      // If the defined frame is too small, use our own virtual maximum
+      frameInfo.friMax = (frameInfo.maxf < this.getMaxFrame())
+        ? this.getMaxFrame()
+        : frameInfo.maxf
 
-    // Whichever max is higher: the virtual, or the assigned value
-    frameInfo.friMaxVirt = this.getMaxFrame()
+      // Whichever max is higher: the virtual, or the assigned value
+      frameInfo.friMaxVirt = this.getMaxFrame()
 
-    // The rightmost frame on the visible range
-    frameInfo.friB = (this.getRightFrameEndpoint() > frameInfo.friMaxVirt)
-      ? frameInfo.friMaxVirt
-      : this.getRightFrameEndpoint()
+      // The rightmost frame on the visible range
+      frameInfo.friB = (this.getRightFrameEndpoint() > frameInfo.friMaxVirt)
+        ? frameInfo.friMaxVirt
+        : this.getRightFrameEndpoint()
 
-    frameInfo.pxpf = this.getTimelinePixelWidth() / Math.abs(this.getRightFrameEndpoint() - this.getLeftFrameEndpoint())
+      frameInfo.pxpf = this._timelinePixelWidth / Math.abs(this.getRightFrameEndpoint() - this.getLeftFrameEndpoint())
 
-    // Pixel number for friA, the leftmost frame on the visible range
-    frameInfo.pxA = frameInfo.friA * frameInfo.pxpf
+      // Pixel number for friA, the leftmost frame on the visible range
+      frameInfo.pxA = frameInfo.friA * frameInfo.pxpf
 
-    // Pixel number for friB, the rightmost frame on the visible range
-    frameInfo.pxB = frameInfo.friB * frameInfo.pxpf
+      // Pixel number for friB, the rightmost frame on the visible range
+      frameInfo.pxB = frameInfo.friB * frameInfo.pxpf
 
-    // Pixel number for friMax2, i.e. the width in pixels of the whole timeline
-    frameInfo.pxMax = frameInfo.friMax * frameInfo.pxpf
+      // Pixel number for friMax2, i.e. the width in pixels of the whole timeline
+      frameInfo.pxMax = frameInfo.friMax * frameInfo.pxpf
 
-    // Millisecond number for friA, the leftmost frame in the visible range
-    frameInfo.msA = Math.round(frameInfo.friA * frameInfo.mspf)
+      // Millisecond number for friA, the leftmost frame in the visible range
+      frameInfo.msA = Math.round(frameInfo.friA * frameInfo.mspf)
 
-    // Millisecond number for friB, the rightmost frame in the visible range
-    frameInfo.msB = Math.round(frameInfo.friB * frameInfo.mspf)
+      // Millisecond number for friB, the rightmost frame in the visible range
+      frameInfo.msB = Math.round(frameInfo.friB * frameInfo.mspf)
 
-    // The length in pixels of the scroller view
-    frameInfo.scL = this.getPropertiesPixelWidth() + this.getTimelinePixelWidth()
+      // The length in pixels of the scroller view
+      frameInfo.scL = this._propertiesPixelWidth + this._timelinePixelWidth
 
-     // The ratio of the scroller view to the timeline view (so the scroller renders in proportion)
-    frameInfo.scRatio = frameInfo.pxMax / frameInfo.scL
+      // The ratio of the scroller view to the timeline view (so the scroller renders in proportion)
+      frameInfo.scRatio = frameInfo.pxMax / frameInfo.scL
 
-    // The pixel of the left endpoint of the scroller
-    frameInfo.scA = (frameInfo.pxA) / frameInfo.scRatio
+      // The pixel of the left endpoint of the scroller
+      frameInfo.scA = (frameInfo.pxA) / frameInfo.scRatio
 
-    // The pixel of the right endpoint of the scroller
-    frameInfo.scB = (frameInfo.pxB) / frameInfo.scRatio
-
-    return frameInfo
+      // The pixel of the right endpoint of the scroller
+      frameInfo.scB = (frameInfo.pxB) / frameInfo.scRatio
+      return frameInfo
+    })
   }
 
   getVisibleFrames () {
@@ -880,6 +875,7 @@ class Timeline extends BaseModel {
       this.setMaxFrame(r)
     }
     this.emit('update', 'timeline-frame-range')
+    this.cacheUnset('frameInfo')
     return this
   }
 
