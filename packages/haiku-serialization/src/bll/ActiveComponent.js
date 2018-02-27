@@ -2099,34 +2099,38 @@ class ActiveComponent extends BaseModel {
       // the order in which these are requested (consider what happens if we send a property
       // update call to an element that has been deleted). So we basically accumulate
       // method calls that occur together and which have the same tuple
+      const actions = this.project._websocketActions
 
-      // If no last entry, it might mean the previous call was transmitted already,
-      // which is fine. The key is that we accumulate what we can while retaining sequence
-      const lastAction = this.project._websocketActions[this.project._websocketActions.length - 1]
+      // Find the most recent action that meets our criteria, and merge our payload with it
+      // NOTE: We used to just look at the latest entry, but that posed problems for multi-select
+      // since we would end up with interleaved actions leading to huge queues of updates
+      for (let i = actions.length - 1; i >= 0; i--) {
+        const action = actions[i]
 
-      // If the previous payload matches ours, then we'll accumulate our group value
-      // into it, so we end up with just once command for a fast sequence of commands
-      if (lastAction && lastAction.method === 'applyPropertyGroupValue') {
         if (
-          lastAction.params[0] === folder &&
-          lastAction.params[1] === relpath &&
-          lastAction.params[2] === componentId &&
-          lastAction.params[3] === timelineName &&
-          lastAction.params[4] === timelineTime // timeline time
+          action.method === 'applyPropertyGroupValue' &&
+          action.params[0] === folder &&
+          action.params[1] === relpath &&
+          action.params[2] === componentId &&
+          action.params[3] === timelineName &&
+          action.params[4] === timelineTime
         ) {
           // Merge entries from the incoming groupValue parameter into the existing one
           // In this way, the most recent values for all attributes are all used when
           // this method is finally transmitted
-          lodash.assign(lastAction.params[5], groupValue)
+          lodash.assign(action.params[5], groupValue)
 
           // Use this to decide whether to transmit immediately or wait for more to accumulate
-          lastAction.timestamp = Date.now()
+          action.timestamp = Date.now()
 
-          // Important to early return since we don't want to enqueue a new action
+          // Break the loop and early return because:
+          // - we don't want to enqueue a new action
+          // - we don't want to merge with any action but the latest
           return
         }
       }
 
+      // If we got here, a pre-existing action was not in the list, and we need to enqueue one
       // The Project model handles accumulating these to avoid excessive websocket calls
       this.project.batchedWebsocketAction(
         'applyPropertyGroupValue',
