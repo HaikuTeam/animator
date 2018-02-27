@@ -2043,6 +2043,8 @@ export class Glass extends React.Component {
 
         {(!this.isPreviewMode())
           ? <div
+            id="zoom-indicator"
+            className='no-select'
             style={{
               position: 'fixed',
               top: 5,
