@@ -29,7 +29,13 @@ Property.assignDOMSchemaProperties = (out, element) => {
         continue
       }
 
-      if (element.children && element.children[0] && !element.children[0].isTextNode()) {
+      if (
+        element.children && (
+          element.children.length !== 1 ||
+          !element.children[0] ||
+          !element.children[0].isTextNode()
+        )
+      ) {
         continue
       }
     }
@@ -419,10 +425,8 @@ Property.shouldBasicallyIncludeProperty = (propertyName, propertyObject, element
   } else if (element.isComponent()) {
     // Assume that we display everything for components
     return true
-  } else {
-    if (Property.EXCLUDE_FROM_ADDRESSABLES_IF_CHILD_ELEMENT[propertyName]) {
-      return false
-    }
+  } else if (Property.EXCLUDE_FROM_ADDRESSABLES_IF_CHILD_ELEMENT[propertyName]) {
+    return false
   }
 
   return true

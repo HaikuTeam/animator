@@ -788,13 +788,9 @@ Template.substitueSvgUseReferences = (mana) => {
 }
 
 Template.clone = (out, mana) => {
-  // No point continuing if null or false
-  if (!mana) {
-    return mana
-  }
-
-  // The child node might represent text, so a string or number
-  if (typeof mana !== 'object') {
+  // No point continuing if null or false;
+  // it could also be "text": a string or number
+  if (!mana || typeof mana !== 'object') {
     return mana
   }
 

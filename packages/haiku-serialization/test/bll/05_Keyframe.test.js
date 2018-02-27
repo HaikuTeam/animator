@@ -150,24 +150,28 @@ tape('Keyframe.02', (t) => {
   })
 })
 
-// tape('Keyframe.03', (t) => {
-//   t.plan(2)
-//   return setupTest('keyframe-03', (err, ac, rows, done) => {
-//     if (err) throw err
-//     const kfs = rows[0].getKeyframes()
-//     t.equal(kfs.length, 6, 'kfs len ok')
+tape('Keyframe.03', (t) => {
+  t.plan(2)
+  return setupTest('keyframe-03', (err, ac, rows, done) => {
+    if (err) throw err
+    const kfs = rows[0].getKeyframes()
+    t.equal(kfs.length, 6, 'kfs len ok')
 
-//     // I am able to delete a keyframe
-//     ac.on('update', (what, row) => {
-//       if (what !== 'keyframe-delete') return
-//       if (row.isHeading()) return
-//       t.equal(row.getKeyframes().length, 5, 'kfs len ok after delete')
-//     })
-//     rows[0].deleteKeyframe(kfs[2], { from: 'test' })
+    // I am able to delete a keyframe
+    let once = true
+    ac.on('update', (what, row) => {
+      if (what !== 'keyframe-delete') return
+      if (row.isHeading()) return
+      if (once) {
+        once = false
+        t.equal(row.getKeyframes().length, 5, 'kfs len ok after delete')
+      }
+    })
+    rows[0].deleteKeyframe(kfs[2], { from: 'test' })
 
-//     done()
-//   })
-// })
+    done()
+  })
+})
 
 // Please implement the rest of these as unit tests:
 // I am able to create a tween between two keyframes
