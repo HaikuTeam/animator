@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) Haiku 2016-2018. All rights reserved.
+ */
+
 import ReservedWords from './ReservedWords';
 
 const RESERVED_WORDS_ARRAY = Object.keys(ReservedWords.WORDS);
@@ -10,12 +14,7 @@ function charReplacer(c: string): string {
 }
 
 function isInt(value) {
-  return (
-    !isNaN(value) &&
-    /* tslint:disable-next-line */
-    parseInt(Number(value) + '', 10) == value && // `==` is intentional
-    !isNaN(parseInt(value, 10))
-  );
+  return !isNaN(parseInt(value, 10)) && parseInt(value, 10) === parseFloat(value);
 }
 
 /**
