@@ -62,10 +62,10 @@ const STYLES = {
   } as React.CSSProperties,
   toggleLabel: {
     width: 47,
-    display: 'inline-block'
+    display: 'inline-block',
   } as React.CSSProperties,
   toggleActive: {
-    backgroundColor: Color(Palette.LIGHTEST_PINK).fade(.5)
+    backgroundColor: Color(Palette.LIGHTEST_PINK).fade(.5),
   } as React.CSSProperties,
   knob: {
     display: 'inline-block',
