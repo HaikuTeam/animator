@@ -2,6 +2,7 @@ import path from 'path'
 import fse from 'haiku-fs-extra'
 import async from 'async'
 import dedent from 'dedent'
+import { escapeRegExp } from 'lodash'
 import semver from 'semver'
 import moment from 'moment'
 import Bundler from './Bundler'
@@ -102,6 +103,15 @@ function dir () {
   return location
 }
 
+const writeHaikuConfigFile = (projectPath, projectName, projectType = DEFAULT_PROJECT_TYPE) => {
+  fse.outputFileSync(dir(projectPath, HAIKU_CONFIG_FILE), dedent`
+    module.exports = {
+      type: '${projectType}',
+      name: '${Project.getSafeProjectName(projectPath, projectName)}'
+    }
+  `)
+}
+
 export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName, projectType = DEFAULT_PROJECT_TYPE, projectOptions, finish) {
   let looksLikeBrandNewProject = false
 
@@ -113,12 +123,7 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       looksLikeBrandNewProject = true
     }
 
-    fse.outputFileSync(dir(projectPath, HAIKU_CONFIG_FILE), dedent`
-      module.exports = {
-        type: '${projectType}',
-        name: '${Project.getSafeProjectName(projectPath, projectName)}'
-      }
-    `)
+    writeHaikuConfigFile(projectPath, projectName, projectType)
 
     // Reload from the user's config in case they overrode ours
     const projectHaikuConfig = Project.getProjectHaikuConfig(projectPath)
@@ -478,6 +483,18 @@ export function semverBumpPackageJson (projectPath, maybeVersionToBumpTo, cb) {
 
 export function duplicateProject (destinationProject, sourceProject, cb) {
   try {
+    // Create a haiku config file.
+    fse.mkdirpSync(destinationProject.projectPath)
+    writeHaikuConfigFile(destinationProject.projectPath, destinationProject.projectName)
+
+    const sourceVariations = Project.getProjectNameVariations(sourceProject.projectPath)
+    const sourceAssetBasename = path.basename(sourceVariations.primaryAssetPath)
+    const sourceAssetPathPattern = new RegExp(escapeRegExp(sourceAssetBasename), 'g')
+
+    const destinationVariations = Project.getProjectNameVariations(destinationProject.projectPath)
+    const destinationAssetBasename = path.basename(destinationVariations.primaryAssetPath)
+    logger.info(`using ${sourceAssetBasename}, ${destinationAssetBasename}, ${sourceAssetPathPattern}`)
+
     const scenes = fse.readdirSync(path.join(sourceProject.projectPath, 'code'))
     scenes.forEach((sceneName) => {
       const destinationScenePath = path.join(destinationProject.projectPath, 'code', sceneName)
@@ -485,14 +502,14 @@ export function duplicateProject (destinationProject, sourceProject, cb) {
 
       const bytecode = fse.readFileSync(path.join(sourceProject.projectPath, 'code', sceneName, 'code.js'))
         .toString()
-        .replace(`${sourceProject.projectName}.sketch`, `${destinationProject.projectName}.sketch`)
+        .replace(sourceAssetPathPattern, destinationAssetBasename)
       fse.outputFileSync(path.join(destinationScenePath, 'code.js'), bytecode)
     })
 
     const designAssets = fse.readdirSync(path.join(sourceProject.projectPath, 'designs'))
     designAssets.forEach((designAssetName) => {
-      const destinationDesignAsset = designAssetName.startsWith(`${sourceProject.projectName}.sketch`)
-        ? designAssetName.replace(`${sourceProject.projectName}.sketch`, `${destinationProject.projectName}.sketch`)
+      const destinationDesignAsset = designAssetName.startsWith(sourceAssetBasename)
+        ? designAssetName.replace(sourceAssetBasename, destinationAssetBasename)
         : designAssetName
       fse.copySync(
         path.join(sourceProject.projectPath, 'designs', designAssetName),
