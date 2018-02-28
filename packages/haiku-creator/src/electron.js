@@ -149,6 +149,7 @@ function createWindow () {
   // TopMenu global-menu:-prefixed events should delegate to BrowserWindow for event handlers.
   const globalMenuPassthroughs = [
     'check-updates',
+    'show-changelog',
     'export',
     'open-terminal',
     'open-text-editor',

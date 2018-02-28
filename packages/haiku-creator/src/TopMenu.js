@@ -252,6 +252,12 @@ export default class TopMenu extends EventEmitter {
               this.emit('global-menu:start-tour')
             }
           },
+          {
+            label: 'What\'s New',
+            click: () => {
+              this.emit('global-menu:show-changelog')
+            }
+          },
           { type: 'separator' },
           {
             label: 'Terms of Service',
