@@ -14,9 +14,11 @@ export const PROJECT_CHANNEL = 'project';
 export class ProjectHandler implements Project {
 
   constructor() {
-    inkstone.setConfig({
-      baseUrl: process.env.HAIKU_API,
-    });
+    if (process.env.HAIKU_API) {
+      inkstone.setConfig({
+        baseUrl: process.env.HAIKU_API,
+      });
+    }
   }
 
   getProjectDetail(uniqueId: string) : Promise<inkstone.project.Project> {
