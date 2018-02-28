@@ -522,7 +522,7 @@ export namespace inkstone {
 
     export function update(authToken: string, params: ProjectUpdateParams, cb: inkstone.Callback<Project>) {
       const options: requestLib.UrlOptions & requestLib.CoreOptions = {
-        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_CREATE,
+        url: inkstoneConfig.baseUrl + ENDPOINTS.PROJECT_UPDATE,
         headers: _.extend(baseHeaders, {
           Authorization: `INKSTONE auth_token="${authToken}"`,
         }),
