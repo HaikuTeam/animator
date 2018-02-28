@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as assign from 'lodash.assign';
+import * as Color from 'color';
 import Palette from '../../Palette';
 import {LinkHolster} from './LinkHolster';
 
@@ -59,11 +60,18 @@ const STYLES = {
     marginTop: 10,
     marginLeft: 10,
   } as React.CSSProperties,
+  toggleLabel: {
+    width: 47,
+    display: 'inline-block'
+  } as React.CSSProperties,
+  toggleActive: {
+    backgroundColor: Color(Palette.LIGHTEST_PINK).fade(.5)
+  } as React.CSSProperties,
   knob: {
     display: 'inline-block',
     position: 'absolute',
     top: 0,
-    right: 0,
+    left: 0,
     width: 16,
     height: 16,
     borderRadius: 16,
@@ -72,7 +80,7 @@ const STYLES = {
   } as React.CSSProperties,
   knobActive: {
     backgroundColor: Palette.LIGHTEST_PINK,
-    transform: 'translateX(-18px)',
+    transform: 'translateX(18px)',
   },
   disabledToggle: {
     opacity: .5,
@@ -115,16 +123,18 @@ export class ProjectShareDetails extends React.PureComponent {
           ) : (
             <p style={{height: 16, ...STYLES.info}} />
           )}
-          
+
           <span
             style={assign({}, {...STYLES.info, ...STYLES.infoSpecial2})} >
-            <span id="public-private-label" style={this.props.isDisabled ? STYLES.disabledToggle : {}}>
+            <span
+              id="public-private-label"
+              style={this.props.isDisabled ? STYLES.disabledToggle : STYLES.toggleLabel}>
               {this.props.isPublic ? 'Public' : 'Private'}
             </span>
-            
-           
           </span>
-          <span style={STYLES.toggle} onClick={() => {!this.props.isDisabled && togglePublic();}}>
+          <span
+            style={assign({}, {...STYLES.toggle, ...(isPublic && STYLES.toggleActive)})}
+            onClick={() => {!this.props.isDisabled && togglePublic();}}>
               <span style={assign({}, {...STYLES.knob, ...(isPublic && STYLES.knobActive)})}/>
           </span>
         </div>
