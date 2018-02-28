@@ -4,13 +4,16 @@ const fse = require('haiku-fs-extra')
 const cp = require('child_process')
 const path = require('path')
 const lodash = require('lodash')
+const Project = require('haiku-serialization/src/bll/Project')
 const {randomString} = require('@haiku/core/lib/helpers/StringUtils')
 const TestHelpers = require('./../TestHelpers')
 
+let initialShareInfo
+
 tape('Plumbing', (t) => {
   TestHelpers.launch((plumbing, _, teardown) => {
-    const projectName = 'TestProject' + randomString(9)
-    const duplicateProjectName = `${projectName}Copy`
+    const projectName = 'TestProject' + randomString(20)
+    const duplicateProjectName = 'TestProject' + randomString(20)
     return async.waterfall([
       (cb) => {
         return plumbing.authenticateUser('matthew+matthew@haiku.ai', 'supersecure', (err, resp) => {
@@ -101,6 +104,14 @@ tape('Plumbing', (t) => {
         })
       },
       (project, cb) => {
+        // Write out multiple dummy references to the primary asset path of the Sketch asset to verify all are changed.
+        const sourceBytecodePath = path.join(project.projectPath, 'code', 'main', 'code.js')
+        const sourceBytecode = fse.readFileSync(sourceBytecodePath)
+        const {primaryAssetPath} = Project.getProjectNameVariations(project.projectPath)
+        fse.writeFileSync(sourceBytecodePath, `${sourceBytecode}
+var primaryAssetPath =     '${primaryAssetPath}'
+var alsoPrimaryAssetPath = '${primaryAssetPath}'
+`)
         // Make a duplicate and verify it has the expected contents.
         return plumbing.createProject(duplicateProjectName, (err, duplicateProject) => {
           t.error(err, 'no err creating')
@@ -110,13 +121,29 @@ tape('Plumbing', (t) => {
           t.equal(duplicateProject.projectName, duplicateProjectName, 'proj obj has good format')
           project.projectExistsLocally = true
           plumbing.duplicateProject(duplicateProject, project, () => {
+            const sourceBytecode = fse.readFileSync(sourceBytecodePath).toString()
+            const destinationBytecode = fse.readFileSync(
+              path.join(duplicateProject.projectPath, 'code', 'main', 'code.js')
+            ).toString()
+            const newPrimaryAssetPath = primaryAssetPath.replace(
+              project.projectName.slice(0, 20),
+              duplicateProject.projectName.slice(0, 20)
+            )
+            t.notEqual(primaryAssetPath, newPrimaryAssetPath, 'renamed sketched file has different name')
+            t.true(sourceBytecode.includes(primaryAssetPath), 'source bytecode includes stubbed in primary asset path')
+            t.true(
+              destinationBytecode.includes(newPrimaryAssetPath),
+              'destination bytecode includes renamed primary asset'
+            )
             t.equal(
-              fse.readFileSync(path.join(project.projectPath, 'code', 'main', 'code.js')).toString(),
-              fse.readFileSync(path.join(duplicateProject.projectPath, 'code', 'main', 'code.js')).toString(),
-              'duplicated project has the same bytecode'
+              sourceBytecode.split(primaryAssetPath).join(newPrimaryAssetPath),
+              destinationBytecode,
+              'bytecode is identical except for renamed primary asset'
             )
             t.ok(
-              fse.existsSync(path.join(duplicateProject.projectPath, 'designs', `${duplicateProjectName}.sketch`)),
+              fse.existsSync(
+                path.join(duplicateProject.projectPath, newPrimaryAssetPath)
+              ),
               'duplicated project has renamed default Sketch file'
             )
             return cb(null, project, duplicateProject)
