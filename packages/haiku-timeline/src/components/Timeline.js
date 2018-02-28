@@ -22,7 +22,7 @@ import GaugeTimeReadout from './GaugeTimeReadout'
 import TimelineRangeScrollbar from './TimelineRangeScrollbar'
 import HorzScrollShadow from './HorzScrollShadow'
 import {InteractionMode, isPreviewMode} from '@haiku/core/lib/helpers/interactionModes'
-import { USER_CHANNEL } from 'haiku-sdk-creator/lib/bll/User'
+import { USER_CHANNEL, UserSettings } from 'haiku-sdk-creator/lib/bll/User'
 
 const Globals = require('haiku-ui-common/lib/Globals').default // Sorry, hack
 
@@ -392,12 +392,12 @@ class Timeline extends React.Component {
       this.project.getEnvoyClient().get(USER_CHANNEL).then(
         (user) => {
           this.user = user
-          user.getConfig('timeDisplayModes').then(
+          user.getConfig(UserSettings.timeDisplayModes).then(
             (timeDisplayModes) => {
               if (timeDisplayModes && timeDisplayModes[this.project.getFolder()]) {
                 this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(timeDisplayModes[this.project.getFolder()])
               } else {
-                user.getConfig('defaultTimeDisplayMode').then((defaultTimeDisplayMode) => {
+                user.getConfig(UserSettings.defaultTimeDisplayMode).then((defaultTimeDisplayMode) => {
                   defaultTimeDisplayMode && this.getActiveComponent().getCurrentTimeline().setTimeDisplayMode(defaultTimeDisplayMode)
                 })
               }
@@ -647,16 +647,16 @@ class Timeline extends React.Component {
     const mode = this.getActiveComponent().getCurrentTimeline().getTimeDisplayMode()
 
     if (!this.project.getEnvoyClient().isInMockMode()) {
-      this.user.getConfig('timeDisplayModes').then(
+      this.user.getConfig(UserSettings.timeDisplayModes).then(
         (timeDisplayModes) => {
           this.user.setConfig(
-            'timeDisplayModes',
+            UserSettings.timeDisplayModes,
             {
               ...timeDisplayModes,
               [this.project.getFolder()]: mode
             }
           )
-          this.user.setConfig('defaultTimeDisplayMode', mode)
+          this.user.setConfig(UserSettings.defaultTimeDisplayMode, mode)
         }
       )
     }

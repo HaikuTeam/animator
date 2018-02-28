@@ -15,7 +15,8 @@ function _getFileContents(): any {
   if (!fs.existsSync(REGISTRY_PATH)) {
     fs.writeFileSync(REGISTRY_PATH, '{}');
   }
-  return JSON.parse(fs.readFileSync(REGISTRY_PATH).toString());
+
+  return JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf8'));
 }
 
 function _setFileContents(contents: any) {
