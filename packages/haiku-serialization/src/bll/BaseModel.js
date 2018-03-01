@@ -188,10 +188,8 @@ class BaseModel extends EventEmitter {
     return this
   }
 
-  didUpdateSinceLastCheck () {
-    const answer = this.__checked < this.__updated
-    this.__checked = Date.now()
-    return answer
+  getUpdateTimestamp () {
+    return this.__updated
   }
 
   getClassName () {

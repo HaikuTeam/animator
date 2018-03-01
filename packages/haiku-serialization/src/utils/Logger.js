@@ -1,6 +1,5 @@
 var path = require('path')
 var winston = require('winston')
-var lodash = require('lodash')
 
 var DEFAULTS = {
   colorize: false,
@@ -13,7 +12,7 @@ var DEFAULTS = {
 }
 
 module.exports = function _loggerConstructor (folder, filepath, options) {
-  var config = lodash.assign({}, DEFAULTS, options)
+  var config = Object.assign({}, DEFAULTS, options)
 
   var transports = []
 

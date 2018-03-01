@@ -58,9 +58,14 @@ class EventHandlerEditor extends React.PureComponent {
    * 2- Instantiating a HandlerManager
    */
   shouldComponentUpdate ({element, visible, options}, {editorsWithErrors}) {
-    if (element && get(this.props, 'element.uid') !== get(element, 'uid')) {
-      this.handlerManager = new HandlerManager(element)
-      return true
+    if (element) {
+      if (
+        this.props && this.props.element &&
+        this.props.element.getPrimaryKey() !== element.getPrimaryKey()
+      ) {
+        this.handlerManager = new HandlerManager(element)
+        return true
+      }
     }
 
     if (

@@ -53,9 +53,7 @@ const METHODS_TO_SKIP_IN_SENTRY = {
   setTimelineTime: true,
   doesProjectHaveUnsavedChanges: true,
   masterHeartbeat: true,
-  applyPropertyGroupDelta: true,
   applyPropertyGroupValue: true,
-  moveSegmentEndpoints: true,
   moveKeyframes: true,
   toggleDevTools: true,
   requestSyndicationInfo: true
@@ -1070,14 +1068,6 @@ export default class Plumbing extends StateObject {
     return this.awaitMasterAndCallMethod(folder, 'unlinkAsset', [assetRelpath, { from: 'master' }], cb)
   }
 
-  gitUndo (folder, undoOptions, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'gitUndo', [undoOptions, { from: 'master' }], cb)
-  }
-
-  gitRedo (folder, redoOptions, cb) {
-    return this.awaitMasterAndCallMethod(folder, 'gitRedo', [redoOptions, { from: 'master' }], cb)
-  }
-
   readAllStateValues (folder, relpath, cb) {
     return this.awaitMasterAndCallMethod(folder, 'readAllStateValues', [relpath, { from: 'master' }], cb)
   }
@@ -1090,9 +1080,7 @@ export default class Plumbing extends StateObject {
     // Params always arrive with the folder as the first argument, so we strip that off
     params = params.slice(1)
 
-    // Start with glass, since we depend on its handling of insantiateComponent to function correctly
-    const asyncMethod = experimentIsEnabled(Experiment.AsyncClientActions) ? 'each' : 'eachSeries'
-    return async[asyncMethod]([Q_GLASS, Q_TIMELINE, Q_CREATOR, Q_MASTER], (clientSpec, nextStep) => {
+    return async.eachSeries([Q_GLASS, Q_TIMELINE, Q_CREATOR, Q_MASTER], (clientSpec, nextStep) => {
       if (clientSpec.alias === alias) {
         // Don't send methods that originated with ourself
         return nextStep()
@@ -1105,22 +1093,7 @@ export default class Plumbing extends StateObject {
         return this.awaitMasterAndCallMethod(folder, method, params.concat({ from: alias }), nextStep)
       }
 
-      return this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params.concat({ from: alias }), (err, maybeOutput) => {
-        if (err) return nextStep(err)
-
-        // HACK: Stupidly we have to rely on glass to tell us where to position the element based on the
-        // offset of the artboard. So in this one case we have the glass transmit a return value that
-        // we read and then use as the payload to the next actions in this pipeline
-        if (method === 'instantiateComponent' && clientSpec.alias === 'glass') {
-          if (maybeOutput && maybeOutput.center) {
-            // Called 'posdata' in the ActiveComponent method as the second arg.
-            // The third arg is the more open-ended 'metadata' (API change from May 10)
-            params[2] = maybeOutput.center
-          }
-        }
-
-        return nextStep()
-      })
+      return this.sendQueriedClientMethod(lodash.assign({folder}, clientSpec), method, params.concat({ from: alias }), nextStep)
     }, (err) => {
       return logAndHandleActionResult(err, cb, method, type, alias)
     })

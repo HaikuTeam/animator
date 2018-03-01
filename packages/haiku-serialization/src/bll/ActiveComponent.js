@@ -17,16 +17,29 @@ const getDefinedKeys = require('./helpers/getDefinedKeys')
 const toTitleCase = require('./helpers/toTitleCase')
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const Lock = require('./Lock')
+const BytecodeActions = require('haiku-bytecode/src/actions')
+const getPropertyValue = require('haiku-bytecode/src/getPropertyValue')
+const upsertPropertyValue = require('haiku-bytecode/src/upsertPropertyValue')
+const getStackingInfo = require('haiku-bytecode/src/getStackingInfo')
+const writeMetadata = require('haiku-bytecode/src/writeMetadata')
 
 const KEYFRAME_MOVE_DEBOUNCE_TIME = 500
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const DEFAULT_SCENE_NAME = 'main' // e.g. code/main/*
 const DEFAULT_INTERACTION_MODE = InteractionMode.EDIT
+const DEFAULT_TIMELINE_NAME = 'Default'
+const DEFAULT_TIMELINE_TIME = 0
+const MAX_UNDOABLES_LEN = 50
+
+const DOABILITIES = {
+  undo: 'undo',
+  redo: 'redo'
+}
 
 /**
  * @class ActiveComponent
- * @description
+ * @descriptionx
  *.  Encapsulates and consolidates code to edit a live in-stage component.
  *.  TODO: This should just be called 'Component' or 'LiveComponent' or something, with
  *.  only one of them being "active" at a certain point in time.
@@ -73,6 +86,12 @@ class ActiveComponent extends BaseModel {
       this.emit('update', what, this.artboard)
     })
 
+    this.marquee = SelectionMarquee.upsert({
+      uid: this.getPrimaryKey(),
+      component: this,
+      artboard: this.artboard
+    })
+
     this.project.addActiveComponentToRegistry(this)
 
     // Used to control how we render in an editing environment, e.g. preview mode
@@ -83,19 +102,16 @@ class ActiveComponent extends BaseModel {
       type: File.TYPES.code
     })
 
-    Element.on('element:copy', (element) => {
-      if (element.component === this) {
-        this.emit('element:copy', element)
-      }
-    })
-
     Element.on('update', (element, what, metadata) => {
       if (element.component === this) {
         if (what === 'element-selected') {
           this.handleElementSelected(element.getComponentId(), metadata)
         } else if (what === 'element-unselected') {
           this.handleElementUnselected(element.getComponentId(), metadata)
-        } else if (what === 'jit-property-added' || what === 'jit-property-removed') {
+        } else if (
+          what === 'jit-property-added' ||
+          what === 'jit-property-removed'
+        ) {
           this.reload({ hardReload: true }, {}, () => {})
         }
         this.emit('update', what, element, metadata)
@@ -122,6 +138,11 @@ class ActiveComponent extends BaseModel {
       this.keyframeMoveAction.bind(this),
       KEYFRAME_MOVE_DEBOUNCE_TIME
     )
+
+    // Keep track of actions that can be undone/redone
+    this._undoables = []
+    this._redoables = []
+    this._doability = DOABILITIES.undo
   }
 
   findElementRoots () {
@@ -144,6 +165,31 @@ class ActiveComponent extends BaseModel {
 
   findElementByComponentId (haikuId) {
     return Element.findByComponentAndHaikuId(this, haikuId)
+  }
+
+  findTemplateNodeByComponentId (mana, componentId) {
+    let foundNode
+
+    if (mana.attributes && mana.attributes[HAIKU_ID_ATTRIBUTE] === componentId) {
+      return mana
+    }
+
+    if (mana && Array.isArray(mana.children)) {
+      for (let i = 0; i < mana.children.length; i++) {
+        const node = mana.children[i]
+
+        if (
+          node &&
+          node.attributes &&
+          node.attributes[HAIKU_ID_ATTRIBUTE] === componentId
+        ) {
+          foundNode = node
+          break
+        }
+      }
+    }
+
+    return foundNode
   }
 
   findElementByUid (uid) {
@@ -276,7 +322,8 @@ class ActiveComponent extends BaseModel {
     this.getActiveInstancesOfHaikuCoreComponent().forEach((instance) => {
       instance.clearCaches(options) // Also clears instance._builder sub-caches
     })
-    this.clearEntityCaches()
+    this.fetchRootElement().cacheClear()
+    this.fetchRootElement().clearEntityCaches()
     return this
   }
 
@@ -458,12 +505,82 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  gitUndo (options, metadata, cb) {
-    return cb()
+  undo (options, metadata, cb) {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      return this.undoActual(options, (err) => {
+        if (err) {
+          release()
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
+          return cb(err)
+        }
+
+        return this.reload({ hardReload: true }, null, () => {
+          release()
+          this.project.updateHook('undo', this.getSceneCodeRelpath(), options, metadata)
+          return cb()
+        })
+      })
+    })
   }
 
-  gitRedo (options, metadata, cb) {
-    return cb()
+  undoActual (options, cb) {
+    return Lock.request(Lock.LOCKS.FileUndoRedo, (release) => {
+      if (this.getUndoables().length < 1) {
+        release()
+        return cb()
+      }
+
+      const { method, params } = this.popUndoable()
+
+      // Specify that the inverse of this method, which originates as an undo,
+      // should be made into a *redoable*
+      this._doability = DOABILITIES.redo
+
+      return this[method].apply(this, params.concat((err, out) => {
+        release()
+
+        // Don't forget to set us back to the default: methods can be undone
+        this._doability = DOABILITIES.undo
+
+        if (err) return cb(err)
+        return cb(null, out)
+      }))
+    })
+  }
+
+  redo (options, metadata, cb) {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      return this.redoActual(options, (err) => {
+        if (err) {
+          release()
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
+          return cb(err)
+        }
+
+        return this.reload({ hardReload: true }, null, () => {
+          release()
+          this.project.updateHook('redo', this.getSceneCodeRelpath(), options, metadata)
+          return cb()
+        })
+      })
+    })
+  }
+
+  redoActual (options, cb) {
+    return Lock.request(Lock.LOCKS.FileUndoRedo, (release) => {
+      if (this.getRedoables().length < 1) {
+        release()
+        return cb()
+      }
+
+      const { method, params } = this.popRedoable()
+
+      return this[method].apply(this, params.concat((err, out) => {
+        release()
+        if (err) return cb(err)
+        return cb(null, out)
+      }))
+    })
   }
 
   isPreviewModeActive () {
@@ -524,7 +641,7 @@ class ActiveComponent extends BaseModel {
       y: (artboardElement && artboardElement.getPropertyValue('translation.y')) || 0
     }
 
-    const points = Element.getBoundingBoxPointsForElements(elements)
+    const points = Element.getBoundingBoxPointsForElementsTransformed(elements)
 
     // Get the sizing and positioning information for the new encapsulating component
     const offsetFromArtboard = points[0] // Translation from artboard 0,0
@@ -597,35 +714,6 @@ class ActiveComponent extends BaseModel {
     return Template.getInsertionPointInfo(template, 0, 0).hash
   }
 
-  /**
-   * @method getInstantiationCoords
-   * @description Given artboard-relative position data, return the x,y coords
-   * where the element would be instantiated within the artboard on our stage,
-   * accounting for the appropriate zoom level and page offset
-   * @param posdata {Object|null} x,y coordinates of instantiation
-   */
-  getInstantiationCoords (posdata) {
-    const coords = {
-      x: 0,
-      y: 0
-    }
-
-    if (posdata.x !== undefined) coords.x = posdata.x
-    if (posdata.y !== undefined) coords.y = posdata.y
-    if (posdata.minimized) coords.minimized = posdata.minimized
-
-    const bounds = this.getMount().getBoundingClientRect()
-    if (bounds) {
-      if (posdata.offsetX) coords.x = posdata.offsetX - bounds.left
-      if (posdata.offsetY) coords.y = posdata.offsetY - bounds.top
-    }
-
-    coords.x *= 1 / this.getArtboard().getZoom()
-    coords.y *= 1 / this.getArtboard().getZoom()
-
-    return coords
-  }
-
   instantiateElement (element, propertyGroupToApply, metadata, cb) {
     const bytecode = element.getQualifiedBytecode()
     return this.instantiateBytecode(bytecode, propertyGroupToApply, metadata, cb)
@@ -636,7 +724,7 @@ class ActiveComponent extends BaseModel {
     const timelineTime = this.getInstantiationTimelineTime()
     let componentId
 
-    return this.fetchActiveBytecodeFile().performComponentWork((existingBytecode, existingTemplate, done) => {
+    return this.performComponentWork((existingBytecode, existingTemplate, done) => {
       const {
         hash
       } = Template.getInsertionPointInfo(existingTemplate, existingTemplate.children.length, 0)
@@ -677,13 +765,8 @@ class ActiveComponent extends BaseModel {
       done()
     }, (err) => {
       if (err) return cb(err)
-
-      return this.zMoveToFront(componentId, timelineName, timelineTime, metadata, (err) => {
-        if (err) return cb(err)
-
-        // Downstream may depend on getting this mana object returned
-        return cb(null, incomingBytecode.template)
-      })
+      // Downstream may depend on getting this mana object returned
+      return cb(null, incomingBytecode.template)
     })
   }
 
@@ -794,7 +877,7 @@ class ActiveComponent extends BaseModel {
     const timelineTime = this.getInstantiationTimelineTime()
     let componentId
 
-    return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
+    return this.performComponentWork((bytecode, template, done) => {
       const {
         hash
       } = Template.getInsertionPointInfo(template, template.children.length, 0)
@@ -823,21 +906,26 @@ class ActiveComponent extends BaseModel {
 
       Bytecode.applyOverrides(overrides, timelinesObject, timelineName, `haiku:${componentId}`, timelineTime)
 
-      template.children.push(mana)
+      // Used to be `.push` but it makes more sense to put at the top of the list,
+      // so that it displays in front of other elements by default and in stacking order
+      template.children.unshift(mana)
 
       mergeTimelineStructure(bytecode, timelinesObject, 'assign')
 
+      const doable = {
+        method: 'deleteComponent',
+        params: [
+          componentId,
+          metadata
+        ]
+      }
+
       // Unlock performComponent work so zMoveToFront can proceed
-      done()
+      done(null, null, doable)
     }, (err) => {
       if (err) return cb(err)
-
-      return this.zMoveToFront(componentId, timelineName, timelineTime, metadata, (err) => {
-        if (err) return cb(err)
-
-        // Downstream may depend on getting this mana object returned
-        return cb(null, mana)
-      })
+      // Downstream may depend on getting this mana object returned
+      return cb(null, mana)
     })
   }
 
@@ -940,12 +1028,6 @@ class ActiveComponent extends BaseModel {
         'translation.y': (maybeCoords.y || 0) - instantiateeHeight / 2
       }
 
-      if (maybeCoords.minimized) {
-        // calculate the smallest scale value to make width/height < 1 pixel
-        propertyGroup['scale.x'] = 1 / instantiateeWidth
-        propertyGroup['scale.y'] = 1 / instantiateeHeight
-      }
-
       TimelineProperty.addPropertyGroup(
         timelinesObject,
         timelineName,
@@ -962,14 +1044,12 @@ class ActiveComponent extends BaseModel {
    * @description Given a relative path to an instantiable asset (which could be
    * an SVG or a component module, instantiate that component at the given position.
    * @param relpath {String} Relpath to an instantiable asset
-   * @param posdata {Object} Optional position of the instantiatee
+   * @param coords {Object} Optional translation coords of the instantiatee
    * @param metadata {Object} Signal metadata
    * @param cb {Function}
    */
-  instantiateComponent (relpath, posdata, metadata, cb) {
+  instantiateComponent (relpath, coords, metadata, cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
-      const coords = this.getInstantiationCoords(posdata)
-
       // Since there are a few pathways to account for, the callback is defined up here
       const finish = (err, manaForWrapperElement) => {
         if (err) {
@@ -979,19 +1059,17 @@ class ActiveComponent extends BaseModel {
         }
 
         return this.reload({ hardReload: true }, null, () => {
-          release() // Must happen before select element since it uses the same lock
+          release()
 
-          this.selectElement(manaForWrapperElement.attributes[HAIKU_ID_ATTRIBUTE], metadata, () => {
-            this.project.updateHook(
-              'instantiateComponent',
-              this.getSceneCodeRelpath(),
-              relpath,
-              posdata,
-              metadata
-            )
+          this.project.updateHook(
+            'instantiateComponent',
+            this.getSceneCodeRelpath(),
+            relpath,
+            coords,
+            metadata
+          )
 
-            cb(null, { center: coords }, manaForWrapperElement)
-          })
+          return cb(null, manaForWrapperElement)
         })
       }
 
@@ -1045,7 +1123,16 @@ class ActiveComponent extends BaseModel {
 
   deleteComponent (componentId, metadata, cb) {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
-      return this.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
+      return this.performComponentWork((bytecode, mana, done) => {
+        const doable = {
+          method: 'pasteThing',
+          params: [
+            this.findElementByComponentId(componentId).clip(metadata),
+            {}, // request,
+            metadata
+          ]
+        }
+
         Template.visitManaTree(mana, (elementName, attributes, children, node, locator, parent, index) => {
           if (!attributes) return null
           if (!attributes[HAIKU_ID_ATTRIBUTE]) return null
@@ -1061,7 +1148,8 @@ class ActiveComponent extends BaseModel {
             mana.children = []
           }
         })
-        done()
+
+        done(null, null, doable)
       }, (err) => {
         if (err) {
           release()
@@ -1079,7 +1167,7 @@ class ActiveComponent extends BaseModel {
   }
 
   mergePrimitiveWithOverrides (primitive, overrides, cb) {
-    return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
+    return this.performComponentWork((bytecode, template, done) => {
       Template.visit((template), (node) => {
         // Only merge into nodes that match our source design path
         if (node.attributes.source !== primitive.getRequirePath()) {
@@ -1120,7 +1208,10 @@ class ActiveComponent extends BaseModel {
   }
 
   removeChildContentFromBytecode (bytecode, mana) {
-    Template.visit(mana, (node) => {
+    // Return the data that we removed in case we want to retain anything when designs merge
+    const removedOutputs = {}
+
+    Template.visit(mana, (node, parent, index, depth, address) => {
       // Skip the topmost node; that wrapper stays
       if (node === mana) {
         return
@@ -1132,14 +1223,27 @@ class ActiveComponent extends BaseModel {
         return
       }
 
+      removedOutputs[haikuId] = {
+        treeInfo: { index, depth, address },
+        templateNode: node,
+        eventHandlers: {},
+        timelines: {}
+      }
+
       const haikuSelector = `haiku:${haikuId}`
 
       if (bytecode.eventHandlers) {
+        // In case we want to re-set any removed event handlers to new content
+        removedOutputs[haikuId].eventHandlers = bytecode.eventHandlers[haikuSelector]
+
         delete bytecode.eventHandlers[haikuSelector]
       }
 
       if (bytecode.timelines) {
         for (const timelineName in bytecode.timelines) {
+          // In case we want to re-set any removed timelines to new content
+          removedOutputs[haikuId].timelines[timelineName] = bytecode.timelines[timelineName][haikuSelector]
+
           delete bytecode.timelines[timelineName][haikuSelector]
         }
       }
@@ -1147,6 +1251,92 @@ class ActiveComponent extends BaseModel {
 
     // Remove our own children, whose content we just purged
     mana.children.splice(0)
+
+    return removedOutputs
+  }
+
+  findEquivalentNode (node, { index, depth, address }, template) {
+    let foundNode
+
+    const ourDomId = node.attributes && node.attributes.id
+
+    Template.visit(template, (desc, parent, theirIndex, theirDepth, theirAddress) => {
+      // Stop if we've already found a match
+      if (foundNode) return
+
+      const theirDomId = desc.attributes && desc.attributes.id
+
+      // We have a match if the node at the same address matches ours
+      if (
+        address === theirAddress &&
+        node.elementName === desc.elementName &&
+        ourDomId === theirDomId
+      ) {
+        foundNode = desc
+      }
+    })
+
+    return foundNode
+  }
+
+  mergeRemovedOutputs (bytecode, subtemplate, removals) {
+    // Nothing to do if there aren't any timelines to merge into
+    if (!bytecode.timelines) return
+
+    for (const haikuId in removals) {
+      const {
+        treeInfo,
+        templateNode,
+        timelines
+      } = removals[haikuId]
+
+      const equivalent = this.findEquivalentNode(templateNode, treeInfo, subtemplate)
+      if (!equivalent) continue
+
+      const equivalentId = equivalent.attributes && equivalent.attributes[HAIKU_ID_ATTRIBUTE]
+      if (!equivalentId) continue
+
+      // Allows for copying of replaced Element data into their replacements
+      equivalent.__replacee = templateNode
+
+      const equivalentSelector = `haiku:${equivalentId}`
+
+      for (const timelineName in bytecode.timelines) {
+        // Nothing to do if our removal doesn't have the matching timeline
+        if (!timelines[timelineName]) continue
+
+        // And nothing to do if our timeline doesn't have a matching output set
+        if (!bytecode.timelines[timelineName][equivalentSelector]) continue
+
+        for (const propertyName in timelines[timelineName]) {
+          for (const keyframeMs in timelines[timelineName][propertyName]) {
+            const sourceObj = timelines[timelineName][propertyName][keyframeMs]
+
+            // Don't merge unless our source object has been explicitly edited
+            if (!sourceObj.edited) continue
+
+            // Create the keyframes set if it doesn't exist
+            if (!bytecode.timelines[timelineName][equivalentSelector][propertyName]) {
+              bytecode.timelines[timelineName][equivalentSelector][propertyName] = {}
+            }
+
+            // Create the values object if it doesn't exist
+            if (!bytecode.timelines[timelineName][equivalentSelector][propertyName][keyframeMs]) {
+              bytecode.timelines[timelineName][equivalentSelector][propertyName][keyframeMs] = {}
+            }
+
+            const targetObj = bytecode.timelines[timelineName][equivalentSelector][propertyName][keyframeMs]
+
+            // Attach any values from source (old) onto the target (new)
+            if (sourceObj.curve) targetObj.curve = sourceObj.curve
+            if (sourceObj.value !== undefined) targetObj.value = sourceObj.value
+
+            // Don't forget to mark the target (new) as edited so subsequent merges work
+            targetObj.edited = true
+          }
+        }
+      }
+    }
   }
 
   mergeMana (existingBytecode, manaIncoming) {
@@ -1163,7 +1353,7 @@ class ActiveComponent extends BaseModel {
 
       const safeIncoming = Template.clone({}, manaIncoming)
 
-      this.removeChildContentFromBytecode(existingBytecode, existingNode)
+      const removedOutputs = this.removeChildContentFromBytecode(existingBytecode, existingNode)
 
       const {
         hash
@@ -1189,11 +1379,13 @@ class ActiveComponent extends BaseModel {
       }
 
       mergeTimelineStructure(existingBytecode, timelinesObject, 'assign')
+
+      this.mergeRemovedOutputs(existingBytecode, existingNode, removedOutputs)
     })
   }
 
   mergeDesignFiles (designs, cb) {
-    return this.fetchActiveBytecodeFile().performComponentWork((bytecode, template, done) => {
+    return this.performComponentWork((bytecode, template, done) => {
       // Ensure order is the same across processes otherwise we'll end up with different insertion point hashes
       const designsAsArray = Object.keys(designs).sort((a, b) => {
         if (a < b) return -1
@@ -1269,408 +1461,6 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  applyPropertyGroupValue (componentId, timelineName, timelineTime, propertyGroup, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
-      this.fetchActiveBytecodeFile().applyPropertyGroupValue(componentId, timelineName, timelineTime, propertyGroup, (err) => {
-        if (err) {
-          release()
-          logger.error(`[active component (${this.project.getAlias()})]`, err)
-          return cb(err)
-        }
-
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-          release()
-          if (this.project.isLocalUpdate(metadata)) {
-            this.batchPropertyGroupUpdate(componentId, this.getCurrentTimelineName(), this.getCurrentTimelineTime(), getDefinedKeys(propertyGroup))
-          }
-          return cb()
-        })
-      })
-    })
-  }
-
-  applyPropertyGroupDelta (componentId, timelineName, timelineTime, propertyGroup, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
-      this.fetchActiveBytecodeFile().applyPropertyGroupDelta(componentId, timelineName, timelineTime, propertyGroup, (err) => {
-        if (err) {
-          release()
-          logger.error(`[active component (${this.project.getAlias()})]`, err)
-          return cb(err)
-        }
-
-        this.reload({
-          hardReload: this.project.isRemoteRequest(metadata),
-          // If we're doing rotation, then we really *really* need to make sure we do a full flush.
-          // In production mode, rotation is handled normally, but as we do live editing, we lose
-          // 'determinism' on rotation if we update the property piecemeal, because the quaternion
-          // calc depends on passing in and mutating the previous output. This is a bug we should
-          // try to address better in the future, but for now, this seems an 'all right' way to fix.
-          onlyForceFlushIf: Property.doesPropertyGroupContainRotation(propertyGroup),
-          clearCacheOptions: {
-            clearStates: false,
-            clearEventHandlers: false,
-            clearOnlySpecificProperties: {
-              componentId: componentId,
-              timelineName: timelineName,
-              timelineTime: timelineTime,
-              propertyKeys: getDefinedKeys(propertyGroup)
-            }
-          }
-        }, null, () => {
-          release()
-          if (this.project.isLocalUpdate(metadata)) {
-            this.batchPropertyGroupUpdate(componentId, this.getCurrentTimelineName(), this.getCurrentTimelineTime(), getDefinedKeys(propertyGroup))
-          }
-          return cb()
-        })
-      })
-    })
-  }
-
-  getContextSize () {
-    const file = this.fetchActiveBytecodeFile()
-    // In case of race where file isn't ready yet
-    if (file) {
-      return file.getContextSize(this.getCurrentTimelineName(), this.getCurrentTimelineTime())
-    }
-    return { width: 1, height: 1 }
-  }
-
-  resizeContext (artboardId, timelineName, timelineTime, sizeDescriptor, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
-      this.fetchActiveBytecodeFile().resizeContext(artboardId, timelineName, timelineTime, sizeDescriptor, (err) => {
-        if (err) {
-          release()
-          logger.error(`[active component (${this.project.getAlias()})]`, err)
-          return cb(err)
-        }
-
-        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-          release()
-          this.project.emitHook('resizeContext', this.getSceneCodeRelpath(), artboardId, timelineName, timelineTime, sizeDescriptor, metadata)
-          if (this.project.isLocalUpdate(metadata)) {
-            this.batchPropertyGroupUpdate(artboardId, timelineName, timelineTime, ['sizeAbsolute.x', 'sizeAbsolute.y'])
-          }
-          return cb()
-        })
-      })
-    })
-  }
-
-  changePlaybackSpeed (framesPerSecond, metadata, cb) {
-    return this.fetchActiveBytecodeFile().changePlaybackSpeed(framesPerSecond, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('changePlaybackSpeed', this.getSceneCodeRelpath(), framesPerSecond, metadata)
-        return cb()
-      })
-    })
-  }
-
-  changeKeyframeValue (componentId, timelineName, propertyName, keyframeMs, newValue, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    return this.fetchActiveBytecodeFile().changeKeyframeValue(componentId, timelineName, propertyName, keyframeMs, newValue, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('changeKeyframeValue', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMs, newValue, metadata)
-        return cb()
-      })
-    })
-  }
-
-  joinKeyframes (componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    return this.fetchActiveBytecodeFile().joinKeyframes(componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('joinKeyframes', this.getSceneCodeRelpath(), componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, expressionToRO(newCurve), metadata)
-        return cb()
-      })
-    })
-  }
-
-  changeSegmentCurve (componentId, timelineName, propertyName, keyframeMs, newCurve, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    return this.fetchActiveBytecodeFile().changeSegmentCurve(componentId, timelineName, propertyName, keyframeMs, newCurve, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('changeSegmentCurve', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMs, expressionToRO(newCurve), metadata)
-        return cb()
-      })
-    })
-  }
-
-  changeSegmentEndpoints (componentId, timelineName, propertyName, oldMs, newMs, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    return this.fetchActiveBytecodeFile().changeSegmentEndpoints(componentId, timelineName, propertyName, oldMs, newMs, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('changeSegmentEndpoints', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, oldMs, newMs, metadata)
-        return cb()
-      })
-    })
-  }
-
-  createKeyframe (componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    return this.fetchActiveBytecodeFile().createKeyframe(componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('createKeyframe', this.getSceneCodeRelpath(), componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata)
-        return cb()
-      })
-    })
-  }
-
-  deleteKeyframe (componentId, timelineName, propertyName, keyframeMs, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    return this.fetchActiveBytecodeFile().deleteKeyframe(componentId, timelineName, propertyName, keyframeMs, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('deleteKeyframe', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMs, metadata)
-        return cb()
-      })
-    })
-  }
-
-  createTimeline (timelineName, timelineDescriptor, metadata, cb) {
-    return this.fetchActiveBytecodeFile().createTimeline(timelineName, timelineDescriptor, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('createTimeline', this.getSceneCodeRelpath(), timelineName, timelineDescriptor, metadata)
-        return cb()
-      })
-    })
-  }
-
-  deleteTimeline (timelineName, metadata, cb) {
-    return this.fetchActiveBytecodeFile().deleteTimeline(timelineName, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('deleteTimeline', this.getSceneCodeRelpath(), timelineName, metadata)
-        return cb()
-      })
-    })
-  }
-
-  duplicateTimeline (timelineName, metadata, cb) {
-    return this.fetchActiveBytecodeFile().duplicateTimeline(timelineName, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('duplicateTimeline', this.getSceneCodeRelpath(), timelineName, metadata)
-        return cb()
-      })
-    })
-  }
-
-  renameTimeline (timelineNameOld, timelineNameNew, metadata, cb) {
-    return this.fetchActiveBytecodeFile().renameTimeline(timelineNameOld, timelineNameNew, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('renameTimeline', this.getSceneCodeRelpath(), timelineNameOld, timelineNameNew, metadata)
-        return cb()
-      })
-    })
-  }
-
-  moveSegmentEndpoints (componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    return this.fetchActiveBytecodeFile().moveSegmentEndpoints(componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('moveSegmentEndpoints', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, handle, keyframeIndex, startMs, endMs, frameInfo, metadata)
-        return cb()
-      })
-    })
-  }
-
-  moveKeyframes (componentId, timelineName, propertyName, keyframeMoves, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    return this.fetchActiveBytecodeFile().moveKeyframes(componentId, timelineName, propertyName, keyframeMoves, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('moveKeyframes', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMoves, metadata)
-        return cb()
-      })
-    })
-  }
-
-  sliceSegment (componentId, timelineName, elementName, propertyName, keyframeMs, sliceMs, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    return this.fetchActiveBytecodeFile().sliceSegment(componentId, timelineName, elementName, propertyName, keyframeMs, sliceMs, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('sliceSegment', this.getSceneCodeRelpath(), componentId, timelineName, elementName, propertyName, keyframeMs, sliceMs, metadata)
-        return cb()
-      })
-    })
-  }
-
-  splitSegment (componentId, timelineName, elementName, propertyName, keyframeMs, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    return this.fetchActiveBytecodeFile().splitSegment(componentId, timelineName, elementName, propertyName, keyframeMs, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('splitSegment', this.getSceneCodeRelpath(), componentId, timelineName, elementName, propertyName, keyframeMs, metadata)
-        return cb()
-      })
-    })
-  }
-
-  zMoveToFront (componentId, timelineName, timelineTime, metadata, cb) {
-    this.fetchActiveBytecodeFile().zMoveToFront(componentId, timelineName, timelineTime, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('zMoveToFront', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, metadata)
-        return cb()
-      })
-    })
-  }
-
-  zMoveForward (componentId, timelineName, timelineTime, metadata, cb) {
-    this.fetchActiveBytecodeFile().zMoveForward(componentId, timelineName, timelineTime, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('zMoveForward', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, metadata)
-        return cb()
-      })
-    })
-  }
-
-  zMoveBackward (componentId, timelineName, timelineTime, metadata, cb) {
-    this.fetchActiveBytecodeFile().zMoveBackward(componentId, timelineName, timelineTime, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('zMoveBackward', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, metadata)
-        return cb()
-      })
-    })
-  }
-
-  zMoveToBack (componentId, timelineName, timelineTime, metadata, cb) {
-    this.fetchActiveBytecodeFile().zMoveToBack(componentId, timelineName, timelineTime, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('zMoveToBack', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, metadata)
-        return cb()
-      })
-    })
-  }
-
-  reorderElement (componentId, componentIdToInsertBefore, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    this.fetchActiveBytecodeFile().reorderElement(componentId, componentIdToInsertBefore, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('reorderElement', this.getSceneCodeRelpath(), componentId, componentIdToInsertBefore, metadata)
-        return cb()
-      })
-    })
-  }
-
-  groupElements (groupSpec, metadata, cb) {
-    return cb() // Not yet implemented
-  }
-
-  ungroupElements (ungroupSpec, metadata, cb) {
-    return cb() // Not yet implemented
-  }
-
-  hideElements (componentId, metadata, cb) {
-    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
-    this.fetchActiveBytecodeFile().hideElements(componentId, metadata, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('hideElements', this.getSceneCodeRelpath(), componentId, metadata)
-        return cb()
-      })
-    })
-  }
-
   /**
    * @method pasteThing
    * @description Flexibly paste some content into the component. Usually the thing pasted is going to be a
@@ -1683,7 +1473,7 @@ class ActiveComponent extends BaseModel {
     return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
       let newHaikuId = ''
 
-      return this.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
+      return this.performComponentWork((bytecode, mana, done) => {
         switch (pasteable.kind) {
           case 'bytecode':
             // As usual, we use a hash rather than randomness because of multithreading
@@ -1707,7 +1497,15 @@ class ActiveComponent extends BaseModel {
 
             logger.info(`[active component (${this.project.getAlias()})] pastee (bytecode) ${newHaikuId} via ${hash}`)
 
-            return done(null, {haikuId: newHaikuId})
+            const doable = {
+              method: 'deleteComponent',
+              params: [
+                newHaikuId,
+                metadata
+              ]
+            }
+
+            return done(null, {haikuId: newHaikuId}, doable)
           default:
             logger.warn(`[active component (${this.project.getAlias()})] cannot paste clipboard contents of kind ` + pasteable.kind)
             return done(new Error('Unable to paste clipboard contents'))
@@ -1726,136 +1524,6 @@ class ActiveComponent extends BaseModel {
 
           return cb(null, data)
         })
-      })
-    })
-  }
-
-  /**
-   * @method deleteThing
-   * @description Flexibly delete some content. Usually the thing deleted is going to be a
-   * component, but this could theoretically handle any kind of 'deleteable' content.
-   * @param deleteable {Object} - Content of the thing to delete into the component.
-   * @param metadata {Object}
-   */
-  deleteThing (deletable, metadata, cb) {
-    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
-      return this.fetchActiveBytecodeFile().deleteThing(deletable, (err) => {
-        if (err) {
-          logger.error(`[active component (${this.project.getAlias()})]`, err)
-          return cb(err)
-        }
-
-        return this.reload({ hardReload: true }, null, () => {
-          this.project.updateHook('deleteThing', this.getSceneCodeRelpath(), deletable, metadata)
-          return cb()
-        })
-      })
-    })
-  }
-
-  /**
-   * @method upsertStateValue
-   */
-  upsertStateValue (stateName, stateDescriptor, metadata, cb) {
-    stateDescriptor.edited = true
-    return this.fetchActiveBytecodeFile().upsertStateValue(stateName, stateDescriptor, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('upsertStateValue', this.getSceneCodeRelpath(), stateName, stateDescriptor, metadata)
-        return cb()
-      })
-    })
-  }
-
-  /**
-   * @method deleteStateValue
-   */
-  deleteStateValue (stateName, metadata, cb) {
-    return this.fetchActiveBytecodeFile().deleteStateValue(stateName, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
-        this.project.updateHook('deleteStateValue', this.getSceneCodeRelpath(), stateName, metadata)
-        return cb()
-      })
-    })
-  }
-
-  /**
-   * @method upsertEventHandler
-   */
-  upsertEventHandler (selectorName, eventName, handlerDescriptor, metadata, cb) {
-    handlerDescriptor.edited = true
-    return this.fetchActiveBytecodeFile().upsertEventHandler(selectorName, eventName, handlerDescriptor, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({
-        hardReload: this.project.isRemoteRequest(metadata),
-        clearCacheOptions: {
-          clearPreviouslyRegisteredEventListeners: true
-        }
-      }, null, () => {
-        this.project.updateHook('upsertEventHandler', this.getSceneCodeRelpath(), selectorName, eventName, handlerDescriptor, metadata)
-        return cb()
-      })
-    })
-  }
-
-  /**
-   * @method batchUpsertEventHandlers
-   */
-  batchUpsertEventHandlers (selectorName, serializedEvents, metadata, cb) {
-    return this.fetchActiveBytecodeFile().batchUpsertEventHandlers(selectorName, serializedEvents, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({
-        hardReload: this.project.isRemoteRequest(metadata),
-        clearCacheOptions: {
-          clearPreviouslyRegisteredEventListeners: true
-        }
-      }, null, () => {
-        this.project.updateHook('batchUpsertEventHandlers', this.getSceneCodeRelpath(), selectorName, serializedEvents, metadata)
-
-        this.project.broadcastPayload({
-          name: 'event-handlers-updated'
-        })
-
-        return cb()
-      })
-    })
-  }
-
-  /**
-   * @method deleteEventHandler
-   */
-  deleteEventHandler (selectorName, eventName, metadata, cb) {
-    return this.fetchActiveBytecodeFile().deleteEventHandler(selectorName, eventName, (err) => {
-      if (err) {
-        logger.error(`[active component (${this.project.getAlias()})]`, err)
-        return cb(err)
-      }
-
-      return this.reload({
-        hardReload: this.project.isRemoteRequest(metadata),
-        clearCacheOptions: {
-          clearPreviouslyRegisteredEventListeners: true
-        }
-      }, null, () => {
-        this.project.updateHook('deleteEventHandler', this.getSceneCodeRelpath(), selectorName, eventName, metadata)
-        return cb()
       })
     })
   }
@@ -1963,26 +1631,16 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  /**
-   * @method readAllEventHandlers
-   */
-  readAllEventHandlers (metadata, cb) {
-    return this.fetchActiveBytecodeFile().readAllEventHandlers(cb)
-  }
-
-  /**
-   * @method readAllStateValues
-   */
-  readAllStateValues (metadata, cb) {
-    return this.fetchActiveBytecodeFile().readAllStateValues(cb)
-  }
-
   getMount () {
     return this.mount
   }
 
   getArtboard () {
     return this.artboard
+  }
+
+  getSelectionMarquee () {
+    return this.marquee
   }
 
   /** ------------ */
@@ -2151,11 +1809,6 @@ class ActiveComponent extends BaseModel {
     // Make sure we get notified of state updates and everything else we care about
     createdHaikuCoreComponent._doesEmitEventsVerbosely = true
 
-    // Update a bunch of pointers necessary for the bytecode file to work propertly
-    const bytecodeFile = this.fetchActiveBytecodeFile()
-    bytecodeFile.setHostInstance(createdHaikuCoreComponent)
-    bytecodeFile.hostInstance = createdHaikuCoreComponent
-
     return createdHaikuCoreComponent
   }
 
@@ -2238,9 +1891,7 @@ class ActiveComponent extends BaseModel {
     return async.eachSeries(activeComponents, (activeComponent, next) => {
       // Just in case one of ourselves is nested inside us, avoid an infinite loop
       if (activeComponent === this) return next()
-      return activeComponent.reload(
-        Object.assign({ hardReload: false, skipReloadLock: true }, reloadOptions), null, next
-      )
+      return activeComponent.reload(Object.assign({ hardReload: false, skipReloadLock: true }, reloadOptions), null, next)
     }, (err) => {
       if (err) return cb(err)
       return cb()
@@ -2343,226 +1994,84 @@ class ActiveComponent extends BaseModel {
     })
   }
 
-  rehydrate () {
-    // If you want to call 'rehydrateFromTree' from the top, remember to reset this to 0.
-    this._numrows = 0
+  fetchRootElement () {
+    const staticTemplateNode = this.getReifiedBytecode().template
 
-    // We use this to help purge elements have been removed since the previous run.
-    this._timestamp = Date.now()
-
-    // This is required before running the 'rehydrateFromTree' method; entities need the timeline
-    this.upsertCurrentTimeline()
-
-    this.rehydrateFromTree(this.getReifiedBytecode().template, null, null, null, 0, 0, 0, '0')
-
-    this.purgeStaleEntities(this._timestamp)
-  }
-
-  clearEntityCaches () {
-    this.getRows().forEach((row) => {
-      row.cacheClear()
-    })
-    this.getKeyframes().forEach((keyframe) => {
-      keyframe.cacheClear()
-    })
-    this.getElements().forEach((element) => {
-      element.cacheClear()
-    })
-    return this
-  }
-
-  purgeStaleEntities (timestamp) {
-    this.getRows().filter((row) => row.timestamp < timestamp).forEach((row) => row.destroy())
-    this.getKeyframes().filter((kf) => kf.timestamp < timestamp).forEach((kf) => kf.destroy())
-    this.getElements().filter((el) => el.timestamp < timestamp).forEach((el) => el.destroy())
-    return this
-  }
-
-  rehydrateFromTree (virtualNode, virtualParent, parentElement, parentElementRow, rowIndex, rowDepth, indexInParent, graphAddress) {
-    // We need to pass ourselves in as a selection criteria since there may be elements with the same id already
-    const element = Element.upsertElementFromVirtualElement({ component: this }, this, virtualNode, parentElement, indexInParent, graphAddress, false)
-
-    const elementHeadingRow = Row.upsert({
-      timestamp: this._timestamp,
-      uid: Row.buildHeadingUid(this, element),
-      element: element,
-      parent: parentElementRow,
-      index: rowIndex++,
-      depth: rowDepth,
-      seq: indexInParent,
-      subseq: null,
-      place: this._numrows++,
-      children: [],
-      component: this,
-      timeline: this.getCurrentTimeline(),
-      property: null,
-      cluster: null
-    }, {})
-
-    // Expand the top row by default, only if this is the first run
-    if (elementHeadingRow.place === 0 && !elementHeadingRow._wasInitiallyExpanded) {
-      elementHeadingRow._isExpanded = true
-      elementHeadingRow._wasInitiallyExpanded = true
-    }
-
-    if (parentElementRow) {
-      parentElementRow.addChild(elementHeadingRow)
-    }
-
-    const addressableProperties = element.getDisplayedAddressableProperties()
-
-    const clustersUpserted = {}
-
-    for (const addressableName in addressableProperties) {
-      const propertyGroupDescriptor = addressableProperties[addressableName]
-
-      if (propertyGroupDescriptor.cluster) {
-        // Properties that are 'clustered', like rotation.x,y,z
-        const clusterId = Row.buildClusterUid(this, element, propertyGroupDescriptor)
-        let clusterRow
-
-        // This check is just to make sure we get a correct number for the row index
-        if (clustersUpserted[clusterId]) {
-          clusterRow = Row.findById(clusterId)
-        } else {
-          clusterRow = Row.upsert({
-            timestamp: this._timestamp,
-            uid: clusterId,
-            element: element,
-            parent: elementHeadingRow,
-            index: rowIndex++,
-            depth: rowDepth,
-            seq: indexInParent,
-            subseq: null,
-            place: this._numrows++,
-            children: [],
-            component: this,
-            timeline: this.getCurrentTimeline(),
-            property: null, // This null is used to determine isClusterHeading
-            cluster: propertyGroupDescriptor.cluster
-          }, {})
-          elementHeadingRow.addChild(clusterRow)
-          clustersUpserted[clusterId] = {}
-        }
-
-        const clusterMember = Row.upsert({
-          timestamp: this._timestamp,
-          uid: Row.buildClusterMemberUid(this, element, propertyGroupDescriptor, addressableName),
-          element: element,
-          parent: clusterRow,
-          index: rowIndex++,
-          depth: rowDepth,
-          seq: indexInParent,
-          subseq: Object.keys(clustersUpserted[clusterId]).length,
-          place: this._numrows++,
-          children: [],
-          component: this,
-          timeline: this.getCurrentTimeline(),
-          property: propertyGroupDescriptor,
-          cluster: propertyGroupDescriptor.cluster
-        }, {})
-
-        clustersUpserted[clusterId][propertyGroupDescriptor.name] = true
-
-        this.rehydrateKeyframes(clusterMember)
-        clusterRow.addChild(clusterMember)
-      } else {
-        // Properties represented as a single row, like 'opacity'
-        const propertyRow = Row.upsert({
-          timestamp: this._timestamp,
-          uid: Row.buildPropertyUid(this, element, addressableName),
-          element: element,
-          parent: elementHeadingRow,
-          index: rowIndex++,
-          depth: rowDepth,
-          seq: indexInParent,
-          subseq: null,
-          place: this._numrows++,
-          children: [],
-          component: this,
-          timeline: this.getCurrentTimeline(),
-          property: propertyGroupDescriptor,
-          cluster: null
-        }, {})
-
-        this.rehydrateKeyframes(propertyRow)
-        elementHeadingRow.addChild(propertyRow)
-      }
-    }
-
-    // HACK: `rowDepth` is the "depth" of the row in relation to the scene graph element it corresponds to, so for example:
-    //   <a> 0
-    //     <b> 1
-    //     <c> 1
-    //       <d> 2
-    //
-    // Currently the timeline and stage only support editing to depths up to 1: the active component and its children.
-    // Since projects of even "a resonable amount of complexity" can theoretically have 1000s of elements, that means
-    // 1000s of Element entities, and a LOT of (Timeline) Row entities, since a Row represents not only the element,
-    // but properties, clusters of properties, etc. To avoid waiting a long, long time for this rehydration to happen,
-    // (think 10X num elements) any time the component reloads, we limit to only that of those entities we need to display.
-    //
-    // TODO: Instead of rehydrating, only create the entity "on demand" when the object is being edited
-    // TODO: Row is only really coherent from the POV of the Timeline UI, so only use it there
-    // TODO: Likely lots more optimizations we can do as well... or just rearchitect this to be smarter
-    if (rowDepth < 1) {
-      if (virtualNode.children) {
-        for (let i = 0; i < virtualNode.children.length; i++) {
-          let virtualChild = virtualNode.children[i]
-          // Recursive call descends through and rehydrates the tree in depth-first order
-          this.rehydrateFromTree(virtualChild, virtualNode, element, elementHeadingRow, 0, rowDepth + 1, i, `${graphAddress}.${i}`)
-        }
-      }
-    }
-    this.cacheUnset('displayableRows')
-  }
-
-  rehydrateKeyframes (row) {
-    const valueGroup = TimelineProperty.getValueGroup(
-      row.element.getComponentId(),
-      this.getCurrentTimelineName(),
-      row.getPropertyNameString(),
-      this.getReifiedBytecode()
+    const uid = Element.makeUid(
+      this,
+      null,
+      0,
+      staticTemplateNode
     )
 
-    if (!valueGroup) {
-      return []
+    const found = Element.findById(uid)
+
+    if (found) {
+      // Without this, the element instance in 'master' can end up with a stale node
+      found.staticTemplateNode = staticTemplateNode
+
+      return found
     }
 
-    const keyframesList = Object.keys(valueGroup)
-      .map((keyframeKey) => parseInt(keyframeKey, 10))
-      .sort((a, b) => a - b)
+    return Element.upsertElementFromVirtualElement(
+      this, // component
+      staticTemplateNode,
+      null, // parent element
+      0, // index in parent
+      '0' // graph address
+    )
+  }
 
-    if (keyframesList.length < 1) {
-      return []
+  rehydrate () {
+    // Required before rehydration because entities use the timeline entity
+    this.upsertCurrentTimeline()
+
+    const root = this.fetchRootElement()
+
+    // Sweep of elements must happen first or we'll end up with stale rows
+    Element.where({ component: this }).forEach((element) => { if (element !== root) element.mark() })
+    root.rehydrate()
+    Element.where({ component: this }).forEach((element) => { if (element !== root) element.sweep() })
+
+    // We should only need the row model hydrated in the context of the timeline or test
+    if (this.project.getAlias() === 'timeline' || this.project.getAlias() === 'test') {
+      // Keyframes are owned by rows, so they must be swept as part of this routine too
+      Keyframe.where({ component: this }).forEach((keyframe) => keyframe.mark())
+      Row.where({ component: this }).forEach((row) => row.mark())
+      // Hydrate rows via element so the rows order matches depth-first element order
+      root.visitAll((element) => element.rehydrateRows())
+      Row.where({ component: this }).forEach((row) => row.sweep())
+      Keyframe.where({ component: this }).forEach((keyframe) => keyframe.sweep())
+      this.cacheUnset('displayableRows')
     }
 
-    for (let i = 0; i < keyframesList.length; i++) {
-      let mscurr = keyframesList[i]
-
-      if (isNaN(mscurr)) {
-        continue
+    const row = root.getHostedRows()[0]
+    if (row) {
+      // Expand the first (topmost) row by default, only if this is the first run
+      if (!row._wasInitiallyExpanded) {
+        row._isExpanded = true
+        row._wasInitiallyExpanded = true
       }
-
-      // Unknown why, but sometimes this isn't present and we crash
-      if (!valueGroup[mscurr] || valueGroup[mscurr].value === undefined) {
-        continue
-      }
-
-      Keyframe.upsert({
-        timestamp: this._timestamp,
-        // The keyframe's uid is in the context of the row, which is in turn in context of the component
-        uid: Keyframe.getInferredUid(row, i),
-        ms: mscurr,
-        index: i,
-        value: valueGroup[mscurr].value,
-        curve: valueGroup[mscurr].curve,
-        row: row,
-        element: row.element,
-        timeline: row.timeline,
-        component: row.component
-      }, {})
     }
+
+    this.positionRows()
+  }
+
+  positionRows () {
+    let position = 0
+
+    Template.visit(this.getReifiedBytecode().template, (node) => {
+      if (node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]) {
+        const element = this.findElementByComponentId(node.attributes[HAIKU_ID_ATTRIBUTE])
+
+        if (element) {
+          element.getHostedRowsInDefaultDisplayPositionOrder().forEach((row) => {
+            row.setPosition(position)
+            position += 1
+          })
+        }
+      }
+    })
   }
 
   getReifiedBytecode () {
@@ -2578,7 +2087,7 @@ class ActiveComponent extends BaseModel {
     return reifiedBytecode && reifiedBytecode.template
   }
 
-  batchPropertyGroupUpdate (componentId, timelineName, timelineTime, propertyKeys) {
+  batchPropertyGroupUpdate (componentId, timelineName, timelineTime, propertyKeys, metadata) {
     const groupValue = this.getPropertyGroupValueFromPropertyKeys(
       componentId,
       timelineName,
@@ -2586,23 +2095,105 @@ class ActiveComponent extends BaseModel {
       propertyKeys
     )
 
-    // The Project model handles accumulating these to avoid excessive websocket calls
-    this.project.batchedWebsocketAction(
-      'applyPropertyGroupValue',
-      [
-        this.project.getFolder(),
-        this.getSceneCodeRelpath(),
-        componentId,
-        timelineName,
-        timelineTime,
-        groupValue
-      ],
-      () => {
-        // no-op
+    const folder = this.project.getFolder()
+    const relpath = this.getSceneCodeRelpath()
+
+    if (this.project.isLocalUpdate(metadata)) {
+      // Special casing an action that happens very quickly. We don't want to fire
+      // a message for every single one, but we can't debounce either since we rely on
+      // the order in which these are requested (consider what happens if we send a property
+      // update call to an element that has been deleted). So we basically accumulate
+      // method calls that occur together and which have the same tuple
+      const actions = this.project._websocketActions
+
+      // Find the most recent action that meets our criteria, and merge our payload with it
+      // NOTE: We used to just look at the latest entry, but that posed problems for multi-select
+      // since we would end up with interleaved actions leading to huge queues of updates
+      for (let i = actions.length - 1; i >= 0; i--) {
+        const action = actions[i]
+
+        if (
+          action.method === 'applyPropertyGroupValue' &&
+          action.params[0] === folder &&
+          action.params[1] === relpath &&
+          action.params[2] === componentId &&
+          action.params[3] === timelineName &&
+          action.params[4] === timelineTime
+        ) {
+          // Merge entries from the incoming groupValue parameter into the existing one
+          // In this way, the most recent values for all attributes are all used when
+          // this method is finally transmitted
+          Object.assign(action.params[5], groupValue)
+
+          // Use this to decide whether to transmit immediately or wait for more to accumulate
+          action.timestamp = Date.now()
+
+          // Break the loop and early return because:
+          // - we don't want to enqueue a new action
+          // - we don't want to merge with any action but the latest
+          return
+        }
       }
-    )
+
+      // If we got here, a pre-existing action was not in the list, and we need to enqueue one
+      // The Project model handles accumulating these to avoid excessive websocket calls
+      this.project.batchedWebsocketAction(
+        'applyPropertyGroupValue',
+        [
+          folder,
+          relpath,
+          componentId,
+          timelineName,
+          timelineTime,
+          groupValue
+        ],
+        () => {
+          // no-op
+        }
+      )
+    }
 
     this.clearCachedClusters(timelineName, componentId)
+  }
+
+  upsertProperties (bytecode, componentId, timelineName, timelineTime, propertiesToMerge, strategy) {
+    return upsertPropertyValue(bytecode, componentId, timelineName, timelineTime, propertiesToMerge, strategy)
+  }
+
+  getDeclaredPropertyValue (componentId, timelineName, timelineTime, propertyName) {
+    const bytecode = this.getReifiedBytecode()
+    return getPropertyValue(bytecode, componentId, timelineName, timelineTime, propertyName)
+  }
+
+  getComputedPropertyValue (template, componentId, timelineName, timelineTime, propertyName, fallbackValue) {
+    const bytecode = this.getReifiedBytecode()
+    const elementsById = Template.getAllElementsByHaikuId(template)
+    const element = elementsById[componentId]
+    const host = this.getCoreComponentInstance()
+    const states = (host && host.getStates()) || {}
+    return TimelineProperty.getComputedValue(componentId, Element.safeElementName(element), propertyName, timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, fallbackValue, bytecode, host, states)
+  }
+
+  getContextSize () {
+    return this.getContextSizeActual(this.getCurrentTimelineName(), this.getCurrentTimelineTime())
+  }
+
+  getContextSizeActual (timelineName, timelineTime) {
+    const defaults = { width: 1, height: 1 } // In case of race where collateral isn't ready yet
+    const bytecode = this.getReifiedBytecode()
+    if (!bytecode || !bytecode.template || !bytecode.template.attributes) return defaults
+    const contextHaikuId = bytecode.template.attributes[HAIKU_ID_ATTRIBUTE]
+    if (!contextHaikuId) return defaults
+    const contextElementName = Element.safeElementName(bytecode.template)
+    if (!contextElementName) return defaults
+    const host = this.getCoreComponentInstance()
+    const states = (host && host.getStates()) || {}
+    const contextWidth = TimelineProperty.getComputedValue(contextHaikuId, contextElementName, 'sizeAbsolute.x', timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, 0, bytecode, host, states)
+    const contextHeight = TimelineProperty.getComputedValue(contextHaikuId, contextElementName, 'sizeAbsolute.y', timelineName || DEFAULT_TIMELINE_NAME, timelineTime || DEFAULT_TIMELINE_TIME, 0, bytecode, host, states)
+    return {
+      width: contextWidth,
+      height: contextHeight
+    }
   }
 
   buildCurrentTimelineUid () {
@@ -2623,6 +2214,36 @@ class ActiveComponent extends BaseModel {
 
   getElements () {
     return Element.where({ component: this })
+  }
+
+  getLastTemplateNode () {
+    const bytecode = this.getReifiedBytecode()
+    return (
+      bytecode &&
+      bytecode.template &&
+      bytecode.template.children &&
+      bytecode.template.children[bytecode.template.children.length - 1]
+    )
+  }
+
+  getFirstTemplateNode () {
+    const bytecode = this.getReifiedBytecode()
+    return (
+      bytecode &&
+      bytecode.template &&
+      bytecode.template.children &&
+      bytecode.template.children[0]
+    )
+  }
+
+  getLastTemplateNodeHaikuId () {
+    const node = this.getLastTemplateNode()
+    return node && node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]
+  }
+
+  getFirstTemplateNodeHaikuId () {
+    const node = this.getFirstTemplateNode()
+    return node && node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]
   }
 
   focusSelectNext (navDir, doFocus, metadata) {
@@ -2659,6 +2280,1072 @@ class ActiveComponent extends BaseModel {
 
   getSelectedRow () {
     return Row.getSelectedRow({ component: this }) // Only one instance per component
+  }
+
+  pushUndoable (undoable) {
+    this._undoables.push(undoable)
+
+    if (this._undoables.length > MAX_UNDOABLES_LEN) {
+      this._undoables.shift()
+    }
+  }
+
+  popUndoable () {
+    return this._undoables.pop()
+  }
+
+  pushRedoable (redoable) {
+    this._redoables.push(redoable)
+
+    if (this._redoables.length > MAX_UNDOABLES_LEN) {
+      this._redoables.shift()
+    }
+  }
+
+  popRedoable () {
+    return this._redoables.pop()
+  }
+
+  getUndoables () {
+    return this._undoables
+  }
+
+  getRedoables () {
+    return this._redoables
+  }
+
+  performComponentWork (worker, cb) {
+    return Lock.request(Lock.LOCKS.FilePerformComponentWork, (release) => {
+      const finish = (err, result) => {
+        release()
+        return cb(err, result)
+      }
+
+      const bytecode = this.getReifiedBytecode()
+
+      return worker(bytecode, bytecode.template, (err, result, doable) => {
+        if (err) {
+          return finish(err)
+        }
+
+        // Let un/redo specify which stack its inverse belongs in
+        if (doable) {
+          if (this._doability === DOABILITIES.undo) {
+            this.pushUndoable(doable)
+          } else if (this._doability === DOABILITIES.redo) {
+            this.pushRedoable(doable)
+          }
+        }
+
+        this.handleUpdatedBytecode(bytecode)
+
+        return finish(null, result)
+      })
+    })
+  }
+
+  handleUpdatedBytecode (bytecode) {
+    Bytecode.cleanBytecode(bytecode)
+
+    Template.cleanTemplate(bytecode.template)
+
+    const file = this.fetchActiveBytecodeFile()
+
+    file.updateInMemoryHotModule(bytecode)
+
+    if (file.options.doWriteToDisk) {
+      file.requestAsyncContentFlush({ who: 'performComponentWork' })
+    }
+  }
+
+  performComponentTimelinesWork (worker, finish) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      if (!bytecode) return done(new Error('Missing bytecode'))
+      if (!bytecode.timelines) return done(new Error('Missing timelines'))
+      return worker(bytecode, mana, bytecode.timelines, done)
+    }, finish)
+  }
+
+  snapshotCurrentPropertyGroup (componentId, timelineName, timelineTime, propertyKeys) {
+    // for (let i = 0; i < propertyKeys.length; i++) {
+    //   const propertyName = propertyKeys[i]
+
+    //   const propertyValue = this.getKeyframeValue(
+    //     componentId,
+    //     timelineName,
+    //     timelineTime,
+    //     propertyName
+    //   )
+    // }
+  }
+
+  getKeyframeValue (componentId, timelineName, timelineTime, propertyName) {
+    const bytecode = this.getReifiedBytecode()
+    const selector = `haiku:${componentId}`
+    return (
+      bytecode &&
+      bytecode.timelines &&
+      bytecode.timelines[timelineName] &&
+      bytecode.timelines[timelineName][selector] &&
+      bytecode.timelines[timelineName][selector][propertyName] &&
+      bytecode.timelines[timelineName][selector][propertyName][timelineTime] &&
+      bytecode.timelines[timelineName][selector][propertyName][timelineTime].value
+    )
+  }
+
+  getKeyframeCurve (componentId, timelineName, timelineTime, propertyName) {
+    const bytecode = this.getReifiedBytecode()
+    const selector = `haiku:${componentId}`
+    return (
+      bytecode &&
+      bytecode.timelines &&
+      bytecode.timelines[timelineName] &&
+      bytecode.timelines[timelineName][selector] &&
+      bytecode.timelines[timelineName][selector][propertyName] &&
+      bytecode.timelines[timelineName][selector][propertyName][timelineTime] &&
+      bytecode.timelines[timelineName][selector][propertyName][timelineTime].curve
+    )
+  }
+
+  getElementNameOfComponentId (componentId) {
+    const element = this.findTemplateNodeByComponentId(componentId)
+    return element && element.elementName
+  }
+
+  getTimelineDescriptor (timelineName) {
+    const bytecode = this.getReifiedBytecode()
+    return bytecode && bytecode.timelines && bytecode.timelines[timelineName]
+  }
+
+  invertKeyframeMoves (componentId, timelineName, propertyName, keyframeMoves) {
+    //
+  }
+
+  normalizeStackingAndReturnInfo (bytecode, mana, timelineName, timelineTime) {
+    const stackingInfo = getStackingInfo(bytecode, mana, timelineName, timelineTime)
+    stackingInfo.forEach(({ zIndex, haikuId }) => {
+      this.upsertProperties(bytecode, haikuId, timelineName, timelineTime, { 'style.zIndex': zIndex }, 'merge')
+    })
+    return stackingInfo
+  }
+
+  // ==========
+  //
+  // METHODS
+  //
+  // ==========
+
+  /**
+   * @method writeMetadata
+   */
+  writeMetadata (metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      writeMetadata(bytecode, metadata)
+      done()
+    }, cb)
+  }
+
+  /**
+   * @method readAllEventHandlers
+   */
+  readAllEventHandlers (metadata, cb) {
+    return this.readAllEventHandlersActual(cb)
+  }
+
+  readAllEventHandlersActual (cb) {
+    const bytecode = this.getSerializedBytecode()
+    return cb(null, BytecodeActions.readAllEventHandlers(bytecode))
+  }
+
+  /**
+   * @method readAllStateValues
+   */
+  readAllStateValues (metadata, cb) {
+    return this.readAllStateValuesActual(cb)
+  }
+
+  readAllStateValuesActual (cb) {
+    const bytecode = this.getSerializedBytecode()
+    return cb(null, BytecodeActions.readAllStateValues(bytecode))
+  }
+
+  /**
+   * @method upsertEventHandler
+   */
+  upsertEventHandler (selectorName, eventName, handlerDescriptor, metadata, cb) {
+    handlerDescriptor.edited = true
+    return this.upsertEventHandlerActual(selectorName, eventName, handlerDescriptor, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({
+        hardReload: this.project.isRemoteRequest(metadata),
+        clearCacheOptions: {
+          clearPreviouslyRegisteredEventListeners: true
+        }
+      }, null, () => {
+        this.project.updateHook('upsertEventHandler', this.getSceneCodeRelpath(), selectorName, eventName, handlerDescriptor, metadata)
+        return cb()
+      })
+    })
+  }
+
+  upsertEventHandlerActual (selectorName, eventName, handlerDescriptor, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      BytecodeActions.upsertEventHandler(bytecode, selectorName, eventName, handlerDescriptor)
+      done()
+    }, cb)
+  }
+
+  /**
+   * @method batchUpsertEventHandlers
+   */
+  batchUpsertEventHandlers (selectorName, serializedEvents, metadata, cb) {
+    return this.batchUpsertEventHandlersActual(selectorName, serializedEvents, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({
+        hardReload: this.project.isRemoteRequest(metadata),
+        clearCacheOptions: {
+          clearPreviouslyRegisteredEventListeners: true
+        }
+      }, null, () => {
+        this.project.updateHook('batchUpsertEventHandlers', this.getSceneCodeRelpath(), selectorName, serializedEvents, metadata)
+
+        this.project.broadcastPayload({
+          name: 'event-handlers-updated'
+        })
+
+        return cb()
+      })
+    })
+  }
+
+  batchUpsertEventHandlersActual (selectorName, serializedEvents, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      BytecodeActions.batchUpsertEventHandlers(bytecode, selectorName, serializedEvents)
+      done()
+    }, cb)
+  }
+
+  /**
+   * @method deleteEventHandler
+   */
+  deleteEventHandler (selectorName, eventName, metadata, cb) {
+    return this.deleteEventHandlerActual(selectorName, eventName, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({
+        hardReload: this.project.isRemoteRequest(metadata),
+        clearCacheOptions: {
+          clearPreviouslyRegisteredEventListeners: true
+        }
+      }, null, () => {
+        this.project.updateHook('deleteEventHandler', this.getSceneCodeRelpath(), selectorName, eventName, metadata)
+        return cb()
+      })
+    })
+  }
+
+  deleteEventHandlerActual (selectorName, eventName, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      BytecodeActions.deleteEventHandler(bytecode, selectorName, eventName)
+      done()
+    }, cb)
+  }
+
+  /**
+   * @method applyPropertyGroupValue
+   */
+  applyPropertyGroupValue (componentId, timelineName, timelineTime, propertyGroup, metadata, cb) {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      // Keep track of the values to which we will undo
+      this.snapshotCurrentPropertyGroup(
+        componentId,
+        timelineName,
+        timelineTime,
+        Object.keys(propertyGroup)
+      )
+
+      this.applyPropertyGroupValueActual(componentId, timelineName, timelineTime, propertyGroup, metadata, (err) => {
+        if (err) {
+          release()
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
+          return cb(err)
+        }
+
+        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+          release()
+
+          this.batchPropertyGroupUpdate(
+            componentId,
+            this.getCurrentTimelineName(),
+            this.getCurrentTimelineTime(),
+            getDefinedKeys(propertyGroup),
+            metadata
+          )
+
+          return cb()
+        })
+      })
+    })
+  }
+
+  applyPropertyGroupValueActual (componentId, timelineName, timelineTime, propertyGroup, metadata, cb) {
+    return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
+      let elementNode = this.findTemplateNodeByComponentId(mana, componentId)
+
+      if (elementNode) {
+        TimelineProperty.addPropertyGroup(timelines, timelineName, componentId, Element.safeElementName(elementNode), propertyGroup, timelineTime)
+      } else {
+        // Things are badly broken if this happens; to avoid lost work, it's best to crash
+        throw new Error(`Cannot find element ${componentId}`)
+      }
+
+      return done()
+    }, cb)
+  }
+
+  /**
+   * @method resizeContext
+   */
+  resizeContext (artboardId, timelineName, timelineTime, sizeDescriptor, metadata, cb) {
+    return Lock.request(Lock.LOCKS.ActiveComponentWork, (release) => {
+      // Keep track of the values to which we will undo
+      this.snapshotCurrentPropertyGroup(
+        artboardId,
+        timelineName,
+        timelineTime,
+        ['sizeAbsolute.x', 'sizeAbsolute.y']
+      )
+
+      this.resizeContextActual(artboardId, timelineName, timelineTime, sizeDescriptor, metadata, (err) => {
+        if (err) {
+          release()
+          logger.error(`[active component (${this.project.getAlias()})]`, err)
+          return cb(err)
+        }
+
+        return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+          release()
+          this.project.emitHook('resizeContext', this.getSceneCodeRelpath(), artboardId, timelineName, timelineTime, sizeDescriptor, metadata)
+
+          this.batchPropertyGroupUpdate(
+            artboardId,
+            timelineName,
+            timelineTime,
+            ['sizeAbsolute.x', 'sizeAbsolute.y']
+          )
+
+          return cb()
+        })
+      })
+    })
+  }
+
+  resizeContextActual (artboardId, timelineName, timelineTime, sizeDescriptor, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      let contextHaikuId = mana.attributes[HAIKU_ID_ATTRIBUTE]
+
+      this.upsertProperties(bytecode, contextHaikuId, timelineName, timelineTime, {
+        'sizeAbsolute.x': sizeDescriptor.width,
+        'sizeAbsolute.y': sizeDescriptor.height,
+        'sizeMode.x': 1,
+        'sizeMode.y': 1,
+        'sizeMode.z': 1
+      }, 'merge')
+
+      done()
+    }, cb)
+  }
+
+  /**
+   * @method changeKeyframeValue
+   */
+  changeKeyframeValue (componentId, timelineName, propertyName, keyframeMs, newValue, metadata, cb) {
+    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
+    return this.changeKeyframeValueActual(componentId, timelineName, propertyName, keyframeMs, newValue, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('changeKeyframeValue', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMs, newValue, metadata)
+        return cb()
+      })
+    })
+  }
+
+  changeKeyframeValueActual (componentId, timelineName, propertyName, keyframeMs, newValue, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      const doable = {
+        method: 'changeKeyframeValue',
+        params: [
+          componentId,
+          timelineName,
+          propertyName,
+          keyframeMs,
+          this.getKeyframeValue(
+            componentId,
+            timelineName,
+            propertyName,
+            keyframeMs
+          ),
+          metadata
+        ]
+      }
+
+      BytecodeActions.changeKeyframeValue(bytecode, componentId, timelineName, propertyName, keyframeMs, newValue)
+
+      done(null, null, doable)
+    }, cb)
+  }
+
+  /**
+   * @method changeSegmentCurve
+   */
+  changeSegmentCurve (componentId, timelineName, propertyName, keyframeMs, newCurve, metadata, cb) {
+    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
+    return this.changeSegmentCurve(componentId, timelineName, propertyName, keyframeMs, newCurve, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('changeSegmentCurve', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMs, expressionToRO(newCurve), metadata)
+        return cb()
+      })
+    })
+  }
+
+  changeSegmentCurveActual (componentId, timelineName, propertyName, keyframeMs, newCurve, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      const doable = {
+        method: 'changeSegmentCurve',
+        params: [
+          componentId,
+          timelineName,
+          propertyName,
+          keyframeMs,
+          this.getKeyframeCurve(
+            componentId,
+            timelineName,
+            propertyName,
+            keyframeMs
+          ),
+          metadata
+        ]
+      }
+
+      BytecodeActions.changeSegmentCurve(bytecode, componentId, timelineName, propertyName, keyframeMs, newCurve)
+
+      done(null, null, doable)
+    }, cb)
+  }
+
+  /**
+   * @method createKeyframe
+   */
+  createKeyframe (componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata, cb) {
+    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
+    return this.createKeyframeActual(componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('createKeyframe', this.getSceneCodeRelpath(), componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata)
+        return cb()
+      })
+    })
+  }
+
+  createKeyframeActual (componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      const doable = {
+        method: 'deleteKeyframe',
+        params: [
+          componentId,
+          timelineName,
+          propertyName,
+          keyframeStartMs,
+          metadata
+        ]
+      }
+
+      const host = this.getCoreComponentInstance()
+      const states = (host && host.getStates()) || {}
+      BytecodeActions.createKeyframe(bytecode, componentId, timelineName, elementName, propertyName, keyframeStartMs, keyframeValue, keyframeCurve, keyframeEndMs, keyframeEndValue, host, states)
+
+      done(null, null, doable)
+    }, cb)
+  }
+
+  /**
+   * @method deleteKeyframe
+   */
+  deleteKeyframe (componentId, timelineName, propertyName, keyframeMs, metadata, cb) {
+    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
+    return this.deleteKeyframeActual(componentId, timelineName, propertyName, keyframeMs, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('deleteKeyframe', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMs, metadata)
+        return cb()
+      })
+    })
+  }
+
+  deleteKeyframeActual (componentId, timelineName, propertyName, keyframeMs, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      const doable = {
+        method: 'createKeyframe',
+        params: [
+          componentId,
+          timelineName,
+          this.getElementNameOfComponentId(componentId),
+          propertyName,
+          keyframeMs,
+          this.getKeyframeValue(
+            componentId,
+            timelineName,
+            propertyName,
+            keyframeMs
+          ),
+          this.getKeyframeCurve(
+            componentId,
+            timelineName,
+            propertyName,
+            keyframeMs
+          ),
+          null, // keyframeEndMs
+          null, // keyframeEndValue
+          metadata
+        ]
+      }
+
+      BytecodeActions.deleteKeyframe(bytecode, componentId, timelineName, propertyName, keyframeMs)
+
+      done(null, null, doable)
+    }, cb)
+  }
+
+  /**
+   * @method joinKeyframes
+   */
+  joinKeyframes (componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, metadata, cb) {
+    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
+    return this.joinKeyframesActual(componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('joinKeyframes', this.getSceneCodeRelpath(), componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, expressionToRO(newCurve), metadata)
+        return cb()
+      })
+    })
+  }
+
+  joinKeyframesActual (componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      const doable = {
+        method: 'splitSegment',
+        params: [
+          componentId,
+          timelineName,
+          elementName,
+          propertyName,
+          keyframeMsLeft,
+          metadata
+        ]
+      }
+
+      BytecodeActions.joinKeyframes(bytecode, componentId, timelineName, elementName, propertyName, keyframeMsLeft, keyframeMsRight, newCurve)
+
+      done(null, null, doable)
+    }, cb)
+  }
+
+  /**
+   * @method splitSegment
+   */
+  splitSegment (componentId, timelineName, elementName, propertyName, keyframeMs, metadata, cb) {
+    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
+    return this.splitSegmentActual(componentId, timelineName, elementName, propertyName, keyframeMs, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('splitSegment', this.getSceneCodeRelpath(), componentId, timelineName, elementName, propertyName, keyframeMs, metadata)
+        return cb()
+      })
+    })
+  }
+
+  splitSegmentActual (componentId, timelineName, elementName, propertyName, keyframeMs, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      const doable = {
+        method: 'joinKeyframes',
+        params: [
+          componentId,
+          timelineName,
+          elementName,
+          propertyName,
+          keyframeMs,
+          null, // keyframeMsRight is ignored
+          this.getKeyframeCurve(
+            componentId,
+            timelineName,
+            propertyName,
+            keyframeMs
+          ),
+          metadata
+        ]
+      }
+
+      BytecodeActions.splitSegment(bytecode, componentId, timelineName, elementName, propertyName, keyframeMs)
+
+      done(null, null, doable)
+    }, cb)
+  }
+
+  /**
+   * @method moveKeyframes
+   */
+  moveKeyframes (componentId, timelineName, propertyName, keyframeMoves, metadata, cb) {
+    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
+    return this.moveKeyframesActual(componentId, timelineName, propertyName, keyframeMoves, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('moveKeyframes', this.getSceneCodeRelpath(), componentId, timelineName, propertyName, keyframeMoves, metadata)
+        return cb()
+      })
+    })
+  }
+
+  moveKeyframesActual (componentId, timelineName, propertyName, keyframeMoves, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      const doable = {
+        method: 'moveKeyframes',
+        params: [
+          componentId,
+          timelineName,
+          propertyName,
+          this.invertKeyframeMoves(
+            componentId,
+            timelineName,
+            propertyName,
+            keyframeMoves
+          ),
+          metadata
+        ]
+      }
+
+      BytecodeActions.moveKeyframes(bytecode, componentId, timelineName, propertyName, keyframeMoves)
+
+      done(null, null, doable)
+    }, cb)
+  }
+
+  /**
+   * @method reorderElement
+   */
+  reorderElement (componentId, componentIdToInsertBefore, metadata, cb) {
+    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
+    this.reorderElementActual(componentId, componentIdToInsertBefore, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('reorderElement', this.getSceneCodeRelpath(), componentId, componentIdToInsertBefore, metadata)
+        return cb()
+      })
+    })
+  }
+
+  reorderElementActual (componentId, componentIdToInsertBefore, metadata, cb) {
+    return cb() // Not yet implemented
+  }
+
+  /**
+   * @method groupElements
+   */
+  groupElements (groupSpec, metadata, cb) {
+    return cb() // Not yet implemented
+  }
+
+  groupElementsActual (groupSpec, metadata, cb) {
+    return cb() // Not yet implemented
+  }
+
+  /**
+   * @method ungroupElements
+   */
+  ungroupElements (ungroupSpec, metadata, cb) {
+    return cb() // Not yet implemented
+  }
+
+  ungroupElementsActual (ungroupSpec, metadata, cb) {
+    return cb() // Not yet implemented
+  }
+
+  /**
+   * @method ungroupElements
+   */
+  hideElements (componentId, metadata, cb) {
+    this.clearCachedClusters(this.getCurrentTimelineName(), componentId)
+    this.hideElementsActual(componentId, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('hideElements', this.getSceneCodeRelpath(), componentId, metadata)
+        return cb()
+      })
+    })
+  }
+
+  hideElementsActual (componentId, metadata, cb) {
+    return cb() // Not yet implemented
+  }
+
+  /**
+   * @method upsertStateValue
+   */
+  upsertStateValue (stateName, stateDescriptor, metadata, cb) {
+    stateDescriptor.edited = true
+    return this.upsertStateValueActual(stateName, stateDescriptor, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('upsertStateValue', this.getSceneCodeRelpath(), stateName, stateDescriptor, metadata)
+        return cb()
+      })
+    })
+  }
+
+  upsertStateValueActual (stateName, stateDescriptor, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      BytecodeActions.upsertStateValue(bytecode, stateName, stateDescriptor)
+      done()
+    }, cb)
+  }
+
+  /**
+   * @method deleteStateValue
+   */
+  deleteStateValue (stateName, metadata, cb) {
+    return this.deleteStateValueActual(stateName, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('deleteStateValue', this.getSceneCodeRelpath(), stateName, metadata)
+        return cb()
+      })
+    })
+  }
+
+  deleteStateValueActual (stateName, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      BytecodeActions.deleteStateValue(bytecode, stateName)
+      done()
+    }, cb)
+  }
+
+  /**
+   * @method zMoveBackward
+   */
+  zMoveToFront (componentId, timelineName, timelineTime, metadata, cb) {
+    this.zMoveToFrontActual(componentId, timelineName, timelineTime, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('zMoveToFront', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, metadata)
+        return cb()
+      })
+    })
+  }
+
+  zMoveToFrontActual (componentId, timelineName, timelineTime, metadata, cb) {
+    return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
+      const stackingInfo = this.normalizeStackingAndReturnInfo(bytecode, mana, timelineName, timelineTime)
+      const highestInStack = stackingInfo[stackingInfo.length - 1]
+      const highestZ = (highestInStack && highestInStack.zIndex) || 1
+      const myZ = this.getComputedPropertyValue(mana, componentId, timelineName, timelineTime, 'style.zIndex')
+      if (myZ < highestZ) {
+        this.upsertProperties(bytecode, componentId, timelineName, timelineTime, { 'style.zIndex': highestZ + 1 }, 'merge')
+      }
+      done()
+    }, cb)
+  }
+
+  /**
+   * @method zMoveForward
+   */
+  zMoveForward (componentId, timelineName, timelineTime, metadata, cb) {
+    this.zMoveForwardActual(componentId, timelineName, timelineTime, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('zMoveForward', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, metadata)
+        return cb()
+      })
+    })
+  }
+
+  zMoveForwardActual (componentId, timelineName, timelineTime, metadata, cb) {
+    return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
+      let myZ = this.getComputedPropertyValue(mana, componentId, timelineName, timelineTime, 'style.zIndex')
+      this.upsertProperties(bytecode, componentId, timelineName, timelineTime, { 'style.zIndex': myZ + 1 })
+      done()
+    }, cb)
+  }
+
+  /**
+   * @method zMoveBackward
+   */
+  zMoveBackward (componentId, timelineName, timelineTime, metadata, cb) {
+    this.zMoveBackwardActual(componentId, timelineName, timelineTime, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('zMoveBackward', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, metadata)
+        return cb()
+      })
+    })
+  }
+
+  zMoveBackwardActual (componentId, timelineName, timelineTime, metadata, cb) {
+    return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
+      let myZ = this.getComputedPropertyValue(mana, componentId, timelineName, timelineTime, 'style.zIndex')
+      this.upsertProperties(bytecode, componentId, timelineName, timelineTime, { 'style.zIndex': myZ - 1 })
+      done()
+    }, cb)
+  }
+
+  /**
+   * @method zMoveToBack
+   */
+  zMoveToBack (componentId, timelineName, timelineTime, metadata, cb) {
+    this.zMoveToBackActual(componentId, timelineName, timelineTime, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('zMoveToBack', this.getSceneCodeRelpath(), componentId, timelineName, timelineTime, metadata)
+        return cb()
+      })
+    })
+  }
+
+  zMoveToBackActual (componentId, timelineName, timelineTime, metadata, cb) {
+    return this.performComponentTimelinesWork((bytecode, mana, timelines, done) => {
+      const stackingInfo = this.normalizeStackingAndReturnInfo(bytecode, mana, timelineName, timelineTime)
+      const lowestZ = (stackingInfo[0] && stackingInfo[0].zIndex) || 1
+      const myZ = this.getComputedPropertyValue(mana, componentId, timelineName, timelineTime, 'style.zIndex')
+
+      if (myZ <= lowestZ) return void (0)
+
+      // Shift all the z indices upward to make room for this one
+      if (lowestZ < 2) {
+        let zOffset = 2 - lowestZ
+        stackingInfo.forEach(({ haikuId, zIndex }) => {
+          let theirHaikuId = haikuId
+          let theirZ = zIndex
+          let finalZ = theirZ + zOffset
+          this.upsertProperties(bytecode, theirHaikuId, timelineName, timelineTime, { 'style.zIndex': finalZ }, 'merge')
+        })
+      }
+      this.upsertProperties(bytecode, componentId, timelineName, timelineTime, { 'style.zIndex': 1 }, 'merge')
+      done()
+    }, cb)
+  }
+
+  /**
+   * @method createTimeline
+   */
+  createTimeline (timelineName, timelineDescriptor, metadata, cb) {
+    return this.createTimelineActual(timelineName, timelineDescriptor, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('createTimeline', this.getSceneCodeRelpath(), timelineName, timelineDescriptor, metadata)
+        return cb()
+      })
+    })
+  }
+
+  createTimelineActual (timelineName, timelineDescriptor, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      const doable = {
+        method: 'deleteTimeline',
+        params: [timelineName, metadata]
+      }
+
+      BytecodeActions.createTimeline(bytecode, timelineName, timelineDescriptor)
+
+      done(null, null, doable)
+    }, cb)
+  }
+
+  /**
+   * @method renameTimeline
+   */
+  renameTimeline (timelineNameOld, timelineNameNew, metadata, cb) {
+    return this.renameTimelineActual(timelineNameOld, timelineNameNew, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('renameTimeline', this.getSceneCodeRelpath(), timelineNameOld, timelineNameNew, metadata)
+        return cb()
+      })
+    })
+  }
+
+  renameTimelineActual (timelineNameOld, timelineNameNew, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      const doable = {
+        method: ['renameTimeline'],
+        params: [timelineNameNew, timelineNameOld, metadata]
+      }
+
+      BytecodeActions.renameTimeline(bytecode, timelineNameOld, timelineNameNew)
+
+      done(null, null, doable)
+    }, cb)
+  }
+
+  /**
+   * @method deleteTimeline
+   */
+  deleteTimeline (timelineName, metadata, cb) {
+    return this.deleteTimelineActual(timelineName, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('deleteTimeline', this.getSceneCodeRelpath(), timelineName, metadata)
+        return cb()
+      })
+    })
+  }
+
+  deleteTimelineActual (timelineName, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      const doable = {
+        method: 'createTimeline',
+        params: [timelineName, this.getTimelineDescriptor(timelineName), metadata]
+      }
+
+      BytecodeActions.deleteTimeline(bytecode, timelineName)
+
+      done(null, null, doable)
+    }, cb)
+  }
+
+  /**
+   * @method duplicateTimeline
+   */
+  duplicateTimeline (timelineName, metadata, cb) {
+    return this.duplicateTimelineActual(timelineName, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('duplicateTimeline', this.getSceneCodeRelpath(), timelineName, metadata)
+        return cb()
+      })
+    })
+  }
+
+  duplicateTimelineActual (timelineName, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      const duplicateTimelineName = BytecodeActions.duplicateTimeline(bytecode, timelineName)
+
+      const doable = {
+        method: 'deleteTimeline',
+        params: [duplicateTimelineName, metadata]
+      }
+
+      done(null, null, doable)
+    }, cb)
+  }
+
+  /**
+   * @method changePlaybackSpeed
+   */
+  changePlaybackSpeed (framesPerSecond, metadata, cb) {
+    return this.changePlaybackSpeedActual(framesPerSecond, metadata, (err) => {
+      if (err) {
+        logger.error(`[active component (${this.project.getAlias()})]`, err)
+        return cb(err)
+      }
+
+      return this.reload({ hardReload: this.project.isRemoteRequest(metadata) }, null, () => {
+        this.project.updateHook('changePlaybackSpeed', this.getSceneCodeRelpath(), framesPerSecond, metadata)
+        return cb()
+      })
+    })
+  }
+
+  changePlaybackSpeedActual (framesPerSecond, metadata, cb) {
+    return this.performComponentWork((bytecode, mana, done) => {
+      BytecodeActions.changePlaybackSpeed(bytecode, framesPerSecond)
+      done()
+    }, cb)
   }
 
   /**
@@ -2705,7 +3392,7 @@ const Keyframe = require('./Keyframe')
 const ModuleWrapper = require('./ModuleWrapper')
 const MountElement = require('./MountElement')
 const Primitive = require('./Primitive')
-const Property = require('./Property')
 const Row = require('./Row')
+const SelectionMarquee = require('./SelectionMarquee')
 const Template = require('./Template')
 const Timeline = require('./Timeline')

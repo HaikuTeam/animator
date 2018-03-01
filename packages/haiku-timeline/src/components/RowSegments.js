@@ -39,7 +39,7 @@ export default class RowSegments extends React.Component {
   render () {
     return (
       <div>
-        {this.props.row.mapVisibleKeyframes((keyframe) => {
+        {this.props.row.mapVisibleKeyframes({ maxDepth: 3 }, (keyframe) => {
           let segmentPieces = []
 
           if (keyframe.isTransitionSegment()) {

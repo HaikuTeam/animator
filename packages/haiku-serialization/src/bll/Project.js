@@ -37,9 +37,6 @@ const ALWAYS_IGNORED_METHODS = {
  *.  This handles transmitting updates to all the other views when updates happen.
  *.  It also handles routing remote method calls to the appropriate ActiveComponent.
  *.  TODO: A nice next step would be to Envoy-ize all of this.
- *
- *.  Some top-level methods that don't relate strictly to components also live
- *.  here, such as git-undo.
  */
 class Project extends BaseModel {
   constructor (props, opts) {
@@ -178,24 +175,9 @@ class Project extends BaseModel {
     return fileOptions && fileOptions.methodsToIgnore && fileOptions.methodsToIgnore[method]
   }
 
-  shouldShortCircuitRequestsForMethod (method) {
-    // HACK: This probably doesn't/shouldn't belong as a part of 'fileOptions'
-    // It's a hacky way for MasterProcess to handle certain methods it cares about
-    const fileOptions = this.getFileOptions()
-    return (
-      fileOptions &&
-      fileOptions.whitelistedMethods &&
-      (
-        !fileOptions.whitelistedMethods[method]
-      )
-    )
-  }
-
   receiveMethodCall (method, params, message, cb) {
     if (this.isIgnoringMethodRequestsForMethod(method)) {
       return null // Another handler will call the callback in this case
-    } else if (this.shouldShortCircuitRequestsForMethod(method)) {
-      return cb() // Skip the method and return; nobody will handle this otherwise
     } else {
       return this.handleMethodCall(method, params, message, cb)
     }
@@ -210,7 +192,8 @@ class Project extends BaseModel {
         logger.info(`[project (${this.getAlias()})] component handling method ${method}`, params, typeof cb === 'function')
         return ac[method].apply(ac, params.slice(1).concat((err, out) => {
           release()
-          return cb(err, out)
+          if (err) return cb(err)
+          return cb() // Skip objects that don't play well with Websockets
         }))
       }
 
@@ -336,37 +319,6 @@ class Project extends BaseModel {
   }
 
   batchedWebsocketAction (method, params, callback) {
-    // Special casing an action that happens very quickly. We don't want to fire
-    // a message for every single one, but we can't debounce either since we rely on
-    // the order in which these are requested (consider what happens if we send a property
-    // update call to an element that has been deleted). So we basically accumulate
-    // method calls that occur together and which have the same tuple
-    if (method === 'applyPropertyGroupValue') {
-      // If no last entry, it might mean the previous call was transmitted already,
-      // which is fine. The key is that we accumulate what we can while retaining sequence
-      const last = this._websocketActions[this._websocketActions.length - 1]
-      // If the previous payload matches ours, then we'll accumulate our group value
-      // into it, so we end up with just once command for a fast sequence of commands
-      if (last && last.method === 'applyPropertyGroupValue') {
-        if (
-          last.params[0] === params[0] && // folder
-          last.params[1] === params[1] && // relpath
-          last.params[2] === params[2] && // component id
-          last.params[3] === params[3] && // timeline name
-          last.params[4] === params[4] // timeline time
-        ) {
-          // Merge entries from the incoming groupValue parameter into the existing one
-          // In this way, the most recent values for all attributes are all used when
-          // this method is finally transmitted
-          Object.assign(last.params[5], params[5])
-          // Use this to decide whether to transmit immediately or wait for more to accumulate
-          last.timestamp = Date.now()
-          // Important to early return since we don't want to enqueue a new action
-          return
-        }
-      }
-    }
-
     // Otherwise, the default behavior is just to enqueue an action to run
     this._websocketActions.push({ method, params, callback, timestamp: Date.now() })
   }
@@ -471,10 +423,6 @@ class Project extends BaseModel {
     }, cb)
   }
 
-  instantiateComponent (relpath, posdata, cb) {
-    return this.getCurrentActiveComponent().instantiateComponent(relpath, posdata, this.getMetadata(), cb)
-  }
-
   setInteractionMode (interactionMode, cb) {
     return this.getCurrentActiveComponent().setInteractionMode(interactionMode, this.getMetadata(), cb)
   }
@@ -531,79 +479,12 @@ class Project extends BaseModel {
     )
   }
 
-  pasteThing (pastedElement, maybePasteRequest = {}, cb) {
-    return this.batchedWebsocketAction(
-      'pasteThing',
-      [
-        this.getFolder(),
-        this.getCurrentActiveComponentRelpath(),
-        pastedElement,
-        maybePasteRequest
-      ],
-      cb
-    )
-  }
-
-  transmitInstantiateComponent (relpath, posdata, cb) {
-    return this.batchedWebsocketAction(
-      'instantiateComponent',
-      [
-        this.getFolder(),
-        this.getCurrentActiveComponentRelpath(),
-        relpath,
-        posdata
-      ],
-      cb
-    )
-  }
-
-  upsertStateValue (stateName, stateValue, cb) {
-    return this.batchedWebsocketAction(
-      'upsertStateValue',
-      [
-        this.getFolder(),
-        this.getCurrentActiveComponentRelpath(),
-        stateName,
-        stateValue
-      ],
-      cb
-    )
-  }
-
-  deleteStateValue (stateName, cb) {
-    return this.batchedWebsocketAction(
-      'deleteStateValue',
-      [
-        this.getFolder(),
-        this.getCurrentActiveComponentRelpath(),
-        stateName
-      ],
-      cb
-    )
-  }
-
   viewZoomIn () {
     return this.websocket.send({ type: 'broadcast', name: 'view:zoom-in' })
   }
 
   viewZoomOut () {
     return this.websocket.send({ type: 'broadcast', name: 'view:zoom-out' })
-  }
-
-  gitUndo () {
-    return this.websocket.send({
-      folder: this.getFolder(),
-      method: 'gitUndo',
-      params: [this.getFolder(), { type: 'global' }]
-    })
-  }
-
-  gitRedo () {
-    return this.websocket.send({
-      folder: this.getFolder(),
-      method: 'gitRedo',
-      params: [this.getFolder(), { type: 'global' }]
-    })
   }
 
   addActiveComponentToRegistry (activeComponent) {
@@ -746,7 +627,7 @@ class Project extends BaseModel {
       return ac.mountApplication(null, instanceConfig, (err) => {
         if (err) return cb(err)
 
-        return ac.fetchActiveBytecodeFile().performComponentWork((bytecode, mana, done) => {
+        return ac.performComponentWork((bytecode, mana, done) => {
           // No-op; we only call this to ensure the file is bootstrapped and written to fs
           done()
         }, (err) => {

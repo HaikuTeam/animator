@@ -165,7 +165,7 @@ class Timeline extends BaseModel {
       const channel = this.component.project.getEnvoyChannel('timeline')
       // Don't know why, but this can be undefined in some edge case/race
       if (channel) {
-        channel.play(this.uid).then(() => {
+        channel.play(this.getPrimaryKey()).then(() => {
           this.update()
         })
       }
@@ -178,7 +178,7 @@ class Timeline extends BaseModel {
       const channel = this.component.project.getEnvoyChannel('timeline')
       // Don't know why, but this can be undefined in some edge case/race
       if (channel) {
-        channel.pause(this.uid).then((finalFrame) => {
+        channel.pause(this.getPrimaryKey()).then((finalFrame) => {
           this.setCurrentFrame(finalFrame)
           this.setAuthoritativeFrame(finalFrame)
         })
@@ -196,7 +196,7 @@ class Timeline extends BaseModel {
     // Don't bother with any part of this update if we're already at this frame
     if (forceSeek || this.getCurrentFrame() !== newFrame) {
       this.setCurrentFrame(newFrame)
-      const id = this.uid
+      const id = this.getPrimaryKey()
       const tuple = id + '|' + newFrame
       const last = this._lastSeek
       if (forceSeek || last !== tuple) {
@@ -243,12 +243,12 @@ class Timeline extends BaseModel {
       // When ActiveComponent is loaded, it calls setTimelineTimeValue() -> seek(),
       // which may occur before Envoy channels are opened, hence this check.
       if (timelineChannel) {
-        timelineChannel.seekToFrameAndPause(this.uid, newFrame).then((finalFrame) => {
+        timelineChannel.seekToFrameAndPause(this.getPrimaryKey(), newFrame).then((finalFrame) => {
           this.setCurrentFrame(finalFrame)
           this.setAuthoritativeFrame(finalFrame)
         })
       } else {
-        console.warn(`[haiku:Timeline] envoy timeline channel not open (seekToFrameAndPause ${this.uid}, ${newFrame})`)
+        console.warn(`[haiku:Timeline] envoy timeline channel not open (seekToFrameAndPause ${this.getPrimaryKey()}, ${newFrame})`)
       }
     }
   }
@@ -1019,11 +1019,11 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
 
   const propertyName = timelineRow.getPropertyNameString()
 
-  const hostInstance = timelineRow.component.fetchActiveBytecodeFile().getHostInstance()
+  const hostInstance = timelineRow.component.getCoreComponentInstance()
+
+  const hostStates = (hostInstance && hostInstance.getStates()) || {}
 
   const bytecodeFile = timelineRow.component.fetchActiveBytecodeFile()
-
-  const hostStates = bytecodeFile.getHostStates()
 
   const serializedBytecode = bytecodeFile.getSerializedBytecode()
 
@@ -1065,17 +1065,20 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
     hostStates
   )
 
-  const computedValue = TimelineProperty.getComputedValue(componentId,
+  const computedValue = TimelineProperty.getComputedValue(
+    componentId,
     elementName,
     propertyName,
     currentTimelineName,
     currentTimelineTime,
     fallbackValue,
     reifiedBytecode,
-    hostInstance, hostStates
+    hostInstance,
+    hostStates
   )
 
-  const assignedValueObject = TimelineProperty.getAssignedValueObject(componentId,
+  const assignedValueObject = TimelineProperty.getAssignedValueObject(
+    componentId,
     elementName,
     propertyName,
     currentTimelineName,
@@ -1085,7 +1088,8 @@ Timeline.getPropertyValueDescriptor = function getPropertyValueDescriptor (timel
 
   const assignedValue = assignedValueObject && assignedValueObject.value
 
-  const bookendValueObject = TimelineProperty.getAssignedBaselineValueObject(componentId,
+  const bookendValueObject = TimelineProperty.getAssignedBaselineValueObject(
+    componentId,
     elementName,
     propertyName,
     currentTimelineName,

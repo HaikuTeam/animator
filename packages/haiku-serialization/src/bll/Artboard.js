@@ -110,7 +110,8 @@ class Artboard extends BaseModel {
         x: this._mountX,
         y: this._mountY,
         w: this._mountWidth,
-        h: this._mountHeight
+        h: this._mountHeight,
+        rect: this.mount.getBoundingClientRect()
       }
     }
   }
@@ -152,6 +153,8 @@ class Artboard extends BaseModel {
         this._mountY = mountY
       }
     }
+
+    this.emit('update', 'dimensions-reset')
   }
 
   updateMountSize ($container) {

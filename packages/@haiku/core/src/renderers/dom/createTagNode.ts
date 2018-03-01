@@ -48,6 +48,8 @@ export default function createTagNode(
     newDomElement.haiku.key = incomingKey;
   }
 
+  component._addElementToHashTable(newDomElement, virtualElement);
+
   // updateElement recurses down into setAttributes, etc.
   updateElement(newDomElement, virtualElement, domElement, parentVirtualElement, component, null);
 

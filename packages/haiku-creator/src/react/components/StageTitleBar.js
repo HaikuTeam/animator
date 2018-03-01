@@ -208,8 +208,6 @@ class StageTitleBar extends React.Component {
       semverVersion: '0.0.0',
       showCopied: false,
       projectInfo: {},
-      gitUndoables: [],
-      gitRedoables: [],
       snapshotSyndicated: true,
       snapshotPublished: true
     }
@@ -273,13 +271,6 @@ class StageTitleBar extends React.Component {
           }
 
           ipcRenderer.send('master:heartbeat', assign({}, masterState))
-
-          if (this._isMounted) {
-            this.setState({
-              gitUndoables: masterState.gitUndoables,
-              gitRedoables: masterState.gitRedoables
-            })
-          }
         })
       }
     }, 1000)

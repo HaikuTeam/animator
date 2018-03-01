@@ -5,7 +5,6 @@
 import Config from './Config';
 import HaikuGlobal from './HaikuGlobal';
 import HaikuTimeline from './HaikuTimeline';
-import addElementToHashTable from './helpers/addElementToHashTable';
 import applyPropertyToElement from './helpers/applyPropertyToElement';
 import clone from './helpers/clone';
 import consoleErrorOnce from './helpers/consoleErrorOnce';
@@ -237,10 +236,7 @@ HaikuComponent.prototype._isHorizonElement = function _isHorizonElement(virtualE
   return false;
 };
 
-HaikuComponent.prototype._getRealElementsAtId = function _getRealElementsAtId(flexId) {
-  if (!this._hashTableOfIdsToElements[flexId]) {
-    return [];
-  }
+HaikuComponent.prototype._getRealElementAtId = function _getRealElementAtId(flexId) {
   return this._hashTableOfIdsToElements[flexId];
 };
 
@@ -250,7 +246,16 @@ HaikuComponent.prototype._getRealElementsAtId = function _getRealElementsAtId(fl
  * e.g. during control flow
  */
 HaikuComponent.prototype._addElementToHashTable = function _addElementToHashTable(realElement, virtualElement) {
-  addElementToHashTable(this._hashTableOfIdsToElements, realElement, virtualElement);
+  if (virtualElement && virtualElement.attributes) {
+    const flexId = virtualElement.attributes['haiku-id'] || virtualElement.attributes.id;
+
+    // Don't add if there is no id, otherwise we'll end up tracking a bunch
+    // of elements all sharing a key such as `undefined` or `null` etc.
+    if (flexId) {
+      this._hashTableOfIdsToElements[flexId] = realElement;
+    }
+  }
+
   return this;
 };
 

@@ -68,7 +68,7 @@ export default class ComponentHeadingRowHeading extends React.Component {
               position: 'absolute',
               display: 'inline-block',
               height: 20,
-              left: 0,
+              left: 7,
               top: 8
             }}>
             {(this.props.row.element.isComponent()) &&
@@ -82,7 +82,9 @@ export default class ComponentHeadingRowHeading extends React.Component {
               left: (this.props.row.element.isComponent())
                   ? 25
                   : 5,
-              top: 7
+              top: 7,
+              overflowX: 'hidden',
+              width: 160
             }}>
             {truncate(this.props.row.element.getTitle() || `<${elementName}>`, 8)}
           </span>

@@ -8,7 +8,9 @@ import cp from 'child_process'
 import os from 'os'
 import path from 'path'
 import fs from 'fs'
+import async from 'async'
 import Project from 'haiku-serialization/src/bll/Project'
+import ModuleWrapper from 'haiku-serialization/src/bll/ModuleWrapper'
 import Asset from 'haiku-serialization/src/bll/Asset'
 import AuthenticationUI from './components/AuthenticationUI'
 import ProjectBrowser from './components/ProjectBrowser'
@@ -108,7 +110,8 @@ export default class Creator extends React.Component {
       doShowProjectLoader: false,
       launchingProject: false,
       newProjectLoading: false,
-      interactionMode: InteractionMode.EDIT
+      interactionMode: InteractionMode.EDIT,
+      artboardDimensions: null
     }
 
     this.envoyOptions = {
@@ -122,11 +125,7 @@ export default class Creator extends React.Component {
     // can be forwarded to file. They're also used to configure the Project model itself.
     this.fileOptions = {
       doWriteToDisk: false,
-      skipDiffLogging: true,
-      // List of methods that should return cb() without doing anything (we are in Creator).
-      whitelistedMethods: {
-        setInteractionMode: true
-      }
+      skipDiffLogging: true
     }
 
     const win = remote.getCurrentWindow()
@@ -190,14 +189,14 @@ export default class Creator extends React.Component {
     }, 500, { leading: true }))
 
     ipcRenderer.on('global-menu:undo', lodash.debounce(() => {
-      if (this.state.projectModel) {
-        this.state.projectModel.gitUndo({ type: 'global' })
+      if (this.getActiveComponent()) {
+        this.getActiveComponent().undo({}, {from: 'creator'}, () => {})
       }
     }, 500, { leading: true }))
 
     ipcRenderer.on('global-menu:redo', lodash.debounce(() => {
-      if (this.state.projectModel) {
-        this.state.projectModel.gitRedo({ type: 'global' })
+      if (this.getActiveComponent()) {
+        this.getActiveComponent().redo({}, {from: 'creator'}, () => {})
       }
     }, 500, { leading: true }))
 
@@ -261,6 +260,10 @@ export default class Creator extends React.Component {
     }
   }
 
+  getActiveComponent () {
+    return this.state.projectModel && this.state.projectModel.getCurrentActiveComponent()
+  }
+
   openTerminal (folder) {
     try {
       cp.execSync('open -b com.apple.terminal ' + JSON.stringify(folder) + ' || true')
@@ -315,28 +318,33 @@ export default class Creator extends React.Component {
     }
 
     if (Array.isArray(pastedData)) {
-      // This looks like a Haiku element that has been copied from the stage
-      if (pastedData[0] === 'application/haiku' && typeof pastedData[1] === 'object') {
-        let pastedElement = pastedData[1]
+      // This looks like a collection of Haiku elements that have been copied from the stage
+      if (pastedData[0] === 'application/haiku' && Array.isArray(pastedData[1])) {
+        // Formerly a single element at a time, but now managed by ElementSelectionProxy,
+        // so we always receive an array of pasteables even if just one was selected
+        const pastedElements = pastedData[1]
 
         // Command the views and master process to handle the element paste action
-        // The 'pasteThing' action is intended to be able to handle multiple content types
         if (this.state.projectModel) {
-          return this.state.projectModel.pasteThing(pastedElement, maybePasteRequest || {}, (error) => {
-            if (error) {
-              console.error(error)
+          return async.eachSeries(pastedElements, (pastedElement, next) => {
+            return this.state.projectModel.getCurrentActiveComponent().pasteThing(pastedElement, maybePasteRequest || {}, {from: 'creator'}, (err) => {
+              if (err) return next(err)
+              return next()
+            })
+          }, (err) => {
+            if (err) {
+              return console.error(err)
             }
           })
         }
       } else {
-        // TODO: Handle other cases where the paste data was a serialized array
-        console.warn('[creator] cannot paste this content type yet (array)')
+        console.warn('[creator] cannot paste this content type yet')
       }
     } else {
       // An empty string is treated as the equivalent of nothing (don't display warning if nothing to instantiate)
       if (typeof pastedData === 'string' && pastedData.length > 0) {
         // TODO: Handle the case when plain text has been pasted - SVG, HTML, etc?
-        console.warn('[creator] cannot paste this content type yet (unknown string)')
+        console.warn('[creator] cannot paste this content type yet')
       }
     }
   }
@@ -368,6 +376,9 @@ export default class Creator extends React.Component {
         case 'current-pasteable:request-paste':
           console.info('[creator] current-pasteable:request-paste', message.data)
           return this.handleContentPaste(message.data)
+        case 'dimensions-reset':
+          console.log('dimensions-reset',message.data)
+          return this.setState({ artboardDimensions: message.data })
       }
     })
 
@@ -799,16 +810,7 @@ export default class Creator extends React.Component {
             projectModel.on('update', (what) => {
               switch (what) {
                 case 'setCurrentActiveComponent':
-                  // Hide loading screens, re-enable navigating back to dashboard but only after a
-                  // delay since we've seen race-related crashes when people nav back too early.
-                  // For mc, this triggers re-render of the Component Tab UI, State Inspector UI, Library UI
-                  // in the context of whatever the current component is
-                  return setTimeout(() => {
-                    return this.setState({
-                      doShowProjectLoader: false,
-                      doShowBackToDashboardButton: true
-                    })
-                  }, 2000)
+                  this.handleActiveComponentReady()
               }
             })
 
@@ -826,6 +828,29 @@ export default class Creator extends React.Component {
           }
         )
       })
+    })
+  }
+
+  handleActiveComponentReady () {
+    this.mountHaikuComponent()
+
+    // Hide loading screens, re-enable navigating back to dashboard but only after a
+    // delay since we've seen race-related crashes when people nav back too early.
+    // For mc, this triggers re-render of the Component Tab UI, State Inspector UI, Library UI
+    // in the context of whatever the current component is
+    return setTimeout(() => {
+      return this.setState({
+        doShowProjectLoader: false,
+        doShowBackToDashboardButton: true
+      })
+    }, 2000)
+  }
+
+  mountHaikuComponent () {
+    // The Timeline UI doesn't display the component, so we don't bother giving it a ref
+    this.getActiveComponent().mountApplication(null, {
+      options: { freeze: true }, // No display means no need for overflow settings, etc
+      reloadMode: ModuleWrapper.RELOAD_MODES.MONKEYPATCHED_OR_ISOLATED
     })
   }
 
@@ -1225,6 +1250,7 @@ export default class Creator extends React.Component {
                     isTimelineReady={this.state.isTimelineReady}
                     isPreviewMode={isPreviewMode(this.state.interactionMode)}
                     onPreviewModeToggled={() => { this.togglePreviewMode() }}
+                    artboardDimensions={this.state.artboardDimensions}
                   />
                   {(this.state.assetDragging)
                     ? <div style={{ width: '100%', height: '100%', backgroundColor: 'white', opacity: 0.01, position: 'absolute', top: 0, left: 0 }} />

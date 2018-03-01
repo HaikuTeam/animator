@@ -525,14 +525,17 @@ Template.visitManaTreeSpecial = function visitManaTreeSpecial (address, hash, ma
   }
 }
 
-Template.visit = (node, visitor) => {
+/**
+ * Visit all nodes in the given tree, beginning with the root node, in depth-first order
+ */
+Template.visit = (node, visitor, index = 0, depth = 0, address = '0') => {
   if (node) {
-    visitor(node, null)
+    visitor(node, null, index, depth, address)
     if (!node.children) return
     for (let i = 0; i < node.children.length; i++) {
       const child = node.children[i]
       if (typeof child === 'string') continue
-      Template.visit(child, visitor)
+      Template.visit(child, visitor, i, depth + 1, `${address}.${i}`)
     }
   }
 }

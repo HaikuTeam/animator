@@ -125,9 +125,10 @@ export default class ComponentHeadingRow extends React.Component {
             style={
               this.props.isExpanded
                 ? {
-                  marginLeft: this.props.row.isRootRow() ? '45px' : '57px',
-                  marginTop: '7px',
-                  position: 'relative'
+                  marginLeft: '37px',
+                  marginTop: '4px',
+                  position: 'relative',
+                  height: '20px'
                 }
                 : {float: 'right', marginTop: '-15px', position: 'relative'}
             }
@@ -154,7 +155,7 @@ export default class ComponentHeadingRow extends React.Component {
                 style={{
                   width: 10,
                   position: 'absolute',
-                  left: 18,
+                  left: 16,
                   top: -1
                 }}>
                 {(this.props.isExpanded)

@@ -1,5 +1,6 @@
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const BaseModel = require('./BaseModel')
+const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
 
 const NAVIGATION_DIRECTIONS = {
   SAME: 0,
@@ -24,6 +25,7 @@ const NAVIGATION_DIRECTIONS = {
  *.  to get the rows that would be displayed inside/underneath that row in question
  *.  (presuming that they are visible per the visibility rules).
  */
+
 class Row extends BaseModel {
   constructor (props, opts) {
     super(props, opts)
@@ -41,7 +43,7 @@ class Row extends BaseModel {
   }
 
   getUniqueKey () {
-    return `${this.element.getComponentId()}-${this.getType()}-${this.getClusterNameString()}-${this.getPropertyNameString()}`
+    return `${this.element.getComponentId()}+${this.host.getComponentId()}-${this.getType()}-${this.getClusterNameString()}-${this.getPropertyNameString()}`
   }
 
   deselectOthers (metadata) {
@@ -290,6 +292,58 @@ class Row extends BaseModel {
     this.emit('update', 'row-deleted')
   }
 
+  rehydrate () {
+    this.rehydrateKeyframes()
+  }
+
+  rehydrateKeyframes () {
+    const valueGroup = TimelineProperty.getValueGroup(
+      this.element.getComponentId(),
+      this.component.getCurrentTimelineName(),
+      this.getPropertyNameString(),
+      this.component.getReifiedBytecode()
+    )
+
+    if (!valueGroup) {
+      return []
+    }
+
+    const keyframesList = Object.keys(valueGroup)
+      .map((keyframeKey) => parseInt(keyframeKey, 10))
+      .sort((a, b) => a - b)
+
+    if (keyframesList.length < 1) {
+      return []
+    }
+
+    for (let i = 0; i < keyframesList.length; i++) {
+      let mscurr = keyframesList[i]
+
+      if (isNaN(mscurr)) {
+        continue
+      }
+
+      // Unknown why, but sometimes this isn't present and we crash
+      if (!valueGroup[mscurr] || valueGroup[mscurr].value === undefined) {
+        continue
+      }
+
+      Keyframe.upsert({
+        timestamp: Date.now(),
+        // The keyframe's uid is in the context of the row, which is in turn in context of the component
+        uid: Keyframe.getInferredUid(this, i),
+        ms: mscurr,
+        index: i,
+        value: valueGroup[mscurr].value,
+        curve: valueGroup[mscurr].curve,
+        row: this,
+        element: this.element,
+        timeline: this.timeline,
+        component: this.component
+      }, {})
+    }
+  }
+
   hasZerothKeyframe () {
     return !!this.getZerothKeyframe()
   }
@@ -469,11 +523,16 @@ class Row extends BaseModel {
     return Keyframe.where({ row: this }).sort((a, b) => a.index - b.index)
   }
 
-  mapVisibleKeyframes (iteratee) {
+  mapVisibleKeyframes ({ maxDepth = Infinity }, iteratee) {
+    // Avoid extra computation by not returning keyframes from too deep in the tree
+    if (this.getDepthAmongRows() > maxDepth) {
+      return []
+    }
+
     // If we are a heading row (either a cluster or an element), we have no keyframes,
     // so we instead query our children for the list of keyframes within us
     if (this.isHeading() || this.isClusterHeading()) {
-      return [...this.children.map((child) => child.mapVisibleKeyframes(iteratee))]
+      return [...this.children.map((child) => child.mapVisibleKeyframes({ maxDepth }, iteratee))]
     }
 
     const keyframes = this.getKeyframes()
@@ -486,8 +545,31 @@ class Row extends BaseModel {
     return this.property && this.property.type === 'state'
   }
 
+  isFirstRowOfSubElementSet () {
+    if (this.isHeading()) return true
+    const prev = this.prev()
+    if (!prev) return true
+    if (prev.element !== this.element) return true
+    if (prev.isHeading()) return true
+    if (prev.isClusterHeading()) {
+      return prev.isFirstRowOfSubElementSet()
+    }
+    return false
+  }
+
+  isLastRowOfSubElementSet () {
+    const next = this.next()
+    if (!next) return true
+    if (next.element !== this.element) return true
+    return false
+  }
+
   isFirstRowOfPropertyCluster () {
-    return this.cluster && this.property && this.subseq === 0
+    return this.cluster && this.property && this.getIndexWithinParentRow() === 0
+  }
+
+  isClusterProperty () {
+    return this.cluster && !this.property
   }
 
   isClusterHeading () {
@@ -518,7 +600,7 @@ class Row extends BaseModel {
     if (this.isHeading()) id = 'heading'
     else if (this.isClusterHeading()) id = 'cluster-heading'
     else id = this.getPropertyNameString()
-    return `${this.element.getAddress()}/${id}`
+    return `${this.element.getGraphAddress()}/${id}`
   }
 
   getClusterNameString () {
@@ -602,19 +684,75 @@ class Row extends BaseModel {
     return typeof this.element.getStaticTemplateNode() === 'string'
   }
 
-  isPropertyOnLastComponent () {
-    // const propertyOnLastComponent = item.siblings.length > 0 && item.index === item.siblings.length - 1
+  clearEntityCaches () {
+    if (this.children) {
+      this.children.forEach((row) => {
+        row.cacheClear()
+        row.clearEntityCaches()
+      })
+    }
+
+    this.getKeyframes().forEach((keyframe) => {
+      keyframe.cacheClear()
+    })
+  }
+
+  getPosition () {
+    if (typeof this.position === 'number') return this.position
+    return Number.MAX_SAFE_INTEGER
+  }
+
+  setPosition (position) {
+    this.position = position
+  }
+
+  getDepthAmongRows () {
+    let depth = 0
+    let parent = this.parent
+    while (parent) {
+      depth += 1
+      parent = parent.parent
+    }
+    return depth
+  }
+
+  getDepthAmongElements () {
+    return this.element.getDepthAmongElements()
+  }
+
+  getAllSiblings () {
+    return (this.parent && this.parent.children) || []
+  }
+
+  getIndexWithinParentRow () {
+    const siblings = this.getAllSiblings()
+    for (let i = 0; i < siblings.length; i++) {
+      if (siblings[i] === this) return i
+    }
+    return 0
+  }
+
+  getIndexWithinHostElement () {
+    const rows = this.host.getHostedRows()
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i] === this) return i
+    }
+    return 0
+  }
+
+  doesTargetHostElement () {
+    return this.host === this.element
   }
 
   next () {
     return this.cacheFetch('next', () => {
-      return Row.find({ place: this.place + 1 })
+      return Row.findByGlobalPosition({ component: this.component }, this.getPosition() + 1)
     })
   }
 
   prev () {
     return this.cacheFetch('prev', () => {
-      return Row.find({ place: this.place - 1 })
+      return Row.findByGlobalPosition({ component: this.component }, this.getPosition() - 1)
     })
   }
 
@@ -623,7 +761,7 @@ class Row extends BaseModel {
    * @description When debugging, use this to log a concise shorthand of this entity.
    */
   dump () {
-    let str = `${this.getType()}.${this.element.getComponentId()}.${this.place}|${this.depth}.${this.seq}.${this.index}`
+    let str = `${this.getType()}.${this.element.getComponentId()}<${this.element.getSafeDomFriendlyName()}>|${this.getDepthAmongRows()}.${this.getIndexWithinParentRow()}.${this.getIndexWithinHostElement()}`
     if (this.isCluster()) str += `.${this.cluster.prefix}[]`
     if (this.isProperty()) str += `.${this.getPropertyName()}`
     if (this.isSelected()) str += ' {s}'
@@ -635,13 +773,10 @@ class Row extends BaseModel {
 
 Row.DEFAULT_OPTIONS = {
   required: {
-    timeline: true,
-    element: true,
-    component: true,
-    depth: true,
-    index: true,
-    seq: true,
-    place: true
+    timeline: true, // Timeline
+    host: true, // Element
+    element: true, // Element
+    component: true // Component
   }
 }
 
@@ -670,20 +805,39 @@ Row.findPropertyRowsByComponentAndParentHaikuId = (component, haikuId) => {
   })
 }
 
-Row.getDisplayables = (criteria) => Row
-  .where(criteria)
-  .filter((row) => (
-    // Nothing after the third level of depth (elements, properties, etc)
-    row.depth <= 3 &&
-    // No third-level elements
-    (row.depth !== 2 || !row.parent.isHeading()) &&
+Row.getDisplayables = (criteria) => {
+  const rows = Row.where(criteria)
+
+  return rows.filter((row) => {
+    if (row.isDeleted() || row.isDestroyed()) {
+      return false
+    }
+
+    // If we're targeting the host element, limit the depth we'll display;
+    // rows that target elements other than the host are sub-element rows
+    if (row.doesTargetHostElement()) {
+      // Nothing after the third level of depth (elements, properties, etc)
+      if (row.getDepthAmongElements() > 3) {
+        return false
+      }
+
+      // No third-level elements
+      if (row.getDepthAmongElements() >= 2 && row.parent && row.parent.isHeading()) {
+        return false
+      }
+    }
+
     // Don't display any rows that are hidden by their parent being collapsed
-    !row.isWithinCollapsedRow()
-  ))
-  .sort((rowA, rowB) => {
+    if (row.isWithinCollapsedRow()) {
+      return false
+    }
+
+    return true
+  }).sort((rowA, rowB) => {
     // This is assigned when ActiveComponent rehydrates the rows
-    return rowA.place - rowB.place
+    return rowA.getPosition() - rowB.getPosition()
   })
+}
 
 Row.cyclicalNav = function cyclicalNav (criteria, row, navDir) {
   let target
@@ -735,7 +889,7 @@ Row.focusSelectNext = function focusSelectNext (criteria, navDir, doFocus, metad
 
   const target = (previous)
     ? Row.cyclicalNav(criteria, previous, navDir)
-    : Row.cyclicalNav(criteria, Row.find(Object.assign({ place: 0 }, criteria)), navDir)
+    : Row.cyclicalNav(criteria, Row.findByGlobalPosition(criteria, 0), navDir)
 
   target.expand(metadata)
   target.select(metadata)
@@ -806,11 +960,17 @@ Row.dumpHierarchyInfo = (criteria) => {
   })
 }
 
-// The last row is the row with the largest 'place' via the AC _numRows counter
+Row.findByGlobalPosition = (criteria, position) => {
+  return Row.where(criteria).filter((row) => {
+    return row.getPosition() === position
+  })[0]
+}
+
+// The last row is the row with the largest global position
 Row.last = (criteria) => {
   let max = Row.first(criteria)
   Row.where(criteria).forEach((row) => {
-    if (row.place > max.place) {
+    if (row.getPosition() > max.getPosition()) {
       max = row
     }
   })
@@ -818,23 +978,34 @@ Row.last = (criteria) => {
 }
 
 Row.first = (criteria) => {
-  return Row.find(Object.assign({ place: 0 }, criteria))
+  return Row.findByGlobalPosition(criteria, 0)
 }
 
-Row.buildPropertyUid = (component, element, addressableName) => {
-  return `${component.getPrimaryKey()}::${element.getComponentId()}-property-${addressableName}`
+// The id-generators below accept a "host element" and a "target element";
+// the host element is the element in the timeline under which a row displays;
+// the target element is the element to which the row's property value applies.
+// The host and target can be different (consider the way rows display in the timeline):
+// An element in the timeline can display rows for properties applied to its descendant
+// element, not just its own properties. In that case, the host element is not the target element,
+// and so we need to pass both in so we create non-colliding Row objects.
+
+Row.buildPropertyUid = (component, hostElement, targetElement, addressableName) => {
+  const elementId = `${hostElement.getComponentId()}+${targetElement.getComponentId()}`
+  return `${component.getPrimaryKey()}::${elementId}-property-${addressableName}`
 }
 
-Row.buildClusterUid = (component, element, propertyGroupDescriptor) => {
-  return `${component.getPrimaryKey()}::${element.getComponentId()}-cluster-${propertyGroupDescriptor.cluster.prefix}`
+Row.buildClusterUid = (component, hostElement, targetElement, propertyGroupDescriptor) => {
+  const elementId = `${hostElement.getComponentId()}+${targetElement.getComponentId()}`
+  return `${component.getPrimaryKey()}::${elementId}-cluster-${propertyGroupDescriptor.cluster.prefix}`
 }
 
-Row.buildClusterMemberUid = (component, element, propertyGroupDescriptor, addressableName) => {
-  return `${component.getPrimaryKey()}::${element.getComponentId()}-cluster-${propertyGroupDescriptor.cluster.prefix}-property-${addressableName}`
+Row.buildClusterMemberUid = (component, hostElement, targetElement, propertyGroupDescriptor, addressableName) => {
+  const elementId = `${hostElement.getComponentId()}+${targetElement.getComponentId()}`
+  return `${component.getPrimaryKey()}::${elementId}-cluster-${propertyGroupDescriptor.cluster.prefix}-property-${addressableName}`
 }
 
-Row.buildHeadingUid = (component, element) => {
-  return `${component.getPrimaryKey()}::${element.getComponentId()}-heading`
+Row.buildHeadingUid = (component, hostElement) => {
+  return `${component.getPrimaryKey()}::${hostElement.getComponentId()}-heading`
 }
 
 Row.fetchAndUnsetRowsToEnsureZerothKeyframe = (criteria) => {

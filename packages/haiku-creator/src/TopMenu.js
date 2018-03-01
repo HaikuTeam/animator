@@ -121,7 +121,7 @@ export default class TopMenu extends EventEmitter {
           {
             label: 'Undo',
             accelerator: 'CmdOrCtrl+Z',
-            enabled: !options.isSaving && options.undoables.length > 1, // Idiosyncracy: If there is one 'undoable', that is actually the bottommost commit which can't be undone... :P
+            enabled: !options.isSaving && options.undoables.length > 0,
             click: () => {
               this.emit('global-menu:undo', options.undoables)
             }

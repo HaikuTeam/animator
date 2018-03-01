@@ -7,31 +7,22 @@ const DOMSchema = require('@haiku/core/lib/properties/dom/schema').default
 const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
 const manaToHtml = require('haiku-bytecode/src/manaToHtml')
 const manaToJson = require('haiku-bytecode/src/manaToJson')
+const titlecase = require('titlecase')
+const decamelize = require('decamelize')
 const getStackingInfo = require('haiku-bytecode/src/getStackingInfo')
+const polygonOverlap = require('polygon-overlap')
 const BaseModel = require('./BaseModel')
+const TransformCache = require('./TransformCache')
 const RENDERABLE_ELEMENTS = require('./svg/RenderableElements')
 const TOP_LEVEL_GROUP_ELEMENTS = require('./svg/TopLevelGroupElements')
 const GROUPING_ELEMENTS = require('./svg/GroupingElements')
 const serializeElement = require('./../dom/serializeElement')
-const Artboard = require('./Artboard')
+const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments')
 
 const HAIKU_ID_ATTRIBUTE = 'haiku-id'
 const HAIKU_TITLE_ATTRIBUTE = 'haiku-title'
 
 const CUSTOM_EVENT_PREFIX = 'timeline:'
-
-const PI_OVER_12 = Math.PI / 12
-
-const DELTA_ROTATION_OFFSETS = {
-  0: 16 * PI_OVER_12,
-  1: 12 * PI_OVER_12,
-  2: 8 * PI_OVER_12,
-  3: 18 * PI_OVER_12,
-  5: 6 * PI_OVER_12,
-  6: 20 * PI_OVER_12,
-  7: 24 * PI_OVER_12,
-  8: 4 * PI_OVER_12
-}
 
 const FAKE_POINTS = [
   {x: 1, y: 1, moveTo: true},
@@ -43,12 +34,22 @@ const FAKE_POINTS = [
 
 const EMPTY_ELEMENT = {elementName: 'div', attributes: {}, children: []}
 
+function isNumeric (n) {
+  return !isNaN(parseFloat(n)) && isFinite(n)
+}
+
 function getAncestry (ancestors, elementInstance) {
   ancestors.unshift(elementInstance)
   if (elementInstance.parent) {
     getAncestry(ancestors, elementInstance.parent)
   }
   return ancestors
+}
+
+function anyEditedKeyframesInKeyframesObject (keyframesObject) {
+  if (!keyframesObject) return false
+  const values = Object.values(keyframesObject)
+  return values.filter((object) => { return object && object.edited }).length > 0
 }
 
 /**
@@ -67,10 +68,7 @@ class Element extends BaseModel {
 
     this._isHovered = false
     this._isSelected = false
-    this._cachedTransforms = []
-
-    // User-specified list of properties to show for this element, "just-in-time"
-    this._visibleProperties = {}
+    this.transformCache = new TransformCache(this)
   }
 
   $el () {
@@ -84,6 +82,7 @@ class Element extends BaseModel {
     // Make sure we add to the appropriate collections to avoid unexpected state issues
     if (this.isHovered()) Element.hovered[this.getPrimaryKey()] = this
     if (this.isSelected()) Element.selected[this.getPrimaryKey()] = this
+    this.populateVisiblePropertiesFromKeyframes()
   }
 
   oneListener ($el, uid, type, fn) {
@@ -172,12 +171,8 @@ class Element extends BaseModel {
     }
   }
 
-  getAllAssociatedRows () {
-    return Row.where({ element: this })
-  }
-
   getHeadingRow () {
-    const rows = this.getAllAssociatedRows()
+    const rows = Row.where({ element: this })
     // Our 'official' row is the row that represents the element heading
     return rows.filter((row) => row.isHeading())[0]
   }
@@ -237,13 +232,23 @@ class Element extends BaseModel {
     return reset
   }
 
-  cut () {
-    this.copy()
+  cut (metadata) {
+    // Note that .copy() also calls .clip()
+    this.copy(metadata)
     this.remove()
   }
 
-  copy () {
-    this.emit('element:copy', this.getComponentId())
+  copy (metadata) {
+    this.clip(metadata)
+  }
+
+  clip (metadata) {
+    this._clip = this.buildClipboardPayload(metadata)
+    return this._clip
+  }
+
+  getLastClip () {
+    return this._clip
   }
 
   querySelectorAll (selector) {
@@ -349,17 +354,17 @@ class Element extends BaseModel {
   }
 
   /**
-   * @method getClipboardPayload
+   * @method buildClipboardPayload
    * @description Return a serializable payload for this object that represents sufficient
    * information to be able to paste (instantiate with overrides) or delete it if received as
-   * part of a pasteThing or deleteThing command.
+   * part of a pasteThing command.
    */
-  getClipboardPayload (_from) {
+  buildClipboardPayload (metadata) {
     // These are cloned because we may mutate their references in place when we paste
     const staticTemplateNode = lodash.cloneDeep(Template.manaWithOnlyStandardProps(this.getStaticTemplateNode()))
     const serializedBytecode = lodash.cloneDeep(this.component.fetchActiveBytecodeFile().getReifiedDecycledBytecode())
     return {
-      from: _from, // Used to help determine who should handle a given global clipboard action
+      from: metadata.from, // Used to help determine who should handle a given global clipboard action
       kind: 'bytecode',
       data: {
         timelines: Bytecode.getAppliedTimelinesForNode({}, serializedBytecode, staticTemplateNode),
@@ -531,7 +536,7 @@ class Element extends BaseModel {
     }
   }
 
-  getPoints () {
+  getPointsFromRenderedNode () {
     const node = this.getLiveRenderedNode()
     // FIXME: Race condition when node isn't present
     if (!node) {
@@ -540,25 +545,16 @@ class Element extends BaseModel {
     return SVGPoints.manaToPoints(node) // TODO: Use bytecode overrides?
   }
 
-  getBoxPoints () {
-    return Element.getBoundingBoxPoints(this.getPoints())
+  getBoxPointsNotTransformed () {
+    return Element.getBoundingBoxPoints(this.getPointsFromRenderedNode())
   }
 
   getBoxPointsTransformed () {
-    const points = Element.transformPoints(this.getBoxPoints(), this.getOriginOffsetComposedMatrix())
+    const points = Element.transformPointsInPlace(
+      this.getBoxPointsNotTransformed(),
+      this.getOriginOffsetComposedMatrix()
+    )
     return points
-  }
-
-  getPointsTransformed () {
-    return Element.transformPoints(this.getPoints(), this.getOriginOffsetComposedMatrix())
-  }
-
-  getPath () {
-    return SVGPoints.pointsToPath(this.getPoints())
-  }
-
-  getPathTransformed () {
-    return SVGPoints.pointsToPath(this.getPointsTransformed())
   }
 
   getPropertyKeyframesObject (propertyName) {
@@ -574,6 +570,8 @@ class Element extends BaseModel {
 
   getPropertyValue (propertyName, fallbackValue) {
     const bytecode = this.component.getReifiedBytecode()
+    const host = this.component.getCoreComponentInstance()
+    const states = (host && host.getStates()) || {}
     const computed = TimelineProperty.getComputedValue(
       this.getComponentId(),
       Element.safeElementName(this.getStaticTemplateNode()),
@@ -582,331 +580,38 @@ class Element extends BaseModel {
       this.component.getCurrentTimelineTime(),
       fallbackValue,
       bytecode,
-      this.component.fetchActiveBytecodeFile().getHostInstance(),
-      this.component.fetchActiveBytecodeFile().getHostStates()
+      host,
+      states
     )
     // Re: the scale NaN/Infinity issue on a freshly instantiated component module,
     // The problem is probably upstream of here in core or ActiveComponent
     return computed
   }
 
-  // I'm using "drag" as an abstraction over {any movement caused by the mouse dragging} whether that
-  // is actually moving it in space, or rotating it, etc. This method makes the decision on what the "outcome"
-  // of the drag should actually be.
-  drag (dx, dy, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord, reactState, viewportTransform, globals) {
-    if (reactState.isAnythingScaling) {
-      if (!reactState.controlActivation.cmd) {
-        return this.scale(dx, dy, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord, reactState.controlActivation, viewportTransform)
-      }
-    } else if (reactState.isAnythingRotating) {
-      if (reactState.controlActivation.cmd) {
-        if (!this.parent) return void (0) // Don't allow artboard to rotate
-        return this.rotate(dx, dy, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord, reactState.controlActivation, viewportTransform)
-      }
-    } else {
-      if (!this.parent) return void (0) // Don't allow artboard to move
+  computePropertyGroupValueFromGroupDelta (propertyGroupDelta) {
+    const propertyGroupValue = {}
 
-      if (globals.isShiftKeyDown) {
-        // if shift is held, should snap translation to x/y axis
-        const transform = this.peekCachedTransform('CONSTRAINED_DRAG') // wishlist:  enum
-        const initialTransform = {x: transform.translate[0], y: transform.translate[1]}
+    for (const propertyName in propertyGroupDelta) {
+      const existingPropertyValue = this.getPropertyValue(propertyName, 0)
+      const deltaPropertyValue = propertyGroupDelta[propertyName]
 
-        // TODO: there should be a better way to get a reference to the active artboard?
-        let artboard = Artboard.all()[0]
-
-        const isXAxis = Math.abs(mouseCoordsCurrent.x - lastMouseDownCoord.x) > Math.abs(mouseCoordsCurrent.y - lastMouseDownCoord.y)
-
-        const mouseDelta = {
-          x: mouseCoordsCurrent.x - lastMouseDownCoord.x,
-          y: mouseCoordsCurrent.y - lastMouseDownCoord.y
-        }
-
-        const mouseDeltaWorld = artboard.transformScreenToWorld(mouseDelta)
-
-        const x = isXAxis ? initialTransform.x + mouseDeltaWorld.x : initialTransform.x
-        const y = isXAxis ? initialTransform.y : initialTransform.y + mouseDeltaWorld.y
-
-        return this.moveAbsolute(x, y, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord, transform)
-      } else {
-        return this.move(dx, dy, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord)
-      }
-    }
-  }
-
-  move (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord) {
-    if (!this.parent) return void (0) // Don't allow artboard to move
-    const propertyGroup = { 'translation.x': dx, 'translation.y': dy }
-    this.component.applyPropertyGroupDelta(this.getComponentId(), this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), propertyGroup, this.component.project.getMetadata(), (err) => {
-      if (err) return void (0)
-    })
-    this.emit('update', 'element-move')
-  }
-
-  moveAbsolute (x, y, mouseCoordsCurrent, mouseCoordsPrevious, lastMouseDownCoord) {
-    if (!this.parent) return void (0) // Don't allow artboard to move
-    const propertyGroup = { 'translation.x': x, 'translation.y': y }
-    this.component.applyPropertyGroupValue(this.getComponentId(), this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), propertyGroup, this.component.project.getMetadata(), (err) => {
-      if (err) return void (0)
-    })
-    this.emit('update', 'element-move')
-  }
-
-  // tracks the current transform in a stack, allowing values
-  // to be recalled on demand.  Keeps individual stacks indexed by key,
-  // so different tools can use distinct stacks.
-  //
-  // use-case:  - shift-dragging an element needs to keep track of the element's
-  //           position at the moment of mouse-click, then until the next
-  //           drag begins.  In order to do this, the pre-drag position
-  //           of that element needs to be tracked.  Other drawing tool
-  //           logic should be able to piggyback on this
-  //           - alt-dragging to duplicate an element
-  pushCachedTransform (key) {
-    let stack = this._cachedTransforms[key] || []
-
-    // TODO: is reading all of these as separate requests
-    //      going to cause a websocket bottleneck?
-    //      It'd be great if this data existed in memory, in-process
-    //      (and didn't require a websocket hop)
-    let transform = {
-      translate: [
-        this.getPropertyValue('translation.x'),
-        this.getPropertyValue('translation.y'),
-        this.getPropertyValue('translation.z')
-      ],
-      rotate: [
-        this.getPropertyValue('rotation.x'),
-        this.getPropertyValue('rotation.y'),
-        this.getPropertyValue('rotation.z')
-      ],
-      scale: [
-        this.getPropertyValue('scale.x'),
-        this.getPropertyValue('scale.y'),
-        this.getPropertyValue('scale.z')
-      ],
-      origin: [
-        this.getPropertyValue('origin.x'),
-        this.getPropertyValue('origin.y'),
-        this.getPropertyValue('origin.z')
-      ],
-      size: [
-        this.getPropertyValue('sizeAbsolute.x'),
-        this.getPropertyValue('sizeAbsolute.y'),
-        this.getPropertyValue('sizeAbsolute.z')
-      ]
-    }
-
-    stack.push(transform)
-    this._cachedTransforms[key] = stack
-  }
-
-  peekCachedTransform (key) {
-    let stack = this._cachedTransforms[key] || []
-    return stack[stack.length - 1]
-  }
-
-  popCachedTransform (key) {
-    let stack = this._cachedTransforms[key] || []
-    let ret = stack.pop()
-    this._cachedTransforms[key] = stack
-    return ret
-  }
-
-  scale (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, activationPoint, viewportTransform) {
-    if (!coordsPrevious) return void (0)
-
-    // The activation point index corresponds to a box with this coord system:
-    // 0, 1, 2
-    // 3, 4, 5
-    // 6, 7, 8
-
-    // Based on the handle being moved, build input vector (ignore unchanged axis by leaving as 0 when moving edge control points)
-    // note that SHIFT effectively turns on both axes as well, even when dragging from an edge control point
-    let activeAxes = [0, 0]
-    if (activationPoint.shift || activationPoint.index === 6 || activationPoint.index === 3 || activationPoint.index === 0 || activationPoint.index === 2 || activationPoint.index === 5 || activationPoint.index === 8) {
-      activeAxes[0] = 1
-    }
-    if (activationPoint.shift || activationPoint.index === 0 || activationPoint.index === 1 || activationPoint.index === 2 || activationPoint.index === 6 || activationPoint.index === 7 || activationPoint.index === 8) {
-      activeAxes[1] = 1
-    }
-
-    let isLeft = activationPoint.index === 6 || activationPoint.index === 3 || activationPoint.index === 0
-    let isTop = activationPoint.index === 0 || activationPoint.index === 1 || activationPoint.index === 2
-
-    let x0 = coordsPrevious.clientX
-    let y0 = coordsPrevious.clientY
-    let x1 = coordsCurrent.clientX
-    let y1 = coordsCurrent.clientY
-
-    let worldDeltaX = (x1 - x0) / viewportTransform.zoom
-    let worldDeltaY = (y1 - y0) / viewportTransform.zoom
-
-    // assigned below
-    let proportionX
-    let proportionY
-
-    // If no parent, we are the artboard element and must via a different method
-    if (!this.parent) {
-      let currentSize = {
-        x: this.getPropertyValue('sizeAbsolute.x'),
-        y: this.getPropertyValue('sizeAbsolute.y'),
-        z: this.getPropertyValue('sizeAbsolute.z') || 0
-      }
-
-      let finalSize = {
-        width: currentSize.x + worldDeltaX * (isLeft ? -2 : 2) * activeAxes[0],
-        height: currentSize.y + worldDeltaY * (isTop ? -2 : 2) * activeAxes[1]
-      }
-
-      // note this logic is essentially duplicated below, for elements
-      if (activationPoint.shift) {
-        // constrain proportion
-        proportionX = finalSize.width / currentSize.x
-        proportionY = finalSize.height / currentSize.y
-
-        // this gnarly logic is just mixing EDGE constraining logic (index checks) with CORNER constraining logic (proportion comparison)
-        if (activationPoint.index !== 1 && activationPoint.index !== 7 && (Math.abs(1 - proportionX) < Math.abs(1 - proportionY) || activationPoint.index === 3 || activationPoint.index === 5)) {
-          finalSize.height = proportionX * currentSize.y
-        } else {
-          finalSize.width = proportionY * currentSize.x
-        }
-      }
-
-      if (finalSize.width <= 1 || finalSize.height <= 1) return void (0)
-
-      // Frame zero is hardcoded since artboard resizes at different times is confusing
-      return this.component.resizeContext(this.getComponentId(), this.component.getCurrentTimelineName(), 0, finalSize, this.component.project.getMetadata(), (err) => {
-        if (err) return void (0)
-      })
-    }
-
-    let baseWidth = this.getPropertyValue('sizeAbsolute.x')
-    let baseHeight = this.getPropertyValue('sizeAbsolute.y')
-    let oldScaleX = this.getPropertyValue('scale.x')
-    let oldScaleY = this.getPropertyValue('scale.y')
-    let oldWidth = oldScaleX * baseWidth
-    let oldHeight = oldScaleY * baseHeight
-
-    let thetaRadians = this.getPropertyValue('rotation.z') || 0
-    let sizeDeltaCoefficient = (activationPoint.alt ? 2 : 1)
-    let deltaX = worldDeltaX * Math.cos(thetaRadians) + worldDeltaY * Math.sin(thetaRadians)
-    let deltaY = -worldDeltaX * Math.sin(thetaRadians) + worldDeltaY * Math.cos(thetaRadians)
-    deltaX *= (isLeft ? -sizeDeltaCoefficient : sizeDeltaCoefficient)
-    deltaY *= (isTop ? -sizeDeltaCoefficient : sizeDeltaCoefficient)
-    // newWidth = oldWidth + deltaX
-    // newHeight = oldHeight + deltaY
-
-    // note this logic is essentially duplicated above, for artboards
-    if (activationPoint.shift) {
-        // constrain proportion
-      proportionX = deltaX / oldWidth
-      proportionY = deltaY / oldHeight
-        // this gnarly logic is just mixing EDGE constraining logic (index checks) with CORNER constraining logic (proportion comparison)
-      if (activationPoint.index !== 1 && activationPoint.index !== 7 && (Math.abs(proportionX) < Math.abs(proportionY) || activationPoint.index === 3 || activationPoint.index === 5)) {
-        deltaY = proportionX * oldHeight
-      } else {
-        deltaX = proportionY * oldWidth
+      if (isNumeric(existingPropertyValue)) {
+        propertyGroupValue[propertyName] = existingPropertyValue + deltaPropertyValue
       }
     }
 
-    let deltaScaleVector = [(deltaX / (oldWidth / oldScaleX)) * activeAxes[0], (deltaY / (oldHeight / oldScaleY)) * activeAxes[1]]
-
-    let newScaleX = oldScaleX + deltaScaleVector[0]
-    let newScaleY = oldScaleY + deltaScaleVector[1]
-
-    let baseTranslationOffset = activationPoint.alt ? [0, 0] : [(isLeft ? -1 : 1) * (newScaleX - oldScaleX) * baseWidth / 2, (isTop ? -1 : 1) * (newScaleY - oldScaleY) * baseHeight / 2]
-    let translationOffset = [
-      baseTranslationOffset[0] * Math.cos(thetaRadians) - baseTranslationOffset[1] * Math.sin(thetaRadians),
-      baseTranslationOffset[0] * Math.sin(thetaRadians) + baseTranslationOffset[1] * Math.cos(thetaRadians)
-    ]
-
-    let scaleGroup = { 'scale.x': deltaScaleVector[0], 'scale.y': deltaScaleVector[1] }
-    let translationGroup = {'translation.x': translationOffset[0], 'translation.y': translationOffset[1]}
-    let transformGroup = Object.assign(Object.assign({}, scaleGroup), translationGroup)
-
-    this.component.applyPropertyGroupDelta(this.getComponentId(), this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), transformGroup, this.component.project.getMetadata(), (err) => {
-      if (err) return void (0)
-    })
-
-    this.emit('update', 'element-scale')
-  }
-
-  rotate (dx, dy, coordsCurrent, coordsPrevious, lastMouseDownCoord, activationPoint) {
-    // If no parent, we are the artboard, and cannot be rotated
-    if (!this.parent) {
-      return void (0)
-    }
-
-    //  Calculate rotation delta based on old mouse position and new
-    //   *(x0, y0)
-    //   |          Ex.
-    //   |        \ click+drag starts at x0,y0, ends at x1,y1
-    //  h|         v
-    //   |(cx,cy)
-    //   *-------------*(x1,y1)
-    //   ^      w
-    //   center of rotation
-
-    let x0 = coordsPrevious.clientX
-    let y0 = coordsPrevious.clientY
-    let x1 = coordsCurrent.clientX
-    let y1 = coordsCurrent.clientY
-
-    // TODO: get center of rotation from matrix transform?
-    //      bbox may approximate well enough for now, but will
-    //      at least need to account for adjustments in origin etc.
-    //      Currently assuming center of rotation is center of object's bbox.
-    let rect = this.getBoundingClientRect()
-    let cx = rect.left + ((rect.right - rect.left) / 2)
-    let cy = rect.top + ((rect.bottom - rect.top) / 2)
-
-    //       *mouse(x,y)
-    //      /|
-    //     / |
-    //    /  |
-    //   /   |h
-    //  /    |
-    // /θ ___|
-    // ^   w
-    // (cx,cy)
-    // tan(θ) = h / w
-
-    // last angle
-    let w0 = x0 - cx
-    let h0 = y0 - cy
-    let theta0 = Math.atan2(w0, h0)
-
-    // new angle
-    let w1 = x1 - cx
-    let h1 = y1 - cy
-    let theta1 = Math.atan2(w1, h1)
-
-    let deltaRotationZ = theta0 - theta1
-
-    // if shift is held, snap to absolute increments of pi/12
-    if (activationPoint.shift) {
-      // pretty hacky math/logic, won't allow for rotating past 2*Math.PI (unlike free rotation, which will rotate to any limit)
-      theta0 = this.getPropertyValue('rotation.z') || 0
-      theta1 = -PI_OVER_12 * Math.round(theta1 / PI_OVER_12)
-      deltaRotationZ = DELTA_ROTATION_OFFSETS[activationPoint.index] + theta1 - theta0
-    }
-
-    const propertyGroup = { 'rotation.z': deltaRotationZ }
-
-    this.component.applyPropertyGroupDelta(this.getComponentId(), this.component.getCurrentTimelineName(), this.component.getCurrentTimelineTime(), propertyGroup, this.component.project.getMetadata(), (err) => {
-      if (err) return void (0)
-    })
-
-    this.emit('update', 'element-rotate')
+    return propertyGroupValue
   }
 
   remove () {
     this.unselect(this.component.project.getMetadata())
     this.hoverOff(this.component.project.getMetadata())
 
-    this.component.deleteComponent(this.getComponentId(), this.component.project.getMetadata(), (err) => {
-      if (err) return void (0)
-    })
+    this.component.deleteComponent(
+      this.getComponentId(),
+      this.component.project.getMetadata(),
+      () => {}
+    )
 
     // Destroy after the above so we retain our UID for the necessary actions
     this.destroy()
@@ -957,7 +662,7 @@ class Element extends BaseModel {
 
   getTitle () {
     if (this.isTextNode()) return '<text>' // HACK, but not sure what else to do
-    return this.getStaticTemplateNode().attributes[HAIKU_TITLE_ATTRIBUTE] || 'unknown'
+    return this.getStaticTemplateNode().attributes[HAIKU_TITLE_ATTRIBUTE] || 'notitle'
   }
 
   getNameString () {
@@ -976,42 +681,320 @@ class Element extends BaseModel {
   }
 
   getComponentId () {
-    if (this.isTextNode()) return this.uid // HACK, but not sure what else to do
+    if (this.isTextNode()) return this.getPrimaryKey() // HACK, but not sure what else to do
     return this.getStaticTemplateNode().attributes[HAIKU_ID_ATTRIBUTE]
   }
 
-  getAddress () {
+  getGraphAddress () {
     return this.address
   }
 
-  getAddressableProperties () {
-    const addressables = {}
+  getAllRows () {
+    return [].concat(this.getHostedRows(), this.getTargetingRows())
+  }
+
+  getHostedRowsInDefaultDisplayPositionOrder () {
+    const rows = []
+
+    const heading = this.getHeadingRow()
+
+    if (heading) {
+      rows.push(heading)
+
+      if (heading.children) {
+        heading.children.forEach((child) => {
+          rows.push(child)
+          if (child.children) {
+            child.children.forEach((grandchild) => {
+              rows.push(grandchild)
+            })
+          }
+        })
+      }
+    }
+
+    return rows
+  }
+
+  getHostedRows () {
+    return Row.where({ component: this.component, host: this })
+  }
+
+  getTargetingRows () {
+    return Row.where({ component: this.component, element: this })
+  }
+
+  clearEntityCaches () {
+    if (this.children) {
+      this.children.forEach((element) => {
+        element.cacheClear()
+        element.clearEntityCaches()
+      })
+    }
+
+    this.getHostedRows().forEach((row) => {
+      row.cacheClear()
+      row.clearEntityCaches()
+    })
+
+    this.getTargetingRows().forEach((row) => {
+      row.cacheClear()
+      row.clearEntityCaches()
+    })
+  }
+
+  rehydrateRows () {
+    const hostElement = this
+    const component = this.component
+    const timeline = this.component.getCurrentTimeline()
+
+    const parentElementHeadingRow = this.parent && this.parent.getHeadingRow()
+
+    const currentElementHeadingRow = Row.upsert({
+      uid: Row.buildHeadingUid(component, hostElement),
+      parent: parentElementHeadingRow,
+      host: hostElement,
+      element: hostElement,
+      component,
+      timeline,
+      children: [],
+      property: null,
+      cluster: null
+    }, {})
+
+    if (parentElementHeadingRow) {
+      parentElementHeadingRow.addChild(currentElementHeadingRow)
+    }
+
+    const clusters = {}
+
+    this.eachAddressableProperty((
+      propertyGroupDescriptor,
+      addressableName,
+      targetElement
+    ) => {
+      if (propertyGroupDescriptor.cluster) {
+        // Properties that are 'clustered', like rotation.x,y,z
+        const clusterId = Row.buildClusterUid(this, hostElement, targetElement, propertyGroupDescriptor)
+
+        let clusterRow
+
+        // Ensure we get a correct number for the row index
+        if (clusters[clusterId]) {
+          clusterRow = Row.findById(clusterId)
+        } else {
+          clusterRow = Row.upsert({
+            uid: clusterId,
+            host: hostElement,
+            element: targetElement,
+            component,
+            timeline,
+            parent: currentElementHeadingRow,
+            children: [],
+            property: null, // This null is used to determine isClusterHeading
+            cluster: propertyGroupDescriptor.cluster
+          }, {})
+
+          currentElementHeadingRow.addChild(clusterRow)
+          clusters[clusterId] = true
+        }
+
+        const clusterMember = Row.upsert({
+          uid: Row.buildClusterMemberUid(this, hostElement, targetElement, propertyGroupDescriptor, addressableName),
+          host: hostElement,
+          element: targetElement,
+          component,
+          timeline,
+          parent: clusterRow,
+          children: [],
+          property: propertyGroupDescriptor,
+          cluster: propertyGroupDescriptor.cluster
+        }, {})
+
+        clusterMember.rehydrate()
+        clusterRow.addChild(clusterMember)
+      } else {
+        // Properties represented as a single row, like 'opacity'
+        const propertyRow = Row.upsert({
+          uid: Row.buildPropertyUid(this, hostElement, targetElement, addressableName),
+          host: hostElement,
+          element: targetElement,
+          component,
+          timeline,
+          parent: currentElementHeadingRow,
+          children: [],
+          property: propertyGroupDescriptor,
+          cluster: null
+        }, {})
+
+        propertyRow.rehydrate()
+        currentElementHeadingRow.addChild(propertyRow)
+      }
+    })
+  }
+
+  visitAll (iteratee) {
+    Element.visitAll(this, iteratee)
+  }
+
+  visitDescendants (iteratee) {
+    Element.visitDescendants(this, iteratee)
+  }
+
+  getAllChildren () {
+    return this.children || []
+  }
+
+  rehydrateChildren () {
+    const node = this.getStaticTemplateNode()
+
+    if (node && node.children) {
+      for (let i = 0; i < node.children.length; i++) {
+        const child = node.children[i]
+
+        const element = Element.upsertElementFromVirtualElement(
+          this.component, // component
+          child, // static template node
+          this, // parent element
+          i, // index in parent
+          `${this.getGraphAddress()}.${i}` // graph address
+        )
+
+        // If our node is replacing an existing one, we can grab its properties
+        if (child.__replacee) {
+          const replaceeHaikuId = child.__replacee.attributes && child.__replacee.attributes[HAIKU_ID_ATTRIBUTE]
+
+          if (replaceeHaikuId) {
+            const replaceeElement = Element.findByComponentAndHaikuId(this.component, replaceeHaikuId)
+
+            if (replaceeElement) {
+              // This ensures that the timeline displays correct JIT sub-element rows even after a design merge
+              element._visibleProperties = replaceeElement._visibleProperties
+            }
+          }
+
+          // Don't forget to clean up to avoid possible weird side effects
+          delete child.__replacee
+        }
+
+        element.rehydrate()
+      }
+    }
+  }
+
+  rehydrate () {
+    this.rehydrateChildren()
+  }
+
+  getDepthAmongElements () {
+    let depth = 0
+    let parent = this.parent
+    while (parent) {
+      depth += 1
+      parent = parent.parent
+    }
+    return depth
+  }
+
+  getIdsOfDescendantsThatHaveEditedKeyframes () {
+    const idsToNodes = {}
+
+    Template.visit(this.getStaticTemplateNode(), (node) => {
+      if (node.attributes && node.attributes[HAIKU_ID_ATTRIBUTE]) {
+        // Visitor goes to all nodes including ours; skip since we're concerned with descendants only
+        if (node.attributes[HAIKU_ID_ATTRIBUTE] !== this.getComponentId()) {
+          idsToNodes[node.attributes[HAIKU_ID_ATTRIBUTE]] = node
+        }
+      }
+    })
+
+    const idsWithEditedKeyframes = {}
+
+    const bytecode = this.component.getReifiedBytecode()
+
+    if (bytecode && bytecode.timelines) {
+      for (const timelineName in bytecode.timelines) {
+        for (const foundSelector in bytecode.timelines[timelineName]) {
+          const haikuId = Template.haikuSelectorToHaikuId(foundSelector)
+
+          // No point proceeding if this is a property set for another element;
+          if (!idsToNodes[haikuId]) {
+            continue
+          }
+
+          for (const propertyName in bytecode.timelines[timelineName][foundSelector]) {
+            const propertyObj = bytecode.timelines[timelineName][foundSelector][propertyName]
+
+            // If the zeroth keyframe is edited or if there are any keyframes other
+            // than the zeroth keyframe, assume that the property has been edited
+            if (
+              (propertyObj[0] && propertyObj[0].edited) ||
+              Object.keys(propertyObj).length > 1
+            ) {
+              idsWithEditedKeyframes[haikuId] = idsToNodes[haikuId]
+
+              // We've found at least one so we can stop iterating through properties
+              break
+            }
+          }
+        }
+      }
+    }
+
+    return idsWithEditedKeyframes
+  }
+
+  hasAnyDescendantsWithEditedKeyframes () {
+    const idsWithEditedKeyframes = this.getIdsOfDescendantsThatHaveEditedKeyframes()
+    return Object.keys(idsWithEditedKeyframes).length > 0
+  }
+
+  getBuiltinAddressables () {
+    const builtinAddressables = {}
 
     // Start with the basic hardcoded DOM schema; we'll add component-specifics if necessary
     if (DOMSchema[this.getSafeDomFriendlyName()]) {
       // This assigns so-called 'cluster' properties if any are deemed such
-      Property.assignDOMSchemaProperties(addressables, this)
+      Property.assignDOMSchemaProperties(builtinAddressables, this)
     }
 
-    // If this is a component, then add any of our exposed states as addressables
+    return builtinAddressables
+  }
+
+  getComponentAddressables () {
+    const componentAddressables = {}
+
+    // If this is a component, then add any of our componentAddressables states as builtinAddressables
     if (this.isComponent()) {
       const component = this.getCoreTargetComponentInstance()
       if (component) {
-        // The addressables are mutated in place
         // Note that the states also contain .value() for lazy evaluation of current state
-        component.getAddressableProperties(addressables)
+        // Also note that states values should have a type='state' property
+        component.getAddressableProperties(componentAddressables)
       }
     }
 
-    const filtered = {}
+    return componentAddressables
+  }
 
-    for (const key in addressables) {
-      if (!Element.FORBIDDEN_PROPS[key]) {
-        filtered[key] = addressables[key]
+  getCompleteAddressableProperties () {
+    const builtinAddressables = this.getBuiltinAddressables()
+
+    const componentAddressables = this.getComponentAddressables()
+
+    const returnedAddressables = {}
+
+    for (const key1 in builtinAddressables) {
+      if (!Element.FORBIDDEN_PROPS[key1]) {
+        returnedAddressables[key1] = builtinAddressables[key1]
       }
     }
 
-    return filtered
+    for (const key2 in componentAddressables) {
+      returnedAddressables[key2] = componentAddressables[key2]
+    }
+
+    return returnedAddressables
   }
 
   // options: [
@@ -1027,6 +1010,17 @@ class Element extends BaseModel {
   // ]
   getJITPropertyOptions () {
     const exclusions = this.getExcludedAddressableProperties()
+
+    // Because of bad code, I have to explicitly collect addressable properties for
+    // sub-elements that wouldn't be shown in the JIT menu otherwise
+    if (this.getDepthAmongElements() > 1) {
+      const complete = this.getCompleteAddressableProperties()
+      for (const key in complete) {
+        if (!this._visibleProperties[key]) {
+          exclusions[key] = complete[key]
+        }
+      }
+    }
 
     const grouped = {}
 
@@ -1047,14 +1041,17 @@ class Element extends BaseModel {
       // Wrap e.g. clipPath into attributes.clipPath so the menu
       // displays the items in a more reasonable way
       if (prefix && !suffix) {
-        // suffix = prefix
-        // prefix = 'Attributes'
-        // HACK: Without controll deep into the tree, attributes are more confusing than useful, so exclude them
-        continue
+        // Only show attributes if we're showing sub-elements in the JIT
+        // menu; without sub-elements, attributes just cause noise
+        if (experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
+          suffix = prefix
+          prefix = 'Attributes'
+        }
       }
 
       if (!grouped[prefix]) {
         grouped[prefix] = {
+          element: this,
           prefix,
           suffix,
           label: Property.humanizePropertyNamePart(prefix)
@@ -1067,6 +1064,7 @@ class Element extends BaseModel {
         }
 
         grouped[prefix].options.push({
+          element: this,
           prefix,
           suffix,
           label: Property.humanizePropertyNamePart(suffix),
@@ -1077,6 +1075,115 @@ class Element extends BaseModel {
       }
     }
 
+    if (experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
+      // Expose properties of our sub-element in the timeline
+      if (!this.isRootElement()) {
+        if (this.children && this.children.length > 0) {
+          this.children.forEach((child) => {
+            const name = child.getSafeDomFriendlyName()
+
+            // Exclude elements that are either 'useless' or should be
+            // represented elsewhere in the displayed element tree,
+            // or which don't warrant display at all (text nodes)
+            if (
+              name === 'defs' ||
+              name === 'title' ||
+              name === 'desc' ||
+              child.isTextNode()
+            ) {
+              return false
+            }
+
+            // Don't include useless children, and collapse sets of useless
+            // children into a single node, to keep the menu as simple as we can
+            const insert = this.grabNextUsefulMenuInsert(child)
+
+            if (insert) {
+              const {
+                key,
+                label,
+                options,
+                element
+              } = insert
+
+              grouped[key] = {
+                type: 'element',
+                element,
+                // Alpha ordering HACK; see groupedOptionsObjectToList
+                prefix: `zzzzz_element_${label}`,
+                label: `‹› ${label}`,
+                options
+              }
+            }
+          })
+        }
+      }
+    }
+
+    const list = this.groupedOptionsObjectToList(grouped)
+    return list
+  }
+
+  grabNextUsefulMenuInsert (child) {
+    if (child.isTextNode()) {
+      return null
+    }
+
+    const options = child.getJITPropertyOptions()
+
+    if (options.length === 1 && options[0].type === 'element') {
+      return this.grabNextUsefulMenuInsert(options[0].element)
+    }
+
+    const key = child.getPrimaryKey()
+    const label = child.getFriendlyLabel()
+
+    return {
+      key,
+      label,
+      options,
+      element: child
+    }
+  }
+
+  eachAddressableProperty (iteratee) {
+    const addressableProperties = this.getDisplayedAddressableProperties(/* includeSubElements= */ true)
+
+    for (const propertyName in addressableProperties) {
+      if (propertyName !== '__subElementProperties' && addressableProperties[propertyName]) {
+        iteratee(
+          addressableProperties[propertyName],
+          propertyName,
+          this // targetElement
+        )
+      }
+    }
+
+    if (experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
+      // Only allow this behavior among the top-level children of the root element
+      // Without this condition, stuff goes wrong in a bad way
+      if (this.getDepthAmongElements() === 1) {
+        // Expose sub-element properties as rows in the timeline
+        // Note that the target element is not the host element here
+        if (addressableProperties.__subElementProperties) {
+          for (const subElementId in addressableProperties.__subElementProperties) {
+            const targetElement = Element.findById(subElementId) // targetElement
+            if (targetElement) {
+              for (const subElementPropertyName in addressableProperties.__subElementProperties[subElementId]) {
+                iteratee(
+                  addressableProperties.__subElementProperties[subElementId][subElementPropertyName],
+                  subElementPropertyName,
+                  targetElement
+                )
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  groupedOptionsObjectToList (grouped) {
     const options = Object.values(grouped).sort((a, b) => {
       const ap = a.prefix.toLowerCase()
       const bp = b.prefix.toLowerCase()
@@ -1095,11 +1202,34 @@ class Element extends BaseModel {
     return options
   }
 
-  getJitPropertyOptionsAsMenuItems () {
-    return this.cacheFetch('getJitPropertyOptionsAsMenuItems', () => {
-      const options = this.getJITPropertyOptions()
-      return this.optionsToItems(options)
-    })
+  getFriendlyLabel () {
+    const node = this.getStaticTemplateNode()
+
+    const id = node && node.attributes && node.attributes.id
+    const title = node && node.attributes && node.attributes[HAIKU_TITLE_ATTRIBUTE]
+
+    let name = (typeof node.elementName === 'string' && node.elementName) ? node.elementName : 'div'
+    if (Element.FRIENDLY_NAME_SUBSTITUTES[name]) {
+      name = Element.FRIENDLY_NAME_SUBSTITUTES[name]
+    }
+
+    let out = ''
+    if (typeof id === 'string') out += `${id} `
+    if (typeof title === 'string') out += `${title} `
+
+    if (out.length === 0 && typeof name === 'string') {
+      out += `${name}`
+    }
+
+    out = out.trim()
+    out = titlecase(decamelize(out).replace(/[\W_]/g, ' '))
+
+    return out
+  }
+
+  getJITPropertyOptionsAsMenuItems () {
+    const options = this.getJITPropertyOptions()
+    return this.optionsToItems(options)
   }
 
   optionsToItems (options) {
@@ -1115,7 +1245,7 @@ class Element extends BaseModel {
           // "showing" the addressable property means to add it to our whitelist,
           // which results in the Timeline UI displaying it even if not in the
           // hardcoded list of always-public properties
-          this.showAddressableProperty(option.value)
+          option.element.showAddressableProperty(option.value)
         }
       }
 
@@ -1127,43 +1257,99 @@ class Element extends BaseModel {
     return this.getCollatedAddressableProperties().excluded
   }
 
-  getDisplayedAddressableProperties () {
-    return this.getCollatedAddressableProperties().filtered
+  getDisplayedAddressableProperties (includeSubElements) {
+    const ours = this.getCollatedAddressableProperties().filtered
+
+    if (experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
+      if (includeSubElements) {
+        // The Timeline UI will handle this property specially; the double
+        // underscore is so not to collide with real named properties
+        if (!ours.__subElementProperties) {
+          ours.__subElementProperties = {}
+        }
+
+        // This assumes that our descendants have been populated already,
+        // which happens on-demand when the JIT options are requested
+        Element.visitDescendants(this, (child) => {
+          // I don't know why, but in some scenarios, this is undefined
+          if (child.getPrimaryKey()) {
+            const subs = child.getExplicitlyVisibleAddressableProperties()
+            ours.__subElementProperties[child.getPrimaryKey()] = subs
+          }
+        })
+      }
+    }
+
+    return ours
+  }
+
+  populateVisiblePropertiesFromKeyframes () {
+    if (!this._visibleProperties) this._visibleProperties = {}
+    const completeAddressableProperties = this.getCompleteAddressableProperties()
+    for (const propertyName in completeAddressableProperties) {
+      const keyframesObject = this.getPropertyKeyframesObject(propertyName)
+      if (keyframesObject && anyEditedKeyframesInKeyframesObject(keyframesObject)) {
+        this._visibleProperties[propertyName] = completeAddressableProperties[propertyName]
+      }
+    }
+  }
+
+  getExplicitlyVisibleAddressableProperties () {
+    const complete = this.getCompleteAddressableProperties()
+    const filtered = {}
+    for (const propertyName in complete) {
+      if (this._visibleProperties[propertyName]) {
+        filtered[propertyName] = complete[propertyName]
+      }
+    }
+    return filtered
   }
 
   getCollatedAddressableProperties () {
-    return this.cacheFetch('getCollatedAddressableProperties', () => {
-      const unfilteredProperties = this.getAddressableProperties()
+    const complete = this.getCompleteAddressableProperties()
 
-      const filtered = {}
-      const excluded = {}
+    // The ones to display in the timeline
+    const filtered = {}
 
-      for (const propertyName in unfilteredProperties) {
-        const propertyObject = unfilteredProperties[propertyName]
+    // The ones to exclude from the timeline, but show in the JIT menu
+    const excluded = {}
 
-        if (Property.shouldBasicallyIncludeProperty(propertyName, propertyObject, this)) {
-          if (this._visibleProperties[propertyName]) {
-            // Highest precedence is if the property is deemed explicitly visible
+    for (const propertyName in complete) {
+      const propertyObject = complete[propertyName]
+
+      if (Property.shouldBasicallyIncludeProperty(propertyName, propertyObject, this)) {
+        if (this._visibleProperties[propertyName]) {
+          // Highest precedence is if the property is deemed explicitly visible;
+          // Typically these get exposed when the user has selected via the JIT menu
+          filtered[propertyName] = propertyObject
+        } else {
+          if (propertyObject.type === 'state') {
+            // If the property is a component state (exposed property), we definitely want it;
+            // the exposed states are the API to the component
             filtered[propertyName] = propertyObject
           } else {
-            if (propertyObject.type === 'state') {
-              // If the property is a component state, we definitely want it
-              filtered[propertyName] = propertyObject
-            } else {
-              const keyframesObject = this.getPropertyKeyframesObject(propertyName)
+            const keyframesObject = this.getPropertyKeyframesObject(propertyName)
 
-              if (keyframesObject) {
-                if (Object.keys(keyframesObject).length > 1) {
-                  // If many keyframes are defined, include the property
+            if (keyframesObject) {
+              if (Object.keys(keyframesObject).length > 1) {
+                // If many keyframes are defined, include the property
+                filtered[propertyName] = propertyObject
+              } else {
+                // Or if only one keyframe and that keyframe is not the 0th
+                if (!keyframesObject[0]) {
                   filtered[propertyName] = propertyObject
                 } else {
-                  // Or if only one keyframe and that keyframe is not the 0th
-                  if (!keyframesObject[0]) {
+                  // If the keyframe has definitely been edited by the user
+                  if (keyframesObject[0].edited) {
                     filtered[propertyName] = propertyObject
                   } else {
                     // If the keyframe is an internally managed prop that has been changed from its default value
                     const fallbackValue = Element.INTERNALLY_MANAGED_PROPS_WITH_DEFAULT_VALUES[propertyName]
-                    if (
+
+                    // If no fallback value defined, cannot compare, so assume we want to keep it in the list
+                    if (fallbackValue === undefined) {
+                      filtered[propertyName] = propertyObject
+                    } else if (
                       keyframesObject[0].value !== undefined &&
                       keyframesObject[0].value !== fallbackValue
                     ) {
@@ -1172,36 +1358,35 @@ class Element extends BaseModel {
                   }
                 }
               }
+            }
 
-              // Finally, there are som properties that we always want to show
-              if (Element.ALWAYS_ALLOWED_PROPS[propertyName]) {
-                filtered[propertyName] = propertyObject
-              }
+            // Finally, there are som properties that we always want to show
+            if (Element.ALWAYS_ALLOWED_PROPS[propertyName]) {
+              filtered[propertyName] = propertyObject
             }
           }
         }
-
-        if (!filtered[propertyName]) {
-          excluded[propertyName] = propertyObject
-        }
       }
 
-      return {
-        filtered,
-        excluded
+      // Make sure to list any exclusions we did
+      if (!filtered[propertyName]) {
+        excluded[propertyName] = propertyObject
       }
-    })
+    }
+
+    return {
+      filtered,
+      excluded
+    }
   }
 
   showAddressableProperty (propertyName) {
     this._visibleProperties[propertyName] = true
-    this.cacheUnset('getCollatedAddressableProperties')
     this.emit('update', 'jit-property-added')
   }
 
   hideAddressableProperty (propertyName) {
     this._visibleProperties[propertyName] = false
-    this.cacheUnset('getCollatedAddressableProperties')
     this.emit('update', 'jit-property-removed')
   }
 
@@ -1212,6 +1397,25 @@ class Element extends BaseModel {
   isAtCoords (coords) {
     if (!this.$el()) return false
     return Math.isCoordInsideRect(coords.clientX, coords.clientY, this.$el().getBoundingClientRect())
+  }
+
+  getBoxPolygonPointsTransformed () {
+    const points = this.getBoxPointsTransformed()
+    return Element.pointsToPolygonPoints(points)
+  }
+
+  doesOverlapWithBox (box) {
+    const theirPoints = Element.boxToCornersAsPolygonPoints(box)
+    const ourPoints = this.getBoxPolygonPointsTransformed()
+    return polygonOverlap(theirPoints, ourPoints)
+  }
+
+  getOrigin () {
+    return {
+      x: this.getPropertyValue('origin.x'),
+      y: this.getPropertyValue('origin.y'),
+      z: this.getPropertyValue('origin.z')
+    }
   }
 
   toXMLString () {
@@ -1293,20 +1497,27 @@ Element.findRoots = (criteria) => {
   })
 }
 
+/**
+ * Visit all elements in the given element's family, in depth-first order.
+ * The element passed is the first visit.
+ */
 Element.visitAll = (element, visitor) => {
   visitor(element)
-  Element.visitChildren(element, visitor)
+  Element.visitDescendants(element, visitor)
 }
 
-Element.visitChildren = (element, visitor) => {
+/**
+ * Visit the descendants of the given element in depth-first order.
+ */
+Element.visitDescendants = (element, visitor) => {
   if (!element.children) return void (0)
   element.children.forEach((child) => {
     visitor(child)
-    Element.visitChildren(child, visitor)
+    Element.visitDescendants(child, visitor)
   })
 }
 
-Element.transformPoints = (points, matrix) => {
+Element.transformPointsInPlace = (points, matrix) => {
   for (let i = 0; i < points.length; i++) {
     let point = points[i]
     let vector = [point.x, point.y]
@@ -1344,12 +1555,39 @@ Element.getBoundingBoxPoints = (points) => {
   ]
 }
 
-Element.getBoundingBoxPointsForElements = (elements) => {
+Element.getBoundingBoxPointsForElementsTransformed = (elements) => {
   const points = []
+  if (!elements) return points
+  if (elements.length < 1) return points
+  if (elements.length === 1) return elements[0].getBoxPointsTransformed()
   elements.forEach((element) => {
     element.getBoxPointsTransformed().forEach((point) => points.push(point))
   })
   return Element.getBoundingBoxPoints(points)
+}
+
+Element.getBoundingBoxPointsForElementsNotTransformed = (elements) => {
+  const points = []
+  if (!elements) return points
+  if (elements.length < 1) return points
+  if (elements.length === 1) return elements[0].getBoxPointsNotTransformed()
+  elements.forEach((element) => {
+    element.getBoxPointsNotTransformed().forEach((point) => points.push(point))
+  })
+  return Element.getBoundingBoxPoints(points)
+}
+
+Element.boxToCornersAsPolygonPoints = ({ x, y, width, height }) => {
+  return [
+    [x, y], [x + width, y],
+    [x, y + height], [x + width, y + height]
+  ]
+}
+
+Element.pointsToPolygonPoints = (points) => {
+  return points.map((point) => {
+    return [point.x, point.y]
+  })
 }
 
 Element.distanceBetweenPoints = (p1, p2, zoomFactor) => {
@@ -1358,6 +1596,19 @@ Element.distanceBetweenPoints = (p1, p2, zoomFactor) => {
     distance *= zoomFactor
   }
   return distance
+}
+
+Element.getOriginPosition = (element) => {
+  const originFractionX = element.getPropertyValue('origin.x')
+  const originFractionY = element.getPropertyValue('origin.y')
+  const width = element.getPropertyValue('sizeAbsolute.x')
+  const height = element.getPropertyValue('sizeAbsolute.y')
+  const left = element.getPropertyValue('translation.x')
+  const top = element.getPropertyValue('translation.y')
+  return {
+    x: left + (width * originFractionX),
+    y: top + (height * originFractionY)
+  }
 }
 
 Element.buildPrimaryKeyFromComponentParentIdAndStaticTemplateNode = (component, parentId, indexInParent, staticTemplateNode) => {
@@ -1387,56 +1638,68 @@ Element.findByComponentAndHaikuId = (component, haikuId) => {
   return Element.findById(Element.buildUidFromComponentAndHaikuId(component, haikuId))
 }
 
-Element.upsertElementFromVirtualElement = (criteria, component, staticTemplateNode, parent, indexInParent, graphAddress, doGoDeep) => {
-  if (!component.project) throw new Error('component argument must have a `project` defined')
-  if (!component.project.getPlatform()) throw new Error('component project must be able to return a platform object')
-  if (!component.project.getMetadata()) throw new Error('component proejct must be able to return a metadata object')
-  if (!component._timestamp) throw new Error('component  argumentmust have a `_timestamp` defined')
-
-  const parentId = parent && parent.attributes && parent.attributes[HAIKU_ID_ATTRIBUTE]
+Element.makeUid = (component, parent, index, staticTemplateNode) => {
+  const parentHaikuId = (
+    parent &&
+    parent.attributes &&
+    parent.attributes[HAIKU_ID_ATTRIBUTE]
+  )
 
   if (!parent) {
-    parent = parentId && Element.findById(Element.buildUidFromComponentAndHaikuId(component, parentId))
+    parent = (
+      parentHaikuId &&
+      Element.findById(
+        Element.buildUidFromComponentAndHaikuId(component, parentHaikuId)
+      )
+    )
   }
 
-  const uid = Element.buildPrimaryKeyFromComponentParentIdAndStaticTemplateNode(component, parentId, indexInParent, staticTemplateNode)
+  const uid = Element.buildPrimaryKeyFromComponentParentIdAndStaticTemplateNode(
+    component,
+    parentHaikuId,
+    index,
+    staticTemplateNode
+  )
+
+  return uid
+}
+
+Element.upsertElementFromVirtualElement = (
+  component,
+  staticTemplateNode,
+  parent,
+  index,
+  address
+) => {
+  if (!component.project) {
+    throw new Error('component argument must have a `project` defined')
+  }
+
+  if (!component.project.getPlatform()) {
+    throw new Error('component project must be able to return a platform object')
+  }
+
+  if (!component.project.getMetadata()) {
+    throw new Error('component proct must be able to return a metadata object')
+  }
+
+  const uid = Element.makeUid(component, parent, index, staticTemplateNode)
+
+  const metadata = component.project.getMetadata()
 
   const element = Element.upsert({
-    timestamp: component._timestamp,
-    uid: uid,
-    staticTemplateNode: staticTemplateNode,
-    index: indexInParent,
-    address: graphAddress,
-    component: component,
-    _isSelected: false,
-    _isHovered: false,
-    isTargetedForRotate: false,
-    isTargetedForScale: false,
-    parent: parent
-  }, component.project.getMetadata())
+    uid,
+    staticTemplateNode,
+    index,
+    address,
+    component,
+    parent
+    // _isSelected: false,
+    // _isHovered: false,
+  }, metadata)
 
   if (parent) {
-    if (!parent.children) {
-      parent.children = []
-    }
-
-    let found = false
-    parent.children.forEach((child) => {
-      if (child === element) found = true
-    })
-
-    if (!found) {
-      parent.children.push(element)
-    }
-  }
-
-  if (doGoDeep) {
-    if (staticTemplateNode.children) {
-      for (let i = 0; i < staticTemplateNode.children.length; i++) {
-        let child = staticTemplateNode.children[i]
-        Element.upsertElementFromVirtualElement(criteria, component, child, element, i, `${graphAddress}.${i}`, doGoDeep)
-      }
-    }
+    parent.insertChild(element)
   }
 
   return element
@@ -1519,12 +1782,19 @@ Element.ALLOWED_TAGNAMES = {
   polygon: true
 }
 
+Element.FRIENDLY_NAME_SUBSTITUTES = {
+  g: 'group'
+}
+
 // If elementName is bytecode (i.e. a nested component) return a fallback name
 // used for a bunch of lookups, otherwise return the given string element name
 Element.safeElementName = (mana) => {
+  if (!mana || typeof mana !== 'object') {
+    return 'div'
+  }
   // If bytecode, the fallback name is div
   if (mana.elementName && typeof mana.elementName === 'object') {
-    return 'div' // TODO: How will this byte us?
+    return 'div' // TODO: How will this bite us?
   }
   return mana.elementName
 }

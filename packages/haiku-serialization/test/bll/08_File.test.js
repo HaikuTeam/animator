@@ -20,7 +20,7 @@ tape('File.readMana', (t) => {
       if (err) throw err
       fse.outputFileSync(path.join(folder, 'designs/Text.svg'), TEXT_SVG)
       const ac0 = project.getCurrentActiveComponent()
-      return ac0.instantiateComponent('designs/Text.svg', {}, { from: 'test' }, (err, info, mana) => {
+      return ac0.instantiateComponent('designs/Text.svg', {}, { from: 'test' }, (err, mana) => {
         if (err) throw err
         const timelineProperties = ac0
           .fetchActiveBytecodeFile()

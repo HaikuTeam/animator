@@ -81,17 +81,17 @@ function createWindow () {
     // (b) returns bad data, missing some fields, when master is in a bad state
     // So we check that the things exist before repopulating
     if (masterState) {
-      if (masterState.gitUndoables) {
-        if (different(menuspec.undoables.length, masterState.gitUndoables.length)) {
+      if (masterState.undoables) {
+        if (different(menuspec.undoables.length, masterState.undoables.length)) {
           didChange = true
-          menuspec.undoables = masterState.gitUndoables || []
+          menuspec.undoables = masterState.undoables || []
         }
       }
 
-      if (masterState.gitRedoables) {
-        if (different(menuspec.redoables.length, masterState.gitRedoables.length)) {
+      if (masterState.redoables) {
+        if (different(menuspec.redoables.length, masterState.redoables.length)) {
           didChange = true
-          menuspec.redoables = masterState.gitRedoables || []
+          menuspec.redoables = masterState.redoables || []
         }
       }
 
