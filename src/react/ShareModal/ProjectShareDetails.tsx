@@ -95,6 +95,8 @@ export class ProjectShareDetails extends React.PureComponent {
     projectName: React.PropTypes.string,
     linkAddress: React.PropTypes.string,
     isSnapshotSaveInProgress: React.PropTypes.bool,
+    isPublic: React.PropTypes.bool,
+    togglePublic: React.PropTypes.func,
   };
 
   render() {
