@@ -14,8 +14,8 @@ import EnvoyLogger from 'haiku-sdk-creator/lib/envoy/EnvoyLogger'
 import { EXPORTER_CHANNEL, ExporterHandler } from 'haiku-sdk-creator/lib/exporter'
 import { USER_CHANNEL, UserHandler } from 'haiku-sdk-creator/lib/bll/User'
 import { GLASS_CHANNEL, GlassHandler } from 'haiku-sdk-creator/lib/glass'
-import { TimelineHandler } from 'haiku-sdk-creator/lib/timeline'
-import { TourHandler } from 'haiku-sdk-creator/lib/tour'
+import { TIMELINE_CHANNEL, TimelineHandler } from 'haiku-sdk-creator/lib/timeline'
+import { TOUR_CHANNEL, TourHandler } from 'haiku-sdk-creator/lib/tour'
 import { inkstone } from '@haiku/sdk-inkstone'
 import { client as sdkClient } from '@haiku/sdk-client'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
@@ -221,8 +221,8 @@ export default class Plumbing extends StateObject {
       const envoyGlassHandler = new GlassHandler(this.envoyServer)
       const envoyUserHandler = new UserHandler(this.envoyServer)
 
-      this.envoyServer.bindHandler('timeline', TimelineHandler, envoyTimelineHandler)
-      this.envoyServer.bindHandler('tour', TourHandler, envoyTourHandler)
+      this.envoyServer.bindHandler(TIMELINE_CHANNEL, TimelineHandler, envoyTimelineHandler)
+      this.envoyServer.bindHandler(TOUR_CHANNEL, TourHandler, envoyTourHandler)
       this.envoyServer.bindHandler(EXPORTER_CHANNEL, ExporterHandler, envoyExporterHandler)
       this.envoyServer.bindHandler(USER_CHANNEL, UserHandler, envoyUserHandler)
       this.envoyServer.bindHandler(GLASS_CHANNEL, GlassHandler, envoyGlassHandler)

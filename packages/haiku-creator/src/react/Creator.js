@@ -30,6 +30,7 @@ import { EXPORTER_CHANNEL, ExporterFormat } from 'haiku-sdk-creator/lib/exporter
 // (which works even inside JS with supported editors, using jsdoc type annotations)
 import { USER_CHANNEL, User } from 'haiku-sdk-creator/lib/bll/User' // eslint-disable-line no-unused-vars
 import { GLASS_CHANNEL } from 'haiku-sdk-creator/lib/glass'
+import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
 import { InteractionMode, isPreviewMode } from '@haiku/core/lib/helpers/interactionModes'
 import Palette from 'haiku-ui-common/lib/Palette'
 import ActivityMonitor from '../utils/activityMonitor.js'
@@ -427,7 +428,7 @@ export default class Creator extends React.Component {
       }
     )
 
-    this.envoyClient.get('tour').then((tourChannel) => {
+    this.envoyClient.get(TOUR_CHANNEL).then((tourChannel) => {
       this.tourChannel = tourChannel
 
       tourChannel.on('tour:requestElementCoordinates', this.handleFindElementCoordinates)

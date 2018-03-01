@@ -5,6 +5,7 @@ import {TOUR_STYLES} from '../../styles/tourShared'
 import * as steps from './Steps'
 import mixpanel from 'haiku-serialization/src/utils/Mixpanel'
 import {TourUtils} from 'haiku-common/lib/types/enums'
+import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour'
 
 class Tour extends React.Component {
   constructor () {
@@ -29,7 +30,7 @@ class Tour extends React.Component {
   }
 
   componentDidMount () {
-    this.props.envoyClient.get('tour').then(tourChannel => {
+    this.props.envoyClient.get(TOUR_CHANNEL).then(tourChannel => {
       this.tourChannel = tourChannel
       this.tourChannel.on('tour:requestShowStep', this.showStep)
       this.tourChannel.on('tour:hide', this.hide)

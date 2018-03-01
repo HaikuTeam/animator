@@ -6,6 +6,7 @@ import StageTitleBar from './StageTitleBar'
 import ComponentMenu from './ComponentMenu/ComponentMenu'
 import Palette from 'haiku-ui-common/lib/Palette'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
+import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
 import { remote } from 'electron'
 
 const STAGE_BOX_STYLE = {
@@ -32,7 +33,7 @@ export default class Stage extends React.Component {
   componentDidMount () {
     this.injectWebview()
 
-    const tourChannel = this.props.envoyClient.get('tour')
+    const tourChannel = this.props.envoyClient.get(TOUR_CHANNEL)
 
     if (!this.props.envoyClient.isInMockMode()) {
       tourChannel.then((client) => {

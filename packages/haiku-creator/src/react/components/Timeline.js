@@ -4,6 +4,7 @@ import assign from 'lodash.assign'
 import path from 'path'
 import Palette from 'haiku-ui-common/lib/Palette'
 import { remote } from 'electron'
+import { TOUR_CHANNEL } from 'haiku-sdk-creator/lib/tour'
 // import TimelineSkeletonState from '@haiku/taylor-timelineskeletonstate/react'
 
 export default class Timeline extends React.Component {
@@ -17,7 +18,7 @@ export default class Timeline extends React.Component {
   componentDidMount () {
     this.injectWebview()
 
-    const tourChannel = this.props.envoyClient.get('tour')
+    const tourChannel = this.props.envoyClient.get(TOUR_CHANNEL)
 
     if (!this.props.envoyClient.isInMockMode()) {
       tourChannel.then((tourChannel) => {
