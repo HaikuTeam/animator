@@ -8,12 +8,13 @@ import {
 } from 'haiku-ui-common/lib/react/Modal'
 import {LogoMicroSVG} from 'haiku-ui-common/lib/react/OtherIcons'
 import {BTN_STYLES} from '../styles/btnShared'
-import * as changelog from '../../../../../changelog/public/latest.json'
 import Palette from 'haiku-ui-common/lib/Palette'
+import fs from 'fs'
 
 const STYLES = {
   modalWrapper: {
-    maxWidth: '540px'
+    maxWidth: '540px',
+    zIndex: '9002'
   },
   modalContent: {
     padding: '20px 40px 60px'
@@ -47,7 +48,12 @@ const STYLES = {
 }
 
 class ChangelogModal extends React.PureComponent {
+  prepare () {
+     const dir = fs.readdirSync('../../../../../changelog/public', 'utf8')
+     console.log(dir)
+  }
   render () {
+    prepare()
     return (
       <ModalWrapper style={STYLES.modalWrapper}>
         <ModalHeader>
