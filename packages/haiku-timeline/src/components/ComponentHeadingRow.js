@@ -9,10 +9,18 @@ import PropertyManager from './PropertyManager'
 import { Experiment, experimentIsEnabled } from 'haiku-common/lib/experiments'
 
 export default class ComponentHeadingRow extends React.Component {
+  shouldComponentUpdate (nextProps) {
+    return (
+      (this.props.isExpanded ^ nextProps.isExpanded) ||
+      (this.props.isHidden ^ nextProps.isHidden) ||
+      (this.props.isSelected ^ nextProps.isSelected) ||
+      (this.props.hasAttachedActions ^ nextProps.hasAttachedActions)
+    )
+  }
+
   render () {
-    let componentId = this.props.row.element.getComponentId()
-    let hasAttachedActions = this.props.row.element.getDOMEvents().length
-    let boltColor = hasAttachedActions ? Palette.LIGHT_BLUE : Palette.DARK_ROCK
+    const componentId = this.props.row.element.getComponentId()
+    const boltColor = this.props.hasAttachedActions ? Palette.LIGHT_BLUE : Palette.DARK_ROCK
 
     return (
       <div
@@ -29,28 +37,23 @@ export default class ComponentHeadingRow extends React.Component {
         }}
         onClick={(clickEvent) => {
           clickEvent.stopPropagation()
-          // Expand the entire component area when it is clicked, but note that we
-          // only collapse if the user clicked directly on the chevron
-          if (this.props.row.isCollapsed()) {
-            this.props.row.expandAndSelect({ from: 'timeline' })
-          } else {
-            // Just select the row if we're already expanded, don't collapse if clicked here
-            this.props.row.select({ from: 'timeline' })
-          }
+          // Expand and select the entire component area when it is clicked, but note that we
+          // only collapse if the user clicked directly on the chevron.
+          this.props.row.expandAndSelect({ from: 'timeline' })
         }}
         style={{
           display: 'table',
           tableLayout: 'fixed',
-          height: this.props.row.isExpanded() ? 0 : this.props.rowHeight,
+          height: this.props.isExpanded ? 0 : this.props.rowHeight,
           width: '100%',
           cursor: 'pointer',
           position: 'relative',
           zIndex: 1007,
-          backgroundColor: this.props.row.isExpanded() ? 'transparent' : Palette.LIGHT_GRAY,
+          backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY,
           verticalAlign: 'top',
-          opacity: (this.props.row.isHidden()) ? 0.75 : 1.0
+          opacity: this.props.isHidden ? 0.75 : 1.0
         }}>
-        {!this.props.row.isExpanded() && // covers keyframe hangover at frame 0 that for uncollapsed rows is hidden by the input field
+        {!this.props.isExpanded && // covers keyframe hangover at frame 0 that for uncollapsed rows is hidden by the input field
           <div style={{
             position: 'absolute',
             zIndex: 1006,
@@ -65,27 +68,35 @@ export default class ComponentHeadingRow extends React.Component {
           height: 'inherit',
           position: 'absolute',
           zIndex: 3,
-          backgroundColor: (this.props.row.isExpanded()) ? 'transparent' : Palette.LIGHT_GRAY
+          backgroundColor: this.props.isExpanded ? 'transparent' : Palette.LIGHT_GRAY
         }}>
-          <div style={{
-            height: this.props.rowHeight,
-            marginTop: -6
-          }}>
-            <span
-              onClick={(clickEvent) => {
+          <div
+            style={{
+              height: this.props.rowHeight,
+              marginTop: -6
+            }}
+            onClick={(clickEvent) => {
+              // Collapse/expand the entire component area when it is clicked
+              if (this.props.isExpanded && this.props.isSelected) {
                 clickEvent.stopPropagation()
-                // Collapse/expand the entire component area when it is clicked
-                if (this.props.row.isExpanded()) {
-                  this.props.row.collapseAndDeselect({ from: 'timeline' })
-                } else {
-                  this.props.row.expandAndSelect({ from: 'timeline' })
-                }
-              }}
+                this.props.row.collapseAndDeselect({ from: 'timeline' })
+              }
+            }}
+          >
+            <span
               style={{
                 display: 'inline-block',
                 transform: this.props.row.isRootRow() ? 'translate(0, -1px)' : 'translate(15px, -1px)'
-              }}>
-              {(this.props.row.isExpanded())
+              }}
+              onClick={(clickEvent) => {
+                // Collapse/expand the entire component area when it is clicked
+                if (this.props.isExpanded) {
+                  clickEvent.stopPropagation()
+                  this.props.row.collapseAndDeselect({ from: 'timeline' })
+                }
+              }}
+            >
+              {this.props.isExpanded
                   ? <span className='utf-icon'
                     style={{
                       top: 1,
@@ -105,11 +116,14 @@ export default class ComponentHeadingRow extends React.Component {
             </span>
             <ComponentHeadingRowHeading
               row={this.props.row}
+              isExpanded={this.props.isExpanded}
+              isSelected={this.props.isSelected}
+              isHovered={this.props.isHovered}
               onEventHandlerTriggered={this.props.onEventHandlerTriggered} />
           </div>
           <div
             style={
-              this.props.row.isExpanded()
+              this.props.isExpanded
                 ? {
                   marginLeft: this.props.row.isRootRow() ? '45px' : '57px',
                   marginTop: '7px',
@@ -125,7 +139,7 @@ export default class ComponentHeadingRow extends React.Component {
                 left: 0,
                 top: 0
               }}>
-              {(this.props.row.isExpanded() || hasAttachedActions)
+              {(this.props.isExpanded || this.props.hasAttachedActions)
                 ? <EventHandlerTriggerer
                   element={this.props.row.element}
                   row={this.props.row}
@@ -143,7 +157,7 @@ export default class ComponentHeadingRow extends React.Component {
                   left: 18,
                   top: -1
                 }}>
-                {(this.props.row.isExpanded())
+                {(this.props.isExpanded)
                     ? <PropertyManager
                       element={this.props.row.element}
                         />
@@ -160,7 +174,7 @@ export default class ComponentHeadingRow extends React.Component {
             width: this.props.timeline.getTimelinePixelWidth(),
             height: 'inherit'
           }}>
-          {(!this.props.row.isExpanded())
+          {(!this.props.isExpanded)
             ? <CollapsedPropertyTimelineSegments
               component={this.props.component}
               timeline={this.props.timeline}

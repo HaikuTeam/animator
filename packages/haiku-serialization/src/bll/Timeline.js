@@ -1,6 +1,4 @@
 const numeral = require('numeral')
-const lodash = require('lodash')
-const assign = require('lodash.assign')
 const TimelineProperty = require('haiku-bytecode/src/TimelineProperty')
 const getTimelineMaxTime = require('@haiku/core/lib/helpers/getTimelineMaxTime').default
 const BaseModel = require('./BaseModel')
@@ -10,7 +8,6 @@ const formatSeconds = require('haiku-ui-common/lib/helpers/formatSeconds').defau
 const DURATION_DRAG_INCREASE = 20 // Increase by this much per each duration increase
 const DURATION_DRAG_TIMEOUT = 300 // Wait this long before increasing the duration
 const DURATION_MOD_TIMEOUT = 100
-const STANDARD_DEBOUNCE = 100
 
 /**
  * @class Timeline
@@ -917,7 +914,7 @@ Timeline.setCurrent = function setCurrent (criteria, name) {
   Timeline.where(criteria).forEach((timeline) => {
     timeline._isCurrent = false
   })
-  const current = Timeline.find(assign({ name: name }, criteria))
+  const current = Timeline.find(Object.assign({ name: name }, criteria))
   current._isCurrent = true
   return current
 }

@@ -1,7 +1,6 @@
 const path = require('path')
 const find = require('lodash.find')
 const merge = require('lodash.merge')
-const assign = require('lodash.assign')
 const pascalcase = require('pascalcase')
 const SVGPoints = require('@haiku/core/lib/helpers/SVGPoints').default
 const convertManaLayout = require('@haiku/core/lib/layout/convertManaLayout').default
@@ -757,7 +756,7 @@ Template.substitueSvgUseReferences = (mana) => {
         // on top of whatever the substitution had
         use.parent.children[use.index] = {
           elementName: substitution.node.elementName,
-          attributes: assign({}, substitution.node.attributes, use.node.attributes),
+          attributes: Object.assign({}, substitution.node.attributes, use.node.attributes),
           children: substitution.node.children && substitution.node.children.map((child) => {
             return Template.clone({}, child)
           })

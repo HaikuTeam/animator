@@ -1,5 +1,4 @@
 const lodash = require('lodash')
-const assign = require('lodash.assign')
 const path = require('path')
 const BaseModel = require('./BaseModel')
 const bytecodeObjectToAST = require('./../ast/bytecodeObjectToAST')
@@ -213,10 +212,10 @@ function transferReferences (obj, originalReference, updatedReference) {
  */
 Bytecode.mergeBytecode = (b1, b2) => {
   if (b2.metadata && !b1.metadata) b1.metadata = {}
-  assign(b1.metadata, b2.metadata)
+  Object.assign(b1.metadata, b2.metadata)
 
   if (b2.options && !b1.options) b1.options = {}
-  assign(b1.options, b2.options)
+  Object.assign(b1.options, b2.options)
 
   Bytecode.mergeBytecodeControlStructures(b1, b2)
 

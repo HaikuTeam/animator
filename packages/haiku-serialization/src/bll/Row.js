@@ -1,5 +1,3 @@
-const lodash = require('lodash')
-const assign = require('lodash.assign')
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const BaseModel = require('./BaseModel')
 
@@ -472,15 +470,10 @@ class Row extends BaseModel {
   }
 
   mapVisibleKeyframes (iteratee) {
-    // Avoid extra computation by not returning keyframes from too deep in the tree
-    if (this.depth > 3) {
-      return []
-    }
-
     // If we are a heading row (either a cluster or an element), we have no keyframes,
     // so we instead query our children for the list of keyframes within us
     if (this.isHeading() || this.isClusterHeading()) {
-      return lodash.flatten(this.children.map((child) => child.mapVisibleKeyframes(iteratee)))
+      return [...this.children.map((child) => child.mapVisibleKeyframes(iteratee))]
     }
 
     const keyframes = this.getKeyframes()
@@ -662,7 +655,7 @@ Row._hidden = {}
 Row._hovered = {}
 
 Row.top = (criteria) => {
-  return Row.find(assign({ parent: null }, criteria))
+  return Row.find(Object.assign({ parent: null }, criteria))
 }
 
 Row.findByComponentAndHaikuId = (component, haikuId) => {
@@ -677,36 +670,20 @@ Row.findPropertyRowsByComponentAndParentHaikuId = (component, haikuId) => {
   })
 }
 
-Row.getDisplayables = (criteria) => {
-  return Row
-    .where(criteria)
-    .filter((row) => {
-      if (row.isDeleted() || row.isDestroyed()) {
-        return false
-      }
-
-      // Nothing after the third level of depth (elements, properties, etc)
-      if (row.depth > 3) {
-        return false
-      }
-
-      // No third-level elements
-      if (row.depth === 2 && row.parent.isHeading()) {
-        return false
-      }
-
-      // Don't display any rows that are hidden by their parent being collapsed
-      if (row.isWithinCollapsedRow()) {
-        return false
-      }
-
-      return true
-    })
-    .sort((rowA, rowB) => {
-      // This is assigned when ActiveComponent rehydrates the rows
-      return rowA.place - rowB.place
-    })
-}
+Row.getDisplayables = (criteria) => Row
+  .where(criteria)
+  .filter((row) => (
+    // Nothing after the third level of depth (elements, properties, etc)
+    row.depth <= 3 &&
+    // No third-level elements
+    (row.depth !== 2 || !row.parent.isHeading()) &&
+    // Don't display any rows that are hidden by their parent being collapsed
+    !row.isWithinCollapsedRow()
+  ))
+  .sort((rowA, rowB) => {
+    // This is assigned when ActiveComponent rehydrates the rows
+    return rowA.place - rowB.place
+  })
 
 Row.cyclicalNav = function cyclicalNav (criteria, row, navDir) {
   let target
@@ -758,7 +735,7 @@ Row.focusSelectNext = function focusSelectNext (criteria, navDir, doFocus, metad
 
   const target = (previous)
     ? Row.cyclicalNav(criteria, previous, navDir)
-    : Row.cyclicalNav(criteria, Row.find(assign({ place: 0 }, criteria)), navDir)
+    : Row.cyclicalNav(criteria, Row.find(Object.assign({ place: 0 }, criteria)), navDir)
 
   target.expand(metadata)
   target.select(metadata)
@@ -841,7 +818,7 @@ Row.last = (criteria) => {
 }
 
 Row.first = (criteria) => {
-  return Row.find(assign({ place: 0 }, criteria))
+  return Row.find(Object.assign({ place: 0 }, criteria))
 }
 
 Row.buildPropertyUid = (component, element, addressableName) => {
@@ -862,7 +839,7 @@ Row.buildHeadingUid = (component, element) => {
 
 Row.fetchAndUnsetRowsToEnsureZerothKeyframe = (criteria) => {
   const rows = []
-  Row.where(lodash.assign({ _needsToEnsureZerothKeyframe: true }, criteria)).forEach((row) => {
+  Row.where(Object.assign({ _needsToEnsureZerothKeyframe: true }, criteria)).forEach((row) => {
     row._needsToEnsureZerothKeyframe = false
     rows.push(row)
   })

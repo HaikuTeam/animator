@@ -74,6 +74,7 @@ class BaseModel extends EventEmitter {
 
     // When a model instance is destroyed, it may not be immediately garbage collected.
     this.__destroyed = null
+    this._updateReceivers = {}
 
     if (this.afterInitialize) this.afterInitialize()
 
@@ -91,6 +92,33 @@ class BaseModel extends EventEmitter {
 
     this.constructor.add(this.__proxy)
     return this.__proxy
+  }
+
+  /**
+   * This method returns a teardown function that decommissions the update receiver provided in its second argument as
+   * a callback.
+   *
+   * IMPORTANT: Always call the teardown function when the entity is expected not to go out of scope but the update
+   * receiver is.
+   *
+   * @param source
+   * @param cb
+   * @returns {function()}
+   */
+  registerUpdateReceiver (source, cb) {
+    if (typeof cb !== 'function') {
+      return () => {}
+    }
+    this._updateReceivers[source] = cb
+    return () => {
+      delete this._updateReceivers[source]
+    }
+  }
+
+  notifyUpdateReceivers (what) {
+    Object.keys(this._updateReceivers).forEach((receiver) => {
+      this._updateReceivers[receiver](what)
+    })
   }
 
   emit (...args) {

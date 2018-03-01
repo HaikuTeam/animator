@@ -105,6 +105,9 @@ class ActiveComponent extends BaseModel {
     Row.on('update', (row, what) => {
       if (row.component === this) {
         this.emit('update', what, row, this.project.getMetadata())
+        if (what === 'row-collapsed' || what === 'row-expanded') {
+          this.cacheUnset('displayableRows')
+        }
       }
     })
 
@@ -2235,7 +2238,9 @@ class ActiveComponent extends BaseModel {
     return async.eachSeries(activeComponents, (activeComponent, next) => {
       // Just in case one of ourselves is nested inside us, avoid an infinite loop
       if (activeComponent === this) return next()
-      return activeComponent.reload(lodash.assign({ hardReload: false, skipReloadLock: true }, reloadOptions), null, next)
+      return activeComponent.reload(
+        Object.assign({ hardReload: false, skipReloadLock: true }, reloadOptions), null, next
+      )
     }, (err) => {
       if (err) return cb(err)
       return cb()
@@ -2408,8 +2413,8 @@ class ActiveComponent extends BaseModel {
 
     const clustersUpserted = {}
 
-    for (let addressableName in addressableProperties) {
-      let propertyGroupDescriptor = addressableProperties[addressableName]
+    for (const addressableName in addressableProperties) {
+      const propertyGroupDescriptor = addressableProperties[addressableName]
 
       if (propertyGroupDescriptor.cluster) {
         // Properties that are 'clustered', like rotation.x,y,z
@@ -2509,6 +2514,7 @@ class ActiveComponent extends BaseModel {
         }
       }
     }
+    this.cacheUnset('displayableRows')
   }
 
   rehydrateKeyframes (row) {
@@ -2634,7 +2640,7 @@ class ActiveComponent extends BaseModel {
   }
 
   getDisplayableRows () {
-    return Row.getDisplayables({ component: this })
+    return this.cacheFetch('displayableRows', () => Row.getDisplayables({ component: this }))
   }
 
   getSelectedKeyframes () {

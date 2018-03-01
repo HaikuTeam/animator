@@ -1,4 +1,3 @@
-const assign = require('lodash.assign')
 const expressionToRO = require('@haiku/core/lib/reflection/expressionToRO').default
 const { Experiment, experimentIsEnabled } = require('haiku-common/lib/experiments')
 const BaseModel = require('./BaseModel')
@@ -30,33 +29,6 @@ class Keyframe extends BaseModel {
     this._didHandleContextMenu = false
     this._mouseDownState = {}
     this._updateReceivers = {}
-  }
-
-  /**
-   * This method returns a teardown function that decommissions the update receiver provided in its second argument as
-   * a callback.
-   *
-   * IMPORTANT: Always call the teardown function when the Keyframe is expected not to go out of scope but the update
-   * receiver is.
-   *
-   * @param source
-   * @param cb
-   * @returns {function()}
-   */
-  registerUpdateReceiver (source, cb) {
-    if (typeof cb !== 'function') {
-      return () => {}
-    }
-    this._updateReceivers[source] = cb
-    return () => {
-      delete this._updateReceivers[source]
-    }
-  }
-
-  notifyUpdateReceivers (what) {
-    Object.keys(this._updateReceivers).forEach((receiver) => {
-      this._updateReceivers[receiver](what)
-    })
   }
 
   activate () {
@@ -387,11 +359,7 @@ class Keyframe extends BaseModel {
     }
 
     const next = this.next()
-    if (this.getMs() < a && (next && next.getMs() < a)) {
-      return false
-    }
-
-    return true
+    return !next || this.getMs() >= a || next.getMs() >= a
   }
 
   next () {
@@ -862,7 +830,7 @@ Keyframe.buildKeyframeMoves = function buildKeyframeMoves (criteria, serialized)
   // Keyframes not part of this object will be deleted from the bytecode
   const moves = {}
 
-  const movables = Keyframe.where(assign({ _needsMove: true }, criteria))
+  const movables = Keyframe.where(Object.assign({ _needsMove: true }, criteria))
 
   movables.forEach((movable) => {
     // As an optimization, skip any that we have already moved below in case of dupes

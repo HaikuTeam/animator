@@ -1,6 +1,5 @@
 const fse = require('haiku-fs-extra')
 const path = require('path')
-const lodash = require('lodash')
 const async = require('async')
 const WebSocket = require('ws')
 const dedent = require('dedent')
@@ -145,7 +144,7 @@ class Project extends BaseModel {
         WebSocket
       )
 
-      this._envoyClient = new EnvoyClient(lodash.assign({
+      this._envoyClient = new EnvoyClient(Object.assign({
         WebSocket: websocketClient,
         logger: new EnvoyLogger('warn', console)
       }, this.getEnvoyOptions()))
@@ -252,16 +251,20 @@ class Project extends BaseModel {
   }
 
   getCurrentActiveComponentSceneName () {
-    return this.getCurrentActiveComponent() && this.getCurrentActiveComponent().getSceneName()
+    const ac = this.getCurrentActiveComponent()
+    return ac && ac.getSceneName()
   }
 
   getCurrentActiveComponentRelpath () {
-    return this.getCurrentActiveComponent() && this.getCurrentActiveComponent().getSceneCodeRelpath()
+    const ac = this.getCurrentActiveComponent()
+    return ac && ac.getSceneCodeRelpath()
   }
 
   getCurrentActiveComponent () {
-    if (!this._activeComponentSceneName) return null
-    return this.findActiveComponentBySceneName(this._activeComponentSceneName)
+    return this.cacheFetch('currentActiveComponent', () => {
+      if (!this._activeComponentSceneName) return null
+      return this.findActiveComponentBySceneName(this._activeComponentSceneName)
+    })
   }
 
   getAllActiveComponents () {
@@ -355,7 +358,7 @@ class Project extends BaseModel {
           // Merge entries from the incoming groupValue parameter into the existing one
           // In this way, the most recent values for all attributes are all used when
           // this method is finally transmitted
-          lodash.assign(last.params[5], params[5])
+          Object.assign(last.params[5], params[5])
           // Use this to decide whether to transmit immediately or wait for more to accumulate
           last.timestamp = Date.now()
           // Important to early return since we don't want to enqueue a new action
@@ -407,12 +410,12 @@ class Project extends BaseModel {
   }
 
   broadcastPayload (mainPayload) {
-    const fullPayloadWithMetadata = lodash.assign(this.getWebsocketBroadcastDefaults(), mainPayload)
+    const fullPayloadWithMetadata = Object.assign(this.getWebsocketBroadcastDefaults(), mainPayload)
     this.websocket.send(fullPayloadWithMetadata)
   }
 
   upsertFile ({ relpath, type }) {
-    const spec = lodash.assign({}, File.DEFAULT_ATTRIBUTES, {
+    const spec = Object.assign({}, File.DEFAULT_ATTRIBUTES, {
       uid: this.buildFileUid(relpath),
       folder: this.getFolder(),
       dtModified: Date.now(),
@@ -638,6 +641,7 @@ class Project extends BaseModel {
       })
 
       this._activeComponentSceneName = scenename
+      this.cacheUnset('currentActiveComponent')
 
       this.updateHook('setCurrentActiveComponent', scenename, metadata || this.getMetadata())
 
@@ -664,8 +668,8 @@ class Project extends BaseModel {
       else tab.active = false
     }
     // TODO: Make smarter instead of just choosing the first one in the list
-    const nextSceneName = this._multiComponentTabs[0] && this._multiComponentTabs[0]
-    this._activeComponentSceneName = nextSceneName
+    this._activeComponentSceneName = this._multiComponentTabs[0]
+    this.cacheUnset('currentActiveComponent')
     this.updateHook('closeNamedActiveComponent', scenename, metadata || this.getMetadata())
     if (cb) return cb()
   }
@@ -780,7 +784,7 @@ class Project extends BaseModel {
         // Because we have just monkeypatched the module, we don't need to (and shouldn't) reload
         // from disk since at this point disk will contain stale content, which we need to update later
         // Note that this ends up passed (via scope) to the mountApplication call; see above
-        instanceConfig = lodash.assign({}, instanceConfig, {
+        instanceConfig = Object.assign({}, instanceConfig, {
           reloadMode: ModuleWrapper.RELOAD_MODES.CACHE
         })
 
@@ -823,8 +827,7 @@ class Project extends BaseModel {
   }
 
   findActiveComponentBySceneName (scenename) {
-    const uid = ActiveComponent.buildPrimaryKey(this.getFolder(), scenename)
-    return ActiveComponent.findById(uid)
+    return ActiveComponent.findById(ActiveComponent.buildPrimaryKey(this.getFolder(), scenename))
   }
 
   bootstrapSceneFilesSync (scenename) {

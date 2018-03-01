@@ -23,10 +23,6 @@ export default class ComponentHeadingRowHeading extends React.Component {
   handleUpdate (what) {
     if (!this.mounted) return null
     if (
-      what === 'row-selected' ||
-      what === 'row-expanded' ||
-      what === 'row-collapsed' ||
-      what === 'row-deselected' ||
       what === 'row-hovered' ||
       what === 'row-unhovered'
     ) {
@@ -37,12 +33,10 @@ export default class ComponentHeadingRowHeading extends React.Component {
   render () {
     let color = Palette.ROCK_MUTED
 
-    if (this.props.row.isExpanded()) {
-      color = Palette.ROCK
-    }
-
     if (this.props.row.isSelected()) {
       color = Palette.SUNSTONE
+    } else if (this.props.row.isExpanded()) {
+      color = Palette.ROCK
     }
 
     if (this.props.row.isHovered()) {

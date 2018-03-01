@@ -39,8 +39,7 @@ process.env.HAIKU_SUBPROCESS = 'timeline'
   bottom controls: 10000 <- ka-boom!
 */
 
-var electron = require('electron')
-var webFrame = electron.webFrame
+const { webFrame } = require('electron')
 if (webFrame) {
   if (webFrame.setZoomLevelLimits) webFrame.setZoomLevelLimits(1, 1)
   if (webFrame.setLayoutZoomLevelLimits) webFrame.setLayoutZoomLevelLimits(0, 0)
@@ -58,7 +57,8 @@ const DEFAULTS = {
   isAltKeyDown: false,
   avoidTimelinePointerEvents: false,
   isPreviewModeActive: false,
-  isRepeat: true
+  isRepeat: true,
+  flush: false
 }
 
 const THROTTLE_TIME = 32 // ms
@@ -93,9 +93,6 @@ class Timeline extends React.Component {
     this.showFrameActionsEditor = this.showFrameActionsEditor.bind(this)
     this.mouseMoveListener = this.mouseMoveListener.bind(this)
     this.mouseUpListener = this.mouseUpListener.bind(this)
-
-    // Used to calculate scroll position
-    this._renderedRows = []
 
     window.timeline = this
   }
@@ -270,13 +267,17 @@ class Timeline extends React.Component {
       }
     })
 
-    document.body.addEventListener('keydown', this.handleKeyDown.bind(this))
+    document.body.addEventListener('keydown', (keydownEvent) => {
+      this.handleKeyDown(e)
+    })
 
-    document.body.addEventListener('keyup', this.handleKeyUp.bind(this))
+    document.body.addEventListener('keyup', (keyupEvent) => {
+      this.handleKeyUp(e)
+    })
 
     document.body.addEventListener('mousewheel', lodash.throttle((wheelEvent) => {
       this.handleScroll(wheelEvent)
-    }, 64), { passive: true })
+    }, 16), { passive: true })
 
     document.addEventListener('mousemove', (mouseMoveEvent) => {
       const timeline = this.getActiveComponent().getCurrentTimeline()
@@ -538,9 +539,8 @@ class Timeline extends React.Component {
   }
 
   handleHorizontalScroll (origDelta) {
-    const absDelta = Math.abs(origDelta)
-    const deltaSign = origDelta ? origDelta < 0 ? -1 : 1 : 0
-    const motionDelta = Math.round(deltaSign * (Math.log(absDelta + 1) * 2))
+    const motionDelta = Math.round((origDelta ? origDelta < 0 ? -1 : 1 : 0) * (Math.log(Math.abs(origDelta) + 1) * 2))
+    console.log(`Updating by ${motionDelta}`)
     this.getActiveComponent().getCurrentTimeline().updateVisibleFrameRangeByDelta(motionDelta)
   }
 
@@ -934,8 +934,6 @@ class Timeline extends React.Component {
       return <span />
     }
 
-    this._renderedRows = []
-
     return (
       <div
         className='property-row-list'
@@ -945,7 +943,6 @@ class Timeline extends React.Component {
         {rows.map((row) => {
           // Cluster rows only display if collapsed, otherwise we show their properties
           if (row.isClusterHeading() && !row.isExpanded()) {
-            this._renderedRows.push(row)
             return (
               <ClusterRow
                 key={row.getUniqueKey()}
@@ -957,7 +954,6 @@ class Timeline extends React.Component {
           }
 
           if (row.isProperty()) {
-            this._renderedRows.push(row)
             return (
               <PropertyRow
                 key={row.getUniqueKey()}
@@ -969,7 +965,6 @@ class Timeline extends React.Component {
           }
 
           if (row.isHeading()) {
-            this._renderedRows.push(row)
             return (
               <ComponentHeadingRow
                 key={row.getUniqueKey()}
@@ -977,7 +972,12 @@ class Timeline extends React.Component {
                 timeline={this.getActiveComponent().getCurrentTimeline()}
                 component={this.getActiveComponent()}
                 row={row}
-                onEventHandlerTriggered={this.showEventHandlersEditor} />
+                onEventHandlerTriggered={this.showEventHandlersEditor}
+                isExpanded={row.isExpanded()}
+                isHidden={row.isHidden()}
+                isSelected={row.isSelected()}
+                hasAttachedActions={row.element.getDOMEvents().length > 0}
+              />
             )
           }
 

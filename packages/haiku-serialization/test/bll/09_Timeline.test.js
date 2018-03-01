@@ -6,6 +6,10 @@ const Project = require('./../../src/bll/Project')
 const Timeline = require('./../../src/bll/Timeline')
 
 tape('Timeline#frameInfo', (t) => {
+  // Start fresh.
+  Timeline.all().forEach((timeline) => {
+    Timeline.remove(timeline)
+  })
   return setupTest('timeline-01', (ac, rows, done) => {
     t.deepEqual(Timeline.count(), 1)
     const timeline = ac.getCurrentTimeline()
