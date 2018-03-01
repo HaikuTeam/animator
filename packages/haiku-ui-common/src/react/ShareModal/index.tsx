@@ -63,8 +63,6 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
       showTooltip: false,
       isPublicKnown: false,
     };
-    this.togglePublic = this.togglePublic.bind(this);
-    this.toggleTooltip = this.toggleTooltip.bind(this);
   }
 
   componentWillReceiveProps(nextProps:PropTypes) {
@@ -115,10 +113,6 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
     }
   }
 
-  toggleTooltip () {
-    this.setState({showTooltip: !this.state.showTooltip});
-  }
-
   render () {
     const {
       project,
@@ -147,9 +141,7 @@ export class ShareModal extends React.Component<PropTypes, StateTypes> {
             isProjectInfoFetchInProgress={isProjectInfoFetchInProgress}
             isSnapshotSaveInProgress={isSnapshotSaveInProgress}
             isPublic={this.state.isPublic}
-            togglePublic={this.togglePublic}
-            toggleTooltip={this.toggleTooltip}
-            showTooltip={this.state.showTooltip}
+            togglePublic={() => this.togglePublic()}
           />
         </ModalHeader>
 
