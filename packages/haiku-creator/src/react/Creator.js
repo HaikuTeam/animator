@@ -377,7 +377,7 @@ export default class Creator extends React.Component {
           console.info('[creator] current-pasteable:request-paste', message.data)
           return this.handleContentPaste(message.data)
         case 'dimensions-reset':
-          console.log('dimensions-reset',message.data)
+          console.log('dimensions-reset', message.data)
           return this.setState({ artboardDimensions: message.data })
       }
     })
