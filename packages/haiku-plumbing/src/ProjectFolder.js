@@ -310,6 +310,10 @@ export function buildProjectContent (_ignoredLegacyArg, projectPath, projectName
       // By default, a react-dom module is exported; see code/main/* for other options
       module.exports = require('./code/main/react-dom')
     `)
+    fse.outputFileSync(dir(projectPath, 'vue.js'), dedent`
+      // By default, a vue-dom module is exported; see code/main/* for other options
+      module.exports = require('./code/main/vue-dom')
+    `)
     fse.outputFileSync(dir(projectPath, 'react-bare.js'), dedent`
       // This only exports a React module into which a Haiku Core must be passed
       var React = require('react') // Installed as a peer dependency of '@haiku/core'
